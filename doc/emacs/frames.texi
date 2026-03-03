@@ -1021,7 +1021,7 @@ a part of the current display.
 these keyboards are physically distinct, so that someone could be typing
 on one keyboard and someone else typing on another, into different
 frames on different terminals.  In certain situations, however, Emacs
-enters single-keyboard mode, in which input from all but one keyboard is
+enters @dfn{single-keyboard mode}, in which input from all but one keyboard is
 blocked.  This prevents keys typed on one keyboard from interfering with
 an operation started on another keyboard.  The main operation to which
 this applies is entering a recursive edit (@pxref{Recursive Edit}),
