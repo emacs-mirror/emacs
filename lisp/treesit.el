@@ -3665,60 +3665,106 @@ the current line if the beginning of the defun is indented."
                        (line-beginning-position))
          (beginning-of-line))))
 
-(defun treesit--thing-sibling (pos thing prev)
+(defmacro treesit--some (sym-val &rest body)
+  "Evaluate BODY with SYM bounded to each value in VAL.
+
+Return the first non-nil evaluation of BODY.
+
+\(fn (SYM VAL) &rest BODY)"
+  (declare (indent 1))
+  (let ((result-sym (gensym))
+        (val-sym (gensym))
+        (sym (car sym-val))
+        (val (cadr sym-val)))
+    `(let ((,val-sym ,val)
+           (,sym nil)
+           (,result-sym nil))
+       (while (and (null ,result-sym)
+                   (setq ,sym (pop ,val-sym)))
+         (setq ,result-sym
+               ,@body))
+       ,result-sym)))
+
+(defun treesit--thing-sibling (pos thing prev &optional parser)
   "Return the next or previous THING at POS.
 
 If PREV is non-nil, return the previous THING.  It's guaranteed
 that returned previous sibling's end <= POS, and returned next
 sibling's beginning >= POS.
 
+If PARSER is non-nil, only use that parser's parse tree.  Otherwise each
+parser covering point is tried from most specific (deepest embedded) to
+least specific.  If there are multiple parsers with the same embed level
+at POS, which parser is tried first is undefined.  If PARSER is a
+language symbol, the parsers tried are limited to ones for that
+language.
+
 Return nil if no THING can be found.  THING should be a thing
 defined in `treesit-thing-settings', or a predicate as described
 in `treesit-thing-settings'."
-  (let* ((cursor (treesit-node-at pos))
-         (pos-pred (if prev
-                       (lambda (n) (<= (treesit-node-end n) pos))
-                     (lambda (n) (>= (treesit-node-start n) pos))))
-         (iter-pred (lambda (node)
-                      (and (treesit-node-match-p node thing t)
-                           (funcall pos-pred node))))
-         (sibling nil))
-    (when cursor
-      ;; Find the node just before/after POS to start searching.
-      (save-excursion
-        (while (and cursor (not (funcall pos-pred cursor)))
-          (setq cursor (treesit-search-forward-goto
-                        cursor "" prev prev t))))
-      ;; Keep searching until we run out of candidates or found a
-      ;; return value.
-      (while (and cursor
-                  (funcall pos-pred cursor)
-                  (null sibling))
-        (setq sibling (treesit-node-top-level cursor iter-pred t))
-        (setq cursor (treesit-search-forward cursor thing prev prev)))
-      sibling)))
+  (treesit--some (parser (cond ((null parser)
+                                (treesit-parsers-at pos))
+                               ((symbolp parser)
+                                (treesit-parsers-at pos parser))
+                               (t (list parser))))
+    (let* ((cursor (treesit-node-at pos parser))
+           (pos-pred (if prev
+                         (lambda (n) (<= (treesit-node-end n) pos))
+                       (lambda (n) (>= (treesit-node-start n) pos))))
+           (iter-pred (lambda (node)
+                        (and (treesit-node-match-p node thing t)
+                             (funcall pos-pred node))))
+           (sibling nil))
+      (when cursor
+        ;; Find the node just before/after POS to start searching.
+        (save-excursion
+          (while (and cursor (not (funcall pos-pred cursor)))
+            (setq cursor (treesit-search-forward-goto
+                          cursor "" prev prev t))))
+        ;; Keep searching until we run out of candidates or found a
+        ;; return value.
+        (while (and cursor
+                    (funcall pos-pred cursor)
+                    (null sibling))
+          (setq sibling (treesit-node-top-level cursor iter-pred t))
+          (setq cursor (treesit-search-forward cursor thing prev prev)))
+        sibling))))
 
-(defun treesit-thing-prev (pos thing)
+(defun treesit-thing-prev (pos thing &optional parser)
   "Return the previous THING at POS.
 
 The returned node, if non-nil, must be before POS, i.e., its end
 <= POS.
 
 THING should be a thing defined in `treesit-thing-settings', or a
-predicate as described in `treesit-thing-settings'."
-  (treesit--thing-sibling pos thing t))
+predicate as described in `treesit-thing-settings'.
 
-(defun treesit-thing-next (pos thing)
+If PARSER is non-nil, only use that parser's parse tree.  Otherwise each
+parser covering point is tried from most specific (deepest embedded) to
+least specific.  If there are multiple parsers with the same embed level
+at POS, which parser is tried first is undefined.  If PARSER is a
+language symbol, the parsers tried are limited to ones for that
+language."
+  (treesit--thing-sibling pos thing t parser))
+
+(defun treesit-thing-next (pos thing &optional parser)
   "Return the next THING at POS.
 
 The returned node, if non-nil, must be after POS, i.e., its
 start >= POS.
 
 THING should be a thing defined in `treesit-thing-settings', or a
-predicate as described in `treesit-thing-settings'."
-  (treesit--thing-sibling pos thing nil))
+predicate as described in `treesit-thing-settings'.
 
-(defun treesit-thing-at (pos thing &optional strict)
+If PARSER is non-nil, only use that parser's parse tree.  Otherwise each
+parser covering point is tried from most specific (deepest embedded) to
+least specific.  If there are multiple parsers with the same embed level
+at POS, which parser is tried first is undefined.  If PARSER is a
+language symbol, the parsers tried are limited to ones for that
+language."
+  (treesit--thing-sibling pos thing nil parser))
+
+(defun treesit-thing-at (pos thing &optional strict parser)
   "Return the smallest node enclosing POS for THING.
 
 The returned node, if non-nil, must enclose POS, i.e., its
@@ -3727,15 +3773,27 @@ node's start must be < POS rather than <= POS.
 
 THING should be a thing defined in `treesit-thing-settings' for
 the current buffer's major mode, or it can be a predicate
-described in `treesit-thing-settings'."
-  (let* ((cursor (treesit-node-at pos))
-         (iter-pred (lambda (node)
-                      (and (treesit-node-match-p node thing t)
-                           (if strict
-                               (< (treesit-node-start node) pos)
-                             (<= (treesit-node-start node) pos))
-                           (< pos (treesit-node-end node))))))
-    (treesit-parent-until cursor iter-pred t)))
+described in `treesit-thing-settings'.
+
+If PARSER is non-nil, only use that parser's parse tree.  Otherwise each
+parser covering point is tried from most specific (deepest embedded) to
+least specific.  If there are multiple parsers with the same embed level
+at POS, which parser is tried first is undefined.  If PARSER is a
+language symbol, the parsers tried are limited to ones for that
+language."
+  (treesit--some (parser (cond ((null parser)
+                                (treesit-parsers-at pos))
+                               ((symbolp parser)
+                                (treesit-parsers-at pos parser))
+                               (t (list parser))))
+    (let ((iter-pred (lambda (node)
+                       (and (treesit-node-match-p node thing t)
+                            (if strict
+                                (< (treesit-node-start node) pos)
+                              (<= (treesit-node-start node) pos))
+                            (< pos (treesit-node-end node))))))
+      (treesit-parent-until
+       (treesit-node-at pos parser) iter-pred t))))
 
 ;; The basic idea for nested defun navigation is that we first try to
 ;; move across sibling defuns in the same level, if no more siblings
@@ -3764,7 +3822,7 @@ described in `treesit-thing-settings'."
 ;;    -> Obviously we don't want to go to parent's end, instead, we
 ;;       want to go to parent's prev-sibling's end.  Again, we recurse
 ;;       in the function to do that.
-(defun treesit-navigate-thing (pos arg side thing &optional tactic recursing)
+(defun treesit-navigate-thing (pos arg side thing &optional tactic parser recursing)
   "Navigate thing ARG steps from POS.
 
 If ARG is positive, move forward that many steps, if negative,
@@ -3788,100 +3846,112 @@ that encloses POS (i.e., parent), should there be one.  `parent' means
 move to the parent if there is one; and move to siblings if there's no
 parent.  If omitted, TACTIC is considered to be `nested'.
 
+If PARSER is non-nil, only use that parser's parse tree.  Otherwise each
+parser covering point is tried from most specific (deepest embedded) to
+least specific.  If there are multiple parsers with the same embed level
+at POS, which parser is tried first is undefined.  If PARSER is a
+language symbol, the parsers tried are limited to ones for that
+language.
+
 RECURSING is an internal parameter, if non-nil, it means this
 function is called recursively."
-  (pcase-let*
-      ((counter (abs arg))
-       ;; Move POS to the beg/end of NODE.  If NODE is nil, terminate.
-       ;; Return the position we moved to.
-       (advance (lambda (node)
-                  (let ((dest (pcase side
-                                ('beg (treesit-node-start node))
-                                ('end (treesit-node-end node)))))
-                    (if (null dest)
-                        (throw 'term nil)
-                      dest)))))
-    (catch 'term
-      (while (> counter 0)
-        (let ((prev (treesit-thing-prev pos thing))
-              (next (treesit-thing-next pos thing))
-              (parent (treesit-thing-at pos thing t)))
-          (when (and parent prev
-                     (not (treesit-node-enclosed-p prev parent)))
-            (setq prev nil))
-          (when (and parent next
-                     (not (treesit-node-enclosed-p next parent)))
-            (setq next nil))
-          ;; When PARENT is nil, nested and top-level are the same, if
-          ;; there is a PARENT, make PARENT to be the top-level parent
-          ;; and pretend there is no nested PREV and NEXT.
-          (when (and (eq tactic 'top-level)
-                     parent)
-            (setq parent (treesit-node-top-level parent thing t)
-                  prev nil
-                  next nil))
-          ;; When PARENT is nil, `nested' and `parent-first' are the
-          ;; same, if there is a PARENT, pretend there is no nested PREV
-          ;; and NEXT so the following code moves to the parent.
-          (when (and (eq tactic 'parent-first) parent)
-            (setq prev nil next nil))
-          ;; If TACTIC is `restricted', the implementation is simple.
-          ;; In principle we don't go to parent's beg/end for
-          ;; `restricted' tactic, but if the parent is a "leaf thing"
-          ;; (doesn't have any child "thing" inside it), then we can
-          ;; move to the beg/end of it (bug#68899).
-          (if (eq tactic 'restricted)
-              (setq pos (funcall
-                         advance
-                         (cond ((and (null next) (null prev)) parent)
-                               ((> arg 0) next)
-                               (t prev))))
-            ;; For `nested', it's a bit more work:
-            ;; Move...
-            (if (> arg 0)
-                ;; ...forward.
-                (if (and (eq side 'beg)
-                         ;; Should we skip the defun (recurse)?
-                         (cond (next (and (not recursing) ; [1] (see below)
-                                          (eq pos (funcall advance next))))
-                               (parent t))) ; [2]
-                    ;; Special case: go to next beg-of-defun, but point
-                    ;; is already on beg-of-defun.  Set POS to the end
-                    ;; of next-sib/parent defun, and run one more step.
-                    ;; If there is a next-sib defun, we only need to
-                    ;; recurse once, so we don't need to recurse if we
-                    ;; are already recursing [1]. If there is no
-                    ;; next-sib but a parent, keep stepping out
-                    ;; (recursing) until we got out of the parents until
-                    ;; (1) there is a next sibling defun, or (2) no more
-                    ;; parents [2].
-                    ;;
-                    ;; If point on beg-of-defun but we are already
-                    ;; recurring, that doesn't count as special case,
-                    ;; because we have already made progress (by moving
-                    ;; the end of next before recurring.)
+  (treesit--some (parser (cond ((null parser)
+                                (treesit-parsers-at pos))
+                               ((symbolp parser)
+                                (treesit-parsers-at pos parser))
+                               (t (list parser))))
+    (pcase-let*
+        ((counter (abs arg))
+         ;; Move POS to the beg/end of NODE.  If NODE is nil, terminate.
+         ;; Return the position we moved to.
+         (advance (lambda (node)
+                    (let ((dest (pcase side
+                                  ('beg (treesit-node-start node))
+                                  ('end (treesit-node-end node)))))
+                      (if (null dest)
+                          (throw 'term nil)
+                        dest)))))
+      (catch 'term
+        (while (> counter 0)
+          (let ((prev (treesit-thing-prev pos thing parser))
+                (next (treesit-thing-next pos thing parser))
+                (parent (treesit-thing-at pos thing t parser)))
+            (when (and parent prev
+                       (not (treesit-node-enclosed-p prev parent)))
+              (setq prev nil))
+            (when (and parent next
+                       (not (treesit-node-enclosed-p next parent)))
+              (setq next nil))
+            ;; When PARENT is nil, nested and top-level are the same, if
+            ;; there is a PARENT, make PARENT to be the top-level parent
+            ;; and pretend there is no nested PREV and NEXT.
+            (when (and (eq tactic 'top-level)
+                       parent)
+              (setq parent (treesit-node-top-level parent thing t)
+                    prev nil
+                    next nil))
+            ;; When PARENT is nil, `nested' and `parent-first' are the
+            ;; same, if there is a PARENT, pretend there is no nested PREV
+            ;; and NEXT so the following code moves to the parent.
+            (when (and (eq tactic 'parent-first) parent)
+              (setq prev nil next nil))
+            ;; If TACTIC is `restricted', the implementation is simple.
+            ;; In principle we don't go to parent's beg/end for
+            ;; `restricted' tactic, but if the parent is a "leaf thing"
+            ;; (doesn't have any child "thing" inside it), then we can
+            ;; move to the beg/end of it (bug#68899).
+            (if (eq tactic 'restricted)
+                (setq pos (funcall
+                           advance
+                           (cond ((and (null next) (null prev)) parent)
+                                 ((> arg 0) next)
+                                 (t prev))))
+              ;; For `nested', it's a bit more work:
+              ;; Move...
+              (if (> arg 0)
+                  ;; ...forward.
+                  (if (and (eq side 'beg)
+                           ;; Should we skip the defun (recurse)?
+                           (cond (next (and (not recursing) ; [1] (see below)
+                                            (eq pos (funcall advance next))))
+                                 (parent t))) ; [2]
+                      ;; Special case: go to next beg-of-defun, but point
+                      ;; is already on beg-of-defun.  Set POS to the end
+                      ;; of next-sib/parent defun, and run one more step.
+                      ;; If there is a next-sib defun, we only need to
+                      ;; recurse once, so we don't need to recurse if we
+                      ;; are already recursing [1]. If there is no
+                      ;; next-sib but a parent, keep stepping out
+                      ;; (recursing) until we got out of the parents until
+                      ;; (1) there is a next sibling defun, or (2) no more
+                      ;; parents [2].
+                      ;;
+                      ;; If point on beg-of-defun but we are already
+                      ;; recurring, that doesn't count as special case,
+                      ;; because we have already made progress (by moving
+                      ;; the end of next before recurring.)
+                      (setq pos (or (treesit-navigate-thing
+                                     (treesit-node-end (or next parent))
+                                     1 'beg thing tactic parser t)
+                                    (throw 'term nil)))
+                    ;; Normal case.
+                    (setq pos (funcall advance (or next parent))))
+                ;; ...backward.
+                (if (and (eq side 'end)
+                         (cond (prev (and (not recursing)
+                                          (eq pos (funcall advance prev))))
+                               (parent t)))
+                    ;; Special case: go to prev end-of-defun.
                     (setq pos (or (treesit-navigate-thing
-                                   (treesit-node-end (or next parent))
-                                   1 'beg thing tactic t)
+                                   (treesit-node-start (or prev parent))
+                                   -1 'end thing tactic parser t)
                                   (throw 'term nil)))
                   ;; Normal case.
-                  (setq pos (funcall advance (or next parent))))
-              ;; ...backward.
-              (if (and (eq side 'end)
-                       (cond (prev (and (not recursing)
-                                        (eq pos (funcall advance prev))))
-                             (parent t)))
-                  ;; Special case: go to prev end-of-defun.
-                  (setq pos (or (treesit-navigate-thing
-                                 (treesit-node-start (or prev parent))
-                                 -1 'end thing tactic t)
-                                (throw 'term nil)))
-                ;; Normal case.
-                (setq pos (funcall advance (or prev parent))))))
-          ;; A successful step! Decrement counter.
-          (decf counter))))
-    ;; Counter equal to 0 means we successfully stepped ARG steps.
-    (if (eq counter 0) pos nil)))
+                  (setq pos (funcall advance (or prev parent))))))
+            ;; A successful step! Decrement counter.
+            (decf counter))))
+      ;; Counter equal to 0 means we successfully stepped ARG steps.
+      (if (eq counter 0) pos nil))))
 
 (defun treesit-thing-at-point (thing tactic)
   "Return the node for THING at point, or nil if no THING is found at point.
@@ -4541,6 +4611,9 @@ before calling this function."
                 #'treesit-add-log-current-defun))
 
   (setq-local transpose-sexps-function #'treesit-transpose-sexps)
+
+  ;; TODO: Add validation to check `treesit-thing-settings', the thing
+  ;; name cannot also be a function.  E.g., string.
 
   (when (treesit-thing-defined-p 'sexp nil)
     (setq-local forward-sexp-function #'treesit-forward-sexp))

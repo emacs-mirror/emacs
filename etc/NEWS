@@ -1250,6 +1250,19 @@ Multi-language major modes can rely on the default return value from
 'treesit-language-at' that uses the new function 'treesit-parsers-at'.
 
 +++
+*** Tree-sitter thing functions now work better with multiple parsers
+These functions now have better handling when there are multiple
+parsers at point: 'treesit-thing-prev', 'treesit-thing-next',
+'treesit-navigate-thing', 'treesit-thing-at'.  When there are multiple
+parsers at point, instead of using whatever 'treesit-node-at' returns at
+point, these functions now try every relevant parser in descending
+order of relevance.  (Deeper embedded parser has higher relevance.)
+These functions now also take an additional optional argument, PARSER,
+that allows caller to specify a parser or language to use.  That also
+means 'treesit-beginning/end-of-defun' now can move across parsers.
+
+
++++
 *** New command 'treesit-explore'.
 This command replaces 'treesit-explore-mode'.  It turns on
 'treesit-explore-mode' if it is not on, and pops up the explorer buffer
