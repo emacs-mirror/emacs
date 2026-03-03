@@ -1038,7 +1038,7 @@ Time-stamp: <1993-07-06 11:05:14 terryg>
 Second, configure your Emacs to run @code{time-stamp} whenever it saves a
 file, by adding @code{time-stamp}
 to @code{before-save-hook} (@pxref{Hooks}).
-There are two ways to do this: you can
+There are two ways to do this step: you can
 
 @itemize
 @item
