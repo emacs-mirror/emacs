@@ -753,21 +753,18 @@ Return the sublist of LIST whose car is ITEM.
 (autoload 'cl--compiler-macro-member "cl-macs")
 
 ;;;###autoload
-(defalias 'cl-member-if #'member-if
+(defun cl-member-if (pred list &rest cl-keys)
   "Find the first item satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches.
 \nKeywords supported:  :key
-\n(fn PREDICATE LIST [KEYWORD VALUE]...)
-
-This function is deprecated in favour of the built-in `member-if' that
-was added in Emacs 31.1.")
+\n(fn PREDICATE LIST [KEYWORD VALUE]...)"
+  (declare (important-return-value t))
+  (apply #'cl-member nil list :if pred cl-keys))
 
 ;;;###autoload
 (defun cl-member-if-not (pred list &rest cl-keys)
   "Find the first item not satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches.
-This function is deprecated in the Common Lisp standard.
-Prefer `member-if' with a negated predicate.
 \nKeywords supported:  :key
 \n(fn PREDICATE LIST [KEYWORD VALUE]...)"
   (declare (important-return-value t))

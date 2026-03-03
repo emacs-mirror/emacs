@@ -1692,16 +1692,15 @@ the list of types to which a value belongs.
 These functions or macros have been added to Emacs Lisp, and the old
 names are now aliases for the built-in equivalents:
 
-- 'cl-incf'      renamed to 'incf'
-- 'cl-decf'      renamed to 'decf'
-- 'cl-oddp'      renamed to 'oddp'
-- 'cl-evenp'     renamed to 'evenp'
-- 'cl-plusp'     renamed to 'plusp'
-- 'cl-minusp'    renamed to 'minusp'
-- 'cl-member-if' renamed to 'member-if'
+- 'cl-incf'   renamed to 'incf'
+- 'cl-decf'   renamed to 'decf'
+- 'cl-oddp'   renamed to 'oddp'
+- 'cl-evenp'  renamed to 'evenp'
+- 'cl-plusp'  renamed to 'plusp'
+- 'cl-minusp' renamed to 'minusp'
 
-The old names are deprecated, and will be marked as obsolete in some
-future release.
+The old names are considered deprecated, and will be marked as obsolete
+in some future release.
 
 +++
 *** 'cl-labels' now also accepts '(FUNC EXP)' bindings, like 'cl-flet'.
@@ -4067,8 +4066,8 @@ signal an error if they are given a non-integer.
 These work like 'drop' and 'take' but use a predicate instead of counting.
 
 +++
-** New function 'all' and function alias 'any'.
-These return non-nil for lists where all and any elements, respectively,
+** New functions 'any' and 'all'.
+These return non-nil for lists where any and all elements, respectively,
 satisfy a given predicate.
 
 +++
