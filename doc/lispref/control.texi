@@ -384,7 +384,7 @@ should not proceed in that case.  Instead of
 @example
 (when-let* ((foo-val (foo-p))
             (num (+ 2 foo-val))
-            (bar-val (bar-p)))
+            (bar-val (bar-p num)))
   ...)
 @end example
 
@@ -394,7 +394,7 @@ consider using
 @example
 (when-let* ((foo-val (foo-p)))
   (let ((num (+ 2 foo-val))
-    (when-let* ((bar-val (bar-p)))
+    (when-let* ((bar-val (bar-p num)))
       ...)))
 @end example
 
