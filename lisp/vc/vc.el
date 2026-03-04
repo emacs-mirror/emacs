@@ -4303,7 +4303,7 @@ some users might prefer for interactive usage."
                  (vc--read-limit)
                (prefix-numeric-value current-prefix-arg))))
         (vc-print-fileset-branch-log branch))
-    (vc-print-log (and (plusp vc-log-show-limit) vc-log-show-limit))))
+    (vc-print-log nil (and (plusp vc-log-show-limit) vc-log-show-limit))))
 
 ;;;###autoload
 (defun vc-print-root-log (&optional limit revision)
