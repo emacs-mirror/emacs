@@ -1402,8 +1402,10 @@ Interactively, with a prefix arg, FORCE is t."
                    ((and (not force)
                          (flymake--with-backend-state backend state
                            (flymake--state-disabled state)))
-                    (flymake-log :debug "Backend %s is disabled, not starting"
-                                 backend))
+                    (flymake-log :debug "Backend %s is disabled, not starting: %S"
+                                 backend
+                                 (flymake--with-backend-state backend state
+                                   (flymake--state-disabled state))))
                    (t
                     (flymake--run-backend backend backend-args)))
                   nil)))
