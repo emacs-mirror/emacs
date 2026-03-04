@@ -807,6 +807,63 @@ ignored if prefix ARG is given.)"
 
 (defalias 'join-line #'delete-indentation) ; easier to find
 
+(defun unfill-paragraph (arg &optional beg end)
+  "Join lines of this paragraph and fix up whitespace at joins.
+If there is a fill prefix, delete it from the beginning of lines before
+joining them.
+Interactively, if the region is active, join lines of each paragraph wholly
+contained within the region.  This means that if the region begins or ends
+within a paragraph, treat the partial paragraph that's within the region as
+the whole paragraph whose lines are to be joined.
+A numeric prefix argument means join the lines of the following ARG
+paragraphs.  In this case an active region is ignored.
+
+With an active region and no prefix argument this is roughly the same as
+`delete-indentation' with that active region, except that this command
+only joins lines within paragraphs, preserving the paragraphs
+themselves.
+
+When called from Lisp, ARG is the number of following paragraphs to join
+lines within, or if ARG is nil, optional arguments BEG and END non-nil
+means to join the lines of each paragraph in the region delimited by BEG
+and END."
+  (interactive "P\nR")
+  (let ((endm (make-marker)))
+    (unwind-protect
+	(cl-flet ((do-unfill ()
+		    (set-marker endm (point))
+		    (fill-forward-paragraph -1)
+		    ;; Adjust BEG and ENDM by 1 because we want to
+		    ;; preserve the newlines before and after the
+		    ;; paragraph.
+		    (delete-indentation nil (1+ (point)) (1- endm))
+		    (goto-char endm)))
+	  (save-excursion
+	    (if (or arg (not beg) (not end))
+		;; Do it ARG times or until we run out of paragraphs.
+		(let ((n (prefix-numeric-value arg))
+		      (i 0))
+		  (while (and (< i n)
+			      (zerop (fill-forward-paragraph 1)))
+		    (do-unfill)
+		    (incf i)))
+	      ;; Ensure there are newlines at beginning and end of
+	      ;; region.  This is how we handle a region starting or
+	      ;; ending within a paragraph.
+	      (goto-char beg)
+	      (unless (or (bolp) (eolp))
+		(open-line 1)
+		(setq beg (point)))
+	      (goto-char end)
+	      (unless (or (bolp) (eolp))
+		(newline 1)
+		(setq end (point)))
+	      (with-restriction beg end
+		(goto-char beg)
+		(while (zerop (fill-forward-paragraph 1))
+		  (do-unfill))))))
+      (set-marker endm nil))))
+
 (defun delete-blank-lines ()
   "On blank line, delete all surrounding blank lines, leaving just one.
 On isolated blank line, delete that one.

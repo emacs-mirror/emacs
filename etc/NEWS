@@ -1035,6 +1035,10 @@ This mode keeps modified lines centered horizontally according to the
 value of 'fill-column', by calling 'center-line' on each non-empty line
 of the modified region.
 
++++
+** New command 'unfill-paragraph'.
+This is the inverse of 'M-q' ('fill-paragraph').
+
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
