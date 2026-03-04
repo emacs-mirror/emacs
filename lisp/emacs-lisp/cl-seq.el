@@ -756,15 +756,29 @@ Return the sublist of LIST whose car is ITEM.
 (defun cl-member-if (pred list &rest cl-keys)
   "Find the first item satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches.
-\nKeywords supported:  :key
-\n(fn PREDICATE LIST [KEYWORD VALUE]...)"
+
+This function is obsolete: use `member-if'.  The new function does not
+support the old `:key KEY-FN' argument, but it is better to compose any
+KEY-FN into PRED.  For example, you can replace
+
+    (cl-member-if #\\='foo items :key #\\='bar)
+
+with
+
+    (member-if (lambda (x) (foo (bar x))) items)
+
+(fn PREDICATE LIST [:KEY KEY-FN])"
   (declare (important-return-value t))
   (apply #'cl-member nil list :if pred cl-keys))
+(make-obsolete 'cl-member-if 'member-if "31.1")
 
 ;;;###autoload
 (defun cl-member-if-not (pred list &rest cl-keys)
   "Find the first item not satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches.
+This function is deprecated in the Common Lisp standard.
+Prefer `member-if' with a negated predicate, and composing any `:key'
+function into the predicate.
 \nKeywords supported:  :key
 \n(fn PREDICATE LIST [KEYWORD VALUE]...)"
   (declare (important-return-value t))

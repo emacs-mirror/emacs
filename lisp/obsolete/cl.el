@@ -182,7 +182,6 @@
                assoc-if-not
                assoc-if
                member-if-not
-               member-if
                merge
                stable-sort
                search

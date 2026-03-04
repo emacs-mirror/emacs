@@ -1182,14 +1182,28 @@ side-effects, and the argument LIST is not modified."
   (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
   (not (drop-while pred list)))
 
-(defun any (pred list)
+(defun member-if (pred list)
   "Non-nil if PRED is true for at least one element in LIST.
-Returns the LIST suffix starting at the first element that satisfies PRED,
-or nil if none does."
+Returns the suffix of LIST starting with the first element that
+satisfies PRED, or nil if none do.
+
+Compatibility note: this function replaces `cl-member-if' but does not
+support the latter's `:key KEY-FN' argument.  It is better to compose
+any KEY-FN into PRED.  For example, you can replace
+
+    (cl-member-if #\\='foo items :key #\\='bar)
+
+with
+
+    (member-if (lambda (x) (foo (bar x))) items)"
   (declare (compiler-macro
             (lambda (_)
               `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))))
   (drop-while (lambda (x) (not (funcall pred x))) list))
+
+;; This is good to have for improved readability in certain uses, but
+;; use the traditional Lisp name for the underlying function.  --spwhitton
+(defalias 'any #'member-if)
 
 ;;;; Keymap support.
 

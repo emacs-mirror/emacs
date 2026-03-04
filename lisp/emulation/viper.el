@@ -793,14 +793,14 @@ It also can't undo some Viper settings."
            (cond ((and (viper-this-major-mode-requires-vi-state major-mode)
 		       (eq viper-current-state 'emacs-state))
 		  (viper-mode))
-		 ((cl-member-if #'derived-mode-p viper-emacs-state-mode-list)
+		 ((member-if #'derived-mode-p viper-emacs-state-mode-list)
 		  ;; not checking (eq viper-current-state 'emacs-state)
 		  ;; because viper-current-state could have gotten it by
 		  ;; default.  We need viper-change-state-to-emacs here to have
 		  ;; the keymaps take effect.
 		  (viper-change-state-to-emacs))
-		 ((and (cl-member-if #'derived-mode-p
-                                     viper-insert-state-mode-list)
+		 ((and (member-if #'derived-mode-p
+                                  viper-insert-state-mode-list)
 		       (not (eq viper-current-state 'insert-state)))
 		  (viper-change-state-to-insert))
 		 )) ; with-current-buffer
