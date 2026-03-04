@@ -203,9 +203,7 @@ In both cases, the first key is customized for signing and encryption."
        (mml-secure-cust-record-keys scontext 'sign "sub@example.org" skey)
        (funcall body3)))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-key-checks ()
-  :tags '(:nobatch)
   "Test mml-secure-check-user-id and mml-secure-check-sub-key on sample keys."
   (skip-unless (test-conf))
   (mml-secure-test-fixture
@@ -273,9 +271,7 @@ In both cases, the first key is customized for signing and encryption."
        (should-not (mml-secure-check-sub-key context (car keys7) 'sign))
        ))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-find-usable-keys-1 ()
-  :tags '(:nobatch)
   "Make sure that expired and disabled keys and revoked UIDs are not used."
   (skip-unless (test-conf))
   (mml-secure-test-fixture
@@ -314,9 +310,7 @@ In both cases, the first key is customized for signing and encryption."
 	(mml-secure-find-usable-keys context "no-exp@example.org" 'sign))
        ))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-find-usable-keys-2 ()
-  :tags '(:nobatch)
   "Test different ways to search for keys."
   (skip-unless (test-conf))
   (mml-secure-test-fixture
@@ -431,9 +425,7 @@ In both cases, the first key is customized for signing and encryption."
        (should-not
 	(mml-secure-cust-remove-keys context 'encrypt "sub@example.org"))))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-select-preferred-keys-4 ()
-  :tags '(:nobatch)
   "Multiple keys can be recorded per recipient or signature."
   (skip-unless (test-conf))
   (skip-unless (ignore-errors (epg-find-configuration 'CMS)))
@@ -581,9 +573,7 @@ If optional EXPECTFAIL is non-nil, a decryption failure is expected."
       (mml-secure-test-en-decrypt method to from checksig t enc-keys expectfail)
       )))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-en-decrypt-1 ()
-  :tags '(:nobatch)
   "Encrypt message; then decrypt and test for expected result.
 In this test, the single matching key is chosen automatically."
   (skip-unless (test-conf))
@@ -593,9 +583,7 @@ In this test, the single matching key is chosen automatically."
      method "no-exp@example.org" "sub@example.org" nil t
      (list (cons "A049C1E9179C086B" "ED7A2135E1582177")))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-en-decrypt-2 ()
-  :tags '(:nobatch)
   "Encrypt message; then decrypt and test for expected result.
 In this test, the encryption key needs to fixed among multiple ones."
   (skip-unless (test-conf))
@@ -609,14 +597,12 @@ In this test, the encryption key needs to fixed among multiple ones."
 	method "sub@example.org" "no-exp@example.org" nil t
 	(list (cons "2FAF8726121EB3C6" "EF25402B479DC6E2")))))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-en-decrypt-3 ()
   "Encrypt message; then decrypt and test for expected result.
 In this test, encrypt-to-self variables are set to t."
   ;; Random failures with "wrong-type-argument stringp nil".
   ;; Seems unlikely to be specific to hydra.nixos.org...
-  :tags (append (if (getenv "EMACS_HYDRA_CI") '(:unstable) nil)
-                '(:nobatch))
+  :tags (if (getenv "EMACS_HYDRA_CI") '(:unstable))
   (skip-unless (test-conf))
   (skip-unless (ignore-errors (epg-find-configuration 'CMS)))
   ;; sub@example.org with multiple candidate keys,
@@ -631,9 +617,7 @@ In this test, encrypt-to-self variables are set to t."
 	  (list (cons "2FAF8726121EB3C6" "EF25402B479DC6E2")
 		(cons "A049C1E9179C086B" "ED7A2135E1582177"))))))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-en-decrypt-4 ()
-  :tags '(:nobatch)
   "Encrypt message; then decrypt and test for expected result.
 In this test, encrypt-to-self variables are set to lists."
   (skip-unless (test-conf))
@@ -760,9 +744,7 @@ Use sign-with-sender and encrypt-to-self."
 		(cons "A049C1E9179C086B" "ED7A2135E1582177"))))
        ))))
 
-;; Fails in batch: signal
 (ert-deftest mml-secure-sign-verify-1 ()
-  :tags '(:nobatch)
   "Sign message with sender; then verify and test for expected result."
   (skip-unless (test-conf))
   (skip-unless (ignore-errors (epg-find-configuration 'CMS)))

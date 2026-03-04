@@ -33,12 +33,11 @@
       (should (member match (list "foonet" "barnet")))
       (erc-d-load-replacement-dialog dialog sym 1))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-gapless-connect ()
   "Back-to-back entry-point invocations happen successfully.
 Originally from scenario rebuffed/gapless as explained in Bug#48598:
 28.0.50; buffer-naming collisions involving bouncers in ERC."
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/gapless-connect")
        (erc-server-flood-penalty 0.1)
@@ -89,9 +88,8 @@ Originally from scenario rebuffed/gapless as explained in Bug#48598:
 ;; killed off and PRIVMSGs arrive targeting it, the buffer should be
 ;; recreated.  See elsewhere for NOTICE logic, which is more complex.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-channel-buffer-revival ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/channel-buffer-revival")

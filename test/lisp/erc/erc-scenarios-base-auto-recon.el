@@ -39,9 +39,8 @@
 ;; This demos one possible flavor of intermittent service.
 ;; It may end up needing to be marked :unstable.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-auto-recon-check/no-reuse ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)
        (port (erc-scenarios-base-auto-recon--get-unused-port))
@@ -96,9 +95,8 @@
 
 ;; Here, a listener accepts but doesn't respond to any messages.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-auto-recon-check/reuse ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should erc-server-delayed-check-reconnect-reuse-process-p)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)

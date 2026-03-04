@@ -45,9 +45,8 @@
 ;; clearer example, see the original version of this file introduced
 ;; by "Add user-oriented test scenarios for ERC".
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-association-nick-bumped ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bumped")
        (dumb-server (erc-d-run "localhost" t 'renicked 'again))
@@ -111,9 +110,8 @@
 ;; nick while you're disconnected, and upon reconnecting, you get
 ;; a new nick.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-association-nick-bumped-mandated-renick ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bumped")
        (dumb-server (erc-d-run "localhost" t 'foisted 'refoisted))

@@ -26,9 +26,8 @@
 
 (eval-when-compile (require 'erc-join))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-flood ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/flood")
        (dumb-server (erc-d-run "localhost" t 'soju))
@@ -85,9 +84,8 @@
 ;; with `ert-skip' plus some condition so it only runs when explicitly
 ;; named via ERT specifier
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-networks-announced-missing ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "networks/announced-missing")
        (expect (erc-d-t-make-expecter))
@@ -109,9 +107,8 @@
 ;; Targets that are host/server masks like $*, $$*, and #* are routed
 ;; to the server buffer: https://github.com/ircdocs/wooooms/issues/5
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-mask-target-routing ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/mask-target-routing")
        (dumb-server (erc-d-run "localhost" t 'foonet))
@@ -141,9 +138,8 @@
 
     (should-not (get-buffer "$*"))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-dcc-chat-accept ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "dcc/chat")
        (dcc-server (erc-d-run "127.0.0.1" t "erc-dcc-server" 'accept-dcc
@@ -183,9 +179,8 @@
 
 (defvar url-irc-function)
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-handle-irc-url ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "join/legacy")
        (dumb-server (erc-d-run "localhost" t 'foonet))
@@ -216,9 +211,8 @@
 (declare-function erc-track-switch-buffer "erc-track" (arg))
 (defvar erc-track-mode)
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-kill-server-track ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "networks/merge-server")
        (dumb-server (erc-d-run "localhost" t 'track))

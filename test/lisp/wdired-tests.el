@@ -131,9 +131,7 @@ wdired-mode."
               (set-buffer-modified-p nil)
               (kill-buffer buf))))))))
 
-;; Fails in batch: make-network-process
 (ert-deftest wdired-test-bug34915 ()
-  :tags '(:nobatch)
   "Test editing when dired-listing-switches includes -F.
 Appended file indicators should not count as part of the file
 name, either before or after editing.  Since

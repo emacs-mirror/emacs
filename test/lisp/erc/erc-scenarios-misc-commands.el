@@ -27,9 +27,8 @@
 ;; This defends against a partial regression in which an /MOTD caused
 ;; 376 and 422 handlers in erc-networks to run.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-misc-commands--MOTD ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "commands")
        (erc-server-flood-penalty 0.1)
@@ -70,9 +69,8 @@
         (erc-cmd-QUIT "")))))
 
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-misc-commands--SQUERY ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "commands")
        (erc-server-flood-penalty 0.1)
@@ -97,9 +95,8 @@
 ;; named `erc-cmd-vhost'.  At the moment, this test merely exists to
 ;; assert that the `erc-server-396' response handler updates the rolls
 ;; correctly.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-misc-commands--VHOST ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "commands")
        (erc-server-flood-penalty 0.1)
@@ -133,9 +130,7 @@
 ;; unaddressed are interactions with the `command-indicator' module
 ;; (`erc-noncommands-list') and whatever future `echo-message'
 ;; implementation manifests out of bug#49860.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-misc-commands--AMSG-GMSG-AME-GME ()
-  :tags '(:nobatch)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "commands")
        (erc-server-flood-penalty 0.1)

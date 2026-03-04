@@ -268,9 +268,7 @@
 Karl Fogel <kfogel@mail-abbrev.com")))))))))
 
 (require 'ldap)
-;; Fails in batch: signal
 (ert-deftest eudcb-ldap ()
-  :tags '(:nobatch)
   "Test the LDAP back-end."
   (skip-unless (and (file-exists-p "/usr/sbin/slapd")
                     (file-exists-p "/usr/bin/ldapsearch")))

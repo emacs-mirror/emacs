@@ -113,17 +113,15 @@
 
     (when more (funcall more))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-compat-no-rename-bouncer--basic ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (with-suppressed-warnings ((obsolete erc-rename-buffers))
     (let (erc-rename-buffers)
       (erc-scenarios-common--base-compat-no-rename-bouncer
        '(foonet barnet) nil nil))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-compat-no-rename-bouncer--reconnect ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-d-tmpl-vars '((token . (group (| "barnet" "foonet")))))
         (erc-d-match-handlers
          (list :pass #'erc-scenarios-common--clash-rename-pass-handler))

@@ -128,20 +128,6 @@ test_module_dir := src/emacs-module-resources
 
 all: check
 
-# FIXME: The :nobatch tag is a principled but ugly emergency fix.
-#
-# There were a bunch of tests that were breaking make check and should
-# never be run in batch mode, because they do things like assuming there
-# is a controlling tty or assuming we can access network services when
-# we can't (e/g. in a CI/CD environment). I have shotgunned this
-# problem by tagging all the failing tests with :nobatch and then
-# changing the default and expensive selectors so make check won't barf
-# all over its shoes.
-#
-# As many of these should be individually removed as possible, after
-# upgrading the test harness to mock the environmental stuff they need.
-# Investigate these failures with "make check-nobatch".
-
 SYSTEM_TYPE = @SYSTEM_TYPE@
 TEST_NATIVE_COMP = $(HAVE_NATIVE_COMP)
 # Avoid fork failures on Cygwin.  See bug#62450 and etc/PROBLEMS
@@ -150,18 +136,17 @@ ifeq ($(SYSTEM_TYPE),cygwin)
 TEST_NATIVE_COMP = no
 endif
 ifeq ($(TEST_NATIVE_COMP),yes)
-SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable) (tag :nobatch)))
-SELECTOR_EXPENSIVE = (not (or (tag :unstable) (tag :nobatch)))
+SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
+SELECTOR_EXPENSIVE = (not (tag :unstable))
 SELECTOR_ALL = t
 else
-SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp) (tag :nobatch)))
-SELECTOR_EXPENSIVE = (not (or (tag :unstable) (tag :nativecomp) (tag :nobatch)))
+SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))
+SELECTOR_EXPENSIVE = (not (or (tag :unstable) (tag :nativecomp)))
 SELECTOR_ALL = (not (tag :nativecomp))
 endif
 ifdef SELECTOR
 SELECTOR_ACTUAL=$(SELECTOR)
 else ifndef MAKECMDGOALS
-
 SELECTOR_ACTUAL=$(SELECTOR_DEFAULT)
 else ifeq ($(MAKECMDGOALS),all)
 SELECTOR_ACTUAL=$(SELECTOR_DEFAULT)
@@ -350,11 +335,6 @@ check-expensive: mostlyclean check-no-automated-subdir
 .PHONY: check-all
 check-all: mostlyclean check-no-automated-subdir
 	@${MAKE} check-doit SELECTOR="${SELECTOR_ALL}"
-
-# Investigate the :nobatch failures
-.PHONY: check-nobatch
-check-nobatch: mostlyclean check-no-automated-subdir
-	@${MAKE} check-doit SELECTOR="(tag :nobatch)"
 
 ## Re-run all tests which are outdated. A test is outdated if its
 ## logfile is out-of-date with either the test file, or the source

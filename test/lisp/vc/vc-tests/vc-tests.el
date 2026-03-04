@@ -1108,10 +1108,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 		 (format "vc-test-%s01-register" backend-string))))))
 	  (vc-test--checkout-model ',backend))
 
-        ;; Fails in batch for SRC: mapcar
         (ert-deftest
             ,(intern (format "vc-test-%s05-rename-file" backend-string)) ()
-          :tags (when (eq ',backend 'SRC) '(:nobatch))
           ,(format "Check `vc-rename-file' for the %s backend."
                    backend-string)
           (skip-unless

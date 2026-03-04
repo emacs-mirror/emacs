@@ -89,9 +89,8 @@
 ;; count, making ERC ignore the option `erc-auto-reconnect-display'
 ;; when next displaying a newly set up buffer.  In the case of a
 ;; /JOIN, the option `erc-interactive-display' takes precedence.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-buffer-display--defwin-recbury-intbuf ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should (eq erc-buffer-display 'bury))
   (should (eq erc-interactive-display 'window))
   (should-not erc-auto-reconnect-display)
@@ -131,9 +130,8 @@
            ;; Emacs reuses the selected window (no split).
            (should (frame-root-window-p (selected-window)))))))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-buffer-display--defwino-recbury-intbuf ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should (eq erc-buffer-display 'bury))
   (should (eq erc-interactive-display 'window))
   (should-not erc-auto-reconnect-display)
@@ -180,9 +178,8 @@
            (should-not (frame-root-window-p (selected-window))) ; noselect
            (should (eq (current-buffer) (window-buffer (next-window))))))))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-buffer-display--count-reset-timeout ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should (eq erc-buffer-display 'bury))
   (should (eq erc-interactive-display 'window))
   (should (eq erc-auto-reconnect-display-timeout 10))
@@ -217,9 +214,8 @@
 ;; This shows that the option `erc-interactive-display' overrides
 ;; `erc-join-buffer' during cold opens and interactive /JOINs.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-buffer-display--interactive-default ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should (eq erc-join-buffer 'bury))
   (should (eq erc-interactive-display 'window))
 

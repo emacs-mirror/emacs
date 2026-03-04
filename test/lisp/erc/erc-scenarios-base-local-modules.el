@@ -44,9 +44,8 @@
 ;; This asserts that a local module's options and its inclusion in
 ;; (and absence from) `erc-update-modules' can be let-bound.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-local-modules--reconnect-let ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "sasl")
        (erc-server-flood-penalty 0.1)
@@ -87,9 +86,8 @@
 ;; `erc-FOO-disable' affect all buffers of a connection, whereas
 ;; `erc-FOO-mode' continues to operate only on the current buffer.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-local-modules--toggle-helpers ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/local-modules")
        (erc-server-flood-penalty 0.1)
@@ -177,9 +175,8 @@
 ;; absence of QUITs.  (That said, three connections in under 2 seconds
 ;; is pretty nice.)
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-local-modules--var-persistence ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/reconnect")
        (erc-server-flood-penalty 0.1)

@@ -27,9 +27,8 @@
 (require 'erc-status-sidebar)
 
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-status-sidebar--bufbar ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/gapless-connect")
        (erc-server-flood-penalty 0.1)

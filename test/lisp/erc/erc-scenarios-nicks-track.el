@@ -27,9 +27,8 @@
 (require 'erc-track)
 (require 'erc-nicks)
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-nicks-track/prioritize ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (should (eq erc-nicks-track-faces 'prioritize))
 
@@ -127,9 +126,8 @@
       (funcall expect 10 "has quit")
       (funcall assert-result '(7 . erc-notice-face)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-nicks-track/defer ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (should (eq erc-nicks-track-faces 'prioritize))
 
@@ -230,9 +228,8 @@
       (funcall expect 10 "has quit")
       (funcall assert-result '(7 . erc-notice-face)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-nicks-track/nil ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (should (eq erc-nicks-track-faces 'prioritize))
 
@@ -332,9 +329,8 @@
       (funcall expect 10 "has quit")
       (funcall assert-result '(7 . erc-notice-face)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-nicks-track/t ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (should (eq erc-nicks-track-faces 'prioritize))
 

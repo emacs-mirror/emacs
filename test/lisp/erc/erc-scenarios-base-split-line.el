@@ -24,9 +24,8 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-split-line--koi8-r ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should (equal erc-split-line-length 440))
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/flood")
@@ -74,9 +73,8 @@
       (erc-cmd-QUIT "")
       (funcall expect 10 "finished"))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-split-line--ascii ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should (equal erc-split-line-length 440))
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/flood")
@@ -134,9 +132,8 @@
       (erc-cmd-QUIT "")
       (funcall expect 10 "finished"))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-split-line--utf-8 ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (unless (> emacs-major-version 27)
     (ert-skip "No emojis in Emacs 27"))
 

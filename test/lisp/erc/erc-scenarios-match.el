@@ -38,9 +38,8 @@
 ;; message, which doesn't exist, when the message content is prefixed
 ;; by a leading timestamp.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--stamp-left-current-nick ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/reconnect")
        (dumb-server (erc-d-run "localhost" t 'unexpected-disconnect))
@@ -125,9 +124,8 @@
 
 ;; This asserts that when stamps appear before a message, registered
 ;; invisibility properties owned by modules span the entire message.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--stamp-left-fools-invisible ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-insert-timestamp-function #'erc-insert-timestamp-left))
     (erc-scenarios-match--invisible-stamp
 
@@ -204,14 +202,12 @@
            (should (eq (get-text-property inv-beg 'invisible)
                        'timestamp))))))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--stamp-right-fools-invisible ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-match--stamp-right-fools-invisible))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--stamp-right-fools-invisible--nooffset ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
     (should-not erc-legacy-invisible-bounds-p)
     (let ((erc-legacy-invisible-bounds-p t))
@@ -219,9 +215,8 @@
 
 ;; This asserts that when `erc-fill-wrap-mode' is enabled, ERC hides
 ;; the preceding message's line ending.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--stamp-right-invisible-fill-wrap ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-insert-timestamp-function #'erc-insert-timestamp-right)
         (erc-fill-function #'erc-fill-wrap))
     (erc-scenarios-match--invisible-stamp
@@ -270,9 +265,7 @@
     (`(space :width (- erc-fill--wrap-value ,n))
      (< 10 n 30))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--hide-fools/stamp-both/fill-wrap ()
-  :tags '(:nobatch)
 
   ;; Rewind the clock to known date artificially.  We should probably
   ;; use a ticks/hz cons on 29+.
@@ -379,9 +372,7 @@
 ;; take place after a series of hidden fool messages with an
 ;; intervening outgoing message followed immediately by a non-fool
 ;; message from the last non-hidden speaker (other than the user).
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--hide-fools/stamp-both/fill-wrap/speak ()
-  :tags '(:nobatch)
 
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "match/fools")
@@ -520,11 +511,8 @@
        (should-not (next-single-property-change (pos-bol) 'invisible))))))
 
 ;; FIXME explain why these next two fail on FreeBSD 14.2 (Bug#74722).
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--stamp-both-invisible-fill-static ()
-  :tags `(:expensive-test
-          ,@(and (eq system-type 'berkeley-unix) '(:unstable))
-          :nobatch)
+  :tags `(:expensive-test ,@(and (eq system-type 'berkeley-unix) '(:unstable)))
   (erc-scenarios-match--stamp-both-invisible-fill-static
 
    (lambda ()
@@ -539,11 +527,8 @@
                                          'invisible 'timestamp)
                   (match-end 0))))))) ; pos-eol
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-match--stamp-both-invisible-fill-static--nooffset ()
-  :tags `(:expensive-test
-          ,@(and (eq system-type 'berkeley-unix) '(:unstable))
-          :nobatch)
+  :tags `(:expensive-test ,@(and (eq system-type 'berkeley-unix) '(:unstable)))
   (with-suppressed-warnings ((obsolete erc-legacy-invisible-bounds-p))
     (should-not erc-legacy-invisible-bounds-p)
 

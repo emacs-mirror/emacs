@@ -31,9 +31,7 @@
 ;; Temporary kludge to silence warning
 (put 'erc-parse-tags 'erc-v3-warned-p t)
 
-;; Fails in batch: signal
 (ert-deftest erc-d-u--canned-load-dialog--basic ()
-  :tags '(:nobatch)
   (should-not (get-buffer "basic.eld"))
   (should-not erc-d-u--canned-buffers)
   (let* ((exes (erc-d-u--canned-load-dialog 'basic))
@@ -64,9 +62,7 @@
     (lambda () (erc-d-u--read-exchange p))))
 
 ;; Fuzzies need to be able to access any non-exhausted genny.
-;; Fails in batch: signal
 (ert-deftest erc-d-u--canned-load-dialog--intermingled ()
-  :tags '(:nobatch)
   (should-not (get-buffer "basic.eld"))
   (should-not erc-d-u--canned-buffers)
   (let* ((exes (erc-d-u--canned-load-dialog 'basic))
@@ -118,9 +114,7 @@
 
 ;; This indirectly tests `erc-d-u--canned-read' cleanup/teardown
 
-;; Fails in batch: signal
 (ert-deftest erc-d-u--rewrite-for-slow-mo ()
-  :tags '(:nobatch)
   (should-not (get-buffer "basic.eld"))
   (should-not (get-buffer "basic.eld<2>"))
   (should-not (get-buffer "basic.eld<3>"))
@@ -641,9 +635,8 @@ nonzero for this to work."
        (advice-remove sym 'spy))
      (setq ,found (nreverse ,found))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-nonstandard-messages ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* ((erc-d-linger-secs 0.2)
          (dumb-server (erc-d-run "localhost" t 'nonstandard))
          (dumb-server-buffer (get-buffer "*erc-d-server*"))
@@ -676,18 +669,16 @@ nonzero for this to work."
     (when noninteractive
       (kill-buffer dumb-server-buffer))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-basic ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-d-tests-with-server (_ _) basic
     (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
       (erc-d-t-search-for 2 "hey"))
     (when noninteractive
       (kill-buffer "#chan"))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-eof ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (skip-unless noninteractive)
   (erc-d-tests-with-server (_ erc-s-buf) eof
     (with-current-buffer (erc-d-t-wait-for 3 (get-buffer "#chan"))
@@ -695,9 +686,8 @@ nonzero for this to work."
     (with-current-buffer erc-s-buf
       (process-send-eof erc-server-process))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-eof-fail ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let (errors)
     (erc-d-tests-with-failure-spy errors '(erc-d--teardown)
       (erc-d-tests-with-server (_ _) eof
@@ -795,9 +785,8 @@ nonzero for this to work."
       (kill-buffer client-buffer-b)
       (kill-buffer dumb-server-buffer))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-no-match ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-d-linger-secs 1)
         erc-server-auto-reconnect
         errors)
@@ -810,9 +799,8 @@ nonzero for this to work."
     (should (string-match-p "Match failed.*foo.*chan" (cadr (pop errors))))
     (should-not (get-buffer "#foo"))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-timeout ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-d-linger-secs 1)
         err errors)
     (erc-d-tests-with-failure-spy errors '(erc-d--teardown)
@@ -822,9 +810,8 @@ nonzero for this to work."
     (should (eq (car err) 'erc-d-timeout))
     (should (string-match-p "Timed out" (cadr err)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-unexpected ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-d-linger-secs 2)
         errors)
     (erc-d-tests-with-failure-spy
@@ -837,9 +824,8 @@ nonzero for this to work."
     ;; first error was thrown
     (should (string-match-p "Match failed" (cadr (pop errors))))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-unexpected-depleted ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-d-linger-secs 3)
         errors)
     (erc-d-tests-with-failure-spy errors '(erc-d--teardown erc-d-command)
@@ -901,9 +887,8 @@ nonzero for this to work."
     (when noninteractive
       (kill-buffer "#chan"))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-dynamic-default-match ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* (dynamic-tally
          (erc-d-tmpl-vars '((user . "user")
                             (ignored . ((a b) (: a space b)))
@@ -927,9 +912,8 @@ nonzero for this to work."
     (should (equal '((dom . match-user) (nick . match-user) (dom . match-user))
                    dynamic-tally))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-dynamic-default-match-rebind ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* (tally
          ;;
          (erc-d-tmpl-vars '((user . "user")
@@ -957,9 +941,8 @@ nonzero for this to work."
     (erc-d-tests--run-dynamic)
     (should (equal '(bind-nick bind-dom) tally))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-dynamic-runtime-stub ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-d-tmpl-vars '((token . (group (or "barnet" "foonet")))))
         (erc-d-match-handlers
          (list :pass (lambda (d _e)
@@ -977,9 +960,8 @@ nonzero for this to work."
       (when noninteractive
         (kill-buffer "#chan")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-dynamic-runtime-stub-skip ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-d-tmpl-vars '((token . "barnet")))
         (erc-d-match-handlers
          (list :pass (lambda (d _e)
@@ -999,9 +981,8 @@ nonzero for this to work."
         (kill-buffer "#chan")))))
 
 ;; Two servers, in-process, one client per
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-dual-direct ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* ((erc-d--slow-mo -1)
          (server-a (erc-d-run "localhost" t "erc-d-server-a" 'dynamic-foonet))
          (server-b (erc-d-run "localhost" t "erc-d-server-b" 'dynamic-barnet))
@@ -1050,9 +1031,8 @@ nonzero for this to work."
       (kill-buffer server-b-buffer))))
 
 ;; This can be removed; only exists to get a baseline for next test
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-fuzzy-direct ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* ((erc-d-tmpl-vars
           `((now . ,(lambda () (format-time-string "%FT%T.%3NZ" nil t)))))
          (dumb-server (erc-d-run "localhost" t 'fuzzy))
@@ -1092,9 +1072,8 @@ nonzero for this to work."
       (kill-buffer dumb-server-buffer))))
 
 ;; Without adjusting penalty, takes ~15 secs. With is comparable to direct ^.
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-fuzzy ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-server-flood-penalty 1.2) ; penalty < margin/sends is basically 0
         (erc-d-linger-secs 0.1)
         (erc-d-tmpl-vars
@@ -1114,9 +1093,8 @@ nonzero for this to work."
       (with-current-buffer "#foo"
         (erc-d-t-search-for 5 "was created on")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-no-block ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-server-flood-penalty 1)
         (erc-d-linger-secs 1.2)
         (expect (erc-d-t-make-expecter))
@@ -1207,9 +1185,8 @@ bouncer-like setup."
 ;; everything needed for the whole session in `erc-d-tmpl-vars' before
 ;; starting the server.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-proxy-direct-spec-vars ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* ((dumb-server-buffer (get-buffer-create "*erc-d-server*"))
          (erc-d-linger-secs 0.5)
          (erc-d-tmpl-vars
@@ -1250,9 +1227,8 @@ DIALOGS are symbols representing the base names of dialog files in
     (let ((pair (read buffer)))
       (cons proc (cdr pair)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-proxy-direct-subprocess ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* ((buffer (get-buffer-create "*erc-d-server*"))
          ;; These are quoted because they're passed as printed forms to subproc
          (fqdn '(lambda (a e)
@@ -1277,9 +1253,8 @@ DIALOGS are symbols representing the base names of dialog files in
          (server (pop port)))
     (erc-d-tests--run-proxy-direct server buffer port)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-proxy-direct-subprocess-lib ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* ((buffer (get-buffer-create "*erc-d-server*"))
          (lib (expand-file-name "proxy-subprocess.el"
                                 (ert-resource-directory)))
@@ -1290,9 +1265,8 @@ DIALOGS are symbols representing the base names of dialog files in
          (server (pop port)))
     (erc-d-tests--run-proxy-direct server buffer port)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-no-pong ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* (erc-d-auto-pong
          ;;
          (erc-d-tmpl-vars
@@ -1340,9 +1314,8 @@ DIALOGS are symbols representing the base names of dialog files in
 ;; Inspect replies as they arrive within a single exchange, i.e., ensure we
 ;; don't regress to prior buggy version in which inspection wasn't possible
 ;; until all replies had been sent by the server.
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-incremental ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-server-flood-penalty 0)
         (expect (erc-d-t-make-expecter))
         erc-d-linger-secs)
@@ -1358,9 +1331,8 @@ DIALOGS are symbols representing the base names of dialog files in
         (funcall expect 10 "Done")
         (erc-send-message "Hi")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-unix-socket-direct ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (skip-unless (featurep 'make-network-process '(:family local)))
   (let* ((erc-d-linger-secs 0.1)
          (sock (expand-file-name "erc-d.sock" temporary-file-directory))
@@ -1396,9 +1368,8 @@ DIALOGS are symbols representing the base names of dialog files in
             (kill-buffer dumb-server-buffer)))
       (delete-file sock))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-d-run-direct-foreign-protocol ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let* ((server (erc-d-run "localhost" t "erc-d-server" 'foreign
                             :ending "\n"))
          (server-buffer (get-buffer "*erc-d-server*"))

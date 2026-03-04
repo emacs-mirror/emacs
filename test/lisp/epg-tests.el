@@ -98,10 +98,8 @@
            (setq-local epg-tests-context context)
            ,@body)))))
 
-;; Fails in batch: signal
 (ert-deftest epg-decrypt-1 ()
   :expected-result (if (getenv "EMACS_HYDRA_CI") :failed :passed) ; fixme
-  :tags '(:nobatch)
   (with-epg-tests (:require-passphrase t)
     (should (equal "test"
 		   (epg-decrypt-string epg-tests-context "\
@@ -139,9 +137,7 @@ jA0ECQMCdW8+qtS9Tin/0jUBO1/9Oz69BWPmtFKEeBM62WpFP4o1+bNzdxogdyeg
       (should (equal "public key"
 		     (epg-decrypt-string epg-tests-context cipher))))))
 
-;; Fails in batch: signal
 (ert-deftest epg-sign-verify-1 ()
-  :tags '(:nobatch)
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -154,9 +150,7 @@ jA0ECQMCdW8+qtS9Tin/0jUBO1/9Oz69BWPmtFKEeBM62WpFP4o1+bNzdxogdyeg
       (should (= 1 (length verify-result)))
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
-;; Fails in batch: signal
 (ert-deftest epg-sign-verify-2 ()
-  :tags '(:nobatch)
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -171,9 +165,7 @@ jA0ECQMCdW8+qtS9Tin/0jUBO1/9Oz69BWPmtFKEeBM62WpFP4o1+bNzdxogdyeg
       (should (= 1 (length verify-result)))
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
-;; Fails in batch: signal
 (ert-deftest epg-sign-verify-3 ()
-  :tags '(:nobatch)
   (with-epg-tests (:require-passphrase t
 		   :require-public-key t
 		   :require-secret-key t)
@@ -187,9 +179,7 @@ jA0ECQMCdW8+qtS9Tin/0jUBO1/9Oz69BWPmtFKEeBM62WpFP4o1+bNzdxogdyeg
       (should (= 1 (length verify-result)))
       (should (eq 'good (epg-signature-status (car verify-result)))))))
 
-;; Fails in batch: signal
 (ert-deftest epg-import-1 ()
-  :tags '(:nobatch)
   (with-epg-tests (:require-passphrase nil)
     (should (= 0 (length (epg-list-keys epg-tests-context))))
     (should (= 0 (length (epg-list-keys epg-tests-context nil t)))))

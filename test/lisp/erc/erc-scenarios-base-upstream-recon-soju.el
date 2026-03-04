@@ -29,9 +29,8 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-upstream-recon--soju ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common--upstream-reconnect
    (lambda ()
      (with-current-buffer "foonet"

@@ -28,9 +28,8 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-join-auth-source--network ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (should erc-auth-source-join-function)
   (erc-scenarios-common-with-cleanup
       ((entries

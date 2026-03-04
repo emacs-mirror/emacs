@@ -29,9 +29,8 @@
 ;; it were a status prefix update, which led to a wrong-type error.
 ;; This test does not address similar collisions with unary modes,
 ;; such as "MODE +q foo!*@*", but it should.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-chan-modes--plus-q ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/modes")
        (erc-server-flood-penalty 0.1)
@@ -96,9 +95,8 @@
 ;; correctness of our processing logic, but it's unclear how such a
 ;; discrepancy ought to be handled beyond asking the user to file a
 ;; bug.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-chan-modes--speaker-status ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/modes")
        (erc-server-flood-penalty 0.1)

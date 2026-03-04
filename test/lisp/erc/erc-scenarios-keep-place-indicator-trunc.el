@@ -26,11 +26,9 @@
 
 (require 'erc-goodies)
 
-;; Fails in batch: signal
 (ert-deftest erc-scenarios-keep-place-indicator-trunc ()
   :tags `(:expensive-test
-          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical))
-          :nobatch)
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
 
   (when (and noninteractive (= emacs-major-version 27))
     (ert-skip "Times out"))

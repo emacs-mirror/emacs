@@ -193,9 +193,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 ;; Unlike curl, socks.el includes the ID field (but otherwise matches):
 ;; $ curl --proxy socks4://127.0.0.1:1080 example.com
 
-;; Fails in batch: make-network-process
 (ert-deftest socks-tests-v4-basic ()
-  :tags '(:nobatch)
   "Show correct preparation of SOCKS4 connect command (Bug#46342)."
   (let ((socks-server '("server" "127.0.0.1" t 4))
         (url-user-agent "Test/4-basic")
@@ -211,9 +209,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
                    (list 93 184 216 34))))
         (socks-tests-perform-hello-world-http-request)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest socks-tests-v4a-basic ()
-  :tags '(:nobatch)
   "Show correct preparation of SOCKS4a connect command."
   (let ((socks-server '("server" "127.0.0.1" t 4a))
         (socks-username "foo")
@@ -225,9 +221,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
     (ert-info ("Make HTTP request over SOCKS4A")
       (socks-tests-perform-hello-world-http-request))))
 
-;; Fails in batch: signal
 (ert-deftest socks-tests-v4a-error ()
-  :tags '(:nobatch)
   "Show error signaled when destination address rejected."
   (let ((socks-server '("server" "127.0.0.1" t 4a))
         (url-user-agent "Test/4a-basic")
@@ -245,9 +239,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 ;; against curl 7.71 with the following options:
 ;; $ curl --verbose -U foo:bar --proxy socks5h://127.0.0.1:10080 example.com
 
-;; Fails in batch: make-network-process
 (ert-deftest socks-tests-v5-auth-user-pass ()
-  :tags '(:nobatch)
   "Verify correct handling of SOCKS5 user/pass authentication."
   (should (assq 2 socks-authentication-methods))
   (let ((socks-server '("server" "127.0.0.1" t 5))
@@ -281,9 +273,7 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
 ;; with ([5 3 0 1 2] . [5 2]) and ([1 0 0] . [1 0]), then run:
 ;; $ curl verbose -U "foo:" --proxy socks5h://127.0.0.1:10081 example.com
 
-;; Fails in batch: make-network-process
 (ert-deftest socks-tests-v5-auth-user-pass-blank ()
-  :tags '(:nobatch)
   "Verify correct SOCKS5 user/pass authentication with empty pass."
   (should (assq 2 socks-authentication-methods))
   (let ((socks-server '("server" "127.0.0.1" t 5))
@@ -320,17 +310,13 @@ Vectors must match verbatim.  Strings are considered regex patterns.")
       (socks-tests-perform-hello-world-http-request method)))
   (should (assq 2 socks-authentication-methods)))
 
-;; Fails in batch: make-network-process
 (ert-deftest socks-tests-v5-auth-none ()
-  :tags '(:nobatch)
   (socks-tests-v5-auth-none 'socks))
 
 ;; This simulates the top-level advice around `open-network-stream'
 ;; that's applied when loading the library with a non-nil
 ;; `socks-override-functions'.
-;; Fails in batch: make-network-process
 (ert-deftest socks-override-functions ()
-  :tags '(:nobatch)
   (should-not socks-override-functions)
   (should-not (advice-member-p #'socks--open-network-stream
                                'open-network-stream))

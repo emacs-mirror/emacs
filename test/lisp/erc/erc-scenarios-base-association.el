@@ -86,9 +86,8 @@
         (funcall expect 3 "was created on")
         (funcall expect 20 "ingenuous")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-association-multi-net--baseline ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common--base-association-multi-net
    (lambda () (with-current-buffer "barnet" (erc-cmd-JOIN "#chan")))))
 
@@ -97,9 +96,8 @@
 ;; bug#47522) to show that issuing superfluous /join commands
 ;; (apparently fairly common) is benign.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-association-multi-net--ambiguous-join ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common--base-association-multi-net
    (lambda ()
      (ert-info ("Nonsensical JOIN attempts silently dropped.")
@@ -119,9 +117,8 @@
 ;; Originally from Bug#48598: 28.0.50; buffer-naming collisions
 ;; involving bouncers in ERC.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-association-bouncer-history ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
        (erc-d-t-cleanup-sleep-secs 1)
@@ -203,9 +200,8 @@
 ;; "Attempt to display deleted buffer" error when they try switching
 ;; to it.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-networks-merge-server-track ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "networks/merge-server")
        (dumb-server (erc-d-run "localhost" t 'track 'track))

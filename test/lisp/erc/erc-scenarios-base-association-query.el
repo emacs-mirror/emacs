@@ -32,9 +32,8 @@
 ;; exist for these, so new ones are created that feature a net-ID
 ;; @suffix.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-association-existing-non-erc-buffer ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/queries")
        (dumb-server (erc-d-run "localhost" t 'non-erc))
@@ -75,9 +74,8 @@
 
 ;; Someone sending you a PM has the same name as the network (bug#59976)
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-association-some-nick-is-network ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/queries")
        (dumb-server (erc-d-run "localhost" t 'netnick))

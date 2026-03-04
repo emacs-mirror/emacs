@@ -31,9 +31,8 @@
 
 (defvar erc-timestamp-format-left)
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-log--kill-hook ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
        (dumb-server (erc-d-run "localhost" t 'foonet))
@@ -86,9 +85,8 @@
 ;; originally had a nil insertion type.  This staggered alignment means
 ;; truncation resulting from a /CLEAR actually demands more twiddling
 ;; and care than that triggered by the `truncate' module.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-log--cmd-clear/date-stamps ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (require 'erc-stamp)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
@@ -163,9 +161,8 @@
 
     (erc-log-mode -1)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-log--cmd-clear/left-stamps ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "base/assoc/bouncer-history")
        (dumb-server (erc-d-run "localhost" t 'foonet))
@@ -333,9 +330,8 @@
 (defvar erc-insert-timestamp-function)
 (declare-function erc-insert-timestamp-left "erc-stamp" (string))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-log--save-buffer-in-logs/truncate-on-save ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (with-suppressed-warnings ((obsolete erc-truncate-buffer-on-save))
     (erc-scenarios-common-with-cleanup
         ((erc-scenarios-common-dialog "base/assoc/bouncer-history")

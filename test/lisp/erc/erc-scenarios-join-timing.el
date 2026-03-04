@@ -72,9 +72,8 @@
 ;; `connect'.  Here, ERC emits the JOIN request before being informed by
 ;; NickServ that it needs to log in.  The server then holds off on
 ;; granting the JOIN until authentication has completed.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-join-timing/connect ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (should (eq erc-autojoin-timing 'connect))
   (erc-scenarios-join-timing--services-identify-both 'connect-both))
@@ -84,9 +83,8 @@
 ;; arranges not to request a JOIN until it's been authenticated by the
 ;; server.  Since `erc-autojoin-delay' remains at its default of 30,
 ;; authentication occurs before the fallback timer fires.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-join-timing/ident ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (should (eq erc-autojoin-timing 'connect))
   (should (= erc-autojoin-delay 30))

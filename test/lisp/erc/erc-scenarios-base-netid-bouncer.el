@@ -24,14 +24,12 @@
   (let ((load-path (cons (ert-resource-directory) load-path)))
     (require 'erc-scenarios-common)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-netid-bouncer--base ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common--base-network-id-bouncer () 'foonet 'barnet))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-netid-bouncer--both ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common--base-network-id-bouncer '(:foo-id t :bar-id t)
                                                  'foonet 'barnet))
 

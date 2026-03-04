@@ -27,9 +27,7 @@
 (require 'nsm)
 (eval-when-compile (require 'cl-lib))
 
-;; Fails in batch: signal
 (ert-deftest nsm-check-local-subnet-ipv4 ()
-  :tags '(:nobatch)
   "Check that nsm can be avoided for local subnets."
   (let ((local-ip '[172 26 128 160 0])
         (mask '[255 255 255 0 0])

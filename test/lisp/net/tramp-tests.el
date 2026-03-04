@@ -5518,10 +5518,9 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   (tramp--test-message "buf: %s\n%s\n---" (current-buffer) (buffer-string))
   (ert-fail (format "`%s' timed out" (ert-test-name (ert-running-test)))))
 
-;; Fails in batch: signal
 (ert-deftest tramp-test29-start-file-process ()
   "Check `start-file-process'."
-  :tags '(:expensive-test :tramp-asynchronous-processes :nobatch)
+  :tags '(:expensive-test :tramp-asynchronous-processes)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-processes-p))
 
@@ -5700,12 +5699,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
      ;; (concat (ert-test-documentation (get ',test 'ert--test))
      ;;         "\nUse direct async process.")
      :tags (append '(:expensive-test :tramp-asynchronous-processes)
-		   (and ,unstable '(:unstable))
-		   (and (memq ',test '(tramp-test29-start-file-process
-				       tramp-test30-make-process
-				       tramp-test32-shell-command
-				       tramp-test33-environment-variables))
-			'(:nobatch)))
+		   (and ,unstable '(:unstable)))
      (skip-unless (tramp--test-enabled))
      (let* ((default-directory ert-remote-temporary-file-directory)
 	    (ert-test (ert-get-test ',test))
@@ -5729,7 +5723,6 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	 (file-truename ert-remote-temporary-file-directory)
 	 (funcall (ert-test-body ert-test))))))
 
-;; Fails in batch: signal
 (tramp--test-deftest-direct-async-process tramp-test29-start-file-process)
 
 (ert-deftest tramp-test30-make-process ()
@@ -5993,7 +5986,6 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	      ;; Cleanup.
 	      (ignore-errors (delete-process proc)))))))))
 
-;; Fails in batch: signal
 (tramp--test-deftest-direct-async-process tramp-test30-make-process)
 
 (ert-deftest tramp-test31-interrupt-process ()
@@ -6300,7 +6292,6 @@ INPUT, if non-nil, is a string sent to the process."
       (when (natnump cols)
 	(should (= cols async-shell-command-width))))))
 
-;; Fails in batch: signal
 (tramp--test-deftest-direct-async-process tramp-test32-shell-command)
 
 ;; This test is inspired by Bug#39067.
@@ -6521,7 +6512,6 @@ INPUT, if non-nil, is a string sent to the process."
 	       this-shell-command-to-string
 	       "printenv | grep -v PS1 | grep -v _=")))))))))
 
-;; Fails in batch: signal
 (tramp--test-deftest-direct-async-process tramp-test33-environment-variables)
 
 ;; This test is inspired by Bug#27009.

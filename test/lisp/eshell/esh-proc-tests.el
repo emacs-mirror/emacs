@@ -174,9 +174,7 @@ See bug#71778."
      ;; pipeline.
      (should (= eshell-last-command-status 0)))))
 
-;; Fails in batch: signal
 (ert-deftest esh-proc-test/pipeline-connection-type/no-pipeline ()
-  :tags '(:nobatch)
   "Test that all streams are PTYs when a command is not in a pipeline."
   (skip-unless (executable-find "sh"))
   (eshell-command-result-equal
@@ -185,9 +183,7 @@ See bug#71778."
    (unless (eq system-type 'windows-nt)
      "stdin\nstdout\nstderr\n")))
 
-;; Fails in batch: signal
 (ert-deftest esh-proc-test/pipeline-connection-type/first ()
-  :tags '(:nobatch)
   "Test that only stdin is a PTY when a command starts a pipeline."
   (skip-unless (and (executable-find "sh")
                     (executable-find "cat")))
@@ -205,9 +201,7 @@ pipeline."
    (concat "(ignore) | " esh-proc-test--detect-pty-cmd " | cat")
    nil))
 
-;; Fails in batch: signal
 (ert-deftest esh-proc-test/pipeline-connection-type/last ()
-  :tags '(:nobatch)
   "Test that only output streams are PTYs when a command ends a pipeline."
   (skip-unless (executable-find "sh"))
   (eshell-command-result-equal
@@ -308,9 +302,7 @@ prompt.  See bug#54136."
      (kill-process (eshell-head-process)))
     (should (equal (buffer-string) ""))))
 
-;; Fails in batch: signal
 (ert-deftest esh-proc-test/kill-pipeline ()
-  :tags '(:nobatch)
   "Test that killing a pipeline of processes only emits a single
 prompt.  See bug#54136."
   (skip-unless (and (executable-find "sh")

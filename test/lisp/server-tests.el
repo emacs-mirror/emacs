@@ -122,9 +122,7 @@ process's status matches it."
 
 ;;; Tests:
 
-;; Fails in batch: make-network-process
 (ert-deftest server-tests/server-start/sets-minor-mode ()
-  :tags '(:nobatch)
   "Ensure that calling `server-start' also sets `server-mode' properly."
   (server-tests/with-server
     ;; Make sure starting the server activates the minor mode.
@@ -134,9 +132,7 @@ process's status matches it."
   (should (eq server-mode nil))
   (should-not (memq 'server-mode global-minor-modes)))
 
-;; Fails in batch: make-network-process
 (ert-deftest server-tests/server-start/stop-prompt-with-client ()
-  :tags '(:nobatch)
   "Ensure that stopping the server prompts when there are clients."
   (skip-unless server-tests/can-create-frames-p)
   (server-tests/with-server
@@ -149,9 +145,7 @@ process's status matches it."
         (server-start t)
         (should yes-or-no-p-called)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest server-tests/server-start/no-stop-prompt-without-client ()
-  :tags '(:nobatch)
   "Ensure that stopping the server doesn't prompt when there are no clients."
   (server-tests/with-server
     (cl-letf* ((inhibit-message t)
@@ -162,9 +156,7 @@ process's status matches it."
       (server-start t)
       (should-not yes-or-no-p-called))))
 
-;; Fails in batch: make-network-process
 (ert-deftest server-tests/emacsclient/server-edit ()
-  :tags '(:nobatch)
   "Test that calling `server-edit' from a client buffer exits the client."
   (server-tests/with-server
     (server-tests/with-client emacsclient '("file.txt") 'exit
@@ -173,9 +165,7 @@ process's status matches it."
       (with-current-buffer "file.txt"
         (server-edit)))))
 
-;; Fails in batch: make-network-process
 (ert-deftest server-tests/emacsclient/create-frame ()
-  :tags '(:nobatch)
   "Test that \"emacsclient -c\" creates a frame."
   (skip-unless server-tests/can-create-frames-p)
   (let ((starting-frame-count (length (frame-list))))
@@ -188,9 +178,7 @@ process's status matches it."
     ;; The client frame should go away after the server stops.
     (should (length= (frame-list) starting-frame-count))))
 
-;; Fails in batch: make-network-process
 (ert-deftest server-tests/emacsclient/eval ()
-  :tags '(:nobatch)
   "Test that \"emacsclient --eval\" works correctly."
   (server-tests/with-server
     (let ((value (random)))
@@ -199,9 +187,7 @@ process's status matches it."
           'exit
         (should (= server-tests/variable value))))))
 
-;; Fails in batch: make-network-process
 (ert-deftest server-tests/server-force-stop/keeps-frames ()
-  :tags '(:nobatch)
   "Ensure that `server-force-stop' doesn't delete frames.  See bug#58877.
 Note: since that bug is about a behavior when killing Emacs, this
 test is somewhat indirect. (Killing the current Emacs instance

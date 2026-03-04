@@ -29,12 +29,10 @@
 ;; This test shows that the indicator does not update when at least
 ;; one window remains.  When the last window showing a buffer switches
 ;; away, the indicator is updated if it's earlier in the buffer.
-;; Fails in batch: signal
 (ert-deftest erc-scenarios-keep-place-indicator--follow ()
   :tags `(:expensive-test
           ,@(and (getenv "EMACS_EMBA_CI") '(:unstable))
-          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical))
-          :nobatch)
+          ,@(and (getenv "ERC_TESTS_GRAPHICAL") '(:erc--graphical)))
 
   ;; ERC's tests also run in external CI that exports this variable.
   ;; Skip on 27 because `erc-scrolltobottom-all' currently requires 28+.

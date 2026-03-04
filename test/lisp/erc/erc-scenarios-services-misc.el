@@ -27,9 +27,8 @@
 (eval-when-compile (require 'erc-join)
                    (require 'erc-services))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-services-password ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "services/password")
@@ -57,9 +56,8 @@
 
     (should-not (memq 'services erc-modules))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-services-prompt ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "services/password")
        (erc-server-flood-penalty 0.1)
@@ -92,9 +90,8 @@
 ;; `erc-auth-source-server-function' runs -- initially *or* on
 ;; reconnect.  It's only seen by `erc-auth-source-services-function'.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-services-auth-source-reconnect ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "services/auth-source")
        (erc-server-flood-penalty 0.1)
@@ -151,9 +148,8 @@
 ;; placeholder and successfully renicks once the connection is up.
 ;; See also `erc-scenarios-base-renick-self-auto'.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-services-misc--reconnect-retry-nick ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)
        (erc-scenarios-common-dialog "services/regain")
@@ -199,9 +195,8 @@
 ;; This only asserts that the handler fires and issues the right
 ;; NickServ command, but it doesn't accurately recreate a
 ;; disconnection, but it probably should.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-services-misc--regain-command ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)
        (erc-scenarios-common-dialog "services/regain")
@@ -229,9 +224,8 @@
       ;; Works with "given" `:id'.
       (should (and (erc-network) (not (eq (erc-network) 'ExampleNet)))))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-services-misc--regain-command/oftc ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)
        (erc-scenarios-common-dialog "services/regain")
@@ -255,9 +249,8 @@
       (funcall expect 10 "*** Your new nickname is dummy")
       (funcall expect 10 "*** dummy has changed mode for dummy to +R"))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-services-misc--ghost-and-retry-nick ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-server-flood-penalty 0.1)
        (erc-scenarios-common-dialog "services/regain")

@@ -34,9 +34,7 @@
 
 (declare-function gnutls-peer-status "gnutls.c")
 
-;; Fails in batch: make-network-process
 (ert-deftest make-local-unix-server ()
-  :tags '(:nobatch)
   (skip-unless (featurep 'make-network-process '(:family local)))
   (let* ((file (make-temp-name "/tmp/server-test"))
          (server
@@ -50,9 +48,7 @@
     (should (equal (process-contact server :local) file))
     (delete-file (process-contact server :local))))
 
-;; Fails in batch: make-network-process
 (ert-deftest make-ipv4-tcp-server-with-unspecified-port ()
-  :tags '(:nobatch)
   (let ((server
          (make-network-process
           :name "server"
@@ -66,9 +62,7 @@
                  (> (aref (process-contact server :local) 4) 0)))
     (delete-process server)))
 
-;; Fails in batch: make-network-process
 (ert-deftest make-ipv4-tcp-server-with-specified-port ()
-  :tags '(:nobatch)
   (let ((server
          (make-network-process
           :name "server"
@@ -172,9 +166,7 @@
       (should (equal (buffer-string) "foo\n")))
     (delete-process server)))
 
-;; Fails in batch: make-network-process
 (ert-deftest echo-server-with-localhost ()
-  :tags '(:nobatch)
   (let* ((server (make-server 'local))
          (port (aref (process-contact server :local) 4))
          (proc (make-network-process :name "foo"
@@ -187,9 +179,7 @@
       (should (equal (buffer-string) "foo\n")))
     (delete-process server)))
 
-;; Fails in batch: make-network-process
 (ert-deftest echo-server-with-local-ipv4 ()
-  :tags '(:nobatch)
   (let* ((server (make-server 'local 'ipv4))
          (port (aref (process-contact server :local) 4))
          (proc (make-network-process :name "foo"
@@ -219,9 +209,7 @@
         (should (equal (buffer-string) "foo\n")))
       (delete-process server))))
 
-;; Fails in batch: make-network-process
 (ert-deftest echo-server-with-ip ()
-  :tags '(:nobatch)
   (let* ((server (make-server 'local))
          (port (aref (process-contact server :local) 4))
          (proc (make-network-process :name "foo"
@@ -234,9 +222,7 @@
       (should (equal (buffer-string) "foo\n")))
     (delete-process server)))
 
-;; Fails in batch: make-network-process
 (ert-deftest echo-server-nowait ()
-  :tags '(:nobatch)
   (let* ((server (make-server 'local))
          (port (aref (process-contact server :local) 4))
          (proc (make-network-process :name "foo"
@@ -490,9 +476,7 @@ additional parameters to use to start the listening TLS server."
     (+ 20000 (random 45535))
     (vector :nowait t))))
 
-;; Fails in batch: make-network-process
 (ert-deftest check-network-process-coding-system-bind ()
-  :tags '(:nobatch)
   "Check that binding coding-system-for-{read,write} works."
   (let* ((coding-system-for-read 'binary)
          (coding-system-for-write 'utf-8-unix)
@@ -509,9 +493,7 @@ additional parameters to use to start the listening TLS server."
     (should (eq (cdr coding) 'utf-8-unix))
     (delete-process server)))
 
-;; Fails in batch: make-network-process
 (ert-deftest check-network-process-coding-system-no-override ()
-  :tags '(:nobatch)
   "Check that coding-system-for-{read,write} is not overridden by :coding nil."
   (let* ((coding-system-for-read 'binary)
          (coding-system-for-write 'utf-8-unix)
@@ -529,9 +511,7 @@ additional parameters to use to start the listening TLS server."
     (should (eq (cdr coding) 'utf-8-unix))
     (delete-process server)))
 
-;; Fails in batch: make-network-process
 (ert-deftest check-network-process-coding-system-override ()
-  :tags '(:nobatch)
   "Check that :coding non-nil overrides coding-system-for-{read,write}."
   (let* ((coding-system-for-read 'binary)
          (coding-system-for-write 'utf-8-unix)

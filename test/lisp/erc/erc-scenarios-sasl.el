@@ -26,9 +26,8 @@
 
 (require 'erc-sasl)
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-sasl--plain ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "sasl")
        (erc-server-flood-penalty 0.1)
@@ -55,9 +54,8 @@
 ;; The user's unreasonably long password is apportioned into chunks on
 ;; the way out the door.
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-sasl--plain-overlong-split ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "sasl")
        (erc-server-flood-penalty 0.1)
@@ -89,9 +87,8 @@
         (funcall expect 10 "This server is in debug mode")
         (erc-cmd-QUIT "")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-sasl--plain-overlong-aligned ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "sasl")
        (erc-server-flood-penalty 0.1)
@@ -118,9 +115,8 @@
         (funcall expect 10 "This server is in debug mode")
         (erc-cmd-QUIT "")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-sasl--external ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "sasl")
        (erc-server-flood-penalty 0.1)
@@ -143,9 +139,8 @@
         (funcall expect 10 "Authentication successful")
         (funcall expect 10 "This server is in debug mode")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-sasl--plain-fail ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "sasl")
        (erc-server-flood-penalty 0.1)
@@ -201,15 +196,13 @@
         (funcall expect 10 "Found your hostname")
         (funcall expect 20 "marked as being away")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-sasl--scram-sha-1 ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (let ((erc-sasl-authzid "jilles"))
     (erc-scenarios--common--sasl 'scram-sha-1)))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-sasl--scram-sha-256 ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (unless (featurep 'sasl-scram-sha256)
     (ert-skip "Emacs lacks sasl-scram-sha256"))
   (erc-scenarios--common--sasl 'scram-sha-256))

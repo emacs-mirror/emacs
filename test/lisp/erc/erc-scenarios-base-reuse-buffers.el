@@ -64,9 +64,8 @@ collisions involving bouncers in ERC.  Run EXTRA."
     (when more (funcall more port))))
 
 ;; FIXME no sense in running this twice (JOIN variant includes this)
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-reuse-buffers-server-buffers--disabled ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (with-suppressed-warnings ((obsolete erc-reuse-buffers))
     (should erc-reuse-buffers)
     (let ((erc-scenarios-common-dialog "base/reuse-buffers/server")
@@ -188,9 +187,8 @@ Adapted from scenario clash-of-chans/uniquify described in Bug#48598:
       (should-not (get-buffer "#chan"))
       (should (get-buffer "#chan/127.0.0.1")))))
 
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-base-reuse-buffers-channel-buffers--disabled ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
   (with-suppressed-warnings ((obsolete erc-reuse-buffers))
     (should erc-reuse-buffers)
     (let ((erc-scenarios-common-dialog "base/reuse-buffers/channel")

@@ -30,9 +30,8 @@
 ;; This asserts that an intervening date stamp between two messages
 ;; from the same speaker will trigger a break in merge detection, so
 ;; the second message's speaker tag won't be hidden.
-;; Fails in batch: make-network-process
 (ert-deftest erc-scenarios-fill-wrap/merge-datestamp ()
-  :tags '(:expensive-test :nobatch)
+  :tags '(:expensive-test)
 
   (erc-scenarios-common-with-cleanup
       ((erc-scenarios-common-dialog "fill/wrap")
