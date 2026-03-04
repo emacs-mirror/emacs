@@ -1005,10 +1005,12 @@ In the return value, assign nil to each parameter in
 `frame-inherited-parameters', which is not in PARAMETERS, and remove all
 parameters in `frame-internal-parameters' from PARAMETERS."
   (dolist (p (append default-frame-alist
-                     window-system-default-frame-alist
-                     frame-inherited-parameters))
+                     window-system-default-frame-alist))
     (unless (assq (car p) parameters)
       (push (cons (car p) nil) parameters)))
+  (dolist (p frame-inherited-parameters)
+    (unless (assq p parameters)
+      (push (cons p nil) parameters)))
   (seq-remove (lambda (elem)
                 (memq (car elem) frame-internal-parameters))
               parameters))
