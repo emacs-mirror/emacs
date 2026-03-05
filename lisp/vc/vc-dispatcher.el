@@ -157,6 +157,8 @@ logged in the *Messages* buffer, but not displayed."
   "Name of the hook run at the end of `vc-finish-logentry'.
 BEWARE: Despite its name, this variable is not itself a hook!")
 (defvar vc-log-fileset)
+(defvar vc--inhibit-message nil
+  "Value for `inhibit-message' in `vc--command-message' and similar.")
 
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
@@ -409,6 +411,12 @@ Intended to be used as the value of `vc-filter-command-function'."
     (list (car edited) file-or-list
           (nconc (cdr edited) (and files-separator-p '("--"))))))
 
+(defun vc--command-message (&rest args)
+  "Call `message' on ARGS taking into account relevant VC variables."
+  (when vc-command-messages
+    (let ((inhibit-message vc--inhibit-message))
+      (apply #'message args))))
+
 ;;;###autoload
 (defun vc-do-command (destination okstatus command file-or-list &rest flags)
   "Execute an inferior command, notifying user and checking for errors.
@@ -456,7 +464,7 @@ that is inserted into the command line before the filename."
               ;; a such way that the important parts are at the beginning,
               ;; due to potential truncation of long messages.
               (message-truncate-lines t)
-              (vc-inhibit-message
+              (vc--inhibit-message
                (or (eq vc-command-messages 'log)
                    (eq (selected-window) (active-minibuffer-window))))
 
@@ -512,21 +520,18 @@ that is inserted into the command line before the filename."
                                     :file-handler t)))
                 (when stderr-buf
                   (vc-run-delayed (kill-buffer stderr-buf)))
-                (when vc-command-messages
-                  (let ((inhibit-message vc-inhibit-message))
-                    (message "Running in background: %s"
-                             full-command)))
+                (vc--command-message "Running in background: %s"
+                                     full-command)
                 (setq status proc)
                 (when vc-command-messages
                   (vc-run-delayed
                     (let ((message-truncate-lines t)
-                          (inhibit-message vc-inhibit-message))
+                          (inhibit-message vc--inhibit-message))
                       (message "Done in background: %s"
                                full-command)))))
             ;; Run synchronously
-            (when vc-command-messages
-              (let ((inhibit-message vc-inhibit-message))
-                (message "Running in foreground: %s" full-command)))
+            (vc--command-message "Running in foreground: %s"
+                                 full-command)
             (let ((buffer-undo-list t))
               (setq status (apply #'process-file command nil
                                   (list stdout stderr) nil squeezed)))
@@ -546,10 +551,8 @@ that is inserted into the command line before the filename."
                          (format "status %d" status)
                        status)
                      full-command))
-            (when vc-command-messages
-              (let ((inhibit-message vc-inhibit-message))
-                (message "Done (status=%d): %s"
-                         status full-command)))))
+            (vc--command-message "Done (status=%d): %s"
+                                 status full-command)))
         (vc-run-delayed
           (run-hook-with-args 'vc-post-command-functions
                               command file-or-list flags))
