@@ -401,7 +401,8 @@ consider using
 @noindent
 because this makes it clearer that the execution of the code is
 conditional on @code{foo-val} and @code{bar-val} being non-@code{nil},
-but not directly conditional on @code{num}.
+but not directly conditional on @code{num}, which moreover can never be
+@code{nil}.
 
 There is no @code{cond-let*} macro because extending the structure
 shared by @code{if-let*}, @code{when-let*} and @code{and-let*} to the
