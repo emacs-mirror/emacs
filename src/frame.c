@@ -2762,7 +2762,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 		  struct frame *f1 = XFRAME (frame1);
 		  if (FRAME_TOOLTIP_P (f1)
 		      || FRAME_TERMINAL (f) != FRAME_TERMINAL (f1)
-		      || !FRAME_VISIBLE_P (f1))
+		      || !FRAME_VISIBLE_P (f1)
+		      || EQ (frame1, frame))
 		    frame1 = Qnil;
 		}
 	    }
