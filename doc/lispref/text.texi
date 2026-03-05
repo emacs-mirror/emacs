@@ -1651,6 +1651,16 @@ current paragraph.  When this command is called interactively,
 @var{region} is @code{t}.
 @end deffn
 
+@deffn Command unfill-paragraph arg &optional beg end
+This command is the inverse of the previous one: it joins up the lines
+of the current paragraph.  With a numeric prefix argument @var{arg}, it
+applies the operation to that many paragraphs.  With no prefix argument
+and an active region, unfill each paragraph in that region.  When called
+from Lisp with @var{arg} @code{nil} and @var{beg} and @var{end}
+non-@code{nil}, unfill paragraphs in the region delimited by @var{beg}
+and @var{end}.
+@end deffn
+
 @deffn Command fill-region start end &optional justify nosqueeze to-eop
 This command fills each of the paragraphs in the region from @var{start}
 to @var{end}.  It justifies as well if @var{justify} is

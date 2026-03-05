@@ -573,9 +573,11 @@ Fill current paragraph (@code{fill-paragraph}).
 @item C-x f
 Set the fill column (@code{set-fill-column}).
 @item M-x fill-region
-Fill each paragraph in the region (@code{fill-region}).
+Fill each paragraph in the region.
 @item M-x fill-region-as-paragraph
 Fill the region, considering it as one paragraph.
+@item M-x unfill-paragraph
+Unfill current paragraph.
 @item M-x center-line
 Center a line.
 @end table
@@ -632,6 +634,18 @@ that column on a graphical display depends on the font being used.  In
 particular, using variable-pitch fonts will cause the
 @code{fill-column} occupy different horizontal positions on display in
 different lines.
+
+@cindex unfilling
+@findex unfill-paragraph
+  The command @kbd{M-x unfill-paragraph} is the inverse of @kbd{M-q}.
+It joins up the lines of the current paragraph.  Using this command is
+like starting on the last line of the paragraph and repeatedly typing
+@kbd{M-^} (@pxref{Indentation Commands}) until all the lines are joined.
+With a numeric prefix argument, apply the operation to that many
+paragraphs.  For example, with a numeric prefix argument of 2, join all
+the lines in this paragraph and all the lines in the next paragraph, but
+preserve the separation of the two paragraphs.  When there is no prefix
+argument, it acts on an active region just like @kbd{M-q}.
 
 @cindex centering
 @findex center-line

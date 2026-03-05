@@ -115,28 +115,6 @@ With a prefix argument, join the current line to the following line.
 If the region is active, and no prefix argument is given, join all
 lines in the region instead.
 
-@item M-x unfill-paragraph
-@findex unfill-paragraph
-Merge the lines of the current paragraph.  This is like starting on the
-last line of the paragraph and repeatedly typing @kbd{M-^} until all the
-lines are joined.  It can also be understood as the inverse of @kbd{M-q}
-(@code{fill-paragraph}).
-
-With a numeric prefix argument, apply the operation to that many
-paragraphs.  For example, with a numeric prefix argument of 2, join all
-the lines in this paragraph and all the lines in the next paragraph, but
-preserve the separation of the two paragraphs.
-
-With no prefix argument and an active region, apply the operation to all
-paragraphs in that region.  If the region begins or ends within a
-paragraph, treat the partial paragraph that's within the region as the
-whole paragraph whose lines are to be joined.
-
-With no prefix argument and an active region, this command is roughly
-the same as @kbd{M-^} with that same active region, except that this
-command only joins lines within paragraphs, preserving the paragraphs
-themselves.
-
 @item C-M-\
 @kindex C-M-\
 @findex indent-region
