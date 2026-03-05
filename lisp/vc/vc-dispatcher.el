@@ -152,9 +152,10 @@ logged in the *Messages* buffer, but not displayed."
 
 (defcustom vc-display-failed-async-commands nil
   "If non-nil, display VC async command buffers when the command fails.
-Considers VC async commands to have failed whenever they die to a signal
-or exit non-zero."
+Considers VC async commands to have failed whenever they die due to a
+fatal signal or exit with a non-zero status."
   :type 'boolean
+  :version "31.1"
   :group 'vc)
 
 ;; Variables the user doesn't need to know about.
