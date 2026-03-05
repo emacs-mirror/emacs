@@ -2566,6 +2566,31 @@ If you have no Meta key, you may instead type ESC followed by the character.)"))
                                        (get-scratch-buffer-create)))
 		 'follow-link t)
   (insert "\n")
+
+  (insert "New to Emacs?  Consider enabling ")
+  (insert-button "newcomer presets"
+                 'action (lambda (_button)
+                           (info "(emacs) Newcomers Theme"))
+                 'follow-link t)
+  (insert ": ")
+  (insert-button (if (custom-theme-enabled-p 'newcomers-presets)
+                     "Disable"
+                   "Enable")
+                 'action (lambda (button)
+                           (let ((inhibit-read-only t))
+                             (replace-region-contents
+                              (button-start button)
+                              (button-end button)
+                              (pcase (button-label button)
+                                ("Enable"
+                                 (load-theme 'newcomers-presets)
+                                 "Disable")
+                                ("Disable"
+                                 (disable-theme 'newcomers-presets)
+                                 "Enable"))))))
+
+  (insert "\n")
+
   (save-restriction
     (narrow-to-region (point) (point))
     (insert "\n" (emacs-version) "\n")
