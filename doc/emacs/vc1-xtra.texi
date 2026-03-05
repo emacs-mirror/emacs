@@ -890,9 +890,11 @@ and @kbd{C-x v i} can save the current buffer without asking, and
 
 @vindex vc-command-messages
   VC mode does much of its work by running the shell commands for the
-appropriate version control system.  If @code{vc-command-messages} is
-non-@code{nil}, VC displays messages to indicate which shell commands
-it runs, and additional messages when the commands finish.
+appropriate version control system.  If @code{vc-command-messages} has
+the value @code{log}, VC logs messages to the @file{*Messages*} buffer
+to indicate which shell commands it runs, and logs additional messages
+when the commands finish.  If the variable has any other non-@code{nil}
+value, Emacs both logs and displays these messages.
 
 @vindex vc-async-checkin
   Normally checkin operations are done synchronously; that is, Emacs
