@@ -2932,6 +2932,11 @@ You can disable this by customizing 'vc-dir-show-outgoing-count' to nil.
 *** New user option 'vc-async-checkin' to enable async checkin operations.
 Currently only supported by the Git and Mercurial backends.
 
++++
+*** New user option 'vc-display-failed-async-commands'.
+If non-nil, displays the buffer with the output of the failed command
+when an asynchronous VC command (e.g. pulls and pushes) fails.
+
 ---
 *** New 'log-edit-hook' option to display diff of changes to commit.
 You can customize 'log-edit-hook' to include its new

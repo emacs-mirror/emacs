@@ -896,6 +896,18 @@ to indicate which shell commands it runs, and logs additional messages
 when the commands finish.  If the variable has any other non-@code{nil}
 value, Emacs both logs and displays these messages.
 
+@vindex vc-display-failed-async-commands
+  VC mode runs certain shall commands asynchronously, allow you to
+continue to use Emacs for other purposes while the command completes.
+This is mostly used for commands which access the network, such as
+pulling and pushing for distributed VCS (@pxref{Pulling / Pushing}).
+When the command starts, VC displays a buffer into which the commands
+output will be written.  If @code{vc-display-failed-async-commands} is
+non-@code{nil}, VC will additionally ensure that this buffer is
+displayed when the command finishes running but failed.  This means you
+can freely close the window displaying the command's buffer and know
+that it'll pop up again in the case that running the command failed.
+
 @vindex vc-async-checkin
   Normally checkin operations are done synchronously; that is, Emacs
 waits until the checkin has completed before doing anything else.  This

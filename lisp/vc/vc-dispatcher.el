@@ -150,6 +150,13 @@ logged in the *Messages* buffer, but not displayed."
   :type 'boolean
   :group 'vc)
 
+(defcustom vc-display-failed-async-commands nil
+  "If non-nil, display VC async command buffers when the command fails.
+Considers VC async commands to have failed whenever they die to a signal
+or exit non-zero."
+  :type 'boolean
+  :group 'vc)
+
 ;; Variables the user doesn't need to know about.
 
 (defvar vc-log-operation nil)
@@ -527,7 +534,9 @@ that is inserted into the command line before the filename."
                   (vc-run-delayed
                     (let ((message-truncate-lines t)
                           (inhibit-message vc--inhibit-message))
-                      (message "Done in background: %s"
+                      (message "%s in background: %s"
+                               (if (zerop (process-exit-status proc))
+                                   "Done" "Failed")
                                full-command)))))
             ;; Run synchronously
             (vc--command-message "Running in foreground: %s"
@@ -596,7 +605,10 @@ Display the buffer in some window, but don't select it."
                                     (time-to-seconds
                                      (time-since start-time))))
                            (set-marker (process-mark proc)
-                                       (point))))))))))
+                                       (point)))))
+                     (when (and vc-display-failed-async-commands
+                                (not (zerop (process-exit-status proc))))
+                       (vc--display-async-command-buffer buffer)))))))
     (setq buffer (get-buffer-create buffer))
     (if (get-buffer-process buffer)
 	(error "Another VC action on %s is running" root))

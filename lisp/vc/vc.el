@@ -2192,7 +2192,7 @@ have changed; continue with old fileset?" (current-buffer))))
         ;; NOQUERY parameter non-nil.
         (vc-buffer-sync-fileset (list backend files)))
       (when register (vc-register (list backend register)))
-      (let (to-remove-props)
+      (let (to-remove-props proc)
         (cl-flet ((do-it ()
                     ;; We used to change buffers to get local value of
                     ;; `vc-checkin-switches', but the (singular) local
@@ -2206,18 +2206,23 @@ have changed; continue with old fileset?" (current-buffer))))
                   (remove-props-done-msg ()
                     (dolist (file to-remove-props)
                       (vc-file-setprop file 'display-state nil))
-                    (message "Checking in %s...done" (vc-delistify files))))
+                    (message "Checking in %s...%s"
+                             (vc-delistify files)
+                             (if (or (not proc)
+                                     (zerop (process-exit-status proc)))
+                                 "done" "failed"))))
           (if do-async
               ;; Rely on `vc-set-async-update' to update properties
               ;; other than the display-only `display-state' property.
               (let ((ret (do-it)))
                 (when (eq (car-safe ret) 'async)
+                  (setq proc (cadr ret))
                   (dolist (file files)
                     (let ((file (expand-file-name file)))
                       (vc-file-setprop file 'display-state "committing")
                       (vc-dir-resynch-file file)
                       (push file to-remove-props)))
-                  (vc-exec-after #'remove-props-done-msg nil (cadr ret)))
+                  (vc-exec-after #'remove-props-done-msg nil proc))
                 ret)
             (prog2 (message "Checking in %s..." (vc-delistify files))
                 (with-vc-properties files (do-it)
