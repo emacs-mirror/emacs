@@ -3188,21 +3188,32 @@ could switch to a different terminal without switching back when
 you're done.
 @end deffn
 
-@cindex most recently used frame
-@defun get-mru-frame &optional all-frames exclude
+@cindex frame use time
+@cindex use time of frame
+@cindex frame order by time of last use
+@defun frame-use-time &optional frame
 
-This function is like @code{get-mru-window}, but it returns the most
-recently used frame.  The @dfn{most recently used frame} is the frame
-with the most recently selected window as computed by
-@code{get-mru-window}.  (@pxref{Selecting Windows})
+This function returns the use time of frame @var{frame}.  @var{frame}
+must be a live frame and defaults to the selected one.
 
-This function will return @code{nil} if no candidate frames are found,
-for example, if there is only one frame.  Tooltip, minibuffer only, and
-child frames are never candidates.
+The @dfn{use time of a frame} is the highest use time as reported by
+@code{window-use-time} of any window on @var{frame}.
+@end defun
 
-Since in practice the most recently used frame is always the selected
-one, it usually makes sense to call this function with a non-@code{nil}
-@var{exclude} argument with, for example, the selected frame.
+@defun get-mru-frame &optional all-frames exclude-child-frames exclude-frame
+
+This function returns the frame with the highest use time as reported by
+@code{frame-use-time}.  It returns @code{nil} if no candidate frames are
+found which usually happens if frames are excluded with the help of the
+optional arguments.
+
+By default, tooltip and minibuffer-only frames are never candidates.  If
+the optional argument @var{exclude-child-frames} is non-nil, child
+frames are excluded too.  The @var{exclude-frame} argument, if present,
+excludes the frame it specifies too.  Since in practice the most
+recently used frame is always the selected one, it usually makes sense
+to call this function with a non-@code{nil} @var{exclude-frame} argument
+specifying the selected frame.
 
 The optional argument @var{all-frames} specifies which frames to
 consider:
@@ -3210,31 +3221,47 @@ consider:
 @itemize @bullet
 @item @code{visible}
 means to consider all visible frames on the current terminal or
-@var{exclude}'s terminal.
+@var{exclude-frame}'s terminal.
 
 @item 0
 means to consider all visible or iconified frames on the current
-terminal or @var{exclude}'s terminal.
+terminal or @var{exclude-frame}'s terminal.
 
 @item Anything else
 means to consider all frames.
 @end itemize
-
-If @code{get-mru-frame} is called from within the body of
-@code{with-selected-frame}, it may yield unexpected results as the most
-recently used window will not necessarily match the selected one in the
-temporarily selected frame.  (@pxref{Selecting Windows})
 @end defun
 
-@cindex frame use time
-@cindex use time of frame
-@cindex frame order by time of last use
-@defun frame-use-time &optional frame
+@defun get-mru-frames &optional all-frames exclude-child-frames exclude-frame
 
-This function returns the use time of frame @var{frame}.  @var{frame}
-must be a live frame and defaults to the selected one.  The result is
-the @code{window-use-time} of @var{frame}'s most recently used window
-computed by @code{get-mru-window}.  (@pxref{Selecting Windows})
+This function returns a list of frames sorted by highest use time as
+reported by @code{frame-use-time} which is computed using each frame's
+most recently used window.
+
+By default, tooltip and minibuffer-only frames are never candidates.  If
+the optional argument @var{exclude-child-frames} is non-nil, child
+frames are excluded too.  The @var{exclude-frame} argument, if present,
+excludes the frame it specifies too.
+
+It can return @code{nil} which can happen if frames are excluded with
+the help of the optional arguments, for example, if there is a single
+frame and @var{exclude-frame} is the selected frame.
+
+The optional argument @var{all-frames} specifies which frames to
+consider:
+
+@itemize @bullet
+@item @code{visible}
+means to consider all visible frames on the current terminal or
+@var{exclude-frame}'s terminal.
+
+@item 0
+means to consider all visible or iconified frames on the current
+terminal or @var{exclude-frame}'s terminal.
+
+@item Anything else
+means to consider all frames.
+@end itemize
 @end defun
 
 @deffn Command select-frame-by-id id &optional noerror

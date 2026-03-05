@@ -507,12 +507,12 @@ for a window.  The result is the `window-use-time' of a frame's most
 recently used window.
 
 +++
-*** New function 'get-mru-frame'.
-This function returns the most recently used frame from among all
-frames, or those visible or iconified on the same terminal as the
-selected frame.  A frame can be excluded, for example, the selected
-frame, as it will always be the most recently used frame on the current
-terminal.
+*** New functions 'get-mru-frames' and 'get-mru-frame'.
+'get-mru-frames' returns a list of frames sorted by their most recent
+use time from among all frames, or those visible or iconified on the
+same terminal as the selected frame.  Child frames can be excluded.  A
+single frame can be excluded, for example, the selected frame.
+'get-mru-frame' returns the single most recently used frame.
 
 ---
 *** After deleting, 'delete-frame' now selects the most recently used frame.
