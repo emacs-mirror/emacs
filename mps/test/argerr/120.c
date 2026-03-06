@@ -31,7 +31,7 @@ static void test(void *stack_pointer)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create_fmt(&root, arena, 4, 0, 
+ cdie(mps_root_create_fmt(&root, arena, mps_rank_weak() + 1, 0,
                       fmtscan, a, &a[32]),
       "root create");
 

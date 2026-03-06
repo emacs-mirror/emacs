@@ -29,7 +29,7 @@ static void test(void *stack_pointer)
 
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(mps_root_create(&root, arena, 4, 0,
+ cdie(mps_root_create(&root, arena, mps_rank_weak() + 1, 0,
                       rootscan, NULL, 0),
       "root create");
 
