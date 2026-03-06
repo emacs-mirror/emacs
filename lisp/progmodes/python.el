@@ -3652,14 +3652,18 @@ eventually provide a shell."
 
 (defconst python-shell-setup-code
   "\
-try:
-    import termios
-except ImportError:
-    pass
-else:
-    attr = termios.tcgetattr(0)
-    attr[3] &= ~termios.ECHO
-    termios.tcsetattr(0, termios.TCSADRAIN, attr)"
+def _PYTHON_EL_setup():
+    try:
+        import termios
+    except ImportError:
+        pass
+    else:
+        attr = termios.tcgetattr(0)
+        attr[3] &= ~termios.ECHO
+        termios.tcsetattr(0, termios.TCSADRAIN, attr)
+
+_PYTHON_EL_setup()
+del _PYTHON_EL_setup"
   "Code used to setup the inferior Python processes.")
 
 (defconst python-shell-eval-setup-code
@@ -4639,11 +4643,15 @@ shell has no readline support.")
   "Detect the readline support for Python shell completion."
   (let* ((process (python-shell-get-process))
          (output (python-shell-send-string-no-output "
-try:
-    import readline
-    print(readline.get_completer_delims())
-except:
-    print('No readline support')" process)))
+def _PYTHON_EL_detect_readline():
+    try:
+        import readline
+        print(readline.get_completer_delims())
+    except:
+        print('No readline support')
+
+_PYTHON_EL_detect_readline()
+del _PYTHON_EL_detect_readline" process)))
     (setq-local python-shell-readline-completer-delims
                 (unless (string-search "No readline support" output)
                   (string-trim-right output)))))
