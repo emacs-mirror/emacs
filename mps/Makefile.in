@@ -87,7 +87,7 @@ make-install-dirs:
 install: @INSTALL_TARGET@
 
 test-make-build:
-	$(MAKE) $(TARGET_OPTS) testci testratio testscheme
+	$(MAKE) $(TARGET_OPTS) testci testratio testscheme testmmqa
 	$(MAKE) $(COMMON_OPTS) \
 		-f anan$(MPS_BUILD_NAME).gmk VARIETY=cool \
 		clean-testansi
