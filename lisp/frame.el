@@ -2627,8 +2627,8 @@ optional FRAME is nil, use the selected frame."
 (defun get-mru-frames (&optional all-frames
                                  exclude-child-frames
                                  exclude-frame)
-  "Return a frame list sorted by most recent use and filtered by ALL-FRAMES.
-Compute the result using `frame-use-time', which see.  Tooltip, and
+  "Return list of frames sorted by most recent use and filtered by ALL-FRAMES.
+Compute the result using `frame-use-time', which see.  Tooltip and
 minibuffer only frames are never candidates.  If optional argument
 EXCLUDE-CHILD-FRAMES is non-nil, eliminate child frames as candidates.
 If EXCLUDE-FRAME is non-nil, it is a frame to exclude, for example, the
@@ -2640,11 +2640,11 @@ have special meanings:
 - `visible' means consider all visible frames on the current terminal
   or EXCLUDE-FRAME's terminal if EXCLUDE-FRAME is non-nil.
 
-- 0 (the number zero) means consider all all visible and iconified
+- 0 (the number zero) means consider all visible and iconified
   frames on the current terminal or EXCLUDE-FRAME's terminal if
   EXCLUDE-FRAME is non-nil.
 
-Any other value of ALL-FRAMES means consider all frames."
+Any other value means consider all frames."
   (setq all-frames (or all-frames t))
   (let* ((terminal (frame-terminal (or exclude-frame (selected-frame))))
          (frame-list
@@ -2665,7 +2665,7 @@ Any other value of ALL-FRAMES means consider all frames."
     (sort frame-list :key #'frame-use-time :reverse t)))
 
 (defun get-mru-frame (&optional all-frames exclude-child-frames exclude-frame)
-  "Return the most recently used frame on frames specified by ALL-FRAMES.
+  "Return the most recently used frame among frames specified by ALL-FRAMES.
 Compute the result using `frame-use-time', which see.  Tooltip, and
 minibuffer only frames are never candidates.  If optional argument
 EXCLUDE-CHILD-FRAMES is non-nil, eliminate child frames as candidates.
@@ -2678,11 +2678,11 @@ have special meanings:
 - `visible' means consider all visible frames on the current terminal
   or EXCLUDE-FRAME's terminal if EXCLUDE-FRAME is non-nil.
 
-- 0 (the number zero) means consider all all visible and iconified
-  frames on the current terminal or EXCLUDE-FRAME's terminal if
-  EXCLUDE-FRAME is non-nil.
+- 0 (the number zero) means consider all visible and iconified frames on
+  the current terminal or EXCLUDE-FRAME's terminal if EXCLUDE-FRAME is
+  non-nil.
 
-Any other value of ALL-FRAMES means consider all frames."
+Any other value means consider all frames."
   (car (get-mru-frames all-frames exclude-child-frames exclude-frame)))
 
 ;;;; Frame/display capabilities.

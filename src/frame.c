@@ -2756,10 +2756,11 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	      /* Find the most recently used visible frame among all
 		 frames on the same terminal as FRAME, excluding FRAME
 		 which we are about to delete.  */
-	      frame1 = calln (Qget_mru_frame, Qvisible, frame);
+	      frame1 = safe_calln (Qget_mru_frame, Qvisible, Qnil, frame);
 	      if (!NILP (frame1))
 		{
 		  struct frame *f1 = XFRAME (frame1);
+
 		  if (FRAME_TOOLTIP_P (f1)
 		      || FRAME_TERMINAL (f) != FRAME_TERMINAL (f1)
 		      || !FRAME_VISIBLE_P (f1)
