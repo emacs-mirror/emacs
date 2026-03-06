@@ -39,7 +39,8 @@
 
     (text-mode-hook . display-line-numbers-mode)
     (text-mode-hook . flyspell-mode)
-    )
+
+    (after-save-hook . executable-make-buffer-file-executable-if-script-p))
   "Alist mapping hooks to functions.
 The functions are added to the corresponding hooks when enabling
 `newcomers-presets-mode', and removed when disabling the mode.")
@@ -124,7 +125,6 @@ This minor mode will enable and disable the theme on startup."
  '(shell-command-prompt-show-cwd t)
 
 ;;;; File-related options
- '(after-save-hook '(executable-make-buffer-file-executable-if-script-p))
  '(etags-regen-mode t)
  '(vc-auto-revert-mode t)
  '(vc-deduce-backend-nonvc-modes t)
