@@ -330,6 +330,7 @@ If non-nil, `hs-hide-all', `hs-cycle' and `hs-hide-level' will hide
 comments too."
   :type 'boolean)
 
+;; This is only intended for backward compatibility (bug#80455)
 (defcustom hs-hide-block-behavior 'after-bol
   "How hideshow should hide a block.
 If set to `after-bol', hide the innermost block to which the current
@@ -337,8 +338,8 @@ line belongs.
 
 If set to `after-cursor', hide the block after cursor position.
 
-This only has effect in `hs-hide-block' and `hs-toggle-hiding'
-commands."
+This only has effect in `hs-hide-block', `hs-cycle', `hs-hide-level' and
+`hs-toggle-hiding' commands."
   :type
   '(choice
     (const :tag "Hide the block after cursor" after-cursor)
@@ -939,8 +940,7 @@ Intended to be used in commands."
       t)
 
      ((and (or (hs-hideable-block-p)
-               (and (forward-line 0)
-                    (funcall hs-find-block-beginning-function)
+               (and (funcall hs-find-block-beginning-function)
                     (hs-hideable-block-p))))
       t))))
 

@@ -1759,10 +1759,11 @@ If non-@code{nil}, @code{hs-hide-all}, @code{hs-cycle} and
 @code{hs-hide-level} hide comments too.
 
 @item hs-hide-block-behavior
-This variable controls how @code{hs-hide-block} and
-@code{hs-toggle-hiding} should hide a block.  The possible values can be
-'after-bol', hide the innermost block to which the current line belongs;
-or 'after-cursor', hide the block after cursor position.
+This variable controls how @code{hs-hide-block}, @code{hs-cycle},
+@code{hs-hide-level}, and @code{hs-toggle-hiding} should hide a block.
+The possible values can be 'after-bol', hide the innermost block to
+which the current line belongs; or 'after-cursor', hide the block after
+cursor position.
 
 @item hs-display-lines-hidden
 If non-@code{nil}, display the number of hidden lines next to the
