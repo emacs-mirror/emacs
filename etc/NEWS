@@ -1798,11 +1798,14 @@ messages.  To suppress these messages, customize the user option
 option is nil.
 
 ---
-*** New user option and function 'recentf-exclude-ignored-extensions'.
-Add the new function 'recentf-exclude-ignored-extensions' to the list
-'recentf-exclude' to ignore files whose extensions are listed in the
-user option of the same name 'recentf-exclude-ignored-extensions'.  If
-that option is nil, 'completion-ignored-extensions' is used.
+*** New user option 'recentf-exclude-ignored-extensions'.
+Add the new predicate function 'recentf-exclude-file-by-extension-p' to
+the list that is the value of the user option 'recentf-exclude' to
+ignore files with certain extensions.  By default, adding this function
+to 'recentf-exclude' ignores files whose extensions are listed in
+'completion-ignored-extensions'; you can specify a different list of
+extensions by customizing the new user option
+'recentf-exclude-ignored-extensions'.
 
 ** Saveplace
 

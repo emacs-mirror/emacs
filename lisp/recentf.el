@@ -116,20 +116,22 @@ must return non-nil to exclude it."
   :type '(repeat (choice regexp function)))
 
 (defcustom recentf-exclude-ignored-extensions nil
-  "Optionally ignore file names ending in any string in this list.
-To use this, add the function `recentf-exclude-ignored-extensions' to
-the list `recentf-exclude'.
-If this option is nil, use the values from the variable
-`completion-ignored-extensions', which see."
+  "List of file-name extensions that `recentf' should ignore.
+This has effect only if the function `recentf-exclude-file-by-extension-p'
+is in the list that is the value of `recentf-exclude'.
+If this option is nil and `recentf-exclude-file-by-extension-p' is a
+member of `recentf-exclude', a file will be ignored if its extension is
+in `completion-ignored-extensions', which see."
   :group 'recentf
   :version "31.1"
   :type '(repeat string))
 
-(defun recentf-exclude-ignored-extensions (file-name)
-  "Return non-nil if FILE-NAME has an ignored extension.
-The user option `completion-ignored-extensions' determines whether or
-not a file extension counts as ignored.  You can add this function to
-`recentf-exclude'."
+(defun recentf-exclude-file-by-extension-p (file-name)
+  "Whether to ignore FILE-NAME due to its file-name extension.
+This predicate function is meant to be added to the list in `recentf-exclude'.
+It returns non-nil if FILE-NAME's extension is in the list that is
+the value of `recentf-exclude-ignored-extensions'; if that variable
+is nil, this function consults `completion-ignored-extensions' instead."
   (and-let* ((extension (file-name-extension file-name)))
     (string-match-p
      (regexp-opt (or recentf-exclude-ignored-extensions
