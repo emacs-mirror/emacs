@@ -4201,7 +4201,11 @@ kbd_buffer_get_event (KBOARD **kbp,
       if (*kbp == 0)
 	*kbp = current_kboard;  /* Better than returning null ptr?  */
 
-      if (FRAMEP (event->ie.frame_or_window))
+      /* Selection-request events never have frames, they are actually
+         instances of 'struct selection_input_event'.  */
+      if (!(event->kind == SELECTION_REQUEST_EVENT
+	    || event->kind == SELECTION_CLEAR_EVENT)
+	  && FRAMEP (event->ie.frame_or_window))
 	*event_frame = XFRAME (event->ie.frame_or_window);
 
       obj = Qnil;
