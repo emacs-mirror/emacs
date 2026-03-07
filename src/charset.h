@@ -258,7 +258,7 @@ extern Lisp_Object Vcharset_hash_table;
 struct charset_table
 {
   struct charset *start;
-  unsigned size, used;
+  int size, used;
   Lisp_Object attributes_table;
 };
 
@@ -305,7 +305,7 @@ INLINE Lisp_Object
 charset_attributes_getter (struct charset *charset)
 {
   eassert (ASIZE (charset_table.attributes_table) == charset_table.size);
-  Lisp_Object attrs =  AREF (charset_table.attributes_table, charset->id);
+  Lisp_Object attrs = AREF (charset_table.attributes_table, charset->id);
   eassert (XFIXNUM (CHARSET_ATTR_ID (attrs)) == charset->id);
   return attrs;
 }
