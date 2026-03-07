@@ -131,24 +131,38 @@
 ;; also in this case, recurrences are generated for one interval at a
 ;; time, because a BYSETPOS clause might apply.
 ;;
-;; An interval is represented as a list (LOW HIGH NEXT-LOW) of decoded
-;; times.  The length of time between LOW and HIGH corresponds to the
-;; FREQ rule part: they are one year apart for a 'YEARLY rule, a month
-;; apart for a 'MONTHLY rule, etc.  NEXT-LOW is the upper bound of the
-;; interval: it is equal to LOW in the subsequent interval.  When the
-;; INTERVAL rule part is equal to 1 (the default), HIGH and NEXT-LOW are
-;; the same, but if it is > 1, NEXT-LOW is equal to LOW + INTERVAL *
-;; FREQ.  For example, in a 'MONTHLY rule where INTERVAL=3, which means
-;; "every three months", LOW and HIGH bound the first month, while HIGH
-;; and NEXT-LOW bound the following two months.
+;; An interval is represented as a vector like [LOW HIGH NEXT-LOW] of
+;; decoded times.  The length of time between LOW and HIGH corresponds
+;; to the FREQ rule part: they are one year apart for a 'YEARLY rule, a
+;; month apart for a 'MONTHLY rule, etc.  NEXT-LOW is the upper bound of
+;; the interval: it is equal to LOW in the subsequent interval.  When
+;; the INTERVAL rule part is equal to 1 (the default), HIGH and NEXT-LOW
+;; are the same, but if it is > 1, NEXT-LOW is equal to LOW + INTERVAL *
+;; FREQ.  (For performance reasons, NEXT-LOW is therefore left out of
+;; the vector when it is redundant.)  For example, in a 'MONTHLY rule
+;; where INTERVAL=3, which means "every three months", LOW and HIGH
+;; bound the first month, while HIGH and NEXT-LOW bound the following
+;; two months.
 ;;
 ;; The times between LOW and HIGH are candidates for recurrences.  LOW
 ;; is an inclusive lower bound, and HIGH is an exclusive upper bound:
 ;; LOW <= R < HIGH for each recurrence R in the interval.  The times
 ;; between HIGH and NEXT-LOW are not candidates for recurrences.
-;;
+
+(defun icr:make-interval (low high &optional next-low)
+  (if next-low
+      (vector low high next-low)
+    (vector low high)))
+
+(defsubst icr:interval-low (interval)
+  (aref interval 0))
+(defsubst icr:interval-high (interval)
+  (aref interval 1))
+(defsubst icr:interval-next (interval)
+  (aref interval (1- (length interval)))) ; = NEXT-LOW if present, HIGH otherwise
+
 ;; The following functions deal with constructing intervals, given a
-;; target, a start date/time, and intervalsize, and optionally a time
+;; target, a start date/time, an intervalsize, and optionally a time
 ;; zone.  The main entry point is `icalendar-recur-find-interval'.
 
 ;; Look, dragons already:
@@ -252,7 +266,8 @@ returned interval looks like (LOW LOW+FREQS LOW+INTERVALSIZE).  See
       (let ((offset (decoded-time-zone target-w/zone)))
         (setq low (icr:tz-decode-time low-abs offset)
               high (icr:tz-decode-time (+ low-abs freqs) offset)
-              next-low (icr:tz-decode-time (+ low-abs intervalsize) offset))))
+              next-low (when (< 1 intervalsize)
+                         (icr:tz-decode-time (+ low-abs intervalsize) offset)))))
 
     (unless (and given-start-zone given-target-zone)
       ;; but if we started with floating times, we should return floating times:
@@ -260,10 +275,11 @@ returned interval looks like (LOW LOW+FREQS LOW+INTERVALSIZE).  See
       (setf (decoded-time-dst low) -1)
       (setf (decoded-time-zone high) nil)
       (setf (decoded-time-dst high) -1)
-      (setf (decoded-time-zone next-low) nil)
-      (setf (decoded-time-dst next-low) -1))
+      (when next-low
+        (setf (decoded-time-zone next-low) nil)
+        (setf (decoded-time-dst next-low) -1)))
 
-    (list low high next-low)))
+    (icr:make-interval low high next-low)))
 
 (defun icr:find-secondly-interval (target dtstart intervalsize &optional vtimezone)
   "Find a SECONDLY recurrence interval.
@@ -317,16 +333,18 @@ See `icalendar-recur-find-interval' for arguments' meanings."
                      (calendar-gregorian-from-absolute low-absdate)))
            (high-dt (ical:date-to-date-time
                       (calendar-gregorian-from-absolute high-absdate)))
-           (next-low-dt (ical:date-to-date-time
-                          (calendar-gregorian-from-absolute next-low-absdate))))
+           (next-low-dt (unless (= high-absdate next-low-absdate)
+                          (ical:date-to-date-time
+                           (calendar-gregorian-from-absolute next-low-absdate)))))
 
       (when vtimezone
         (icr:tz-set-zone low-dt vtimezone)
         (icr:tz-set-zone high-dt vtimezone)
-        (icr:tz-set-zone next-low-dt vtimezone))
+        (when next-low-dt
+          (icr:tz-set-zone next-low-dt vtimezone)))
 
       ;; Return the bounds:
-      (list low-dt high-dt next-low-dt))))
+      (icr:make-interval low-dt high-dt next-low-dt))))
 
 (defun icr:find-weekly-interval (target dtstart intervalsize
                                  &optional weekstart vtimezone)
@@ -358,16 +376,19 @@ See `icalendar-recur-find-interval' for arguments' meanings."
                (calendar-gregorian-from-absolute low-abs)))
          (high (ical:date-to-date-time
                (calendar-gregorian-from-absolute (+ 7 low-abs))))
-         (next-low (ical:date-to-date-time
-                    (calendar-gregorian-from-absolute (+ intsize-days low-abs)))))
+         (next-low
+          (when (< 1 intervalsize)
+            (ical:date-to-date-time
+             (calendar-gregorian-from-absolute (+ intsize-days low-abs))))))
 
     (when vtimezone
       (icr:tz-set-zone low vtimezone)
       (icr:tz-set-zone high vtimezone)
-      (icr:tz-set-zone next-low vtimezone))
+      (when next-low
+        (icr:tz-set-zone next-low vtimezone)))
 
     ;; Return the bounds:
-    (list low high next-low)))
+    (icr:make-interval low high next-low)))
 
 (defun icr:find-monthly-interval (target dtstart intervalsize &optional vtimezone)
   "Find a MONTHLY recurrence interval.
@@ -399,10 +420,12 @@ See `icalendar-recur-find-interval' for arguments' meanings."
          (low (ical:make-date-time :year low-year :month low-month :day 1
                                    :hour 0 :minute 0 :second 0 :tz vtimezone))
          (high (ical:date/time-add low :month 1 vtimezone))
-         (next-low (ical:date/time-add low :month intervalsize vtimezone)))
+         (next-low
+          (when (< 1 intervalsize)
+            (ical:date/time-add low :month intervalsize vtimezone))))
 
     ;; Return the bounds:
-    (list low high next-low)))
+    (icr:make-interval low high next-low)))
 
 (defun icr:find-yearly-interval (target dtstart intervalsize &optional vtimezone)
   "Find a YEARLY recurrence interval.
@@ -417,12 +440,14 @@ See `icalendar-recur-find-interval' for arguments' meanings."
                                    :hour 0 :minute 0 :second 0 :tz vtimezone))
          (high (ical:make-date-time :year (1+ low-year) :month 1 :day 1
                                     :hour 0 :minute 0 :second 0 :tz vtimezone))
-         (next-low (ical:make-date-time :year (+ low-year intervalsize)
-                                        :month 1 :day 1 :hour 0 :minute 0 :second 0
-                                        :tz vtimezone)))
+         (next-low
+          (when (< 1 intervalsize)
+            (ical:make-date-time :year (+ low-year intervalsize)
+                                 :month 1 :day 1 :hour 0 :minute 0 :second 0
+                                 :tz vtimezone))))
 
     ;; Return the bounds:
-    (list low high next-low)))
+    (icr:make-interval low high next-low)))
 
 (defun icr:find-interval (target dtstart recur-value &optional vtimezone)
   "Return the recurrence interval around TARGET.
@@ -430,7 +455,7 @@ See `icalendar-recur-find-interval' for arguments' meanings."
 TARGET and DTSTART should be `icalendar-date' or `icalendar-date-time'
 values.  RECUR-VALUE should be an `icalendar-recur'.
 
-The returned value is a list (LOW HIGH NEXT-LOW) which
+The returned value is an interval [LOW HIGH NEXT-LOW] which
 represents the lower and upper bounds of a recurrence interval around
 TARGET.  For some N, LOW is equal to START + N*INTERVALSIZE units, HIGH
 is equal to START + (N+1)*INTERVALSIZE units, and LOW <= TARGET < HIGH.
@@ -460,7 +485,7 @@ information and represent floating local times."
 (defun icr:nth-interval (n dtstart recur-value &optional vtimezone)
   "Return the Nth recurrence interval after DTSTART.
 
-The returned value is a list (LOW HIGH NEXT-LOW) which represent the Nth
+The returned value is an interval [LOW HIGH NEXT-LOW] which is the Nth
 recurrence interval after DTSTART.  LOW is equal to START +
 N*INTERVALSIZE units, HIGH is equal to START + (N+1)*INTERVALSIZE units,
 and LOW <= TARGET < HIGH.  START here is a time derived from DTSTART
@@ -498,10 +523,10 @@ information and represent floating local times."
 (defun icr:next-interval (interval recur-value &optional vtimezone)
   "Return the next recurrence interval after INTERVAL.
 
-Given a recurrence interval (LOW HIGH NEXT), returns the next interval
-\(NEXT HIGHER HIGHER-NEXT), where HIGHER and HIGHER-NEXT are determined
+Given a recurrence interval [LOW HIGH NEXT], returns the next interval
+[NEXT HIGHER HIGHER-NEXT], where HIGHER and HIGHER-NEXT are determined
 by the frequency and interval sizes of RECUR-VALUE."
-  (let* ((new-low (caddr interval))
+  (let* ((new-low (icr:interval-next interval))
          (freq (ical:recur-freq recur-value))
          (unit (cl-case freq
                  (YEARLY :year)
@@ -513,7 +538,9 @@ by the frequency and interval sizes of RECUR-VALUE."
                  (SECONDLY :second)))
          (intervalsize (ical:recur-interval-size recur-value))
          (new-high (ical:date/time-add new-low unit 1 vtimezone))
-         (new-next (ical:date/time-add new-low unit intervalsize vtimezone)))
+         (new-next
+          (when (< 1 intervalsize)
+            (ical:date/time-add new-low unit intervalsize vtimezone))))
 
     (when vtimezone
       (icr:tz-set-zone new-low vtimezone)
@@ -521,18 +548,18 @@ by the frequency and interval sizes of RECUR-VALUE."
       ;; (icr:tz-set-zone new-next vtimezone)
       )
 
-    (list new-low new-high new-next)))
+    (icr:make-interval new-low new-high new-next)))
 
 (defun icr:previous-interval (interval recur-value dtstart &optional vtimezone)
   "Given a recurrence INTERVAL, return the previous interval.
 
-For an interval (LOW HIGH NEXT-LOW), the previous interval is
-\(PREV-LOW PREV-HIGH LOW), where PREV-LOW and PREV-HIGH are determined by
+For an interval [LOW HIGH NEXT-LOW], the previous interval is
+[PREV-LOW PREV-HIGH LOW], where PREV-LOW and PREV-HIGH are determined by
 the frequency and interval sizes of RECUR-VALUE (see
 `icalendar-recur-find-interval').  If the resulting period of time
 between PREV-LOW and PREV-HIGH occurs entirely before DTSTART, then the
 interval does not exist; in this case nil is returned."
-  (let* ((upper (car interval))
+  (let* ((upper (icr:interval-low interval))
          (freq (ical:recur-freq recur-value))
          (unit (cl-case freq
                  (YEARLY :year)
@@ -544,7 +571,13 @@ interval does not exist; in this case nil is returned."
                  (SECONDLY :second)))
          (intervalsize (ical:recur-interval-size recur-value))
          (new-low (ical:date/time-add upper unit (* -1 intervalsize) vtimezone))
-         (new-high (ical:date/time-add new-low unit 1 vtimezone)))
+         (new-high
+          (if (< 1 intervalsize)
+              (ical:date/time-add new-low unit 1 vtimezone)
+            upper))
+         (new-upper
+          (when (< 1 intervalsize)
+            upper)))
 
     (when vtimezone
       ;; (icr:tz-set-zone new-low vtimezone)
@@ -552,7 +585,7 @@ interval does not exist; in this case nil is returned."
       (icr:tz-set-zone upper vtimezone))
 
     (unless (ical:date-time< new-high dtstart)
-      (list new-low new-high upper))))
+      (icr:make-interval new-low new-high new-upper))))
 
 
 
@@ -617,21 +650,18 @@ interval does not exist; in this case nil is returned."
 YEARDAYS should be a list of values from a recurrence rule's
 BYYEARDAY=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-ydays (sort yeardays
-                             :lessp (lambda (a b)
-                                      (let ((pos-a (if (< 0 a) a (+ 366 a)))
-                                            (pos-b (if (< 0 b) b (+ 366 b))))
-                                        (< pos-a pos-b)))))
-         (interval-start (car interval))
-         (start-year (decoded-time-year interval-start))
-         (interval-end (cadr interval))
+                             :key (lambda (a) (if (< 0 a) a (+ 366 a)))))
+         (interval-start (icr:interval-low interval))
+         (curr-year (decoded-time-year interval-start))
+         (interval-end (icr:interval-high interval))
          (end-year (decoded-time-year interval-end))
          (subintervals nil))
-    (while (<= start-year end-year)
+    (while curr-year
       ;; For each year in the interval...
       (dolist (n sorted-ydays)
         ;; ...the subinterval is one day long on the nth yearday
-        (let* ((nthday (calendar-date-from-day-of-year start-year n))
-               (low (ical:make-date-time :year start-year
+        (let* ((nthday (calendar-date-from-day-of-year curr-year n))
+               (low (ical:make-date-time :year curr-year
                                          :month (calendar-extract-month nthday)
                                          :day (calendar-extract-day nthday)
                                          :hour 0 :minute 0 :second 0
@@ -648,9 +678,11 @@ BYYEARDAY=... clause; see `icalendar-recur' for the possible values."
           (when (and (ical:date-time<= interval-start low)
                      (ical:date-time< low high)
                      (ical:date-time<= high interval-end))
-            (push (list low high) subintervals))))
-
-      (setq start-year (1+ start-year)))
+            (push (icr:make-interval low high) subintervals))))
+      (setq curr-year (1+ curr-year))
+      (when (<= end-year curr-year)
+        ;; we're done:
+        (setq curr-year nil)))
     (nreverse subintervals)))
 
 (defun icr:refine-byweekno (interval weeknos &optional weekstart vtimezone)
@@ -660,20 +692,17 @@ WEEKNOS should be a list of values from a recurrence rule's
 BYWEEKNO=... clause, and WEEKSTART should be the value of its
 WKST=... clause (if any).  See `icalendar-recur' for the possible values."
   (let* ((sorted-weeknos (sort weeknos
-                               :lessp (lambda (a b)
-                                        (let ((pos-a (if (< 0 a) a (+ 53 a)))
-                                              (pos-b (if (< 0 b) b (+ 53 b))))
-                                          (< pos-a pos-b)))))
-         (interval-start (car interval))
-         (start-year (decoded-time-year interval-start))
-         (interval-end (cadr interval))
+                               :key (lambda (a) (if (< 0 a) a (+ 53 a)))))
+         (interval-start (icr:interval-low interval))
+         (curr-year (decoded-time-year interval-start))
+         (interval-end (icr:interval-high interval))
          (end-year (decoded-time-year interval-end))
          (subintervals nil))
-    (while (<= start-year end-year)
+    (while curr-year
       ;; For each year in the interval...
       (dolist (wn sorted-weeknos)
         ;; ...the subinterval is one week long in the wn-th week
-        (let* ((nth-wstart (ical:start-of-weekno wn start-year weekstart))
+        (let* ((nth-wstart (ical:start-of-weekno wn curr-year weekstart))
                (low (ical:make-date-time :year (calendar-extract-year nth-wstart)
                                          :month (calendar-extract-month nth-wstart)
                                          :day (calendar-extract-day nth-wstart)
@@ -690,8 +719,11 @@ WKST=... clause (if any).  See `icalendar-recur' for the possible values."
           (when (and (ical:date-time<= interval-start low)
                      (ical:date-time< low high)
                      (ical:date-time<= high interval-end))
-              (push (list low high) subintervals))))
-      (setq start-year (1+ start-year)))
+              (push (icr:make-interval low high) subintervals))))
+      (setq curr-year (1+ curr-year))
+      (when (<= end-year curr-year)
+        ;; we're done:
+        (setq curr-year nil)))
     (nreverse subintervals)))
 
 (defun icr:refine-bymonth (interval months &optional vtimezone)
@@ -700,17 +732,17 @@ WKST=... clause (if any).  See `icalendar-recur' for the possible values."
 MONTHS should be a list of values from a recurrence rule's
 BYMONTH=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-months (sort months))
-         (interval-start (car interval))
-         (start-year (decoded-time-year interval-start))
-         (interval-end (cadr interval))
+         (interval-start (icr:interval-low interval))
+         (curr-year (decoded-time-year interval-start))
+         (interval-end (icr:interval-high interval))
          (end-year (decoded-time-year interval-end))
          (subintervals nil))
-    (while (<= start-year end-year)
+    (while curr-year
       ;; For each year in the interval...
       (dolist (m sorted-months)
         ;; ...the subinterval is from the first day of the given month
         ;; to the first day of the next
-        (let* ((low (ical:make-date-time :year start-year :month m :day 1
+        (let* ((low (ical:make-date-time :year curr-year :month m :day 1
                                          :hour 0 :minute 0 :second 0
                                          :tz vtimezone))
                (high (ical:date/time-add low :month 1 vtimezone)))
@@ -723,9 +755,11 @@ BYMONTH=... clause; see `icalendar-recur' for the possible values."
           (when (and (ical:date/time<= interval-start low)
                      (ical:date/time< low high)
                      (ical:date/time<= high interval-end))
-            (push (list low high) subintervals))))
-      (setq start-year (1+ start-year)))
-
+            (push (icr:make-interval low high) subintervals))))
+      (setq curr-year (1+ curr-year))
+      (when (<= end-year curr-year)
+        ; we're done:
+        (setq curr-year nil)))
     (nreverse subintervals)))
 
 (defun icr:refine-bymonthday (interval monthdays &optional vtimezone)
@@ -734,22 +768,20 @@ BYMONTH=... clause; see `icalendar-recur' for the possible values."
 MONTHDAYS should be a list of values from a recurrence rule's
 BYMONTHDAY=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-mdays (sort monthdays
-                             :lessp (lambda (a b)
-                                      (let ((pos-a (if (< 0 a) a (+ 31 a)))
-                                            (pos-b (if (< 0 b) b (+ 31 b))))
-                                        (< pos-a pos-b)))))
-         (interval-start (car interval))
-         (interval-end (cadr interval))
+                             :key (lambda (a) (if (< 0 a) a (+ 31 a)))))
+         (interval-start (icr:interval-low interval))
+         (curr-dt interval-start)
+         (interval-end (icr:interval-high interval))
          (subintervals nil))
-    (while (ical:date-time<= interval-start interval-end)
+    (while curr-dt
       ;; For each month in the interval...
       (dolist (m sorted-mdays)
         ;; ...the subinterval is one day long on the given monthday
-        (let* ((month (ical:date/time-month interval-start))
-               (year (ical:date/time-year interval-start))
+        (let* ((month (ical:date/time-month curr-dt))
+               (year (ical:date/time-year curr-dt))
                (monthday (if (< 0 m) m
                            (+ m 1 (calendar-last-day-of-month month year))))
-               (low (ical:date-time-variant interval-start :day monthday
+               (low (ical:date-time-variant curr-dt :day monthday
                                             :hour 0 :minute 0 :second 0
                                             :tz vtimezone))
                (high (ical:date/time-add low :day 1 vtimezone)))
@@ -763,9 +795,11 @@ BYMONTHDAY=... clause; see `icalendar-recur' for the possible values."
             (when (and (ical:date/time<= interval-start low)
                        (ical:date/time< low high)
                        (ical:date/time<= high interval-end))
-              (push (list low high) subintervals)))))
-      (setq interval-start
-            (ical:date/time-add interval-start :month 1 vtimezone)))
+              (push (icr:make-interval low high) subintervals)))))
+      (setq curr-dt (ical:date/time-add curr-dt :month 1 vtimezone))
+      (when (ical:date-time<= interval-end curr-dt)
+        ;; we're done:
+        (setq curr-dt nil)))
     (nreverse subintervals)))
 
 (defun icr:refine-byday (interval weekdays &optional in-month vtimezone)
@@ -779,11 +813,11 @@ whether OFFSET is relative to the month of the start of the interval.  If
 it is nil, OFFSET will be relative to the year, rather than the month."
   (let* ((sorted-weekdays (sort (seq-filter #'natnump weekdays)))
          (with-offsets (sort (seq-filter #'consp weekdays)
-                             :lessp (lambda (w1 w2) (and (< (car w1) (car w2))))))
-         (interval-start (car interval))
-         (start-abs (calendar-absolute-from-gregorian
-                     (ical:date-time-to-date interval-start)))
-         (interval-end (cadr interval))
+                             :key #'car))
+         (interval-start (icr:interval-low interval))
+         (curr-abs (calendar-absolute-from-gregorian
+                    (ical:date-time-to-date interval-start)))
+         (interval-end (icr:interval-high interval))
          (end-abs (calendar-absolute-from-gregorian
                    (ical:date-time-to-date interval-end)))
          (subintervals nil))
@@ -810,15 +844,15 @@ it is nil, OFFSET will be relative to the year, rather than the month."
         (when (and (ical:date/time<= interval-start low)
                    (ical:date/time<= high interval-end)
                    (ical:date/time< low high))
-          (push (list low high) subintervals))))
+          (push (icr:make-interval low high) subintervals))))
 
     ;; When no offset was given, for each day in the interval...
-    (while (and (<= start-abs end-abs)
-                sorted-weekdays)
+    (while (and curr-abs sorted-weekdays)
       ;; ...the subinterval is one day long on matching weekdays.
-      (let* ((gdate (calendar-gregorian-from-absolute start-abs)))
-        (when (memq (calendar-day-of-week gdate) sorted-weekdays)
-          (let* ((low (ical:date-to-date-time gdate))
+      (when (memq (mod curr-abs 7) ; = weekday of absolute date;
+                  sorted-weekdays) ;   see `calendar-day-of-week'
+          (let* ((gdate (calendar-gregorian-from-absolute curr-abs))
+                 (low (ical:date-to-date-time gdate))
                  (high (ical:date/time-add low :day 1 vtimezone)))
             (when (ical:date/time< low interval-start)
               (setq low interval-start))
@@ -830,13 +864,16 @@ it is nil, OFFSET will be relative to the year, rather than the month."
             (when (and (ical:date/time<= interval-start low)
                        (ical:date/time<= high interval-end)
                        (ical:date/time< low high))
-              (push (list low high) subintervals)))))
-      (setq start-abs (1+ start-abs)))
+              (push (icr:make-interval low high) subintervals))))
+      (setq curr-abs (1+ curr-abs))
+      (when (<= end-abs curr-abs)
+        ;; we're done:
+        (setq curr-abs nil)))
 
     ;; Finally, sort and return all subintervals:
     (sort subintervals
-          :lessp (lambda (int1 int2)
-                   (ical:date-time< (car int1) (car int2)))
+          :key #'icr:interval-low
+          :lessp #'ical:date-time<
           :in-place t)))
 
 (defun icr:refine-byhour (interval hours &optional vtimezone)
@@ -845,27 +882,31 @@ it is nil, OFFSET will be relative to the year, rather than the month."
 HOURS should be a list of values from a recurrence rule's
 BYHOUR=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-hours (sort hours))
-         (interval-start (car interval))
-         (interval-end (cadr interval))
+         (interval-start (icr:interval-low interval))
+         (interval-end (icr:interval-high interval))
+         (curr-dt interval-start)
          (subintervals nil))
-    (while (ical:date-time<= interval-start interval-end)
+    (while curr-dt
       ;; For each day in the interval...
       (dolist (h sorted-hours)
         ;; ...the subinterval is one hour long in the given hour
-        (let* ((low (ical:date-time-variant interval-start
+        (let* ((low (ical:date-time-variant curr-dt
                                             :hour h :minute 0 :second 0
                                             :tz vtimezone))
                (high (ical:date/time-add low :hour 1 vtimezone)))
           (ignore-errors ; do not generate subintervals for nonexisting times
-            (when (ical:date/time< low interval-start)
-              (setq low interval-start))
+            (when (ical:date/time< low curr-dt)
+              (setq low curr-dt))
             (when (ical:date/time< interval-end high)
               (setq high interval-end))
             (when (and (ical:date/time<= interval-start low)
                        (ical:date/time< low high)
                        (ical:date/time<= high interval-end))
-              (push (list low high) subintervals)))))
-      (setq interval-start (ical:date/time-add interval-start :day 1 vtimezone)))
+              (push (icr:make-interval low high) subintervals)))))
+      (setq curr-dt (ical:date/time-add curr-dt :day 1 vtimezone))
+      (when (ical:date-time<= interval-end curr-dt)
+        ;; we're done:
+        (setq curr-dt nil)))
     (nreverse subintervals)))
 
 (defun icr:refine-byminute (interval minutes &optional vtimezone)
@@ -874,33 +915,37 @@ BYHOUR=... clause; see `icalendar-recur' for the possible values."
 MINUTES should be a list of values from a recurrence rule's
 BYMINUTE=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-minutes (sort minutes))
-         (interval-start (car interval))
-         (interval-end (cadr interval))
+         (interval-start (icr:interval-low interval))
+         (interval-end (icr:interval-high interval))
          ;; we use absolute times (in seconds) for the loop variables in
          ;; case the interval crosses the boundary between two observances:
-         (low-ts (time-convert (encode-time interval-start) 'integer))
+         (curr-dt interval-start)
+         (curr-ts (time-convert (encode-time curr-dt) 'integer))
          (end-ts (time-convert (encode-time interval-end) 'integer))
          (subintervals nil))
-    (while (<= low-ts end-ts)
+    (while curr-ts
       ;; For each hour in the interval...
       (dolist (m sorted-minutes)
         ;; ...the subinterval is one minute long in the given minute
-        (let* ((low (ical:date-time-variant interval-start :minute m :second 0
+        (let* ((low (ical:date-time-variant curr-dt :minute m :second 0
                                             :tz vtimezone))
                (high (ical:date/time-add low :minute 1 vtimezone)))
           (ignore-errors ; do not generate subintervals for nonexisting times
             ;; Clip the subinterval, as above
             (when (ical:date/time< low interval-start)
-              (setq low interval-start))
+              (setq low curr-dt))
             (when (ical:date/time< interval-end high)
               (setq high interval-end))
             (when (and (ical:date/time<= interval-start low)
                        (ical:date/time< low high)
                        (ical:date/time<= high interval-end))
-              (push (list low high) subintervals)))))
-      (setq low-ts (+ low-ts (* 60 60))
-            interval-start (if vtimezone (icr:tz-decode-time low-ts vtimezone)
-                             (ical:date/time-add interval-start :hour 1))))
+              (push (icr:make-interval low high) subintervals)))))
+      (setq curr-ts (+ curr-ts (* 60 60))
+            curr-dt (if vtimezone (icr:tz-decode-time curr-ts vtimezone)
+                             (ical:date/time-add curr-dt :hour 1)))
+      (when (<= end-ts curr-ts)
+        ;; we're done:
+        (setq curr-ts nil)))
     (nreverse subintervals)))
 
 (defun icr:refine-bysecond (interval seconds &optional vtimezone)
@@ -909,32 +954,36 @@ BYMINUTE=... clause; see `icalendar-recur' for the possible values."
 SECONDS should be a list of values from a recurrence rule's
 BYSECOND=... clause; see `icalendar-recur' for the possible values."
   (let* ((sorted-seconds (sort seconds))
-         (interval-start (car interval))
-         (interval-end (cadr interval))
+         (interval-start (icr:interval-low interval))
+         (interval-end (icr:interval-high interval))
          ;; we use absolute times (in seconds) for the loop variables in
          ;; case the interval crosses the boundary between two observances:
-         (low-ts (time-convert (encode-time interval-start) 'integer))
+         (curr-dt interval-start)
+         (curr-ts (time-convert (encode-time curr-dt) 'integer))
          (end-ts (time-convert (encode-time interval-end) 'integer))
          (subintervals nil))
-    (while (<= low-ts end-ts)
+    (while curr-ts
       ;; For each minute in the interval...
       (dolist (s sorted-seconds)
         ;; ...the subinterval is one second long: the given second
-        (let* ((low (ical:date-time-variant interval-start :second s
+        (let* ((low (ical:date-time-variant curr-dt :second s
                                             :tz vtimezone))
                (high (ical:date/time-add low :second 1 vtimezone)))
           (when (ical:date/time< low interval-start)
-            (setq low interval-start))
+            (setq low curr-dt))
           (when (ical:date/time< interval-end high)
             (setq high interval-end))
           (when (and (ical:date/time<= interval-start low)
                      (ical:date/time< low high)
                      (ical:date/time<= high interval-end))
-            (push (list low high) subintervals))))
-      (setq low-ts (+ low-ts 60)
-            interval-start (if vtimezone
-                               (icr:tz-decode-time low-ts vtimezone)
-                             (ical:date/time-add interval-start :minute 1))))
+            (push (icr:make-interval low high) subintervals))))
+      (setq curr-ts (+ curr-ts 60)
+            curr-dt (if vtimezone
+                               (icr:tz-decode-time curr-ts vtimezone)
+                             (ical:date/time-add curr-dt :minute 1)))
+      (when (<= end-ts curr-ts)
+        ;; we're done:
+        (setq curr-ts nil)))
     (nreverse subintervals)))
 
 ;; TODO: should this just become a generic function, with the above
@@ -952,8 +1001,8 @@ BYSECOND=... clause; see `icalendar-recur' for the possible values."
     (BYMINUTE (icr:refine-byminute interval values vtimezone))
     (BYSECOND (icr:refine-bysecond interval values vtimezone))))
 
-(defun icr:make-bysetpos-filter (setpos)
-  "Return a filter on values for the indices in SETPOS.
+(defun icr:bysetpos-filter (setpos recurrences)
+  "Filter RECURRENCES on values for the indices in SETPOS.
 
 SETPOS should be a list of positive or negative integers between -366
 and 366, indicating a fixed index in a set of recurrences for *one
@@ -962,23 +1011,24 @@ an `icalendar-recur'.  For example, in a YEARLY recurrence rule with an
 INTERVAL of 1, the SETPOS represent indices in the recurrence instances
 generated for a single year.
 
-The returned value is a closure which can be called on the list of
-recurrences for one interval to filter it by index."
-  (lambda (dts)
-    (let* ((len (length dts))
-           (keep-indices (mapcar
-                          (lambda (pos)
-                            ;; sequence indices are 0-based, POS's are 1-based:
-                            (if (< pos 0)
-                                (+ pos len)
-                              (1- pos)))
-                          setpos)))
-      (delq nil
-        (seq-map-indexed
-         (lambda (dt index)
-           (when (memq index keep-indices)
-                 dt))
-         dts)))))
+The returned value is RECURRENCES filtered by index."
+  (let* ((len (length recurrences))
+         (keep-indices (mapcar
+                        (lambda (pos)
+                          ;; sequence indices are 0-based, POS's are 1-based:
+                          (if (< pos 0)
+                              (+ pos len)
+                            (1- pos)))
+                        setpos))
+         (r nil)
+         (i 0)
+         (dts recurrences))
+    (while dts
+      (when (memq i keep-indices)
+        (push (car dts) r))
+      (incf i)
+      (pop dts))
+    (nreverse r)))
 
 (defun icr:refine-from-clauses (interval recur-value dtstart
                                 &optional vtimezone)
@@ -1099,13 +1149,13 @@ The returned list of recurrences contains one date-time value for each
 second of each subinterval."
   (let (recurrences)
     (dolist (int subintervals)
-      (let* ((start (car int))
+      (let* ((start (icr:interval-low int))
              (dt start)
              ;; Use absolute times for the loop in case the subinterval
              ;; crosses the boundary between two observances.
              ;; N.B. floating times will be correctly treated as local
              ;; times by encode-time.
-             (end (time-convert (encode-time (cadr int)) 'integer))
+             (end (time-convert (encode-time (icr:interval-high int)) 'integer))
              (tick (time-convert (encode-time start) 'integer)))
         (while (time-less-p tick end)
           (push dt recurrences)
@@ -1121,10 +1171,10 @@ The returned list of recurrences contains one date value for each
 day of each subinterval."
   (let (recurrences)
     (dolist (int subintervals)
-      (let* ((start (car int))
+      (let* ((start (icr:interval-low int))
              (start-abs (calendar-absolute-from-gregorian
                          (ical:date-time-to-date start)))
-             (end (cadr int))
+             (end (icr:interval-high int))
              (end-abs (calendar-absolute-from-gregorian
                        (ical:date-time-to-date end)))
              ;; end is an exclusive upper bound, but number-sequence
@@ -1136,9 +1186,9 @@ day of each subinterval."
                         (1- end-abs)
                       end-abs)))
         (setq recurrences
-              (append recurrences
-                      (mapcar #'calendar-gregorian-from-absolute
-                              (number-sequence start-abs bound))))))
+              (nconc recurrences
+                     (mapcar #'calendar-gregorian-from-absolute
+                             (number-sequence start-abs bound))))))
     recurrences))
 
 (defun icr:subintervals-to-recurrences (subintervals dtstart &optional vtimezone)
@@ -1162,7 +1212,7 @@ subinterval of the same type as DTSTART."
 (defun icr:recurrences-in-interval (interval component &optional vtimezone nmax)
   "Return a list of the recurrences of COMPONENT in INTERVAL.
 
-INTERVAL should be a list (LOW HIGH NEXT) of date-times which bound a
+INTERVAL should be an interval [LOW HIGH NEXT] of date-times which bound a
 single recurrence interval, as returned e.g. by
 `icalendar-recur-find-interval'.  (To find the recurrences in an
 arbitrary window of time, rather than between interval boundaries, see
@@ -1209,11 +1259,7 @@ retrieved on subsequent calls with the same arguments."
                                       :zone offset-from
                                       :dst (not (ical:daylight-component-p
                                                  component)))))
-      (cl-labels ((get-interval
-                    (apply-partially #'icr:-set-get-interval component))
-                  (put-interval
-                    (apply-partially #'icr:-set-put-interval component)))
-        (let ((cached (get-interval interval)))
+        (let ((cached (icr:-set-get-interval component interval)))
           (cond ((eq cached :none) nil)
                 (cached cached)
                 (t
@@ -1227,8 +1273,7 @@ retrieved on subsequent calls with the same arguments."
                         (keep-indices (ical:recur-by* 'BYSETPOS recur-value))
                         (pos-recs
                          (if keep-indices
-                             (funcall (icr:make-bysetpos-filter keep-indices)
-                                      sub-recs)
+                             (icr:bysetpos-filter keep-indices sub-recs)
                            sub-recs))
                         ;; Remove any recurrences before DTSTART or after UNTIL
                         ;; (both of which are inclusive bounds):
@@ -1241,8 +1286,8 @@ retrieved on subsequent calls with the same arguments."
                           pos-recs))
                         ;; Include any values in the interval from the
                         ;; RDATE property:
-                        (low (car interval))
-                        (high (cadr interval))
+                        (low (icr:interval-low interval))
+                        (high (icr:interval-high interval))
                         (rdates
                          (mapcar #'ical:ast-node-value
                                  (apply #'append
@@ -1276,11 +1321,12 @@ retrieved on subsequent calls with the same arguments."
                         ;; store more recurrences in the final interval than the
                         ;; COUNT clause allows:
                         (nmax-recs
-                         (if nmax (seq-take all-recs nmax)
+                         (if nmax (take nmax all-recs)
                            all-recs)))
                    ;; Store and return the computed recurrences:
-                   (put-interval interval (or nmax-recs :none))
-                   nmax-recs))))))))
+                   (icr:-set-put-interval component interval
+                                          (or nmax-recs :none))
+                   nmax-recs)))))))
 
 (defun icr:recurrences-in-window (lower upper component &optional vtimezone)
   "Return the recurrences of COMPONENT in the window between LOWER and UPPER.
@@ -1320,12 +1366,12 @@ UTC offsets local to that time zone."
                                                vtimezone))
              (high-interval (icr:find-interval high-end dtstart recur-value
                                                vtimezone))
-             (high-intbound (cadr high-interval))
+             (high-intbound (icr:interval-high high-interval))
              (recurrences nil))
 
-        (while (ical:date-time< (car curr-interval) high-intbound)
+        (while (ical:date-time< (icr:interval-low curr-interval) high-intbound)
           (setq recurrences
-                (append
+                (nconc
                  (icr:recurrences-in-interval curr-interval component vtimezone)
                  recurrences))
           (setq curr-interval (icr:next-interval curr-interval recur-value
@@ -1370,18 +1416,18 @@ the period."
                      (mapcar #'ical:ast-node-value rdate-nodes)))))
       (when (or starts periods)
         (seq-uniq
-         (append (mapcar
-                  (lambda (dt) (list dt (ical:date/time-add-duration
-                                         dt duration vtimezone)))
-                  starts)
-                 (mapcar
-                  (lambda (p)
-                    (let ((start (ical:period-start p)))
-                      (list start
-                            (or (ical:period-end p)
-                                (ical:date/time-add-duration
-                                 start (ical:period-dur-value p) vtimezone)))))
-                  periods)))))))
+         (nconc (mapcar
+                 (lambda (dt) (list dt (ical:date/time-add-duration
+                                        dt duration vtimezone)))
+                 starts)
+                (mapcar
+                 (lambda (p)
+                   (let ((start (ical:period-start p)))
+                     (list start
+                           (or (ical:period-end p)
+                               (ical:date/time-add-duration
+                                start (ical:period-dur-value p) vtimezone)))))
+                 periods)))))))
 
 (defun icr:recurrences-to-count (component &optional vtimezone)
   "Return all the recurrences in COMPONENT up to COUNT in its recurrence rule.
@@ -1418,8 +1464,8 @@ UTC offsets local to that time zone."
           recs)
       (while (length< recs count)
         (setq recs
-              (append recs (icr:recurrences-in-interval int component vtimezone
-                                                        (- count (length recs)))))
+              (nconc recs (icr:recurrences-in-interval int component vtimezone
+                                                       (- count (length recs)))))
         (setq int (icr:next-interval int recur-value vtimezone)))
       recs)))
 
@@ -1455,7 +1501,7 @@ UTC offsets local to that time zone."
   (make-hash-table :test #'equal))
 
 (defsubst icr:-key-from-interval (interval)
-  (take 6 (car interval))) ; (secs mins hours day month year)
+  (take 6 (icr:interval-low interval))) ; (secs mins hours day month year)
 
 (defun icr:-set-get-interval (component interval)
   (let ((set (ical:ast-node-meta-get :recurrence-set component))
@@ -1636,6 +1682,24 @@ should be a time zone identifier, as found e.g. in an
         (when (equal tzidval tzid)
           (throw 'found tz))))))
 
+(defun icr:-w/in-locally-p (dt start &optional end)
+  "Check whether DT falls after START (and before END, if any).
+All three values must be `icalendar-date-time's. The check is performed with
+`icalendar-date-time-locally<='."
+  (and
+   (ical:date-time-locally<= start dt)
+   (or (not end)
+       (ical:date-time-locally<= dt end))))
+
+(defun icr:-w/in-abs-p (dt start &optional end)
+  "Check whether DT falls after START (and before END, if any).
+DT must be a Lisp time stamp and START and END must be `icalendar-date-time's.
+The check is performed with `icalendar-time<='."
+  (and
+   (ical:time<= (encode-time start) dt)
+   (or (not end)
+       (ical:time<= dt (encode-time end)))))
+
 ;; DRAGONS DRAGONS DRAGONS
 (defun icr:tz-observance-on (dt vtimezone &optional update nonexisting)
   "Return the time zone observance in effect on DT in VTIMEZONE.
@@ -1715,10 +1779,27 @@ ignored."
                  (effective-start
                   (ical:date-time-variant start :zone offset-from
                                           :dst (not is-daylight)))
+                 (until (ical:recur-until recur-value))
+                 (bound
+                  ;; Optimization: compute a rough upper bound for when
+                  ;; an observance might apply, thus allowing us to skip
+                  ;; computing recurrences for irrelevant observances.
+                  ;; The UNTIL date, if any, is the last *recurrence* of
+                  ;; the observance.  The observance is therefore in
+                  ;; effect for some time after this recurrence, so we
+                  ;; can't just use UNTIL as an upper bound, but it's
+                  ;; guaranteed to end within N years after UNTIL, where
+                  ;; N is the interval size.  This is not the tightest
+                  ;; possible bound but it is the cheapest to compute here.
+                  (when until
+                    (ical:date-time-variant until
+                                            :year (+ (decoded-time-year until)
+                                                     (ical:recur-interval-size
+                                                      recur-value)))))
                  (observance-might-apply
                   (if given-clock-time
-                      (ical:date-time-locally<= effective-start given-clock-time)
-                    (ical:time<= (encode-time effective-start) given-abs-time))))
+                      (icr:-w/in-locally-p given-clock-time effective-start bound)
+                    (icr:-w/in-abs-p given-abs-time effective-start bound))))
 
             (when observance-might-apply
               ;; Initialize our return values on the first iteration
@@ -1781,31 +1862,37 @@ ignored."
                                    (decode-time given-abs-time offset-from)))
                        (int (icr:find-interval
                              target effective-start recur-value offset-from))
-                       (int-recs (icr:recurrences-in-interval
-                                  int obs offset-from))
-                       ;; The closest observance onset before `dt' might
-                       ;; actually be in the previous interval, e.g.
-                       ;; if `dt' is in January after an annual change to
-                       ;; Standard Time in November.  So check that as well.
-                       (prev-int (icr:previous-interval int recur-value
-                                                        effective-start
-                                                        offset-from))
-                       (prev-recs (when prev-int
-                                    (icr:recurrences-in-interval
-                                     prev-int obs offset-from)))
-                       (recs (append prev-recs int-recs))
-                       (keep-recs<=given
+                       (<=given
                         (if given-clock-time
                             (lambda (rec)
                               (ical:date-time-locally<= rec given-clock-time))
                           (lambda (rec)
                             (ical:time<= (encode-time rec) given-abs-time))))
-                       (srecs (sort (seq-filter ; (1)
-                                     keep-recs<=given
-                                     recs)
+                       (int-recs (sort
+                                  (seq-filter <=given ; (1)
+                                              (icr:recurrences-in-interval
+                                               int obs offset-from))
                                     :lessp #'ical:date-time<
                                     :in-place t :reverse t))
-                       (latest-rec (car srecs)))
+                       latest-rec)
+
+                       (unless int-recs
+                         ;; The closest observance onset before `dt' might
+                         ;; actually be in the previous interval, e.g.
+                         ;; if `dt' is in January after an annual change to
+                         ;; Standard Time in November.  So check that as well.
+                         (setq int (icr:previous-interval int recur-value
+                                                          effective-start
+                                                          offset-from))
+                         (setq int-recs
+                               (when int
+                                 (sort
+                                  (seq-filter <=given ; (1)
+                                              (icr:recurrences-in-interval
+                                               int obs offset-from))
+                                  :lessp #'ical:date-time<
+                                  :in-place t :reverse t))))
+                       (setq latest-rec (car int-recs))
 
                   (when (and latest-rec
                              (ical:date-time< nearest-onset latest-rec)) ; (2)
@@ -1974,8 +2061,8 @@ called recursively on NODE's children."
                         :duration (ical:period-dur-value value)))))
           (ical:ast-node-set-value value-node updated)))))
    ((ical:component-node-p node) ; includes VCALENDAR nodes
-    (mapc (apply-partially #'icr:tz-set-zones-in vtimezones)
-          (ical:ast-node-children node)))
+    (dolist (nd (ical:ast-node-children node))
+      (icr:tz-set-zones-in vtimezones nd)))
    (t nil)))
 
 (defun icr:tzname-on (dt vtimezone)

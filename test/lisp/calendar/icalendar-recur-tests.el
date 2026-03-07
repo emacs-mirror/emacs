@@ -117,13 +117,12 @@ END:VTIMEZONE
 ;; Tests for basic functions:
 
 (ert-deftest ict:recur-bysetpos-filter ()
-  "Test that `icr:make-bysetpos-filter' filters correctly by position"
+  "Test that `icr:bysetpos-filter' filters correctly by position"
   (let* ((t1 (list 1 1 2024))
          (t2 (list 2 1 2024))
          (t3 (list 12 30 2024))
          (dts (list t1 t2 t3))
-         (filter (icr:make-bysetpos-filter (list 1 -1)))
-         (filtered (funcall filter dts)))
+         (filtered (icr:bysetpos-filter (list 1 -1) dts)))
     (should (member t1 filtered))
     (should (member t3 filtered))
     (should-not (member t2 filtered))))
@@ -282,7 +281,7 @@ END:VTIMEZONE
     ;; an interval boundary:
     (let* ((target (ical:date-time-variant dtstart :year 2026 :second 5 :zone 0))
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :second 0 :tz 'preserve)
              (ical:date-time-variant target :second 1 :tz 'preserve)
              (ical:date-time-variant target :second 10 :tz 'preserve))))
@@ -294,7 +293,7 @@ END:VTIMEZONE
     ;; an interval boundary:
     (let* ((target (ical:date-time-variant dtstart :year 2027 :second 10 :zone 0))
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :second 10 :tz 'preserve)
              (ical:date-time-variant target :second 11 :tz 'preserve)
              (ical:date-time-variant target :second 20 :tz 'preserve))))
@@ -308,7 +307,7 @@ END:VTIMEZONE
                                            :year 2028 :month 2 :second 20
                                            :zone ict:est :dst nil))
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :second 20 :tz 'preserve)
              (ical:date-time-variant target :second 21 :tz 'preserve)
              (ical:date-time-variant target :second 30 :tz 'preserve))))
@@ -323,7 +322,7 @@ END:VTIMEZONE
                                            :year 2029 :month 5 :second 30
                                            :zone ict:edt :dst t))
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :second 30 :tz 'preserve)
              (ical:date-time-variant target :second 31 :tz 'preserve)
              (ical:date-time-variant target :second 40 :tz 'preserve))))
@@ -342,7 +341,7 @@ END:VTIMEZONE
                                            :hour 2 :minute 30 :second 0
                                            :zone ict:est :dst nil))
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 3 :second 0
                                      :zone ict:edt :dst t)
              (ical:date-time-variant target :hour 3 :second 1
@@ -364,7 +363,7 @@ END:VTIMEZONE
                                            :zone ict:edt :dst t))
            (intsize 59)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 11 :minute 59 :second 16
                                      :tz 'preserve)
              (ical:date-time-variant target :hour 11 :minute 59 :second 17
@@ -393,7 +392,7 @@ END:VTIMEZONE
     (let* ((target (ical:date-time-variant dtstart :year 2026 :minute 5))
            (intsize 10)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :minute 0 :second 0)
              (ical:date-time-variant target :minute 1 :second 0)
              (ical:date-time-variant target :minute 10 :second 0))))
@@ -406,7 +405,7 @@ END:VTIMEZONE
     (let* ((target (ical:date-time-variant dtstart :year 2027 :minute 10))
            (intsize 10)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :minute 10 :second 0)
              (ical:date-time-variant target :minute 11 :second 0)
              (ical:date-time-variant target :minute 20 :second 0))))
@@ -421,7 +420,7 @@ END:VTIMEZONE
                                            :zone ict:est :dst nil))
            (intsize 10)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :minute 20 :second 0
                                      :zone ict:est :dst nil)
              (ical:date-time-variant target :minute 21 :second 0
@@ -440,7 +439,7 @@ END:VTIMEZONE
                                            :zone ict:edt :dst t))
            (intsize 10)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :minute 30 :second 0
                                      :zone ict:edt :dst t)
              (ical:date-time-variant target :minute 31 :second 0
@@ -464,7 +463,7 @@ END:VTIMEZONE
                                            :zone ict:est :dst nil))
            (intsize 10)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 3 :minute 30 :second 0
                                      :zone ict:edt :dst t)
              (ical:date-time-variant target :hour 3 :minute 31 :second 0
@@ -493,7 +492,7 @@ END:VTIMEZONE
     (let* ((target (ical:date-time-variant dtstart :year 2026 :hour 5))
            (intsize 10)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :hour 1 :minute 0 :second 0)
              (ical:date-time-variant target :hour 10 :minute 0 :second 0))))
@@ -506,7 +505,7 @@ END:VTIMEZONE
     (let* ((target (ical:date-time-variant dtstart :year 2027 :hour 10))
            (intsize 10)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 10 :minute 0 :second 0)
              (ical:date-time-variant target :hour 11 :minute 0 :second 0)
              (ical:date-time-variant target :hour 20 :minute 0 :second 0))))
@@ -521,7 +520,7 @@ END:VTIMEZONE
                                            :zone ict:est :dst nil))
            (intsize 2)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 10 :minute 0 :second 0
                                      :zone ict:est :dst nil)
              (ical:date-time-variant target :hour 11 :minute 0 :second 0
@@ -543,7 +542,7 @@ END:VTIMEZONE
                                            :zone ict:edt :dst t))
            (intsize 2)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 11 :minute 0 :second 0
                                      :zone ict:edt :dst t)
              (ical:date-time-variant target :hour 12 :minute 0 :second 0
@@ -566,7 +565,7 @@ END:VTIMEZONE
                                         :zone ict:est :dst nil))
            (intsize 2)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :hour 3 :minute 0 :second 0
                                      :zone ict:edt :dst t)
              (ical:date-time-variant target :hour 4 :minute 0 :second 0
@@ -590,7 +589,7 @@ END:VTIMEZONE
     (let* ((target (list 1 9 2026))
            (intsize 7)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:make-date-time :year 2026 :month 1 :day 7
                                   :hour 0 :minute 0 :second 0)
              (ical:make-date-time :year 2026 :month 1 :day 8
@@ -617,7 +616,7 @@ END:VTIMEZONE
                                               :year 2026 :month 1 :day 9))
            (intsize 7)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :day 7 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 8 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 14
@@ -631,7 +630,7 @@ END:VTIMEZONE
     (let* ((target (ical:date-time-variant dtstart :year 2027 :month 1 :day 6))
            (intsize 7)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :day 6 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 7 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 13 :hour 0 :minute 0 :second 0))))
@@ -645,7 +644,7 @@ END:VTIMEZONE
                                            :zone ict:est :dst nil))
            (intsize 7)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :day 2 :hour 0 :minute 0 :second 0
                                      :tz 'preserve)
              (ical:date-time-variant target :day 3 :hour 0 :minute 0 :second 0
@@ -663,7 +662,7 @@ END:VTIMEZONE
                                            :zone ict:edt :dst t))
            (intsize 7)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :day 23 :hour 0 :minute 0 :second 0
                                      :tz 'preserve)
              (ical:date-time-variant target :day 24 :hour 0 :minute 0 :second 0
@@ -687,7 +686,7 @@ END:VTIMEZONE
     (let* ((target '(1 9 2026))
            (intsize 2)
            (expected-int-mon
-            (list
+            (icr:make-interval
              (ical:make-date-time :year 2026 :month 1 :day 5
                                   :hour 0 :minute 0 :second 0)
              (ical:make-date-time :year 2026 :month 1 :day 12
@@ -714,13 +713,13 @@ END:VTIMEZONE
            (weds 3)
            ;; expected interval for Monday (default) week start:
            (expected-int-mon
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :day 5 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 12 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 19 :hour 0 :minute 0 :second 0)))
            ;; expected interval for Wednesday week start:
            (expected-int-wed
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :day 7 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 14 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 21 :hour 0 :minute 0 :second 0))))
@@ -736,7 +735,7 @@ END:VTIMEZONE
            (intsize 3)
            ;; expected interval for Monday (default) week start:
            (expected-int-mon
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :year 2026 :month 12 :day 21
                                      :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :year 2026 :month 12 :day 28
@@ -753,7 +752,7 @@ END:VTIMEZONE
            (sun 0)
            ;; expected interval for Sunday week start:
            (expected-int-sun
-            (list
+            (icr:make-interval
              (ical:date-time-variant target :day 2 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 9 :hour 0 :minute 0 :second 0)
              (ical:date-time-variant target :day 23 :hour 0 :minute 0 :second 0))))
@@ -771,7 +770,7 @@ END:VTIMEZONE
          (target '(10 9 2025))
            (intsize 5)
            (expected-int
-            (list
+            (icr:make-interval
              (ical:make-date-time :year 2025 :month 6 :day 1
                                   :hour 0 :minute 0 :second 0)
              (ical:make-date-time :year 2025 :month 7 :day 1
@@ -789,7 +788,7 @@ END:VTIMEZONE
          (target (ical:date-time-variant dtstart :year 2026 :month 3 :day 9))
          (intsize 2)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:date-time-variant target :day 1 :hour 0 :minute 0 :second 0)
            (ical:date-time-variant target :month 4 :day 1
                                    :hour 0 :minute 0 :second 0)
@@ -807,7 +806,7 @@ END:VTIMEZONE
          (target (ical:date-time-variant dtstart :year 2027 :month 5 :day 1))
          (intsize 7)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:date-time-variant target :year 2027 :month 5 :day 1
                                    :hour 0 :minute 0 :second 0)
            (ical:date-time-variant target :year 2027 :month 6 :day 1
@@ -826,7 +825,7 @@ END:VTIMEZONE
                                          :year 2029 :month 4 :day 15))
          (intsize 2)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:date-time-variant target :year 2029 :month 3 :day 1
                                    :hour 0 :minute 0 :second 0)
            (ical:date-time-variant target :year 2029 :month 4 :day 1
@@ -845,7 +844,7 @@ END:VTIMEZONE
                                          :year 2030 :month 5 :day 1))
          (intsize 2)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:date-time-variant target :year 2030 :month 5 :day 1
                                    :hour 0 :minute 0 :second 0)
            (ical:date-time-variant target :year 2030 :month 6 :day 1
@@ -863,7 +862,7 @@ END:VTIMEZONE
          (target (ical:date-time-variant dtstart :year 2032 :month 11 :day 11))
          (intsize 2)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:date-time-variant target :year 2032 :month 11 :day 1
                                    :hour 0 :minute 0 :second 0)
            (ical:date-time-variant target :year 2032 :month 12 :day 1
@@ -884,7 +883,7 @@ END:VTIMEZONE
          (target '(10 9 2025))
          (intsize 2)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:make-date-time :year 2025 :month 1 :day 1
                                 :hour 0 :minute 0 :second 0)
            (ical:make-date-time :year 2026 :month 1 :day 1
@@ -901,7 +900,7 @@ END:VTIMEZONE
                                       :hour 11 :minute 58 :second 0))
          (intsize 3)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:make-date-time :year 2026 :month 1 :day 1
                                 :hour 0 :minute 0 :second 0)
            (ical:make-date-time :year 2027 :month 1 :day 1
@@ -918,7 +917,7 @@ END:VTIMEZONE
                                       :hour 0 :minute 0 :second 0))
          (intsize 4)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:make-date-time :year 2027 :month 1 :day 1
                                 :hour 0 :minute 0 :second 0)
            (ical:make-date-time :year 2028 :month 1 :day 1
@@ -937,13 +936,12 @@ END:VTIMEZONE
                                       :hour 11 :minute 58 :second 0))
          (intsize 1)
          (expected-int
-          (list
+          (icr:make-interval
            (ical:make-date-time :year 2029 :month 1 :day 1
                                 :hour 0 :minute 0 :second 0)
            (ical:make-date-time :year 2030 :month 1 :day 1
                                 :hour 0 :minute 0 :second 0)
-           (ical:make-date-time :year 2030 :month 1 :day 1
-                                :hour 0 :minute 0 :second 0))))
+           nil)))
     (should (equal expected-int
                    (icr:find-yearly-interval target dtstart intsize)))))
 
@@ -954,12 +952,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 1 :day 1
                                    :hour 0 :minute 0 :second 0))
          (high (ical:date/time-add low :year 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (yeardays (list 2 -7))
-         (sub1 (list (ical:date-time-variant low :day 2)
-                     (ical:date-time-variant low :day 3)))
-         (sub2 (list (ical:date-time-variant low :month 12 :day 25)
-                     (ical:date-time-variant low :month 12 :day 26)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :day 2)
+                (ical:date-time-variant low :day 3)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :month 12 :day 25)
+                (ical:date-time-variant low :month 12 :day 26)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byyearday interval yeardays)))))
@@ -969,12 +969,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 1 :day 1
                                    :hour 0 :minute 0 :second 0))
          (high (ical:date/time-add low :year 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (months (list 9 2))
-         (sub1 (list (ical:date-time-variant low :month 2 :day 1)
-                     (ical:date-time-variant low :month 3 :day 1)))
-         (sub2 (list (ical:date-time-variant low :month 9 :day 1)
-                     (ical:date-time-variant low :month 10 :day 1)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :month 2 :day 1)
+                (ical:date-time-variant low :month 3 :day 1)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :month 9 :day 1)
+                (ical:date-time-variant low :month 10 :day 1)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-bymonth interval months)))))
@@ -984,13 +986,15 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 2 :day 1
                                    :hour 0 :minute 0 :second 0))
          (high (ical:date/time-add low :month 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (monthdays (list -1 2 29))
          ;; N.B. we should get no subinterval for Feb. 29, 2025
-         (sub1 (list (ical:date-time-variant low :day 2)
-                     (ical:date-time-variant low :day 3)))
-         (sub2 (list (ical:date-time-variant low :day 28)
-                     (ical:date-time-variant low :month 3 :day 1)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :day 2)
+                (ical:date-time-variant low :day 3)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :day 28)
+                (ical:date-time-variant low :month 3 :day 1)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-bymonthday interval monthdays)))))
@@ -1001,12 +1005,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 3 :day 3 ; a Monday
                                    :hour 0 :minute 0 :second 0))
          (high (ical:date/time-add low :day 7))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (days (list 0 6)) ; just the weekend, please!
-         (sub1 (list (ical:date-time-variant low :day 8)
-                     (ical:date-time-variant low :day 9)))
-         (sub2 (list (ical:date-time-variant low :day 9)
-                     (ical:date-time-variant low :day 10)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :day 8)
+                (ical:date-time-variant low :day 9)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :day 9)
+                (ical:date-time-variant low :day 10)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byday interval days))))
@@ -1015,12 +1021,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 3 :day 1 ; a Saturday
                                    :hour 0 :minute 0 :second 0))
          (high (ical:date/time-add low :month 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (days (list '(1 . 2) '(1 . -1)))  ; second and last Monday
-         (sub1 (list (ical:date-time-variant low :day 10)
-                     (ical:date-time-variant low :day 11)))
-         (sub2 (list (ical:date-time-variant low :day 31)
-                     (ical:date-time-variant low :month 4 :day 1)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :day 10)
+                (ical:date-time-variant low :day 11)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :day 31)
+                (ical:date-time-variant low :month 4 :day 1)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byday interval days t))))
@@ -1029,12 +1037,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 1 :day 1
                                    :hour 0 :minute 0 :second 0))
          (high (ical:date/time-add low :year 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (days (list '(5 . 1) '(5 . -1)))  ; first and last Friday
-         (sub1 (list (ical:date-time-variant low :day 3)
-                     (ical:date-time-variant low :day 4)))
-         (sub2 (list (ical:date-time-variant low :month 12 :day 26)
-                     (ical:date-time-variant low :month 12 :day 27)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :day 3)
+                (ical:date-time-variant low :day 4)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :month 12 :day 26)
+                (ical:date-time-variant low :month 12 :day 27)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byday interval days nil)))))
@@ -1045,12 +1055,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 1 :day 1
                                    :hour 0 :minute 0 :second 0))
          (high (ical:date/time-add low :day 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (hours (list 2 19))
-         (sub1 (list (ical:date-time-variant low :hour 2)
-                     (ical:date-time-variant low :hour 3)))
-         (sub2 (list (ical:date-time-variant low :hour 19)
-                     (ical:date-time-variant low :hour 20)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :hour 2)
+                (ical:date-time-variant low :hour 3)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :hour 19)
+                (ical:date-time-variant low :hour 20)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byhour interval hours))))
@@ -1060,12 +1072,14 @@ END:VTIMEZONE
                                    :hour 0 :minute 0 :second 0
                                    :zone ict:est :dst nil))
          (high (ical:date/time-add low :day 1 ict:tz-eastern))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (hours (list 2 19))
-         (sub1 (list (ical:date-time-variant low :hour 2 :tz 'preserve)
-                     (ical:date-time-variant low :hour 3 :tz 'preserve)))
-         (sub2 (list (ical:date-time-variant low :hour 19 :tz 'preserve)
-                     (ical:date-time-variant low :hour 20 :tz 'preserve)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :hour 2 :tz 'preserve)
+                (ical:date-time-variant low :hour 3 :tz 'preserve)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :hour 19 :tz 'preserve)
+                (ical:date-time-variant low :hour 20 :tz 'preserve)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byhour interval hours ict:tz-eastern)))))
@@ -1076,12 +1090,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 5 :day 1
                                    :hour 13 :minute 0 :second 0))
          (high (ical:date/time-add low :hour 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (minutes (list 7 59))
-         (sub1 (list (ical:date-time-variant low :minute 7)
-                     (ical:date-time-variant low :minute 8)))
-         (sub2 (list (ical:date-time-variant low :minute 59)
-                     (ical:date-time-variant low :hour 14 :minute 0)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :minute 7)
+                (ical:date-time-variant low :minute 8)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :minute 59)
+                (ical:date-time-variant low :hour 14 :minute 0)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byminute interval minutes))))
@@ -1091,13 +1107,14 @@ END:VTIMEZONE
                                    :hour 13 :minute 0 :second 0
                                    :zone ict:est :dst nil))
          (high (ical:date/time-add low :hour 1 ict:tz-eastern))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (minutes (list 7 59))
-         (sub1 (list (ical:date-time-variant low :minute 7 :tz 'preserve)
-                     (ical:date-time-variant low :minute 8 :tz 'preserve)))
-         (sub2 (list (ical:date-time-variant low :minute 59 :tz 'preserve)
-                     (ical:date-time-variant low :hour 14 :minute 0
-                                             :tz 'preserve)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :minute 7 :tz 'preserve)
+                (ical:date-time-variant low :minute 8 :tz 'preserve)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :minute 59 :tz 'preserve)
+                (ical:date-time-variant low :hour 14 :minute 0 :tz 'preserve)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-byminute interval minutes ict:tz-eastern)))))
@@ -1108,12 +1125,14 @@ END:VTIMEZONE
   (let* ((low (ical:make-date-time :year 2025 :month 5 :day 1
                                    :hour 13 :minute 59 :second 0))
          (high (ical:date/time-add low :minute 1))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (seconds (list 24 59))
-         (sub1 (list (ical:date-time-variant low :second 24)
-                     (ical:date-time-variant low :second 25)))
-         (sub2 (list (ical:date-time-variant low :second 59)
-                     (ical:date-time-variant low :hour 14 :minute 0 :second 0)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :second 24)
+                (ical:date-time-variant low :second 25)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :second 59)
+                (ical:date-time-variant low :hour 14 :minute 0 :second 0)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-bysecond interval seconds))))
@@ -1123,13 +1142,14 @@ END:VTIMEZONE
                                    :hour 13 :minute 19 :second 0
                                    :zone ict:est :dst nil))
          (high (ical:date/time-add low :minute 1 ict:tz-eastern))
-         (interval (list low high high))
+         (interval (icr:make-interval low high high))
          (seconds (list 24 59))
-         (sub1 (list (ical:date-time-variant low :second 24 :tz 'preserve)
-                     (ical:date-time-variant low :second 25 :tz 'preserve)))
-         (sub2 (list (ical:date-time-variant low :second 59 :tz 'preserve)
-                     (ical:date-time-variant low :minute 20 :second 0
-                                             :tz 'preserve)))
+         (sub1 (icr:make-interval
+                (ical:date-time-variant low :second 24 :tz 'preserve)
+                (ical:date-time-variant low :second 25 :tz 'preserve)))
+         (sub2 (icr:make-interval
+                (ical:date-time-variant low :second 59 :tz 'preserve)
+                (ical:date-time-variant low :minute 20 :second 0 :tz 'preserve)))
          (expected-subintervals (list sub1 sub2)))
     (should (equal expected-subintervals
                    (icr:refine-bysecond interval seconds ict:tz-eastern)))))
@@ -1140,11 +1160,11 @@ END:VTIMEZONE
   (let* ((low1 (ical:make-date-time :year 2025 :month 5 :day 1
                                     :hour 13 :minute 59 :second 0))
          (high1 (ical:date/time-add low1 :day 3))
-         (sub1 (list low1 high1))
+         (sub1 (icr:make-interval low1 high1))
          (low2 (ical:make-date-time :year 2025 :month 5 :day 31
                                     :hour 14 :minute 0 :second 0))
          (high2 (ical:date/time-add low2 :hour 3)) ; later but on the same day
-         (sub2 (list low2 high2))
+         (sub2 (icr:make-interval low2 high2))
          (low-date1 (ical:date-time-to-date low1))
          (low-date2 (ical:date-time-to-date low2))
          (expected-recs (list low-date1
@@ -1161,11 +1181,11 @@ END:VTIMEZONE
   (let* ((low1 (ical:make-date-time :year 2025 :month 5 :day 1
                                     :hour 13 :minute 59 :second 0))
          (high1 (ical:date/time-add low1 :second 1))
-         (sub1 (list low1 high1))
+         (sub1 (icr:make-interval low1 high1))
          (low2 (ical:make-date-time :year 2025 :month 5 :day 2
                                     :hour 14 :minute 0 :second 0))
          (high2 (ical:date/time-add low2 :second 1))
-         (sub2 (list low2 high2))
+         (sub2 (icr:make-interval low2 high2))
          (expected-recs (list low1 low2)))
     (should (equal expected-recs
                    (icr:subintervals-to-date-times (list sub1 sub2)))))
@@ -1175,7 +1195,7 @@ END:VTIMEZONE
                                     :hour 13 :minute 59 :second 0
                                     :zone ict:edt :dst t))
          (high1 (ical:date/time-add low1 :second 5 ict:tz-eastern))
-         (sub1 (list low1 high1))
+         (sub1 (icr:make-interval low1 high1))
          (expected-recs
           (list low1
                 (ical:date/time-add low1 :second 1 ict:tz-eastern)
@@ -1194,7 +1214,7 @@ END:VTIMEZONE
          (high1 (ical:make-date-time :year 2025 :month 3 :day 9
                                      :hour 3 :minute 0 :second 3
                                      :zone ict:edt :dst t))
-         (sub1 (list low1 high1))
+         (sub1 (icr:make-interval low1 high1))
          (expected-recs
           (list low1
                 (ical:date-time-variant low1 :second 59 :tz 'preserve)
@@ -1214,7 +1234,7 @@ END:VTIMEZONE
          (high1 (ical:make-date-time :year 2024 :month 11 :day 3
                                      :hour 1 :minute 0 :second 2
                                      :zone ict:est :dst nil))
-         (sub1 (list low1 high1))
+         (sub1 (icr:make-interval low1 high1))
          (expected-recs
           (list low1
                 (ical:date-time-variant low1 :second 59 :tz 'preserve)
@@ -1534,7 +1554,7 @@ SOURCE should be a symbol; it is used to name the test."
             (win-high
              (or ,high
                  until
-                 (cadr
+                 (icr:interval-high
                   (icr:nth-interval 2 ,dtstart recvalue))))
             (recs
              (if count
@@ -1741,6 +1761,7 @@ SOURCE should be a symbol; it is used to name the test."
 (ict:rrule-test
  "RRULE:FREQ=DAILY;INTERVAL=2\n"
  "Every other day - forever"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
                                :hour 9 :minute 0 :second 0
@@ -2523,6 +2544,7 @@ SOURCE should be a symbol; it is used to name the test."
 (ict:rrule-test
 "RRULE:FREQ=YEARLY;BYDAY=TH;BYMONTH=6,7,8\n"
 "Every Thursday, but only during June, July, and August, forever"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 6 :day 5
                                :hour 9 :minute 0 :second 0
@@ -2576,6 +2598,7 @@ SOURCE should be a symbol; it is used to name the test."
 (ict:rrule-test
  "RRULE:FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13\n"
  "Every Friday the 13th, forever, *excluding* DTSTART "
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
                                :hour 9 :minute 0 :second 0
@@ -2603,6 +2626,7 @@ SOURCE should be a symbol; it is used to name the test."
 (ict:rrule-test
  "RRULE:FREQ=MONTHLY;BYDAY=SA;BYMONTHDAY=7,8,9,10,11,12,13\n"
  "The first Saturday that follows the first Sunday of the month, forever"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 13
                                :hour 9 :minute 0 :second 0
@@ -2654,6 +2678,7 @@ SOURCE should be a symbol; it is used to name the test."
  "RRULE:FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3\n"
  "The third instance into the month of one of Tuesday, Wednesday, or
 Thursday, for the next 3 months"
+ :tags '(:expensive-test)
  ;; TODO: Yikes, why is this so slow??
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 4
@@ -2672,6 +2697,7 @@ Thursday, for the next 3 months"
 (ict:rrule-test
  "RRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-2\n"
  "The second-to-last weekday of the month"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 29
                                :hour 9 :minute 0 :second 0
@@ -2751,6 +2777,7 @@ Thursday, for the next 3 months"
 (ict:rrule-test
  "RRULE:FREQ=DAILY;BYHOUR=9,10,11,12,13,14,15,16;BYMINUTE=0,20,40\n"
  "Every 20 minutes from 9:00 AM to 4:40 PM every day"
+ :tags '(:expensive-test)
  :tz ict:tz-eastern
  :dtstart (ical:make-date-time :year 1997 :month 9 :day 2
                                :hour 9 :minute 0 :second 0

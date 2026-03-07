@@ -561,6 +561,7 @@ interpreted into Emacs local time, so that the dates returned are valid
 for the local time zone."
   (require 'icalendar-recur) ; avoid circular requires
   (declare-function icalendar-recur-subintervals-to-dates "icalendar-recur")
+  (declare-function icalendar-recur-make-interval "icalendar-recur")
 
   (when locally
     (when (cl-typep start 'ical:date-time)
@@ -572,18 +573,23 @@ for the local time zone."
      (cl-typecase end
        (ical:date
         (icalendar-recur-subintervals-to-dates
-         (list (list (ical:date-to-date-time start)
-                     (ical:date-to-date-time end)))))
+         (list
+          (icalendar-recur-make-interval
+           (ical:date-to-date-time start)
+           (ical:date-to-date-time end)))))
        (ical:date-time
         (icalendar-recur-subintervals-to-dates
-         (list (list (ical:date-to-date-time start) end))))))
+         (list
+          (icalendar-recur-make-interval (ical:date-to-date-time start) end))))))
     (ical:date-time
      (cl-typecase end
        (ical:date
         (icalendar-recur-subintervals-to-dates
-         (list (list start (ical:date-to-date-time end)))))
+         (list
+          (icalendar-recur-make-interval start (ical:date-to-date-time end)))))
        (ical:date-time
-        (icalendar-recur-subintervals-to-dates (list (list start end))))))))
+        (icalendar-recur-subintervals-to-dates
+         (list (icalendar-recur-make-interval start end))))))))
 
 
 (cl-defun ical:make-date-time (&key second minute hour day month year
