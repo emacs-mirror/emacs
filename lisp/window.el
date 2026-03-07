@@ -5574,7 +5574,7 @@ anything else."
 
       (setq kill-from-mode
 	    (or (eq quit-window-kill-buffer t)
-		(and (listp quit-window-kill-buffer)
+                (and (consp quit-window-kill-buffer)
 		     (derived-mode-p quit-window-kill-buffer)))))
 
     (quit-restore-window
