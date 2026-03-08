@@ -281,7 +281,7 @@ to avoid corrupting the original SEQ.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-remove nil list :if pred cl-keys))
+  (apply #'cl-remove pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-remove-if-not (pred list &rest cl-keys)
@@ -291,7 +291,7 @@ to avoid corrupting the original SEQ.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-remove nil list :if-not pred cl-keys))
+  (apply #'cl-remove pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-delete (item seq &rest cl-keys)
@@ -346,7 +346,7 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-delete nil list :if pred cl-keys))
+  (apply #'cl-delete pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-delete-if-not (pred list &rest cl-keys)
@@ -355,7 +355,7 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-delete nil list :if-not pred cl-keys))
+  (apply #'cl-delete pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-remove-duplicates (seq &rest cl-keys)
@@ -448,7 +448,7 @@ to avoid corrupting the original SEQ.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-substitute new nil seq :if pred cl-keys))
+  (apply #'cl-substitute new pred seq :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-substitute-if-not (new pred seq &rest cl-keys)
@@ -458,7 +458,7 @@ to avoid corrupting the original SEQ.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-substitute new nil seq :if-not pred cl-keys))
+  (apply #'cl-substitute new pred seq :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-nsubstitute (new old seq &rest cl-keys)
@@ -505,7 +505,7 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-nsubstitute new nil list :if pred cl-keys))
+  (apply #'cl-nsubstitute new pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-nsubstitute-if-not (new pred list &rest cl-keys)
@@ -514,7 +514,7 @@ This is a destructive function; it reuses the storage of SEQ whenever possible.
 \nKeywords supported:  :key :count :start :end :from-end
 \n(fn NEW PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-nsubstitute new nil list :if-not pred cl-keys))
+  (apply #'cl-nsubstitute new pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-find (item seq &rest cl-keys)
@@ -533,7 +533,7 @@ Return the matching item, or nil if not found.
 \nKeywords supported:  :key :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-find nil list :if pred cl-keys))
+  (apply #'cl-find pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-find-if-not (pred list &rest cl-keys)
@@ -542,7 +542,7 @@ Return the matching item, or nil if not found.
 \nKeywords supported:  :key :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-find nil list :if-not pred cl-keys))
+  (apply #'cl-find pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-position (item seq &rest cl-keys)
@@ -582,7 +582,7 @@ Return the index of the matching item, or nil if not found.
 \nKeywords supported:  :key :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-position nil list :if pred cl-keys))
+  (apply #'cl-position pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-position-if-not (pred list &rest cl-keys)
@@ -591,7 +591,7 @@ Return the index of the matching item, or nil if not found.
 \nKeywords supported:  :key :start :end :from-end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-position nil list :if-not pred cl-keys))
+  (apply #'cl-position pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-count (item seq &rest cl-keys)
@@ -615,7 +615,7 @@ Return the index of the matching item, or nil if not found.
 \nKeywords supported:  :key :start :end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-count nil list :if pred cl-keys))
+  (apply #'cl-count pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-count-if-not (pred list &rest cl-keys)
@@ -623,7 +623,7 @@ Return the index of the matching item, or nil if not found.
 \nKeywords supported:  :key :start :end
 \n(fn PREDICATE SEQ [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-count nil list :if-not pred cl-keys))
+  (apply #'cl-count pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-mismatch (seq1 seq2 &rest cl-keys)
@@ -769,7 +769,7 @@ with
 
 (fn PREDICATE LIST [:KEY KEY-FN])"
   (declare (important-return-value t))
-  (apply #'cl-member nil list :if pred cl-keys))
+  (apply #'cl-member pred list :test #'funcall cl-keys))
 (make-obsolete 'cl-member-if 'member-if "31.1")
 
 ;;;###autoload
@@ -782,7 +782,7 @@ function into the predicate.
 \nKeywords supported:  :key
 \n(fn PREDICATE LIST [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-member nil list :if-not pred cl-keys))
+  (apply #'cl-member pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl--adjoin (item list &rest cl-keys)
@@ -816,7 +816,7 @@ function into the predicate.
 \nKeywords supported:  :key
 \n(fn PREDICATE LIST [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-assoc nil list :if pred cl-keys))
+  (apply #'cl-assoc pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-assoc-if-not (pred list &rest cl-keys)
@@ -824,7 +824,7 @@ function into the predicate.
 \nKeywords supported:  :key
 \n(fn PREDICATE LIST [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-assoc nil list :if-not pred cl-keys))
+  (apply #'cl-assoc pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-rassoc (item alist &rest cl-keys)
@@ -847,7 +847,7 @@ function into the predicate.
 \nKeywords supported:  :key
 \n(fn PREDICATE LIST [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-rassoc nil list :if pred cl-keys))
+  (apply #'cl-rassoc pred list :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-rassoc-if-not (pred list &rest cl-keys)
@@ -855,7 +855,7 @@ function into the predicate.
 \nKeywords supported:  :key
 \n(fn PREDICATE LIST [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-rassoc nil list :if-not pred cl-keys))
+  (apply #'cl-rassoc pred list :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-union (list1 list2 &rest cl-keys)
@@ -1011,7 +1011,7 @@ Return a copy of TREE with all matching elements replaced by NEW.
 \nKeywords supported:  :key
 \n(fn NEW PREDICATE TREE [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-sublis (list (cons nil new)) tree :if pred cl-keys))
+  (apply #'cl-sublis (list (cons pred new)) tree :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-subst-if-not (new pred tree &rest cl-keys)
@@ -1020,7 +1020,7 @@ Return a copy of TREE with all non-matching elements replaced by NEW.
 \nKeywords supported:  :key
 \n(fn NEW PREDICATE TREE [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-sublis (list (cons nil new)) tree :if-not pred cl-keys))
+  (apply #'cl-sublis (list (cons pred new)) tree :test-not #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-nsubst (new old tree &rest cl-keys)
@@ -1039,7 +1039,7 @@ Any element of TREE which matches is changed to NEW (via a call to `setcar').
 \nKeywords supported:  :key
 \n(fn NEW PREDICATE TREE [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-nsublis (list (cons nil new)) tree :if pred cl-keys))
+  (apply #'cl-nsublis (list (cons pred new)) tree :test #'funcall cl-keys))
 
 ;;;###autoload
 (defun cl-nsubst-if-not (new pred tree &rest cl-keys)
@@ -1048,7 +1048,7 @@ Any element of TREE which matches is changed to NEW (via a call to `setcar').
 \nKeywords supported:  :key
 \n(fn NEW PREDICATE TREE [KEYWORD VALUE]...)"
   (declare (important-return-value t))
-  (apply #'cl-nsublis (list (cons nil new)) tree :if-not pred cl-keys))
+  (apply #'cl-nsublis (list (cons pred new)) tree :test-not #'funcall cl-keys))
 
 (defvar cl--alist)
 
