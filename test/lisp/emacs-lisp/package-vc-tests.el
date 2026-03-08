@@ -1040,17 +1040,15 @@ contains key `:tags' use its value as tests tags."
            (should (get-buffer "*unsent mail to Test Maintainer*"))))
       (should (bufferp message-buffer))
       (switch-to-buffer message-buffer)
-      (goto-char (point-min))
       (should
-       (string-match
-        (rx
-         "To: Test Maintainer <test-maintainer@test-domain.org>")
-        (buffer-substring (point) (pos-eol))))
-      (forward-line)
+       (equal
+        (ietf-drums-parse-addresses
+         (message-fetch-field "To"))
+        '(("test-maintainer@test-domain.org" . "Test Maintainer"))))
       (should
-       (string-match
-        (rx "Subject: test-subject")
-        (buffer-substring (point) (pos-eol))))
+       (equal
+        (message-fetch-field "Subject")
+        "test-subject"))
       (let ((kill-buffer-query-functions nil))
         (with-current-buffer message-buffer
           ;; we mark the buffer as unmodified so that `kill-buffer'
