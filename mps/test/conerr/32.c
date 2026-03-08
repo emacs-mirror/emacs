@@ -22,7 +22,11 @@ static void test(void *stack_pointer)
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE), "create arena");
 
- cdie(mps_pool_create(&pool, arena, mps_class_mfs(), 64), "create pool");
+ MPS_ARGS_BEGIN(args) {
+   MPS_ARGS_ADD(args, MPS_KEY_MFS_UNIT_SIZE, 64);
+   cdie(mps_pool_create_k(&pool, arena, mps_class_mfs(), args),
+	"create pool");
+ } MPS_ARGS_END(args);
 
  cdie(mps_ap_create(&ap, pool, mps_rank_exact()), "create ap");
 
