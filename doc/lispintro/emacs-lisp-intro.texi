@@ -9659,7 +9659,6 @@ produces:
 @sp 1
 @center @image{cons-4}
 @sp 1
-@end ifset
 
 @need 1200
 @noindent
