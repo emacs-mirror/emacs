@@ -132,7 +132,7 @@ This predicate function is meant to be added to the list in `recentf-exclude'.
 It returns non-nil if FILE-NAME's extension is in the list that is
 the value of `recentf-exclude-ignored-extensions'; if that variable
 is nil, this function consults `completion-ignored-extensions' instead."
-  (when-let* ((extension (file-name-extension file-name)))
+  (and-let* ((extension (file-name-extension file-name)))
     (string-match-p
      (concat
       (regexp-opt (or recentf-exclude-ignored-extensions
