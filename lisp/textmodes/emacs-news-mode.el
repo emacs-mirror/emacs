@@ -153,7 +153,9 @@
 (defun emacs-news-next-untagged-entry (&optional reverse)
   "Go to the next untagged NEWS entry.
 If REVERSE (interactively, the prefix), go to the previous
-untagged NEWS entry."
+untagged NEWS entry.
+A tagged entry is one that has either \"+++\" or \"---\" before
+its heading line."
   (interactive "P" emacs-news-mode)
   (let ((start (point))
         (found nil))
@@ -197,12 +199,17 @@ untagged NEWS entry."
                 (> (length (match-string 1)) level))))))
 
 (defun emacs-news-previous-untagged-entry ()
-  "Go to the previous untagged NEWS entry."
+  "Go to the previous untagged NEWS entry.
+A tagged entry is one that has either \"+++\" or \"---\" before
+its header line."
   (interactive nil emacs-news-mode)
   (emacs-news-next-untagged-entry t))
 
 (defun emacs-news-cycle-tag ()
-  "Cycle documentation tag of current headline in the Emacs NEWS file."
+  "Cycle documentation tag of current headline in the Emacs NEWS file.
+An entry is tagged if it has either \"+++\" or \"---\" before its
+header line.  This command cycles the entry's tag between \"+++\",
+\"---\", and no-tag."
   (interactive nil emacs-news-mode)
   (save-excursion
     (goto-char (line-beginning-position))
@@ -224,7 +231,9 @@ untagged NEWS entry."
           (t (user-error "Invalid headline tag; can't cycle")))))
 
 (defun emacs-news-count-untagged-entries ()
-  "Say how many untagged entries there are in the current NEWS buffer."
+  "Display the number of untagged entries there are in the current NEWS buffer.
+A tagged entry is one that has either \"+++\" or \"---\" before
+its header line."
   (interactive nil emacs-news-mode)
   (save-excursion
     (goto-char (point-min))
@@ -274,7 +283,11 @@ untagged NEWS entry."
     (nreverse sections)))
 
 (defun emacs-news-goto-section (section)
-  "Go to SECTION in the Emacs NEWS file."
+  "Go to SECTION in the Emacs NEWS file.
+Interactively, prompt for SECTION, with completion.
+A section is a level-1 header line (has only one \"*\") that is followed
+by an empty line and another header line which starts with \"** \".
+Only such SECTIONs are accepted in interactive invocations."
   (interactive (list
                 (completing-read "Goto section: " (emacs-news--sections "\\* ")
                                  nil t))
@@ -284,7 +297,12 @@ untagged NEWS entry."
     (beginning-of-line)))
 
 (defun emacs-news-find-heading (heading)
-  "Go to HEADING in the Emacs NEWS file."
+  "Go to HEADING in the Emacs NEWS file.
+Interactively, prompt for HEADING, with completion.
+A heading is a level-2 or level-3 header line (starts with 2 or 3 \"*\")
+that is followed by an empty line and another header line which starts
+with 3 \"***\" or 4 \"****\", respectively.
+Only such HEADINGs are accepted in interactive invocations."
   (interactive (list
                 (completing-read "Goto heading: "
                                  (emacs-news--sections "\\*\\*\\*? ")
@@ -296,8 +314,8 @@ untagged NEWS entry."
 
 (defun emacs-news-open-line (n)
   "Open a new line in a NEWS file.
-This is like `open-line', but skips any temporary NEWS-style
-documentation marks on the previous line."
+This is like `open-line', but skips any \"+++\" or \"---\"
+tags on the previous line."
   (interactive "*p" emacs-news-mode)
   (when (save-excursion (forward-line -1)
                         (looking-at (rx bol (or "---" "+++") eol)))
@@ -305,7 +323,7 @@ documentation marks on the previous line."
   (open-line n))
 
 (defun emacs-news-delete-temporary-markers ()
-  "Delete any temporary markers.
+  "Delete any \"+++\" or \"---\" tags from all NEWS header lines.
 This is used when preparing a new release of Emacs."
   (interactive nil emacs-news-mode)
   (goto-char (point-min))
