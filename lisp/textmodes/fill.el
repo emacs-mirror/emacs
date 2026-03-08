@@ -969,7 +969,9 @@ and END."
         (setq beg (point))
         (fill-forward-paragraph arg)
         (setq end (point)))))
-  (let ((fill-column (point-max)))
+  ;; Multiple by at least 2 for any wide characters.
+  ;; Multiply by at least `tab-width' for tab characters.
+  (let ((fill-column (* (max 2 tab-width) (point-max))))
     (fill-region beg end)))
 
 (declare-function comment-search-forward "newcomment" (limit &optional noerror))
