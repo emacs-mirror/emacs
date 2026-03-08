@@ -476,7 +476,7 @@ names."
                     (list
                      '(:maintainer
                        ("Test Maintainer"
-                        . "test-maintainer@test-domain.org"))
+                        . "test-maintainer@example.com"))
                      (cons :url  (car package-vc-tests-repository))
                      (cons :commit (cadr package-vc-tests-repository))
                      (cons :revdesc (substring
@@ -1044,7 +1044,7 @@ contains key `:tags' use its value as tests tags."
        (equal
         (ietf-drums-parse-addresses
          (message-fetch-field "To"))
-        '(("test-maintainer@test-domain.org" . "Test Maintainer"))))
+        '(("test-maintainer@example.com" . "Test Maintainer"))))
       (should
        (equal
         (message-fetch-field "Subject")
