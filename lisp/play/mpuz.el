@@ -333,7 +333,8 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
                  (mpuz-create-buffer))))
     (switch-to-buffer buf)
     (setq buffer-read-only t)
-    (mpuz-mode)))
+    (or (derived-mode-p 'mpuz-mode)
+        (mpuz-mode))))
 
 
 ;; Game control
