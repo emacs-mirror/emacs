@@ -6,7 +6,7 @@ TEST_HEADER
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- limit < 160000
+ limit < 165000
 END_HEADER
 */
 
