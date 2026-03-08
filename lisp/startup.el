@@ -2438,6 +2438,30 @@ splash screen in another window."
 	(display-buffer splash-buffer)
       (switch-to-buffer splash-buffer))))
 
+(defun startup-insert-newcomers-theme ()
+  "Insert information about `newcomers-presets' theme at point."
+  (insert "New to Emacs?  Consider enabling ")
+  (insert-button "newcomer presets"
+                 'action (lambda (_button)
+                           (info "(emacs) Newcomers Theme"))
+                 'follow-link t)
+  (insert ": ")
+  (insert-button (if (custom-theme-enabled-p 'newcomers-presets)
+                     "Disable"
+                   "Enable")
+                 'action (lambda (button)
+                           (let ((inhibit-read-only t))
+                             (replace-region-contents
+                              (button-start button)
+                              (button-end button)
+                              (pcase (button-label button)
+                                ("Enable"
+                                 (load-theme 'newcomers-presets)
+                                 "Disable")
+                                ("Disable"
+                                 (disable-theme 'newcomers-presets)
+                                 "Enable")))))))
+
 (defun normal-mouse-startup-screen ()
   ;; The user can use the mouse to activate menus
   ;; so give help in terms of menu items.
@@ -2481,6 +2505,8 @@ To quit a partially entered command, type Control-g.\n")
 		 'action (lambda (_button) (customize-group 'initialization))
 		 'follow-link t)
   (insert "\tChange initialization settings including this screen\n")
+
+  (startup-insert-newcomers-theme)
 
   (save-restriction
     (narrow-to-region (point) (point))
@@ -2567,27 +2593,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)"))
 		 'follow-link t)
   (insert "\n")
 
-  (insert "New to Emacs?  Consider enabling ")
-  (insert-button "newcomer presets"
-                 'action (lambda (_button)
-                           (info "(emacs) Newcomers Theme"))
-                 'follow-link t)
-  (insert ": ")
-  (insert-button (if (custom-theme-enabled-p 'newcomers-presets)
-                     "Disable"
-                   "Enable")
-                 'action (lambda (button)
-                           (let ((inhibit-read-only t))
-                             (replace-region-contents
-                              (button-start button)
-                              (button-end button)
-                              (pcase (button-label button)
-                                ("Enable"
-                                 (load-theme 'newcomers-presets)
-                                 "Disable")
-                                ("Disable"
-                                 (disable-theme 'newcomers-presets)
-                                 "Enable"))))))
+  (startup-insert-newcomers-theme)
 
   (insert "\n")
 
