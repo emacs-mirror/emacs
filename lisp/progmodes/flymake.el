@@ -1624,13 +1624,15 @@ default) no filter is applied."
                finally (cl-return
                         (cl-sort retval (if (cl-plusp n) #'< #'>)
                                  :key #'overlay-start))))
-         (tail (member-if (lambda (ov)
-                            (if (plusp n)
-                                (> (overlay-start ov)
-                                   (point))
-                              (< (overlay-start ov)
-                                 (point))))
-                          ovs))
+         (tail ;; For compatibility with older Emacs.
+               (with-suppressed-warnings ((obsolete cl-member-if))
+                 (cl-member-if (lambda (ov)
+                                 (if (cl-plusp n)
+                                     (> (overlay-start ov)
+                                        (point))
+                                   (< (overlay-start ov)
+                                      (point))))
+                               ovs)))
          (chain (if flymake-wrap-around
                     (if tail
                         (progn (setcdr (last tail) ovs) tail)
