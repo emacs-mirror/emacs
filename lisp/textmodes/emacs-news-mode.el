@@ -309,7 +309,7 @@ Only such HEADINGs are accepted in interactive invocations."
                                  nil t))
                emacs-news-mode)
   (goto-char (point-min))
-  (when (re-search-forward (concat "^*+ " (regexp-quote heading)) nil t)
+  (when (re-search-forward (concat "^*+ " (regexp-quote heading) "$") nil t)
     (beginning-of-line)))
 
 (defun emacs-news-open-line (n)
