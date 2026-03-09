@@ -121,7 +121,7 @@ changes."
                    (setq handler-err err
                          backtrace (with-output-to-string (backtrace))))))
        (mod-test-signal)))
-    (should (equal handler-err '(error . 56)))
+    (should (equal handler-err '(error 56)))
     (should (string-match-p
              (rx bol "  mod-test-signal()" eol)
              backtrace))))
