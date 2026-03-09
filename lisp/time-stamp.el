@@ -134,10 +134,10 @@ See also the variable `time-stamp-warn-inactive'."
 
 
 (defcustom time-stamp-warn-inactive t
-  "Have \\[time-stamp] warn if a buffer did not get time-stamped.
-If non-nil, a warning is displayed if `time-stamp-active' has
-deactivated time stamping and the buffer contains a template that
-otherwise would have been updated."
+  "Warn when we find a template but `time-stamp-active' is nil.
+If non-nil, `time-stamp' displays a message when `time-stamp-active'
+is nil (deactivating time stamping) and the buffer contains
+a template that otherwise would have been updated."
   :type 'boolean
   :version "19.29")
 
