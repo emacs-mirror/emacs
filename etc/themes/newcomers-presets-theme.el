@@ -150,8 +150,7 @@ This minor mode will enable and disable the theme on startup."
 
 ;;;; Frame and window-related options
  '(tab-bar-history-mode t)
-
- )
+ '(tab-bar-show 0))
 
 (provide-theme 'newcomers-presets)
 ;;; newcomers-presets-theme.el ends here
