@@ -25,18 +25,22 @@
 
 (ert-deftest c-ts-mode-test-indentation ()
   (skip-unless (treesit-ready-p 'c))
+  (skip-unless (treesit-ready-p 'cpp))
   (ert-test-erts-file (ert-resource-file "indent.erts")))
 
 (ert-deftest c-ts-mode-test-indentation-preproc ()
   (skip-unless (treesit-ready-p 'c))
+  (skip-unless (treesit-ready-p 'cpp))
   (ert-test-erts-file (ert-resource-file "indent-preproc.erts")))
 
 (ert-deftest c-ts-mode-test-indentation-bsd ()
   (skip-unless (treesit-ready-p 'c))
+  (skip-unless (treesit-ready-p 'cpp))
   (ert-test-erts-file (ert-resource-file "indent-bsd.erts")))
 
 (ert-deftest c-ts-mode-test-filling ()
   (skip-unless (treesit-ready-p 'c))
+  (skip-unless (treesit-ready-p 'cpp))
   (ert-test-erts-file (ert-resource-file "filling.erts")))
 
 (provide 'c-ts-mode-tests)
