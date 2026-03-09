@@ -2045,7 +2045,7 @@ After check-out, runs the normal hook `vc-checkout-hook'."
          (when t
            (let ((buf (get-file-buffer file)))
              (when buf (with-current-buffer buf (read-only-mode -1)))))
-         (signal (car err) (cdr err))))
+         (signal err)))
       `((vc-state . ,(if (or (eq (vc-checkout-model backend (list file)) 'implicit)
                              nil)
 			 'up-to-date
@@ -4695,7 +4695,7 @@ tip revision are merged into the working file."
                  (and-let* ((fileset (vc-deduce-fileset 'not-state-changing
                                                         'allow-unregistered)))
                    (vc-find-backend-function (car fileset) 'pull)))
-         (signal (car ret) (cdr ret))))
+         (signal ret)))
       (:success
        (setq backend (car ret) files (cadr ret)
              fn (vc-find-backend-function backend 'pull))))

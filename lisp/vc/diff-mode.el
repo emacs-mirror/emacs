@@ -981,7 +981,7 @@ data such as \"Index: ...\" and such."
       ;; File starts *after* the starting point: we really weren't in
       ;; a file diff but elsewhere.
       (goto-char orig)
-      (signal (car err) (cdr err)))))
+      (signal err))))
 
 (defun diff-file-kill (&optional delete)
   "Kill current file's hunks.

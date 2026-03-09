@@ -64,7 +64,7 @@
          ,(macroexp-progn body))
      ((debug error)
       (transient--emergency-exit ,id)
-      (signal (car err) (cdr err)))))
+      (signal err))))
 
 (defun transient--exit-and-debug (&rest args)
   (transient--emergency-exit :debugger)

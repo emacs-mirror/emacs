@@ -831,7 +831,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		     (setq mail-source-password-cache
 			   (delq (assoc from mail-source-password-cache)
 				 mail-source-password-cache))
-		     (signal (car err) (cdr err)))))))))
+		     (signal err))))))))
       (if result
 	  (progn
 	    (when (eq authentication 'password)
@@ -896,7 +896,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		     (setq mail-source-password-cache
 			   (delq (assoc from mail-source-password-cache)
 				 mail-source-password-cache))
-		     (signal (car err) (cdr err)))))))))
+		     (signal err))))))))
       (if result
 	  ;; Inform display-time that we have new mail.
 	  (setq mail-source-new-mail-available (> result 0))

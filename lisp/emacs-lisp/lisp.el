@@ -331,7 +331,7 @@ On error, location of point is unspecified."
             (if no-syntax-crossing
                 ;; Assume called interactively; don't signal an error.
                 (user-error "At top level")
-              (signal (car err) (cdr err)))))))
+              (signal err))))))
       (setq arg (- arg inc)))))
 
 (defun kill-sexp (&optional arg interactive)

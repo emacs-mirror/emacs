@@ -432,7 +432,7 @@ accordingly."
 			       plstore-passphrase-alist)))
 	     (if entry
 		 (setcdr entry nil)))
-	   (signal (car error) (cdr error))))
+	   (signal error)))
 	(plstore--set-secret-alist plstore (car (read-from-string plain)))
 	(plstore--merge-secret plstore)
 	(plstore--set-encrypted-data plstore nil))))

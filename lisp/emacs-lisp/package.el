@@ -1219,8 +1219,7 @@ errors signaled by ERROR-FORM or by BODY).
        (when (condition-case ,err
                  (progn ,@before-body t)
                (error (funcall error-function)
-                      (unless noerror
-                        (signal (car ,err) (cdr ,err)))))
+                      (unless noerror (signal ,err))))
          (funcall ,body)))))
 
 (cl-defun package--with-response-buffer-1 (url body &key async file error-function noerror &allow-other-keys)

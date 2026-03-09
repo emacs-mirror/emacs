@@ -245,7 +245,7 @@ Otherwise, return result of last form in BODY, or all other errors."
   (declare (indent 0) (debug t))
   `(condition-case err
        (progn ,@body)
-     (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
+     (dbus-error (when dbus-debug (signal err)))))
 
 (defvar dbus-event-error-functions
   '(dbus-notice-synchronous-call-errors
@@ -878,7 +878,7 @@ Example:
 	 "AddMatch" rule)
       (dbus-error
        (if (not (string-match-p "eavesdrop" rule))
-	   (signal (car err) (cdr err))
+	   (signal err)
 	 ;; The D-Bus spec says we shall fall back to a rule without eavesdrop.
 	 (when dbus-debug (message "Removing eavesdrop from rule %s" rule))
          (setq rule (replace-regexp-in-string ",eavesdrop='true'" "" rule t t))
@@ -1234,7 +1234,7 @@ If the HANDLER returns a `dbus-error', it is propagated as return message."
      ;; Propagate D-Bus error messages.
      (run-hook-with-args 'dbus-event-error-functions event err)
      (when dbus-debug
-       (signal (car err) (cdr err))))))
+       (signal err)))))
 
 (defun dbus-event-bus-name (event)
   "Return the bus name the event is coming from.
