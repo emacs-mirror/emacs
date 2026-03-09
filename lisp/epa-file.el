@@ -117,10 +117,10 @@ encryption is used."
   (let ((error epa-file-error))
     (save-window-excursion
       (kill-buffer))
-    (if (nth 3 error)
-        (user-error "Wrong passphrase: %s" (nth 3 error))
+    (if (error-slot-value error 3)
+        (user-error "Wrong passphrase: %s" (error-slot-value error 3))
       (signal 'file-missing
-	      (cons "Opening input file" (cdr error))))))
+	      (cons "Opening input file" (error-data error))))))
 
 (defun epa--wrong-password-p (context)
   "Return whether a wrong password caused the error in CONTEXT."
@@ -171,23 +171,25 @@ encryption is used."
 	     ;; signal that as a non-file error
 	     ;; so that find-file-noselect-1 won't handle it.
 	     ;; Borrowed from jka-compr.el.
-	     (if (and (memq 'file-error (get (car error) 'error-conditions))
-		      (equal (cadr error) "Searching for program"))
+	     (if (and (error-has-type-p error 'file-error)
+		      (equal (error-slot-value error 1)
+                             "Searching for program"))
 		 (error "Decryption program `%s' not found"
-			(nth 3 error)))
+			(error-slot-value error 3)))
 	     (let ((exists (file-exists-p local-file)))
 	       (when exists
                  (if-let* ((wrong-password (epa--wrong-password-p context)))
                      ;; Don't display the *error* buffer if we just
                      ;; have a wrong password; let the later error
                      ;; handler notify the user.
-                     (setq error (append error (list wrong-password)))
+                     (setf (error-data error)
+                           (append (error-data error) (list wrong-password)))
 		   (epa-display-error context))
                  ;; When the .gpg file isn't an encrypted file (e.g.,
                  ;; it's a keyring.gpg file instead), then gpg will
                  ;; say "Unexpected exit" as the error message.  In
                  ;; that case, just display the bytes.
-                 (if (equal (caddr error) "Unexpected; Exit")
+                 (if (equal (error-slot-value error 2) "Unexpected; Exit")
                      (setq string (with-temp-buffer
                                     (insert-file-contents-literally local-file)
                                     (buffer-string)))
@@ -197,10 +199,10 @@ encryption is used."
 		   ;; `find-file-noselect-1'.
 		   (setq-local epa-file-error error)
 		   (add-hook 'find-file-not-found-functions
-			     'epa-file--find-file-not-found-function
+			     #'epa-file--find-file-not-found-function
 			     nil t)))
 	       (signal (if exists 'file-error 'file-missing)
-		       (cons "Opening input file" (cdr error))))))
+		       (cons "Opening input file" (error-data error))))))
           (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
 	  (setq-local epa-file-encrypt-to
                       (mapcar #'car (epg-context-result-for

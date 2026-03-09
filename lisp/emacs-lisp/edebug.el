@@ -3745,9 +3745,7 @@ Return the result of the last expression."
   ;; If there is an error, a string is returned describing the error.
   (condition-case edebug-err
       (edebug-eval expr)
-    (error (edebug-format "%s: %s"  ;; could
-			  (get (car edebug-err) 'error-message)
-			  (car (cdr edebug-err))))))
+    (error (error-message-string edebug-err))))
 
 ;;; Printing
 
@@ -3755,14 +3753,7 @@ Return the result of the last expression."
 (defun edebug-report-error (value)
   ;; Print an error message like command level does.
   ;; This also prints the error name if it has no error-message.
-  (message "%s: %s"
-	   (or (get (car value) 'error-message)
-	       (format "peculiar error (%s)" (car value)))
-	   (mapconcat (lambda (edebug-arg)
-                        ;; continuing after an error may
-                        ;; complain about edebug-arg. why??
-                        (prin1-to-string edebug-arg))
-		      (cdr value) ", ")))
+  (message "%s" (error-message-string value)))
 
 ;; Alternatively, we could change the definition of
 ;; edebug-safe-prin1-to-string to only use these if defined.
@@ -3812,10 +3803,7 @@ this is the prefix key.)"
              (condition-case err
                  (edebug-eval expr)
                (error
-                (setq errored
-                      (format "%s: %s"
-		              (get (car err) 'error-message)
-		              (car (cdr err)))))))))
+                (setq errored (error-message-string err)))))))
          (result
           (unless errored
             (values--store-value value)

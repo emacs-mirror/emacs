@@ -1127,11 +1127,12 @@ a new window in the current frame, splitting vertically."
 		    (error
 		     ;; Handle a failure
                      (if (or (> (incf attempts) 4)
-			     (and (stringp (cadr err))
-				  ;; This definitely falls in the
-				  ;; ghetto hack category...
-				  (not (string-match-p "too small" (cadr err)))))
-			 (signal (car err) (cdr err))
+			     (let ((msg (error-slot-value err 1)))
+			       (and (stringp msg)
+				    ;; This definitely falls in the
+				    ;; ghetto hack category...
+				    (not (string-match-p "too small" msg)))))
+			 (signal err)
 		       (enlarge-window 3))))))
 	      (select-window (next-window))
 	      (switch-to-buffer buf)

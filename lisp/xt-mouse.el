@@ -529,9 +529,10 @@ enable, ?l to disable)."
         (condition-case err
             (send-string-to-terminal enable terminal)
           ;; FIXME: This should use a dedicated error signal.
-          (error (if (equal (cadr err) "Terminal is currently suspended")
+          (error (if (equal (error-slot-value err 1)
+                            "Terminal is currently suspended")
                      nil ; The sequence will be sent upon resume.
-                   (signal (car err) (cdr err)))))
+                   (signal err))))
         (push enable (terminal-parameter nil 'tty-mode-set-strings))
         (push disable (terminal-parameter nil 'tty-mode-reset-strings))
         (set-terminal-parameter terminal 'xterm-mouse-mode t)
@@ -553,9 +554,10 @@ enable, ?l to disable)."
         (send-string-to-terminal xterm-mouse-tracking-disable-sequence
                                  terminal)
       ;; FIXME: This should use a dedicated error signal.
-      (error (if (equal (cadr err) "Terminal is currently suspended")
+      (error (if (equal (error-slot-value err 1)
+                        "Terminal is currently suspended")
                  nil
-               (signal (car err) (cdr err)))))
+               (signal err))))
     (setf (terminal-parameter nil 'tty-mode-set-strings)
           (remq xterm-mouse-tracking-enable-sequence
                 (terminal-parameter nil 'tty-mode-set-strings)))

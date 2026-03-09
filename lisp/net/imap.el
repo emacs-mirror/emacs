@@ -1729,11 +1729,11 @@ See `imap-enable-exchange-bug-workaround'."
 	      ;; robust just to check for a BAD response to the
 	      ;; attempted fetch.
 	      (string-match "The specified message set is invalid"
-			    (cadr data)))
+			    (error-slot-value data 1)))
 	 (with-current-buffer (or buffer (current-buffer))
            (setq-local imap-enable-exchange-bug-workaround t)
 	   (imap-fetch (cdr uids) props receive nouidfetch))
-       (signal (car data) (cdr data))))))
+       (signal data)))))
 
 (defun imap-message-copyuid-1 (mailbox)
   (if (imap-capability 'UIDPLUS)

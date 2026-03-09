@@ -4966,9 +4966,9 @@ binding slots have been popped."
           (unless (and c (symbolp c))
             (byte-compile-warn-x
              c "`%S' is not a condition name (in condition-case)" c))
-          ;; In reality, the `error-conditions' property is only required
+          ;; In reality, the `error-conditions' property is required only
           ;; for the argument to `signal', not to `condition-case'.
-          ;;(unless (consp (get c 'error-conditions))
+          ;;(unless (error-type-p c)
           ;;  (byte-compile-warn
           ;;   "`%s' is not a known condition name (in condition-case)"
           ;;   c))
@@ -5778,24 +5778,13 @@ already up-to-date."
         (byte-compile-file file)
       (condition-case err
           (byte-compile-file file)
-        (file-error
-         (message (if (cdr err)
-                      ">>Error occurred processing %s: %s (%s)"
-                    ">>Error occurred processing %s: %s")
-                  file
-                  (get (car err) 'error-message)
-                  (prin1-to-string (cdr err)))
-         (let ((destfile (byte-compile-dest-file file)))
-           (if (file-exists-p destfile)
-               (delete-file destfile)))
-         nil)
         (error
-         (message (if (cdr err)
-                      ">>Error occurred processing %s: %s (%s)"
-                    ">>Error occurred processing %s: %s")
-                  file
-                  (get (car err) 'error-message)
-                  (prin1-to-string (cdr err)))
+         (message ">>Error occurred processing %s: %s"
+                  file (error-message-string err))
+         (when (error-has-type-p err 'file-error)
+           (let ((destfile (byte-compile-dest-file file)))
+             (if (file-exists-p destfile)
+                 (delete-file destfile))))
          nil)))))
 
 (defun byte-compile-refresh-preloaded ()

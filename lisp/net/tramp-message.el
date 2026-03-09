@@ -398,8 +398,12 @@ FMT-STRING and ARGUMENTS."
      vec-or-proc 1 "%s"
      (error-message-string
       (list signal
+	    ;; FIXME: Looks redundant since `error-message-string'
+	    ;; already uses the `error-message' property of `signal'!
 	    (get signal 'error-message)
 	    (apply #'format-message fmt-string arguments))))
+    ;; FIXME: This doesn't look right: ELisp code should be able to rely on
+    ;; the "shape" of the list based on the type of the signal.
     (signal signal (list (substring-no-properties
 			  (apply #'format-message fmt-string arguments))))))
 

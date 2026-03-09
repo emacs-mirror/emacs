@@ -1666,9 +1666,9 @@ return nil.
   (condition-case err
       (dbus-get-property bus service path interface property)
     (dbus-error
-     (if (string-equal dbus-error-access-denied (cadr err))
+     (if (string-equal dbus-error-access-denied (error-slot-value err 1))
          (car args)
-       (signal (car err) (cdr err))))))
+       (signal err)))))
 
 (defun dbus-get-all-properties (bus service path interface)
   "Return all properties of INTERFACE at BUS, SERVICE, PATH.

@@ -363,14 +363,14 @@ This variable is set by `nnmaildir-request-article'.")
      (error . ,handler)))
 
 (defun nnmaildir--emlink-p (err)
-  (and (eq (car err) 'file-error)
-       (string= (downcase (caddr err)) "too many links")))
+  (and (error-has-type-p err 'file-error)
+       (string= (downcase (error-slot-value err 2)) "too many links")))
 
 (defun nnmaildir--enoent-p (err)
-  (eq (car err) 'file-missing))
+  (error-has-type-p err 'file-missing))
 
 (defun nnmaildir--eexist-p (err)
-  (eq (car err) 'file-already-exists))
+  (error-has-type-p err 'file-already-exists))
 
 (defun nnmaildir--new-number (nndir)
   "Allocate a new article number by atomically creating a file under NNDIR."
@@ -410,7 +410,7 @@ This variable is set by `nnmaildir-request-article'.")
 	      (unless (equal (file-attribute-inode-number attr) ino-open)
 		(setq number-open number-link
 		      number-link 0))))
-	   (t (signal (car err) (cdr err)))))))))
+	   (t (signal err))))))))
 
 (defun nnmaildir--update-nov (server group article)
   (let ((nnheader-file-coding-system 'undecided)
@@ -1664,7 +1664,7 @@ This variable is set by `nnmaildir-request-article'.")
 			 (nnmaildir--mkfile permarkfilenew)
 			 (rename-file permarkfilenew permarkfile 'replace)
 			 (add-name-to-file permarkfile mfile)))
-		      (t (signal (car err) (cdr err))))))))
+		      (t (signal err)))))))
 	     todo-marks)))
 	 (set-action (lambda (article)
 		       (funcall add-action article)

@@ -1025,7 +1025,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
       (setq continue nil)
       (and (get-buffer "*Life*")
            (kill-buffer "*Life*"))
-      (condition-case ()
+      (condition-case err
           (progn
             (life 3)
             ;; wait for user to return
@@ -1033,7 +1033,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 	    (type-break-catch-up-event)
             (kill-buffer "*Life*"))
         (life-extinct
-         (message "%s" (get 'life-extinct 'error-message))
+         (message "%s" (error-message-string err))
          ;; restart demo
          (setq continue t))
         (quit

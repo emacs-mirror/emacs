@@ -3581,8 +3581,8 @@ BACKEND is the VC backend."
     (condition-case err
         (vc-call-backend backend 'root default-directory)
       (vc-not-supported
-       (unless (eq (cadr err) 'root)
-         (signal (car err) (cdr err)))
+       (unless (eq (error-slot-value err 1) 'root)
+         (signal err))
        nil))))
 
 ;;;###autoload

@@ -459,11 +459,12 @@ Returned values:
 		"ffap-machine-p" nil host (or service "discard")))
 	      t)
 	  (error
-	   (let ((mesg (car (cdr error))))
+	   (let ((mesg (error-slot-value error 1)))
 	     (cond
 	      ;; v18:
 	      ((string-match "\\(^Unknown host\\|Name or service not known$\\)"
-			     mesg) nil)
+		             mesg)
+	       nil)
 	      ((string-match "not responding$" mesg) mesg)
 	      ;; v19:
               ;; (file-error "Connection failed" "permission denied"
@@ -473,12 +474,13 @@ Returned values:
               ;; (file-error "Connection failed" "address already in use"
 	      ;;	     "ftp.uu.net" "ffap-machine-p")
 	      ((equal mesg "connection failed")
-	       (if (string= (downcase (nth 2 error)) "permission denied")
+	       (if (string= (downcase (error-slot-value error 2))
+		            "permission denied")
 		   nil			; host does not exist
 		 ;; Other errors mean the host exists:
-		 (nth 2 error)))
+		 (error-slot-value error 2)))
 	      ;; Could be "Unknown service":
-	      (t (signal (car error) (cdr error))))))))))))
+	      (t (signal error)))))))))))
 
 
 ;;; Possibly Remote Resources:
