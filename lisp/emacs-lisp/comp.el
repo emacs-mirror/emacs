@@ -3528,6 +3528,21 @@ session."
                (rename-file newfile oldfile t)
              (delete-file oldfile)))))
 
+(defun comp--error-add-context (err ctxt)
+  "Add context information CTXT to the error descriptor ERR."
+  ;; There is currently no agreed upon way to do that, and if we want the
+  ;; context to be displayed, the only option currently is to add elements
+  ;; to the error descriptor.
+  (let ((err-data (cdr err)))
+    (setf (cdr err)
+	  (if (not (listp err-data)) ;; This should never happen.
+              (list err-data ctxt)
+            ;; We can't just insert arbitrary info in the
+            ;; error-data part of an error: the handler may
+            ;; expect specific data at specific positions,
+            ;; so add our info at the end.
+            (append err-data (list ctxt))))))
+
 (defun comp--native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
 When WITH-LATE-LOAD is non-nil, mark the compilation unit for late
@@ -3577,25 +3592,21 @@ the deferred compilation mechanism."
                                                    pass time)
                                            0))))
                 (t
-                 (let ((err-val (cdr err)))
-                   ;; If we are doing an async native compilation print the
-                   ;; error in the correct format so is parsable and abort.
-                   (if (and comp-async-compilation
-                            (not (eq (car err) 'native-compiler-error)))
-                       (progn
-                         (message "%S: Error %s"
-                                  function-or-file
-                                  (error-message-string err))
-                         (kill-emacs -1))
-                     ;; Otherwise re-signal it adding the compilation input.
-                     ;; FIXME: We can't just insert arbitrary info in the
-                     ;; error-data part of an error: the handler may expect
-                     ;; specific data at specific positions!
-	             (signal (car err) (if (consp err-val)
-			                   (cons function-or-file err-val)
-			                 ;; FIXME: `err-val' is supposed to be
-			                 ;; a list, so it can only be nil here!
-			                 (list function-or-file err-val)))))))
+                 ;; If we are doing an async native compilation print the
+                 ;; error in the correct format so is parsable and abort.
+                 (if (and comp-async-compilation
+                          (not (eq (car err) 'native-compiler-error)))
+                     (progn
+                       (message "%S: Error %s"
+                                function-or-file
+                                (error-message-string err))
+                       (kill-emacs -1))
+                   ;; Otherwise re-signal it adding the compilation input.
+                   ;; FIXME: We can't just insert arbitrary info in the
+                   ;; error-data part of an error: the handler may expect
+                   ;; specific data at specific positions!
+                   (comp--error-add-context err function-or-file)
+	           (signal (car err) (cdr err)))))
               (if (stringp function-or-file)
                   data
                 ;; So we return the compiled function.

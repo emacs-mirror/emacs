@@ -7715,19 +7715,13 @@ lines rather than by display lines."
   (declare (interactive-only forward-line))
   (interactive "^p\np")
   (or arg (setq arg 1))
-  (if (and next-line-add-newlines (= arg 1))
-      (if (save-excursion (end-of-line) (eobp))
-	  ;; When adding a newline, don't expand an abbrev.
-	  (let ((abbrev-mode nil))
-	    (end-of-line)
-	    (insert (if use-hard-newlines hard-newline "\n")))
-	(line-move arg nil nil try-vscroll))
-    (if (called-interactively-p 'interactive)
-	(condition-case err
-	    (line-move arg nil nil try-vscroll)
-	  ((beginning-of-buffer end-of-buffer)
-	   (signal (car err) (cdr err))))
-      (line-move arg nil nil try-vscroll)))
+  (if (and next-line-add-newlines (= arg 1)
+	   (save-excursion (end-of-line) (eobp)))
+      ;; When adding a newline, don't expand an abbrev.
+      (let ((abbrev-mode nil))
+	(end-of-line)
+	(insert (if use-hard-newlines hard-newline "\n")))
+    (line-move arg nil nil try-vscroll))
   nil)
 
 (defun previous-line (&optional arg try-vscroll)
@@ -7760,12 +7754,7 @@ lines rather than by display lines."
             "use `forward-line' with negative argument instead."))
   (interactive "^p\np")
   (or arg (setq arg 1))
-  (if (called-interactively-p 'interactive)
-      (condition-case err
-	  (line-move (- arg) nil nil try-vscroll)
-	((beginning-of-buffer end-of-buffer)
-	 (signal (car err) (cdr err))))
-    (line-move (- arg) nil nil try-vscroll))
+  (line-move (- arg) nil nil try-vscroll)
   nil)
 
 (defcustom track-eol nil

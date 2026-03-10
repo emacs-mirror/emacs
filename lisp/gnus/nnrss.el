@@ -567,11 +567,8 @@ which RSS 2.0 allows."
   "")
 
 (defun nnrss-insert (url)
-  (condition-case err
-      (mm-url-insert url)
-    (error (if (or debug-on-quit debug-on-error)
-	       (signal (car err) (cdr err))
-	     (message "nnrss: Failed to fetch %s" url)))))
+  (with-demoted-errors "nnrss: Failed to fetch: %S"
+    (mm-url-insert url)))
 
 (defun nnrss-decode-entities-string (string)
   (if string
