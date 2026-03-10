@@ -82,7 +82,7 @@
             (invalid-read-syntax
              (message "Invalid fill result with i=%d:\n%s"
                       i (buffer-string))
-             (signal (car err) (cdr err))
+             (signal err)
              ))))))))
 
 (ert-deftest pp-tests--bug76715 ()

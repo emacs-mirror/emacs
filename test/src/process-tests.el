@@ -546,7 +546,7 @@ See Bug#30460."
           ;; all `file-error' signals.
           (and ,message
                (not (string-equal (caddr ,err) ,message))
-               (signal (car ,err) (cdr ,err))))))))
+               (signal ,err)))))))
 
 (defmacro process-tests--with-buffers (var &rest body)
   "Bind VAR to nil and evaluate BODY.

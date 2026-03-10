@@ -111,7 +111,7 @@ If the exit status is non-zero, log the command output and re-throw."
         (apply 'vc-git-command t 0 nil args)
       (t (message "Error running Git: %s" err)
          (message "(buffer-string:\n%s\n)" (buffer-string))
-         (signal (car err) (cdr err))))
+         (signal err)))
     (buffer-string)))
 
 (defun vc-git-test--start-branch ()

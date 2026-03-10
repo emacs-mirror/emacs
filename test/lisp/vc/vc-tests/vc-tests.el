@@ -238,8 +238,7 @@ For backends which don't support it, `vc-not-supported' is signaled."
 Catch the `vc-not-supported' error."
   `(condition-case err
        (funcall ,func ,@args)
-     (vc-not-supported 'vc-not-supported)
-     (t (signal (car err) (cdr err)))))
+     (vc-not-supported 'vc-not-supported)))
 
 (defun vc-test--register (backend)
   "Register and unregister a file.

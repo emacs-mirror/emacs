@@ -1910,7 +1910,7 @@ this machine and an SSH daemon be executing on the host)."
 	       (with-demoted-errors "Winding up failed connection: %S"
 		 (ats-adb "-s" device "forward" "--remove"
 			  (format "tcp:%d" host-port)))
-	       (signal (car err) (cdr err))))))))))
+	       (signal err)))))))))
 
 
 
