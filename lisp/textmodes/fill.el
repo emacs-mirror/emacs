@@ -969,9 +969,17 @@ and END."
         (setq beg (point))
         (fill-forward-paragraph arg)
         (setq end (point)))))
-  ;; Multiple by at least 2 for any wide characters.
-  ;; Multiply by at least `tab-width' for tab characters.
-  (let ((fill-column (* (max 2 tab-width) (point-max))))
+  ;; FIXME: It would be better to use
+  ;;
+  ;;    (let ((fill-column (* (max 2 tab-width) (point-max))))
+  ;;      (fill-region beg end))
+  ;;
+  ;; multiplying by at least 2 to account for any wide characters in the
+  ;; region to be filled and by at least `tab-width' to account for any
+  ;; tab characters in the region to be filled.  Then we can easily
+  ;; prove that filling the region will actually unfill it.
+  ;; However, `fill-region' fails if `fill-column' is not a fixnum.
+  (let ((fill-column most-positive-fixnum))
     (fill-region beg end)))
 
 (declare-function comment-search-forward "newcomment" (limit &optional noerror))
