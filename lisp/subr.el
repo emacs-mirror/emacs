@@ -586,10 +586,6 @@ Defaults to `error'."
  "Return the symbol which represents the type of ERROR.
 \n(fn ERROR)")
 
-(defalias 'error-data #'cdr
-  "Return the slots attached to ERROR, as a list.
-\n(fn ERROR)")
-
 (defun error-has-type-p (error condition)
   "Return non-nil if ERROR is of type CONDITION (or a subtype of it)."
   (unless (error--p error)

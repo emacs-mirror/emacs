@@ -116,11 +116,15 @@ encryption is used."
 (defun epa-file--find-file-not-found-function ()
   (let ((error epa-file-error))
     (save-window-excursion
-      (kill-buffer))
+     (kill-buffer))
+    ;; FIXME: How do we know that slot 3 can hold only a message related
+    ;; to a wrong passphrase?
     (if (error-slot-value error 3)
         (user-error "Wrong passphrase: %s" (error-slot-value error 3))
+      ;; FIXME: Why does it make sense to add the data fields of ERROR,
+      ;; shifted by one position?
       (signal 'file-missing
-	      (cons "Opening input file" (error-data error))))))
+	      (cons "Opening input file" (cdr error))))))
 
 (defun epa--wrong-password-p (context)
   "Return whether a wrong password caused the error in CONTEXT."
@@ -135,6 +139,9 @@ encryption is used."
           "decryption failed: \\(Bad session key\\|Bad passphrase\\)"
           error-string)
          (match-string 1 error-string))))
+
+(defun epa-file--error-add-context (err ctxt)
+  (setf (cdr error) (append (cdr error) (list ctx))))
 
 (defvar last-coding-system-used)
 (defun epa-file-insert-file-contents (file &optional visit beg end replace)
@@ -182,8 +189,7 @@ encryption is used."
                      ;; Don't display the *error* buffer if we just
                      ;; have a wrong password; let the later error
                      ;; handler notify the user.
-                     (setf (error-data error)
-                           (append (error-data error) (list wrong-password)))
+                     (epa-file--error-add-context error wrong-password)
 		   (epa-display-error context))
                  ;; When the .gpg file isn't an encrypted file (e.g.,
                  ;; it's a keyring.gpg file instead), then gpg will
@@ -201,8 +207,10 @@ encryption is used."
 		   (add-hook 'find-file-not-found-functions
 			     #'epa-file--find-file-not-found-function
 			     nil t)))
+	       ;; FIXME: Why does it make sense to add the data fields
+	       ;; of ERROR, shifted by one position?
 	       (signal (if exists 'file-error 'file-missing)
-		       (cons "Opening input file" (error-data error))))))
+		       (cons "Opening input file" (cdr error))))))
           (set-buffer buf) ;In case timer/filter changed/killed it (bug#16029)!
 	  (setq-local epa-file-encrypt-to
                       (mapcar #'car (epg-context-result-for

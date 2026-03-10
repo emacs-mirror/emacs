@@ -2483,10 +2483,6 @@ to @code{condition-case} whose error condition you want to re-throw.
 This function returns the error symbol of the error descriptor @var{error}.
 @end defun
 
-@defun error-data error
-This function returns the data of the error descriptor @var{error}.
-@end defun
-
 @defun error-slot-value error pos
 This function returns the value in the field number @var{pos} of the error
 descriptor @var{error}.  The fields are numbered starting with 1.  E.g.,
