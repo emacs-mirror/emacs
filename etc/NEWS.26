@@ -309,6 +309,14 @@ explicitly yields.  Global variables are shared among all threads, but
 a 'let' binding is thread-local.  Each thread also has its own current
 buffer and its own match data.
 
+New functions: 'make-thread', 'thread-alive-p', 'thread-signal',
+'thread-name', 'thread-yield', 'current-thread', 'thread-join',
+'all-threads', 'thread-last-error',
+'make-mutex', 'mutex-lock', 'mutex-unlock', 'mutex-name',
+'make-condition-variable', 'condition-wait', 'condition-notify',
+'condition-mutex', 'condition-name'.
+New var: 'main-thread'.
+
 See the chapter "(elisp) Threads" in the Elisp manual for full
 documentation of these facilities.
 
