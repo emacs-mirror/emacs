@@ -4976,8 +4976,7 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 static struct Lisp_Symbol_With_Pos *
 helper_GET_SYMBOL_WITH_POSITION (Lisp_Object a)
 {
-  if (!SYMBOL_WITH_POS_P (a))
-    wrong_type_argument (Qwrong_type_argument, a);
+  CHECK_TYPE (SYMBOL_WITH_POS_P (a), Qsymbol_with_pos_p, a);
   return XUNTAG (a, Lisp_Vectorlike, struct Lisp_Symbol_With_Pos);
 }
 

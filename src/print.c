@@ -708,7 +708,7 @@ print_bind_overrides (Lisp_Object overrides)
   if (EQ (overrides, Qt))
     print_bind_all_defaults ();
   else if (!CONSP (overrides))
-    xsignal2 (Qwrong_type_argument, Qconsp, overrides);
+    wrong_type_argument (Qconsp, overrides);
   else
     {
       while (!NILP (overrides))
@@ -717,19 +717,19 @@ print_bind_overrides (Lisp_Object overrides)
 	  if (EQ (setting, Qt))
 	    print_bind_all_defaults ();
 	  else if (!CONSP (setting))
-	    xsignal2 (Qwrong_type_argument, Qconsp, setting);
+	    wrong_type_argument (Qconsp, setting);
 	  else
 	    {
 	      Lisp_Object key = XCAR (setting),
 		value = XCDR (setting);
 	      Lisp_Object map = Fassq (key, Vprint_variable_mapping);
 	      if (NILP (map))
-		xsignal2 (Qwrong_type_argument, Qsymbolp, map);
+		wrong_type_argument (Qsymbolp, map);
 	      specbind (XCAR (XCDR (map)), value);
 	    }
 
 	  if (!NILP (XCDR (overrides)) && !CONSP (XCDR (overrides)))
-	    xsignal2 (Qwrong_type_argument, Qconsp, overrides);
+	    wrong_type_argument (Qconsp, overrides);
 	  overrides = XCDR (overrides);
 	}
     }

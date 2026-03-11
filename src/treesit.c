@@ -2364,7 +2364,7 @@ an indirect buffer.  */)
     buf = buf->base_buffer;
 
   if (EQ (tag, Qt))
-    xsignal2(Qwrong_type_argument, list2(Qnot, Qt), Qt);
+    wrong_type_argument (list2 (Qnot, Qt), Qt);
 
   treesit_check_buffer_size (buf);
 
@@ -3914,9 +3914,9 @@ static Lisp_Object treesit_resolve_node (Lisp_Object obj)
       return Ftreesit_parser_root_node (parser);
     }
   else
-    xsignal2 (Qwrong_type_argument,
-	      list4 (Qor, Qtreesit_node_p, Qtreesit_parser_p, Qsymbolp),
-	      obj);
+    wrong_type_argument (list4 (Qor, Qtreesit_node_p,
+				Qtreesit_parser_p, Qsymbolp),
+			 obj);
 }
 
 /* Create and initialize QUERY.  When success, initialize TS_QUERY,

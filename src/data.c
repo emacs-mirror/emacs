@@ -841,7 +841,7 @@ This function ignores `symbols-with-pos-enabled'.  */)
     return sym;
   if (SYMBOL_WITH_POS_P (sym))
     return XSYMBOL_WITH_POS_SYM (sym);
-  xsignal2 (Qwrong_type_argument, list2 (Qsymbolp, Qsymbol_with_pos_p), sym);
+  wrong_type_argument (list2 (Qsymbolp, Qsymbol_with_pos_p), sym);
 }
 
 DEFUN ("symbol-with-pos-pos", Fsymbol_with_pos_pos, Ssymbol_with_pos_pos, 1, 1, 0,
