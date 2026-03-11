@@ -1010,6 +1010,22 @@ The cache holds information specific to the current state of the
 Elisp obarray.  If the obarray is modified by any means (such as
 interning or uninterning a symbol), this variable is set to nil.")
 
+(defun elisp--read-symbol-shorthands (s)
+  "Return a fresh list of shorthand-ed alternative spellings of symbol S."
+  (let ((retval ()))
+    (cl-loop
+     for (shorthand . longhand) in read-symbol-shorthands
+     for full-name = (symbol-name s)
+     when (string-prefix-p longhand full-name)
+     do (let ((sym (make-symbol
+                    (concat shorthand
+                            (substring full-name
+                                       (length longhand))))))
+          (put sym 'elisp--longhand s)
+          (push sym retval)
+          retval))
+    retval))
+
 (defun elisp--completion-local-symbols ()
   "Compute collections of all Elisp symbols for completion purposes.
 The return value is compatible with the COLLECTION form described
@@ -1018,18 +1034,9 @@ in `completion-at-point-functions' (which see)."
               (let (retval)
                 (mapatoms
                  (lambda (s)
-                   (push s retval)
-                   (cl-loop
-                    for (shorthand . longhand) in read-symbol-shorthands
-                    for full-name = (symbol-name s)
-                    when (string-prefix-p longhand full-name)
-                    do (let ((sym (make-symbol
-                                   (concat shorthand
-                                           (substring full-name
-                                                      (length longhand))))))
-                         (put sym 'shorthand t)
-                         (push sym retval)
-                         retval))))
+                   (setq retval
+                         (cons s (nconc (elisp--read-symbol-shorthands s)
+                                        retval)))))
                 retval)))
     (cond ((null read-symbol-shorthands) obarray)
           ((and obarray-cache
@@ -1046,10 +1053,10 @@ in `completion-at-point-functions' (which see)."
                      obarray-cache)))))
 
 (defun elisp--shorthand-aware-fboundp (sym)
-  (fboundp (intern-soft (symbol-name sym))))
+  (fboundp (or (get sym 'elisp--longhand) sym)))
 
 (defun elisp--shorthand-aware-boundp (sym)
-  (boundp (intern-soft (symbol-name sym))))
+  (boundp (or (get sym 'elisp--longhand) sym)))
 
 (defun elisp-completion-at-point ()
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'.
