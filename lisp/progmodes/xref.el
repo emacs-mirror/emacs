@@ -1731,6 +1731,34 @@ This command is intended to be bound to a mouse event."
           (xref-find-references identifier))
       (user-error "No identifier here"))))
 
+(defvar-keymap xref-mouse-mode-map
+  ;; Using "Control-Click" has been popularized TextMate and it's
+  ;; descendants (Sublime, Atom, VSCode) and even other traditions such
+  ;; as Eclipse or the IntelliJ editor suite.
+  ;;
+  ;; TODO: Add some kind of hovering indication that a identifier under
+  ;; the mouse cursor has a definition we could jump to.
+  "C-<down-mouse-1>" #'xref-find-definitions-at-mouse
+  "C-<mouse-1>" #'xref-find-definitions-at-mouse
+  "C-<drag-mouse-1>" #'xref-find-definitions-at-mouse)
+
+;;;###autoload
+(define-minor-mode xref-mouse-mode
+  "Minor mode to bind Xref commands invoked using the mouse.
+See `global-xref-mouse-mode' if you want to enable this minor mode in
+all buffers."
+  :version "31.1")
+
+;;;###autoload
+(define-globalized-minor-mode global-xref-mouse-mode
+  xref-mouse-mode xref-mouse-mode
+  :version "31.1")
+
+;; ;;;##autoload
+;; (add-to-list
+;;  'emulation-mode-map-alists             ;since we are "emulating" other conventions
+;;  `((xref-mouse-mode . ,xref-mouse-mode-map)))
+
 (declare-function apropos-parse-pattern "apropos" (pattern &optional do-all))
 
 ;;;###autoload

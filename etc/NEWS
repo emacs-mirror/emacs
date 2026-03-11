@@ -3164,6 +3164,13 @@ destination window is chosen using 'display-buffer-alist'.  Example:
                                    display-buffer-use-some-window)
                                   (some-window . mru))))
 
++++
+*** New minor mode 'xref-mouse-mode'.
+This minor mode binds 'xref-find-definitions-at-mouse' to
+'C-<down-mouse-1>', allowing you to "control click" to jump to a
+definition, following the convention from other editors.  The global
+minor mode 'global-xref-mouse-mode' will enable this in all buffers.
+
 ** Revert
 
 +++
