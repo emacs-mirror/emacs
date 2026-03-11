@@ -7745,7 +7745,8 @@ seconds."
      (condition-case err
          (funcall fun)
        (error
-        (unless (y-or-n-p-with-timeout (format "Error %s; continue?" err)
+        (unless (y-or-n-p-with-timeout (format "Error %s; continue?"
+                                               (error-message-string err))
                                        5 t)
           (error err))))
      ;; Continue running.
