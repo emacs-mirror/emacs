@@ -364,7 +364,7 @@ This variable is set by `nnmaildir-request-article'.")
 
 (defun nnmaildir--emlink-p (err)
   (and (error-has-type-p err 'file-error)
-       (string= (downcase (error-slot-value err 2)) "too many links")))
+       (string-equal-ignore-case (error-slot-value err 2) "too many links")))
 
 (defun nnmaildir--enoent-p (err)
   (error-has-type-p err 'file-missing))

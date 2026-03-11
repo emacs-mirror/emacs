@@ -116,7 +116,7 @@ encryption is used."
 (defun epa-file--find-file-not-found-function ()
   (let ((error epa-file-error))
     (save-window-excursion
-     (kill-buffer))
+      (kill-buffer))
     ;; FIXME: How do we know that slot 3 can hold only a message related
     ;; to a wrong passphrase?
     (if (error-slot-value error 3)
@@ -140,8 +140,9 @@ encryption is used."
           error-string)
          (match-string 1 error-string))))
 
-(defun epa-file--error-add-context (err ctxt)
-  (setf (cdr error) (append (cdr error) (list ctx))))
+(defun epa-file--error-add-context (error context)
+  "Append CONTEXT to ERROR data by side effect."
+  (setf (cdr error) (append (cdr error) (list context))))
 
 (defvar last-coding-system-used)
 (defun epa-file-insert-file-contents (file &optional visit beg end replace)

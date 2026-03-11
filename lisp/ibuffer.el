@@ -1131,7 +1131,7 @@ a new window in the current frame, splitting vertically."
 			       (and (stringp msg)
 				    ;; This definitely falls in the
 				    ;; ghetto hack category...
-				    (not (string-match-p "too small" msg)))))
+                                    (not (string-search "too small" msg)))))
 			 (signal err)
 		       (enlarge-window 3))))))
 	      (select-window (next-window))

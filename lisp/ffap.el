@@ -474,8 +474,8 @@ Returned values:
               ;; (file-error "Connection failed" "address already in use"
 	      ;;	     "ftp.uu.net" "ffap-machine-p")
 	      ((equal mesg "connection failed")
-	       (if (string= (downcase (error-slot-value error 2))
-		            "permission denied")
+               (if (string-equal-ignore-case (error-slot-value error 2)
+                                             "permission denied")
 		   nil			; host does not exist
 		 ;; Other errors mean the host exists:
 		 (error-slot-value error 2)))

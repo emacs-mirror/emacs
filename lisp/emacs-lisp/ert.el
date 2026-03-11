@@ -399,8 +399,8 @@ and aborts the current test as failed if it doesn't."
   (let ((handled-conditions (pcase-exhaustive type
                               ((pred listp) type)
                               ((pred symbolp) (list type)))))
-    (unless (cl-some (lambda (hc) (error-has-type-p condition hc))
-                     handled-conditions)
+    (unless (any (lambda (hc) (error-has-type-p condition hc))
+                 handled-conditions)
       (ert-fail (append
                  (funcall form-description-fn)
                  (list

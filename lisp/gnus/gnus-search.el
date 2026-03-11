@@ -2087,7 +2087,7 @@ Assume \"size\" key is equal to \"larger\"."
 	      (apply #'nnheader-message 4
 		     "Search engine for %s improperly configured: %s"
 		     server (error-slot-value err 1))
-	    (signal err err)))))
+            (signal err)))))
      (alist-get 'search-group-spec specs))
     ;; Some search engines do their own limiting, but some don't, so
     ;; do it again here.  This is bad because, if the user is
