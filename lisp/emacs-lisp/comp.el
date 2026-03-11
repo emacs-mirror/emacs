@@ -2049,24 +2049,36 @@ TARGET-BB-SYM is the symbol name of the target block."
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for negated in '(t nil)
+        for eq-fun = (comp--equality-fun-p fun)
+        for op1-imm = (and (comp-cstr-p op1) (comp-cstr-imm-vld-p op1))
+        for op2-imm = (and (comp-cstr-p op2) (comp-cstr-imm-vld-p op2))
+        ;; On a false equality branch only x != <immediate> remains a
+        ;; sound unary fact.  x != y with two non-immediates is
+        ;; relational and must not be encoded as a per-mvar constraint.
+        for skip = (and eq-fun negated (not op1-imm) (not op2-imm))
         for kind = (cl-case fun
                      (equal 'and-nhc)
                      (eql 'and-nhc)
                      (eq 'and)
                      (t fun))
-        when (or (comp--mvar-used-p target-mvar1)
-                 (comp--mvar-used-p target-mvar2))
+        when (and (not skip)
+                  (or (comp--mvar-used-p target-mvar1)
+                      (comp--mvar-used-p target-mvar2)))
         do
         (let ((block-target (comp--add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
           (when (comp--mvar-used-p target-mvar1)
             (comp--emit-assume kind target-mvar1
-                              (comp--maybe-add-vmvar op2 cmp-res prev-insns-seq)
+                              (if (comp-mvar-p op2)
+                                  (comp--maybe-add-vmvar op2 cmp-res prev-insns-seq)
+                                op2)
                               block-target negated))
           (when (comp--mvar-used-p target-mvar2)
             (comp--emit-assume (comp--reverse-arithm-fun kind)
                               target-mvar2
-                              (comp--maybe-add-vmvar op1 cmp-res prev-insns-seq)
+                              (if (comp-mvar-p op1)
+                                  (comp--maybe-add-vmvar op1 cmp-res prev-insns-seq)
+                                op1)
                               block-target negated)))
         finally (cl-return-from in-the-basic-block)))
       (`((set ,(and (pred comp-mvar-p) cmp-res)

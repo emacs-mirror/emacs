@@ -468,6 +468,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01883.html>"
   (should (equal (comp-test-45376-2-f) '(0 2 1 0 1 0 1 0 0 0 0 0))))
 
+(comp-deftest bug-80327 ()
+  "Equal on a negated branch must not over-constrain operands."
+  (should (= (comp-test-80327-f) 7)))
+
 (defvar comp-test-primitive-advice)
 (comp-deftest primitive-advice ()
   "Test effectiveness of primitive advising."

@@ -590,6 +590,20 @@
            1
          x)))
 
+(defvar comp-test-80327-hash
+  (let ((h (make-hash-table :test #'eq)))
+    (puthash 321 4 h)
+    h))
+
+(defun comp-test-80327-f ()
+  (let* ((a (gethash 321 comp-test-80327-hash))
+         (b (logior a 2)))
+    (setq b (logior b 1))
+    (if (and (equal b a)
+             (not (equal b 0)))
+        1234
+      b)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
