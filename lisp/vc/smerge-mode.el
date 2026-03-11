@@ -1242,7 +1242,7 @@ need to be markers to indicate the corresponding buffers)."
       (with-current-buffer (overlay-buffer ol1)
         (goto-char pt1)
         ;; Usually ol1 and ol2 are in the same buffer, so do the `set-buffer'
-        ;; from ol1 to maximize the change that it's a no-op.
+        ;; from ol1 to maximize the chance that it's a no-op.
         (with-current-buffer (overlay-buffer ol2) (goto-char pt2))))))
 
 (defun smerge--refine-apply-diff-1 ( diffbuf ol1 ol2
