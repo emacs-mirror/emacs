@@ -40,7 +40,7 @@
                     ,#'flyspell-prog-mode)
 
     (text-mode-hook ,#'display-line-numbers-mode
-                    ,#flyspell-mode))
+                    ,#'flyspell-mode))
   "Alist mapping hooks to a list of function to add to the hook.
 The functions are added to the corresponding hooks when enabling
 `newcomers-presets-mode', and removed when disabling the mode.")
