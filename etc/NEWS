@@ -4010,11 +4010,12 @@ that will provide an Xref backend when used.
 * Lisp Changes in Emacs 31.1
 
 +++
-** Extended error API
-The API to manipulate error descriptors has been improved.
-You can now do (signal err) instead (signal (car err) (cdr err)).
-And there are new functions: 'error-type-p', 'error-type',
+** The API to manipulate error descriptors has been improved.
+there are new functions: 'error-type-p', 'error-type',
 'error-has-type-p', and 'error-slot-value'.
+And you can now do (signal err) instead (signal (car err) (cdr err)), which
+is not just more concise but also preserves the 'eq'uality of the
+error descriptor.
 
 +++
 ** 'secure-hash' now supports generating SHA-3 message digests.

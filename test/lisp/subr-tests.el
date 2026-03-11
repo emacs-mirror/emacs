@@ -1463,6 +1463,27 @@ final or penultimate step during initialization."))
                      (t x) (:success (1+ x)))
                    '(error "")))))
 
+(ert-deftest subr-error-API ()
+  (should (error-type-p 'error))
+  (should (error-type-p 'wrong-type-argument))
+  (should-not (error-type-p 'car))
+
+  (let ((error-err (condition-case err (error "Foo") (error err)))
+        (wta-err (condition-case err (car 5) (error err))))
+    (should (error-has-type-p error-err 't))
+    (should-not (error-has-type-p error-err 'wrong-type-argument))
+    (should (error-has-type-p wta-err 'error))
+    (should (error-has-type-p wta-err 'wrong-type-argument))
+    (should-not (error-has-type-p wta-err 'wrong-number-of-arguments))
+
+    (should (equal "Foo" (error-slot-value error-err 1)))
+    (should (equal 'listp (error-slot-value wta-err 1)))
+    (should (equal 5 (error-slot-value wta-err 2)))
+
+    (should (equal wta-err (condition-case err (car 5) (error err))))
+    (should-not (eq wta-err (condition-case err (car 5) (error err))))
+    (should (eq wta-err (condition-case err (signal wta-err) (error err))))))
+
 (ert-deftest subr--subst-char-in-string ()
   ;; Cross-validate `subst-char-in-string' with `string-replace',
   ;; which should produce the same results when there are no properties.
