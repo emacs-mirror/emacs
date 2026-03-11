@@ -443,7 +443,7 @@ possible according to the values of 'split-width-threshold' and
 to prefer to split horizontally if the window's frame is a "landscape"
 frame, and vertically if it is a "portrait" frame.  (A frame is
 considered to be "portrait" if its vertical dimension in pixels is
-greater or equal to its horizontal dimension, otherwise it's considered
+greater or equal to its horizontal dimension, otherwise it is considered
 to be "landscape".)  Previous versions of Emacs always tried to split
 vertically first, so to get previous behavior, you can customize this
 option to 'vertical'.  The value 'horizontal' always prefers the
@@ -451,7 +451,7 @@ horizontal split.
 
 ---
 The default value of 'split-width-threshold' is changed from 160 to 150.
-After splitting it's still comfortable to read text filled to 75 columns.
+After splitting it is still comfortable to read text filled to 75 columns.
 
 +++
 *** New argument INDIRECT for 'get-buffer-window-list'.
@@ -503,7 +503,7 @@ determines whether to call 'delete-frame'.
 +++
 *** New function 'frame-use-time'.
 This function is the frame equivalent of the function 'window-use-time'
-for a window.  The result is the `window-use-time' of a frame's most
+for a window.  The result is the 'window-use-time' of a frame's most
 recently used window.
 
 +++
@@ -518,8 +518,8 @@ single frame can be excluded, for example, the selected frame.
 *** After deleting, 'delete-frame' now selects the most recently used frame.
 Previously, after deleting a specified frame, 'delete-frame' would
 select the oldest visible frame on the same terminal.  To revert to the
-old behavior, set the new user option
-'after-delete-frame-select-mru-frame' to nil.
+old behavior, set the new variable 'after-delete-frame-select-mru-frame'
+to nil.
 
 +++
 *** New value 'force' for user option 'frame-inhibit-implied-resize'.
@@ -770,7 +770,7 @@ the Project menu will be shown on the mode line only for projects with
 local files.
 
 *** The "VC-aware" project backend caches the current project and its name.
-The duration for which the values are cached depends on whether it's
+The duration for which the values are cached depends on whether it is
 called from 'non-essential' context, and it determined by variables
 'project-vc-cache-timeout' and 'project-vc-non-essential-cache-timeout'.
 
@@ -872,7 +872,7 @@ purple bar cursor on compatible terminals as well.  See the Info node
 "(emacs) Cursor Display" for more information.
 
 ---
-** New command 'copy-theme-options'
+** New command 'copy-theme-options'.
 You can use this command to copy options from a theme into your user
 configuration.
 
@@ -1042,14 +1042,13 @@ This is the inverse of 'M-q' ('fill-paragraph').
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
 
-** Smerge-mode
-*** 'smerge-refine-regions' can compare regions in different buffers.
+** Delete Selection mode
 
-** Delete-selection mode
-*** New face 'delete-selection-replacement' for the replacement text
+*** New face 'delete-selection-replacement' for the replacement text.
 This comes with a change to how we track what is considered "the
 replacement text", which should be more robust now, and is made
 more clear by the highlighting.
+
 ** Editorconfig
 
 ---
@@ -1273,7 +1272,6 @@ of relevance.  (Deeper-embedded parsers have higher relevance.)  These
 functions now also take an additional optional argument, PARSER, that
 allows caller to specify a parser or language to use.  That also means
 'treesit-beginning/end-of-defun' now can move across parsers.
-
 
 +++
 *** New command 'treesit-explore'.
@@ -1614,18 +1612,18 @@ terminal emulators. Control sequences and escape sequences are still processed
 correctly regardless of margin position.
 
 ---
-** SMerge
+** SMerge mode
 
 *** New 'repeat-map' for SMerge conflict resolution commands.
 With 'repeat-mode' enabled, after invoking an SMerge command (for
 example, 'C-c ^ n'), you can repeat further SMerge commands by typing
-just the final key (for example, n, p, u, l).
+just the final key (for example, 'n', 'p', 'u', 'l').
 
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
 *** New command 'smerge-refine-exchange-point' to jump to the other side.
 When used inside a refined chunk, it jumps to the matching position in
-the "other" side of the refinement: if you're in the new text, it jumps
+the "other" side of the refinement: if you are in the new text, it jumps
 to the corresponding position in the old text and vice versa.
 
 *** New user option 'smerge-refine-shadow-cursor'.
@@ -1635,6 +1633,8 @@ is in the "upper" version, and vice versa.  The "shadow cursor" is
 just the character corresponding to the position where
 'smerge-refine-exchange-point' would jump, shown in a new distinct
 face 'smerge-refine-shadow-cursor', by default a box face.
+
+*** 'smerge-refine-regions' can compare regions in different buffers.
 
 ** Cursor Sensor mode
 
@@ -1674,7 +1674,7 @@ browser windows under Wayland using the xdg_activation_v1 protocol.
 
 *** 'RET' can visit URLs in read-only buffers.
 In some keymaps such as 'ansi-osc-hyperlink-map', 'browse-url-button-map',
-'goto-address-highlight-keymap', 'bug-reference-map' it's possible now
+'goto-address-highlight-keymap', 'bug-reference-map' it is possible now
 to visit URLs by typing just 'RET' instead of 'C-c RET' in read-only buffers.
 
 *** Removed support for some obsolete web browsers.
@@ -2853,7 +2853,7 @@ stash at point (deleting the stash at point is also bound to 'C-k').
 
 +++
 *** New VC Directory command 'V' ('vc-dir-root-next-action').
-This is like 'v' ('vc-next-action') but applies to the whole VC-Dir
+This is like 'v' ('vc-next-action') but applies to the whole VC Directory
 buffer, ignoring the position of point and any marks.  This is useful to
 check in all local changes at once.
 
@@ -2948,7 +2948,7 @@ Currently only supported by the Git and Mercurial backends.
 +++
 *** New user option 'vc-display-failed-async-commands'.
 If non-nil, displays the buffer with the output of the failed command
-when an asynchronous VC command (e.g. pulls and pushes) fails.
+when an asynchronous VC command (e.g., pulls and pushes) fails.
 
 ---
 *** New 'log-edit-hook' option to display diff of changes to commit.
@@ -3366,7 +3366,7 @@ and the buffers like the completions buffer that enable
 *** New value 'window' for the user option 'global-hl-line-sticky-flag'.
 Unlike the value t that highlights the line with buffer's point,
 it highlights the line with window's point.  Also it uses the new face
-`hl-line-nonselected' for highlighting the line with window's point
+'hl-line-nonselected' for highlighting the line with window's point
 in non-selected windows.
 
 ---
@@ -3415,7 +3415,7 @@ If non-nil, FFAP always finds remote files in buffers with remote
 file names in above buffers.  The default is nil.
 
 +++
-*** New theme 'newcomers-presets'
+*** New theme 'newcomers-presets'.
 This new theme configures user options and minor modes that might
 interest new users, but would otherwise be too invasive to enable by
 default.  Recall that an Emacs theme is a generic collection of
@@ -3695,7 +3695,7 @@ value "java org.antlr.Tool") when 'antlr-tool-version' has the value
 'antlr-v3'.
 
 *** Command 'antlr-mode' now also works on ANTLR v3 or v4 grammars.
-If the variable 'antlr-tool-version' is not set locally, e.g. by the
+If the variable 'antlr-tool-version' is not set locally, e.g., by the
 file’s local variables specs, the command sets its local value to
 'antlr-v2' if a keyword "class" or "header" appears at the beginning of
 the source, or to 'antlr-v3' otherwise.
@@ -3985,15 +3985,16 @@ display time or even cause Emacs to hang trying to display such a face.
 Affected APIs include 'defface', 'set-face-attribute', their callers,
 and other similar functions.
 
-+++ Original behavior of 'overlays-in' and 'overlays-at' has been
-restored.  Before Emacs 28.1, the list of overlays returned by these two
-functions included overlays outside of the current narrowing of the
-buffer, and there wasn't a special exception for including empty
-overlays at end of accessible portion of the buffer.  This behavior has
-been restored, and the special behavior for empty overlays is again
-reserved only to the actual end of buffer, disregarding the narrowing.
-As result, 'remove-overlays' can now again remove overlays outside of
-the narrowing, as it did before Emacs 28.1.
++++
+** Original behavior of 'overlays-in' and 'overlays-at' has been restored.
+Before Emacs 28.1, the list of overlays returned by these two functions
+included overlays outside of the current narrowing of the buffer, and
+there wasn't a special exception for including empty overlays at end of
+accessible portion of the buffer.  This behavior has been restored, and
+the special behavior for empty overlays is again reserved only to the
+actual end of buffer, disregarding the narrowing.  As result,
+'remove-overlays' can now again remove overlays outside of the
+narrowing, as it did before Emacs 28.1.
 
 ---
 ** 'help-setup-xref' now re-enables the major mode of the Help buffer.
@@ -4382,7 +4383,7 @@ of an inherently asynchronous command such as 'compile'.
 These produce the binary representation of a number.
 '%#b' and '%#B' prefix the bits with '0b' and '0B', respectively.
 
-** 'pp-eval-expression' can now insert results into the current buffer
+** 'pp-eval-expression' can now insert results into the current buffer.
 With a prefix argument, 'pp-eval-expression' inserts the result into the
 current buffer, just like 'eval-expression' already did.
 
