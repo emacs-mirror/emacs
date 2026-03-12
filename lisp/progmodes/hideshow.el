@@ -436,17 +436,16 @@ info node `(elisp)Overlays'."
 (defcustom hs-cycle-filter nil
   "Control where typing a \\`TAB' cycles the visibility.
 This option determines on which parts of a line where a block
-begins \\`TAB' will be bound to visibility-cycling commands such
-as `hs-toggle-hiding'.  The value t means you can type \\`TAB'
-anywhere on a headline.  The value nil means \\`TAB' always has its
-usual binding.  The value can also be a function of no arguments,
-then \\`TAB' will invoke the visibility-cycling commands where that
-function returns non-nil.  For example, if the value is `bolp',
-those commands will be invoked at the headline's beginning.
+begins \\`TAB' will be bound to visibility-cycling commands.
+The value t means you can type \\`TAB' anywhere on a headline.  The
+value nil means \\`TAB' always has its usual binding.  The value can
+also be a function of no arguments, then \\`TAB' will invoke the
+visibility-cycling commands where that function returns non-nil.  For
+example, if the value is `bolp', those commands will be invoked at the
+headline's beginning.
 This allows to preserve the usual bindings, as determined by the
 major mode, elsewhere on the headlines.
-Currently it affects only the command `hs-toggle-hiding' by default,
-but it can be easily replaced with the command `hs-cycle'."
+See also `hs-add-cycle-binding' to change the function to use."
   :type `(choice (const :tag "Nowhere" nil)
                  (const :tag "Everywhere on the headline" t)
                  (const :tag "At block beginning" hs-hideable-block-p)
@@ -537,24 +536,23 @@ This is only used if `hs-indicator-type' is set to `margin' or nil."
   :doc "Keymap for hideshow minor mode."
   "S-<mouse-2>" #'hs-toggle-hiding
   "C-c @" hs-prefix-map
-  "TAB" `(menu-item
-          "" hs-toggle-hiding
-          :filter
-          ,(lambda (cmd)
-             (when (and hs-cycle-filter
-                        ;; On the headline with hideable blocks
-                        (save-excursion
-                          (forward-line 0)
-                          (hs-get-first-block-on-line))
-                        (or (not (functionp hs-cycle-filter))
-                            (funcall hs-cycle-filter)))
-               cmd)))
   "<left-fringe> <mouse-1>" #'hs-indicator-mouse-toggle-hiding)
 
 (defvar-keymap hs-indicators-map
   :doc "Keymap for hideshow indicators."
   "<left-margin> <mouse-1>" #'hs-indicator-mouse-toggle-hiding
   "<mouse-1>" #'hs-toggle-hiding)
+
+(defun hs-add-cycle-binding (keymap key definition)
+  "Define KEY for `hs-cycle-filter'.
+KEYMAP, KEY and DEFINITION are the same arguments as the ones of
+`keymap-set'."
+  (keymap-set (or keymap hs-minor-mode-map) key
+              `(menu-item
+                "" ,definition
+                :filter hs--filter-function)))
+
+(hs-add-cycle-binding nil "TAB" #'hs-toggle-hiding)
 
 (easy-menu-define hs-minor-mode-menu hs-minor-mode-map
   "Menu used when hideshow minor mode is active."
@@ -975,6 +973,17 @@ commands."
 
 
 ;;;; Internal functions
+
+(defun hs--filter-function (cmd)
+  "Function used for `hs-cycle-filter' and `hs-add-cycle-binding'."
+  (when (and hs-cycle-filter
+             ;; On the headline with hideable blocks
+             (save-excursion
+               (forward-line 0)
+               (hs-get-first-block-on-line))
+             (or (not (functionp hs-cycle-filter))
+                 (funcall hs-cycle-filter)))
+    cmd))
 
 (defun hs--discard-overlay-before-changes (o &rest _r)
   "Remove overlay O before changes.
@@ -1441,6 +1450,7 @@ blocks.
 If LEVEL is specified (interactively, the prefix numeric argument), hide
 only blocks which are that many levels below the level of point."
   (interactive "p")
+  (setq level (or level 1)) ; For non-interactive calls
   (hs-life-goes-on
    (when-let* ((ret (hs-get-near-block :include-comments)))
      (cond ((eq ret 'comment)
