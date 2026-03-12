@@ -48,7 +48,7 @@
 ;; Functions:
 
 ;;;###autoload
-(defun pcomplete/gzip ()
+(pcomplete-define "gzip" ()
   "Completion for `gzip'."
   (let ((pcomplete-help "(gzip)"))
     (pcomplete-opt "cdfhlLnNqrStvV123456789")
@@ -75,7 +75,7 @@
                  (and (not unzip-p) (not zipped)))))))))
 
 ;;;###autoload
-(defun pcomplete/bzip2 ()
+(pcomplete-define "bzip2" ()
   "Completion for `bzip2'."
   (pcomplete-opt "hdzkftcqvLVs123456789")
   (while (pcomplete-here
@@ -99,7 +99,7 @@
              (and (not unzip-p) (not zipped))))))))
 
 ;;;###autoload
-(defun pcomplete/make ()
+(pcomplete-define "make" ()
   "Completion for GNU `make'."
   (let ((pcomplete-help "(make)Top"))
     (pcomplete-opt "bmC/def(pcmpl-gnu-makefile-names)hiI/j?kl?no.pqrsStvwW.")
@@ -265,7 +265,7 @@ Return the new list."
     "--volno-file="))
 
 ;;;###autoload
-(defun pcomplete/tar ()
+(pcomplete-define "tar" ()
   "Completion for the GNU tar utility."
   ;; options that end in an equal sign will want further completion...
   (let (saw-option complete-within)
@@ -344,7 +344,7 @@ Return the new list."
 
 ;;;###autoload
 
-(defun pcomplete/find ()
+(pcomplete-define "find" ()
   "Completion for the GNU find utility."
   (let ((prec (pcomplete-arg 'last -1)))
     (cond ((and (pcomplete-match "^-" 'last)
@@ -379,7 +379,7 @@ Return the new list."
     (while (pcomplete-here (pcomplete-dirs) nil #'identity))))
 
 ;;;###autoload
-(defun pcomplete/awk ()
+(pcomplete-define "awk" ()
   "Completion for the `awk' command."
   (pcomplete-here-using-help "awk --help"
                              :margin "\t"
@@ -388,12 +388,12 @@ Return the new list."
                              :metavar "[=a-z]+"))
 
 ;;;###autoload
-(defun pcomplete/gpg ()
+(pcomplete-define "gpg" ()
   "Completion for the `gpg` command."
   (pcomplete-here-using-help "gpg --help" :narrow-end "^ -se"))
 
 ;;;###autoload
-(defun pcomplete/gdb ()
+(pcomplete-define "gdb" ()
   "Completion for the `gdb' command."
   (while
       (cond
@@ -406,12 +406,12 @@ Return the new list."
        (t (pcomplete-here (pcomplete-entries))))))
 
 ;;;###autoload
-(defun pcomplete/emacs ()
+(pcomplete-define "emacs" ()
   "Completion for the `emacs' command."
   (pcomplete-here-using-help "emacs --help" :margin "^\\(\\)-"))
 
 ;;;###autoload
-(defun pcomplete/emacsclient ()
+(pcomplete-define "emacsclient" ()
   "Completion for the `emacsclient' command."
   (pcomplete-here-using-help "emacsclient --help" :margin "^\\(\\)-"))
 

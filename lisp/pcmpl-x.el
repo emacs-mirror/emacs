@@ -31,19 +31,26 @@
 ;;; TeX
 
 ;;;###autoload
-(defun pcomplete/tex ()
+(pcomplete-define "tex" ()
   "Completion for the `tex' command."
   (pcomplete-here-using-help "tex --help"
                              :margin "^\\(?:\\[-no\\]\\)?\\(\\)-"))
-;;;###autoload(defalias 'pcomplete/pdftex 'pcomplete/tex)
-;;;###autoload(defalias 'pcomplete/latex 'pcomplete/tex)
-;;;###autoload(defalias 'pcomplete/pdflatex 'pcomplete/tex)
+;;;###autoload
+(pcomplete-alias "pdftex" "tex")
 
 ;;;###autoload
-(defun pcomplete/luatex ()
+(pcomplete-alias "latex" "tex")
+
+;;;###autoload
+(pcomplete-alias "pdflatex" "tex")
+
+;;;###autoload
+(pcomplete-define "luatex" ()
   "Completion for the `luatex' command."
   (pcomplete-here-using-help "luatex --help"))
-;;;###autoload(defalias 'pcomplete/lualatex 'pcomplete/luatex)
+
+;;;###autoload
+(pcomplete-alias "lualatex" "luatex")
 
 ;;;; tlmgr - https://www.tug.org/texlive/tlmgr.html
 
@@ -137,7 +144,7 @@
     (gethash action pcmpl-x-tlmgr-options-cache)))
 
 ;;;###autoload
-(defun pcomplete/tlmgr ()
+(pcomplete-define "tlmgr" ()
   "Completion for the `tlmgr' command."
   (while (pcomplete-match "^--" 0)
     (pcomplete-here* pcmpl-x-tlmgr-common-options)
@@ -161,7 +168,7 @@
 ;;; Grep-like tools
 
 ;;;###autoload
-(defun pcomplete/rg ()
+(pcomplete-define "rg" ()
   "Completion for the `rg' command."
   (pcomplete-here-using-help "rg --help"))
 
@@ -245,7 +252,7 @@
   (pcmpl-x-ack-long-options "--help-types"))
 
 ;;;###autoload
-(defun pcomplete/ack ()
+(pcomplete-define "ack" ()
   "Completion for the `ack' command.
 Start an argument with `-' to complete short options and `--' for
 long options."
@@ -271,7 +278,7 @@ long options."
       (pcomplete-here* (pcomplete-dirs-or-entries)))))
 
 ;;;###autoload
-(defalias 'pcomplete/ack-grep 'pcomplete/ack)
+(pcomplete-define "ack-grep" () (pcomplete/ack))
 
 
 ;;;; the_silver_search - https://github.com/ggreer/the_silver_searcher
@@ -302,7 +309,7 @@ long options."
                         (cons 'long  (nreverse long)))))))))
 
 ;;;###autoload
-(defun pcomplete/ag ()
+(pcomplete-define "ag" ()
   "Completion for the `ag' command."
   (while t
     (if (pcomplete-match "^-" 0)
@@ -313,7 +320,7 @@ long options."
 ;;; Borland
 
 ;;;###autoload
-(defun pcomplete/bcc32 ()
+(pcomplete-define "bcc32" ()
   "Completion function for Borland's C++ compiler."
   (let ((cur (pcomplete-arg 0)))
     (cond
@@ -343,12 +350,12 @@ long options."
           (pcomplete-dirs-or-entries "\\.[iCc]\\([Pp][Pp]\\)?\\'"))))
 
 ;;;###autoload
-(defalias 'pcomplete/bcc 'pcomplete/bcc32)
+(pcomplete-define "bcc" () (pcomplete/bcc32))
 
 ;;; Network tools
 
 ;;;###autoload
-(defun pcomplete/rclone ()
+(pcomplete-define "rclone" ()
   "Completion for the `rclone' command."
   (let ((subcmds (pcomplete-from-help "rclone help"
                                       :margin "^  "

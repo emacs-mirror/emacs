@@ -59,7 +59,7 @@ Files listed by `git ls-files ARGS' satisfy the predicate."
          (vc-git-revision-table nil))))
 
 ;;;###autoload
-(defun pcomplete/git ()
+(pcomplete-define "git" ()
   "Completion for the `git' command."
   (let ((subcommands (pcomplete-from-help `(,vc-git-program "help" "-a")
                                           :margin "^\\( +\\)[a-z]"

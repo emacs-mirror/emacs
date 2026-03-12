@@ -220,7 +220,7 @@ are:
      (dolist (kind eshell-debug-command)
        (eshell-printn (symbol-name kind))))))
 
-(defun pcomplete/eshell-mode/eshell-debug ()
+(pcomplete-define "eshell-mode/eshell-debug" ()
   "Completion for the `debug' command."
   (while (pcomplete-here '("error" "form" "process"))))
 

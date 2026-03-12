@@ -420,7 +420,7 @@ where FOO is one of CLOSE, GET, SEND, LIST, CHAT, etc."
        'erc-cmd-DCC)))
 
 ;;;###autoload
-(defun pcomplete/erc-mode/DCC ()
+(pcomplete-define "erc-mode/DCC" ()
   "Provide completion for the /DCC command."
   (pcomplete-here (append '("chat" "close" "get" "list")
                           (when (fboundp 'make-network-process) '("send"))))
@@ -1142,9 +1142,9 @@ Possible values are: ask, auto, ignore."
                                      erc-dcc-send-request)))
       t)))
 
-(defun pcomplete/erc-mode/CREQ ()
+(pcomplete-define "erc-mode/CREQ" ()
   (pcomplete-here '("auto" "ask" "ignore")))
-(defalias 'pcomplete/erc-mode/SREQ #'pcomplete/erc-mode/CREQ)
+(pcomplete-define "erc-mode/SREQ" () (pcomplete/erc-mode/CREQ))
 
 (defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
   "Abnormal hook run after parsing (and maybe inserting) a DCC message.

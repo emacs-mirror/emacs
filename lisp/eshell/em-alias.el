@@ -182,7 +182,7 @@ file named by `eshell-aliases-file'.")
 (defvar pcomplete-stub)
 (autoload 'pcomplete-here "pcomplete")
 
-(defun pcomplete/eshell-mode/alias ()
+(pcomplete-define "eshell-mode/alias" ()
   "Completion function for Eshell's `alias' command."
   (pcomplete-here (eshell-alias-completions pcomplete-stub)))
 

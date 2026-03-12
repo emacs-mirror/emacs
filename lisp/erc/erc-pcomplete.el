@@ -103,7 +103,7 @@ for use on `completion-at-point-function'."
 
 ;;; Programmable completion logic
 
-(defun pcomplete/erc-mode/complete-command ()
+(pcomplete-define "erc-mode/complete-command" ()
   (pcomplete-here
    (append
     (pcomplete-erc-commands)
@@ -112,88 +112,88 @@ for use on `completion-at-point-function'."
 (defvar erc-pcomplete-ctcp-commands
   '("ACTION" "CLIENTINFO" "ECHO" "FINGER" "PING" "TIME" "USERINFO" "VERSION"))
 
-(defun pcomplete/erc-mode/CTCP ()
+(pcomplete-define "erc-mode/CTCP" ()
   (pcomplete-here (pcomplete-erc-nicks))
   (pcomplete-here erc-pcomplete-ctcp-commands))
 
-(defun pcomplete/erc-mode/CLEARTOPIC ()
+(pcomplete-define "erc-mode/CLEARTOPIC" ()
   (pcomplete-here (pcomplete-erc-channels)))
 
-(defun pcomplete/erc-mode/DEOP ()
+(pcomplete-define "erc-mode/DEOP" ()
   (while (pcomplete-here (pcomplete-erc-ops))))
 
-(defun pcomplete/erc-mode/DESCRIBE ()
+(pcomplete-define "erc-mode/DESCRIBE" ()
   (pcomplete-here (pcomplete-erc-nicks)))
 
-(defun pcomplete/erc-mode/IDLE ()
+(pcomplete-define "erc-mode/IDLE" ()
   (while (pcomplete-here (pcomplete-erc-nicks))))
 
-(defun pcomplete/erc-mode/KICK ()
+(pcomplete-define "erc-mode/KICK" ()
   (pcomplete-here (pcomplete-erc-channels))
   (pcomplete-here (pcomplete-erc-nicks)))
 
-(defun pcomplete/erc-mode/LOAD ()
+(pcomplete-define "erc-mode/LOAD" ()
   (pcomplete-here (pcomplete-entries)))
 
-(defun pcomplete/erc-mode/MODE ()
+(pcomplete-define "erc-mode/MODE" ()
   (pcomplete-here (pcomplete-erc-channels))
   (while (pcomplete-here (pcomplete-erc-nicks))))
 
-(defun pcomplete/erc-mode/ME ()
+(pcomplete-define "erc-mode/ME" ()
   (while (pcomplete-here (pcomplete-erc-nicks))))
 
-(defun pcomplete/erc-mode/SAY ()
+(pcomplete-define "erc-mode/SAY" ()
   (pcomplete-here (pcomplete-erc-nicks))
   (pcomplete-here (pcomplete-erc-nicks))
   (while (pcomplete-here (pcomplete-erc-nicks))))
 
-(defun pcomplete/erc-mode/MSG ()
+(pcomplete-define "erc-mode/MSG" ()
   (pcomplete-here (append (pcomplete-erc-all-nicks)
                           (pcomplete-erc-channels)))
   (while (pcomplete-here (pcomplete-erc-nicks))))
 
-(defun pcomplete/erc-mode/NAMES ()
+(pcomplete-define "erc-mode/NAMES" ()
   (while (pcomplete-here (pcomplete-erc-channels))))
 
-(defalias 'pcomplete/erc-mode/NOTICE #'pcomplete/erc-mode/MSG)
+(pcomplete-define "erc-mode/NOTICE" () (pcomplete/erc-mode/MSG))
 
-(defun pcomplete/erc-mode/OP ()
+(pcomplete-define "erc-mode/OP" ()
   (while (pcomplete-here (pcomplete-erc-not-ops))))
 
-(defun pcomplete/erc-mode/PART ()
+(pcomplete-define "erc-mode/PART" ()
   (pcomplete-here (pcomplete-erc-channels)))
 
-(defalias 'pcomplete/erc-mode/LEAVE #'pcomplete/erc-mode/PART)
+(pcomplete-define "erc-mode/LEAVE" () (pcomplete/erc-mode/PART))
 
-(defun pcomplete/erc-mode/QUERY ()
+(pcomplete-define "erc-mode/QUERY" ()
   (pcomplete-here (append (pcomplete-erc-all-nicks)
                           (pcomplete-erc-channels)))
   (while (pcomplete-here (pcomplete-erc-nicks)))
   )
 
-(defun pcomplete/erc-mode/SOUND ()
+(pcomplete-define "erc-mode/SOUND" ()
   (while (pcomplete-here (pcomplete-entries))))
 
-(defun pcomplete/erc-mode/TOPIC ()
+(pcomplete-define "erc-mode/TOPIC" ()
   (pcomplete-here (pcomplete-erc-channels)))
 
-(defun pcomplete/erc-mode/WHOIS ()
+(pcomplete-define "erc-mode/WHOIS" ()
   (while (pcomplete-here (pcomplete-erc-nicks))))
 
-(defun pcomplete/erc-mode/UNIGNORE ()
+(pcomplete-define "erc-mode/UNIGNORE" ()
   (pcomplete-here (erc-with-server-buffer erc-ignore-list)))
 
-(defun pcomplete/erc-mode/RECONNECT ()
+(pcomplete-define "erc-mode/RECONNECT" ()
   (pcomplete-here '("cancel"))
   (pcomplete-opt "a"))
 
-(defun pcomplete/erc-mode/BANLIST ()
+(pcomplete-define "erc-mode/BANLIST" ()
   (pcomplete-opt "f"))
-(defalias 'pcomplete/erc-mode/BL #'pcomplete/erc-mode/BANLIST)
+(pcomplete-define "erc-mode/BL" () (pcomplete/erc-mode/BANLIST))
 
-(defun pcomplete/erc-mode/MASSUNBAN ()
+(pcomplete-define "erc-mode/MASSUNBAN" ()
   (pcomplete-opt "f"))
-(defalias 'pcomplete/erc-mode/MUB #'pcomplete/erc-mode/MASSUNBAN)
+(pcomplete-define "erc-mode/MUB" () (pcomplete/erc-mode/MASSUNBAN))
 
 ;;; Functions that provide possible completions.
 

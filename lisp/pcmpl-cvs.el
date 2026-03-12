@@ -43,7 +43,7 @@
 ;; Functions:
 
 ;;;###autoload
-(defun pcomplete/cvs ()
+(pcomplete-define "cvs" ()
   "Completion rules for the `cvs' command."
   (let ((pcomplete-help "(cvs)Invoking CVS"))
     (pcomplete-opt "HQqrwlntvfab/T/e*d/z?s")

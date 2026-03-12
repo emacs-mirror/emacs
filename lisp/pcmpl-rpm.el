@@ -102,7 +102,7 @@
   (pcomplete-dirs-or-entries "\\.rpm\\'"))
 
 ;;;###autoload
-(defun pcomplete/rpm ()
+(pcomplete-define "rpm" ()
   "Completion for the `rpm' command."
   ;; Originally taken from the output of `rpm --help' on a Red Hat 6.1 system.
   (let (mode)
@@ -390,7 +390,7 @@ STATUS should be one of --available or --installed."
                    status)))
 
 ;;;###autoload
-(defun pcomplete/dnf ()
+(pcomplete-define "dnf" ()
   "Completion for the `dnf' command."
   (let ((subcmds (pcomplete-from-help "dnf --help"
                                       :margin (rx bol (group (* " "))

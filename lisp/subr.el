@@ -8032,4 +8032,13 @@ and return the value found in PLACE instead."
       ((pred numberp) v)
       (`(,above . ,below) (+ above below)))))
 
+(defvar pcomplete--obarray (obarray-make)
+  "Special obarry for Pcomplete commands")
+
+(defun pcomplete--autoload (name file)
+  "Make a note to lazy-load pcomplete command NAME from FILE."
+  (unless (get (intern name pcomplete--obarray) 'pcomplete-autoload)
+    (put (intern name pcomplete--obarray) 'pcomplete-autoload file)))
+
+
 ;;; subr.el ends here

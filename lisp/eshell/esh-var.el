@@ -379,7 +379,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
       (eshell-set-variable (match-string 1 set)
                            (match-string 2 set)))))
 
-(defun pcomplete/eshell-mode/export ()
+(pcomplete-define "eshell-mode/export" ()
   "Completion function for Eshell's `export'."
   (while (pcomplete-here
 	  (if eshell-complete-export-definition
@@ -393,7 +393,7 @@ the values of nil for each."
   (dolist (arg args)
     (eshell-set-variable arg nil)))
 
-(defun pcomplete/eshell-mode/unset ()
+(pcomplete-define "eshell-mode/unset" ()
   "Completion function for Eshell's `unset'."
   (while (pcomplete-here (eshell-envvar-names))))
 
@@ -405,7 +405,7 @@ the values of nil for each."
             args (cddr args)))
     last-value))
 
-(defun pcomplete/eshell-mode/set ()
+(pcomplete-define "eshell-mode/set" ()
   "Completion function for Eshell's `set'."
   (while (pcomplete-here (eshell-envvar-names))))
 
@@ -419,7 +419,7 @@ the values of nil for each."
 	      args (cddr args))))
     last-value))
 
-(defun pcomplete/eshell-mode/setq ()
+(pcomplete-define "eshell-mode/setq" ()
   "Completion function for Eshell's `setq'."
   (while (and (pcomplete-here (all-completions pcomplete-stub
 					       obarray #'boundp))

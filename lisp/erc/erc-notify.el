@@ -243,7 +243,7 @@ with args, toggle notify status of people."
                   (&optional postfix))
 
 ;;;###autoload
-(defun pcomplete/erc-mode/NOTIFY ()
+(pcomplete-define "erc-mode/NOTIFY" ()
   (require 'erc-pcomplete)
   (pcomplete-here (append erc-notify-list (pcomplete-erc-all-nicks))))
 

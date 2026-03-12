@@ -35,7 +35,7 @@
 ;; Functions:
 
 ;;;###autoload
-(defun pcomplete/kill ()
+(pcomplete-define "kill" ()
   "Completion for GNU/Linux `kill', using /proc filesystem."
   (if (pcomplete-match "^-\\(.*\\)" 0)
       (pcomplete-here
@@ -49,14 +49,14 @@
 	  nil #'identity)))
 
 ;;;###autoload
-(defun pcomplete/umount ()
+(pcomplete-define "umount" ()
   "Completion for GNU/Linux `umount'."
   (pcomplete-opt "hVafrnvt(pcmpl-linux-fs-types)")
   (while (pcomplete-here (pcmpl-linux-mounted-directories)
 			 nil #'identity)))
 
 ;;;###autoload
-(defun pcomplete/mount ()
+(pcomplete-define "mount" ()
   "Completion for GNU/Linux `mount'."
   (pcomplete-opt "hVanfFrsvwt(pcmpl-linux-fs-types)o?L?U?")
   (while (pcomplete-here (pcomplete-entries) nil #'identity)))
@@ -139,7 +139,7 @@ Test is done using `equal'."
       (nreverse result))))
 
 ;;;###autoload
-(defun pcomplete/systemctl ()
+(pcomplete-define "systemctl" ()
   "Completion for the `systemctl' command."
   (let ((subcmds (pcomplete-from-help
                   "systemctl --help"
@@ -171,7 +171,7 @@ Test is done using `equal'."
                     (pcomplete-entries)))))))))
 
 ;;;###autoload
-(defun pcomplete/journalctl ()
+(pcomplete-define "journalctl" ()
   "Completion for the `journalctl' command."
   (while (if (string-prefix-p "-" (pcomplete-arg 0))
              (pcomplete-here (pcomplete-from-help "journalctl --help"

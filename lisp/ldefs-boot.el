@@ -25469,7 +25469,6 @@ for the result of evaluating EXP (first arg to `pcase').
 
 (autoload 'pcomplete/cd "pcmpl-unix"
 "Completion for `cd'.")
-(defalias 'pcomplete/pushd 'pcomplete/cd)
 (autoload 'pcomplete/rmdir "pcmpl-unix"
 "Completion for `rmdir'.")
 (autoload 'pcomplete/rm "pcmpl-unix"
@@ -25490,7 +25489,6 @@ for the result of evaluating EXP (first arg to `pcase').
 "Completion for the `od' command.")
 (autoload 'pcomplete/base32 "pcmpl-unix"
 "Completion for the `base32' and `base64' commands.")
-(defalias 'pcomplete/base64 'pcomplete/base32)
 (autoload 'pcomplete/basenc "pcmpl-unix"
 "Completion for the `basenc' command.")
 (autoload 'pcomplete/fmt "pcmpl-unix"
@@ -25517,11 +25515,6 @@ for the result of evaluating EXP (first arg to `pcase').
 "Completion for the `b2sum' command.")
 (autoload 'pcomplete/md5sum "pcmpl-unix"
 "Completion for checksum commands.")
-(defalias 'pcomplete/sha1sum 'pcomplete/md5sum)
-(defalias 'pcomplete/sha224sum 'pcomplete/md5sum)
-(defalias 'pcomplete/sha256sum 'pcomplete/md5sum)
-(defalias 'pcomplete/sha384sum 'pcomplete/md5sum)
-(defalias 'pcomplete/sha512sum 'pcomplete/md5sum)
 (autoload 'pcomplete/sort "pcmpl-unix"
 "Completion for the `sort' command.")
 (autoload 'pcomplete/shuf "pcmpl-unix"
@@ -25548,8 +25541,6 @@ for the result of evaluating EXP (first arg to `pcase').
 "Completion for the `unexpand' command.")
 (autoload 'pcomplete/ls "pcmpl-unix"
 "Completion for the `ls' command.")
-(defalias 'pcomplete/dir 'pcomplete/ls)
-(defalias 'pcomplete/vdir 'pcomplete/ls)
 (autoload 'pcomplete/cp "pcmpl-unix"
 "Completion for the `cp' command.")
 (autoload 'pcomplete/dd "pcmpl-unix"
@@ -25592,7 +25583,6 @@ for the result of evaluating EXP (first arg to `pcase').
 "Completion for the `echo' command.")
 (autoload 'pcomplete/test "pcmpl-unix"
 "Completion for the `test' command.")
-(defalias (intern "pcomplete/[") 'pcomplete/test)
 (autoload 'pcomplete/tee "pcmpl-unix"
 "Completion for the `tee' command.")
 (autoload 'pcomplete/basename "pcmpl-unix"
@@ -25643,7 +25633,6 @@ for the result of evaluating EXP (first arg to `pcase').
 "Completion for the `seq' command.")
 (autoload 'pcomplete/ssh "pcmpl-unix"
 "Completion rules for the `ssh' command.")
-(defalias 'pcomplete/rsh #'pcomplete/ssh)
 (autoload 'pcomplete/scp "pcmpl-unix"
 "Completion rules for the `scp' command.
 Includes files as well as host names followed by a colon.")
@@ -25659,12 +25648,8 @@ Includes files as well as host names followed by a colon.")
 
 (autoload 'pcomplete/tex "pcmpl-x"
 "Completion for the `tex' command.")
-(defalias 'pcomplete/pdftex 'pcomplete/tex)
-(defalias 'pcomplete/latex 'pcomplete/tex)
-(defalias 'pcomplete/pdflatex 'pcomplete/tex)
 (autoload 'pcomplete/luatex "pcmpl-x"
 "Completion for the `luatex' command.")
-(defalias 'pcomplete/lualatex 'pcomplete/luatex)
 (autoload 'pcomplete/tlmgr "pcmpl-x"
 "Completion for the `tlmgr' command.")
 (autoload 'pcomplete/rg "pcmpl-x"
@@ -25673,12 +25658,10 @@ Includes files as well as host names followed by a colon.")
 "Completion for the `ack' command.
 Start an argument with `-' to complete short options and `--' for
 long options.")
-(defalias 'pcomplete/ack-grep 'pcomplete/ack)
 (autoload 'pcomplete/ag "pcmpl-x"
 "Completion for the `ag' command.")
 (autoload 'pcomplete/bcc32 "pcmpl-x"
 "Completion function for Borland's C++ compiler.")
-(defalias 'pcomplete/bcc 'pcomplete/bcc32)
 (autoload 'pcomplete/rclone "pcmpl-x"
 "Completion for the `rclone' command.")
 (register-definition-prefixes "pcmpl-x" '("pcmpl-x-"))

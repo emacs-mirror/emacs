@@ -210,7 +210,7 @@ When completing for #+STARTUP, for example, this function returns
 
 ;;; Completion functions
 
-(defun pcomplete/org-mode/file-option ()
+(pcomplete-define "org-mode/file-option" ()
   "Complete against all valid file options."
   (require 'org-element)
   (pcomplete-here
@@ -237,51 +237,51 @@ When completing for #+STARTUP, for example, this function returns
 		    (org-get-export-keywords))))
    (substring pcomplete-stub 2)))
 
-(defun pcomplete/org-mode/file-option/author ()
+(pcomplete-define "org-mode/file-option/author" ()
   "Complete arguments for the #+AUTHOR file option."
   (pcomplete-here (list user-full-name)))
 
-(defun pcomplete/org-mode/file-option/date ()
+(pcomplete-define "org-mode/file-option/date" ()
   "Complete arguments for the #+DATE file option."
   (pcomplete-here (list (format-time-string (org-time-stamp-format)))))
 
-(defun pcomplete/org-mode/file-option/email ()
+(pcomplete-define "org-mode/file-option/email" ()
   "Complete arguments for the #+EMAIL file option."
   (pcomplete-here (list user-mail-address)))
 
-(defun pcomplete/org-mode/file-option/exclude_tags ()
+(pcomplete-define "org-mode/file-option/exclude_tags" ()
   "Complete arguments for the #+EXCLUDE_TAGS file option."
   (require 'ox)
   (pcomplete-here
    (and org-export-exclude-tags
 	(list (mapconcat #'identity org-export-exclude-tags " ")))))
 
-(defun pcomplete/org-mode/file-option/filetags ()
+(pcomplete-define "org-mode/file-option/filetags" ()
   "Complete arguments for the #+FILETAGS file option."
   (pcomplete-here (and org-file-tags (mapconcat #'identity org-file-tags " "))))
 
-(defun pcomplete/org-mode/file-option/language ()
+(pcomplete-define "org-mode/file-option/language" ()
   "Complete arguments for the #+LANGUAGE file option."
   (require 'ox)
   (pcomplete-here
    (pcomplete-uniquify-list
     (list org-export-default-language "en"))))
 
-(defun pcomplete/org-mode/file-option/priorities ()
+(pcomplete-define "org-mode/file-option/priorities" ()
   "Complete arguments for the #+PRIORITIES file option."
   (pcomplete-here (list (format "%c %c %c"
 				org-priority-highest
 				org-priority-lowest
 				org-priority-default))))
 
-(defun pcomplete/org-mode/file-option/select_tags ()
+(pcomplete-define "org-mode/file-option/select_tags" ()
   "Complete arguments for the #+SELECT_TAGS file option."
   (require 'ox)
   (pcomplete-here
    (and org-export-select-tags
 	(list (mapconcat #'identity org-export-select-tags " ")))))
 
-(defun pcomplete/org-mode/file-option/startup ()
+(pcomplete-define "org-mode/file-option/startup" ()
   "Complete arguments for the #+STARTUP file option."
   (while (pcomplete-here
 	  (let ((opts (pcomplete-uniquify-list
@@ -294,12 +294,12 @@ When completing for #+STARTUP, for example, this function returns
 		(setq opts (delete "showstars" opts)))))
 	    opts))))
 
-(defun pcomplete/org-mode/file-option/tags ()
+(pcomplete-define "org-mode/file-option/tags" ()
   "Complete arguments for the #+TAGS file option."
   (pcomplete-here
    (list (org-tag-alist-to-string org-current-tag-alist))))
 
-(defun pcomplete/org-mode/file-option/title ()
+(pcomplete-define "org-mode/file-option/title" ()
   "Complete arguments for the #+TITLE file option."
   (pcomplete-here
    (let ((visited-file (buffer-file-name (buffer-base-buffer))))
@@ -309,7 +309,7 @@ When completing for #+STARTUP, for example, this function returns
 	       (buffer-name (buffer-base-buffer)))))))
 
 
-(defun pcomplete/org-mode/file-option/options ()
+(pcomplete-define "org-mode/file-option/options" ()
   "Complete arguments for the #+OPTIONS file option."
   (while (pcomplete-here
 	  (pcomplete-uniquify-list
@@ -328,21 +328,21 @@ When completing for #+STARTUP, for example, this function returns
 		    (when item (push (concat item ":") items)))))
 	      items))))))
 
-(defun pcomplete/org-mode/file-option/infojs_opt ()
+(pcomplete-define "org-mode/file-option/infojs_opt" ()
   "Complete arguments for the #+INFOJS_OPT file option."
   (while (pcomplete-here
 	  (pcomplete-uniquify-list
 	   (mapcar (lambda (item) (format "%s:" (car item)))
 		   (bound-and-true-p org-html-infojs-opts-table))))))
 
-(defun pcomplete/org-mode/file-option/bind ()
+(pcomplete-define "org-mode/file-option/bind" ()
   "Complete arguments for the #+BIND file option, which are variable names."
   (let (vars)
     (mapatoms
      (lambda (a) (when (boundp a) (setq vars (cons (symbol-name a) vars)))))
     (pcomplete-here vars)))
 
-(defun pcomplete/org-mode/link ()
+(pcomplete-define "org-mode/link" ()
   "Complete against defined #+LINK patterns."
   (pcomplete-here
    (pcomplete-uniquify-list
@@ -351,7 +351,7 @@ When completing for #+STARTUP, for example, this function returns
 	     (append org-link-abbrev-alist-local
 		     org-link-abbrev-alist))))))
 
-(defun pcomplete/org-mode/tex ()
+(pcomplete-define "org-mode/tex" ()
   "Complete against TeX-style HTML entity names."
   (require 'org-entities)
   (while (pcomplete-here
@@ -359,11 +359,11 @@ When completing for #+STARTUP, for example, this function returns
 	   (remove nil (mapcar #'car-safe org-entities)))
 	  (substring pcomplete-stub 1))))
 
-(defun pcomplete/org-mode/todo ()
+(pcomplete-define "org-mode/todo" ()
   "Complete against known TODO keywords."
   (pcomplete-here (pcomplete-uniquify-list (copy-sequence org-todo-keywords-1))))
 
-(defun pcomplete/org-mode/searchhead ()
+(pcomplete-define "org-mode/searchhead" ()
   "Complete against all headings.
 This needs more work, to handle headings with lots of spaces in them."
   (while (pcomplete-here
@@ -376,7 +376,7 @@ This needs more work, to handle headings with lots of spaces in them."
 		(push (substring (org-link-heading-search-string) 1) tbl))
 	      (pcomplete-uniquify-list tbl))))))
 
-(defun pcomplete/org-mode/tag ()
+(pcomplete-define "org-mode/tag" ()
   "Complete a tag name.  Omit tags already set."
   (while (pcomplete-here
 	  (mapcar (lambda (x) (concat x ":"))
@@ -393,7 +393,7 @@ This needs more work, to handle headings with lots of spaces in them."
 	       (substring pcomplete-stub (match-end 0)))
 	  t)))
 
-(defun pcomplete/org-mode/drawer ()
+(pcomplete-define "org-mode/drawer" ()
   "Complete a drawer name, including \"PROPERTIES\"."
   (pcomplete-here
    (org-pcomplete-case-double
@@ -409,7 +409,7 @@ This needs more work, to handle headings with lots of spaces in them."
 	      (pcomplete-uniquify-list names))))
    (substring pcomplete-stub 1)))	;remove initial colon
 
-(defun pcomplete/org-mode/prop ()
+(pcomplete-define "org-mode/prop" ()
   "Complete a property name.  Omit properties already set."
   (pcomplete-here
    (org-pcomplete-case-double
@@ -422,7 +422,7 @@ This needs more work, to handle headings with lots of spaces in them."
 	      lst)))
    (substring pcomplete-stub 1)))
 
-(defun pcomplete/org-mode/block-option/src ()
+(pcomplete-define "org-mode/block-option/src" ()
   "Complete the arguments of a source block.
 Complete a language in the first field, the header arguments and
 switches."
@@ -445,7 +445,7 @@ switches."
 		     headers)
 		    '("-n" "-r" "-l"))))))
 
-(defun pcomplete/org-mode/block-option/clocktable ()
+(pcomplete-define "org-mode/block-option/clocktable" ()
   "Complete keywords in a clocktable line."
   (while (pcomplete-here '(":maxlevel" ":scope" ":lang"
 			   ":tstart" ":tend" ":block" ":step"

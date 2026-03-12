@@ -41,17 +41,16 @@
 ;; filenames for the first two arguments, and directories for all
 ;; remaining arguments:
 ;;
-;;   (defun pcomplete/my-command ()
+;;   (pcomplete-define "my-command" ()
 ;;     (pcomplete-here (pcomplete-entries))
 ;;     (pcomplete-here (pcomplete-entries))
 ;;     (while (pcomplete-here (pcomplete-dirs))))
 ;;
 ;; Here are the requirements for completion functions:
 ;;
-;; @ They must be called "pcomplete/MAJOR-MODE/NAME", or
-;;   "pcomplete/NAME".  This is how they are looked up, using the NAME
-;;   specified in the command argument (the argument in first
-;;   position).
+;; @ They must be defined with `pcomplete-define', using a NAME such
+;;   as "MAJOR-MODE/COMMAND" or just "COMMAND".  This is how they are
+;;   looked up, using the command name in the first argument position.
 ;;
 ;; @ They must be callable with no arguments.
 ;;
@@ -122,6 +121,26 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'rx))
+
+(defmacro pcomplete-define (name arglist &rest body)
+  "Define a pcomplete completion function for NAME.
+NAME is a string like \"cd\" or \"erc-mode/MSG\".
+Registers a lambda in `pcomplete--obarray' for dispatch.
+ARGLIST and BODY are as in `defun'."
+  (declare (indent defun) (autoload-macro expand))
+  `(progn
+     (pcomplete--autoload ,name ,load-true-file-name)
+     :autoload-end
+     (put (intern ,name pcomplete--obarray) 'pcomplete-function (lambda ,arglist ,@body))))
+
+(defmacro pcomplete-alias (alias name)
+  "Say that ALIAS should have the same completion function as NAME."
+  (declare (indent defun) (autoload-macro expand))
+  `(progn
+     (pcomplete--autoload ,name ,load-true-file-name)
+     :autoload-end
+     (put (intern ,alias pcomplete--obarray) 'pcomplete-function
+          (get (intern ,name pcomplete--obarray) 'pcomplete-function))))
 
 (defgroup pcomplete nil
   "Programmable completion."
@@ -994,11 +1013,22 @@ component, `default-directory' is used as the basis for completion."
 
 (defun pcomplete-find-completion-function (command)
   "Find the completion function to call for the given COMMAND."
-  (let ((sym (intern-soft
-	      (concat "pcomplete/" (symbol-name major-mode) "/" command))))
-    (unless sym
-      (setq sym (intern-soft (concat "pcomplete/" command))))
-    (and sym (fboundp sym) sym)))
+  (let* ((sym (or (intern-soft (concat (symbol-name major-mode) "/" command)
+                               pcomplete--obarray)
+                  (intern-soft command pcomplete--obarray)))
+         (fun (and (get sym 'pcomplete-function))))
+    ;; Lazy-load the file if registered via `pcomplete-attach'.
+    (when-let* ((file (and sym (null fun) (get sym 'pcomplete-autoload))))
+      (require (intern file))
+      (setq fun (get sym 'pcomplete-function)))
+    (cond (fun)
+          ;; Backward compatibility: fall back to global obarray for packages
+          ;; that still use the old `defun pcomplete/...' naming convention.
+          ((and (setq sym (or (intern-soft
+                               (concat "pcomplete/" (symbol-name major-mode) "/" command))
+                              (intern-soft (concat "pcomplete/" command))))
+                (fboundp sym))
+           sym))))
 
 (defun pcomplete-completions ()
   "Return a list of completions for the current argument position."
