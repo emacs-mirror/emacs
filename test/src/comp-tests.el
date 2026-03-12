@@ -940,15 +940,31 @@ Return a list of results."
                       (comp-tests--types-equal (nth 2 t1) (nth 2 t2))))
                 (t (comp-tests--type-lists-equal (cdr t1) (cdr t2)))))))
 
-(defun comp-tests-check-ret-type-spec (func-form ret-type)
+(defun comp-tests-check-ret-type-spec (func-form ret-type &optional speed)
   (let ((lexical-binding t)
-        (native-comp-speed 2)
-        (f-name (cl-second func-form)))
-    (eval func-form t)
-    (native-compile f-name)
-    (should (comp-tests--types-equal
-             (cl-third (subr-type (symbol-function f-name)))
-             ret-type))))
+        (native-comp-speed (or speed 2))
+        (f-name (cl-second func-form))
+        (old-function-type nil))
+    (when (symbolp f-name)
+      (setq old-function-type (function-get f-name 'function-type)))
+    (unwind-protect
+        (progn
+          (eval func-form t)
+          (native-compile f-name)
+          (should (comp-tests--types-equal
+                   (cl-third (subr-type (symbol-function f-name)))
+                   ret-type)))
+      (when (symbolp f-name)
+        (function-put f-name 'function-type old-function-type)))))
+
+(comp-deftest speed-1-declared-param-type ()
+  (let ((comp-ctxt (make-comp-cstr-ctxt)))
+    (comp-tests-check-ret-type-spec
+     '(defun comp-tests-ret-type-spec-f (x)
+        (declare (ftype (function (string) t)))
+        x)
+     't
+     1)))
 
 (cl-eval-when (compile eval load)
   (cl-defstruct comp-foo a b)
@@ -1526,7 +1542,17 @@ Return a list of results."
       ((defun comp-tests-ret-type-spec-f (x)
          (print (comp-foo-p x))
          (comp-foo-p x))
-       'boolean)))
+       'boolean)
+      ;; 82
+      ((defun comp-tests-ret-type-spec-f (x)
+         (declare (ftype (function (string) t)))
+         x)
+       'string)
+      ;; 83
+      ((defun comp-tests-ret-type-spec-f (&optional x)
+         (declare (ftype (function (&optional string) t)))
+         x)
+       '(or null string))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

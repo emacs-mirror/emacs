@@ -3879,6 +3879,12 @@ coding mistakes.  For example,
 
 may return either nil or t.
 
+---
+** Native compilation now uses declared function parameter types more.
+At native compilation speed 2 and above, declared function types are
+used for type propagation, value prediction, and optimization within
+function bodies.
+
 ** Nested backquotes are not supported any more in Pcase patterns.
 
 ---

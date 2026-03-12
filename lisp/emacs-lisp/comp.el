@@ -843,7 +843,9 @@ clashes."
             (comp-func-frame-size func) (comp--byte-frame-size byte-func)
             (comp-func-speed func) (comp--spill-speed name)
             (comp-func-safety func) (comp--spill-safety name)
-            (comp-func-declared-type func) (comp--spill-decl-spec name 'function-type)
+            (comp-func-declared-type func)
+            (or (comp--spill-decl-spec name 'function-type)
+                (and name (function-get name 'function-type)))
             (comp-func-pure func) (comp--spill-decl-spec name 'pure))
 
       ;; Store the c-name to have it retrievable from
@@ -1516,17 +1518,46 @@ and the annotation emission."
        (incf (comp--sp) (- arg))
        (comp--copy-slot (+ arg (comp--sp)))))))
 
-(defun comp--emit-narg-prologue (minarg nonrest rest)
+(defun comp--declared-arg-type-gen (func)
+  "Return a generator over FUNC declared argument types."
+  (when-let* (((>= (comp-func-speed func) 2))
+              (declared-type (comp-func-declared-type func))
+              (cstr-f (comp-type-spec-to-cstr declared-type)))
+    (cl-assert (comp-cstr-f-p cstr-f))
+    (comp--lambda-list-gen (comp-cstr-f-args cstr-f))))
+
+(defun comp--emit-declared-arg-type-assumption (mvar declared-arg-type-gen
+                                                     &optional optional)
+  "Emit a declared argument type assumption for MVAR.
+When OPTIONAL is non-nil, account for omitted optional arguments by
+allowing nil as well."
+  (when-let* ((declared-arg-type-gen declared-arg-type-gen)
+              (cstr (funcall declared-arg-type-gen)))
+    (when (comp-cstr-p cstr)
+      (when optional
+        (setf cstr (comp--cstr-union-make cstr (comp--value-to-cstr nil))))
+      (unless (equal cstr comp-cstr-t)
+        (let ((target (make--comp-mvar :slot (comp-mvar-slot mvar))))
+          (comp--emit `(assume ,target (and ,target ,cstr))))))))
+
+(defun comp--emit-narg-prologue (minarg nonrest rest
+                                        &optional declared-arg-type-gen)
   "Emit the prologue for a narg function."
   (cl-loop for i below minarg
-           do (comp--emit `(set-args-to-local ,(comp--slot-n i)))
+           for target = (comp--slot-n i)
+           do (comp--emit `(set-args-to-local ,target))
+              (comp--emit-declared-arg-type-assumption
+               target declared-arg-type-gen)
               (comp--emit '(inc-args)))
   (cl-loop for i from minarg below nonrest
            for bb = (intern (format "entry_%s" i))
            for fallback = (intern (format "entry_fallback_%s" i))
            do (comp--emit `(cond-jump-narg-leq ,i ,fallback ,bb))
               (comp--make-curr-block bb (comp--sp))
-              (comp--emit `(set-args-to-local ,(comp--slot-n i)))
+              (let ((target (comp--slot-n i)))
+                (comp--emit `(set-args-to-local ,target))
+                (comp--emit-declared-arg-type-assumption
+                 target declared-arg-type-gen))
               (comp--emit '(inc-args))
               finally (comp--emit '(jump entry_rest_args)))
   (when (/= minarg nonrest)
@@ -1752,14 +1783,20 @@ into the C code forwarding the compilation unit."
                                   (symbol-name (comp-func-name func))))
     ;; Dynamic functions have parameters bound by the trampoline.
     (when (comp-func-l-p func)
-      (let ((args (comp-func-l-args func)))
+      (let ((args (comp-func-l-args func))
+            (declared-arg-type-gen (comp--declared-arg-type-gen func)))
         (if (comp-args-p args)
             (cl-loop for i below (comp-args-max args)
                      do (incf (comp--sp))
-                        (comp--emit `(set-par-to-local ,(comp--slot) ,i)))
+                        (let ((target (comp--slot)))
+                          (comp--emit `(set-par-to-local ,target ,i))
+                          (comp--emit-declared-arg-type-assumption
+                           target declared-arg-type-gen
+                           (>= i (comp-args-base-min args)))))
           (comp--emit-narg-prologue (comp-args-base-min args)
                                    (comp-nargs-nonrest args)
-                                   (comp-nargs-rest args)))))
+                                   (comp-nargs-rest args)
+                                   declared-arg-type-gen))))
     (comp--emit '(jump bb_0))
     ;; Body
     (comp--bb-maybe-add 0 (comp--sp))
