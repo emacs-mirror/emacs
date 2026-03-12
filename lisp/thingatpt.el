@@ -787,7 +787,9 @@ expression at point regardless of Lisp syntax."
 (defun symbol-at-point ()
   "Return the symbol at point, or nil if none is found."
   (let ((thing (thing-at-point 'symbol)))
-    (if thing (intern thing))))
+    ;; FIXME: Should we use the reader so as to properly handle
+    ;; backslashes and such?
+    (if thing (shorthands-intern thing))))
 
 (defvar thing-at-point-decimal-regexp
   "-?[0-9]+\\.?[0-9]*"

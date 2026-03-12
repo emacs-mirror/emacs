@@ -4782,27 +4782,10 @@ it defaults to the value of `obarray'.  */)
   obarray = check_obarray (NILP (obarray) ? Vobarray : obarray);
   CHECK_STRING (string);
 
-
-  char* longhand = NULL;
-  ptrdiff_t longhand_chars = 0;
-  ptrdiff_t longhand_bytes = 0;
-  tem = oblookup_considering_shorthand (obarray, SSDATA (string),
-					SCHARS (string), SBYTES (string),
-					&longhand, &longhand_chars,
-					&longhand_bytes);
+  tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
 
   if (!BARE_SYMBOL_P (tem))
-    {
-      if (longhand)
-	{
-	  tem = intern_driver (make_multibyte_string (longhand, longhand_chars,
-						      longhand_bytes),
-			       obarray, tem);
-	  xfree (longhand);
-	}
-      else
-	tem = intern_driver (string, obarray, tem);
-    }
+    tem = intern_driver (string, obarray, tem);
   return tem;
 }
 
@@ -4821,24 +4804,13 @@ it defaults to the value of `obarray'.  */)
 
   if (!SYMBOLP (name))
     {
-      char *longhand = NULL;
-      ptrdiff_t longhand_chars = 0;
-      ptrdiff_t longhand_bytes = 0;
-
       CHECK_STRING (name);
       string = name;
-      tem = oblookup_considering_shorthand (obarray, SSDATA (string),
-					    SCHARS (string), SBYTES (string),
-					    &longhand, &longhand_chars,
-					    &longhand_bytes);
-      if (longhand)
-	xfree (longhand);
+      tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
       return FIXNUMP (tem) ? Qnil : tem;
     }
   else
     {
-      /* If already a symbol, we don't do shorthand-longhand translation,
-	 as promised in the docstring.  */
       Lisp_Object sym = maybe_remove_pos_from_symbol (name);
       string = XSYMBOL (name)->u.s.name;
       tem
@@ -4872,14 +4844,7 @@ OBARRAY, if nil, defaults to the value of the variable `obarray'.  */)
   else
     {
       CHECK_STRING (name);
-      char *longhand = NULL;
-      ptrdiff_t longhand_chars = 0;
-      ptrdiff_t longhand_bytes = 0;
-      sym = oblookup_considering_shorthand (obarray, SSDATA (name),
-					    SCHARS (name), SBYTES (name),
-					    &longhand, &longhand_chars,
-					    &longhand_bytes);
-      xfree(longhand);
+      sym = oblookup (obarray, SSDATA (name), SCHARS (name), SBYTES (name));
       if (FIXNUMP (sym))
 	return Qnil;
     }
