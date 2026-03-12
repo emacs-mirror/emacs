@@ -40,6 +40,8 @@
 (require 'vc)
 (require 'cl-lib)
 (require 'info)
+(require 'message)
+(require 'ietf-drums)
 (require 'ert-x)
 (require 'ert)
 
