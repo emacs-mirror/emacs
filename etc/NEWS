@@ -141,32 +141,11 @@ If you have been using these variables in Lisp code (for example, in
 font-lock rules), simply quote the symbol, to use the face directly
 instead of its now-obsolete variable.
 
-** Network Security Manager (NSM) is now more strict.
-
 ---
 ** New char-table 'special-mirror-table' for mirroring special glyphs.
 This char-table is used to mirror special glyphs (truncation and
 continuation) when the user has defined an alternative representation
 for those characters via display tables.
-
-*** NSM warns about TLS 1.1 by default.
-It has been deprecated by RFC 8996, published in 2021.
-
-*** NSM warns about DHE and RSA key exchange by default.
-Emacs now warns about ephemeral Diffie-Hellman key exchange, and static
-RSA key exchange, also when 'network-security-level' is customized to
-its default 'medium' value.
-
-** Etags
-
-+++
-*** New command-line options for handling unrecognized programming languages.
-The new command-line option '--no-fallback-lang' disables attempts to
-parse as Fortran or C/C++ files whose programming language 'etags' could
-not determine.  This allows to avoid false positives and reduces the time
-required to scan directories with many such files.  Another new option
-'--no-empty-file-entries' disables generation of file entries in tags
-tables for files in which no tags were found.
 
 ---
 ** find-func.el commands now have history enabled.
@@ -679,101 +658,6 @@ will change its appearance if the tab buffer has been modified.
 This user option controls which buffers should appear in the tab line.
 By default, this is set to not filter the buffers.
 
-** Project
-
----
-*** New command 'project-root-find-file'.
-It is equivalent to running 'project-any-command' with 'find-file'.
-
----
-*** New command 'project-customize-dirlocals'.
-It is equivalent to running 'project-any-command' with
-'customize-dirlocals'.
-
----
-*** Improved prompt for 'project-switch-project'.
-The prompt now displays the chosen project on which to invoke a command.
-
----
-*** 'project-prompter' values may be called with up to four arguments.
-These allow callers of the value of 'project-prompter' to specify a
-prompt string; prompt the user to choose between a subset of all the
-known projects; disallow returning arbitrary directories; and allow
-returning an empty string.
-See the docstring of 'project-prompter' for a full specification of
-these new optional arguments.
-
----
-*** 'project-current' has a new optional argument, MAYBE-PROMPT.
-If 'project-current' is called with this argument non-nil, then it is
-passed to the 'project-prompter' to use as a prompt string.
-Callers can use this to indicate the reason for which or context in
-which Emacs should ask the user to select a project.
-
----
-*** New command 'project-find-matching-buffer'.
-It can be used when switching between projects with similar file trees
-(such as Git worktrees of the same repository).  It supports being
-invoked standalone or from the 'project-switch-commands' dispatch menu.
-
----
-*** New variable 'project-find-matching-buffer-function'.
-Major modes can set this to major mode-specific functions to control how
-'project-find-matching-buffer' finds matching buffers.
-
-+++
-*** New user option 'project-list-exclude'.
-This user option describes projects that should always be skipped by
-'project-remember-project'.
-
----
-*** New user option 'project-prune-zombie-projects'.
-This user option controls the automatic deletion of projects from
-'project-list-file' that cannot be accessed when prompting for a
-project.
-
-The value must be an alist where each element must be in the form:
-
-    (WHEN . PREDICATE)
-
-where WHEN specifies where the deletion will be performed, and PREDICATE
-is a function which takes one argument, and must return non-nil if the
-project should be removed.
-
----
-*** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.
-This is like 'C-x s', but only for this project's buffers.
-
-*** 'project-remember-project' can now be called interactively.
-
----
-*** 'project-shell' and 'project-eshell' support numeric prefix buffer naming.
-They now accept numeric prefix arguments to select or create numbered
-shell sessions.  For example, 'C-2 C-x p s' switches to or creates a
-buffer named "*name-of-project-shell<2>*".  By comparison, a plain
-universal argument as in 'C-u C-x p s' always creates a new session.
-
----
-*** 'project-switch-buffer' re-uniquifies buffer names while prompting.
-When 'uniquify-buffer-name-style' is non-nil, 'project-switch-buffer'
-changes the buffer names to only make them unique within the given
-project, during completion.  That makes some items shorter.
-
-*** 'project-switch-buffer' uses 'project-buffer' as completion category.
-The category defaults are the same as for 'buffer' but any user
-customizations would need to be re-added.
-
-+++
-*** 'project-mode-line' can now show project name only for local files.
-If the value of 'project-mode-line' is 'non-remote', project name and
-the Project menu will be shown on the mode line only for projects with
-local files.
-
-*** The "VC-aware" project backend caches the current project and its name.
-The duration for which the values are cached depends on whether it is
-called from 'non-essential' context, and it determined by variables
-'project-vc-cache-timeout' and 'project-vc-non-essential-cache-timeout'.
-
 ** Help
 
 +++
@@ -1041,6 +925,122 @@ This is the inverse of 'M-q' ('fill-paragraph').
 
 
 * Changes in Specialized Modes and Packages in Emacs 31.1
+
+** Project
+
+---
+*** New command 'project-root-find-file'.
+It is equivalent to running 'project-any-command' with 'find-file'.
+
+---
+*** New command 'project-customize-dirlocals'.
+It is equivalent to running 'project-any-command' with
+'customize-dirlocals'.
+
+---
+*** Improved prompt for 'project-switch-project'.
+The prompt now displays the chosen project on which to invoke a command.
+
+---
+*** 'project-prompter' values may be called with up to four arguments.
+These allow callers of the value of 'project-prompter' to specify a
+prompt string; prompt the user to choose between a subset of all the
+known projects; disallow returning arbitrary directories; and allow
+returning an empty string.
+See the docstring of 'project-prompter' for a full specification of
+these new optional arguments.
+
+---
+*** 'project-current' has a new optional argument, MAYBE-PROMPT.
+If 'project-current' is called with this argument non-nil, then it is
+passed to the 'project-prompter' to use as a prompt string.
+Callers can use this to indicate the reason for which or context in
+which Emacs should ask the user to select a project.
+
+---
+*** New command 'project-find-matching-buffer'.
+It can be used when switching between projects with similar file trees
+(such as Git worktrees of the same repository).  It supports being
+invoked standalone or from the 'project-switch-commands' dispatch menu.
+
+---
+*** New variable 'project-find-matching-buffer-function'.
+Major modes can set this to major mode-specific functions to control how
+'project-find-matching-buffer' finds matching buffers.
+
++++
+*** New user option 'project-list-exclude'.
+This user option describes projects that should always be skipped by
+'project-remember-project'.
+
+---
+*** New user option 'project-prune-zombie-projects'.
+This user option controls the automatic deletion of projects from
+'project-list-file' that cannot be accessed when prompting for a
+project.
+
+The value must be an alist where each element must be in the form:
+
+    (WHEN . PREDICATE)
+
+where WHEN specifies where the deletion will be performed, and PREDICATE
+is a function which takes one argument, and must return non-nil if the
+project should be removed.
+
+---
+*** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.
+This is like 'C-x s', but only for this project's buffers.
+
+*** 'project-remember-project' can now be called interactively.
+
+---
+*** 'project-shell' and 'project-eshell' support numeric prefix buffer naming.
+They now accept numeric prefix arguments to select or create numbered
+shell sessions.  For example, 'C-2 C-x p s' switches to or creates a
+buffer named "*name-of-project-shell<2>*".  By comparison, a plain
+universal argument as in 'C-u C-x p s' always creates a new session.
+
+---
+*** 'project-switch-buffer' re-uniquifies buffer names while prompting.
+When 'uniquify-buffer-name-style' is non-nil, 'project-switch-buffer'
+changes the buffer names to only make them unique within the given
+project, during completion.  That makes some items shorter.
+
+*** 'project-switch-buffer' uses 'project-buffer' as completion category.
+The category defaults are the same as for 'buffer' but any user
+customizations would need to be re-added.
+
++++
+*** 'project-mode-line' can now show project name only for local files.
+If the value of 'project-mode-line' is 'non-remote', project name and
+the Project menu will be shown on the mode line only for projects with
+local files.
+
+*** The "VC-aware" project backend caches the current project and its name.
+The duration for which the values are cached depends on whether it is
+called from 'non-essential' context, and it determined by variables
+'project-vc-cache-timeout' and 'project-vc-non-essential-cache-timeout'.
+
+** Network Security Manager (NSM) is now more strict.
+
+*** NSM warns about TLS 1.1 by default.
+It has been deprecated by RFC 8996, published in 2021.
+
+*** NSM warns about DHE and RSA key exchange by default.
+Emacs now warns about ephemeral Diffie-Hellman key exchange, and static
+RSA key exchange, also when 'network-security-level' is customized to
+its default 'medium' value.
+
+** Etags
+
++++
+*** New command-line options for handling unrecognized programming languages.
+The new command-line option '--no-fallback-lang' disables attempts to
+parse as Fortran or C/C++ files whose programming language 'etags' could
+not determine.  This allows to avoid false positives and reduces the time
+required to scan directories with many such files.  Another new option
+'--no-empty-file-entries' disables generation of file entries in tags
+tables for files in which no tags were found.
 
 ** Delete Selection mode
 
