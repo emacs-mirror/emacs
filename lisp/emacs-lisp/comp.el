@@ -612,6 +612,14 @@ In use by the back-end."
                finally return t)
     t))
 
+(defun comp--cu-local-func-c-name-v (&optional ctxt)
+  "Return exported local function C names for CTXT in compilation order."
+  (vconcat
+   (cl-loop
+    for form in (comp-ctxt-top-level-forms (or ctxt comp-ctxt))
+    when (byte-to-native-func-def-p form)
+      collect (byte-to-native-func-def-c-name form))))
+
 (defun comp--function-pure-p (f)
   "Return t if F is pure."
   (or (get f 'pure)
@@ -2936,10 +2944,9 @@ Return t if something was changed."
 ;; - Recursive calls gets optimized into direct calls.
 ;;   Triggered at native-comp-speed >= 2.
 ;; - Intra compilation unit procedure calls gets optimized into direct calls.
-;;   This can be a big win and even allow gcc to inline but does not make
-;;   function in the compilation unit re-definable safely without recompiling
-;;   the full compilation unit.
-;;   For this reason this is triggered only at native-comp-speed == 3.
+;;   At native-comp-speed == 2 named calls use a per-CU relocation table so
+;;   redefinition can still be honored via trampolines.
+;;   At native-comp-speed >= 3 keep the previous raw direct-call behavior.
 
 (defun comp--func-in-unit (func)
   "Given FUNC return the `comp-fun' definition in the current context.
@@ -2987,15 +2994,15 @@ FUNCTION can be a function-name or byte compiled function."
                          (fill-args args maxarg))))
             `(,call-type ,callee ,@args)))
          ;; Intra compilation unit procedure call optimization.
-         ;; Attention speed 3 triggers this for non self calls too!!
          ((and comp-func-callee
                (comp-func-c-name comp-func-callee)
                (or (and (>= (comp-func-speed comp-func) 3)
                         (comp--func-unique-in-cu-p callee))
                    (and (>= (comp-func-speed comp-func) 2)
-                        ;; Anonymous lambdas can't be redefined so are
-                        ;; always safe to optimize.
-                        (byte-code-function-p callee))))
+                        (or (comp--func-unique-in-cu-p callee)
+                            ;; Anonymous lambdas can't be redefined so are
+                            ;; always safe to optimize.
+                            (byte-code-function-p callee)))))
           (let* ((func-args (comp-func-l-args comp-func-callee))
                  (nargs (comp-nargs-p func-args))
                  (call-type (if nargs 'direct-callref 'direct-call))
@@ -3468,6 +3475,18 @@ Prepare every function for final compilation and drive the C back-end."
       (push (gensym "arg") lambda-list))
     (reverse lambda-list)))
 
+(defun comp--function-trampoline-form (function-name function)
+  "Return a trampoline form for FUNCTION-NAME with FUNCTION's ABI."
+  (let ((lambda-list (comp--make-lambda-list-from-subr function)))
+    `(lambda ,lambda-list
+       (let ((f #',function-name))
+         (,(if (memq '&rest lambda-list) #'apply 'funcall)
+          f
+          ,@(cl-loop
+             for arg in lambda-list
+             unless (memq arg '(&optional &rest))
+               collect arg))))))
+
 (defun comp--trampoline-abs-filename (subr-name)
   "Return the absolute filename for a trampoline for SUBR-NAME."
   (cl-loop
@@ -3497,18 +3516,9 @@ Prepare every function for final compilation and drive the C back-end."
 ;;;###autoload
 (defun comp-trampoline-compile (subr-name)
   "Synthesize compile and return a trampoline for SUBR-NAME."
-  (let* ((lambda-list (comp--make-lambda-list-from-subr
-                       (symbol-function subr-name)))
-         ;; The synthesized trampoline must expose the exact same ABI of
-         ;; the primitive we are replacing in the function reloc table.
-         (form `(lambda ,lambda-list
-                  (let ((f #',subr-name))
-                    (,(if (memq '&rest lambda-list) #'apply 'funcall)
-                     f
-                     ,@(cl-loop
-                        for arg in lambda-list
-                        unless (memq arg '(&optional &rest))
-                        collect arg)))))
+  (let* ((form (comp--function-trampoline-form
+                subr-name
+                (symbol-function subr-name)))
          ;; Use speed 1 for compilation speed and not to optimize away
          ;; funcall calls!
          (byte-optimize nil)
@@ -3517,6 +3527,19 @@ Prepare every function for final compilation and drive the C back-end."
     (comp--native-compile
      form nil
      (comp--trampoline-abs-filename subr-name))))
+
+;; Called from comp-run.el
+;;;###autoload
+(defun comp-local-function-trampoline-compile (function-name function)
+  "Synthesize compile and return a trampoline for local FUNCTION-NAME.
+FUNCTION provides the ABI that the trampoline must expose."
+  (let* ((form (comp--function-trampoline-form function-name function))
+         ;; Use speed 1 for compilation speed and not to optimize away
+         ;; funcall calls.
+         (byte-optimize nil)
+         (native-comp-speed 1)
+         (lexical-binding t))
+    (comp--native-compile form)))
 
 
 ;; Some entry point support code.

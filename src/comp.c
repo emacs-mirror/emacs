@@ -480,10 +480,12 @@ load_gccjit_if_necessary (bool mandatory)
 #define DATA_RELOC_EPHEMERAL_SYM "d_reloc_eph"
 
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
+#define LOCAL_FUNC_LINK_TABLE_SYM "local_freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
 #define COMP_UNIT_SYM "comp_unit"
 #define TEXT_DATA_RELOC_SYM "text_data_reloc"
 #define TEXT_DATA_RELOC_EPHEMERAL_SYM "text_data_reloc_eph"
+#define TEXT_LOCAL_FUNC_C_NAMES_SYM "text_local_func_c_names"
 
 #define TEXT_OPTIM_QLY_SYM "text_optim_qly"
 #define TEXT_FDOC_SYM "text_data_fdoc"
@@ -650,6 +652,10 @@ typedef struct {
   gcc_jit_type *func_relocs_ptr_type;
   /* Pointer to this structure local to each function.  */
   gcc_jit_lvalue *func_relocs_local;
+  /* Per compilation unit redirection table for local named functions.  */
+  gcc_jit_lvalue *local_func_relocs;
+  gcc_jit_lvalue *local_func_relocs_local;
+  Lisp_Object local_func_reloc_idx_h; /* c-name -> relocation index.  */
   gcc_jit_function *memcpy;
   Lisp_Object d_default_idx;
   Lisp_Object d_ephemeral_idx;
@@ -947,6 +953,9 @@ emit_comment (const char *str)
 			       str);
 }
 
+static gcc_jit_rvalue *emit_coerce (gcc_jit_type *new_type,
+				    gcc_jit_rvalue *obj);
+
 /*
   Declare an imported function.
   When nargs is MANY (ptrdiff_t nargs, Lisp_Object *args) signature is assumed.
@@ -1013,18 +1022,55 @@ static gcc_jit_rvalue *
 emit_call (Lisp_Object func, gcc_jit_type *ret_type, ptrdiff_t nargs,
 	   gcc_jit_rvalue **args, bool direct)
 {
-  Lisp_Object gcc_func =
-    Fgethash (func,
-	      direct ? comp.exported_funcs_h : comp.imported_funcs_h,
-	      Qnil);
-
-  if (NILP (gcc_func))
-      xsignal2 (Qnative_ice,
-		build_string ("missing function declaration"),
-		func);
-
   if (direct)
     {
+      Lisp_Object local_idx = Qnil;
+      if (comp.func_speed == 2)
+	local_idx = Fgethash (func, comp.local_func_reloc_idx_h, Qnil);
+      if (!NILP (local_idx))
+	{
+	  USE_SAFE_ALLOCA;
+	  gcc_jit_type **types;
+	  SAFE_NALLOCA (types, 1, nargs);
+	  for (ptrdiff_t i = 0; i < nargs; ++i)
+	    types[i] = gcc_jit_rvalue_get_type (args[i]);
+
+	  gcc_jit_type *f_ptr_type =
+	    gcc_jit_type_get_const (
+	      gcc_jit_context_new_function_ptr_type (comp.ctxt,
+						     NULL,
+						     ret_type,
+						     nargs,
+						     types,
+						     0));
+	  gcc_jit_lvalue *f_ptr =
+	    gcc_jit_context_new_array_access (
+	      comp.ctxt,
+	      NULL,
+	      gcc_jit_lvalue_as_rvalue (comp.local_func_relocs_local
+					? comp.local_func_relocs_local
+					: comp.local_func_relocs),
+	      gcc_jit_context_new_rvalue_from_int (comp.ctxt,
+						   comp.ptrdiff_type,
+						   XFIXNUM (local_idx)));
+	  gcc_jit_rvalue *res =
+	    gcc_jit_context_new_call_through_ptr (
+	      comp.ctxt,
+	      NULL,
+	      emit_coerce (f_ptr_type, gcc_jit_lvalue_as_rvalue (f_ptr)),
+	      nargs,
+	      args);
+	  SAFE_FREE ();
+	  emit_comment (format_string ("direct call via local reloc to: %s",
+				       SSDATA (func)));
+	  return res;
+	}
+
+      Lisp_Object gcc_func = Fgethash (func, comp.exported_funcs_h, Qnil);
+      if (NILP (gcc_func))
+	xsignal2 (Qnative_ice,
+		  build_string ("missing function declaration"),
+		  func);
       emit_comment (format_string ("direct call to: %s",
 				   SSDATA (func)));
       return gcc_jit_context_new_call (comp.ctxt,
@@ -1035,6 +1081,11 @@ emit_call (Lisp_Object func, gcc_jit_type *ret_type, ptrdiff_t nargs,
     }
   else
     {
+      Lisp_Object gcc_func = Fgethash (func, comp.imported_funcs_h, Qnil);
+      if (NILP (gcc_func))
+	xsignal2 (Qnative_ice,
+		  build_string ("missing function declaration"),
+		  func);
       /* Inline functions so far don't have a local variable for
 	 function reloc table so we fall back to the global one.  Even
 	 if this is not aesthetic calling into C from open-code is
@@ -2981,6 +3032,14 @@ emit_ctxt_code (void)
   emit_static_object (TEXT_FDOC_SYM,
 		      CALLNI (comp-ctxt-function-docs, Vcomp_ctxt));
 
+  Lisp_Object local_func_c_names
+    = CALLNI (comp--cu-local-func-c-name-v, Vcomp_ctxt);
+  emit_static_object (TEXT_LOCAL_FUNC_C_NAMES_SYM, local_func_c_names);
+  CHECK_VECTOR (local_func_c_names);
+  for (EMACS_INT i = 0; i < ASIZE (local_func_c_names); ++i)
+    Fputhash (AREF (local_func_c_names, i), make_fixnum (i),
+	      comp.local_func_reloc_idx_h);
+
   comp.current_thread_ref =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
@@ -2998,6 +3057,13 @@ emit_ctxt_code (void)
 	GCC_JIT_GLOBAL_EXPORTED,
 	comp.bool_ptr_type,
 	F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM));
+
+  comp.local_func_relocs =
+    gcc_jit_context_new_global (comp.ctxt,
+				NULL,
+				GCC_JIT_GLOBAL_EXPORTED,
+				gcc_jit_type_get_pointer (comp.void_ptr_type),
+				LOCAL_FUNC_LINK_TABLE_SYM);
 
   gcc_jit_context_new_global (
 	comp.ctxt,
@@ -4186,6 +4252,11 @@ compile_function (Lisp_Object func)
 				NULL,
 				comp.func_relocs_ptr_type,
 				"freloc");
+  comp.local_func_relocs_local =
+    gcc_jit_function_new_local (comp.func,
+				NULL,
+				gcc_jit_type_get_pointer (comp.void_ptr_type),
+				"local_freloc");
 
   SAFE_NALLOCA (comp.frame, 1, comp.frame_size);
   if (comp.func_has_non_local || !comp.func_speed)
@@ -4242,6 +4313,10 @@ compile_function (Lisp_Object func)
 				NULL,
 				comp.func_relocs_local,
 				gcc_jit_lvalue_as_rvalue (comp.func_relocs));
+  gcc_jit_block_add_assignment (retrieve_block (Qentry),
+				NULL,
+				comp.local_func_relocs_local,
+				gcc_jit_lvalue_as_rvalue (comp.local_func_relocs));
 
 
   DOHASH (ht, block_name, block)
@@ -4617,8 +4692,9 @@ Return t on success.  */)
   /*
     Always reinitialize this cause old function definitions are garbage
     collected by libgccjit when the ctxt is released.
-  */
+   */
   comp.imported_funcs_h = Fmake_hash_table (0, NULL);
+  comp.local_func_reloc_idx_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   define_memcpy ();
 
@@ -4774,6 +4850,7 @@ DEFUN ("comp--compile-ctxt-to-file0", Fcomp__compile_ctxt_to_file0,
   Lisp_Object ebase_name = ENCODE_FILE (base_name);
 
   comp.func_relocs_local = NULL;
+  comp.local_func_relocs_local = NULL;
 
 #ifdef WINDOWSNT
   ebase_name = ansi_encode_filename (ebase_name);
@@ -5266,22 +5343,47 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	dynlib_sym (handle, F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM);
       Lisp_Object *data_relocs = comp_u->data_relocs;
       void **freloc_link_table = dynlib_sym (handle, FUNC_LINK_TABLE_SYM);
+      void ***local_freloc_link_table
+	= dynlib_sym (handle, LOCAL_FUNC_LINK_TABLE_SYM);
+      Lisp_Object local_func_c_names =
+	load_static_obj (comp_u, TEXT_LOCAL_FUNC_C_NAMES_SYM);
 
       if (!(current_thread_reloc
 	    && f_symbols_with_pos_enabled_reloc
 	    && data_relocs
 	    && data_eph_relocs
 	    && freloc_link_table
+	    && local_freloc_link_table
 	    && top_level_run)
 	  || NILP (Fstring_equal (load_static_obj (comp_u, LINK_TABLE_HASH_SYM),
 				  Vcomp_abi_hash)))
 	xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
+      if (!VECTORP (local_func_c_names))
+	xsignal2 (Qnative_lisp_file_inconsistent, comp_u->file,
+		  build_string ("missing local function relocation vector"));
 
       *current_thread_reloc = &current_thread;
       *f_symbols_with_pos_enabled_reloc = &symbols_with_pos_enabled;
 
       /* Imported functions.  */
       *freloc_link_table = freloc.link_table;
+      ptrdiff_t n_local_frelocs = ASIZE (local_func_c_names);
+      comp_u->local_func_relocs =
+	n_local_frelocs
+	? xnmalloc (n_local_frelocs, sizeof (*comp_u->local_func_relocs))
+	: NULL;
+      *local_freloc_link_table = comp_u->local_func_relocs;
+      for (ptrdiff_t i = 0; i < n_local_frelocs; ++i)
+	{
+	  Lisp_Object c_name = AREF (local_func_c_names, i);
+	  if (!STRINGP (c_name))
+	    xsignal2 (Qnative_lisp_file_inconsistent, comp_u->file,
+		      build_string ("invalid local function relocation name"));
+	  void *func = dynlib_sym (handle, SSDATA (c_name));
+	  if (!func)
+	    xsignal2 (Qnative_lisp_file_inconsistent, comp_u->file, c_name);
+	  comp_u->local_func_relocs[i] = func;
+	}
 
       /* Imported data.  */
       if (!loading_dump)
@@ -5351,6 +5453,8 @@ unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
   if (EQ (this_cu, *saved_cu))
     *saved_cu = Qnil;
   dynlib_close (cu->handle);
+  xfree (cu->local_func_relocs);
+  cu->local_func_relocs = NULL;
 }
 
 Lisp_Object
@@ -5368,6 +5472,70 @@ native_function_doc (Lisp_Object function)
   if (doc < 0)
     return AREF (cu->data_fdoc_v, -doc - 1);
   return make_fixnum (doc);
+}
+
+static ptrdiff_t
+find_comp_unit_local_func_reloc_idx (struct Lisp_Native_Comp_Unit *cu,
+				     const char *c_name)
+{
+  Lisp_Object names = load_static_obj (cu, TEXT_LOCAL_FUNC_C_NAMES_SYM);
+  if (!VECTORP (names))
+    xsignal2 (Qnative_lisp_file_inconsistent, cu->file,
+	      build_string ("missing local function relocation vector"));
+
+  Lisp_Object target = build_string (c_name);
+  ptrdiff_t len = ASIZE (names);
+  for (ptrdiff_t i = 0; i < len; ++i)
+    if (!NILP (Fstring_equal (AREF (names, i), target)))
+      return i;
+
+  return -1;
+}
+
+bool
+native_comp_local_function_p (Lisp_Object function)
+{
+  if (!NATIVE_COMP_FUNCTIONP (function))
+    return false;
+
+  struct Lisp_Native_Comp_Unit *cu =
+    XNATIVE_COMP_UNIT (Fsubr_native_comp_unit (function));
+
+  return (cu->local_func_relocs
+	  && find_comp_unit_local_func_reloc_idx (
+	       cu, XSUBR (function)->native_c_name) >= 0);
+}
+
+DEFUN ("comp--install-local-function-trampoline",
+       Fcomp__install_local_function_trampoline,
+       Scomp__install_local_function_trampoline, 2, 2, 0,
+       doc: /* Install TRAMPOLINE for speed-2 local native-compiled FUNCTION.  */)
+  (Lisp_Object function, Lisp_Object trampoline)
+{
+  CHECK_SUBR (function);
+  CHECK_SUBR (trampoline);
+  CHECK_TYPE (NATIVE_COMP_FUNCTIONP (function), Qnative_comp_function,
+	      function);
+
+  if (will_dump_p ())
+    signal_error ("Trying to advice unexpected native function before dumping",
+		  function);
+
+  struct Lisp_Native_Comp_Unit *cu =
+    XNATIVE_COMP_UNIT (Fsubr_native_comp_unit (function));
+  if (!cu->local_func_relocs)
+    signal_error ("Trying to install trampoline for unloaded compilation unit",
+		  function);
+
+  ptrdiff_t idx = find_comp_unit_local_func_reloc_idx (
+    cu, XSUBR (function)->native_c_name);
+  if (idx < 0)
+    signal_error ("Trying to install trampoline for non existent local native function",
+		  function);
+
+  cu->local_func_relocs[idx] = XSUBR (trampoline)->function.a0;
+  Fputhash (trampoline, Qt, cu->lambda_gc_guard_h);
+  return Qt;
 }
 
 static Lisp_Object
@@ -5697,6 +5865,7 @@ natively compiled one.  */);
   defsubr (&Scomp_native_driver_options_effective_p);
   defsubr (&Scomp_native_compiler_options_effective_p);
   defsubr (&Scomp__install_trampoline);
+  defsubr (&Scomp__install_local_function_trampoline);
   defsubr (&Scomp__init_ctxt);
   defsubr (&Scomp__release_ctxt);
   defsubr (&Scomp__compile_ctxt_to_file0);
@@ -5710,6 +5879,8 @@ natively compiled one.  */);
   comp.exported_funcs_h = Qnil;
   staticpro (&comp.imported_funcs_h);
   comp.imported_funcs_h = Qnil;
+  staticpro (&comp.local_func_reloc_idx_h);
+  comp.local_func_reloc_idx_h = Qnil;
   staticpro (&comp.func_blocks_h);
   staticpro (&comp.emitter_dispatcher);
   comp.emitter_dispatcher = Qnil;
@@ -5759,14 +5930,15 @@ Emacs.  */);
 
   DEFVAR_LISP ("native-comp-enable-subr-trampolines",
 	       Vnative_comp_enable_subr_trampolines,
-    doc: /* If non-nil, enable generation of trampolines for calling primitives.
+    doc: /* If non-nil, enable generation of trampolines for optimized calls.
 Trampolines are needed so that Emacs respects redefinition or advice of
-primitive functions when they are called from native-compiled Lisp code
-at `native-comp-speed' of 2.
+primitive functions, and redefinition of named native-compiled
+functions inside the same compilation unit, when these calls are
+optimized by native compilation at speed 2.
 
 By default, the value is t, and when Emacs sees a redefined or advised
-primitive called from native-compiled Lisp, it generates a trampoline
-for it on-the-fly.
+optimized function called from native-compiled Lisp, it generates a
+trampoline for it on-the-fly.
 
 If the value is a file name (a string), it specifies the directory in
 which to deposit the generated trampolines, overriding the directories
@@ -5775,12 +5947,9 @@ in `native-comp-eln-load-path'.
 When this variable is nil, generation of trampolines is disabled.
 
 Disabling the generation of trampolines, when a trampoline for a redefined
-or advised primitive is not already available from previous compilations,
-means that such redefinition or advice will not have effect when calling
-primitives from native-compiled Lisp code.  That is, calls to primitives
-without existing trampolines from native-compiled Lisp will behave as if
-the primitive was called directly from C, and will ignore its redefinition
-and advice.  */);
+or advised optimized function is not already available, means that such
+redefinition or advice will not have effect when calling that function
+from native-compiled Lisp code.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
     doc: /* Hash table subr-name -> installed trampoline.

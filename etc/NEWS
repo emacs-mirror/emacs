@@ -3885,6 +3885,12 @@ At native compilation speed 2 and above, declared function types are
 used for type propagation, value prediction, and optimization within
 function bodies.
 
+** Native compilation speed 2 now optimizes local calls.
+Named calls between native-compiled functions in the same compilation
+unit can now be optimized at speed 2 while still honoring later
+redefinition through a trampoline.  At speed 3, these calls keep the
+previous direct-call behavior.
+
 ** Nested backquotes are not supported any more in Pcase patterns.
 
 ---

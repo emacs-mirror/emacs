@@ -912,10 +912,24 @@ signal a `cyclic-function-indirection' error.  */)
   register Lisp_Object function = XSYMBOL (symbol)->u.s.function;
 
   if (!NILP (Vnative_comp_enable_subr_trampolines)
-      && SUBRP (function)
-      && !NATIVE_COMP_FUNCTIONP (function)
       && !EQ (definition, Fsymbol_function (symbol)))
-     calln (Qcomp_subr_trampoline_install, symbol);
+    {
+      if (SUBRP (function) && !NATIVE_COMP_FUNCTIONP (function))
+	calln (Qcomp_subr_trampoline_install, symbol);
+      else if (NATIVE_COMP_FUNCTIONP (function))
+	{
+	  if (!EQ (symbol, intern_c_string ("--anonymous-lambda"))
+	      && native_comp_local_function_p (function)
+	      && !(NATIVE_COMP_FUNCTIONP (definition)
+		   && EQ (Fsubr_native_comp_unit (function),
+			  Fsubr_native_comp_unit (definition))))
+	    {
+	      calln (intern_c_string ("require"), intern_c_string ("comp-run"));
+	      calln (intern_c_string ("comp-local-function-trampoline-install"),
+		     symbol, function);
+	    }
+	}
+    }
 #endif
 
   set_symbol_function (symbol, definition);

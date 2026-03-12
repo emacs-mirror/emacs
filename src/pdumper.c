@@ -2960,6 +2960,7 @@ dump_native_comp_unit (struct dump_context *ctx,
   START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
   dump_pseudovector_lisp_fields (ctx, &out->header, &comp_u->header);
   out->handle = NULL;
+  out->local_func_relocs = NULL;
 
   dump_off comp_u_off = finish_dump_pvec (ctx, &out->header);
   if (ctx->flags.dump_object_contents)

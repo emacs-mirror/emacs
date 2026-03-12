@@ -44,6 +44,7 @@ struct Lisp_Native_Comp_Unit
   Lisp_Object data_vec;
   /* STUFFS WE DO NOT DUMP!!  */
   Lisp_Object *data_relocs;
+  void **local_func_relocs;
   bool loaded_once;
   bool load_ongoing;
   dynlib_handle_ptr handle;
@@ -75,6 +76,8 @@ extern Lisp_Object load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u,
 
 extern void unload_comp_unit (struct Lisp_Native_Comp_Unit *);
 
+extern bool native_comp_local_function_p (Lisp_Object function);
+
 extern Lisp_Object native_function_doc (Lisp_Object function);
 
 extern void syms_of_comp (void);
@@ -96,6 +99,13 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 static inline
 void unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
 {}
+
+static inline bool
+native_comp_local_function_p (Lisp_Object function)
+{
+  (void) function;
+  return false;
+}
 
 extern void syms_of_comp (void);
 

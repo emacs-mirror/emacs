@@ -1648,6 +1648,63 @@ folded."
       (or (comp-tests-mentioned-p 'direct-call insn)
           (comp-tests-mentioned-p 'direct-callref insn))))))
 
+(defun comp-tests--unbind-direct-call-functions ()
+  "Clear shared definitions used by the direct-call fixture."
+  (dolist (sym '(comp-tests-direct-call-caller-f
+                 comp-tests-direct-call-callee-f))
+    (when (fboundp sym)
+      (fmakunbound sym))))
+
+(defun comp-tests--run-in-sub-emacs (form)
+  "Run FORM in a fresh batch Emacs and return (STATUS . OUTPUT)."
+  (let* ((default-directory (expand-file-name ".." invocation-directory))
+         (emacs (expand-file-name invocation-name invocation-directory))
+         (buf (generate-new-buffer " *comp-sub-emacs*")))
+    (unwind-protect
+        (cons
+         (call-process emacs nil buf nil
+                       "--batch" "--no-init-file" "--no-site-file"
+                       "--no-site-lisp"
+                       "--eval" "(setq native-comp-eln-load-path (list temporary-file-directory))"
+                       "-L" "test" "-l" "ert"
+                       "-l" "test/src/comp-tests.el"
+                       "--eval" (prin1-to-string form))
+         (with-current-buffer buf
+           (buffer-string)))
+      (kill-buffer buf))))
+
+(defun comp-tests--direct-call-redefinition-form (speed expected-first expected-second)
+  "Return a form checking direct-call redefinition at SPEED.
+The caller should produce EXPECTED-FIRST and EXPECTED-SECOND after
+successive callee redefinitions."
+  `(let* ((native-comp-speed ,speed)
+          (native-comp-eln-load-path (list temporary-file-directory))
+          (source ,(ert-resource-file "comp-test-direct-call.el"))
+          (output (make-temp-file ,(format "comp-test-direct-call-speed%d-" speed)
+                                  nil ".eln")))
+     (comp-tests--unbind-direct-call-functions)
+     (delete-file output)
+     (let ((comp-post-pass-hooks
+            '((comp--final
+               (lambda (_)
+                 (unless (comp-tests-has-direct-call-p
+                          'comp-tests-direct-call-caller-f)
+                   (error "missing direct call optimization")))))))
+       (native-compile source output))
+     (load output)
+     (let ((orig (symbol-function 'comp-tests-direct-call-callee-f)))
+       (unwind-protect
+           (progn
+             (fset 'comp-tests-direct-call-callee-f
+                   (lambda (x) (+ x 100)))
+             (unless (= (comp-tests-direct-call-caller-f 3) ,expected-first)
+               (error "unexpected first result at speed %d" ,speed))
+             (fset 'comp-tests-direct-call-callee-f
+                   (lambda (x) (+ x 200)))
+             (unless (= (comp-tests-direct-call-caller-f 3) ,expected-second)
+               (error "unexpected second result at speed %d" ,speed)))
+         (fset 'comp-tests-direct-call-callee-f orig)))))
+
 (comp-deftest direct-call-with-lambdas ()
   "Check that anonymous lambdas don't prevent direct calls at speed 3.
 See `comp--func-unique-in-cu-p'."
@@ -1657,12 +1714,36 @@ See `comp--func-unique-in-cu-p'."
             (lambda (_)
               (should (comp-tests-has-direct-call-p
                        'comp-tests-direct-call-caller-f)))))))
-    (load (native-compile
-           (ert-resource-file "comp-test-direct-call.el")))
+    (let* ((source (ert-resource-file "comp-test-direct-call.el"))
+           (output (make-temp-file "comp-test-direct-call-lambdas-" nil ".eln")))
+      (comp-tests--unbind-direct-call-functions)
+      (delete-file output)
+      (native-compile source output)
+      (load output))
     (declare-function comp-tests-direct-call-caller-f nil)
     (should (native-comp-function-p
              (symbol-function 'comp-tests-direct-call-caller-f)))
     (should (= (comp-tests-direct-call-caller-f 3) 4))))
+
+(comp-deftest anonymous-lambda-recompile ()
+  "Check that recompiling standalone lambdas does not recurse via `fset'."
+  (let ((f1 (native-compile '(lambda () 1)))
+        (f2 (native-compile '(lambda () 2))))
+    (should (native-comp-function-p f1))
+    (should (native-comp-function-p f2))
+    (should (= (funcall f1) 1))
+    (should (= (funcall f2) 2))))
+
+(comp-deftest direct-call-redefinition-speed-split ()
+  "Check speed-2 and speed-3 redefinition behavior for named direct calls."
+  (dolist (case '((2 103 203) (3 4 4)))
+    (pcase-let* ((`(,speed ,expected-first ,expected-second) case)
+                 (`(,status . ,output)
+                  (comp-tests--run-in-sub-emacs
+                   (comp-tests--direct-call-redefinition-form
+                    speed expected-first expected-second))))
+      (ert-info ((format "speed %d subprocess output:\n%s" speed output))
+        (should (zerop status))))))
 
 (comp-deftest direct-call-with-duplicate-names ()
   "Check that duplicate names only block their own direct calls.

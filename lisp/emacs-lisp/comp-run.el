@@ -152,6 +152,7 @@ if `confirm-kill-processes' is non-nil."
 (defvar native-comp-enable-subr-trampolines)
 
 (declare-function comp--install-trampoline "comp.c")
+(declare-function comp--install-local-function-trampoline "comp.c")
 (declare-function comp-el-to-eln-filename "comp.c")
 (declare-function native-elisp-load "comp.c")
 
@@ -407,6 +408,7 @@ Return the trampoline if found or nil otherwise."
      do (cl-return (native-elisp-load filename))))
 
 (declare-function comp-trampoline-compile "comp")
+(declare-function comp-local-function-trampoline-compile "comp")
 ;;;###autoload
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
@@ -422,6 +424,33 @@ Return the trampoline if found or nil otherwise."
       (when-let* ((trampoline (or (comp--trampoline-search subr-name)
                                   (comp-trampoline-compile subr-name))))
         (comp--install-trampoline subr-name trampoline)))))
+
+;;;###autoload
+(defun comp-local-function-trampoline--install-now (function-name function)
+  "Install a trampoline immediately for local FUNCTION-NAME."
+  (when-let* ((trampoline (comp-local-function-trampoline-compile
+                           function-name function)))
+    (comp--install-local-function-trampoline function trampoline)))
+
+;;;###autoload
+(defun comp-local-function-trampoline-install (function-name function)
+  "Make local FUNCTION-NAME effectively redefinable for speed-2 native callers."
+  (unless (null native-comp-enable-subr-trampolines)
+    (cl-assert (native-comp-function-p function))
+    (if (and load-in-progress (stringp load-file-name))
+        (let* ((loaded-file load-file-name)
+               (installer nil))
+          ;; Avoid native-compiling the trampoline while the current file is
+          ;; still being loaded, otherwise eager macro-expansion can recurse
+          ;; back into that load.
+          (setq installer
+                (lambda (file)
+                  (when (equal file loaded-file)
+                    (remove-hook 'after-load-functions installer)
+                    (comp-local-function-trampoline--install-now
+                     function-name function))))
+          (add-hook 'after-load-functions installer 'append))
+      (comp-local-function-trampoline--install-now function-name function))))
 
 ;;;###autoload
 (defun native--compile-async (files &optional recursively load selector)
