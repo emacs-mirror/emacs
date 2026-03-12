@@ -2012,26 +2012,6 @@ fix_image (mps_ss_t ss, struct image *i)
 }
 
 static mps_res_t
-fix_image_cache (mps_ss_t ss, struct image_cache *c)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-#ifdef HAVE_WINDOW_SYSTEM
-    if (c->images)
-      for (ptrdiff_t i = 0; i < c->used; ++i)
-	IGC_FIX12_RAW (ss, &c->images[i]);
-
-    if (c->buckets)
-      for (ptrdiff_t i = 0; i < IMAGE_CACHE_BUCKETS_SIZE; ++i)
-	if (c->buckets[i])
-	  IGC_FIX12_RAW (ss, &c->buckets[i]);
-#endif
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_face (mps_ss_t ss, struct face *f)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2556,7 +2536,8 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 	break;
 
       case IGC_OBJ_IMAGE_CACHE:
-	IGC_FIX_CALL_FN (ss, struct image_cache, addr, fix_image_cache);
+	/* FIXME/igc: image caches temporarily changed to use ambiguous
+	   references.  Going back to exact refs would be best.  */
 	break;
 
       case IGC_OBJ_FACE:
