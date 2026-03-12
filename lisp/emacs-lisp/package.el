@@ -4841,7 +4841,7 @@ will be signaled in that case."
          (extras (package-desc-extras pkg-desc))
          (maint (ensure-list
                  (or (and-let* ((list (cdr (assoc :maintainer extras))))
-                       (if (consp (cdr list)) list (list list)))
+                       (if (consp (car-safe list)) list (list list)))
                      (cdr (assoc :maintainers extras))
                      ;; If no maintainers are listed, contact authors
                      ;; instead (bug#80478)
