@@ -2144,17 +2144,18 @@ Also see the `project-kill-buffers-display-buffer-list' variable."
                    (get-buffer-create "*Buffer List*")
                    `(display-buffer--maybe-at-bottom
                      (dedicated . t)
-                     (window-height . (fit-window-to-buffer))
+                     ;; Rely on `temp-buffer-resize-mode' instead?
+                     (window-height . fit-window-to-buffer)
                      (preserve-size . (nil . t))
                      (body-function
-                      . ,#'(lambda (_window)
-                             (list-buffers-noselect nil bufs))))
-                   #'(lambda (window _value)
-                       (with-selected-window window
-                         (unwind-protect
-                             (funcall query-user)
-                           (when (window-live-p window)
-                             (quit-restore-window window 'kill))))))
+                      . ,(lambda (_window)
+                           (list-buffers-noselect nil bufs))))
+                   (lambda (window _value)
+                     (with-selected-window window
+                       (unwind-protect
+                           (funcall query-user)
+                         (when (window-live-p window)
+                           (quit-restore-window window 'kill))))))
              (mapc #'kill-buffer bufs)))
           ((funcall query-user)
            (mapc #'kill-buffer bufs)))))
