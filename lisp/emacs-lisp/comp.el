@@ -606,12 +606,9 @@ In use by the back-end."
 (defun comp--func-unique-in-cu-p (func)
   "Return t if FUNC is known to be unique in the current compilation unit."
   (if (symbolp func)
-      (cl-loop with h = (make-hash-table :test #'eq)
-               for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
-               for name = (comp-func-name f)
-               when (gethash name h)
-                 return nil
-               do (puthash name t h)
+      (cl-loop for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
+               count (eq func (comp-func-name f)) into n
+               when (> n 1) return nil
                finally return t)
     t))
 

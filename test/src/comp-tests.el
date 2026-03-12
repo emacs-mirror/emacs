@@ -1612,4 +1612,50 @@ folded."
           t)
     (native-compile #'comp-tests-type-branch-optim-1-f)))
 
+(defun comp-tests-has-direct-call-p (func-name)
+  "Return non-nil if FUNC-NAME contains a direct call instruction."
+  (cl-some
+   #'identity
+   (comp-tests-map-checker
+    func-name
+    (lambda (insn)
+      (or (comp-tests-mentioned-p 'direct-call insn)
+          (comp-tests-mentioned-p 'direct-callref insn))))))
+
+(comp-deftest direct-call-with-lambdas ()
+  "Check that anonymous lambdas don't prevent direct calls at speed 3.
+See `comp--func-unique-in-cu-p'."
+  (let ((native-comp-speed 3)
+        (comp-post-pass-hooks
+         '((comp--final
+            (lambda (_)
+              (should (comp-tests-has-direct-call-p
+                       'comp-tests-direct-call-caller-f)))))))
+    (load (native-compile
+           (ert-resource-file "comp-test-direct-call.el")))
+    (declare-function comp-tests-direct-call-caller-f nil)
+    (should (native-comp-function-p
+             (symbol-function 'comp-tests-direct-call-caller-f)))
+    (should (= (comp-tests-direct-call-caller-f 3) 4))))
+
+(comp-deftest direct-call-with-duplicate-names ()
+  "Check that duplicate names only block their own direct calls.
+See `comp--func-unique-in-cu-p'."
+  (let ((native-comp-speed 3)
+        (comp-post-pass-hooks
+         '((comp--final
+            (lambda (_)
+              ;; Call to unique callee: SHOULD use direct call.
+              (should (comp-tests-has-direct-call-p
+                       'comp-tests-calls-unique-f))
+              ;; Call to ambiguous callee: should NOT.
+              (should-not (comp-tests-has-direct-call-p
+                           'comp-tests-calls-dup-f)))))))
+    (load (native-compile
+           (ert-resource-file "comp-test-direct-call-dup.el")))
+    (declare-function comp-tests-calls-unique-f nil)
+    (should (native-comp-function-p
+             (symbol-function 'comp-tests-calls-unique-f)))
+    (should (= (comp-tests-calls-unique-f 3) 6))))
+
 ;;; comp-tests.el ends here
