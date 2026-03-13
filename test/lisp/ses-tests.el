@@ -304,6 +304,25 @@ cell has to be rewritten to data area."
       (should (equal (ses-cell-references 1 1) '(B3)))))
   (ses-tests-check-no-border-effect))
 
+(ert-deftest ses-tests-read-column-printer ()
+  "Test fix of bug#80610.
+The test fails because of bug#xxxx."
+  :expected-result :failed
+  (let ((ses-initial-size '(4 . 3))
+        (ses-after-entry-functions nil))
+    (ert-with-test-buffer (:selected t)
+      (ses-mode)
+      (ses-jump 'A3)
+      (ert-play-keys "M-x ses-read-column-printer RET \"[3]%.7g\" RET")
+      (ses-jump 'A2)
+      (ses-read-column-printer 1 "[2]%.7g")
+      (ses-jump 'A1)
+      (ert-play-keys "M-x ses-read-column-printer RET \"[1]%.7g\" RET")
+      (should (string= (ses-col-printer 0) "[1]%.7g"))
+      (should (string= (ses-col-printer 1) "[2]%.7g"))
+      (should (string= (ses-col-printer 2) "[3]%.7g"))
+      )))
+
 (provide 'ses-tests)
 
 ;;; ses-tests.el ends here
