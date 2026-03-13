@@ -263,6 +263,27 @@ cell has to be rewritten to data area."
       (ses-mode)
       (should (equal (ses-cell-references 1 1) '(B3))))))
 
+(ert-deftest ses-read-column-printer ()
+             "Test fix of bug#xxx."
+  (let ((ses-initial-size '(4 . 3))
+        (ses-after-entry-functions nil))
+    (with-temp-buffer
+      (ses-mode)
+      (ses-jump 'A3)
+      (let ((last-kbd-macro
+             (key-parse "M-x s e s - r e a d - c o l u m n - p r i n t e r RET [ 3 ] \" % . 7 g \" RET")))
+        (kmacro-end-and-call-macro nil))
+      (ses-jump 'A2)
+      (ses-read-column-printer 1 "[2]%.7g")
+      (ses-jump 'A1)
+      (let ((last-kbd-macro
+             (key-parse "M-x s e s - r e a d - c o l u m n - p r i n t e r RET [ 1 ] \" % . 7 g \" RET")))
+        (kmacro-end-and-call-macro nil))
+      (should (string= (ses-col-printer 2) "[3]%.7g"))
+      (should (string= (ses-col-printer 1) "[2]%.7g"))
+      (should (string= (ses-col-printer 0) "[1]%.7g"))
+      )))
+
 (provide 'ses-tests)
 
 ;;; ses-tests.el ends here
