@@ -125,10 +125,6 @@
 (load "subr")
 (load "keymap")
 
-;; Do it after subr, since both after-load-functions and add-hook are
-;; implemented in subr.el.
-(add-hook 'after-load-functions (lambda (_) (garbage-collect)))
-
 (load "version")
 
 (load "widget")
@@ -497,8 +493,6 @@ lost after dumping")))
 (setq custom-current-group-alist nil)
 
 (set-buffer-modified-p nil)
-
-(remove-hook 'after-load-functions (lambda (_) (garbage-collect)))
 
 (if (boundp 'load--prefer-newer)
     (progn
