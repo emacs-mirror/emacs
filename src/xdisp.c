@@ -27561,6 +27561,10 @@ display_menu_bar (struct window *w)
     return;
 #endif /* HAVE_HAIKU */
 
+  /* Don't do all this if the frame's menu bar is not yet set.  */
+  if (NILP (FRAME_MENU_BAR_ITEMS (f)))
+    return;
+
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   eassert (!FRAME_WINDOW_P (f));
   init_iterator (&it, w, -1, -1, f->desired_matrix->rows, MENU_FACE_ID);
