@@ -1855,6 +1855,42 @@ scan_hash_table_user_test (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
+#ifdef USE_GTK
+/* scan_xg_pending_quit_event assumes that the fields of the input_event
+   are in a consistent state.  This is a relatively safe assumption
+   because:
+
+   1. Unprotected roots are scanned only as part of a collection that is
+   triggered by an allocation requests and not by memory barrier hits.
+
+   2. The fields of xg_pending_quit_event are all written together in
+   kbd_buffer_store_buffered_event with "*hold_quit = event->ie".
+
+   If we must assume that the fields are inconsistent, then we would
+   need to scan ambiguously.  */
+static mps_res_t
+scan_xg_pending_quit_event (mps_ss_t ss, void *start, void *end,
+			    void *closure)
+{
+  struct input_event *e = start;
+  igc_assert (e + 1 == end);
+  if (e->kind != NO_EVENT)
+    {
+      igc_assert (e->kind == ASCII_KEYSTROKE_EVENT);
+      MPS_SCAN_BEGIN (ss)
+      {
+	IGC_FIX12_OBJ (ss, &e->x);
+	IGC_FIX12_OBJ (ss, &e->y);
+	IGC_FIX12_OBJ (ss, &e->frame_or_window);
+	IGC_FIX12_OBJ (ss, &e->arg);
+	IGC_FIX12_OBJ (ss, &e->device);
+      }
+      MPS_SCAN_END (ss);
+    }
+  return MPS_RES_OK;
+}
+#endif
+
 /***********************************************************************
 			 Default pad, fwd, ...
  ***********************************************************************/
@@ -3431,6 +3467,16 @@ root_create_kbd_buffer (struct igc *gc)
 	       mps_rank_ambig (), scan_kbd_buffer_ambig, NULL,
 	       true, "kbd-buffer");
 }
+
+#ifdef USE_GTK
+static void
+root_create_xg_pending_quit_event (struct igc *gc)
+{
+  root_create (gc, &xg_pending_quit_event, &xg_pending_quit_event + 1,
+	       mps_rank_exact (), scan_xg_pending_quit_event, NULL,
+	       false, "xg_pending_quit_event");
+}
+#endif
 
 
 /***********************************************************************
@@ -5851,6 +5897,9 @@ make_igc (void)
   root_create_exact_ptr (gc, &current_thread);
   root_create_exact_ptr (gc, &all_threads);
   root_create_kbd_buffer (gc);
+#ifdef USE_GTK
+  root_create_xg_pending_quit_event (gc);
+#endif
 
   enable_messages (gc, true);
   return gc;
