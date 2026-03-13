@@ -604,10 +604,6 @@ times is should insert newlines (and indent).
 
 ** New command 'make-empty-file'.
 
-** New variable 'x-wait-for-event-timeout'.
-This controls how long Emacs will wait for updates to the graphical
-state to take effect (making a frame visible, for example).
-
 ** New user option 'electric-quote-replace-double'.
 This option controls whether '"' is replaced in 'electric-quote-mode',
 in addition to other quote characters.  If non-nil, ASCII double-quote
