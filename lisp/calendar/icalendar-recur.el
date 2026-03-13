@@ -79,7 +79,7 @@
 (require 'cal-dst)
 (require 'simple)
 (require 'seq)
-(eval-when-compile '(require 'icalendar-macs))
+(eval-when-compile (require 'icalendar-macs))
 
 
 ;; Recurrence Intervals
@@ -1246,8 +1246,7 @@ retrieved on subsequent calls with the same arguments."
                         (rdates
                          (mapcar #'ical:ast-node-value
                                  (apply #'append
-                                        (mapcar #'ical:ast-node-value
-                                                rdate-nodes))))
+                                  (mapcar #'ical:ast-node-value rdate-nodes))))
                         (interval-rdates
                          (seq-filter
                           (lambda (rec)
@@ -1256,7 +1255,7 @@ retrieved on subsequent calls with the same arguments."
                             ;; for handling ical:period values
                             (unless (cl-typep rec 'ical:period)
                               (and (ical:date/time<= low rec)
-                                   (ical:date/time< high rec))))
+                                   (ical:date/time< rec high))))
                           rdates))
                         (included-recs (append until-recs interval-rdates))
                         ;; Exclude any values from the EXDATE property;
@@ -1264,7 +1263,7 @@ retrieved on subsequent calls with the same arguments."
                         ;; in this interval:
                         (exdates
                          (mapcar #'ical:ast-node-value
-                                 (append
+                                 (apply #'append
                                   (mapcar #'ical:ast-node-value exdate-nodes))))
                         (all-recs
                          (if exdates

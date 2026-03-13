@@ -4,6 +4,7 @@
 @c smallbook
 @c [title]
 @settitle GNU Emacs Calc Manual
+@documentlanguage en
 @include docstyle.texi
 @setchapternewpage odd
 @documentencoding UTF-8

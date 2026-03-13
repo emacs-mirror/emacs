@@ -132,15 +132,10 @@ Driven by the variable `calendar-date-display-form'."
 If MONTH, DAY (Julian) is visible, the value returned is corresponding
 Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
-  (let ((gdate (calendar-nongregorian-visible-p
+  (let ((dates (calendar-nongregorian-date-visible-p
                 month day 'calendar-julian-to-absolute
-                'calendar-julian-from-absolute
-                ;; In the Gregorian case, we'd use the lower year when
-                ;; month >= 11. In the Julian case, there is an offset
-                ;; of two weeks (ie 1 Nov Greg = 19 Oct Julian). So we
-                ;; use month >= 10, since it can't cause any problems.
-                (lambda (m) (< m 10)))))
-    (if gdate (list (list gdate string)))))
+                'calendar-julian-from-absolute)))
+    (mapcar (lambda (d) (list d string)) dates)))
 
 ;;;###cal-autoload
 (defun calendar-astro-to-absolute (d)

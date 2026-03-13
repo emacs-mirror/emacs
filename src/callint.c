@@ -244,7 +244,8 @@ usage: (funcall-interactively FUNCTION &rest ARGUMENTS)  */)
      (ptrdiff_t nargs, Lisp_Object *args)
 {
   specpdl_ref speccount = SPECPDL_INDEX ();
-  temporarily_switch_to_single_kboard (NULL);
+  if (!multiple_terminals_merge_keyboards)
+    temporarily_switch_to_single_kboard (NULL);
 
   /* Nothing special to do here, all the work is inside
      `called-interactively-p'.  Which will look for us as a marker in the

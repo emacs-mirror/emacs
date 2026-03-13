@@ -1013,8 +1013,6 @@ Show wall-clock time elapsed during execution of COMMAND.")
     ((string-match "[^[:blank:]]" string) string)
     (nil)))
 
-(autoload 'diff-no-select "diff")
-
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."
   (let ((orig-args (eshell-stringify-list (flatten-tree args))))

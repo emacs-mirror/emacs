@@ -1446,17 +1446,12 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
                           (regexp-quote diary-nonmarking-symbol)
                           sexp-mark))
          (file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
-         m y first-date last-date date mark file-glob-attrs
+         first-date last-date date mark file-glob-attrs
          sexp-start sexp entry entry-start)
     (with-current-buffer (calendar-get-buffer)
-      (setq m displayed-month
-            y displayed-year))
-    (calendar-increment-month m y -1)
-    (setq first-date (calendar-absolute-from-gregorian (list m 1 y)))
-    (calendar-increment-month m y 2)
-    (setq last-date
-          (calendar-absolute-from-gregorian
-           (list m (calendar-last-day-of-month m y) y)))
+      (let ((range (calendar-get-date-range t)))
+        (setq first-date (calendar-absolute-from-gregorian (car range))
+              last-date (calendar-absolute-from-gregorian (cdr range)))))
     (goto-char (point-min))
     (while (re-search-forward s-entry nil t)
       (setq diary-marking-entry-flag (char-equal (preceding-char) ?\())
@@ -1501,18 +1496,11 @@ See also `diary-include-other-diary-files'."
 0 means all Sundays, 1 means all Mondays, and so on.
 Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
   (with-current-buffer (calendar-get-buffer)
-    (let ((prev-month displayed-month)
-          (prev-year displayed-year)
-          (succ-month displayed-month)
-          (succ-year displayed-year)
-          (last-day)
-          (day))
-      (calendar-increment-month succ-month succ-year 1)
-      (calendar-increment-month prev-month prev-year -1)
-      (setq day (calendar-absolute-from-gregorian
-                 (calendar-nth-named-day 1 dayname prev-month prev-year))
-            last-day (calendar-absolute-from-gregorian
-                      (calendar-nth-named-day -1 dayname succ-month succ-year)))
+    (pcase-let* ((`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range))
+                 (day (calendar-absolute-from-gregorian
+                       (calendar-nth-named-day 1 dayname m1 y1)))
+                 (last-day (calendar-absolute-from-gregorian
+                            (calendar-nth-named-day -1 dayname m2 y2))))
       (while (<= day last-day)
         (calendar-mark-visible-date (calendar-gregorian-from-absolute day)
                                     color)
@@ -1536,10 +1524,8 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `calendar-mark-visible-date' as MARK."
   (with-current-buffer (calendar-get-buffer)
-    (let ((m displayed-month)
-          (y displayed-year))
-      (calendar-increment-month m y -1)
-      (dotimes (_ 3)
+    (pcase-let ((`(,m ,y ,_ ,_) (calendar-get-month-range)))
+      (dotimes (_ calendar-total-months)
         (calendar-mark-month m y month day year color)
         (calendar-increment-month m y 1)))))
 
@@ -1551,15 +1537,9 @@ Optional argument COLOR is passed to `calendar-mark-visible-date' as MARK."
   ;; Not one of the simple cases--check all visible dates for match.
   ;; Actually, the following code takes care of ALL of the cases, but
   ;; it's much too slow to be used for the simple (common) cases.
-  (let* ((m displayed-month)
-         (y displayed-year)
-         (first-date (progn
-                       (calendar-increment-month m y -1)
-                       (calendar-absolute-from-gregorian (list m 1 y))))
-         (last-date (progn
-                      (calendar-increment-month m y 2)
-                      (calendar-absolute-from-gregorian
-                       (list m (calendar-last-day-of-month m y) y))))
+  (let* ((range (calendar-get-date-range t))
+         (first-date (calendar-absolute-from-gregorian (car range)))
+         (last-date (calendar-absolute-from-gregorian (cdr range)))
          (date (1- first-date))
          local-date)
     (while (<= (setq date (1+ date)) last-date)
@@ -1587,20 +1567,9 @@ COLOR is passed to `calendar-mark-visible-date' as MARK."
                          (funcall toabs (list month day year)))))
               (if (calendar-date-is-visible-p date)
                   (calendar-mark-visible-date date color)))
-          ;; Month and day in any year--this taken from the holiday stuff.
-          (let* ((i-date (funcall fromabs
-                                  (calendar-absolute-from-gregorian
-                                   (list displayed-month 15 displayed-year))))
-                 (m (calendar-extract-month i-date))
-                 (y (calendar-extract-year i-date))
-                 date)
-            (unless (< m 1)             ; calendar doesn't apply
-              (calendar-increment-month m y (- 10 month))
-              (and (> m 7)              ; date might be visible
-                   (calendar-date-is-visible-p
-                    (setq date (calendar-gregorian-from-absolute
-                                (funcall toabs (list month day y)))))
-                   (calendar-mark-visible-date date color)))))
+          (dolist (date (calendar-nongregorian-date-visible-p
+                         month day toabs fromabs))
+            (calendar-mark-visible-date date color)))
       (calendar-mark-complex month day year fromabs color))))
 
 

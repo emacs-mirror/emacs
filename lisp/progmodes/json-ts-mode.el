@@ -46,7 +46,9 @@
         :commit "4d770d31f732d50d3ec373865822fbe659e47c75")
  t)
 
-(defcustom json-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'json-ts-mode-indent-offset
+  'json-ts-indent-offset "31")
+(defcustom json-ts-indent-offset 2
   "Number of spaces for each indentation step in `json-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -80,8 +82,8 @@
      ((node-is "}") parent-bol 0)
      ((node-is ")") parent-bol 0)
      ((node-is "]") parent-bol 0)
-     ((parent-is "object") parent-bol json-ts-mode-indent-offset)
-     ((parent-is "array") parent-bol json-ts-mode-indent-offset))))
+     ((parent-is "object") parent-bol json-ts-indent-offset)
+     ((parent-is "array") parent-bol json-ts-indent-offset))))
 
 (defvar json-ts-mode--font-lock-settings
   (treesit-font-lock-rules

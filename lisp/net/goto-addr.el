@@ -169,8 +169,11 @@ and `goto-address-fontify-p'."
 	      (< (- (or end (point-max)) (point))
                  goto-address-fontify-maximum-size))
       (while (re-search-forward goto-address-url-regexp end t)
-	(let* ((s (match-beginning 0))
-	       (e (match-end 0))
+	(let* ((bounds (save-excursion
+			 (goto-char (match-beginning 0))
+			 (bounds-of-thing-at-point 'url)))
+	       (s (car bounds))
+	       (e (cdr bounds))
 	       this-overlay)
 	  (when (or (not goto-address-prog-mode)
 		    ;; This tests for both comment and string

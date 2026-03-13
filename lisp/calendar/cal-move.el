@@ -101,9 +101,21 @@ Returns the list (month day year) giving the cursor position."
   (interactive)
   (let ((today (calendar-current-date))) ; the date might have changed
     (if (not (calendar-date-is-visible-p today))
-        (calendar-generate-window)
-      (calendar-cursor-to-visible-date today)))
+        (calendar-generate-window))
+    (calendar-cursor-to-visible-date today))
   (run-hooks 'calendar-move-hook))
+
+(defun calendar--show-month-at-edge (month year arg)
+  "Regenerate the calendar with MONTH, YEAR at the left or right edge.
+This function is mainly used when MONTH, YEAR is invisible.  The new
+month is placed at the right edge if ARG is positive, and the left edge
+otherwise."
+  (pcase-let* ((`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range))
+               (offset (if (> arg 0)
+                           (calendar-interval m2 y2 month year)
+                         (calendar-interval m1 y1 month year))))
+    (calendar-increment-month m1 y1 (1+ offset))
+    (calendar-generate-window m1 y1)))
 
 ;;;###cal-autoload
 (defun calendar-forward-month (arg)
@@ -122,7 +134,7 @@ Movement is backward if ARG is negative."
          ;; Put the new month on the screen, if needed, and go to the new date.
          (new-cursor-date (list month day year)))
     (if (not (calendar-date-is-visible-p new-cursor-date))
-        (calendar-other-month month year))
+        (calendar--show-month-at-edge month year arg))
     (calendar-cursor-to-visible-date new-cursor-date))
   (run-hooks 'calendar-move-hook))
 
@@ -161,17 +173,21 @@ EVENT is an event like `last-nonmenu-event'."
       (set-buffer (calendar-event-buffer event)))
     (calendar-cursor-to-nearest-date)
     (unless (zerop arg)
-      (let ((old-date (calendar-cursor-to-date))
-            (today (calendar-current-date))
-            (month displayed-month)
-            (year displayed-year))
+      (let* ((old-date (calendar-cursor-to-date))
+             (today (calendar-current-date))
+             (month displayed-month)
+             (year displayed-year)
+             (offset (calendar-interval month year
+                                        (calendar-extract-month old-date)
+                                        (calendar-extract-year old-date))))
         (calendar-increment-month month year arg)
         (calendar-generate-window month year)
         (calendar-cursor-to-visible-date
          (cond
           ((calendar-date-is-visible-p old-date) old-date)
           ((calendar-date-is-visible-p today) today)
-          (t (list month 1 year))))))
+          (t (calendar-increment-month month year offset)
+             (list month 1 year))))))
     (run-hooks 'calendar-move-hook)))
 
 ;;;###cal-autoload
@@ -185,14 +201,18 @@ EVENT is an event like `last-nonmenu-event'."
   (calendar-scroll-left (- (or arg 1)) event))
 
 ;;;###cal-autoload
-(defun calendar-scroll-left-three-months (arg &optional event)
-  "Scroll the displayed calendar window left by 3*ARG months.
+(defun calendar-scroll-calendar-left (arg &optional event)
+  "Scroll the displayed calendar window left ARG times.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible.
 EVENT is an event like `last-nonmenu-event'."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
-  (calendar-scroll-left (* 3 arg) event))
+  (calendar-scroll-left (* calendar-total-months arg) event))
+
+;;;###cal-autoload
+(define-obsolete-function-alias 'calendar-scroll-left-three-months
+  'calendar-scroll-calendar-left "31.1")
 
 ;; cf scroll-bar-toolkit-scroll
 ;;;###cal-autoload
@@ -207,14 +227,18 @@ EVENT is an event like `last-nonmenu-event'."
            (calendar-scroll-left nil event)))))
 
 ;;;###cal-autoload
-(defun calendar-scroll-right-three-months (arg &optional event)
-  "Scroll the displayed calendar window right by 3*ARG months.
+(defun calendar-scroll-calendar-right (arg &optional event)
+  "Scroll the displayed calendar window right ARG times.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible.
 EVENT is an event like `last-nonmenu-event'."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
-  (calendar-scroll-left (* -3 arg) event))
+  (calendar-scroll-left (* -1 calendar-total-months arg) event))
+
+;;;###cal-autoload
+(define-obsolete-function-alias 'calendar-scroll-right-three-months
+  'calendar-scroll-calendar-right "31.1")
 
 (defvar calendar-recenter-last-op nil
   "Last calendar recenter operation performed.")
@@ -226,28 +250,27 @@ Next invocation puts this month on the leftmost position, and another
 invocation puts this month on the rightmost position.  Subsequent
 invocations reuse the same order in a cyclical manner."
   (interactive)
-  (let ((positions '(center first last))
-        (cursor-month (calendar-extract-month
-                       (calendar-cursor-to-nearest-date))))
+  (pcase-let ((positions '(center first last))
+              (cursor-date (calendar-cursor-to-nearest-date))
+              (`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range)))
     ;; Update global last position upon repeat.
     (setq calendar-recenter-last-op
           (if (eq this-command last-command)
               (car (or (cdr (memq calendar-recenter-last-op positions))
                        positions))
             (car positions)))
-    ;; Like most functions in calendar, a span of three displayed months
-    ;; is implied here.
     (cond ((eq calendar-recenter-last-op 'center)
-           (cond ((= cursor-month (1- displayed-month))
-                  (calendar-scroll-right))
-                 ((= cursor-month (1+ displayed-month))
-                  (calendar-scroll-left))))
+           (calendar-increment-month
+            m1 y1 (/ (1- calendar-total-months) 2)))
           ;; Other sub-cases should not happen as we should be centered
           ;; from here.
-          ((eq calendar-recenter-last-op 'first)
-           (calendar-scroll-left))
+          ((eq calendar-recenter-last-op 'first))
           ((eq calendar-recenter-last-op 'last)
-           (calendar-scroll-right 2)))))
+           (setq m1 m2 y1 y2)))
+    (calendar-scroll-left
+     (calendar-interval m1 y1
+                        (calendar-extract-month cursor-date)
+                        (calendar-extract-year cursor-date)))))
 
 ;;;###cal-autoload
 (defun calendar-forward-day (arg)
@@ -262,15 +285,13 @@ Moves backward if ARG is negative."
            (new-cursor-date
             (calendar-gregorian-from-absolute
              (+ (calendar-absolute-from-gregorian cursor-date) arg)))
-           (new-display-month (calendar-extract-month new-cursor-date))
-           (new-display-year (calendar-extract-year new-cursor-date)))
+           (month (calendar-extract-month new-cursor-date))
+           (year (calendar-extract-year new-cursor-date)))
       ;; Put the new month on the screen, if needed.
       (unless (calendar-date-is-visible-p new-cursor-date)
-        ;; The next line gives smoother scrolling IMO (one month at a
-        ;; time rather than two).
-        (calendar-increment-month new-display-month new-display-year
-                                  (if (< arg 0) 1 -1))
-        (calendar-other-month new-display-month new-display-year))
+        ;; The next line gives smoother scrolling (i.e. making the new
+        ;; month appear at the edge).
+        (calendar--show-month-at-edge month year arg))
       ;; Go to the new date.
       (calendar-cursor-to-visible-date new-cursor-date)))
   (run-hooks 'calendar-move-hook))
@@ -354,8 +375,8 @@ Moves forward if ARG is negative."
                            (calendar-last-day-of-month month year)
                            year))))
     (if (not (calendar-date-is-visible-p last-day))
-        (calendar-other-month month year)
-      (calendar-cursor-to-visible-date last-day)))
+        (calendar--show-month-at-edge month year arg))
+    (calendar-cursor-to-visible-date last-day))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
@@ -374,8 +395,9 @@ Moves forward if ARG is negative."
       (if (and (= arg 1)
                (calendar-date-is-visible-p jan-first))
           (calendar-cursor-to-visible-date jan-first)
-        (calendar-other-month 1 (- year (1- arg)))
-        (calendar-cursor-to-visible-date (list 1 1 displayed-year)))))
+        (setq year (- year (1- arg)))
+        (calendar--show-month-at-edge 1 year (- arg))
+        (calendar-cursor-to-visible-date (list 1 1 year)))))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
@@ -394,8 +416,9 @@ Moves forward if ARG is negative."
       (if (and (= arg 1)
                (calendar-date-is-visible-p dec-31))
           (calendar-cursor-to-visible-date dec-31)
-        (calendar-other-month 12 (+ year (1- arg)))
-        (calendar-cursor-to-visible-date (list 12 31 displayed-year)))))
+        (setq year (+ year (1- arg)))
+        (calendar--show-month-at-edge 12 year arg)
+        (calendar-cursor-to-visible-date (list 12 31 year)))))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
@@ -432,6 +455,53 @@ Interactively, prompt for YEAR and DAY number."
      (list year day)))
   (calendar-goto-date (calendar-date-from-day-of-year year day))
   (or noecho (calendar-print-day-of-year)))
+
+;;;###cal-autoload
+(defun calendar-show-more-months (&optional arg)
+  "Show ARG more months on the right in the calendar.
+The calendar shows at most 12 months and at least 3 months."
+  (interactive "p" calendar-mode)
+  (cond
+   ((= arg 0) nil)
+   ((> arg 0)
+    (if (>= calendar-total-months 12)
+        (error "The calendar shows at most 12 months."))
+    (let ((avail (floor (/ (- (window-body-width) calendar-right-margin)
+                           (+ calendar-month-width
+                              calendar-intermonth-spacing)))))
+      (if (< avail 1)
+          (message "No space left to display more months.")
+        (incf calendar-total-months (min avail arg))
+        (calendar-recompute-layout-variables)
+        (calendar-redraw))))
+   (t
+    (if (<= calendar-total-months 3)
+        (error "The calendar shows at least 3 months."))
+    (calendar-cursor-to-nearest-date)
+    (let ((cursor-date (calendar-cursor-to-date t)))
+      (setq calendar-total-months (max 3 (+ calendar-total-months arg)))
+      (calendar-recompute-layout-variables)
+      (pcase-let* ((`(,m1 ,y1 ,_ ,_) (calendar-get-month-range))
+                   (offset (- (calendar-interval
+                               m1 y1
+                               (calendar-extract-month cursor-date)
+                               (calendar-extract-year cursor-date))
+                              calendar-total-months)))
+        (if (< offset 0)
+            (calendar-redraw)
+          (calendar-increment-month m1 y1 (+ 2 offset))
+          (calendar-generate-window m1 y1)
+          (calendar-cursor-to-visible-date cursor-date)
+          (calendar-update-mode-line)))))))
+
+;;;###cal-autoload
+(defun calendar-show-fewer-months (&optional arg)
+  "Show ARG fewer months on the right in the calendar.
+If the date corresponding to current cursor position is beyond the new
+calendar range, scroll the calendar left so that the date remains in the
+view."
+  (interactive "p" calendar-mode)
+  (calendar-show-more-months (- arg)))
 
 (provide 'cal-move)
 

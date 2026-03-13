@@ -3378,15 +3378,8 @@ This function sets a new value for `gnus-group-list'; its return
 value is disregarded."
   (when func
     (let* ((groups (remove "dummy.group" gnus-group-list))
-	   (sorted-infos
-	    (sort (mapcar (lambda (g)
-			    (gnus-get-info g))
-			  groups)
-		  func)))
-      (setq gnus-group-list
-	    (mapcar (lambda (i)
-		      (gnus-info-group i))
-		    sorted-infos))
+	   (sorted-infos (sort (mapcar #'gnus-get-info groups) func)))
+      (setq gnus-group-list (mapcar #'gnus-info-group sorted-infos))
       (when reverse
 	(setq gnus-group-list (nreverse gnus-group-list)))
       (setq gnus-group-list (cons "dummy.group" gnus-group-list)))))
@@ -3767,8 +3760,7 @@ Uses the process/prefix convention."
   (interactive nil gnus-group-mode)
   (save-excursion
     (gnus-message 5 "Expiring...")
-    (let ((gnus-group-marked (mapcar (lambda (info) (gnus-info-group info))
-				     (cdr gnus-newsrc-alist))))
+    (let ((gnus-group-marked (mapcar #'gnus-info-group (cdr gnus-newsrc-alist))))
       (gnus-group-expire-articles nil)))
   (gnus-group-position-point)
   (gnus-message 5 "Expiring...done"))

@@ -86,6 +86,7 @@ of `define-treesit-generic-mode'.
   (declare (debug (&define name [&optional stringp]
                            [&rest keywordp sexp] def-body))
            (doc-string 2)
+           (autoload-macro expand)
            (indent defun))
 
   (when (and docstring (not (stringp docstring)))
@@ -111,19 +112,19 @@ of `define-treesit-generic-mode'.
 
     (when (stringp source)
       (setq source (list 'quote (list source :copy-queries t))))
-    (when (stringp auto-mode)
-      (setq auto-mode (list 'quote (ensure-list auto-mode))))
 
     `(progn
-       ;; Add lang and source to source-alist.
-       (add-to-list 'treesit-language-source-alist (cons ,lang ,source) t)
-
        ;; Add it to auto-mode-alist
-       (dolist (re ,auto-mode)
-         (add-to-list 'auto-mode-alist (cons re ',mode)))
+       ,(if (stringp auto-mode)
+            `(add-to-list 'auto-mode-alist '(,auto-mode . ,mode))
+          `(dolist (re ,auto-mode)
+             (add-to-list 'auto-mode-alist (cons re #',mode))))
 
        (define-derived-mode ,mode
-         ,(or (if (eq (car-safe parent) 'quote) (cadr parent) parent)
+         ;; FIXME: This has to be a function name, it can't be an expression,
+         ;; so the `quote' handling is misleading.
+         ,(or (if (memq (car-safe parent) '(function quote))
+                  (cadr parent) parent)
               'fundamental-mode)
          ,(or name pretty-name)
          ,(or docstring
@@ -131,7 +132,12 @@ of `define-treesit-generic-mode'.
                       "This a tree-sitter mode defined with `define-treesit-generic-mode'."))
          (treesit-generic-mode-setup ,lang)
          ,@body
-         (treesit-major-mode-setup)))))
+         (treesit-major-mode-setup))
+
+       :autoload-end
+
+       ;; Add lang and source to source-alist.
+       (add-to-list 'treesit-language-source-alist (cons ,lang ,source) t))))
 
 ;;;###autoload
 (defun treesit-generic-mode-setup (lang)
@@ -226,7 +232,7 @@ of `define-treesit-generic-mode'.
             :copy-queries t)
   :auto-mode "\\.liquid\\'"
   :name "Liquid"
-  :parent 'mhtml-ts-mode
+  :parent #'mhtml-ts-mode
 
   (setq-local treesit-range-settings
               (append treesit-range-settings

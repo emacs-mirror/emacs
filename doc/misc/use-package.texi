@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/use-package.info
 @settitle use-package User Manual
+@documentlanguage en
 @set USEP_VER 2.4.5
 @set USEP_DIST as distributed with Emacs @value{EMACSVER}
 @include docstyle.texi

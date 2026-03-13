@@ -2,6 +2,7 @@
 @setfilename ../../info/eieio.info
 @set TITLE Enhanced Implementation of Emacs Interpreted Objects
 @set AUTHOR Eric M. Ludlam
+@documentlanguage en
 @settitle @value{TITLE}
 @include docstyle.texi
 

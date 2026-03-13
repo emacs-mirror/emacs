@@ -5,6 +5,7 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../../info/forms.info
 @settitle Forms Mode User's Manual
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 @syncodeindex vr cp
@@ -924,6 +925,9 @@ used to fill to the column."
 
 @node Credits
 @chapter Credits
+
+Forms mode was developed by Johan Vromans while working at Multihouse
+Research in the Netherlands.
 
 Bug fixes and other useful suggestions were supplied by
 Harald Hanche-Olsen (@code{hanche@@imf.unit.no}),

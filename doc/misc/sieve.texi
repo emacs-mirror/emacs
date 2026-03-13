@@ -2,6 +2,7 @@
 
 @setfilename ../../info/sieve.info
 @settitle Emacs Sieve Manual
+@documentlanguage en
 @include docstyle.texi
 @synindex fn cp
 @synindex vr cp

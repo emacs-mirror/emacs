@@ -64,6 +64,133 @@
 (ert-deftest fns-tests-string-bytes ()
   (should (= (string-bytes "abc") 3)))
 
+(ert-deftest fns-tests-string-make-multibyte ()
+  (let* ((ascii (string-make-unibyte "abc"))
+         (ascii-mb (string-make-multibyte ascii)))
+    (should (string= ascii-mb "abc"))
+    (should-not (multibyte-string-p ascii-mb)))
+  (let* ((u (string-make-unibyte "é"))
+         (m (string-make-multibyte u)))
+    (should (multibyte-string-p m))
+    (should (string= (string-as-unibyte m) u))))
+
+(ert-deftest fns-tests-string-make-unibyte ()
+  (let ((s (propertize "é" 'foo 'bar)))
+    (let ((u (string-make-unibyte s)))
+      (should-not (multibyte-string-p u))
+      (should (equal (aref u 0) ?\xE9))
+      (should-not (text-properties-at 0 u)))))
+
+(ert-deftest fns-tests-string-as-multibyte ()
+  (let* ((u (string-make-unibyte "abc"))
+         (m (string-as-multibyte u)))
+    (should (string= m "abc"))
+    (should (multibyte-string-p m))
+    (should-not (text-properties-at 0 m)))
+  (let ((m "abc"))
+    (should (string= (string-as-multibyte m) m))))
+
+(ert-deftest fns-tests-fillarray ()
+  (let ((v (vector 1 2 3)))
+    (fillarray v 'x)
+    (should (equal v [x x x])))
+  (let ((s (string-make-unibyte "aaa")))
+    (fillarray s ?b)
+    (should (string= s "bbb"))
+    (should-not (multibyte-string-p s)))
+  (let ((bv (make-bool-vector 4 nil)))
+    (fillarray bv t)
+    (should (equal bv (make-bool-vector 4 t))))
+  (let ((ct (make-char-table 'fns-tests)))
+    (fillarray ct 'z)
+    (should (eq (char-table-range ct ?a) 'z))))
+
+(ert-deftest fns-tests-clear-string ()
+  (let ((s (propertize "é" 'foo 'bar)))
+    (clear-string s)
+    (should-not (multibyte-string-p s))
+    (should (equal s (make-string 2 0)))
+    (should-not (text-properties-at 0 s))))
+
+(ert-deftest fns-tests-load-average ()
+  (let ((res (condition-case err
+                 (list :ok (load-average) (load-average t))
+               (error (list :error err)))))
+    (pcase res
+      (`(:ok ,ints ,floats)
+       (should (listp ints))
+       (should (<= 1 (length ints) 3))
+       (dolist (v ints)
+         (should (integerp v))
+         (should (>= v 0)))
+       (should (listp floats))
+       (should (<= 1 (length floats) 3))
+       (dolist (v floats)
+         (should (floatp v))
+         (should (>= v 0.0))))
+      (`(:error ,err)
+       (should (string-match-p "load-average not implemented"
+                               (error-message-string err)))))))
+
+(ert-deftest fns-tests-locale-info ()
+  (let ((codeset (locale-info 'codeset)))
+    (should (or (null codeset) (stringp codeset))))
+  (let ((days (locale-info 'days)))
+    (should (or (null days) (and (vectorp days) (= (length days) 7)))))
+  (let ((months (locale-info 'months)))
+    (should (or (null months) (and (vectorp months) (= (length months) 12)))))
+  (let ((paper (locale-info 'paper)))
+    (should (or (null paper)
+                (and (consp paper)
+                     (= (length paper) 2)
+                     (integerp (car paper))
+                     (integerp (cadr paper))))))
+  (should-not (locale-info 'fns-tests-no-such-item)))
+
+(ert-deftest fns-tests-sxhash-eql ()
+  (let* ((a (1+ most-positive-fixnum))
+         (b (+ most-positive-fixnum 1)))
+    (should (eql a b))
+    (should (integerp (sxhash-eql a)))
+    (should (= (sxhash-eql a) (sxhash-eql b)))))
+
+(ert-deftest fns-tests-sxhash-equal-including-properties ()
+  (let ((a (propertize "foo" 'face 'bold))
+        (b (propertize "foo" 'face 'bold)))
+    (should (equal-including-properties a b))
+    (should (integerp (sxhash-equal-including-properties a)))
+    (should (= (sxhash-equal-including-properties a)
+               (sxhash-equal-including-properties b)))))
+
+(ert-deftest fns-tests-hash-table-metadata ()
+  (let ((h (make-hash-table :test 'equal)))
+    (puthash "a" 1 h)
+    (puthash "b" 2 h)
+    (should (= (hash-table-rehash-size h) 1.5))
+    (should (= (hash-table-rehash-threshold h) 0.8125))
+    (should (integerp (hash-table-size h)))
+    (should (>= (hash-table-size h) (hash-table-count h)))
+    (should (integerp (internal--hash-table-index-size h)))
+    (let ((hist (internal--hash-table-histogram h)))
+      (should (or (null hist)
+                  (and (consp hist)
+                       (consp (car hist))
+                       (integerp (caar hist))
+                       (integerp (cdar hist))))))
+    (let ((buckets (internal--hash-table-buckets h)))
+      (should (listp buckets))
+      (let ((keys (cl-loop for bucket in buckets
+                           append (mapcar #'car bucket))))
+        (should (member "a" keys))
+        (should (member "b" keys))))))
+
+(ert-deftest fns-tests-secure-hash-algorithms ()
+  (let ((algs (secure-hash-algorithms)))
+    (should (listp algs))
+    (should (memq 'md5 algs))
+    (should (memq 'sha1 algs))
+    (should (memq 'sha256 algs))))
+
 ;; Test that equality predicates work correctly on NaNs when combined
 ;; with hash tables based on those predicates.  This was not the case
 ;; for eql in Emacs 26.
@@ -535,6 +662,58 @@
   (should (equal (fns-tests--with-region base64-encode-region "\x14\xfb\x9c\x03\xd9\x7e") "FPucA9l+"))
   (should (equal (fns-tests--with-region base64-encode-region "\x14\xfb\x9c\x03\xd9\x7f") "FPucA9l/")))
 
+(defun fns-tests--base64-decode-region (input &optional base64url ignore-invalid)
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (insert input)
+    (let ((len (base64-decode-region (point-min) (point-max)
+                                     base64url ignore-invalid)))
+      (list len (buffer-string)))))
+
+(defun fns-tests--as-unibyte (string)
+  (encode-coding-string string 'binary))
+
+(ert-deftest fns-tests-base64-decode-region ()
+  ;; standard variant RFC2045
+  (should (equal (fns-tests--base64-decode-region "") '(0 "")))
+  (should (equal (fns-tests--base64-decode-region "Zg==") '(1 "f")))
+  (should (equal (fns-tests--base64-decode-region "Zm8=") '(2 "fo")))
+  (should (equal (fns-tests--base64-decode-region "Zm9v") '(3 "foo")))
+  (should (equal (fns-tests--base64-decode-region "Zm9vYg==") '(4 "foob")))
+  (should (equal (fns-tests--base64-decode-region "Zm9vYmE=") '(5 "fooba")))
+  (should (equal (fns-tests--base64-decode-region "Zm9vYmFy") '(6 "foobar")))
+  (let* ((res (fns-tests--base64-decode-region "FPucA9l+"))
+         (len (nth 0 res))
+         (out (nth 1 res)))
+    (should (= len (string-bytes out)))
+    (should (equal (fns-tests--as-unibyte out)
+                   (fns-tests--as-unibyte "\x14\xfb\x9c\x03\xd9\x7e"))))
+  (let* ((res (fns-tests--base64-decode-region "FPucA9l/"))
+         (len (nth 0 res))
+         (out (nth 1 res)))
+    (should (= len (string-bytes out)))
+    (should (equal (fns-tests--as-unibyte out)
+                   (fns-tests--as-unibyte "\x14\xfb\x9c\x03\xd9\x7f"))))
+
+  ;; url variant
+  (let* ((res (fns-tests--base64-decode-region "FPucA9l-" t))
+         (len (nth 0 res))
+         (out (nth 1 res)))
+    (should (= len (string-bytes out)))
+    (should (equal (fns-tests--as-unibyte out)
+                   (fns-tests--as-unibyte "\x14\xfb\x9c\x03\xd9\x7e"))))
+  (let* ((res (fns-tests--base64-decode-region "FPucA9l_" t))
+         (len (nth 0 res))
+         (out (nth 1 res)))
+    (should (= len (string-bytes out)))
+    (should (equal (fns-tests--as-unibyte out)
+                   (fns-tests--as-unibyte "\x14\xfb\x9c\x03\xd9\x7f"))))
+
+  ;; ignore invalid characters
+  (should (equal (fns-tests--base64-decode-region "Zg==@" nil t) '(1 "f")))
+  (should (equal (fns-tests--base64-decode-region "Zg==@" t t) '(1 "f")))
+  (should-error (fns-tests--base64-decode-region "Zg=")))
+
 (ert-deftest fns-tests-base64-encode-string ()
   ;; standard variant RFC2045
   (should (equal (base64-encode-string "") ""))
@@ -949,8 +1128,16 @@
   (should-error (reverse (dot2 1 2)) :type 'wrong-type-argument))
 
 (ert-deftest test-cycle-equal ()
-  (should-error (equal (cyc1 1) (cyc1 1)))
-  (should-error (equal (cyc2 1 2) (cyc2 1 2))))
+  (should (equal (cyc1 1) (cyc1 1)))
+  (should (equal (cyc2 1 2) (cyc2 1 2)))
+
+  (cl-labels ((cycle (x) (let ((y (copy-sequence x))) (nconc y y))))
+    (should-not (equal (cycle '(1 2 3)) '(1 2 3 1 2 3)))
+    (should-not (equal '(1 2 3 1 2 3) (cycle '(1 2 3))))
+    (should (equal (cycle '(1 2 3)) (cycle '(1 2 3 1 2 3))))
+    (should (equal (cycle '(1 2 3 1 2 3)) (cycle '(1 2 3))))
+    (should (equal (cycle '(1 2 3)) (append '(1 2) (cycle '(3 1 2 3 1 2)))))
+    (should (equal (append '(1 2) (cycle '(3 1 2 3 1 2))) (cycle '(1 2 3))))))
 
 (ert-deftest test-cycle-nconc ()
   (should-error (nconc (cyc1 1) 'tail) :type 'circular-list)
@@ -1499,6 +1686,18 @@
                  (concat "0a50261ebd1a390fed2bf326f2673c145582a6342d5"
                          "23204973d0219337f81616a8069b012587cf5635f69"
                          "25f1b56c360230c19b273500ee013e030601bf2425")))
+  (should (equal (secure-hash 'sha3-224 "foobar")
+                 "1ad852ba147a715fe5a3df39a741fad08186c303c7d21cefb7be763b"))
+  (should (equal (secure-hash 'sha3-256 "foobar")
+                 (concat "09234807e4af85f17c66b48ee3bca89d"
+                         "ffd1f1233659f9f940a2b17b0b8c6bc5")))
+  (should (equal (secure-hash 'sha3-384 "foobar")
+                 (concat "0fa8abfbdaf924ad307b74dd2ed183b9a4a398891a2f6bac"
+                         "8fd2db7041b77f068580f9c6c66f699b496c2da1cbcc7ed8")))
+  (should (equal (secure-hash 'sha3-512 "foobar")
+                 (concat "ff32a30c3af5012ea395827a3e99a13073c3a8d8410"
+                         "a708568ff7e6eb85968fccfebaea039bc21411e9d43"
+                         "fdb9a851b529b9960ffea8679199781b8f45ca85e2")))
   ;; Test that a call to getrandom returns the right format.
   ;; This does not test randomness; it's merely a format check.
   (should (string-match "\\`[0-9a-f]\\{128\\}\\'"

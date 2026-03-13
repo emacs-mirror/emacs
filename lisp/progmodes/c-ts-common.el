@@ -54,6 +54,12 @@
 
 ;;; Comment indentation and filling
 
+(defvar c-ts-common-comment-start-skip
+  (rx (or (seq "/" (+ "/"))
+          (seq "/" (+ "*")))
+      (* (syntax whitespace)))
+  "The `comment-start-skip' used by `c-ts-common-comment-setup'.")
+
 (defun c-ts-common-looking-at-star (_n _p bol &rest _)
   "A tree-sitter simple indent matcher.
 Matches if there is a \"*\" after BOL."
@@ -90,7 +96,7 @@ non-whitespace characters of the current line."
   (save-excursion
     (forward-line -1)
     (back-to-indentation)
-    (when (looking-at comment-start-skip)
+    (when (looking-at c-ts-common-comment-start-skip)
       (goto-char (match-end 0))
       (if (looking-at (rx (* (or " " "\t")) eol))
           ;; Only /* at the first line.
@@ -291,9 +297,7 @@ Set up:
  - `comment-multi-line'"
   (setq-local comment-start "// ")
   (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
+  (setq-local comment-start-skip c-ts-common-comment-start-skip)
   (setq-local comment-end-skip
               (rx (* (syntax whitespace))
                   (group (or (syntax comment-end)

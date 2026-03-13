@@ -387,8 +387,9 @@ scan_keyword_or_put_char (char ch, struct rcsoc_state *state)
 
 
 /* Skip a C string or C-style comment from INFILE, and return the
-   byte that follows, or EOF.  COMMENT means skip a comment.  If
-   PRINTFLAG is positive, output string contents to stdout.  If it is
+   byte that follows, or EOF.  COMMENT means skip a comment.
+   Leading '"' or '/','*' have already been read.
+   If PRINTFLAG is positive, output string contents to stdout.  If it is
    negative, store contents in buf.  Convert escape sequences \n and
    \t to newline and tab; discard \ followed by newline.
    If SAW_USAGE is non-null, then any occurrences of the string "usage:"
@@ -1160,19 +1161,13 @@ scan_c_stream (FILE *infile)
 	    }
 	}
 
-      if (c == '"'
-	  || (c == '/'
-	      && (c = getc (infile),
-		  ungetc (c, infile),
-		  c == '*')))
+      bool comment = c == '/' && (c = getc (infile)) == '*';
+      if (comment || c == '"')
 	{
-	  bool comment = c != '"';
 	  bool saw_usage;
 
 	  printf ("\037%c%s\n", defvarflag ? 'V' : 'F', input_buffer);
 
-	  if (comment)
-	    getc (infile); 	/* Skip past `*'.  */
 	  c = read_c_string_or_comment (infile, 1, comment, &saw_usage);
 
 	  /* If this is a defun, find the arguments and print them.  If

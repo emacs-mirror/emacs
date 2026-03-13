@@ -1182,14 +1182,28 @@ side-effects, and the argument LIST is not modified."
   (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
   (not (drop-while pred list)))
 
-(defun any (pred list)
+(defun member-if (pred list)
   "Non-nil if PRED is true for at least one element in LIST.
-Returns the LIST suffix starting at the first element that satisfies PRED,
-or nil if none does."
+Returns the suffix of LIST starting with the first element that
+satisfies PRED, or nil if none do.
+
+Compatibility note: this function replaces `cl-member-if' but does not
+support the latter's `:key KEY-FN' argument.  It is better to compose
+any KEY-FN into PRED.  For example, you can replace
+
+    (cl-member-if #\\='foo items :key #\\='bar)
+
+with
+
+    (member-if (lambda (x) (foo (bar x))) items)"
   (declare (compiler-macro
             (lambda (_)
               `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))))
   (drop-while (lambda (x) (not (funcall pred x))) list))
+
+;; This is good to have for improved readability in certain uses, but
+;; use the traditional Lisp name for the underlying function.  --spwhitton
+(defalias 'any #'member-if)
 
 ;;;; Keymap support.
 
@@ -2874,11 +2888,11 @@ for forms evaluated for side-effect with returned values ignored."
   ;;   both `when-let*' and `and-let*' (in addition to the additional
   ;;   feature of `and-let*' when BODY is empty).
   (declare (indent 1) (debug if-let*))
-  (let (res)
+  (let (res (body* (macroexp-progn body)))
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
-           (when ,(setq res (caar (last varlist)))
-             ,@(or body `(,res))))
+           ,(progn (setq res (caar (last varlist)))
+                   (if body* `(and ,res ,body*) res)))
       `(let* () ,@(or body '(t))))))
 
 (defmacro if-let (spec then &rest else)
@@ -4451,6 +4465,10 @@ at BEG.  Likewise, if the targeted overlays end after END, they
 will be altered so that they start at END.  Overlays that start
 at or after BEG and end before END will be removed completely.
 
+Empty overlays will be removed if they are at BEG, between BEG
+and END, or at END provided END denotes the position at the end
+of the buffer.
+
 BEG and END default respectively to the beginning and end of the
 buffer.
 Values are compared with `eq'.
@@ -5088,6 +5106,70 @@ newlines."
   (call-process-region start end
                        shell-file-name delete buffer nil
                        shell-command-switch command))
+
+(defun multiple-command-partition-arguments (command arguments &optional shellp)
+  "Partition ARGUMENTS of COMMAND to avoid command line length limits.
+This function is for running commands on each element of ARGUMENTS where
+ARGUMENTS might be so long that invoking a single shell command on the
+entirety of ARGUMENTS at once might exceed the system's limits on
+program argument list length or total command line length.
+COMMAND is a string or list of strings, beginning with the command to be
+run on ARGUMENTS (unless SHELLP), and including any arguments that must
+be passed to every invocation of the command.
+ARGUMENTS is a list of strings.  Each one is a single argument.
+If SHELLP is non-nil, implicitly include `shell-file-name' and
+`shell-command-switch' at the front of COMMAND, and account for quoting
+and for space characters required between each argument.
+Return list of partitions of ARGUMENTS such that running a command
+formed of COMMAND plus any one of those partitions will not exceed the
+relevant system limits.
+
+This function takes a conservative approach and does not try to minimize
+the number of partitions of ARGUMENTS, because doing that would require
+a great deal of platform-specific information, and also information
+about encoding which is not currently made available to Lisp."
+  ;; An alternative on POSIX platforms would be to convert an E2BIG
+  ;; errno into a Lisp condition and then the calling code could decide
+  ;; what to do.  But that would impose a performance penalty because
+  ;; shelling out is relatively expensive.  So the idea is to just
+  ;; always preemptively call `multiple-command-partition-arguments'.
+  (let* ((command
+          (if shellp
+              (nconc (list shell-file-name shell-command-switch)
+                     (ensure-list command))
+            (ensure-list command)))
+         (fixed-args-len
+          (apply #'+ (mapcar #'length
+                             (if (eq system-type 'windows-nt)
+                                 command
+                               (nconc command process-environment)))))
+         (spaces-and-quotation
+          (or shellp (eq system-type 'windows-nt)))
+         (next-len 0)
+         next all-partitions)
+    (when spaces-and-quotation
+      ;; On MS-Windows every single argument will need to be quoted
+      ;; regardless of whether it contains any whitespace etc..
+      (incf fixed-args-len 2)
+      (incf fixed-args-len (* 3 (length command))))
+    (dolist (arg arguments)
+      (let ((len (if spaces-and-quotation
+                     (+ (length arg) 3)
+                   (length arg))))
+        (cond ((<= (+ fixed-args-len next-len len)
+                   (connection-local-value command-line-max-length))
+               (push arg next)
+               (incf next-len len))
+              ((<= (+ fixed-args-len len)
+                   (connection-local-value command-line-max-length))
+               (push (nreverse next) all-partitions)
+               (setq next (list arg) next-len len))
+              (t
+               (error "Impossible to partition arguments to fit system limits")))))
+    (nreverse (if next
+                  (cons (nreverse next) all-partitions)
+                all-partitions))))
+
 
 ;;;; Lisp macros to do various things temporarily.
 
@@ -6154,7 +6236,10 @@ consisting of STR followed by an invisible left-to-right mark
   "Return non-nil if STRING1 is greater than STRING2 in lexicographic order.
 Case is significant.
 Symbols are also allowed; their print names are used instead."
-  (declare (pure t) (side-effect-free t))
+  (declare (compiler-macro (lambda (_)
+                             (let ((arg1 (make-symbol "arg1")))
+                               `(let ((,arg1 ,string1))
+                                  (string-lessp ,string2 ,arg1))))))
   (string-lessp string2 string1))
 
 
@@ -7660,7 +7745,8 @@ seconds."
      (condition-case err
          (funcall fun)
        (error
-        (unless (y-or-n-p-with-timeout (format "Error %s; continue?" err)
+        (unless (y-or-n-p-with-timeout (format "Error %s; continue?"
+                                               (error-message-string err))
                                        5 t)
           (error err))))
      ;; Continue running.

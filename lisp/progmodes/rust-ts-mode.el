@@ -50,7 +50,9 @@
                    "18b0515fca567f5a10aee9978c6d2640e878671a"))
  t)
 
-(defcustom rust-ts-mode-indent-offset 4
+(define-obsolete-variable-alias 'rust-ts-mode-indent-offset
+  'rust-ts-indent-offset "31")
+(defcustom rust-ts-indent-offset 4
   "Number of spaces for each indentation step in `rust-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -116,22 +118,22 @@ variable is non-nil, these suffixes are fontified using
      ((and (parent-is "comment") c-ts-common-looking-at-star)
       c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
-     ((parent-is "arguments") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "await_expression") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "array_expression") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "binary_expression") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "block") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "declaration_list") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "enum_variant_list") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "field_declaration_list") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "field_expression") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "field_initializer_list") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "let_declaration") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "macro_definition") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "parameters") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "struct_pattern") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "token_tree") parent-bol rust-ts-mode-indent-offset)
-     ((parent-is "use_list") parent-bol rust-ts-mode-indent-offset)))
+     ((parent-is "arguments") parent-bol rust-ts-indent-offset)
+     ((parent-is "await_expression") parent-bol rust-ts-indent-offset)
+     ((parent-is "array_expression") parent-bol rust-ts-indent-offset)
+     ((parent-is "binary_expression") parent-bol rust-ts-indent-offset)
+     ((parent-is "block") parent-bol rust-ts-indent-offset)
+     ((parent-is "declaration_list") parent-bol rust-ts-indent-offset)
+     ((parent-is "enum_variant_list") parent-bol rust-ts-indent-offset)
+     ((parent-is "field_declaration_list") parent-bol rust-ts-indent-offset)
+     ((parent-is "field_expression") parent-bol rust-ts-indent-offset)
+     ((parent-is "field_initializer_list") parent-bol rust-ts-indent-offset)
+     ((parent-is "let_declaration") parent-bol rust-ts-indent-offset)
+     ((parent-is "macro_definition") parent-bol rust-ts-indent-offset)
+     ((parent-is "parameters") parent-bol rust-ts-indent-offset)
+     ((parent-is "struct_pattern") parent-bol rust-ts-indent-offset)
+     ((parent-is "token_tree") parent-bol rust-ts-indent-offset)
+     ((parent-is "use_list") parent-bol rust-ts-indent-offset)))
   "Tree-sitter indent rules for `rust-ts-mode'.")
 
 (defconst rust-ts-mode--number-types

@@ -879,7 +879,9 @@ Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
               (let ((result (ert--test-execution-info-result info)))
                 (setf (ert-test-result-messages result)
                       (with-current-buffer (messages-buffer)
-                        (buffer-substring begin-marker (point-max))))
+                        (buffer-substring
+                         (or (marker-position begin-marker) (point-min))
+                         (point-max))))
                 (ert--force-message-log-buffer-truncation)
                 (setq should-form-accu (nreverse should-form-accu))
                 (setf (ert-test-result-should-forms result)

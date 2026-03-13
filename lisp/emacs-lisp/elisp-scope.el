@@ -596,6 +596,10 @@ Optional argument LOCAL is a local context to extend."
         (elisp-scope--variable
          bare beg (alist-get bare elisp-scope-local-bindings))))))
 
+(defsubst elisp-scope--variable-spec (var)
+  "Return a specification for the value of variable VAR, or nil if unknown."
+  (get var 'elisp-scope-variable-spec))
+
 (defun elisp-scope--let-1 (local bindings body)
   (if bindings
       (let* ((binding (ensure-list (car bindings)))
@@ -603,7 +607,7 @@ Optional argument LOCAL is a local context to extend."
              (bare (elisp-scope--sym-bare sym))
              (beg (elisp-scope--sym-pos sym)))
         (when beg (elisp-scope--binding bare beg))
-        (elisp-scope-1 (cadr binding))
+        (elisp-scope-1 (cadr binding) (elisp-scope--variable-spec bare))
         (elisp-scope--let-1 (if bare (elisp-scope--local-new bare beg local) local)
                             (cdr bindings) body))
     (let ((elisp-scope-local-bindings local))
@@ -621,7 +625,7 @@ Optional argument LOCAL is a local context to extend."
              (bare (bare-symbol sym))
              (beg (elisp-scope--sym-pos sym)))
         (when beg (elisp-scope--binding bare beg))
-        (elisp-scope-1 (cadr binding))
+        (elisp-scope-1 (cadr binding)  (elisp-scope--variable-spec bare))
         (let ((elisp-scope-local-bindings (elisp-scope--local-new bare beg elisp-scope-local-bindings)))
           (elisp-scope-let* (cdr bindings) body)))
     (elisp-scope-n body elisp-scope-output-spec)))
@@ -719,7 +723,13 @@ Optional argument LOCAL is a local context to extend."
      beg bare))
   (elisp-scope-lambda args body))
 
-(defun elisp-scope-setq (args) (elisp-scope-n args elisp-scope-output-spec))
+(defun elisp-scope-setq (args)
+  (while-let ((var (pop args)))
+    (let ((val (pop args)))
+      (elisp-scope-1 var)
+      (elisp-scope-1
+       val (or (elisp-scope--variable-spec (elisp-scope--sym-bare var))
+               elisp-scope-output-spec)))))
 
 (defvar elisp-scope-local-definitions nil
   "Alist associating (local) analyzer functions to function/macro names.")
@@ -2702,6 +2712,11 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-n body))
 
 (put 'unwind-protect 'elisp-scope-analyzer #'elisp-scope--analyze-prog1)
+
+;;; Specifications for some common variables:
+(put 'coding-system-for-read 'elisp-scope-variable-spec '(symbol . coding))
+(put 'coding-system-for-write 'elisp-scope-variable-spec '(symbol . coding))
+(put 'major-mode 'elisp-scope-variable-spec '(symbol . major-mode))
 
 (defun elisp-scope-report-s (sym role)
   "Report that symbol SYM has role ROLE.

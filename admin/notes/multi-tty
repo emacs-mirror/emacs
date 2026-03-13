@@ -402,28 +402,17 @@ THINGS TO DO
 
 ** The single-keyboard mode of MULTI_KBOARD is extremely confusing
    sometimes; Emacs does not respond to stimuli from other keyboards.
-   At least a beep or a message would be important, if the single-mode
-   is still required to prevent interference.  (Reported by Dan
-   Nicolaescu.)
+   (Reported by Dan Nicolaescu.)
 
    Update: selecting a region with the mouse enables single_kboard
    under X.  This is very confusing.
 
    Update: After discussions with Richard Stallman, this will be
-   resolved by having locked displays warn the user to wait, and
-   introducing a complex protocol to remotely bail out of
+   resolved introducing a complex protocol to remotely bail out of
    single-kboard mode by pressing C-g.
 
-   Update: Warning the user is not trivial to implement, as Emacs has
-   only one echo area, shared by all frames.  Ideally the warning
-   should not be displayed on the display that is locking the others.
-   Perhaps the high probability of user confusion caused by
-   single_kboard mode deserves a special case in the display code.
-   Alternatively, it might be good enough to signal single_kboard mode
-   by changing the modelines or some other frame-local display element
-   on the locked out displays.
-
-   Update: In fact struct kboard does have an echo_string slot.
+   Update (from spwhitton): We have instead added the new
+   'multiple-terminals-merge-keyboards' user option (bug#79892).
 
 ** The session management module is prone to crashes when the X
    connection is closed and then later I try to connect to a new X
@@ -518,6 +507,8 @@ THINGS TO DO
 ** flow-ctrl.el must be updated.
 
 ** Fix stuff_char for multi-tty.  Doesn't seem to be of high priority.
+   For security reasons stuff_char does not work by default on many
+   platforms, which makes such a fix even lower priority.
 
 DIARY OF CHANGES
 ----------------

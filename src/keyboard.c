@@ -843,7 +843,7 @@ This function is called by the editor initialization to begin editing.  */)
      like it is done in the splash screen display, we have to
      make sure that we restore single_kboard as command_loop_1
      would have done if it were left normally.  */
-  if (command_loop_level > 0)
+  if (command_loop_level > 0 && !multiple_terminals_merge_keyboards)
     temporarily_switch_to_single_kboard (SELECTED_FRAME ());
 
   recursive_edit_1 ();
@@ -2314,6 +2314,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 /* Input of single characters from keyboard.  */
 
 static Lisp_Object kbd_buffer_get_event (KBOARD **kbp, bool *used_mouse_menu,
+					 struct frame **event_frame,
 					 struct timespec *end_time);
 static void record_char (Lisp_Object c);
 
@@ -2359,7 +2360,8 @@ read_event_from_main_queue (struct timespec *end_time,
   restore_getcjmp (local_getcjmp);
   if (!end_time)
     timer_start_idle ();
-  c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
+  struct frame *frame;
+  c = kbd_buffer_get_event (&kb, used_mouse_menu, &frame, end_time);
   unbind_to (count, Qnil);
 
   if (! NILP (c) && (kb != current_kboard))
@@ -2377,9 +2379,26 @@ read_event_from_main_queue (struct timespec *end_time,
       else
         XSETCDR (last, list1 (c));
       kb->kbd_queue_has_data = true;
-      c = Qnil;
       if (single_kboard)
-        goto start;
+	{
+	  /* Typing and clicking in a locked frame is confusing because
+	     it seems like Emacs has completely locked up (bug#79892).
+	     Show a message about what's happening.  */
+	  /* FIXME: We also display the message in the unlocked frame.
+	     Can we avoid that?  */
+	  if (frame
+	      && (FIXNUMP (c) || (EVENT_HAS_PARAMETERS (c)
+				  && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)),
+					 Qmouse_click))))
+	    {
+	      AUTO_STRING (locked, "Frame is locked; see"
+			   " `multiple-terminals-merge-keyboards'"
+			   " variable");
+	      message3_frame (Fformat_message (1, &locked), frame);
+	    }
+	  c = Qnil;
+	  goto start;
+	}
       current_kboard = kb;
       return make_fixnum (-2);
     }
@@ -3786,6 +3805,9 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
 	{
 	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->ie.frame_or_window));
 
+	  /* If C-g arrives while we're in the run state on behalf of
+	     another display, just clear the queue and deposit the C-g
+	     to be read later.  */
 	  if (single_kboard && kb != current_kboard)
 	    {
 	      kset_kbd_queue
@@ -4019,6 +4041,7 @@ kbd_buffer_get_event_2 (Lisp_Object val)
 static Lisp_Object
 kbd_buffer_get_event (KBOARD **kbp,
                       bool *used_mouse_menu,
+                      struct frame **event_frame,
                       struct timespec *end_time)
 {
   Lisp_Object obj, str;
@@ -4032,6 +4055,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 
   had_pending_conversion_events = false;
 #endif
+
+  *event_frame = NULL;
 
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE / 4)
@@ -4192,6 +4217,13 @@ kbd_buffer_get_event (KBOARD **kbp,
       *kbp = event_to_kboard (&event->ie);
       if (*kbp == 0)
 	*kbp = current_kboard;  /* Better than returning null ptr?  */
+
+      /* Selection-request events never have frames, they are actually
+         instances of 'struct selection_input_event'.  */
+      if (!(event->kind == SELECTION_REQUEST_EVENT
+	    || event->kind == SELECTION_CLEAR_EVENT)
+	  && FRAMEP (event->ie.frame_or_window))
+	*event_frame = XFRAME (event->ie.frame_or_window);
 
       obj = Qnil;
 
@@ -4506,13 +4538,14 @@ kbd_buffer_get_event (KBOARD **kbp,
   /* Try generating a mouse motion event.  */
   else if (some_mouse_moved ())
     {
-      struct frame *f, *movement_frame = some_mouse_moved ();
+      struct frame *f;
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
       Time t;
 
-      f = movement_frame;
+      *event_frame = some_mouse_moved ();
+      f = *event_frame;
       *kbp = current_kboard;
       /* Note that this uses F to determine which terminal to look at.
 	 If there is no valid info, it does not store anything
@@ -4549,8 +4582,8 @@ kbd_buffer_get_event (KBOARD **kbp,
 	obj = make_lispy_movement (f, bar_window, part, x, y, t);
 
       if (!NILP (obj))
-	Vlast_event_device = (STRINGP (movement_frame->last_mouse_device)
-			      ? movement_frame->last_mouse_device
+	Vlast_event_device = (STRINGP ((*event_frame)->last_mouse_device)
+			      ? (*event_frame)->last_mouse_device
 			      : virtual_core_pointer_name);
     }
 #ifdef HAVE_X_WINDOWS
@@ -12442,19 +12475,15 @@ DEFUN ("suspend-emacs", Fsuspend_emacs, Ssuspend_emacs, 0, 1, "",
 If `cannot-suspend' is non-nil, or if the system doesn't support job
 control, run a subshell instead.
 
-If optional arg STUFFSTRING is non-nil, its characters are stuffed
-to be read as terminal input by Emacs's parent, after suspension.
+If optional arg STUFFSTRING is non-nil, stuff it and then a newline as
+keyboard input, if Emacs is running interactively on a terminal and the
+platform supports and allows stuffing; this may need special privileges.
 
 Before suspending, run the normal hook `suspend-hook'.
 After resumption run the normal hook `suspend-resume-hook'.
 
 Some operating systems cannot stop the Emacs process and resume it later.
-On such systems, Emacs starts a subshell instead of suspending.
-
-On some operating systems, stuffing characters into terminal input
-buffer requires special privileges or is not supported at all.
-On such systems, calling this function with non-nil STUFFSTRING might
-either signal an error or silently fail to stuff the characters.  */)
+On such systems, Emacs starts a subshell instead of suspending.  */)
   (Lisp_Object stuffstring)
 {
   specpdl_ref count = SPECPDL_INDEX ();
@@ -12493,38 +12522,34 @@ either signal an error or silently fail to stuff the characters.  */)
   return Qnil;
 }
 
-/* If STUFFSTRING is a string, stuff its contents as pending terminal input.
-   Then in any case stuff anything Emacs has read ahead and not used.  */
+/* If STUFFSTRING is a string, stuff its contents and then a newline as
+   pending terminal input.  Then stuff anything Emacs has read ahead and
+   not used.  However, do nothing if stuffing does not work.  */
 
 void
 stuff_buffered_input (Lisp_Object stuffstring)
 {
 #ifdef SIGTSTP  /* stuff_char is defined if SIGTSTP.  */
-  register unsigned char *p;
+  int bad_stuff = 0;
 
   if (STRINGP (stuffstring))
     {
-      register ptrdiff_t count;
-
-      p = SDATA (stuffstring);
-      count = SBYTES (stuffstring);
-      while (count-- > 0)
-	stuff_char (*p++);
-      stuff_char ('\n');
+      char *p = SSDATA (stuffstring);
+      for (ptrdiff_t i = SBYTES (stuffstring); !bad_stuff && 0 < i; i--)
+	bad_stuff = stuff_char (*p++);
+      if (!bad_stuff)
+	bad_stuff = stuff_char ('\n');
     }
 
-  /* Anything we have read ahead, put back for the shell to read.  */
-  /* ?? What should this do when we have multiple keyboards??
-     Should we ignore anything that was typed in at the "wrong" kboard?
-
-     rms: we should stuff everything back into the kboard
-     it came from.  */
+  /* Anything we have read ahead, put back for the shell to read.
+     When we have multiple keyboards, we should stuff everything back
+     into the keyboard it came from, but fixing this is low priority as
+     many systems prohibit stuffing for security reasons.  */
   for (; kbd_fetch_ptr != kbd_store_ptr;
        kbd_fetch_ptr = next_kbd_event (kbd_fetch_ptr))
     {
-
-      if (kbd_fetch_ptr->kind == ASCII_KEYSTROKE_EVENT)
-	stuff_char (kbd_fetch_ptr->ie.code);
+      if (kbd_fetch_ptr->kind == ASCII_KEYSTROKE_EVENT && !bad_stuff)
+	bad_stuff = stuff_char (kbd_fetch_ptr->ie.code);
 
       clear_event (&kbd_fetch_ptr->ie);
     }
@@ -14559,6 +14584,15 @@ within `input-decode-map' or `local-function-key-map' when its bound
 function is called to remap that sequence.  */);
   Vcurrent_key_remap_sequence = Qnil;
   DEFSYM (Qcurrent_key_remap_sequence, "current-key-remap-sequence");
+
+  DEFVAR_BOOL ("multiple-terminals-merge-keyboards",
+	       multiple_terminals_merge_keyboards,
+    doc: /* If non-nil, treat different terminals' keyboards as less isolated.
+If this option is non-nil, Emacs will not enter single-keyboard mode
+when entering a recursive edit.  It will still enter single-keyboard
+mode in certain other cases where doing so is necessary for the
+operation to work at all.  */);
+  multiple_terminals_merge_keyboards = false;
 
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 

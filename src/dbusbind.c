@@ -30,6 +30,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "igc.h"
 
+#ifndef O_RDONLY
+/* WINDOWSNT.  */
+#include <fcntl.h>
+#endif
+
 #ifndef DBUS_NUM_MESSAGE_TYPES
 #define DBUS_NUM_MESSAGE_TYPES 5
 #endif

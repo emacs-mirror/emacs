@@ -79,9 +79,11 @@ Works with JS and CSS and for that use `js-ts-mode' and `css-ts-mode'."
   ;; :group 'languages
   :group 'html)
 
-(defcustom mhtml-ts-mode-js-css-indent-offset 2
+(define-obsolete-variable-alias 'mhtml-ts-mode-js-css-indent-offset
+  'mhtml-ts-js-css-indent-offset "31")
+(defcustom mhtml-ts-js-css-indent-offset 2
   "JavaScript and CSS indent spaces related to the <script> and <style> HTML tags.
-By default should have same value as `html-ts-mode-indent-offset'."
+By default should have same value as `html-ts-indent-offset'."
   :tag "HTML javascript or css indent offset"
   :version "31.1"
   :type 'integer
@@ -93,7 +95,7 @@ By default should have same value as `html-ts-mode-indent-offset'."
     (cond ((setq executable (executable-find "tidy"))
            (format
             "%s --gnu-emacs yes --wrap 0 --indent-spaces %s -q -i -"
-            executable html-ts-mode-indent-offset))
+            executable html-ts-indent-offset))
           ((setq executable (executable-find "xmllint"))
            (format "%s --html --quiet --format -" executable))
           (t "Install tidy, or some other HTML pretty print tool, and set `mhtml-ts-mode-pretty-print-command'.")))
@@ -101,8 +103,8 @@ By default should have same value as `html-ts-mode-indent-offset'."
   :type 'string
   :version "31.1")
 
-(defvar mhtml-ts-mode--js-css-indent-offset
-  mhtml-ts-mode-js-css-indent-offset
+(defvar mhtml-ts--js-css-indent-offset
+  mhtml-ts-js-css-indent-offset
   "Internal copy of `mhtml-ts-mode-js-css-indent-offset'.
 The value changes, by `mhtml-ts-mode--tag-relative-indent-offset' according to
 the value of `mhtml-ts-mode-tag-relative-indent'.")
@@ -113,12 +115,12 @@ Apart from setting the default value of SYM to VAL, also change the
 value of SYM in `mhtml-ts-mode' buffers to VAL.  SYM should be
 `mhtml-ts-mode-tag-relative-indent', and VAL should be t, nil or
 `ignore'.  When sym is `mhtml-ts-mode-tag-relative-indent' set the
-value of `mhtml-ts-mode--js-css-indent-offset' to 0 if VAL is t,
+value of `mhtml-ts--js-css-indent-offset' to 0 if VAL is t,
 otherwise to `mhtml-ts-mode-js-css-indent-offset'."
   (set-default sym val)
   (when (eq sym 'mhtml-ts-mode-tag-relative-indent)
     (setq
-     mhtml-ts-mode--js-css-indent-offset
+     mhtml-ts--js-css-indent-offset
      (if (eq val t)
          mhtml-ts-mode-js-css-indent-offset
        0))))
@@ -302,14 +304,14 @@ NODE and PARENT are ignored."
             'javascript
             `((javascript ((parent-is "program")
                            mhtml-ts-mode--js-css-tag-bol
-                           mhtml-ts-mode--js-css-indent-offset)))
+                           mhtml-ts--js-css-indent-offset)))
             (js--treesit-indent-rules)
             :replace)
            (treesit-simple-indent-modify-rules
             'css
             `((css ((parent-is "stylesheet")
                     mhtml-ts-mode--js-css-tag-bol
-                    mhtml-ts-mode--js-css-indent-offset)))
+                    mhtml-ts--js-css-indent-offset)))
             css--treesit-indent-rules
 	    :prepend))))
 
@@ -524,7 +526,7 @@ Powered by tree-sitter."
     ;; JavaScript and CSS must be indented relative to their code block.
     ;; This is done by inserting a special rule before the normal
     ;; indentation rules of these languages.
-    ;; The value of `mhtml-ts-mode--js-css-indent-offset' changes based on
+    ;; The value of `mhtml-ts--js-css-indent-offset' changes based on
     ;; `mhtml-ts-mode-tag-relative-indent' and can be used to indent
     ;; JavaScript and CSS code relative to the HTML that contains them,
     ;; just like in mhtml-mode.

@@ -583,7 +583,13 @@ else
 with_gconf=no
 fi])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
-OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
+dnl Override the AC_ARG_WITH in gl_LIBSELINUX, defaulting to "yes"
+dnl if --with-all and to "maybe" otherwise.
+AC_ARG_WITH([selinux],
+  [AS_HELP_STRING([--without-selinux],
+     [do not use SELinux, even on systems with SELinux])],
+  [],
+  [with_selinux=${with_all-maybe}])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
@@ -4023,30 +4029,6 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 AC_SUBST([USE_STARTUP_NOTIFICATION])
 
-dnl SELinux is available for Linux kernel based systems only.
-dnl These include GNU/Linux and Android.
-HAVE_LIBSELINUX=no
-LIBSELINUX_LIBS=
-LIBSELINUX_CFLAGS=
-if test "${with_selinux}" = "yes"; then
-   if test "$REALLY_ANDROID" = "yes"; then
-     ndk_SEARCH_MODULE([libselinux], [LIBSELINUX],
-       [HAVE_LIBSELINUX=yes])
-   else
-     AC_CHECK_LIB([selinux], [lgetfilecon],
-       [HAVE_LIBSELINUX=yes],
-       [HAVE_LIBSELINUX=no])
-   fi
-   if test "$HAVE_LIBSELINUX" = yes; then
-      AC_DEFINE([HAVE_LIBSELINUX], [1], [Define to 1 if using SELinux.])
-      if test "$REALLY_ANDROID" != "yes"; then
-        LIBSELINUX_LIBS=-lselinux
-      fi
-   fi
-fi
-AC_SUBST([LIBSELINUX_LIBS])
-AC_SUBST([LIBSELINUX_CFLAGS])
-
 HAVE_GNUTLS=no
 if test "${with_gnutls}" != "no" ; then
   EMACS_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.12.2],
@@ -4084,15 +4066,51 @@ TREE_SITTER_OBJ=
 NEED_DYNLIB=no
 
 if test "${with_tree_sitter}" != "no"; then
-   dnl Tree-sitter 0.20.10 added ts_tree_cursor_goto_previous_sibling, we
-   dnl need it for a more efficient implementation for traversing the
-   dnl parse tree backwards (bug#80108).
-  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.20.10],
+   dnl Tree-sitter 0.20.2 added support to change the malloc it uses
+   dnl at runtime, we need that feature.  However, tree-sitter's
+   dnl Makefile has problems, until that's fixed, all tree-sitter
+   dnl libraries distributed are versioned 0.6.3.  We try to
+   dnl accept a tree-sitter library that has incorrect version as long
+   dnl as it supports changing malloc.
+  EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.20.2],
     [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
   if test "${HAVE_TREE_SITTER}" = yes; then
     AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
     NEED_DYNLIB=yes
+  else
+    EMACS_CHECK_MODULES([TREE_SITTER], [tree-sitter >= 0.6.3],
+      [HAVE_TREE_SITTER=yes], [HAVE_TREE_SITTER=no])
+    if test "${HAVE_TREE_SITTER}" = yes; then
+      OLD_CFLAGS=$CFLAGS
+      OLD_LIBS=$LIBS
+      CFLAGS="$CFLAGS $TREE_SITTER_CFLAGS"
+      LIBS="$TREE_SITTER_LIBS $LIBS"
+      AC_CHECK_FUNCS([ts_set_allocator])
+      CFLAGS=$OLD_CFLAGS
+      LIBS=$OLD_LIBS
+      if test "$ac_cv_func_ts_set_allocator" = yes; then
+        AC_DEFINE(HAVE_TREE_SITTER, 1, [Define if using tree-sitter.])
+	NEED_DYNLIB=yes
+      else
+        AC_MSG_ERROR([Tree-sitter library exists but its version is too old]);
+        TREE_SITTER_CFLAGS=
+        TREE_SITTER_LIBS=
+      fi
+    fi
   fi
+
+  dnl Now we check if ts_tree_cursor_goto_previous_sibling exists. This
+  dnl function is added in v0.20.10.
+  if test "${HAVE_TREE_SITTER}" = yes; then
+    OLD_CFLAGS=$CFLAGS
+    OLD_LIBS=$LIBS
+    CFLAGS="$CFLAGS $TREE_SITTER_CFLAGS"
+    LIBS="$TREE_SITTER_LIBS $LIBS"
+    AC_CHECK_FUNCS([ts_tree_cursor_goto_previous_sibling])
+    CFLAGS=$OLD_CFLAGS
+    LIBS=$OLD_LIBS
+  fi
+
   # Windows loads tree-sitter dynamically
   if test "${opsys}" = "mingw32"; then
     TREE_SITTER_LIBS=
@@ -7454,6 +7472,31 @@ if test "$REALLY_ANDROID" = "yes" && test "$with_libgmp" != "no"; then
   fi
 fi
 AC_SUBST([LIBGMP_CFLAGS])
+
+dnl SELinux is available for Linux kernel based systems only.
+dnl These include GNU/Linux and Android.
+dnl Configure SELinux after configuring Gnulib, which adjusts with_selinux.
+HAVE_LIBSELINUX=no
+LIBSELINUX_LIBS=
+LIBSELINUX_CFLAGS=
+if test "${with_selinux}" = "yes"; then
+   if test "$REALLY_ANDROID" = "yes"; then
+     ndk_SEARCH_MODULE([libselinux], [LIBSELINUX],
+       [HAVE_LIBSELINUX=yes])
+   else
+     AC_CHECK_LIB([selinux], [lgetfilecon],
+       [HAVE_LIBSELINUX=yes],
+       [HAVE_LIBSELINUX=no])
+   fi
+   if test "$HAVE_LIBSELINUX" = yes; then
+      AC_DEFINE([HAVE_LIBSELINUX], [1], [Define to 1 if using SELinux.])
+      if test "$REALLY_ANDROID" != "yes"; then
+        LIBSELINUX_LIBS=-lselinux
+      fi
+   fi
+fi
+AC_SUBST([LIBSELINUX_LIBS])
+AC_SUBST([LIBSELINUX_CFLAGS])
 
 # timer_getoverrun needs the same library as timer_settime
 OLD_LIBS=$LIBS

@@ -394,45 +394,61 @@ Reads a year, month and day."
 If MONTH, DAY (Bahá’í) is visible in the current calendar window,
 returns the corresponding Gregorian date in the form of the
 list (((month day year) STRING)).  Otherwise, returns nil."
-  ;; Since the calendar window shows 3 months at a time, there are
-  ;; approx +/- 45 days either side of the central month.
-  ;; Since the Bahai months have 19 days, this means up to +/- 3 months.
-  (let* ((bahai-date (calendar-bahai-from-absolute
-                      (calendar-absolute-from-gregorian
-                       (list displayed-month 15 displayed-year))))
-         (m (calendar-extract-month bahai-date))
-         (y (calendar-extract-year bahai-date))
-         date)
-    (unless (< m 1)                    ; Bahá’í calendar doesn't apply
-      ;; Cf holiday-fixed, holiday-islamic.
-      ;; With a +- 3 month calendar window, and 19 months per year,
-      ;; month 16 is special.  When m16 is central is when the
-      ;; end-of-year first appears.  When m1 is central, m16 is no
-      ;; longer visible.  Hence we can do a one-sided test to see if
-      ;; m16 is visible.  m16 is visible when the central month >= 13.
-      ;; To see if other months are visible we can shift the range
-      ;; accordingly.
-      (calendar-increment-month m y (- 16 month) 19)
-      (and (> m 12)                     ; Bahá’í date might be visible
-           (calendar-date-is-visible-p
-            (setq date (calendar-gregorian-from-absolute
-                        (calendar-bahai-to-absolute (list month day y)))))
-           (list (list date string))))))
+  (if (/= calendar-total-months 3)
+      (let ((dates (calendar-nongregorian-date-visible-p
+                    month day #'calendar-bahai-to-absolute
+                    #'calendar-bahai-from-absolute)))
+        (mapcar (lambda (d) (list d string)) dates))
+    ;; When the calendar displays 3 months, we can calculate only one
+    ;; local date, which corresponds to the center of the calendar
+    ;; window, instead of two local dates.  Specifically, there are
+    ;; approx +/- 45 days either side of the central month.  Since the
+    ;; Bahai months have 19 days, this means up to +/- 3 months.
+    (let* ((bahai-date (calendar-bahai-from-absolute
+                        (calendar-absolute-from-gregorian
+                         (list displayed-month 15 displayed-year))))
+           (m (calendar-extract-month bahai-date))
+           (y (calendar-extract-year bahai-date))
+           date)
+      (unless (< m 1)                    ; Bahá’í calendar doesn't apply
+        ;; Cf holiday-fixed, holiday-islamic.
+        ;; With a +- 3 month calendar window, and 19 months per year,
+        ;; month 16 is special.  When m16 is central is when the
+        ;; end-of-year first appears.  When m1 is central, m16 is no
+        ;; longer visible.  Hence we can do a one-sided test to see if
+        ;; m16 is visible.  m16 is visible when the central month >= 13.
+        ;; To see if other months are visible we can shift the range
+        ;; accordingly.
+        (calendar-increment-month m y (- 16 month) 19)
+        (and (> m 12)                     ; Bahá’í date might be visible
+             (calendar-date-is-visible-p
+              (setq date (calendar-gregorian-from-absolute
+                          (calendar-bahai-to-absolute (list month day y)))))
+             (list (list date string)))))))
 
 (autoload 'holiday-fixed "holidays")
+(declare-function holiday-filter-visible-calendar "holidays" (l))
 
 ;;;###holiday-autoload
 (defun holiday-bahai-new-year ()
   "Holiday entry for the Bahá’í New Year, if visible in the calendar window."
-  (let* ((bahai-year (- displayed-year (1- 1844)))
+  (pcase-let ((`(,_ ,y1 ,_ ,y2) (calendar-get-month-range)))
+    (holiday-filter-visible-calendar
+     (list
+      (holiday-bahai-new-year-1 y1)
+      (when (/= y1 y2)
+        (holiday-bahai-new-year-1 y2))))))
+
+(defun holiday-bahai-new-year-1 (y)
+  "Return the holiday entry of Bahá’í New Year in Gregorian year Y."
+  (let* ((bahai-year (- y (1- 1844)))
          (nawruz-date (if (< bahai-year calendar-bahai-reform-year)
                           ;; Pre-reform: always March 21
-                          (list 3 21 displayed-year)
+                          (list 3 21 y)
                         ;; Post-reform: calculate from equinox
-                        (calendar-bahai-nawruz-for-gregorian-year displayed-year))))
-    (when (calendar-date-is-visible-p nawruz-date)
-      (list (list nawruz-date
-                  (format "Bahá’í New Year (Naw-Ruz) %d" bahai-year))))))
+                        (calendar-bahai-nawruz-for-gregorian-year y))))
+    (list nawruz-date
+          (format "Bahá’í New Year (Naw-Ruz) %d" bahai-year))))
 
 ;;;###holiday-autoload
 (defun holiday-bahai-twin-holy-birthdays ()
@@ -441,25 +457,24 @@ The Birth of the Báb and Birth of Bahá’u’lláh are celebrated on
 consecutive days.  From 172 BE onwards, these dates are determined
 by the eighth new moon after Naw-Rúz; before that, they were fixed
 at October 20 and November 12."
-  (let* ((bahai-year (- displayed-year (1- 1844)))
-         result)
+  (pcase-let ((`(,_ ,y1 ,_ ,y2) (calendar-get-month-range)))
+    (holiday-filter-visible-calendar
+     (append
+      (holiday-bahai-twin-holy-birthdays-1 y1)
+      (when (/= y1 y2)
+        (holiday-bahai-twin-holy-birthdays-1 y2))))))
+
+(defun holiday-bahai-twin-holy-birthdays-1 (y)
+  "Return holiday entries of the Twin Holy Birthdays in Gregorian year Y."
+  (let ((bahai-year (- y (1- 1844))))
     (if (>= bahai-year calendar-bahai-reform-year)
         ;; Post-reform: calculate from eighth new moon
-        (let* ((dates (calendar-bahai-twin-holy-birthdays-for-year bahai-year))
-               (bab-date (car dates))
-               (baha-date (cadr dates)))
-          (when (calendar-date-is-visible-p bab-date)
-            (push (list bab-date "Birth of the Báb") result))
-          (when (calendar-date-is-visible-p baha-date)
-            (push (list baha-date "Birth of Bahá’u’lláh") result)))
+        (let ((dates (calendar-bahai-twin-holy-birthdays-for-year bahai-year)))
+          (list (list (car dates) "Birth of the Báb")
+                (list (cadr dates) "Birth of Bahá’u’lláh")))
       ;; Pre-reform: fixed dates
-      (let ((bab-date (list 10 20 displayed-year))
-            (baha-date (list 11 12 displayed-year)))
-        (when (calendar-date-is-visible-p bab-date)
-          (push (list bab-date "Birth of the Báb") result))
-        (when (calendar-date-is-visible-p baha-date)
-          (push (list baha-date "Birth of Bahá’u’lláh") result))))
-    (nreverse result)))
+      (list (list (list 10 20 y) "Birth of the Báb")
+            (list (list 11 12 y) "Birth of Bahá’u’lláh")))))
 
 ;;;###holiday-autoload
 (defun holiday-bahai-ridvan (&optional all)

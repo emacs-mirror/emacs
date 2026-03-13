@@ -2231,6 +2231,7 @@ The `temp-buffer-window-setup-hook' hook is called."
   `(help--window-setup ,buffer-or-name (lambda () ,@body)))
 
 (defun help--window-setup (buffer callback)
+  (setq help-window-old-frame (selected-frame))
   ;; Make `help-window-point-marker' point nowhere.  The only place
   ;; where this should be set to a buffer position is within BODY.
   (set-marker help-window-point-marker nil)

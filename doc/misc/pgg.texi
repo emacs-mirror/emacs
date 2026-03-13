@@ -4,6 +4,7 @@
 
 @set VERSION 0.1
 @settitle PGG @value{VERSION}
+@documentlanguage en
 @include docstyle.texi
 
 @copying

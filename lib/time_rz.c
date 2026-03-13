@@ -146,7 +146,7 @@ save_abbr (timezone_t tz, struct tm *tm)
               break;
             }
 
-          zone_copy += strlen (zone_copy) + 1;
+          zone_copy = strnul (zone_copy) + 1;
           if (!*zone_copy && tz->next)
             {
               tz = tz->next;

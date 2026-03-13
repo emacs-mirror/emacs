@@ -657,7 +657,7 @@ Point is moved to beginning of the buffer."
                       "{\n \"c\": 3,\n \"b\": 2,\n \"a\": 1}")))))
 
 (ert-deftest test-json-encode-hash-table-sort ()
-  (let ((json-encoding-object-sort-predicate #'string<)
+  (let ((json-encoding-object-sort-predicate #'value<)
         (json-encoding-pretty-print nil))
     (pcase-dolist (`(,in . ,out)
                    '((#s(hash-table) . "{}")

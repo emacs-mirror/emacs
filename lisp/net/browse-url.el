@@ -310,7 +310,12 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   (or (car candidates) default))
 
 (defcustom browse-url-firefox-program
-  (browse-url--find-executable '("icecat" "iceweasel") "firefox")
+  (browse-url--find-executable '("floorp"
+                                 "icecat"
+                                 "iceweasel"
+                                 "librewolf"
+                                 "zen")
+                               "firefox")
   "The name by which to invoke Firefox or a variant of it."
   :type 'string)
 

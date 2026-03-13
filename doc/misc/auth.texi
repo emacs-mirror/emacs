@@ -4,6 +4,7 @@
 
 @setfilename ../../info/auth.info
 @settitle Emacs auth-source Library @value{VERSION}
+@documentlanguage en
 @include docstyle.texi
 
 @copying

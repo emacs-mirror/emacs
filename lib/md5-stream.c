@@ -63,7 +63,7 @@ md5_stream (FILE *stream, void *resblock)
     case -EIO: return 1;
     }
 
-  char *buffer = malloc (BLOCKSIZE + 72);
+  char *buffer = malloc (BLOCKSIZE);
   if (!buffer)
     return 1;
 

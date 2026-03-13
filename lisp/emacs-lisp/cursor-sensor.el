@@ -155,10 +155,11 @@ By convention, this is a list of symbols where each symbol stands for the
         (let* ((point (window-point window))
                ;; It's often desirable to make the
                ;; cursor-sensor-functions property non-sticky on both
-               ;; ends, so we can't use `get-pos-property' because it
+               ;; ends, so we can't use just `get-pos-property' because it
                ;; might never see it.
                ;; FIXME: Combine properties from covering overlays?
-               (new (or (get-char-property point 'cursor-sensor-functions)
+               (new (or (get-pos-property point 'cursor-sensor-functions)
+                        (get-char-property point 'cursor-sensor-functions)
                         (unless (<= (point-min) point)
                           (get-char-property (1- point)
                                              'cursor-sensor-functions))))
@@ -181,10 +182,10 @@ By convention, this is a list of symbols where each symbol stands for the
                       "Non-nil if F is missing somewhere between START and END."
                       (let ((pos start)
                             (missing nil))
-                        (while (< pos end)
-                          (setq pos (next-single-char-property-change
-                                     pos 'cursor-sensor-functions
-                                     nil end))
+                        (while (< (setq pos (next-single-char-property-change
+                                             pos 'cursor-sensor-functions
+                                             nil end))
+                                  end)
                           (unless (memq f (get-char-property
                                            pos 'cursor-sensor-functions))
                             (setq missing t)))

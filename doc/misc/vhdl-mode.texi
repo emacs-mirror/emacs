@@ -2,6 +2,7 @@
 
 @setfilename ../../info/vhdl-mode.info
 @settitle VHDL Mode, an Emacs mode for editing VHDL code
+@documentlanguage en
 @include docstyle.texi
 
 @c Adapted from the VHDL Mode texinfo manual version 2 by Rodney J. Whitby.

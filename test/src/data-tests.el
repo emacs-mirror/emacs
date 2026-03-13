@@ -23,6 +23,10 @@
 
 (require 'cl-lib)
 
+(declare-function subr-native-comp-unit "data.c" (subr))
+(declare-function native-comp-unit-file "data.c" (comp-unit))
+(declare-function native-comp-unit-set-file "data.c" (comp-unit new-file))
+
 (defconst data-tests--float-greater-than-fixnums (+ 1.0 most-positive-fixnum)
   "A floating-point value that is greater than all fixnums.
 It is also as small as conveniently possible, to make the tests sharper.
@@ -30,6 +34,159 @@ Adding 1.0 to `most-positive-fixnum' should suffice on all
 practical Emacs platforms, since the result is a power of 2 and
 this is exactly representable and is greater than
 `most-positive-fixnum', which is just less than a power of 2.")
+
+(defvar data-tests--special-var nil
+  "Variable used to test `special-variable-p'.")
+
+(defvar data-tests--watch-var nil
+  "Variable used to test variable watchers.")
+
+(defvar data-tests--local-if-set-var :default
+  "Variable used to test local-variable-if-set-p and binding locus.")
+
+(ert-deftest data-tests-type-predicates ()
+  (let ((sym-with-pos (position-symbol 'data-tests--sym 3)))
+    (should (bare-symbol-p 'data-tests--sym))
+    (should-not (bare-symbol-p sym-with-pos))
+    (should-not (bare-symbol-p 42)))
+  (should (char-or-string-p ?a))
+  (should (char-or-string-p "a"))
+  (should-not (char-or-string-p 'a))
+  (should-not (char-or-string-p '(a)))
+  (let ((vec [1 2])
+        (ct (make-char-table 'data-tests--ct))
+        (bv (make-bool-vector 3 nil)))
+    (should (vector-or-char-table-p vec))
+    (should (vector-or-char-table-p ct))
+    (should-not (vector-or-char-table-p bv))
+    (should-not (vector-or-char-table-p "x")))
+  (let ((bv (bool-vector t nil t)))
+    (should (bool-vector-p bv))
+    (should-not (bool-vector-p [t nil]))
+    (should-not (bool-vector-p "t")))
+  (let ((a (bool-vector t nil t))
+        (b (bool-vector t t t))
+        (c (bool-vector nil nil t)))
+    (should (bool-vector-subsetp a b))
+    (should-not (bool-vector-subsetp b a))
+    (should (bool-vector-subsetp c b))
+    (should-error (bool-vector-subsetp a (bool-vector t nil))))
+  (let* ((interp (eval '(lambda (x) x)))
+         (bytec (byte-compile (eval '(lambda (x) x)))))
+    (should (closurep interp))
+    (should-not (closurep #'car))
+    (should (interpreted-function-p interp))
+    (should-not (interpreted-function-p bytec))
+    (should-not (interpreted-function-p #'car)))
+  (should (subrp (symbol-function 'car)))
+  (should (subrp (symbol-function '+)))
+  (should-not (subrp (lambda (x) x)))
+  (should-not (subrp 'car))
+  (should (special-variable-p 'data-tests--special-var))
+  (should (special-variable-p 'standard-output))
+  (should-not (special-variable-p 'data-tests--not-special)))
+
+(ert-deftest data-tests-basic-predicates ()
+  (should-not (nlistp nil))
+  (should-not (nlistp '(1 2)))
+  (should (nlistp 3))
+  (should (nlistp "x"))
+  (let ((sym-with-pos (position-symbol 'data-tests--sym 42)))
+    (should (symbol-with-pos-p sym-with-pos))
+    (should-not (symbol-with-pos-p 'data-tests--sym))
+    (should (= (symbol-with-pos-pos sym-with-pos) 42))
+    (should (eq (remove-pos-from-symbol sym-with-pos) 'data-tests--sym))
+    (should (eq (remove-pos-from-symbol 'data-tests--sym) 'data-tests--sym)))
+  (should (arrayp "abc"))
+  (should (arrayp [1 2]))
+  (should-not (arrayp '(1 2)))
+  (should (sequencep '(1 2)))
+  (should (sequencep nil))
+  (should (sequencep "abc"))
+  (should (sequencep [1 2]))
+  (should-not (sequencep 'data-tests--sym))
+  (with-temp-buffer
+    (should (markerp (point-marker)))
+    (should-not (markerp 1))))
+
+(ert-deftest data-tests-subr-introspection ()
+  (should (equal (subr-arity (symbol-function 'car)) '(1 . 1)))
+  (should (equal (subr-arity (symbol-function 'cons)) '(2 . 2)))
+  (should (equal (subr-arity (symbol-function 'list)) '(0 . many)))
+  (should (equal (subr-arity (symbol-function 'if)) '(2 . unevalled)))
+  (should (equal (subr-name (symbol-function 'car)) "car"))
+  (should (equal (subr-name (symbol-function 'cons)) "cons"))
+  (should (equal (subr-name (symbol-function 'if)) "if")))
+
+(ert-deftest data-tests-symbol-plist ()
+  (let* ((sym 'data-tests--plist-sym)
+         (orig (symbol-plist sym)))
+    (unwind-protect
+        (progn
+          (setplist sym '(a 1 b 2))
+          (should (equal (symbol-plist sym) '(a 1 b 2))))
+      (setplist sym orig))))
+
+(ert-deftest data-tests-subr-native-lambda-list ()
+  (let ((res (subr-native-lambda-list (symbol-function 'car))))
+    (should (or (eq res t) (listp res)))))
+
+(ert-deftest data-tests-native-comp-unit ()
+  (skip-unless (fboundp 'subr-native-comp-unit))
+  (let ((unit (subr-native-comp-unit (symbol-function 'symbol-file))))
+    (skip-unless unit)
+    (let ((orig (native-comp-unit-file unit)))
+      (native-comp-unit-set-file unit "data-tests-unit")
+      (should (equal (native-comp-unit-file unit) "data-tests-unit"))
+      (native-comp-unit-set-file unit orig))))
+
+(ert-deftest data-tests-command-modes ()
+  (defun data-tests--command () (interactive) t)
+  (unwind-protect
+      (progn
+        (put 'data-tests--command 'command-modes '(data-tests-mode))
+        (should (equal (command-modes 'data-tests--command) '(data-tests-mode))))
+    (put 'data-tests--command 'command-modes nil)
+    (fmakunbound 'data-tests--command)))
+
+(ert-deftest data-tests-get-variable-watchers ()
+  (let ((watcher (lambda (&rest _args) nil)))
+    (unwind-protect
+        (progn
+          (add-variable-watcher 'data-tests--watch-var watcher)
+          (should (member watcher (get-variable-watchers 'data-tests--watch-var))))
+      (remove-variable-watcher 'data-tests--watch-var watcher)
+      (should-not (get-variable-watchers 'data-tests--watch-var)))))
+
+(ert-deftest data-tests-local-variable-if-set-p ()
+  (with-temp-buffer
+    (should-not (local-variable-if-set-p 'data-tests--local-if-set-var))
+    (setq-local data-tests--local-if-set-var :local)
+    (should (local-variable-if-set-p 'data-tests--local-if-set-var))))
+
+(ert-deftest data-tests-variable-binding-locus ()
+  (with-temp-buffer
+    (should-not (variable-binding-locus 'data-tests--local-if-set-var))
+    (setq-local data-tests--local-if-set-var :local)
+    (should (eq (variable-binding-locus 'data-tests--local-if-set-var)
+                (current-buffer)))))
+
+(ert-deftest data-tests-indirect-function ()
+  (defun data-tests--if-target () 'ok)
+  (defalias 'data-tests--if-alias 'data-tests--if-target)
+  (unwind-protect
+      (progn
+        (should (eq (indirect-function 'data-tests--if-alias)
+                    (symbol-function 'data-tests--if-target)))
+        (let ((fun (lambda (x) x)))
+          (should (eq (indirect-function fun) fun))))
+    (fmakunbound 'data-tests--if-alias)
+    (fmakunbound 'data-tests--if-target)))
+
+(ert-deftest data-tests-byteorder ()
+  (let ((bo (byteorder)))
+    (should (integerp bo))
+    (should (memq bo (list ?B ?l)))))
 
 (ert-deftest data-tests-= ()
   (should-error (=))
@@ -695,11 +852,18 @@ comparing the subr with a much slower Lisp implementation."
     (should (/= b-1 0.0e+NaN))))
 
 (ert-deftest data-tests-+ ()
+  (should (= (+) 0))
+  (should (= (+ 5) 5))
   (should-not (fixnump (+ most-positive-fixnum most-positive-fixnum)))
   (should (> (+ most-positive-fixnum most-positive-fixnum) most-positive-fixnum))
   (should (eq (- (+ most-positive-fixnum most-positive-fixnum)
                  (+ most-positive-fixnum most-positive-fixnum))
               0)))
+
+(ert-deftest data-tests-* ()
+  (should (= (*) 1))
+  (should (= (* 7) 7))
+  (should (= (* 2 3 4) 24)))
 
 (ert-deftest data-tests-/ ()
   (let* ((x (* most-positive-fixnum 8))
@@ -748,6 +912,26 @@ comparing the subr with a much slower Lisp implementation."
 (ert-deftest data-tests-logcount-2 ()
   (should (= (logcount (read "#xffffffffffffffffffffffffffffffff")) 128)))
 
+(ert-deftest data-tests-logcount-negative-bignum ()
+  (let ((n (- (ash 1 200))))
+    (should (bignump n))
+    (should (= (logcount n) (logcount (lognot n))))))
+
+(ert-deftest data-tests-lognot-bignum ()
+  (let ((n (ash 1 200))
+        (m (- (ash 1 180))))
+    (should (bignump n))
+    (should (bignump m))
+    (should (= (lognot n) (- -1 n)))
+    (should (= (lognot m) (- -1 m)))))
+
+(ert-deftest data-tests-bignum-bit-identities ()
+  (let ((n (1+ most-positive-fixnum)))
+    (should (bignump n))
+    (should (= (logand n (lognot n)) 0))
+    (should (= (logior n (lognot n)) -1))
+    (should (= (logxor n n) 0))))
+
 (ert-deftest data-tests-logior ()
   (should (= -1 (logior -1) (logior -1 -1)))
   (should (= -1 (logior most-positive-fixnum most-negative-fixnum))))
@@ -780,6 +964,21 @@ comparing the subr with a much slower Lisp implementation."
     (data-tests-check-sign (mod -1 3) (mod nb1 b3))
     (data-tests-check-sign (% -1 -3) (% nb1 nb3))
     (data-tests-check-sign (mod -1 -3) (mod nb1 nb3))))
+
+(ert-deftest data-tests-bignum-remainder-invariants ()
+  (let* ((b (1+ most-positive-fixnum))
+         (d 7)
+         (r (mod b d)))
+    (should (= b (+ (* d (floor (/ b d))) r)))
+    (should (<= 0 r))
+    (should (< r (abs d))))
+  (let* ((b (- (1+ most-positive-fixnum)))
+         (d 7)
+         (q (/ b d))
+         (r (% b d)))
+    (should (= b (+ (* q d) r)))
+    (should (<= r 0))
+    (should (> r (- (abs d))))))
 
 (ert-deftest data-tests-mod-0 ()
   (dolist (num (list (1- most-negative-fixnum) -1 0 1

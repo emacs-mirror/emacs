@@ -126,8 +126,14 @@ case return FORM unchanged."
              form
           (apply handler form (cdr form)))
       (error
-       (message "Warning: Optimization failure for %S: Handler: %S\n%S"
-                (car form) handler err)
+       ;; Don't complain if there's an arity error when calling the handler
+       ;; itself as that is likely the just wrong number of arguments
+       ;; passed to the function; let the compiler take care of it.
+       (unless (and (eq (car err) 'wrong-number-of-arguments)
+                    (eq (indirect-function (nth 1 err))
+                        (indirect-function handler)))
+         (message "Warning: Optimization failure for %S: Handler: %S\n%S"
+                  (car form) handler err))
        form))))
 
 (defun macroexp--funcall-if-compiled (_form)

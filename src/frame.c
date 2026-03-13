@@ -2749,57 +2749,81 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	do_switch_frame (mru_rooted_frame (f), 0, 1, Qnil);
       else
 	{
-	  Lisp_Object tail;
-	  eassume (CONSP (Vframe_list));
+	  frame1 = Qnil;
 
-	  /* Look for another visible frame on the same terminal.
-	     Do not call next_frame here because it may loop forever.
-	     See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=15025.  */
-	  FOR_EACH_FRAME (tail, frame1)
+	  if (after_delete_frame_select_mru_frame
+	      && !EQ (force, Qnoelisp))
 	    {
-	      struct frame *f1 = XFRAME (frame1);
+	      /* Find the most recently used visible frame among all
+		 frames on the same terminal as FRAME, excluding FRAME
+		 which we are about to delete.  */
+	      frame1 = safe_calln (Qget_mru_frame, Qvisible, Qnil, frame);
+	      if (!NILP (frame1))
+		{
+		  struct frame *f1 = XFRAME (frame1);
 
-	      if (!EQ (frame, frame1)
-		  && !FRAME_TOOLTIP_P (f1)
-		  && FRAME_TERMINAL (f) == FRAME_TERMINAL (f1)
-		  && FRAME_VISIBLE_P (f1))
-		break;
+		  if (FRAME_TOOLTIP_P (f1)
+		      || FRAME_TERMINAL (f) != FRAME_TERMINAL (f1)
+		      || !FRAME_VISIBLE_P (f1)
+		      || EQ (frame1, frame))
+		    frame1 = Qnil;
+		}
 	    }
 
-	  /* If there is none, find *some* other frame.  */
-	  if (NILP (frame1) || EQ (frame1, frame))
+	  if (NILP (frame1))
 	    {
+	      Lisp_Object tail;
+	      eassume (CONSP (Vframe_list));
+
+	      /* Look for another visible frame on the same terminal.
+		 Do not call next_frame here because it may loop forever.
+		 See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=15025.  */
 	      FOR_EACH_FRAME (tail, frame1)
 		{
 		  struct frame *f1 = XFRAME (frame1);
 
 		  if (!EQ (frame, frame1)
-		      && FRAME_LIVE_P (f1)
-		      && !FRAME_TOOLTIP_P (f1))
-		    {
-		      if (FRAME_TERMCAP_P (f1) || FRAME_MSDOS_P (f1))
-			{
-			  Lisp_Object top_frame = FRAME_TTY (f1)->top_frame;
+		      && !FRAME_TOOLTIP_P (f1)
+		      && FRAME_TERMINAL (f) == FRAME_TERMINAL (f1)
+		      && FRAME_VISIBLE_P (f1))
+		    break;
+		}
 
-			  if (!EQ (top_frame, frame))
-			    frame1 = top_frame;
+	      /* If there is none, find *some* other frame.  */
+	      if (NILP (frame1) || EQ (frame1, frame))
+		{
+		  FOR_EACH_FRAME (tail, frame1)
+		    {
+		      struct frame *f1 = XFRAME (frame1);
+
+		      if (!EQ (frame, frame1)
+			  && FRAME_LIVE_P (f1)
+			  && !FRAME_TOOLTIP_P (f1))
+			{
+			  if (FRAME_TERMCAP_P (f1) || FRAME_MSDOS_P (f1))
+			    {
+			      Lisp_Object top_frame = FRAME_TTY (f1)->top_frame;
+
+			      if (!EQ (top_frame, frame))
+				frame1 = top_frame;
+			    }
+			  break;
 			}
-		      break;
 		    }
 		}
-	    }
 #ifdef NS_IMPL_COCOA
-	  else
-	    {
-	      /* Under NS, there is no system mechanism for choosing a new
-		 window to get focus -- it is left to application code.
-		 So the portion of THIS application interfacing with NS
-		 needs to make the frame we switch to the key window.  */
-	      struct frame *f1 = XFRAME (frame1);
-	      if (FRAME_NS_P (f1))
-		ns_make_frame_key_window (f1);
-	    }
+	      else
+		{
+		  /* Under NS, there is no system mechanism for choosing a new
+		     window to get focus -- it is left to application code.
+		     So the portion of THIS application interfacing with NS
+		     needs to make the frame we switch to the key window.  */
+		  struct frame *f1 = XFRAME (frame1);
+		  if (FRAME_NS_P (f1))
+		    ns_make_frame_key_window (f1);
+		}
 #endif
+	    }
 
 	  do_switch_frame (frame1, 0, 1, Qnil);
 	  sf = SELECTED_FRAME ();
@@ -7194,6 +7218,7 @@ syms_of_frame (void)
   DEFSYM (Qframe_monitor_attributes, "frame-monitor-attributes");
   DEFSYM (Qwindow__pixel_to_total, "window--pixel-to-total");
   DEFSYM (Qmake_initial_minibuffer_frame, "make-initial-minibuffer-frame");
+  DEFSYM (Qget_mru_frame, "get-mru-frame");
   DEFSYM (Qexplicit_name, "explicit-name");
   DEFSYM (Qheight, "height");
   DEFSYM (Qicon, "icon");
@@ -7765,6 +7790,13 @@ The default is \\+`inhibit' in NS builds and nil everywhere else.  */);
 #else
   alter_fullscreen_frames = Qnil;
 #endif
+
+  DEFVAR_BOOL ("after-delete-frame-select-mru-frame",
+	       after_delete_frame_select_mru_frame,
+	       doc: /* Non-nil means `delete-frame' selects most recently used frame.
+If this is nil, `delete-frame' will select the oldest visible frame on
+the same terminal.  */);
+  after_delete_frame_select_mru_frame = true;
 
   defsubr (&Sframe_id);
   defsubr (&Sframep);

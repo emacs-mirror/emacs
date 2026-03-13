@@ -378,6 +378,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				  "26.1")
 	     (tooltip-reuse-hidden-frame tooltip boolean "26.1")
              (use-system-tooltips tooltip boolean "29.1")
+             (after-delete-frame-select-mru-frame frames boolean "31.1")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; image.c
@@ -425,6 +426,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			(directory :format "%v"))))
 	     (load-prefer-newer lisp boolean "24.4")
              (record-all-keys keyboard boolean)
+             (multiple-terminals-merge-keyboards keyboard boolean "31.1")
 	     ;; minibuf.c
 	     (minibuffer-follows-selected-frame
               minibuffer (choice (const :tag "Always" t)

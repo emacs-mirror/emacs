@@ -9459,10 +9459,10 @@ for displaying the new window from the window to split.  Deleting and
 resizing a window preferably resizes one adjacent window only.
 
 If this variable is t, splitting a window tries to get the space
-proportionally from all windows in the same combination.  This also
-allows splitting a window that is otherwise too small or of fixed size.
-Resizing and deleting a window proportionally resize all windows in the
-same combination.
+proportionally from all windows in the same combination.  This means
+that one can also split a window that is otherwise too small or of fixed
+size.  Resizing and deleting a window then proportionally resizes all
+windows in the same combination.
 
 Other values are reserved for future use.
 

@@ -374,6 +374,22 @@ expressions works for identifiers starting with period."
             (error err))))
     (should (eq inner-error outer-error))))
 
+(ert-deftest eval-tests--condition-case-basic ()
+  (should (equal (condition-case err
+                     42
+                   (error (list 'err err)))
+                 42))
+  (should (equal (condition-case err
+                     (signal 'wrong-type-argument '(integerp "x"))
+                   (wrong-type-argument (list 'wt err))
+                   (error (list 'err err)))
+                 '(wt (wrong-type-argument integerp "x"))))
+  (should (equal (condition-case err
+                     (signal 'error '("boom"))
+                   (wrong-type-argument (list 'wt err))
+                   (error (list 'err err)))
+                 '(err (error "boom")))))
+
 (ert-deftest eval-bad-specbind ()
   (should-error (eval '(let (((a b) 23)) (+ 1 2)) t)
                 :type 'wrong-type-argument)
@@ -382,5 +398,161 @@ expressions works for identifiers starting with period."
   (should-error (eval '(condition-case (a b) (+ 1 2) (:success 'ok)))
                 :type 'wrong-type-argument)
   (should-error (eval '(funcall '(lambda ((a b) 3.15) 84) 5 4))))
+
+(ert-deftest eval-tests--make-interpreted-closure ()
+  (let* ((env (list (cons 'y 40)))
+         (closure (make-interpreted-closure '(x)
+                                            (list '(+ x y))
+                                            env
+                                            "doc"
+                                            nil)))
+    (should (closurep closure))
+    (should (= (funcall closure 2) 42))
+    (should (equal (documentation closure t) "doc"))
+    (should-not (commandp closure)))
+  (let ((closure (make-interpreted-closure '()
+                                           (list '(+ 1 1))
+                                           nil
+                                           nil
+                                           '(interactive "p"))))
+    (should (commandp closure))
+    (should (equal (interactive-form closure) '(interactive "p")))))
+
+(ert-deftest eval-tests--internal-define-uninitialized-variable ()
+  (let ((sym (make-symbol "eval-tests--uninit-var")))
+    (should-not (boundp sym))
+    (internal--define-uninitialized-variable sym "doc")
+    (should-not (boundp sym))
+    (should (special-variable-p sym))
+    (should (equal (documentation-property sym 'variable-documentation) "doc")))
+  (let ((sym (make-symbol "eval-tests--uninit-var-keep")))
+    (set sym 'value)
+    (internal--define-uninitialized-variable sym "doc")
+    (should (eq (symbol-value sym) 'value))))
+
+(ert-deftest eval-tests--defvar-1 ()
+  (let ((sym (make-symbol "eval-tests--defvar-1")))
+    (defvar-1 sym 'init "doc")
+    (should (eq (symbol-value sym) 'init))
+    (should (special-variable-p sym))
+    (should (equal (documentation-property sym 'variable-documentation) "doc"))
+    (set sym 'old)
+    (defvar-1 sym 'new "doc2")
+    (should (eq (symbol-value sym) 'old))))
+
+(ert-deftest eval-tests--defconst-1 ()
+  (let ((sym (make-symbol "eval-tests--defconst-1")))
+    (set sym 'old)
+    (defconst-1 sym 'new "doc")
+    (should (eq (symbol-value sym) 'new))
+    (should (special-variable-p sym))
+    (should (equal (documentation-property sym 'variable-documentation) "doc"))
+    (should (eq (get sym 'risky-local-variable) t))))
+
+(ert-deftest eval-tests--internal-make-var-non-special ()
+  (let ((sym (make-symbol "eval-tests--non-special")))
+    (defvar-1 sym 'init nil)
+    (should (special-variable-p sym))
+    (internal-make-var-non-special sym)
+    (should-not (special-variable-p sym))))
+
+(ert-deftest eval-tests--handler-bind-1 ()
+  (let (seen)
+    (should (equal (catch 'hb
+                     (handler-bind-1
+                      (lambda () (error "boom"))
+                      'error
+                      (lambda (err)
+                        (setq seen err)
+                        (throw 'hb 'handled))))
+                   'handled))
+    (should (consp seen))
+    (should (eq (car seen) 'error)))
+  (let (called)
+    (should-error
+     (handler-bind-1
+      (lambda () (error "boom"))
+      'error
+      (lambda (_err) (setq called t) nil)))
+    (should called))
+  (should (equal (handler-bind-1 (lambda () 'ok)
+                                 'error
+                                 (lambda (_err) 'bad))
+                 'ok))
+  (should-error (handler-bind-1 (lambda () 'ok) 'error)))
+
+(ert-deftest eval-tests--run-hook-wrapped ()
+  (let* ((hook (make-symbol "eval-tests--hook"))
+         (calls nil)
+         (wrapper (lambda (fun &rest args)
+                    (apply fun args))))
+    (set hook (list (lambda (x) (push (list 'first x) calls) nil)
+                    (lambda (x) (push (list 'second x) calls) 'stop)
+                    (lambda (x) (push (list 'third x) calls) t)))
+    (should (eq (run-hook-wrapped hook wrapper 42) 'stop))
+    (should (equal (nreverse calls) '((first 42) (second 42))))))
+
+(ert-deftest eval-tests--debugger-trap ()
+  (should-not (debugger-trap)))
+
+(defun eval-tests--backtrace-frame-helper (a b)
+  (ignore a b)
+  (backtrace-frame--internal
+   (lambda (evald func args flags)
+     (list evald func args flags))
+   0 'eval-tests--backtrace-frame-helper))
+
+(ert-deftest eval-tests--backtrace-frame--internal ()
+  (let ((result (eval-tests--backtrace-frame-helper 1 2)))
+    (should (eq (car result) t))
+    (should (eq (nth 1 result) 'eval-tests--backtrace-frame-helper))
+    (should (equal (nth 2 result) '(1 2)))
+    (should (null (nth 3 result)))))
+
+(defun eval-tests--backtrace-debug-helper ()
+  (backtrace-debug 0 t 'eval-tests--backtrace-debug-helper)
+  (unwind-protect
+      (backtrace-frame--internal
+       (lambda (_evald _func _args flags) flags)
+       0 'eval-tests--backtrace-debug-helper)
+    (backtrace-debug 0 nil 'eval-tests--backtrace-debug-helper)))
+
+(ert-deftest eval-tests--backtrace-debug ()
+  (let ((flags (eval-tests--backtrace-debug-helper)))
+    (should (eq (plist-get flags :debug-on-exit) t))))
+
+(ert-deftest eval-tests--backtrace-frames-from-thread ()
+  (skip-unless (fboundp 'current-thread))
+  (let* ((frames (backtrace--frames-from-thread (current-thread)))
+         (found nil))
+    (dolist (frame frames)
+      (when (and (consp frame)
+                 (memq (car frame) '(t nil))
+                 (functionp (cadr frame)))
+        (setq found t)))
+    (should (listp frames))
+    (should found)))
+
+(defvar eval-tests--backtrace-eval-dyn)
+(defun eval-tests--backtrace-eval-helper ()
+  (backtrace-eval 'eval-tests--backtrace-eval-dyn 1 'backtrace-eval))
+
+(ert-deftest eval-tests--backtrace-eval ()
+  (let ((eval-tests--backtrace-eval-dyn 42))
+    ;; Ensure the binding is established before the target frame.
+    ;; backtrace-eval temporarily unrewinds the specpdl to the frame it
+    ;; evaluates in, which would otherwise undo this binding.
+    (should (= (eval-tests--backtrace-eval-helper) 42))))
+
+(defvar eval-tests--backtrace-locals-dyn)
+(defun eval-tests--backtrace-locals-helper ()
+  (let ((eval-tests--backtrace-locals-dyn 7))
+    (backtrace--locals 1 'backtrace--locals)))
+
+(ert-deftest eval-tests--backtrace-locals ()
+  (let* ((locals (eval-tests--backtrace-locals-helper))
+         (entry (assq 'eval-tests--backtrace-locals-dyn locals)))
+    (should entry)
+    (should (eq (cdr entry) 7))))
 
 ;;; eval-tests.el ends here

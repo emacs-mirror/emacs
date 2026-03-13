@@ -253,6 +253,21 @@ VC commands are globally reachable under the prefix \\[vc-prefix-map]:
   "Get per-file VC PROPERTY for FILE."
   (get (intern (expand-file-name file) vc-file-prop-obarray) property))
 
+(defun vc--file-getinheprop (file property)
+  "Get VC PROPERTY for FILE, including inherited properties.
+An inherited property is a property of a directory containing FILE.
+(The property must have been set on the file name of the directory
+interpreted as a directory, i.e., passing the result of calling
+`file-name-as-directory' on the file name to `vc-file-setprop'.)
+Properties of FILE itself override any inherited properties, and
+properties further down the directory hierarchy override ones higher up."
+  (or (vc-file-getprop file property)
+      (catch 'done
+        (locate-dominating-file file
+                                (lambda (f)
+                                  (and-let* ((v (vc-file-getprop f property)))
+                                    (throw 'done v)))))))
+
 (defun vc-file-clearprops (file)
   "Clear all VC properties of FILE."
   (if (boundp 'vc-parent-buffer)
@@ -290,16 +305,18 @@ if that doesn't exist either, return nil."
       (require (intern (concat "vc-" (downcase (symbol-name backend)))))
       (if (fboundp f) f
 	(let ((def (vc-make-backend-sym 'default fun)))
+          ;; Load vc.el, for default implementations, if needed.
+	  (require 'vc)
 	  (if (fboundp def) (cons def backend) nil))))))
 
 (defun vc-call-backend (backend function-name &rest args)
-  "Call for BACKEND the implementation of FUNCTION-NAME with the given ARGS.
-Calls
+  "Call BACKEND's implementation of FUNCTION-NAME with arguments ARGS.
+Does
 
     (apply #\\='vc-BACKEND-FUN ARGS)
 
 if vc-BACKEND-FUN exists (after trying to find it in vc-BACKEND.el)
-and else calls
+and otherwise does
 
     (apply #\\='vc-default-FUN BACKEND ARGS)
 
@@ -1018,10 +1035,10 @@ In the latter case, VC mode is deactivated for this buffer."
   "O"   #'vc-root-log-outgoing
   "M L" #'vc-log-mergebase
   "M D" #'vc-diff-mergebase
-  "T l" #'vc-log-outgoing-base
-  "T L" #'vc-root-log-outgoing-base
-  "T =" #'vc-diff-outgoing-base
-  "T D" #'vc-root-diff-outgoing-base
+  "T l" #'vc-log-outstanding
+  "T L" #'vc-root-log-outstanding
+  "T =" #'vc-diff-outstanding
+  "T D" #'vc-root-diff-outstanding
   "m"   #'vc-merge
   "r"   #'vc-retrieve-tag
   "s"   #'vc-create-tag

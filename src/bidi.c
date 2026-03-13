@@ -1335,7 +1335,7 @@ bidi_fetch_char (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t *disp_pos,
 	     Replacement Character.  */
 	  ch = OBJECT_REPLACEMENT_CHARACTER;
 	}
-      disp_end_pos = compute_display_string_end (*disp_pos, string);
+      disp_end_pos = compute_display_string_end (*disp_pos, string, w);
       if (disp_end_pos < 0)
 	{
 	  /* Somebody removed the display string from the buffer

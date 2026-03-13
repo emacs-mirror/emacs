@@ -3524,7 +3524,11 @@ decode_coding_iso_2022 (struct coding_system *coding)
 	  if (c1 == ISO_CODE_ESC)
 	    {
 	      if (src + 1 >= src_end)
-		goto no_more_source;
+		{
+		  record_conversion_result
+		    (coding, CODING_RESULT_INSUFFICIENT_SRC);
+		  goto no_more_source;
+		}
 	      *charbuf++ = ISO_CODE_ESC;
 	      char_offset++;
 	      if (src[0] == '%' && src[1] == '@')

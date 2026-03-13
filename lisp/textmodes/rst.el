@@ -812,9 +812,9 @@ Return ADO if so or signal an error otherwise."
   "Return sublist of HDRS whose car's adornment equals that of SELF or nil."
   (cl-check-type self rst-Hdr)
   (let ((ado (rst-Hdr-ado self)))
-    (cl-member-if (lambda (hdr)
-                    (rst-Ado-equal ado (rst-Hdr-ado hdr)))
-		  hdrs)))
+    (member-if (lambda (hdr)
+                 (rst-Ado-equal ado (rst-Hdr-ado hdr)))
+	       hdrs)))
 
 (defun rst-Hdr-ado-map (selves)
   ;; testcover: ok.

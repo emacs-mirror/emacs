@@ -121,28 +121,30 @@ extern void __md5_init_ctx (struct md5_ctx *ctx) __THROW;
    initialization function update the context for the next LEN bytes
    starting at BUFFER.
    It is necessary that LEN is a multiple of 64!!! */
-extern void __md5_process_block (const void *buffer, size_t len,
-                                 struct md5_ctx *ctx) __THROW;
+extern void __md5_process_block (void const *restrict buffer, size_t len,
+                                 struct md5_ctx *restrict ctx) __THROW;
 
 /* Starting with the result of former calls of this function (or the
    initialization function update the context for the next LEN bytes
    starting at BUFFER.
    It is NOT required that LEN is a multiple of 64.  */
-extern void __md5_process_bytes (const void *buffer, size_t len,
-                                 struct md5_ctx *ctx) __THROW;
+extern void __md5_process_bytes (void const *restrict buffer, size_t len,
+                                 struct md5_ctx *restrict ctx) __THROW;
 
 /* Process the remaining bytes in the buffer and put result from CTX
    in first 16 bytes following RESBUF.  The result is always in little
    endian byte order, so that a byte-wise output yields to the wanted
    ASCII representation of the message digest.  */
-extern void *__md5_finish_ctx (struct md5_ctx *ctx, void *restrict resbuf)
+extern void *__md5_finish_ctx (struct md5_ctx *restrict ctx,
+                               void *restrict resbuf)
      __THROW;
 
 
 /* Put result from CTX in first 16 bytes following RESBUF.  The result is
    always in little endian byte order, so that a byte-wise output yields
    to the wanted ASCII representation of the message digest.  */
-extern void *__md5_read_ctx (const struct md5_ctx *ctx, void *restrict resbuf)
+extern void *__md5_read_ctx (struct md5_ctx const *restrict ctx,
+                             void *restrict resbuf)
      __THROW;
 
 
@@ -150,7 +152,7 @@ extern void *__md5_read_ctx (const struct md5_ctx *ctx, void *restrict resbuf)
    result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
-extern void *__md5_buffer (const char *buffer, size_t len,
+extern void *__md5_buffer (char const *restrict buffer, size_t len,
                            void *restrict resblock) __THROW;
 
 # endif
@@ -161,7 +163,8 @@ extern void *__md5_buffer (const char *buffer, size_t len,
    The case that the last operation on STREAM was an 'ungetc' is not supported.
    The resulting message digest number will be written into the 16 bytes
    beginning at RESBLOCK.  */
-extern int __md5_stream (FILE *stream, void *resblock) __THROW;
+extern int __md5_stream (FILE *restrict stream, void *restrict resblock)
+  __THROW;
 
 
 # ifdef __cplusplus

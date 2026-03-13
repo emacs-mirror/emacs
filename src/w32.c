@@ -8264,25 +8264,38 @@ sys_inet_addr (const char * cp)
     pfn_inet_addr (cp) : INADDR_NONE;
 }
 
+/* Wrapper for gethostname.  Note: NAMELEN is the space available in
+   NAME excluding the terminating null.  */
 int
 sys_gethostname (char * name, int namelen)
 {
+  int retval;
+  int nlen = namelen;
+  char sname[256+1];
+
   if (winsock_lib != NULL)
     {
-      int retval;
-
       check_errno ();
-      retval = pfn_gethostname (name, namelen);
+      retval = pfn_gethostname (sname, sizeof(sname));
       if (retval == SOCKET_ERROR)
 	set_errno ();
-      return retval;
     }
-
-  if (namelen > MAX_COMPUTERNAME_LENGTH)
-    return !GetComputerName (name, (DWORD *)&namelen);
-
-  errno = EFAULT;
-  return SOCKET_ERROR;
+  else if (sizeof(sname) > MAX_COMPUTERNAME_LENGTH)
+    retval = !GetComputerNameA (sname, (DWORD *)&nlen);
+  else
+    {
+      retval = SOCKET_ERROR;
+      errno = EFAULT;
+    }
+  /* The rest of the code wants the name in UTF-8.  The host name is not
+     a file name, but it's encoded in the ANSI codepage and its size
+     must be at most 256 characters.  So treating it as a file name
+     should be okay.  */
+  char hostname[MAX_UTF8_PATH];
+  filename_from_ansi (sname, hostname);
+  strncpy (name, hostname, namelen);
+  name[namelen] = '\0';
+  return retval;
 }
 
 struct hostent *

@@ -9,6 +9,7 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../../info/dired-x.info
 @settitle Dired Extra User's Manual
+@documentlanguage en
 @include docstyle.texi
 
 @include emacsver.texi

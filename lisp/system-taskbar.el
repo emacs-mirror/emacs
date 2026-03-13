@@ -4,7 +4,7 @@
 
 ;; Author: Stephane Marks
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: convenience
+;; Keywords: system-interface
 ;; Package-Requires: ((emacs "31.1"))
 
 ;; This file is part of GNU Emacs.
@@ -103,11 +103,14 @@
 
 ;;; Code:
 
-(require 'dbus)
+;; Pacify the byte compiler.
+(declare-function dbus-list-activatable-names "dbus.el")
+(declare-function dbus-send-signal "dbus.el")
+(declare-function dbus-ping "dbus.el")
 
 (defgroup system-taskbar nil
   "System GUI taskbar icon badge, progress report, alerting."
-  :group 'convenience
+  :group 'system-interface
   :version "31.1")
 
 (defcustom system-taskbar-use-progress-reporter t
@@ -219,6 +222,7 @@ If PROGRESS is nil, remove the progress indicator."
         (cond ((boundp 'ns-version-string) 'ns)
               ((bound-and-true-p w32-initialized) 'w32)
               ((and (featurep 'dbusbind)
+                    (require 'dbus)
                     (member "org.freedesktop.login1"
                             (dbus-list-activatable-names :system)))
                'dbus)

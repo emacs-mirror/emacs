@@ -891,8 +891,7 @@ articles in the topic and its subtopics."
 		      '(("misc")))))
   (setq gnus-topic-alist
 	(list (cons "misc"
-		    (mapcar (lambda (info) (gnus-info-group info))
-			    (cdr gnus-newsrc-alist)))
+		    (mapcar #'gnus-info-group (cdr gnus-newsrc-alist)))
 	      (list "Gnus")))
   (gnus-topic-enter-dribble))
 
@@ -1680,15 +1679,9 @@ If performed on a topic, edit the topic parameters instead."
   ;; the sort predicates expect group infos as inputs.
   ;; So we first transform the group names into infos,
   ;; then sort, and then transform back into group names.
-  (setcdr
-   topic
-   (mapcar
-    (lambda (info) (gnus-info-group info))
-    (sort
-     (mapcar
-      (lambda (group) (gnus-get-info group))
-      (cdr topic))
-     func)))
+  (setcdr topic
+          (mapcar #'gnus-info-group
+                  (sort (mapcar #'gnus-get-info (cdr topic)) func)))
   ;; Do the reversal, if necessary.
   (when reverse
     (setcdr topic (nreverse (cdr topic)))))

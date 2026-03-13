@@ -24,6 +24,10 @@
 
 (require 'ert)
 
+;; Optional internal helpers (only defined with ENABLE_UTF_8_CONVERTER_TEST).
+(declare-function internal-encode-string-utf-8 "coding.c")
+(declare-function internal-decode-string-utf-8 "coding.c")
+
 ;; Directory to hold test data files.
 (defvar coding-tests-workdir
   (expand-file-name "coding-tests" temporary-file-directory))
@@ -421,6 +425,48 @@
         (should-not (eq (encode-coding-string s coding nil) s))
         (should (eq (encode-coding-string s coding t) s))))))
 
+(ert-deftest coding-tests-coding-system-p ()
+  (should (coding-system-p nil))
+  (should (coding-system-p 'utf-8))
+  (should-not (coding-system-p 'coding-tests-no-such-system)))
+
+(ert-deftest coding-tests-check-coding-system ()
+  (should (eq (check-coding-system 'utf-8) 'utf-8))
+  (should (eq (check-coding-system nil) nil))
+  (should-error (check-coding-system 'coding-tests-no-such-system)
+                :type 'coding-system-error))
+
+(ert-deftest coding-tests-coding-system-priority-list ()
+  (let ((list (coding-system-priority-list)))
+    (should (listp list))
+    (should (consp list))
+    (dolist (cs list)
+      (should (coding-system-p cs))))
+  (let ((highest (coding-system-priority-list t)))
+    (should (symbolp highest))
+    (should (coding-system-p highest))))
+
+(ert-deftest coding-tests-coding-system-aliases ()
+  (let ((aliases (coding-system-aliases 'utf-8)))
+    (should (listp aliases))
+    (should (memq 'utf-8 aliases))))
+
+(ert-deftest coding-tests-coding-system-plist ()
+  (let ((plist (coding-system-plist 'utf-8)))
+    (should (listp plist))
+    (should (plist-member plist :mnemonic))))
+
+(ert-deftest coding-tests-coding-system-put ()
+  (let* ((cs 'utf-8)
+         (mnemonic (plist-get (coding-system-plist cs) :mnemonic)))
+    (coding-system-put cs :mnemonic mnemonic)
+    (should (eq (plist-get (coding-system-plist cs) :mnemonic) mnemonic))))
+
+(ert-deftest coding-tests-coding-system-eol-type ()
+  (let ((eol (coding-system-eol-type 'utf-8-unix)))
+    (should (integerp eol))
+    (should (memq eol '(0 1 2)))))
+
 
 (ert-deftest coding-check-coding-systems-region ()
   (should (equal (check-coding-systems-region "aå" nil '(utf-8))
@@ -429,6 +475,109 @@
                                               '(utf-8 iso-latin-1 us-ascii))
                  '((iso-latin-1 3) (us-ascii 1 3))))
   (should-error (check-coding-systems-region "å" nil '(bad-coding-system))))
+
+(ert-deftest coding-tests--detect-coding-string-null-byte ()
+  (let ((inhibit-null-byte-detection nil))
+    (should (memq 'no-conversion
+                  (detect-coding-string (string ?a ?\0 ?b)))))
+  (let ((inhibit-null-byte-detection t))
+    (should (memq 'undecided
+                  (detect-coding-string (string ?a ?\0 ?b))))))
+
+(ert-deftest coding-tests--detect-coding-string-iso-escape ()
+  (let ((s (decode-coding-string
+            (unibyte-string #x1b ?$ ?B ?A ?A #x1b ?\( ?B)
+            'no-conversion)))
+    (let ((inhibit-iso-escape-detection nil))
+      (should (memq 'iso-2022-7bit (detect-coding-string s))))
+    (let ((inhibit-iso-escape-detection t))
+      (should (memq 'undecided (detect-coding-string s))))))
+
+(ert-deftest coding-tests--detect-coding-region ()
+  (with-temp-buffer
+    (insert "abc")
+    (let ((coding (detect-coding-region (point-min) (point-max) t)))
+      (should (coding-system-p coding)))))
+
+(ert-deftest coding-tests--find-coding-systems-region-internal ()
+  (should (eq (find-coding-systems-region-internal "abc" nil nil) t))
+  (let ((result (find-coding-systems-region-internal (string #x03B1)
+                                                     nil nil)))
+    (should (listp result))
+    (should (memq 'utf-8 result))))
+
+(ert-deftest coding-tests--decode-encode-sjis ()
+  (should (equal (decode-sjis-char #x82A0) ?あ))
+  (should (= (encode-sjis-char ?あ) #x82A0))
+  (should-error (decode-sjis-char #x817F)))
+
+(ert-deftest coding-tests--decode-encode-big5 ()
+  (should (equal (decode-big5-char ?A) ?A))
+  (should (= (encode-big5-char ?A) ?A))
+  (should-error (decode-big5-char #xA17F)))
+
+(ert-deftest coding-tests--terminal-coding-system-internal ()
+  (let ((orig (terminal-coding-system)))
+    (unwind-protect
+        (progn
+          (set-terminal-coding-system-internal 'utf-8 nil)
+          (should (eq (terminal-coding-system) 'utf-8))
+          (set-safe-terminal-coding-system-internal 'us-ascii))
+      (set-terminal-coding-system-internal (or orig 'undecided) nil))))
+
+(ert-deftest coding-tests--keyboard-coding-system-internal ()
+  (let ((orig (keyboard-coding-system)))
+    (unwind-protect
+        (progn
+          (set-keyboard-coding-system-internal 'utf-8 nil)
+          (should (eq (keyboard-coding-system) 'utf-8)))
+      (set-keyboard-coding-system-internal orig nil))))
+
+(ert-deftest coding-tests--find-operation-coding-system ()
+  (let ((file-coding-system-alist '(("foo\\.txt\\'" . utf-8))))
+    (should (equal (find-operation-coding-system 'insert-file-contents
+                                                 "foo.txt")
+                   '(utf-8 . utf-8))))
+  (let ((file-coding-system-alist '(("foo\\.txt\\'" . coding-tests--cs-fn))))
+    (defun coding-tests--cs-fn (_args) 'utf-8)
+    (should (equal (find-operation-coding-system 'insert-file-contents
+                                                 "foo.txt")
+                   '(utf-8 . utf-8)))))
+
+(ert-deftest coding-tests--set-coding-system-priority ()
+  (let ((orig (coding-system-priority-list)))
+    (unwind-protect
+        (progn
+          (set-coding-system-priority 'utf-8)
+          (should (eq (coding-system-priority-list t) 'utf-8)))
+      (apply #'set-coding-system-priority orig))))
+
+(defvar coding-tests--internal-counter 0)
+
+(ert-deftest coding-tests--define-coding-system-internal ()
+  (let* ((name (intern (format "coding-tests--raw-%d"
+                               (setq coding-tests--internal-counter
+                                     (1+ coding-tests--internal-counter)))))
+         (plist (list :docstring "coding-tests raw")))
+    (define-coding-system-internal name ?r 'raw-text (list 'ascii)
+                                   t nil nil nil nil ?\  t plist 'unix)
+    (should (coding-system-p name))
+    (should (equal (plist-get (coding-system-plist name) :docstring)
+                   "coding-tests raw"))
+    (let ((alias (intern (format "coding-tests--raw-alias-%d"
+                                 coding-tests--internal-counter))))
+      (define-coding-system-alias alias name)
+      (should (memq alias (coding-system-aliases name)))
+      (should (eq (coding-system-base alias) name)))))
+
+(ert-deftest coding-tests--internal-utf-8-converters ()
+  (skip-unless (fboundp 'internal-encode-string-utf-8))
+  (let ((enc (internal-encode-string-utf-8 "abc" nil nil nil nil nil 1))
+        (dec (internal-decode-string-utf-8 "abc" nil nil nil nil nil 1)))
+    (should (stringp enc))
+    (should (equal enc "abc"))
+    (should (stringp dec))
+    (should (equal dec "abc"))))
 
 (provide 'coding-tests)
 ;;; coding-tests.el ends here

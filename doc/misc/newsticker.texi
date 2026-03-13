@@ -4,6 +4,7 @@
 @include emacsver.texi
 @set VERSION @value{EMACSVER}
 @settitle Newsticker @value{VERSION}
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp

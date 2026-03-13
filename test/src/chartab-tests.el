@@ -69,5 +69,14 @@
     (set-char-table-extra-slot tbl 1 'bar)
     (should (eq (char-table-extra-slot tbl 1) 'bar))))
 
+(ert-deftest chartab-test-char-table-range ()
+  (let ((tbl (make-char-table nil nil)))
+    (set-char-table-range tbl '(?a . ?z) 'letters)
+    (should (eq (char-table-range tbl ?a) 'letters))
+    (should (eq (char-table-range tbl '(?a . ?z)) 'letters))
+    (should-not (char-table-range tbl ?0))
+    (set-char-table-range tbl nil 'default)
+    (should (eq (char-table-range tbl nil) 'default))))
+
 (provide 'chartab-tests)
 ;;; chartab-tests.el ends here

@@ -2,6 +2,7 @@
 
 @setfilename ../../info/emacs.info
 @settitle GNU Emacs Manual
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 
@@ -810,7 +811,7 @@ Maintaining Large Programs
 * Change Log::          Maintaining a change history for your program.
 * Xref::                Find definitions and references of any function,
                           method, struct, macro, @dots{} in your program.
-* EDE::                 An integrated development environment for Emacs.
+* EDE::                 Alternative tools for managing programming projects.
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
 @end ifnottex

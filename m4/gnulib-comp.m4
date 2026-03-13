@@ -70,6 +70,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module crypto/md5-buffer:
   # Code from module crypto/sha1-buffer:
   # Code from module crypto/sha256-buffer:
+  # Code from module crypto/sha3-buffer:
   # Code from module crypto/sha512-buffer:
   # Code from module d-type:
   # Code from module diffseq:
@@ -145,6 +146,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module malloc-gnu:
   # Code from module malloc-posix:
   # Code from module manywarnings:
+  # Code from module memeq:
   # Code from module memmem-simple:
   # Code from module mempcpy:
   # Code from module memrchr:
@@ -195,9 +197,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdio-windows:
   # Code from module stdlib-h:
   # Code from module stpcpy:
+  # Code from module streq:
   # Code from module string-h:
-  # Code from module stringeq:
   # Code from module strnlen:
+  # Code from module strnul:
   # Code from module strtoimax:
   # Code from module strtoll:
   # Code from module symlink:
@@ -225,7 +228,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module utimensat:
   # Code from module vararrays:
   # Code from module verify:
-  # Code from module vla:
   # Code from module warnings:
   # Code from module year2038:
   AC_REQUIRE([AC_SYS_YEAR2038])
@@ -286,6 +288,8 @@ AC_DEFUN([gl_INIT],
   gl_SHA1
   AC_REQUIRE([AC_C_RESTRICT])
   gl_SHA256
+  AC_REQUIRE([AC_C_RESTRICT])
+  gl_SHA3
   AC_REQUIRE([AC_C_RESTRICT])
   gl_SHA512
   gl_CHECK_TYPE_STRUCT_DIRENT_D_TYPE
@@ -444,6 +448,8 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([malloc])
   fi
   gl_STDLIB_MODULE_INDICATOR([malloc-posix])
+  gl_FUNC_MEMEQ
+  gl_STRING_MODULE_INDICATOR([memeq])
   gl_FUNC_MEMMEM_SIMPLE
   if test $HAVE_MEMMEM = 0 || test $REPLACE_MEMMEM = 1; then
     AC_LIBOBJ([memmem])
@@ -619,12 +625,11 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_STPCPY
   ])
   gl_STRING_MODULE_INDICATOR([stpcpy])
+  gl_FUNC_STREQ
+  gl_STRING_MODULE_INDICATOR([streq])
   gl_STRING_H
   gl_STRING_H_REQUIRE_DEFAULTS
   AC_PROG_MKDIR_P
-  gl_FUNC_STREQ
-  gl_FUNC_MEMEQ
-  gl_STRING_MODULE_INDICATOR([stringeq])
   gl_FUNC_STRNLEN
   gl_CONDITIONAL([GL_COND_OBJ_STRNLEN],
                  [test $HAVE_DECL_STRNLEN = 0 || test $REPLACE_STRNLEN = 1])
@@ -632,6 +637,7 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_STRNLEN
   ])
   gl_STRING_MODULE_INDICATOR([strnlen])
+  gl_STRING_MODULE_INDICATOR([strnul])
   gl_FUNC_STRTOIMAX
   gl_CONDITIONAL([GL_COND_OBJ_STRTOIMAX],
                  [test $HAVE_DECL_STRTOIMAX = 0 || test $REPLACE_STRTOIMAX = 1])
@@ -1403,6 +1409,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/md5-stream.c
   lib/md5.c
   lib/md5.h
+  lib/memeq.c
   lib/memmem.c
   lib/mempcpy.c
   lib/memrchr.c
@@ -1446,6 +1453,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sha1.h
   lib/sha256.c
   lib/sha256.h
+  lib/sha3.c
+  lib/sha3.h
   lib/sha512.c
   lib/sha512.h
   lib/sig2str.c
@@ -1472,11 +1481,12 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdlib.in.h
   lib/stpcpy.c
   lib/str-two-way.h
+  lib/streq.c
   lib/strftime.c
   lib/strftime.h
-  lib/string.c
   lib/string.in.h
   lib/strnlen.c
+  lib/strnul.c
   lib/strtoimax.c
   lib/strtol.c
   lib/strtoll.c
@@ -1507,7 +1517,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/utimens.h
   lib/utimensat.c
   lib/verify.h
-  lib/vla.h
   lib/warn-on-use.h
   m4/00gnulib.m4
   m4/__inline.m4
@@ -1578,6 +1587,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/manywarnings.m4
   m4/mbstate_t.m4
   m4/md5.m4
+  m4/memeq.m4
   m4/memmem.m4
   m4/mempcpy.m4
   m4/memrchr.m4
@@ -1611,6 +1621,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/selinux-selinux-h.m4
   m4/sha1.m4
   m4/sha256.m4
+  m4/sha3.m4
   m4/sha512.m4
   m4/sig2str.m4
   m4/sigdescr_np.m4
@@ -1627,8 +1638,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/stpcpy.m4
+  m4/streq.m4
   m4/string_h.m4
-  m4/stringeq.m4
   m4/strnlen.m4
   m4/strtoimax.m4
   m4/strtoll.m4

@@ -229,4 +229,17 @@ is absent."
         (should (assq 'upstream alist))
         (should (null (assq 'push alist)))))))
 
+(ert-deftest vc-git-test-checkin-patch-staged-diff ()
+  "Checking in a patch that matches staged changes should not error."
+  (skip-unless (executable-find vc-git-program))
+  (require 'log-edit)
+  (vc-git-test--with-repo repo
+    (vc-git-test--start-branch)
+    (write-region "Hello\n" nil "README")
+    (vc-git-test--run "add" "README")
+    (let ((patch (vc-git-test--run "diff" "--cached")))
+      (vc-git--checkin "Second" nil patch))
+    (should (equal (string-trim (vc-git-test--run "log" "-1" "--pretty=%s"))
+                   "Second"))))
+
 ;;; vc-git-tests.el ends here

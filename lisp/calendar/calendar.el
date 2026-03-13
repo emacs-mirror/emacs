@@ -440,6 +440,10 @@ pre-existing calendar windows."
   :version "23.1")
 
 
+(defvar calendar-total-months 3
+  "Number of months displayed in the calendar.
+It is made buffer-local automatically in calendar-mode buffers.")
+
 (defvar calendar-month-digit-width nil
   "Width of the region with numbers in each month in the calendar.")
 
@@ -447,14 +451,17 @@ pre-existing calendar windows."
   "Full width of each month in the calendar.")
 
 (defvar calendar-right-margin nil
-  "Right margin of the calendar.")
+  "Right margin of the calendar.
+It is made buffer-local automatically in calendar-mode buffers.")
 
 (defvar calendar-month-edges nil
   "Alist of month edge columns.
 Each element has the form (N LEFT FIRST LAST RIGHT), where
 LEFT is the leftmost column associated with month segment N,
 FIRST and LAST are the first and last columns with day digits in,
-and LAST is the rightmost column.")
+and RIGHT is the rightmost column.
+
+It is made buffer-local automatically in calendar-mode buffers.")
 
 (defvar calendar-mark-holidays nil
   "Variable version of the user option `calendar-mark-holidays-flag'.")
@@ -492,10 +499,12 @@ rightmost column."
         calendar-month-width (+ (* 7 calendar-column-width)
                                 calendar-intermonth-spacing)
         calendar-right-margin (+ calendar-left-margin
-                                   (* 3 (* 7 calendar-column-width))
-                                   (* 2 calendar-intermonth-spacing))
+                                 (* calendar-total-months
+                                    (* 7 calendar-column-width))
+                                 (* (1- calendar-total-months)
+                                    calendar-intermonth-spacing))
         calendar-month-edges nil)
-  (dotimes (i 3)
+  (dotimes (i calendar-total-months)
     (push (cons i (calendar-month-edges i)) calendar-month-edges))
   (setq calendar-month-edges (reverse calendar-month-edges)))
 
@@ -1533,7 +1542,7 @@ Optional integers MON and YR are used instead of today's date."
         displayed-year year)
   (erase-buffer)
   (calendar-increment-month month year -1)
-  (dotimes (i 3)
+  (dotimes (i calendar-total-months)
     (calendar-generate-month month year
                              (+ calendar-left-margin
                                 (* calendar-month-width i)))
@@ -1666,16 +1675,16 @@ Otherwise, use the selected window of EVENT's frame."
     (define-key map "<"     #'calendar-scroll-right)
     (define-key map "\C-x<" #'calendar-scroll-right)
     (define-key map [S-wheel-up] #'calendar-scroll-right)
-    (define-key map [prior] #'calendar-scroll-right-three-months)
-    (define-key map "\ev"   #'calendar-scroll-right-three-months)
-    (define-key map [wheel-up] #'calendar-scroll-right-three-months)
+    (define-key map [prior] #'calendar-scroll-calendar-right)
+    (define-key map "\ev"   #'calendar-scroll-calendar-right)
+    (define-key map [wheel-up] #'calendar-scroll-calendar-right)
     (define-key map [M-wheel-up] #'calendar-backward-year)
     (define-key map ">"     #'calendar-scroll-left)
     (define-key map "\C-x>" #'calendar-scroll-left)
     (define-key map [S-wheel-down] #'calendar-scroll-left)
-    (define-key map [next]  #'calendar-scroll-left-three-months)
-    (define-key map "\C-v"  #'calendar-scroll-left-three-months)
-    (define-key map [wheel-down] #'calendar-scroll-left-three-months)
+    (define-key map [next]  #'calendar-scroll-calendar-left)
+    (define-key map "\C-v"  #'calendar-scroll-calendar-left)
+    (define-key map [wheel-down] #'calendar-scroll-calendar-left)
     (define-key map [M-wheel-down] #'calendar-forward-year)
     (define-key map "\C-l"  #'calendar-recenter)
     (define-key map "\C-b"  #'calendar-backward-day)
@@ -1906,6 +1915,9 @@ For a complete description, see the info node `Calendar/Diary'.
         buffer-undo-list t
         indent-tabs-mode nil)
   (setq-local scroll-margin 0) ; bug#10379
+  (make-local-variable 'calendar-total-months)
+  (make-local-variable 'calendar-right-margin)
+  (make-local-variable 'calendar-month-edges)
   (calendar-update-mode-line)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window
@@ -2047,7 +2059,8 @@ use instead of point."
            (integerp (posn-point event))
            (goto-char (posn-point event)))
       (let* ((segment (calendar-column-to-segment))
-             (month (% (+ displayed-month (1- segment)) 12)))
+             (month-index (+ displayed-month (1- segment)))
+             (month (% month-index 12)))
         ;; Call with point on either of the two digits in a 2-digit date,
         ;; or on or before the digit of a 1-digit date.
         (if (not (and (looking-at "[ 0-9]?[0-9][^0-9]")
@@ -2063,8 +2076,8 @@ use instead of point."
                  (buffer-substring (1+ (point))
                                    (+ 1 calendar-day-digit-width (point))))
                 (cond
-                 ((and (= 12 month) (zerop segment)) (1- displayed-year))
-                 ((and (= 1 month) (= segment 2)) (1+ displayed-year))
+                 ((< month-index 1) (1- displayed-year))
+                 ((> month-index 12) (1+ displayed-year))
                  (t displayed-year))))))))
 
 ;; The following version of calendar-gregorian-from-absolute is preferred for
@@ -2527,12 +2540,115 @@ interpreted as BC; -1 being 1 BC, and so on."
 (defun calendar-date-is-visible-p (date)
   "Return non-nil if DATE is valid and is visible in the calendar window."
   (and (calendar-date-is-valid-p date)
-       (< (abs (calendar-interval
-                displayed-month displayed-year
-                (calendar-extract-month date) (calendar-extract-year date)))
-          2)))
+       (< -2 (calendar-interval
+              displayed-month displayed-year
+              (calendar-extract-month date) (calendar-extract-year date))
+          (1- calendar-total-months))))
 
-;; FIXME can this be generalized for holiday-chinese?
+(defun calendar-get-month-range ()
+  "Return a list (M1 Y1 M2 Y2) as the range of current calendar."
+  (let* ((y1 displayed-year)
+         (y2 displayed-year)
+         (m1 (1- displayed-month))
+         (m2 (% (+ (1- m1) calendar-total-months) 12)))
+    (if (= m2 0) (setq m2 12))
+    (cond
+     ((> m1 1)
+      (when (< m2 m1) (setq y2 (1+ y1))))
+     ((= m1 0)
+      (setq m1 12 y1 (1- y1))))
+    (list m1 y1 m2 y2)))
+
+(defun calendar-get-date-range (&optional full)
+  "Return a pair of dates corresponding to the range of current calendar.
+The day in the date is 1 by default.  If optional argument FULL is
+non-nil, the day in the end date is the last day."
+  (pcase-let ((`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range)))
+    (cons
+     (list m1 1 y1)
+     (list m2 (if full (calendar-last-day-of-month m2 y2) 1) y2))))
+
+(defun calendar--month-overlap-p (m1 m2 mon n)
+  "Return non-nil if [M1, M2] intersects [MON, MON+N]."
+  (if (zerop n)
+      (<= m1 mon m2)
+    (setq n (+ mon n))
+    (if (<= n 12)
+        (<= (max m1 mon) (min m2 n))
+      (or
+       (<= (max m1 1) (min m2 (- n 12)))
+       (<= (max m1 mon) (min m2 12))))))
+
+(defun calendar-month-visible-p (month &optional n)
+  "Return non-nil if MONTH and next N months are visible in the calendar.
+Since the calendar shows at most 12 months, each month, if visible, is
+associated with only one year.  If the optional argument N is omitted or
+0, the return value is the year associated with MONTH.  Otherwise, the
+return value is a list of visible years between MONTH and MONTH+N."
+  (or n (setq n 0))
+  (pcase-let ((`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range))
+              (r nil))
+    (if (= y1 y2)
+        (if (calendar--month-overlap-p m1 m2 month n) (push y1 r))
+      (progn
+        (if (calendar--month-overlap-p 1  m2 month n) (push y2 r))
+        (if (calendar--month-overlap-p m1 12 month n) (push y1 r))))
+    (if (zerop n) (car r) r)))
+
+(defun calendar-nongregorian-date-visible-p (month day toabs fromabs &optional N)
+  "Return non-nil if MONTH, DAY is visible in the calendar window.
+MONTH and DAY are in some non-Gregorian calendar system.  The functions
+TOABS and FROMABS convert that system to and from absolute,
+respectively.  The optional argument N is an integer indicating the
+first local month in the non-Gregorian local year and defaults to 1.
+Returns a list of corresponding Gregorian dates."
+  (let* ((range (calendar-get-date-range t))
+         (start-date (calendar-absolute-from-gregorian (car range)))
+         (end-date (calendar-absolute-from-gregorian (cdr range)))
+         ;; Local date of first/last date in calendar window.
+         (local-start (funcall fromabs start-date))
+         (local-end (funcall fromabs end-date))
+         ;; Local year/month of first/last dates.
+         (y1 (calendar-extract-year local-start))
+         (y2 (calendar-extract-year local-end))
+         (m1 (calendar-extract-month local-start))
+         (m2 (calendar-extract-month local-end))
+         (N (or N 1))
+         dates)
+    (cond
+     ;; The local calendar:
+     ;;    Year    : y1 ............. y1 y2 ............. y2
+     ;; Month (N=1): 1 ... ..... ... END 1 ... ..... ... END
+     ;; Month (N>1): N ... END 1 ... N-1 N ... END 1 ... N-1
+     ((= y1 y2)
+      (when (or (<= m1 month m2)
+                ;; N > 1
+                (and (> m1 m2)
+                     (or (>= month m1)
+                         (<= month m2))))
+        (push (list month day y1) dates)))
+     ((< y1 y2)
+      ;; In a large calendar range (e.g. 12 months), the same local
+      ;; month may appear twice and there may be three local years.
+      ;; Cf holiday-chinese.
+      (dotimes (i (- y2 y1 1))
+        (push (list month day (+ y1 i 1)) dates))
+      (if (>= m1 N)
+          (progn
+            (when (or (>= month m1) (< month N))
+              (push (list month day y1) dates))
+            (when (<= month m2)
+              (push (list month day y2) dates)))
+        ;; m1 < N
+        (when (and (<= m1 month) (< month N))
+          (push (list month day y1) dates))
+        (when (or (>= month N) (<= month m2))
+          (push (list month day y2) dates)))))
+    (seq-filter 'calendar-date-is-visible-p
+                (mapcar (lambda (d) (calendar-gregorian-from-absolute
+                                (funcall toabs d)))
+                        dates))))
+
 (defun calendar-nongregorian-visible-p (month day toabs fromabs switch)
   "Return non-nil if MONTH, DAY is visible in the calendar window.
 MONTH and DAY are in some non-Gregorian calendar system.  The
@@ -2542,6 +2658,7 @@ argument (a local month number).  It applies when the local year
 changes across the calendar window, and returns non-nil if the
 specified month should be associated with the higher year.
 Returns the corresponding Gregorian date."
+  (declare (obsolete calendar-nongregorian-date-visible-p "31.1"))
   ;; We need to choose the local year associated with month and day
   ;; that might make them visible.
   (let* ((m1 displayed-month)

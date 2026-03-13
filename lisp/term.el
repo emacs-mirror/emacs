@@ -3698,7 +3698,7 @@ color is unset in the terminal state."
     (term-move-columns (- (max 1 (car params)))))
    ;; \E[G - cursor motion to absolute column (terminfo: hpa)
    ((eq char ?G)
-    (term-move-columns (- (max 0 (min term-width (car params)))
+    (term-move-columns (- (max 0 (1- (min term-width (car params))))
                           (term-current-column))))
    ;; \E[J - clear to end of screen (terminfo: ed, clear)
    ((eq char ?J)

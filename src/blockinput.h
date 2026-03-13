@@ -28,21 +28,21 @@ INLINE_HEADER_BEGIN
 
    To avoid this, we make the following requirements:
 
-   * Everyone must evaluate BLOCK_INPUT before performing actions that
-   might conflict with a signal handler, and then call UNBLOCK_INPUT
-   after performing them.  Calls BLOCK_INPUT and UNBLOCK_INPUT may be
-   nested.
+   * Everyone must call block_input before performing actions that
+   might conflict with a signal handler, and then call unblock_input
+   after performing them.  Calls to block_input and unblock_input
+   may be nested.
 
    * Any complicated interrupt handling code should test
-   INPUT_BLOCKED_P, and put off its work until later.
+   input_blocked_p, and put off its work until later.
 
    * If the interrupt handling code wishes, it may set
    pending_signals to a non-zero value.  If that flag is set
-   when input becomes unblocked, UNBLOCK_INPUT will then read
+   when input becomes unblocked, unblock_input will then read
    input and process timers.
 
    Historically, Emacs signal handlers did much more than they do now,
-   and this caused many BLOCK_INPUT calls to be sprinkled around the code.
+   and this caused many block_input calls to be sprinkled around the code.
    FIXME: Remove calls that aren't needed now.  */
 
 extern volatile int interrupt_input_blocked;

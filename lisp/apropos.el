@@ -1116,6 +1116,14 @@ Will return nil instead."
   "If non-nil, use a single line per binding."
   :type 'boolean)
 
+(defvar-local apropos--window nil
+  "Last window the `*Apropos*' buffer was displayed in.")
+
+(defun apropos--set-window ()
+  "Associate the `*Apropos*' buffer with its selected window.
+Intended for `temp-buffer-show-hook'."
+  (setq apropos--window (selected-window)))
+
 (defun apropos-print (do-keys spacing &optional text nosubst)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
@@ -1248,9 +1256,18 @@ as a heading."
 	  (apropos-print-doc apropos-item 5 'apropos-widget t)
 	  (apropos-print-doc apropos-item 4 'apropos-plist nil))
         (setq-local truncate-partial-width-windows t)
-        (setq-local truncate-lines t)))
-    (when help-window-select
-      (select-window (get-buffer-window "*Apropos*"))))
+        (setq-local truncate-lines t))
+      ;; Avoid stale value.
+      (setq apropos--window nil)
+      (when help-window-select
+        ;; May not be run by custom `temp-buffer-show-function'.
+        (add-hook 'temp-buffer-show-hook #'apropos--set-window nil t)))
+    (let ((win (and help-window-select
+                    (or (buffer-local-value 'apropos--window
+                                            (get-buffer "*Apropos*"))
+                        ;; In case `temp-buffer-show-hook' did not run.
+                        (get-buffer-window "*Apropos*" 'visible)))))
+      (when win (select-window win))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 

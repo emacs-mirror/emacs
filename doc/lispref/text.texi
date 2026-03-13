@@ -1651,6 +1651,16 @@ current paragraph.  When this command is called interactively,
 @var{region} is @code{t}.
 @end deffn
 
+@deffn Command unfill-paragraph arg &optional beg end
+This command is the inverse of the previous one: it joins up the lines
+of the current paragraph.  With a numeric prefix argument @var{arg}, it
+applies the operation to that many paragraphs.  With no prefix argument
+and an active region, unfill each paragraph in that region.  When called
+from Lisp with @var{arg} @code{nil} and @var{beg} and @var{end}
+non-@code{nil}, unfill paragraphs in the region delimited by @var{beg}
+and @var{end}.
+@end deffn
+
 @deffn Command fill-region start end &optional justify nosqueeze to-eop
 This command fills each of the paragraphs in the region from @var{start}
 to @var{end}.  It justifies as well if @var{justify} is
@@ -4983,15 +4993,15 @@ that you have an unaltered copy of that data.
 
 @cindex message digest
   Emacs supports several common cryptographic hash algorithms: MD5,
-SHA-1, SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  MD5 is the
-oldest of these algorithms, and is commonly used in @dfn{message
-digests} to check the integrity of messages transmitted over a
-network.  MD5 and SHA-1 are not collision resistant (i.e., it is
-possible to deliberately design different pieces of data which have
-the same MD5 or SHA-1 hash), so you should not use them for anything
-security-related.  For security-related applications you should use
-the other hash types, such as SHA-2 (e.g., @code{sha256} or
-@code{sha512}).
+SHA-1, SHA-2, SHA-224, SHA-256, SHA-384, SHA-512, SHA3-224, SHA3-256,
+SHA3-384, and SHA3-512.  MD5 is the oldest of these algorithms, and is
+commonly used in @dfn{message digests} to check the integrity of
+messages transmitted over a network.  MD5 and SHA-1 are not collision
+resistant (i.e., it is possible to deliberately design different pieces
+of data which have the same MD5 or SHA-1 hash), so you should not use
+them for anything security-related.  For security-related applications
+you should use the other hash types, such as SHA-2 (e.g., @code{sha256}
+or @code{sha512}) or SHA-3 (e.g., @code{sha3-256} or @code{sha3-512}).
 
 @defun secure-hash-algorithms
 This function returns a list of symbols representing algorithms that
@@ -5001,8 +5011,9 @@ This function returns a list of symbols representing algorithms that
 @defun secure-hash algorithm object &optional start end binary
 This function returns a hash for @var{object}.  The argument
 @var{algorithm} is a symbol stating which hash to compute: one of
-@code{md5}, @code{sha1}, @code{sha224}, @code{sha256}, @code{sha384}
-or @code{sha512}.  The argument @var{object} should be a buffer or a
+@code{md5}, @code{sha1}, @code{sha224}, @code{sha256}, @code{sha384},
+@code{sha512}, @code{sha3-224}, @code{sha3-256}, @code{sha3-384}, or
+@code{sha3-512}.  The argument @var{object} should be a buffer or a
 string.
 
 The optional arguments @var{start} and @var{end} are character
@@ -5034,6 +5045,18 @@ For @code{sha384}: 96 characters (48 bytes if @var{binary} is
 non-@code{nil}).
 @item
 For @code{sha512}: 128 characters (64 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-224}: 56 characters (28 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-256}: 64 characters (32 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-384}: 96 characters (48 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-512}: 128 characters (64 bytes if @var{binary} is
 non-@code{nil}).
 @end itemize
 

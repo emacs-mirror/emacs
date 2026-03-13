@@ -1002,16 +1002,19 @@ solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
                         (* -0.00823 z z z)
                         (* 0.00032 z z z z)))))))
 
-(defvar displayed-month)                ; from calendar-generate
-(defvar displayed-year)
-
 ;;;###holiday-autoload
 (defun solar-equinoxes-solstices ()
   "Local date and time of equinoxes and solstices, if visible in the calendar.
 Requires floating point."
-  (let* ((m displayed-month)
-         (y displayed-year)
-         (calendar-standard-time-zone-name
+  (let (result)
+    (dolist (month '(3 6 9 12))
+      (when-let* ((y (calendar-month-visible-p month)))
+        (push (car (solar-equinoxes-solstices-1 month y)) result)))
+    result))
+
+(defun solar-equinoxes-solstices-1 (m y)
+  "Get nearest equinoxes and solstices around Year/Month."
+  (let* ((calendar-standard-time-zone-name
           (cond
            (calendar-time-zone calendar-standard-time-zone-name)
            ((eq calendar-time-zone-style 'numeric) "+0000")

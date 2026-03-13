@@ -67,6 +67,7 @@ GdipLoadImageFromFile_Proc fn_GdipLoadImageFromFile;
 GdipGetImageThumbnail_Proc fn_GdipGetImageThumbnail;
 GdipSaveImageToFile_Proc fn_GdipSaveImageToFile;
 GdipImageRotateFlip_Proc fn_GdipImageRotateFlip;
+GdipCreateBitmapFromHBITMAP_Proc fn_GdipCreateBitmapFromHBITMAP;
 
 static bool
 gdiplus_init (void)
@@ -194,6 +195,10 @@ gdiplus_init (void)
   fn_GdipImageRotateFlip = (GdipImageRotateFlip_Proc)
     get_proc_addr (gdiplus_lib, "GdipImageRotateFlip");
   if (!fn_GdipImageRotateFlip)
+    return false;
+  fn_GdipCreateBitmapFromHBITMAP = (GdipCreateBitmapFromHBITMAP_Proc)
+    get_proc_addr (gdiplus_lib, "GdipCreateBitmapFromHBITMAP");
+  if (!fn_GdipCreateBitmapFromHBITMAP)
     return false;
 
   return true;
@@ -557,6 +562,81 @@ w32_gdip_get_encoder_clsid (const char *type, CLSID *clsid)
     }
 
   xfree (image_codec_info);
+  return -1;
+}
+
+int
+w32_gdip_export_frame (HWND hwnd, Lisp_Object file, CLSID *clsid)
+{
+  RECT frame_rect;
+  int frame_width, frame_height;
+  HDC hdc, capture_hdc;
+  int bits_per_pixel;
+
+  /* FIXME (maybe): GetWindowRect returns the rectangle that includes
+     the "resize borders", which are by default invisible on Windows 10
+     and later.  It is unclear whether we should strive to exclude those
+     resize borders: it is not trivial, and OTOH these borders can be
+     made visible, in which case users might want them in the image.
+     The downside is that the image has some of the desktop around the
+     frame included in it.  So what?  */
+  if (!GetWindowRect (hwnd, &frame_rect))
+    return -1;
+  frame_width = frame_rect.right - frame_rect.left;
+  frame_height = frame_rect.bottom - frame_rect.top;
+  if (!(frame_width > 0 && frame_height > 0))
+    return -1;
+
+  hdc = GetWindowDC (hwnd);
+  bits_per_pixel = GetDeviceCaps (hdc, BITSPIXEL);
+  capture_hdc = CreateCompatibleDC (hdc);
+
+  /* Capture the image.  */
+  BITMAPINFO capture_bmi;
+  memset (&capture_bmi, 0, sizeof (capture_bmi));
+  BITMAPINFOHEADER *header = &capture_bmi.bmiHeader;
+  header->biSize = sizeof (BITMAPINFOHEADER);
+  header->biWidth = frame_width;
+  header->biHeight = -frame_height;
+  header->biPlanes = 1;
+  header->biBitCount = bits_per_pixel;
+  header->biCompression = BI_RGB;
+  DWORD *dib_bits;
+  HBITMAP capture_bitmap = CreateDIBSection (hdc, &capture_bmi,
+					     DIB_PAL_COLORS,
+					     (void **)&dib_bits, NULL, 0);
+  if (capture_bitmap)
+    {
+      SaveDC (capture_hdc);
+      SelectObject (capture_hdc, capture_bitmap);
+      BitBlt (capture_hdc, 0, 0, frame_width, frame_height, hdc, 0, 0, SRCCOPY);
+      RestoreDC (capture_hdc, -1);
+    }
+  DeleteDC (capture_hdc);
+  DeleteDC (hdc);
+
+  /* Save the captured image to file in requested format.  */
+  GpBitmap *bitmap;
+  if (capture_bitmap)
+    {
+      GpStatus status = GdipCreateBitmapFromHBITMAP (capture_bitmap, NULL,
+						     &bitmap);
+      if (status == Ok)
+	{
+	  wchar_t file_w[MAX_PATH];
+	  file = ENCODE_FILE (Fexpand_file_name (Fcopy_sequence (file),
+						 Qnil));
+	  unixtodos_filename (SSDATA (file));
+	  filename_to_utf16 (SSDATA (file), file_w);
+	  status = GdipSaveImageToFile (bitmap, file_w, clsid, NULL);
+	}
+      GdipDisposeImage (bitmap);
+      DeleteObject (capture_bitmap);
+
+      if (status == Ok)
+	return 0;
+    }
+
   return -1;
 }
 

@@ -94,7 +94,7 @@ set_uint32 (char *cp, uint32_t v)
 /* Put result from CTX in first 32 bytes following RESBUF.
    The result must be in little endian byte order.  */
 void *
-sha256_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
+sha256_read_ctx (struct sha256_ctx const *restrict ctx, void *restrict resbuf)
 {
   char *r = resbuf;
 
@@ -105,7 +105,7 @@ sha256_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
 }
 
 void *
-sha224_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
+sha224_read_ctx (struct sha256_ctx const *restrict ctx, void *restrict resbuf)
 {
   char *r = resbuf;
 
@@ -144,14 +144,14 @@ sha256_conclude_ctx (struct sha256_ctx *ctx)
 }
 
 void *
-sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
+sha256_finish_ctx (struct sha256_ctx *restrict ctx, void *restrict resbuf)
 {
   sha256_conclude_ctx (ctx);
   return sha256_read_ctx (ctx, resbuf);
 }
 
 void *
-sha224_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
+sha224_finish_ctx (struct sha256_ctx *restrict ctx, void *restrict resbuf)
 {
   sha256_conclude_ctx (ctx);
   return sha224_read_ctx (ctx, resbuf);
@@ -162,7 +162,7 @@ sha224_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
    output yields to the wanted ASCII representation of the message
    digest.  */
 void *
-sha256_buffer (const char *buffer, size_t len, void *resblock)
+sha256_buffer (char const *restrict buffer, size_t len, void *restrict resblock)
 {
   struct sha256_ctx ctx;
 
@@ -177,7 +177,7 @@ sha256_buffer (const char *buffer, size_t len, void *resblock)
 }
 
 void *
-sha224_buffer (const char *buffer, size_t len, void *resblock)
+sha224_buffer (char const *restrict buffer, size_t len, void *restrict resblock)
 {
   struct sha256_ctx ctx;
 
@@ -192,7 +192,8 @@ sha224_buffer (const char *buffer, size_t len, void *resblock)
 }
 
 void
-sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
+sha256_process_bytes (void const *restrict buffer, size_t len,
+                      struct sha256_ctx *restrict ctx)
 {
   /* When we already have some bits in our internal buffer concatenate
      both inputs first.  */
@@ -292,7 +293,8 @@ static const uint32_t sha256_round_constants[64] = {
    Most of this code comes from GnuPG's cipher/sha1.c.  */
 
 void
-sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
+sha256_process_block (void const *restrict buffer, size_t len,
+                      struct sha256_ctx *restrict ctx)
 {
   const uint32_t *words = buffer;
   size_t nwords = len / sizeof (uint32_t);

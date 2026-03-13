@@ -58,8 +58,8 @@ extern "C" {
    If successful, fill RESBLOCK and return 0.
    Upon failure, return a negated error number.  */
 int
-afalg_buffer (const char *buffer, size_t len, const char *alg,
-              void *resblock, ssize_t hashlen);
+afalg_buffer (char const *restrict buffer, size_t len, char const *restrict alg,
+              void *restrict resblock, ssize_t hashlen);
 
 /* Compute a message digest of data read from STREAM.
 
@@ -87,21 +87,21 @@ afalg_buffer (const char *buffer, size_t len, const char *alg,
    Unless returning 0 or -EIO, restore STREAM's file position so that
    the caller can fall back on some other method.  */
 int
-afalg_stream (FILE *stream, const char *alg,
-              void *resblock, ssize_t hashlen);
+afalg_stream (FILE *restrict stream, char const *restrict alg,
+              void *restrict resblock, ssize_t hashlen);
 
 # else
 
 static inline int
-afalg_buffer (const char *buffer, size_t len, const char *alg,
-              void *resblock, ssize_t hashlen)
+afalg_buffer (char const *restrict buffer, size_t len, char const *restrict alg,
+              void *restrict resblock, ssize_t hashlen)
 {
   return -EAFNOSUPPORT;
 }
 
 static inline int
-afalg_stream (FILE *stream, const char *alg,
-              void *resblock, ssize_t hashlen)
+afalg_stream (FILE *restrict stream, char const *restrict alg,
+              void *restrict resblock, ssize_t hashlen)
 {
   return -EAFNOSUPPORT;
 }

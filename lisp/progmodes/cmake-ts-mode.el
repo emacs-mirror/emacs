@@ -46,7 +46,9 @@
          :commit "e409ae33f00e04cde30f2bcffb979caf1a33562a")
  t)
 
-(defcustom cmake-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'cmake-ts-mode-indent-offset
+  'cmake-ts-indent-offset "31")
+(defcustom cmake-ts-indent-offset 2
   "Number of spaces for each indentation step in `cmake-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -70,18 +72,18 @@
      ((node-is "endforeach_command") parent-bol 0)
      ((node-is "endfunction_command") parent-bol 0)
      ((node-is "endif_command") parent-bol 0)
-     ((parent-is "foreach_loop") parent-bol cmake-ts-mode-indent-offset)
-     ((parent-is "function_def") parent-bol cmake-ts-mode-indent-offset)
-     ((parent-is "if_condition") parent-bol cmake-ts-mode-indent-offset)
-     ((parent-is "normal_command") parent-bol cmake-ts-mode-indent-offset)
+     ((parent-is "foreach_loop") parent-bol cmake-ts-indent-offset)
+     ((parent-is "function_def") parent-bol cmake-ts-indent-offset)
+     ((parent-is "if_condition") parent-bol cmake-ts-indent-offset)
+     ((parent-is "normal_command") parent-bol cmake-ts-indent-offset)
      ;; Release v0.4.0 wraps arguments in an argument_list node.
      ,@(ignore-errors
          (treesit-query-capture 'cmake '((argument_list) @capture))
-         `(((parent-is "argument_list") grand-parent cmake-ts-mode-indent-offset)))
+         `(((parent-is "argument_list") grand-parent cmake-ts-indent-offset)))
      ;; Release v0.3.0 wraps the body of commands into a body node.
      ,@(ignore-errors
          (treesit-query-capture 'cmake '((body) @capture))
-         `(((parent-is "body") grand-parent cmake-ts-mode-indent-offset))))))
+         `(((parent-is "body") grand-parent cmake-ts-indent-offset))))))
 
 (defvar cmake-ts-mode--constants
   '("ON" "TRUE" "YES" "Y" "OFF" "FALSE" "NO" "N" "IGNORE" "NOTFOUND")

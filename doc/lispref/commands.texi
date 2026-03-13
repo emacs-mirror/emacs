@@ -4065,12 +4065,12 @@ events are special---is in the variable @code{special-event-map}
 (@pxref{Controlling Active Maps}).  @xref{Misc Events}, for more details
 about these and other special events.
 
-@defun insert-special-event
+@defun insert-special-event event
 @cindex inserting special events
-This function inserts a special event into the input event queue.  Only
-event types which are contained in the @code{special-event-map} keymap
-are accepted.  As a result, the handler specified in the keymap is
-invoked.
+This function inserts the special @var{event} into the input event
+queue.  Only event types which are contained in the
+@code{special-event-map} keymap are accepted.  As a result, the handler
+specified in the keymap is invoked.
 
 The function returns @code{nil}.  Example:
 
@@ -4083,9 +4083,9 @@ The function returns @code{nil}.  Example:
 (keymap-set special-event-map "<sleep-event>" #'my-event-handler)
 @result{} my-event-handler
 
-(insert-special-event '(sleep-event t))
+(insert-special-event '(sleep-event pre-sleep))
 @result{} nil
-@result{} "Event arrived: (sleep-event t)"
+@result{} "Event arrived: (sleep-event pre-sleep)"
 @end example
 @end defun
 

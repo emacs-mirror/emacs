@@ -119,7 +119,8 @@ Used to minimize the need to rearrange windows.")
   "The function used to split the main window between buffer-A and buffer-B.
 You can set it to a horizontal split instead of the default vertical split
 by setting this variable to `split-window-horizontally'.
-You can also have your own function to do fancy splits.
+You can also have your own function to do fancy splits as long as that
+function returns the new window it made.
 This variable has no effect when buffer-A/B are shown in different frames.
 In this case, Ediff will use those frames to display these buffers."
   :type '(choice
@@ -131,7 +132,8 @@ In this case, Ediff will use those frames to display these buffers."
   "The function used to split the main window between buffer-A and buffer-B.
 You can set it to a vertical split instead of the default horizontal split
 by setting this variable to `split-window-vertically'.
-You can also have your own function to do fancy splits.
+You can also have your own function to do fancy splits as long as that
+function returns the new window it made.
 This variable has no effect when buffer-A/B/C are shown in different frames.
 In this case, Ediff will use those frames to display these buffers."
   :type '(choice
@@ -399,9 +401,9 @@ BODY, instead returning nil."
     ))
 
 
-;; This function handles all comparison jobs, including 3way jobs
+;; This function handles all comparison jobs, including 3way jobs.
 (defun ediff-setup-windows-plain-compare (buf-A buf-B buf-C control-buffer)
-  ;; skip dedicated and unsplittable frames
+  ;; Skip dedicated and unsplittable frames.
   (ediff-destroy-control-frame control-buffer)
   (let ((window-min-height 1)
         (window-combination-resize t)
@@ -415,34 +417,30 @@ BODY, instead returning nil."
 	    wind-B-start (ediff-overlay-start
 			  (ediff-get-value-according-to-buffer-type
 			   'B  ediff-narrow-bounds))
-	    ;; this lets us have local versions of ediff-split-window-function
+	    ;; This lets us have local versions of ediff-split-window-function.
 	    split-window-function ediff-split-window-function
 	    three-way-comparison ediff-3way-comparison-job))
-    ;; if in minibuffer go somewhere else
-    (if (save-match-data
-	  (string-match "\\*Minibuf-" (buffer-name (window-buffer))))
-	(select-window (next-window nil 'ignore-minibuf)))
+    ;; Replace selected frame's main window by its first live window.
+    (when (or (window-minibuffer-p) (window-parameter nil 'window-side))
+      (catch 'found
+	(walk-window-subtree
+	 (lambda (window)
+	   (select-window window)
+	   (throw 'found t))
+	 (window-main-window))))
     (delete-other-windows)
+
+    ;; Set up wind-A, wind-B and if necessary wind-C.
     (set-window-dedicated-p (selected-window) nil)
-
-    ;; go to the upper window and split it betw A, B, and possibly C
-    (other-window 1)
-    (switch-to-buffer buf-A)
     (setq wind-A (selected-window))
-    (funcall split-window-function)
+    (set-window-buffer wind-A buf-A)
+    (setq wind-B (funcall split-window-function))
+    (set-window-buffer wind-B buf-B)
+    (select-window wind-B)
 
-    (if (eq (selected-window) wind-A)
-	(other-window 1))
-    (switch-to-buffer buf-B)
-    (setq wind-B (selected-window))
-
-    (if three-way-comparison
-	(progn
-	  (funcall split-window-function)
-	  (if (eq (selected-window) wind-B)
-	      (other-window 1))
-	  (switch-to-buffer buf-C)
-	  (setq wind-C (selected-window))))
+    (when three-way-comparison
+      (setq wind-C (funcall split-window-function))
+      (set-window-buffer wind-C buf-C))
 
     (with-current-buffer control-buffer
       (setq ediff-window-A wind-A
@@ -451,17 +449,14 @@ BODY, instead returning nil."
 
     ;; It is unlikely that we will want to implement 3way window comparison.
     ;; So, only buffers A and B are used here.
-    (if ediff-windows-job
-	(progn
-	  (set-window-start wind-A wind-A-start)
-	  (set-window-start wind-B wind-B-start)))
+    (when ediff-windows-job
+      (set-window-start wind-A wind-A-start)
+      (set-window-start wind-B wind-B-start))
 
     (select-window (display-buffer-in-direction
                     control-buffer
                     '((direction . bottom))))
-    (ediff-setup-control-buffer control-buffer)
-    ))
-
+    (ediff-setup-control-buffer control-buffer)))
 
 ;; dispatch an appropriate window setup function
 (defun ediff-setup-windows-multiframe (buf-A buf-B buf-C control-buf)

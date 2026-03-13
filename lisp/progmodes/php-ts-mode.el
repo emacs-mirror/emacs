@@ -111,14 +111,18 @@ It's pre-filled by loading \"mhtml-ts-mode\"."
   :prefix "php-ts-mode-"
   :group 'languages)
 
-(defcustom php-ts-mode-indent-offset 4
+(define-obsolete-variable-alias 'php-ts-mode-indent-offset
+  'php-ts-indent-offset "31")
+(defcustom php-ts-indent-offset 4
   "Number of spaces for each indentation step in `php-ts-mode'."
   :tag "PHP indent offset"
   :version "30.1"
   :type 'integer
   :safe 'integerp)
 
-(defcustom php-ts-mode-js-css-indent-offset 2
+(define-obsolete-variable-alias 'php-ts-mode-js-css-indent-offset
+  'php-ts-js-css-indent-offset "31")
+(defcustom php-ts-js-css-indent-offset 2
   "JavaScript and CSS indent spaces related to the <script> and <style> HTML tags.
 It is advisable to have this have the same value as
 `mhtml-ts-mode-js-css-indent-offset'."
@@ -127,7 +131,9 @@ It is advisable to have this have the same value as
   :type 'integer
   :safe 'integerp)
 
-(defcustom php-ts-mode-html-indent-offset 2
+(define-obsolete-variable-alias 'php-ts-mode-html-indent-offset
+  'php-ts-html-indent-offset "31")
+(defcustom php-ts-html-indent-offset 2
   "The number of spaces to indent PHP code relative to HTML tags.
 It is advisable to have this have the same value as
 `mhtml-ts-mode-js-css-indent-offset'."
@@ -451,22 +457,22 @@ in this Emacs session."
 (defun php-ts-mode--set-indent-property (style)
   "Set the offset, tab, etc. according to STYLE."
   (cl-case style
-    (psr2 (setq php-ts-mode-indent-offset 4
+    (psr2 (setq php-ts-indent-offset 4
 		tab-width 4
 		indent-tabs-mode nil))
-    (pear (setq php-ts-mode-indent-offset 4
+    (pear (setq php-ts-indent-offset 4
 		tab-width 4
 		indent-tabs-mode nil))
-    (drupal (setq php-ts-mode-indent-offset 2
+    (drupal (setq php-ts-indent-offset 2
 		  tab-width 2
 		  indent-tabs-mode nil))
-    (wordpress (setq php-ts-mode-indent-offset 4
+    (wordpress (setq php-ts-indent-offset 4
 		     tab-width 4
 		     indent-tabs-mode t))
-    (symfony (setq php-ts-mode-indent-offset 4
+    (symfony (setq php-ts-indent-offset 4
 		   tab-width 4
 		   indent-tabs-mode nil))
-    (zend (setq php-ts-mode-indent-offset 4
+    (zend (setq php-ts-indent-offset 4
 		tab-width 4
 		indent-tabs-mode nil))))
 
@@ -602,7 +608,7 @@ the current line."
 	  (backward-word)
 	  (back-to-indentation)
 	  (if php-ts-mode-html-relative-indent
-	      (+ (point) php-ts-mode-html-indent-offset)
+	      (+ (point) php-ts-html-indent-offset)
 	    (point)))))))
 
 (defun php-ts-mode--array-element-heuristic (_node parent _bol &rest _)
@@ -624,7 +630,7 @@ characters of the current line."
       (save-excursion
 	(goto-char (treesit-node-start parent))
 	(back-to-indentation)
-	(+ (point) php-ts-mode-indent-offset)))))
+	(+ (point) php-ts-indent-offset)))))
 
 (defun php-ts-mode--anchor-first-sibling (_node parent _bol &rest _)
   "Return the start of the first child of a sibling of PARENT.
@@ -685,7 +691,7 @@ characters of the current line."
 		    (point))))
       (goto-char node-start)
       (let ((previous-pipe (search-backward "|>" bound t nil)))
-	(or previous-pipe (+ bound php-ts-mode-indent-offset))))))
+	(or previous-pipe (+ bound php-ts-indent-offset))))))
 
 (defun php-ts-mode--indent-styles ()
   "Indent rules supported by `php-ts-mode'."
@@ -695,21 +701,21 @@ characters of the current line."
 		(parent-is "text_interpolation"))
 	    php-ts-mode--parent-html-heuristic 0)
 
-	   (php-ts-mode--else-heuristic prev-line php-ts-mode-indent-offset)
+	   (php-ts-mode--else-heuristic prev-line php-ts-indent-offset)
 
 	   ((query "(ERROR (ERROR)) @indent") parent-bol 0)
 
 	   ((node-is ")") parent-bol 0)
 	   ((node-is "]") parent-bol 0)
 	   ((node-is "else_clause") parent-bol 0)
-	   ((node-is "case_statement") parent-bol php-ts-mode-indent-offset)
-	   ((node-is "default_statement") parent-bol php-ts-mode-indent-offset)
-	   ((parent-is "default_statement") parent-bol php-ts-mode-indent-offset)
+	   ((node-is "case_statement") parent-bol php-ts-indent-offset)
+	   ((node-is "default_statement") parent-bol php-ts-indent-offset)
+	   ((parent-is "default_statement") parent-bol php-ts-indent-offset)
 	   ((and
 	     (parent-is "expression_statement")
 	     (node-is ";"))
 	    parent-bol 0)
-	   ((parent-is "expression_statement") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "expression_statement") parent-bol php-ts-indent-offset)
 	   ;; `c-ts-common-looking-at-star' has to come before
 	   ;; `c-ts-common-comment-2nd-line-matcher'.
 	   ((and (parent-is "comment") c-ts-common-looking-at-star)
@@ -720,53 +726,53 @@ characters of the current line."
 	   ((parent-is "comment") prev-adaptive-prefix 0)
 
 	   ((parent-is "method_declaration") parent-bol 0)
-	   ((node-is "class_interface_clause") parent-bol php-ts-mode-indent-offset)
+	   ((node-is "class_interface_clause") parent-bol php-ts-indent-offset)
 	   ((query "(class_interface_clause (name) @indent)") php-ts-mode--parent-eol 1)
 	   ((query "(class_interface_clause (qualified_name) @indent)")
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 	   ((parent-is "class_declaration") parent-bol 0)
-	   ((parent-is "namespace_use_declaration") parent-bol php-ts-mode-indent-offset)
-	   ((node-is "namespace_use_clause") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "namespace_use_declaration") parent-bol php-ts-indent-offset)
+	   ((node-is "namespace_use_clause") parent-bol php-ts-indent-offset)
 	   ((or (parent-is "use_declaration")
 		(parent-is "use_list"))
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 	   ((parent-is "function_definition") parent-bol 0)
-	   ((parent-is "member_call_expression") parent-bol php-ts-mode-indent-offset)
-	   ((parent-is "conditional_expression") parent-bol php-ts-mode-indent-offset)
-	   ((parent-is "assignment_expression") parent-bol php-ts-mode-indent-offset)
-	   ((parent-is "array_creation_expression") parent-bol php-ts-mode-indent-offset)
-	   ((parent-is "attribute_group") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "member_call_expression") parent-bol php-ts-indent-offset)
+	   ((parent-is "conditional_expression") parent-bol php-ts-indent-offset)
+	   ((parent-is "assignment_expression") parent-bol php-ts-indent-offset)
+	   ((parent-is "array_creation_expression") parent-bol php-ts-indent-offset)
+	   ((parent-is "attribute_group") parent-bol php-ts-indent-offset)
 	   ((parent-is "parenthesized_expression") first-sibling 1)
 
 	   ((node-is "|>") php-ts-mode--pipe-heuristic 0)
 	   ((parent-is "binary_expression") parent 0)
 	   ((or (parent-is "arguments")
 		(parent-is "formal_parameters"))
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 
 	   ((query "(for_statement (assignment_expression left: (_)) @indent)")
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 	   ((query "(for_statement (binary_expression left: (_)) @indent)")
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 	   ((query "(for_statement (update_expression (_)) @indent)")
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 	   ((query "(function_call_expression arguments: (_) @indent)")
-	    parent php-ts-mode-indent-offset)
+	    parent php-ts-indent-offset)
 	   ((query "(member_call_expression arguments: (_) @indent)")
-	    parent php-ts-mode-indent-offset)
+	    parent php-ts-indent-offset)
 	   ((query "(scoped_call_expression name: (_) @indent)")
-	    parent php-ts-mode-indent-offset)
+	    parent php-ts-indent-offset)
 	   ((parent-is "scoped_property_access_expression")
-	    parent php-ts-mode-indent-offset)
+	    parent php-ts-indent-offset)
 
 	   ;; Closing bracket. Must stay here, the rule order matter.
 	   ((node-is "}") standalone-parent 0)
 	   ;; handle multiple single line comment that start at the and of a line
 	   ((match "comment" "declaration_list") php-ts-mode--anchor-prev-sibling 0)
-	   ((parent-is "declaration_list") column-0 php-ts-mode-indent-offset)
+	   ((parent-is "declaration_list") column-0 php-ts-indent-offset)
 
-	   ((parent-is "initializer_list") parent-bol php-ts-mode-indent-offset)
-	   ((parent-is "property_hook_list") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "initializer_list") parent-bol php-ts-indent-offset)
+	   ((parent-is "property_hook_list") parent-bol php-ts-indent-offset)
 
 	   ;; Statement in {} blocks.
 	   ((or (and (or (parent-is "compound_statement")
@@ -777,16 +783,16 @@ characters of the current line."
 		     php-ts-mode--first-sibling)
 		(or (match null "compound_statement")
 		    (match null "colon_block")))
-	    standalone-parent php-ts-mode-indent-offset)
+	    standalone-parent php-ts-indent-offset)
 	   ((or (parent-is "compound_statement")
 		(parent-is "colon_block"))
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 	   ;; Opening bracket.
 	   ((or (node-is "compound_statement")
 		(node-is "colon_block"))
-	    standalone-parent php-ts-mode-indent-offset)
+	    standalone-parent php-ts-indent-offset)
 
-	   ((parent-is "match_block") parent-bol php-ts-mode-indent-offset)
+	   ((parent-is "match_block") parent-bol php-ts-indent-offset)
 	   ((parent-is "switch_block") parent-bol 0)
 
 	   ;; These rules are for cases where the body is bracketless.
@@ -807,7 +813,7 @@ characters of the current line."
 		(parent-is "switch_statement")
 		(parent-is "case_statement")
 		(parent-is "empty_statement"))
-	    parent-bol php-ts-mode-indent-offset)
+	    parent-bol php-ts-indent-offset)
 
 	   ;; Do not touch the indentation inside a multiline the strings.
 	   ((parent-is "string_content") no-indent 0)
@@ -816,21 +822,21 @@ characters of the current line."
 	   ;; the grammar handles it differently than other control structures.
 	   (no-node prev-sibling 0))))
     `((psr2
-       ((parent-is "function_call_expression") parent-bol php-ts-mode-indent-offset)
+       ((parent-is "function_call_expression") parent-bol php-ts-indent-offset)
        ,@common)
       (pear
        ((or (node-is "case_statement")
 	    (node-is "default_statement"))
 	parent-bol 0)
-       ((parent-is "binary_expression") parent-bol php-ts-mode-indent-offset)
+       ((parent-is "binary_expression") parent-bol php-ts-indent-offset)
        ,@common)
       (drupal
        ((parent-is "if_statement") parent-bol 0)
-       ((parent-is "binary_expression") parent-bol php-ts-mode-indent-offset)
-       ((parent-is "function_call_expression") parent-bol php-ts-mode-indent-offset)
+       ((parent-is "binary_expression") parent-bol php-ts-indent-offset)
+       ((parent-is "function_call_expression") parent-bol php-ts-indent-offset)
        ,@common)
       (symfony
-       ((parent-is "function_call_expression") parent-bol php-ts-mode-indent-offset)
+       ((parent-is "function_call_expression") parent-bol php-ts-indent-offset)
        ,@common)
       (wordpress
        ,@common)
@@ -1598,7 +1604,7 @@ If FORCE is t setup comment for PHP.  Depends on
     (when (eq php-ts-mode-indent-style 'wordpress)
       (setq-local indent-tabs-mode t))
 
-    (setq-local c-ts-common-indent-offset 'php-ts-mode-indent-offset)
+    (setq-local c-ts-common-indent-offset 'php-ts-indent-offset)
     (setq-local treesit-simple-indent-rules (php-ts-mode--get-indent-style))
     (setq-local treesit-simple-indent-rules
 		(append treesit-simple-indent-rules
@@ -1612,7 +1618,7 @@ If FORCE is t setup comment for PHP.  Depends on
 			 'javascript
 			 `((javascript ((parent-is "program")
 					mhtml-ts-mode--js-css-tag-bol
-					php-ts-mode-js-css-indent-offset)))
+					php-ts-js-css-indent-offset)))
 			 `((javascript
 			    ,@(alist-get 'javascript
 					 (mhtml-ts-mode--treesit-indent-rules)))))
@@ -1621,7 +1627,7 @@ If FORCE is t setup comment for PHP.  Depends on
 			 'css
 			 `((css ((parent-is "stylesheet")
 				 mhtml-ts-mode--js-css-tag-bol
-				 php-ts-mode-js-css-indent-offset)))
+				 php-ts-js-css-indent-offset)))
 			 `((css
 			    ,@(alist-get 'css
 					 (mhtml-ts-mode--treesit-indent-rules)))))

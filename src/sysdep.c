@@ -390,23 +390,22 @@ discard_tty_input (void)
 
 /* Arrange for character C to be read as the next input from
    the terminal.
+   Return 0 on success, -1 otherwise.
    XXX What if we have multiple ttys?
 */
 
-void
+int
 stuff_char (char c)
 {
-  if (! (FRAMEP (selected_frame)
-	 && FRAME_LIVE_P (XFRAME (selected_frame))
-	 && FRAME_TERMCAP_P (XFRAME (selected_frame))))
-    return;
-
 /* Should perhaps error if in batch mode */
 #ifdef TIOCSTI
-  ioctl (fileno (CURTTY()->input), TIOCSTI, &c);
-#else /* no TIOCSTI */
-  error ("Cannot stuff terminal input characters in this version of Unix");
+  if (FRAMEP (selected_frame)
+      && FRAME_LIVE_P (XFRAME (selected_frame))
+      && FRAME_TERMCAP_P (XFRAME (selected_frame)))
+    return ioctl (fileno (CURTTY()->input), TIOCSTI, &c);
 #endif /* no TIOCSTI */
+
+  return -1;
 }
 
 #endif /* SIGTSTP */

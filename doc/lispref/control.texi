@@ -376,6 +376,34 @@ Some Lisp programmers follow the convention that @code{and} and
 @code{when} and @code{when-let*} are for forms evaluated for side-effect
 with returned values ignored.
 
+As a matter of style, it is best not to use these macros to bind values
+that will always be non-@code{nil}.  For example, suppose that
+@code{foo-p} and @code{bar-p} might return @code{nil}, and the code
+should not proceed in that case.  Instead of
+
+@example
+(when-let* ((foo-val (foo-p))
+            (num (+ 2 foo-val))
+            (bar-val (bar-p num)))
+  ...)
+@end example
+
+@noindent
+consider using
+
+@example
+(when-let* ((foo-val (foo-p)))
+  (let ((num (+ 2 foo-val))
+    (when-let* ((bar-val (bar-p num)))
+      ...)))
+@end example
+
+@noindent
+because this makes it clearer that the execution of the code is
+conditional on @code{foo-val} and @code{bar-val} being non-@code{nil},
+but not directly conditional on @code{num}, which moreover can never be
+@code{nil}.
+
 There is no @code{cond-let*} macro because extending the structure
 shared by @code{if-let*}, @code{when-let*} and @code{and-let*} to the
 case of @code{cond} is not simple.@footnote{The problem is that there
@@ -1549,8 +1577,9 @@ becomes the return value of the @code{cond*} construct.
 
 @subheading Non-exit clauses
 
-If a clause has only one element, or if its first element is @code{t} or
-a @code{bind*} form, or if it ends with the keyword @code{:non-exit},
+If the first element of a clause is @code{t} or a @code{bind*} form, or
+if it has only one element and that element is a @code{match*} or
+@code{pcase*} form, or if it ends with the keyword @code{:non-exit},
 then this clause never exits the @code{cond*} construct.  Instead,
 control falls through to the next clause (if any).  Except for a
 @code{bind-and*} clause, the bindings made in @var{condition} for the

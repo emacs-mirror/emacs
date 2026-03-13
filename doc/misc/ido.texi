@@ -1,6 +1,7 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/ido.info
 @settitle Interactive Do
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 

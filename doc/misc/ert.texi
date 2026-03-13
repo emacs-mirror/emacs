@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/ert.info
 @settitle Emacs Lisp Regression Testing
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp

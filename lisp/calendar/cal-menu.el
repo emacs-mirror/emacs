@@ -73,16 +73,13 @@
 
 (defun cal-menu-holiday-window-suffix ()
   "Return a string suffix for the \"Window\" entry in `cal-menu-holidays-menu'."
-  (let ((my1 (calendar-increment-month-cons -1))
-        (my2 (calendar-increment-month-cons 1)))
+  (pcase-let ((`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range)))
     ;; Mon1-Mon2, Year  or  Mon1, Year1-Mon2, Year2.
     (format "%s%s-%s, %d"
-            (calendar-month-name (car my1) 'abbrev)
-            (if (= (cdr my1) (cdr my2))
-                ""
-              (format ", %d" (cdr my1)))
-            (calendar-month-name (car my2) 'abbrev)
-            (cdr my2))))
+            (calendar-month-name m1 'abbrev)
+            (if (= y1 y2) "" (format ", %d" y1))
+            (calendar-month-name m2 'abbrev)
+            y2)))
 
 (defvar displayed-year)                 ; from calendar-generate
 
@@ -152,11 +149,11 @@
   '("Scroll"
     ["Scroll Commands" nil :help "Commands that scroll the visible window"]
     ["Forward 1 Month" calendar-scroll-left]
-    ["Forward 3 Months" calendar-scroll-left-three-months]
-    ["Forward 1 Year" (calendar-scroll-left 12) :keys "4 C-v"]
+    ["Forward 1 Screen" calendar-scroll-calendar-left]
+    ["Forward 1 Year" (calendar-scroll-left 12) :keys "12 >"]
     ["Backward 1 Month" calendar-scroll-right]
-    ["Backward 3 Months" calendar-scroll-right-three-months]
-    ["Backward 1 Year" (calendar-scroll-right 12) :keys "4 M-v"]
+    ["Backward 1 Screen" calendar-scroll-calendar-right]
+    ["Backward 1 Year" (calendar-scroll-right 12) :keys "12 <"]
     "--"
     ["Motion Commands" nil :help "Commands that move point"]
     ["Forward 1 Day" calendar-forward-day]
@@ -269,8 +266,8 @@ is non-nil."
 (easy-menu-define cal-menu-global-mouse-menu nil
   "Menu bound to a mouse event, not specific to the mouse-click location."
   '("Calendar"
-    ["Scroll forward" calendar-scroll-left-three-months]
-    ["Scroll backward" calendar-scroll-right-three-months]
+    ["Scroll forward" calendar-scroll-calendar-left]
+    ["Scroll backward" calendar-scroll-calendar-right]
     ["Mark diary entries" diary-mark-entries]
     ["List holidays" calendar-list-holidays]
     ["Mark holidays" calendar-mark-holidays]

@@ -431,5 +431,9 @@
                   (error nil))
                 'inhibit))))
 
+(ert-deftest minibuf-tests-active-minibuffer-window ()
+  (should-not (active-minibuffer-window))
+  (should (windowp (minibuffer-window))))
+
 
 ;;; minibuf-tests.el ends here

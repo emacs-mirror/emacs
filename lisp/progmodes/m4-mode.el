@@ -50,7 +50,6 @@ If m4 is not in your PATH, set this to an absolute file name."
   :version "24.4"
   :type 'file)
 
-;;options to m4
 (defcustom m4-program-options nil
   "Options to pass to `m4-program'."
   :type '(repeat string))
@@ -60,34 +59,40 @@ If m4 is not in your PATH, set this to an absolute file name."
 ;;or
 ;;(defconst m4-program-options '("--prefix-builtins"))
 
-;; Needed at compile-time for `m4-font-lock-keywords' below.
-(eval-and-compile
-  (defconst m4--macro-list
-    ;; From (info "(m4) Macro index")
-    '("__file__" "__gnu__" "__line__" "__os2__" "__program__" "__unix__"
-      "__windows__" "argn" "array" "array_set" "builtin" "capitalize"
-      "changecom" "changequote" "changeword" "cleardivert" "cond" "copy"
-      "curry" "debugfile" "debugmode" "decr" "define" "define_blind"
-      "defn" "divert" "divnum" "dnl" "downcase" "dquote" "dquote_elt"
-      "dumpdef" "errprint" "esyscmd" "eval" "example" "exch"
-      "fatal_error" "file" "foreach" "foreachq" "forloop" "format" "gnu"
-      "ifdef" "ifelse" "include" "incr" "index" "indir" "join" "joinall"
-      "len" "line" "m4exit" "m4wrap" "maketemp" "mkstemp" "nargs" "os2"
-      "patsubst" "popdef" "pushdef" "quote" "regexp" "rename" "reverse"
-      "shift" "sinclude" "stack_foreach" "stack_foreach_lifo"
-      "stack_foreach_sep" "stack_foreach_sep_lifo" "substr" "syscmd"
-      "sysval" "traceoff" "traceon" "translit" "undefine" "undivert"
-      "unix" "upcase" "windows")
-    "List of valid m4 macros for M4 mode."))
+;; Matches the name of m4 built-in macros.
+;; From (info "(m4) Macro index"), modulo sample composite macros.
+(rx-define m4--builtin
+  (| "__file__" "__gnu__" "__line__" "__os2__" "__program__" "__unix__"
+     "__windows__" "builtin" "changecom" "changequote" "changeword"
+     "debugfile" "debugmode" "decr" "define" "defn" "divert" "divnum"
+     "dnl" "dumpdef" "errprint" "esyscmd" "eval" "format" "ifdef" "ifelse"
+     "include" "incr" "index" "indir" "len" "m4exit" "m4wrap" "maketemp"
+     "mkstemp" "os2" "patsubst" "popdef" "pushdef" "regexp" "shift"
+     "sinclude" "substr" "syscmd" "sysval" "traceoff" "traceon" "translit"
+     "undefine" "undivert" "unix" "windows"))
+
+;; Matches the name of m4 composite macros with analogues in M4sugar.
+(rx-define m4--autoconf
+  (| "argn" "cleardivert" "cond" "copy" "curry" "dquote" "dquote_elt"
+     "foreach" "join" "joinall" "quote" "rename" "reverse" "stack_foreach"
+     "stack_foreach_lifo" "stack_foreach_sep" "stack_foreach_sep_lifo"))
+
+;; Matches the name of other m4 composite macros given as examples in
+;; the manual or sources of GNU M4.
+(rx-define m4--composite
+  (| "array" "array_set" "capitalize" "define_blind" "downcase"
+     "exch" "fatal_error" "foreachq" "forloop" "nargs" "upcase"))
 
 (defvar m4-font-lock-keywords
   (eval-when-compile
-    `(("\\(\\_<\\(m4_\\)?dnl\\_>\\).*$" (0 font-lock-comment-face t))
-      ("\\$[*#@0-9]" . font-lock-variable-name-face)
-      ("\\$@" . font-lock-variable-name-face)
-      ("\\$\\*" . font-lock-variable-name-face)
-      (,(concat "\\_<\\(m4_\\)?" (regexp-opt m4--macro-list) "\\_>")
-       . font-lock-keyword-face)))
+    `(("\\(\\_<\\(?:m4_\\)?dnl\\_>\\)\\(.*\\)$"
+       (1 'font-lock-comment-delimiter-face t)
+       (2 'font-lock-comment-face t))
+      ("\\$[*#@0-9]" . 'font-lock-variable-use-face)
+      ,(rx symbol-start
+           (? "m4_")
+           (| m4--builtin m4--autoconf m4--composite)
+           symbol-end)))
   "Default `font-lock-keywords' for M4 mode.")
 
 (defcustom m4-mode-hook nil
@@ -98,11 +103,11 @@ If m4 is not in your PATH, set this to an absolute file name."
 (defvar m4-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?` "('" table)
-    (modify-syntax-entry ?' ")`" table)
+    (modify-syntax-entry ?\' ")`" table)
     (modify-syntax-entry ?# "<\n" table)
     (modify-syntax-entry ?\n ">#" table)
-    (modify-syntax-entry ?{  "." table)
-    (modify-syntax-entry ?}  "." table)
+    (modify-syntax-entry ?\{ "." table)
+    (modify-syntax-entry ?\} "." table)
     (modify-syntax-entry ?_  "_" table)
     (modify-syntax-entry ?*  "." table)
     (modify-syntax-entry ?\"  "." table)
@@ -140,27 +145,26 @@ If m4 is not in your PATH, set this to an absolute file name."
 (defun m4-m4-buffer ()
   "Send contents of the current buffer to m4."
   (interactive)
-  (shell-command-on-region
-   (point-min) (point-max)
-   (mapconcat #'identity (cons m4-program m4-program-options) "\s")
-   "*m4-output*" nil)
-  (switch-to-buffer-other-window "*m4-output*"))
+  (m4-m4-region (point-min) (point-max)))
 
-(defun m4-m4-region ()
-  "Send contents of the current region to m4."
-  (interactive)
-  (shell-command-on-region
-   (point) (mark)
-   (mapconcat #'identity (cons m4-program m4-program-options) "\s")
-   "*m4-output*" nil)
-  (switch-to-buffer-other-window "*m4-output*"))
+(defun m4-m4-region (&optional start end)
+  "Send the contents of the region between START and END to m4.
+When nil, START and END default to the active region."
+  (interactive "r")
+  (let ((buf "*m4-output*"))
+    (shell-command-on-region
+     (or start (region-beginning)) (or end (region-end))
+     (mapconcat #'shell-quote-argument (cons m4-program m4-program-options) " ")
+     buf nil nil nil (use-region-noncontiguous-p))
+    (pop-to-buffer buf)))
 
 (defun m4-current-defun-name ()
   "Return the name of the M4 function at point, or nil."
   (save-excursion
     (if (re-search-backward
-	 "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
-	(match-string-no-properties 3))))
+         "^\\(?:\\(?:m4_\\)?define\\|A._DEFUN\\)([[`]?\\([A-Za-z0-9_]+\\)"
+         nil t)
+        (match-string-no-properties 1))))
 
 ;;;###autoload
 (define-derived-mode m4-mode prog-mode "m4"
@@ -169,7 +173,7 @@ If m4 is not in your PATH, set this to an absolute file name."
   (setq-local parse-sexp-ignore-comments t)
   (setq-local add-log-current-defun-function #'m4-current-defun-name)
   (setq-local syntax-propertize-function m4-syntax-propertize)
-  (setq-local font-lock-defaults '(m4-font-lock-keywords nil)))
+  (setq-local font-lock-defaults '(m4-font-lock-keywords)))
 
 (provide 'm4-mode)
 ;;stuff to play with for debugging

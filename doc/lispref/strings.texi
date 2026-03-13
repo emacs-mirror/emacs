@@ -578,8 +578,10 @@ Keep in mind that lower case letters have higher numeric values in the
 @acronym{ASCII} character set than their upper case counterparts; digits and
 many punctuation characters have a lower numeric value than upper case
 letters.  An @acronym{ASCII} character is less than any non-@acronym{ASCII}
-character; a unibyte non-@acronym{ASCII} character is always less than any
-multibyte non-@acronym{ASCII} character (@pxref{Text Representations}).
+character. However, as unibyte and multibyte strings only have the
+@acronym{ASCII} character set in common, it is usually not meaningful to
+compare other characters between those two types of strings
+(@pxref{Text Representations}).
 
 @example
 @group

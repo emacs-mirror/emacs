@@ -792,7 +792,8 @@ SOURCE, if given, should be a symbol; it is used to name the test."
   "Call `di:parse-entry' on the full test buffer"
   (let ((tz
          (cond
-          ((eq 'local di:time-zone-export-strategy)
+          ((and (eq 'local di:time-zone-export-strategy)
+                (not (di:-tz-is-utc-p)))
            (di:current-tz-to-vtimezone))
           ((listp di:time-zone-export-strategy)
            (di:current-tz-to-vtimezone di:time-zone-export-strategy)))))
@@ -1269,6 +1270,34 @@ Parses anything following \"@\" to end of line as the entry's LOCATION."
                 (should (member "mailto:mydept@example.com" addrs))))
              (t (error "Unknown alarm action %s" action)))))))
 
+
+;; Tests for diary/calendar functions
+
+(ert-deftest dit:rrule-bug-80460 ()
+  ;; Bug#80460 -- diary-rrule was incorrectly handling included/excluded
+  ;; recurrences and COUNT clauses
+  (let ((sexp '(diary-rrule
+                :rule    '((FREQ WEEKLY) (COUNT 5) (BYDAY (5)))
+                :exclude '((0 0 15 20 2 2026 5 -1 nil))
+                :include '((0 0 14 19 2 2026 5 -1 nil))
+                :start    '(0 0 15 13 2 2026 5 -1 nil)
+                :duration '(0 0 2 0 nil nil nil -1 nil)))
+        (recurrences '((2 13 2026)
+                       (2 19 2026) ; shifted back via :include
+                       (2 27 2026)
+                       (3 6 2026)
+                       (3 13 2026)))
+        (non-recs '((2 20 2026)  ; excluded via :exclude
+                    (3 20 2026)  ; beyond end of COUNT
+                    (2 6 2026)))); before :start
+    (dolist (rec recurrences)
+      (calendar-dlet ((date rec)
+                      (entry (format "Test for Bug#80640: %s" rec)))
+        (should (eval sexp nil))))
+    (dolist (non-rec non-recs)
+      (calendar-dlet ((date non-rec)
+                      (entry (format "Test for Bug#80640: %s" non-rec)))
+        (should-not (eval sexp nil))))))
 
 
 ;; Local Variables:

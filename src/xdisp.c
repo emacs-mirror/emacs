@@ -514,6 +514,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Holds the list (error).  */
 static Lisp_Object list_of_error;
 
+/* Forward declarations.  */
+static void restore_selected_window (Lisp_Object);
+static void restore_frame_selected_window (Lisp_Object);
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Test if overflow newline into fringe.  Called with iterator IT
@@ -1229,7 +1233,8 @@ static void get_cursor_offset_for_mouse_face (struct window *w,
 					      int *offset);
 #endif /* HAVE_WINDOW_SYSTEM */
 
-static void produce_special_glyphs (struct it *, enum display_element_type);
+static void produce_special_glyphs (struct it *, enum display_element_type,
+				    bidi_dir_t direction, bool left_edge_p);
 static void pad_mode_line (struct it *, bool);
 static void show_mouse_face (Mouse_HLInfo *, enum draw_glyphs_face, bool);
 static bool coords_in_mouse_face_p (struct window *, int, int);
@@ -3423,19 +3428,29 @@ init_iterator (struct it *it, struct window *w,
      frame parameter.  */
   if (!it->f->no_special_glyphs)
     {
+      int width;
+
+      /* For each special glyph, we get the dimensions in the L2R and in
+	 the R2L case and use the maximum produced width.  This is
+	 because the glyph can come from a different font in each
+	 case.  */
       if (it->line_wrap == TRUNCATE)
 	{
 	  /* We will need the truncation glyph.  */
 	  eassert (it->glyph_row == NULL);
-	  produce_special_glyphs (it, IT_TRUNCATION);
-	  it->truncation_pixel_width = it->pixel_width;
+	  produce_special_glyphs (it, IT_TRUNCATION, L2R, false);
+	  width = it->pixel_width;
+	  produce_special_glyphs (it, IT_TRUNCATION, R2L, false);
+	  it->truncation_pixel_width = max (width, it->pixel_width);
 	}
       else
 	{
 	  /* We will need the continuation glyph.  */
 	  eassert (it->glyph_row == NULL);
-	  produce_special_glyphs (it, IT_CONTINUATION);
-	  it->continuation_pixel_width = it->pixel_width;
+	  produce_special_glyphs (it, IT_CONTINUATION, L2R, false);
+	  width = it->pixel_width;
+	  produce_special_glyphs (it, IT_CONTINUATION, R2L, false);
+	  it->continuation_pixel_width = max (width, it->pixel_width);
 	}
     }
 
@@ -4501,6 +4516,7 @@ compute_display_string_pos (struct text_pos *position,
     (charpos < eob - MAX_DISP_SCAN) ? charpos + MAX_DISP_SCAN : eob;
   struct text_pos tpos;
   int rv = 0;
+  Lisp_Object overlay = Qnil, ov1 = Qnil;
 
   if (string && STRINGP (string->lstring))
     object1 = object = string->lstring;
@@ -4533,13 +4549,15 @@ compute_display_string_pos (struct text_pos *position,
   else
     bufpos = charpos;
   tpos = *position;
-  if (!NILP (spec = Fget_char_property (pos, Qdisplay, object))
+  if (!NILP (spec = get_char_property_and_overlay (pos, Qdisplay, object,
+						   &overlay))
       && (charpos <= begb
-	  || !EQ (Fget_char_property (make_fixnum (charpos - 1), Qdisplay,
-				      object),
-		  spec))
-      && (rv = handle_display_spec (NULL, spec, object1, Qnil, &tpos, bufpos,
-				    frame_window_p)))
+	  || !EQ (get_char_property_and_overlay (make_fixnum (charpos - 1),
+						 Qdisplay, object, &ov1),
+		  spec)
+	  || !BASE_EQ (overlay, ov1))
+      && (rv = handle_display_spec (NULL, spec, object1, overlay, &tpos,
+				    bufpos, frame_window_p)))
     {
       if (rv == 2)
 	*disp_prop = 2;
@@ -4561,11 +4579,11 @@ compute_display_string_pos (struct text_pos *position,
       BYTEPOS (tpos) = string_char_to_byte (object, CHARPOS (tpos));
     else
       BYTEPOS (tpos) = CHAR_TO_BYTE (CHARPOS (tpos));
-    spec = Fget_char_property (pos, Qdisplay, object);
+    spec = get_char_property_and_overlay (pos, Qdisplay, object, &overlay);
     if (!STRINGP (object))
       bufpos = CHARPOS (tpos);
   } while (NILP (spec)
-	   || !(rv = handle_display_spec (NULL, spec, object1, Qnil, &tpos,
+	   || !(rv = handle_display_spec (NULL, spec, object1, overlay, &tpos,
 					  bufpos, frame_window_p)));
   if (rv == 2)
     *disp_prop = 2;
@@ -4579,11 +4597,19 @@ compute_display_string_pos (struct text_pos *position,
    property whose value is a string or a `display' text property whose
    value is a string.  */
 ptrdiff_t
-compute_display_string_end (ptrdiff_t charpos, struct bidi_string_data *string)
+compute_display_string_end (ptrdiff_t charpos, struct bidi_string_data *string,
+			    struct window *w)
 {
+  Lisp_Object window = Qnil;
+  if (w)
+    XSETWINDOW (window, w);
+
   /* OBJECT = nil means current buffer.  */
-  Lisp_Object object =
-    (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
+  Lisp_Object object = (string && STRINGP (string->lstring))
+		       ? string->lstring
+		       : WINDOWP (window)
+			 ? window
+			 : Qnil;
   Lisp_Object pos = make_fixnum (charpos);
   ptrdiff_t eob =
     (STRINGP (object) || (string && string->s)) ? string->schars : ZV;
@@ -4605,11 +4631,18 @@ compute_display_string_end (ptrdiff_t charpos, struct bidi_string_data *string)
      it->stop_charpos.  But neither compute_display_string_pos nor
      bidi_fetch_char that calls it know or care where the next
      stop_charpos is.  */
-  if (NILP (Fget_char_property (pos, Qdisplay, object)))
+  Lisp_Object overlay = Qnil;
+  if (NILP (get_char_property_and_overlay (pos, Qdisplay, object, &overlay)))
     return -1;
 
   /* Look forward for the first character where the `display' property
      changes.  */
+  if (OVERLAYP (overlay))
+    return OVERLAY_END (overlay);
+
+  /* next-char-property-change doesn't support window OBJECTs.  */
+  if (WINDOWP (object))
+    object = w->contents;
   pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
 
   return XFIXNAT (pos);
@@ -6290,14 +6323,14 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   if (it)
     {
       start_pos = *position;
-      *position = display_prop_end (it, object, start_pos);
-      /* If the display property comes from an overlay, don't consider
-	 any potential stop_charpos values before the end of that
-	 overlay.  Since display_prop_end will happily find another
-	 'display' property coming from some other overlay or text
-	 property on buffer positions before this overlay's end, we
-	 need to ignore them, or else we risk displaying this
-	 overlay's display string/image twice.  */
+      /* If the display property comes from an overlay, always use the
+	 end of that overlay as the end of the property.  Since
+	 display_prop_end will happily find another 'display' property
+	 coming from some other overlay or text property on buffer
+	 positions before this overlay's end, or overlays not specific
+	 to this window, we need to ignore them, or else we risk
+	 displaying this overlay's display string/image twice, or fail
+	 to display text that should be.  */
       if (!NILP (overlay))
 	{
 	  ptrdiff_t ovendpos = OVERLAY_END (overlay);
@@ -6310,9 +6343,10 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	     set below.  Prevent that.  */
 	  ovendpos = clip_to_bounds (BEGV, ovendpos, ZV);
 
-	  if (ovendpos > CHARPOS (*position))
-	    SET_TEXT_POS (*position, ovendpos, CHAR_TO_BYTE (ovendpos));
+	  SET_TEXT_POS (*position, ovendpos, CHAR_TO_BYTE (ovendpos));
 	}
+      else
+	*position = display_prop_end (it, object, start_pos);
     }
   value = Qnil;
 
@@ -12466,15 +12500,8 @@ message_log_check_duplicate (ptrdiff_t prev_bol_byte, ptrdiff_t this_bol_byte)
 }
 
 
-/* Display an echo area message M with a specified length of NBYTES
-   bytes.  The string may include null characters.  If M is not a
-   string, clear out any existing message, and let the mini-buffer
-   text show through.
-
-   This function cancels echoing.  */
-
-void
-message3 (Lisp_Object m)
+static void
+log_message (Lisp_Object m)
 {
   clear_message (true, true);
   cancel_echoing ();
@@ -12491,8 +12518,32 @@ message3 (Lisp_Object m)
       message_dolog (buffer, nbytes, true, multibyte);
       SAFE_FREE ();
     }
+}
+
+/* Display an echo area message M with a specified length of NBYTES
+   bytes.  The string may include null characters.  If M is not a
+   string, clear out any existing message, and let the mini-buffer
+   text show through.
+
+   This function cancels echoing.  */
+
+void
+message3 (Lisp_Object m)
+{
+  log_message (m);
   if (! inhibit_message)
     message3_nolog (m);
+}
+
+/* Display an echo area message M on frame F, which may not be the
+   selected frame.  */
+
+void
+message3_frame (Lisp_Object m, struct frame *f)
+{
+  log_message (m);
+  if (! inhibit_message)
+    message3_frame_nolog (m, f);
 }
 
 /* Log the message M to stderr.  Log an empty line if M is not a string.  */
@@ -12523,7 +12574,7 @@ message_to_stderr (Lisp_Object m)
     errputc ('\n');
 }
 
-/* The non-logging version of message3.
+/* The non-logging versions of message3 & message3_frame.
    This does not cancel echoing, because it is used for echoing.
    Perhaps we need to make a separate function for echoing
    and make this cancel echoing.  */
@@ -12531,28 +12582,55 @@ message_to_stderr (Lisp_Object m)
 void
 message3_nolog (Lisp_Object m)
 {
+  message3_frame_nolog (m, NULL);
+}
+
+void
+message3_frame_nolog (Lisp_Object m, struct frame *f)
+{
   struct frame *sf = SELECTED_FRAME ();
+  if (!f) f = sf;
 
-  if (FRAME_INITIAL_P (sf))
+  if (FRAME_INITIAL_P (f))
     message_to_stderr (m);
-  /* Error messages get reported properly by cmd_error, so this must be just an
-     informative message; if the frame hasn't really been initialized yet, just
-     toss it.  */
-  else if (INTERACTIVE && sf->glyphs_initialized_p)
+  /* Error messages get reported properly by cmd_error, so this must be
+     just an informative message; therefore if the frame hasn't really
+     been initialized yet, just toss it.  */
+  else if (INTERACTIVE && f->glyphs_initialized_p)
     {
-      /* Get the frame containing the mini-buffer
-	 that the selected frame is using.  */
-      Lisp_Object mini_window = FRAME_MINIBUF_WINDOW (sf);
-      Lisp_Object frame = XWINDOW (mini_window)->frame;
-      struct frame *f = XFRAME (frame);
+      Lisp_Object frame = Qnil;
+      struct frame *mbf = NULL;
+      specpdl_ref count = SPECPDL_INDEX ();
 
-      if (FRAME_VISIBLE_P (sf) && !FRAME_VISIBLE_P (f))
-	Fmake_frame_visible (frame);
+      if (f == sf)
+	{
+	  /* Get the frame containing the mini-buffer that the selected
+	     frame is using.  */
+	  Lisp_Object mini_window = FRAME_MINIBUF_WINDOW (f);
+	  frame = XWINDOW (mini_window)->frame;
+	  mbf = XFRAME (frame);
+
+	  if (FRAME_VISIBLE_P (f) && !FRAME_VISIBLE_P (mbf))
+	    Fmake_frame_visible (frame);
+	}
+      else
+	{
+	  /* We temporarily switch frame, show the message, and then
+	     when we unwind the message will normally still be visible
+	     in the other frame, at least for a few seconds.  */
+	  record_unwind_protect
+	    (restore_selected_window, selected_window);
+	  record_unwind_protect
+	    (restore_frame_selected_window, f->selected_window);
+	  XSETFRAME (frame, f);
+	  selected_frame = frame;
+	  selected_window = FRAME_SELECTED_WINDOW (f);
+	}
 
       if (STRINGP (m) && SCHARS (m) > 0)
 	{
 	  set_message (m);
-	  if (minibuffer_auto_raise)
+	  if (minibuffer_auto_raise && !NILP (frame))
 	    Fraise_frame (frame);
 	  /* Assume we are not echoing.
 	     (If we are, echo_now will override this.)  */
@@ -12564,8 +12642,10 @@ message3_nolog (Lisp_Object m)
       do_pending_window_change (false);
       echo_area_display (true);
       do_pending_window_change (false);
-      if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
-	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
+      if (mbf && FRAME_TERMINAL (mbf)->frame_up_to_date_hook)
+	(*FRAME_TERMINAL (mbf)->frame_up_to_date_hook) (mbf);
+
+      unbind_to (count, Qnil);
     }
 }
 
@@ -23754,7 +23834,8 @@ insert_left_trunc_glyphs (struct it *it)
   truncate_it.glyph_row->used[TEXT_AREA] = 0;
   CHARPOS (truncate_it.position) = BYTEPOS (truncate_it.position) = -1;
   truncate_it.object = Qnil;
-  produce_special_glyphs (&truncate_it, IT_TRUNCATION);
+  produce_special_glyphs (&truncate_it, IT_TRUNCATION,
+			  it->bidi_it.paragraph_dir, true);
 
   /* Overwrite glyphs from IT with truncation glyphs.  */
   if (!it->glyph_row->reversed_p)
@@ -26130,7 +26211,8 @@ display_line (struct it *it, int cursor_vpos)
 			 glyphs like in 20.x.  */
 		      while (row->glyphs[TEXT_AREA] + row->used[TEXT_AREA]
 			     < row->glyphs[1 + TEXT_AREA])
-			produce_special_glyphs (it, IT_CONTINUATION);
+			produce_special_glyphs (it, IT_CONTINUATION,
+						it->bidi_it.paragraph_dir, false);
 
 		      row->continued_p = true;
 		      it->current_x = x_before;
@@ -26185,7 +26267,8 @@ display_line (struct it *it, int cursor_vpos)
 		      if ((row->reversed_p
 			   ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
 			   : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0)
-			produce_special_glyphs (it, IT_CONTINUATION);
+			produce_special_glyphs (it, IT_CONTINUATION,
+						it->bidi_it.paragraph_dir, false);
 		      it->continuation_lines_width += it->last_visible_x;
 		      row->ends_in_middle_of_char_p = true;
 		      row->continued_p = true;
@@ -26212,7 +26295,8 @@ display_line (struct it *it, int cursor_vpos)
 			  || (row->reversed_p
 			      ? WINDOW_LEFT_FRINGE_WIDTH (it->w)
 			      : WINDOW_RIGHT_FRINGE_WIDTH (it->w)) == 0)
-			produce_special_glyphs (it, IT_CONTINUATION);
+			produce_special_glyphs (it, IT_CONTINUATION,
+						it->bidi_it.paragraph_dir, false);
 		      row->continued_p = true;
 
 		      extend_face_to_end_of_line (it);
@@ -26402,13 +26486,15 @@ display_line (struct it *it, int cursor_vpos)
 		      for (n = row->used[TEXT_AREA]; i < n; ++i)
 			{
 			  row->used[TEXT_AREA] = i;
-			  produce_special_glyphs (it, IT_TRUNCATION);
+			  produce_special_glyphs (it, IT_TRUNCATION,
+						  it->bidi_it.paragraph_dir, false);
 			}
 		    }
 		  else
 		    {
 		      row->used[TEXT_AREA] = i;
-		      produce_special_glyphs (it, IT_TRUNCATION);
+		      produce_special_glyphs (it, IT_TRUNCATION,
+					      it->bidi_it.paragraph_dir, false);
 		    }
 		  it->hpos = hpos_before;
 		}
@@ -27482,6 +27568,10 @@ display_menu_bar (struct window *w)
   if (FRAME_HAIKU_P (f))
     return;
 #endif /* HAVE_HAIKU */
+
+  /* Don't do all this if the frame's menu bar is not yet set.  */
+  if (NILP (FRAME_MENU_BAR_ITEMS (f)))
+    return;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   eassert (!FRAME_WINDOW_P (f));
@@ -29931,10 +30021,13 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 			  if (row->mode_line_p)
 			    pad_mode_line (it, mode_line_p);
 			  else
-			    produce_special_glyphs (it, IT_TRUNCATION);
+			    produce_special_glyphs (it, IT_TRUNCATION,
+						    it->bidi_it.paragraph_dir,
+						    false);
 			}
 		    }
-		  produce_special_glyphs (it, IT_TRUNCATION);
+		  produce_special_glyphs (it, IT_TRUNCATION,
+					  it->bidi_it.paragraph_dir, false);
 		}
 	      row->truncated_on_right_p = true;
 	    }
@@ -32728,17 +32821,20 @@ produce_stretch_glyph (struct it *it)
     it->nglyphs = width;
 }
 
-/* Get information about special display element WHAT in an
-   environment described by IT.  WHAT is one of IT_TRUNCATION or
-   IT_CONTINUATION.  Maybe produce glyphs for WHAT if IT has a
-   non-null glyph_row member.  This function ensures that fields like
-   face_id, c, len of IT are left untouched.  */
+/* Get information about special display element WHAT in an environment
+   described by IT.  WHAT is one of IT_TRUNCATION or IT_CONTINUATION.
+   Maybe produce glyphs for WHAT if IT has a non-null glyph_row member.
+   DIRECTION is the paragraph direction.  LEFT_EDGE_P tells whether the
+   glyph is to be produced on the left side of the window.  This
+   function ensures that fields like face_id, c, len of IT are left
+   untouched.  */
 
 static void
-produce_special_glyphs (struct it *it, enum display_element_type what)
+produce_special_glyphs (struct it *it, enum display_element_type what,
+			bidi_dir_t direction, bool left_edge_p)
 {
   struct it temp_it;
-  Lisp_Object gc;
+  Lisp_Object gc, val;
   GLYPH glyph;
   /* Take face-remapping into consideration.  */
   int face_id = lookup_basic_face (it->w, it->f, DEFAULT_FACE_ID);
@@ -32750,28 +32846,129 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   if (what == IT_CONTINUATION)
     {
       /* Continuation glyph.  For R2L lines, we mirror it by hand.  */
-      if (it->bidi_it.paragraph_dir == R2L)
+      if (direction == R2L)
 	SET_GLYPH (glyph, '/', face_id);
       else
 	SET_GLYPH (glyph, '\\', face_id);
+
+      /* Is there a display table entry for the continuation glyph?  */
       if (it->dp
 	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  /* Mirror for R2L.  */
+	  if (direction == R2L)
+	    {
+	      /* Try bidi mirroring first.  */
+	      int c = bidi_mirror_char (GLYPH_CODE_CHAR (gc));
+
+	      /* If there was no bidi mirroring, try
+		 special_mirror_table.  */
+	      if (c == GLYPH_CODE_CHAR (gc))
+		{
+		  val = CHAR_TABLE_REF (Vspecial_mirror_table,
+					GLYPH_CODE_CHAR (gc));
+		  if (FIXNUMP (val))
+		    {
+		      c = XFIXNUM (val);
+
+		      /* If something goes wrong defaults to '/'.  */
+		      if (CHAR_VALID_P (c))
+			SET_GLYPH (glyph, c, face_id);
+		      else
+			SET_GLYPH (glyph, '/', face_id);
+		    }
+		}
+	      else
+		  /* Bidi mirroring.  */
+		  SET_GLYPH (glyph, c, face_id);
+	    }
+	  else
+	    /* No mirroring.  */
+	    SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+
+	  /* Make sure the glyph face is realized.  */
 	  spec_glyph_lookup_face (it->w, &glyph);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	  /* Adjust face ID for a non-ASCII character.  */
+	  if (FRAME_WINDOW_P (it->f))
+	    {
+	      int c = GLYPH_CHAR (glyph);
+	      face_id = GLYPH_FACE (glyph);
+	      /* Find or create the face ID for displaying the
+		 character.  */
+	      int new_id = FACE_FOR_CHAR (it->f, FACE_FROM_ID (it->f, face_id),
+					  c, -1, Qnil);
+	      /* Update the face in the glyph.  */
+	      SET_GLYPH_FACE (glyph, new_id);
+	    }
+#endif
 	}
     }
   else if (what == IT_TRUNCATION)
     {
       /* Truncation glyph.  */
       SET_GLYPH (glyph, '$', face_id);
+
+      /* Is there a display table entry for the truncation glyph?  */
       if (it->dp
 	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc)))
 	{
-	  /* FIXME: Should we mirror GC for R2L lines?  */
-	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  /* Mirror for R2L on the right hand side of the window and for
+	     L2R on the left hand side.  */
+	  if (((it->bidi_it.paragraph_dir == R2L) && !left_edge_p) ||
+	      ((it->bidi_it.paragraph_dir == L2R) && left_edge_p))
+	    {
+	      /* Try bidi mirroring first.  */
+	      int c = bidi_mirror_char (GLYPH_CODE_CHAR (gc));
+
+	      /* If there was no bidi mirroring, try
+		 special_mirror_table.  */
+	      if (c == GLYPH_CODE_CHAR (gc))
+		{
+		  val = CHAR_TABLE_REF (Vspecial_mirror_table,
+					GLYPH_CODE_CHAR (gc));
+		  if (FIXNUMP (val))
+		    {
+		      c = XFIXNUM (val);
+
+		      /* If something goes wrong defaults to '$'.  */
+		      if (CHAR_VALID_P (c))
+			  SET_GLYPH (glyph, c, face_id);
+		      else
+			SET_GLYPH (glyph, '$', face_id);
+		    }
+		}
+	      else
+		{
+		  struct face *face = FACE_FROM_ID (it->f, face_id);
+		  int id = FACE_FOR_CHAR (it->f, face, c, -1, Qnil);
+
+		  /* Bidi mirroring.  */
+		  SET_GLYPH (glyph, c, id);
+		}
+	    }
+	  else
+	    /* No mirroring.  */
+	    SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+
+	  /* Make sure the glyph face is realized.  */
 	  spec_glyph_lookup_face (it->w, &glyph);
+
+#ifdef HAVE_WINDOW_SYSTEM
+	  /* Adjust face ID for a non-ASCII character.  */
+	  if (FRAME_WINDOW_P (it->f))
+	    {
+	      int c = GLYPH_CHAR (glyph);
+	      face_id = GLYPH_FACE (glyph);
+	      /* Find or create the face ID for displaying the
+		 character.  */
+	      int new_id = FACE_FOR_CHAR (it->f, FACE_FROM_ID (it->f, face_id),
+					  c, -1, Qnil);
+	      /* Update the face in the glyph.  */
+	      SET_GLYPH_FACE (glyph, new_id);
+	    }
+#endif
 	}
     }
   else
@@ -38841,6 +39038,28 @@ display table takes effect; in this case, Emacs does not consult
   Vglyphless_char_display = Fmake_char_table (Qglyphless_char_display, Qnil);
   Fset_char_table_extra_slot (Vglyphless_char_display, make_fixnum (0),
 			      Qempty_box);
+
+  DEFVAR_LISP ("special-mirror-table", Vspecial_mirror_table,
+		 doc: /* Char-table used to mirror special characters.
+
+This table is used to mirror special characters (truncation and
+continuation) under certain conditions.  For example, if a user modifies
+the display table to use a different continuation character like this:
+
+(set-display-table-slot standard-display-table 'wrap #x21A9)
+
+then, using this table, this character is mirrored accordingly when
+displaying R2L text.  The same applies to the truncation character which
+is mirrored depending if it appears on the right or on the left hand
+side of a window.
+
+This table comes pre-populated with some Unicode arrow chars but you can
+customize it by adding a character and its mirror both way like in the
+following example with the Pilcrow sign:
+
+(aset special-mirror-table #xB6 #x204B)
+(aset special-mirror-table #x204B #xB6)  */);
+  Vspecial_mirror_table = Fmake_char_table (Qnil, Qnil);
 
   DEFVAR_LISP ("debug-on-message", Vdebug_on_message,
 	       doc: /* If non-nil, debug if a message matching this regexp is displayed.  */);

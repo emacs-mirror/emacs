@@ -1001,6 +1001,22 @@ use for the summary window.  The variable
 for a message should include the line count of the message.  Setting
 this option to @code{nil} might speed up the generation of summaries.
 
+@vindex rmail-summary-sender-function
+@vindex rmail-summary-recipient-function
+  Rmail formats the sender and recipient fields in summary lines using
+the options @code{rmail-summary-sender-function} and
+@code{rmail-summary-recipient-function}.  For senders, the possible
+values include showing the address (the default), or showing the sender
+name with fallback to the address.  For recipients, the possible values
+include showing addresses from the first line of the @samp{To:} field
+(the default), showing the first recipient name with fallback to
+address, or showing all recipient names with fallback to addresses.
+Both options can also be set to a custom function.
+
+@vindex rmail-summary-address-width
+  The option @code{rmail-summary-address-width} controls the width of
+those fields.
+
 @node Rmail Summary Edit
 @subsection Editing in Summaries
 

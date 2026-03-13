@@ -711,9 +711,11 @@ If @var{exit-data} is an integer, that is used as the exit status of
 the Emacs process.  (This is useful primarily in batch operation; see
 @ref{Batch Mode}.)
 
-If @var{exit-data} is a string, its contents are stuffed into the
-terminal input buffer so that the shell (or whatever program next reads
-input) can read them.
+If @var{exit-data} is a string, its contents (followed by a newline) are
+stuffed into the terminal input buffer so that the shell (or whatever
+program next reads input) can read them.  However, stuffing is silently
+skipped if Emacs is not running interactively on a terminal, or if
+stuffing requires special privileges or is not supported on this platform.
 
 If @var{exit-data} is neither an integer nor a string, or is omitted,
 that means to use the (system-specific) exit status which indicates
@@ -813,6 +815,9 @@ before suspending Emacs, or this function signals an error.
 
 If @var{string} is non-@code{nil}, its characters are sent to Emacs's
 superior shell, to be read as terminal input.
+However, this action is skipped if Emacs is not running interactively on
+a terminal, or if stuffing characters into the terminal input requires
+special privileges or is not supported on this platform.
 
 Before suspending, @code{suspend-emacs} runs the normal hook
 @code{suspend-hook}.  After the user resumes Emacs,
@@ -837,7 +842,7 @@ Here is an example of how you could use these hooks:
 @c The sit-for prevents the @code{nil} that suspend-emacs returns
 @c hiding the message.
 
-Here is what you would see upon evaluating @code{(suspend-emacs "pwd")}:
+Here is what you would see upon evaluating @code{(suspend-emacs)}:
 
 @smallexample
 @group
@@ -848,8 +853,6 @@ Really suspend? @kbd{y}
 
 @group
 ---------- Parent Shell ----------
-bash$ pwd
-/home/username
 bash$ fg
 @end group
 

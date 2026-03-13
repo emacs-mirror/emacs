@@ -888,6 +888,7 @@ static CHAR_T const c_month_names[][sizeof "September"] =
     L_("June"), L_("July"), L_("August"), L_("September"), L_("October"),
     L_("November"), L_("December")
   };
+static CHAR_T const c_ampm_letters[] = { L_('A'), L_('M'), L_('P'), L_('M') };
 #endif
 
 
@@ -1274,7 +1275,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # define f_month \
   (tp->tm_mon < 0 || tp->tm_mon > 11 ? L_("?") : c_month_names[tp->tm_mon])
 /* The English AM/PM strings happen to have the same length, namely 2.  */
-# define ampm (L_("AMPM") + 2 * (tp->tm_hour > 11))
+# define ampm (c_ampm_letters + 2 * (12 <= tp->tm_hour))
 # define ap_len 2
 #endif
   retval_t i = 0;
@@ -1358,7 +1359,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             mbstate_t mbstate = mbstate_zero;
 
             if (! format_end)
-              format_end = f + strlen (f) + 1;
+              format_end = strnul (f) + 1;
             size_t fsize = format_end - f;
 
             size_t len = 0;

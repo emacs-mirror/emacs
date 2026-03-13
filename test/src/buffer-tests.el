@@ -25,6 +25,8 @@
 (require 'cl-lib)
 (require 'let-alist)
 
+(defvar buffer-tests--local-var :default)
+
 (defun overlay-tests-start-recording-modification-hooks (overlay)
   "Start recording modification hooks on OVERLAY.
 
@@ -268,6 +270,76 @@ with parameters from the *Messages* buffer modification."
 (ert-deftest test-buffer-base-buffer-non-indirect ()
   (with-temp-buffer
     (should (eq (buffer-base-buffer (current-buffer)) nil))))
+
+(ert-deftest buffer-tests--basic-buffer-primitives ()
+  (let ((buf (generate-new-buffer " *buffer-tests-basic*")))
+    (unwind-protect
+        (progn
+          (should (bufferp buf))
+          (should (buffer-live-p buf))
+          (should (equal (buffer-name buf) " *buffer-tests-basic*"))
+          (should (eq (get-buffer " *buffer-tests-basic*") buf))
+          (should (eq (get-buffer buf) buf))
+          (should (eq (get-buffer-create " *buffer-tests-basic*") buf))
+          (with-current-buffer buf
+            (insert "abc")
+            (should (= (buffer-size) 3))
+            (should (eq (set-buffer buf) buf)))
+          (with-current-buffer buf
+            (let ((new-name (rename-buffer " *buffer-tests-renamed*" t)))
+              (should (equal new-name " *buffer-tests-renamed*"))
+              (should (eq (get-buffer new-name) buf))))
+          (should (memq buf (buffer-list))))
+      (when (buffer-live-p buf)
+        (kill-buffer buf)))
+    (should-not (buffer-live-p buf))))
+
+(ert-deftest buffer-tests--other-buffer ()
+  (let ((b1 (generate-new-buffer " *buffer-tests-ob1*"))
+        (b2 (generate-new-buffer " *buffer-tests-ob2*")))
+    (unwind-protect
+        (with-current-buffer b1
+          (let ((other (other-buffer (current-buffer) t)))
+            (should (bufferp other))
+            (should (buffer-live-p other))
+            (should-not (eq other (current-buffer)))))
+      (when (buffer-live-p b1)
+        (kill-buffer b1))
+      (when (buffer-live-p b2)
+        (kill-buffer b2)))))
+
+(ert-deftest buffer-tests--buffer-last-name ()
+  (let ((buf (generate-new-buffer " *buffer-tests-last-name*")))
+    (unwind-protect
+        (with-current-buffer buf
+          (let ((first (buffer-name)))
+            (rename-buffer " *buffer-tests-last-name-2*" t)
+            (should (equal (buffer-last-name) first))
+            (rename-buffer " *buffer-tests-last-name-3*" t)
+            (should (equal (buffer-last-name) " *buffer-tests-last-name-2*"))))
+      (when (buffer-live-p buf)
+        (kill-buffer buf)))))
+
+(ert-deftest buffer-tests--buffer-local-value ()
+  (let ((buf1 (generate-new-buffer " *buffer-tests-local-1*"))
+        (buf2 (generate-new-buffer " *buffer-tests-local-2*"))
+        (old buffer-tests--local-var))
+    (unwind-protect
+        (progn
+          (setq buffer-tests--local-var :default)
+          (with-current-buffer buf1
+            (setq-local buffer-tests--local-var :buf1))
+          (with-current-buffer buf2
+            (setq-local buffer-tests--local-var :buf2))
+          (should (eq (buffer-local-value 'buffer-tests--local-var buf1) :buf1))
+          (should (eq (buffer-local-value 'buffer-tests--local-var buf2) :buf2))
+          (should (eq (buffer-local-value 'buffer-tests--local-var (current-buffer))
+                      :default)))
+      (setq buffer-tests--local-var old)
+      (when (buffer-live-p buf1)
+        (kill-buffer buf1))
+      (when (buffer-live-p buf2)
+        (kill-buffer buf2)))))
 
 (ert-deftest buffer-tests--overlays-indirect-bug58928 ()
   (with-temp-buffer
@@ -905,6 +977,7 @@ should evaporate overlays in both."
       (should-length 1 (overlays-at 10))
       (should-length 1 (overlays-at 20))
       (should-length 0 (overlays-at (point-max)))
+      (should-length 1 (overlays-at (1- (point-max))))
       (narrow-to-region 10 20)
       (should-length 1 (overlays-at (point-min)))
       (should-length 1 (overlays-at 15))

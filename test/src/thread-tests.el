@@ -122,10 +122,10 @@
   (skip-unless (featurep 'threads))
   (let ((thread (make-thread #'threads-thread-sleeps))
         err)
-    (thread-signal thread 'error "Error signal for thread")
+    (thread-signal thread 'error '("Error signal for thread"))
     (thread-yield)
     (setq err (should-error (thread-join thread)))
-    (should (equal err '(error . "Error signal for thread")))))
+    (should (equal err '(error "Error signal for thread")))))
 
 (defvar threads-test-binding nil)
 

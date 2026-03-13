@@ -2009,6 +2009,28 @@ visual representation of these characters."
   :group 'display)
 
 
+;;; Special mirror.  Only populate table here, its definition is in
+;;; xdisp.c.
+(let ((pairs '(;; Some truncation examples.
+	       (?← . ?→)
+               (?↜ . ?↝)
+               (?↞ . ?↠)
+               (?↢ . ?↣)
+               (?↤ . ?↦)
+               (?↼ . ?⇀)
+               (?↽ . ?⇁)
+               (?⇇ . ?⇉)
+               (?⇐ . ?⇒)
+               (?⇠ . ?⇢)
+               (?⇦ . ?⇨)
+               ;; Some continuation examples.
+               (?↩ . ?↪)
+               (?↫ . ?↬)
+               (?↲ . ?↳))))
+  (dolist (pair pairs)
+    (aset special-mirror-table (car pair) (cdr pair))
+    (aset special-mirror-table (cdr pair) (car pair))))
+
 ;;; Setting word boundary.
 
 (setq word-combining-categories

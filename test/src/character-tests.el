@@ -44,4 +44,19 @@
   (should (= (string-width "הַרְבֵּה אַהֲבָה") 9))
   (should (= (string-width "הַרְבֵּה אַהֲבָה" nil 8) 4)))
 
+(ert-deftest character-tests--multibyte-char-to-unibyte ()
+  (should (= (multibyte-char-to-unibyte ?A) ?A))
+  (should (= (multibyte-char-to-unibyte ?\N{LATIN SMALL LETTER E WITH ACUTE})
+             233))
+  (should (= (multibyte-char-to-unibyte ?\N{GREEK SMALL LETTER LAMDA}) -1))
+  (should-error (multibyte-char-to-unibyte "A")
+                :type 'wrong-type-argument))
+
+(ert-deftest character-tests--char-resolve-modifiers ()
+  (should (= (char-resolve-modifiers (logior ?\C-\0 ?a)) ?\C-a))
+  (should (= (char-resolve-modifiers (logior ?\S-\0 ?a)) ?A))
+  (should (= (char-resolve-modifiers (logior ?\C-\0 ??)) ?\C-?))
+  (let ((val (logior ?\M-\0 ?a)))
+    (should (= (char-resolve-modifiers val) val))))
+
 ;;; character-tests.el ends here

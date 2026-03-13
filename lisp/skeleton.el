@@ -192,8 +192,8 @@ variable `str' within the skeleton.  When this is non-nil, the
 interactor gets ignored, and this should be a valid skeleton element.
 
 When done with skeleton, but before going back to `_'-point, add
-a newline (unless `skeleton-end-newline' is nil) and run the hook
-`skeleton-end-hook'.
+a newline (unless `skeleton-end-newline' is nil or `_'-point is at end
+of line), and run the hook `skeleton-end-hook'.
 
 SKELETON is made up as (INTERACTOR ELEMENT ...).  INTERACTOR may be nil if
 not needed, a prompt-string or an expression for complex read functions.

@@ -49,7 +49,9 @@
         :commit "d9219ada6e1a2c8f0ab0304a8bd9ca4285ae0468")
  t)
 
-(defcustom html-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'html-ts-mode-indent-offset
+  'html-ts-indent-offset "31")
+(defcustom html-ts-indent-offset 2
   "Number of spaces for each indentation step in `html-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -63,11 +65,11 @@
      ((node-is ">") parent-bol 0)
      ((node-is "end_tag") parent-bol 0)
      ((parent-is "comment") prev-adaptive-prefix 0)
-     ((parent-is "element") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "script_element") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "style_element") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "start_tag") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "self_closing_tag") parent-bol html-ts-mode-indent-offset)))
+     ((parent-is "element") parent-bol html-ts-indent-offset)
+     ((parent-is "script_element") parent-bol html-ts-indent-offset)
+     ((parent-is "style_element") parent-bol html-ts-indent-offset)
+     ((parent-is "start_tag") parent-bol html-ts-indent-offset)
+     ((parent-is "self_closing_tag") parent-bol html-ts-indent-offset)))
   "Tree-sitter indent rules.")
 
 (defvar html-ts-mode--font-lock-settings

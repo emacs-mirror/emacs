@@ -384,6 +384,10 @@
     (rust
      "note: required by a bound in `Trait`\n  --> src/auxiliary/trait-debuginfo.rs:23:18"
      1 18 23 "src/auxiliary/trait-debuginfo.rs" info)
+    (rust-panic "thread 'main' (1234) panicked at library/std/src/io/stdio.rs:30:40:"
+                1 40 30 "library/std/src/io/stdio.rs" error)
+    (rust-panic "    thread 'main' (1234) panicked at library/std/src/io/stdio.rs:50:60:"
+                1 60 50 "library/std/src/io/stdio.rs" error)
     ;; ruby (uses gnu)
     (gnu "plain-exception.rb:7:in `fun': unhandled exception"
      1 nil 7 "plain-exception.rb" error)
@@ -552,7 +556,7 @@ The test data is in `compile-tests--test-regexps-data'."
                    1 15 5 "alpha.c")))
         (compile--test-error-line test))
 
-      (should (eq compilation-num-errors-found 108))
+      (should (eq compilation-num-errors-found 110))
       (should (eq compilation-num-warnings-found 37))
       (should (eq compilation-num-infos-found 36)))))
 

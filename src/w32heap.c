@@ -47,45 +47,6 @@
 #include "lisp.h"
 #include "w32.h"	/* for FD_SETSIZE */
 
-/* We chose to leave those declarations here.  They are used only in
-   this file.  The RtlCreateHeap is available since XP.  It is located
-   in ntdll.dll and is available with the DDK.  People often
-   complained that HeapCreate doesn't offer the ability to create a
-   heap at a given place, which we need here, and which RtlCreateHeap
-   provides.  We reproduce here the definitions available with the
-   DDK.  */
-
-typedef PVOID (WINAPI * RtlCreateHeap_Proc) (
-                                             /* _In_ */      ULONG Flags,
-                                             /* _In_opt_ */  PVOID HeapBase,
-                                             /* _In_opt_ */  SIZE_T ReserveSize,
-                                             /* _In_opt_ */  SIZE_T CommitSize,
-                                             /* _In_opt_ */  PVOID Lock,
-                                             /* _In_opt_ */  PVOID Parameters
-                                             );
-
-typedef LONG NTSTATUS;
-
-typedef NTSTATUS (NTAPI *PRTL_HEAP_COMMIT_ROUTINE) (
-						    IN PVOID Base,
-						    IN OUT PVOID *CommitAddress,
-						    IN OUT PSIZE_T CommitSize
-						    );
-
-typedef struct _RTL_HEAP_PARAMETERS {
-  ULONG Length;
-  SIZE_T SegmentReserve;
-  SIZE_T SegmentCommit;
-  SIZE_T DeCommitFreeBlockThreshold;
-  SIZE_T DeCommitTotalFreeThreshold;
-  SIZE_T MaximumAllocationSize;
-  SIZE_T VirtualMemoryThreshold;
-  SIZE_T InitialCommit;
-  SIZE_T InitialReserve;
-  PRTL_HEAP_COMMIT_ROUTINE CommitRoutine;
-  SIZE_T Reserved[ 2 ];
-} RTL_HEAP_PARAMETERS, *PRTL_HEAP_PARAMETERS;
-
 /* Info for keeping track of our dynamic heap used after dumping. */
 static unsigned char *data_region_base = NULL;
 static unsigned char *data_region_end = NULL;

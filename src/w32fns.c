@@ -94,6 +94,9 @@ typedef enum _WTS_VIRTUAL_CLASS {
 #include <dlgs.h>
 #include <imm.h>
 #include <windowsx.h>
+#include <gdiplus.h>
+
+#include "w32gdiplus.h"
 
 /*
   Internal/undocumented constants for Windows Dark mode.
@@ -11464,6 +11467,46 @@ w32_register_for_sleep_notifications (void)
 	RegisterSuspendResumeNotification_fn (&params, 2);
     }
 }
+/***********************************************************************
+		     Exporting frames
+ ***********************************************************************/
+DEFUN ("w32-export-frame", Fw32_export_frame, Sw32_export_frame, 2, 3, 0,
+       doc: /* Export screenshot of FRAME to FILE as image of TYPE format.
+If FRAME is nil, it defaults to the selected frame.
+FRAME must be a visible GUI frame; if not, this function signals an error.
+Optional arg TYPE should be either `jpeg' (default), `bmp', `png',
+`gif', or `tiff'.
+
+Value is non-nil if FRAME was successfully exported, nil otherwise.  */)
+  (Lisp_Object frame, Lisp_Object file, Lisp_Object type)
+{
+  struct frame *f = decode_live_frame (frame);
+
+  if (NILP (type))
+    type = Qjpeg;
+
+  if (!FRAME_VISIBLE_P (f))
+    error ("Frame to be exported must be visible");
+  else if (!FRAME_WINDOW_P (f))
+    error ("Frame to be exported must be a GUI frame");
+
+  /* Make sure the current matrices are up-to-date.  */
+  redisplay_preserve_echo_area (32);
+
+  HWND frame_hwnd = FRAME_W32_WINDOW (f);
+  int result = -1;
+  CLSID image_type_clsid;
+  block_input ();
+  if (w32_gdiplus_startup ()
+      && frame_hwnd != NULL
+      && w32_gdip_get_encoder_clsid (SSDATA (SYMBOL_NAME (type)),
+				     &image_type_clsid) >= 0)
+    result = w32_gdip_export_frame (frame_hwnd, file, &image_type_clsid);
+  unblock_input ();
+
+  return result >= 0 ? Qt : Qnil;
+}
+
 
 /***********************************************************************
 			    Initialization
@@ -11949,6 +11992,7 @@ keys when IME input is received.  */);
   defsubr (&Sw32_set_wallpaper);
   defsubr (&Sw32_system_idle_time);
 #endif
+  defsubr (&Sw32_export_frame);
 
   DEFSYM (Qnot_useful, "not-useful");
   DEFSYM (Qpseudo_color, "pseudo-color");

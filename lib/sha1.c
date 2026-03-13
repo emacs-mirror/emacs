@@ -74,7 +74,7 @@ set_uint32 (char *cp, uint32_t v)
 /* Put result from CTX in first 20 bytes following RESBUF.  The result
    must be in little endian byte order.  */
 void *
-sha1_read_ctx (const struct sha1_ctx *ctx, void *resbuf)
+sha1_read_ctx (struct sha1_ctx const *restrict ctx, void *restrict resbuf)
 {
   char *r = resbuf;
   set_uint32 (r + 0 * sizeof ctx->A, SWAP (ctx->A));
@@ -89,7 +89,7 @@ sha1_read_ctx (const struct sha1_ctx *ctx, void *resbuf)
 /* Process the remaining bytes in the internal buffer and the usual
    prolog according to the standard and write the result to RESBUF.  */
 void *
-sha1_finish_ctx (struct sha1_ctx *ctx, void *resbuf)
+sha1_finish_ctx (struct sha1_ctx *restrict ctx, void *restrict resbuf)
 {
   /* Take yet unprocessed bytes into account.  */
   uint32_t bytes = ctx->buflen;
@@ -117,7 +117,7 @@ sha1_finish_ctx (struct sha1_ctx *ctx, void *resbuf)
    output yields to the wanted ASCII representation of the message
    digest.  */
 void *
-sha1_buffer (const char *buffer, size_t len, void *resblock)
+sha1_buffer (char const *restrict buffer, size_t len, void *restrict resblock)
 {
   struct sha1_ctx ctx;
 
@@ -132,7 +132,8 @@ sha1_buffer (const char *buffer, size_t len, void *resblock)
 }
 
 void
-sha1_process_bytes (const void *buffer, size_t len, struct sha1_ctx *ctx)
+sha1_process_bytes (void const *restrict buffer, size_t len,
+                    struct sha1_ctx *restrict ctx)
 {
   /* When we already have some bits in our internal buffer concatenate
      both inputs first.  */
@@ -219,7 +220,8 @@ sha1_process_bytes (const void *buffer, size_t len, struct sha1_ctx *ctx)
    Most of this code comes from GnuPG's cipher/sha1.c.  */
 
 void
-sha1_process_block (const void *buffer, size_t len, struct sha1_ctx *ctx)
+sha1_process_block (void const *restrict buffer, size_t len,
+                    struct sha1_ctx *restrict ctx)
 {
   const uint32_t *words = buffer;
   size_t nwords = len / sizeof (uint32_t);

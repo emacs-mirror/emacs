@@ -142,7 +142,7 @@ Used only when `json-encoding-pretty-print' is non-nil.")
   "Sorting predicate for JSON object keys during encoding.
 If nil, no sorting is performed.  Else, JSON object keys are
 ordered by the specified sort predicate during encoding.  For
-instance, setting this to `string<' will have JSON object keys
+instance, setting this to `value<' will have JSON object keys
 ordered alphabetically.")
 
 (defvar json-pre-element-read-function nil
@@ -840,14 +840,14 @@ With prefix argument MINIMIZE, minimize it instead."
   "Pretty-print current buffer with object keys ordered.
 With prefix argument MINIMIZE, minimize it instead."
   (interactive "P")
-  (let ((json-encoding-object-sort-predicate #'string<))
+  (let ((json-encoding-object-sort-predicate #'value<))
     (json-pretty-print-buffer minimize)))
 
 (defun json-pretty-print-ordered (begin end &optional minimize)
   "Pretty-print the region with object keys ordered.
 With prefix argument MINIMIZE, minimize it instead."
   (interactive "r\nP")
-  (let ((json-encoding-object-sort-predicate #'string<))
+  (let ((json-encoding-object-sort-predicate #'value<))
     (json-pretty-print begin end minimize)))
 
 (provide 'json)

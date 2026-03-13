@@ -85,7 +85,7 @@ gl_consolesafe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *fp)
    specifiers as the mingw *printf functions.  */
 
 static int
-vasprintf (char **resultp, const char *format, va_list args)
+local_vasprintf (char **resultp, const char *format, va_list args)
 {
   /* First try: Use a stack-allocated buffer.  */
   char buf[2048];
@@ -122,6 +122,9 @@ vasprintf (char **resultp, const char *format, va_list args)
   *resultp = mem;
   return nbytes;
 }
+
+#  undef vasprintf
+#  define vasprintf local_vasprintf
 
 # endif
 

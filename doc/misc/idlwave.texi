@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/idlwave.info
 @settitle IDLWAVE User Manual
+@documentlanguage en
 @include docstyle.texi
 @synindex ky cp
 @syncodeindex vr cp

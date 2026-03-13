@@ -47,7 +47,7 @@ Processes}.
 
 @menu
 * Subprocess Creation::      Functions that start subprocesses.
-* Shell Arguments::          Quoting an argument to pass it to a shell.
+* Shell Arguments::          Quoting & partitioning command arguments.
 * Synchronous Processes::    Details of using synchronous subprocesses.
 * Asynchronous Processes::   Starting up an asynchronous subprocess.
 * Deleting Processes::       Eliminating an asynchronous subprocess.
@@ -320,6 +320,66 @@ it in double quotes @code{"@dots{}"}.  In the simplest case, if you
 are consing a command from the individual command-line arguments,
 every argument that includes embedded blanks will be quoted.
 @end defun
+
+  Systems running Emacs impose a limit on the maximum total length of a
+command and its arguments submitted for execution.  If a list of
+arguments to be processed by an external command might be arbitrarily
+long, then there is a risk of exceeding this limit, in which case
+executing the command will fail.  In some cases this problem can be
+avoided by running the command multiple times on subsequent partitions
+of the list of arguments.  When you know that it will not cause problems
+to run the command more than once, you can use this function to
+preemptively partition a list of arguments:
+
+@defun multiple-command-partition-arguments command arguments &optional shellp
+This function returns a list of subsequent partitions of
+@var{arguments}, a list of strings.  @var{command} is a string or list
+of strings specifying the command to be run on @var{arguments} (unless
+@var{shellp} is non-nil, see below), and including any arguments that
+must be passed to every invocation of the command.  Then, running a
+command formed of @var{command} plus any one of the returned partitions
+will not exceed the system's limits on the maximum total length of a
+command and its arguments.
+
+If optional argument @var{shellp} is non-@code{nil}, this function
+implicitly includes @code{shell-file-name} and
+@code{shell-command-switch} at the beginning of @var{command}
+(@pxref{Asynchronous Processes}).  In addition, in that case, this
+function accounts for the extra length taken up by quoting and space
+characters in its partitioning calculations.
+
+On systems where the @code{process-environment} (@pxref{System
+Environment}) counts against command line length limits, this function
+takes that into account too.
+
+In the following example we impose an artificially small limit on
+command line length and provide a fixed @code{process-environment} for
+demonstration purposes.  The partitioning of the list of arguments into
+two sublists in the returned value implies that running @w{@code{cmd foo
+bar baz}} on this hypothetical system would exceed system limits, and
+thus fail.  The calling code should run @code{cmd} twice, on each of the
+two partitions, so @w{@code{cmd foo bar}} and then @w{@code{cmd baz}}.
+
+@smallexample
+(let ((system-type 'gnu/linux)
+      (command-line-max-length 20)
+      (process-environment '("BLAH=blah")))
+  (multiple-command-partition-arguments "cmd" '("foo" "bar" "baz")))
+     @result{} (("foo" "bar") ("baz"))
+@end smallexample
+
+This function takes a conservative approach and does not try to minimize
+the number of partitions of @var{arguments}, because doing that would
+require a great deal of platform-specific information, and also
+information about encoding which is not currently made available to
+Lisp.
+@end defun
+
+@defvar command-line-max-length
+This variable holds the maximum length of a command and its arguments on
+this system, measured in characters, as used by
+@code{multiple-command-partition-arguments}.
+@end defvar
 
 @node Synchronous Processes
 @section Creating a Synchronous Process

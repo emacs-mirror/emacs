@@ -1010,6 +1010,22 @@ The cache holds information specific to the current state of the
 Elisp obarray.  If the obarray is modified by any means (such as
 interning or uninterning a symbol), this variable is set to nil.")
 
+(defun elisp--read-symbol-shorthands (s)
+  "Return a fresh list of shorthand-ed alternative spellings of symbol S."
+  (let ((retval ()))
+    (cl-loop
+     for (shorthand . longhand) in read-symbol-shorthands
+     for full-name = (symbol-name s)
+     when (string-prefix-p longhand full-name)
+     do (let ((sym (make-symbol
+                    (concat shorthand
+                            (substring full-name
+                                       (length longhand))))))
+          (put sym 'elisp--longhand s)
+          (push sym retval)
+          retval))
+    retval))
+
 (defun elisp--completion-local-symbols ()
   "Compute collections of all Elisp symbols for completion purposes.
 The return value is compatible with the COLLECTION form described
@@ -1018,18 +1034,9 @@ in `completion-at-point-functions' (which see)."
               (let (retval)
                 (mapatoms
                  (lambda (s)
-                   (push s retval)
-                   (cl-loop
-                    for (shorthand . longhand) in read-symbol-shorthands
-                    for full-name = (symbol-name s)
-                    when (string-prefix-p longhand full-name)
-                    do (let ((sym (make-symbol
-                                   (concat shorthand
-                                           (substring full-name
-                                                      (length longhand))))))
-                         (put sym 'shorthand t)
-                         (push sym retval)
-                         retval))))
+                   (setq retval
+                         (cons s (nconc (elisp--read-symbol-shorthands s)
+                                        retval)))))
                 retval)))
     (cond ((null read-symbol-shorthands) obarray)
           ((and obarray-cache
@@ -1046,10 +1053,10 @@ in `completion-at-point-functions' (which see)."
                      obarray-cache)))))
 
 (defun elisp--shorthand-aware-fboundp (sym)
-  (fboundp (intern-soft (symbol-name sym))))
+  (fboundp (or (get sym 'elisp--longhand) sym)))
 
 (defun elisp--shorthand-aware-boundp (sym)
-  (boundp (intern-soft (symbol-name sym))))
+  (boundp (or (get sym 'elisp--longhand) sym)))
 
 (defun elisp-completion-at-point ()
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'.
@@ -2443,32 +2450,42 @@ ARGS is the argument list of function SYM."
                     start (match-beginning 0)
                     end   (match-end 0)))))))
     ;; Handle now positional arguments.
-    (while (and index (>= index 1))
-      (if (string-match "[^ ()]+" args end)
-	  (progn
-	    (setq start (match-beginning 0)
-		  end   (match-end 0))
-	    (let ((argument (match-string 0 args)))
-	      (cond ((string= argument "&rest")
-		     ;; All the rest arguments are the same.
-		     (setq index 1))
-		    ((string= argument "&optional"))         ; Skip.
-                    ((string= argument "&allow-other-keys")) ; Skip.
-                    ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
-                    ;; like in `setq'.
-		    ((or (and (string-match-p "\\.\\.\\.\\'" argument)
-                              (string= argument (car (last args-lst))))
-                         (and (string-match-p "\\.\\.\\.\\'"
-                                              (substring args 1 (1- (length args))))
-                              (= (length (remove "..." args-lst)) 2)
-                              (> index 1) (oddp index)))
-                     (setq index 0))
-		    (t
-		     (setq index (1- index))))))
-	(setq end           (length args)
-	      start         (1- end)
-	      argument-face 'font-lock-warning-face
-	      index         0)))
+    (with-temp-buffer
+      (insert args)
+      (goto-char (1+ (point-min)))
+      (while (and index (>= index 1))
+        (skip-chars-forward "[:blank:]")
+        (let ((origin (point)))
+          (skip-chars-forward "[")
+          (if (condition-case nil
+	          (forward-sexp)
+	        (:success t)
+	        (scan-error nil))
+	      (progn
+	        (skip-chars-forward "].")
+	        (setq start (- origin (point-min))
+		      end   (- (point) (point-min)))
+	        (let ((argument (substring args start end)))
+	          (cond ((string= argument "&rest")
+		         ;; All the rest arguments are the same.
+		         (setq index 1))
+		        ((string= argument "&optional"))         ; Skip.
+		        ((string= argument "&allow-other-keys")) ; Skip.
+		        ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
+		        ;; like in `setq'.
+		        ((or (and (string-match-p "\\.\\.\\.\\'" argument)
+			          (string= argument (car (last args-lst))))
+                             (and (string-match-p "\\.\\.\\.\\'"
+					          (substring args 1 (1- (length args))))
+			          (= (length (remove "..." args-lst)) 2)
+			          (> index 1) (oddp index)))
+		         (setq index 0))
+		        (t
+		         (setq index (1- index))))))
+	    (setq end           (length args)
+	          start         (1- end)
+	          argument-face 'font-lock-warning-face
+	          index         0)))))
     (let ((doc args))
       (when start
 	(setq doc (copy-sequence args))

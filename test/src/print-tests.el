@@ -570,5 +570,45 @@ otherwise, use a different charset."
   (should (equal (prin1-to-string (make-symbol "th\303\251"))
                  (string-to-multibyte "th\303\251"))))
 
+(ert-deftest print-tests--write-char ()
+  (should (equal (with-output-to-string (write-char ?A)) "A"))
+  (let (out)
+    (should (= (write-char ?Z (lambda (c)
+                                (setq out (concat out (string c)))))
+               ?Z))
+    (should (equal out "Z"))))
+
+(ert-deftest print-tests--redirect-debugging-output ()
+  (let ((file (make-temp-file "print-tests-debug")))
+    (unwind-protect
+        (progn
+          (redirect-debugging-output file nil)
+          (external-debugging-output ?A)
+          (external-debugging-output ?B)
+          (redirect-debugging-output nil)
+          (should (equal (with-temp-buffer
+                           (insert-file-contents file)
+                           (buffer-string))
+                         "AB")))
+      (ignore-errors (redirect-debugging-output nil))
+      (ignore-errors (delete-file file)))))
+
+(ert-deftest print-tests--preprocess ()
+  (let* ((x (list 1 2))
+         (obj (list x x))
+         (print-circle t)
+         (print-number-table nil))
+    (print--preprocess obj)
+    (should (hash-table-p print-number-table))
+    (should (> (hash-table-count print-number-table) 0))
+    (should (gethash x print-number-table)))
+  (let* ((x (list 1 2))
+         (obj (list x x))
+         (print-circle nil)
+         (print-number-table (make-hash-table :test 'eq)))
+    (puthash 'sentinel 'value print-number-table)
+    (print--preprocess obj)
+    (should (eq (gethash 'sentinel print-number-table) 'value))))
+
 (provide 'print-tests)
 ;;; print-tests.el ends here

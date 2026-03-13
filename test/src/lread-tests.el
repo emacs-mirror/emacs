@@ -504,4 +504,50 @@ literals (Bug#20852)."
       (should (equal (oa-syms oa) (list s2))))
     ))
 
+(ert-deftest lread-tests--get-load-suffixes ()
+  (let ((load-suffixes '(".el" ".elc"))
+        (load-file-rep-suffixes '("" ".gz")))
+    (should (equal (get-load-suffixes)
+                   '(".el" ".el.gz" ".elc" ".elc.gz")))))
+
+(ert-deftest lread-tests--locate-file-internal ()
+  (let* ((dir (make-temp-file "lread-tests" t))
+         (file (expand-file-name "foo.el" dir))
+         (subdir (expand-file-name "bar" dir)))
+    (unwind-protect
+        (progn
+          (with-temp-file file)
+          (make-directory subdir)
+          (should (equal (locate-file-internal "foo" (list dir) '(".el") nil)
+                         file))
+          (should-not (locate-file-internal "bar" (list dir) nil nil))
+          (should (equal (locate-file-internal
+                          "bar" (list dir) nil
+                          (lambda (path)
+                            (if (file-directory-p path) 'dir-ok
+                              (file-readable-p path))))
+                         subdir)))
+      (ignore-errors (delete-file file))
+      (ignore-errors (delete-directory subdir))
+      (ignore-errors (delete-directory dir)))))
+
+(ert-deftest lread-tests--internal-obarray-buckets ()
+  (let* ((oa (obarray-make 7))
+         (s1 (intern "alpha" oa))
+         (s2 (intern "beta" oa))
+         (s3 (intern "gamma" oa))
+         (buckets (internal--obarray-buckets oa))
+         (flat nil)
+         (expected (list s1 s2 s3)))
+    (dolist (bucket buckets)
+      (dolist (sym bucket)
+        (push sym flat)))
+    (should (= (length flat) (length (delete-dups (copy-sequence flat)))))
+    (setq flat (sort flat (lambda (a b)
+                            (string< (symbol-name a) (symbol-name b)))))
+    (setq expected (sort (copy-sequence expected)
+                         (lambda (a b)
+                           (string< (symbol-name a) (symbol-name b)))))
+    (should (equal flat expected))))
+
 ;;; lread-tests.el ends here

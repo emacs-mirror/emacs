@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(require 'help-mode) ;; for function help-buffer
-
 (defface tutorial-warning-face
   '((t :inherit font-lock-warning-face))
   "Face used to highlight warnings in the tutorial."

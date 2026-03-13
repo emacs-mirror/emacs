@@ -154,6 +154,7 @@ Possible values are:
 		    (call-process diff-command nil t nil "--help"))
 	      (if (search-backward "--label" nil t) t))))))
 
+;;;###autoload
 (defun diff-no-select (old new &optional switches no-async buf)
   ;; Noninteractive helper for creating and reverting diff buffers
   "Compare the OLD and NEW file/buffer.

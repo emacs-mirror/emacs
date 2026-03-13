@@ -145,7 +145,7 @@ aclinfo_has_xattr (struct aclinfo const *ai, char const *xattr)
   if (0 < ai->size)
     {
       char const *blim = ai->buf + ai->size;
-      for (char const *b = ai->buf; b < blim; b += strlen (b) + 1)
+      for (char const *b = ai->buf; b < blim; b = strnul (b) + 1)
         for (char const *a = xattr; *a == *b; a++, b++)
           if (!*a)
             return true;

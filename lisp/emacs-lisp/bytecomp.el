@@ -3645,7 +3645,7 @@ This assumes the function has the `important-return-value' property."
               cl-search
               ))
   (put f 'funarg-positions '(:test :test-not :key)))
-(dolist (f '( cl-find-if cl-find-if-not cl-member-if cl-member-if-not
+(dolist (f '( cl-find-if cl-find-if-not member-if cl-member-if-not
               cl-assoc-if cl-assoc-if-not cl-rassoc-if cl-rassoc-if-not
               cl-position-if cl-position-if-not cl-count-if cl-count-if-not
               cl-remove-if cl-remove-if-not cl-delete-if cl-delete-if-not
@@ -4050,29 +4050,20 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 (byte-defop-compiler-1 interactive byte-compile-noop)
 
 
-(defun byte-compile-subr-wrong-args (form n)
-  (when (byte-compile-warning-enabled-p 'callargs (car form))
-    (byte-compile-warn-x (car form)
-                         "`%s' called with %d arg%s, but requires %s"
-                         (car form) (length (cdr form))
-                         (if (= 1 (length (cdr form))) "" "s") n)
-    ;; Get run-time wrong-number-of-args error.
-    (byte-compile-normal-call form)))
-
 (defun byte-compile-no-args (form)
   (if (not (= (length form) 1))
-      (byte-compile-subr-wrong-args form "none")
+      (byte-compile-normal-call form)
     (byte-compile-out (get (car form) 'byte-opcode) 0)))
 
 (defun byte-compile-one-arg (form)
   (if (not (= (length form) 2))
-      (byte-compile-subr-wrong-args form 1)
+      (byte-compile-normal-call form)
     (byte-compile-form (car (cdr form)))  ;; Push the argument
     (byte-compile-out (get (car form) 'byte-opcode) 0)))
 
 (defun byte-compile-two-args (form)
   (if (not (= (length form) 3))
-      (byte-compile-subr-wrong-args form 2)
+      (byte-compile-normal-call form)
     (byte-compile-form (car (cdr form)))  ;; Push the arguments
     (byte-compile-form (nth 2 form))
     (byte-compile-out (get (car form) 'byte-opcode) 0)))
@@ -4098,7 +4089,7 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
 
 (defun byte-compile-three-args (form)
   (if (not (= (length form) 4))
-      (byte-compile-subr-wrong-args form 3)
+      (byte-compile-normal-call form)
     (byte-compile-form (car (cdr form)))  ;; Push the arguments
     (byte-compile-form (nth 2 form))
     (byte-compile-form (nth 3 form))
@@ -4108,26 +4099,26 @@ If it is nil, then the handler is \"byte-compile-SYMBOL.\""
   (let ((len (length form)))
     (cond ((= len 1) (byte-compile-one-arg (append form '(nil))))
 	  ((= len 2) (byte-compile-one-arg form))
-	  (t (byte-compile-subr-wrong-args form "0-1")))))
+	  (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-one-or-two-args (form)
   (let ((len (length form)))
     (cond ((= len 2) (byte-compile-two-args (append form '(nil))))
 	  ((= len 3) (byte-compile-two-args form))
-	  (t (byte-compile-subr-wrong-args form "1-2")))))
+	  (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-two-or-three-args (form)
   (let ((len (length form)))
     (cond ((= len 3) (byte-compile-three-args (append form '(nil))))
 	  ((= len 4) (byte-compile-three-args form))
-	  (t (byte-compile-subr-wrong-args form "2-3")))))
+	  (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-one-to-three-args (form)
   (let ((len (length form)))
     (cond ((= len 2) (byte-compile-three-args (append form '(nil nil))))
           ((= len 3) (byte-compile-three-args (append form '(nil))))
           ((= len 4) (byte-compile-three-args form))
-          (t (byte-compile-subr-wrong-args form "1-3")))))
+          (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-noop (_form)
   (byte-compile-constant nil))
@@ -4352,11 +4343,9 @@ This function is never called when `lexical-binding' is nil."
     (cond ((= len 2)
 	   (byte-compile-form (car (cdr form)))
 	   (byte-compile-out 'byte-indent-to 0))
-	  ((= len 3)
-	   ;; no opcode for 2-arg case.
-	   (byte-compile-normal-call form))
 	  (t
-	   (byte-compile-subr-wrong-args form "1-2")))))
+	   ;; no opcode for 2-arg case.
+	   (byte-compile-normal-call form)))))
 
 (defun byte-compile-insert (form)
   (cond ((null (cdr form))
@@ -5924,7 +5913,7 @@ and corresponding effects."
                    (car form) type parenthesis)
    form (list 'suspicious (car form)) t))
 
-(defun bytecomp--check-eq-args (form &optional a b &rest _ignore)
+(defun bytecomp--check-eq-args (form a b)
   (let* ((number-ok (eq (car form) 'eql))
          (bad-arg (cond ((bytecomp--dodgy-eq-arg-p a number-ok) 1)
                         ((bytecomp--dodgy-eq-arg-p b number-ok) 2))))
@@ -5938,7 +5927,7 @@ and corresponding effects."
 (put 'eq  'compiler-macro #'bytecomp--check-eq-args)
 (put 'eql 'compiler-macro #'bytecomp--check-eq-args)
 
-(defun bytecomp--check-memq-args (form &optional elem list &rest _ignore)
+(defun bytecomp--check-memq-args (form elem list)
   (let* ((fn (car form))
          (number-ok (eq fn 'memql)))
     (cond
@@ -5976,22 +5965,16 @@ and corresponding effects."
 ;; their own byte-ops.
 
 (put 'char-before 'compiler-macro #'bytecomp--char-before)
-(defun bytecomp--char-before (form &optional arg &rest junk-args)
-  (if junk-args
-      form    ; arity error
-    `(char-after (1- (or ,arg (point))))))
+(defun bytecomp--char-before (_form &optional arg)
+  `(char-after (1- (or ,arg (point)))))
 
 (put 'backward-char 'compiler-macro #'bytecomp--backward-char)
-(defun bytecomp--backward-char (form &optional arg &rest junk-args)
-  (if junk-args
-      form    ; arity error
-    `(forward-char (- (or ,arg 1)))))
+(defun bytecomp--backward-char (_form &optional arg)
+  `(forward-char (- (or ,arg 1))))
 
 (put 'backward-word 'compiler-macro #'bytecomp--backward-word)
-(defun bytecomp--backward-word (form &optional arg &rest junk-args)
-  (if junk-args
-      form    ; arity error
-    `(forward-word (- (or ,arg 1)))))
+(defun bytecomp--backward-word (_form &optional arg)
+  `(forward-word (- (or ,arg 1))))
 
 (defun bytecomp--check-keyword-args (form arglist allowed-keys required-keys)
   (let ((fun (car form)))

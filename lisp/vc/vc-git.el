@@ -544,7 +544,10 @@ or an empty string if none."
 (defun vc-git-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
   (let* ((isdir (vc-dir-fileinfo->directory info))
-	 (state (if isdir "" (vc-dir-fileinfo->state info)))
+         (state (if isdir "" (vc-dir-fileinfo->state info)))
+         (display-state (cond (isdir "")
+                              ((vc-dir-fileinfo->display-state info))
+                              ((vc-dir-fileinfo->state info))))
          (extra (vc-dir-fileinfo->extra info))
          (old-perm (when extra (vc-git-extra-fileinfo->old-perm extra)))
          (new-perm (when extra (vc-git-extra-fileinfo->new-perm extra))))
@@ -554,10 +557,13 @@ or an empty string if none."
                  'face 'vc-dir-mark-indicator)
      "  "
      (propertize
-      (format "%-12s" state)
-      'face (cond ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
-                  ((memq state '(missing conflict)) 'vc-dir-status-warning)
-                  ((eq state 'ignored) 'vc-dir-status-ignored)
+      (format "%-12s" display-state)
+      'face (cond ((eq display-state 'up-to-date)
+                   'vc-dir-status-up-to-date)
+                  ((member display-state '(missing conflict "committing"))
+                   'vc-dir-status-warning)
+                  ((eq display-state 'ignored)
+                   'vc-dir-status-ignored)
                   (t 'vc-dir-status-edited))
       'mouse-face 'highlight
       'keymap vc-dir-status-mouse-map)
@@ -772,8 +778,9 @@ or an empty string if none."
   (vc-git--out-match '("symbolic-ref" "HEAD")
                      "^\\(refs/heads/\\)?\\(.+\\)$" 2))
 
-(defun vc-git--branch-remotes ()
-  "Return alist of configured remote branches for current branch.
+(defun vc-git--branch-remotes (&optional branch)
+  "Return alist of configured remote branches for BRANCH.
+BRANCH defaults to the current branch.
 If there is a configured upstream, return the remote-tracking branch
 with key `upstream'.  If there is a distinct configured push remote,
 return the remote-tracking branch there with key `push'.
@@ -783,7 +790,7 @@ ignored because that means we're not actually in a triangular workflow."
   ;; an unwanted dependency on the setting of push.default.
   (cl-flet ((get (key)
               (string-trim-right (vc-git--out-str "config" key))))
-    (let* ((branch (vc-git-working-branch))
+    (let* ((branch (or branch (vc-git-working-branch)))
            (pull (get (format "branch.%s.remote" branch)))
            (merge (string-remove-prefix "refs/heads/"
                                         (get (format "branch.%s.merge"
@@ -799,11 +806,13 @@ ignored because that means we're not actually in a triangular workflow."
           alist
         (cl-acons 'push (format "%s/%s" push branch) alist)))))
 
-(defun vc-git-trunk-or-topic-p ()
+(defun vc-git-trunk-or-topic-p (&optional branch)
   "Return `topic' if branch has distinct pull and push remotes, else nil.
 This is able to identify topic branches for certain forge workflows."
-  (let ((remotes (vc-git--branch-remotes)))
+  (let ((remotes (vc-git--branch-remotes branch)))
     (and (assq 'upstream remotes) (assq 'push remotes) 'topic)))
+
+(declare-function vc-trunk-or-topic-p "vc")
 
 (defun vc-git-topic-outgoing-base ()
   "Return the outgoing base for the current branch as a string.
@@ -815,48 +824,95 @@ for outstanding changes is the tracking branch, and return that.
 
 Otherwise, fall back to the following algorithm, which requires that the
 corresponding trunk exists as a local branch.  Find all merge bases
-between the current branch and other local branches.  Each of these is a
-commit on the current branch.  Use `git merge-base --independent' on
-them all to find the topologically most recent.  Take the branch for
+between the current branch and either all local trunks, if there are any
+positively identified trunks, or just all local branches.  Each of these
+is a commit on the current branch.  Use `git merge-base --independent'
+on them all to find the topologically most recent.  Take the branch for
 which that commit is a merge base with the current branch to be the
 branch into which the current branch will eventually be merged.  Find
 its upstream.  (If there is more than one branch whose merge base with
 the current branch is that same topologically most recent commit, try
 them one-by-one, accepting the first that has an upstream.)"
-  (if-let* ((remotes (vc-git--branch-remotes))
-            (_ (assq 'push remotes))
-            (upstream (assq 'upstream remotes)))
-      (cdr upstream)
-    (cl-flet ((get-line () (buffer-substring (point) (pos-eol))))
-      (let* ((branches (vc-git-branches))
-             (current (pop branches))
-             merge-bases)
-        (with-temp-buffer
-          (dolist (branch branches)
-            (erase-buffer)
-            (when (vc-git--out-ok "merge-base" "--all" branch current)
-              (goto-char (point-min))
-              (while (not (eobp))
-                (push branch (alist-get (get-line) merge-bases
-                                        nil nil #'equal))
-                (forward-line 1))))
-          (erase-buffer)
-          (unless (apply #'vc-git--out-ok "merge-base" "--independent"
-                         (mapcar #'car merge-bases))
-            (error "`git merge-base --independent' failed"))
-          ;; If 'git merge-base --independent' printed more than one
-          ;; line, just pick the first.
-          (goto-char (point-min))
+  (cond*
+   ;; Easy case.
+   ((bind-and* (remotes (vc-git--branch-remotes))
+               (_ (assq 'push remotes))
+               (upstream (assq 'upstream remotes)))
+    (cdr upstream))
+   ;; Fallback algorithm.
+   ((bind* (branches (vc-git-branches))
+           (current (car branches))
+           ;; If there are any branches we can positively identify as
+           ;; trunks, consider only those.
+           (trunks (cl-remove-if-not (lambda (b)
+                                       (eq (vc-trunk-or-topic-p b 'Git)
+                                           'trunk))
+                                     branches))
+           (branches (or trunks branches))
+           raw-merge-bases)
+    (with-temp-buffer
+      (cl-labels
+          ((get-line ()
+             (buffer-substring (point) (pos-eol)))
+           (git-merge-base (commit1 commit2)
+             ;; Return all merge bases between COMMIT1 and COMMIT2.
+             ;; Memoized to reduce shelling out to Git
+             ;; (that doesn't actually help at present, but may be
+             ;; useful in the future).
+             (let* ((sorted (sort (list commit1 commit2)))
+                    ;; Git branch names may not contain "..".
+                    (key (string-join sorted ".."))
+                    (val (assoc key raw-merge-bases)))
+               (if (consp val)
+                   (cdr val)
+                 (erase-buffer)
+                 (and (apply #'vc-git--out-ok "merge-base" "--all" sorted)
+                      (let (res)
+                        (goto-char (point-min))
+                        (while (not (eobp))
+                          (push (get-line) res)
+                          (forward-line 1))
+                        (setf (alist-get key raw-merge-bases nil nil #'equal)
+                              (sort res)))))))
+           (branch-merge-bases (branch)
+             ;; Return alist mapping merge bases with BRANCH to the
+             ;; names of the relevant local branches.
+             (let (merge-bases)
+               (dolist (other branches)
+                 (unless (equal other branch)
+                   (dolist (merge-base (git-merge-base other branch))
+                     (push other (alist-get merge-base merge-bases
+                                            nil nil #'equal)))))
+               merge-bases))
+           (independent-merge-base (commits)
+             ;; Do 'git merge-base --independent' on COMMITS.
+             ;; If this command prints more than one result we
+             ;; currently just pick the first.
+             (erase-buffer)
+             (unless (apply #'vc-git--out-ok "merge-base" "--independent"
+                            commits)
+               (error "`git merge-base --independent' failed"))
+             (goto-char (point-min))
+             (get-line))
+           (branch-upstream (branch)
+             ;; Return upstream for BRANCH if it has one.
+             (erase-buffer)
+             (and (vc-git--out-ok "for-each-ref" "--format=%(upstream:short)"
+                                  (format "refs/heads/%s" branch))
+                  (goto-char (point-min))
+                  (let ((res (get-line)))
+                    (and (not (string-empty-p res)) res)))))
+        (let* ((merge-bases (branch-merge-bases current))
+               ;; Topologically most recent merge base between CURRENT
+               ;; and another local branch or branches.
+               (indep (independent-merge-base (mapcar #'car merge-bases)))
+               ;; Local branches with which INDEP is a merge-base with
+               ;; CURRENT.
+               (indep-branches (cdr (assoc indep merge-bases))))
           (catch 'ret
-            (dolist (target (cdr (assoc (get-line) merge-bases)))
-              (erase-buffer)
-              (when (vc-git--out-ok "for-each-ref"
-                                    "--format=%(upstream:short)"
-                                    (concat "refs/heads/" target))
-                (goto-char (point-min))
-                (let ((outgoing-base (get-line)))
-                  (unless (string-empty-p outgoing-base)
-                    (throw 'ret outgoing-base)))))))))))
+            (dolist (target indep-branches)
+              (when-let* ((upstream (branch-upstream target)))
+                (throw 'ret upstream))))))))))
 
 (defun vc-git-dir--branch-headers ()
   "Return headers for branch-related information."
@@ -1368,7 +1424,7 @@ It is an error to supply both or neither."
              ;; before doing this we know the index is empty (we just
              ;; committed) and so we can just make use of it and reset
              ;; afterwards.
-             (when patch-string
+             (when (and patch-string (not (string-empty-p patch-string)))
                (vc-git-command nil 0 nil "add" "--all")
                (with-temp-buffer
                  (vc-git--with-apply-temp (patch t 1 "--3way")
@@ -1654,9 +1710,20 @@ If PROMPT is non-nil, prompt for the Git command to run."
 
 (defun vc-git-pull (prompt)
   "Pull changes into the current Git branch.
-Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
-for the Git command to run."
-  (vc-git--pushpull "pull" prompt '("--stat")))
+Normally, this runs \"git pull\", unless there is a configured push
+remote, in which case pull from that.
+If PROMPT is non-nil, prompt for the Git command to run."
+  (let ((remotes (vc-git--branch-remotes)))
+    (vc-git--pushpull "pull" prompt
+                      (if-let* ((remote (cdr (assq 'push remotes)))
+                                (slash-pos (string-search "/" remote)))
+                          (list "--stat"
+                                (substring remote 0 slash-pos)
+                                (substring remote (1+ slash-pos)))
+                        ;; When (cdr (assq 'upstream remotes)) is of the
+                        ;; form "REMOTE/BRANCH", 'git pull' is equivalent
+                        ;; to 'git pull REMOTE BRANCH' per git-pull(1).
+                        '("--stat")))))
 
 (defun vc-git-push (prompt)
   "Push changes from the current Git branch.
@@ -1844,7 +1911,10 @@ If LIMIT is a non-empty string, use it as a base revision."
 		'("--")))))))
 
 (defun vc-git-incoming-revision (&optional upstream-location refresh)
-  (let ((rev (or upstream-location "@{upstream}")))
+  (let* ((remotes (and (not upstream-location) (vc-git--branch-remotes)))
+         (rev (or upstream-location
+                  (cdr (assq 'push remotes))
+                  (cdr (assq 'upstream remotes)))))
     (when (and (or refresh (null (vc-git--rev-parse rev)))
                ;; If the branch has no upstream, and we weren't supplied
                ;; with one, then fetching is always useless (bug#79952).
@@ -1909,7 +1979,8 @@ log entries."
                   (cadr vc-git-root-log-format)
                 "^commit +\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
-  (when (memq vc-log-view-type '(short log-outgoing log-incoming mergebase))
+  (when (memq vc-log-view-type
+              '(short log-outgoing log-incoming log-outstanding mergebase))
     (setq truncate-lines t)
     (setq-local log-view-expanded-log-entry-function
                 'vc-git-expanded-log-entry))
@@ -2284,6 +2355,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
 
 (defun vc-git-delete-file (file)
   (vc-git-command nil 0 file "rm" "-f" "--"))
+
+(defun vc-git-delete-files (files)
+  (vc-git-command nil 0 files "rm" "-f" "--"))
 
 (defun vc-git-rename-file (old new)
   (vc-git-command nil 0 (list old new) "mv" "-f" "--"))

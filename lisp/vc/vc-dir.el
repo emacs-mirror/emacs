@@ -115,13 +115,15 @@ See `run-hooks'."
             (:conc-name vc-dir-fileinfo->))
   name                                  ;Keep it as first, for `member'.
   state
-  ;; For storing backend specific information.
+  ;; For storing backend-specific information.
   extra
   marked
   ;; To keep track of not updated files during a global refresh
   needs-update
   ;; To distinguish files and directories.
-  directory)
+  directory
+  ;; Pseudo-states for display only.
+  display-state)
 
 (defvar vc-ewoc nil)
 
@@ -357,7 +359,6 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map "I" #'vc-root-log-incoming)   ;; C-x v I
     (define-key map "O" #'vc-root-log-outgoing)   ;; C-x v O
     ;; More confusing than helpful, probably
-    ;;(define-key map "R" #'vc-revert) ;; u is taken by vc-dir-unmark.
     ;;(define-key map "A" #'vc-annotate) ;; g is taken by revert-buffer
     ;;                                     bound by `special-mode'.
     ;; Marking.
@@ -397,10 +398,11 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map (kbd "M-s a M-C-s") #'vc-dir-isearch-regexp)
     (define-key map "G" #'vc-dir-ignore)
     (define-key map "@" #'vc-revert)
-    (define-key map "Tl" #'vc-log-outgoing-base)
-    (define-key map "TL" #'vc-root-log-outgoing-base)
-    (define-key map "T=" #'vc-diff-outgoing-base)
-    (define-key map "TD" #'vc-root-diff-outgoing-base)
+    (define-key map "Tl" #'vc-log-outstanding)
+    (define-key map "TL" #'vc-root-log-outstanding)
+    (define-key map "T=" #'vc-diff-outstanding)
+    (define-key map "TD" #'vc-root-diff-outstanding)
+    (define-key map "V" #'vc-dir-root-next-action)
 
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "b" branch-map)
@@ -553,6 +555,8 @@ Also update some VC file properties from ENTRIES."
 		(if (nth 1 entry)
 		    (progn
 		      (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
+		      (setf (vc-dir-fileinfo->display-state (ewoc-data node))
+			    (vc--file-getinheprop nodefile 'display-state))
 		      (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
 		      (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
 		      (ewoc-invalidate vc-ewoc node))
@@ -1007,6 +1011,27 @@ that share the same state."
   (interactive "e")
   (vc-dir-at-event e (vc-dir-mark-unmark 'vc-dir-toggle-mark-file)))
 
+(defun vc-dir-root-next-action ()
+  "Like `vc-next-action' but for all files shown in the VC-Dir buffer.
+This command ignores VC-Dir marks and the position of point.
+When the VC-Dir's root directory is the repository root (as it usually
+is), this command is useful to check in all local changes at once."
+  (interactive)
+  (let* ((only-files-list
+          (cl-loop for crt = (ewoc-nth vc-ewoc 0)
+                   then (ewoc-next vc-ewoc crt)
+                   while crt
+                   for data = (ewoc-data crt)
+                   unless (vc-dir-fileinfo->directory data) collect
+                   (cons (expand-file-name (vc-dir-fileinfo->name data))
+                         (vc-dir-fileinfo->state data))))
+         (vc-buffer-overriding-fileset
+          `(,vc-dir-backend
+            (,default-directory)
+            . ,(vc-only-files-state-and-model only-files-list
+                                              vc-dir-backend))))
+    (vc-next-action nil)))
+
 (defun vc-dir-clean-files ()
   "Delete marked files from repository, or the current file if no marks.
 This command cleans unregistered files from the repository.
@@ -1350,6 +1375,7 @@ from the remote, and your connection to the remote is slow.  Customize
 this variable to nil to disable calculating the outgoing count and
 therefore also disable the fetching."
   :type 'boolean
+  :safe #'booleanp
   :group 'vc
   :version "31.1")
 
@@ -1664,21 +1690,25 @@ These are the commands available for use in the file status buffer:
   ;; function.  Changes here might need to be reflected in the
   ;; vc-BACKEND-dir-printer functions.
   (let* ((isdir (vc-dir-fileinfo->directory fileentry))
-	(state (if isdir "" (vc-dir-fileinfo->state fileentry)))
-	(filename (vc-dir-fileinfo->name fileentry)))
+	 (display-state (cond (isdir "")
+			      ((vc-dir-fileinfo->display-state fileentry))
+			      ((vc-dir-fileinfo->state fileentry))))
+	 (filename (vc-dir-fileinfo->name fileentry)))
     (insert
      (propertize
       (format "%c" (if (vc-dir-fileinfo->marked fileentry) ?* ? ))
       'face 'vc-dir-mark-indicator)
      "   "
      (propertize
-      (format "%-20s" state)
+      (format "%-20s" display-state)
       'face (cond
-             ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
-             ((memq state '(missing conflict needs-update unlocked-changes))
-              'vc-dir-status-warning)
-             ((eq state 'ignored) 'vc-dir-status-ignored)
-             (t 'vc-dir-status-edited))
+	     ((eq display-state 'up-to-date) 'vc-dir-status-up-to-date)
+	     ((member display-state
+		      '(missing conflict needs-update unlocked-changes
+				"committing"))
+	      'vc-dir-status-warning)
+	     ((eq display-state 'ignored) 'vc-dir-status-ignored)
+	     (t 'vc-dir-status-edited))
       'mouse-face 'highlight
       'keymap vc-dir-status-mouse-map)
      " "

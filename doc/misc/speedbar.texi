@@ -1,6 +1,7 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename ../../info/speedbar.info
 @settitle Speedbar: File/Tag summarizing utility
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex fn cp
 

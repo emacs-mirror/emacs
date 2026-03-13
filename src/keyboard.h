@@ -242,7 +242,7 @@ extern KBOARD *initial_kboard;
 
    In the any-kboard state, this is the kboard from which we are
    right now considering input.  We can consider input from another
-   kboard, but doing so requires throwing to wrong_kboard_jmpbuf.  */
+   kboard, but doing so requires returning -2 (wrong_kboard_jmpbuf).  */
 extern KBOARD *current_kboard;
 
 
@@ -258,12 +258,12 @@ extern uintmax_t num_input_events;
 
 /* The location of point immediately before the last command was
    executed, or the last time the undo-boundary command added a
-   boundary.*/
+   boundary.  */
 extern ptrdiff_t point_before_last_command_or_undo;
 
 /* The value of current_buffer immediately before the last command was
    executed, or the last time the undo-boundary command added a
-   boundary.*/
+   boundary.  */
 extern struct buffer *buffer_before_last_command_or_undo;
 
 extern struct buffer *prev_buffer;

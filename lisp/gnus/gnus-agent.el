@@ -1053,9 +1053,7 @@ article's mark is toggled."
     (when (setq-local gnus-newsgroup-agentized
                       (gnus-agent-method-p gnus-command-method))
       (let* ((alist (gnus-agent-load-alist gnus-newsgroup-name))
-             (headers (sort (mapcar (lambda (h)
-                                      (mail-header-number h))
-                                    gnus-newsgroup-headers)
+             (headers (sort (mapcar #'mail-header-number gnus-newsgroup-headers)
                             #'<))
              (cached (and gnus-use-cache gnus-newsgroup-cached))
              (undownloaded (list nil))

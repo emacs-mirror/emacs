@@ -81,9 +81,14 @@
 #endif
 
 _GL_INLINE_HEADER_BEGIN
-
-#ifndef _GL_STRING_INLINE
-# define _GL_STRING_INLINE _GL_INLINE
+#ifndef _GL_MEMEQ_INLINE
+# define _GL_MEMEQ_INLINE _GL_INLINE
+#endif
+#ifndef _GL_STREQ_INLINE
+# define _GL_STREQ_INLINE _GL_INLINE
+#endif
+#ifndef _GL_STRNUL_INLINE
+# define _GL_STRNUL_INLINE _GL_INLINE
 #endif
 
 /* _GL_ATTRIBUTE_DEALLOC (F, I) declares that the function returns pointers
@@ -414,11 +419,11 @@ _GL_WARN_ON_USE_CXX (memchr,
 #endif
 
 /* Are S1 and S2, of size N, bytewise equal?  */
-#if @GNULIB_STRINGEQ@ && !@HAVE_DECL_MEMEQ@
+#if @GNULIB_MEMEQ@ && !@HAVE_DECL_MEMEQ@
 # ifdef __cplusplus
 extern "C" {
 # endif
-_GL_STRING_INLINE bool
+_GL_MEMEQ_INLINE bool
 memeq (void const *__s1, void const *__s2, size_t __n)
 {
   return !memcmp (__s1, __s2, __n);
@@ -799,11 +804,11 @@ _GL_CXXALIASWARN (strdup);
 #endif
 
 /* Are strings S1 and S2 equal?  */
-#if @GNULIB_STRINGEQ@ && !@HAVE_DECL_STREQ@
+#if @GNULIB_STREQ@ && !@HAVE_DECL_STREQ@
 # ifdef __cplusplus
 extern "C" {
 # endif
-_GL_STRING_INLINE bool
+_GL_STREQ_INLINE bool
 streq (char const *__s1, char const *__s2)
 {
   return !strcmp (__s1, __s2);
@@ -1230,6 +1235,66 @@ _GL_WARN_ON_USE (strtok_r, "strtok_r is unportable - "
 /* The following functions are not specified by POSIX.  They are gnulib
    extensions.  */
 
+#if @GNULIB_STRNUL@
+/* Returns a pointer to the terminating NUL byte of STRING.
+     strnul (string)
+   This is a type-generic macro:
+   If STRING is a 'const char *', the result is 'const char *'.
+   If STRING is a 'char *', the result is 'char *'.
+   It is equivalent to
+     string + strlen (string)
+   or to
+     strchr (string, '\0').  */
+# ifdef __cplusplus
+extern "C" {
+# endif
+_GL_STRNUL_INLINE const char *gl_strnul (const char *string)
+     _GL_ATTRIBUTE_PURE
+     _GL_ARG_NONNULL ((1));
+_GL_STRNUL_INLINE const char *gl_strnul (const char *string)
+{
+  /* In gcc >= 7 or clang >= 4, we could use the expression
+       strchr (string, '\0')
+     because these compiler versions produce identical code for both
+     expressions.  But this optimization in not available in older
+     compiler versions, and is also not available when the compiler
+     option '-fno-builtin' is in use.  */
+  return string + strlen (string);
+}
+# ifdef __cplusplus
+}
+# endif
+# ifdef __cplusplus
+_GL_BEGIN_NAMESPACE
+template <typename T> T strnul (T);
+template <> inline const char *strnul<const char *> (const char *s)
+{ return gl_strnul (s); }
+template <> inline       char *strnul<      char *> (      char *s)
+{ return const_cast<char *>(gl_strnul (s)); }
+_GL_END_NAMESPACE
+# else
+#  if (defined __GNUC__ && __GNUC__ + (__GNUC_MINOR__ >= 9) > 4 && !defined __cplusplus) \
+      || (defined __clang__ && __clang_major__ >= 3) \
+      || (defined __SUNPRO_C && __SUNPRO_C >= 0x5150) \
+      || (__STDC_VERSION__ >= 201112L && !defined __GNUC__)
+/* The compiler supports _Generic from ISO C11.  */
+/* Since in C (but not in C++!), any function that accepts a '[const] char *'
+   also accepts a '[const] void *' as argument, we make sure that the function-
+   like macro does the same, by mapping its type first:
+     char *, void *             -> void *
+     const char *, const void * -> const void *
+   This mapping is done through the conditional expression.  */
+#   define strnul(s) \
+      _Generic (1 ? (s) : (void *) 99, \
+                void *       : (char *) gl_strnul (s), \
+                const void * : gl_strnul (s))
+#  else
+#   define strnul(s) \
+      ((char *) gl_strnul (s))
+#  endif
+# endif
+#endif
+
 #if @GNULIB_STR_STARTSWITH@
 /* Returns true if STRING starts with PREFIX.
    Returns false otherwise.  */
@@ -1557,8 +1622,6 @@ _GL_EXTERN_C char * mbstok_r (char *restrict string, const char *delim,
 _GL_EXTERN_C bool mbs_startswith (const char *string, const char *prefix)
      _GL_ATTRIBUTE_PURE
      _GL_ARG_NONNULL ((1, 2));
-/* No extra code is needed for multibyte locales for this function.  */
-# define mbs_startswith str_startswith
 #endif
 
 #if @GNULIB_MBS_ENDSWITH@

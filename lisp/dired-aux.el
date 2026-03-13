@@ -214,8 +214,8 @@ the string of command switches used as the third argument of `diff'."
 			    (save-excursion (goto-char (mark t))
 					    (dired-get-filename t t))))
           (separate-dir (and oldf
-                             (not (equal (file-name-directory oldf)
-                                         (dired-current-directory)))))
+                             (not (equal default-directory
+                                         (file-name-directory oldf)))))
 	  (default-file (or file-at-mark
                             ;; If the file with which to compare
                             ;; doesn't exist, or we cannot intuit it,
@@ -223,9 +223,9 @@ the string of command switches used as the third argument of `diff'."
                             ;; as the default, as an indication to the
                             ;; user that she should type the file
                             ;; name.
-			    (and (if (and oldf (file-readable-p oldf)) oldf)
+			    (and oldf (file-readable-p oldf)
                                  (if separate-dir
-                                     oldf
+                                     (file-relative-name oldf)
                                    (file-name-nondirectory oldf)))))
 	  ;; Use it as default if it's not the same as the current file,
 	  ;; and the target dir is current or there is a default file.
@@ -804,7 +804,7 @@ to execute it asynchronously.
 When operating on multiple files, asynchronous commands
 are executed in the background on each file in parallel.
 In shell syntax this means separating the individual commands
-with `&'.  However, when COMMAND ends in `;' or `;&' then commands
+with `&'.  However, when COMMAND ends in `;&' then commands
 are executed in the background on each file sequentially waiting
 for each command to terminate before running the next command.
 In shell syntax this means separating the individual commands with `;'.
@@ -2358,7 +2358,9 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     (dired-handle-overwrite newname)
     (dired-maybe-create-dirs (file-name-directory newname))
     (if (and dired-vc-rename-file
-             (vc-backend file)
+             (if file-is-dir-p
+                 (ignore-errors (vc-responsible-backend file))
+               (vc-backend file))
              (ignore-errors (vc-responsible-backend newname)))
         (vc-rename-file file newname)
       ;; error is caught in -create-files

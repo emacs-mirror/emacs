@@ -609,7 +609,8 @@ pairs.  Available keywords are:
              (see `set-keymap-parent').
 
 :keymap    If non-nil, instead of creating a new keymap, the given keymap
-             will be destructively modified instead.
+             will be destructively modified instead.  This can be used to
+             add key bindings to an existing keymap.
 
 :name      If non-nil, this should be a string to use as the menu for
              the keymap in case you use it as a menu with `x-popup-menu'.

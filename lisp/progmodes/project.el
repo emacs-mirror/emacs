@@ -463,9 +463,9 @@ the buffer's value of `default-directory'."
   (let ((root (expand-file-name (file-name-as-directory (project-root project))))
         bufs)
     (dolist (buf (buffer-list))
-      (when (string-prefix-p root (expand-file-name
-                                   (buffer-local-value 'default-directory buf)))
-        (push buf bufs)))
+      (let ((dir (buffer-local-value 'default-directory buf)))
+        (when (and dir (string-prefix-p root (expand-file-name dir)))
+          (push buf bufs))))
     (nreverse bufs)))
 
 (defgroup project-vc nil
@@ -698,6 +698,7 @@ in the `project-current' call, the timeout is determined by
            vc-handled-backends))
          project)
     (while (and
+            root
             (eq backend 'Git)
             (project--vc-merge-submodules-p root)
             (project--submodule-p root))
@@ -784,18 +785,20 @@ in the `project-current' call, the timeout is determined by
       ;; Need newer Git to use negative pathspec like we do".
       (vc-default-project-list-files 'Git dir extra-ignores)
     (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
-           (args '("-z" "-c" "--exclude-standard"))
            (vc-git-use-literal-pathspecs nil)
            (include-untracked (project--value-in-dir
                                'project-vc-include-untracked
                                dir))
            (submodules (project--git-submodules))
-           files)
-      (setq args (append args
+           (gitver (vc-git--program-version))
+           (dedup (and (version<= "2.31" gitver) '("--deduplicate")))
+           (args (append '("-z" "-c" "--exclude-standard")
                          (and (<= 31 emacs-major-version)
-                              (version<= "2.35" (vc-git--program-version))
+                              (version<= "2.35" gitver)
                               '("--sparse"))
-                         (and include-untracked '("-o"))))
+                         (and include-untracked '("-o"))
+                         dedup))
+           files)
       (when extra-ignores
         (setq args (append args
                            (cons "--"
@@ -803,13 +806,13 @@ in the `project-current' call, the timeout is determined by
                                   (lambda (i)
                                     (format
                                      ":(exclude,glob,top)%s"
-                                     (if (string-match "\\*\\*" i)
+                                     (if (string-match-p "\\*\\*" i)
                                          ;; Looks like pathspec glob
                                          ;; format already.
                                          i
-                                       (if (string-match "\\./" i)
+                                       (if (string-prefix-p "./" i)
                                            ;; ./abc -> abc
-                                           (setq i (substring i 2))
+                                           (substring i 2)
                                          ;; abc -> **/abc
                                          (setq i (concat "**/" i))
                                          ;; FIXME: '**/abc' should also
@@ -817,10 +820,10 @@ in the `project-current' call, the timeout is determined by
                                          ;; name, but doesn't (git 2.25.1).
                                          ;; Maybe we should replace
                                          ;; such entries with two.
-                                         (if (string-match "/\\'" i)
+                                         (if (string-suffix-p "/" i)
                                              ;; abc/ -> abc/**
-                                             (setq i (concat i "**"))))
-                                       i)))
+                                             (concat i "**")
+                                           i)))))
                                   extra-ignores)))))
       (setq files
             (delq nil
@@ -856,8 +859,7 @@ in the `project-current' call, the timeout is determined by
           (setq files
                 (apply #'nconc files sub-files))))
       ;; 'git ls-files' returns duplicate entries for merge conflicts.
-      ;; XXX: Better solutions welcome, but this seems cheap enough.
-      (delete-consecutive-dups files))))
+      (if dedup files (delete-consecutive-dups files)))))
 
 (defun vc-hg-project-list-files (dir extra-ignores)
   (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
@@ -906,7 +908,7 @@ in the `project-current' call, the timeout is determined by
                        (project--value-in-dir 'project-vc-ignores dir)))
 
 (defun project--vc-ignores (dir backend extra-ignores)
-  (require 'vc)
+  (require 'vc)             ; Can be removed when we require Emacs 31.1.
   (append
    (when backend
      (delq
@@ -1370,6 +1372,8 @@ by the user at will."
 
 Depending on `project-file-history-behavior', entries are made
 project-relative where possible."
+  (unless all-files
+    (user-error "Empty file list"))
   (let ((file
          (cl-letf ((history-add-new-input nil)
                    ((symbol-value hist)
@@ -1398,7 +1402,8 @@ directories listed in `vc-directory-exclusion-list'."
   (let* ((vc-dirs-ignores (mapcar
                            (lambda (dir)
                              (concat dir "/"))
-                           vc-directory-exclusion-list))
+                           (and include-all
+                                vc-directory-exclusion-list)))
          (all-files
           (if include-all
               (mapcan
@@ -1715,10 +1720,6 @@ If you exit the `query-replace', you can later continue the
    'default)
   (fileloop-continue))
 
-(defvar compilation-read-command)
-(declare-function compilation-read-command "compile")
-(declare-function recompile "compile")
-
 (defun project-prefixed-buffer-name (mode)
   (concat "*"
           (if-let* ((proj (project-current nil)))
@@ -1767,15 +1768,21 @@ If non-nil, it overrides `compilation-buffer-name-function' for
         (with-current-buffer orig-current-buffer
           (setq-local compile-command orig-compile-command))))))
 
+;; Autoloaded since Emacs 31.
+(autoload 'recompile "compile" nil t)
+
 ;;;###autoload
 (defun project-recompile (&optional edit-command)
   "Run `recompile' in the project root with an appropriate buffer."
   (declare (interactive-only recompile))
   (interactive "P")
-  (let ((default-directory (project-root (project-current t)))
-        (compilation-buffer-name-function
-         (or project-compilation-buffer-name-function
-             compilation-buffer-name-function)))
+  (defvar compilation-directory)
+  (let* ((default-directory (project-root (project-current t)))
+         ;; The former overrides the latter in `recompile'.
+         (compilation-directory default-directory)
+         (compilation-buffer-name-function
+          (or project-compilation-buffer-name-function
+              compilation-buffer-name-function)))
     (recompile edit-command)))
 
 (defcustom project-ignore-buffer-conditions nil
@@ -1861,10 +1868,10 @@ Return non-nil if PROJECT is not a remote project."
          (predicate
           (lambda (buffer)
             ;; BUFFER is an entry (BUF-NAME . BUF-OBJ) of Vbuffer_alist.
-            (and (memq (cdr buffer) buffers)
-                 (not
-                  (project--buffer-check
-                   buffer project-ignore-buffer-conditions)))))
+            (setq buffer (cdr buffer))
+            (and (memq buffer buffers)
+                 (not (project--buffer-check
+                       buffer project-ignore-buffer-conditions)))))
          (completion-ignore-case read-buffer-completion-ignore-case)
          (buffers-alist
           (if (and (fboundp 'uniquify-get-unique-names)
@@ -2139,17 +2146,18 @@ Also see the `project-kill-buffers-display-buffer-list' variable."
                    (get-buffer-create "*Buffer List*")
                    `(display-buffer--maybe-at-bottom
                      (dedicated . t)
-                     (window-height . (fit-window-to-buffer))
+                     ;; Rely on `temp-buffer-resize-mode' instead?
+                     (window-height . fit-window-to-buffer)
                      (preserve-size . (nil . t))
                      (body-function
-                      . ,#'(lambda (_window)
-                             (list-buffers-noselect nil bufs))))
-                   #'(lambda (window _value)
-                       (with-selected-window window
-                         (unwind-protect
-                             (funcall query-user)
-                           (when (window-live-p window)
-                             (quit-restore-window window 'kill))))))
+                      . ,(lambda (_window)
+                           (list-buffers-noselect nil bufs))))
+                   (lambda (window _value)
+                     (with-selected-window window
+                       (unwind-protect
+                           (funcall query-user)
+                         (when (window-live-p window)
+                           (quit-restore-window window 'kill))))))
              (mapc #'kill-buffer bufs)))
           ((funcall query-user)
            (mapc #'kill-buffer bufs)))))
@@ -2497,15 +2505,17 @@ Return the number of detected projects."
   "Helper function used by `project-forget-zombie-projects'.
 PREDICATE can be a function with 1 argument which determines which
 projects should be deleted."
-  (dolist (proj (project-known-project-roots))
-    (when (and (funcall (or predicate #'identity) proj)
-               (condition-case-unless-debug nil
-                   (not (file-exists-p proj))
-                 (file-error
-                  (yes-or-no-p
-                   (format "Forget unreachable project `%s'? "
-                           proj)))))
-      (project-forget-project proj))))
+  (defvar tramp-error-show-message-timeout)
+  (let (tramp-error-show-message-timeout)
+    (dolist (proj (project-known-project-roots))
+      (when (and (funcall (or predicate #'identity) proj)
+                 (condition-case-unless-debug nil
+                     (not (file-exists-p proj))
+                   (file-error
+                    (yes-or-no-p
+                     (format "Forget unreachable project `%s'? "
+                             proj)))))
+        (project-forget-project proj)))))
 
 (defun project-forget-zombie-projects (&optional interactive)
   "Forget all known projects that don't exist any more."

@@ -1,6 +1,7 @@
 \input texinfo
 @setfilename ../../info/ede.info
 @settitle Emacs Development Environment
+@documentlanguage en
 @include docstyle.texi
 
 @copying

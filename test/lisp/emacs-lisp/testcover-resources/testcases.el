@@ -492,22 +492,4 @@ regarding the odd-looking coverage result for the quoted form."
 
 (should (eq (testcover-testcase-how-do-i-know-you "Liz") 'unknown))
 
-;; ==== circular-lists-bug-24402 ====
-"Testcover captures and ignores circular list errors."
-;; ====
-(defun testcover-testcase-cyc1 (a)
-  (let ((ls (make-list 10 a%%%)%%%))
-    (nconc ls%%% ls%%%)
-    ls)) ; The lack of a mark here is due to an ignored circular list error.
-(testcover-testcase-cyc1 1)
-(testcover-testcase-cyc1 1)
-(defun testcover-testcase-cyc2 (a b)
-  (let ((ls1 (make-list 10 a%%%)%%%)
-        (ls2 (make-list 10 b)))
-    (nconc ls2 ls2)
-    (nconc ls1%%% ls2)
-    ls1))
-(testcover-testcase-cyc2 1 2)
-(testcover-testcase-cyc2 1 4)
-
 ;;; testcases.el ends here

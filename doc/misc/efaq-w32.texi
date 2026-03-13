@@ -1,6 +1,7 @@
 \input texinfo    @c -*-coding:utf-8 -*-
 @setfilename ../../info/efaq-w32.info
 @settitle GNU Emacs FAQ For MS Windows
+@documentlanguage en
 @include docstyle.texi
 @setchapternewpage odd
 @syncodeindex pg cp

@@ -32,6 +32,7 @@ Reference Manual}.
 * Init File::           How to write common customizations in the
                           initialization file.
 * Authentication::      Keeping persistent authentication information.
+* Newcomers Theme::     A theme that enables presets for newcomers.
 
 @end menu
 
@@ -192,18 +193,20 @@ the customization buffer:
    Maximum length of kill ring before oldest elements are thrown away.
 @end smallexample
 
-  The first line shows that the variable is named
-@code{kill-ring-max}, formatted as @samp{Kill Ring Max} for easier
-viewing, and also shows its expected type: a positive integer or zero.
-The default value is @samp{120}.  The button labeled @samp{[Hide]},
-if activated, hides the variable's value and state; this is useful to
-avoid cluttering up the customization buffer with very long values
-(for this reason, variables that have very long values may start out
-hidden).  If you use the @samp{[Hide]} button, it changes to
-@samp{[Show Value]}, which you can activate to reveal the value and
-state.  On a graphical display, the @samp{[Hide]} and @samp{[Show
-Value]} buttons are replaced with graphical triangles pointing
-downwards and rightwards respectively.
+@findex Custom-goto-first-choice
+@kindex C-x C-i @r{(customization buffer)}
+  The first line shows that the variable is named @code{kill-ring-max},
+formatted as @samp{Kill Ring Max} for easier viewing, and also shows its
+expected type: a positive integer or zero.  The default value is
+@samp{120}.  You can move directly to the value with @kbd{C-x C-i}
+(Custom-goto-first-choice).  The button labeled @samp{[Hide]}, if
+activated, hides the variable's value and state; this is useful to avoid
+cluttering up the customization buffer with very long values (for this
+reason, variables that have very long values may start out hidden).  If
+you use the @samp{[Hide]} button, it changes to @samp{[Show Value]},
+which you can activate to reveal the value and state.  On a graphical
+display, the @samp{[Hide]} and @samp{[Show Value]} buttons are replaced
+with graphical triangles pointing downwards and rightwards respectively.
 
   The line after the variable name indicates the @dfn{customization
 state} of the variable: in this example, @samp{STANDARD} means you
@@ -346,12 +349,15 @@ does not appear if Emacs was started with the @option{-q} or
 
 @kindex C-c C-c @r{(customization buffer)}
 @kindex C-x C-c @r{(customization buffer)}
+@kindex C-x C-k @r{(customization buffer)}
 @findex Custom-set
 @findex Custom-save
+@findex Custom-reset-standard
   The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent to using
 the @samp{[Set for Current Session]} button.  The command @kbd{C-x
 C-s} (@code{Custom-save}) is like using the @samp{[Save for Future
-Sessions]} button.
+Sessions]} button.  Likewise, @kbd{C-c C-k} (@code{Custom-reset-standard})
+is like using the @samp{[Revert...]} button.
 
 @vindex custom-buffer-done-kill
   The @samp{[Exit]} button switches out of the customization buffer,
@@ -655,12 +661,17 @@ theme, its @samp{State} display shows @samp{THEMED} instead of
 @findex load-theme
 @findex enable-theme
 @findex disable-theme
+@findex copy-theme-options
   You can enable a specific Custom theme in the current Emacs session
 by typing @kbd{M-x load-theme}.  This prompts for a theme name, loads
 the theme from the theme file, and enables it.  If a theme file
 has been loaded before, you can enable the theme without loading its
 file by typing @kbd{M-x enable-theme}.  To disable a Custom theme,
-type @kbd{M-x disable-theme}.
+type @kbd{M-x disable-theme}.  Some themes provide a set of user options
+(@pxref{Newcomers Theme}), that might vary over time.  If you want to
+persist the current set of options, you can copy the user option of a
+theme into your own configuration, you can use the
+@code{copy-theme-options} command.
 
 @findex describe-theme
   To see a description of a Custom theme, type @kbd{?} on its line in
@@ -3230,3 +3241,26 @@ auth, Emacs auth-source}.
 configured backend, some of the backends offer to save it
 persistently.  This can be changed by customizing the user option
 @code{auth-source-save-behavior}.
+
+@node Newcomers Theme
+@section Newcomers Theme
+
+  Each release of Emacs brings new features, but they are not enabled by
+default to avoid disrupting users' existing workflows.  Many of these
+features, however, are intended to make Emacs more approachable to new
+users.  Furthermore, newcomers don't yet have any existing workflows
+that could be disrupted!  Therefore, if you are new to Emacs, you can
+enable the @code{newcomers-presets} theme (@pxref{Custom Themes}) to set
+a collection of user options that we think will be useful for new users
+acquainted with conventions from other programs.
+
+  The functionality enabled by the @code{newcomers-presets} theme will
+change between releases of Emacs.  We may add new functionality, and
+also remove old functionality that we think has been superseded.
+Therefore, if you get used to the newcomers' presets, consider copying
+them into your own configuration and then disabling the theme again.
+You can use the command @code{copy-theme-options} (@pxref{Custom
+Themes}) to do this.
+
+  (If you got here by clicking a link on the startup screen, type
+@kbd{q} to go back.)

@@ -1,6 +1,7 @@
 \input texinfo
 @setfilename ../../info/edt.info
 @settitle EDT Emulation for Emacs
+@documentlanguage en
 @include docstyle.texi
 
 @copying

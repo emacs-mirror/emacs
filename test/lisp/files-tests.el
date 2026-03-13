@@ -1892,7 +1892,7 @@ Ensure that the issues from bug#66546 are fixed."
                       (error err))
                   'missing))
               (signal-write-failed (&rest _)
-                (signal 'file-error "Write failed")))
+                (signal 'file-error '("Write failed"))))
 
       (let* (;; Sanitize environment.
              ;; The tests below test text for equality, so we need to

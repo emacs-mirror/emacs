@@ -85,7 +85,8 @@ directory hierarchy."
 
 (defun eglot--call-with-fixture (fixture fn)
   "Helper for `eglot--with-fixture'.  Run FN under FIXTURE."
-  (let* ((fixture-directory (make-nearby-temp-file "eglot--fixture-" t))
+  (let* ((temporary-file-directory (file-truename temporary-file-directory))
+         (fixture-directory (make-nearby-temp-file "eglot--fixture-" t))
          (default-directory (file-name-as-directory fixture-directory))
          created-files
          new-servers

@@ -40,6 +40,8 @@
 (require 'vc)
 (require 'cl-lib)
 (require 'info)
+(require 'message)
+(require 'ietf-drums)
 (require 'ert-x)
 (require 'ert)
 
@@ -476,7 +478,7 @@ names."
                     (list
                      '(:maintainer
                        ("Test Maintainer"
-                        . "test-maintainer@test-domain.org"))
+                        . "test-maintainer@example.com"))
                      (cons :url  (car package-vc-tests-repository))
                      (cons :commit (cadr package-vc-tests-repository))
                      (cons :revdesc (substring
@@ -1040,17 +1042,15 @@ contains key `:tags' use its value as tests tags."
            (should (get-buffer "*unsent mail to Test Maintainer*"))))
       (should (bufferp message-buffer))
       (switch-to-buffer message-buffer)
-      (goto-char (point-min))
       (should
-       (string-match
-        (rx
-         "To: Test Maintainer <test-maintainer@test-domain.org>")
-        (buffer-substring (point) (pos-eol))))
-      (forward-line)
+       (equal
+        (ietf-drums-parse-addresses
+         (message-fetch-field "To"))
+        '(("test-maintainer@example.com" . "Test Maintainer"))))
       (should
-       (string-match
-        (rx "Subject: test-subject")
-        (buffer-substring (point) (pos-eol))))
+       (equal
+        (message-fetch-field "Subject")
+        "test-subject"))
       (let ((kill-buffer-query-functions nil))
         (with-current-buffer message-buffer
           ;; we mark the buffer as unmodified so that `kill-buffer'
@@ -1107,7 +1107,7 @@ contains key `:tags' use its value as tests tags."
                           '(package-vc-tests-install-from-elpa
                             package-vc-tests-install-from-spec))))
   (should-not (package-vc-tests-log-buffer-exists 'doc pkg))
-  (should (cl-member-if
+  (should (member-if
            (lambda (dir)
              (and (stringp dir)
                   (string-prefix-p package-vc-tests-dir dir)))

@@ -218,7 +218,7 @@ files.")
     ("Noorul Islam" "Noorul Islam K M")
 ;;;    ("Tetsurou Okazaki" "OKAZAKI Tetsurou") ; FIXME?
     (nil "odanoburu@")
-    ("Xie Qi" "one\\.last\\.kiss@outlook\\.com" "shynur")
+    ("谢骐 Xie Qi" "one\\.last\\.kiss@outlook\\.com" "shynur")
     ("Cao ZhenXiang" "mail@ookami\\.one")
     ("Óscar Fuentes" "Oscar Fuentes")
     (nil "pillule")

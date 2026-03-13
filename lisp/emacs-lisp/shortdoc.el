@@ -1586,9 +1586,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :no-eval (text-property-search-backward 'face nil t)))
 
 (define-short-documentation-group keymaps
-  "Defining keymaps"
+  "Defining keymaps or adding bindings to existing keymaps"
   (define-keymap
-    :no-eval (define-keymap "C-c C-c" #'quit-buffer))
+    :no-eval (define-keymap "C-c C-c" #'quit-buffer)
+    :no-eval (define-keymap :keymap ctl-x-map
+               "C-r"      #'recentf-open
+               "k"        #'kill-current-buffer))
   (defvar-keymap
       :no-eval (defvar-keymap my-keymap "C-c C-c" #'quit-buffer))
   "Setting keys"

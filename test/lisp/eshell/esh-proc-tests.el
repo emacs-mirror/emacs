@@ -357,7 +357,12 @@ write the exit status to the pipe.  See bug#54136."
     (string-match (rx (group (+ digit)) eol) (eshell-last-output))
     (let ((pid (match-string 1 (eshell-last-output))))
       (should (= (length eshell-process-list) 1))
-      (eshell-insert-command (format "kill %s" pid))
+      (eshell-insert-command
+       (format "kill %s%s"
+               ;; On MS-Windows we cannot kill a sleeping program except
+               ;; with SIGKILL.
+               (if (eq system-type 'windows-nt) "-9 " "")
+               pid))
       (should (= eshell-last-command-status 0))
       (eshell-wait-for-subprocess t)
       (should (= (length eshell-process-list) 0)))))
@@ -368,7 +373,10 @@ write the exit status to the pipe.  See bug#54136."
   (with-temp-eshell
     (eshell-insert-command "sleep 100 &")
     (should (= (length eshell-process-list) 1))
-    (eshell-insert-command "kill (caar eshell-process-list)")
+    (eshell-insert-command
+     ;; On MS-Windows we cannot kill a sleeping program except with SIGKILL.
+     (format "kill %s(caar eshell-process-list)"
+             (if (eq system-type 'windows-nt) "-9 " "")))
     (should (= eshell-last-command-status 0))
     (eshell-wait-for-subprocess t)
     (should (= (length eshell-process-list) 0))))

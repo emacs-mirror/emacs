@@ -78,22 +78,24 @@ extern void sha384_init_ctx (struct sha512_ctx *ctx);
    initialization function update the context for the next LEN bytes
    starting at BUFFER.
    It is necessary that LEN is a multiple of 128!!! */
-extern void sha512_process_block (const void *buffer, size_t len,
-                                  struct sha512_ctx *ctx);
+extern void sha512_process_block (void const *restrict buffer, size_t len,
+                                  struct sha512_ctx *restrict ctx);
 
 /* Starting with the result of former calls of this function (or the
    initialization function update the context for the next LEN bytes
    starting at BUFFER.
    It is NOT required that LEN is a multiple of 128.  */
-extern void sha512_process_bytes (const void *buffer, size_t len,
-                                  struct sha512_ctx *ctx);
+extern void sha512_process_bytes (void const *restrict buffer, size_t len,
+                                  struct sha512_ctx *restrict ctx);
 
 /* Process the remaining bytes in the buffer and put result from CTX
    in first 64 (48) bytes following RESBUF.  The result is always in little
    endian byte order, so that a byte-wise output yields to the wanted
    ASCII representation of the message digest.  */
-extern void *sha512_finish_ctx (struct sha512_ctx *ctx, void *restrict resbuf);
-extern void *sha384_finish_ctx (struct sha512_ctx *ctx, void *restrict resbuf);
+extern void *sha512_finish_ctx (struct sha512_ctx *restrict ctx,
+                                void *restrict resbuf);
+extern void *sha384_finish_ctx (struct sha512_ctx *restrict ctx,
+                                void *restrict resbuf);
 
 
 /* Put result from CTX in first 64 (48) bytes following RESBUF.  The result is
@@ -102,9 +104,9 @@ extern void *sha384_finish_ctx (struct sha512_ctx *ctx, void *restrict resbuf);
 
    IMPORTANT: On some systems it is required that RESBUF is correctly
    aligned for a 32 bits value.  */
-extern void *sha512_read_ctx (const struct sha512_ctx *ctx,
+extern void *sha512_read_ctx (struct sha512_ctx const *restrict ctx,
                               void *restrict resbuf);
-extern void *sha384_read_ctx (const struct sha512_ctx *ctx,
+extern void *sha384_read_ctx (struct sha512_ctx const *restrict ctx,
                               void *restrict resbuf);
 
 
@@ -112,9 +114,9 @@ extern void *sha384_read_ctx (const struct sha512_ctx *ctx,
    The result is always in little endian byte order, so that a byte-wise
    output yields to the wanted ASCII representation of the message
    digest.  */
-extern void *sha512_buffer (const char *buffer, size_t len,
+extern void *sha512_buffer (char const *restrict buffer, size_t len,
                             void *restrict resblock);
-extern void *sha384_buffer (const char *buffer, size_t len,
+extern void *sha384_buffer (char const *restrict buffer, size_t len,
                             void *restrict resblock);
 
 # endif
@@ -125,8 +127,8 @@ extern void *sha384_buffer (const char *buffer, size_t len,
    The case that the last operation on STREAM was an 'ungetc' is not supported.
    The resulting message digest number will be written into the 64 (48) bytes
    beginning at RESBLOCK.  */
-extern int sha512_stream (FILE *stream, void *resblock);
-extern int sha384_stream (FILE *stream, void *resblock);
+extern int sha512_stream (FILE *restrict stream, void *restrict resblock);
+extern int sha384_stream (FILE *restrict stream, void *restrict resblock);
 
 
 # ifdef __cplusplus

@@ -131,17 +131,9 @@ This hook will be run even when there are no matching sections in
     (bash-ts-mode sh-basic-offset)
     (bpftrace-mode c-basic-offset)
     (c++-mode c-basic-offset)
-    (c++-ts-mode c-basic-offset
-                 c-ts-mode-indent-offset)
-    (c-ts-mode c-basic-offset
-               c-ts-mode-indent-offset)
     (cmake-mode cmake-tab-width)
-    (cmake-ts-mode cmake-tab-width
-                   cmake-ts-mode-indent-offset)
     (coffee-mode coffee-tab-width)
     (csharp-mode c-basic-offset)
-    (csharp-ts-mode c-basic-offset
-                    csharp-ts-mode-indent-offset)
     (css-ts-mode css-indent-offset)
     (d-mode c-basic-offset)
     (elixir-ts-mode elixir-ts-indent-offset)
@@ -158,7 +150,6 @@ This hook will be run even when there are no matching sections in
     (fsharp-mode fsharp-continuation-offset
                  fsharp-indent-level
                  fsharp-indent-offset)
-    (go-ts-mode go-ts-mode-indent-offset)
     (haskell-mode haskell-indent-spaces
                   haskell-indent-offset
                   haskell-indentation-layout-offset
@@ -168,20 +159,15 @@ This hook will be run even when there are no matching sections in
                   haskell-indentation-where-pre-offset
                   shm-indent-spaces)
     (haxor-mode haxor-tab-width)
-    (html-ts-mode html-ts-mode-indent-offset)
     (idl-mode c-basic-offset)
     (jade-mode jade-tab-width)
     (java-mode c-basic-offset)
-    (java-ts-mode c-basic-offset
-                  java-ts-mode-indent-offset)
     (js-ts-mode js-indent-level)
     (js-jsx-mode js-indent-level sgml-basic-offset)
     (js2-jsx-mode js2-basic-offset sgml-basic-offset)
     (json-mode js-indent-level)
-    (json-ts-mode json-ts-mode-indent-offset)
     (jsonian-mode jsonian-default-indentation)
     (kotlin-mode kotlin-tab-width)
-    (kotlin-ts-mode kotlin-ts-mode-indent-offset)
     (latex-mode . editorconfig--get-indentation-latex-mode)
     (lisp-mode . editorconfig--get-indentation-lisp-mode)
     (livescript-mode livescript-tab-width)
@@ -196,7 +182,6 @@ This hook will be run even when there are no matching sections in
     ;; See https://github.com/editorconfig/editorconfig-emacs/issues/116
     ;; for details.
     (php-mode c-basic-offset)
-    (php-ts-mode php-ts-mode-indent-offset)
     (pike-mode c-basic-offset)
     (protobuf-mode c-basic-offset)
     (ps-mode ps-mode-tab)
@@ -205,15 +190,12 @@ This hook will be run even when there are no matching sections in
     (python-ts-mode . editorconfig--get-indentation-python-mode)
     (rjsx-mode js-indent-level sgml-basic-offset)
     (ruby-ts-mode ruby-indent-level)
-    (rust-ts-mode rust-indent-offset
-                  rust-ts-mode-indent-offset)
     (scala-mode scala-indent:step)
     (scss-mode css-indent-offset)
     (swift-mode swift-mode:basic-offset)
     (tcl-mode tcl-indent-level
               tcl-continued-indent-level)
-    (toml-ts-mode toml-ts-mode-indent-offset)
-    (typescript-ts-base-mode typescript-ts-mode-indent-offset)
+    (typescript-ts-base-mode typescript-ts-indent-offset)
     (verilog-mode verilog-indent-level
                   verilog-indent-level-behavioral
                   verilog-indent-level-declaration

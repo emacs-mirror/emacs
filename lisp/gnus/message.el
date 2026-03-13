@@ -8668,7 +8668,7 @@ From headers in the original article."
 
 (defun message-put-addresses-in-ecomplete ()
   (require 'ecomplete)
-  (dolist (header '("to" "cc" "from" "reply-to"))
+  (dolist (header '("to" "cc" "bcc" "from" "reply-to" "x-debbugs-cc"))
     (let ((value (message-field-value header)))
       (dolist (string (mail-header-parse-addresses value 'raw))
 	(setq string

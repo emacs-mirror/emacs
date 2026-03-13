@@ -182,58 +182,63 @@ Reads a year, month, and day."
 If MONTH, DAY (Islamic) is visible, returns the corresponding
 Gregorian date as the list (((month day year) STRING)).
 Returns nil if it is not visible in the current calendar window."
-  ;; Islamic date corresponding to the center of the calendar window.
-  ;; Since the calendar displays 3 months at a time, there are approx
-  ;; 45 visible days either side of this date.  Given the length of
-  ;; the Islamic months, this means up to two different months are
-  ;; visible either side of the central date.
-  (let* ((islamic-date (calendar-islamic-from-absolute
-                        (calendar-absolute-from-gregorian
-                         (list displayed-month 15 displayed-year))))
-         (m (calendar-extract-month islamic-date))
-         (y (calendar-extract-year islamic-date))
-         date)
-    (unless (< m 1)                   ; Islamic calendar doesn't apply
-      ;; Since converting to absolute dates can be a complex
-      ;; operation, we try to speed things up by excluding those date
-      ;; ranges that can't possibly be visible.
-      ;; We can view the situation (see above) as if we had a calendar
-      ;; window displaying 5 months at a time.  When month m is
-      ;; central, months m-2:m+2 (modulo 12) might be visible.
-      ;; Recall from holiday-fixed that with a 3 month calendar
-      ;; window, November is special, because we can do a one-sided
-      ;; inclusion test.  When November is central is when the end of
-      ;; year first appears on the calendar.  Similarly, with a 5
-      ;; month window, October is special.  When October is central is
-      ;; when the end of year first appears, and when January is
-      ;; central, October is no longer visible.  October is visible
-      ;; when the central month is >= 8.
-      ;; Hence to test if any given month might be visible, we can
-      ;; shift things and ask about October.
-      ;; At the same time, we work out the appropriate year y to use.
-      (calendar-increment-month m y (- 10 month))
-      (and (> m 7)                      ; Islamic date might be visible
-           (calendar-date-is-visible-p
-            (setq date (calendar-gregorian-from-absolute
-                        (calendar-islamic-to-absolute (list month day y)))))
-           (list (list date string))))))
+  (if (/= calendar-total-months 3)
+      (let ((dates (calendar-nongregorian-date-visible-p
+                    month day #'calendar-islamic-to-absolute
+                    #'calendar-islamic-from-absolute)))
+        (mapcar (lambda (d) (list d string)) dates))
+    ;; When the calendar displays 3 months, we can calculate only one
+    ;; local date, which corresponds to the center of the calendar
+    ;; window, instead of two local dates.  Specifically, there are
+    ;; approx 45 visible days either side of this date.  Given the
+    ;; length of the Islamic months, this means up to two different
+    ;; months are visible either side of the central date.
+    (let* ((islamic-date (calendar-islamic-from-absolute
+                          (calendar-absolute-from-gregorian
+                           (list displayed-month 15 displayed-year))))
+           (m (calendar-extract-month islamic-date))
+           (y (calendar-extract-year islamic-date))
+           date)
+      (unless (< m 1)                   ; Islamic calendar doesn't apply
+        ;; Since converting to absolute dates can be a complex
+        ;; operation, we try to speed things up by excluding those date
+        ;; ranges that can't possibly be visible.
+        ;; We can view the situation (see above) as if we had a calendar
+        ;; window displaying 5 months at a time.  When month m is
+        ;; central, months m-2:m+2 (modulo 12) might be visible.
+        ;; Recall from holiday-fixed that with a 3 month calendar
+        ;; window, November is special, because we can do a one-sided
+        ;; inclusion test.  When November is central is when the end of
+        ;; year first appears on the calendar.  Similarly, with a 5
+        ;; month window, October is special.  When October is central is
+        ;; when the end of year first appears, and when January is
+        ;; central, October is no longer visible.  October is visible
+        ;; when the central month is >= 8.
+        ;; Hence to test if any given month might be visible, we can
+        ;; shift things and ask about October.
+        ;; At the same time, we work out the appropriate year y to use.
+        (calendar-increment-month m y (- 10 month))
+        (and (> m 7)                      ; Islamic date might be visible
+             (calendar-date-is-visible-p
+              (setq date (calendar-gregorian-from-absolute
+                          (calendar-islamic-to-absolute (list month day y)))))
+             (list (list date string)))))))
 
 ;;;###holiday-autoload
 (defun holiday-islamic-new-year ()
   "Holiday entry for the Islamic New Year, if visible in the calendar window."
-  (let ((date (caar (holiday-islamic 1 1 "")))
-        (m displayed-month)
-        (y displayed-year))
-    (and date
-         (list (list date
-                     (format "Islamic New Year %d"
-                             (progn
-                               (calendar-increment-month m y 1)
-                               (calendar-extract-year
-                                (calendar-islamic-from-absolute
-                                 (calendar-absolute-from-gregorian
-                                  (list m (calendar-last-day-of-month m y) y)
-                                  ))))))))))
+  (mapcar
+   (lambda (entry)
+     (let* ((date (car entry))
+            (m (calendar-extract-month date))
+            (y (calendar-extract-year date)))
+       (list date
+             (format "Islamic New Year %d"
+                     (calendar-extract-year
+                      (calendar-islamic-from-absolute
+                       (calendar-absolute-from-gregorian
+                        (list m (calendar-last-day-of-month m y) y))))))))
+   (holiday-islamic 1 1 "")))
 
 (autoload 'diary-list-entries-1 "diary-lib")
 

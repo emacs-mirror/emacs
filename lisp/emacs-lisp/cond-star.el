@@ -83,16 +83,23 @@ in its body becomes the return value of the `cond*' construct.
 
 Non-exit clauses:
 
-If a clause has only one element, or if its first element is t or a
-`bind*' form, or if it ends with the keyword `:non-exit', then this
-clause never exits the `cond*' construct.  Instead, control always falls
-through to the next clause (if any).  Except for a `bind-and*' clause,
-all bindings made in CONDITION for the BODY of the non-exit clause are
-passed along to the rest of the clauses in this `cond*' construct.
+If the first element of a clause is t or a `bind*' form, or if it has
+only one element and that element is a `match*' or `pcase*' form, or if
+it ends with the keyword `:non-exit', then this clause never exits the
+`cond*' construct.  Instead, control always falls through to the next
+clause (if any).  Except for a `bind-and*' clause, all bindings made in
+CONDITION for the BODY of the non-exit clause are passed along to the
+rest of the clauses in this `cond*' construct.
 
 See `match*' for documentation of the patterns for use in `match*'
 conditions."
-  ;; FIXME: Want an Edebug declaration.
+  (declare
+   (debug (&rest ([&or ("bind*" &rest &or symbolp (symbolp &optional form))
+                       ("bind-and*" &rest &or symbolp (symbolp form) (form))
+                       ("match*" sexp form)
+                       ("pcase*" pcase-PAT form)
+                       form]
+                  body))))
   (cond*-convert clauses))
 
 ;; The following four macros are autoloaded for the sake of syntax
@@ -191,22 +198,31 @@ CONDITION of a `cond*' clause.  See `cond*' for details."
 
 (defun cond*-non-exit-clause-p (clause)
   "If CLAUSE, a cond* clause, is a non-exit clause, return t."
-  (or (null (cdr-safe clause))   ;; clause has only one element.
-      (and (cdr-safe clause)
-           ;; Starts with t.
-           (or (eq (car clause) t)
-               ;; Starts with a `bind*' pseudo-form.
-               (and (consp (car clause))
-                    (eq (caar clause) 'bind*))))
-      ;; Ends with keyword.
-      (eq (car (last clause)) :non-exit)))
+  (or
+   ;; Starts with t.
+   (and (cdr-safe clause)
+        (eq (car clause) t))
+   ;; Starts with a `bind*' pseudo-form.
+   (and (consp (car clause))
+        (eq (caar clause) 'bind*))
+   ;; Has one element that's a `match*' or `pcase*' pseudo-form.
+   (and (null (cdr-safe clause))
+        (consp (car clause))
+        (memq (caar clause) '(match* pcase*)))
+   ;; Ends with keyword.
+   (eq (car (last clause)) :non-exit)))
 
 (defun cond*-non-exit-clause-substance (clause)
   "For a non-exit cond* clause CLAUSE, return its substance.
 This removes a final keyword if that's what makes CLAUSE non-exit."
-  (cond ((or (null (cdr-safe clause))   ;; either clause has only one element
-             (and (consp (car clause))  ;; or it starts with `bind*'
-                  (eq (caar clause) 'bind*)))
+  (cond ((or
+          ;; Starts with `bind*' pseudo-form.
+          (and (consp (car clause))
+               (eq (caar clause) 'bind*))
+          ;; Or has one element that's a `match*'/`pcase*' pseudo-form.
+          (and (null (cdr-safe clause))
+               (consp (car clause))
+               (memq (caar clause) '(match* pcase*))))
          clause)
         ;; Starts with t or a keyword.
         ;; Include t as the first element of the substance
@@ -368,12 +384,14 @@ This is used for conditional exit clauses."
            ;; Ordinary Lisp expression is the condition.
            (if rest
                ;; A nonfinal exiting clause.
-               ;; If condition succeeds, run the TRUE-EXPS.
+               ;; If condition succeeds, return it or run the TRUE-EXPS.
                ;; There are following clauses, so run IFFALSE
                ;; if the condition fails.
-               `(if ,condition
-                    (progn . ,true-exps)
-                  ,iffalse)
+               (if true-exps
+                   `(if ,condition
+                        (progn . ,true-exps)
+                      ,iffalse)
+                 `(or ,condition ,iffalse))
              (if uncondit-clauses
                  ;; A non-exit clause.
                  ;; If condition succeeds, run the TRUE-EXPS.
@@ -710,7 +728,7 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
                            (if (null (cdr clearing))
                                `(or ,expression
                                     ,(car clearing))
-                             `(progn ,@clearing))))))
+                             `(or ,expression (progn ,@clearing)))))))
                (push expression expressions)))
            ;; At end of (or...), EACH variable bound by any arm
            ;; has a backtrack alias gensym.  At run time, that gensym's value

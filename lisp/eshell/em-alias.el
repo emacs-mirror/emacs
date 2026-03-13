@@ -173,7 +173,9 @@ file named by `eshell-aliases-file'.")
 	    (setq eshell-command-aliases-list
 		  (delq def eshell-command-aliases-list)))
 	(setq eshell-command-aliases-list
-	      (cons alias-def eshell-command-aliases-list))))
+	      (sort (cons alias-def eshell-command-aliases-list)
+                    (lambda (a b)
+                    (string< (car a) (car b)))))))
     (eshell-write-aliases-list))
   nil)
 
@@ -202,7 +204,7 @@ This is useful after manually editing the contents of the file."
                                       (match-string 2))
                                 eshell-command-aliases-list)))
                 (forward-line 1))
-              eshell-command-aliases-list)))))
+              (nreverse eshell-command-aliases-list))))))
 
 (defun eshell-write-aliases-list ()
   "Write out the current aliases into `eshell-aliases-file'."

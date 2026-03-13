@@ -4,7 +4,7 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Spencer Baugh <sbaugh@janestreet.com>
-;; Version: 1.4.3
+;; Version: 1.4.5
 ;; Keywords: c languages tools
 ;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.11.1"))
 
@@ -1402,8 +1402,10 @@ Interactively, with a prefix arg, FORCE is t."
                    ((and (not force)
                          (flymake--with-backend-state backend state
                            (flymake--state-disabled state)))
-                    (flymake-log :debug "Backend %s is disabled, not starting"
-                                 backend))
+                    (flymake-log :debug "Backend %s is disabled, not starting: %S"
+                                 backend
+                                 (flymake--with-backend-state backend state
+                                   (flymake--state-disabled state))))
                    (t
                     (flymake--run-backend backend backend-args)))
                   nil)))
@@ -1622,13 +1624,15 @@ default) no filter is applied."
                finally (cl-return
                         (cl-sort retval (if (cl-plusp n) #'< #'>)
                                  :key #'overlay-start))))
-         (tail (cl-member-if (lambda (ov)
-                               (if (cl-plusp n)
-                                   (> (overlay-start ov)
-                                      (point))
-                                 (< (overlay-start ov)
-                                    (point))))
-                             ovs))
+         (tail ;; For compatibility with older Emacs.
+               (with-suppressed-warnings ((obsolete cl-member-if))
+                 (cl-member-if (lambda (ov)
+                                 (if (cl-plusp n)
+                                     (> (overlay-start ov)
+                                        (point))
+                                   (< (overlay-start ov)
+                                      (point))))
+                               ovs)))
          (chain (if flymake-wrap-around
                     (if tail
                         (progn (setcdr (last tail) ovs) tail)
@@ -1873,8 +1877,9 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
     (define-key map (kbd "SPC") #'flymake-show-diagnostic)
     (define-key map (kbd "C-o") #'flymake-show-diagnostic)
     (define-key map (kbd "C-m") #'flymake-goto-diagnostic)
-    (define-key map (kbd "n") #'next-error-this-buffer-no-select)
-    (define-key map (kbd "p") #'previous-error-this-buffer-no-select)
+    (when (fboundp 'next-error-this-buffer-no-select)
+      (define-key map (kbd "n") #'next-error-this-buffer-no-select)
+      (define-key map (kbd "p") #'previous-error-this-buffer-no-select))
     map))
 
 (defun flymake-show-diagnostic (pos &optional other-window)

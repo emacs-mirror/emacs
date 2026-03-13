@@ -2263,6 +2263,20 @@ the system.  */);
   Vrcs2log_program_name = build_string ("librcs2log.so");
 #endif /* !HAVE_ANDROID || ANDROID_STUBIFY */
 
+  DEFVAR_INT ("command-line-max-length", command_line_max_length,
+    doc: /* Maximum length of a command and its arguments on this system.
+This is measured in characters.
+Used by `multiple-command-partition-arguments'.  Other code calls that
+function for cases in which it's known to be safe to run the command
+multiple times on subsequent partitions of the list of arguments.
+(In a shell script, you might use the `xargs' utility.)  */);
+#if defined _SC_ARG_MAX
+  /* Divide it by 4 as a crude way to go bytes->characters.  */
+  command_line_max_length = sysconf (_SC_ARG_MAX) / 4;
+#else  /* defined _SC_ARG_MAX */
+  command_line_max_length = 4096;
+#endif	/* defined _SC_ARG_MAX */
+
   defsubr (&Scall_process);
   defsubr (&Sgetenv_internal);
   defsubr (&Scall_process_region);

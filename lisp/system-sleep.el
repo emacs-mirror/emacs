@@ -4,7 +4,7 @@
 
 ;; Author: Stephane Marks <shipmints@gmail.com>
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: convenience
+;; Keywords: system-interface
 ;; Package-Requires: ((emacs "31.1"))
 
 ;; This file is part of GNU Emacs.
@@ -114,6 +114,8 @@ If non-nil, idle sleep is inhibited by `system-sleep'.")
                  (:constructor make-sleep-event (state)))
   state)
 
+;;;###autoload (autoload 'sleep-event-state "system-sleep.el")
+
 ;;;###autoload
 (defcustom system-sleep-event-functions nil
   "Abnormal hook invoked on system sleep events.
@@ -159,6 +161,7 @@ complete.  See `with-system-sleep-block' for an easy way to do that."
   (when system-sleep--back-end
     (system-sleep--block-sleep (or why "Emacs") allow-display-sleep)))
 
+;;;###autoload
 (defun system-sleep-unblock-sleep (token)
   "Unblock the system sleep block associated with TOKEN.
 Return non-nil TOKEN was unblocked, or nil if not.
@@ -202,18 +205,35 @@ The block is unblocked when BODY completes."
   (setq system-sleep--back-end
         (cond ((featurep 'ns) 'ns)
               ((featurep 'w32) 'w32)
-              ((and (require 'dbus)
-                    (featurep 'dbusbind)
-                    (member "org.freedesktop.login1"
-                            (dbus-list-activatable-names :system)))
+              ((and (featurep 'dbusbind)
+                    (require 'dbus))
                'dbus)
               (t nil))))
 
+(defvar system-sleep--event-after-hook-functions nil)
+(defvar system-sleep--event-in-progress nil)
+(defvar system-sleep--event-queue nil)
+
 (defun system-sleep--sleep-event-handler (event)
-  "`sleep-event' EVENT handler."
+  "Handle <sleep-event> special events and avoid races."
   (declare (completion ignore))
   (interactive "e")
-  (run-hook-with-args 'system-sleep-event-functions event))
+  ;; Queue incoming event.
+  (setq system-sleep--event-queue
+        (append system-sleep--event-queue (list event)))
+  ;; If an event is already in progress, return right away.
+  ;; Otherwise, process queued events.
+  (while (and (not system-sleep--event-in-progress)
+              system-sleep--event-queue)
+    (let ((current-event (pop system-sleep--event-queue)))
+      (setq system-sleep--event-in-progress current-event)
+      (unwind-protect
+          (progn
+            (run-hook-with-args 'system-sleep-event-functions
+                                current-event)
+            (run-hook-with-args 'system-sleep--event-after-hook-functions
+                                current-event))
+        (setq system-sleep--event-in-progress nil)))))
 
 (defun system-sleep-enable ()
   "Enable `system-sleep'."
@@ -252,25 +272,6 @@ Return a sleep-block token.")
   "Unblock the system sleep block associated with TOKEN.
 Return non-nil TOKEN was unblocked, or nil if not.")
 
-(defvar system-sleep--event-in-progress nil)
-(defvar system-sleep--event-queue nil)
-
-(defun system-sleep--sleep-event-function (event)
-  "Handle <sleep-event> special events and avoid races."
-  ;; Queue incoming event.
-  (setq system-sleep--event-queue
-        (append system-sleep--event-queue (list event)))
-  ;; If an event is already in progress, return right away.
-  ;; Otherwise, process queued events.
-  (while (and (not system-sleep--event-in-progress)
-              system-sleep--event-queue)
-    (let ((current-event (pop system-sleep--event-queue)))
-      (setq system-sleep--event-in-progress current-event)
-      (unwind-protect
-          (run-hook-with-args 'system-sleep-event-functions
-                              current-event)
-        (setq system-sleep--event-in-progress nil)))))
-
 
 ;; D-Bus support.
 
@@ -282,6 +283,7 @@ The default is \"sleep\" which is compatible with the other supported
 
 (defvar system-sleep--dbus-delay-lock nil)
 (defvar system-sleep--dbus-pre-sleep-signal nil)
+(defvar system-sleep--dbus-has-screensaver nil)
 
 (defun system-sleep--dbus-delay-lock (make-or-close)
   (cond (make-or-close
@@ -335,20 +337,22 @@ The default is \"sleep\" which is compatible with the other supported
 
 (cl-defmethod system-sleep--enable (&context
                                     (system-sleep--back-end (eql 'dbus)))
-  ;; Order matters.
-  (add-hook 'system-sleep-event-functions
-          #'system-sleep--dbus-prepare-for-sleep-function
-          ;; This must run last.
-          99)
-  (system-sleep--dbus-delay-lock t)
-  (system-sleep--dbus-prepare-for-sleep-watcher t)
-  t)
+  (when (member "org.freedesktop.login1"
+                (dbus-list-activatable-names :system))
+    (setq system-sleep--dbus-has-screensaver
+          (member "org.freedesktop.ScreenSaver"
+                   (dbus-list-activatable-names :session)))
+    (add-hook 'system-sleep--event-after-hook-functions
+              #'system-sleep--dbus-prepare-for-sleep-function)
+    (system-sleep--dbus-delay-lock t)
+    (system-sleep--dbus-prepare-for-sleep-watcher t)
+    t))
 
 (cl-defmethod system-sleep--disable (&context
                                      (system-sleep--back-end (eql 'dbus)))
   (system-sleep--dbus-prepare-for-sleep-watcher nil)
   (system-sleep--dbus-delay-lock nil)
-  (remove-hook 'system-sleep-event-functions
+  (remove-hook 'system-sleep--event-after-hook-functions
                #'system-sleep--dbus-prepare-for-sleep-function))
 
 (cl-defmethod system-sleep--block-sleep (why
@@ -370,7 +374,8 @@ The default is \"sleep\" which is compatible with the other supported
         (progn
           (let ((inhibit-quit t))
             (push (cons 'dbus-inhibitor-lock sleep-cookie) subtokens))
-          (unless allow-display-sleep
+          (unless (or allow-display-sleep
+                      (not system-sleep--dbus-has-screensaver))
             (if-let* ((screen-cookie
                        (dbus-call-method
                         :session

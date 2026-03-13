@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/epa.info
 @settitle EasyPG Assistant User's Manual
+@documentlanguage en
 @include docstyle.texi
 @c %**end of header
 

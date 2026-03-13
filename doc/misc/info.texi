@@ -5,6 +5,7 @@
 @comment %**start of header
 @setfilename info.info
 @settitle Info
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp

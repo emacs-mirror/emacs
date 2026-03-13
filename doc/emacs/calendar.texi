@@ -54,11 +54,11 @@ For more advanced topics,
 @cindex moving inside the calendar
   Calendar mode provides commands to move through the calendar in
 logical units of time such as days, weeks, months, and years.  If you
-move outside the three months originally displayed, the calendar
-display scrolls automatically through time to make the selected
-date visible.  Moving to a date lets you view its holidays or diary
-entries, or convert it to other calendars; moving by long time periods
-is also useful simply to scroll the calendar.
+move outside the months originally displayed, the calendar display
+scrolls automatically through time to make the selected date visible.
+Moving to a date lets you view its holidays or diary entries, or convert
+it to other calendars; moving by long time periods is also useful simply
+to scroll the calendar.
 
 @menu
 * Calendar Unit Motion::      Moving by days, weeks, months, and years.
@@ -264,11 +264,11 @@ Scroll calendar one month backward (@code{calendar-scroll-right}).
 @item C-v
 @itemx @key{PageDown}
 @itemx @key{next}
-Scroll forward by three months (@code{calendar-scroll-left-three-months}).
+Scroll the calendar forward (@code{calendar-scroll-calendar-left}).
 @item M-v
 @itemx @key{PageUp}
 @itemx @key{prior}
-Scroll backward by three months (@code{calendar-scroll-right-three-months}).
+Scroll the calendar backward (@code{calendar-scroll-calendar-right}).
 @item C-l
 Recenter the date at point.
 @end table
@@ -277,30 +277,25 @@ Recenter the date at point.
 @findex calendar-scroll-left
 @kindex < @r{(Calendar mode)}
 @findex calendar-scroll-right
-  The most basic calendar scroll commands scroll by one month at a
-time.  This means that there are two months of overlap between the
-display before the command and the display after.  @kbd{>}
-(@code{calendar-scroll-left}) scrolls the calendar contents one month
-forward in time.  @kbd{<} (@code{calendar-scroll-right}) scrolls the
-contents one month backwards in time.
+  The most basic calendar scroll commands scroll by one month at a time.
+@kbd{>} (@code{calendar-scroll-left}) scrolls the calendar contents one
+month forward in time.  @kbd{<} (@code{calendar-scroll-right}) scrolls
+the contents one month backwards in time.
 
 @kindex C-v @r{(Calendar mode)}
 @kindex PageDown @r{(Calendar mode)}
 @kindex next @r{(Calendar mode)}
-@findex calendar-scroll-left-three-months
+@findex calendar-scroll-calendar-left
 @kindex M-v @r{(Calendar mode)}
 @kindex PageUp @r{(Calendar mode)}
 @kindex prior @r{(Calendar mode)}
-@findex calendar-scroll-right-three-months
-  The commands @kbd{C-v} (@code{calendar-scroll-left-three-months})
-and @kbd{M-v} (@code{calendar-scroll-right-three-months}) scroll the
-calendar by an entire screenful---three months---in analogy with the
-usual meaning of these commands.  @kbd{C-v} makes later dates visible
-and @kbd{M-v} makes earlier dates visible.  These commands take a
-numeric argument as a repeat count; in particular, since @kbd{C-u}
-multiplies the next command by four, typing @kbd{C-u C-v} scrolls the
-calendar forward by a year and typing @kbd{C-u M-v} scrolls the
-calendar backward by a year.
+@findex calendar-scroll-calendar-right
+  The commands @kbd{C-v} (@code{calendar-scroll-calendar-left}) and
+@kbd{M-v} (@code{calendar-scroll-calendar-right}) scroll the
+calendar by an entire screen---in analogy with the usual meaning of
+these commands.  @kbd{C-v} makes later dates visible and @kbd{M-v} makes
+earlier dates visible.  These commands take a numeric argument as a
+repeat count.
 
   The function keys @key{PageDown} (or @key{next}) and @key{PageUp}
 (or @key{prior}) are equivalent to @kbd{C-v} and @kbd{M-v}, just as
@@ -347,6 +342,10 @@ Scroll the next window up (@code{scroll-other-window}).
 Scroll the next window down (@code{scroll-other-window-down}).
 @item q
 Exit from calendar (@code{calendar-exit}).
+@item M-x calendar-show-more-months
+Display more months.
+@item M-x calendar-show-fewer-months
+Display fewer months.
 @end table
 
 @kindex p d @r{(Calendar mode)}
@@ -379,6 +378,14 @@ buries all buffers related to the calendar, selecting other buffers.
 (If a frame contains a dedicated calendar window, exiting from the
 calendar deletes or iconifies that frame depending on the value of
 @code{calendar-remove-frame-by-deleting}.)
+
+@findex calendar-show-more-months
+@findex calendar-show-fewer-months
+  The command @kbd{M-x calendar-show-more-months} displays more months
+on the right side of the calendar.  The calendar can show at most 12
+months as long as there is enough space.  The command @kbd{M-x
+calendar-show-fewer-months} displays fewer months.  The calendar always
+shows at least 3 months.
 
 @c FIXME this mentions holidays and diary entries, albeit briefly, so
 @c should it be moved after those sections?  Or at least xref them.
@@ -514,7 +521,7 @@ Mark holidays in the calendar window (@code{calendar-mark-holidays}).
 @item u
 Unmark calendar window (@code{calendar-unmark}).
 @item a
-List all holidays for the displayed three months in another window
+List all holidays for the displayed months in another window
 (@code{calendar-list-holidays}).
 @item M-x holidays
 List all holidays for three months around today's date in another
@@ -559,7 +566,7 @@ automatically.
 @findex calendar-list-holidays
   To get even more detailed information, use the @kbd{a}
 (@code{calendar-list-holidays}) command, which displays a separate
-buffer containing a list of all holidays in the current three-month
+buffer containing a list of all holidays in the current calendar
 range.  You can use @key{SPC} and @key{DEL} in the calendar window to
 scroll that list up and down, respectively.
 
@@ -691,7 +698,7 @@ that depend on the phase of the moon.
 @table @kbd
 @item M
 Display the dates and times for all the quarters of the moon for the
-three-month period shown (@code{calendar-lunar-phases}).
+visible period shown (@code{calendar-lunar-phases}).
 @item M-x lunar-phases
 Display dates and times of the quarters of the moon for three months around
 today's date.
@@ -701,7 +708,7 @@ today's date.
 @findex calendar-lunar-phases
   Within the calendar, use the @kbd{M} (@code{calendar-lunar-phases})
 command to display a separate buffer of the phases of the moon for the
-current three-month range.  The dates and times listed are accurate to
+current visible range.  The dates and times listed are accurate to
 within a few minutes.
 
 @findex lunar-phases

@@ -2260,7 +2260,6 @@ killed."
 	(let (kill-buffer-query-functions kill-buffer-hook)
 	  (kill-buffer obuf))))))
 
-;; FIXME we really need to fold the uniquify stuff in here by default,
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
 FILENAME (sans directory) is used unchanged if that name is free;
@@ -3115,6 +3114,8 @@ since only a single case-insensitive search through the alist is made."
     ;; Bash builtin 'fc' creates a temp file named "bash-fc.XXXXXX"
     ;; to edit shell commands from its history list.
     ("/bash-fc\\.[0-9A-Za-z]\\{6\\}\\'" . sh-mode)
+    ;; A login sh first attempts to read /etc/profile.
+    ("\\`/etc/profile\\'" . sh-mode)
     ("/PKGBUILD\\'" . sh-mode)
     ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
     ("\\(/\\|\\`\\)\\.\\(shrc\\|zshrc\\|m?kshrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
@@ -6351,9 +6352,6 @@ Before and after saving the buffer, this function runs
 	      (setq buffer-backed-up nil)))))))
     setmodes))
 
-(declare-function diff-no-select "diff"
-		  (old new &optional switches no-async buf))
-
 (defvar save-some-buffers--switch-window-callback nil)
 
 (defvar save-some-buffers-action-alist
@@ -6384,7 +6382,6 @@ Before and after saving the buffer, this function runs
     (?d ,(lambda (buf)
            (if (null (buffer-file-name buf))
                (message "Not applicable: no file")
-             (require 'diff)            ;for diff-no-select.
              (let ((diffbuf (diff-no-select (buffer-file-name buf) buf
                                             nil 'noasync)))
                (if (not enable-recursive-minibuffers)

@@ -405,6 +405,22 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (ruby-Test::Unit
      "^    [[ ]?\\([^ (].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
 
+    ;; This must precede the `gnu' rule or the latter would match instead.
+    (rust-panic
+     ,(rx bol
+          ;; The test runner cargo-nextest indents its output by four spaces
+          ;; by default, although that can be disabled.
+          (opt "    ")
+          "thread '" (+ nonl) "' " (? "(" (+ digit) ") ")
+          (group-n 1 "panicked" ) " at"
+          " " (group-n 2 (+ nonl))  ; file
+          ":" (group-n 3 (+ digit)) ; line
+          ":" (group-n 4 (+ digit)) ; column
+          ":" eol)
+     2 3 4 nil
+     nil
+     (1 compilation-error-face))
+
     ;; Tested with Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT 2.1.
     (lua
      ,(rx bol

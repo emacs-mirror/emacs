@@ -736,6 +736,11 @@ Return the pasted text as a string."
     (define-key map [f71] [M-S-f11])
     (define-key map [f72] [M-S-f12])
 
+    ;; Some emulations of Xterm, including PuTTY and older versions of
+    ;; GNU screen in its default configuration, send VT220 <select> when
+    ;; the user presses the "End" key (bug#80473).
+    (define-key map [select] [end])
+
     map)
   "Keymap of possible alternative meanings for some keys.")
 

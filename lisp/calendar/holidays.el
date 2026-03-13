@@ -387,16 +387,11 @@ use instead of point."
       (if event (calendar-event-buffer event)
         (current-buffer))
     (message "Looking up holidays...")
-    (let ((holiday-list (calendar-holiday-list))
-          (m1 displayed-month)
-          (y1 displayed-year)
-          (m2 displayed-month)
-          (y2 displayed-year))
+    (pcase-let ((holiday-list (calendar-holiday-list))
+                (`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range)))
       (if (not holiday-list)
           (message "Looking up holidays...none found")
         (calendar-in-read-only-buffer holiday-buffer
-          (calendar-increment-month m1 y1 -1)
-          (calendar-increment-month m2 y2 1)
           (calendar-set-mode-line
            (if (= y1 y2)
                (format "Notable Dates from %s to %s, %d%%-"
@@ -422,7 +417,8 @@ This function is suitable for execution in an init file."
            (date (if arg (calendar-read-date t)
                    (calendar-current-date)))
            (displayed-month (calendar-extract-month date))
-           (displayed-year (calendar-extract-year date)))
+           (displayed-year (calendar-extract-year date))
+           (calendar-total-months 3))
       (calendar-list-holidays))))
 
 (defun holiday-available-holiday-lists ()
@@ -509,16 +505,13 @@ values."
   (message "Computing holidays...")
   (let ((calendar-holidays (or l calendar-holidays))
         (title (or label "Holidays"))
-        (s (calendar-absolute-from-gregorian (list 2 1 y1)))
-        (e (calendar-absolute-from-gregorian (list 11 1 y2)))
         (displayed-month 2)
         (displayed-year y1)
+        (calendar-total-months 12)
         holiday-list)
-    (while (<= s e)
+    (while (<= displayed-year y2)
       (setq holiday-list (append holiday-list (calendar-holiday-list)))
-      (calendar-increment-month displayed-month displayed-year 3)
-      (setq s (calendar-absolute-from-gregorian
-               (list displayed-month 1 displayed-year))))
+      (setq displayed-year (1+ displayed-year)))
     (save-current-buffer
       (calendar-in-read-only-buffer holiday-buffer
         (calendar-set-mode-line
@@ -543,7 +536,9 @@ holidays from the list `calendar-holidays', and returns a list of
 strings describing those holidays that apply on DATE, or nil if none do."
   (let ((displayed-month (calendar-extract-month date))
         (displayed-year (calendar-extract-year date))
+        (calendar-total-months 1)
         holiday-list)
+    (calendar-increment-month displayed-month displayed-year 1)
     (dolist (h (calendar-holiday-list) holiday-list)
       (if (calendar-date-equal date (car h))
           (setq holiday-list (append holiday-list (cdr h)))))))
@@ -554,6 +549,7 @@ strings describing those holidays that apply on DATE, or nil if none do."
   (let* ((start (calendar-gregorian-from-absolute d1))
          (displayed-month (calendar-extract-month start))
          (displayed-year (calendar-extract-year start))
+         (calendar-total-months 3)
          (end (calendar-gregorian-from-absolute d2))
          (end-month (calendar-extract-month end))
          (end-year (calendar-extract-year end))
@@ -633,11 +629,16 @@ use instead of point."
   "Holiday on MONTH, DAY (Gregorian) called STRING.
 If MONTH, DAY is visible, the value returned is the list (((MONTH DAY year)
 STRING)).  Returns nil if it is not visible in the current calendar window."
-  ;; This determines whether a given month is visible in the calendar.
-  ;; cf calendar-date-is-visible-p (which also checks the year part).
-  ;; The day is irrelevant since only full months are displayed.
-  ;; Since the calendar displays three months at a time, month N
-  ;; is visible if displayed-month = N-1, N, N+1.
+  ;; Previously, when the calendar only displays 3 months, the following
+  ;; code was used to determine whether a given month is visible:
+  ;;
+  ;;   (let ((m displayed-month)
+  ;;         (y displayed-year))
+  ;;     (calendar-increment-month m y (- 11 month))
+  ;;     (if (> m 9)                         ; Is November visible?
+  ;;         (list (list (list month day y) string))))
+  ;;
+  ;; Month N is visible if displayed-month = N-1, N, N+1.
   ;; In particular, November is visible if d-m = 10, 11, 12.
   ;; This is useful, because we can do a one-sided test:
   ;; November is visible if d-m > 9. (Similarly, February is visible if
@@ -646,11 +647,8 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
   ;; back a month and ask if November is visible; to determine if
   ;; October is visible, we can shift it forward a month and ask if
   ;; November is visible; etc.
-  (let ((m displayed-month)
-        (y displayed-year))
-    (calendar-increment-month m y (- 11 month))
-    (if (> m 9)                         ; Is November visible?
-        (list (list (list month day y) string)))))
+  (if-let* ((y (calendar-month-visible-p month)))
+      (list (list (list month day y) string))))
 
 (defun holiday-float (month dayname n string &optional day)
   "Holiday called STRING on the Nth DAYNAME after/before MONTH DAY.
@@ -678,36 +676,33 @@ list (((month day year) STRING)).  Otherwise returns nil."
   ;;    (calendar-increment-month m y (- 11 month))
   ;;    (if (> m 9); month in year y is visible
   ;;      (list (list (calendar-nth-named-day n dayname month y day) string)))))
-  (let* ((m1 displayed-month)
-         (y1 displayed-year)
-         (m2 displayed-month)
-         (y2 displayed-year)
-         (d1 (progn             ; first possible base date for holiday
-               (calendar-increment-month m1 y1 -1)
-               (+ (calendar-nth-named-absday 1 dayname m1 y1)
-                  (* -7 n)
-                  (if (> n 0) 1 -7))))
-         (d2                     ; last possible base date for holiday
-          (progn
-            (calendar-increment-month m2 y2 1)
-            (+ (calendar-nth-named-absday -1 dayname m2 y2)
-               (* -7 n)
-               (if (> n 0) 7 -1))))
-         (y1 (calendar-extract-year (calendar-gregorian-from-absolute d1)))
-         (y2 (calendar-extract-year (calendar-gregorian-from-absolute d2)))
-         (y                             ; year of base date
-          (if (or (= y1 y2) (> month 9))
-              y1
-            y2))
-         (d                             ; day of base date
-          (or day (if (> n 0)
-                      1
-                    (calendar-last-day-of-month month y))))
-         (date                        ; base date for holiday
-          (calendar-absolute-from-gregorian (list month d y))))
-    (and (<= d1 date) (<= date d2)
-         (list (list (calendar-nth-named-day n dayname month y d)
-                     string)))))
+  (pcase-let*
+      ((`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range))
+       (d1                        ; first possible base date for holiday
+        (+ (calendar-nth-named-absday 1 dayname m1 y1)
+           (* -7 n)
+           (if (> n 0) 1 -7)))
+       (d2                     ; last possible base date for holiday
+        (+ (calendar-nth-named-absday -1 dayname m2 y2)
+           (* -7 n)
+           (if (> n 0) 7 -1)))
+       (`(,d1m ,_ ,d1y) (calendar-gregorian-from-absolute d1))
+       (`(,d2m ,_ ,d2y) (calendar-gregorian-from-absolute d2)))
+    (let (years dates date d)
+      ;; possible years of base date
+      (if (or (= d1y d2y) (>= month d1m)) (push d1y years))
+      (if (and (/= d1y d2y) (<= month d2m)) (push d2y years))
+      (dolist (y years)
+        (setq d (or day (if (> n 0)     ; day of base date
+                            1
+                          (calendar-last-day-of-month month y))))
+        (setq date                      ; base date for holiday
+              (calendar-absolute-from-gregorian (list month d y)))
+        (when (and (<= d1 date) (<= date d2))
+          (push (list (calendar-nth-named-day n dayname month y d)
+                      string)
+                dates)))
+      dates)))
 
 (defun holiday-filter-visible-calendar (hlist)
   "Filter list of holidays HLIST, and return only the visible ones.
@@ -723,21 +718,32 @@ give `date'.  STRING is an expression in `date' that evaluates to
 the holiday description of `date'.  If `date' is visible in the
 calendar window, the holiday STRING is on that date.  If date is
 nil, or if the date is not visible, there is no holiday."
-  (let ((m displayed-month)
-        (y displayed-year))
-    (calendar-increment-month m y -1)
+  (pcase-let ((`(,_ ,y1 ,_ ,y2) (calendar-get-month-range)))
     (holiday-filter-visible-calendar
      (calendar-dlet (year date)
        (list
         (progn
-          (setq year y
+          (setq year y1
                 date (eval sexp t))
           (list date (if date (eval string t))))
-        (progn
-          (setq year (1+ y)
+        (when (/= y1 y2)
+          (setq year y2
                 date (eval sexp t))
           (list date (if date (eval string t)))))))))
 
+(defun holiday-after (ref n string)
+  "Holiday called STRING on the Nth day after/before REF in the calendar.
+REF is a function that accepts the Year as the argument and returns the
+absolute date of the reference day.  Negative values of N are
+interpreted as days before the reference day."
+  (pcase-let ((`(,_ ,y1 ,_ ,y2) (calendar-get-month-range)))
+    (holiday-filter-visible-calendar
+     (list
+      (list (calendar-gregorian-from-absolute (+ n (funcall ref y1)))
+            string)
+      (when (/= y1 y2)
+        (list (calendar-gregorian-from-absolute (+ n (funcall ref y2)))
+              string))))))
 
 (defun holiday-advent (&optional n string)
   "Date of Nth day after advent (named STRING), if visible in calendar window.
@@ -751,18 +757,14 @@ arguments, then it returns the value appropriate for advent itself."
   ;; Backwards compatibility layer.
   (if (not n)
       (holiday-advent 0 "Advent")
-    (let* ((year displayed-year)
-           (month displayed-month)
-           (advent (progn
-                     (calendar-increment-month month year -1)
-                     (calendar-gregorian-from-absolute
-                      (+ n
-                         (calendar-dayname-on-or-before
-                          0
-                          (calendar-absolute-from-gregorian
-                           (list 12 3 year))))))))
-      (if (calendar-date-is-visible-p advent)
-          (list (list advent string))))))
+    (holiday-after
+     ;; The absolute date of Advent in YEAR.
+     (lambda (year)
+       (calendar-dayname-on-or-before
+        0
+        (calendar-absolute-from-gregorian
+         (list 12 3 year))))
+     n string)))
 
 (defun holiday-easter-etc (&optional n string)
   "Date of Nth day after Easter (named STRING), if visible in calendar window.
@@ -800,27 +802,30 @@ is non-nil)."
                       '((-46 "Ash Wednesday")
                         (-2 "Good Friday")
                         (0 "Easter Sunday")))))
-    (let* ((century (1+ (/ displayed-year 100)))
-           (shifted-epact               ; age of moon for April 5...
-            (% (+ 14 (* 11 (% displayed-year 19)) ; ...by Nicaean rule
-                  (-     ; ...corrected for the Gregorian century rule
-                   (/ (* 3 century) 4))
-                  (/       ; ...corrected for Metonic cycle inaccuracy
-                   (+ 5 (* 8 century)) 25)
-                  (* 30 century))       ; keeps value positive
-               30))
-           (adjusted-epact              ; adjust for 29.5 day month
-            (if (or (zerop shifted-epact)
-                    (and (= shifted-epact 1) (< 10 (% displayed-year 19))))
-                (1+ shifted-epact)
-              shifted-epact))
-           (paschal-moon ; day after the full moon on or after March 21
-            (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
-               adjusted-epact))
-           (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))
-           (greg (calendar-gregorian-from-absolute (+ abs-easter n))))
-      (if (calendar-date-is-visible-p greg)
-          (list (list greg string))))))
+    (holiday-after #'holiday-easter-etc-abs n string)))
+
+(defun holiday-easter-etc-abs (y)
+  "Return the absolute date of Easter in Year."
+  (let* ((century (1+ (/ y 100)))
+         (shifted-epact               ; age of moon for April 5...
+          (% (+ 14 (* 11 (% y 19)) ; ...by Nicaean rule
+                (-     ; ...corrected for the Gregorian century rule
+                 (/ (* 3 century) 4))
+                (/       ; ...corrected for Metonic cycle inaccuracy
+                 (+ 5 (* 8 century)) 25)
+                (* 30 century))       ; keeps value positive
+             30))
+         (adjusted-epact              ; adjust for 29.5 day month
+          (if (or (zerop shifted-epact)
+                  (and (= shifted-epact 1) (< 10 (% y 19))))
+              (1+ shifted-epact)
+            shifted-epact))
+         (paschal-moon ; day after the full moon on or after March 21
+          (- (calendar-absolute-from-gregorian (list 4 19 y))
+             adjusted-epact))
+         (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7))))
+    abs-easter))
+
 
 ;; Prior call to calendar-julian-from-absolute will autoload cal-julian.
 (declare-function calendar-julian-to-absolute "cal-julian" (date))
@@ -835,14 +840,15 @@ Nth day before or after Easter.
 
 For backwards compatibility, if this function is called with no
 arguments, it returns the date of Pascha (Greek Orthodox Easter)."
-  (let* ((m displayed-month)
-         (y displayed-year)
-         (julian-year (progn
-                        (calendar-increment-month m y 1)
-                        (calendar-extract-year
-                         (calendar-julian-from-absolute
-                          (calendar-absolute-from-gregorian
-                           (list m (calendar-last-day-of-month m y) y))))))
+  (or string (setq string "Pascha (Greek Orthodox Easter)"))
+  (holiday-after #'holiday-greek-orthodox-easter-abs (or n 0) string))
+
+(defun holiday-greek-orthodox-easter-abs (y)
+  "Return the absolute date of Easter in Year."
+  (let* ((julian-year (calendar-extract-year
+                       (calendar-julian-from-absolute
+                        (calendar-absolute-from-gregorian
+                         (list 3 31 y)))))
          (shifted-epact                 ; age of moon for April 5
           (% (+ 14
                 (* 11 (% julian-year 19)))
@@ -850,10 +856,8 @@ arguments, it returns the date of Pascha (Greek Orthodox Easter)."
          (paschal-moon      ; day after full moon on or after March 21
           (- (calendar-julian-to-absolute (list 4 19 julian-year))
              shifted-epact))
-	 (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))
-	 (greg (calendar-gregorian-from-absolute (+ abs-easter (or n 0)))))
-    (if (calendar-date-is-visible-p greg)
-	(list (list greg (or string "Pascha (Greek Orthodox Easter)"))))))
+	 (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7))))
+    abs-easter))
 
 (provide 'holidays)
 

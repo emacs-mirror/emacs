@@ -18,6 +18,7 @@
 @ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
 @end ifclear
+@documentlanguage en
 @include docstyle.texi
 
 @c %**end of header
@@ -1431,7 +1432,7 @@ Threads
 Processes
 
 * Subprocess Creation::     Functions that start subprocesses.
-* Shell Arguments::         Quoting an argument to pass it to a shell.
+* Shell Arguments::         Quoting & partitioning command arguments.
 * Synchronous Processes::   Details of using synchronous subprocesses.
 * Asynchronous Processes::  Starting up an asynchronous subprocess.
 * Deleting Processes::      Eliminating an asynchronous subprocess.

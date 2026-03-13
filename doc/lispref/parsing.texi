@@ -1786,22 +1786,40 @@ undefined and just returns @code{nil}; but it still signals the error if
 @var{thing} is a malformed predicate.
 @end defun
 
-@defun treesit-thing-prev position thing
+Functions below are responsible for finding things and moving across
+them, and they have to deal with the fact that a buffer sometimes
+contains multiple adjacent or nested parsers.  By default, these
+functions try to be helpful and search in every relevant parser at
+point, from most specific (deepest embedded) to the least.  Lisp
+programs should be cautious and assess whether this behavior is desired
+when using these functions as building blocks of other functions; if
+not, explicitly pass a parser or language.
+
+@defun treesit-thing-prev position thing &optional parser
 This function returns the first node before @var{position} in the
 current buffer that is the specified @var{thing}.  If no such node
 exists, it returns @code{nil}.
+
 It's guaranteed that, if a node is returned, the node's end position is
 less or equal to @var{position}.  In other words, this function never
 returns a node that encloses @var{position}.
 
 Again, @var{thing} can be either a symbol or a predicate.
+
+If @var{parser} is non-@code{nil}, only use that parser's parse tree.
+Otherwise try each parser covering point, from the most specific
+(deepest-embedded) to the least specific.  If there are multiple parsers with
+the same embed level at @var{position}, which parser is tried first is
+undefined.  If @var{parser} is a language symbol, the function limits
+the parsers it tries to the ones for that language.
 @end defun
 
-@defun treesit-thing-next position thing
+@defun treesit-thing-next position thing &optional parser
 This function is similar to @code{treesit-thing-prev}, only it returns
 the first node @emph{after} @var{position} that's the @var{thing}.  It
 also guarantees that if a node is returned, the node's start position is
-greater or equal to @var{position}.
+greater or equal to @var{position}.  The @var{parser} parameter is the
+same as in @code{treesit-thing-prev}.
 @end defun
 
 @defun treesit-navigate-thing position arg side thing &optional tactic
@@ -1819,7 +1837,11 @@ A positive @var{arg} means moving forward that many instances of
 @var{thing}.
 
 Like in @code{treesit-thing-prev}, @var{thing} can be a thing symbol
-defined in @code{treesit-thing-settings}, or a predicate.
+defined in @code{treesit-thing-settings}, or a predicate, and
+@var{parser} can be either @code{nil}, a parser, or a language symbol.
+Like in that function, @var{parser} decides which parsers or languages
+are searched.  When there are multiple parsers available, this function
+tries each until it succeeds.
 
 @var{tactic} determines how this function moves between things.  It can
 be @code{nested}, @code{top-level}, @code{restricted},
@@ -1835,7 +1857,7 @@ means move to the parent if there is one; and move to siblings if
 there's no parent.
 @end defun
 
-@defun treesit-thing-at position thing &optional strict
+@defun treesit-thing-at position thing &optional strict parser
 This function returns the smallest node that's the @var{thing} and
 encloses @var{position}; if there's no such node, it returns @code{nil}.
 
@@ -1849,6 +1871,12 @@ position must be strictly greater than @var{position}.
 
 @var{thing} can be either a thing symbol defined in
 @code{treesit-thing-settings}, or a predicate.
+
+If @var{parser} is non-nil, only use that parser's parse tree.
+Otherwise try each parser covering point, from the most specific
+(deepest-embedded) to the least specific.  If there are multiple parsers
+with the same embed level at @var{position}, which parser is tried first is
+undefined.  @var{parser} can also be a language symbol.
 @end defun
 
 @findex treesit-beginning-of-thing

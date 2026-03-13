@@ -129,6 +129,7 @@ this variable."
 (defcustom add-log-always-start-new-record nil
   "If non-nil, `add-change-log-entry' will always start a new record."
   :version "22.1"
+  :safe #'booleanp
   :type 'boolean)
 
 (defvar add-log-buffer-file-name-function 'buffer-file-name

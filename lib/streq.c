@@ -1,4 +1,4 @@
-/* streq and memeq functions.
+/* streq function.
    Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
@@ -14,6 +14,6 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-#define _GL_STRING_INLINE _GL_EXTERN_INLINE
+#define _GL_STREQ_INLINE _GL_EXTERN_INLINE
 #include <config.h>
 #include <string.h>

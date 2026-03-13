@@ -291,8 +291,7 @@ If DONT-POP is nil, display the buffer after setting it up."
   (when (equal gnus-newsgroup-name "nndraft:drafts")
     (let* ((files (mapcar #'nndraft-article-filename articles))
            (buffs (delq nil (mapcar (lambda (f)
-                                      (find-buffer-visiting
-                                       f (lambda (b) (buffer-modified-p b))))
+                                      (find-buffer-visiting f #'buffer-modified-p))
                                     files))))
       (when buffs
         (if (= 1 (length buffs))

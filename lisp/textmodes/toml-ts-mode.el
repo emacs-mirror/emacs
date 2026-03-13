@@ -42,7 +42,9 @@
         :commit "64b56832c2cffe41758f28e05c756a3a98d16f41")
  t)
 
-(defcustom toml-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'toml-ts-mode-indent-offset
+  'toml-ts-indent-offset "31")
+(defcustom toml-ts-indent-offset 2
   "Number of spaces for each indentation step in `toml-ts-mode'."
   :version "29.1"
   :type 'natnum
@@ -64,8 +66,8 @@
 (defvar toml-ts-mode--indent-rules
   `((toml
      ((node-is "]") parent-bol 0)
-     ((parent-is "string") parent-bol toml-ts-mode-indent-offset)
-     ((parent-is "array") parent-bol toml-ts-mode-indent-offset))))
+     ((parent-is "string") parent-bol toml-ts-indent-offset)
+     ((parent-is "array") parent-bol toml-ts-indent-offset))))
 
 (defvar toml-ts-mode--font-lock-settings
   (treesit-font-lock-rules

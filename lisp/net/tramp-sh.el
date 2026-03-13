@@ -136,6 +136,15 @@ installed local ssh version.
 
 The string is used in `tramp-methods'.")
 
+(defvar tramp-ssh-setenv-term nil
+  "Whether ssh \"SetEnv=TERM=dumb\" argument to use.
+
+It is the string \"-o Setenv=TERM=dumb\" if supported by the local
+ssh (since release 7.8), otherwise the string \"\".  If it is nil, it
+will be auto-detected by Tramp.
+
+The string is used in `tramp-methods'.")
+
 (defvar tramp-scp-strict-file-name-checking nil
   "Which scp strict file name checking argument to use.
 
@@ -190,10 +199,7 @@ The string is used in `tramp-methods'.")
               `("scp"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-					     ("-e" "none")
-				             ("-o" ,(format "SetEnv=\"TERM=%s\""
-							    tramp-terminal-type))
-					     ("%h")))
+					     ("%w") ("-e" "none") ("%h")))
                 (tramp-async-args           (("-q")))
 		(tramp-direct-async         ("-t" "-t"))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -209,11 +215,8 @@ The string is used in `tramp-methods'.")
               `("scpx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t")
-					     ("-o" "RemoteCommand=\"%l\"")
-				             ("-o" ,(format "SetEnv=\"TERM=%s\""
-							    tramp-terminal-type))
-					     ("%h")))
+				             ("%w") ("-e" "none") ("-t" "-t")
+					     ("-o" "RemoteCommand=\"%l\"") ("%h")))
                 (tramp-async-args           (("-q")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
@@ -228,10 +231,7 @@ The string is used in `tramp-methods'.")
               `("rsync"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none")
-				             ("-o" ,(format "SetEnv=\"TERM=%s\""
-							    tramp-terminal-type))
-					     ("%h")))
+				             ("%w") ("-e" "none") ("%h")))
                 (tramp-async-args           (("-q")))
 		(tramp-direct-async         ("-t" "-t"))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -262,10 +262,7 @@ The string is used in `tramp-methods'.")
               `("ssh"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none")
-				             ("-o" ,(format "SetEnv=\"TERM=%s\""
-							    tramp-terminal-type))
-					     ("%h")))
+				             ("%w") ("-e" "none") ("%h")))
                 (tramp-async-args           (("-q")))
 		(tramp-direct-async         ("-t" "-t"))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
@@ -275,9 +272,7 @@ The string is used in `tramp-methods'.")
               `("sshx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t")
-				             ("-o" ,(format "SetEnv=\"TERM=%s\""
-							    tramp-terminal-type))
+				             ("%w") ("-e" "none") ("-t" "-t")
 					     ("-o" "RemoteCommand=\"%l\"")
 					     ("%h")))
                 (tramp-async-args           (("-q")))
@@ -2583,6 +2578,7 @@ The method used must be an out-of-band method."
 		  ?p (or (tramp-file-name-port v) "")
 		  ?r listener ?c options ?k (if keep-date " " "")
                   ?n (concat "2>" (tramp-get-remote-null-device v))
+                  ?w (tramp-ssh-setenv-term v)
 		  ?x (tramp-scp-strict-file-name-checking v)
 		  ?y (tramp-scp-force-scp-protocol v)
 		  ?z (tramp-scp-direct-remote-copying v1 v2))
@@ -4697,7 +4693,21 @@ process to set up.  VEC specifies the connection."
 	 t))
       (when unset
 	(tramp-send-command
-	 vec (format "unset %s" (string-join unset " ")) t)))))
+	 vec (format "unset %s" (string-join unset " ")) t)))
+
+    ;; Set connection-local variable `command-line-max-length'.
+    ;; `command-line-max-length' exists since Emacs 31.
+    ;; `connection-local-profile-name-for-criteria' exists since Emacs 29.1.
+    ;; We simulate it with `make-symbol'.
+    (when (boundp 'command-line-max-length)
+      (let* ((criteria (tramp-get-connection-local-criteria vec))
+	     (profile (if (fboundp 'connection-local-profile-name-for-criteria)
+			  (connection-local-profile-name-for-criteria criteria)
+			(make-symbol "generated-profile-name"))))
+	(connection-local-set-profile-variables
+	 profile
+	 `((command-line-max-length . ,(tramp-get-remote-pipe-buf vec))))
+	(connection-local-set-profiles criteria profile)))))
 
 ;; Old text from documentation of tramp-methods:
 ;; Using a uuencode/uudecode inline method is discouraged, please use one
@@ -5085,6 +5095,24 @@ Goes through the list `tramp-inline-compress-commands'."
    ;; Return a string, whatsoever.
    (t "")))
 
+(defun tramp-ssh-setenv-term (vec)
+  "Return the \"-o Setenv=TERM=dumb\" option of the local ssh if possible."
+  (cond
+   ;; No options to be computed.
+   ((null (assoc "%w" (tramp-get-method-parameter vec 'tramp-login-args)))
+    "")
+
+   ;; There is already a value to be used.
+   ((stringp tramp-ssh-setenv-term)
+    tramp-ssh-setenv-term)
+
+   ;; Determine the option.
+   (t (setq tramp-ssh-setenv-term
+            (if (tramp-ssh-option-exists-p
+                 vec (format "SetEnv=\"TERM=%s\"" tramp-terminal-type))
+                (format " -o SetEnv=\"TERM=%s\"" tramp-terminal-type)
+              "")))))
+
 (defun tramp-scp-strict-file-name-checking (vec)
   "Return the strict file name checking argument of the local scp."
   (cond
@@ -5438,6 +5466,10 @@ connection if a previous connection has died for some reason."
 			?c (format-spec options (format-spec-make ?t tmpfile))
 			?n (concat
 			    "2>" (tramp-get-remote-null-device previous-hop))
+                        ;; This might be problematic.  We check only for
+                        ;; the first hop.  OTOH, checking ssh
+                        ;; options for every hop might be to expensive.
+                        ?w (tramp-ssh-setenv-term vec)
 			?l (concat remote-shell " " extra-args " -i"))
 		       ;; A restricted shell does not allow "exec".
 		       (when r-shell '("&&" "exit")) '("||" "exit"))

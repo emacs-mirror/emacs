@@ -2530,10 +2530,8 @@ returns @code{t} if and only if both the expressions below return
 @end group
 @end example
 
-Comparing circular lists may therefore cause deep recursion that leads
-to an error, and this may result in counterintuitive behavior such as
-@code{(equal a b)} returning @code{t} whereas @code{(equal b a)}
-signals an error.
+Comparing very deeply nested objects may therefore cause deep recursion
+that leads to an error.
 
 @defun equal-including-properties object1 object2
 This function behaves like @code{equal} in all cases but also requires

@@ -50,7 +50,12 @@
 
 (defvar gnutls-tests-internal-macs-upcased
   (mapcar (lambda (sym) (cons sym (intern (upcase (symbol-name sym)))))
-          (secure-hash-algorithms)))
+          ;; Remove the SHA-3 algorithms.  Currently, the GNUTLS_MAC_SHA3_*
+          ;; macros are reserved, but unimplemented.  See:
+          ;; <https://www.gnutls.org/manual/html_node/Hash-and-MAC-functions.html>.
+          (seq-remove (lambda (sym)
+                        (string-prefix-p "sha3-" (symbol-name sym)))
+                      (secure-hash-algorithms))))
 
 (defvar gnutls-tests-tested-macs
   (when (gnutls-available-p)
