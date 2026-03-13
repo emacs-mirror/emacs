@@ -2570,7 +2570,12 @@ Return nil if cell formula was unsafe and user declined confirmation."
   (when (ses-warn-unsafe newval 'unsafep)
     (ses-begin-change)
     (ses-cell-set-formula row col newval)
-    t))
+    (if (called-interactively-p)
+        (let ((ses--row row)
+              (ses--col col))
+          (run-hook-with-args 'ses-after-entry-functions 1))
+      t)
+    ))
 
 (defun ses-read-cell (row col newval)
   "Self-insert for initial character of cell function."
