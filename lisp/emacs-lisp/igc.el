@@ -526,6 +526,7 @@ See `igc-start-idle-timer'."
          (multiplier (floor (/ available-time interval))))
     (named-let step ((n multiplier))
       (let* ((work-to-do (igc--arena-step interval n)))
+        (igc--process-messages)
         (cond ((and work-to-do
                     (> n 0)
                     (not (accept-process-output nil 0)))
