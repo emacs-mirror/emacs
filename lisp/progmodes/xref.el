@@ -1738,9 +1738,10 @@ This command is intended to be bound to a mouse event."
   ;;
   ;; TODO: Add some kind of hovering indication that a identifier under
   ;; the mouse cursor has a definition we could jump to.
-  "C-<down-mouse-1>" #'xref-find-definitions-at-mouse
-  "C-<mouse-1>" #'xref-find-definitions-at-mouse
-  "C-<drag-mouse-1>" #'xref-find-definitions-at-mouse)
+
+  ;; Don't run `mouse-buffer-menu' on the down event.
+  "C-<down-mouse-1>" #'ignore
+  "C-<mouse-1>" #'xref-find-definitions-at-mouse)
 
 ;;;###autoload
 (define-minor-mode xref-mouse-mode
@@ -1753,11 +1754,6 @@ all buffers."
 (define-globalized-minor-mode global-xref-mouse-mode
   xref-mouse-mode xref-mouse-mode
   :version "31.1")
-
-;; ;;;##autoload
-;; (add-to-list
-;;  'emulation-mode-map-alists             ;since we are "emulating" other conventions
-;;  `((xref-mouse-mode . ,xref-mouse-mode-map)))
 
 (declare-function apropos-parse-pattern "apropos" (pattern &optional do-all))
 
