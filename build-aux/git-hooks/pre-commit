@@ -74,10 +74,12 @@ done
 
 # The '--check' option of git diff-index makes Git complain if changes
 # introduce whitespace errors.  This can be a pain when editing test
-# files that deliberately contain lines with trailing whitespace.
-# To work around the problem you can run a command like 'git config
-# core.whitespace -trailing-space'.  It may be better to revamp the
-# tests so that trailing spaces are generated on the fly rather than
+# files that deliberately flout the normal whitespace rules.
+# To work around the problem, set EMACS_GIT_CORE_WHITESPACE temporarily
+# in your environment.  For example, set it to '-blank-at-eol' to commit
+# a test with blanks at line end.  It may be better to revamp the
+# tests so that offending lines are generated on the fly rather than
 # being committed as source.
 
-exec git diff-index --check --cached $head --
+exec git -c core.whitespace="$EMACS_GIT_CORE_WHITESPACE" \
+  diff-index --check --cached $head --
