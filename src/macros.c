@@ -35,8 +35,7 @@ EMACS_INT executing_kbd_macro_iterations;
 
 /* This is the macro that was executing.
    This is not bound at each level,
-   so after an error, it describes the innermost interrupted macro.
-   We use it only as a kind of flag, so no need to protect it.  */
+   so after an error, it describes the innermost interrupted macro.  */
 
 Lisp_Object executing_kbd_macro;
 
@@ -457,6 +456,9 @@ This is run whether the macro ends normally or prematurely due to an error.  */)
 		 doc: /* Non-nil while a keyboard macro is being defined.  Don't set this!
 The value is the symbol `append' while appending to the definition of
 an existing macro.  */);
+
+  executing_kbd_macro = Qnil;
+  staticpro (&executing_kbd_macro);
 
   DEFVAR_LISP ("executing-kbd-macro", Vexecuting_kbd_macro,
 	       doc: /* Currently executing keyboard macro (string or vector).
