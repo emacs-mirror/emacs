@@ -3896,7 +3896,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   if (menu_items_n_panes == 0)
     return Qnil;
 
-  if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
+  if (menu_items_used <= MENU_ITEMS_PANE_LENGTH || !VECTORP (menu_items))
     {
       *error_name = "Empty menu";
       return Qnil;
