@@ -142,6 +142,21 @@ File extensions to generate the tags for."
           (string :tag "Glob to ignore"))
   :version "30.1")
 
+(defun etags-regen-create-on-completion--set (symbol value)
+  (when (and etags-regen-mode value)
+    (advice-add 'tags-completion-at-point-function :before
+                #'etags-regen--maybe-generate))
+  (set-default-toplevel-value symbol value))
+
+(defcustom etags-regen-create-on-completion nil
+  "Non-nil to ensure tags are created before completion.
+
+This applies to the function `tags-completion-at-point-function', which
+is used in buffers that have no alternative completion configured."
+  :type 'boolean
+  :set #'etags-regen-create-on-completion--set
+  :version "31.1")
+
 ;;;###autoload
 (put 'etags-regen-ignores 'safe-local-variable
      (lambda (value) (and (listp value) (seq-every-p #'stringp value))))
@@ -471,8 +486,9 @@ to countermand the effect of a previous \\[visit-tags-table]."
       (progn
         (advice-add 'etags--xref-backend :before
                     #'etags-regen--maybe-generate)
-        (advice-add 'tags-completion-at-point-function :before
-                    #'etags-regen--maybe-generate))
+        (when etags-regen-create-on-completion
+          (advice-add 'tags-completion-at-point-function :before
+                      #'etags-regen--maybe-generate)))
     (advice-remove 'etags--xref-backend #'etags-regen--maybe-generate)
     (advice-remove 'tags-completion-at-point-function #'etags-regen--maybe-generate)
     (etags-regen--tags-cleanup)))

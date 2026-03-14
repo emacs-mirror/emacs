@@ -3763,6 +3763,14 @@ the mode line without polling for changes every
 means the mode line will update only when the battery power state,
 percentage, or presence in the bay changes.
 
+** Etags Regen mode
+
+*** Tags table is not created during completion anymore.
+Previously, when there was no tags table loaded and the default
+completion function was called, 'etags-regen-mode' ensured that tags
+were created.  This has been disabled, and the new user option
+'etags-regen-create-on-completion' can be used to enable it again.
+
 
 * New Modes and Packages in Emacs 31.1
 
