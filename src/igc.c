@@ -3449,7 +3449,7 @@ root_create_kbd_buffer (struct igc *gc)
 	       true, "kbd-buffer");
 }
 
-#ifdef USE_GTK
+#if defined (USE_GTK) && ! defined (HAVE_PGTK)
 static void
 root_create_xg_pending_quit_event (struct igc *gc)
 {
@@ -5878,7 +5878,7 @@ make_igc (void)
   root_create_exact_ptr (gc, &current_thread);
   root_create_exact_ptr (gc, &all_threads);
   root_create_kbd_buffer (gc);
-#ifdef USE_GTK
+#if defined (USE_GTK) && ! defined (HAVE_PGTK)
   root_create_xg_pending_quit_event (gc);
 #endif
 
