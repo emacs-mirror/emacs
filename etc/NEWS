@@ -3099,7 +3099,8 @@ tarballs and prepare them to be activated in the sub-process.
 
 ---
 *** The command 'package-vc-install-from-checkout' is now obsolete.
-Please use the User Lisp directory instead.  This also means that
+Please use the User Lisp directory instead, see Info node "(emacs) User
+Lisp Directory" for more details on how to use.  This also means that
 combining the 'use-package' keywords ':vc' and ':load-path' is obsolete.
 
 ---
