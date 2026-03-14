@@ -406,10 +406,10 @@ like <img alt=\"Some thing.\">."
   "Used for `flyspell-generic-check-word-predicate' in programming modes."
   (cl-flet ((has-prog-face (pos) (memq (get-text-property pos 'face)
                                        flyspell-prog-text-faces)))
-    ;; point might be in front of, inside or behind the misspelled word
-    (or (has-prog-face (point))               ;check char after point
+    ;; Point might be in front of, inside, or behind the misspelled word
+    (or (has-prog-face (point))               ; check char after point
         (and (not (eql (point) (point-min)))
-             (has-prog-face (1- (point))))))) ;check char before point
+             (has-prog-face (1- (point))))))) ; check char before point
 
 ;;;###autoload
 (defun flyspell-prog-mode ()
