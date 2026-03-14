@@ -30,8 +30,7 @@
 ;; To install a package from source use `package-vc-install'.  If you
 ;; aren't interested in activating a package, you can use
 ;; `package-vc-checkout' instead, which will prompt you for a target
-;; directory.  If you wish to reuse an existing checkout, the command
-;; `package-vc-install-from-checkout' will prepare the package.
+;; directory.
 ;;
 ;; If you make local changes that you wish to share with an upstream
 ;; maintainer, the command `package-vc-prepare-patch' can prepare
@@ -987,14 +986,12 @@ installs takes precedence."
 ;;;###autoload
 (defun package-vc-checkout (pkg-desc directory &optional rev)
   "Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
-Unlike `package-vc-install', this does not yet set up the package
-for use with Emacs; use `package-vc-install-from-checkout' for
-setting the package up after this function finishes.  Optional
-argument REV means to clone a specific version of the package; it
-defaults to the last version available from the package's
-repository.  If REV has the special value
-`:last-release' (interactively, the prefix argument), that stands
-for the last released version of the package."
+Unlike `package-vc-install', this does not yet set up the package for
+use with Emacs.  Optional argument REV means to clone a specific version
+of the package; it defaults to the last version available from the
+package's repository.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands for
+the last released version of the package."
   (interactive
    (let* ((name (package-vc--read-package-name "Fetch package source: ")))
      (list (cadr (assoc name package-archive-contents #'string=))
