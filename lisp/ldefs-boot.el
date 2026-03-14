@@ -4607,8 +4607,8 @@ The return value is the incremented value of PLACE.
 If X is specified, it should be an expression that should
 evaluate to a number.
 
-This macro is considered deprecated in favor of the built-in macro
-`incf' that was added in Emacs 31.1.")
+This macro is deprecated in favor of the built-in macro `incf' that was
+added in Emacs 31.1.")
 (defvar cl-old-struct-compat-mode nil
 "Non-nil if Cl-Old-Struct-Compat mode is enabled.
 See the `cl-old-struct-compat-mode' command
@@ -4727,7 +4727,7 @@ penultimate step during initialization.
 Also propose to install the grammar when `treesit-enabled-modes'
 is t or contains the mode name.")
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\(?:CMakeLists\\.txt\\|\\.cmake\\)\\'" . cmake-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(cmake-mode . cmake-ts-mode)))
-(register-definition-prefixes "cmake-ts-mode" '("cmake-ts-mode-"))
+(register-definition-prefixes "cmake-ts-mode" '("cmake-ts-"))
 
 
 ;;; Generated autoloads from cmuscheme.el
@@ -5466,12 +5466,13 @@ in its body becomes the return value of the `cond*' construct.
 
 Non-exit clauses:
 
-If a clause has only one element, or if its first element is t or a
-`bind*' form, or if it ends with the keyword `:non-exit', then this
-clause never exits the `cond*' construct.  Instead, control always falls
-through to the next clause (if any).  Except for a `bind-and*' clause,
-all bindings made in CONDITION for the BODY of the non-exit clause are
-passed along to the rest of the clauses in this `cond*' construct.
+If the first element of a clause is t or a `bind*' form, or if it has
+only one element and that element is a `match*' or `pcase*' form, or if
+it ends with the keyword `:non-exit', then this clause never exits the
+`cond*' construct.  Instead, control always falls through to the next
+clause (if any).  Except for a `bind-and*' clause, all bindings made in
+CONDITION for the BODY of the non-exit clause are passed along to the
+rest of the clauses in this `cond*' construct.
 
 See `match*' for documentation of the patterns for use in `match*'
 conditions.
@@ -13703,7 +13704,7 @@ lines.
 
 ;;; Generated autoloads from progmodes/flymake.el
 
-(push '(flymake 1 4 3) package--builtin-versions)
+(push '(flymake 1 4 5) package--builtin-versions)
 (autoload 'flymake-log "flymake"
 "Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
@@ -17485,7 +17486,7 @@ this mode runs the hook `html-ts-mode-hook', as the final or
 penultimate step during initialization.
 
 \\{html-ts-mode-map}" t)
-(register-definition-prefixes "html-ts-mode" '("html-ts-mode-"))
+(register-definition-prefixes "html-ts-mode" '("html-ts-"))
 
 
 ;;; Generated autoloads from htmlfontify.el
@@ -19865,7 +19866,7 @@ penultimate step during initialization.
 
 \\{java-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(java-mode . java-ts-mode)))
-(register-definition-prefixes "java-ts-mode" '("java-ts-mode-"))
+(register-definition-prefixes "java-ts-mode" '("java-ts-"))
 
 
 ;;; Generated autoloads from cedet/semantic/wisent/javascript.el
@@ -21899,7 +21900,7 @@ penultimate step during initialization.
 
 \\{mhtml-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(mhtml-mode . mhtml-ts-mode)))
-(register-definition-prefixes "mhtml-ts-mode" '("mhtml-ts-mode-"))
+(register-definition-prefixes "mhtml-ts-mode" '("mhtml-ts-"))
 
 
 ;;; Generated autoloads from midnight.el
@@ -26182,8 +26183,12 @@ after OUT-BUFFER-NAME.
 (autoload 'pp-eval-expression "pp"
 "Evaluate EXPRESSION and pretty-print its value.
 Also add the value to the front of the list in the variable `values'.
+When called interactively, read an Emacs Lisp expression.
+With a prefix argument (when called from Lisp, with optional argument
+INSERT-VALUE non-nil), insert the value into the current buffer instead
+of displaying it in the echo area or a temporary buffer.
 
-(fn EXPRESSION)" t)
+(fn EXPRESSION &optional INSERT-VALUE)" t)
 (autoload 'pp-macroexpand-expression "pp"
 "Macroexpand EXPRESSION and pretty-print its value.
 
@@ -30748,8 +30753,8 @@ variable `str' within the skeleton.  When this is non-nil, the
 interactor gets ignored, and this should be a valid skeleton element.
 
 When done with skeleton, but before going back to `_'-point, add
-a newline (unless `skeleton-end-newline' is nil) and run the hook
-`skeleton-end-hook'.
+a newline (unless `skeleton-end-newline' is nil or `_'-point is at end
+of line), and run the hook `skeleton-end-hook'.
 
 SKELETON is made up as (INTERACTOR ELEMENT ...).  INTERACTOR may be nil if
 not needed, a prompt-string or an expression for complex read functions.
@@ -30838,6 +30843,8 @@ PROPS-A on added characters, and PROPS-R on removed characters.
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of a region, just before preparing it to for `diff'.  It can be
 used to replace chars to try and eliminate some spurious differences.
+The two regions can be in different buffers (in which case, BEG1 and BEG2
+need to be markers to indicate the corresponding buffers).
 
 (fn BEG1 END1 BEG2 END2 PROPS-C &optional PREPROC PROPS-R PROPS-A)")
 (autoload 'smerge-ediff "smerge-mode"
@@ -32474,6 +32481,7 @@ and `sc-post-hook' is run after the guts of this function.")
 
 ;;; Generated autoloads from system-sleep.el
 
+ (autoload 'sleep-event-state "system-sleep.el")
 (defvar system-sleep-event-functions nil
 "Abnormal hook invoked on system sleep events.
 Each function is called with one argument EVENT, a sleep event.  EVENT
@@ -32514,6 +32522,13 @@ Despite this, you should unblock your blocks when your processing is
 complete.  See `with-system-sleep-block' for an easy way to do that.
 
 (fn &optional WHY ALLOW-DISPLAY-SLEEP)")
+(autoload 'system-sleep-unblock-sleep "system-sleep"
+"Unblock the system sleep block associated with TOKEN.
+Return non-nil TOKEN was unblocked, or nil if not.
+In the unlikely event that unblock fails, the block will be released
+when the Emacs process dies.
+
+(fn TOKEN)")
 (autoload 'with-system-sleep-block "system-sleep"
 "Execute the forms in BODY while blocking system sleep.
 The optional arguments WHY and ALLOW-DISPLAY-SLEEP have the same meaning
@@ -34672,7 +34687,7 @@ penultimate step during initialization.
 
 \\{toml-ts-mode-map}" t)
 (when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'treesit-major-mode-remap-alist '(conf-toml-mode . toml-ts-mode)))
-(register-definition-prefixes "toml-ts-mode" '("toml-ts-mode-"))
+(register-definition-prefixes "toml-ts-mode" '("toml-ts-"))
 
 
 ;;; Generated autoloads from tool-bar.el
@@ -35251,6 +35266,7 @@ of `define-treesit-generic-mode'.
 
 (fn MODE [DOCSTRING] [KEYWORD-ARGS...] &rest BODY)" nil t)
 (function-put 'define-treesit-generic-mode 'doc-string-elt 2)
+(function-put 'define-treesit-generic-mode 'autoload-macro 'expand)
 (autoload 'treesit-generic-mode-setup "treesit-x"
 "Go into the treesit generic mode MODE.
 
@@ -36871,11 +36887,9 @@ Uncommitted changes are included in the diff.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
@@ -36897,11 +36911,9 @@ Uncommitted changes are included in the diff.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
@@ -36923,11 +36935,9 @@ working revision and UPSTREAM-LOCATION.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
@@ -36948,11 +36958,9 @@ working revision and UPSTREAM-LOCATION.
 
 When unspecified, UPSTREAM-LOCATION is the outgoing base.
 For a trunk branch this is always the place \\[vc-push] would push to.
-For a topic branch, see whether the branch matches one of
-`vc-trunk-branch-regexps' or `vc-topic-branch-regexps', or else query
-the backend for an appropriate outgoing base.
+For a topic branch, query the backend for an appropriate outgoing base.
 See `vc-trunk-or-topic-p' regarding the difference between trunk and
-topic branches.
+topic branches and how Emacs classifies the current branch.
 
 When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems, UPSTREAM-LOCATION
@@ -37140,7 +37148,7 @@ instead of the working revision, and a number specifying the maximum
 number of revisions to show; the default is `vc-log-show-limit'.
 You can also use a numeric prefix argument to specify this.
 
-This is like `vc-root-print-log' but with an alternative prefix argument
+This is like `vc-print-root-log' but with an alternative prefix argument
 that some users might prefer for interactive usage." t)
 (function-put 'vc-print-root-change-log 'interactive-only 'vc-print-root-log)
 (autoload 'vc-print-fileset-branch-log "vc"
@@ -37237,8 +37245,6 @@ It also signals an error in a Bazaar bound branch.
 (autoload 'vc-pull-and-push "vc"
 "First pull, and then push the current branch.
 The push will only be performed if the pull operation was successful.
-
-You must be visiting a version controlled file, or in a `vc-dir' buffer.
 
 On a distributed version control system, this runs a \"pull\"
 operation on the current branch, prompting for the precise
@@ -40341,6 +40347,51 @@ This command is intended to be bound to a mouse event.
 This command is intended to be bound to a mouse event.
 
 (fn EVENT)" t)
+(autoload 'xref-mouse-mode "xref"
+"Minor mode to bind Xref commands invoked using the mouse.
+
+See `global-xref-mouse-mode' if you want to enable this minor mode in
+all buffers.
+
+This is a minor mode.  If called interactively, toggle the `Xref-Mouse
+mode' mode.  If the prefix argument is positive, enable the mode, and if
+it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate the variable `xref-mouse-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
+(put 'global-xref-mouse-mode 'globalized-minor-mode t)
+(defvar global-xref-mouse-mode nil
+"Non-nil if Global Xref-Mouse mode is enabled.
+See the `global-xref-mouse-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-xref-mouse-mode'.")
+(custom-autoload 'global-xref-mouse-mode "xref" nil)
+(autoload 'global-xref-mouse-mode "xref"
+"Toggle Xref-Mouse mode in many buffers.
+Specifically, Xref-Mouse mode is enabled in all buffers where
+`xref-mouse-mode' would do it.
+
+With prefix ARG, enable Global Xref-Mouse mode if ARG is positive;
+otherwise, disable it.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.
+Enable the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
+
+See `xref-mouse-mode' for more information on Xref-Mouse mode.
+
+(fn &optional ARG)" t)
 (autoload 'xref-find-apropos "xref"
 "Find all meaningful symbols that match PATTERN.
 The argument has the same meaning as in `apropos'.
