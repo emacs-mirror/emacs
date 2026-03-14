@@ -4426,6 +4426,12 @@ safe to run the command multiple times on subsequent partitions of the
 list of arguments.  The variable 'command-line-max-length' controls the
 partitioning.
 
+** New function 'ensure-proper-list'.
+This function is a variation on 'ensure-list' that checks if an object
+is a proper list, in which case the list will be returned as is,
+otherwise the function will return the object wrapped in a
+singleton list.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

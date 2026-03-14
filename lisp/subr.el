@@ -7795,6 +7795,15 @@ not a list, return a one-element list containing OBJECT."
       object
     (list object)))
 
+(defun ensure-proper-list (object)
+  "Return OBJECT as a list.
+If OBJECT is already a proper list, return OBJECT itself.  If it's not a
+proper list, return a one-element list containing OBJECT."
+  (declare (side-effect-free error-free))
+  (if (proper-list-p object)
+      object
+    (list object)))
+
 (defmacro with-delayed-message (args &rest body)
   "Like `progn', but display MESSAGE if BODY takes longer than TIMEOUT seconds.
 The MESSAGE form will be evaluated immediately, but the resulting

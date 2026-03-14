@@ -830,6 +830,26 @@ list, and you can then say, for instance:
 @end lisp
 @end defun
 
+@defun ensure-proper-list object
+This function returns @var{object} as a proper list (@pxref{(elisp) Cons
+Cells}).  If @var{object} is already a proper list, the function returns
+it; otherwise, the function returns a one-element list containing
+@var{object}.
+
+Note that while @code{ensure-list} runs in constant time,
+@code{ensure-proper-list} needs linear time to check if a list is
+proper.  Use this if it is important to not confuse a cons-cell for a
+list:
+
+@lisp
+(ensure-list '(1 . 2))
+    @result{}(1 . 2)
+
+(ensure-proper-list '(1 . 2))
+    @result{}((1 . 2))
+@end lisp
+@end defun
+
 @defun number-sequence from &optional to separation
 This function returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before
