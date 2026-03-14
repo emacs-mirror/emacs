@@ -1343,7 +1343,13 @@ is non-nil)."
 
 	    (Info-select-node)
 	    (goto-char (point-min))
-	    (forward-line 1)		       ; skip header line
+            ;; Skip the header line or breadcrumbs, unless
+            ;; 'scroll-conservatively' is set to a large enough value
+            ;; which could cause us scroll the display to leave that
+            ;; line outside of the window.  The shortest node is 5
+            ;; lines, thus 6 is the threshold value.
+            (if (< scroll-conservatively 6)
+                (forward-line 1))
 	    ;; (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
 	    ;;   (forward-line 1))
 
