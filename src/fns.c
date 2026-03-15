@@ -4596,6 +4596,13 @@ base64_decode_1 (const char *from, char *to, ptrdiff_t length,
    key_and_value vector of the hash table.  This could be done
    if a `:linear-search t' argument is given to make-hash-table.  */
 
+/* Caution: When changing to the internals of hash-tables, keep in mind
+   that some other code depends on details of the current
+   implementation.  E.g. the following files use HASH_KEY directly:
+
+     - gc-handles.c
+     - charset.c
+     - bytecode.c  */
 
 
 /***********************************************************************
