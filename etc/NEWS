@@ -70,7 +70,7 @@ done from early-init.el, such as adding to 'package-directory-list'.
 
 +++
 ** Emacs prepares a User Lisp directory by default.
-If you have a subdirectory named 'user-lisp' in your Emacs configuration
+If you have a subdirectory "user-lisp/" in your Emacs configuration
 directory, then Lisp files in it and its subdirectories will now be
 recursively byte-compiled, scraped for autoload cookies and ensured to
 be in 'load-path' by default.  You can disable the feature by setting
@@ -1021,7 +1021,7 @@ The duration for which the values are cached depends on whether it is
 called from 'non-essential' context, and it determined by variables
 'project-vc-cache-timeout' and 'project-vc-non-essential-cache-timeout'.
 
-** Network Security Manager (NSM) is now more strict.
+** Network Security Manager (NSM)
 
 *** NSM warns about TLS 1.1 by default.
 It has been deprecated by RFC 8996, published in 2021.
@@ -3317,10 +3317,10 @@ This is intended for customizing directory-local variables in the
 current directory's ".dir-locals.el" file.
 
 +++
-*** New keybinding 'C-c C-k' for 'Custom-reset-standard'
+*** New keybinding 'C-c C-k' for 'Custom-reset-standard'.
 
 +++
-*** New command 'Custom-goto-first-choice' (bound to 'C-c C-i')
+*** New command 'Custom-goto-first-choice' (bound to 'C-c C-i').
 When first opening the customization interface for a user option, you
 can use this command as a shortcut to jump to the first actionable
 button or field (for instance an on/off button for boolean options, or a
@@ -4421,7 +4421,7 @@ current buffer, just like 'eval-expression' already did.
 +++
 ** New function 'multiple-command-partition-arguments'.
 This function partitions a list of command arguments that might be
-arbitrarily long.  It can be used in cases in which it's known to be
+arbitrarily long.  It can be used in cases in which it is known to be
 safe to run the command multiple times on subsequent partitions of the
 list of arguments.  The variable 'command-line-max-length' controls the
 partitioning.
