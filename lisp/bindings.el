@@ -653,7 +653,23 @@ zero, otherwise they start from one."
   "Specification of \"percentage offset\" of window through buffer.
 This option specifies both the field width and the type of offset
 displayed in `mode-line-position', a component of the default
-`mode-line-format'."
+`mode-line-format'.
+Since mode-line layout is a delicate matter, given the restricted
+space Emacs has there, and given the hard-to-account-for length of
+the percentage offsets produced by this element, we do not recommend
+setting this to any value other than those described below (`setopt'
+will show a warning if you try anything else):
+
+ nil        -- do not display percentage offset
+ \\='(-3 \"%o\") -- size of text above the window top as percentage of
+               text outside the window
+ \\='(-3 \"%p\") -- size of text above the window top as percentage of
+               all the buffer text
+ \\='(-3 \"%P\") -- size of text above the window bottom as percentage
+               of all the buffer text
+ \\='(6 \"%q\")  -- percentage offsets of both top and bottom of the
+               window, separated by a dash
+"
   :type '(radio
           (const :tag "nil:  No offset is displayed" nil)
           (const :tag "\"%o\": Proportion of \"travel\" of the window through the buffer"
