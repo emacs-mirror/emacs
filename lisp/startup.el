@@ -1588,14 +1588,7 @@ please check its value")
     ;; If there was an error, print the error message and exit.
     (error
      (princ
-      (if (eq (car error) 'error)
-	  (apply #'concat (cdr error))
-	(if (error-has-type-p error 'file-error)
-	    (format "%s: %s"
-                    (nth 1 error)
-                    (mapconcat (lambda (obj) (prin1-to-string obj t))
-                               (cdr (cdr error)) ", "))
-	  (error-message-string error)))
+      (error-message-string error)
       'external-debugging-output)
      (terpri 'external-debugging-output)
      (setq initial-window-system nil)
