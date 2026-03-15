@@ -4079,6 +4079,9 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   status = tty_menu_activate (menu, &pane, &selidx, x, y, &datap,
 			      tty_menu_help_callback,
 			      menuflags & MENU_KBD_NAVIGATION);
+  if (status == TTYM_SUCCESS && !VECTORP (menu_items))
+    status = TTYM_IA_SELECT;
+
   entry = pane_prefix = Qnil;
 
   switch (status)
