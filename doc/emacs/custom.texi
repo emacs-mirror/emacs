@@ -3246,8 +3246,8 @@ persistently.  This can be changed by customizing the user option
 @section Newcomers Theme
 
 @ifinfo
-  (If you got here by clicking a link on the startup screen, type
-@kbd{q} to go back.)
+  (If you got here by clicking a link on the startup screen, you can
+type @kbd{q} to go back.)
 @end ifinfo
 
   Each release of Emacs brings new features, but they are not enabled by
