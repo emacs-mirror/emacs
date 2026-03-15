@@ -1363,8 +1363,8 @@ DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
        1, 1, 0,
        doc: /* Return the multibyte equivalent of STRING.
 If STRING is unibyte and contains non-ASCII characters, the function
-`unibyte-char-to-multibyte' is used to convert each unibyte character
-to a multibyte character.  In this case, the returned string is a
+converts each unibyte character to an eight-bit raw byte in its
+multibyte representation.  In this case, the returned string is a
 newly created string with no text properties.  If STRING is multibyte
 or entirely ASCII, it is returned unchanged.  In particular, when
 STRING is unibyte and entirely ASCII, the returned string is unibyte.
@@ -1403,9 +1403,9 @@ DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
        1, 1, 0,
        doc: /* Return a unibyte string with the same individual bytes as STRING.
 If STRING is unibyte, the result is STRING itself.
-Otherwise it is a newly created string, with no text properties.
-If STRING is multibyte and contains a character of charset
-`eight-bit', it is converted to the corresponding single byte.  */)
+Otherwise it is a newly created unibyte string, with no text properties,
+whose bytes are identical to those of STRING, except that any character
+of charset `eight-bit' is converted to the corresponding single byte.  */)
   (Lisp_Object string)
 {
   CHECK_STRING (string);
