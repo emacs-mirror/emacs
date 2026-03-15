@@ -560,9 +560,7 @@ The environment used is the one when entering the activation frame at point."
                     (condition-case err
                         (backtrace-eval exp nframe base)
                       (error (setq errored
-                                   (format "%s: %s"
-                                           (get (car err) 'error-message)
-			                   (car (cdr err)))))))))
+                                   (error-message-string err)))))))
         (if errored
             (progn
               (message "Error: %s" errored)

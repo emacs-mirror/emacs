@@ -879,7 +879,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
      ;; tar data.  Rather than show a mysterious empty buffer, let's
      ;; revert to fundamental-mode.
      (fundamental-mode)
-     (signal (car err) (cdr err)))))
+     (signal err))))
 
 (autoload 'woman-tar-extract-file "woman"
   "In tar mode, run the WoMan man-page browser on this file." t)

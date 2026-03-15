@@ -3397,7 +3397,7 @@ Go to the history element by the absolute history position HIST-POS."
 The same as `command-error-default-function' but display error messages
 at the end of the minibuffer using `minibuffer-message' to not obscure
 the minibuffer contents."
-  (if (memq 'minibuffer-quit (get (car data) 'error-conditions))
+  (if (error-has-type-p data 'minibuffer-quit)
       (ding t)
     (discard-input)
     (ding))

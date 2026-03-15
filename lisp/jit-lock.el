@@ -449,7 +449,7 @@ Defaults to the whole buffer.  END can be out of bounds."
                      ;; on-the-fly jit-locking), make sure the fontification
                      ;; will be performed before displaying the block again.
                      (quit (put-text-property start next 'fontified nil)
-                           (signal (car err) (cdr err))))))
+                           (signal err)))))
 
                ;; In case we fontified more than requested, take
                ;; advantage of the good news.

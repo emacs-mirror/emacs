@@ -346,8 +346,7 @@ group info."
             gnus-newsgroup-selection))
       ;; Don't swallow gnus-search errors; the user should be made
       ;; aware of them.
-      (gnus-search-error
-       (signal (car err) (cdr err)))
+      (gnus-search-error (signal err))
       (error
        (gnus-error
         3

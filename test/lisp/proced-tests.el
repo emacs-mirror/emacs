@@ -61,7 +61,7 @@
   (proced--move-to-column "%CPU")
   (condition-case err
       (>= (proced--cpu-at-point) cpu)
-    (ert-test-skipped (signal (car err) (cdr err)))
+    (ert-test-skipped (signal err))
     (error
      (ert-fail
       (list err (proced--assert-process-valid-cpu-refinement-explainer cpu))))))

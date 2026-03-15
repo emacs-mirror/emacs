@@ -1874,7 +1874,7 @@ Mark is left at original location."
 		  (progn (latex-backward-sexp-1) (1+ arg)))))
       (scan-error
        (goto-char pos)
-       (signal (car err) (cdr err))))))
+       (signal err)))))
 
 (defun latex-syntax-after ()
   "Like (char-syntax (char-after)) but aware of multi-char elements."

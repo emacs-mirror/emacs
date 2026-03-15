@@ -1935,11 +1935,12 @@ COLLAPSE non-nil means collapse the branch."
   "Prevent cursor from moving beyond the buffer end.
 Don't let it move into the title lines.
 See `Electric-command-loop' for a description of STATE and CONDITION."
+  ;; NOTE: This code looks very much like `electric-buffer-menu-looper'.
   (cond ((and condition
-	      (not (memq (car condition)
-			 '(buffer-read-only end-of-buffer
-					    beginning-of-buffer))))
-	 (signal (car condition) (cdr condition)))
+	      (not (or (error-has-type-p condition 'buffer-read-only)
+		       (error-has-type-p condition 'end-of-buffer)
+		       (error-has-type-p condition 'beginning-of-buffer))))
+	 (signal condition))
 	((< (point) (car state))
 	 (goto-char (point-min))
 	 (forward-line 2))
@@ -3879,23 +3880,7 @@ Runs the hook `ebrowse-electric-position-mode-hook'."
     (kill-buffer buffer)))
 
 
-(defun ebrowse-electric-position-looper (state condition)
-  "Prevent moving point on invalid lines.
-Called from `Electric-command-loop'.  See there for the meaning
-of STATE and CONDITION."
-  (cond ((and condition
-	      (not (memq (car condition) '(buffer-read-only
-					   end-of-buffer
-					   beginning-of-buffer))))
-	 (signal (car condition) (cdr condition)))
-	((< (point) (car state))
-	 (goto-char (point-min))
-	 (forward-line 2))
-	((> (point) (cdr state))
-	 (goto-char (point-max))
-	 (forward-line -1)
-	 (if (pos-visible-in-window-p (point-max))
-	     (recenter -1)))))
+(defalias 'ebrowse-electric-position-looper #'ebrowse-electric-list-looper)
 
 
 (defun ebrowse-electric-position-undefined ()

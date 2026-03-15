@@ -1478,7 +1478,7 @@ region, or with a numeric prefix.  By default it uses a numeric prefix of 1."
   ;; conflicts instead!
   (condition-case err
       (smerge-match-conflict)
-    (error (if (not (markerp otherpos)) (signal (car err) (cdr err))
+    (error (if (not (markerp otherpos)) (signal err)
              (goto-char (prog1 otherpos (setq otherpos (point-marker))))
              (smerge-match-conflict))))
   (let ((beg (match-beginning 0))

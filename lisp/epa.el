@@ -702,7 +702,7 @@ If you do not specify PLAIN-FILE, this functions prompts for the value to use."
 	(epg-decrypt-file context decrypt-file plain-file)
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (message "Decrypting %s...wrote %s" (file-name-nondirectory decrypt-file)
 	     (file-name-nondirectory plain-file))
     (if (epg-context-result-for context 'verify)
@@ -727,7 +727,7 @@ If you do not specify PLAIN-FILE, this functions prompts for the value to use."
 	(epg-verify-file context file plain)
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (message "Verifying %s...done" (file-name-nondirectory file))
     (if (epg-context-result-for context 'verify)
 	(epa-display-info (epg-verify-result-to-string
@@ -798,7 +798,7 @@ If no one is selected, default secret key is used.  "
 	(epg-sign-file context file signature mode)
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (message "Signing %s...wrote %s" (file-name-nondirectory file)
 	     (file-name-nondirectory signature))))
 
@@ -828,7 +828,7 @@ If no one is selected, symmetric encryption will be performed.  ")))
 	(epg-encrypt-file context file recipients cipher)
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (message "Encrypting %s...wrote %s" (file-name-nondirectory file)
 	     (file-name-nondirectory cipher))))
 
@@ -870,7 +870,7 @@ For example:
 	  (setq plain (epg-decrypt-string context (buffer-substring start end)))
 	(error
 	 (epa-display-error context)
-	 (signal (car error) (cdr error))))
+	 (signal error)))
       (message "Decrypting...done")
       (setq plain (decode-coding-string
 		   plain
@@ -969,7 +969,7 @@ For example:
 			  (get-text-property start 'epa-coding-system-used)))))
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (message "Verifying...done")
     (setq plain (decode-coding-string
 		 plain
@@ -1077,7 +1077,7 @@ If no one is selected, default secret key is used.  "
 					   mode))
 	(error
 	 (epa-display-error context)
-	 (signal (car error) (cdr error))))
+	 (signal error)))
       (message "Signing...done")
       (delete-region start end)
       (goto-char start)
@@ -1155,7 +1155,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 					   sign))
 	(error
 	 (epa-display-error context)
-	 (signal (car error) (cdr error))))
+	 (signal error)))
       (message "Encrypting...done")
       (delete-region start end)
       (goto-char start)
@@ -1185,7 +1185,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 	(epg-delete-keys context keys allow-secret)
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (message "Deleting...done")
     (apply #'epa--list-keys epa-list-keys-arguments)))
 
@@ -1273,7 +1273,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 	(epg-export-keys-to-file context keys file)
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (message "Exporting to %s...done" (file-name-nondirectory file))))
 
 ;;;###autoload
@@ -1290,7 +1290,7 @@ If no one is selected, default public key is exported.  ")))
 	(insert (epg-export-keys-to-string context keys))
       (error
        (epa-display-error context)
-       (signal (car error) (cdr error))))))
+       (signal error)))))
 
 (provide 'epa)
 

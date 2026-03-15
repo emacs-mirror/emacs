@@ -1381,7 +1381,7 @@ then offer interactively to relocate BOOKMARK-NAME-OR-RECORD."
                  (message
                   "Bookmark not relocated; consider removing it (%s)."
                   bookmark-name-or-record)
-                 (signal (car err) (cdr err))))))))))
+                 (signal err)))))))))
   ;; Added by db.
   (when (stringp bookmark-name-or-record)
     (setq bookmark-current-bookmark bookmark-name-or-record))

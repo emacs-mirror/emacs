@@ -4634,7 +4634,7 @@ filter out additional entries (because TABLE might not obey PRED)."
                                 (if between (list between)) pattern))
           (setq prefix subprefix)))
       (if (and (null all) firsterror)
-          (signal (car firsterror) (cdr firsterror))
+          (signal firsterror)
         (list pattern all prefix suffix)))))
 
 (defun completion-pcm-all-completions (string table pred point)

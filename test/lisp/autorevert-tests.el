@@ -203,7 +203,7 @@ It is checked for buffer-local `auto-revert-notify-watch-descriptor'."
 	(tramp-dissect-file-name auto-revert--test-rootdir) t 'keep-password)
        (condition-case err
            (funcall (ert-test-body ert-test))
-         (error (message "%s" err) (signal (car err) (cdr err)))))))
+         (error (message "%S" err) (signal err))))))
 
 (defmacro with-auto-revert-test (&rest body)
   (declare (debug t))

@@ -6276,7 +6276,7 @@ Before and after saving the buffer, this function runs
 		  (when save-silently (message nil)))
 	      ;; If we failed, restore the buffer's modtime.
 	      (error (set-visited-file-modtime old-modtime)
-		     (signal (car err) (cdr err))))
+		     (signal err)))
 	    ;; Since we have created an entirely new file,
 	    ;; make sure it gets the right permission bits set.
 	    (setq setmodes
@@ -6680,7 +6680,7 @@ Return non-nil if DIR is already a directory."
       (make-directory-internal dir)
     (error
      (or (file-directory-p dir)
-	 (signal (car err) (cdr err))))))
+	 (signal err)))))
 
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and optionally any nonexistent parent dirs.
@@ -6753,7 +6753,7 @@ This acts like (apply FN ARGS) except it returns NO-SUCH if it is
 non-nil and if FN fails due to a missing file or directory."
   (condition-case err
       (apply fn args)
-    (file-missing (or no-such (signal (car err) (cdr err))))))
+    (file-missing (or no-such (signal err)))))
 
 (defun delete-file (filename &optional trash)
   "Delete file named FILENAME.  If it is a symlink, remove the symlink.
@@ -6994,7 +6994,7 @@ into NEWNAME instead."
 		  (make-directory (directory-file-name newname) parents)
 		(error
 		 (or (file-directory-p newname)
-		     (signal (car err) (cdr err)))))))
+		     (signal err))))))
 
         ;; Copy recursively.
         (dolist (file

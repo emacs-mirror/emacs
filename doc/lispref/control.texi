@@ -2447,12 +2447,13 @@ as the overall value.
 The argument @var{var} is a variable.  @code{condition-case} does not
 bind this variable when executing the @var{protected-form}, only when it
 handles an error.  At that time, it binds @var{var} locally to an
-@dfn{error description}, which is a list giving the particulars of the
-error.  The error description has the form @code{(@var{error-symbol}
+@dfn{error descriptor}, also sometimes called error description,
+which is a list giving the particulars of the error.
+The error descriptor has the form @code{(@var{error-symbol}
 . @var{data})}.  The handler can refer to this list to decide what to
 do.  For example, if the error is for failure opening a file, the file
 name is the second element of @var{data}---the third element of the
-error description.
+error descriptor.
 
 If @var{var} is @code{nil}, that means no variable is bound.  Then the
 error symbol and associated data are not available to the handler.
@@ -2469,14 +2470,26 @@ Sometimes it is necessary to re-throw a signal caught by
 how to do that:
 
 @example
-  (signal (car err) (cdr err))
+  (signal err)
 @end example
 
 @noindent
-where @code{err} is the error description variable, the first argument
+where @code{err} is the error descriptor variable, the first argument
 to @code{condition-case} whose error condition you want to re-throw.
 @xref{Definition of signal}.
 @end defspec
+
+@defun error-type error
+This function returns the error symbol of the error descriptor @var{error}.
+@end defun
+
+@defun error-slot-value error pos
+This function returns the value in the field number @var{pos} of the error
+descriptor @var{error}.  The fields are numbered starting with 1.  E.g.,
+for an error of type @code{wrong-type-argument}, @code{(error-slot-value
+@var{error} 2)} returns the object that failed the type test, and
+@code{(error-slot-value @var{error} 1)} returns the predicate that failed.
+@end defun
 
 @defun error-message-string error-descriptor
 This function returns the error message string for a given error
@@ -2615,7 +2628,7 @@ Emacs searches all the active @code{condition-case} and
 specifies one or more of these condition names.  When the innermost
 matching handler is one installed by @code{handler-bind}, the
 @var{handler} function is called with a single argument holding the
-error description.
+error descriptor.
 
 Contrary to what happens with @code{condition-case}, @var{handler} is
 called in the dynamic context where the error happened.  This means it
@@ -2798,6 +2811,18 @@ seriously decrease the power of @code{condition-case}.  Condition names
 make it possible to categorize errors at various levels of generality
 when you write an error handler.  Using error symbols alone would
 eliminate all but the narrowest level of classification.
+
+@defun error-type-p symbol
+This function returns non-@code{nil} if @var{symbol} is a valid
+error condition name.
+@end defun
+
+@defun error-has-type-p error condition
+This function tests whether @var{condition} is a parent of the error
+symbol of the error descriptor @var{error}.
+It returns non-@code{nil} if the type of the error descriptor
+@var{error} belongs to the condition name @var{condition}.
+@end defun
 
   @xref{Standard Errors}, for a list of the main error symbols
 and their conditions.

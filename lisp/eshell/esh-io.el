@@ -751,7 +751,7 @@ Returns what was actually sent, or nil if nothing was sent.")
      ;; here.  Maybe `process-send-string' should handle SIGPIPE even
      ;; in batch mode (bug#66186).
      (if (process-live-p target)
-         (signal (car err) (cdr err))
+         (signal err)
        (signal 'eshell-pipe-broken (list target)))))
   object)
 

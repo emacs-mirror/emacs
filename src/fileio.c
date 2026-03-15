@@ -286,8 +286,7 @@ void
 report_file_errno (char const *string, Lisp_Object name, int errorno)
 {
   Lisp_Object data = get_file_errno_data (string, name, errorno);
-
-  xsignal (Fcar (data), Fcdr (data));
+  xsignal (data, Qnil);
 }
 
 /* Signal a file-access failure that set errno.  STRING describes the

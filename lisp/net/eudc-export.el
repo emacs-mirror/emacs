@@ -187,11 +187,11 @@ LOCATION is used as the phone location for BBDB."
 			       (bbdb-parse-phone phone)
 			     (bbdb-parse-phone-number phone)))
 	(error
-	 (if (string= "phone number unparsable." (cadr err))
+	 (if (equal "phone number unparsable." (error-slot-value err 1))
 	     (if (not (y-or-n-p (format "BBDB claims %S to be unparsable--insert anyway? " phone)))
 		 (error "Phone number unparsable")
 	       (setq phone-list (list (bbdb-string-trim phone))))
-	   (signal (car err) (cdr err)))))
+	   (signal err))))
       (if (= 3 (length phone-list))
 	  (setq phone-list (append phone-list '(nil))))
       (apply #'vector location phone-list)))

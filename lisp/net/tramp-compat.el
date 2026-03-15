@@ -102,14 +102,19 @@ Add the extension of F, if existing."
     tramp-temp-name-prefix tramp-compat-temporary-file-directory)
    dir-flag (file-name-extension f t)))
 
+(defalias 'tramp-error-type-p
+  (if (fboundp 'error-type-p)           ;Emacs-31
+      #'error-type-p
+    (lambda (symbol) (get symbol 'error-conditions))))
+
 ;; `permission-denied' is introduced in Emacs 29.1.
 (defconst tramp-permission-denied
-  (if (get 'permission-denied 'error-conditions) 'permission-denied 'file-error)
+  (if (tramp-error-type-p 'permission-denied) 'permission-denied 'file-error)
   "The error symbol for the `permission-denied' error.")
 
 (defsubst tramp-compat-permission-denied (vec file)
   "Emit the `permission-denied' error."
-  (if (get 'permission-denied 'error-conditions)
+  (if (tramp-error-type-p 'permission-denied)
       (tramp-error vec tramp-permission-denied file)
     (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
 

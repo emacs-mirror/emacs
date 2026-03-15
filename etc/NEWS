@@ -4045,6 +4045,14 @@ that will provide an Xref backend when used.
 * Lisp Changes in Emacs 31.1
 
 +++
+** The API to manipulate error descriptors has been improved.
+There are new functions: 'error-type-p', 'error-type',
+'error-has-type-p', and 'error-slot-value'.
+And you can now do '(signal err)' instead of
+'(signal (car err) (cdr err))', which is not only more concise
+but also preserves the 'eq'uality of the error descriptor.
+
++++
 ** 'secure-hash' now supports generating SHA-3 message digests.
 The list returned by 'secure-hash-algorithms' now contains the symbols
 'sha3-224', 'sha3-256', 'sha3-384', and 'sha3-512'.  These symbols can

@@ -1111,8 +1111,7 @@ functions are annotated with \"<f>\" via the
                     ;; specific completion table in more cases.
                     (is-ignore-error
                      (list t (elisp--completion-local-symbols)
-                           :predicate (lambda (sym)
-                                        (get sym 'error-conditions))))
+                           :predicate #'error-type-p))
                     ((elisp--expect-function-p beg)
                      (list nil (elisp--completion-local-symbols)
                            :predicate
@@ -1186,12 +1185,11 @@ functions are annotated with \"<f>\" via the
                                         (forward-sexp 2)
                                         (< (point) beg)))))
                         (list t (elisp--completion-local-symbols)
-                              :predicate (lambda (sym) (get sym 'error-conditions))))
+                              :predicate #'error-type-p))
                        ;; `ignore-error' with a list CONDITION parameter.
                        ('ignore-error
                         (list t (elisp--completion-local-symbols)
-                              :predicate (lambda (sym)
-                                           (get sym 'error-conditions))))
+                              :predicate #'error-type-p))
                        ((and (or ?\( 'let 'let* 'cond 'cond* 'bind*)
                              (guard (save-excursion
                                       (goto-char (1- beg))

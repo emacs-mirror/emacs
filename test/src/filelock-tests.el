@@ -137,8 +137,7 @@ the case)."
 
    ;; Errors from `unlock-buffer' should call
    ;; `userlock--handle-unlock-error' (bug#46397).
-   (cl-letf (((symbol-function 'userlock--handle-unlock-error)
-              (lambda (err) (signal (car err) (cdr err)))))
+   (cl-letf (((symbol-function 'userlock--handle-unlock-error) #'signal))
      (should (equal '(file-error "Unlocking file")
                     (seq-subseq (should-error (unlock-buffer)) 0 2))))))
 
@@ -160,8 +159,7 @@ the case)."
    ;; File errors from unlocking files should call
    ;; `userlock--handle-unlock-error' (bug#46397).
    (cl-letf (((symbol-function 'yes-or-no-p) #'always)
-             ((symbol-function 'userlock--handle-unlock-error)
-              (lambda (err) (signal (car err) (cdr err)))))
+             ((symbol-function 'userlock--handle-unlock-error) #'signal))
      (should (equal '(file-error "Unlocking file")
                     (seq-subseq (should-error (kill-buffer)) 0 2))))))
 

@@ -995,7 +995,7 @@ directory and makes this the current buffer's default directory."
       (progn
         (cd (car inferior-octave-output-list))
         t)
-    (error (unless noerror (signal (car err) (cdr err))))))
+    (error (unless noerror (signal err)))))
 
 (defcustom inferior-octave-minimal-columns 80
   "The minimal column width for the inferior Octave process."

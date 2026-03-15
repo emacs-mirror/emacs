@@ -396,12 +396,11 @@ Returns nil."
 
 Determines whether CONDITION matches TYPE and EXCLUDE-SUBTYPES,
 and aborts the current test as failed if it doesn't."
-  (let ((signaled-conditions (get (car condition) 'error-conditions))
-        (handled-conditions (pcase-exhaustive type
+  (let ((handled-conditions (pcase-exhaustive type
                               ((pred listp) type)
                               ((pred symbolp) (list type)))))
-    (cl-assert signaled-conditions)
-    (unless (cl-intersection signaled-conditions handled-conditions)
+    (unless (any (lambda (hc) (error-has-type-p condition hc))
+                 handled-conditions)
       (ert-fail (append
                  (funcall form-description-fn)
                  (list
@@ -409,7 +408,7 @@ and aborts the current test as failed if it doesn't."
                   :fail-reason (concat "the error signaled did not"
                                        " have the expected type")))))
     (when exclude-subtypes
-      (unless (member (car condition) handled-conditions)
+      (unless (member (error-type condition) handled-conditions)
         (ert-fail (append
                    (funcall form-description-fn)
                    (list

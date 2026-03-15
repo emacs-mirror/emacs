@@ -120,8 +120,7 @@ back to the top level.")
                 (eval-buffer)
                 ,@body
                 (when edebug-tests-failure-in-post-command
-                  (signal (car edebug-tests-failure-in-post-command)
-                          (cdr edebug-tests-failure-in-post-command))))
+                  (signal edebug-tests-failure-in-post-command)))
             (unload-feature 'edebug-test-code)
             (with-current-buffer (find-file-noselect edebug-tests-temp-file)
               (set-buffer-modified-p nil))
@@ -246,7 +245,7 @@ keyboard macro."
             (funcall thunk)
           (error
            (setq edebug-tests-failure-in-post-command err)
-           (signal (car err) (cdr err)))))
+           (signal err))))
       (setq edebug-tests-kbd-macro-index executing-kbd-macro-index))))
 
 (defvar edebug-tests-func nil

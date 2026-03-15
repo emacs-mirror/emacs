@@ -812,7 +812,7 @@ is nil, ask the user where to save the desktop."
 	(desktop-save desktop-dirname t)
       (file-error
        (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
-	 (signal (car err) (cdr err))))))
+	 (signal err)))))
   (desktop--on-kill)
   t)
 

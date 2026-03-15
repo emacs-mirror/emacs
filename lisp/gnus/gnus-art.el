@@ -6946,7 +6946,7 @@ not have a face in `gnus-article-boring-faces'."
 		  (set-window-hscroll win new-sum-hscroll))))
 	  (set-window-configuration owin)
 	  (if err
-	      (signal (car err) (cdr err))
+	      (signal err)
 	    (ding))))))))
 
 (defun gnus-article-read-summary-send-keys ()
