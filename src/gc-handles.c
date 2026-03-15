@@ -82,10 +82,60 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 #include "gc-handles.h"
 
+/* The implementation of gc-handles relies on internal details of
+   hash-tables.  In particular, we use the index that the hash-table
+   implementation assigns to an entry.  That index never changes; not
+   even if the hash-table grows.
+
+   When creating a gc-handle for a object, we create an entry in the
+   hash-table `global_handle_table' and allocate a gc-handle.  The key
+   of the entry is the object.  The value of the entry is a pointer back
+   to the gc-handle (encoded as a Lisp_Object with xmint_pointer).  The
+   `index' field of `struct gc_handle_struct' remembers the index of the
+   entry in the `global_handle_table'.
+
+   In pseudo code, we could say that for a Lisp_Object O and the
+   corresponding gc-handle H the following equalities hold:
+
+     gethash(global_handle_table, O) == H
+     global_handle_table.entries[H.index].key == O
+     global_handle_table.entries[H.index].value == H
+
+   The pointer from the hash-table back to the gc-handle allows us to
+   re-assign the index.  We only use that when we shrink the hash-table.
+   (Hash-tables don't shrink automatically, so we do it manually by
+   creating a fresh, smaller hash-table with different indexes for the
+   entries.)
+
+   Alternative implementations for gc-handles are possible.  The current
+   approach has some nice properties, though:
+
+     - It requires very little code.
+
+     - Few constrains on the GC implementation.  E.g. we don't require
+     immovable/pinned objects and gc-handles aren't roots.  We don't
+     need GC specific tracing code (yet).
+
+     - It implements reference counting.  So with this implementation we
+     can say that "if A == B, then gc_handle_for(A) == gc_handle_for(B)".
+     However, this is not part of the generic API.
+
+     - The global_handle_table can shrink.
+
+   Not so nice properties are:
+
+     - gc_handle_value requires two indirections.
+
+     - We rely on internals of the hash-table implementation.
+
+     - gc_handle_for requires hash lookups.
+
+     - no thread safety  */
+
 struct gc_handle_struct
 {
-  size_t index;
-  size_t refcount;
+  size_t index;	   /* index of the entry in global_handle_table */
+  size_t refcount; /* reference count for this gc-handle */
 };
 
 static Lisp_Object global_handle_table;
