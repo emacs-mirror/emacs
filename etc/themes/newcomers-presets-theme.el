@@ -150,7 +150,8 @@ This minor mode will enable and disable the theme on startup."
  '(package-autosuggest-mode t)
  '(package-menu-use-current-if-no-marks nil)
 
-;;;; Frame and window-related options
+;;;; Frame- and window-related options
+ '(frame-inhibit-implied-resize t)
  '(tab-bar-history-mode t)
  '(tab-bar-show 0))
 
