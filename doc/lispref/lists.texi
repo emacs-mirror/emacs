@@ -836,10 +836,10 @@ Cells}).  If @var{object} is already a proper list, the function returns
 it; otherwise, the function returns a one-element list containing
 @var{object}.
 
-Note that while @code{ensure-list} runs in constant time,
-@code{ensure-proper-list} needs linear time to check if a list is
-proper.  Use this if it is important to not confuse a cons-cell for a
-list:
+If @var{object} might be a long list, prefer @code{ensure-list}, because
+the latter function runs in constant time, whereas
+@code{ensure-proper-list} runs in linear time.  For short lists this
+function is a convenient way to treat cons-cells as non-lists:
 
 @lisp
 (ensure-list '(1 . 2))

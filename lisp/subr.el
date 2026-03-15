@@ -7798,7 +7798,10 @@ not a list, return a one-element list containing OBJECT."
 (defun ensure-proper-list (object)
   "Return OBJECT as a list.
 If OBJECT is already a proper list, return OBJECT itself.  If it's not a
-proper list, return a one-element list containing OBJECT."
+proper list, return a one-element list containing OBJECT.
+
+`ensure-list' is usually preferable because that function runs in
+constant time, but this one has to traverse the whole of OBJECT."
   (declare (side-effect-free error-free))
   (if (proper-list-p object)
       object
