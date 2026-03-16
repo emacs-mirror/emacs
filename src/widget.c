@@ -392,7 +392,9 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask,
   attrs->event_mask = (STANDARD_EVENT_SET
 		       | PropertyChangeMask
 		       | SubstructureNotifyMask);
+  attrs->bit_gravity = NorthWestGravity;
   *mask |= CWEventMask;
+  *mask |= CWBitGravity;
   XtCreateWindow (widget, InputOutput, (Visual *) CopyFromParent, *mask,
 		  attrs);
   /* Some ConfigureNotify events does not end up in EmacsFrameResize so
