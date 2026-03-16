@@ -175,12 +175,6 @@ extern void _DebPrint (const char *fmt, ...);
 #endif
 #endif
 
-#ifdef emacs /* Don't do this for lib-src.  */
-/* Tell regex.c to use a type compatible with Emacs.  */
-#define RE_TRANSLATE_TYPE Lisp_Object
-#define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
-#endif
-
 /* Tell time_rz.c to use Emacs's getter and setter for TZ.
    Only Emacs uses time_rz so this is OK.  */
 #define getenv_TZ emacs_getenv_TZ
