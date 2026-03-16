@@ -637,8 +637,8 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
 	      c = BYTE8_TO_CHAR (c);
 	      to += CHAR_STRING (c, to);
 	    }
+	  chars++;
 	}
-      chars++;
     }
   while (p < endp)
     {
