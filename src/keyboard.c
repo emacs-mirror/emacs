@@ -13344,7 +13344,7 @@ init_keyboard (void)
     static union Aligned_Lisp_Subr Swatch_debug_on_event =
       {{{ GC_HEADER_INIT PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
 	{ .a4 = watch_debug_on_event },
-	4, 4, "watch_debug_on_event", {0}, 0, 0 }};
+	4, 4, "watch_debug_on_event", {0}, lisp_h_Qnil }};
     igc_init_header (&Swatch_debug_on_event.s.header.gc_header,
 		     IGC_OBJ_VECTOR);
     XSETSUBR (watcher, &Swatch_debug_on_event);
