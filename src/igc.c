@@ -1855,7 +1855,7 @@ scan_hash_table_user_test (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
-#ifdef USE_GTK
+#if defined (USE_GTK) && ! defined (HAVE_PGTK)
 /* scan_xg_pending_quit_event assumes that the fields of the input_event
    are in a consistent state.  This is a relatively safe assumption
    because:
