@@ -1411,6 +1411,7 @@ If this variable is nil, Emacs ignores system font changes.  */);
 #endif
 
   current_tool_bar_style = Qnil;
+  staticpro (&current_tool_bar_style);
   DEFSYM (Qtool_bar_style, "tool-bar-style");
   defsubr (&Stool_bar_get_system_style);
 
