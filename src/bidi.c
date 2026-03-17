@@ -246,6 +246,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "region-cache.h"
 #include "sysstdio.h"
+#include "igc.h"
 
 static bool bidi_initialized = 0;
 
@@ -996,7 +997,11 @@ bidi_shelve_cache (void)
 
   alloc = (bidi_shelve_header_size
 	   + bidi_cache_idx * sizeof (struct bidi_it));
+#ifdef HAVE_MPS
+  databuf = igc_xzalloc_ambig (alloc);
+#else
   databuf = xmalloc (alloc);
+#endif
   bidi_cache_total_alloc += alloc;
 
   memcpy (databuf, &bidi_cache_idx, sizeof (bidi_cache_idx));
@@ -1095,7 +1100,11 @@ bidi_unshelve_cache (void *databuf, bool just_free)
 		+ bidi_cache_idx * sizeof (struct bidi_it));
 	}
 
+#ifdef HAVE_MPS
+      igc_xfree (p);
+#else
       xfree (p);
+#endif
     }
 }
 
