@@ -38274,6 +38274,7 @@ doesn't exist, it will be created and put into
 
   echo_area_window = Qnil;
   staticpro (&echo_area_window);
+  staticpro (&echo_message_buffer);
 
   for (size_t i = 0; i < ARRAYELTS (scratch_glyphs); i++)
     {
