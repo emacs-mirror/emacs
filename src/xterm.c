@@ -32656,6 +32656,18 @@ x_get_keyboard_modifiers (struct x_display_info *dpyinfo)
 		make_uint (dpyinfo->meta_mod_mask));
 }
 
+#ifdef HAVE_MPS
+static void
+protect_dnd_frames (void)
+{
+  igc_root_create_exact_ptr (&x_dnd_frame);
+  igc_root_create_exact_ptr (&x_dnd_finish_frame);
+  igc_root_create_exact_ptr (&x_dnd_return_frame_object);
+  igc_root_create_exact_ptr (&x_dnd_movement_frame);
+  igc_root_create_exact_ptr (&x_dnd_wheel_frame);
+}
+#endif
+
 void
 syms_of_xterm (void)
 {
@@ -32677,6 +32689,10 @@ syms_of_xterm (void)
 #ifdef USE_TOOLKIT_SCROLL_BARS
   window_being_scrolled = Qnil;
   staticpro (&window_being_scrolled);
+#endif
+
+#ifdef HAVE_MPS
+  pdumper_do_now_and_after_load (protect_dnd_frames);
 #endif
 
   /* Used by x_cr_export_frames.  */
