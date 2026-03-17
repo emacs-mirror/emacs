@@ -8049,14 +8049,12 @@ see), and if nil, defaults to `find-sibling-rules'."
             (let ((start 0))
               ;; Expand \\1 forms in the expansions.
               (while (string-match "\\\\\\([&0-9]+\\)" expansion start)
-                (let ((index (string-to-number (match-string 1 expansion))))
-                  (setq start (match-end 0)
-                        expansion
-                        (replace-match
-                         (substring file
-                                    (elt match-data (* index 2))
-                                    (elt match-data (1+ (* index 2))))
-                         t t expansion)))))
+                (let* ((index (string-to-number (match-string 1 expansion)))
+                       (value (substring file
+                                         (elt match-data (* index 2))
+                                         (elt match-data (1+ (* index 2))))))
+                  (setq start (+ (match-beginning 0) (length value))
+                        expansion (replace-match value t t expansion)))))
             ;; Then see which files we have that are matching.  (And
             ;; expand from the end of the file's match, since we might
             ;; be doing a relative match.)
