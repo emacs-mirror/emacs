@@ -2395,6 +2395,9 @@ syms_of_charset (void)
 #ifdef HAVE_MPS
   staticpro (&Vcharset_non_preferred_head);
   Vcharset_non_preferred_head = Qnil;
+
+  staticpro (&charset_work);
+  charset_work = Qnil;
 #endif
 
   staticpro (&Viso_2022_charset_list);
