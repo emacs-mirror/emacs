@@ -5878,6 +5878,7 @@ make_igc (void)
   root_create_exact_ptr (gc, &current_thread);
   root_create_exact_ptr (gc, &all_threads);
   root_create_kbd_buffer (gc);
+  root_create_exact_ptr (gc, &buffer_before_last_command_or_undo);
 #if defined (USE_GTK) && ! defined (HAVE_PGTK)
   root_create_xg_pending_quit_event (gc);
 #endif

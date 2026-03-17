@@ -3731,6 +3731,7 @@ protect_global_intervals (void)
 {
   igc_root_create_exact_ptr (&gl_state.forward_i);
   igc_root_create_exact_ptr (&gl_state.backward_i);
+  igc_root_create_exact_ptr (&find_start_buffer);
 }
 #endif
 

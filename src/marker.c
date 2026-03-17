@@ -30,6 +30,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "buffer.h"
 #include "window.h"
 #include "igc.h"
+#include "pdumper.h"
 
 /* Record one cached position found recently by
    buf_charpos_to_bytepos or buf_bytepos_to_charpos.  */
@@ -854,9 +855,20 @@ verify_bytepos (ptrdiff_t charpos)
 
 #endif /* MARKER_DEBUG */
 
+#ifdef HAVE_MPS
+static void
+protect_cached_buffer (void)
+{
+  igc_root_create_exact_ptr (&cached_buffer);
+}
+#endif
+
 void
 syms_of_marker (void)
 {
+#ifdef HAVE_MPS
+  pdumper_do_now_and_after_load (protect_cached_buffer);
+#endif
   defsubr (&Smarker_position);
   defsubr (&Smarker_last_position);
   defsubr (&Smarker_buffer);
