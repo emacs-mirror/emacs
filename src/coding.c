@@ -319,12 +319,21 @@ static Lisp_Object Vbig5_coding_system;
 		 reg))
 
 
+#ifndef HAVE_MPS
 #define CODING_ISO_REQUEST(coding, charset_id)		\
   (((charset_id) <= (coding)->max_charset_id		\
     ? ((coding)->safe_charsets[charset_id] != 255	\
        ? (coding)->safe_charsets[charset_id]		\
        : -1)						\
     : -1))
+#else
+#define CODING_ISO_REQUEST(coding, charset_id)			\
+  (((charset_id) <= (coding)->max_charset_id			\
+    ? (SREF ((coding)->safe_charsets_string, charset_id) != 255	\
+       ? SREF ((coding)->safe_charsets_string, charset_id)	\
+       : -1)							\
+    : -1))
+#endif
 
 
 #define CODING_ISO_FLAGS(coding)	\
@@ -2851,9 +2860,15 @@ encode_coding_emacs_mule (struct coding_system *coding)
 
 static enum iso_code_class_type iso_code_class[256];
 
+#ifndef HAVE_MPS
 #define SAFE_CHARSET_P(coding, id)	\
   ((id) <= (coding)->max_charset_id	\
    && (coding)->safe_charsets[id] != 255)
+#else
+#define SAFE_CHARSET_P(coding, id)	\
+  ((id) <= (coding)->max_charset_id	\
+   && SREF ((coding)->safe_charsets_string, id) != 255)
+#endif
 
 static void
 setup_iso_safe_charsets (Lisp_Object attrs)
@@ -2954,7 +2969,11 @@ detect_coding_iso_2022 (struct coding_system *coding,
 	setup_iso_safe_charsets (attrs);
       val = CODING_ATTR_SAFE_CHARSETS (attrs);
       this->max_charset_id = SCHARS (val) - 1;
+#ifndef HAVE_MPS
       this->safe_charsets = SDATA (val);
+#else
+      this->safe_charsets_string = val;
+#endif
     }
 
   /* A coding system of this category is always ASCII compatible.  */
@@ -3479,7 +3498,11 @@ decode_coding_iso_2022 (struct coding_system *coding)
   int i;
 
   setup_iso_safe_charsets (attrs);
+#ifndef HAVE_MPS
   coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
+#else
+  coding->safe_charsets_string = CODING_ATTR_SAFE_CHARSETS (attrs);
+#endif
 
   if (cmp_status->state != COMPOSING_NO)
     {
@@ -4390,7 +4413,11 @@ encode_coding_iso_2022 (struct coding_system *coding)
   setup_iso_safe_charsets (attrs);
   /* Charset list may have been changed.  */
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
+#ifndef HAVE_MPS
   coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
+#else
+  coding->safe_charsets_string = CODING_ATTR_SAFE_CHARSETS (attrs);
+#endif
 
   ascii_compatible
     = (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
@@ -5700,7 +5727,11 @@ setup_coding_system (Lisp_Object coding_system, struct coding_system *coding)
 
   val = CODING_ATTR_SAFE_CHARSETS (attrs);
   coding->max_charset_id = SCHARS (val) - 1;
+#ifndef HAVE_MPS
   coding->safe_charsets = SDATA (val);
+#else
+  coding->safe_charsets_string = val;
+#endif
   coding->default_char = XFIXNUM (CODING_ATTR_DEFAULT_CHAR (attrs));
   coding->carryover_bytes = 0;
   coding->raw_destination = 0;
@@ -5756,7 +5787,11 @@ setup_coding_system (Lisp_Object coding_system, struct coding_system *coding)
 	  setup_iso_safe_charsets (attrs);
 	  val = CODING_ATTR_SAFE_CHARSETS (attrs);
 	  coding->max_charset_id = SCHARS (val) - 1;
+#ifndef HAVE_MPS
 	  coding->safe_charsets = SDATA (val);
+#else
+	  coding->safe_charsets_string = val;
+#endif
 	}
       CODING_ISO_FLAGS (coding) = flags;
       CODING_ISO_CMP_STATUS (coding)->state = COMPOSING_NO;
@@ -5836,7 +5871,11 @@ setup_coding_system (Lisp_Object coding_system, struct coding_system *coding)
 	       tail = XCDR (tail))
 	    SSET (safe_charsets, XFIXNAT (XCAR (tail)), 0);
 	  coding->max_charset_id = max_charset_id;
+#ifndef HAVE_MPS
 	  coding->safe_charsets = SDATA (safe_charsets);
+#else
+	  coding->safe_charsets_string = safe_charsets;
+#endif
 	}
       coding->spec.emacs_mule.cmp_status.state = COMPOSING_NO;
       coding->spec.emacs_mule.cmp_status.method = COMPOSITION_NO;
@@ -11753,6 +11792,10 @@ syms_of_coding (void)
   staticpro (&Vbig5_coding_system);
   Vbig5_coding_system = Qnil;
 
+#ifdef HAVE_MPS
+  staticpro (&safe_terminal_coding.safe_charsets_string);
+#endif
+
   staticpro (&Vcode_conversion_reused_workbuf);
   Vcode_conversion_reused_workbuf = Qnil;
 
@@ -11862,6 +11905,7 @@ syms_of_coding (void)
       Lisp_Object *dst = &cs->dst_object;
       *dst = Qnil;
       staticpro (dst);
+      staticpro (&cs->safe_charsets_string);
     }
 #endif
   /* Followings are target of code detection.  */
