@@ -341,6 +341,7 @@ buffer is visible, try to recenter it to expose more."
   ;; Switch in the source buffer into the window
   (unless (eq (current-buffer) buf)
     (set-window-buffer win buf nil))
+  (select-window win t)
   ;; Try to scroll the buffer into the window
   (unless (< (window-end) (point-max))
     (let ((scroll-margin 0))
@@ -409,7 +410,8 @@ Based on the settings, the other frames may be similarly adjusted."
     (dolist (w (if zone-all-windows-in-frame
                    (window-list f 'no-minibuf w1)
                  (list w1)))
-      (set-window-buffer w z nil))
+      (unless (window-dedicated-p w)
+        (set-window-buffer w z nil)))
     (modify-frame-parameters f no-cursor)
     ;; Handle the remaining frames
     (dolist (f (visible-frame-list))
@@ -423,7 +425,8 @@ Based on the settings, the other frames may be similarly adjusted."
         (dolist (w (if zone-all-windows-in-frame
                        (window-list f 'no-minibuf w1)
                      (list w1)))
-          (set-window-buffer w z nil))
+          (unless (window-dedicated-p w)
+            (set-window-buffer w z nil)))
         (modify-frame-parameters f no-cursor)
         (set-frame-selected-window f w1 t)))
     (select-frame prim-frm)
