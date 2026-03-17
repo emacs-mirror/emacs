@@ -4874,9 +4874,11 @@ x_dnd_cancel_dnd_early (void)
 #endif
 
 static void
-x_dnd_cleanup_drag_and_drop (void *frame)
+x_dnd_cleanup_drag_and_drop (void *data)
 {
-  struct frame *f = frame;
+  gc_handle gch = data;
+  struct frame *f = XFRAME (gc_handle_value (gch));
+  free_gc_handle (gch);
   xm_drop_start_message dmsg;
 
   if (!x_dnd_unwind_flag)
@@ -13105,7 +13107,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		  x_dnd_unwind_flag = true;
 
 		  ref = SPECPDL_INDEX ();
-		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop,
+					     gc_handle_for_pvec (&f->header));
 		  calln (Vx_dnd_movement_function, frame_object,
 			 Fposn_at_x_y (x, y, frame_object, Qnil));
 		  x_dnd_unwind_flag = false;
@@ -13139,7 +13142,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 		  x_dnd_unwind_flag = true;
 
 		  ref = SPECPDL_INDEX ();
-		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+		  record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop,
+					     gc_handle_for_pvec (&f->header));
 		  calln (Vx_dnd_wheel_function,
 			 Fposn_at_x_y (x, y, frame_object, Qnil),
 			 make_fixnum (x_dnd_wheel_button),
@@ -13179,7 +13183,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_unwind_flag = true;
 
 	      ref = SPECPDL_INDEX ();
-	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop,
+					 gc_handle_for_pvec (&f->header));
 	      x_handle_pending_selection_requests ();
 	      x_dnd_unwind_flag = false;
 	      unbind_to (ref, Qnil);
@@ -13206,7 +13211,8 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 	      x_dnd_unwind_flag = true;
 
 	      ref = SPECPDL_INDEX ();
-	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop, f);
+	      record_unwind_protect_ptr (x_dnd_cleanup_drag_and_drop,
+					 gc_handle_for_pvec (&f->header));
 
 	      if (!NILP (Vx_dnd_unsupported_drop_function))
 		val = calln (Vx_dnd_unsupported_drop_function,
