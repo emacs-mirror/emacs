@@ -404,8 +404,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 	}
   }
 
-  if ((FRAME_TERMCAP_P (XFRAME (Vmenu_updating_frame))
-       || FRAME_MSDOS_P (XFRAME (Vmenu_updating_frame)))
+  if (is_tty_frame (XFRAME (Vmenu_updating_frame))
       && !NILP (map))
     /* Indicate visually that this is a submenu.  */
     {

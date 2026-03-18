@@ -2968,9 +2968,7 @@ Gpm-mouse can only be activated for one tty at a time.  */)
   (void)
 {
   struct frame *f = SELECTED_FRAME ();
-  struct tty_display_info *tty
-    = ((f)->output_method == output_termcap
-       ? (f)->terminal->display_info.tty : NULL);
+  struct tty_display_info *tty = FRAME_TERMCAP_P (f) ? FRAME_TTY (f) : NULL;
   Gpm_Connect connection;
 
   if (!tty)
@@ -3016,9 +3014,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
   (void)
 {
   struct frame *f = SELECTED_FRAME ();
-  struct tty_display_info *tty
-    = ((f)->output_method == output_termcap
-       ? (f)->terminal->display_info.tty : NULL);
+  struct tty_display_info *tty = FRAME_TERMCAP_P (f) ? FRAME_TTY (f) : NULL;
 
   if (!tty || gpm_tty != tty)
     return Qnil;       /* Not activated on this terminal, nothing to do.  */
@@ -4198,7 +4194,7 @@ tty_free_frame_resources (struct frame *f)
 static void
 tty_free_frame_resources (struct frame *f)
 {
-  eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
+  eassert (is_tty_frame (f));
   free_frame_faces (f);
   /* Deleting a child frame means we have to thoroughly redisplay its
      root frame to make sure the child disappears from the display.  */

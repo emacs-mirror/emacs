@@ -177,7 +177,7 @@ get_frame_dc (struct frame *f)
   HGDIOBJ obj;
   struct w32_output *output;
 
-  if (f->output_method != output_w32)
+  if (!FRAME_W32_P (f))
     emacs_abort ();
 
   enter_crit ();

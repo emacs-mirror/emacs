@@ -13651,7 +13651,7 @@ clear_garbaged_frames (void)
 		     selected frame, and might leave the selected
 		     frame with corrupted display, if it happens not
 		     to be marked garbaged.  */
-		  && !(f != sf && (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))))
+		  && !(f != sf && is_tty_frame (f)))
 		redraw_frame (f);
 	      else
 		clear_current_matrices (f);
@@ -16639,11 +16639,8 @@ hscroll_window_tree (Lisp_Object window)
 		}
 	    }
 	  if (cursor_row->truncated_on_left_p)
-	    {
-	      /* On TTY frames, don't count the left truncation glyph.  */
-	      struct frame *f = XFRAME (WINDOW_FRAME (w));
-	      x_offset -= (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
-	    }
+	    /* On TTY frames, don't count the left truncation glyph.  */
+	    x_offset -= is_tty_frame (XFRAME (WINDOW_FRAME (w)));
 
 	  text_area_width = window_box_width (w, TEXT_AREA);
 
@@ -17377,7 +17374,7 @@ redisplay_internal (void)
     windows_or_buffers_changed = 47;
 
   struct frame *previous_frame;
-  if ((FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
+  if (is_tty_frame (sf)
       && (previous_frame = FRAME_TTY (sf)->previous_frame,
 	  previous_frame != sf))
     {
@@ -17822,8 +17819,7 @@ redisplay_internal (void)
 	    }
 
 	retry_frame:
-	  if (FRAME_WINDOW_P (f)
-	      || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f) || f == sf)
+	  if (FRAME_WINDOW_P (f) || is_tty_frame (f) || f == sf)
 	    {
 	      /* Only GC scrollbars when we redisplay the whole frame.  */
 	      bool gcscrollbars = f->redisplay || !REDISPLAY_SOME_P ();
