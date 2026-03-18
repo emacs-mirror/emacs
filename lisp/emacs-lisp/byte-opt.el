@@ -1901,6 +1901,8 @@ See Info node `(elisp) Integer Basics'."
          sqlite-available-p sqlitep
          ;; syntax.c
          standard-syntax-table syntax-table syntax-table-p
+         ;; terminal.c
+         frame-initial-p
          ;; thread.c
          current-thread
          ;; timefns.c

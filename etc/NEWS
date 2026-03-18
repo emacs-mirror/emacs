@@ -4102,6 +4102,14 @@ unlike 'char-displayable-p', does not check whether the character can be
 encoded by the underlying terminal.
 
 +++
+** New function 'frame-initial-p'.
+This predicate returns non-nil if a given frame or terminal is or holds,
+respectively, the initial text frame that is used internally during
+daemon mode, batch mode, and the early stages of startup.  Interactive
+and graphical programs, for instance, can use this predicate to avoid
+operating on the initial frame, which is never displayed.
+
++++
 ** New macros 'static-when' and 'static-unless'.
 Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work

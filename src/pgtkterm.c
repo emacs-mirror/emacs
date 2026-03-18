@@ -5693,10 +5693,11 @@ pgtk_focus_changed (gboolean is_enter, int state,
 
 	  /* Don't stop displaying the initial startup message
 	     for a switch-frame event we don't need.  */
-	  /* When run as a daemon, Vterminal_frame is always NIL.  */
+	  /* When run as a daemon, Vterminal_frame is always nil.
+	     FIXME: Isn't it actually the other way around?  */
 	  bufp->ie.arg = (((NILP (Vterminal_frame)
 			    || !FRAME_PGTK_P (XFRAME (Vterminal_frame))
-			    || EQ (Fdaemonp (), Qt))
+			    || IS_DAEMON)
 			   && CONSP (Vframe_list)
 			   && !NILP (XCDR (Vframe_list))) ? Qt : Qnil);
 	  bufp->ie.kind = FOCUS_IN_EVENT;

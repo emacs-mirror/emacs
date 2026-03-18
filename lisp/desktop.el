@@ -775,6 +775,7 @@ if different)."
                         ;; Don't delete daemon's initial frame, or
                         ;; we'll never be able to close the last
                         ;; client's frame (Bug#26912).
+                        ;; Use `frame-initial-p'?
                         (and (daemonp) (eq frame terminal-frame))
 			(frame-parameter frame 'desktop-dont-clear))
 	      (delete-frame frame))
@@ -1067,9 +1068,8 @@ DIRNAME must be the directory in which the desktop file will be saved."
   (and (not (frame-parameter frame 'desktop-dont-save))
        ;; Don't save daemon initial frames, since we cannot (and don't
        ;; need to) restore them.
-       (not (and (daemonp)
-                 (equal (terminal-name (frame-terminal frame))
-                        "initial_terminal")))))
+       (not (and (daemonp) ;; FIXME: Remove `daemonp'?
+                 (frame-initial-p frame)))))
 
 (defconst desktop--app-id `(desktop . ,desktop-file-version))
 
@@ -1260,7 +1260,7 @@ This function also sets `desktop-dirname' to nil."
   "True if calling `desktop-restore-frameset' will actually restore it."
   (and desktop-restore-frames desktop-saved-frameset
        ;; Don't restore frames when the selected frame is the daemon's
-       ;; initial frame.
+       ;; initial frame.  Use `frame-initial-p'?
        (not (and (daemonp) (eq (selected-frame) terminal-frame)))
        t))
 

@@ -372,6 +372,7 @@ entirely by setting `warning-suppress-types' or
 		     (if (bolp)
 			 (forward-char -1))
 		     (message "%s" (buffer-substring start (point))))))
+                ;; Use `frame-initial-p'?
 		((and (daemonp) (eq (selected-frame) terminal-frame))
 		 ;; Display daemon startup warnings on the first client frame.
 		 (letrec ((afterfun
