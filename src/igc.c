@@ -2030,6 +2030,17 @@ fix_face (mps_ss_t ss, struct face *f)
 }
 
 static mps_res_t
+fix_face_cache (mps_ss_t ss, struct face_cache *c)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    IGC_FIX12_PVEC (ss, &c->f);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_cons (mps_ss_t ss, struct Lisp_Cons *cons)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2520,13 +2531,12 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 	   references.  Going back to exact refs would be best.  */
 	break;
 
-      case IGC_OBJ_FACE_CACHE:
-	/* FIXME/igc: face caches temporarily changed to use ambiguous
-	   references.  Going back to exact refs would be best.  */
-	break;
-
       case IGC_OBJ_FACE:
 	IGC_FIX_CALL_FN (ss, struct face, addr, fix_face);
+	break;
+
+      case IGC_OBJ_FACE_CACHE:
+	IGC_FIX_CALL_FN (ss, struct face_cache, addr, fix_face_cache);
 	break;
 
       case IGC_OBJ_BLV:
