@@ -304,22 +304,34 @@ cell has to be rewritten to data area."
       (should (equal (ses-cell-references 1 1) '(B3)))))
   (ses-tests-check-no-border-effect))
 
+
+(defmacro ert-play-keys (&rest keys)
+  (let ((buf (make-symbol "buf")))
+    `(let ((,buf (current-buffer)))
+       (funcall
+        (kmacro (concat
+                 "M-: ( p o p - t o - b u f f e r SPC \" "
+                 ,`(mapconcat (lambda (x)
+                                (cond
+                                 ((= x 32) "SPC")
+                                 (t (string x))))
+                              (buffer-name ,buf) " ")
+                 " \" ) RET "
+                 ,@keys))))))
+
+
 (ert-deftest ses-read-column-printer ()
-             "Test fix of bug#xxx."
+             "Test fix of bug#80610."
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
       (ses-jump 'A3)
-      (let ((last-kbd-macro
-             (key-parse "M-x s e s - r e a d - c o l u m n - p r i n t e r RET [ 3 ] \" % . 7 g \" RET")))
-        (kmacro-end-and-call-macro nil))
+      (ert-play-keys "M-x s e s - r e a d - c o l u m n - p r i n t e r RET \" [ 3 ] % . 7 g \" RET")
       (ses-jump 'A2)
       (ses-read-column-printer 1 "[2]%.7g")
       (ses-jump 'A1)
-      (let ((last-kbd-macro
-             (key-parse "M-x s e s - r e a d - c o l u m n - p r i n t e r RET [ 1 ] \" % . 7 g \" RET")))
-        (kmacro-end-and-call-macro nil))
+      (ert-play-keys "M-x s e s - r e a d - c o l u m n - p r i n t e r RET \" [ 1 ] % . 7 g \" RET")
       (should (string= (ses-col-printer 2) "[3]%.7g"))
       (should (string= (ses-col-printer 1) "[2]%.7g"))
       (should (string= (ses-col-printer 0) "[1]%.7g"))
