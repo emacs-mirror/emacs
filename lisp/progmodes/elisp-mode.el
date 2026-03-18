@@ -834,7 +834,8 @@ be used instead.
 (defvar elisp--local-macroenv
   `((cl-eval-when . ,(lambda (&rest args) `(progn . ,(cdr args))))
     (eval-when-compile . ,(lambda (&rest args) `(progn . ,args)))
-    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args))))
+    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args)))
+    (static-if . ,(lambda (&rest args) `(if . ,args))))
   "Environment to use while tentatively expanding macros.
 This is used to try and avoid the most egregious problems linked to the
 use of `macroexpand-all' as a way to find the \"underlying raw code\".")
