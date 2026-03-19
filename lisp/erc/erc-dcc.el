@@ -1144,7 +1144,7 @@ Possible values are: ask, auto, ignore."
 
 (pcomplete-define "erc-mode/CREQ" ()
   (pcomplete-here '("auto" "ask" "ignore")))
-(pcomplete-define "erc-mode/SREQ" () (pcomplete/erc-mode/CREQ))
+(pcomplete-alias "erc-mode/SREQ" "erc-mode/CREQ")
 
 (defvar erc-dcc-chat-filter-functions '(erc-dcc-chat-parse-output)
   "Abnormal hook run after parsing (and maybe inserting) a DCC message.

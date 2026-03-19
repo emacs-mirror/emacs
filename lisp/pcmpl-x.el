@@ -278,7 +278,7 @@ long options."
       (pcomplete-here* (pcomplete-dirs-or-entries)))))
 
 ;;;###autoload
-(pcomplete-define "ack-grep" () (pcomplete/ack))
+(pcomplete-alias "ack-grep" "ack")
 
 
 ;;;; the_silver_search - https://github.com/ggreer/the_silver_searcher
@@ -350,7 +350,7 @@ long options."
           (pcomplete-dirs-or-entries "\\.[iCc]\\([Pp][Pp]\\)?\\'"))))
 
 ;;;###autoload
-(pcomplete-define "bcc" () (pcomplete/bcc32))
+(pcomplete-alias "bcc" "bcc32")
 
 ;;; Network tools
 

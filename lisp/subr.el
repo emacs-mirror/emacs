@@ -8032,13 +8032,15 @@ and return the value found in PLACE instead."
       ((pred numberp) v)
       (`(,above . ,below) (+ above below)))))
 
+;; FIXME: This is here because adding them to `loaddefs.el' from
+;; `pcomplete.el' via an autoload cookie would not define them early
+;; enough (some other files' autoloads call `pcomplete-rule-name' before).
+;; This is the old problem of the lack of ordering within `loaddefs.el'.
+
 (defvar pcomplete--obarray (obarray-make)
   "Special obarry for Pcomplete commands")
-
-(defun pcomplete--autoload (name file)
-  "Make a note to lazy-load pcomplete command NAME from FILE."
-  (unless (get (intern name pcomplete--obarray) 'pcomplete-autoload)
-    (put (intern name pcomplete--obarray) 'pcomplete-autoload file)))
-
+(defun pcomplete-rule-name (name &optional test)
+  "Return the symbol in which is kept the completion rule for NAME."
+  (funcall (if test #'intern-soft #'intern) name pcomplete--obarray))
 
 ;;; subr.el ends here

@@ -95,7 +95,7 @@ for use on `completion-at-point-function'."
   (setq-local pcomplete-parse-arguments-function
               #'pcomplete-erc-parse-arguments)
   (setq-local pcomplete-command-completion-function
-              #'pcomplete/erc-mode/complete-command)
+              (pcomplete-rule-name "erc-mode/complete-command"))
   (setq-local pcomplete-command-name-function
               #'pcomplete-erc-command-name)
   (setq-local pcomplete-default-completion-function
@@ -155,7 +155,7 @@ for use on `completion-at-point-function'."
 (pcomplete-define "erc-mode/NAMES" ()
   (while (pcomplete-here (pcomplete-erc-channels))))
 
-(pcomplete-define "erc-mode/NOTICE" () (pcomplete/erc-mode/MSG))
+(pcomplete-alias "erc-mode/NOTICE" "erc-mode/MSG")
 
 (pcomplete-define "erc-mode/OP" ()
   (while (pcomplete-here (pcomplete-erc-not-ops))))
@@ -163,7 +163,7 @@ for use on `completion-at-point-function'."
 (pcomplete-define "erc-mode/PART" ()
   (pcomplete-here (pcomplete-erc-channels)))
 
-(pcomplete-define "erc-mode/LEAVE" () (pcomplete/erc-mode/PART))
+(pcomplete-alias "erc-mode/LEAVE" "erc-mode/PART")
 
 (pcomplete-define "erc-mode/QUERY" ()
   (pcomplete-here (append (pcomplete-erc-all-nicks)
@@ -189,11 +189,11 @@ for use on `completion-at-point-function'."
 
 (pcomplete-define "erc-mode/BANLIST" ()
   (pcomplete-opt "f"))
-(pcomplete-define "erc-mode/BL" () (pcomplete/erc-mode/BANLIST))
+(pcomplete-alias "erc-mode/BL" "erc-mode/BANLIST")
 
 (pcomplete-define "erc-mode/MASSUNBAN" ()
   (pcomplete-opt "f"))
-(pcomplete-define "erc-mode/MUB" () (pcomplete/erc-mode/MASSUNBAN))
+(pcomplete-alias "erc-mode/MUB" "erc-mode/MASSUNBAN")
 
 ;;; Functions that provide possible completions.
 

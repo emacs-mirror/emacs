@@ -128,19 +128,12 @@ NAME is a string like \"cd\" or \"erc-mode/MSG\".
 Registers a lambda in `pcomplete--obarray' for dispatch.
 ARGLIST and BODY are as in `defun'."
   (declare (indent defun) (autoload-macro expand))
-  `(progn
-     (pcomplete--autoload ,name ,load-true-file-name)
-     :autoload-end
-     (put (intern ,name pcomplete--obarray) 'pcomplete-function (lambda ,arglist ,@body))))
+  `(defalias (pcomplete-rule-name ',name) (lambda ,arglist ,@body)))
 
 (defmacro pcomplete-alias (alias name)
   "Say that ALIAS should have the same completion function as NAME."
   (declare (indent defun) (autoload-macro expand))
-  `(progn
-     (pcomplete--autoload ,name ,load-true-file-name)
-     :autoload-end
-     (put (intern ,alias pcomplete--obarray) 'pcomplete-function
-          (get (intern ,name pcomplete--obarray) 'pcomplete-function))))
+  `(defalias (pcomplete-rule-name ',alias) (pcomplete-rule-name ',name)))
 
 (defgroup pcomplete nil
   "Programmable completion."
@@ -1013,15 +1006,9 @@ component, `default-directory' is used as the basis for completion."
 
 (defun pcomplete-find-completion-function (command)
   "Find the completion function to call for the given COMMAND."
-  (let* ((sym (or (intern-soft (concat (symbol-name major-mode) "/" command)
-                               pcomplete--obarray)
-                  (intern-soft command pcomplete--obarray)))
-         (fun (and (get sym 'pcomplete-function))))
-    ;; Lazy-load the file if registered via `pcomplete-attach'.
-    (when-let* ((file (and sym (null fun) (get sym 'pcomplete-autoload))))
-      (require (intern file))
-      (setq fun (get sym 'pcomplete-function)))
-    (cond (fun)
+  (let* ((sym (or (pcomplete-rule-name (concat (symbol-name major-mode) "/" command) 'test)
+                  (pcomplete-rule-name command 'test))))
+    (cond ((fboundp sym) sym)
           ;; Backward compatibility: fall back to global obarray for packages
           ;; that still use the old `defun pcomplete/...' naming convention.
           ((and (setq sym (or (intern-soft
