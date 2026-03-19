@@ -5411,7 +5411,11 @@ x_free_xi_devices (struct x_display_info *dpyinfo)
 	    {
 	      last = tem;
 	      tem = tem->next;
+#ifdef HAVE_MPS
+	      igc_xfree (last);
+#else
 	      xfree (last);
+#endif
 	    }
 #endif /* HAVE_XINPUT2_2 */
 	}
@@ -5849,7 +5853,11 @@ xi_link_touch_point (struct xi_device_t *device,
   if (FIXNUM_OVERFLOW_P (local_detail))
     local_detail = 0;
 
+#ifdef HAVE_MPS
+  touchpoint = igc_xzalloc_ambig (sizeof *touchpoint);
+#else
   touchpoint = xmalloc (sizeof *touchpoint);
+#endif
   touchpoint->next = device->touchpoints;
   touchpoint->x = lrint (x);
   touchpoint->y = lrint (y);
@@ -5889,7 +5897,11 @@ xi_unlink_touch_point (int detail, struct xi_device_t *device,
 
 	  ownership = tem->ownership;
 	  *local_detail = tem->local_detail;
+#ifdef HAVE_MPS
+	  igc_xfree (tem);
+#else
 	  xfree (tem);
+#endif
 
 	  if (ownership == TOUCH_OWNERSHIP_SELF)
 	    return 2;
@@ -5923,7 +5935,11 @@ xi_unlink_touch_points (struct frame *f)
 	  if (last->frame == f)
 	    {
 	      *next = last->next;
+#ifdef HAVE_MPS
+	      igc_xfree (last);
+#else
 	      xfree (last);
+#endif
 	    }
 	  else
 	    next = &last->next;
