@@ -704,10 +704,10 @@ in the group).
 
 Emacs provides miscellaneous functions for finding the height and width
 of a window.  The return value of many of these functions can be
-specified either in units of pixels or in units of lines and columns.
-On a graphical display, the latter actually correspond to the height and
-width of a default character specified by the frame's default font as
-returned by @code{frame-char-height} and @code{frame-char-width}
+specified either in units of pixels or in units of canonical lines and
+columns.  On a graphical display, the latter actually correspond to the
+height and width of a default character specified by the frame's default
+font as returned by @code{frame-char-height} and @code{frame-char-width}
 (@pxref{Frame Font}).  Thus, if a window is displaying text with a
 different font or size, the reported line height and column width for
 that window may differ from the actual number of text lines or columns
@@ -720,10 +720,10 @@ displayed within it.
 its body and its top and bottom decorations (@pxref{Basic Windows}).
 
 @defun window-total-height &optional window round
-This function returns the total height, in lines, of the window
-@var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
-the selected window.  If @var{window} is an internal window, the return
-value is the total height occupied by its descendant windows.
+This function returns the total height, in canonical lines, of the
+window @var{window}.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window.  If @var{window} is an internal window,
+the return value is the total height occupied by its descendant windows.
 
   If a window's pixel height is not an integral multiple of its frame's
 default character height, the number of lines occupied by the window is
@@ -736,9 +736,9 @@ vertically combined and has a next sibling, the topmost row of that
 sibling can be calculated as the sum of this window's topmost row and
 total height (@pxref{Coordinates and Windows})
 
-  If the optional argument @var{round} is @code{ceiling}, this
-function returns the smallest integer larger than @var{window}'s pixel
-height divided by the character height of its frame; if it is
+  If the optional argument @var{round} is @code{ceiling}, this function
+returns the smallest integer larger than @var{window}'s pixel height
+divided by the canonical character height of its frame; if it is
 @code{floor}, it returns the largest integer smaller than said value;
 with any other @var{round} it returns the internal value of
 @var{windows}'s total height.
@@ -751,19 +751,19 @@ The @dfn{total width} of a window is the number of columns comprising its
 body and its left and right decorations (@pxref{Basic Windows}).
 
 @defun window-total-width &optional window round
-This function returns the total width, in columns, of the window
-@var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
-the selected window.  If @var{window} is internal, the return value is
-the total width occupied by its descendant windows.
+This function returns the total width, in canonical columns, of the
+window @var{window}.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window.  If @var{window} is internal, the
+return value is the total width occupied by its descendant windows.
 
   If a window's pixel width is not an integral multiple of its frame's
-character width, the number of columns occupied by the window is rounded
-internally.  This is done in a way such that, if the window is a parent
-window, the sum of the total widths of all its children internally
-equals the total width of their parent.  This means that although two
-windows have the same pixel width, their internal total widths may
-differ by one column.  This means also, that if this window is
-horizontally combined and has a next sibling, the leftmost column of
+canonical character width, the number of columns occupied by the window
+is rounded internally.  This is done in a way such that, if the window
+is a parent window, the sum of the total widths of all its children
+internally equals the total width of their parent.  This means that
+although two windows have the same pixel width, their internal total
+widths may differ by one column.  This means also, that if this window
+is horizontally combined and has a next sibling, the leftmost column of
 that sibling can be calculated as the sum of this window's leftmost
 column and total width (@pxref{Coordinates and Windows}).  The optional
 argument @var{round} behaves as it does for @code{window-total-height}.
@@ -835,17 +835,17 @@ does not include any of its top or bottom decorations (@pxref{Basic
 Windows}).
 
 @defun window-body-height &optional window pixelwise
-This function returns the height, in lines, of the body of window
-@var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
-the selected window; otherwise it must be a live window.
+This function returns the height, in canonical lines, of the body of
+window @var{window}.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window; otherwise it must be a live window.
 
 The optional argument @var{pixelwise} defines the units to use for the
 height.  If @code{nil}, return the body height of @var{window} in
-characters, rounded down to the nearest integer, if necessary.  This
-means that if a line at the bottom of the text area is only partially
-visible, that line is not counted.  It also means that the height of a
-window's body can never exceed its total height as returned by
-@code{window-total-height}.
+canonical characters, rounded down to the nearest integer, if necessary.
+This means that if a line at the bottom of the text area is only
+partially visible, that line is not counted.  It also means that the
+height of a window's body can never exceed its total height as returned
+by @code{window-total-height}.
 
 If @var{pixelwise} is @code{remap} and the default face is remapped
 (@pxref{Face Remapping}), use the remapped face to determine the
@@ -867,16 +867,16 @@ glyphs, which leaves 2 columns less for text display.  (The function
 peculiarity into account.)
 
 @defun window-body-width &optional window pixelwise
-This function returns the width, in columns, of the body of window
-@var{window}.  If @var{window} is omitted or @code{nil}, it defaults to
-the selected window; otherwise it must be a live window.
+This function returns the width, in canonical columns, of the body of
+window @var{window}.  If @var{window} is omitted or @code{nil}, it
+defaults to the selected window; otherwise it must be a live window.
 
 The optional argument @var{pixelwise} defines the units to use for the
 width.  If @code{nil}, return the body width of @var{window} in
-characters, rounded down to the nearest integer, if necessary.  This
-means that if a column on the right of the text area is only partially
-visible, that column is not counted.  It also means that the width of
-a window's body can never exceed its total width as returned by
+canonical characters, rounded down to the nearest integer, if necessary.
+This means that if a column on the right of the text area is only
+partially visible, that column is not counted.  It also means that the
+width of a window's body can never exceed its total width as returned by
 @code{window-total-width}.
 
 If @var{pixelwise} is @code{remap} and the default face is remapped
