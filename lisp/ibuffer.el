@@ -173,9 +173,9 @@ elisp byte-compiler."
   "An alist describing how to fontify buffers.
 Each element should be of the form (PRIORITY FORM FACE), where
 PRIORITY is an integer, FORM is an arbitrary form to evaluate in the
-buffer, and FACE is the face to use for fontification.  If the FORM
-evaluates to non-nil, then FACE will be put on the buffer name.  The
-element with the highest PRIORITY takes precedence.
+buffer, and FACE is the face (a symbol) to use for fontification.
+If the FORM evaluates to non-nil, then FACE will be put on the buffer
+name.  The element with the highest PRIORITY takes precedence.
 
 If you change this variable, you must kill the Ibuffer buffer and
 recreate it for the change to take effect."
