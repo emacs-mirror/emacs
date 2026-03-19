@@ -645,7 +645,7 @@ endif
 ### Windows-specific install target for installing programs produced
 ### in nt/, and its Posix do-nothing shadow.
 install-:
-install-nt:
+install-nt: | $(NTDIR)
 	$(MAKE) -C $(NTDIR) install
 
 ## In the share directory, we are deleting:
