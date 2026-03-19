@@ -2759,9 +2759,11 @@ fix_frame (mps_ss_t ss, struct frame *f)
       IGC_FIX12_RAW (ss, &f->image_cache);
     if (FRAME_WINDOW_P (f) && FRAME_OUTPUT_DATA (f))
       {
+#ifndef HAVE_X11
 	struct font **font_ptr = &FRAME_FONT (f);
 	if (*font_ptr)
 	  IGC_FIX12_PVEC (ss, font_ptr);
+#endif
 	Lisp_Object *nle = &FRAME_DISPLAY_INFO (f)->name_list_element;
 	IGC_FIX12_OBJ (ss, nle);
       }

@@ -29875,6 +29875,9 @@ x_destroy_window (struct frame *f)
 #endif
 #endif
 
+#ifdef HAVE_MPS
+  igc_destroy_root_with_start (&f->output_data.x->font);
+#endif
   xfree (f->output_data.x);
   f->output_data.x = NULL;
 

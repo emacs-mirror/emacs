@@ -5052,6 +5052,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   f->output_method = output_x_window;
   f->output_data.x = xzalloc (sizeof *f->output_data.x);
+#ifdef HAVE_MPS
+  igc_root_create_exact_ptr (&f->output_data.x->font);
+#endif
   f->output_data.x->icon_bitmap = -1;
   FRAME_FONTSET (f) = -1;
   f->output_data.x->scroll_bar_foreground_pixel = -1;
