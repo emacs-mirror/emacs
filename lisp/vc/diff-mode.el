@@ -535,18 +535,38 @@ use the face `diff-removed' for removed lines, and the face
       (group (any "<-"))
       (group (zero-or-more nonl) "\n")))
 
+(defvar-local diff--git-preamble-overlay nil)
+(defvar-local diff--git-footer-overlay nil)
+
 (defun diff--git-preamble-end ()
-  (save-excursion
-    (goto-char (point-min))
-    (re-search-forward "^diff --git .+ .+$" nil t)
-    (forward-line 2)
-    (point)))
+  (unless (and diff--git-preamble-overlay
+               (overlay-buffer diff--git-preamble-overlay))
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward "^diff --git .+ .+$" nil t)
+      (forward-line 2)
+      (if diff--git-preamble-overlay
+          (move-overlay diff--git-preamble-overlay (point-min) (point))
+        (let ((ol (make-overlay (point-min) (point))))
+          (overlay-put ol 'modification-hooks (lambda (&rest _) (delete-overlay ol)))
+          (overlay-put ol 'evaporate t)
+          (setq diff--git-preamble-overlay ol)))))
+  (overlay-end diff--git-preamble-overlay))
 
 (defun diff--git-footer-start ()
-  (save-excursion
-    (goto-char (point-max))
-    (re-search-backward "^-- $" nil t)
-    (point)))
+  (unless (and diff--git-footer-overlay
+               (overlay-buffer diff--git-footer-overlay))
+    (save-excursion
+      (goto-char (point-max))
+      (re-search-backward "\n-- $" nil t)
+      (if diff--git-footer-overlay
+          (move-overlay diff--git-footer-overlay
+                        (match-beginning 0) (point-max))
+        (let ((ol (make-overlay (match-beginning 0) (point-max) nil t t)))
+          (overlay-put ol 'modification-hooks (lambda (&rest _) (delete-overlay ol)))
+          (overlay-put ol 'evaporate t)
+          (setq diff--git-footer-overlay ol)))))
+  (1+ (overlay-start diff--git-footer-overlay)))
 
 (defun diff--indicator-matcher-helper (limit regexp)
   "Fontify added/removed lines from point to LIMIT using REGEXP.
