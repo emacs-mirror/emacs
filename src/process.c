@@ -319,6 +319,8 @@ static Lisp_Object Vprocess_alist;
 static int proc_buffered_char[FD_SETSIZE];
 
 /* Table of `struct coding-system' for each process.  */
+/* FIXME/igc: this is a large structure containing only a few MPS
+   references, and never freed after allocation.  Use exact refs.  */
 static struct coding_system *proc_decode_coding_system[FD_SETSIZE];
 static struct coding_system *proc_encode_coding_system[FD_SETSIZE];
 
@@ -7495,8 +7497,15 @@ process has been transmitted to the serial port.  */)
 
       eassert (0 <= new_outfd && new_outfd < FD_SETSIZE);
       if (!proc_encode_coding_system[new_outfd])
-	proc_encode_coding_system[new_outfd]
-	  = xmalloc (sizeof (struct coding_system));
+	{
+#ifdef HAVE_MPS
+	  proc_encode_coding_system[new_outfd]
+	    = igc_xzalloc_ambig (sizeof (struct coding_system));
+#else
+	  proc_encode_coding_system[new_outfd]
+	    = xmalloc (sizeof (struct coding_system));
+#endif
+	}
       if (old_outfd >= 0)
 	{
 	  eassert (old_outfd < FD_SETSIZE);
@@ -8393,7 +8402,15 @@ setup_process_coding_systems (Lisp_Object process)
 
   eassert (0 <= inch && inch < FD_SETSIZE);
   if (!proc_decode_coding_system[inch])
-    proc_decode_coding_system[inch] = xmalloc (sizeof (struct coding_system));
+    {
+#ifdef HAVE_MPS
+      proc_decode_coding_system[inch]
+	= igc_xzalloc_ambig (sizeof (struct coding_system));
+#else
+      proc_decode_coding_system[inch]
+	= xmalloc (sizeof (struct coding_system));
+#endif
+    }
   coding_system = p->decode_coding_system;
   if (EQ (p->filter, Qinternal_default_process_filter)
       && BUFFERP (p->buffer))
@@ -8405,7 +8422,15 @@ setup_process_coding_systems (Lisp_Object process)
 
   eassert (0 <= outch && outch < FD_SETSIZE);
   if (!proc_encode_coding_system[outch])
-    proc_encode_coding_system[outch] = xmalloc (sizeof (struct coding_system));
+    {
+#ifdef HAVE_MPS
+      proc_encode_coding_system[outch]
+	= igc_xzalloc_ambig (sizeof (struct coding_system));
+#else
+      proc_encode_coding_system[outch]
+	= xmalloc (sizeof (struct coding_system));
+#endif
+    }
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
 #endif
