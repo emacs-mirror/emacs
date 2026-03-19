@@ -625,7 +625,11 @@ bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
     {
+#ifndef HAVE_MPS
       bidi_cache = xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
+#else
+      bidi_cache = igc_realloc_ambig (bidi_cache, BIDI_CACHE_CHUNK * elsz);
+#endif
       bidi_cache_size = BIDI_CACHE_CHUNK;
     }
   bidi_cache_reset ();
@@ -798,9 +802,16 @@ bidi_cache_ensure_space (ptrdiff_t idx)
 
 	  /* Force xpalloc not to over-allocate by passing it MAX_ELTS
 	     as its 4th argument.  */
+#ifndef HAVE_MPS
 	  bidi_cache = xpalloc (bidi_cache, &bidi_cache_size,
 				max (chunk_size, idx - bidi_cache_size + 1),
 				max_elts, elsz);
+#else
+	  bidi_cache
+	    = igc_xpalloc_ambig (bidi_cache, &bidi_cache_size,
+				 max (chunk_size, idx - bidi_cache_size + 1),
+				 max_elts, elsz);
+#endif
 	  eassert (bidi_cache_size > idx);
 	}
     }
