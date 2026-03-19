@@ -620,11 +620,13 @@ non-nil, also annotate the symbol with `cursor-sensor-functions'."
         (elisp--annotate-symbol-with-help-echo role beg end sym)
         (put-text-property beg end 'mouse-face `(,face elisp-symbol-at-mouse)))
       (when (and id (bound-and-true-p cursor-sensor-mode))
-        (put-text-property beg (1+ end) 'cursor-sensor-functions
-                           ;; Get a fresh list with SYM hardcoded,
-                           ;; so that the value is distinguishable
-                           ;; from the value in adjacent regions.
-                           (elisp-cursor-sensor beg))))))
+        (add-text-properties beg (1+ end)
+                             `(cursor-sensor-functions
+                               ;; Get a fresh list with BEG hardcoded,
+                               ;; so that the value is distinguishable
+                               ;; from the value in adjacent regions.
+                               ,(elisp-cursor-sensor beg)
+                               rear-nonsticky (cursor-sensor-functions)))))))
 
 (defun elisp-fontify-symbols (end)
   "Fontify symbols from point to END according to their role in the code."
