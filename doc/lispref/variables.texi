@@ -402,6 +402,9 @@ values even if their symbols' value cells are unassigned.
 This function empties out the value cell of @var{symbol}, making the
 variable void.  It returns @var{symbol}.
 
+When applied to a variable alias, it first disconnects the variable from
+its alias, thereby undoing the effect of @code{defvaralias}.
+
 If @var{symbol} has a dynamic local binding, @code{makunbound} voids
 the current binding, and this voidness lasts only as long as the local
 binding is in effect.  Afterwards, the previously shadowed local or

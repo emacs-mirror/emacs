@@ -3856,6 +3856,11 @@ all versions, sleep events require Windows 8 or later).
 
 * Incompatible Lisp Changes in Emacs 31.1
 
++++
+** 'makunbound' on a variable alias undoes the alias.
+Previously it had the effect of applying the 'makunbound' on the
+target of the alias (which can fail on some builtin variable).
+
 ---
 ** 'FOO-ts-mode-indent-offset' renamed to 'FOO-ts-indent-offset'.
 When the new TS modes were introduced, a mistake was made where those

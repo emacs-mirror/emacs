@@ -767,6 +767,7 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
        doc: /* Empty out the value cell of SYMBOL, making it void as a variable.
 Return SYMBOL.
+When applied to a variable alias, it undoes the `defvaralias'.
 
 If a variable is void, trying to evaluate the variable signals a
 `void-variable' error, instead of returning a value.  For more
@@ -778,7 +779,13 @@ See also `fmakunbound'.  */)
   CHECK_SYMBOL (symbol);
   if (SYMBOL_CONSTANT_P (symbol))
     xsignal1 (Qsetting_constant, symbol);
-  Fset (symbol, Qunbound);
+  if (XSYMBOL (symbol)->u.s.redirect == SYMBOL_VARALIAS)
+    {
+      XSYMBOL (symbol)->u.s.redirect = SYMBOL_PLAINVAL;
+      SET_SYMBOL_VAL (XSYMBOL (symbol), Qunbound);
+    }
+  else
+    Fset (symbol, Qunbound);
   return symbol;
 }
 
