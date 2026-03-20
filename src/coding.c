@@ -11793,6 +11793,8 @@ syms_of_coding (void)
   Vbig5_coding_system = Qnil;
 
 #ifdef HAVE_MPS
+  staticpro (&safe_terminal_coding.src_object);
+  staticpro (&safe_terminal_coding.dst_object);
   staticpro (&safe_terminal_coding.safe_charsets_string);
 #endif
 
