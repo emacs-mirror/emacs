@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 #include "emacsgtkfixed.h"
+#include "gc-handles.h"
 
 /* Silence a bogus diagnostic; see GNOME bug 683906.  */
 #if GNUC_PREREQ (4, 7, 0) && ! GLIB_CHECK_VERSION (2, 35, 7)
@@ -40,7 +41,7 @@ typedef struct _EmacsFixedClass EmacsFixedClass;
 
 struct _EmacsFixedPrivate
 {
-  struct frame *f;
+  gc_handle f_gch;
 };
 
 
@@ -75,11 +76,23 @@ emacs_fixed_class_init (EmacsFixedClass *klass)
 }
 
 static void
+emacs_fixed_destroy (GtkWidget *widget, gpointer user_data)
+{
+  gc_handle *gch = user_data;
+  free_gc_handle (*gch);
+}
+
+static void
 emacs_fixed_init (EmacsFixed *fixed)
 {
   fixed->priv = G_TYPE_INSTANCE_GET_PRIVATE (fixed, emacs_fixed_get_type (),
                                              EmacsFixedPrivate);
-  fixed->priv->f = 0;
+  fixed->priv->f_gch = gc_handle_for (Qnil);
+  g_signal_connect_data (G_OBJECT (fixed),
+			 "destroy",
+			 G_CALLBACK (emacs_fixed_destroy),
+			 (gpointer) &fixed->priv->f_gch,
+			 0, 0);
 }
 
 GtkWidget *
@@ -87,7 +100,8 @@ emacs_fixed_new (struct frame *f)
 {
   EmacsFixed *fixed = g_object_new (emacs_fixed_get_type (), NULL);
   EmacsFixedPrivate *priv = fixed->priv;
-  priv->f = f;
+  free_gc_handle (priv->f_gch);
+  priv->f_gch = gc_handle_for_pvec (&f->header);
   return GTK_WIDGET (fixed);
 }
 
@@ -98,12 +112,13 @@ emacs_fixed_get_preferred_width (GtkWidget *widget,
 {
   EmacsFixed *fixed = EMACS_FIXED (widget);
   EmacsFixedPrivate *priv = fixed->priv;
+  struct frame *f = XFRAME (gc_handle_value (priv->f_gch));
 #ifdef HAVE_PGTK
-  int w = priv->f->output_data.pgtk->size_hints.min_width;
+  int w = f->output_data.pgtk->size_hints.min_width;
   if (minimum) *minimum = w;
-  if (natural) *natural = priv->f->output_data.pgtk->preferred_width;
+  if (natural) *natural = f->output_data.pgtk->preferred_width;
 #else
-  int w = priv->f->output_data.x->size_hints.min_width;
+  int w = f->output_data.x->size_hints.min_width;
   if (minimum) *minimum = w;
   if (natural) *natural = w;
 #endif
@@ -116,12 +131,13 @@ emacs_fixed_get_preferred_height (GtkWidget *widget,
 {
   EmacsFixed *fixed = EMACS_FIXED (widget);
   EmacsFixedPrivate *priv = fixed->priv;
+  struct frame *f = XFRAME (gc_handle_value (priv->f_gch));
 #ifdef HAVE_PGTK
-  int h = priv->f->output_data.pgtk->size_hints.min_height;
+  int h = f->output_data.pgtk->size_hints.min_height;
   if (minimum) *minimum = h;
-  if (natural) *natural = priv->f->output_data.pgtk->preferred_height;
+  if (natural) *natural = f->output_data.pgtk->preferred_height;
 #else
-  int h = priv->f->output_data.x->size_hints.min_height;
+  int h = f->output_data.x->size_hints.min_height;
   if (minimum) *minimum = h;
   if (natural) *natural = h;
 #endif
