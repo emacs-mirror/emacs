@@ -567,6 +567,63 @@ This variable is initialized by the `artist-make-prev-next-op-alist' function.")
     ["Characters for Spray" artist-select-spray-chars
      :help "Choose characters for sprayed by the spray-can"]))
 
+(defvar artist-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    ;; Tools
+    (tool-bar-local-item "artist-mode/pen"
+                         #'artist-select-op-pen-line
+                         #'artist-select-op-pen-line
+                         map :help "Use pen")
+    (tool-bar-local-item "artist-mode/spray"
+                         #'artist-select-op-spray-can
+                         #'artist-select-op-spray-can
+                         map :help "Use spray")
+    (tool-bar-local-item "artist-mode/eraser"
+                         #'artist-select-op-erase-char
+                         #'artist-select-op-erase-char
+                         map :help "Use eraser")
+    (tool-bar-local-item "artist-mode/fill"
+                         #'artist-select-op-flood-fill
+                         #'artist-select-op-flood-fill
+                         map :help "Fill")
+    (tool-bar-local-item "artist-mode/text"
+                         #'artist-select-op-text-overwrite
+                         #'artist-select-op-text-overwrite
+                         map :help "Insert Figlet Text (figlet must be installed)")
+    (define-key-after map [separator-1] menu-bar-separator)
+    ;; Shapes
+    (tool-bar-local-item "artist-mode/line"
+                         #'artist-select-op-straight-line
+                         #'artist-select-op-straight-line
+                         map :help "Draw straight line")
+    (tool-bar-local-item "artist-mode/ellipse"
+                         #'artist-select-op-ellipse
+                         #'artist-select-op-ellipse
+                         map :help "Draw ellipse")
+    (tool-bar-local-item "artist-mode/square"
+                         #'artist-select-op-square
+                         #'artist-select-op-square
+                         map :help "Draw square")
+    (tool-bar-local-item "artist-mode/rectangle"
+                         #'artist-select-op-rectangle
+                         #'artist-select-op-rectangle
+                         map :help "Draw rectangle")
+    (tool-bar-local-item "artist-mode/poly-line"
+                         #'artist-select-op-poly-line
+                         #'artist-select-op-poly-line
+                         map :help "Draw poly lines")
+    (define-key-after map [separator-2] menu-bar-separator)
+    ;; Configurations
+    (tool-bar-local-item "artist-mode/char-to-fill"
+                         #'artist-select-fill-char
+                         #'artist-select-fill-char
+                         map :help "Change current fill character")
+    (tool-bar-local-item "artist-mode/char-for-spray"
+                         #'artist-select-spray-chars
+                         #'artist-select-spray-chars
+                         map :help "Change current spray characters")
+    map))
+
 (defvar artist-replacement-table (make-vector 256 0)
   "Replacement table for `artist-replace-char'.")
 
@@ -1367,6 +1424,7 @@ Keymap summary
 	(t
 	 ;; Turn mode on
 	 (artist-mode-init)
+         (setq-local tool-bar-map artist-tool-bar-map)
          (let* ((font (face-attribute 'default :font))
                 (spacing-prop (if (fontp font)
                                   (font-get font :spacing)
@@ -1414,7 +1472,8 @@ Keymap summary
   "Exit Artist mode.  This will call the hook `artist-mode-hook'."
   (if (and artist-picture-compatibility (eq major-mode 'picture-mode))
       (picture-mode-exit))
-  (kill-local-variable 'next-line-add-newlines))
+  (kill-local-variable 'next-line-add-newlines)
+  (kill-local-variable 'tool-bar-map))
 
 (defun artist-mode-off ()
   "Turn Artist mode off."

@@ -1,0 +1,19 @@
+COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES -*- coding: utf-8 -*-
+
+The following icons were derived from GIMP 3.2.X icons, modified for
+Emacs by Elías Gabriel Pérez <eg642616@gmail.com>.
+Copyright (C) 2026 Free Software Foundation, Inc.
+License: GNU General Public License version 3 or later (see COPYING)
+
+ char-for-spray.xpm  char-for-spray.pbm
+ char-to-fill.xpm    char-to-fill.pbm
+ ellipse.xpm         ellipse.pbm
+ eraser.xpm          eraser.pbm
+ fill.xpm            fill.pbm
+ line.xpm            line.pbm
+ pen.xpm             pen.pbm
+ poly-line.xpm       poly-line.pbm
+ rectangle.xpm       rectangle.pbm
+ spray.xpm           spray.pbm
+ square.xpm          square.pbm
+ text.xpm            text.pbm
