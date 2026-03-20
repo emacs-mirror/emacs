@@ -365,6 +365,7 @@ add_sample (struct profiler_log *plog, EMACS_INT count)
 #ifdef PROFILER_CPU_SUPPORT
 
 /* The sampling interval specified.  */
+/* FIXME/igc: Make this an EMACS_INT to avoid the staticpro.  */
 static Lisp_Object profiler_cpu_interval = LISPSYM_INITIALLY (Qnil);
 
 /* The profiler timer and whether it was properly initialized, if
@@ -764,6 +765,8 @@ to make room for new entries.  */);
   defsubr (&Sprofiler_cpu_stop);
   defsubr (&Sprofiler_cpu_running_p);
   defsubr (&Sprofiler_cpu_log);
+  profiler_cpu_interval = Qnil;
+  staticpro (&profiler_cpu_interval);
 #endif
   profiler_memory_running = false;
   defsubr (&Sprofiler_memory_start);
