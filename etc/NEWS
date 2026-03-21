@@ -3859,7 +3859,7 @@ all versions, sleep events require Windows 8 or later).
 +++
 ** 'makunbound' on a variable alias undoes the alias.
 Previously it had the effect of applying the 'makunbound' on the
-target of the alias (which can fail on some builtin variable).
+target of the alias (which can fail on some builtin variables).
 
 ---
 ** 'FOO-ts-mode-indent-offset' renamed to 'FOO-ts-indent-offset'.
