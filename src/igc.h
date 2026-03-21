@@ -166,6 +166,8 @@ void igc_init_header_bytes (union igc_header *,
 			    enum igc_obj_type type, size_t bytes);
 
 extern void igc_assert_not_an_mps_object (void *ptr);
+extern void igc_scan_for_untraced_objects (void *start, void *end) EXTERNALLY_VISIBLE;
+
 # define eassert_not_mps() eassert (false)
 #else
 # define igc_break() (void) 0

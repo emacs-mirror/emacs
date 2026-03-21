@@ -55,6 +55,16 @@ void igc_check_fwd (void *client, bool is_vector);
 #define igc_check_fwd(c, v) ((void) 0)
 # endif
 
+/* Enable this with --enable-checking=igc_debug_alloc.  */
+#if defined HAVE_MPS && defined IGC_DEBUG_ALLOC
+extern void register_xmalloc_allocation (void *old, void *new, size_t size,
+					 void *caller);
+extern size_t unregister_xmalloc_allocation (void *old, bool scan);
+#else
+#define register_xmalloc_allocation(old, new, size, caller) (void) 0
+#define unregister_xmalloc_allocation(old, scan) (void) 0
+#endif
+
 /* Define a TYPE constant ID as an externally visible name.  Use like this:
 
       DEFINE_GDB_SYMBOL_BEGIN (TYPE, ID)

@@ -737,6 +737,7 @@ do
 	glyphs)		ac_glyphs_debug=1 ;;
 	# Very special case, so don't include it in all.
 	igc_check_fwd)	ac_igc_check_fwd=1 ;;
+	igc_debug_alloc)	ac_igc_debug_alloc=1 ;;
 	igc_debug)	ac_igc_debug=1 ;;
 	*)	AC_MSG_ERROR([uuu unknown check category $check]) ;;
 	esac
@@ -789,6 +790,10 @@ AS_IF([test "$with_android" = no || test -n "$XCONFIGURE"],[
   if test x$ac_igc_check_fwd != x ; then
     AC_DEFINE([IGC_CHECK_FWD], [1],
   [Define this to enable igc forwarding check code.])
+  fi
+  if test x$ac_igc_debug_alloc != x ; then
+    AC_DEFINE([IGC_DEBUG_ALLOC], [1],
+  [Define this to enable igc allocation check code.  This is very slow.])
   fi
   if test x$ac_igc_debug != x ; then
     AC_DEFINE([IGC_DEBUG], [1],

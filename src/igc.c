@@ -3637,6 +3637,10 @@ igc_check_freeable (void *start)
 }
 #endif
 
+#ifdef IGC_DEBUG_ALLOC
+static void protect_xmalloc_allocation (void *ptr);
+#endif
+
 void
 igc_destroy_root_with_start (void *start)
 {
@@ -3647,6 +3651,9 @@ igc_destroy_root_with_start (void *start)
       eassume (r != NULL);
       destroy_root (&r);
     }
+#if defined (IGC_DEBUG_ALLOC)
+  protect_xmalloc_allocation (start);
+#endif
 }
 
 static void
@@ -6344,6 +6351,178 @@ Only useful for low-level debugging. */)
   return build_string ("Description of MPS arena was sent to standard error");
 #endif	/* !HAVE_OPEN_MEMSTREAM */
 }
+
+/* Code for --enable-checking=igc_debug_alloc.
+ *
+ * The idea is to store all xmalloc/xrealloc allocations in a single
+ * linked list which is then walked to scan the memory areas for
+ * untraced references.  This is very slow and makes Emacs unusable for
+ * interactive use.  To avoid problems with deallocation, we mark the
+ * entire malloc area as "protected" once we start destroying roots in
+ * it.
+ *
+ * This is currently useful only in conjunction with GDB or another
+ * debugger: set a breakpoint on the 'fprintf' in
+ * 'igc_assert_not_an_mps_object', then inspect the memory area '*pprev'
+ * in the 'scan_xmalloc_allocations' stack frame to find out who
+ * allocated it and why they failed to trace MPS pointers.  */
+
+#if defined (HAVE_MPS) && defined (IGC_DEBUG_ALLOC)
+struct xmalloc_allocation;
+
+/* List of xmalloc allocations.  O(N).  */
+struct xmalloc_allocation
+{
+  void *ptr;
+  size_t size;
+  bool protected;
+  void *caller;
+  struct xmalloc_allocation *next;
+};
+
+static struct xmalloc_allocation *xmalloc_allocations;
+
+/* Try to keep Emacs somewhat usable by scanning only once approximately
+   every five seconds.  */
+static time_t last_check_time;
+
+static void
+scan_xmalloc_allocations (bool force)
+{
+  if (last_check_time != time (NULL)
+      || force)
+    {
+      last_check_time = time (NULL);
+    }
+  else
+    return;
+
+  if (last_check_time % 5)
+    return;
+
+  for (struct xmalloc_allocation **pprev = &xmalloc_allocations;
+       *pprev;
+       pprev = &(*pprev)->next)
+    {
+      if (!(*pprev)->protected)
+	igc_scan_for_untraced_objects ((*pprev)->ptr,
+				       (char *) (*pprev)->ptr + (*pprev)->size);
+    }
+}
+
+size_t
+unregister_xmalloc_allocation (void *ptr, bool scan)
+{
+  if (!ptr)
+    return 0;
+  if (scan)
+    scan_xmalloc_allocations (true);
+  for (struct xmalloc_allocation **pprev = &xmalloc_allocations;
+       *pprev;
+       pprev = &(*pprev)->next)
+    {
+      if ((*pprev)->ptr == ptr)
+	{
+	  if (scan && !(*pprev)->protected)
+	    igc_scan_for_untraced_objects ((*pprev)->ptr,
+					   (char *)(*pprev)->ptr
+					   + (*pprev)->size);
+	  size_t ret = (*pprev)->size;
+	  *pprev = (*pprev)->next;
+	  return ret;
+	}
+    }
+  /* This happens if a call to 'malloc' is paired with a call to 'xfree'.  */
+  fprintf (stderr, "couldn't find allocation %p\n", ptr);
+  return 0;
+}
+
+void
+register_xmalloc_allocation (void *old, void *ptr, size_t size, void *caller)
+{
+  size_t old_size = 0;
+  if (old)
+    old_size = unregister_xmalloc_allocation (old, false);
+  struct xmalloc_allocation *alloc = malloc (sizeof *alloc);
+  alloc->ptr = ptr;
+  alloc->size = size;
+  alloc->protected = false;
+  alloc->next = xmalloc_allocations;
+  alloc->caller = caller;
+  xmalloc_allocations = alloc;
+  if (old_size < size)
+    memset ((char *) alloc->ptr + old_size, 0, size - old_size);
+  if (old_size)
+    igc_scan_for_untraced_objects (alloc->ptr, (char *) alloc->ptr + old_size);
+}
+
+static void
+protect_xmalloc_allocation (void *ptr)
+{
+  if (!ptr)
+    return;
+  scan_xmalloc_allocations (true);
+  for (struct xmalloc_allocation **pprev = &xmalloc_allocations;
+       *pprev;
+       pprev = &(*pprev)->next)
+    {
+      if ((*pprev)->ptr <= ptr
+	  && ((char *) (*pprev)->ptr + (*pprev)->size
+	      > (char *) ptr))
+	{
+	  (*pprev)->protected = true;
+	  return;
+	}
+    }
+}
+
+static igc_root_list *
+root_find_containing (void *start)
+{
+  for (igc_root_list *r = global_igc->roots; r; r = r->next)
+    if (r->d.start <= start
+	&& r->d.end > start)
+      return r;
+  return NULL;
+}
+
+static bool
+staticvec_contains (void *p)
+{
+  for (int i = 0; i < NSTATICS; i++)
+    if (staticvec[i] == p)
+      return true;
+  return false;
+}
+
+static void
+check_pointer (void *p)
+{
+  unsigned long value = *(unsigned long *) p;
+  value &= ~IGC_TAG_MASK;
+  if (!root_find_containing ((void *) p)
+      && !staticvec_contains ((void *) p))
+    igc_assert_not_an_mps_object ((void *) value);
+}
+
+/* Scan the region from START to END for values that look like MPS
+   pointers but aren't protected as such.  Expect some false positives,
+   such as the MPS EventBuffer.
+
+   The GDB command "maintenance info sections" can be used to identify
+   values for START and END (the sections .data and .bss). */
+
+void
+igc_scan_for_untraced_objects (void *start, void *end)
+{
+  unsigned long *p = start;
+  while ((void *) (p+1) <= (void *) end)
+    {
+      check_pointer (p);
+      p++;
+    }
+}
+#endif
 
 /***********************************************************************
 				  Init

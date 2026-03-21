@@ -669,6 +669,7 @@ xmalloc (size_t size)
   if (!val)
     memory_full (size);
   MALLOC_PROBE (size);
+  register_xmalloc_allocation (NULL, val, size, __builtin_return_address (0));
   return val;
 }
 
@@ -681,6 +682,7 @@ xzalloc (size_t size)
   if (!val)
     memory_full (size);
   MALLOC_PROBE (size);
+  register_xmalloc_allocation (NULL, val, size, __builtin_return_address (0));
   return val;
 }
 
@@ -693,6 +695,7 @@ xrealloc (void *block, size_t size)
   if (!val)
     memory_full (size);
   MALLOC_PROBE (size);
+  register_xmalloc_allocation (block, val, size, __builtin_return_address (0));
   return val;
 }
 
@@ -706,6 +709,7 @@ xfree (void *block)
     return;
   if (pdumper_object_p (block))
     return;
+  unregister_xmalloc_allocation (block, true);
 #if defined (ENABLE_CHECKING) && defined (HAVE_MPS)
   igc_check_freeable (block);
 #endif
