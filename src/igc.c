@@ -1016,7 +1016,7 @@ ensure_free_pin (struct igc_pins *p)
     {
       const ptrdiff_t used = p->capacity;
       p->entries = igc_xpalloc_ambig (p->entries, &p->capacity, 1, -1,
-				      sizeof *p->entries);
+				      sizeof *p->entries, "igc_pin[]");
       for (ptrdiff_t i = used; i < p->capacity; ++i)
 	{
 	  p->entries[i].next_free = p->free;
@@ -4025,8 +4025,9 @@ igc_xfree (void *p)
 }
 
 void *
-igc_xpalloc_ambig (void *old_pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
-		   ptrdiff_t nitems_max, ptrdiff_t item_size)
+igc_xpalloc_ambig (void *old_pa, ptrdiff_t *nitems,
+		   ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+		   ptrdiff_t item_size, const char *label)
 {
   ptrdiff_t old_nitems = old_pa ? *nitems : 0;
   ptrdiff_t new_nitems = *nitems;
@@ -4034,10 +4035,11 @@ igc_xpalloc_ambig (void *old_pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
 				     nitems_max, item_size);
   void *new_pa = xzalloc (nbytes);
   char *end = (char *) new_pa + nbytes;
-  root_create_ambig (global_igc, new_pa, end, "xpalloc-ambig");
+  root_create_ambig (global_igc, new_pa, end, label);
   mps_word_t *old_word = old_pa;
   mps_word_t *new_word = new_pa;
-  for (ptrdiff_t i = 0; i < (old_nitems * item_size) / sizeof (mps_word_t); i++)
+  for (ptrdiff_t i = 0;
+       i < (old_nitems * item_size) / sizeof (mps_word_t); i++)
     new_word[i] = old_word[i];
   *nitems = new_nitems;
   igc_xfree (old_pa);

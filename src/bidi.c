@@ -810,7 +810,7 @@ bidi_cache_ensure_space (ptrdiff_t idx)
 	  bidi_cache
 	    = igc_xpalloc_ambig (bidi_cache, &bidi_cache_size,
 				 max (chunk_size, idx - bidi_cache_size + 1),
-				 max_elts, elsz);
+				 max_elts, elsz, "bidi_cache");
 #endif
 	  eassert (bidi_cache_size > idx);
 	}

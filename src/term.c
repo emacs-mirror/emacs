@@ -3094,7 +3094,8 @@ tty_menu_make_room (tty_menu *menu)
       ptrdiff_t allocated = menu->allocated;
 #ifdef HAVE_MPS
       /* The text and help_text can point to Lisp string data.  */
-      menu->text = igc_xpalloc_ambig (menu->text, &allocated, 1, -1, sizeof *menu->text);
+      menu->text = igc_xpalloc_ambig (menu->text, &allocated, 1, -1,
+				      sizeof *menu->text, "menu-text");
       menu->help_text = igc_realloc_ambig (menu->help_text,
 					   allocated * sizeof *menu->help_text);
 #else

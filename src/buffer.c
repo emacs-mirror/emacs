@@ -3155,7 +3155,7 @@ overlays_in (ptrdiff_t beg, ptrdiff_t end, bool extend,
         {
 #ifdef HAVE_MPS
           vec = igc_xpalloc_ambig (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
-				   sizeof *vec);
+				   sizeof *vec, "overlays_in");
 #else
           vec = xpalloc (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
                          sizeof *vec);
@@ -3444,7 +3444,9 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
 #ifdef HAVE_MPS
       /* Never freed. */
       eassert (ssl == &overlay_heads || ssl == &overlay_tails);
-      ssl->buf = igc_xpalloc_ambig (ssl->buf, &ssl->size, 5, -1, sizeof *ssl->buf);
+      ssl->buf = igc_xpalloc_ambig (ssl->buf, &ssl->size, 5, -1,
+				    sizeof *ssl->buf,
+				    "record_overlay_string");
 #else
       ssl->buf = xpalloc (ssl->buf, &ssl->size, 5, -1, sizeof *ssl->buf);
 #endif
