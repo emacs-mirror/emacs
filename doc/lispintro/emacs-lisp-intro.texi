@@ -12826,7 +12826,7 @@ of the pattern.
 Specifically, @code{parsep} is set to the original value of the
 paragraph separate regular expression concatenated with an alternative
 expression that consists of the @code{fill-prefix-regexp} followed by
-optional whitespace to the end of the line.  The whitespace is defined
+optional whitespace to the end of the line.  (The whitespace is defined
 by @w{@code{"[ \t]*$"}}.)  The @samp{\\|} defines this portion of the
 regexp as an alternative to @code{parsep}.
 
