@@ -1715,6 +1715,18 @@ final or penultimate step during initialization."))
     (should (equal (funcall (subr--identity #'any) #'minusp ls) '(-1 -2 -3)))
     (should (equal (funcall (subr--identity #'any) #'stringp ls) nil))))
 
+(defun subr-tests--any-memql (x xs)
+  "Like `memql', but exercising the `compiler-macro' of `any'.
+The argument names are important."
+  (any (lambda (y) (eql x y)) xs))
+
+(ert-deftest subr-any-compiler-macro ()
+  "Test `compiler-macro' of `any'."
+  (let ((xs (number-sequence 0 4)))
+    (dotimes (x (1+ (length xs)))
+      (should (eq (subr-tests--any-memql x xs)
+                  (memql x xs))))))
+
 (ert-deftest total-line-spacing ()
   (progn
     (let ((line-spacing 10))
