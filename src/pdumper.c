@@ -2101,6 +2101,7 @@ dump_object_start_pseudovector (struct dump_context *ctx,
 #define START_DUMP_PVEC(ctx, hdr, type, out)                  \
   const struct vectorlike_header *in_hdr = (hdr);	      \
   type *out = alloca (vectorlike_nbytes (in_hdr));	      \
+  memset (out, 0, vectorlike_nbytes (in_hdr));		      \
   dump_object_start_pseudovector (ctx, &out->header, in_hdr)
 
 static dump_off
