@@ -6849,8 +6849,12 @@ this variable.  */);
   use_file_dialog = true;
 
   DEFVAR_BOOL ("use-short-answers", use_short_answers,
-    doc: /* Non-nil means `yes-or-no-p' uses shorter answers "y" or "n".
+    doc: /* Non-nil means `yes-or-no-p' accepts single-key answers "y" or "n".
 When non-nil, `yes-or-no-p' will use `y-or-n-p' to read the answer.
+This means the user will be able to press just one key to answer, whereas
+by default the user needs to type the full \"yes\" or \"no\" response
+and then press RET.
+
 We recommend against setting this variable non-nil, because `yes-or-no-p'
 is intended to be used when users are expected not to respond too
 quickly, but to take their time and perhaps think about the answer.
