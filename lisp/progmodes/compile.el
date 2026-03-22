@@ -991,6 +991,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 			    (file-name-sans-extension buffer-file-name))))))))
 
 It's often useful to leave a space at the end of the value."
+  :initialize #'custom-initialize-delay
   :type 'string)
 ;;;###autoload(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (if (boundp 'compilation-read-command) compilation-read-command t))))
 
