@@ -183,9 +183,10 @@ itree_stack_ensure_space (struct itree_stack *stack, uintmax_t nelements)
       stack->nodes = xrealloc (stack->nodes,
 			       stack->size * sizeof (*stack->nodes));
 #else
-      igc_xpalloc_raw_exact (&stack->nodes, &stack->size,
-			     nelements - stack->size, -1,
-			     "itree stack");
+      stack->nodes
+	= igc_xpalloc_raw_exact (stack->nodes, &stack->size,
+				 nelements - stack->size, -1,
+				 "itree stack");
 #endif
     }
 }
