@@ -1725,7 +1725,11 @@ The argument names are important."
   (let ((xs (number-sequence 0 4)))
     (dotimes (x (1+ (length xs)))
       (should (eq (subr-tests--any-memql x xs)
-                  (memql x xs))))))
+                  (memql x xs)))))
+  (let ((n 0))
+    (any (prog1 (lambda (x) (eq x 5)) (incf n))
+         (number-sequence 0 4))
+    (should (eq n 1))))
 
 (ert-deftest total-line-spacing ()
   (progn
