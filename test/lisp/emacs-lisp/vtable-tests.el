@@ -130,25 +130,4 @@
           (should (= (count-lines (point-min) (point-max)) 3))
           (should (not (string= line-2 line-2-new))))))))
 
-(ert-deftest test-vtable--limit-string-with-face-remapped-buffer ()
-  (with-temp-buffer
-    (let ((text (propertize "XXXXX"
-                            'face 'variable-pitch)))
-      (face-remap-add-relative 'default :height 1.5)
-      ;; TODO: Remove the pre-31 test, eventually.
-      (cond ((eval-when-compile (< emacs-major-version 31))
-             (let* ((x-width (string-pixel-width (substring text 0 1)))
-                    (char-limit 2)
-                    (pixel-limit (* char-limit x-width)))
-               (should (eq
-                        char-limit
-                        (length (vtable--limit-string text pixel-limit))))))
-            (t
-             (let* ((x-width (string-pixel-width (substring text 0 1) (current-buffer)))
-                    (char-limit 2)
-                    (pixel-limit (* char-limit x-width)))
-               (should (eq
-                        char-limit
-                        (length (vtable--limit-string text pixel-limit (current-buffer)))))))))))
-
 ;;; vtable-tests.el ends here

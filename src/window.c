@@ -860,7 +860,7 @@ zero if WINDOW was created after that.  */)
 }
 
 DEFUN ("window-total-height", Fwindow_total_height, Swindow_total_height, 0, 2, 0,
-       doc: /* Return the height of window WINDOW in lines.
+       doc: /* Return the height of window WINDOW in canonical lines.
 WINDOW must be a valid window and defaults to the selected one.
 
 The return value includes the heights of WINDOW's mode and header line
@@ -868,17 +868,17 @@ and its bottom divider, if any.  If WINDOW is an internal window, the
 total height is the height of the screen areas spanned by its children.
 
 If WINDOW's pixel height is not an integral multiple of its frame's
-character height, the number of lines occupied by WINDOW is rounded
-internally.  This is done in a way such that, if WINDOW is a parent
-window, the sum of the total heights of all its children internally
-equals the total height of WINDOW.
+canonical character height, the number of lines occupied by WINDOW is
+rounded internally.  This is done in a way such that, if WINDOW is a
+parent window, the sum of the total heights of all its children
+internally equals the total height of WINDOW.
 
 If the optional argument ROUND is `ceiling', return the smallest integer
-larger than WINDOW's pixel height divided by the character height of
-WINDOW's frame.  ROUND `floor' means to return the largest integer
-smaller than WINDOW's pixel height divided by the character height of
-WINDOW's frame.  Any other value of ROUND means to return the internal
-total height of WINDOW.  */)
+larger than WINDOW's pixel height divided by the canonical character
+height of WINDOW's frame.  ROUND `floor' means to return the largest
+integer smaller than WINDOW's pixel height divided by the canonical
+character height of WINDOW's frame.  Any other value of ROUND means to
+return the internal total height of WINDOW.  */)
   (Lisp_Object window, Lisp_Object round)
 {
   struct window *w = decode_valid_window (window);
@@ -896,7 +896,7 @@ total height of WINDOW.  */)
 }
 
 DEFUN ("window-total-width", Fwindow_total_width, Swindow_total_width, 0, 2, 0,
-       doc: /* Return the total width of window WINDOW in columns.
+       doc: /* Return the total width of window WINDOW in canonical columns.
 WINDOW must be a valid window and defaults to the selected one.
 
 The return value includes the widths of WINDOW's fringes, margins,
@@ -905,17 +905,17 @@ window, the total width is the width of the screen areas spanned by its
 children.
 
 If WINDOW's pixel width is not an integral multiple of its frame's
-character width, the number of lines occupied by WINDOW is rounded
-internally.  This is done in a way such that, if WINDOW is a parent
-window, the sum of the total widths of all its children internally
-equals the total width of WINDOW.
+canonical character width, the number of lines occupied by WINDOW is
+rounded internally.  This is done in a way such that, if WINDOW is a
+parent window, the sum of the total widths of all its children
+internally equals the total width of WINDOW.
 
 If the optional argument ROUND is `ceiling', return the smallest integer
-larger than WINDOW's pixel width divided by the character width of
-WINDOW's frame.  ROUND `floor' means to return the largest integer
-smaller than WINDOW's pixel width divided by the character width of
-WINDOW's frame.  Any other value of ROUND means to return the internal
-total width of WINDOW.  */)
+larger than WINDOW's pixel width divided by the canonical character
+width of WINDOW's frame.  ROUND `floor' means to return the largest
+integer smaller than WINDOW's pixel width divided by the canonical
+character width of WINDOW's frame.  Any other value of ROUND means to
+return the internal total width of WINDOW.  */)
   (Lisp_Object window, Lisp_Object round)
 {
   struct window *w = decode_valid_window (window);
@@ -1146,8 +1146,8 @@ marginal areas, or scroll bars.
 
 The optional argument PIXELWISE defines the units to use for the
 width.  If nil, return the largest integer smaller than WINDOW's pixel
-width in units of the character width of WINDOW's frame.  If PIXELWISE
-is `remap' and the default face is remapped (see
+width in units of the canonical character width of WINDOW's frame.
+If PIXELWISE is `remap' and the default face is remapped (see
 `face-remapping-alist'), use the remapped face to determine the
 character width.  For any other non-nil value, return the width in
 pixels.
@@ -1171,8 +1171,8 @@ horizontal divider.
 
 The optional argument PIXELWISE defines the units to use for the
 height.  If nil, return the largest integer smaller than WINDOW's
-pixel height in units of the character height of WINDOW's frame.  If
-PIXELWISE is `remap' and the default face is remapped (see
+pixel height in units of the canonical character height of WINDOW's
+frame.  If PIXELWISE is `remap' and the default face is remapped (see
 `face-remapping-alist'), use the remapped face to determine the
 character height.  For any other non-nil value, return the height in
 pixels.  */)

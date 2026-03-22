@@ -2031,10 +2031,8 @@
       (should (eq tried-to-install 'some-pkg)))))
 
 (ert-deftest use-package-test-normalize/:vc ()
-  (should (equal '(foo "version-string")
-                 (use-package-normalize/:vc 'foo :vc '("version-string"))))
-  (should (equal '(bar "version-string")
-                 (use-package-normalize/:vc 'foo :vc '((bar . "version-string")))))
+  (should (equal '(foo (:url "url"))
+                 (use-package-normalize/:vc 'foo :vc '("url"))))
   (should (equal '(foo (:url "bar") "baz")
                  (use-package-normalize/:vc 'foo :vc '((:url "bar" :rev "baz")))))
   (should (equal '(foo)

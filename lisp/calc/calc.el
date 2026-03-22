@@ -1688,7 +1688,7 @@ See calc-keypad for details."
                (error (substitute-command-keys
                        "Computation got stuck or ran too long.  Type \\`M' to increase the limit"))
 	     (setq calc-aborted-prefix nil)
-	     (signal (car err) (cdr err)))))
+	     (signal err))))
       (when calc-aborted-prefix
 	(calc-record "<Aborted>" calc-aborted-prefix))
       (and calc-start-time

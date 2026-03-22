@@ -1137,49 +1137,41 @@ Its appearance is controlled by the face `smerge-refine-shadow-cursor'."
 The presence of the shadow cursor depends on the
 variable `smerge-refine-shadow-cursor'.")
 
-(defun smerge--refine-prepare-regions ( beg1 end1 beg2 end2
-                                        preproc props-c props-r props-a)
-  (let* ((file1 (make-temp-file "diff1"))
-         (file2 (make-temp-file "diff2"))
-         (smerge--refine-long-words
-          (if smerge-refine-weight-hack (make-hash-table :test #'equal)))
-
-         ;; Cover the two regions with one `smerge--refine-region' overlay each.
-         (ol1 (make-overlay beg1 end1 (if (markerp beg1) (marker-buffer beg1))
-                            ;; Make it shrink rather than spread when editing.
-                            'front-advance nil))
-         (ol2 (make-overlay beg2 end2 (if (markerp beg2) (marker-buffer beg2))
-                            ;; Make it shrink rather than spread when editing.
-                            'front-advance nil))
-         (common-props
-          (let ((props '((evaporate . t) (smerge--refine-region . t)
-                         (cursor-sensor-functions
-                          smerge--refine-shadow-cursor))))
-            (dolist (prop (or props-a props-c))
-              (when (and (not (memq (car prop) '(face font-lock-face)))
-                         (member prop (or props-r props-c))
-                         (or (not (and props-c props-a props-r))
-                             (member prop props-c)))
-                ;; This PROP is shared among all those overlays.
-                ;; Better keep it also for the `smerge--refine-region'
-                ;; overlays, so the client package recognizes them as
-                ;; being part of the refinement (e.g. it will hopefully
-                ;; delete them like the others).
-                (push prop props)))
-            props)))
-
+(defun smerge--refine-set-overlay-props (ol1 ol2 props-c props-r props-a)
+  (let ((common-props
+         (let ((props '((evaporate . t) (smerge--refine-region . t)
+                        (cursor-sensor-functions
+                         smerge--refine-shadow-cursor))))
+           (dolist (prop (or props-a props-c))
+             (when (and (not (memq (car prop) '(face font-lock-face)))
+                        (member prop (or props-r props-c))
+                        (or (not (and props-c props-a props-r))
+                            (member prop props-c)))
+              ;; This PROP is shared among all those overlays.
+               ;; Better keep it also for the `smerge--refine-region'
+               ;; overlays, so the client package recognizes them as
+               ;; being part of the refinement (e.g. it will hopefully
+               ;; delete them like the others).
+               (push prop props)))
+           props)))
     (when smerge-refine-shadow-cursor
       (cursor-sensor-mode 1))
     (dolist (prop common-props)
       (overlay-put ol1 (car prop) (cdr prop))
-      (overlay-put ol2 (car prop) (cdr prop)))
+      (overlay-put ol2 (car prop) (cdr prop)))))
+
+(defun smerge--refine-prepare-regions (ol1 ol2 preproc)
+  (let* ((file1 (make-temp-file "diff1"))
+         (file2 (make-temp-file "diff2"))
+         (smerge--refine-long-words
+          (if smerge-refine-weight-hack (make-hash-table :test #'equal))))
 
     (let ((write-region-inhibit-fsync t)) ; Don't fsync temp files (Bug#12747).
       ;; Chop up regions into smaller elements and save into files.
       (smerge--refine-chopup-region ol1 file1 preproc)
       (smerge--refine-chopup-region ol2 file2 preproc))
 
-    `(,file1 ,ol1 ,file2 ,ol2)))
+    `(,file1 ,file2)))
 
 ;;;###autoload
 (defun smerge-refine-regions (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a)
@@ -1199,9 +1191,15 @@ used to replace chars to try and eliminate some spurious differences.
 The two regions can be in different buffers (in which case, BEG1 and BEG2
 need to be markers to indicate the corresponding buffers)."
   (pcase-let*
-      ((`(,file1 ,ol1 ,file2 ,ol2)
-        (smerge--refine-prepare-regions beg1 end1 beg2 end2
-                                        preproc props-c props-r props-a)))
+      ;; Cover the two regions with one `smerge--refine-region' overlay each.
+      ((ol1 (make-overlay beg1 end1 (if (markerp beg1) (marker-buffer beg1))
+                          ;; Make it shrink rather than spread when editing.
+                          'front-advance nil))
+       (ol2 (make-overlay beg2 end2 (if (markerp beg2) (marker-buffer beg2))
+                          ;; Make it shrink rather than spread when editing.
+                          'front-advance nil))
+       (`(,file1 ,file2) (smerge--refine-prepare-regions ol1 ol2 preproc)))
+    (smerge--refine-set-overlay-props ol1 ol2 props-c props-r props-a)
 
     ;; Call diff on those files.
     (with-temp-buffer
@@ -1480,7 +1478,7 @@ region, or with a numeric prefix.  By default it uses a numeric prefix of 1."
   ;; conflicts instead!
   (condition-case err
       (smerge-match-conflict)
-    (error (if (not (markerp otherpos)) (signal (car err) (cdr err))
+    (error (if (not (markerp otherpos)) (signal err)
              (goto-char (prog1 otherpos (setq otherpos (point-marker))))
              (smerge-match-conflict))))
   (let ((beg (match-beginning 0))

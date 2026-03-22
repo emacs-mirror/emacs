@@ -461,10 +461,10 @@ The table is first sorted by the first element in this list, and then
 the next, until the end is reached.
 
 @item :ellipsis
-By default, when shortening displayed values, an ellipsis will be
-shown.  If this is @code{nil}, no ellipsis is shown.  (The text to use
-as the ellipsis is determined by the @code{truncate-string-ellipsis}
-function.)
+Displayed values are shortened to fit column widths.  This defaults to
+@code{t} which shows an ellipsis using the text returned by the function
+@code{truncate-string-ellipsis}.  Set this to a string to use your own
+ellipsis text.  Set this to @code{nil} to inhibit the ellipsis.
 
 @findex vtable-insert
 @item :insert

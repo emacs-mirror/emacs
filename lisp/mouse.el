@@ -2025,7 +2025,7 @@ The region will be defined with mark and point."
                  (pop-mark)))))
       ;; Cleanup on errors
       (error (funcall cleanup)
-             (signal (car err) (cdr err))))))
+             (signal err)))))
 
 (defun mouse--drag-set-mark-and-point (start click click-count)
   (let* ((range (mouse-start-end start click click-count))
@@ -2790,7 +2790,7 @@ This must be bound to a button-down mouse event."
       ;; Clean up in case something went wrong.
       (error (setq track-mouse old-track-mouse)
              (setq mouse-fine-grained-tracking old-mouse-fine-grained-tracking)
-             (signal (car err) (cdr err))))))
+             (signal err)))))
 
 ;; The drag event must be bound to something but does not need any effect,
 ;; as everything takes place in `mouse-drag-region-rectangle'.

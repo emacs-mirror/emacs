@@ -2886,7 +2886,7 @@ decode function to perform the actual decoding."
 
 ;;;; Soap Envelope parsing
 
-(if (fboundp 'define-error)
+(if (fboundp 'define-error)             ;Emacs-24.4
     (define-error 'soap-error "SOAP error")
   ;; Support Emacs<24.4 that do not have define-error, so
   ;; that soap-client can remain unchanged in GNU ELPA.

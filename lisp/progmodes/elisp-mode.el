@@ -620,11 +620,8 @@ non-nil, also annotate the symbol with `cursor-sensor-functions'."
         (elisp--annotate-symbol-with-help-echo role beg end sym)
         (put-text-property beg end 'mouse-face `(,face elisp-symbol-at-mouse)))
       (when (and id (bound-and-true-p cursor-sensor-mode))
-        (put-text-property beg (1+ end) 'cursor-sensor-functions
-                           ;; Get a fresh list with SYM hardcoded,
-                           ;; so that the value is distinguishable
-                           ;; from the value in adjacent regions.
-                           (elisp-cursor-sensor beg))))))
+        (put-text-property
+         beg end 'cursor-sensor-functions (elisp-cursor-sensor beg))))))
 
 (defun elisp-fontify-symbols (end)
   "Fontify symbols from point to END according to their role in the code."
@@ -834,7 +831,8 @@ be used instead.
 (defvar elisp--local-macroenv
   `((cl-eval-when . ,(lambda (&rest args) `(progn . ,(cdr args))))
     (eval-when-compile . ,(lambda (&rest args) `(progn . ,args)))
-    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args))))
+    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args)))
+    (static-if . ,(lambda (&rest args) `(if . ,args))))
   "Environment to use while tentatively expanding macros.
 This is used to try and avoid the most egregious problems linked to the
 use of `macroexpand-all' as a way to find the \"underlying raw code\".")
@@ -1111,8 +1109,7 @@ functions are annotated with \"<f>\" via the
                     ;; specific completion table in more cases.
                     (is-ignore-error
                      (list t (elisp--completion-local-symbols)
-                           :predicate (lambda (sym)
-                                        (get sym 'error-conditions))))
+                           :predicate #'error-type-p))
                     ((elisp--expect-function-p beg)
                      (list nil (elisp--completion-local-symbols)
                            :predicate
@@ -1186,12 +1183,11 @@ functions are annotated with \"<f>\" via the
                                         (forward-sexp 2)
                                         (< (point) beg)))))
                         (list t (elisp--completion-local-symbols)
-                              :predicate (lambda (sym) (get sym 'error-conditions))))
+                              :predicate #'error-type-p))
                        ;; `ignore-error' with a list CONDITION parameter.
                        ('ignore-error
                         (list t (elisp--completion-local-symbols)
-                              :predicate (lambda (sym)
-                                           (get sym 'error-conditions))))
+                              :predicate #'error-type-p))
                        ((and (or ?\( 'let 'let* 'cond 'cond* 'bind*)
                              (guard (save-excursion
                                       (goto-char (1- beg))

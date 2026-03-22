@@ -3604,18 +3604,15 @@ the deferred compilation mechanism."
                  ;; If we are doing an async native compilation print the
                  ;; error in the correct format so is parsable and abort.
                  (if (and comp-async-compilation
-                          (not (eq (car err) 'native-compiler-error)))
+                          (not (error-has-type-p err 'native-compiler-error)))
                      (progn
                        (message "%S: Error %s"
                                 function-or-file
                                 (error-message-string err))
                        (kill-emacs -1))
                    ;; Otherwise re-signal it adding the compilation input.
-                   ;; FIXME: We can't just insert arbitrary info in the
-                   ;; error-data part of an error: the handler may expect
-                   ;; specific data at specific positions!
                    (comp--error-add-context err function-or-file)
-	           (signal (car err) (cdr err)))))
+	           (signal err))))
               (if (stringp function-or-file)
                   data
                 ;; So we return the compiled function.

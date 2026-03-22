@@ -1505,6 +1505,8 @@ in the repository.")
     ;; module.* moved to emacs-module.*
     ("src/module.h" . "emacs-module.h")
     ("src/module.c" . "emacs-module.c")
+    ;; Renamed from .h.in to .in.h.
+    ("src/emacs-module.h.in" . "emacs-module.in.h")
     ("test/src/regex-tests.el" . "regex-emacs-tests.el")
     ("test/lisp/emacs-lisp/cl-tests.el" . "cl-tests.el")
     ("url-ns.el" . "url-ns.el")

@@ -737,16 +737,15 @@ See bug#35036."
     (goto-char (point-max))
     ;; We use a keyboard macro because it adds undo events in the same
     ;; way as if a user were involved.
-    (kmacro-call-macro nil nil nil
-                       [left
-                        ;; Delete "c"
-                        backspace
-                        left left left
-                        ;; Delete "a"
-                        backspace
-                        ;; C-/ or undo
-                        67108911
-                        ])
+    (funcall (kmacro [left
+                      ;; Delete "c"
+                      backspace
+                      left left left
+                      ;; Delete "a"
+                      backspace
+                      ;; C-/ or undo
+                      ?\C-/
+                      ]))
     (point)))
 
 (defun undo-test-point-after-forward-kill ()
@@ -756,13 +755,11 @@ See bug#35036."
     (insert "kill word forward")
     ;; Move to word "word".
     (goto-char 6)
-    (kmacro-call-macro nil nil nil
-                       [
-                        ;; kill-word
-                        C-delete
-                        ;; undo
-                        67108911
-                        ])
+    (funcall (kmacro [;; kill-word
+                      C-delete
+                      ;; undo
+                      ?\C-/
+                      ]))
     (point)))
 
 (ert-deftest undo-point-in-wrong-place ()

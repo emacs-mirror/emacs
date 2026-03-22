@@ -1366,8 +1366,8 @@ DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
        1, 1, 0,
        doc: /* Return the multibyte equivalent of STRING.
 If STRING is unibyte and contains non-ASCII characters, the function
-`unibyte-char-to-multibyte' is used to convert each unibyte character
-to a multibyte character.  In this case, the returned string is a
+converts each unibyte character to an eight-bit raw byte in its
+multibyte representation.  In this case, the returned string is a
 newly created string with no text properties.  If STRING is multibyte
 or entirely ASCII, it is returned unchanged.  In particular, when
 STRING is unibyte and entirely ASCII, the returned string is unibyte.
@@ -1406,9 +1406,9 @@ DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
        1, 1, 0,
        doc: /* Return a unibyte string with the same individual bytes as STRING.
 If STRING is unibyte, the result is STRING itself.
-Otherwise it is a newly created string, with no text properties.
-If STRING is multibyte and contains a character of charset
-`eight-bit', it is converted to the corresponding single byte.  */)
+Otherwise it is a newly created unibyte string, with no text properties,
+whose bytes are identical to those of STRING, except that any character
+of charset `eight-bit' is converted to the corresponding single byte.  */)
   (Lisp_Object string)
 {
   CHECK_STRING (string);
@@ -7671,8 +7671,12 @@ this variable.  */);
   use_file_dialog = true;
 
   DEFVAR_BOOL ("use-short-answers", use_short_answers,
-    doc: /* Non-nil means `yes-or-no-p' uses shorter answers "y" or "n".
+    doc: /* Non-nil means `yes-or-no-p' accepts single-key answers "y" or "n".
 When non-nil, `yes-or-no-p' will use `y-or-n-p' to read the answer.
+This means the user will be able to press just one key to answer, whereas
+by default the user needs to type the full \"yes\" or \"no\" response
+and then press RET.
+
 We recommend against setting this variable non-nil, because `yes-or-no-p'
 is intended to be used when users are expected not to respond too
 quickly, but to take their time and perhaps think about the answer.

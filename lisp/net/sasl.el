@@ -50,8 +50,7 @@
 
 (defvar sasl-unique-id-function #'sasl-unique-id-function)
 
-(put 'sasl-error 'error-message "SASL error")
-(put 'sasl-error 'error-conditions '(sasl-error error))
+(define-error 'sasl-error "SASL error")
 
 (defun sasl-error (datum)
   (signal 'sasl-error (list datum)))

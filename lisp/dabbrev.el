@@ -437,11 +437,6 @@ then it searches *all* buffers."
                   (let ((completion-list
                          (dabbrev--find-all-expansions abbrev ignore-case-p))
                         (completion-ignore-case ignore-case-p))
-                    (or (consp completion-list)
-                        (user-error "No dynamic expansion for \"%s\" found%s"
-                                    abbrev
-                                    (if dabbrev--check-other-buffers
-                                        "" " in this-buffer")))
                     (setq list
                           (cond
                            ((not (and ignore-case-p dabbrev-case-replace))

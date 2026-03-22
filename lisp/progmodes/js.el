@@ -849,7 +849,7 @@ macro as normal text."
       (search-failed
        (goto-char saved-point)
        (unless noerror
-         (signal (car err) (cdr err)))))))
+         (signal err))))))
 
 
 (defun js--re-search-backward-inner (regexp &optional bound count)

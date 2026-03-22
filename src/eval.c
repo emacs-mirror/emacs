@@ -1902,9 +1902,14 @@ probably_quit (void)
   unbind_to (gc_count, Qnil);
 }
 
-DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
+DEFUN ("signal", Fsignal, Ssignal, 1, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
 This function does not return.
+
+When signaling a new error, the DATA argument is mandatory.
+When re-signaling an error to propagate it to further handlers,
+DATA has to be omitted and the first argument has to be the whole
+error descriptor.
 
 When `noninteractive' is non-nil (in particular, in batch mode), an
 unhandled error calls `kill-emacs', which terminates the Emacs
@@ -1973,13 +1978,14 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
       /* FIXME: 'handler-bind' makes `signal-hook-function' obsolete?  */
       /* FIXME: Here we still "split" the error object
          into its error-symbol and its error-data?  */
-      calln (Vsignal_hook_function, error_symbol, data);
+      calln (Vsignal_hook_function, real_error_symbol,
+	     NILP (data) && CONSP (error) ? XCDR (error) : data);
       unbind_to (count, Qnil);
     }
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
   if (NILP (conditions))
-    signal_error ("Invalid error symbol", error_symbol);
+    signal_error ("Invalid error symbol", real_error_symbol);
 
   /* Remember from where signal was called.  Skip over the frame for
      `signal' itself.  If a frame for `error' follows, skip that,

@@ -543,7 +543,7 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 		    (setq last-encoded nil)))))
 	    (error
 	     (if (or debug-on-quit debug-on-error)
-		 (signal (car err) (cdr err))
+		 (signal err)
 	       (error "Invalid data for rfc2047 encoding: %s"
 		      (replace-regexp-in-string "[ \t\n]+" " " orig-text))))))))
     (unless dont-fold

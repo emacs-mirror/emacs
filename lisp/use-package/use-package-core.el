@@ -1796,7 +1796,7 @@ node `(use-package) Creating an extension'."
     (pcase arg
       ((or 'nil 't) (list name))                 ; guess name
       ((pred symbolp) (list arg))                ; use this name
-      ((pred stringp) (list name arg))           ; version string + guess name
+      ((pred stringp) (list name (list :url arg))) ; URL + guess name
       (`(,(pred keywordp) . ,(pred listp))       ; list + guess name
        (use-package-normalize--vc-arg (cons name arg)))
       (`(,(pred symbolp) . ,(or (pred listp)     ; list/version string + name

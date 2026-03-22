@@ -176,7 +176,7 @@ must never cause a Lisp error."
 	  (error
 	   (setq parameters nil)
 	   (when signal-error
-	     (signal (car err) (cdr err)))))
+	     (signal err))))
 
 	;; Now collect and concatenate continuation parameters.
 	(let ((cparams nil)

@@ -35,7 +35,9 @@ EMACS_INT executing_kbd_macro_iterations;
 
 /* This is the macro that was executing.
    This is not bound at each level,
-   so after an error, it describes the innermost interrupted macro.  */
+   so after an error, it describes the innermost interrupted macro.
+   We use it only as a kind of flag; it could be a simple bool, but we
+   keep the string/vector around to aid debugging.  */
 
 Lisp_Object executing_kbd_macro;
 

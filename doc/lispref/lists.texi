@@ -830,6 +830,26 @@ list, and you can then say, for instance:
 @end lisp
 @end defun
 
+@defun ensure-proper-list object
+This function returns @var{object} as a proper list (@pxref{(elisp) Cons
+Cells}).  If @var{object} is already a proper list, the function returns
+it; otherwise, the function returns a one-element list containing
+@var{object}.
+
+If @var{object} might be a long list, prefer @code{ensure-list}, because
+the latter function runs in constant time, whereas
+@code{ensure-proper-list} runs in linear time.  For short lists this
+function is a convenient way to treat cons-cells as non-lists:
+
+@lisp
+(ensure-list '(1 . 2))
+    @result{}(1 . 2)
+
+(ensure-proper-list '(1 . 2))
+    @result{}((1 . 2))
+@end lisp
+@end defun
+
 @defun number-sequence from &optional to separation
 This function returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before
@@ -1976,11 +1996,15 @@ through a simple example:
      @result{} white
 @end lisp
 
-The @var{body} is inspected at compilation time, and only the symbols
-that appear in @var{body} with a @samp{.} as the first character in
+The @var{body} is inspected during macro-expansion, and the symbols that
+appear literally in @var{body} with a @samp{.} as the first character in
 the symbol name will be bound.  Finding the keys is done with
-@code{assq}, and the @code{cdr} of the return value of this
-@code{assq} is assigned as the value for the binding.
+@code{assq}, and the @code{cdr} of the return value of this @code{assq}
+is assigned as the value for the binding.  The generated code performs
+all @var{alist} lookups before any other part of @var{body}, so a symbol
+@code{.foo} that appears anywhere in body will be looked up (using key
+@code{foo}) and bound whether or not it is actually used in @var{body}
+at runtime.
 
 Nested association lists is supported:
 
@@ -2006,7 +2030,7 @@ Indexing into lists is also supported:
 
 Note that forms like @samp{.0} or @samp{.3} are interpreted as numbers
 rather than as symbols, so they won't be bound to the corresponding
-values in ALIST.
+values in @var{alist}.
 
 @end defmac
 

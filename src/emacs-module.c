@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /*
 The public module API is defined in the header emacs-module.h.  The
-configure script generates emacs-module.h from emacs-module.h.in and
+configure script generates emacs-module.h from emacs-module.in.h and
 the version-specific environment fragments in module-env-*.h.
 
 If you want to change the module API, please abide to the following

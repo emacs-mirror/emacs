@@ -1688,6 +1688,13 @@ row).  Just what constitutes a block depends on the major mode.  In C
 mode and related modes, blocks are delimited by braces, while in Lisp
 mode they are delimited by parentheses.  Multi-line comments also
 count as blocks.
+
+Additionally, Hideshow mode supports optional indentation-based
+hiding/showing.  By default this is disabled; to enable it, turn on the
+buffer-local minor mode @code{hs-indentation-mode}.  Enabling
+@code{hs-indentation-mode} does not require that @code{hs-minor-mode} is
+already enabled.
+
 @vindex hs-prefix-map
 
   Hideshow mode provides the following commands (defined in @code{hs-prefix-map}):
@@ -1743,6 +1750,7 @@ Either hide or show all the blocks in the current buffer. (@code{hs-toggle-all})
 @vindex hs-isearch-open
 @vindex hs-hide-block-behavior
 @vindex hs-cycle-filter
+@vindex hs-indentation-respect-end-block
   These variables can be used to customize Hideshow mode:
 
 @table @code
@@ -1751,10 +1759,11 @@ If non-@code{nil}, @code{hs-hide-all}, @code{hs-cycle} and
 @code{hs-hide-level} hide comments too.
 
 @item hs-hide-block-behavior
-This variable controls how @code{hs-hide-block} and
-@code{hs-toggle-hiding} should hide a block.  The possible values can be
-'after-bol', hide the innermost block to which the current line belongs;
-or 'after-cursor', hide the block after cursor position.
+This variable controls how @code{hs-hide-block}, @code{hs-cycle},
+@code{hs-hide-level}, and @code{hs-toggle-hiding} should hide a block.
+The possible values can be 'after-bol', hide the innermost block to
+which the current line belongs; or 'after-cursor', hide the block after
+cursor position.
 
 @item hs-display-lines-hidden
 If non-@code{nil}, display the number of hidden lines next to the
@@ -1795,6 +1804,11 @@ block.  Its value should be either @code{code} (unhide only code
 blocks), @code{comment} (unhide only comments), @code{t} (unhide both
 code blocks and comments), or @code{nil} (unhide neither code blocks
 nor comments).  The default value is @code{code}.
+
+@item hs-indentation-respect-end-block
+This variable controls whether the end of the block should be hidden
+together with the hidden region.  This only has effect if
+@code{hs-indentation-mode} is enabled.
 @end table
 
 @node Symbol Completion

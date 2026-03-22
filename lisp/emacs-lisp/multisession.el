@@ -295,7 +295,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
            (setq i (1+ i)
                  last-error err)
            (sleep-for (+ 0.1 (/ (float (random 10)) 10))))))
-      (signal (car last-error) (cdr last-error)))))
+      (signal last-error))))
 
 (defun multisession--object-file-name (object)
   (expand-file-name

@@ -70,14 +70,14 @@ done from early-init.el, such as adding to 'package-directory-list'.
 
 +++
 ** Emacs prepares a User Lisp directory by default.
-If you have a directory named "user-lisp" in your Emacs configuration
-directory, then the recursive contents will now be byte-compiled,
-scraped for autoload cookies and ensured to be in 'load-path' by
-default.  You can disable the feature by setting 'user-lisp-auto-scrape'
-to nil, or set the 'user-lisp-directory' user option to process any
-other directory on your system.  You can also invoke the
-'prepare-user-lisp' command manually at any time.  See the Info node
-"(emacs) User Lisp Directory" for more details.
+If you have a subdirectory "user-lisp/" in your Emacs configuration
+directory, then Lisp files in it and its subdirectories will now be
+recursively byte-compiled, scraped for autoload cookies and ensured to
+be in 'load-path' by default.  You can disable the feature by setting
+'user-lisp-auto-scrape' to nil, or set the 'user-lisp-directory' user
+option to process any other directory on your system.  You can also
+invoke the 'prepare-user-lisp' command manually at any time.  See the
+Info node "(emacs) User Lisp Directory" for more details.
 
 
 * Changes in Emacs 31.1
@@ -1021,7 +1021,7 @@ The duration for which the values are cached depends on whether it is
 called from 'non-essential' context, and it determined by variables
 'project-vc-cache-timeout' and 'project-vc-non-essential-cache-timeout'.
 
-** Network Security Manager (NSM) is now more strict.
+** Network Security Manager (NSM)
 
 *** NSM warns about TLS 1.1 by default.
 It has been deprecated by RFC 8996, published in 2021.
@@ -1351,11 +1351,13 @@ to customize the indicators appearance only if 'hs-indicator-type' is
 set to 'margin' or nil.
 
 +++
-*** New user option 'hs-hide-block-behavior'.
-This user option controls how 'hs-hide-block' and 'hs-toggle-hiding'
-should hide a block.  If set to 'after-bol', hide the innermost block to
-which the current line belongs.  If set to 'after-cursor', hide the block
-after cursor position.  By default this is set to 'after-bol'.
+*** The hiding behavior of some hideshow commands has changed.
+'hs-hide-block', 'hs-hide-level', 'hs-cycle' and 'hs-toggle-hiding' now
+hide the innermost block to which the current line belongs instead of
+the block after cursor position.
+
+To restore the old behavior set the new user option
+'hs-hide-block-behavior' to 'after-cursor'.
 
 +++
 *** New user option 'hs-cycle-filter' for visibility-cycling with 'TAB'.
@@ -1373,6 +1375,14 @@ buffer-local variables 'hs-block-start-regexp', 'hs-c-start-regexp',
 +++
 *** 'hs-hide-level' can now hide comments too.
 This is controlled by 'hs-hide-comments-when-hiding-all'.
+
++++
+*** New minor mode 'hs-indentation-mode'.
+This buffer-local minor mode configures 'hs-indentation-mode' to detect
+blocks based on indentation.
+
+The new user option 'hs-indentation-respect-end-block' can be used to
+adjust the hiding range for this minor mode.
 
 ** C-ts mode
 
@@ -3098,6 +3108,12 @@ tarballs and prepare them to be activated in the sub-process.
 *** package-x.el is now obsolete.
 
 ---
+*** The command 'package-vc-install-from-checkout' is now obsolete.
+Please use the User Lisp directory instead, see Info node "(emacs) User
+Lisp Directory" for more details on how to use.  This also means that
+combining the 'use-package' keywords ':vc' and ':load-path' is obsolete.
+
+---
 *** Package menu now highlights packages marked for installation or deletion.
 
 *** Package menu now displays the total number of the package type.
@@ -3311,10 +3327,10 @@ This is intended for customizing directory-local variables in the
 current directory's ".dir-locals.el" file.
 
 +++
-*** New keybinding 'C-c C-k' for 'Custom-reset-standard'
+*** New keybinding 'C-c C-k' for 'Custom-reset-standard'.
 
 +++
-*** New command 'Custom-goto-first-choice' (bound to 'C-c C-i')
+*** New command 'Custom-goto-first-choice' (bound to 'C-c C-i').
 When first opening the customization interface for a user option, you
 can use this command as a shortcut to jump to the first actionable
 button or field (for instance an on/off button for boolean options, or a
@@ -3758,6 +3774,14 @@ the mode line without polling for changes every
 means the mode line will update only when the battery power state,
 percentage, or presence in the bay changes.
 
+** Etags Regen mode
+
+*** Tags table is not created during completion anymore.
+Previously, when there was no tags table loaded and the default
+completion function was called, 'etags-regen-mode' ensured that tags
+were created.  This has been disabled, and the new user option
+'etags-regen-create-on-completion' can be used to enable it again.
+
 
 * New Modes and Packages in Emacs 31.1
 
@@ -3831,6 +3855,11 @@ all versions, sleep events require Windows 8 or later).
 
 
 * Incompatible Lisp Changes in Emacs 31.1
+
++++
+** 'makunbound' on a variable alias undoes the alias.
+Previously it had the effect of applying the 'makunbound' on the
+target of the alias (which can fail on some builtin variables).
 
 ---
 ** 'FOO-ts-mode-indent-offset' renamed to 'FOO-ts-indent-offset'.
@@ -4029,6 +4058,14 @@ that will provide an Xref backend when used.
 
 
 * Lisp Changes in Emacs 31.1
+
++++
+** The API to manipulate error descriptors has been improved.
+There are new functions: 'error-type-p', 'error-type',
+'error-has-type-p', and 'error-slot-value'.
+And you can now do '(signal err)' instead of
+'(signal (car err) (cdr err))', which is not only more concise
+but also preserves the 'eq'uality of the error descriptor.
 
 +++
 ** 'secure-hash' now supports generating SHA-3 message digests.
@@ -4407,10 +4444,16 @@ current buffer, just like 'eval-expression' already did.
 +++
 ** New function 'multiple-command-partition-arguments'.
 This function partitions a list of command arguments that might be
-arbitrarily long.  It can be used in cases in which it's known to be
+arbitrarily long.  It can be used in cases in which it is known to be
 safe to run the command multiple times on subsequent partitions of the
 list of arguments.  The variable 'command-line-max-length' controls the
 partitioning.
+
+** New function 'ensure-proper-list'.
+This function is a variation on 'ensure-list' that checks if an object
+is a proper list, in which case the list will be returned as is,
+otherwise the function will return the object wrapped in a
+singleton list.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems

@@ -568,7 +568,35 @@ Defaults to `error'."
            (cons parent (get parent 'error-conditions)))))
     (put name 'error-conditions
          (delete-dups (copy-sequence (cons name conditions))))
+    ;; FIXME: Make `error-message-string' more flexible, e.g. allow
+    ;; the message to be specified by a `format' string or a function.
     (when message (put name 'error-message message))))
+
+(defun error-type-p (symbol)
+  "Return non-nil if SYMBOL is a condition type."
+  (get symbol 'error-conditions))
+
+(defun error--p (object)
+  "Return non-nil if OBJECT looks like a valid error descriptor."
+  (let ((type (car-safe object)))
+    (and type (symbolp type) (listp (cdr object))
+         (error-type-p type))))
+
+(defalias 'error-type #'car
+ "Return the symbol which represents the type of ERROR.
+\n(fn ERROR)")
+
+(defun error-has-type-p (error condition)
+  "Return non-nil if ERROR is of type CONDITION (or a subtype of it)."
+  (unless (error--p error)
+    (signal 'wrong-type-argument (list #'error--p error)))
+  (or (eq condition t)
+      (memq condition (get (car error) 'error-conditions))))
+
+(defalias 'error-slot-value #'elt
+  "Access the SLOT of object ERROR.
+Slots are specified by position, and slot 0 is the error symbol.
+\n(fn ERROR SLOT)")
 
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
@@ -1198,7 +1226,8 @@ with
     (member-if (lambda (x) (foo (bar x))) items)"
   (declare (compiler-macro
             (lambda (_)
-              `(drop-while (lambda (x) (not (funcall ,pred x))) ,list))))
+              (let ((x (make-symbol "x")))
+                `(drop-while (lambda (,x) (not (funcall ,pred ,x))) ,list)))))
   (drop-while (lambda (x) (not (funcall pred x))) list))
 
 ;; This is good to have for improved readability in certain uses, but
@@ -7792,6 +7821,18 @@ If OBJECT is already a list, return OBJECT itself.  If it's
 not a list, return a one-element list containing OBJECT."
   (declare (side-effect-free error-free))
   (if (listp object)
+      object
+    (list object)))
+
+(defun ensure-proper-list (object)
+  "Return OBJECT as a list.
+If OBJECT is already a proper list, return OBJECT itself.  If it's not a
+proper list, return a one-element list containing OBJECT.
+
+`ensure-list' is usually preferable because that function runs in
+constant time, but this one has to traverse the whole of OBJECT."
+  (declare (side-effect-free error-free))
+  (if (proper-list-p object)
       object
     (list object)))
 

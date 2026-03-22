@@ -1219,8 +1219,7 @@ errors signaled by ERROR-FORM or by BODY).
        (when (condition-case ,err
                  (progn ,@before-body t)
                (error (funcall error-function)
-                      (unless noerror
-                        (signal (car ,err) (cdr ,err)))))
+                      (unless noerror (signal ,err))))
          (funcall ,body)))))
 
 (cl-defun package--with-response-buffer-1 (url body &key async file error-function noerror &allow-other-keys)
@@ -2093,8 +2092,9 @@ NAME should be a symbol."
         (error "Use `package-vc-upgrade' for VC packages")
       (let ((new-desc (cadr (assq name package-archive-contents))))
         (when (or (null new-desc)
-                  (version-list-= (package-desc-version pkg-desc)
-                                  (package-desc-version new-desc)))
+                  (and pkg-desc
+                       (version-list-= (package-desc-version pkg-desc)
+                                       (package-desc-version new-desc))))
           (user-error "Cannot upgrade `%s'" name))
         (package-install new-desc
                          ;; An active built-in has never been "selected"

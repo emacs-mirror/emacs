@@ -232,7 +232,7 @@ also calls `beep' for an audible reminder."
                         time string)
              (wrong-type-argument
               (if (not (listp mins))
-                  (signal (car err) (cdr err))
+                  (signal err)
                 (message "Argtype error in `appt-disp-window-function' - \
 update it for multiple appts?")
                 ;; Fallback to just displaying the first appt, as we used to.

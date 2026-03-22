@@ -193,10 +193,13 @@ the active region is killed instead of deleted."
 Search for the next stretch of text identical to the region last replaced
 by typing text over it and replaces it with the same stretch of text.
 With ARG (interactively, prefix numeric argument), repeat that many times.
-Just `\\[universal-argument]' means repeat until the end of the buffer's accessible portion."
+Just `\\[universal-argument]' means repeat until the end of the buffer's accessible portion.
+This function requires the last replacement to be available in a register,
+so it does not work when `delete-selection-save-to-register' is nil."
   (interactive "P")
-  (let ((old-text (and delete-selection-save-to-register
-                       (get-register delete-selection-save-to-register)))
+  (unless delete-selection-save-to-register
+    (user-error "Can't work without delete-selection-save-to-register"))
+  (let ((old-text (get-register delete-selection-save-to-register))
         (count (if (consp arg) (point-max)
                  (prefix-numeric-value current-prefix-arg))))
     (if (not (and old-text (> (length old-text) 0)))

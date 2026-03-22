@@ -3470,10 +3470,10 @@ dump_charset (struct dump_context *ctx, int cs_i)
   /* We can't change the alignment here, because ctx->offset is what
      will be used for the whole array.  */
   eassert (ctx->offset % alignof (struct charset) == 0);
-  const struct charset *cs = charset_table + cs_i;
+  const struct charset *cs = charset_table.start + cs_i;
   struct charset out;
   dump_object_start_1 (ctx, &out, sizeof (out));
-  if (cs_i < charset_table_used) /* Don't look at uninitialized data.  */
+  if (cs_i < charset_table.used) /* Don't look at uninitialized data.  */
     {
       DUMP_FIELD_COPY (&out, cs, id);
       DUMP_FIELD_COPY (&out, cs, dimension);
@@ -3500,7 +3500,7 @@ dump_charset (struct dump_context *ctx, int cs_i)
       DUMP_FIELD_COPY (&out, cs, code_offset);
     }
   dump_off offset = dump_object_finish_1 (ctx, &out, sizeof (out));
-  if (cs_i < charset_table_used && cs->code_space_mask)
+  if (cs_i < charset_table.used && cs->code_space_mask)
     dump_remember_cold_op (ctx, COLD_OP_CHARSET,
                            Fcons (dump_off_to_lisp (cs_i),
                                   dump_off_to_lisp (offset)));
@@ -3514,13 +3514,13 @@ dump_charset_table (struct dump_context *ctx)
   ctx->flags.pack_objects = true;
   dump_align_output (ctx, alignof (struct charset));
 # ifdef HAVE_MPS
-  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, charset_table);
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_BYTES, charset_table.start);
 # endif
   dump_off offset = ctx->offset;
   if (dump_set_referrer (ctx))
     ctx->current_referrer = build_string ("charset_table");
-  eassert (charset_table_size == charset_table_used);
-  for (int i = 0; i < charset_table_size; ++i)
+  eassert (charset_table.size == charset_table.used);
+  for (int i = 0; i < charset_table.size; ++i)
     dump_charset (ctx, i);
   dump_clear_referrer (ctx);
   dump_emacs_reloc_to_dump_ptr_raw (ctx, &charset_table, offset);
@@ -3701,7 +3701,7 @@ dump_cold_charset (struct dump_context *ctx, Lisp_Object data)
 		    dump_off_to_lisp (code_space_mask_offset),
 		    dump_off_to_lisp (here)));
 #endif
-  struct charset *cs = charset_table + cs_i;
+  struct charset *cs = charset_table.start + cs_i;
   dump_write (ctx, cs->code_space_mask, 256);
 }
 
@@ -3714,7 +3714,8 @@ dump_cold_charsets (struct dump_context *ctx, Lisp_Object *cold_queue,
 		    Lisp_Object data)
 {
   dump_align_output (ctx, DUMP_ALIGNMENT);
-  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_CODE_SPACE_MASKS, charset_table);
+  dump_igc_start_obj (ctx, IGC_OBJ_DUMPED_CODE_SPACE_MASKS,
+		      charset_table.start);
   eassert (!ctx->header.code_space_masks);
   ctx->header.code_space_masks = ctx->offset;
   for (;;)
@@ -6013,13 +6014,13 @@ dump_do_dump_relocation (const uintptr_t dump_base,
       {
 	/* Copy the charset table out of the dump.  */
 	struct charset *old = dump_ptr (dump_base, reloc_offset);
-	eassert (old == charset_table);
-	eassert (charset_table_size == charset_table_used);
-	eassert (charset_table_size > 0);
-	size_t nbytes = charset_table_size * sizeof *old;
+	eassert (old == charset_table.start);
+	eassert (charset_table.size == charset_table.used);
+	eassert (charset_table.size > 0);
+	size_t nbytes = charset_table.size * sizeof *old;
 	struct charset *new = xmalloc (nbytes);
 	memcpy (new, old, nbytes);
-	charset_table = new;
+	charset_table.start = new;
       }
       break;
 #endif

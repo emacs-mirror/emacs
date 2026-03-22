@@ -61,16 +61,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    charset symbols, and values are vectors of charset attributes.  */
 Lisp_Object Vcharset_hash_table;
 
-/* Table of struct charset.  */
-struct charset *charset_table;
-int charset_table_size;
-int charset_table_used;
-
-/* Table of attribute vectors.  charset_attributes_table[id] contains
-   the attribute vector for the charset at charset_table[id].
-
-   This is a separate vector to simplify GC.  */
-Lisp_Object charset_attributes_table;
+/* The table of all charsets.  */
+struct charset_table charset_table;
 
 /* Special charsets corresponding to symbols.  */
 int charset_ascii;
@@ -1129,50 +1121,44 @@ usage: (define-charset-internal ...)  */)
   else
     {
       hash_put (hash_table, args[charset_arg_name], attrs, hash_code);
-      if (charset_table_used == charset_table_size)
+      if (charset_table.used == charset_table.size)
 	{
 	  /* Ensure that charset IDs fit into 'int' as well as into the
 	     restriction imposed by fixnums.  Although the 'int' restriction
 	     could be removed, too much other code would need altering; for
 	     example, the IDs are stuffed into struct
 	     coding_system.charbuf[i] entries, which are 'int'.  */
-	  int old_size = charset_table_size;
+	  int old_size = charset_table.size;
 	  ptrdiff_t new_size = old_size;
 	  struct charset *new_table
 	    = xpalloc (0, &new_size, 1,
 		       min (INT_MAX, MOST_POSITIVE_FIXNUM),
-		       sizeof *charset_table);
-	  memcpy (new_table, charset_table,
+		       sizeof *charset_table.start);
+	  memcpy (new_table, charset_table.start,
 		  old_size * sizeof *new_table);
-	  charset_table = new_table;
-	  charset_table_size = new_size;
+	  xfree (charset_table.start);
+	  charset_table.start = new_table;
+	  charset_table.size = new_size;
 	  Lisp_Object new_attr_table = make_vector (new_size, Qnil);
 	  for (size_t i = 0; i < old_size; i++)
 	    ASET (new_attr_table, i,
-		  AREF (charset_attributes_table, i));
-	  charset_attributes_table = new_attr_table;
-	  /* FIXME: This leaks memory, as the old charset_table becomes
-	     unreachable.  If the old charset table is charset_table_init
-	     then this leak is intentional; otherwise, it's unclear.
-	     If the latter memory leak is intentional, a
-	     comment should be added to explain this.  If not, the old
-	     charset_table should be freed, by passing it as the 1st argument
-	     to xpalloc and removing the memcpy.  */
+		  AREF (charset_table.attributes_table, i));
+	  charset_table.attributes_table = new_attr_table;
 	}
-      id = charset_table_used++;
+      id = charset_table.used++;
       new_definition_p = 1;
     }
 
   ASET (attrs, charset_id, make_fixnum (id));
   charset.id = id;
-  charset_table[id] = charset;
-  ASET (charset_attributes_table, id, attrs);
-  eassert (ASIZE (charset_attributes_table) == charset_table_size);
+  charset_table.start[id] = charset;
+  ASET (charset_table.attributes_table, id, attrs);
+  eassert (ASIZE (charset_table.attributes_table) == charset_table.size);
 
   if (charset.method == CHARSET_METHOD_MAP)
     {
       load_charset (&charset, 0);
-      charset_table[id] = charset;
+      charset_table.start[id] = charset;
     }
 
   if (charset.iso_final >= 0)
@@ -1567,7 +1553,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
 
   from_byte = CHAR_TO_BYTE (from);
 
-  charsets = make_nil_vector (charset_table_used);
+  charsets = make_nil_vector (charset_table.used);
   while (1)
     {
       find_charsets_in_text (BYTE_POS_ADDR (from_byte), stop - from,
@@ -1583,9 +1569,9 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
     }
 
   val = Qnil;
-  for (i = charset_table_used - 1; i >= 0; i--)
+  for (i = charset_table.used - 1; i >= 0; i--)
     if (!NILP (AREF (charsets, i)))
-      val = Fcons (CHARSET_NAME (charset_table + i), val);
+      val = Fcons (CHARSET_NAME (charset_table.start + i), val);
   return val;
 }
 
@@ -1600,14 +1586,14 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
 {
   CHECK_STRING (str);
 
-  Lisp_Object charsets = make_nil_vector (charset_table_used);
+  Lisp_Object charsets = make_nil_vector (charset_table.used);
   find_charsets_in_text (SDATA (str), SCHARS (str), SBYTES (str),
 			 charsets, table,
 			 STRING_MULTIBYTE (str));
   Lisp_Object val = Qnil;
-  for (int i = charset_table_used - 1; i >= 0; i--)
+  for (int i = charset_table.used - 1; i >= 0; i--)
     if (!NILP (AREF (charsets, i)))
-      val = Fcons (CHARSET_NAME (charset_table + i), val);
+      val = Fcons (CHARSET_NAME (charset_table.start + i), val);
   return val;
 }
 
@@ -2118,28 +2104,30 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
   return (id >= 0 ? CHARSET_NAME (CHARSET_FROM_ID (id)) : Qnil);
 }
 
-/* Shrink charset_table to charset_table_used.  */
+/* Shrink charset_table to charset_table.used.  */
 static void
 shrink_charset_table (void)
 {
-  eassert (charset_table_size >= charset_table_used);
-  eassert (ASIZE (charset_attributes_table) == charset_table_size);
+  eassert (charset_table.size >= charset_table.used);
+  eassert (ASIZE (charset_table.attributes_table)
+	   == charset_table.size);
 
-  struct charset *old = charset_table;
-  size_t nbytes = charset_table_used * sizeof *old;
-  struct charset *new = xmalloc (nbytes);
-  memcpy (new, old, nbytes);
-  charset_table = new;
-  xfree (old);
+  if (charset_table.size > charset_table.used)
+    {
+      eassert (!pdumper_object_p (charset_table.start));
+      charset_table.start
+	= xnrealloc (charset_table.start, charset_table.used,
+		     sizeof *charset_table.start);
 
-  Lisp_Object new_attr_table = make_vector (charset_table_used, Qnil);
-  for (size_t i = 0; i < charset_table_used; i++)
-    ASET (new_attr_table, i, AREF (charset_attributes_table, i));
-  charset_attributes_table = new_attr_table;
+      charset_table.attributes_table
+	= Fvector (charset_table.used,
+		   xvector_contents (charset_table.attributes_table));
 
-  charset_table_size = charset_table_used;
-
-  eassert (ASIZE (charset_attributes_table) == charset_table_size);
+      charset_table.size = charset_table.used;
+    }
+  eassert (charset_table.size == charset_table.used);
+  eassert (ASIZE (charset_table.attributes_table)
+	   == charset_table.size);
 }
 
 DEFUN ("clear-charset-maps", Fclear_charset_maps, Sclear_charset_maps,
@@ -2409,16 +2397,17 @@ syms_of_charset (void)
   staticpro (&Vcharset_hash_table);
   Vcharset_hash_table = CALLN (Fmake_hash_table, QCtest, Qeq);
 
-  charset_table_size = CHARSET_TABLE_INIT_SIZE;
-  PDUMPER_REMEMBER_SCALAR (charset_table_size);
-  charset_table
-    = xmalloc (charset_table_size * sizeof *charset_table);
-  charset_table_used = 0;
-  PDUMPER_REMEMBER_SCALAR (charset_table_used);
+  charset_table.size = CHARSET_TABLE_INIT_SIZE;
+  PDUMPER_REMEMBER_SCALAR (charset_table.size);
+  charset_table.start
+    = xmalloc (charset_table.size * sizeof *charset_table.start);
+  charset_table.used = 0;
+  PDUMPER_REMEMBER_SCALAR (charset_table.used);
 
-  charset_attributes_table = make_vector (charset_table_size, Qnil);
-  staticpro (&charset_attributes_table);
+  charset_table.attributes_table
+    = make_vector (charset_table.size, Qnil);
 
+  staticpro (&charset_table.attributes_table);
   defsubr (&Scharsetp);
   defsubr (&Smap_charset_chars);
   defsubr (&Sdefine_charset_internal);

@@ -404,10 +404,12 @@ like <img alt=\"Some thing.\">."
 
 (defun flyspell-generic-progmode-verify ()
   "Used for `flyspell-generic-check-word-predicate' in programming modes."
-  (unless (eql (point) (point-min))
-    ;; (point) is next char after the word. Must check one char before.
-    (let ((f (get-text-property (1- (point)) 'face)))
-      (memq f flyspell-prog-text-faces))))
+  (cl-flet ((has-prog-face (pos) (memq (get-text-property pos 'face)
+                                       flyspell-prog-text-faces)))
+    ;; Point might be in front of, inside, or behind the misspelled word
+    (or (has-prog-face (point))               ; check char after point
+        (and (not (eql (point) (point-min)))
+             (has-prog-face (1- (point))))))) ; check char before point
 
 ;;;###autoload
 (defun flyspell-prog-mode ()

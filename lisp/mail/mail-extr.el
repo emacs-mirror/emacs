@@ -655,10 +655,10 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
 	t)
     (error
      ;; #### kludge kludge kludge kludge kludge kludge kludge !!!
-     (if (string-equal (nth 1 error) "Unbalanced parentheses")
+     (if (string-equal (error-slot-value error 1) "Unbalanced parentheses")
 	 nil
-       (while t
-	 (signal (car error) (cdr error)))))))
+       (while t ;;FIXME: Why?
+	 (signal error))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

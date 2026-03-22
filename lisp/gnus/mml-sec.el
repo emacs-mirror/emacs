@@ -939,7 +939,7 @@ If no one is selected, symmetric encryption will be performed.  "
 	      mml-secure-secret-key-id-list nil)
       (error
        (mml-secure-clear-secret-key-id-list)
-       (signal (car error) (cdr error))))
+       (signal error)))
     cipher))
 
 (defun mml-secure-sender-sign-query (protocol sender)
@@ -1029,7 +1029,7 @@ Returns non-nil if the user has chosen to use SENDER."
 	      mml-secure-secret-key-id-list nil)
       (error
        (mml-secure-clear-secret-key-id-list)
-       (signal (car error) (cdr error))))
+       (signal error)))
     (if (epg-context-result-for context 'sign)
 	(setq micalg (epg-new-signature-digest-algorithm
 		      (car (epg-context-result-for context 'sign)))))

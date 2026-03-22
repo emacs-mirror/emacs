@@ -731,7 +731,12 @@ A FUNC form can have any number of `:no-eval' (or `:no-value'),
    :eval (number-sequence 5 8))
   (ensure-list
    :eval (ensure-list "foo")
-   :eval (ensure-list '(1 2 3)))
+   :eval (ensure-list '(1 2 3))
+   :eval (ensure-list '(1 . 2)))
+  (ensure-proper-list
+   :eval (ensure-proper-list "foo")
+   :eval (ensure-proper-list '(1 2 3))
+   :eval (ensure-proper-list '(1 . 2)))
   "Operations on Lists"
   (append
    :eval (append '("foo" "bar") '("zot")))

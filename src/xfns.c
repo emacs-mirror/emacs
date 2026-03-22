@@ -4492,7 +4492,7 @@ x_window (struct frame *f)
 
   attributes.background_pixel = FRAME_BACKGROUND_PIXEL (f);
   attributes.border_pixel = f->output_data.x->border_pixel;
-  attributes.bit_gravity = StaticGravity;
+  attributes.bit_gravity = NorthWestGravity;
   attributes.backing_store = NotUseful;
   attributes.save_under = True;
   attributes.event_mask = STANDARD_EVENT_SET;

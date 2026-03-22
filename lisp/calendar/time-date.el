@@ -161,7 +161,7 @@ If DATE lacks time zone information, local time is assumed."
 	(encode-time parsed))
     (error
      (if (equal err '(error "Specified time is not representable"))
-	 (signal (car err) (cdr err))
+	 (signal err)
        (error "Invalid date: %s" date)))))
 
 ;;;###autoload

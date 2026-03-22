@@ -22,11 +22,19 @@
          ;; (vc-topic-branch-regexps . ("\\`feature/"))
          ))
  (c-mode . ((c-file-style . "GNU")
-            (c-noise-macro-names . ("INLINE" "NO_INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED"
-                                    "ATTRIBUTE_NO_SANITIZE_ADDRESS"
-                                    "UNINIT" "CALLBACK" "ALIGN_STACK" "ATTRIBUTE_MALLOC"
-                                    "ATTRIBUTE_DEALLOC_FREE" "ANDROID_EXPORT" "TEST_STATIC"
-                                    "INLINE_HEADER_BEGIN" "INLINE_HEADER_END"))
+            (c-noise-macro-names
+             "ALIGN_STACK" "ATTRIBUTE_COLD" "ATTRIBUTE_CONST"
+             "ATTRIBUTE_DEALLOC_FREE" "ATTRIBUTE_MALLOC" "ATTRIBUTE_MAY_ALIAS"
+             "ATTRIBUTE_NO_SANITIZE_ADDRESS" "ATTRIBUTE_NO_SANITIZE_UNDEFINED"
+             "ATTRIBUTE_NONSTRING" "ATTRIBUTE_RETURNS_NONNULL"
+             "CALLBACK" "EXTERNALLY_VISIBLE"
+             "INLINE" "INLINE_HEADER_BEGIN" "INLINE_HEADER_END" "NO_INLINE"
+             "MAYBE_UNUSED" "NODISCARD" "TEST_STATIC" "UNINIT")
+            (c-noise-macro-with-parens-names
+             "ARG_NONNULL" "ATTRIBUTE_ALLOC_SIZE"
+             "ATTRIBUTE_DEALLOC" "ATTRIBUTE_FORMAT_PRINTF"
+             "ATTRIBUTE_MALLOC_SIZE" "ATTRIBUTE_SECTION"
+             "EMACS_ATTRIBUTE_NONNULL")
             (electric-quote-comment . nil)
             (electric-quote-string . nil)
             (indent-tabs-mode . t)

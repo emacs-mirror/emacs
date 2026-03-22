@@ -28,10 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 extern EMACS_INT executing_kbd_macro_iterations;
 
-/* This is the macro that was executing.
-   This is not bound at each level,
-   so after an error, it describes the innermost interrupted macro.  */
-
 extern Lisp_Object executing_kbd_macro;
 
 /* Finish defining the current keyboard macro.  */

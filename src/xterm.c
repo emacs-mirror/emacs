@@ -8317,6 +8317,14 @@ x_update_frame_user_time_window (struct frame *f)
 	  output->user_time_window
 	    = x_create_special_window (dpyinfo, FRAME_X_WINDOW (f));
 
+	  if (FRAME_NO_FOCUS_ON_MAP (f))
+	    /* If the user time is zero, which is the case with
+	       `no-focus-on-map', then preserve that value by copying
+	       it to the new user time window.  */
+	    XChangeProperty (dpyinfo->display, output->user_time_window,
+			     dpyinfo->Xatom_net_wm_user_time, XA_CARDINAL, 32,
+			     PropModeReplace, (unsigned char *) &(Time) {0}, 1);
+
 	  XDeleteProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
 			   dpyinfo->Xatom_net_wm_user_time);
 	  XChangeProperty (dpyinfo->display, FRAME_OUTER_WINDOW (f),
@@ -29255,14 +29263,15 @@ x_make_frame_visible (struct frame *f)
 	 remember if it can leave `user_time_window' unset or not.  */
       if (output->user_time_window != None)
 	{
-	  if (dpyinfo->last_user_time)
+	  if (!dpyinfo->last_user_time)
+	    XDeleteProperty (dpyinfo->display, output->user_time_window,
+			     dpyinfo->Xatom_net_wm_user_time);
+	  /* Don't overwrite a zero user time for `no-focus-on-map'.  */
+	  else if (!FRAME_NO_FOCUS_ON_MAP (f))
 	    XChangeProperty (dpyinfo->display, output->user_time_window,
 			     dpyinfo->Xatom_net_wm_user_time,
 			     XA_CARDINAL, 32, PropModeReplace,
 			     (unsigned char *) &dpyinfo->last_user_time, 1);
-	  else
-	    XDeleteProperty (dpyinfo->display, output->user_time_window,
-			     dpyinfo->Xatom_net_wm_user_time);
 	}
 #endif
 

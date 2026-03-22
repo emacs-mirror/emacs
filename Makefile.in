@@ -342,7 +342,7 @@ SUBDIR_MAKEFILES = $(patsubst ${srcdir}/%,%,${SUBDIR_MAKEFILES_IN:.in=})
 # Non-makefile files created by config.status.
 CONFIG_STATUS_FILES_IN = \
  ${srcdir}/nt/emacs.rc.in ${srcdir}/nt/emacsclient.rc.in \
- ${srcdir}/doc/man/emacs.1.in ${srcdir}/src/emacs-module.h.in \
+ ${srcdir}/doc/man/emacs.1.in ${srcdir}/src/emacs-module.in.h \
  ${srcdir}/src/module-env-*.h
 
 # Subdirectories to install, and where they'll go.  lib-src's and nt's
@@ -646,7 +646,7 @@ endif
 ### Windows-specific install target for installing programs produced
 ### in nt/, and its Posix do-nothing shadow.
 install-:
-install-nt:
+install-nt: | $(NTDIR)
 	$(MAKE) -C $(NTDIR) install
 
 ## In the share directory, we are deleting:

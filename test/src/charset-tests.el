@@ -146,6 +146,16 @@
     (let ((sorted (sort-charsets (list b a))))
       (should (equal sorted (list a b))))))
 
+(ert-deftest charset-tests-define-charset ()
+  (eval '(define-charset 'charset-tests-cs-1
+           "Only used for testing"
+           :short-name  "CTCS1"
+           :long-name "Charset-Tests-Charset-1"
+           :code-space [33 126 33 126]
+           :code-offset #x28083A
+           :unify-map "CNS-F"))
+  (should (charsetp 'charset-tests-cs-1)))
+
 (provide 'charset-tests)
 
 ;;; charset-tests.el ends here

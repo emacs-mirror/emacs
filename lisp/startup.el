@@ -1123,15 +1123,12 @@ init-file, or to a default value if loading is not possible."
          (display-warning
           'initialization
           (format-message "\
-An error occurred while loading `%s':\n\n%s%s%s\n\n\
+An error occurred while loading `%s':\n\n%s\n\n\
 To ensure normal operation, you should investigate and remove the
 cause of the error in your initialization file.  Start Emacs with
 the `--debug-init' option to view a complete error backtrace."
                           user-init-file
-                          (get (car error) 'error-message)
-                          (if (cdr error) ": " "")
-                          (mapconcat (lambda (s) (prin1-to-string s t))
-                                     (cdr error) ", "))
+                          (error-message-string error))
           :warning)
          (setq init-file-had-error t))))))
 
@@ -1591,17 +1588,7 @@ please check its value")
     ;; If there was an error, print the error message and exit.
     (error
      (princ
-      (if (eq (car error) 'error)
-	  (apply #'concat (cdr error))
-	(if (memq 'file-error (get (car error) 'error-conditions))
-	    (format "%s: %s"
-                    (nth 1 error)
-                    (mapconcat (lambda (obj) (prin1-to-string obj t))
-                               (cdr (cdr error)) ", "))
-	  (format "%s: %s"
-                  (get (car error) 'error-message)
-                  (mapconcat (lambda (obj) (prin1-to-string obj t))
-                             (cdr error) ", "))))
+      (error-message-string error)
       'external-debugging-output)
      (terpri 'external-debugging-output)
      (setq initial-window-system nil)

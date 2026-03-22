@@ -3245,6 +3245,11 @@ persistently.  This can be changed by customizing the user option
 @node Newcomers Theme
 @section Newcomers Theme
 
+@ifinfo
+  (If you got here by clicking a link on the startup screen, you can
+type @kbd{q} to go back.)
+@end ifinfo
+
   Each release of Emacs brings new features, but they are not enabled by
 default to avoid disrupting users' existing workflows.  Many of these
 features, however, are intended to make Emacs more approachable to new
@@ -3261,6 +3266,3 @@ Therefore, if you get used to the newcomers' presets, consider copying
 them into your own configuration and then disabling the theme again.
 You can use the command @code{copy-theme-options} (@pxref{Custom
 Themes}) to do this.
-
-  (If you got here by clicking a link on the startup screen, type
-@kbd{q} to go back.)

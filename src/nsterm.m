@@ -9411,6 +9411,7 @@ ns_in_echo_area (void)
   XSETFRAME (ie.frame_or_window, *emacsframe);
 
   kbd_buffer_store_event (&ie);
+  ns_send_appdefined (-1);
   return YES;
 }
 
