@@ -1970,7 +1970,7 @@ save_current_matrix (struct frame *f)
       ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
 
 #ifdef HAVE_MPS
-      to->glyphs[TEXT_AREA] = igc_xzalloc_ambig (nbytes);
+      to->glyphs[TEXT_AREA] = IGC_XZALLOC_AMBIG (nbytes);
 #else
       to->glyphs[TEXT_AREA] = xmalloc (nbytes);
 #endif
@@ -1982,7 +1982,7 @@ save_current_matrix (struct frame *f)
 	{
 	  nbytes = from->used[LEFT_MARGIN_AREA] * sizeof (struct glyph);
 #ifdef HAVE_MPS
-	  to->glyphs[LEFT_MARGIN_AREA] = igc_xzalloc_ambig (nbytes);
+	  to->glyphs[LEFT_MARGIN_AREA] = IGC_XZALLOC_AMBIG (nbytes);
 #else
 	  to->glyphs[LEFT_MARGIN_AREA] = xmalloc (nbytes);
 #endif
@@ -1994,7 +1994,7 @@ save_current_matrix (struct frame *f)
 	{
 	  nbytes = from->used[RIGHT_MARGIN_AREA] * sizeof (struct glyph);
 #ifdef HAVE_MPS
-	  to->glyphs[RIGHT_MARGIN_AREA] = igc_xzalloc_ambig (nbytes);
+	  to->glyphs[RIGHT_MARGIN_AREA] = IGC_XZALLOC_AMBIG (nbytes);
 #else
 	  to->glyphs[RIGHT_MARGIN_AREA] = xmalloc (nbytes);
 #endif

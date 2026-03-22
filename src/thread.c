@@ -941,7 +941,8 @@ will be signaled.  */)
   new_thread->function = function;
   new_thread->name = name;
 #ifdef HAVE_MPS
-  new_thread->m_getcjmp = igc_xzalloc_ambig (sizeof (*new_thread->m_getcjmp));
+  new_thread->m_getcjmp = igc_xzalloc_ambig (sizeof (*new_thread->m_getcjmp),
+					    "jmp_buf");
   new_thread->thread_condvar = xzalloc (sizeof (*new_thread->thread_condvar));
   new_thread->bc = xzalloc (sizeof (*new_thread->bc));
 #endif

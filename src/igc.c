@@ -3951,7 +3951,7 @@ igc_xalloc_raw_exact (size_t n)
 }
 
 void *
-igc_xzalloc_ambig_with_label (size_t size, const char *label)
+igc_xzalloc_ambig (size_t size, const char *label)
 {
   /* Can't make a root that has zero length.  Want one to be able to
      detect calling igc_free on something not having a root.  */
@@ -3966,25 +3966,19 @@ igc_xzalloc_ambig_with_label (size_t size, const char *label)
 }
 
 void *
-igc_xzalloc_ambig (size_t size)
-{
-  return igc_xzalloc_ambig_with_label (size, NULL);
-}
-
-void *
 igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size)
 {
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
-  return igc_xzalloc_ambig (nbytes);
+  return IGC_XZALLOC_AMBIG (nbytes);
 }
 
 void *
 igc_realloc_ambig (void *block, size_t size)
 {
   if (block == NULL)
-    return igc_xzalloc_ambig (size);
+    return IGC_XZALLOC_AMBIG (size);
 
   void *p = xzalloc (size);
   struct igc *gc = global_igc;
@@ -5347,7 +5341,7 @@ igc_alloc_handler (void)
      for the case I know. --gerd  */
   struct handler *h = alloc (sizeof *h, IGC_OBJ_HANDLER);
 #else
-  struct handler *h = igc_xzalloc_ambig_with_label (sizeof *h, "handler");
+  struct handler *h = igc_xzalloc_ambig (sizeof *h, "handler");
 #endif
   return h;
 }

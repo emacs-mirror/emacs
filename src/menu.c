@@ -577,7 +577,7 @@ make_widget_value (const char *name, char *value,
 
   block_input ();
 #ifdef HAVE_MPS
-  wv = igc_xzalloc_ambig (sizeof (widget_value));
+  wv = IGC_XZALLOC_AMBIG (sizeof (widget_value));
 #else
   wv = xzalloc (sizeof (widget_value));
 #endif

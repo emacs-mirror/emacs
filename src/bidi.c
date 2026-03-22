@@ -1009,7 +1009,7 @@ bidi_shelve_cache (void)
   alloc = (bidi_shelve_header_size
 	   + bidi_cache_idx * sizeof (struct bidi_it));
 #ifdef HAVE_MPS
-  databuf = igc_xzalloc_ambig (alloc);
+  databuf = IGC_XZALLOC_AMBIG (alloc);
 #else
   databuf = xmalloc (alloc);
 #endif
