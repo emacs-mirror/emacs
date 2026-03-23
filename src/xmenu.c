@@ -2692,11 +2692,7 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 
 	  if (STRINGP (help))
-	    {
-	      help_string = SAFE_ALLOCA (SBYTES (help) + 1);
-	      memcpy (help_string, SSDATA (help), SBYTES (help));
-	      help_string[SBYTES (help)] = 0;
-	    }
+	    SAFE_ALLOCA_STRING (help_string, help);
 	  else
 	    help_string = NULL;
 
