@@ -3961,7 +3961,7 @@ igc_xzalloc_ambig (size_t size, const char *label)
     size++;
   void *p = xzalloc (size);
   void *end = (char *) p + size;
-  root_create_ambig (global_igc, p, end, label ? label : "igc-xzalloc-ambig");
+  root_create_ambig (global_igc, p, end, label);
   return p;
 }
 
