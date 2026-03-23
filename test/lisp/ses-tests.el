@@ -308,18 +308,16 @@ cell has to be rewritten to data area."
 (defmacro ert-play-keys (&rest keys)
   (let ((buf (make-symbol "buf")))
     `(let ((,buf (current-buffer)))
-       (execute-kbd-macro
-        (kmacro--keys
-         (kmacro
-          (concat
-           "M-: ( p o p - t o - b u f f e r SPC \" "
-           ,`(mapconcat (lambda (x)
-                          (cond
-                           ((= x 32) "SPC")
-                           (t (string x))))
-                        (buffer-name ,buf) " ")
-           " \" ) RET "
-           ,@keys)))))))
+       (funcall
+        (kmacro (concat
+                 "M-: ( p o p - t o - b u f f e r SPC \" "
+                 ,`(mapconcat (lambda (x)
+                                (cond
+                                 ((= x 32) "SPC")
+                                 (t (string x))))
+                              (buffer-name ,buf) " ")
+                 " \" ) RET "
+                 ,@keys))))))
 
 
 (ert-deftest ses-read-column-printer ()
