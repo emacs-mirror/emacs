@@ -2635,14 +2635,17 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  const char *pane_string;
+	  char *pane_string;
 
           maxlines = max (maxlines, lines);
           lines = 0;
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
-	  pane_string = (NILP (pane_name)
-			 ? "" : SSDATA (pane_name));
+	  if (NILP (pane_name))
+	    pane_string = (char *) "";
+	  else
+	    SAFE_ALLOCA_STRING (pane_string, pane_name);
+
 	  if ((menuflags & MENU_KEYMAPS) && !NILP (prefix))
 	    pane_string++;
 
