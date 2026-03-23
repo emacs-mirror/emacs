@@ -907,9 +907,9 @@ means that `whitespace-mode' is turned on for buffers in C and
 C++ modes only.
 
 Global `whitespace-mode' will not automatically turn on in internal
-buffers (whose name starts with a space) and special buffers (whose name
-starts with \"*\"), with the exception of the \"*scratch*\" buffer.  Use
-`whitespace-global-mode-buffers' to customize this behavior."
+buffers (whose names start with a space) and special buffers (whose
+names start with \"*\"), with the exception of the \"*scratch*\" buffer.
+Use `whitespace-global-mode-buffers' to customize this behavior."
   :type '(choice :tag "Global Modes"
 		 (const :tag "None" nil)
 		 (const :tag "All" t)
