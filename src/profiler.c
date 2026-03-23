@@ -79,7 +79,8 @@ make_log (int size, int depth)
   log->index_size = index_size;
 
 #ifdef HAVE_MPS
-  log->trace = IGC_XZALLOC_AMBIG (depth * sizeof *log->trace);
+  log->trace
+    = igc_xzalloc_ambig (depth * sizeof *log->trace, __func__);
 #else
   log->trace = xmalloc (depth * sizeof *log->trace);
 #endif
@@ -96,7 +97,8 @@ make_log (int size, int depth)
 
   log->hash = xmalloc (size * sizeof *log->hash);
 #ifdef HAVE_MPS
-  log->keys = IGC_XZALLOC_AMBIG (size * depth * sizeof *log->keys);
+  log->keys
+    = igc_xzalloc_ambig (size * depth * sizeof *log->keys, __func__);
 #else
   log->keys = xzalloc (size * depth * sizeof *log->keys);
 #endif

@@ -3971,14 +3971,14 @@ igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size)
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
-  return IGC_XZALLOC_AMBIG (nbytes);
+  return igc_xzalloc_ambig (nbytes, __func__);
 }
 
 void *
 igc_realloc_ambig (void *block, size_t size)
 {
   if (block == NULL)
-    return IGC_XZALLOC_AMBIG (size);
+    return igc_xzalloc_ambig (size, __func__);
 
   void *p = xzalloc (size);
   struct igc *gc = global_igc;

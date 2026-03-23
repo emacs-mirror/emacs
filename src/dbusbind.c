@@ -1281,7 +1281,7 @@ this connection to those buses.  */)
       /* Add the watch functions.  We pass also the bus as data, in
 	 order to distinguish between the buses in xd_remove_watch.  */
 #ifdef HAVE_MPS
-      Lisp_Object* pin = IGC_XZALLOC_AMBIG (sizeof *pin);
+      Lisp_Object *pin = igc_xzalloc_ambig (sizeof *pin, __func__);
       *pin = bus;
 #else
       Lisp_Object* pin = NULL;

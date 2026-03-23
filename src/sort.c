@@ -638,7 +638,7 @@ merge_getmem (merge_state *ms, const ptrdiff_t need)
     }
   ptrdiff_t bytes = (need * word_size) << (ms->a.values != NULL ? 1 : 0);
 # ifdef HAVE_MPS
-  ms->a.keys = IGC_XZALLOC_AMBIG (bytes);
+  ms->a.keys = igc_xzalloc_ambig (bytes, __func__);
 #else
   ms->a.keys = xmalloc (bytes);
 #endif
@@ -1135,7 +1135,8 @@ tim_sort (Lisp_Object predicate, Lisp_Object keyfunc,
 	     keys have been computed.  */
 	  static_assert (NIL_IS_ZERO);
 #ifdef HAVE_MPS
-	  keys = allocated_keys = IGC_XZALLOC_AMBIG (length * word_size);
+	  keys = allocated_keys
+	    = igc_xzalloc_ambig (length * word_size, __func__);
 #else
 	  keys = allocated_keys = xzalloc (length * word_size);
 #endif

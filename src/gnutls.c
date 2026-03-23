@@ -709,7 +709,8 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
 #ifdef HAVE_MPS
       /* FIXME/igc: use exact tracing here */
       if (!proc->gnutls_pproc)
-	proc->gnutls_pproc = IGC_XZALLOC_AMBIG (sizeof *proc->gnutls_pproc);
+	proc->gnutls_pproc
+	  = igc_xzalloc_ambig (sizeof *proc->gnutls_pproc, __func__);
 #else
       if (!proc->gnutls_pproc)
 	proc->gnutls_pproc = xmalloc (sizeof *proc->gnutls_pproc);

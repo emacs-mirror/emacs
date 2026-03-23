@@ -3950,7 +3950,7 @@ the buffer if POS is outside of the narrowing.  */)
   len = 10;
   /* We can't use alloca here because overlays_at can call xrealloc.  */
 #ifdef HAVE_MPS
-  overlay_vec = IGC_XZALLOC_AMBIG (len * sizeof *overlay_vec);
+  overlay_vec = igc_xzalloc_ambig (len * sizeof *overlay_vec, __func__);
 #else
   overlay_vec = xmalloc (len * sizeof *overlay_vec);
 #endif
@@ -4010,7 +4010,7 @@ the buffer if BEG and/or END are outside of the narrowing.  */)
 
   len = 10;
  #ifdef HAVE_MPS
-  overlay_vec = IGC_XZALLOC_AMBIG (len * sizeof *overlay_vec);
+  overlay_vec = igc_xzalloc_ambig (len * sizeof *overlay_vec, __func__);
 #else
   overlay_vec = xmalloc (len * sizeof *overlay_vec);
 #endif

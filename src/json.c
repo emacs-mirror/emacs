@@ -145,7 +145,9 @@ make_symset_table (int bits, struct symset_tbl *up)
   if (bits > maxbits)
     memory_full (PTRDIFF_MAX);	/* Will never happen in practice.  */
 #ifdef HAVE_MPS
-  struct symset_tbl *st = IGC_XZALLOC_AMBIG (sizeof *st + (sizeof *st->entries << bits));
+  struct symset_tbl *st
+    = igc_xzalloc_ambig (sizeof *st + (sizeof *st->entries << bits),
+			 __func__);
 #else
   struct symset_tbl *st = xmalloc (sizeof *st + (sizeof *st->entries << bits));
 #endif

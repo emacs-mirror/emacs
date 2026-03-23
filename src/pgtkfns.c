@@ -2635,7 +2635,8 @@ pgtk_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, str
      counts etc.  */
   f->output_method = output_pgtk;
 #ifdef HAVE_MPS
-  f->output_data.pgtk = IGC_XZALLOC_AMBIG (sizeof *f->output_data.pgtk);
+  f->output_data.pgtk
+    = igc_xzalloc_ambig (sizeof *f->output_data.pgtk, __func__);
 #else
   f->output_data.pgtk = xzalloc (sizeof *f->output_data.pgtk);
 #endif

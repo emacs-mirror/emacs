@@ -4225,7 +4225,7 @@ x_window (struct frame *f, long window_prompting)
 
   struct frame **framep;
 #ifdef HAVE_MPS
-  framep = IGC_XZALLOC_AMBIG (sizeof *framep);
+  framep = igc_xzalloc_ambig (sizeof *framep, __func__);
 #else
   framep = xmalloc (sizeof *framep);
 #endif

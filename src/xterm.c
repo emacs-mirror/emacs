@@ -5853,7 +5853,7 @@ xi_link_touch_point (struct xi_device_t *device,
     local_detail = 0;
 
 #ifdef HAVE_MPS
-  touchpoint = IGC_XZALLOC_AMBIG (sizeof *touchpoint);
+  touchpoint = igc_xzalloc_ambig (sizeof *touchpoint, __func__);
 #else
   touchpoint = xmalloc (sizeof *touchpoint);
 #endif
