@@ -5871,7 +5871,7 @@ ns_term_init (Lisp_Object display_name)
                                              name: nil object: nil]; */
 
 #ifdef HAVE_MPS
-  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo, "dpyinfo");
 #else
   dpyinfo = xzalloc (sizeof *dpyinfo);
 #endif
