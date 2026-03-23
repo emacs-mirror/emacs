@@ -2688,22 +2688,26 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
-	  descrip
-	    = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
+	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
 	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 	  help_string = STRINGP (help) ? SSDATA (help) : NULL;
 
-	  if (!NILP (descrip))
-	    {
-	      item_data = SAFE_ALLOCA (maxwidth + SBYTES (descrip) + 1);
-	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
-	      for (j = SCHARS (item_name); j < maxwidth; j++)
-		item_data[j] = ' ';
-	      memcpy (item_data + j, SSDATA (descrip), SBYTES (descrip));
-	      item_data[j + SBYTES (descrip)] = 0;
-	    }
-	  else
-	    item_data = SSDATA (item_name);
+	  {
+	    ptrdiff_t desc_len
+	      = NILP (descrip) ? 0 : SBYTES (descrip);
+	    item_data = SAFE_ALLOCA (maxwidth + desc_len + 1);
+	    ptrdiff_t name_len = SBYTES (item_name);
+	    memcpy (item_data, SSDATA (item_name), name_len);
+	    j = name_len;
+	    if (!NILP (descrip))
+	      {
+		for (; j < maxwidth; j++)
+		  item_data[j] = ' ';
+		memcpy (item_data + j, SSDATA (descrip), desc_len);
+		j += desc_len;
+	      }
+	    item_data[j] = 0;
+	  }
 
 	  if (lpane == XM_FAILURE
 	      || (XMenuAddSelection (FRAME_X_DISPLAY (f),
