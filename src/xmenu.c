@@ -2684,13 +2684,21 @@ x_menu_show (struct frame *f, int x, int y, int menuflags,
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, help;
 	  char *item_data;
-	  char const *help_string;
+	  char *help_string;
 
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
 	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
 	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
-	  help_string = STRINGP (help) ? SSDATA (help) : NULL;
+
+	  if (STRINGP (help))
+	    {
+	      help_string = SAFE_ALLOCA (SBYTES (help) + 1);
+	      memcpy (help_string, SSDATA (help), SBYTES (help));
+	      help_string[SBYTES (help)] = 0;
+	    }
+	  else
+	    help_string = NULL;
 
 	  {
 	    ptrdiff_t desc_len
