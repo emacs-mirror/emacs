@@ -1886,7 +1886,7 @@ static struct OpenTypeSpec *
 macfont_get_open_type_spec (Lisp_Object otf_spec)
 {
 #ifdef HAVE_MPS
-  struct OpenTypeSpec *spec = igc_xzalloc_ambig (sizeof *spec);
+  struct OpenTypeSpec *spec = IGC_XZALLOC_AMBIG (sizeof *spec);
 #else
   struct OpenTypeSpec *spec = xmalloc (sizeof *spec);
 #endif

@@ -6787,7 +6787,7 @@ android_term_init (void)
   Lisp_Object color_file;
 
 #ifdef HAVE_MPS
-  dpyinfo = igc_xzalloc_ambig (sizeof *dpyinfo);
+  dpyinfo = IGC_XZALLOC_AMBIG (sizeof *dpyinfo);
 #else
   dpyinfo = xzalloc (sizeof *dpyinfo);
 #endif

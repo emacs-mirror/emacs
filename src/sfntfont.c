@@ -992,7 +992,7 @@ sfnt_enum_font_1 (int fd, const char *file,
 
   /* Create the font desc and copy in the file name.  */
 #ifdef HAVE_MPS
-  desc = igc_xzalloc_ambig (sizeof *desc + strlen (file) + 1);
+  desc = IGC_XZALLOC_AMBIG (sizeof *desc + strlen (file) + 1);
 #else
   desc = xzalloc (sizeof *desc + strlen (file) + 1);
 #endif
@@ -3235,7 +3235,7 @@ sfntfont_open (struct frame *f, Lisp_Object font_entity,
      font implementation utilizes internal pointers
      (font_info->outline_cache.next, for example). When the font object
      moves, those pointers become invalid and we infloop. */
-  struct sfnt_font_info **leak = igc_xzalloc_ambig (sizeof *leak);
+  struct sfnt_font_info **leak = IGC_XZALLOC_AMBIG (sizeof *leak);
   *leak = font_info;
 #endif
 
