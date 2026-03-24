@@ -310,8 +310,9 @@ cell has to be rewritten to data area."
     (kmacro ,@keys)))
 
 
-(ert-deftest ses-read-column-printer ()
-             "Test fix of bug#80610."
+(ert-deftest ses-tests-read-column-printer ()
+  "Test fix of bug#80610."
+  (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
     (with-temp-buffer
@@ -326,7 +327,8 @@ cell has to be rewritten to data area."
       (should (string= (ses-col-printer 2) "[3]%.7g"))
       (should (string= (ses-col-printer 1) "[2]%.7g"))
       (should (string= (ses-col-printer 0) "[1]%.7g"))
-      )))
+      ))
+  (ses-tests-check-no-border-effect))
 
 (provide 'ses-tests)
 
