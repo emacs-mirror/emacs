@@ -2807,7 +2807,7 @@ has been requested by the completion table."
   "Update displayed *Completions* buffer after change in buffer contents."
   (if (not (or (minibufferp nil t) completion-in-region-mode))
       (remove-hook 'after-change-functions #'completions--after-change t)
-    (when-let* ((window (get-buffer-window "*Completions*" 0)))
+    (when-let* ((window (get-buffer-window "*Completions*" 'visible)))
       (when completion-auto-deselect
         (with-selected-window window
           (completions--deselect))))
@@ -3480,7 +3480,7 @@ in the minibuffer window."
 
 (defun minibuffer--completions-visible ()
   "Return the window where the current *Completions* buffer is visible, if any."
-  (when-let* ((window (get-buffer-window "*Completions*" 0)))
+  (when-let* ((window (get-buffer-window "*Completions*" 'visible)))
     (let ((reference-buffer
            (buffer-local-value 'completion-reference-buffer
                                (window-buffer window))))
