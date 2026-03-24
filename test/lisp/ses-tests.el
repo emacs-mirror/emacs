@@ -306,18 +306,8 @@ cell has to be rewritten to data area."
 
 
 (defmacro ert-play-keys (&rest keys)
-  (let ((buf (make-symbol "buf")))
-    `(let ((,buf (current-buffer)))
-       (funcall
-        (kmacro (concat
-                 "M-: ( p o p - t o - b u f f e r SPC \" "
-                 ,`(mapconcat (lambda (x)
-                                (cond
-                                 ((= x 32) "SPC")
-                                 (t (string x))))
-                              (buffer-name ,buf) " ")
-                 " \" ) RET "
-                 ,@keys))))))
+  `(funcall
+    (kmacro ,@keys)))
 
 
 (ert-deftest ses-read-column-printer ()
@@ -326,6 +316,7 @@ cell has to be rewritten to data area."
         (ses-after-entry-functions nil))
     (with-temp-buffer
       (ses-mode)
+      (pop-to-buffer-same-window (current-buffer))
       (ses-jump 'A3)
       (ert-play-keys "M-x s e s - r e a d - c o l u m n - p r i n t e r RET \" [ 3 ] % . 7 g \" RET")
       (ses-jump 'A2)
