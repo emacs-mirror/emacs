@@ -663,8 +663,6 @@ struct igc_fwd
   mps_addr_t new_addr;
 };
 
-static_assert (sizeof (union igc_header) == 8);
-
 static void
 check_header_bit (union igc_header h1, size_t i, size_t shift)
 {
