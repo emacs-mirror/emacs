@@ -188,7 +188,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
 
 ;; JUMP tests
 ;; ======================================================================
-(ert-deftest ses-jump-B2-prefix-arg ()
+(ert-deftest ses-tests-jump-B2-prefix-arg ()
   "Test jumping to cell B2 by use of prefix argument"
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
@@ -200,7 +200,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (should (eq (ses--cell-at-pos (point)) 'B2)))))
 
 
-(ert-deftest ses-jump-B2-lowcase ()
+(ert-deftest ses-tests-jump-B2-lowcase ()
   "Test jumping to cell B2 by use of lowercase cell name string"
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
@@ -210,7 +210,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (ses-command-hook)
       (should (eq (ses--cell-at-pos (point)) 'B2)))))
 
-(ert-deftest ses-jump-B2-lowcase-keys ()
+(ert-deftest ses-tests-jump-B2-lowcase-keys ()
   "Test jumping to cell B2 by use of lowercase cell name string with simulating keys"
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
@@ -220,7 +220,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (ses-command-hook)
       (should (eq (ses--cell-at-pos (point)) 'B2)))))
 
-(ert-deftest ses-jump-B2-symbol ()
+(ert-deftest ses-tests-jump-B2-symbol ()
   "Test jumping to cell B2 by use of cell name symbol"
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
@@ -230,7 +230,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (ses-command-hook)
       (should (eq (ses--cell-at-pos (point)) 'B2)))))
 
-(ert-deftest ses-jump-B2-renamed ()
+(ert-deftest ses-tests-jump-B2-renamed ()
   "Test jumping to cell B2 after renaming it `ses--toto'."
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
@@ -241,7 +241,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
       (ses-command-hook)
       (should (eq (ses--cell-at-pos (point)) 'ses--toto)))))
 
-(ert-deftest ses-set-formula-write-cells-with-changed-references ()
+(ert-deftest ses-tests-set-formula-write-cells-with-changed-references ()
   "Test fix of bug#5852.
 When setting a formula has some cell with changed references, this
 cell has to be rewritten to data area."
