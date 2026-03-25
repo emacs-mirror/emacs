@@ -348,8 +348,6 @@ If FRAME is nil, use the selected frame.
 Return nil if the id has not been set.  */)
   (Lisp_Object frame)
 {
-  if (NILP (frame))
-    frame = selected_frame;
   struct frame *f = decode_live_frame (frame);
   if (f->id == 0)
     return Qnil;
