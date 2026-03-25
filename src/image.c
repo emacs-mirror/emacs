@@ -2219,8 +2219,9 @@ make_image_cache (void)
   c->images = xmalloc (c->size * sizeof *c->images);
   c->buckets = xzalloc (IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets);
 #else
-  c->images = igc_xalloc_raw_exact (c->size);
-  c->buckets = igc_xalloc_raw_exact (IMAGE_CACHE_BUCKETS_SIZE);
+  c->images = igc_xalloc_raw_exact (c->size, __func__);
+  c->buckets
+    = igc_xalloc_raw_exact (IMAGE_CACHE_BUCKETS_SIZE, __func__);
 #endif
   /* This value should never be encountered.  */
   c->scaling_col_width = -1;

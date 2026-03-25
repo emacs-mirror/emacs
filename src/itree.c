@@ -151,7 +151,7 @@ itree_stack_create (intmax_t initial_size)
   stack->nodes = xmalloc (stack->size * sizeof (struct itree_node*));
 #else
   stack->size = max (1, initial_size);
-  stack->nodes = igc_xalloc_raw_exact (stack->size);
+  stack->nodes = igc_xalloc_raw_exact (stack->size, __func__);
 #endif
   stack->length = 0;
   return stack;

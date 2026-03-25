@@ -3939,12 +3939,12 @@ igc_xalloc_lisp_objs_exact (size_t n, const char *label)
 }
 
 void *
-igc_xalloc_raw_exact (size_t n)
+igc_xalloc_raw_exact (size_t n, const char *label)
 {
   size_t size = n * sizeof (void *);
   void *p = xzalloc (size);
   root_create_exact (global_igc, p, (char *) p + size, scan_ptr_exact,
-		     "xalloc-raw-exact");
+		     label);
   return p;
 }
 
