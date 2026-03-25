@@ -326,10 +326,10 @@ non-nil and point is located on the heading line.")
 (defcustom outline-minor-mode-use-buttons nil
   "Whether to display clickable buttons on the headings.
 These buttons can be used to hide and show the body under the heading.
-When the value is `insert', additional placeholders for buttons are
+When the value is \\+`insert', additional placeholders for buttons are
 inserted to the buffer, so buttons are not only clickable,
 but also typing `RET' on them can hide and show the body.
-Using the value `insert' is not recommended in editable
+Using the value \\+`insert' is not recommended in editable
 buffers because it modifies them.
 When the value is `in-margins', then clickable buttons are
 displayed in the margins before the headings.
@@ -513,7 +513,7 @@ font-lock faces defined by the major mode.  Thus, a non-nil value will
 work well only when there's no such conflict.
 If the value is t, use outline faces only if there are no major mode's
 font-lock faces on headings.  When `override', completely overwrite major
-mode's font-lock faces with outline faces.  When `append', try to append
+mode's font-lock faces with outline faces.  When \\+`append', try to append
 outline font-lock faces to those of major mode."
   :type '(choice (const :tag "Do not use outline font-lock highlighting" nil)
                  (const :tag "Overwrite major mode font-lock faces" override)
