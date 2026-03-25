@@ -316,6 +316,11 @@ main (int argc, char **argv)
 	SCMP_A0_32 (SCMP_CMP_EQ, 0) /* pid == 0 (current process) */,
         SCMP_A2_64 (SCMP_CMP_EQ, 0) /* new_limit == NULL */);
 
+  /* Allow reading the scheduler policy and affinity, so num_processors
+     can determine the number of usable CPUs.  */
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (sched_getaffinity));
+  RULE0 (SCMP_ACT_ALLOW, SCMP_SYS (sched_getscheduler));
+
   /* Block changing resource limits, but don't crash.  */
   RULE (SCMP_ACT_ERRNO (EPERM), SCMP_SYS (prlimit64),
         SCMP_A0_32 (SCMP_CMP_EQ, 0) /* pid == 0 (current process) */,
