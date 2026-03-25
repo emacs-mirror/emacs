@@ -231,8 +231,8 @@ in the tool bar will close the current window where possible."
       '(menu-item "Open Project Directory" project-dired
                   :enable (menu-bar-non-minibuffer-window-p)
                   :help "Read the root directory of the current project, to operate on its files"))
-    (define-key menu [dired]
-      '(menu-item "Open Directory..." dired
+    (define-key menu [open-directory]
+      '(menu-item "Open Directory..." dired-from-menubar
                   :enable (menu-bar-non-minibuffer-window-p)
                   :help "Read a directory, to operate on its files"))
     (define-key menu [project-open-file]
@@ -2287,7 +2287,7 @@ this frame."
       (and menu-bar-close-window
            (window-parent (selected-window)))))
 
-(put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
+(put 'dired-from-menubar 'menu-enable '(menu-bar-non-minibuffer-window-p))
 
 ;; Permit deleting frame if it would leave a visible or iconified frame.
 (defun delete-frame-enabled-p ()

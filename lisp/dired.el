@@ -1232,6 +1232,14 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
   (interactive (dired-read-dir-and-switches ""))
   (pop-to-buffer-same-window (dired-noselect dirname switches)))
 
+;; This is needed to let clicks on the menu bar invoke Dired even if
+;; some feature remaps the Dired command to another command.
+;;;###autoload
+(defun dired-from-menubar (dirname &optional switches)
+  "Edit an existing directory."
+  (interactive (dired-read-dir-and-switches ""))
+  (dired dirname switches))
+
 ;;;###autoload (keymap-set ctl-x-4-map "d" #'dired-other-window)
 ;;;###autoload
 (defun dired-other-window (dirname &optional switches)
