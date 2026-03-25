@@ -3964,12 +3964,13 @@ igc_xzalloc_ambig (size_t size, const char *label)
 }
 
 void *
-igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size)
+igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size,
+		    const char *label)
 {
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
     memory_full (SIZE_MAX);
-  return igc_xzalloc_ambig (nbytes, __func__);
+  return igc_xzalloc_ambig (nbytes, label);
 }
 
 void *

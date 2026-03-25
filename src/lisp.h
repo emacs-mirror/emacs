@@ -6134,7 +6134,8 @@ extern void *record_xmalloc (size_t)
 
 # ifdef HAVE_MPS
 /* Defined in igc.c.  */
-void *igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size);
+void *igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size,
+			  const char *label);
 void igc_xfree (void *p);
 
 #define SAFE_NALLOCA(buf, multiplier, nitems)				\
@@ -6143,7 +6144,9 @@ void igc_xfree (void *p);
       (buf) = AVAIL_ALLOCA (sizeof *(buf) * (multiplier) * (nitems));	\
     else								\
       {									\
-	(buf) = igc_xnmalloc_ambig (nitems, sizeof *(buf) * (multiplier)); \
+	(buf) = igc_xnmalloc_ambig (nitems,				\
+				    sizeof *(buf) * (multiplier),	\
+				    __func__);				\
 	record_unwind_protect_ptr (igc_xfree, buf);			\
       }									\
   } while (false)
