@@ -658,5 +658,45 @@ The current directory at call time should not affect the result (Bug#50630)."
       (let ((default-directory test-dir-other))
         (files-tests--insert-directory-shows-given-free test-dir)))))
 
+(defun dired-test--filename-with-backslash-n ()
+  "Core of test `dired-test-filename-with-backslash-n'."
+  (let* ((dir (ert-resource-file
+               (file-name-as-directory "filename-with-backslash")))
+         (file (concat dir "C:\\nppdf32log\\debuglog.txt"))
+         (buf (progn (make-empty-file file t)
+                     (dired-noselect (file-name-directory file))))
+         (warnbuf (get-buffer "*Warnings*")))
+    (with-current-buffer buf
+      (should-not (dired--filename-with-newline-p))
+      (dired--toggle-b-switch)
+      (should-not (dired--filename-with-newline-p))
+      (let ((fn (car (directory-files dir t
+                                      directory-files-no-dot-files-regexp))))
+        (should (equal fn file))))
+    (if noninteractive
+        (with-current-buffer "*Messages*"
+          (goto-char (point-min))
+          (should-error (search-forward
+                         "Warning (dired): Literal newline in file name.")))
+      (should-not (get-buffer "*Warnings*")))
+    (kill-buffer buf)
+    (kill-buffer warnbuf)
+    (delete-directory dir t)))
+
+(ert-deftest dired-test-filename-with-backslash-n () ; bug#80608
+  "Test file name containing literal backslash-n sequence.
+Dired should not treat this sequence as a newline character, regardless
+of the value of `dired-auto-toggle-b-switch'."
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let ((dired-auto-toggle-b-switch nil))
+    (dired-test--filename-with-backslash-n))
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let ((dired-auto-toggle-b-switch nil))
+    (dired-test--filename-with-backslash-n)))
+
 (provide 'dired-tests)
 ;;; dired-tests.el ends here

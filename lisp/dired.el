@@ -4011,20 +4011,11 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
        (not (memq buffer1 (memq buffer2 (buffer-list))))))
 
 (defun dired--filename-with-newline-p ()
-  "Check if a file name in this directory has a newline.
-Return non-nil if at least one file name in this directory contains
-either a literal newline or the string \"\\n\")."
-  (save-excursion
-    (goto-char (point-min))
-    (catch 'found
-      (while (not (eobp))
-        (when (dired-move-to-filename)
-          (let ((fn (buffer-substring-no-properties
-                     (point) (dired-move-to-end-of-filename))))
-            (when (or (memq 10 (seq-into fn 'list))
-                      (string-search "\\n" fn))
-              (throw 'found t))))
-        (forward-line)))))
+  "Check whether a file name in this directory has a newline.
+Return non-nil if at least one file name in this directory contains a
+newline character (regardless of whether Dired displays the character as
+a literal newline or as \"\\n\")."
+  (directory-files default-directory nil "\n"))
 
 (defun dired--remove-b-switch ()
   "Remove all variants of the `b' switch from `dired-actual-switches'.
