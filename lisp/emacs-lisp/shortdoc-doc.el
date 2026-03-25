@@ -100,7 +100,7 @@
    :eval (map-contains-key [bar foo baz] 1)
    :eval (map-contains-key #s(hash-table data (bar 1 foo 2 baz 3)) 'foo))
   (map-put!
-   (map key value)
+   :args (map key value)
    :eval
 "(let ((map (list 'bar 1 'baz 3)))
     (map-put! map 'foo 2)
@@ -1301,7 +1301,7 @@
    :eval (let ((x 2)) (incf x 2) x))
   (decf
    :eval (let ((x 4)) (decf x) x)
-   :eval (let ((x 4)) (decf x 2)) x)
+   :eval (let ((x 4)) (decf x 2) x))
   "Predicates"
   (=
    :args (number &rest numbers)
