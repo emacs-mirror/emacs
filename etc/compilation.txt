@@ -331,6 +331,7 @@ boost/container/detail/flat_tree.hpp:589:25:   [ skipping 5 instantiation contex
    |
    |board.h:60:21:
    |   60 | #define I(b, C) ((C).y * (b)->width + (C).x)
+  src/add.cpp:8:31: error: invalid operands of types ‘const double’ and ‘const double*’ to binary ‘operator+’
 
 
 * Guile backtrace, 2.0.11
