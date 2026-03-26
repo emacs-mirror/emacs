@@ -330,7 +330,7 @@ holds a keymap."
 			       :vert-only t)
   (tool-bar-add-item-from-menu 'menu-find-file-existing "open" nil
 			       :label "Open" :vert-only t)
-  (tool-bar-add-item-from-menu 'dired "diropen" nil :vert-only t)
+  (tool-bar-add-item-from-menu 'dired-from-menubar "diropen" nil :vert-only t)
   (tool-bar-add-item-from-menu 'kill-this-buffer "close" nil :vert-only t)
   (tool-bar-add-item-from-menu 'save-buffer "save" nil
 			       :label "Save")
