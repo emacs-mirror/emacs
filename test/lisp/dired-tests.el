@@ -687,6 +687,8 @@ The current directory at call time should not affect the result (Bug#50630)."
   "Test file name containing literal backslash-n sequence.
 Dired should not treat this sequence as a newline character, regardless
 of the value of `dired-auto-toggle-b-switch'."
+  ;; File names with backslashes in basename are not allowed on MS systems.
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (with-current-buffer "*Messages*"
     (let ((inhibit-read-only t))
       (erase-buffer)))
