@@ -263,13 +263,11 @@ module_memory_buffer_too_small (ptrdiff_t actual, ptrdiff_t required)
    code after the macro may longjmp back into the macro, which means
    its local variable INTERNAL_CLEANUP must stay live in later code.  */
 
-/* TODO: Make backtraces work if this macro is used.  */
-
 #define MODULE_HANDLE_NONLOCAL_EXIT(retval)                             \
   if (module_non_local_exit_check (env) != emacs_funcall_exit_return)	\
     return retval;							\
   struct handler *internal_handler =                                    \
-    push_handler_nosignal (Qt, CATCHER_ALL);                            \
+    push_handler_nosignal (Qt, CATCHER_ALL_DEBUGGABLE);                 \
   if (!internal_handler)                                                \
     {									\
       module_out_of_memory (env);					\

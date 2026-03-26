@@ -1453,7 +1453,7 @@ Both TAG and VALUE are evalled.  */
   if (!NILP (tag))
     for (c = handlerlist; c; c = c->next)
       {
-	if (c->type == CATCHER_ALL)
+	if (c->type == CATCHER_ALL || c->type == CATCHER_ALL_DEBUGGABLE)
           unwind_to_catch (c, NONLOCAL_EXIT_THROW, Fcons (tag, value));
         if (c->type == CATCHER && EQ (c->tag_or_ch, tag))
 	  unwind_to_catch (c, NONLOCAL_EXIT_THROW, value);
@@ -1981,6 +1981,9 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
         case CATCHER_ALL:
           clause = Qt;
           break;
+        case CATCHER_ALL_DEBUGGABLE:
+          clause = Qdebug;
+          break;
 	case CATCHER:
 	  continue;
         case CONDITION_CASE:
@@ -2024,6 +2027,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	  || NILP (clause)
 	  /* A `debug' symbol in the handler list disables the normal
 	     suppression of the debugger.  */
+	  || EQ (clause, Qdebug)
 	  || (CONSP (clause) && !NILP (Fmemq (Qdebug, clause)))
 	  /* Special handler that means "print a message and run debugger
 	     if requested".  */
