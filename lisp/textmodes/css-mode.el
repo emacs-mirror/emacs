@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
+;; Maintainer: Simen Heggestøyl <simenheg@runbox.com>
 ;; Keywords: hypermedia
 
 ;; This file is part of GNU Emacs.
