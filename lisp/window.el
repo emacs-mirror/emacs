@@ -1016,7 +1016,7 @@ and may be called only if no window on SIDE exists yet."
       ;; placed incorrectly (Bug#80665).
       (when-let* ((sibling (or (window-prev-sibling window)
                                (window-next-sibling window)))
-                  (window-child sibling))
+                  ((window-child sibling)))
         (set-window-combination-limit sibling t))
       ;; Initialize `window-side' parameter of new window to SIDE and
       ;; make that parameter persistent.
