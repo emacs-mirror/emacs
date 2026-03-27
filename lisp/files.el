@@ -8320,41 +8320,24 @@ Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
       (forward-line -1))
     (if (let ((case-fold-search nil)) (looking-at "//DIRED//"))
 	(let ((end (line-end-position))
-	      (linebeg (point))
-	      error-lines)
-	  ;; Find all the lines that are error messages,
-	  ;; and record the bounds of each one.
-	  (goto-char beg)
-	  (while (< (point) linebeg)
-	    (or (eql (following-char) ?\s)
-		(push (list (point) (line-end-position)) error-lines))
-	    (forward-line 1))
-	  (setq error-lines (nreverse error-lines))
-	  ;; Now read the numeric positions of file names.
+	      (linebeg (point)))
+	  ;; Read the numeric positions of file names.
 	  (goto-char linebeg)
 	  (forward-word-strictly 1)
 	  (forward-char 3)
 	  (while (< (point) end)
-	    (let ((start (insert-directory-adj-pos
-			  (+ beg (read (current-buffer)))
-			  error-lines))
-		  (end (insert-directory-adj-pos
-			(+ beg (read (current-buffer)))
-			error-lines)))
-	      (if (memq (char-after end) '(?\n ?\s ?/ ?* ?@ ?% ?= ?|))
-		  ;; End is followed by \n or by output of -F.
-		  (put-text-property start end 'dired-filename t)
-		;; It seems that we can't trust ls's output as to
-		;; byte positions of filenames.
-		(put-text-property beg (point) 'dired-filename nil)
-		(end-of-line))))
+	    (let ((start (+ beg (read (current-buffer))))
+		  (end (+ beg (read (current-buffer)))))
+	      (when (memq (char-after end) '(?\n ?\s ?/ ?* ?@ ?% ?= ?|))
+		;; End is followed by \n or by output of -F.
+	        (put-text-property start end 'dired-filename t))))
 	  (goto-char end)
 	  (beginning-of-line)
 	  (delete-region (point) (progn (forward-line 1) (point))))
       ;; Take care of the case where the ls output contains a
       ;; "//DIRED-OPTIONS//"-line, but no "//DIRED//"-line
       ;; and we went one line too far back (see above).
-      (forward-line 1))
+      (unless (bobp) (forward-line 1)))
     (if (let ((case-fold-search nil)) (looking-at "//DIRED-OPTIONS//"))
 	(delete-region (point) (progn (forward-line 1) (point))))))
 
@@ -8363,12 +8346,12 @@ Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
 ;;   FULL-DIRECTORY-P is nil.
 ;;   The single line of output must display FILE's name as it was
 ;;   given, namely, an absolute path name.
-;; - must insert exactly one line for each file if WILDCARD or
+;; - must insert exactly one entry for each file if WILDCARD or
 ;;   FULL-DIRECTORY-P is t, plus one optional "total" line
 ;;   before the file lines, plus optional text after the file lines.
-;;   Lines are delimited by "\n", so filenames containing "\n" are not
-;;   allowed.
-;;   File lines should display the basename.
+;;   Entries are delimited by "\n", but file names containing "\n" are
+;;   allowed and by default the "\n" is displayed as a literal newline.
+;;   File entries should display the basename.
 ;; - must be consistent with
 ;;   - functions dired-move-to-filename, (these two define what a file line is)
 ;;   		 dired-move-to-end-of-filename,
@@ -8410,10 +8393,10 @@ normally equivalent short `-D' option is just passed on to
       (declare-function ls-lisp--insert-directory "ls-lisp")
       (ls-lisp--insert-directory file switches wildcard full-directory-p))
      (t
-      (let (result (beg (point)))
+      (let ((beg (point))
+            (errfile (make-temp-file "lserr")))
 
 	;; Read the actual directory using `insert-directory-program'.
-	;; RESULT gets the status code.
 	(let* (;; We at first read by no-conversion, then after
 	       ;; putting text property `dired-filename, decode one
 	       ;; bunch by one to preserve that property.
@@ -8423,143 +8406,88 @@ normally equivalent short `-D' option is just passed on to
 		(and enable-multibyte-characters
 		     (or file-name-coding-system
 			 default-file-name-coding-system))))
-	  (setq result
-		(if wildcard
-		    ;; If the wildcard is just in the file part, then run ls in
-                    ;; the directory part of the file pattern using the last
-                    ;; component as argument.  Otherwise, run ls in the longest
-                    ;; subdirectory of the directory part free of wildcards; use
-                    ;; the remaining of the file pattern as argument.
-		    (let* ((dir-wildcard (insert-directory-wildcard-in-dir-p file))
-                           (default-directory
-                            (cond (dir-wildcard (car dir-wildcard))
-                                  (t
-			           (if (file-name-absolute-p file)
-				       (file-name-directory file)
-				     (file-name-directory (expand-file-name file))))))
-			   (pattern (if dir-wildcard (cdr dir-wildcard) (file-name-nondirectory file))))
-		      ;; NB since switches is passed to the shell, be
-		      ;; careful of malicious values, eg "-l;reboot".
-		      ;; See eg dired-safe-switches-p.
-		      (call-process
-		       shell-file-name nil t nil
-		       shell-command-switch
-		       (concat (if (memq system-type '(ms-dos windows-nt))
-				   ""
-				 "\\") ; Disregard Unix shell aliases!
-			       insert-directory-program
-			       " -d "
-			       ;; Quote switches that require quoting
-			       ;; such as "--block-size='1".  But don't
-			       ;; quote switches that use patterns
-			       ;; such as "--ignore=PATTERN" (bug#71935).
-			       (mapconcat #'shell-quote-wildcard-pattern
-					  (if (stringp switches)
-					      (split-string-and-unquote switches)
-					    switches)
-					  " ")
-			       " -- "
-			       ;; Quote some characters that have
-			       ;; special meanings in shells; but
-			       ;; don't quote the wildcards--we want
-			       ;; them to be special.  We also
-			       ;; currently don't quote the quoting
-			       ;; characters in case people want to
-			       ;; use them explicitly to quote
-			       ;; wildcard characters.
-			       (shell-quote-wildcard-pattern pattern))))
-		  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
-		  ;; directory if FILE is a symbolic link.
-		  (unless full-directory-p
-		    (setq switches
-			  (cond
-                           ((stringp switches) (concat switches " -d"))
-                           ((member "-d" switches) switches)
-                           (t (append switches '("-d"))))))
-		  (if (string-match "\\`~" file)
-		      (setq file (expand-file-name file)))
-		  (apply #'call-process
-			 insert-directory-program nil t nil
-			 (append
-			  (if (listp switches) switches
-			    (unless (equal switches "")
-			      ;; Split the switches at any spaces so we can
-			      ;; pass separate options as separate args.
-			      (split-string-and-unquote switches)))
-			  ;; Avoid lossage if FILE starts with `-'.
-			  '("--")
-			  (list file))))))
+	  (if wildcard
+	      ;; If the wildcard is just in the file part, then run ls in
+              ;; the directory part of the file pattern using the last
+              ;; component as argument.  Otherwise, run ls in the longest
+              ;; subdirectory of the directory part free of wildcards; use
+              ;; the remaining of the file pattern as argument.
+	      (let* ((dir-wildcard
+                      (insert-directory-wildcard-in-dir-p file))
+                     (default-directory
+                      (cond (dir-wildcard (car dir-wildcard))
+                            (t
+			     (if (file-name-absolute-p file)
+				 (file-name-directory file)
+			       (file-name-directory
+                                (expand-file-name file))))))
+		     (pattern (if dir-wildcard
+                                  (cdr dir-wildcard)
+                                (file-name-nondirectory file))))
+		;; NB since switches is passed to the shell, be
+		;; careful of malicious values, eg "-l;reboot".
+		;; See eg dired-safe-switches-p.
+		(call-process
+		 shell-file-name nil (list t errfile) nil
+		 shell-command-switch
+		 (concat (if (memq system-type '(ms-dos windows-nt))
+			     ""
+			   "\\") ; Disregard Unix shell aliases!
+			 insert-directory-program
+			 " -d "
+			 ;; Quote switches that require quoting
+			 ;; such as "--block-size='1".  But don't
+			 ;; quote switches that use patterns
+			 ;; such as "--ignore=PATTERN" (bug#71935).
+			 (mapconcat #'shell-quote-wildcard-pattern
+				    (if (stringp switches)
+					(split-string-and-unquote switches)
+				      switches)
+				    " ")
+			 " -- "
+			 ;; Quote some characters that have
+			 ;; special meanings in shells; but
+			 ;; don't quote the wildcards--we want
+			 ;; them to be special.  We also
+			 ;; currently don't quote the quoting
+			 ;; characters in case people want to
+			 ;; use them explicitly to quote
+			 ;; wildcard characters.
+			 (shell-quote-wildcard-pattern pattern))))
+	    ;; SunOS 4.1.3, SVr4 and others need the "." to list the
+	    ;; directory if FILE is a symbolic link.
+	    (unless full-directory-p
+	      (setq switches
+		    (cond
+                     ((stringp switches) (concat switches " -d"))
+                     ((member "-d" switches) switches)
+                     (t (append switches '("-d"))))))
+	    (if (string-match "\\`~" file)
+		(setq file (expand-file-name file)))
+	    (apply #'call-process
+		   insert-directory-program nil (list t errfile) nil
+		   (append
+		    (if (listp switches) switches
+		      (unless (equal switches "")
+			;; Split the switches at any spaces so we can
+			;; pass separate options as separate args.
+			(split-string-and-unquote switches)))
+		    ;; Avoid lossage if FILE starts with `-'.
+		    '("--")
+		    (list file)))))
 
-	;; If we got "//DIRED//" in the output, it means we got a real
-	;; directory listing, even if `ls' returned nonzero.
-	;; So ignore any errors.
-	(when (if (stringp switches)
-		  (string-match "--dired\\>" switches)
-		(member "--dired" switches))
-	  (save-excursion
-            (let ((case-fold-search nil))
-	      (forward-line -2)
-	      (when (looking-at "//SUBDIRED//")
-	        (forward-line -1))
-	      (if (looking-at "//DIRED//")
-		  (setq result 0)))))
+        ;; If `ls' emits an error message, copy it to a buffer that will
+        ;; be displayed when a Dired invocation results in the `ls'
+        ;; error.
+        (when (> (file-attribute-size (file-attributes errfile)) 0)
+          (defvar dired--ls-error-buffer) ; Pacify byte-compiler.
+          (let ((errbuf (get-buffer-create "*ls error*")))
+            (with-current-buffer errbuf
+              (erase-buffer)
+              (insert-file-contents errfile))
+            (setq dired--ls-error-buffer errbuf)))
+        (delete-file errfile)
 
-	(when (and (not (eq 0 result))
-		   (eq insert-directory-ls-version 'unknown))
-	  ;; The first time ls returns an error,
-	  ;; find the version numbers of ls,
-	  ;; and set insert-directory-ls-version
-	  ;; to > if it is more than 5.2.1, < if it is less, nil if it
-	  ;; is equal or if the info cannot be obtained.
-	  ;; (That can mean it isn't GNU ls.)
-	  (let ((version-out
-		 (with-temp-buffer
-		   (call-process "ls" nil t nil "--version")
-		   (buffer-string))))
-	    (setq insert-directory-ls-version
-		  (if (string-match "ls (.*utils) \\([0-9.]*\\)$" version-out)
-		      (let* ((version (match-string 1 version-out))
-		             (split (split-string version "[.]"))
-		             (numbers (mapcar #'string-to-number split))
-		             (min '(5 2 1))
-		             comparison)
-		        (while (and (not comparison) (or numbers min))
-			  (cond ((null min)
-			         (setq comparison #'>))
-			        ((null numbers)
-			         (setq comparison #'<))
-			        ((> (car numbers) (car min))
-			         (setq comparison #'>))
-			        ((< (car numbers) (car min))
-			         (setq comparison #'<))
-			        (t
-				 (setq numbers (cdr numbers)
-				       min (cdr min)))))
-			(or comparison #'=))
-		    nil))))
-
-	;; For GNU ls versions 5.2.2 and up, ignore minor errors.
-	(when (and (eq 1 result) (eq insert-directory-ls-version #'>))
-	  (setq result 0))
-
-	;; If `insert-directory-program' failed, signal an error.
-	(unless (eq 0 result)
-	  ;; Delete the error message it may have output.
-	  (delete-region beg (point))
-	  ;; On non-Posix systems, we cannot open a directory, so
-	  ;; don't even try, because that will always result in
-	  ;; the ubiquitous "Access denied".  Instead, show the
-	  ;; command line so the user can try to guess what went wrong.
-	  (if (and (file-directory-p file)
-		   (memq system-type '(ms-dos windows-nt)))
-	      (error
-	       "Reading directory: \"%s %s -- %s\" exited with status %s"
-	       insert-directory-program
-	       (if (listp switches) (concat switches) switches)
-	       file result)
-	    ;; Unix.  Access the file to get a suitable error.
-	    (access-file file "Reading directory")
-	    (error "Listing directory failed but `access-file' worked")))
         (insert-directory-clean beg switches)
 	;; Now decode what read if necessary.
 	(let ((coding (or coding-system-for-read
@@ -8593,18 +8521,6 @@ normally equivalent short `-D' option is just passed on to
 		    (if val
 			(put-text-property pos (point)
 					   'dired-filename t))))))))))))
-
-(defun insert-directory-adj-pos (pos error-lines)
-  "Convert `ls --dired' file name position value POS to a buffer position.
-File name position values returned in ls --dired output
-count only stdout; they don't count the error messages sent to stderr.
-So this function converts to them to real buffer positions.
-ERROR-LINES is a list of buffer positions of error message lines,
-of the form (START END)."
-  (while (and error-lines (< (caar error-lines) pos))
-    (setq pos (+ pos (- (nth 1 (car error-lines)) (nth 0 (car error-lines)))))
-    (pop error-lines))
-  pos)
 
 (defun insert-directory-safely (file switches
 				     &optional wildcard full-directory-p)

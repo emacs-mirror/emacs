@@ -2540,6 +2540,12 @@ of a literal newline.  This prevents executing many Dired operations on
 such a file from failing and signaling an error.  The default value of
 this user option is nil.
 
+---
+*** New Dired handling of errors from 'ls'.
+When invoking a Dired command causes 'ls' to emit an error message,
+Emacs now displays the message in a popped up buffer instead of
+outputting it in the Dired buffer and signalling an error.
+
 ** Grep
 
 +++

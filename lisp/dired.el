@@ -649,6 +649,10 @@ The match starts at the beginning of the line and ends after the end
 of the line.
 Subexpression 2 must end right before the \\n.")
 
+(defvar dired--ls-error-buffer nil
+  "Non-nil if the current dired invocation yields an `ls' error.
+The non-nil value is the buffer containing the error message.")
+
 
 ;;; Faces
 
@@ -1230,7 +1234,8 @@ Type \\[describe-mode] after entering Dired for more info.
 If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
   ;; Cannot use (interactive "D") because of wildcards.
   (interactive (dired-read-dir-and-switches ""))
-  (pop-to-buffer-same-window (dired-noselect dirname switches)))
+  (prog1 (pop-to-buffer-same-window (dired-noselect dirname switches))
+    (dired--display-ls-error)))
 
 ;; This is needed to let clicks on the menu bar invoke Dired even if
 ;; some feature remaps the Dired command to another command.
@@ -1248,21 +1253,24 @@ If this command needs to split the current window, it by default obeys
 the user options `split-height-threshold' and `split-width-threshold',
 when it decides whether to split the window horizontally or vertically."
   (interactive (dired-read-dir-and-switches "in other window "))
-  (switch-to-buffer-other-window (dired-noselect dirname switches)))
+  (prog1 (switch-to-buffer-other-window (dired-noselect dirname switches))
+    (dired--display-ls-error)))
 
 ;;;###autoload (keymap-set ctl-x-5-map "d" #'dired-other-frame)
 ;;;###autoload
 (defun dired-other-frame (dirname &optional switches)
   "\"Edit\" directory DIRNAME.  Like `dired' but make a new frame."
   (interactive (dired-read-dir-and-switches "in other frame "))
-  (switch-to-buffer-other-frame (dired-noselect dirname switches)))
+  (prog1 (switch-to-buffer-other-frame (dired-noselect dirname switches))
+    (dired--display-ls-error)))
 
 ;;;###autoload (keymap-set tab-prefix-map "d" #'dired-other-tab)
 ;;;###autoload
 (defun dired-other-tab (dirname &optional switches)
   "\"Edit\" directory DIRNAME.  Like `dired' but make a new tab."
   (interactive (dired-read-dir-and-switches "in other tab "))
-  (switch-to-buffer-other-tab (dired-noselect dirname switches)))
+  (prog1 (switch-to-buffer-other-tab (dired-noselect dirname switches))
+    (dired--display-ls-error)))
 
 ;;;###autoload
 (defun dired-noselect (dir-or-list &optional switches)
@@ -1447,10 +1455,19 @@ The return value is the target column for the file names."
       (let ((failed t))
 	(unwind-protect
 	    (progn (dired-readin)
-		   (setq failed nil))
-	  ;; dired-readin can fail if parent directories are inaccessible.
-	  ;; Don't leave an empty buffer around in that case.
-	  (if failed (kill-buffer buffer))))
+                   ;; Check for file entries (they are listed below the
+                   ;; directory name and (if present) wildcard lines).
+                   (while (and (skip-syntax-forward "\s")
+                               (looking-at "\\(.+:$\\|wildcard\\)"))
+                     (forward-line))
+                   (unless (eobp)
+		     (setq failed nil)))
+	  ;; No file entries indicates an `ls' error, and `dired-readin'
+	  ;; can fail if parent directories are inaccessible.  In either
+	  ;; case don't leave the Dired buffer around.
+	  (when failed
+            (kill-buffer buffer)
+            (setq buffer nil))))
       (goto-char (point-min))
       (dired-initial-position dirname))
     (when (consp dired-directory)
@@ -4092,6 +4109,13 @@ See `%s' for other alternatives and more information."))
     (with-current-buffer "*Warnings*"
       (set-window-point (get-buffer-window)
                         (search-backward "Warning (dired)")))))
+
+(defun dired--display-ls-error ()
+  "Pop up a buffer displaying the current `ls' error, if any."
+  (when dired--ls-error-buffer
+    (let* ((errwin (display-buffer dired--ls-error-buffer)))
+      (fit-window-to-buffer errwin))
+    (setq dired--ls-error-buffer nil)))
 
 
 ;;; Deleting files

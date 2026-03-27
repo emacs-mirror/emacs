@@ -658,6 +658,88 @@ The current directory at call time should not affect the result (Bug#50630)."
       (let ((default-directory test-dir-other))
         (files-tests--insert-directory-shows-given-free test-dir)))))
 
+(ert-deftest dired-test-filename-with-newline-1 () ; bug#79528, bug#80499
+  "Test handling of file name with literal embedded newline."
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let* ((dired-auto-toggle-b-switch nil)
+         (dir (ert-resource-file
+               (file-name-as-directory "filename-with-newline")))
+         (file (concat dir "filename\nwith newline"))
+         (buf (progn (make-empty-file file t)
+                     (dired (file-name-directory file))))
+         (warnbuf (get-buffer "*Warnings*")))
+    (should (dired--filename-with-newline-p))
+    (let ((beg (point))               ; beginning of file name
+          (end (dired-move-to-end-of-filename)))
+      (should (search-backward "with newline")) ; literal space in file name
+      (should (search-backward "\n" beg))) ; literal newline in file name
+    (if noninteractive
+        (with-current-buffer "*Messages*"
+          (goto-char (point-min))
+          (should (search-forward
+                   "Warning (dired): Literal newline in file name.")))
+      (should (get-buffer-window warnbuf))
+      (with-current-buffer warnbuf
+        (goto-char (point-min))
+        (should (string-match
+                 (regexp-quote "Warning (dired): Literal newline in file name.")
+                 (buffer-substring (pos-bol) (pos-eol))))))
+    (kill-buffer buf)
+    (kill-buffer warnbuf)
+    (delete-directory dir t)))
+
+(ert-deftest dired-test-filename-with-newline-2 () ; bug#79528, bug#80499
+  "Test handling of file name with embedded newline using `b' switch."
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let* ((dired-auto-toggle-b-switch t)
+         (dir (ert-resource-file
+               (file-name-as-directory "filename-with-newline")))
+         (file (concat dir "filename\nwith newline"))
+         (buf (progn (make-empty-file file t)
+                     (dired-noselect (file-name-directory file))))
+         (warnbuf (get-buffer "*Warnings*")))
+    (with-current-buffer buf
+      (should (dired--filename-with-newline-p))
+      (dired--toggle-b-switch)
+      (let ((beg (point))               ; beginning of file name
+            (end (dired-move-to-end-of-filename)))
+        (should (search-backward "with\\ newline")) ; result of ls -b switch
+        (should (search-backward "\\n" beg)))) ; result of ls -b switch
+    (if noninteractive
+        (with-current-buffer "*Messages*"
+          (goto-char (point-min))
+          (should-error (search-forward
+                         "Warning (dired): Literal newline in file name.")))
+      (should-not (get-buffer "*Warnings*")))
+    (kill-buffer buf)
+    (kill-buffer warnbuf)
+    (delete-directory dir t)))
+
+(ert-deftest dired-test-ls-error-message () ; bug#80499
+  "Test invoking `dired' on a nonexisting file.
+A buffer should pop up containing the error emitted by ls.  The buffer
+visiting the nonexisting file should killed before `dired' returns,
+hence another buffer should be returned."
+  (let* ((dir (ert-resource-file (file-name-as-directory "empty-dir")))
+         (name (concat dir "bla"))
+         (buf (progn (make-directory dir)
+                     (dired name))))
+    (let ((errbuf (get-buffer "*ls error*")))
+      (should (get-buffer-window errbuf))
+      (should-not (equal (buffer-name buf) (file-name-nondirectory name)))
+      (with-current-buffer errbuf
+        (should (equal (buffer-string)
+                       (concat "ls: cannot access '"
+                               (file-name-nondirectory name)
+                               "': No such file or directory\n"))))
+      (kill-buffer errbuf))
+    (delete-directory dir t)))
+
+
 (defun dired-test--filename-with-backslash-n ()
   "Core of test `dired-test-filename-with-backslash-n'."
   (let* ((dir (ert-resource-file
