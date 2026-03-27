@@ -1010,6 +1010,14 @@ and may be called only if no window on SIDE exists yet."
                   (cons `(dedicated . ,(or display-buffer-mark-dedicated 'side))
                         alist))))
     (when window
+      ;; Protect the sibling (the main-window group) from recombination.
+      ;; Without this, deleting a side window can flatten the group into
+      ;; the root, causing subsequent side windows on other sides to be
+      ;; placed incorrectly (Bug#80665).
+      (when-let* ((sibling (or (window-prev-sibling window)
+                               (window-next-sibling window)))
+                  (window-child sibling))
+        (set-window-combination-limit sibling t))
       ;; Initialize `window-side' parameter of new window to SIDE and
       ;; make that parameter persistent.
       (set-window-parameter window 'window-side side)
