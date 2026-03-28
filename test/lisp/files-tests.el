@@ -1036,9 +1036,13 @@ unquoted file names."
             (nospecial-dir (string-remove-prefix "/:" nospecial-dir)))
         (should errbuf)
         (with-current-buffer errbuf
-          (should (equal (buffer-string)
-                         (concat "ls: cannot access '" nospecial-dir
-                                 "': No such file or directory\n"))))
+          (should (string-match-p
+                   (format
+                    ;; Use .* around file name to account for different
+                    ;; file-name quoting styles, or no quoting at all.
+                    "%s: cannot access .*%s.*: No such file or directory\n"
+                    insert-directory-program nospecial-dir)
+                   (buffer-string))))
         (kill-buffer errbuf)))))
 
 (ert-deftest files-tests-file-name-non-special-insert-file-contents ()
