@@ -660,6 +660,9 @@ The current directory at call time should not affect the result (Bug#50630)."
 
 (ert-deftest dired-test-filename-with-newline-1 () ; bug#79528, bug#80499
   "Test handling of file name with literal embedded newline."
+  ;; File names with embedded newlines are not allowed on MS-Windows and
+  ;; MS-DOS.
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (with-current-buffer "*Messages*"
     (let ((inhibit-read-only t))
       (erase-buffer)))
@@ -671,8 +674,7 @@ The current directory at call time should not affect the result (Bug#50630)."
                      (dired (file-name-directory file))))
          (warnbuf (get-buffer "*Warnings*")))
     (should (dired--filename-with-newline-p))
-    (let ((beg (point))               ; beginning of file name
-          (end (dired-move-to-end-of-filename)))
+    (let ((beg (point)))               ; beginning of file name
       (should (search-backward "with newline")) ; literal space in file name
       (should (search-backward "\n" beg))) ; literal newline in file name
     (if noninteractive
@@ -692,6 +694,9 @@ The current directory at call time should not affect the result (Bug#50630)."
 
 (ert-deftest dired-test-filename-with-newline-2 () ; bug#79528, bug#80499
   "Test handling of file name with embedded newline using `b' switch."
+  ;; File names with embedded newlines are not allowed on MS-Windows and
+  ;; MS-DOS.
+  (skip-when (memq system-type '(windows-nt ms-dos)))
   (with-current-buffer "*Messages*"
     (let ((inhibit-read-only t))
       (erase-buffer)))
@@ -705,8 +710,7 @@ The current directory at call time should not affect the result (Bug#50630)."
     (with-current-buffer buf
       (should (dired--filename-with-newline-p))
       (dired--toggle-b-switch)
-      (let ((beg (point))               ; beginning of file name
-            (end (dired-move-to-end-of-filename)))
+      (let ((beg (point)))               ; beginning of file name
         (should (search-backward "with\\ newline")) ; result of ls -b switch
         (should (search-backward "\\n" beg)))) ; result of ls -b switch
     (if noninteractive
@@ -726,18 +730,36 @@ visiting the nonexisting file should killed before `dired' returns,
 hence another buffer should be returned."
   (let* ((dir (ert-resource-file (file-name-as-directory "empty-dir")))
          (name (concat dir "bla"))
-         (buf (progn (make-directory dir)
+         ;; Use PARENT = t in make-directory call to avoid failing if
+         ;; the directyory already exists for some reason.
+         (buf (progn (make-directory dir t)
                      (dired name))))
-    (let ((errbuf (get-buffer "*ls error*")))
-      (should (get-buffer-window errbuf))
-      (should-not (equal (buffer-name buf) (file-name-nondirectory name)))
-      (with-current-buffer errbuf
-        (should (equal (buffer-string)
-                       (concat "ls: cannot access '"
-                               (file-name-nondirectory name)
-                               "': No such file or directory\n"))))
-      (kill-buffer errbuf))
-    (delete-directory dir t)))
+    ;; This is for MS-Windows and MS-DOS in the default configuration.
+    (when (and (featurep 'ls-lisp)
+               (null ls-lisp-use-insert-directory-program))
+      (should (bufferp buf))
+      (should (equal (buffer-name buf) (file-name-nondirectory name)))
+      (with-current-buffer buf
+        ;; 'ls-lisp' creates a Dired buffer of just 3 lines, with
+        ;; "(No match)" on the last line
+        (should (string-match "(No match)" (buffer-string)))
+        (should (= 3 (line-number-at-pos (buffer-size) t)))))
+    ;; This is for Posix systems and for MS-Windows/DOS when they use 'ls'.
+    (unless (and (featurep 'ls-lisp)
+                 (null ls-lisp-use-insert-directory-program))
+      (let ((errbuf (get-buffer "*ls error*")))
+        (should (get-buffer-window errbuf))
+        (should-not (equal (buffer-name buf) (file-name-nondirectory name)))
+        (with-current-buffer errbuf
+          (should (string-match-p
+                   (format
+                    ;; Use .* around file name to account for different
+                    ;; file-name quoting styles, or no quoting at all.
+                    "%s: cannot access .*%s.*: No such file or directory\n"
+                    insert-directory-program (file-name-nondirectory name))
+                   (buffer-string))))
+        (kill-buffer errbuf))
+      (delete-directory dir t))))
 
 
 (defun dired-test--filename-with-backslash-n ()

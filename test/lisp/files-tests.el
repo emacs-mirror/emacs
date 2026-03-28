@@ -1027,17 +1027,19 @@ unquoted file names."
                      (buffer-string)))))
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
-    (with-temp-buffer (insert-directory nospecial-dir ""))
-    (let ((errbuf (get-buffer "*ls error*"))
-          ;; By the time `ls' is called in `insert-directory', the
-          ;; handler prefix has been removed.
-          (nospecial-dir (string-remove-prefix "/:" nospecial-dir)))
-      (should errbuf)
-      (with-current-buffer errbuf
-        (should (equal (buffer-string)
-                       (concat "ls: cannot access '" nospecial-dir
-                               "': No such file or directory\n"))))
-      (kill-buffer errbuf))))
+    (if (memq system-type '(windows-nt ms-dos))
+        (should-error (with-temp-buffer (insert-directory nospecial-dir "")))
+      (with-temp-buffer (insert-directory nospecial-dir ""))
+      (let ((errbuf (get-buffer "*ls error*"))
+            ;; By the time `ls' is called in `insert-directory', the
+            ;; handler prefix has been removed.
+            (nospecial-dir (string-remove-prefix "/:" nospecial-dir)))
+        (should errbuf)
+        (with-current-buffer errbuf
+          (should (equal (buffer-string)
+                         (concat "ls: cannot access '" nospecial-dir
+                                 "': No such file or directory\n"))))
+        (kill-buffer errbuf)))))
 
 (ert-deftest files-tests-file-name-non-special-insert-file-contents ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
