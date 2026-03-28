@@ -1993,48 +1993,39 @@ ID-FORMAT valid values are `string' and `integer'."
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
     (with-parsed-tramp-file-name (expand-file-name directory) nil
-      (when (and (not (string-search "/" filename))
-		 (tramp-connectable-p v))
-	(unless (string-search "/" filename)
-	  (all-completions
-	   filename
-	   (with-tramp-file-property v localname "file-name-all-completions"
-	     (let (result)
-	       ;; Get a list of directories and files, including
-	       ;; reliably tagging the directories with a trailing "/".
-	       ;; Because I rock.  --daniel@danann.net
-	       (if (tramp-get-remote-perl v)
-		   (tramp-maybe-send-script
-		    v tramp-perl-file-name-all-completions
-		    "tramp_perl_file_name_all_completions")
-		 (tramp-maybe-send-script
-		  v tramp-shell-file-name-all-completions
-		  "tramp_shell_file_name_all_completions"))
+      (let (result)
+	;; Get a list of directories and files, including reliably
+	;; tagging the directories with a trailing "/".
+	;; Because I rock.  --daniel@danann.net
+	(if (tramp-get-remote-perl v)
+	    (tramp-maybe-send-script
+	     v tramp-perl-file-name-all-completions
+	     "tramp_perl_file_name_all_completions")
+	  (tramp-maybe-send-script
+	   v tramp-shell-file-name-all-completions
+	   "tramp_shell_file_name_all_completions"))
 
-	       (dolist
-		   (elt
-		    (tramp-send-command-and-read
-		     v (format
-			"%s %s"
-			(if (tramp-get-remote-perl v)
-			    "tramp_perl_file_name_all_completions"
-			  "tramp_shell_file_name_all_completions")
-			(tramp-shell-quote-argument localname))
-		     'noerror)
-		    result)
-		 ;; Don't cache "." and "..".
-		 (when (string-match-p
-			directory-files-no-dot-files-regexp
-			(file-name-nondirectory (car elt)))
-		   (tramp-set-file-property v (car elt) "file-exists-p" (nth 1 elt))
-		   (tramp-set-file-property v (car elt) "file-readable-p" (nth 2 elt))
-		   (tramp-set-file-property v (car elt) "file-directory-p" (nth 3 elt))
-		   (tramp-set-file-property v (car elt) "file-executable-p" (nth 4 elt)))
+	(dolist
+	    (elt
+	     (tramp-send-command-and-read
+	      v (format
+		 "%s %s"
+		 (if (tramp-get-remote-perl v)
+		     "tramp_perl_file_name_all_completions"
+		   "tramp_shell_file_name_all_completions")
+		 (tramp-shell-quote-argument localname))
+	      'noerror)
+	     result)
+	  ;; Don't cache "." and "..".
+	  (when (string-match-p
+		 directory-files-no-dot-files-regexp
+		 (file-name-nondirectory (car elt)))
+	    (tramp-set-file-property v (car elt) "file-exists-p" (nth 1 elt))
+	    (tramp-set-file-property v (car elt) "file-readable-p" (nth 2 elt))
+	    (tramp-set-file-property v (car elt) "file-directory-p" (nth 3 elt))
+	    (tramp-set-file-property v (car elt) "file-executable-p" (nth 4 elt)))
 
-		 (push
-		  (concat
-		   (file-name-nondirectory (car elt)) (and (nth 3 elt) "/"))
-		  result))))))))))
+	  (push (file-name-nondirectory (car elt)) result))))))
 
 ;; cp, mv and ln
 
@@ -2803,7 +2794,7 @@ The method used must be an out-of-band method."
 	      (append switches (split-string (tramp-sh--quoting-style-options v))
 		      (when dired `(,dired))))
 	(unless dired
-	  (setq switches (delete "-N" (delete "--dired" switches)))))
+	  (setq switches (seq-difference switches '("-N" "--dired")))))
       (when wildcard
         (setq wildcard (tramp-run-real-handler
 			#'file-name-nondirectory (list localname)))
@@ -3917,11 +3908,13 @@ Fall back to normal file name handler if no Tramp handler exists."
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))
     (tramp-message proc 6 "%S\n%s" proc string)
-    (setq string (concat rest-string string)
-          ;; Fix action names.
-          string (string-replace "attributes changed" "attribute-changed" string)
-          string (string-replace "changes done" "changes-done-hint" string)
-          string (string-replace "renamed to" "moved" string))
+    (setq string
+	  (thread-last
+	    (concat rest-string string)
+	    ;; Fix action names.
+	    (string-replace "attributes changed" "attribute-changed")
+	    (string-replace "changes done" "changes-done-hint")
+	    (string-replace "renamed to" "moved")))
 
     (catch 'doesnt-work
       ;; https://bugs.launchpad.net/bugs/1742946

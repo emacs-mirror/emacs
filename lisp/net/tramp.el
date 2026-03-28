@@ -2002,12 +2002,11 @@ expected to be a string, which will be used."
   "Construct a Tramp hop name from VEC."
   (concat
    (tramp-file-name-hop vec)
-   (replace-regexp-in-string
-    tramp-prefix-regexp ""
-    (replace-regexp-in-string
-     (rx (regexp tramp-postfix-host-regexp) eos)
-     tramp-postfix-hop-format
-     (tramp-make-tramp-file-name (tramp-file-name-unify vec))))))
+   (thread-last
+     (replace-regexp-in-string
+      (rx (regexp tramp-postfix-host-regexp) eos) tramp-postfix-hop-format
+      (tramp-make-tramp-file-name (tramp-file-name-unify vec)))
+     (replace-regexp-in-string tramp-prefix-regexp ""))))
 
 (defun tramp-completion-make-tramp-file-name (method user host localname)
   "Construct a Tramp file name from METHOD, USER, HOST and LOCALNAME.
@@ -2957,7 +2956,7 @@ not in completion mode."
   (or (and (cond
             ;; Completion styles like `flex' and `substring' check for
             ;; the file name "/".  This does exist.
-            ((string-equal filename "/"))
+            ((string-equal filename tramp-prefix-format))
             ;; Is it a valid method?
             ((and (not (string-empty-p tramp-postfix-method-format))
                   (string-match
@@ -3001,30 +3000,59 @@ not in completion mode."
 
       (tramp-run-real-handler #'file-exists-p (list filename))))
 
+(defvar tramp-fnac-add-trailing-slash t
+  "Whether `file-name-all-completions' shall add a trailing slash.
+This is not desired, if that function is used in `directory-files', or
+in `tramp-completion-handle-file-name-all-completions'.")
+
 (defmacro tramp-skeleton-file-name-all-completions
     (filename directory &rest body)
   "Skeleton for `tramp-*-handle-filename-all-completions'.
 BODY is the backend specific code."
   (declare (indent 2) (debug t))
   `(ignore-error file-missing
-     (seq-uniq (delq nil (delete ""
-       (let* ((case-fold-search read-file-name-completion-ignore-case)
-	      (result (progn ,@body)))
-	 ;; Some storage systems do not return "." and "..".
-	 (when (tramp-tramp-file-p ,directory)
-	   (dolist (elt '(".." "."))
-	     (when (string-prefix-p ,filename elt)
-	       (setq result (cons (concat elt "/") result)))))
-	 (if (consp completion-regexp-list)
-	     ;; Discriminate over `completion-regexp-list'.
-	     (mapcar
-	      (lambda (x)
-		(when (stringp x)
-		  (catch 'match
-		    (dolist (elt completion-regexp-list x)
-		      (unless (string-match-p elt x) (throw 'match nil))))))
-	      result)
-	   result)))))))
+     (all-completions
+      ,filename
+      (when (file-directory-p ,directory)
+	(seq-uniq (delq nil
+         (let* ((case-fold-search read-file-name-completion-ignore-case)
+		(result
+		 (if (tramp-tramp-file-p ,directory)
+		     (with-parsed-tramp-file-name
+			 (expand-file-name ,directory) nil
+		       (when (and (not (string-search "/" ,filename))
+				  (tramp-connectable-p v))
+			 (with-tramp-file-property
+			     v localname
+			     (format
+			      "file-name-all-completions-%s"
+			      tramp-fnac-add-trailing-slash)
+			   ;; Mark symlinked directories.  Other
+			   ;; directories are already marked.
+			   (mapcar
+			    (lambda (x)
+			      (let ((f (file-name-concat ,directory x)))
+				(if (and tramp-fnac-add-trailing-slash
+					 (not (string-suffix-p "/" x))
+					 (file-directory-p
+					  (if (file-symlink-p f)
+					      (file-truename f) f)))
+				    (concat x "/") x)))
+			    ;; Some storage systems do not return "." and "..".
+			    (seq-union
+			     (seq-difference (progn ,@body) '("." ".."))
+			     '("./" "../"))))))
+	           ,@body)))
+	   ;; Discriminate over `completion-regexp-list'.
+	   (if (consp completion-regexp-list)
+	       (mapcar
+		(lambda (x)
+		  (when (stringp x)
+		    (catch 'match
+		      (dolist (elt completion-regexp-list x)
+			(unless (string-match-p elt x) (throw 'match nil))))))
+		result)
+	     result))))))))
 
 (defvar tramp--last-hop-directory nil
   "Tracks the directory from which to run login programs.")
@@ -3035,72 +3063,74 @@ BODY is the backend specific code."
 ;; completions.
 (defun tramp-completion-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for partial Tramp files."
-  (tramp-skeleton-file-name-all-completions filename directory
-    (let ((fullname
-	   (tramp-drop-volume-letter (expand-file-name filename directory)))
-	  (directory (tramp-drop-volume-letter directory))
-	  tramp--last-hop-directory hop result result1)
+  (let (tramp-fnac-add-trailing-slash)
+    (tramp-skeleton-file-name-all-completions filename directory
+      (let ((fullname
+	     (tramp-drop-volume-letter (expand-file-name filename directory)))
+	    (directory (tramp-drop-volume-letter directory))
+	    tramp--last-hop-directory hop result result1)
 
-      ;; Suppress hop from completion.
-      (when (string-match
-	     (rx
-	      (regexp tramp-prefix-regexp)
-	      (group (+ (regexp tramp-remote-file-name-spec-regexp)
-			(regexp tramp-postfix-hop-regexp))))
-	     fullname)
-	(setq hop (match-string 1 fullname)
-	      fullname (replace-match "" nil nil fullname 1)
-	      tramp--last-hop-directory
-	      (tramp-make-tramp-file-name (tramp-dissect-hop-name hop))))
+	;; Suppress hop from completion.
+	(when (string-match
+	       (rx
+		(regexp tramp-prefix-regexp)
+		(group (+ (regexp tramp-remote-file-name-spec-regexp)
+			  (regexp tramp-postfix-hop-regexp))))
+	       fullname)
+	  (setq hop (match-string 1 fullname)
+		fullname (replace-match "" nil nil fullname 1)
+		tramp--last-hop-directory
+		(tramp-make-tramp-file-name (tramp-dissect-hop-name hop))))
 
-      (let (tramp-default-user tramp-default-user-alist
-	    tramp-default-host tramp-default-host-alist)
+	(let (tramp-default-user tramp-default-user-alist
+				 tramp-default-host tramp-default-host-alist)
 
-	;; Possible completion structures.
-	(dolist (elt (tramp-completion-dissect-file-name fullname))
-	  (let* ((method (tramp-file-name-method elt))
-		 (user (tramp-file-name-user elt))
-		 (host (tramp-file-name-host elt))
-		 (localname (tramp-file-name-localname elt))
-		 (m (tramp-find-method method user host))
-		 all-user-hosts)
+	  ;; Possible completion structures.
+	  (dolist (elt (tramp-completion-dissect-file-name fullname))
+	    (let* ((method (tramp-file-name-method elt))
+		   (user (tramp-file-name-user elt))
+		   (host (tramp-file-name-host elt))
+		   (localname (tramp-file-name-localname elt))
+		   (m (tramp-find-method method user host))
+		   all-user-hosts)
 
-	    (unless localname ;; Nothing to complete.
-	      (if (or user host)
-		  ;; Method dependent user / host combinations.
-		  (progn
-		    (mapc
-		     (lambda (x)
-		       (setq all-user-hosts
-			     (append all-user-hosts
-				     (funcall (nth 0 x) (nth 1 x)))))
-		     (tramp-get-completion-function m))
+	      (unless localname ;; Nothing to complete.
+		(if (or user host)
+		    ;; Method dependent user / host combinations.
+		    (progn
+		      (mapc
+		       (lambda (x)
+			 (setq all-user-hosts
+			       (append all-user-hosts
+				       (funcall (nth 0 x) (nth 1 x)))))
+		       (tramp-get-completion-function m))
 
-		    (setq result
-			  (append result
-				  (mapcar
-				   (lambda (x)
-				     (tramp-get-completion-user-host
-				      method user host (nth 0 x) (nth 1 x)))
-				   all-user-hosts))))
+		      (setq result
+			    (append result
+				    (mapcar
+				     (lambda (x)
+				       (tramp-get-completion-user-host
+					method user host (nth 0 x) (nth 1 x)))
+				     all-user-hosts))))
 
-		;; Possible methods.
-		(setq result
-		      (append result (tramp-get-completion-methods m hop)))))))
+		  ;; Possible methods.
+		  (setq result
+			(append result (tramp-get-completion-methods m hop)))))))
 
-	;; Add hop.
-	(dolist (elt result)
-          (when elt
-	    (setq elt (replace-regexp-in-string
-		       tramp-prefix-regexp (concat tramp-prefix-format hop) elt))
-	    (push (substring elt (length directory)) result1)))
+	  ;; Add hop.
+	  (dolist (elt result)
+            (when elt
+	      (setq elt (replace-regexp-in-string
+			 tramp-prefix-regexp
+			 (concat tramp-prefix-format hop) elt))
+	      (push (substring elt (length directory)) result1)))
 
-	;; Complete local parts.
-	(append
-         result1
-         (ignore-errors
-           (tramp-run-real-handler
-	    #'file-name-all-completions (list filename directory))))))))
+	  ;; Complete local parts.
+	  (append
+           result1
+           (ignore-errors
+             (tramp-run-real-handler
+	      #'file-name-all-completions (list filename directory)))))))))
 
 ;; Method, host name and user name completion for a file.
 (defun tramp-completion-handle-file-name-completion
@@ -3659,9 +3689,10 @@ BODY is the backend specific code."
 	   (signal 'error nil)
 	 (setf ,directory
 	       (file-name-as-directory (expand-file-name ,directory)))
-	 (let ((temp
-		(with-tramp-file-property v localname "directory-files" ,@body))
-	       result item)
+	 (let* (tramp-fnac-add-trailing-slash
+		(temp
+		 (with-tramp-file-property v localname "directory-files" ,@body))
+		result item)
 	   (while temp
 	     (setq item (directory-file-name (pop temp)))
 	     (when (or (null ,match) (string-match-p ,match item))
@@ -4496,8 +4527,8 @@ Let-bind it when necessary.")
     ;; "." and ".." are never interesting as completions, and are
     ;; actually in the way in a directory with only one file.  See
     ;; file_name_completion() in dired.c.
-    (when (and (consp fnac) (length= (delete "./" (delete "../" fnac)) 1))
-      (setq fnac (delete "./" (delete "../" fnac))))
+    (when (and (consp fnac) (length= (seq-difference fnac '("./" "../")) 1))
+      (setq fnac (seq-difference fnac '("./" "../"))))
     (or
      (try-completion
       filename fnac
@@ -5487,7 +5518,7 @@ processes."
 	   v 'tramp-login-args nil
 	   ?h (or host "") ?u (or user "") ?p (or port "")
 	   ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
-	   ?d (or device "") ?a (or pta "") ?l ""))))
+	   ?w "" ?d (or device "") ?a (or pta "") ?l ""))))
        ;; Suppress `internal-default-process-sentinel', which is set
        ;; when :sentinel is nil.  (Bug#71049)
        p (make-process

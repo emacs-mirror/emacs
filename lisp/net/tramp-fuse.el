@@ -102,10 +102,7 @@
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
     (tramp-fuse-remove-hidden-files
-     (all-completions
-      filename
-      (file-name-all-completions
-       filename (tramp-fuse-local-file-name directory))))))
+     (file-name-all-completions "" (tramp-fuse-local-file-name directory)))))
 
 ;; This function isn't used.
 (defun tramp-fuse-handle-insert-directory
