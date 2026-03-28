@@ -70,7 +70,7 @@ DELAY is a string, giving the length of the time.  Possible values are:
 * YYYY-MM-DD for a specific date.  The time of day is given by the
   variable `gnus-delay-default-hour', minute and second are zero.
 
-* YYYY-MM-DD hh:mm(:ss) for a specific date and time. If seconds are left
+* YYYY-MM-DD hh:mm(:ss) for a specific date and time.  If seconds are left
   out, they will be zero.
 
 * hh:mm for a specific time.  Use 24h format.  If it is later than this
@@ -85,7 +85,7 @@ generated when the article is sent."
 	       message-mode)
   ;; Allow spell checking etc.
   (run-hooks 'message-send-hook)
-  (let (num unit year month day hour minute deadline) ;; days
+  (let (num unit year month day hour minute deadline second) ;; days
     (cond ((string-match
 	    "\\([0-9][0-9][0-9]?[0-9]?\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]\\{1,2\\}\\):\\([0-9]\\{2\\}\\):?\\([0-9]\\{2\\}\\)?"
 	    delay)
