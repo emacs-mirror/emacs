@@ -640,7 +640,7 @@ fonction @code{ses-define-if-new-local-printer}
 la définition ne se produira que si aucune fonction d’impression de
 même nom n’est déjà définie.
 
-Les variables @code{ses--row} et @code{ses--col} sont dynamiquement
+Les variables @code{ses-row} et @code{ses-col} sont dynamiquement
 réglées aux coordonnées de la cellule courante pendant l'évaluation de
 la fonction d'impression, de sorte que vous pouvez faire dépendre la
 sortie non seulement du contenu de la cellule mais aussi de sa position.
@@ -860,7 +860,7 @@ ou à la première cellule à gauche de la ligne suivante si la cellule
 courante est la plus à droite de la feuille.  Vous pouvez personnaliser
 @code{ses-after-entry-functions} pour que le déplacement soit vers la
 gauche ou le haut ou le bas.  Pour un mouvement diagonal, selectionnez
-deux fonctions de la liste.  @code{ses--row} et @code{ses--col} sont
+deux fonctions de la liste.  @code{ses-row} et @code{ses-col} sont
 dynamiquement réglées aux coordonnées de la cellule coutante, de sorte
 qu'en ayant votre propre fonction de mouvement dans ce crochet vous
 pouvez rendre le mouvement du curseur dépendant des coordonnées de la
@@ -869,9 +869,9 @@ cellule. Par exemple définissez :
 @example
 (defun mon-crochet-post-saisie-ses (arg)
    (cond
-    ((= 0 ses--col)
+    ((= 0 ses-col)
      (forward-char arg))
-    ((= 1 ses--col)
+    ((= 1 ses-col)
      (backward-char arg)
      (next-line arg))
     (t
@@ -1462,11 +1462,11 @@ cellule ne sera pas mise à jour automatiquement quand @samp{B3} est
 modifiée, c’est pourquoi l’usage de @code{ses-rename-cell} est la
 plupart du temps préférable.
 
-Les variables @code{ses--row} et @code{ses--col} sont liées
-dynamiquement pendant l’évaluation d’une formule de cellule. Vous pouvez
-utiliser
+Les variables @code{ses-row} et @code{ses-col} sont réglées
+dynamiquement pendant l’évaluation d’une formule de cellule aux
+coordonnées de celle-ci. Vous pouvez utiliser
 @lisp
-(ses-cell-value row 0)
+(ses-cell-value ses-row 0)
 @end lisp
 pour obtenir la valeur de la colonne la plus à gauche de la ligne
 courante. Ce type de dépendance n’est pas non plus enregistré.

@@ -102,7 +102,7 @@
   "Things to do after entering a value into a cell.
 An abnormal hook that usually runs a cursor-movement function.
 Each function is called with ARG=1.
-Variables `ses--row' and `ses--col' are dynamically bound to cell
+Variables `ses-row' and `ses-col' are dynamically bound to cell
 coordinates during hook call."
   :type 'hook
   :options '(forward-char backward-char next-line previous-line))
@@ -1007,8 +1007,8 @@ the old and FORCE is nil."
 	(setq formula (ses-safe-formula (cadr formula)))
 	(ses-set-cell row col 'formula formula))
       (condition-case sig
-	  (setq newval (let ((ses--row row)
-                             (ses--col col))
+	  (setq newval (dlet ((ses-row row)
+                              (ses-col col))
                          (eval formula t)))
 	(error
 	 ;; Variable `sig' can't be nil.
@@ -2588,8 +2588,8 @@ Return nil if cell formula was unsafe and user declined confirmation."
                                  curval)))))))
   (when (ses-edit-cell row col newval)
     (ses-command-hook) ; Update cell widths before movement.
-    (let ((ses--row row)
-          (ses--col col))
+    (dlet ((ses-row row)
+           (ses-col col))
       (run-hook-with-args 'ses-after-entry-functions 1))))
 
 (defun ses-read-symbol (row col symb)
@@ -2609,8 +2609,8 @@ spreadsheet is available for completions."
 	     (list 'quote (intern newval))))))
   (when (ses-edit-cell row col symb)
     (ses-command-hook) ; Update cell widths before movement.
-    (let ((ses--row row)
-          (ses--col col))
+    (dlet ((ses-row row)
+           (ses-col col))
       (run-hook-with-args 'ses-after-entry-functions 1))))
 
 (defun ses-clear-cell-forward (count)

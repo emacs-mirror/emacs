@@ -570,7 +570,7 @@ If you replace command @code{ses-define-local-printer} by function
 the definition will occur only if a local printer with the same name
 in not already defined.
 
-Variables @code{ses--row} and @code{ses--col} are dynamically set to the
+Variables @code{ses-row} and @code{ses-col} are dynamically set to the
 coordinates of the current cell, so that you may have the output depend
 not only of the cell's content, but as well of its position.
 
@@ -770,7 +770,7 @@ which moves point right to the next cell@c TODO propagate extra
                                         @c version.  .  You can
 customize hook @code{ses-after-entry-functions} to move left or up or
 down.  For diagonal movement, select two functions from the
-list. @code{ses--row} and @code{ses--col} are dynamically bound to
+list. @code{ses-row} and @code{ses-col} are dynamically bound to
 current cell coordinates, so by having your own movement function in
 this hook you may make cursor movement depending on the cell
 coordinates. For instance define:
@@ -778,9 +778,9 @@ coordinates. For instance define:
 @example
 (defun my-ses-after-entry-hook (arg)
    (cond
-    ((= 0 ses--col)
+    ((= 0 ses-col)
      (forward-char arg))
-    ((= 1 ses--col)
+    ((= 1 ses-col)
      (backward-char arg)
      (next-line arg))
     (t
@@ -1295,10 +1295,10 @@ recorded as a dependency of this cell, so this cell will not be
 updated automatically when @samp{B3} is changed, this is why using
 @code{ses-rename-cell} is most of the time preferable.
 
-The variables @code{ses--row} and @code{ses--col} are dynamically bound
+The variables @code{ses-row} and @code{ses-col} are dynamically bound
 while a cell formula is being evaluated.  You can use
 @lisp
-(ses-cell-value row 0)
+(ses-cell-value ses-row 0)
 @end lisp
 to get the value from the leftmost column in the current row.  This
 kind of dependency is also not recorded.
