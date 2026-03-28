@@ -738,6 +738,7 @@ hence another buffer should be returned."
                      (dired name))))
     ;; This is for MS-Windows and MS-DOS in the default configuration.
     (when (and (featurep 'ls-lisp)
+               (boundp 'ls-lisp-use-insert-directory-program)
                (null ls-lisp-use-insert-directory-program))
       (should (bufferp buf))
       (should (equal (buffer-name buf) (file-name-nondirectory name)))
@@ -748,6 +749,7 @@ hence another buffer should be returned."
         (should (= 3 (line-number-at-pos (buffer-size) t)))))
     ;; This is for Posix systems and for MS-Windows/DOS when they use 'ls'.
     (unless (and (featurep 'ls-lisp)
+                 (boundp 'ls-lisp-use-insert-directory-program)
                  (null ls-lisp-use-insert-directory-program))
       (let ((errbuf (get-buffer "*ls error*")))
         (should (get-buffer-window errbuf))
