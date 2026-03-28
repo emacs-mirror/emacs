@@ -5191,6 +5191,69 @@ used for internal testing and debugging ONLY.  */)
   return plist;
 }
 
+/* Forward declaration for helper */
+static void treesit_node_walk_tree_1 (Lisp_Object node, Lisp_Object fn,
+                                           Lisp_Object parent_nodes);
+
+DEFUN ("treesit-node-walk-tree", Ftreesit_node_walk_tree,
+       Streesit_node_walk_tree, 2, 3, 0,
+       doc: /* Traverse the treesit tree depth-first from NODE and call
+FN on each node.  If call to FN returns non-nil, traversal into
+sub-nodes of NODE is skipped.  PARENT-NODES is a list containing the
+current parent nodes upwards.
+
+FN is called with two arguments: the current node and the parent-nodes
+list.  If FN returns non-nil, the traversal will not descend into the
+current node's children.
+
+Usage: (treesit-node-walk-tree NODE FN &optional PARENT-NODES)  */)
+  (Lisp_Object node, Lisp_Object fn, Lisp_Object parent_nodes)
+{
+  if (NILP (node)) return Qnil;
+  CHECK_TS_NODE (node);
+  treesit_node_walk_tree_1 (node, fn, parent_nodes);
+  return Qnil;
+}
+
+/* Helper function - optimized for performance */
+static void
+treesit_node_walk_tree_1 (Lisp_Object node, Lisp_Object fn,
+                               Lisp_Object parent_nodes)
+{
+  /* Call the function on current node with parent nodes */
+  Lisp_Object result = CALLN (Ffuncall, fn, node, parent_nodes);
+
+  /* If function returns non-nil, skip recursion into children */
+  if (!NILP (result))
+    return;
+
+  /* Get child count efficiently - direct access to avoid function call overhead */
+  struct Lisp_TS_Node *lisp_node = XTS_NODE (node);
+  TSNode ts_node = lisp_node->node;
+
+  /* Use tree-sitter's native child count function for maximum efficiency */
+  uint32_t child_count = ts_node_child_count (ts_node);
+
+  /* Iterate through children */
+  for (uint32_t i = 0; i < child_count; i++)
+    {
+      /* Get child node directly using tree-sitter API */
+      TSNode child_ts_node = ts_node_child (ts_node, i);
+
+      /* Skip null nodes (shouldn't happen with valid indices, but be safe) */
+      if (ts_node_is_null (child_ts_node))
+        continue;
+
+      /* Create Lisp object for child node */
+      Lisp_Object child_node = make_treesit_node (lisp_node->parser, child_ts_node);
+
+      /* Create new parent nodes list with current node prepended */
+      Lisp_Object new_parent_nodes = Fcons (node, parent_nodes);
+
+      /* Recursive call */
+      treesit_node_walk_tree_1 (child_node, fn, new_parent_nodes);
+    }
+}
 
 #endif	/* HAVE_TREE_SITTER */
 
@@ -5513,6 +5576,8 @@ depending on customization of `treesit-enabled-modes'.  */);
   defsubr (&Streesit__linecol_at);
   defsubr (&Streesit__linecol_cache);
   defsubr (&Streesit__linecol_cache_set);
+
+  defsubr (&Streesit_node_walk_tree);
 #endif /* HAVE_TREE_SITTER */
   defsubr (&Streesit_available_p);
 #ifdef WINDOWSNT
