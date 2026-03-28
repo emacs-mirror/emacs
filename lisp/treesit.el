@@ -5849,7 +5849,7 @@ language."
   "Pattern matching"
   (treesit-query-capture
    :no-eval (treesit-query-capture node '((identifier) @id "return" @ret))
-   :eg-result-string "((id . #<treesit-node (identifier) in 195-196>) (ret . #<treesit-node "return" in 338-344>))")
+   :eg-result-string "((id . #<treesit-node (identifier) in 195-196>) (ret . #<treesit-node \"return\" in 338-344>))")
   (treesit-query-compile
    :no-eval (treesit-query-compile 'c '((identifier) @id "return" @ret))
    :eg-result-string "#<treesit-compiled-query>")
