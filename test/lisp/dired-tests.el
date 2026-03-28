@@ -674,7 +674,8 @@ The current directory at call time should not affect the result (Bug#50630)."
                      (dired (file-name-directory file))))
          (warnbuf (get-buffer "*Warnings*")))
     (should (dired--filename-with-newline-p))
-    (let ((beg (point)))               ; beginning of file name
+    (let ((beg (point))               ; beginning of file name
+          (_ (dired-move-to-end-of-filename)))
       (should (search-backward "with newline")) ; literal space in file name
       (should (search-backward "\n" beg))) ; literal newline in file name
     (if noninteractive
@@ -710,7 +711,8 @@ The current directory at call time should not affect the result (Bug#50630)."
     (with-current-buffer buf
       (should (dired--filename-with-newline-p))
       (dired--toggle-b-switch)
-      (let ((beg (point)))               ; beginning of file name
+      (let ((beg (point))               ; beginning of file name
+            (_ (dired-move-to-end-of-filename)))
         (should (search-backward "with\\ newline")) ; result of ls -b switch
         (should (search-backward "\\n" beg)))) ; result of ls -b switch
     (if noninteractive
