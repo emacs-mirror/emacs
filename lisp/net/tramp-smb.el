@@ -603,12 +603,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (copy-directory filename newname keep-date 'parents 'copy-contents)
 
 	(tramp-barf-if-file-missing v filename
-	  ;; `file-local-copy' returns a file name also for a local
-	  ;; file with `jka-compr-handler', so we cannot trust its
-	  ;; result as indication for a remote file name.
-	  (if-let* ((tmpfile
-		     (and (tramp-tramp-file-p filename)
-			  (file-local-copy filename))))
+	  ;; Suppress `jka-compr-handler'.
+	  (if-let* ((jka-compr-inhibit t)
+		    (tmpfile (file-local-copy filename)))
 	      ;; Remote filename.
 	      (condition-case err
 		  (rename-file tmpfile newname ok-if-already-exists)
