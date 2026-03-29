@@ -3612,7 +3612,7 @@ mark_lread (void)
 	}
     }
 }
-#endif // not HAVE_MPS
+#endif	/* !HAVE_MPS */
 
 static inline struct read_stack_entry *
 read_stack_top (void)

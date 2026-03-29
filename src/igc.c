@@ -1620,10 +1620,10 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 	  case SPECPDL_MODULE_RUNTIME:
 	    break;
 
-	    // If I am not mistaken, the emacs_env in this binding
-	    // actually lives on the stack (see module-load e.g.).
-	    // So, we don't have to do anything here for the Lisp
-	    // objects in emacs_env.
+	    /* If I am not mistaken, the emacs_env in this binding
+	       actually lives on the stack (see module-load e.g.).
+	       So, we don't have to do anything here for the Lisp
+	       objects in emacs_env.  */
 	  case SPECPDL_MODULE_ENVIRONMENT:
 	    break;
 #endif
@@ -3076,7 +3076,7 @@ fix_terminal (mps_ss_t ss, struct terminal *t)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, t, fix_vectorlike);
     IGC_FIX12_PVEC (ss, &t->next_terminal);
-    // These are malloc'd, so they can be accessed.
+    /* These are malloc'd, so they can be accessed.  */
     IGC_FIX_CALL_FN (ss, struct coding_system, t->keyboard_coding, fix_coding);
     IGC_FIX_CALL_FN (ss, struct coding_system, t->terminal_coding, fix_coding);
   }
@@ -3170,7 +3170,7 @@ fix_xwidget_view (mps_ss_t ss, struct xwidget_view *v)
   return MPS_RES_OK;
 }
 
-#endif // HAVE_XWIDGETS
+#endif /* HAVE_XWIDGETS */
 
 #ifdef HAVE_MODULES
 static mps_res_t
@@ -3889,12 +3889,14 @@ igc_park_arena (void)
   return count;
 }
 
+/* This is called from lread.c:grow_read_stack.  */
 void
 igc_grow_rdstack (struct read_stack *rs)
 {
   struct igc *gc = global_igc;
   ptrdiff_t old_nitems = rs->size;
-  ptrdiff_t nbytes = xpalloc_nbytes (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
+  ptrdiff_t nbytes
+    = xpalloc_nbytes (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
   struct read_stack_entry *new_stack = xzalloc (nbytes);
   for (ptrdiff_t i = 0; i < rs->size; i++)
     new_stack[i].type = RE_free;
@@ -3922,7 +3924,8 @@ igc_grow_rdstack (struct read_stack *rs)
       temp.type = RE_free;
       new_stack[i] = temp;
       new_stack[i].type = orig.type;
-      eassert (memcmp ((void *) (&new_stack[i]), (void *) (&old_stack->stack[i]), sizeof orig) == 0);
+      eassert (memcmp ((void *) (&new_stack[i]),
+		       (void *) (&old_stack->stack[i]), sizeof orig) == 0);
     }
 
   igc_xfree (rs->stack);
@@ -3998,7 +4001,8 @@ igc_realloc_ambig (void *block, size_t size)
       eassert (memcmp ((void *) &word, old_pw + i, sizeof word) == 0);
       new_pw[i] = word;
     }
-  memcpy (new_pw + (min_size / sizeof (mps_word_t)), old_pw + (min_size / sizeof (mps_word_t)),
+  memcpy (new_pw + (min_size / sizeof (mps_word_t)),
+	  old_pw + (min_size / sizeof (mps_word_t)),
 	  min_size % sizeof (mps_word_t));
   igc_xfree (block);
   return p;
@@ -4052,8 +4056,8 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 				     nitems_max, item_size);
   void *new_pa = xzalloc (nbytes);
   char *end = (char *) new_pa + nbytes;
-  root_create (global_igc, new_pa, end, mps_rank_exact (), (mps_area_scan_t) scan_area,
-	       closure, false, "xpalloc-exact");
+  root_create (global_igc, new_pa, end, mps_rank_exact (),
+	       (mps_area_scan_t) scan_area, closure, false, "xpalloc-exact");
   for (ptrdiff_t i = 0; i < (old_nitems); i++)
     {
       igc_assert (item_size < MAX_ALLOCA);
