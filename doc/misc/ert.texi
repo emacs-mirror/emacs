@@ -1132,6 +1132,12 @@ This has the same effect as combining @code{ert-with-test-buffer} with
   (ert-with-test-buffer (:name "global" :selected t)
     @dots{}))
 @end lisp
+
+@findex ert-play-keys
+The @var{select-form} shall be set non-nil when @var{body} contains some
+call to @code{ert-play-keys} to generate programmatically user input
+events inserting text into the test buffer, or starting commands acting
+on the test buffer.
 @end defmac
 
 @defmac ert-with-buffer-selected (buffer &body body)
@@ -1154,6 +1160,13 @@ value is the last form in @var{body}.  Example:
 @end lisp
 
 This displays a temporary buffer like @file{ *temp*-739785*}.
+
+@findex ert-play-keys
+One of the use of @code{ert-with-buffer-selected} is to set the buffer
+to which user input events generated programmatically by one or more
+calls to @code{ert-play-keys} are targetted, which is needed when those
+events are supposed to insert text into this buffer, or start commands
+acting on it.
 @end defmac
 
 @subsection Protecting buffers
@@ -1348,7 +1361,14 @@ symbol and the rest are arguments to the command.  Example:
 
 @strong{Note}: Since the command is not called by
 @code{call-interactively}, a test for @code{(called-interactively-p
-'interactive)} in the command will fail.
+@var{kind})} in the command will fail for whatever @var{kind}.@*
+Function @code{ert-play-keys} may be used instead to start a command if
+you need the predicate @code{(called-interactively-p @var{kind})} tested
+within the command body to return @code{t} for @var{kind} @code{any},
+note however that it will still be @code{nil} too for @var{kind}
+@code{interactive} since @code{ert-play-keys} uses keyboard macros under
+the hood, and that @code{ert-play-keys} needs selecting the buffer of
+interest.
 @end defun
 
 @defmac ert-simulate-keys (keys &rest body)
@@ -1362,7 +1382,75 @@ vector.  Examples:
 (ert-simulate-keys (kbd "#fake C-m C-a C-k C-m") @dots{})
 (ert-simulate-keys [?b ?2 return] @dots{})
 @end lisp
+
+@c @findex ert-play-keys
+To generate input event for inserting some text into a buffer, or
+calling some interactive command, see rather function
+@code{ert-play-keys}.
 @end defmac
+
+@defun ert-play-keys (keys)
+Generate programmatically user input events.
+
+@c @findex ert-simulate-keys
+Contrary to @code{ert-simulate-keys}, these events are not intended to be
+consumed by functions reading input, like @code{read-from-minibuffer},
+but are consumed by the command loop which typically will process them
+to start interactive commands or insert text into the selected buffer.
+
+So, before calling @code{ert-play-keys} you generally need to select the
+buffer to which input events are intended to insert text or call a
+command. Do this by passing a non-nil @code{:selected} flag to
+@code{ert-with-test-buffer} if the buffer was created this way, or use
+the @code{ert-with-buffer-selected} macro.
+
+@c @findex ert-simulate-command
+Contrary to @code{ert-simulate-command}, when @code{ert-play-keys}
+generates events starting a command you cannot get the command return
+value. On the other hand, @code{(called-interactively-p 'any)} tested in
+the command body will be @code{t}, but not @code{(called-interactively-p
+'interactive)} as @code{ert-play-keys} does not a true interactive call,
+but uses a keyboard macro under the hood. Another difference is that,
+contrary to @code{ert-simulate-command}, @code{ert-play-keys} needs to
+select the buffer on which the command acts for the input events to
+reach it.
+
+In this example a test buffer is created and selected, then
+@code{ert-play-keys} sets the mark, inserts text @samp{n'importe quoi}
+and kills it, then the test checks that the killed text is in the kill
+ring and the test buffer is empty, then a second @code{ert-play-keys}
+call yanks again the killed text, and finally the test checks the test
+buffer contains @samp{n'importe quoi}:
+
+@lisp
+(ert-deftest ert-example-kill&yank ()
+  "Test kill and yank."
+  (ert-with-test-buffer (:selected t)
+    (ert-play-keys "C-SPC n'importe SPC quoi C-w")
+    (should (string= "n'importe quoi" (car kill-ring)))
+    (should (string= "" (buffer-substring (point-min) (point-max))))
+    (ert-play-keys "C-y")
+    (should (string= "n'importe quoi"
+                     (buffer-substring (point-min) (point-max))))))
+@end lisp
+
+@noindent
+Write input events as above with a string in the input format used by
+@code{key-parse}, or directly in the internal Emacs representation like
+here which is otherwise the same test as above:
+
+@lisp
+(ert-deftest ert-example-kill&yank ()
+  "Test kill and yank."
+  (ert-with-test-buffer (:selected t)
+    (ert-play-keys (vconcat [ ?\C- ] "n'importe quoi" [ ?\C-w]))
+    (should (string= "n'importe quoi" (car kill-ring)))
+    (should (string= "" (buffer-substring (point-min) (point-max))))
+    (ert-play-keys [ ?\C-y ])
+    (should (string= "n'importe quoi"
+                     (buffer-substring (point-min) (point-max))))))
+@end lisp
+@end defun
 
 @defun ert-filter-string (s &rest regexps)
 This function returns a copy of string @var{s} with all matches of

@@ -21,7 +21,7 @@
 
 ;;; Code:
 
-(require 'ert)
+(require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
 (defun simple-test--buffer-substrings ()
@@ -730,36 +730,34 @@ See bug#35036."
 ;; Test for a regression introduced by undo-auto--boundaries changes.
 ;; https://lists.gnu.org/r/emacs-devel/2015-11/msg01652.html
 (defun undo-test-kill-c-a-then-undo ()
-  (with-temp-buffer
-    (switch-to-buffer (current-buffer))
-    (setq buffer-undo-list nil)
-    (insert "a\nb\nc\n")
-    (goto-char (point-max))
-    ;; We use a keyboard macro because it adds undo events in the same
-    ;; way as if a user were involved.
-    (funcall (kmacro [left
-                      ;; Delete "c"
-                      backspace
-                      left left left
-                      ;; Delete "a"
-                      backspace
-                      ;; C-/ or undo
-                      ?\C-/
-                      ]))
+  (ert-with-test-buffer (:selected t)
+     (setq buffer-undo-list nil)
+     (insert "a\nb\nc\n")
+     (goto-char (point-max))
+     ;; We use a keyboard macro because it adds undo events in the same
+     ;; way as if a user were involved.
+     (ert-play-keys [left
+                     ;; Delete "c"
+                     backspace
+                     left left left
+                     ;; Delete "a"
+                     backspace
+                     ;; C-/ or undo
+                     ?\C-/
+                     ])
     (point)))
 
 (defun undo-test-point-after-forward-kill ()
-  (with-temp-buffer
-    (switch-to-buffer (current-buffer))
+  (ert-with-test-buffer (:selected t)
     (setq buffer-undo-list nil)
     (insert "kill word forward")
     ;; Move to word "word".
     (goto-char 6)
-    (funcall (kmacro [;; kill-word
-                      C-delete
-                      ;; undo
-                      ?\C-/
-                      ]))
+    (ert-play-keys [;; kill-word
+                    C-delete
+                    ;; undo
+                    ?\C-/
+                    ])
     (point)))
 
 (ert-deftest undo-point-in-wrong-place ()
