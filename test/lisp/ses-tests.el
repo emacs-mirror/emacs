@@ -32,7 +32,9 @@
                            (lexical ses--foo)
                            (lexical ses--bar)
                            (lexical B2)
-                           (lexical ses--toto))
+                           (lexical ses--toto)
+                           (lexical ses-row)
+                           (lexical ses-col))
   (defvar ses--cells)
   (defvar A2)
   (defvar A3)
@@ -303,6 +305,58 @@ cell has to be rewritten to data area."
       (ses-mode)
       (should (equal (ses-cell-references 1 1) '(B3)))))
   (ses-tests-check-no-border-effect))
+
+(defun ses-tests-snake-move (count)
+  "Move like a snake.
+
+left to right on even rows, and right to left on odd row. Go next row
+assuming a four columns sheet."
+  (if (evenp ses-row)
+      (if (= ses-col 3)
+          (next-line count)
+        (forward-char count))
+    (if (= ses-col 0)
+        (next-line count)
+      (backward-char count))))
+
+(ert-deftest ses-tests-snake-move-after-entry ()
+  "Test ses-after-entry-functions."
+  (ses-tests-unbind-local-vars)
+  (let ((ses-initial-size '(4 . 4))
+        (ses-after-entry-functions (list #'ses-tests-snake-move))
+        keys ; to input integers interactively to the sES sheet
+        rows cols ; to build reference test vector programmatically
+        )
+    (with-temp-buffer
+      (ses-mode)
+      (ert-with-display-current-buffer
+       (dotimes (i 16)
+         ;; fill the SES sheet with snake move
+         (setq keys (concat (mapconcat #'string (number-to-string i) " ") " RET"))
+         (ert-play-keys keys)
+         ;; build the snake move test vector
+         (push i cols)
+         (when (= (logand i 3) 3); when row is complete
+           ;; even rows are left to right, so reverse cols in this case.
+           (if (= (logand i 4) 0)
+               (setq cols (nreverse cols)))
+           ;; just store the row string
+           (push
+            ;; columns are 7 char wide, and there is one extra inter-column space
+            (substring
+             (mapconcat (lambda (i) (format "%8d" i)) cols "")
+             1)
+            rows)
+           ;; start a new fresh row
+           (setq cols nil))))
+      (should (string=
+               ;; actual sheet content
+               (buffer-substring-no-properties (point-min)
+                                               (- ses--data-marker 2))
+               ;; expected sheet content
+               (mapconcat #'identity (nreverse rows) "\n")))))
+  (ses-tests-check-no-border-effect))
+
 
 (provide 'ses-tests)
 
