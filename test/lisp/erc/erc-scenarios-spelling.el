@@ -67,30 +67,30 @@
         (funcall expect 10 "<alice> tester, welcome!")
 
         ;; Insert a command with one misspelled word.
-        (pop-to-buffer-same-window (current-buffer))
-        (ert-play-keys-in-string "\M->/AMSG an/dor /gmsg one fsbot two frob my shoe")
-        (funcall expect 10 "shoe")
+        (ert-with-display-current-buffer
+         (ert-play-keys-in-string "\M->/AMSG an/dor /gmsg one fsbot two frob my shoe")
+         (funcall expect 10 "shoe")
 
-        (let* ((ovs (overlays-in erc-input-marker (point)))
-               (ov1 (pop ovs))
-               (ov2 (pop ovs)))
-          ;; At this point, flyspell should have done its thing.  There
-          ;; should be two overlays: one on "dor" and the other on
-          ;; "frob".  The spelling module's modifications should have
-          ;; prevented the two valid slash commands as well as "fsbot"
-          ;; from being highlighted.
-          (should-not ovs)
-          (should (flyspell-overlay-p ov1))
-          (should (equal "dor" (buffer-substring (overlay-start ov1)
-                                                 (overlay-end ov1))))
-          (should (flyspell-overlay-p ov2))
-          (should (equal "frob" (buffer-substring (overlay-start ov2)
-                                                  (overlay-end ov2))))
-          (goto-char (overlay-start ov2))
+         (let* ((ovs (overlays-in erc-input-marker (point)))
+                (ov1 (pop ovs))
+                (ov2 (pop ovs)))
+           ;; At this point, flyspell should have done its thing.  There
+           ;; should be two overlays: one on "dor" and the other on
+           ;; "frob".  The spelling module's modifications should have
+           ;; prevented the two valid slash commands as well as "fsbot"
+           ;; from being highlighted.
+           (should-not ovs)
+           (should (flyspell-overlay-p ov1))
+           (should (equal "dor" (buffer-substring (overlay-start ov1)
+                                                  (overlay-end ov1))))
+           (should (flyspell-overlay-p ov2))
+           (should (equal "frob" (buffer-substring (overlay-start ov2)
+                                                   (overlay-end ov2))))
+           (goto-char (overlay-start ov2))
 
-          ;; Depending on the machine, this should become something
-          ;; like: "/AMSG an/dor /gmsg one fsbot two Rob my shoe".
-          (ert-play-keys "M-TAB")
+           ;; Depending on the machine, this should become something
+           ;; like: "/AMSG an/dor /gmsg one fsbot two Rob my shoe".
+           (ert-play-keys "M-TAB"))
           (should (equal (overlays-in erc-input-marker (point-max))
                          (list ov1)))))
 

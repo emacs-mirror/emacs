@@ -3173,9 +3173,9 @@ See `ert-call-with-buffer-renamed' for details."
 
 KEYS shall have the same format as in a call to function `kmacro'.
 
-A prior call to (pop-to-buffer-same-window (current-buffer)) is
-necessary when the keys KEYS start commands acting on the current
-buffer."
+This macro should be expanded within the body of
+`ert-with-display-current-buffer' when the keys KEYS start commands
+acting on the current buffer."
   `(funcall
     (kmacro ,keys)))
 
@@ -3184,12 +3184,26 @@ buffer."
 
 KEYS-STRING shall be a string.
 
-A prior call to (pop-to-buffer-same-window (current-buffer)) is
-necessary when the keys sequence resulting from KEYS-STRING start
-commands acting on the current buffer."
+This macro should be expanded within the body of
+`ert-with-display-current-buffer' when the keys sequence resulting from
+KEYS-STRING start commands acting on the current buffer."
   (let ((keys (apply #'vector (mapcar #'identity keys-string))))
     `(funcall
       (kmacro ,keys))))
+
+(defmacro ert-with-display-current-buffer (&rest body)
+  "Execute BODY after trying to display current buffer in the same window
+with `pop-to-buffer-same-window'.
+
+This macro restores the old window if changed by
+`pop-to-buffer-same-window' after execution of body. This macro does not
+change the list of currently selected buffer."
+  (let ((old-window (make-symbol "old-window")))
+    `(let ((,old-window (selected-window)))
+       (pop-to-buffer-same-window (current-buffer) t)
+       (unwind-protect
+           (progn ,@body)
+         (select-window ,old-window t)))))
 
 
 ;;; Obsolete
