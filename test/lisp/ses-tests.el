@@ -43,6 +43,14 @@
   (defvar B2)
   (defvar ses--toto))
 
+;; Inter-thread synchronisation to wait for after entry hook completion
+;; ----------------------------------------------------------------------
+(defvar ses-tests--mutex (make-mutex "ses-tests"))
+(defvar ses-tests--condition (make-condition-variable ses-tests--mutex
+                                                     (mutex-name ses-tests--mutex)))
+(defvar ses-tests--done nil)
+
+
 ;; Check no border effects
 ;; ======================================================================
 (defun ses-tests-check-no-border-effect ()
@@ -317,7 +325,10 @@ assuming a four columns sheet."
         (forward-char count))
     (if (= ses-col 0)
         (next-line count)
-      (backward-char count))))
+      (backward-char count)))
+  (with-mutex ses-tests--mutex
+    (setq ses-tests--done t)
+    (condition-notify ses-tests--condition)))
 
 (ert-deftest ses-tests-snake-move-after-entry ()
   "\
@@ -339,7 +350,11 @@ has been built as expected.
       (dotimes (i 16)
         ;; fill the SES sheet with snake move
         (setq keys (concat (mapconcat #'string (number-to-string i) " ") " RET"))
-        (ert-play-keys keys)
+        (with-mutex ses-tests--mutex
+          (setq ses-tests--done nil)
+          (ert-play-keys keys)
+          (while (not ses-tests--done)
+            (condition-wait ses-tests--condition)))
         ;; build the snake move test vector
         (push i cols)
         (when (= (logand i 3) 3); when row is complete
