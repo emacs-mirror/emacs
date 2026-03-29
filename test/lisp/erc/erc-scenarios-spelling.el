@@ -67,8 +67,8 @@
         (funcall expect 10 "<alice> tester, welcome!")
 
         ;; Insert a command with one misspelled word.
-        (set-window-buffer nil (current-buffer))
-        (execute-kbd-macro "\M->/AMSG an/dor /gmsg one fsbot two frob my shoe")
+        (pop-to-buffer-same-window (current-buffer))
+        (ert-play-keys-in-string "\M->/AMSG an/dor /gmsg one fsbot two frob my shoe")
         (funcall expect 10 "shoe")
 
         (let* ((ovs (overlays-in erc-input-marker (point)))
@@ -90,7 +90,7 @@
 
           ;; Depending on the machine, this should become something
           ;; like: "/AMSG an/dor /gmsg one fsbot two Rob my shoe".
-          (execute-kbd-macro (key-parse "M-TAB"))
+          (ert-play-keys "M-TAB")
           (should (equal (overlays-in erc-input-marker (point-max))
                          (list ov1)))))
 

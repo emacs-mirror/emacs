@@ -3168,6 +3168,30 @@ See `ert-call-with-buffer-renamed' for details."
   (declare (indent 1))
   `(ert-call-with-buffer-renamed ,buffer-name-form (lambda () ,@body)))
 
+(defmacro ert-play-keys (keys)
+  "Play the key sequence KEYS as if it was user input.
+
+KEYS shall have the same format as in a call to function `kmacro'.
+
+A prior call to (pop-to-buffer-same-window (current-buffer)) is
+necessary when the keys KEYS start commands acting on the current
+buffer."
+  `(funcall
+    (kmacro ,keys)))
+
+(defmacro ert-play-keys-in-string (keys-string)
+  "Play a each character in KEYS-STRING as if it was user keystroke input.
+
+KEYS-STRING shall be a string.
+
+A prior call to (pop-to-buffer-same-window (current-buffer)) is
+necessary when the keys sequence resulting from KEYS-STRING start
+commands acting on the current buffer."
+  (let ((keys (apply #'vector (mapcar #'identity keys-string))))
+    `(funcall
+      (kmacro ,keys))))
+
+
 ;;; Obsolete
 
 (define-obsolete-function-alias 'ert-equal-including-properties
