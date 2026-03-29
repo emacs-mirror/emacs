@@ -1,6 +1,6 @@
 ;;; leuven-theme.el --- Elegant Emacs color theme for a white background -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2026 Free Software Foundation, Inc.
 
 ;; Author: Fabrice Niessen <(concat "fniessen" at-sign "pirilampo.org")>
 ;; URL: https://github.com/fniessen/emacs-leuven-theme
@@ -737,7 +737,7 @@ more..."
    `(lsp-ui-doc-background ((,class (:background "#F6FECD"))))
    `(lsp-ui-sideline-code-action ((,class (:foreground "#000000" :background "#FFF68F"))))
    `(lui-button-face ((,class ,link)))
-   `(lui-highlight-face ((,class (:box '(:line-width 1 :color "#CC0000") :foreground "#CC0000" :background "#FFFF88")))) ; my nickname
+   `(lui-highlight-face ((,class (:box (:line-width 1 :color "#CC0000") :foreground "#CC0000" :background "#FFFF88")))) ; my nickname
    `(lui-time-stamp-face ((,class (:foreground "purple"))))
    `(magit-blame-header ((,class (:inherit magit-diff-file-header))))
    `(magit-blame-heading ((,class (:overline "#A7A7A7" :foreground "red" :background "#E6E6E6"))))

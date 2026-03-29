@@ -1,6 +1,6 @@
 ;;; url-future.el --- general futures facility for url.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -58,7 +58,7 @@
 
 (defun url-future-finish (url-future &optional status)
   (if (url-future-done-p url-future)
-      (signal 'error 'url-future-already-done)
+      (signal 'error '(url-future-already-done))
     (setf (url-future-status url-future) (or status t))
     ;; the status must be such that the future was completed
     ;; to run the callback
@@ -69,7 +69,7 @@
 
 (defun url-future-errored (url-future errorcons)
   (if (url-future-done-p url-future)
-      (signal 'error 'url-future-already-done)
+      (signal 'error '(url-future-already-done))
     (setf (url-future-status url-future) 'error)
     (setf (url-future-value url-future) errorcons)
     (funcall (or (url-future-errorback url-future) 'ignore)
@@ -77,7 +77,7 @@
 
 (defun url-future-call (url-future)
   (if (url-future-done-p url-future)
-      (signal 'error 'url-future-already-done)
+      (signal 'error '(url-future-already-done))
     (let ((ff (url-future-value url-future)))
       (when (functionp ff)
         (condition-case catcher
@@ -93,7 +93,7 @@
 
 (defun url-future-cancel (url-future)
   (if (url-future-done-p url-future)
-      (signal 'error 'url-future-already-done)
+      (signal 'error '(url-future-already-done))
     (url-future-finish url-future 'cancel)))
 
 (define-obsolete-function-alias 'url-future-cancelled-p

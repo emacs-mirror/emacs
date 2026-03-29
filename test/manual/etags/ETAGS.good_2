@@ -806,54 +806,54 @@ void *(*__realloc_hook)__realloc_hook1313,39971
 _realloc_internal_nolock 1322,40382
 _realloc_internal 1438,43636
 realloc 1450,43799
-calloc 1481,44973
-#define	__sbrk	1516,46115
-extern void *__sbrk __sbrk1521,46320
-__default_morecore 1528,46584
-void *(*__memalign_hook)__memalign_hook1557,47527
-aligned_alloc 1560,47593
-memalign 1650,49775
-posix_memalign 1659,49980
-extern void *valloc valloc1699,51243
-extern int getpagesize 1704,51381
-static size_t pagesize;1707,51420
-valloc 1710,51452
-#undef malloc1719,51593
-#undef realloc1720,51607
-#undef calloc1721,51622
-#undef aligned_alloc1722,51636
-#undef free1723,51657
-extern void *malloc malloc1726,51712
-extern void *realloc realloc1727,51747
-extern void *calloc calloc1728,51794
-extern void free 1729,51843
-extern void *aligned_alloc aligned_alloc1731,51899
-extern int posix_memalign 1733,51993
-hybrid_malloc 1740,52186
-hybrid_calloc 1748,52291
-hybrid_free 1756,52422
-hybrid_aligned_alloc 1769,52729
-hybrid_realloc 1784,53085
-char *gget_current_dir_name gget_current_dir_name1812,53854
-hybrid_get_current_dir_name 1815,53898
-static void (*old_free_hook)old_free_hook1851,55050
-static void *(*old_malloc_hook)old_malloc_hook1852,55092
-static void *(*old_realloc_hook)old_realloc_hook1853,55139
-static void (*abortfunc)abortfunc1856,55253
-#define MAGICWORD	1859,55335
-#define MAGICFREE	1860,55390
-#define MAGICBYTE	1861,55445
-#define MALLOCFLOOD	1862,55477
-#define FREEFLOOD	1863,55511
-struct hdr1865,55544
-checkhdr 1872,55710
-freehook 1896,56151
-mallochook 1932,56933
-reallochook 1949,57272
-mabort 1983,58030
-static int mcheck_used 2017,58715
-mcheck 2020,58748
-mprobe 2040,59267
+calloc 1482,44981
+#define	__sbrk	1518,46131
+extern void *__sbrk __sbrk1523,46336
+__default_morecore 1530,46600
+void *(*__memalign_hook)__memalign_hook1560,47551
+aligned_alloc 1563,47617
+memalign 1653,49799
+posix_memalign 1662,50004
+extern void *valloc valloc1702,51267
+extern int getpagesize 1707,51405
+static size_t pagesize;1710,51444
+valloc 1713,51476
+#undef malloc1722,51617
+#undef realloc1723,51631
+#undef calloc1724,51646
+#undef aligned_alloc1725,51660
+#undef free1726,51681
+extern void *malloc malloc1729,51736
+extern void *realloc realloc1730,51771
+extern void *calloc calloc1731,51818
+extern void free 1732,51867
+extern void *aligned_alloc aligned_alloc1734,51923
+extern int posix_memalign 1736,52017
+hybrid_malloc 1743,52210
+hybrid_calloc 1751,52315
+hybrid_free 1759,52446
+hybrid_aligned_alloc 1772,52753
+hybrid_realloc 1787,53109
+char *gget_current_dir_name gget_current_dir_name1815,53878
+hybrid_get_current_dir_name 1818,53922
+static void (*old_free_hook)old_free_hook1854,55074
+static void *(*old_malloc_hook)old_malloc_hook1855,55116
+static void *(*old_realloc_hook)old_realloc_hook1856,55163
+static void (*abortfunc)abortfunc1859,55277
+#define MAGICWORD	1862,55359
+#define MAGICFREE	1863,55414
+#define MAGICBYTE	1864,55469
+#define MALLOCFLOOD	1865,55501
+#define FREEFLOOD	1866,55535
+struct hdr1868,55568
+checkhdr 1875,55734
+freehook 1899,56175
+mallochook 1935,56957
+reallochook 1952,57296
+mabort 1986,58054
+static int mcheck_used 2020,58739
+mcheck 2023,58772
+mprobe 2043,59291
 
 c-src/emacs/src/regex.h,4576
 #define _REGEX_H 21,837

@@ -1,6 +1,6 @@
 ;;; shadowfile.el --- automatic file copying  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1994, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm files
@@ -667,6 +667,12 @@ PAIR must be `eq' to one of the elements of that list."
   (setq shadow-files-to-copy
 	(cl-remove-if (lambda (s) (eq s pair)) shadow-files-to-copy)))
 
+(defun shadow-find-file-noselect (filename &optional nowarn)
+  "Like `find-file-noselect', but make buffer name ephemeral."
+  (with-current-buffer (find-file-noselect filename nowarn)
+    (rename-buffer (format " *%s*" (buffer-name)))
+    (current-buffer)))
+
 (defun shadow-read-files ()
   "Visit and load `shadow-info-file' and `shadow-todo-file'.
 Thus restores shadowfile's state from your last Emacs session.
@@ -682,7 +688,9 @@ Return t unless files were locked; then return nil."
     (save-current-buffer
       (when shadow-info-file
 	(set-buffer (setq shadow-info-buffer
-			  (find-file-noselect shadow-info-file 'nowarn)))
+			  (shadow-find-file-noselect shadow-info-file 'nowarn)))
+        (lisp-data-mode)
+        (setq-local lexical-binding t)
 	(when (and (not (buffer-modified-p))
 		   (file-newer-than-file-p (make-auto-save-file-name)
 					   shadow-info-file))
@@ -693,7 +701,9 @@ Return t unless files were locked; then return nil."
 	(eval-buffer))
       (when shadow-todo-file
 	(set-buffer (setq shadow-todo-buffer
-			  (find-file-noselect shadow-todo-file 'nowarn)))
+			  (shadow-find-file-noselect shadow-todo-file 'nowarn)))
+        (lisp-data-mode)
+        (setq-local lexical-binding t)
 	(when (and (not (buffer-modified-p))
 		   (file-newer-than-file-p (make-auto-save-file-name)
 					   shadow-todo-file))
@@ -713,7 +723,8 @@ defined, the old hashtable info is invalid."
   (if shadow-info-file
       (save-current-buffer
 	(if (not shadow-info-buffer)
-	    (setq shadow-info-buffer (find-file-noselect shadow-info-file)))
+	    (setq shadow-info-buffer
+                  (shadow-find-file-noselect shadow-info-file)))
 	(set-buffer shadow-info-buffer)
         (setq buffer-read-only nil)
 	(delete-region (point-min) (point-max))
@@ -726,7 +737,8 @@ defined, the old hashtable info is invalid."
 With non-nil argument also saves the buffer."
   (save-excursion
     (if (not shadow-todo-buffer)
-	(setq shadow-todo-buffer (find-file-noselect shadow-todo-file)))
+	(setq shadow-todo-buffer
+              (shadow-find-file-noselect shadow-todo-file)))
     (set-buffer shadow-todo-buffer)
     (setq buffer-read-only nil)
     (delete-region (point-min) (point-max))

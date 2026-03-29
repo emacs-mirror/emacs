@@ -31,7 +31,7 @@
  (0.00 ":irc.example.net 375 dummy` :irc.example.net message of the day")
  (0.00 ":irc.example.net 372 dummy` :       Have fun with the image!")
  (0.00 ":irc.example.net 376 dummy` :End of message of the day.")
- (0.00 ":irc.example.net 501 dummy` x :is not a recognised user mode.")
+ (0.00 ":irc.example.net 501 dummy` x :is not a recognized user mode.")
  (0.00 ":irc.example.net NOTICE dummy` :*** You are connected to irc.example.net using TLS (SSL) cipher 'TLS1.3-ECDHE-RSA-AES-256-GCM-AEAD'"))
 
 ((mode 10 "MODE dummy` +i"))

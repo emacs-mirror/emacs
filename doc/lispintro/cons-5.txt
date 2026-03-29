@@ -1,0 +1,12 @@
+     kill-ring     kill-ring-yank-pointer
+         |               |
+         |      ___ ___  |     ___ ___      ___ ___
+          ---> |   |   |  --> |   |   |    |   |   |
+               |___|___|----> |___|___|--> |___|___|--> nil
+                 |              |            |
+                 |              |            |
+                 |              |             --> "yet more text"
+                 |              |
+                 |               --> "a different piece of text"
+                 |
+                  --> "some text"

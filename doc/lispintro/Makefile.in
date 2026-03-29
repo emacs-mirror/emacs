@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1994-1999, 2001-2025 Free Software Foundation, Inc.
+# Copyright (C) 1994-1999, 2001-2026 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -84,9 +84,37 @@ ps: $(PS_TARGETS)
 ${buildinfodir}:
 	${MKDIR_P} $@
 
+auxfiles = \
+	${buildinfodir}/cons-1.png \
+	${buildinfodir}/cons-1.txt \
+	${buildinfodir}/cons-2.png \
+	${buildinfodir}/cons-2.txt \
+	${buildinfodir}/cons-2a.png \
+	${buildinfodir}/cons-2a.txt \
+	${buildinfodir}/cons-3.png \
+	${buildinfodir}/cons-3.txt \
+	${buildinfodir}/cons-4.png \
+	${buildinfodir}/cons-4.txt \
+	${buildinfodir}/cons-5.png \
+	${buildinfodir}/cons-5.txt \
+	${buildinfodir}/drawers.png \
+	${buildinfodir}/drawers.txt \
+	${buildinfodir}/lambda-1.png \
+	${buildinfodir}/lambda-1.txt \
+	${buildinfodir}/lambda-2.png \
+	${buildinfodir}/lambda-2.txt \
+	${buildinfodir}/lambda-3.png \
+	${buildinfodir}/lambda-3.txt
+
+${buildinfodir}/%.txt: ${srcdir}/%.txt | ${buildinfodir}
+	cp $< $@
+
+${buildinfodir}/%.png: ${srcdir}/%.png | ${buildinfodir}
+	cp $< $@
+
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
-${buildinfodir}/eintr.info: ${srcs} | ${buildinfodir}
+${buildinfodir}/eintr.info: ${srcs} ${auxfiles} | ${buildinfodir}
 	$(AM_V_GEN)$(MAKEINFO) $(MAKEINFO_OPTS) $(INFO_OPTS) -o $@ $<
 
 emacs-lisp-intro.dvi: ${srcs}
@@ -117,6 +145,7 @@ infoclean:
 	rm -f \
 	  $(buildinfodir)/eintr.info \
 	  $(buildinfodir)/eintr.info-[1-9]
+	rm -f $(auxfiles)
 
 bootstrap-clean maintainer-clean: distclean infoclean
 	rm -f TAGS

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail
@@ -1001,6 +1001,22 @@ use for the summary window.  The variable
 for a message should include the line count of the message.  Setting
 this option to @code{nil} might speed up the generation of summaries.
 
+@vindex rmail-summary-sender-function
+@vindex rmail-summary-recipient-function
+  Rmail formats the sender and recipient fields in summary lines using
+the options @code{rmail-summary-sender-function} and
+@code{rmail-summary-recipient-function}.  For senders, the possible
+values include showing the address (the default), or showing the sender
+name with fallback to the address.  For recipients, the possible values
+include showing addresses from the first line of the @samp{To:} field
+(the default), showing the first recipient name with fallback to
+address, or showing all recipient names with fallback to addresses.
+Both options can also be set to a custom function.
+
+@vindex rmail-summary-address-width
+  The option @code{rmail-summary-address-width} controls the width of
+those fields.
+
 @node Rmail Summary Edit
 @subsection Editing in Summaries
 
@@ -1228,6 +1244,27 @@ entities), Rmail displays each part with a @dfn{tagline}.  The tagline
 summarizes the part's index, size, and content type.  Depending on the
 content type, it may also contain one or more buttons; these perform
 actions such as saving the part into a file.
+
+@vindex rmail-mime-save-action
+  When you save a MIME attachment to a file, Rmail can perform follow-up
+actions according to the value of @code{rmail-mime-save-action}.  By
+default, this value is @code{nil}, which means Rmail does nothing.
+Other predefined values are:
+
+@table @code
+@item visit-file
+Visit the saved file in Emacs.
+
+@item visit-directory
+Visit the file's directory in Dired and move point to the file.
+
+@item open-external
+Open the file with an external program appropriate for its type.
+@end table
+
+You can also set @code{rmail-mime-save-action} to a custom function.
+This function will be called with the absolute filename of the saved
+attachment as its only argument.
 
 @table @kbd
 @findex rmail-mime-toggle-hidden

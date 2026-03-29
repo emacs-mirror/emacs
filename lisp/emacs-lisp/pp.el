@@ -1,6 +1,6 @@
 ;;; pp.el --- pretty printer for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -394,15 +394,22 @@ space available between point and the window margin."
        'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 ;;;###autoload
-(defun pp-eval-expression (expression)
+(defun pp-eval-expression (expression &optional insert-value)
   "Evaluate EXPRESSION and pretty-print its value.
-Also add the value to the front of the list in the variable `values'."
+Also add the value to the front of the list in the variable `values'.
+When called interactively, read an Emacs Lisp expression.
+With a prefix argument (when called from Lisp, with optional argument
+INSERT-VALUE non-nil), insert the value into the current buffer instead
+of displaying it in the echo area or a temporary buffer."
   (interactive
-   (list (read--expression "Eval: ")))
+   (list (read--expression "Eval: ") current-prefix-arg))
   (message "Evaluating...")
   (let ((result (eval expression lexical-binding)))
     (values--store-value result)
-    (pp-display-expression result "*Pp Eval Output*" pp-use-max-width)))
+    (if insert-value
+        (let (deactivate-mark)
+          (insert (pp-to-string result)))
+      (pp-display-expression result "*Pp Eval Output*" pp-use-max-width))))
 
 ;;;###autoload
 (defun pp-macroexpand-expression (expression)

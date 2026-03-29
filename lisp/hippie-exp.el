@@ -1,6 +1,6 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -334,11 +334,12 @@ undoes the expansion."
 
 (defun he-capitalize-first (str)
   (save-match-data
-    (if (string-match "\\Sw*\\(\\sw\\).*" str)
-	(let ((res (downcase str))
-	      (no (match-beginning 1)))
-	  (aset res no (upcase (aref str no)))
-	  res)
+    (if (string-match "\\Sw*\\(\\sw\\)" str)
+	(let ((b (match-beginning 1))
+              (e (match-end 1)))
+          (concat (substring str 0 b)
+                  (upcase (substring str b e))
+                  (downcase (substring str e))))
       str)))
 
 (defun he-ordinary-case-p (str)

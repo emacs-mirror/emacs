@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2025 Free Software Foundation, Inc.
+Copyright 2015-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,6 +18,12 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "config.h"
+
+#ifdef WINDOWSNT
+/* We don't want to link against Gnulib to get its console-safe
+   replacement of fprintf.  */
+#undef fprintf
+#endif
 
 #undef NDEBUG
 #include <assert.h>
@@ -108,8 +114,14 @@ Fmod_test_signal (emacs_env *env, ptrdiff_t nargs, emacs_value args[],
 		  void *data)
 {
   assert (env->non_local_exit_check (env) == emacs_funcall_exit_return);
-  env->non_local_exit_signal (env, env->intern (env, "error"),
-			      env->make_integer (env, 56));
+  emacs_value cargs[2] = {
+      env->make_integer (env, 56),
+      env->intern (env, "nil")
+    };
+  env->non_local_exit_signal (
+      env, env->intern (env, "error"),
+      env->funcall (env, env->intern (env, "cons"),
+		    2, cargs));
   return NULL;
 }
 

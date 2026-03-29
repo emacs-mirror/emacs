@@ -1,6 +1,6 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1991, 1993-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1991, 1993-2026 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -879,7 +879,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
      ;; tar data.  Rather than show a mysterious empty buffer, let's
      ;; revert to fundamental-mode.
      (fundamental-mode)
-     (signal (car err) (cdr err)))))
+     (signal err))))
 
 (autoload 'woman-tar-extract-file "woman"
   "In tar mode, run the WoMan man-page browser on this file." t)

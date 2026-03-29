@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Frames
@@ -89,6 +89,20 @@ displayed on that terminal; the list of possible values is the same as
 for @code{framep} above.
 @end defun
 
+@defun frame-initial-p &optional frame
+This predicate returns non-@code{nil} if @var{frame} is or holds the
+initial text frame that is used internally during daemon mode
+(@pxref{Initial Options, daemon,, emacs, The GNU Emacs Manual}), batch
+mode (@pxref{Batch Mode}), and the early stages of startup
+(@pxref{Startup Summary}).  Interactive and graphical programs, for
+instance, can use this predicate to avoid operating on the initial
+frame, which is never displayed.
+
+If @var{frame} is a terminal, this function returns non-@code{nil} if
+@var{frame} holds the initial frame.  If @var{frame} is omitted or
+@code{nil}, it defaults to the selected one.
+@end defun
+
 @cindex top-level frame
 On a graphical terminal we distinguish two types of frames: A normal
 @dfn{top-level frame} is a frame whose window-system window is a child
@@ -107,6 +121,25 @@ refer to a text terminal, the return value is @code{nil}.  A top frame
 must be a root frame, which means it cannot be a child frame itself
 (@pxref{Child Frames}), but may have an arbitrary number of child frames
 descending from it.
+@end defun
+
+@cindex frame identifier
+@defun frame-id &optional frame
+This function returns the unique identifier of a frame, an integer,
+assigned to @var{frame}.  If @var{frame} is @code{nil} or unspecified,
+it defaults to the selected frame (@pxref{Input Focus}).  This can be
+used to unambiguously identify a frame in a context where you do not or
+cannot use a frame object.
+
+A frame undeleted using @command{undelete-frame} will retain its
+identifier.  A frame cloned using @command{clone-frame} will not retain
+its original identifier.  @xref{Frame Commands,,,emacs, the Emacs
+Manual}.
+
+Frame identifiers are not persisted using the desktop library
+(@pxref{Desktop Save Mode}), @command{frameset-to-register}, or
+@code{frameset-save}, and each of their restored frames will bear a new
+unique id.
 @end defun
 
 @menu
@@ -198,6 +231,11 @@ A normal hook run by @code{make-frame} before it creates the frame.
 An abnormal hook run by @code{make-frame} after it created the frame.
 Each function in @code{after-make-frame-functions} receives one
 argument, the frame just created.
+
+You can consult the frame parameters @code{cloned-from} and
+@code{undeleted} in your function to determine if a frame was cloned
+using @command{clone-frame}, or if it was undeleted using
+@command{undelete-frame}.  @xref{Frame Parameters}.
 @end defvar
 
 Note that any functions added to these hooks by your initial file are
@@ -1234,6 +1272,37 @@ bottom corner of the frame.  The parameters @code{min-width} and
 @code{min-height} (@pxref{Size Parameters}) can be used to obtain a
 similar behavior when changing the frame size from within Emacs.
 
+When a frame is in a fullscreen state (@pxref{Size Parameters}),
+requests to change the frame size via one of these functions may be
+supported or refused either by Emacs itself or by the window manager.
+The following variable provides more control of the resulting behavior.
+
+@cindex altering the size of fullscreen frames
+@cindex resizing fullscreen frames
+@defopt alter-fullscreen-frames
+This options controls how to handle requests to alter fullscreen frames.
+Emacs consults it when asked to resize a fullscreen frame via functions
+like @code{set-frame-size} or when setting the @code{width} or
+@code{height} parameter of a frame.  The following values are provided:
+
+@table @code
+@item nil
+This will forward the resize request to the window manager and leave it
+to the latter how to proceed.
+
+@item t
+This will first reset the fullscreen status and then forward the resize
+request on to the window manager.
+
+@item inhibit
+This will reject the resize request and leave the fullscreen status
+unchanged.
+@end table
+
+The default is @code{inhibit} on NS builds and @code{nil} everywhere
+else.
+@end defopt
+
 @cindex tracking frame size changes
   The abnormal hook @code{window-size-change-functions} (@pxref{Window
 Hooks}) tracks all changes of the inner size of a frame including those
@@ -2175,8 +2244,18 @@ left position ratio is preserved if the @sc{cdr} of the cell is either
 @code{t} or @code{left-only}.  The top position ratio is preserved if
 the @sc{cdr} of the cell is either @code{t} or @code{top-only}.  This
 parameter has not been yet implemented on text terminals.
-@end table
 
+@vindex cloned-from@r{, a frame parameter}
+@item cloned-from
+The original frame if this frame was made via @code{clone-frame}
+(@pxref{Creating Frames,,,emacs, the Emacs Manual}).
+
+@vindex undeleted@r{, a frame parameter}
+@item undeleted
+This is non-@code{nil} if this frame was undeleted using the command
+@command{undelete-frame} (@pxref{Frame Commands,,,emacs, the Emacs
+Manual}).
+@end table
 
 @node Mouse Dragging Parameters
 @subsubsection Mouse Dragging Parameters
@@ -2580,7 +2659,16 @@ Sets the background transparency of the frame.  Unlike the @code{alpha}
 frame parameter, this only controls the transparency of the background
 while keeping foreground elements such as text fully opaque.  It
 should be an integer between 0 and 100, where 0 means
-completely transparent and 100 means completely opaque (default).
+completely transparent and 100 means completely opaque (default).  The
+value can also be a float between 0 and 1.0, where 1.0 means completely
+opaque.
+
+@vindex borders-respect-alpha-background@r{, a frame parameter}
+@item borders-respect-alpha-background
+@cindex opacity, frame
+@cindex transparency, frame
+When non-@code{nil}, internal borders and window dividers are
+transparent according to @code{alpha-background}.
 @end table
 
 The following frame parameters are semi-obsolete in that they are
@@ -2955,7 +3043,7 @@ direction.
   See also @code{next-window} and @code{previous-window}, in @ref{Cyclic
 Window Ordering}.
 
-  Some Lisp programs need to find one or more frames that satisfy a
+  Some Lisp programs need to find one or more frames that satisfy
 given criteria.  The function @code{filtered-frame-list} is provided for
 this purpose.
 
@@ -3112,6 +3200,105 @@ been deleted.
 In general, you should never use @code{select-frame} in a way that
 could switch to a different terminal without switching back when
 you're done.
+@end deffn
+
+@cindex frame use time
+@cindex use time of frame
+@cindex frame order by time of last use
+@defun frame-use-time &optional frame
+
+This function returns the use time of frame @var{frame}.  @var{frame}
+must be a live frame and defaults to the selected one.
+
+The @dfn{use time of a frame} is the highest use time as reported by
+@code{window-use-time} of any window on @var{frame}.
+@end defun
+
+@defun get-mru-frame &optional all-frames exclude-child-frames exclude-frame
+
+This function returns the frame with the highest use time as reported by
+@code{frame-use-time}.  It returns @code{nil} if no candidate frames are
+found which usually happens if frames are excluded with the help of the
+optional arguments.
+
+By default, tooltip and minibuffer-only frames are never candidates.  If
+the optional argument @var{exclude-child-frames} is non-nil, child
+frames are excluded too.  The @var{exclude-frame} argument, if present,
+excludes the frame it specifies too.  Since in practice the most
+recently used frame is always the selected one, it usually makes sense
+to call this function with a non-@code{nil} @var{exclude-frame} argument
+specifying the selected frame.
+
+The optional argument @var{all-frames} specifies which frames to
+consider:
+
+@itemize @bullet
+@item @code{visible}
+means to consider all visible frames on the current terminal or
+@var{exclude-frame}'s terminal.
+
+@item 0
+means to consider all visible or iconified frames on the current
+terminal or @var{exclude-frame}'s terminal.
+
+@item Anything else
+means to consider all frames.
+@end itemize
+@end defun
+
+@defun get-mru-frames &optional all-frames exclude-child-frames exclude-frame
+
+This function returns a list of frames sorted by highest use time as
+reported by @code{frame-use-time} which is computed using each frame's
+most recently used window.
+
+By default, tooltip and minibuffer-only frames are never candidates.  If
+the optional argument @var{exclude-child-frames} is non-nil, child
+frames are excluded too.  The @var{exclude-frame} argument, if present,
+excludes the frame it specifies too.
+
+It can return @code{nil} which can happen if frames are excluded with
+the help of the optional arguments, for example, if there is a single
+frame and @var{exclude-frame} is the selected frame.
+
+The optional argument @var{all-frames} specifies which frames to
+consider:
+
+@itemize @bullet
+@item @code{visible}
+means to consider all visible frames on the current terminal or
+@var{exclude-frame}'s terminal.
+
+@item 0
+means to consider all visible or iconified frames on the current
+terminal or @var{exclude-frame}'s terminal.
+
+@item Anything else
+means to consider all frames.
+@end itemize
+@end defun
+
+@deffn Command select-frame-by-id id &optional noerror
+This function searches open and undeletable frames for a matching frame
+identifier @var{id} (@pxref{Frames}).  If found, its frame is undeleted,
+if necessary, then raised, given focus, and made the selected frame.  On
+a text terminal, raising a frame causes it to occupy the entire terminal
+display.
+
+This function returns the selected frame or signals an error if @var{id}
+is not found, unless @var{noerror} is non-@code{nil}, in which case it
+returns @code{nil}.
+@end deffn
+
+@deffn Command undelete-frame-by-id id &optional noerror
+This function searches undeletable frames for a matching frame
+identifier @var{id} (@pxref{Frames}).  If found, its frame is undeleted,
+raised, given focus, and made the selected frame.  On a text terminal,
+raising a frame causes it to occupy the entire terminal display.
+
+This function returns the undeleted frame or signals an error if
+@var{id} is not found, unless @var{noerror} is non-@code{nil}, in which
+case it returns @code{nil}.
 @end deffn
 
 @cindex text-terminal focus notification
@@ -3351,13 +3538,10 @@ all child frames of @var{frame} (and their descendants) invisible too
 Unless @var{force} is non-@code{nil}, this function refuses to make
 @var{frame} invisible if all other frames are invisible.  On a text
 terminal this will make @var{frame} invisible if and only if it is a
-child frame or at least one other non-child frame (@pxref{Child Frames})
-on that terminal exists.  In the former case, if @var{frame} is
+child frame (@pxref{Child Frames}).  In this case, if @var{frame} is
 selected, it will select the first visible ancestor of @var{frame}
-instead.  In the latter case it will make another non-child frame on
-that terminal visible and the new top frame (@pxref{Frames}) of that
-terminal.  In either case, it will remove all child frames with
-@var{frame} as their ancestor from display.
+instead.  In addition, it will remove all child frames with @var{frame}
+as their ancestor from display.
 @end deffn
 
   The visibility status of a frame is also available as a frame

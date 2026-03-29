@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1997, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1993-1995, 1997, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
@@ -775,7 +775,8 @@ if different)."
                         ;; Don't delete daemon's initial frame, or
                         ;; we'll never be able to close the last
                         ;; client's frame (Bug#26912).
-                        (if (daemonp) (not (frame-parameter frame 'client)))
+                        ;; Use `frame-initial-p'?
+                        (and (daemonp) (eq frame terminal-frame))
 			(frame-parameter frame 'desktop-dont-clear))
 	      (delete-frame frame))
 	  (error
@@ -812,7 +813,7 @@ is nil, ask the user where to save the desktop."
 	(desktop-save desktop-dirname t)
       (file-error
        (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
-	 (signal (car err) (cdr err))))))
+	 (signal err)))))
   (desktop--on-kill)
   t)
 
@@ -1064,13 +1065,18 @@ DIRNAME must be the directory in which the desktop file will be saved."
 
 ;; ----------------------------------------------------------------------------
 (defun desktop--check-dont-save (frame)
-  (not (frame-parameter frame 'desktop-dont-save)))
+  (and (not (frame-parameter frame 'desktop-dont-save))
+       ;; Don't save daemon initial frames, since we cannot (and don't
+       ;; need to) restore them.
+       (not (and (daemonp) ;; FIXME: Remove `daemonp'?
+                 (frame-initial-p frame)))))
 
 (defconst desktop--app-id `(desktop . ,desktop-file-version))
 
 (defun desktop-save-frameset ()
   "Save the state of existing frames in `desktop-saved-frameset'.
-Frames with a non-nil `desktop-dont-save' parameter are not saved."
+Frames with a non-nil `desktop-dont-save' parameter are not saved.
+Likewise the initial frame of a daemon sesion."
   (setq desktop-saved-frameset
 	(and desktop-restore-frames
 	     (frameset-save nil
@@ -1254,8 +1260,8 @@ This function also sets `desktop-dirname' to nil."
   "True if calling `desktop-restore-frameset' will actually restore it."
   (and desktop-restore-frames desktop-saved-frameset
        ;; Don't restore frames when the selected frame is the daemon's
-       ;; initial frame.
-       (not (and (daemonp) (not (frame-parameter nil 'client))))
+       ;; initial frame.  Use `frame-initial-p'?
+       (not (and (daemonp) (eq (selected-frame) terminal-frame)))
        t))
 
 (defun desktop-restore-frameset ()

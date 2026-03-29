@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Variables
 @chapter Variables
@@ -402,6 +402,10 @@ values even if their symbols' value cells are unassigned.
 This function empties out the value cell of @var{symbol}, making the
 variable void.  It returns @var{symbol}.
 
+When applied to a variable alias (@pxref{Variable Aliases}), it first
+disconnects the variable from its alias, thereby undoing the effect of
+@code{defvaralias}.
+
 If @var{symbol} has a dynamic local binding, @code{makunbound} voids
 the current binding, and this voidness lasts only as long as the local
 binding is in effect.  Afterwards, the previously shadowed local or
@@ -617,6 +621,8 @@ float-pi
 
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
+@cindex variables, naming conventions
+@cindex naming conventions, variables
 
   When you define a variable whose value is a function, or a list of
 functions, use a name that ends in @samp{-function} or
@@ -659,6 +665,7 @@ The value is a whole shell command.
 @item @dots{}-switches
 The value specifies options for a command.
 
+@cindex internal variables, naming conventions
 @item @var{prefix}--@dots{}
 The variable is intended for internal use and is defined in the file
 @file{@var{prefix}.el}.  (Emacs code contributed before 2018 may
@@ -1331,11 +1338,12 @@ lexical binding is enabled if the @var{lexical} argument to
 @findex eval-expression@r{, and }lexical-binding
 Lexical binding is also enabled in Lisp Interaction and IELM mode,
 used in the @file{*scratch*} and @file{*ielm*} buffers, and also when
-evaluating expressions via @kbd{M-:} (@code{eval-expression}) and when
-processing the @option{--eval} command-line options of Emacs
-(@pxref{Action Arguments,,, emacs, The GNU Emacs Manual}) and
-@command{emacsclient} (@pxref{emacsclient Options,,, emacs, The GNU
-Emacs Manual}).
+evaluating expressions via @kbd{M-:} (@code{eval-expression}), when
+processing the @option{--eval}, @option{-x}, and @option{--script}
+command-line options of Emacs (@pxref{Action Arguments,,, emacs, The GNU
+Emacs Manual}), and when processing the @option{--eval} command-line
+option of @command{emacsclient} (@pxref{emacsclient Options,,, emacs,
+The GNU Emacs Manual}).
 
 @node Converting to Lexical Binding
 @subsection Converting to Lexical Binding
@@ -2652,6 +2660,19 @@ This macro returns the connection-local value of @var{symbol} for
 
 If @var{symbol} does not have a connection-local
 binding, the value is the default binding of the variable.
+
+The difference to @code{with-connection-local@{-application@}-variables}
+is, that @code{symbol} is not set buffer-local.  A typical usage pattern
+is to use only the the connection value of a variable if it exists, and
+not to use its default value otherwise (using @code{my-app-variable}
+initialized above):
+
+@lisp
+(if (connection-local-p my-app-variable 'my-app)
+    (connection-local-value my-app-variable 'my-app)
+  ;; Something else.
+  )
+@end lisp
 @end defmac
 
 @defvar enable-connection-local-variables

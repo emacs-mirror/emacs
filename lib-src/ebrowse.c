@@ -1,6 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992-2025 Free Software Foundation, Inc.
+Copyright (C) 1992-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,14 +34,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Files are read in chunks of this number of bytes.  */
 
 enum { READ_CHUNK_SIZE = 100 * 1024 };
-
-/* Value is true if strings X and Y compare equal.  */
-
-static bool
-streq (char const *x, char const *y)
-{
-  return strcmp (x, y) == 0;
-}
 
 static bool
 filename_eq (char const *x, char const *y)

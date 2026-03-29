@@ -1,6 +1,6 @@
 ;;; minibuf-tests.el --- tests for minibuf.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -430,6 +430,10 @@
                   (inhibited-interaction 'inhibit)
                   (error nil))
                 'inhibit))))
+
+(ert-deftest minibuf-tests-active-minibuffer-window ()
+  (should-not (active-minibuffer-window))
+  (should (windowp (minibuffer-window))))
 
 
 ;;; minibuf-tests.el ends here

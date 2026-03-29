@@ -1,6 +1,6 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1994-1995, 1997, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
@@ -1025,7 +1025,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
       (setq continue nil)
       (and (get-buffer "*Life*")
            (kill-buffer "*Life*"))
-      (condition-case ()
+      (condition-case err
           (progn
             (life 3)
             ;; wait for user to return
@@ -1033,7 +1033,7 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 	    (type-break-catch-up-event)
             (kill-buffer "*Life*"))
         (life-extinct
-         (message "%s" (get 'life-extinct 'error-message))
+         (message "%s" (error-message-string err))
          ;; restart demo
          (setq continue t))
         (quit

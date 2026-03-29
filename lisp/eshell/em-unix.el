@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -1012,8 +1012,6 @@ Show wall-clock time elapsed during execution of COMMAND.")
   (cond
     ((string-match "[^[:blank:]]" string) string)
     (nil)))
-
-(autoload 'diff-no-select "diff")
 
 (defun eshell/diff (&rest args)
   "Alias \"diff\" to call Emacs `diff' function."

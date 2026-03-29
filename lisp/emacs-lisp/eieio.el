@@ -1,7 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects  -*- lexical-binding:t -*-
 ;;;              or maybe Eric's Implementation of Emacs Interpreted Objects
 
-;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Old-Version: 1.4
@@ -593,7 +593,7 @@ OBJECT can be an instance or a class."
 (defun find-class (symbol &optional errorp)
   "Return the class that SYMBOL represents.
 If there is no class, nil is returned if ERRORP is nil.
-If ERRORP is non-nil, `wrong-argument-type' is signaled."
+If ERRORP is non-nil, `wrong-type-argument' is signaled."
   (let ((class (cl--find-class symbol)))
     (cond
      ((eieio--class-p class) class)

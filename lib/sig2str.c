@@ -1,6 +1,6 @@
 /* sig2str.c -- convert between signal names and numbers
 
-   Copyright (C) 2002, 2004, 2006, 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004, 2006, 2009-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -286,24 +286,24 @@ str2signum (char const *signame)
     }
   else
     {
-      unsigned int i;
-      for (i = 0; i < NUMNAME_ENTRIES; i++)
-        if (strcmp (numname_table[i].name, signame) == 0)
+      for (unsigned int i = 0; i < NUMNAME_ENTRIES; i++)
+        if (streq (numname_table[i].name, signame))
           return numname_table[i].num;
 
       {
-        char *endp;
         int rtmin = SIGRTMIN;
         int rtmax = SIGRTMAX;
 
         if (0 < rtmin && strncmp (signame, "RTMIN", 5) == 0)
           {
+            char *endp;
             long int n = strtol (signame + 5, &endp, 10);
             if (! *endp && 0 <= n && n <= rtmax - rtmin)
               return rtmin + n;
           }
         else if (0 < rtmax && strncmp (signame, "RTMAX", 5) == 0)
           {
+            char *endp;
             long int n = strtol (signame + 5, &endp, 10);
             if (! *endp && rtmin - rtmax <= n && n <= 0)
               return rtmax + n;
@@ -331,8 +331,7 @@ str2sig (char const *signame, int *signum)
 int
 sig2str (int signum, char *signame)
 {
-  unsigned int i;
-  for (i = 0; i < NUMNAME_ENTRIES; i++)
+  for (unsigned int i = 0; i < NUMNAME_ENTRIES; i++)
     if (numname_table[i].num == signum)
       {
         strcpy (signame, numname_table[i].name);
@@ -342,11 +341,11 @@ sig2str (int signum, char *signame)
   {
     int rtmin = SIGRTMIN;
     int rtmax = SIGRTMAX;
-    int base, delta;
 
     if (! (rtmin <= signum && signum <= rtmax))
       return -1;
 
+    int base;
     if (signum <= rtmin + (rtmax - rtmin) / 2)
       {
         strcpy (signame, "RTMIN");
@@ -358,7 +357,7 @@ sig2str (int signum, char *signame)
         base = rtmax;
       }
 
-    delta = signum - base;
+    int delta = signum - base;
     if (delta != 0)
       sprintf (signame + 5, "%+d", delta);
     return 0;

@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -235,8 +235,8 @@ Use \"\\[command-apropos] picture-movement\" to see commands which control motio
 	     (char-ht (frame-char-height frame))
 	     (spacing (when (display-graphic-p frame)
 			(or (with-current-buffer (window-buffer window)
-			      line-spacing)
-			    (frame-parameter frame 'line-spacing)))))
+			      (total-line-spacing))
+			    (total-line-spacing (frame-parameter frame 'line-spacing))))))
 	(cond ((floatp spacing)
 	       (setq spacing (truncate (* spacing char-ht))))
 	      ((null spacing)

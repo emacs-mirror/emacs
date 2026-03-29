@@ -1,6 +1,6 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2025 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
@@ -70,7 +70,7 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
 
 (defun calendar-mayan-long-count-to-string (mayan-long-count)
   "Convert MAYAN-LONG-COUNT into traditional written form."
-  (apply 'format (cons "%s.%s.%s.%s.%s" mayan-long-count)))
+  (apply #'format (cons "%s.%s.%s.%s.%s" mayan-long-count)))
 
 (defun calendar-mayan-string-from-long-count (str)
   "Given STR, a string of format \"%d.%d.%d.%d.%d\", return list of numbers."
@@ -137,13 +137,14 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
   (let* ((completion-ignore-case t)
          (haab-day (calendar-read-sexp
                     "Haab kin (0-19)"
-                    (lambda (x) (and (>= x 0) (< x 20)))))
+                    (lambda (x) (and (>= x 0) (< x 20)))
+                    0))
          (haab-month-list (append calendar-mayan-haab-month-name-array
                                   (and (< haab-day 5) '("Uayeb"))))
          (haab-month (cdr
                       (assoc-string
                        (completing-read "Haab uinal: "
-                                        (mapcar 'list haab-month-list)
+                                        haab-month-list
                                         nil t)
                        (calendar-make-alist haab-month-list 1) t))))
     (cons haab-day haab-month)))
@@ -153,12 +154,13 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
   (let* ((completion-ignore-case t)
          (tzolkin-count (calendar-read-sexp
                          "Tzolkin kin (1-13)"
-                         (lambda (x) (and (> x 0) (< x 14)))))
+                         (lambda (x) (and (> x 0) (< x 14)))
+                         1))
          (tzolkin-name-list (append calendar-mayan-tzolkin-names-array nil))
          (tzolkin-name (cdr
                         (assoc-string
                          (completing-read "Tzolkin uinal: "
-                                          (mapcar 'list tzolkin-name-list)
+                                          tzolkin-name-list
                                           nil t)
                          (calendar-make-alist tzolkin-name-list 1) t))))
     (cons tzolkin-count tzolkin-name)))

@@ -1,6 +1,6 @@
 ;;; multisession.el --- Multisession storage for variables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -295,7 +295,7 @@ DOC should be a doc string, and ARGS are keywords as applicable to
            (setq i (1+ i)
                  last-error err)
            (sleep-for (+ 0.1 (/ (float (random 10)) 10))))))
-      (signal (car last-error) (cdr last-error)))))
+      (signal last-error))))
 
 (defun multisession--object-file-name (object)
   (expand-file-name

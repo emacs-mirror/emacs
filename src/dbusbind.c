@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2025 Free Software Foundation, Inc.
+   Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,6 +28,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "pdumper.h"
 #include "process.h"
+
+#ifndef O_RDONLY
+/* WINDOWSNT.  */
+#include <fcntl.h>
+#endif
 
 #ifndef DBUS_NUM_MESSAGE_TYPES
 #define DBUS_NUM_MESSAGE_TYPES 5
@@ -128,6 +133,8 @@ static bool xd_in_read_queued_messages = 0;
 #endif
 
 /* Check whether TYPE is a basic DBusType.  */
+/* TODO: Shouldn't we assume, that recent D-Bus implementations carry
+   HAVE_DBUS_TYPE_IS_VALID and DBUS_TYPE_UNIX_FD?  See configure.ac.  */
 #ifdef HAVE_DBUS_TYPE_IS_VALID
 #define XD_BASIC_DBUS_TYPE(type)					\
   (dbus_type_is_valid (type) && dbus_type_is_basic (type))
@@ -309,6 +316,8 @@ XD_OBJECT_TO_STRING (Lisp_Object object)
       }									\
   } while (0)
 
+/* TODO: Shouldn't we assume, that recent D-Bus implementations carry
+   HAVE_DBUS_VALIDATE_*?  See configure.ac.  */
 #if (HAVE_DBUS_VALIDATE_BUS_NAME || HAVE_DBUS_VALIDATE_PATH		\
      || HAVE_DBUS_VALIDATE_INTERFACE || HAVE_DBUS_VALIDATE_MEMBER)
 #define XD_DBUS_VALIDATE_OBJECT(object, func)				\
@@ -328,34 +337,34 @@ XD_OBJECT_TO_STRING (Lisp_Object object)
 
 #if HAVE_DBUS_VALIDATE_BUS_NAME
 #define XD_DBUS_VALIDATE_BUS_NAME(bus_name)				\
-  XD_DBUS_VALIDATE_OBJECT(bus_name, dbus_validate_bus_name);
+  XD_DBUS_VALIDATE_OBJECT (bus_name, dbus_validate_bus_name)
 #else
 #define XD_DBUS_VALIDATE_BUS_NAME(bus_name)				\
-  if (!NILP (bus_name)) CHECK_STRING (bus_name);
+  do { if (!NILP (bus_name)) CHECK_STRING (bus_name); } while (false)
 #endif
 
 #if HAVE_DBUS_VALIDATE_PATH
 #define XD_DBUS_VALIDATE_PATH(path)					\
-  XD_DBUS_VALIDATE_OBJECT(path, dbus_validate_path);
+  XD_DBUS_VALIDATE_OBJECT (path, dbus_validate_path)
 #else
 #define XD_DBUS_VALIDATE_PATH(path)					\
-  if (!NILP (path)) CHECK_STRING (path);
+  do { if (!NILP (path)) CHECK_STRING (path); } while (false)
 #endif
 
 #if HAVE_DBUS_VALIDATE_INTERFACE
 #define XD_DBUS_VALIDATE_INTERFACE(interface)				\
-  XD_DBUS_VALIDATE_OBJECT(interface, dbus_validate_interface);
+  XD_DBUS_VALIDATE_OBJECT (interface, dbus_validate_interface)
 #else
 #define XD_DBUS_VALIDATE_INTERFACE(interface)				\
-  if (!NILP (interface)) CHECK_STRING (interface);
+  do { if (!NILP (interface)) CHECK_STRING (interface); } while (false)
 #endif
 
 #if HAVE_DBUS_VALIDATE_MEMBER
 #define XD_DBUS_VALIDATE_MEMBER(member)					\
-  XD_DBUS_VALIDATE_OBJECT(member, dbus_validate_member);
+  XD_DBUS_VALIDATE_OBJECT (member, dbus_validate_member)
 #else
 #define XD_DBUS_VALIDATE_MEMBER(member)					\
-  if (!NILP (member)) CHECK_STRING (member);
+  do { if (!NILP (member)) CHECK_STRING (member); } while (false)
 #endif
 
 /* Append to SIGNATURE a copy of X, making sure SIGNATURE does
@@ -425,7 +434,7 @@ xd_signature (char *signature, int dtype, int parent_type, Lisp_Object object)
       /* We don't check the syntax of signature.  This will be done by
 	 libdbus.  */
       if (dtype == DBUS_TYPE_OBJECT_PATH)
-	XD_DBUS_VALIDATE_PATH (object)
+	XD_DBUS_VALIDATE_PATH (object);
       else
 	CHECK_STRING (object);
       sprintf (signature, "%c", dtype);
@@ -749,7 +758,7 @@ xd_append_arg (int dtype, Lisp_Object object, DBusMessageIter *iter)
 	/* We don't check the syntax of signature.  This will be done
 	   by libdbus.  */
 	if (dtype == DBUS_TYPE_OBJECT_PATH)
-	  XD_DBUS_VALIDATE_PATH (object)
+	  XD_DBUS_VALIDATE_PATH (object);
 	else
 	  CHECK_STRING (object);
 	{
@@ -1034,6 +1043,8 @@ xd_get_connection_address (Lisp_Object bus)
 }
 
 /* Return the file descriptor for WATCH, -1 if not found.  */
+/* TODO: Shouldn't we assume, that recent D-Bus implementations carry
+   HAVE_DBUS_WATCH_GET_UNIX_FD?  See configure.ac.  */
 static int
 xd_find_watch_fd (DBusWatch *watch)
 {
@@ -1349,6 +1360,7 @@ usage: (dbus-message-internal &rest REST)  */)
   dbus_uint32_t serial = 0;
   unsigned int ui_serial;
   int timeout = -1;
+  dbus_bool_t keepfd = FALSE;
   ptrdiff_t count, count0;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
@@ -1525,6 +1537,7 @@ usage: (dbus-message-internal &rest REST)  */)
           timeout = min (XFIXNAT (args[count+1]), INT_MAX);
           count = count + 2;
 	}
+
       /* Check for authorizable parameter.  */
       else if (EQ (args[count], QCauthorizable))
         {
@@ -1542,6 +1555,24 @@ usage: (dbus-message-internal &rest REST)  */)
 
           count = count + 2;
 	}
+
+      /* Check for keepfd parameter.  */
+      else if (EQ (args[count], QCkeep_fd))
+        {
+	  if (mtype != DBUS_MESSAGE_TYPE_METHOD_CALL)
+	    XD_SIGNAL1
+	      (build_string (":keep-fd is only supported on method calls"));
+
+	  /* Ignore this keyword if unsupported.  */
+#ifdef DBUS_TYPE_UNIX_FD
+          keepfd = TRUE;
+#else
+	  XD_DEBUG_MESSAGE (":keep-fd not supported");
+#endif
+
+	  ++count;
+	}
+
       else break;
 
     }
@@ -1595,7 +1626,8 @@ usage: (dbus-message-internal &rest REST)  */)
       result = list3 (QCserial, bus, INT_TO_INTEGER (serial));
 
       /* Create a hash table entry.  */
-      Fputhash (result, handler, Vdbus_registered_objects_table);
+      Fputhash (result, keepfd ? Fcons (handler, path) : handler,
+		Vdbus_registered_objects_table);
     }
   else
     {
@@ -1617,14 +1649,110 @@ usage: (dbus-message-internal &rest REST)  */)
   return result;
 }
 
+/* Alist of registered file descriptors for D-Bus.
+   The key is an open file descriptor, retrieved via `dbus-call-method'
+   or `dbus--open-fd'.  The value is a string OBJECT-PATH or FILENAME,
+   which represents the arguments the function was called with.  Those
+   values are not needed for further operations; they are just shown for
+   information.  */
+static Lisp_Object xd_registered_fds;
+
+DEFUN ("dbus--fd-open", Fdbus__fd_open, Sdbus__fd_open, 1, 1, 0,
+       doc: /* Open FILENAME and return the respective read-only file descriptor.  */)
+  (Lisp_Object filename)
+{
+  CHECK_STRING (filename);
+  filename = Fexpand_file_name (filename, Qnil);
+  filename = ENCODE_FILE (filename);
+
+  /* Check, whether it is registered already.  */
+  Lisp_Object registered = Frassoc (filename, xd_registered_fds);
+  if (!NILP (registered))
+    return CAR_SAFE (registered);
+
+  /* Open file descriptor.  */
+  int fd = emacs_open (SSDATA (filename), O_RDONLY, 0);
+
+  if (fd <= 0)
+    XD_SIGNAL2 (build_string ("Cannot open file"), filename);
+
+  /* Register file descriptor.  */
+  xd_registered_fds =
+    Fcons (Fcons (INT_TO_INTEGER (fd), filename), xd_registered_fds);
+  return INT_TO_INTEGER (fd);
+}
+
+DEFUN ("dbus--fd-close", Fdbus__fd_close, Sdbus__fd_close, 1, 1, 0,
+       doc: /* Close file descriptor FD.
+FD must be the result of a `dbus-call-method' or `dbus--fd-open' call,
+see `dbus--registered-fds'.  It returns t in case of success, or nil if
+it isn't be possible to close the file descriptor, or if the file
+descriptor is closed already.  */)
+  (Lisp_Object fd)
+{
+  CHECK_FIXNUM (fd);
+
+  /* Check, whether it is registered.  */
+  Lisp_Object registered =  assoc_no_quit (fd, xd_registered_fds);
+  if (NILP (registered))
+    return Qnil;
+  else
+    {
+      xd_registered_fds = Fdelete (registered, xd_registered_fds);
+      return (emacs_close (XFIXNAT (fd)) == 0) ? Qt : Qnil;
+    }
+}
+
+DEFUN ("dbus--registered-fds", Fdbus__registered_fds, Sdbus__registered_fds,
+       0, 0, 0,
+       doc: /* Return registered file descriptors, an alist.
+The key is an open file descriptor, retrieved via `dbus-call-method' or
+`dbus--open-fd'.  The value is a string OBJECT-PATH or FILENAME, which
+represents the arguments the function was called with.  Those values are
+not needed for further operations; they are just shown for information.
+
+This alist allows to check, whether other packages of the running Emacs
+instance have acquired a file descriptor as well.  */)
+  (void)
+{
+  /* We return a copy of xd_registered_fds, in order to protect it
+     against malicious manipulation.  */
+  Lisp_Object registered = xd_registered_fds;
+  Lisp_Object result = Qnil;
+  for (; !NILP (registered); registered = CDR_SAFE (registered))
+    {
+      Lisp_Object tem = CAR_SAFE (registered);
+      result = Fcons (Fcons (CAR_SAFE (tem), CDR_SAFE (tem)), result);
+    }
+  return Fnreverse (result);
+}
+
+/* Construct a D-Bus event, and store it into the input event queue.  */
+static void
+xd_store_event (Lisp_Object handler, Lisp_Object handler_args,
+		Lisp_Object event_args)
+{
+  struct input_event event;
+  EVENT_INIT (event);
+  event.kind = DBUS_EVENT;
+  event.frame_or_window = Qnil;
+  /* Handler and handler args.  */
+  event.arg = Fcons (handler, handler_args);
+  /* Event args.  */
+  event.arg = CALLN (Fappend, event_args, event.arg);
+  /* Store it into the input event queue.  */
+  kbd_buffer_store_event (&event);
+
+  XD_DEBUG_MESSAGE ("Event stored: %s", XD_OBJECT_TO_STRING (event.arg));
+}
+
 /* Read one queued incoming message of the D-Bus BUS.
    BUS is either a Lisp symbol, :system, :session, :system-private or
    :session-private, or a string denoting the bus address.  */
 static void
 xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 {
-  Lisp_Object args, key, value;
-  struct input_event event;
+  Lisp_Object args, event_args, key, value;
   DBusMessage *dmessage;
   DBusMessageIter iter;
   int dtype;
@@ -1676,6 +1804,27 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		    mtype == DBUS_MESSAGE_TYPE_ERROR ? error_name : member,
 		    XD_OBJECT_TO_STRING (args));
 
+  /* Add type, serial, uname, destination, path, interface and member
+     or error_name to the event_args.  */
+  event_args
+    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
+	     ? error_name == NULL ? Qnil : build_string (error_name)
+	     : member == NULL ? Qnil : build_string (member),
+	     Qnil);
+  event_args = Fcons ((interface == NULL ? Qnil : build_string (interface)),
+		      event_args);
+  event_args = Fcons ((path == NULL ? Qnil : build_string (path)),
+		     event_args);
+  event_args = Fcons ((destination == NULL ? Qnil : build_string (destination)),
+		     event_args);
+  event_args = Fcons ((uname == NULL ? Qnil : build_string (uname)),
+		     event_args);
+  event_args = Fcons (INT_TO_INTEGER (serial), event_args);
+  event_args = Fcons (make_fixnum (mtype), event_args);
+
+  /* Add the bus symbol to the event.  */
+  event_args = Fcons (bus, event_args);
+
   if (mtype == DBUS_MESSAGE_TYPE_INVALID)
     goto cleanup;
 
@@ -1693,12 +1842,23 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       /* Remove the entry.  */
       Fremhash (key, Vdbus_registered_objects_table);
 
-      /* Construct an event.  */
-      EVENT_INIT (event);
-      event.kind = DBUS_EVENT;
-      event.frame_or_window = Qnil;
-      /* Handler.  */
-      event.arg = Fcons (value, args);
+      /* Store the event.  */
+      xd_store_event (CONSP (value) ? CAR_SAFE (value) : value, args, event_args);
+
+#ifdef DBUS_TYPE_UNIX_FD
+      /* Check, whether there is a file descriptor to be kept.
+	 value is (handler . path)
+	 args is ((:unix-fd NN) ...)  */
+      if (CONSP (value)
+	  && CONSP (CAR_SAFE (args))
+	  && EQ (CAR_SAFE (CAR_SAFE (args)), QCunix_fd))
+	{
+	  xd_registered_fds =
+	    Fcons (Fcons (CAR_SAFE (CDR_SAFE (CAR_SAFE (args))),
+			  CDR_SAFE (value)),
+		   xd_registered_fds);
+	}
+#endif
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -1729,6 +1889,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 			 Fgethash (key, Vdbus_registered_objects_table, Qnil));
 	}
 
+      Lisp_Object called_handlers = Qnil;
       /* Loop over the registered functions.  Construct an event.  */
       for (; !NILP (value); value = CDR_SAFE (value))
 	{
@@ -1747,44 +1908,14 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	  Lisp_Object handler = CAR_SAFE (CDR_SAFE (key_path_etc));
 	  if (NILP (handler))
 	    continue;
+	  if (!NILP (memq_no_quit (handler, called_handlers)))
+	    continue;
+	  called_handlers = Fcons (handler, called_handlers);
 
-	  /* Construct an event and exit the loop.  */
-	  EVENT_INIT (event);
-	  event.kind = DBUS_EVENT;
-	  event.frame_or_window = Qnil;
-	  event.arg = Fcons (handler, args);
-	  break;
+	  /* Store the event.  */
+	  xd_store_event (handler, args, event_args);
 	}
-
-      if (NILP (value))
-	goto monitor;
     }
-
-  /* Add type, serial, uname, destination, path, interface and member
-     or error_name to the event.  */
-  event.arg
-    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
-	     ? error_name == NULL ? Qnil : build_string (error_name)
-	     : member == NULL ? Qnil : build_string (member),
-	     event.arg);
-  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
-		     event.arg);
-  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
-		     event.arg);
-  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
-		     event.arg);
-  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
-		     event.arg);
-  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
-  event.arg = Fcons (make_fixnum (mtype), event.arg);
-
-  /* Add the bus symbol to the event.  */
-  event.arg = Fcons (bus, event.arg);
-
-  /* Store it into the input event queue.  */
-  kbd_buffer_store_event (&event);
-
-  XD_DEBUG_MESSAGE ("Event stored: %s", XD_OBJECT_TO_STRING (event.arg));
 
   /* Monitor.  */
  monitor:
@@ -1796,39 +1927,9 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   if (NILP (value))
     goto cleanup;
 
-  /* Construct an event.  */
-  EVENT_INIT (event);
-  event.kind = DBUS_EVENT;
-  event.frame_or_window = Qnil;
-
-  /* Add type, serial, uname, destination, path, interface, member
-     or error_name and handler to the event.  */
-  event.arg
-    = Fcons (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (CAR_SAFE (value))))),
-	     args);
-  event.arg
-    = Fcons (mtype == DBUS_MESSAGE_TYPE_ERROR
-	     ? error_name == NULL ? Qnil : build_string (error_name)
-	     : member == NULL ? Qnil : build_string (member),
-	     event.arg);
-  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
-		     event.arg);
-  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
-		     event.arg);
-  event.arg = Fcons ((destination == NULL ? Qnil : build_string (destination)),
-		     event.arg);
-  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
-		     event.arg);
-  event.arg = Fcons (INT_TO_INTEGER (serial), event.arg);
-  event.arg = Fcons (make_fixnum (mtype), event.arg);
-
-  /* Add the bus symbol to the event.  */
-  event.arg = Fcons (bus, event.arg);
-
-  /* Store it into the input event queue.  */
-  kbd_buffer_store_event (&event);
-
-  XD_DEBUG_MESSAGE ("Monitor event stored: %s", XD_OBJECT_TO_STRING (event.arg));
+  /* Store the event.  */
+  xd_store_event (CAR_SAFE (CDR_SAFE (CDR_SAFE (CDR_SAFE (CAR_SAFE (value))))),
+		  args, event_args);
 
   /* Cleanup.  */
  cleanup:
@@ -1893,6 +1994,7 @@ static void
 syms_of_dbusbind_for_pdumper (void)
 {
   xd_registered_buses = Qnil;
+  xd_registered_fds = Qnil;
 }
 
 void
@@ -1900,6 +2002,9 @@ syms_of_dbusbind (void)
 {
   defsubr (&Sdbus__init_bus);
   defsubr (&Sdbus_get_unique_name);
+  defsubr (&Sdbus__fd_open);
+  defsubr (&Sdbus__fd_close);
+  defsubr (&Sdbus__registered_fds);
 
   DEFSYM (Qdbus_message_internal, "dbus-message-internal");
   defsubr (&Sdbus_message_internal);
@@ -1923,6 +2028,11 @@ syms_of_dbusbind (void)
 
   /* Lisp symbol for method interactive authorization.  */
   DEFSYM (QCauthorizable, ":authorizable");
+
+  /* Lisp symbol for file descriptor kept.  */
+#ifdef DBUS_TYPE_UNIX_FD
+  DEFSYM (QCkeep_fd, ":keep-fd");
+#endif
 
   /* Lisp symbols of D-Bus types.  */
   DEFSYM (QCbyte, ":byte");
@@ -1954,6 +2064,7 @@ syms_of_dbusbind (void)
 
   /* Miscellaneous Lisp symbols.  */
   DEFSYM (Qdbus_get_name_owner, "dbus-get-name-owner");
+  DEFSYM (Qdbus_call_method, "dbus-call-method");
 
   DEFVAR_LISP ("dbus-compiled-version",
 	       Vdbus_compiled_version,
@@ -2059,6 +2170,7 @@ be called when the D-Bus reply message arrives.  */);
   /* Initialize internal objects.  */
   pdumper_do_now_and_after_load (syms_of_dbusbind_for_pdumper);
   staticpro (&xd_registered_buses);
+  staticpro (&xd_registered_fds);
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
 }

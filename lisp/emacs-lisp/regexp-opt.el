@@ -1,6 +1,6 @@
 ;;; regexp-opt.el --- generate efficient regexps to match strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2026 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -140,7 +140,7 @@ usually more efficient than that of a simplified version:
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
 	   (re (if strings
                    (regexp-opt-group
-                    (delete-dups (sort (copy-sequence strings) 'string-lessp))
+                    (delete-dups (sort strings))
                     (or open t) (not open))
                  ;; No strings: return an unmatchable regexp.
                  (concat (or open "\\(?:") regexp-unmatchable "\\)"))))
@@ -209,10 +209,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
      ;;
      ;; If there are several one-char strings, use charsets
      ((and (= (length (car strings)) 1)
-	   (let ((strs (cdr strings)))
-	     (while (and strs (/= (length (car strs)) 1))
-	       (pop strs))
-	     strs))
+           (any (lambda (s) (= (length s) 1)) (cdr strings)))
       (let (letters rest)
 	;; Collect one-char strings
 	(dolist (s strings)
@@ -250,7 +247,7 @@ Merges keywords to avoid backtracking in Emacs's regexp matcher."
 		       (prefixes
 			;; Sorting is necessary in cases such as ("ad" "d").
 			(sort (mapcar (lambda (s) (substring s 0 n)) strings)
-			      'string-lessp)))
+                              :in-place t)))
 		  (concat open-group
 			  (regexp-opt-group prefixes t t)
 			  (regexp-quote (nreverse xiffus))

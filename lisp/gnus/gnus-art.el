@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -6946,7 +6946,7 @@ not have a face in `gnus-article-boring-faces'."
 		  (set-window-hscroll win new-sum-hscroll))))
 	  (set-window-configuration owin)
 	  (if err
-	      (signal (car err) (cdr err))
+	      (signal err)
 	    (ding))))))))
 
 (defun gnus-article-read-summary-send-keys ()

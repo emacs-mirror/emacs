@@ -1,6 +1,6 @@
 ;;; mule-tests.el --- unit tests for mule.el         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -69,7 +69,8 @@
     (dotimes (u (1+ (max-char 'ucs)))
       (when-let* ((name (get-char-code-property u 'name)))
         (when (and (not (<= #xD800 u #xDFFF))
-                   (not (<= #x18800 u #x18AFF))
+                   (not (<= #x18800 u #x18D1E))
+                   (not (<= #x18D80 u #x18DF2))
                    (not (char-from-name name)))
           (push (format "%X" u) code-points))))
     (setq code-points (nreverse code-points))

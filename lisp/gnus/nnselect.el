@@ -1,6 +1,6 @@
 ;;; nnselect.el --- a virtual group backend   -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
 ;; Author: Andrew Cohen <cohen@andy.bu.edu>
 ;; Keywords: news mail
@@ -346,8 +346,7 @@ group info."
             gnus-newsgroup-selection))
       ;; Don't swallow gnus-search errors; the user should be made
       ;; aware of them.
-      (gnus-search-error
-       (signal (car err) (cdr err)))
+      (gnus-search-error (signal err))
       (error
        (gnus-error
         3

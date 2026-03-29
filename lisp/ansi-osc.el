@@ -1,6 +1,6 @@
 ;;; ansi-osc.el --- Support for OSC escape sequences      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author: Augusto Stoffel <arstoffel@gmail.com>
 ;;         Matthias Meulien <orontee@gmail.com>
@@ -146,6 +146,7 @@ and `shell-dirtrack-mode'."
 
 (defvar-keymap ansi-osc-hyperlink-map
   :doc "Keymap used by OSC 8 hyperlink buttons."
+  "RET"           (keymap-read-only-bind #'browse-url-button-open)
   "C-c RET"       #'browse-url-button-open
   "<mouse-2>"     #'browse-url-button-open
   "<follow-link>" 'mouse-face)

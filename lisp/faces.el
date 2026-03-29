@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -95,9 +95,10 @@ a font height that isn't optimal."
          (internal-set-font-selection-order value)))
 
 
-;; In the absence of Fontconfig support, Monospace and Sans Serif are
-;; unavailable, and we fall back on the courier and helv families,
-;; which are generally available.
+;; We use Fontconfig if we have it.  This list is an alternative
+;; mechanism to fall back to in the absence of Fontconfig.
+;; In that situation, Monospace and Sans Serif are unavailable, and we
+;; turn to the courier and helv families, which are generally available.
 (defcustom face-font-family-alternatives
   '(("Monospace" "Cascadia Code" "Lucida Console" "courier" "fixed")
 
@@ -2461,6 +2462,10 @@ If you set `term-file-prefix' to nil, this function does nothing."
   "Basic underlined face."
   :group 'basic-faces)
 
+;; Ideally, in Emacs's default look, we'd like the default and
+;; fixed-pitch faces to use two different monospace typefaces so that
+;; they're visually distinct.  At present, that's achieved on MS-Windows
+;; and macOS, but not on platforms that use Fontconfig.  See bug#79083.
 (defface fixed-pitch
   '((t :family "Monospace"))
   "The basic fixed-pitch face."
@@ -2710,15 +2715,18 @@ non-nil."
   :version "22.1")
 
 (defface mode-line
-  '((((class color grayscale) (min-colors 88))
+  '((((class color grayscale) (min-colors 88) (background light))
      :box (:line-width -1 :style released-button)
      :background "grey75" :foreground "black")
+    (((class color grayscale) (min-colors 88) (background dark))
+     :box (:line-width -1 :style released-button)
+     :background "grey20" :foreground "white")
     (t
      :inverse-video t))
   "Face for the mode lines as well as header lines.
 See `mode-line-active' and `mode-line-inactive' for the faces
 used on mode lines."
-  :version "21.1"
+  :version "31.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 
@@ -2747,12 +2755,16 @@ This inherits from the `mode-line' face."
   :group 'basic-faces)
 
 (defface mode-line-highlight
-  '((((supports :box t) (class color grayscale) (min-colors 88))
+  '((((supports :box t) (class color grayscale) (min-colors 88)
+      (background light))
      :box (:line-width 2 :color "grey40" :style released-button))
+    (((supports :box t) (class color grayscale) (min-colors 88)
+      (background dark))
+     :box (:line-width 2 :color "grey80" :style released-button))
     (t
      :inherit highlight))
   "Basic mode line face for highlighting."
-  :version "22.1"
+  :version "31.1"
   :group 'mode-line-faces
   :group 'basic-faces)
 
@@ -2958,30 +2970,39 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'basic-faces)
 
 (defface tab-bar
-  '((((class color) (min-colors 88))
+  '((((class color) (min-colors 88) (background light))
      :inherit variable-pitch
      :background "grey85"
      :foreground "black")
+    (((class color) (min-colors 88) (background dark))
+     :inherit variable-pitch
+     :background "grey20"
+     :foreground "white")
     (((class mono))
      :background "grey")
     (t
      :inverse-video t))
   "Tab bar face."
-  :version "27.1"
+  :version "31.1"
   :group 'basic-faces)
 
 (defface tab-line
-  '((((class color) (min-colors 88))
+  '((((class color) (min-colors 88) (background light))
      :inherit variable-pitch
      :height 0.9
      :background "grey85"
      :foreground "black")
+    (((class color) (min-colors 88) (background dark))
+     :inherit variable-pitch
+     :height 0.9
+     :background "grey20"
+     :foreground "white")
     (((class mono))
      :background "grey")
     (t
      :inverse-video t))
   "Tab line face."
-  :version "27.1"
+  :version "31.1"
   :group 'basic-faces)
 
 (defface menu

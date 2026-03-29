@@ -1,5 +1,5 @@
 /* Definitions for keyboard macro interpretation in GNU Emacs.
-   Copyright (C) 1985, 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,10 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    so after an error, it describes the innermost interrupted macro.  */
 
 extern EMACS_INT executing_kbd_macro_iterations;
-
-/* This is the macro that was executing.
-   This is not bound at each level,
-   so after an error, it describes the innermost interrupted macro.  */
 
 extern Lisp_Object executing_kbd_macro;
 

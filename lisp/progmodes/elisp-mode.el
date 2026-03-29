@@ -1,6 +1,6 @@
 ;;; elisp-mode.el --- Emacs Lisp mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -278,6 +278,357 @@ Comments in the form will be lost."
             (string-to-syntax "'")))))
      start end)))
 
+(defgroup elisp nil "Emacs Lisp editing support." :version "31.1" :group 'lisp)
+
+(defcustom elisp-fontify-semantically nil
+  "Whether to highlight symbols according to their semantic meaning.
+
+If this is non-nil, `emacs-lisp-mode' uses code analysis to determine
+the role of each symbol and highlight it accordingly.  We call this kind
+of highlighting \"semantic highlighting\".
+
+Semantic highlighting works best when you keep your code syntactically
+correct while editing it, for example by using `electric-pair-mode'.
+
+In trusted buffers (see `trusted-content-p'), the code analysis may
+expand some macro calls in your code to analyze the expanded forms.  In
+untrusted buffers, for security reasons, macro-expansion is restricted
+to safe macros only (see `elisp-scope-safe-macro-p').  Hence in
+untrusted buffers the arguments of some macros might not be analyzed,
+and therefore will not be semantically highlighted.
+
+See the function `elisp-scope-analyze-form' for more details about the
+code analysis."
+  :type 'boolean
+  :version "31.1")
+
+(defface elisp-symbol-at-mouse
+  '((((background light)) :background "#fff6d8")
+    (((background dark))  :background "#00422a"))
+  "Face for highlighting the symbol at mouse in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-free-variable
+  '((t :underline t :foreground reset :inherit font-lock-variable-use-face))
+  "Face for highlighting free (special) variables in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-special-variable-declaration '((t :inherit elisp-free-variable))
+  "Face for highlighting free variable declarations in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-condition '((t :foreground "red"))
+  "Face for highlighting `condition-case' conditions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-major-mode-name
+  '((((background light)) :foreground "#006400")
+    (((background dark))  :foreground "#4ade80"))
+  "Face for highlighting major mode names in Emacs Lisp code.")
+
+(defface elisp-face '((t :inherit font-lock-type-face))
+  "Face for highlighting face names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-symbol-role
+  '((default :inherit font-lock-function-call-face)
+    (((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
+  "Face for highlighting symbol role names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-symbol-role-definition
+  '((default :inherit font-lock-function-name-face)
+    (((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
+  "Face for highlighting symbol role definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-function '((t :inherit font-lock-function-call-face))
+  "Face for highlighting function calls in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-non-local-exit '((t :inherit elisp-function :underline "red"))
+  "Face for highlighting calls to functions that do not return."
+  :version "31.1")
+
+(defface elisp-unknown-call
+  '((default :inherit elisp-function)
+    (((background light)) :foreground "#2f4f4f")
+    (((background dark))  :foreground "#7fa9a9"))
+  "Face for highlighting unknown functions/macros in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-macro '((t :inherit font-lock-keyword-face))
+  "Face for highlighting macro calls in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-special-form '((t :inherit elisp-macro))
+  "Face for highlighting special forms in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-throw-tag '((t :inherit font-lock-constant-face))
+  "Face for highlighting `catch'/`throw' tags in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-feature '((t :inherit font-lock-constant-face))
+  "Face for highlighting feature names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-rx
+  '((((background light)) :foreground "#00008b")
+    (((background dark))  :foreground "#5c9cff"))
+  "Face for highlighting `rx' constructs in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-theme '((t :inherit font-lock-constant-face))
+  "Face for highlighting custom theme names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-binding-variable
+  '((t :slant italic :inherit font-lock-variable-name-face))
+  "Face for highlighting binding occurrences of variables in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-bound-variable
+  '((t :slant italic :foreground reset :inherit font-lock-variable-use-face))
+  "Face for highlighting bound occurrences of variables in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-shadowing-variable
+  '((t :inherit elisp-binding-variable :underline t))
+  "Face for highlighting local bindings that shadow special variables."
+  :version "31.1")
+
+(defface elisp-shadowed-variable
+  '((t :inherit elisp-bound-variable :underline t))
+  "Face for highlighting special variables that are shadowed by a local binding."
+  :version "31.1")
+
+(defface elisp-variable-at-point '((t :inherit bold))
+  "Face for highlighting (all occurrences of) the variable at point."
+  :version "31.1")
+
+(defface elisp-warning-type '((t :inherit font-lock-type-face))
+  "Face for highlighting byte-compilation warning type names in Emacs Lisp."
+  :version "31.1")
+
+(defface elisp-function-property-declaration '((t :inherit font-lock-variable-use-face))
+  "Face for highlighting function/macro property declaration type names."
+  :version "31.1")
+
+(defface elisp-thing '((t :inherit font-lock-type-face))
+  "Face for highlighting `thing-at-point' \"thing\" names in Emacs Lisp."
+  :version "31.1")
+
+(defface elisp-slot '((t :inherit font-lock-builtin-face))
+  "Face for highlighting EIEIO slot names."
+  :version "31.1")
+
+(defface elisp-widget-type '((t :inherit font-lock-type-face))
+  "Face for highlighting widget type names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-type '((t :inherit font-lock-type-face))
+  "Face for highlighting object type names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-group '((t :inherit font-lock-type-face))
+  "Face for highlighting customization group names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-nnoo-backend '((t :inherit font-lock-type-face))
+  "Face for highlighting `nnoo' backend names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-ampersand '((t :inherit font-lock-type-face))
+  "Face for highlighting argument list markers, such as `&optional'."
+  :version "31.1")
+
+(defface elisp-constant '((t :inherit font-lock-builtin-face))
+  "Face for highlighting self-evaluating symbols in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-defun '((t :inherit font-lock-function-name-face))
+  "Face for highlighting function definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-defmacro '((t :inherit elisp-defun))
+  "Face for highlighting macro definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-defvar '((t :inherit font-lock-variable-name-face))
+  "Face for highlighting variable definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-defface '((t :inherit font-lock-variable-name-face))
+  "Face for highlighting face definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-icon '((t :inherit font-lock-type-face))
+  "Face for highlighting icon names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-deficon '((t :inherit elisp-icon))
+  "Face for highlighting icon definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-oclosure '((t :inherit font-lock-type-face))
+  "Face for highlighting OClosure type names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-defoclosure '((t :inherit elisp-oclosure))
+  "Face for highlighting OClosure type definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-coding '((t :inherit font-lock-type-face))
+  "Face for highlighting coding system names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-defcoding '((t :inherit elisp-coding))
+  "Face for highlighting coding system definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-charset '((t :inherit font-lock-type-face))
+  "Face for highlighting charset names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-defcharset '((t :inherit elisp-charset))
+  "Face for highlighting charset definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-completion-category '((t :inherit font-lock-type-face))
+  "Face for highlighting completion category names in Emacs Lisp code."
+  :version "31.1")
+
+(defface elisp-completion-category-definition
+  '((t :inherit elisp-completion-category))
+  "Face for highlighting completion category definitions in Emacs Lisp code."
+  :version "31.1")
+
+(defun elisp-local-references (pos)
+  "Return references to local variable at POS as (BEG . LEN) cons cells."
+  (let (all cur)
+    (save-excursion
+      (goto-char pos)
+      (beginning-of-defun)
+      (elisp-scope-analyze-form
+       (lambda (_role beg _sym id &optional _def)
+         (let* ((end (progn (goto-char beg) (read (current-buffer)) (point)))
+                (len (- end beg)))
+           (when (<= beg pos end) (setq cur id))
+           (when id (setf (alist-get beg all) (list len id)))))))
+    (seq-keep
+     (pcase-lambda (`(,beg ,len ,id)) (when (equal id cur) (cons beg len)))
+     all)))
+
+(defun elisp-highlight-variable (pos)
+  "Highlight variable at POS along with its co-occurrences."
+  (pcase-dolist (`(,beg . ,len) (elisp-local-references pos))
+    (let ((ov (make-overlay beg (+ beg len))))
+      (overlay-put ov 'face 'elisp-variable-at-point)
+      (overlay-put ov 'elisp-highlight-variable t))))
+
+(defun elisp-unhighlight-variable (pos)
+  "Remove variable highlighting across top-level form at POS."
+  (save-excursion
+    (goto-char pos)
+    (beginning-of-defun)
+    (remove-overlays (point) (progn (end-of-defun) (point))
+                     'elisp-highlight-variable t)))
+
+(defun elisp-cursor-sensor (pos)
+  "Return `cursor-sensor-functions' for Emacs Lisp symbol at POS."
+  (list
+   (lambda (_win old dir)
+     (cl-case dir
+       (entered (elisp-highlight-variable pos))
+       (left (elisp-unhighlight-variable old))))))
+
+(defun elisp--function-help-echo (sym &rest _)
+  (when (fboundp sym)
+    (with-temp-buffer
+      (let ((standard-output (current-buffer)))
+        (insert "`" (symbol-name sym) "' is ")
+        (describe-function-1 sym))
+      (buffer-string))))
+
+(defun elisp--help-echo (prop str sym &rest _)
+  (if-let* ((doc (documentation-property sym prop t)))
+      (format "%s `%S'.\n\n%s" str sym doc)
+    str))
+
+(defcustom elisp-add-help-echo t
+  "Whether to add `help-echo' property to symbols while highlighting them.
+This option has effect only if `elisp-fontify-semantically' is non-nil."
+  :version "31.1"
+  :type 'boolean)
+
+(defun elisp--annotate-symbol-with-help-echo (role beg end sym)
+  (put-text-property
+   beg end 'help-echo
+   (when-let* ((hlp (elisp-scope-get-symbol-role-property role :help)))
+     ;; HLP is either a string, or a function that takes SYM as an
+     ;; additional argument on top of the usual WINDOW, OBJECT and POS
+     ;; that `help-echo' functions takes.
+     (if (stringp hlp) hlp (apply-partially hlp sym)))))
+
+(defvar font-lock-beg)
+(defvar font-lock-end)
+
+(defun elisp-extend-region-to-whole-defuns ()
+  (when elisp-fontify-semantically
+    (let (changed)
+      (when-let* ((new-beg (syntax-ppss-toplevel-pos (syntax-ppss font-lock-beg))))
+        (setq font-lock-beg new-beg changed t))
+      (when-let* ((beg-of-end (syntax-ppss-toplevel-pos (syntax-ppss font-lock-end)))
+                  (new-end (ignore-error scan-error (scan-sexps beg-of-end 1))))
+        (setq font-lock-end new-end changed t))
+      changed)))
+
+(defcustom elisp-fontify-symbol-precedence-function #'ignore
+  "Function that determines the precedence of semantic highlighting.
+
+The function takes two arguments, BEG and END, which are the beginning
+and end positions in the current buffer of a symbol that is about to be
+fontified during semantic highlighting.  The function is called after
+`font-lock-keywords' were already applied.  If the function returns nil,
+then semantic highlighting takes precedence, otherwise the highlighting
+that `font-lock-keywords' applied takes precedence, if any.  By default,
+semantic highlighting takes precedence."
+  :type '(choice
+          (function-item :tag "Prioritize semantic highlighting" ignore)
+          (function-item :tag "Prioritize `font-lock-keywords'" always)
+          (function :tag "Custom function"))
+  :version "31.1")
+
+(defun elisp-fontify-symbol (role beg sym id &optional _def)
+  "Fontify symbol SYM starting at position BEG according to its ROLE.
+
+If `elisp-add-help-echo' is non-nil, also annotate the symbol with the
+`help-echo' text property.  If `cursor-sensor-mode' is enabled and ID is
+non-nil, also annotate the symbol with `cursor-sensor-functions'."
+  (let ((end (progn (goto-char beg) (read (current-buffer)) (point))))
+    (let ((face (elisp-scope-get-symbol-role-property role :face)))
+      (add-face-text-property
+       beg end face
+       (cl-case elisp-fontify-symbol-precedence-function
+         (ignore nil)
+         (always t)
+         (otherwise (funcall elisp-fontify-symbol-precedence-function beg end))))
+      (when elisp-add-help-echo
+        (elisp--annotate-symbol-with-help-echo role beg end sym)
+        (put-text-property beg end 'mouse-face `(,face elisp-symbol-at-mouse)))
+      (when (and id (bound-and-true-p cursor-sensor-mode))
+        (put-text-property
+         beg end 'cursor-sensor-functions (elisp-cursor-sensor beg))))))
+
+(defun elisp-fontify-symbols (end)
+  "Fontify symbols from point to END according to their role in the code."
+  (when elisp-fontify-semantically
+    (while (< (point) end)
+      (ignore-errors (elisp-scope-analyze-form #'elisp-fontify-symbol)))))
+
 (defun elisp-outline-search (&optional bound move backward looking-at)
   "Don't use leading parens in strings for outline headings."
   (if looking-at
@@ -348,6 +699,9 @@ disable it."
 (defvar-keymap elisp--dynlex-modeline-map
   "<mode-line> <mouse-1>" #'elisp-enable-lexical-binding)
 
+(defconst elisp-semantic-font-lock-keywords
+  (append lisp-el-font-lock-keywords-2 '((elisp-fontify-symbols))))
+
 ;;;###autoload
 (define-derived-mode emacs-lisp-mode lisp-data-mode
   `("Elisp"
@@ -374,8 +728,15 @@ be used instead.
   (setcar font-lock-defaults
           '(lisp-el-font-lock-keywords
             lisp-el-font-lock-keywords-1
-            lisp-el-font-lock-keywords-2))
+            lisp-el-font-lock-keywords-2
+            elisp-semantic-font-lock-keywords))
+  (dolist (prop '(cursor-sensor-functions help-echo mouse-face))
+    (cl-pushnew prop
+                (alist-get 'font-lock-extra-managed-props
+                           (nthcdr 5 font-lock-defaults))))
   (setf (nth 2 font-lock-defaults) nil)
+  (add-hook 'font-lock-extend-region-functions
+            #'elisp-extend-region-to-whole-defuns nil t)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)
   (if (boundp 'electric-pair-text-pairs)
       (setq-local electric-pair-text-pairs
@@ -470,7 +831,8 @@ be used instead.
 (defvar elisp--local-macroenv
   `((cl-eval-when . ,(lambda (&rest args) `(progn . ,(cdr args))))
     (eval-when-compile . ,(lambda (&rest args) `(progn . ,args)))
-    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args))))
+    (eval-and-compile . ,(lambda (&rest args) `(progn . ,args)))
+    (static-if . ,(lambda (&rest args) `(if . ,args))))
   "Environment to use while tentatively expanding macros.
 This is used to try and avoid the most egregious problems linked to the
 use of `macroexpand-all' as a way to find the \"underlying raw code\".")
@@ -646,6 +1008,22 @@ The cache holds information specific to the current state of the
 Elisp obarray.  If the obarray is modified by any means (such as
 interning or uninterning a symbol), this variable is set to nil.")
 
+(defun elisp--read-symbol-shorthands (s)
+  "Return a fresh list of shorthand-ed alternative spellings of symbol S."
+  (let ((retval ()))
+    (cl-loop
+     for (shorthand . longhand) in read-symbol-shorthands
+     for full-name = (symbol-name s)
+     when (string-prefix-p longhand full-name)
+     do (let ((sym (make-symbol
+                    (concat shorthand
+                            (substring full-name
+                                       (length longhand))))))
+          (put sym 'elisp--longhand s)
+          (push sym retval)
+          retval))
+    retval))
+
 (defun elisp--completion-local-symbols ()
   "Compute collections of all Elisp symbols for completion purposes.
 The return value is compatible with the COLLECTION form described
@@ -654,18 +1032,9 @@ in `completion-at-point-functions' (which see)."
               (let (retval)
                 (mapatoms
                  (lambda (s)
-                   (push s retval)
-                   (cl-loop
-                    for (shorthand . longhand) in read-symbol-shorthands
-                    for full-name = (symbol-name s)
-                    when (string-prefix-p longhand full-name)
-                    do (let ((sym (make-symbol
-                                   (concat shorthand
-                                           (substring full-name
-                                                      (length longhand))))))
-                         (put sym 'shorthand t)
-                         (push sym retval)
-                         retval))))
+                   (setq retval
+                         (cons s (nconc (elisp--read-symbol-shorthands s)
+                                        retval)))))
                 retval)))
     (cond ((null read-symbol-shorthands) obarray)
           ((and obarray-cache
@@ -682,10 +1051,10 @@ in `completion-at-point-functions' (which see)."
                      obarray-cache)))))
 
 (defun elisp--shorthand-aware-fboundp (sym)
-  (fboundp (intern-soft (symbol-name sym))))
+  (fboundp (or (get sym 'elisp--longhand) sym)))
 
 (defun elisp--shorthand-aware-boundp (sym)
-  (boundp (intern-soft (symbol-name sym))))
+  (boundp (or (get sym 'elisp--longhand) sym)))
 
 (defun elisp-completion-at-point ()
   "Function used for `completion-at-point-functions' in `emacs-lisp-mode'.
@@ -740,8 +1109,7 @@ functions are annotated with \"<f>\" via the
                     ;; specific completion table in more cases.
                     (is-ignore-error
                      (list t (elisp--completion-local-symbols)
-                           :predicate (lambda (sym)
-                                        (get sym 'error-conditions))))
+                           :predicate #'error-type-p))
                     ((elisp--expect-function-p beg)
                      (list nil (elisp--completion-local-symbols)
                            :predicate
@@ -815,12 +1183,11 @@ functions are annotated with \"<f>\" via the
                                         (forward-sexp 2)
                                         (< (point) beg)))))
                         (list t (elisp--completion-local-symbols)
-                              :predicate (lambda (sym) (get sym 'error-conditions))))
+                              :predicate #'error-type-p))
                        ;; `ignore-error' with a list CONDITION parameter.
                        ('ignore-error
                         (list t (elisp--completion-local-symbols)
-                              :predicate (lambda (sym)
-                                           (get sym 'error-conditions))))
+                              :predicate #'error-type-p))
                        ((and (or ?\( 'let 'let* 'cond 'cond* 'bind*)
                              (guard (save-excursion
                                       (goto-char (1- beg))
@@ -885,17 +1252,13 @@ functions are annotated with \"<f>\" via the
 
 (defun elisp--xref-backend () 'elisp)
 
-;; WORKAROUND: This is nominally a constant, but the text properties
-;; are not preserved thru dump if use defconst.  See bug#21237.
-(defvar elisp--xref-format
-  #("(%s %s)"
+(defconst elisp--xref-format
+  #("(%S %S)"
     1 3 (face font-lock-keyword-face)
     4 6 (face font-lock-function-name-face)))
 
-;; WORKAROUND: This is nominally a constant, but the text properties
-;; are not preserved thru dump if use defconst.  See bug#21237.
-(defvar elisp--xref-format-extra
-  #("(%s %s %s)"
+(defconst elisp--xref-format-extra
+  #("(%S %S %S)"
     1 3 (face font-lock-keyword-face)
     4 6 (face font-lock-function-name-face)))
 
@@ -1175,22 +1538,28 @@ namespace but with lower confidence."
               ;; defined in C; the doc strings from the C source have
               ;; not been loaded yet.  Second call will return "src/*.c"
               ;; in file; handled by t case below.
-              (push (elisp--xref-make-xref nil symbol (help-C-file-name (symbol-function symbol) 'subr)) xrefs))
+              (push (elisp--xref-make-xref
+                     nil symbol (help-C-file-name (symbol-function symbol)
+                                                  'subr))
+                    xrefs))
 
              ((and (setq doc (documentation symbol t))
                    ;; This doc string is defined in cl-macs.el cl-defstruct
-                   (string-match "Constructor for objects of type `\\(.*\\)'" doc))
+                   ;; FIXME: This is hideously brittle!
+                   (string-match "Constructor for objects of type `\\(.*\\)'"
+                                 doc))
               ;; `symbol' is a name for the default constructor created by
               ;; cl-defstruct, so return the location of the cl-defstruct.
               (let* ((type-name (match-string 1 doc))
                      (type-symbol (intern type-name))
-                     (file (find-lisp-object-file-name type-symbol 'define-type))
+                     (file (find-lisp-object-file-name
+                            type-symbol 'define-type))
                      (summary (format elisp--xref-format-extra
-                                      'cl-defstruct
-                                      (concat "(" type-name)
-                                      (concat "(:constructor " (symbol-name symbol) "))"))))
-                (push (elisp--xref-make-xref 'define-type type-symbol file summary) xrefs)
-                ))
+                                      'cl-defstruct type-symbol
+                                      `(:constructor ,symbol))))
+                (push (elisp--xref-make-xref 'define-type type-symbol
+                                             file summary)
+                      xrefs)))
 
              ((setq generic (cl--generic symbol))
               ;; FIXME: move this to elisp-xref-find-def-functions, in cl-generic.el
@@ -1221,22 +1590,28 @@ namespace but with lower confidence."
                     ;; Default method has all t in specializers.
                     (setq non-default (or non-default (not (equal t item)))))
 
-                  (when (and file
-                             (or non-default
-                                 (nth 2 info))) ;; assuming only co-located default has null doc string
+                  ;; Assuming only co-located default has null doc string
+                  (when (and file (or non-default (nth 2 info)))
                     (if specializers
-                        (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol (nth 1 info))))
-                          (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))
+                        (let ((summary (format elisp--xref-format-extra
+                                               'cl-defmethod symbol
+                                               (nth 1 info))))
+                          (push (elisp--xref-make-xref 'cl-defmethod met-name
+                                                       file summary)
+                                xrefs))
 
-                      (let ((summary (format elisp--xref-format-extra 'cl-defmethod symbol "()")))
-                        (push (elisp--xref-make-xref 'cl-defmethod met-name file summary) xrefs))))
+                      (let ((summary (format elisp--xref-format-extra
+                                             'cl-defmethod symbol ())))
+                        (push (elisp--xref-make-xref 'cl-defmethod met-name
+                                                     file summary)
+                              xrefs))))
                   ))
 
-              (if (and (setq doc (documentation symbol t))
-                       ;; This doc string is created somewhere in
-                       ;; cl--generic-make-function for an implicit
-                       ;; defgeneric.
-                       (string-match "\n\n(fn ARG &rest ARGS)" doc))
+              ;; FIXME: We rely on the fact that `cl-defgeneric' sets
+              ;; a `function-documentation' property (via the third arg of
+              ;; `defalias'), whereas implicit declaration of a generic via
+              ;; `cl-defmethod' doesn't.
+              (if (null (get symbol 'function-documentation))
                   ;; This symbol is an implicitly defined defgeneric, so
                   ;; don't return it.
                   nil
@@ -1411,7 +1786,9 @@ and `eval-expression-print-level'.
   (funcall
    (syntax-propertize-rules
     (emacs-lisp-byte-code-comment-re
-     (1 (prog1 "< b" (elisp--byte-code-comment end (point))))))
+     (1 (prog1 "< b"
+          (goto-char (match-end 2))
+          (elisp--byte-code-comment end (point))))))
    start end))
 
 ;;;###autoload
@@ -1874,7 +2251,6 @@ Intended for `eldoc-documentation-functions' (which see)."
 (defcustom elisp-eldoc-docstring-length-limit 1000
   "Maximum length of doc strings displayed by elisp ElDoc functions."
   :type 'natnum
-  :group 'elisp
   :version "31.1")
 
 (defcustom elisp-eldoc-funcall-with-docstring-length 'short
@@ -1884,7 +2260,6 @@ Otherwise if set to `full', display full doc string."
   :type '(choice
           (const :tag "Short" short)
           (const :tag "Full" full))
-  :group 'elisp
   :version "31.1")
 
 (defun elisp-eldoc-funcall-with-docstring (callback &rest _ignored)
@@ -2071,32 +2446,42 @@ ARGS is the argument list of function SYM."
                     start (match-beginning 0)
                     end   (match-end 0)))))))
     ;; Handle now positional arguments.
-    (while (and index (>= index 1))
-      (if (string-match "[^ ()]+" args end)
-	  (progn
-	    (setq start (match-beginning 0)
-		  end   (match-end 0))
-	    (let ((argument (match-string 0 args)))
-	      (cond ((string= argument "&rest")
-		     ;; All the rest arguments are the same.
-		     (setq index 1))
-		    ((string= argument "&optional"))         ; Skip.
-                    ((string= argument "&allow-other-keys")) ; Skip.
-                    ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
-                    ;; like in `setq'.
-		    ((or (and (string-match-p "\\.\\.\\.\\'" argument)
-                              (string= argument (car (last args-lst))))
-                         (and (string-match-p "\\.\\.\\.\\'"
-                                              (substring args 1 (1- (length args))))
-                              (= (length (remove "..." args-lst)) 2)
-                              (> index 1) (oddp index)))
-                     (setq index 0))
-		    (t
-		     (setq index (1- index))))))
-	(setq end           (length args)
-	      start         (1- end)
-	      argument-face 'font-lock-warning-face
-	      index         0)))
+    (with-temp-buffer
+      (insert args)
+      (goto-char (1+ (point-min)))
+      (while (and index (>= index 1))
+        (skip-chars-forward "[:blank:]")
+        (let ((origin (point)))
+          (skip-chars-forward "[")
+          (if (condition-case nil
+	          (forward-sexp)
+	        (:success t)
+	        (scan-error nil))
+	      (progn
+	        (skip-chars-forward "].")
+	        (setq start (- origin (point-min))
+		      end   (- (point) (point-min)))
+	        (let ((argument (substring args start end)))
+	          (cond ((string= argument "&rest")
+		         ;; All the rest arguments are the same.
+		         (setq index 1))
+		        ((string= argument "&optional"))         ; Skip.
+		        ((string= argument "&allow-other-keys")) ; Skip.
+		        ;; Back to index 0 in ARG1 ARG2 ARG2 ARG3 etc...
+		        ;; like in `setq'.
+		        ((or (and (string-match-p "\\.\\.\\.\\'" argument)
+			          (string= argument (car (last args-lst))))
+                             (and (string-match-p "\\.\\.\\.\\'"
+					          (substring args 1 (1- (length args))))
+			          (= (length (remove "..." args-lst)) 2)
+			          (> index 1) (oddp index)))
+		         (setq index 0))
+		        (t
+		         (setq index (1- index))))))
+	    (setq end           (length args)
+	          start         (1- end)
+	          argument-face 'font-lock-warning-face
+	          index         0)))))
     (let ((doc args))
       (when start
 	(setq doc (copy-sequence args))
@@ -2281,6 +2666,44 @@ directory of the buffer being compiled, and nothing else.")
 
 (defvar bytecomp--inhibit-lexical-cookie-warning)
 
+(defcustom elisp-flymake-byte-compile-executable nil
+  "The Emacs executable to use for Flymake byte compilation.
+
+If non-nil, this should be an absolute or relative file name of an Emacs
+executable to use for byte compilation by Flymake.  If it's a relative
+file name, it should be relative to the root directory of the project
+containing the file being compiled, as determined by `project-current'.
+
+If nil, or if the file named by this does not exist, Flymake will
+use the same executable as the running Emacs, as specified by the
+variables `invocation-name' and `invocation-directory'."
+  :type '(choice
+          (const :tag "Current session's executable" nil)
+          (file :tag "Specific Emacs executable"))
+  :group 'lisp
+  :version "31.1")
+
+(declare-function project-root "project" (project))
+(defun elisp-flymake-byte-compile--executable ()
+  "Return absolute file name of the Emacs executable for flymake byte-compilation."
+  (cond
+   ((null elisp-flymake-byte-compile-executable)
+    (expand-file-name invocation-name invocation-directory))
+   ((not (stringp elisp-flymake-byte-compile-executable))
+    (error "Invalid `elisp-flymake-byte-compile-executable': %s"
+           elisp-flymake-byte-compile-executable))
+   ((file-name-absolute-p elisp-flymake-byte-compile-executable)
+    elisp-flymake-byte-compile-executable)
+   (t ; relative file name
+    (let ((filename (file-name-concat (project-root (project-current))
+                                      elisp-flymake-byte-compile-executable)))
+      (if (file-executable-p filename)
+          filename
+        ;; The user might not have built Emacs yet, so just fall back.
+        (message "`elisp-flymake-byte-compile-executable' (%s) doesn't exist"
+                 elisp-flymake-byte-compile-executable)
+        (expand-file-name invocation-name invocation-directory))))))
+
 ;;;###autoload
 (defun elisp-flymake-byte-compile (report-fn &rest _args)
   "A Flymake backend for elisp byte compilation.
@@ -2289,7 +2712,7 @@ current buffer state and calls REPORT-FN when done."
   (unless (trusted-content-p)
     ;; FIXME: Use `bwrap' and friends to compile untrusted content.
     ;; FIXME: We emit a message *and* signal an error, because by default
-    ;; Flymake doesn't display the warning it puts into "*flmake log*".
+    ;; Flymake doesn't display the warning it puts into "*flymake log*".
     (message "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
              (buffer-name))
     (user-error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
@@ -2316,7 +2739,7 @@ current buffer state and calls REPORT-FN when done."
        (make-process
         :name "elisp-flymake-byte-compile"
         :buffer output-buffer
-        :command `(,(expand-file-name invocation-name invocation-directory)
+        :command `(,(elisp-flymake-byte-compile--executable)
                    "-Q"
                    "--batch"
                    ;; "--eval" "(setq load-prefer-newer t)" ; for testing

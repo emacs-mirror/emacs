@@ -1,6 +1,6 @@
 # nproc.m4
-# serial 6
-dnl Copyright (C) 2009-2025 Free Software Foundation, Inc.
+# serial 8
+dnl Copyright (C) 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -17,8 +17,12 @@ AC_DEFUN([gl_PREREQ_NPROC],
   dnl Persuade glibc <sched.h> to declare CPU_SETSIZE, CPU_ISSET etc.
   AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
 
-  AC_CHECK_HEADERS([sys/pstat.h sys/sysmp.h sys/param.h],,,
+  AC_CHECK_HEADERS([mntent.h sys/pstat.h sys/param.h],,,
     [AC_INCLUDES_DEFAULT])
+  gl_CHECK_FUNCS_ANDROID([setmntent],
+    [[#include <stdio.h>
+      #include <mntent.h>
+    ]])
   dnl <sys/sysctl.h> requires <sys/param.h> on OpenBSD 4.0.
   AC_CHECK_HEADERS([sys/sysctl.h],,,
     [AC_INCLUDES_DEFAULT
@@ -27,7 +31,7 @@ AC_DEFUN([gl_PREREQ_NPROC],
      #endif
     ])
 
-  AC_CHECK_FUNCS([sched_getaffinity_np pstat_getdynamic sysmp sysctl])
+  AC_CHECK_FUNCS([sched_getaffinity_np pstat_getdynamic sysctl])
   gl_CHECK_FUNCS_ANDROID([sched_getaffinity], [[#include <sched.h>]])
 
   dnl Test whether sched_getaffinity has the expected declaration.

@@ -1,6 +1,6 @@
 ;;; erc-compat.el --- ERC compatibility code for older Emacsen  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2003, 2005-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2026 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>, F. Jason Park <jp@neverwas.me>
@@ -88,11 +88,11 @@ See `replace-match' for explanations of FIXEDCASE and LITERAL."
 (define-obsolete-function-alias 'erc-make-obsolete-variable
   #'make-obsolete-variable "28.1")
 
-;; Provide a simpler replacement for `cl-member-if'
+;; Provide a simpler replacement for `member-if'.
 (defun erc-member-if (predicate list)
   "Find the first item satisfying PREDICATE in LIST.
 Return the sublist of LIST whose car matches."
-  (declare (obsolete cl-member-if "28.1"))
+  (declare (obsolete member-if "28.1"))
   (let ((ptr list))
     (catch 'found
       (while ptr

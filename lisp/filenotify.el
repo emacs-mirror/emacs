@@ -1,6 +1,6 @@
 ;;; filenotify.el --- watch files for changes on disk  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -78,8 +78,8 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'.
 If it is registered in `file-notify-descriptors', a `stopped' event is sent."
   (when-let* ((watch (gethash descriptor file-notify-descriptors)))
     (unwind-protect
-        ;; Send `stopped' event.
-        (file-notify-handle-event
+        ;; Insert `stopped' event.
+        (insert-special-event
          (make-file-notify
           :-event `(,descriptor stopped
                     ,(file-notify--watch-absolute-filename watch))
@@ -500,7 +500,8 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
   (maphash
    (lambda (key _value)
      (file-notify-rm-watch key))
-   file-notify-descriptors))
+   file-notify-descriptors)
+  (setq file-notify-descriptors (clrhash file-notify-descriptors)))
 
 (defun file-notify-valid-p (descriptor)
   "Check a watch specified by its DESCRIPTOR.

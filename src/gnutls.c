@@ -1,5 +1,5 @@
 /* GnuTLS glue for GNU Emacs.
-   Copyright (C) 2010-2025 Free Software Foundation, Inc.
+   Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1002,8 +1002,7 @@ See also `gnutls-boot'.  */)
 DEFUN ("gnutls-errorp", Fgnutls_errorp, Sgnutls_errorp, 1, 1, 0,
        doc: /* Return t if ERROR indicates a GnuTLS problem.
 ERROR is an integer or a symbol with an integer `gnutls-code' property.
-usage: (gnutls-errorp ERROR)  */
-       attributes: const)
+usage: (gnutls-errorp ERROR)  */)
   (Lisp_Object err)
 {
   if (EQ (err, Qt)

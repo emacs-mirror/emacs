@@ -261,6 +261,23 @@ test-lisp-international-inotify:
     target: emacs-inotify
     make_params: -C test check-lisp-international
 
+test-lisp-language-inotify:
+  stage: normal
+  extends: [.job-template, .test-template]
+  needs:
+    - job: build-image-inotify
+      optional: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - changes:
+        - lisp/language/*.el
+        - test/lisp/language/*resources/**
+        - test/lisp/language/*.el
+  variables:
+    target: emacs-inotify
+    make_params: -C test check-lisp-language
+
 test-lisp-mail-inotify:
   stage: normal
   extends: [.job-template, .test-template]
@@ -437,6 +454,8 @@ test-lisp-textmodes-inotify:
       when: never
     - changes:
         - lisp/textmodes/*.el
+        - test/lisp/textmodes/ispell-tests/*resources/**
+        - test/lisp/textmodes/ispell-tests/*.el
         - test/lisp/textmodes/*resources/**
         - test/lisp/textmodes/*.el
   variables:
@@ -544,6 +563,7 @@ test-src-inotify:
       lisp/progmodes/go-ts-mode-tests.log
       lisp/progmodes/heex-ts-mode-tests.log
       lisp/progmodes/java-ts-mode-tests.log
+      lisp/progmodes/json-ts-mode-tests.log
       lisp/progmodes/js-tests.log
       lisp/progmodes/lua-ts-mode-tests.log
       lisp/progmodes/python-tests.log

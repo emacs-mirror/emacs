@@ -1,6 +1,6 @@
 ;;; edebug-test-code.el --- Sample code for the Edebug test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 
@@ -125,6 +125,16 @@
 (defun edebug-test-code-current-buffer ()
   !start!(with-current-buffer (get-buffer-create "*edebug-test-code-buffer*")
     !body!(format "current-buffer: %s" (current-buffer))))
+
+(defun edebug-test-code-bounce-point ()
+  !start!(with-current-buffer (get-buffer-create "*edebug-test-code-buffer*")
+    (erase-buffer)
+    (insert "123\n567\n9ab\n")
+    (narrow-to-region 5 9)
+    (goto-char 6)!goto-char!
+    (push-mark 1)!push-mark!
+    (set-mark nil)!clear-mark!
+    (+ 1)!1! (+ 6)!6! (+ 10)!10!))
 
 (defun edebug-test-code-use-destructuring-bind ()
   (let ((two 2) (three 3))

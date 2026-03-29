@@ -1,6 +1,6 @@
 ;;; ucs-normalize.el --- Unicode normalization NFC/NFD/NFKD/NFKC  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
 ;; Author: Taichi Kawabata <kawabata.taichi@gmail.com>
 ;; Keywords: unicode, normalization
@@ -131,7 +131,7 @@
       #x1D1BF #x1D1C0)
    "Composition Exclusion List.
   This list is taken from
-    https://www.unicode.org/Public/UNIDATA/15.0/CompositionExclusions.txt")
+    https://www.unicode.org/Public/UNIDATA/CompositionExclusions.txt")
 
   ;; Unicode ranges where decompositions & combining characters are
   ;; defined.  Find them by running the following Awk program on

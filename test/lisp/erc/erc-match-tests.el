@@ -1,6 +1,6 @@
 ;;; erc-match-tests.el --- Tests for erc-match.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -33,6 +33,7 @@
     (ert-skip "Freezes on Android as of 31.0.50"))
 
   (let ((erc-pals '("z"))
+        (inhibit-message noninteractive)
         (erc-match-quote-when-adding 'ask))
 
     (ert-info ("Default (ask)")
@@ -83,6 +84,7 @@
     (erc-add-server-user "tester" (make-erc-server-user :nickname "tester"))
 
     (let ((erc-match-quote-when-adding t)
+          (inhibit-message noninteractive)
           erc-pals calls rvs)
       (cl-letf (((symbol-function 'completing-read)
                  (lambda (&rest r) (push r calls) (pop rvs))))
@@ -117,6 +119,7 @@
     (erc-add-server-user "tester" (make-erc-server-user :nickname "tester"))
 
     (let ((erc-match-quote-when-adding t)
+          (inhibit-message noninteractive)
           erc-fools calls rvs)
       (cl-letf (((symbol-function 'completing-read)
                  (lambda (&rest r) (push r calls) (pop rvs))))
@@ -145,6 +148,7 @@
 
 (ert-deftest erc-keywords ()
   (let ((erc-match-quote-when-adding t)
+        (inhibit-message noninteractive)
         erc-keywords calls rvs)
     (cl-letf (((symbol-function 'completing-read)
                (lambda (&rest r) (push r calls) (pop rvs))))
@@ -172,6 +176,7 @@
 
 (ert-deftest erc-dangerous-hosts ()
   (let ((erc-match-quote-when-adding t)
+        (inhibit-message noninteractive)
         erc-dangerous-hosts calls rvs)
     (cl-letf (((symbol-function 'completing-read)
                (lambda (&rest r) (push r calls) (pop rvs))))

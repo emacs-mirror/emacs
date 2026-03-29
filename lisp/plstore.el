@@ -1,6 +1,6 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: PGP, GnuPG
@@ -432,7 +432,7 @@ accordingly."
 			       plstore-passphrase-alist)))
 	     (if entry
 		 (setcdr entry nil)))
-	   (signal (car error) (cdr error))))
+	   (signal error)))
 	(plstore--set-secret-alist plstore (car (read-from-string plain)))
 	(plstore--merge-secret plstore)
 	(plstore--set-encrypted-data plstore nil))))

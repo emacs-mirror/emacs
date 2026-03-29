@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -1150,7 +1150,7 @@ Typing SPC flushes the help buffer."
              ((or (eq event 'tab)
                   ;; Needed on a terminal
                   (eq event 9))
-              (let ((win (or (get-buffer-window "*Completions*" 0)
+              (let ((win (or (minibuffer--completions-visible)
                              (display-buffer "*Completions*"
                                              'not-this-window))))
                 (with-selected-window win

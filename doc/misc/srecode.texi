@@ -4,6 +4,7 @@
 @set TITLE SRecoder Manual
 @set AUTHOR Eric M. Ludlam
 @settitle @value{TITLE}
+@documentlanguage en
 @include docstyle.texi
 
 @c Merge all indexes into a single index for now.
@@ -16,7 +17,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

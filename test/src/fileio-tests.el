@@ -1,6 +1,6 @@
 ;;; fileio-tests.el --- unit tests for src/fileio.c      -*- lexical-binding: t; -*-
 
-;; Copyright 2017-2025 Free Software Foundation, Inc.
+;; Copyright 2017-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -195,6 +195,22 @@ Also check that an encoding error can appear in a symlink."
     (insert-file-contents "/dev/urandom" nil nil 10)
     (should (= (buffer-size) 10))))
 
+(ert-deftest fileio-tests--read-directory ()
+  "Make sure insertring a directory fails with a platform-independent error."
+  (ert-with-temp-directory dir
+    (let* ((dir-name (directory-file-name dir))
+           (err (should-error (insert-file-contents dir-name)))
+           (desc-string
+            ;; On MS-Windows we fail trying to 'open' a directory.
+            (if (eq system-type 'windows-nt)
+                "Opening input file"
+              "Read error")))
+      (should (equal err
+                     (list 'file-error
+                           desc-string
+                           "Is a directory"
+                           dir-name))))))
+
 (defun fileio-tests--identity-expand-handler (_ file &rest _)
   file)
 (put 'fileio-tests--identity-expand-handler 'operations '(expand-file-name))
@@ -260,6 +276,70 @@ Also check that an encoding error can appear in a symlink."
         (kill-buffer buf))
       ;; We should have prompted about the supersession threat.
       (should asked))))
+
+(defvar fileio-tests--internal-counter 0)
+
+(ert-deftest fileio-tests--directory-name-p ()
+  (should (directory-name-p "/"))
+  (should (directory-name-p "foo/"))
+  (should-not (directory-name-p "foo")))
+
+(ert-deftest fileio-tests--make-temp-file-internal ()
+  (ert-with-temp-directory dir
+    (let* ((prefix (expand-file-name "fileio-test" dir))
+           (file (make-temp-file-internal prefix nil ".tmp" "hello")))
+      (should (file-exists-p file))
+      (should (equal (with-temp-buffer
+                       (insert-file-contents file)
+                       (buffer-string))
+                     "hello"))
+      (delete-file file))
+    (let* ((prefix (expand-file-name "fileio-test" dir))
+           (name (make-temp-file-internal prefix 0 "" nil)))
+      (should (stringp name))
+      (should-not (file-exists-p name)))
+    (let* ((prefix (expand-file-name "fileio-dir" dir))
+           (name (make-temp-file-internal prefix t "" nil)))
+      (should (file-directory-p name))
+      (delete-directory name))))
+
+(ert-deftest fileio-tests--make-delete-directory-internal ()
+  (ert-with-temp-directory dir
+    (let ((subdir (expand-file-name "subdir" dir)))
+      (make-directory-internal subdir)
+      (should (file-directory-p subdir))
+      (delete-directory-internal subdir)
+      (should-not (file-exists-p subdir)))))
+
+(ert-deftest fileio-tests--delete-file-internal ()
+  (ert-with-temp-file file
+    (write-region "data" nil file nil 'silent)
+    (should (file-exists-p file))
+    (delete-file-internal file)
+    (should-not (file-exists-p file))))
+
+(ert-deftest fileio-tests--unix-sync ()
+  (skip-unless (fboundp 'unix-sync))
+  (should-not (unix-sync)))
+
+(ert-deftest fileio-tests--auto-save-flags ()
+  (with-temp-buffer
+    (insert "abc")
+    (should-not (recent-auto-save-p))
+    (set-buffer-auto-saved)
+    (should (recent-auto-save-p))
+    (clear-buffer-auto-save-failure)
+    (should (recent-auto-save-p))))
+
+(ert-deftest fileio-tests--next-read-file-uses-dialog-p ()
+  (skip-unless (and (boundp 'use-dialog-box) (boundp 'use-file-dialog)))
+  (let ((use-dialog-box nil)
+        (use-file-dialog nil))
+    (should-not (next-read-file-uses-dialog-p))))
+
+(ert-deftest fileio-tests--set-binary-mode ()
+  (should (memq (set-binary-mode 'stdout t) '(nil t)))
+  (should-error (set-binary-mode 'not-a-stream t)))
 
 
 ;;; fileio-tests.el ends here

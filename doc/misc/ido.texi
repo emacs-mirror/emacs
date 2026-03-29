@@ -1,13 +1,14 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/ido.info
 @settitle Interactive Do
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 
 @copying
 This file documents the Ido package for GNU Emacs.
 
-Copyright @copyright{} 2013--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2013--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

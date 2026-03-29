@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -1404,7 +1404,7 @@ This returns an error if any Emacs frames are X frames."
     ("images/package-menu/execute" . "gtk-apply")
     ("images/package-menu/info" . ("dialog-information" "gtk-info"))
     ("images/package-menu/install" . ("archive-insert" "list-add"))
-    ("images/package-menu/delete" . ("archive-remove" "edit-delete" "gtk-remove"))
+    ("images/package-menu/delete" . ("archive-remove" "gtk-remove"))
     ("images/package-menu/unmark" . ("gnumeric-object-checkbox" "box"))
     ("images/package-menu/url" . "globe")
     ("images/package-menu/upgrade" . ("archive-extract" "go-bottom"))

@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -762,6 +762,28 @@ cf. Bug#25477."
     (should-error (eval '(dolist "foo") lb)
                   :type 'wrong-type-argument)))
 
+(ert-deftest subr-tests--dolist--every-element-is-handled ()
+  "Test that `dolist' processes each element of a list in order."
+  (let ((expected-elements '(1 2 3 4)))
+    (dolist (x '(1 2 3 4))
+      (should (equal x (pop expected-elements))))))
+
+(ert-deftest subr-tests--dolist--returns-spec-result ()
+  "Test that `dolist' returns result specified in SPEC."
+  (let ((dolist-result (dolist (x '(1 2 3 4) t)
+                         x))
+        (dolist-no-result (dolist (x '(1 2 3 4))
+                            x)))
+    (should (equal dolist-result t))
+    (should (equal dolist-no-result nil))))
+
+(ert-deftest subr-tests--dolist--does-not-shadow-tail-binding ()
+  "Test that `dolist` does not shadow bindings named `tail'"
+  (let ((tail 0))
+    (dolist (x '(1 2 3 4))
+      (setq tail (+ tail x)))
+    (should (equal tail 10))))
+
 (ert-deftest subr-tests-bug22027 ()
   "Test for https://debbugs.gnu.org/22027 ."
   (let ((default "foo") res)
@@ -1441,6 +1463,27 @@ final or penultimate step during initialization."))
                      (t x) (:success (1+ x)))
                    '(error "")))))
 
+(ert-deftest subr-error-API ()
+  (should (error-type-p 'error))
+  (should (error-type-p 'wrong-type-argument))
+  (should-not (error-type-p 'car))
+
+  (let ((error-err (condition-case err (error "Foo") (error err)))
+        (wta-err (condition-case err (car 5) (error err))))
+    (should (error-has-type-p error-err 't))
+    (should-not (error-has-type-p error-err 'wrong-type-argument))
+    (should (error-has-type-p wta-err 'error))
+    (should (error-has-type-p wta-err 'wrong-type-argument))
+    (should-not (error-has-type-p wta-err 'wrong-number-of-arguments))
+
+    (should (equal "Foo" (error-slot-value error-err 1)))
+    (should (equal 'listp (error-slot-value wta-err 1)))
+    (should (equal 5 (error-slot-value wta-err 2)))
+
+    (should (equal wta-err (condition-case err (car 5) (error err))))
+    (should-not (eq wta-err (condition-case err (car 5) (error err))))
+    (should (eq wta-err (condition-case err (signal wta-err) (error err))))))
+
 (ert-deftest subr--subst-char-in-string ()
   ;; Cross-validate `subst-char-in-string' with `string-replace',
   ;; which should produce the same results when there are no properties.
@@ -1454,9 +1497,16 @@ final or penultimate step during initialization."))
           (dolist (inplace '(nil t))
             (dolist (from '(?a ?é ?Ω #x80 #x3fff80))
               (dolist (to '(?o ?á ?ƒ ?☃ #x1313f #xff #x3fffc9))
-                ;; Can't put a non-byte value in a non-ASCII unibyte string.
-                (unless (and (not mb) (> to #xff)
-                             (not (string-match-p (rx bos (* ascii) eos) str)))
+                (unless (or
+                         ;; Can't put non-byte in a non-ASCII unibyte string.
+                         (and (not mb) (> to #xff)
+                              (not (string-match-p
+                                    (rx bos (* ascii) eos) str)))
+                         ;; Skip illegal mutation.
+                         (and inplace (not (if mb
+                                               (and (<= 0 from 127)
+                                                    (<= 0 to 127))
+                                             (<= 0 to 255)))))
                   (let* ((in (copy-sequence str))
                          (ref (if (and (not mb) (> from #xff))
                                   in    ; nothing to replace
@@ -1510,7 +1560,215 @@ final or penultimate step during initialization."))
     (should (equal (split-string text seps t trim)
                    '("lexical-binding: t;")))
     (should (equal (split-string text "[ \t\n\r-]*-\\*-[ \t\n\r-]*")
-                   '("" "lexical-binding: t;" "")))))
+                   '("" "lexical-binding: t;" ""))))
+
+  ;; splitting the empty string
+  (should (equal (split-string "" ",") '("")))
+  (should (equal (split-string "" "," t) '()))
+  (should (equal (split-string "," ",") '("" "")))
+  (should (equal (split-string "," "," t) '()))
+  (should (equal (split-string ",," ",") '("" "" "")))
+  (should (equal (split-string ",," "," t) '()))
+  (should (equal (split-string ",," ",+") '("" "")))
+  (should (equal (split-string ",," ",+" t) '()))
+
+  ;; simple
+  (should (equal (split-string "A" ",") '("A")))
+  (should (equal (split-string "A," ",") '("A" "")))
+  (should (equal (split-string "A," "," t) '("A")))
+  (should (equal (split-string "A,B" ",") '("A" "B")))
+
+  (should (equal (split-string ",A,B,,CD" ",") '("" "A" "B" "" "CD")))
+  (should (equal (split-string ",A,B,,CD" "," t) '("A" "B" "CD")))
+  (should (equal (split-string ",A,B,,CD" ",+") '("" "A" "B" "CD")))
+  (should (equal (split-string ",A,B,,CD" ",+" t) '("A" "B" "CD")))
+
+  ;; TRIM
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---"
+                               ",+" nil "-")
+                 '("-" "--A--" "--B--" "-" "--C---D--")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---"
+                               ",+" nil "-+")
+                 '("" "A" "B" "" "C---D")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---"
+                               ",+" t "-+")
+                 '("A" "B" "C---D")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---,"
+                               ",+" nil "-")
+                 '("-" "--A--" "--B--" "-" "--C---D--" "")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---,"
+                               ",+" nil "-+")
+                 '("" "A" "B" "" "C---D" "")))
+  (should (equal (split-string "---,---A---,---B---,---,---C---D---,"
+                               ",+" t "-+")
+                 '("A" "B" "C---D")))
+
+  ;; default SEPARATORS forces OMIT-EMPTY to `t'
+  (should (equal (split-string " \nAB\tCDE\f\r\fF  \f\v")
+                 '("AB" "CDE" "F")))
+
+  ;; complex TRIM
+  (should (equal (split-string "A--,--B,//C,D//,E//F,G--H,//I--//J--,//--//--"
+                               "," nil "--\\|//")
+                 '("A" "B" "C" "D" "E//F" "G--H" "I--//J" "--//")))
+
+  ;; TRIM that also matches part of SEPARATORS
+  (should (equal (split-string "-/-A-B-/-C--/--D--" "-/-" nil nil)
+                 '("" "A-B" "C-" "-D--")))
+  (should (equal (split-string "-/-A-B-/-C--/--D--" "-/-" nil "-")
+                 '("" "A-B" "C" "D-")))
+  (should (equal (split-string "-/-A-B-/-C--/--D--" "-/-" nil "-+")
+                 '("" "A-B" "C" "D")))
+
+  ;; When SEPARATORS is the empty string, split on characters and add
+  ;; empty strings first and last because that's how the original
+  ;; implementation worked.  Some code actually uses this on purpose (!) so
+  ;; we probably need to retain that behaviour for a while.
+  (should (equal (split-string "ABC" "")
+                 '("" "A" "B" "C" "")))
+  (should (equal (split-string "ABC" "" t)
+                 '("A" "B" "C")))
+  )
+
+(ert-deftest subr-string-trim-left ()
+  (should (equal (string-trim-left "") ""))
+  (should (equal (string-trim-left " \t\n\r") ""))
+  (should (equal (string-trim-left " \t\n\ra") "a"))
+  (should (equal (string-trim-left "a \t\n\r") "a \t\n\r"))
+  (should (equal (string-trim-left "" "") ""))
+  (should (equal (string-trim-left "a" "") "a"))
+  (should (equal (string-trim-left "aa" "a*") ""))
+  (should (equal (string-trim-left "ba" "a*") "ba"))
+  (should (equal (string-trim-left "aa" "a*?") "aa"))
+  (should (equal (string-trim-left "aa" "a+?") "a")))
+
+(ert-deftest subr-string-trim-right ()
+  (should (equal (string-trim-right "") ""))
+  (should (equal (string-trim-right " \t\n\r") ""))
+  (should (equal (string-trim-right " \t\n\ra") " \t\n\ra"))
+  (should (equal (string-trim-right "a \t\n\r") "a"))
+  (should (equal (string-trim-right "" "") ""))
+  (should (equal (string-trim-right "a" "") "a"))
+  (should (equal (string-trim-right "aa" "a*") ""))
+  (should (equal (string-trim-right "ab" "a*") "ab"))
+  (should (equal (string-trim-right "aa" "a*?") "")))
+
+(ert-deftest subr-string-trim ()
+  (should (equal (string-trim " \t\r abc\t\n \t") "abc"))
+  (should (equal (string-trim "::abc;;" nil nil) "::abc;;"))
+  (should (equal (string-trim "::abc;;" nil ";+") "::abc"))
+  (should (equal (string-trim "::abc;;" ":+" nil) "abc;;"))
+  (should (equal (string-trim "::abc;;" ":+" ";+") "abc")))
+
+(defun subr--identity (x) x)
+
+(ert-deftest subr-drop-while ()
+  (should (equal (drop-while #'hash-table-p nil) nil))
+  (let ((ls (append '(3 2 1) '(0) '(-1 -2 -3))))
+    (should (equal (drop-while #'plusp ls) '(0 -1 -2 -3)))
+    (should (equal (drop-while (lambda (x) (plusp x)) ls) '(0 -1 -2 -3)))
+    (let ((z 1))
+      (should (equal (drop-while (lambda (x) (> x z)) ls) '(1 0 -1 -2 -3))))
+    (should (equal (drop-while #'bufferp ls) ls))
+    (should (equal (drop-while #'numberp ls) nil))
+    (should (equal (funcall (subr--identity #'drop-while) #'plusp ls)
+                   '(0 -1 -2 -3)))))
+
+(ert-deftest subr-take-while ()
+  (should (equal (take-while #'hash-table-p nil) nil))
+  (let ((ls (append '(3 2 1) '(0) '(-1 -2 -3))))
+    (should (equal (take-while #'plusp ls) '(3 2 1)))
+    (should (equal (take-while (lambda (x) (plusp x)) ls) '(3 2 1)))
+    (let ((z 1))
+      (should (equal (take-while (lambda (x) (> x z)) ls) '(3 2))))
+    (should (equal (take-while #'bufferp ls) nil))
+    (should (equal (take-while #'numberp ls) ls))
+    (should (equal (funcall (subr--identity #'take-while) #'plusp ls)
+                   '(3 2 1)))))
+
+(ert-deftest subr-all ()
+  (should (equal (all #'hash-table-p nil) t))
+  (let ((ls (append '(3 2 1) '(0) '(-1 -2 -3))))
+    (should (equal (all #'numberp ls) t))
+    (should (equal (all (lambda (x) (numberp x)) ls) t))
+    (should (equal (all #'plusp ls) nil))
+    (should (equal (all #'bufferp ls) nil))
+    (let ((z 9))
+      (should (equal (all (lambda (x) (< x z)) ls) t))
+      (should (equal (all (lambda (x) (> x (- z 9))) ls) nil))
+      (should (equal (all (lambda (x) (> x z)) ls) nil)))
+    (should (equal (funcall (subr--identity #'all) #'plusp ls) nil))
+    (should (equal (funcall (subr--identity #'all) #'numberp ls) t))))
+
+(ert-deftest subr-member-if ()
+  (should (equal (member-if #'hash-table-p nil) nil))
+  (let ((ls (append '(3 2 1) '(0) '(-1 -2 -3))))
+    (should (equal (member-if #'numberp ls) ls))
+    (should (equal (member-if (lambda (x) (numberp x)) ls) ls))
+    (should (equal (member-if #'plusp ls) ls))
+    (should (equal (member-if #'zerop ls) '(0 -1 -2 -3)))
+    (should (equal (member-if #'bufferp ls) nil))
+    (let ((z 9))
+      (should (equal (member-if (lambda (x) (< x z)) ls) ls))
+      (should (equal (member-if (lambda (x) (< x (- z 9))) ls)
+                     '(-1 -2 -3)))
+      (should (equal (member-if (lambda (x) (> x z)) ls) nil)))
+    (should (equal (funcall (subr--identity #'member-if) #'minusp ls)
+                   '(-1 -2 -3)))
+    (should (equal (funcall (subr--identity #'member-if) #'stringp ls) nil))))
+
+(defun subr-tests--member-if-memql (x xs)
+  "Like `memql', but exercising the `compiler-macro' of `member-if'.
+The argument names are important."
+  (member-if (lambda (y) (eql x y)) xs))
+
+(ert-deftest subr-member-if-compiler-macro ()
+  "Test `compiler-macro' of `member-if'."
+  (let ((xs (number-sequence 0 4)))
+    (dotimes (x (1+ (length xs)))
+      (should (eq (subr-tests--member-if-memql x xs)
+                  (memql x xs)))))
+  (let ((n 0))
+    (member-if (prog1 (lambda (x) (eq x 5)) (incf n))
+               (number-sequence 0 4))
+    (should (eq n 1))))
+
+(ert-deftest total-line-spacing ()
+  (progn
+    (let ((line-spacing 10))
+      (should (equal (total-line-spacing) line-spacing) ))
+    (let ((line-spacing 0.8))
+      (should (equal (total-line-spacing) 0.8)))
+    (let ((line-spacing '(10 . 5)))
+      (should (equal (total-line-spacing) 15)))
+    (let ((line-spacing '(0.3 . 0.4)))
+      (should (equal (total-line-spacing) 0.7)))
+    (should (equal (total-line-spacing 10) 10))
+    (should (equal (total-line-spacing 0.3) 0.3))
+    (should (equal (total-line-spacing '(1 . 3)) 4))
+    (should (equal (total-line-spacing '(0.1 . 0.1 )) 0.2))))
+
+(ert-deftest subr-multiple-command-partition-arguments ()
+  (let ((system-type 'gnu/linux)
+        (command-line-max-length 35)
+        (process-environment '("BLAH=blah" "BLAH2=blah2"))) ; Length 20.
+    (should (equal (multiple-command-partition-arguments "cmd"
+                                                         '("foo" "bar" "baz"))
+                   '(("foo" "bar" "baz"))))
+    (should (equal (multiple-command-partition-arguments "cmd"
+                                                         '("foo" "bar" "bazzzzzz"))
+                   '(("foo" "bar") ("bazzzzzz"))))
+    (should-error (multiple-command-partition-arguments "cmd"
+                                                        '("foo" "bar"
+                                                          "bazzzzzzzzzzz"))))
+  (let ((system-type 'windows-nt)
+        (command-line-max-length 30))
+    (should (equal (multiple-command-partition-arguments "cmd"
+                                                         '("foo" "bar" "baz"))
+                   '(("foo" "bar" "baz"))))
+    (should (equal (multiple-command-partition-arguments "cmd"
+                                                         '("foo" "bar" "bazzzzzz"))
+                   '(("foo" "bar") ("bazzzzzz"))))))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

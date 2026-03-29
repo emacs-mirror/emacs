@@ -8,7 +8,7 @@
 
 @copying
 @quotation
-Copyright (C) 2018--2025 Free Software Foundation, Inc.
+Copyright (C) 2018--2026 Free Software Foundation, Inc.
 
 You can redistribute this document and/or modify it under the terms
 of the GNU General Public License as published by the Free Software
@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.9.3
+@subtitle for version 0.12.0
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.9.3.
+This manual is for Transient version 0.12.0.
 
 @insertcopying
 @end ifnottex
@@ -798,7 +798,7 @@ The default is:
 @end lisp
 
 This displays the window at the bottom of the selected frame.
-For alternatives see @ref{Buffer Display Action Functions,,,elisp,},
+For alternatives @xref{Buffer Display Action Functions,,,elisp,},
 and @xref{Buffer Display Action Alists,,,elisp,}.
 
 When you switch to a different ACTION, you should keep the ALIST
@@ -878,6 +878,9 @@ of @code{transient-mode-line-format} is @code{line}.
 This option controls whether key bindings of infix commands that do
 not match the respective command-line argument should be highlighted.
 For other infix commands this option has no effect.
+
+This is mostly intended for authors of transient menus and disabled
+by default.
 
 When this option is non-@code{nil}, the key binding for an infix argument
 is highlighted when only a long argument (e.g., @code{--verbose}) is
@@ -999,8 +1002,8 @@ That buffer is current and empty when this hook is runs.
 
 @cindex modifying existing transients
 
-To an extent, transients can be customized interactively, see
-@ref{Enabling and Disabling Suffixes}.  This section explains how existing
+To an extent, transients can be customized interactively,
+@xref{Enabling and Disabling Suffixes}.  This section explains how existing
 transients can be further modified non-interactively.  Let's begin
 with an example:
 
@@ -1052,12 +1055,12 @@ the function @code{transient--get-layout}.
 
 These functions operate on the information stored in the
 @code{transient--layout} property of the @var{PREFIX} symbol.  Elements in that
-tree are not objects but have the form @code{(@var{CLASS} @var{PLIST}) for suffixes} and
-[CLASS PLIST CHILDREN] for groups.  At the root of the tree is an
-element [N nil CHILDREN], where N is the version of the layout format,
+tree are not objects but have the form @code{(@var{CLASS} @var{PLIST})} for suffixes and
+@code{[CLASS PLIST CHILDREN]} for groups.  At the root of the tree is an
+element @code{[N nil CHILDREN]}, where @code{N} is the version of the layout format,
 currently and hopefully for a long time 2.  While that element looks
 like a group vector, that element does not count when identifying a
-group using a coordinate vector, i.e., [0] is its first child, not the
+group using a coordinate vector, i.e., @code{[0]} is its first child, not the
 root element itself.
 
 @defun transient-insert-suffix prefix loc suffix &optional keep-other
@@ -1069,7 +1072,7 @@ or after @var{LOC}.
 Conceptually adding a binding to a transient prefix is similar to
 adding a binding to a keymap, but this is complicated by the fact
 that multiple suffix commands can be bound to the same key, provided
-they are never active at the same time, see @ref{Predicate Slots}.
+they are never active at the same time, @xref{Predicate Slots}.
 
 Unfortunately both false-positives and false-negatives are possible.
 To deal with the former, use non-@code{nil} @var{KEEP-OTHER@.}  The symbol @code{always}
@@ -1206,7 +1209,7 @@ independently.  @xref{Using History}.
 
 After a transient prefix command is invoked, @kbd{C-h @var{KEY}} can be used to
 show the documentation for the infix or suffix command that @kbd{@var{KEY}} is
-bound to (see @ref{Getting Help for Suffix Commands}), and infixes and
+bound to (@pxref{Getting Help for Suffix Commands}), and infixes and
 suffixes can be removed from the transient using @kbd{C-x l @var{KEY}}.  Infixes
 and suffixes that are disabled by default can be enabled the same way.
 @xref{Enabling and Disabling Suffixes}.
@@ -1333,7 +1336,7 @@ for a set of suffixes.
 
 Several group classes exist, some of which organize suffixes in
 subgroups.  In most cases the class does not have to be specified
-explicitly, but see @ref{Group Classes}.
+explicitly, but @xref{Group Classes}.
 
 Groups are specified in the call to @code{transient-define-prefix}, using
 vectors.  Because groups are represented using vectors, we cannot use
@@ -1380,7 +1383,7 @@ useful while rebase is already in progress; and another that uses
 initiate a rebase.
 
 These predicates can also be used on individual suffixes and are
-only documented once, see @ref{Predicate Slots}.
+only documented once, @xref{Predicate Slots}.
 
 @item
 The value of @code{:hide}, if non-@code{nil}, is a predicate that controls
@@ -1485,13 +1488,13 @@ The form of suffix specifications is documented in the next node.
 @cindex suffix specifications
 
 A transient's suffix and infix commands are bound when the transient
-prefix command is defined using @code{transient-define-prefix}, see
-@ref{Defining Transients}.  The commands are organized into groups, see
-@ref{Group Specifications}.  Here we describe the form used to bind an
+prefix command is defined using @code{transient-define-prefix},
+@xref{Defining Transients}.  The commands are organized into groups,
+@xref{Group Specifications}.  Here we describe the form used to bind an
 individual suffix command.
 
 The same form is also used when later binding additional commands
-using functions such as @code{transient-insert-suffix}, see @ref{Modifying Existing Transients}.
+using functions such as @code{transient-insert-suffix}, @xref{Modifying Existing Transients}.
 
 Note that an infix is a special kind of suffix.  Depending on context
 ``suffixes'' means ``suffixes (including infixes)'' or ``non-infix
@@ -1692,15 +1695,28 @@ If the current command was invoked from the transient prefix command
 @var{PREFIX}, then it returns the active infix arguments.  If the current
 command was not invoked from @var{PREFIX}, then it returns the set, saved
 or default value for @var{PREFIX}.
+
+PREFIX may also be a list of prefixes.  If no prefix is active, the
+fallback value of the first of these prefixes is used.
+
+The generic function @code{transient-prefix-value} is used to determine the
+returned value.
+
+This function is intended to be used by suffix commands, whether they
+are invoked from a menu or not.  It is not intended to be used when
+setting up a menu and its suffixes, in which case @code{transient-get-value}
+should be used.
 @end defun
 
 @defun transient-get-value
-This function returns the value of the current prefix.
+This function returns the value of the extant prefix.
 
-This is mostly intended for internal use, but may also be of use
-in @code{transient-set-value} and @code{transient-save-value} methods.  Unlike
-@code{transient-args}, this does not include the values of suffixes whose
-@code{unsavable} slot is non-@code{nil}.
+This function is intended to be used when setting up a menu and its
+suffixes.  It is not intended to be used when a suffix command is
+invoked, whether from a menu or not, in which case @code{transient-args}
+should be used.  In other words, use this, e.g., in a suffixes @code{:if*}
+or @code{:inapt-if*} predicate and @code{:description} function, but never in its
+@code{interactive} form or function body.
 @end defun
 
 @defun transient-arg-value arg args
@@ -1729,16 +1745,16 @@ its value can be accessed using @code{transient-args}.
 This function returns the scope of the active or current transient
 prefix command.
 
-If optional PREFIXES and CLASSES are both nil, return the scope of
+If optional PREFIXES and CLASSES are both @code{nil}, return the scope of
 the prefix currently being setup, making this variation useful, e.g.,
 in @code{:if*} predicates.  If no prefix is being setup, but the current
 command was invoked from some prefix, then return the scope of that.
 
-If PREFIXES is non-nil, it must be a prefix command or a list of such
-commands.  If CLASSES is non-nil, it must be a prefix class or a list
+If PREFIXES is non-@code{nil}, it must be a prefix command or a list of such
+commands.  If CLASSES is non-@code{nil}, it must be a prefix class or a list
 of such classes.  When this function is called from the body or the
 @code{interactive} form of a suffix command, PREFIXES and/or CLASSES should
-be non-nil.  If either is non-nil, try the following in order:
+be non-@code{nil}.  If either is non-@code{nil}, try the following in order:
 
 @itemize
 @item
@@ -1764,7 +1780,7 @@ PREFIXES@.  This only works if that slot is set in the respective
 class definition or using its `transient-init-scope' method.
 @end itemize
 
-If no prefix matches, return nil.
+If no prefix matches, return @code{nil}.
 @end defun
 
 @node Current Suffix Command
@@ -2251,7 +2267,7 @@ Transient itself provides a single class for prefix commands,
 @code{transient-prefix}, but package authors may wish to define specialized
 classes.  Doing so makes it possible to change the behavior of the set
 of prefix commands that use that class, by implementing specialized
-methods for certain generic functions (see @ref{Prefix Methods}).
+methods for certain generic functions (@pxref{Prefix Methods}).
 
 A transient prefix command's object is stored in the @code{transient--prefix}
 property of the command symbol.  While a transient is active, a clone
@@ -2274,7 +2290,7 @@ which in turn derives from the @code{transient-suffix} class.
 
 Infixes are a special type of suffixes.  The primary difference is
 that infixes always use the @code{transient--do-stay} pre-command, while
-non-infix suffixes use a variety of pre-commands (see @ref{Transient State}).  Doing that is most easily achieved by using this class,
+non-infix suffixes use a variety of pre-commands (@pxref{Transient State}).  Doing that is most easily achieved by using this class,
 though theoretically it would be possible to define an infix class
 that does not do so.  If you do that then you get to implement many
 methods.
@@ -2406,6 +2422,21 @@ function, that is called to get the value.  If the slot is unbound,
 
 @defun transient-prefix-value obj
 This generic function returns the value of the prefix object @var{OBJ}.
+
+OBJ is a prototype object and is only used to select the appropriate
+method of this generic function.  This function does not return the
+value of that object.  Instead it extracts the name of the respective
+command from the object and uses that to collect the current values
+from the suffixes of the prefix from which the current command was
+invoked.  If the current command was not invoked from the identified
+prefix, then this method returns the set, save or default value, as
+described for @code{transient-args}.
+
+This function is only intended to be used by @code{transient-args}.  It is
+not defined as an internal function because third-party packages may
+define their own methods.  That does not mean that it would be a good
+idea to call it for any other purpose.
+
 The respective generic function for infix and suffix objects is
 named @code{transient-infix-value}.
 @end defun
@@ -2613,6 +2644,45 @@ then this slot has to be set to the same value for all of them.  You
 probably don't want that.
 
 @item
+@code{remember-value} When a suffix command is invoked, which can consume
+the prefix's value (which depends on the suffix slot @code{transient} and
+the prefix slots @code{transient-suffix} and @code{transient-non-suffix}), then
+the value is automatically pushed to the prefix's value history.
+
+This slot allows additionally setting or even saving the value, so
+that it becomes the initial value when the menu is invoked again.
+
+Beside @code{nil}, the value can be one of these symbols:
+
+@itemize
+@item
+@code{export} Set the value when it is exported.  That is the time when
+the value would ordinarily just be pushed to the history stack.
+
+@item
+@code{exit} Set the value when the menu is exited, except when that is
+done using a command whose sole purpose is to quit the menu.
+
+@item
+@code{quit} Set the value when the menu is quit, using a command whose
+sole purpose is to do so.
+@end itemize
+
+The value can also be a list of one or more of these symbols and
+optionally also the symbol @code{save}.
+
+@itemize
+@item
+@code{save} Instead of merely setting the value, save it, so that it will
+be used in future Emacs sessions.  At least one other symbol has
+to be used together with this.
+@end itemize
+
+The value can also be a (quoted) variable, whose value is a list of
+symbols as described above.  Ideally an option should be used, since
+not all users will find the automatic saving of the value desirable.
+
+@item
 @code{incompatible} A list of lists.  Each sub-list specifies a set of
 mutually exclusive arguments.  Enabling one of these arguments
 causes the others to be disabled.  An argument may appear in
@@ -2742,15 +2812,15 @@ Here we document most of the slots that are only available for suffix
 objects.  Some slots are shared by suffix and group objects, they are
 documented in @ref{Predicate Slots}.
 
-Also see @ref{Suffix Classes}.
+Also @xref{Suffix Classes}.
 
 @anchor{Slots of @code{transient-child}}
 @subheading Slots of @code{transient-child}
 
 This is the abstract superclass of @code{transient-suffix} and @code{transient-group}.
-This is where the shared @code{if*} and @code{inapt-if*} slots (see @ref{Predicate Slots}),
-the @code{level} slot (see @ref{Enabling and Disabling Suffixes}), and the @code{advice}
-and @code{advice*} slots (see @ref{Slots of @code{transient-suffix}}) are defined.
+This is where the shared @code{if*} and @code{inapt-if*} slots (@pxref{Predicate Slots}),
+the @code{level} slot (@pxref{Enabling and Disabling Suffixes}), and the @code{advice}
+and @code{advice*} slots (@pxref{Slots of @code{transient-suffix}}) are defined.
 
 @itemize
 @item
@@ -2819,7 +2889,7 @@ defining a command using @code{transient-define-suffix}.
 
 The following two slots are experimental.  They can also be set for a
 group, in which case they apply to all suffixes in that group, except
-for suffixes that set the same slot to a non-nil value.
+for suffixes that set the same slot to a non-@code{nil} value.
 
 @itemize
 @item
@@ -2830,7 +2900,7 @@ advice.
 @item
 @code{advice*} A function used to advise the command.  Unlike @code{advice}, this
 advises not only the command body but also its @code{interactive} spec.  If
-both slots are non-nil, @code{advice} is used for the body and @code{advice*} is
+both slots are non-@code{nil}, @code{advice} is used for the body and @code{advice*} is
 used for the @code{interactive} form.  When advising the @code{interactive} spec,
 called using @code{(funcall advice #'advice-eval-interactive-spec spec)}.
 @end itemize

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Calendar/Diary
@@ -54,11 +54,11 @@ For more advanced topics,
 @cindex moving inside the calendar
   Calendar mode provides commands to move through the calendar in
 logical units of time such as days, weeks, months, and years.  If you
-move outside the three months originally displayed, the calendar
-display scrolls automatically through time to make the selected
-date visible.  Moving to a date lets you view its holidays or diary
-entries, or convert it to other calendars; moving by long time periods
-is also useful simply to scroll the calendar.
+move outside the months originally displayed, the calendar display
+scrolls automatically through time to make the selected date visible.
+Moving to a date lets you view its holidays or diary entries, or convert
+it to other calendars; moving by long time periods is also useful simply
+to scroll the calendar.
 
 @menu
 * Calendar Unit Motion::      Moving by days, weeks, months, and years.
@@ -264,11 +264,11 @@ Scroll calendar one month backward (@code{calendar-scroll-right}).
 @item C-v
 @itemx @key{PageDown}
 @itemx @key{next}
-Scroll forward by three months (@code{calendar-scroll-left-three-months}).
+Scroll the calendar forward (@code{calendar-scroll-calendar-left}).
 @item M-v
 @itemx @key{PageUp}
 @itemx @key{prior}
-Scroll backward by three months (@code{calendar-scroll-right-three-months}).
+Scroll the calendar backward (@code{calendar-scroll-calendar-right}).
 @item C-l
 Recenter the date at point.
 @end table
@@ -277,30 +277,25 @@ Recenter the date at point.
 @findex calendar-scroll-left
 @kindex < @r{(Calendar mode)}
 @findex calendar-scroll-right
-  The most basic calendar scroll commands scroll by one month at a
-time.  This means that there are two months of overlap between the
-display before the command and the display after.  @kbd{>}
-(@code{calendar-scroll-left}) scrolls the calendar contents one month
-forward in time.  @kbd{<} (@code{calendar-scroll-right}) scrolls the
-contents one month backwards in time.
+  The most basic calendar scroll commands scroll by one month at a time.
+@kbd{>} (@code{calendar-scroll-left}) scrolls the calendar contents one
+month forward in time.  @kbd{<} (@code{calendar-scroll-right}) scrolls
+the contents one month backwards in time.
 
 @kindex C-v @r{(Calendar mode)}
 @kindex PageDown @r{(Calendar mode)}
 @kindex next @r{(Calendar mode)}
-@findex calendar-scroll-left-three-months
+@findex calendar-scroll-calendar-left
 @kindex M-v @r{(Calendar mode)}
 @kindex PageUp @r{(Calendar mode)}
 @kindex prior @r{(Calendar mode)}
-@findex calendar-scroll-right-three-months
-  The commands @kbd{C-v} (@code{calendar-scroll-left-three-months})
-and @kbd{M-v} (@code{calendar-scroll-right-three-months}) scroll the
-calendar by an entire screenful---three months---in analogy with the
-usual meaning of these commands.  @kbd{C-v} makes later dates visible
-and @kbd{M-v} makes earlier dates visible.  These commands take a
-numeric argument as a repeat count; in particular, since @kbd{C-u}
-multiplies the next command by four, typing @kbd{C-u C-v} scrolls the
-calendar forward by a year and typing @kbd{C-u M-v} scrolls the
-calendar backward by a year.
+@findex calendar-scroll-calendar-right
+  The commands @kbd{C-v} (@code{calendar-scroll-calendar-left}) and
+@kbd{M-v} (@code{calendar-scroll-calendar-right}) scroll the
+calendar by an entire screen---in analogy with the usual meaning of
+these commands.  @kbd{C-v} makes later dates visible and @kbd{M-v} makes
+earlier dates visible.  These commands take a numeric argument as a
+repeat count.
 
   The function keys @key{PageDown} (or @key{next}) and @key{PageUp}
 (or @key{prior}) are equivalent to @kbd{C-v} and @kbd{M-v}, just as
@@ -347,6 +342,10 @@ Scroll the next window up (@code{scroll-other-window}).
 Scroll the next window down (@code{scroll-other-window-down}).
 @item q
 Exit from calendar (@code{calendar-exit}).
+@item M-x calendar-show-more-months
+Display more months.
+@item M-x calendar-show-fewer-months
+Display fewer months.
 @end table
 
 @kindex p d @r{(Calendar mode)}
@@ -379,6 +378,14 @@ buries all buffers related to the calendar, selecting other buffers.
 (If a frame contains a dedicated calendar window, exiting from the
 calendar deletes or iconifies that frame depending on the value of
 @code{calendar-remove-frame-by-deleting}.)
+
+@findex calendar-show-more-months
+@findex calendar-show-fewer-months
+  The command @kbd{M-x calendar-show-more-months} displays more months
+on the right side of the calendar.  The calendar can show at most 12
+months as long as there is enough space.  The command @kbd{M-x
+calendar-show-fewer-months} displays fewer months.  The calendar always
+shows at least 3 months.
 
 @c FIXME this mentions holidays and diary entries, albeit briefly, so
 @c should it be moved after those sections?  Or at least xref them.
@@ -514,7 +521,7 @@ Mark holidays in the calendar window (@code{calendar-mark-holidays}).
 @item u
 Unmark calendar window (@code{calendar-unmark}).
 @item a
-List all holidays for the displayed three months in another window
+List all holidays for the displayed months in another window
 (@code{calendar-list-holidays}).
 @item M-x holidays
 List all holidays for three months around today's date in another
@@ -559,7 +566,7 @@ automatically.
 @findex calendar-list-holidays
   To get even more detailed information, use the @kbd{a}
 (@code{calendar-list-holidays}) command, which displays a separate
-buffer containing a list of all holidays in the current three-month
+buffer containing a list of all holidays in the current calendar
 range.  You can use @key{SPC} and @key{DEL} in the calendar window to
 scroll that list up and down, respectively.
 
@@ -691,7 +698,7 @@ that depend on the phase of the moon.
 @table @kbd
 @item M
 Display the dates and times for all the quarters of the moon for the
-three-month period shown (@code{calendar-lunar-phases}).
+visible period shown (@code{calendar-lunar-phases}).
 @item M-x lunar-phases
 Display dates and times of the quarters of the moon for three months around
 today's date.
@@ -701,7 +708,7 @@ today's date.
 @findex calendar-lunar-phases
   Within the calendar, use the @kbd{M} (@code{calendar-lunar-phases})
 command to display a separate buffer of the phases of the moon for the
-current three-month range.  The dates and times listed are accurate to
+current visible range.  The dates and times listed are accurate to
 within a few minutes.
 
 @findex lunar-phases
@@ -826,9 +833,15 @@ twelve @dfn{terrestrial branches} for a total of sixty names that are
 repeated in a cycle of sixty.
 
 @cindex Bah@'a'@'i calendar
-  The Bah@'a'@'i calendar system is based on a solar cycle of 19 months with
-19 days each.  The four remaining intercalary days are placed
-between the 18th and 19th months.
+  The Bah@'a'@'i calendar system is based on a solar cycle of 19 months
+with 19 days each.  The remaining intercalary days (known as
+Ayy@'am-i-H@'a) are placed between the 18th and 19th months.  Following
+a 2014 calendar reform by the Universal House of Justice, the date of
+Naw-R@'uz (New Year) is now determined by the vernal equinox as
+observed from Tehran, and the dates of the Twin Holy Birthdays (Birth
+of the B@'ab and Birth of Bah@'a'u'll@'ah) are calculated from the
+eighth new moon after Naw-R@'uz.  For dates before 172 BE (2015 CE),
+the calendar follows the pre-reform fixed calculations.
 
 @node To Other Calendar
 @subsection Converting To Other Calendars
@@ -999,7 +1012,7 @@ entries.
 * Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 * Appointments::           Reminders when it's time to do something.
-* Importing Diary::        Converting diary events to/from other formats.
+* Diary Conversion::       Converting diary events to/from other formats.
 @end menu
 
 @node Format of Diary File
@@ -1543,71 +1556,287 @@ clock.  The command @kbd{M-x appt-add} adds entries to the appointment
 list without affecting your diary file.  You delete entries from the
 appointment list with @kbd{M-x appt-delete}.
 
-@node Importing Diary
+@node Diary Conversion
 @subsection Importing and Exporting Diary Entries
-@cindex importing diary entries
+@cindex diary import
+@cindex diary export
 
-  You can transfer diary entries between Emacs diary files and a
-variety of other formats.
+You can transfer diary entries between Emacs diary files and other
+formats.
+
+@menu
+* Diary iCalendar Import::      Importing iCalendar data to the Diary.
+* Diary iCalendar Display::     Displaying iCalendar data without importing.
+* Diary iCalendar Export::      Exporting Diary entries to iCalendar.
+* Diary Outlook Import::        Importing Outlook appointments to the Diary.
+@end menu
+
+@node Diary iCalendar Import
+@subsubsection Importing iCalendar data as Diary Entries
+@cindex import iCalendar to diary
+
+@cindex iCalendar support in diary
+  @dfn{iCalendar} is an Internet standard format for exchanging calendar
+data.  Many calendar applications can export and import data in
+iCalendar format.  iCalendar data is also often sent as email
+attachments.  iCalendar data usually uses the @file{.ics} file
+extension, and is sent with the `text/calendar' @acronym{MIME} type in
+email.  (@xref{Mail Misc}, for more information on @acronym{MIME} and
+email attachments.)
+
+The @code{diary-icalendar} package allows you to make use of iCalendar
+data with the Emacs diary.  You can import and export data between
+iCalendar format and your Emacs diary file, and also display iCalendar
+data directly in the diary.
+
+The following commands will import iCalendar data to your diary file:
+
+@ftable @code
+@item diary-icalendar-import-file
+Imports an iCalendar file to an Emacs diary file.
+
+@item diary-icalendar-import-buffer
+Imports iCalendar data from the current buffer to an Emacs diary file.
+@end ftable
+
+@code{diary-icalendar-import-buffer} is also suitable for importing
+iCalendar data from email attachments.  For example, with the Rmail mail
+client, you could use:
+
+@example
+(add-hook 'rmail-show-message-hook #'diary-icalendar-import-buffer)
+@end example
+
+Diary import depends on a number of user-customizable variables, which
+are in the @code{diary-icalendar-import} customization group.  You can
+review and customize these variables with @kbd{M-x customize-group}.
+@xref{Customization Groups}.
+
+iCalendar data is grouped into @dfn{components} which represent calendar
+events (the VEVENT component), tasks (VTODO), and other text data
+(VJOURNAL).  Because these components contain different types of data,
+they are imported by different functions, determined by the following
+variables:
+
+@vtable @code
+@item diary-icalendar-vevent-format-function
+Function to format VEVENT components for the diary.
+
+@item diary-icalendar-vjournal-format-function
+Function to format VJOURNAL components for the diary.
+
+@item diary-icalendar-vtodo-format-function
+Function to format VTODO components for the diary.
+@end vtable
+
+You can customize the format of the imported diary entries by writing
+your own formatting functions.  It is convenient (but not required) to
+express such functions as templates called @dfn{skeletons}.
+@ifinfo
+@xref{Top, Autotyping, The Autotype Manual, autotype}, for more about
+skeletons.
+@end ifinfo
+
+For example, suppose you only want to import the date, time, summary,
+and location of each calendar event, and to write them on a single line
+like:
+
+@example
+2025/11/11 Summary @@ Some Location
+@end example
+
+@noindent
+Then you could write the import formatting function as a skeleton and
+set it to the value of @code{diary-icalendar-vevent-format-function} as
+follows:
+
+@lisp
+@group
+(require 'skeleton)
+
+(defun simple-vevent (_)
+  "Format a VEVENT summary and location on a single line"
+  (skeleton-insert
+    '(nil
+      ical-start-to-end & " " & ical-summary & " "
+      (when ical-location "@@ ") & ical-location "\n")))
+
+(setopt diary-icalendar-vevent-format-function #'simple-vevent)
+@end group
+@end lisp
+
+The variables @code{ical-start-to-end}, @code{ical-summary} and
+@code{ical-location} in this example are dynamically bound to
+appropriate values when the skeleton is called.  See the docstring of
+@code{diary-icalendar-vevent-format-function} for more information.
+
+Any errors encountered during import will be reported in a buffer named
+@file{*icalendar-errors*}.  You can review these errors with the
+@code{next-error} command.  @xref{Compilation Mode}.  If you regularly
+need to import malformed iCalendar data, there are several hooks
+available for this purpose; see the @code{icalendar-parser}
+customization group.
+
+@node Diary iCalendar Display
+@subsubsection Displaying iCalendar entries in the Diary
+@cindex display iCalendar in diary
+
+If you primarily store your calendar data outside of Emacs, but still
+want to see it in the Emacs calendar and diary, you can do so by
+including an iCalendar file from your diary file.
+
+Suppose, for example, that you download your calendar from an
+external server to a file called @file{Appointments.ics}.  Then you can
+include this file in your diary by writing a line like
+
+@example
+#include "path/to/Appointments.ics"
+@end example
+
+@noindent
+in your diary file.  You must also set up some hooks to display the
+data in that file as diary entries and mark them in the calendar:
+
+@lisp
+@group
+(add-hook 'diary-mark-entries-hook
+          #'diary-mark-included-diary-files)
+(add-hook 'diary-nongregorian-marking-hook
+          #'diary-icalendar-mark-entries)
+(add-hook 'diary-list-entries-hook
+          #'diary-include-other-diary-files)
+(add-hook 'diary-nongregorian-listing-hook
+          #'diary-icalendar-display-entries)
+@end group
+@end lisp
+
+@noindent
+Events, tasks, and journal entries in @file{Appointments.ics} will then show
+up on the appropriate days when you display the diary from the calendar.
+@xref{Displaying the Diary}.
+
+The advantage of doing this is that you don't need to synchronize the
+data between the calendar server and your diary file.  This is simpler
+and more reliable than regularly importing and exporting between diary
+and iCalendar format.
+
+@findex diary-icalendar-mailcap-viewer
+  You can also display iCalendar attachments in email messages
+without importing them to your diary file using the function
+@code{diary-icalendar-mailcap-viewer}.  You can add this function, for
+example, to the variable @code{mailcap-user-mime-data}; see its docstring
+for more information.
+
+Displaying iCalendar entries uses the same infrastructure as importing
+them, so customizing the import format will also change the format of
+the displayed entries.  @xref{Diary iCalendar Import}.
+
+@node Diary iCalendar Export
+@subsubsection Exporting Diary Entries to iCalendar
+@cindex export diary to iCalendar
+
+The following commands will export diary entries in iCalendar format:
+
+@ftable @code
+@item diary-icalendar-export-file
+Exports a diary file to iCalendar format.
+
+@item diary-icalendar-export-region
+Exports a region of diary text to iCalendar format.
+@end ftable
+
+iCalendar export depends on a number of user-customizable variables, which
+are in the @code{diary-icalendar-export} customization group.  You can
+review and customize these variables with @kbd{M-x customize-group}.
+@xref{Customization Groups}.
+
+Exporting diary entries to iCalendar requires you to respect certain
+conventions in your diary, so that iCalendar properties can be parsed
+from your diary entries.
+
+By default, the exporter will use the first line of the entry (after the
+date and time) as the iCalendar summary and the rest of the entry as its
+iCalendar description.  Other iCalendar properties can also be encoded in
+the entry on separate lines, like this:
+
+@example
+@group
+2025/11/11 Bender's birthday bash
+  Location: Robot House
+  Attendees:
+    Fry <philip.fry@@mars.edu>
+    Günter <guenter@@mars.edu>
+@end group
+@end example
+
+@noindent
+This format matches the format produced by the default import
+functions.
+
+@vindex diary-icalendar-address-regexp
+@vindex diary-icalendar-class-regexp
+@vindex diary-icalendar-description-regexp
+@vindex diary-icalendar-location-regexp
+@vindex diary-icalendar-organizer-regexp
+@vindex diary-icalendar-status-regexp
+@vindex diary-icalendar-summary-regexp
+@vindex diary-icalendar-todo-regexp
+@vindex diary-icalendar-uid-regexp
+@vindex diary-icalendar-url-regexp
+If you customize the import format, or you want to export diary entries
+in a different format, you will need to customize the export variables
+to detect the format of your diary entries.  The most common iCalendar
+properties are parsed from diary entries using regular expressions.  See
+the variables named @code{diary-icalendar-*-regexp} in the
+@code{diary-icalendar-export} customization group to modify how these
+properties are parsed.
+
+@vindex diary-icalendar-other-properties-parser
+  If you need to export other iCalendar properties, or do more
+complicated parsing, you can define a function to do so and set it as
+the value of the variable @code{diary-icalendar-other-properties-parser};
+see its docstring for details.
+
+@vindex diary-icalendar-export-linewise
+  By default, the exporter assumes that each diary entry represents a
+single iCalendar event.  If you like to keep your diary in a
+one-entry-per-day format, with different events on continuation
+lines within the same entry, you can still export such entries as
+distinct iCalendar events.  To do this, set the variable
+@code{diary-icalendar-export-linewise} to a non-nil value.
+
+For example, after setting this variable, an entry like:
+
+@example
+@group
+2025-05-03
+  9AM Lab meeting
+    Günter to present on new assay
+  Start experiment A
+  12:30-1:30PM Lunch with Phil
+  16:00 Experiment A finishes; move to freezer
+@end group
+@end example
+
+@noindent
+will be exported as four events, each on the same day, but with
+different start times (except for the second event, ``Start experiment
+A'', which has no start time).  See the docstring of
+@code{diary-icalendar-export-linewise} for more information.
+
+@node Diary Outlook Import
+@subsubsection Importing Outlook appointments as Diary Entries
+@cindex diary outlook import
 
 @vindex diary-outlook-formats
-  You can import diary entries from Outlook-generated appointment
+@vindex diary-from-outlook-function
+  You can also import diary entries from Outlook-generated appointment
 messages.  While viewing such a message in Rmail or Gnus, do @kbd{M-x
 diary-from-outlook} to import the entry.  You can make this command
 recognize additional appointment message formats by customizing the
 variable @code{diary-outlook-formats}.  Other mail clients can set
 @code{diary-from-outlook-function} to an appropriate value.
 
-@c FIXME the name of the RFC is hardly very relevant.
-@cindex iCalendar support
-  The icalendar package allows you to transfer data between your Emacs
-diary file and iCalendar files, which are defined in @cite{RFC
-2445---Internet Calendaring and Scheduling Core Object Specification
-(iCalendar)} (as well as the earlier vCalendar format).
-
-@c  Importing works for ordinary (i.e., non-recurring) events, but
-@c (at present) may not work correctly (if at all) for recurring events.
-@c Exporting of diary files into iCalendar files should work correctly
-@c for most diary entries.  This feature is a work in progress, so the
-@c commands may evolve in future.
-
-@findex icalendar-import-buffer
-  The command @code{icalendar-import-buffer} extracts
-iCalendar data from the current buffer and adds it to your
-diary file.  This function is also suitable for automatic extraction of
-iCalendar data; for example with the Rmail mail client one could use:
-
-@example
-(add-hook 'rmail-show-message-hook 'icalendar-import-buffer)
-@end example
-
-@findex icalendar-import-file
-  The command @code{icalendar-import-file} imports an iCalendar file
-and adds the results to an Emacs diary file.  For example:
-
-@example
-(icalendar-import-file "/here/is/calendar.ics"
-                       "/there/goes/ical-diary")
-@end example
-
-@noindent
-You can use an @code{#include} directive to add the import file contents
-to the main diary file, if these are different files.
-@iftex
-@xref{Fancy Diary Display,,, emacs-xtra, Specialized Emacs Features}.
-@end iftex
-@ifnottex
-@xref{Fancy Diary Display}.
-@end ifnottex
-
-
-@findex icalendar-export-file
-@findex icalendar-export-region
-@cindex export diary
-  Use @code{icalendar-export-file} to interactively export an entire
-Emacs diary file to iCalendar format.  To export only a part of a diary
-file, mark the relevant area, and call @code{icalendar-export-region}.
-In both cases, Emacs appends the result to the target file.
 
 @node Daylight Saving
 @section Daylight Saving Time

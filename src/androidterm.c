@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.
 
-Copyright (C) 2023-2025 Free Software Foundation, Inc.
+Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1825,19 +1825,32 @@ handle_one_android_event (struct android_display_info *dpyinfo,
       goto OTHER;
 
     case ANDROID_CONFIGURATION_CHANGED:
-      /* Update the display configuration from the event.  */
-      dpyinfo->resx = event->config.dpi_x;
-      dpyinfo->resy = event->config.dpi_y;
-      dpyinfo->font_resolution = event->config.dpi_scaled;
-#ifdef notdef
-      __android_log_print (ANDROID_LOG_VERBOSE, __func__,
-			   "New display configuration: "
-			   "resx = %.2f resy = %.2f font_resolution = %.2f",
-			   dpyinfo->resx, dpyinfo->resy, dpyinfo->font_resolution);
+
+      if (event->config.detail == ANDROID_PIXEL_DENSITY_CHANGED)
+	{
+	  /* Update the display configuration from the event.  */
+	  dpyinfo->resx = event->config.u.pixel_density.dpi_x;
+	  dpyinfo->resy = event->config.u.pixel_density.dpi_y;
+	  dpyinfo->font_resolution
+	    = event->config.u.pixel_density.dpi_scaled;
+#if notdef
+	  __android_log_print (ANDROID_LOG_VERBOSE, __func__,
+			       "New display configuration: "
+			       "resx = %.2f resy = %.2f font_resolution = %.2f",
+			       dpyinfo->resx, dpyinfo->resy, dpyinfo->font_resolution);
 #endif /* notdef */
-      inev.ie.kind = CONFIG_CHANGED_EVENT;
-      inev.ie.frame_or_window = XCAR (dpyinfo->name_list_element);
-      inev.ie.arg = Qfont_render;
+	  inev.ie.kind = CONFIG_CHANGED_EVENT;
+	  inev.ie.frame_or_window = XCAR (dpyinfo->name_list_element);
+	  inev.ie.arg = Qfont_render;
+	}
+      else if (event->config.detail == ANDROID_UI_MODE_CHANGED)
+	{
+	  android_ui_mode = event->config.u.ui_mode;
+	  inev.ie.kind = TOOLKIT_THEME_CHANGED_EVENT;
+	  inev.ie.arg = (android_ui_mode == UI_MODE_NIGHT_YES
+			 ? Qdark : Qlight);
+	}
+
       goto OTHER;
 
     default:
@@ -2309,6 +2322,48 @@ android_set_window_size (struct frame *f, bool change_gravity,
 
   /* If cursor was outside the new size, mark it as off.  */
   mark_window_cursors_off (XWINDOW (f->root_window));
+
+  /* Clear out any recollection of where the mouse highlighting was,
+     since it might be in a place that's outside the new frame size.
+     Actually checking whether it is outside is a pain in the neck,
+     so don't try--just let the highlighting be done afresh with new size.  */
+  cancel_mouse_face (f);
+
+  unblock_input ();
+
+  do_pending_window_change (false);
+}
+
+static void
+android_set_window_size_and_position_1 (struct frame *f, int width, int height)
+{
+  int x = f->left_pos;
+  int y = f->top_pos;
+
+  android_move_resize_window (FRAME_ANDROID_WINDOW (f), x, y, width, height);
+
+  SET_FRAME_GARBAGED (f);
+
+  if (FRAME_VISIBLE_P (f))
+    android_wait_for_event (f, ANDROID_CONFIGURE_NOTIFY);
+  else
+    /* Call adjust_frame_size right.  It might be tempting to clear out
+       f->new_width and f->new_height here.  */
+    adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
+		       FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
+		       5, 0, Qx_set_window_size_1);
+}
+
+void
+android_set_window_size_and_position (struct frame *f, int width, int height)
+{
+  block_input ();
+
+  android_set_window_size_and_position_1 (f, width, height);
+  android_clear_under_internal_border (f);
+
+  /* If cursor was outside the new size, mark it as off.  */
+  mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   /* Clear out any recollection of where the mouse highlighting was,
      since it might be in a place that's outside the new frame size.
@@ -6692,6 +6747,8 @@ android_create_terminal (struct android_display_info *dpyinfo)
   terminal->fullscreen_hook = android_fullscreen_hook;
   terminal->iconify_frame_hook = android_iconify_frame;
   terminal->set_window_size_hook = android_set_window_size;
+  terminal->set_window_size_and_position_hook
+    = android_set_window_size_and_position;
   terminal->set_frame_offset_hook = android_set_offset;
   terminal->set_frame_alpha_hook = android_set_alpha;
   terminal->set_new_font_hook = android_new_font;
@@ -6753,6 +6810,8 @@ android_term_init (void)
   dpyinfo->resx = android_pixel_density_x;
   dpyinfo->resy = android_pixel_density_y;
   dpyinfo->font_resolution = android_scaled_pixel_density;
+  Vtoolkit_theme = (android_ui_mode == UI_MODE_NIGHT_YES
+		    ? Qdark : Qlight);
 #endif /* !ANDROID_STUBIFY */
 
   /* https://lists.gnu.org/r/emacs-devel/2015-11/msg00194.html  */

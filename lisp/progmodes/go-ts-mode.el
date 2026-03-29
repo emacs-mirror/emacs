@@ -1,6 +1,6 @@
 ;;; go-ts-mode.el --- tree-sitter support for Go  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -62,7 +62,9 @@
           :commit "949a8a470559543857a62102c84700d291fc984c")
  t)
 
-(defcustom go-ts-mode-indent-offset 8
+(define-obsolete-variable-alias 'go-ts-mode-indent-offset
+  'go-ts-indent-offset "31")
+(defcustom go-ts-indent-offset 8
   "Number of spaces for each indentation step in `go-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -109,27 +111,27 @@
      ((node-is "}") parent-bol 0)
      ((node-is "labeled_statement") no-indent 0)
      ((parent-is "raw_string_literal") no-indent 0)
-     ((parent-is "argument_list") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "block") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "communication_case") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "const_declaration") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "default_case") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "expression_case") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "selector_expression") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "argument_list") parent-bol go-ts-indent-offset)
+     ((parent-is "block") parent-bol go-ts-indent-offset)
+     ((parent-is "communication_case") parent-bol go-ts-indent-offset)
+     ((parent-is "const_declaration") parent-bol go-ts-indent-offset)
+     ((parent-is "default_case") parent-bol go-ts-indent-offset)
+     ((parent-is "expression_case") parent-bol go-ts-indent-offset)
+     ((parent-is "selector_expression") parent-bol go-ts-indent-offset)
      ((parent-is "expression_switch_statement") parent-bol 0)
-     ((parent-is "field_declaration_list") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "import_spec_list") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "interface_type") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "labeled_statement") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "literal_value") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "parameter_list") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "field_declaration_list") parent-bol go-ts-indent-offset)
+     ((parent-is "import_spec_list") parent-bol go-ts-indent-offset)
+     ((parent-is "interface_type") parent-bol go-ts-indent-offset)
+     ((parent-is "labeled_statement") parent-bol go-ts-indent-offset)
+     ((parent-is "literal_value") parent-bol go-ts-indent-offset)
+     ((parent-is "parameter_list") parent-bol go-ts-indent-offset)
      ((parent-is "select_statement") parent-bol 0)
-     ((parent-is "type_case") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "type_declaration") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "type_spec") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "type_case") parent-bol go-ts-indent-offset)
+     ((parent-is "type_declaration") parent-bol go-ts-indent-offset)
+     ((parent-is "type_spec") parent-bol go-ts-indent-offset)
      ((parent-is "type_switch_statement") parent-bol 0)
-     ((parent-is "var_declaration") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "var_spec_list") parent-bol go-ts-mode-indent-offset)
+     ((parent-is "var_declaration") parent-bol go-ts-indent-offset)
+     ((parent-is "var_spec_list") parent-bol go-ts-indent-offset)
      (no-node parent-bol 0)))
   "Tree-sitter indent rules for `go-ts-mode'.")
 
@@ -150,23 +152,12 @@
     "max" "min" "new" "panic" "print" "println" "real" "recover")
   "Go built-in functions for tree-sitter font-locking.")
 
-(defun go-ts-mode--iota-query-supported-p ()
-  "Return t if the iota query is supported by the tree-sitter-go grammar."
-  (ignore-errors
-    (or (treesit-query-string "" '((iota) @font-lock-constant-face) 'go) t)))
-
-;; tree-sitter-go changed method_spec to method_elem in
-;; https://github.com/tree-sitter/tree-sitter-go/commit/b82ab803d887002a0af11f6ce63d72884580bf33
-(defun go-ts-mode--method-elem-supported-p ()
-  "Return t if Go grammar uses `method_elem' instead of `method_spec'."
-  (ignore-errors
-    (or (treesit-query-string "" '((method_elem) @cap) 'go) t)))
-
-(defvar go-ts-mode--font-lock-settings
+(defun go-ts-mode--font-lock-settings ()
+  "Return font-lock rules for `go-ts-mode'."
   (treesit-font-lock-rules
    :language 'go
    :feature 'bracket
-   '((["(" ")" "[" "]" "{" "}"]) @font-lock-bracket-face)
+   '(["(" ")" "[" "]" "{" "}"] @font-lock-bracket-face)
 
    :language 'go
    :feature 'comment
@@ -184,12 +175,13 @@
 
    :language 'go
    :feature 'constant
-   `([(false) (nil) (true)] @font-lock-constant-face
-     ,@(when (go-ts-mode--iota-query-supported-p)
-         '((iota) @font-lock-constant-face))
-     (const_declaration
-      (const_spec name: (identifier) @font-lock-constant-face
-                  ("," name: (identifier) @font-lock-constant-face)*)))
+   (treesit-query-with-optional 'go
+     '([(false) (nil) (true)] @font-lock-constant-face
+       (const_declaration
+        (const_spec name: (identifier) @font-lock-constant-face
+                    ("," name: (identifier) @font-lock-constant-face)*)))
+     ;; Optional query added in newer version.
+     '((iota) @font-lock-constant-face))
 
    :language 'go
    :feature 'delimiter
@@ -201,29 +193,32 @@
 
    :language 'go
    :feature 'definition
-   `((function_declaration
-      name: (identifier) @font-lock-function-name-face)
-     (method_declaration
-      name: (field_identifier) @font-lock-function-name-face)
-     (,(if (go-ts-mode--method-elem-supported-p)
-           'method_elem
-         'method_spec)
-      name: (field_identifier) @font-lock-function-name-face)
-     (field_declaration
-      name: (field_identifier) @font-lock-property-name-face)
-     (parameter_declaration
-      name: (identifier) @font-lock-variable-name-face)
-     (variadic_parameter_declaration
-      name: (identifier) @font-lock-variable-name-face)
-     (short_var_declaration
-      left: (expression_list
-             (identifier) @font-lock-variable-name-face
-             ("," (identifier) @font-lock-variable-name-face)*))
-     (var_spec name: (identifier) @font-lock-variable-name-face
-               ("," name: (identifier) @font-lock-variable-name-face)*)
-     (range_clause
-      left: (expression_list
-             (identifier) @font-lock-variable-name-face)))
+   (treesit-query-with-optional 'go
+     '((function_declaration
+        name: (identifier) @font-lock-function-name-face)
+       (method_declaration
+        name: (field_identifier) @font-lock-function-name-face)
+       (field_declaration
+        name: (field_identifier) @font-lock-property-name-face)
+       (parameter_declaration
+        name: (identifier) @font-lock-variable-name-face)
+       (variadic_parameter_declaration
+        name: (identifier) @font-lock-variable-name-face)
+       (short_var_declaration
+        left: (expression_list
+               (identifier) @font-lock-variable-name-face
+               ("," (identifier) @font-lock-variable-name-face)*))
+       (var_spec name: (identifier) @font-lock-variable-name-face
+                 ("," name: (identifier) @font-lock-variable-name-face)*)
+       (range_clause
+        left: (expression_list
+               (identifier) @font-lock-variable-name-face)))
+     ;; tree-sitter-go changed method_spec to method_elem in
+     ;; https://github.com/tree-sitter/tree-sitter-go/commit/b82ab803d887002a0af11f6ce63d72884580bf33
+     '((method_elem
+        name: (field_identifier) @font-lock-function-name-face))
+     '((method_spec
+        name: (field_identifier) @font-lock-function-name-face)))
 
    :language 'go
    :feature 'function
@@ -274,8 +269,7 @@
    :language 'go
    :feature 'error
    :override t
-   '((ERROR) @font-lock-warning-face))
-  "Tree-sitter font-lock settings for `go-ts-mode'.")
+   '((ERROR) @font-lock-warning-face)))
 
 (defvar-keymap go-ts-mode-map
   :doc "Keymap used in Go mode, powered by tree-sitter"
@@ -348,7 +342,7 @@
                 (append "{}()" electric-indent-chars))
 
     ;; Font-lock.
-    (setq-local treesit-font-lock-settings go-ts-mode--font-lock-settings)
+    (setq-local treesit-font-lock-settings (go-ts-mode--font-lock-settings))
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)
                   ( keyword string type)
@@ -359,10 +353,24 @@
 
 (derived-mode-add-parents 'go-ts-mode '(go-mode))
 
-(if (treesit-ready-p 'go)
-    ;; FIXME: Should we instead put `go-mode' in `auto-mode-alist'
-    ;; and then use `major-mode-remap-defaults' to map it to `go-ts-mode'?
-    (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode)))
+;;;###autoload
+(defun go-ts-mode-maybe ()
+  "Enable `go-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'go)
+          (eq treesit-enabled-modes t)
+          (memq 'go-ts-mode treesit-enabled-modes))
+      (go-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("\\.go\\'" . go-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(go-mode . go-ts-mode)))
 
 (defun go-ts-mode--defun-name (node &optional skip-prefix)
   "Return the defun name of NODE.
@@ -535,12 +543,12 @@ be run."
 (defvar go-mod-ts-mode--indent-rules
   `((gomod
      ((node-is ")") parent-bol 0)
-     ((parent-is "exclude_directive") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "module_directive") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "replace_directive") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "require_directive") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "retract_directive") parent-bol go-ts-mode-indent-offset)
-     ((go-mod-ts-mode--directive-matcher) no-indent go-ts-mode-indent-offset)
+     ((parent-is "exclude_directive") parent-bol go-ts-indent-offset)
+     ((parent-is "module_directive") parent-bol go-ts-indent-offset)
+     ((parent-is "replace_directive") parent-bol go-ts-indent-offset)
+     ((parent-is "require_directive") parent-bol go-ts-indent-offset)
+     ((parent-is "retract_directive") parent-bol go-ts-indent-offset)
+     ((go-mod-ts-mode--directive-matcher) no-indent go-ts-indent-offset)
      (no-node no-indent 0)))
   "Tree-sitter indent rules for `go-mod-ts-mode'.")
 
@@ -622,17 +630,33 @@ what the parent of the node would be if it were a node."
 
 (derived-mode-add-parents 'go-mod-ts-mode '(go-mod-mode))
 
-(if (treesit-ready-p 'gomod t)
-    (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode)))
+;;;###autoload
+(defun go-mod-ts-mode-maybe ()
+  "Enable `go-mod-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'gomod)
+          (eq treesit-enabled-modes t)
+          (memq 'go-mod-ts-mode treesit-enabled-modes))
+      (go-mod-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("/go\\.mod\\'" . go-mod-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(go-mod-mode . go-mod-ts-mode)))
 
 ;;;; go.work support.
 
 (defvar go-work-ts-mode--indent-rules
   `((gowork
      ((node-is ")") parent-bol 0)
-     ((parent-is "replace_directive") parent-bol go-ts-mode-indent-offset)
-     ((parent-is "use_directive") parent-bol go-ts-mode-indent-offset)
-     ((go-work-ts-mode--directive-matcher) no-indent go-ts-mode-indent-offset)
+     ((parent-is "replace_directive") parent-bol go-ts-indent-offset)
+     ((parent-is "use_directive") parent-bol go-ts-indent-offset)
+     ((go-work-ts-mode--directive-matcher) no-indent go-ts-indent-offset)
      (no-node no-indent 0)))
   "Tree-sitter indent rules for `go-work-ts-mode'.")
 
@@ -711,7 +735,23 @@ what the parent of the node would be if it were a node."
     (treesit-major-mode-setup)))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode))
+(defun go-work-ts-mode-maybe ()
+  "Enable `go-work-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'gowork)
+          (eq treesit-enabled-modes t)
+          (memq 'go-work-ts-mode treesit-enabled-modes))
+      (go-work-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("/go\\.work\\'" . go-work-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(go-work-mode . go-work-ts-mode)))
 
 (provide 'go-ts-mode)
 

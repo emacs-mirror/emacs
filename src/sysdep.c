@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2025 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2026 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -390,23 +390,22 @@ discard_tty_input (void)
 
 /* Arrange for character C to be read as the next input from
    the terminal.
+   Return 0 on success, -1 otherwise.
    XXX What if we have multiple ttys?
 */
 
-void
+int
 stuff_char (char c)
 {
-  if (! (FRAMEP (selected_frame)
-	 && FRAME_LIVE_P (XFRAME (selected_frame))
-	 && FRAME_TERMCAP_P (XFRAME (selected_frame))))
-    return;
-
 /* Should perhaps error if in batch mode */
 #ifdef TIOCSTI
-  ioctl (fileno (CURTTY()->input), TIOCSTI, &c);
-#else /* no TIOCSTI */
-  error ("Cannot stuff terminal input characters in this version of Unix");
+  if (FRAMEP (selected_frame)
+      && FRAME_LIVE_P (XFRAME (selected_frame))
+      && FRAME_TERMCAP_P (XFRAME (selected_frame)))
+    return ioctl (fileno (CURTTY()->input), TIOCSTI, &c);
 #endif /* no TIOCSTI */
+
+  return -1;
 }
 
 #endif /* SIGTSTP */
@@ -1342,8 +1341,7 @@ init_sys_modes (struct tty_display_info *tty_out)
       frame_garbaged = 1;
       FOR_EACH_FRAME (tail, frame)
         {
-          if ((FRAME_TERMCAP_P (XFRAME (frame))
-	       || FRAME_MSDOS_P (XFRAME (frame)))
+          if (is_tty_frame (XFRAME (frame))
               && FRAME_TTY (XFRAME (frame)) == tty_out)
             FRAME_GARBAGED_P (XFRAME (frame)) = 1;
         }
@@ -2370,6 +2368,33 @@ emacs_backtrace (int backtrace_limit)
     }
 }
 
+/* Rename directory SRCFD's entry SRC to directory DSTFD's entry DST.
+   This is like renameat except that it fails if DST already exists,
+   or if this operation is not supported atomically.  Return 0 if
+   successful, -1 (setting errno) otherwise.  */
+#ifndef HAVE_ANDROID
+static
+#endif
+int
+renameat_noreplace (int srcfd, char const *src, int dstfd, char const *dst)
+{
+#if HAVE_RENAMEAT2 && defined RENAME_NOREPLACE
+  return renameat2 (srcfd, src, dstfd, dst, RENAME_NOREPLACE);
+#elif defined SYS_renameat2 && defined RENAME_NOREPLACE
+  /* Linux kernel 3.15 (2014) or later, with glibc 2.27 (2018) or earlier.  */
+  return syscall (SYS_renameat2, srcfd, src, dstfd, dst, RENAME_NOREPLACE);
+#elif defined RENAME_EXCL
+  return renameatx_np (srcfd, src, dstfd, dst, RENAME_EXCL);
+#else
+# ifdef WINDOWSNT
+  if (srcfd == AT_FDCWD && dstfd == AT_FDCWD)
+    return sys_rename_replace (src, dst, 0);
+# endif
+  errno = ENOSYS;
+  return -1;
+#endif
+}
+
 #if !defined HAVE_NTGUI && !(defined HAVE_ANDROID		\
 			     && !defined ANDROID_STUBIFY)
 void
@@ -2714,31 +2739,20 @@ emacs_fchmodat (int fd, const char *path, mode_t mode, int flags)
 #endif /* !(defined HAVE_ANDROID && !defined ANDROID_STUBIFY) */
 }
 
-/* Maximum number of bytes to read or write in a single system call.
-   This works around a serious bug in Linux kernels before 2.6.16; see
-   <https://bugzilla.redhat.com/show_bug.cgi?format=multiple&id=612839>.
-   It's likely to work around similar bugs in other operating systems, so do it
-   on all platforms.  Round INT_MAX down to a page size, with the conservative
-   assumption that page sizes are at most 2**18 bytes (any kernel with a
-   page size larger than that shouldn't have the bug).  */
-#ifndef MAX_RW_COUNT
-#define MAX_RW_COUNT (INT_MAX >> 18 << 18)
-#endif
-
-/* Verify that MAX_RW_COUNT fits in the relevant standard types.  */
+/* Verify that SYS_BUFSIZE_MAX fits in the relevant standard types.  */
 #ifndef SSIZE_MAX
 # define SSIZE_MAX TYPE_MAXIMUM (ssize_t)
 #endif
-static_assert (MAX_RW_COUNT <= PTRDIFF_MAX);
-static_assert (MAX_RW_COUNT <= SIZE_MAX);
-static_assert (MAX_RW_COUNT <= SSIZE_MAX);
+static_assert (SYS_BUFSIZE_MAX <= PTRDIFF_MAX);
+static_assert (SYS_BUFSIZE_MAX <= SIZE_MAX);
+static_assert (SYS_BUFSIZE_MAX <= SSIZE_MAX);
 
 #ifdef WINDOWSNT
 /* Verify that Emacs read requests cannot cause trouble, even in
    64-bit builds.  The last argument of 'read' is 'unsigned int', and
    the return value's type (see 'sys_read') is 'int'.  */
-static_assert (MAX_RW_COUNT <= INT_MAX);
-static_assert (MAX_RW_COUNT <= UINT_MAX);
+static_assert (SYS_BUFSIZE_MAX <= INT_MAX);
+static_assert (SYS_BUFSIZE_MAX <= UINT_MAX);
 #endif
 
 /* Read from FD to a buffer BUF with size NBYTE.
@@ -2750,7 +2764,7 @@ static ptrdiff_t
 emacs_intr_read (int fd, void *buf, ptrdiff_t nbyte, bool interruptible)
 {
   /* No caller should ever pass a too-large size to emacs_read.  */
-  eassert (nbyte <= MAX_RW_COUNT);
+  eassert (nbyte <= SYS_BUFSIZE_MAX);
 
   ssize_t result;
 
@@ -2796,7 +2810,7 @@ emacs_full_write (int fd, char const *buf, ptrdiff_t nbyte,
 
   while (nbyte > 0)
     {
-      ssize_t n = write (fd, buf, min (nbyte, MAX_RW_COUNT));
+      ssize_t n = write (fd, buf, min (nbyte, SYS_BUFSIZE_MAX));
 
       if (n < 0)
 	{
@@ -2872,30 +2886,6 @@ emacs_perror (char const *message)
       emacs_write (STDERR_FILENO, "\n", 1);
     }
   errno = err;
-}
-
-/* Rename directory SRCFD's entry SRC to directory DSTFD's entry DST.
-   This is like renameat except that it fails if DST already exists,
-   or if this operation is not supported atomically.  Return 0 if
-   successful, -1 (setting errno) otherwise.  */
-int
-renameat_noreplace (int srcfd, char const *src, int dstfd, char const *dst)
-{
-#if HAVE_RENAMEAT2 && defined RENAME_NOREPLACE
-  return renameat2 (srcfd, src, dstfd, dst, RENAME_NOREPLACE);
-#elif defined SYS_renameat2 && defined RENAME_NOREPLACE
-  /* Linux kernel 3.15 (2014) or later, with glibc 2.27 (2018) or earlier.  */
-  return syscall (SYS_renameat2, srcfd, src, dstfd, dst, RENAME_NOREPLACE);
-#elif defined RENAME_EXCL
-  return renameatx_np (srcfd, src, dstfd, dst, RENAME_EXCL);
-#else
-# ifdef WINDOWSNT
-  if (srcfd == AT_FDCWD && dstfd == AT_FDCWD)
-    return sys_rename_replace (src, dst, 0);
-# endif
-  errno = ENOSYS;
-  return -1;
-#endif
 }
 
 /* Like strsignal, except async-signal-safe, and this function

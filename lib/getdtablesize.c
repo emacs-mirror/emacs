@@ -1,5 +1,5 @@
 /* getdtablesize() function: Return maximum possible file descriptor value + 1.
-   Copyright (C) 2008-2025 Free Software Foundation, Inc.
+   Copyright (C) 2008-2026 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2008.
 
    This file is free software: you can redistribute it and/or modify
@@ -61,13 +61,10 @@ getdtablesize (void)
     {
       /* We are looking for the number N such that the valid file descriptors
          are 0..N-1.  It can be obtained through a loop as follows:
-           {
-             int fd;
-             for (fd = 3; fd < 65536; fd++)
-               if (dup2 (0, fd) == -1)
-                 break;
-             return fd;
-           }
+           for (int fd = 3; fd < 65536; fd++)
+             if (dup2 (0, fd) == -1)
+               break;
+           return fd;
          On Windows XP, the result is 2048.
          The drawback of this loop is that it allocates memory for a libc
          internal array that is never freed.

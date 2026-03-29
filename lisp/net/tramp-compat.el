@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -29,7 +29,7 @@
 
 ;;; Code:
 
-(require 'tramp-loaddefs)
+(require 'tramp-loaddefs nil t)  ; guard against load during autoload gen
 (require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
@@ -102,14 +102,20 @@ Add the extension of F, if existing."
     tramp-temp-name-prefix tramp-compat-temporary-file-directory)
    dir-flag (file-name-extension f t)))
 
+(defalias 'tramp-compat-error-type-p
+  (if (fboundp 'error-type-p)           ;Emacs-31
+      #'error-type-p
+    (lambda (symbol) (get symbol 'error-conditions))))
+
 ;; `permission-denied' is introduced in Emacs 29.1.
 (defconst tramp-permission-denied
-  (if (get 'permission-denied 'error-conditions) 'permission-denied 'file-error)
+  (if (tramp-compat-error-type-p 'permission-denied)
+      'permission-denied 'file-error)
   "The error symbol for the `permission-denied' error.")
 
 (defsubst tramp-compat-permission-denied (vec file)
   "Emit the `permission-denied' error."
-  (if (get 'permission-denied 'error-conditions)
+  (if (tramp-compat-error-type-p 'permission-denied)
       (tramp-error vec tramp-permission-denied file)
     (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
 
@@ -229,8 +235,8 @@ value is the default binding of the variable."
              (cdr result)
            ,variable)))))
 
-(dolist (elt (all-completions "tramp-compat-" obarray 'functionp))
-  (function-put (intern elt) 'tramp-suppress-trace t))
+(dolist (elt (apropos-internal (rx bos "tramp-compat-") #'functionp))
+  (function-put elt 'tramp-suppress-trace t))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()
@@ -249,9 +255,7 @@ value is the default binding of the variable."
 ;;
 ;; * Use `with-environment-variables'.
 ;;
-;; * Use `ensure-list'.
-;;
-;; * Starting with Emacs 29.1, use `buffer-match-p'.
+;; * Starting with Emacs 29.1, use `buffer-match-p' and `match-buffers'.
 ;;
 ;; * Starting with Emacs 29.1, use `string-split'.
 ;;
@@ -259,5 +263,11 @@ value is the default binding of the variable."
 ;;   instead of `condition-case' when the origin of an error shall be
 ;;   kept, for example when the HANDLER propagates the error with
 ;;   `(signal (car err) (cdr err)'.
+;;
+;; * Starting with Emacs 31.1, use `(signal err)' instead of `(signal
+;;   (car err) (cdr err)'.
+;;
+;; * Starting with Emacs 30.1, use '(_ VALUEFORM)' instead of
+;;   '(VALUEFORM)' in 'if-let*/when-let*/and-let*'.
 
 ;;; tramp-compat.el ends here

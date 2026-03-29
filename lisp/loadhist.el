@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 1998, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -190,7 +190,7 @@ unloading."
       ;; Unloading a file whose definition is "inactive" (i.e. has been
       ;; overridden by another file): just remove it from the history,
       ;; so future unloading of that other file has a chance to DTRT.
-      (let* ((tmp (plist-member hist loadhist-unload-filename))
+      (let* ((tmp (plist-member hist loadhist-unload-filename #'equal))
              (pos (- (length hist) (length tmp))))
         (cl-assert (> pos 1))
         (setcdr (nthcdr (- pos 2) hist) (cdr tmp)))))))

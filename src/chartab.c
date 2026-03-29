@@ -78,7 +78,7 @@ sub_char_table_ref_and_range (Lisp_Object, int, int *, int *,
 /* Nonzero iff OBJ is a string representing uniprop values of 128
    succeeding characters (the bottom level of a char-table) by a
    compressed format.  We are sure that no property value has a string
-   starting with '\001' nor '\002'.  */
+   starting with '\001' or '\002'.  */
 #define UNIPROP_COMPRESSED_FORM_P(OBJ)	\
   (STRINGP (OBJ) && SCHARS (OBJ) > 0	\
    && ((SREF (OBJ, 0) == 1 || (SREF (OBJ, 0) == 2))))

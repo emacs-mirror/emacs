@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1989-2026 Free Software Foundation, Inc.
 
 ;; Author: Andy Norman <ange@hplb.hpl.hp.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -4401,10 +4401,13 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(condition-case err
 	    (let ((debug-on-error t))
 	      (save-match-data (apply fn args)))
-	  (error (signal (car err) (cdr err))))
+	  ;; FIXME: In which sense does this catch errors since we
+	  ;; immediately re-throw them?  Why do we let-bind `debug-on-error'?
+          ;; And what does this have to do with process-filters?
+	  (error (signal err)))
       (ange-ftp-run-real-handler operation args))))
 
-;;; This sets the mode
+;; This sets the mode
 (add-hook 'find-file-hook 'ange-ftp-set-buffer-mode)
 
 ;;; Now say where to find the handlers for particular operations.

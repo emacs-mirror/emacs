@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -640,6 +640,7 @@ simple manner."
   "M-&" #'gnus-group-universal-argument
   "#" #'gnus-group-mark-group
   "M-#" #'gnus-group-unmark-group
+  "M-i" #'gnus-symbolic-argument
 
   "~" (define-keymap :prefix 'gnus-group-cloud-map
         "u" #'gnus-cloud-upload-all-data
@@ -3377,15 +3378,8 @@ This function sets a new value for `gnus-group-list'; its return
 value is disregarded."
   (when func
     (let* ((groups (remove "dummy.group" gnus-group-list))
-	   (sorted-infos
-	    (sort (mapcar (lambda (g)
-			    (gnus-get-info g))
-			  groups)
-		  func)))
-      (setq gnus-group-list
-	    (mapcar (lambda (i)
-		      (gnus-info-group i))
-		    sorted-infos))
+	   (sorted-infos (sort (mapcar #'gnus-get-info groups) func)))
+      (setq gnus-group-list (mapcar #'gnus-info-group sorted-infos))
       (when reverse
 	(setq gnus-group-list (nreverse gnus-group-list)))
       (setq gnus-group-list (cons "dummy.group" gnus-group-list)))))
@@ -3766,8 +3760,7 @@ Uses the process/prefix convention."
   (interactive nil gnus-group-mode)
   (save-excursion
     (gnus-message 5 "Expiring...")
-    (let ((gnus-group-marked (mapcar (lambda (info) (gnus-info-group info))
-				     (cdr gnus-newsrc-alist))))
+    (let ((gnus-group-marked (mapcar #'gnus-info-group (cdr gnus-newsrc-alist))))
       (gnus-group-expire-articles nil)))
   (gnus-group-position-point)
   (gnus-message 5 "Expiring...done"))

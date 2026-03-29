@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2026 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -1302,7 +1302,7 @@ can always override the use of `c-default-style' by making calls to
        ;; Anchor pos: Boi at the func decl arglist open.
        (member-init-cont      . c-lineup-multi-inher)
        ;; Anchor pos: Beg of the first member init.
-       (class-field-cont      . +)
+       (class-field-cont      . c-lineup-class-field-cont)
        ;; Anchor pos: BOI of the line containing the class keyword.
        ;; 2nd pos: At the open brace.
        (inher-intro           . +)

@@ -4,6 +4,7 @@
 @set TITLE  Wisent Parser Development
 @set AUTHOR Eric M. Ludlam, David Ponce, and Richard Y. Kim
 @settitle @value{TITLE}
+@documentlanguage en
 @include docstyle.texi
 
 @c *************************************************************************
@@ -24,7 +25,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2025
+Copyright @copyright{} 1988--1993, 1995, 1998--2004, 2007, 2012--2026
 Free Software Foundation, Inc.
 
 @c Since we are both GNU manuals, we do not need to ack each other here.

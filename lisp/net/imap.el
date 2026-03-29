@@ -1,6 +1,6 @@
 ;;; imap.el --- imap library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: mail
@@ -275,6 +275,7 @@ stream.")
 			      digest-md5
 			      cram-md5
 			      ;;sasl
+                              plain
 			      login
 			      anonymous)
   "Priority of authenticators to consider when authenticating to server.")
@@ -284,6 +285,7 @@ stream.")
     (kerberos4  imap-kerberos4-auth-p imap-kerberos4-auth)
     (sasl	imap-sasl-auth-p      imap-sasl-auth)
     (cram-md5   imap-cram-md5-p       imap-cram-md5-auth)
+    (plain      imap-plain-p          imap-plain-auth)
     (login      imap-login-p          imap-login-auth)
     (anonymous  imap-anonymous-p      imap-anonymous-auth)
     (digest-md5 imap-digest-md5-p     imap-digest-md5-auth))
@@ -852,6 +854,23 @@ t if it successfully authenticates, nil otherwise."
 						"\" \""
 						(imap-quote-specials passwd)
 						"\""))))))
+
+(defun imap-plain-p (buffer)
+  (imap-capability 'AUTH=PLAIN buffer))
+
+(defun imap-plain-auth (buffer)
+  "Login to server using the AUTH=PLAIN command."
+  (message "imap: PLAIN authentication...")
+  (imap-interactive-login
+   buffer
+   (lambda (user passwd)
+     (imap-ok-p
+      (imap-send-command-wait
+       (concat "AUTHENTICATE PLAIN "
+               (base64-encode-string
+                (format "\000%s\000%s"
+                        (imap-quote-specials user)
+                        (imap-quote-specials passwd)))))))))
 
 (defun imap-anonymous-p (_buffer)
   t)
@@ -1710,11 +1729,11 @@ See `imap-enable-exchange-bug-workaround'."
 	      ;; robust just to check for a BAD response to the
 	      ;; attempted fetch.
 	      (string-match "The specified message set is invalid"
-			    (cadr data)))
+			    (error-slot-value data 1)))
 	 (with-current-buffer (or buffer (current-buffer))
            (setq-local imap-enable-exchange-bug-workaround t)
 	   (imap-fetch (cdr uids) props receive nouidfetch))
-       (signal (car data) (cdr data))))))
+       (signal data)))))
 
 (defun imap-message-copyuid-1 (mailbox)
   (if (imap-capability 'UIDPLUS)

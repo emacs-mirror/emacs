@@ -1,6 +1,6 @@
 ;;; mpuz.el --- multiplication puzzle for GNU Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1990, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Overhauled: Daniel Pfeiffer <occitan@esperanto.org>
@@ -333,7 +333,8 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
                  (mpuz-create-buffer))))
     (switch-to-buffer buf)
     (setq buffer-read-only t)
-    (mpuz-mode)))
+    (or (derived-mode-p 'mpuz-mode)
+        (mpuz-mode))))
 
 
 ;; Game control

@@ -1,6 +1,6 @@
 ;;; solar.el --- calendar functions for solar events  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2025 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -668,7 +668,7 @@ Optional NOLOCATION non-nil means do not print the location."
          (concat "sunset " (apply #'solar-time-string (cadr l)))
        "no sunset")
      (if nolocation ""
-       (format " at %s" (eval calendar-location-name)))
+       (format " at %s" (eval calendar-location-name t)))
      (nth 2 l))))
 
 (defconst solar-data-list
@@ -881,7 +881,7 @@ Accurate to a few seconds."
          (last (calendar-last-day-of-month month year))
          (title (format "Sunrise/sunset times for %s %d at %s"
                         (calendar-month-name month) year
-                        (eval calendar-location-name))))
+                        (eval calendar-location-name t))))
     (calendar-in-read-only-buffer solar-sunrises-buffer
       (calendar-set-mode-line title)
       (insert title ":\n\n")
@@ -1002,16 +1002,19 @@ solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
                         (* -0.00823 z z z)
                         (* 0.00032 z z z z)))))))
 
-(defvar displayed-month)                ; from calendar-generate
-(defvar displayed-year)
-
 ;;;###holiday-autoload
 (defun solar-equinoxes-solstices ()
   "Local date and time of equinoxes and solstices, if visible in the calendar.
 Requires floating point."
-  (let* ((m displayed-month)
-         (y displayed-year)
-         (calendar-standard-time-zone-name
+  (let (result)
+    (dolist (month '(3 6 9 12))
+      (when-let* ((y (calendar-month-visible-p month)))
+        (push (car (solar-equinoxes-solstices-1 month y)) result)))
+    result))
+
+(defun solar-equinoxes-solstices-1 (m y)
+  "Get nearest equinoxes and solstices around Year/Month."
+  (let* ((calendar-standard-time-zone-name
           (cond
            (calendar-time-zone calendar-standard-time-zone-name)
            ((eq calendar-time-zone-style 'numeric) "+0000")

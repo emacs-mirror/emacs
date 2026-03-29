@@ -1,6 +1,6 @@
 /* Big numbers for Emacs.
 
-Copyright 2018-2025 Free Software Foundation, Inc.
+Copyright 2018-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -56,7 +56,7 @@ extern void emacs_mpz_mul_2exp (mpz_t, mpz_t const, EMACS_INT)
   ARG_NONNULL ((1, 2));
 extern void emacs_mpz_pow_ui (mpz_t, mpz_t const, unsigned long)
   ARG_NONNULL ((1, 2));
-extern double mpz_get_d_rounded (mpz_t const) ATTRIBUTE_CONST;
+extern double mpz_get_d_rounded (mpz_t const);
 extern Lisp_Object get_random_bignum (struct Lisp_Bignum const *);
 
 INLINE_HEADER_BEGIN

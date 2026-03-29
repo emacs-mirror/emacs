@@ -4,6 +4,7 @@
 @c smallbook
 @c [title]
 @settitle GNU Emacs Calc Manual
+@documentlanguage en
 @include docstyle.texi
 @setchapternewpage odd
 @documentencoding UTF-8
@@ -96,7 +97,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2025 Free Software Foundation,
+Copyright @copyright{} 1990--1991, 2001--2026 Free Software Foundation,
 Inc.
 
 @quotation
@@ -35694,10 +35695,9 @@ The variable @code{calc-string-maximum-character} is the maximum value
 of a vector's elements for @code{calc-display-strings}, @code{string},
 and @code{bstring} to display the vector as a string.  This maximum
 @emph{must} represent a character, i.e. it's a non-negative integer less
-than or equal to @code{(max-char)} or @code{0x3FFFFF}.  Any negative
-value effectively disables the display of strings, and for values larger
-than @code{0x3FFFFF} the display acts as if the maximum were
-@code{0x3FFFFF}.  Some natural choices (and their resulting ranges) are:
+than or equal to @code{(max-char)} or @code{0x3FFFFF}.  Any value not
+representing a character effectively disables the display of strings.
+Some natural choices (and their resulting ranges) are:
 
 @itemize
 @item
@@ -35712,6 +35712,14 @@ than @code{0x3FFFFF} the display acts as if the maximum were
 
 The default value of @code{calc-string-maximum-character} is @code{0xFF}
 or 255.
+@end defvar
+
+@defvar calc-inhibit-startup-message
+The variable @code{calc-inhibit-startup-message} controls display of a
+welcome message when starting Calc.  If it is @code{nil} (the default),
+Calc will print a brief message listing key bindings to get help or to
+quit.  If it is non-@code{nil}, Calc will start without printing
+anything.
 @end defvar
 
 @node Reporting Bugs

@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/todo-mode.info
 @settitle Todo Mode User Manual
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
@@ -9,7 +10,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2013--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2013--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

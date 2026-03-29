@@ -1,6 +1,6 @@
 ;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text  -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience minibuffer
@@ -214,11 +214,10 @@ ignored (because the result is passed through
 `file-name-shadow-properties', which can be used to make that
 portion dim, invisible, or otherwise less visually noticeable."
   :global t
-  ;; We'd like to use custom-initialize-set here so the setup is done
-  ;; before dumping, but at the point where the defcustom is evaluated,
+  ;; At the point where the defcustom is evaluated,
   ;; the corresponding function isn't defined yet, so
   ;; custom-initialize-set signals an error.
-  :initialize 'custom-initialize-delay
+  :initialize #'custom-initialize-after-file-load
   :init-value t
   :group 'minibuffer
   :version "22.1"

@@ -1,6 +1,6 @@
 /* Functions for the X Window System.
 
-Copyright (C) 1989, 1992-2025 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -213,7 +213,7 @@ check_x_display_info (Lisp_Object object)
    Store the screen positions of frame F into XPTR and YPTR.
    These are the positions of the containing window manager window,
    not Emacs's own window.  */
-void
+static void
 x_real_pos_and_offsets (struct frame *f,
                         int *left_offset_x,
                         int *right_offset_x,
@@ -1146,7 +1146,24 @@ xg_set_icon (struct frame *f, Lisp_Object file)
 bool
 xg_set_icon_from_xpm_data (struct frame *f, const char **data)
 {
+  /* gdk-pixbuf 2.44 deprecated gdk_pixbuf_new_from_xpm_data.
+     Emacs should convert assets to PNG and use gdk_pixbuf_new_from_stream
+     with a GMemoryInputStream, or transition to PNG via GResource.
+     Pacify GCC for now.  */
+#if (defined GDK_PIXBUF_VERSION_2_44 \
+     && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
+     && GNUC_PREREQ (4, 6, 0))
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
   GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
+
+#if (defined GDK_PIXBUF_VERSION_2_44 \
+     && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
+     && GNUC_PREREQ (4, 6, 0))
+# pragma GCC diagnostic pop
+#endif
 
   if (!pixbuf)
     return false;
@@ -1856,7 +1873,14 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
   /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
-    return;
+    {
+#ifdef USE_GTK
+      /* Make sure implied resizing of minibuffer-only frames can be
+	 inhibited too.  */
+      f->tool_bar_resized = true;
+#endif
+      return;
+    }
 
   /* Use VALUE only if an int >= 0.  */
   if (RANGED_FIXNUMP (0, value, INT_MAX))
@@ -1888,6 +1912,9 @@ x_change_tool_bar_height (struct frame *f, int height)
       if (FRAME_EXTERNAL_TOOL_BAR (f))
         free_frame_tool_bar (f);
       FRAME_EXTERNAL_TOOL_BAR (f) = false;
+      /* Make sure implied resizing of frames without initial tool bar
+	 can be inhibited too.  */
+      f->tool_bar_resized = true;
     }
 #else /* !USE_GTK */
   int unit = FRAME_LINE_HEIGHT (f);
@@ -4456,7 +4483,7 @@ x_window (struct frame *f)
 
   attributes.background_pixel = FRAME_BACKGROUND_PIXEL (f);
   attributes.border_pixel = f->output_data.x->border_pixel;
-  attributes.bit_gravity = StaticGravity;
+  attributes.bit_gravity = NorthWestGravity;
   attributes.backing_store = NotUseful;
   attributes.save_under = True;
   attributes.event_mask = STANDARD_EVENT_SET;
@@ -5010,6 +5037,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parms);
+
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_x_window;
@@ -5333,6 +5362,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   if (!NILP (parent_frame))
     {
@@ -6633,7 +6665,8 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 #else
 	  i = gdk_screen_get_monitor_at_window (gscreen, gwin);
 #endif
-	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
+	  if (0 <= i && i < n_monitors)
+	    ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
 	}
     }
 
@@ -8657,6 +8690,9 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
@@ -10196,6 +10232,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_override_redirect,
   gui_set_no_special_glyphs,
   x_set_alpha_background,
+  gui_set_borders_respect_alpha_background,
   x_set_use_frame_synchronization,
   x_set_shaded,
 };

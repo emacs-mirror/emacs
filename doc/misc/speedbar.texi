@@ -1,11 +1,12 @@
 \input texinfo   @c -*-texinfo-*-
 @setfilename ../../info/speedbar.info
 @settitle Speedbar: File/Tag summarizing utility
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex fn cp
 
 @copying
-Copyright @copyright{} 1999--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

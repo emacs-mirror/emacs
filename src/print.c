@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -682,6 +682,8 @@ print_create_variable_mapping (void)
 	   intern ("print-escape-multibyte"), Qnil),
     list3 (intern ("charset-text-property"),
 	   intern ("print-charset-text-property"), Qnil),
+    list3 (intern ("unreadable-function"),
+	   intern ("print-unreadable-function"), Qnil),
     list3 (intern ("unreadeable-function"),
 	   intern ("print-unreadable-function"), Qnil),
     list3 (intern ("gensym"), intern ("print-gensym"), Qnil),
@@ -691,6 +693,7 @@ print_create_variable_mapping (void)
     list3 (intern ("float-format"), intern ("float-output-format"), Qnil),
     list3 (intern ("integers-as-characters"),
 	   intern ("print-integers-as-characters"), Qnil),
+    list3 (intern ("symbols-bare"), intern ("print-symbols-bare"), Qnil),
   };
 
   Vprint_variable_mapping = CALLMANY (Flist, total);
@@ -705,7 +708,7 @@ print_bind_overrides (Lisp_Object overrides)
   if (EQ (overrides, Qt))
     print_bind_all_defaults ();
   else if (!CONSP (overrides))
-    xsignal (Qwrong_type_argument, Qconsp);
+    wrong_type_argument (Qconsp, overrides);
   else
     {
       while (!NILP (overrides))
@@ -714,19 +717,19 @@ print_bind_overrides (Lisp_Object overrides)
 	  if (EQ (setting, Qt))
 	    print_bind_all_defaults ();
 	  else if (!CONSP (setting))
-	    xsignal (Qwrong_type_argument, Qconsp);
+	    wrong_type_argument (Qconsp, setting);
 	  else
 	    {
 	      Lisp_Object key = XCAR (setting),
 		value = XCDR (setting);
 	      Lisp_Object map = Fassq (key, Vprint_variable_mapping);
 	      if (NILP (map))
-		xsignal2 (Qwrong_type_argument, Qsymbolp, map);
+		wrong_type_argument (Qsymbolp, map);
 	      specbind (XCAR (XCDR (map)), value);
 	    }
 
 	  if (!NILP (XCDR (overrides)) && !CONSP (XCDR (overrides)))
-	    xsignal (Qwrong_type_argument, Qconsp);
+	    wrong_type_argument (Qconsp, overrides);
 	  overrides = XCDR (overrides);
 	}
     }
@@ -1127,6 +1130,8 @@ print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
 	 we throw any information away.  */
       && !NILP (XCAR (tail)) && NILP (XCDR (tail)))
     {
+      /* Prevent message3 from outputting a newline after "user-error:".  */
+      reset_message_log_need_newline ();
       message3 (XCAR (tail));
       return;
     }
@@ -1320,17 +1325,28 @@ print (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
   print_object (obj, printcharfun, escapeflag);
 }
 
-#define PRINT_CIRCLE_CANDIDATE_P(obj)			   \
-  (STRINGP (obj)                                           \
-   || CONSP (obj)					   \
-   || (VECTORLIKEP (obj)				   \
-       && (VECTORP (obj) || CLOSUREP (obj)		   \
-	   || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj) \
-	   || HASH_TABLE_P (obj) || FONTP (obj)		   \
-	   || RECORDP (obj)))				   \
-   || (! NILP (Vprint_gensym)				   \
-       && SYMBOLP (obj)					   \
-       && !SYMBOL_INTERNED_P (obj)))
+static inline bool
+print_circle_candidate_p (Lisp_Object obj)
+{
+  if (CONSP (obj))
+    return true;
+  else if (STRINGP (obj))
+    return SCHARS (obj) > 0;
+  else if (SYMBOLP (obj))
+    return !NILP (Vprint_gensym) && !SYMBOL_INTERNED_P (obj);
+  else if (VECTORLIKEP (obj))
+    {
+      if (VECTORP (obj))
+	return ASIZE (obj) > 0;
+      else
+	return (CLOSUREP (obj)
+		|| CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+		|| HASH_TABLE_P (obj) || FONTP (obj)
+		|| RECORDP (obj));
+    }
+  else
+    return false;
+}
 
 /* The print preprocess stack, used to traverse data structures.  */
 
@@ -1418,12 +1434,12 @@ print_preprocess (Lisp_Object obj)
   eassert (!NILP (Vprint_circle));
   /* The ppstack may contain HASH_UNUSED_ENTRY_KEY which is an invalid
      Lisp value.  Make sure that our filter stops us from traversing it.  */
-  eassert (!PRINT_CIRCLE_CANDIDATE_P (HASH_UNUSED_ENTRY_KEY));
+  eassert (!print_circle_candidate_p (HASH_UNUSED_ENTRY_KEY));
   ptrdiff_t base_sp = ppstack.sp;
 
   for (;;)
     {
-      if (PRINT_CIRCLE_CANDIDATE_P (obj))
+      if (print_circle_candidate_p (obj))
 	{
 	  if (!HASH_TABLE_P (Vprint_number_table))
 	    Vprint_number_table = CALLN (Fmake_hash_table, QCtest, Qeq);
@@ -2281,7 +2297,7 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 	  }
       being_printed[print_depth] = obj;
     }
-  else if (PRINT_CIRCLE_CANDIDATE_P (obj))
+  else if (print_circle_candidate_p (obj))
     {
       /* With the print-circle feature.  */
       Lisp_Object num = Fgethash (obj, Vprint_number_table, Qnil);

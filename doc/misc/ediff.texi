@@ -10,6 +10,7 @@
 @setfilename ../../info/ediff.info
 
 @settitle Ediff User's Manual
+@documentlanguage en
 @include docstyle.texi
 @synindex vr cp
 @synindex fn cp
@@ -26,7 +27,7 @@
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright @copyright{} 1995--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

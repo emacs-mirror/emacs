@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2025 Free
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2026 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -129,6 +129,7 @@ this variable."
 (defcustom add-log-always-start-new-record nil
   "If non-nil, `add-change-log-entry' will always start a new record."
   :version "22.1"
+  :safe #'booleanp
   :type 'boolean)
 
 (defvar add-log-buffer-file-name-function 'buffer-file-name
@@ -314,7 +315,6 @@ as a list of strings."
                                ",[[:blank:]]*" t)
            finally do (skip-chars-backward "\n[:blank:]")))
 
-(declare-function log-edit-fill-entry "log-edit")
 (defun change-log-insert-entries (changelogs)
   "Format and insert CHANGELOGS into current buffer.
 CHANGELOGS is a list in the form returned by
@@ -1022,7 +1022,10 @@ non-nil, otherwise in local time."
 (defun add-change-log-entry-other-window (&optional whoami file-name)
   "Find change log file in other window and add entry and item.
 This is just like `add-change-log-entry' except that it displays
-the change log file in another window."
+the change log file in another window.
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))

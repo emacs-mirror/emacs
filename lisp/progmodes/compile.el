@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2025 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
@@ -404,6 +404,22 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (ruby-Test::Unit
      "^    [[ ]?\\([^ (].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:in " 1 2)
+
+    ;; This must precede the `gnu' rule or the latter would match instead.
+    (rust-panic
+     ,(rx bol
+          ;; The test runner cargo-nextest indents its output by four spaces
+          ;; by default, although that can be disabled.
+          (opt "    ")
+          "thread '" (+ nonl) "' " (? "(" (+ digit) ") ")
+          (group-n 1 "panicked" ) " at"
+          " " (group-n 2 (+ nonl))  ; file
+          ":" (group-n 3 (+ digit)) ; line
+          ":" (group-n 4 (+ digit)) ; column
+          ":" eol)
+     2 3 4 nil
+     nil
+     (1 compilation-error-face))
 
     ;; Tested with Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT 2.1.
     (lua
@@ -954,7 +970,11 @@ The value nil as an element means to try the default directory."
 			 (string :tag "Directory"))))
 
 ;;;###autoload
-(defcustom compile-command "make -k "
+(defcustom compile-command
+  ;; Divide by less than 2 and round up to avoid using all processors on
+  ;; multi-core systems, but use at least one processor on a single-core
+  ;; system.
+  (format "make -k -j%d " (ceiling (num-processors) 1.5))
   "Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.
@@ -971,6 +991,8 @@ You might also use mode hooks to specify it in certain modes, like this:
 			    (file-name-sans-extension buffer-file-name))))))))
 
 It's often useful to leave a space at the end of the value."
+  :group 'compilation
+  :initialize #'custom-initialize-delay
   :type 'string)
 ;;;###autoload(put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (if (boundp 'compilation-read-command) compilation-read-command t))))
 
@@ -2443,7 +2465,8 @@ The parent is always `compilation-mode' and the customizable `compilation-...'
 variables are also set from the name of the mode you have chosen,
 by replacing the first word, e.g., `compilation-scroll-output' from
 `grep-scroll-output' if that variable exists."
-  (declare (indent defun))
+  (declare (indent defun)
+           (autoload-macro expand))
   (let ((mode-name (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
     `(define-derived-mode ,mode compilation-mode ,name
        ,doc
@@ -3062,7 +3085,8 @@ Actual value is never used, only the text property.")
 
 (defun compilation--set-up-margin (w)
   "Setup the margin for \"=>\" in window W if it isn't already set up."
-  (set-window-margins w (+ (or (car (window-margins w)) 0) 2)))
+  (when (eq (window-buffer w) (current-buffer))
+    (set-window-margins w (+ (or (car (window-margins w)) 0) 2))))
 
 (defun compilation--tear-down-margin (w)
   "Remove the margin for \"=>\" if it is setup in window W."

@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -356,16 +356,17 @@ of the elements of LIST is performed as if by `pcase-let'.
 ;;;###autoload
 (defmacro pcase-setq (pat val &rest args)
   "Assign values to variables by destructuring with `pcase'.
-PATTERNS are normal `pcase' patterns, and VALUES are expression.
+Each PATTERN is a normal `pcase' pattern, and each VALUE an expression.
 
 Evaluation happens sequentially as in `setq' (not in parallel).
 
 An example: (pcase-setq \\=`((,a) [(,b)]) \\='((1) [(2)]))
 
-VAL is presumed to match PAT.  Failure to match may signal an error or go
-undetected, binding variables to arbitrary values, such as nil.
+Each VALUE is presumed to match its PATTERN.  Failure to match may
+signal an error or go undetected, binding variables to arbitrary values,
+such as nil.
 
-\(fn PATTERNS VALUE PATTERN VALUES ...)"
+\(fn PATTERN VALUE PATTERN VALUE ...)"
   (declare (debug (&rest [pcase-PAT form])))
   (cond
    (args
@@ -522,7 +523,15 @@ how many time this CODEGEN is called."
     (cond
      ((null head)
       (if (pcase--self-quoting-p pat) `',pat pat))
-     ((memq head '(pred guard quote)) pat)
+     ((memq head '(guard quote)) pat)
+     ((eq head 'pred)
+      ;; Ad-hoc expansion of some predicates that are complements or aliases.
+      ;; Not required for correctness but results in better code.
+      (let ((equiv (assq (cadr pat) '((atom . (not consp))
+                                      (nlistp . (not listp))
+                                      (identity . (not null))
+                                      (not . null)))))
+        (if equiv `(,head ,(cdr equiv)) pat)))
      ((memq head '(or and)) `(,head ,@(mapcar #'pcase--macroexpand (cdr pat))))
      ((eq head 'app) `(app ,(nth 1 pat) ,(pcase--macroexpand (nth 2 pat))))
      (t
@@ -544,7 +553,9 @@ to this macro.
 By convention, DOC should use \"EXPVAL\" to stand
 for the result of evaluating EXP (first arg to `pcase').
 \n(fn NAME ARGS [DOC] &rest BODY...)"
-  (declare (indent 2) (debug defun) (doc-string 3))
+  (declare (indent 2) (debug defun) (doc-string 3)
+           ;; Expand to defun and related forms on autoload gen
+           (autoload-macro expand))
   ;; Add the function via `fsym', so that an autoload cookie placed
   ;; on a pcase-defmacro will cause the macro to be loaded on demand.
   (let ((fsym (intern (format "%s--pcase-macroexpander" name)))
@@ -651,13 +662,22 @@ recording whether the var has been referenced by earlier parts of the match."
                                (lambda (x y)
                                  (> (length (nth 2 x)) (length (nth 2 y))))))
 
+    ;; We presume that the "fundamental types" (i.e. the built-in types
+    ;; that have no subtypes) are all mutually exclusive and give them
+    ;; one bit each in bitsets.
+    ;; The "non-abstract-supertypes" also get their own bit.
+    ;; All other built-in types are abstract, so they don't need their
+    ;; own bits (they are faithfully modeled by the set of bits
+    ;; corresponding to their subtypes).
     (let ((bitsets (make-hash-table))
           (i 1))
       (dolist (x built-in-types)
         ;; Don't dedicate any bit to those predicates which already
         ;; have a bitset, since it means they're already represented
         ;; by their subtypes.
-        (unless (and (nth 1 x) (gethash (nth 1 x) bitsets))
+        (unless (and (nth 1 x) (gethash (nth 1 x) bitsets)
+                     (not (built-in-class--non-abstract-supertype
+                           (get (nth 0 x) 'cl--class))))
           (dolist (parent (nth 2 x))
             (let ((pred (nth 1 (assq parent built-in-types))))
               (unless (or (eq parent t) (null pred))
@@ -665,24 +685,35 @@ recording whether the var has been referenced by earlier parts of the match."
                          bitsets))))
           (setq i (+ i i))))
 
+      ;; (cl-assert (= (1- i) (apply #'logior (map-values bitsets))))
+
       ;; Extra predicates that don't have matching types.
-      (dolist (pred-types '((functionp cl-functionp consp symbolp)
-                            (keywordp symbolp)
-                            (characterp fixnump)
-                            (natnump integerp)
-                            (facep symbolp stringp)
-                            (plistp listp)
-                            (cl-struct-p recordp)
-                            ;; ;; FIXME: These aren't quite in the same
-                            ;; ;; category since they'll signal errors.
-                            (fboundp symbolp)
-                            ))
-        (puthash (car pred-types)
-                 (apply #'logior
-                        (mapcar (lambda (pred)
-                                  (gethash pred bitsets))
-                                (cdr pred-types)))
-                 bitsets))
+      ;; Beware: For these predicates, the bitsets are conservative
+      ;; approximations (so, e.g., it wouldn't be correct to use one of
+      ;; them after a `!' since the negation would be an unsound
+      ;; under-approximation).
+      (let ((all (1- i)))
+        (dolist (pred-types '((functionp cl-functionp consp symbolp)
+                              (keywordp symbolp)
+                              (nlistp ! listp)
+                              (characterp fixnump)
+                              (natnump integerp)
+                              (facep symbolp stringp)
+                              (plistp listp)
+                              (cl-struct-p recordp)
+                              ;; ;; FIXME: These aren't quite in the same
+                              ;; ;; category since they'll signal errors.
+                              (fboundp symbolp)
+                              ))
+          (let* ((types (cdr pred-types))
+                 (neg (when (eq '! (car types)) (setq types (cdr types))))
+                 (bitset (apply #'logior
+                                (mapcar (lambda (pred)
+                                          (gethash pred bitsets))
+                                        types))))
+            (puthash (car pred-types)
+                     (if neg (- all bitset) bitset)
+                     bitsets))))
       bitsets)))
 
 (defconst pcase--subtype-bitsets

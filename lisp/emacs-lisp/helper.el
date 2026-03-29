@@ -1,6 +1,6 @@
 ;;; helper.el --- utility help package supporting help in electric modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -40,6 +40,7 @@
 
 
 (defvar-keymap Helper-help-map
+  :prefix t
   "m" #'Helper-describe-mode
   "b" #'Helper-describe-bindings
   "c" #'Helper-describe-key-briefly
@@ -48,7 +49,6 @@
   ;;"v" #'Helper-describe-variable
   "?" #'Helper-help-options
   (help-key) #'Helper-help-options)
-(fset 'Helper-help-map Helper-help-map)
 
 (defun Helper-help-scroller ()
   (let ((blurb (or (and (boundp 'Helper-return-blurb)

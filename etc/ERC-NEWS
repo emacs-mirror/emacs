@@ -1,6 +1,6 @@
 ERC NEWS
 
-Copyright (C) 2006-2025 Free Software Foundation, Inc.
+Copyright (C) 2006-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send ERC bug reports to 'bug-gnu-emacs@gnu.org',
@@ -10,6 +10,20 @@ If possible, use 'M-x erc-bug' or 'M-x report-emacs-bug'.
 This file is about changes in ERC, the powerful, modular, and
 extensible IRC (Internet Relay Chat) client distributed with
 GNU Emacs since Emacs version 22.1.
+
+
+* Changes in ERC 5.6.2
+
+** Changes in the library API.
+
+*** Accessors like 'erc-channel-user-voice' may ignore assignments.
+ERC now silently ignores attempts to enable certain status flags on
+'erc-channel-user' objects if the connection's "PREFIX" parameter omits
+them.  In the future, ERC will likely signal an error if such an attempt
+is made.  Users can preview this potentially disruptive behavior by
+setting the new variable 'erc-channel-user-signal-if-status-unknown' to
+t.  This change stems from a bug fix for a regression affecting ERC 5.6
+and 5.6.1 in which these accessors mishandled unsupported flags.
 
 
 * Changes in ERC 5.6.1
@@ -36,6 +50,10 @@ The command 'erc-fill-wrap-cycle-visual-movement' was mistakenly given
 the key binding "C-c a" in an inadvertent holdover from development.  It
 has been removed.
 
+** The 'fill-wrap' module no longer depends on 'scrolltobottom'.
+This change also affects the option 'erc-fill-function' when it's set to
+'erc-fill-wrap'.
+
 ** Updated defaults for the 'track' module's face-list options.
 The default values of options 'erc-track-faces-priority-list' and
 'erc-track-faces-normal-list' have both gained a face for buttonized
@@ -50,8 +68,8 @@ ERC buffers as having been read.
 ** An arguably less distracting 'erc-nicks-track-faces' variant.
 Setting this option to t tells the 'track' module to have the mode-line
 indicator stick with the most recent speaker's face, even when they're
-monologuing, instead of alternating between it and the highest ranked
-'erc-track-faces-normal-list' member in a given message.
+the only speaker, instead of alternating between it and the highest
+ranked 'erc-track-faces-normal-list' member in a given message.
 
 ** Module 'querypoll' has left 'goodies' and moved in with 'notify'.
 The 'querypoll' module was initially placed in 'erc-goodies' even though

@@ -1,11 +1,11 @@
 ;;; compat.el --- Stub of the Compatibility Library -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Author: Philip Kaludercic <philipk@posteo.net>,
 ;;	   Daniel Mendler <mail@daniel-mendler.de>
 ;; Maintainers: Daniel Mendler <mail@daniel-mendler.de>,
-;;		Compat Development <~pkal/compat-devel@lists.sr.ht>,
+;;		Philip Kaludercic <philipk@posteo.net>,
 ;;		emacs-devel@gnu.org
 ;; URL: https://github.com/emacs-compat/compat
 ;; Keywords: lisp, maint

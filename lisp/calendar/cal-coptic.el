@@ -1,6 +1,6 @@
 ;;; cal-coptic.el --- calendar functions for the Coptic/Ethiopic calendars  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -148,8 +148,7 @@ Reads a year, month, and day."
          (month (cdr (assoc-string
                       (completing-read
                        (format "%s calendar month name: " calendar-coptic-name)
-                       (mapcar 'list
-                               (append calendar-coptic-month-name-array nil))
+                       (append calendar-coptic-month-name-array nil)
                        nil t)
                       (calendar-make-alist calendar-coptic-month-name-array
                                            1)
@@ -158,7 +157,7 @@ Reads a year, month, and day."
          (day (calendar-read-sexp
                "%s calendar day (1-%d)"
                (lambda (x) (and (< 0 x) (<= x last)))
-               nil
+               1
                calendar-coptic-name last)))
     (list (list month day year))))
 

@@ -1,5 +1,5 @@
 /* Implementation details of FILE streams.
-   Copyright (C) 2007-2008, 2010-2025 Free Software Foundation, Inc.
+   Copyright (C) 2007-2008, 2010-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -82,7 +82,7 @@
 
 #include <errno.h>                             /* For detecting Plan9.  */
 
-#if defined __sferror || defined __DragonFly__ || defined __ANDROID__
+#if defined __sferror || defined __OpenBSD__ || defined __DragonFly__ || defined __ANDROID__
   /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin, Minix 3, Android */
 
 # if defined __DragonFly__          /* DragonFly */
@@ -108,13 +108,59 @@
 #  define _flags pub._flags
 #  define _r pub._r
 #  define _w pub._w
-# elif defined __ANDROID__ /* Android */
-#  ifdef __LP64__
+# elif defined __OpenBSD__          /* OpenBSD */
+#  if defined __sferror             /* OpenBSD <= 7.7 */
+#   define _gl_flags_file_t short
+#  else                             /* OpenBSD >= 7.8 */
+#   define _gl_flags_file_t int
+#  endif
+  /* Up to this commit from 2025-07-16
+     <https://github.com/openbsd/src/commit/b7f6c2eb760a2da367dd51d539ef06f5f3553790>
+     the innards of FILE were public.  After this commit, the innards of FILE
+     are hidden.  In this commit
+     <https://github.com/openbsd/src/commit/9063a2f1ec94013fb0e2c7ec851495108e788a6e>
+     they were reshuffled.  */
+#  if defined __sferror             /* OpenBSD <= 7.7 */
+#   define fp_ ((struct { unsigned char *_p; \
+                          int _r; \
+                          int _w; \
+                          _gl_flags_file_t _flags; \
+                          _gl_flags_file_t _file; \
+                          struct { unsigned char *_base; size_t _size; } _bf; \
+                          int _lbfsize; \
+                          void *_cookie; \
+                          void *_close; \
+                          void *_read; \
+                          void *_seek; \
+                          void *_write; \
+                          struct { unsigned char *_base; size_t _size; } _ext; \
+                          unsigned char *_up; \
+                          int _ur; \
+                          unsigned char _ubuf[3]; \
+                          unsigned char _nbuf[1]; \
+                          struct { unsigned char *_base; size_t _size; } _lb; \
+                          int _blksize; \
+                          fpos_t _offset; \
+                          /* More fields, not relevant here.  */ \
+                        } *) fp)
+#  else                             /* OpenBSD >= 7.8 */
+#   define fp_ ((struct { _gl_flags_file_t _flags; \
+                          _gl_flags_file_t _file; \
+                          unsigned char *_p; \
+                          int _r; \
+                          int _w; \
+                          struct { unsigned char *_base; size_t _size; } _bf; \
+                          int _lbfsize; \
+                          /* More fields, not relevant here.  */ \
+                        } *) fp)
+#  endif
+# elif defined __ANDROID__          /* Android */
+#  if defined __LP64__
 #   define _gl_flags_file_t int
 #  else
 #   define _gl_flags_file_t short
 #  endif
-#  ifdef __LP64__
+#  if defined __LP64__
 #   define _gl_file_offset_t int64_t
 #  else
     /* see https://android.googlesource.com/platform/bionic/+/master/docs/32-bit-abi.md */
@@ -122,7 +168,7 @@
 #  endif
   /* Up to this commit from 2015-10-12
      <https://android.googlesource.com/platform/bionic.git/+/f0141dfab10a4b332769d52fa76631a64741297a>
-     the innards of FILE were public, and fp_ub could be defined like for OpenBSD,
+     the innards of FILE were public,
      see <https://android.googlesource.com/platform/bionic.git/+/e78392637d5086384a5631ddfdfa8d7ec8326ee3/libc/stdio/fileext.h>
      and <https://android.googlesource.com/platform/bionic.git/+/e78392637d5086384a5631ddfdfa8d7ec8326ee3/libc/stdio/local.h>.
      After this commit, the innards of FILE are hidden.  */
@@ -152,9 +198,8 @@
 #  define fp_ fp
 # endif
 
-# if (defined __NetBSD__ && __NetBSD_Version__ >= 105270000) || defined __OpenBSD__ || defined __minix /* NetBSD >= 1.5ZA, OpenBSD, Minix 3 */
+# if (defined __NetBSD__ && __NetBSD_Version__ >= 105270000) || defined __minix /* NetBSD >= 1.5ZA, Minix 3 */
   /* See <https://cvsweb.netbsd.org/bsdweb.cgi/src/lib/libc/stdio/fileext.h?rev=HEAD&content-type=text/x-cvsweb-markup>
-     and <https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdio/fileext.h?rev=HEAD&content-type=text/x-cvsweb-markup>
      and <https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/lib/libc/stdio/fileext.h> */
   struct __sfileext
     {
@@ -162,7 +207,7 @@
       /* More fields, not relevant here.  */
     };
 #  define fp_ub ((struct __sfileext *) fp->_ext._base)->_ub
-# elif defined __ANDROID__                     /* Android */
+# elif defined __ANDROID__ || defined __OpenBSD__ /* Android, OpenBSD */
   struct __sfileext
     {
       struct { unsigned char *_base; size_t _size; } _ub; /* ungetc buffer */
@@ -175,9 +220,11 @@
 
 # define HASUB(fp) (fp_ub._base != NULL)
 
-# if defined __ANDROID__ /* Android */
-  /* Needed after this commit from 2016-01-25
-     <https://android.googlesource.com/platform/bionic.git/+/e70e0e9267d069bf56a5078c99307e08a7280de7> */
+# if defined __ANDROID__ || defined __OpenBSD__ /* Android, OpenBSD */
+  /* Needed after this Android commit from 2016-01-25
+     <https://android.googlesource.com/platform/bionic.git/+/e70e0e9267d069bf56a5078c99307e08a7280de7>
+     And after this OpenBSD commit from 2025-07-16
+     <https://github.com/openbsd/src/commit/b7f6c2eb760a2da367dd51d539ef06f5f3553790>.  */
 #  ifndef __SEOF
 #   define __SLBF 1
 #   define __SNBF 2

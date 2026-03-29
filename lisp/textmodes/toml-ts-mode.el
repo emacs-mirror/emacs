@@ -1,6 +1,6 @@
 ;;; toml-ts-mode.el --- tree-sitter support for TOML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Jostein Kjønigsen <jostein@kjonigsen.net>
 ;; Maintainer : Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -42,7 +42,9 @@
         :commit "64b56832c2cffe41758f28e05c756a3a98d16f41")
  t)
 
-(defcustom toml-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'toml-ts-mode-indent-offset
+  'toml-ts-indent-offset "31")
+(defcustom toml-ts-indent-offset 2
   "Number of spaces for each indentation step in `toml-ts-mode'."
   :version "29.1"
   :type 'natnum
@@ -64,8 +66,8 @@
 (defvar toml-ts-mode--indent-rules
   `((toml
      ((node-is "]") parent-bol 0)
-     ((parent-is "string") parent-bol toml-ts-mode-indent-offset)
-     ((parent-is "array") parent-bol toml-ts-mode-indent-offset))))
+     ((parent-is "string") parent-bol toml-ts-indent-offset)
+     ((parent-is "array") parent-bol toml-ts-indent-offset))))
 
 (defvar toml-ts-mode--font-lock-settings
   (treesit-font-lock-rules
@@ -172,8 +174,10 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (derived-mode-add-parents 'toml-ts-mode '(toml-mode))
 
-(if (treesit-ready-p 'toml)
-    (add-to-list 'auto-mode-alist '("\\.toml\\'" . toml-ts-mode)))
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(conf-toml-mode . toml-ts-mode)))
 
 (provide 'toml-ts-mode)
 

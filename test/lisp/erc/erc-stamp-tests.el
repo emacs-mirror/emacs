@@ -1,6 +1,6 @@
 ;;; erc-stamp-tests.el --- Tests for erc-stamp.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -226,6 +226,7 @@
         (erc-hide-timestamps t)
         (erc-insert-timestamp-function 'erc-insert-timestamp-left)
         (erc-insert-modify-hook '(erc-make-read-only erc-add-timestamp))
+        (inhibit-message noninteractive)
         msg
         erc-kill-channel-hook erc-kill-server-hook erc-kill-buffer-hook)
     (should (not cursor-sensor-inhibit))
@@ -277,7 +278,8 @@
         (kill-buffer)))))
 
 (ert-deftest erc-echo-timestamp ()
-  :tags (and (null (getenv "CI")) '(:unstable))
+  ;; Only mark :unstable when running locally.
+  :tags (and (null (getenv "CI")) (null (getenv "EMACS_EMBA_CI")) '(:unstable))
 
   (should-not erc-echo-timestamps)
   (should-not erc-stamp--last-stamp)

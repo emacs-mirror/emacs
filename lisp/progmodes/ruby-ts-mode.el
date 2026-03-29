@@ -1,6 +1,6 @@
 ;;; ruby-ts-mode.el --- Major mode for editing Ruby files using tree-sitter -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author: Perry Smith <pedz@easesoftware.com>
 ;; Created: December 2022
@@ -68,11 +68,8 @@
 ;;
 ;;   will turn on the ruby-ts-mode for Ruby source files.
 ;;
-;; - If you have the Ruby grammar installed, add
-;;
-;;     (load "ruby-ts-mode")
-;;
-;;   to your init file.
+;; - If you have the Ruby grammar installed, customize
+;;   'treesit-enabled-modes' and add 'ruby-ts-mode' to it.
 ;;
 ;; You can also turn on this mode manually in a buffer.
 
@@ -874,7 +871,11 @@ a statement container is a node that matches
      ((and
        (not (eq ruby-bracketed-args-indent t))
        (string-match-p "\\`array\\|hash\\'" (treesit-node-type parent))
-       (equal (treesit-node-parent parent) found)
+       (or (equal (treesit-node-parent parent) found)
+           ;; When the array/hash is part of a pair (keyword argument),
+           ;; check if the pair's parent is the found node.
+           (and (equal (treesit-node-type (treesit-node-parent parent)) "pair")
+                (equal (treesit-node-parent (treesit-node-parent parent)) found)))
        ;; Grandparent is not a parenless call.
        (or (not (equal (treesit-node-type found) "argument_list"))
            (equal (treesit-node-type (treesit-node-child found 0))
@@ -1280,11 +1281,10 @@ leading double colon is not added."
 
 (derived-mode-add-parents 'ruby-ts-mode '(ruby-mode))
 
-(when (treesit-ready-p 'ruby)
-  (setq major-mode-remap-defaults
-        (assq-delete-all 'ruby-mode major-mode-remap-defaults))
-  (add-to-list 'major-mode-remap-defaults
-                 '(ruby-mode . ruby-ts-mode)))
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(ruby-mode . ruby-ts-mode)))
 
 (provide 'ruby-ts-mode)
 

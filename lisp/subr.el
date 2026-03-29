@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -568,7 +568,35 @@ Defaults to `error'."
            (cons parent (get parent 'error-conditions)))))
     (put name 'error-conditions
          (delete-dups (copy-sequence (cons name conditions))))
+    ;; FIXME: Make `error-message-string' more flexible, e.g. allow
+    ;; the message to be specified by a `format' string or a function.
     (when message (put name 'error-message message))))
+
+(defun error-type-p (symbol)
+  "Return non-nil if SYMBOL is a condition type."
+  (get symbol 'error-conditions))
+
+(defun error--p (object)
+  "Return non-nil if OBJECT looks like a valid error descriptor."
+  (let ((type (car-safe object)))
+    (and type (symbolp type) (listp (cdr object))
+         (error-type-p type))))
+
+(defalias 'error-type #'car
+ "Return the symbol which represents the type of ERROR.
+\n(fn ERROR)")
+
+(defun error-has-type-p (error condition)
+  "Return non-nil if ERROR is of type CONDITION (or a subtype of it)."
+  (unless (error--p error)
+    (signal 'wrong-type-argument (list #'error--p error)))
+  (or (eq condition t)
+      (memq condition (get (car error) 'error-conditions))))
+
+(defalias 'error-slot-value #'elt
+  "Access the SLOT of object ERROR.
+Slots are specified by position, and slot 0 is the error symbol.
+\n(fn ERROR SLOT)")
 
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
@@ -1134,6 +1162,82 @@ side-effects, and the argument LIST is not modified."
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
+
+(defun internal--effect-free-fun-arg-p (x)
+  (or (symbolp x) (closurep x) (memq (car-safe x) '(function quote))))
+
+(defun take-while (pred list)
+  "Return the longest prefix of LIST whose elements satisfy PRED."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f")))
+                     (r (make-symbol "r")))
+                `(let (,@(and f `((,f ,pred)))
+                       (,r nil)
+                       (,tail ,list))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (push (car ,tail) ,r)
+                     (setq ,tail (cdr ,tail)))
+                   (nreverse ,r))))))
+  (let ((r nil))
+    (while (and list (funcall pred (car list)))
+      (push (car list) r)
+      (setq list (cdr list)))
+    (nreverse r)))
+
+(defun drop-while (pred list)
+  "Skip initial elements of LIST satisfying PRED and return the rest."
+  (declare (compiler-macro
+            (lambda (_form)
+              (let* ((tail (make-symbol "tail"))
+                     (pred (macroexpand-all pred macroexpand-all-environment))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f"))))
+                `(let (,@(and f `((,f ,pred)))
+                       (,tail ,list))
+                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
+                     (setq ,tail (cdr ,tail)))
+                   ,tail)))))
+  (while (and list (funcall pred (car list)))
+    (setq list (cdr list)))
+  list)
+
+(defun all (pred list)
+  "Non-nil if PRED is true for all elements in LIST."
+  (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
+  (not (drop-while pred list)))
+
+(defun member-if (pred list)
+  "Non-nil if PRED is true for at least one element in LIST.
+Returns the suffix of LIST starting with the first element that
+satisfies PRED, or nil if none do.
+
+Compatibility note: this function replaces `cl-member-if' but does not
+support the latter's `:key KEY-FN' argument.  It is better to compose
+any KEY-FN into PRED.  For example, you can replace
+
+    (cl-member-if #\\='foo items :key #\\='bar)
+
+with
+
+    (member-if (lambda (x) (foo (bar x))) items)"
+  (declare (compiler-macro
+            (lambda (_)
+              (let* ((x (make-symbol "x"))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f")))
+                     (form `(drop-while (lambda (,x)
+                                          (not (funcall ,(or f pred) ,x)))
+                                        ,list)))
+                (if f `(let ((,f ,pred)) ,form) form)))))
+  (drop-while (lambda (x) (not (funcall pred x))) list))
+
+;; This is good to have for improved readability in certain uses, but
+;; use the traditional Lisp name for the underlying function.  --spwhitton
+(defalias 'any #'member-if)
 
 ;;;; Keymap support.
 
@@ -1971,8 +2075,9 @@ and `event-end' functions."
         (let* ((spacing (when (display-graphic-p frame)
                           (or (with-current-buffer
                                   (window-buffer (frame-selected-window frame))
-                                line-spacing)
-                              (frame-parameter frame 'line-spacing)))))
+                                (total-line-spacing))
+                              (total-line-spacing
+                               (frame-parameter frame 'line-spacing))))))
 	  (cond ((floatp spacing)
 	         (setq spacing (truncate (* spacing
 					    (frame-char-height frame)))))
@@ -2700,7 +2805,34 @@ Affects only hooks run in the current buffer."
      (let ((delay-mode-hooks t))
        ,@body)))
 
-;;; `when-let' and friends.
+;;; `if-let*' and friends.
+;;
+;; We considered adding a `cond-let*' in late 2025:
+;; <https://lists.gnu.org/archive/html/emacs-devel/2025-09/msg00058.html>.
+;; We decided to add the `bind-and*' clause type to `cond*' instead.
+;; At first it seems simple to extend `if-let*'/`when-let*'/`and-let*'
+;; to `cond', but the extension is not unambiguous: there are multiple
+;; useful, incompatible ways to do it.
+;; In particular, it quickly becomes clear that one wants clauses that
+;; only establish bindings for proceeding clauses, instead of exiting
+;; the `cond-let*'.  But then
+;; - Should these bindings be just like in `let*', or like in
+;;   `if-let*'?  In other words, should it be that if a binding
+;;   evaluates to nil we skip the remaining bindings (bind them all to
+;;   nil)?  Both ways of doing it seem useful.
+;; - The parentheses quickly pile up.  How can we avoid the programmer
+;;   having to count parentheses?  Some propose using square brackets
+;;   (i.e., vectors) for the binding-only clauses, but Emacs Lisp is a
+;;   traditional Lisp which uses exclusively parentheses for control
+;;   constructs.  Therefore, introducing square brackets here would be
+;;   jarring to read.  Another option would be to use symbols at the
+;;   beginning of clauses, like `cond*' does.
+;; Whichever way one goes, the resulting macro ends up complicated,
+;; with a substantial learning burden.  Adding `bind-and*' clauses to
+;; `cond*' gives us the desired functionality, and does not make
+;; `cond*' much more complicated.  In other words, `cond*' is already
+;; complicated, and one complicated `cond'-extending macro is better
+;; than two.  --spwhitton
 
 (defun internal--build-binding (binding prev-var)
   "Check and build a single BINDING with PREV-VAR."
@@ -2728,6 +2860,9 @@ Affects only hooks run in the current buffer."
                 binding))
             bindings)))
 
+;; FIXME: Once Emacs 29 is ancient history we can consider a
+;; byte-compiler warning.  This is because Emacs 29 and older will warn
+;; about unused variables with (_ VALUEFORM).
 (defmacro if-let* (varlist then &rest else)
   "Bind variables according to VARLIST and evaluate THEN or ELSE.
 Evaluate each binding in turn, as in `let*', stopping if a
@@ -2735,12 +2870,18 @@ binding value is nil.  If all are non-nil return the value of
 THEN, otherwise the value of the last form in ELSE, or nil if
 there are none.
 
-Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds
-SYMBOL to the value of VALUEFORM.  An element can additionally be
-of the form (VALUEFORM), which is evaluated and checked for nil;
-i.e. SYMBOL can be omitted if only the test result is of
-interest.  It can also be of the form SYMBOL, then the binding of
-SYMBOL is checked for nil."
+Each element of VARLIST is a list (SYMBOL VALUEFORM) that binds SYMBOL
+to the value of VALUEFORM.  If only the test result is of interest, use
+`_' as SYMBOL, i.e. (_ VALUEFORM), in which case VALUEFORM is evaluated
+and checked for nil but the result is not bound.
+An element of VARLIST can also be of the form SYMBOL, in which case the
+binding of SYMBOL is checked for nil, only.
+
+An older form for entries of VARLIST is also supported, where SYMBOL is
+omitted, i.e. (VALUEFORM).  This means the same as (_ VALUEFORM).
+This form is not recommended because many Lisp programmers find it
+significantly less readable.  A future release of Emacs may introduce a
+byte-compiler warning for uses of (VALUEFORM) in VARLIST."
   (declare (indent 2)
            (debug ((&rest [&or symbolp (symbolp form) (form)])
                    body)))
@@ -2781,11 +2922,11 @@ for forms evaluated for side-effect with returned values ignored."
   ;;   both `when-let*' and `and-let*' (in addition to the additional
   ;;   feature of `and-let*' when BODY is empty).
   (declare (indent 1) (debug if-let*))
-  (let (res)
+  (let (res (body* (macroexp-progn body)))
     (if varlist
         `(let* ,(setq varlist (internal--build-bindings varlist))
-           (when ,(setq res (caar (last varlist)))
-             ,@(or body `(,res))))
+           ,(progn (setq res (caar (last varlist)))
+                   (if body* `(and ,res ,body*) res)))
       `(let* () ,@(or body '(t))))))
 
 (defmacro if-let (spec then &rest else)
@@ -2860,38 +3001,54 @@ By default we choose the head of the first list."
   ;; [C3](https://en.wikipedia.org/wiki/C3_linearization)
   (let ((result '()))
     (setq lists (remq nil lists)) ;Don't mutate the original `lists' argument.
-    (while (cdr (setq lists (delq nil lists)))
-      ;; Try to find the next element of the result. This
-      ;; is achieved by considering the first element of each
-      ;; (non-empty) input list and accepting a candidate if it is
-      ;; consistent with the rests of the input lists.
-      (let* ((next nil)
-	     (tail lists))
-	(while tail
-	  (let ((candidate (caar tail))
-	        (other-lists lists))
-	    ;; Ensure CANDIDATE is not in any position but the first
-	    ;; in any of the element lists of LISTS.
-	    (while other-lists
-	      (if (not (memql candidate (cdr (car other-lists))))
-	          (setq other-lists (cdr other-lists))
-	        (setq candidate nil)
-	        (setq other-lists nil)))
-	    (if (not candidate)
-	        (setq tail (cdr tail))
-	      (setq next candidate)
-	      (setq tail nil))))
+    (while (cdr lists)
+      ;; Try to find the next element of the result.  This is achieved
+      ;; by considering the first element of each input list and accepting
+      ;; a candidate if it is consistent with the rest of the input lists.
+      (let* ((find-next
+	      (lambda (lists)
+	        (let ((next nil)
+	              (tail lists))
+	          (while tail
+	            (let ((candidate (caar tail))
+	                  (other-lists lists))
+	              ;; Ensure CANDIDATE is not in any position but the first
+	              ;; in any of the element lists of LISTS.
+	              (while other-lists
+	                (if (not (memql candidate (cdr (car other-lists))))
+	                    (setq other-lists (cdr other-lists))
+	                  (setq candidate nil)
+	                  (setq other-lists nil)))
+	              (if (not candidate)
+	                  (setq tail (cdr tail))
+	                (setq next candidate)
+	                (setq tail nil))))
+	          next)))
+	     (next (funcall find-next lists)))
 	(unless next ;; The graph is inconsistent.
-	  (setq next (funcall (or error-function #'caar) lists))
-	  (unless (assoc next lists #'eql)
-	    (error "Invalid candidate returned by error-function: %S" next)))
+	  (let ((tail lists))
+            ;; Try and reduce the "remaining-list" such that its `caar`
+            ;; participates in the inconsistency (is part of an actual cycle).
+	    (while (and (cdr tail) (null (funcall find-next (cdr tail))))
+	      (setq tail (cdr tail)))
+	    (setq next (funcall (or error-function
+	                            (lambda (remaining-lists)
+                                      (message "Inconsistent hierarchy: %S"
+                                               remaining-lists)
+                                      (caar remaining-lists)))
+	                        tail))
+	    (unless (assoc next lists #'eql)
+	      (error "Invalid candidate returned by error-function: %S" next))
+	    ;; Break the cycle, while keeping other dependencies.
+            (dolist (list lists) (setcdr list (remq next (cdr list))))))
 	;; The graph is consistent so far, add NEXT to result and
 	;; merge input lists, dropping NEXT from their heads where
 	;; applicable.
 	(push next result)
 	(setq lists
-	      (mapcar (lambda (l) (if (eql (car l) next) (cdr l) l))
-		      lists))))
+	      (delq nil
+		    (mapcar (lambda (l) (if (eql (car l) next) (cdr l) l))
+		            lists)))))
     (if (null result) (car lists) ;; Common case.
       (append (nreverse result) (car lists)))))
 
@@ -3038,6 +3195,10 @@ though trying to avoid AVOIDED-MODES."
 					 overwrite-mode view-mode
                                          hs-minor-mode)
   "List of all minor mode functions.")
+
+(defvar global-minor-modes nil
+  "A list of the currently enabled global minor modes.
+This is a list of symbols.")
 
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
@@ -3609,7 +3770,13 @@ argument INHIBIT-KEYBOARD-QUIT is ignored.  However, if
 function is used instead (see `read-char-choice-with-read-key'),
 and INHIBIT-KEYBOARD-QUIT is passed to it."
   (if (not read-char-choice-use-read-key)
-      (read-char-from-minibuffer prompt chars)
+      ;; We are about to enter recursive-edit, which sets
+      ;; 'last-command'.  If the callers of this function have some
+      ;; logic based on 'last-command's value (example: 'kill-region'),
+      ;; that could interfere with their logic.  So we let-bind
+      ;; 'last-command' here to prevent that.
+      (let ((last-command last-command))
+        (read-char-from-minibuffer prompt chars))
     (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
 
 (defun read-char-choice-with-read-key (prompt chars &optional inhibit-keyboard-quit)
@@ -3654,7 +3821,16 @@ causes it to evaluate `help-form' and display the result."
 	     ((and (null esc-flag) (eq char ?\e))
 	      (setq esc-flag t))
 	     ((memq char '(?\C-g ?\e))
-	      (keyboard-quit))))))))
+	      (keyboard-quit))))
+	   (t
+	    (beep)
+	    (message "Please type %s"
+		     (substitute-command-keys
+		      (mapconcat (lambda (c)
+				   (format "\\`%s'"
+					   (single-key-description c)))
+				 chars ", ")))
+	    (sit-for 3))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
@@ -4323,6 +4499,10 @@ at BEG.  Likewise, if the targeted overlays end after END, they
 will be altered so that they start at END.  Overlays that start
 at or after BEG and end before END will be removed completely.
 
+Empty overlays will be removed if they are at BEG, between BEG
+and END, or at END provided END denotes the position at the end
+of the buffer.
+
 BEG and END default respectively to the beginning and end of the
 buffer.
 Values are compared with `eq'.
@@ -4709,7 +4889,6 @@ It also runs the string through `yank-transform-functions'."
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
 	 (opoint (point))
-	 (inhibit-read-only inhibit-read-only)
 	 end)
 
     ;; FIXME: This throws away any yank-undo-function set by previous calls
@@ -4720,17 +4899,14 @@ It also runs the string through `yank-transform-functions'."
       (insert param))
     (setq end (point))
 
-    ;; Prevent read-only properties from interfering with the
-    ;; following text property changes.
-    (setq inhibit-read-only t)
+    (with-silent-modifications
+      (unless (nth 2 handler)           ; NOEXCLUDE
+        (remove-yank-excluded-properties opoint end))
 
-    (unless (nth 2 handler) ; NOEXCLUDE
-      (remove-yank-excluded-properties opoint end))
-
-    ;; If last inserted char has properties, mark them as rear-nonsticky.
-    (if (and (> end opoint)
-	     (text-properties-at (1- end)))
-	(put-text-property (1- end) end 'rear-nonsticky t))
+      ;; If last inserted char has properties, mark them as rear-nonsticky.
+      (if (and (> end opoint)
+	       (text-properties-at (1- end)))
+	  (put-text-property (1- end) end 'rear-nonsticky t)))
 
     (if (eq yank-undo-function t)		   ; not set by FUNCTION
 	(setq yank-undo-function (nth 3 handler))) ; UNDO
@@ -4964,6 +5140,70 @@ newlines."
   (call-process-region start end
                        shell-file-name delete buffer nil
                        shell-command-switch command))
+
+(defun multiple-command-partition-arguments (command arguments &optional shellp)
+  "Partition ARGUMENTS of COMMAND to avoid command line length limits.
+This function is for running commands on each element of ARGUMENTS where
+ARGUMENTS might be so long that invoking a single shell command on the
+entirety of ARGUMENTS at once might exceed the system's limits on
+program argument list length or total command line length.
+COMMAND is a string or list of strings, beginning with the command to be
+run on ARGUMENTS (unless SHELLP), and including any arguments that must
+be passed to every invocation of the command.
+ARGUMENTS is a list of strings.  Each one is a single argument.
+If SHELLP is non-nil, implicitly include `shell-file-name' and
+`shell-command-switch' at the front of COMMAND, and account for quoting
+and for space characters required between each argument.
+Return list of partitions of ARGUMENTS such that running a command
+formed of COMMAND plus any one of those partitions will not exceed the
+relevant system limits.
+
+This function takes a conservative approach and does not try to minimize
+the number of partitions of ARGUMENTS, because doing that would require
+a great deal of platform-specific information, and also information
+about encoding which is not currently made available to Lisp."
+  ;; An alternative on POSIX platforms would be to convert an E2BIG
+  ;; errno into a Lisp condition and then the calling code could decide
+  ;; what to do.  But that would impose a performance penalty because
+  ;; shelling out is relatively expensive.  So the idea is to just
+  ;; always preemptively call `multiple-command-partition-arguments'.
+  (let* ((command
+          (if shellp
+              (nconc (list shell-file-name shell-command-switch)
+                     (ensure-list command))
+            (ensure-list command)))
+         (fixed-args-len
+          (apply #'+ (mapcar #'length
+                             (if (eq system-type 'windows-nt)
+                                 command
+                               (nconc command process-environment)))))
+         (spaces-and-quotation
+          (or shellp (eq system-type 'windows-nt)))
+         (next-len 0)
+         next all-partitions)
+    (when spaces-and-quotation
+      ;; On MS-Windows every single argument will need to be quoted
+      ;; regardless of whether it contains any whitespace etc..
+      (incf fixed-args-len 2)
+      (incf fixed-args-len (* 3 (length command))))
+    (dolist (arg arguments)
+      (let ((len (if spaces-and-quotation
+                     (+ (length arg) 3)
+                   (length arg))))
+        (cond ((<= (+ fixed-args-len next-len len)
+                   (connection-local-value command-line-max-length))
+               (push arg next)
+               (incf next-len len))
+              ((<= (+ fixed-args-len len)
+                   (connection-local-value command-line-max-length))
+               (push (nreverse next) all-partitions)
+               (setq next (list arg) next-len len))
+              (t
+               (error "Impossible to partition arguments to fit system limits")))))
+    (nreverse (if next
+                  (cons (nreverse next) all-partitions)
+                all-partitions))))
+
 
 ;;;; Lisp macros to do various things temporarily.
 
@@ -5321,9 +5561,11 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
             (t val)))))))
 
 (defmacro condition-case-unless-debug (var bodyform &rest handlers)
-  "Like `condition-case' except that it does not prevent debugging.
-More specifically if `debug-on-error' is set then the debugger will be invoked
-even if this catches the signal."
+  "Like `condition-case', except that it does not prevent debugging.
+More specifically, if `debug-on-error' is set, then the debugger will
+be invoked even if some handler catches the signal.
+Note that this doesn't prevent the handler from executing, it just
+causes the debugger to be called before running the handler."
   (declare (debug condition-case) (indent 2))
   `(condition-case ,var
        ,bodyform
@@ -5740,11 +5982,7 @@ A regexp matching strings of whitespace.  May be locale-dependent
 Warning: binding this to a different value and using it as default is
 likely to have undesired semantics.")
 
-;; The specification says that if both SEPARATORS and OMIT-NULLS are
-;; defaulted, OMIT-NULLS should be treated as t.  Simplifying the logical
-;; expression leads to the equivalent implementation that if SEPARATORS
-;; is defaulted, OMIT-NULLS is treated as t.
-(defun split-string (string &optional separators omit-nulls trim)
+(defun split-string (string &optional separators omit-empty trim)
   "Split STRING into substrings bounded by matches for SEPARATORS.
 
 The beginning and end of STRING, and each match for SEPARATORS, are
@@ -5755,16 +5993,17 @@ which is returned.
 If SEPARATORS is non-nil, it should be a regular expression matching text
 that separates, but is not part of, the substrings.  If omitted or nil,
 it defaults to `split-string-default-separators', whose value is
-normally \"[ \\f\\t\\n\\r\\v]+\", and OMIT-NULLS is then forced to t.
+normally \"[ \\f\\t\\n\\r\\v]+\", and OMIT-EMPTY is then forced to t.
+SEPARATORS should never be a regexp that matches the empty string.
 
-If OMIT-NULLS is t, zero-length substrings are omitted from the list (so
+If OMIT-EMPTY is t, zero-length substrings are omitted from the list (so
 that for the default value of SEPARATORS leading and trailing whitespace
 are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.
 
 If TRIM is non-nil, it should be a regular expression to match
 text to trim from the beginning and end of each substring.  If trimming
-makes the substring empty, it is treated as null.
+makes the substring empty and OMIT-EMPTY is t, it is dropped from the result.
 
 Note that the effect of `(split-string STRING)' is the same as
 `(split-string STRING split-string-default-separators t)'.  In the rare
@@ -5773,62 +6012,66 @@ whitespace, use `(split-string STRING split-string-default-separators)'.
 
 Modifies the match data; use `save-match-data' if necessary."
   (declare (important-return-value t))
-  (let* ((keep-nulls (not (if separators omit-nulls t)))
-	 (rexp (or separators split-string-default-separators))
-	 (start 0)
-	 this-start this-end
-	 notfirst
-         match-beg
-	 (list nil)
-         (strlen (length string))
-	 (push-one
-	  ;; Push the substring in range THIS-START to THIS-END
-	  ;; onto LIST, trimming it and perhaps discarding it.
-	  (lambda ()
-	    (when trim
-	      ;; Discard the trim from start of this substring.
-	      (let ((tem (string-match trim string this-start)))
-		(and (eq tem this-start)
-                     (<= (match-end 0) this-end)
-		     (setq this-start (match-end 0)))))
-
-	    (when (or keep-nulls (< this-start this-end))
-	      (let ((this (substring string this-start this-end)))
-
-		;; Discard the trim from end of this substring.
-		(when trim
-		  (let ((tem (string-match (concat trim "\\'") this 0)))
-		    (and tem (< tem (length this))
-			 (setq this (substring this 0 tem)))))
-
-		;; Trimming could make it empty; check again.
-		(when (or keep-nulls (plusp (length this)))
-		  (push this list)))))))
-
-    (while (and (string-match rexp string
-			      (if (and notfirst
-				       (= start match-beg) ; empty match
-				       (< start strlen))
-				  (1+ start) start))
-		(< start strlen))
-      (setq notfirst t
-            match-beg (match-beginning 0))
-      ;; If the separator is right at the beginning, produce an empty
-      ;; substring in the result list.
-      (if (= start match-beg)
-          (setq this-start (match-end 0)
-                this-end this-start)
-        ;; Otherwise produce a substring from start to the separator.
-        (setq this-start start this-end match-beg))
-      (setq start (match-end 0))
-
-      (funcall push-one))
-
-    ;; Handle the substring at the end of STRING.
-    (setq this-start start this-end strlen)
-    (funcall push-one)
-
-    (nreverse list)))
+  (let* ((keep-empty (and separators (not omit-empty)))
+	 (len (length string))
+         (trim-left-re (and trim (concat "\\`\\(?:" trim "\\)")))
+         (trim-right-re (and trim (concat "\\(?:" trim "\\)\\'")))
+         (sep-re (or separators split-string-default-separators))
+         (acc nil)
+         (next 0)
+         (start 0))
+    (while
+        ;; TODO: The semantics for empty matches are just a copy of
+        ;; the original code and make no sense at all. It's just a
+        ;; consequence of the original implementation, no thought behind it.
+        ;; We should probably error on empty matches, except when
+        ;; sep is "" (which is in use by some code) but in that case
+        ;; we could provide a faster implementation.
+        (let ((sep (string-match sep-re string next)))
+          (and sep
+               (let ((sep-end (match-end 0)))
+                 (when (or keep-empty (< start sep))
+                   ;; TODO: Ideally we'd be able to trim in the
+                   ;; original string and only make a substring after
+                   ;; doing so, but there is no way to bound a regexp
+                   ;; search before a certain offset, nor to anchor it
+                   ;; at the search boundaries.
+                   (let ((item (substring string start sep)))
+                     (if trim
+                         (let* ((item-beg
+                                 (if (string-match trim-left-re item 0)
+                                     (match-end 0)
+                                   0))
+                                (item-len (length item))
+                                (item-end
+                                 (or (string-match-p trim-right-re
+                                                     item item-beg)
+                                     item-len)))
+                           (when (or (> item-beg 0) (< item-end item-len))
+                             (setq item (substring item item-beg item-end)))
+                           (when (or keep-empty (< item-beg item-end))
+                             (push item acc)))
+                       (push item acc))))
+                 ;; This ensures progress in case the match was empty.
+                 (setq next (max (1+ next) sep-end))
+                 (setq start sep-end)
+                 (< start len)))))
+    ;; field after last separator, if any
+    (let ((item (if (= start 0)
+                    string    ; optimisation when there is no separator
+                  (substring string start))))
+      (when trim
+        (let* ((item-beg (if (string-match trim-left-re item 0)
+                             (match-end 0)
+                           0))
+               (item-len (length item))
+               (item-end (or (string-match-p trim-right-re item item-beg)
+                             item-len)))
+          (when (or (> item-beg 0) (< item-end item-len))
+            (setq item (substring item item-beg item-end)))))
+      (when (or keep-empty (not (equal item "")))
+        (push item acc)))
+    (nreverse acc)))
 
 (defalias 'string-split #'split-string)
 
@@ -6027,7 +6270,10 @@ consisting of STR followed by an invisible left-to-right mark
   "Return non-nil if STRING1 is greater than STRING2 in lexicographic order.
 Case is significant.
 Symbols are also allowed; their print names are used instead."
-  (declare (pure t) (side-effect-free t))
+  (declare (compiler-macro (lambda (_)
+                             (let ((arg1 (make-symbol "arg1")))
+                               `(let ((,arg1 ,string1))
+                                  (string-lessp ,string2 ,arg1))))))
   (string-lessp string2 string1))
 
 
@@ -6847,19 +7093,33 @@ to deactivate this transient map, regardless of KEEP-PRED."
 ;; digits of precision, it doesn't really matter here.  On the other
 ;; hand, it greatly simplifies the code.
 
+(defvar progress-reporter-update-functions (list #'progress-reporter-echo-area)
+  "Special hook run on progress-reporter updates.
+Each function is called with two arguments:
+REPORTER is the result of a call to `make-progress-reporter'.
+STATE can be one of:
+- A float representing the percentage complete in the range 0.0-1.0
+for a numeric reporter.
+- An integer representing the index which cycles through the range 0-3
+for a pulsing reporter.
+- The symbol `done' to indicate that the progress reporter is complete.")
+
 (defsubst progress-reporter-update (reporter &optional value suffix)
-  "Report progress of an operation in the echo area.
+  "Report progress of an operation, by default, in the echo area.
 REPORTER should be the result of a call to `make-progress-reporter'.
 
 If REPORTER is a numerical progress reporter---i.e. if it was
- made using non-nil MIN-VALUE and MAX-VALUE arguments to
- `make-progress-reporter'---then VALUE should be a number between
- MIN-VALUE and MAX-VALUE.
+made using non-nil MIN-VALUE and MAX-VALUE arguments to
+`make-progress-reporter'---then VALUE should be a number between
+MIN-VALUE and MAX-VALUE.
 
-Optional argument SUFFIX is a string to be displayed after
-REPORTER's main message and progress text.  If REPORTER is a
-non-numerical reporter, then VALUE should be nil, or a string to
-use instead of SUFFIX.
+Optional argument SUFFIX is a string to be displayed after REPORTER's
+main message and progress text.  If REPORTER is a non-numerical
+reporter, then VALUE should be nil, or a string to use instead of
+SUFFIX.  SUFFIX is considered obsolete and may be removed in the future.
+
+See `progress-reporter-update-functions' for the list of functions
+called on each update.
 
 This function is relatively inexpensive.  If the change since
 last update is too small or insufficient time has passed, it does
@@ -6869,7 +7129,8 @@ nothing."
     (progress-reporter-do-update reporter value suffix)))
 
 (defun make-progress-reporter (message &optional min-value max-value
-				       current-value min-change min-time)
+				       current-value min-change min-time
+                                       context)
   "Return progress reporter object for use with `progress-reporter-update'.
 
 MESSAGE is shown in the echo area, with a status indicator
@@ -6896,13 +7157,18 @@ and/or MAX-VALUE are nil.
 Optional MIN-TIME specifies the minimum interval time between
 echo area updates (default is 0.2 seconds.)  If the OS is not
 capable of measuring fractions of seconds, this parameter is
-effectively rounded up."
+effectively rounded up.
+
+Optional CONTEXT can be nil or `async'.  It is consulted by back ends before
+showing progress updates.  For example, when CONTEXT is `async',
+the echo area progress reports may be muted if the echo area is busy."
   (when (string-match "[[:alnum:]]\\'" message)
     (setq message (concat message "...")))
   (unless min-time
     (setq min-time 0.2))
   (let ((reporter
 	 (cons (or min-value 0)
+	       ;; FIXME: Use defstruct.
 	       (vector (if (>= min-time 0.02)
 			   (float-time) nil)
 		       min-value
@@ -6911,12 +7177,22 @@ effectively rounded up."
 		       (if min-change (max (min min-change 50) 1) 1)
                        min-time
                        ;; SUFFIX
-                       nil))))
+                       nil
+                       ;;
+                       context))))
     ;; Force a call to `message' now.
     (progress-reporter-update reporter (or current-value min-value))
     reporter))
 
 (defalias 'progress-reporter-make #'make-progress-reporter)
+
+(defun progress-reporter-text (reporter)
+  "Return REPORTER's text."
+  (aref (cdr reporter) 3))
+
+(defun progress-reporter-context (reporter)
+  "Return REPORTER's context."
+  (aref (cdr reporter) 7))
 
 (defun progress-reporter-force-update (reporter &optional value new-message suffix)
   "Report progress of an operation in the echo area unconditionally.
@@ -6933,12 +7209,35 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
 (defvar progress-reporter--pulse-characters ["-" "\\" "|" "/"]
   "Characters to use for pulsing progress reporters.")
 
+(defun progress-reporter-echo-area (reporter state)
+  "Progress reporter echo area update function.
+REPORTER and STATE are the same as in
+`progress-reporter-update-functions'.
+
+Do not emit a message if the reporter context is `async' and the echo
+area is busy with something else."
+  (let ((text (progress-reporter-text reporter)))
+    (unless (and (eq (progress-reporter-context reporter) 'async)
+                 (current-message)
+                 (not (string-prefix-p text (current-message))))
+      (pcase state
+        ((pred floatp)
+         (if (plusp state)
+             (message "%s%d%%" text (* state 100.0))
+           (message "%s" text)))
+        ((pred integerp)
+         (let ((message-log-max nil)
+               (pulse-char (aref progress-reporter--pulse-characters
+                                 state)))
+           (message "%s %s" text pulse-char)))
+        ('done
+         (message "%sdone" text))))))
+
 (defun progress-reporter-do-update (reporter value &optional suffix)
-  (let* ((parameters   (cdr reporter))
-	 (update-time  (aref parameters 0))
-	 (min-value    (aref parameters 1))
-	 (max-value    (aref parameters 2))
-	 (text         (aref parameters 3))
+  (let* ((parameters      (cdr reporter))
+	 (update-time     (aref parameters 0))
+	 (min-value       (aref parameters 1))
+	 (max-value       (aref parameters 2))
 	 (enough-time-passed
 	  ;; See if enough time has passed since the last update.
 	  (or (not update-time)
@@ -6971,9 +7270,9 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
                (if suffix
                    (aset parameters 6 suffix)
                  (setq suffix (or (aref parameters 6) "")))
-               (if (plusp percentage)
-                   (message "%s%d%% %s" text percentage suffix)
-                 (message "%s %s" text suffix)))))
+               (run-hook-with-args 'progress-reporter-update-functions
+                                   reporter
+                                   (/ percentage 100.0)))))
 	  ;; Pulsing indicator
 	  (enough-time-passed
            (when (and value (not suffix))
@@ -6981,16 +7280,18 @@ NEW-MESSAGE, if non-nil, sets a new message for the reporter."
            (if suffix
                (aset parameters 6 suffix)
              (setq suffix (or (aref parameters 6) "")))
-           (let* ((index (mod (1+ (car reporter)) 4))
-                  (message-log-max nil)
-                  (pulse-char (aref progress-reporter--pulse-characters
-                                    index)))
+           (let ((index (mod (1+ (car reporter)) 4)))
 	     (setcar reporter index)
-             (message "%s %s %s" text pulse-char suffix))))))
+             (run-hook-with-args 'progress-reporter-update-functions
+                                 reporter
+                                 index))))))
 
 (defun progress-reporter-done (reporter)
-  "Print reporter's message followed by word \"done\" in echo area."
-  (message "%sdone" (aref (cdr reporter) 3)))
+  "Print reporter's message followed by word \"done\" in echo area.
+Call the functions on `progress-reporter-update-functions`."
+  (run-hook-with-args 'progress-reporter-update-functions
+                      reporter
+                      'done))
 
 (defmacro dotimes-with-progress-reporter (spec reporter-or-message &rest body)
   "Loop a certain number of times and report progress in the echo area.
@@ -7175,15 +7476,15 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	      (setq al (cdr al)))
 	    (cond (al
 		   (push (cdar al) lst))
-        ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
-        ;; the letter is the end of the version-string, to avoid
-        ;; 22.8X3 being valid
-        ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
-           (= i (length ver)))
+                  ;; Convert 22.3a to 22.3.1, 22.3b to 22.3.2, etc., but only if
+                  ;; the letter is the end of the version-string, to avoid
+                  ;; 22.8X3 being valid
+                  ((and (string-match "^[-._+ ]?\\([a-zA-Z]\\)$" s)
+                        (= i (length ver)))
 		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
 			 lst))
 		  (t (error "Invalid version syntax: `%s'" ver))))))
-    (nreverse lst))))
+      (nreverse lst))))
 
 (defun version-list-< (l1 l2)
   "Return t if L1, a list specification of a version, is lower than L2.
@@ -7442,7 +7743,18 @@ REGEXP defaults to  \"[ \\t\\n\\r]+\"."
 
 TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
   (declare (important-return-value t))
-  (string-trim-left (string-trim-right string trim-right) trim-left))
+  (let* ((beg (and (string-match (if trim-left
+                                     (concat "\\`\\(?:" trim-left "\\)")
+                                   "\\`[ \t\n\r]+")
+                                 string)
+                   (match-end 0)))
+         (end (string-match-p (if trim-right
+                                  (concat "\\(?:" trim-right "\\)\\'")
+                                "[ \t\n\r]+\\'")
+                              string beg)))
+    (if (or beg end)
+        (substring string beg end)
+      string)))
 
 (let ((missing (make-symbol "missing")))
   (defsubst hash-table-contains-p (key table)
@@ -7467,7 +7779,8 @@ seconds."
      (condition-case err
          (funcall fun)
        (error
-        (unless (y-or-n-p-with-timeout (format "Error %s; continue?" err)
+        (unless (y-or-n-p-with-timeout (format "Error %s; continue?"
+                                               (error-message-string err))
                                        5 t)
           (error err))))
      ;; Continue running.
@@ -7513,6 +7826,18 @@ If OBJECT is already a list, return OBJECT itself.  If it's
 not a list, return a one-element list containing OBJECT."
   (declare (side-effect-free error-free))
   (if (listp object)
+      object
+    (list object)))
+
+(defun ensure-proper-list (object)
+  "Return OBJECT as a list.
+If OBJECT is already a proper list, return OBJECT itself.  If it's not a
+proper list, return a one-element list containing OBJECT.
+
+`ensure-list' is usually preferable because that function runs in
+constant time, but this one has to traverse the whole of OBJECT."
+  (declare (side-effect-free error-free))
+  (if (proper-list-p object)
       object
     (list object)))
 
@@ -7582,14 +7907,14 @@ is inserted before adjusting the number of empty lines."
      ((< (- (point) start) lines)
       (insert (make-string (- lines (- (point) start)) ?\n))))))
 
-(defun string-lines (string &optional omit-nulls keep-newlines)
+(defun string-lines (string &optional omit-empty keep-newlines)
   "Split STRING into a list of lines.
-If OMIT-NULLS, empty lines will be removed from the results.
+If OMIT-EMPTY, empty lines will be removed from the results.
 If KEEP-NEWLINES, don't strip trailing newlines from the result
 lines."
   (declare (side-effect-free t))
   (if (equal string "")
-      (if omit-nulls
+      (if omit-empty
           nil
         (list ""))
     (let ((lines nil)
@@ -7598,13 +7923,13 @@ lines."
         (let ((newline (string-search "\n" string start)))
           (if newline
               (progn
-                (when (or (not omit-nulls)
+                (when (or (not omit-empty)
                           (not (= start newline)))
                   (let ((line (substring string start
                                          (if keep-newlines
                                              (1+ newline)
                                            newline))))
-                    (when (not (and keep-newlines omit-nulls
+                    (when (not (and keep-newlines omit-empty
                                     (equal line "\n")))
                       (push line lines))))
                 (setq start (1+ newline)))
@@ -7629,7 +7954,8 @@ CONDITION is either:
 - a cons-cell, where the car describes how to interpret the cdr.
   The car can be one of the following:
   * `derived-mode': the buffer matches if the buffer's major mode
-    is derived from the major mode in the cons-cell's cdr.
+    is derived from the major mode in the cons-cell's cdr, or from any
+    major mode in the list as accepted by `provided-mode-derived-p'.
   * `major-mode': the buffer matches if the buffer's major mode
     is eq to the cons-cell's cdr.  Prefer using `derived-mode'
     instead when both can work.
@@ -7744,5 +8070,13 @@ and return the value found in PLACE instead."
             `(progn
                ,(funcall setter val)
                ,val)))))
+
+(defun total-line-spacing (&optional line-spacing-param)
+  "Return numeric value of line-spacing, summing it if it's a cons.
+   When LINE-SPACING-PARAM is provided, calculate from it instead."
+  (let ((v (or line-spacing-param line-spacing)))
+    (pcase v
+      ((pred numberp) v)
+      (`(,above . ,below) (+ above below)))))
 
 ;;; subr.el ends here

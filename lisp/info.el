@@ -1,6 +1,6 @@
 ;;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -1343,7 +1343,13 @@ is non-nil)."
 
 	    (Info-select-node)
 	    (goto-char (point-min))
-	    (forward-line 1)		       ; skip header line
+            ;; Skip the header line or breadcrumbs, unless
+            ;; 'scroll-conservatively' is set to a large enough value
+            ;; which could cause us scroll the display to leave that
+            ;; line outside of the window.  The shortest node is 5
+            ;; lines, thus 6 is the threshold value.
+            (if (< scroll-conservatively 6)
+                (forward-line 1))
 	    ;; (when (> Info-breadcrumbs-depth 0) ; skip breadcrumbs line
 	    ;;   (forward-line 1))
 
@@ -1891,8 +1897,10 @@ of NODENAME; if none is found it then tries a case-insensitive match
                     (if (equal nodename "") "Top" nodename) nil strict-case)))
 
 (defun Info-goto-node-web (node)
-  "Use `browse-url' to go to the gnu.org web server's version of NODE.
-By default, go to the current Info node."
+  "Use `browse-url' to go to the gnu.org Web server's version of NODE.
+By default, go to the URL corresponding to the current Info node.
+
+This uses `Info-url-for-node' to determine the URL that corresponds to NODE."
   (interactive (list (Info-read-node-name
                       "Go to node (default current page): " Info-current-node))
                Info-mode)
@@ -1918,7 +1926,10 @@ By default, go to the current Info node."
 (defun Info-url-for-node (node)
   "Return the URL corresponding to NODE.
 
-NODE should be a string of the form \"(manual)Node\"."
+NODE should be a string of the form \"(manual)Node\".
+
+The correspondence between Info manuals and their Web URLs is
+established by `Info-url-alist', which see."
   ;; GNU Texinfo skips whitespaces and newlines between the closing
   ;; parenthesis and the node-name, i.e. space, tab, line feed and
   ;; carriage return.
@@ -4242,8 +4253,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map [follow-link] 'mouse-face)
     (define-key map [XF86Back] 'Info-history-back)
     (define-key map [XF86Forward] 'Info-history-forward)
-    (define-key map [tool-bar C-Back\ in\ history] 'Info-history-back-menu)
-    (define-key map [tool-bar C-Forward\ in\ history] 'Info-history-forward-menu)
+    (define-key map [tool-bar C-Back\ in\ History] 'Info-history-back-menu)
+    (define-key map [tool-bar C-Forward\ in\ History] 'Info-history-forward-menu)
     map)
   "Keymap containing Info commands.")
 
@@ -4386,12 +4397,12 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 (defun Info-history-back-menu (e)
   "Pop up the menu with a list of previously visited Info nodes."
   (interactive "e" Info-mode)
-  (Info-history-menu e "Back in history" Info-history 'Info-history-back))
+  (Info-history-menu e "Back in History" Info-history 'Info-history-back))
 
 (defun Info-history-forward-menu (e)
   "Pop up the menu with a list of Info nodes visited with `Info-history-back'."
   (interactive "e" Info-mode)
-  (Info-history-menu e "Forward in history" Info-history-forward 'Info-history-forward))
+  (Info-history-menu e "Forward in History" Info-history-forward 'Info-history-forward))
 
 (defvar Info-menu-last-node nil)
 ;; Last node the menu was created for.

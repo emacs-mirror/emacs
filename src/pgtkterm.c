@@ -1,6 +1,6 @@
 /* Communication module for window systems using GTK.
 
-Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2025 Free Software
+Copyright (C) 1989, 1993-1994, 2005-2006, 2008-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3361,32 +3361,39 @@ pgtk_draw_window_divider (struct window *w, int x0, int x1, int y0, int y1)
   if (y1 - y0 > x1 - x0 && x1 - x0 > 2)
     /* Vertical.  */
     {
-      pgtk_set_cr_source_with_color (f, color_first, false);
+      pgtk_set_cr_source_with_color (f, color_first,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0, 1, y1 - y0);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color, false);
+      pgtk_set_cr_source_with_color (f, color,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0 + 1, y0, x1 - x0 - 2, y1 - y0);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color_last, false);
+      pgtk_set_cr_source_with_color (f, color_last,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x1 - 1, y0, 1, y1 - y0);
       cairo_fill (cr);
     }
   else if (x1 - x0 > y1 - y0 && y1 - y0 > 3)
     /* Horizontal.  */
     {
-      pgtk_set_cr_source_with_color (f, color_first, false);
+      pgtk_set_cr_source_with_color (f, color_first,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0, x1 - x0, 1);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color, false);
+      pgtk_set_cr_source_with_color (f, color,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0 + 1, x1 - x0, y1 - y0 - 2);
       cairo_fill (cr);
-      pgtk_set_cr_source_with_color (f, color_last, false);
+      pgtk_set_cr_source_with_color (f, color_last,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y1 - 1, x1 - x0, 1);
       cairo_fill (cr);
     }
   else
     {
-      pgtk_set_cr_source_with_color (f, color, false);
+      pgtk_set_cr_source_with_color (f, color,
+                                     f->borders_respect_alpha_background);
       cairo_rectangle (cr, x0, y0, x1 - x0, y1 - y0);
       cairo_fill (cr);
     }
@@ -5686,10 +5693,11 @@ pgtk_focus_changed (gboolean is_enter, int state,
 
 	  /* Don't stop displaying the initial startup message
 	     for a switch-frame event we don't need.  */
-	  /* When run as a daemon, Vterminal_frame is always NIL.  */
+	  /* When run as a daemon, Vterminal_frame is always nil.
+	     FIXME: Isn't it actually the other way around?  */
 	  bufp->ie.arg = (((NILP (Vterminal_frame)
 			    || !FRAME_PGTK_P (XFRAME (Vterminal_frame))
-			    || EQ (Fdaemonp (), Qt))
+			    || IS_DAEMON)
 			   && CONSP (Vframe_list)
 			   && !NILP (XCDR (Vframe_list))) ? Qt : Qnil);
 	  bufp->ie.kind = FOCUS_IN_EVENT;

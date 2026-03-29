@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -176,7 +176,7 @@ must never cause a Lisp error."
 	  (error
 	   (setq parameters nil)
 	   (when signal-error
-	     (signal (car err) (cdr err)))))
+	     (signal err))))
 
 	;; Now collect and concatenate continuation parameters.
 	(let ((cparams nil)

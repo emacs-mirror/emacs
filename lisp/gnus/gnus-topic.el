@@ -1,6 +1,6 @@
 ;;; gnus-topic.el --- a folding minor mode for Gnus group buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2026 Free Software Foundation, Inc.
 
 ;; Author: Ilja Weis <kult@uni-paderborn.de>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -24,8 +24,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (require 'gnus)
 (require 'gnus-group)
@@ -893,8 +891,7 @@ articles in the topic and its subtopics."
 		      '(("misc")))))
   (setq gnus-topic-alist
 	(list (cons "misc"
-		    (mapcar (lambda (info) (gnus-info-group info))
-			    (cdr gnus-newsrc-alist)))
+		    (mapcar #'gnus-info-group (cdr gnus-newsrc-alist)))
 	      (list "Gnus")))
   (gnus-topic-enter-dribble))
 
@@ -1160,7 +1157,8 @@ articles in the topic and its subtopics."
                   #'gnus-topic-group-indentation)
       (setq-local gnus-group-update-group-function
 	          #'gnus-topic-update-topics-containing-group)
-      (setq-local gnus-group-sort-alist-function #'gnus-group-sort-topic)
+      (setq-local gnus-group-sort-alist-function #'gnus-group-sort-topic
+                  gnus-group-sort-selected-function #'gnus-group-sort-selected-topic)
       (setq gnus-group-change-level-function #'gnus-topic-change-level)
       (setq gnus-goto-missing-group-function #'gnus-topic-goto-missing-group)
       (add-hook 'gnus-check-bogus-groups-hook #'gnus-topic-clean-alist
@@ -1175,7 +1173,8 @@ articles in the topic and its subtopics."
       (setq gnus-group-change-level-function nil)
       (remove-hook 'gnus-check-bogus-groups-hook #'gnus-topic-clean-alist)
       (setq gnus-group-prepare-function #'gnus-group-prepare-flat)
-      (setq gnus-group-sort-alist-function #'gnus-group-sort-flat))
+      (setq gnus-group-sort-alist-function #'gnus-group-sort-flat
+            gnus-group-sort-selected-function #'gnus-group-sort-selected-flat))
     (when (called-interactively-p 'any)
       (gnus-group-list-groups))))
 
@@ -1653,20 +1652,36 @@ If performed on a topic, edit the topic parameters instead."
       (setcar alist (delete "dummy.group" (car alist)))
       (gnus-topic-sort-topic (pop alist) func reverse))))
 
+(defun gnus-group-sort-selected-topic (groups func reverse)
+  "Sort selected GROUPS in the topics according to FUNC and REVERSE."
+  (let ((alist gnus-topic-alist))
+    (while alist
+      ;; !!!Sometimes nil elements sneak into the alist,
+      ;; for some reason or other.
+      (setcar alist (delq nil (car alist)))
+      (setcar alist (delete "dummy.group" (car alist)))
+      (let* ((topic (pop alist))
+             (inter (seq-intersection groups (cdr topic))))
+        ;; Do something only if there are some selected groups in this
+        ;; topic.
+        (when inter
+          (let ((sorted (mapcar #'gnus-info-group
+                                (sort (mapcar #'gnus-get-info inter) func))))
+            ;; Do the reversal, if necessary.
+            (when reverse
+              (setq sorted (nreverse (cdr sorted))))
+            ;; Set the topic contents as the union of the sorted
+            ;; selected groups and its previous contents.
+            (setcdr topic (seq-union sorted (cdr topic)))))))))
+
 (defun gnus-topic-sort-topic (topic func reverse)
   ;; Each topic only lists the name of the group, while
   ;; the sort predicates expect group infos as inputs.
   ;; So we first transform the group names into infos,
   ;; then sort, and then transform back into group names.
-  (setcdr
-   topic
-   (mapcar
-    (lambda (info) (gnus-info-group info))
-    (sort
-     (mapcar
-      (lambda (group) (gnus-get-info group))
-      (cdr topic))
-     func)))
+  (setcdr topic
+          (mapcar #'gnus-info-group
+                  (sort (mapcar #'gnus-get-info (cdr topic)) func)))
   ;; Do the reversal, if necessary.
   (when reverse
     (setcdr topic (nreverse (cdr topic)))))

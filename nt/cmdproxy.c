@@ -1,5 +1,5 @@
 /* Proxy shell designed for use with Emacs on Windows 95 and NT.
-   Copyright (C) 1997, 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 1997, 2001-2026 Free Software Foundation, Inc.
 
    Accepts subset of Unix sh(1) command-line options, for compatibility
    with elisp code written for Unix.  When possible, executes external
@@ -28,6 +28,10 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define DEFER_MS_W32_H
+/* We don't want to use the stdio-consolesafe redefinitions of *printf
+   functions, since (a) that pulls in stdio, which we don't want, see
+   below; and (b) we have our own implementations of *printf here.  */
+#define OMIT_CONSOLESAFE 1
 #include <config.h>
 
 #include <windows.h>

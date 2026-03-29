@@ -1,6 +1,6 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO <yamato@redhat.com>
 ;; Keywords: languages, faces
@@ -121,6 +121,7 @@
     ;; 3.8 PHDRS Command
     "PHDRS" "FILEHDR" "FLAGS"
     "PT_NULL" "PT_LOAD" "PT_DYNAMIC" "PT_INTERP" "PT_NOTE" "PT_SHLIB" "PT_PHDR"
+    "PT_TLS"
     ;; 3.9 VERSION Command
     "VERSION")
   "Keywords used of GNU ld script.")

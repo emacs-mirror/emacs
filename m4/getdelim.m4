@@ -1,7 +1,7 @@
 # getdelim.m4
-# serial 19
+# serial 22
 
-dnl Copyright (C) 2005-2007, 2009-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 2005-2007, 2009-2026 Free Software Foundation, Inc.
 dnl
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -44,6 +44,7 @@ AC_DEFUN([gl_FUNC_GETDELIM],
     int main ()
     {
       FILE *in = fopen ("./conftest.data", "r");
+      int result = 0;
       if (!in)
         return 1;
       {
@@ -53,7 +54,7 @@ AC_DEFUN([gl_FUNC_GETDELIM],
         size_t siz = 0;
         int len = getdelim (&line, &siz, '\n', in);
         if (!(len == 4 && line && strcmp (line, "foo\n") == 0))
-          { free (line); fclose (in); return 2; }
+          result |= 2;
         free (line);
       }
       {
@@ -62,11 +63,11 @@ AC_DEFUN([gl_FUNC_GETDELIM],
         char *line = NULL;
         size_t siz = (size_t)(~0) / 4;
         if (getdelim (&line, &siz, '\n', in) == -1)
-          { fclose (in); return 3; }
+          result |= 4;
         free (line);
       }
       fclose (in);
-      return 0;
+      return result;
     }
     ]])],
              [gl_cv_func_working_getdelim=yes],
@@ -91,6 +92,7 @@ AC_DEFUN([gl_FUNC_GETDELIM],
              ])
            ;;
        esac
+       rm -f conftest.data
       ])
     case "$gl_cv_func_working_getdelim" in
       *yes) ;;

@@ -1,6 +1,6 @@
 ;;; auth-source-pass.el --- Integrate auth-source with password-store -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2017-2026 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>
@@ -84,6 +84,9 @@ HOST, USER, PORT, REQUIRE, and MAX."
          nil)
         ((null host)
          ;; Do not build a result, as none will match when HOST is nil
+         nil)
+        ((not (file-directory-p auth-source-pass-filename))
+         ;; Do nothing if the password-store folder doesn't exist.
          nil)
         (auth-source-pass-extra-query-keywords
          (auth-source-pass--build-result-many host port user require max))

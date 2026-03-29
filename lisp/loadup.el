@@ -1,6 +1,6 @@
 ;;; loadup.el --- load up always-loaded Lisp files for Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 2001-2025 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -103,7 +103,7 @@
       ;; During bootstrapping the byte-compiler is run interpreted
       ;; when compiling itself, which uses a lot more stack
       ;; than usual.
-      (setq max-lisp-eval-depth (max max-lisp-eval-depth 4000))))
+      (setq max-lisp-eval-depth (max max-lisp-eval-depth 4200))))
 
 (message "Using load-path %s" load-path)
 
@@ -124,10 +124,6 @@
 (load "emacs-lisp/backquote")
 (load "subr")
 (load "keymap")
-
-;; Do it after subr, since both after-load-functions and add-hook are
-;; implemented in subr.el.
-(add-hook 'after-load-functions (lambda (_) (garbage-collect)))
 
 (load "version")
 
@@ -388,8 +384,10 @@
 
 (load "emacs-lisp/eldoc")
 (load "emacs-lisp/cconv")
-(when (and (compiled-function-p (symbol-function 'cconv-fv))
-           (compiled-function-p (symbol-function 'macroexpand-all)))
+;; It should be safe to set `internal-make-interpreted-closure-function'
+;; unconditionally, but if cconv and friends haven't been compiled yet,
+;; it's excruciatingly slow.
+(when (compiled-function-p (symbol-function 'cconv-fv))
   (setq internal-make-interpreted-closure-function
         #'cconv-make-interpreted-closure))
 (dlet ((cus-start--preload t)) ;; Tell `cus-start' we're preloading.
@@ -495,8 +493,6 @@ lost after dumping")))
 (setq custom-current-group-alist nil)
 
 (set-buffer-modified-p nil)
-
-(remove-hook 'after-load-functions (lambda (_) (garbage-collect)))
 
 (if (boundp 'load--prefer-newer)
     (progn

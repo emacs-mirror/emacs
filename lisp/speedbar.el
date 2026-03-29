@@ -1,6 +1,6 @@
 ;;; speedbar.el --- quick access to files and tags in a frame  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -1042,7 +1042,7 @@ be displayed.  Currently, only one speedbar is supported at a time.
     (- (nth 2 edges) (nth 0 edges))))
 
 (defun speedbar-frame-or-window ()
-  "Return `frame' or `window' if one of each are open.
+  "Return `frame' or `window' depending on what exists and is alive.
 Return nil if both are closed."
   (cond
    ((speedbar-window--live-p)
@@ -1050,6 +1050,7 @@ Return nil if both are closed."
    ((and (frame-live-p (speedbar-current-frame))
          speedbar-buffer
 	 (buffer-live-p speedbar-buffer)
+         (buffer-local-value 'dframe-controlled speedbar-buffer)
 	 (not (speedbar-window--live-p)))
     'frame)
    (t nil)))
@@ -1156,12 +1157,20 @@ we need to delete speedbar also."
 
 ;;;###autoload
 (defun speedbar-get-focus ()
-  "Change frame focus to or from the speedbar frame.
-If the selected frame is not speedbar, then speedbar frame is
-selected.  If the speedbar frame is active, then select the attached frame."
+  "Select speedbar window.
+
+If `speedbar-prefer-window' is nil, select the speedbar frame; if
+no such frame exists, create it.  If `speedbar-prefer-window' is
+non-nil, select the speedbar window; if no such window exists,
+create it."
   (interactive)
   (speedbar-reset-scanners)
-  (dframe-get-focus 'speedbar-frame 'speedbar-frame-mode)
+  (if speedbar-prefer-window
+      (progn
+        (when (not (speedbar-window--live-p))
+          (speedbar-window-mode 1))
+        (select-window speedbar--window))
+    (dframe-get-focus 'speedbar-frame 'speedbar-frame-mode))
   (let ((speedbar-update-flag t))
     (speedbar-timer-fn)))
 

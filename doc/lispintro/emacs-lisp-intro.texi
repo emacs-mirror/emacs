@@ -2,6 +2,7 @@
 @comment %**start of header
 @setfilename ../../info/eintr.info
 @settitle Programming in Emacs Lisp
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -39,14 +40,6 @@
 @smallbook
 @clear  largebook
 @end ifset
-
-@c ================ Included Figures ================
-
-@c If you clear this, the figures will be printed as ASCII diagrams
-@c rather than PostScript/PDF.
-@c (This is not relevant to Info, since Info only handles ASCII.)
-@set print-postscript-figures
-@c clear print-postscript-figures
 
 @comment %**end of header
 
@@ -115,7 +108,7 @@ Edition @value{edition-number}, @value{update-date}
 @sp 1
 Distributed with Emacs version @value{EMACSVER}.
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2025 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2026 Free Software
 Foundation, Inc.
 @sp 1
 
@@ -3192,7 +3185,7 @@ function, @code{multiply-by-seven}.  When you do this, a
 
 @smallexample
 @group
-multiply-by-seven is a Lisp function.
+multiply-by-seven is an interpreted-function.
 
 (multiply-by-seven NUMBER)
 
@@ -3524,7 +3517,10 @@ study, modify, and redistribute the code and which protects you from
 having your work taken from you.)  If you send a copy of your code to
 the Free Software Foundation, and properly protect yourself and
 others, it may be included in the next release of Emacs.  In large
-part, this is how Emacs has grown over the past years, by donations.
+part, this is how Emacs has grown over the past years, by contributions.
+
+@xref{Contributing, Contributing to Emacs Development,, emacs, The GNU
+Emacs Manual}, for how to contribute your code for inclusion in Emacs.
 
 @node let
 @section @code{let}
@@ -3782,15 +3778,21 @@ elisp, The Emacs Lisp Reference Manual}.
 
 @cindex Lexical binding
 @cindex Binding, lexical
-As we discussed before (@pxref{Prevent confusion}), when you create
-local variables with @code{let} under lexical binding, those variables
-are valid only within the body of the @code{let} expression.  In other
-parts of your code, they have other meanings, so if you call a
-function defined elsewhere within the @code{let} body, that function
-would be unable to ``see'' the local variables you've created.  (On
-the other hand, if you call a function that was defined within a
-@code{let} body, that function @emph{would} be able to see---and
-modify---the local variables from that @code{let} expression.)
+As we discussed before
+@iftex
+(@pxref{Permanent Installation}),
+@end iftex
+@ifnottex
+(@pxref{Prevent confusion}),
+@end ifnottex
+when you create local variables with @code{let} under lexical binding,
+those variables are valid only within the body of the @code{let}
+expression.  In other parts of your code, they have other meanings, so
+if you call a function defined elsewhere within the @code{let} body,
+that function would be unable to ``see'' the local variables you've
+created.  (On the other hand, if you call a function that was defined
+within a @code{let} body, that function @emph{would} be able to
+see---and modify---the local variables from that @code{let} expression.)
 
 @cindex Dynamic binding
 @cindex Binding, dynamic
@@ -4549,8 +4551,10 @@ An empty string, @samp{""}, a string with no characters in it, is
 smaller than any string of characters.
 
 @code{string-equal} provides the corresponding test for equality.  Its
-shorter, alternative name is @code{string=}.  There are no string test
-functions that correspond to @var{>}, @code{>=}, or @code{<=}.
+shorter, alternative name is @code{string=}.  Recent versions of Emacs
+added @code{string-greaterp} with @code{string>} as its shorter
+alternative.  There are no string test functions that correspond to
+@code{>=} or @code{<=}.
 
 @item message
 Print a message in the echo area.  The first argument is a string that
@@ -9553,40 +9557,10 @@ which holds the address for the atom @samp{buttercup}.
 
 @need 1200
 This sounds more complicated than it is and is easier seen in a diagram:
-
-@c clear print-postscript-figures
 @c !!! cons-cell-diagram #1
-@ifnottex
-@smallexample
-@group
-    ___ ___      ___ ___      ___ ___
-   |___|___|--> |___|___|--> |___|___|--> nil
-     |            |            |
-     |            |            |
-      --> rose     --> violet   --> buttercup
-@end group
-@end smallexample
-@end ifnottex
-@ifset print-postscript-figures
 @sp 1
-@tex
 @center @image{cons-1}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@smallexample
-@group
-    ___ ___      ___ ___      ___ ___
-   |___|___|--> |___|___|--> |___|___|--> nil
-     |            |            |
-     |            |            |
-      --> rose     --> violet   --> buttercup
-@end group
-@end smallexample
-@end iftex
-@end ifclear
 
 @noindent
 In the diagram, each box represents a word of computer memory that
@@ -9611,43 +9585,10 @@ evaluation of the expression
 @need 1250
 @noindent
 creates a situation like this:
-
 @c cons-cell-diagram #2
-@ifnottex
-@smallexample
-@group
-bouquet
-     |
-     |     ___ ___      ___ ___      ___ ___
-      --> |___|___|--> |___|___|--> |___|___|--> nil
-            |            |            |
-            |            |            |
-             --> rose     --> violet   --> buttercup
-@end group
-@end smallexample
-@end ifnottex
-@ifset print-postscript-figures
 @sp 1
-@tex
 @center @image{cons-2}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@smallexample
-@group
-bouquet
-     |
-     |     ___ ___      ___ ___      ___ ___
-      --> |___|___|--> |___|___|--> |___|___|--> nil
-            |            |            |
-            |            |            |
-             --> rose     --> violet   --> buttercup
-@end group
-@end smallexample
-@end iftex
-@end ifclear
 
 @noindent
 In this example, the symbol @code{bouquet} holds the address of the first
@@ -9656,43 +9597,10 @@ pair of boxes.
 @need 1200
 This same list can be illustrated in a different sort of box notation
 like this:
-
 @c cons-cell-diagram #2a
-@ifnottex
-@smallexample
-@group
-bouquet
- |
- |    --------------       ---------------       ----------------
- |   | car   | cdr  |     | car    | cdr  |     | car     | cdr  |
-  -->| rose  |   o------->| violet |   o------->| butter- |  nil |
-     |       |      |     |        |      |     | cup     |      |
-      --------------       ---------------       ----------------
-@end group
-@end smallexample
-@end ifnottex
-@ifset print-postscript-figures
 @sp 1
-@tex
 @center @image{cons-2a}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@smallexample
-@group
-bouquet
- |
- |    --------------       ---------------       ----------------
- |   | car   | cdr  |     | car    | cdr  |     | car     | cdr  |
-  -->| rose  |   o------->| violet |   o------->| butter- |  nil |
-     |       |      |     |        |      |     | cup     |      |
-      --------------       ---------------       ----------------
-@end group
-@end smallexample
-@end iftex
-@end ifclear
 
 (Symbols consist of more than pairs of addresses, but the structure of
 a symbol is made up of addresses.  Indeed, the symbol @code{bouquet}
@@ -9716,49 +9624,10 @@ evaluation of the following expression
 @need 800
 @noindent
 produces this:
-
 @c cons-cell-diagram #3
-@ifnottex
 @sp 1
-@smallexample
-@group
-bouquet        flowers
-  |              |
-  |     ___ ___  |     ___ ___      ___ ___
-   --> |   |   |  --> |   |   |    |   |   |
-       |___|___|----> |___|___|--> |___|___|--> nil
-         |              |            |
-         |              |            |
-          --> rose       --> violet   --> buttercup
-@end group
-@end smallexample
-@sp 1
-@end ifnottex
-@ifset print-postscript-figures
-@sp 1
-@tex
 @center @image{cons-3}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@sp 1
-@smallexample
-@group
-bouquet        flowers
-  |              |
-  |     ___ ___  |     ___ ___      ___ ___
-   --> |   |   |  --> |   |   |    |   |   |
-       |___|___|----> |___|___|--> |___|___|--> nil
-         |              |            |
-         |              |            |
-          --> rose       --> violet   --> buttercup
-@end group
-@end smallexample
-@sp 1
-@end iftex
-@end ifclear
 
 @noindent
 The value of @code{flowers} is @code{(violet buttercup)}, which is
@@ -9786,49 +9655,10 @@ the expression
 @need 1500
 @noindent
 produces:
-
 @c cons-cell-diagram #4
-@ifnottex
 @sp 1
-@smallexample
-@group
-bouquet                       flowers
-  |                             |
-  |     ___ ___        ___ ___  |     ___ ___       ___ ___
-   --> |   |   |      |   |   |  --> |   |   |     |   |   |
-       |___|___|----> |___|___|----> |___|___|---->|___|___|--> nil
-         |              |              |             |
-         |              |              |             |
-          --> lily      --> rose       --> violet    --> buttercup
-@end group
-@end smallexample
-@sp 1
-@end ifnottex
-@ifset print-postscript-figures
-@sp 1
-@tex
 @center @image{cons-4}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@sp 1
-@smallexample
-@group
-bouquet                       flowers
-  |                             |
-  |     ___ ___        ___ ___  |     ___ ___       ___ ___
-   --> |   |   |      |   |   |  --> |   |   |     |   |   |
-       |___|___|----> |___|___|----> |___|___|---->|___|___|--> nil
-         |              |              |             |
-         |              |              |             |
-          --> lily      --> rose       --> violet    --> buttercup
-@end group
-@end smallexample
-@sp 1
-@end iftex
-@end ifclear
 
 @need 1200
 @noindent
@@ -9885,77 +9715,10 @@ Reference Manual}.)
 
 @need 1500
 Here is a fanciful representation:
-
 @c chest-of-drawers diagram
-@ifnottex
 @sp 1
-@smallexample
-@group
-            Chest of Drawers            Contents of Drawers
-
-            __   o0O0o   __
-          /                 \
-         ---------------------
-        |    directions to    |            [map to]
-        |     symbol name     |             bouquet
-        |                     |
-        +---------------------+
-        |    directions to    |
-        |  symbol definition  |             [none]
-        |                     |
-        +---------------------+
-        |    directions to    |            [map to]
-        |    variable value   |             (rose violet buttercup)
-        |                     |
-        +---------------------+
-        |    directions to    |
-        |    property list    |             [not described here]
-        |                     |
-        +---------------------+
-        |/                   \|
-@end group
-@end smallexample
-@sp 1
-@end ifnottex
-@ifset print-postscript-figures
-@sp 1
-@tex
 @center @image{drawers}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@sp 1
-@smallexample
-@group
-            Chest of Drawers            Contents of Drawers
-
-            __   o0O0o   __
-          /                 \
-         ---------------------
-        |    directions to    |            [map to]
-        |     symbol name     |             bouquet
-        |                     |
-        +---------------------+
-        |    directions to    |
-        |  symbol definition  |             [none]
-        |                     |
-        +---------------------+
-        |    directions to    |            [map to]
-        |    variable value   |             (rose violet buttercup)
-        |                     |
-        +---------------------+
-        |    directions to    |
-        |    property list    |             [not described here]
-        |                     |
-        +---------------------+
-        |/                   \|
-@end group
-@end smallexample
-@sp 1
-@end iftex
-@end ifclear
 
 @node List Exercise
 @section Exercise
@@ -10068,55 +9831,10 @@ by both the @code{kill-ring} and the @code{kill-ring-yank-pointer}.  The
 words ``a different piece of text'' and ``yet more text'' are not
 duplicated.  Instead, the two Lisp variables point to the same pieces of
 text.  Here is a diagram:
-
 @c cons-cell-diagram #5
-@ifnottex
-@smallexample
-@group
-kill-ring     kill-ring-yank-pointer
-    |               |
-    |      ___ ___  |     ___ ___      ___ ___
-     ---> |   |   |  --> |   |   |    |   |   |
-          |___|___|----> |___|___|--> |___|___|--> nil
-            |              |            |
-            |              |            |
-            |              |             --> "yet more text"
-            |              |
-            |               --> "a different piece of text"
-            |
-             --> "some text"
-@end group
-@end smallexample
 @sp 1
-@end ifnottex
-@ifset print-postscript-figures
-@sp 1
-@tex
 @center @image{cons-5}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@smallexample
-@group
-kill-ring     kill-ring-yank-pointer
-    |               |
-    |      ___ ___  |     ___ ___      ___ ___
-     ---> |   |   |  --> |   |   |    |   |   |
-          |___|___|----> |___|___|--> |___|___|--> nil
-            |              |            |
-            |              |            |
-            |              |             --> "yet more text"
-            |              |
-            |               --> "a different piece of text"
-            |
-             --> "some text"
-@end group
-@end smallexample
-@sp 1
-@end iftex
-@end ifclear
 
 Both the variable @code{kill-ring} and the variable
 @code{kill-ring-yank-pointer} are pointers.  But the kill ring itself is
@@ -13108,7 +12826,7 @@ of the pattern.
 Specifically, @code{parsep} is set to the original value of the
 paragraph separate regular expression concatenated with an alternative
 expression that consists of the @code{fill-prefix-regexp} followed by
-optional whitespace to the end of the line.  The whitespace is defined
+optional whitespace to the end of the line.  (The whitespace is defined
 by @w{@code{"[ \t]*$"}}.)  The @samp{\\|} defines this portion of the
 regexp as an alternative to @code{parsep}.
 
@@ -17502,7 +17220,7 @@ If you load many extensions, as I do, then instead of specifying the
 exact location of the extension file, as shown above, you can specify
 that directory as part of Emacs's @code{load-path}.  Then, when Emacs
 loads a file, it will search that directory as well as its default
-list of directories.  (The default list is specified in @file{paths.h}
+list of directories.  (The default list is specified in @file{epaths.h}
 when Emacs is built.)
 
 @need 1250
@@ -20838,38 +20556,10 @@ equivalent of @code{multiply-by-seven} is:
 @need 1250
 @noindent
 If we want to multiply 3 by 7, we can write:
-
-@c clear print-postscript-figures
 @c lambda example diagram #1
-@ifnottex
-@smallexample
-@group
-(multiply-by-seven 3)
- \_______________/ ^
-         |         |
-      function  argument
-@end group
-@end smallexample
-@end ifnottex
-@ifset print-postscript-figures
 @sp 1
-@tex
 @center @image{lambda-1}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@smallexample
-@group
-(multiply-by-seven 3)
- \_______________/ ^
-         |         |
-      function  argument
-@end group
-@end smallexample
-@end iftex
-@end ifclear
 
 @noindent
 This expression returns 21.
@@ -20877,72 +20567,18 @@ This expression returns 21.
 @need 1250
 @noindent
 Similarly, we can write:
-
 @c lambda example diagram #2
-@ifnottex
-@smallexample
-@group
-((lambda (number) (* 7 number)) 3)
- \____________________________/ ^
-               |                |
-      anonymous function     argument
-@end group
-@end smallexample
-@end ifnottex
-@ifset print-postscript-figures
 @sp 1
-@tex
 @center @image{lambda-2}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@smallexample
-@group
-((lambda (number) (* 7 number)) 3)
- \____________________________/ ^
-               |                |
-      anonymous function     argument
-@end group
-@end smallexample
-@end iftex
-@end ifclear
 
 @need 1250
 @noindent
 If we want to divide 100 by 50, we can write:
-
 @c lambda example diagram #3
-@ifnottex
-@smallexample
-@group
-((lambda (arg) (/ arg 50)) 100)
- \______________________/  \_/
-             |              |
-    anonymous function   argument
-@end group
-@end smallexample
-@end ifnottex
-@ifset print-postscript-figures
 @sp 1
-@tex
 @center @image{lambda-3}
-@end tex
 @sp 1
-@end ifset
-@ifclear print-postscript-figures
-@iftex
-@smallexample
-@group
-((lambda (arg) (/ arg 50)) 100)
- \______________________/  \_/
-             |              |
-    anonymous function   argument
-@end group
-@end smallexample
-@end iftex
-@end ifclear
 
 @noindent
 This expression returns 2.  The 100 is passed to the function, which

@@ -1,6 +1,6 @@
 ;;; testcover.el --- Visual code-coverage tool  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2026 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: lisp utility
@@ -263,15 +263,11 @@ vector.  Return VALUE."
       (aset testcover-vector after-index
             (cons old-result (testcover--copy-object value))))
      ((and (eq (car-safe old-result) 'testcover-1value)
-           (not (condition-case ()
-                    (equal (cdr old-result) value)
-                  (circular-list t))))
+           (not (equal (cdr old-result) value)))
       (error "Value of form expected to be constant does vary, from %s to %s"
              old-result value))
      ;; Test if a different result.
-     ((not (condition-case ()
-               (equal value old-result)
-             (circular-list nil)))
+     ((not (equal value old-result))
       (aset testcover-vector after-index 'edebug-ok-coverage))))
   value)
 

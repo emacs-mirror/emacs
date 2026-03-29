@@ -1,6 +1,6 @@
 ;;; calccomp.el --- composition functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -911,17 +911,19 @@
 
 Elements of A must either be a character (see `characterp') or a complex
 number with only a real character part, each with a value less than or
-equal to the custom variable `calc-string-maximum-character'."
-  (while (and (setq a (cdr a))
-	      (or (and (characterp (car a))
-		       (<= (car a)
-			   calc-string-maximum-character))
-		  (and (eq (car-safe (car a)) 'cplx)
-		       (characterp (nth 1 (car a)))
-		       (eq (nth 2 (car a)) 0)
-		       (<= (nth 1 (car a))
-			   calc-string-maximum-character)))))
-  (null a))
+equal to the value of `calc-string-maximum-character'.  Return nil if
+`calc-string-maximum-character' is not a character."
+  (when (characterp calc-string-maximum-character)
+    (while (and (setq a (cdr a))
+                (or (and (characterp (car a))
+                         (<= (car a)
+                             calc-string-maximum-character))
+                    (and (eq (car-safe (car a)) 'cplx)
+                         (characterp (nth 1 (car a)))
+                         (eq (nth 2 (car a)) 0)
+                         (<= (nth 1 (car a))
+                             calc-string-maximum-character)))))
+    (null a)))
 
 (defconst math-vector-to-string-chars '( ( ?\" . "\\\"" )
 					 ( ?\\ . "\\\\" )
@@ -1556,8 +1558,12 @@ Not all brackets have midpieces.")
 	   (setq c (cdr c))
 	   (while (setq c (cdr c))
 	     (if (eq (car-safe (car c)) 'rule)
-		 (math-comp-add-string (make-string maxwid (nth 1 (car c)))
-				       math-comp-hpos math-comp-vpos)
+                 (let* ((sep (nth 1 (car c)))
+                        (rule-width (ceiling
+                                     (* maxwid (string-pixel-width "-"))
+                                     (string-pixel-width (char-to-string sep)))))
+                   (math-comp-add-string (make-string rule-width sep)
+                                         math-comp-hpos math-comp-vpos))
 	       (let ((math-comp-hpos (+ math-comp-hpos (/ (* bias (- maxwid
 							   (car widths)))
 						2))))
@@ -1654,7 +1660,11 @@ Not all brackets have midpieces.")
 	((memq (car c) '(set break)) t)))
 
 (defun math-comp-width (c)
-  (cond ((not (consp c)) (length c))
+  (cond ((not (consp c))
+         (or (and (stringp c)
+                  (ceiling (string-pixel-width c)
+                           (string-pixel-width "-")))
+             (length c)))
 	((memq (car c) '(horiz subscr supscr))
 	 (let ((accum 0))
 	   (while (setq c (cdr c))

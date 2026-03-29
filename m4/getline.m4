@@ -1,7 +1,7 @@
 # getline.m4
-# serial 33
+# serial 36
 
-dnl Copyright (C) 1998-2003, 2005-2007, 2009-2025 Free Software Foundation,
+dnl Copyright (C) 1998-2003, 2005-2007, 2009-2026 Free Software Foundation,
 dnl Inc.
 dnl
 dnl This file is free software; the Free Software Foundation
@@ -38,6 +38,7 @@ AC_DEFUN([gl_FUNC_GETLINE],
     int main ()
     {
       FILE *in = fopen ("./conftest.data", "r");
+      int result = 0;
       if (!in)
         return 1;
       {
@@ -47,7 +48,7 @@ AC_DEFUN([gl_FUNC_GETLINE],
         size_t siz = 0;
         int len = getline (&line, &siz, in);
         if (!(len == 4 && line && strcmp (line, "foo\n") == 0))
-          { free (line); fclose (in); return 2; }
+          result |= 2;
         free (line);
       }
       {
@@ -56,11 +57,11 @@ AC_DEFUN([gl_FUNC_GETLINE],
         char *line = NULL;
         size_t siz = (size_t)(~0) / 4;
         if (getline (&line, &siz, in) == -1)
-          { fclose (in); return 3; }
+          result |= 4;
         free (line);
       }
       fclose (in);
-      return 0;
+      return result;
     }
     ]])],
          [am_cv_func_working_getline=yes],
@@ -83,6 +84,7 @@ AC_DEFUN([gl_FUNC_GETLINE],
              esac
             ])
          ])
+       rm -f conftest.data
       ])
   else
     am_cv_func_working_getline=no

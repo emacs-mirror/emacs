@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
@@ -291,6 +291,9 @@ derivative of another mode, as it automatically enforces many coding
 conventions for you.  @xref{Basic Major Modes}, for common modes to
 derive from.
 
+  Writing major modes based on the tree-sitter library has some special
+aspects and conventions; see @ref{Tree-sitter Major Modes}.
+
   The standard GNU Emacs Lisp directory tree contains the code for
 several major modes, in files such as @file{text-mode.el},
 @file{texinfo.el}, @file{lisp-mode.el}, and @file{rmail.el}.  You can
@@ -460,7 +463,8 @@ decides to use it.
 The mode may have its own syntax table or may share one with other
 related modes.  If it has its own syntax table, it should store this in
 a variable named @code{@var{modename}-mode-syntax-table}.  @xref{Syntax
-Tables}.
+Tables}.  (Major modes based on the tree-sitter library use the parsers
+provided by tree-sitter for this, @pxref{Parser-based Font Lock}.)
 
 @item
 If the mode handles a language that has a syntax for comments, it should
@@ -479,7 +483,8 @@ for the @var{system-flag} argument to @code{define-abbrev}.
 @item
 The mode should specify how to do highlighting for Font Lock mode, by
 setting up a buffer-local value for the variable
-@code{font-lock-defaults} (@pxref{Font Lock Mode}).
+@code{font-lock-defaults} (@pxref{Font Lock Mode}).  For a major mode
+based on tree-sitter, see @ref{Parser-based Font Lock}.
 
 @item
 Each face that the mode defines should, if possible, inherit from an
@@ -1289,10 +1294,11 @@ the Tabulated List buffer.  Its value should be either a list or a
 function.
 
 If the value is a list, each list element corresponds to one group, and
-should have the form @w{@code{(@var{group-name} @var{entries})}}, where
+should have the form
+@w{@code{(@var{group-name} @var{entry1} @var{entry2} @dots{})}}, where
 @var{group-name} is a string inserted before all group entries, and
-@var{entries} have the same format as @code{tabulated-list-entries}
-(see above).
+@var{entry1}, @var{entry2} and so on each have the same format as an
+element of @code{tabulated-list-entries} (see above).
 
 Otherwise, the value should be a function which returns a list of the
 above form when called with no arguments.
@@ -1862,7 +1868,19 @@ marking the @code{define-minor-mode} form as autoloaded.
 @item :init-value @var{init-value}
 This is the value to which the @var{mode} variable is initialized.
 Except in unusual circumstances (see below), this value must be
-@code{nil}.
+@code{nil}.  Note that @code{define-minor-mode} does not automatically
+run the body of the minor mode to ensure the mode is really enabled
+according to this value, so if the mode is global (see above) and the
+initial value is non-@code{nil}, you should consider forcing Emacs to
+run the mode function when loading the mode, like this:
+
+@lisp
+ :initialize #'custom-initialize-after-file-load
+@end lisp
+
+@noindent
+otherwise, the minor mode might say it's enabled even though it has not
+been properly set up.
 
 @item :lighter @var{lighter}
 The string @var{lighter} says what to display in the mode line
@@ -3305,11 +3323,21 @@ Font Lock mode ignores case during search-based fontification.
 
 If the fourth element, @var{syntax-alist}, is non-@code{nil}, it should
 be a list of cons cells of the form @code{(@var{char-or-string}
-. @var{string})}.  These are used to set up a syntax table for syntactic
+. @var{string})}.  These are used to set up a syntax table during
 fontification; the resulting syntax table is stored in
 @code{font-lock-syntax-table}.  If @var{syntax-alist} is omitted or
-@code{nil}, syntactic fontification uses the syntax table returned by
+@code{nil}, fontification uses the syntax table returned by
 the @code{syntax-table} function.  @xref{Syntax Table Functions}.
+
+The most common uses of @var{syntax-alist} simply change the syntax of
+a few chars from symbol constituent to word constituent so that the
+fontification rules can use regexp operators based on word boundaries.
+When @var{syntax-alist} describes more intrusive changes that can change
+what is recognized as a string or a comment, this prevents an important
+optimization in syntactic fontification, so it's better to either
+refrain from using such settings or to additionally set
+@code{syntax-ppss-table} to a non-@code{nil} value, which takes
+precedence during syntactic fontification.
 
 All the remaining elements (if any) are collectively called
 @var{other-vars}.  Each of these elements should have the form
@@ -3384,6 +3412,12 @@ Fontification will call @var{function} repeatedly with the same limit,
 and with point where the previous invocation left it, until
 @var{function} fails.  On failure, @var{function} need not reset point
 in any particular way.
+
+@var{function} can also take on the responsibility of performing the
+highlighting of the region between point and the limit argument it
+receives.  In that case, it should return @code{nil}, otherwise
+font-lock will highlight the match described by the match data
+and may call the function again with the same limit.
 
 @item (@var{matcher} . @var{subexp})
 In this kind of element, @var{matcher} is either a regular
@@ -4084,16 +4118,17 @@ table in special cases.  @xref{Syntax Properties}.
 @defvar font-lock-keywords-only
 If the value of this variable is non-@code{nil}, Font Lock does not do
 syntactic fontification, only search-based fontification based on
-@code{font-lock-keywords}.  It is normally set by Font Lock mode based
-on the @var{keywords-only} element in @code{font-lock-defaults}.  If
-the value is @code{nil}, Font Lock will call @code{jit-lock-register}
-(@pxref{Other Font Lock Variables}) to set up for automatic
-refontification of buffer text following a modified line to reflect
-the new syntactic context due to the change.
+@code{font-lock-keywords}; this will usually have the effect of not
+fontifying comments and strings.  This variable is normally set by Font
+Lock mode based on the @var{keywords-only} element in
+@code{font-lock-defaults}.  If the value is @code{nil}, Font Lock will
+call @code{jit-lock-register} (@pxref{Other Font Lock Variables}) to set
+up for automatic refontification of buffer text following a modified
+line to reflect the new syntactic context due to the change.
 
-To use only syntactic fontification, this variable should
-be non-@code{nil}, while @code{font-lock-keywords} should be set to
-@code{nil} (@pxref{Font Lock Basics}).
+To use only syntactic fontification, both this variable and
+@code{font-lock-keywords} should be set to @code{nil} (@pxref{Font Lock
+Basics}).
 @end defvar
 
 @defvar font-lock-syntax-table
@@ -4288,6 +4323,7 @@ reasonably fast.
 @node Parser-based Font Lock
 @subsection Parser-based Font Lock
 @cindex parser-based font-lock
+@cindex font-lock, using tree-sitter
 
 @c This node is written when the only parser Emacs has is tree-sitter;
 @c if in the future more parser are supported, this should be
@@ -4990,7 +5026,7 @@ should return the @var{offset} to use to indent @var{arg} itself.
 @item
 @code{:elem}, in which case the function should return either the offset
 to use to indent function arguments (if @var{arg} is the symbol
-@code{arg}) or the basic indentation step (if @var{arg} is the symbol
+@code{args}) or the basic indentation step (if @var{arg} is the symbol
 @code{basic}).
 @item
 @code{:list-intro}, in which case @var{arg} is a token and the function
@@ -5215,6 +5251,7 @@ to the file's local variables of the form:
 @node Parser-based Indentation
 @subsection Parser-based Indentation
 @cindex parser-based indentation
+@cindex indentation, using tree-sitter
 
 @c This node is written when the only parser Emacs has is tree-sitter;
 @c if in the future more parsers are supported, this should be

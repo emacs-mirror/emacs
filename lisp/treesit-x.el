@@ -1,6 +1,6 @@
 ;;; treesit-x.el --- tree-sitter extensions -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: treesit, tree-sitter, languages, generic, font-lock
@@ -86,6 +86,7 @@ of `define-treesit-generic-mode'.
   (declare (debug (&define name [&optional stringp]
                            [&rest keywordp sexp] def-body))
            (doc-string 2)
+           (autoload-macro expand)
            (indent defun))
 
   (when (and docstring (not (stringp docstring)))
@@ -111,19 +112,19 @@ of `define-treesit-generic-mode'.
 
     (when (stringp source)
       (setq source (list 'quote (list source :copy-queries t))))
-    (when (stringp auto-mode)
-      (setq auto-mode (list 'quote (ensure-list auto-mode))))
 
     `(progn
-       ;; Add lang and source to source-alist.
-       (add-to-list 'treesit-language-source-alist (cons ,lang ,source) t)
-
        ;; Add it to auto-mode-alist
-       (dolist (re ,auto-mode)
-         (add-to-list 'auto-mode-alist (cons re ',mode)))
+       ,(if (stringp auto-mode)
+            `(add-to-list 'auto-mode-alist '(,auto-mode . ,mode))
+          `(dolist (re ,auto-mode)
+             (add-to-list 'auto-mode-alist (cons re #',mode))))
 
        (define-derived-mode ,mode
-         ,(or (if (eq (car-safe parent) 'quote) (cadr parent) parent)
+         ;; FIXME: This has to be a function name, it can't be an expression,
+         ;; so the `quote' handling is misleading.
+         ,(or (if (memq (car-safe parent) '(function quote))
+                  (cadr parent) parent)
               'fundamental-mode)
          ,(or name pretty-name)
          ,(or docstring
@@ -131,7 +132,12 @@ of `define-treesit-generic-mode'.
                       "This a tree-sitter mode defined with `define-treesit-generic-mode'."))
          (treesit-generic-mode-setup ,lang)
          ,@body
-         (treesit-major-mode-setup)))))
+         (treesit-major-mode-setup))
+
+       :autoload-end
+
+       ;; Add lang and source to source-alist.
+       (add-to-list 'treesit-language-source-alist (cons ,lang ,source) t))))
 
 ;;;###autoload
 (defun treesit-generic-mode-setup (lang)
@@ -155,16 +161,21 @@ of `define-treesit-generic-mode'.
 
 (defvar treesit-generic-mode-font-lock-map
   '(
+    ("@attribute"             . "@font-lock-preprocessor-face")
     ("@boolean"               . "@font-lock-constant-face")
     ("@comment"               . "@font-lock-comment-face")
+    ("@constructor"           . "@font-lock-type-face")
     ("@constant"              . "@font-lock-constant-face")
+    ("@constant.builtin"      . "@font-lock-builtin-face")
     ("@delimiter"             . "@font-lock-delimiter-face")
     ("@error"                 . "@font-lock-warning-face")
     ("@escape"                . "@font-lock-escape-face")
     ("@function"              . "@font-lock-function-name-face")
+    ("@function.builtin"      . "@font-lock-builtin-face")
     ("@function.call"         . "@font-lock-function-call-face")
     ("@keyword"               . "@font-lock-keyword-face")
     ("@keyword.operator"      . "@font-lock-operator-face")
+    ("@module"                . "@font-lock-keyword-face")
     ("@number"                . "@font-lock-number-face")
     ("@operator"              . "@font-lock-operator-face")
     ("@property"              . "@font-lock-property-name-face")
@@ -174,9 +185,11 @@ of `define-treesit-generic-mode'.
     ("@string"                . "@font-lock-string-face")
     ("@string.regexp"         . "@font-lock-regexp-face")
     ("@string.special"        . "@font-lock-string-face")
+    ("@tag"                   . "@font-lock-function-name-face")
     ("@tag.delimiter"         . "@font-lock-delimiter-face")
     ("@text.reference"        . "@font-lock-doc-face")
     ("@type"                  . "@font-lock-type-face")
+    ("@type.builtin"          . "@font-lock-builtin-face")
     ("@variable"              . "@font-lock-variable-name-face")
     ("@variable.builtin"      . "@font-lock-builtin-face")
     ("@variable.parameter"    . "@font-lock-variable-name-face")
@@ -219,7 +232,7 @@ of `define-treesit-generic-mode'.
             :copy-queries t)
   :auto-mode "\\.liquid\\'"
   :name "Liquid"
-  :parent 'mhtml-ts-mode
+  :parent #'mhtml-ts-mode
 
   (setq-local treesit-range-settings
               (append treesit-range-settings

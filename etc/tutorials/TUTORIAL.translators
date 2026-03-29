@@ -31,6 +31,7 @@ Maintainer: Rafael Sepúlveda <drs@gnulinux.org.mx>
 * TUTORIAL.el_GR:
 Author:     Protesilaos Stavrou <info@protesilaos.com>
 Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+            Basil L. Contovounesios <basil@contovou.net>
 
 * TUTORIAL.fa:
 Author:     Mohsen BANAN <emacs@mohsen.1.banan.byname.net>
@@ -39,6 +40,7 @@ Maintainer: Mohsen BANAN <emacs@mohsen.1.banan.byname.net>
 * TUTORIAL.fr:
 Author:     Éric Jacoboni <jaco@teaser.fr>
 Maintainer: Éric Jacoboni <jaco@teaser.fr>
+	    Bastien Guerry <bzg@gnu.org>
 
 * TUTORIAL.he
 Author:     Eli Zaretskii <eliz@gnu.org>

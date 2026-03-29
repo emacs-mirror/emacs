@@ -1,6 +1,6 @@
 ;;; tramp-cache.el --- file information caching for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000, 2005-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2005-2026 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
@@ -90,6 +90,7 @@
 (require 'time-stamp)
 
 (declare-function tramp-get-method-parameter "tramp")
+(defvar tramp-verbose)
 
 ;;; -- Cache --
 
@@ -97,7 +98,6 @@
 (defvar tramp-cache-data (make-hash-table :test #'equal)
   "Hash table for remote files properties.")
 
-;;;###tramp-autoload
 (defcustom tramp-connection-properties nil
   "List of static connection properties.
 Every entry has the form (REGEXP PROPERTY VALUE).  The regexp
@@ -202,11 +202,6 @@ Return DEFAULT if not set."
 	  (set var (1+ val))))
       value)))
 
-(add-hook 'tramp-cache-unload-hook
-	  (lambda ()
-	    (dolist (var (all-completions "tramp-cache-get-count-" obarray))
-	      (unintern var obarray))))
-
 ;;;###tramp-autoload
 (defun tramp-set-file-property (key file property value)
   "Set the PROPERTY of FILE to VALUE, in the cache context of KEY.
@@ -229,8 +224,9 @@ Return VALUE."
 
 (add-hook 'tramp-cache-unload-hook
 	  (lambda ()
-	    (dolist (var (all-completions "tramp-cache-set-count-" obarray))
-	      (unintern var obarray))))
+	    (dolist (var (apropos-internal
+			  (rx bos "tramp-cache-" (| "get" "set") "-count-")))
+	      (unintern var nil))))
 
 ;;;###tramp-autoload
 (defun tramp-file-property-p (key file property)
@@ -253,19 +249,19 @@ Return VALUE."
 
 (defun tramp-flush-file-upper-properties (key file)
   "Remove some properties of FILE's upper directory."
-  (when (file-name-absolute-p file)
-    ;; `file-name-directory' can return nil, for example for "~".
-    (when-let* ((file (file-name-directory file))
-		(file (directory-file-name file)))
-      (setq key (tramp-file-name-unify key file))
-      (unless (eq key tramp-cache-undefined)
-	(dolist (property (hash-table-keys (tramp-get-hash-table key)))
-	  (when (string-match-p
-		 (rx
-		  bos (| "directory-" "file-name-all-completions"
-			 "file-entries"))
-		 property)
-	    (tramp-flush-file-property key file property)))))))
+  (when-let* (((file-name-absolute-p file))
+	      ;; `file-name-directory' can return nil, for example for "~".
+	      (file (file-name-directory file))
+	      (file (directory-file-name file)))
+    (setq key (tramp-file-name-unify key file))
+    (unless (eq key tramp-cache-undefined)
+      (dolist (property (hash-table-keys (tramp-get-hash-table key)))
+	(when (string-match-p
+	       (rx
+		bos (| "directory-" "file-name-all-completions"
+		       "file-entries"))
+	       property)
+	  (tramp-flush-file-property key file property))))))
 
 ;;;###tramp-autoload
 (defun tramp-flush-file-properties (key file)
@@ -512,7 +508,9 @@ PROPERTIES is a list of file properties (strings)."
 	      (cons property (gethash property hash tramp-cache-undefined)))
 	    ,properties))
 	  ;; Avoid superfluous debug buffers during host name completion.
-	  (tramp-verbose (if minibuffer-completing-file-name 0 tramp-verbose)))
+	  (tramp-verbose
+	   (if minibuffer-completing-file-name
+	       (min 6 tramp-verbose) tramp-verbose)))
      (tramp-message key 7 "Saved %s" values)
      (unwind-protect (progn ,@body)
        ;; Reset PROPERTIES.  Recompute hash, it could have been flushed.
@@ -647,17 +645,18 @@ your laptop to different networks frequently."
   "Return a list of (user host) tuples allowed to access for METHOD.
 This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from connection history."
-  (mapcar
-   (lambda (key)
-     (let ((tramp-verbose 0))
-       (and (tramp-file-name-p key)
-	    (string-equal method (tramp-file-name-method key))
-	    (not (tramp-file-name-localname key))
-	    (tramp-get-method-parameter
-	     key 'tramp-completion-use-cache tramp-completion-use-cache)
-	    (list (tramp-file-name-user key)
-		  (tramp-file-name-host key)))))
-   (hash-table-keys tramp-cache-data)))
+  (seq-uniq
+   (tramp-compat-seq-keep
+    (lambda (key)
+      (let ((tramp-verbose 0))
+	(and (tramp-file-name-p key)
+	     (string-equal method (tramp-file-name-method key))
+	     (not (tramp-file-name-localname key))
+	     (tramp-get-method-parameter
+	      key 'tramp-completion-use-cache tramp-completion-use-cache)
+	     (list (tramp-file-name-user key)
+		   (tramp-file-name-host key)))))
+    (hash-table-keys tramp-cache-data))))
 
 ;; When "emacs -Q" has been called, both variables are nil.  We do not
 ;; load the persistency file then, in order to have a clean test environment.

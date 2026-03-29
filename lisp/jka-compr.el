@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2026 Free Software Foundation, Inc.
 
 ;; Author: Jay K. Adams <jka@ece.cmu.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -471,22 +471,21 @@ There should be no more than seven characters after the final `/'."
                    ;; If the file we wanted to uncompress does not exist,
                    ;; handle that according to VISIT as `insert-file-contents'
                    ;; would, maybe signaling the same error it normally would.
-                   (if (and (eq (car error-code) 'file-missing)
-                            (eq (nth 3 error-code) local-file))
+                   (if (and (error-has-type-p error-code 'file-missing)
+                            (eq (error-slot-value error-code 3) local-file))
                        (if visit
                            (setq notfound error-code)
-                         (signal 'file-missing
-                                 (cons "Opening input file"
-                                       (nthcdr 2 error-code))))
+                         (setf (error-slot-value error-code 1)
+                               "Opening input file")
+                         (signal error-code))
                      ;; If the uncompression program can't be found,
                      ;; signal that as a non-file error
                      ;; so that find-file-noselect-1 won't handle it.
-                     (if (and (memq 'file-error (get (car error-code)
-                                                     'error-conditions))
+                     (if (and (error-has-type-p error-code 'file-error)
                               (equal (cadr error-code) "Searching for program"))
                          (error "Uncompression program `%s' not found"
-                                (nth 3 error-code)))
-                     (signal (car error-code) (cdr error-code)))))))
+                                (error-slot-value error-code 3))
+                       (signal error-code)))))))
 
           (and
            local-copy

@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -396,12 +396,11 @@ Returns nil."
 
 Determines whether CONDITION matches TYPE and EXCLUDE-SUBTYPES,
 and aborts the current test as failed if it doesn't."
-  (let ((signaled-conditions (get (car condition) 'error-conditions))
-        (handled-conditions (pcase-exhaustive type
+  (let ((handled-conditions (pcase-exhaustive type
                               ((pred listp) type)
                               ((pred symbolp) (list type)))))
-    (cl-assert signaled-conditions)
-    (unless (cl-intersection signaled-conditions handled-conditions)
+    (unless (any (lambda (hc) (error-has-type-p condition hc))
+                 handled-conditions)
       (ert-fail (append
                  (funcall form-description-fn)
                  (list
@@ -409,7 +408,7 @@ and aborts the current test as failed if it doesn't."
                   :fail-reason (concat "the error signaled did not"
                                        " have the expected type")))))
     (when exclude-subtypes
-      (unless (member (car condition) handled-conditions)
+      (unless (member (error-type condition) handled-conditions)
         (ert-fail (append
                    (funcall form-description-fn)
                    (list
@@ -813,7 +812,7 @@ This mainly sets up debugger-related bindings."
           (letrec ((debugfun (lambda (err)
                                (ert--run-test-debugger test-execution-info
                                                        err debugfun))))
-            (handler-bind (((error quit) debugfun))
+            (handler-bind ((t debugfun))
               (funcall (ert-test-body (ert--test-execution-info-test
                                        test-execution-info))))))))
     (ert-pass))
@@ -879,7 +878,9 @@ Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
               (let ((result (ert--test-execution-info-result info)))
                 (setf (ert-test-result-messages result)
                       (with-current-buffer (messages-buffer)
-                        (buffer-substring begin-marker (point-max))))
+                        (buffer-substring
+                         (or (marker-position begin-marker) (point-min))
+                         (point-max))))
                 (ert--force-message-log-buffer-truncation)
                 (setq should-form-accu (nreverse should-form-accu))
                 (setf (ert-test-result-should-forms result)
@@ -3166,6 +3167,44 @@ buffer with a fixed name such as *Messages*."
 See `ert-call-with-buffer-renamed' for details."
   (declare (indent 1))
   `(ert-call-with-buffer-renamed ,buffer-name-form (lambda () ,@body)))
+
+(defmacro ert-play-keys (keys)
+  "Play the key sequence KEYS as if it was user input.
+
+KEYS shall have the same format as in a call to function `kmacro'.
+
+This macro should be expanded within the body of
+`ert-with-display-current-buffer' when the keys KEYS start commands
+acting on the current buffer."
+  `(funcall
+    (kmacro ,keys)))
+
+(defmacro ert-play-keys-in-string (keys-string)
+  "Play a each character in KEYS-STRING as if it was user keystroke input.
+
+KEYS-STRING shall be a string.
+
+This macro should be expanded within the body of
+`ert-with-display-current-buffer' when the keys sequence resulting from
+KEYS-STRING start commands acting on the current buffer."
+  (let ((keys (apply #'vector (mapcar #'identity keys-string))))
+    `(funcall
+      (kmacro ,keys))))
+
+(defmacro ert-with-display-current-buffer (&rest body)
+  "Execute BODY after trying to display current buffer in the same window
+with `pop-to-buffer-same-window'.
+
+This macro restores the old window if changed by
+`pop-to-buffer-same-window' after execution of body. This macro does not
+change the list of currently selected buffer."
+  (let ((old-window (make-symbol "old-window")))
+    `(let ((,old-window (selected-window)))
+       (pop-to-buffer-same-window (current-buffer) t)
+       (unwind-protect
+           (progn ,@body)
+         (select-window ,old-window t)))))
+
 
 ;;; Obsolete
 

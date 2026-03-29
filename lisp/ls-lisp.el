@@ -1,6 +1,6 @@
 ;;; ls-lisp.el --- emulate insert-directory completely in Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
@@ -312,14 +312,14 @@ are also supported; unsupported long options are silently ignored."
       (invalid-regexp
        ;; Maybe they wanted a literal file that just happens to
        ;; use characters special to shell wildcards.
-       (if (equal (cadr err) "Unmatched [ or [^")
+       (if (equal (error-slot-value err 1) "Unmatched [ or [^")
 	   (progn
 	     (setq wildcard-regexp (if (memq ?B switches) "[^~]\\'")
 		   file (file-relative-name orig-file))
 	     (ls-lisp-insert-directory
 	      file switches (ls-lisp-time-index switches)
 	      nil full-directory-p))
-	 (signal (car err) (cdr err)))))))
+	 (signal err))))))
 
 (defun ls-lisp-insert-directory
   (file switches time-index wildcard-regexp full-directory-p)

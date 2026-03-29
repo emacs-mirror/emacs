@@ -1,6 +1,6 @@
 ;;; display-fill-column-indicator.el --- interface for display-fill-column-indicator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -102,7 +102,8 @@ See Info node `Displaying Boundaries' for details."
 (defun display-fill-column-indicator--turn-on ()
   "Turn on `display-fill-column-indicator-mode'."
   (unless (or (minibufferp)
-              (and (daemonp) (null (frame-parameter nil 'client))))
+              ;; Use `frame-initial-p'?
+              (and (daemonp) (eq (selected-frame) terminal-frame)))
     (display-fill-column-indicator-mode)))
 
 ;;;###autoload

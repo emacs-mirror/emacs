@@ -1,6 +1,6 @@
 # copy-file-range.m4
 # serial 5
-dnl Copyright 2019-2025 Free Software Foundation, Inc.
+dnl Copyright 2019-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -51,9 +51,8 @@ AC_DEFUN([gl_FUNC_COPY_FILE_RANGE],
       [Define to 1 if the function copy_file_range exists.])
 
     case $host_os in
-      linux*)
-        # See copy-file-range.c comment re pre-5.3 Linux kernel bugs.
-        # We should be able to remove this hack in 2025.
+      *-gnu* | gnu* | linux*)
+        # See copy-file-range.c comment re glibc and Linux kernel bugs.
         REPLACE_COPY_FILE_RANGE=1;;
     esac
   fi

@@ -1,0 +1,22 @@
+		 Chest of Drawers            Contents of Drawers
+
+		 __   o0O0o   __
+	       /                 \
+	      ---------------------
+	     |    directions to    |            [map to]
+	     |     symbol name     |             bouquet
+	     |                     |
+	     +---------------------+
+	     |    directions to    |
+	     |  symbol definition  |             [none]
+	     |                     |
+	     +---------------------+
+	     |    directions to    |            [map to]
+	     |    variable value   |             (rose violet buttercup)
+	     |                     |
+	     +---------------------+
+	     |    directions to    |
+	     |    property list    |             [not described here]
+	     |                     |
+	     +---------------------+
+	     |/                   \|

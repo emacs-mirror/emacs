@@ -1,6 +1,6 @@
 ;;; java-ts-mode.el --- tree-sitter support for Java  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -54,14 +54,18 @@
            :commit "1e28054cb5be80d5febac082706225e42eff14e6")
  t)
 
-(defcustom java-ts-mode-indent-offset 4
+(define-obsolete-variable-alias 'java-ts-mode-indent-offset
+  'java-ts-indent-offset "31")
+(defcustom java-ts-indent-offset 4
   "Number of spaces for each indentation step in `java-ts-mode'."
   :version "29.1"
   :type 'integer
   :safe 'integerp
   :group 'java)
 
-(defcustom java-ts-mode-method-chaining-indent-offset 8
+(define-obsolete-variable-alias 'java-ts-mode-method-chaining-indent-offset
+  'java-ts-method-chaining-indent-offset "31")
+(defcustom java-ts-method-chaining-indent-offset 8
   "Indent offset for method chaining in `java-ts-mode'."
   :version "31.1"
   :type 'integer
@@ -139,54 +143,54 @@ PARENT and BOL are the as in other matchers."
       c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
      (java-ts-mode--first-line-on-multi-line-string parent-bol
-                                                    java-ts-mode-indent-offset)
+                                                    java-ts-indent-offset)
      ((parent-is "multiline_string_fragment") prev-adaptive-prefix 0)
      ((match "\"\"\"" "string_literal" nil 1) prev-adaptive-prefix 0)
      ((parent-is "text_block") no-indent)
      ((parent-is "class_body") column-0 c-ts-common-statement-offset)
-     ((parent-is "array_initializer") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "array_initializer") parent-bol java-ts-indent-offset)
      ((parent-is "annotation_type_body") column-0 c-ts-common-statement-offset)
      ((parent-is "interface_body") column-0 c-ts-common-statement-offset)
-     ((parent-is "constructor_body") standalone-parent java-ts-mode-indent-offset)
+     ((parent-is "constructor_body") standalone-parent java-ts-indent-offset)
      ((parent-is "enum_body_declarations") parent-bol 0)
      ((parent-is "enum_body") column-0 c-ts-common-statement-offset)
-     ((parent-is "switch_block") standalone-parent java-ts-mode-indent-offset)
+     ((parent-is "switch_block") standalone-parent java-ts-indent-offset)
      ((parent-is "record_declaration_body") column-0 c-ts-common-statement-offset)
-     ((query "(method_declaration (block _ @indent))") parent-bol java-ts-mode-indent-offset)
-     ((query "(method_declaration (block (_) @indent))") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "local_variable_declaration") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "expression_statement") parent-bol java-ts-mode-indent-offset)
+     ((query "(method_declaration (block _ @indent))") parent-bol java-ts-indent-offset)
+     ((query "(method_declaration (block (_) @indent))") parent-bol java-ts-indent-offset)
+     ((parent-is "local_variable_declaration") parent-bol java-ts-indent-offset)
+     ((parent-is "expression_statement") parent-bol java-ts-indent-offset)
      ((match "type_identifier" "field_declaration") parent-bol 0)
-     ((parent-is "field_declaration") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "return_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "variable_declarator") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "field_declaration") parent-bol java-ts-indent-offset)
+     ((parent-is "return_statement") parent-bol java-ts-indent-offset)
+     ((parent-is "variable_declarator") parent-bol java-ts-indent-offset)
      ((match ">" "type_arguments") parent-bol 0)
-     ((parent-is "type_arguments") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "method_invocation") parent-bol java-ts-mode-method-chaining-indent-offset)
-     ((parent-is "switch_rule") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "switch_label") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "ternary_expression") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "lambda_expression") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "element_value_array_initializer") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "type_arguments") parent-bol java-ts-indent-offset)
+     ((parent-is "method_invocation") parent-bol java-ts-method-chaining-indent-offset)
+     ((parent-is "switch_rule") parent-bol java-ts-indent-offset)
+     ((parent-is "switch_label") parent-bol java-ts-indent-offset)
+     ((parent-is "ternary_expression") parent-bol java-ts-indent-offset)
+     ((parent-is "lambda_expression") parent-bol java-ts-indent-offset)
+     ((parent-is "element_value_array_initializer") parent-bol java-ts-indent-offset)
      ((parent-is "function_definition") parent-bol 0)
      ((parent-is "conditional_expression") first-sibling 0)
      ((parent-is "assignment_expression") parent-bol 2)
      ((parent-is "binary_expression") parent 0)
      ((parent-is "parenthesized_expression") first-sibling 1)
-     ((parent-is "argument_list") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "annotation_argument_list") parent-bol java-ts-mode-indent-offset)
+     ((parent-is "argument_list") parent-bol java-ts-indent-offset)
+     ((parent-is "annotation_argument_list") parent-bol java-ts-indent-offset)
      ((parent-is "modifiers") parent-bol 0)
-     ;; ((parent-is "formal_parameters") parent-bol java-ts-mode-indent-offset)
+     ;; ((parent-is "formal_parameters") parent-bol java-ts-indent-offset)
      ;; ((parent-is "formal_parameter") parent-bol 0)
-     ((parent-is "init_declarator") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "if_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "for_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "while_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "switch_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "case_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "labeled_statement") parent-bol java-ts-mode-indent-offset)
-     ((parent-is "do_statement") parent-bol java-ts-mode-indent-offset)
-     ;; ((parent-is "block") standalone-parent java-ts-mode-indent-offset)
+     ((parent-is "init_declarator") parent-bol java-ts-indent-offset)
+     ((parent-is "if_statement") parent-bol java-ts-indent-offset)
+     ((parent-is "for_statement") parent-bol java-ts-indent-offset)
+     ((parent-is "while_statement") parent-bol java-ts-indent-offset)
+     ((parent-is "switch_statement") parent-bol java-ts-indent-offset)
+     ((parent-is "case_statement") parent-bol java-ts-indent-offset)
+     ((parent-is "labeled_statement") parent-bol java-ts-indent-offset)
+     ((parent-is "do_statement") parent-bol java-ts-indent-offset)
+     ;; ((parent-is "block") standalone-parent java-ts-indent-offset)
      c-ts-common-baseline-indent-rule))
   "Tree-sitter indent rules.")
 
@@ -237,7 +241,11 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
        'font-lock-constant-face override
        start end))))
 
-(defvar java-ts-mode--font-lock-settings
+(defun java-ts-mode--font-lock-settings ()
+  "Return tree-sitter font-lock settings for `java-ts-mode'.
+
+Tree-sitter font-lock settings are evaluated the first time this
+function is called.  Subsequent calls return the first evaluated value."
   (treesit-font-lock-rules
    :language 'java
    :override t
@@ -303,9 +311,6 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
      (compact_constructor_declaration
       name: (identifier) @font-lock-type-face)
 
-     (field_access
-      object: (identifier) @font-lock-type-face)
-
      (method_reference (identifier) @font-lock-type-face)
 
      (scoped_identifier (identifier) @font-lock-constant-face)
@@ -314,6 +319,12 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
       (:match "\\`[A-Z]" @font-lock-type-face))
 
      (type_identifier) @font-lock-type-face
+     ;; In Java, var is not a keyword but rather a auto-determined type.
+     ;; But we want to fontify it as a keyword.  (The override query is
+     ;; below the general query because :override flag is set for this
+     ;; rule.)
+     ((type_identifier) @font-lock-keyword-face
+      (:match "\\`var\\'" @font-lock-keyword-face))
 
      [(boolean_type)
       (integral_type)
@@ -364,8 +375,7 @@ For NODE, OVERRIDE, START, and END, see `treesit-font-lock-rules'."
 
    :language 'java
    :feature 'delimiter
-   '((["," ":" ";"]) @font-lock-delimiter-face))
-  "Tree-sitter font-lock settings for `java-ts-mode'.")
+   '((["," ":" ";"]) @font-lock-delimiter-face)))
 
 (defun java-ts-mode--defun-name (node)
   "Return the defun name of NODE.
@@ -422,7 +432,7 @@ Return nil if there is no name or if NODE is not a defun node."
                   (for . "for_statement")
                   (while . "while_statement")
                   (do . "do_statement")))
-    (setq-local c-ts-common-indent-offset 'java-ts-mode-indent-offset)
+    (setq-local c-ts-common-indent-offset 'java-ts-indent-offset)
     (setq-local treesit-simple-indent-rules java-ts-mode--indent-rules)
     (setq-local treesit-simple-indent-standalone-predicate
                 #'java-ts-mode--standalone-predicate)
@@ -488,7 +498,7 @@ Return nil if there is no name or if NODE is not a defun node."
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings
-                java-ts-mode--font-lock-settings)
+                (java-ts-mode--font-lock-settings))
 
     ;; Inject doxygen parser for comment.
     (when (and java-ts-mode-enable-doxygen
@@ -524,8 +534,10 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (derived-mode-add-parents 'java-ts-mode '(java-mode))
 
-(if (treesit-ready-p 'java)
-    (add-to-list 'auto-mode-alist '("\\.java\\'" . java-ts-mode)))
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(java-mode . java-ts-mode)))
 
 (provide 'java-ts-mode)
 

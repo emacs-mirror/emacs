@@ -3,6 +3,7 @@
 @comment %**start of header
 @setfilename ../../info/ebrowse.info
 @settitle A Class Browser for C++
+@documentlanguage en
 @include docstyle.texi
 @setchapternewpage odd
 @syncodeindex fn cp
@@ -11,7 +12,7 @@
 @copying
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
 
-Copyright @copyright{} 2000--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2000--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

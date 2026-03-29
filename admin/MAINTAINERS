@@ -10,6 +10,12 @@ The (co-)maintainers of Emacs are:
 	Eli Zaretskii <eliz@gnu.org>
 	Stefan Kangas <stefankangas@gmail.com>
 	Andrea Corallo <acorallo@gnu.org>
+	Sean Whitton <spwhitton@spwhitton.name>
+	Richard Stallman <rms@gnu.org>
+
+(Richard Stallman is one of the Emacs maintainers,
+as well as being the Chief GNUisance to whom
+GNU package maintainers are responsible.)
 
 ==============================================================================
 1. Areas that someone wants to be maintaining (i.e. has a particularly
@@ -96,6 +102,10 @@ Dmitry Gutov
 	test/indent/ruby.rb
 	lisp/progmodes/xref.el
 	lisp/progmodes/project.el
+	lisp/thread.el
+	src/thread.c
+
+	Thread-related code in src/process.c
 
 Ulf Jasper
 	Newsticker
@@ -225,7 +235,6 @@ Philip Kaludercic
        lisp/emacs-lisp/package.el
        lisp/emacs-lisp/package-vc.el
        lisp/emacs-lisp/compat.el
-       lisp/net/rcirc.el
 
 Yuan Fu
        src/treesit.c
@@ -243,7 +252,11 @@ Sean Whitton
 	    test/lisp/vc/*
 
 Stephane Marks
+	lisp/system-taskbar.el
 	lisp/emacs-lisp/vtable.el
+
+Elías Gabriel Pérez
+	lisp/progmodes/hideshow.el
 
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
@@ -323,12 +336,14 @@ Michael Albinus
         lisp/autorevert.el
 	lisp/eshell/em-tramp.el
         lisp/files.el (file-name-non-special)
+        lisp/files-x.el (connection-local variables)
 	lisp/net/ange-ftp.el
 	lisp/notifications.el
 	lisp/shadowfile.el
 	test/infra/*
         test/lisp/autorevert-tests.el
         test/lisp/files-tests.el (file-name-non-special)
+        test/lisp/files-x-tests.el (connection-local variables)
 	test/lisp/shadowfile-tests.el
 	test/src/inotify-test.el
 
@@ -374,6 +389,7 @@ Juri Linkov
 	    lisp/repeat.el
 
 Philip Kaludercic
+	lisp/net/rcirc.el
 	lisp/epa-ks.el
 
 Harald Jörg
@@ -381,9 +397,18 @@ Harald Jörg
 
 Spencer Baugh
 	lisp/progmodes/flymake.el
+	lisp/thread.el
+	src/thread.c
+
+	Thread-related code in src/process.c
 
 Yuan Fu
        lisp/progmodes/c-ts-mode.el
+
+Basil L. Contovounesios
+	lisp/battery.el (UPower support)
+	lisp/json.el
+	src/image.c (WebP support)
 
 ==============================================================================
 3. Externally maintained packages.

@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2026 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -995,7 +995,7 @@ directory and makes this the current buffer's default directory."
       (progn
         (cd (car inferior-octave-output-list))
         t)
-    (error (unless noerror (signal (car err) (cdr err))))))
+    (error (unless noerror (signal err)))))
 
 (defcustom inferior-octave-minimal-columns 80
   "The minimal column width for the inferior Octave process."

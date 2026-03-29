@@ -3,7 +3,7 @@
 
 # Update an FSF copyright year list to include the current year.
 
-# Copyright (C) 2009-2025 Free Software Foundation, Inc.
+# Copyright (C) 2009-2026 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -47,8 +47,8 @@
 # Each file's copyright statement must be formatted correctly in
 # order to be recognized.  For example, each of these is fine:
 #
-#   Copyright @copyright{} 1990-2005, 2007-2009, 2025 Free Software Foundation,
-#   Inc.
+#   Copyright @copyright{} 1990-2005, 2007-2009, 2025-2026 Free Software
+#   Foundation, Inc.
 #
 #   # Copyright (C) 1990-2005, 2007-2009 Free Software
 #   # Foundation, Inc.

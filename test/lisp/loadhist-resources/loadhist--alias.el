@@ -1,6 +1,6 @@
 ;;; loadhist--alias.el --- Dummy package for loadhist-tests  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; Author: Jens Schmidt <jschmidt4gnu@vodafonemail.de>
 

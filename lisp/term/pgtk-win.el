@@ -1,6 +1,6 @@
 ;;; pgtk-win.el --- parse relevant switches and set up for Pure-GTK  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2020, 2022-2025 Free Software Foundation,
+;; Copyright (C) 1995, 2001-2020, 2022-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: FSF
@@ -215,7 +215,7 @@ EVENT is a `preedit-text' event."
     ("images/package-menu/execute" . "gtk-apply")
     ("images/package-menu/info" . ("dialog-information" "gtk-info"))
     ("images/package-menu/install" . ("archive-insert" "list-add"))
-    ("images/package-menu/delete" . ("archive-remove" "edit-delete" "gtk-remove"))
+    ("images/package-menu/delete" . ("archive-remove" "gtk-remove"))
     ("images/package-menu/unmark" . ("gnumeric-object-checkbox" "box"))
     ("images/package-menu/url" . "globe")
     ("images/package-menu/upgrade" . ("archive-extract" "go-bottom"))

@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Display
 @chapter Emacs Display
@@ -486,7 +486,7 @@ A convenient way to do this is to use a @dfn{progress reporter}.
   (progress-reporter-done progress-reporter))
 @end smallexample
 
-@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time
+@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time context
 This function creates and returns a progress reporter object, which
 you will use as an argument for the other functions listed below.  The
 idea is to precompute as much data as possible to make progress
@@ -513,13 +513,19 @@ If @var{min-value} and @var{max-value} are numbers, you can give the
 argument @var{current-value} a numerical value specifying the initial
 progress; if omitted, this defaults to @var{min-value}.
 
-The remaining arguments control the rate of echo area updates.  The
-progress reporter will wait for at least @var{min-change} more
-percents of the operation to be completed before printing next
-message; the default is one percent.  @var{min-time} specifies the
-minimum time in seconds to pass between successive prints; the default
-is 0.2 seconds.  (On some operating systems, the progress reporter may
-handle fractions of seconds with varying precision).
+The arguments @var{min-change} and @var{min-time} control the rate of
+echo area updates.  The progress reporter will wait for at least
+@var{min-change} more percents of the operation to be completed before
+printing next message; the default is one percent.  @var{min-time}
+specifies the minimum time in seconds to pass between successive prints;
+the default is 0.2 seconds.  (On some operating systems, the progress
+reporter may handle fractions of seconds with varying precision).
+
+If @var{context} is the symbol @code{async}, it announces that the updates
+will occur asynchronously.  Backends can use that info to prevent the
+progress updates from interfering with other data.  For example, the
+backend that displays the progress in the echo area will not display
+those async updates when the echo area is in use.
 
 This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
@@ -1619,6 +1625,7 @@ current buffer.
 
 @cindex empty overlay
 @cindex overlay, empty
+@anchor{empty overlays}
 An overlay whose @var{start} and @var{end} specify the same buffer
 position is known as @dfn{empty}.  A non-empty overlay can become
 empty if the text between its @var{start} and @var{end} is deleted.
@@ -1703,6 +1710,12 @@ be altered so that they start at @var{end}.
 Overlays that start before @var{start} and end after @var{end} will be
 split into two overlays: one that ends at @var{start} and the other that
 begins at @var{end}.
+
+@item
+Empty overlays (@pxref{empty overlays}) will be removed if they are
+either at @var{start}, or strictly between @var{start} and @var{end}
+excluding @var{end}, or at @var{end} when @var{end} denotes the position
+at the end of the buffer.
 @end itemize
 
 If @var{name} is omitted or @code{nil}, it means to delete/modify all
@@ -2050,12 +2063,11 @@ line at display-time.  @xref{Truncation}.
 @kindex evaporate @r{(overlay property)}
 @item evaporate
 If this property is non-@code{nil}, the overlay is deleted automatically
-if it becomes empty (i.e., if its length becomes zero).  If you give
-an empty overlay (@pxref{Managing Overlays, empty overlay}) a
-non-@code{nil} @code{evaporate} property, that deletes it immediately.
-Note that, unless an overlay has this property, it will not be deleted
-when the text between its starting and ending positions is deleted
-from the buffer.
+if it becomes empty (i.e., if its length becomes zero).  If you give an
+empty overlay (@pxref{empty overlays}) a non-@code{nil} @code{evaporate}
+property, that deletes it immediately.  Note that, unless an overlay has
+this property, it will not be deleted when the text between its starting
+and ending positions is deleted from the buffer.
 
 @kindex display-line-numbers-disable @r{(overlay property)}
 @item display-line-numbers-disable
@@ -2097,11 +2109,11 @@ Properties}.
 @cindex overlays, searching for
 
 @defun overlays-at pos &optional sorted
-This function returns a list of all the overlays that cover the character at
+This function returns a list of all the overlays that contain the character at
 position @var{pos} in the current buffer.  If @var{sorted} is non-@code{nil},
-the list is in decreasing order of priority, otherwise it is in no particular
-order.  An overlay contains position @var{pos} if it begins at or before
-@var{pos}, and ends after @var{pos}.
+the returned list is in decreasing order of priority, otherwise it is in no
+particular order.  An overlay contains the character at @var{pos} if it begins
+at or before @var{pos}, and ends after @var{pos}.
 
 To illustrate usage, here is a Lisp function that returns a list of the
 overlays that specify property @var{prop} for the character at point:
@@ -2117,16 +2129,39 @@ overlays that specify property @var{prop} for the character at point:
       (setq overlays (cdr overlays)))
     found))
 @end smallexample
+
+Empty overlays (@pxref{empty overlays}) do not contain any characters,
+so this function does not return them.  Use @code{overlays-in},
+described below, instead if empty overlays are of interest.
+
+Note that this function can return overlays outside of the current
+narrowing of the buffer (@pxref{Narrowing}) if @var{pos} is outside of
+the narrowing.
 @end defun
 
 @defun overlays-in beg end
-This function returns a list of the overlays that overlap the region
+This function returns a list of the overlays that overlap with the region
 @var{beg} through @var{end}.  An overlay overlaps with a region if it
-contains one or more characters in the region; empty overlays
-(@pxref{Managing Overlays, empty overlay}) overlap if they are at
-@var{beg}, strictly between @var{beg} and @var{end}, or at @var{end}
-when @var{end} denotes the position at the end of the accessible part
-of the buffer.
+contains one or more characters between @var{beg} and @var{end}; this
+excludes the characters at (i.e.@: after) @var{end}.
+
+Empty overlays do not contain any characters, so the rule for including
+them is different: they are said to overlap if they are at @var{beg},
+strictly between @var{beg} and @var{end} excluding @var{end}, or at
+@var{end} when @var{end} denotes the position at the end of the buffer.
+(The special handling of empty overlays at end of buffer is to allow
+such overlays to be found and processed.  For any other value of
+@var{end} you could increment the @var{end} position instead.)  Note
+that if @var{beg} and @var{end} are the same position, an empty overlay
+that is at @var{beg} is also at @var{end}, so this case is somewhat
+similar to an empty overlay at the end of the buffer.
+
+The order in which the overlays appear in the returned list is
+unpredictable.
+
+Note that this function can return overlays outside of the current
+narrowing of the buffer if @var{beg} and/or @var{end} are outside of
+the narrowing.
 @end defun
 
 @defun next-overlay-change pos
@@ -2236,6 +2271,9 @@ The optional argument @var{ellipsis-text-property}, if non-@code{nil},
 means hide the excess parts of @var{string} with a @code{display} text
 property (@pxref{Display Property}) showing the ellipsis, instead of
 actually truncating the string.
+
+See also the function @code{truncate-string-pixelwise} for pixel-level
+resolution.
 
 @example
 @group
@@ -2434,6 +2472,37 @@ non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
 that buffer when computing the width of @var{string}.
 @end defun
 
+@defun truncate-string-pixelwise string max-pixels &optional buffer ellipsis ellipsis-pixels
+This is a convenience function that uses @code{window-text-pixel-size}
+to truncate @var{string} to @var{max-pixels} pixels.  Caveat: if you
+call this function to measure the width of a string with embedded
+newlines, it will then return the width of the widest substring that
+does not include newlines.  The meaning of this result is the widest
+line taken by the string if inserted into a buffer.  If @var{buffer} is
+non-@code{nil}, use any face remappings (@pxref{Face Remapping}) from
+that buffer when computing the width of @var{string}.
+
+If @var{ellipsis} is non-@code{nil}, it should be a string which will
+replace the end of @var{string} when it is truncated.  In this case,
+more characters will be removed from @var{string} to free enough space
+for @var{ellipsis} to fit within @var{max-pixels} pixels.  However, if
+the pixel width of @var{string} is less than the pixel width of
+@var{ellipsis}, @var{ellipsis} will not be appended to the result.  If
+@var{ellipsis} is non-@code{nil} and not a string, it stands for the
+value returned by the function @code{truncate-string-ellipsis},
+described above.
+
+If @var{ellipsis-pixels} is non-@code{nil} and @var{ellipsis} is
+non-@code{nil}, it should be the number of pixels of @var{ellipsis} that
+you should precompute using @code{string-pixel-width}, specifying the
+same buffer.  This is useful to avoid the cost of recomputing this value
+repeatedly when you have many strings to truncate using the same
+ellipsis string.
+
+See also the function @code{truncate-string-to-width} for
+character-level resolution.
+@end defun
+
 @defun line-pixel-height
 This function returns the height in pixels of the line at point in the
 selected window.  The value includes the line spacing of the line
@@ -2463,6 +2532,10 @@ you can say:
 @example
 (apply #'insert (cdr (string-glyph-split string))))
 @end example
+
+Caveat: for this function to recognize and process character
+compositions, @code{auto-composition-mode} must be enabled, and the
+current buffer must be displayed in some window.
 @end defun
 
 When a buffer is displayed with line numbers (@pxref{Display Custom,,,
@@ -2572,10 +2645,13 @@ the spacing relative to the frame's default line height.
 
 @vindex line-spacing
   You can specify the line spacing for all lines in a buffer via the
-buffer-local @code{line-spacing} variable.  An integer specifies
-the number of pixels put below lines.  A floating-point number
-specifies the spacing relative to the default frame line height.  This
-overrides line spacings specified for the frame.
+buffer-local @code{line-spacing} variable.  An integer specifies the
+number of pixels put below lines.  A floating-point number specifies the
+spacing relative to the default frame line height.  A cons cell of
+integers or floating-point numbers specifies the spacing put above and
+below the line, allowing for vertically centering text.  This overrides
+line spacings specified for the frame.
+
 
 @kindex line-spacing @r{(text property)}
   Finally, a newline can have a @code{line-spacing} text or overlay
@@ -3653,10 +3729,10 @@ makes @code{modeline} an alias for the @code{mode-line} face.
 @end example
 
 @defmac define-obsolete-face-alias obsolete-face current-face when
-This macro defines @code{obsolete-face} as an alias for
+This macro defines @var{obsolete-face} as an alias for
 @var{current-face}, and also marks it as obsolete, indicating that it
-may be removed in future.  @var{when} should be a string indicating
-when @code{obsolete-face} was made obsolete (usually a version number
+may be removed in the future.  @var{when} should be a string indicating
+when @var{obsolete-face} was made obsolete (usually a version number
 string).
 @end defmac
 
@@ -4204,7 +4280,8 @@ The font name (a string), in either XLFD, Fontconfig, or GTK+ format.
 @itemx :width
 These have the same meanings as the face attributes of the same name.
 @xref{Face Attributes}.  @code{:family} and @code{:foundry} are
-strings, while the other three are symbols.  As example values,
+strings or symbols, while the other three are either symbols or numbers,
+the numerical values of the valid style symbols.  As example values,
 @code{:slant} may be @code{italic}, @code{:weight} may be @code{bold}
 and @code{:width} may be @code{normal}.
 
@@ -4900,7 +4977,7 @@ either a string or a vector of integers, where each element (an
 integer) corresponds to one row of the bitmap.  Each bit of an integer
 corresponds to one pixel of the bitmap, where the low bit corresponds
 to the rightmost pixel of the bitmap.  (Note that this order of bits
-is opposite of the order in XBM images; @pxref{XBM Images}.)
+is the opposite of the order in XBM images; @pxref{XBM Images}.)
 
 The height is normally the length of @var{bits}.  However, you
 can specify a different height with non-@code{nil} @var{height}.  The width
@@ -5812,8 +5889,7 @@ something changed since the last display cycle.
   A buffer can have blank areas called @dfn{display margins} on the
 left and on the right.  Ordinary text never appears in these areas,
 but you can put things into the display margins using the
-@code{display} property.  There is currently no way to make text or
-images in the margin mouse-sensitive.
+@code{display} property.
 
   The way to display something in the margins is to specify it in a
 margin display specification in the @code{display} property of some
@@ -6357,8 +6433,8 @@ used for each pixel in the XBM that is 0.  The default is the frame's
 background color.
 @end table
 
-  If you specify an XBM image using data within Emacs instead of an
-external file, use the following three properties:
+  To specify an XBM image using data within Emacs instead of an
+external file, use the following properties:
 
 @table @code
 @item :data @var{data}
@@ -6502,7 +6578,7 @@ properties:
 @table @code
 @item :foreground @var{foreground}
 @var{foreground}, if non-@code{nil}, should be a string specifying a
-color, which is used as the image's foreground color.  If the value is
+color, which is used as the CSS `currentcolor' value.  If the value is
 @code{nil}, it defaults to the current face's foreground color.
 
 @item :background @var{background}
@@ -6989,6 +7065,7 @@ Supports the @code{:index} property.  @xref{Multi-Frame Images}.
 
 @item WebP
 Image type @code{webp}.
+Supports the @code{:index} property.  @xref{Multi-Frame Images}.
 @end table
 
 @node Defining Images
@@ -7310,8 +7387,8 @@ about these image-specific key bindings.
 @cindex image frames
 Some image files can contain more than one image.  We say that there
 are multiple ``frames'' in the image.  At present, Emacs supports
-multiple frames for GIF, TIFF, and certain ImageMagick formats such as
-DJVM@.
+multiple frames for GIF, TIFF, WebP, and certain ImageMagick formats
+such as DJVM@.
 
 The frames can be used either to represent multiple pages (this is
 usually the case with multi-frame TIFF files, for example), or to
@@ -7401,7 +7478,7 @@ period much shorter than @code{image-cache-eviction-delay} (see
 below), you can opt to flush unused images yourself, instead of
 waiting for Emacs to do it automatically.
 
-@defun clear-image-cache &optional filter
+@defun clear-image-cache &optional filter animation-filter
 This function clears an image cache, removing all the images stored in
 it.  If @var{filter} is omitted or @code{nil}, it clears the cache for
 the selected frame.  If @var{filter} is a frame, it clears the cache
@@ -7409,6 +7486,16 @@ for that frame.  If @var{filter} is @code{t}, all image caches are
 cleared.  Otherwise, @var{filter} is taken to be a file name, and all
 images associated with that file name are removed from all image
 caches.
+
+This function also clears the image animation cache, which is a separate
+cache that Emacs maintains for animated multi-frame images
+(@pxref{Multi-Frame Images}).  If @var{animation-filter} is omitted or
+@code{nil}, it clears the animation cache in addition to the image
+caches selected by @var{filter}.  Otherwise, this function removes the
+image with specification @code{eq} to @var{animation-filter} only from
+the animation cache, and does not clear any image caches.  This can help
+reduce memory usage after an animation is stopped but the image is still
+displayed.
 @end defun
 
 If an image in the image cache has not been displayed for a specified

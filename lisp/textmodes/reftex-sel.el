@@ -1,6 +1,6 @@
 ;;; reftex-sel.el --- the selection modes for RefTeX  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2026 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;; Maintainer: auctex-devel@gnu.org
@@ -23,8 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (require 'reftex)
 
@@ -98,6 +96,12 @@ During a selection process, these are the local bindings.
 
 \\{reftex-select-label-mode-map}"
   (setq-local reftex-select-marked nil)
+  (setq truncate-lines t)
+  (setq mode-line-format
+        (list "----  " 'mode-line-buffer-identification
+              "  " 'global-mode-string "   (" mode-name ")"
+              "  S<" 'reftex-refstyle ">"
+              " -%-"))
   (when (syntax-table-p reftex-latex-syntax-table)
     (set-syntax-table reftex-latex-syntax-table))
   ;; We do not set a local map - reftex-select-item does this.

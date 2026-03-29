@@ -1,6 +1,6 @@
 @c -*- coding: utf-8 -*-
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -1085,6 +1085,7 @@ program.
 @menu
 * Traditional Font Lock::  Font Lock based on regexps and syntax tables.
 * Parser-based Font Lock:: Font Lock based on external parser.
+* Semantic Font Lock::     Font Lock based on semantic analysis.
 @end menu
 
 @node Traditional Font Lock
@@ -1208,6 +1209,99 @@ fontification level.
 @w{@kbd{M-x customize-variable}} (@pxref{Specific Customization}), it
 takes effect immediately in all the existing buffers and for files you
 visit in the future in the same session.
+
+@node Semantic Font Lock
+@subsection Semantic Font Lock
+@cindex semantic highlighting
+
+@dfn{Semantic highlighting} is feature in which
+an editor uses some kind of semantic analysis to understand a program's
+source code, and communicates useful information about the meaning of
+different tokens to the user by highlighting these tokens according to
+their specific role in the program.
+
+Semantic highlighting is more sophisticated than traditional ``syntax
+highlighting'', which only considers the syntactic role of a token,
+i.e., how it affects the code's @emph{parsing}, unlike semantic analysis
+which takes into account the token's effect on the program's
+@emph{execution}.  For example, a semantic highlighting implementation
+may be able to tell apart local and global variables and give distinct
+highlighting to each category, even though the language's @emph{syntax}
+doesn't make such a distinction.  Semantic highlighting is especially
+beneficial in languages in which syntactic constructs can mean
+completely different things depending on the context in which they
+occur, such as Lisp and Prolog.  In such languages, syntactic analysis
+alone misses a lot of important information that coders need to reason
+about their programs.
+
+Some language servers provide semantic highlighting information, which
+Emacs can leverage via its LSP client, Eglot.  @xref{Eglot Features,,,
+eglot, Eglot: The Emacs LSP Client}.
+
+@vindex elisp-fontify-semantically
+Additionally, Emacs implements semantic highlighting for Emacs Lisp as
+an optional feature of @code{emacs-lisp-mode} (@pxref{Executing Lisp}).
+To enable it, customize the option @code{elisp-fontify-semantically} to
+a non-@code{nil} value.  The rest of this subsection describes the use
+of this Emacs Lisp-specific semantic highlighting support.
+
+When @code{elisp-fontify-semantically} is enabled,
+@code{emacs-lisp-mode} analyzes your code and highlights symbols
+according to their semantic roles, as part of the mode's usual Font Lock
+highlighting (@pxref{Font Lock}).  It doesn't affect the highlighting of
+strings, comments and other syntactic elements such as brackets;
+@code{elisp-fontify-semantically} only affects highlighting of symbols.
+
+@cindex symbol role, in semantic analysis
+The semantic analysis assigns to each symbol a @dfn{symbol role}, such
+as ``function'', ``local variable'', ``face name'', etc.  Each symbol
+role has an associated face property, which is applied to symbols with
+that role during semantic highlighting.  By default, most of these faces
+inherit from appropriate @code{font-lock-*} faces.  For example,
+locally-bound variables get the @code{elisp-bound-variable} face, which
+inherits from @code{font-lock-variable-use-face}.
+
+@vindex elisp-add-help-echo
+The semantic analysis can differentiate between more than 50 such symbol roles,
+but you don't need to memorize the appearance of so many faces to
+leverage semantic highlighting: you can hover over an highlighted symbol
+with the mouse to see a tooltip with the exact role Emacs inferred for
+that symbol (@pxref{Tooltips}).  If you want to disable this extra
+information, customize @code{elisp-add-help-echo} to the @code{nil} value.
+
+There are a few more points you should keep in mind when using
+@code{elisp-fontify-semantically}:
+
+@itemize @bullet
+@item
+Syntax errors break semantic analysis, so for best results you may want
+to enable @code{electric-pair-mode} to keep your code syntactically
+correct while you edit it.  @xref{Matching}.
+
+@cindex trusted buffers, and semantic highlighting
+@vindex elisp-scope-safe-macros
+@item
+The analysis uses macro-expansion in some cases, but by default it only
+does so in trusted buffers (@pxref{Host Security}).  In @emph{untrusted}
+buffers, some macro arguments may not be highlighted.  See the
+documentation string of @code{elisp-scope-safe-macro-p} for more
+information about which macros Emacs considers safe to expand for
+analysis.  The user option @code{elisp-scope-safe-macros} controls which
+macros are safe to expand during analysis in untrusted buffers.
+
+@item
+The analysis is informed by definitions in the current Emacs session,
+hence code that uses unloaded libraries may miss some highlighting.
+
+@item
+The analysis assumes that lexical binding is in effect (@pxref{Selecting
+Lisp Dialect,,, elisp, the Emacs Lisp Reference Manual}).
+
+@item
+Semantic highlighting requires additional processing over traditional
+Font Lock---the current implementation might be slow when editing very
+large defuns.
+@end itemize
 
 
 @node Highlight Interactively
@@ -1826,6 +1920,14 @@ further ``compress'' the mode line, you may customize the
 and Emacs will hide some minor mode indicators on the mode line by
 collapsing them into a single clickable button.
 
+@findex mode-line-invisible-mode
+  By default, most buffers display a mode line, but if the mode line is
+not useful in a buffer, you can use the command @w{@kbd{M-x
+mode-line-invisible-mode}} to hide the mode line in the current buffer,
+the mode line remains hidden until this command is called again.  To
+always hide the mode line when entering to a major mode, add
+@code{mode-line-invisible-mode} to a hook (@pxref{Hooks}).
+
 @node Text Display
 @section How Text Is Displayed
 @cindex characters (in text)
@@ -1946,19 +2048,40 @@ variable @code{visible-cursor} is @code{nil} when Emacs starts or
 resumes, it uses the normal cursor.
 
 @vindex cursor-type
-  On a graphical display, many more properties of the text cursor can
-be altered.  To customize its color, change the @code{:background}
-attribute of the face named @code{cursor} (@pxref{Face
-Customization}).  (The other attributes of this face have no effect;
-the text shown under the cursor is drawn using the frame's background
-color.)  To change its shape, customize the buffer-local variable
-@code{cursor-type}; possible values are @code{box} (the default),
-@code{(box . @var{size})} (box cursor becoming a hollow box under
-masked images larger than @var{size} pixels in either dimension),
-@code{hollow} (a hollow box), @code{bar} (a vertical bar), @code{(bar
-. @var{n})} (a vertical bar @var{n} pixels wide), @code{hbar} (a
-horizontal bar), @code{(hbar . @var{n})} (a horizontal bar @var{n}
+  On a graphical display and many Xterm-compatible text terminals, the
+color and shape of the text cursor can be altered.  To customize its
+color, change the @code{:background} attribute of the face named
+@code{cursor} (@pxref{Face Customization}).  (The other attributes of
+this face have no effect; the text shown under the cursor is drawn using
+the frame's background color.)  To change its shape, customize the
+buffer-local variable @code{cursor-type}; possible values are @code{box}
+(the default), @code{(box . @var{size})} (box cursor becoming a hollow
+box under masked images larger than @var{size} pixels in either
+dimension), @code{hollow} (a hollow box), @code{bar} (a vertical bar),
+@code{(bar . @var{n})} (a vertical bar @var{n} pixels wide), @code{hbar}
+(a horizontal bar), @code{(hbar . @var{n})} (a horizontal bar @var{n}
 pixels tall), or @code{nil} (no cursor at all).
+
+@vindex xterm-update-cursor
+  On Xterm-compatible text terminals cursor customization is controlled
+by the user option @code{xterm-update-cursor}.  Valid values are
+@code{t} to update the cursor's color and shape, @code{type} to update
+the cursor's shape only, @code{color} to update the cursor's color only,
+and @code{nil} to not update the cursor's appearance.  Text terminals
+can not display a hollow box and instead use a filled box.  Similarly,
+all text terminals ignore the pixel sizes for @code{bar} and
+@code{hbar}.
+
+@findex hl-line-mode
+@findex global-hl-line-mode
+@cindex highlight current line
+  To make the cursor even more visible, you can use HL Line mode, a
+minor mode that highlights the line containing point.  Use @kbd{M-x
+hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
+global-hl-line-mode} enables or disables the same mode globally.
+
+  The remaining controls only work on graphical displays where Emacs can
+fully control the way the cursor appears.
 
 @findex blink-cursor-mode
 @cindex cursor, blinking
@@ -2002,14 +2125,6 @@ cover wide characters, by changing the variable
 non-blinking hollow box.  (For a bar cursor, it instead appears as a
 thinner bar.)  To turn off cursors in non-selected windows, change the
 variable @code{cursor-in-non-selected-windows} to @code{nil}.
-
-@findex hl-line-mode
-@findex global-hl-line-mode
-@cindex highlight current line
-  To make the cursor even more visible, you can use HL Line mode, a
-minor mode that highlights the line containing point.  Use @kbd{M-x
-hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
-global-hl-line-mode} enables or disables the same mode globally.
 
 @node Line Truncation
 @section Line Truncation
@@ -2235,6 +2350,16 @@ of lines which are a multiple of certain numbers.  Customize
 @code{display-line-numbers-major-tick} and
 @code{display-line-numbers-minor-tick} respectively to set those
 numbers.
+
+@vindex line-spacing
+  The variable @code{line-spacing} controls the vertical spacing between
+lines.  It can be set to an integer (specifying pixels) or a float
+(specifying spacing relative to the default frame font height).  You can
+also set this variable to a cons cell of integers or floats, such as
+@code{(@var{top} . @var{bottom})}.  When set to a cons cell, the spacing
+is distributed above and below the line, allowing for text to be
+vertically centered within the line height. See also @ref{Line Height,,,
+elisp, The Emacs Lisp Reference Manual}.
 
 @vindex visible-bell
   If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts

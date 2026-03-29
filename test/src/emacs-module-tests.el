@@ -1,6 +1,6 @@
 ;;; emacs-module-tests.el --- Test GNU Emacs modules.  -*- lexical-binding: t; -*-
 
-;; Copyright 2015-2025 Free Software Foundation, Inc.
+;; Copyright 2015-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -121,7 +121,7 @@ changes."
                    (setq handler-err err
                          backtrace (with-output-to-string (backtrace))))))
        (mod-test-signal)))
-    (should (equal handler-err '(error . 56)))
+    (should (equal handler-err '(error 56)))
     (should (string-match-p
              (rx bol "  mod-test-signal()" eol)
              backtrace))))
@@ -181,6 +181,13 @@ changes."
     (should (eq (emacs-module-tests--generic v) 'user-ptr))
     (should (integerp r))
     (should (= r n))))
+
+(ert-deftest mod-test-userptrp ()
+  (skip-unless (fboundp 'user-ptrp))
+  (let ((v (mod-test-userptr-make 7)))
+    (should (user-ptrp v))
+    (should-not (user-ptrp 7))
+    (should-not (user-ptrp "x"))))
 
 ;; TODO: try to test finalizer
 

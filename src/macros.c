@@ -1,6 +1,6 @@
 /* Keyboard macros.
 
-Copyright (C) 1985-1986, 1993, 2000-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993, 2000-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,7 +35,8 @@ EMACS_INT executing_kbd_macro_iterations;
 /* This is the macro that was executing.
    This is not bound at each level,
    so after an error, it describes the innermost interrupted macro.
-   We use it only as a kind of flag, so no need to protect it.  */
+   We use it only as a kind of flag; it could be a simple bool, but we
+   keep the string/vector around to aid debugging.  */
 
 Lisp_Object executing_kbd_macro;
 
@@ -427,6 +428,9 @@ This is run whether the macro ends normally or prematurely due to an error.  */)
 		 doc: /* Non-nil while a keyboard macro is being defined.  Don't set this!
 The value is the symbol `append' while appending to the definition of
 an existing macro.  */);
+
+  executing_kbd_macro = Qnil;
+  staticpro (&executing_kbd_macro);
 
   DEFVAR_LISP ("executing-kbd-macro", Vexecuting_kbd_macro,
 	       doc: /* Currently executing keyboard macro (string or vector).

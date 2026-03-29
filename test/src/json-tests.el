@@ -1,6 +1,6 @@
 ;;; json-tests.el --- unit tests for json.c          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -423,6 +423,35 @@ See also `with-temp-buffer'."
   (let ((table (make-hash-table :test #'eq)))
     (puthash 1 2 table)
     (should-error (json-serialize table) :type 'wrong-type-argument)))
+
+(defun json-tests--parse-string-error-pos (s)
+  (condition-case e
+      (json-parse-string s)
+    (json-error (nth 3 e))
+    (:success 'no-error)))
+
+(defun json-tests--parse-buffer-error-pos ()
+  (condition-case e
+      (json-parse-buffer)
+    (json-error (nth 3 e))
+    (:success 'no-error)))
+
+(ert-deftest json-parse-error-position ()
+  (let* ((s "[\"*Ωßœ☃*\",,8]")
+         (su (encode-coding-string s 'utf-8-emacs)))
+    (should (equal (json-tests--parse-string-error-pos s) 11))
+    (should (equal (json-tests--parse-string-error-pos su) 16))
+
+    (with-temp-buffer
+      (let ((junk "some leading junk"))
+        (insert junk)
+        (insert s)
+        (goto-char (1+ (length junk)))
+        (should (equal (json-tests--parse-buffer-error-pos) 11))
+
+        (set-buffer-multibyte nil)
+        (goto-char (1+ (length junk)))
+        (should (equal (json-tests--parse-buffer-error-pos) 16))))))
 
 (provide 'json-tests)
 ;;; json-tests.el ends here

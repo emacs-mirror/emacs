@@ -1,6 +1,6 @@
 ;;; org-src.el --- Source code examples in Org       -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
 ;;	   Bastien Guerry <bzg@gnu.org>
@@ -665,7 +665,8 @@ Leave point in edit buffer."
   "Fontify code block between START and END using LANG's syntax.
 This function is called by Emacs's automatic fontification, as long
 as `org-src-fontify-natively' is non-nil."
-  (let ((modified (buffer-modified-p)) native-tab-width)
+  (let ((modified (buffer-modified-p))
+        (native-tab-width tab-width))
     (remove-text-properties start end '(face nil))
     (let ((lang-mode (org-src-get-lang-mode lang)))
       (when (fboundp lang-mode)

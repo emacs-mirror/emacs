@@ -1,6 +1,6 @@
 ;;; time-date.el --- Date and time handling functions  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -161,7 +161,7 @@ If DATE lacks time zone information, local time is assumed."
 	(encode-time parsed))
     (error
      (if (equal err '(error "Specified time is not representable"))
-	 (signal (car err) (cdr err))
+	 (signal err)
        (error "Invalid date: %s" date)))))
 
 ;;;###autoload
@@ -547,7 +547,7 @@ changes in daylight saving time are not taken into account."
     (when (decoded-time-month delta)
       (let ((new (+ (1- (decoded-time-month time)) (decoded-time-month delta))))
         (setf (decoded-time-month time) (1+ (mod new 12)))
-        (incf (decoded-time-year time) (- (/ new 12) (if (< new 0) 1 0)))))
+        (incf (decoded-time-year time) (floor new 12))))
 
     ;; Adjust for month length (as described in the doc string).
     (setf (decoded-time-day time)

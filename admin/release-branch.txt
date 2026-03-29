@@ -60,7 +60,7 @@ Instructions for cutting the Emacs release branch
        AC_SUBST_FILE([module_env_snippet_XY+1])
        module_env_snippet_XY+1="$srcdir/src/module-env-XY+1.h"
 
-     . adding a new 'struct emacs_env_XY+1' to src/emacs-module.h.in,
+     . adding a new 'struct emacs_env_XY+1' to src/emacs-module.in.h,
        with the contents identical to 'struct emacs_env_XY', with one
        line added:
 

@@ -1,6 +1,6 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
@@ -2599,45 +2599,80 @@ you define your own `sql-mode-mysql-font-lock-keywords'.")
      '("^[.].*$" . font-lock-doc-face)
 
      ;; SQLite Keyword
+     ;; https://sqlite.org/lang_keywords.html
      (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
-"abort" "action" "add" "after" "all" "alter" "analyze" "and" "as"
-"asc" "attach" "autoincrement" "before" "begin" "between" "by"
-"cascade" "case" "cast" "check" "collate" "column" "commit" "conflict"
-"constraint" "create" "cross" "database" "default" "deferrable"
-"deferred" "delete" "desc" "detach" "distinct" "drop" "each" "else"
-"end" "escape" "except" "exclusive" "exists" "explain" "fail" "for"
-"foreign" "from" "full" "glob" "group" "having" "if" "ignore"
-"immediate" "in" "index" "indexed" "initially" "inner" "insert"
-"instead" "intersect" "into" "is" "isnull" "join" "key" "left" "like"
-"limit" "match" "natural" "no" "not" "notnull" "null" "of" "offset"
-"on" "or" "order" "outer" "plan" "pragma" "primary" "query" "raise"
-"references" "regexp" "reindex" "release" "rename" "replace"
-"restrict" "right" "rollback" "row" "savepoint" "select" "set" "table"
-"temp" "temporary" "then" "to" "transaction" "trigger" "union"
-"unique" "update" "using" "vacuum" "values" "view" "virtual" "when"
-"where"
+"abort" "action" "add" "after" "all" "alter" "always" "analyze" "and" "as"
+"asc" "attach" "autoincrement" "before" "begin" "between" "by" "cascade" "case"
+"cast" "check" "collate" "column" "commit" "conflict" "constraint" "create"
+"cross" "current" "current_date" "current_time" "current_timestamp" "database"
+"default" "deferrable" "deferred" "delete" "desc" "detach" "distinct" "do"
+"drop" "each" "else" "end" "escape" "except" "exclude" "exclusive" "exists"
+"explain" "fail" "filter" "first" "following" "for" "foreign" "from" "full"
+"generated" "glob" "group" "groups" "having" "if" "ignore" "immediate" "in"
+"index" "indexed" "initially" "inner" "insert" "instead" "intersect" "into"
+"is" "isnull" "join" "key" "last" "left" "like" "limit" "match" "materialized"
+"natural" "no" "not" "nothing" "notnull" "null" "nulls" "of" "offset" "on" "or"
+"order" "others" "outer" "over" "partition" "plan" "pragma" "preceding"
+"primary" "query" "raise" "range" "recursive" "references" "regexp" "reindex"
+"release" "rename" "replace" "restrict" "returning" "right" "rollback" "row"
+"rows" "savepoint" "select" "set" "table" "temp" "temporary" "then" "ties" "to"
+"transaction" "trigger" "unbounded" "union" "unique" "update" "using" "vacuum"
+"values" "view" "virtual" "when" "where" "window" "with" "without"
 )
      ;; SQLite Data types
+     ;; https://sqlite.org/datatype3.html
      (sql-font-lock-keywords-builder 'font-lock-type-face nil
-"int" "integer" "tinyint" "smallint" "mediumint" "bigint" "unsigned"
-"big" "int2" "int8" "character" "varchar" "varying" "nchar" "native"
-"nvarchar" "text" "clob" "blob" "real" "double" "precision" "float"
-"numeric" "number" "decimal" "boolean" "date" "datetime"
+"int" "integer" "tinyint" "smallint" "mediumint" "bigint" "unsigned big int"
+"int2" "int8" "character" "varchar" "varying character" "nchar"
+"native character" "nvarchar" "text" "clob" "blob" "real" "double"
+"double precision" "float" "umeric" "decimal" "boolean" "date" "datetime"
+
 )
      ;; SQLite Functions
      (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
+
 ;; Core functions
-"abs" "changes" "coalesce" "glob" "ifnull" "hex" "last_insert_rowid"
-"length" "like" "load_extension" "lower" "ltrim" "max" "min" "nullif"
-"quote" "random" "randomblob" "replace" "round" "rtrim" "soundex"
-"sqlite_compileoption_get" "sqlite_compileoption_used"
-"sqlite_source_id" "sqlite_version" "substr" "total_changes" "trim"
-"typeof" "upper" "zeroblob"
+;; https://sqlite.org/lang_corefunc.html
+"abs" "changes" "char" "coalesce" "concat" "concat_ws" "format" "glob" "hex"
+"if" "ifnull" "iif" "instr" "last_insert_rowid" "length" "like" "like"
+"likelihood" "likely" "load_extension" "load_extension" "lower" "ltrim" "ltrim"
+"max" "min" "nullif" "octet_length" "printf" "quote" "random" "randomblob"
+"replace" "round" "round" "rtrim" "rtrim" "sign" "soundex"
+"sqlite_compileoption_get" "sqlite_compileoption_used" "sqlite_offset"
+"sqlite_source_id" "sqlite_version" "substr" "substr" "substring" "substring"
+"total_changes" "trim" "trim" "typeof" "unhex" "unhex" "unicode" "unistr"
+"unistr_quote" "unlikely" "upper" "zeroblob"
+
 ;; Date/time functions
-"time" "julianday" "strftime"
-"current_date" "current_time" "current_timestamp"
+;; https://sqlite.org/lang_datefunc.html
+"date" "time" "datetime" "julianday" "unixepoch" "strftime" "timediff"
+
 ;; Aggregate functions
-"avg" "count" "group_concat" "max" "min" "sum" "total"
+;; https://sqlite.org/lang_aggfunc.html
+"avg" "count" "count" "group_concat" "group_concat" "max" "median" "min"
+"percentile" "percentile_cont" "percentile_disc" "string_agg" "sum" "total"
+
+;; Window functions
+;; https://sqlite.org/windowfunctions.html
+"row_number" "rank" "dense_rank" "percent_rank" "cume_dist" "ntile" "lag"
+"lead" "first_value" "last_value" "nth_value"
+
+;; Math functions
+;; https://sqlite.org/lang_mathfunc.html
+"acos" "acosh" "asin" "asinh" "atan" "atan2" "atanh" "ceil" "ceiling" "cos"
+"cosh" "degrees" "exp" "floor" "ln" "log" "log" "log10" "log2" "mod" "pi" "pow"
+"power" "radians" "sin" "sinh" "sqrt" "tan" "tanh" "trunc"
+
+;; JSON functions
+;; https://sqlite.org/json1.html
+"json" "jsonb" "json_array" "jsonb_array" "json_array_length"
+"json_error_position" "json_extract" "jsonb_extract" "->" "->>" "json_insert"
+"jsonb_insert" "json_object" "jsonb_object" "json_patch" "jsonb_patch"
+"json_pretty" "json_remove" "jsonb_remove" "json_replace" "jsonb_replace"
+"json_set" "jsonb_set" "json_type" "json_valid" "json_quote" "json_group_array"
+"jsonb_group_array" "json_group_object" "jsonb_group_object" "json_each"
+"json_tree" "jsonb_each" "jsonb_tree"
+
 )))
 
   "SQLite SQL keywords used by font-lock.

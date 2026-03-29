@@ -1,6 +1,6 @@
 ;;; typescript-ts-mode.el --- tree sitter support for TypeScript  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -60,7 +60,9 @@
    :source-dir "tsx/src")
  t)
 
-(defcustom typescript-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'typescript-ts-mode-indent-offset
+  'typescript-ts-indent-offset "31")
+(defcustom typescript-ts-indent-offset 2
   "Number of spaces for each indentation step in `typescript-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -138,10 +140,10 @@ Check if a node type is available, then return the right indent rules."
   (condition-case nil
       (progn (treesit-query-capture 'tsx '((jsx_fragment) @capture))
              `(((match "<" "jsx_fragment") parent 0)
-               ((parent-is "jsx_fragment") parent typescript-ts-mode-indent-offset)))
+               ((parent-is "jsx_fragment") parent typescript-ts-indent-offset)))
     (treesit-query-error
      `(((match "<" "jsx_text") parent 0)
-       ((parent-is "jsx_text") parent typescript-ts-mode-indent-offset)))))
+       ((parent-is "jsx_text") parent-bol typescript-ts-indent-offset)))))
 
 (defun typescript-ts-mode--anchor-decl (_n parent &rest _)
   "Return the position after the declaration keyword before PARENT.
@@ -167,51 +169,51 @@ Argument LANGUAGE is either `typescript' or `tsx'."
      ((and (parent-is "comment") c-ts-common-looking-at-star)
       c-ts-common-comment-start-after-first-star -1)
      ((parent-is "comment") prev-adaptive-prefix 0)
-     ((parent-is "ternary_expression") standalone-parent typescript-ts-mode-indent-offset)
-     ((parent-is "member_expression") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "named_imports") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "statement_block") standalone-parent typescript-ts-mode-indent-offset)
+     ((parent-is "ternary_expression") standalone-parent typescript-ts-indent-offset)
+     ((parent-is "member_expression") parent-bol typescript-ts-indent-offset)
+     ((parent-is "named_imports") parent-bol typescript-ts-indent-offset)
+     ((parent-is "statement_block") standalone-parent typescript-ts-indent-offset)
      ((or (node-is "case")
           (node-is "default"))
-      parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "switch_case") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "switch_default") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "type_arguments") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "type_parameters") parent-bol typescript-ts-mode-indent-offset)
+      parent-bol typescript-ts-indent-offset)
+     ((parent-is "switch_case") parent-bol typescript-ts-indent-offset)
+     ((parent-is "switch_default") parent-bol typescript-ts-indent-offset)
+     ((parent-is "type_arguments") parent-bol typescript-ts-indent-offset)
+     ((parent-is "type_parameters") parent-bol typescript-ts-indent-offset)
      ((parent-is ,(rx (or "variable" "lexical") "_" (or "declaration" "declarator")))
       ,@(pcase typescript-ts-mode-multivar-indent-style
-          ('indent '(parent-bol typescript-ts-mode-indent-offset))
+          ('indent '(parent-bol typescript-ts-indent-offset))
           ('align '(typescript-ts-mode--anchor-decl 1))))
-     ((parent-is "arguments") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "array") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "formal_parameters") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "arguments") parent-bol typescript-ts-indent-offset)
+     ((parent-is "array") parent-bol typescript-ts-indent-offset)
+     ((parent-is "formal_parameters") parent-bol typescript-ts-indent-offset)
      ((parent-is "template_string") no-indent) ; Don't indent the string contents.
-     ((parent-is "template_substitution") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "object_pattern") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "object") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "object_type") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "enum_body") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "class_body") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "interface_body") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "arrow_function") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "parenthesized_expression") parent-bol typescript-ts-mode-indent-offset)
-     ((parent-is "binary_expression") parent-bol typescript-ts-mode-indent-offset)
+     ((parent-is "template_substitution") parent-bol typescript-ts-indent-offset)
+     ((parent-is "object_pattern") parent-bol typescript-ts-indent-offset)
+     ((parent-is "object") parent-bol typescript-ts-indent-offset)
+     ((parent-is "object_type") parent-bol typescript-ts-indent-offset)
+     ((parent-is "enum_body") parent-bol typescript-ts-indent-offset)
+     ((parent-is "class_body") parent-bol typescript-ts-indent-offset)
+     ((parent-is "interface_body") parent-bol typescript-ts-indent-offset)
+     ((parent-is "arrow_function") parent-bol typescript-ts-indent-offset)
+     ((parent-is "parenthesized_expression") parent-bol typescript-ts-indent-offset)
+     ((parent-is "binary_expression") parent-bol typescript-ts-indent-offset)
      ((match "while" "do_statement") parent-bol 0)
      ((match "else" "if_statement") parent-bol 0)
      ((parent-is ,(rx (or (seq (or "if" "for" "for_in" "while" "do") "_statement")
                           "else_clause")))
-      parent-bol typescript-ts-mode-indent-offset)
+      parent-bol typescript-ts-indent-offset)
 
      ,@(when (eq language 'tsx)
 	 (append (tsx-ts-mode--indent-compatibility-b893426)
 		 `(((node-is "jsx_closing_element") parent 0)
-		   ((match "jsx_element" "statement") parent typescript-ts-mode-indent-offset)
-		   ((parent-is "jsx_element") parent typescript-ts-mode-indent-offset)
-		   ((parent-is "jsx_text") parent-bol typescript-ts-mode-indent-offset)
-		   ((parent-is "jsx_opening_element") parent typescript-ts-mode-indent-offset)
-		   ((parent-is "jsx_expression") parent-bol typescript-ts-mode-indent-offset)
+		   ((match "jsx_element" "statement") parent typescript-ts-indent-offset)
+		   ((parent-is "jsx_element") parent typescript-ts-indent-offset)
+		   ((parent-is "jsx_text") parent-bol typescript-ts-indent-offset)
+		   ((parent-is "jsx_opening_element") parent typescript-ts-indent-offset)
+		   ((parent-is "jsx_expression") parent-bol typescript-ts-indent-offset)
 		   ((match "/" "jsx_self_closing_element") parent 0)
-		   ((parent-is "jsx_self_closing_element") parent typescript-ts-mode-indent-offset))))
+		   ((parent-is "jsx_self_closing_element") parent typescript-ts-indent-offset))))
      ;; FIXME(Theo): This no-node catch-all should be removed.  When is it needed?
      (no-node parent-bol 0))))
 
@@ -722,8 +724,24 @@ This mode is intended to be inherited by concrete major modes."
 
 (derived-mode-add-parents 'typescript-ts-mode '(typescript-mode))
 
-(if (treesit-ready-p 'typescript)
-    (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode)))
+;;;###autoload
+(defun typescript-ts-mode-maybe ()
+  "Enable `typescript-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'typescript)
+          (eq treesit-enabled-modes t)
+          (memq 'typescript-ts-mode treesit-enabled-modes))
+      (typescript-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(typescript-mode . typescript-ts-mode)))
 
 ;;;###autoload
 (define-derived-mode tsx-ts-mode typescript-ts-base-mode "TypeScript[TSX]"
@@ -842,8 +860,24 @@ at least 3 (which is the default value)."
                               ((equal (match-string 0) ">") ")>")
                               (t ".")))))))))))
 
-(if (treesit-ready-p 'tsx)
-    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode)))
+;;;###autoload
+(defun tsx-ts-mode-maybe ()
+  "Enable `tsx-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'tsx)
+          (eq treesit-enabled-modes t)
+          (memq 'tsx-ts-mode treesit-enabled-modes))
+      (tsx-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("\\.tsx\\'" . tsx-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(tsx-mode . tsx-ts-mode)))
 
 (provide 'typescript-ts-mode)
 

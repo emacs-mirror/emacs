@@ -1,5 +1,5 @@
 /* Thread definitions
-Copyright (C) 2012-2025 Free Software Foundation, Inc.
+Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,6 +84,9 @@ struct thread_state
   /* If non-nil, this thread has been signaled.  */
   Lisp_Object error_symbol;
   Lisp_Object error_data;
+
+  /* Decides whether the thread's current buffer can be killed.  */
+  Lisp_Object buffer_disposition;
 
   /* If we are waiting for some event, this holds the object we are
      waiting on.  */
@@ -337,6 +340,8 @@ int thread_select  (select_func *func, int max_fds, fd_set *rfds,
 		    sigset_t *sigmask);
 
 bool thread_check_current_buffer (struct buffer *);
+
+void thread_all_before_buffer_killed (Lisp_Object buffer);
 
 INLINE_HEADER_END
 

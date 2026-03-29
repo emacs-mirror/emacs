@@ -1,6 +1,6 @@
 ;;; cal-julian.el --- calendar functions for the Julian calendar  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995, 1997, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -107,7 +107,7 @@ Driven by the variable `calendar-date-display-form'."
           (month (cdr (assoc-string
                        (completing-read
                         "Julian calendar month name: "
-                        (mapcar 'list (append month-array nil))
+                        (append month-array nil)
                         nil t)
                        (calendar-make-alist month-array 1) t)))
           (last
@@ -119,7 +119,7 @@ Driven by the variable `calendar-date-display-form'."
                 (lambda (x)
                   (and (< (if (and (= year 1) (= month 1)) 2 0) x)
                        (<= x last)))
-                nil
+                (if (and (= year 1) (= month 1)) 3 1)
                 (if (and (= year 1) (= month 1)) 3 1) last)))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
@@ -132,15 +132,10 @@ Driven by the variable `calendar-date-display-form'."
 If MONTH, DAY (Julian) is visible, the value returned is corresponding
 Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
-  (let ((gdate (calendar-nongregorian-visible-p
+  (let ((dates (calendar-nongregorian-date-visible-p
                 month day 'calendar-julian-to-absolute
-                'calendar-julian-from-absolute
-                ;; In the Gregorian case, we'd use the lower year when
-                ;; month >= 11. In the Julian case, there is an offset
-                ;; of two weeks (ie 1 Nov Greg = 19 Oct Julian). So we
-                ;; use month >= 10, since it can't cause any problems.
-                (lambda (m) (< m 10)))))
-    (if gdate (list (list gdate string)))))
+                'calendar-julian-from-absolute)))
+    (mapcar (lambda (d) (list d string)) dates)))
 
 ;;;###cal-autoload
 (defun calendar-astro-to-absolute (d)
@@ -175,7 +170,8 @@ Defaults to today's date if DATE is not given."
 Echo astronomical (Julian) day number unless NOECHO is non-nil."
   (interactive (list (calendar-read-sexp
                       "Astronomical (Julian) day number (>1721425)"
-                      (lambda (x) (> x 1721425)))))
+                      (lambda (x) (> x 1721425))
+                      1721426)))
   (calendar-goto-date
    (calendar-gregorian-from-absolute
     (floor

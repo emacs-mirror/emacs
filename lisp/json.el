@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2026 Free Software Foundation, Inc.
 
 ;; Author: Theresa O'Connor <ted@oconnor.cx>
 ;; Version: 1.5
@@ -142,7 +142,7 @@ Used only when `json-encoding-pretty-print' is non-nil.")
   "Sorting predicate for JSON object keys during encoding.
 If nil, no sorting is performed.  Else, JSON object keys are
 ordered by the specified sort predicate during encoding.  For
-instance, setting this to `string<' will have JSON object keys
+instance, setting this to `value<' will have JSON object keys
 ordered alphabetically.")
 
 (defvar json-pre-element-read-function nil
@@ -609,12 +609,11 @@ transforms an unsortable MAP into a sortable alist."
   "Insert a JSON representation of ALIST at point.
 Sort ALIST first if `json-encoding-object-sort-predicate' is
 non-nil.  Sorting can optionally be DESTRUCTIVE for speed."
-  (json--print-map (if (and json-encoding-object-sort-predicate alist)
-                       (sort (if destructive alist (copy-sequence alist))
-                             (lambda (a b)
-                               (funcall json-encoding-object-sort-predicate
-                                        (car a) (car b))))
-                     alist)))
+  (json--print-map (let ((pred json-encoding-object-sort-predicate))
+                     (if (and pred alist)
+                         (sort alist :key #'car :lessp pred
+                               :in-place destructive)
+                       alist))))
 
 ;; The following two are unused but useful to keep around due to the
 ;; inherent ambiguity of lists.
@@ -841,14 +840,14 @@ With prefix argument MINIMIZE, minimize it instead."
   "Pretty-print current buffer with object keys ordered.
 With prefix argument MINIMIZE, minimize it instead."
   (interactive "P")
-  (let ((json-encoding-object-sort-predicate #'string<))
+  (let ((json-encoding-object-sort-predicate #'value<))
     (json-pretty-print-buffer minimize)))
 
 (defun json-pretty-print-ordered (begin end &optional minimize)
   "Pretty-print the region with object keys ordered.
 With prefix argument MINIMIZE, minimize it instead."
   (interactive "r\nP")
-  (let ((json-encoding-object-sort-predicate #'string<))
+  (let ((json-encoding-object-sort-predicate #'value<))
     (json-pretty-print begin end minimize)))
 
 (provide 'json)

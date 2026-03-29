@@ -1,6 +1,6 @@
 /* Functions for the pure Gtk+-3.
 
-Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2025 Free
+Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020, 2022-2026 Free
 Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -541,6 +541,9 @@ x_change_tool_bar_height (struct frame *f, int height)
       if (FRAME_EXTERNAL_TOOL_BAR (f))
 	free_frame_tool_bar (f);
       FRAME_EXTERNAL_TOOL_BAR (f) = false;
+      /* Make sure implied resizing of frames without initial tool bar
+	 can be inhibited too.  */
+      f->tool_bar_resized = true;
     }
 }
 
@@ -552,7 +555,13 @@ pgtk_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
   /* Treat tool bars like menu bars.  */
   if (FRAME_MINIBUF_ONLY_P (f))
-    return;
+    {
+      /* Make sure implied resizing can be inhibited for minibuffer-only
+	 frames too.  */
+      f->tool_bar_resized = true;
+
+      return;
+    }
 
   /* Use VALUE only if an int >= 0.  */
   if (RANGED_FIXNUMP (0, value, INT_MAX))
@@ -760,7 +769,24 @@ xg_set_icon (struct frame *f, Lisp_Object file)
 bool
 xg_set_icon_from_xpm_data (struct frame *f, const char **data)
 {
+  /* gdk-pixbuf 2.44 deprecated gdk_pixbuf_new_from_xpm_data.
+     Emacs should convert assets to PNG and use gdk_pixbuf_new_from_stream
+     with a GMemoryInputStream, or transition to PNG via GResource.
+     Pacify GCC for now.  */
+#if (defined GDK_PIXBUF_VERSION_2_44 \
+     && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
+     && GNUC_PREREQ (4, 6, 0))
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
   GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
+
+#if (defined GDK_PIXBUF_VERSION_2_44 \
+     && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
+     && GNUC_PREREQ (4, 6, 0))
+# pragma GCC diagnostic pop
+#endif
 
   if (!pixbuf)
     return false;
@@ -985,6 +1011,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] =
     pgtk_set_override_redirect,
     gui_set_no_special_glyphs,
     pgtk_set_alpha_background,
+    gui_set_borders_respect_alpha_background,
     NULL,
   };
 
@@ -1272,6 +1299,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame, 1, 1, 0,
   store_frame_param (f, Qoverride_redirect, override_redirect ? Qt : Qnil);
 
   XSETFRAME (frame, f);
+
+  frame_set_id_from_params (f, parms);
 
   f->terminal = dpyinfo->terminal;
 
@@ -1571,6 +1600,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame, 1, 1, 0,
 			 "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   if (!NILP (parent_frame))
     {
@@ -2730,6 +2762,9 @@ pgtk_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, str
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))

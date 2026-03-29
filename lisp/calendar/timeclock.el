@@ -1,6 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -296,7 +296,7 @@ set before switching this mode on."
 `timeclock-use-display-time' to see timeclock information"))
               (add-hook 'display-time-hook #'timeclock-update-mode-line))
           (setq timeclock-update-timer
-                (run-at-time nil 60 'timeclock-update-mode-line))))
+                (run-at-time nil 60 #'timeclock-update-mode-line))))
     (setq global-mode-string
           (delq 'timeclock-mode-string global-mode-string))
     (remove-hook 'timeclock-event-hook #'timeclock-update-mode-line)
@@ -513,8 +513,8 @@ non-nil, the amount returned will be relative to past time worked."
 	(message "%s" string)
       string)))
 
-(define-obsolete-function-alias 'timeclock-time-to-seconds 'float-time "26.1")
-(define-obsolete-function-alias 'timeclock-seconds-to-time 'time-convert "26.1")
+(define-obsolete-function-alias 'timeclock-time-to-seconds #'float-time "26.1")
+(define-obsolete-function-alias 'timeclock-seconds-to-time #'time-convert "26.1")
 
 ;; Should today-only be removed in favor of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)

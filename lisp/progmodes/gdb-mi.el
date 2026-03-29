@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -402,6 +402,20 @@ triggers in `gdb-handler-list'."
      (if (cl-some #'gdb-handler-pending-trigger gdb-handler-list)
 	 (gdb-wait-for-pending func)
        (funcall func)))))
+
+(defun gdb-start-wait-for-pending (var func)
+  "Start waiting for pending GDB commands with VAR and FUNC.
+This calls `gdb-wait-for-pending' if there isn't already a timer waiting
+for running the same FUNC, as indicated by a non-nil value of VAR.
+VAR should be a symbol of a boolean variable.
+The assumption is that when FUNC will be called, it will do the job for
+all the events that need to run FUNC after the pending GDB commands are
+finished.
+FUNC should reset VAR to nil, so further events of the same kind will
+be handled after FUNC exits."
+  (when (null (symbol-value var))
+    (set var t)
+    (gdb-wait-for-pending func)))
 
 ;; Publish-subscribe
 
@@ -1108,7 +1122,11 @@ detailed description of this mode.
   ;; trigger questions about debuginfod queries.
   (if (eq gdb-debuginfod-enable 'ask)
       (setq gdb-debuginfod-enable
-            (y-or-n-p "Enable querying debuginfod servers for this session?")))
+            ;; Temporarily defer processing of GDB responses, to avoid
+            ;; confusing us, until the user responds to the query.
+            (let ((gud-filter-defer-flag t))
+              (y-or-n-p
+               "Enable querying debuginfod servers for this session?"))))
   (gdb-input (format "-gdb-set debuginfod enabled %s"
                      (if gdb-debuginfod-enable "on" "off"))
              'gdb-debuginfod-message)
@@ -2634,6 +2652,9 @@ means to decode using the coding-system set for the GDB process."
 
 (defun gdb-ignored-notification (_token _output-field))
 
+(defvar gdb--update-threads-queued-p nil
+  "If non-nil, we already queued the `update-threads' signal.")
+
 ;; gdb-invalidate-threads is defined to accept 'update-threads signal
 (defun gdb-thread-created (_token _output-field))
 (defun gdb-thread-exited (_token output-field)
@@ -2645,9 +2666,17 @@ Unset `gdb-thread-number' if current thread exited and update threads list."
     ;; When we continue current thread and it quickly exits,
     ;; the pending triggers in gdb-handler-list left after gdb-running
     ;; disallow us to properly call -thread-info without --thread option.
-    ;; Thus we need to use gdb-wait-for-pending.
-    (gdb-wait-for-pending
-     (lambda () (gdb-emit-signal gdb-buf-publisher 'update-threads)))))
+    ;; Thus we need to use gdb-wait-for-pending.  But we should start
+    ;; waiting only once if we get a long series of =thread-exited
+    ;; notifications during the wait period, because otherwise we will
+    ;; flood the Emacs main loop with many timers.  When the time
+    ;; expires, it will process all the threads that exited meanwhile,
+    ;; and the next =thread-exited notification will start a new wait.
+    (gdb-start-wait-for-pending
+     'gdb--update-threads-queued-p
+     (lambda ()
+       (setq gdb--update-threads-queued-p nil)
+       (gdb-emit-signal gdb-buf-publisher 'update-threads)))))
 
 (defun gdb-thread-selected (_token output-field)
   "Handler for =thread-selected MI output record.
@@ -5355,7 +5384,7 @@ BUFFER nil or omitted means use the current buffer."
   (let* ((posns (gdb-line-posns (or line (line-number-at-pos))))
          (start (- (car posns) 1))
          (end (+ (cdr posns) 1))
-         (putstring (if enabled "B" "b"))
+         (putstring (make-string 1 (if enabled ?B ?b)))
          (source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
      0 1 '(help-echo "mouse-1: clear bkpt, mouse-3: enable/disable bkpt")

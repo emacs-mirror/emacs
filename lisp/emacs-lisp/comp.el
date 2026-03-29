@@ -1,6 +1,6 @@
 ;;; comp.el --- compilation of Lisp code into native code -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <acorallo@gnu.org>
 ;; Keywords: lisp
@@ -606,12 +606,9 @@ In use by the back-end."
 (defun comp--func-unique-in-cu-p (func)
   "Return t if FUNC is known to be unique in the current compilation unit."
   (if (symbolp func)
-      (cl-loop with h = (make-hash-table :test #'eq)
-               for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
-               for name = (comp-func-name f)
-               when (gethash name h)
-                 return nil
-               do (puthash name t h)
+      (cl-loop for f being the hash-value in (comp-ctxt-funcs-h comp-ctxt)
+               count (eq func (comp-func-name f)) into n
+               when (> n 1) return nil
                finally return t)
     t))
 
@@ -2049,24 +2046,36 @@ TARGET-BB-SYM is the symbol name of the target block."
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for negated in '(t nil)
+        for eq-fun = (comp--equality-fun-p fun)
+        for op1-imm = (and (comp-cstr-p op1) (comp-cstr-imm-vld-p op1))
+        for op2-imm = (and (comp-cstr-p op2) (comp-cstr-imm-vld-p op2))
+        ;; On a false equality branch only x != <immediate> remains a
+        ;; sound unary fact.  x != y with two non-immediates is
+        ;; relational and must not be encoded as a per-mvar constraint.
+        for skip = (and eq-fun negated (not op1-imm) (not op2-imm))
         for kind = (cl-case fun
                      (equal 'and-nhc)
                      (eql 'and-nhc)
                      (eq 'and)
                      (t fun))
-        when (or (comp--mvar-used-p target-mvar1)
-                 (comp--mvar-used-p target-mvar2))
+        when (and (not skip)
+                  (or (comp--mvar-used-p target-mvar1)
+                      (comp--mvar-used-p target-mvar2)))
         do
         (let ((block-target (comp--add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
           (when (comp--mvar-used-p target-mvar1)
             (comp--emit-assume kind target-mvar1
-                              (comp--maybe-add-vmvar op2 cmp-res prev-insns-seq)
+                              (if (comp-mvar-p op2)
+                                  (comp--maybe-add-vmvar op2 cmp-res prev-insns-seq)
+                                op2)
                               block-target negated))
           (when (comp--mvar-used-p target-mvar2)
             (comp--emit-assume (comp--reverse-arithm-fun kind)
                               target-mvar2
-                              (comp--maybe-add-vmvar op1 cmp-res prev-insns-seq)
+                              (if (comp-mvar-p op1)
+                                  (comp--maybe-add-vmvar op1 cmp-res prev-insns-seq)
+                                op1)
                               block-target negated)))
         finally (cl-return-from in-the-basic-block)))
       (`((set ,(and (pred comp-mvar-p) cmp-res)
@@ -2478,8 +2487,9 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                  (setf (comp-vec-aref frame slot-n) mvar
                        (cadr insn) mvar))))
      (pcase insn
-       (`(setimm ,(pred targetp) ,_imm)
-        (new-lvalue))
+       (`(setimm ,lval ,_imm)
+        (when (targetp lval)
+          (new-lvalue)))
        (`(,(pred comp--assign-op-p) ,(pred targetp) . ,_)
         (let ((mvar (comp-vec-aref frame slot-n)))
           (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))
@@ -3527,6 +3537,21 @@ session."
                (rename-file newfile oldfile t)
              (delete-file oldfile)))))
 
+(defun comp--error-add-context (err ctxt)
+  "Add context information CTXT to the error descriptor ERR."
+  ;; There is currently no agreed upon way to do that, and if we want the
+  ;; context to be displayed, the only option currently is to add elements
+  ;; to the error descriptor.
+  (let ((err-data (cdr err)))
+    (setf (cdr err)
+	  (if (not (listp err-data)) ;; This should never happen.
+              (list err-data ctxt)
+            ;; We can't just insert arbitrary info in the
+            ;; error-data part of an error: the handler may
+            ;; expect specific data at specific positions,
+            ;; so add our info at the end.
+            (append err-data (list ctxt))))))
+
 (defun comp--native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
 When WITH-LATE-LOAD is non-nil, mark the compilation unit for late
@@ -3561,7 +3586,7 @@ the deferred compilation mechanism."
                    for pass in comp-passes
                    unless (memq pass comp-disabled-passes)
                    do
-                   (comp-log (format "\n(%s) Running pass %s:\n"
+                   (comp-log (format "\n(%S) Running pass %s:\n"
                                      function-or-file pass)
                              2)
                    (setf data (funcall pass data))
@@ -3570,31 +3595,24 @@ the deferred compilation mechanism."
                             do (funcall f data))
                    finally
                    (when comp-log-time-report
-                     (comp-log (format "Done compiling %s" data) 0)
+                     (comp-log (format "Done compiling %S" data) 0)
                      (cl-loop for (pass . time) in (reverse report)
                               do (comp-log (format "Pass %s took: %fs."
                                                    pass time)
                                            0))))
                 (t
-                 (let ((err-val (cdr err)))
-                   ;; If we are doing an async native compilation print the
-                   ;; error in the correct format so is parsable and abort.
-                   (if (and comp-async-compilation
-                            (not (eq (car err) 'native-compiler-error)))
-                       (progn
-                         (message "%s: Error %s"
-                                  function-or-file
-                                  (error-message-string err))
-                         (kill-emacs -1))
-                     ;; Otherwise re-signal it adding the compilation input.
-                     ;; FIXME: We can't just insert arbitrary info in the
-                     ;; error-data part of an error: the handler may expect
-                     ;; specific data at specific positions!
-	             (signal (car err) (if (consp err-val)
-			                   (cons function-or-file err-val)
-			                 ;; FIXME: `err-val' is supposed to be
-			                 ;; a list, so it can only be nil here!
-			                 (list function-or-file err-val)))))))
+                 ;; If we are doing an async native compilation print the
+                 ;; error in the correct format so is parsable and abort.
+                 (if (and comp-async-compilation
+                          (not (error-has-type-p err 'native-compiler-error)))
+                     (progn
+                       (message "%S: Error %s"
+                                function-or-file
+                                (error-message-string err))
+                       (kill-emacs -1))
+                   ;; Otherwise re-signal it adding the compilation input.
+                   (comp--error-add-context err function-or-file)
+	           (signal err))))
               (if (stringp function-or-file)
                   data
                 ;; So we return the compiled function.

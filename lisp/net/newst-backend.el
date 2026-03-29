@@ -1,6 +1,6 @@
 ;;; newst-backend.el --- Retrieval backend for newsticker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2026 Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; URL:         https://www.nongnu.org/newsticker
@@ -1107,12 +1107,22 @@ same as in `newsticker--parse-atom-1.0'."
                       (xml-node-children node))))
     (or new-item new-feed)))
 
+(defun newsticker--parse-text-container (node)
+  "Handle content according to ``type'' attribute."
+  (let ((content (car (xml-node-children node)))
+        (type (xml-get-attribute node 'type)))
+    (if (string= "xhtml" type)
+        ;; xhtml: reverse-parse xml nodes back to string
+        (newsticker--unxml content)
+      ;; plain text (default) or entity-escaped html: return as-is
+      content)))
+
 (defun newsticker--unxml (node)
   "Reverse parsing of an xml string.
 Restore an xml-string from a an xml NODE that was returned by xml-parse..."
-  (if (or (not node) (stringp node))
-      node
-    (newsticker--unxml-node node)))
+  (cond ((not node) node)
+        ((stringp node) (xml-escape-string node))
+        (t (newsticker--unxml-node node))))
 
 (defun newsticker--unxml-node (node)
   "Actually restore xml-string of an xml NODE."
@@ -1159,23 +1169,14 @@ URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
                     name time (xml-get-children topnode 'entry)
                     ;; title-fn
                     (lambda (node)
-                      (car (xml-node-children
-                            (car (xml-get-children node 'title)))))
+                      (newsticker--parse-text-container
+                       (car (xml-get-children node 'title))))
                     ;; desc-fn
                     (lambda (node)
-                      ;; unxml the content or the summary node. Atom
-                      ;; allows for integrating (x)html into the atom
-                      ;; structure but we need the raw html string.
-                      ;; e.g. https://www.heise.de/open/news/news-atom.xml
-                      ;; https://feeds.feedburner.com/ru_nix_blogs
-                      (or (newsticker--unxml
-                           (car (xml-node-children
-                                 (car (xml-get-children node 'content)))))
-                          (newsticker--unxml
-                           (car (xml-node-children
-                                 (car (xml-get-children node 'summary)))))
-                          (car (xml-node-children
-                                (car (xml-get-children node 'summary))))))
+                      (or (newsticker--parse-text-container
+                           (car (xml-get-children node 'content)))
+                          (newsticker--parse-text-container
+                           (car (xml-get-children node 'summary)))))
                     ;; link-fn
                     (lambda (node)
                       (xml-get-attribute

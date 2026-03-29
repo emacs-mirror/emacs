@@ -1,6 +1,6 @@
 ;;; process-tests.el --- Testing the process facilities -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -106,6 +106,9 @@ process to complete."
 	      (looking-at "hello stdout!")))
     (should (with-current-buffer stderr-buffer
 	      (goto-char (point-min))
+              ;; Instrument for bug#80166.
+              (when (getenv "EMACS_EMBA_CI")
+                (message "stderr\n%s" (buffer-string)))
 	      (looking-at "hello stderr!"))))))
 
 (ert-deftest process-test-stderr-filter ()
@@ -543,7 +546,7 @@ See Bug#30460."
           ;; all `file-error' signals.
           (and ,message
                (not (string-equal (caddr ,err) ,message))
-               (signal (car ,err) (cdr ,err))))))))
+               (signal ,err)))))))
 
 (defmacro process-tests--with-buffers (var &rest body)
   "Bind VAR to nil and evaluate BODY.
@@ -927,6 +930,9 @@ have written output."
 
 (ert-deftest process-tests/multiple-threads-waiting ()
   :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
+  ;; This test assumes too much of Posix functionality, and thus is
+  ;; unreliable on MS-Windows.
+  (skip-when (eq system-type 'windows-nt))
   (skip-unless (fboundp 'make-thread))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-processes processes
@@ -1023,7 +1029,7 @@ Return nil if FILENAME doesn't exist."
   (with-temp-buffer
     (let* ((proc-buf (current-buffer))
 	   ;; Start a new emacs process to wait idly until interrupted.
-	   (cmd "emacs -batch --eval=\"(sit-for 50000)\"")
+	   (cmd "emacs -Q -batch --eval=\"(sit-for 50000)\"")
 	   (proc (start-file-process-shell-command
                   "test/process-sentinel-signal-event" proc-buf cmd))
 	   (events '()))
@@ -1037,18 +1043,24 @@ Return nil if FILENAME doesn't exist."
       (should (equal 'run (process-status proc)))
       ;; Interrupt the sub-process and wait for it to die.
       (interrupt-process proc)
-      (sleep-for 2)
+      (sleep-for 3)
       ;; Should have received SIGINT...
-      (should (equal 'signal (process-status proc)))
-      (should (equal 2 (process-exit-status proc)))
-      ;; ...and the change description should be "interrupt".
-      (should (equal '("interrupt\n") events)))))
+      (should (equal '(signal 2 ("interrupt\n"))
+                     (list (process-status proc)
+                           (process-exit-status proc)
+                           events))))))
 
 (ert-deftest process-num-processors ()
   "Sanity checks for num-processors."
   (should (equal (num-processors) (num-processors)))
   (should (integerp (num-processors)))
   (should (< 0 (num-processors))))
+
+(ert-deftest process-test-make-pipe-process-no-buffer ()
+  "Test that a pipe process can be created without a buffer."
+  (should     (process-buffer (make-pipe-process :name "test")))
+  (should     (process-buffer (make-pipe-process :name "test" :buffer "test")))
+  (should-not (process-buffer (make-pipe-process :name "test" :buffer nil))))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here

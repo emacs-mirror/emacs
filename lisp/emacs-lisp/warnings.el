@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -135,7 +135,7 @@ customizations.  In particular, the category designated by the
 symbol `warning' can be used in `display-buffer-alist' to customize
 the display of this buffer.
 
-This option affects display of all the buffers shown by `dispay-warning',
+This option affects display of all the buffers shown by `display-warning',
 including warnings from byte-compiler and native-compiler,
 from `check-declare', etc."
   :type 'boolean
@@ -372,7 +372,15 @@ entirely by setting `warning-suppress-types' or
 		     (if (bolp)
 			 (forward-char -1))
 		     (message "%s" (buffer-substring start (point))))))
-		((and (daemonp) (null after-init-time))
+                ;; Use `frame-initial-p'?
+		((and (daemonp) (eq (selected-frame) terminal-frame))
+		 ;; Display daemon startup warnings on the first client frame.
+		 (letrec ((afterfun
+			   (lambda (frame)
+			     (remove-hook 'after-make-frame-functions afterfun)
+			     (with-selected-frame frame
+                               (warning--display-buffer buffer)))))
+		   (add-hook 'after-make-frame-functions afterfun))
 		 ;; Warnings assigned during daemon initialization go into
 		 ;; the messages buffer.
 		 (message "%s"
@@ -388,23 +396,27 @@ entirely by setting `warning-suppress-types' or
 		 (or (< (warning-numeric-level level)
 			(warning-numeric-level warning-minimum-level))
 		     (warning-suppress-p type warning-suppress-types)
-		     (let ((window (display-buffer
-				    buffer
-				    (when warning-display-at-bottom
-				      `(display-buffer--maybe-at-bottom
-					(window-height
-					 . ,(lambda (window)
-					      (fit-window-to-buffer window 10)))
-					(category . warning))))))
-		       (when (and window (markerp warning-series)
-				  (eq (marker-buffer warning-series) buffer))
-			 (set-window-start window warning-series))
-		       (when (and window warning-display-at-bottom)
-			 (with-selected-window window
-			   (goto-char (point-max))
-			   (forward-line -1)
-			   (recenter -1)))
-		       (sit-for 0)))))))))
+                     (warning--display-buffer buffer))))))))
+
+(defun warning--display-buffer (buffer)
+  (let ((window (display-buffer
+		 buffer
+		 (when warning-display-at-bottom
+		   `(display-buffer--maybe-at-bottom
+		     (window-height
+		      . ,(lambda (window)
+			   (fit-window-to-buffer window 10)))
+		     (category . warning))))))
+    (when (and window (markerp warning-series)
+	       (eq (marker-buffer warning-series) buffer))
+      (set-window-start window warning-series))
+    (when (and window warning-display-at-bottom)
+      (with-selected-window window
+	(goto-char (point-max))
+	(forward-line -1)
+	(recenter -1)))
+    (sit-for 0)))
+
 
 ;; Use \\<special-mode-map> so that help-enable-autoload can do its thing.
 ;; Any keymap that is defined will do.

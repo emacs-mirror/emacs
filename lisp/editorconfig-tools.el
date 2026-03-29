@@ -1,6 +1,6 @@
 ;;; editorconfig-tools.el --- Editorconfig tools   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Package: editorconfig
@@ -31,21 +31,15 @@
 
 ;;; Code:
 
-(require 'cl-lib)
-
 (eval-when-compile
   (require 'subr-x))
-
 
 (require 'editorconfig)
 
 ;;;###autoload
 (defun editorconfig-apply ()
-  "Get and apply EditorConfig properties to current buffer.
-
-This function does not respect the values of `editorconfig-exclude-modes' and
-`editorconfig-exclude-regexps' and always applies available properties.
-Use `editorconfig-mode-apply' instead to make use of these variables."
+  "Get and apply EditorConfig properties to current buffer."
+  (declare (obsolete hack-local-variables "31.1"))
   (interactive)
   (when buffer-file-name
     (condition-case err
@@ -76,14 +70,12 @@ Use `editorconfig-mode-apply' instead to make use of these variables."
                         :error)))))
 
 (defun editorconfig-mode-apply ()
-  "Get and apply EditorConfig properties to current buffer.
-
-This function does nothing when the major mode is listed in
-`editorconfig-exclude-modes', or variable `buffer-file-name' matches
-any of regexps in `editorconfig-exclude-regexps'."
+  "Get and apply EditorConfig properties to current buffer."
+  (declare (obsolete editorconfig-apply "31.1"))
   (interactive)
   (when (and major-mode buffer-file-name)
-    (editorconfig-apply)))
+    (with-suppressed-warnings ((obsolete editorconfig-apply))
+      (editorconfig-apply))))
 
 
 ;;;###autoload

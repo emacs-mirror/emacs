@@ -1,6 +1,6 @@
 ;;; sasl.el --- SASL client framework  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000, 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
 ;; Keywords: SASL
@@ -50,8 +50,7 @@
 
 (defvar sasl-unique-id-function #'sasl-unique-id-function)
 
-(put 'sasl-error 'error-message "SASL error")
-(put 'sasl-error 'error-conditions '(sasl-error error))
+(define-error 'sasl-error "SASL error")
 
 (defun sasl-error (datum)
   (signal 'sasl-error (list datum)))

@@ -1,6 +1,6 @@
 ;;; lua-ts-mode.el --- Major mode for editing Lua files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; Author: John Muhl <jm@pub.pink>
 ;; Created: June 27, 2023
@@ -73,6 +73,11 @@
   :type 'natnum
   :safe 'natnump
   :version "30.1")
+
+(defcustom lua-ts-auto-close-block-comments nil
+  "If non-nil, inserting a block comment \"--[[\" will insert its respective \"]]\"."
+  :type 'boolean
+  :version "31.1")
 
 (defcustom lua-ts-luacheck-program "luacheck"
   "Location of the Luacheck program."
@@ -163,10 +168,13 @@ values of OVERRIDE."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (node-text (treesit-node-text node t))
-         (delimiter-end (+ 2 node-start)))
+         (delimiter-end (progn
+                          (goto-char node-start)
+                          (while (looking-at-p "-") (forward-char))
+                          (point))))
     (when (and (>= node-start start)
                (<= delimiter-end end)
-               (string-match "\\`--" node-text))
+               (string-match "\\`---*" node-text))
       (treesit-fontify-with-override node-start
                                      delimiter-end
                                      'font-lock-comment-delimiter-face
@@ -675,6 +683,14 @@ Calls REPORT-FN directly."
     (setq-local comment-start-skip "--\\s-*")
     (setq-local comment-end "")
 
+    ;; Pairs.
+    (when (and lua-ts-auto-close-block-comments
+               (boundp 'electric-pair-pairs))
+      (setq-local electric-pair-pairs
+                  (cons
+                   '("--\\[\\[" . "\n]")
+                   electric-pair-pairs)))
+
     ;; Font-lock.
     (setq-local treesit-font-lock-settings lua-ts--font-lock-settings)
     (setq-local treesit-font-lock-feature-list
@@ -756,9 +772,10 @@ Calls REPORT-FN directly."
 
 (derived-mode-add-parents 'lua-ts-mode '(lua-mode))
 
-(when (treesit-ready-p 'lua)
-  (add-to-list 'auto-mode-alist '("\\.lua\\'" . lua-ts-mode))
-  (add-to-list 'interpreter-mode-alist '("\\<lua\\(?:jit\\)?" . lua-ts-mode)))
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(lua-mode . lua-ts-mode)))
 
 (provide 'lua-ts-mode)
 

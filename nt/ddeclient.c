@@ -1,5 +1,5 @@
 /* Simple client interface to DDE servers.
-   Copyright (C) 1998, 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 1998, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #define DEFER_MS_W32_H
+/* We only ever use fprintf for a fixed usage message below, so the
+   stdio-consolesafe module is overkill.  */
+#define OMIT_CONSOLESAFE 1
 #include <config.h>
 
 #include <windows.h>

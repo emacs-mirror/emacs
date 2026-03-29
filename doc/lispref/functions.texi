@@ -1,6 +1,6 @@
 @c -*- mode: texinfo -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Functions
@@ -674,6 +674,7 @@ variable; these two uses of a symbol are independent and do not
 conflict.  (This is not the case in some dialects of Lisp, like
 Scheme.)
 
+@cindex internal functions, naming conventions
   By convention, if a function's symbol consists of two names
 separated by @samp{--}, the function is intended for internal use and
 the first part names the file defining the function.  For example, a
@@ -2609,7 +2610,9 @@ as a compiler macro.  The function will accept the argument list
 If present, @var{doc} should be the function's documentation string
 (@pxref{Function Documentation}); @var{declare}, if present, should be
 a @code{declare} form (@pxref{Declare Form}) specifying the function's
-metadata.
+metadata.  In addition to the usual declarations, @var{declare}
+can include @code{(noinline @var{NOINLINE})} when a non-@code{nil}
+@var{NOINLINE} prevents Emacs from inlining the defined function.
 @end defmac
 
 Functions defined via @code{define-inline} have several advantages
@@ -2741,6 +2744,14 @@ as a documentation string.
 Indent calls to this function or macro according to @var{indent-spec}.
 This is typically used for macros, though it works for functions too.
 @xref{Indenting Macros}.
+
+@cindex @code{autoload-macro} (@code{declare} spec)
+@item (autoload-macro @var{value})
+This is used when defining a macro.  If @var{value} is @samp{expand},
+any calls to the macro which follow an autoload comment will first be
+expanded during generation of the autoloads.  This declaration is used
+as an alternative to hard-coding lists of macros to expand in
+@code{loaddefs-generate--make-autoload}.  @xref{Autoload}.
 
 @item (interactive-only @var{value})
 Set the function's @code{interactive-only} property to @var{value}.

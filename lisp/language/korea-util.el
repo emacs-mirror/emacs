@@ -1,6 +1,6 @@
 ;;; korea-util.el --- utilities for Korean  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 1999, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2026 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -27,13 +27,22 @@
 
 ;;; Code:
 
+(defgroup korean nil
+  "Options for writing Korean."
+  :version "31.1"
+  :group 'languages)
+
 ;;;###autoload
-(defvar default-korean-keyboard
+(defcustom default-korean-keyboard
   (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
       "3"
     "")
   "The kind of Korean keyboard for Korean (Hangul) input method.
-\"\" for 2, \"3\" for 3, and \"3f\" for 3f.")
+\"\" for 2, \"3\" for 3, and \"3f\" for 3f."
+  :initialize #'custom-initialize-delay
+  :group 'korean
+  :version "31.1"
+  :type 'string)
 
 ;; functions useful for Korean text input
 

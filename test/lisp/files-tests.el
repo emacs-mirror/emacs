@@ -1,6 +1,6 @@
 ;;; files-tests.el --- tests for files.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1027,7 +1027,19 @@ unquoted file names."
                      (buffer-string)))))
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
-    (should-error (with-temp-buffer (insert-directory nospecial-dir "")))))
+    (if (memq system-type '(windows-nt ms-dos))
+        (should-error (with-temp-buffer (insert-directory nospecial-dir "")))
+      (with-temp-buffer (insert-directory nospecial-dir ""))
+      (let ((errbuf (get-buffer "*ls error*"))
+            ;; By the time `ls' is called in `insert-directory', the
+            ;; handler prefix has been removed.
+            (nospecial-dir (string-remove-prefix "/:" nospecial-dir)))
+        (should errbuf)
+        (with-current-buffer errbuf
+          (should (equal (buffer-string)
+                         (concat "ls: cannot access '" nospecial-dir
+                                 "': No such file or directory\n"))))
+        (kill-buffer errbuf)))))
 
 (ert-deftest files-tests-file-name-non-special-insert-file-contents ()
   (files-tests--with-temp-non-special (tmpfile nospecial)
@@ -1892,7 +1904,7 @@ Ensure that the issues from bug#66546 are fixed."
                       (error err))
                   'missing))
               (signal-write-failed (&rest _)
-                (signal 'file-error "Write failed")))
+                (signal 'file-error '("Write failed"))))
 
       (let* (;; Sanitize environment.
              ;; The tests below test text for equality, so we need to
@@ -2059,6 +2071,7 @@ CALLERS-DIR specifies the value to let-bind
   (let* ((dir (make-temp-file "testdir" 'dir))
          (inhibit-message t)
          (use-dialog-box nil)
+         (y-or-n-p-use-read-key t)
          buffers)
     (pcase-dolist (`(,bufsym ,offer-save) buffers-offer)
       (let* ((buf (generate-new-buffer (symbol-name bufsym)))

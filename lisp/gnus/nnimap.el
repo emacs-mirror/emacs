@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -51,7 +51,7 @@
 
 (defvoo nnimap-server-port nil
   "The IMAP port used.
-If `nnimap-stream' is `ssl', this will default to `imaps'.  If not,
+If `nnimap-stream' is `tls', this will default to `imaps'.  If not,
 it will default to `imap'.")
 
 (defvoo nnimap-use-namespaces nil
@@ -63,10 +63,10 @@ names of your nnimap groups.")
 
 (defvoo nnimap-stream 'undecided
   "How nnimap talks to the IMAP server.
-The value should be either `undecided', `ssl' or `tls',
+The value should be either `undecided', `tls' or `ssl' (deprecated),
 `network', `starttls', `plain', or `shell'.
 
-If the value is `undecided', nnimap tries `ssl' first, then falls
+If the value is `undecided', nnimap tries `tls' first, then falls
 back on `network'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
@@ -448,13 +448,14 @@ during splitting, which may be slow."
 
 (defun nnimap-open-connection (buffer)
   ;; Be backwards-compatible -- the earlier value of nnimap-stream was
-  ;; `ssl' when nnimap-server-port was nil.  Sort of.
+  ;; `ssl' when nnimap-server-port was nil.  Sort of.  But it's `tls'
+  ;; now, because we're post the Great 2025 Spelling Reform.
   (when (and nnimap-server-port
 	     (eq nnimap-stream 'undecided))
-    (setq nnimap-stream 'ssl))
+    (setq nnimap-stream 'tls))
   (let ((stream
 	 (if (eq nnimap-stream 'undecided)
-	     (cl-loop for type in '(ssl network)
+	     (cl-loop for type in '(tls network)
 		   for stream = (let ((nnimap-stream type))
 				  (nnimap-open-connection-1 buffer))
 		   while (eq stream 'no-connect)
@@ -493,7 +494,7 @@ during splitting, which may be slow."
 	      (nnheader-message 7 "Opening connection to %s via shell..."
 				nnimap-address)
 	      '("imap"))
-	     ((memq nnimap-stream '(ssl tls))
+	     ((memq nnimap-stream '(tls ssl))
 	      (nnheader-message 7 "Opening connection to %s via tls..."
 				nnimap-address)
 	      '("imaps" "imap" "993" "143"))

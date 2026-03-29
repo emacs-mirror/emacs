@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1993-1995, 1997, 2000-2025 Free Software
+;; Copyright (C) 1989, 1993-1995, 1997, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -111,12 +111,13 @@ If your files might be edited by older versions of Emacs also, you should
 limit yourself to the formats recommended by that older version."
   :type 'string
   :version "31.1")
-;;;###autoload(put 'time-stamp-format 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-format 'safe-local-variable #'stringp)
 
 
 (defcustom time-stamp-active t
   "Non-nil enables time-stamping of buffers by \\[time-stamp].
-Can be toggled by \\[time-stamp-toggle-active].
+Can be toggled by \\[time-stamp-toggle-active] as an easy way to
+temporarily disable `time-stamp' while saving a file.
 
 This option does not affect when `time-stamp' is run, only what it
 does when it runs.  To activate automatic time-stamping of buffers
@@ -133,17 +134,19 @@ See also the variable `time-stamp-warn-inactive'."
 
 
 (defcustom time-stamp-warn-inactive t
-  "Have \\[time-stamp] warn if a buffer did not get time-stamped.
-If non-nil, a warning is displayed if `time-stamp-active' has
-deactivated time stamping and the buffer contains a template that
-otherwise would have been updated."
+  "Warn when we find a template but `time-stamp-active' is nil.
+If non-nil, `time-stamp' displays a message when `time-stamp-active'
+is nil (deactivating time stamping) and the buffer contains
+a template that otherwise would have been updated."
   :type 'boolean
   :version "19.29")
 
 
 (defcustom time-stamp-time-zone nil
-  "The time zone to be used by \\[time-stamp].
-Its format is that of the ZONE argument of the `format-time-string' function."
+  "The time zone used by \\[time-stamp].  t uses UTC.
+nil (the default) uses local time, and t or \"UTC0\" uses
+Coordinated Universal Time (UTC).  For other possible values,
+see the documentation of the ZONE argument of `format-time-string'."
   :type '(choice (const :tag "Emacs local time" nil)
                  (const :tag "Universal Time" t)
                  (const :tag "system wall clock time" wall)
@@ -153,12 +156,12 @@ Its format is that of the ZONE argument of the `format-time-string' function."
                        (string :tag "Time zone abbreviation"))
                  (integer :tag "Offset (seconds east of UTC)"))
   :version "20.1")
-;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable 'time-stamp-zone-type-p)
+;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable #'time-stamp-zone-type-p)
 
 
 ;;;###autoload
 (defun time-stamp-zone-type-p (zone)
-  "Return non-nil if ZONE is of the correct type for a timezone rule.
+  "Return non-nil if ZONE looks like a valid timezone rule.
 Valid ZONE values are described in the documentation of `format-time-string'."
   (or (memq zone '(nil t wall))
       (stringp zone)
@@ -171,17 +174,17 @@ Valid ZONE values are described in the documentation of `format-time-string'."
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start,
 ;;; time-stamp-end, time-stamp-pattern, time-stamp-inserts-lines,
-;;; or time-stamp-count in your .emacs or you will be incompatible
-;;; with other people's files!  If you must change them, do so only
-;;; in the local variables section of the file itself.
+;;; or time-stamp-count in your init file or you will be incompatible
+;;; with other people's files.  It is fine to change these variables
+;;; in the local variables list of the file itself.
 
 
 (defvar time-stamp-line-limit 8	    ;Do not change!
-  "Lines of a file searched; positive counts from start, negative from end.
-The patterns `time-stamp-start' and `time-stamp-end' must be found in
-the first (last) `time-stamp-line-limit' lines of the file for the
-file to be time-stamped by \\[time-stamp].  A value of 0 searches the
-entire buffer (use with care).
+  "Lines searched; positive counts from start, negative from end.
+The patterns `time-stamp-start' and `time-stamp-end' must be found
+in the first (last) `time-stamp-line-limit' lines of the file for
+\\[time-stamp] to update the region between them with the current
+time stamp.  A value of 0 searches the entire buffer (use with care).
 
 It may be more convenient to use `time-stamp-pattern' if you set more
 than one of `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
@@ -191,7 +194,7 @@ These variables are best changed with file-local variables.
 If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', or `time-stamp-pattern' in your init file, you
 would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable 'integerp)
+;;;###autoload(put 'time-stamp-line-limit 'safe-local-variable #'integerp)
 
 
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
@@ -205,7 +208,7 @@ These variables are best changed with file-local variables.
 If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', or `time-stamp-pattern' in your init file, you
 would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-start 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-start 'safe-local-variable #'stringp)
 
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
@@ -228,32 +231,48 @@ These variables are best changed with file-local variables.
 If you were to change `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-end', `time-stamp-pattern', or `time-stamp-inserts-lines' in
 your init file, you would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-end 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-end 'safe-local-variable #'stringp)
 
 
 (defvar time-stamp-inserts-lines nil    ;Do not change!
   "Whether \\[time-stamp] can change the number of lines in a file.
-If nil, \\[time-stamp] skips as many lines as there are newlines in
-`time-stamp-format' before looking for the `time-stamp-end' pattern,
-thus it tries not to change the number of lines in the buffer.
-If non-nil, \\[time-stamp] starts looking for the end pattern
-immediately after the start pattern.  This behavior can cause
-unexpected changes in the buffer if used carelessly, but it is useful
-for generating repeated time stamps.
+When `time-stamp-format' contains newline characters, the intent
+is ambiguous: does the author want to update a single multi-line
+time stamp, or create a repeated time stamp by inserting new lines?
+This variable controls the interpretation.
+
+If nil, `time-stamp' tries not to change the number of lines in the
+buffer and treats the format as one single, multi-line time stamp.
+The `time-stamp-end' must start N lines after the end of
+`time-stamp-start', where N is the number of newlines in
+`time-stamp-format'.
+
+If this variable is non-nil, `time-stamp' is willing to add lines
+to the buffer.  The end pattern must start somewhere in the
+remainder of the same line where the start pattern ends.
+This behavior lets a file accumulate repeated time stamps.
+
+In the most common case that `time-stamp-format' contains no
+newlines, this variable has no effect; the end of the start
+and the start of the end are always on the same line.
 
 These variables are best changed with file-local variables.
-If you were to change `time-stamp-end' or `time-stamp-inserts-lines' in
-your init file, you would be incompatible with other people's files.")
-;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable 'booleanp)
+If you were to change `time-stamp-start', `time-stamp-end' or
+`time-stamp-inserts-lines' in your init file, you would be
+incompatible with other people's files.")
+;;;###autoload(put 'time-stamp-inserts-lines 'safe-local-variable #'booleanp)
 
 
 (defvar time-stamp-count 1		;Do not change!
   "How many templates \\[time-stamp] will look for in a buffer.
 
-If the value is greater than 1, the same time stamp will be written in
-each case.  If you want to insert different text on different lines,
+If the value is greater than 1, the same time stamp will be
+written in each case.
+
+If you want to insert different text on different lines,
 then instead of changing this variable, include a newline (written as
 \"\\n\") in `time-stamp-format' or the format part of `time-stamp-pattern'.
+See the variable `time-stamp-inserts-lines'.
 
 `time-stamp-count' is best changed with a file-local variable.
 If you were to change it in your init file, you would be incompatible
@@ -262,7 +281,7 @@ with other people's files.")
 
 
 (defvar time-stamp-pattern nil		;Do not change!
-  "Convenience variable setting all `time-stamp' location and format values.
+  "Shorthand variable for `time-stamp' location and format values.
 This string has four parts, each of which is optional.
 These four parts override `time-stamp-line-limit', `time-stamp-start',
 `time-stamp-format' and `time-stamp-end', respectively.  See the
@@ -276,8 +295,8 @@ value of `time-stamp-line-limit' as the number.
 The second part is a regexp identifying the pattern preceding the time stamp.
 This part may be omitted to use the value of `time-stamp-start'.
 
-The third part specifies the format of the time stamp inserted.  Specify
-this part as \"%%\" to use the value of `time-stamp-format'.
+The third part specifies the format of the time stamp inserted.
+This part may be \"%%\" to use the value of `time-stamp-format'.
 
 The fourth part is a regexp identifying the pattern following the time stamp.
 This part may be omitted to use the value of `time-stamp-end'.
@@ -313,7 +332,7 @@ in-depth examples.
 
 
 See also `time-stamp-count' and `time-stamp-inserts-lines'.")
-;;;###autoload(put 'time-stamp-pattern 'safe-local-variable 'stringp)
+;;;###autoload(put 'time-stamp-pattern 'safe-local-variable #'stringp)
 
 
 
@@ -328,9 +347,9 @@ of the file before running this function, by default can look like
 one of the following (your choice):
       Time-stamp: <>
       Time-stamp: \" \"
-This function writes the current time between the brackets or quotes,
-by default formatted like this:
-      Time-stamp: <2024-08-07 17:10:21 gildea>
+This function writes the current time between the angle brackets
+or quotes, by default formatted like this:
+      Time-stamp: <2025-08-07 17:10:21 gildea>
 
 Although you can run this function manually to update a time stamp
 once, usually you want automatic time stamp updating.
@@ -348,7 +367,8 @@ If the file has no time stamp template or if `time-stamp-active' is nil,
 this function does nothing.
 
 You can set `time-stamp-pattern' in a file's local variables list
-to customize the information in the time stamp and where it is written."
+to customize the information in the time stamp, the surrounding
+template, and where in the file it can occur."
   (interactive)
   (let ((line-limit time-stamp-line-limit)
 	(ts-start time-stamp-start)
@@ -374,51 +394,50 @@ to customize the information in the time stamp and where it is written."
 	       (setq ts-end (match-string 6 time-stamp-pattern)))))
     (cond ((not (integerp line-limit))
 	   (setq line-limit 8)
-	   (message "time-stamp-line-limit is not an integer")
-	   (sit-for 1)))
+           (time-stamp--message "time-stamp-line-limit is not an integer")))
     (cond ((not (integerp ts-count))
 	   (setq ts-count 1)
-	   (message "time-stamp-count is not an integer")
-	   (sit-for 1))
+           (time-stamp--message "time-stamp-count is not an integer"))
 	  ((< ts-count 1)
 	   ;; We need to call time-stamp-once at least once
 	   ;; to output any warnings about time-stamp not being active.
 	   (setq ts-count 1)))
     ;; Figure out what lines the end should be on.
     (if (stringp ts-format)
-	(let ((nl-start 0))
-	  (while (string-match "\n" ts-format nl-start)
-	    (setq format-lines (1+ format-lines) nl-start (match-end 0)))))
-    (let ((nl-start 0))
-      (while (string-match "\n" ts-end nl-start)
-	(setq end-lines (1+ end-lines) nl-start (match-end 0))))
-    ;; Find overall what lines to look at
-    (save-excursion
-      (save-restriction
-	(widen)
-	(cond ((> line-limit 0)
-	       (goto-char (setq start (point-min)))
-	       (forward-line line-limit)
-               (setq search-limit (point-marker)))
-	      ((< line-limit 0)
-               (goto-char (setq search-limit (point-max-marker)))
-	       (forward-line line-limit)
-	       (setq start (point)))
-	      (t			;0 => no limit (use with care!)
-	       (setq start (point-min))
-               (setq search-limit (point-max-marker))))))
-    (while (and start
-		(< start search-limit)
-		(> ts-count 0))
-      (setq start (time-stamp-once start search-limit ts-start ts-end
-				   ts-format format-lines end-lines))
-      (setq ts-count (1- ts-count)))
-    (set-marker search-limit nil))
+        (setq format-lines (time-stamp--count-newlines ts-format)))
+    (cond
+     ((not (and (stringp ts-start)
+                (stringp ts-end)))
+      (time-stamp--message "time-stamp-start or time-stamp-end is not a string"))
+     (t
+      (setq end-lines (1+ (time-stamp--count-newlines ts-end)))
+      ;; Find overall what lines to look at
+      (save-excursion
+        (save-restriction
+          (widen)
+          (cond ((> line-limit 0)
+                 (goto-char (setq start (point-min)))
+                 (forward-line line-limit)
+                 (setq search-limit (point-marker)))
+                ((< line-limit 0)
+                 (goto-char (setq search-limit (point-max-marker)))
+                 (forward-line line-limit)
+                 (setq start (point)))
+                (t                      ;0 => no limit (use with care!)
+                 (setq start (point-min))
+                 (setq search-limit (point-max-marker))))))
+      (while (and start
+                  (< start search-limit)
+                  (> ts-count 0))
+        (setq start (time-stamp-once start search-limit ts-start ts-end
+                                     ts-format format-lines end-lines))
+        (setq ts-count (1- ts-count)))
+      (set-marker search-limit nil))))
   nil)
 
 (defun time-stamp-once (start search-limit ts-start ts-end
 			ts-format format-lines end-lines)
-  "Update one time stamp.  Internal routine called by \\[time-stamp].
+  "Update one time stamp.  Internal routine called by `time-stamp'.
 Returns the end point, which is where `time-stamp' begins the next search."
   (let ((case-fold-search nil)
 	(end nil)
@@ -457,14 +476,9 @@ Returns the end point, which is where `time-stamp' begins the next search."
 	  (cond
 	   ((not time-stamp-active)
 	    (if time-stamp-warn-inactive
-		;; don't signal an error in a hook
-		(progn
-		  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
-		  (sit-for 1))))
-	   ((not (and (stringp ts-start)
-		      (stringp ts-end)))
-	    (message "time-stamp-start or time-stamp-end is not a string")
-	    (sit-for 1))
+                (time-stamp--message
+                 "Warning: time-stamp-active is off; did not time-stamp buffer."))
+            nil)
 	   (t
 	    (let ((new-time-stamp (time-stamp-string ts-format)))
 	      (if (and (stringp new-time-stamp)
@@ -481,16 +495,17 @@ Returns the end point, which is where `time-stamp' begins the next search."
 		      (if (search-backward "\t" start t)
 			  (progn
 			    (untabify start end)
-			    (setq end (point))))))))))))
-    ;; return the location after this time stamp, if there was one
-    (and end end-length
-         (+ end (max advance-nudge end-length)))))
+                            (setq end (point))))))))
+            ;; return the location after this time stamp
+            (+ end (max advance-nudge end-length))))))))
 
 
 ;;;###autoload
 (defun time-stamp-toggle-active (&optional arg)
-  "Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
-With ARG, turn time stamping on if and only if ARG is positive."
+  "Set `time-stamp-active' (whether \\[time-stamp] updates a buffer).
+If ARG is unset, toggle `time-stamp-active'.  With an arg, set
+`time-stamp-active' to t (turning on time stamping) if
+ARG is positive, otherwise nil."
   (interactive "P")
   (setq time-stamp-active
 	(if (null arg)
@@ -504,7 +519,7 @@ Internal helper used by `time-stamp-string-preprocess'."
   (format-time-string format time time-stamp-time-zone))
 
 (defun time-stamp-string (&optional ts-format time)
-  "Return the current time and other info formatted for \\[time-stamp].
+  "Return the time, date and other info formatted for `time-stamp'.
 Optional first argument TS-FORMAT gives the format to use; it defaults
 to the value of `time-stamp-format'.  Thus, with no arguments,
 this function returns the string `time-stamp' would use to update
@@ -530,7 +545,7 @@ time is used.  The time zone is determined by `time-stamp-time-zone'."
 ;;; ambiguous formats--formats that are changing (over time) incompatibly.
 
 (defun time-stamp-string-preprocess (format &optional time)
-  "Use a FORMAT to format date, time, file, and user information.
+  "Use FORMAT to format date, time, and user information.
 Optional second argument TIME is only for testing.
 This is an internal routine implementing extensions to `format-time-string'
 and all `time-stamp-format' compatibility."
@@ -746,7 +761,7 @@ and all `time-stamp-format' compatibility."
                       time-stamp-no-file))
 	           ((eq cur-char ?s)    ;system name, legacy
 		    (time-stamp-conv-warn "%s" "%Q")
-	            (system-name))
+                    (time-stamp--system-name :full))
 	           ((eq cur-char ?u)    ;user name, legacy
 		    (time-stamp-conv-warn "%u" "%l")
 	            (user-login-name))
@@ -758,27 +773,30 @@ and all `time-stamp-format' compatibility."
 	           ((eq cur-char ?L)    ;full name of logged-in user
 	            (user-full-name))
 	           ((eq cur-char ?h)    ;mail host name
-	            (or mail-host-address (system-name)))
+                    (or mail-host-address (time-stamp--system-name :full)))
                    ((or (eq cur-char ?q)  ;unqualified host name
                         (eq cur-char ?x)) ;short system name, experimental
-                    (let ((shortname (system-name)))
-                      (if (string-match "\\." shortname)
-                          (substring shortname 0 (match-beginning 0))
-                        shortname)))
+                    (time-stamp--system-name :short))
                    ((or (eq cur-char ?Q)  ;fully-qualified host name
                         (eq cur-char ?X)) ;full system name, experimental
-	            (system-name))
+                    (time-stamp--system-name :full))
 	           ))
-            (and (numberp field-result)
-                 (= colon-cnt 0)
-                 (or (string-equal field-width "")
-                     (string-equal field-width "0"))
-                 ;; no width provided; set width for default
-                 (setq field-width "02"))
-	    (format (format "%%%s%c"
-			    field-width
-			    (if (numberp field-result) ?d ?s))
-                    (or field-result "")))))) ;end of handle-one-conversion
+            (if (numberp field-result)
+                (progn
+                  (and (= colon-cnt 0)
+                       (or (string-equal field-width "")
+                           (string-equal field-width "0"))
+                       ;; no width provided; set width for default
+                       (setq field-width "02"))
+	          (format (format "%%%sd" field-width)
+                          (or field-result "")))
+              (let* ((field-width-num (string-to-number field-width))
+                     (needed-padding (- field-width-num
+                                        (string-width (or field-result "")))))
+                (if (> needed-padding 0)
+                    (concat (make-string needed-padding ?\s) field-result)
+                  field-result)))
+            )))) ;end of handle-one-conversion
     ;; iterate over the format string
     (while (< ind fmt-len)
       (setq cur-char (aref format ind))
@@ -792,9 +810,9 @@ and all `time-stamp-format' compatibility."
 
 (defun time-stamp-do-letter-case (change-is-downcase
                                   upcase title-case change-case text)
-  "Apply upper- and lower-case conversions to TEXT according to the flags.
-CHANGE-IS-DOWNCASE non-nil indicates that modifier CHANGE-CASE requests
-lowercase, otherwise the modifier requests uppercase.
+  "Apply upper- and lower-case conversions to TEXT per the flags.
+CHANGE-IS-DOWNCASE non-nil indicates that modifier CHANGE-CASE
+requests lowercase, otherwise the modifier requests uppercase.
 UPCASE is non-nil if the \"^\" modifier is active.
 TITLE-CASE is non-nil if the \"*\" modifier is active.
 CHANGE-CASE is non-nil if the \"#\" modifier is active.
@@ -813,7 +831,8 @@ This is an internal helper for `time-stamp-string-preprocess'."
          text)))
 
 (defun time-stamp-do-number (format-char colon-count field-width time)
-  "Handle compatible FORMAT-CHAR where only default width/padding will change.
+  "Handle a FORMAT-CHAR mostly compatible with `format-time-string'.
+The default width/padding may be different from `format-time-string'.
 COLON-COUNT is non-0 if \":\" was specified.  FIELD-WIDTH is the string
 width specification or \"\".  TIME is the time to convert.
 This is an internal helper for `time-stamp-string-preprocess'."
@@ -823,8 +842,9 @@ This is an internal helper for `time-stamp-string-preprocess'."
       (string-to-number (time-stamp--format format-string time)))))
 
 (defun time-stamp-filtered-buffer-file-name (type)
-  "Return the buffer file name, but with non-graphic characters replaced by ?.
-TYPE is :absolute for the full name or :nondirectory for base name only."
+  "Return a printable string representing the buffer file name.
+Non-graphic characters are replaced by ?.  TYPE is :absolute
+for the full name or :nondirectory for base name only."
   (declare (ftype (function ((member :absolute :nondirectory)) string)))
   (let ((file-name buffer-file-name)
         (safe-character-filter
@@ -832,7 +852,7 @@ TYPE is :absolute for the full name or :nondirectory for base name only."
            (let ((category (get-char-code-property chr 'general-category)))
              (if (or
                   ;; Letter, Mark, Number, Punctuation, or Symbol
-                  (member (aref (symbol-name category) 0) '(?L ?M ?N ?P ?S))
+                  (memq (aref (symbol-name category) 0) '(?L ?M ?N ?P ?S))
                   ;; spaces of various widths, but not ctrl chars like CR or LF
                   (eq category 'Zs))
                  chr
@@ -842,23 +862,59 @@ TYPE is :absolute for the full name or :nondirectory for base name only."
       (setq file-name (file-name-nondirectory file-name)))
     (apply #'string (mapcar safe-character-filter file-name))))
 
+(defun time-stamp--count-newlines (str)
+  "Return the number of newlines in STR."
+  (declare (pure t))
+  (let ((nl-count 0)
+        (nl-start 0))
+    (while (setq nl-start (string-match-p "\n" str nl-start))
+      (setq nl-count (1+ nl-count)
+            nl-start (1+ nl-start)))
+    nl-count))
+
+(defun time-stamp--message (warning-string)
+  "Display WARNING-STRING for one second."
+  (message "%s" warning-string)
+  (sit-for 1))
+
+(defun time-stamp--system-name (type)
+  "Return the host name of this system.
+TYPE is :short for the unqualified name, :full for the full name."
+  (time-stamp--system-name-1 (system-name) type))
+
+(defun time-stamp--system-name-1 (sysname type)
+  "Return SYSNAME, shortened if TYPE is :short."
+  (declare (pure t))
+  (let (first-dot)
+    (if (and (eq type :short)
+             (setq first-dot (string-match-p "\\." sysname)))
+        (substring sysname 0 first-dot)
+      sysname)))
 
 (defvar time-stamp-conversion-warn t
-  "Enable warnings about soon-to-be-unsupported forms in `time-stamp-format'.
-If nil, these warnings are disabled, which would be a bad idea!
-You really need to update your files instead.
+  "Enable warnings for old formats in `time-stamp-format'.
+When non-nil, `time-stamp' warns about unstable and
+soon-to-be-changing conversions found in that buffer's
+`time-stamp-format' value.  The warning is displayed only
+when a buffer's time stamp is updated; merely viewing a file
+does not warn.
 
-The new formats will work with old versions of Emacs.
+If nil, these warnings are disabled, which would be a bad idea.
+Since you are changing your file anyway, please make one more
+change and update its local variables list.
+
+The recommended replacements will work with old versions of Emacs.
 New formats are being recommended now to allow `time-stamp-format'
 to change in the future to be compatible with `format-time-string'.
-The new forms being recommended now will continue to work then.")
+The new formats being recommended now will continue to work then.")
 
 
-(defun time-stamp-conv-warn (old-form new-form &optional standard-form)
+(defun time-stamp-conv-warn (old-format new-format &optional standard-format)
   "Display a warning about a soon-to-be-obsolete format.
-Suggests replacing OLD-FORM with NEW-FORM (same effect, but stable)
-or (if provided) STANDARD-FORM (the effect the user may have expected
-if they didn't read the documentation)."
+Suggests replacing OLD-FORMAT with NEW-FORMAT (same effect, but stable)
+or (if provided) STANDARD-FORMAT (the effect the user may have expected
+if they didn't read the documentation).
+This is an internal function called by `time-stamp'."
   (cond
    (time-stamp-conversion-warn
     (with-current-buffer (get-buffer-create "*Time-stamp-compatibility*")
@@ -871,15 +927,15 @@ if they didn't read the documentation)."
            "The conversions recognized in `time-stamp-format' will change in a future\n"
            "release to be more compatible with the function `format-time-string'.\n"
            (cond
-            (standard-form
+            (standard-format
              (concat
-              "Conversions that are changing are ambiguous and should be replaced by\n"
+              "Conversions that are changing are ambiguous and are best replaced by\n"
               "stable conversions that make your intention clear.\n")))
            "\n"
            "The following obsolescent `time-stamp-format' conversion(s) were found:\n\n")))))
-      (insert old-form " -- use " new-form)
-      (if standard-form
-          (insert " or " standard-form))
+      (insert old-format " -- use " new-format)
+      (if standard-format
+          (insert " or " standard-format))
       (insert "\n")
       (help-make-xrefs))
     (display-buffer "*Time-stamp-compatibility*"))))

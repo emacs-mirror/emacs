@@ -1,5 +1,5 @@
 /* Functions taken directly from X sources for use with the Microsoft Windows API.
-   Copyright (C) 1989, 1992-1995, 1999, 2001-2025 Free Software
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2026 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -177,7 +177,7 @@ get_frame_dc (struct frame *f)
   HGDIOBJ obj;
   struct w32_output *output;
 
-  if (f->output_method != output_w32)
+  if (!FRAME_W32_P (f))
     emacs_abort ();
 
   enter_crit ();

@@ -1,7 +1,7 @@
 /* sha256.c - Functions to compute SHA256 and SHA224 message digest of files or
    memory blocks according to the NIST specification FIPS-180-2.
 
-   Copyright (C) 2005-2006, 2008-2025 Free Software Foundation, Inc.
+   Copyright (C) 2005-2006, 2008-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -94,24 +94,22 @@ set_uint32 (char *cp, uint32_t v)
 /* Put result from CTX in first 32 bytes following RESBUF.
    The result must be in little endian byte order.  */
 void *
-sha256_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
+sha256_read_ctx (struct sha256_ctx const *restrict ctx, void *restrict resbuf)
 {
-  int i;
   char *r = resbuf;
 
-  for (i = 0; i < 8; i++)
+  for (int i = 0; i < 8; i++)
     set_uint32 (r + i * sizeof ctx->state[0], SWAP (ctx->state[i]));
 
   return resbuf;
 }
 
 void *
-sha224_read_ctx (const struct sha256_ctx *ctx, void *resbuf)
+sha224_read_ctx (struct sha256_ctx const *restrict ctx, void *restrict resbuf)
 {
-  int i;
   char *r = resbuf;
 
-  for (i = 0; i < 7; i++)
+  for (int i = 0; i < 7; i++)
     set_uint32 (r + i * sizeof ctx->state[0], SWAP (ctx->state[i]));
 
   return resbuf;
@@ -146,14 +144,14 @@ sha256_conclude_ctx (struct sha256_ctx *ctx)
 }
 
 void *
-sha256_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
+sha256_finish_ctx (struct sha256_ctx *restrict ctx, void *restrict resbuf)
 {
   sha256_conclude_ctx (ctx);
   return sha256_read_ctx (ctx, resbuf);
 }
 
 void *
-sha224_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
+sha224_finish_ctx (struct sha256_ctx *restrict ctx, void *restrict resbuf)
 {
   sha256_conclude_ctx (ctx);
   return sha224_read_ctx (ctx, resbuf);
@@ -164,7 +162,7 @@ sha224_finish_ctx (struct sha256_ctx *ctx, void *resbuf)
    output yields to the wanted ASCII representation of the message
    digest.  */
 void *
-sha256_buffer (const char *buffer, size_t len, void *resblock)
+sha256_buffer (char const *restrict buffer, size_t len, void *restrict resblock)
 {
   struct sha256_ctx ctx;
 
@@ -179,7 +177,7 @@ sha256_buffer (const char *buffer, size_t len, void *resblock)
 }
 
 void *
-sha224_buffer (const char *buffer, size_t len, void *resblock)
+sha224_buffer (char const *restrict buffer, size_t len, void *restrict resblock)
 {
   struct sha256_ctx ctx;
 
@@ -194,7 +192,8 @@ sha224_buffer (const char *buffer, size_t len, void *resblock)
 }
 
 void
-sha256_process_bytes (const void *buffer, size_t len, struct sha256_ctx *ctx)
+sha256_process_bytes (void const *restrict buffer, size_t len,
+                      struct sha256_ctx *restrict ctx)
 {
   /* When we already have some bits in our internal buffer concatenate
      both inputs first.  */
@@ -294,7 +293,8 @@ static const uint32_t sha256_round_constants[64] = {
    Most of this code comes from GnuPG's cipher/sha1.c.  */
 
 void
-sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
+sha256_process_block (void const *restrict buffer, size_t len,
+                      struct sha256_ctx *restrict ctx)
 {
   const uint32_t *words = buffer;
   size_t nwords = len / sizeof (uint32_t);
@@ -326,8 +326,8 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
                     + S0(x[(I-15)&0x0f]) + x[I&0x0f]    \
                , x[I&0x0f] = tm )
 
-#define R(A,B,C,D,E,F,G,H,K,M)  do { t0 = SS0(A) + F2(A,B,C); \
-                                     t1 = H + SS1(E)  \
+#define R(A,B,C,D,E,F,G,H,K,M)  do { uint32_t t0 = SS0(A) + F2(A,B,C); \
+                                     uint32_t t1 = H + SS1(E)  \
                                       + F1(E,F,G)     \
                                       + K             \
                                       + M;            \
@@ -336,15 +336,14 @@ sha256_process_block (const void *buffer, size_t len, struct sha256_ctx *ctx)
 
   while (words < endp)
     {
-      uint32_t tm;
-      uint32_t t0, t1;
-      int t;
       /* FIXME: see sha1.c for a better implementation.  */
-      for (t = 0; t < 16; t++)
+      for (int t = 0; t < 16; t++)
         {
           x[t] = SWAP (*words);
           words++;
         }
+
+      uint32_t tm;
 
       R( a, b, c, d, e, f, g, h, K( 0), x[ 0] );
       R( h, a, b, c, d, e, f, g, K( 1), x[ 1] );

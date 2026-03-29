@@ -1,6 +1,6 @@
 ;;; editorconfig-fnmatch.el --- Glob pattern matching  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2026 Free Software Foundation, Inc.
 
 ;; Author: EditorConfig Team <editorconfig@googlegroups.com>
 ;; Package: editorconfig
@@ -36,7 +36,7 @@
 
 ;; Test whether NAME match PATTERN.
 
-;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings
+;; PATTERN should be a shell glob pattern, and some zsh-like wildcard matching
 ;; can be used:
 
 ;; *           Matches any string of characters, except path separators (/)
@@ -55,13 +55,9 @@
 
 (require 'cl-lib)
 
-(defvar editorconfig-fnmatch--cache-hashtable
-  nil
+(defconst editorconfig-fnmatch--cache-hashtable ;; Clear cache on file reload.
+  (make-hash-table :test 'equal)
   "Cache of shell pattern and its translation.")
-;; Clear cache on file reload
-(setq editorconfig-fnmatch--cache-hashtable
-      (make-hash-table :test 'equal))
-
 
 (defconst editorconfig-fnmatch--left-brace-regexp
   "\\(^\\|[^\\]\\){"
@@ -90,7 +86,7 @@
 
 Matching ignores case if `case-fold-search' is non-nil.
 
-PATTERN should be a shell glob pattern, and some zsh-like wildcard matchings can
+PATTERN should be a shell glob pattern, and some zsh-like wildcard matching can
 be used:
 
 *           Matches any string of characters, except path separators (/)
@@ -147,7 +143,7 @@ translation is found for PATTERN."
 
     (while (< index length)
       (if (and (not is-escaped)
-               (string-match "[^]\\*?[{},/-]+"
+               (string-match "[^]\\*?[{},/]+"
                              ;;(string-match "[^]\\*?[{},/\\-]+" "?.a")
                              pattern
                              index)
@@ -160,132 +156,116 @@ translation is found for PATTERN."
         (setq current-char (aref pattern index)
               index (1+ index))
 
-        (cl-case current-char
-          (?*
-           (setq pos index)
-           (if (and (< pos length)
-                    (= (aref pattern pos) ?*))
-               (push ".*" result)
-             (push "[^/]*" result)))
+        (push
+         (cl-case current-char
+           (?*
+            (setq pos index)
+            (if (and (< pos length)
+                     (= (aref pattern pos) ?*))
+                (progn
+                  (setq index (1+ index))
+                  ".*")
+              "[^/]*"))
 
-          (??
-           (push "[^/]" result))
+           (?? "[^/]")
 
-          (?\[
-           (if in-brackets
-               (push "\\[" result)
-             (if (= (aref pattern index) ?/)
-                 ;; Slash after an half-open bracket
-                 (progn
-                   (push "\\[/" result)
-                   (setq index (+ index 1)))
-               (setq pos index
-                     has-slash nil)
-               (while (and (< pos length)
-                           (not (= (aref pattern pos) ?\]))
-                           (not has-slash))
-                 (if (and (= (aref pattern pos) ?/)
-                          (not (= (aref pattern (- pos 1)) ?\\)))
-                     (setq has-slash t)
-                   (setq pos (1+ pos))))
-               (if has-slash
-                   (progn
-                     (push (concat "\\["
-                                   (substring pattern
-                                              index
-                                              (1+ pos))
-                                   "\\]")
-                           result)
-                     (setq index (+ pos 2)))
-                 (if (and (< index length)
-                          (memq (aref pattern index)
-                                '(?! ?^)))
-                     (progn
-                       (setq index (1+ index))
-                       (push "[^" result))
-                   (push "[" result))
-                 (setq in-brackets t)))))
+           (?\[
+            (if in-brackets
+                "\\["
+              (if (= (aref pattern index) ?/)
+                  ;; Slash after an half-open bracket
+                  (progn
+                    (setq index (+ index 1))
+                    "\\[/")
+                (setq pos index
+                      has-slash nil)
+                (while (and (< pos length)
+                            (not (= (aref pattern pos) ?\]))
+                            (not has-slash))
+                  (if (and (= (aref pattern pos) ?/)
+                           (not (= (aref pattern (- pos 1)) ?\\)))
+                      (setq has-slash t)
+                    (setq pos (1+ pos))))
+                (if has-slash
+                    (let ((content (substring pattern index (1+ pos))))
+                      (setq index (+ pos 2))
+                      (concat "\\[" content "\\]"))
+                  (setq in-brackets t)
+                  (if (and (< index length)
+                           (memq (aref pattern index)
+                                 '(?! ?^)))
+                      (progn
+                        (setq index (1+ index))
+                        "[^")
+                    "[")))))
 
-          (?-
-           (if in-brackets
-               (push "-" result)
-             (push "\\-" result)))
+           (?\] (setq in-brackets nil) "]")
 
-          (?\]
-           (push "]" result)
-           (setq in-brackets nil))
+           (?\{
+            (setq pos index
+                  has-comma nil)
+            (while (and (or (and (< pos length)
+                                 (not (= (aref pattern pos) ?})))
+                            is-escaped)
+                        (not has-comma))
+              (if (and (eq (aref pattern pos) ?,)
+                       (not is-escaped))
+                  (setq has-comma t)
+                (setq is-escaped (and (eq (aref pattern pos)
+                                          ?\\)
+                                      (not is-escaped))
+                      pos (1+ pos))))
+            (if (and (not has-comma)
+                     (< pos length))
+                (let ((pattern-sub (substring pattern index pos)))
+                  (setq num-range (string-match
+                                   editorconfig-fnmatch--numeric-range-regexp
+                                   pattern-sub))
+                  (setq index (1+ pos))
+                  (if num-range
+                      (let ((number-start (string-to-number
+                                           (match-string 1 pattern-sub)))
+                            (number-end (string-to-number
+                                         (match-string 2 pattern-sub))))
+                        (regexp-opt
+                         (mapcar #'number-to-string
+                                 (cl-loop for i from number-start to number-end
+                                          collect i))))
+                    (let ((inner (editorconfig-fnmatch--do-translate
+                                  pattern-sub t)))
+                      (format "{%s}" inner))))
+              (if matching-braces
+                  (progn
+                    (setq brace-level (1+ brace-level))
+                    "\\(?:")
+                "{")))
 
-          (?{
-           (setq pos index
-                 has-comma nil)
-           (while (and (or (and (< pos length)
-                                (not (= (aref pattern pos) ?})))
-                           is-escaped)
-                       (not has-comma))
-             (if (and (eq (aref pattern pos) ?,)
-                      (not is-escaped))
-                 (setq has-comma t)
-               (setq is-escaped (and (eq (aref pattern pos)
-                                         ?\\)
-                                     (not is-escaped))
-                     pos (1+ pos))))
-           (if (and (not has-comma)
-                    (< pos length))
-               (let ((pattern-sub (substring pattern index pos)))
-                 (setq num-range (string-match editorconfig-fnmatch--numeric-range-regexp
-                                               pattern-sub))
-                 (if num-range
-                     (let ((number-start (string-to-number (match-string 1
-                                                                         pattern-sub)))
-                           (number-end (string-to-number (match-string 2
-                                                                       pattern-sub))))
-                       (push (concat "\\(?:"
-                                     (mapconcat #'number-to-string
-                                                (cl-loop for i from number-start to number-end
-                                                         collect i)
-                                                "\\|")
-                                     "\\)")
-                             result))
-                   (let ((inner (editorconfig-fnmatch--do-translate pattern-sub t)))
-                     (push (format "{%s}" inner) result)))
-                 (setq index (1+ pos)))
-             (if matching-braces
-                 (progn
-                   (push "\\(?:" result)
-                   (setq brace-level (1+ brace-level)))
-               (push "{" result))))
+           (?,
+            (if (and (> brace-level 0)
+                     (not is-escaped))
+                "\\|" ","))
 
-          (?,
-           (if (and (> brace-level 0)
-                    (not is-escaped))
-               (push "\\|" result)
-             (push "\\," result)))
+           (?\}
+            (if (and (> brace-level 0)
+                     (not is-escaped))
+                (progn
+                  (setq brace-level (- brace-level 1))
+                  "\\)")
+              "}"))
 
-          (?}
-           (if (and (> brace-level 0)
-                    (not is-escaped))
-               (progn
-                 (push "\\)" result)
-                 (setq brace-level (- brace-level 1)))
-             (push "}" result)))
+           (?/
+            (if (and (<= (+ index 3) (length pattern))
+                     (string= (substring pattern index (+ index 3)) "**/"))
+                (progn
+                  (setq index (+ index 3))
+                  "\\(?:/\\|/.*/\\)")
+              "/"))
 
-          (?/
-           (if (and (<= (+ index 3) (length pattern))
-                    (string= (substring pattern index (+ index 3)) "**/"))
-               (progn
-                 (push "\\(?:/\\|/.*/\\)" result)
-                 (setq index (+ index 3)))
-             (push "/" result)))
+           (?\\ (when is-escaped "\\\\"))
+           (t (regexp-quote (char-to-string current-char))))
+         result)
 
-          (t
-           (unless (= current-char ?\\)
-             (push (regexp-quote (char-to-string current-char)) result))))
-
-        (if (= current-char ?\\)
-            (progn (when is-escaped
-                     (push "\\\\" result))
-                   (setq is-escaped (not is-escaped)))
-          (setq is-escaped nil))))
+        (setq is-escaped (and (= current-char ?\\) (not is-escaped)))))
     (unless nested
       (setq result `("\\'" ,@result "\\`")))
     (apply #'concat (reverse result))))

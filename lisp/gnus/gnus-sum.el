@@ -1,6 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -5093,9 +5093,7 @@ Unscored articles will be counted as having a score of zero."
 
 (defun gnus-thread-highest-number (thread)
   "Return the highest article number in THREAD."
-  (apply #'max (mapcar (lambda (header)
-			(mail-header-number header))
-		      (flatten-tree thread))))
+  (apply #'max (mapcar #'mail-header-number (flatten-tree thread))))
 
 (defun gnus-article-sort-by-most-recent-date (h1 h2)
   "Sort articles by number."
@@ -9410,7 +9408,7 @@ See `gnus-collect-urls'."
                            (concat "#" target)))))
       (concat host (string-truncate-left rest (- max (length host)))))))
 
-(defun gnus-summary-browse-url (&optional external)
+(defun gnus-summary-browse-url (&optional secondary)
   "Scan the current article body for links, and offer to browse them.
 
 Links are opened using `browse-url' unless a prefix argument is
@@ -9431,9 +9429,11 @@ default."
 				 (gnus-shorten-url (car urls) 40))
 		  urls nil t nil nil (car urls))))))
     (if target
-	(if external
-	    (funcall browse-url-secondary-browser-function target)
-	  (browse-url target))
+        (let ((browse-url-browser-function
+               (if secondary
+                   browse-url-secondary-browser-function
+                 browse-url-browser-function)))
+          (browse-url target))
       (message "No URLs found."))))
 
 (defun gnus-summary-isearch-article (&optional regexp-p)

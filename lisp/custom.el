@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2025 Free Software Foundation,
+;; Copyright (C) 1996-1997, 1999, 2001-2026 Free Software Foundation,
 ;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
@@ -140,6 +140,7 @@ For the standard setting, use `set-default-toplevel-value'."
 Once this list has been processed, this var is set to a non-list value.")
 
 (defun custom-initialize-delay (symbol value)
+  ;; FIXME: Rename to `custom-initialize-after-dump'?
   "Delay initialization of SYMBOL to the next Emacs start.
 This is used in files that are preloaded (or for autoloaded
 variables), so that the initialization is done in the run-time
@@ -158,6 +159,27 @@ the :set function."
     ;; In case this is called after startup, there is no "later" to which to
     ;; delay it, so initialize it "normally" (bug#47072).
     (custom-initialize-reset symbol value)))
+
+(defun custom-initialize-after-file-load (symbol value)
+  "Delay initialization to after the current file is loaded.
+This is handy when the initialization needs functions defined after the
+variable, such as for global minor modes."
+  ;; Defvar it so as to mark it special, etc (bug#25770).
+  (internal--define-uninitialized-variable symbol)
+
+  ;; Until the var is actually initialized, it is kept unbound.
+  ;; This seemed to be at least as good as setting it to an arbitrary
+  ;; value like nil (evaluating `value' is not an option because it
+  ;; may have undesirable side-effects).
+  (if (not load-file-name)
+      ;; There's no "after file" to speak of.
+      (custom-initialize-set symbol value)
+    (let ((thisfile load-file-name))
+      (letrec ((f (lambda (file)
+                    (when (equal file thisfile)
+                      (remove-hook 'after-load-functions f)
+                      (custom-initialize-set symbol value)))))
+        (add-hook 'after-load-functions f)))))
 
 (defun custom-declare-variable (symbol default doc &rest args)
   "Like `defcustom', but SYMBOL and DEFAULT are evaluated as normal arguments.
@@ -400,7 +422,7 @@ for more information."
          ;; expression is checked by the byte-compiler, and that
          ;; lexical-binding is obeyed, so quote the expression with
          ;; `lambda' rather than with `quote'.
-         ``(funcall #',(lambda () "" ,standard))
+         ``(funcall #',(lambda () ,standard))
        `',standard)
     ,doc
     ,@args))
@@ -749,10 +771,16 @@ Normally, this sets the default value of VARIABLE to nil if VALUE
 is nil and to t otherwise,
 but if `custom-local-buffer' is non-nil,
 this sets the local binding in that buffer instead."
-  (if custom-local-buffer
-      (with-current-buffer custom-local-buffer
-	(funcall variable (if value 1 0)))
-    (funcall variable (if value 1 0))))
+  (if (and (null value)
+           (autoloadp (symbol-function variable))
+           (not (and (boundp variable) (symbol-value variable))))
+      ;; We're disabling a minor mode that's not even loaded yet.
+      ;; Let's avoid autoloading it needlessly.
+      (custom-set-default variable value)
+    (if custom-local-buffer
+	(with-current-buffer custom-local-buffer
+	  (funcall variable (if value 1 0)))
+      (funcall variable (if value 1 0)))))
 
 (defun custom-quote (sexp)
   "Quote SEXP if it is not self quoting."
@@ -1792,6 +1820,35 @@ If a choice with the same tag already exists, no action is taken."
     (unless (memq load loads)
       (push load loads)))
   (put symbol 'custom-loads loads))
+
+;;;###autoload
+(defun copy-theme-options (theme)
+  "Copy settings from THEME into the user theme."
+  (interactive (list (intern (completing-read "Copy from theme: "
+                                              (custom-available-themes)
+                                              nil t))))
+  (load-theme theme nil t)
+  (when (null (get theme 'theme-settings))
+    (message "Theme `%s' has no user options" theme))
+  (pcase-dolist (`(theme-value ,var ,(pred (eq theme _)) ,val)
+                 (get theme 'theme-settings))
+    ;; If the proposed value is already the current value, then we
+    ;; ignore the value from the theme and don't overwrite any comments.
+    ;; Otherwise we check if the current value is the default value, and
+    ;; if not we prompt the user if they are OK with overwriting their
+    ;; previous configuration.
+    (when (let ((val* (funcall (or (get var 'custom-get) #'default-value) var))
+                (val (eval (with-demoted-errors "%S" val) t)))
+            (and (not (equal val val*))
+                 (or (custom--standard-value-p var val*)
+                     (yes-or-no-p (format "You have customized `%s' to %S, \
+overwrite with %S?"
+                                          var (symbol-value var) val)))))
+      (customize-save-variable
+       var val
+       (format "Copied from %s by `copy-theme-options'" theme))))
+  ;; FIXME: Now offer to disable THEME.
+  )
 
 (provide 'custom)
 

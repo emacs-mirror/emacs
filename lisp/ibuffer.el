@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -166,18 +166,16 @@ elisp byte-compiler."
 			   buffer-file-name))
 	font-lock-doc-face)
     (20 (string-match "^\\*" (buffer-name)) font-lock-keyword-face)
-    (25 (and (string-match "^ " (buffer-name))
-	     (null buffer-file-name))
-	italic)
+    (25 (ibuffer-hidden-buffer-p) italic)
     (30 (memq major-mode ibuffer-help-buffer-modes) font-lock-comment-face)
     (35 (derived-mode-p 'dired-mode) font-lock-function-name-face)
     (40 (and (boundp 'emacs-lock-mode) emacs-lock-mode) ibuffer-locked-buffer))
   "An alist describing how to fontify buffers.
 Each element should be of the form (PRIORITY FORM FACE), where
 PRIORITY is an integer, FORM is an arbitrary form to evaluate in the
-buffer, and FACE is the face to use for fontification.  If the FORM
-evaluates to non-nil, then FACE will be put on the buffer name.  The
-element with the highest PRIORITY takes precedence.
+buffer, and FACE is the face (a symbol) to use for fontification.
+If the FORM evaluates to non-nil, then FACE will be put on the buffer
+name.  The element with the highest PRIORITY takes precedence.
 
 If you change this variable, you must kill the Ibuffer buffer and
 recreate it for the change to take effect."
@@ -236,9 +234,7 @@ view of the buffers."
   "The string to use for eliding long columns."
   :type 'string)
 
-(defcustom ibuffer-maybe-show-predicates `(,(lambda (buf)
-					      (and (string-match "^ " (buffer-name buf))
-						   (null buffer-file-name))))
+(defcustom ibuffer-maybe-show-predicates '(ibuffer-hidden-buffer-p)
   "A list of predicates for buffers to display conditionally.
 
 A predicate can be a regexp or a function.
@@ -349,20 +345,40 @@ directory, like `default-directory'."
 (make-obsolete-variable 'ibuffer-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 
-(defcustom ibuffer-marked-face 'warning
+(defface ibuffer-marked '((t :inherit warning))
+  "Face used by default in `ibuffer-marked-face'."
+  :version "31.1")
+
+(defface ibuffer-deletion '((t :inherit error))
+  "Face used by default in `ibuffer-deletion-face'."
+  :version "31.1")
+
+(defface ibuffer-title '((t :inherit font-lock-type-face))
+  "Face used by default in `ibuffer-title-face'."
+  :version "31.1")
+
+(defface ibuffer-filter-group-name '((t :inherit bold))
+  "Face used by default in `ibuffer-filter-group-name-face'."
+  :version "31.1")
+
+(defcustom ibuffer-marked-face 'ibuffer-marked
   "Face used for displaying marked buffers."
+  :version "31.1"
   :type 'face)
 
-(defcustom ibuffer-deletion-face 'error
+(defcustom ibuffer-deletion-face 'ibuffer-deletion
   "Face used for displaying buffers marked for deletion."
+  :version "31.1"
   :type 'face)
 
-(defcustom ibuffer-title-face 'font-lock-type-face
+(defcustom ibuffer-title-face 'ibuffer-title
   "Face used for the title string."
+    :version "31.1"
   :type 'face)
 
-(defcustom ibuffer-filter-group-name-face 'bold
+(defcustom ibuffer-filter-group-name-face 'ibuffer-filter-group-name
   "Face used for displaying filtering group names."
+  :version "31.1"
   :type 'face)
 
 (defcustom ibuffer-directory-abbrev-alist nil
@@ -1111,11 +1127,12 @@ a new window in the current frame, splitting vertically."
 		    (error
 		     ;; Handle a failure
                      (if (or (> (incf attempts) 4)
-			     (and (stringp (cadr err))
-				  ;; This definitely falls in the
-				  ;; ghetto hack category...
-				  (not (string-match-p "too small" (cadr err)))))
-			 (signal (car err) (cdr err))
+			     (let ((msg (error-slot-value err 1)))
+			       (and (stringp msg)
+				    ;; This definitely falls in the
+				    ;; ghetto hack category...
+                                    (not (string-search "too small" msg)))))
+			 (signal err)
 		       (enlarge-window 3))))))
 	      (select-window (next-window))
 	      (switch-to-buffer buf)
@@ -2015,6 +2032,13 @@ the value of point at the beginning of the line for that buffer."
 		 e)))
 	   bmarklist))))
 
+(defun ibuffer-hidden-buffer-p (&optional buf)
+  "The default member of `ibuffer-maybe-show-predicates'.
+Non-nil if BUF is not visiting a file and its name begins with a space.
+BUF defaults to the current buffer."
+  (and (string-match "^ " (buffer-name buf))
+       (null (buffer-file-name buf))))
+
 (defun ibuffer-visible-p (buf all &optional ibuffer-buf)
   (and (or all
 	   (not
@@ -2136,7 +2160,8 @@ the value of point at the beginning of the line for that buffer."
        `(ibuffer-title t font-lock-face ,ibuffer-title-face)))
     ;; Now, insert the summary columns.
     (goto-char (point-max))
-    (if (get-text-property (1- (point-max)) 'ibuffer-summary)
+    (if (and (> (point-max) (point-min))
+             (get-text-property (1- (point-max)) 'ibuffer-summary))
 	(delete-region (previous-single-property-change
 			(point-max) 'ibuffer-summary)
 		       (point-max)))

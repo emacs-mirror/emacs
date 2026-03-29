@@ -1,0 +1,4 @@
+     (multiply-by-seven 3)
+      \_______________/ ^
+              |         |
+           function  argument

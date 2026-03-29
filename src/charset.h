@@ -1,5 +1,5 @@
 /* Header for charset handler.
-   Copyright (C) 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 2001-2026 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -150,8 +150,6 @@ struct charset
   /* Index to charset_table.  */
   int id;
 
-  Lisp_Object attributes;
-
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;
 
@@ -245,12 +243,28 @@ struct charset
    vectors.  */
 extern Lisp_Object Vcharset_hash_table;
 
-/* Table of struct charset.  */
-extern struct charset *charset_table;
-extern int charset_table_size;
-extern int charset_table_used;
+/* A charset_table is an array of struct charset along with a
+   Lisp_Vector of charset attributes.
 
-#define CHARSET_FROM_ID(id) (charset_table + (id))
+   The charset_table.start field either points to xmalloced memory or to
+   the dump (i.e. pdumper_object_p (charset_table.start) can be true).
+
+   charset_table.attributes_table[id] contains the attribute vector for
+   the charset at charset_table.start[id].
+
+   We keep the attributes in a separate vector because that is
+   convenient for the GC.  (We probably need to revise this decision, if
+   we ever expose struct charset as a Lisp level type.)  */
+struct charset_table
+{
+  struct charset *start;
+  int size, used;
+  Lisp_Object attributes_table;
+};
+
+extern struct charset_table charset_table;
+
+#define CHARSET_FROM_ID(id) (charset_table.start + (id))
 
 extern Lisp_Object Vcharset_ordered_list;
 extern Lisp_Object Vcharset_non_preferred_head;
@@ -287,8 +301,17 @@ extern int emacs_mule_charset[256];
 #define CHARSET_SYMBOL_HASH_INDEX(symbol)	\
   hash_find (XHASH_TABLE (Vcharset_hash_table), symbol)
 
+INLINE Lisp_Object
+charset_attributes_getter (struct charset *charset)
+{
+  eassert (ASIZE (charset_table.attributes_table) == charset_table.size);
+  Lisp_Object attrs = AREF (charset_table.attributes_table, charset->id);
+  eassert (XFIXNUM (CHARSET_ATTR_ID (attrs)) == charset->id);
+  return attrs;
+}
+
 /* Return the attribute vector of CHARSET.  */
-#define CHARSET_ATTRIBUTES(charset) (charset)->attributes
+#define CHARSET_ATTRIBUTES(charset) (charset_attributes_getter (charset))
 
 #define CHARSET_ID(charset)		((charset)->id)
 #define CHARSET_DIMENSION(charset)	((charset)->dimension)

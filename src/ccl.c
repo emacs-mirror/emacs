@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 2001-2026 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -600,11 +600,11 @@ do							\
   }							\
 while (0)
 
-/* Work around GCC bug 109579
-   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=109579
+/* Work around GCC bug 123042
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=123042
    which causes GCC to mistakenly complain about
    popping the mapping stack.  */
-#if __GNUC__ == 13
+#if 13 <= __GNUC__
 # pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
 #endif
 

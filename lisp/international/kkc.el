@@ -1,6 +1,6 @@
 ;;; kkc.el --- Kana Kanji converter  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2026 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -64,9 +64,12 @@ This string is shown at mode line when users are in KKC mode.")
 	   (not (eq kkc-init-file-flag t)))
       (let ((coding-system-for-write 'iso-2022-7bit)
 	    (print-length nil))
-	(write-region (format "(setq kkc-lookup-cache '%S)\n" kkc-lookup-cache)
-		      nil
-		      kkc-init-file-name))))
+	(write-region
+         (format
+          ";; -*- lexical-binding: t; -*-\n\n(setq kkc-lookup-cache '%S)\n"
+          kkc-lookup-cache)
+	 nil
+	 kkc-init-file-name))))
 
 ;; Sequence of characters to be used for indexes for shown list.  The
 ;; Nth character is for the Nth conversion in the list currently shown.
@@ -178,7 +181,8 @@ area while indicating the current selection by `<N>'."
     (add-hook 'kill-emacs-hook 'kkc-save-init-file)
     (if (file-readable-p kkc-init-file-name)
 	(condition-case nil
-	    (load-file kkc-init-file-name)
+            (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+	      (load-file kkc-init-file-name))
 	  (kkc-error "Invalid data in %s" kkc-init-file-name))))
   (or (and (nested-alist-p kkc-lookup-cache)
 	   (eq (car kkc-lookup-cache) kkc-lookup-cache-tag))

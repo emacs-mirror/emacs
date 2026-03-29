@@ -1,6 +1,6 @@
 ;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
@@ -238,7 +238,6 @@ expression point is on." :lighter eldoc-minor-mode-string
 
 ;;;###autoload
 (define-globalized-minor-mode global-eldoc-mode eldoc-mode turn-on-eldoc-mode
-  :initialize 'custom-initialize-delay
   :init-value t
   ;; For `read--expression', the usual global mode mechanism of
   ;; `change-major-mode-hook' runs in the minibuffer before

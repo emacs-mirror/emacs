@@ -1,6 +1,6 @@
 ;;; cl.el --- Compatibility aliases for the old CL library.  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Deprecated-since: 27.1
@@ -182,7 +182,6 @@
                assoc-if-not
                assoc-if
                member-if-not
-               member-if
                merge
                stable-sort
                search

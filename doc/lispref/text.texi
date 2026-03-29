@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2026 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Text
 @chapter Text
@@ -1649,6 +1649,16 @@ enabled and the mark is active, this command calls @code{fill-region}
 to fill all the paragraphs in the region, instead of filling only the
 current paragraph.  When this command is called interactively,
 @var{region} is @code{t}.
+@end deffn
+
+@deffn Command unfill-paragraph arg &optional beg end
+This command is the inverse of the previous one: it joins up the lines
+of the current paragraph.  With a numeric prefix argument @var{arg}, it
+applies the operation to that many paragraphs.  With no prefix argument
+and an active region, unfill each paragraph in that region.  When called
+from Lisp with @var{arg} @code{nil} and @var{beg} and @var{end}
+non-@code{nil}, unfill paragraphs in the region delimited by @var{beg}
+and @var{end}.
 @end deffn
 
 @deffn Command fill-region start end &optional justify nosqueeze to-eop
@@ -4641,6 +4651,8 @@ with @var{tochar} in @var{string}.  By default, substitution occurs in
 a copy of @var{string}, but if the optional argument @var{inplace} is
 non-@code{nil}, the function modifies the @var{string} itself.  In any
 case, the function returns the resulting string.
+
+For restrictions when altering an existing string, @pxref{Modifying Strings}.
 @end defun
 
 @deffn Command translate-region start end table
@@ -4716,9 +4728,9 @@ value visits file @var{filename} and goes to buffer position
 @var{position}.  Restoring this type of position asks the user for
 confirmation first.
 
-@item @code{(buffer @var{buffer-name})}
-This represents a buffer; jumping to this value switches to buffer
-@var{buffer-name}.
+@item @code{(buffer @var{buffer})}
+This represents a buffer; jumping to this value switches to that
+@var{buffer}.
 @end table
 
   The functions in this section return unpredictable values unless
@@ -4981,15 +4993,15 @@ that you have an unaltered copy of that data.
 
 @cindex message digest
   Emacs supports several common cryptographic hash algorithms: MD5,
-SHA-1, SHA-2, SHA-224, SHA-256, SHA-384 and SHA-512.  MD5 is the
-oldest of these algorithms, and is commonly used in @dfn{message
-digests} to check the integrity of messages transmitted over a
-network.  MD5 and SHA-1 are not collision resistant (i.e., it is
-possible to deliberately design different pieces of data which have
-the same MD5 or SHA-1 hash), so you should not use them for anything
-security-related.  For security-related applications you should use
-the other hash types, such as SHA-2 (e.g., @code{sha256} or
-@code{sha512}).
+SHA-1, SHA-2, SHA-224, SHA-256, SHA-384, SHA-512, SHA3-224, SHA3-256,
+SHA3-384, and SHA3-512.  MD5 is the oldest of these algorithms, and is
+commonly used in @dfn{message digests} to check the integrity of
+messages transmitted over a network.  MD5 and SHA-1 are not collision
+resistant (i.e., it is possible to deliberately design different pieces
+of data which have the same MD5 or SHA-1 hash), so you should not use
+them for anything security-related.  For security-related applications
+you should use the other hash types, such as SHA-2 (e.g., @code{sha256}
+or @code{sha512}) or SHA-3 (e.g., @code{sha3-256} or @code{sha3-512}).
 
 @defun secure-hash-algorithms
 This function returns a list of symbols representing algorithms that
@@ -4999,8 +5011,9 @@ This function returns a list of symbols representing algorithms that
 @defun secure-hash algorithm object &optional start end binary
 This function returns a hash for @var{object}.  The argument
 @var{algorithm} is a symbol stating which hash to compute: one of
-@code{md5}, @code{sha1}, @code{sha224}, @code{sha256}, @code{sha384}
-or @code{sha512}.  The argument @var{object} should be a buffer or a
+@code{md5}, @code{sha1}, @code{sha224}, @code{sha256}, @code{sha384},
+@code{sha512}, @code{sha3-224}, @code{sha3-256}, @code{sha3-384}, or
+@code{sha3-512}.  The argument @var{object} should be a buffer or a
 string.
 
 The optional arguments @var{start} and @var{end} are character
@@ -5032,6 +5045,18 @@ For @code{sha384}: 96 characters (48 bytes if @var{binary} is
 non-@code{nil}).
 @item
 For @code{sha512}: 128 characters (64 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-224}: 56 characters (28 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-256}: 64 characters (32 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-384}: 96 characters (48 bytes if @var{binary} is
+non-@code{nil}).
+@item
+For @code{sha3-512}: 128 characters (64 bytes if @var{binary} is
 non-@code{nil}).
 @end itemize
 
@@ -5108,6 +5133,7 @@ having an @acronym{HTML} link text that says one thing, while the
 underlying @acronym{URL} points somewhere else.
 
 @cindex suspicious text strings
+@cindex confusable characters
 To help identify these @dfn{suspicious text strings}, Emacs provides a
 library to do a number of checks on text.  (See
 @url{https://www.unicode.org/reports/tr39/, UTS #39: Unicode Security
@@ -5158,7 +5184,7 @@ suspicious.  @var{object} should be a string.
 
 @item email-address-header
 Check whether a full RFC2822 email address header (e.g.,
-@samp{=?utf-8?Q?=C3=81?= <foo@@example.com>}) looks suspicious.
+@samp{=?utf-8?Q?=E2=84=AB?= <foo@@example.com>}) looks suspicious.
 @var{object} should be a string.
 @end table
 
@@ -5722,14 +5748,10 @@ Return all the non-string children of the node.
 @item dom-attributes @var{node}
 Return the key/value pair list of attributes of the node.
 
-@item dom-text @var{node}
-Return all the textual elements of the node as a concatenated string.
-
-@item dom-texts @var{node}
+@item dom-inner-text @var{node}
 Return all the textual elements of the node, as well as the textual
 elements of all the children of the node, recursively, as a
-concatenated string.  This function also takes an optional separator
-to be inserted between the textual elements.
+concatenated string.
 
 @item dom-parent @var{dom} @var{node}
 Return the parent of @var{node} in @var{dom}.
@@ -6015,12 +6037,21 @@ must be a Lisp object that can be serialized as JSON (@pxref{Parsing
 JSON}).  The result is forwarded to the server as the JSONRPC
 @code{result} object.  A non-local return, achieved by calling the
 function @code{jsonrpc-error}, causes an error response to be sent to
-the server.  The details of the accompanying JSONRPC @code{error}
-object are filled out with whatever was passed to
-@code{jsonrpc-error}.  A non-local return triggered by an unexpected
-error of any other type also causes an error response to be sent
-(unless you have set @code{debug-on-error}, in which case this calls
-the Lisp debugger, @pxref{Error Debugging}).
+the server.  A non-local return triggered by an unexpected error of any
+other type also causes a response to be sent.  The debugger is never
+called (unless you have set @code{debug-on-error}, in which case the
+Lisp debugger may be called, @pxref{Error Debugging}).
+
+The details of the accompanying JSONRPC @code{error} object are filled
+out automatically (in the case of unexpected errors) or with whatever
+was passed to @code{jsonrpc-error} (in the case of explicit calls).
+
+Exceptionally, an explicit call to @code{jsonrpc-error} which sets
+@code{:code} to 32000 and @code{:data} to any JSON object has the
+meaning of ``no error'' and triggers a normal response to the remote
+endpoint with @code{result} being set to @code{:data}.  This is useful
+if the application wants to treat some non-local exits such as user
+quits as benign.
 
 @findex jsonrpc-convert-to-endpoint
 @findex jsonrpc-convert-from-endpoint
@@ -6315,7 +6346,11 @@ specific parts of the text.
   The functions you use in these hooks should save and restore the match
 data if they do anything that uses regular expressions; otherwise, they
 will interfere in bizarre ways with the editing operations that call
-them.
+them.  In addition, the functions in these hooks should avoid changing
+buffer text, faces, properties, overlays, and other aspects of the
+buffer-specific state except those that the hook functions themselves
+create and manage, because other parts of Emacs might become confused by
+such changes behind their back.
 
 @defvar before-change-functions
 This variable holds a list of functions to call when Emacs is about to
@@ -6578,6 +6613,19 @@ a description: it lets you process the change without worrying about the
 risk that the @var{signal} function gets triggered in the middle of it,
 because the @var{signal} is re-enabled only after @var{func} finishes.
 @end defun
+
+@defvar track-changes-undo-only
+If your code uses @code{track-changes} to perform further modifications
+to the buffer (for example, to mark the parts of the buffer that have
+been edited), then you may want to refrain from making those
+modifications when the changes are the result of an undo (which
+presumably also undoes the modifications you had applied back when the
+corresponding edit was made).
+To that end @code{track-changes-fetch} binds
+@code{track-changes-undo-only} to non-@code{nil} during calls to
+@var{func} if the changes were the result of undo.
+@end defvar
+
 
 @defun track-changes-unregister id
 This function tells the library that the tracker @var{id} does not need

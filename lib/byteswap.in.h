@@ -1,5 +1,5 @@
 /* byteswap.h - Byte swapping
-   Copyright (C) 2005, 2007, 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009-2026 Free Software Foundation, Inc.
    Written by Oskar Liljeblad <oskar@osk.mine.nu>, 2005.
 
    This file is free software: you can redistribute it and/or modify
@@ -23,12 +23,15 @@
  #error "Please include config.h first."
 #endif
 
-#include <stdint.h>
-
-_GL_INLINE_HEADER_BEGIN
+/* Define this now, rather than after including stdint.h, in case
+   stdint.h recursively includes us.  This is for Gnulib endian.h.  */
 #ifndef _GL_BYTESWAP_INLINE
 # define _GL_BYTESWAP_INLINE _GL_INLINE
 #endif
+
+#include <stdint.h>
+
+_GL_INLINE_HEADER_BEGIN
 
 #ifdef __cplusplus
 extern "C" {

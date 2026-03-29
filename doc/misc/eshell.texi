@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/eshell.info
 @settitle Eshell: The Emacs Shell
+@documentlanguage en
 @include docstyle.texi
 @defcodeindex cm
 @syncodeindex vr fn
@@ -10,7 +11,7 @@
 @copying
 This manual is for Eshell, the Emacs shell.
 
-Copyright @copyright{} 1999--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1999--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -300,9 +301,8 @@ standard error, you can write to the Eshell virtual target
 
 @cindex batch scripts
 @defun eshell-batch-file
-This function lets you make an Eshell script file executable from
-outside of Emacs by adding it to the script's interpreter directive like
-this:
+You can use this function in the interpreter directive of an Eshell
+script file to make the script executable from outside of Emacs:
 
 @example
 #!/usr/bin/env -S emacs --batch -f eshell-batch-file
@@ -607,7 +607,7 @@ ls is an alias, defined as "*ls $@@*"
 @group
 ~ $ alias compile 'apply #''compile $*'
 ~ $ which compile
-ls is an alias, defined as "apply #'compile $*"
+compile is an alias, defined as "apply #'compile $*"
 @end group
 @end example
 
@@ -2042,8 +2042,8 @@ Matches zero or more copies of the glob pattern @var{x}.  For example,
 
 @item @var{x}##
 Matches one or more copies of the glob pattern @var{x}.  Thus,
-@samp{fo#.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
-etc.
+@samp{fo##.el} matches @file{fo.el}, @file{foo.el}, @file{fooo.el},
+etc, but not @file{f.el}.
 
 @item @var{x}~@var{y}
 Matches anything that matches the pattern @var{x} but not @var{y}.  For

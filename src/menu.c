@@ -1,6 +1,6 @@
 /* Platform-independent code for terminal communications.
 
-Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2025 Free Software
+Copyright (C) 1986, 1988, 1993-1994, 1996, 1999-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -404,8 +404,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 	}
   }
 
-  if ((FRAME_TERMCAP_P (XFRAME (Vmenu_updating_frame))
-       || FRAME_MSDOS_P (XFRAME (Vmenu_updating_frame)))
+  if (is_tty_frame (XFRAME (Vmenu_updating_frame))
       && !NILP (map))
     /* Indicate visually that this is a submenu.  */
     {

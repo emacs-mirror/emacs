@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1997, 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -273,8 +273,6 @@ It is nil if none yet.")
   "Non-nil if advancing or retreating in the search ring should cause search.
 Default value, nil, means edit the string instead."
   :type 'boolean)
-
-(autoload 'char-fold-to-regexp "char-fold")
 
 (defcustom search-default-mode nil
   "Default mode to use when starting isearch.
@@ -1322,7 +1320,10 @@ used to set the value of `isearch-regexp-function'."
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (force-mode-line-update)
 
-  (setq isearch--saved-local-map overriding-terminal-local-map)
+  ;; Prevent successive calls overriding original map
+  ;; in `isearch-done'.  (Bug#79368)
+  (unless (eq overriding-terminal-local-map isearch-mode-map)
+    (setq isearch--saved-local-map overriding-terminal-local-map))
   (setq overriding-terminal-local-map isearch-mode-map)
   (run-hooks 'isearch-mode-hook)
   ;; Remember the initial map possibly modified
@@ -1751,7 +1752,9 @@ You can update the global isearch variables by setting new values to
 	  ;; This is so that the user can do anything without failure,
 	  ;; like switch buffers and start another isearch, and return.
 	  (condition-case nil
-	      (isearch-done t t)
+	      (progn
+		(isearch-done t t)
+		(isearch-clean-overlays))
 	    (exit nil))			; was recursive editing
 
 	  ;; Save old point and isearch-other-end before reading from minibuffer
@@ -1763,12 +1766,18 @@ You can update the global isearch variables by setting new values to
 
             (setq isearch-suspended nil)
 
-	    ;; Always resume isearching by restarting it.
-	    (isearch-mode isearch-forward
-			  isearch-regexp
-			  isearch-op-fun
-			  nil
-			  isearch-regexp-function)
+	    ;; When aborting recursive minibuffers with a command attempted
+	    ;; to use minibuffer while in minibuffer, this unwind form
+	    ;; might be called consecutively more than once.  So check if
+	    ;; `isearch-mode' was already enabled in a previous call
+	    ;; in the same unwind form (bug#79368).
+	    (unless isearch-mode
+	      ;; Always resume isearching by restarting it.
+	      (isearch-mode isearch-forward
+			    isearch-regexp
+			    isearch-op-fun
+			    nil
+			    isearch-regexp-function))
 
 	    ;; Copy new local values to isearch globals
 	    (setq isearch-string isearch-new-string
@@ -1824,6 +1833,7 @@ You can update the global isearch variables by setting new values to
 	    (progn
 	      ;; (sit-for 1) ;; needed if isearch-done does: (message "")
 	      (isearch-done)
+	      (isearch-clean-overlays)
 	      ;; The search done message is confusing when the string
 	      ;; is empty, so erase it.
 	      (if (equal isearch-string "")
@@ -2815,7 +2825,6 @@ With argument, add COUNT copies of the character."
 					   (mapconcat 'isearch-text-char-description
 						      string ""))))))))
 
-(autoload 'emoji--read-emoji "emoji")
 (defun isearch-emoji-by-name (&optional count)
   "Read an Emoji name and add it to the search string COUNT times.
 COUNT (interactively, the prefix argument) defaults to 1.
@@ -2823,6 +2832,7 @@ The command accepts Unicode names like \"smiling face\" or
 \"heart with arrow\", and completion is available."
   (interactive "p")
   (emoji--init)
+  (declare-function emoji--read-emoji "emoji" ())
   (with-isearch-suspended
    (pcase-let* ((`(,glyph . ,derived) (emoji--read-emoji))
                 (emoji (if derived
@@ -3790,19 +3800,20 @@ Optional third argument, if t, means if fail just return nil (no error).
 ;; point returns to the original location which surely is not contain
 ;; in any of these overlays, se we are safe in this case too.
 (defun isearch-open-necessary-overlays (ov)
-  (let ((inside-overlay (and  (> (point) (overlay-start ov))
-			      (<= (point) (overlay-end ov))))
-	;; If this exists it means that the overlay was opened using
-	;; this function, not by us tweaking the overlay properties.
-	(fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
-    (when (or inside-overlay (not fct-temp))
-      ;; restore the values for the `invisible' properties.
-      (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-      (overlay-put ov 'isearch-invisible nil))
-    (if inside-overlay
-	(funcall (overlay-get ov 'isearch-open-invisible)  ov)
-      (if fct-temp
-	  (funcall fct-temp ov t)))))
+  (when (overlay-buffer ov)
+    (let ((inside-overlay (and  (> (point) (overlay-start ov))
+                                (<= (point) (overlay-end ov))))
+          ;; If this exists it means that the overlay was opened using
+          ;; this function, not by us tweaking the overlay properties.
+          (fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
+      (when (or inside-overlay (not fct-temp))
+        ;; restore the values for the `invisible' properties.
+        (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
+        (overlay-put ov 'isearch-invisible nil))
+      (if inside-overlay
+          (funcall (overlay-get ov 'isearch-open-invisible)  ov)
+        (if fct-temp
+            (funcall fct-temp ov t))))))
 
 ;; This is called when exiting isearch. It closes the temporary
 ;; opened overlays, except the ones that contain the latest match.
@@ -3827,16 +3838,17 @@ Optional third argument, if t, means if fail just return nil (no error).
   (let ((overlays isearch-opened-overlays))
     (setq isearch-opened-overlays nil)
     (dolist (ov overlays)
-      (if (isearch-intersects-p beg end (overlay-start ov) (overlay-end ov))
-	  (push ov isearch-opened-overlays)
-	(let ((fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
-	  (if fct-temp
-	      ;; If this exists it means that the overlay was opened
-	      ;; using this function, not by us tweaking the overlay
-	      ;; properties.
-	      (funcall fct-temp ov t)
-	    (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
-	    (overlay-put ov 'isearch-invisible nil)))))))
+      (when (overlay-buffer ov)
+        (if (isearch-intersects-p beg end (overlay-start ov) (overlay-end ov))
+            (push ov isearch-opened-overlays)
+          (let ((fct-temp (overlay-get ov 'isearch-open-invisible-temporary)))
+            (if fct-temp
+                ;; If this exists it means that the overlay was opened
+                ;; using this function, not by us tweaking the overlay
+                ;; properties.
+                (funcall fct-temp ov t)
+              (overlay-put ov 'invisible (overlay-get ov 'isearch-invisible))
+              (overlay-put ov 'isearch-invisible nil))))))))
 
 
 (defun isearch-range-invisible (beg end)

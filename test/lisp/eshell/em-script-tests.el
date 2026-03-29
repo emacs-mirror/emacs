@@ -1,6 +1,6 @@
 ;;; em-script-tests.el --- em-script test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -143,7 +143,10 @@
 
 (ert-deftest em-script-test/batch-file/shebang ()
   "Test running an Eshell script file as a batch script via a shebang."
-  (skip-unless (not (memq system-type '(windows-nt ms-dos))))
+  (skip-when (or (memq system-type '(windows-nt ms-dos))
+                 ;; OpenBSD's env does not support -S
+                 (and (eq system-type 'berkeley-unix)
+                      (string-match-p "openbsd" system-configuration))))
   (ert-with-temp-file temp-file
     :text (format
            "#!/usr/bin/env -S %s --batch -f eshell-batch-file\necho hi"

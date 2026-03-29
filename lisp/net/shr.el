@@ -1,6 +1,6 @@
 ;;; shr.el --- Simple HTML Renderer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html
@@ -1097,9 +1097,9 @@ When `shr-fill-text' is nil, only indent."
   (mouse-set-point ev)
   (shr-browse-url nil nil t))
 
-(defun shr-browse-url (&optional external mouse-event new-window)
+(defun shr-browse-url (&optional secondary mouse-event new-window)
   "Browse the URL at point using `browse-url'.
-If EXTERNAL is non-nil (interactively, the prefix argument), browse
+If SECONDARY is non-nil (interactively, the prefix argument), browse
 the URL using `browse-url-secondary-browser-function'.
 If this function is invoked by a mouse click, it will browse the URL
 at the position of the click.  Optional argument MOUSE-EVENT describes
@@ -1110,8 +1110,9 @@ the mouse click event."
     (cond
      ((not url)
       (message "No link under point"))
-     (external
-      (funcall browse-url-secondary-browser-function url)
+     (secondary
+      (let ((browse-url-browser-function browse-url-secondary-browser-function))
+        (browse-url url))
       (shr--blink-link))
      (t
       (browse-url url (xor new-window browse-url-new-window-flag))))))
@@ -1534,13 +1535,15 @@ ones, in case fg and bg are nil."
     ;; Ignore attributes that start with a colon because they are
     ;; private elements.
     (unless (= (aref (format "%s" (car attr)) 0) ?:)
-      (insert (format " %s=\"%s\"" (car attr) (cdr attr)))))
+      (insert (format " %s=\"%s\""
+                      (car attr)
+                      (url-insert-entities-in-string (cdr attr))))))
   (insert ">")
   (let (url)
     (dolist (elem (dom-children dom))
       (cond
        ((stringp elem)
-	(insert elem))
+	(insert (url-insert-entities-in-string elem)))
        ((eq (dom-tag elem) 'comment)
 	)
        ((or (not (eq (dom-tag elem) 'image))
@@ -1644,7 +1647,7 @@ Based on https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-infore
   ;; happen sometimes because of a <br> tag and the intent seems to be
   ;; alignment of subscript and superscript but I don't think that is
   ;; possible in Emacs.  So we remove the newline in that case.
-  (when (bolp)
+  (when (and (bolp) (not (bobp)))
     (forward-char -1)
     (delete-char 1))
   (let ((start (point)))
@@ -2730,7 +2733,7 @@ flags that control whether to collect or render objects."
 			(aref widths width-column)
 		      (* 10 shr-table-separator-pixel-width)))
 	      (when (setq colspan (dom-attr column 'colspan))
-		(setq colspan (min (string-to-number colspan)
+		(setq colspan (min (truncate (string-to-number colspan))
 				   ;; The colspan may be wrong, so
 				   ;; truncate it to the length of the
 				   ;; remaining columns.

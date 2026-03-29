@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2017-2025 Free Software Foundation, Inc.
+Copyright (C) 2017-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -603,10 +603,6 @@ modes) now takes an optional numeric argument to specify how many
 times is should insert newlines (and indent).
 
 ** New command 'make-empty-file'.
-
-** New variable 'x-wait-for-event-timeout'.
-This controls how long Emacs will wait for updates to the graphical
-state to take effect (making a frame visible, for example).
 
 ** New user option 'electric-quote-replace-double'.
 This option controls whether '"' is replaced in 'electric-quote-mode',

@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2026 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -219,7 +219,7 @@ macro to be executed before appending to it."
 ;;;###autoload (autoload 'kmacro-keymap "kmacro" "Keymap for keyboard macro commands." t 'keymap)
 
 (if kmacro-call-mouse-event
-  (global-set-key (vector kmacro-call-mouse-event) #'kmacro-end-call-mouse))
+  (global-set-key (vector kmacro-call-mouse-event) #'kmacro-end-and-call-macro))
 
 
 ;;; Called from keyboard-quit
@@ -742,8 +742,8 @@ With numeric ARG, repeat the macro that many times,
 counting the definition just completed as the first repetition.
 An argument of zero means repeat until error."
   (interactive "p")
-   ;; Isearch may push the kmacro-end-macro key sequence onto the macro.
-   ;; Just ignore it when executing the macro.
+  ;; Isearch may push the kmacro-end-macro key sequence onto the macro.
+  ;; Just ignore it when executing the macro.  FIXME: When?Why?
   (unless executing-kbd-macro
     (end-kbd-macro arg #'kmacro-loop-setup-function)
     (when (and last-kbd-macro (= (length last-kbd-macro) 0))
@@ -880,35 +880,25 @@ With \\[universal-argument], call second macro in macro ring."
 
 
 ;;;###autoload
-(defun kmacro-end-and-call-macro (arg &optional no-repeat)
+(defun kmacro-end-and-call-macro (arg &optional no-repeat event)
   "Call last keyboard macro, ending it first if currently being defined.
 With numeric prefix ARG, repeat macro that many times.
 Zero argument means repeat until there is an error.
+If triggered via a mouse EVENT, moves point to the position clicked
+with the mouse before calling the macro.
 
 To give a macro a name, so you can call it even after defining other
 macros, use \\[kmacro-name-last-macro]."
-  (interactive "p")
+  (interactive (list current-prefix-arg nil
+                     (if (consp last-input-event) last-input-event)))
   (if defining-kbd-macro
       (kmacro-end-macro nil))
+  (if event (mouse-set-point event))
   (kmacro-call-macro arg no-repeat))
 
-
 ;;;###autoload
-(defun kmacro-end-call-mouse (event)
-  "Move point to the position clicked with the mouse and call last kbd macro.
-If kbd macro currently being defined end it before activating it."
-  (interactive "e")
-  (when defining-kbd-macro
-    (end-kbd-macro)
-    (when (and last-kbd-macro (= (length last-kbd-macro) 0))
-      (setq last-kbd-macro nil)
-      (message "Ignore empty macro")
-      ;; Don't call `kmacro-ring-empty-p' to avoid its messages.
-      (while (and (null last-kbd-macro) kmacro-ring)
-        (kmacro-pop-ring1))))
-  (mouse-set-point event)
-  (kmacro-call-macro nil t))
-
+(define-obsolete-function-alias 'kmacro-end-call-mouse
+  #'kmacro-end-and-call-macro "31.1")
 
 ;;; Misc. commands
 

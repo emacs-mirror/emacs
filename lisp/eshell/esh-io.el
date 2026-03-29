@@ -1,6 +1,6 @@
 ;;; esh-io.el --- I/O management  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -568,7 +568,7 @@ ends in a newline."
   (eshell-output-object object handle)
   (when (and eshell-ensure-newline-p
              (not (and (stringp object)
-                       (string-suffix-p object "\n"))))
+                       (string-suffix-p "\n" object))))
     (eshell-maybe-output-newline handle)))
 
 (defsubst eshell-print-maybe-n (object)
@@ -751,7 +751,7 @@ Returns what was actually sent, or nil if nothing was sent.")
      ;; here.  Maybe `process-send-string' should handle SIGPIPE even
      ;; in batch mode (bug#66186).
      (if (process-live-p target)
-         (signal (car err) (cdr err))
+         (signal err)
        (signal 'eshell-pipe-broken (list target)))))
   object)
 

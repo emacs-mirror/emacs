@@ -1,0 +1,92 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (emacs-lisp-mode)
+    (fill-paragraph-semlf))
+
+Name: fill-paragraph-semlf - emacs-lisp-mode
+
+=-=
+;; Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;; eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim
+;; ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=
+;; Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;; eiusmod tempor.
+;; Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+;; veniam, quis nostrud exercitation ullamco laboris nisi ut.
+=-=-=
+
+Name: fill-paragraph-semlf - emacs-lisp-mode - fill-prefix - marker
+
+=-=
+;; - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+;; - Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+;; - Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=
+;; - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;; - eiusmod tempor.
+;; - Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+;; - veniam, quis nostrud exercitation ullamco laboris nisi ut.
+;; - Aliquip ex ea commodo consequat.
+;; - Duis aute irure dolor in reprehenderit in voluptate velit esse
+;; - cillum dolore eu fugiat nulla pariatur.
+;; - Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+;; - officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - emacs-lisp-mode - fill-prefix - whitespace
+
+=-=
+;; - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+;;   Aliquip ex ea commodo consequat.  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+;;   Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+=-=
+;; - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;;   eiusmod tempor.
+;;   Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+;;   veniam, quis nostrud exercitation ullamco laboris nisi ut.
+;;   Aliquip ex ea commodo consequat.
+;;   Duis aute irure dolor in reprehenderit in voluptate velit esse
+;;   cillum dolore eu fugiat nulla pariatur.
+;;   Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+;;   officia deserunt mollit anim id est laborum.
+=-=-=
+
+Name: fill-paragraph-semlf - emacs-lisp-mode - indented block
+
+The `fill-forward-paragraph' function jumps to the beginning/end of
+the comment.
+
+=-=
+;; Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;; eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut
+;; enim ad minim veniam, quis nostrud exercitation ullamco laboris
+;; nisi ut.
+;;
+;; 	|Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+;; 	do eiusmod tempor.  Incididunt ut labore et dolore magna
+;; 	aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+;; 	ullamco laboris nisi ut.
+;;
+;; Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;; eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut
+;; enim ad minim veniam, quis nostrud exercitation ullamco laboris
+;; nisi ut.
+=-=
+;; Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;; eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut
+;; enim ad minim veniam, quis nostrud exercitation ullamco laboris
+;; nisi ut.
+;;
+;; 	Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+;; 	do eiusmod tempor.
+;; 	Incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+;; 	veniam, quis nostrud exercitation ullamco laboris nisi ut.
+;;
+;; Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+;; eiusmod tempor.  Incididunt ut labore et dolore magna aliqua. Ut
+;; enim ad minim veniam, quis nostrud exercitation ullamco laboris
+;; nisi ut.
+=-=-=

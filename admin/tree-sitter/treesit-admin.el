@@ -1,6 +1,6 @@
 ;;; treesit-admin.el --- Tree-sitter related admin scripts  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Keywords: maint
@@ -83,6 +83,7 @@
     go-ts-mode
     heex-ts-mode
     html-ts-mode
+    mhtml-ts-mode
     java-ts-mode
     js-ts-mode
     json-ts-mode
@@ -107,6 +108,7 @@
     go-ts-mode
     heex-ts-mode
     html-ts-mode
+    mhtml-ts-mode
     java-ts-mode
     js
     json-ts-mode
@@ -136,14 +138,12 @@ This is done by `require'ing all of the features that extend it."
    (lambda (source)
      (cond ((or (memq :revision source)
                 (memq :commit source))
-            (when (memq :revision source)
-              (let ((unversioned-source (copy-sequence source)))
-                (setcar (cdr (memq :revision unversioned-source)) nil)
-                unversioned-source))
-            (when (memq :commit source)
-              (let ((unversioned-source (copy-sequence source)))
-                (setcar (cdr (memq :commit unversioned-source)) nil)
-                unversioned-source)))
+            (let ((unversioned-source (copy-sequence source)))
+              (when (memq :revision source)
+                (setcar (cdr (memq :revision unversioned-source)) nil))
+              (when (memq :commit source)
+                (setcar (cdr (memq :commit unversioned-source)) nil))
+              unversioned-source))
            ((nthcdr 2 source)
             (let ((unversioned-source (copy-sequence source)))
               (setcar (nthcdr 2 unversioned-source) nil)
@@ -191,7 +191,7 @@ queries that has problems with latest grammar."
             (all-queries-valid t))
         (dolist (setting settings)
           (let* ((query (treesit-font-lock-setting-query setting))
-                 (language (treesit-query-language query))
+                 (language (treesit-font-lock-setting-language setting))
                  (feature (treesit-font-lock-setting-feature setting)))
             ;; Record that MODE uses LANGUAGE.
             (unless (memq language (alist-get mode mode-language-alist))
@@ -297,7 +297,7 @@ Return non-nil if all queries are valid, nil otherwise."
     (dolist (setting settings)
       ;; `treesit-font-lock-setting-query' isn't available in Emacs 30.
       (let* ((query (car setting))
-             (language (treesit-query-language query)))
+             (language (treesit-font-lock-setting-language setting)))
         ;; Validate query.
         (when (and (eq lang language)
                    (not (treesit-query-valid-p language query)))
@@ -314,15 +314,13 @@ Return non-nil if all queries are valid, nil otherwise."
              ;; TODO: A more generic way to find all queries.
              (let ((c-ts-mode-enable-doxygen t)
                    (c-ts-mode-enable-doxygen t)
-                   (java-ts-mode-enabel-doxygen t))
+                   (java-ts-mode-enable-doxygen t))
                (funcall mode))
              (font-lock-mode -1)
              treesit-font-lock-settings)))
         (all-queries-valid t))
     (cl-remove-duplicates
-     (mapcar #'treesit-query-language
-             (mapcar #'treesit-font-lock-setting-query
-                     settings)))))
+     (mapcar #'treesit-font-lock-setting-language settings))))
 
 (defun treesit-admin--find-latest-compatible-revision
     (mode language source-alist grammar-dir revision-type

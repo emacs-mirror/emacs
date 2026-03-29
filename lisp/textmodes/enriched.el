@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1994-1996, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: text, faces
@@ -390,6 +390,16 @@ which can be the value of the `face' text property."
 	 (list (list "x-color" (cadr face))))
 	((and (listp face) (eq (car face) :background))
 	 (list (list "x-bg-color" (cadr face))))
+	((and (listp face) (eq (car face) :underline))
+	 (list (list "underline")))
+	((and (listp face)
+              (eq (car face) :weight)
+              (eq (cadr face) 'bold))
+	 (list (list "bold")))
+	((and (listp face)
+              (eq (car face) :slant)
+              (memq (cadr face) '(italic oblique)))
+	 (list (list "italic")))
 	((listp face)
 	 (apply #'append (mapcar #'enriched-face-ans face)))
 	((let* ((fg (face-attribute face :foreground))

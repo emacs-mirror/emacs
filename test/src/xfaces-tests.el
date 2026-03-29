@@ -1,6 +1,6 @@
 ;;; xfaces-tests.el --- tests for xfaces.c           -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -51,6 +51,19 @@
   (should (equal (color-values-from-color-spec "rgbi:0/0/ 0") nil))
   (should (equal (color-values-from-color-spec "rgbi:0/0x0/0") nil))
   (should (equal (color-values-from-color-spec "rgbi:0/+0x1/0") nil)))
+
+(ert-deftest xfaces-test-circular-inheritance ()
+  "Test that bug#79672 remains solved."
+  (let ((buf (get-buffer-create "xfaces-test")))
+    (with-current-buffer buf
+      (font-lock-mode -1)
+      (set-face-attribute 'button nil :inherit 'link)
+      (should (equal
+               (should-error (set-face-attribute 'link nil :inherit 'button))
+               (list 'error
+                     "Face inheritance results in inheritance cycle"
+                     'button))))
+    (kill-buffer buf)))
 
 (provide 'xfaces-tests)
 

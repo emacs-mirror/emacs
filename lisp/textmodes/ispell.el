@@ -1,6 +1,6 @@
 ;;; ispell.el --- interface to spell checkers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1995, 1997-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-2026 Free Software Foundation, Inc.
 
 ;; Author: Ken Stevens <k.stevens@ieee.org>
 
@@ -163,6 +163,16 @@ may produce undesired results."
   "Corrections made throughout region when non-nil.
 Uses `query-replace' (\\[query-replace]) for corrections."
   :type 'boolean)
+
+(defcustom ispell-save-corrections-as-abbrevs nil
+  "Whether to save spelling corrections as abbrevs by default.
+Determines the default behavior of Ispell after correcting a misspelled
+word.  Non-nil means to save a global abbrev that expands the misspelled
+word to its correction.  This behavior may be toggled on a per-word
+basis by typing \\`C-u' immediately before selecting a replacement in
+the Ispell command loop."
+  :type 'boolean
+  :version "31.1")
 
 (defcustom ispell-skip-tib nil
   "Does not spell check `tib' bibliography references when non-nil.
@@ -1803,7 +1813,8 @@ and pass it the output of the last Ispell invocation."
     (if (null ispell-process)
 	(error "No Ispell process to read output from!")
       (let ((buf ispell-output-buffer)
-	    ispell-output)
+	    (ispell-output nil))
+
 	(if (not (bufferp buf))
 	    (setq ispell-filter nil)
 	  (with-current-buffer buf
@@ -1820,6 +1831,28 @@ Only works for Aspell and Enchant."
   (and (or ispell-really-aspell ispell-really-enchant)
        (ispell-send-string (concat "$$ra " misspelled "," replacement "\n"))))
 
+(defvar ispell--abbrev-saving-allowed nil
+  "Non-nil means the current `ispell-command-loop' supports abbrev saving.
+Dynamically bound around calls to `ispell-command-loop' for which it
+makes sense to allow abbrev saving.  This includes calls from functions
+like `ispell-word' and `ispell-region', but excludes calls from
+functions like `ispell-complete-word'.")
+
+(defvar ispell--save-correction-as-abbrev nil
+  "Non-nil means save the current correction as an abbrev.
+Dynamically bound to the value of `ispell-save-corrections-as-abbrevs'
+around calls to `ispell-command-loop'.  The command loop can toggle
+this, via `C-u', to control abbrev saving for an immediately subsequent
+replacement command (a selection from the suggestion list, or
+\\`r'/\\`R').")
+
+(defun ispell--maybe-save-correction-abbrev (misspelled replacement)
+  "Save MISSPELLED -> REPLACEMENT as an abbrev, if enabled.
+This is controlled by the variable `ispell--save-correction-as-abbrev'."
+  (require 'abbrev)
+  (when ispell--save-correction-as-abbrev
+    (define-abbrev global-abbrev-table misspelled replacement)
+    (message "\"%s\" now expands to \"%s\" globally" misspelled replacement)))
 
 (defun ispell-send-string (string)
   "Send the string STRING to the Ispell process."
@@ -1970,38 +2003,42 @@ quit          spell session exited."
 	       (message "%s is incorrect"
                         (funcall ispell-format-word-function word))))
 	    (t				; prompt for correct word.
-	     (save-window-excursion
-	       (setq replace (ispell-command-loop
-			      (car (cdr (cdr poss)))
-			      (car (cdr (cdr (cdr poss))))
-			      (car poss) start end)))
-	     (cond ((equal 0 replace)
-		    (ispell-add-per-file-word-list (car poss)))
-		   (replace
-		    (setq new-word (if (atom replace) replace (car replace))
-			  cursor-location (+ (- (length word) (- end start))
-					     cursor-location))
-		    (if (not (equal new-word (car poss)))
-			(progn
-			  (goto-char start)
-			  ;; Insert first and then delete,
-			  ;; to avoid collapsing markers before and after
-			  ;; into a single place.
-			  (insert new-word)
-			  (delete-region (point) end)
-			  ;; It is meaningless to preserve the cursor position
-			  ;; inside a word that has changed.
-			  (setq cursor-location (point))
-			  (setq end (point))))
-		    (if (not (atom replace)) ;recheck spelling of replacement
-			(progn
-			  (if (car (cdr replace)) ; query replace requested
-			      (save-window-excursion
-				(query-replace word new-word t)))
-			  (goto-char start)
-			  ;; single word could be split into multiple words
-			  (setq ispell-quit (not (ispell-region start end)))
-			  ))))
+	     (let ((ispell--abbrev-saving-allowed t)
+	           (ispell--save-correction-as-abbrev
+	            ispell-save-corrections-as-abbrevs))
+	       (save-window-excursion
+		 (setq replace (ispell-command-loop
+				(car (cdr (cdr poss)))
+				(car (cdr (cdr (cdr poss))))
+				(car poss) start end)))
+	       (cond ((equal 0 replace)
+		      (ispell-add-per-file-word-list (car poss)))
+		     (replace
+		      (setq new-word (if (atom replace) replace (car replace))
+			    cursor-location (+ (- (length word) (- end start))
+					       cursor-location))
+		      (ispell--maybe-save-correction-abbrev (car poss) new-word)
+		      (if (not (equal new-word (car poss)))
+			  (progn
+			    (goto-char start)
+			    ;; Insert first and then delete,
+			    ;; to avoid collapsing markers before and after
+			    ;; into a single place.
+			    (insert new-word)
+			    (delete-region (point) end)
+			    ;; It is meaningless to preserve the cursor position
+			    ;; inside a word that has changed.
+			    (setq cursor-location (point))
+			    (setq end (point))))
+		      (if (not (atom replace)) ;recheck spelling of replacement
+			  (progn
+			    (if (car (cdr replace)) ; query replace requested
+				(save-window-excursion
+				  (query-replace word new-word t)))
+			    (goto-char start)
+			    ;; single word could be split into multiple words
+			    (setq ispell-quit (not (ispell-region start end)))
+			    )))))
 	     ;; keep if rechecking word and we keep choices win.
 	     (if (get-buffer ispell-choices-buffer)
 		 (kill-buffer ispell-choices-buffer))))
@@ -2166,9 +2203,12 @@ Global `ispell-quit' is set to start location to continue spell session."
 	(choices miss)
 	(window-min-height (min window-min-height
 				ispell-choices-win-default-height))
-	(command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
+	(command-characters
+	 (append '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m )
+		 (and ispell--abbrev-saving-allowed
+		      '(?\C-u))))
 	(skipped 0)
-	char num result textwin)
+	char num result textwin abbrev-prefix)
 
     ;; setup the *Choices* buffer with valid data.
     (with-current-buffer (get-buffer-create ispell-choices-buffer)
@@ -2234,8 +2274,14 @@ Global `ispell-quit' is set to start location to continue spell session."
 		(progn
 		  (undo-boundary)
 		  (let (message-log-max)
-		    (message (concat "C-h or ? for more options; SPC to leave "
-				     "unchanged, Character to replace word")))
+		    (message
+		     (concat
+		      "C-h or ? for more options; SPC to leave "
+		      "unchanged, Character to replace word"
+		      (and ispell--abbrev-saving-allowed abbrev-prefix
+			   (if ispell--save-correction-as-abbrev
+			       " [won't save as abbrev]"
+			     " [will save as abbrev]")))))
 		  (let ((inhibit-quit t)
 			(input-valid t))
 		    (setq char nil skipped 0)
@@ -2260,6 +2306,22 @@ Global `ispell-quit' is set to start location to continue spell session."
 			  (setq skipped (1+ skipped)))
 		      (setq com-chars (cdr com-chars)))
 		    (setq num (- char ?0 skipped)))
+
+		  (if (and abbrev-prefix
+			   (or (memq char '(?r ?R))
+			       (and (>= num 0) (< num count))))
+		      ;; If the user typed `C-u' before this replacement
+		      ;; command, then toggle abbrev saving for this
+		      ;; correction.
+		      (setq ispell--save-correction-as-abbrev
+			    (not ispell--save-correction-as-abbrev)
+			    abbrev-prefix nil)
+		    ;; If the user typed `C-u' but not before a
+		    ;; replacement command, then nullify the effect of
+		    ;; `C-u' for subsequent commands.
+		    (when (and abbrev-prefix
+			       (not (= char ?\C-u)))
+		      (setq abbrev-prefix nil)))
 
 		  (cond
 		   ((= char ? ) nil)	; accept word this time only
@@ -2418,6 +2480,9 @@ Global `ispell-quit' is set to start location to continue spell session."
 		   ((= char ?\C-z)
 		    (funcall (key-binding "\C-z"))
 		    t)
+		   ((and (= char ?\C-u) ispell--abbrev-saving-allowed)
+		    (setq abbrev-prefix (not abbrev-prefix))
+		    t)
 		   (t (ding) t))))))
 	  result)
       ;; protected
@@ -2462,6 +2527,7 @@ Selections are:
 \\`m'   Place typed-in value in personal dictionary, then recheck current word.
 \\`C-l' Redraw screen.
 \\`C-r' Recursive edit.
+\\`C-u' Toggle abbrev saving for an immediately subsequent replacement command.
 \\`C-z' Suspend Emacs or iconify frame."
 
   (if (equal ispell-help-in-bufferp 'electric)
@@ -2496,6 +2562,7 @@ Selections are:
 \\`m'     Place typed-in value in personal dictionary, then recheck current word.
 \\`C-l'   Redraw screen.
 \\`C-r'   Recursive edit.
+\\`C-u'   Toggle abbrev saving for an immediately subsequent replacement command.
 \\`C-z'   Suspend Emacs or iconify frame."))
            nil)))
 
@@ -2505,12 +2572,14 @@ Selections are:
 	  (help-2 (concat "[l]ook a word up in alternate dictionary;  "
 			  "e[x/X]it;  [q]uit session"))
 	  (help-3 (concat "[u]ncapitalized insert into dict.  "
-			  "Type `x C-h f ispell-help' for more help")))
+			  (and ispell--abbrev-saving-allowed
+			       "C-u toggles abbrev saving (next replacement).")))
+	  (help-4 (concat "Type `x C-h f ispell-help' for more help")))
       (save-window-excursion
 	(if ispell-help-in-bufferp
 	    (let ((buffer (get-buffer-create "*Ispell Help*")))
 	      (with-current-buffer buffer
-		(insert (concat help-1 "\n" help-2 "\n" help-3)))
+		(insert (concat help-1 "\n" help-2 "\n" help-3 "\n" help-4)))
 	      (ispell-display-buffer buffer)
 	      (sit-for (max 0.5 ispell-help-timeout))
 	      (kill-buffer "*Ispell Help*"))
@@ -2521,7 +2590,7 @@ Selections are:
 		(message nil)
 		;;(set-minibuffer-window (selected-window))
 		(enlarge-window 2)
-		(insert (concat help-1 "\n" help-2 "\n" help-3))
+		(insert (concat help-1 "\n" help-2 "\n" help-3 "\n" help-4))
 		(sit-for (max 0.5 ispell-help-timeout)))
 	    (erase-buffer)))))))
 
@@ -3504,7 +3573,9 @@ word that was queried about."
 		(word-len (length (car poss)))
 		(line-end (copy-marker ispell-end))
 		(line-start (copy-marker ispell-start))
-		recheck-region replace)
+		recheck-region replace
+		(ispell--abbrev-saving-allowed t)
+		(ispell--save-correction-as-abbrev ispell-save-corrections-as-abbrevs))
 	    (goto-char word-start)
 	    ;; Adjust the horizontal scroll & point
 	    (ispell-horiz-scroll)
@@ -3572,11 +3643,13 @@ word that was queried about."
                   (progn
                     (insert replace)    ; Insert dictionary word.
                     (ispell-send-replacement (car poss) replace)
+                    (ispell--maybe-save-correction-abbrev (car poss) replace)
                     (setq accept-list (cons replace accept-list)))
                 (let ((replace-word (car replace)))
                   ;; Recheck hand entered replacement word.
                   (insert replace-word)
                   (ispell-send-replacement (car poss) replace-word)
+                  (ispell--maybe-save-correction-abbrev (car poss) replace-word)
                   (if (car (cdr replace))
                       (save-window-excursion
                         (delete-other-windows) ; to correctly show help.
@@ -4269,6 +4342,14 @@ Both should not be used to define a buffer-local dictionary."
 ;; If comment-normalize-vars is defined, newcomment must be loaded.
 (declare-function comment-normalize-vars "newcomment" (&optional noerror))
 
+(defun ispell--comment-prefix ()
+  "Return the comment marker for the current mode."
+  (progn
+    (comment-normalize-vars)
+    (comment-padright comment-start
+                      (comment-add nil))
+    comment-start))
+
 (defun ispell-add-per-file-word-list (word)
   "Add WORD to the per-file word list."
   (or ispell-buffer-local-name
@@ -4279,37 +4360,34 @@ Both should not be used to define a buffer-local dictionary."
       (while (not done)
         (let ((case-fold-search nil))
           (setq search (search-forward ispell-words-keyword nil t)
-	      found (or found search)
-	      line-okay (< (+ (length word) 1 ; 1 for space after word..
-			      (progn (end-of-line) (current-column)))
+                found (or found search)
+                line-okay (< (+ (length word) 1 ; 1 for space after word..
+                                (progn (end-of-line) (current-column)))
                              fill-column)))
-	(if (or (and search line-okay)
-		(null search))
-	    (progn
-	      (setq done t)
-	      (if (null search)
-		  (progn
-		    (if found (insert "\n")  ;; after an existing LocalWords
-                      (goto-char (point-max)) ;; no LocalWords, go to end of file
-                      (open-line 1)
-                      (newline))
-		    (insert (if comment-start
-                                (concat
-                                  (progn
-                                   ;; Try and use the proper comment marker,
-                                   ;; e.g. ";;" rather than ";".
-                                    (comment-normalize-vars)
-                                    (comment-padright comment-start
-                                                      (comment-add nil))
-                                    comment-start)
-                                  " ")
-                              "")
-                            ispell-words-keyword)
-                    (if (and comment-end (> (length comment-end) 0))
-			(save-excursion
-			  (newline)
-			  (insert comment-end)))))
-	      (insert (concat " " word))))))))
+        (if (or (and search line-okay)
+                (null search))
+            (progn
+              (setq done t)
+              (if (null search)
+                  (progn
+                    (let ((empty-comment-end (or (not comment-end) (= (length comment-end) 0))))
+                      (progn
+                        (if found (progn ;; after an existing LocalWords
+                                    (insert "\n")
+                                    (when (and empty-comment-end comment-start)
+                                      (insert (ispell--comment-prefix) " ")))
+                          (goto-char (point-max)) ;; no LocalWords, go to end of file
+                          (open-line 1)
+                          (newline)
+                          ;; Insert an end marker if needed, preceded by a newline.
+                          (if (not empty-comment-end)
+                              (save-excursion
+                                (newline)
+                                (insert comment-end)))
+                          (when comment-start
+                            (insert (ispell--comment-prefix) (if (not empty-comment-end) "\n" " "))))
+                        (insert ispell-words-keyword)))))
+              (insert (concat " " word))))))))
 
 (provide 'ispell)
 

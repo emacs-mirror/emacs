@@ -1,6 +1,6 @@
 ;;; char-fold-tests.el --- Tests for char-fold.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <bruce.connor.am@gmail.com>
 

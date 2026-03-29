@@ -1,6 +1,6 @@
 ;;; tab-bar-tests.el --- Tests for tab-bar.el          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@linkov.net>
 
@@ -56,6 +56,9 @@
                ;; Skip test on MS-Windows in batch mode, since terminal
                ;; frames cannot be created in that case.
                ('windows-nt noninteractive)
+               ;; This test is unreliable on macOS when run in batch mode
+               ;; from Emacs (M-x compile).
+               ('darwin (equal (getenv "TERM") "dumb"))
                ;; Emba runs the container without "--tty"
                ;; (the environment variable "TERM" is nil), and this
                ;; test fails with '(error "Could not open file: /dev/tty")'.

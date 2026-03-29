@@ -107,7 +107,7 @@ You can display that file in Emacs with 'C-h C-d', or just read it with
 any program that can display text files, such as Less.
 
 
-Copyright (C) 2002-2025 Free Software Foundation, Inc.
+Copyright (C) 2002-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

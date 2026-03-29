@@ -1,3 +1,4 @@
 <svg width="16" height="16" viewBox="0 0 16 16"  xmlns="http://www.w3.org/2000/svg">
+<style>svg {fill: currentColor;}</style>
 <path d="M12.5 7H3.5V9H12.5V7Z" />
 </svg>

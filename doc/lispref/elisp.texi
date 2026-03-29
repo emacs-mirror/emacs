@@ -18,6 +18,7 @@
 @ifclear volflag
 @settitle GNU Emacs Lisp Reference Manual
 @end ifclear
+@documentlanguage en
 @include docstyle.texi
 
 @c %**end of header
@@ -99,7 +100,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifclear
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2025 Free Software Foundation,
+Copyright @copyright{} 1990--1996, 1998--2026 Free Software Foundation,
 Inc.
 
 @quotation
@@ -1431,7 +1432,7 @@ Threads
 Processes
 
 * Subprocess Creation::     Functions that start subprocesses.
-* Shell Arguments::         Quoting an argument to pass it to a shell.
+* Shell Arguments::         Quoting & partitioning command arguments.
 * Synchronous Processes::   Details of using synchronous subprocesses.
 * Asynchronous Processes::  Starting up an asynchronous subprocess.
 * Deleting Processes::      Eliminating an asynchronous subprocess.
@@ -1648,6 +1649,9 @@ Preparing Lisp code for distribution
 * Simple Packages::         How to package a single .el file.
 * Multi-file Packages::     How to package multiple files.
 * Package Archives::        Maintaining package archives.
+* Archive Web Server::      Interfacing to an archive web server.
+* Forwards-Compatibility::  Supporting older versions of Emacs.
+* Package Information::     Information about built-in packages.
 
 Tips and Conventions
 
@@ -1657,6 +1661,7 @@ Tips and Conventions
 * Compilation Tips::        Making compiled code run fast.
 * Warning Tips::            Turning off compiler warnings.
 * Documentation Tips::      Writing readable documentation strings.
+* Documentation Group Tips::  Writing useful documentation groups.
 * Comment Tips::            Conventions for writing comments.
 * Library Headers::         Standard headers for library packages.
 

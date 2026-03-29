@@ -1,6 +1,6 @@
 ;;; frameset.el --- save and restore frame and window setup -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;; Keywords: convenience
@@ -1362,11 +1362,18 @@ All keyword parameters default to nil."
     ;; Clean up the frame list
     (when cleanup-frames
       (let ((map nil)
-	    (cleanup (if (eq cleanup-frames t)
-			 (lambda (frame action)
-			   (when (memq action '(:rejected :ignored))
-			     (delete-frame frame)))
-		       cleanup-frames)))
+	    (cleanup
+             (if (eq cleanup-frames t)
+		 (lambda (frame action)
+		   (when (and (memq action '(:rejected :ignored))
+                              ;; Don't try deleting the daemon's initial
+                              ;; frame, as that would only trigger
+                              ;; warnings.
+                              (not
+                               (and (daemonp) ;; FIXME: Remove `daemonp'?
+                                    (frame-initial-p frame))))
+                     (delete-frame frame)))
+               cleanup-frames)))
 	(maphash (lambda (frame _action) (push frame map)) frameset--action-map)
 	(dolist (frame (sort map
 			     ;; Minibufferless frames must go first to avoid

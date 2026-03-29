@@ -1,6 +1,6 @@
 ;;; sqlite-mode.el --- Mode for examining sqlite3 database files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -204,9 +204,12 @@
      (format "delete from \"%s\" where %s"
              (cdr table)
              (string-join
-              (mapcar (lambda (column)
-                        (format "\"%s\" = ?" (car (split-string column " "))))
-                      (cons "rowid" (sqlite-mode--column-names (cdr table))))
+              (cl-mapcar (lambda (column value)
+                           (format "\"%s\" %s ?"
+                                   (car (split-string column " "))
+                                   (if value "=" "is")))
+                         (cons "rowid" (sqlite-mode--column-names (cdr table)))
+                         row)
               " and "))
      row)
     (delete-region (line-beginning-position) (progn (forward-line 1) (point)))))

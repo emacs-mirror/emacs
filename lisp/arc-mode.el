@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997-1998, 2001-2025 Free Software Foundation,
+;; Copyright (C) 1995, 1997-1998, 2001-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
@@ -897,7 +897,7 @@ when parsing the archive."
   "Toggle alternative display.
 To avoid very long lines archive mode does not show all information.
 This function changes the set of information shown for each files."
-  (interactive)
+  (interactive nil archive-mode)
   (setq archive-alternate-display (not archive-alternate-display))
   (setq-local archive-hidden-columns
               (if archive-alternate-display
@@ -913,7 +913,8 @@ This function changes the set of information shown for each files."
    (list (intern
           (completing-read "Toggle visibility of: "
                            '(Mode Ids Ratio Date&Time)
-                           nil t))))
+                           nil t)))
+   archive-mode)
   (setq-local archive-hidden-columns
               (if (memq column archive-hidden-columns)
                   (remove column archive-hidden-columns)
@@ -1011,7 +1012,7 @@ using `make-temp-file', and the generated name is returned."
     (while again
       (setq name (directory-file-name (file-name-directory name)))
       (condition-case nil
-	  (delete-directory name)
+	  (delete-directory name t)
 	(error nil))
       (if (string= name top) (setq again nil)))))
 ;; -------------------------------------------------------------------------
@@ -1066,8 +1067,19 @@ using `make-temp-file', and the generated name is returned."
         (setq coding
               (coding-system-change-text-conversion coding 'raw-text)))
       (unless (memq coding '(nil no-conversion))
+        ;; If CODING specifies a certain EOL conversion, reset that, to
+        ;; force 'decode-coding-region' below determine EOL conversion
+        ;; from the file's data...
+        (if (numberp (coding-system-eol-type coding))
+            (setq coding (coding-system-change-eol-conversion coding nil)))
         (decode-coding-region (point-min) (point-max) coding)
-	(setq last-coding-system-used coding))
+        ;; ...then augment CODING with the actual EOL conversion
+        ;; determined from the file's data.
+        (let ((eol-type (coding-system-eol-type last-coding-system-used)))
+          (if (numberp eol-type)
+	      (setq last-coding-system-used
+                    (coding-system-change-eol-conversion coding eol-type))
+            (setq last-coding-system-used coding))))
       (set-buffer-modified-p nil)
       (kill-local-variable 'buffer-file-coding-system)
       (after-insert-file-set-coding (- (point-max) (point-min))))))
@@ -1133,7 +1145,8 @@ NEW-NAME."
            (or (archive-get-marked ?*) (list (archive-get-descr))))))
      (list names
            (read-file-name (format "Copy %s to: " (string-join names ", "))
-                           nil default-directory))))
+                           nil default-directory)))
+   archive-mode)
   (unless (consp files)
     (setq files (list files)))
   (when (and (> (length files) 1)
@@ -1171,7 +1184,7 @@ NEW-NAME."
 
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
-  (interactive (list nil last-input-event))
+  (interactive (list nil last-input-event) archive-mode)
   (if event (posn-set-point (event-end event)))
   (let* ((view-p (eq other-window-p 'view))
 	 (descr (archive-get-descr))
@@ -1348,17 +1361,17 @@ NEW-NAME."
 
 (defun archive-extract-other-window ()
   "In archive mode, find this member in another window."
-  (interactive)
+  (interactive nil archive-mode)
   (archive-extract t))
 
 (defun archive-display-other-window ()
   "In archive mode, display this member in another window."
-  (interactive)
+  (interactive nil archive-mode)
   (archive-extract 'display))
 
 (defun archive-view ()
   "In archive mode, view the member on this line."
-  (interactive)
+  (interactive nil archive-mode)
   (archive-extract 'view))
 
 (defun archive-add-new-member (arcbuf name)
@@ -1469,7 +1482,7 @@ NEW-NAME."
 (defun archive-flag-deleted (p &optional type)
   "In archive mode, mark this member to be deleted from the archive.
 With a prefix argument, mark that many files."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (or type (setq type ?D))
   (beginning-of-line)
   (let ((sign (if (>= p 0) +1 -1))
@@ -1488,18 +1501,18 @@ With a prefix argument, mark that many files."
 (defun archive-unflag (p)
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many files forward."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-flag-deleted p ?\s))
 
 (defun archive-unflag-backwards (p)
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many members backward."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-flag-deleted (- p) ?\s))
 
 (defun archive-unmark-all-files ()
   "Remove all marks."
-  (interactive)
+  (interactive nil archive-mode)
   (let ((modified (buffer-modified-p))
 	(inhibit-read-only t))
     (save-excursion
@@ -1514,7 +1527,7 @@ With a prefix argument, un-mark that many members backward."
   "In archive mode, mark this member for group operations.
 With a prefix argument, mark that many members.
 Use \\[archive-unmark-all-files] to remove all marks."
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-flag-deleted p ?*))
 
 (defun archive-get-marked (mark &optional default)
@@ -1532,20 +1545,20 @@ Use \\[archive-unmark-all-files] to remove all marks."
 ;;; Section: Operate
 
 (defun archive-next-line (p)
-  (interactive "p")
+  (interactive "p" archive-mode)
   (forward-line p)
   (or (eobp)
       (forward-char archive-file-name-indent)))
 
 (defun archive-previous-line (p)
-  (interactive "p")
+  (interactive "p" archive-mode)
   (archive-next-line (- p)))
 
 (defun archive-chmod-entry (new-mode)
   "Change the protection bits associated with all marked or this member.
 The new protection bits can either be specified as an octal number or
 as a relative change like \"g+rw\" as for chmod(2)."
-  (interactive "sNew mode (octal or symbolic): ")
+  (interactive "sNew mode (octal or symbolic): " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chmod-entry")))
     (if (fboundp func)
@@ -1556,7 +1569,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-chown-entry (new-uid)
   "Change the owner of all marked or this member."
-  (interactive "nNew uid: ")
+  (interactive "nNew uid: " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chown-entry")))
     (if (fboundp func)
@@ -1567,7 +1580,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-chgrp-entry (new-gid)
   "Change the group of all marked or this member."
-  (interactive "nNew gid: ")
+  (interactive "nNew gid: " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chgrp-entry")))
     (if (fboundp func)
@@ -1607,7 +1620,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-expunge ()
   "Do the flagged deletions."
-  (interactive)
+  (interactive nil archive-mode)
   (archive--expunge-maybe-force nil))
 
 (defun archive-*-expunge (archive files command)
@@ -1616,7 +1629,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 
 (defun archive-rename-entry (newname)
   "Change the name associated with this entry in the archive file."
-  (interactive "sNew name: ")
+  (interactive "sNew name: " archive-mode)
   (if archive-read-only (error "Archive is read-only"))
   (if (string= newname "")
       (error "Archive members may not be given empty names"))
@@ -1635,6 +1648,12 @@ as a relative change like \"g+rw\" as for chmod(2)."
 (defun archive--mode-revert (orig-fun &rest args)
   (let ((no (archive-get-lineno)))
     (setq archive-files nil)
+    ;; 'orig-fun' will indirectly call 'archive-desummarize', which will
+    ;; delete the region between point-min and
+    ;; 'archive-proper-file-start'.  But the latter will be invalidated
+    ;; by 'orig-fun' (which actually reverts the buffer), so by setting
+    ;; it to 1 we prevent the damage from that deletion.
+    (setq archive-proper-file-start 1)
     (let ((coding-system-for-read 'no-conversion))
       (apply orig-fun t t (cddr args)))
     (archive-mode)
@@ -1644,7 +1663,7 @@ as a relative change like \"g+rw\" as for chmod(2)."
 (defun archive-undo ()
   "Undo in an archive buffer.
 This doesn't recover lost files, it just undoes changes in the buffer itself."
-  (interactive)
+  (interactive nil archive-mode)
   (let ((inhibit-read-only t))
     (undo)))
 
@@ -2434,7 +2453,21 @@ NAME is expected to be the 16-bytes part of an ar record."
   (unless file
     (setq file buffer-file-name))
   (let ((copy (file-local-copy file))
-        (files ()))
+        (files ())
+        to-delete)
+    ;; Similar to 'archive-maybe-copy'.
+    (unless (or (and copy (null file))
+                (file-readable-p file))
+      (setq archive-local-name
+            (archive-unique-fname (or file copy (buffer-name))
+                                  archive-tmpdir)
+            file archive-local-name
+            to-delete t)
+      (save-restriction
+        (widen)
+        (let ((coding-system-for-write 'no-conversion))
+          (write-region (point-min) (point-max)
+                        archive-local-name nil 'nomessage))))
     (with-temp-buffer
       (call-process "unsquashfs" nil t nil "-ll" (or file copy))
       (when copy
@@ -2481,6 +2514,8 @@ NAME is expected to be the 16-bytes part of an ar record."
                                       date-time :uid uid :gid gid)
                   files)))
         (goto-char (match-end 0))))
+    (if to-delete
+        (archive-delete-local archive-local-name))
     (archive--summarize-descs (nreverse files))))
 
 (defun archive-squashfs-extract-by-stdout (archive name command

@@ -1,6 +1,6 @@
 ;;; mode-local.el --- Support for mode local facilities  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 27 Apr 2004
@@ -548,12 +548,15 @@ OVERARGS is a list of arguments passed to the override and
 `NAME-default' function, in place of those deduced from ARGS."
   (declare (doc-string 3)
            (indent defun)
-           (debug (&define name lambda-list stringp def-body)))
-  `(eval-and-compile
+           (debug (&define name lambda-list stringp def-body))
+           (autoload-macro expand))
+  `(progn
      (defun ,name ,args
        ,docstring
        ,@(mode-local--overload-body name args body))
-     (put ',name 'mode-local-overload t)))
+     :autoload-end
+     (eval-and-compile
+       (put ',name 'mode-local-overload t))))
 (put :override-with-args 'lisp-indent-function 1)
 
 (define-obsolete-function-alias 'define-overload
@@ -720,19 +723,23 @@ SYMBOL is a function that can be overridden."
 	                         override (symbol-function override)))))
 
 	  (when (and override override-file)
-	    (let ((meta-name (cons override major-mode))
-		  ;; For the declaration:
-		  ;;
-		  ;;(define-mode-local-override xref-elisp-foo c-mode
-		  ;;
-		  ;; The override symbol name is
-		  ;; "xref-elisp-foo-c-mode". The summary should match
-		  ;; the declaration, so strip the mode from the
-		  ;; symbol name.
-		  (summary (format elisp--xref-format-extra
-				   'define-mode-local-override
-				   (substring (symbol-name override) 0 (- (1+ (length (symbol-name major-mode)))))
-				   major-mode)))
+	    (let* ((meta-name (cons override major-mode))
+		   ;; For the declaration:
+		   ;;
+		   ;;(define-mode-local-override xref-elisp-foo c-mode
+		   ;;
+		   ;; The override symbol name is
+		   ;; "xref-elisp-foo-c-mode". The summary should match
+		   ;; the declaration, so strip the mode from the
+		   ;; symbol name.
+		   (overridesymbol
+		    (intern
+		     (substring (symbol-name override)
+				0 (- (1+ (length (symbol-name major-mode)))))))
+		   (summary (format elisp--xref-format-extra
+				    'define-mode-local-override
+				    overridesymbol
+				    major-mode)))
 
 	      (unless (xref-mode-local--override-present override xrefs)
 		(push (elisp--xref-make-xref

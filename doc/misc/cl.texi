@@ -1,13 +1,14 @@
 \input texinfo    @c -*-texinfo-*-
 @setfilename ../../info/cl.info
 @settitle Common Lisp Extensions
+@documentlanguage en
 @include docstyle.texi
 @include emacsver.texi
 
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -796,6 +797,7 @@ facts are true or false.
 
 @menu
 * Type Predicates::      @code{cl-typep}, @code{cl-deftype}, and @code{cl-coerce}.
+* Derived Types::        @code{cl-deftype}.
 * Equality Predicates::  @code{cl-equalp}.
 @end menu
 
@@ -888,8 +890,8 @@ floats.  In all other circumstances, @code{cl-coerce} signals an
 error.
 @end defun
 
-@node Derived types
-@subsection Derived types
+@node Derived Types
+@section Derived Types
 
 @defmac cl-deftype name arglist [docstring] [decls] forms@dots{}
 This macro defines a new type called @var{name}.
@@ -3823,10 +3825,11 @@ comparisons; it is equivalent to @code{(cl-member @var{item} @var{list}
 :test 'equal)}.
 @end defun
 
-@findex cl-member-if
 @findex cl-member-if-not
-The @code{cl-member-if} and @code{cl-member-if-not} functions
-analogously search for elements that satisfy a given predicate.
+The @code{cl-member-if-not} function analogously searches for elements
+that don't satisfy a given predicate.  This is deprecated in the Common
+Lisp standard; prefer the core function @code{member-if} with a negated
+predicate function.
 
 @defun cl-tailp sublist list
 This function returns @code{t} if @var{sublist} is a sublist of
@@ -3984,7 +3987,7 @@ the specified slots, such as @code{:first-name}, @code{:age}, and
 @code{:sex}.  These keyword arguments specify the initial values for the
 respective slots in the new object.  If a keyword argument is not
 provided, the slot is initialized to @code{nil}.@footnote{This behavior
-differs from Common Lisp, where an unitialized slot would be left as
+differs from Common Lisp, where an uninitialized slot would be left as
 ``undefined''.}
 
 In the example below, we create a new instance of the @code{person}

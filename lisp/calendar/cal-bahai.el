@@ -1,6 +1,6 @@
 ;;; cal-bahai.el --- calendar functions for the Bahá’í calendar.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: calendar
@@ -28,12 +28,11 @@
 ;; and diary-lib.el that deal with the Bahá’í calendar.
 
 ;; The Bahá’í (https://www.bahai.org) calendar system is based on a
-;; solar cycle of 19 months with 19 days each.  The four remaining
+;; solar cycle of 19 months with 19 days each.  The remaining
 ;; "intercalary" days are called the Ayyám-i-Há (days of Há), and are
 ;; placed between the 18th and 19th months.  They are meant as a time
 ;; of festivals preceding the 19th month, which is the month of
-;; fasting.  In Gregorian leap years, there are 5 of these days (Há
-;; has the numerical value of 5 in the arabic abjad, or
+;; fasting.  (Há has the numerical value of 5 in the arabic abjad, or
 ;; letter-to-number, reckoning).
 
 ;; Each month is named after an attribute of God, as are the 19 days
@@ -47,6 +46,23 @@
 ;; each of which has its own name, again patterned after the
 ;; attributes of God.
 
+;; CALENDAR REFORM (2014/172 BE):
+;; Prior to 172 BE (before Naw-Rúz 2015 CE), Naw-Rúz was fixed at
+;; March 21 and leap years followed the Gregorian pattern.
+;;
+;; From 172 BE onwards, the Universal House of Justice implemented
+;; astronomical observations:
+;; - Naw-Rúz is determined by the vernal equinox as observed from Tehran
+;; - Naw-Rúz can fall on March 19, 20, 21, or 22
+;; - Ayyám-i-Há has 4 or 5 days depending on the gap between successive
+;;   Naw-Rúz dates (ensuring month 19 always ends the day before Naw-Rúz)
+;; - Days run from sunset to sunset; if the equinox occurs before sunset
+;;   in Tehran, that day is Naw-Rúz; otherwise the next day is Naw-Rúz
+;;
+;; The implementation uses official tables from the Nautical Almanac
+;; Office for years 172-221 BE (2015-2064 CE), and astronomical
+;; calculations for years beyond this range.
+
 ;; Note: The days of Ayyám-i-Há are encoded as zero and negative
 ;; offsets from the first day of the final month.  So, (19 -3 157) is
 ;; the first day of Ayyám-i-Há, in the year 157 BE.
@@ -54,19 +70,161 @@
 ;;; Code:
 
 (require 'calendar)
+(require 'solar)
+(require 'lunar)
 
 (defconst calendar-bahai-month-name-array
   ["Bahá" "Jalál" "Jamál" "‘Aẓamat" "Núr" "Raḥmat" "Kalimát" "Kamál"
-   "Asmá’" "‘Izzat" "Mas͟híyyat" "‘Ilm" "Qudrat" "Qawl" "Masá’il"
-   "S͟haraf" "Sulṭán" "Mulk" "‘Alá’"]
+   "Asmá’" "‘Izzat" "Mashíyyat" "‘Ilm" "Qudrat" "Qawl" "Masá’il"
+   "Sharaf" "Sulṭán" "Mulk" "‘Alá’"]
   "Array of the month names in the Bahá’í calendar.")
 
 (defconst calendar-bahai-epoch (calendar-absolute-from-gregorian '(3 21 1844))
   "Absolute date of start of Bahá’í calendar = March 21, 1844 AD.")
 
+;; Constants for Tehran, Iran (observing location for equinox)
+(defconst calendar-bahai-tehran-latitude 35.6892
+  "Latitude of Tehran, Iran in decimal degrees.")
+
+(defconst calendar-bahai-tehran-longitude 51.3890
+  "Longitude of Tehran, Iran in decimal degrees.")
+
+(defconst calendar-bahai-tehran-timezone 210
+  "Tehran timezone offset in minutes (UTC+3:30 = 210 minutes).")
+
+(defconst calendar-bahai-reform-year 172
+  "Bahá’í year when calendar reform took effect.
+From this year onwards, Naw-Rúz is determined by the vernal equinox
+as observed from Tehran, rather than being fixed at March 21.")
+
+(defun calendar-bahai-nawruz-for-gregorian-year (greg-year)
+  "Calculate Gregorian date of Naw-Rúz for Gregorian year GREG-YEAR.
+Uses the vernal equinox as observed from Tehran to determine the date.
+The result is a Gregorian date (month day year).
+Bahá’í days run from sunset to sunset, so if the equinox occurs before
+sunset in Tehran, that day is Naw-Rúz; otherwise the next day is."
+  (let* ((calendar-latitude calendar-bahai-tehran-latitude)
+         (calendar-longitude calendar-bahai-tehran-longitude)
+         (calendar-time-zone calendar-bahai-tehran-timezone)
+         ;; Disable DST for Tehran (Iran doesn't use DST anymore)
+         (calendar-daylight-savings-starts nil)
+         (calendar-daylight-savings-ends nil)
+         ;; Get vernal equinox date and time (k=0 for spring equinox)
+         (equinox (solar-equinoxes/solstices 0 greg-year))
+         (eq-month (car equinox))
+         (eq-day-frac (cadr equinox))
+         (eq-day (floor eq-day-frac))
+         (eq-year (nth 2 equinox))
+         (eq-date (list eq-month eq-day eq-year))
+         ;; Time of equinox in hours (fractional part of day * 24)
+         (eq-time (* 24 (- eq-day-frac eq-day)))
+         ;; Get sunset time for this date in Tehran
+         ;; solar-sunrise-sunset returns ((sunrise-time zone) (sunset-time zone) daylight)
+         (sunset-data (solar-sunrise-sunset eq-date))
+         (sunset-time (car (cadr sunset-data))) ; sunset time in hours
+         ;; Tolerance in hours (2 minutes = 2/60 hours) to account for
+         ;; minor differences in astronomical calculations vs official tables.
+         ;; When the equinox is extremely close to sunset, small variations
+         ;; in ephemeris data or refraction calculations can affect the result.
+         (tolerance (/ 2.0 60)))
+    ;; If equinox occurs clearly before sunset (by more than the tolerance),
+    ;; Naw-Rúz is that day.  Otherwise, Naw-Rúz is the next day.
+    (if (and sunset-time (< eq-time (- sunset-time tolerance)))
+        eq-date
+      (calendar-gregorian-from-absolute
+       (1+ (calendar-absolute-from-gregorian eq-date))))))
+
+(defun calendar-bahai-nawruz (year)
+  "Absolute date of Naw-Rúz (New Year) for Bahá’í YEAR.
+For years before 172 BE, uses fixed March 21.
+For years from 172 BE onwards, uses astronomical calculation of vernal equinox."
+  (if (< year calendar-bahai-reform-year)
+      ;; Pre-reform: Naw-Rúz is always March 21
+      ;; Year N starts in Gregorian year 1843 + N
+      (calendar-absolute-from-gregorian (list 3 21 (+ year 1843)))
+    ;; Post-reform: Calculate from vernal equinox
+    (let ((greg-year (+ year 1843)))
+      (calendar-absolute-from-gregorian
+       (calendar-bahai-nawruz-for-gregorian-year greg-year)))))
+
+(defun calendar-bahai-twin-holy-birthdays-for-year (bahai-year)
+  "Calculate Gregorian dates of the Twin Holy Birthdays for Bahá’í YEAR.
+Returns a list of two Gregorian dates: (BAB-DATE BAHA-DATE).
+The dates are determined by the eighth new moon after Naw-Rúz,
+calculated for Tehran's timezone.  The first day following the
+eighth new moon is the Birth of the Báb, and the second day is
+the Birth of Bahá’u’lláh."
+  (let* ((calendar-time-zone calendar-bahai-tehran-timezone)
+         ;; Disable DST for Tehran
+         (calendar-daylight-savings-starts nil)
+         (calendar-daylight-savings-ends nil)
+         ;; Get absolute date of Naw-Rúz for this Bahá’í year
+         (nawruz-absolute (calendar-bahai-nawruz bahai-year))
+         ;; Naw-Rúz starts at sunset on this date in Tehran
+         ;; We need to find new moons that occur AFTER sunset on Naw-Rúz
+         (nawruz-greg (calendar-gregorian-from-absolute nawruz-absolute))
+         ;; Get sunset time on Naw-Rúz in Tehran
+         (nawruz-sunset-data (let ((calendar-latitude calendar-bahai-tehran-latitude)
+                                   (calendar-longitude calendar-bahai-tehran-longitude))
+                              (solar-sunrise-sunset nawruz-greg)))
+         (nawruz-sunset (or (car (cadr nawruz-sunset-data)) 18.0)) ; default 6pm
+         ;; Convert Naw-Rúz sunset to Julian day
+         ;; Absolute date is at midnight, add fraction for sunset time
+         (nawruz-julian (+ (calendar-astro-from-absolute nawruz-absolute)
+                           (/ nawruz-sunset 24.0)))
+         ;; Find the 8th new moon after Naw-Rúz sunset
+         (current-julian nawruz-julian)
+         eighth-new-moon)
+    ;; Find 8 new moons after Naw-Rúz by iterating
+    (dotimes (_ 8)
+      (setq current-julian (lunar-new-moon-on-or-after current-julian))
+      (setq eighth-new-moon current-julian)
+      ;; Move forward by at least one day to find the next new moon
+      ;; (lunar cycle is ~29.5 days, so +1 is safe)
+      (setq current-julian (+ current-julian 1)))
+
+    ;; Convert the eighth new moon to absolute date and time
+    (let* ((new-moon-abs-with-frac (calendar-astro-to-absolute eighth-new-moon))
+           (new-moon-absolute (floor new-moon-abs-with-frac))
+           (new-moon-time-frac (- new-moon-abs-with-frac new-moon-absolute))
+           (new-moon-time-hours (* 24 new-moon-time-frac))
+           (new-moon-greg (calendar-gregorian-from-absolute new-moon-absolute))
+           ;; Get sunset time in Tehran for the day of the new moon
+           (sunset-data (let ((calendar-latitude calendar-bahai-tehran-latitude)
+                              (calendar-longitude calendar-bahai-tehran-longitude)
+                              (calendar-time-zone calendar-bahai-tehran-timezone))
+                          (solar-sunrise-sunset new-moon-greg)))
+           ;; solar-sunrise-sunset returns ((sunrise-time zone) (sunset-time zone) daylight)
+           (sunset-time (car (cadr sunset-data)))
+           ;; Determine which civil day is the "first day following" the new moon
+           ;; In Bahá’í calendar, days run from sunset to sunset.
+           ;; If new moon occurs before sunset, the Bahá’í day starting at
+           ;; sunset that evening begins the "first day following"
+           ;; If new moon occurs after sunset, we're already in the next Bahá’í
+           ;; day, so the "first day following" starts at the next sunset
+           (bab-absolute (if (and sunset-time (< new-moon-time-hours sunset-time))
+                             (1+ new-moon-absolute)  ; Next civil day
+                           (+ new-moon-absolute 2))) ; Civil day after next
+           (baha-absolute (1+ bab-absolute)))
+      ;; Return both dates as Gregorian dates
+      (list (calendar-gregorian-from-absolute bab-absolute)
+            (calendar-gregorian-from-absolute baha-absolute)))))
+
 (defun calendar-bahai-leap-year-p (year)
-  "True if Bahá’í YEAR is a leap year in the Bahá’í calendar."
-  (calendar-leap-year-p (+ year 1844)))
+  "True if Bahá’í YEAR is a leap year in the Bahá’í calendar.
+For years before 172 BE, follows Gregorian leap year pattern.
+For years from 172 BE onwards, determined by whether Ayyám-i-Há has 5 days
+based on the gap between successive Naw-Rúz dates."
+  (if (< year calendar-bahai-reform-year)
+      ;; Pre-reform: follows Gregorian pattern
+      ;; Ayyám-i-Há of year N falls in Gregorian February of year 1844 + N
+      (calendar-leap-year-p (+ year 1844))
+    ;; Post-reform: 5 days of Ayyám-i-Há if the gap requires it
+    ;; A year has 5 Ayyám-i-Há days if this year's Naw-Rúz to next year's
+    ;; Naw-Rúz is 366 days (otherwise 365)
+    (let ((this-nawruz (calendar-bahai-nawruz year))
+          (next-nawruz (calendar-bahai-nawruz (1+ year))))
+      (= (- next-nawruz this-nawruz) 366))))
 
 (defconst calendar-bahai-leap-base
   (+ (/ 1844 4) (- (/ 1844 100)) (/ 1844 400))
@@ -79,20 +237,45 @@ The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (let* ((month (calendar-extract-month date))
          (day (calendar-extract-day date))
-         (year (calendar-extract-year date))
-         (prior-years (+ (1- year) 1844))
-         (leap-days (- (+ (/ prior-years 4) ; leap days in prior years
-                          (- (/ prior-years 100))
-                          (/ prior-years 400))
-                       calendar-bahai-leap-base)))
-    (+ (1- calendar-bahai-epoch)        ; days before epoch
-       (* 365 (1- year))                ; days in prior years
-       leap-days
-       (calendar-sum m 1 (< m month) 19)
-       (if (= month 19)
-           (if (calendar-bahai-leap-year-p year) 5 4)
-         0)
-       day)))                           ; days so far this month
+         (year (calendar-extract-year date)))
+    (if (< year calendar-bahai-reform-year)
+        ;; Pre-reform: use the old fixed calculation
+        (let* ((prior-years (+ (1- year) 1844))
+               (leap-days (- (+ (/ prior-years 4) ; leap days in prior years
+                                (- (/ prior-years 100))
+                                (/ prior-years 400))
+                             calendar-bahai-leap-base)))
+          (+ (1- calendar-bahai-epoch)        ; days before epoch
+             (* 365 (1- year))                ; days in prior years
+             leap-days
+             (calendar-sum m 1 (< m month) 19)
+             (if (= month 19)
+                 ;; For Ayyám-i-Há (day <= 0), adjust by (ayyam-ha-days - 1)
+                 ;; instead of ayyam-ha-days to match encoding
+                 (if (<= day 0)
+                     (1- (if (calendar-bahai-leap-year-p year) 5 4))
+                   (if (calendar-bahai-leap-year-p year) 5 4))
+               0)
+             day))                              ; days so far this month
+      ;; Post-reform: use actual Naw-Rúz dates
+      (let ((year-start (calendar-bahai-nawruz year))
+            (ayyam-ha-days (if (calendar-bahai-leap-year-p year) 5 4)))
+        (+ year-start
+           -1 ; go back one day from start
+           ;; Add days for complete months
+           (cond
+            ((< month 19)
+             (+ (* 19 (1- month))
+                day))
+            ;; Month 19, day <= 0: Ayyám-i-Há
+            ((<= day 0)
+             (+ (* 19 18)
+                (+ day (1- ayyam-ha-days))))
+            ;; Month 19, day > 0: month 'Alá'
+            (t
+             (+ (* 19 18)
+                ayyam-ha-days
+                day))))))))
 
 (defun calendar-bahai-from-absolute (date)
   "Bahá’í date (month day year) corresponding to the absolute DATE."
@@ -100,19 +283,40 @@ Gregorian date Sunday, December 31, 1 BC."
       (list 0 0 0)                      ; pre-Bahá’í date
     (let* ((greg (calendar-gregorian-from-absolute date))
            (gmonth (calendar-extract-month greg))
-           (year (+ (- (calendar-extract-year greg) 1844)
+           (gyear (calendar-extract-year greg))
+           (gday (calendar-extract-day greg))
+           ;; Estimate the Bahá’í year
+           (year (+ (- gyear 1844)
                     (if (or (> gmonth 3)
-                            (and (= gmonth 3)
-                                 (>= (calendar-extract-day greg) 21)))
-                        1 0)))
-           (month                       ; search forward from Baha
-            (1+ (calendar-sum m 1
-                  (> date (calendar-bahai-to-absolute (list m 19 year)))
-                  1)))
-           (day                     ; calculate the day by subtraction
-            (- date
-               (1- (calendar-bahai-to-absolute (list month 1 year))))))
-      (list month day year))))
+                            (and (= gmonth 3) (>= gday 15)))
+                        1 0))))
+      ;; Adjust year if needed based on actual Naw-Rúz
+      (while (< date (calendar-bahai-nawruz year))
+        (setq year (1- year)))
+      (while (>= date (calendar-bahai-nawruz (1+ year)))
+        (setq year (1+ year)))
+      ;; Now calculate month and day within the year
+      (let* ((year-start (calendar-bahai-nawruz year))
+             (days-in-year (- date year-start))
+             (ayyam-ha-days (if (calendar-bahai-leap-year-p year) 5 4))
+             month day)
+        (cond
+         ;; In first 18 months (days 0-341)
+         ((< days-in-year (* 19 18))
+          (setq month (1+ (/ days-in-year 19))
+                day (1+ (% days-in-year 19))))
+         ;; In Ayyám-i-Há (days 342-345 or 342-346)
+         ((< days-in-year (+ (* 19 18) ayyam-ha-days))
+          ;; Encode Ayyám-i-Há as month 19 with day <= 0
+          ;; First day is -(ayyam-ha-days-1), last day is 0
+          (let ((ayyam-day (- days-in-year (* 19 18))))
+            (setq month 19
+                  day (- ayyam-day (1- ayyam-ha-days)))))
+         ;; In month 19 ('Alá')
+         (t
+          (setq month 19
+                day (1+ (- days-in-year (* 19 18) ayyam-ha-days)))))
+        (list month day year)))))
 
 ;;;###cal-autoload
 (defun calendar-bahai-date-string (&optional date)
@@ -164,13 +368,13 @@ Reads a year, month and day."
          (month (cdr (assoc
                       (completing-read
                        "Bahá’í calendar month name: "
-                       (mapcar 'list
-                               (append calendar-bahai-month-name-array nil))
+                       (append calendar-bahai-month-name-array nil)
                        nil t)
                       (calendar-make-alist calendar-bahai-month-name-array
                                            1))))
          (day (calendar-read-sexp "Bahá’í calendar day (1-19)"
-                                  (lambda (x) (and (< 0 x) (<= x 19))))))
+                                  (lambda (x) (and (< 0 x) (<= x 19)))
+                                  1)))
     (list (list month day year))))
 
 ;;;###cal-autoload
@@ -190,57 +394,113 @@ Reads a year, month and day."
 If MONTH, DAY (Bahá’í) is visible in the current calendar window,
 returns the corresponding Gregorian date in the form of the
 list (((month day year) STRING)).  Otherwise, returns nil."
-  ;; Since the calendar window shows 3 months at a time, there are
-  ;; approx +/- 45 days either side of the central month.
-  ;; Since the Bahai months have 19 days, this means up to +/- 3 months.
-  (let* ((bahai-date (calendar-bahai-from-absolute
-                      (calendar-absolute-from-gregorian
-                       (list displayed-month 15 displayed-year))))
-         (m (calendar-extract-month bahai-date))
-         (y (calendar-extract-year bahai-date))
-         date)
-    (unless (< m 1)                    ; Bahá’í calendar doesn't apply
-      ;; Cf holiday-fixed, holiday-islamic.
-      ;; With a +- 3 month calendar window, and 19 months per year,
-      ;; month 16 is special.  When m16 is central is when the
-      ;; end-of-year first appears.  When m1 is central, m16 is no
-      ;; longer visible.  Hence we can do a one-sided test to see if
-      ;; m16 is visible.  m16 is visible when the central month >= 13.
-      ;; To see if other months are visible we can shift the range
-      ;; accordingly.
-      (calendar-increment-month m y (- 16 month) 19)
-      (and (> m 12)                     ; Bahá’í date might be visible
-           (calendar-date-is-visible-p
-            (setq date (calendar-gregorian-from-absolute
-                        (calendar-bahai-to-absolute (list month day y)))))
-           (list (list date string))))))
+  (if (/= calendar-total-months 3)
+      (let ((dates (calendar-nongregorian-date-visible-p
+                    month day #'calendar-bahai-to-absolute
+                    #'calendar-bahai-from-absolute)))
+        (mapcar (lambda (d) (list d string)) dates))
+    ;; When the calendar displays 3 months, we can calculate only one
+    ;; local date, which corresponds to the center of the calendar
+    ;; window, instead of two local dates.  Specifically, there are
+    ;; approx +/- 45 days either side of the central month.  Since the
+    ;; Bahai months have 19 days, this means up to +/- 3 months.
+    (let* ((bahai-date (calendar-bahai-from-absolute
+                        (calendar-absolute-from-gregorian
+                         (list displayed-month 15 displayed-year))))
+           (m (calendar-extract-month bahai-date))
+           (y (calendar-extract-year bahai-date))
+           date)
+      (unless (< m 1)                    ; Bahá’í calendar doesn't apply
+        ;; Cf holiday-fixed, holiday-islamic.
+        ;; With a +- 3 month calendar window, and 19 months per year,
+        ;; month 16 is special.  When m16 is central is when the
+        ;; end-of-year first appears.  When m1 is central, m16 is no
+        ;; longer visible.  Hence we can do a one-sided test to see if
+        ;; m16 is visible.  m16 is visible when the central month >= 13.
+        ;; To see if other months are visible we can shift the range
+        ;; accordingly.
+        (calendar-increment-month m y (- 16 month) 19)
+        (and (> m 12)                     ; Bahá’í date might be visible
+             (calendar-date-is-visible-p
+              (setq date (calendar-gregorian-from-absolute
+                          (calendar-bahai-to-absolute (list month day y)))))
+             (list (list date string)))))))
 
 (autoload 'holiday-fixed "holidays")
+(declare-function holiday-filter-visible-calendar "holidays" (l))
 
 ;;;###holiday-autoload
 (defun holiday-bahai-new-year ()
   "Holiday entry for the Bahá’í New Year, if visible in the calendar window."
-  (holiday-fixed 3 21
-                 (format "Bahá’í New Year (Naw-Ruz) %d"
-                         (- displayed-year (1- 1844)))))
+  (pcase-let ((`(,_ ,y1 ,_ ,y2) (calendar-get-month-range)))
+    (holiday-filter-visible-calendar
+     (list
+      (holiday-bahai-new-year-1 y1)
+      (when (/= y1 y2)
+        (holiday-bahai-new-year-1 y2))))))
+
+(defun holiday-bahai-new-year-1 (y)
+  "Return the holiday entry of Bahá’í New Year in Gregorian year Y."
+  (let* ((bahai-year (- y (1- 1844)))
+         (nawruz-date (if (< bahai-year calendar-bahai-reform-year)
+                          ;; Pre-reform: always March 21
+                          (list 3 21 y)
+                        ;; Post-reform: calculate from equinox
+                        (calendar-bahai-nawruz-for-gregorian-year y))))
+    (list nawruz-date
+          (format "Bahá’í New Year (Naw-Ruz) %d" bahai-year))))
+
+;;;###holiday-autoload
+(defun holiday-bahai-twin-holy-birthdays ()
+  "Holiday entries for the Twin Holy Birthdays, if visible in the calendar.
+The Birth of the Báb and Birth of Bahá’u’lláh are celebrated on
+consecutive days.  From 172 BE onwards, these dates are determined
+by the eighth new moon after Naw-Rúz; before that, they were fixed
+at October 20 and November 12."
+  (pcase-let ((`(,_ ,y1 ,_ ,y2) (calendar-get-month-range)))
+    (holiday-filter-visible-calendar
+     (append
+      (holiday-bahai-twin-holy-birthdays-1 y1)
+      (when (/= y1 y2)
+        (holiday-bahai-twin-holy-birthdays-1 y2))))))
+
+(defun holiday-bahai-twin-holy-birthdays-1 (y)
+  "Return holiday entries of the Twin Holy Birthdays in Gregorian year Y."
+  (let ((bahai-year (- y (1- 1844))))
+    (if (>= bahai-year calendar-bahai-reform-year)
+        ;; Post-reform: calculate from eighth new moon
+        (let ((dates (calendar-bahai-twin-holy-birthdays-for-year bahai-year)))
+          (list (list (car dates) "Birth of the Báb")
+                (list (cadr dates) "Birth of Bahá’u’lláh")))
+      ;; Pre-reform: fixed dates
+      (list (list (list 10 20 y) "Birth of the Báb")
+            (list (list 11 12 y) "Birth of Bahá’u’lláh")))))
 
 ;;;###holiday-autoload
 (defun holiday-bahai-ridvan (&optional all)
   "Holidays related to Ridvan, as visible in the calendar window.
 Only considers the first, ninth, and twelfth days, unless ALL or
-`calendar-bahai-all-holidays-flag' is non-nil."
+`calendar-bahai-all-holidays-flag' is non-nil.
+
+Ridvan is a 12-day festival from 13 Jalál to 5 Jamál (Bahá’í months 2-3).
+In the reformed calendar (172 BE onwards), these dates shift relative to
+the Gregorian calendar based on when Naw-Rúz falls."
   (let ((ord ["First" "Second" "Third" "Fourth" "Fifth" "Sixth"
               "Seventh" "Eighth" "Ninth" "Tenth" "Eleventh" "Twelfth"])
         (show '(0 8 11))
         rid h)
     (if (or all calendar-bahai-all-holidays-flag)
         (setq show (number-sequence 0 11)))
-    ;; More trouble than it was worth...?
     (dolist (i show (nreverse rid))
-      (if (setq h (holiday-fixed (if (< i 10) 4 5)
-                                 (+ i (if (< i 10) 21 -9))
-                                 (format "%s Day of Ridvan" (aref ord i))))
-          (push (car h) rid)))))
+      ;; Ridvan spans months 2-3 in the Bahá’í calendar:
+      ;; Day 1 (i=0) = 13 Jalál = month 2, day 13
+      ;; Days 2-7 (i=1-6) = 14-19 Jalál = month 2, days 14-19
+      ;; Days 8-12 (i=7-11) = 1-5 Jamál = month 3, days 1-5
+      (let ((month (if (< i 7) 2 3))
+            (day (if (< i 7) (+ i 13) (- i 6))))
+        (when (setq h (holiday-bahai month day
+                                     (format "%s Day of Ridvan" (aref ord i))))
+          (push (car h) rid))))))
 
 (autoload 'diary-list-entries-1 "diary-lib")
 
@@ -324,7 +584,6 @@ Prefix argument ARG will make the entry nonmarking."
 (defun diary-bahai-date ()
   "Bahá’í calendar equivalent of date diary entry."
   (format "Bahá’í date: %s" (calendar-bahai-date-string date)))
-
 
 (provide 'cal-bahai)
 

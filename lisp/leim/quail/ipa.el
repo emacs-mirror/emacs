@@ -1,6 +1,6 @@
 ;;; ipa.el --- Quail package for inputting IPA characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2026 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -74,6 +74,7 @@ Upside-down characters are obtained by a preceding slash (/)."
  ("A~" ["ɑ̃"])
  ("oe~" ["œ̃"])
  ("/c~" ["ɔ̃"])
+ ("/E" ?ɜ)
  ("p" ?p)
  ("b" ?b)
  ("t" ?t)

@@ -53,7 +53,7 @@
 % in CVS papers archive in the directory update, but has been submitted
 % to PPDP '00.
 %
-% The transformation recognises predicates in the form
+% The transformation recognizes predicates in the form
 %
 % p(In, OutUpdate, OutAssoc) :-
 %   minimal(In),

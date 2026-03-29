@@ -1,6 +1,6 @@
 ;;; view.el --- peruse file or buffer without editing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -226,7 +226,11 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For a list of all View commands, type H or h while viewing.
 
-This command runs the normal hook `view-mode-hook'."
+This command runs the normal hook `view-mode-hook'.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive "fIn other window view file: ")
   (unless (file-exists-p file) (error "%s does not exist" file))
   (let ((had-a-buf (get-file-buffer file))
@@ -306,7 +310,11 @@ this argument instead of explicitly setting `view-exit-action'.
 
 This function does not enable View mode if the buffer's major mode
 has a `special' mode-class, because such modes usually have their
-own View-like bindings."
+own View-like bindings.
+
+If this command needs to split the current window, it by default obeys
+the user options `split-height-threshold' and `split-width-threshold',
+when it decides whether to split the window horizontally or vertically."
   (interactive "bIn other window view buffer:\nP")
   (let ((pop-up-windows t))
     (pop-to-buffer buffer t))
@@ -511,7 +519,10 @@ with the current buffer as argument and is called after disabling
 current buffer."
   (when view-mode
     (let ((buffer (window-buffer)))
-      (unless view-no-disable-on-exit
+      (unless (or view-no-disable-on-exit
+                  ;; When `view-read-only' is non-nil, we don't want to
+                  ;; leave a buffer read-only but not in `view-mode'.
+                  (and view-read-only view-old-buffer-read-only))
 	(view-mode -1))
 
       (unless exit-only
@@ -528,7 +539,9 @@ current buffer."
 (defun View-exit ()
   "Exit View mode but stay in current buffer."
   (interactive)
-  (view-mode-exit t))
+  (let ((view-read-only nil)
+        (view-no-disable-on-exit nil))
+   (view-mode-exit t)))
 
 ;;;###autoload
 (defun View-exit-and-edit ()

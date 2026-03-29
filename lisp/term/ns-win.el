@@ -1,6 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/macOS window system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1994, 2005-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2026 Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -214,6 +214,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (defvaralias 'mac-right-option-modifier 'ns-right-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
 (declare-function ns-do-applescript "nsfns.m" (script))
+(declare-function ns-send-items "nsfns.m" (items))
 (defalias 'do-applescript 'ns-do-applescript)
 
 ;;;; Services

@@ -1,6 +1,6 @@
 ;;; yenc.el --- elisp native yenc decoder  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2026 Free Software Foundation, Inc.
 
 ;; Author: Jesper Harder <harder@ifa.au.dk>
 ;; Keywords: yenc news
@@ -31,8 +31,6 @@
 ;; * Doesn't check the crc32 checksum (if present).
 
 ;;; Code:
-
-(eval-when-compile (require 'cl-lib))
 
 (defconst yenc-begin-line
   "^=ybegin.*$")

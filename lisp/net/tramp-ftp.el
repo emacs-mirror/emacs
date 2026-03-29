@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -49,7 +49,7 @@ present for backward compatibility."
   (let ((a1 (rassq 'ange-ftp-hook-function file-name-handler-alist))
 	(a2 (rassq 'ange-ftp-completion-hook-function file-name-handler-alist)))
     (setq file-name-handler-alist
-	  (delete a1 (delete a2 file-name-handler-alist)))))
+	  (seq-difference file-name-handler-alist (list a1 a2)))))
 
 (with-eval-after-load 'ange-ftp
   (tramp-disable-ange-ftp))

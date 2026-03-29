@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2026 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -2027,7 +2027,7 @@ After updating a displayed Proced buffer run the normal hook
     (setq mode-name
           (concat "Proced"
                   (if proced-filter
-                      (concat ": " (format "%s" proced-filter))
+                      (format ": %S" proced-filter)
                     "")
                   (if proced-sort
                       (let* ((key (if (consp proced-sort) (car proced-sort)
@@ -2311,13 +2311,13 @@ STRING is an overall summary of the failures."
       (describe-mode)
     (message (substitute-command-keys proced-help-string))))
 
-(defun proced-undo ()
+(defun proced-undo (&optional arg)
   "Undo in a Proced buffer.
+A numeric ARG serves as a repeat count.
 This doesn't recover killed processes, it just undoes changes in the Proced
 buffer.  You can use it to recover marks."
-  (interactive nil proced-mode)
-  (let (buffer-read-only)
-    (undo))
+  (interactive "P" proced-mode)
+  (undo-ignore-read-only arg)
   (message "Change in Proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
 

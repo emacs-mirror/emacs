@@ -1,6 +1,6 @@
 ;;; semantic/util.el --- Utilities for use with semantic tag tables  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -271,10 +271,9 @@ If TAG is not specified, use the tag at point."
   (interactive)
   (let ((buff (current-buffer))
 	)
-
-    (with-output-to-temp-buffer (help-buffer)
-      (help-setup-xref (list #'semantic-describe-buffer)
-		       (called-interactively-p 'interactive))
+    (help-setup-xref (list #'semantic-describe-buffer)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
       (with-current-buffer standard-output
 	(princ "Semantic Configuration in ")
 	(princ (buffer-name buff))

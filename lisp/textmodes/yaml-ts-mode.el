@@ -1,6 +1,6 @@
 ;;; yaml-ts-mode.el --- tree-sitter support for YAML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Randy Taylor <dev@rjt.dev>
 ;; Maintainer : Randy Taylor <dev@rjt.dev>
@@ -40,6 +40,19 @@
  '(yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml"
         :commit "b733d3f5f5005890f324333dd57e1f0badec5c87")
  t)
+
+(defgroup yaml-ts-mode nil
+  "Major mode for editing YAML files."
+  :prefix "yaml-ts-mode-"
+  :group 'languages)
+
+(defcustom yaml-ts-mode-yamllint-options nil
+  "Additional options to pass to yamllint command used for Flymake support.
+This should be a list of strings, each one passed as a separate argument
+to the yamllint command."
+  :group 'yaml-ts-mode
+  :version "31.1"
+  :type '(repeat string))
 
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
@@ -175,6 +188,74 @@ Return nil if there is no name or if NODE is not a defun node."
   (when (string-match-p yaml-ts-mode--outline-nodes (treesit-node-type node))
     (not (treesit-node-top-level node yaml-ts-mode--outline-nodes))))
 
+;;; Flymake integration
+(defvar-local yaml-ts-mode--flymake-process nil
+  "Store the Flymake process.")
+
+(defun yaml-ts-mode-flymake (report-fn &rest _args)
+  "YAML backend for Flymake.
+Calls REPORT-FN directly."
+  (when (process-live-p yaml-ts-mode--flymake-process)
+    (kill-process yaml-ts-mode--flymake-process))
+  (let ((yamllint (executable-find "yamllint"))
+        (params (append yaml-ts-mode-yamllint-options '("-f" "parsable" "-")))
+        (source (current-buffer))
+        (diagnostics-pattern (eval-when-compile
+                               (rx bol (+? nonl) ":" ; every diagnostic line start with the filename
+                                   (group (1+ digit)) ":" ; 1: line
+                                   (group (1+ digit)) ":" ; 2: column
+                                   (+ (syntax whitespace))
+                                   (group (or "[error]" "[warning]")) ; 3: type
+                                   (+ (syntax whitespace))
+                                   (group (+? nonl)) ;; 4: message
+                                   eol))))
+
+    (if (not yamllint)
+        (error "Unable to find yamllint command")
+      (save-restriction
+        (widen)
+        (setq yaml-ts-mode--flymake-process
+              (make-process
+               :name "yaml-ts-mode-flymake"
+               :noquery t
+               :connection-type 'pipe
+               :buffer (generate-new-buffer " *yaml-ts-mode-flymake*")
+               :command `(,yamllint ,@params)
+               :sentinel
+               (lambda (proc _event)
+                 (when (eq 'exit (process-status proc))
+                   (unwind-protect
+                       (if (with-current-buffer source
+                             (eq proc yaml-ts-mode--flymake-process))
+                           (with-current-buffer (process-buffer proc)
+                             (goto-char (point-min))
+                             (let (diags)
+                               (while (search-forward-regexp
+                                       diagnostics-pattern
+                                       nil t)
+                                 (let* ((beg
+                                         (car (flymake-diag-region
+                                               source
+                                               (string-to-number (match-string 1))
+                                               (string-to-number (match-string 2)))))
+                                        (end
+                                         (cdr (flymake-diag-region
+                                               source
+                                               (string-to-number (match-string 1))
+                                               (string-to-number (match-string 2)))))
+                                        (msg (match-string 4))
+                                        (type (if (string= "[warning]" (match-string 3))
+                                                  :warning
+                                                :error)))
+                                   (push (flymake-make-diagnostic
+                                          source beg end type msg)
+                                         diags))
+                                 (funcall report-fn diags))))
+                         (flymake-log :warning "Canceling obsolete check %s" proc))
+                     (kill-buffer (process-buffer proc)))))))
+        (process-send-region yaml-ts-mode--flymake-process (point-min) (point-max))
+        (process-send-eof yaml-ts-mode--flymake-process)))))
+
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
   "Major mode for editing YAML, powered by tree-sitter."
@@ -215,7 +296,13 @@ Return nil if there is no name or if NODE is not a defun node."
     ;; Outline minor mode.
     (setq-local treesit-outline-predicate #'yaml-ts-mode--outline-predicate)
 
+    ;; Flymake
+    (add-hook 'flymake-diagnostic-functions #'yaml-ts-mode-flymake nil 'local)
+
     (treesit-major-mode-setup)
+
+    (setq-local hs-treesit-things "block_mapping_pair")
+    (setq-local hs-adjust-block-end-function (lambda (_) (line-end-position)))
 
     ;; Use the `list' thing defined above to navigate only lists
     ;; with `C-M-n', `C-M-p', `C-M-u', `C-M-d', but not sexps
@@ -227,8 +314,24 @@ Return nil if there is no name or if NODE is not a defun node."
 
 (derived-mode-add-parents 'yaml-ts-mode '(yaml-mode))
 
-(if (treesit-ready-p 'yaml)
-    (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode)))
+;;;###autoload
+(defun yaml-ts-mode-maybe ()
+  "Enable `yaml-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'yaml)
+          (eq treesit-enabled-modes t)
+          (memq 'yaml-ts-mode treesit-enabled-modes))
+      (yaml-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(yaml-mode . yaml-ts-mode)))
 
 (provide 'yaml-ts-mode)
 

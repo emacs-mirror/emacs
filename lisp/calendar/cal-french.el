@@ -1,6 +1,6 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1988-1989, 1992, 1994-1995, 1997, 2001-2025 Free
+;; Copyright (C) 1988-1989, 1992, 1994-1995, 1997, 2001-2026 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -344,7 +344,7 @@ Echo French Revolutionary date unless NOECHO is non-nil."
                      (calendar-absolute-from-gregorian
                       (calendar-current-date)))))))
           (month-list
-           (mapcar 'list
+           (mapcar #'list
                    (append months
                            (if (calendar-french-leap-year-p year)
                                (mapcar #'calendar-french-trim-feast feasts)
@@ -364,8 +364,10 @@ Echo French Revolutionary date unless NOECHO is non-nil."
           (day (if (> month 13)
                    (- month 13)
                  (calendar-read-sexp
-                  (format "Jour (1-%d): " last-day)
-                  (lambda (x) (<= 1 x last-day)))))
+                  "Jour (1-%d): "
+                  (lambda (x) (<= 1 x last-day))
+                  1
+                  last-day)))
           ;; All days in Vendémiaire and numbered 1 to 365 e.g., "Pomme"
           ;; gives 31 Vendémiaire automatically normalized to 1 Brumaire
           ;; "Céleri" gives 32 Vnd normalized to 2 Bru, "Raiponce" gives

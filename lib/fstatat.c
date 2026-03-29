@@ -1,6 +1,6 @@
 /* Work around an fstatat bug on Solaris 9.
 
-   Copyright (C) 2006, 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,14 +36,8 @@ orig_fstatat (int fd, char const *filename, struct stat *buf, int flags)
 }
 #endif
 
-#ifdef __osf__
-/* Write "sys/stat.h" here, not <sys/stat.h>, otherwise OSF/1 5.1 DTK cc
-   eliminates this include because of the preliminary #include <sys/stat.h>
-   above.  */
-# include "sys/stat.h"
-#else
-# include <sys/stat.h>
-#endif
+/* Specification.  */
+#include <sys/stat.h>
 
 #include "stat-time.h"
 
@@ -77,11 +71,10 @@ int
 rpl_fstatat (int fd, char const *file, struct stat *st, int flag)
 {
   int result = normal_fstatat (fd, file, st, flag);
-  size_t len;
-
   if (LSTAT_FOLLOWS_SLASHED_SYMLINK || result != 0)
     return result;
-  len = strlen (file);
+
+  size_t len = strlen (file);
   if (flag & AT_SYMLINK_NOFOLLOW)
     {
       /* Fix lstat behavior.  */

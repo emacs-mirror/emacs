@@ -1,6 +1,6 @@
 ;;; vc-bzr.el --- VC backend for the bzr revision control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2026 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
@@ -349,7 +349,7 @@ in the repository root directory of FILE."
   "Value of `compilation-error-regexp-alist' in *vc-bzr* buffers.")
 
 ;; To be called via vc-pull from vc.el, which requires vc-dispatcher.
-(declare-function vc-exec-after "vc-dispatcher" (code &optional success))
+(declare-function vc-exec-after "vc-dispatcher" (code &optional okstatus proc))
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 (declare-function vc-compilation-mode "vc-dispatcher" (backend))
 
@@ -385,6 +385,7 @@ If PROMPT is non-nil, prompt for the Bzr command to run."
 	    args           (cddr args)))
     (require 'vc-dispatcher)
     (let ((buf (apply #'vc-bzr-async-command command args)))
+      (set-process-query-on-exit-flag (get-buffer-process buf) t)
       (with-current-buffer buf
         (vc-run-delayed
           (vc-compilation-mode 'bzr)
@@ -817,27 +818,26 @@ If LIMIT is non-nil, show no more than this many entries."
       (buffer-substring (match-end 0) (point-max)))))
 
 ;; FIXME: Implement `vc-bzr-mergebase' and then delete this.
-(defun vc-bzr-log-incoming (buffer remote-location)
+(defun vc-bzr-log-incoming (buffer upstream-location)
   (apply #'vc-bzr-command "missing" buffer 'async nil
-	 (list "--theirs-only" (and (not (string-empty-p remote-location))
-                                    remote-location))))
+	 (list "--theirs-only" (and (not (string-empty-p upstream-location))
+                                    upstream-location))))
 
-(defun vc-bzr-incoming-revision (remote-location)
+(defun vc-bzr-incoming-revision (&optional upstream-location _refresh)
   (with-temp-buffer
     (vc-bzr-command "missing" t 1 nil
                     "--log-format=long" "--show-ids"
                     "--theirs-only" "-r-1.."
-                    (and (not (string-empty-p remote-location))
-		         remote-location))
+                    upstream-location)
     (goto-char (point-min))
     (and (re-search-forward "^revision-id: " nil t)
          (buffer-substring (point) (pos-eol)))))
 
 ;; FIXME: Implement `vc-bzr-mergebase' and then delete this.
-(defun vc-bzr-log-outgoing (buffer remote-location)
+(defun vc-bzr-log-outgoing (buffer upstream-location)
   (apply #'vc-bzr-command "missing" buffer 'async nil
-	 (list "--mine-only" (and (not (string-empty-p remote-location))
-                                  remote-location))))
+	 (list "--mine-only" (and (not (string-empty-p upstream-location))
+                                  upstream-location))))
 
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
@@ -1033,6 +1033,7 @@ stream.  Standard error output is discarded."
 (defun vc-bzr-dir-status-files (dir files update-function)
   "Return a list of conses (file . state) for DIR."
   (apply #'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
+  ;; FIXME: Consider `vc-run-delayed-success'.
   (vc-run-delayed
    (vc-bzr-after-dir-status update-function
                             ;; "bzr status" results are relative to

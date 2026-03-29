@@ -1,6 +1,6 @@
 /* Provide file descriptor control.
 
-   Copyright (C) 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -29,8 +29,8 @@
 #include <unistd.h>
 
 #ifdef __KLIBC__
-# define INCL_DOS
-# include <os2.h>
+# include <emx/io.h>
+# include <InnoTekLIBC/backend.h>
 #endif
 
 #if defined _WIN32 && ! defined __CYGWIN__
@@ -56,19 +56,15 @@ dupfd (int oldfd, int newfd, int flags)
 {
   /* Mingw has no way to create an arbitrary fd.  Iterate until all
      file descriptors less than newfd are filled up.  */
-  HANDLE curr_process = GetCurrentProcess ();
-  HANDLE old_handle = (HANDLE) _get_osfhandle (oldfd);
-  unsigned char fds_to_close[OPEN_MAX_MAX / CHAR_BIT];
-  unsigned int fds_to_close_bound = 0;
-  int result;
-  BOOL inherit = flags & O_CLOEXEC ? FALSE : TRUE;
-  int mode;
 
   if (newfd < 0 || getdtablesize () <= newfd)
     {
       errno = EINVAL;
       return -1;
     }
+
+  HANDLE old_handle = (HANDLE) _get_osfhandle (oldfd);
+  int mode;
   if (old_handle == INVALID_HANDLE_VALUE
       || (mode = _setmode (oldfd, O_BINARY)) == -1)
     {
@@ -80,6 +76,11 @@ dupfd (int oldfd, int newfd, int flags)
   _setmode (oldfd, mode);
   flags |= mode;
 
+  HANDLE curr_process = GetCurrentProcess ();
+  BOOL inherit = flags & O_CLOEXEC ? FALSE : TRUE;
+  unsigned char fds_to_close[OPEN_MAX_MAX / CHAR_BIT];
+  unsigned int fds_to_close_bound = 0;
+  int result;
   for (;;)
     {
       HANDLE new_handle;
@@ -146,9 +147,8 @@ dupfd (int oldfd, int newfd, int flags)
   /* Close the previous fds that turned out to be too small.  */
   {
     int saved_errno = errno;
-    unsigned int duplicated_fd;
 
-    for (duplicated_fd = 0;
+    for (unsigned int duplicated_fd = 0;
          duplicated_fd < fds_to_close_bound * CHAR_BIT;
          duplicated_fd++)
       if ((fds_to_close[duplicated_fd / CHAR_BIT]
@@ -206,8 +206,9 @@ fcntl (int fd, int action, /* arg */...)
 #endif
 {
   va_list arg;
-  int result = -1;
   va_start (arg, action);
+
+  int result = -1;
   switch (action)
     {
     case F_DUPFD:
@@ -376,12 +377,6 @@ fcntl (int fd, int action, /* arg */...)
           #ifdef F_NOTIFY                        /* Linux */
           case F_NOTIFY:
           #endif
-          #ifdef F_OPLKACK                       /* IRIX */
-          case F_OPLKACK:
-          #endif
-          #ifdef F_OPLKREG                       /* IRIX */
-          case F_OPLKREG:
-          #endif
           #ifdef F_RDAHEAD                       /* macOS */
           case F_RDAHEAD:
           #endif
@@ -439,7 +434,9 @@ fcntl (int fd, int action, /* arg */...)
         break;
       }
     }
+
   va_end (arg);
+
   return result;
 }
 
@@ -546,78 +543,115 @@ rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
 #undef fcntl
 
 #ifdef __KLIBC__
+static int
+klibc_dupdirfd (int fd, int minfd)
+{
+  int tempfd = open ("NUL", O_RDONLY);
+  if (tempfd == -1)
+    return -1;
+
+  if (tempfd >= minfd)
+    {
+      close (tempfd);
+
+      char path[_MAX_PATH];
+      if (__libc_Back_ioFHToPath (fd, path, sizeof (path)))
+        return -1;
+
+      int dupfd = open (path, O_RDONLY);
+      if (dupfd == -1)
+        return -1;
+
+      if (dupfd >= minfd)
+        return dupfd;
+
+      /* Lower FD was closed by other threads. Fill again.  */
+      tempfd = dupfd;
+    }
+
+  int dupfd = klibc_dupdirfd (fd, minfd);
+
+  close (tempfd);
+
+  return dupfd;
+}
 
 static int
 klibc_fcntl (int fd, int action, /* arg */...)
 {
   va_list arg_ptr;
-  int arg;
-  struct stat sbuf;
-  int result;
-
   va_start (arg_ptr, action);
-  arg = va_arg (arg_ptr, int);
-  result = fcntl (fd, action, arg);
+
+  int arg = va_arg (arg_ptr, int);
+  int result = fcntl (fd, action, arg);
   /* EPERM for F_DUPFD, ENOTSUP for others */
-  if (result == -1 && (errno == EPERM || errno == ENOTSUP)
-      && !fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
+  if (result == -1 && (errno == EPERM || errno == ENOTSUP))
     {
-      ULONG ulMode;
-
-      switch (action)
+      struct stat sbuf;
+      if (!fstat (fd, &sbuf) && S_ISDIR (sbuf.st_mode))
         {
-        case F_DUPFD:
-          /* Find available fd */
-          while (fcntl (arg, F_GETFL) != -1 || errno != EBADF)
-            arg++;
+          switch (action)
+            {
+            case F_DUPFD:
+              result = klibc_dupdirfd (fd, arg);
+              break;
 
-          result = dup2 (fd, arg);
-          break;
+            case F_GETFD:
+              {
+                PLIBCFH pFH = __libc_FH (fd);
+                if (!pFH)
+                  {
+                    errno = EBADF;
+                    break;
+                }
 
-        /* Using underlying APIs is right ? */
-        case F_GETFD:
-          if (DosQueryFHState (fd, &ulMode))
-            break;
+                result = (pFH->fFlags & ((FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT )
+                                         | O_NOINHERIT)) ? FD_CLOEXEC : 0;
+              }
+              break;
 
-          result = (ulMode & OPEN_FLAGS_NOINHERIT) ? FD_CLOEXEC : 0;
-          break;
+            case F_SETFD:
+              {
+                if (arg & ~FD_CLOEXEC)
+                  break;
 
-        case F_SETFD:
-          if (arg & ~FD_CLOEXEC)
-            break;
+                PLIBCFH pFH = __libc_FH (fd);
+                if (!pFH)
+                  {
+                    errno = EBADF;
+                    break;
+                  }
 
-          if (DosQueryFHState (fd, &ulMode))
-            break;
+                unsigned fFlags = pFH->fFlags;
+                if (arg & FD_CLOEXEC)
+                  fFlags |= (FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT) | O_NOINHERIT;
+                else
+                  fFlags &= ~((FD_CLOEXEC << __LIBC_FH_FDFLAGS_SHIFT) | O_NOINHERIT);
 
-          if (arg & FD_CLOEXEC)
-            ulMode |= OPEN_FLAGS_NOINHERIT;
-          else
-            ulMode &= ~OPEN_FLAGS_NOINHERIT;
+                result = __libc_FHSetFlags (pFH, fd, fFlags);
+                if (result < 0)
+                  {
+                    errno = -result;
+                    result = -1;
+                  }
+              }
+              break;
 
-          /* Filter supported flags.  */
-          ulMode &= (OPEN_FLAGS_WRITE_THROUGH | OPEN_FLAGS_FAIL_ON_ERROR
-                     | OPEN_FLAGS_NO_CACHE | OPEN_FLAGS_NOINHERIT);
+            case F_GETFL:
+              result = 0;
+              break;
 
-          if (DosSetFHState (fd, ulMode))
-            break;
+            case F_SETFL:
+              if (arg != 0)
+                break;
 
-          result = 0;
-          break;
+              result = 0;
+              break;
 
-        case F_GETFL:
-          result = 0;
-          break;
-
-        case F_SETFL:
-          if (arg != 0)
-            break;
-
-          result = 0;
-          break;
-
-        default:
-          errno = EINVAL;
-          break;
+            default:
+              errno = EINVAL;
+              break;
+            }
         }
     }
 

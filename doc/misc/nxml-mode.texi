@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../info/nxml-mode.info
 @settitle nXML Mode
+@documentlanguage en
 @include docstyle.texi
 @c %**end of header
 
@@ -9,7 +10,7 @@
 This manual documents nXML mode, an Emacs major mode for editing
 XML with RELAX NG support.
 
-Copyright @copyright{} 2007--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2007--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

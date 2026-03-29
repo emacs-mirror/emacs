@@ -1,6 +1,6 @@
 /* Communication module for Android terminals.  -*- c-file-style: "GNU" -*-
 
-Copyright (C) 2023-2025 Free Software Foundation, Inc.
+Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -67,7 +67,7 @@ public final class EmacsNoninteractive
     cacheDir = context.getCacheDir ().getCanonicalPath ();
     EmacsNative.setEmacsParams (assets, filesDir,
 				libDir, cacheDir, 0.0f,
-				0.0f, 0.0f, null, null,
+				0.0f, 0.0f, 0x0, null, null,
 				Build.VERSION.SDK_INT);
 
     /* Now find the dump file that Emacs should use, if it has already

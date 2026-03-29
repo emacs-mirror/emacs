@@ -1,6 +1,6 @@
 ;;; tramp-sshfs.el --- Tramp access functions via sshfs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -253,7 +253,7 @@ arguments to pass to the OPERATION."
 (defun tramp-sshfs-handle-process-file
   (program &optional infile destination display &rest args)
   "Like `process-file' for Tramp files."
-  ;; STDERR is not impelmemted.
+  ;; STDERR is not implemented.
   (when (consp destination)
     (setcdr destination `(,tramp-cache-undefined)))
   (tramp-skeleton-process-file program infile destination display args
@@ -359,7 +359,7 @@ connection if a previous connection has died for some reason."
 		 vec 'tramp-mount-args nil
 		 ?p (or (tramp-file-name-port vec) ""))))))
       (tramp-error
-       vec 'file-error "Error mounting %s" (tramp-fuse-mount-spec vec)))
+       vec 'remote-file-error "Error mounting %s" (tramp-fuse-mount-spec vec)))
 
     ;; Mark it as connected.
     (add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec))

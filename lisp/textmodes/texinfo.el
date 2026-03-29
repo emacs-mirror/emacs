@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2025 Free Software
+;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Robert J. Chassell
@@ -504,6 +504,15 @@ value of `texinfo-mode-hook'."
 	'(texinfo-font-lock-keywords nil nil nil backward-paragraph))
   (setq-local syntax-propertize-function texinfo-syntax-propertize-function)
   (setq-local add-log-current-defun-function #'texinfo-current-defun-name)
+
+  ;; Pairs settings
+  (when (boundp 'electric-pair-pairs)
+    (setq-local electric-pair-pairs
+                (cons
+                 ;; `` '' pairs
+                 '("\\(?:^\\|[[:space:]]\\)``"
+                   . "''")
+                 electric-pair-pairs)))
 
   ;; Outline settings.
   (setq-local outline-heading-alist

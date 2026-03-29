@@ -1,6 +1,6 @@
 ;;; arc-mode-tests.el --- Test suite for arc-mode. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -113,9 +113,10 @@ member MEMBER.  Then the test finds ARCHIVE and ensures that function
                                ;; turn the most likely error into a nice
                                ;; and self-explaining symbol that can be
                                ;; compared in a `should'
-                               (if (string= (cadr err) "Buffer format not recognized")
+                               (if (equal (error-slot-value err 1)
+                                          "Buffer format not recognized")
                                    'signature-not-recognized
-                                 (signal (car err) (cdr err))))))
+                                 (signal err)))))
                  (should (eq type (quote ,type)))))
            (when buffer (kill-buffer buffer))
            (dolist (file (list member archive))

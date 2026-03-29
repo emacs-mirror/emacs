@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -78,8 +78,7 @@ SYNTAX can be one of the symbols `default' (default),
 		    ((not (assoc method tramp-methods))))
 	  method))
       ;; All method enabling functions.
-      (mapcar
-       #'intern (all-completions "tramp-enable-" obarray #'functionp))))))
+      (apropos-internal (rx bos "tramp-enable-") #'functionp)))))
 
   (when-let* (((not (assoc method tramp-methods)))
 	      (fn (intern (format "tramp-enable-%s-method" method)))
@@ -631,13 +630,32 @@ For details, see `tramp-rename-files'."
 (defcustom tramp-file-name-with-method "sudo"
   "Which method to be used in `tramp-file-name-with-sudo'."
   :group 'tramp
-  :version "30.1"
-  :type '(choice (const "su")
-		 (const "sudo")
+  :version "31.1"
+  ;; It should be a choice of constant strings.  See
+  ;; `with-tramp-file-name-with-method'.
+  :type '(choice (const "su") (const "surs")
+		 (const "sudo") (const "sudors")
 		 (const "doas")
 		 (const "run0")
 		 (const "ksu"))
+  :initialize #'custom-initialize-default
+  :set #'tramp-set-file-name-with-method
   :link '(tramp-info-link :tag "Tramp manual" tramp-file-name-with-method))
+
+(defun tramp-set-file-name-with-method (symbol value)
+  "Set SYMBOL to value VALUE.
+Used in user option `tramp-file-name-with-method'.  If VALUE is an
+optional method, enable it."
+  (unless (string-equal (symbol-value symbol) value)
+    ;; Enable optional method.
+    (tramp-enable-method value)
+    ;; Set the value.
+    (when (assoc value tramp-methods)
+      (set-default symbol value))))
+
+(defun tramp-get-file-name-with-method ()
+  "Return connection-local value of `tramp-file-name-with-method'."
+  (tramp-compat-connection-local-value tramp-file-name-with-method))
 
 (defmacro with-tramp-file-name-with-method (&rest body)
   "Ask user for `tramp-file-name-with-method' if needed.
@@ -647,42 +665,46 @@ Run BODY."
           (if current-prefix-arg
 	      (completing-read
 	       "Tramp method: "
-               (mapcar #'cadr (cdr (get 'tramp-file-name-with-method 'custom-type)))
-               nil t tramp-file-name-with-method)
-            tramp-file-name-with-method)))
+	       ;; Filter out enabled methods.
+	       (seq-intersection
+		(mapcar #'car tramp-methods)
+		(mapcar
+		 #'cadr (cdr (get 'tramp-file-name-with-method 'custom-type))))
+               nil t (tramp-get-file-name-with-method))
+            (tramp-get-file-name-with-method))))
      ,@body))
 
 (defun tramp-file-name-with-sudo (filename)
   "Convert FILENAME into a multi-hop file name with \"sudo\".
 An alternative method could be chosen with `tramp-file-name-with-method'."
   (setq filename (expand-file-name filename))
-  (if (tramp-tramp-file-p filename)
-      (with-parsed-tramp-file-name filename nil
-	(cond
-	 ;; Remote file with proper method.
-	 ((string-equal method tramp-file-name-with-method)
-	  filename)
-	 ;; Remote file on the local host.
-	 ((and
-	   (stringp tramp-local-host-regexp) (stringp host)
-	   (string-match-p tramp-local-host-regexp host))
-	  (tramp-make-tramp-file-name
-	   (make-tramp-file-name
-	    :method tramp-file-name-with-method :localname localname)))
-	 ;; Remote file with multi-hop capable method.
-	 ((tramp-multi-hop-p v)
-	  (tramp-make-tramp-file-name
-	   (make-tramp-file-name
-	    :method (tramp-find-method tramp-file-name-with-method nil host)
-	    :user (tramp-find-user tramp-file-name-with-method nil host)
-	    :host (tramp-find-host tramp-file-name-with-method nil host)
-	    :localname localname :hop (tramp-make-tramp-hop-name v))))
-	 ;; Other remote file.
-	 (t (tramp-user-error v "Multi-hop with `%s' not applicable" method))))
-    ;; Local file.
-    (tramp-make-tramp-file-name
-     (make-tramp-file-name
-      :method tramp-file-name-with-method :localname filename))))
+  (let ((default-method (tramp-get-file-name-with-method)))
+    (if (tramp-tramp-file-p filename)
+	(with-parsed-tramp-file-name filename nil
+	  (cond
+	   ;; Remote file with proper method.
+	   ((string-equal method default-method)
+	    filename)
+	   ;; Remote file on the local host.
+	   ((and
+	     (stringp tramp-local-host-regexp) (stringp host)
+	     (string-match-p tramp-local-host-regexp host))
+	    (tramp-make-tramp-file-name
+	     (make-tramp-file-name
+	      :method default-method :localname localname)))
+	   ;; Remote file with multi-hop capable method.
+	   ((tramp-multi-hop-p v)
+	    (tramp-make-tramp-file-name
+	     (make-tramp-file-name
+	      :method (tramp-find-method default-method nil host)
+	      :user (tramp-find-user default-method nil host)
+	      :host (tramp-find-host default-method nil host)
+	      :localname localname :hop (tramp-make-tramp-hop-name v))))
+	   ;; Other remote file.
+	   (t (tramp-user-error v "Multi-hop with `%s' not applicable" method))))
+      ;; Local file.
+      (tramp-make-tramp-file-name
+       (make-tramp-file-name :method default-method :localname filename)))))
 
 ;; FIXME: We would like to rename this for Emacs 31.1 to a name that
 ;; does not encode the default method.  It is intended as a generic
@@ -736,7 +758,7 @@ They are completed by `M-x TAB' only in Dired buffers."
   "Visit the file or directory named on this line as the superuser.
 
 By default this is done using the \"sudo\" Tramp method.
-YOu can customize `tramp-file-name-with-method' to change this.
+You can customize `tramp-file-name-with-method' to change this.
 
 Interactively, with a prefix argument, prompt for a different method."
   ;; (declare (completion tramp-dired-buffer-command-completion-p))
@@ -816,7 +838,7 @@ This is needed if there are compatibility problems."
 	 (and x (boundp x) (not (get x 'tramp-suppress-trace))
 	      (cons x 'tramp-reporter-dump-variable)))
        (append
-	(mapcar #'intern (all-completions "tramp-" obarray #'boundp))
+	(apropos-internal (rx bos "tramp-") #'boundp)
 	;; Non-Tramp variables of interest.
 	'(shell-prompt-pattern
 	  backup-by-copying

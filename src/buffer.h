@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-2025 Free Software Foundation, Inc.
+Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -575,7 +575,10 @@ struct buffer
   Lisp_Object cursor_type_;
 
   /* An integer > 0 means put that number of pixels below text lines
-     in the display of this buffer.  */
+     in the display of this buffer.
+     A float ~ 1.0 means add extra number of pixels below text lines
+     relative to the line height.
+     A cons means put car spacing above and cdr spacing below the line.  */
   Lisp_Object extra_line_spacing_;
 
 #ifdef HAVE_TREE_SITTER
@@ -649,11 +652,12 @@ struct buffer
      in no case complain about any mismatch on next save attempt.  */
   struct timespec modtime;
 
-  /* Size of the file when modtime was set.  This is used to detect the
-     case where the file grew while we were reading it, so the modtime
-     is still the same (since it's rounded up to seconds) but we're actually
-     not up-to-date.  -1 means the size is unknown.  Only meaningful if
-     modtime is actually set.  */
+  /* Size of the file when modtime was set.  This is used to detect when
+     the file size changed while we were reading the file, but the
+     modtime is still the same (since it's truncated to clock resolution)
+     so we're actually not up-to-date.  Meaningful only if it is
+     nonnegative and the modtime is actually set.  Useful only on
+     platforms with coarse clock resolution.  */
   off_t modtime_size;
 
   /* The value of text->modiff at the last auto-save.  */
@@ -1249,7 +1253,6 @@ extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void compact_buffer (struct buffer *);
 extern ptrdiff_t overlays_at (ptrdiff_t, bool, Lisp_Object **, ptrdiff_t *, ptrdiff_t *);
-extern ptrdiff_t previous_overlay_change (ptrdiff_t);
 extern ptrdiff_t next_overlay_change (ptrdiff_t);
 extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, ptrdiff_t);
@@ -1454,7 +1457,9 @@ BUF_FETCH_CHAR_AS_MULTIBYTE (struct buffer *buf, ptrdiff_t pos)
 	  : UNIBYTE_TO_CHAR (BUF_FETCH_BYTE (buf, pos)));
 }
 
-/* Return number of windows showing B.  */
+/* Return number of windows showing B or a buffer that has B as its base
+   buffer.  If B is an indirect buffer, this returns buffer_window_count
+   of its base buffer.  */
 
 INLINE int
 buffer_window_count (struct buffer *b)

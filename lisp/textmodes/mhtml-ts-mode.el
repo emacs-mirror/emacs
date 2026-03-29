@@ -1,6 +1,6 @@
 ;;; mhtml-ts-mode.el --- Major mode for HTML using tree-sitter -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author: Vincenzo Pupillo <v.pupillo@gmail.com>
 ;; Maintainer: Vincenzo Pupillo <v.pupillo@gmail.com>
@@ -79,9 +79,11 @@ Works with JS and CSS and for that use `js-ts-mode' and `css-ts-mode'."
   ;; :group 'languages
   :group 'html)
 
-(defcustom mhtml-ts-mode-js-css-indent-offset 2
+(define-obsolete-variable-alias 'mhtml-ts-mode-js-css-indent-offset
+  'mhtml-ts-js-css-indent-offset "31")
+(defcustom mhtml-ts-js-css-indent-offset 2
   "JavaScript and CSS indent spaces related to the <script> and <style> HTML tags.
-By default should have same value as `html-ts-mode-indent-offset'."
+By default should have same value as `html-ts-indent-offset'."
   :tag "HTML javascript or css indent offset"
   :version "31.1"
   :type 'integer
@@ -93,7 +95,7 @@ By default should have same value as `html-ts-mode-indent-offset'."
     (cond ((setq executable (executable-find "tidy"))
            (format
             "%s --gnu-emacs yes --wrap 0 --indent-spaces %s -q -i -"
-            executable html-ts-mode-indent-offset))
+            executable html-ts-indent-offset))
           ((setq executable (executable-find "xmllint"))
            (format "%s --html --quiet --format -" executable))
           (t "Install tidy, or some other HTML pretty print tool, and set `mhtml-ts-mode-pretty-print-command'.")))
@@ -101,8 +103,8 @@ By default should have same value as `html-ts-mode-indent-offset'."
   :type 'string
   :version "31.1")
 
-(defvar mhtml-ts-mode--js-css-indent-offset
-  mhtml-ts-mode-js-css-indent-offset
+(defvar mhtml-ts--js-css-indent-offset
+  mhtml-ts-js-css-indent-offset
   "Internal copy of `mhtml-ts-mode-js-css-indent-offset'.
 The value changes, by `mhtml-ts-mode--tag-relative-indent-offset' according to
 the value of `mhtml-ts-mode-tag-relative-indent'.")
@@ -113,12 +115,12 @@ Apart from setting the default value of SYM to VAL, also change the
 value of SYM in `mhtml-ts-mode' buffers to VAL.  SYM should be
 `mhtml-ts-mode-tag-relative-indent', and VAL should be t, nil or
 `ignore'.  When sym is `mhtml-ts-mode-tag-relative-indent' set the
-value of `mhtml-ts-mode--js-css-indent-offset' to 0 if VAL is t,
+value of `mhtml-ts--js-css-indent-offset' to 0 if VAL is t,
 otherwise to `mhtml-ts-mode-js-css-indent-offset'."
   (set-default sym val)
   (when (eq sym 'mhtml-ts-mode-tag-relative-indent)
     (setq
-     mhtml-ts-mode--js-css-indent-offset
+     mhtml-ts--js-css-indent-offset
      (if (eq val t)
          mhtml-ts-mode-js-css-indent-offset
        0))))
@@ -259,11 +261,12 @@ NODE and PARENT are ignored."
     css--treesit-font-lock-feature-list))
   "Settings for `treesit-font-lock-feature-list'.")
 
-(defvar mhtml-ts-mode--treesit-font-lock-settings
+(defun mhtml-ts-mode--treesit-font-lock-settings ()
+  "Return tree-sitter font-lock settings for `mhtml-ts-mode'."
   (append html-ts-mode--font-lock-settings
-          js--treesit-font-lock-settings
-          ;; Let's replace a css rule with a new one that adds color to
-          ;; the css value.
+          (js--treesit-font-lock-settings)
+          ;; Let's replace a css rule with a new one that adds
+          ;; color to the css value.
           (treesit-replace-font-lock-feature-settings
            (treesit-font-lock-rules
             :language 'css
@@ -271,8 +274,7 @@ NODE and PARENT are ignored."
             :feature 'variable
             '((plain_value) @mhtml-ts-mode--colorize-css-value
               (color_value) @mhtml-ts-mode--colorize-css-value))
-           css--treesit-settings))
-  "Settings for `treesit-font-lock-settings'.")
+           css--treesit-settings)))
 
 (defvar mhtml-ts-mode--treesit-thing-settings
   ;; In addition to putting together the various definitions, we need to
@@ -292,29 +294,24 @@ NODE and PARENT are ignored."
     `((defun ,css--treesit-defun-type-regexp))))
   "Settings for `treesit-thing-settings'.")
 
-;; We use a function instead of a variable, because
-;; `js--treesit-indent-rules' and `css--treesit-indent-rules' doesn't
-;; exist when at compile time (unless we `eval-when-compile', but that
-;; doesn't feel like the right solution to me).
 (defun mhtml-ts-mode--treesit-indent-rules ()
-  "Return intent rules for `mhtml-ts-mode'."
+  "Return tree-sitter indent rules for `mhtml-ts-mode'."
   (treesit--indent-rules-optimize
    (append html-ts-mode--indent-rules
-           ;; Extended rules for js and css, to
-           ;; indent appropriately when injected
-           ;; into html
+           ;; Extended rules for js and css, to indent
+           ;; appropriately when injected into html
            (treesit-simple-indent-modify-rules
             'javascript
             `((javascript ((parent-is "program")
                            mhtml-ts-mode--js-css-tag-bol
-                           mhtml-ts-mode--js-css-indent-offset)))
-            js--treesit-indent-rules
+                           mhtml-ts--js-css-indent-offset)))
+            (js--treesit-indent-rules)
             :replace)
            (treesit-simple-indent-modify-rules
             'css
             `((css ((parent-is "stylesheet")
                     mhtml-ts-mode--js-css-tag-bol
-                    mhtml-ts-mode--js-css-indent-offset)))
+                    mhtml-ts--js-css-indent-offset)))
             css--treesit-indent-rules
 	    :prepend))))
 
@@ -333,7 +330,8 @@ NODE and PARENT are ignored."
                 "function_declaration"
                 "lexical_declaration"
                 "element"
-                "rule_set"))
+                "rule_set"
+		"keyframe_block"))
   "Settings for `treesit-defun-type-regexp'.")
 
 ;; In order to support `prettify-symbols-mode', just `append' the prettify
@@ -348,13 +346,11 @@ NODE and PARENT are ignored."
 (defun mhtml-ts-mode--defun-name (node)
   "Return the defun name of NODE.
 Return nil if there is no name or if NODE is not a defun node."
-  (let ((html-name (html-ts-mode--defun-name node))
-        (js-name (js--treesit-defun-name node))
-        (css-name (css--treesit-defun-name node)))
+  (let ((lang (treesit-node-language node)))
     (cond
-     (html-name html-name)
-     (js-name js-name)
-     (css-name css-name))))
+     ((eq lang 'html) (html-ts-mode--defun-name node))
+     ((eq lang 'javascript) (js--treesit-defun-name node))
+     ((eq lang 'css) (css--treesit-defun-name node)))))
 
 (defvar-local mhtml-ts-mode--comment-current-lang nil)
 
@@ -432,6 +428,42 @@ Calls REPORT-FN directly.  Requires tidy."
         (process-send-region mhtml-ts-mode--flymake-process (point-min) (point-max))
         (process-send-eof mhtml-ts-mode--flymake-process)))))
 
+(defvar mhtml-ts-mode--range-settings
+  (append
+   (treesit-range-rules
+    :embed 'javascript
+    :host 'html
+    '((script_element
+       (start_tag (tag_name))
+       (raw_text) @cap))
+
+    ;; Another rule could be added that when it matches an
+    ;; attribute_value that has as its parent an
+    ;; attribute_name "style" it captures it and then
+    ;; passes it to the css parser.
+    :embed 'css
+    :host 'html
+    '((style_element
+       (start_tag (tag_name))
+       (raw_text) @cap)))
+
+   ;; jsdoc is not mandatory for js-ts-mode, so we respect this by
+   ;; adding jsdoc range rules only when jsdoc is available.
+   (when (and (fboundp 'treesit-language-available-p)
+              (treesit-language-available-p 'jsdoc t))
+     (treesit-range-rules
+      :embed 'jsdoc
+      :host 'javascript
+      :local t
+      `(((comment) @cap
+         (:match ,js--treesit-jsdoc-beginning-regexp @cap)))))))
+
+(defvar mhtml-ts-mode--treesit-aggregated-outline-predicate
+  `((html . ,#'html-ts-mode--outline-predicate)
+    (javascript . ,js-ts-mode--outline-predicate)
+    (css . ,css-ts-mode--outline-predicate))
+  "Settings for `treesit-aggregated-outline-predicate'.")
+
 ;;;###autoload
 (define-derived-mode mhtml-ts-mode html-ts-mode
   '("HTML+" (:eval (let ((lang (treesit-language-at (point))))
@@ -475,35 +507,11 @@ Powered by tree-sitter."
     ;; Multi-language modes must set the  primary parser.
     (setq-local treesit-primary-parser (treesit-parser-create 'html))
 
-    (setq-local treesit-range-settings
-                (treesit-range-rules
-                 :embed 'javascript
-                 :host 'html
-                 '((script_element
-                    (start_tag (tag_name))
-                    (raw_text) @cap))
-
-                 ;; Another rule could be added that when it matches an
-                 ;; attribute_value that has as its parent an
-                 ;; attribute_name "style" it captures it and then
-                 ;; passes it to the css parser.
-                 :embed 'css
-                 :host 'html
-                 '((style_element
-                    (start_tag (tag_name))
-                    (raw_text) @cap))))
+    (setq-local treesit-range-settings mhtml-ts-mode--range-settings)
 
     ;; jsdoc is not mandatory for js-ts-mode, so we respect this by
     ;; adding jsdoc range rules only when jsdoc is available.
     (when (treesit-ensure-installed 'jsdoc)
-      (setq-local treesit-range-settings
-                  (append treesit-range-settings
-                          (treesit-range-rules
-                           :embed 'jsdoc
-                           :host 'javascript
-                           :local t
-                           `(((comment) @cap
-                              (:match ,js--treesit-jsdoc-beginning-regexp @cap))))))
       (setq-local c-ts-common--comment-regexp
                   js--treesit-jsdoc-comment-regexp))
 
@@ -518,7 +526,7 @@ Powered by tree-sitter."
     ;; JavaScript and CSS must be indented relative to their code block.
     ;; This is done by inserting a special rule before the normal
     ;; indentation rules of these languages.
-    ;; The value of `mhtml-ts-mode--js-css-indent-offset' changes based on
+    ;; The value of `mhtml-ts--js-css-indent-offset' changes based on
     ;; `mhtml-ts-mode-tag-relative-indent' and can be used to indent
     ;; JavaScript and CSS code relative to the HTML that contains them,
     ;; just like in mhtml-mode.
@@ -550,7 +558,7 @@ Powered by tree-sitter."
     ;; to extend/modify the default rule or use a different set of
     ;; rules. See `php-ts-mode--custom-html-font-lock-settings' for more
     ;; advanced usage.
-    (setq-local treesit-font-lock-settings mhtml-ts-mode--treesit-font-lock-settings)
+    (setq-local treesit-font-lock-settings (mhtml-ts-mode--treesit-font-lock-settings))
 
     ;; Tells treesit the list of features to fontify.
     (setq-local treesit-font-lock-feature-list mhtml-ts-mode--treesit-font-lock-feature-list)
@@ -563,9 +571,7 @@ Powered by tree-sitter."
                 mhtml-ts-mode--treesit-aggregated-simple-imenu-settings)
 
     (setq-local treesit-aggregated-outline-predicate
-                `((html . ,#'html-ts-mode--outline-predicate)
-                  (javascript . ,js-ts-mode--outline-predicate)
-                  (css . ,css-ts-mode--outline-predicate)))
+		mhtml-ts-mode--treesit-aggregated-outline-predicate)
 
     (treesit-major-mode-setup)
 
@@ -578,9 +584,10 @@ Powered by tree-sitter."
 ;; Add some extra parents.
 (derived-mode-add-parents 'mhtml-ts-mode '(css-mode js-mode))
 
-(when (and (treesit-ready-p 'html t) (treesit-ready-p 'javascript t) (treesit-ready-p 'css t))
-  (add-to-list
-   'auto-mode-alist '("\\.[sx]?html?\\(\\.[a-zA-Z_]+\\)?\\'" . mhtml-ts-mode)))
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(mhtml-mode . mhtml-ts-mode)))
 
 (provide 'mhtml-ts-mode)
 ;;; mhtml-ts-mode.el ends here

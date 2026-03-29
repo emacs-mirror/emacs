@@ -1,6 +1,6 @@
 ;;; buffer-tests.el --- tests for buffer.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +24,8 @@
 (require 'ert-x)
 (require 'cl-lib)
 (require 'let-alist)
+
+(defvar buffer-tests--local-var :default)
 
 (defun overlay-tests-start-recording-modification-hooks (overlay)
   "Start recording modification hooks on OVERLAY.
@@ -268,6 +270,76 @@ with parameters from the *Messages* buffer modification."
 (ert-deftest test-buffer-base-buffer-non-indirect ()
   (with-temp-buffer
     (should (eq (buffer-base-buffer (current-buffer)) nil))))
+
+(ert-deftest buffer-tests--basic-buffer-primitives ()
+  (let ((buf (generate-new-buffer " *buffer-tests-basic*")))
+    (unwind-protect
+        (progn
+          (should (bufferp buf))
+          (should (buffer-live-p buf))
+          (should (equal (buffer-name buf) " *buffer-tests-basic*"))
+          (should (eq (get-buffer " *buffer-tests-basic*") buf))
+          (should (eq (get-buffer buf) buf))
+          (should (eq (get-buffer-create " *buffer-tests-basic*") buf))
+          (with-current-buffer buf
+            (insert "abc")
+            (should (= (buffer-size) 3))
+            (should (eq (set-buffer buf) buf)))
+          (with-current-buffer buf
+            (let ((new-name (rename-buffer " *buffer-tests-renamed*" t)))
+              (should (equal new-name " *buffer-tests-renamed*"))
+              (should (eq (get-buffer new-name) buf))))
+          (should (memq buf (buffer-list))))
+      (when (buffer-live-p buf)
+        (kill-buffer buf)))
+    (should-not (buffer-live-p buf))))
+
+(ert-deftest buffer-tests--other-buffer ()
+  (let ((b1 (generate-new-buffer " *buffer-tests-ob1*"))
+        (b2 (generate-new-buffer " *buffer-tests-ob2*")))
+    (unwind-protect
+        (with-current-buffer b1
+          (let ((other (other-buffer (current-buffer) t)))
+            (should (bufferp other))
+            (should (buffer-live-p other))
+            (should-not (eq other (current-buffer)))))
+      (when (buffer-live-p b1)
+        (kill-buffer b1))
+      (when (buffer-live-p b2)
+        (kill-buffer b2)))))
+
+(ert-deftest buffer-tests--buffer-last-name ()
+  (let ((buf (generate-new-buffer " *buffer-tests-last-name*")))
+    (unwind-protect
+        (with-current-buffer buf
+          (let ((first (buffer-name)))
+            (rename-buffer " *buffer-tests-last-name-2*" t)
+            (should (equal (buffer-last-name) first))
+            (rename-buffer " *buffer-tests-last-name-3*" t)
+            (should (equal (buffer-last-name) " *buffer-tests-last-name-2*"))))
+      (when (buffer-live-p buf)
+        (kill-buffer buf)))))
+
+(ert-deftest buffer-tests--buffer-local-value ()
+  (let ((buf1 (generate-new-buffer " *buffer-tests-local-1*"))
+        (buf2 (generate-new-buffer " *buffer-tests-local-2*"))
+        (old buffer-tests--local-var))
+    (unwind-protect
+        (progn
+          (setq buffer-tests--local-var :default)
+          (with-current-buffer buf1
+            (setq-local buffer-tests--local-var :buf1))
+          (with-current-buffer buf2
+            (setq-local buffer-tests--local-var :buf2))
+          (should (eq (buffer-local-value 'buffer-tests--local-var buf1) :buf1))
+          (should (eq (buffer-local-value 'buffer-tests--local-var buf2) :buf2))
+          (should (eq (buffer-local-value 'buffer-tests--local-var (current-buffer))
+                      :default)))
+      (setq buffer-tests--local-var old)
+      (when (buffer-live-p buf1)
+        (kill-buffer buf1))
+      (when (buffer-live-p buf2)
+        (kill-buffer buf2)))))
 
 (ert-deftest buffer-tests--overlays-indirect-bug58928 ()
   (with-temp-buffer
@@ -905,6 +977,7 @@ should evaporate overlays in both."
       (should-length 1 (overlays-at 10))
       (should-length 1 (overlays-at 20))
       (should-length 0 (overlays-at (point-max)))
+      (should-length 1 (overlays-at (1- (point-max))))
       (narrow-to-region 10 20)
       (should-length 1 (overlays-at (point-min)))
       (should-length 1 (overlays-at 15))
@@ -1060,7 +1133,9 @@ should evaporate overlays in both."
       (should-length 2 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max)))
       (narrow-to-region 1 50)
-      (should-length 1 (overlays-in 1 (point-max)))
+      ;; We only count empty overlays in narrowed buffers excluding the
+      ;; real EOB when the region is confined to `point-max'.
+      (should-length 0 (overlays-in 1 (point-max)))
       (should-length 1 (overlays-in (point-max) (point-max))))))
 
 
@@ -8375,8 +8450,11 @@ dicta sunt, explicabo.  "))
     (should (= (length (overlays-in 1 2)) 0))
     (narrow-to-region 1 2)
     ;; We've now narrowed, so the zero-length overlay is at the end of
-    ;; the (accessible part of the) buffer.
-    (should (= (length (overlays-in 1 2)) 1))
+    ;; the (accessible part of the) buffer, but we only count it when
+    ;; the region is confined to `point-max'.
+    (should (= (length (overlays-in 1 2)) 0))
+    (should (= (length (overlays-in 2 2)) 1))
+    (should (= (length (overlays-in (point-max) (point-max))) 1))
     (remove-overlays)
     (should (= (length (overlays-in (point-min) (point-max))) 0))))
 
@@ -8507,7 +8585,10 @@ Finally, kill the buffer and its temporary file."
 
       ;; Clean up.
       (when (file-exists-p buffer-auto-save-file-name)
-        (delete-file buffer-auto-save-file-name))))
+        (delete-file buffer-auto-save-file-name))
+      ;; Don't leave modified and unsaved files, to avoid confirmation
+      ;; prompts when exiting Emacs in interactive sessions.
+      (restore-buffer-modified-p nil)))
 
   (ert-with-temp-file file
     (setq file (file-truename file))
@@ -8518,7 +8599,10 @@ Finally, kill the buffer and its temporary file."
       (should (buffer-modified-p))
       (should-not (eq (buffer-modified-p) 'autosaved))
       (restore-buffer-modified-p 'autosaved)
-      (should (eq (buffer-modified-p) 'autosaved)))))
+      (should (eq (buffer-modified-p) 'autosaved))
+      ;; Don't leave modified and unsaved files, to avoid confirmation
+      ;; prompts when exiting Emacs in interactive sessions.
+      (restore-buffer-modified-p nil))))
 
 (ert-deftest test-buffer-chars-modified-ticks ()
   "Test `buffer-chars-modified-tick'."
@@ -8532,7 +8616,11 @@ Finally, kill the buffer and its temporary file."
           (write-region text nil f2 nil 'silent)
           (insert-file-contents f2)
           (should (= (buffer-chars-modified-tick) (buffer-modified-tick)))
-          (should (> (buffer-chars-modified-tick) 1)))))))
+          (should (> (buffer-chars-modified-tick) 1))
+          ;; Don't leave modified and unsaved files, to avoid
+          ;; confirmation prompts when exiting Emacs in interactive
+          ;; sessions.
+          (restore-buffer-modified-p nil))))))
 
 (ert-deftest test-labeled-narrowing ()
   "Test `with-restriction' and `without-restriction'."
@@ -8639,5 +8727,23 @@ Finally, kill the buffer and its temporary file."
       (should (= (point-max) 250))))
     (should (= (point-min) 1))
     (should (= (point-max) 5001))))
+
+(ert-deftest test-line-spacing ()
+  "Test `line-spacing' impact on text size"
+  (skip-unless (display-graphic-p))
+  (let*
+      ((size-with-text (lambda (ls)
+                         (with-temp-buffer
+                           (setq-local line-spacing ls)
+                           (insert "X\nX")
+                           (cdr (buffer-text-pixel-size))))))
+    (cl-loop for x from 0 to 50
+             for y from 0 to 50
+             do
+             (ert-info ((format "((linespacing '(%d . %d)) == (linespacing %d)" x y (+ x y))
+                        :prefix "Linespace check: ")
+               (should (=
+                        (funcall size-with-text (+ x y))
+                        (funcall size-with-text (cons x y))))))))
 
 ;;; buffer-tests.el ends here

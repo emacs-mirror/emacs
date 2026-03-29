@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2025 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -1009,9 +1009,11 @@ For custom keybindings purposes please note there is also
     ["Paging" term-pager-toggle :style toggle :selected term-pager-count
      :help "Toggle paging feature"]))
 
+(defvar term--buffers-changed nil)
+
 (defun term--update-term-menu (&optional force)
   (when (and (lookup-key term-mode-map [menu-bar terminal])
-             (or force (frame-or-buffer-changed-p)))
+             (or force (frame-or-buffer-changed-p 'term--buffers-changed)))
     (let ((buffer-list (match-buffers '(derived-mode . term-mode))))
       (easy-menu-change
        nil
@@ -3696,7 +3698,7 @@ color is unset in the terminal state."
     (term-move-columns (- (max 1 (car params)))))
    ;; \E[G - cursor motion to absolute column (terminfo: hpa)
    ((eq char ?G)
-    (term-move-columns (- (max 0 (min term-width (car params)))
+    (term-move-columns (- (max 0 (1- (min term-width (car params))))
                           (term-current-column))))
    ;; \E[J - clear to end of screen (terminfo: ed, clear)
    ((eq char ?J)

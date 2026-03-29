@@ -1,7 +1,7 @@
 /* The lwlib interface to Athena widgets.
 
 Copyright (C) 1993 Chuck Thompson <cthomp@cs.uiuc.edu>
-Copyright (C) 1994, 2001-2025 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -487,7 +487,7 @@ static XtActionsRec button_actions[] =
     { "my_reset", command_reset },
     { "my_press", command_press },
   };
-char buttonTrans[] =
+static char buttonTrans[] =
   "<Leave>: reset() my_reset()\n"
   "<Btn1Down>: set() my_press()\n"
   "<Btn1Up>:  my_reset() notify() unset()\n";

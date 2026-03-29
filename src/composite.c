@@ -1,5 +1,5 @@
 /* Composite sequence support.
-   Copyright (C) 2001-2025 Free Software Foundation, Inc.
+   Copyright (C) 2001-2026 Free Software Foundation, Inc.
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
@@ -149,7 +149,7 @@ ptrdiff_t n_compositions;
 /* Hash table for compositions.  The key is COMPONENTS-VEC of
    `composition' property.  The value is the corresponding
    COMPOSITION-ID.  */
-Lisp_Object composition_hash_table;
+static Lisp_Object composition_hash_table;
 
 /* Maximum number of characters to look back for
    auto-compositions.  */
@@ -1101,6 +1101,9 @@ composition_compute_stop_pos (struct composition_it *cmp_it, ptrdiff_t charpos,
 
   /* Look for automatic compositions.  */
   start = charpos;
+  /* For the case that they set it to something weird, like nil.  */
+  if (!CHAR_TABLE_P (Vcomposition_function_table))
+    Vcomposition_function_table = Fmake_char_table (Qnil, Qnil);
   if (charpos < endpos)
     {
       /* Forward search.  */
@@ -1324,6 +1327,9 @@ composition_reseat_it (struct composition_it *cmp_it, ptrdiff_t charpos,
       Lisp_Object lgstring = Qnil;
       Lisp_Object val, elt, direction = Qnil;
 
+      /* For the case that they set it to something weird, like nil.  */
+      if (!CHAR_TABLE_P (Vcomposition_function_table))
+	Vcomposition_function_table = Fmake_char_table (Qnil, Qnil);
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
       for (EMACS_INT i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val))
 	continue;

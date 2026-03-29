@@ -1,9 +1,9 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>
+;; Maintainer: Simen Heggestøyl <simenheg@runbox.com>
 ;; Keywords: hypermedia
 
 ;; This file is part of GNU Emacs.
@@ -66,7 +66,7 @@
 
 (defconst css-pseudo-class-ids
   '("active" "checked" "default" "disabled" "empty" "enabled" "first"
-    "first-child" "first-of-type" "focus" "focus-within" "hover"
+    "first-child" "first-of-type" "focus" "focus-within" "has" "hover"
     "in-range" "indeterminate" "invalid" "lang" "last-child"
     "last-of-type" "left" "link" "not" "nth-child" "nth-last-child"
     "nth-last-of-type" "nth-of-type" "only-child" "only-of-type"
@@ -1911,11 +1911,14 @@ can also be used to fill comments.
     (setq-local treesit-outline-predicate css-ts-mode--outline-predicate)
     (setq-local treesit-thing-settings css--treesit-thing-settings)
 
-    (treesit-major-mode-setup)
-
-    (add-to-list 'auto-mode-alist '("\\.css\\'" . css-ts-mode))))
+    (treesit-major-mode-setup)))
 
 (derived-mode-add-parents 'css-ts-mode '(css-mode))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(css-mode . css-ts-mode)))
 
 ;;;###autoload
 (define-derived-mode css-mode css-base-mode "CSS"

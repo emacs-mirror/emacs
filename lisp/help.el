@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2025 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -99,6 +99,7 @@ buffer.")
   "f"    #'describe-function
   "g"    #'describe-gnu-project
   "h"    #'view-hello-file
+  "u"    #'apropos-user-option
 
   "i"    #'info
   "4 i"  #'info-other-window
@@ -518,6 +519,67 @@ If that doesn't give a function, return nil."
                 (and (fboundp sym) sym))))))))
 
 
+;;; Lossage
+
+(defcustom view-lossage-auto-refresh nil
+  "Whether to auto-refresh the lossage buffer.
+If non-nil, the lossage buffer will be refreshed automatically for each
+new input keystroke and command performed."
+  :type 'boolean
+  :group 'help
+  :version "31.1")
+
+(defvar-local help--lossage-update nil
+  "Variable used to determine if lossage buffer should be refreshed.")
+
+(defun help--lossage-make-recent-keys (&optional most-recent)
+  "Return a string containing all the recent keys and its commands.
+If MOST-RECENT is non-nil, only return the most recent key and its
+command."
+  (let ((keys
+         (if most-recent
+             `[,@(this-single-command-raw-keys) (nil . ,this-command)]
+           (recent-keys 'include-cmds))))
+    (mapconcat
+     (lambda (key)
+       (cond
+        ((and (consp key) (null (car key)))
+         (concat
+          ";; "
+          (if (symbolp (cdr key))
+              (buttonize
+               (symbol-name (cdr key))
+               (lambda (&rest _)
+                 (interactive)
+                 (describe-function (cdr key)))
+               "mouse-1: go to the documentation for this command.")
+	    (propertize "anonymous-command" 'face 'shadow))
+          "\n"))
+        ((or (integerp key) (symbolp key) (listp key))
+         (propertize (single-key-description key)
+                     'face 'help-key-binding
+                     'rear-nonsticky t))
+        (t
+         (propertize (prin1-to-string key nil)
+                     'face 'help-key-binding
+                     'rear-nonsticky t))))
+     keys
+     " ")))
+
+(defun help--refresh-lossage-buffer ()
+  (if-let* ((buf (get-buffer "*Help*"))
+            (_ (buffer-local-value 'help--lossage-update buf)))
+      (with-current-buffer buf
+        (let ((inhibit-read-only t))
+          (save-excursion
+            (goto-char (point-max))
+            (insert-before-markers
+             (concat " " (help--lossage-make-recent-keys :most-recent)))
+            (forward-line -1)
+            (comment-indent))))
+    (remove-hook 'post-command-hook #'help--refresh-lossage-buffer)))
+
+
 ;;; `User' help functions
 
 (defun view-help-file (file &optional dir)
@@ -624,6 +686,7 @@ With argument, display info only for the selected version."
 		(t (format "NEWS.%d" vn))))
 	 res)
     (find-file (expand-file-name file data-directory))
+    (widen)  ; In case we already are visiting that NEWS file
     (emacs-news-view-mode)
     (goto-char (point-min))
     (when (stringp version)
@@ -691,43 +754,50 @@ the variable `message-log-max'."
   (interactive)
   (info "(efaq)Packages that do not come with Emacs"))
 
-(defun view-lossage ()
+(defun view-lossage (&optional auto-refresh)
   "Display last few input keystrokes and the commands run.
 For convenience this uses the same format as
 `edit-last-kbd-macro'.
 See `lossage-size' to update the number of recorded keystrokes.
 
+With argument, auto-refresh the lossage buffer for each new input
+keystroke, see also `view-lossage-auto-refresh'.
+
 To record all your input, use `open-dribble-file'."
-  (interactive)
-  (let ((help-buffer-under-preparation t))
-    (help-setup-xref (list #'view-lossage)
-		     (called-interactively-p 'interactive))
+  (interactive "P")
+  (let ((help-buffer-under-preparation t)
+        (view-lossage-auto-refresh
+         (if auto-refresh t view-lossage-auto-refresh)))
+    (unless view-lossage-auto-refresh
+      ;; `view-lossage-auto-refresh' conflicts with xref buttons, add
+      ;; them if `view-lossage-auto-refresh' is nil.
+      (help-setup-xref (list #'view-lossage)
+		       (called-interactively-p 'interactive)))
     (with-help-window (help-buffer)
       (princ " ")
-      (princ (mapconcat (lambda (key)
-			  (cond
-			   ((and (consp key) (null (car key)))
-			    (format ";; %s\n" (if (symbolp (cdr key)) (cdr key)
-						"anonymous-command")))
-			   ((or (integerp key) (symbolp key) (listp key))
-			    (single-key-description key))
-			   (t
-			    (prin1-to-string key nil))))
-			(recent-keys 'include-cmds)
-			" "))
+      (insert (help--lossage-make-recent-keys))
       (with-current-buffer standard-output
 	(goto-char (point-min))
-	(let ((comment-start ";; ")
-              ;; Prevent 'comment-indent' from handling a single
-              ;; semicolon as the beginning of a comment.
-              (comment-start-skip ";; ")
-              (comment-use-syntax nil)
-              (comment-column 24))
-          (while (not (eobp))
-            (comment-indent)
-	    (forward-line 1)))
+        (setq-local comment-start ";; "
+                    ;; Prevent 'comment-indent' from handling a single
+                    ;; semicolon as the beginning of a comment.
+                    comment-start-skip ";; "
+                    comment-use-syntax nil
+                    comment-column 24)
+	(while (not (eobp))
+          (comment-indent)
+	  (forward-line 1))
 	;; Show point near the end of "lossage", as we did in Emacs 24.
-	(set-marker help-window-point-marker (point))))))
+	(set-marker help-window-point-marker (point))
+
+        (when view-lossage-auto-refresh
+          (setq-local help--lossage-update t)
+          (add-hook 'post-command-hook #'help--refresh-lossage-buffer))))
+
+    ;; `help-make-xrefs' adds a newline at the end of the buffer, which
+    ;; makes impossible to reposition point in `with-help-window'.
+    (when view-lossage-auto-refresh
+      (set-window-point (get-buffer-window (help-buffer)) (point-max)))))
 
 
 ;; Key bindings
@@ -2161,6 +2231,7 @@ The `temp-buffer-window-setup-hook' hook is called."
   `(help--window-setup ,buffer-or-name (lambda () ,@body)))
 
 (defun help--window-setup (buffer callback)
+  (setq help-window-old-frame (selected-frame))
   ;; Make `help-window-point-marker' point nowhere.  The only place
   ;; where this should be set to a buffer position is within BODY.
   (set-marker help-window-point-marker nil)
@@ -2285,53 +2356,54 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
   "Return a formal argument list for the function DEF.
 If PRESERVE-NAMES is non-nil, return a formal arglist that uses
 the same names as used in the original source code, when possible."
-  ;; Handle symbols aliased to other symbols.
-  (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
-  ;; Advice wrappers have "catch all" args, so fetch the actual underlying
-  ;; function to find the real arguments.
-  (setq def (advice--cd*r def))
-  ;; If definition is a macro, find the function inside it.
-  (if (eq (car-safe def) 'macro) (setq def (cdr def)))
-  (cond
-   ((and (closurep def) (listp (aref def 0))) (aref def 0))
-   ((eq (car-safe def) 'lambda) (nth 1 def))
-   ((and (featurep 'native-compile)
-         (subrp def)
-         (listp (subr-native-lambda-list def)))
-    (subr-native-lambda-list def))
-   ((or (and (byte-code-function-p def) (integerp (aref def 0)))
-        (subrp def) (module-function-p def))
-    (or (when preserve-names
-          (let* ((doc (condition-case nil (documentation def 'raw) (error nil)))
-                 (docargs (if doc (car (help-split-fundoc doc nil))))
-                 (arglist (if docargs
-                              (cdar (read-from-string (downcase docargs)))))
-                 (valid t))
-            ;; Check validity.
-            (dolist (arg arglist)
-              (unless (and (symbolp arg)
-                           (let ((name (symbol-name arg)))
-                             (if (and (> (length name) 0) (eq (aref name 0) ?&))
-                                 (memq arg '(&rest &optional))
-                               (not (string-search "." name)))))
-                (setq valid nil)))
-            (when valid arglist)))
-        (let* ((arity (func-arity def))
-               (max (cdr arity))
-               (min (car arity))
-               (arglist ()))
-          (dotimes (i min)
-            (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
-          (when (and (integerp max) (> max min))
-            (push '&optional arglist)
-            (dotimes (i (- max min))
-              (push (intern (concat "arg" (number-to-string (+ 1 i min))))
-                    arglist)))
-          (unless (integerp max) (push '&rest arglist) (push 'rest arglist))
-          (nreverse arglist))))
-   ((and (autoloadp def) (not (eq (nth 4 def) 'keymap)))
-    "[Arg list not available until function definition is loaded.]")
-   (t t)))
+  (let ((orig-def def)
+        ;; Advice wrappers have "catch all" args, so fetch the actual underlying
+        ;; function to find the real arguments.
+        (def (advice--cd*r
+              (indirect-function def)))) ;; Follow aliases to other symbols.
+    ;; If definition is a macro, find the function inside it.
+    (if (eq (car-safe def) 'macro) (setq def (cdr def)))
+    (cond
+     ((and (closurep def) (listp (aref def 0))) (aref def 0))
+     ((eq (car-safe def) 'lambda) (nth 1 def))
+     ((and (featurep 'native-compile)
+           (subrp def)
+           (listp (subr-native-lambda-list def)))
+      (subr-native-lambda-list def))
+     ((or (and (byte-code-function-p def) (integerp (aref def 0)))
+          (subrp def) (module-function-p def))
+      (or (when preserve-names
+            (let* ((doc (ignore-errors (documentation orig-def 'raw)))
+                   (docargs (if doc (car (help-split-fundoc doc nil))))
+                   (arglist (if docargs
+                                (cdar (read-from-string (downcase docargs)))))
+                   (valid t))
+              ;; Check validity.
+              (dolist (arg arglist)
+                (unless (and (symbolp arg)
+                             (let ((name (symbol-name arg)))
+                               (if (and (> (length name) 0)
+                                        (eq (aref name 0) ?&))
+                                   (memq arg '(&rest &optional))
+                                 (not (string-search "." name)))))
+                  (setq valid nil)))
+              (when valid arglist)))
+          (let* ((arity (func-arity def))
+                 (max (cdr arity))
+                 (min (car arity))
+                 (arglist ()))
+            (dotimes (i min)
+              (push (intern (concat "arg" (number-to-string (1+ i)))) arglist))
+            (when (and (integerp max) (> max min))
+              (push '&optional arglist)
+              (dotimes (i (- max min))
+                (push (intern (concat "arg" (number-to-string (+ 1 i min))))
+                      arglist)))
+            (unless (integerp max) (push '&rest arglist) (push 'rest arglist))
+            (nreverse arglist))))
+     ((and (autoloadp def) (not (eq (nth 4 def) 'keymap)))
+      "[Arg list not available until function definition is loaded.]")
+     (t t))))
 
 (defun help--make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)

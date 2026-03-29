@@ -1,6 +1,6 @@
 /* Like <fcntl.h>, but with non-working flags defined to 0.
 
-   Copyright (C) 2006-2025 Free Software Foundation, Inc.
+   Copyright (C) 2006-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -122,7 +122,6 @@ _GL_CXXALIAS_SYS (creat, int, (const char *filename, mode_t mode));
 # endif
 _GL_CXXALIASWARN (creat);
 #elif defined GNULIB_POSIXCHECK
-# undef creat
 /* Assume creat is always declared.  */
 _GL_WARN_ON_USE (creat, "creat is not always POSIX compliant - "
                  "use gnulib module creat for portability");
@@ -165,7 +164,6 @@ _GL_CXXALIAS_SYS (fcntl, int, (int fd, int action, ...));
 # endif
 _GL_CXXALIASWARN (fcntl);
 #elif defined GNULIB_POSIXCHECK
-# undef fcntl
 # if HAVE_RAW_DECL_FCNTL
 _GL_WARN_ON_USE (fcntl, "fcntl is not always POSIX compliant - "
                  "use gnulib module fcntl for portability");
@@ -196,7 +194,6 @@ _GL_CXXALIAS_SYS (open, int, (const char *filename, int flags, ...));
 _GL_CXXALIASWARN (open);
 # endif
 #elif defined GNULIB_POSIXCHECK
-# undef open
 /* Assume open is always declared.  */
 _GL_WARN_ON_USE (open, "open is not always POSIX compliant - "
                  "use gnulib module open for portability");
@@ -242,13 +239,51 @@ _GL_CXXALIAS_SYS (openat, int,
 # endif
 _GL_CXXALIASWARN (openat);
 #elif defined GNULIB_POSIXCHECK
-# undef openat
 # if HAVE_RAW_DECL_OPENAT
 _GL_WARN_ON_USE (openat, "openat is not portable - "
                  "use gnulib module openat for portability");
 # endif
 #endif
 
+#if @GNULIB_OPENAT2@
+# if !defined RESOLVE_NO_XDEV && defined __has_include
+#  if __has_include (<linux/openat2.h>)
+#   include <linux/openat2.h>
+#  endif
+# endif
+# ifndef RESOLVE_NO_XDEV
+struct open_how
+{
+#  ifdef __UINT64_TYPE__
+  __UINT64_TYPE__ flags, mode, resolve;
+#  else
+  unsigned long long int flags, mode, resolve;
+#  endif
+};
+#  define RESOLVE_NO_XDEV	0x01
+#  define RESOLVE_NO_MAGICLINKS	0x02
+#  define RESOLVE_NO_SYMLINKS	0x04
+#  define RESOLVE_BENEATH	0x08
+#  define RESOLVE_IN_ROOT	0x10
+#  define RESOLVE_CACHED	0x20
+# endif
+
+# if !@HAVE_OPENAT2@
+_GL_FUNCDECL_SYS (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size),
+                  _GL_ARG_NONNULL ((2, 3)));
+# endif
+_GL_CXXALIAS_SYS (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size));
+_GL_CXXALIASWARN (openat2);
+#elif defined GNULIB_POSIXCHECK
+# if HAVE_RAW_DECL_OPENAT2
+_GL_WARN_ON_USE (openat2, "openat2 is not portable - "
+                 "use gnulib module openat2 for portability");
+# endif
+#endif
 
 /* Fix up the FD_* macros, only known to be missing on mingw.  */
 
@@ -291,11 +326,6 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 # if defined O_TTY_INIT && ! (INT_MIN <= O_TTY_INIT && O_TTY_INIT <= INT_MAX)
 #  undef O_TTY_INIT
 # endif
-#endif
-
-#if !defined O_DIRECT && defined O_DIRECTIO
-/* Tru64 spells it 'O_DIRECTIO'.  */
-# define O_DIRECT O_DIRECTIO
 #endif
 
 #if !defined O_CLOEXEC && defined O_NOINHERIT
@@ -458,6 +488,15 @@ _GL_WARN_ON_USE (openat, "openat is not portable - "
 /* Ignore this flag if not supported.  */
 #ifndef AT_NO_AUTOMOUNT
 # define AT_NO_AUTOMOUNT 0
+#endif
+
+/* errno when openat+O_NOFOLLOW fails because the file is a symlink.  */
+#if defined __FreeBSD__ || defined __FreeBSD_kernel__ || defined __DragonFly__
+# define _GL_OPENAT_ESYMLINK EMLINK
+#elif defined __NetBSD__
+# define _GL_OPENAT_ESYMLINK EFTYPE
+#else
+# define _GL_OPENAT_ESYMLINK ELOOP
 #endif
 
 #endif /* _@GUARD_PREFIX@_FCNTL_H */

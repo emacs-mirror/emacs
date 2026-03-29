@@ -1,6 +1,6 @@
 ;;; erc-track-tests.el --- Tests for erc-track.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Author: Vivek Dasmohapatra <vivek@etla.org>
@@ -478,11 +478,27 @@
   (funcall set-faces '(erc-notice-face))
   (erc-track-modified-channels)
   (should (equal (alist-get (current-buffer) erc-modified-channels-alist)
-                 '(5 . erc-notice-face))))
+                 (if (gethash 'erc-notice-face erc-track--normal-faces)
+                     '(5 . erc-notice-face)
+                   '(5 erc-button-nick-default-face erc-nick-default-face)))))
 
 (ert-deftest erc-track-modified-channels/baseline ()
   (erc-tests-common-track-modified-channels
    #'erc-track-tests--modified-channels/baseline))
+
+;; This "baseline" variant simulates `erc-notice-face' being absent from
+;; `erc-track-faces-normal-list' by removing it from the cached local
+;; copy in `erc-track--normal-faces'.  When absent and a message
+;; highlighted in `erc-notice-face' is inserted, the mode line should
+;; not change if it's currently showing a face ranked higher in
+;; `erc-track-faces-priority-list'.  ERC 5.6 and 5.6.1 featured a
+;; regression that caused the mode line to keep alternating regardless.
+;; See Bug#80659: erc: Faces not being updated correctly.
+(ert-deftest erc-track-modified-channels/baseline/nonotice ()
+  (erc-tests-common-track-modified-channels
+   (lambda (set-faces)
+     (remhash 'erc-notice-face erc-track--normal-faces)
+     (funcall #'erc-track-tests--modified-channels/baseline set-faces))))
 
 (ert-deftest erc-track-modified-channels/baseline/mention ()
   (erc-tests-common-track-modified-channels
@@ -612,6 +628,15 @@
   (let ((erc-track-priority-faces-only 'all))
     (erc-tests-common-track-modified-channels
      #'erc-track-tests--modified-channels/baseline)))
+
+;; Option `erc-track-priority-faces-only' does not affect Bug#80659 (see
+;; baseline test without the option above).
+(ert-deftest erc-track-modified-channels/priority-only-all/baseline/nonotice ()
+  (let ((erc-track-priority-faces-only 'all))
+    (erc-tests-common-track-modified-channels
+     (lambda (set-faces)
+       (remhash 'erc-notice-face erc-track--normal-faces)
+       (funcall #'erc-track-tests--modified-channels/baseline set-faces)))))
 
 ;; This test simulates a common configuration that combines an
 ;; `erc-track-faces-priority-list' removed of `erc-notice-face' with

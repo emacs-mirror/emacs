@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--2025 Free Software Foundation, Inc.
+@c Copyright (C) 1985--2026 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames
 @chapter Frames and Graphical Displays
@@ -58,6 +58,7 @@ for doing so on MS-DOS).  Menus are supported on all text terminals.
 * Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Tab Bars::            Enabling and disabling the tab bar.
+* System Taskbar::      Using system GUI taskbar features.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Preventing the mouse pointer from obscuring text.
@@ -469,15 +470,15 @@ frame is created on the current display terminal.
 buffer to select:
 
 @table @kbd
-@item C-x 5 2
 @kindex C-x 5 2
 @findex make-frame-command
+@item C-x 5 2
 Create a new frame using the default frame parameters
 (@code{make-frame-command}).
 
-@item C-x 5 c
 @kindex C-x 5 c
 @findex clone-frame
+@item C-x 5 c
 Create a new frame using the window configuration and frame parameters
 of the current frame (@code{clone-frame}).
 
@@ -503,18 +504,20 @@ Find the definition of an identifier in another frame.  This runs
 @code{xref-find-definitions-other-frame}, the multiple-frame variant
 of @kbd{M-.}.  @xref{Xref}.
 
-@item C-x 5 r @var{filename} @key{RET}
 @kindex C-x 5 r
 @findex find-file-read-only-other-frame
+@item C-x 5 r @var{filename} @key{RET}
 Visit file @var{filename} read-only, and select its buffer in another
 frame.  This runs @code{find-file-read-only-other-frame}.
 @xref{Visiting}.
 
+@kindex C-x 5 5
+@findex other-frame-prefix
 @item C-x 5 5
-A more general prefix command that affects the buffer displayed by the
-next command invoked immediately after this prefix command
-(@code{other-frame-prefix}).  It requests the buffer of the next
-command to be displayed in another frame.
+A more general prefix command that affects the buffer displayed by a
+subsequent command invoked after this prefix command
+(@code{other-frame-prefix}).  It requests the buffer to be displayed by
+a subsequent command to be shown in another frame.
 @end table
 
   You can control the appearance and behavior of the newly-created
@@ -526,51 +529,55 @@ frames by specifying @dfn{frame parameters}.  @xref{Frame Parameters}.
   The following commands are used to delete and operate on frames:
 
 @table @kbd
-@item C-x 5 0
 @kindex C-x 5 0
 @findex delete-frame
+@item C-x 5 0
 Delete the selected frame (@code{delete-frame}).  This signals an
 error if there is only one frame.
 
-@item C-x 5 u
 @kindex C-x 5 u
 @findex undelete-frame
 @findex undelete-frame-mode
+@item C-x 5 u
 When @code{undelete-frame-mode} is enabled, undelete one of the 16
 most recently deleted frames.  Without a prefix argument, undelete the
 most recently deleted frame.  With a numerical prefix argument between
 1 and 16, where 1 is the most recently deleted frame, undelete the
 corresponding deleted frame.
 
-@item C-z
 @kindex C-z @r{(X windows)}
+@item C-z
 Minimize (or iconify) the selected Emacs frame
 (@code{suspend-frame}).  @xref{Exiting}.
 
-@item C-x 5 o
 @kindex C-x 5 o
 @findex other-frame
+@item C-x 5 o
 Select another frame, and raise it.  If you repeat this command, it
 cycles through all the frames on your terminal.
 
-@item C-x 5 1
 @kindex C-x 5 1
 @findex delete-other-frames
+@item C-x 5 1
 Delete all frames on the current terminal, except the selected one.
 
-@item M-@key{F10}
 @kindex M-F10
 @findex toggle-frame-maximized
+@item M-@key{F10}
 Toggle the maximization state of the current frame.  When a frame is
 maximized, it fills the screen.
 
-@item @key{F11}
 @kindex F11
 @findex toggle-frame-fullscreen
+@vindex alter-fullscreen-frames
+@cindex resizing full-screen frames
+@item @key{F11}
 Toggle full-screen mode for the current frame.  (The difference
 between full-screen and maximized is normally that the former
 hides window manager decorations, giving slightly more screen space to
-Emacs itself.)
+Emacs itself.)  Note that whether resizing of full-screen frames is
+allowed and how Emacs handles that is controlled by the user option
+@code{alter-fullscreen-frames}.
 @end table
 
 @vindex frame-resize-pixelwise
@@ -1006,6 +1013,37 @@ that server's selected frame.
 Create a new frame on monitor @var{monitor} whose screen area is
 a part of the current display.
 @end table
+
+@subsection Single-keyboard mode
+@cindex single-keyboard mode
+
+  Each display has an associated keyboard.  Normally, Emacs assumes that
+these keyboards are physically distinct, so that someone could be typing
+on one keyboard and someone else typing on another, into different
+frames on different terminals.  In certain situations, however, Emacs
+enters @dfn{single-keyboard mode}, in which input from all but one keyboard is
+blocked.  This prevents keys typed on one keyboard from interfering with
+an operation started on another keyboard.  The main operation to which
+this applies is entering a recursive edit (@pxref{Recursive Edit}),
+which includes all minibuffer prompting (@pxref{Basic Minibuffer}).
+
+  Single-keyboard mode can be inconvenient when there are distinct
+displays and so distinct keyboards, but only one user and one physical
+keyboard in control of Emacs.  This can happen with X forwarding: with a
+remote Emacs daemon and multiple frames created with a command like
+@w{@code{ssh -X daemon-host emacsclient -c}}, then from the remote Emacs
+daemon's point of view there is one terminal and one keyboard per
+@w{@code{ssh -X daemon-host}} command invoked, but in fact a single
+local X server displays all frames, and there is just one physical
+keyboard.
+
+@vindex multiple-terminals-merge-keyboards
+  In this situation, you may prefer to have the different frames behave
+as though they had been created with @kbd{C-x 5 2} (@pxref{Creating
+Frames}).  In that case, starting a recursive edit in one frame does not
+mean that keyboard input into other frames is blocked.  Customize the
+variable @code{multiple-terminals-merge-keyboards} to a non-@code{nil}
+value to achieve this.
 
 @node Frame Parameters
 @section Frame Parameters
@@ -1624,6 +1662,75 @@ This moves forward in the history of window configurations.
 
   It's possible to customize the items displayed on the tab bar
 by the user option @code{tab-bar-format}.
+
+@node System Taskbar
+@section Using System GUI Taskbar Features
+@cindex system taskbar
+@cindex mode, system taskbar
+
+  Emacs can use your GUI system taskbar to display a badge overlay on
+the Emacs taskbar icon, a progress bar report, and alert the user that
+an Emacs session needs attention.  Note: The system taskbar might be
+called the dock, the launcher, or something similar.
+
+@cindex system taskbar, GNU/Linux
+On GNU/Linux eligible GUI desktops, system taskbar effects will appear
+on the desktop destinations determined by your shell extension, most
+often the application launcher or dock panel, or the top panel.  Effects
+are global for an Emacs instance.
+
+Note: The GNU/Linux implementation sends system taskbar messages to the
+GUI using D-Bus.  You may need to install or configure shell extensions
+such as @url{https://extensions.gnome.org/extension/307/dash-to-dock/}
+that implement Ubuntu's Unity D-Bus launcher spec which you can read
+more about here @url{https://wiki.ubuntu.com/Unity/LauncherAPI}.
+@xref{Top,,, dbus, The D-Bus Manual}.
+
+@cindex system taskbar, macOS/GNUstep
+@cindex system taskbar, NS
+On macOS/GNUstep 10.5+, system taskbar effects appear on the Dock and in
+the App Switcher.  Effects are global for an Emacs instance.
+macOS/GNUstep need no special configuration.
+
+@cindex system taskbar, MS-Windows
+On MS-Windows 7+, taskbar effects appear on the Windows system taskbar.
+Effects are associated with the frame from which they are initiated.
+MS-Windows needs no special configuration.
+
+@findex system-taskbar-mode
+  You must initialize system taskbar before using it.  To do that, type
+@kbd{M-x system-taskbar-mode}.
+
+@vindex system-taskbar-use-progress-reporter
+  The user option @code{system-taskbar-use-progress-reporter} integrates
+@code{system-taskbar-mode} with Emacs progress report functions, which
+many longer-running functions use to indicate the progress of their
+work.  Progress reports will appear in the echo area and on the system
+taskbar Emacs icon.  This variable defaults to @code{t}.  Customize this
+variable before enabling @code{system-taskbar-mode}.  @xref{Progress,,,
+elisp}
+
+@vindex system-taskbar-clear-attention-on-frame-focus
+  The user option @code{system-taskbar-clear-attention-on-frame-focus}
+turns on a helper useful on GNU/Linux D-Bus platforms which
+automatically clears the system taskbar attention indicator when any
+Emacs frame is focused.  This has no effect on macOS/GNUstep or
+MS-Windows.  It defaults to @code{t}.  Customize this variable before
+enabling @code{system-taskbar-mode}.
+
+@vindex system-taskbar-dbus-desktop-file-name
+  The user option @code{system-taskbar-dbus-desktop-file-name} helps
+D-Bus on GNU/Linux identify launched instance of Emacs.  It defaults to
+@samp{emacsclient} and may need to be changed to @samp{emacs} depending
+on your GNU/Linux configuration.
+
+@vindex system-taskbar-dbus-timeout
+  The user option @code{system-taskbar-dbus-timeout} is a
+troubleshooting tool and it likely does not need to be customized.  It
+defaults to @code{nil} which uses the D-Bus default timeout which is
+25,000ms or 25s.
+
+@xref{System Taskbar,,, elisp, The Emacs Lisp Reference Manual}
 
 @node Dialog Boxes
 @section Using Dialog Boxes

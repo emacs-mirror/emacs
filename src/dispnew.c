@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2025 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2026 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -135,9 +135,6 @@ static int glyph_matrix_count;
 static int glyph_pool_count;
 
 #endif /* GLYPH_DEBUG and ENABLE_CHECKING */
-
-/* Convert vpos and hpos from frame to window and vice versa.
-   This may only be used for terminal frames.  */
 
 #ifdef GLYPH_DEBUG
 
@@ -3271,7 +3268,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
 
    Let a "root" frame be a frame that has no parent frame.  Such root
    frames are required to be the size of the terminal screen.  The
-   current glyph matrix of a root frame of a termimnal represents what
+   current glyph matrix of a root frame of a terminal represents what
    is on the screen.  The desired matrix of a root frame represents
    what should be one the screen.
 
@@ -3622,15 +3619,34 @@ neutralize_wide_char (struct frame *root, struct glyph_row *row, int x)
     }
 }
 
-/* Produce glyphs for box character BOX in ROW.  X is the position in
-   ROW where to start producing glyphs.  N is the number of glyphs to
-   produce.  CHILD is the frame to use for the face of the glyphs.  */
+/* Fill *G with the code and face for box character BOX on frame F
+   Value is true if a standard display table entry for BOX exists.  */
+
+static bool
+box_from_display_table (struct frame *f, enum box box, GLYPH *g)
+{
+  if (DISP_TABLE_P (Vstandard_display_table))
+    {
+      struct Lisp_Char_Table *dp = XCHAR_TABLE (Vstandard_display_table);
+      Lisp_Object gc = dp->extras[box];
+      if (GLYPH_CODE_P (gc))
+	{
+	  SET_GLYPH_FROM_GLYPH_CODE (*g, gc);
+	  spec_glyph_lookup_face (XWINDOW (f->root_window), g);
+	  if (GLYPH_FACE (*g) == 0)
+	    SET_GLYPH_FACE (*g, BORDER_FACE_ID);
+	  return true;
+	}
+    }
+  return false;
+}
+
+/* Fill *G with the default code and face for box BOX on frame F.  */
 
 static void
-produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
-		    struct frame *child)
+box_default (struct frame *f, enum box box, GLYPH *g)
 {
-  int dflt;
+  int dflt UNINIT;
   switch (box)
     {
     case BOX_VERTICAL:
@@ -3641,7 +3657,7 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
       break;
     case BOX_DOWN_RIGHT:
     case BOX_DOWN_LEFT:
-    case BOX_UP_RIGHT:
+	case BOX_UP_RIGHT:
     case BOX_UP_LEFT:
       dflt = '+';
       break;
@@ -3654,22 +3670,30 @@ produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
       emacs_abort ();
     }
 
-  /* FIXME/tty: some face for the border.  */
-  int face_id = BORDER_FACE_ID;
+  int face_id = lookup_basic_face (NULL, f, BORDER_FACE_ID);
+  SET_GLYPH (*g, dflt, face_id);
+}
+
+/* Return the glyph for displaying BOX on frame F.  */
+
+static GLYPH
+box_glyph (struct frame *f, enum box box)
+{
   GLYPH g;
-  SET_GLYPH (g, dflt, face_id);
+  if (!box_from_display_table (f, box, &g))
+    box_default (f, box, &g);
+  return g;
+}
 
-  if (DISP_TABLE_P (Vstandard_display_table))
-    {
-      struct Lisp_Char_Table *dp = XCHAR_TABLE (Vstandard_display_table);
-      Lisp_Object gc = dp->extras[box];
-      if (GLYPH_CODE_P (gc))
-	{
-	  SET_GLYPH_FROM_GLYPH_CODE (g, gc);
-	  /* Sorry, but I really don't care if the glyph has a face :-).  */
-	}
-    }
+/* Produce glyphs for box character BOX in ROW.  X is the position in
+   ROW where to start producing glyphs.  N is the number of glyphs to
+   produce.  CHILD is the frame to use for the face of the glyphs.  */
 
+static void
+produce_box_glyphs (enum box box, struct glyph_row *row, int x, int n,
+		    struct frame *child)
+{
+  GLYPH g = box_glyph (child, box);;
   struct glyph *glyph = row->glyphs[0] + x;
   for (int i = 0; i < n; ++i, ++glyph)
     {
@@ -6752,8 +6776,7 @@ FILE = nil means just close any termscript file currently open.  */)
 {
   struct tty_display_info *tty;
 
-  if (! FRAME_TERMCAP_P (SELECTED_FRAME ())
-      && ! FRAME_MSDOS_P (SELECTED_FRAME ()))
+  if (!is_tty_frame (SELECTED_FRAME ()))
     error ("Current frame is not on a tty device");
 
   tty = CURTTY ();
@@ -7320,7 +7343,7 @@ init_display_interactive (void)
     t = init_tty (0, terminal_type, 1); /* Errors are fatal. */
 
     /* Convert the initial frame to use the new display. */
-    if (f->output_method != output_initial)
+    if (!FRAME_INITIAL_P (f))
       emacs_abort ();
     f->output_method = t->type;
     f->terminal = t;
@@ -7330,7 +7353,7 @@ init_display_interactive (void)
     f->output_data.tty = &the_only_tty_output;
     f->output_data.tty->display_info = &the_only_display_info;
 #else
-    if (f->output_method == output_termcap)
+    if (FRAME_TERMCAP_P (f))
       create_tty_output (f);
 #endif
     t->display_info.tty->top_frame = selected_frame;

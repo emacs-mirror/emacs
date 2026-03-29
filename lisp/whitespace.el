@@ -1,6 +1,6 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl.gnu@gmail.com>
 ;; Keywords: data, text
@@ -155,6 +155,9 @@
 ;;
 ;; `global-whitespace-newline-mode'
 ;;    Toggle NEWLINE global minor mode visualization ("NL" on mode line).
+;;
+;; `whitespace-page-delimiters-mode'
+;;    Display page delimiters characters as horizontal lines ("pd" on mode line).
 ;;
 ;; `whitespace-report'
 ;;    Report some blank problems in buffer.
@@ -326,6 +329,11 @@ The value is a list containing one or more of the following symbols:
                         This has effect only if `face' (see above)
                         is present in `whitespace-style'.
 
+   page-delimiters       visualize page-break delimiter characters (^L)
+                         as horizontal lines.
+                         This has effect only if `face' (see above)
+                         is present in `whitespace-style'.
+
    empty                visualize empty lines at beginning and/or
                         end of buffer via faces.
                         This has effect only if `face' (see above)
@@ -440,6 +448,7 @@ See also `whitespace-display-mappings' for documentation."
               (const :tag "(Face) NEWLINEs" newline)
               (const :tag "(Face) Missing newlines at EOB"
                      missing-newline-at-eof)
+              (const :tag "(Face) Page delimiters" page-delimiters)
               (const :tag "(Face) Empty Lines At BOB And/Or EOB" empty)
               (const :tag "(Face) Indentation SPACEs" indentation::tab)
               (const :tag "(Face) Indentation TABs"
@@ -458,7 +467,8 @@ See also `whitespace-display-mappings' for documentation."
               (const :tag "(Face) SPACEs before TAB" space-before-tab)
               (const :tag "(Mark) SPACEs and HARD SPACEs" space-mark)
               (const :tag "(Mark) TABs" tab-mark)
-              (const :tag "(Mark) NEWLINEs" newline-mark)))
+              (const :tag "(Mark) NEWLINEs" newline-mark))
+  :version "31.1")
 
 (defvar whitespace-space 'whitespace-space
   "Symbol face used to visualize SPACE.
@@ -622,6 +632,15 @@ Used when `whitespace-style' includes the value `space-after-tab'.")
 
 See `whitespace-space-after-tab-regexp'.")
 
+(defface whitespace-page-delimiter
+  '((((supports :underline (:color foreground-color  :style double-line)))
+     :underline (:color foreground-color :style double-line)
+     :height 0.1 :extend t :inherit shadow)
+    (((supports :strike-through t))
+     :height 0.1 :strike-through t :extend t :inherit shadow)
+    (t :height 0.1 :extend t :inherit shadow :inverse-video t))
+  "Face used to visualize page delimiter characters."
+  :version "31.1")
 
 (defcustom whitespace-hspace-regexp
   "\\(\u00A0+\\)"
@@ -868,7 +887,7 @@ This variable is used when `whitespace-style' includes `tab-mark',
 
 
 (defcustom whitespace-global-modes t
-  "Modes for which global `whitespace-mode' is automagically turned on.
+  "Modes for which global `whitespace-mode' is automatically turned on.
 
 Global `whitespace-mode' is controlled by the command
 `global-whitespace-mode'.
@@ -885,7 +904,12 @@ of the list is negated if it begins with `not'.  For example:
    (c-mode c++-mode)
 
 means that `whitespace-mode' is turned on for buffers in C and
-C++ modes only."
+C++ modes only.
+
+Global `whitespace-mode' will not automatically turn on in internal
+buffers (whose names start with a space) and special buffers (whose
+names start with \"*\"), with the exception of the \"*scratch*\" buffer.
+Use `whitespace-global-mode-buffers' to customize this behavior."
   :type '(choice :tag "Global Modes"
 		 (const :tag "None" nil)
 		 (const :tag "All" t)
@@ -895,6 +919,12 @@ C++ modes only."
 		      (repeat :inline t
 			      (symbol :tag "Mode")))))
 
+(defcustom whitespace-global-mode-buffers (list (rx bos "*scratch*" eos))
+  "Buffer name regexps where global `whitespace-mode' can be auto-enabled.
+The value is a list of regexps.  Set this custom option when you need
+`whitespace-mode' in special buffers like \"*Org Src*\"."
+  :type '(repeat (regexp :tag "Regexp matching buffer name"))
+  :version "31.1")
 
 (defcustom whitespace-action nil
   "Specify which action is taken when a buffer is visited or written.
@@ -933,6 +963,17 @@ Any other value is treated as nil."
 			  (const :tag "Auto Cleanup" auto-cleanup)
 			  (const :tag "Abort On Bogus" abort-on-bogus)
 			  (const :tag "Warn If Read-Only" warn-if-read-only)))))
+
+(defvar whitespace--page-delimiters-keyword
+  `((,(lambda (bound)
+        (re-search-forward (concat page-delimiter "\n") bound t))
+     0
+     (prog1 nil
+       (put-text-property (match-beginning 0) (1- (match-end 0)) 'display " ")
+       (add-text-properties (match-beginning 0) (match-end 0)
+                            '( face whitespace-page-delimiter
+                               display-line-numbers-disable t)))))
+  "Used to add page delimiters keywords to `whitespace-font-lock-keywords'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -976,6 +1017,15 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
   ;; sync states (running a batch job)
   (setq whitespace-newline-mode whitespace-mode))
 
+;;;###autoload
+(define-minor-mode whitespace-page-delimiters-mode
+  "Display page-break delimiter characters as horizontal lines."
+  :lighter " pd"
+  :group 'whitespace
+  (let ((whitespace-style '(face page-delimiters)))
+    (whitespace-mode (if whitespace-page-delimiters-mode
+                         1 -1))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; User commands - Global mode
@@ -999,11 +1049,13 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
          ;; ...we have a display (not running a batch job)
          (not noninteractive)
          ;; ...the buffer is not internal (name starts with a space)
-         (not (eq (aref (buffer-name) 0) ?\ ))
+         (not (eq (aref (buffer-name) 0) ?\s))
          ;; ...the buffer is not special (name starts with *)
          (or (not (eq (aref (buffer-name) 0) ?*))
-             ;; except the scratch buffer.
-             (string= (buffer-name) "*scratch*"))))
+             ;; except, e.g., the scratch buffer.
+             (any (lambda (re)
+                    (string-match-p re (buffer-name)))
+                  whitespace-global-mode-buffers))))
   "Predicate to decide which buffers obey `global-whitespace-mode'.
 This function is called with no argument and should return non-nil
 if the current buffer should obey `global-whitespace-mode'.
@@ -1044,6 +1096,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
     tabs
     spaces
     trailing
+    page-delimiters
     lines
     lines-tail
     lines-char
@@ -1071,6 +1124,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
   '((?f    . face)
     (?t    . tabs)
     (?s    . spaces)
+    (?p    . page-delimiters)
     (?r    . trailing)
     (?l    . lines)
     (?L    . lines-tail)
@@ -1156,6 +1210,7 @@ Interactively, it reads one of the following chars:
    t	toggle TAB visualization
    s	toggle SPACE and HARD SPACE visualization
    r	toggle trailing blanks visualization
+   p	toggle page delimiters visualization
    l	toggle \"long lines\" visualization
    L	toggle \"long lines\" tail visualization
    n	toggle NEWLINE visualization
@@ -1186,6 +1241,7 @@ The valid symbols are:
    tabs			toggle TAB visualization
    spaces		toggle SPACE and HARD SPACE visualization
    trailing		toggle trailing blanks visualization
+   page-delimiters	toggle page delimiters visualization
    lines		toggle \"long lines\" visualization
    lines-tail		toggle \"long lines\" tail visualization
    newline		toggle NEWLINE visualization
@@ -1237,6 +1293,7 @@ Interactively, it accepts one of the following chars:
    t	toggle TAB visualization
    s	toggle SPACE and HARD SPACE visualization
    r	toggle trailing blanks visualization
+   p	toggle page delimiters visualization
    l	toggle \"long lines\" visualization
    L	toggle \"long lines\" tail visualization
    C-l	toggle \"long lines\" one character visualization
@@ -1268,6 +1325,7 @@ The valid symbols are:
    tabs			toggle TAB visualization
    spaces		toggle SPACE and HARD SPACE visualization
    trailing		toggle trailing blanks visualization
+   page-delimiters	toggle page delimiters visualization
    lines		toggle \"long lines\" visualization
    lines-tail		toggle \"long lines\" tail visualization
    lines-char		toggle \"long lines\" one character visualization
@@ -2035,6 +2093,7 @@ resultant list will be returned."
 	   (memq 'lines-tail              whitespace-active-style)
 	   (memq 'lines-char              whitespace-active-style)
 	   (memq 'newline                 whitespace-active-style)
+           (memq 'page-delimiters         whitespace-active-style)
 	   (memq 'empty                   whitespace-active-style)
 	   (memq 'indentation             whitespace-active-style)
 	   (memq 'indentation::tab        whitespace-active-style)
@@ -2108,6 +2167,13 @@ resultant list will be returned."
                 ;; first overflowing character
                 ((memq 'lines-char whitespace-active-style) 3))
               whitespace-line prepend)))
+       ,@(when (memq 'page-delimiters whitespace-active-style)
+           (unless (and (memq 'display font-lock-extra-managed-props)
+                        (memq 'display-line-numbers-disable font-lock-extra-managed-props))
+             (setq-local font-lock-extra-managed-props
+                         `(,@font-lock-extra-managed-props display display-line-numbers-disable)))
+           ;; Show page delimiters characters
+           whitespace--page-delimiters-keyword)
        ,@(when (or (memq 'space-before-tab whitespace-active-style)
                    (memq 'space-before-tab::tab whitespace-active-style)
                    (memq 'space-before-tab::space whitespace-active-style))

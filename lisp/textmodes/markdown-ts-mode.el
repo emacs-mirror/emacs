@@ -1,6 +1,6 @@
 ;;; markdown-ts-mode.el --- tree sitter support for Markdown  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author     : Rahul Martim Juliato <rahul.juliato@gmail.com>
 ;; Maintainer : Rahul Martim Juliato <rahul.juliato@gmail.com>
@@ -39,11 +39,9 @@
 
 (require 'treesit)
 (require 'subr-x)
+(require 'outline)
 
-(declare-function treesit-node-parent "treesit.c")
-(declare-function treesit-node-child "treesit.c")
-(declare-function treesit-node-type "treesit.c")
-(declare-function treesit-parser-create "treesit.c")
+(treesit-declare-unavailable-functions)
 
 (add-to-list
  'treesit-language-source-alist
@@ -108,6 +106,12 @@ maps to tree-sitter language `cpp'.")
     (yaml . yaml-ts-mode))
   "An alist of supported code block languages and their major mode.")
 
+(defcustom markdown-ts-hide-markup nil
+  "Non-nil means hide Markdown markup delimiters in this buffer."
+  :type 'boolean
+  :safe #'booleanp
+  :group 'markdown-ts)
+
 ;;; Faces
 
 (defgroup markdown-ts-faces nil
@@ -150,6 +154,19 @@ maps to tree-sitter language `cpp'.")
 
 ;;; Font-lock
 
+(defun markdown-ts--fontify-delimiter (node override start end &rest _)
+  "Fontify delimiter NODE and optionally hide its markup.
+
+NODE is the tree-sitter node representing the delimiter.
+OVERRIDE, START, and END are passed through to
+`treesit-fontify-with-override'."
+  (treesit-fontify-with-override
+   (treesit-node-start node) (treesit-node-end node)
+   'markdown-ts-delimiter override start end)
+  (when markdown-ts-hide-markup
+    (put-text-property (treesit-node-start node) (treesit-node-end node)
+                       'invisible 'markdown-ts--markup)))
+
 (defvar markdown-ts--treesit-settings
   (treesit-font-lock-rules
    :language 'markdown-inline
@@ -171,12 +188,12 @@ maps to tree-sitter language `cpp'.")
    :language 'markdown
    :feature 'heading
    :override 'prepend
-   '((atx_h1_marker) @markdown-ts-delimiter
-     (atx_h2_marker) @markdown-ts-delimiter
-     (atx_h3_marker) @markdown-ts-delimiter
-     (atx_h4_marker) @markdown-ts-delimiter
-     (atx_h5_marker) @markdown-ts-delimiter
-     (atx_h6_marker) @markdown-ts-delimiter)
+   '((atx_h1_marker) @markdown-ts--fontify-delimiter
+     (atx_h2_marker) @markdown-ts--fontify-delimiter
+     (atx_h3_marker) @markdown-ts--fontify-delimiter
+     (atx_h4_marker) @markdown-ts--fontify-delimiter
+     (atx_h5_marker) @markdown-ts--fontify-delimiter
+     (atx_h6_marker) @markdown-ts--fontify-delimiter)
 
    :language 'markdown
    :feature 'paragraph
@@ -191,13 +208,13 @@ maps to tree-sitter language `cpp'.")
    :feature 'paragraph
    :override 'prepend
    '((block_quote) @markdown-ts-block-quote
-     (block_quote_marker) @markdown-ts-delimiter
-     (fenced_code_block_delimiter) @markdown-ts-delimiter
+     (block_quote_marker) @markdown-ts--fontify-delimiter
+     (fenced_code_block_delimiter) @markdown-ts--fontify-delimiter
      (fenced_code_block
-      (info_string (language) @markdown-ts-language-keyword))
+      (info_string (language) @markdown-ts-language-keyword) @markdown-ts--fontify-delimiter)
      (block_quote
-      (block_quote_marker) @markdown-ts-delimiter
-      (paragraph (inline (block_continuation) @markdown-ts-delimiter))))
+      (block_quote_marker) @markdown-ts--fontify-delimiter
+      (paragraph (inline (block_continuation) @markdown-ts--fontify-delimiter))))
 
    :language 'markdown-inline
    :override 'append
@@ -205,6 +222,7 @@ maps to tree-sitter language `cpp'.")
    '(((image_description) @link)
      ((link_destination) @font-lock-string-face)
      ((code_span) @font-lock-string-face)
+     ((code_span_delimiter) @markdown-ts--fontify-delimiter)
      ((emphasis) @italic)
      ((strong_emphasis) @bold)
      (inline_link (link_text) @link)
@@ -214,7 +232,7 @@ maps to tree-sitter language `cpp'.")
    :language 'markdown-inline
    :feature 'paragraph-inline
    :override 'append
-   '((emphasis_delimiter) @markdown-ts-delimiter)
+   '((emphasis_delimiter) @markdown-ts--fontify-delimiter)
    ))
 
 ;;; Imenu
@@ -292,12 +310,17 @@ the same features enabled in MODE."
                  (intern (downcase lang-string)))))
     ;; FIXME: Kind of a hack here: we use this function as a hook for
     ;; loading up configs for the language for the code block on-demand.
-    (unless (memq lang markdown-ts--configured-languages)
-      (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
-        (when (fboundp mode)
+    (let ((mode (alist-get lang markdown-ts-code-block-source-mode-map)))
+      ;; If there's no supported mode for the language, return nil,
+      ;; which makes Emacs skip the code block.
+      (if (not (and mode (fboundp mode)))
+          nil
+        ;; If there's a major mode for the language, set up the config
+        ;; and return the language.
+        (when (not (memq lang markdown-ts--configured-languages))
           (markdown-ts--add-config-for-mode lang mode)
-          (push lang markdown-ts--configured-languages))))
-    lang))
+          (push lang markdown-ts--configured-languages))
+        lang))))
 
 (defun markdown-ts--range-settings ()
   "Return range settings for `markdown-ts-mode'."
@@ -307,37 +330,35 @@ the same features enabled in MODE."
    :range-fn #'treesit-range-fn-exclude-children
    '((inline) @markdown-inline)
 
-   :embed 'yaml
-   :host 'markdown
-   :local t
-   '((minus_metadata) @yaml)
-
-   :embed 'toml
-   :host 'markdown
-   :local t
-   '((plus_metadata) @toml)
-
-   :embed 'html
-   :host 'markdown
-   :local t
-   '((html_block) @html)
-
-   :embed 'html
-   :host 'markdown-inline
-   '((html_tag) @html)
-
    :embed #'markdown-ts--convert-code-block-language
    :host 'markdown
    :local t
    '((fenced_code_block (info_string (language) @language)
                         (code_fence_content) @content))))
 
+(defun markdown-ts--set-hide-markup (value)
+  "Set hiding of Markdown markup delimiters in the current buffer.
+VALUE non-nil hides markup, nil shows it."
+  (if value
+      (add-to-invisibility-spec 'markdown-ts--markup)
+    (remove-from-invisibility-spec 'markdown-ts--markup))
+  (font-lock-flush))
+
+(defun markdown-ts-toggle-hide-markup ()
+  "Toggle hiding of Markdown markup delimiters in the current buffer."
+  (interactive)
+  (setq markdown-ts-hide-markup (not markdown-ts-hide-markup))
+  (markdown-ts--set-hide-markup markdown-ts-hide-markup))
+
+
 ;;; Major mode
 
 (defun markdown-ts-setup ()
   "Setup treesit for `markdown-ts-mode'."
+  (make-local-variable 'markdown-ts-hide-markup)
   (setq-local treesit-font-lock-settings markdown-ts--treesit-settings)
   (setq-local treesit-range-settings (markdown-ts--range-settings))
+  (add-to-list 'font-lock-extra-managed-props 'invisible)
 
   (when (treesit-ready-p 'html t)
     (treesit-parser-create 'html)
@@ -350,7 +371,18 @@ the same features enabled in MODE."
     (setq-local treesit-font-lock-feature-list
                 (treesit-merge-font-lock-feature-list
                  treesit-font-lock-feature-list
-                 html-ts-mode--treesit-font-lock-feature-list)))
+                 html-ts-mode--treesit-font-lock-feature-list))
+    (setq-local treesit-range-settings
+                (append treesit-range-settings
+                        (treesit-range-rules
+                         :embed 'html
+                         :host 'markdown
+                         :local t
+                         '((html_block) @html)
+
+                         :embed 'html
+                         :host 'markdown-inline
+                         '((html_tag) @html)))))
 
   (when (treesit-ready-p 'yaml t)
     (require 'yaml-ts-mode)
@@ -362,7 +394,14 @@ the same features enabled in MODE."
     (setq-local treesit-font-lock-feature-list
                 (treesit-merge-font-lock-feature-list
                  treesit-font-lock-feature-list
-                 yaml-ts-mode--font-lock-feature-list)))
+                 yaml-ts-mode--font-lock-feature-list))
+    (setq-local treesit-range-settings
+                (append treesit-range-settings
+                        (treesit-range-rules
+                         :embed 'yaml
+                         :host 'markdown
+                         :local t
+                         '((minus_metadata) @yaml)))))
 
   (when (treesit-ready-p 'toml t)
     (require 'toml-ts-mode)
@@ -374,9 +413,17 @@ the same features enabled in MODE."
     (setq-local treesit-font-lock-feature-list
                 (treesit-merge-font-lock-feature-list
                  treesit-font-lock-feature-list
-                 toml-ts-mode--font-lock-feature-list)))
+                 toml-ts-mode--font-lock-feature-list))
+    (setq-local treesit-range-settings
+                (append treesit-range-settings
+                        (treesit-range-rules
+                         :embed 'toml
+                         :host 'markdown
+                         :local t
+                         '((plus_metadata) @toml)))))
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+  (markdown-ts--set-hide-markup markdown-ts-hide-markup))
 
 ;;;###autoload
 (define-derived-mode markdown-ts-mode text-mode "Markdown"
@@ -403,8 +450,24 @@ the same features enabled in MODE."
 
 (derived-mode-add-parents 'markdown-ts-mode '(markdown-mode))
 
-(if (treesit-ready-p 'markdown)
-    (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode)))
+;;;###autoload
+(defun markdown-ts-mode-maybe ()
+  "Enable `markdown-ts-mode' when its grammar is available.
+Also propose to install the grammar when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (treesit-language-available-p 'markdown)
+          (eq treesit-enabled-modes t)
+          (memq 'markdown-ts-mode treesit-enabled-modes))
+      (markdown-ts-mode)
+    (fundamental-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(markdown-mode . markdown-ts-mode)))
 
 (provide 'markdown-ts-mode)
 ;;; markdown-ts-mode.el ends here

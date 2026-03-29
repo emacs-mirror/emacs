@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2026 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
@@ -188,16 +188,14 @@ When nil, don't show messages."
   :group 'dired-x)
 
 (defcustom dired-find-subdir nil           ; t is pretty near to DWIM...
-  "If non-nil, Dired always finds a directory in a buffer of its own.
-If nil, Dired finds the directory as a subdirectory in some other buffer
-if it is present as one.
+  "If nil, Dired always finds a directory in a buffer of its own.
+If non-nil, Dired finds the directory as a subdirectory in some
+other buffer if it is present as one.
 
-If there are several Dired buffers for a directory, the most recently
-used is chosen.
-
-Dired avoids switching to the current buffer, so that if you have
-a normal and a wildcard buffer for the same directory, \\[dired] will
-toggle between those two."
+If the value is non-nil, and there are several Dired buffers for a
+directory, the most recently used is chosen.  Dired avoids switching
+to the current buffer, so that if you have a normal and a wildcard
+buffer for the same directory, \\[dired] will toggle between those two."
   :type 'boolean
   :group 'dired-x)
 
@@ -475,7 +473,9 @@ status message."
                  nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
             (old-modified-p (buffer-modified-p))
-            (count (or init-count 0)))
+            (count (or init-count 0))
+            (dired-omit-verbose
+             (and dired-omit-verbose (not auto-revert-buffer-in-progress))))
         (unless (string= omit-re "")
           (let ((dired-marker-char dired-omit-marker-char))
             (when dired-omit-verbose (message "Omitting..."))

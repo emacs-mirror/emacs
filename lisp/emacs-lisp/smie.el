@@ -1,6 +1,6 @@
 ;;; smie.el --- Simple Minded Indentation Engine -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation
@@ -1140,7 +1140,8 @@ OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
 
 (defcustom smie-indent-basic 4
   "Basic amount of indentation."
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defvar smie-rules-function #'ignore
   "Function providing the indentation rules.
@@ -1152,7 +1153,7 @@ METHOD can be:
 - :before, in which case ARG is a token and the function should return the
   OFFSET to use to indent ARG itself.
 - :elem, in which case the function should return either:
-  - the offset to use to indent function arguments (ARG = `arg')
+  - the offset to use to indent function arguments (ARG = `args')
   - the basic indentation step (ARG = `basic').
   - the token to use (when ARG = `empty-line-token') when we don't know how
     to indent an empty line.

@@ -1,6 +1,6 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2001-2025 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
@@ -172,11 +172,12 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 	  (switch-to-buffer (Buffer-menu-buffer t)))))))
 
 (defun electric-buffer-menu-looper (state condition)
+  ;; NOTE: This code looks very much like `ebrowse-electric-list-looper'.
   (cond ((and condition
-	      (not (memq (car condition) '(buffer-read-only
-					   end-of-buffer
-					   beginning-of-buffer))))
-	 (signal (car condition) (cdr condition)))
+	      (not (or (error-has-type-p condition 'buffer-read-only)
+		       (error-has-type-p condition 'end-of-buffer)
+		       (error-has-type-p condition 'beginning-of-buffer))))
+	 (signal condition))
 	((< (point) (car state))
 	 (goto-char (point-min))
 	 (unless Buffer-menu-use-header-line

@@ -1,6 +1,6 @@
 ;;; icons.el --- Handling icons  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: icons buttons
@@ -194,7 +194,6 @@ present if the icon is represented by an image."
          (file-exists (and (stringp file) (file-readable-p file))))
     (and file-exists
          (display-images-p)
-         (fboundp 'image-supported-file-p)
          (image-supported-file-p file)
          (propertize
           " " 'display

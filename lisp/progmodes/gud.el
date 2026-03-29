@@ -1,6 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998, 2000-2025 Free Software Foundation,
+;; Copyright (C) 1992-1996, 1998, 2000-2026 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@thyrsus.com>
@@ -446,8 +446,9 @@ we're in the GUD buffer)."
      ,(if key `(define-key gud-global-map ,key #',func))))
 
 ;; Where gud-display-frame should put the debugging arrow; a cons of
-;; (filename . line-number).  This is set by the marker-filter, which scans
-;; the debugger's output for indications of the current program counter.
+;; (filename . line-number) or (list filename line-number column-number).
+;; This is set by the marker-filter, which scans the debugger's output
+;; for indications of the current program counter.
 (defvar gud-last-frame nil)
 
 ;; Used by gud-refresh, which should cause gud-display-frame to redisplay
@@ -583,7 +584,7 @@ required by the caller."
 	  (while var-list
 	    (let* (char (depth 0) (start 0) (var (car var-list))
 			(varnum (car var)) (expr (nth 1 var))
-			(type (if (nth 3 var) (nth 3 var) " "))
+			(type (copy-sequence (or (nth 3 var) " ")))
 			(value (nth 4 var)) (status (nth 5 var))
 			(has-more (nth 6 var)))
 	      (put-text-property
@@ -3854,8 +3855,10 @@ so they have been disabled."))
          (lambda (m)
            (let ((line (string-to-number (match-string 1 m)))
                  (col (string-to-number (match-string 2 m)))
-                 (file  (match-string 3 m)))
-             (setq gud-last-frame (list file line col)))
+                 (file (match-string 3 m)))
+             (setq gud-last-frame (if (zerop col)
+                                      (cons file line)
+                                    (list file line col))))
            ;; Remove the line so that the user won't see it.
            "")
          string t t))

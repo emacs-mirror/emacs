@@ -1,6 +1,6 @@
 /* Inotify support for Emacs
 
-Copyright (C) 2012-2025 Free Software Foundation, Inc.
+Copyright (C) 2012-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -339,6 +339,7 @@ inotify_callback (int fd, void *_)
   struct input_event event;
   EVENT_INIT (event);
   event.kind = FILE_NOTIFY_EVENT;
+  event.frame_or_window = Qnil;
 
   for (ssize_t i = 0; i < n; )
     {

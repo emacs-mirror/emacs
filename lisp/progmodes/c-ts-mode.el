@@ -1,6 +1,6 @@
 ;;; c-ts-mode.el --- tree-sitter support for C and C++  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -65,11 +65,9 @@
 ;;
 ;;   will turn on the c++-ts-mode for C++ source files.
 ;;
-;; - If you have both C and C++ grammars installed, add
-;;
-;;     (load "c-ts-mode")
-;;
-;;   to your init file.
+;; - If you have both C and C++ grammars installed, customize
+;;   'treesit-enabled-modes' and select 'c-ts-mode',
+;;   'c++-mode', 'c-or-c++-mode'.
 ;;
 ;; You can also turn on these modes manually in a buffer.  Doing so
 ;; will set up Emacs to use the C/C++ modes defined here for other
@@ -104,7 +102,9 @@
 
 ;;; Custom variables
 
-(defcustom c-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'c-ts-mode-indent-offset
+  'c-ts-indent-offset "31")
+(defcustom c-ts-indent-offset 2
   "Number of spaces for each indentation step in `c-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -130,6 +130,7 @@ just toggles it when zero or omitted."
       (c-ts-mode-set-modeline))))
 
 (defun c-ts-mode-set-modeline ()
+  "Set major mode name to either C or C++ in mode-line."
   (setq mode-name
         (concat (if (eq major-mode 'c-ts-mode) "C" "C++")
                 (string-trim-right comment-start)))
@@ -293,7 +294,7 @@ is actually the parent of point at the moment of indentation."
                        (treesit-node-parent
                         (treesit-node-parent node))))
         0
-      c-ts-mode-indent-offset)))
+      c-ts-indent-offset)))
 
 (defun c-ts-mode--prev-sibling (node parent bol &rest _)
   "Return the start of the previous named sibling of NODE.
@@ -387,7 +388,7 @@ NODE and PARENT as usual."
      ;; change). Eg, for (;;) {...}
      ((treesit-node-eq node (treesit-node-child parent -1 'named))
       (cons (c-ts-common--standalone-parent parent)
-            c-ts-mode-indent-offset))
+            c-ts-indent-offset))
      ;; Initializer.
      ((and (treesit-node-check node 'named)
            (eq (treesit-node-index node 'named) 0 ))
@@ -419,11 +420,11 @@ NODE and PARENT as usual."
     ;; indents against parent, the rest statements indent to
     ;; their prev-sibling.
     ((match nil ,(rx "preproc_" (or "if" "elif")) nil 3 3)
-     c-ts-mode--standalone-parent c-ts-mode-indent-offset)
+     c-ts-mode--standalone-parent c-ts-indent-offset)
     ((match nil "preproc_ifdef" nil 2 2)
-     c-ts-mode--standalone-parent c-ts-mode-indent-offset)
+     c-ts-mode--standalone-parent c-ts-indent-offset)
     ((match nil "preproc_else" nil 1 1)
-     c-ts-mode--standalone-parent c-ts-mode-indent-offset)
+     c-ts-mode--standalone-parent c-ts-indent-offset)
     ((parent-is "preproc") c-ts-mode--prev-sibling 0))
   "Indent rules for preprocessors.")
 
@@ -459,7 +460,7 @@ NODE and PARENT are the same as other indent rules."
        ;; First sibling.
        ((treesit-node-eq (treesit-node-child parent 0 'named) node)
         (cons (funcall parent-bol)
-              c-ts-mode-indent-offset))))))
+              c-ts-indent-offset))))))
 
 (defun c-ts-mode--emacs-macro-rules (_ parent &rest _)
   "Rules for indenting macros in Emacs C source.
@@ -471,7 +472,7 @@ PARENT is the same as other simple-indent rules."
                  (treesit-node-child-by-field-name parent "type"))
                 "FOR_EACH_TAIL"))
     (cons (treesit-node-start parent)
-          c-ts-mode-indent-offset))))
+          c-ts-indent-offset))))
 
 (defun c-ts-mode--simple-indent-rules (mode style)
   "Return the indent rules for MODE and STYLE.
@@ -480,7 +481,7 @@ The returned value can be set to `treesit-simple-indent-rules'.
 MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
   (let ((rules
          `((c-ts-mode--for-each-tail-body-matcher
-            prev-line c-ts-mode-indent-offset)
+            prev-line c-ts-indent-offset)
 
            ;; Misc overrides.
            ((parent-is "translation_unit") column-0 0)
@@ -530,7 +531,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
            ;; C++
            ((node-is "access_specifier") parent-bol 0)
            ((prev-line-is "access_specifier")
-            parent-bol c-ts-mode-indent-offset)
+            parent-bol c-ts-indent-offset)
 
            c-ts-common-baseline-indent-rule)))
     (setq rules
@@ -545,7 +546,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
                ,@rules))
             ('bsd
              `(((match "compound_statement" "compound_statement")
-                standalone-parent c-ts-mode-indent-offset)
+                standalone-parent c-ts-indent-offset)
                ((node-is "compound_statement") standalone-parent 0)
                ,@rules))))
     (pcase mode
@@ -553,7 +554,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
       ('cpp `((cpp . ,rules))))))
 
 (defun c-ts-mode--parenthesized-expression-indent-rule (_node parent &rest _)
-  "Indent rule that indents aprenthesized expression.
+  "Indent rule that indents parenthesized expression.
 
 Aligns the next line to the first sibling
 
@@ -598,7 +599,7 @@ NODE, PARENT, BOL, ARGS are as usual."
    ;; Indent the statement below the label.
    ((treesit-node-match-p parent "labeled_statement")
     (cons (c-ts-mode--standalone-parent node parent bol args)
-          c-ts-mode-indent-offset))
+          c-ts-indent-offset))
    ;; If previous sibling is a labeled_statement, align to it's
    ;; children, which is the previous statement.
    ((and (not (treesit-node-match-p node "}"))
@@ -829,15 +830,15 @@ MODE is either `c' or `cpp'."
    ;; expressions, see `c-ts-mode--fontify-declarator' for
    ;; inspiration.
    '((assignment_expression
-      left: (identifier) @font-lock-variable-name-face)
+      left: (identifier) @font-lock-variable-use-face)
      (assignment_expression
       left: (field_expression field: (_) @font-lock-property-use-face))
      (assignment_expression
       left: (pointer_expression
-             (identifier) @font-lock-variable-name-face))
+             (identifier) @font-lock-variable-use-face))
      (assignment_expression
       left: (subscript_expression
-             (identifier) @font-lock-variable-name-face))
+             (identifier) @font-lock-variable-use-face))
      (init_declarator declarator: (_) @c-ts-mode--fontify-declarator))
 
    :feature 'function
@@ -1411,7 +1412,7 @@ BEG and END are described in `treesit-range-rules'."
   ;; Indent.
   (when (eq c-ts-mode-indent-style 'linux)
     (setq-local indent-tabs-mode t))
-  (setq-local c-ts-common-indent-offset 'c-ts-mode-indent-offset)
+  (setq-local c-ts-common-indent-offset 'c-ts-indent-offset)
   ;; This setup is not needed anymore, but we might find uses for it
   ;; later, so I'm keeping it.
   (setq-local c-ts-common-indent-type-regexp-alist
@@ -1470,7 +1471,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your init files."
+in your init files, or customize `treesit-enabled-modes'."
   :group 'c
   :after-hook (c-ts-mode-set-modeline)
 
@@ -1545,7 +1546,7 @@ To use tree-sitter C/C++ modes by default, evaluate
     (add-to-list \\='major-mode-remap-alist
                  \\='(c-or-c++-mode . c-or-c++-ts-mode))
 
-in your init files.
+in your init files, or customize `treesit-enabled-modes'.
 
 Since this mode uses a parser, unbalanced brackets might cause
 some breakage in indentation/fontification.  Therefore, it's
@@ -1566,6 +1567,7 @@ recommended to enable `electric-pair-mode' with this mode."
                       (funcall c-ts-mode-indent-style)
                     (c-ts-mode--simple-indent-rules
                      'cpp c-ts-mode-indent-style)))
+      (setq-local editorconfig-indent-size-vars '(c-ts-indent-offset))
 
       ;; Font-lock.
       (setq-local treesit-font-lock-settings
@@ -1675,21 +1677,14 @@ the code is C or C++, and based on that chooses whether to enable
            'c-ts-mode)))
     (funcall (major-mode-remap mode))))
 
-(when (treesit-ready-p 'cpp)
-  (setq major-mode-remap-defaults
-        (assq-delete-all 'c++-mode major-mode-remap-defaults))
-  (add-to-list 'major-mode-remap-defaults '(c++-mode . c++-ts-mode)))
-
-(when (treesit-ready-p 'c)
-  (setq major-mode-remap-defaults
-        (assq-delete-all 'c-mode major-mode-remap-defaults))
-  (add-to-list 'major-mode-remap-defaults '(c-mode . c-ts-mode)))
-
-(when (and (treesit-ready-p 'cpp)
-           (treesit-ready-p 'c))
-  (setq major-mode-remap-defaults
-        (assq-delete-all 'c-or-c++-mode major-mode-remap-defaults))
-  (add-to-list 'major-mode-remap-defaults '(c-or-c++-mode . c-or-c++-ts-mode)))
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(c-mode . c-ts-mode))
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(c++-mode . c++-ts-mode))
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(c-or-c++-mode . c-or-c++-ts-mode)))
 
 (provide 'c-ts-mode)
 (provide 'c++-ts-mode)

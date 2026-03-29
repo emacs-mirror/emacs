@@ -1,6 +1,6 @@
 ;;; flyspell.el --- On-the-fly spell checker  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: emacs-devel@gnu.org
@@ -404,10 +404,12 @@ like <img alt=\"Some thing.\">."
 
 (defun flyspell-generic-progmode-verify ()
   "Used for `flyspell-generic-check-word-predicate' in programming modes."
-  (unless (eql (point) (point-min))
-    ;; (point) is next char after the word. Must check one char before.
-    (let ((f (get-text-property (1- (point)) 'face)))
-      (memq f flyspell-prog-text-faces))))
+  (cl-flet ((has-prog-face (pos) (memq (get-text-property pos 'face)
+                                       flyspell-prog-text-faces)))
+    ;; Point might be in front of, inside, or behind the misspelled word
+    (or (has-prog-face (point))               ; check char after point
+        (and (not (eql (point) (point-min)))
+             (has-prog-face (1- (point))))))) ; check char before point
 
 ;;;###autoload
 (defun flyspell-prog-mode ()
@@ -1748,17 +1750,11 @@ FLYSPELL-BUFFER."
       (setq pos (point)))
     ;; Seek the next error.
     (while (and (/= pos max)
-		(let ((ovs (overlays-at pos))
-		      (r '()))
-		  (while (and (not r) (consp ovs))
-		    (if (flyspell-overlay-p (car ovs))
-			(setq r t)
-		      (setq ovs (cdr ovs))))
-		  (not r)))
-      (setq pos (if previous (1- pos) (1+ pos))))
+                (setq pos (if previous
+                              (previous-overlay-change pos)
+                            (next-overlay-change pos)))
+                (not (any #'flyspell-overlay-p (overlays-at pos)))))
     (goto-char pos)
-    (when previous
-      (forward-word -1))
     ;; Save the current location for next invocation.
     (setq flyspell-old-pos-error (point))
     (setq flyspell-old-buffer-error (current-buffer))

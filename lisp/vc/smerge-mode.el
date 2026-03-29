@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2026 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -126,7 +126,7 @@ Used in `smerge-diff-base-upper' and related functions."
     (((class color) (min-colors 88) (background light))
      :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
-     :background "#aa2222")
+     :background "#882222")
     (t :inverse-video t))
   "Face used for removed characters shown by `smerge-refine'."
   :version "24.3")
@@ -137,7 +137,7 @@ Used in `smerge-diff-base-upper' and related functions."
     (((class color) (min-colors 88) (background light))
      :background "#aaffaa")
     (((class color) (min-colors 88) (background dark))
-     :background "#22aa22")
+     :background "#228822")
     (t :inverse-video t))
   "Face used for added characters shown by `smerge-refine'."
   :version "24.3")
@@ -160,6 +160,26 @@ Used in `smerge-diff-base-upper' and related functions."
         "<" (cons "base-upper" #'smerge-diff-base-upper)
         ">" (cons "base-lower" #'smerge-diff-base-lower)
         "=" (cons "upper-lower" #'smerge-diff-upper-lower)))
+
+(defvar-keymap smerge-repeat-map
+  :doc "Keymap to repeat SMerge commands.
+Used in `repeat-mode'."
+  :repeat t
+  "n" #'smerge-next
+  "p" #'smerge-prev
+  "r" #'smerge-resolve
+  "a" #'smerge-keep-all
+  "b" #'smerge-keep-base
+  "o" #'smerge-keep-lower
+  "l" #'smerge-keep-lower
+  "m" #'smerge-keep-upper
+  "u" #'smerge-keep-upper
+  "C" #'smerge-combine-with-next
+  "R" #'smerge-refine
+  "C-m" #'smerge-keep-current
+  "<" #'smerge-diff-base-upper
+  ">" #'smerge-diff-base-lower
+  "=" #'smerge-diff-upper-lower)
 
 (defcustom smerge-command-prefix "\C-c^"
   "Prefix for `smerge-mode' commands."
@@ -960,8 +980,8 @@ It has the following disadvantages:
 
 (defvar smerge--refine-long-words)
 
-(defun smerge--refine-chopup-region (beg end file &optional preproc)
-  "Chopup the region from BEG to END into small elements, one per line.
+(defun smerge--refine-chopup-region (overlay file &optional preproc)
+  "Chopup the region covered by OVERLAY into small elements, one per line.
 Save the result into FILE.
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of the text, just before chopping it up.  It can be used to replace
@@ -973,7 +993,9 @@ chars to try and eliminate some spurious differences."
   ;; You can still get this behavior by setting
   ;; `smerge-refine-forward-function' to `forward-char'.
   (with-temp-buffer
-    (insert-buffer-substring (marker-buffer beg) beg end)
+    (insert-buffer-substring (overlay-buffer overlay)
+                             (overlay-start overlay)
+                             (overlay-end overlay))
     (when preproc (goto-char (point-min)) (funcall preproc))
     (when smerge-refine-ignore-whitespace
       ;; It doesn't make much of a difference for diff-fine-highlight
@@ -1026,11 +1048,11 @@ chars to try and eliminate some spurious differences."
     (let ((coding-system-for-write 'utf-8-emacs-unix))
       (write-region (point-min) (point-max) file nil 'nomessage))))
 
-(defun smerge--refine-highlight-change (beg match-num1 match-num2 props)
+(defun smerge--refine-highlight-change (ol match-num1 match-num2 props)
   ;; TODO: Add a property pointing to the corresponding text in the
   ;; other region.
-  (with-current-buffer (marker-buffer beg)
-    (goto-char beg)
+  (with-current-buffer (overlay-buffer ol)
+    (goto-char (overlay-start ol))
     (let* ((startline (- (string-to-number match-num1) 1))
            (beg (progn (funcall (if smerge-refine-weight-hack
                                     #'forward-char
@@ -1110,10 +1132,46 @@ Its appearance is controlled by the face `smerge-refine-shadow-cursor'."
   :version "31.1")
 
 (defface smerge-refine-shadow-cursor
-  '((t :box (:line-width (-2 . -2))))
+  '((t :box (:line-width (-1 . -1))))
   "Face placed on a character to highlight it as the shadow cursor.
 The presence of the shadow cursor depends on the
 variable `smerge-refine-shadow-cursor'.")
+
+(defun smerge--refine-set-overlay-props (ol1 ol2 props-c props-r props-a)
+  (let ((common-props
+         (let ((props '((evaporate . t) (smerge--refine-region . t)
+                        (cursor-sensor-functions
+                         smerge--refine-shadow-cursor))))
+           (dolist (prop (or props-a props-c))
+             (when (and (not (memq (car prop) '(face font-lock-face)))
+                        (member prop (or props-r props-c))
+                        (or (not (and props-c props-a props-r))
+                            (member prop props-c)))
+              ;; This PROP is shared among all those overlays.
+               ;; Better keep it also for the `smerge--refine-region'
+               ;; overlays, so the client package recognizes them as
+               ;; being part of the refinement (e.g. it will hopefully
+               ;; delete them like the others).
+               (push prop props)))
+           props)))
+    (when smerge-refine-shadow-cursor
+      (cursor-sensor-mode 1))
+    (dolist (prop common-props)
+      (overlay-put ol1 (car prop) (cdr prop))
+      (overlay-put ol2 (car prop) (cdr prop)))))
+
+(defun smerge--refine-prepare-regions (ol1 ol2 preproc)
+  (let* ((file1 (make-temp-file "diff1"))
+         (file2 (make-temp-file "diff2"))
+         (smerge--refine-long-words
+          (if smerge-refine-weight-hack (make-hash-table :test #'equal))))
+
+    (let ((write-region-inhibit-fsync t)) ; Don't fsync temp files (Bug#12747).
+      ;; Chop up regions into smaller elements and save into files.
+      (smerge--refine-chopup-region ol1 file1 preproc)
+      (smerge--refine-chopup-region ol2 file2 preproc))
+
+    `(,file1 ,file2)))
 
 ;;;###autoload
 (defun smerge-refine-regions (beg1 end1 beg2 end2 props-c &optional preproc props-r props-a)
@@ -1129,53 +1187,26 @@ PROPS-A on added characters, and PROPS-R on removed characters.
 
 If non-nil, PREPROC is called with no argument in a buffer that contains
 a copy of a region, just before preparing it to for `diff'.  It can be
-used to replace chars to try and eliminate some spurious differences."
-  (let* ((pos (point))
-         deactivate-mark         ; The code does not modify any visible buffer.
-         (file1 (make-temp-file "diff1"))
-         (file2 (make-temp-file "diff2"))
-         (smerge--refine-long-words
-          (if smerge-refine-weight-hack (make-hash-table :test #'equal))))
-
-    ;; Cover the two regions with one `smerge--refine-region' overlay each.
-    (let ((ol1 (make-overlay beg1 end1 nil
-                             ;; Make it shrink rather than spread when editing.
-                             'front-advance nil))
-          (ol2 (make-overlay beg2 end2 nil
-                             ;; Make it shrink rather than spread when editing.
-                             'front-advance nil))
-          (common-props '((evaporate . t) (smerge--refine-region . t)
-                          (cursor-sensor-functions
-                           smerge--refine-shadow-cursor))))
-      (when smerge-refine-shadow-cursor
-        (cursor-sensor-mode 1))
-      (dolist (prop (or props-a props-c))
-        (when (and (not (memq (car prop) '(face font-lock-face)))
-                   (member prop (or props-r props-c))
-                   (or (not (and props-c props-a props-r))
-                       (member prop props-c)))
-          ;; This PROP is shared among all those overlays.
-          ;; Better keep it also for the `smerge--refine-region' overlays,
-          ;; so the client package recognizes them as being part of the
-          ;; refinement (e.g. it will hopefully delete them like the others).
-          (push prop common-props)))
-      (dolist (prop common-props)
-        (overlay-put ol1 (car prop) (cdr prop))
-        (overlay-put ol2 (car prop) (cdr prop))))
-
-    (unless (markerp beg1) (setq beg1 (copy-marker beg1)))
-    (unless (markerp beg2) (setq beg2 (copy-marker beg2)))
-    (let ((write-region-inhibit-fsync t)) ; Don't fsync temp files (Bug#12747).
-      ;; Chop up regions into smaller elements and save into files.
-      (smerge--refine-chopup-region beg1 end1 file1 preproc)
-      (smerge--refine-chopup-region beg2 end2 file2 preproc))
+used to replace chars to try and eliminate some spurious differences.
+The two regions can be in different buffers (in which case, BEG1 and BEG2
+need to be markers to indicate the corresponding buffers)."
+  (pcase-let*
+      ;; Cover the two regions with one `smerge--refine-region' overlay each.
+      ((ol1 (make-overlay beg1 end1 (if (markerp beg1) (marker-buffer beg1))
+                          ;; Make it shrink rather than spread when editing.
+                          'front-advance nil))
+       (ol2 (make-overlay beg2 end2 (if (markerp beg2) (marker-buffer beg2))
+                          ;; Make it shrink rather than spread when editing.
+                          'front-advance nil))
+       (`(,file1 ,file2) (smerge--refine-prepare-regions ol1 ol2 preproc)))
+    (smerge--refine-set-overlay-props ol1 ol2 props-c props-r props-a)
 
     ;; Call diff on those files.
-    (unwind-protect
-        (with-temp-buffer
-          ;; Allow decoding the EOL format, as on MS-Windows the Diff
-          ;; utility might produce CR-LF EOLs.
-          (let ((coding-system-for-read 'utf-8-emacs))
+    (with-temp-buffer
+      ;; Allow decoding the EOL format, as on MS-Windows the Diff
+      ;; utility might produce CR-LF EOLs.
+      (let ((coding-system-for-read 'utf-8-emacs))
+        (unwind-protect
             (call-process diff-command nil t nil
                           (if (and smerge-refine-ignore-whitespace
                                    (not smerge-refine-weight-hack))
@@ -1187,57 +1218,80 @@ used to replace chars to try and eliminate some spurious differences."
                               ;; smerge-refine-weight-hack expects it to.
                               ;; See https://lists.gnu.org/r/emacs-devel/2007-11/msg00401.html
                               "-awd" "-ad")
-                          file1 file2))
-          ;; Process diff's output.
-          (goto-char (point-min))
-          (let ((last1 nil)
-                (last2 nil))
-            (while (not (eobp))
-              (if (not (looking-at "\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?\\([acd]\\)\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?$"))
-                  (error "Unexpected patch hunk header: %s"
-                         (buffer-substring (point) (line-end-position))))
-              (let ((op (char-after (match-beginning 3)))
-                    (m1 (match-string 1))
-                    (m2 (match-string 2))
-                    (m4 (match-string 4))
-                    (m5 (match-string 5)))
-                (setq last1
-                      (smerge--refine-highlight-change
-		       beg1 m1 (if (eq op ?a) t m2)
-		       ;; Try to use props-c only for changed chars,
-		       ;; fallback to props-r for changed/removed chars,
-		       ;; but if props-r is nil then fallback to props-c.
-		       (or (and (eq op '?c) props-c) props-r props-c)))
-                (setq last2
-                      (smerge--refine-highlight-change
-		       beg2 m4 (if (eq op ?d) t m5)
-		       ;; Same logic as for removed chars above.
-		       (or (and (eq op '?c) props-c) props-a props-c))))
-              (overlay-put last1 'smerge--refine-other last2)
-              (overlay-put last2 'smerge--refine-other last1)
-              (forward-line 1)                            ;Skip hunk header.
-              (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
-                   (goto-char (match-beginning 0))))
-            ;; (cl-assert (or (null last1) (< (overlay-start last1) end1)))
-            ;; (cl-assert (or (null last2) (< (overlay-start last2) end2)))
-            (if smerge-refine-weight-hack
-                (progn
-                  ;; (cl-assert (or (null last1) (<= (overlay-end last1) end1)))
-                  ;; (cl-assert (or (null last2) (<= (overlay-end last2) end2)))
-                  )
-              ;; smerge-refine-forward-function when calling in chopup may
-              ;; have stopped because it bumped into EOB whereas in
-              ;; smerge-refine-weight-hack it may go a bit further.
-              (if (and last1 (> (overlay-end last1) end1))
-                  (move-overlay last1 (overlay-start last1) end1))
-              (if (and last2 (> (overlay-end last2) end2))
-                  (move-overlay last2 (overlay-start last2) end2))
-              )))
-      (goto-char pos)
-      (delete-file file1)
-      (delete-file file2))))
+                          file1 file2)
+          (delete-file file1)
+          (delete-file file2)))
+      ;; Process diff's output.
+      (smerge--refine-apply-diff (current-buffer) ol1 ol2
+                                 props-c props-r props-a))))
 (define-obsolete-function-alias 'smerge-refine-subst
   #'smerge-refine-regions "26.1")
+
+
+(defun smerge--refine-apply-diff ( diffbuf ol1 ol2
+                                   props-c props-r props-a)
+  ;; `smerge--refine-apply-diff-1' isn't careful to preserve the
+  ;; position of point, so do it here.
+  (let ((pt1 (with-current-buffer (overlay-buffer ol1) (point)))
+        (pt2 (with-current-buffer (overlay-buffer ol2) (point))))
+    (unwind-protect
+        (smerge--refine-apply-diff-1 diffbuf ol1 ol2
+                                     props-c props-r props-a)
+      (with-current-buffer (overlay-buffer ol1)
+        (goto-char pt1)
+        ;; Usually ol1 and ol2 are in the same buffer, so do the `set-buffer'
+        ;; from ol1 to maximize the chance that it's a no-op.
+        (with-current-buffer (overlay-buffer ol2) (goto-char pt2))))))
+
+(defun smerge--refine-apply-diff-1 ( diffbuf ol1 ol2
+                                   props-c props-r props-a)
+  (with-current-buffer diffbuf
+    (goto-char (point-min))
+    (let ((last1 nil)
+          (last2 nil)
+          (end1 (overlay-end ol1))
+          (end2 (overlay-end ol2)))
+      (while (not (eobp))
+        (if (not (looking-at "\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?\\([acd]\\)\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?$"))
+            (error "Unexpected patch hunk header: %s"
+                   (buffer-substring (point) (line-end-position))))
+        (let ((op (char-after (match-beginning 3)))
+              (m1 (match-string 1))
+              (m2 (match-string 2))
+              (m4 (match-string 4))
+              (m5 (match-string 5)))
+          (setq last1
+                (smerge--refine-highlight-change
+		 ol1 m1 (if (eq op ?a) t m2)
+		 ;; Try to use props-c only for changed chars,
+		 ;; fallback to props-r for changed/removed chars,
+		 ;; but if props-r is nil then fallback to props-c.
+		 (or (and (eq op '?c) props-c) props-r props-c)))
+          (setq last2
+                (smerge--refine-highlight-change
+		 ol2 m4 (if (eq op ?d) t m5)
+		 ;; Same logic as for removed chars above.
+		 (or (and (eq op '?c) props-c) props-a props-c))))
+        (overlay-put last1 'smerge--refine-other last2)
+        (overlay-put last2 'smerge--refine-other last1)
+        (forward-line 1)                            ;Skip hunk header.
+        (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
+             (goto-char (match-beginning 0))))
+      ;; (cl-assert (or (null last1) (< (overlay-start last1) end1)))
+      ;; (cl-assert (or (null last2) (< (overlay-start last2) end2)))
+      (if smerge-refine-weight-hack
+          (progn
+            ;; (cl-assert (or (null last1) (<= (overlay-end last1) end1)))
+            ;; (cl-assert (or (null last2) (<= (overlay-end last2) end2)))
+            )
+        ;; smerge-refine-forward-function when calling in chopup may
+        ;; have stopped because it bumped into EOB whereas in
+        ;; smerge-refine-weight-hack it may go a bit further.
+        (if (and last1 (> (overlay-end last1) end1))
+            (move-overlay last1 (overlay-start last1) end1))
+        (if (and last2 (> (overlay-end last2) end2))
+            (move-overlay last2 (overlay-start last2) end2))
+        ))))
 
 (defun smerge--refine-at-right-margin-p (pos window)
   ;; FIXME: `posn-at-point' seems to be costly/slow.
@@ -1424,7 +1478,7 @@ region, or with a numeric prefix.  By default it uses a numeric prefix of 1."
   ;; conflicts instead!
   (condition-case err
       (smerge-match-conflict)
-    (error (if (not (markerp otherpos)) (signal (car err) (cdr err))
+    (error (if (not (markerp otherpos)) (signal err)
              (goto-char (prog1 otherpos (setq otherpos (point-marker))))
              (smerge-match-conflict))))
   (let ((beg (match-beginning 0))

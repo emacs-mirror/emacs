@@ -1,0 +1,28 @@
+&%%(diary-rrule :rule '((FREQ WEEKLY) (INTERVAL 1) (BYDAY (1))) :start
+	     '(11 1 2004) :duration
+	     '(nil nil nil 1 nil nil nil -1 nil)) Wwww aa hhhh
+ Status: tentative
+ Access: private
+
+&%%(diary-rrule :rule '((FREQ WEEKLY) (INTERVAL 2) (BYDAY (5))) :start
+	     '(0 0 14 12 11 2004 5 -1 nil) :duration
+	     '(0 30 4 0 nil nil nil -1 nil)) MMM Aaaaaaaaa
+ Status: tentative
+ Access: private
+
+&%%(diary-block 11 19 2004 11 19 2004) Rrrr/Cccccc ii Aaaaaaaa
+ Status: tentative
+ Access: private
+ Description: Vvvvv Rrrr aaa Cccccc
+
+&11/23/2004 11:00-12:00 Hhhhhhhh
+ Status: tentative
+ Access: private
+
+&11/23/2004 14:00-14:30 Jjjjj & Wwwww
+ Status: tentative
+ Access: private
+
+&11/23/2004 14:45-15:45 BB Aaaaaaaa Bbbbb
+ Status: tentative
+ Access: private

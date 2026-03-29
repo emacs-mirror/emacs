@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Command Loop
@@ -517,13 +517,23 @@ I/O.
 
 @item r
 @cindex region argument
-Point and the mark, as two numeric arguments, smallest first.  This is
-the only code letter that specifies two successive arguments rather than
-one.  This will signal an error if the mark is not set in the buffer
-which is current when the command is invoked.  If Transient Mark mode
-is turned on (@pxref{The Mark}) --- as it is by default --- and user
-option @code{mark-even-if-inactive} is @code{nil}, Emacs will signal
-an error even if the mark @emph{is} set, but is inactive.  No I/O.
+Point and the mark, as two numeric arguments, smallest first.  This and
+the following are the only code letters that specify two successive
+arguments rather than one.  @samp{r} will signal an error if the mark is
+not set in the buffer which is current when the command is invoked.  If
+Transient Mark mode is turned on (@pxref{The Mark}) --- as it is by
+default --- and user option @code{mark-even-if-inactive} is @code{nil},
+Emacs will signal an error even if the mark @emph{is} set, but is
+inactive.  No I/O.
+
+@item R
+Point and the mark, as two numeric arguments, smallest first, but only
+if the region is active and it is appropriate to act on it, in the sense
+of @code{use-region-p} (@pxref{The Region}).  Otherwise supplies
+@code{nil} twice, for each of the successive arguments.  This code
+letter never signals an error because if the mark is not set,
+@code{use-region-p} just returns nil.  Use this code letter instead of
+@samp{r} for commands which act specially on an active region.  No I/O.
 
 @item s
 Arbitrary text, read in the minibuffer and returned as a string
@@ -2768,12 +2778,12 @@ To test the signal handler, you can make Emacs send a signal to itself:
 @end smallexample
 
 @cindex @code{sleep-event} event
-@item (sleep-event @var{sleep-wake})
-This event is injected when the device Emacs is running on enters or
-leaves the sleep state.  A non-@code{nil} @var{sleep-wake} indicates
-entering the sleep state.
+@item (sleep-event @var{state})
+This event is injected when the device Emacs is running on is about to
+enter a sleep state, or has just awoken from one.  @var{state} will be
+the symbol @code{pre-sleep} or @code{post-wake}.
 
-This is implemented only on GNU/Linux.
+This is implemented on GNU/Linux, macOS, and MS-Windows.
 
 @cindex @code{language-change} event
 @item language-change
@@ -3668,14 +3678,17 @@ character, or for keyboard-quit.
 @end defun
 
 @defun read-multiple-choice prompt choices &optional help-string show-help long-form
-Ask user a multiple choice question.  @var{prompt} should be a string
-that will be displayed as the prompt.
+Ask user a multiple-choice question and return user's choice.
+@var{prompt} should be a string to display as the prompt.
 
 @var{choices} is an alist where the first element in each entry is a
-character to be entered, the second element is a short name for the
+character the user can type, the second element is a short name for the
 entry to be displayed while prompting (if there's room, it might be
 shortened), and the third, optional entry is a longer explanation that
 will be displayed in a help buffer if the user requests more help.
+
+The return value is the entry from @var{choices} that matches the
+character the user types.
 
 If optional argument @var{help-string} is non-@code{nil}, it should be
 a string with a more detailed description of all choices.  It will be
@@ -3691,7 +3704,10 @@ will have to type in long-form answers (using @code{completing-read})
 instead of hitting a single key.  The answers must be among the second
 elements of the values in the @var{choices} list.
 
-The return value is the matching value from @var{choices}.
+By default, this function uses @code{read-from-minibuffer} (@pxref{Text
+from Minibuffer}) to read user input, but if the variable
+@code{read-char-choice-use-read-key} is non-@code{nil}, it uses
+@code{read-key} instead.
 
 @lisp
 (read-multiple-choice
@@ -4046,14 +4062,15 @@ definition to find the actual event.
 user signals like @code{sigusr1} are normally handled in this way.
 The keymap which defines how to handle special events---and which
 events are special---is in the variable @code{special-event-map}
-(@pxref{Controlling Active Maps}).
+(@pxref{Controlling Active Maps}).  @xref{Misc Events}, for more details
+about these and other special events.
 
-@defun insert-special-event
+@defun insert-special-event event
 @cindex inserting special events
-This function inserts a special event into the input event queue.  Only
-event types which are contained in the @code{special-event-map} keymap
-are accepted.  As a result, the handler specified in the keymap is
-invoked.
+This function inserts the special @var{event} into the input event
+queue.  Only event types which are contained in the
+@code{special-event-map} keymap are accepted.  As a result, the handler
+specified in the keymap is invoked.
 
 The function returns @code{nil}.  Example:
 
@@ -4066,9 +4083,9 @@ The function returns @code{nil}.  Example:
 (keymap-set special-event-map "<sleep-event>" #'my-event-handler)
 @result{} my-event-handler
 
-(insert-special-event '(sleep-event t))
+(insert-special-event '(sleep-event pre-sleep))
 @result{} nil
-@result{} "Event arrived: (sleep-event t)"
+@result{} "Event arrived: (sleep-event pre-sleep)"
 @end example
 @end defun
 

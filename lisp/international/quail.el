@@ -1,6 +1,6 @@
 ;;; quail.el --- provides simple input method for multilingual text  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-1998, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2026 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -53,7 +53,6 @@
 ;;; Code:
 
 (require 'help-mode)
-(eval-when-compile (require 'cl-lib))
 
 (defgroup quail nil
   "Quail: multilingual input method."
@@ -835,6 +834,8 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
                                       (format "\t%c\t" upper))
                     (string upper))))
 	(insert (bidi-string-mark-left-to-right lower)
+                ;; This invisible space is here to prevent the display
+                ;; engine from composing these two characters on display.
 		(propertize " " 'invisible t)
 		(bidi-string-mark-left-to-right upper))
 	(if (< (string-width upper) 2)
@@ -2133,10 +2134,14 @@ minibuffer and the selected frame has no other windows)."
     (let ((guidance (quail-guidance)))
       (if (listp guidance)
 	  ;; We must replace the typed key with the specified PROMPT-KEY.
-	  (dotimes (i (length str))
-	    (let ((prompt-key (cdr (assoc (aref str i) guidance))))
-	      (if prompt-key
-		  (aset str i (aref prompt-key 0)))))))
+          (setq str (apply #'string
+                           (mapcar
+                            (lambda (c)
+	                      (let ((prompt-key (assq c guidance)))
+	                        (if prompt-key
+		                    (aref (cdr prompt-key) 0)
+                                  c)))
+                            str)))))
 
       ;; Show followable keys.
       (if (and (> (length quail-current-key) 0) (cdr map))

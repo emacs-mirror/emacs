@@ -1,6 +1,6 @@
 ;;; iroquoian.el --- Quail packages for inputting Iroquoian languages  -*- lexical-binding: t; coding: utf-8; -*-
 
-;; Copyright (C) 2024-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 
 ;; Author: Kierin Bell <fernseed@fernseed.me>
 ;; Keywords: i18n
@@ -24,7 +24,7 @@
 
 ;; This file implements input methods for Northern Iroquoian languages.
 
-;; Input methods are implemented for all Five Nations Iroquois
+;; Input methods are implemented for the following Northern Iroquoian
 ;; languages:
 
 ;; - Mohawk (Kanien’kéha / Kanyen’kéha / Onkwehonwehnéha)
@@ -32,6 +32,7 @@
 ;; - Onondaga (Onųdaʔgegáʔ)
 ;; - Cayuga (Gayogo̱ho:nǫhnéha:ˀ)
 ;; - Seneca (Onödowá’ga:’)
+;; - Tuscarora (Skarù·ręʔ)
 
 ;; A composite input method for all of the languages above is also
 ;; defined: `haudenosaunee-postfix'.
@@ -39,7 +40,6 @@
 ;; Input methods are not yet implemented for the remaining Northern
 ;; Iroquoian languages, including:
 
-;; - Tuscarora (Skarù:ręʔ)
 ;; - Wendat (Huron) / Wyandot
 
 ;;; Code:
@@ -799,6 +799,159 @@ simultaneously using the input method `haudenosaunee-postfix'."
   (quail-defrule key trans))
 
 
+;;; Tuscarora
+
+;;
+;; The primary community orthography used for Tuscarora follows that
+;; used in Blair Rudes's dictionary (see below).
+;;
+;; Reference work for Tuscarora orthography:
+;;
+;; Blair Rudes. 1999. Tuscarora-English/English-Tuscarora
+;; dictionary. Toronto: University of Toronto Press.
+;;
+
+(defconst iroquoian-tuscarora-modifier-alist
+  '(("::" ?\N{MIDDLE DOT}))
+  "Alist of rules for modifier letters in Tuscarora input methods.
+Entries are as with rules in `quail-define-rules'.")
+
+(defconst iroquoian-tuscarora-vowel-alist
+  '(("a'" ?á)
+    ("a`" ?à)
+    ("A'" ?Á)
+    ("A`" ?À)
+    ("e'" ?é)
+    ("e`" ?è)
+    ("E'" ?É)
+    ("E`" ?È)
+    ("i'" ?í)
+    ("i`" ?ì)
+    ("I'" ?Í)
+    ("I`" ?Ì)
+    ("u'" ?ú)
+    ("u`" ?ù)
+    ("U'" ?Ú)
+    ("U`" ?Ù)
+    ("e," ?ę)
+    ("e,'" ["ę́"])
+    ("e,`" ["ę̀"])
+    ("E," ?Ę)
+    ("E,'" ["Ę́"])
+    ("E,`" ["Ę̀"])
+
+    ("a''" ["a'"])
+    ("a``" ["a`"])
+    ("A''" ["A'"])
+    ("A``" ["A`"])
+    ("e''" ["e'"])
+    ("e``" ["e`"])
+    ("E''" ["E'"])
+    ("E``" ["E`"])
+    ("i''" ["i'"])
+    ("i``" ["i`"])
+    ("I''" ["I'"])
+    ("I``" ["I`"])
+    ("u''" ["u'"])
+    ("u``" ["u`"])
+    ("U''" ["U'"])
+    ("U``" ["U`"])
+
+    ("e,," ["e,"])
+    ("e,''" ["ę'"])
+    ("e,``" ["ę`"])
+    ("E,," ["E,"])
+    ("E,''" ["Ę'"])
+    ("E,``" ["Ę`"]))
+  "Alist of rules for vowel letters in Tuscarora input methods.
+Entries are as with rules in `quail-define-rules'.")
+
+(defconst iroquoian-tuscarora-consonant-alist
+  '((";;" ?\N{LATIN LETTER GLOTTAL STOP})
+    ("c/" ?č)
+    ("c//" ["c/"])
+    ("C/" ?Č)
+    ("C//" ["C/"])
+    ("t/" ?θ)
+    ("t//" ["t/"]))
+  "Alist of rules for consonant letters in Tuscarora input methods.
+Entries are as with rules in `quail-define-rules'.")
+
+(defconst iroquoian-tuscarora-exception-alist
+  '(("_" ?\N{COMBINING LOW LINE})
+    ("__" ?_))
+  "Alist of rules for phonological exception marking in Tuscarora input methods.
+Entries are as with rules in `quail-define-rules'.")
+
+(quail-define-package
+ "tuscarora-postfix" "Tuscarora" "TUS<" t
+ "Tuscarora (Skarù·ręʔ) input method with postfix modifiers
+
+Modifiers:
+
+| Key | Translation | Description              |
+|-----+-------------+--------------------------|
+| ::  | ·           | Vowel length             |
+
+Stress diacritics:
+
+| Key  | Description  | Example |
+|------+--------------+---------|
+| \\='    | Acute accent | a' -> á |
+| \\=`    | Grave accent | a` -> à |
+
+Doubling the postfix separates the letter and the postfix.
+
+Vowels:
+
+| Key | Translation | Description                     |
+|-----+-------------+---------------------------------|
+| e,  | ę           | Mid front nasal vowel           |
+| E,  | Ę           | Mid front nasal vowel (capital) |
+
+a, e, i, and u are bound to a single key.
+
+Consonants:
+
+| Key   | Translation | Description                        |
+|-------+-------------+------------------------------------|
+| ;;    | ˀ            | Glottal stop                       |
+| c/    | č            | Postalveolar affricate            |
+| C/    | Č            | Postalveolar affricate (capital)  |
+| t/    | θ            | Voiceless dental fricative        |
+
+h, k, n, r, s, t, w, and y are bound to a single key.
+
+b, l, m, and p are used rarely in loanwords.  They are also each bound
+to a single key.
+
+Stress exception markers:
+
+| Key | Description        | Example  |
+|-----+--------------------+----------|
+| _   | Combining low line | a_ -> a̲ |
+
+Note: Not all fonts can properly display a combining low line on all
+letters.
+
+Underlining has been used by some to indicate that vowels behave
+exceptionally with regard to stress placement.  Alternatively, markup or
+other methods can be used to create an underlining effect.
+
+To enter a plain underscore, type the underscore twice.
+
+All Haudenosaunee languages, including Tuscarora can be input
+simultaneously using the input method `haudenosaunee-postfix'."
+ nil t nil nil nil nil nil nil nil nil t)
+
+(pcase-dolist (`(,key ,trans)
+               (append iroquoian-tuscarora-modifier-alist
+                       iroquoian-tuscarora-consonant-alist
+                       iroquoian-tuscarora-vowel-alist
+                       iroquoian-tuscarora-exception-alist))
+  (quail-defrule key trans))
+
+
 ;;; Haudenosaunee (composite Northern Iroquoian)
 
 ;;
@@ -857,7 +1010,8 @@ simultaneously using the input method `haudenosaunee-postfix'."
                     iroquoian-oneida-modifier-alist
                     iroquoian-onondaga-modifier-alist
                     iroquoian-cayuga-modifier-alist
-                    iroquoian-seneca-modifier-alist))
+                    iroquoian-seneca-modifier-alist
+                    iroquoian-tuscarora-modifier-alist))
   "Alist of rules for modifier letters in Haudenosaunee input methods.
 Entries are as with rules in `quail-define-rules'.")
 
@@ -866,7 +1020,8 @@ Entries are as with rules in `quail-define-rules'.")
                     iroquoian-oneida-vowel-alist
                     iroquoian-onondaga-vowel-alist
                     iroquoian-cayuga-vowel-alist
-                    iroquoian-seneca-vowel-alist))
+                    iroquoian-seneca-vowel-alist
+                    iroquoian-tuscarora-vowel-alist))
   "Alist of rules for vowel letters in Haudenosaunee input methods.
 Entries are as with rules in `quail-define-rules'.")
 
@@ -879,16 +1034,17 @@ Entries are as with rules in `quail-define-rules'.")
              iroquoian-oneida-consonant-alist
              iroquoian-onondaga-consonant-alist
              iroquoian-cayuga-consonant-alist
-             iroquoian-seneca-consonant-alist)
+             iroquoian-seneca-consonant-alist
+             iroquoian-tuscarora-consonant-alist)
             (lambda (c1 c2)
               (equal (car c1) (car c2))))
   "Alist of rules for consonant letters in Haudenosaunee input methods.
 Entries are as with rules in `quail-define-rules'.")
 
-(defconst iroquoian-haudenosaunee-devoicing-alist
+(defconst iroquoian-haudenosaunee-exception-alist
   '(("_" ?\N{COMBINING LOW LINE})
     ("__" ?_))
-  "Alist of rules for devoicing characters in Haudenosaunee input methods.
+  "Rules alist for phonological exception markers in Haudenosaunee input methods.
 Entries are as with rules in `quail-define-rules'.")
 
 (defconst iroquoian-haudenosaunee-nasal-alist iroquoian-onondaga-nasal-alist
@@ -906,6 +1062,7 @@ This input method can be used to enter the following languages:
 - Cayuga (Gayogo̱ho:nǫhnéha:ˀ)
 - Onondaga (Onųdaʔgegáʔ)
 - Seneca (Onödowá’ga:’)
+- Tuscarora (Skarù·ręʔ)
 
 Modifiers:
 
@@ -989,6 +1146,12 @@ Vowels:
 | a\"   | ä           | Low front vowel                                 |
 | A\"   | Ä           | Low front vowel (capital)                       |
 | Single-key vowels: a e i o u                                         |
+|----------------------------------------------------------------------|
+| Tuscarora                                                            |
+| -------------------------------------------------------------------- |
+| e,   | ę           | Mid front nasal vowel                           |
+| E,   | Ę           | Mid front nasal vowel (capital)                 |
+| Single-key vowels: a e i u                                           |
 
 Consonants:
 
@@ -1023,8 +1186,16 @@ Consonants:
 | s/    | š           | Voiceless postalveolar fricative               |
 | S/    | Š           | Voiceless postalveolar fricative (capital)     |
 | Single-key consonants: d g h j k n s t w y z (b m p)                 |
+|----------------------------------------------------------------------|
+| Tuscarora                                                            |
+| -------------------------------------------------------------------- |
+| ;:    | ʔ           | Glottal stop (alternate)                       |
+| c/    | č            | Postalveolar affricate                        |
+| C/    | Č            | Postalveolar affricate (capital)              |
+| t/    | θ            | Voiceless dental fricative                    |
+| Single-key consonants: h k n r s t w y (b l m p)                     |
 
-Devoicing:
+Phonological exception markers:
 
 | Key | Description            | Examples                     |
 |-----+------------------------+------------------------------|
@@ -1035,8 +1206,10 @@ Note: Not all fonts can properly display a combining low line on all
 letters and a combining macron below on all vowels.
 
 Underlining is commonly used in Oneida to indicate devoiced syllables on
-pre-pausal forms (also called utterance-final forms).  Alternatively,
-markup or other methods can be used to create an underlining effect.
+pre-pausal forms (also called utterance-final forms), and it has been
+used in some Tuscarora orthographies to indicate that vowels behave
+exceptionally with regard to stress placement. Alternatively, markup or
+other methods can be used to create an underlining effect.
 
 To enter a plain underscore, the underscore twice.
 
@@ -1046,7 +1219,8 @@ To enter a plain hyphen after a vowel, simply type the hyphen twice.
 
 There are individual input methods for each of the languages that can be
 entered with this input method: `mohawk-postfix', `oneida-postfix',
-`onondaga-postfix', `cayuga-postfix', `seneca-postfix'."
+`onondaga-postfix', `cayuga-postfix', `seneca-postfix',
+`tuscarora-postfix'.."
  nil t nil nil nil nil nil nil nil nil t)
 
 (pcase-dolist (`(,key ,trans)
@@ -1054,7 +1228,7 @@ entered with this input method: `mohawk-postfix', `oneida-postfix',
                        iroquoian-haudenosaunee-consonant-alist
                        iroquoian-haudenosaunee-nasal-alist
                        iroquoian-haudenosaunee-vowel-alist
-                       iroquoian-haudenosaunee-devoicing-alist))
+                       iroquoian-haudenosaunee-exception-alist))
   (quail-defrule key trans))
 
 (provide 'iroquoian)

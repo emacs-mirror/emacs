@@ -1,6 +1,6 @@
 ;;; xt-mouse-tests.el --- Test suite for xt-mouse.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -50,8 +50,7 @@
                      ;; `xterm-mouse-mode' doesn't work in the initial
                      ;; terminal.  Since we can't create a second
                      ;; terminal in batch mode, fake it temporarily.
-                     (cl-letf (((symbol-function 'terminal-name)
-                                (lambda (&optional _terminal) "fake-terminal")))
+                     (cl-letf (((symbol-function 'frame-initial-p) #'ignore))
                        (xterm-mouse-mode 1))
                      ,@body)
                  (xterm-mouse-mode 0))))

@@ -1,0 +1,227 @@
+/* emacs-module.h - GNU Emacs module API.
+
+Copyright (C) 2015-2026 Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
+
+/*
+This file defines the Emacs module API.  Please see the chapter
+`Dynamic Modules' in the GNU Emacs Lisp Reference Manual for
+information how to write modules and use this header file.
+*/
+
+#ifndef EMACS_MODULE_H
+#define EMACS_MODULE_H
+
+#include <stddef.h>
+#include <stdint.h>
+#include <time.h>
+
+#if ((defined __STDC_VERSION__ ? __STDC_VERSION__ : 0) < 202311 \
+     && !defined __bool_true_false_are_defined && !defined __cplusplus)
+#include <stdbool.h>
+#endif
+
+#define EMACS_MAJOR_VERSION @emacs_major_version@
+
+#if defined __cplusplus && __cplusplus >= 201103L
+# define EMACS_NOEXCEPT noexcept
+#else
+# define EMACS_NOEXCEPT
+#endif
+
+#if defined __cplusplus && __cplusplus >= 201703L
+# define EMACS_NOEXCEPT_TYPEDEF noexcept
+#else
+# define EMACS_NOEXCEPT_TYPEDEF
+#endif
+
+#if 3 < __GNUC__ + (3 <= __GNUC_MINOR__)
+# define EMACS_ATTRIBUTE_NONNULL(...) \
+   __attribute__ ((__nonnull__ (__VA_ARGS__)))
+#elif (defined __has_attribute \
+       && (!defined __clang_minor__ \
+	   || 3 < __clang_major__ + (5 <= __clang_minor__)))
+# if __has_attribute (__nonnull__)
+#  define EMACS_ATTRIBUTE_NONNULL(...) \
+    __attribute__ ((__nonnull__ (__VA_ARGS__)))
+# endif
+#endif
+#ifndef EMACS_ATTRIBUTE_NONNULL
+# define EMACS_ATTRIBUTE_NONNULL(...)
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Current environment.  */
+typedef struct emacs_env_@emacs_major_version@ emacs_env;
+
+/* Opaque pointer representing an Emacs Lisp value.
+   BEWARE: Do not assume NULL is a valid value!  */
+typedef struct emacs_value_tag *emacs_value;
+
+enum { emacs_variadic_function = -2 };
+
+/* Struct passed to a module init function (emacs_module_init).  */
+struct emacs_runtime
+{
+  /* Structure size (for version checking).  */
+  ptrdiff_t size;
+
+  /* Private data; users should not touch this.  */
+  struct emacs_runtime_private *private_members;
+
+  /* Return an environment pointer.  */
+  emacs_env *(*get_environment) (struct emacs_runtime *runtime)
+    EMACS_ATTRIBUTE_NONNULL (1);
+};
+
+/* Type aliases for function pointer types used in the module API.
+   Note that we don't use these aliases directly in the API to be able
+   to mark the function arguments as 'noexcept' before C++20.
+   However, users can use them if they want.  */
+
+/* Function prototype for the module Lisp functions.  These must not
+   throw C++ exceptions.  */
+typedef emacs_value (*emacs_function) (emacs_env *env, ptrdiff_t nargs,
+                                       emacs_value *args,
+                                       void *data)
+  EMACS_NOEXCEPT_TYPEDEF EMACS_ATTRIBUTE_NONNULL (1);
+
+/* Function prototype for module user-pointer and function finalizers.
+   These must not throw C++ exceptions.  */
+typedef void (*emacs_finalizer) (void *data) EMACS_NOEXCEPT_TYPEDEF;
+
+/* Possible Emacs function call outcomes.  */
+enum emacs_funcall_exit
+{
+  /* Function has returned normally.  */
+  emacs_funcall_exit_return = 0,
+
+  /* Function has signaled an error using `signal'.  */
+  emacs_funcall_exit_signal = 1,
+
+  /* Function has exited using `throw'.  */
+  emacs_funcall_exit_throw = 2
+};
+
+/* Possible return values for emacs_env.process_input.  */
+enum emacs_process_input_result
+{
+  /* Module code may continue  */
+  emacs_process_input_continue = 0,
+
+  /* Module code should return control to Emacs as soon as possible.  */
+  emacs_process_input_quit = 1
+};
+
+/* Define emacs_limb_t so that it is likely to match GMP's mp_limb_t.
+   This micro-optimization can help modules that use mpz_export and
+   mpz_import, which operate more efficiently on mp_limb_t.  It's OK
+   (if perhaps a bit slower) if the two types do not match, and
+   modules shouldn't rely on the two types matching.  */
+typedef size_t emacs_limb_t;
+#define EMACS_LIMB_MAX SIZE_MAX
+
+struct emacs_env_25
+{
+@module_env_snippet_25@
+};
+
+struct emacs_env_26
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+};
+
+struct emacs_env_27
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+};
+
+struct emacs_env_28
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+};
+
+struct emacs_env_29
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+
+@module_env_snippet_29@
+};
+
+struct emacs_env_30
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+
+@module_env_snippet_29@
+
+@module_env_snippet_30@
+};
+
+struct emacs_env_31
+{
+@module_env_snippet_25@
+
+@module_env_snippet_26@
+
+@module_env_snippet_27@
+
+@module_env_snippet_28@
+
+@module_env_snippet_29@
+
+@module_env_snippet_30@
+
+@module_env_snippet_31@
+};
+
+/* Every module should define a function as follows.  */
+extern int emacs_module_init (struct emacs_runtime *runtime)
+  EMACS_NOEXCEPT
+  EMACS_ATTRIBUTE_NONNULL (1);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* EMACS_MODULE_H */

@@ -1,6 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996-1998, 2001-2025 Free Software
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2026 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -681,8 +681,7 @@ dos_cleanup (void)
     {
       struct frame *sf = XFRAME (selected_frame);
 
-      if (FRAME_LIVE_P (sf)
-	  && (FRAME_MSDOS_P (sf) || FRAME_TERMCAP_P (sf)))
+      if (FRAME_LIVE_P (sf) && is_tty_frame (sf))
 	{
 	  tty = CURTTY ();
 	  if (tty->termscript)

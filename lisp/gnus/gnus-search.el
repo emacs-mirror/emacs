@@ -1,6 +1,6 @@
 ;;; gnus-search.el --- Search facilities for Gnus    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
@@ -2086,8 +2086,8 @@ Assume \"size\" key is equal to \"larger\"."
 	  (if (< 1 (length (alist-get 'search-group-spec specs)))
 	      (apply #'nnheader-message 4
 		     "Search engine for %s improperly configured: %s"
-		     server (cdr err))
-	    (signal (car err) (cdr err))))))
+		     server (error-slot-value err 1))
+            (signal err)))))
      (alist-get 'search-group-spec specs))
     ;; Some search engines do their own limiting, but some don't, so
     ;; do it again here.  This is bad because, if the user is

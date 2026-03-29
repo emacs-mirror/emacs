@@ -1,6 +1,6 @@
 ;;; help-tests.el --- Tests for help.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;;         Eli Zaretskii <eliz@gnu.org>
@@ -480,6 +480,9 @@ C-b		undefined\n"
   (should (equal (substitute-command-keys
                   (propertize "foo \\[save-buffer]" 'face 'bold))
                  (propertize "foo C-x C-s" 'face 'bold))))
+
+(ert-deftest help-tests--use-docstring-arglist-79128 ()
+  (should (eq (length (help-function-arglist 'seq-empty-p t)) 1)))
 
 (provide 'help-tests)
 

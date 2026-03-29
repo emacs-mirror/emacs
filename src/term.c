@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2025 Free Software
+   Copyright (C) 1985-1987, 1993-1995, 1998, 2000-2026 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2968,9 +2968,7 @@ Gpm-mouse can only be activated for one tty at a time.  */)
   (void)
 {
   struct frame *f = SELECTED_FRAME ();
-  struct tty_display_info *tty
-    = ((f)->output_method == output_termcap
-       ? (f)->terminal->display_info.tty : NULL);
+  struct tty_display_info *tty = FRAME_TERMCAP_P (f) ? FRAME_TTY (f) : NULL;
   Gpm_Connect connection;
 
   if (!tty)
@@ -3016,9 +3014,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
   (void)
 {
   struct frame *f = SELECTED_FRAME ();
-  struct tty_display_info *tty
-    = ((f)->output_method == output_termcap
-       ? (f)->terminal->display_info.tty : NULL);
+  struct tty_display_info *tty = FRAME_TERMCAP_P (f) ? FRAME_TTY (f) : NULL;
 
   if (!tty || gpm_tty != tty)
     return Qnil;       /* Not activated on this terminal, nothing to do.  */
@@ -3154,9 +3150,13 @@ mouse_get_xy (int *x, int *y)
   struct frame *sf = SELECTED_FRAME ();
   if (f == sf || frame_ancestor_p (sf, f))
     {
-      int mx = XFIXNUM (XCAR (XCDR (mouse)));
-      int my = XFIXNUM (XCDR (XCDR (mouse)));
-      root_xy (f, mx, my, x, y);
+      Lisp_Object lmx = XCAR (XCDR (mouse)), lmy = XCDR (XCDR (mouse));
+      if (FIXNUMP (lmx) && FIXNUMP (lmy))
+	{
+	  int mx = XFIXNUM (lmx);
+	  int my = XFIXNUM (lmy);
+	  root_xy (f, mx, my, x, y);
+	}
     }
 }
 
@@ -3892,7 +3892,7 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   if (menu_items_n_panes == 0)
     return Qnil;
 
-  if (menu_items_used <= MENU_ITEMS_PANE_LENGTH)
+  if (menu_items_used <= MENU_ITEMS_PANE_LENGTH || !VECTORP (menu_items))
     {
       *error_name = "Empty menu";
       return Qnil;
@@ -4075,6 +4075,9 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
   status = tty_menu_activate (menu, &pane, &selidx, x, y, &datap,
 			      tty_menu_help_callback,
 			      menuflags & MENU_KBD_NAVIGATION);
+  if (status == TTYM_SUCCESS && !VECTORP (menu_items))
+    status = TTYM_IA_SELECT;
+
   entry = pane_prefix = Qnil;
 
   switch (status)
@@ -4191,7 +4194,7 @@ tty_free_frame_resources (struct frame *f)
 static void
 tty_free_frame_resources (struct frame *f)
 {
-  eassert (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f));
+  eassert (is_tty_frame (f));
   free_frame_faces (f);
   /* Deleting a child frame means we have to thoroughly redisplay its
      root frame to make sure the child disappears from the display.  */
@@ -5166,6 +5169,15 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
 This should be set if the function in `mouse-position-function' does not
 trigger redisplay.  */);
   tty_menu_calls_mouse_position_function = 0;
+
+  DEFVAR_BOOL ("tty-cursor-movement-use-TAB-BS", tty_cursor_movement_use_TAB_BS,
+    doc: /* Whether TTY frames may use the combination TAB + BACKSPACE for moving around.
+On TTY frames, as a display optimization, Emacs may move to a position
+by "overshooting" with TAB characters and one BACKSPACE character, when
+this is more efficient.  This combination can interfere with the
+functioning of some software, such as screen readers.  Set this to
+non-nil to enable this optimization.  */);
+  tty_cursor_movement_use_TAB_BS = 0;
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);

@@ -664,7 +664,7 @@ For detailed credits and acknowledgments, see the GNU Emacs manual.
 .
 .
 .SH COPYING
-Copyright 1995\(en2025 Free Software Foundation, Inc.
+Copyright 1995\(en2026 Free Software Foundation, Inc.
 .PP
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are
@@ -685,6 +685,6 @@ There is NO WARRANTY, to the extent permitted by law.
 
 .\" Local Variables:
 .\" eval: (add-hook 'before-save-hook 'time-stamp nil t)
-.\" time-stamp-pattern: "3/.TH EMACS 1 \"%Y-%02m-%02d\" \"GNU Emacs @version@\" \"GNU\"$"
+.\" time-stamp-pattern: "^\\.TH [^ ]+ [^ ]+ \"?%Y-%m-%d\\_>"
 .\" time-stamp-time-zone: "UTC0"
 .\" End:

@@ -1,6 +1,6 @@
 ;;; files-x.el --- extended file handling commands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1002,6 +1002,11 @@ value is the default binding of the variable."
 (defun null-device ()
   "The connection-local value of `null-device'."
   (connection-local-value null-device))
+
+;;;###autoload
+(defun exec-suffixes ()
+  "The connection-local value of `exec-suffixes'."
+  (connection-local-value exec-suffixes))
 
 
 (provide 'files-x)

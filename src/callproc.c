@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2025 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2026 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1960,7 +1960,7 @@ init_callproc_1 (void)
   Vexec_path = decode_env_path ("EMACSPATH", PATH_EXEC, 0);
   Vexec_directory = Ffile_name_as_directory (Fcar (Vexec_path));
   /* FIXME?  For ns, path_exec should go at the front?  */
-  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
+  Vexec_path = nconc2 (decode_env_path ("PATH", NULL, 0), Vexec_path);
 }
 
 /* This is run after init_cmdargs, when Vinstallation_directory is valid.  */
@@ -1985,7 +1985,7 @@ init_callproc (void)
 	{
 	  /* Running uninstalled, so default to tem rather than PATH_EXEC.  */
 	  Vexec_path = decode_env_path ("EMACSPATH", SSDATA (tem), 0);
-	  Vexec_path = nconc2 (decode_env_path ("PATH", "", 0), Vexec_path);
+	  Vexec_path = nconc2 (decode_env_path ("PATH", NULL, 0), Vexec_path);
 	}
 
       Vexec_directory = Ffile_name_as_directory (tem);
@@ -2009,19 +2009,17 @@ init_callproc (void)
      source directory.  */
   if (data_dir == 0)
     {
-      Lisp_Object tem, srcdir;
       Lisp_Object lispdir = Fcar (decode_env_path (0, PATH_DUMPLOADSEARCH, 0));
-
-      srcdir = Fexpand_file_name (build_string ("../src/"), lispdir);
-
-      tem = Fexpand_file_name (build_string ("NEWS"), Vdata_directory);
-      if (!NILP (Fequal (srcdir, Vinvocation_directory))
-	  || NILP (Ffile_exists_p (tem)) || !NILP (Vinstallation_directory))
+      if (!NILP (Vinstallation_directory)
+	  || !NILP (Fequal (Fexpand_file_name (AUTO_STR ("../src/"), lispdir),
+			    Vinvocation_directory))
+	  || NILP (Ffile_exists_p (Fexpand_file_name (AUTO_STR ("NEWS"),
+						      Vdata_directory))))
 	{
 	  Lisp_Object newdir;
-	  newdir = Fexpand_file_name (build_string ("../etc/"), lispdir);
-	  tem = Fexpand_file_name (build_string ("NEWS"), newdir);
-	  if (!NILP (Ffile_exists_p (tem)))
+	  newdir = Fexpand_file_name (AUTO_STR ("../etc/"), lispdir);
+	  if (!NILP (Ffile_exists_p (Fexpand_file_name (AUTO_STR ("NEWS"),
+							newdir))))
 	    Vdata_directory = newdir;
 	}
     }
@@ -2238,6 +2236,20 @@ the system.  */);
 #else /* HAVE_ANDROID && !ANDROID_STUBIFY */
   Vrcs2log_program_name = build_string ("librcs2log.so");
 #endif /* !HAVE_ANDROID || ANDROID_STUBIFY */
+
+  DEFVAR_INT ("command-line-max-length", command_line_max_length,
+    doc: /* Maximum length of a command and its arguments on this system.
+This is measured in characters.
+Used by `multiple-command-partition-arguments'.  Other code calls that
+function for cases in which it's known to be safe to run the command
+multiple times on subsequent partitions of the list of arguments.
+(In a shell script, you might use the `xargs' utility.)  */);
+#if defined _SC_ARG_MAX
+  /* Divide it by 4 as a crude way to go bytes->characters.  */
+  command_line_max_length = sysconf (_SC_ARG_MAX) / 4;
+#else  /* defined _SC_ARG_MAX */
+  command_line_max_length = 4096;
+#endif	/* defined _SC_ARG_MAX */
 
   defsubr (&Scall_process);
   defsubr (&Sgetenv_internal);

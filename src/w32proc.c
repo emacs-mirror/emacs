@@ -1,6 +1,6 @@
 /* Process support for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1992, 1995, 1999-2025 Free Software Foundation, Inc.
+Copyright (C) 1992, 1995, 1999-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1885,11 +1885,9 @@ new_child (void)
 	     stack.  (The 8MB figure comes from the -stack
 	     command-line argument we pass to the linker when building
 	     Emacs, but that's because we need a large stack for
-	     Emacs's main thread.)  Since we request 2GB of reserved
-	     memory at startup (see w32heap.c), which is close to the
-	     maximum memory available for a 32-bit process on Windows,
-	     the 8MB reservation for each thread causes failures in
-	     starting subprocesses, because we create a thread running
+	     Emacs's main thread.)  The 8MB reservation for each thread
+	     might causes failures in starting subprocesses, especially
+	     in 32-bit builds, because we create a thread running
 	     reader_thread for each subprocess.  As 8MB of stack is
 	     way too much for reader_thread, forcing Windows to
 	     reserve less wins the day.  */

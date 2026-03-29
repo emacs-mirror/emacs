@@ -1,6 +1,6 @@
 /* conf_post.h --- configure.ac includes this via AH_BOTTOM
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2025 Free Software
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -145,8 +145,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* Needed by lib/lchmod.c.  */
 #define EOPNOTSUPP EINVAL
 
-#define MALLOC_0_IS_NONNULL 1
-
 /* We must intercept 'opendir' calls to stash away the directory name,
    so we could reuse it in readlinkat; see msdos.c.  */
 #define opendir sys_opendir
@@ -175,13 +173,6 @@ extern void _DebPrint (const char *fmt, ...);
 #ifndef strnicmp
 #define strnicmp strncasecmp
 #endif
-#endif
-
-#ifdef emacs /* Don't do this for lib-src.  */
-/* Tell regex.c to use a type compatible with Emacs.  */
-#define RE_TRANSLATE_TYPE Lisp_Object
-#define RE_TRANSLATE(TBL, C) char_table_translate (TBL, C)
-#define RE_TRANSLATE_P(TBL) (!BASE_EQ (TBL, make_fixnum (0)))
 #endif
 
 /* Tell time_rz.c to use Emacs's getter and setter for TZ.
@@ -380,9 +371,10 @@ extern int emacs_setenv_TZ (char const *);
 # define UNINIT /* empty */
 #endif
 
-/* Emacs does not need glibc strftime behavior for AM and PM
-   indicators.  */
+/* Emacs needs neither glibc strftime behavior for AM and PM indicators,
+   nor Gnulib strftime support for non-Gregorian calendars.  */
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
+#define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME false
 
 #ifdef MSDOS
 /* These are required by file-has-acl.c but defined in dirent.h and
@@ -396,13 +388,40 @@ extern int emacs_setenv_TZ (char const *);
     : S_ISSOCK (mode) ? DT_SOCK : DT_UNKNOWN)
 #endif /* MSDOS */
 
-#if defined __ANDROID__ && __ANDROID_API__ >= 35
-#define _GL_TIME_H
-#include <time.h>
-#undef _GL_TIME_H
+#if defined WINDOWSNT && !(defined OMIT_CONSOLESAFE && OMIT_CONSOLESAFE == 1)
+# if !defined _UCRT
+#  include <stdarg.h>
+#  include <stdio.h>
+#  include <stddef.h>
 
-/* Redefine tzalloc and tzfree so as not to conflict with their
-   system-provided versions, which are incompatible.  */
-#define tzalloc rpl_tzalloc
-#define tzfree rpl_tzfree
-#endif /* defined __ANDROID__ && __ANDROID_API__ >= 35 */
+/* Workarounds for MSVCRT bugs.
+
+   The functions below are in Gnulib, but their prototypes and
+   redirections must be here because the MS-Windows build omits the
+   Gnulib stdio-h module, which does the below in Gnulib's stdio.h
+   file, which is not used by the MS-Windows build.  */
+
+extern size_t gl_consolesafe_fwrite (const void *ptr, size_t size,
+				     size_t nmemb, FILE *fp)
+  ARG_NONNULL ((1, 4));
+extern int gl_consolesafe_fprintf (FILE *restrict fp,
+				   const char *restrict format, ...)
+  ATTRIBUTE_FORMAT_PRINTF (2, 3)
+  ARG_NONNULL ((1, 2));
+extern int gl_consolesafe_printf (const char *restrict format, ...)
+  ATTRIBUTE_FORMAT_PRINTF (1, 2)
+  ARG_NONNULL ((1));
+extern int gl_consolesafe_vfprintf (FILE *restrict fp,
+				    const char *restrict format, va_list args)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0)
+  ARG_NONNULL ((1, 2));
+extern int gl_consolesafe_vprintf (const char *restrict format, va_list args)
+  ATTRIBUTE_FORMAT_PRINTF (1, 0)
+  ARG_NONNULL ((1));
+#  define fwrite gl_consolesafe_fwrite
+#  define fprintf gl_consolesafe_fprintf
+#  define printf gl_consolesafe_printf
+#  define vfprintf gl_consolesafe_vfprintf
+#  define vprintf gl_consolesafe_vprintf
+# endif	/* !_UCRT */
+#endif	/* WINDOWSNT */

@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2004-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -122,10 +122,18 @@ case return FORM unchanged."
   (if macroexp-inhibit-compiler-macros
       form
     (condition-case-unless-debug err
-        (apply handler form (cdr form))
+        (macroexp-preserve-posification
+             form
+          (apply handler form (cdr form)))
       (error
-       (message "Warning: Optimization failure for %S: Handler: %S\n%S"
-                (car form) handler err)
+       ;; Don't complain if there's an arity error when calling the handler
+       ;; itself as that is likely the just wrong number of arguments
+       ;; passed to the function; let the compiler take care of it.
+       (unless (and (eq (car err) 'wrong-number-of-arguments)
+                    (eq (indirect-function (nth 1 err))
+                        (indirect-function handler)))
+         (message "Warning: Optimization failure for %S: Handler: %S\n%S"
+                  (car form) handler err))
        form))))
 
 (defun macroexp--funcall-if-compiled (_form)
@@ -210,8 +218,8 @@ It should normally be a symbol with position and it defaults to FORM."
      (if asof (concat " (as of " asof ")") "")
      (cond ((stringp instead) (concat "; " (substitute-command-keys instead)))
            ((and instead key)
-            (format-message "; use `%s' (%s) instead." instead key))
-           (instead (format-message "; use `%s' instead." instead))
+            (format-message "; use `%S' (%s) instead." instead key))
+           (instead (format-message "; use `%S' instead." instead))
            (t ".")))))
 
 (defun macroexpand-1 (form &optional environment)
@@ -238,22 +246,101 @@ It should normally be a symbol with position and it defaults to FORM."
                 form))))))))
    (t form)))
 
+(defun macroexp--posify-form-1 (form call-pos depth)
+  "The recursive part of `macroexp--posify-form'.
+It modifies a single symbol to a symbol with position, or does nothing.
+FORM and CALL-POS are as in that function.  DEPTH is a small integer,
+decremented at each recursive call, to prevent infinite recursion.
+
+Return the form with a symbol with position in the canonical position
+for that form, either the one that was already there or CALL-POS; return
+nil if this isn't possible.
+"
+  (let (new-form)
+    (cond
+     ((zerop depth) nil)
+     ((and (consp form)
+           (symbolp (car form))
+           (car form))
+      (unless (symbol-with-pos-p (car form))
+        (setcar form (position-symbol (car form) call-pos)))
+      form)
+     ((consp form)
+      (or (when (setq new-form (macroexp--posify-form-1
+                                (car form) call-pos (1- depth)))
+            (setcar form new-form)
+            form)
+          (when (setq new-form (macroexp--posify-form-1
+                                (cdr form) call-pos (1- depth)))
+            (setcdr form new-form)
+            form)))
+     ((symbolp form)
+      (if form                          ; Don't position nil!
+          (if (symbol-with-pos-p form)
+              form
+            (position-symbol form call-pos))))
+     ((and (or (vectorp form) (recordp form)))
+      (let ((len (length form))
+            (i 0)
+            )
+        (while (and (< i len)
+                    (not (setq new-form (macroexp--posify-form-1
+                                         (aref form i) call-pos (1- depth)))))
+          (setq i (1+ i)))
+        (when (< i len)
+          (aset form i new-form)
+          form))))))
+
+(defun macroexp--posify-form (form call-pos)
+  "Try to apply the position CALL-POS to the form FORM, if needed.
+CALL-POS is a buffer position, a number.  FORM may be any lisp form,
+and is typically the output form returned by a macro expansion.
+
+Apply CALL-POS to FORM as a symbol with position, such that
+`byte-compile--first-symbol-with-pos' can later return it.  If there is
+already a symbol with position in a \"canonical\" position for that
+function, leave it unchanged and do nothing.  Return the possibly
+modified FORM."
+  (let ((new-form (macroexp--posify-form-1 form call-pos 10)))
+    (or new-form form)))
+
+(defmacro macroexp-preserve-posification (pos-form &rest body)
+  "Evaluate BODY..., posifying the result with POS-FORM's position, if any.
+If the result of body happens to have a position already, we do not
+change this."
+  (declare (debug (sexp body)) (indent 1))
+  `(let ((call-pos (cond
+                    ((consp ,pos-form)
+                     (and (symbol-with-pos-p (car ,pos-form))
+                          (symbol-with-pos-pos (car ,pos-form))))
+                    ((symbol-with-pos-p ,pos-form)
+                     (symbol-with-pos-pos ,pos-form))))
+         (new-value (progn ,@body)))
+     (if (and call-pos
+              (not (or (and (consp new-value)
+                            (symbol-with-pos-p (car new-value)))
+                       (and (symbol-with-pos-p new-value)))))
+         (macroexp--posify-form new-value call-pos)
+       new-value)))
+
 (defun macroexp-macroexpand (form env)
   "Like `macroexpand' but checking obsolescence."
   (let* ((macroexpand-all-environment env)
          new-form)
-    (while (not (eq form (setq new-form (macroexpand-1 form env))))
-      (let ((fun (car-safe form)))
-        (setq form
-              (if (and fun (symbolp fun)
-                       (get fun 'byte-obsolete-info))
-                  (macroexp-warn-and-return
-                   (macroexp--obsolete-warning
-                    fun (get fun 'byte-obsolete-info)
-                    (if (symbolp (symbol-function fun)) "alias" "macro"))
-                   new-form (list 'obsolete fun) nil fun)
-                new-form))))
-    form))
+    (macroexp-preserve-posification
+        form
+      (while (not (eq form (setq new-form (macroexpand-1 form env))))
+        (let ((fun (car-safe form)))
+          (setq form
+                (if (and fun (symbolp fun)
+                         (get fun 'byte-obsolete-info))
+                    (macroexp-warn-and-return
+                     (macroexp--obsolete-warning
+                      fun (get fun 'byte-obsolete-info)
+                      (if (symbolp (symbol-function fun)) "alias" "macro"))
+                     new-form (list 'obsolete fun) nil fun)
+                  new-form))))
+      form)))
 
 (defun macroexp--unfold-lambda (form &optional name)
   (or name (setq name "anonymous lambda"))
@@ -318,7 +405,6 @@ It should normally be a symbol with position and it defaults to FORM."
 (defun macroexp--dynamic-variable-p (var)
   "Whether the variable VAR is dynamically scoped.
 Only valid during macro-expansion."
-  (defvar byte-compile-bound-variables)
   (or (not lexical-binding)
       (special-variable-p var)
       (memq var macroexp--dynvars)
@@ -329,6 +415,9 @@ Only valid during macro-expansion."
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
 Assumes the caller has bound `macroexpand-all-environment'."
+  ;; Note that this function must preserve any position on FORM in the
+  ;; function's return value.  See the page "Symbols with Position" in
+  ;; the elisp manual.
   (macroexp--with-extended-form-stack form
       (if (eq (car-safe form) 'backquote-list*)
           ;; Special-case `backquote-list*', as it is normally a macro that
@@ -386,16 +475,23 @@ Assumes the caller has bound `macroexpand-all-environment'."
                  (macroexp-warn-and-return
                   (format-message "`condition-case' without handlers")
                   exp-body (list 'suspicious 'condition-case) t form))))
-            (`(,(or 'defvar 'defconst) ,(and name (pred symbolp)) . ,_)
-             (push name macroexp--dynvars)
-             (macroexp--all-forms form 2))
-            (`(function ,(and f `(lambda . ,_)))
-             (let ((macroexp--dynvars macroexp--dynvars))
-               (macroexp--cons fn
-                               (macroexp--cons (macroexp--all-forms f 2)
-                                               nil
-                                               (cdr form))
-                               form)))
+            (`(,(or 'defvar 'defconst) . ,args)
+             (if (and (car-safe args) (symbolp (car-safe args)))
+                 (progn
+                   (push (car args) macroexp--dynvars)
+                   (macroexp--all-forms form 2))
+               form))
+            (`(function . ,rest)
+             (if (and (eq (car-safe (car-safe rest)) 'lambda)
+                      (null (cdr rest)))
+                 (let ((f (car rest)))
+                   (let ((macroexp--dynvars macroexp--dynvars))
+                     (macroexp--cons fn
+                                     (macroexp--cons (macroexp--all-forms f 2)
+                                                     nil
+                                                     (cdr form))
+                                     form)))
+               form))
             (`(,(or 'function 'quote) . ,_) form)
             (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
                                                  pcase--dontcare))
@@ -412,82 +508,88 @@ Assumes the caller has bound `macroexpand-all-environment'."
                    (macroexp--all-forms body))
                  (cdr form))
                 form)))
-            (`(while)
-             (macroexp-warn-and-return
-              (format-message "missing `while' condition")
-              `(signal 'wrong-number-of-arguments '(while 0))
-              nil 'compile-only form))
-            (`(unwind-protect ,expr)
-             (macroexp-warn-and-return
-              (format-message "`unwind-protect' without unwind forms")
-              (macroexp--expand-all expr)
-              (list 'suspicious 'unwind-protect) t form))
-            (`(setq ,(and var (pred symbolp)
-                          (pred (not booleanp)) (pred (not keywordp)))
-                    ,expr)
-             ;; Fast path for the setq common case.
-             (let ((new-expr (macroexp--expand-all expr)))
-               (if (eq new-expr expr)
-                   form
-                 `(,fn ,var ,new-expr))))
+            (`(while . ,args)
+             (if args
+                 (macroexp--all-forms form 1)
+               (macroexp-warn-and-return
+                (format-message "missing `while' condition")
+                `(signal 'wrong-number-of-arguments '(while 0))
+                nil 'compile-only form)))
+            (`(unwind-protect . ,args)
+             (if (cdr-safe args)
+                 (macroexp--all-forms form 1)
+               (macroexp-warn-and-return
+                (format-message "`unwind-protect' without unwind forms")
+                (macroexp--expand-all (car-safe args))
+                (list 'suspicious 'unwind-protect) t form)))
             (`(setq . ,args)
-             ;; Normalize to a sequence of (setq SYM EXPR).
-             ;; Malformed code is translated to code that signals an error
-             ;; at run time.
-             (let ((nargs (length args)))
-               (if (oddp nargs)
-                   (macroexp-warn-and-return
-                    (format-message "odd number of arguments in `setq' form")
-                    `(signal 'wrong-number-of-arguments '(setq ,nargs))
-                    nil 'compile-only fn)
-                 (let ((assignments nil))
-                   (while (consp (cdr-safe args))
-                     (let* ((var (car args))
-                            (expr (cadr args))
-                            (new-expr (macroexp--expand-all expr))
-                            (assignment
-                             (if (and (symbolp var)
-                                      (not (booleanp var)) (not (keywordp var)))
-                                 `(,fn ,var ,new-expr)
-                               (macroexp-warn-and-return
-                                (format-message "attempt to set %s `%s'"
-                                                (if (symbolp var)
-                                                    "constant"
-                                                  "non-variable")
-                                                var)
-                                (cond
-                                 ((keywordp var)
-                                  ;; Accept `(setq :a :a)' for compatibility.
-                                  `(if (eq ,var ,new-expr)
-                                       ,var
-                                     (signal 'setting-constant (list ',var))))
-                                 ((symbolp var)
-                                  `(signal 'setting-constant (list ',var)))
-                                 (t
-                                  `(signal 'wrong-type-argument
-                                           (list 'symbolp ',var))))
-                                nil 'compile-only var))))
-                       (push assignment assignments))
-                     (setq args (cddr args)))
-                   (cons 'progn (nreverse assignments))))))
-            (`(,(and fun `(lambda . ,_)) . ,args)
-	     (macroexp--cons (macroexp--all-forms fun 2)
-                             (macroexp--all-forms args)
-                             form))
+             (let ((nargs (length args))
+                   (var (car-safe args)))
+               (if (and (= nargs 2)
+                        (symbolp var)
+                        (not (booleanp var)) (not (keywordp var)))
+                   ;; Fast path for the common case.
+                   (let* ((expr (nth 1 args))
+                          (new-expr (macroexp--expand-all expr)))
+                     (if (eq new-expr expr)
+                         form
+                       `(,fn ,var ,new-expr)))
+                 ;; Normalize to a sequence of (setq SYM EXPR).
+                 ;; Malformed code is translated to code that signals an error
+                 ;; at run time.
+                 (if (oddp nargs)
+                     (macroexp-warn-and-return
+                      (format-message "odd number of arguments in `setq' form")
+                      `(signal 'wrong-number-of-arguments '(setq ,nargs))
+                      nil 'compile-only fn)
+                   (let ((assignments nil))
+                     (while (consp (cdr-safe args))
+                       (let* ((var (car args))
+                              (expr (cadr args))
+                              (new-expr (macroexp--expand-all expr))
+                              (assignment
+                               (if (and (symbolp var)
+                                        (not (booleanp var))
+                                        (not (keywordp var)))
+                                   `(,fn ,var ,new-expr)
+                                 (macroexp-warn-and-return
+                                  (format-message "attempt to set %s `%s'"
+                                                  (if (symbolp var)
+                                                      "constant"
+                                                    "non-variable")
+                                                  var)
+                                  (cond
+                                   ((keywordp var)
+                                    ;; Accept `(setq :a :a)' for compatibility.
+                                    ;; FIXME: Why, exactly? It's useless.
+                                    `(if (eq ,var ,new-expr)
+                                         ,var
+                                       (signal 'setting-constant (list ',var))))
+                                   ((symbolp var)
+                                    `(signal 'setting-constant (list ',var)))
+                                   (t
+                                    `(signal 'wrong-type-argument
+                                             (list 'symbolp ',var))))
+                                  nil 'compile-only var))))
+                         (push assignment assignments))
+                       (setq args (cddr args)))
+                     (cons 'progn (nreverse assignments)))))))
             (`(funcall ,exp . ,args)
              (let ((eexp (macroexp--expand-all exp))
                    (eargs (macroexp--all-forms args)))
-               (pcase eexp
-                 ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
-                 ;; has a compiler-macro, or to unfold it.
-                 ((and `#',f
-                       (guard (and (symbolp f)
-                                   ;; bug#46636
-                                   (not (or (special-form-p f) (macrop f))))))
-                  (macroexp--expand-all `(,f . ,eargs)))
-                 (`#'(lambda . ,_)
-                  (macroexp--unfold-lambda `(,fn ,eexp . ,eargs)))
-                 (_ `(,fn ,eexp . ,eargs)))))
+               (if (eq (car-safe eexp) 'function)
+                   (let ((f (cadr eexp)))
+                     (cond
+                      ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
+                      ;; has a compiler-macro, or to unfold it.
+                      ((and (symbolp f)
+                            ;; bug#46636
+                            (not (or (special-form-p f) (macrop f))))
+                       (macroexp--expand-all `(,f . ,eargs)))
+                      ((eq (car-safe f) 'lambda)
+                       (macroexp--unfold-lambda `(,fn ,eexp . ,eargs)))
+                      (t `(,fn ,eexp . ,eargs))))
+                 `(,fn ,eexp . ,eargs))))
             (`(funcall . ,_) form)      ;bug#53227
             (`(,(and func (pred symbolp)) . ,_)
              (let ((handler (function-get func 'compiler-macro)))
@@ -514,6 +616,10 @@ Assumes the caller has bound `macroexpand-all-environment'."
                              newform
                            (macroexp--expand-all form)))
                      (macroexp--expand-all newform))))))
+            (`(,(and fun `(lambda . ,_)) . ,args)
+	     (macroexp--cons (macroexp--all-forms fun 2)
+                             (macroexp--all-forms args)
+                             form))
             (_ form))))))
 
 ;;;###autoload

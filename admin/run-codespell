@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ### run-codespell - run codespell on Emacs
 
-## Copyright (C) 2023-2025 Free Software Foundation, Inc.
+## Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ## Author: Stefan Kangas <stefankangas@gmail.com>
 

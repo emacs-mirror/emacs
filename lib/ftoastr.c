@@ -1,6 +1,6 @@
 /* floating point to accurate string
 
-   Copyright (C) 2010-2025 Free Software Foundation, Inc.
+   Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -114,15 +114,16 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
   /* The following method is simple but slow.
      For ideas about speeding things up, please see:
 
-     Andrysco M, Jhala R, Lerner S. Printing floating-point numbers:
-     a faster, always correct method. ACM SIGPLAN notices - POPL '16.
-     2016;51(1):555-67 <https://doi.org/10.1145/2914770.2837654>; draft at
-     <https://cseweb.ucsd.edu/~lerner/papers/fp-printing-popl16.pdf>.  */
+     Jeon J. Dragonbox: a new floating-point binary-to-decimal
+     conversion algorithm. 2024. <https://github.com/jk-jeon/dragonbox/>.
+     Used in {fmt} <https://github.com/fmtlib/fmt>.
+
+     Adams U. Ryū: fast float-to-string conversion.
+     PLDI 2018. 270–282. <https://doi.org/10.1145/3192366.3192369>.  */
 
   PROMOTED_FLOAT promoted_x = x;
   char format[sizeof "%-+ 0*.*Lg"];
   FLOAT abs_x = x < 0 ? -x : x;
-  int prec;
 
   char *p = format;
   *p++ = '%';
@@ -140,7 +141,7 @@ FTOASTR (char *buf, size_t bufsize, int flags, int width, FLOAT x)
   *p++ = flags & FTOASTR_UPPER_E ? 'G' : 'g';
   *p = '\0';
 
-  for (prec = abs_x < FLOAT_MIN ? 1 : FLOAT_DIG; ; prec++)
+  for (int prec = abs_x < FLOAT_MIN ? 1 : FLOAT_DIG; ; prec++)
     {
       int n = snprintf (buf, bufsize, format, width, prec, promoted_x);
       if (n < 0

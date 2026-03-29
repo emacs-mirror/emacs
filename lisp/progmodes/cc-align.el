@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1987, 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2026 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -96,6 +96,16 @@ Works with: topmost-intro-cont."
 		   (not (eq (cdr-safe (c-in-requires-or-at-end-of-clause))
 			    t))))
 	  c-basic-offset))))
+
+(defun c-lineup-class-field-cont (langelem)
+  "Line up continuation lines in a class zero or one indentation steps.
+For a declaration following a template specification, zero steps are
+used.  Other constructs are indented one step."
+  (save-excursion
+    (beginning-of-line)
+    (c-backward-syntactic-ws (c-langelem-pos langelem))
+    (unless (eq (char-before) ?>)
+      c-basic-offset)))
 
 (defun c-lineup-gnu-DEFUN-intro-cont (langelem)
   "Line up the continuation lines of a DEFUN macro in the Emacs C source.

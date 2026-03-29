@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2026 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1304,7 +1304,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#x2648 . #x2653)
 	   (#x267F . #x267F)
            (#x268A . #x268F)
-	   (#x2693 . #x2693)
+	   (#x2690 . #x2693)
 	   (#x26A1 . #x26A1)
 	   (#x26AA . #x26AB)
 	   (#x26BD . #x26BE)
@@ -1341,6 +1341,7 @@ with L, LRE, or LRO Unicode bidi character type.")
            (#x31EF . #x31EF)
            (#x31F0 . #x3247)
 	   (#x3250 . #x4DBF)
+           (#x4DC0 . #x4DFF)
 	   (#x4E00 . #xA48C)
 	   (#xA490 . #xA4C6)
 	   (#xA960 . #xA97C)
@@ -1351,12 +1352,13 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#xFF01 . #xFF60)
 	   (#xFFE0 . #xFFE6)
 	   (#x16FE0 . #x16FE4)
-	   (#x16FF0 . #x16FF1)
+	   (#x16FF0 . #x16FF6)
 	   (#x17000 . #x187F7)
 	   (#x18800 . #x18AFF)
 	   (#x18B00 . #x18CD5)
            (#x18CFF . #x18CFF)
-           (#x18D00 . #x18D08)
+           (#x18D00 . #x18D1E)
+           (#x18D80 . #x18DF2)
 	   (#x1AFF0 . #x1AFF3)
            (#x1AFF5 . #x1AFFB)
            (#x1AFFD . #x1AFFE)
@@ -1402,7 +1404,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#x1F680 . #x1F6C5)
 	   (#x1F6CC . #x1F6CC)
 	   (#x1F6D0 . #x1F6D2)
-	   (#x1F6D5 . #x1F6D7)
+	   (#x1F6D5 . #x1F6D8)
 	   (#x1F6DC . #x1F6DF)
 	   (#x1F6EB . #x1F6EC)
 	   (#x1F6F4 . #x1F6FC)
@@ -1413,13 +1415,13 @@ with L, LRE, or LRO Unicode bidi character type.")
 	   (#x1F947 . #x1F9FF)
 	   (#x1FA00 . #x1FA53)
 	   (#x1FA60 . #x1FA6D)
-	   (#x1FA70 . #x1FA74)
-	   (#x1FA78 . #x1FA7C)
-	   (#x1FA80 . #x1FA89)
-	   (#x1FA8F . #x1FAC6)
-	   (#x1FACE . #x1FADC)
-	   (#x1FADF . #x1FAE9)
-	   (#x1FAF0 . #x1FAF8)
+	   (#x1FA70 . #x1FA7C)
+	   (#x1FA80 . #x1FA8A)
+	   (#x1FA8E . #x1FAC6)
+	   (#x1FAC8 . #x1FAC8)
+	   (#x1FACD . #x1FADC)
+	   (#x1FADF . #x1FAEA)
+	   (#x1FAEF . #x1FAF8)
 	   (#x1FB00 . #x1FB92)
 	   (#x20000 . #x2FFFF)
 	   (#x30000 . #x3FFFF))))
@@ -1670,7 +1672,7 @@ these characters are displayed as full-width.  This setting is most
 important for text-mode frames, because there Emacs cannot access the
 metrics of the fonts used by the console or the terminal emulator.
 You should configure the terminal emulator to behave consistently
-with the value of this option, by making sure it dispays ambiguous-width
+with the value of this option, by making sure it displays ambiguous-width
 characters as half-width or full-width, depending on the value of this
 option.
 
@@ -1780,15 +1782,15 @@ Setup `char-width-table' appropriate for non-CJK language environment."
 (let ((c0-acronyms '("NUL" "SOH" "STX" "ETX" "EOT" "ENQ" "ACK" "BEL"
 		     "BS"   nil   nil  "VT"  "FF"  "CR"  "SO"  "SI"
 		     "DLE" "DC1" "DC2" "DC3" "DC4" "NAK" "SYN" "ETB"
-		     "CAN" "EM"  "SUB" "ESC" "FC"  "GS"  "RS"  "US")))
+		     "CAN" "EM"  "SUB" "ESC" "FS"  "GS"  "RS"  "US")))
   (dotimes (i 32)
     (aset char-acronym-table i (car c0-acronyms))
     (setq c0-acronyms (cdr c0-acronyms))))
 
 (let ((c1-acronyms '("PAD" "HOP" "BPH" "NBH" "IND" "NEL" "SSA" "ESA"
-		     "HTS" "HTJ" "VTS" "PLD" "PLU" "R1"  "SS2" "SS1"
+		     "HTS" "HTJ" "VTS" "PLD" "PLU" "RI"  "SS2" "SS3"
 		     "DCS" "PU1" "PU2" "STS" "CCH" "MW"  "SPA" "EPA"
-		     "SOS" "SGCI" "SC1" "CSI" "ST"  "OSC" "PM"  "APC")))
+		     "SOS" "SGCI" "SCI" "CSI" "ST"  "OSC" "PM"  "APC")))
   (dotimes (i 32)
     (aset char-acronym-table (+ #x0080 i) (car c1-acronyms))
     (setq c1-acronyms (cdr c1-acronyms))))
@@ -2006,6 +2008,28 @@ visual representation of these characters."
   :set 'update-glyphless-char-display
   :group 'display)
 
+
+;;; Special mirror.  Only populate table here, its definition is in
+;;; xdisp.c.
+(let ((pairs '(;; Some truncation examples.
+	       (?← . ?→)
+               (?↜ . ?↝)
+               (?↞ . ?↠)
+               (?↢ . ?↣)
+               (?↤ . ?↦)
+               (?↼ . ?⇀)
+               (?↽ . ?⇁)
+               (?⇇ . ?⇉)
+               (?⇐ . ?⇒)
+               (?⇠ . ?⇢)
+               (?⇦ . ?⇨)
+               ;; Some continuation examples.
+               (?↩ . ?↪)
+               (?↫ . ?↬)
+               (?↲ . ?↳))))
+  (dolist (pair pairs)
+    (aset special-mirror-table (car pair) (cdr pair))
+    (aset special-mirror-table (cdr pair) (car pair))))
 
 ;;; Setting word boundary.
 

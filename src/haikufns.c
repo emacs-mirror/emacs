@@ -1,5 +1,5 @@
 /* Haiku window system support
-   Copyright (C) 2021-2025 Free Software Foundation, Inc.
+   Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -750,6 +750,8 @@ haiku_create_frame (Lisp_Object parms)
 
   XSETFRAME (frame, f);
 
+  frame_set_id_from_params (f, parms);
+
   f->terminal = dpyinfo->terminal;
 
   f->output_method = output_haiku;
@@ -938,6 +940,9 @@ haiku_create_frame (Lisp_Object parms)
 			 "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qfullscreen, Qnil,
 			 "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
 
@@ -1162,6 +1167,9 @@ haiku_create_tip_frame (Lisp_Object parms)
                          "alpha", "Alpha", RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qalpha_background, Qnil,
                          "alphaBackground", "AlphaBackground", RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qborders_respect_alpha_background, Qnil,
+                         "bordersRespectAlphaBackground",
+                         "BordersRespectAlphaBackground", RES_TYPE_NUMBER);
 
   initial_setup_back_buffer (f);
 
@@ -3189,6 +3197,7 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     haiku_set_override_redirect,
     gui_set_no_special_glyphs,
     gui_set_alpha_background,
+    gui_set_borders_respect_alpha_background,
     haiku_set_use_frame_synchronization,
   };
 

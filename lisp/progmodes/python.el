@@ -1,12 +1,12 @@
 ;;; python.el --- Python's flying circus support for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2026 Free Software Foundation, Inc.
 
 ;; Author: Fabián E. Gallina <fgallina@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
 ;; URL: https://github.com/fgallina/python.el
 ;; Version: 0.30
-;; Package-Requires: ((emacs "29.1") (compat "29.1.1.0") (seq "2.23") (project "0.1") (flymake "1.0"))
+;; Package-Requires: ((emacs "29.1") (compat "29.1.1.0"))
 ;; Created: Jul 2010
 ;; Keywords: languages
 
@@ -257,7 +257,7 @@
 (require 'treesit)
 (require 'pcase)
 (require 'compat)
-(require 'project nil 'noerror)
+(require 'project)
 (require 'seq)
 
 (declare-function treesit-parser-create "treesit.c")
@@ -267,7 +267,9 @@
 (declare-function treesit-node-start "treesit.c")
 (declare-function treesit-node-end "treesit.c")
 (declare-function treesit-node-parent "treesit.c")
+(declare-function treesit-node-child "treesit.c")
 (declare-function treesit-node-prev-sibling "treesit.c")
+(declare-function treesit-node-field-name-for-child "treesit.c")
 
 (add-to-list
  'treesit-language-source-alist
@@ -1092,36 +1094,44 @@ NODE is the string node.  Do not fontify the initial f for
 f-strings.  OVERRIDE is the override flag described in
 `treesit-font-lock-rules'.  START and END mark the region to be
 fontified."
-  (let* ((maybe-expression (treesit-node-parent node))
-         (grandparent (treesit-node-parent
-                       (treesit-node-parent
-                        maybe-expression)))
-         (maybe-defun grandparent)
-         (face (if (and (or (member (treesit-node-type maybe-defun)
-                                    '("function_definition"
-                                      "class_definition"))
-                            ;; If the grandparent is null, meaning the
-                            ;; string is top-level, and the string has
-                            ;; no node or only comment preceding it,
-                            ;; it's a BOF docstring.
-                            (and (null grandparent)
-                                 (cl-loop
-                                  for prev = (treesit-node-prev-sibling
-                                              maybe-expression)
-                                  then (treesit-node-prev-sibling prev)
-                                  while prev
-                                  if (not (equal (treesit-node-type prev)
-                                                 "comment"))
-                                  return nil
-                                  finally return t)))
-                        ;; This check filters out this case:
-                        ;; def function():
-                        ;;     return "some string"
-                        (equal (treesit-node-type maybe-expression)
-                               "expression_statement"))
-                   'font-lock-doc-face
-                 'font-lock-string-face))
+  ;; Criteria for docstring: go up the parse tree until top-level or a
+  ;; node under function/class, at each level, the node is the first
+  ;; child (excluding comments).  This condition also rules out negative
+  ;; cases like
+  ;;
+  ;;     def function():
+  ;;         return "some string"
+  ;;
+  ;; And it recognizes for BOF docstrings, and allows comments before
+  ;; the docstring.
+  ;;
+  ;; Older grammar has function_definition -> block -> expression_statement -> string
+  ;; Newer grammar has function_definition -> block -> string
+  ;; This algorithm works for both.
+  (let* ((cursor node)
+         (face (catch 'break
+                 (while t
+                   (let ((parent (treesit-node-parent cursor))
+                         (cursor-idx (treesit-node-index cursor)))
+                     (when (null parent)
+                       (throw 'break 'font-lock-doc-face))
 
+                     (when (and (member (treesit-node-type parent)
+                                        '("function_definition"
+                                          "class_definition"))
+                                (equal (treesit-node-field-name-for-child
+                                        parent cursor-idx)
+                                       "body"))
+                       (throw 'break 'font-lock-doc-face))
+
+                     ;; If there's any non-comment sibling before
+                     ;; cursor, the string isn't a docstring.
+                     (dotimes (idx cursor-idx)
+                       (unless (equal (treesit-node-type
+                                       (treesit-node-child parent idx))
+                                      "comment")
+                         (throw 'break 'font-lock-string-face)))
+                     (setq cursor parent)))))
          (ignore-interpolation
           (not (seq-some
                 (lambda (feats) (memq 'string-interpolation feats))
@@ -1453,7 +1463,7 @@ For NODE, OVERRIDE, START, END, and ARGS, see
   "Non-nil means to emit a warning when indentation guessing fails."
   :version "25.1"
   :type 'boolean
-  :safe' booleanp)
+  :safe 'booleanp)
 
 (defcustom python-indent-trigger-commands
   '(indent-for-tab-command yas-expand yas/expand)
@@ -1967,10 +1977,13 @@ indentation levels from right to left."
 
 (defun python-indent-dedent-line-backspace (arg)
   "De-indent current line.
-Argument ARG is passed to `backward-delete-char-untabify' when
-point is not in between the indentation."
+Argument ARG is passed to `backward-delete-char-untabify' when point is
+not in between the indentation or when Transient Mark mode is enabled,
+the mark is active, and ARG is 1."
   (interactive "*p")
-  (unless (python-indent-dedent-line)
+  (when (or
+         (and (use-region-p) (= arg 1))
+         (not (python-indent-dedent-line)))
     (backward-delete-char-untabify arg)))
 
 (put 'python-indent-dedent-line-backspace 'delete-selection 'supersede)
@@ -3361,11 +3374,8 @@ name respectively the current project name."
   (pcase dedicated
     ('nil python-shell-buffer-name)
     ('project
-     (if-let* ((proj (and (featurep 'project)
-                          (project-current))))
-         (format "%s[%s]" python-shell-buffer-name (file-name-nondirectory
-                                                    (directory-file-name
-                                                     (project-root proj))))
+     (if-let* ((proj (project-current)))
+         (format "%s[%s]" python-shell-buffer-name (project-name proj))
        python-shell-buffer-name))
     (_ (format "%s[%s]" python-shell-buffer-name (buffer-name)))))
 
@@ -3642,14 +3652,18 @@ eventually provide a shell."
 
 (defconst python-shell-setup-code
   "\
-try:
-    import termios
-except ImportError:
-    pass
-else:
-    attr = termios.tcgetattr(0)
-    attr[3] &= ~termios.ECHO
-    termios.tcsetattr(0, termios.TCSADRAIN, attr)"
+def _PYTHON_EL_setup():
+    try:
+        import termios
+    except ImportError:
+        pass
+    else:
+        attr = termios.tcgetattr(0)
+        attr[3] &= ~termios.ECHO
+        termios.tcsetattr(0, termios.TCSADRAIN, attr)
+
+_PYTHON_EL_setup()
+del _PYTHON_EL_setup"
   "Code used to setup the inferior Python processes.")
 
 (defconst python-shell-eval-setup-code
@@ -3681,19 +3695,28 @@ def __PYTHON_EL_eval(source, filename):
 (defconst python-shell-eval-file-setup-code
   "\
 def __PYTHON_EL_eval_file(filename, tempname, delete):
-    import codecs, os, re
+    import os, re, sys
+    if sys.version_info.major < 3:
+        import codecs
+        _open = codecs.open
+    else:
+        _open = open
     pattern = r'^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)'
-    with codecs.open(tempname or filename, encoding='latin-1') as file:
+    with _open(tempname or filename, encoding='latin-1') as file:
         match = re.match(pattern, file.readline())
         match = match or re.match(pattern, file.readline())
         encoding = match.group(1) if match else 'utf-8'
-    with codecs.open(tempname or filename, encoding=encoding) as file:
+    with _open(tempname or filename, encoding=encoding) as file:
         source = file.read().encode(encoding)
     if delete and tempname:
         os.remove(tempname)
     return __PYTHON_EL_eval(source, filename)"
   "Code used to evaluate files in inferior Python processes.
 The coding cookie regexp is specified in PEP 263.")
+
+(defconst python-shell-local-prefix "/local:"
+  "A prefix used to indicate that a file is local.
+It is used when sending file names to remote Python processes.")
 
 (defun python-shell-comint-watch-for-first-prompt-output-filter (output)
   "Run `python-shell-first-prompt-hook' when first prompt is found in OUTPUT."
@@ -3717,11 +3740,18 @@ The coding cookie regexp is specified in PEP 263.")
                       (format "exec(%s)\n" (python-shell--encode-string string))))))
           ;; Bootstrap: the normal definition of `python-shell-send-string'
           ;; depends on the Python code sent here.
-          (python-shell-send-string-no-output python-shell-setup-code)
           (python-shell-send-string-no-output python-shell-eval-setup-code)
           (python-shell-send-string-no-output python-shell-eval-file-setup-code))
         (with-current-buffer (current-buffer)
           (let ((inhibit-quit nil))
+            (python-shell-send-string
+             (mapconcat #'symbol-value '(python-shell-setup-code
+                                         python-shell-completion-setup-code
+                                         python-shell-pdb-setup-code
+                                         python-ffap-setup-code
+                                         python-eldoc-setup-code)
+                        "\n"))
+            (python-shell-accept-process-output (python-shell-get-process))
             (python-shell-readline-detect)
             (run-hooks 'python-shell-first-prompt-hook))))))
   output)
@@ -3754,7 +3784,7 @@ may want to re-add custom functions to it using the
 You can also add additional setup code to be run at
 initialization of the interpreter via `python-shell-setup-codes'
 variable.
-
+\\<inferior-python-mode-map>
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
   (when python-shell--parent-buffer
     (python-util-clone-local-variables python-shell--parent-buffer))
@@ -3865,7 +3895,6 @@ process buffer for a list of commands.)"
            python-shell-dedicated
            t)))
   (let* ((project (and (eq 'project dedicated)
-                       (featurep 'project)
                        (project-current t)))
          (default-directory (if project
                                 (project-root project)
@@ -4013,6 +4042,27 @@ there for compatibility with CEDET.")
         (signal 'wrong-type-argument (list 'stringp text)))))
   "Encode TEXT as a valid Python string.")
 
+(defun python-shell--convert-file-name-to-send (process file-name)
+  "Convert the FILE-NAME for sending to the inferior Python PROCESS.
+If PROCESS is local and FILE-NAME is prefixed with
+`python-shell-local-prefix', remove the prefix.  If PROCESS is remote
+and the FILE-NAME is not prefixed, prepend `python-shell-local-prefix'.
+If PROCESS is remote and the file is on the same remote host, remove the
+remote prefix.  Otherwise, return the file name as is."
+  (when file-name
+    (let ((process-prefix
+           (file-remote-p
+            (with-current-buffer (process-buffer process) default-directory)))
+          (local-prefix (string-prefix-p python-shell-local-prefix file-name)))
+      (cond
+       ((and (not process-prefix) local-prefix)
+        (string-remove-prefix python-shell-local-prefix file-name))
+       ((and process-prefix (not (or local-prefix (file-remote-p file-name))))
+        (concat python-shell-local-prefix (file-local-name file-name)))
+       ((and process-prefix (string= (file-remote-p file-name) process-prefix))
+        (file-local-name file-name))
+       (t file-name)))))
+
 (defun python-shell-send-string (string &optional process msg)
   "Send STRING to inferior Python PROCESS.
 When optional argument MSG is non-nil, forces display of a
@@ -4020,11 +4070,13 @@ user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive
    (list (read-string "Python command: ") nil t))
-  (let ((process (or process (python-shell-get-process-or-error msg)))
-        (code (format "__PYTHON_EL_eval(%s, %s)\n"
-                      (python-shell--encode-string string)
-                      (python-shell--encode-string (or (buffer-file-name)
-                                                       "<string>")))))
+  (let* ((process (or process (python-shell-get-process-or-error msg)))
+         (code (format "__PYTHON_EL_eval(%s, %s)\n"
+                       (python-shell--encode-string string)
+                       (python-shell--encode-string
+                        (or (python-shell--convert-file-name-to-send
+                             process (buffer-file-name))
+                            "<string>")))))
     (unless python-shell-output-filter-in-progress
       (with-current-buffer (process-buffer process)
         (save-excursion
@@ -4355,7 +4407,8 @@ t when called interactively."
             temp-file-name (with-temp-buffer
                              (insert-file-contents file-name)
                              (python-shell--save-temp-file (current-buffer))))))
-  (let* ((file-name (file-local-name (expand-file-name file-name)))
+  (let* ((file-name (python-shell--convert-file-name-to-send
+                     process (expand-file-name file-name)))
          (temp-file-name (when temp-file-name
                            (file-local-name (expand-file-name
                                              temp-file-name)))))
@@ -4390,7 +4443,8 @@ This function takes the list of setup code to send from the
                           ((symbolp elt) (symbol-value elt))
                           (t "")))
                   python-shell-setup-codes
-                  "\n\nprint ('python.el: sent setup code')"))))
+                  "\n")
+                 "\nprint ('python.el: sent setup code')")))
       (python-shell-send-string code process)
       (python-shell-accept-process-output process))))
 
@@ -4464,105 +4518,18 @@ def __PYTHON_EL_get_completions(text):
     finally:
         if getattr(completer, 'PYTHON_EL_WRAPPED', False):
             completer.print_mode = True
-    return json.dumps(completions)"
-  "Code used to setup completion in inferior Python processes."
-  :type 'string)
+    return json.dumps(completions)
 
-(define-obsolete-variable-alias
-  'python-shell-completion-module-string-code
-  'python-shell-completion-string-code
-  "24.4"
-  "Completion string code must also autocomplete modules.")
-
-(define-obsolete-variable-alias
-  'python-shell-completion-pdb-string-code
-  'python-shell-completion-string-code
-  "25.1"
-  "Completion string code must work for (i)pdb.")
-
-(defcustom python-shell-completion-native-disabled-interpreters
-  ;; PyPy's readline cannot handle some escape sequences yet.  Native
-  ;; completion doesn't work on w32 (Bug#28580).
-  (if (eq system-type 'windows-nt) '("")
-    '("pypy"))
-  "List of disabled interpreters.
-When a match is found, native completion is disabled."
-  :version "28.1"
-  :type '(repeat string))
-
-(defcustom python-shell-completion-native-enable t
-  "Enable readline based native completion."
-  :version "25.1"
-  :type 'boolean)
-
-(defcustom python-shell-completion-native-output-timeout 5.0
-  "Time in seconds to wait for completion output before giving up."
-  :version "25.1"
-  :type 'number)
-
-(defcustom python-shell-completion-native-try-output-timeout 1.0
-  "Time in seconds to wait for *trying* native completion output."
-  :version "25.1"
-  :type 'number)
-
-(defvar python-shell-readline-completer-delims nil
-  "Word delimiters used by the readline completer.
-It is automatically set by Python shell.  An empty string means no
-characters are considered delimiters and the readline completion
-considers the entire line of input.  A value of nil means the Python
-shell has no readline support.")
-
-(defun python-shell-readline-detect ()
-  "Detect the readline support for Python shell completion."
-  (let* ((process (python-shell-get-process))
-         (output (python-shell-send-string-no-output "
-try:
+def __PYTHON_EL_wrap_completer():
     import readline
-    print(readline.get_completer_delims())
-except:
-    print('No readline support')" process)))
-    (setq-local python-shell-readline-completer-delims
-                (unless (string-search "No readline support" output)
-                  (string-trim-right output)))))
+    completer = readline.get_completer()
 
-(defvar python-shell-completion-native-redirect-buffer
-  " *Python completions redirect*"
-  "Buffer to be used to redirect output of readline commands.")
+    if not completer:
+        # Used as last resort to avoid breaking customizations.
+        import rlcompleter
+        completer = readline.get_completer()
 
-(defun python-shell-completion-native-interpreter-disabled-p ()
-  "Return non-nil if interpreter has native completion disabled."
-  (when python-shell-completion-native-disabled-interpreters
-    (string-match
-     (regexp-opt python-shell-completion-native-disabled-interpreters)
-     (file-name-nondirectory python-shell-interpreter))))
-
-(defun python-shell-completion-native-try ()
-  "Return non-nil if can trigger native completion."
-  (let ((python-shell-completion-native-enable t)
-        (python-shell-completion-native-output-timeout
-         python-shell-completion-native-try-output-timeout))
-    (python-shell-completion-native-get-completions
-     (get-buffer-process (current-buffer))
-     "_")))
-
-(defun python-shell-completion-native-setup ()
-  "Try to setup native completion, return non-nil on success."
-  (let* ((process (python-shell-get-process))
-         (output (python-shell-send-string-no-output "
-def __PYTHON_EL_native_completion_setup():
-    try:
-        import readline
-
-        try:
-            import __builtin__
-        except ImportError:
-            # Python 3
-            import builtins as __builtin__
-
-        builtins = dir(__builtin__)
-        is_ipython = ('__IPYTHON__' in builtins or
-                      '__IPYTHON__active' in builtins)
-
+    if completer and not getattr(completer, 'PYTHON_EL_WRAPPED', False):
         class __PYTHON_EL_Completer:
             '''Completer wrapper that prints candidates to stdout.
 
@@ -4621,34 +4588,111 @@ def __PYTHON_EL_native_completion_setup():
                 else:
                     return completion
 
-        completer = readline.get_completer()
+        # Wrap the existing completer function only once.
+        new_completer = __PYTHON_EL_Completer(completer)
+        readline.set_completer(new_completer)"
+  "Code used to setup completion in inferior Python processes."
+  :type 'string
+  :version "31.1")
 
-        if not completer:
-            # Used as last resort to avoid breaking customizations.
-            import rlcompleter
-            completer = readline.get_completer()
+(define-obsolete-variable-alias
+  'python-shell-completion-module-string-code
+  'python-shell-completion-string-code
+  "24.4"
+  "Completion string code must also autocomplete modules.")
 
-        if completer and not getattr(completer, 'PYTHON_EL_WRAPPED', False):
-            # Wrap the existing completer function only once.
-            new_completer = __PYTHON_EL_Completer(completer)
-            if not is_ipython:
-                readline.set_completer(new_completer)
-            else:
-                # Ensure that rlcompleter.__main__ and __main__ are identical.
-                # (Bug#76205)
-                import sys
-                try:
-                    sys.modules['rlcompleter'].__main__ = sys.modules['__main__']
-                except KeyError:
-                    pass
-                # Try both initializations to cope with all IPython versions.
-                # This works fine for IPython 3.x but not for earlier:
-                readline.set_completer(new_completer)
-                # IPython<3 hacks readline such that `readline.set_completer`
-                # won't work.  This workaround injects the new completer
-                # function into the existing instance directly:
-                instance = getattr(completer, 'im_self', completer.__self__)
-                instance.rlcomplete = new_completer
+(define-obsolete-variable-alias
+  'python-shell-completion-pdb-string-code
+  'python-shell-completion-string-code
+  "25.1"
+  "Completion string code must work for (i)pdb.")
+
+(defcustom python-shell-completion-native-disabled-interpreters
+  ;; PyPy's readline cannot handle some escape sequences yet.  Native
+  ;; completion doesn't work on w32 (Bug#28580).
+  (if (eq system-type 'windows-nt) '("")
+    '("pypy"))
+  "List of disabled interpreters.
+When a match is found, native completion is disabled."
+  :version "28.1"
+  :type '(repeat string))
+
+(defcustom python-shell-completion-native-enable t
+  "Enable readline based native completion."
+  :version "25.1"
+  :type 'boolean)
+
+(defcustom python-shell-completion-native-output-timeout 5.0
+  "Time in seconds to wait for completion output before giving up."
+  :version "25.1"
+  :type 'number)
+
+(defcustom python-shell-completion-native-try-output-timeout 1.0
+  "Time in seconds to wait for *trying* native completion output."
+  :version "25.1"
+  :type 'number)
+
+(defvar python-shell-readline-completer-delims nil
+  "Word delimiters used by the readline completer.
+It is automatically set by Python shell.  An empty string means no
+characters are considered delimiters and the readline completion
+considers the entire line of input.  A value of nil means the Python
+shell has no readline support.")
+
+(defun python-shell-readline-detect ()
+  "Detect the readline support for Python shell completion."
+  (let* ((process (python-shell-get-process))
+         (output (python-shell-send-string-no-output "
+def _PYTHON_EL_detect_readline():
+    try:
+        import readline
+        print(readline.get_completer_delims())
+    except:
+        print('No readline support')
+
+_PYTHON_EL_detect_readline()
+del _PYTHON_EL_detect_readline" process)))
+    (setq-local python-shell-readline-completer-delims
+                (unless (string-search "No readline support" output)
+                  (string-trim-right output)))))
+
+(defvar python-shell-completion-native-redirect-buffer
+  " *Python completions redirect*"
+  "Buffer to be used to redirect output of readline commands.")
+
+(defun python-shell-completion-native-interpreter-disabled-p ()
+  "Return non-nil if interpreter has native completion disabled."
+  (when python-shell-completion-native-disabled-interpreters
+    (string-match
+     (regexp-opt python-shell-completion-native-disabled-interpreters)
+     (file-name-nondirectory python-shell-interpreter))))
+
+(defun python-shell-completion-native-try ()
+  "Return non-nil if can trigger native completion."
+  (let ((python-shell-completion-native-enable t)
+        (python-shell-completion-native-output-timeout
+         python-shell-completion-native-try-output-timeout))
+    (python-shell-completion-native-get-completions
+     (get-buffer-process (current-buffer))
+     "_")))
+
+(defun python-shell-completion-native-setup ()
+  "Try to setup native completion, return non-nil on success."
+  (let* ((process (python-shell-get-process))
+         (output (python-shell-send-string-no-output "
+def __PYTHON_EL_native_completion_setup():
+    try:
+        import readline
+        __PYTHON_EL_wrap_completer()
+
+        # Ensure that rlcompleter.__main__ and __main__ are identical.
+        # (Bug#76205)
+        import sys
+        try:
+            __IPYTHON__
+            sys.modules['rlcompleter'].__main__ = sys.modules['__main__']
+        except (NameError, KeyError):
+            pass
 
         if readline.__doc__ and 'libedit' in readline.__doc__:
             raise Exception('''libedit based readline is known not to work,
@@ -4796,12 +4840,16 @@ With argument MSG show activation/deactivation message."
 (defun python-shell-completion-get-completions (process input)
   "Get completions of INPUT using PROCESS."
   (with-current-buffer (process-buffer process)
-    (python--parse-json-array
-     (python-shell-send-string-no-output
-      (format "%s\nprint(__PYTHON_EL_get_completions(%s))"
-              python-shell-completion-setup-code
-              (python-shell--encode-string input))
-      process))))
+    (let ((completions
+           (python-shell-send-string-no-output
+            (format "print(__PYTHON_EL_get_completions(%s))"
+                    (python-shell--encode-string input))
+            process)))
+      (condition-case nil
+          (python--parse-json-array completions)
+        (json-parse-error
+         (python--parse-json-array
+          (car (last (split-string completions "[\n\r]+" t)))))))))
 
 (defun python-shell--get-multiline-input ()
   "Return lines at a multi-line input in Python shell."
@@ -4868,8 +4916,17 @@ using that one instead of current buffer's process."
                          ;; Working on a shell buffer: use prompt end.
                          (cdr (python-util-comint-last-prompt))
                        (line-beginning-position)))
+         (prompt-boundaries
+          (with-current-buffer (process-buffer process)
+            (python-util-comint-last-prompt)))
+         (prompt
+          (with-current-buffer (process-buffer process)
+            (when prompt-boundaries
+              (buffer-substring-no-properties
+               (car prompt-boundaries) (cdr prompt-boundaries)))))
          (no-delims
-          (and (not (if is-shell-buffer
+          (and (not (string-match-p python-shell-prompt-pdb-regexp prompt))
+               (not (if is-shell-buffer
                         (eq 'font-lock-comment-face
                             (get-text-property (1- (point)) 'face))
                       (python-syntax-context 'comment)))
@@ -4893,14 +4950,6 @@ using that one instead of current buffer's process."
                 (forward-char (length (match-string-no-properties 0)))
                 (point)))))
          (end (point))
-         (prompt-boundaries
-          (with-current-buffer (process-buffer process)
-            (python-util-comint-last-prompt)))
-         (prompt
-          (with-current-buffer (process-buffer process)
-            (when prompt-boundaries
-              (buffer-substring-no-properties
-               (car prompt-boundaries) (cdr prompt-boundaries)))))
          (completion-fn
           (with-current-buffer (process-buffer process)
             (cond ((or (null prompt)
@@ -4910,13 +4959,7 @@ using that one instead of current buffer's process."
                             (string-match-p
                              python-shell-prompt-pdb-regexp prompt)))
                    #'ignore)
-                  ((or (not python-shell-completion-native-enable)
-                       ;; Even if native completion is enabled, for
-                       ;; pdb interaction always use the fallback
-                       ;; mechanism since the completer is changed.
-                       ;; Also, since pdb interaction is single-line
-                       ;; based, this is enough.
-                       (string-match-p python-shell-prompt-pdb-regexp prompt))
+                  ((not python-shell-completion-native-enable)
                    (if (or (equal python-shell--block-prompt prompt)
                            (string-match-p
                             python-shell-prompt-block-regexp prompt))
@@ -4997,6 +5040,55 @@ If not try to complete."
 
 
 ;;; PDB Track integration
+
+(defconst python-shell-pdb-setup-code
+  "\
+def __PYTHON_EL_Pdb_setup():
+    import pdb
+
+    class _PYTHON_EL_Pdb(pdb.Pdb, object):
+        def __init__(self, *args, **kw):
+            super(_PYTHON_EL_Pdb, self).__init__(*args, **kw)
+            import re
+            self._python_el_def_pattern = re.compile('__(PYTHON_EL|FFAP|PYDOC)_')
+            self._python_el_defs = {}
+            for k, v in globals().items():
+                if self._python_el_def_pattern.match(k):
+                    self._python_el_defs[k] = v
+
+        def _python_el_setup(self):
+            if not hasattr(self, 'curframe') or self.curframe is None:
+                return
+            frame_globals = self.curframe.f_globals
+            if '__PYTHON_EL_eval' not in frame_globals:
+                for k, v in self._python_el_defs.items():
+                    frame_globals[k] = v
+            try:
+                frame_globals['__PYTHON_EL_wrap_completer']()
+            except Exception as e:
+                print('failed to setup completer: {}'.format(str(e)))
+
+        def preloop(self):
+            super(_PYTHON_EL_Pdb, self).preloop()
+            # Trigger precmd/postcmd when entering pdb.
+            self.cmdqueue.append('pass  # __PYTHON_EL_')
+
+        def precmd(self, line):
+            if self._python_el_def_pattern.search(line):
+                self._real_lastcmd = self.lastcmd
+            return super(_PYTHON_EL_Pdb, self).precmd(line)
+
+        def postcmd(self, stop, line):
+            self._python_el_setup()
+            if self._python_el_def_pattern.search(line):
+                self.lastcmd = self._real_lastcmd
+            return super(_PYTHON_EL_Pdb, self).postcmd(stop, line)
+
+    pdb.Pdb = _PYTHON_EL_Pdb
+
+__PYTHON_EL_Pdb_setup()
+del __PYTHON_EL_Pdb_setup"
+  "Code used to setup the debugger in inferior Python processes.")
 
 (defcustom python-pdbtrack-activate t
   "Non-nil makes Python shell enable pdbtracking.
@@ -5079,8 +5171,12 @@ Never set this variable directly, use
   "Set the buffer for FILE-NAME as the tracked buffer.
 Internally it uses the `python-pdbtrack-tracked-buffer' variable.
 Returns the tracked buffer."
-  (let* ((file-name-prospect (concat (file-remote-p default-directory)
-                              file-name))
+  (let* ((file-name-prospect
+          (if (string-prefix-p python-shell-local-prefix file-name)
+              (string-remove-prefix python-shell-local-prefix file-name)
+            (if (file-remote-p file-name)
+                file-name
+              (concat (file-remote-p default-directory) file-name))))
          (file-buffer (get-file-buffer file-name-prospect)))
     (unless file-buffer
       (cond
@@ -5634,8 +5730,7 @@ def __FFAP_get_module_path(objstr):
                       (python-util-comint-end-of-output-p)))
               (module-file
                (python-shell-send-string-no-output
-                (format "%s\nprint(__FFAP_get_module_path(%s))"
-                        python-ffap-setup-code
+                (format "print(__FFAP_get_module_path(%s))"
                         (python-shell--encode-string module)))))
     (unless (string-empty-p module-file)
       (python-util-strip-string module-file))))
@@ -5758,10 +5853,8 @@ returns will be used.  If not FORCE-PROCESS is passed what
                 ;; enabled.  Bug#18794.
                 (python-util-strip-string
                  (python-shell-send-string-no-output
-                  (format
-                   "%s\nprint(__PYDOC_get_help(%s))"
-                   python-eldoc-setup-code
-                   (python-shell--encode-string input))
+                  (format "print(__PYDOC_get_help(%s))"
+                          (python-shell--encode-string input))
                   process)))))
         (unless (string-empty-p docstring)
           docstring)))))
@@ -5774,7 +5867,7 @@ Set to nil by `python-eldoc-function' if
 
 (defcustom python-eldoc-function-timeout 1
   "Timeout for `python-eldoc-function' in seconds."
-  :type 'integer
+  :type 'number
   :version "25.1")
 
 (defcustom python-eldoc-function-timeout-permanent t
@@ -5866,6 +5959,22 @@ are also searched.  REGEXP is passed to `looking-at' to set
       (save-excursion
         (beginning-of-line)
         (looking-at regexp)))))
+
+(defun python-ts-hs-adjust-block-end-fn (block-beg)
+  "Python-ts-mode specific `hs-adjust-block-end-function' function.
+
+BLOCK-BEG is the beginning position where the hiding will be performed.
+
+This is only used to properly hide the block when there are no closing
+parens."
+  (unless (save-excursion
+            (goto-char block-beg)
+            (treesit-thing-at
+             (1- (point))
+             '(or "argument_list"
+                  (and anonymous "\\`[](),[{}]\\'")
+                  "string")))
+    (line-end-position)))
 
 
 ;;; Imenu
@@ -6979,8 +7088,7 @@ for key in sorted(result):
 
 (defun python--import-sources ()
   "List files containing Python imports that may be useful in the current buffer."
-  (if-let* (((featurep 'project))        ;For compatibility with Emacs < 26
-            (proj (project-current)))
+  (if-let* ((proj (project-current)))
       (seq-filter (lambda (s) (string-match-p "\\.py[iwx]?\\'" s))
                   (project-files proj))
     (list default-directory)))
@@ -7294,21 +7402,30 @@ implementations: `python-mode' and `python-ts-mode'."
                       #'python-eldoc-function))))
   (eldoc-add-command-completions "python-indent-dedent-line-backspace")
 
-  ;; TODO: Use tree-sitter to figure out the block in `python-ts-mode'.
-  (dolist (mode '(python-mode python-ts-mode))
-    (add-to-list
-     'hs-special-modes-alist
-     `(,mode
-       ,python-nav-beginning-of-block-regexp
-       ;; Use the empty string as end regexp so it doesn't default to
-       ;; "\\s)".  This way parens at end of defun are properly hidden.
-       ""
-       "#"
-       python-hideshow-forward-sexp-function
-       nil
-       python-nav-beginning-of-block
-       python-hideshow-find-next-block
-       python-info-looking-at-beginning-of-block)))
+  (if (< emacs-major-version 31)
+      (dolist (mode '(python-mode python-ts-mode))
+        (add-to-list
+         'hs-special-modes-alist
+         `(,mode
+           ,python-nav-beginning-of-block-regexp
+           ;; Use the empty string as end regexp so it doesn't default to
+           ;; "\\s)".  This way parens at end of defun are properly hidden.
+           ""
+           "#"
+           python-hideshow-forward-sexp-function
+           nil
+           python-nav-beginning-of-block
+           python-hideshow-find-next-block
+           python-info-looking-at-beginning-of-block)))
+    (setq-local hs-block-start-regexp python-nav-beginning-of-block-regexp)
+    ;; Use the empty string as end regexp so it doesn't default to
+    ;; "\\s)".  This way parens at end of defun are properly hidden.
+    (setq-local hs-block-end-regexp "")
+    (setq-local hs-c-start-regexp "#")
+    (setq-local hs-forward-sexp-function #'python-hideshow-forward-sexp-function)
+    (setq-local hs-find-block-beginning-function #'python-nav-beginning-of-block)
+    (setq-local hs-find-next-block-function #'python-hideshow-find-next-block)
+    (setq-local hs-looking-at-block-start-predicate #'python-info-looking-at-beginning-of-block))
 
   (setq-local outline-regexp (python-rx (* space) block-start))
   (setq-local outline-level
@@ -7380,7 +7497,12 @@ implementations: `python-mode' and `python-ts-mode'."
     (treesit-major-mode-setup)
     ;; Enable the `sexp' navigation by default
     (setq-local forward-sexp-function #'treesit-forward-sexp
-                treesit-sexp-thing 'sexp)
+                treesit-sexp-thing 'sexp
+                treesit-sexp-thing-down-list 'list)
+
+    (when (>= emacs-major-version 31)
+      (setq-local hs-treesit-things '(or defun sexp))
+      (setq-local hs-adjust-block-end-function #'python-ts-hs-adjust-block-end-fn))
 
     (setq-local syntax-propertize-function #'python--treesit-syntax-propertize)
 
@@ -7389,11 +7511,17 @@ implementations: `python-mode' and `python-ts-mode'."
     (when python-indent-guess-indent-offset
       (python-indent-guess-indent-offset))
 
-    (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
-    (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode))))
+    (unless (boundp 'treesit-major-mode-remap-alist) ; Emacs 31.1
+      (add-to-list 'auto-mode-alist (cons python--auto-mode-alist-regexp 'python-ts-mode))
+      (add-to-list 'interpreter-mode-alist '("python[0-9.]*" . python-ts-mode)))))
 
 (when (fboundp 'derived-mode-add-parents) ; Emacs 30.1
   (derived-mode-add-parents 'python-ts-mode '(python-mode)))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist) ; Emacs 31.1
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(python-mode . python-ts-mode)))
 
 ;;; Completion predicates for M-x
 ;; Commands that only make sense when editing Python code.

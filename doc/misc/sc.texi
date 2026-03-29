@@ -3,6 +3,7 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename ../../info/sc.info
 @settitle Supercite User's Manual
+@documentlanguage en
 @include docstyle.texi
 @iftex
 @finalout
@@ -15,7 +16,7 @@
 This document describes Supercite, an Emacs package for citing and
 attributing replies to mail and news messages.
 
-Copyright @copyright{} 1993, 2001--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

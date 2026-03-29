@@ -1,6 +1,6 @@
 ;;; esh-io-tests.el --- esh-io test suite  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -39,6 +39,28 @@
   (eshell-errorn "stderr"))
 
 ;;; Tests:
+
+
+;; Newlines
+
+(ert-deftest esh-io-test/output-newline/add-newline ()
+  "Ensure we add a newline when writing a string to stdout."
+  (with-temp-eshell
+    (eshell-match-command-output "(concat \"hello\")" "\\`hello\n\\'")))
+
+(ert-deftest esh-io-test/output-newline/no-newline ()
+  "Ensure we don't add a newline when writing a string to a buffer."
+  (eshell-with-temp-buffer bufname ""
+    (with-temp-eshell
+      (eshell-match-command-output
+       (format "(concat \"hello\") > #<%s>" bufname)
+       "\\`\\'"))
+    (should (equal (buffer-string) "hello"))))
+
+(ert-deftest esh-io-test/output-newline/no-extra-newline ()
+  "Ensure we don't add an extra newline when writing to stdout."
+  (with-temp-eshell
+    (eshell-match-command-output "(concat \"hello\n\")" "\\`hello\n\\'")))
 
 
 ;; Basic redirection

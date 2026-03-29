@@ -1,6 +1,6 @@
 ;;; erc-scenarios-services-misc.el --- Services-misc scenarios -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -73,11 +73,12 @@
                                 :nick "tester"
                                 :full-name "tester")
         (should (string= (buffer-name) (format "127.0.0.1:%d" port)))
-        (ert-simulate-keys "changeme\r"
-          (erc-d-t-wait-for 10 (eq erc-network 'Libera.Chat))
-          (funcall expect 3 "This nickname is registered.")
-          (funcall expect 3 "You are now identified")
-          (funcall expect 3 "Last login from"))
+        (let ((inhibit-message noninteractive))
+          (ert-simulate-keys "changeme\r"
+            (erc-d-t-wait-for 10 (eq erc-network 'Libera.Chat))
+            (funcall expect 3 "This nickname is registered.")
+            (funcall expect 3 "You are now identified")
+            (funcall expect 3 "Last login from")))
         (erc-cmd-QUIT "")))
 
     (erc-services-mode -1)

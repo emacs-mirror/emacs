@@ -1,6 +1,6 @@
 ;;; proced-tests.el --- Test suite for proced.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -61,7 +61,7 @@
   (proced--move-to-column "%CPU")
   (condition-case err
       (>= (proced--cpu-at-point) cpu)
-    (ert-test-skipped (signal (car err) (cdr err)))
+    (ert-test-skipped (signal err))
     (error
      (ert-fail
       (list err (proced--assert-process-valid-cpu-refinement-explainer cpu))))))

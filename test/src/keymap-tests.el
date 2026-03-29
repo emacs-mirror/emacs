@@ -1,6 +1,6 @@
 ;;; keymap-tests.el --- Test suite for src/keymap.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;;         Stefan Kangas <stefankangas@gmail.com>
@@ -36,6 +36,22 @@
 
 (ert-deftest keymap-make-sparse-keymap ()
   (keymap-tests--make-keymap-test #'make-sparse-keymap))
+
+(ert-deftest keymap-accessible-keymaps ()
+  (let* ((map (make-sparse-keymap))
+         (sub (make-sparse-keymap)))
+    (define-key map (kbd "C-x") sub)
+    (define-key sub (kbd "C-f") #'find-file)
+    (define-key map (kbd "C-c") #'ignore)
+    (let ((maps (accessible-keymaps map)))
+      (should (equal (caar maps) []))
+      (should (eq (cdar maps) map))
+      (should (assoc [?\C-x] maps))
+      (should (eq (cdr (assoc [?\C-x] maps)) sub))
+      (should-not (assoc [?\C-c] maps)))
+    (let ((pref (accessible-keymaps map (kbd "C-x"))))
+      (should (equal (caar pref) [?\C-x]))
+      (should (eq (cdar pref) sub)))))
 
 (ert-deftest keymap-keymapp ()
   (should (keymapp (make-keymap)))
@@ -508,6 +524,44 @@ g .. h		foo
     (keymap-unset map "u" t)
     ;; From the parent this time/
     (should (equal (keymap-lookup map "u") #'undo))))
+
+(defun keymap-test--get-maps (posn)
+  (let ((maps (current-active-maps nil posn)))
+    ;; The local map should always be present.
+    (should (memq (current-local-map) maps))
+    maps))
+
+(defun keymap-test--maps-for-posn (area string)
+  (keymap-test--get-maps
+   ;; FIXME: This test would be better if this was a real position
+   ;; created by a real click.
+   (let (;; If AREA is passed, the click isn't in the buffer; otherwise
+         ;; it's at position 1.
+         (pos (if area nil 1)))
+     `(,(selected-window) ,area (1 . 1) 0 (,string . 0)
+       ,pos (1 . 1) nil (1 . 1) (1 . 1)))))
+
+(ert-deftest keymap-test-keymaps-for-non-buffer-positions ()
+  "`current-active-maps' with non-buffer positions.  (bug#76620)"
+  (with-temp-buffer
+    (pop-to-buffer (current-buffer))
+    (let ((keymap (make-sparse-keymap "keymap-at-point")))
+      (use-local-map (make-sparse-keymap "buffer-local-map"))
+      (insert (propertize "string" 'keymap keymap))
+      (goto-char (point-min))
+      (should (memq keymap (keymap-test--get-maps nil)))
+      (should-not (memq keymap (keymap-test--maps-for-posn 'mode-line nil)))
+      (should-not (memq keymap (keymap-test--maps-for-posn 'mode-line "s")))
+      (should (memq keymap (keymap-test--maps-for-posn nil "s")))
+      (should (memq keymap (keymap-test--maps-for-posn nil nil)))
+      (should (memq keymap (keymap-test--get-maps "a")))
+      (let* ((mode-line-keymap (make-sparse-keymap "keymap-in-mode-line"))
+             (s (propertize "string" 'keymap mode-line-keymap)))
+        ;; Respect `keymap' in the string clicked on.
+        (should-not (memq keymap (keymap-test--maps-for-posn nil s)))
+        (should-not (memq keymap (keymap-test--maps-for-posn 'mode-line s)))
+        (should (memq mode-line-keymap (keymap-test--maps-for-posn nil s)))
+        (should (memq mode-line-keymap (keymap-test--maps-for-posn 'mode-line s)))))))
 
 (provide 'keymap-tests)
 

@@ -1,6 +1,6 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 1997, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -52,6 +52,7 @@
 ;; calendar-astro-to-absolute and from-absolute are cal-autoloads.
 ;;;(require 'cal-julian)
 
+(declare-function holiday-filter-visible-calendar "holidays" (l))
 
 (defgroup calendar-chinese nil
   "Chinese calendar support."
@@ -65,8 +66,7 @@
   "Minutes difference between local standard time for Chinese calendar and UTC.
 Default is for Beijing.  This is an expression in `year' since it changed at
 1928-01-01 00:00:00 from UT+7:45:40 to UT+8."
-  :type 'sexp
-  :group 'calendar-chinese)
+  :type 'sexp)
 
 ;; It gets eval'd.
 ;;;###autoload
@@ -75,8 +75,7 @@ Default is for Beijing.  This is an expression in `year' since it changed at
 ;; FIXME unused.
 (defcustom calendar-chinese-location-name "Beijing"
   "Name of location used for calculation of Chinese calendar."
-  :type 'string
-  :group 'calendar-chinese)
+  :type 'string)
 
 (defcustom calendar-chinese-daylight-time-offset 0
 ;; The correct value is as follows, but the Chinese calendrical
@@ -84,8 +83,7 @@ Default is for Beijing.  This is an expression in `year' since it changed at
 ;;  60
   "Minutes difference between daylight saving and standard time.
 Default is for no daylight saving time."
-  :type 'integer
-  :group 'calendar-chinese)
+  :type 'integer)
 
 (defcustom calendar-chinese-standard-time-zone-name
   '(if (< year 1928)
@@ -95,13 +93,11 @@ Default is for no daylight saving time."
 This is an expression depending on `year' because it changed
 at 1928-01-01 00:00:00 from `PMT' to `CST'."
   :type 'sexp
-  :risky t
-  :group 'calendar-chinese)
+  :risky t)
 
 (defcustom calendar-chinese-daylight-time-zone-name "CDT"
   "Abbreviated name of daylight saving time zone used for Chinese calendar."
-  :type 'string
-  :group 'calendar-chinese)
+  :type 'string)
 
 (defcustom calendar-chinese-daylight-saving-start nil
 ;; The correct value is as follows, but the Chinese calendrical
@@ -113,8 +109,7 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
 Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-starts'."
   :type 'sexp
-  :risky t
-  :group 'calendar-chinese)
+  :risky t)
 
 (defcustom calendar-chinese-daylight-saving-end nil
 ;; The correct value is as follows, but the Chinese calendrical
@@ -124,25 +119,21 @@ Default is for no daylight saving time.  See documentation of
 Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-ends'."
   :type 'sexp
-  :risky t
-  :group 'calendar-chinese)
+  :risky t)
 
 (defcustom calendar-chinese-daylight-saving-start-time 0
   "Number of minutes after midnight that daylight saving time starts.
 Default is for no daylight saving time."
-  :type 'integer
-  :group 'calendar-chinese)
+  :type 'integer)
 
 (defcustom calendar-chinese-daylight-saving-end-time 0
   "Number of minutes after midnight that daylight saving time ends.
 Default is for no daylight saving time."
-  :type 'integer
-  :group 'calendar-chinese)
+  :type 'integer)
 
 (defcustom calendar-chinese-celestial-stem
   ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
   "Prefixes used by `calendar-chinese-sexagesimal-name'."
-  :group 'calendar-chinese
   :type '(vector (string :tag "Jia")
                  (string :tag "Yi")
                  (string :tag "Bing")
@@ -157,7 +148,6 @@ Default is for no daylight saving time."
 (defcustom calendar-chinese-terrestrial-branch
   ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"]
   "Suffixes used by `calendar-chinese-sexagesimal-name'."
-  :group 'calendar-chinese
   :type '(vector (string :tag "Zi")
                  (string :tag "Chou")
                  (string :tag "Yin")
@@ -188,7 +178,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
   (with-suppressed-warnings ((lexical year))
     (defvar year))
   (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
-         (calendar-time-zone (eval calendar-chinese-time-zone)) ; uses year
+         (calendar-time-zone (eval calendar-chinese-time-zone t)) ; uses year
          (calendar-daylight-time-offset
           calendar-chinese-daylight-time-offset)
          (calendar-standard-time-zone-name
@@ -212,7 +202,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
   (with-suppressed-warnings ((lexical year))
     (defvar year))
   (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
-         (calendar-time-zone (eval calendar-chinese-time-zone))
+         (calendar-time-zone (eval calendar-chinese-time-zone t))
          (calendar-daylight-time-offset
           calendar-chinese-daylight-time-offset)
          (calendar-standard-time-zone-name
@@ -433,95 +423,91 @@ Gregorian date Sunday, December 31, 1 BC."
 ;;;###holiday-autoload
 (defun holiday-chinese-new-year ()
   "Date of Chinese New Year, if visible in calendar.
-Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
-  (let ((m displayed-month)
-        (y displayed-year)
-        chinese-new-year)
+Returns a list of ((MONTH DAY YEAR) TEXT), where the date is Gregorian."
+  (let (chinese-new-years)
     ;; In the Gregorian calendar, CNY falls between Jan 21 and Feb 20.
-    ;; Jan is visible if displayed-month = 12, 1, 2; Feb if d-m = 1, 2, 3.
-    ;; If we shift the calendar forward one month, we can do a
-    ;; one-sided test, namely: d-m <= 4 means CNY might be visible.
-    (calendar-increment-month m y 1)    ; shift forward a month
-    (and (< m 5)
-         (calendar-date-is-visible-p
-          (setq chinese-new-year
-                (calendar-gregorian-from-absolute
-                 (cadr (assoc 1 (calendar-chinese-year y))))))
-         (list
-          (list chinese-new-year
-                (format "Chinese New Year (%s)"
-                        (calendar-chinese-sexagesimal-name (+ y 57))))))))
+    (dolist (y (calendar-month-visible-p 1 1))
+      (push
+       (list (calendar-gregorian-from-absolute
+              (cadr (assoc 1 (calendar-chinese-year y))))
+             (format "Chinese New Year (%s)"
+                     (calendar-chinese-sexagesimal-name (+ y 57))))
+       chinese-new-years))
+    (holiday-filter-visible-calendar chinese-new-years)))
 
 ;;;###holiday-autoload
 (defun holiday-chinese-qingming ()
   "Date of Chinese Qingming Festival, if visible in calendar.
 Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
-  (when (memq displayed-month '(3 4 5)) ; is April visible?
+  (when-let* ((y (calendar-month-visible-p 4))) ; is April visible?
     (list (list (calendar-gregorian-from-absolute
                  ;; 15 days after Vernal Equinox.
                  (+ 15
                     (calendar-chinese-zodiac-sign-on-or-after
                      (calendar-absolute-from-gregorian
-                      (list 3 15 displayed-year)))))
+                      (list 3 15 y)))))
                 "Qingming Festival"))))
 
 ;;;###holiday-autoload
 (defun holiday-chinese-winter-solstice ()
   "Date of Chinese winter solstice, if visible in calendar.
 Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
-  (when (memq displayed-month '(11 12 1)) ; is December visible?
+  (when-let* ((y (calendar-month-visible-p 12))) ; is December visible?
     (list (list (calendar-gregorian-from-absolute
                  (calendar-chinese-zodiac-sign-on-or-after
                   (calendar-absolute-from-gregorian
-                   (list 12 15 (if (eq displayed-month 1)
-                                   (1- displayed-year)
-                                 displayed-year)))))
+                   (list 12 15 y))))
                 "Winter Solstice Festival"))))
 
 ;;;###holiday-autoload
 (defun holiday-chinese (month day string)
   "Holiday on Chinese MONTH, DAY called STRING.
-If MONTH, DAY (Chinese) is visible, returns the corresponding
-Gregorian date as the list (((month day year) STRING)).
-Returns nil if it is not visible in the current calendar window."
-  (let ((date
+If MONTH, DAY (Chinese) is visible, returns corresponding Gregorian
+dates as a list of ((month day year) STRING).  The leap month is skipped
+because only the earlier date is considered a holiday.  Returns nil if
+it is not visible in the current calendar window."
+  (let ((range (calendar-get-date-range t)) dates)
+    ;; A basic optimization.  Chinese year can only change if
+    ;; Jan or Feb are visible.  FIXME can we do more?
+    (if (not (calendar-month-visible-p 1 1))
+        ;; Simple form for when new years are not visible.
+        (push
          (calendar-gregorian-from-absolute
-          ;; A basic optimization.  Chinese year can only change if
-          ;; Jan or Feb are visible.  FIXME can we do more?
-          (if (memq displayed-month '(12 1 2 3))
-              ;; This is calendar-nongregorian-visible-p adapted for
-              ;; the form of chinese dates: (cycle year month day) as
-              ;; opposed to (month day year).
-              (let* ((m1 displayed-month)
-                     (y1 displayed-year)
-                     (m2 displayed-month)
-                     (y2 displayed-year)
-                     ;; Absolute date of first/last dates in calendar window.
-                     (start-date (progn
-                                   (calendar-increment-month m1 y1 -1)
-                                   (calendar-absolute-from-gregorian
-                                    (list m1 1 y1))))
-                     (end-date (progn
-                                 (calendar-increment-month m2 y2 1)
-                                 (calendar-absolute-from-gregorian
-                                  (list m2 (calendar-last-day-of-month m2 y2)
-                                        y2))))
-                     ;; Local date of first/last date in calendar window.
-                     (local-start (calendar-chinese-from-absolute start-date))
-                     (local-end (calendar-chinese-from-absolute end-date))
-                     ;; When Chinese New Year is visible on the far
-                     ;; right of the calendar, what is the earliest
-                     ;; Chinese month in the previous year that might
-                     ;; still visible?  This test doesn't have to be precise.
-                     (local (if (< month 10) local-end local-start))
-                     (cycle (car local))
-                     (year (cadr local)))
-                (calendar-chinese-to-absolute (list cycle year month day)))
-            ;; Simple form for when new years are not visible.
-            (+ (cadr (assoc month (calendar-chinese-year displayed-year)))
-               (1- day))))))
-    (if (calendar-date-is-visible-p date)
-        (list (list date string)))))
+          (+ (cadr (assoc month (calendar-chinese-year
+                                 (calendar-extract-year (car range)))))
+             (1- day)))
+         dates)
+      ;; This is calendar-nongregorian-date-visible-p adapted for
+      ;; the form of chinese dates: (cycle year month day) as
+      ;; opposed to (month day year).
+      (let* ((start-date (calendar-absolute-from-gregorian (car range)))
+             (end-date (calendar-absolute-from-gregorian (cdr range)))
+             ;; Local date of first/last date in calendar window.
+             (local-start (calendar-chinese-from-absolute start-date))
+             (local-end (calendar-chinese-from-absolute end-date))
+             (c1 (nth 0 local-start))
+             (c2 (nth 0 local-end))
+             (y1 (nth 1 local-start))
+             (y2 (nth 1 local-end))
+             (m1 (nth 2 local-start))
+             (m2 (nth 2 local-end)))
+        (if (= y1 y2)
+            (push (list c1 y1 month day) dates)
+          ;; In a large calendar range (e.g. 12 months), a local
+          ;; month/day may appear twice and there may be three local
+          ;; years, e.g. (holiday-chinese 1 1 "") in 2019/02-2020/01.
+          (dotimes (i (- y2 y1 1))
+            (push (list (if (>= (+ y1 i 1) 60) (1+ c1) c1)
+                        (+ y1 i 1) month day)
+                  dates))
+          (when (>= month m1)
+            (push (list c1 y1 month day) dates))
+          (when (<= month m2)
+            (push (list c2 y2 month day) dates)))
+        (setq dates (mapcar (lambda (d) (calendar-gregorian-from-absolute
+                                    (calendar-chinese-to-absolute d)))
+                            dates))))
+    (holiday-filter-visible-calendar (mapcar (lambda (d) (list d string)) dates))))
 
 ;;;###cal-autoload
 (defun calendar-chinese-date-string (&optional date)
@@ -630,7 +616,7 @@ Echo Chinese date unless NOECHO is non-nil."
           (day (calendar-read-sexp
                 "Chinese calendar day (1-%d)"
                 (lambda (x) (and (<= 1 x) (<= x last)))
-                nil
+                1
                 last)))
      (list (list cycle year month day))))
   (calendar-goto-date (calendar-gregorian-from-absolute

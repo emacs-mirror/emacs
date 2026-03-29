@@ -1,6 +1,6 @@
 ;;; rxvt.el --- define function key sequences and standard colors for rxvt  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2026 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Keywords: terminals
@@ -190,6 +190,9 @@
   (when rxvt-set-window-title
     (xterm--init-frame-title))
 
+  ;; Do not use TAB+BS optimization, as that might produce buggy display.
+  (setq tty-cursor-movement-use-TAB-BS nil)
+
   (run-hooks 'terminal-init-rxvt-hook))
 
 ;; rxvt puts the default colors into an environment variable
@@ -197,9 +200,13 @@
 ;; intelligent way than the default guesswork in startup.el.
 (defun rxvt-set-background-mode ()
   "Set background mode as appropriate for the default rxvt colors."
-  (let ((fgbg (getenv "COLORFGBG"))
-	bg rgb)
-    (set-terminal-parameter nil 'background-mode 'light)
+  (set-terminal-parameter nil 'background-mode (rxvt-colorfgbg-background-mode
+                                                (getenv "COLORFGBG"))))
+
+(defun rxvt-colorfgbg-background-mode (fgbg)
+  "Determine background mode.
+FGBG is a string of the same meaning as the COLORFGBG environment variable."
+  (let (bg rgb)
     (when (and fgbg
 	       (string-match ".*;\\([0-9][0-9]?\\)\\'" fgbg))
       (setq bg (string-to-number (substring fgbg (match-beginning 1))))
@@ -212,7 +219,8 @@
 	     ;; The following line assumes that white is the 15th
 	     ;; color in rxvt-standard-colors.
 	     (* (apply '+ (car (cddr (nth 15 rxvt-standard-colors)))) 0.6))
-	  (set-terminal-parameter nil 'background-mode 'dark)))))
+          'dark
+        'light))))
 
 (provide 'term/rxvt)
 

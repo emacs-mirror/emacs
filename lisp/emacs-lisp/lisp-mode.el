@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -729,7 +729,9 @@ font-lock keywords will not be case sensitive."
   :group 'lisp
   (lisp-mode-variables nil t nil)
   (setq-local electric-quote-string t)
-  (setq imenu-case-fold-search nil))
+  (setq imenu-case-fold-search nil)
+  (setq-local hs-block-start-regexp "\\s(\\|\"")
+  (setq-local hs-block-end-regexp "\\s)\\|\""))
 
 (defun lisp-outline-level ()
   "Lisp mode `outline-level' function."
@@ -859,7 +861,7 @@ or to switch back to an existing one."
   :type '(choice (const nil) integer)
   :safe (lambda (x) (or (null x) (integerp x))))
 
-(defcustom lisp-indent-function 'lisp-indent-function
+(defcustom lisp-indent-function #'lisp-indent-function
   "A function to be called by `calculate-lisp-indent'.
 It indents the arguments of a Lisp function call.  This function
 should accept two arguments: the indent-point, and the
@@ -1201,6 +1203,29 @@ STATE is the `parse-partial-sexp' state for current position."
                          t)
                    (= local-definitions-starting-point (point))))))))))
 
+(defvar-local lisp-indent-local-overrides nil
+  "An alist of file-local or directory-local indent specifications.
+
+Each key is a symbol and each value is an indent specification, which
+overrides the value of the symbol's `lisp-indent-function' property in
+the current buffer.  The value can take the same forms as the value of
+the property, see Info node `(elisp) Indenting Macros' for details.
+
+This variable is used by the functions `lisp-indent-function'
+and `common-lisp-indent-function'.  In case of the latter, the
+symbol properties `common-lisp-indent-function-for-elisp' and
+`common-lisp-indent-function' take precedence not only over the
+`lisp-indent-function' property but also over this variable.")
+
+(put 'lisp-indent-local-overrides 'safe-local-variable
+     (lambda (value)
+       (and (listp value)
+            (all (lambda (elt)
+                   (and (symbolp (car elt))
+                        (or (eq (cdr elt) 'defun)
+                            (integerp (cdr elt)))))
+                 value))))
+
 (defun lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.
 The function `calculate-lisp-indent' calls this to determine
@@ -1250,12 +1275,14 @@ Lisp function does not specify a special indentation."
           ;; inside the innermost containing sexp.
           (backward-prefix-chars)
           (current-column))
-      (let ((function (buffer-substring (point)
-					(progn (forward-sexp 1) (point))))
-	    method)
-	(setq method (or (function-get (intern-soft function)
-                                       'lisp-indent-function)
-			 (get (intern-soft function) 'lisp-indent-hook)))
+      (let* ((function (intern-soft
+                        (buffer-substring (point)
+                                          (progn (forward-sexp 1) (point)))))
+             (local (assq function lisp-indent-local-overrides))
+             (method (if local
+                         (cdr local)
+                       (or (function-get function 'lisp-indent-function 'macro)
+                           (get function 'lisp-indent-hook)))))
 	(cond ((or (eq method 'defun)
                    ;; Check whether we are in flet-like form.
                    (lisp--local-defform-body-p state))

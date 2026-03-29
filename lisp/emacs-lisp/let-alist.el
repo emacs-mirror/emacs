@@ -1,6 +1,6 @@
 ;;; let-alist.el --- Easily let-bind values of an assoc-list by their names -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2026 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; Package-Requires: ((emacs "24.1"))
@@ -118,9 +118,13 @@ symbol, and each cdr is the same symbol without the `.'."
 ;;;###autoload
 (defmacro let-alist (alist &rest body)
   "Let-bind dotted symbols to their cdrs in ALIST and execute BODY.
-Dotted symbol is any symbol starting with a `.'.  Only those present
-in BODY are let-bound and this search is done at compile time.
-A number will result in a list index.
+Dotted symbol is any symbol starting with a `.'.  This macro creates
+let-bindings for dotted symbols that appear literally in BODY (whether
+or not they are actually used).  It does not create bindings for dotted
+symbols that are introdcued by macro-expansion in BODY.
+
+A symbol of the form `.foo.N' where N is a natural number refers to the
+Nth element of the value that ALIST associates to key `foo'.
 
 For instance, the following code
 
@@ -132,7 +136,7 @@ For instance, the following code
 
 essentially expands to
 
-  (let ((.title (nth 0 (cdr (assq \\='title alist))))
+  (let ((.title.0 (nth 0 (cdr (assq \\='title alist))))
         (.body  (cdr (assq \\='body alist)))
         (.site  (cdr (assq \\='site alist)))
         (.site.contents (cdr (assq \\='contents (cdr (assq \\='site alist))))))

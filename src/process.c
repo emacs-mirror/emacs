@@ -1,6 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2025 Free Software
+Copyright (C) 1985-1988, 1993-1996, 1998-1999, 2001-2026 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -466,6 +466,16 @@ static struct fd_callback_data
   struct thread_state *waiting_thread;
 } fd_callback_info[FD_SETSIZE];
 
+static void
+clear_fd_callback_data (struct fd_callback_data* elem)
+{
+  elem->func = NULL;
+  elem->data = NULL;
+  elem->flags = 0;
+  elem->thread = NULL;
+  elem->waiting_thread = NULL;
+}
+
 
 /* Add a file descriptor FD to be monitored for when read is possible.
    When read is possible, call FUNC with argument DATA.  */
@@ -507,13 +517,6 @@ void
 delete_read_fd (int fd)
 {
   delete_keyboard_wait_descriptor (fd);
-
-  eassert (0 <= fd && fd < FD_SETSIZE);
-  if (fd_callback_info[fd].flags == 0)
-    {
-      fd_callback_info[fd].func = 0;
-      fd_callback_info[fd].data = 0;
-    }
 }
 
 /* Add a file descriptor FD to be monitored for when write is possible.
@@ -574,8 +577,7 @@ delete_write_fd (int fd)
   fd_callback_info[fd].flags &= ~(FOR_WRITE | NON_BLOCKING_CONNECT_FD);
   if (fd_callback_info[fd].flags == 0)
     {
-      fd_callback_info[fd].func = 0;
-      fd_callback_info[fd].data = 0;
+      clear_fd_callback_data (&fd_callback_info[fd]);
 
       if (fd == max_desc)
 	recompute_max_desc ();
@@ -1444,6 +1446,19 @@ See `set-process-sentinel' for more info on sentinels.  */)
   return XPROCESS (process)->sentinel;
 }
 
+static void
+set_proc_thread (struct Lisp_Process *proc, struct thread_state *thrd)
+{
+  eassert ((NILP (proc->thread) && !thrd)
+	   || (THREADP (proc->thread) && XTHREAD (proc->thread) == thrd));
+  eassert (proc->infd < FD_SETSIZE);
+  if (proc->infd >= 0)
+    fd_callback_info[proc->infd].thread = thrd;
+  eassert (proc->outfd < FD_SETSIZE);
+  if (proc->outfd >= 0)
+    fd_callback_info[proc->outfd].thread = thrd;
+}
+
 DEFUN ("set-process-thread", Fset_process_thread, Sset_process_thread,
        2, 2, 0,
        doc: /* Set the locking thread of PROCESS to be THREAD.
@@ -1464,12 +1479,7 @@ If THREAD is nil, the process is unlocked.  */)
 
   proc = XPROCESS (process);
   pset_thread (proc, thread);
-  eassert (proc->infd < FD_SETSIZE);
-  if (proc->infd >= 0)
-    fd_callback_info[proc->infd].thread = tstate;
-  eassert (proc->outfd < FD_SETSIZE);
-  if (proc->outfd >= 0)
-    fd_callback_info[proc->outfd].thread = tstate;
+  set_proc_thread (proc, tstate);
 
   return thread;
 }
@@ -2259,6 +2269,8 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       && !EQ (p->filter, Qt))
     add_process_read_fd (inchannel);
 
+  set_proc_thread (p, current_thread);
+
   specpdl_ref count = SPECPDL_INDEX ();
 
   /* This may signal an error.  */
@@ -2402,7 +2414,8 @@ arguments are defined:
 :buffer BUFFER -- BUFFER is the buffer (or buffer-name) to associate
 with the process.  Process output goes at the end of that buffer,
 unless you specify a filter function to handle the output.  If BUFFER
-is not given, the value of NAME is used.
+is not given, the value of NAME is used.  BUFFER may be also nil, meaning
+that this process is not associated with any buffer.
 
 :coding CODING -- If CODING is a symbol, it specifies the coding
 system used for both reading and writing for this process.  If CODING
@@ -2467,10 +2480,15 @@ usage:  (make-pipe-process &rest ARGS)  */)
   if (inchannel > max_desc)
     max_desc = inchannel;
 
-  buffer = plist_get (contact, QCbuffer);
-  if (NILP (buffer))
-    buffer = name;
-  buffer = Fget_buffer_create (buffer, Qnil);
+  {
+    Lisp_Object buffer_member = plist_member (contact, QCbuffer);
+    if (NILP (buffer_member))
+      buffer = name;
+    else
+      buffer = XCAR (XCDR (buffer_member));
+  }
+  if (!NILP (buffer))
+    buffer = Fget_buffer_create (buffer, Qnil);
   pset_buffer (p, buffer);
 
   pset_childp (p, contact);
@@ -2617,13 +2635,7 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, ptrdiff_t len)
            to walk past the end of the object looking for the name
            terminator, however.  */
         if (name_length > 0 && sockun->sun_path[0] != '\0')
-          {
-            const char *terminator
-	      = memchr (sockun->sun_path, '\0', name_length);
-
-            if (terminator)
-              name_length = terminator - (const char *) sockun->sun_path;
-          }
+	  name_length = strnlen (sockun->sun_path, name_length);
 
 	return make_unibyte_string (sockun->sun_path, name_length);
       }
@@ -4819,7 +4831,14 @@ deactivate_process (Lisp_Object proc)
   /* Beware SIGCHLD hereabouts.  */
 
   for (i = 0; i < PROCESS_OPEN_FDS; i++)
-    close_process_fd (&p->open_fd[i]);
+    {
+      if (p->open_fd[i] >= 0)
+	{
+	  fd_callback_info[p->open_fd[i]].thread = NULL;
+	  fd_callback_info[p->open_fd[i]].waiting_thread = NULL;
+	}
+      close_process_fd (&p->open_fd[i]);
+    }
 
   inchannel = p->infd;
   eassert (inchannel < FD_SETSIZE);
@@ -4839,8 +4858,6 @@ deactivate_process (Lisp_Object proc)
       delete_read_fd (inchannel);
       if ((fd_callback_info[inchannel].flags & NON_BLOCKING_CONNECT_FD) != 0)
 	delete_write_fd (inchannel);
-      if (inchannel == max_desc)
-	recompute_max_desc ();
     }
 }
 
@@ -4848,7 +4865,7 @@ deactivate_process (Lisp_Object proc)
 DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
        0, 4, 0,
        doc: /* Allow any pending output from subprocesses to be read by Emacs.
-It is given to their filter functions.
+The subprocess output is given to the respective process filter functions.
 Optional argument PROCESS means to return only after output is
 received from PROCESS or PROCESS closes the connection.
 
@@ -4863,7 +4880,13 @@ from PROCESS only, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil if we received any output from PROCESS (or, if PROCESS
 is nil, from any process) before the timeout expired or the
-corresponding connection was closed.  */)
+corresponding connection was closed.
+
+Note that it is not guaranteed that this function will return as
+soon as some output is received.  In particular, if PROCESS is nil,
+the function should not be expected to return before the timeout
+expires.  The main purpose of this function is to allow process output
+to be read by Emacs, not to return as soon as any output is read.  */)
   (Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec,
    Lisp_Object just_this_one)
 {
@@ -5068,6 +5091,10 @@ server_accept_connection (Lisp_Object server, int channel)
   fcntl (s, F_SETFL, O_NONBLOCK);
 
   p = XPROCESS (proc);
+  /* make_process calls pset_thread, but if the server process is not
+     locked to any thread, we need to undo what make_process did.  */
+  if (NILP (ps->thread))
+    pset_thread (p, Qnil);
 
   /* Build new contact information for this setup.  */
   contact = Fcopy_sequence (ps->childp);
@@ -5107,6 +5134,21 @@ server_accept_connection (Lisp_Object server, int channel)
     add_process_read_fd (s);
   if (s > max_desc)
     max_desc = s;
+  /* If the server process is locked to this thread, lock the client
+     process to the same thread, otherwise clear the thread of its I/O
+     descriptors.  */
+  if (NILP (ps->thread))
+    {
+      eassert (!fd_callback_info[p->infd].thread);
+      set_proc_thread (p, NULL);
+    }
+  else
+    {
+      eassert (!fd_callback_info[p->infd].thread
+	       || fd_callback_info[p->infd].thread == XTHREAD (ps->thread));
+      eassert (XTHREAD (ps->thread) == current_thread);
+      set_proc_thread (p, XTHREAD (ps->thread));
+    }
 
   /* Setup coding system for new process based on server process.
      This seems to be the proper thing to do, as the coding system
@@ -5315,9 +5357,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 #endif
   specpdl_ref count = SPECPDL_INDEX ();
 
-  /* Close to the current time if known, an invalid timespec otherwise.  */
-  struct timespec now = invalid_timespec ();
-
   eassert (wait_proc == NULL
 	   || NILP (wait_proc->thread)
 	   || XTHREAD (wait_proc->thread) == current_thread);
@@ -5342,7 +5381,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   else if (time_limit > 0 || nsecs > 0)
     {
       wait = TIMEOUT;
-      now = current_timespec ();
+      struct timespec now = monotonic_coarse_timespec ();
       end_time = timespec_add (now, make_timespec (time_limit, nsecs));
     }
   else
@@ -5429,8 +5468,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /* Exit if already run out.  */
       if (wait == TIMEOUT)
 	{
-	  if (!timespec_valid_p (now))
-	    now = current_timespec ();
+	  struct timespec now = monotonic_coarse_timespec ();
 	  if (timespec_cmp (end_time, now) <= 0)
 	    break;
 	  timeout = timespec_sub (end_time, now);
@@ -5683,8 +5721,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	      && timespec_valid_p (timer_delay)
 	      && timespec_cmp (timer_delay, timeout) < 0)
 	    {
-	      if (!timespec_valid_p (now))
-		now = current_timespec ();
+	      struct timespec now = monotonic_coarse_timespec ();
 	      struct timespec timeout_abs = timespec_add (now, timeout);
 	      if (!timespec_valid_p (got_output_end_time)
 		  || timespec_cmp (timeout_abs, got_output_end_time) < 0)
@@ -5693,10 +5730,6 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 	  else
 	    got_output_end_time = invalid_timespec ();
-
-	  /* NOW can become inaccurate if time can pass during pselect.  */
-	  if (timeout.tv_sec > 0 || timeout.tv_nsec > 0)
-	    now = invalid_timespec ();
 
 #if defined HAVE_GETADDRINFO_A || defined HAVE_GNUTLS
 	  if (retry_for_async
@@ -5809,6 +5842,18 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 
       if (nfds == 0)
 	{
+	  if (!read_kbd && update_tick != process_tick)
+	    {
+	      /* This is for the case where we bypassed a similar call
+                 above, after the first thread_select, because some
+                 input was available, but later found in the second
+                 thread_select that input was only "from keyboard",
+                 which we need to ignore because we were called with
+                 read_kbd zero.  We should therefore process the changed
+                 status of sub-processes.  */
+	      got_some_output = status_notify (NULL, wait_proc);
+	      if (do_display) redisplay_preserve_echo_area (113);
+	    }
           /* Exit the main loop if we've passed the requested timeout,
              or have read some bytes from our wait_proc (either directly
              in this call or indirectly through timers / process filters),
@@ -5835,7 +5880,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	    }
 	  if (timespec_cmp (cmp_time, huge_timespec) < 0)
 	    {
-	      now = current_timespec ();
+	      struct timespec now = monotonic_coarse_timespec ();
 	      if (timespec_cmp (cmp_time, now) <= 0)
 		break;
 	    }
@@ -6019,7 +6064,11 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 process gone just because its pipe is closed.  */
 	      else if (nread == 0 && !NETCONN_P (proc) && !SERIALCONN_P (proc)
 		       && !PIPECONN_P (proc))
+#ifdef WINDOWSNT
 		;
+#else
+		delete_read_fd (channel);
+#endif
 	      else if (nread == 0 && PIPECONN_P (proc))
 		{
 		  /* Preserve status of processes already terminated.  */
@@ -8094,7 +8143,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
   else if (time_limit > 0 || nsecs > 0)
     {
       wait = TIMEOUT;
-      end_time = timespec_add (current_timespec (),
+      end_time = timespec_add (monotonic_coarse_timespec (),
                                make_timespec (time_limit, nsecs));
     }
   else
@@ -8126,7 +8175,7 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
       /* Exit if already run out.  */
       if (wait == TIMEOUT)
 	{
-	  struct timespec now = current_timespec ();
+	  struct timespec now = monotonic_coarse_timespec ();
 	  if (timespec_cmp (end_time, now) <= 0)
 	    break;
 	  timeout = timespec_sub (end_time, now);
@@ -8312,7 +8361,7 @@ delete_keyboard_wait_descriptor (int desc)
 #ifdef subprocesses
   eassert (desc >= 0 && desc < FD_SETSIZE);
 
-  fd_callback_info[desc].flags &= ~(FOR_READ | KEYBOARD_FD | PROCESS_FD);
+  clear_fd_callback_data (&fd_callback_info[desc]);
 
   if (desc == max_desc)
     recompute_max_desc ();

@@ -1,6 +1,6 @@
 ;;; rust-ts-mode-tests.el --- Tests for rust-ts-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -37,6 +37,13 @@
   (let ((treesit-font-lock-level 4)
         (rust-ts-mode-fontify-number-suffix-as-type t))
     (ert-font-lock-test-file (ert-resource-file "font-lock-number.rs")
+                             'rust-ts-mode)))
+
+(ert-deftest rust-ts-test-no-parent ()
+  (skip-unless (treesit-ready-p 'rust))
+  (let ((treesit-font-lock-level 4)
+        (rust-ts-mode-fontify-number-suffix-as-type t))
+    (ert-font-lock-test-file (ert-resource-file "font-lock-no-parent.rs")
                              'rust-ts-mode)))
 
 (provide 'rust-ts-mode-tests)

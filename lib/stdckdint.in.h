@@ -1,6 +1,6 @@
 /* stdckdint.h -- checked integer arithmetic
 
-   Copyright 2022-2025 Free Software Foundation, Inc.
+   Copyright 2022-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -47,7 +47,7 @@
 
    These are like the standard macros introduced in C23, except that
    arguments should not have side effects.  The C++26 standard is
-   expected to add this header and it's macros.  */
+   expected to add this header and its macros.  */
 
 #  define ckd_add(r, a, b) ((bool) _GL_INT_ADD_WRAPV (a, b, r))
 #  define ckd_sub(r, a, b) ((bool) _GL_INT_SUBTRACT_WRAPV (a, b, r))

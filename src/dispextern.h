@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
 
-Copyright (C) 1985, 1993-1994, 1997-2025 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993-1994, 1997-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -959,6 +959,9 @@ struct glyph_row
   /* Extra line spacing added after this row.  Do not consider this
      in last row when checking if row is fully visible.  */
   int extra_line_spacing;
+
+  /* Part of extra_line_spacing that should go above the line.  */
+  int extra_line_spacing_above;
 
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
@@ -2772,6 +2775,10 @@ struct it
      window systems only.)  */
   int extra_line_spacing;
 
+  /* Default amount of additional space in pixels above lines (for
+     window systems only).  */
+  int extra_line_spacing_above;
+
   /* Max extra line spacing added in this row.  */
   int max_extra_line_spacing;
 
@@ -3245,7 +3252,7 @@ struct image
   int face_font_height;
   int face_font_width;
 
-  /* True if this image has a `transparent' background -- that is, is
+  /* True if this image has a `transparent' background -- that is, it
      uses an image mask.  The accessor macro for this is
      `IMAGE_BACKGROUND_TRANSPARENT'.  */
   bool_bf background_transparent : 1;
@@ -3559,6 +3566,7 @@ int partial_line_height (struct it *it_origin);
 bool in_display_vector_p (struct it *);
 int frame_mode_line_height (struct frame *);
 extern bool redisplaying_p;
+extern unsigned int redisplay_counter;
 extern bool display_working_on_window_p;
 extern void unwind_display_working_on_window (void);
 extern bool help_echo_showing_p;
@@ -3573,7 +3581,8 @@ extern ptrdiff_t compute_display_string_pos (struct text_pos *,
 					     struct bidi_string_data *,
 					     struct window *, bool, int *);
 extern ptrdiff_t compute_display_string_end (ptrdiff_t,
-					     struct bidi_string_data *);
+					     struct bidi_string_data *,
+					     struct window *);
 extern void produce_stretch_glyph (struct it *);
 extern int merge_glyphless_glyph_face (struct it *);
 extern void forget_escape_and_glyphless_faces (void);
@@ -3629,6 +3638,9 @@ extern void gui_union_rectangles (const Emacs_Rectangle *,
 				  const Emacs_Rectangle *,
 				  Emacs_Rectangle *);
 extern void gui_consider_frame_title (Lisp_Object);
+# ifndef HAVE_EXT_MENU_BAR
+extern void x_y_to_column_row (struct window *, int, int, int *, int *);
+# endif
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 extern void note_mouse_highlight (struct frame *, int, int);
@@ -3641,8 +3653,6 @@ extern void tty_draw_row_with_mouse_face (struct window *, struct glyph_row *,
 					  int, int, enum draw_glyphs_face);
 extern void display_tty_menu_item (const char *, int, int, int, int, bool);
 #endif
-extern struct glyph *x_y_to_hpos_vpos (struct window *, int, int, int *, int *,
-				       int *, int *, int *);
 /* Flags passed to try_window.  */
 #define TRY_WINDOW_CHECK_MARGINS	(1 << 0)
 #define TRY_WINDOW_IGNORE_FONTS_CHANGE	(1 << 1)
@@ -3746,8 +3756,10 @@ bool parse_color_spec (const char *,
 
 Lisp_Object tty_color_name (struct frame *, int);
 void clear_face_cache (bool);
+#ifdef MSDOS
 unsigned long load_color (struct frame *, struct face *, Lisp_Object,
                           enum lface_attribute_index);
+#endif
 char *choose_face_font (struct frame *, Lisp_Object *, Lisp_Object,
                         int *);
 #ifdef HAVE_WINDOW_SYSTEM

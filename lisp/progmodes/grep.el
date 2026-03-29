@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2025 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -29,7 +29,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (require 'compile)
 
 (defgroup grep nil
@@ -341,7 +340,9 @@ This keymap inherits from `compilation-minor-mode-map'."
      :help "Kill the currently running grep process"]
     "----"
     ["Toggle command abbreviation" grep-find-toggle-abbreviation
-     :help "Toggle showing verbose command options"]))
+     :help "Toggle showing verbose command options"]
+    ["Edit Grep Buffer" grep-change-to-grep-edit-mode
+     :help "Edit the *grep* buffer and apply changes to the original buffers."]))
 
 (defvar grep-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,
@@ -752,7 +753,13 @@ The value depends on `grep-command', `grep-template',
 	 (host-defaults (assq host-id grep-host-defaults-alist))
 	 (defaults (assq nil grep-host-defaults-alist))
          (quot-braces (shell-quote-argument "{}" remote))
-         (quot-scolon (shell-quote-argument ";" remote)))
+         (quot-scolon (shell-quote-argument ";" remote))
+	 ;; Windows shells need the program file name after the pipe
+	 ;; symbol be quoted if they use forward slashes as directory
+	 ;; separators.
+         (quot-xargs-program
+          (if (and (memq system-type '(ms-dos windows-nt)) (not remote))
+              (format "\"%s\"" xargs-program) xargs-program)))
     ;; There are different defaults on different hosts.  They must be
     ;; computed for every host once.
     (dolist (setting '(grep-command grep-template
@@ -870,14 +877,11 @@ The value depends on `grep-command', `grep-template',
 	(unless grep-find-command
 	  (setq grep-find-command
 		(cond ((eq grep-find-use-xargs 'gnu)
-		       ;; Windows shells need the program file name
-		       ;; after the pipe symbol be quoted if they use
-		       ;; forward slashes as directory separators.
-		       (format "%s . -type f -print0 | \"%s\" -0 %s"
-			       find-program xargs-program grep-command))
+		       (format "%s . -type f -print0 | %s -0 %s"
+			       find-program quot-xargs-program grep-command))
 		      ((eq grep-find-use-xargs 'gnu-sort)
-		       (format "%s . -type f -print0 | sort -z | \"%s\" -0 %s"
-			       find-program xargs-program grep-command))
+		       (format "%s . -type f -print0 | sort -z | %s -0 %s"
+			       find-program quot-xargs-program grep-command))
 		      ((memq grep-find-use-xargs '(exec exec-plus))
 		       (let ((cmd0 (format "%s . -type f -exec %s"
 					   find-program grep-command))
@@ -891,8 +895,8 @@ The value depends on `grep-command', `grep-template',
                                     cmd0 quot-braces null quot-scolon))
 			  (1+ (length cmd0)))))
 		      (t
-		       (format "%s . -type f -print | \"%s\" %s"
-			       find-program xargs-program grep-command)))))
+		       (format "%s . -type f -print | %s %s"
+			       find-program quot-xargs-program grep-command)))))
 	(unless grep-find-template
 	  (setq grep-find-template
 		(let ((gcmd (format "%s <C> %s <R>"
@@ -901,11 +905,11 @@ The value depends on `grep-command', `grep-template',
                                 (format "%s " (null-device))
                               "")))
                   (cond ((eq grep-find-use-xargs 'gnu)
-                         (format "%s -H <D> <X> -type f <F> -print0 | \"%s\" -0 %s"
-                                 find-program xargs-program gcmd))
+                         (format "%s -H <D> <X> -type f <F> -print0 | %s -0 %s"
+                                 find-program quot-xargs-program gcmd))
                         ((eq grep-find-use-xargs 'gnu-sort)
-                         (format "%s -H <D> <X> -type f <F> -print0 | sort -z | \"%s\" -0 %s"
-                                 find-program xargs-program gcmd))
+                         (format "%s -H <D> <X> -type f <F> -print0 | sort -z | %s -0 %s"
+                                 find-program quot-xargs-program gcmd))
                         ((eq grep-find-use-xargs 'exec)
                          (format "%s -H <D> <X> -type f <F> -exec %s %s %s%s"
                                  find-program gcmd quot-braces null quot-scolon))
@@ -913,8 +917,8 @@ The value depends on `grep-command', `grep-template',
                          (format "%s -H <D> <X> -type f <F> -exec %s %s%s +"
                                  find-program gcmd null quot-braces))
                         (t
-                         (format "%s -H <D> <X> -type f <F> -print | \"%s\" %s"
-                                 find-program xargs-program gcmd))))))
+                         (format "%s -H <D> <X> -type f <F> -print | %s %s"
+                                 find-program quot-xargs-program gcmd))))))
 
         (setq grep-quoting-style (and remote 'posix))))
 

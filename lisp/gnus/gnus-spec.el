@@ -1,6 +1,6 @@
 ;;; gnus-spec.el --- format spec functions for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
 (defvar gnus-newsrc-file-version)
 
 (require 'gnus)

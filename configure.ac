@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2026 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -49,11 +49,10 @@ if test "$XCONFIGURE" = "android"; then
     CFLAGS="$CFLAGS -D_FILE_OFFSET_BITS=32"
     enable_largefile=no
     enable_year2038=no])
-  # Gnulib should not attempt not to reimplement tzalloc, as strftime
-  # attempts to link with symbols that are only present in the Gnulib
-  # replacement.
-  AS_IF([test "$ANDROID_SDK" -ge "35"],
-    [gl_cv_onwards_func_tzalloc="future OS version"])
+  # C23 cannot be enabled for Android builds on account of
+  # incompatibilities in many external dependencies (glib, librsvg,
+  # etc.) and system headers.
+  ac_cv_prog_cc_c23=no
 fi
 
 dnl Set emacs_config_options to the options of 'configure', quoted for the shell,
@@ -191,8 +190,9 @@ AS_IF([test "$XCONFIGURE" = "android"],[
   AS_MKDIR_P([exec])
 
   # Enter exec and configure it, using the C compiler as both the
-  # assembler and the linker.  Determine the absolute name of the
-  # source directory.
+  # assembler and the linker; it is for this reason that
+  # AC_CONFIG_SUBDIRS is not suitable in this context.  Establish the
+  # absolute name of the source directory.
   # N.B. that the linker is actually cc, so pass -nostdlib, lest
   # the crt be linked in.  Likewise for as.
 
@@ -583,7 +583,13 @@ else
 with_gconf=no
 fi])
 OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
-OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
+dnl Override the AC_ARG_WITH in gl_LIBSELINUX, defaulting to "yes"
+dnl if --with-all and to "maybe" otherwise.
+AC_ARG_WITH([selinux],
+  [AS_HELP_STRING([--without-selinux],
+     [do not use SELinux, even on systems with SELinux])],
+  [],
+  [with_selinux=${with_all-maybe}])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
@@ -1578,9 +1584,6 @@ fi
 
 #### Choose a compiler.
 
-dnl Don't bother to test for C89.
-AC_DEFUN([_AC_PROG_CC_C89], [$2])
-
 dnl Sets GCC=yes if using gcc.
 AC_PROG_CC([gcc cc cl clang "$XCRUN gcc" "$XCRUN clang"])
 
@@ -1588,11 +1591,6 @@ if test -n "$XCRUN"; then
   AC_CHECK_PROGS([AR], [ar "$XCRUN ar"])
   test -n "$AR" && export AR
 fi
-
-dnl Emacs needs C99 or later.
-gl_PROG_CC_C99
-
-AC_PROG_CC_C_O
 
 if test x$GCC = xyes; then
   test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
@@ -1806,13 +1804,13 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wformat-overflow=2"      # False alarms due to GCC bug 110333
   nw="$nw -Woverlength-strings"     # Not a problem these days
   nw="$nw -Wvla"                    # Emacs uses <vla.h>.
-  nw="$nw -Wunused-const-variable=2" # lisp.h declares const objects.
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
                                     # signed overflow has undefined behavior
   nw="$nw -Wsync-nand"              # irrelevant here, and provokes ObjC warning
   nw="$nw -Wunsafe-loop-optimizations" # OK to suppress unsafe optimizations
   nw="$nw -Wbad-function-cast"      # These casts are no worse than others.
+  nw="$nw -Wzero-as-null-pointer-constant" # Emacs is not yet C2y-safe.
 
   # Emacs doesn't care about shadowing; see
   # <https://lists.gnu.org/r/emacs-diffs/2011-11/msg00265.html>.
@@ -1867,7 +1865,9 @@ AS_IF([test $gl_gcc_warnings = no],
   gl_WARN_ADD([-Wno-format-nonliteral])
   gl_WARN_ADD([-Wno-bidi-chars])
   AS_IF([test $gl_gcc_warnings = yes],
-    [gl_WARN_ADD([-Wno-analyzer-fd-leak])]) # GCC bug 109839
+    [gl_WARN_ADD([-Wno-analyzer-fd-leak]) # GCC bugs 109580, 109839
+     gl_WARN_ADD([-Wno-analyzer-use-of-uninitialized-value]) # GCC bug 121030
+    ])
 
   # clang is unduly picky about some things.
   if test "$emacs_cv_clang" = yes; then
@@ -2212,30 +2212,27 @@ esac
 
 C_SWITCH_MACHINE=
 
-AC_CACHE_CHECK([for flag to work around GCC bug 117423],
-  [emacs_cv_gcc_bug_117423_CFLAGS],
-  [emacs_cv_gcc_bug_117423_CFLAGS='none needed'
+AC_CACHE_CHECK([for flag to work around GCC union bugs],
+  [emacs_cv_gcc_union_bugs_CFLAGS],
+  [emacs_cv_gcc_union_bugs_CFLAGS='none needed'
    AS_IF([test "$GCC" = yes],
      [old_CFLAGS=$CFLAGS
-      # If no flags are needed (e.g., not GCC 4+), don't use any.
-      # Otherwise, use -fno-tree-sra.
-      for emacs_cv_gcc_bug_117423_CFLAGS in \
+      # Use -fno-tree-sra if GCC 4 through 15.1.
+      for emacs_cv_gcc_union_bugs_CFLAGS in \
 	  'none needed' -fno-tree-sra
       do
-	AS_CASE([$emacs_cv_gcc_bug_117423_CFLAGS],
+	AS_CASE([$emacs_cv_gcc_union_bugs_CFLAGS],
 	  ['none needed'], [],
 	  [-fno-tree-sra], [break],
-	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_bug_117423_CFLAGS"])
+	  [CFLAGS="$old_CFLAGS $emacs_cv_gcc_union_bugs_CFLAGS"])
 	AC_COMPILE_IFELSE(
 	  [AC_LANG_DEFINES_PROVIDED
-	   [/* Work around GCC bug 117423 with unions containing holes:
+	   [/* Work around GCC bugs 117423 and 119085 re holes in unions:
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117423
 	       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=119085
-	       GCC bug 117423 is present even in GCC 15.1,
-	       the current version as of this writing; for now,
-	       assume it is present in all GCC versions starting with GCC 4.
+	       These are fixed in GCC 13.5, 14.4 and 15.2.
 
-	       Working wround GCC bug 117423 also works around GCC bug 58416
+	       Working around them also works around GCC bug 58416
 	       with double in unions on x86, where the generated insns
 	       copy non-floating-point data via fldl/fstpl instruction pairs.
 	       This can misbehave if the data's bit pattern looks like a NaN.
@@ -2244,18 +2241,19 @@ AC_CACHE_CHECK([for flag to work around GCC bug 117423],
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71460
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93271
 		 https://gcc.gnu.org/bugzilla/show_bug.cgi?id=114659
-	       Although GCC bug 58416 is fixed in GCC 15.1,
-	       GCC bug 117423 is still present there.  */
-	    #if 4 <= __GNUC__ && !defined __clang__
-	    # error "GCC bug 117423 possibly present"
+	       GCC bug 58416 is fixed in GCC 15.1.  */
+	    #if 4 <= __GNUC__ && ! (15 < __GNUC__ + (1 < __GNUC_MINOR__))
+	     #ifndef __clang__
+	      #error "GCC union bugs possibly present"
+	     #endif
 	    #endif
 	  ]],
 	  [break])
       done
       CFLAGS=$old_CFLAGS])])
-AS_CASE([$emacs_cv_gcc_bug_117423_CFLAGS],
+AS_CASE([$emacs_cv_gcc_union_bugs_CFLAGS],
   [-*],
-    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_bug_117423_CFLAGS"])
+    [C_SWITCH_MACHINE="$C_SWITCH_MACHINE $emacs_cv_gcc_union_bugs_CFLAGS"])
 
 AC_SUBST([C_SWITCH_MACHINE])
 
@@ -2895,6 +2893,11 @@ Mac OS X 12.x or later.
        [Define to use native OS APIs for images.])
      NATIVE_IMAGE_API="yes (ns)"
   fi
+
+  if test "${NS_IMPL_GNUSTEP}" = yes; then
+    AC_CHECK_DECLS([NSImageNameCaution], [], [],
+                   [[#import <AppKit/NSImage.h>]])
+  fi
 fi
 
 AC_SUBST([LIBS_GNUSTEP])
@@ -2957,16 +2960,24 @@ if test "${HAVE_NS}" = yes; then
   fi
 
   AC_CACHE_CHECK(
-    [if the Objective C compiler defaults to C99],
-    [emacs_cv_objc_c99],
-    [AC_COMPILE_IFELSE(
-       [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
-       [emacs_cv_objc_c99=yes],
-       [emacs_cv_objc_c99=no])])
+    [for C99-or-better flag for Objective C compiler],
+    [emacs_cv_objc_c99_or_better],
+    [save_OBJCFLAGS=$OBJCFLAGS
+     for emacs_cv_objc_c99_or_better in \
+	'none needed' -std=gnu23 -std=gnu17 -std=gnu11 -std=gnu99 ''
+     do
+       AS_CASE([$emacs_cv_objc_c99_or_better],
+	 ['none needed'], [],
+	 [-*], [OBJCFLAGS="$save_OBJCFLAGS $emacs_cv_objc_c99_or_better"],
+	 [continue])
+       AC_COMPILE_IFELSE(
+	 [AC_LANG_PROGRAM([], [[for (int i = 0;;);]])],
+	 [break])
+     done
+     OBJCFLAGS=$save_OBJCFLAGS])
+  AS_CASE([$emacs_cv_objc_c99_or_better],
+    [-*], [GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS $emacs_cv_objc_c99_or_better"])
 
-  if test x$emacs_cv_objc_c99 = xno ; then
-    GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -std=c99"
-  fi
   AC_LANG_POP([Objective C])
 fi
 
@@ -3246,9 +3257,19 @@ AC_CACHE_CHECK(
    fi])
 doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 
-AC_CHECK_ALIGNOF([int])
-AC_CHECK_ALIGNOF([long])
-AC_CHECK_ALIGNOF([long long])
+AC_CHECK_ALIGNOF([EMACS_INT],
+  [[#include <limits.h>
+    #include <stddef.h>
+    #include <stdint.h>
+    #if INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
+    typedef int EMACS_INT;
+    #elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
+    typedef long int EMACS_INT;
+    #elif INTPTR_MAX <= LLONG_MAX
+    typedef long long int EMACS_INT;
+    #endif
+  ]])
+
 AC_CHECK_SIZEOF([long])
 
 AC_CACHE_CHECK([for struct alignment],
@@ -3267,46 +3288,50 @@ if test "$emacs_cv_struct_alignment" = yes; then
      structure to an N-byte boundary.])
 fi
 
+dnl Work around a glitch if aclocal is invoked outside of autogen.sh.
+dnl Such an invocation generates an aclocal.m4 that lacks m4/stdalign.m4.
+dnl The following hack checks the otherwise-uninvolved macro gl_STDALIGN_H
+dnl so that the hack itself does not generate a diagnostic.
+m4_divert_push([KILL])
+m4_ifdef([gl_STDALIGN_H], [], [m4_include([m4/stdalign.m4])])
+m4_divert_pop([KILL])
+
+dnl Check for alignas now rather than waiting for gl_INIT to do it,
+dnl as the system_malloc=no test below needs $gl_cv_header_working_stdalign_h.
+dnl Do not simply call gl_INIT here, as the ac_cv_func_pthread_sigmask=yes
+dnl assignment below affects how gl_INIT works.
+dnl Instead, call gl_ALIGNASOF, the only part of gl_INIT needed here.
+dnl Then make gl_ALIGNASOF a no-op so gl_INIT does not duplicate its code.
+gl_ALIGNASOF
+AC_DEFUN([gl_ALIGNASOF])
+
 system_malloc=yes
 
 # If it appears as if the system malloc can't be trusted to return
 # adequately positioned memory, enable the GNU malloc, which more
 # consistently provides allocations at low addresses, as is required for
 # the pdumper to load dump files at a representable location.
-AS_IF([test "$with_pdumper" = "yes" && test "$with_wide_int" != "yes"],
-  AC_CHECK_HEADERS([stdalign.h])
-  [AC_CACHE_CHECK([whether alignas is required yet unavailable],
-    [emacs_cv_alignas_unavailable],
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#ifdef HAVE_STDALIGN_H
-#include <stdalign.h>
-#endif
-      #include <limits.h>
-     ]], [[
-#define IDEAL_GCALIGNMENT 8
-#if INTPTR_MAX <= INT_MAX && !defined WIDE_EMACS_INT
-#  define ALIGNOF_EMACS_INT ALIGNOF_INT
-# elif INTPTR_MAX <= LONG_MAX && !defined WIDE_EMACS_INT
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG
-# elif INTPTR_MAX <= LLONG_MAX
-#  define ALIGNOF_EMACS_INT ALIGNOF_LONG_LONG
-# else
-# error "INTPTR_MAX too large"
-#endif
+AS_CASE([$emacs_cv_struct_alignment%$gl_cv_header_working_stdalign_h%$with_wide_int%$ac_cv_alignof_EMACS_INT%$with_pdumper],
+  [*%*%*%*%*%*],
+    [AC_MSG_ERROR([configuration values cannot contain '%'])],
 
-#if (ALIGNOF_EMACS_INT < IDEAL_GCALIGNMENT && !defined alignas	\
-     && !defined HAVE_STRUCT_ATTRIBUTE_ALIGNED	       		\
-     && !defined __alignas_is_defined				\
-     && __STDC_VERSION__ < 202311 && __cplusplus < 201103)
-#error "!USE_LSB_TAG required"
-#endif
-   ]])], [emacs_cv_alignas_unavailable=no],
-        [emacs_cv_alignas_unavailable=yes])])
-   AS_IF([test "$emacs_cv_alignas_unavailable" = "yes"],
-     [system_malloc=no
-       AC_MSG_WARN([The GNU memory manager will be enabled as your system
-does not guarantee that the portable dumper can allocate memory at a suitably
-low address.])])])
+  dnl There is no problem in most situations, i.e.:
+  [dnl if emacs_cv_struct_alignment
+   yes%* \
+   dnl or if gl_cv_header_working_stdalign_h
+   | *%yes*%*%*%* \
+   dnl or if with_wide_int (as in practice tag bits are high-order)
+   | *%*%yes%*%* \
+   dnl or if EMACS_INT's alignment is at least 8.
+   | *%*%*%8%* | *%*%*%[1-9]?*%*],
+    [],
+
+  dnl Otherwise, if using the portable dumper, enable GNU malloc.
+  [*%yes],
+    [system_malloc=no
+     AC_MSG_WARN([The GNU memory manager will be enabled as your system
+       does not guarantee that the portable dumper can allocate memory
+       at a suitably low address.])])
 
 dnl This must be before the test of $ac_cv_func_sbrk below.
 AC_CHECK_FUNCS_ONCE([sbrk])
@@ -3417,6 +3442,12 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
      done])
   if test "$emacs_cv_pthread_lib" != no; then
     AC_DEFINE([HAVE_PTHREAD], [1], [Define to 1 if you have POSIX threads.])
+    m4_foreach([emacs_type],
+      [[max_align_t], [pthread_cond_t], [pthread_mutex_t]],
+      [AC_CHECK_ALIGNOF(emacs_type,
+	 [[#include <stddef.h>
+	   #include <pthread.h>
+	 ]])])
     case $emacs_cv_pthread_lib in
       -*) LIB_PTHREAD=$emacs_cv_pthread_lib;;
     esac
@@ -3571,21 +3602,25 @@ if test "${with_webp}" != "no"; then
    || test "${HAVE_BE_APP}" = "yes" || test "${HAVE_PGTK}" = "yes" \
    || test "${REALLY_ANDROID}" = "yes"; then
       WEBP_REQUIRED=0.6.0
-      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
+      # Definitions from webp/decode.h are in libwebp, and those from
+      # webp/demux.h in libwebpdemux, which depends on libwebp.
+      WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED libwebp >= $WEBP_REQUIRED"
 
       EMACS_CHECK_MODULES([WEBP], [$WEBP_MODULE])
 
-      # WebPGetInfo is sometimes not present inside libwebpdemux, so
-      # if it does not link, also check for libwebpdecoder.
+      # If for some reason we still don't have functions from
+      # webp/decode.h, try libwebpdecoder as well, which is the
+      # decoder-only subset of libwebp (bug#61988, bug#66221).
 
       OLD_CFLAGS=$CFLAGS
       OLD_LIBS=$LIBS
       CFLAGS="$CFLAGS $WEBP_CFLAGS"
-      LIBS="$LIBS $WEBP_LIBS"
+      LIBS="$WEBP_LIBS $LIBS"
 
       AS_IF([test "$REALLY_ANDROID" != "yes"], [
-	AC_CHECK_FUNC([WebPGetInfo], [],
-	  [WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
+        AC_CHECK_FUNC([WebPDecodeRGBA], [],
+          [WEBP_MODULE="libwebpdemux >= $WEBP_REQUIRED"
+           WEBP_MODULE="$WEBP_MODULE libwebpdecoder >= $WEBP_REQUIRED"
 	   HAVE_WEBP=no
 	   AS_UNSET([WEBP_LIBS])
 	   AS_UNSET([WEBP_CFLAGS])
@@ -3979,30 +4014,6 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 AC_SUBST([USE_STARTUP_NOTIFICATION])
 
-dnl SELinux is available for Linux kernel based systems only.
-dnl These include GNU/Linux and Android.
-HAVE_LIBSELINUX=no
-LIBSELINUX_LIBS=
-LIBSELINUX_CFLAGS=
-if test "${with_selinux}" = "yes"; then
-   if test "$REALLY_ANDROID" = "yes"; then
-     ndk_SEARCH_MODULE([libselinux], [LIBSELINUX],
-       [HAVE_LIBSELINUX=yes])
-   else
-     AC_CHECK_LIB([selinux], [lgetfilecon],
-       [HAVE_LIBSELINUX=yes],
-       [HAVE_LIBSELINUX=no])
-   fi
-   if test "$HAVE_LIBSELINUX" = yes; then
-      AC_DEFINE([HAVE_LIBSELINUX], [1], [Define to 1 if using SELinux.])
-      if test "$REALLY_ANDROID" != "yes"; then
-        LIBSELINUX_LIBS=-lselinux
-      fi
-   fi
-fi
-AC_SUBST([LIBSELINUX_LIBS])
-AC_SUBST([LIBSELINUX_CFLAGS])
-
 HAVE_GNUTLS=no
 if test "${with_gnutls}" != "no" ; then
   EMACS_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.12.2],
@@ -4071,6 +4082,18 @@ if test "${with_tree_sitter}" != "no"; then
         TREE_SITTER_LIBS=
       fi
     fi
+  fi
+
+  dnl Now we check if ts_tree_cursor_goto_previous_sibling exists. This
+  dnl function is added in v0.20.10.
+  if test "${HAVE_TREE_SITTER}" = yes; then
+    OLD_CFLAGS=$CFLAGS
+    OLD_LIBS=$LIBS
+    CFLAGS="$CFLAGS $TREE_SITTER_CFLAGS"
+    LIBS="$TREE_SITTER_LIBS $LIBS"
+    AC_CHECK_FUNCS([ts_tree_cursor_goto_previous_sibling])
+    CFLAGS=$OLD_CFLAGS
+    LIBS=$OLD_LIBS
   fi
 
   # Windows loads tree-sitter dynamically
@@ -4458,7 +4481,16 @@ if test "$with_xwidgets" != "no"; then
     dnl FIXME: Check framework WebKit2
     dnl WEBKIT_REQUIRED=M.m.p
     WEBKIT_LIBS="-Wl,-framework -Wl,WebKit"
-    WEBKIT_CFLAGS="-I/System/Library/Frameworks/WebKit.framework/Headers"
+    WEBKIT_HEADERS="/System/Library/Frameworks/WebKit.framework/Headers"
+    if test -z "$xcsdkdir" -a -n "$XCRUN" -a ! -d "${WEBKIT_HEADERS}"; then
+      dnl WebKit headers not found.  Try Xcode SDK dir if it is sane.
+      xcsdkdir=`$XCRUN --show-sdk-path 2>/dev/null`
+      case $xcsdkdir in
+	*[[\\\"\#\$\&\'\`$am_lf\ \	]]*)
+	xcsdkdir="" ;;
+      esac
+    fi
+    WEBKIT_CFLAGS="-I${xcsdkdir}${WEBKIT_HEADERS}"
     HAVE_WEBKIT="yes"
     HAVE_XWIDGETS=$HAVE_WEBKIT
     XWIDGETS_OBJ="xwidget.o"
@@ -5060,7 +5092,7 @@ AC_SUBST([HAVE_MODULES])
 AC_SUBST([MODULES_SUFFIX])
 AC_SUBST([MODULES_SECONDARY_SUFFIX])
 
-ARCH_INDEPENDENT_CONFIG_FILES([src/emacs-module.h])
+ARCH_INDEPENDENT_CONFIG_FILES([src/emacs-module.h:src/emacs-module.in.h])
 AC_SUBST_FILE([module_env_snippet_25])
 AC_SUBST_FILE([module_env_snippet_26])
 AC_SUBST_FILE([module_env_snippet_27])
@@ -6351,7 +6383,7 @@ dnl recent, so we check for it specifically.
 AC_CHECK_HEADERS([spawn.h])
 AC_SUBST([HAVE_SPAWN_H])
 gl_CHECK_FUNCS_ANDROID([posix_spawn], [#include <spawn.h>])
-gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir], [#include <spawn.h>])
+gl_CHECK_FUNCS_ANDROID_MACOS([posix_spawn_file_actions_addchdir], [#include <spawn.h>])
 gl_CHECK_FUNCS_ANDROID([posix_spawn_file_actions_addchdir_np], [#include <spawn.h>])
 gl_CHECK_FUNCS_ANDROID([posix_spawnattr_setflags], [#include <spawn.h>])
 AC_SUBST([HAVE_POSIX_SPAWN])
@@ -7115,7 +7147,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2025 Free Software Foundation, Inc."
+copyright="Copyright (C) 2026 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED([COPYRIGHT], ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST([copyright])
@@ -7166,6 +7198,9 @@ AC_SUBST([ns_appresdir])
 AC_SUBST([ns_appsrc])
 AC_SUBST([GNU_OBJC_CFLAGS])
 AC_SUBST([OTHER_FILES])
+
+AS_IF([test $prefix = "NONE"], [_prefix=/usr/local], [_prefix=$prefix])
+AC_DEFINE_UNQUOTED([BINDIR], ["${_prefix}/bin/"], [Executables directory.])
 
 if test -n "${term_header}"; then
     AC_DEFINE_UNQUOTED([TERM_HEADER], ["${term_header}"],
@@ -7347,7 +7382,7 @@ if test "$with_features" = no && test "$enable_acl" != yes; then
   enable_acl=no
 fi
 
-# Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently.
+# Configure gnulib.  Although this does not affect CFLAGS or LIBS permanently,
 # it temporarily reverts them to their pre-pkg-config values,
 # because gnulib needs to work with both src (which uses the
 # pkg-config stuff) and lib-src (which does not).  For example, gnulib
@@ -7361,7 +7396,6 @@ CFLAGS=$pre_PKG_CONFIG_CFLAGS
 LIBS="$LIB_PTHREAD $pre_PKG_CONFIG_LIBS"
 gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
-gl_EEMALLOC
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
@@ -7397,6 +7431,31 @@ if test "$REALLY_ANDROID" = "yes" && test "$with_libgmp" != "no"; then
   fi
 fi
 AC_SUBST([LIBGMP_CFLAGS])
+
+dnl SELinux is available for Linux kernel based systems only.
+dnl These include GNU/Linux and Android.
+dnl Configure SELinux after configuring Gnulib, which adjusts with_selinux.
+HAVE_LIBSELINUX=no
+LIBSELINUX_LIBS=
+LIBSELINUX_CFLAGS=
+if test "${with_selinux}" = "yes"; then
+   if test "$REALLY_ANDROID" = "yes"; then
+     ndk_SEARCH_MODULE([libselinux], [LIBSELINUX],
+       [HAVE_LIBSELINUX=yes])
+   else
+     AC_CHECK_LIB([selinux], [lgetfilecon],
+       [HAVE_LIBSELINUX=yes],
+       [HAVE_LIBSELINUX=no])
+   fi
+   if test "$HAVE_LIBSELINUX" = yes; then
+      AC_DEFINE([HAVE_LIBSELINUX], [1], [Define to 1 if using SELinux.])
+      if test "$REALLY_ANDROID" != "yes"; then
+        LIBSELINUX_LIBS=-lselinux
+      fi
+   fi
+fi
+AC_SUBST([LIBSELINUX_LIBS])
+AC_SUBST([LIBSELINUX_CFLAGS])
 
 # timer_getoverrun needs the same library as timer_settime
 OLD_LIBS=$LIBS
@@ -7496,7 +7555,7 @@ AC_SUBST([WINDOW_SYSTEM_OBJ])
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988-2025 Free Software Foundation, Inc.
+Copyright (C) 1988-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

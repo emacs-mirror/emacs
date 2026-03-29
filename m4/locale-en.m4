@@ -1,6 +1,6 @@
 # locale-en.m4
 # serial 1
-dnl Copyright (C) 2003-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 2003-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -19,7 +19,7 @@ AC_DEFUN_ONCE([gt_LOCALE_EN_UTF8],
       *-musl* | midipix*)
         dnl On musl libc, all kinds of ll_CC.UTF-8 locales exist, even without
         dnl any locale file on disk. But they are effectively equivalent to the
-        dnl C.UTF-8 locale, except for locale categories (such as LC_MESSSAGES)
+        dnl C.UTF-8 locale, except for locale categories (such as LC_MESSAGES)
         dnl for which localizations (.mo files) have been installed.
         gt_cv_locale_en_utf8=en_US.UTF-8
         ;;

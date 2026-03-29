@@ -1,6 +1,6 @@
 ;;; keyboard-tests.el --- Tests for keyboard.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -74,6 +74,12 @@
 ;; 	                (throw 'exit msgs)))
 ;;       (recursive-edit)
 ;;       (should (equal msgs '("C-u 55-" "C-u 5-" "C-u-"))))))
+
+(ert-deftest keyboard-inhibit-interaction ()
+  (let ((inhibit-interaction t))
+    (should-error (read-char "foo: "))
+    (should-error (read-event "foo: "))
+    (should-error (read-char-exclusive "foo: "))))
 
 (provide 'keyboard-tests)
 ;;; keyboard-tests.el ends here

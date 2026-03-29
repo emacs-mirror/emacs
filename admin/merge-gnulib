@@ -4,7 +4,7 @@
 #
 #	admin/merge-gnulib
 
-# Copyright 2012-2025 Free Software Foundation, Inc.
+# Copyright 2012-2026 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -29,11 +29,13 @@ export LC_ALL=C
 GNULIB_URL=https://git.savannah.gnu.org/git/gnulib.git
 
 GNULIB_MODULES='
-  alignasof alloca-opt binary-io bool boot-time builtin-expect byteswap
+  alignasof alloca-opt attribute
+  binary-io bool boot-time builtin-expect byteswap
   c-ctype c-strcase canonicalize-lgpl
   careadlinkat close-stream copy-file-range
   crypto/md5 crypto/md5-buffer
   crypto/sha1-buffer crypto/sha256-buffer crypto/sha512-buffer
+  crypto/sha3-buffer
   d-type diffseq double-slash-root dtoastr dtotimespec dup2
   environ execinfo faccessat
   fchmodat fcntl fcntl-h fdopendir file-has-acl
@@ -41,27 +43,27 @@ GNULIB_MODULES='
   free-posix fstatat fsusage fsync futimens
   getline getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile libgmp lstat
-  malloc-gnu manywarnings memmem-simple mempcpy memrchr memset_explicit
+  malloc-gnu manywarnings memeq memmem-simple mempcpy memrchr memset_explicit
   minmax mkostemp mktime
-  nanosleep nproc nstrftime
+  nanosleep nproc nstrftime-limited
   pathmax pipe2 pselect pthread_sigmask
   qcopy-acl readlink readlinkat realloc-posix regex
-  sig2str sigdescr_np socklen stat-time std-gnu11
+  sig2str sigdescr_np socklen stat-time std-gnu23
   stdc_bit_width stdc_count_ones stdc_trailing_zeros
-  stdckdint-h stddef-h stdio-h
-  stpcpy strnlen strnlen strtoimax symlink sys_stat-h sys_time-h
+  stdckdint-h stddef-h stdio-h stdio-windows
+  stpcpy streq strnlen strtoimax symlink sys_stat-h sys_time-h
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
-  update-copyright unlocked-io utimensat
-  vla warnings year2038
+  unlocked-io update-copyright utimensat
+  warnings year2038
 '
 
 AVOIDED_MODULES='
   access btowc chmod close crypto/af_alg dup fchdir fstat gnulib-i18n
   iswblank iswctype iswdigit iswxdigit langinfo-h libgmp-mpq
-  locale-h localename-unsafe-limited lock
+  localcharset locale-h localename-unsafe-limited lock
   mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h raise
-  save-cwd select setenv sigprocmask stat stdarg-h
+  save-cwd select setenv sigprocmask stat std-gnu11 stdarg-h strncpy
   threadlib tzset unsetenv utime utime-h
   wchar-h wcrtomb wctype wctype-h
 '
@@ -140,7 +142,11 @@ fi
 
 "$gnulib_srcdir"/gnulib-tool --dir="$src" $GNULIB_TOOL_FLAGS \
 	$avoided_flags $GNULIB_MODULES &&
-rm -- "$src"lib/gl_openssl.h \
+rm -- "$src"lib/calendar-ethiopian.h \
+      "$src"lib/calendar-persian.h \
+      "$src"lib/calendar-thai.h \
+      "$src"lib/calendars.h \
+      "$src"lib/gl_openssl.h \
       "$src"lib/stdio-read.c "$src"lib/stdio-write.c \
       "$src"m4/fcntl-o.m4 \
       "$src"m4/gl-openssl.m4 \

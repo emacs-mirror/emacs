@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2025 Free Software Foundation,
+## Copyright (C) 1995, 1997-1998, 2000-2026 Free Software Foundation,
 ## Inc.
 
 ## This file is part of GNU Emacs.
@@ -369,7 +369,7 @@ possibly_non_vc_files="
 ) || exit
 
 if [ $with_info = yes ]; then
-  info_files="info/dir $(echo info/*.info)" || exit
+  info_files="info/dir $(echo info/*.info info/*.txt info/*.jpg)" || exit
 else
   info_files=
 fi

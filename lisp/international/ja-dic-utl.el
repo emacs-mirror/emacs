@@ -115,7 +115,7 @@ The library `ja-dic' can't be loaded.
 This might indicate a problem with your Emacs installation, as
 LEIM (Libraries of Emacs Input Method) should normally always be
 installed together with Emacs.")))
-	       (signal (car err) (cdr err)))))
+	       (signal err))))
 
   (let ((vec (make-vector len 0))
 	(i 0)

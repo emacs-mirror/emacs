@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -856,7 +856,7 @@ this variable represents.")
   '((((class color) (min-colors 88) (background light))
      :background "#ffbbbb")
     (((class color) (min-colors 88) (background dark))
-     :background "#aa2222")
+     :background "#882222")
     (((class color) (min-colors 16))
      (:foreground "Navy" :background "sky blue"))
     (((class color))
@@ -876,7 +876,7 @@ this variable represents.")
   '((((class color) (min-colors 88) (background light))
      :background "#aaffaa")
     (((class color) (min-colors 88) (background dark))
-     :background "#22aa22")
+     :background "#228822")
     (((class color) (min-colors 16))
      (:foreground "Black" :background "cyan"))
     (((class color))

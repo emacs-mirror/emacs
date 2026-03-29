@@ -1,6 +1,6 @@
 ;;; erc-services-tests.el --- Tests for erc-services.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -558,6 +558,7 @@
            (erc-server-current-nick "tester")
            (erc-networks--id (erc-networks--id-create nil))
            (erc-session-port 6697)
+           (inhibit-message noninteractive)
            (search (erc-services-tests--wrap-search
                     #'erc-nickserv-get-password)))
 

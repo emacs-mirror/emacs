@@ -1,6 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2025 Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1787,7 +1787,7 @@ internal_terminal_init (void)
 #endif
 
   /* If this is the initial terminal, we are done here.  */
-  if (sf->output_method == output_initial)
+  if (FRAME_INITIAL_P (sf))
     return;
 
   internal_terminal
@@ -3996,12 +3996,12 @@ careadlinkat (int fd, char const *filename,
     }
   else
     {
-      ssize_t len = preadlinkat (fd, filename, buffer, buffer_size);
+      ssize_t len = (*preadlinkat) (fd, filename, buffer, buffer_size);
 
       if (len < 0 || len == buffer_size)
 	buffer = NULL;
       else
-	buffer[len + 1] = '\0';
+	buffer[len] = '\0';
     }
   return buffer;
 }

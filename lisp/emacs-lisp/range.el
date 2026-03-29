@@ -1,6 +1,6 @@
 ;;; ranges.el --- range functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
@@ -198,6 +198,7 @@ these ranges."
 Note: LIST has to be sorted over `<'."
   (if (not ranges)
       (range-compress-list list)
+    (setq ranges (copy-tree ranges))
     (setq list (copy-sequence list))
     (unless (listp (cdr ranges))
       (setq ranges (list ranges)))

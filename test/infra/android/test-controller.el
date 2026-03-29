@@ -1,6 +1,6 @@
 ;;; Submit code to a connected Android device  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1910,7 +1910,7 @@ this machine and an SSH daemon be executing on the host)."
 	       (with-demoted-errors "Winding up failed connection: %S"
 		 (ats-adb "-s" device "forward" "--remove"
 			  (format "tcp:%d" host-port)))
-	       (signal (car err) (cdr err))))))))))
+	       (signal err)))))))))
 
 
 

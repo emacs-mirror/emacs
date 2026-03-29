@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2025 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This file is free software: you can redistribute it and/or modify
@@ -53,7 +53,7 @@
 /* Whether to require GNU behavior for AM and PM indicators, even on
    other platforms.  This matters only in non-C locales.
    The default is to require it; you can override this via
-   AC_DEFINE([REQUIRE_GNUISH_STRFTIME_AM_PM], 1) and if you do that
+   AC_DEFINE([REQUIRE_GNUISH_STRFTIME_AM_PM], [false]) and if you do that
    you may be able to omit Gnulib's localename module and its dependencies.  */
 #ifndef REQUIRE_GNUISH_STRFTIME_AM_PM
 # define REQUIRE_GNUISH_STRFTIME_AM_PM true
@@ -61,6 +61,25 @@
 #if HAVE_ONLY_C_LOCALE || USE_C_LOCALE
 # undef REQUIRE_GNUISH_STRFTIME_AM_PM
 # define REQUIRE_GNUISH_STRFTIME_AM_PM false
+#endif
+
+/* Whether to include support for non-Gregorian calendars (outside of the scope
+   of ISO C, POSIX, and glibc).  This matters only in non-C locales.
+   The default is to include it, except on platforms where retrieving the locale
+   name drags in too many dependencies
+   (LOCALENAME_ENHANCE_LOCALE_FUNCS || !SETLOCALE_NULL_ONE_MTSAFE).
+   You can override this via
+   AC_DEFINE([SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME], [false])
+   and if you do that you may be able to omit Gnulib's localename module and its
+   dependencies.  */
+#ifndef SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+# define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME true
+#endif
+#if defined _LIBC || (HAVE_ONLY_C_LOCALE || USE_C_LOCALE) \
+    || ((defined __OpenBSD__ || defined _AIX || defined __ANDROID__) \
+        && !GNULIB_NSTRFTIME)
+# undef SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+# define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME false
 #endif
 
 #if HAVE_ONLY_C_LOCALE || USE_C_LOCALE
@@ -78,14 +97,8 @@
    C library on the various platforms (UTF-8, GB2312, GBK, CP936,
    GB18030, EUC-TW, BIG5, BIG5-HKSCS, CP950, EUC-JP, EUC-KR, CP949,
    SHIFT_JIS, CP932, JOHAB) are safe for formats, because the byte '%'
-   cannot occur in a multibyte character except in the first byte.
-
-   The DEC-HANYU encoding used on OSF/1 is not safe for formats, but
-   this encoding has never been seen in real-life use, so we ignore
-   it.  */
-#if !(defined __osf__ && 0)
-# define MULTIBYTE_IS_FORMAT_SAFE 1
-#endif
+   cannot occur in a multibyte character except in the first byte.  */
+#define MULTIBYTE_IS_FORMAT_SAFE 1
 #define DO_MULTIBYTE (! MULTIBYTE_IS_FORMAT_SAFE)
 
 #if DO_MULTIBYTE
@@ -97,6 +110,7 @@
 #include <locale.h>
 #include <stdckdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -164,6 +178,18 @@ enum pad_style
   ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
 #endif
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+/* Support for non-Gregorian calendars.  */
+# include "localcharset.h"
+# if !(defined __APPLE__ && defined __MACH__)
+#  include "localename.h"
+# endif
+# include "calendars.h"
+# define CAL_ARGS(x,y) x, y,
+#else
+# define CAL_ARGS(x,y) /* empty */
+#endif
+
 
 #ifdef _LIBC
 # define mktime_z(tz, tm) mktime (tm)
@@ -175,17 +201,48 @@ enum pad_style
 # define mktime(tp) __mktime64 (tp)
 #endif
 
+/* For functions that fill an in-memory string, the number of bytes fits in a
+   size_t.  For functions that write to a stream, the number of bytes fits in
+   an off64_t (a type that is always at least 64 bits large).  */
 #if FPRINTFTIME
 # define STREAM_OR_CHAR_T FILE
 # define STRFTIME_ARG(x) /* empty */
+typedef off64_t byte_count_t;
+typedef off64_t sbyte_count_t;
 #else
 # define STREAM_OR_CHAR_T CHAR_T
 # define STRFTIME_ARG(x) x,
+typedef size_t byte_count_t;
+typedef ptrdiff_t sbyte_count_t;
+#endif
+
+/* The functions strftime[_l], wcsftime[_l] defined by glibc have a return type
+   'size_t', for compatibility with POSIX, and return 0 upon failure.
+   The functions defined by Gnulib have a signed return type, and return -1
+   upon failure.  */
+#ifdef _LIBC
+typedef size_t retval_t;
+# define FAILURE 0
+#else
+typedef sbyte_count_t retval_t;
+# define FAILURE (-1)
 #endif
 
 #if FPRINTFTIME
+# define FPUTC(Byte, P) \
+   do \
+     { \
+       int _r = fputc (Byte, P); \
+       if (_r < 0) \
+         return FAILURE; \
+     } \
+   while (false)
+
 # define memset_byte(P, Len, Byte) \
-  do { size_t _i; for (_i = 0; _i < Len; _i++) fputc (Byte, P); } while (0)
+   do \
+     for (byte_count_t _i = Len; 0 < _i; _i--) \
+       FPUTC (Byte, P); \
+   while (false)
 # define memset_space(P, Len) memset_byte (P, Len, ' ')
 # define memset_zero(P, Len) memset_byte (P, Len, '0')
 #elif defined COMPILE_WIDE
@@ -203,22 +260,32 @@ enum pad_style
 #endif
 
 #define add(n, f) width_add (width, n, f)
+
+/* Add INCR, returning true if I would become too large.
+   INCR should not have side effects.  */
+#if FPRINTFTIME
+# define incr_overflow(incr) ckd_add (&i, i, incr)
+#else
+/* Use <= not <, to leave room for trailing NUL.  */
+# define incr_overflow(incr) (maxsize - i <= (incr) || (i += (incr), false))
+#endif
+
 #define width_add(width, n, f)                                                \
   do                                                                          \
     {                                                                         \
-      size_t _n = (n);                                                        \
-      size_t _w = pad == NO_PAD || width < 0 ? 0 : width;                    \
-      size_t _incr = _n < _w ? _w : _n;                                       \
-      if (_incr >= maxsize - i)                                               \
+      byte_count_t _n = n;                                                    \
+      byte_count_t _w = pad == NO_PAD || width < 0 ? 0 : width;               \
+      byte_count_t _incr = _n < _w ? _w : _n;                                 \
+      if (incr_overflow (_incr))                                              \
         {                                                                     \
           errno = ERANGE;                                                     \
-          return 0;                                                           \
+          return FAILURE;                                                     \
         }                                                                     \
       if (p)                                                                  \
         {                                                                     \
           if (_n < _w)                                                        \
             {                                                                 \
-              size_t _delta = _w - _n;                                        \
+              byte_count_t _delta = _w - _n;                                  \
               if (pad == ALWAYS_ZERO_PAD || pad == SIGN_PAD)                  \
                 memset_zero (p, _delta);                                      \
               else                                                            \
@@ -227,12 +294,11 @@ enum pad_style
           f;                                                                  \
           advance (p, _n);                                                    \
         }                                                                     \
-      i += _incr;                                                             \
     } while (0)
 
 #define add1(c) width_add1 (width, c)
 #if FPRINTFTIME
-# define width_add1(width, c) width_add (width, 1, fputc (c, p))
+# define width_add1(width, c) width_add (width, 1, FPUTC (c, p))
 #else
 # define width_add1(width, c) width_add (width, 1, *p = c)
 #endif
@@ -243,19 +309,15 @@ enum pad_style
     width_add (width, n,                                                      \
      do                                                                       \
        {                                                                      \
+         CHAR_T const *_s = s;                                                \
          if (to_lowcase)                                                      \
-           fwrite_lowcase (p, (s), _n);                                       \
+           for (byte_count_t _i = 0; _i < _n; _i++)                           \
+             FPUTC (TOLOWER ((UCHAR_T) _s[_i], loc), p);                      \
          else if (to_uppcase)                                                 \
-           fwrite_uppcase (p, (s), _n);                                       \
-         else                                                                 \
-           {                                                                  \
-             /* Ignore the value of fwrite.  The caller can determine whether \
-                an error occurred by inspecting ferror (P).  All known fwrite \
-                implementations set the stream's error indicator when they    \
-                fail due to ENOMEM etc., even though C11 and POSIX.1-2008 do  \
-                not require this.  */                                         \
-             fwrite (s, _n, 1, p);                                            \
-           }                                                                  \
+           for (byte_count_t _i = 0; _i < _n; _i++)                           \
+             FPUTC (TOUPPER ((UCHAR_T) _s[_i], loc), p);                      \
+         else if (_n && fwrite (_s, _n, 1, p) == 0)                           \
+           return FAILURE;                                                    \
        }                                                                      \
      while (0)                                                                \
     )
@@ -332,32 +394,12 @@ enum pad_style
 /* Avoid false GCC warning "'memset' specified size 18446744073709551615 exceeds
    maximum object size 9223372036854775807", caused by insufficient data flow
    analysis and value propagation of the 'width_add' expansion when GCC is not
-   optimizing.  Cf. <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88443>.  */
+   optimizing.  Cf. <https://gcc.gnu.org/PR88443>.  */
 #if _GL_GNUC_PREREQ (7, 0) && !__OPTIMIZE__
 # pragma GCC diagnostic ignored "-Wstringop-overflow"
 #endif
 
-#if FPRINTFTIME
-static void
-fwrite_lowcase (FILE *fp, const CHAR_T *src, size_t len)
-{
-  while (len-- > 0)
-    {
-      fputc (TOLOWER ((UCHAR_T) *src, loc), fp);
-      ++src;
-    }
-}
-
-static void
-fwrite_uppcase (FILE *fp, const CHAR_T *src, size_t len)
-{
-  while (len-- > 0)
-    {
-      fputc (TOUPPER ((UCHAR_T) *src, loc), fp);
-      ++src;
-    }
-}
-#else
+#if !FPRINTFTIME
 static CHAR_T *memcpy_lowcase (CHAR_T *dest, const CHAR_T *src,
                                size_t len LOCALE_PARAM);
 
@@ -846,6 +888,7 @@ static CHAR_T const c_month_names[][sizeof "September"] =
     L_("June"), L_("July"), L_("August"), L_("September"), L_("October"),
     L_("November"), L_("December")
   };
+static CHAR_T const c_ampm_letters[] = { L_('A'), L_('M'), L_('P'), L_('M') };
 #endif
 
 
@@ -871,10 +914,14 @@ static CHAR_T const c_month_names[][sizeof "September"] =
 # define ns 0
 #endif
 
-static size_t __strftime_internal (STREAM_OR_CHAR_T *, STRFTIME_ARG (size_t)
-                                   const CHAR_T *, const struct tm *,
-                                   bool, enum pad_style, int, bool *
-                                   extra_args_spec LOCALE_PARAM);
+static retval_t __strftime_internal (STREAM_OR_CHAR_T *,
+                                     STRFTIME_ARG (size_t)
+                                     const CHAR_T *, const struct tm *,
+                                     CAL_ARGS (const struct calendar *,
+                                               struct calendar_date *)
+                                     bool, enum pad_style,
+                                     sbyte_count_t, bool *
+                                     extra_args_spec LOCALE_PARAM);
 
 #if !defined _LIBC \
     && (!(HAVE_ONLY_C_LOCALE || (USE_C_LOCALE && !HAVE_STRFTIME_L)) \
@@ -976,8 +1023,7 @@ underlying_strftime (timezone_t tz, char *ubuf, size_t ubufsize,
                 {
                   /* The last word has length >= 3.  */
                   bool found_letter = false;
-                  const char *p;
-                  for (p = space + 1; *p != '\0'; p++)
+                  for (const char *p = space + 1; *p != '\0'; p++)
                     if ((*p >= 'A' && *p <= 'Z')
                         || (*p >= 'a' && *p <= 'z'))
                       {
@@ -1077,19 +1123,80 @@ get_tm_zone (timezone_t tz, char *ubuf, int ubufsize, int modifier,
 }
 
 /* Write information from TP into S according to the format
-   string FORMAT, writing no more that MAXSIZE characters
-   (including the terminating '\0') and returning number of
-   characters written.  If S is NULL, nothing will be written
-   anywhere, so to determine how many characters would be
-   written, use NULL for S and (size_t) -1 for MAXSIZE.  */
-size_t
+   string FORMAT.  Return the number of bytes written.
+   Upon failure:
+     - return 0 for the functions defined by glibc,
+     - return -1 for the functions defined by Gnulib.
+
+   If !FPRINTFTIME, write no more than MAXSIZE bytes (including the
+   terminating '\0'), and if S is NULL do not write into S.
+   To determine how many characters would be written, use NULL for S
+   and (size_t) -1 for MAXSIZE.  */
+retval_t
 my_strftime (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              const CHAR_T *format,
              const struct tm *tp extra_args_spec LOCALE_PARAM)
 {
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+  /* Recognize whether to use a non-Gregorian calendar.  */
+  const struct calendar *cal = NULL;
+  if (strcmp (locale_charset (), "UTF-8") == 0)
+    {
+# if !(defined __APPLE__ && defined __MACH__)
+      const char *loc = gl_locale_name_unsafe (LC_TIME, "LC_TIME");
+      if (strlen (loc) >= 5 && !(loc[5] >= 'A' && loc[5] <= 'Z'))
+        {
+          if (memcmp (loc, "th_TH", 5) == 0)
+            cal = &thai_calendar;
+          else if (memcmp (loc, "fa_IR", 5) == 0)
+            cal = &persian_calendar;
+          else if (memcmp (loc, "am_ET", 5) == 0)
+            cal = &ethiopian_calendar;
+        }
+# else /* defined __APPLE__ && defined __MACH__ */
+      /* Nearly equivalent code for macOS, that avoids the need to link with
+         CoreFoundation.
+         It's not entirely equivalent, because it tests only for the language
+         (Thai, Farsi, Amharic) instead of also for the territory (Thailand,
+         Iran, Ethiopia).  */
+      /* Get the translation of "Monday" in the LC_TIME locale, by calling
+         the underlying strftime function.  */
+      struct tm some_monday; /* 2024-01-01 12:00:00 */
+      memset (&some_monday, '\0', sizeof (struct tm));
+      some_monday.tm_year = 2024 - 1900;
+      some_monday.tm_mon = 1 - 1;
+      some_monday.tm_mday = 1;
+      some_monday.tm_wday = 1; /* Monday */
+      some_monday.tm_hour = 12;
+      some_monday.tm_min = 0;
+      some_monday.tm_sec = 0;
+      char weekday_buf[32];
+      if (strftime (weekday_buf, sizeof (weekday_buf), "%A", &some_monday) > 0)
+        {
+          /* Test for the Thai / Farsi / Amharic translation of "Monday".  */
+          if (streq (weekday_buf, "จันทร์") || streq (weekday_buf, "วันจันทร์"))
+            cal = &thai_calendar;
+          else if (streq (weekday_buf, "ﺩﻮﺸﻨﺒﻫ") || streq (weekday_buf, "دوشنبه"))
+            cal = &persian_calendar;
+          else if (streq (weekday_buf, "ሰኞ"))
+            cal = &ethiopian_calendar;
+        }
+# endif
+    }
+  struct calendar_date caldate;
+  if (cal != NULL)
+    {
+      if (cal->from_gregorian (&caldate,
+                               tp->tm_year + 1900,
+                               tp->tm_mon,
+                               tp->tm_mday) < 0)
+        cal = NULL;
+    }
+#endif
   bool tzset_called = false;
-  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp, false,
-                              ZERO_PAD, -1,
+  return __strftime_internal (s, STRFTIME_ARG (maxsize) format, tp,
+                              CAL_ARGS (cal, &caldate)
+                              false, ZERO_PAD, -1,
                               &tzset_called extra_args LOCALE_ARG);
 }
 libc_hidden_def (my_strftime)
@@ -1098,22 +1205,27 @@ libc_hidden_def (my_strftime)
    UPCASE indicates that the result should be converted to upper case.
    YR_SPEC and WIDTH specify the padding and width for the year.
    *TZSET_CALLED indicates whether tzset has been called here.  */
-static size_t
+static retval_t
 __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                      const CHAR_T *format,
-                     const struct tm *tp, bool upcase,
-                     enum pad_style yr_spec, int width, bool *tzset_called
+                     const struct tm *tp,
+                     CAL_ARGS (const struct calendar *cal,
+                               struct calendar_date *caldate)
+                     bool upcase,
+                     enum pad_style yr_spec, sbyte_count_t width,
+                     bool *tzset_called
                      extra_args_spec LOCALE_PARAM)
 {
 #if defined _LIBC && defined USE_IN_EXTENDED_LOCALE_MODEL
   struct __locale_data *const current = loc->__locales[LC_TIME];
 #endif
-#if FPRINTFTIME
-  size_t maxsize = (size_t) -1;
+#if FAILURE == 0
+  int saved_errno = errno;
+#elif !FPRINTFTIME
+  if (PTRDIFF_MAX < maxsize)
+    maxsize = PTRDIFF_MAX;
 #endif
 
-  int saved_errno = errno;
-  int hour12 = tp->tm_hour;
 #ifdef _NL_CURRENT
   /* We cannot make the following values variables since we must delay
      the evaluation of these values until really needed since some
@@ -1163,23 +1275,23 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 # define f_month \
   (tp->tm_mon < 0 || tp->tm_mon > 11 ? L_("?") : c_month_names[tp->tm_mon])
 /* The English AM/PM strings happen to have the same length, namely 2.  */
-# define ampm (L_("AMPM") + 2 * (tp->tm_hour > 11))
+# define ampm (c_ampm_letters + 2 * (12 <= tp->tm_hour))
 # define ap_len 2
 #endif
-  size_t i = 0;
+  retval_t i = 0;
   STREAM_OR_CHAR_T *p = s;
-  const CHAR_T *f;
 #if DO_MULTIBYTE && !defined COMPILE_WIDE
   const char *format_end = NULL;
 #endif
 
+  int hour12 = tp->tm_hour;
   if (hour12 > 12)
     hour12 -= 12;
   else
     if (hour12 == 0)
       hour12 = 12;
 
-  for (f = format; *f != '\0'; width = -1, f++)
+  for (const CHAR_T *f = format; *f != '\0'; width = -1, f++)
     {
       enum pad_style pad = ZERO_PAD;
       int modifier;             /* Field modifier ('E', 'O', or 0).  */
@@ -1189,6 +1301,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
       bool negative_number;     /* The number is negative.  */
       bool always_output_a_sign; /* +/- should always be output.  */
       int tz_colon_mask;        /* Bitmask of where ':' should appear.  */
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+      unsigned int digits_base = '0'; /* '0' or some UCS-2 value.  */
+#endif
       const CHAR_T *subfmt;
       CHAR_T *bufp;
       CHAR_T buf[1
@@ -1201,7 +1316,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
       size_t colons;
       bool change_case = false;
       int format_char;
-      int subwidth;
+      sbyte_count_t subwidth;
 
 #if DO_MULTIBYTE && !defined COMPILE_WIDE
       switch (*f)
@@ -1242,13 +1357,12 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              an error, or come back to the initial shift state.  */
           {
             mbstate_t mbstate = mbstate_zero;
-            size_t len = 0;
-            size_t fsize;
 
             if (! format_end)
-              format_end = f + strlen (f) + 1;
-            fsize = format_end - f;
+              format_end = strnul (f) + 1;
+            size_t fsize = format_end - f;
 
+            size_t len = 0;
             do
               {
                 size_t bytes = mbrlen (f + len, fsize - len, &mbstate);
@@ -1325,7 +1439,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             {
               if (ckd_mul (&width, width, 10)
                   || ckd_add (&width, width, *f - L_('0')))
-                width = INT_MAX;
+                return FAILURE;
               ++f;
             }
           while (ISDIGIT (*f));
@@ -1436,6 +1550,14 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             }
           if (modifier == L_('E'))
             goto bad_format;
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            {
+              cpy (STRLEN (caldate->month_names[caldate->month].abbrev),
+                   caldate->month_names[caldate->month].abbrev);
+              break;
+            }
+#endif
 #ifdef _NL_CURRENT
           if (modifier == L_('O'))
             cpy (aam_len, a_altmonth);
@@ -1460,6 +1582,14 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               to_uppcase = true;
               to_lowcase = false;
             }
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            {
+              cpy (STRLEN (caldate->month_names[caldate->month].full),
+                   caldate->month_names[caldate->month].full);
+              break;
+            }
+#endif
 #ifdef _NL_CURRENT
           if (modifier == L_('O'))
             cpy (STRLEN (f_altmonth), f_altmonth);
@@ -1510,14 +1640,21 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           subwidth = -1;
         subformat_width:
           {
-            size_t len = __strftime_internal (NULL, STRFTIME_ARG ((size_t) -1)
-                                              subfmt, tp, to_uppcase,
-                                              pad, subwidth, tzset_called
-                                              extra_args LOCALE_ARG);
+            retval_t len =
+              __strftime_internal (NULL, STRFTIME_ARG ((size_t) -1)
+                                   subfmt, tp,
+                                   CAL_ARGS (cal, caldate)
+                                   to_uppcase, pad, subwidth,
+                                   tzset_called
+                                   extra_args LOCALE_ARG);
+            if (FAILURE < 0 && len < 0)
+              return FAILURE; /* errno is set here */
             add (len, __strftime_internal (p,
                                            STRFTIME_ARG (maxsize - i)
-                                           subfmt, tp, to_uppcase,
-                                           pad, subwidth, tzset_called
+                                           subfmt, tp,
+                                           CAL_ARGS (cal, caldate)
+                                           to_uppcase, pad, subwidth,
+                                           tzset_called
                                            extra_args LOCALE_ARG));
           }
           break;
@@ -1552,10 +1689,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                           {
                             /* The last word has length >= 3.  */
                             bool found_letter = false;
-                            const char *p;
-                            for (p = space + 1; *p != '\0'; p++)
-                              if ((*p >= 'A' && *p <= 'Z')
-                                  || (*p >= 'a' && *p <= 'z'))
+                            for (const char *wp = space + 1; *wp != '\0'; wp++)
+                              if ((*wp >= 'A' && *wp <= 'Z')
+                                  || (*wp >= 'a' && *wp <= 'z'))
                                 {
                                   found_letter = true;
                                   break;
@@ -1639,6 +1775,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
         case L_('x'):
           if (modifier == L_('O'))
             goto bad_format;
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            {
+              subfmt = cal->d_fmt;
+              goto subformat;
+            }
+#endif
 #ifdef _NL_CURRENT
           if (! (modifier == L_('E')
                  && (*(subfmt =
@@ -1652,6 +1795,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #else
           goto underlying_strftime;
 #endif
+
         case L_('D'):
           if (modifier != 0)
             goto bad_format;
@@ -1662,12 +1806,20 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('E'))
             goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_NUMBER (2, caldate->day);
+#endif
           DO_NUMBER (2, tp->tm_mday);
 
         case L_('e'):
           if (modifier == L_('E'))
             goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_NUMBER_SPACEPAD (2, caldate->day);
+#endif
           DO_NUMBER_SPACEPAD (2, tp->tm_mday);
 
           /* All numeric formats set DIGITS and NUMBER_VALUE (or U_NUMBER_VALUE)
@@ -1709,7 +1861,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
              negating it.  */
           if (modifier == L_('O') && !negative_number)
             {
-#ifdef _NL_CURRENT
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+              if (cal != NULL)
+                digits_base = cal->alt_digits_base;
+#elif defined _NL_CURRENT
               /* Get the locale specific alternate representation of
                  the number.  If none exist NULL is returned.  */
               const CHAR_T *cp = nl_get_alt_digit (u_number_value
@@ -1724,9 +1879,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                       break;
                     }
                 }
-#elif HAVE_ONLY_C_LOCALE || (USE_C_LOCALE && !HAVE_STRFTIME_L)
-#else
-              goto underlying_strftime;
 #endif
             }
 
@@ -1740,7 +1892,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               if (tz_colon_mask & 1)
                 *--bufp = ':';
               tz_colon_mask >>= 1;
-              *--bufp = u_number_value % 10 + L_('0');
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+              *--bufp = u_number_value % 10 + (digits_base & 0xFF);
+              if (digits_base >= 0x100)
+                *--bufp = digits_base >> 8;
+#else
+              *--bufp = u_number_value % 10 + '0';
+#endif
               u_number_value /= 10;
             }
           while (u_number_value != 0 || tz_colon_mask != 0);
@@ -1755,9 +1913,15 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             CHAR_T sign_char = (negative_number ? L_('-')
                                 : always_output_a_sign ? L_('+')
                                 : 0);
-            int numlen = buf + sizeof buf / sizeof buf[0] - bufp;
-            int shortage = width - !!sign_char - numlen;
-            int padding = pad == NO_PAD || shortage <= 0 ? 0 : shortage;
+            int number_bytes = buf + sizeof buf / sizeof buf[0] - bufp;
+            int number_digits = number_bytes;
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+            if (digits_base >= 0x100)
+              number_digits = number_bytes / 2;
+#endif
+            byte_count_t shortage = width - !!sign_char - number_digits;
+            byte_count_t padding = (pad == NO_PAD || shortage <= 0
+                                    ? 0 : shortage);
 
             if (sign_char)
               {
@@ -1765,14 +1929,18 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                   {
                     if (p)
                       memset_space (p, padding);
-                    i += padding;
+                    if (ckd_add (&i, i, padding) && FPRINTFTIME)
+                      {
+                        errno = ERANGE;
+                        return FAILURE;
+                      }
                     width -= padding;
                   }
                 width_add1 (0, sign_char);
                 width--;
               }
 
-            cpy (numlen, bufp);
+            cpy (number_bytes, bufp);
           }
           break;
 
@@ -1833,6 +2001,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
           if (modifier == L_('E'))
             goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_SIGNED_NUMBER (2, false, caldate->month + 1U);
+#endif
           DO_SIGNED_NUMBER (2, tp->tm_mon < -1, tp->tm_mon + 1U);
 
 #ifndef _LIBC
@@ -1914,16 +2086,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
         case L_('s'):           /* GNU extension.  */
           {
-            struct tm ltm;
-            time_t t;
-
-            ltm = *tp;
+            struct tm ltm = *tp;
             ltm.tm_yday = -1;
-            t = mktime_z (tz, &ltm);
+            time_t t = mktime_z (tz, &ltm);
             if (ltm.tm_yday < 0)
               {
                 errno = EOVERFLOW;
-                return 0;
+                return FAILURE;
               }
 
             /* Generate string value for T using time_t arithmetic;
@@ -2070,9 +2239,11 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               goto underlying_strftime;
 #endif
             }
-          if (modifier == L_('O'))
-            goto bad_format;
 
+#if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
+          if (cal != NULL)
+            DO_YEARISH (4, false, caldate->year);
+#endif
           DO_YEARISH (4, tp->tm_year < -TM_YEAR_BASE,
                       tp->tm_year + (unsigned int) TM_YEAR_BASE);
 
@@ -2140,12 +2311,12 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             mbstate_t st = {0};
             size_t len = __mbsrtowcs_l (p, &z, maxsize - i, &st, loc);
             if (len == (size_t) -1)
-              return 0;
+              return FAILURE;
             size_t incr = len < w ? w : len;
             if (incr >= maxsize - i)
               {
                 errno = ERANGE;
-                return 0;
+                return FAILURE;
               }
             if (p)
               {
@@ -2185,9 +2356,6 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 
           {
             int diff;
-            int hour_diff;
-            int min_diff;
-            int sec_diff;
 #if HAVE_STRUCT_TM_TM_GMTOFF
             diff = tp->tm_gmtoff;
 #else
@@ -2195,14 +2363,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               diff = 0;
             else
               {
-                struct tm gtm;
-                struct tm ltm;
-                time_t lt;
-
-                ltm = *tp;
+                struct tm ltm = *tp;
                 ltm.tm_wday = -1;
-                lt = mktime_z (tz, &ltm);
-                if (ltm.tm_wday < 0 || ! localtime_rz (0, &lt, &gtm))
+                time_t lt = mktime_z (tz, &ltm);
+                if (ltm.tm_wday < 0)
+                  break;
+                struct tm gtm;
+                if (! localtime_rz (0, &lt, &gtm))
                   break;
                 diff = tm_diff (&ltm, &gtm);
               }
@@ -2216,9 +2383,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                                                  0, tp)
                                    == '-');
               }
-            hour_diff = diff / 60 / 60;
-            min_diff = diff / 60 % 60;
-            sec_diff = diff % 60;
+            int hour_diff = diff / 60 / 60;
+            int min_diff = diff / 60 % 60;
+            int sec_diff = diff % 60;
 
             switch (colons)
               {
@@ -2263,6 +2430,9 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     *p = L_('\0');
 #endif
 
+#if FAILURE == 0
   errno = saved_errno;
+#endif
+
   return i;
 }

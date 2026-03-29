@@ -1,6 +1,6 @@
 ;;; html-ts-mode.el --- tree-sitter support for HTML  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;; Maintainer : Theodor Thornhill <theo@thornhill.no>
@@ -49,7 +49,9 @@
         :commit "d9219ada6e1a2c8f0ab0304a8bd9ca4285ae0468")
  t)
 
-(defcustom html-ts-mode-indent-offset 2
+(define-obsolete-variable-alias 'html-ts-mode-indent-offset
+  'html-ts-indent-offset "31")
+(defcustom html-ts-indent-offset 2
   "Number of spaces for each indentation step in `html-ts-mode'."
   :version "29.1"
   :type 'integer
@@ -63,11 +65,11 @@
      ((node-is ">") parent-bol 0)
      ((node-is "end_tag") parent-bol 0)
      ((parent-is "comment") prev-adaptive-prefix 0)
-     ((parent-is "element") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "script_element") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "style_element") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "start_tag") parent-bol html-ts-mode-indent-offset)
-     ((parent-is "self_closing_tag") parent-bol html-ts-mode-indent-offset)))
+     ((parent-is "element") parent-bol html-ts-indent-offset)
+     ((parent-is "script_element") parent-bol html-ts-indent-offset)
+     ((parent-is "style_element") parent-bol html-ts-indent-offset)
+     ((parent-is "start_tag") parent-bol html-ts-indent-offset)
+     ((parent-is "self_closing_tag") parent-bol html-ts-indent-offset)))
   "Tree-sitter indent rules.")
 
 (defvar html-ts-mode--font-lock-settings
@@ -145,6 +147,21 @@ Return nil if there is no name or if NODE is not a defun node."
          (skip-chars-backward " \t\n")
          (pos-bol)))))
 
+(defun html-ts-mode--show-paren-data ()
+  ;; Exclude unbalanced tags when the closing tag is missing.
+  (let ((default (treesit-show-paren-data)))
+    (when (= (length default) 4)
+      (let ((pos1 (min (nth 0 default) (nth 2 default)))
+            (pos2 (max (nth 0 default) (nth 2 default))))
+        (when (and (equal (treesit-node-type
+                           (treesit-node-at pos1))
+                          "<")
+                   (not (equal (treesit-node-type
+                                (treesit-node-at pos2))
+                               "</")))
+          (setq default nil))))
+    default))
+
 ;;;###autoload
 (define-derived-mode html-ts-mode html-mode "HTML"
   "Major mode for editing Html, powered by tree-sitter."
@@ -182,12 +199,14 @@ Return nil if there is no name or if NODE is not a defun node."
   (kill-local-variable 'outline-heading-end-regexp)
   (kill-local-variable 'outline-level)
 
-  (treesit-major-mode-setup))
+  (treesit-major-mode-setup)
+
+  (setq-local show-paren-data-function #'html-ts-mode--show-paren-data))
 
 (derived-mode-add-parents 'html-ts-mode '(html-mode))
 
-(if (treesit-ready-p 'html t)
-    (add-to-list 'auto-mode-alist '("\\.html\\'" . html-ts-mode)))
+;; No `auto-mode-alist' associations are defined here
+;; to give preference to `mhtml-ts-mode'.
 
 (provide 'html-ts-mode)
 

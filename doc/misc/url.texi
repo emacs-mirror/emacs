@@ -1,6 +1,7 @@
 \input texinfo
 @setfilename ../../info/url.info
 @settitle URL Programmer's Manual
+@documentlanguage en
 @include docstyle.texi
 
 @iftex
@@ -21,7 +22,7 @@
 @copying
 This is the manual for the @code{url} Emacs Lisp library.
 
-Copyright @copyright{} 1993--1999, 2002, 2004--2025 Free Software
+Copyright @copyright{} 1993--1999, 2002, 2004--2026 Free Software
 Foundation, Inc.
 
 @quotation

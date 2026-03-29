@@ -2,6 +2,7 @@
 @c %**start of header
 @setfilename ../../eglot.info
 @settitle Eglot: The Emacs Client for the Language Server Protocol
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -10,7 +11,7 @@
 @copying
 This manual is for Eglot, the Emacs LSP client.
 
-Copyright @copyright{} 2022--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 2022--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -87,7 +88,9 @@ Eglot itself is completely language-agnostic, but it can support any
 programming language for which there is a language server and an Emacs
 major mode.
 
-This manual documents how to configure, use, and customize Eglot.
+This manual documents how to configure, use, and customize Eglot.  To
+read this manual from within Emacs, type @kbd{M-x eglot-manual
+@key{RET}}.
 
 @insertcopying
 
@@ -97,6 +100,7 @@ This manual documents how to configure, use, and customize Eglot.
 * Using Eglot::                 Important Eglot commands and variables.
 * Customizing Eglot::           Eglot customization and advanced features.
 * Advanced server configuration::  Fine-tune a specific language server
+* Multi-server support:: Use more than one server in a buffer
 * Extending Eglot::             Writing Eglot extensions in Elisp
 * Troubleshooting Eglot::       Troubleshooting and reporting bugs.
 * GNU Free Documentation License::  The license for this manual.
@@ -422,21 +426,21 @@ enhances diagnostics with interactive server-suggested fixes (so-called
 @item
 Finding definitions and uses of identifiers, via Xref (@pxref{Xref,,,
 emacs, GNU Emacs Manual}).  Eglot provides a backend for the Xref
-capabilities which uses the language-server understanding of the program
-source.  In particular, it eliminates the need to generate tags tables
-(@pxref{Tags tables,,, emacs, GNU Emacs Manual}) for languages which are
-only supported by the @code{etags} backend.
+capabilities which uses the language server's understanding of the
+program source.  In particular, it eliminates the need to generate tags
+tables (@pxref{Tags tables,,, emacs, GNU Emacs Manual}) for languages
+which are only supported by the @code{etags} backend.
 
 @item
 Buffer navigation by name of function, class, method, etc., via Imenu
 (@pxref{Imenu,,, emacs, GNU Emacs Manual}).  Eglot provides its own
 variant of @code{imenu-create-index-function}, which generates the index
-for the buffer based on language-server program source analysis.
+for the buffer based on the language server's program source analysis.
 
 @item
 Enhanced completion of symbol at point by the @code{completion-at-point}
 command (@pxref{Symbol Completion,,, emacs, GNU Emacs Manual}).  This
-uses the language-server's parser data for the completion candidates.
+uses the language server's parser data for the completion candidates.
 
 @item
 Server-suggested code refactorings.  The ElDoc package is also leveraged
@@ -449,8 +453,15 @@ command (@pxref{Eglot Commands}).
 On-the-fly succinct informative annotations, so-called @dfn{inlay
 hints}.  Eglot adds special intangible text nearby certain identifiers,
 be it the type of a variable, or the name of a formal parameter in a
-function call.  @xref{Eglot Commands} and the
+function call.  @xref{Eglot Commands}, and the
 @code{eglot-inlay-hints-mode} minor mode.
+
+@item
+Enhanced source code fontification via LSP @dfn{semantic tokens}.  Eglot
+can leverage the language server's understanding of the role and meaning
+of identifiers in the code to provide more accurate syntax highlighting.
+@xref{Eglot Commands}, and the @code{eglot-semantic-tokens-mode} minor
+mode.
 
 @item
 Display of function call and type hierarchies via the
@@ -466,7 +477,7 @@ supported and is activated automatically as you type.
 If a completion package such as the Company package (a popular
 third-party completion package providing @code{company-mode}), is
 installed, Eglot enhances it by providing completion candidates based on
-the language-server analysis of the source code.  (Company can be
+the language server's analysis of the source code.  (Company can be
 installed from GNU ELPA.)
 
 @item
@@ -501,7 +512,8 @@ capabilities to Emacs users.  However, @xref{Extending Eglot}.
 
 Finally, it's worth noting that, by default, Eglot generally turns on
 all features that it @emph{can} turn on.  It's possible to opt out of
-some features via user options (@pxref{Customizing Eglot}) and a hook
+features via the @code{eglot-ignored-server-capabilities} user option
+(@pxref{Customizing Eglot}) and the @code{eglot-managed-mode-hook} hook
 that runs after Eglot starts managing a buffer (@pxref{Eglot and
 Buffers}).
 
@@ -515,14 +527,14 @@ One of the main strong points of using a language server is that a
 language server has a broad view of the program: it considers more than
 just the single source file you are editing.  Ideally, the language
 server should know about all the source files of your program which are
-written in the language supported by the server.  In the language-server
-parlance, the set of the source files of a program is known as a
-@dfn{workspace}.  The Emacs equivalent of a workspace is a @dfn{project}
-(@pxref{Projects,,, emacs, GNU Emacs Manual}).  Eglot fully supports
-Emacs projects, and considers the file in whose buffer Eglot is turned
-on as belonging to a project.  In the simplest case, that file is the
-entire project, i.e.@: your project consists of a single file.  But
-there are other more complex projects:
+written in the language supported by the server.  In LSP parlance, the
+set of the source files of a program is known as a @dfn{workspace}.  The
+Emacs equivalent of a workspace is a @dfn{project} (@pxref{Projects,,,
+emacs, GNU Emacs Manual}).  Eglot fully supports Emacs projects, and
+considers the file in whose buffer Eglot is turned on as belonging to a
+project.  In the simplest case, that file is the entire project, i.e.@:
+your project consists of a single file.  But there are other more
+complex projects:
 
 @itemize @bullet
 @item
@@ -572,7 +584,7 @@ specially in several ways:
 @vindex eglot-menu
 @item
 All of the project's file-visiting buffers under the same major-mode are
-served by a single language-server connection.  (If the project uses
+served by a single language server connection.  (If the project uses
 several programming languages, there will usually be a separate server
 connection for each group of files written in the same language and
 using the same Emacs major-mode.)  Eglot adds the
@@ -631,6 +643,17 @@ minor mode is turned on and when it's turned off; use the function
 or not.
 @end itemize
 
+For example, to turn off @dfn{inlay hints} and @dfn{semantic tokens} by
+default but still retain the ability to turn them on again
+interactively use this:
+
+@lisp
+  (add-hook 'eglot-managed-mode-hook
+    (lambda ()
+      (eglot-inlay-hints-mode -1)
+      (eglot-semantic-tokens-mode -1)))
+@end lisp
+
 @node Eglot Commands
 @section Eglot Commands
 @cindex commands, Eglot
@@ -655,7 +678,7 @@ major mode to use and for the server program to start.  If invoked with
 
 If the language server is successfully started and contacted, this
 command arranges for any other buffers belonging to the same project and
-using the same major mode to use the same language-server session.  That
+using the same major mode to use the same language server session.  That
 includes any buffers created by visiting files after this command
 succeeds to connect to a language server.
 
@@ -698,7 +721,7 @@ language server of the current buffer to implement the renaming.
 
 @item M-x eglot-format
 This command reformats the active region according to the
-language-server rules.  If no region is active, it reformats the entire
+language server rules.  If no region is active, it reformats the entire
 current buffer.
 
 @item M-x eglot-format-buffer
@@ -743,6 +766,45 @@ instead of indicating problems.  For example, a C++ language server can
 serve hints about positional parameter names in function calls and a
 variable's automatically deduced type.  Inlay hints help the user not
 have to remember these things by heart.
+
+@cindex momentary inlay hints
+@item eglot-momentary-inlay-hints
+When bound to a single key in @code{eglot-mode-map}
+(@pxref{Customization Variables}), this will arrange for inlay hints to
+be displayed as long as the key is held down, and then hidden shortly
+after it is released.  The best way to set it up is something like this:
+
+@lisp
+(define-key eglot-mode-map [f7] 'eglot-momentary-inlay-hints)
+@end lisp
+
+@noindent
+Note that Emacs doesn't support binding to \"key up\" events, so this
+command offers an approximation by estimating your system keyboard delay
+and repeat rate.
+
+@cindex semantic tokens
+@item M-x eglot-semantic-tokens-mode
+This command toggles LSP @dfn{semantic tokens} fontification on and off
+for the current buffer.  Semantic tokens provide enhanced syntax
+highlighting based on the language server's semantic analysis of the
+code, going beyond traditional regular-expression-based fontification.
+For example, the server can distinguish between different kinds of
+variables (parameters, local variables, fields) or indicate whether a
+function is being declared or called.
+
+@vindex eglot-semantic-token-types
+@vindex eglot-semantic-token-modifiers
+The @code{eglot-semantic-faces} customization group contains the user
+options @code{eglot-semantic-token-types} and
+@code{eglot-semantic-token-modifiers}, which control which semantic
+token types and modifiers reported by the language server Eglot should
+consider when fontifying.  For performance reasons, the server
+connection has to be restarted before changes take effect.
+
+@cindex semantic token faces
+The @code{eglot-semantic-faces} customization group also contains the
+face definitions for controlling the appearance of each token.
 
 @cindex type hierarchy
 @item M-x eglot-show-type-hierarchy
@@ -933,6 +995,7 @@ For example:
   (define-key eglot-mode-map (kbd "C-c o") 'eglot-code-action-organize-imports)
   (define-key eglot-mode-map (kbd "C-c h") 'eldoc)
   (define-key eglot-mode-map (kbd "<f6>") 'xref-find-definitions)
+  (define-key eglot-mode-map (kbd "<f7>") 'eglot-momentary-inlay-hints)
 @end lisp
 
 @cindex progress
@@ -1287,14 +1350,24 @@ To apply this to Eglot, and assuming you chose the
 @end lisp
 
 @noindent
-This sets the value of @code{eglot-workspace-configuration} in all the
-buffers inside the project; each server will use only the section of the
-parameters intended for that server, and ignore the rest.  Note how
-alists are used for associating Emacs mode names with alists associating
-variable names with variable values.  Then notice how plists are used
-inside the value of @code{eglot-workspace-configuration}.
+Note how alists are used for associating Emacs mode names with other
+alists, associating variable names with variable values.  Then, pay
+special attention to how the value of
+@code{eglot-workspace-configuration} is a plist and @emph{not} an alist.
 
-This following form may also be used:
+The above form sets the value of @code{eglot-workspace-configuration} in
+all the buffers inside the project; each language server will then use
+only the section of the parameters intended for it, and ignore the rest.
+In our example, @command{pylsp} and @command{gopls} are solely
+interested in the @code{:pylsp} and @code{:gopls} parameter section
+names, respectively.  However, section names don't have to match the
+server name and some servers may be even interested in multiple
+sections: the @command{typescript-language-server} server is known to be
+interested in the @code{:javascript} and @code{:typescript} section
+names.
+
+To avoid sending whole configuration sections to servers who are
+decidedly not interested in them, the following form may also be used:
 
 @lisp
 ((python-base-mode
@@ -1316,11 +1389,11 @@ buffers.  @code{python-base-mode} buffers will have the variable set to
 @code{(:pylsp (:plugins ...))}.  @code{go-mode} buffers will have the
 variable set to @code{(:gopls (:usePlaceholders t))}.
 
-Some servers will issue workspace configuration for specific files
-inside your project.  For example, if you know @code{gopls} is asking
-about specific files in the @code{src/imported} subdirectory and you
-want to set a different option for @code{gopls.usePlaceholders} , you
-may use something like:
+Some servers will issue workspace configuration for specific source
+files inside your project.  For example, if you know @code{gopls} is
+asking about specific files in the @code{src/imported} subdirectory and
+you want to set a different option for @code{gopls.usePlaceholders} ,
+you may use something like:
 
 @lisp
 ((python-base-mode
@@ -1340,10 +1413,10 @@ may use something like:
 
 Finally, if one needs to determine the workspace configuration based on
 some dynamic context, @code{eglot-workspace-configuration} can be set to
-a function.  The function is called with the @code{eglot-lsp-server}
-instance of the connected server (if any) and with
-@code{default-directory} set to the root of the project.  The function
-should return a plist suitable for use as the variable's value.
+a function instead of a plist.  The function is called with the
+@code{eglot-lsp-server} instance of the connected server (if any) and
+with @code{default-directory} set to the root of the project.  The
+function should return a plist suitable for use as the variable's value.
 
 @node User-specific configuration
 @section User-specific configuration
@@ -1456,6 +1529,152 @@ is serialized by Eglot to the following JSON text:
   @}
 @}
 @end example
+
+@node Multi-server support
+@chapter Multi-server support
+@cindex multiple servers per buffer
+@cindex LSP server multiplexer
+@cindex per-buffer multiple servers
+
+One of the most frequently requested features for Eglot in close to a
+decade of existence is the ability to use more than one LSP server in a
+single buffer.  This is distinct from using multiple servers in a
+project, where each server manages a disjoint set of files written in
+different languages.
+
+The latter case---multiple servers for different files---is
+intrinsically supported by Eglot.  For example, in a web project with
+JavaScript, CSS, and Python files, Eglot can seamlessly manage separate
+language servers for each file type within the same project
+(@pxref{Starting Eglot}).  Each buffer communicates with its appropriate
+server, and this works out-of-the-box.
+
+However, there are several scenarios where multiple servers per buffer
+are useful:
+
+@itemize @bullet
+@item
+Combining a spell-checking language server like @command{codebook-lsp}
+with language-specific servers for C++, Go, or Python files.  The
+spell-checker provides diagnostics for comments and strings, while the
+language server handles syntax and semantics.
+
+@item
+One might want multiple servers to cover different aspects of the same
+language.  For Python, you might combine @command{ty} for type checking
+with @command{ruff} for linting and formatting.  For JavaScript, you
+might use @command{typescript-language-server} for language features
+together with @command{eslint} for linting.
+
+@item
+When working on multi-language files like Vue @file{.vue} files, which
+contain JavaScript, CSS, and HTML embedded in a single file, multiple
+servers can manage the different areas of the buffer.
+@end itemize
+
+These use cases are not directly supported by Eglot's architecture,
+however, you can use a language-agnostic @dfn{LSP server multiplexer}
+that sits between Eglot and the actual language servers.  Eglot still
+communicates with a single LSP server process in each buffer, but that
+process mediates communication to multiple language-specific servers,
+meaning that for practical purposes, it's @emph{as if} Eglot was
+connected to them directly.
+
+This approach is more powerful and user-friendly than current
+workarounds that combine one LSP server in a buffer with additional
+non-LSP mechanisms such as extra Flymake backends (@pxref{Top,,,
+Flymake, GNU Flymake manual}) for the same buffer.
+
+@menu
+* Using Rassumfrassum::   Setup the @code{rass} LSP multiplexer
+* Design rationale::      Benefits and drawbacks of LSP multiplexers
+@end menu
+
+@node Using Rassumfrassum
+@section Using Rassumfrassum
+
+@uref{https://github.com/joaotavora/rassumfrassum, Rassumfrassum} is an
+LSP server multiplexer program that fits the bill.  Like most language
+servers, it must be installed separately since it is not bundled with
+Emacs (at time of writing).  The installation is similar to installing
+any other language server, and usually amounts to making sure the
+program executable is somewhere in @code{PATH} or @code{exec-path}.
+
+The Rassumfrassum program, invoked via the @command{rass} command, works
+by spawning multiple LSP server subprocesses and aggregating their
+capabilities, requests, and responses into a single unified LSP
+interface.  From Eglot's perspective, it appears to be communicating with
+a single server.
+
+To use Rassumfrassum with Eglot, you can start it interactively with a
+prefix argument to @code{eglot} and specify the @command{rass} command
+followed by the actual servers you want to use, separated by @code{--}:
+
+@example
+C-u M-x eglot RET rass -- clangd -- codebook-lsp serve RET
+@end example
+
+@noindent
+This starts @command{clangd} for C++ language support and
+@command{codebook-lsp} for spell-checking in the same buffer.
+
+For Python, you might use:
+
+@example
+C-u M-x eglot RET rass -- ty server -- ruff server RET
+@end example
+
+@noindent
+or simply @kbd{C-u M-x eglot RET rass python}, using the ``preset''
+feature. This combines @command{ty} for type checking with
+@command{ruff} for linting and formatting.
+
+These configurations can be integrated into the
+@code{eglot-server-programs} variable (@pxref{Setting Up LSP Servers})
+for automatic use:
+
+@lisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(c-ts-base-mode . ("rass" "--" "clangd" "--"
+                                   "codebook-lsp" "serve")))
+  (add-to-list 'eglot-server-programs
+               '(python-mode . ("rass" "--" "ty" "server" "--"
+                                "ruff" "server"))))
+@end lisp
+
+@node Design rationale
+@section Design rationale
+
+Using an LSP server multiplexer like @command{rass} relieves Eglot from
+knowing about the specific characteristics of individual servers and the
+complexity of managing multiple simultaneous server connections per
+buffer.  This helps preserve the essential features that distinguish
+Eglot's code base from other LSP offers for Emacs: simple, performant
+and mindful of the core tenet of LSP, which is for a client to be
+language-agnostic.
+
+This approach has an additional benefit: because the multiplexer
+mediates all communication between Eglot and the servers, it can take
+advantage of different optimization opportunities.  For instance, at the
+system level it may be multi-threaded to process different JSONRPC
+streams in with true parallelism, something which is currently
+impossible to do in plain Elisp.  At the LSP-level it can merge server
+responses intelligently, truncate unnecessarily large objects, and cache
+significant amounts of information in efficient ways.  In many cases,
+this can reduce the amount of JSONRPC traffic exchanged with Emacs to
+levels well below what would occur if a client connected to multiple
+servers separately.  Some of these optimizations may apply even when a
+program like @command{rass} is mediating communication to a single
+server.
+
+The multiplexer approach is not without drawbacks.  Since LSP is a
+relatively large protocol with a decade of existence and many backward
+compatibility concerns, combining the responses of servers using completely
+different mechanisms of the protocol to respond to the same request
+sometimes leads to complexity in covering the corner cases.  However,
+offloading this complexity to a completely separate layer has proven
+very effective in practice.
 
 @node Extending Eglot
 @chapter Extending Eglot
@@ -1633,9 +1852,13 @@ slowly, try to customize the variable @code{eglot-events-buffer-config}
 0.  This will disable recording any events and may speed things up.
 
 In other situations, the cause of poor performance lies in the language
-server itself.  Servers use aggressive caching and other techniques to
-improve their performance.  Often, this can be tweaked by changing the
-server configuration (@pxref{Advanced server configuration}).
+server itself.  Some servers use aggressive caching and other techniques
+to improve their performance.  Often, this can be tweaked by changing
+the server configuration (@pxref{Advanced server configuration}).
+
+Another aspect that may cause performance degradation is the amount of
+JSONRPC information exchanged with Emacs.  Using an LSP program like
+@ref{Using Rassumfrassum,Rassumfrassum} may alleviate such problems.
 
 @node Getting the latest version
 @section Getting the latest version
@@ -1697,10 +1920,17 @@ may be using.  If possible, try to replicate the problem with the
 C/C@t{++} or Python servers, as these are very easy to install.
 
 @item
-Describe how to setup a @emph{minimal} project directory where Eglot
+If using an LSP multiplexer server like @ref{Using Rassumfrassum,
+Rassumfrassum}, first verify if the program replicates by using one of
+the multiplexed servers directly.  If it doesn't the problem lies in the
+LSP multiplexer program and should be reported there.
+
+@item
+Include a description of a @emph{minimal} project directory where Eglot
 should be started for the problem to happen.  Describe each file's name
-and its contents.  Alternatively, you can supply the address of a public
-Git repository.
+and its contents, or---sometimes better--- zip that project directory
+completely and attach it.  Alternatively, you can supply the address of
+a public Git repository.
 
 @item
 Include versions of the software used.  The Emacs version can be
@@ -1713,12 +1943,13 @@ first check if the problem isn't already fixed in the latest version
 It's also essential to include the version of ELPA packages that are
 explicitly or implicitly loaded.  The optional but popular Company or
 Markdown packages are distributed as GNU ELPA packages, not to mention
-Eglot itself in some situations.  Some major modes (Go, Rust, etc.)  are
-provided by ELPA packages.  It's sometimes easy to miss these, since
-they are usually implicitly loaded when visiting a file in that
-language.
+Eglot itself in some situations.  Prefer reproducing the problem with
+built-in Treesit major modes like @code{go-ts-mode} or
+@code{rust-ts-mode} since the non-ts modes for such languages are
+usually provided by ELPA packages, and it's often easy to miss them.
 
-ELPA packages usually live in @code{~/.emacs.d/elpa} (or what is in
+If you can't reproduce your bug without ELPA packages, you may find the
+ones you're using in @code{~/.emacs.d/elpa} (or what is in
 @code{package-user-dir}).  Including a listing of files in that
 directory is a way to tell the maintainers about ELPA package versions.
 

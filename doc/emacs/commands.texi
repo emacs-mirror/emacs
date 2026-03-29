@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -78,6 +78,10 @@ inputs, including @kbd{M-@key{TAB}}, @kbd{M-@key{SPC}}, @kbd{C-M-d}
 and @kbd{C-M-l}.  If you have this problem, you can either customize
 your window manager to not block those keys, or rebind the
 affected Emacs commands (@pxref{Customization}).
+
+  If one Emacs frame is doing minibuffer prompting and other Emacs
+frames appear to ignore input, you may wish to disable single-keyboard
+mode.  @xref{Multiple Displays}.
 
 @cindex input event
   Simple characters and control characters, as well as certain

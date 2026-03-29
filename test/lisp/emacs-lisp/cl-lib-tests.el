@@ -1,6 +1,6 @@
 ;;; cl-lib-tests.el --- tests for emacs-lisp/cl-lib.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -208,7 +208,7 @@
     (should (null (cl-ldiff l l)))
     (should (equal l (cl-ldiff l '())))
     ;; must be part of the list
-    (should (equal l (cl-ldiff l '(2 3))))
+    (should (equal l (cl-ldiff l (list 2 3))))
     (should (equal '(1) (cl-ldiff l (nthcdr 1 l))))
     ;; should return a copy
     (should-not (eq (cl-ldiff l '()) l))))

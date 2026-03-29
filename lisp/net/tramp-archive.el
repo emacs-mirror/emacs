@@ -1,6 +1,6 @@
 ;;; tramp-archive.el --- Tramp archive manager  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -338,15 +338,16 @@ arguments to pass to the OPERATION."
           (tramp-register-file-name-handlers)
           (tramp-archive-run-real-handler operation args))
 
-      (let* ((filename (apply #'tramp-archive-file-name-for-operation
+      (let* ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
+	     (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
+	     (filename (apply #'tramp-archive-file-name-for-operation
 			      operation args))
 	     (archive (tramp-archive-file-name-archive filename)))
 
         ;; `filename' could be a quoted file name.  Or the file
         ;; archive could be a directory, see Bug#30293.
         (if (or (null archive)
-                (not (tramp-archive-run-real-handler
-                      #'file-exists-p (list archive)))
+                (not (file-exists-p archive))
 	        (tramp-archive-run-real-handler
                  #'file-directory-p (list archive)))
             (tramp-archive-run-real-handler operation args)
@@ -358,9 +359,7 @@ arguments to pass to the OPERATION."
 	      (tramp-get-buffer (tramp-archive-dissect-file-name filename))
 	    (setq default-directory (file-name-as-directory archive)))
           ;; Now run the handler.
-          (let ((tramp-methods (cons `(,tramp-archive-method) tramp-methods))
-	        (tramp-gvfs-methods tramp-archive-all-gvfs-methods)
-	        ;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
+          (let (;; Set uid and gid.  gvfsd-archive could do it, but it doesn't.
 	        (tramp-unknown-id-integer (user-uid))
 	        (tramp-unknown-id-string (user-login-name))
 	        (fn (assoc operation tramp-archive-file-name-handler-alist)))
@@ -557,7 +556,7 @@ A variable `foo-archive' (or `archive') will be bound to the
 archive name part of FILENAME, assuming `foo' (or nil) is the
 value of VAR.  OTOH, the variable `foo-hop' (or `hop') won't be
 offered."
-  (declare (debug (form symbolp body))
+  (declare (debug (form symbolp &rest body))
            (indent 2))
   (let ((bindings
          (mapcar
@@ -738,7 +737,7 @@ offered."
 	      (apply #'tramp-archive-file-name-for-operation operation args)))))
     (tramp-message v 10 "%s" (cons operation args))
     (tramp-error
-     v 'file-error
+     v 'remote-file-error
      "Operation `%s' not implemented for file archives" operation)))
 
 (add-hook 'tramp-unload-hook

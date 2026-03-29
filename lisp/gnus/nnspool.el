@@ -1,6 +1,6 @@
 ;;; nnspool.el --- spool access for GNU Emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1988-1990, 1993-1998, 2000-2025 Free Software
+;; Copyright (C) 1988-1990, 1993-1998, 2000-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -29,7 +29,6 @@
 (require 'nnheader)
 (require 'nntp)
 (require 'nnoo)
-(eval-when-compile (require 'cl-lib))
 
 ;; Probably this entire thing should be obsolete.
 ;; It's only used to init nnspool-spool-directory, so why not just

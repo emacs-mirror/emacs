@@ -1,6 +1,6 @@
 /* Copy access control list from one file to another.  -*- coding: utf-8 -*-
 
-   Copyright (C) 2002-2003, 2005-2025 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2026 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,9 +50,9 @@ is_attr_permissions (const char *name, struct error_context *ctx)
 {
   /* We need to explicitly test for the known extended attribute names,
      because at least on CentOS 7, attr_copy_action does not do it.  */
-  return strcmp (name, XATTR_NAME_POSIX_ACL_ACCESS) == 0
-         || strcmp (name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0
-         || strcmp (name, XATTR_NAME_NFSV4_ACL) == 0
+  return streq (name, XATTR_NAME_POSIX_ACL_ACCESS)
+         || streq (name, XATTR_NAME_POSIX_ACL_DEFAULT)
+         || streq (name, XATTR_NAME_NFSV4_ACL)
          || attr_copy_action (name, ctx) == ATTR_ACTION_PERMISSIONS;
 }
 
@@ -114,11 +114,11 @@ qcopy_acl (const char *src_name, int source_desc, const char *dst_name,
 #else
   /* no XATTR, so we proceed the old dusty way */
   struct permission_context ctx;
-
-  ret = get_permissions (src_name, source_desc, mode, &ctx);
-  if (ret != 0)
+  if (get_permissions (src_name, source_desc, mode, &ctx) != 0)
     return -2;
+
   ret = set_permissions (&ctx, dst_name, dest_desc);
+
   free_permission_context (&ctx);
 #endif
   return ret;

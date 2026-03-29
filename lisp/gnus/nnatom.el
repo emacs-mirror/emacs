@@ -1,6 +1,6 @@
 ;;; nnatom.el --- Atom backend for Gnus -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023, 2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023, 2025-2026 Free Software Foundation, Inc.
 ;; Author: Daniel Semyonov <daniel@dsemy.com>
 
 ;; This file is part of GNU Emacs.
@@ -26,7 +26,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl-lib)
   (require 'subr-x))
 
 (require 'nnfeed)
@@ -110,7 +109,8 @@
 
 (defun nnatom--dom-line (node)
   "Return NODE's text as a single, whitespace-trimmed line."
-  (string-trim (replace-regexp-in-string "[\r\n]+" " " (dom-text node) t)))
+  (string-trim (replace-regexp-in-string
+                "[\r\n]+" " " (dom-inner-text node) t)))
 
 (defun nnatom--read-title (group)
   "Return the title of GROUP, or nil."
@@ -245,7 +245,7 @@ return the subject.  Otherwise, return nil."
                      (dom-print (dom-child-by-tag part 'div) nil t)
                      (buffer-substring-no-properties
                       (point-min) (point-max)))
-                 (dom-text part)))
+                 (dom-inner-text part)))
          (type (if (member type atypes) (concat "text/" type) type))
          (type (or (cdr (assoc type mtypes)) type)))
     (unless (string-blank-p part)
@@ -269,7 +269,7 @@ return the subject.  Otherwise, return nil."
            (or st (push summary parts)))
           ((setq content (or summary content))
            (push (append content '(links)) parts))
-          (t (push '((nil (Content-Type . "text/html") links)) parts)))
+          (t (push '(nil (Content-Type . "text/html") links) parts)))
     parts))
 (defvoo nnatom-read-parts-function #'nnatom--read-parts
   nil nnfeed-read-parts-function)

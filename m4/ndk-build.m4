@@ -1,4 +1,4 @@
-dnl Copyright (C) 2023-2025 Free Software Foundation, Inc.
+dnl Copyright (C) 2023-2026 Free Software Foundation, Inc.
 dnl This file is part of GNU Emacs.
 
 dnl GNU Emacs is free software: you can redistribute it and/or modify
@@ -45,7 +45,13 @@ for file in $with_ndk_path; do
 done
 
 AC_REQUIRE_AUX_FILE([ndk-build-helper.mk])
-ndk_AUX_DIR=$ac_aux_dir
+m4_if(m4_version_compare(m4_defn([AC_AUTOCONF_VERSION]), [2.70]), [-1],
+  dnl $ac_aux_dir is an internal variable in 2.69 that
+  dnl is not guaranteed to be terminated with a separator character.
+  [AS_CASE([$ac_aux_dir],
+    [*/], [ndk_AUX_DIR=$ac_aux_dir],
+    [ndk_AUX_DIR=$ac_aux_dir/])],
+  [ndk_AUX_DIR=$ac_aux_dir])
 ndk_ABI=$1
 ndk_MODULES=
 ndk_MAKEFILES=
@@ -71,7 +77,7 @@ AS_CASE(["$ndk_ABI"],
 # This is a map between pkg-config style package names and Android
 # ones.
 
-ndk_package_map="libwebpdemux:webpdemux libxml-2.0:libxml2"
+ndk_package_map="libwebpdemux:webpdemux libwebp:webp libxml-2.0:libxml2"
 ndk_package_map="$ndk_package_map sqlite3:libsqlite_static_minimal"
 ndk_package_map="$ndk_package_map MagickWand:libmagickwand-7 lcms2:liblcms2"
 

@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -237,7 +237,7 @@ If `save-place-mode' is enabled, set the timer, otherwise cancel the timer."
   "The interval between auto saves of buffer places.
 If set to nil, disables timer-based auto saving."
   :type '(choice (const :tag "Disabled" nil)
-                 (integer :tag "Seconds"))
+                 (integer :tag "Auto-save interval in seconds"))
   :version "31.1"
   :set (lambda (sym val)
          (set-default sym val)
@@ -391,7 +391,7 @@ may have changed) back to `save-place-alist'."
                       coding-system-for-write))
       (let ((print-length nil)
             (print-level nil))
-        (pp save-place-alist (current-buffer)))
+        (prin1 save-place-alist (current-buffer)))
       (let ((version-control
              (cond
               ((null save-place-version-control) nil)
@@ -406,8 +406,8 @@ may have changed) back to `save-place-alist'."
 	  (file-error (message "Saving places: can't write %s" file)))))))
 
 (defun save-places-to-alist ()
-  ;; go through buffer-list, saving places to alist if save-place-mode
-  ;; is non-nil, deleting them from alist if it is nil.
+  "Save all buffer filenames and positions to `save-place-alist'.
+See `save-place-to-alist'."
   (let ((buf-list (buffer-list)))
     (while buf-list
       ;; put this into a save-excursion in case someone is counting on
@@ -444,7 +444,7 @@ It runs the hook `save-place-after-find-file-hook'."
                           save-place-alist))))
     (if cell
 	(progn
-	  (or revert-buffer-in-progress-p
+	  (or revert-buffer-in-progress
 	      (and (integerp (cdr cell))
 		   (goto-char (cdr cell))))
           ;; and make sure it will be saved again for later
@@ -467,7 +467,7 @@ This is run via `dired-initial-position-hook', which see."
 	      (cell (assoc (if save-place-abbreviate-file-names
                                (abbreviate-file-name item) item)
 		           save-place-alist)))
-    (or revert-buffer-in-progress-p
+    (or revert-buffer-in-progress
         (cond
 	 ((integerp (cdr cell))
 	  (goto-char (cdr cell)))

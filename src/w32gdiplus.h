@@ -50,6 +50,8 @@ typedef GpStatus (WINGDIPAPI *GdipSaveImageToFile_Proc)
  GDIPCONST EncoderParameters *);
 typedef GpStatus (WINGDIPAPI *GdipImageRotateFlip_Proc)
   (GpImage *image, RotateFlipType rfType);
+typedef GpStatus (WINGDIPAPI *GdipCreateBitmapFromHBITMAP_Proc)
+  (HBITMAP, HPALETTE, GpBitmap **);
 
 extern GdiplusStartup_Proc fn_GdiplusStartup;
 extern GdiplusShutdown_Proc fn_GdiplusShutdown;
@@ -78,6 +80,7 @@ extern GdipLoadImageFromFile_Proc fn_GdipLoadImageFromFile;
 extern GdipGetImageThumbnail_Proc fn_GdipGetImageThumbnail;
 extern GdipSaveImageToFile_Proc fn_GdipSaveImageToFile;
 extern GdipImageRotateFlip_Proc fn_GdipImageRotateFlip;
+extern GdipCreateBitmapFromHBITMAP_Proc fn_GdipCreateBitmapFromHBITMAP;
 
 # undef GdiplusStartup
 # undef GdiplusShutdown
@@ -106,6 +109,7 @@ extern GdipImageRotateFlip_Proc fn_GdipImageRotateFlip;
 # undef GdipGetImageThumbnail
 # undef GdipSaveImageToFile
 # undef GdipSaveImageRotateFlip
+# undef GdipCreateBitmapFromHBITMAP
 
 # define GdiplusStartup fn_GdiplusStartup
 # define GdiplusShutdown fn_GdiplusShutdown
@@ -134,6 +138,8 @@ extern GdipImageRotateFlip_Proc fn_GdipImageRotateFlip;
 # define GdipGetImageThumbnail fn_GdipGetImageThumbnail
 # define GdipSaveImageToFile fn_GdipSaveImageToFile
 # define GdipImageRotateFlip fn_GdipImageRotateFlip
+# define GdipCreateBitmapFromHBITMAP fn_GdipCreateBitmapFromHBITMAP
 #endif
 
-int w32_gdip_get_encoder_clsid (const char *type, CLSID *clsid);
+extern int w32_gdip_get_encoder_clsid (const char *, CLSID *);
+extern int w32_gdip_export_frame (HWND, Lisp_Object, CLSID *);

@@ -1,6 +1,6 @@
 ;;; c-ts-common.el --- Utilities for C like Languages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; Maintainer : 付禹安 (Yuan Fu) <casouri@gmail.com>
 ;; Package    : emacs
@@ -54,6 +54,12 @@
 
 ;;; Comment indentation and filling
 
+(defvar c-ts-common-comment-start-skip
+  (rx (or (seq "/" (+ "/"))
+          (seq "/" (+ "*")))
+      (* (syntax whitespace)))
+  "The `comment-start-skip' used by `c-ts-common-comment-setup'.")
+
 (defun c-ts-common-looking-at-star (_n _p bol &rest _)
   "A tree-sitter simple indent matcher.
 Matches if there is a \"*\" after BOL."
@@ -90,7 +96,7 @@ non-whitespace characters of the current line."
   (save-excursion
     (forward-line -1)
     (back-to-indentation)
-    (when (looking-at comment-start-skip)
+    (when (looking-at c-ts-common-comment-start-skip)
       (goto-char (match-end 0))
       (if (looking-at (rx (* (or " " "\t")) eol))
           ;; Only /* at the first line.
@@ -254,7 +260,7 @@ This function should be called at BOL.  Used by
    ;; Prefix: same.
    ((looking-at (rx (* (syntax whitespace))
                     "//"
-                    (* "/")
+                    (* (or "/" "!")) ; Support //! style comments in Rust.
                     (* (syntax whitespace))))
     (match-string 0))
    ;; (3)
@@ -291,9 +297,7 @@ Set up:
  - `comment-multi-line'"
   (setq-local comment-start "// ")
   (setq-local comment-end "")
-  (setq-local comment-start-skip (rx (or (seq "/" (+ "/"))
-                                         (seq "/" (+ "*")))
-                                     (* (syntax whitespace))))
+  (setq-local comment-start-skip c-ts-common-comment-start-skip)
   (setq-local comment-end-skip
               (rx (* (syntax whitespace))
                   (group (or (syntax comment-end)
@@ -407,7 +411,7 @@ and /* */ comments.  SOFT works the same as in
    :language 'doxygen
    :override t
    :feature 'keyword
-   '((tag_name) @font-lock-constant-face
+   '((tag_name) @font-lock-doc-markup-face
      (type) @font-lock-type-face
      (emphasis) @bold
      ((tag_name) @bold (:match ".note" @bold))
@@ -691,8 +695,8 @@ This rule works for a wide range of scenarios including complex
 situations.  Major modes should use this as the fallback rule, and add
 exception rules before it to cover the cases it doesn't apply.
 
-This rule tries to be smart and ignore proprocessor node in some
-situations.  By default, any node that has \"proproc\" in its type are
+This rule tries to be smart and ignore preprocessor node in some
+situations.  By default, any node that has \"preproc\" in its type are
 considered a preprocessor node.  If that heuristic is inaccurate, define
 a `preproc' thing in `treesit-thing-settings', and this rule will use
 the thing definition instead.

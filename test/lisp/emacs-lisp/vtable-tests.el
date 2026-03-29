@@ -1,6 +1,6 @@
 ;;; vtable-tests.el --- Tests for vtable.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -27,16 +27,19 @@
 (require 'ert)
 (require 'ert-x)
 
-(ert-deftest test-vstable-compute-columns ()
+(defun vtable-tests--make-no-header-2-object-table ()
+  (make-vtable :columns '("a" "b" "c")
+               :objects '(("foo" 1 2)
+                          ("bar" 3 :zot))
+               :insert nil))
+
+(ert-deftest test-vtable-compute-columns ()
   (should
    (equal (mapcar
            (lambda (column)
              (vtable-column-align column))
            (vtable--compute-columns
-            (make-vtable :columns '("a" "b" "c")
-                         :objects '(("foo" 1 2)
-                                    ("bar" 3 :zot))
-                         :insert nil)))
+            (vtable-tests--make-no-header-2-object-table)))
           '(left right left))))
 
 (ert-deftest test-vtable-insert-object ()
@@ -68,5 +71,63 @@
                       ))
               (mapcar #'cadr (vtable-objects table))))
           (number-sequence 0 11))))
+
+(ert-deftest test-vtable-unique-buffer ()
+  (let ((table (vtable-tests--make-no-header-2-object-table)))
+    (with-temp-buffer
+      (vtable-insert table)
+      (with-temp-buffer
+        (should-error (vtable-insert table)))
+      (with-temp-buffer
+        (vtable-set-buffer table (current-buffer))
+        (vtable-insert table)))))
+
+(ert-deftest test-vtable-read-only-buffer ()
+  (let ((table (vtable-tests--make-no-header-2-object-table)))
+    (with-temp-buffer
+      (setq buffer-read-only t)
+      (vtable-insert table))))
+
+(ert-deftest test-vtable-non-current-buffer-insert-object ()
+  (let ((table (vtable-tests--make-no-header-2-object-table))
+        (obj '("baz" 4 5)))
+    (with-temp-buffer
+      (vtable-insert table)
+      (should (= (count-lines (point-min) (point-max)) 2))
+      (with-temp-buffer
+        (vtable-insert-object table obj))
+      (should (= (count-lines (point-min) (point-max)) 3)))))
+
+(ert-deftest test-vtable-non-current-buffer-remove-object ()
+  (let ((table (vtable-tests--make-no-header-2-object-table))
+        (obj '("baz" 4 5)))
+    (with-temp-buffer
+      (vtable-insert table)
+      (vtable-insert-object table obj)
+      (should (= (count-lines (point-min) (point-max)) 3))
+      (with-temp-buffer
+        (vtable-remove-object table obj))
+      (should (= (count-lines (point-min) (point-max)) 2)))))
+
+(ert-deftest test-vtable-non-current-buffer-update-object ()
+  (let ((table (vtable-tests--make-no-header-2-object-table))
+        (obj '("baz" 4 5))
+        (obj-2 '("qux" 6 7)))
+    (with-temp-buffer
+      (vtable-insert table)
+      (vtable-insert-object table obj)
+      (should (= (count-lines (point-min) (point-max)) 3))
+      (let ((line-2 (progn
+                      (goto-char (point-min))
+                      (forward-line 2)
+                      (buffer-substring (point) (point-max)))))
+        (with-temp-buffer
+          (vtable-update-object table obj-2 obj))
+        (let ((line-2-new (progn
+                            (goto-char (point-min))
+                            (forward-line 2)
+                            (buffer-substring (point) (point-max)))))
+          (should (= (count-lines (point-min) (point-max)) 3))
+          (should (not (string= line-2 line-2-new))))))))
 
 ;;; vtable-tests.el ends here

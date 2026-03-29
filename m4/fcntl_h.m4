@@ -1,6 +1,6 @@
 # fcntl_h.m4
-# serial 20
-dnl Copyright (C) 2006-2007, 2009-2025 Free Software Foundation, Inc.
+# serial 21
+dnl Copyright (C) 2006-2007, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -26,7 +26,7 @@ AC_DEFUN_ONCE([gl_FCNTL_H],
   dnl corresponding gnulib module is not in use, if it is not common
   dnl enough to be declared everywhere.
   gl_WARN_ON_USE_PREPARE([[#include <fcntl.h>
-    ]], [fcntl openat])
+    ]], [fcntl openat openat2])
 ])
 
 # gl_FCNTL_MODULE_INDICATOR([modulename])
@@ -53,6 +53,7 @@ AC_DEFUN([gl_FCNTL_H_REQUIRE_DEFAULTS],
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_NONBLOCKING])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_OPEN])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_OPENAT])
+    gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_OPENAT2])
     dnl Support Microsoft deprecated alias function names by default.
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_MDA_CREAT], [1])
     gl_MODULE_INDICATOR_INIT_VARIABLE([GNULIB_MDA_OPEN], [1])
@@ -66,6 +67,7 @@ AC_DEFUN([gl_FCNTL_H_DEFAULTS],
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_FCNTL=1;          AC_SUBST([HAVE_FCNTL])
   HAVE_OPENAT=1;         AC_SUBST([HAVE_OPENAT])
+  HAVE_OPENAT2=0;        AC_SUBST([HAVE_OPENAT2])
   REPLACE_CREAT=0;       AC_SUBST([REPLACE_CREAT])
   REPLACE_FCNTL=0;       AC_SUBST([REPLACE_FCNTL])
   REPLACE_OPEN=0;        AC_SUBST([REPLACE_OPEN])

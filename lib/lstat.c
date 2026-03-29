@@ -1,6 +1,6 @@
 /* Work around a bug of lstat on some systems
 
-   Copyright (C) 1997-2006, 2008-2025 Free Software Foundation, Inc.
+   Copyright (C) 1997-2006, 2008-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -42,14 +42,7 @@ orig_lstat (const char *filename, struct stat *buf)
 }
 
 /* Specification.  */
-# ifdef __osf__
-/* Write "sys/stat.h" here, not <sys/stat.h>, otherwise OSF/1 5.1 DTK cc
-   eliminates this include because of the preliminary #include <sys/stat.h>
-   above.  */
-#  include "sys/stat.h"
-# else
-#  include <sys/stat.h>
-# endif
+# include <sys/stat.h>
 
 # include "stat-time.h"
 

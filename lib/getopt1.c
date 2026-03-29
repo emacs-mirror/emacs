@@ -1,5 +1,5 @@
 /* getopt_long and getopt_long_only entry points for GNU getopt.
-   Copyright (C) 1987-2025 Free Software Foundation, Inc.
+   Copyright (C) 1987-2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library and is also part of gnulib.
    Patches to this file should be submitted to both projects.
 
@@ -73,7 +73,6 @@ _getopt_long_only_r (int argc, char **argv, const char *options,
 int
 main (int argc, char **argv)
 {
-  int c;
   int digit_optind = 0;
 
   while (1)
@@ -91,8 +90,8 @@ main (int argc, char **argv)
 	{0, 0, 0, 0}
       };
 
-      c = getopt_long (argc, argv, "abc:d:0123456789",
-		       long_options, &option_index);
+      int c = getopt_long (argc, argv, "abc:d:0123456789",
+			   long_options, &option_index);
       if (c == -1)
 	break;
 

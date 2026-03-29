@@ -61,7 +61,7 @@ download_tarball ()
 # 1c8f3b0cbad474da0ab09018c4ecf2119ac4a52d  pixman-0.38.4-emacs.tar.gz
 # b687c8439d51634d921674dd009645e24873ca36  rsvg-2.40.21-emacs.tar.gz
 # eda251614598aacb06f5984a0a280833de456b29  tiff-4.5.1-emacs.tar.gz
-# c00d0ea9c6e848f5cce350cb3ed742024f2bdb8b  tree-sitter-0.20.7-emacs.tar.gz
+# 9d032de89c874354c22d304f7e968f4ca6de8c0a  tree-sitter-0.26.3-emacs.tar.gz
 
 download_tarball "giflib-5.2.1-emacs.tar.gz" "giflib-5.2.1" \
 		 "a407c568961d729bb2d0175a34e0d4ed4a269978"
@@ -90,8 +90,8 @@ download_tarball "libtasn1-4.19.0-emacs.tar.gz" "libtasn1-4.19.0" \
 		 "fdc827211075d9b70a8ba6ceffa02eb48d6741e9"
 download_tarball "libselinux-3.6-emacs.tar.gz" "libselinux-3.6" \
 		 "8361966e19fe25ae987b08799f1442393ae6366b"
-download_tarball "tree-sitter-0.20.7-emacs.tar.gz" "tree-sitter-0.20.7" \
-		 "c00d0ea9c6e848f5cce350cb3ed742024f2bdb8b"
+download_tarball "tree-sitter-0.26.3-emacs.tar.gz" "tree-sitter-0.26.3" \
+		 "9d032de89c874354c22d304f7e968f4ca6de8c0a"
 download_tarball "harfbuzz-7.1.0-emacs.tar.gz" "harfbuzz-7.1.0" \
 		 "22dc71d503ab2eb263dc8411de9da1db144520f5"
 download_tarball "tiff-4.5.1-emacs.tar.gz" "tiff-4.5.1" \

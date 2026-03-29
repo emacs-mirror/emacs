@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- lexical-binding: t; coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2026 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -2724,7 +2724,7 @@ will be handled."
   c '("auto"))
 
 (c-lang-defconst c-no-type-with-equals-key
-  ;; Regexp mathing an entry from `c-no-type-with-equals-kwds'.
+  ;; Regexp matching an entry from `c-no-type-with-equals-kwds'.
   t (c-make-keywords-re t (c-lang-const c-no-type-with-equals-kwds)))
 (c-lang-defvar c-no-type-with-equals-key
   (c-lang-const c-no-type-with-equals-key))

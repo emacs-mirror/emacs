@@ -1,6 +1,6 @@
 ;;; editfns-tests.el --- tests for editfns.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -132,6 +132,142 @@
   "Number of args for `propertize' must be odd."
   (should-error (propertize "foo" 'bar) :type 'wrong-number-of-arguments))
 
+(ert-deftest editfns-tests--char-to-string-and-string-to-char ()
+  (should (equal (char-to-string ?A) "A"))
+  (should (= (string-to-char "A") ?A))
+  (should (= (string-to-char "") 0))
+  (should-error (char-to-string "A")))
+
+(ert-deftest editfns-tests--char-equal ()
+  (with-temp-buffer
+    (let ((case-fold-search nil))
+      (should (char-equal ?a ?a))
+      (should-not (char-equal ?a ?A))
+      (should-not (char-equal ?a ?b)))
+    (let ((case-fold-search t))
+      (should (char-equal ?a ?A))
+      (should (char-equal ?A ?a))
+      (should-not (char-equal ?a ?b)))))
+
+(ert-deftest editfns-tests--point-and-goto-char ()
+  (with-temp-buffer
+    (insert "abc")
+    (goto-char (point-min))
+    (should (= (point) (point-min)))
+    (should (= (goto-char 2) 2))
+    (should (= (point) 2))
+    (let ((m (point-marker)))
+      (should (= (marker-position m) 2))
+      (goto-char 3)
+      (should (= (point) 3)))))
+
+(ert-deftest editfns-tests--point-min-max-and-buffer-size ()
+  (with-temp-buffer
+    (insert "abc")
+    (should (= (point-min) 1))
+    (should (= (point-max) (1+ (buffer-size))))))
+
+(ert-deftest editfns-tests--region-beginning-end ()
+  (with-temp-buffer
+    (insert "abcd")
+    (goto-char 3)
+    (let ((mark-even-if-inactive t))
+      (set-mark 1)
+      (should (= (region-beginning) 1))
+      (should (= (region-end) 3))
+      (should (eq (marker-buffer (mark-marker)) (current-buffer)))
+      (should (= (marker-position (mark-marker)) 1)))))
+
+(ert-deftest editfns-tests--buffer-string-compare-substrings ()
+  (let ((buf1 (generate-new-buffer " *editfns-tests-cmp-1*"))
+        (buf2 (generate-new-buffer " *editfns-tests-cmp-2*")))
+    (unwind-protect
+        (progn
+          (with-current-buffer buf1
+            (insert "abc")
+            (should (equal (buffer-string) "abc")))
+          (with-current-buffer buf2
+            (insert "abd"))
+          (let ((case-fold-search nil))
+            (should (= (compare-buffer-substrings buf1 1 4 buf1 1 4) 0))
+            (should (= (compare-buffer-substrings buf1 1 4 buf2 1 4) -3))))
+      (when (buffer-live-p buf1)
+        (kill-buffer buf1))
+      (when (buffer-live-p buf2)
+        (kill-buffer buf2)))))
+
+(ert-deftest editfns-tests--gap-position-size ()
+  (with-temp-buffer
+    (insert "abc")
+    (goto-char 2)
+    (insert "Z")
+    (should (integerp (gap-position)))
+    (should (integerp (gap-size)))
+    (should (>= (gap-size) 0))
+    (should (<= (point-min) (gap-position) (point-max)))
+    (should (= (gap-position) (point)))))
+
+(ert-deftest editfns-tests--internal-labeled-narrow-widen ()
+  (with-temp-buffer
+    (insert "abcdef")
+    (internal--labeled-narrow-to-region 2 6 'label)
+    (should (equal (buffer-substring (point-min) (point-max)) "bcde"))
+    ;; Attempt to widen beyond labeled restriction should be clamped.
+    (narrow-to-region 1 7)
+    (should (equal (buffer-substring (point-min) (point-max)) "bcde"))
+    ;; Narrowing further within the labeled restriction is allowed.
+    (narrow-to-region 3 5)
+    (should (equal (buffer-substring (point-min) (point-max)) "cd"))
+    (internal--labeled-widen 'label)
+    (should (equal (buffer-substring (point-min) (point-max)) "abcdef"))))
+
+(ert-deftest editfns-tests--subst-char-in-region ()
+  (with-temp-buffer
+    (insert "ababa")
+    (subst-char-in-region (point-min) (point-max) ?b ?x)
+    (should (equal (buffer-string) "axaxa"))))
+
+(ert-deftest editfns-tests--line-boundaries ()
+  (with-temp-buffer
+    (insert "ab\ncd\n")
+    (goto-char (point-min))
+    (should (bobp))
+    (should (bolp))
+    (should-not (eobp))
+    (should (= (line-beginning-position) (point-min)))
+    (should (= (line-end-position) 3))
+    (forward-char 1)
+    (should-not (bolp))
+    (should-not (eolp))
+    (goto-char (line-end-position))
+    (should (eolp))
+    (forward-char 1)
+    (should (bolp))
+    (goto-char (point-max))
+    (should (eobp))
+    (should-not (bobp))))
+
+(ert-deftest editfns-tests--current-column-move-to-column ()
+  (with-temp-buffer
+    (insert "ab  cd\n")
+    (goto-char (point-min))
+    (should (= (current-column) 0))
+    (move-to-column 4)
+    (should (= (current-column) 4))
+    (should (= (point) (+ (point-min) 4)))))
+
+(ert-deftest editfns-tests--pos-bol-eol ()
+  (with-temp-buffer
+    (insert "ab\ncde\nf")
+    (goto-char (point-min))
+    (forward-char 1)
+    (should (= (pos-bol) (point-min)))
+    (should (= (pos-eol) 3))
+    (should (= (pos-bol 2) 4))
+    (should (= (pos-eol 2) 7))
+    (should (= (pos-bol 3) 8))
+    (should (= (pos-eol 3) 9))))
+
 ;; Tests for bug#5131.
 (defun transpose-test-reverse-word (start end)
   "Reverse characters in a word by transposing pairs of characters."
@@ -190,8 +326,288 @@
       (should (equal-including-properties
                str1 (buffer-substring (+ (point-min) 5) (+ (point-min) 7)))))))
 
+(defconst editfns-tests--transpose-regions-tests
+  '(;; adjacent regions with one being empty
+    ("" "foo" "" "" "" [0 3 0 0 0])
+    ("" "" "" "baz" "" [0 0 0 3 0])
+
+    ;; For the following tests, assume that characters from the range
+    ;; [a-z] are 1 byte long in Emacs's internal text representation,
+    ;; while LATIN SMALL LETTER [AO] WITH DIAERESIS is 2 bytes long.
+
+    ;; (len1 == len2) && (end1 == start2) && (len1_byte == len2_byte)
+    ("" "fo(o" "" "b)az" "" [0 3 0 3 0])
+    ;; (len1 == len2) && (end1 != start2) && (len1_byte == len2_byte)
+    ("" "fo(o" "[bar]" "b)az" "" [0 3 3 3 0])
+
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte  < len2_byte)
+    ("" "fo(o" "[bar]" "baaz)" "" [0 3 3 4 0])
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte  > len2_byte)
+    ("" "(fooo" "[bar]" "baz)" "" [0 4 3 3 0])
+
+    ;; (len1 == len2) && (end1 == start2) && (len1_byte  < len2_byte)
+    ("" "fo(o" "" "b)äz" "" [0 3 0 4 0])
+    ;; (len1 == len2) && (end1 == start2) && (len1_byte  > len2_byte)
+    ("" "fo(ö" "" "b)az" "" [0 4 0 3 0])
+    ;; (len1 == len2) && (end1 != start2) && (len1_byte  > len2_byte)
+    ("" "fo(o" "[bar]" "b)äz" "" [0 3 3 4 0])
+    ;; (len1 == len2) && (end1 != start2) && (len1_byte  > len2_byte)
+    ("" "fo(ö" "[bar]" "b)az" "" [0 4 3 3 0])
+
+    ;; (len1 != len2) && (end1 == start2) && (len1_byte == len2_byte)
+    ("" "fo(ö" "" "baaz)" "" [0 4 0 4 0])
+    ;; (len1 != len2) && (end1 == start2) && (len1_byte == len2_byte)
+    ("" "(fooo" "" "bäz)" "" [0 4 0 4 0])
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte == len2_byte)
+    ("" "fo(ö" "[bar]" "baaz)" "" [0 4 3 4 0])
+    ;; (len1 != len2) && (end1 != start2) && (len1_byte == len2_byte)
+    ("" "(fooo" "[bar]" "bäz)" "" [0 4 3 4 0])
+
+    ;; Going entirely non-ASCII.  Assume plain greek small letters are
+    ;; two bytes long in Emacs's internal text representation, GREEK
+    ;; SMALL LETTER ALPHA WITH PSILI is three bytes long.
+
+    ;; To cover the initial patch from bug#70122, define a test
+    ;; consisting of three three-letter strings REG1 MID REG2, with
+    ;; (length REG1) == (length REG2) but (byte-length REG1) !=
+    ;; (byte-length REG2) ...
+    ("ἀ(ρχή" "φ[ωω" "β){αρ" "β<ἀ]ζ}" "τέλ>ος" [9 6 6 7 10])
+    ;; ... and a test with (length REG1) == (length REG2) and
+    ;; (byte-length REG1) == (byte-length REG2).
+    ("ἀ(ρχή" "φ[ωω" "β){αρ" "β<α]ζ}" "τέλ>ος" [9 6 6 6 10])
+
+    ;; Define the moral equivalent of
+    ;; `editfns-tests--transpose-equal-but-not'.
+    (" " "(ab)" "[SPC]" "{é}" " " [1 2 3 2 1])
+
+    ;; Likewise, for the testcase from bug#70122 in
+    ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=70122#5.
+    ("" "" "(a):\n[b]: \x2113\x2080\n" "{v}: scaling" "" [0 0 13 10 0])
+
+    ;; Likewise, for the testcase from bug#70122 in
+    ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=70122#52.
+    ("(Query replace (default abc → d): )" "abc" "[ → ]" "d" "" [35 3 5 1 0]))
+  "List of test strings and their markup to test `transpose-regions'.
+Each element of this list should be a list
+
+  HEAD REG1 MID REG2 TAIL BYTE-LENGTHS
+
+where the first five elements are (possibly empty) string snippets and
+the sixth element is a five-element vector providing the lengths of the
+string snippets, counted in bytes in Emacs's internal text
+representation.
+
+Test `editfns-tests--transpose-regions' inserts the five snippets into
+its temporary buffer, adds text properties to them as described for
+variable `editfns-tests--transpose-regions-markups', transposes REG1 and
+REG2, probably undoes the change, and at each stage ensures that all
+involved entities look as expected.")
+
+(defconst editfns-tests--transpose-regions-markups
+  '("()" "[]" "{}" "<>")
+  "List of two-characters strings \"BE\" describing text property markup.
+For each element in this list, test `editfns-tests--transpose-regions'
+searches once for regular expression \"B.+E\" in its temporary buffer,
+adds a text property `markup' with value \"BE\" to the matching text,
+and then removes the markup characters B and E around the matching text.
+
+The test searches in the buffer with all test snippets already inserted,
+so characters B and E can originate from different snippets, and the
+various B's and E's of different markup items do not need to nest.")
+
+(ert-deftest editfns-tests--transpose-regions ()
+  "Test function `transpose-regions'.
+Execute tests as described by `editfns-tests--transpose-regions-tests'."
+  (dolist (test editfns-tests--transpose-regions-tests)
+    (dolist (leave-markers '(nil t))
+      (message "test: %S leave-markers: %S" test leave-markers)
+      (with-temp-buffer
+        (let ((test (take 5 test))
+              (blengthv (nth 5 test))
+              (smarkers nil) ; Separator markers.
+              (pmarkers nil) ; Property markers.
+              (pmpos nil)    ; Their positions before transposing.
+              (strings nil)  ; Net text snippets, propertized.
+              (blengths nil) ; Their lengths in bytes.
+              (tstrings nil) ; Net text snippets with REG1/2 transposed.
+              (test-undo nil)
+              p beg end beg2 end2)
+          (buffer-enable-undo)
+          ;; Insert text snippets.  While doing so, create the separator
+          ;; markers which we need later to determine the net text
+          ;; snippets.
+          (cl-assert (eq (length test) 5))
+          (setq p test)
+          (while (cdr p)
+            (insert (car p))
+            (push (point-marker) smarkers)
+            (setq p (cdr p)))
+          (insert (car p))
+          (setq smarkers (nreverse smarkers))
+          ;; Propertize them according to markup, remove markup
+          ;; characters, add property markers.
+          (dolist (markup editfns-tests--transpose-regions-markups)
+            (cl-assert (eq (length markup) 2))
+            (goto-char (point-min))
+            (when (search-forward-regexp
+                   (concat "\\("
+                           (regexp-quote (substring markup 0 1))
+                           ".+"
+                           (regexp-quote (substring markup 1 2))
+                           "\\)")
+                   nil t)
+              (setq beg (copy-marker (match-beginning 1))
+                    end (copy-marker (match-end 1)))
+              (delete-region beg (1+ beg))
+              (delete-region (1- end) end)
+              (add-text-properties beg end (list 'markup markup))
+              (push beg pmarkers)
+              (push end pmarkers)))
+          (setq pmarkers (sort pmarkers)
+                pmpos (mapcar #'marker-position pmarkers))
+          ;; Determine net text snippets, plain and with transposed REG1
+          ;; and REG2.  Determine the byte lengths of the net text
+          ;; snippets and ensure they meet our expectation.
+          (setq p smarkers
+                beg (point-min))
+          (while p
+            (push (buffer-substring beg (car p)) strings)
+            (push (- (position-bytes (car p)) (position-bytes beg))
+                  blengths)
+            (setq beg (car p) p (cdr p)))
+          (push (buffer-substring beg (point-max)) strings)
+          (push (- (position-bytes (point-max)) (position-bytes beg))
+                blengths)
+          (setq strings (nreverse strings)
+                blengths (nreverse blengths))
+          (setq tstrings (list (nth 0 strings) (nth 3 strings)
+                               (nth 2 strings) (nth 1 strings)
+                               (nth 4 strings)))
+          (should (equal blengthv (apply #'vector blengths)))
+          ;; Transpose REG1 and REG2.  Some transpositions might not
+          ;; generate undo, keep track of that in flag `test-undo'.
+          (setq beg  (+ 1    (length (nth 0 strings)))
+                end  (+ beg  (length (nth 1 strings)))
+                beg2 (+ end  (length (nth 2 strings)))
+                end2 (+ beg2 (length (nth 3 strings))))
+          (undo-boundary)
+          (transpose-regions beg end beg2 end2 leave-markers)
+          (when (car buffer-undo-list)
+            (setq test-undo t))
+          (undo-boundary)
+          ;; Check resulting buffer text and its properties.
+          (should (equal-including-properties
+                   (buffer-string)
+                   (mapconcat #'identity tstrings)))
+          ;; Check property marker positions.
+          (if leave-markers
+              (should (equal (mapcar #'marker-position pmarkers) pmpos))
+            ;; Meh.  This more or less blindly duplicates function
+            ;; transpose_markers, since I have been too lazy to
+            ;; reproduce the arithmetic myself.
+            (setq pmpos
+                  (mapcar
+                   (lambda (pos)
+                     (cond
+                      ((<  pos beg)  pos)
+                      ((>= pos end2) pos)
+                      ((<  pos end)  (+ pos (+ (- end2 beg2) (- beg2 end))))
+                      ((<  pos beg2) (+ pos (- (- end2 beg2) (- end  beg))))
+                      (t             (- pos (+ (- end  beg)  (- beg2 end))))))
+                   pmpos))
+            (should (equal (mapcar #'marker-position pmarkers) pmpos)))
+          ;; Undo the transposition and check text and properties again,
+          ;; if needed.  This does not undo any marker transpositions as
+          ;; per the comment before the call to transpose_markers in
+          ;; Ftranspose_regions, so nothing to check on the marker side
+          ;; after the undo.
+          (when test-undo
+            (undo)
+            (should (equal-including-properties
+                     (buffer-string)
+                     (mapconcat #'identity strings))))
+          ;; Be nice and clean up markers.
+          (dolist (marker smarkers) (set-marker marker nil))
+          (dolist (marker pmarkers) (set-marker marker nil)))))))
+
 (ert-deftest format-c-float ()
   (should-error (format "%c" 0.5)))
+
+(ert-deftest format-binary-zero ()
+  "Check that `%#b' and `%#B' are simplified for zero values."
+  (should (string-equal (format "%#b" 0) "0"))
+  (should (string-equal (format "%#B" 0) "0")))
+
+(ert-deftest format-binary-floats ()
+  "Check that `%b' and `%B' drop the fractional part of floats."
+  (let* ((n 5) (N 10)
+         (fracs (mapcar #'(lambda (d) (/ d N 1.0)) (number-sequence 0 (1- N)))))
+    (dolist (f fracs)
+      (should (string-equal (format "%b" (+ n f)) (format "%b" n)))
+      (should (string-equal (format "%B" (+ n f)) (format "%B" n))))))
+
+(ert-deftest format-binary-nonzero-integers ()
+  "Check `%b' and `%B' for non-zero integers.
+For numbers of both signs, check each flag (`0' padding, signs `+' &
+space, left alignment `-') with and without the alternative display
+format `#'.  Include both fixed and big numbers.  The widths are chosen
+sufficiently large to avoid truncation."
+  (dolist (nbits `((#x-5A . "1011010")
+                   (#x5A . "1011010")
+                   (#x-E97 . "111010010111")
+                   (#xE97 . "111010010111")
+                   (#xFFFFFFFFFFFFFFFFF . ,(make-string 68 ?1))
+                   (#x-FFFFFFFFFFFFFFFFF . ,(make-string 68 ?1))))
+    (let* ((n (car nbits)) (bits (cdr nbits))
+           (extra (+ 1 2 2))       ; 1 (sign) +  2 (0b prefix) + 2 (pad)
+           (w (+ (length bits) extra))
+           (Npad (- extra (if (< n 0) 1 0))) ; 0 & space padding w/ prefix
+           (Nsgn (- extra 1))                ; padding w/o sign
+           (sgn- (if (< n 0) "-" "")) (sgn (if (< n 0) "-" "+"))
+           (0pad (make-string Npad ?0)) (0padalt (make-string (- Npad 2) ?0))
+           (spad (make-string Npad ? )) (spadalt (make-string (- Npad 2) ? ))
+           (+pad (make-string Nsgn ? )) (+padalt (make-string (- Nsgn 2) ? )))
+      ;; %b
+      (should (string-equal (format "%b" n) (concat sgn- bits)))
+      (should (string-equal (format "%B" n) (concat sgn- bits)))
+      (should (string-equal (format "%#b" n) (concat sgn- "0b" bits)))
+      (should (string-equal (format "%#B" n) (concat sgn- "0B" bits)))
+      ;; %0wb
+      (should (string-equal (format (format "%%0%db" w) n)
+                            (concat sgn- 0pad bits)))
+      (should (string-equal (format (format "%%0%dB" w) n)
+                            (concat sgn- 0pad bits)))
+      (should (string-equal (format (format "%%#0%db" w) n)
+                            (concat sgn- "0b" 0padalt bits)))
+      (should (string-equal (format (format "%%#0%dB" w) n)
+                            (concat sgn- "0B" 0padalt bits)))
+      ;; %-wb
+      (should (string-equal (format (format "%%-%db" w) n)
+                            (concat sgn- bits spad)))
+      (should (string-equal (format (format "%%-%dB" w) n)
+                            (concat sgn- bits spad)))
+      (should (string-equal (format (format "%%#-%db" w) n)
+                            (concat sgn- "0b" bits spadalt)))
+      (should (string-equal (format (format "%%#-%dB" w) n)
+                            (concat sgn- "0B" bits spadalt)))
+      ;; %+wb
+      (should (string-equal (format (format "%%+%db" w) n)
+                            (concat +pad sgn bits)))
+      (should (string-equal (format (format "%%+%dB" w) n)
+                            (concat +pad sgn bits)))
+      (should (string-equal (format (format "%%#+%db" w) n)
+                            (concat +padalt sgn "0b" bits)))
+      (should (string-equal (format (format "%%#+%dB" w) n)
+                            (concat +padalt sgn "0B" bits)))
+      ;; % wb
+      (should (string-equal (format (format "%% %db" w) n)
+                            (concat spad sgn- bits)))
+      (should (string-equal (format (format "%% %dB" w) n)
+                            (concat spad sgn- bits)))
+      (should (string-equal (format (format "%%# %db" w) n)
+                            (concat spadalt sgn- "0b" bits)))
+      (should (string-equal (format (format "%%# %dB" w) n)
+                            (concat spadalt sgn- "0B" bits))))))
 
 ;;; Test for Bug#29609.
 (ert-deftest format-sharp-0-x ()
@@ -211,19 +627,22 @@
 (ert-deftest format-%x-large-float ()
   (should (string-equal (format "%x" 18446744073709551616.0)
                         "10000000000000000")))
+
 (ert-deftest read-large-integer ()
   (should (eq (type-of (read (format "%d0" most-negative-fixnum))) 'integer))
   (should (eq (type-of (read (format "%+d" (* -8.0 most-negative-fixnum))))
               'integer))
   (should (eq (type-of (read (substring (format "%d" most-negative-fixnum) 1)))
               'integer))
-  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+  (should (eq (type-of (read (format "#b%b" most-negative-fixnum)))
               'integer))
   (should (eq (type-of (read (format "#o%o" most-negative-fixnum)))
               'integer))
+  (should (eq (type-of (read (format "#x%x" most-negative-fixnum)))
+              'integer))
   (should (eq (type-of (read (format "#32rG%x" most-positive-fixnum)))
               'integer))
-  (dolist (fmt '("%d" "%s" "#o%o" "#x%x"))
+  (dolist (fmt '("%d" "%s" "#b%b" "#o%o" "#x%x"))
     (dolist (val (list most-negative-fixnum (1+ most-negative-fixnum)
 		       -1 0 1
 		       (1- most-positive-fixnum) most-positive-fixnum))
@@ -654,5 +1073,177 @@
     (transpose-regions (pos-bol) (pos-eol)
                        (pos-bol 2) (pos-eol 2))
     (should (equal (buffer-string) "toto\nEmacs forever!\n"))))
+
+;; Additional coverage for editfns primitives used in batch mode.
+
+(ert-deftest editfns-tests--byte-to-position ()
+  (with-temp-buffer
+    (insert "éa")
+    (let* ((b1 (position-bytes 1))
+           (b2 (position-bytes 2)))
+      (should (= b1 1))
+      (should (> b2 b1))
+      (should (= (byte-to-position b1) 1))
+      (should (= (byte-to-position b2) 2))
+      ;; Byte position in the middle of a multibyte character maps back
+      ;; to the character head.
+      (should (= (byte-to-position (1- b2)) 1))
+      (should-not (byte-to-position 0))
+      (should-not (byte-to-position (1+ (position-bytes (point-max))))))))
+
+(ert-deftest editfns-tests--byte-to-string ()
+  (let ((s (byte-to-string 65)))
+    (should (stringp s))
+    (should (not (multibyte-string-p s)))
+    (should (= (length s) 1))
+    (should (= (aref s 0) 65)))
+  (should-error (byte-to-string -1))
+  (should-error (byte-to-string 256)))
+
+(ert-deftest editfns-tests--insert-byte ()
+  (with-temp-buffer
+    (insert-byte ?A 3)
+    (should (equal (buffer-string) "AAA")))
+  (with-temp-buffer
+    (insert-byte 200 1)
+    (should (= (aref (buffer-string) 0)
+               (unibyte-char-to-multibyte 200))))
+  (should-error (with-temp-buffer (insert-byte 256 1))))
+
+(ert-deftest editfns-tests--insert-buffer-substring ()
+  (with-temp-buffer
+    (let ((source (current-buffer)))
+      (insert "abcDEF")
+      (put-text-property 4 6 'foo t)
+      (with-temp-buffer
+        (insert "X")
+        (insert-buffer-substring source 2 5)
+        (should (equal (buffer-string) "XbcD"))
+        (should-not (get-text-property 2 'foo))
+        (should (get-text-property 4 'foo))))))
+
+(ert-deftest editfns-tests--insert-before-markers-and-inherit ()
+  (with-temp-buffer
+    (insert (propertize "a" 'foo t))
+    (let ((m (point-marker)))
+      (insert-before-markers-and-inherit "b")
+      (should (equal (buffer-string) "ab"))
+      (should (= (marker-position m) (point)))
+      (should (eq (get-text-property 2 'foo) t)))))
+
+(ert-deftest editfns-tests--field-string-and-delete ()
+  (with-temp-buffer
+    (insert "abcDEFghi")
+    (put-text-property 1 4 'field 'a)
+    (put-text-property 4 7 'field 'b)
+    (put-text-property 7 10 'field 'c)
+    (let ((s (field-string-no-properties 2)))
+      (should (equal s "abc"))
+      (should-not (text-properties-at 0 s)))
+    (should (equal (field-string-no-properties 5) "DEF"))
+    (delete-field 5)
+    (should (equal (buffer-string) "abcghi"))
+    (should (equal (field-string-no-properties 5) "ghi"))))
+
+(ert-deftest editfns-tests--constrain-to-field ()
+  (let ((inhibit-field-text-motion nil))
+    (with-temp-buffer
+      (insert "abcDEFghi")
+      (put-text-property 1 4 'field 'a)
+      (put-text-property 4 7 'field 'b)
+      (put-text-property 7 10 'field 'c)
+      (should (= (constrain-to-field 2 5) 4))
+      (should (= (constrain-to-field 8 5) 7))
+      (goto-char 2)
+      (should (= (constrain-to-field nil 5) 4))
+      (should (= (point) 4)))))
+
+(ert-deftest editfns-tests--char-before-after ()
+  (with-temp-buffer
+    (insert "abc")
+    (goto-char (point-min))
+    (should-not (char-before))
+    (should (eq (char-after) ?a))
+    (should (eq (char-after 1) ?a))
+    (should-not (char-after 0))
+    (goto-char (point-max))
+    (should-not (char-after))
+    (should (eq (char-before) ?c))
+    (should (eq (char-before (point-max)) ?c))
+    (should-not (char-before (1+ (point-max))))
+    (narrow-to-region 2 3)
+    (goto-char (point-min))
+    (should-not (char-before))
+    (should (eq (char-after) ?b))
+    (goto-char (point-max))
+    (should-not (char-after))
+    (should (eq (char-before) ?b))))
+
+(ert-deftest editfns-tests--following-preceding-char ()
+  (with-temp-buffer
+    (insert "abc")
+    (goto-char (point-min))
+    (should (= (following-char) ?a))
+    (should (= (preceding-char) 0))
+    (goto-char (point-max))
+    (should (= (following-char) 0))
+    (should (= (preceding-char) ?c))
+    (narrow-to-region 2 3)
+    (goto-char (point-min))
+    (should (= (preceding-char) 0))
+    (goto-char (point-max))
+    (should (= (following-char) 0))))
+
+(ert-deftest editfns-tests--buffer-substring-properties ()
+  (with-temp-buffer
+    (insert "abc")
+    (add-text-properties (point-min) (point-max) '(foo bar))
+    (let ((with-props (buffer-substring (point-min) (point-max)))
+          (without-props (buffer-substring-no-properties
+                          (point-min) (point-max))))
+      (should (equal with-props "abc"))
+      (should (equal without-props "abc"))
+      (should (eq (get-text-property 0 'foo with-props) 'bar))
+      (should-not (get-text-property 0 'foo without-props)))))
+
+(ert-deftest editfns-tests--insert-and-inherit ()
+  (with-temp-buffer
+    (insert "a")
+    (add-text-properties 1 2 '(foo bar))
+    (goto-char (point-max))
+    (insert "b")
+    (should-not (get-text-property 2 'foo))
+    (erase-buffer))
+  (with-temp-buffer
+    (insert "a")
+    (add-text-properties 1 2 '(foo bar))
+    (goto-char (point-max))
+    (insert-and-inherit "b")
+    (should (eq (get-text-property 2 'foo) 'bar))))
+
+(ert-deftest editfns-tests--line-beginning-end-position ()
+  (with-temp-buffer
+    (insert "aa\nbb\ncc")
+    (goto-char 5)
+    (should (= (line-beginning-position) 4))
+    (should (= (line-end-position) 6))
+    (should (= (line-beginning-position 2) 7))
+    (should (= (line-end-position 2) (point-max)))
+    (goto-char (point-min))
+    (should (= (line-beginning-position 5) (point-max)))
+    (should (= (line-end-position 5) (point-max)))))
+
+(ert-deftest editfns-tests--current-column ()
+  (with-temp-buffer
+    (let ((tab-width 4))
+      (insert "ab\tcd")
+      (goto-char (point-min))
+      (should (= (current-column) 0))
+      (forward-char 2)
+      (should (= (current-column) 2))
+      (forward-char 1)
+      (should (= (current-column) 4))
+      (forward-char 2)
+      (should (= (current-column) 6)))))
 
 ;;; editfns-tests.el ends here

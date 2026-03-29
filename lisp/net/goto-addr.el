@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1995, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -121,6 +121,7 @@ will have no effect.")
 (defvar-keymap goto-address-highlight-keymap
   :doc "Keymap to hold goto-addr's mouse key defs under highlighted URLs."
   "<mouse-2>" #'goto-address-at-point
+  "RET"       (keymap-read-only-bind #'goto-address-at-point)
   "C-c RET"   #'goto-address-at-point)
 
 (defun goto-address-context-menu (menu click)
@@ -168,8 +169,11 @@ and `goto-address-fontify-p'."
 	      (< (- (or end (point-max)) (point))
                  goto-address-fontify-maximum-size))
       (while (re-search-forward goto-address-url-regexp end t)
-	(let* ((s (match-beginning 0))
-	       (e (match-end 0))
+	(let* ((bounds (save-excursion
+			 (goto-char (match-beginning 0))
+			 (bounds-of-thing-at-point 'url)))
+	       (s (car bounds))
+	       (e (cdr bounds))
 	       this-overlay)
 	  (when (or (not goto-address-prog-mode)
 		    ;; This tests for both comment and string
@@ -186,6 +190,8 @@ and `goto-address-fontify-p'."
 			 'help-echo "mouse-2, C-c RET: follow URL")
 	    (overlay-put this-overlay
 			 'keymap goto-address-highlight-keymap)
+	    (overlay-put this-overlay 'button this-overlay)
+	    (overlay-put this-overlay 'category 'goto-address)
 	    (overlay-put this-overlay 'goto-address t))))
       (goto-char (or start (point-min)))
       (while (re-search-forward goto-address-mail-regexp end t)

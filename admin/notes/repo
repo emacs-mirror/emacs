@@ -54,8 +54,8 @@ We do not intend to "git merge" from scratch branches, so force-pushes
 are tolerated, as well as commits with poor style, incomplete commit
 messages, etc.
 
-We do expect to "git merge" from feature branches so: no force push,
-and no commits that don't have a proper commit message.
+We do expect to "git merge" from feature branches so no force pushes.
+Also cf. "Long-lived feature branches" in admin/notes/git-workflow.
 
 Automatic tests are run for feature/* branches on EMBA.
 See: https://emba.gnu.org/emacs/emacs/-/pipelines

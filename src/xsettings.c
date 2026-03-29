@@ -1,6 +1,6 @@
 /* Functions for handling font and other changes dynamically.
 
-Copyright (C) 2009-2025 Free Software Foundation, Inc.
+Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -70,6 +70,8 @@ static char *current_font;
 static Display_Info *first_dpyinfo;
 static Lisp_Object current_tool_bar_style;
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
+
 /* Store a config changed event in to the event queue.  */
 
 static void
@@ -100,6 +102,7 @@ dpyinfo_valid (Display_Info *dpyinfo)
     }
   return found;
 }
+#endif
 
 /* Store a monospace font change event if the monospaced font changed.  */
 
@@ -122,7 +125,7 @@ store_monospaced_changed (const char *newfont)
 
 /* Store a font name change event if the font name changed.  */
 
-#if defined USE_CAIRO || defined HAVE_XFT
+#if (defined USE_CAIRO || defined HAVE_XFT) && (defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK)
 static void
 store_font_name_changed (const char *newfont)
 {
@@ -139,6 +142,7 @@ store_font_name_changed (const char *newfont)
 }
 #endif /* USE_CAIRO || HAVE_XFT */
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
 /* Map TOOL_BAR_STYLE from a string to its corresponding Lisp value.
    Return Qnil if TOOL_BAR_STYLE is not known.  */
 
@@ -160,7 +164,9 @@ map_tool_bar_style (const char *tool_bar_style)
 
   return style;
 }
+#endif
 
+#if defined HAVE_GSETTINGS || defined HAVE_GCONF || !defined HAVE_PGTK
 /* Store a tool bar style change event if the tool bar style changed.  */
 
 static void
@@ -176,10 +182,13 @@ store_tool_bar_style_changed (const char *newstyle,
     store_config_changed_event (Qtool_bar_style,
                                 XCAR (dpyinfo->name_list_element));
 }
+#endif
 
 #ifndef HAVE_PGTK
 #if defined USE_CAIRO || defined HAVE_XFT
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
+#define XSETTINGS_GDK_DPI_NAME    "Gdk/UnscaledDPI"
+#define XSETTINGS_GDK_WSCALE_NAME "Gdk/WindowScalingFactor"
 #endif
 #define XSETTINGS_TOOL_BAR_STYLE  "Gtk/ToolbarStyle"
 #endif
@@ -227,13 +236,14 @@ static cairo_font_options_t *font_options;
 #define GSETTINGS_FONT_ANTIALIASING  "font-antialiasing"
 #define GSETTINGS_FONT_RGBA_ORDER    "font-rgba-order"
 #define GSETTINGS_FONT_HINTING       "font-hinting"
+#define GSETTINGS_COLOR_SCHEME       "color-scheme"
 #endif
 
 /* The single GSettings instance, or NULL if not connected to GSettings.  */
 
 static GSettings *gsettings_client;
 
-#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+#ifdef HAVE_PGTK
 
 static bool
 xg_settings_key_valid_p (GSettings *settings, const char *key)
@@ -258,7 +268,7 @@ xg_settings_key_valid_p (GSettings *settings, const char *key)
 #endif
 }
 
-#endif
+#endif	/* HAVE_PGTK */
 
 #ifdef HAVE_PGTK
 /* Store an event for re-rendering of the fonts.  */
@@ -448,6 +458,25 @@ something_changed_gsettingsCB (GSettings *settings,
       apply_gsettings_font_rgba_order (settings);
       store_font_options_changed ();
     }
+  else if (!strcmp (key, GSETTINGS_COLOR_SCHEME))
+    {
+      if (xg_settings_key_valid_p (settings, GSETTINGS_COLOR_SCHEME))
+        {
+          val = g_settings_get_value (settings, GSETTINGS_COLOR_SCHEME);
+          if (val)
+            {
+              g_variant_ref_sink (val);
+              if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+                {
+                  const char *color_scheme = g_variant_get_string (val, NULL);
+                  /* Check dark mode preference and update all frames. */
+                  bool dark_mode_p = (strstr (color_scheme, "dark") != NULL);
+                  xg_update_dark_mode_for_all_displays (dark_mode_p);
+                }
+              g_variant_unref (val);
+            }
+        }
+    }
 #endif /* HAVE_PGTK */
 }
 
@@ -599,6 +628,15 @@ parse_settings (unsigned char *prop,
   int bytes_parsed = 0;
   int settings_seen = 0;
   int i = 0;
+#if defined USE_CAIRO || defined HAVE_XFT
+  /* Some X environments, e.g. XWayland, communicate DPI changes only
+     through the GDK xsettings values and not the regular Xft one, so
+     recognize both schemes.  We want to see both the GDK window scaling
+     factor and the post-scaling DPI so we can compute our desired
+     actual DPI.  */
+  int gdk_unscaled_dpi = 0;
+  int gdk_window_scale = 0;
+#endif
 
   /* First 4 bytes is a serial number, skip that.  */
 
@@ -641,7 +679,9 @@ parse_settings (unsigned char *prop,
       want_this = strcmp (XSETTINGS_TOOL_BAR_STYLE, name) == 0;
 #if defined USE_CAIRO || defined HAVE_XFT
       if ((nlen > 6 && memcmp (name, "Xft/", 4) == 0)
-	  || strcmp (XSETTINGS_FONT_NAME, name) == 0)
+	  || strcmp (XSETTINGS_FONT_NAME, name) == 0
+	  || strcmp (XSETTINGS_GDK_DPI_NAME, name) == 0
+	  || strcmp (XSETTINGS_GDK_WSCALE_NAME, name) == 0)
 	want_this = true;
 #endif
 
@@ -742,6 +782,10 @@ parse_settings (unsigned char *prop,
               settings->seen |= SEEN_DPI;
               settings->dpi = ival / 1024.0;
             }
+	  else if (strcmp (name, XSETTINGS_GDK_DPI_NAME) == 0)
+	    gdk_unscaled_dpi = ival;
+	  else if (strcmp (name, XSETTINGS_GDK_WSCALE_NAME) == 0)
+	    gdk_window_scale = ival;
           else if (strcmp (name, "Xft/lcdfilter") == 0)
             {
               settings->seen |= SEEN_LCDFILTER;
@@ -758,6 +802,19 @@ parse_settings (unsigned char *prop,
 	  settings_seen += want_this;
         }
     }
+
+#if defined USE_CAIRO || defined HAVE_XFT
+  if (gdk_unscaled_dpi > 0 && gdk_window_scale > 0)
+    {
+      /* Override any previous DPI settings.  GDK ones are intended to
+	 be authoritative.
+	 See
+	 https://mail.gnome.org/archives/commits-list/2013-June/msg06726.html
+       */
+      settings->seen |= SEEN_DPI;
+      settings->dpi = gdk_window_scale * gdk_unscaled_dpi / 1024.0;
+    }
+#endif
 
   return settings_seen;
 }
@@ -1108,6 +1165,32 @@ init_gsettings (void)
 
 #endif /* HAVE_GSETTINGS */
 }
+
+/* Get current system dark mode state.  */
+
+#if defined HAVE_PGTK && defined HAVE_GSETTINGS
+bool
+xg_get_system_dark_mode (void)
+{
+  if (gsettings_client && xg_settings_key_valid_p (gsettings_client, GSETTINGS_COLOR_SCHEME))
+    {
+      GVariant *val = g_settings_get_value (gsettings_client, GSETTINGS_COLOR_SCHEME);
+      if (val)
+        {
+          g_variant_ref_sink (val);
+          if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+            {
+              const char *color_scheme = g_variant_get_string (val, NULL);
+              bool dark_mode_p = (strstr (color_scheme, "dark") != NULL);
+              g_variant_unref (val);
+              return dark_mode_p;
+            }
+          g_variant_unref (val);
+        }
+    }
+  return false;
+}
+#endif	/* HAVE_PGTK && HAVE_GSETTINGS */
 
 /* Init GConf and read startup values.  */
 

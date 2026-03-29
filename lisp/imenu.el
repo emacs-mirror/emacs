@@ -1,6 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1998, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -192,6 +192,18 @@ uses `imenu--generic-function')."
   "Max time to use when creating imenu indices."
   :type 'number
   :version "28.1")
+
+(defcustom imenu-allow-duplicate-menu-items t
+  "Non-nil means that Imenu can include duplicate menu items.
+For example, if the buffer contains multiple definitions of function
+`foo' then a menu item is included for each of them.
+Otherwise, only the first such definition is accessible from the menu.
+
+This option applies only to an Imenu menu, not also to the use of
+command `imenu', which uses `completing-read' to read a menu item.
+The use of that command doesn't allow duplicate items."
+  :type 'boolean
+  :version "31.1")
 
 ;;;###autoload
 (defvar-local imenu-generic-expression nil
@@ -505,15 +517,26 @@ Non-nil arguments are in recursive calls."
 (defun imenu--create-keymap (title alist &optional cmd)
   `(keymap ,title
            ,@(mapcar
-              (lambda (item)
-                `(,(intern (car item)) ,(car item)
-                  ,@(cond
-                     ((imenu--subalist-p item)
-                      (imenu--create-keymap (car item) (cdr item) cmd))
-                     (t
-                      (lambda () (interactive)
-                        (if cmd (funcall cmd item) item))))))
-              (seq-filter #'identity alist))))
+              (if imenu-allow-duplicate-menu-items
+                  (lambda (item)
+                    `(,(car item)
+                      ,(car item)
+                      ,@(cond
+                         ((imenu--subalist-p item)
+                          (imenu--create-keymap (car item) (cdr item) cmd))
+                         (t
+                          (lambda () (interactive)
+                            (if cmd (funcall cmd item) item))))))
+                (lambda (item)
+                  `(,(intern (car item))
+                    ,(car item)
+                    ,@(cond
+                       ((imenu--subalist-p item)
+                        (imenu--create-keymap (car item) (cdr item) cmd))
+                       (t
+                        (lambda () (interactive)
+                          (if cmd (funcall cmd item) item)))))))
+              (remq nil alist))))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."
@@ -841,7 +864,33 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
                        (_ new-prefix))
 		     pos)))
 	(t
-	 (imenu--flatten-index-alist pos concat-names new-prefix)))))
+         (let ((subalist (imenu--flatten-index-alist
+                          pos concat-names new-prefix))
+               (region (get-text-property 0 'imenu-region name)))
+           (if region
+               ;; Add non-leaf nodes with Eglot text properties.
+               (append (imenu--flatten-index-alist
+                        (list (cons name (car region))) concat-names prefix)
+                       subalist)
+             subalist))))))
+   index-alist))
+
+(defun imenu--parentify-index-alist (index-alist)
+  ;; Add separate ".." for navigating to non-leaf nodes.
+  ;; Used only when `index-alist' has Eglot text properties.
+  (mapcan
+   (lambda (item)
+     (let* ((name (car item))
+            (pos (cdr item)))
+       (cond
+        ((not (imenu--subalist-p item))
+         (list item))
+        (t
+         (let ((subalist (imenu--parentify-index-alist pos))
+               (region (get-text-property 0 'imenu-region name)))
+           (when region
+             (setq subalist (append (list (cons ".." (car region))) subalist)))
+           (list (cons name subalist)))))))
    index-alist))
 
 (defun imenu-choose-buffer-index (&optional prompt alist)
@@ -873,8 +922,16 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
     ;; Create a list for this buffer only when needed.
     (while (eq result t)
       (setq index-alist (if alist alist (imenu--make-index-alist)))
-      (when imenu-flatten
+      (cond
+       (imenu-flatten
         (setq index-alist (imenu--flatten-index-alist index-alist t)))
+       ((when-let* ((alist (if (eq (car index-alist) imenu--rescan-item)
+                               (cdr index-alist) index-alist))
+                    (name (caar alist)))
+          (get-text-property 0 'imenu-region name))
+        ;; Change the menu structure by adding ".." to non-leaf nodes
+        ;; only when the first node has Eglot text properties.
+        (setq index-alist (imenu--parentify-index-alist index-alist))))
       (setq result
 	    (if (and imenu-use-popup-menu
 		     (or (eq imenu-use-popup-menu t) mouse-triggered))

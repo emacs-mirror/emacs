@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Documentation
@@ -828,14 +828,16 @@ if the user types the help character again.
 @cindex documentation groups
 @cindex groups of functions
 @cindex function groups
+@cindex shortdoc groups
 
 Emacs can list functions based on various groupings.  For instance,
 @code{string-trim} and @code{mapconcat} are ``string'' functions, so
-@kbd{M-x shortdoc RET string RET} will give an overview
-of functions that operate on strings.
+@kbd{M-x shortdoc RET string RET} will give an overview of these and
+other functions that operate on strings.
 
 The documentation groups are created with the
-@code{define-short-documentation-group} macro.
+@code{define-short-documentation-group} macro.  @xref{Documentation
+Group Tips}, for how to write good documentation groups.
 
 @defmac define-short-documentation-group group &rest functions
 Define @var{group} as a group of functions, and provide short
@@ -846,6 +848,7 @@ summaries of using those functions.  The optional argument
 (@var{func} [@var{keyword} @var{val}]@dots{})
 @end lisp
 
+@cindex documentation group keywords
 The following keywords are recognized:
 
 @table @code

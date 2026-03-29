@@ -1,6 +1,6 @@
 Known Problems with GNU Emacs
 
-Copyright (C) 1987-1989, 1993-1999, 2001-2025 Free Software Foundation,
+Copyright (C) 1987-1989, 1993-1999, 2001-2026 Free Software Foundation,
 Inc.
 See the end of the file for license conditions.
 
@@ -1304,7 +1304,7 @@ Emacs will select some other font instead.
 The only workaround is not to choose such font variants as the default
 font when running Emacs on MS-Windows.
 
-** On OpenBSD, color Emoji are not supported by default.
+** On OpenBSD before version 7.8, color Emoji are not supported by default.
 
 The system's FreeType library is not built with libpng support, so it
 can't display color emoji.  This is due to the fact that, on OpenBSD,
@@ -1324,6 +1324,7 @@ following those steps:
 	5. Build and install Xenocara (also, see release(8)).
 
 Note that this support will be gone after each OpenBSD's system upgrade.
+Also note that upgrading to OpenBSD 7.8 solves this whole issue.
 
 * Internationalization problems
 
@@ -1380,6 +1381,19 @@ input method developers to fix their crashes.  You can work around
 these problems by disabling XIM in your X resources:
 
   Emacs.useXIM: false
+
+** When the compose key is pressed, a small window appears that won't go away
+
+In some circumstances, pressing the compose key under X pops up a small
+character-selection window next to the cursor, which can be moved but
+not closed; it disappears when some window manager operation is
+performed, like creating or deleting a window.  You can prevent this
+window from appearing by completely disabling the X input method (XIM).
+If this is acceptable to you, you should set the 'XMODIFIERS'
+environment variable to the value '@im=none', and export it before
+calling Emacs, for example by invoking Emacs like so:
+
+  env XMODIFIERS=@im=none emacs
 
 ** On Haiku, BeCJK doesn't work properly with Emacs
 
@@ -2011,6 +2025,15 @@ the user's ~/.Xdefaults and ~/.Xdefaults-* files.
 Very long popup menus cannot be shown in their entirety, and don't have
 a scroll bar to scroll them vertically.  Lucid does not support this
 feature.  A workaround is to use other toolkits (GTK, LessTif, etc.).
+
+*** In Emacs built with Lucid cannot keep context menus open.
+
+After enabling context-menu-mode, when the menu is opened by
+<down-mouse-3>, it closes right away when the right mouse button
+is released.  It's possible to keep the context menu open
+after releasing the mouse button by disabling XInput 2 support:
+
+  ./configure --with-x-toolkit=lucid --without-xinput2
 
 *** Emacs running under X Window System does not handle mouse clicks.
 *** 'emacs -geometry 80x20' finds a file named '80x20'.
@@ -2677,6 +2700,18 @@ terminals, for example, like this:
 
 This disables 'auto-composition-mode' on frames that display on
 terminals of this type.
+
+** Screen readers get confused about character position
+
+The Emacs display code sometimes emits TAB characters purely for motion
+on the terminal, even when those characters do not exist in the buffer.
+This can confuse screen reader software under certain terminal emulators
+(rxvt and vte have been cited).  Switching to destructive tabs by running
+
+    stty -tabs
+
+in the terminal before starting Emacs may mitigate this.  See also the
+discussion in Bug#78474 <https://debbugs.gnu.org/78474>.
 
 * Runtime problems specific to individual Unix variants
 
@@ -3565,6 +3600,18 @@ file; for example:
     '("/usr/local/opt/gcc/lib/gcc/11"
       "/usr/local/opt/libgccjit/lib/gcc/11"
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
+
+** Text dictation doesn't work on macOS
+
+The indication is that the macOS keyboard shortcut for dictation is ignored.
+
+One reason for this is that the Emacs permissions for using the
+microphone were rejected in the past.  To reset the permissions, run
+this command:
+
+  tccutil reset Microphone org.gnu.Emacs
+
+Another reason may be an unsupported macOS version. For example: macOS 12.
 
 * Runtime problems specific to PGTK build
 

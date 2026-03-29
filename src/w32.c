@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2025 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -84,10 +84,6 @@ int sys_dup2 (int, int);
 int sys_read (int, char *, unsigned int);
 int sys_write (int, const void *, unsigned int);
 struct tm *sys_localtime (const time_t *);
-/* MinGW64 system headers include string.h too early, causing the
-   compiler to emit a warning about sys_strerror having no
-   prototype.  */
-char *sys_strerror (int);
 clock_t sys_clock (void);
 
 #ifdef HAVE_MODULES
@@ -138,9 +134,7 @@ PCONTEXT ctxrec;
 
 #include <tlhelp32.h>
 #include <psapi.h>
-#ifndef _MSC_VER
 #include <w32api.h>
-#endif
 #if _WIN32_WINNT < 0x0500
 #if !defined (__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
@@ -175,8 +169,8 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #define SDDL_REVISION_1	1
 #endif	/* SDDL_REVISION_1 */
 
-#if defined(_MSC_VER) || defined(MINGW_W64)
-/* MSVC and MinGW64 don't provide the definition of
+#if defined(MINGW_W64)
+/* MinGW64 donesn't provide the definition of
    REPARSE_DATA_BUFFER and the associated macros, except on ntifs.h,
    which cannot be included because it triggers conflicts with other
    Windows API headers.  So we define it here by hand.  */
@@ -7653,19 +7647,7 @@ system_process_attributes (Lisp_Object pid)
 
   memstex.dwLength = sizeof (memstex);
   if (global_memory_status_ex (&memstex))
-#if __GNUC__ || (defined (_MSC_VER) && _MSC_VER >= 1300)
     totphys = memstex.ullTotalPhys / 1024.0;
-#else
-  /* Visual Studio 6 cannot convert an unsigned __int64 type to
-     double, so we need to do this for it...  */
-    {
-      DWORD tot_hi = memstex.ullTotalPhys >> 32;
-      DWORD tot_md = (memstex.ullTotalPhys & 0x00000000ffffffff) >> 10;
-      DWORD tot_lo = memstex.ullTotalPhys % 1024;
-
-      totphys = tot_hi * 4194304.0 + tot_md + tot_lo / 1024.0;
-    }
-#endif	/* __GNUC__ || _MSC_VER >= 1300 */
   else if (global_memory_status (&memst))
     totphys = memst.dwTotalPhys / 1024.0;
 
@@ -8282,25 +8264,38 @@ sys_inet_addr (const char * cp)
     pfn_inet_addr (cp) : INADDR_NONE;
 }
 
+/* Wrapper for gethostname.  Note: NAMELEN is the space available in
+   NAME excluding the terminating null.  */
 int
 sys_gethostname (char * name, int namelen)
 {
+  int retval;
+  int nlen = namelen;
+  char sname[256+1];
+
   if (winsock_lib != NULL)
     {
-      int retval;
-
       check_errno ();
-      retval = pfn_gethostname (name, namelen);
+      retval = pfn_gethostname (sname, sizeof(sname));
       if (retval == SOCKET_ERROR)
 	set_errno ();
-      return retval;
     }
-
-  if (namelen > MAX_COMPUTERNAME_LENGTH)
-    return !GetComputerName (name, (DWORD *)&namelen);
-
-  errno = EFAULT;
-  return SOCKET_ERROR;
+  else if (sizeof(sname) > MAX_COMPUTERNAME_LENGTH)
+    retval = !GetComputerNameA (sname, (DWORD *)&nlen);
+  else
+    {
+      retval = SOCKET_ERROR;
+      errno = EFAULT;
+    }
+  /* The rest of the code wants the name in UTF-8.  The host name is not
+     a file name, but it's encoded in the ANSI codepage and its size
+     must be at most 256 characters.  So treating it as a file name
+     should be okay.  */
+  char hostname[MAX_UTF8_PATH];
+  filename_from_ansi (sname, hostname);
+  strncpy (name, hostname, namelen);
+  name[namelen] = '\0';
+  return retval;
 }
 
 struct hostent *
@@ -10939,6 +10934,9 @@ w32_reexec_emacs (char *cmd_line, const char *wdir)
   DWORD dwCreationFlags = NORMAL_PRIORITY_CLASS;
 
   GetStartupInfo (&si);		/* Use the same startup info as the caller.  */
+  /* Reset undocumented bits in STARTUPINFO flags, as they could cause a
+     crash in the re-exec'ed Emacs.  */
+  si.dwFlags &= 0xbbff;	/* reset the 0x4000 and 0x0400 bits */
   if (inhibit_window_system)
     {
       HANDLE screen_handle;

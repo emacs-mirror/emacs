@@ -1,6 +1,6 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1988-2026 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -416,7 +416,7 @@ in the next one.")
   (setq scheme-prev-l/c-dir/file (cons (file-name-directory    file-name)
 				       (file-name-nondirectory file-name)))
   (comint-send-string (scheme-proc) (concat "(load \""
-					    file-name
+					    (file-local-name file-name)
 					    "\")\n")))
 
 (defun scheme-compile-file (file-name)
@@ -430,7 +430,7 @@ in the next one.")
   (setq scheme-prev-l/c-dir/file (cons (file-name-directory    file-name)
 				       (file-name-nondirectory file-name)))
   (comint-send-string (scheme-proc) (concat "(compile-file \""
-					    file-name
+					    (file-local-name file-name)
 					    "\")\n")))
 
 

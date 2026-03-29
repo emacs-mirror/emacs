@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization
@@ -32,6 +32,7 @@ Reference Manual}.
 * Init File::           How to write common customizations in the
                           initialization file.
 * Authentication::      Keeping persistent authentication information.
+* Newcomers Theme::     A theme that enables presets for newcomers.
 
 @end menu
 
@@ -192,18 +193,20 @@ the customization buffer:
    Maximum length of kill ring before oldest elements are thrown away.
 @end smallexample
 
-  The first line shows that the variable is named
-@code{kill-ring-max}, formatted as @samp{Kill Ring Max} for easier
-viewing, and also shows its expected type: a positive integer or zero.
-The default value is @samp{120}.  The button labeled @samp{[Hide]},
-if activated, hides the variable's value and state; this is useful to
-avoid cluttering up the customization buffer with very long values
-(for this reason, variables that have very long values may start out
-hidden).  If you use the @samp{[Hide]} button, it changes to
-@samp{[Show Value]}, which you can activate to reveal the value and
-state.  On a graphical display, the @samp{[Hide]} and @samp{[Show
-Value]} buttons are replaced with graphical triangles pointing
-downwards and rightwards respectively.
+@findex Custom-goto-first-choice
+@kindex C-x C-i @r{(customization buffer)}
+  The first line shows that the variable is named @code{kill-ring-max},
+formatted as @samp{Kill Ring Max} for easier viewing, and also shows its
+expected type: a positive integer or zero.  The default value is
+@samp{120}.  You can move directly to the value with @kbd{C-x C-i}
+(Custom-goto-first-choice).  The button labeled @samp{[Hide]}, if
+activated, hides the variable's value and state; this is useful to avoid
+cluttering up the customization buffer with very long values (for this
+reason, variables that have very long values may start out hidden).  If
+you use the @samp{[Hide]} button, it changes to @samp{[Show Value]},
+which you can activate to reveal the value and state.  On a graphical
+display, the @samp{[Hide]} and @samp{[Show Value]} buttons are replaced
+with graphical triangles pointing downwards and rightwards respectively.
 
   The line after the variable name indicates the @dfn{customization
 state} of the variable: in this example, @samp{STANDARD} means you
@@ -346,12 +349,15 @@ does not appear if Emacs was started with the @option{-q} or
 
 @kindex C-c C-c @r{(customization buffer)}
 @kindex C-x C-c @r{(customization buffer)}
+@kindex C-x C-k @r{(customization buffer)}
 @findex Custom-set
 @findex Custom-save
+@findex Custom-reset-standard
   The command @kbd{C-c C-c} (@code{Custom-set}) is equivalent to using
 the @samp{[Set for Current Session]} button.  The command @kbd{C-x
 C-s} (@code{Custom-save}) is like using the @samp{[Save for Future
-Sessions]} button.
+Sessions]} button.  Likewise, @kbd{C-c C-k} (@code{Custom-reset-standard})
+is like using the @samp{[Revert...]} button.
 
 @vindex custom-buffer-done-kill
   The @samp{[Exit]} button switches out of the customization buffer,
@@ -655,12 +661,17 @@ theme, its @samp{State} display shows @samp{THEMED} instead of
 @findex load-theme
 @findex enable-theme
 @findex disable-theme
+@findex copy-theme-options
   You can enable a specific Custom theme in the current Emacs session
 by typing @kbd{M-x load-theme}.  This prompts for a theme name, loads
 the theme from the theme file, and enables it.  If a theme file
 has been loaded before, you can enable the theme without loading its
 file by typing @kbd{M-x enable-theme}.  To disable a Custom theme,
-type @kbd{M-x disable-theme}.
+type @kbd{M-x disable-theme}.  Some themes provide a set of user options
+(@pxref{Newcomers Theme}), that might vary over time.  If you want to
+persist the current set of options, you can copy the user option of a
+theme into your own configuration, you can use the
+@code{copy-theme-options} command.
 
 @findex describe-theme
   To see a description of a Custom theme, type @kbd{?} on its line in
@@ -1615,24 +1626,30 @@ your preference, such as @code{ws-butler-mode}.
 @cindex per-connection local variables
 
   Most of the variables reflect the situation on the local machine.
-Often, they must use a different value when you operate in buffers
-with a remote default directory.  Think about the behavior when
-calling @code{shell} -- on your local machine, you might use
-@file{/bin/bash} and rely on termcap, but on a remote machine, it may
-be @file{/bin/ksh} and terminfo.
+Often, they must use a different value when you operate in buffers with
+a remote default directory.  Think about the behavior when calling
+@code{shell} --- on your local machine, you might use @file{/bin/bash}
+and rely on termcap, but on a remote machine, it may be @file{/bin/ksh}
+and terminfo.
 
-  This can be accomplished with @dfn{connection-local variables}.
-Directory and file local variables override connection-local
-variables.  Unsafe connection-local variables are handled in the same
-way as unsafe file-local variables (@pxref{Safe File Variables}).
+  This can be accomplished with @dfn{connection-local variables}.  Such
+variables are declared depending on the value of
+@code{default-directory} of the current buffer.  When a buffer has a
+remote @code{default-directory}, and there exist a connection-local
+variable which matches @code{default-directory}, this alternative value
+of the variable is used.  Directory and file local variables override
+connection-local variables.  Unsafe connection-local variables are
+handled in the same way as unsafe file-local variables (@pxref{Safe File
+Variables}).
 
 @findex connection-local-set-profile-variables
 @findex connection-local-set-profiles
-  Connection-local variables are declared as a group of
-variables/value pairs in a @dfn{profile}, using the
+  Connection-local variables are declared as a group of variables/value
+pairs in a @dfn{profile}, using the
 @code{connection-local-set-profile-variables} function.  The function
-@code{connection-local-set-profiles} activates profiles for a given
-criteria, identifying a remote machine:
+@code{connection-local-set-profiles} declares profiles for a given
+criteria (the first argument), identifying a remote machine with respect
+to @code{default-directory} of the current buffer:
 
 @example
 (connection-local-set-profile-variables 'remote-terminfo
@@ -1654,12 +1671,46 @@ criteria, identifying a remote machine:
 
   This code declares three different profiles, @code{remote-terminfo},
 @code{remote-ksh}, and @code{remote-bash}.  The profiles
-@code{remote-terminfo} and @code{remote-ksh} are applied to all
-buffers which have a remote default directory matching the regexp
-@code{"remotemachine"} as host name.  Such a criteria can also
-discriminate for the properties @code{:protocol} (this is the Tramp
-method) or @code{:user} (a remote user name).  The @code{nil} criteria
-matches all buffers with a remote default directory.
+@code{remote-terminfo} and @code{remote-ksh} are applied to all buffers
+which have a remote @code{default-directory} matching the string
+@code{"remotemachine"} as host name.
+
+  Criteria, the first argument of @code{connection-local-set-profiles},
+specifies, how the profiles match @code{default-directory}.  It is a
+plist identifying a connection and the application using this
+connection.  Property names might be @code{:application},
+@code{:protocol}, @code{:user} and @code{:machine}.  The property value
+of @code{:application} is a symbol, all other property values are
+strings.  In general the symbol @code{tramp} should be used as
+@code{:application} value.  Some packages use a different
+@code{:application} (for example @code{eshell} or @code{vc-git}); they
+say it in their documentation then.  All properties are optional.
+
+  The other properties are used for checking @code{default-directory}.
+The propertiy @code{:protocol} is used for the method a remote
+@code{default-directory} uses, the property
+@code{:user} is the remote user name, and the property @code{:machine}
+is the remote host name.  All checks are performed via
+@code{string-equal}.  The @code{nil} criteria matches all buffers
+with a remote default directory.
+
+  Connection-local variables are not activated by default.  A package
+which uses connection-local variables must activate them for a given
+buffer, specifying for which @code{:application} it uses them.
+@xref{Applying Connection Local Variables,,, elisp, The Emacs Lisp
+Reference Manual}, for details.
+
+  After the above definition of profiles and their activation, any
+connection made by Tramp to the @samp{remotemachine} system will use
+
+@itemize
+@item @code{t} as the connection-specific value of @code{system-uses-terminfo},
+@item @samp{dumb-emacs-ansi} as the connection-specific value of
+@code{comint-terminfo-terminal},
+@item @samp{/bin/ksh} as the connection-specific value of as
+@code{shell-file-name},
+@item @samp{-c} as the connection-specific value of @code{shell-command-switch}.
+@end itemize
 
   Be careful when declaring different profiles with the same variable,
 and setting these profiles to criteria which could match in parallel.
@@ -2487,8 +2538,12 @@ as a function from Lisp programs.
 @c When updating this, also update ``Setting up a customization file''
 @c in efaq.texi.
   When Emacs is started, it normally tries to load a Lisp program from
-an @dfn{initialization file}, or @dfn{init file} for short.  This
-file, if it exists, specifies how to initialize Emacs for you.
+an @dfn{initialization file}, or @dfn{init file} for short.  This file,
+if it exists, specifies how to initialize Emacs for you and how to
+customize its various optional features.  The customizations you make by
+using @w{@kbd{M-x customize}} (@pxref{Easy Customization}) are also by
+default saved in the init file (@pxref{Saving Customizations}).
+
 Traditionally, file @file{~/.emacs} is used as the init file, although
 Emacs also looks at @file{~/.emacs.el}, @file{~/.emacs.d/init.el},
 @file{~/.config/emacs/init.el}, or other locations.  @xref{Find Init}.
@@ -2554,6 +2609,7 @@ Manual}.
 * Find Init::           How Emacs finds the init file.
 * Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
 * Early Init File::     Another init file, which is read early on.
+* User Lisp Directory:: Directory of Lisp files to prepare on startup.
 @end menu
 
 @node Init Syntax
@@ -3084,6 +3140,71 @@ provided by the Emacs startup, such as @code{window-setup-hook} or
   For more information on the early init file, @pxref{Init File,,,
 elisp, The Emacs Lisp Reference Manual}.
 
+@node User Lisp Directory
+@subsection User Lisp Directory
+@cindex user-lisp
+@cindex @file{user-lisp/} directory
+
+@vindex user-lisp-directory
+  If the directory specified by @code{user-lisp-directory}, defaulting
+to @file{~/.config/emacs/user-lisp/} or @file{~/.emacs.d/user-lisp/},
+exists, then at startup Emacs will prepare Lisp files within that
+directory for use in the session.  Specifically, Emacs does the
+following:
+
+@itemize
+@item
+Gather and activate autoload cookies.  This means that you can use
+autoloaded commands and other entry points for the files in your
+@code{user-lisp-directory} without explicitly loading any of the
+files in your initialization file.  @xref{Autoload,,, elisp, The
+Emacs Lisp Reference Manual}.
+@item
+Byte-compile all the files (@pxref{Byte Compilation,,, elisp, The Emacs
+Lisp Reference Manual}), and if supported by your build of Emacs,
+compile them to native code as well (@pxref{Native Compilation,,, elisp,
+The Emacs Lisp Reference Manual}).  This speeds up the execution of the
+code in those files when they are loaded and when they are executed
+later.
+@item
+Adjust @code{load-path} such that all the files can be loaded and
+autoloaded in the usual ways.  @xref{Library Search,,, elisp, The
+Emacs Lisp Reference Manual}.
+@end itemize
+
+  The User Lisp directory is processed before loading your init file
+(@pxref{Init File}).  Therefore any customizations to the user
+options discussed below must be made in your early init file
+(@pxref{Early Init File}) in order to have any effect.
+
+@vindex user-lisp-ignored-directories
+@vindex user-lisp-auto-scrape
+@findex prepare-user-lisp
+  By default, Emacs considers all Lisp files within
+@code{user-lisp-directory}, including within subdirectories.  You can
+prevent Emacs from descending into specific subdirectories by
+customizing @code{user-lisp-ignored-directories}.  You can completely
+disable scraping at startup by customizing @code{user-lisp-auto-scrape}
+to @code{nil}.  In addition to how Emacs prepares the Lisp files
+automatically at startup, you can manually invoke preparation using the
+command @code{prepare-user-lisp}.
+
+  Although Emacs automatically handles recompilation when the contents
+of any Lisp files within the User Lisp directory have changed, there are
+other reasons why recompilation can become necessary that Emacs can't
+autodetect.  A good rule of thumb that will catch most (but not all)
+such issues is to force recompilation each time you upgrade to a new
+release of Emacs.  Start the new version of Emacs, type @w{@kbd{C-u M-x
+prepare-user-lisp}}, then quit and restart Emacs again.
+
+  The User Lisp directory is a simpler mechanism than package
+installation (@pxref{Packages}).  In particular, there is no automatic
+dependency resolution or upgrading for files in the User Lisp directory,
+or any facility for building and registering package documentation.
+This means that usually the User Lisp directory is best for code you
+have written only for yourself.  However, it is possible to use the User
+Lisp directory for third party packages or public packages you maintain.
+
 @node Authentication
 @section Keeping Persistent Authentication Information
 
@@ -3120,3 +3241,28 @@ auth, Emacs auth-source}.
 configured backend, some of the backends offer to save it
 persistently.  This can be changed by customizing the user option
 @code{auth-source-save-behavior}.
+
+@node Newcomers Theme
+@section Newcomers Theme
+
+@ifinfo
+  (If you got here by clicking a link on the startup screen, you can
+type @kbd{q} to go back.)
+@end ifinfo
+
+  Each release of Emacs brings new features, but they are not enabled by
+default to avoid disrupting users' existing workflows.  Many of these
+features, however, are intended to make Emacs more approachable to new
+users.  Furthermore, newcomers don't yet have any existing workflows
+that could be disrupted!  Therefore, if you are new to Emacs, you can
+enable the @code{newcomers-presets} theme (@pxref{Custom Themes}) to set
+a collection of user options that we think will be useful for new users
+acquainted with conventions from other programs.
+
+  The functionality enabled by the @code{newcomers-presets} theme will
+change between releases of Emacs.  We may add new functionality, and
+also remove old functionality that we think has been superseded.
+Therefore, if you get used to the newcomers' presets, consider copying
+them into your own configuration and then disabling the theme again.
+You can use the command @code{copy-theme-options} (@pxref{Custom
+Themes}) to do this.

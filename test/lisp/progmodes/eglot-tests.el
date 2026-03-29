@@ -1,6 +1,6 @@
 ;;; eglot-tests.el --- Tests for eglot.el            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: tests
@@ -85,7 +85,8 @@ directory hierarchy."
 
 (defun eglot--call-with-fixture (fixture fn)
   "Helper for `eglot--with-fixture'.  Run FN under FIXTURE."
-  (let* ((fixture-directory (make-nearby-temp-file "eglot--fixture-" t))
+  (let* ((temporary-file-directory (file-truename temporary-file-directory))
+         (fixture-directory (make-nearby-temp-file "eglot--fixture-" t))
          (default-directory (file-name-as-directory fixture-directory))
          created-files
          new-servers
@@ -238,39 +239,47 @@ directory hierarchy."
                ,@body)
            (remove-hook 'jsonrpc-event-hook #',log-event-hook-sym))))))
 
-(cl-defmacro eglot--wait-for ((events-sym &optional (timeout 1) message) args &body body)
+(cl-defmacro eglot--wait-for ((events-sym &optional (timeout 1) message)
+                              args &body body)
   (declare (indent 2) (debug (sexp sexp sexp &rest form)))
-  `(eglot--with-timeout '(,timeout ,(or message
-                                        (format "waiting for:\n%s" (pp-to-string body))))
+  `(eglot--with-timeout '(,timeout
+                          ,(or message
+                               (format "waiting for:\n%s" (pp-to-string body))))
      (eglot--test-message "waiting for `%s'" (with-output-to-string
                                                (mapc #'princ ',body)))
-     (let ((events
-            (cl-loop thereis (cl-loop for json in ,events-sym
-                                      for method = (plist-get json :method)
-                                      when (keywordp method)
-                                      do (plist-put json :method
-                                                    (substring
-                                                     (symbol-name method)
-                                                     1))
-                                      when (funcall
-                                            (jsonrpc-lambda ,args ,@body) json)
-                                      return (cons json before)
-                                      collect json into before)
-                     for i from 0
-                     when (zerop (mod i 5))
-                     ;; do (eglot--test-message "still struggling to find in %s"
-                     ;;                         ,events-sym)
-                     do
-                     ;; `read-event' is essential to have the file
-                     ;; watchers come through.
-                     (cond ((fboundp 'flush-standard-output)
-                            (read-event nil nil 0.1) (princ ".")
-                            (flush-standard-output))
-                           (t
-                            (read-event "." nil 0.1)))
-                     (accept-process-output nil 0.1))))
-       (setq ,events-sym (cdr events))
-       (cl-destructuring-bind (&key method id &allow-other-keys) (car events)
+     (let ((probe
+            (cl-loop
+             thereis
+             (cl-loop for (json . tail) on ,events-sym
+                      for method = (plist-get json :method)
+                      when (keywordp method)
+                      do (plist-put
+                          json :method (substring (symbol-name method) 1))
+                      when (funcall (jsonrpc-lambda ,args ,@body) json)
+                      return json
+                      do
+                      (unless
+                          ;; $/progress is *truly* uninteresting and spammy
+                          (string-match "\\$/progress" (format "%s" method))
+                        (eglot--test-message
+                         "skip uninteresting event %s[%s]"
+                         (plist-get json :method)
+                         (plist-get json :id)))
+                      finally (setq ,events-sym tail))
+             for i from 0
+             when (zerop (mod i 5))
+             ;; do (eglot--test-message "still struggling to find in %s"
+             ;;                         ,events-sym)
+             do
+             ;; `read-event' is essential to have the file
+             ;; watchers come through.
+             (cond ((fboundp 'flush-standard-output)
+                    (read-event nil nil 0.1) (princ ".")
+                    (flush-standard-output))
+                   (t
+                    (read-event "." nil 0.1)))
+             (accept-process-output nil 0.1))))
+       (cl-destructuring-bind (&key method id &allow-other-keys) probe
          (eglot--test-message "detected: %s"
                               (or method (and id (format "id=%s" id))))))))
 
@@ -286,10 +295,13 @@ directory hierarchy."
   (define-derived-mode typescript-mode prog-mode "TypeScript")
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode)))
 
-(defun eglot--tests-connect (&optional timeout)
+(cl-defun eglot--tests-connect (&key timeout server)
   (let* ((timeout (or timeout 10))
          (eglot-sync-connect t)
-         (eglot-connect-timeout timeout))
+         (eglot-connect-timeout timeout)
+         (eglot-server-programs
+          (if server `((,major-mode . ,(split-string server)))
+            eglot-server-programs)))
     (apply #'eglot--connect (eglot--guess-contact))))
 
 (defun eglot--simulate-key-event (char)
@@ -317,7 +329,7 @@ directory hierarchy."
     (with-current-buffer
         (eglot--find-file-noselect "project/src/main/java/foo/Main.java")
       (eglot--sniffing (:server-notifications s-notifs)
-        (should (eglot--tests-connect 20))
+        (should (eglot--tests-connect :timeout 20))
         (eglot--wait-for (s-notifs 10)
             (&key _id method &allow-other-keys)
           (string= method "language/status"))))))
@@ -431,14 +443,68 @@ directory hierarchy."
     (with-current-buffer
         (eglot--find-file-noselect "diag-project/main.c")
       (eglot--sniffing (:server-notifications s-notifs)
-        (eglot--tests-connect)
-        (eglot--wait-for (s-notifs 10)
-            (&key _id method &allow-other-keys)
-          (string= method "textDocument/publishDiagnostics"))
+        (eglot--tests-connect :server "clangd")
         (flymake-start)
+        (eglot--wait-for (s-notifs 10)
+            (&key method &allow-other-keys)
+          (string= method "textDocument/publishDiagnostics"))
         (goto-char (point-min))
         (flymake-goto-next-error 1 '() t)
         (should (eq 'flymake-error (face-at-point)))))))
+
+(ert-deftest eglot-test-basic-pull-diagnostics ()
+  "Test basic diagnostics."
+  (skip-unless (executable-find "ty"))
+  (eglot--with-fixture
+      `(("diag-project" .
+         (("main.py" . "def main:\npuss"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "diag-project/main.py")
+      (eglot--sniffing (:server-replies s-replies)
+        (eglot--tests-connect :server "ty server")
+        (flymake-start)
+        (eglot--wait-for (s-replies 5)
+            (&key _id method &allow-other-keys)
+          (string= method "textDocument/diagnostic"))
+        (goto-char (point-min))
+        (flymake-goto-next-error 1 '() t)
+        (should (eq 'flymake-error (face-at-point)))))))
+
+(ert-deftest eglot-test-basic-stream-diagnostics ()
+  "Test basic diagnostics."
+  (skip-unless (executable-find "rass"))
+  (skip-unless (executable-find "ruff"))
+  (skip-unless (executable-find "ty"))
+  (eglot--with-fixture
+      `(("diag-project" .
+         (("main.py" . "from lib import greet\ndef main():\n    greet()")
+          ("lib.py" . "def geet():\n    print('hello')"))))
+    (set-buffer (eglot--find-file-noselect "diag-project/main.py"))
+    (eglot--sniffing (:server-notifications s-notifs)
+      (eglot--tests-connect :server "rass -- ty server -- ruff server")
+      (flymake-start)
+      (cl-loop repeat 2 ;; 2 stream notifs for 2 rass servers
+               do (eglot--wait-for (s-notifs 5)
+                      (&key method &allow-other-keys)
+                    (string= method "$/streamDiagnostics")))
+      (goto-char (point-min))
+      (flymake-goto-next-error 1 '() t)
+      (should (eq 'flymake-error (face-at-point))))
+
+    ;; Now fix it
+    (set-buffer (eglot--find-file-noselect "lib.py"))
+    (search-forward "geet")
+    (replace-match "greet")
+    (eglot--sniffing (:server-notifications s-notifs)
+      (eglot--signal-textDocument/didChange)
+      (set-buffer (eglot--find-file-noselect "main.py"))
+      (flymake-start)
+      (cl-loop repeat 2
+               do (eglot--wait-for (s-notifs 5)
+                      (&key method &allow-other-keys)
+                    (string= method "$/streamDiagnostics")))
+      (goto-char (point-min))
+      (should-error (flymake-goto-next-error 1 '() t)))))
 
 (ert-deftest eglot-test-basic-symlink ()
   "Test basic symlink support."
@@ -710,6 +776,7 @@ directory hierarchy."
   ;; This originally appeared in github#1339
   (skip-unless (executable-find "rust-analyzer"))
   (skip-unless (executable-find "cargo"))
+  (skip-unless (not (getenv "EMACS_EMBA_CI")))
   (eglot--with-fixture
       '(("cmpl-project" .
          (("main.rs" .
@@ -951,7 +1018,8 @@ int main() {
            "fn main() -> i32 { return 42.2;}")
           ("other-file.rs" .
            "fn foo() -> () { let hi=3; }"))))
-    (let ((eglot-server-programs '((rust-mode . ("rust-analyzer")))))
+    (let ((eglot-server-programs '((rust-mode . ("rust-analyzer"))))
+          (project-vc-non-essential-cache-timeout 0))
       ;; Open other-file.rs, and see diagnostics arrive for main.rs,
       ;; which we didn't open.
       (with-current-buffer (eglot--find-file-noselect "project/other-file.rs")
@@ -1004,26 +1072,31 @@ int main() {
   (eglot--with-fixture
       '(("project" .
          (("foo.c" . "const char write_data[] = u8\"🚂🚃🚄🚅🚆🚈🚇🚈🚉🚊🚋🚌🚎🚝🚞🚟🚠🚡🛤🛲\";"))))
-    (let ((eglot-server-programs
+    (let (expected-column
+          (eglot-server-programs
            '((c-mode . ("clangd")))))
       (with-current-buffer
           (eglot--find-file-noselect "project/foo.c")
-        (setq-local eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos)
-        (setq-local eglot-current-linepos-function #'eglot-utf-16-linepos)
         (eglot--sniffing (:client-notifications c-notifs)
           (eglot--tests-connect)
           (end-of-line)
+
+          ;; will be 71 if utf-16 was negotiated, 51 if utf-32,
+          ;; something else if utf-8
+          (setq expected-column (funcall eglot-current-linepos-function))
+          (eglot--test-message
+           "Looks like we negotiated %S as the offset encoding"
+           (list eglot-move-to-linepos-function eglot-current-linepos-function))
           (insert "p ")
           (eglot--signal-textDocument/didChange)
           (eglot--wait-for (c-notifs 2) (&key params &allow-other-keys)
-            (message "PARAMS=%S" params)
-            (should (equal 71 (eglot-tests--get
+            (should (equal expected-column
+                           (eglot-tests--get
                                params
                                '(:contentChanges 0
                                  :range :start :character)))))
           (beginning-of-line)
-          (should (eq eglot-move-to-linepos-function #'eglot-move-to-utf-16-linepos))
-          (funcall eglot-move-to-linepos-function 71)
+          (funcall eglot-move-to-linepos-function expected-column)
           (should (looking-at "p")))))))
 
 (ert-deftest eglot-test-lsp-abiding-column ()
@@ -1063,7 +1136,7 @@ int main() {
       (let ((eglot-sync-connect t)
             (eglot-server-programs
              `((c-mode . ("sh" "-c" "sleep 1 && clangd")))))
-        (should (eglot--tests-connect 3))))))
+        (should (eglot--tests-connect :timeout 3))))))
 
 (ert-deftest eglot-test-slow-sync-connection-intime ()
   "Connect synchronously with `eglot-sync-connect' set to 2."
@@ -1075,7 +1148,7 @@ int main() {
       (let ((eglot-sync-connect 2)
             (eglot-server-programs
              `((c-mode . ("sh" "-c" "sleep 1 && clangd")))))
-        (should (eglot--tests-connect 3))))))
+        (should (eglot--tests-connect :timeout 3))))))
 
 (ert-deftest eglot-test-slow-async-connection ()
   "Connect asynchronously with `eglot-sync-connect' set to 2."
@@ -1468,6 +1541,10 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
   (should (string-suffix-p "c%3A/Users/Foo/bar.lisp"
                            (eglot-path-to-uri "c:/Users/Foo/bar.lisp"))))
 
+(ert-deftest eglot-test-path-to-uri-escape ()
+  (should (equal "file:///path/with%20%25%20funny%20%3F%20characters"
+                 (eglot-path-to-uri "/path/with % funny ? characters"))))
+
 (ert-deftest eglot-test-same-server-multi-mode ()
   "Check single LSP instance manages multiple modes in same project."
   (skip-unless (executable-find "clangd"))
@@ -1492,6 +1569,65 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
       (with-current-buffer
           (eglot--find-file-noselect "project/foolib.c")
         (should (eq (eglot-current-server) server))))))
+
+(defun eglot--semtok-faces () "Get semtok faces before point"
+  (get-text-property (1- (point)) 'eglot--semtok-faces))
+
+(defun eglot--semtok-wait (pos) "Wait for semtok faces to appear after POS"
+  (eglot--with-timeout
+      '(3 "Timeout waiting for semantic tokens")
+    (while (not (save-excursion
+                  (goto-char pos)
+                  (cl-loop
+                   for from = (point) then to
+                   while (< from (point-max))
+                   for faces = (get-text-property from 'eglot--semtok-faces)
+                   for to = (or (next-single-property-change
+                                 from 'eglot--semtok-faces)
+                                (point-max))
+                   when faces return t)))
+      (accept-process-output nil 0.1)
+      (font-lock-ensure))))
+
+(ert-deftest eglot-test-semtok-basic ()
+  "Test basic semantic tokens fontification."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("main.c" . "int main() { int x = 42; return x; }"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/main.c")
+      (eglot--tests-connect)
+      (should (eglot-server-capable :semanticTokensProvider))
+      (should eglot-semantic-tokens-mode)
+      ;; Trigger initial fontification, then wait for semantic tokens
+      (font-lock-ensure)
+      (eglot--semtok-wait (point-min))
+      (goto-char (point-min))
+        (search-forward "main")
+        (should (memq 'eglot-semantic-function (eglot--semtok-faces)))
+        (search-forward "int x")
+        (should (memq 'eglot-semantic-variable (eglot--semtok-faces))))))
+
+(ert-deftest eglot-test-semtok-refontify ()
+  "Test semantic tokens refontification after edits."
+  (skip-unless (executable-find "clangd"))
+  (eglot--with-fixture
+      `(("project" . (("code.c" . "int foo() { return 0; }"))))
+    (with-current-buffer
+        (eglot--find-file-noselect "project/code.c")
+      (eglot--tests-connect)
+      (should eglot-semantic-tokens-mode)
+      (font-lock-ensure)
+      (eglot--semtok-wait (point-min))
+      (goto-char (point-max))
+      (save-excursion (insert "\nint bar() { int y = 10; return y; }"))
+      (font-lock-ensure)
+      (eglot--signal-textDocument/didChange) ; a bit unrealistic
+      (eglot--semtok-wait (point))
+      (search-forward "bar")
+      (should (memq 'eglot-semantic-function (eglot--semtok-faces)))
+      (search-forward "int y")
+      (should (memq 'eglot-semantic-variable (eglot--semtok-faces))))))
 
 (provide 'eglot-tests)
 

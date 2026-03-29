@@ -1,11 +1,11 @@
 /* save-cwd.c -- Save and restore current working directory.
 
-   Copyright (C) 1995, 1997-1998, 2003-2006, 2009-2025 Free Software
+   Copyright (C) 1995, 1997-1998, 2003-2006, 2009-2026 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 3 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -45,10 +45,10 @@
    the getcwd-lgpl module, but to be truly robust, use the getcwd module.
 
    Some systems lack fchdir altogether: e.g., OS/2, pre-2001 Cygwin,
-   SCO Xenix.  Also, SunOS 4 and Irix 5.3 provide the function, yet it
-   doesn't work for partitions on which auditing is enabled.  If
-   you're still using an obsolete system with these problems, please
-   send email to the maintainer of this code.  */
+   SCO Xenix.  Also, SunOS 4 provides the function, yet it doesn't work
+   for partitions on which auditing is enabled.  If you're still using
+   an obsolete system with these problems, please send email to the
+   maintainer of this code.  */
 
 #if !defined HAVE_FCHDIR && !defined fchdir
 # define fchdir(fd) (-1)
@@ -57,10 +57,11 @@
 int
 save_cwd (struct saved_cwd *cwd)
 {
-  cwd->desc = open (".", O_SEARCH | O_CLOEXEC);
   /* The 'name' member is present only to minimize differences from
-     gnulib.  Initialize it to zero, if only to simplify debugging.  */
-  cwd->name = 0;
+     gnulib.  Initialize it to NULL, if only to simplify debugging.  */
+  cwd->name = NULL;
+
+  cwd->desc = open (".", O_SEARCH | O_CLOEXEC);
   return 0;
 }
 

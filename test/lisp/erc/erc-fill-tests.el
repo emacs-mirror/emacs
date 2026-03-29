@@ -1,6 +1,6 @@
 ;;; erc-fill-tests.el --- Tests for erc-fill  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -52,7 +52,6 @@
 
 (defun erc-fill-tests--wrap-populate (test)
   (let ((original-window-buffer (window-buffer (selected-window)))
-        (erc-fill--wrap-scrolltobottom-exempt-p t)
         (erc-stamp--tz t)
         (erc-fill-function 'erc-fill-wrap)
         (pre-command-hook pre-command-hook)

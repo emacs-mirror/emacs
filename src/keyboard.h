@@ -1,5 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985-1987, 1993, 2001-2025 Free Software Foundation,
+   Copyright (C) 1985-1987, 1993, 2001-2026 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -242,7 +242,7 @@ extern KBOARD *initial_kboard;
 
    In the any-kboard state, this is the kboard from which we are
    right now considering input.  We can consider input from another
-   kboard, but doing so requires throwing to wrong_kboard_jmpbuf.  */
+   kboard, but doing so requires returning -2 (wrong_kboard_jmpbuf).  */
 extern KBOARD *current_kboard;
 
 
@@ -258,12 +258,12 @@ extern uintmax_t num_input_events;
 
 /* The location of point immediately before the last command was
    executed, or the last time the undo-boundary command added a
-   boundary.*/
+   boundary.  */
 extern ptrdiff_t point_before_last_command_or_undo;
 
 /* The value of current_buffer immediately before the last command was
    executed, or the last time the undo-boundary command added a
-   boundary.*/
+   boundary.  */
 extern struct buffer *buffer_before_last_command_or_undo;
 
 extern struct buffer *prev_buffer;
@@ -460,8 +460,6 @@ extern bool ignore_mouse_drag_p;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
-extern Lisp_Object read_char (int, Lisp_Object, Lisp_Object,
-                              bool *, struct timespec *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
@@ -491,7 +489,6 @@ extern int gobble_input (void);
 extern bool input_polling_used (void);
 extern void clear_input_pending (void);
 extern bool requeued_command_events_pending_p (void);
-extern bool requeued_events_pending_p (void);
 extern void bind_polling_period (int);
 extern int make_ctrl_char (int) ATTRIBUTE_CONST;
 extern void stuff_buffered_input (Lisp_Object);

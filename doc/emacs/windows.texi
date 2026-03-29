@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2025 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2026 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Windows
@@ -158,6 +158,8 @@ this option is @code{nil}.
 @table @kbd
 @item C-x o
 Select another window (@code{other-window}).
+@item C-x O
+Select another window, backwards (@code{other-window-backward}).
 @item C-M-v
 Scroll the next window upward (@code{scroll-other-window}).
 @item C-M-S-v
@@ -183,7 +185,8 @@ cycle in the opposite order.  When the minibuffer is active, the
 minibuffer window is the last window in the cycle; you can switch from
 the minibuffer window to one of the other windows, and later switch
 back and finish supplying the minibuffer argument that is requested.
-@xref{Minibuffer Edit}.
+@xref{Minibuffer Edit}. @kbd{C-x O} is similar, but defaults to the
+opposite order.
 
 @findex next-window-any-frame
 The @code{other-window} command will normally only switch to the next
@@ -233,8 +236,8 @@ Select buffer @var{bufname} in another window
 (@code{switch-to-buffer-other-window}).  @xref{Select Buffer}.
 
 @findex display-buffer @r{(command)}
-@item C-x 4 C-o @var{bufname} @key{RET}
 @kindex C-x 4 C-o
+@item C-x 4 C-o @var{bufname} @key{RET}
 Display buffer @var{bufname} in some window, without trying to select
 it (@code{display-buffer}).  @xref{Displaying Buffers}, for details
 about how the window is chosen.
@@ -263,10 +266,13 @@ Find the definition of an identifier, similar to @kbd{M-.}
 Visit file @var{filename} read-only, and select its buffer in another
 window (@code{find-file-read-only-other-window}).  @xref{Visiting}.
 
+@kindex C-x 4 4
+@findex other-window-prefix
 @item C-x 4 4
-A more general prefix command affects the buffer displayed by the next
-command invoked immediately after this prefix command.  It requests
-the buffer of the next command to be displayed in another window.
+A more general prefix command affects the buffer displayed by a
+subsequent command invoked after this prefix command
+(@code{other-window-prefix}).  It requests the buffer displayed by a
+subsequent command to be shown in another window.
 
 @item C-x 4 1
 This general prefix command requests the buffer of the next command
@@ -407,8 +413,9 @@ Reference Manual}.
 
   Commands with names ending in @code{-other-window} behave like
 @code{display-buffer}, except that they never display in the selected
-window.  Several of these commands are bound in the @kbd{C-x 4} prefix
-key (@pxref{Pop Up Window}).
+window, perhaps splitting the selected window to create a new one
+(@pxref{Window Choice}).  Several of these commands are bound in the
+@kbd{C-x 4} prefix key (@pxref{Pop Up Window}).
 
   Commands with names ending in @code{-other-frame} behave like
 @code{display-buffer}, except that they (i) never display in the
@@ -512,6 +519,8 @@ selected frame, and display the buffer in that new window.
 @vindex split-height-threshold
 @vindex split-width-threshold
 @vindex split-window-preferred-direction
+@cindex portrait frame
+@cindex landscape frame
 The split can be either vertical or horizontal, depending on the
 variables @code{split-height-threshold} and
 @code{split-width-threshold}.  These variables should have integer
@@ -521,8 +530,14 @@ window's height, the split puts the new window below.  Otherwise, if
 split puts the new window on the right.  If neither condition holds,
 Emacs tries to split so that the new window is below---but only if the
 window was not split before (to avoid excessive splitting).  Whether
-Emacs tries first to split vertically or horizontally, is
-determined by the value of @code{split-window-preferred-direction}.
+Emacs tries first to split vertically or horizontally when both
+conditions hold is determined by the value of
+@code{split-window-preferred-direction}.  Its default is @code{longest},
+which means to split vertically if the window's frame is taller than it
+is wide (a @dfn{portrait} frame), and split horizontally if its wider
+than it's tall (a @dfn{landscape} frame).  The values @code{vertical}
+and @code{horizontal} always prefer, respectively, the vertical or the
+horizontal split.
 
 @item
 Otherwise, display the buffer in a window previously showing it.

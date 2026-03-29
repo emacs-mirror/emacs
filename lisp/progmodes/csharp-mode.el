@@ -1,6 +1,6 @@
 ;;; csharp-mode.el --- Support for editing C#  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; Author     : Theodor Thornhill <theo@thornhill.no>
 ;;              Jostein Kjønigsen <jostein@kjonigsen.net>
@@ -197,11 +197,10 @@
 (c-lang-defconst c-at-vsemi-p-fn
   csharp 'csharp-at-vsemi-p)
 
-(defun csharp-vsemi-status-unknown () t)
+(defun csharp-vsemi-status-unknown-p () t)
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
   csharp 'csharp-vsemi-status-unknown-p)
-
 
 (c-lang-defconst c-modifier-kwds
   csharp '("abstract" "default" "final" "native" "private" "protected"
@@ -239,9 +238,6 @@
 
 (c-lang-defconst c-inexpr-class-kwds
   csharp nil)
-
-(c-lang-defconst c-class-decl-kwds
-  csharp '("class" "struct" "interface"))
 
 (c-lang-defconst c-std-abbrev-keywords
   csharp (append (c-lang-const c-std-abbrev-keywords) '("catch" "finally")))
@@ -594,7 +590,6 @@ compilation and evaluation time conflicts."
    "[[:blank:]]+Stack Trace:\n"
    "[[:blank:]]+at [^\n]+ in \\([^\n]+\\):line \\([0-9]+\\)"))
 
-
 (eval-after-load 'compile
   (lambda ()
     (dolist
@@ -655,7 +650,9 @@ compilation and evaluation time conflicts."
            :commit "362a8a41b265056592a0c3771664a21d23a71392")
  t)
 
-(defcustom csharp-ts-mode-indent-offset 4
+(define-obsolete-variable-alias 'csharp-ts-mode-indent-offset
+  'csharp-ts-indent-offset "31")
+(defcustom csharp-ts-indent-offset 4
   "Number of spaces for each indentation step in `csharp-ts-mode'."
   :type 'integer
   :safe 'integerp
@@ -673,53 +670,60 @@ compilation and evaluation time conflicts."
      ((parent-is "namespace_declaration") parent-bol 0)
      ((parent-is "class_declaration") parent-bol 0)
      ((parent-is "constructor_declaration") parent-bol 0)
-     ((parent-is "initializer_expression") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "array_creation_expression") parent-bol 0) ;; actual initialization is in contained initializer_expression.
+     ((match "{" "initializer_expression" ) parent-bol 0)
+     ((parent-is "initializer_expression") parent-bol csharp-ts-indent-offset)
      ((match "{" "anonymous_object_creation_expression") parent-bol 0)
-     ((parent-is "anonymous_object_creation_expression") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "anonymous_object_creation_expression") parent-bol csharp-ts-indent-offset)
      ((match "{" "object_creation_expression") parent-bol 0)
      ((parent-is "object_creation_expression") parent-bol 0)
+     ((parent-is "member_access_expression") parent-bol csharp-ts-indent-offset)
      ((parent-is "method_declaration") parent-bol 0)
      ((parent-is "enum_declaration") parent-bol 0)
      ((parent-is "operator_declaration") parent-bol 0)
      ((parent-is "field_declaration") parent-bol 0)
      ((parent-is "struct_declaration") parent-bol 0)
-     ((parent-is "declaration_list") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "argument_list") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "interpolation") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "declaration_list") parent-bol csharp-ts-indent-offset)
+     ((parent-is "argument_list") parent-bol csharp-ts-indent-offset)
+     ((parent-is "interpolation") parent-bol csharp-ts-indent-offset)
      ((parent-is "binary_expression") parent 0)
-     ((parent-is "block") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "block") parent-bol csharp-ts-indent-offset)
      ((parent-is "local_function_statement") parent-bol 0)
      ((match "block" "if_statement") parent-bol 0)
      ((match "else" "if_statement") parent-bol 0)
-     ((parent-is "if_statement") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "if_statement") parent-bol csharp-ts-indent-offset)
      ((parent-is "for_statement") parent-bol 0)
      ((parent-is "for_each_statement") parent-bol 0)
      ((parent-is "while_statement") parent-bol 0)
      ((match "{" "switch_expression") parent-bol 0)
      ((parent-is "switch_statement") parent-bol 0)
-     ((parent-is "switch_body") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "switch_section") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "switch_expression") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "switch_body") parent-bol csharp-ts-indent-offset)
+     ((parent-is "switch_section") parent-bol csharp-ts-indent-offset)
+     ((parent-is "switch_expression") parent-bol csharp-ts-indent-offset)
      ((parent-is "case_statement") parent-bol 0)
      ((parent-is "do_statement") parent-bol 0)
-     ((parent-is "equals_value_clause") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "ternary_expression") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "conditional_expression") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "statement_block") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "type_arguments") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "variable_declarator") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "arguments") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "array") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "formal_parameters") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "template_substitution") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "object_pattern") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "object") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "object_type") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "enum_body") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "arrow_function") parent-bol csharp-ts-mode-indent-offset)
-     ((parent-is "parenthesized_expression") parent-bol csharp-ts-mode-indent-offset)
+     ((parent-is "equals_value_clause") parent-bol csharp-ts-indent-offset)
+     ((parent-is "ternary_expression") parent-bol csharp-ts-indent-offset)
+     ((parent-is "conditional_expression") parent-bol csharp-ts-indent-offset)
+     ((parent-is "statement_block") parent-bol csharp-ts-indent-offset)
+     ((parent-is "type_arguments") parent-bol csharp-ts-indent-offset)
+     ((parent-is "variable_declarator") parent-bol csharp-ts-indent-offset)
+     ((parent-is "arguments") parent-bol csharp-ts-indent-offset)
+     ((parent-is "array") parent-bol csharp-ts-indent-offset)
+     ((parent-is "formal_parameters") parent-bol csharp-ts-indent-offset)
+     ((parent-is "template_substitution") parent-bol csharp-ts-indent-offset)
+     ((parent-is "object_pattern") parent-bol csharp-ts-indent-offset)
+     ((parent-is "object") parent-bol csharp-ts-indent-offset)
+     ((parent-is "object_type") parent-bol csharp-ts-indent-offset)
+     ((parent-is "enum_body") parent-bol csharp-ts-indent-offset)
+     ((parent-is "arrow_function") parent-bol csharp-ts-indent-offset)
+     ((parent-is "parenthesized_expression") parent-bol csharp-ts-indent-offset)
      ((parent-is "using_statement") parent-bol 0)
-     ((parent-is "lambda_expression") parent-bol 0))))
+     ((parent-is "lambda_expression") parent-bol 0)
+     ((parent-is "try_statement") parent-bol 0)
+     ((parent-is "catch_filter_clause") parent-bol 0)
+     ((parent-is "preproc_if") parent-bol 0)
+     ((parent-is "preproc_region") parent-bol 0))))
 
 (defvar csharp-ts-mode--keywords
   '("using" "namespace" "class" "if" "else" "throw" "new" "for"
@@ -731,6 +735,15 @@ compilation and evaluation time conflicts."
     "with" "let" "static" "var" "do" "public" "private"
     "readonly" "unmanaged")
   "C# keywords for tree-sitter font-locking.")
+
+(defgroup csharp-ts-mode-faces nil
+  "Font faces."
+  :group 'csharp)
+
+(defface csharp-ts-mode-attribute-face
+  '((t . (:inherit font-lock-property-use-face)))
+  "Font face used for fontification of attributes."
+  :group 'csharp-ts-mode-faces)
 
 (defun csharp-ts-mode--test-this-expression ()
   "Return non-nil if (this_expression) is named in csharp grammar."
@@ -772,13 +785,26 @@ compilation and evaluation time conflicts."
   (if (csharp-ts-mode--test-method-declaration-type-field)
       'type: 'returns:))
 
-(defvar csharp-ts-mode--font-lock-settings
+(defun csharp-ts-mode--font-lock-settings ()
+  "Return tree-sitter font-lock settings for `csharp-ts-mode'."
   (treesit-font-lock-rules
    :language 'c-sharp
    :feature 'expression
    '((conditional_expression (identifier) @font-lock-variable-use-face)
      (postfix_unary_expression (identifier)* @font-lock-variable-use-face)
      (initializer_expression (assignment_expression left: (identifier) @font-lock-property-use-face))
+     (anonymous_object_creation_expression
+      (identifier) @font-lock-property-use-face
+      (identifier) @font-lock-variable-use-face)
+     (anonymous_object_creation_expression
+      (identifier) @font-lock-property-use-face
+      [(object_creation_expression)
+       (integer_literal)
+       (string_literal)
+       (binary_expression)
+       (invocation_expression)
+       (member_access_expression)
+       (conditional_expression)])
      (interpolated_string_expression
       (interpolation
        (identifier) @font-lock-variable-use-face))
@@ -820,7 +846,24 @@ compilation and evaluation time conflicts."
       (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
      ((binary_expression
        right: (identifier) @font-lock-variable-use-face)
-      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face)))
+      (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
+     (assignment_expression
+      right: (identifier) @font-lock-variable-use-face)
+     (expression_statement ;; capture parent node to NOT shadow variable_declaration.
+      (assignment_expression
+       left: (identifier) @font-lock-variable-use-face))
+     (if_statement condition: (identifier) @font-lock-variable-use-face)
+
+     ;; handle more specific matchers before generalized variable-use fallback.
+     (invocation_expression
+      function: (member_access_expression
+                 name: (identifier) @font-lock-function-call-face))
+     (invocation_expression
+      function: (member_access_expression
+                 name: (generic_name (identifier) @font-lock-function-call-face)))
+     (member_access_expression
+      expression: (identifier) @font-lock-variable-use-face
+      name: (identifier) @font-lock-property-use-face))
 
    :language 'c-sharp
    :feature 'bracket
@@ -846,13 +889,19 @@ compilation and evaluation time conflicts."
      (modifier) @font-lock-keyword-face
      ,@(if (csharp-ts-mode--test-this-expression)
            '((this_expression) @font-lock-keyword-face)
-         '("this" @font-lock-keyword-face)))
+         '("this" @font-lock-keyword-face))
+
+     ;; Avoid fontifying identifiers with a keyword-values as identifiers.
+     ((identifier) @font-lock-keyword-face
+      (:match ,(concat "\\`" (regexp-opt csharp-ts-mode--keywords t) "\\'") @font-lock-keyword-face)))
 
    :language 'c-sharp
    :override t
-   :feature 'property
-   `((attribute (identifier) @font-lock-property-use-face (attribute_argument_list))
-     (attribute (identifier) @font-lock-property-use-face))
+   :feature 'attribute
+   `((attribute_list
+      "[" @csharp-ts-mode-attribute-face
+      (attribute name: (identifier) @csharp-ts-mode-attribute-face)
+      "]" @csharp-ts-mode-attribute-face))
 
    :language 'c-sharp
    :override t
@@ -887,7 +936,6 @@ compilation and evaluation time conflicts."
      @font-lock-string-face)
 
    :language 'c-sharp
-   :override t
    :feature 'type
    `((predefined_type) @font-lock-type-face
      (implicit_type) @font-lock-type-face
@@ -932,7 +980,6 @@ compilation and evaluation time conflicts."
 
    :language 'c-sharp
    :feature 'definition
-   :override t
    `((qualified_name (identifier) @font-lock-type-face)
      (using_directive (identifier) @font-lock-type-face)
      ,@(when (csharp-ts-mode--test-name-equals)
@@ -941,6 +988,8 @@ compilation and evaluation time conflicts."
 
      (enum_declaration (identifier) @font-lock-type-face)
      (enum_member_declaration (identifier) @font-lock-variable-name-face)
+     (field_declaration (variable_declaration (variable_declarator
+                                               name: (identifier) @font-lock-variable-name-face)))
 
      (interface_declaration (identifier) @font-lock-type-face)
 
@@ -961,8 +1010,8 @@ compilation and evaluation time conflicts."
      (class_declaration (identifier) @font-lock-type-face)
 
      (constructor_declaration name: (_) @font-lock-type-face)
-     ;;; Handle different releases of tree-sitter-c-sharp.
-     ;;; Check if keyword void_keyword is available, then return the correct rule."
+     ;; Handle different releases of tree-sitter-c-sharp.
+     ;; Check if keyword void_keyword is available, then return the correct rule."
      ,@(condition-case nil
            (progn (treesit-query-capture 'csharp '((void_keyword) @capture))
                   `((method_declaration ,csharp-ts-mode--type-field [(identifier) (void_keyword)] @font-lock-type-face)))
@@ -971,17 +1020,28 @@ compilation and evaluation time conflicts."
      (method_declaration ,csharp-ts-mode--type-field (generic_name (identifier) @font-lock-type-face))
      (method_declaration name: (_) @font-lock-function-name-face)
 
+     ;; only fontify known expression-types, to avoid the need to use :override
+     ;; for lambda-expressions in 'function below.
+     (variable_declarator
+      name: (identifier) @font-lock-variable-name-face
+      [(object_creation_expression)
+       (integer_literal)
+       (string_literal)
+       (binary_expression)
+       (invocation_expression)
+       (await_expression)
+       (member_access_expression)
+       (conditional_expression)])
+
      (catch_declaration
-      ((identifier) @font-lock-type-face))
+      type: (identifier) @font-lock-type-face)
      (catch_declaration
-      ((identifier) @font-lock-type-face
-       (identifier) @font-lock-variable-name-face))
+      name: (identifier) @font-lock-variable-name-face)
 
      (variable_declaration (identifier) @font-lock-type-face)
      (variable_declaration (qualified_name
                             name: (generic_name (identifier) @font-lock-type-face)))
      (variable_declaration (generic_name (identifier) @font-lock-type-face))
-     (variable_declarator (identifier) @font-lock-variable-name-face)
 
      (parameter type: (identifier) @font-lock-type-face)
      (parameter type: (generic_name (identifier) @font-lock-type-face))
@@ -998,14 +1058,6 @@ compilation and evaluation time conflicts."
    :feature 'function
    '((invocation_expression
       function: (identifier) @font-lock-function-call-face)
-     (invocation_expression
-      function: (member_access_expression
-                 name: (identifier) @font-lock-function-call-face))
-     (invocation_expression
-      function: (member_access_expression
-                 name: (generic_name (identifier) @font-lock-function-call-face)))
-     (invocation_expression
-      function: (generic_name (identifier) @font-lock-function-call-face))
      ((invocation_expression
        function: (member_access_expression
                   expression: (identifier) @font-lock-variable-use-face))
@@ -1015,12 +1067,11 @@ compilation and evaluation time conflicts."
                  expression: (identifier) @font-lock-variable-use-face))
       (:match "^[a-z][A-Za-z0-9]+" @font-lock-variable-use-face))
      (argument (member_access_expression
-                name: (identifier) @font-lock-property-use-face)))
-
-   :language 'c-sharp
-   :feature 'escape-sequence
-   :override t
-   '((escape_sequence) @font-lock-escape-face)
+                name: (identifier) @font-lock-property-use-face))
+     ;; only highlight as function if variable contains lambda expression
+     (variable_declarator
+      name: (identifier) @font-lock-function-name-face
+      (lambda_expression)))
 
    :language 'c-sharp
    :feature 'directives
@@ -1191,11 +1242,11 @@ Key bindings:
   (setq-local treesit-defun-name-function #'csharp-ts-mode--defun-name)
 
   ;; Font-lock.
-  (setq-local treesit-font-lock-settings csharp-ts-mode--font-lock-settings)
+  (setq-local treesit-font-lock-settings (csharp-ts-mode--font-lock-settings))
   (setq-local treesit-font-lock-feature-list
               '(( comment definition)
                 ( keyword string type directives)
-                ( constant escape-sequence expression literal property)
+                ( constant escape-sequence expression literal attribute)
                 ( function bracket delimiter error)))
 
   ;; Imenu.
@@ -1219,11 +1270,14 @@ Key bindings:
                           "local_function_statement")
                   eos))
 
-  (treesit-major-mode-setup)
-
-  (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-ts-mode)))
+  (treesit-major-mode-setup))
 
 (derived-mode-add-parents 'csharp-ts-mode '(csharp-mode))
+
+;;;###autoload
+(when (boundp 'treesit-major-mode-remap-alist)
+  (add-to-list 'treesit-major-mode-remap-alist
+               '(csharp-mode . csharp-ts-mode)))
 
 (provide 'csharp-mode)
 

@@ -1,6 +1,6 @@
 ;;; cal-persia.el --- calendar functions for the Persian calendar  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1996-1997, 2001-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2026 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -169,8 +169,7 @@ Reads a year, month, and day."
          (month (cdr (assoc
                       (completing-read
                        "Persian calendar month name: "
-                       (mapcar 'list
-                               (append calendar-persian-month-name-array nil))
+                       (append calendar-persian-month-name-array nil)
                        nil t)
                       (calendar-make-alist calendar-persian-month-name-array
                                            1))))
@@ -178,7 +177,7 @@ Reads a year, month, and day."
          (day (calendar-read-sexp
                "Persian calendar day (1-%d)"
                (lambda (x) (and (< 0 x) (<= x last)))
-               nil
+               1
                last)))
     (list (list month day year))))
 

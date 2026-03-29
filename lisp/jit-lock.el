@@ -1,6 +1,6 @@
 ;;; jit-lock.el --- just-in-time fontification  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998, 2000-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2026 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
@@ -449,7 +449,7 @@ Defaults to the whole buffer.  END can be out of bounds."
                      ;; on-the-fly jit-locking), make sure the fontification
                      ;; will be performed before displaying the block again.
                      (quit (put-text-property start next 'fontified nil)
-                           (signal (car err) (cdr err))))))
+                           (signal err)))))
 
                ;; In case we fontified more than requested, take
                ;; advantage of the good news.

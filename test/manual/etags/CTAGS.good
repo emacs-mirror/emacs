@@ -615,7 +615,7 @@ FOR_EACH_ALIST_VALUE	c-src/emacs/src/lisp.h	/^#define FOR_EACH_ALIST_VALUE(head_
 FOR_EACH_TAIL	c-src/emacs/src/lisp.h	/^#define FOR_EACH_TAIL(hare, list, tortoise, n)	\\$/
 FRAMEP	c-src/emacs/src/lisp.h	/^FRAMEP (Lisp_Object a)$/
 FRC	make-src/Makefile	/^FRC:;$/
-FREEFLOOD	c-src/emacs/src/gmalloc.c	1863
+FREEFLOOD	c-src/emacs/src/gmalloc.c	1866
 FSRC	make-src/Makefile	/^FSRC=entry.for entry.strange_suffix entry.strange$/
 FUN0	y-src/parse.y	/^yylex FUN0()$/
 FUN1	y-src/parse.y	/^yyerror FUN1(char *, s)$/
@@ -968,12 +968,12 @@ Lua_help	c-src/etags.c	600
 Lua_suffixes	c-src/etags.c	598
 M	ruby-src/test1.ru	/^module A::M; end$/
 MAGENTA	cp-src/screen.hpp	17
-MAGICBYTE	c-src/emacs/src/gmalloc.c	1861
-MAGICFREE	c-src/emacs/src/gmalloc.c	1860
-MAGICWORD	c-src/emacs/src/gmalloc.c	1859
+MAGICBYTE	c-src/emacs/src/gmalloc.c	1864
+MAGICFREE	c-src/emacs/src/gmalloc.c	1863
+MAGICWORD	c-src/emacs/src/gmalloc.c	1862
 MAKE	make-src/Makefile	/^MAKE:=$(MAKE) --no-print-directory$/
 MAKESRC	make-src/Makefile	/^MAKESRC=Makefile$/
-MALLOCFLOOD	c-src/emacs/src/gmalloc.c	1862
+MALLOCFLOOD	c-src/emacs/src/gmalloc.c	1865
 MANY	c-src/emacs/src/lisp.h	2833
 MARKERP	c-src/emacs/src/lisp.h	/^# define MARKERP(x) lisp_h_MARKERP (x)$/
 MAXPATHLEN	c-src/etags.c	115
@@ -1915,7 +1915,7 @@ __malloc_initialized	c-src/emacs/src/gmalloc.c	380
 __repr__	pyt-src/server.py	/^    def __repr__(self):$/
 __repr__	pyt-src/server.py	/^    def __repr__(self):$/
 __repr__	pyt-src/server.py	/^    def __repr__(self):$/
-__sbrk	c-src/emacs/src/gmalloc.c	1516
+__sbrk	c-src/emacs/src/gmalloc.c	1518
 __str__	pyt-src/server.py	/^    def __str__(self):$/
 __str__	pyt-src/server.py	/^    def __str__(self):$/
 __str__	pyt-src/server.py	/^    def __str__(self):$/
@@ -2053,7 +2053,7 @@ alignas	c-src/emacs/src/lisp.h	/^# define alignas(alignment) \/* empty *\/$/
 aligned	c-src/emacs/src/gmalloc.c	199
 aligned_alloc	c-src/emacs/src/gmalloc.c	71
 aligned_alloc	c-src/emacs/src/gmalloc.c	/^aligned_alloc (size_t alignment, size_t size)$/
-aligned_alloc	c-src/emacs/src/gmalloc.c	1722
+aligned_alloc	c-src/emacs/src/gmalloc.c	1725
 alignlist	c-src/emacs/src/gmalloc.c	196
 alive	cp-src/conway.hpp	7
 all_kboards	c-src/emacs/src/keyboard.c	86
@@ -2278,7 +2278,7 @@ calculate_goal_info	merc-src/accumulator.m	/^:- pred calculate_goal_info(hlds_go
 calloc	c-src/emacs/src/gmalloc.c	66
 calloc	c-src/emacs/src/gmalloc.c	70
 calloc	c-src/emacs/src/gmalloc.c	/^calloc (size_t nmemb, size_t size)$/
-calloc	c-src/emacs/src/gmalloc.c	1721
+calloc	c-src/emacs/src/gmalloc.c	1724
 can_be_null	c-src/emacs/src/regex.h	370
 cancel_echoing	c-src/emacs/src/keyboard.c	/^cancel_echoing (void)$/
 canonicalize_filename	c-src/etags.c	/^canonicalize_filename (register char *fn)$/
@@ -2918,7 +2918,7 @@ free	c-src/emacs/src/gmalloc.c	67
 free	c-src/emacs/src/gmalloc.c	72
 free	c-src/emacs/src/gmalloc.c	166
 free	c-src/emacs/src/gmalloc.c	/^free (void *ptr)$/
-free	c-src/emacs/src/gmalloc.c	1723
+free	c-src/emacs/src/gmalloc.c	1726
 free_fdesc	c-src/etags.c	/^free_fdesc (register fdesc *fdp)$/
 free_for	prol-src/natded.prolog	/^free_for(var(_),_,_).$/
 free_regexps	c-src/etags.c	/^free_regexps (void)$/
@@ -3028,7 +3028,7 @@ hash_table_test	c-src/emacs/src/lisp.h	1805
 hashfn	c-src/emacs/src/lisp.h	/^  EMACS_UINT (*hashfn) (struct hash_table_test *t,/
 hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}%$/
 hat	tex-src/texinfo.tex	/^\\def\\hat{\\realbackslash hat}$/
-hdr	c-src/emacs/src/gmalloc.c	1865
+hdr	c-src/emacs/src/gmalloc.c	1868
 head_table	c-src/emacs/src/keyboard.c	11027
 header	c-src/emacs/src/lisp.h	1371
 header	c-src/emacs/src/lisp.h	1388
@@ -3465,7 +3465,7 @@ mach_task_self	c-src/machsyscalls.h	/^SYSCALL (mach_task_self, -28,$/
 mach_thread_self	c-src/machsyscalls.h	/^SYSCALL (mach_thread_self, -27,$/
 macheader	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
 macx\defmacheader	tex-src/texinfo.tex	/^\\def\\defmac{\\defparsebody\\Edefmac\\defmacx\\defmache/
-magic	c-src/emacs/src/gmalloc.c	1868
+magic	c-src/emacs/src/gmalloc.c	1871
 mainmagstep	tex-src/texinfo.tex	/^\\let\\mainmagstep=\\magstephalf$/
 mainmagstep	tex-src/texinfo.tex	/^\\let\\mainmagstep=\\magstep1$/
 maintaining.info	make-src/Makefile	/^maintaining.info: maintaining.texi$/
@@ -3495,7 +3495,7 @@ malloc	c-src/emacs/src/gmalloc.c	64
 malloc	c-src/emacs/src/gmalloc.c	68
 malloc	c-src/emacs/src/gmalloc.c	/^extern void *malloc (size_t size) ATTRIBUTE_MALLOC/
 malloc	c-src/emacs/src/gmalloc.c	/^malloc (size_t size)$/
-malloc	c-src/emacs/src/gmalloc.c	1719
+malloc	c-src/emacs/src/gmalloc.c	1722
 malloc_atfork_handler_child	c-src/emacs/src/gmalloc.c	/^malloc_atfork_handler_child (void)$/
 malloc_atfork_handler_parent	c-src/emacs/src/gmalloc.c	/^malloc_atfork_handler_parent (void)$/
 malloc_atfork_handler_prepare	c-src/emacs/src/gmalloc.c	/^malloc_atfork_handler_prepare (void)$/
@@ -3526,7 +3526,7 @@ maybe_gc	c-src/emacs/src/lisp.h	/^maybe_gc (void)$/
 mcCSC	cp-src/c.C	6
 mcheck	c-src/emacs/src/gmalloc.c	/^mcheck (void (*func) (enum mcheck_status))$/
 mcheck_status	c-src/emacs/src/gmalloc.c	283
-mcheck_used	c-src/emacs/src/gmalloc.c	2017
+mcheck_used	c-src/emacs/src/gmalloc.c	2020
 mdbcomp	merc-src/accumulator.m	/^:- import_module mdbcomp.$/
 me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
@@ -3890,7 +3890,7 @@ pagealignmacro	tex-src/texinfo.tex	/^\\global\\let\\pagealignmacro=\\chappager$/
 pagealignmacro	tex-src/texinfo.tex	/^\\global\\let\\pagealignmacro=\\chapoddpage$/
 pagebody	tex-src/texinfo.tex	/^\\def\\pagebody#1{\\vbox to\\pageheight{\\boxmaxdepth=\\/
 pagecontents	tex-src/texinfo.tex	/^\\gdef\\pagecontents#1{\\ifvoid\\topins\\else\\unvbox\\to/
-pagesize	c-src/emacs/src/gmalloc.c	1707
+pagesize	c-src/emacs/src/gmalloc.c	1710
 pagesofar	tex-src/texinfo.tex	/^\\def\\pagesofar{\\unvbox\\partialpage %$/
 pair	merc-src/accumulator.m	/^:- import_module pair.$/
 par	tex-src/texinfo.tex	/^{\\let\\par=\\endgraf \\smallbreak}%$/
@@ -4113,7 +4113,7 @@ readline_internal	c-src/etags.c	/^readline_internal (linebuffer *lbp, register F
 realloc	c-src/emacs/src/gmalloc.c	65
 realloc	c-src/emacs/src/gmalloc.c	69
 realloc	c-src/emacs/src/gmalloc.c	/^realloc (void *ptr, size_t size)$/
-realloc	c-src/emacs/src/gmalloc.c	1720
+realloc	c-src/emacs/src/gmalloc.c	1723
 reallochook	c-src/emacs/src/gmalloc.c	/^reallochook (void *ptr, size_t size)$/
 recent-keys	c-src/emacs/src/keyboard.c	/^DEFUN ("recent-keys", Frecent_keys, Srecent_keys, /
 recent_keys	c-src/emacs/src/keyboard.c	100
@@ -4341,7 +4341,7 @@ size	c-src/etags.c	236
 size	c-src/etags.c	2522
 size	c-src/emacs/src/gmalloc.c	156
 size	c-src/emacs/src/gmalloc.c	163
-size	c-src/emacs/src/gmalloc.c	1867
+size	c-src/emacs/src/gmalloc.c	1870
 size	c-src/emacs/src/lisp.h	1364
 size	c-src/emacs/src/lisp.h	1390
 skeyseen	c-src/etags.c	2445

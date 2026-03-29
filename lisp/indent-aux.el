@@ -1,6 +1,6 @@
 ;;; indent-aux.el --- Autoloaded indentation commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2023-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -50,13 +50,16 @@ is yanked."
                   (delete-and-extract-region beg end)
                 (buffer-substring beg end))))
     (with-temp-buffer
-      ;; Indent/deindent the same as the major mode in the original
-      ;; buffer.
-      (setq indent-tabs-mode i-t-m)
-      (insert text)
-      (indent-rigidly (point-min) (point-max)
-                      (- indentation))
-      (buffer-string))))
+      ;; We bind inhibit-read-only non-nil in case the copied text has
+      ;; read-only properties.
+      (let ((inhibit-read-only t))
+        ;; Indent/deindent the same as the major mode in the original
+        ;; buffer.
+        (setq indent-tabs-mode i-t-m)
+        (insert text)
+        (indent-rigidly (point-min) (point-max)
+                        (- indentation))
+        (buffer-string)))))
 
 ;;;###autoload
 (define-minor-mode kill-ring-deindent-mode

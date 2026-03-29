@@ -1,6 +1,6 @@
 ;;; shorthands.el --- Read code considering Elisp shorthands  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2021-2026 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: lisp
@@ -28,7 +28,6 @@
 ;;; Code:
 (require 'files)
 (require 'mule)
-(eval-when-compile (require 'cl-lib))
 
 (defun hack-read-symbol-shorthands ()
   "Compute `read-symbol-shorthands' from Local Variables section."
@@ -36,7 +35,11 @@
   ;; detail of files.el.  That function should be exported,
   ;; possibly be refactored into two parts, since we're only
   ;; interested in basic "Local Variables" parsing.
-  (alist-get 'read-symbol-shorthands (hack-local-variables--find-variables)))
+  ;; FIXME: Disable ourselves temporarily to avoid inf-loops during bootstrap,
+  ;; trying to look for shorthands in the files that implement shorthands.
+  (let ((hack-read-symbol-shorthands-function #'ignore))
+    (alist-get 'read-symbol-shorthands
+               (hack-local-variables--find-variables))))
 
 (setq hack-read-symbol-shorthands-function #'hack-read-symbol-shorthands)
 

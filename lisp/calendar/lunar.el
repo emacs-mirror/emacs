@@ -1,6 +1,6 @@
 ;;; lunar.el --- calendar functions for phases of the moon  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1993, 1995, 1997, 2001-2025 Free Software
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2026 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -150,7 +150,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
          (time (* 24 (- date (truncate date))))
          (date (calendar-gregorian-from-absolute (truncate date)))
          (adj (dst-adjust-time date time)))
-    (list (car adj) (apply 'solar-time-string (cdr adj)) phase eclipse)))
+    (list (car adj) (apply #'solar-time-string (cdr adj)) phase eclipse)))
 
 ;; from "Astronomy with your Personal Computer", Subroutine Eclipse
 ;; Line 7000 Peter Duffett-Smith Cambridge University Press 1990
@@ -186,13 +186,16 @@ The factor of 4 allows (mod INDEX 4) to represent the four quarters."
               (/ (calendar-day-number date) 366.0)
               -1900)))))
 
-(defun lunar-phase-list (month year)
-  "List of lunar phases for three months starting with Gregorian MONTH, YEAR."
+(defun lunar-phase-list (month year &optional N)
+  "List of lunar phases for Gregorian MONTH, YEAR and next N months.
+If N is omitted or nil, return lunar phases for three months starting
+with MONTH, YEAR."
+  (unless (integerp N) (setq N 2))
   (let* ((index (lunar-index (list month 1 year)))
          (new-moon (lunar-phase index))
          (end-date (let ((end-month month)
                          (end-year year))
-                     (calendar-increment-month end-month end-year 3)
+                     (calendar-increment-month end-month end-year (1+ N))
                      (list (list end-month 1 end-year))))
          ;; Alternative for start-date:
 ;;;         (calendar-gregorian-from-absolute
@@ -229,12 +232,7 @@ use instead of point."
       (if event (calendar-event-buffer event)
         (current-buffer))
     (message "Computing phases of the moon...")
-    (let ((m1 displayed-month)
-          (y1 displayed-year)
-          (m2 displayed-month)
-          (y2 displayed-year))
-      (calendar-increment-month m1 y1 -1)
-      (calendar-increment-month m2 y2 1)
+    (pcase-let ((`(,m1 ,y1 ,m2 ,y2) (calendar-get-month-range)))
       (calendar-in-read-only-buffer lunar-phases-buffer
         (calendar-set-mode-line
          (if (= y1 y2)
@@ -250,7 +248,7 @@ use instead of point."
                       (lunar-phase-name (nth 2 x)) " "
                       (cadr x) (unless (string-empty-p eclipse) " ")
                       eclipse)))
-          (lunar-phase-list m1 y1) "\n")))
+          (lunar-phase-list m1 y1 (calendar-interval m1 y1 m2 y2)) "\n")))
       (message "Computing phases of the moon...done"))))
 
 ;;;###autoload

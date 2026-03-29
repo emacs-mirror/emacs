@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2016-2025 Free Software Foundation, Inc.
+Copyright (C) 2016-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to 'bug-gnu-emacs@gnu.org'.
@@ -308,6 +308,14 @@ to threads (such as mutex locking), or when the current thread
 explicitly yields.  Global variables are shared among all threads, but
 a 'let' binding is thread-local.  Each thread also has its own current
 buffer and its own match data.
+
+New functions: 'make-thread', 'thread-alive-p', 'thread-signal',
+'thread-name', 'thread-yield', 'current-thread', 'thread-join',
+'all-threads', 'thread-last-error',
+'make-mutex', 'mutex-lock', 'mutex-unlock', 'mutex-name',
+'make-condition-variable', 'condition-wait', 'condition-notify',
+'condition-mutex', 'condition-name'.
+New var: 'main-thread'.
 
 See the chapter "(elisp) Threads" in the Elisp manual for full
 documentation of these facilities.

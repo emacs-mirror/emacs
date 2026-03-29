@@ -1,4 +1,4 @@
-Copyright (C) 2001-2025 Free Software Foundation, Inc.
+Copyright (C) 2001-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -52,6 +52,10 @@ be used to debug Emacs with dense colormaps (PseudoColor).
 ** check-doc-strings
 
 Check doc strings against documentation.
+
+** cl-lib-deps-report.el
+
+Audit Lisp files for cl-lib usage and missing requires.
 
 ** cus-test.el
 

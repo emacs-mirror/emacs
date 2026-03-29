@@ -1,6 +1,6 @@
 ;;; auth-source-pass-tests.el --- Tests for auth-source-pass.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013, 2017-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2017-2026 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien.cassou@gmail.com>
 
@@ -91,7 +91,10 @@ This function is intended to be set to `auth-source-debug'."
              ((symbol-function 'auth-source-pass-entries) (lambda () (mapcar #'car ,store))))
      (let ((auth-source-debug #'auth-source-pass--debug)
            (auth-source-pass--debug-log nil)
-           (auth-source-pass--parse-log nil))
+           (auth-source-pass--parse-log nil)
+           ;; Any existing directory will do, since we shouldn't do I/O
+           ;; except for the guard in `auth-source-pass-search'.
+           (auth-source-pass-filename default-directory))
        ,@body)))
 
 (defun auth-source-pass--explain-match-entry-p (entry hostname &optional user port)

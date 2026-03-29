@@ -1,6 +1,6 @@
 ;;; gnus-draft.el --- draft message support for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2026 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -291,8 +291,7 @@ If DONT-POP is nil, display the buffer after setting it up."
   (when (equal gnus-newsgroup-name "nndraft:drafts")
     (let* ((files (mapcar #'nndraft-article-filename articles))
            (buffs (delq nil (mapcar (lambda (f)
-                                      (find-buffer-visiting
-                                       f (lambda (b) (buffer-modified-p b))))
+                                      (find-buffer-visiting f #'buffer-modified-p))
                                     files))))
       (when buffs
         (if (= 1 (length buffs))

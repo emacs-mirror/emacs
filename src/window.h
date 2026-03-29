@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985-1986, 1993, 1995, 1997-2025 Free Software
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2026 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1126,8 +1126,8 @@ extern Lisp_Object window_from_coordinates (struct frame *, int, int,
 extern void resize_frame_windows (struct frame *, int, bool);
 extern void restore_window_configuration (Lisp_Object);
 extern void delete_all_child_windows (Lisp_Object);
-extern void grow_mini_window (struct window *, int);
-extern void shrink_mini_window (struct window *);
+extern void grow_mini_window (struct window *, int, int);
+extern void shrink_mini_window (struct window *, int);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
 
 void run_window_change_functions (void);

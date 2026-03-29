@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2025 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2026 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Lists
@@ -387,6 +387,67 @@ not just rely on the truncation effect unless @var{n} is known to be
 positive.
 @end defun
 
+@defun drop-while pred list
+This function skips leading list elements for which the predicate @var{pred}
+returns non-@code{nil}, and returns the rest.
+
+@example
+@group
+(drop-while #'numberp '(1 2 a b 3 4))
+     @result{} (a b 3 4)
+@end group
+@end example
+@end defun
+
+@defun take-while pred list
+This function returns the leading list elements for which the predicate
+@var{pred} returns non-@code{nil}, and ignores the rest.
+
+In general,
+@code{(append (take-while @var{p} @var{list}) (drop-while @var{p} @var{list}))}
+will return a list equal to @var{list}.
+
+@example
+@group
+(take-while #'numberp '(1 2 a b 3 4))
+     @result{} (1 2)
+@end group
+@end example
+@end defun
+
+@defun all pred list
+This function returns @code{t} if @var{pred} is true for all elements in
+@var{list}.
+
+@example
+@group
+(all #'numberp '(1 2 3 4))     @result{} t
+(all #'numberp '(1 2 a b 3 4)) @result{} nil
+(all #'numberp '())            @result{} t
+@end group
+@end example
+@end defun
+
+@defun member-if pred list
+This function returns non-@code{nil} if @var{pred} is true for at least
+one element in @var{list}.  The returned value is the longest @var{list}
+suffix whose first element satisfies @var{pred}.
+
+@example
+@group
+(member-if #'symbolp '(1 2 3 4))     @result{} nil
+(member-if #'symbolp '(1 2 a b 3 4)) @result{} (a b 3 4)
+(member-if #'symbolp '())            @result{} nil
+@end group
+@end example
+@end defun
+
+@defun any pred list
+This function is an alias for @code{member-if}.  It may be preferable in
+contexts which do not make use of the returned value but only whether or
+not it was nil.
+@end defun
+
 @defun last list &optional n
 This function returns the last link of @var{list}.  The @code{car} of
 this link is the list's last element.  If @var{list} is null,
@@ -766,6 +827,26 @@ list, and you can then say, for instance:
 @lisp
 (dolist (elem (ensure-list foo))
   (princ elem))
+@end lisp
+@end defun
+
+@defun ensure-proper-list object
+This function returns @var{object} as a proper list (@pxref{(elisp) Cons
+Cells}).  If @var{object} is already a proper list, the function returns
+it; otherwise, the function returns a one-element list containing
+@var{object}.
+
+If @var{object} might be a long list, prefer @code{ensure-list}, because
+the latter function runs in constant time, whereas
+@code{ensure-proper-list} runs in linear time.  For short lists this
+function is a convenient way to treat cons-cells as non-lists:
+
+@lisp
+(ensure-list '(1 . 2))
+    @result{}(1 . 2)
+
+(ensure-proper-list '(1 . 2))
+    @result{}((1 . 2))
 @end lisp
 @end defun
 
@@ -1915,11 +1996,15 @@ through a simple example:
      @result{} white
 @end lisp
 
-The @var{body} is inspected at compilation time, and only the symbols
-that appear in @var{body} with a @samp{.} as the first character in
+The @var{body} is inspected during macro-expansion, and the symbols that
+appear literally in @var{body} with a @samp{.} as the first character in
 the symbol name will be bound.  Finding the keys is done with
-@code{assq}, and the @code{cdr} of the return value of this
-@code{assq} is assigned as the value for the binding.
+@code{assq}, and the @code{cdr} of the return value of this @code{assq}
+is assigned as the value for the binding.  The generated code performs
+all @var{alist} lookups before any other part of @var{body}, so a symbol
+@code{.foo} that appears anywhere in body will be looked up (using key
+@code{foo}) and bound whether or not it is actually used in @var{body}
+at runtime.
 
 Nested association lists is supported:
 
@@ -1934,6 +2019,19 @@ Nested association lists is supported:
 Nesting @code{let-alist} inside each other is allowed, but the code in
 the inner @code{let-alist} can't access the variables bound by the
 outer @code{let-alist}.
+
+Indexing into lists is also supported:
+
+@lisp
+(setq colors '((rose . red) (lily . (yellow pink))))
+(let-alist colors .lily.1)
+     @result{} pink
+@end lisp
+
+Note that forms like @samp{.0} or @samp{.3} are interpreted as numbers
+rather than as symbols, so they won't be bound to the corresponding
+values in @var{alist}.
+
 @end defmac
 
 @node Property Lists

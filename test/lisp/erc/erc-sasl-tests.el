@@ -1,6 +1,6 @@
 ;;; erc-sasl-tests.el --- Tests for erc-sasl.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -44,6 +44,7 @@
 
   (ert-info ("Prompt when no authfn and :password resolves to nil")
     (let ((erc-session-password nil)
+          (inhibit-message noninteractive)
           (erc-sasl--options
            '((password . :password) (user . :user) (authfn))))
       (should (string= (ert-simulate-keys "bar\r"
@@ -52,7 +53,8 @@
 
   (ert-info ("Prompt when auth-source fails and `erc-session-password' null")
     (should-not erc-session-password)
-    (let ((erc-sasl--options '((password) (authfn . ignore))))
+    (let ((inhibit-message noninteractive)
+          (erc-sasl--options '((password) (authfn . ignore))))
       (should (string= (ert-simulate-keys "baz\r"
                          (erc-sasl--read-password "pwd:"))
                        "baz")))))

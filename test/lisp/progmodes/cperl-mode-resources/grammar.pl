@@ -1,4 +1,4 @@
-use 5.024;
+use 5.042;
 use strict;
 use warnings;
 use utf8;
@@ -204,9 +204,11 @@ method-generator for classes are available with Perl 5.40.
 
 =cut
 
-class With::Readers {
+class With::Accessors {
     field $simple;
     field $auto_reader :reader;
     field $named_reader :reader(named);
+    field $auto_writer :writer = 0;
+    field $auto_all :param :reader(read_all) :writer;
 }
 1;

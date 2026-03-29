@@ -1,6 +1,6 @@
 ;;; ede-proj-shared.el --- EDE Generic Project shared library support  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1998-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -52,7 +52,6 @@ Use ldlibs to add addition libraries.")
 
 (defvar ede-gcc-shared-compiler
   (clone ede-gcc-compiler
-	 "ede-c-shared-compiler"
 	 :name "gcc -shared"
 	 :variables '(("CC_SHARED" . "gcc")
 		      ("C_SHARED_COMPILE" .
@@ -68,7 +67,6 @@ Use ldlibs to add addition libraries.")
 
 (defvar ede-gcc-libtool-shared-compiler
   (clone ede-gcc-shared-compiler
-	 "ede-c-shared-compiler-libtool"
 	 :name "libtool"
 	 :variables '(("LIBTOOL" . "libtool")
 		      ("LTCOMPILE" . "$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)")
@@ -87,7 +85,6 @@ Use ldlibs to add addition libraries.")
 
 (defvar ede-cc-linker-libtool
   (clone ede-cc-linker
-   "ede-cc-linker-libtool"
    :name "cc shared"
    ;; Only use this linker when c++ exists.
    :sourcetype '(ede-source-c++)
@@ -102,7 +99,6 @@ Use ldlibs to add addition libraries.")
 
 (defvar ede-g++-shared-compiler
   (clone ede-g++-compiler
-	 "ede-c++-shared-compiler"
 	 :name "gcc -shared"
 	 :variables '(("CXX_SHARED" . "g++")
 		      ("CXX_SHARED_COMPILE" .
@@ -114,7 +110,6 @@ Use ldlibs to add addition libraries.")
 
 (defvar ede-g++-libtool-shared-compiler
   (clone ede-g++-shared-compiler
-	 "ede-c++-shared-compiler-libtool"
 	 :name "libtool"
 	 :variables '(("CXX" "g++")
 		      ("LIBTOOL" . "libtool")
@@ -133,7 +128,6 @@ Use ldlibs to add addition libraries.")
 
 (defvar ede-g++-linker-libtool
   (clone ede-g++-linker
-   "ede-g++-linker-libtool"
    :name "g++"
    ;; Only use this linker when c++ exists.
    :sourcetype '(ede-source-c++)

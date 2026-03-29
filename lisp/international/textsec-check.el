@@ -1,6 +1,6 @@
 ;;; textsec-check.el --- Check for suspicious texts  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2022-2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -58,7 +58,7 @@ Available values of TYPE and corresponding OBJECTs are:
  `name'                 -- the \"display name\" part of an email address;
                            OBJECT should be a string.
 
-`email-address'         -- a full email address; OBJECT should be a string.
+ `email-address'        -- a full email address; OBJECT should be a string.
 
  `email-address-header' -- a raw email address header in RFC 2822 format;
                            OBJECT should be a string.

@@ -1,6 +1,6 @@
 ;;; tramp-sudoedit.el --- Functions for accessing under root permissions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2025 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -51,6 +51,10 @@
  (add-to-list 'tramp-default-user-alist
 	      `(,(rx bos (literal tramp-sudoedit-method) eos)
 		nil ,tramp-root-id-string))
+
+ (add-to-list 'tramp-default-host-alist
+	      `(,(rx bos (literal tramp-sudoedit-method) eos)
+		nil ,(system-name)))
 
  (tramp-set-completion-function
   tramp-sudoedit-method tramp-completion-function-alist-su))
@@ -494,24 +498,16 @@ the result will be a local, non-Tramp, file name."
 (defun tramp-sudoedit-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
-    (all-completions
-     filename
-     (with-parsed-tramp-file-name (expand-file-name directory) nil
-       (with-tramp-file-property v localname "file-name-all-completions"
-	 (tramp-sudoedit-send-command
-	  v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
-	  (if (tramp-string-empty-or-nil-p localname)
-	      "" (file-name-unquote localname)))
-	 (mapcar
-	  (lambda (f)
-	    (if (ignore-errors (file-directory-p (expand-file-name f directory)))
-		(file-name-as-directory f)
-	      f))
-	  (mapcar
-	   (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	   (split-string
-	    (tramp-get-buffer-string (tramp-get-connection-buffer v))
-	    "\n" 'omit))))))))
+    (with-parsed-tramp-file-name (expand-file-name directory) nil
+      (tramp-sudoedit-send-command
+       v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
+       (if (tramp-string-empty-or-nil-p localname)
+	   "" (file-name-unquote localname)))
+      (mapcar
+       (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+       (split-string
+	(tramp-get-buffer-string (tramp-get-connection-buffer v))
+	"\n" 'omit)))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -742,6 +738,10 @@ connection if a previous connection has died for some reason."
   (unless (tramp-connectable-p vec)
     (throw 'non-essential 'non-essential))
 
+  (unless (string-match-p tramp-local-host-regexp (tramp-file-name-host vec))
+    (tramp-error
+     vec 'remote-file-error "%s is not a local host" (tramp-file-name-host vec)))
+
   (with-tramp-debug-message vec "Opening connection"
     ;; We need a process bound to the connection buffer.  Therefore,
     ;; we create a dummy process.  Maybe there is a better solution?
@@ -769,14 +769,14 @@ in case of error, t otherwise."
     (erase-buffer)
     (let* ((delete-exited-processes t)
 	   (process-connection-type tramp-process-connection-type)
-	   (p (apply #'start-process
-		     (tramp-get-connection-name vec) (current-buffer)
-		     (append
-		      (tramp-expand-args
-		       vec 'tramp-sudo-login nil
-		       ?h (or (tramp-file-name-host vec) "")
-		       ?u (or (tramp-file-name-user vec) ""))
-		      (flatten-tree args))))
+	   (p (apply
+	       #'tramp-start-process vec
+	       (tramp-get-connection-name vec) (current-buffer)
+	       (append
+		(tramp-expand-args
+		 vec 'tramp-sudo-login nil
+		 ?u (or (tramp-file-name-user vec) ""))
+		(flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
 	   (tramp-verbose (if (= tramp-verbose 3) 2 tramp-verbose))
 	   ;; The password shall be cached also in case of "emacs -Q".
@@ -786,7 +786,6 @@ in case of error, t otherwise."
 	   auth-source-save-behavior)
       ;; Avoid process status message in output buffer.
       (set-process-sentinel p #'ignore)
-      (tramp-post-process-creation p vec)
       (tramp-set-connection-property p "pw-vector" tramp-sudoedit-null-hop)
       (tramp-process-actions p vec nil tramp-sudoedit-sudo-actions)
       (tramp-message vec 6 "%s\n%s" (process-exit-status p) (buffer-string))
@@ -817,7 +816,7 @@ In case there is no valid Lisp expression, it raises an error."
 	    (when (search-forward-regexp (rx (not blank)) (line-end-position) t)
 	      (error nil)))
 	(error (tramp-error
-		vec 'file-error
+		vec 'remote-file-error
 		"`%s' does not return a valid Lisp expression: `%s'"
 		(car args) (buffer-string)))))))
 

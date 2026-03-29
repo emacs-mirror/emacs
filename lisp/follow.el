@@ -1,6 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2026 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Maintainer: emacs-devel@gnu.org

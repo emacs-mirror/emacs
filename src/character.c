@@ -1,6 +1,6 @@
 /* Basic character support.
 
-Copyright (C) 2001-2025 Free Software Foundation, Inc.
+Copyright (C) 2001-2026 Free Software Foundation, Inc.
 Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
   Licensed to the Free Software Foundation.
 Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -637,8 +637,8 @@ str_as_multibyte (unsigned char *str, ptrdiff_t len, ptrdiff_t nbytes,
 	      c = BYTE8_TO_CHAR (c);
 	      to += CHAR_STRING (c, to);
 	    }
+	  chars++;
 	}
-      chars++;
     }
   while (p < endp)
     {

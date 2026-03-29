@@ -2,13 +2,14 @@
 
 @setfilename ../../info/gnus.info
 @settitle Gnus Manual
+@documentlanguage en
 @include docstyle.texi
 @syncodeindex fn cp
 @syncodeindex vr cp
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2025 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2026 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1888,7 +1889,7 @@ asterisk at the beginning of the line?).
 You can change that format to whatever you want by fiddling with the
 @code{gnus-group-line-format} variable.  This variable works along the
 lines of a @code{format} specification, which is pretty much the same as
-a @code{printf} specifications, for those of you who use (feh!) C@.
+a @code{printf} specification, for those of you who use (feh!)@: C@.
 @xref{Formatting Variables}.
 
 @samp{%M%S%5y:%B%(%g%)\n} is the value that produced those lines above.
@@ -1949,7 +1950,7 @@ renumber all articles from 1, removing all gaps between numbers, hence
 getting a correct total count.  Other backends may support this in the
 future.  In order to keep your total article count relatively up to
 date, you might want to compact your groups (or even directly your
-server) from time to time. @xref{Misc Group Stuff}, @xref{Server Commands}.
+server) from time to time.  @xref{Misc Group Stuff}, @xref{Server Commands}.
 
 @item y
 Number of unread, unticked, non-dormant articles.
@@ -3860,7 +3861,7 @@ exiting Gnus.
 
 If you read lots and lots of groups, it might be convenient to group
 them hierarchically according to topics.  You put your Emacs groups over
-here, your sex groups over there, and the rest (what, two groups or so?)
+here, your sex groups over there, and the rest (what, two groups or so?)@:
 you put in some misc section that you never bother with anyway.  You can
 even group the Emacs sex groups as a sub-topic to either the Emacs
 groups or the sex groups---or both!  Go wild!
@@ -3890,7 +3891,7 @@ Gnus
 
 @findex gnus-topic-mode
 @kindex t @r{(Group)}
-To get this @emph{fab} functionality you simply turn on (ooh!) the
+To get this @emph{fab} functionality you simply turn on (ooh!)@: the
 @code{gnus-topic} minor mode---type @kbd{t} in the group buffer.  (This
 is a toggling command.)
 
@@ -6254,7 +6255,7 @@ Just don't forget to set that up :-)
 There are several marks you can set on an article.
 
 You have marks that decide the @dfn{readedness} (whoo, neato-keano
-neologism ohoy!) of the article.  Alphabetic marks generally mean
+neologism ohoy!)@: of the article.  Alphabetic marks generally mean
 @dfn{read}, while non-alphabetic characters generally mean @dfn{unread}.
 
 In addition, you also have marks that do not affect readedness.
@@ -9749,14 +9750,14 @@ when the article was sent.
 @item W T u
 @kindex W T u @r{(Summary)}
 @findex gnus-article-date-ut
-Display the date in UT (aka. GMT, aka ZULU)
+Display the date in UT (aka.@: GMT, aka ZULU)
 (@code{gnus-article-date-ut}).
 
 @item W T i
 @kindex W T i @r{(Summary)}
 @findex gnus-article-date-iso8601
 @cindex ISO 8601
-Display the date in international format, aka. ISO 8601
+Display the date in international format, aka.@: ISO 8601
 (@code{gnus-article-date-iso8601}).
 
 @item W T l
@@ -14088,7 +14089,7 @@ indirect ones (three pre-made).
 Non-@code{nil} means the nntp server never echoes commands.  It is
 reported that some nntps server doesn't echo commands.  So, you may want
 to set this to non-@code{nil} in the method for such a server setting
-@code{nntp-open-connection-function} to @code{nntp-open-ssl-stream} for
+@code{nntp-open-connection-function} to @code{nntp-open-tls-stream} for
 example.  The default value is @code{nil}.  Note that the
 @code{nntp-open-connection-functions-never-echo-commands} variable
 overrides the @code{nil} value of this variable.
@@ -14144,18 +14145,26 @@ functions is also affected by commonly understood variables
 @findex nntp-open-network-stream
 @item nntp-open-network-stream
 This is the default, and simply connects to some port or other on the
-remote system.  If both Emacs and the server supports it, the
-connection will be upgraded to an encrypted @acronym{STARTTLS}
-connection automatically.
+remote system.  If both Emacs and the server supports it, the connection
+will be upgraded to an encrypted @acronym{STARTTLS} connection
+automatically.  If you want to avoid the possibility of a malicious
+intermediary blocking the use of @acronym{STARTTLS}, use
+@code{nntp-open-tls-stream} instead.
 
-@item network-only
-The same as the above, but don't do automatic @acronym{STARTTLS} upgrades.
+@item nntp-open-plain-stream
+@itemx network-only
+The same as the above, but don't do automatic @acronym{STARTTLS}
+upgrades.  Only use this if you want anyone to be able to read your
+traffic.
 
 @findex nntp-open-tls-stream
 @item nntp-open-tls-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{https://www.gnu.org/software/gnutls/, GnuTLS}
-installed.  You then define a server as follows:
+this, your Emacs must have been compiled with GnuTLS support
+@uref{https://www.gnu.org/software/gnutls/, GnuTLS}.  You can check this
+using the @code{gnutls-available-p} command.
+
+You then define a server as follows:
 
 @lisp
 ;; @r{"nntps" is port 563 and is predefined in our @file{/etc/services}}
@@ -14167,26 +14176,10 @@ installed.  You then define a server as follows:
       (nntp-address "snews.bar.com"))
 @end lisp
 
-@c FIXME openssl s_client should be deprecated in favor of gnutls.
 @findex nntp-open-ssl-stream
 @item nntp-open-ssl-stream
-Opens a connection to a server over a @dfn{secure} channel.  To use
-this you must have @uref{https://www.openssl.org/, OpenSSL}
-@ignore
-@c Defunct URL, ancient package, so don't mention it.
-or @uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL, SSLeay}
-@end ignore
-installed.  You then define a server as follows:
-
-@lisp
-;; @r{"snews" is port 563 and is predefined in our @file{/etc/services}}
-;; @r{however, @samp{openssl s_client -port} doesn't like named ports.}
-;;
-(nntp "snews.bar.com"
-      (nntp-open-connection-function nntp-open-ssl-stream)
-      (nntp-port-number 563)
-      (nntp-address "snews.bar.com"))
-@end lisp
+This is the old name for @code{nntp-open-tls-stream}, and is
+completely equivalent.
 
 @findex nntp-open-netcat-stream
 @item nntp-open-netcat-stream
@@ -14528,7 +14521,7 @@ Here's an example method that's more complex:
         (nnimap-inbox "INBOX")
         (nnimap-split-methods default)
         (nnimap-expunge t)
-        (nnimap-stream ssl))
+        (nnimap-stream tls))
 @end example
 
 @table @code
@@ -14554,11 +14547,12 @@ How @code{nnimap} should connect to the server.  Possible values are:
 
 @table @code
 @item undecided
-This is the default, and this first tries the @code{ssl} setting, and
+This is the default, and this first tries the @code{tls} setting, and
 then tries the @code{network} setting.
 
-@item ssl
-This uses standard @acronym{TLS}/@acronym{SSL} connections.
+@item tls
+This uses standard @acronym{TLS}/@acronym{SSL} connections.  @code{ssl}
+is an equivalent but deprecated way to specify this.
 
 @item network
 Non-encrypted and unsafe straight socket connection, but will upgrade
@@ -15357,7 +15351,7 @@ symbols in @code{imap-stream-alist}.  Right now, this means
 Which authenticator to use for authenticating to the server, this is
 one of the symbols in @code{imap-authenticator-alist}.  Right now,
 this means @samp{gssapi}, @samp{kerberos4}, @samp{digest-md5},
-@samp{cram-md5}, @samp{anonymous} or the default @samp{login}.
+@samp{cram-md5}, @samp{plain}, @samp{anonymous} or the default @samp{login}.
 
 @item :program
 When using the @samp{shell} :stream, the contents of this variable is
@@ -15603,7 +15597,7 @@ These are two useful hooks executed when treating new incoming
 mail---@code{nnmail-pre-get-new-mail-hook} (is called just before
 starting to handle the new mail) and
 @code{nnmail-post-get-new-mail-hook} (is called when the mail handling
-is done).  Here's and example of using these two hooks to change the
+is done).  Here's an example of using these two hooks to change the
 default file modes the new mail files get:
 
 @lisp
@@ -17117,7 +17111,7 @@ what's where.
 @item nnbabyl
 
 Once upon a time, there was the DEC-10 and DEC-20, running operating
-systems called TOPS and related things, and the usual (only?) mail
+systems called TOPS and related things, and the usual (only?)@: mail
 reading environment was a thing called Babyl.  I don't know what format
 was used for mail landing on the system, but Babyl had its own internal
 format to which mail was converted, primarily involving creating a
@@ -17199,7 +17193,7 @@ mail back ends.
 
 @code{nnmaildir} is largely similar to @code{nnml}, with some notable
 differences.  Each message is stored in a separate file, but the
-filename is unrelated to the article number in Gnus. @code{nnmaildir}
+filename is unrelated to the article number in Gnus.  @code{nnmaildir}
 also stores the equivalent of @code{nnml}'s overview files in one file
 per article, so it uses about twice as many inodes as @code{nnml}.
 (Use @code{df -i} to see how plentiful your inode supply is.)  If this
@@ -18399,7 +18393,7 @@ line in your @file{~/.gnus.el} file:
 @item
 You must arrange for diary messages (those containing @code{X-Diary-*}
 headers) to be split in a private folder @emph{before} Gnus treat them.
-Again, this is needed because Gnus cannot (yet ?) properly handle
+Again, this is needed because Gnus cannot (yet ?)@: properly handle
 multiple primary mail back ends.  Getting those messages from a separate
 source will compensate this misfeature to some extent.
 
@@ -18870,7 +18864,7 @@ operators sprinkled in between.
 
 Perhaps some examples are in order.
 
-Here's a simple predicate.  (It's the default predicate, in fact, used
+Here's a simple predicate.  (The default predicate is @code{false}, used
 for all groups that don't belong to any other category.)
 
 @lisp
@@ -19708,7 +19702,7 @@ over and over again.
 @item gnus-agent-max-fetch-size
 @vindex gnus-agent-max-fetch-size
 The agent fetches articles into a temporary buffer prior to parsing
-them into individual files.  To avoid exceeding the max. buffer size,
+them into individual files.  To avoid exceeding the max.@: buffer size,
 the agent alternates between fetching and parsing until all articles
 have been fetched.  @code{gnus-agent-max-fetch-size} provides a size
 limit to control how often the cycling occurs.  A large value improves
@@ -21168,6 +21162,29 @@ You may also consider doing something similar with @code{expunge}.
 If you say stuff like @code{[^abcd]*}, you may get unexpected results.
 That will match newlines, which might lead to, well, The Unknown.  Say
 @code{[^abcd\n]*} instead.
+
+@item Continuation lines when scoring on other headers
+When scoring on other headers using the @code{Head} or @code{All} match
+keys and regexp matching, your regular expression must take into account
+header continuation lines.  For example, this naive attempt to match
+messages including a particular address in the @code{To} field:
+
+@lisp
+("head" "^To: .*\\bspwhitton@@spwhitton\\.name\\b" r)
+@end lisp
+
+will fail to match a message with a @code{To} header like this:
+
+@example
+To: A long description of the Emacs devel list <emacs-devel@@gnu.org>,
+ spwhitton@@spwhitton.name, 12345@@debbugs.gnu.org
+@end example
+
+You can handle this issue with a regexp of this form:
+
+@lisp
+("head" "^To: .*\\(?:\n[\s\t].*\\)*\\bspwhitton@@spwhitton\\.name\\b" r)
+@end lisp
 @end table
 
 
@@ -22105,7 +22122,7 @@ mbox = ... your mbox files which should be indexed ...
 @end example
 
 This specifies all your mail folders and mbox files (relative to the
-base directory!) you want to index with mairix.  Note that the
+base directory!)@: you want to index with mairix.  Note that the
 @code{nnml} back end saves mails in MH format, so you have to put those
 directories in the @code{mh} line.  See the example at the end of this
 section and mairixrc's man-page for further details.
@@ -24638,7 +24655,7 @@ Groups}.
 @cindex spam back ends
 In either case, you have to tell the Spam package what method to use
 to detect spam messages.  There are several methods, or @dfn{spam back
-ends} (not to be confused with Gnus back ends!) to choose from: spam
+ends} (not to be confused with Gnus back ends!)@: to choose from: spam
 ``blacklists'' and ``whitelists'', dictionary-based filters, and so
 forth.  @xref{Spam Back Ends}.
 
@@ -26603,7 +26620,7 @@ Setting up the Gnus Cloud takes less than a minute.  From the Group
 buffer:
 
 Press @kbd{^} to go to the Server buffer.  Here you'll see all the
-servers that Gnus knows. @xref{Server Buffer}.
+servers that Gnus knows.  @xref{Server Buffer}.
 
 Then press @kbd{i} to mark any servers as cloud-synchronized (their marks are synchronized).
 
@@ -26899,7 +26916,7 @@ but at the common table.@*
 '94, Lars Magne Ingebrigtsen grew bored and decided to rewrite Gnus.
 
 If you want to investigate the person responsible for this outrage,
-you can point your (feh!) web browser to
+you can point your (feh!)@: web browser to
 @uref{https://quimby.gnus.org/}.  This used to be the primary
 distribution point for the new and spiffy versions of Gnus, and was
 known as The Site That Destroys Newsrcs And Drives People Mad, but
@@ -26942,7 +26959,7 @@ The first ``proper'' release of Gnus 5 was done in November 1995 when it
 was included in the Emacs 19.30 distribution (132 (ding) Gnus releases
 plus 15 Gnus 5.0 releases).
 
-In May 1996 the next Gnus generation (aka. ``September Gnus'' (after 99
+In May 1996 the next Gnus generation (aka.@: ``September Gnus'' (after 99
 releases)) was released under the name ``Gnus 5.2'' (40 releases).
 
 On July 28th 1996 work on Red Gnus was begun, and it was released on
@@ -27073,14 +27090,15 @@ Gnus supports both encoding and decoding.
 @item S/MIME---RFC 2633
 RFC 2633 describes the @acronym{S/MIME} format.
 
-@item IMAP---RFC 1730/2060, RFC 2195, RFC 2086, RFC 2359, RFC 2595, RFC 1731
+@item IMAP---RFC 1730/2060, RFC 2195/4616, RFC 2086, RFC 2359, RFC 2595, RFC 1731
 RFC 1730 is @acronym{IMAP} version 4, updated somewhat by RFC 2060
 (@acronym{IMAP} 4 revision 1).  RFC 2195 describes CRAM-MD5
 authentication for @acronym{IMAP}.  RFC 2086 describes access control
 lists (ACLs) for @acronym{IMAP}.  RFC 2359 describes a @acronym{IMAP}
 protocol enhancement.  RFC 2595 describes the proper @acronym{TLS}
 integration (STARTTLS) with @acronym{IMAP}.  RFC 1731 describes the
-GSSAPI/Kerberos4 mechanisms for @acronym{IMAP}.
+GSSAPI/Kerberos4 mechanisms for @acronym{IMAP}.  RFC 4616 describes
+AUTH=PLAIN authentication for @acronym{IMAP}.
 
 @end table
 
@@ -27102,7 +27120,7 @@ type>, yup, I'll release it right away <ship off> no wait, that doesn't
 work at all <type type>, yup, I'll ship that one off right away <ship
 off> no, wait, that absolutely does not work'' policy for releases.
 Micro$oft---bah.  Amateurs.  I'm @emph{much} worse.  (Or is that
-``worser''? ``much worser''?  ``worsest''?)
+``worser''?  ``much worser''?  ``worsest''?)
 
 I would like to take this opportunity to thank the Academy for@dots{}  oops,
 wrong show.
@@ -30006,7 +30024,7 @@ In the examples and definitions I will refer to the imaginary back end
 
 @table @code
 
-@item (nnchoke-retrieve-headers ARTICLES &optional GROUP SERVER FETCH-OLD)
+@item (nnchoke-retrieve-headers @var{articles} &optional @var{group} @var{server} @var{fetch-old})
 
 @var{articles} is either a range of article numbers or a list of
 @code{Message-ID}s.  Current back ends do not fully support either---only
@@ -30075,7 +30093,7 @@ For a closer look at what should be in those fields,
 @pxref{Headers}.
 
 
-@item (nnchoke-open-server SERVER &optional DEFINITIONS)
+@item (nnchoke-open-server @var{server} &optional @var{definitions})
 
 @var{server} is here the virtual server name.  @var{definitions} is a
 list of @code{(VARIABLE VALUE)} pairs that define this virtual server.
@@ -30088,7 +30106,7 @@ If the server is opened already, this function should return a
 non-@code{nil} value.  There should be no data returned.
 
 
-@item (nnchoke-close-server &optional SERVER)
+@item (nnchoke-close-server &optional @var{server})
 
 Close connection to @var{server} and free all resources connected
 to it.  Return @code{nil} if the server couldn't be closed for some
@@ -30107,7 +30125,7 @@ function is generally only called when Gnus is shutting down.
 There should be no data returned.
 
 
-@item (nnchoke-server-opened &optional SERVER)
+@item (nnchoke-server-opened &optional @var{server})
 
 If @var{server} is the current virtual server, and the connection to the
 physical server is alive, then this function should return a
@@ -30117,14 +30135,14 @@ attempt to reconnect to a server we have lost connection to.
 There should be no data returned.
 
 
-@item (nnchoke-status-message &optional SERVER)
+@item (nnchoke-status-message &optional @var{server})
 
 This function should return the last error message from @var{server}.
 
 There should be no data returned.
 
 
-@item (nnchoke-request-article ARTICLE &optional GROUP SERVER TO-BUFFER)
+@item (nnchoke-request-article @var{article} &optional @var{group} @var{server} @var{to-buffer})
 
 The result data from this function should be the article specified by
 @var{article}.  This might either be a @code{Message-ID} or a number.
@@ -30145,7 +30163,7 @@ group and article numbers are when fetching articles by
 on successful article retrieval.
 
 
-@item (nnchoke-request-group GROUP &optional SERVER FAST INFO)
+@item (nnchoke-request-group @var{group} &optional @var{server} @var{fast} @var{info})
 
 Get data on @var{group}.  This function also has the side effect of
 making @var{group} the current group.
@@ -30180,7 +30198,7 @@ info         = "211 " 3* [ <number> " " ] <string>
 @end example
 
 
-@item (nnchoke-close-group GROUP &optional SERVER)
+@item (nnchoke-close-group @var{group} &optional @var{server})
 
 Close @var{group} and free any resources connected to it.  This will be
 a no-op on most back ends.
@@ -30188,7 +30206,7 @@ a no-op on most back ends.
 There should be no data returned.
 
 
-@item (nnchoke-request-list &optional SERVER)
+@item (nnchoke-request-list &optional @var{server})
 
 Return a list of all groups available on @var{server}.  And that means
 @emph{all}.
@@ -30217,7 +30235,7 @@ The flag says whether the group is read-only (@samp{n}), is moderated
 (@samp{=other-group}) or none of the above (@samp{y}).
 
 
-@item (nnchoke-request-post &optional SERVER)
+@item (nnchoke-request-post &optional @var{server})
 
 This function should post the current buffer.  It might return whether
 the posting was successful or not, but that's not required.  If, for
@@ -30236,7 +30254,7 @@ There should be no result data from this function.
 
 @table @code
 
-@item (nnchoke-retrieve-groups GROUPS &optional SERVER)
+@item (nnchoke-retrieve-groups @var{groups} &optional @var{server})
 
 @var{groups} is a list of groups, and this function should request data
 on all those groups.  How it does it is of no concern to Gnus, but it
@@ -30252,8 +30270,20 @@ in the same format as @code{nnchoke-request-group} gives.
 group-buffer = *active-line / *group-status
 @end example
 
+@item (nnchoke-retrieve-group-data-early @var{server} &optional @var{infos})
 
-@item (nnchoke-request-update-info GROUP INFO &optional SERVER)
+This is for starting an early async retrieval from @var{server} to
+update @var{infos}, its current group info structure list.  The return
+value is a token for the corresponding
+@code{nnchoke-finish-retrieve-group-infos}.
+
+@item (nnchoke-finish-retrieve-group-infos @var{server} @var{infos} @var{data})
+
+This will be called later to conclude the async retrieval of
+@code{nnchoke-retrieve-group-data-early} -- whose token is passed as
+@var{data} -- and should update @var{infos}.
+
+@item (nnchoke-request-update-info @var{group} @var{info} &optional @var{server})
 
 A Gnus group info (@pxref{Group Info}) is handed to the back end for
 alterations.  This comes in handy if the back end really carries all
@@ -30266,7 +30296,7 @@ the network resources).
 There should be no result data from this function.
 
 
-@item (nnchoke-request-type GROUP &optional ARTICLE)
+@item (nnchoke-request-type @var{group} &optional @var{article})
 
 When the user issues commands for ``sending news'' (@kbd{F} in the
 summary buffer, for instance), Gnus has to know whether the article the
@@ -30280,7 +30310,7 @@ and @var{article} may be @code{nil}.
 There should be no result data from this function.
 
 
-@item (nnchoke-request-set-mark GROUP ACTION &optional SERVER)
+@item (nnchoke-request-set-mark @var{group} @var{action} &optional @var{server})
 
 Set/remove/add marks on articles.  Normally Gnus handles the article
 marks (such as read, ticked, expired etc.)@: internally, and store them in
@@ -30291,7 +30321,7 @@ propagate the mark information to the server.
 @var{action} is a list of mark setting requests, having this format:
 
 @example
-(RANGE ACTION MARK)
+(@code{range} @code{action} @code{mark})
 @end example
 
 @var{range} is a range of articles you wish to update marks on.
@@ -30321,7 +30351,7 @@ mark on (currently not used for anything).
 
 There should be no result data from this function.
 
-@item (nnchoke-request-update-mark GROUP ARTICLE MARK)
+@item (nnchoke-request-update-mark @var{group} @var{article} @var{mark})
 
 If the user tries to set a mark that the back end doesn't like, this
 function may change the mark.  Gnus will use whatever this function
@@ -30337,7 +30367,7 @@ expirable.
 There should be no result data from this function.
 
 
-@item (nnchoke-request-scan &optional GROUP SERVER)
+@item (nnchoke-request-scan &optional @var{group} @var{server})
 
 This function may be called at any time (by Gnus or anything else) to
 request that the back end check for incoming articles, in one way or
@@ -30351,7 +30381,7 @@ local if that's practical.
 There should be no result data from this function.
 
 
-@item (nnchoke-request-group-description GROUP &optional SERVER)
+@item (nnchoke-request-group-description @var{group} &optional @var{server})
 
 The result data from this function should be a description of
 @var{group}.
@@ -30362,7 +30392,7 @@ name             = <string>
 description      = <text>
 @end example
 
-@item (nnchoke-request-list-newsgroups &optional SERVER)
+@item (nnchoke-request-list-newsgroups &optional @var{server})
 
 The result data from this function should be the description of all
 groups available on the server.
@@ -30372,7 +30402,7 @@ description-buffer = *description-line
 @end example
 
 
-@item (nnchoke-request-newgroups DATE &optional SERVER)
+@item (nnchoke-request-newgroups @var{date} &optional @var{server})
 
 The result data from this function should be all groups that were
 created after @samp{date}, which is in normal human-readable date format
@@ -30389,14 +30419,14 @@ back ends like @code{nntp}, where the groups have been created by the
 server, it is quite likely that there can be many groups.
 
 
-@item (nnchoke-request-create-group GROUP &optional SERVER)
+@item (nnchoke-request-create-group @var{group} &optional @var{server})
 
 This function should create an empty group with name @var{group}.
 
 There should be no return data.
 
 
-@item (nnchoke-request-expire-articles ARTICLES &optional GROUP SERVER FORCE)
+@item (nnchoke-request-expire-articles @var{articles} &optional @var{group} @var{server} @var{force})
 
 This function should run the expiry process on all articles in the
 @var{articles} range (which is currently a simple list of article
@@ -30411,7 +30441,7 @@ able to delete.
 There should be no result data returned.
 
 
-@item (nnchoke-request-move-article ARTICLE GROUP SERVER ACCEPT-FORM &optional LAST)
+@item (nnchoke-request-move-article @var{article} @var{group} @var{server} @var{accept-form} &optional @var{last})
 
 This function should move @var{article} (which is a number) from
 @var{group} by calling @var{accept-form}.
@@ -30433,7 +30463,7 @@ the @code{cdr} is the article number that the article was entered as.
 There should be no data returned.
 
 
-@item (nnchoke-request-accept-article GROUP &optional SERVER LAST)
+@item (nnchoke-request-accept-article @var{group} &optional @var{server} @var{last})
 
 This function takes the current buffer and inserts it into @var{group}.
 If @var{last} in @code{nil}, that means that there will be more calls to
@@ -30448,7 +30478,7 @@ article for that group.
 There should be no data returned.
 
 
-@item (nnchoke-request-replace-article ARTICLE GROUP BUFFER)
+@item (nnchoke-request-replace-article @var{article} @var{group} @var{buffer})
 
 This function should remove @var{article} (which is a number) from
 @var{group} and insert @var{buffer} there instead.
@@ -30456,7 +30486,7 @@ This function should remove @var{article} (which is a number) from
 There should be no data returned.
 
 
-@item (nnchoke-request-delete-group GROUP FORCE &optional SERVER)
+@item (nnchoke-request-delete-group @var{group} @var{force} &optional @var{server})
 
 This function should delete @var{group}.  If @var{force}, it should
 really delete all the articles in the group, and then delete the group
@@ -30465,7 +30495,7 @@ itself.  (If there is such a thing as ``the group itself''.)
 There should be no data returned.
 
 
-@item (nnchoke-request-rename-group GROUP NEW-NAME &optional SERVER)
+@item (nnchoke-request-rename-group @var{group} @var{new-name} &optional @var{server})
 
 This function should rename @var{group} into @var{new-name}.  All
 articles in @var{group} should move to @var{new-name}.

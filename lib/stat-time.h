@@ -1,6 +1,6 @@
 /* stat-related time functions.
 
-   Copyright (C) 2005, 2007, 2009-2025 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as
@@ -232,8 +232,7 @@ stat_time_normalize (int result, _GL_UNUSED struct stat *st)
       short int const ts_off[] = { STAT_TIMESPEC_OFFSETOF (st_atim),
                                    STAT_TIMESPEC_OFFSETOF (st_mtim),
                                    STAT_TIMESPEC_OFFSETOF (st_ctim) };
-      int i;
-      for (i = 0; i < sizeof ts_off / sizeof *ts_off; i++)
+      for (int i = 0; i < sizeof ts_off / sizeof *ts_off; i++)
         {
           struct timespec *ts = (struct timespec *) ((char *) st + ts_off[i]);
           long int q = ts->tv_nsec / timespec_hz;

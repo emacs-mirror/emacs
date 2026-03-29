@@ -1,6 +1,6 @@
 ;;; mail-extr.el --- extract full name and address from email header  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991-2025 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2026 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -655,10 +655,10 @@ Unless NO-REPLACE is true, at each of the positions in LIST-SYMBOL
 	t)
     (error
      ;; #### kludge kludge kludge kludge kludge kludge kludge !!!
-     (if (string-equal (nth 1 error) "Unbalanced parentheses")
+     (if (string-equal (error-slot-value error 1) "Unbalanced parentheses")
 	 nil
-       (while t
-	 (signal (car error) (cdr error)))))))
+       (while t ;;FIXME: Why?
+	 (signal error))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
