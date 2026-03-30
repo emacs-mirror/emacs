@@ -1437,8 +1437,7 @@ fontification is enabled."
         ;; `treesit-font-lock-recompute-features') is lost.
         (when treesit-font-lock-settings
           (treesit-font-lock-recompute-features)
-          (treesit-font-lock-fontify-region
-           (point-min) (point-max)))))))
+          (font-lock-flush))))))
 
 (defcustom treesit-font-lock-level 3
   "Decoration level to be used by tree-sitter fontifications.
@@ -2050,9 +2049,8 @@ If LOUDLY is non-nil, display some debugging information."
           (pcase-let ((`(,max-depth ,max-width)
                        (treesit-subtree-stat
                         (treesit-buffer-root-node language))))
-            (if (or (> max-depth 100) (> max-width 4000))
-                (setq treesit--font-lock-fast-mode t)
-              (setq treesit--font-lock-fast-mode nil))))
+            (setq treesit--font-lock-fast-mode
+                  (or (> max-depth 100) (> max-width 4000)))))
 
         ;; Only activate if ENABLE flag is t.
         (when-let*
