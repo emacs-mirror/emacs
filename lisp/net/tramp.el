@@ -5325,7 +5325,7 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 (defvar tramp-extra-expand-args nil
   "Method specific arguments.")
 
-(defun tramp-expand-args (vec parameter default &rest spec-list)
+(defun tramp-expand-args (vec parameter &optional default &rest spec-list)
   "Expand login arguments as given by PARAMETER in `tramp-methods'.
 PARAMETER is a symbol like `tramp-login-args', denoting a list of
 list of strings from `tramp-methods', containing %-sequences for
@@ -5348,12 +5348,14 @@ a connection-local variable."
       (setq spec-list (cddr spec-list)))
     (setq spec (apply #'format-spec-make extra-spec-list))
     ;; Expand format spec.
-    (flatten-tree
-     (mapcar
-      (lambda (x)
-	(setq x (mapcar (lambda (y) (tramp-format-spec y spec)) x))
-	(unless (member "" x) x))
-      args))))
+    (if (atom args)
+	(tramp-format-spec args spec)
+      (flatten-tree
+       (mapcar
+	(lambda (x)
+	  (setq x (mapcar (lambda (y) (tramp-format-spec y spec)) x))
+	  (unless (member "" x) x))
+	args)))))
 
 (defun tramp-post-process-creation (proc vec)
   "Apply actions after creation of process PROC."
@@ -5476,7 +5478,7 @@ processes."
                  `(,(string-join command " ")))
 	      command))
 	   (login-program
-	    (tramp-get-method-parameter v 'tramp-login-program))
+	    (tramp-expand-args v 'tramp-login-program))
 	   ;; We don't create the temporary file.  In fact, it is just
 	   ;; a prefix for the ControlPath option of ssh; the real
 	   ;; temporary file has another name, and it is created and

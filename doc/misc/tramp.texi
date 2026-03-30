@@ -6728,6 +6728,45 @@ See the docstring of variable @code{tramp-methods} for possible
 @code{foo-tramp-executable} in this example would be a Lisp constant,
 which is the program name of @command{foo}.
 
+If a parameter doesn't have a static value but must be computed at
+runtime, a format specifier can be used, like @t{"%h"} in the example
+above.  See the docstring of @code{tramp-methods}, which patterns are
+expanded in which parameter.  Furthermore, other format specifiers can
+be added via the variable @code{tramp-extra-expand-args}.
+
+The following parameters expand format specifiers for the
+@code{tramp-sh} backend: @code{tramp-copy-args},
+@code{tramp-copy-env}, @code{tramp-copy-file-name},
+@code{tramp-login-args}, @code{tramp-login-program},
+@code{tramp-remote-copy-args}.
+
+The example above could use
+
+@lisp
+(tramp-login-program "%1")
+@end lisp
+
+And you could set @code{tramp-extra-expand-args} as connection-local value:
+
+@lisp
+@group
+(defun foo-tramp-get-login-program (vec)
+  "Return connection-local value of `tramp-login-program'."
+  @dots{})
+@end group
+
+@group
+(connection-local-set-profile-variables
+ 'foo-tramp-connection-local-default-profile
+ '((tramp-extra-expand-args
+    ?1 (foo-tramp-get-login-program (car tramp-current-connection)))))
+
+(connection-local-set-profiles
+ '(:application tramp :protocol "foo")
+ foo-tramp-connection-local-default-profile)
+@end group
+@end lisp
+
 Another initialization could tell @value{tramp} which are the default
 user and host name for method @option{foo}.  This is done by calling
 @code{tramp-set-completion-function}:

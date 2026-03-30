@@ -5037,7 +5037,7 @@ Goes through the list `tramp-inline-compress-commands'."
    ;; Use plink options.
    ((string-match-p
      (rx "plink" (? ".exe") eol)
-     (tramp-get-method-parameter vec 'tramp-login-program))
+     (tramp-expand-args vec 'tramp-login-program))
     (concat
      (if (eq tramp-use-connection-share 'suppress)
 	 "-noshare" "-share")
@@ -5398,7 +5398,7 @@ connection if a previous connection has died for some reason."
 			   hop 'tramp-connection-timeout
 			   tramp-connection-timeout))
 			 (command
-			  (tramp-get-method-parameter
+			  (tramp-expand-args
 			   hop 'tramp-login-program))
 			 ;; We don't create the temporary file.  In
 			 ;; fact, it is just a prefix for the

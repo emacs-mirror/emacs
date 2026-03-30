@@ -269,7 +269,7 @@ arguments to pass to the OPERATION."
       (setq ret
 	    (apply
 	     #'tramp-call-process
-	     v (tramp-get-method-parameter v 'tramp-login-program)
+	     v (tramp-expand-args v 'tramp-login-program)
 	     nil outbuf display
 	     (tramp-expand-args
 	      v 'tramp-login-args nil

@@ -266,7 +266,7 @@ BODY is the backend specific code."
 		    tramp--last-hop-directory)
 	       tramp-compat-temporary-file-directory))
 	  (program (let ((tramp-verbose 0))
-		     (tramp-get-method-parameter
+		     (tramp-expand-args
 		      (make-tramp-file-name :method ,method)
 		      'tramp-login-program)))
 	  (vec (when (tramp-tramp-file-p default-directory)
@@ -656,10 +656,9 @@ see its function help for a description of the format."
    '((tramp-config-check . tramp-kubernetes--current-context-data)
      ;; This variable will be eval'ed in `tramp-expand-args'.
      (tramp-extra-expand-args
-      . (?a (tramp-kubernetes--container (car tramp-current-connection))
-	 ?h (tramp-kubernetes--pod (car tramp-current-connection))
-	 ?x (tramp-kubernetes--context-namespace
-	     (car tramp-current-connection)))))
+      ?a (tramp-kubernetes--container (car tramp-current-connection))
+      ?h (tramp-kubernetes--pod (car tramp-current-connection))
+      ?x (tramp-kubernetes--context-namespace (car tramp-current-connection))))
    "Default connection-local variables for remote kubernetes connections.")
 
  (connection-local-set-profile-variables
