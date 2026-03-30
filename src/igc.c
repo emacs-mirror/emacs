@@ -5184,16 +5184,6 @@ igc_make_face_cache (void)
   return c;
 }
 
-/* Allocate a Lisp_Object vector with N elements.
-   Currently only used by SAFE_ALLOCA_LISP.  */
-
-Lisp_Object *
-igc_alloc_lisp_obj_vec (size_t n)
-{
-  Lisp_Object v = make_vector (n, Qnil);
-  return XVECTOR (v)->contents;
-}
-
 #ifndef USE_EPHEMERON_POOL
 static mps_addr_t
 weak_hash_find_dependent (mps_addr_t addr)
