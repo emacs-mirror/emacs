@@ -6202,46 +6202,66 @@ enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 extern void *record_xmalloc (size_t)
   ATTRIBUTE_ALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
 
+#ifdef HAVE_MPS
+/* Prototypes needed for macros and inline functions.  */
+
+extern void *igc_record_xmalloc_ambig (size_t size, const char *label)
+  ATTRIBUTE_ALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+extern void *igc_record_xnmalloc_ambig (size_t nitems,
+					size_t item_size,
+					const char *label)
+  ATTRIBUTE_RETURNS_NONNULL;
+extern void igc_xfree (void *p);
+
+#endif
+
 #define USE_SAFE_ALLOCA			\
   ptrdiff_t sa_avail = MAX_ALLOCA;	\
   specpdl_ref sa_count = SPECPDL_INDEX ()
 
 #define AVAIL_ALLOCA(size) (sa_avail -= (size), alloca (size))
 
-/* SAFE_ALLOCA allocates a simple buffer.  This may never be used to
-   hold references to objects that are relevant to GC.  */
+/* SAFE_ALLOCA allocates a simple buffer.  */
 
-#define SAFE_ALLOCA(size) ((size) <= sa_avail				\
-			   ? AVAIL_ALLOCA (size)			\
-			   : record_xmalloc (size))
+#ifdef HAVE_MPS
+# define SAFE_ALLOCA(size) SAFE_ALLOCA_AMBIG (size)
+#else
+# define SAFE_ALLOCA(size) SAFE_ALLOCA_NOPRO (size)
+#endif
+
+/* SAFE_ALLOCA_NOPRO allocates a simple buffer.  This may never be used
+   to hold references to objects that are relevant to GC.  */
+
+#define SAFE_ALLOCA_NOPRO(size)                    \
+  (eassert (sa_avail >= 0), eassert ((size) >= 0), \
+   (size) <= sa_avail ? AVAIL_ALLOCA (size) : record_xmalloc (size))
+
+#ifdef HAVE_MPS
+/* SAFE_ALLOCA_AMBIG allocates SIZE bytes.  The GC scans the block
+   ambiguously.  */
+#define SAFE_ALLOCA_AMBIG(size)                    \
+  (eassert (sa_avail >= 0), eassert ((size) >= 0), \
+   (size) <= sa_avail ? AVAIL_ALLOCA (size)        \
+		      : igc_record_xmalloc_ambig (size, __func__))
+#endif
 
 /* SAFE_NALLOCA sets BUF to a newly allocated array of MULTIPLIER *
    NITEMS items, each of the same type as *BUF.  MULTIPLIER must be
    positive.  The code is tuned for MULTIPLIER being a constant.  */
 
-# ifdef HAVE_MPS
-/* Defined in igc.c.  */
-void *igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size,
-			  const char *label);
-void igc_xfree (void *p);
-
-#define SAFE_NALLOCA(buf, multiplier, nitems)				\
-  do {									\
-    if ((nitems) <= sa_avail / sizeof *(buf) / (multiplier))		\
-      (buf) = AVAIL_ALLOCA (sizeof *(buf) * (multiplier) * (nitems));	\
-    else								\
-      {									\
-	(buf) = igc_xnmalloc_ambig (nitems,				\
-				    sizeof *(buf) * (multiplier),	\
-				    __func__);				\
-	record_unwind_protect_ptr (igc_xfree, buf);			\
-      }									\
-  } while (false)
-
+#ifdef HAVE_MPS
+# define SAFE_NALLOCA(buf, multiplier, nitems)	\
+  SAFE_NALLOCA_AMBIG (buf, multiplier, nitems)
 #else
+# define SAFE_NALLOCA(buf, multiplier, nitems)	\
+  SAFE_NALLOCA_NOPRO (buf, multiplier, nitems)
+#endif
 
-#define SAFE_NALLOCA(buf, multiplier, nitems)			 \
+#define SAFE_NALLOCA_NOPRO(buf, multiplier, nitems)		 \
   do {								 \
+    eassert (sa_avail >= 0);					 \
+    eassert ((multiplier) > 0);					 \
+    eassert ((nitems) >= 0);					 \
     if ((nitems) <= sa_avail / sizeof *(buf) / (multiplier))	 \
       (buf) = AVAIL_ALLOCA (sizeof *(buf) * (multiplier) * (nitems)); \
     else							 \
@@ -6251,27 +6271,32 @@ void igc_xfree (void *p);
       }								 \
   } while (false)
 
-#endif
-
 #ifdef HAVE_MPS
-/* Temporarily avoid bug#75754.  The code above is painstakingly written
-   to avoid statement expressions; no easy way to do that in this case,
-   unfortunately.
-
-   FIXME/igc: find a permanent fix for these bugs.  */
-#undef SAFE_ALLOCA
-#define SAFE_ALLOCA(size)				\
-  ({ char *buf = (void *)"";				\
-     if ((size) != 0)					\
-       SAFE_NALLOCA (buf, size, 1);			\
-     (void *)buf; })
+/* SAFE_NALLOCA_AMBIG allocates a block like SAFE_NALLOCA.  The GC scans
+   the block ambiguously.  */
+#define SAFE_NALLOCA_AMBIG(buf, multiplier, nitems)                  \
+  do                                                                 \
+    {                                                                \
+      eassert (sa_avail >= 0);                                       \
+      eassert ((multiplier) > 0);                                    \
+      eassert ((nitems) >= 0);                                       \
+      if ((nitems) <= sa_avail / sizeof *(buf) / (multiplier))       \
+	(buf)                                                        \
+	  = AVAIL_ALLOCA (sizeof *(buf) * (multiplier) * (nitems));  \
+      else                                                           \
+	(buf)                                                        \
+	  = igc_record_xnmalloc_ambig (nitems,                       \
+				       sizeof *(buf) * (multiplier), \
+				       __func__);                    \
+    }                                                                \
+  while (false)
 #endif
 
 /* SAFE_ALLOCA_STRING allocates a C copy of a Lisp string.  */
 
 #define SAFE_ALLOCA_STRING(ptr, string)			\
   do {							\
-    (ptr) = SAFE_ALLOCA (SBYTES (string) + 1);		\
+    (ptr) = SAFE_ALLOCA_NOPRO (SBYTES (string) + 1);	\
     memcpy (ptr, SDATA (string), SBYTES (string) + 1);	\
   } while (false)
 

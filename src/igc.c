@@ -4100,16 +4100,6 @@ igc_xzalloc_ambig (size_t size, const char *label)
 }
 
 void *
-igc_xnmalloc_ambig (ptrdiff_t nitems, ptrdiff_t item_size,
-		    const char *label)
-{
-  ptrdiff_t nbytes;
-  if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
-    memory_full (SIZE_MAX);
-  return igc_xzalloc_ambig (nbytes, label);
-}
-
-void *
 igc_realloc_ambig (void *block, size_t size)
 {
   if (block == NULL)
@@ -4289,6 +4279,28 @@ igc_xnrealloc_lisp (ptrdiff_t nitems_old, Lisp_Object *old,
   igc_destroy_root_with_start (old);
   xfree (old);
   return new;
+}
+
+void *
+igc_record_xmalloc_ambig (size_t size, const char *label)
+{
+  eassert (size > 0);
+  /* FIXME: zeroing is not needed.  */
+  void *p = igc_xzalloc_ambig (size, label);
+  record_unwind_protect_ptr (igc_xfree, p);
+  return p;
+}
+
+void *
+igc_record_xnmalloc_ambig (size_t nitems, size_t item_size,
+			   const char *label)
+{
+  eassert (nitems > 0);
+  eassert (item_size > 0);
+  size_t nbytes;
+  if (ckd_mul (&nbytes, nitems, item_size))
+    memory_full (SIZE_MAX);
+  return igc_record_xmalloc_ambig (nbytes, label);
 }
 
 struct kboard *
