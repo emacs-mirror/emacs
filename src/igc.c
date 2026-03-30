@@ -4163,16 +4163,6 @@ igc_xnrealloc_lisp_objs_exact (ptrdiff_t nitems_old,
   return new;
 }
 
-void *
-igc_record_xmalloc_ambig (size_t size, const char *label)
-{
-  eassert (size > 0);
-  /* FIXME: zeroing is not needed.  */
-  void *p = igc_xzalloc_ambig (size, label);
-  record_unwind_protect_ptr (igc_xfree, p);
-  return p;
-}
-
 struct kboard *
 igc_alloc_kboard (void)
 {

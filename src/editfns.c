@@ -3474,11 +3474,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   Lisp_Object val;
   bool arg_intervals = false;
   USE_SAFE_ALLOCA;
-  /* FIXME/igc: SAFE_ALLOCA always uses the slow path because
-     SPRINTF_BUFSIZE > MAX_ALLOCA.  SPRINTF_BUFSIZE should probably be a
-     bit smaller.  */
-  sa_avail -= min (sizeof initial_buffer, sa_avail);
-  eassert (sa_avail >= 0);
+  sa_avail -= sizeof initial_buffer;
 
   /* Information recorded for each format spec.  */
   struct info
