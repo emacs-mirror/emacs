@@ -6115,18 +6115,42 @@ enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 extern void *record_xmalloc (size_t)
   ATTRIBUTE_ALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
 
+#ifdef HAVE_MPS
+/* Prototypes needed for macros and inline functions.  */
+
+extern void *igc_record_xmalloc_ambig (size_t size, const char *label)
+  ATTRIBUTE_ALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+#endif
+
 #define USE_SAFE_ALLOCA			\
   ptrdiff_t sa_avail = MAX_ALLOCA;	\
   specpdl_ref sa_count = SPECPDL_INDEX ()
 
 #define AVAIL_ALLOCA(size) (sa_avail -= (size), alloca (size))
 
-/* SAFE_ALLOCA allocates a simple buffer.  This may never be used to
-   hold references to objects that are relevant to GC.  */
+/* SAFE_ALLOCA_NOPRO allocates a simple buffer.  This may never be used
+   to hold references to objects that are relevant to GC.  */
 
-#define SAFE_ALLOCA(size) ((size) <= sa_avail				\
-			   ? AVAIL_ALLOCA (size)			\
-			   : record_xmalloc (size))
+#define SAFE_ALLOCA_NOPRO(size) \
+  (eassert (sa_avail >= 0),     \
+   (size) <= sa_avail ? AVAIL_ALLOCA (size) : record_xmalloc (size))
+
+#ifdef HAVE_MPS
+/* SAFE_ALLOCA_AMBIG allocates a buffer of SIZE bytes.  The buffer
+   becomes an ambiguous root.  */
+#define SAFE_ALLOCA_AMBIG(size)             \
+  (eassert (sa_avail >= 0),                 \
+   (size) <= sa_avail ? AVAIL_ALLOCA (size) \
+		      : igc_record_xmalloc_ambig (size, __func__))
+#endif
+
+/* SAFE_ALLOCA allocates a simple buffer.  */
+
+#ifdef HAVE_MPS
+# define SAFE_ALLOCA(size) SAFE_ALLOCA_AMBIG (size)
+#else
+# define SAFE_ALLOCA(size) SAFE_ALLOCA_NOPRO (size)
+#endif
 
 /* SAFE_NALLOCA sets BUF to a newly allocated array of MULTIPLIER *
    NITEMS items, each of the same type as *BUF.  MULTIPLIER must be
@@ -6166,25 +6190,11 @@ void igc_xfree (void *p);
 
 #endif
 
-#ifdef HAVE_MPS
-/* Temporarily avoid bug#75754.  The code above is painstakingly written
-   to avoid statement expressions; no easy way to do that in this case,
-   unfortunately.
-
-   FIXME/igc: find a permanent fix for these bugs.  */
-#undef SAFE_ALLOCA
-#define SAFE_ALLOCA(size)				\
-  ({ char *buf = (void *)"";				\
-     if ((size) != 0)					\
-       SAFE_NALLOCA (buf, size, 1);			\
-     (void *)buf; })
-#endif
-
 /* SAFE_ALLOCA_STRING allocates a C copy of a Lisp string.  */
 
 #define SAFE_ALLOCA_STRING(ptr, string)			\
   do {							\
-    (ptr) = SAFE_ALLOCA (SBYTES (string) + 1);		\
+    (ptr) = SAFE_ALLOCA_NOPRO (SBYTES (string) + 1);	\
     memcpy (ptr, SDATA (string), SBYTES (string) + 1);	\
   } while (false)
 
