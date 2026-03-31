@@ -350,6 +350,7 @@ encouraged to treat strings as immutable even when they are mutable.
 
 @end defun
 
+@anchor{definition of sort}
 @defun sort sequence &rest keyword-args
 @cindex stable sort
 @cindex sorting lists

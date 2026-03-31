@@ -573,6 +573,16 @@ alphabetic abbreviations like "CST", which are too often ambiguous.
 The declaration '(font-lock-keyword t)' specifies that a normal
 function is to be highlighted by font-lock like a macro.
 
++++
+** New optional LESSP parameter for 'directory-files-recursively'.
+It allows control over the relative order of file names per directory
+in the resulting list.  The default remains sorting each directory
+according to 'string-lessp'.  A value of t returns files in their
+arbitrary directory order without sorting, which may be faster.
+The argument can also be a function of two parameters suitable as the
+':lessp' argument of 'sort'.  For example, 'string-collate-lessp' would
+result in the locale-specific collation order one might see in Dired.
+
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
 
