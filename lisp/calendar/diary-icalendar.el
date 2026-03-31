@@ -24,8 +24,12 @@
 
 ;;; Commentary:
 
-;; This file is a replacement for icalendar.el that uses a new parser
-;; and offers more features.
+;; For an overview of the iCalendar library, see icalendar-shortdoc.el.
+
+;; This file is a replacement for the diary import/export features
+;; previously provided by icalendar.el.  It uses a new parser and offers
+;; more flexibility and features than the old implementation.  It is
+;; documented in the Emacs manual.
 
 ;;; Code:
 

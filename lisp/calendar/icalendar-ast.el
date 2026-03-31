@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+;; For an overview of the iCalendar library, see icalendar-shortdoc.el.
+
 ;; This file defines the abstract syntax tree representation for
 ;; iCalendar data.  The AST is based on `org-element-ast' (which see;
 ;; that feature will eventually be renamed and moved out of the Org tree

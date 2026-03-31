@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+;; For an overview of the iCalendar library, see icalendar-shortdoc.el.
+
 ;; This file contains a variety of utility functions to work with
 ;; iCalendar data which are used throughout the rest of the iCalendar
 ;; library.  Most of the functions here deal with calendar and clock

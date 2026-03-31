@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+;; For an overview of the iCalendar library, see icalendar-shortdoc.el.
+
 ;; This is a sub-library for working with recurrence rules and time
 ;; zones, as defined by RFC5545 (see especially Secs. 3.3.10 and
 ;; 3.8.5.3, which are required reading before you make any changes to
@@ -1387,7 +1389,7 @@ UTC offsets local to that time zone."
 
 (defun icr:recurrences-in-window-w/end-times
     (lower upper component &optional vtimezone)
-  "Like `icalendar-recurrences-in-window', but returns end times.
+  "Like `icalendar-recur-recurrences-in-window', but returns end times.
 
 The return value is a list of (START END) pairs representing the start
 and end time of each recurrence of COMPONENT in the window defined by
@@ -2111,7 +2113,7 @@ observance."
               (null dst-ends-time))))))
 
 (defun icr:current-tz-to-vtimezone (&optional tz tzid start-year)
-  "Convert TZ to an `icalendar-vtimezone'.
+  "Convert TZ (default: current time zone) to an `icalendar-vtimezone'.
 
 TZ defaults to the output of `calendar-current-time-zone'; if specified,
 it should be a list of the same form as that function returns.
