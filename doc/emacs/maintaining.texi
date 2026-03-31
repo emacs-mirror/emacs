@@ -2926,6 +2926,16 @@ matches of that regexp in the names of the identifiers with
 @code{xref-query-replace-in-results}, but is more convenient when you
 want to rename a single identifier specified by its name @var{from}.
 
+@findex xref-change-to-xref-edit-mode
+@cindex Xref Edit mode
+@cindex mode, Xref Edit
+  Typing @kbd{e} in the @file{*xref*} buffer makes the buffer writable
+and enters the Xref Edit mode.  Similar to Occur Edit mode (@pxref{Other
+Repeating Search}), you can edit the matching lines reported by
+Xref backend and have those changes reflected in the buffer visiting the
+originating file.  Type @kbd{C-c C-c} to leave the Xref Edit mode and
+return to the Xref mode.
+
 @findex tags-search
   @kbd{M-x tags-search} reads a regexp using the minibuffer, then
 searches for matches in all the files in the selected tags table, one

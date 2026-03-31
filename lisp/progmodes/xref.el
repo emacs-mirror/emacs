@@ -73,6 +73,7 @@
 (require 'cl-lib)
 (require 'ring)
 (require 'project)
+(require 'text-property-search)
 
 (eval-and-compile
   (when (version< emacs-version "28.0.60")
@@ -1004,6 +1005,7 @@ point."
     (define-key map (kbd ".") #'xref-next-line)
     (define-key map (kbd ",") #'xref-prev-line)
     (define-key map (kbd "M-,") #'xref-quit-and-pop-marker-stack)
+    (define-key map (kbd "e") #'xref-change-to-xref-edit-mode)
     map))
 
 (declare-function outline-search-text-property "outline"
@@ -1469,6 +1471,91 @@ between them by typing in the minibuffer with completion."
 ;; TODO: Can delete this alias before Emacs 28's release.
 (define-obsolete-function-alias
   'xref--show-defs-minibuffer #'xref-show-definitions-completing-read "28.1")
+
+
+(defun xref-edit--prepare-buffer ()
+  "Mark relevant regions read-only, and add relevant occur text-properties."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((inhibit-read-only t)
+          match)
+      (while (setq match (text-property-search-forward 'xref-group))
+        (add-text-properties (prop-match-beginning match) (prop-match-end match)
+                             '(read-only t)))
+      (goto-char (point-min))
+      (while (setq match (text-property-search-forward 'xref-item))
+        (let ((line-number-end (save-excursion
+                                 (forward-line 0)
+                                 (and (looking-at " *[0-9]+:")
+                                      (match-end 0))))
+              (m (xref-location-marker (xref-item-location (prop-match-value match )))))
+          (when line-number-end
+            (add-text-properties (prop-match-beginning match) line-number-end
+                                 '(read-only t occur-prefix t)))
+          (add-text-properties (prop-match-beginning match)
+                               (1+ (pos-eol))
+                               `(occur-target ((,m . ,m)))))))))
+
+(defvar xref-edit-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") #'xref-edit-save-changes)
+    (define-key map (kbd "RET") #'xref-goto-xref)
+    (define-key map (kbd "M-,") #'xref-quit-and-pop-marker-stack)
+    (define-key map (kbd "C-o") #'xref-show-location-at-point)
+    map)
+  "Keymap for `xref-edit-mode'.")
+
+(defvar xref-edit-mode-hook nil
+  "Hooks run when changing to Xref-Edit mode.")
+
+(defun xref-edit-mode ()
+  "Major mode for editing *xref* buffers.
+In this mode, changes to the *xref* buffer are applied to the
+originating files.
+\\<xref-edit-mode-map>
+Type \\[xref-edit-save-changes] to exit Xref-Edit mode, return to Xref
+mode.
+
+The only editable texts in an Xref-Edit buffer are the match results."
+  (interactive)
+  (error "This mode can be enabled only by `xref-change-to-xref-edit-mode'"))
+(put 'xref-edit-mode 'mode-class 'special)
+
+(defun xref-change-to-xref-edit-mode ()
+  "Switch to `xref-edit-mode' to edit *xref* buffer."
+  (interactive)
+  (unless (derived-mode-p 'xref--xref-buffer-mode)
+    (error "Not an Xref buffer"))
+  (use-local-map xref-edit-mode-map)
+  (xref-edit--prepare-buffer)
+  (setq buffer-read-only nil)
+  (setq major-mode 'xref-edit-mode)
+  (setq mode-name "Xref-Edit")
+  (buffer-enable-undo)
+  (set-buffer-modified-p nil)
+  (setq buffer-undo-list nil)
+  (add-hook 'after-change-functions #'occur-after-change-function nil t)
+  (run-mode-hooks 'xref-edit-mode-hook)
+  (message (substitute-command-keys
+            "Editing: Type \\[xref-edit-save-changes] to return to Xref mode")))
+
+(defun xref-edit-save-changes ()
+  "Switch back to Xref mode."
+  (interactive)
+  (unless (derived-mode-p 'xref-edit-mode)
+    (error "Not a Xref-Edit buffer"))
+  (remove-hook 'after-change-functions #'occur-after-change-function t)
+  (use-local-map xref--xref-buffer-mode-map)
+  (setq buffer-read-only t)
+  (setq major-mode 'xref--xref-buffer-mode)
+  (setq mode-name "XREF")
+  (force-mode-line-update)
+  (buffer-disable-undo)
+  (setq buffer-undo-list t)
+  (let ((inhibit-read-only t))
+    (remove-text-properties (point-min) (point-max)
+                            '(occur-target nil occur-prefix nil)))
+  (message "Switching to Xref mode"))
 
 
 (defcustom xref-show-xrefs-function 'xref--show-xref-buffer

@@ -3202,6 +3202,11 @@ This minor mode binds 'xref-find-definitions-at-mouse' to
 definition, following the convention from other editors.  The global
 minor mode 'global-xref-mouse-mode' will enable this in all buffers.
 
++++
+*** New command 'xref-change-to-xref-edit-mode'.
+It's bound to "e" and it switches an Xref buffer into an "editable" mode
+like similar features in Occur and Grep buffers.
+
 ** Revert
 
 +++
