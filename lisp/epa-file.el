@@ -237,10 +237,10 @@ encryption is used."
           ;; file name handler, for example a file like
           ;; "folder.sym.tar.gz.gpg".  (Bug#80641)
           (when (find-file-name-handler
-                 (file-name-sans-extension buffer-file-name)
+                 (file-name-sans-extension file)
                  'insert-file-contents)
             (let ((tmpfile (concat (make-temp-name temporary-file-directory)
-                                   (file-name-base buffer-file-name))))
+                                   (file-name-base file))))
               (let (file-name-handler-alist) (write-region nil nil tmpfile))
               (erase-buffer)
               (insert-file-contents tmpfile)
