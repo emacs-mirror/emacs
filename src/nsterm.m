@@ -8067,7 +8067,11 @@ ns_in_echo_area (void)
           struct input_event ie;
           EVENT_INIT (ie);
           ie.kind = MOVE_FRAME_EVENT;
-          XSETFRAME (ie.frame_or_window, emacsframe);
+#ifdef HAVE_MPS
+          XSETFRAME (ie.frame_or_window, *emacsframe);
+#else
+	  XSETFRAME (ie.frame_or_window, emacsframe);
+#endif
           XSETINT (ie.x, f->left_pos);
           XSETINT (ie.y, f->top_pos);
           kbd_buffer_store_event (&ie);
@@ -9149,11 +9153,19 @@ ns_in_echo_area (void)
 #else
   hide_bell();              // Ensure the bell image isn't scrolled.
 
-  ns_focus (emacsframe, &dstRect, 1);
+#ifdef HAVE_MPS
+  ns_focus (*emacsframe, &dstRect, 1);
+#else
+  ns_focus (*emacsframe, &dstRect, 1);
+#endif
   [self scrollRect: srcRect
                 by: NSMakeSize (dstRect.origin.x - srcRect.origin.x,
                                 dstRect.origin.y - srcRect.origin.y)];
+#ifdef HAVE_MPS
+  ns_unfocus (*emacsframe);
+#else
   ns_unfocus (emacsframe);
+#endif
 #endif
 }
 
