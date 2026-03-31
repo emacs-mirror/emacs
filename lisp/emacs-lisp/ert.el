@@ -3168,32 +3168,6 @@ See `ert-call-with-buffer-renamed' for details."
   (declare (indent 1))
   `(ert-call-with-buffer-renamed ,buffer-name-form (lambda () ,@body)))
 
-(defun ert-play-keys (keys)
-  "Play the key sequence KEYS as if it was user input.
-
-KEYS shall have the same format as in a call to function `kmacro'.
-
-This macro should be expanded within the body of
-`ert-with-display-current-buffer' when the keys KEYS start commands
-acting on the current buffer."
-  (funcall
-    (kmacro keys)))
-
-(defmacro ert-with-display-current-buffer (&rest body)
-  "Execute BODY after trying to display current buffer in the same window
-with `pop-to-buffer-same-window'.
-
-This macro restores the old window if changed by
-`pop-to-buffer-same-window' after execution of body. This macro does not
-change the list of currently selected buffer."
-  (let ((old-window (make-symbol "old-window")))
-    `(let ((,old-window (selected-window)))
-       (pop-to-buffer-same-window (current-buffer) t)
-       (unwind-protect
-           (progn ,@body)
-         (select-window ,old-window t)))))
-
-
 ;;; Obsolete
 
 (define-obsolete-function-alias 'ert-equal-including-properties
