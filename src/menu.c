@@ -841,7 +841,12 @@ digest_single_submenu (int start, int end, bool top_level_items)
     {
       wv = first_wv;
       first_wv = first_wv->contents;
+#ifdef HAVE_MPS
+      free_gc_handle (wv->help);
+      igc_xfree (wv);
+#else
       xfree (wv);
+#endif
     }
 
   SAFE_FREE ();
