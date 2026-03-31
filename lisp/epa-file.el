@@ -232,7 +232,20 @@ encryption is used."
 		      (epa-file-decode-and-insert
                        string file visit beg end replace))))
 	    (if visit
-		(set-visited-file-modtime))))
+		(set-visited-file-modtime)))
+          ;; The decoded file could still need another massage from a
+          ;; file name handler, for example a file like
+          ;; "folder.sym.tar.gz.gpg".  (Bug#80641)
+          (when (find-file-name-handler
+                 (file-name-sans-extension buffer-file-name)
+                 'insert-file-contents)
+            (let ((tmpfile (concat (make-temp-name temporary-file-directory)
+                                   (file-name-base buffer-file-name))))
+              (let (file-name-handler-alist) (write-region nil nil tmpfile))
+              (erase-buffer)
+              (insert-file-contents tmpfile)
+              (setq length (- (point-max) (point-min)))
+              (delete-file tmpfile))))
       (if (and local-copy
 	       (file-exists-p local-copy))
 	  (delete-file local-copy)))
