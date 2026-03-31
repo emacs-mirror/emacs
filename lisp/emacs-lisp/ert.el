@@ -3168,7 +3168,7 @@ See `ert-call-with-buffer-renamed' for details."
   (declare (indent 1))
   `(ert-call-with-buffer-renamed ,buffer-name-form (lambda () ,@body)))
 
-(defmacro ert-play-keys (keys)
+(defun ert-play-keys (keys)
   "Play the key sequence KEYS as if it was user input.
 
 KEYS shall have the same format as in a call to function `kmacro'.
@@ -3176,20 +3176,8 @@ KEYS shall have the same format as in a call to function `kmacro'.
 This macro should be expanded within the body of
 `ert-with-display-current-buffer' when the keys KEYS start commands
 acting on the current buffer."
-  `(funcall
-    (kmacro ,keys)))
-
-(defmacro ert-play-keys-in-string (keys-string)
-  "Play a each character in KEYS-STRING as if it was user keystroke input.
-
-KEYS-STRING shall be a string.
-
-This macro should be expanded within the body of
-`ert-with-display-current-buffer' when the keys sequence resulting from
-KEYS-STRING start commands acting on the current buffer."
-  (let ((keys (apply #'vector (mapcar #'identity keys-string))))
-    `(funcall
-      (kmacro ,keys))))
+  (funcall
+    (kmacro keys)))
 
 (defmacro ert-with-display-current-buffer (&rest body)
   "Execute BODY after trying to display current buffer in the same window

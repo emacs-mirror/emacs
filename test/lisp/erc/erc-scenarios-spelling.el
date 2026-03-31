@@ -68,7 +68,7 @@
 
         ;; Insert a command with one misspelled word.
         (ert-with-display-current-buffer
-         (ert-play-keys-in-string "\M->/AMSG an/dor /gmsg one fsbot two frob my shoe")
+         (ert-play-keys (vconcat [?\M->] "/AMSG an/dor /gmsg one fsbot two frob my shoe"))
          (funcall expect 10 "shoe")
 
          (let* ((ovs (overlays-in erc-input-marker (point)))
