@@ -1580,7 +1580,7 @@ DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
 Optional arg TABLE if non-nil is a translation table to look up.
 
 If STR is unibyte, the returned list may contain
-only `ascii' amd `eight-bit'. */)
+only `ascii' and `eight-bit'. */)
   (Lisp_Object str, Lisp_Object table)
 {
   CHECK_STRING (str);
