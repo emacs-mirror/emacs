@@ -3262,7 +3262,7 @@ acquainted with conventions from other programs.
   The functionality enabled by the @code{newcomers-presets} theme will
 change between releases of Emacs.  We may add new functionality, and
 also remove old functionality that we think has been superseded.
-Therefore, if you get used to the newcomers' presets, consider copying
-them into your own configuration and then disabling the theme again.
-You can use the command @code{copy-theme-options} (@pxref{Custom
-Themes}) to do this.
+Therefore, if you get used to the newcomers' presets, you should copy
+them into your own configuration and then disable the theme again.  You
+can use the command @code{copy-theme-options} (@pxref{Custom Themes}) to
+do this.
