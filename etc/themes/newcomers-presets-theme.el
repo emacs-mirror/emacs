@@ -129,6 +129,7 @@ This minor mode will enable and disable the theme on startup."
  '(indent-tabs-mode nil)
  '(imenu-auto-rescan t)
  '(view-read-only t)
+ '(column-number-mode t)
 
 ;;;; Directory managment-related options
  '(dired-auto-revert-buffer t)
@@ -162,7 +163,10 @@ This minor mode will enable and disable the theme on startup."
 ;;;; Frame- and window-related options
  '(frame-inhibit-implied-resize t)
  '(tab-bar-history-mode t)
- '(tab-bar-show 0))
+ '(tab-bar-show 0)
+
+;;;; Programming-related options
+ '(compilation-scroll-output 'first-error))
 
 (provide-theme 'newcomers-presets)
 ;;; newcomers-presets-theme.el ends here
