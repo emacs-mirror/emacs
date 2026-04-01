@@ -18,7 +18,7 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
-* Changes to upcoming Eglot
+* Changes in Eglot 1.22 (1/4/2026)
 
 ** File watch limits to prevent resource exhaustion (github#1568)
 
@@ -49,6 +49,19 @@ beneficial and helps servers avoid costly useless work.
 
 Eglot now sets 'imenu-create-index-function' using ':override' advice,
 making the integration cleaner and more predictable.
+
+** Diagnostics from unopened files recalled on session start (github#1531)
+
+Some servers (notably rust-analyzer) publish diagnostics for all
+project files at startup and never republish them on 'didOpen'.  Eglot
+now saves such early diagnostics and reports them when those files are
+subsequently opened.
+
+** Changes to 'eglot-server-programs'
+
+- new 'static-ls' for 'haskell-mode'
+- new 'wat_server' for 'wat-mode' (WebAssembly Text) (bug#80188)
+- new 'elp' replaces 'erlang_ls' for 'erlang-mode' (bug#79943)
 
 ** Fixed textDocument/prepareRename support (github#1554)
 
