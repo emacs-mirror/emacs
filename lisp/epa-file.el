@@ -240,10 +240,9 @@ encryption is used."
                  (file-name-sans-extension file)
                  'insert-file-contents)
             (let ((tmpfile
-                   (with-file-modes #o0600
-                     (make-temp-file
-                      nil nil
-                      (file-name-extension (file-name-base file) 'period)))))
+                   (make-temp-file
+                    nil nil
+                    (file-name-extension (file-name-base file) 'period))))
               (let (file-name-handler-alist) (write-region nil nil tmpfile))
               (erase-buffer)
               (insert-file-contents tmpfile)
