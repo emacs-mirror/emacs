@@ -4092,7 +4092,7 @@ for which LSP on-type-formatting should be requested."
            parameter
          ;; ...perhaps highlight it in the formals list
          (when (eq i active-param)
-           (save-excursion ;; FIXME: Sink into the `if' or hoist out of loop?
+           (save-excursion
              (goto-char (point-min))
              (pcase-let
                  ((`(,beg ,end)
@@ -4100,8 +4100,7 @@ for which LSP on-type-formatting should be requested."
                        (let ((case-fold-search nil))
                          (and (search-forward parlabel (line-end-position) t)
                               (list (match-beginning 0) (match-end 0))))
-                     (list (+ (point-min) (aref parlabel 0))
-                           (+ (point-min) (aref parlabel 1))))))
+                     (list (1+ (aref parlabel 0)) (1+ (aref parlabel 1))))))
                (if (and beg end)
                    (add-face-text-property
                     beg end
