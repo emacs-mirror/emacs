@@ -21,7 +21,7 @@
 
 ;;; Code:
 
-(require 'ert)
+(require 'ert-x)
 (eval-when-compile (require 'cl-lib))
 
 (defun simple-test--buffer-substrings ()
