@@ -1481,7 +1481,8 @@ between them by typing in the minibuffer with completion."
           match)
       (while (setq match (text-property-search-forward 'xref-group))
         (add-text-properties (prop-match-beginning match) (prop-match-end match)
-                             '(read-only t)))
+                             '( read-only t
+                                front-sticky t)))
       (goto-char (point-min))
       (while (setq match (text-property-search-forward 'xref-item))
         (let ((line-number-end (save-excursion
