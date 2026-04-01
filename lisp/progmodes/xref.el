@@ -1490,7 +1490,12 @@ between them by typing in the minibuffer with completion."
                                       (match-end 0)))))
           (when line-number-end
             (add-text-properties (prop-match-beginning match) line-number-end
-                                 '(read-only t occur-prefix t))))))))
+                                 '( read-only t
+                                    occur-prefix t
+                                    ;; Allow insertion of text right
+                                    ;; after prefix, but not before.
+                                    front-sticky t
+                                    rear-nonsticky t))))))))
 
 (defvar xref-edit-mode-map
   (let ((map (make-sparse-keymap)))
