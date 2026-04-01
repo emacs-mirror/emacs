@@ -629,7 +629,7 @@ If SELECT is non-nil, select the target window."
     (run-hooks 'xref-after-jump-hook)))
 
 
-;;; XREF buffer (part of the UI)
+;;; Xref buffer (part of the UI)
 
 ;; The xref buffer is used to display a set of xrefs.
 (defconst xref-buffer-name "*xref*"
@@ -1011,7 +1011,7 @@ point."
 (declare-function outline-search-text-property "outline"
                   (property &optional value bound move backward looking-at))
 
-(define-derived-mode xref--xref-buffer-mode special-mode "XREF"
+(define-derived-mode xref--xref-buffer-mode special-mode "Xref"
   "Mode for displaying cross-references."
   (setq buffer-read-only t)
   (setq next-error-function #'xref--next-error-function)
@@ -1041,7 +1041,7 @@ point."
 
 (define-derived-mode xref--transient-buffer-mode
   xref--xref-buffer-mode
-  "XREF Transient.")
+  "Xref Transient")
 
 (defun xref--imenu-prev-index-position ()
   "Move point to previous line in `xref' buffer.
@@ -1548,7 +1548,7 @@ The only editable texts in an Xref-Edit buffer are the match results."
   (use-local-map xref--xref-buffer-mode-map)
   (setq buffer-read-only t)
   (setq major-mode 'xref--xref-buffer-mode)
-  (setq mode-name "XREF")
+  (setq mode-name "Xref")
   (force-mode-line-update)
   (buffer-disable-undo)
   (setq buffer-undo-list t)

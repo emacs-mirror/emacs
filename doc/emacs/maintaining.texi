@@ -2764,10 +2764,10 @@ Table}.)
 @node Xref Commands
 @subsubsection Commands Available in the @file{*xref*} Buffer
 @cindex commands in @file{*xref*} buffers
-@cindex XREF mode
+@cindex Xref mode
 
   The following commands are provided in the @file{*xref*} buffer by
-the special XREF mode:
+the special Xref mode:
 
 @table @kbd
 @item @key{RET}
@@ -2880,7 +2880,7 @@ prompt always, customize the value of the variable
 to prompt only if there's no usable identifier at point.)  The command
 then presents the @file{*xref*} buffer with all the references to the
 identifier, showing the file name and the line where the identifier is
-referenced.  The XREF mode commands are available in this buffer, see
+referenced.  The Xref mode commands are available in this buffer, see
 @ref{Xref Commands}.
 
 When invoked in a buffer whose major mode uses the @code{etags} backend,
