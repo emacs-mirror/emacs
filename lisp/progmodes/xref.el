@@ -1487,14 +1487,10 @@ between them by typing in the minibuffer with completion."
         (let ((line-number-end (save-excursion
                                  (forward-line 0)
                                  (and (looking-at " *[0-9]+:")
-                                      (match-end 0))))
-              (m (xref-location-marker (xref-item-location (prop-match-value match )))))
+                                      (match-end 0)))))
           (when line-number-end
             (add-text-properties (prop-match-beginning match) line-number-end
-                                 '(read-only t occur-prefix t)))
-          (add-text-properties (prop-match-beginning match)
-                               (1+ (pos-eol))
-                               `(occur-target ((,m . ,m)))))))))
+                                 '(read-only t occur-prefix t))))))))
 
 (defvar xref-edit-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1534,6 +1530,7 @@ The only editable texts in an Xref-Edit buffer are the match results."
   (buffer-enable-undo)
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
+  (add-hook 'before-change-functions #'xref-edit--before-change-function nil t)
   (add-hook 'after-change-functions #'occur-after-change-function nil t)
   (run-mode-hooks 'xref-edit-mode-hook)
   (message (substitute-command-keys
@@ -1544,6 +1541,7 @@ The only editable texts in an Xref-Edit buffer are the match results."
   (interactive)
   (unless (derived-mode-p 'xref-edit-mode)
     (error "Not a Xref-Edit buffer"))
+  (remove-hook 'before-change-functions #'xref-edit--before-change-function t)
   (remove-hook 'after-change-functions #'occur-after-change-function t)
   (use-local-map xref--xref-buffer-mode-map)
   (setq buffer-read-only t)
@@ -1556,6 +1554,17 @@ The only editable texts in an Xref-Edit buffer are the match results."
     (remove-text-properties (point-min) (point-max)
                             '(occur-target nil occur-prefix nil)))
   (message "Switching to Xref mode"))
+
+(defun xref-edit--before-change-function (_beg _end)
+  (when (and (not (get-text-property (pos-bol) 'occur-target))
+             (get-text-property (pos-bol) 'occur-prefix))
+    (let ((m (xref-location-marker (xref-item-location
+                                    (get-text-property (pos-bol) 'xref-item))))
+          (inhibit-read-only t)
+          (inhibit-modification-hooks t)
+          (buffer-undo-list t))
+      (add-text-properties (pos-bol) (pos-eol)
+                           `(occur-target ((,m . ,m)))))))
 
 
 (defcustom xref-show-xrefs-function 'xref--show-xref-buffer
