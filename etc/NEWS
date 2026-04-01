@@ -4152,6 +4152,17 @@ change it globally with:
 ---
 *** Loading a file displays a warning if there is no 'lexical-binding' cookie.
 
+---
+** New function 'set-local'.
+This is the buffer local equivalent of the function 'set'.
+
++++
+** New macro 'setopt-local'.
+This is the buffer local version of 'setopt' for user options rather
+than plain variables and uses 'custom-set'/'set-local' to set variable
+values.  A new argument, BUFFER-LOCAL, is passed to 'custom-set'
+functions to indicate the buffer local context.
+
 +++
 ** New macros 'incf' and 'decf'.
 They increment or decrement the value stored in a variable (a symbol),

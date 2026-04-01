@@ -890,6 +890,34 @@ special setter functions, they will be run automatically when using
 non-customizable variables, but this is less efficient than using
 @code{setq}.
 
+@findex setopt-local
+  There is also a buffer-local version of @code{setopt}, called
+@code{setopt-local}, that you can use to set buffer specific values for
+customizable options, for example, in mode hooks (@pxref{Hooks}).
+
+This works the same as @code{setq-local}, but if the variable has any
+special setter functions, they will be run automatically when using
+@code{setopt-local}.  You can also use @code{setopt-local} on other,
+non-customizable variables, but this is less efficient than using
+@code{setq-local}.
+
+  If you want to change the value of a customizable variable only in
+your current buffer, you can use the @code{setopt-local} macro.  For
+instance:
+
+@example
+ M-: (setopt-local fill-column 75) @key{RET}
+@end example
+
+@noindent
+Or, if you want to do this in your initialization file, use the
+following inside a mode hook so this variable will be automatically
+customized in buffers of that mode (@pxref{Hooks}):
+
+@example
+ (setopt-local fill-column 75)
+@end example
+
 @node Hooks
 @subsection Hooks
 @cindex hook
