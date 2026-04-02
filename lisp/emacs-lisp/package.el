@@ -2015,6 +2015,16 @@ package archive."
   :type 'boolean
   :version "29.1")
 
+(defun package--compatible-packages ()
+  "Return list of packages that can be installed.
+This excludes packages that are listed in the archives, but have
+incompatible dependencies (either not available at all or too old)."
+  (package-read-all-archive-contents)
+  (package--build-compatibility-table)
+  (cl-loop for (name . desc) in package-archive-contents
+           unless (any #'package--incompatible-p desc)
+           collect name))
+
 ;;;###autoload
 (defun package-install (pkg &optional dont-select interactive)
   "Install the package PKG.
@@ -2042,7 +2052,7 @@ had been enabled."
      (package--archives-initialize)
      (list (intern (completing-read
                     "Install package: "
-                    package-archive-contents
+                    (package--compatible-packages)
                     nil t))
            nil
            'interactive)))
@@ -3267,7 +3277,7 @@ of these dependencies, similar to the list returned by
         (package-version-join version)
       (unless shallow
         (let (out)
-          (dolist (dep (package-desc-reqs pkg) out)
+          (dolist (dep (package--dependencies pkg) out)
             (let ((dep-name (car dep)))
               (unless (eq 'emacs dep-name)
                 (let ((cv (gethash dep-name package--compatibility-table)))

@@ -3176,6 +3176,9 @@ presentation style of these suggestions using
 This user option controls what previous packages versions to keep on
 upgrade.  By default, this is set to nil, to keep the previous behavior.
 
+---
+*** Packages check recursive dependencies before installing.
+
 ** Rcirc
 
 +++
