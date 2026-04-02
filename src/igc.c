@@ -1853,6 +1853,20 @@ scan_hash_table_user_test (mps_ss_t ss, void *start, void *end, void *closure)
   return MPS_RES_OK;
 }
 
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+static mps_res_t
+scan_anim_cache (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (struct anim_cache *cache = start; cache; cache = cache->next)
+      IGC_FIX12_OBJ (ss, &cache->spec);
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+#endif  /* HAVE_WEBP || HAVE_GIF */
+
 #if defined (USE_GTK) && ! defined (HAVE_PGTK)
 /* scan_xg_pending_quit_event assumes that the fields of the input_event
    are in a consistent state.  This is a relatively safe assumption
@@ -3485,6 +3499,18 @@ root_create_kbd_buffer (struct igc *gc)
 	       mps_rank_ambig (), scan_kbd_buffer_ambig, NULL,
 	       true, "kbd-buffer");
 }
+
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+
+static void
+root_create_anim_cache (struct igc *gc)
+{
+  root_create (gc, &anim_cache, &anim_cache + 1, mps_rank_exact (),
+	       scan_anim_cache, NULL, false, "anim_cache");
+}
+
+#endif  /* HAVE_WEBP || HAVE_GIF */
+
 
 #if defined (USE_GTK) && ! defined (HAVE_PGTK)
 static void
@@ -5961,6 +5987,9 @@ make_igc (void)
   root_create_exact_ptr (gc, &all_threads);
   root_create_kbd_buffer (gc);
   root_create_exact_ptr (gc, &buffer_before_last_command_or_undo);
+#if defined (HAVE_WEBP) || defined (HAVE_GIF)
+  root_create_anim_cache (gc);
+#endif
 #if defined (USE_GTK) && ! defined (HAVE_PGTK)
   root_create_xg_pending_quit_event (gc);
 #endif
