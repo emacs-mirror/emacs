@@ -868,13 +868,13 @@ otherwise stated, affects only the current Emacs session.  The only
 way to alter the variable in future sessions is to put something in
 your initialization file (@pxref{Init File}).
 
+@findex setopt
   If you're setting a customizable variable in your initialization
 file, and you don't want to use the Customize interface, you can use
 the @code{setopt} macro.  For instance:
 
-@findex setopt
 @example
-(setopt fill-column 75)
+ M-: (setopt fill-column 75) @key{RET}
 @end example
 
 This works the same as @code{setq}, but if the variable has any
