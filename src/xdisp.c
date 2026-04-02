@@ -7499,6 +7499,12 @@ pop_it (struct it *it)
   if (it->bidi_p)
     {
       bidi_pop_it (&it->bidi_it);
+#ifdef HAVE_MPS
+      /* Make sure we have up-to-date collectable objects in bidi_it,
+         even if GC happened meanwhile.  */
+      it->bidi_it.string.lstring = it->string;
+      it->bidi_it.w = it->w;
+#endif
       /* Bidi-iterate until we get out of the portion of text, if any,
 	 covered by a `display' text property or by an overlay with
 	 `display' property.  (We cannot just jump there, because the
