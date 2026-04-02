@@ -79,17 +79,6 @@ Lisp_Object *igc_xnrealloc_lisp_objs_exact (ptrdiff_t nitems_old,
 					    ptrdiff_t nitems_new,
 					    const char *label);
 
-typedef int igc_scan_result_t; /* zero means success */
-struct igc_ss;
-typedef igc_scan_result_t (*igc_scan_area_t) (struct igc_ss *ss, void *start,
-					      void *end, void *closure);
-igc_scan_result_t igc_fix12_obj (struct igc_ss *ss, Lisp_Object *addr);
-void igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
-			ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-			ptrdiff_t item_size, igc_scan_area_t scan,
-			void *closure);
-
-void *igc_xnrealloc_ambig (void *pa, ptrdiff_t nitems, ptrdiff_t item_size);
 struct kboard *igc_alloc_kboard (void);
 struct hash_table_user_test *igc_alloc_hash_table_user_test (void);
 struct glyph_matrix *igc_alloc_glyph_matrix (void);
@@ -106,6 +95,8 @@ struct image *igc_make_image (void);
 struct face *igc_make_face (void);
 struct face_cache *igc_make_face_cache (void);
 void igc_grow_rdstack (struct read_stack *rs);
+void igc_grow_print_stack (struct print_stack *);
+void igc_grow_pp_stack (struct print_pp_stack *);
 struct Lisp_Vector *igc_make_hash_table_vec (size_t n);
 void igc_alloc_weak_hash_table_strong_part(hash_table_weakness_t, void *ptrs[5], size_t, size_t);
 void igc_alloc_weak_hash_table_weak_part(hash_table_weakness_t, void *ptrs[3], size_t, size_t);

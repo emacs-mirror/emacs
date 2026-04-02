@@ -1575,6 +1575,71 @@ scan_rdstack (mps_ss_t ss, void *start, void *end, void *closure)
 }
 
 static mps_res_t
+scan_prstack (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  igc_assert (start == (void *) prstack.stack);
+  igc_assert (end == (void *) (prstack.stack + prstack.size));
+  igc_assert (closure == NULL);
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (struct print_stack_entry *p = start, *q = end; p != q; p++)
+      {
+	if (p->type == PE_free)
+	  break;
+	switch (p->type)
+	  {
+	  case PE_free:
+	    emacs_abort ();
+
+	  case PE_list:
+	    IGC_FIX12_OBJ (ss, &p->u.list.last);
+	    IGC_FIX12_OBJ (ss, &p->u.list.tortoise);
+	    break;
+
+	  case PE_rbrac:
+	    break;
+
+	  case PE_vector:
+	    IGC_FIX12_OBJ (ss, &p->u.vector.obj);
+	    break;
+
+	  case PE_hash:
+	    IGC_FIX12_OBJ (ss, &p->u.hash.obj);
+	    break;
+	  }
+      }
+  }
+  MPS_SCAN_END (ss);
+  return 0;
+}
+
+static mps_res_t
+scan_ppstack (mps_ss_t ss, void *start, void *end,
+	      void *closure)
+{
+  eassert (start == (void *) ppstack.stack);
+  eassert (end == (void *) (ppstack.stack + ppstack.size));
+  eassert (closure == NULL);
+  MPS_SCAN_BEGIN (ss)
+  {
+    for (struct print_pp_entry *p = start, *q = end; p != q; ++p)
+      {
+	if (!p->is_in_use)
+	  break;
+	if (p->n == 0)
+	  IGC_FIX12_OBJ (ss, &p->u.value);
+	else
+	  {
+	    igc_assert (p->n > 0);
+	    IGC_FIX12_OBJ (ss, &p->u.vectorlike);
+	  }
+      }
+  }
+  MPS_SCAN_END (ss);
+  return 0;
+}
+
+static mps_res_t
 scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
 {
   MPS_SCAN_BEGIN (ss)
@@ -3421,15 +3486,6 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
   return MPS_RES_OK;
 }
 
-igc_scan_result_t
-igc_fix12_obj (struct igc_ss *ssp, Lisp_Object *addr)
-{
-  mps_ss_t ss = (mps_ss_t) ssp;
-  MPS_SCAN_BEGIN (ss) { IGC_FIX12_OBJ (ss, addr); }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
 #pragma GCC diagnostic pop
 
 static igc_root_list *
@@ -4116,10 +4172,10 @@ igc_xpalloc_ambig (void *old_pa, ptrdiff_t *nitems,
   return new_pa;
 }
 
-void
+static void
 igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 		   ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-		   ptrdiff_t item_size, igc_scan_area_t scan_area,
+		   ptrdiff_t item_size, mps_area_scan_t scan_area,
 		   void *closure)
 {
   void *old_pa = *pa_cell;
@@ -4154,7 +4210,7 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   igc_xfree (old_pa);
 }
 
-void *
+static void *
 igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
 {
   ptrdiff_t old_nbytes = 0;
@@ -4198,6 +4254,26 @@ igc_xpalloc_raw_exact (void *pa, ptrdiff_t *nitems,
   xfree (old);
   *nitems = nitems_new;
   return new;
+}
+
+void
+igc_grow_print_stack (struct print_stack *ps)
+{
+  ptrdiff_t old_size = ps->size;
+  igc_xpalloc_exact ((void **) &prstack.stack, &ps->size, 1, -1,
+		     sizeof *ps->stack, scan_prstack, NULL);
+  for (ptrdiff_t i = old_size; i < ps->size; ++i)
+    ps->stack[i].type = PE_free;
+}
+
+void
+igc_grow_pp_stack (struct print_pp_stack *ps)
+{
+  ptrdiff_t old_size = ps->size;
+  igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
+		     sizeof *ps->stack, scan_ppstack, NULL);
+  for (ptrdiff_t i = old_size; i < ps->size; ++i)
+    ppstack.stack[i].is_in_use = false;
 }
 
 Lisp_Object *

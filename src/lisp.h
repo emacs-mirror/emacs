@@ -5121,6 +5121,97 @@ extern Lisp_Object get_unicode_property (Lisp_Object, int);
 extern void syms_of_chartab (void);
 
 /* Defined in print.c.  */
+enum print_entry_type
+{
+#ifdef HAVE_MPS
+  PE_free = 0,			/* must be zero so xzalloc'd memory
+				   scans without crashing */
+#endif
+  PE_list,			/* print rest of list */
+  PE_rbrac,			/* print ")" */
+  PE_vector,			/* print rest of vector */
+  PE_hash,			/* print rest of hash data */
+};
+
+struct print_stack_entry
+{
+  enum print_entry_type type;
+
+  union
+  {
+    struct
+    {
+      Lisp_Object last;		/* cons whose car was just printed  */
+      intmax_t maxlen;		/* max number of elements left to print */
+      /* State for Brent cycle detection.  See
+	 Brent RP. BIT. 1980;20(2):176-184. doi:10.1007/BF01933190
+	 https://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf */
+      Lisp_Object tortoise;     /* slow pointer */
+      ptrdiff_t n;		/* tortoise step countdown */
+      ptrdiff_t m;		/* tortoise step period */
+      intmax_t tortoise_idx;	/* index of tortoise */
+    } list;
+
+    struct
+    {
+      Lisp_Object obj;		/* object to print after " . " */
+    } dotted_cdr;
+
+    struct
+    {
+      Lisp_Object obj;		/* vector object */
+      ptrdiff_t size;		/* length of vector */
+      ptrdiff_t idx;		/* index of next element */
+      const char *end;		/* string to print at end */
+      bool truncated;		/* whether to print "..." before end */
+    } vector;
+
+    struct
+    {
+      Lisp_Object obj;		/* hash-table object */
+      ptrdiff_t nobjs;		/* number of keys and values to print */
+      ptrdiff_t idx;		/* index of key-value pair */
+      ptrdiff_t printed;	/* number of keys and values printed */
+      bool truncated;		/* whether to print "..." before end */
+    } hash;
+  } u;
+};
+
+struct print_stack
+{
+  struct print_stack_entry *stack;  /* base of stack */
+  ptrdiff_t size;		    /* allocated size in entries */
+  ptrdiff_t sp;			    /* current number of entries */
+};
+
+extern struct print_stack prstack;
+
+/* The print preprocess stack, used to traverse data structures.  */
+
+struct print_pp_entry {
+  ptrdiff_t n;			/* number of values, or 0 if a single value */
+#ifdef HAVE_MPS
+  bool is_in_use;
+  ptrdiff_t start;
+#endif
+  union {
+    Lisp_Object value;		/* when n = 0 */
+#ifdef HAVE_MPS
+    Lisp_Object vectorlike;	/* when n > 0 */
+#else
+    Lisp_Object *values;	/* when n > 0 */
+#endif
+  } u;
+};
+
+struct print_pp_stack {
+  struct print_pp_entry *stack;	 /* base of stack */
+  ptrdiff_t size;		 /* allocated size in entries */
+  ptrdiff_t sp;			 /* current number of entries */
+};
+
+extern struct print_pp_stack ppstack;
+
 extern Lisp_Object Vprin1_to_string_buffer;
 extern void debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
 extern void temp_output_buffer_setup (const char *);

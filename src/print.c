@@ -1350,59 +1350,7 @@ print_circle_candidate_p (Lisp_Object obj)
     return false;
 }
 
-/* The print preprocess stack, used to traverse data structures.  */
-
-struct print_pp_entry {
-  ptrdiff_t n;			/* number of values, or 0 if a single value */
-#ifdef HAVE_MPS
-  bool is_in_use;
-  ptrdiff_t start;
-#endif
-  union {
-    Lisp_Object value;		/* when n = 0 */
-#ifdef HAVE_MPS
-    Lisp_Object vectorlike;	/* when n > 0 */
-#else
-    Lisp_Object *values;	/* when n > 0 */
-#endif
-  } u;
-};
-
-struct print_pp_stack {
-  struct print_pp_entry *stack;	 /* base of stack */
-  ptrdiff_t size;		 /* allocated size in entries */
-  ptrdiff_t sp;			 /* current number of entries */
-};
-
-static struct print_pp_stack ppstack = {NULL, 0, 0};
-
-#ifdef HAVE_MPS
-static igc_scan_result_t
-scan_ppstack (struct igc_ss *ss, void *start, void *end, void *closure)
-{
-  eassert (start == (void *)ppstack.stack);
-  eassert (end == (void *)(ppstack.stack + ppstack.size));
-  eassert (closure == NULL);
-  for (struct print_pp_entry *p = start; (void *) p < end; ++p)
-    {
-      if (!p->is_in_use)
-	break;
-      igc_scan_result_t err = 0;
-      if (p->n == 0)
-	{
-	  if (err = igc_fix12_obj (ss, &p->u.value), err != 0)
-	    return err;
-	}
-      else
-	{
-	  eassert (p->n > 0);
-	  if (err = igc_fix12_obj (ss, &p->u.vectorlike), err != 0)
-	    return err;
-	}
-    }
-  return 0;
-}
-#endif
+struct print_pp_stack ppstack = {NULL, 0, 0};
 
 NO_INLINE static void
 grow_pp_stack (void)
@@ -1410,11 +1358,7 @@ grow_pp_stack (void)
   struct print_pp_stack *ps = &ppstack;
   eassert (ps->sp == ps->size);
 #ifdef HAVE_MPS
-  ptrdiff_t old_size = ps->size;
-  igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_ppstack, NULL);
-  for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    ppstack.stack[i].is_in_use = false;
+  igc_grow_pp_stack (ps);
 #else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
 #endif
@@ -2269,112 +2213,7 @@ named_escape (int i)
   return 0;
 }
 
-enum print_entry_type
-{
-#ifdef HAVE_MPS
-  PE_free = 0,			/* must be zero so xzalloc'd memory
-				   scans without crashing */
-#endif
-  PE_list,			/* print rest of list */
-  PE_rbrac,			/* print ")" */
-  PE_vector,			/* print rest of vector */
-  PE_hash,			/* print rest of hash data */
-};
-
-struct print_stack_entry
-{
-  enum print_entry_type type;
-
-  union
-  {
-    struct
-    {
-      Lisp_Object last;		/* cons whose car was just printed  */
-      intmax_t maxlen;		/* max number of elements left to print */
-      /* State for Brent cycle detection.  See
-	 Brent RP. BIT. 1980;20(2):176-184. doi:10.1007/BF01933190
-	 https://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf */
-      Lisp_Object tortoise;     /* slow pointer */
-      ptrdiff_t n;		/* tortoise step countdown */
-      ptrdiff_t m;		/* tortoise step period */
-      intmax_t tortoise_idx;	/* index of tortoise */
-    } list;
-
-    struct
-    {
-      Lisp_Object obj;		/* object to print after " . " */
-    } dotted_cdr;
-
-    struct
-    {
-      Lisp_Object obj;		/* vector object */
-      ptrdiff_t size;		/* length of vector */
-      ptrdiff_t idx;		/* index of next element */
-      const char *end;		/* string to print at end */
-      bool truncated;		/* whether to print "..." before end */
-    } vector;
-
-    struct
-    {
-      Lisp_Object obj;		/* hash-table object */
-      ptrdiff_t nobjs;		/* number of keys and values to print */
-      ptrdiff_t idx;		/* index of key-value pair */
-      ptrdiff_t printed;	/* number of keys and values printed */
-      bool truncated;		/* whether to print "..." before end */
-    } hash;
-  } u;
-};
-
-struct print_stack
-{
-  struct print_stack_entry *stack;  /* base of stack */
-  ptrdiff_t size;		    /* allocated size in entries */
-  ptrdiff_t sp;			    /* current number of entries */
-};
-
-static struct print_stack prstack = {NULL, 0, 0};
-
-#ifdef HAVE_MPS
-static igc_scan_result_t
-scan_prstack (struct igc_ss *ss, void *start, void *end, void *closure)
-{
-  eassert (start == (void *)prstack.stack);
-  eassert (end == (void *)(prstack.stack + prstack.size));
-  eassert (closure == NULL);
-  for (struct print_stack_entry *p = start; (void *)p < end; p++)
-    {
-      igc_scan_result_t err = 0;
-      if (p->type == PE_free)
-	break;
-      switch (p->type)
-	{
-	case PE_free:
-	  emacs_abort ();
-
-	case PE_list:
-	  if (err = igc_fix12_obj (ss, &p->u.list.last), err != 0)
-	    return err;
-	  if (err = igc_fix12_obj (ss, &p->u.list.tortoise), err != 0)
-	    return err;
-	  break;
-
-	case PE_rbrac:
-	  break;
-
-	case PE_vector:
-	  if (err = igc_fix12_obj (ss, &p->u.vector.obj), err != 0)
-	    return err;
-	  break;
-
-	case PE_hash:
-	  if (err = igc_fix12_obj (ss, &p->u.hash.obj), err != 0)
-	    return err;
-	  break;
-	}
-    }
-  return 0;
-}
-#endif
+struct print_stack prstack = {NULL, 0, 0};
 
 NO_INLINE static void
 grow_print_stack (void)
@@ -2382,11 +2221,7 @@ grow_print_stack (void)
   struct print_stack *ps = &prstack;
   eassert (ps->sp == ps->size);
 #ifdef HAVE_MPS
-  ptrdiff_t old_size = ps->size;
-  igc_xpalloc_exact ((void **) &prstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_prstack, NULL);
-  for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    ps->stack[i].type = PE_free;
+  igc_grow_print_stack (ps);
 #else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
 #endif
