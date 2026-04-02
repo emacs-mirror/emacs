@@ -2710,10 +2710,11 @@ still unanswered LSP requests to the server\n"))))
 
 (defconst eglot-mode-line-progress
   '(:eval
-    (when-let ((server (eglot-current-server)))
+    (when-let ((s (eglot-current-server)))
       (cl-loop
-       for pr hash-values of (eglot--progress-reporters server)
-       when (eq (car pr) 'eglot--mode-line-reporter)
+       for pr in (cl-delete 'eglot--mode-line-reporter
+                            (hash-table-values (eglot--progress-reporters s))
+                            :key #'car :test-not #'eq)
        for v = (nth 4 pr)
        when v sum 1 into n and sum v into acc
        collect (format "(%s) %s %s" (nth 1 pr) (nth 2 pr) (nth 3 pr))
