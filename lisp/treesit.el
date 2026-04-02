@@ -1423,21 +1423,31 @@ LANGUAGE is the language of QUERY.")
     (setf (nth 1 new-setting) t)
     new-setting))
 
-(defun treesit--font-lock-level-setter (sym val)
+(defun treesit--font-lock-level-setter (sym val &optional buffer-local)
   "Custom setter for `treesit-font-lock-level'.
 Set the default value of SYM to VAL, recompute fontification
 features and refontify for every buffer where tree-sitter-based
-fontification is enabled."
-  (set-default sym val)
-  (when (treesit-available-p)
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        ;; FIXME: This doesn't re-run major mode hooks, meaning any
-        ;; customization done in major mode hooks (e.g., with
-        ;; `treesit-font-lock-recompute-features') is lost.
-        (when treesit-font-lock-settings
-          (treesit-font-lock-recompute-features)
-          (font-lock-flush))))))
+fontification is enabled.
+
+If optional BUFFER-LOCAL is non-nil, only affect the current buffer. Set
+SYM buffer locally and refontify."
+  ;; FIXME: This doesn't re-run major mode hooks, meaning any
+  ;; customization done in major mode hooks (e.g., with
+  ;; `treesit-font-lock-recompute-features') may be overridden.
+  (cond (buffer-local
+         (set-local sym val)
+         (when (and (treesit-available-p)
+                    treesit-font-lock-settings)
+           (treesit-font-lock-recompute-features)
+           (font-lock-flush)))
+        (t
+         (set-default sym val)
+         (when (treesit-available-p)
+           (dolist (buffer (buffer-list))
+             (with-current-buffer buffer
+               (when treesit-font-lock-settings
+                 (treesit-font-lock-recompute-features)
+                 (font-lock-flush))))))))
 
 (defcustom treesit-font-lock-level 3
   "Decoration level to be used by tree-sitter fontifications.
