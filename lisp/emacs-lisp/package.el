@@ -2161,24 +2161,35 @@ from ELPA by either using `\\[package-upgrade]' or
 
 (defun package--dependencies (pkg)
   "Return a list of all transitive dependencies of PKG.
-If PKG is a package descriptor, the return value is a list of
-package descriptors.  If PKG is a symbol designating a package,
-the return value is a list of symbols designating packages."
+Each element of the resulting list is a cons-cell (NAME VERSION-LIST),
+where NAME is a symbol designating the package name and VERSION-LIST
+designates the least version number that any dependency of PKG requires.
+This format is intentionally meant to mirror that of
+`package-desc-reqs', which see.  PKG is either a symbol designating a
+package name known in the archives or a `package-desc' object."
   (when-let* ((desc (if (package-desc-p pkg) pkg
                       (cadr (assq pkg package-archive-contents)))))
     ;; Can we have circular dependencies?  Assume "nope".
-    (let ((all (named-let more ((pkg-desc desc))
-                 (let (deps)
-                   (dolist (req (package-desc-reqs pkg-desc))
-                     (setq deps (nconc
-                                 (catch 'found
-                                   (dolist (p (apply #'append (mapcar #'cdr (package--alist))))
-                                     (when (and (string= (car req) (package-desc-name p))
-                                                (version-list-<= (cadr req) (package-desc-version p)))
-                                       (throw 'found (more p)))))
-                                 deps)))
-                   (delete-dups (cons pkg-desc deps))))))
-      (remq pkg (mapcar (if (package-desc-p pkg) #'identity #'package-desc-name) all)))))
+    (let ((all (named-let rec ((pkg-desc desc) (min-version nil))
+                 (cl-loop for (name vlist) in (package-desc-reqs pkg-desc)
+                          if (eq name 'emacs)
+                          collect (list name vlist) into deps
+                          else append
+                          (cl-loop for p in (alist-get name package-archive-contents)
+                                   when (version-list-<= vlist (package-desc-version p))
+                                   return (rec p vlist)
+                                   ;; if we couldn't find a package in
+                                   ;; the archives, we fall back to
+                                   ;; returning the dependency as-is:
+                                   finally return (list (list name vlist)))
+                          into deps
+                          finally (return `((,(package-desc-name pkg-desc) ,min-version) . ,deps))))))
+      (mapcar
+       (lambda (ent)
+         (list (car ent) (seq-reduce (lambda (acc vlist)
+                                       (if (version-list-< acc vlist) vlist acc))
+                                     (mapcar #'cadr (cdr ent)) '())))
+       (seq-group-by #'car (delete-dups (cdr all)))))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -3945,8 +3956,9 @@ dependencies."
                    (apply
                     #'nconc
                     (mapcar (lambda (package)
-                              (package--dependencies
-                               (package-desc-name package)))
+                              (mapcar #'car
+                                      (package--dependencies
+                                       (package-desc-name package))))
                             packages))))))
             (if (and include-dependencies deps)
                 (if (length= deps 1)
