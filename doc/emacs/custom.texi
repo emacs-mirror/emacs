@@ -869,12 +869,19 @@ way to alter the variable in future sessions is to put something in
 your initialization file (@pxref{Init File}).
 
 @findex setopt
-  If you're setting a customizable variable in your initialization
-file, and you don't want to use the Customize interface, you can use
-the @code{setopt} macro.  For instance:
+  If you're setting a customizable variable, and you don't want to use
+the Customize interface, you can use the @code{setopt} macro.  For
+instance:
 
 @example
  M-: (setopt fill-column 75) @key{RET}
+@end example
+
+@noindent
+Or, if you want to do this in your initialization file:
+
+@example
+ (setopt fill-column 75)
 @end example
 
 This works the same as @code{setq}, but if the variable has any
