@@ -256,7 +256,11 @@ __executable_start (void)
 static struct glyph_matrix *
 new_glyph_matrix (struct glyph_pool *pool)
 {
+#ifdef HAVE_MPS
+  struct glyph_matrix *result = igc_alloc_glyph_matrix ();
+#else
   struct glyph_matrix *result = xzalloc (sizeof *result);
+#endif
 
 #if defined GLYPH_DEBUG && defined ENABLE_CHECKING
   /* Increment number of allocated matrices.  This count is used
@@ -301,7 +305,11 @@ free_glyph_matrix (struct glyph_matrix *matrix)
 	  xfree (matrix->rows[i].glyphs[LEFT_MARGIN_AREA]);
       /* Free row structures and the matrix itself.  */
       xfree (matrix->rows);
+#ifdef HAVE_MPS
+      igc_xfree (matrix);
+#else
       xfree (matrix);
+#endif
     }
 }
 

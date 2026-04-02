@@ -2789,10 +2789,12 @@ fix_window (mps_ss_t ss, struct window *w)
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
+#if 0
     if (w->current_matrix && !w->current_matrix->pool)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
     if (w->desired_matrix && !w->desired_matrix->pool)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->desired_matrix));
+#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -4178,6 +4180,22 @@ igc_alloc_hash_table_user_test (void)
   root_create_exact (global_igc, ut, ut + 1, scan_hash_table_user_test,
 		     "hash-table-user-test");
   return ut;
+}
+
+static mps_res_t
+scan_glyph_matrix (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  struct glyph_matrix *m = start;
+  return fix_glyph_matrix (ss, m);
+}
+
+struct glyph_matrix *
+igc_alloc_glyph_matrix (void)
+{
+  struct glyph_matrix *m = xzalloc (sizeof *m);
+  root_create_exact (global_igc, m, m + 1, scan_glyph_matrix,
+		     "glyph_matrix");
+  return m;
 }
 
 static void
