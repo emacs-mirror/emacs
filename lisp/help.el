@@ -2360,7 +2360,7 @@ the same names as used in the original source code, when possible."
     (let ((seen nil))
       ;; Advice wrappers have "catch all" args, so fetch the actual underlying
       ;; function to find the real arguments.  Also follow aliases.
-      (while (and (symbolp def) (not (memq def seen)))
+      (while (not (memq def seen))
         (push def seen)
         (setq def (advice--cd*r (indirect-function def)))))
     ;; If definition is a macro, find the function inside it.
