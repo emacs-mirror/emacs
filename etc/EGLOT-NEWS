@@ -18,6 +18,15 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes in Eglot 1.23 (2/4/2026)
+
+** Unbreak ELPA Eglot (github#1584)
+
+Broken due to bad 'jsonrpc.el' dependency.
+
+** 'eglot-report-progress' can be safely set to 'messages' (bug#80653)
+
+
 * Changes in Eglot 1.22 (1/4/2026)
 
 ** File watch limits to prevent resource exhaustion (github#1568)
