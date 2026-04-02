@@ -2705,6 +2705,51 @@ fix_glyph_pool (mps_ss_t ss, struct glyph_pool *pool)
 }
 
 static mps_res_t
+fix_glyph_array (mps_ss_t ss, size_t len, struct glyph array[len])
+{
+  MPS_SCAN_BEGIN (ss)
+  {
+    /* Adjacent glyphs often have the same values in the object and
+       frame fields.  The code tries to recognize this to avoid some
+       calls to _mps_fix2.  */
+    Lisp_Object prev_obj = Qnil, prev_obj_fixed = Qnil;
+    struct frame *prev_frame = NULL, *prev_frame_fixed = NULL;
+    for (size_t i = 0; i != len; ++i)
+      {
+	struct glyph *glyph = array + i;
+	Lisp_Object obj = glyph->object;
+	if (!BASE_EQ (obj, prev_obj))
+	  {
+	    IGC_FIX12_OBJ (ss, &glyph->object);
+	    prev_obj = obj;
+	    prev_obj_fixed = glyph->object;
+	  }
+	else if (!BASE_EQ (obj, prev_obj_fixed))
+	  glyph->object = prev_obj_fixed;
+	else
+	  {
+	    /* not moved */
+	  }
+	struct frame *frame = glyph->frame;
+	if (frame != prev_frame)
+	  {
+	    IGC_FIX12_PVEC (ss, &glyph->frame);
+	    prev_frame = frame;
+	    prev_frame_fixed = glyph->frame;
+	  }
+	else if (frame != prev_frame_fixed)
+	  glyph->frame = prev_frame_fixed;
+	else
+	  {
+	    /* not moved */
+	  }
+      }
+  }
+  MPS_SCAN_END (ss);
+  return MPS_RES_OK;
+}
+
+static mps_res_t
 fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
 {
   MPS_SCAN_BEGIN (ss)
@@ -2718,9 +2763,8 @@ fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
 	  for (int area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	    {
 	      struct glyph *glyph = row->glyphs[area];
-	      struct glyph *end_glyph = glyph + row->used[area];
-	      for (; glyph < end_glyph; ++glyph)
-		IGC_FIX12_OBJ (ss, &glyph->object);
+	      size_t len = row->used[area];
+	      IGC_FIX_CALL (ss, fix_glyph_array (ss, len, glyph));
 	    }
 	}
     IGC_FIX12_PVEC (ss, &matrix->buffer);
