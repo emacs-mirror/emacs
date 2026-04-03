@@ -67,7 +67,7 @@
         (funcall expect 10 "<alice> tester, welcome!")
 
         ;; Insert a command with one misspelled word.
-        (ert-with-display-current-buffer
+        (ert-with-buffer-selected ()
          (ert-play-keys (vconcat [?\M->] "/AMSG an/dor /gmsg one fsbot two frob my shoe"))
          (funcall expect 10 "shoe")
 

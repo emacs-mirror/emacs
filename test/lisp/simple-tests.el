@@ -730,8 +730,7 @@ See bug#35036."
 ;; Test for a regression introduced by undo-auto--boundaries changes.
 ;; https://lists.gnu.org/r/emacs-devel/2015-11/msg01652.html
 (defun undo-test-kill-c-a-then-undo ()
-  (with-temp-buffer
-    (ert-with-display-current-buffer
+  (ert-with-test-buffer (:selected t)
      (setq buffer-undo-list nil)
      (insert "a\nb\nc\n")
      (goto-char (point-max))
@@ -745,7 +744,7 @@ See bug#35036."
                      backspace
                      ;; C-/ or undo
                      ?\C-/
-                     ]))
+                     ])
     (point)))
 
 (defun undo-test-point-after-forward-kill ()

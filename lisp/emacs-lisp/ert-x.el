@@ -427,24 +427,6 @@ acting on the current buffer."
   (funcall
     (kmacro keys)))
 
-(cl-defmacro ert-with-display-current-buffer (&body body)
-  "Display current buffer in a temporary selected window and run BODY.
-
-This macro is intended to make it easier to use `ert-play-keys' to
-simulate user sending input event within BODY.
-
-Use rather `ert-with-buffer-selected' with tests affecting windows in
-other frames or when you want to send input event to another buffer than
-current buffer.
-
-This macro does not alter the buffer list ordering.  The window
-configuration is restored before returning, even if BODY exits
-nonlocally.  The return value is the last form in BODY."
-  (declare (debug (form body)) (indent 1))
-  `(save-window-excursion
-     (pop-to-buffer-same-window (current-buffer) 'norecord)
-     ,@body))
-
 
 
 ;;;; Obsolete
