@@ -4210,31 +4210,6 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   igc_xfree (old_pa);
 }
 
-static void *
-igc_xnrealloc_ambig (void *old_pa, ptrdiff_t nitems, ptrdiff_t item_size)
-{
-  ptrdiff_t old_nbytes = 0;
-  if (old_pa != NULL)
-    {
-      struct igc_root_list *r = root_find (old_pa);
-      igc_assert (r);
-      eassume (r != NULL);
-      old_nbytes = (char *) r->d.end - (char *) r->d.start;
-    }
-  ptrdiff_t nbytes;
-  if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
-    memory_full (SIZE_MAX);
-  void *new_pa = xzalloc (nbytes);
-  char *end = (char *) new_pa + nbytes;
-  root_create_ambig (global_igc, new_pa, end, "xnrealloc-ambig");
-  ptrdiff_t min_nbytes = min (old_nbytes, nbytes);
-  memcpy (new_pa, old_pa, min_nbytes);
-  eassert (memcmp (new_pa, old_pa, min_nbytes) == 0);
-  igc_xfree (old_pa);
-
-  return new_pa;
-}
-
 void *
 igc_xpalloc_raw_exact (void *pa, ptrdiff_t *nitems,
 		       ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
