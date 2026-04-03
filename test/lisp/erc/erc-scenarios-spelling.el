@@ -90,9 +90,9 @@
 
            ;; Depending on the machine, this should become something
            ;; like: "/AMSG an/dor /gmsg one fsbot two Rob my shoe".
-           (ert-play-keys "M-TAB"))
-          (should (equal (overlays-in erc-input-marker (point-max))
-                         (list ov1)))))
+           (ert-play-keys "M-TAB")
+           (should (equal (overlays-in erc-input-marker (point-max))
+                          (list ov1))))))
 
       (when noninteractive
         (erc-spelling-mode -1)))))
