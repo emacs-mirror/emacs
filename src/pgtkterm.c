@@ -676,33 +676,16 @@ pgtk_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 
 static void
 pgtk_set_window_size (struct frame *f, bool change_gravity,
-		      int width, int height)
+		      int pixelwidth, int pixelheight)
 /* --------------------------------------------------------------------------
-     Adjust window pixel size based on given character grid size
-     Impl is a bit more complex than other terms, need to do some
-     internal clipping.
+     Adjust window pixel size based on given width and height.
    -------------------------------------------------------------------------- */
 {
-  int pixelwidth, pixelheight;
-
   block_input ();
-
-  gtk_widget_get_size_request (FRAME_GTK_WIDGET (f), &pixelwidth,
-			       &pixelheight);
-
-  pixelwidth = width;
-  pixelheight = height;
-
-  for (GtkWidget * w = FRAME_GTK_WIDGET (f); w != NULL;
-       w = gtk_widget_get_parent (w))
-    {
-      gint wd, hi;
-      gtk_widget_get_size_request (w, &wd, &hi);
-    }
 
   f->output_data.pgtk->preferred_width = pixelwidth;
   f->output_data.pgtk->preferred_height = pixelheight;
-  xg_wm_set_size_hint (f, 0, 0);
+
   xg_frame_set_char_size (f, pixelwidth, pixelheight);
   gtk_widget_queue_resize (FRAME_WIDGET (f));
 
