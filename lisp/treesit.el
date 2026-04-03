@@ -1429,8 +1429,8 @@ Set the default value of SYM to VAL, recompute fontification
 features and refontify for every buffer where tree-sitter-based
 fontification is enabled.
 
-If optional BUFFER-LOCAL is non-nil, only affect the current buffer. Set
-SYM buffer locally and refontify."
+If optional BUFFER-LOCAL is non-nil, only affect the current buffer.
+Set SYM buffer locally and refontify."
   ;; FIXME: This doesn't re-run major mode hooks, meaning any
   ;; customization done in major mode hooks (e.g., with
   ;; `treesit-font-lock-recompute-features') may be overridden.
