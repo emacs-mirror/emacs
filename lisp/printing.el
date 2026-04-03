@@ -1431,7 +1431,7 @@ COMMAND		Name of the program for printing a text file.  On MS-DOS and
 		specially, using NAME as the destination for output; any other
 		program is treated like `lpr' except that an explicit filename
 		is given as the last argument.
-		If COMMAND is nil, it's used the default printing program:
+		If COMMAND is nil, it stands for the default printing program:
 		`print' for Windows system, `lp' for lp system and `lpr' for
 		all other systems.  See also `pr-path-alist'.
 		Examples:
@@ -1506,7 +1506,10 @@ Useful links:
   :type '(repeat
 	  (list :tag "Text Printer"
 		(symbol :tag "Printer Symbol Name")
-		(string :tag "Printer Command")
+                (choice :menu-tag  "Printer Command"
+                        :tag "Printer Command"
+                        (const :tag "Default print command" nil)
+	                (string :tag "Explicit print command"))
 		(repeat :tag "Printer Switches"
 			(sexp :tag "Switch" :value ""))
 		(choice :menu-tag "Printer Name"
@@ -1577,7 +1580,7 @@ COMMAND		Name of the program for printing a PostScript file.  On MS-DOS
 		specially, using NAME as the destination for output; any other
 		program is treated like `lpr' except that an explicit filename
 		is given as the last argument.
-		If COMMAND is nil, it's used the default printing program:
+		If COMMAND is nil, it stands for the default printing program:
 		`print' for Windows system, `lp' for lp system and `lpr' for
 		all other systems.  See also `pr-path-alist'.
 		Examples:
@@ -1756,7 +1759,10 @@ Useful links:
 	  (list
 	   :tag "PostScript Printer"
 	   (symbol :tag "Printer Symbol Name")
-	   (string :tag "Printer Command")
+           (choice :menu-tag  "Printer Command"
+                   :tag "Printer Command"
+                   (const :tag "Default print command" nil)
+	           (string :tag "Explicit print command"))
 	   (repeat :tag "Printer Switches"
 		   (sexp :tag "Switch" :value ""))
 	   (choice :menu-tag "Printer Name Switch"
