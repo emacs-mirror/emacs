@@ -2771,20 +2771,6 @@ scan_buffer (mps_ss_t ss, void *start, void *end, void *closure)
 }
 
 static mps_res_t
-fix_glyph_pool (mps_ss_t ss, struct glyph_pool *pool)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    for (ptrdiff_t i = 0; i < pool->nglyphs; ++i)
-      {
-	IGC_FIX12_OBJ (ss, &pool->glyphs[i].object);
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_glyph_array (mps_ss_t ss, size_t len, struct glyph array[len])
 {
   MPS_SCAN_BEGIN (ss)
@@ -2852,6 +2838,12 @@ fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
+}
+
+static mps_res_t
+fix_glyph_pool (mps_ss_t ss, struct glyph_pool *pool)
+{
+  return fix_glyph_array (ss, pool->nglyphs, pool->glyphs);
 }
 
 static mps_res_t
