@@ -4061,26 +4061,6 @@ igc_grow_rdstack (struct read_stack *rs)
   rs->stack = new_stack;
 }
 
-void
-igc_grow_print_stack (struct print_stack *ps)
-{
-  ptrdiff_t old_size = ps->size;
-  igc_xpalloc_exact ((void **) &prstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_prstack, NULL);
-  for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    ps->stack[i].type = PE_free;
-}
-
-void
-igc_grow_pp_stack (struct print_pp_stack *ps)
-{
-  ptrdiff_t old_size = ps->size;
-  igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_ppstack, NULL);
-  for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    ppstack.stack[i].is_in_use = false;
-}
-
 Lisp_Object *
 igc_xalloc_lisp_objs_exact (size_t n, const char *label)
 {
@@ -4249,6 +4229,26 @@ igc_xpalloc_raw_exact (void *pa, ptrdiff_t *nitems,
   xfree (old);
   *nitems = nitems_new;
   return new;
+}
+
+void
+igc_grow_print_stack (struct print_stack *ps)
+{
+  ptrdiff_t old_size = ps->size;
+  igc_xpalloc_exact ((void **) &prstack.stack, &ps->size, 1, -1,
+		     sizeof *ps->stack, scan_prstack, NULL);
+  for (ptrdiff_t i = old_size; i < ps->size; ++i)
+    ps->stack[i].type = PE_free;
+}
+
+void
+igc_grow_pp_stack (struct print_pp_stack *ps)
+{
+  ptrdiff_t old_size = ps->size;
+  igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
+		     sizeof *ps->stack, scan_ppstack, NULL);
+  for (ptrdiff_t i = old_size; i < ps->size; ++i)
+    ppstack.stack[i].is_in_use = false;
 }
 
 Lisp_Object *
