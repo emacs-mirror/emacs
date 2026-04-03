@@ -427,19 +427,23 @@ acting on the current buffer."
   (funcall
     (kmacro keys)))
 
-(defmacro ert-with-display-current-buffer (&rest body)
-  "Execute BODY after trying to display current buffer in the same window
-with `pop-to-buffer-same-window'.
+(cl-defmacro ert-with-display-current-buffer (&body body)
+  "Display current buffer in a temporary selected window and run BODY.
 
-This macro restores the old window if changed by
-`pop-to-buffer-same-window' after execution of body. This macro does not
-change the list of currently selected buffer."
-  (let ((old-window (make-symbol "old-window")))
-    `(let ((,old-window (selected-window)))
-       (pop-to-buffer-same-window (current-buffer) t)
-       (unwind-protect
-           (progn ,@body)
-         (select-window ,old-window t)))))
+This macro is intended to make it easier to use `ert-play-keys' to
+simulate user sending input event within BODY.
+
+Use rather `ert-with-buffer-selected' with tests affecting windows in
+other frames or when you want to send input event to another buffer than
+current buffer.
+
+This macro does not alter the buffer list ordering.  The window
+configuration is restored before returning, even if BODY exits
+nonlocally.  The return value is the last form in BODY."
+  (declare (debug (form body)) (indent 1))
+  `(save-window-excursion
+     (pop-to-buffer-same-window (current-buffer) 'norecord)
+     ,@body))
 
 
 

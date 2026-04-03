@@ -3125,14 +3125,13 @@ The return value is the last form in BODY."
 
 If BUFFER-OR-NAME is nil, the current buffer is used.
 
-The buffer is made the current buffer, and the temporary window
-becomes the `selected-window', before BODY is evaluated.  The
-modification hooks `before-change-functions' and
-`after-change-functions' are not inhibited during the evaluation
-of BODY, which makes it easier to use `execute-kbd-macro' to
-simulate user interaction.  The window configuration is restored
-before returning, even if BODY exits nonlocally.  The return
-value is the last form in BODY."
+The buffer is made the current buffer, and the temporary window becomes
+the `selected-window', before BODY is evaluated.  The modification hooks
+`before-change-functions' and `after-change-functions' are not inhibited
+during the evaluation of BODY, which makes it easier to use
+`ert-play-keys' to simulate user sending input events.  The window
+configuration is restored before returning, even if BODY exits
+nonlocally.  The return value is the last form in BODY."
   (declare (debug (form body)) (indent 1))
   `(save-window-excursion
      (with-current-buffer (or ,buffer-or-name (current-buffer))
