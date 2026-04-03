@@ -4456,11 +4456,10 @@ XWIDGETS_OBJ=
 if test "$with_xwidgets" != "no"; then
   if test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none"; then
     WEBKIT_REQUIRED=2.12
-    WEBKIT_BROKEN=2.41.92
-    WEBKIT_MODULES="webkit2gtk-4.1 >= $WEBKIT_REQUIRED webkit2gtk-4.1 < $WEBKIT_BROKEN"
+    WEBKIT_MODULES="webkit2gtk-4.1 >= $WEBKIT_REQUIRED"
     EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
     if test "$HAVE_WEBKIT" = "no"; then
-      WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED webkit2gtk-4.0 < $WEBKIT_BROKEN"
+      WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
       EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
     fi
     HAVE_XWIDGETS=$HAVE_WEBKIT
