@@ -2699,7 +2699,7 @@ Helper function for `describe-package'."
                     (cadr (assq pkg package-archive-contents))))))
          (name (if desc (package-desc-name desc) pkg))
          (pkg-dir (if desc (package-desc-dir desc)))
-         (reqs (if desc (package-desc-reqs desc)))
+         (reqs (if desc (package--dependencies desc)))
          (required-by (if desc (package--used-elsewhere-p desc nil 'all)))
          (version (if desc (package-desc-version desc)))
          (archive (if desc (package-desc-archive desc)))
@@ -2786,10 +2786,11 @@ Helper function for `describe-package'."
       (package--print-help-section "Summary"
         (package-desc-summary desc)))
 
-    (setq reqs (if desc (package-desc-reqs desc)))
+    (setq reqs (if desc (package--dependencies desc)))
     (when reqs
       (package--print-help-section "Requires")
-      (let ((first t))
+      (let ((immediate (package-desc-reqs desc))
+            (first t))
         (dolist (req reqs)
           (let* ((name (car req))
                  (vers (cadr req))
@@ -2804,7 +2805,9 @@ Helper function for `describe-package'."
                    (insert ",\n               "))
                   (t (insert ", ")))
             (help-insert-xref-button text 'help-package name)
-            (insert reason)))
+            (insert (if (assq name immediate) ""
+                      (propertize "*" 'help-echo "Transitive dependency"))
+                    reason)))
         (insert "\n")))
     (when required-by
       (package--print-help-section "Required by")
