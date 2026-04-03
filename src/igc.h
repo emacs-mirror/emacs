@@ -82,6 +82,7 @@ Lisp_Object *igc_xnrealloc_lisp_objs_exact (ptrdiff_t nitems_old,
 struct kboard *igc_alloc_kboard (void);
 struct hash_table_user_test *igc_alloc_hash_table_user_test (void);
 struct glyph_matrix *igc_alloc_glyph_matrix (void);
+struct glyph_pool *igc_alloc_glyph_pool (void);
 
 struct Lisp_Vector *igc_alloc_pseudovector (size_t nwords_mem,
 					    size_t nwords_lisp,

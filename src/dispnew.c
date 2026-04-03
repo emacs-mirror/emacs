@@ -257,7 +257,8 @@ static struct glyph_matrix *
 new_glyph_matrix (struct glyph_pool *pool)
 {
 #ifdef HAVE_MPS
-  struct glyph_matrix *result = igc_alloc_glyph_matrix ();
+  struct glyph_matrix *result
+    = pool ? xzalloc (sizeof *result) : igc_alloc_glyph_matrix ();
 #else
   struct glyph_matrix *result = xzalloc (sizeof *result);
 #endif
@@ -306,7 +307,10 @@ free_glyph_matrix (struct glyph_matrix *matrix)
       /* Free row structures and the matrix itself.  */
       xfree (matrix->rows);
 #ifdef HAVE_MPS
-      igc_xfree (matrix);
+      if (matrix->pool == NULL)
+	igc_xfree (matrix);
+      else
+	xfree (matrix);
 #else
       xfree (matrix);
 #endif
@@ -1357,7 +1361,11 @@ row_equal_p (struct glyph_row *a, struct glyph_row *b, bool mouse_face_p)
 static struct glyph_pool * ATTRIBUTE_MALLOC
 new_glyph_pool (void)
 {
+#ifdef HAVE_MPS
+  struct glyph_pool *result = igc_alloc_glyph_pool ();
+#else
   struct glyph_pool *result = xzalloc (sizeof *result);
+#endif
 
 #if defined GLYPH_DEBUG && defined ENABLE_CHECKING
   /* For memory leak and double deletion checking.  */
@@ -1386,7 +1394,11 @@ free_glyph_pool (struct glyph_pool *pool)
       eassert (glyph_pool_count >= 0);
 #endif
       xfree (pool->glyphs);
+#ifdef HAVE_MPS
+      igc_xfree (pool);
+#else
       xfree (pool);
+#endif
     }
 }
 

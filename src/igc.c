@@ -2832,6 +2832,7 @@ fix_glyph_array (mps_ss_t ss, size_t len, struct glyph array[len])
 static mps_res_t
 fix_glyph_matrix (mps_ss_t ss, struct glyph_matrix *matrix)
 {
+  igc_assert (matrix->pool == NULL);
   MPS_SCAN_BEGIN (ss)
   {
     struct glyph_row *row = matrix->rows;
@@ -2898,10 +2899,12 @@ fix_frame (mps_ss_t ss, struct frame *f)
     IGC_FIX12_OBJ (ss, &f->conversion.field);
 #endif
 
+#if 0
     if (f->current_pool)
       IGC_FIX_CALL (ss, fix_glyph_pool (ss, f->current_pool));
     if (f->desired_pool)
       IGC_FIX_CALL (ss, fix_glyph_pool (ss, f->desired_pool));
+#endif
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -4318,6 +4321,22 @@ igc_alloc_glyph_matrix (void)
   root_create_exact (global_igc, m, m + 1, scan_glyph_matrix,
 		     "glyph_matrix");
   return m;
+}
+
+static mps_res_t
+scan_glyph_pool (mps_ss_t ss, void *start, void *end, void *closure)
+{
+  struct glyph_pool *p = start;
+  return fix_glyph_pool (ss, p);
+}
+
+struct glyph_pool *
+igc_alloc_glyph_pool (void)
+{
+  struct glyph_pool *p = xzalloc (sizeof *p);
+  root_create_exact (global_igc, p, p + 1, scan_glyph_pool,
+		     "glyph_pool");
+  return p;
 }
 
 static void
