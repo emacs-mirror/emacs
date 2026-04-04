@@ -32842,6 +32842,8 @@ produce_special_glyphs (struct it *it, enum display_element_type what,
 	  /* Mirror for R2L.  */
 	  if (direction == R2L)
 	    {
+	      face_id = GLYPH_CODE_FACE (gc);
+
 	      /* Try bidi mirroring first.  */
 	      int c = bidi_mirror_char (GLYPH_CODE_CHAR (gc));
 
@@ -32861,10 +32863,17 @@ produce_special_glyphs (struct it *it, enum display_element_type what,
 		      else
 			SET_GLYPH (glyph, '/', face_id);
 		    }
+		  else
+		    SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
 		}
 	      else
+		{
+		  struct face *face = FACE_FROM_ID (it->f, face_id);
+		  int id = FACE_FOR_CHAR (it->f, face, c, -1, Qnil);
+
 		  /* Bidi mirroring.  */
-		  SET_GLYPH (glyph, c, face_id);
+		  SET_GLYPH (glyph, c, id);
+		}
 	    }
 	  else
 	    /* No mirroring.  */
@@ -32903,6 +32912,8 @@ produce_special_glyphs (struct it *it, enum display_element_type what,
 	  if (((it->bidi_it.paragraph_dir == R2L) && !left_edge_p) ||
 	      ((it->bidi_it.paragraph_dir == L2R) && left_edge_p))
 	    {
+	      face_id = GLYPH_CODE_FACE (gc);
+
 	      /* Try bidi mirroring first.  */
 	      int c = bidi_mirror_char (GLYPH_CODE_CHAR (gc));
 
@@ -32922,6 +32933,8 @@ produce_special_glyphs (struct it *it, enum display_element_type what,
 		      else
 			SET_GLYPH (glyph, '$', face_id);
 		    }
+		  else
+		    SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
 		}
 	      else
 		{
