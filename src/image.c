@@ -3755,7 +3755,7 @@ struct anim_cache
 {
   /* 'Key' of this cache entry.
      Typically the cdr (plist) of an image spec.  */
-  Lisp_Object spec;
+  gc_handle spec;
   /* Image type dependent animation handle (e.g., WebP iterator), freed
      by 'destructor'.  The union allows maintaining multiple fields per
      image type and image frame without further heap allocations.  */
@@ -3794,12 +3794,25 @@ static ATTRIBUTE_MALLOC struct anim_cache *
 anim_create_cache (Lisp_Object spec)
 {
   struct anim_cache *cache = xzalloc (sizeof *cache);
-  cache->spec = spec;
+  cache->spec = gc_handle_for (spec);
   cache->index = -1;
   cache->frames = -1;
   cache->width = -1;
   cache->height = -1;
   return cache;
+}
+
+static void
+anim_cache_free (struct anim_cache *cache)
+{
+  free_gc_handle (cache->spec);
+  xfree (cache);
+}
+
+static Lisp_Object
+anim_cache_spec (struct anim_cache *cache)
+{
+  return gc_handle_value (cache->spec);
 }
 
 /* Discard cached images that haven't been used for a minute.  If
@@ -3818,12 +3831,12 @@ anim_prune_animation_cache (Lisp_Object clear)
       struct anim_cache *cache = *pcache;
       if (EQ (clear, Qt)
 	  || (NILP (clear) && timespec_cmp (old, cache->update_time) > 0)
-	  || EQ (clear, cache->spec))
+	  || EQ (clear, anim_cache_spec (cache)))
 	{
 	  if (cache->destructor)
 	    cache->destructor (&cache->handle);
 	  *pcache = cache->next;
-	  xfree (cache);
+	  anim_cache_free (cache);
 	}
       else
 	pcache = &cache->next;
@@ -3846,7 +3859,7 @@ anim_get_animation_cache (Lisp_Object spec)
           *pcache = cache = anim_create_cache (spec);
           break;
         }
-      if (EQ (spec, cache->spec))
+      if (EQ (spec, anim_cache_spec (cache)))
 	break;
       pcache = &cache->next;
     }
@@ -3881,11 +3894,6 @@ mark_image_cache (struct image_cache *c)
 	if (c->images[i])
 	  mark_image (c->images[i]);
     }
-
-#if defined HAVE_WEBP || defined HAVE_GIF
-  for (struct anim_cache *cache = anim_cache; cache; cache = cache->next)
-    mark_object (cache->spec);
-#endif
 }
 
 #endif // not HAVE_MPS
