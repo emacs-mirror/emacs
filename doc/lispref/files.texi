@@ -2777,6 +2777,9 @@ the end of the file name.
 
 If @var{text} is a string, @code{make-temp-file} inserts it in the file.
 
+On Posix systems, Emacs creates the file with permissions that limit its
+access to the current user.
+
 To prevent conflicts among different libraries running in the same
 Emacs, each Lisp program that uses @code{make-temp-file} should have its
 own @var{prefix}.  The number added to the end of @var{prefix}

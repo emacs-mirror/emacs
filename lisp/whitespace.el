@@ -907,9 +907,9 @@ means that `whitespace-mode' is turned on for buffers in C and
 C++ modes only.
 
 Global `whitespace-mode' will not automatically turn on in internal
-buffers (with name starting from space) and special buffers (with name
-starting from \"*\"), except \"*scratch*\" buffer.  Use
-`whitespace-global-mode-buffers' to customize this behavior."
+buffers (whose names start with a space) and special buffers (whose
+names start with \"*\"), with the exception of the \"*scratch*\" buffer.
+Use `whitespace-global-mode-buffers' to customize this behavior."
   :type '(choice :tag "Global Modes"
 		 (const :tag "None" nil)
 		 (const :tag "All" t)
@@ -919,11 +919,11 @@ starting from \"*\"), except \"*scratch*\" buffer.  Use
 		      (repeat :inline t
 			      (symbol :tag "Mode")))))
 
-(defcustom whitespace-global-mode-buffers (list (regexp-quote "*scratch*"))
+(defcustom whitespace-global-mode-buffers (list (rx bos "*scratch*" eos))
   "Buffer name regexps where global `whitespace-mode' can be auto-enabled.
 The value is a list of regexps.  Set this custom option when you need
-`whitespace-mode' in special buffers like *Org Src*."
-  :type '(list (regexp :tag "Regexp matching buffer name"))
+`whitespace-mode' in special buffers like \"*Org Src*\"."
+  :type '(repeat (regexp :tag "Regexp matching buffer name"))
   :version "31.1")
 
 (defcustom whitespace-action nil
@@ -1049,14 +1049,13 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
          ;; ...we have a display (not running a batch job)
          (not noninteractive)
          ;; ...the buffer is not internal (name starts with a space)
-         (not (eq (aref (buffer-name) 0) ?\ ))
+         (not (eq (aref (buffer-name) 0) ?\s))
          ;; ...the buffer is not special (name starts with *)
          (or (not (eq (aref (buffer-name) 0) ?*))
-             ;; except the scratch buffer.
-             (seq-find
-              (lambda (re)
-                (string-match-p re (buffer-name)))
-              whitespace-global-mode-buffers))))
+             ;; except, e.g., the scratch buffer.
+             (any (lambda (re)
+                    (string-match-p re (buffer-name)))
+                  whitespace-global-mode-buffers))))
   "Predicate to decide which buffers obey `global-whitespace-mode'.
 This function is called with no argument and should return non-nil
 if the current buffer should obey `global-whitespace-mode'.

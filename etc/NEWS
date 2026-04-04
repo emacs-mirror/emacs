@@ -1760,6 +1760,15 @@ If 'page-delimiters' is set in 'whitespace-style', or the new minor mode
 width of the window.  The new 'whitespace-page-delimiter' face can be
 used to customize the appearance.
 
+---
+*** New user option 'whitespace-global-mode-buffers'.
+Normally, 'global-whitespace-mode' skips special buffers whose name
+starts with an asterisk '*'.  This user option provides an override: it
+contains a list of regular expressions used to match the names of
+special buffers in which 'global-whitespace-mode' should turn on.  The
+default value preserves the existing exception for the "*scratch*"
+buffer.
+
 ** Bookmark
 
 ---
@@ -2531,6 +2540,12 @@ of a literal newline.  This prevents executing many Dired operations on
 such a file from failing and signaling an error.  The default value of
 this user option is nil.
 
+---
+*** New Dired handling of errors from 'ls'.
+When invoking a Dired command causes 'ls' to emit an error message,
+Emacs now displays the message in a popped up buffer instead of
+outputting it in the Dired buffer and signaling an error.
+
 ** Grep
 
 +++
@@ -3186,6 +3201,11 @@ This minor mode binds 'xref-find-definitions-at-mouse' to
 'C-<down-mouse-1>', allowing you to "control click" to jump to a
 definition, following the convention from other editors.  The global
 minor mode 'global-xref-mouse-mode' will enable this in all buffers.
+
++++
+*** New command 'xref-change-to-xref-edit-mode'.
+It's bound to "e" and it switches an Xref buffer into an "editable" mode
+like similar features in Occur and Grep buffers.
 
 ** Revert
 
@@ -4093,6 +4113,14 @@ unlike 'char-displayable-p', does not check whether the character can be
 encoded by the underlying terminal.
 
 +++
+** New function 'frame-initial-p'.
+This predicate returns non-nil if a given frame or terminal is or holds,
+respectively, the initial text frame that is used internally during
+daemon mode, batch mode, and the early stages of startup.  Interactive
+and graphical programs, for instance, can use this predicate to avoid
+operating on the initial frame, which is never displayed.
+
++++
 ** New macros 'static-when' and 'static-unless'.
 Like 'static-if', these macros evaluate their condition at
 macro-expansion time and are useful for writing code that can work
@@ -4123,6 +4151,17 @@ change it globally with:
 
 ---
 *** Loading a file displays a warning if there is no 'lexical-binding' cookie.
+
+---
+** New function 'set-local'.
+This is the buffer local equivalent of the function 'set'.
+
++++
+** New macro 'setopt-local'.
+This is the buffer local version of 'setopt' for user options rather
+than plain variables and uses 'custom-set'/'set-local' to set variable
+values.  A new argument, BUFFER-LOCAL, is passed to 'custom-set'
+functions to indicate the buffer local context.
 
 +++
 ** New macros 'incf' and 'decf'.
@@ -4457,6 +4496,13 @@ singleton list.
 
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
+
+---
+** Support macOS Accessibility Zoom focus tracking.
+This is an important change for visually-impaired users.  If macOS
+Accessibility Zoom is enabled (System Settings, Accessibility, Zoom)
+with keyboard focus tracking (Advanced...), Zoom is informed of updated
+cursor positions during each redisplay cycle.
 
 ---
 ** Process execution has been optimized on Android.

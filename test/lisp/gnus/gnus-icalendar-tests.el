@@ -35,7 +35,7 @@
   (let (event)
     (with-temp-buffer
       (insert ical-string)
-      (setq event (gnus-icalendar-event-from-buffer (buffer-name) participant)))
+      (setq event (gnus-icalendar-event-from-buffer (current-buffer) participant)))
     event))
 
 (ert-deftest gnus-icalendar-parse ()
@@ -94,7 +94,8 @@ END:VCALENDAR
           (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
           (should (eq (eieio-object-class event) 'gnus-icalendar-event-request))
           (should (not (gnus-icalendar-event:recurring-p event)))
-          (should (string= (gnus-icalendar-event:start event) "2020-12-08 15:00"))
+          (should (equal (gnus-icalendar-event:start event)
+                         "2020-12-08 15:00"))
           (with-slots (organizer summary description location end-time uid rsvp participation-type) event
                       (should (string= organizer "anoncompany.com_3bm6fh805bme9uoeliqcle1sag@group.calendar.google.com"))
                       (should (string= summary "Townhall | All Company Meeting"))
@@ -106,9 +107,20 @@ END:VCALENDAR
                       (should (eq participation-type 'non-participant))))
       (setenv "TZ" tz))))
 
+(defun gnus-icalendar-at/@ ()
+  "Replace \" <at> \" with \"@\" before parsing."
+  (goto-char (point-min))
+  (while (re-search-forward " <at> " nil t)
+    (replace-match "@")))
+
+;; FIXME: is "icalendary" (not "icalendar") intentional, here and below?
 (ert-deftest gnus-icalendary-byday ()
   ""
-  (let ((tz (getenv "TZ"))
+  (let* ((tz (getenv "TZ"))
+        (icalendar-pre-parsing-hook
+         ;; clean up " <at> " addresses so the parser doesn't choke...
+         ;; FIXME: can we just change the test data, or is this a real example?
+         '(gnus-icalendar-at/@))
         (event (gnus-icalendar-tests--get-ical-event "\
 BEGIN:VCALENDAR
 PRODID:Zimbra-Calendar-Provider
@@ -138,8 +150,8 @@ SUMMARY:appointment every weekday\\, start jul 24\\, 2020\\, end aug 24\\, 2020
 ATTENDEE;CN=Mark Hershberger;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP
  =TRUE:mailto:hexmode <at> gmail.com
 ORGANIZER;CN=Mark A. Hershberger:mailto:mah <at> nichework.com
-DTSTART;TZID=\"America/New_York\":20200724T090000
-DTEND;TZID=\"America/New_York\":20200724T093000
+DTSTART;TZID=America/New_York:20200724T090000
+DTEND;TZID=America/New_York:20200724T093000
 STATUS:CONFIRMED
 CLASS:PUBLIC
 X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
@@ -163,10 +175,12 @@ END:VCALENDAR" (list "Mark Hershberger"))))
           (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
     (should (eq (eieio-object-class event) 'gnus-icalendar-event-request))
     (should (gnus-icalendar-event:recurring-p event))
-    (should (string= (gnus-icalendar-event:recurring-interval event) "1"))
+    (should (= 1 (gnus-icalendar-event:recurring-interval event)))
     (should (string= (gnus-icalendar-event:start event) "2020-07-24 15:00"))
     (with-slots (organizer summary description location end-time uid rsvp participation-type) event
-      (should (string= organizer "mah <at> nichework.com"))
+      (should (string= organizer
+                       (replace-regexp-in-string " <at> " "@"
+                                                 "mah <at> nichework.com")))
       (should (string= summary "appointment every weekday, start jul 24, 2020, end aug 24, 2020"))
       (should (string= description "The following is a new meeting request:"))
       (should (null location))
@@ -236,7 +250,7 @@ END:VCALENDAR" (list "participant@anoncompany.com"))))
           (setenv "TZ" "CET-1CEST,M3.5.0/2,M10.5.0/3")
           (should (eq (eieio-object-class event) 'gnus-icalendar-event-request))
           (should (gnus-icalendar-event:recurring-p event))
-          (should (string= (gnus-icalendar-event:recurring-interval event) "1"))
+          (should (= 1 (gnus-icalendar-event:recurring-interval event)))
           (should (string= (gnus-icalendar-event:start event) "2020-09-15 14:00"))
           (with-slots (organizer summary description location end-time uid rsvp participation-type) event
             (should (string= organizer "anon@anoncompany.com"))
@@ -258,6 +272,29 @@ END:VCALENDAR" (list "participant@anoncompany.com"))))
 (ert-deftest gnus-icalendar-accept-with-comment ()
   ""
   (let ((event "\
+BEGIN:VCALENDAR
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
 BEGIN:VEVENT
 DTSTART;TZID=Europe/Berlin:20200915T140000
 DTEND;TZID=Europe/Berlin:20200915T143000
@@ -275,7 +312,8 @@ SEQUENCE:0
 STATUS:CONFIRMED
 SUMMARY:Casual coffee talk
 TRANSP:OPAQUE
-END:VEVENT")
+END:VEVENT
+END:VCALENDAR")
         (icalendar-identities '("participant@anoncompany.com")))
     (let* ((reply (with-temp-buffer
                     (insert event)
@@ -292,6 +330,29 @@ END:VEVENT")
 (ert-deftest gnus-icalendar-decline-without-changing-comment ()
   ""
   (let ((event "\
+BEGIN:VCALENDAR
+PRODID:-//Google Inc//Google Calendar 70.9054//EN
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
 BEGIN:VEVENT
 DTSTART;TZID=Europe/Berlin:20200915T140000
 DTEND;TZID=Europe/Berlin:20200915T143000
@@ -310,7 +371,8 @@ SEQUENCE:0
 STATUS:CONFIRMED
 SUMMARY:Casual coffee talk
 TRANSP:OPAQUE
-END:VEVENT")
+END:VEVENT
+END:VCALENDAR")
         (icalendar-identities '("participant@anoncompany.com")))
     (let* ((reply (with-temp-buffer
                     (insert event)

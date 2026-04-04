@@ -8012,6 +8012,7 @@ always located at the beginning of buffer."
     def test():"
 
    (setopt treesit-font-lock-level 4)
+   (font-lock-ensure)
    (dolist (test '("pytest" "mark" "skip"))
      (search-forward test)
      (goto-char (match-beginning 0))
@@ -8022,6 +8023,7 @@ always located at the beginning of buffer."
    "all()"
    ;; enable 'function' feature from 4th level
    (setopt treesit-font-lock-level 4)
+   (font-lock-ensure)
    (should (eq (face-at-point) 'font-lock-builtin-face))))
 
 (ert-deftest python-ts-mode-interpolation-nested-string ()
@@ -8050,6 +8052,7 @@ always located at the beginning of buffer."
    "t = f\"beg {True + var}\""
 
    (setopt treesit-font-lock-level 2)
+   (font-lock-ensure)
    (search-forward "f")
    (goto-char (match-beginning 0))
    (should (not (eq (face-at-point) 'font-lock-string-face)))
@@ -8068,6 +8071,7 @@ always located at the beginning of buffer."
          (setf (nth 2 treesit-font-lock-feature-list)
                (remq 'string-interpolation (nth 2 treesit-font-lock-feature-list)))
          (setopt treesit-font-lock-level 3)
+         (font-lock-ensure)
 
          (search-forward "f")
          (goto-char (match-beginning 0))

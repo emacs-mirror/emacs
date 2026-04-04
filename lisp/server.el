@@ -706,6 +706,7 @@ the `server-process' variable."
 	    ;; when we can't get user input, which may happen when
 	    ;; doing emacsclient --eval "(kill-emacs)" in daemon mode.
 	    (cond
+             ;; Use `frame-initial-p'?
 	     ((and (daemonp)
 		   (null (cdr (frame-list)))
 		   (eq (selected-frame) terminal-frame))
@@ -1429,6 +1430,7 @@ The following commands are accepted by the client:
 			 (or (eq use-current-frame 'always)
 			     ;; We can't use the Emacs daemon's
 			     ;; terminal frame.
+                             ;; Use `frame-initial-p'?
 			     (not (and (daemonp)
 				       (null (cdr (frame-list)))
 				       (eq (selected-frame)
@@ -1453,6 +1455,7 @@ The following commands are accepted by the client:
                    ;; If there won't be a current frame to use, fall
                    ;; back to trying to create a new one.
 		   ((and use-current-frame
+                         ;; Use `frame-initial-p'?
 			 (daemonp)
 			 (null (cdr (frame-list)))
 			 (eq (selected-frame) terminal-frame)

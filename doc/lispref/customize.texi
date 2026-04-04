@@ -372,12 +372,15 @@ added by calls to @code{custom-add-frequent-value} (see below).
 @item :set @var{setfunction}
 Specify @var{setfunction} as the way to change the value of this
 option when using the Customize interface.  The function
-@var{setfunction} should take two arguments, a symbol (the option
-name) and the new value, and should do whatever is necessary to update
+@var{setfunction} should take two or three arguments, a symbol (the option
+name), the new value, and an optional @var{buffer-local} indicator.
+@var{setfunction} should do whatever is necessary to update
 the value properly for this option (which may not mean simply setting
 the option as a Lisp variable); preferably, though, it should not
-modify its value argument destructively.  The default for
-@var{setfunction} is @code{set-default-toplevel-value}.
+modify its value argument destructively.  If optional @var{buffer-local}
+is non-nil, the new value should be set buffer locally and not affect its
+global or default values.  The default for @var{setfunction} is
+@code{set-default-toplevel-value}.
 
 If defined, @var{setfunction} will also be called when evaluating a
 @code{defcustom} form with @kbd{C-M-x} in Emacs Lisp mode and when the
@@ -387,7 +390,7 @@ If defined, @var{setfunction} will also be called when evaluating a
 If you specify this keyword, the variable's documentation string
 should describe how to do the same job in hand-written Lisp code,
 either by invoking @var{setfunction} directly or by using
-@code{setopt}.
+@code{setopt} or @code{setopt-local}.
 
 @kindex get@r{, @code{defcustom} keyword}
 @item :get @var{getfunction}

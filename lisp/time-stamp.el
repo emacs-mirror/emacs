@@ -53,7 +53,7 @@ with %, which are converted as follows:
 %H    24-hour clock hour               %I    12-hour clock hour
 %m    month number
 %M    minute
-%p    meridian indicator: `AM', `PM'
+%p    meridiem indicator: `AM', `PM'
 %S    seconds
 %w    day number of week, Sunday is 0
 %Y    4-digit year                     %y    2-digit year
@@ -1039,39 +1039,45 @@ This is an internal function called by `time-stamp'."
                                                offset-secs)
   "Format a time offset according to a %z variation.
 
-With no flags, the output includes hours and minutes: +-HHMM
-unless there is a non-zero seconds part, in which case the seconds
-are included: +-HHMMSS
-
-FLAG-MINIMIZE is whether \"-\" was specified.  If non-nil, the
-output may be limited to hours if minutes and seconds are zero.
-
-FLAG-PAD-SPACES-ONLY is whether \"_\" was specified.  If non-nil,
-seconds must be output, so that any padding can be spaces only.
-
-FLAG-PAD-ZEROS-FIRST is whether \"0\" was specified.  If non-nil,
-padding to the requested FIELD-WIDTH (if any) is done by adding
-00 seconds before padding with spaces.
-
-COLON-COUNT is the number of colons preceding the \"z\" (0-3).  One or
-two colons put that many colons in the output (+-HH:MM or +-HH:MM:SS).
-Three colons outputs only hours if minutes and seconds are zero and
-includes colon separators if minutes and seconds are output.
-
-FIELD-WIDTH is a whole number giving the minimum number of characters
-in the output; 0 specifies no minimum.  Additional characters will be
-added on the right if necessary.  The added characters will be spaces
-unless FLAG-PAD-ZEROS-FIRST is non-nil.
-
-OFFSET-SECS is the time zone offset (in seconds east of UTC) to be
-formatted according to the preceding parameters.
+Format parts FLAG-MINIMIZE, FLAG-PAD-SPACES-ONLY,
+FLAG-PAD-ZEROS-FIRST, COLON-COUNT, and FIELD-WIDTH
+are used to format time zone offset OFFSET-SECS.
 
 This is an internal function used by `time-stamp'."
+
   ;; Callers of this function need to have already parsed the %z
   ;; format string; this function accepts just the parts of the format.
   ;; `time-stamp-string-preprocess' is the full-fledged parser normally
   ;; used.  The unit test (in time-stamp-tests.el) defines the simpler
   ;; parser `format-time-offset'.
+
+  ;; OFFSET-SECS is the time zone offset (in seconds east of UTC) to be
+  ;; formatted according to the following parameters.
+
+  ;; FLAG-MINIMIZE is whether \"-\" was specified.  If non-nil, the
+  ;; output may be limited to hours if minutes and seconds are zero.
+
+  ;; FLAG-PAD-SPACES-ONLY is whether \"_\" was specified.  If non-nil,
+  ;; seconds must be output, so that any padding can be spaces only.
+
+  ;; FLAG-PAD-ZEROS-FIRST is whether \"0\" was specified.  If non-nil,
+  ;; padding to the requested FIELD-WIDTH (if any) is done by adding
+  ;; 00 seconds before padding with spaces.
+
+  ;; COLON-COUNT is the number of colons preceding the \"z\" (0-3).  One or
+  ;; two colons put that many colons in the output (+-HH:MM or +-HH:MM:SS).
+  ;; Three colons outputs only hours if minutes and seconds are zero and
+  ;; includes colon separators if minutes and seconds are output.
+
+  ;; FIELD-WIDTH is a whole number giving the minimum number of characters
+  ;; in the output; 0 specifies no minimum.  Additional characters will be
+  ;; added on the right if necessary.  The added characters will be spaces
+  ;; unless FLAG-PAD-ZEROS-FIRST is non-nil.
+
+  ;; With no flags set, the output includes hours and minutes: +-HHMM
+  ;; unless there is a non-zero seconds part, in which case the seconds
+  ;; are included: +-HHMMSS
+
   (let ((hrs (/ (abs offset-secs) 3600))
         (mins (/ (% (abs offset-secs) 3600) 60))
         (secs (% (abs offset-secs) 60))

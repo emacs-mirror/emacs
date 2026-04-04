@@ -251,8 +251,8 @@ decode_live_terminal (Lisp_Object terminal)
   return t;
 }
 
-/* Like decode_terminal, but ensure that the resulting terminal object refers
-   to a text-based terminal device.  */
+/* Like decode_live_terminal, but ensure that the resulting terminal
+   object refers to a text-based terminal device.  */
 
 struct terminal *
 decode_tty_terminal (Lisp_Object terminal)
@@ -508,6 +508,25 @@ return values.  */)
     }
 }
 
+DEFUN ("frame-initial-p", Fframe_initial_p, Sframe_initial_p, 0, 1, 0,
+       doc: /* Return non-nil if FRAME is the initial frame.
+That is, the initial text frame used internally during daemon mode,
+batch mode, and the early stages of startup.
+If FRAME is a terminal object, return non-nil if it holds
+the initial frame.  FRAME defaults to the selected frame.  */)
+  (Lisp_Object frame)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+  if (FRAMEP (frame))
+    {
+      struct frame *f = XFRAME (frame);
+      return FRAME_LIVE_P (f) && FRAME_INITIAL_P (f) ? Qt : Qnil;
+    }
+  struct terminal *t = decode_terminal (frame);
+  return t && t->type == output_initial ? Qt : Qnil;
+}
+
 DEFUN ("terminal-list", Fterminal_list, Sterminal_list, 0, 0, 0,
        doc: /* Return a list of all terminal devices.  */)
   (void)
@@ -680,8 +699,6 @@ init_initial_terminal (void)
 #else
   initial_terminal_lisp = make_lisp_ptr (create_terminal (output_initial, NULL), Lisp_Vectorlike);
 #endif
-  /* Note: menu-bar.el:menu-bar-update-buffers knows about this
-     special name of the initial terminal.  */
   initial_terminal->name = xstrdup ("initial_terminal");
   initial_terminal->kboard = initial_kboard;
   initial_terminal->delete_terminal_hook = &delete_initial_terminal;
@@ -725,6 +742,7 @@ or some time later.  */);
   Vdelete_terminal_functions = Qnil;
 
   DEFSYM (Qterminal_live_p, "terminal-live-p");
+  DEFSYM (Qframe_initial_p, "frame-initial-p");
   DEFSYM (Qdelete_terminal_functions, "delete-terminal-functions");
   DEFSYM (Qrun_hook_with_args, "run-hook-with-args");
 
@@ -734,6 +752,7 @@ or some time later.  */);
   defsubr (&Sdelete_terminal);
   defsubr (&Sframe_terminal);
   defsubr (&Sterminal_live_p);
+  defsubr (&Sframe_initial_p);
   defsubr (&Sterminal_list);
   defsubr (&Sterminal_name);
   defsubr (&Sterminal_parameters);

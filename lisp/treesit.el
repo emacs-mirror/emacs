@@ -753,10 +753,10 @@ that encompasses the region between START and END."
                                 (numberp (cdr range-offset)))
                      (signal 'treesit-error (list "Value of :offset option should be a pair of numbers" range-offset)))
                    (setq offset range-offset)))
-        (:range-fn (let ((range-fn (pop query-specs)))
-                     (unless (functionp range-fn)
-                       (signal 'treesit-error (list "Value of :range-fn option should be a function" range-fn)))
-                     (setq range-fn range-fn)))
+        (:range-fn (let ((fn (pop query-specs)))
+                     (unless (functionp fn)
+                       (signal 'treesit-error (list "Value of :range-fn option should be a function" fn)))
+                     (setq range-fn fn)))
         (query (if (functionp query)
                    (push (list query nil nil) result)
                  (when (null embed)
@@ -1423,22 +1423,31 @@ LANGUAGE is the language of QUERY.")
     (setf (nth 1 new-setting) t)
     new-setting))
 
-(defun treesit--font-lock-level-setter (sym val)
+(defun treesit--font-lock-level-setter (sym val &optional buffer-local)
   "Custom setter for `treesit-font-lock-level'.
 Set the default value of SYM to VAL, recompute fontification
 features and refontify for every buffer where tree-sitter-based
-fontification is enabled."
-  (set-default sym val)
-  (when (treesit-available-p)
-    (dolist (buffer (buffer-list))
-      (with-current-buffer buffer
-        ;; FIXME: This doesn't re-run major mode hooks, meaning any
-        ;; customization done in major mode hooks (e.g., with
-        ;; `treesit-font-lock-recompute-features') is lost.
-        (when treesit-font-lock-settings
-          (treesit-font-lock-recompute-features)
-          (treesit-font-lock-fontify-region
-           (point-min) (point-max)))))))
+fontification is enabled.
+
+If optional BUFFER-LOCAL is non-nil, only affect the current buffer.
+Set SYM buffer locally and refontify."
+  ;; FIXME: This doesn't re-run major mode hooks, meaning any
+  ;; customization done in major mode hooks (e.g., with
+  ;; `treesit-font-lock-recompute-features') may be overridden.
+  (cond (buffer-local
+         (set-local sym val)
+         (when (and (treesit-available-p)
+                    treesit-font-lock-settings)
+           (treesit-font-lock-recompute-features)
+           (font-lock-flush)))
+        (t
+         (set-default sym val)
+         (when (treesit-available-p)
+           (dolist (buffer (buffer-list))
+             (with-current-buffer buffer
+               (when treesit-font-lock-settings
+                 (treesit-font-lock-recompute-features)
+                 (font-lock-flush))))))))
 
 (defcustom treesit-font-lock-level 3
   "Decoration level to be used by tree-sitter fontifications.
@@ -2050,9 +2059,8 @@ If LOUDLY is non-nil, display some debugging information."
           (pcase-let ((`(,max-depth ,max-width)
                        (treesit-subtree-stat
                         (treesit-buffer-root-node language))))
-            (if (or (> max-depth 100) (> max-width 4000))
-                (setq treesit--font-lock-fast-mode t)
-              (setq treesit--font-lock-fast-mode nil))))
+            (setq treesit--font-lock-fast-mode
+                  (or (> max-depth 100) (> max-width 4000)))))
 
         ;; Only activate if ENABLE flag is t.
         (when-let*
@@ -5849,7 +5857,7 @@ language."
   "Pattern matching"
   (treesit-query-capture
    :no-eval (treesit-query-capture node '((identifier) @id "return" @ret))
-   :eg-result-string "((id . #<treesit-node (identifier) in 195-196>) (ret . #<treesit-node "return" in 338-344>))")
+   :eg-result-string "((id . #<treesit-node (identifier) in 195-196>) (ret . #<treesit-node \"return\" in 338-344>))")
   (treesit-query-compile
    :no-eval (treesit-query-compile 'c '((identifier) @id "return" @ret))
    :eg-result-string "#<treesit-compiled-query>")

@@ -1006,7 +1006,7 @@ Failing that, choose the first face in both NEW-FACES and NORMALS."
                  (dolist (candidate (cdr ranks))
                    (when (and (not (equal candidate choice))
                               (gethash candidate (car new-faces))
-                              (gethash choice normals))
+                              (gethash candidate normals))
                      (throw 'face candidate)))
                  ;; Otherwise, go with any "normal" face other than
                  ;; `choice' in the region.

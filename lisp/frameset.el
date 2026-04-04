@@ -1370,12 +1370,10 @@ All keyword parameters default to nil."
                               ;; frame, as that would only trigger
                               ;; warnings.
                               (not
-                               (and (daemonp)
-                                    (equal (terminal-name (frame-terminal
-                                                           frame))
-                                           "initial_terminal"))))
-			     (delete-frame frame)))
-		       cleanup-frames)))
+                               (and (daemonp) ;; FIXME: Remove `daemonp'?
+                                    (frame-initial-p frame))))
+                     (delete-frame frame)))
+               cleanup-frames)))
 	(maphash (lambda (frame _action) (push frame map)) frameset--action-map)
 	(dolist (frame (sort map
 			     ;; Minibufferless frames must go first to avoid

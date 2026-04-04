@@ -160,6 +160,10 @@ of previous VARs.
       (push `(set-default ',(pop args) ,(pop args)) exps))
     `(progn . ,(nreverse exps))))
 
+(defun set-local (variable value)
+  "Make VARIABLE buffer local and set it to VALUE."
+  (set (make-local-variable variable) value))
+
 (defmacro setq-local (&rest pairs)
   "Make each VARIABLE local to current buffer and set it to corresponding VALUE.
 
@@ -181,7 +185,7 @@ In some corner cases you may need to resort to
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
   (unless (evenp (length pairs))
-    (error "PAIRS must have an even number of variable/value members"))
+    (signal 'wrong-number-of-arguments (list 'setq-local (length pairs))))
   (let ((expr nil))
     (while pairs
       (unless (symbolp (car pairs))
@@ -229,7 +233,7 @@ in order to restore the state of the local variables set via this macro.
 \(fn [VARIABLE VALUE]...)"
   (declare (debug setq))
   (unless (evenp (length pairs))
-    (error "PAIRS must have an even number of variable/value members"))
+    (signal 'wrong-number-of-arguments (list 'buffer-local-set-state (length pairs))))
   (let ((vars nil)
         (tmp pairs))
     (while tmp (push (car tmp) vars) (setq tmp (cddr tmp)))
@@ -1226,8 +1230,13 @@ with
     (member-if (lambda (x) (foo (bar x))) items)"
   (declare (compiler-macro
             (lambda (_)
-              (let ((x (make-symbol "x")))
-                `(drop-while (lambda (,x) (not (funcall ,pred ,x))) ,list)))))
+              (let* ((x (make-symbol "x"))
+                     (f (and (not (internal--effect-free-fun-arg-p pred))
+                             (make-symbol "f")))
+                     (form `(drop-while (lambda (,x)
+                                          (not (funcall ,(or f pred) ,x)))
+                                        ,list)))
+                (if f `(let ((,f ,pred)) ,form) form)))))
   (drop-while (lambda (x) (not (funcall pred x))) list))
 
 ;; This is good to have for improved readability in certain uses, but

@@ -1661,6 +1661,7 @@ Tips and Conventions
 * Compilation Tips::        Making compiled code run fast.
 * Warning Tips::            Turning off compiler warnings.
 * Documentation Tips::      Writing readable documentation strings.
+* Documentation Group Tips::  Writing useful documentation groups.
 * Comment Tips::            Conventions for writing comments.
 * Library Headers::         Standard headers for library packages.
 

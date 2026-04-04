@@ -681,8 +681,7 @@ dos_cleanup (void)
     {
       struct frame *sf = XFRAME (selected_frame);
 
-      if (FRAME_LIVE_P (sf)
-	  && (FRAME_MSDOS_P (sf) || FRAME_TERMCAP_P (sf)))
+      if (FRAME_LIVE_P (sf) && is_tty_frame (sf))
 	{
 	  tty = CURTTY ();
 	  if (tty->termscript)

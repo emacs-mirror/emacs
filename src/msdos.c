@@ -1787,7 +1787,7 @@ internal_terminal_init (void)
 #endif
 
   /* If this is the initial terminal, we are done here.  */
-  if (sf->output_method == output_initial)
+  if (FRAME_INITIAL_P (sf))
     return;
 
   internal_terminal

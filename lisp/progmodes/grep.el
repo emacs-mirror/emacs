@@ -1089,11 +1089,15 @@ list is empty)."
           match)
       (while (setq match (text-property-search-forward 'compilation-annotation))
         (add-text-properties (prop-match-beginning match) (prop-match-end match)
-                             '(read-only t)))
+                             '(read-only t front-sticky t)))
       (goto-char (point-min))
       (while (setq match (text-property-search-forward 'compilation-message))
         (add-text-properties (prop-match-beginning match) (prop-match-end match)
-                             '(read-only t occur-prefix t))
+                             '( read-only t occur-prefix t
+                                ;; Allow insertion of text right
+                                ;; after prefix, but not before.
+                                front-sticky t
+                                rear-nonsticky t))
         (let ((loc (compilation--message->loc (prop-match-value match)))
               m)
           ;; Update the markers if necessary.

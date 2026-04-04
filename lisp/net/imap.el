@@ -870,7 +870,8 @@ t if it successfully authenticates, nil otherwise."
                (base64-encode-string
                 (format "\000%s\000%s"
                         (imap-quote-specials user)
-                        (imap-quote-specials passwd)))))))))
+                        (imap-quote-specials passwd))
+                t)))))))
 
 (defun imap-anonymous-p (_buffer)
   t)

@@ -1567,6 +1567,7 @@ recommended to enable `electric-pair-mode' with this mode."
                       (funcall c-ts-mode-indent-style)
                     (c-ts-mode--simple-indent-rules
                      'cpp c-ts-mode-indent-style)))
+      (setq-local editorconfig-indent-size-vars '(c-ts-indent-offset))
 
       ;; Font-lock.
       (setq-local treesit-font-lock-settings

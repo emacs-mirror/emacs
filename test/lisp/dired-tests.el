@@ -658,5 +658,155 @@ The current directory at call time should not affect the result (Bug#50630)."
       (let ((default-directory test-dir-other))
         (files-tests--insert-directory-shows-given-free test-dir)))))
 
+(ert-deftest dired-test-filename-with-newline-1 () ; bug#79528, bug#80499
+  "Test handling of file name with literal embedded newline."
+  ;; File names with embedded newlines are not allowed on MS-Windows and
+  ;; MS-DOS.
+  (skip-when (memq system-type '(windows-nt ms-dos)))
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let* ((dired-auto-toggle-b-switch nil)
+         (dir (ert-resource-file
+               (file-name-as-directory "filename-with-newline")))
+         (file (concat dir "filename\nwith newline"))
+         (buf (progn (make-empty-file file t)
+                     (dired (file-name-directory file))))
+         (warnbuf (get-buffer "*Warnings*")))
+    (should (dired--filename-with-newline-p))
+    (let ((beg (point))               ; beginning of file name
+          (_ (dired-move-to-end-of-filename)))
+      (should (search-backward "with newline")) ; literal space in file name
+      (should (search-backward "\n" beg))) ; literal newline in file name
+    (if noninteractive
+        (with-current-buffer "*Messages*"
+          (goto-char (point-min))
+          (should (search-forward
+                   "Warning (dired): Literal newline in file name.")))
+      (should (get-buffer-window warnbuf))
+      (with-current-buffer warnbuf
+        (goto-char (point-min))
+        (should (string-match
+                 (regexp-quote "Warning (dired): Literal newline in file name.")
+                 (buffer-substring (pos-bol) (pos-eol))))))
+    (kill-buffer buf)
+    (kill-buffer warnbuf)
+    (delete-directory dir t)))
+
+(ert-deftest dired-test-filename-with-newline-2 () ; bug#79528, bug#80499
+  "Test handling of file name with embedded newline using `b' switch."
+  ;; File names with embedded newlines are not allowed on MS-Windows and
+  ;; MS-DOS.
+  (skip-when (memq system-type '(windows-nt ms-dos)))
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let* ((dired-auto-toggle-b-switch t)
+         (dir (ert-resource-file
+               (file-name-as-directory "filename-with-newline")))
+         (file (concat dir "filename\nwith newline"))
+         (buf (progn (make-empty-file file t)
+                     (dired-noselect (file-name-directory file))))
+         (warnbuf (get-buffer "*Warnings*")))
+    (with-current-buffer buf
+      (should (dired--filename-with-newline-p))
+      (dired--toggle-b-switch)
+      (let ((beg (point))               ; beginning of file name
+            (_ (dired-move-to-end-of-filename)))
+        (should (search-backward "with\\ newline")) ; result of ls -b switch
+        (should (search-backward "\\n" beg)))) ; result of ls -b switch
+    (if noninteractive
+        (with-current-buffer "*Messages*"
+          (goto-char (point-min))
+          (should-error (search-forward
+                         "Warning (dired): Literal newline in file name.")))
+      (should-not (get-buffer "*Warnings*")))
+    (kill-buffer buf)
+    (kill-buffer warnbuf)
+    (delete-directory dir t)))
+
+(ert-deftest dired-test-ls-error-message () ; bug#80499
+  "Test invoking `dired' on a nonexisting file.
+A buffer should pop up containing the error emitted by ls.  The buffer
+visiting the nonexisting file should killed before `dired' returns,
+hence another buffer should be returned."
+  (let* ((dir (ert-resource-file (file-name-as-directory "empty-dir")))
+         (name (concat dir "bla"))
+         ;; Use PARENT = t in make-directory call to avoid failing if
+         ;; the directyory already exists for some reason.
+         (buf (progn (make-directory dir t)
+                     (dired name))))
+    ;; This is for MS-Windows and MS-DOS in the default configuration.
+    (when (and (featurep 'ls-lisp)
+               (boundp 'ls-lisp-use-insert-directory-program)
+               (null ls-lisp-use-insert-directory-program))
+      (should (bufferp buf))
+      (should (equal (buffer-name buf) (file-name-nondirectory name)))
+      (with-current-buffer buf
+        ;; 'ls-lisp' creates a Dired buffer of just 3 lines, with
+        ;; "(No match)" on the last line
+        (should (string-match "(No match)" (buffer-string)))
+        (should (= 3 (line-number-at-pos (buffer-size) t)))))
+    ;; This is for Posix systems and for MS-Windows/DOS when they use 'ls'.
+    (unless (and (featurep 'ls-lisp)
+                 (boundp 'ls-lisp-use-insert-directory-program)
+                 (null ls-lisp-use-insert-directory-program))
+      (let ((errbuf (get-buffer "*ls error*")))
+        (should (get-buffer-window errbuf))
+        (should-not (equal (buffer-name buf) (file-name-nondirectory name)))
+        (with-current-buffer errbuf
+          (should (string-match-p
+                   (format
+                    ;; Use .* around file name to account for different
+                    ;; file-name quoting styles, or no quoting at all.
+                    "%s: cannot access .*%s.*: No such file or directory\n"
+                    insert-directory-program (file-name-nondirectory name))
+                   (buffer-string))))
+        (kill-buffer errbuf))
+      (delete-directory dir t))))
+
+
+(defun dired-test--filename-with-backslash-n ()
+  "Core of test `dired-test-filename-with-backslash-n'."
+  (let* ((dir (ert-resource-file
+               (file-name-as-directory "filename-with-backslash")))
+         (file (concat dir "C:\\nppdf32log\\debuglog.txt"))
+         (buf (progn (make-empty-file file t)
+                     (dired-noselect (file-name-directory file))))
+         (warnbuf (get-buffer "*Warnings*")))
+    (with-current-buffer buf
+      (should-not (dired--filename-with-newline-p))
+      (dired--toggle-b-switch)
+      (should-not (dired--filename-with-newline-p))
+      (let ((fn (car (directory-files dir t
+                                      directory-files-no-dot-files-regexp))))
+        (should (equal fn file))))
+    (if noninteractive
+        (with-current-buffer "*Messages*"
+          (goto-char (point-min))
+          (should-error (search-forward
+                         "Warning (dired): Literal newline in file name.")))
+      (should-not (get-buffer "*Warnings*")))
+    (kill-buffer buf)
+    (kill-buffer warnbuf)
+    (delete-directory dir t)))
+
+(ert-deftest dired-test-filename-with-backslash-n () ; bug#80608
+  "Test file name containing literal backslash-n sequence.
+Dired should not treat this sequence as a newline character, regardless
+of the value of `dired-auto-toggle-b-switch'."
+  ;; File names with backslashes in basename are not allowed on MS systems.
+  (skip-when (memq system-type '(windows-nt ms-dos)))
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let ((dired-auto-toggle-b-switch nil))
+    (dired-test--filename-with-backslash-n))
+  (with-current-buffer "*Messages*"
+    (let ((inhibit-read-only t))
+      (erase-buffer)))
+  (let ((dired-auto-toggle-b-switch nil))
+    (dired-test--filename-with-backslash-n)))
+
 (provide 'dired-tests)
 ;;; dired-tests.el ends here

@@ -40,6 +40,7 @@
 (require 'treesit)
 (require 'subr-x)
 (require 'outline)
+(require 'seq)
 
 (treesit-declare-unavailable-functions)
 
@@ -296,7 +297,12 @@ the same features enabled in MODE."
                   (plist-get configs :simple-indent)))
     (setq treesit-range-settings
           (append treesit-range-settings
-                  (plist-get configs :range)))
+                  ;; Filter out function queries, because they are
+                  ;; usually some hack and might escape the code block.
+                  ;; Case in point: c-ts-mode's range setting.
+                  (seq-filter (lambda (setting)
+                                (not (functionp (car setting))))
+                              (plist-get configs :range))))
     (setq-local indent-line-function #'treesit-indent)
     (setq-local indent-region-function #'treesit-indent-region)))
 

@@ -89,6 +89,20 @@ displayed on that terminal; the list of possible values is the same as
 for @code{framep} above.
 @end defun
 
+@defun frame-initial-p &optional frame
+This predicate returns non-@code{nil} if @var{frame} is or holds the
+initial text frame that is used internally during daemon mode
+(@pxref{Initial Options, daemon,, emacs, The GNU Emacs Manual}), batch
+mode (@pxref{Batch Mode}), and the early stages of startup
+(@pxref{Startup Summary}).  Interactive and graphical programs, for
+instance, can use this predicate to avoid operating on the initial
+frame, which is never displayed.
+
+If @var{frame} is a terminal, this function returns non-@code{nil} if
+@var{frame} holds the initial frame.  If @var{frame} is omitted or
+@code{nil}, it defaults to the selected one.
+@end defun
+
 @cindex top-level frame
 On a graphical terminal we distinguish two types of frames: A normal
 @dfn{top-level frame} is a frame whose window-system window is a child
@@ -3029,7 +3043,7 @@ direction.
   See also @code{next-window} and @code{previous-window}, in @ref{Cyclic
 Window Ordering}.
 
-  Some Lisp programs need to find one or more frames that satisfy a
+  Some Lisp programs need to find one or more frames that satisfy
 given criteria.  The function @code{filtered-frame-list} is provided for
 this purpose.
 

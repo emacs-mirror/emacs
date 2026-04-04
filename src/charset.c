@@ -799,7 +799,7 @@ Optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
 range of code points (in CHARSET) of target characters on which to
 map the FUNCTION.  Note that these are not character codes, but code
 points of CHARSET; for the difference see `decode-char' and
-`list-charset-chars'.  If FROM-CODE is nil or imitted, it stands for
+`list-charset-chars'.  If FROM-CODE is nil or omitted, it stands for
 the first code point of CHARSET; if TO-CODE is nil or omitted, it
 stands for the last code point of CHARSET.
 
@@ -840,7 +840,7 @@ TO-CODE, which are CHARSET code points.  */)
 /* Define a charset according to the arguments.  The Nth argument is
    the Nth attribute of the charset (the last attribute `charset-id'
    is not included).  See the docstring of `define-charset' for the
-   detail.  */
+   details.  */
 
 DEFUN ("define-charset-internal", Fdefine_charset_internal,
        Sdefine_charset_internal, charset_arg_max, MANY, 0,
@@ -1530,7 +1530,7 @@ BEG and END are buffer positions.
 Optional arg TABLE if non-nil is a translation table to look up.
 
 If the current buffer is unibyte, the returned list may contain
-only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
+only `ascii' and `eight-bit'.  */)
   (Lisp_Object beg, Lisp_Object end, Lisp_Object table)
 {
   Lisp_Object charsets;
@@ -1581,7 +1581,7 @@ DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
 Optional arg TABLE if non-nil is a translation table to look up.
 
 If STR is unibyte, the returned list may contain
-only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
+only `ascii' and `eight-bit'. */)
   (Lisp_Object str, Lisp_Object table)
 {
   CHECK_STRING (str);
@@ -2036,7 +2036,7 @@ ASCII characters are an exception: for them, this function always
 returns `ascii'.
 If optional 2nd arg RESTRICTION is non-nil, it is a list of charsets
 from which to find the charset.  It may also be a coding system.  In
-that case, find the charset from what supported by that coding system.  */)
+that case, find the charset in those supported by that coding system.  */)
   (Lisp_Object ch, Lisp_Object restriction)
 {
   struct charset *charset;

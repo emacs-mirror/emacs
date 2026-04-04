@@ -367,6 +367,8 @@ bidi_isolate_fmt_char (bidi_type_t ch_type)
   return (ch_type == LRI || ch_type == RLI || ch_type == PDI || ch_type == FSI);
 }
 
+static void bidi_initialize (void);
+
 /* Return the mirrored character of C, if it has one.  If C has no
    mirrored counterpart, return C.
    Note: The conditions in UAX#9 clause L4 regarding the surrounding
@@ -380,6 +382,14 @@ bidi_mirror_char (int c)
     return c;
   if (c < 0 || c > MAX_CHAR)
     emacs_abort ();
+
+  /* We can be called at the very beginning of init_iterator, via
+     produce_special_glyphs, and the first such call in a session might
+     happen when the bidi-mirroring table was not yet initialized.  Make
+     sure we do this now.  */
+  if (!CHAR_TABLE_P (bidi_mirror_table)
+      && !bidi_initialized)
+    bidi_initialize ();
 
   val = CHAR_TABLE_REF (bidi_mirror_table, c);
   if (FIXNUMP (val))

@@ -1700,7 +1700,7 @@ and URL `https://rhodesmill.org/brandon/2012/one-sentence-per-line/'."
         (to (copy-marker (max from to) t))
         pfx)
     (goto-char from)
-    (let ((fill-column (* 2 (point-max)))) ; Wide characters span up to two columns.
+    (let ((fill-column most-positive-fixnum))
       (setq pfx (or (save-excursion
                       (fill-region-as-paragraph-default (point)
                                                         to

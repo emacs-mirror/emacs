@@ -195,8 +195,7 @@ the debugger will not be entered."
                ;; backtrace to stdout.  This happens for example while
                ;; handling an error in code from early-init.el with
                ;; --debug-init.
-               (and (eq t (framep (selected-frame)))
-                    (equal "initial_terminal" (terminal-name)))))
+               (frame-initial-p)))
           ;; Don't let `inhibit-message' get in our way (especially important if
           ;; `non-interactive-frame' evaluated to a non-nil value.
           (inhibit-message nil)

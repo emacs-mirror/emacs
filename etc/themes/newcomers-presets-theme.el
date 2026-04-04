@@ -21,11 +21,20 @@
 
 ;;; Commentary
 
-;; A theme that enables user options new users might be interested in.
-;; The guideline to enabling a feature is "would this interest someone
-;; who wouldn't even know that this option exists?".  Please avoid
-;; opinionated cosmetic changes, that is the job of regular/color-scheme
-;; themes.
+;; This theme configures user options that we can reasonably expect the
+;; average, new user to want to enable, but would otherwise be unlikely
+;; to discover on their own.  This includes support for convenience
+;; features, adjustment of default settings that are in place for
+;; historical reasons, aiding discoverability (at the potential cost of
+;; more visual noise) and trying and follow common conventions that
+;; other editors have established over the past decades.
+
+;; The goal is to help providing a better starting point for users who
+;; would otherwise feel overwhelmed when first starting to use Emacs,
+;; without having to burden existing users with invasive changes to
+;; Emacs' default behavior.  Options in the theme should NOT hinder
+;; developing a better understanding of Emacs (e.g. enabling emulation
+;; modes) or make opinionated cosmetic changes.
 
 ;;; Code:
 
@@ -120,6 +129,7 @@ This minor mode will enable and disable the theme on startup."
  '(indent-tabs-mode nil)
  '(imenu-auto-rescan t)
  '(view-read-only t)
+ '(column-number-mode t)
 
 ;;;; Directory managment-related options
  '(dired-auto-revert-buffer t)
@@ -153,7 +163,10 @@ This minor mode will enable and disable the theme on startup."
 ;;;; Frame- and window-related options
  '(frame-inhibit-implied-resize t)
  '(tab-bar-history-mode t)
- '(tab-bar-show 0))
+ '(tab-bar-show 0)
+
+;;;; Programming-related options
+ '(compilation-scroll-output 'first-error))
 
 (provide-theme 'newcomers-presets)
 ;;; newcomers-presets-theme.el ends here

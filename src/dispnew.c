@@ -6826,8 +6826,7 @@ FILE = nil means just close any termscript file currently open.  */)
 {
   struct tty_display_info *tty;
 
-  if (! FRAME_TERMCAP_P (SELECTED_FRAME ())
-      && ! FRAME_MSDOS_P (SELECTED_FRAME ()))
+  if (!is_tty_frame (SELECTED_FRAME ()))
     error ("Current frame is not on a tty device");
 
   tty = CURTTY ();
@@ -7394,7 +7393,7 @@ init_display_interactive (void)
     t = init_tty (0, terminal_type, 1); /* Errors are fatal. */
 
     /* Convert the initial frame to use the new display. */
-    if (f->output_method != output_initial)
+    if (!FRAME_INITIAL_P (f))
       emacs_abort ();
     f->output_method = t->type;
     f->terminal = t;
@@ -7404,7 +7403,7 @@ init_display_interactive (void)
     f->output_data.tty = &the_only_tty_output;
     f->output_data.tty->display_info = &the_only_display_info;
 #else
-    if (f->output_method == output_termcap)
+    if (FRAME_TERMCAP_P (f))
       create_tty_output (f);
 #endif
     t->display_info.tty->top_frame = selected_frame;

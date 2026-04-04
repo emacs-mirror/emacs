@@ -434,9 +434,10 @@ It is the default value of `show-paren-data-function'."
   (overlay-put show-paren--context-overlay 'priority
                show-paren-priority)
   (overlay-put show-paren--context-overlay
-               'face `(:box
-                       ( :line-width (1 . -1)
-                         :color ,(face-attribute 'shadow :foreground))))
+               'face `( :inherit default
+                        :box
+                        ( :line-width (1 . -1)
+                          :color ,(face-attribute 'shadow :foreground))))
   (add-hook 'post-command-hook #'show-paren--delete-context-overlay
             nil 'local))
 

@@ -214,7 +214,7 @@ frame_inhibit_resize (struct frame *f, bool horizontal, Lisp_Object parameter)
 		      && !NILP (fullscreen) && !EQ (fullscreen, Qfullheight))
 		  || (!horizontal
 		      && !NILP (fullscreen) && !EQ (fullscreen, Qfullwidth))
-		  || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))));
+		  || is_tty_frame (f))));
 }
 
 
@@ -349,8 +349,6 @@ If FRAME is nil, use the selected frame.
 Return nil if the id has not been set.  */)
   (Lisp_Object frame)
 {
-  if (NILP (frame))
-    frame = selected_frame;
   struct frame *f = decode_live_frame (frame);
   if (f->id == 0)
     return Qnil;
@@ -562,7 +560,7 @@ frame_windows_min_size (Lisp_Object frame, Lisp_Object horizontal,
 
   /* Don't allow too small height of text-mode frames, or else cm.c
      might abort in cmcheckmagic.  */
-  if ((FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f)) && NILP (horizontal))
+  if (is_tty_frame (f) && NILP (horizontal))
     {
       int min_height = (FRAME_MENU_BAR_LINES (f) + FRAME_TAB_BAR_LINES (f)
 			+ FRAME_WANTS_MODELINE_P (f)
@@ -1573,7 +1571,7 @@ make_terminal_frame (struct terminal *terminal, Lisp_Object parent,
   f->output_data.tty->display_info = &the_only_display_info;
   if (!inhibit_window_system
       && (!FRAMEP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame))
-	  || XFRAME (selected_frame)->output_method == output_msdos_raw))
+	  || FRAME_MSDOS_P (XFRAME (selected_frame))))
     f->output_method = output_msdos_raw;
   else
     f->output_method = output_termcap;
@@ -1763,13 +1761,12 @@ affects all frames on the same terminal device.  */)
   struct frame *sf = SELECTED_FRAME ();
 
 #ifdef MSDOS
-  if (sf->output_method != output_msdos_raw
-      && sf->output_method != output_termcap)
+  if (!is_tty_frame (sf))
     emacs_abort ();
 #else /* not MSDOS */
 
 #ifdef WINDOWSNT                           /* This should work now! */
-  if (sf->output_method != output_termcap)
+  if (!FRAME_TERMCAP_P (sf))
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
 #endif
 #endif /* not MSDOS */
@@ -1986,7 +1983,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
 
-  if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+  if (is_tty_frame (f))
     {
       struct tty_display_info *tty = FRAME_TTY (f);
       Lisp_Object top_frame = tty->top_frame;
@@ -2800,7 +2797,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 			  && FRAME_LIVE_P (f1)
 			  && !FRAME_TOOLTIP_P (f1))
 			{
-			  if (FRAME_TERMCAP_P (f1) || FRAME_MSDOS_P (f1))
+			  if (is_tty_frame (f1))
 			    {
 			      Lisp_Object top_frame = FRAME_TTY (f1)->top_frame;
 

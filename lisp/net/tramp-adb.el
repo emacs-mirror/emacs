@@ -451,21 +451,13 @@ Emacs dired can't find files."
 (defun tramp-adb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
-    (all-completions
-     filename
-     (with-parsed-tramp-file-name (expand-file-name directory) nil
-       (with-tramp-file-property v localname "file-name-all-completions"
-	 (when (tramp-adb-do-ls v "-a" localname)
-	   (mapcar
-	    (lambda (f)
-	      (if (file-directory-p (expand-file-name f directory))
-		  (file-name-as-directory f)
-	        f))
-	    (with-current-buffer (tramp-get-buffer v)
-	      (mapcar
-	       (lambda (l)
-	         (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	       (split-string (buffer-string) "\n" 'omit))))))))))
+    (with-parsed-tramp-file-name (expand-file-name directory) nil
+      (when (tramp-adb-do-ls v "-a" localname)
+	(with-current-buffer (tramp-get-buffer v)
+	  (mapcar
+	   (lambda (l)
+	     (and (not (string-match-p (rx bol (* blank) eol) l)) l))
+	   (split-string (buffer-string) "\n" 'omit)))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."

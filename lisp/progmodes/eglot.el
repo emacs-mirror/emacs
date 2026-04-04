@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
-;; Version: 1.21
+;; Version: 1.23
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (eldoc "1.14.0") (external-completion "0.1") (flymake "1.4.2") (jsonrpc "1.0.26") (project "0.11.2") (seq "2.23") (xref "1.6.2"))
+;; Package-Requires: ((emacs "26.3") (eldoc "1.16.0") (external-completion "0.1") (flymake "1.4.5") (jsonrpc "1.0.28") (project "0.11.2") (seq "2.23") (xref "1.7.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -2710,10 +2710,11 @@ still unanswered LSP requests to the server\n"))))
 
 (defconst eglot-mode-line-progress
   '(:eval
-    (when-let ((server (eglot-current-server)))
+    (when-let ((s (eglot-current-server)))
       (cl-loop
-       for pr hash-values of (eglot--progress-reporters server)
-       when (eq (car pr) 'eglot--mode-line-reporter)
+       for pr in (cl-delete 'eglot--mode-line-reporter
+                            (hash-table-values (eglot--progress-reporters s))
+                            :key #'car :test-not #'eq)
        for v = (nth 4 pr)
        when v sum 1 into n and sum v into acc
        collect (format "(%s) %s %s" (nth 1 pr) (nth 2 pr) (nth 3 pr))
@@ -4092,7 +4093,7 @@ for which LSP on-type-formatting should be requested."
            parameter
          ;; ...perhaps highlight it in the formals list
          (when (eq i active-param)
-           (save-excursion ;; FIXME: Sink into the `if' or hoist out of loop?
+           (save-excursion
              (goto-char (point-min))
              (pcase-let
                  ((`(,beg ,end)
@@ -4100,8 +4101,7 @@ for which LSP on-type-formatting should be requested."
                        (let ((case-fold-search nil))
                          (and (search-forward parlabel (line-end-position) t)
                               (list (match-beginning 0) (match-end 0))))
-                     (list (+ (point-min) (aref parlabel 0))
-                           (+ (point-min) (aref parlabel 1))))))
+                     (list (1+ (aref parlabel 0)) (1+ (aref parlabel 1))))))
                (if (and beg end)
                    (add-face-text-property
                     beg end

@@ -231,8 +231,8 @@ in the tool bar will close the current window where possible."
       '(menu-item "Open Project Directory" project-dired
                   :enable (menu-bar-non-minibuffer-window-p)
                   :help "Read the root directory of the current project, to operate on its files"))
-    (define-key menu [dired]
-      '(menu-item "Open Directory..." dired
+    (define-key menu [open-directory]
+      '(menu-item "Open Directory..." dired-from-menubar
                   :enable (menu-bar-non-minibuffer-window-p)
                   :help "Read a directory, to operate on its files"))
     (define-key menu [project-open-file]
@@ -2287,7 +2287,7 @@ this frame."
       (and menu-bar-close-window
            (window-parent (selected-window)))))
 
-(put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
+(put 'dired-from-menubar 'menu-enable '(menu-bar-non-minibuffer-window-p))
 
 ;; Permit deleting frame if it would leave a visible or iconified frame.
 (defun delete-frame-enabled-p ()
@@ -2496,8 +2496,7 @@ It must accept a buffer as its only required argument.")
          ;; Ignore the initial frame if present.  It can happen if
          ;; Emacs was started as a daemon.  (bug#53740)
          (dolist (frame (frame-list))
-           (unless (equal (terminal-name (frame-terminal frame))
-                          "initial_terminal")
+           (unless (frame-initial-p frame)
              (push frame frames)))
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu

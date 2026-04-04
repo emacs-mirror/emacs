@@ -603,12 +603,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (copy-directory filename newname keep-date 'parents 'copy-contents)
 
 	(tramp-barf-if-file-missing v filename
-	  ;; `file-local-copy' returns a file name also for a local
-	  ;; file with `jka-compr-handler', so we cannot trust its
-	  ;; result as indication for a remote file name.
-	  (if-let* ((tmpfile
-		     (and (tramp-tramp-file-p filename)
-			  (file-local-copy filename))))
+	  ;; Suppress `jka-compr-handler'.
+	  (if-let* ((jka-compr-inhibit t)
+		    (tmpfile (file-local-copy filename)))
 	      ;; Remote filename.
 	      (condition-case err
 		  (rename-file tmpfile newname ok-if-already-exists)
@@ -1068,18 +1065,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 (defun tramp-smb-handle-file-name-all-completions (filename directory)
   "Like `file-name-all-completions' for Tramp files."
   (tramp-skeleton-file-name-all-completions filename directory
-    (all-completions
-     filename
-     (when (file-directory-p directory)
-       (with-parsed-tramp-file-name (expand-file-name directory) nil
-	 (with-tramp-file-property v localname "file-name-all-completions"
-	   (mapcar
-	    (lambda (x)
-	      (list
-	       (if (string-search "d" (nth 1 x))
-		   (file-name-as-directory (nth 0 x))
-		 (nth 0 x))))
-	    (tramp-smb-get-file-entries directory))))))))
+    (mapcar #'car (tramp-smb-get-file-entries directory))))
 
 (defun tramp-smb-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
@@ -1752,9 +1738,6 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 	  (unless share
 	    (tramp-set-connection-property v "share-cache" res)))
 
-	;; Add directory itself.
-	(push '("" "drwxrwxrwx" 0 (0 0)) res)
-
 	;; Return entries.
 	(delq nil res)))))
 
@@ -2294,9 +2277,6 @@ SHARE will be passed to the call of `tramp-smb-get-localname'."
 ;;; TODO:
 
 ;; * Return more comprehensive file permission string.
-;;
-;; * Try to remove the inclusion of dummy "" directory.  Seems to be at
-;;   several places, especially in `tramp-smb-handle-insert-directory'.
 ;;
 ;; * Keep a separate connection process per share.
 ;;

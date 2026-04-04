@@ -155,9 +155,13 @@ and also consults the `emoji-alternate-names' alist."
 
 ;;;###autoload
 (defun emoji-list ()
-  "List emojis and allow selecting and inserting one of them.
+  "List Emoji and allow selecting and inserting one of them.
+If you are displaying Emoji on a text-only terminal, and some
+of them look incorrect, or there are display artifacts when
+scrolling the display, turn off `auto-composition-mode'.
+
 Select the emoji by typing \\<emoji-list-mode-map>\\[emoji-list-select] on its picture.
-The glyph will be inserted into the buffer that was current
+The selected glyph will be inserted into the buffer that was current
 when the command was invoked."
   (interactive)
   (let ((buf (current-buffer)))

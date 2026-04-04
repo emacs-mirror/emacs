@@ -977,6 +977,7 @@ In the latter case, VC mode is deactivated for this buffer."
 		     noninteractive
 		     ;; Copied from server-start.  Seems like there should
 		     ;; be a better way to ask "can we get user input?"...
+                     ;; Use `frame-initial-p'?
 		     (and (daemonp)
 			  (null (cdr (frame-list)))
 			  (eq (selected-frame) terminal-frame))

@@ -2453,7 +2453,7 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 #else
       struct frame *frame = XFRAME (selected_frame);
       struct terminal *terminal = frame->terminal;
-      if (!((FRAME_TERMCAP_P (frame) || FRAME_MSDOS_P (frame))
+      if (!(is_tty_frame (frame)
             /* Don't apply decoding if we're just reading a raw event
                (e.g. reading bytes sent by the xterm to specify the position
                of a mouse click).  */
@@ -13032,7 +13032,7 @@ The elements of this list correspond to the arguments of
 
   Lisp_Object interrupt = interrupt_input ? Qt : Qnil;
   Lisp_Object flow, meta;
-  if (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf))
+  if (is_tty_frame (sf))
     {
       flow = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
       meta = (FRAME_TTY (sf)->meta_key == 2

@@ -102,6 +102,7 @@ See Info node `Displaying Boundaries' for details."
 (defun display-fill-column-indicator--turn-on ()
   "Turn on `display-fill-column-indicator-mode'."
   (unless (or (minibufferp)
+              ;; Use `frame-initial-p'?
               (and (daemonp) (eq (selected-frame) terminal-frame)))
     (display-fill-column-indicator-mode)))
 

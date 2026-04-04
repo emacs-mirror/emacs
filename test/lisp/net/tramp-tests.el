@@ -5078,6 +5078,21 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 		(sort (file-name-all-completions "b" tmp-name) #'string-lessp)
 		'("bold" "boz/")))
 	      (should-not (file-name-all-completions "a" tmp-name))
+	      ;; Symbolic links.
+	      (tramp--test-ignore-make-symbolic-link-error
+	       (make-symbolic-link
+		(file-name-concat tmp-name "foo")
+		(file-name-concat tmp-name "link1"))
+	       (should (file-exists-p (expand-file-name "link1" tmp-name)))
+	       (make-symbolic-link
+		(file-name-concat tmp-name "boz")
+		(file-name-concat tmp-name "link2"))
+	       (should (file-exists-p (expand-file-name "link2" tmp-name)))
+	       (should (equal (file-name-completion "li" tmp-name) "link"))
+	       (should (member "link1" (file-name-all-completions "" tmp-name)))
+	       (should (member "link2/" (file-name-all-completions "" tmp-name)))
+	       (delete-file (file-name-concat tmp-name "link1"))
+	       (delete-file (file-name-concat tmp-name "link2")))
 	      ;; `completion-regexp-list' restricts the completion to
 	      ;; files which match all expressions in this list.
 	      ;; Ange-FTP does not complete "".
@@ -6329,9 +6344,12 @@ INPUT, if non-nil, is a string sent to the process."
 		   this-shell-command
 		   "echo foo >&2; echo bar" (current-buffer) stderr)
 		  (should (string-equal "bar\n" (buffer-string)))
-		  ;; Check stderr.
+		  ;; Check stderr.  Some shells echo, for example the
+		  ;; "adb" or container methods.
 		  (should
-		   (string-equal "foo\n" (tramp-get-buffer-string stderr))))
+		   (string-match-p
+		    (rx bol (** 1 2 "foo\n") eol)
+		    (tramp-get-buffer-string stderr))))
 
 	      ;; Cleanup.
 	      (ignore-errors (kill-buffer stderr))))))
@@ -6896,8 +6914,7 @@ INPUT, if non-nil, is a string sent to the process."
   "Check `vc-registered'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-processes-p))
 
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     ;; We must use `file-truename' for the temporary directory, in
@@ -6912,17 +6929,9 @@ INPUT, if non-nil, is a string sent to the process."
            (inhibit-message (not (ignore-errors (edebug-mode))))
 	   (vc-handled-backends
 	    (cond
-	     ((tramp-find-executable
-	       tramp-test-vec vc-git-program
-	       (tramp-get-remote-path tramp-test-vec))
-	      '(Git))
-	     ((tramp-find-executable
-	       tramp-test-vec vc-hg-program
-	       (tramp-get-remote-path tramp-test-vec))
-	      '(Hg))
-	     ((tramp-find-executable
-	       tramp-test-vec vc-bzr-program
-	       (tramp-get-remote-path tramp-test-vec))
+	     ((executable-find vc-git-program 'remote) '(Git))
+	     ((executable-find vc-hg-program 'remote) '(Hg))
+	     ((executable-find vc-bzr-program 'remote)
 	      (setq tramp-remote-process-environment
 		    (cons (format "BZR_HOME=%s"
 				  (file-remote-p tmp-name1 'localname))

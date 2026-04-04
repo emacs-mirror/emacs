@@ -398,7 +398,11 @@ then it searches *all* buffers."
   ;; Set it so `dabbrev-capf' won't reset the vars.
   (setq dabbrev--last-abbrev-location (point-marker))
   (let ((completion-at-point-functions '(dabbrev-capf)))
-    (completion-at-point)))
+    (unless (completion-at-point)
+      (user-error "No dynamic expansion for \"%s\" found%s"
+                  (dabbrev--abbrev-at-point)
+                  (if dabbrev--check-other-buffers
+                      "" " in this-buffer")))))
 
 (defun dabbrev-capf ()
   "Dabbrev completion function for `completion-at-point-functions'."

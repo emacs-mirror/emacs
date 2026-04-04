@@ -1330,6 +1330,8 @@ Interactively, with a prefix arg, FORCE is t."
         (buffer (current-buffer)))
     (cl-labels
         ((visible-buffer-window ()
+           ;; This can use `frame-initial-p' once
+           ;; we can assume Emacs 31 or later.
            (and (or (not (daemonp))
                     (not (eq (selected-frame) terminal-frame)))
                 (get-buffer-window (current-buffer))))
