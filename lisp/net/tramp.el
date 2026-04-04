@@ -5348,14 +5348,15 @@ a connection-local variable."
       (setq spec-list (cddr spec-list)))
     (setq spec (apply #'format-spec-make extra-spec-list))
     ;; Expand format spec.
-    (if (atom args)
-	(tramp-format-spec args spec)
+    (cond
+     ((consp args)
       (flatten-tree
        (mapcar
 	(lambda (x)
 	  (setq x (mapcar (lambda (y) (tramp-format-spec y spec)) x))
 	  (unless (member "" x) x))
-	args)))))
+	args)))
+     (args (tramp-format-spec args spec)))))
 
 (defun tramp-post-process-creation (proc vec)
   "Apply actions after creation of process PROC."
@@ -5477,8 +5478,7 @@ processes."
 		 (tramp-get-method-parameter v 'tramp-direct-async)
                  `(,(string-join command " ")))
 	      command))
-	   (login-program
-	    (tramp-expand-args v 'tramp-login-program))
+	   (login-program (tramp-expand-args v 'tramp-login-program))
 	   ;; We don't create the temporary file.  In fact, it is just
 	   ;; a prefix for the ControlPath option of ssh; the real
 	   ;; temporary file has another name, and it is created and
