@@ -53,6 +53,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "pdumper.h"
 #include "igc.h"
+#include "gc-handles.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
