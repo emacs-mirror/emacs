@@ -1922,11 +1922,10 @@ scan_hash_table_user_test (mps_ss_t ss, void *start, void *end, void *closure)
 static mps_res_t
 scan_anim_cache (mps_ss_t ss, void *start, void *end, void *closure)
 {
-  struct anim_cache **anim_cache_var = start;
   MPS_SCAN_BEGIN (ss)
   {
-    for (struct anim_cache *c = *anim_cache_var; c; c = c->next)
-      IGC_FIX12_OBJ (ss, &c->spec);
+    for (struct anim_cache *cache = start; cache; cache = cache->next)
+      IGC_FIX12_OBJ (ss, &cache->spec);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
