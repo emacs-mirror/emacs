@@ -4605,16 +4605,22 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 	       signed values, tgetnum("Co") and tigetnum("colors")
 	       could return 32767.  */
 	    tty->TN_max_colors = 16777216;
+
+	    /* FIXME: When the RGB terminfo capability is given, we
+	       should avoid trying to use colors 000000 to 000007 as if
+	       they were RGB values.  The escape sequences given by
+	       setaf and setab treat them as the first eight indexed
+	       ANSI colors. */
 	  }
-	/* Fall back to xterm+direct (semicolon version) if Tc is set
-	   (de-facto standard introduced by tmux) or if	requested by
-	   the COLORTERM environment variable.  */
+	/* Fall back to direct colour by RGB value (semicolon version)
+	   if Tc is set (de-facto standard introduced by tmux) or if
+	   requested by the COLORTERM environment variable.  */
 	else if ((tigetflag ("Tc") > 0)
 		 || ((bg = getenv ("COLORTERM")) != NULL
 		     && strcasecmp (bg, "truecolor") == 0))
 	  {
-	    tty->TS_set_foreground = "\033[%?%p1%{8}%<%t3%p1%d%e38;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
-	    tty->TS_set_background = "\033[%?%p1%{8}%<%t4%p1%d%e48;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
+	    tty->TS_set_foreground = "\033[38;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
+	    tty->TS_set_background = "\033[48;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
 	    tty->TN_max_colors = 16777216;
 	  }
       }

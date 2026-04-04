@@ -1973,7 +1973,7 @@ If Terminfo database is not available, but 24-bit direct color mode is
 supported, it can still be enabled by defining the environment
 variable @env{COLORTERM} to @samp{truecolor}.
 
-Terminals with @samp{RGB} capability treat pixels #000001 - #000007 as
+Terminals with @samp{RGB} capability treat pixels #000000 - #000007 as
 indexed colors to maintain backward compatibility with applications
 that are unaware of direct color mode.  Therefore the seven darkest
 blue shades may not be available.  If this is a problem, you can
