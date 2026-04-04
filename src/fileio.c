@@ -774,6 +774,9 @@ Do not expand PREFIX; a non-absolute PREFIX is relative to the Emacs
 working directory.  If TEXT is a string, insert it into the newly
 created file.
 
+On Posix systems, the file/directory is created with access mode bits
+that limit access to the current user.
+
 Signal an error if the file could not be created.
 
 This function does not grok magic file names.  */)

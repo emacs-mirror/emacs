@@ -1790,7 +1790,10 @@ If DIR-FLAG is non-nil, create a new empty directory instead of a file.
 If SUFFIX is non-nil, add that at the end of the file name.
 
 If TEXT is a string, insert it into the new file; DIR-FLAG should be nil.
-Otherwise the file will be empty."
+Otherwise the file will be empty.
+
+On Posix systems, the file/directory is created with access mode bits
+that limit access to the current user."
   (let ((absolute-prefix
 	 (if (or (zerop (length prefix)) (member prefix '("." "..")))
 	     (concat (file-name-as-directory temporary-file-directory) prefix)
