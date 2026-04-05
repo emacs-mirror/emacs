@@ -594,33 +594,31 @@ BODY is the test body."
   "Tests for query API."
   (skip-unless (treesit-language-available-p 'json))
   (with-temp-buffer
-    (let (parser root-node)
-      (progn
-        (insert "[1,2,{\"name\": \"Bob\"},3]")
-        (setq parser (treesit-parser-create 'json)))
+    (insert "[1,2,{\"name\": \"Bob\"},3]")
+    (treesit-parser-create 'json)
 
-      ;; Test NODE-ONLY.
-      (let ((res (treesit-query-capture 'json '((number) @num) nil nil t)))
-        (should (equal (length res) 3))
-        ;; First element should be a node rather than 'num.
-        (should (treesit-node-p (nth 0 res))))
+    ;; Test NODE-ONLY.
+    (let ((res (treesit-query-capture 'json '((number) @num) nil nil t)))
+      (should (equal (length res) 3))
+      ;; First element should be a node rather than 'num.
+      (should (treesit-node-p (nth 0 res))))
 
-      ;; Test GROUPED.
-      (let ((res (treesit-query-capture 'json '((number) @num) nil nil nil t)))
-        (should (equal (length res) 3))
-        ;; First element should be a match group.
-        (should (consp (nth 0 res)))
-        ;; First element of the match group should be a cons (num . <node>).
-        (should (consp (nth 0 (nth 0 res))))
-        (should (eq (car (nth 0 (nth 0 res))) 'num)))
+    ;; Test GROUPED.
+    (let ((res (treesit-query-capture 'json '((number) @num) nil nil nil t)))
+      (should (equal (length res) 3))
+      ;; First element should be a match group.
+      (should (consp (nth 0 res)))
+      ;; First element of the match group should be a cons (num . <node>).
+      (should (consp (nth 0 (nth 0 res))))
+      (should (eq (car (nth 0 (nth 0 res))) 'num)))
 
-      ;; Test NODE-ONLY + GROUPED.
-      (let ((res (treesit-query-capture 'json '((number) @num) nil nil t t)))
-        (should (equal (length res) 3))
-        ;; First element should be a match group.
-        (should (consp (nth 0 res)))
-        ;; First element of the match group should be a node.
-        (should (treesit-node-p (nth 0 (nth 0 res))))))))
+    ;; Test NODE-ONLY + GROUPED.
+    (let ((res (treesit-query-capture 'json '((number) @num) nil nil t t)))
+      (should (equal (length res) 3))
+      ;; First element should be a match group.
+      (should (consp (nth 0 res)))
+      ;; First element of the match group should be a node.
+      (should (treesit-node-p (nth 0 (nth 0 res)))))))
 
 ;;; Narrow
 
