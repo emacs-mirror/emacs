@@ -3977,6 +3977,22 @@ treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
     }
 }
 
+/* Go over a list from START to END (until the element eq to END),
+   replace (capture-name . node) with just node.  */
+static void query_capture_remove_capture_name (Lisp_Object start,
+					       Lisp_Object end)
+{
+  Lisp_Object tail = start;
+  FOR_EACH_TAIL (tail)
+    {
+      Lisp_Object cell = CAR (tail);
+      CHECK_CONS (cell);
+      XSETCAR (tail, CDR (cell));
+
+      if (EQ (CDR (tail), end)) return;
+    }
+}
+
 DEFUN ("treesit-query-capture",
        Ftreesit_query_capture,
        Streesit_query_capture, 2, 6, 0,
@@ -4122,18 +4138,12 @@ the query.  */)
 	  TSQueryCapture capture = captures[idx];
 	  Lisp_Object captured_node = make_treesit_node (lisp_parser,
 							 capture.node);
-
-	  Lisp_Object cap;
-	  if (NILP (node_only))
-	    {
-	      const char *capture_name
-		= ts_query_capture_name_for_id (treesit_query, capture.index,
-						&capture_name_len);
-	      cap = Fcons (intern_c_string_1 (capture_name, capture_name_len),
-			   captured_node);
-	    }
-	  else
-	    cap = captured_node;
+	  const char *capture_name
+	    = ts_query_capture_name_for_id (treesit_query, capture.index,
+					    &capture_name_len);
+	  Lisp_Object cap
+	    = Fcons (intern_c_string_1 (capture_name, capture_name_len),
+		     captured_node);
 
 	  if (NILP (grouped))
 	    result = Fcons (cap, result); /* Mode 1. */
@@ -4166,12 +4176,24 @@ the query.  */)
       if (!NILP (predicate_signal_data))
 	break;
 
-      /* Mode 1: Predicates didn't pass, roll back.  */
-      if (!match && NILP (grouped))
-	result = prev_result;
-      /* Mode 2: Predicates pass, add this match group.  */
+      /* Mode 1: Roll back if predicate didn't pass, don't roll back if
+         predicate passed.  */
+      if (NILP (grouped))
+	{
+	  if (!match)
+	    result = prev_result;
+	  else if (!NILP (node_only))
+	    query_capture_remove_capture_name (result, prev_result);
+	}
+      /* Mode 2: Add this match group if predicate pass, don't add this
+         group if predicate didn't pass.  */
       if (match && !NILP (grouped))
-	result = Fcons (Fnreverse (match_group), result);
+	{
+	  match_group = Fnreverse (match_group);
+	  if (!NILP (node_only))
+	    query_capture_remove_capture_name (match_group, Qnil);
+	  result = Fcons (match_group, result);
+	}
     }
 
   /* Final clean up.  */
