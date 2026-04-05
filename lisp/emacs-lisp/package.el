@@ -1827,15 +1827,15 @@ control over."
     (file-in-directory-p dir package-user-dir)))
 
 (defun package--removable-packages ()
-  "Return a list of names of packages no longer needed.
+  "Return a list of `package-desc' objects that are longer needed.
 These are packages which are neither contained in
 `package-selected-packages' nor a dependency of one that is."
   (let ((needed (package--get-deps package-selected-packages)))
-    (cl-loop for p in (mapcar #'car package-alist)
-             unless (or (memq p needed)
+    (cl-loop for (name . descs) in (package--alist)
+             unless (or (memq name needed)
                         ;; Do not auto-remove external packages.
-                        (not (package--user-installed-p p)))
-             collect p)))
+                        (not (package--user-installed-p name)))
+             append descs)))
 
 (defun package--used-elsewhere-p (pkg-desc &optional pkg-list all)
   "Non-nil if PKG-DESC is a dependency of a package in PKG-LIST.
@@ -2511,10 +2511,9 @@ argument, don't ask for confirmation to install packages."
                     (y-or-n-p
                      (format "Packages to delete: %d (%s), proceed? "
                              (length removable)
-                             (mapconcat #'symbol-name removable " "))))
-            (mapc (lambda (p)
-                    (package-delete (cadr (assq p package-alist)) t))
-                  removable))
+                             (mapconcat #'package-desc-full-name
+                              removable ", "))))
+            (mapc #'package-delete removable))
         (message "Nothing to autoremove")))))
 
 (defun package-isolate (packages &optional temp-init)
