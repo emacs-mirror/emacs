@@ -2587,7 +2587,7 @@ We thus have the following:
 
 Reload the theme for changes to take effect.
 
-*** DIY Make the region preserve text colors, plus other styles
+*** DIY Make the region preserve text colors plus other styles
 :PROPERTIES:
 :CUSTOM_ID: h:c8605d37-66e1-42aa-986e-d7514c3af6fe
 :END:
@@ -6276,7 +6276,7 @@ piece of text to the next.  Whereas multiple shades of, say, blue and
 magenta can suffice to tell things apart and avoid excess coloration: a
 harmonious rhythm.
 
-** Why are colors mostly variants of blue, magenta, cyan?
+** Why are colors mostly variants of blue magenta cyan?
 :properties:
 :custom_id: h:0b26cb47-9733-4cb1-87d9-50850cb0386e
 :end:
