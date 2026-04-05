@@ -3665,25 +3665,30 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
 
 ;;; Package menu printing
 
+(defconst package-menu-status-faces
+  '(("built-in"   . package-status-built-in)
+    ("external"   . package-status-external)
+    ("available"  . package-status-available)
+    ("avail-obso" . package-status-avail-obso)
+    ("new"        . package-status-new)
+    ("held"       . package-status-held)
+    ("disabled"   . package-status-disabled)
+    ("installed"  . package-status-installed)
+    ("source"     . package-status-from-source)
+    ("dependency" . package-status-dependency)
+    ("unsigned"   . package-status-unsigned)
+    ("incompat"   . package-status-incompat)
+    ("obsolete"   . font-lock-warning-face))
+  "Alist mapping status strings for packages to faces.
+These faces are used in the package menu.")
+
 (defun package-menu--print-info-simple (pkg)
   "Return a package entry suitable for `tabulated-list-entries'.
 PKG is a `package-desc' object.
 Return (PKG-DESC [NAME VERSION STATUS DOC])."
   (let* ((status  (package-desc-status pkg))
-         (face (pcase status
-                 ("built-in"  'package-status-built-in)
-                 ("external"  'package-status-external)
-                 ("available" 'package-status-available)
-                 ("avail-obso" 'package-status-avail-obso)
-                 ("new"       'package-status-new)
-                 ("held"      'package-status-held)
-                 ("disabled"  'package-status-disabled)
-                 ("installed" 'package-status-installed)
-                 ("source"    'package-status-from-source)
-                 ("dependency" 'package-status-dependency)
-                 ("unsigned"  'package-status-unsigned)
-                 ("incompat"  'package-status-incompat)
-                 (_            'font-lock-warning-face)))) ; obsolete.
+         (face (alist-get status package-menu-status-faces
+                          nil nil #'string=)))
     (list pkg
           `[(,(symbol-name (package-desc-name pkg))
              face package-name
