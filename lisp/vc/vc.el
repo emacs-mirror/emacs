@@ -2612,40 +2612,42 @@ proceed anyway?")))
       (make-directory (file-name-directory (expand-file-name f tmpdir)) t)
       (copy-file (expand-file-name f)
                  (expand-file-name f tmpdir)))
-    (unwind-protect
-        (progn
-          (vc-revert-files backend
-                           (mapcar (lambda (f)
-                                     (with-current-buffer (find-file-noselect f)
-                                       buffer-file-name))
-                                   files))
-          (with-temp-buffer
-            ;; Trying to support CVS too.  Assuming that vc-diff
-            ;; there will usually have diff root in default-directory.
-            (when (vc-find-backend-function backend 'root)
-              (setq-local default-directory
-                          (vc-call-backend backend 'root (car files))))
-            (unless (eq 0
-                        (call-process-region patch-string
-                                             nil
-                                             "patch"
-                                             nil
-                                             t
-                                             nil
-                                             "-p1"
-                                             "-r" null-device
-                                             "--posix"
-                                             "--remove-empty-files"
-                                             "-i" "-"))
-              (user-error "Patch failed: %s" (buffer-string))))
-          (vc-call-backend backend 'checkin files comment))
-      (dolist (f files)
-        (copy-file (expand-file-name f tmpdir)
-                   (expand-file-name f)
-                   t)
-        (with-current-buffer (get-file-buffer f)
-          (revert-buffer t t t)))
-      (delete-directory tmpdir t))))
+    (cl-flet ((do-it ()
+                (vc-revert-files backend
+                                 (mapcar (lambda (f)
+                                           (with-current-buffer
+                                               (find-file-noselect f)
+                                             buffer-file-name))
+                                         files))
+                (with-temp-buffer
+                  ;; Try to support CVS too.  Assume that vc-diff there
+                  ;; will usually have diff root in `default-directory'.
+                  (when (vc-find-backend-function backend 'root)
+                    (setq-local default-directory
+                                (vc-call-backend backend 'root (car files))))
+                  (unless (zerop (call-process-region patch-string nil "patch"
+                                                      nil t nil
+                                                      "-p1"
+                                                      "-r" null-device
+                                                      "--posix"
+                                                      "--remove-empty-files"
+                                                      "-i" "-"))
+                    (user-error "Patch failed: %s" (buffer-string))))
+                (vc-call-backend backend 'checkin files comment))
+              (cleanup ()
+                (dolist (f files)
+                  (copy-file (expand-file-name f tmpdir)
+                             (expand-file-name f)
+                             t)
+                  (with-current-buffer (get-file-buffer f)
+                    (revert-buffer t t t)))
+                (delete-directory tmpdir t)))
+      (if (and vc-async-checkin
+               (vc-call-backend backend 'async-checkins))
+          (let ((ret (do-it)))
+            (when (eq (car-safe ret) 'async)
+              (vc-exec-after #'cleanup nil (cadr ret))))
+        (unwind-protect (do-it) (cleanup))))))
 
 ;;; Additional entry points for examining version histories
 
