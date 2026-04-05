@@ -1596,8 +1596,10 @@ Some files are unregistered; register them before checking in?"))
                             (cadr other-alist))))
              (error "\
 To apply VC operations to multiple files, the files must be in similar VC states.
-%s in state %s clashes with %s in state %s"
-                    (cadr first) (car first) (cadr second) (car second)))))
+%s in state `%s' clashes with
+%s in state `%s'"
+                    (abbreviate-file-name (cadr first)) (car first)
+                    (abbreviate-file-name (cadr second)) (car second)))))
     (list files* state
           (and state (not (eq state 'unregistered))
                (vc-checkout-model backend files*)))))

@@ -1028,8 +1028,7 @@ is), this command is useful to check in all local changes at once."
          (vc-buffer-overriding-fileset
           `(,vc-dir-backend
             (,default-directory)
-            . ,(vc-only-files-state-and-model only-files-list
-                                              vc-dir-backend))))
+            . ,(vc-dir--only-files-state-and-model only-files-list))))
     (vc-next-action nil)))
 
 (defun vc-dir-clean-files ()
@@ -1531,6 +1530,8 @@ outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
   (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
 
+(defconst vc-dir--up-to-date-states '(up-to-date ignored))
+
 (defun vc-dir-hide-state (&optional state)
   "Hide items that are in STATE from display.
 See `vc-state' for valid values of STATE.
@@ -1568,9 +1569,10 @@ state of item at point, if any."
 		     (vc-dir-fileinfo->directory (ewoc-data next))))
 	       ;; Remove files in specified STATE.  STATE can be a
 	       ;; symbol, a user-name, or nil.
-               (if state
-                   (equal (vc-dir-fileinfo->state data) state)
-                 (memq (vc-dir-fileinfo->state data) '(up-to-date ignored))))
+               (let ((data-state (vc-dir-fileinfo->state data)))
+                 (if state
+                     (equal data-state state)
+                   (memq data-state vc-dir--up-to-date-states))))
 	  (ewoc-delete vc-ewoc crt))
 	(setq crt prev)))))
 
@@ -1588,22 +1590,46 @@ state of item at point, if any."
 
 (declare-function vc-only-files-state-and-model "vc")
 
+(defun vc-dir--only-files-state-and-model (only-files-list)
+  "Call `vc-only-files-state-and-model' as appropriate for VC-Dir buffers.
+Offer to call `vc-dir-hide-up-to-date' if that might be useful.
+If we did, remove up-to-date items from ONLY-FILES-LIST before passing
+to `vc-only-files-state-and-model'.
+
+There's usually no action to be taken on `up-to-date' or `ignored'
+files, but a new user may include these in their VC-Dir fileset without
+realizing it.  To avoid the user having to know in advance that what
+they must do is invoke \\<vc-dir-mode-map>\\[vc-dir-hide-up-to-date] \
+before \\[vc-next-action], offer to invoke `vc-dir-hide-up-to-date'
+for them, and also filter ONLY-FILES-LIST so as not to include entries
+in those states.  Only do this if there are both up-to-date and
+non-up-to-date files in ONLY-FILES-LIST (in case we add a VC next action
+for `up-to-date' and/or `ignored' files at some point)."
+  (let (up-to-date other)
+    (dolist (entry only-files-list)
+      (push entry (if (memq (cdr entry) vc-dir--up-to-date-states)
+                      up-to-date other)))
+    (vc-only-files-state-and-model
+     (if (or (null up-to-date) (null other)
+             (not (y-or-n-p "Clear up-to-date items before proceeding?")))
+         only-files-list
+       (vc-dir-hide-up-to-date)
+       other)
+     vc-dir-backend)))
+
 (defun vc-dir-deduce-fileset (&optional state-model-only-files)
-  (let ((marked (vc-dir-marked-files))
-	files only-files-list)
-    (if marked
+  (let (files only-files-list)
+    (if-let* ((marked (vc-dir-marked-files)))
 	(progn
 	  (setq files marked)
 	  (when state-model-only-files
 	    (setq only-files-list (vc-dir-marked-only-files-and-states))))
-      (let ((crt (vc-dir-current-file)))
-	(setq files (list crt))
-	(when state-model-only-files
-	  (setq only-files-list (vc-dir-child-files-and-states)))))
+      (setq files (list (vc-dir-current-file)))
+      (when state-model-only-files
+	(setq only-files-list (vc-dir-child-files-and-states))))
     (if state-model-only-files
         (cl-list* vc-dir-backend files
-                  (vc-only-files-state-and-model only-files-list
-                                                 vc-dir-backend))
+                  (vc-dir--only-files-state-and-model only-files-list))
       (list vc-dir-backend files))))
 
 ;;;###autoload
