@@ -9752,6 +9752,7 @@ handle_stop_backwards (struct it *it, ptrdiff_t charpos)
   struct display_pos save_current = it->current;
   struct text_pos save_position = it->position;
   struct composition_it save_cmp_it = it->cmp_it;
+  int save_sp = it->sp;
   struct text_pos pos1;
   ptrdiff_t next_stop;
 
@@ -9783,7 +9784,8 @@ handle_stop_backwards (struct it *it, ptrdiff_t charpos)
   next_stop = it->stop_charpos;
   it->stop_charpos = it->prev_stop;
   handle_stop (it);
-  it->stop_charpos = next_stop;
+  if (it->sp == save_sp)
+    it->stop_charpos = next_stop;
 }
 
 /* Load IT with the next display element from current_buffer.  Value
