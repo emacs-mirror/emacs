@@ -3177,7 +3177,10 @@ This user option controls what previous packages versions to keep on
 upgrade.  By default, this is set to nil, to keep the previous behavior.
 
 ---
-*** Packages check recursive dependencies before installing.
+*** Packages are now checked for recursive dependencies before installing.
+If a package has dependencies not available on any of the archives in
+'package-archives', it will appear as unavailable, with the reasons
+stated in its description.
 
 ** Rcirc
 

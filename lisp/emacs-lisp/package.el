@@ -2018,7 +2018,8 @@ package archive."
 (defun package--compatible-packages ()
   "Return list of packages that can be installed.
 This excludes packages that are listed in the archives, but have
-incompatible dependencies (either not available at all or too old)."
+incompatible dependencies (either too old or not available at all
+in any archive mentioned in `package-archives')."
   (package-read-all-archive-contents)
   (package--build-compatibility-table)
   (cl-loop for (name . desc) in package-archive-contents
