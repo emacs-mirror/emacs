@@ -606,7 +606,8 @@ Also update some VC file properties from ENTRIES."
 	(let ((lastdir (vc-dir-node-directory (ewoc-nth vc-ewoc -1))))
 	  (dolist (entry entries)
 	    (let ((entrydir (file-name-directory
-			     (directory-file-name (expand-file-name (car entry))))))
+			     (directory-file-name
+                              (expand-file-name (car entry))))))
 	      ;; Insert a directory node if needed.
 	      (unless (string-equal lastdir entrydir)
 		(setq lastdir entrydir)
@@ -617,8 +618,22 @@ Also update some VC file properties from ENTRIES."
 	      (ewoc-enter-last vc-ewoc
 			       (apply #'vc-dir-create-fileinfo entry))))))
       (when to-remove
-	(let ((inhibit-read-only t))
-	  (apply #'ewoc-delete vc-ewoc (nreverse to-remove)))))
+	(let ((inhibit-read-only t)
+              (crt (ewoc-nth vc-ewoc -1))
+              (first (ewoc-nth vc-ewoc 0)))
+          (while (not (eq crt first))
+            (let ((prev (ewoc-prev vc-ewoc crt)))
+              (cond
+               ;; Remove the entries we queued up for removal.
+               ((eq crt (car to-remove))
+                (ewoc-delete vc-ewoc (pop to-remove)))
+               ;; Remove directories which (now) have no child files.
+               ((and (vc-dir-fileinfo->directory (ewoc-data crt))
+                     (let ((next (ewoc-next vc-ewoc crt)))
+                       (or (null next)
+                           (vc-dir-fileinfo->directory (ewoc-data next)))))
+                (ewoc-delete vc-ewoc crt)))
+              (setq crt prev))))))
     ;; Update VC file properties.
     (pcase-dolist (`(,file ,state ,_extra) entries)
       (vc-file-setprop file 'vc-backend
