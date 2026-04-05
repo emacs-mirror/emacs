@@ -422,8 +422,9 @@ The same keyword arguments are supported as in
 KEYS shall have the same format as in a call to function `kmacro'.
 
 This macro should be expanded within the body of
-`ert-with-display-current-buffer' when the keys KEYS start commands
-acting on the current buffer."
+`ert-with-buffer-selected' to select a buffer when keys KEYS start
+commands acting on this buffer, or within the body of
+`ert-with-test-buffer' used with `:selected' flag set."
   (funcall
     (kmacro keys)))
 
