@@ -2975,7 +2975,7 @@ this to the Emacs configuration file will suffice:
  '(region ((t :extend nil))))
 #+end_src
 
-[[#h:c8605d37-66e1-42aa-986e-d7514c3af6fe][Make the region preserve text colors, plus other styles]].
+[[#h:c8605d37-66e1-42aa-986e-d7514c3af6fe][Make the region preserve text colors plus other styles]].
 
 ** DIY Add padding to the mode line
 :PROPERTIES:
