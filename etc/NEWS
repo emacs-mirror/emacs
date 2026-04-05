@@ -2918,11 +2918,14 @@ There is still some further work to do to rationalize VC's handling of
 file removal.
 
 ---
-*** New user option 'vc-dir-hide-up-to-date-on-revert'.
-If you customize this option to non-nil, the 'g' command to refresh
+*** New user option 'vc-dir-auto-hide-up-to-date'.
+If you customize this option to 'revert', the 'g' command to refresh
 the VC Directory buffer also has the effect of the 'x' command.
 That is, typing 'g' refreshes the buffer and also hides items in the
 'up-to-date' and 'ignored' states.
+If you customize this option to any other non-nil value, then in
+addition, hide items whenever their state would change to 'up-to-date'
+or 'ignored'.
 
 ---
 *** New user option 'vc-dir-save-some-buffers-on-revert'.
