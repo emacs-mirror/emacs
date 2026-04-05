@@ -43,8 +43,15 @@
 (declare-function inferior-ess-send-input "ext:ess-inf" ())
 (declare-function ess-make-buffer-current "ext:ess-inf" ())
 (declare-function ess-eval-buffer "ext:ess-inf" (vis))
-(declare-function ess-wait-for-process "ext:ess-inf"
-		  (&optional proc sec-prompt wait force-redisplay))
+
+(defvar ess-current-process-name) ; ess-custom.el
+(defvar ess-local-process-name)   ; ess-custom.el
+(defvar ess-eval-visibly)         ; ess-custom.el
+(defvar ess-local-customize-alist); ess-custom.el
+(defvar ess-gen-proc-buffer-name-function) ; ess-custom.el
+(defvar ess-ask-for-ess-directory) ; ess-custom.el
+(defvar ess-directory-function) ; ess-custom.el
+(defvar ess-directory) ; ess-custom.el
 
 (defvar org-babel-header-args:julia
   '((width		 . :any)
@@ -66,11 +73,6 @@
   :group 'org-babel
   :type 'string)
 
-(defvar ess-current-process-name) ; dynamically scoped
-(defvar ess-local-process-name)   ; dynamically scoped
-(defvar ess-eval-visibly-p)       ; dynamically scoped
-(defvar ess-local-customize-alist); dynamically scoped
-(defvar ess-gen-proc-buffer-name-function) ; defined in ess-inf.el
 (defun org-babel-julia-associate-session (session)
   "Associate R code buffer with an R session.
 Make SESSION be the inferior ESS process associated with the
@@ -167,7 +169,10 @@ This function is called by `org-babel-execute-src-block'."
              (min (if lengths (apply #'min lengths) 0)))
         ;; Ensure VALUE has an orgtbl structure (depth of at least 2).
         (unless (listp (car value)) (setq value (list value)))
-        (let ((file (orgtbl-to-csv value '(:fmt org-babel-julia-quote-csv-field))))
+        (let ((file (orgtbl-to-csv
+                     value
+                     '( :fmt org-babel-julia-quote-csv-field
+                        :with-special-rows nil))))
           (if (= max min)
               (format "%s = begin
     using CSV
@@ -181,13 +186,17 @@ end"
     (format "%s = %s" name (org-babel-julia-quote-csv-field value))))
 
 (defvar ess-ask-for-ess-directory) ; dynamically scoped
-(defun org-babel-julia-initiate-session (session params)
+(defun org-babel-julia-initiate-session (session _params)
   "If there is not a current julia process then create one."
   (unless (string= session "none")
     (let* ((session (or session "*Julia*"))
-	   (ess-ask-for-ess-directory
-	    (and (bound-and-true-p ess-ask-for-ess-directory)
-                 (not (cdr (assq :dir params)))))
+           ;; Force using `default-directory', as we promise in the
+           ;; manual.  The caller should have taken care about setting
+           ;; it according to :dir if necessary.
+           ;; https://ess.r-project.org/Manual/ess.html#Changing-the-startup-actions
+	   (ess-ask-for-ess-directory nil)
+           (ess-directory-function nil)
+           (ess-directory nil)
            ;; Make ESS name the process buffer as SESSION.
            (ess-gen-proc-buffer-name-function
             (lambda (_) session)))
@@ -293,7 +302,7 @@ last statement in BODY, as elisp."
        (let ((ess-local-customize-alist t)
              (ess-local-process-name
 	      (process-name (get-buffer-process session)))
-	     (ess-eval-visibly-p nil))
+	     (ess-eval-visibly nil))
 	 (ess-eval-buffer nil)))
      (let ((tmp-file (org-babel-temp-file "julia-")))
        (org-babel-comint-eval-invisibly-and-wait-for-file

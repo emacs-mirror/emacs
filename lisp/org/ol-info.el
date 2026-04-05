@@ -38,7 +38,7 @@
 ;; Declare external functions and variables
 
 (declare-function Info-find-node "info"
-                  (filename nodename &optional no-going-back strict-case))
+                  (filename nodename &optional no-going-back strict-case noerror))
 (defvar Info-current-file)
 (defvar Info-current-node)
 
@@ -68,11 +68,12 @@
   (org-info-follow-link path))
 
 (defun org-info--link-file-node (path)
-  "Extract file name and node from info link PATH.
+  "Extract the file name and Info node from the Info link PATH.
 
-Return cons consisting of file name and node name or \"Top\" if node
-part is not specified.  Components may be separated by \":\" or by \"#\".
-File may be a virtual one, see `Info-virtual-files'."
+Return a cons consisting of the file name and node name or \"Top\" if
+the node part is not specified.  Components may be separated by \":\"
+or by \"#\".  The file name may be a virtual one, see
+`Info-virtual-files'."
   (if (not path)
       '("dir" . "Top")
     (string-match "\\`\\([^#:]*\\)\\(?:[#:]:?\\(.*\\)\\)?\\'" path)
@@ -84,7 +85,7 @@ File may be a virtual one, see `Info-virtual-files'."
        (if (org-string-nw-p node) (org-trim node) "Top")))))
 
 (defun org-info-description-as-command (link desc)
-  "Info link description that can be pasted as command.
+  "Return an Info link description that can be evaluated as a command.
 
 For the following LINK
 
@@ -99,8 +100,8 @@ that may be executed as shell command or evaluated by
 in Emacs.
 
 Calling convention is similar to `org-link-make-description-function'.
-DESC has higher priority and returned when it is not nil or empty string.
-If LINK is not an info link then DESC is returned."
+DESC has higher priority and returned when it is both non-nil and
+non-empty.  If LINK is not an Info link, DESC is returned."
   (let* ((prefix "info:")
          (need-file-node (and (not (org-string-nw-p desc))
                               (string-prefix-p prefix link))))
@@ -144,19 +145,20 @@ Taken from <https://www.gnu.org/software/emacs/manual/html_mono/.>")
     ("libc" . "https://www.gnu.org/software/libc/manual/html_mono/libc.html")
     ("make" . "https://www.gnu.org/software/make/manual/make.html"))
   "Alist of documents generated from Texinfo source.
-When converting info links to HTML, links to any one of these manuals are
+When converting Info links to HTML, links to any one of these manuals are
 converted to use these URL."
   :group 'org-link
   :type '(alist :key-type string :value-type string)
   :package-version '(Org . "9.7")
-  :safe t)
+  :safe #'listp)
 
 (defun org-info-map-html-url (filename)
-  "Return URL or HTML file associated to Info FILENAME.
-If FILENAME refers to an official GNU document, return a URL pointing to
-the official page for that document, e.g., use \"gnu.org\" for all Emacs
-related documents.  Otherwise, append \".html\" extension to FILENAME.
-See `org-info-emacs-documents' and `org-info-other-documents' for details."
+  "Return the URL or HTML file associated with the Info FILENAME.
+If FILENAME refers to an official GNU document, return the URL of the
+official page for that document, e.g., use \"gnu.org\" for all Emacs
+related documents.  Otherwise, append \".html\" to the FILENAME.  See
+`org-info-emacs-documents' and `org-info-other-documents' for
+details."
   (cond ((cdr (assoc filename org-info-other-documents)))
         ((member filename org-info-emacs-documents)
          (format "https://www.gnu.org/software/emacs/manual/html_mono/%s.html"
@@ -164,7 +166,7 @@ See `org-info-emacs-documents' and `org-info-other-documents' for details."
         (t (concat filename ".html"))))
 
 (defun org-info--expand-node-name (node)
-  "Expand Info NODE to HTML cross reference."
+  "Expand the Info NODE to an HTML cross reference."
   ;; See (info "(texinfo) HTML Xref Node Name Expansion") for the
   ;; expansion rule.
   (let ((node (replace-regexp-in-string
@@ -177,7 +179,7 @@ See `org-info-emacs-documents' and `org-info-other-documents' for details."
 	  (t node))))
 
 (defun org-info-export (path desc format)
-  "Export an info link.
+  "Export an Info link.
 See `org-link-parameters' for details about PATH, DESC and FORMAT."
   (pcase-let ((`(,manual . ,node) (org-info--link-file-node path)))
     (pcase format

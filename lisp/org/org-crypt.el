@@ -81,7 +81,6 @@
 (declare-function org-make-tags-matcher "org" (match &optional only-local-tags))
 (declare-function org-previous-visible-heading "org" (arg))
 (declare-function org-scan-tags "org" (action matcher todo-only &optional start-level))
-(declare-function org-set-property "org" (property value))
 (declare-function org-cycle-set-startup-visibility "org-cycle" ())
 
 (defgroup org-crypt nil

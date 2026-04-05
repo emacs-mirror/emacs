@@ -33,7 +33,11 @@
 ;; See ox.el for more details on how this exporter works.
 ;;
 ;; It introduces one new buffer keywords:
-;; "MAN_CLASS_OPTIONS".
+;; "MAN_CLASS_OPTIONS" that accepts the following options:
+;;   - `:section-id', the section, a string (eg. ':section-id "2"');
+;;   - `:release', the footer middle, a string (eg. ':release "Emacs 13"');
+;;   - `:header', the header middle, a string (eg. ':header "GNU"').
+
 
 ;;; Code:
 
@@ -101,6 +105,7 @@
     (underline . org-man-underline)
     (verbatim . org-man-verbatim)
     (verse-block . org-man-verse-block))
+  :filters-alist '((:filter-parse-tree . org-man--remove-blank))
   :menu-entry
   '(?M "Export to MAN"
        ((?m "As MAN file" org-man-export-to-man)
@@ -300,6 +305,17 @@ This function shouldn't be used for floats.  See
   ;; backslash) cannot be used as per the same man page.
   (replace-regexp-in-string "\\\\" "\\e" text nil t))
 
+
+;;; Filters
+
+(defun org-man--remove-blank (tree _backend info)
+  "Remove :post-blank from TREE elements.
+INFO is the communication plist.
+Avoiding blank lines is adviced by groff_man_style(7) man page."
+  (org-element-map tree org-element-all-elements
+    (lambda (el) (setf (org-element-post-blank el) 0))
+    info)
+  tree)
 
 
 ;;; Template
@@ -315,19 +331,25 @@ holding export options."
                               #'identity
                               (list (plist-get info :man-class-options))
                               " "))))
-         (section-item (plist-get attr :section-id)))
-
+         (section-item (plist-get attr :section-id))
+         (release (plist-get attr :release))
+         (header (plist-get attr :header))
+         ;; Note: groff linter suggests date to be the third argument
+         ;; of .TH
+         (date (and (plist-get info :with-date)
+		    (org-export-data (org-export-get-date info) info))))
     (concat
-
-     (cond
-      ((and title (stringp section-item))
-       (format ".TH \"%s\" \"%s\" \n" title section-item))
-      ((and (string= "" title) (stringp section-item))
-       (format ".TH \"%s\" \"%s\" \n" " " section-item))
-      (title
-       (format ".TH \"%s\" \"1\" \n" title))
-      (t
-       ".TH \" \" \"1\" "))
+     (format ".TH \"%s\" \"%s\"" ;; only two required by groff_man(7).
+             (if title title " ")
+             (if (stringp section-item) section-item "1"))
+     (if date (format " \"%s\""  date)
+       " \"\"") ;; in case later options are present.
+     (if release (format " \"%s\"" release)
+       " \"\"") ;; in case later options are present.
+     ;; Do not write an empty footer-outside, otherwise man(1) will
+     ;; no longer generate its content, see groff_man(7).
+     (if header (format " \"%s\"" header))
+     " \n"
      contents)))
 
 
@@ -535,7 +557,7 @@ contextual information."
               (delete-file in-file)
               (delete-file out-file)
               code-block)
-          (format ".RS\n.nf\n\\fC\\m[black]%s\\m[]\\fP\n.fi\n.RE\n"
+          (format ".RS\n.nf\n\\fC%s\\m[]\\fP\n.fi\n.RE\n"
                   (org-man--protect-example code)))))
 
      ;; Do not use a special package: transcode it verbatim.
@@ -755,7 +777,7 @@ holding contextual information."
 CONTENTS holds the contents of the item.  INFO is a plist holding
 contextual information."
   (if (not (plist-get info :man-source-highlight))
-      (format ".RS\n.nf\n\\fC%s\\fP\n.fi\n.RE\n\n"
+      (format ".RS\n.nf\n\\fC%s\\fP\n.fi\n.RE\n"
 	      (org-man--protect-example (org-export-format-code-default src-block info)))
     (let* ((tmpdir temporary-file-directory)
 	   (in-file  (make-temp-name (expand-file-name "srchilite" tmpdir)))
@@ -779,7 +801,7 @@ contextual information."
 	    (delete-file in-file)
 	    (delete-file out-file)
 	    code-block)
-	(format ".RS\n.nf\n\\fC\\m[black]%s\\m[]\\fP\n.fi\n.RE" (org-man--protect-example code))))))
+	(format ".RS\n.nf\n\\fC%s\\m[]\\fP\n.fi\n.RE" (org-man--protect-example code))))))
 
 
 ;;; Statistics Cookie
@@ -1125,6 +1147,8 @@ file-local settings.
 Return PDF file's name."
   (interactive)
   (let ((outfile (org-export-output-file-name ".man" subtreep)))
+    (require 'ox-latex)
+    (declare-function org-latex-compile "ox-latex" (texfile &optional snippet))
     (org-export-to-file 'man outfile
       async subtreep visible-only body-only ext-plist
       #'org-latex-compile)))

@@ -1,4 +1,4 @@
-;;; ob-js.el --- Babel Functions for Javascript      -*- lexical-binding: t; -*-
+;;; ob-js.el --- Babel Functions for JavaScript      -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2026 Free Software Foundation, Inc.
 
@@ -73,10 +73,10 @@
   ;; parenthesis are not shadowed if the last line of the body is a
   ;; line comment.
   "require('process').stdout.write(require('util').inspect(function(){%s\n}()));"
-  "Javascript code to print value of body.")
+  "JavaScript code to print value of body.")
 
 (defun org-babel-execute:js (body params)
-  "Execute Javascript BODY according to PARAMS.
+  "Execute JavaScript BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
   (let* ((org-babel-js-cmd (or (cdr (assq :cmd params)) org-babel-js-cmd))
 	 (session (cdr (assq :session params)))
@@ -158,7 +158,7 @@ specifying a variable of the same value."
     session))
 
 (defun org-babel-variable-assignments:js (params)
-  "Return list of Javascript statements assigning the block's variables.
+  "Return list of JavaScript statements assigning the block's variables.
 The variables are defined in PARAMS."
   (mapcar
    (lambda (pair) (format "var %s=%s;"
@@ -183,6 +183,7 @@ Return the initialized session."
 	(run-skewer)
 	(skewer-repl)
 	session-buffer)))
+   ;; SIC, JavaScript miscapitalized in `js-comint.el'.
    ((string= "*Javascript REPL*" session)
     (org-require-package 'js-comint)
     (let ((session-buffer "*Javascript REPL*"))

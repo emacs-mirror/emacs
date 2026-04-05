@@ -33,7 +33,8 @@
 
 (eval-when-compile (require 'subr-x))  ; For `string-empty-p', Emacs < 29
 
-(defvar org-babel-error-buffer-name "*Org-Babel Error Output*")
+(defvar org-babel-error-buffer-name "*Org-Babel Error Output*"
+  "The buffer name Org Babel evaluate error output.")
 (declare-function org-babel-temp-file "ob-core" (prefix &optional suffix))
 
 (defun org-babel-eval-error-notify (exit-code stderr)
@@ -160,15 +161,8 @@ This buffer is named by `org-babel-error-buffer-name'."
   "Return system `shell-file-name', defaulting to /bin/sh.
 Unfortunately, `executable-find' does not support file name
 handlers.  Therefore, we could use it in the local case only."
-  ;; FIXME: Since Emacs 27, `executable-find' accepts optional second
-  ;; argument supporting remote hosts.
-  (cond ((and (not (file-remote-p default-directory))
-	      (executable-find shell-file-name))
-	 shell-file-name)
-	((file-executable-p
-	  (concat (file-remote-p default-directory) shell-file-name))
-	 shell-file-name)
-	("/bin/sh")))
+  (if (executable-find shell-file-name 'respect-remote)
+      shell-file-name "/bin/sh"))
 
 (provide 'ob-eval)
 

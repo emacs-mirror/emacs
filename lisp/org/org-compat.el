@@ -61,13 +61,12 @@
 (declare-function org-element-contents-begin "org-element" (node))
 (declare-function org-element-contents-end "org-element" (node))
 (declare-function org-element-post-affiliated "org-element" (node))
-(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading))
+(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading element))
 (declare-function org-get-heading "org" (&optional no-tags no-todo no-priority no-comment))
 (declare-function org-get-tags "org" (&optional pos local))
 (declare-function org-fold-hide-block-toggle "org-fold" (&optional force no-error element))
 (declare-function org-link-display-format "ol" (s))
 (declare-function org-link-set-parameters "ol" (type &rest rest))
-(declare-function org-log-into-drawer "org" ())
 (declare-function org-make-tag-string "org" (tags))
 (declare-function org-next-visible-heading "org" (arg))
 (declare-function org-reduced-level "org" (l))
@@ -78,7 +77,6 @@
 (declare-function speedbar-line-directory "speedbar" (&optional depth))
 (declare-function table--at-cell-p "table" (position &optional object at-column))
 (declare-function ob-clojure-eval-with-cmd "ob-clojure" (cmd expanded))
-(declare-function org-fold-folded-p "org-fold" (&optional pos spec-or-alias))
 (declare-function org-fold-hide-sublevels "org-fold" (levels))
 (declare-function org-fold-hide-subtree "org-fold" ())
 (declare-function org-fold-region "org-fold" (from to flag &optional spec))
@@ -99,6 +97,19 @@
 (defvar org-table-tab-recognizes-table.el)
 (defvar org-table1-hline-regexp)
 (defvar org-fold-core-style)
+
+
+;;; Emacs < 31 compatibility
+(if (fboundp 'completion-table-with-metadata)
+    (defalias 'org-completion-table-with-metadata #'completion-table-with-metadata)
+  (defun org-completion-table-with-metadata (table metadata)
+    "Return new completion TABLE with METADATA.
+METADATA should be an alist of completion metadata.  See
+`completion-metadata' for a list of supported metadata."
+    (lambda (string pred action)
+      (if (eq action 'metadata)
+          `(metadata . ,metadata)
+        (complete-with-action action table string pred)))))
 
 
 ;;; Emacs < 29 compatibility
@@ -180,6 +191,33 @@ back to `window-text-pixel-size' otherwise."
           (set-window-buffer nil oldbuffer)
           (set-window-dedicated-p nil dedicatedp))))))
 
+
+(if (fboundp 'with-undo-amalgamate)
+    (defalias 'org-with-undo-amalgamate 'with-undo-amalgamate)
+  ;; Copied from Emacs source.
+  (defmacro org-with-undo-amalgamate (&rest body)
+    "Like `progn' but perform BODY with amalgamated undo barriers.
+
+This allows multiple operations to be undone in a single step.
+When undo is disabled this behaves like `progn'."
+    (declare (indent 0) (debug t))
+    (let ((handle (make-symbol "--change-group-handle--")))
+      `(let ((,handle (prepare-change-group))
+             ;; Don't truncate any undo data in the middle of this,
+             ;; otherwise Emacs might truncate part of the resulting
+             ;; undo step: we want to mimic the behavior we'd get if the
+             ;; undo-boundaries were never added in the first place.
+             (undo-outer-limit nil)
+             (undo-limit most-positive-fixnum)
+             (undo-strong-limit most-positive-fixnum))
+         (unwind-protect
+             (progn
+               (activate-change-group ,handle)
+               ,@body)
+           (progn
+             (accept-change-group ,handle)
+             (undo-amalgamate-change-group ,handle)))))))
+
 
 ;;; Emacs < 28.1 compatibility
 
@@ -207,7 +245,7 @@ inserted before concatenating."
              (mapcar
               (lambda (str)
                 (when (and str (not (seq-empty-p str))
-                           (string-match "\\(.+\\)/?" str))
+                           (string-match "\\(.+?\\)/?$" str))
                   (match-string 1 str)))
               (cons directory components)))
        "/"))))
@@ -292,20 +330,16 @@ older than 27.1"
       (if tree (push tree elems))
       (nreverse elems))))
 
-(defalias 'org-replace-region-contents
-  (if (> emacs-major-version 30)
-      #'replace-region-contents
-    ;; The `replace-region-contents' in Emacs<31 does not accept a buffer
-    ;; as SOURCE argument and does not preserve the position well enough.
-    (lambda (beg end source &optional max-secs max-costs)
-      (save-restriction
-        (narrow-to-region beg end)
-        (let ((eobp (eobp)))
-          (with-no-warnings
-            (if (< emacs-major-version 27)
-                (replace-buffer-contents source)
-              (replace-buffer-contents source max-secs max-costs)))
-          (if eobp (goto-char (point-max))))))))
+(with-no-warnings ; `replace-buffer-contents' is obsolete in Emacs 31
+  (cond
+   ((version< emacs-version "27.1")
+    (defsubst org-replace-buffer-contents (source &optional _max-secs _max-costs)
+      (replace-buffer-contents source)))
+   ((version< emacs-version "31")
+    (defalias 'org-replace-buffer-contents #'replace-buffer-contents))
+   (t
+    (defsubst org-replace-buffer-contents (source &optional max-secs max-costs)
+      (replace-region-contents (point-min) (point-max) source max-secs max-costs)))))
 
 (unless (fboundp 'proper-list-p)
   ;; `proper-list-p' was added in Emacs 27.1.  The function below is
@@ -502,6 +536,8 @@ Counting starts at 1."
 (define-obsolete-function-alias 'org-string-match-p 'string-match-p "9.0")
 
 ;;;; Functions and variables from previous releases now obsolete.
+(define-obsolete-variable-alias 'org-edit-src-content-indentation
+  'org-src-content-indentation "Org 9.8")
 (define-obsolete-variable-alias 'org-export-ignored-local-variables
   'org-element-ignored-local-variables "Org 9.7")
 (define-obsolete-function-alias 'org-habit-get-priority
@@ -717,19 +753,6 @@ This constant, for example, makes the below code not err:
 (make-obsolete 'org-in-fixed-width-region-p
                "use `org-element' library"
                "9.0")
-
-;; FIXME: Unused; obsoleted; to be removed.
-(defun org-let (list &rest body) ;FIXME: So many kittens are suffering here.
-  (declare (indent 1) (obsolete cl-progv "2021"))
-  (eval (cons 'let (cons list body))))
-
-;; FIXME: Unused; obsoleted; to be removed.
-(defun org-let2 (list1 list2 &rest body) ;FIXME: Where did our karma go?
-  (declare (indent 2) (obsolete cl-progv "2021"))
-  (eval (cons 'let (cons list1 (list (cons 'let (cons list2 body)))))))
-
-(make-obsolete 'org-let "to be removed" "9.6")
-(make-obsolete 'org-let2 "to be removed" "9.6")
 
 (define-obsolete-function-alias 'org--math-always-on
   'org--math-p "9.7")
@@ -1020,6 +1043,191 @@ use of this function is for the stuck project list."
 (define-obsolete-function-alias 'org-add-angle-brackets
   'org-link-add-angle-brackets "9.3")
 
+(declare-function org-link-preview--remove-overlay "ol"
+                  (ov after beg end &optional len))
+(declare-function org-link-preview--get-overlays "ol" (&optional beg end))
+(declare-function org-link-preview-clear "ol" (&optional beg end))
+(declare-function org-link-preview--remove-overlay "ol"
+                  (ov after beg end &optional len))
+(declare-function org-attach-expand "org-attach" (file))
+(declare-function org-display-inline-image--width "ol" (link))
+(declare-function org-image--align "ol" (link))
+(declare-function org--create-inline-image "ol" (file width))
+
+(define-obsolete-function-alias 'org-display-inline-remove-overlay
+  'org-link-preview--remove-overlay "9.8")
+(define-obsolete-function-alias 'org--inline-image-overlays
+  'org-link-preview--get-overlays "9.8")
+(define-obsolete-function-alias 'org-remove-inline-images
+  'org-link-preview-clear "9.8")
+(define-obsolete-function-alias 'org-redisplay-inline-images
+  'org-link-preview-refresh "9.8")
+(define-obsolete-variable-alias 'org-inline-image-overlays
+  'org-link-preview-overlays "9.8")
+(defvar org-link-preview-overlays)
+(defvar org-link-abbrev-alist-local)
+(defvar org-link-abbrev-alist)
+(defvar org-link-angle-re)
+(defvar org-link-plain-re)
+
+(make-obsolete 'org-display-inline-images
+               'org-link-preview-region "9.8")
+;; FIXME: Unused; obsoleted; to be removed
+(defun org-display-inline-images (&optional include-linked refresh beg end)
+  "Display inline images.
+
+An inline image is a link which follows either of these
+conventions:
+
+  1. Its path is a file with an extension matching return value
+     from `image-file-name-regexp' and it has no contents.
+
+  2. Its description consists in a single link of the previous
+     type.  In this case, that link must be a well-formed plain
+     or angle link, i.e., it must have an explicit \"file\" or
+     \"attachment\" type.
+
+Equip each image with the key-map `image-map'.
+
+When optional argument INCLUDE-LINKED is non-nil, also links with
+a text description part will be inlined.  This can be nice for
+a quick look at those images, but it does not reflect what
+exported files will look like.
+
+When optional argument REFRESH is non-nil, refresh existing
+images between BEG and END.  This will create new image displays
+only if necessary.
+
+BEG and END define the considered part.  They default to the
+buffer boundaries with possible narrowing."
+  (interactive "P")
+  (when (display-graphic-p)
+    (when refresh
+      (org-link-preview-clear beg end)
+      (when (fboundp 'clear-image-cache) (clear-image-cache)))
+    (let ((end (or end (point-max))))
+      (org-with-point-at (or beg (point-min))
+	(let* ((case-fold-search t)
+	       (file-extension-re (image-file-name-regexp))
+	       (link-abbrevs (mapcar #'car
+				     (append org-link-abbrev-alist-local
+					     org-link-abbrev-alist)))
+	       ;; Check absolute, relative file names and explicit
+	       ;; "file:" links.  Also check link abbreviations since
+	       ;; some might expand to "file" links.
+	       (file-types-re
+		(format "\\[\\[\\(?:file%s:\\|attachment:\\|[./~]\\)\\|\\]\\[\\(<?\\(?:file\\|attachment\\):\\)"
+			(if (not link-abbrevs) ""
+			  (concat "\\|" (regexp-opt link-abbrevs))))))
+	  (while (re-search-forward file-types-re end t)
+	    (let* ((link (org-element-lineage
+			  (save-match-data (org-element-context))
+			  'link t))
+                   (linktype (org-element-property :type link))
+		   (inner-start (match-beginning 1))
+		   (path
+		    (cond
+		     ;; No link at point; no inline image.
+		     ((not link) nil)
+		     ;; File link without a description.  Also handle
+		     ;; INCLUDE-LINKED here since it should have
+		     ;; precedence over the next case.  I.e., if link
+		     ;; contains filenames in both the path and the
+		     ;; description, prioritize the path only when
+		     ;; INCLUDE-LINKED is non-nil.
+		     ((or (not (org-element-contents-begin link))
+			  include-linked)
+		      (and (or (equal "file" linktype)
+                               (equal "attachment" linktype))
+			   (org-element-property :path link)))
+		     ;; Link with a description.  Check if description
+		     ;; is a filename.  Even if Org doesn't have syntax
+		     ;; for those -- clickable image -- constructs, fake
+		     ;; them, as in `org-export-insert-image-links'.
+		     ((not inner-start) nil)
+		     (t
+		      (org-with-point-at inner-start
+			(and (looking-at
+			      (if (char-equal ?< (char-after inner-start))
+				  org-link-angle-re
+				org-link-plain-re))
+			     ;; File name must fill the whole
+			     ;; description.
+			     (= (org-element-contents-end link)
+				(match-end 0))
+			     (progn
+                               (setq linktype (match-string 1))
+                               (match-string 2))))))))
+	      (when (and path (string-match-p file-extension-re path))
+		(let ((file (if (equal "attachment" linktype)
+				(progn
+                                  (require 'org-attach)
+				  (ignore-errors (org-attach-expand path)))
+                              (expand-file-name path))))
+                  ;; Expand environment variables.
+                  (when file (setq file (substitute-in-file-name file)))
+		  (when (and file (file-exists-p file))
+		    (let ((width (org-display-inline-image--width link))
+			  (align (org-image--align link))
+                          (old (get-char-property-and-overlay
+				(org-element-begin link)
+				'org-image-overlay)))
+		      (if (and (car-safe old) refresh)
+                          (image-flush (overlay-get (cdr old) 'display))
+			(let ((image (org--create-inline-image file width)))
+			  (when image
+			    (let ((ov (make-overlay
+				       (org-element-begin link)
+				       (progn
+					 (goto-char
+					  (org-element-end link))
+					 (unless (eolp) (skip-chars-backward " \t"))
+					 (point)))))
+                              ;; See bug#59902.  We cannot rely
+                              ;; on Emacs to update image if the file
+                              ;; has changed.
+                              (image-flush image)
+			      (overlay-put ov 'display image)
+			      (overlay-put ov 'face 'default)
+			      (overlay-put ov 'org-image-overlay t)
+			      (overlay-put
+			       ov 'modification-hooks
+			       (list 'org-link-preview--remove-overlay))
+			      (when (boundp 'image-map)
+				(overlay-put ov 'keymap image-map))
+                              (when align
+                                (overlay-put
+                                 ov 'before-string
+                                 (propertize
+                                  " " 'face 'default
+                                  'display
+                                  (pcase align
+                                    ("center" `(space :align-to (- center (0.5 . ,image))))
+                                    ("right"  `(space :align-to (- right ,image)))))))
+			      (push ov org-inline-image-overlays))))))))))))))))
+
+(make-obsolete 'org-toggle-inline-images
+               'org-link-preview "9.8")
+(declare-function org-link-preview-region "ol")
+;; FIXME: Unused; obsoleted; to be removed
+(defun org-toggle-inline-images (&optional include-linked beg end)
+  "Toggle the display of inline images.
+INCLUDE-LINKED is passed to `org-display-inline-images'."
+  (interactive "P")
+  (if (org-link-preview--get-overlays beg end)
+      (progn
+        (org-link-preview-clear beg end)
+        (when (called-interactively-p 'interactive)
+	  (message "Inline image display turned off")))
+    (org-link-preview-region include-linked nil beg end)
+    (when (called-interactively-p 'interactive)
+      (let ((new (org-link-preview--get-overlays beg end)))
+        (message (if new
+		     (format "%d images displayed inline"
+			     (length new))
+		   "No images to display inline"))))))
+
+
 ;; The function was made obsolete by commit 65399674d5 of 2013-02-22.
 ;; This make-obsolete call was added 2016-09-01.
 (make-obsolete 'org-capture-import-remember-templates
@@ -1032,7 +1240,7 @@ use of this function is for the stuck project list."
   (org-fold-show-all '(blocks)))
 
 (make-obsolete 'org-show-block-all
-	       "use `org-show-all' instead."
+	       "use `org-fold-show-all' instead."
 	       "9.2")
 
 (define-obsolete-function-alias 'org-get-tags-at 'org-get-tags "9.2")
@@ -1071,7 +1279,7 @@ When optional argument ELEMENT is a parsed drawer, as returned by
 
 When buffer positions BEG and END are provided, hide or show that
 region as a drawer without further ado."
-  (declare (obsolete "use `org-hide-drawer-toggle' instead." "9.4"))
+  (declare (obsolete "use `org-fold-hide-drawer-toggle' instead." "9.4"))
   (if (and beg end) (org-fold-region beg end flag 'drawer)
     (let ((drawer
 	   (or element
@@ -1094,9 +1302,9 @@ region as a drawer without further ado."
 
 (defun org-hide-block-toggle-maybe ()
   "Toggle visibility of block at point.
-Unlike to `org-hide-block-toggle', this function does not throw
+Unlike to `org-fold-hide-block-toggle', this function does not throw
 an error.  Return a non-nil value when toggling is successful."
-  (declare (obsolete "use `org-hide-block-toggle' instead." "9.4"))
+  (declare (obsolete "use `org-fold-hide-block-toggle' instead." "9.4"))
   (interactive)
   (org-fold-hide-block-toggle nil t))
 
@@ -1468,8 +1676,8 @@ This also applied for speedbar access."
 	   (let* ((m (point-marker))
 		  (item (propertize headline 'org-imenu-marker m 'org-imenu t)))
 	     (push m org-imenu-markers)
-	     (if (>= level last-level)
-		 (push (cons item m) (aref subs level))
+             (push (cons item m) (aref subs level))
+             (unless (>= level last-level)
 	       (push (cons item
 			   (cl-mapcan #'identity (cl-subseq subs (1+ level))))
 		     (aref subs level))
@@ -1567,19 +1775,21 @@ ELEMENT is the element at point."
 		  (when (looking-at-p "\\>") (backward-char))
 		  (org-element-context element))))
     (cl-case (org-element-type object)
-      ;; Prevent checks in links due to keybinding conflict with
-      ;; Flyspell.
       ((citation citation-reference code entity export-snippet inline-babel-call
-	         inline-src-block line-break latex-fragment link macro
+	         inline-src-block line-break latex-fragment macro
 	         statistics-cookie target timestamp verbatim)
        nil)
+      (link
+       ;; Only check link description
+       (when-let* ((cbeg (org-element-contents-begin object))
+                   (cend (org-element-contents-end object)))
+         (<= cbeg (point) cend)))
       (footnote-reference
        ;; Only in inline footnotes, within the definition.
        (and (eq (org-element-property :type object) 'inline)
-	    (< (save-excursion
-		 (goto-char (org-element-begin object))
-		 (search-forward ":" nil t 2))
-	       (point))))
+            (<= (org-element-contents-begin object)
+               (point)
+               (org-element-contents-end object))))
       (otherwise t))))
 
 (defun org-mode-flyspell-verify ()
@@ -1607,14 +1817,6 @@ ELEMENT is the element at point."
 	       (let ((case-fold-search t)) (looking-at "[ \t]*#\\+CAPTION:")))
 	     (> (point) (match-end 0))
 	     (org--flyspell-object-check-p element)))
-       ;; Ignore checks in LOGBOOK (or equivalent) drawer.
-       ((let ((log (org-log-into-drawer)))
-	  (and log
-	       (let ((drawer (org-element-lineage element 'drawer)))
-		 (and drawer
-		      (org-string-equal-ignore-case
-		       log (org-element-property :drawer-name drawer))))))
-	nil)
        (t
 	(cl-case (org-element-type element)
 	  ((comment quote-section) t)
@@ -1730,7 +1932,7 @@ key."
 ;;;; Simple
 
 (defun org-mark-jump-unhide (&rest _)
-  "Make the point visible with `org-show-context' after jumping to the mark."
+  "Make the point visible with `org-fold-show-context' after jumping to the mark."
   (when (and (derived-mode-p 'org-mode)
 	     (org-invisible-p))
     (org-fold-show-context 'mark-goto)))
@@ -1780,7 +1982,7 @@ key."
 	          (or (re-search-backward (concat "^\\(?:" outline-regexp "\\)")
 				          nil t)
                       (signal 'outline-before-first-heading nil))
-	          (setq found (and (or invisible-ok (not (org-fold-folded-p)))
+	          (setq found (and (or invisible-ok (not (org-invisible-p)))
 			           (point)))))
 	      (goto-char found)
 	      found)))
@@ -1809,7 +2011,7 @@ key."
   (if (derived-mode-p 'org-mode)
       (save-excursion
         (org-back-to-heading)
-        (if (not (org-fold-folded-p (line-end-position)))
+        (if (not (org-invisible-p (line-end-position)))
             (org-fold-hide-subtree)
           (org-fold-show-children)
           (org-fold-show-entry 'hide-drawers)))
@@ -1824,6 +2026,26 @@ key."
 (make-obsolete-variable 'org-speed-commands-user
                         "configure `org-speed-commands' instead." "9.5")
 (provide 'org-compat)
+
+;;;; yank-media
+;; Emacs 29's pgtk port has a bug where it might fail to return the
+;; right TARGET.  Install a workaround for Emacs <=29 since the fix
+;; went to Emacs 30.  See bug#72254.
+;; Org bug report link: https://list.orgmode.org/orgmode/87ed7kttoa.fsf@k-7.ch
+;; This should be removed once we drop Emacs 29 support.
+(when (and (fboundp 'pgtk-get-selection-internal)
+           (<= emacs-major-version 29))
+  ;; Only define the method if it hasn't been previously defined.
+  (unless (cl-find-method 'gui-backend-get-selection nil
+                          '((eql 'CLIPBOARD) (eql 'TARGETS)
+                            ((&context . window-system) eql 'pgtk)))
+    (cl-defmethod gui-backend-get-selection ((selection-symbol (eql 'CLIPBOARD))
+                                             (target-type (eql 'TARGETS))
+                                             &context (window-system pgtk))
+      (let ((sel (pgtk-get-selection-internal selection-symbol target-type)))
+        (if (vectorp sel)
+            sel
+          (vector sel))))))
 
 ;; Local variables:
 ;; generated-autoload-file: "org-loaddefs.el"

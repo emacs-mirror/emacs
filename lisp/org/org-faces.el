@@ -3,6 +3,7 @@
 ;; Copyright (C) 2004-2026 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
+;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
@@ -324,20 +325,23 @@ determines if it is a foreground or a background color."
 
 (defcustom org-priority-faces nil
   "Faces for specific Priorities.
-This is a list of cons cells, with priority character in the car
-and faces in the cdr.  The face can be a symbol, a color
-as a string, or a property list of attributes, like
+This is an association list, whose keys are priorities and values are
+faces.  The face can be a symbol, a color as a string, or a property
+list of attributes, like
     (:foreground \"blue\" :weight bold :underline t).
 If it is a color string, the variable `org-faces-easy-properties'
 determines if it is a foreground or a background color."
   :group 'org-faces
   :group 'org-todo
-  :type '(repeat
-	  (cons
-	   (character :tag "Priority")
-	   (choice    :tag "Face    "
-		      (string :tag "Color")
-		      (sexp :tag "Face")))))
+  :type '(choice (const :tag "Defaults" nil)
+                 (alist :tag "Association list"
+                        :key-type
+                        (choice :tag "Priority"
+                                (character :tag "Character" :value ?A)
+                                (natnum :tag "Number" :value 1))
+                        :value-type (choice :tag "Face    "
+		                            (string :tag "Color")
+		                            (sexp :tag "Face")))))
 
 (defvar org-tags-special-faces-re nil)
 (defun org-set-tag-faces (var value)

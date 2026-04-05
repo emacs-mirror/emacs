@@ -37,8 +37,6 @@
 (require 'calc-trail)
 (require 'calc-store)
 
-(declare-function calc-store-into    "calc-store" (&optional var))
-(declare-function calc-recall        "calc-store" (&optional var))
 (declare-function math-evaluate-expr "calc-ext"   (x))
 
 (defvar org-babel-default-header-args:calc nil
@@ -114,11 +112,30 @@
                   ))))))
      (mapcar #'org-trim
 	     (split-string (org-babel-expand-body:calc body params) "[\n\r]"))))
-  (save-excursion
-    (with-current-buffer "*Calculator*"
-      (prog1
-          (calc-eval (calc-top 1))
-        (calc-pop 1)))))
+  (let ((result (prog1
+                    ;; Cannot use 'top' as SEPARATOR reliably when the
+                    ;; top of the stack has a vector.
+                    (calc-eval (calc-top 1) 'raw)
+                  (calc-eval 1 'pop)))
+        (calc-line-numbering)
+        lisp-table)
+    (org-babel-reassemble-table
+     (org-babel-result-cond (cdr (assq :result-params params))
+       (calc-eval result)
+       (if (Math-vectorp result)
+           (progn
+             (dolist (r (if (math-matrixp result)
+                            (cdr result) ; Ignore the 'vec item.
+                          (list result)))
+               (setq r (cdr r))         ; Ignore the 'vec item.
+               (push (mapcar (lambda (x) (math-format-stack-value (list x 1 nil))) r)
+                     lisp-table))
+             (setq lisp-table (nreverse lisp-table)))
+         (calc-eval result)))
+     (org-babel-pick-name
+      (cdr (assq :colname-names params)) (cdr (assq :colnames params)))
+     (org-babel-pick-name
+      (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))
 
 (defun org-babel-calc-maybe-resolve-var (el)
 "Resolve user variables in EL.

@@ -45,7 +45,7 @@
                              drop-locals))
 (declare-function org-in-commented-heading-p "org" (&optional no-inheritance element))
 (declare-function org-in-archived-heading-p "org" (&optional no-inheritance element))
-(declare-function org-src-preserve-indentation-p "org-src" (node))
+(declare-function org-src-preserve-indentation-p "org-src" (&optional node))
 
 (defcustom org-export-use-babel t
   "Switch controlling code evaluation and header processing during export.
@@ -215,7 +215,7 @@ this template."
 					(string= "yes"
 						 (cdr (assq :noweb params))))
 				   (org-babel-expand-noweb-references
-				    info org-babel-exp-reference-buffer)
+				    info org-babel-exp-reference-buffer :export)
 				 (nth 1 info)))
 			 (goto-char begin)
 			 (let ((replacement
@@ -306,10 +306,7 @@ this template."
 				        ;; Do not use tabs for block
 				        ;; indentation.
 				        (when (fboundp 'indent-tabs-mode)
-					  (indent-tabs-mode -1)
-					  ;; FIXME: Emacs 26
-					  ;; compatibility.
-					  (setq-local indent-tabs-mode nil))
+					  (indent-tabs-mode -1))
 				        (insert replacement)
 				        (skip-chars-backward " \r\t\n")
 				        (indent-line-to ind)
@@ -321,10 +318,7 @@ this template."
 				      ;; Do not use tabs for block
 				      ;; indentation.
 				      (when (fboundp 'indent-tabs-mode)
-					(indent-tabs-mode -1)
-					;; FIXME: Emacs 26
-					;; compatibility.
-					(setq-local indent-tabs-mode nil))
+					(indent-tabs-mode -1))
 				      (insert replacement)
 				      (indent-rigidly
 				       1 (point) ind)
@@ -423,7 +417,7 @@ replaced with its value."
 	     (org-babel-noweb-wrap) "" (nth 1 info))
 	  (if (org-babel-noweb-p (nth 2 info) :export)
 	      (org-babel-expand-noweb-references
-	       info org-babel-exp-reference-buffer)
+	       info org-babel-exp-reference-buffer :export)
 	    (nth 1 info))))
   (org-fill-template
    (if (eq type 'inline)
@@ -462,7 +456,7 @@ inhibit insertion of results into the buffer."
     (let ((lang (nth 0 info))
 	  (body (if (org-babel-noweb-p (nth 2 info) :eval)
 		    (org-babel-expand-noweb-references
-		     info org-babel-exp-reference-buffer)
+		     info org-babel-exp-reference-buffer :eval)
 		  (nth 1 info)))
 	  (info (copy-sequence info))
 	  (org-babel-current-src-block-location (point-marker)))

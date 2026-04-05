@@ -36,6 +36,8 @@
 (require 'org-macs)
 (require 'python)
 
+(require 'subr-x) ; For `string-trim-right', Emacs < 28
+
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("python" . "py"))
 
@@ -158,14 +160,14 @@ file to save the graphics to.")
 
 (defconst org-babel-python--def-format-value "\
 def __org_babel_python_format_value(result, result_file, result_params):
-    with open(result_file, 'w') as f:
+    with open(result_file, 'w') as __org_babel_python_tmpfile:
         if 'graphics' in result_params:
             result.savefig(result_file)
         elif 'pp' in result_params:
             import pprint
-            f.write(pprint.pformat(result))
+            __org_babel_python_tmpfile.write(pprint.pformat(result))
         elif 'list' in result_params and isinstance(result, dict):
-            f.write(str(['{} :: {}'.format(k, v) for k, v in result.items()]))
+            __org_babel_python_tmpfile.write(str(['{} :: {}'.format(k, v) for k, v in result.items()]))
         else:
             if not set(result_params).intersection(\
 ['scalar', 'verbatim', 'raw']):
@@ -198,7 +200,7 @@ def __org_babel_python_format_value(result, result_file, result_params):
                             result = result.tolist()
                         else:
                             result = repr(result)
-            f.write(str(result))"
+            __org_babel_python_tmpfile.write(str(result))"
   "Python function to format value result and save it to file.")
 
 (defun org-babel-variable-assignments:python (params)
@@ -451,31 +453,22 @@ __org_babel_python_format_value(main(), '%s', %s)")
 (defun org-babel-python-send-string (session body)
   "Pass BODY to the Python process in SESSION.
 Return output."
-  (with-current-buffer session
-    (let* ((string-buffer "")
-	   (comint-output-filter-functions
-	    (cons (lambda (text) (setq string-buffer
-				       (concat string-buffer text)))
-		  comint-output-filter-functions))
-	   (body (format "\
+  (org-babel-chomp
+   (string-trim-right
+    (org-babel-comint-with-output
+        ((org-babel-session-buffer:python session)
+         org-babel-python-eoe-indicator
+         nil nil 'disable-prompt-filtering)
+      (python-shell-send-string (format "\
 try:
 %s
 except:
     raise
 finally:
     print('%s')"
-			 (org-babel-python--shift-right body 4)
-			 org-babel-python-eoe-indicator)))
-      (let ((python-shell-buffer-name
-	     (org-babel-python-without-earmuffs session)))
-	(python-shell-send-string body))
-      ;; same as `python-shell-comint-end-of-output-p' in emacs-25.1+
-      (while (not (and (python-shell-comint-end-of-output-p string-buffer)
-                       (string-match
-		        org-babel-python-eoe-indicator
-		        string-buffer)))
-	(accept-process-output (get-buffer-process (current-buffer))))
-      (org-babel-chomp (substring string-buffer 0 (match-beginning 0))))))
+			                (org-babel-python--shift-right body 4)
+			                org-babel-python-eoe-indicator)))
+    (rx (literal org-babel-python-eoe-indicator) (zero-or-more anychar)))))
 
 (defun org-babel-python-evaluate-session
     (session body &optional result-type result-params graphics-file)
@@ -495,8 +488,8 @@ non-nil, then save graphical results to that file instead."
             (pcase result-type
 	      (`output
 	       (let ((body (format "\
-with open('%s') as f:
-    exec(compile(f.read(), f.name, 'exec'))"
+with open('%s') as __org_babel_python_tmpfile:
+    exec(compile(__org_babel_python_tmpfile.read(), __org_babel_python_tmpfile.name, 'exec'))"
 				   (org-babel-process-file-name
 				    tmp-src-file 'noquote))))
 		 (org-babel-python-send-string session body)))
@@ -538,7 +531,8 @@ by `org-babel-comint-async-filter'."
   (org-babel-comint-async-register
    session (current-buffer)
    "ob_comint_async_python_\\(start\\|end\\|file\\)_\\(.+\\)"
-   'org-babel-chomp 'org-babel-python-async-value-callback)
+   'org-babel-chomp 'org-babel-python-async-value-callback
+   'disable-prompt-filtering)
   (pcase result-type
     (`output
      (let ((uuid (org-id-uuid)))

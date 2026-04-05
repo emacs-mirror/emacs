@@ -209,7 +209,6 @@ This function is called by `org-babel-execute-src-block'."
           (let ((script-file (org-babel-temp-file "gnuplot-script-")))
             (with-temp-file script-file
               (insert (concat body "\n")))
-            (unless noninteractive (message "gnuplot \"%s\"" script-file))
             (setq output
                   (shell-command-to-string
 		   (format
@@ -217,8 +216,7 @@ This function is called by `org-babel-execute-src-block'."
 		    (org-babel-process-file-name
 		     script-file
 		     (if (member system-type '(cygwin windows-nt ms-dos))
-			 t nil)))))
-            (unless noninteractive (message "%s" output)))
+			 t nil))))))
         (with-temp-buffer
           (insert (concat body "\n"))
           (gnuplot-mode)
@@ -231,7 +229,6 @@ This function is called by `org-babel-execute-src-block'."
   "Prepare SESSION according to the header arguments in PARAMS."
   (let* ((session (org-babel-gnuplot-initiate-session session))
          (var-lines (org-babel-variable-assignments:gnuplot params)))
-    (unless noninteractive (message "%S" session))
     (org-babel-comint-in-buffer session
       (dolist (var-line  var-lines)
 	(insert var-line)
@@ -320,6 +317,7 @@ Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
 		`( :sep "\t" :fmt org-babel-gnuplot-quote-tsv-field
                    ;; Two setting below are needed to make :fmt work.
                    :raw t
+                   :with-special-rows nil
                    :backend ,ob-gnuplot-data)
 		params)))))
   data-file)

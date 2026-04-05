@@ -433,22 +433,42 @@ adjust `org-attach-id-to-path-function-list'"
       (make-directory attach-dir t))
     attach-dir))
 
-(defun org-attach-dir-from-id (id  &optional existing)
+(defun org-attach-dir-from-id (id &optional existing)
   "Return a folder path based on `org-attach-id-dir' and ID.
 Try id-to-path functions in `org-attach-id-to-path-function-list'
 ignoring nils.  If EXISTING is non-nil, then return the first path
-found in the filesystem.  Otherwise return the first non-nil value."
+found in the filesystem.  Otherwise return the first non-nil value.
+
+The existing paths are searched in
+1. `org-attach-id-dir';
+2. in \"data/\" dir - the default value of `org-attach-id-dir';
+3. if current buffer is a symlink, (1) and (2) searches are repeated
+   in the `default-directory' of symlink target."
   (let ((fun-list org-attach-id-to-path-function-list)
         (base-dir (expand-file-name org-attach-id-dir))
-        (default-base-dir (expand-file-name "data/"))
+        (fallback-dirs (list (expand-file-name "data/")))
         preferred first)
+    (when (and (buffer-file-name)
+               (file-symlink-p (buffer-file-name)))
+      (let ((default-directory
+             (file-name-directory
+              (file-truename (buffer-file-name)))))
+        (cl-pushnew (expand-file-name org-attach-id-dir) fallback-dirs)
+        (cl-pushnew (expand-file-name "data/") fallback-dirs)))
+    (setq fallback-dirs (delete base-dir fallback-dirs))
+    (setq fallback-dirs (seq-filter #'file-directory-p fallback-dirs))
     (while (and fun-list
                 (not preferred))
       (let* ((name (funcall (car fun-list) id))
              (candidate (and name (expand-file-name name base-dir)))
-             ;; Try the default value `org-attach-id-dir' as a fallback.
-             (candidate2 (and name (not (equal base-dir default-base-dir))
-                              (expand-file-name name default-base-dir))))
+             ;; Try the default value `org-attach-id-dir', and linked
+             ;; dirs if buffer is a symlink as a fallback.
+             (fallback-candidates
+              (and name (mapcar
+                         (lambda (dir) (expand-file-name name dir))
+                         fallback-dirs)))
+             (fallback-candidates
+              (seq-filter #'file-directory-p fallback-candidates)))
         (setq fun-list (cdr fun-list))
         (when candidate
           (if (or (not existing) (file-directory-p candidate))
@@ -456,10 +476,9 @@ found in the filesystem.  Otherwise return the first non-nil value."
             (unless first
               (setq first candidate)))
           (when (and existing
-                     candidate2
-                     (not (file-directory-p candidate))
-                     (file-directory-p candidate2))
-            (setq preferred candidate2)))))
+                     fallback-candidates
+                     (not (file-directory-p candidate)))
+            (setq preferred (car fallback-candidates))))))
     (or preferred first)))
 
 (defun org-attach-check-absolute-path (dir)
@@ -567,7 +586,13 @@ if it would overwrite an existing filename."
   "Move/copy/link FILE into the attachment directory of the current outline node.
 If VISIT-DIR is non-nil, visit the directory with `dired'.
 METHOD may be `cp', `mv', `ln', `lns' or `url' default taken from
-`org-attach-method'."
+`org-attach-method'.
+
+Return a list (LINK DESCRIPTION), representing the file stored.
+When `org-attach-store-link-p' is non-nil, LINK and DESCRIPTION will
+be the same as in the link stored.
+When `org-attach-store-link-p' is nil, LINK will be an attachment: link
+and DESCRIPTION be the file name."
   (interactive
    (list
     (read-file-name "File to keep as an attachment: "
@@ -580,7 +605,8 @@ METHOD may be `cp', `mv', `ln', `lns' or `url' default taken from
   (setq method (or method org-attach-method))
   (when (file-directory-p file)
     (setq file (directory-file-name file)))
-  (let ((basename (file-name-nondirectory file)))
+  (let ((basename (file-name-nondirectory file))
+        link description)
     (let* ((attach-dir (org-attach-dir 'get-create))
            (attach-file (expand-file-name basename attach-dir)))
       (cond
@@ -599,20 +625,25 @@ METHOD may be `cp', `mv', `ln', `lns' or `url' default taken from
       (run-hook-with-args 'org-attach-after-change-hook attach-dir)
       (org-attach-tag)
       (cond ((eq org-attach-store-link-p 'attached)
-	     (push (list (concat "attachment:" (file-name-nondirectory attach-file))
-			 (file-name-nondirectory attach-file))
-		   org-stored-links))
+             (setq link (concat "attachment:" (file-name-nondirectory attach-file))
+                   description (file-name-nondirectory attach-file))
+	     (push (list link description) org-stored-links))
             ((eq org-attach-store-link-p t)
-             (push (list (concat "file:" file)
-			 (file-name-nondirectory file))
-		   org-stored-links))
+             (setq link (concat "file:" file)
+                   description (file-name-nondirectory file))
+             (push (list link description) org-stored-links))
 	    ((eq org-attach-store-link-p 'file)
-	     (push (list (concat "file:" attach-file)
-			 (file-name-nondirectory attach-file))
-		   org-stored-links)))
+             (setq link (concat "file:" attach-file)
+                   description (file-name-nondirectory attach-file))
+	     (push (list link description) org-stored-links))
+            (t
+             ;; Do not save link, just return.
+             (setq link (concat "attachment:" (file-name-nondirectory attach-file))
+                   description (file-name-nondirectory attach-file))))
       (if visit-dir
           (dired attach-dir)
-        (message "File %S is now an attachment" basename)))))
+        (message "File %S is now an attachment" basename))
+      (list link description))))
 
 (defun org-attach-attach-cp ()
   "Attach a file by copying it."
@@ -753,7 +784,7 @@ Basically, this adds the path to the attachment directory."
 
 (defun org-attach-expand-links (_)
   "Expand links in current buffer.
-It is meant to be added to `org-export-before-parsing-hook'."
+It is meant to be added to `org-export-before-parsing-functions'."
   (save-excursion
     (while (re-search-forward "attachment:" nil t)
       (let ((link (org-element-context)))
@@ -778,9 +809,18 @@ It is meant to be added to `org-export-before-parsing-hook'."
 See `org-open-file' for details about ARG."
   (org-link-open-as-file (org-attach-expand file) arg))
 
+(defun org-attach-preview-file (ov path link)
+  "Preview attachment with PATH in overlay OV.
+
+LINK is the Org link element being previewed."
+  (org-with-point-at (org-element-begin link)
+    (org-link-preview-file
+     ov (org-attach-expand path) link)))
+
 (org-link-set-parameters "attachment"
 			 :follow #'org-attach-follow
-                         :complete #'org-attach-complete-link)
+                         :complete #'org-attach-complete-link
+                         :preview #'org-attach-preview-file)
 
 (defun org-attach-complete-link ()
   "Advise the user with the available files in the attachment directory."
@@ -833,7 +873,7 @@ Idea taken from `gnus-dired-attach'."
          (get-window-with-predicate
           (lambda (window)
             (with-current-buffer (window-buffer window)
-              (eq major-mode 'org-mode))))))
+              (derived-mode-p 'org-mode))))))
     (unless other-win
       (user-error
        "Can't attach to subtree.  No window displaying an Org buffer"))

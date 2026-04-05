@@ -43,12 +43,7 @@
 
 ;;; Function Declarations
 
-(declare-function org-id-find-id-file "org-id" (id))
 (declare-function htmlize-region "ext:htmlize" (beg end))
-(declare-function mm-url-decode-entities "mm-url" ())
-(declare-function org-at-heading-p "org" (&optional _))
-(declare-function org-back-to-heading "org" (&optional invisible-ok))
-(declare-function org-next-visible-heading "org" (arg))
 
 (defvar htmlize-css-name-prefix)
 (defvar htmlize-output-type)
@@ -161,7 +156,7 @@
     (:html-postamble-format nil nil org-html-postamble-format)
     (:html-preamble-format nil nil org-html-preamble-format)
     (:html-prefer-user-labels nil nil org-html-prefer-user-labels)
-    (:html-self-link-headlines nil nil org-html-self-link-headlines)
+    (:html-self-link-headlines nil "html-self-link-headlines" org-html-self-link-headlines)
     (:html-table-align-individual-fields
      nil nil org-html-table-align-individual-fields)
     (:html-table-caption-above nil nil org-html-table-caption-above)
@@ -233,10 +228,10 @@ For blocks that should contain headlines, use the HTML_CONTAINER
 property on the headline itself.")
 
 (defconst org-html-special-string-regexps
-  '(("\\\\-" . "&#x00ad;")		; shy
-    ("---\\([^-]\\)" . "&#x2014;\\1")	; mdash
-    ("--\\([^-]\\)" . "&#x2013;\\1")	; ndash
-    ("\\.\\.\\." . "&#x2026;"))		; hellip
+  '(("\\\\-" . "&shy;")
+    ("---\\([^-]\\)" . "&mdash;\\1")
+    ("--\\([^-]\\)" . "&ndash;\\1")
+    ("\\.\\.\\." . "&hellip;"))
   "Regular expressions for special string conversion.")
 
 (defvar org-html--id-attr-prefix "ID-"
@@ -318,6 +313,7 @@ This affects IDs that are determined from the ID property.")
   pre.src-asymptote:before { content: 'Asymptote'; }
   pre.src-awk:before { content: 'Awk'; }
   pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-c:before { content: 'C'; }
   pre.src-C:before { content: 'C'; }
   /* pre.src-C++ doesn't work in CSS */
   pre.src-clojure:before { content: 'Clojure'; }
@@ -332,7 +328,7 @@ This affects IDs that are determined from the ID property.")
   pre.src-haskell:before { content: 'Haskell'; }
   pre.src-hledger:before { content: 'hledger'; }
   pre.src-java:before { content: 'Java'; }
-  pre.src-js:before { content: 'Javascript'; }
+  pre.src-js:before { content: 'JavaScript'; }
   pre.src-latex:before { content: 'LaTeX'; }
   pre.src-ledger:before { content: 'Ledger'; }
   pre.src-lisp:before { content: 'Lisp'; }
@@ -459,8 +455,9 @@ You can use `org-html-head' and `org-html-head-extra' to add to
 this style.  If you don't want to include this default style,
 customize `org-html-head-include-default-style'."
   :group 'org-export-html
-  :package-version '(Org . "9.5")
-  :type 'string)
+  :package-version '(Org . "9.8")
+  :type 'string
+  :safe #'stringp)
 
 
 ;;; User Configuration Variables
@@ -1130,7 +1127,7 @@ org-info.js for your website."
              ((on . "&#x2611;") (off . "&#x2610;") (trans . "&#x2610;")))
     (ascii .
            ((on . "<code>[X]</code>")
-            (off . "<code>[&#xa0;]</code>")
+            (off . "<code>[&nbsp;]</code>")
             (trans . "<code>[-]</code>")))
     (html .
 	  ((on . "<input type='checkbox' checked='checked' />")
@@ -1167,6 +1164,20 @@ See `format-time-string' for more information on its components."
   :version "24.4"
   :package-version '(Org . "8.0")
   :type 'string)
+
+(defcustom org-html-datetime-formats '("%F" . "%FT%T")
+  "Formats used for the timestamp added as metadata to the time HTML element.
+This only has an effect when `org-html-html5-fancy' is enabled, but
+does not affect how the timestamp is displayed.  The format in CAR
+represents the timestamp used for timestamps without a time component,
+CDR the one for the full date and time.  Note that the HTML standard
+restricts what timestamp formats are considered valid for the datetime
+attribute.  See `format-time-string' for more information on its
+components."
+  :type '(cons string string)
+  :group 'org-export-html
+  :package-version '(Org . "9.8")
+  :safe #'consp)
 
 ;;;; Template :: Mathjax
 
@@ -1531,7 +1542,8 @@ style information."
 This variable can contain the full HTML structure to provide a
 style, including the surrounding HTML tags.  You can consider
 including definitions for the following classes: title, todo,
-done, timestamp, timestamp-kwd, tag, target.
+done, timestamp, timestamp-kwd, tag, target.  Can be a string, or
+a function that accepts the INFO plist and returns a string.
 
 For example, a valid value would be:
 
@@ -1554,21 +1566,25 @@ header.
 You can set this on a per-file basis using #+HTML_HEAD:,
 or for publication projects using the :html-head property."
   :group 'org-export-html
-  :version "24.4"
-  :package-version '(Org . "8.0")
-  :type 'string)
+  :package-version '(Org . "9.8")
+  :type '(choice (string :tag "Literal text to insert")
+                 (function :tag "Function evaluating to a string"))
+  :safe #'stringp)
 ;;;###autoload
 (put 'org-html-head 'safe-local-variable 'stringp)
 
 (defcustom org-html-head-extra ""
   "More head information to add in the HTML output.
 
-You can set this on a per-file basis using #+HTML_HEAD_EXTRA:,
-or for publication projects using the :html-head-extra property."
+You can set this on a per-file basis using #+HTML_HEAD_EXTRA:, or
+for publication projects using the :html-head-extra property.
+Can be a string, or a function that accepts the INFO plist and returns
+a string."
   :group 'org-export-html
-  :version "24.4"
-  :package-version '(Org . "8.0")
-  :type 'string)
+  :package-version '(Org . "9.8")
+  :type '(choice (string :tag "Literal text to insert")
+                 (function :tag "Function evaluating to a string"))
+  :safe #'stringp)
 ;;;###autoload
 (put 'org-html-head-extra 'safe-local-variable 'stringp)
 
@@ -1648,7 +1664,7 @@ https://developer.mozilla.org/en-US/docs/Mozilla/Mobile/Viewport_meta_tag"
                              selector_eval_scheme: '.src-scheme',
                              selector: '.src-clojure',
                              selector_eval_ruby: '.src-ruby'};"
-  "Javascript snippet to activate klipse."
+  "JavaScript snippet to activate klipse."
   :group 'org-export-html
   :package-version '(Org . "9.1")
   :type 'string)
@@ -1803,6 +1819,29 @@ INFO is a plist used as a communication channel.  This function
 is meant to be used as a predicate for `org-export-get-ordinal' or
 a value to `org-html-standalone-image-predicate'."
   (org-element-property :caption element))
+
+(defun org-html--format-timestamp (timestamp info)
+  "Format given TIMESTAMP for inclusion in an HTML document.
+INFO is a plist used as a communication channel.  Formatted timestamp
+will be wrapped in an element with class timestamp."
+  (let ((html-tag (if (org-html--html5-fancy-p info) "time" "span"))
+        (html-attrs (concat "class=\"timestamp\""
+                            (when (org-html--html5-fancy-p info)
+                              (format " datetime=\"%s\""
+                                      (org-format-timestamp
+                                       timestamp
+                                       (if (org-timestamp-has-time-p timestamp)
+                                           (cdr org-html-datetime-formats)
+                                           (car org-html-datetime-formats))))))))
+    (replace-regexp-in-string
+     "--"
+     "&ndash;"
+     (format "<%s %s>%s</%s>"
+             html-tag
+             html-attrs
+             (org-html-plain-text (org-timestamp-translate timestamp)
+                                  info)
+             html-tag))))
 
 ;;;; Table
 
@@ -2001,6 +2040,15 @@ INFO is a plist used as a communication channel."
 		  org-html-meta-tags))
       ""))))
 
+(defun org-html-normalize-string-or-function (input &rest args)
+  "Normalize INPUT function or string.
+If INPUT is a string, it is passed to
+`org-element-normalize-string'.  If INPUT is a function, it is
+applied to arguments ARGS, and the result is passed to
+`org-element-normalize-string'."
+  (let ((s (if (functionp input) (format "%s" (apply input args)) input)))
+    (org-element-normalize-string s)))
+
 (defun org-html--build-head (info)
   "Return information for the <head>..</head> of the HTML output.
 INFO is a plist used as a communication channel."
@@ -2008,8 +2056,9 @@ INFO is a plist used as a communication channel."
    (concat
     (when (plist-get info :html-head-include-default-style)
       (org-element-normalize-string org-html-style-default))
-    (org-element-normalize-string (plist-get info :html-head))
-    (org-element-normalize-string (plist-get info :html-head-extra))
+    (org-html-normalize-string-or-function (plist-get info :html-head) info)
+    (org-html-normalize-string-or-function (plist-get info :html-head-extra)
+                                           info)
     (when (and (plist-get info :html-htmlized-css-url)
 	       (eq org-html-htmlize-output-type 'css))
       (org-html-close-tag "link"
@@ -2318,7 +2367,8 @@ INFO is the info plist."
   "Format a priority into HTML.
 PRIORITY is the character code of the priority or nil.  INFO is
 a plist containing export options."
-  (and priority (format "<span class=\"priority\">[%c]</span>" priority)))
+  (and priority (format "<span class=\"priority\">[%s]</span>"
+                        (org-priority-to-string priority))))
 
 ;;;; Tags
 
@@ -2333,7 +2383,7 @@ INFO is a plist containing export options."
 		       (concat (plist-get info :html-tag-class-prefix)
 			       (org-html-fix-class-name tag))
 		       tag))
-	     tags "&#xa0;"))))
+	     tags "&nbsp;"))))
 
 ;;;; Src Code
 
@@ -2355,8 +2405,7 @@ is the language used for CODE, as a string, or nil."
       (org-html-encode-plain-text code))
      (t
       ;; Map language
-      (setq lang (or (assoc-default lang org-src-lang-modes) lang))
-      (let* ((lang-mode (and lang (intern (format "%s-mode" lang)))))
+      (let* ((lang-mode (and lang (org-src-get-lang-mode lang))))
 	(cond
 	 ;; Case 1: Language is not associated with any Emacs mode
 	 ((not (functionp lang-mode))
@@ -2471,7 +2520,7 @@ of contents as a string, or nil if it is empty."
       (let* ((toc-id-counter (plist-get info :org-html--toc-counter))
              (toc (concat (format "<div id=\"text-table-of-contents%s\" role=\"doc-toc\">"
                                   (if toc-id-counter (format "-%d" toc-id-counter) ""))
-			  (org-html--toc-text toc-entries)
+			  (org-html--toc-text toc-entries scope)
 			  "</div>\n")))
         (plist-put info :org-html--toc-counter (1+ (or toc-id-counter 0)))
 	(if scope toc
@@ -2489,11 +2538,14 @@ of contents as a string, or nil if it is empty."
 		    toc
 		    (format "</%s>\n" outer-tag))))))))
 
-(defun org-html--toc-text (toc-entries)
+(defun org-html--toc-text (toc-entries &optional scope)
   "Return innards of a table of contents, as a string.
+
 TOC-ENTRIES is an alist where key is an entry title, as a string,
-and value is its relative level, as an integer."
-  (let* ((prev-level (1- (cdar toc-entries)))
+and value is its relative level, as an integer. Optional SCOPE,
+when non-nil, indicates a TOC for a subtree, which affects the
+initial nesting level."
+  (let* ((prev-level (if scope (1- (cdar toc-entries)) 0))
 	 (start-level prev-level))
     (concat
      (mapconcat
@@ -2639,17 +2691,17 @@ holding contextual information."
 
 ;;;; Clock
 
-(defun org-html-clock (clock _contents _info)
+(defun org-html-clock (clock _contents info)
   "Transcode a CLOCK element from Org to HTML.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (format "<p>
 <span class=\"timestamp-wrapper\">
-<span class=\"timestamp-kwd\">%s</span> <span class=\"timestamp\">%s</span>%s
+<span class=\"timestamp-kwd\">%s</span> %s%s
 </span>
 </p>"
 	  org-clock-string
-	  (org-timestamp-translate (org-element-property :value clock))
+	  (org-html--format-timestamp (org-element-property :value clock) info)
 	  (let ((time (org-element-property :duration clock)))
 	    (and time (format " <span class=\"timestamp\">(%s)</span>" time)))))
 
@@ -2860,7 +2912,7 @@ description of TODO, PRIORITY, TEXT, TAGS, and INFO arguments."
     (concat todo (and todo " ")
 	    priority (and priority " ")
 	    text
-	    (and tags "&#xa0;&#xa0;&#xa0;") tags)))
+	    (and tags "&nbsp;&nbsp;&nbsp") tags)))
 
 (defun org-html--container (headline info)
   "Return HTML container name for HEADLINE as a string.
@@ -3051,7 +3103,7 @@ INFO is a plist containing export properties."
 	      (concat (file-name-as-directory org-preview-latex-image-directory)
 		      (file-name-sans-extension
 		       (file-name-nondirectory bfn)))
-	      cache-dir (file-name-directory bfn))
+	      cache-dir (file-name-directory (plist-get info :output-file)))
 	;; Re-create LaTeX environment from original buffer in
 	;; temporary buffer so that dvipng/imagemagick can properly
 	;; turn the fragment into an image.
@@ -3085,6 +3137,8 @@ Math environments match the regular expression defined in
 `org-latex-math-environments-re'.  This function is meant to be
 used as a predicate for `org-export-get-ordinal' or a value to
 `org-html-standalone-image-predicate'."
+  (require 'ox-latex)
+  (defvar org-latex-math-environments-re) ; defined in ox-latex.el
   (string-match-p org-latex-math-environments-re
                   (org-element-property :value element)))
 
@@ -3328,7 +3382,7 @@ INFO is a plist holding contextual information.  See
       (let ((destination (org-export-resolve-radio-link link info)))
 	(if (not destination) desc
 	  (format "<a href=\"#%s\"%s>%s</a>"
-		  (org-export-get-reference destination info)
+		  (org-html--reference destination info)
 		  attributes
 		  desc))))
      ;; Links pointing to a headline: Find destination and build
@@ -3373,6 +3427,8 @@ INFO is a plist holding contextual information.  See
 	     (format "<a href=\"#%s\"%s>%s</a>" href attributes desc)))
 	  ;; Fuzzy link points to a target or an element.
 	  (_
+           (require 'ox-latex)
+           (declare-function org-latex--environment-type "ox-latex" (latex-environment))
            (if (and destination
                     (memq (plist-get info :with-latex) '(mathjax t))
                     (org-element-type-p destination 'latex-environment)
@@ -3565,10 +3621,9 @@ channel."
 	 (when timestamp
 	   (let ((string (car pair)))
 	     (format "<span class=\"timestamp-kwd\">%s</span> \
-<span class=\"timestamp\">%s</span> "
+%s "
 		     string
-		     (org-html-plain-text (org-timestamp-translate timestamp)
-					  info))))))
+		     (org-html--format-timestamp timestamp info))))))
      `((,org-closed-string . ,(org-element-property :closed planning))
        (,org-deadline-string . ,(org-element-property :deadline planning))
        (,org-scheduled-string . ,(org-element-property :scheduled planning)))
@@ -3697,7 +3752,7 @@ contextual information."
 			      " data-editor-type=\"html\""
 			    "")
 			  code)
-		(format "<pre class=\"src src-%s\"%s>%s</pre>"
+		(format "<pre class=\"src src-%s\"%s><code>%s</code></pre>"
                         ;; Lang being nil is OK.
                         lang label code))))))
 
@@ -3751,7 +3806,7 @@ channel."
 			" align=\"%s\"" " class=\"org-%s\"")
 		    (org-export-table-cell-alignment table-cell info)))))
     (when (or (not contents) (string= "" (org-trim contents)))
-      (setq contents "&#xa0;"))
+      (setq contents "&nbsp;"))
     (cond
      ((and (org-export-table-has-header-p table info)
 	   (= 1 (org-export-table-row-group table-row info)))
@@ -3837,7 +3892,6 @@ INFO is a plist used as a communication channel."
   "Format table.el TABLE into HTML.
 INFO is a plist used as a communication channel."
   (when (eq (org-element-property :type table) 'table.el)
-    (require 'table)
     (let ((outbuf (with-current-buffer
 		      (get-buffer-create "*org-export-table*")
 		    (erase-buffer) (current-buffer))))
@@ -3920,9 +3974,16 @@ information."
   "Transcode a TIMESTAMP object from Org to HTML.
 CONTENTS is nil.  INFO is a plist holding contextual
 information."
-  (let ((value (org-html-plain-text (org-timestamp-translate timestamp) info)))
-    (format "<span class=\"timestamp-wrapper\"><span class=\"timestamp\">%s</span></span>"
-	    (replace-regexp-in-string "--" "&#x2013;" value))))
+  (let (
+        ;; Strip :post-blank
+        ;; It will be handled as a part of generic transcoder code
+        ;; so we should avoid double-counting post-blank.
+        (timestamp-no-blank
+         (org-element-put-property
+          (org-element-copy timestamp t)
+          :post-blank 0)))
+    (format "<span class=\"timestamp-wrapper\">%s</span>"
+	    (org-html--format-timestamp timestamp-no-blank info))))
 
 ;;;; Underline
 
@@ -3952,7 +4013,7 @@ contextual information."
   (format "<p class=\"verse\">\n%s</p>"
 	  ;; Replace leading white spaces with non-breaking spaces.
 	  (replace-regexp-in-string
-	   "^[ \t]+" (lambda (m) (org-html--make-string (length m) "&#xa0;"))
+	   "^[ \t]+" (lambda (m) (org-html--make-string (length m) "&nbsp;"))
 	   ;; Replace each newline character with line break.  Also
 	   ;; remove any trailing "br" close-tag so as to avoid
 	   ;; duplicates.

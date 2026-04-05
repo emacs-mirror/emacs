@@ -3,6 +3,7 @@
 ;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: Ihor Radchenko <yantar92 at posteo dot net>
+;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: folding, invisible text
 ;; URL: https://orgmode.org
 ;;
@@ -26,6 +27,11 @@
 
 ;; This file contains library to control temporary invisibility
 ;; (folding and unfolding) of text in buffers.
+
+;; Do note that something being folded does not necessarily mean
+;; that it is invisible.  Folded regions might be permanently visible
+;; by the means of `:visible' folding spec or because isearch
+;; temporarily revealed the folds.
 
 ;; The file implements the following functionality:
 ;;
@@ -245,7 +251,7 @@
 ;; with `grab-invisible' option, folded regions copied to other
 ;; buffers (including buffers that do not use this library) will
 ;; remain invisible.  org-fold-core provides functions to work around
-;; this issue: `org-fold-core-remove-optimisation' and `org-fold-core-update-optimisation', but
+;; this issue: `org-fold-core-remove-optimization' and `org-fold-core-update-optimization', but
 ;; it is unlikely that a random external package will use them.
 
 ;; Another possible bottleneck is the fragility check after the change
@@ -275,8 +281,6 @@
 
 (require 'org-macs)
 (require 'org-compat)
-
-(declare-function isearch-filter-visible "isearch" (beg end))
 
 ;;; Customization
 
@@ -1070,8 +1074,9 @@ If SPEC-OR-ALIAS is omitted and FLAG is nil, unfold everything in the region."
                              (overlay-get ov 'invisible)
                              (org-fold-core-get-folding-spec-property
                               (overlay-get ov 'invisible) :isearch-open))
-                    (when (overlay-get ov 'invisible)
-                      (overlay-put ov 'org-invisible (overlay-get ov 'invisible)))
+                    (when-let* ((spec (overlay-get ov 'invisible)))
+                      (overlay-put ov 'org-invisible spec)
+                      (overlay-put ov (org-fold-core--property-symbol-get-create spec) nil))
                     (overlay-put ov 'invisible nil)
                     (when org-fold-core--isearch-active
                       (cl-pushnew ov org-fold-core--isearch-overlays)))))
@@ -1244,11 +1249,11 @@ This function is intended to be used as `isearch-filter-predicate'."
       (setq beg (car overlay-or-region)
             end (cdr overlay-or-region)))
     ;; FIXME: Reveal the match (usually point, but may sometimes go beyond the region).
-    (when (< beg (point) end)
-      (funcall org-fold-core-isearch-open-function (point)))
-    (if (overlayp overlay-or-region)
-        (delete-overlay overlay-or-region)
-      (org-fold-core-region beg end nil))))
+    (if (<= beg (point) end)
+        (funcall org-fold-core-isearch-open-function (point))
+      (if (overlayp overlay-or-region)
+          (delete-overlay overlay-or-region)
+        (org-fold-core-region beg end nil)))))
 
 (defun org-fold-core--isearch-show-temporary (region hide-p)
   "Temporarily reveal text in REGION.
@@ -1259,8 +1264,9 @@ REGION can also be an overlay in current buffer."
       (if hide-p
           (if (not (overlayp region))
               nil ;; FIXME: after isearch supports text properties.
-            (when (overlay-get region 'org-invisible)
-              (overlay-put region 'invisible (overlay-get region 'org-invisible))))
+            (when-let* ((spec (overlay-get region 'org-invisible)))
+              (overlay-put region 'invisible spec)
+              (overlay-put region (org-fold-core--property-symbol-get-create spec) spec)))
         ;; isearch expects all the temporarily opened overlays to exist.
         ;; See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=60399
         (org-fold-core--keep-overlays

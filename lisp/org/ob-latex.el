@@ -41,9 +41,6 @@
 (declare-function org-latex-compile "ox-latex" (texfile &optional snippet))
 (declare-function org-latex-guess-inputenc "ox-latex" (header))
 (declare-function org-splice-latex-header "org" (tpl def-pkg pkg snippets-p &optional extra))
-(declare-function org-at-heading-p "org" (&optional _))
-(declare-function org-back-to-heading "org" (&optional invisible-ok))
-(declare-function org-next-visible-heading "org" (arg))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("latex" . "tex"))
@@ -80,13 +77,14 @@
 (defcustom org-babel-latex-preamble
   (lambda (_)
     "\\documentclass[preview]{standalone}
-\\def\\pgfsysdriver{pgfsys-tex4ht.def}
 ")
   "Closure which evaluates at runtime to the LaTeX preamble.
 
 It takes 1 argument which is the parameters of the source block."
   :group 'org-babel
-  :type 'function)
+  :package-version '(Org . "9.8")
+  :type 'function
+  :risky t)
 
 (defcustom org-babel-latex-begin-env
   (lambda (_)
@@ -130,16 +128,29 @@ exporting the literal LaTeX source."
   :type '(repeat (string)))
 
 (defcustom org-babel-latex-process-alist
-  `(,(cons 'png (alist-get 'dvipng org-preview-latex-process-alist)))
+  `((png :programs ("latex" "dvipng") :description "dvi > png"
+	 :message
+	 "you need to install the programs: latex and dvipng."
+	 :image-input-type "dvi" :image-output-type "png"
+	 :image-size-adjust (1.0 . 1.0) :latex-compiler
+         ,(if (and (executable-find "latexmk") (executable-find "perl"))
+              '("latexmk -f -pdf -latex -interaction=nonstopmode -output-directory=%o %f")
+            '("latex -interaction nonstopmode -output-directory %o %f"
+              "latex -interaction nonstopmode -output-directory %o %f"
+              "latex -interaction nonstopmode -output-directory %o %f"))
+	 :image-converter ("dvipng -D %D -T tight -o %O %f")
+	 :transparent-image-converter
+	 ("dvipng -D %D -T tight -bg Transparent -o %O %f")))
   "Definitions of external processes for LaTeX result generation.
 See `org-preview-latex-process-alist' for more details.
 
 The following process symbols are recognized:
 - `png' :: Process used to produce .png output."
   :group 'org-babel
-  :package-version '(Org . "9.7")
+  :package-version '(Org . "9.8")
   :type '(alist :tag "LaTeX to image backends"
-		:value-type (plist)))
+		:value-type (plist))
+  :risky t)
 
 (defun org-babel-expand-body:latex (body params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -249,6 +260,8 @@ This function is called by `org-babel-execute-src-block'."
 	 ((or (string= "pdf" extension) imagemagick)
 	  (with-temp-file tex-file
 	    (require 'ox-latex)
+            (defvar org-latex-compiler)
+            (declare-function org-latex--remove-packages "ox-latex" (pkg-alist info))
 	    (insert
 	     (org-latex-guess-inputenc
 	      (org-splice-latex-header
@@ -259,8 +272,12 @@ This function is called by `org-babel-execute-src-block'."
 		 (lambda (el)
 		   (unless (and (listp el) (string= "hyperref" (cadr el)))
 		     el))
-		 org-latex-default-packages-alist))
-	       org-latex-packages-alist
+		 (org-latex--remove-packages
+                  org-latex-default-packages-alist
+                  (list :latex-compiler org-latex-compiler))))
+               (org-latex--remove-packages
+	        org-latex-packages-alist
+                (list :latex-compiler org-latex-compiler))
 	       nil))
 	     (if fit "\n\\usepackage[active, tightpage]{preview}\n" "")
 	     (if border (format "\\setlength{\\PreviewBorder}{%s}" border) "")

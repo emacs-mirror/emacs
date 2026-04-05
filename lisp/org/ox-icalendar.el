@@ -39,9 +39,6 @@
 (require 'org-agenda)
 (require 'ox-ascii)
 (declare-function org-bbdb-anniv-export-ical "ol-bbdb" nil)
-(declare-function org-at-heading-p "org" (&optional _))
-(declare-function org-back-to-heading "org" (&optional invisible-ok))
-(declare-function org-next-visible-heading "org" (arg))
 
 
 
@@ -202,18 +199,28 @@ This is a list of symbols, the following are valid:
 (defcustom org-icalendar-with-timestamps 'active
   "Non-nil means make an event from plain time stamps.
 
-It can be set to `active', `inactive', t or nil, in order to make
-an event from, respectively, only active timestamps, only
-inactive ones, all of them or none.
+It can be set to `active', `active-exclude-diary', `inactive', t
+or nil, in order to make an event from, respectively, only active
+timestamps (with/without diary timestamps), only inactive ones,
+all of them or none.
 
-This variable has precedence over `org-export-with-timestamps'.
+This variable has the same options as
+`org-export-with-timestamps', and takes precedence over it.
+However, note that this variable applies to all timestamps within
+an entry, whereas `org-export-with-timestamps' only applies to
+timestamps isolated in a paragraph containing only timestamps.
+
 It can also be set with the #+OPTIONS line, e.g. \"<:t\"."
   :group 'org-export-icalendar
+  :package-version '(Org . "9.8")
   :type '(choice
 	  (const :tag "All timestamps" t)
-	  (const :tag "Only active timestamps" active)
+	  (const :tag "Active timestamps, including diary timestamps" active)
+	  (const :tag "Active timestamps, excluding diary timestamps"
+                 active-exclude-diary)
 	  (const :tag "Only inactive timestamps" inactive)
-	  (const :tag "No timestamp" nil)))
+	  (const :tag "No timestamp" nil))
+  :safe (lambda (x) (memq x '(t nil active active-exclude-diary inactive))))
 
 (defcustom org-icalendar-include-todo nil
   "Non-nil means create VTODO components from TODO items.
@@ -744,11 +751,9 @@ inlinetask within the section."
 				    (org-element-contents inside))
 		 'timestamp
 	       (lambda (ts)
-		 (when (let ((type (org-element-property :type ts)))
-			 (cl-case (plist-get info :with-timestamps)
-			   (active (memq type '(active active-range)))
-			   (inactive (memq type '(inactive inactive-range)))
-			   ((t) t)))
+		 (unless (org-export--skip-timestamp-p
+                          (plist-get info :with-timestamps)
+                          (org-element-property :type ts))
 		   (let ((uid (format "TS%d-%s" (cl-incf counter) uid)))
 		     (org-icalendar--vevent
 		      entry ts uid summary loc desc cat tz class))))

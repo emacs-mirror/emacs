@@ -4,6 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>,
 ;;         Ulf Stegemann <ulf at zeitform dot de>
+;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: outlines, calendar, text
 ;; URL: https://orgmode.org
 ;;

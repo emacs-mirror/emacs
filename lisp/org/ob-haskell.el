@@ -57,7 +57,7 @@
 (add-to-list 'org-babel-tangle-lang-exts '("haskell" . "hs"))
 
 (defvar org-babel-default-header-args:haskell
-  '((:padlines . "no")))
+  '((:padline . "no")))
 
 (defvar org-babel-haskell-lhs2tex-command "lhs2tex")
 
@@ -153,7 +153,7 @@ This function should only be called by `org-babel-execute:haskell'."
   (add-hook 'inferior-haskell-hook
             (lambda ()
               (setq-local
-               org-babel-comint-prompt-regexp-old comint-prompt-regexp
+               org-babel-comint-prompt-regexp-fallback comint-prompt-regexp
                comint-prompt-regexp
                (concat haskell-prompt-regexp "\\|^λ?> "))))
   (org-babel-haskell-with-session session params

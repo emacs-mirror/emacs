@@ -41,14 +41,12 @@
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-element-lineage "org-element-ast" (datum &optional types with-self))
-(declare-function org-element-property "org-element-ast" (property node))
 (declare-function org-element-begin "org-element" (node))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-heading-components "org" ())
-(declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
-(declare-function org-in-archived-heading-p "org" (&optional no-inheritance))
-(declare-function outline-previous-heading "outline" ())
+(declare-function org-in-commented-heading-p "org" (&optional no-inheritance element))
+(declare-function org-in-archived-heading-p "org" (&optional no-inheritance element))
 (defvar org-id-link-to-org-use-id) ; Dynamically scoped
 
 (defgroup org-babel-tangle nil
@@ -58,18 +56,20 @@
 
 (defcustom org-babel-tangle-lang-exts
   '(("emacs-lisp" . "el")
-    ("elisp" . "el"))
+    ("elisp" . "el")
+    ("bibtex" . "bib"))
   "Alist mapping languages to their file extensions.
 The key is the language name, the value is the string that should
 be inserted as the extension commonly used to identify files
 written in this language.  If no entry is found in this list,
 then the name of the language is used."
   :group 'org-babel-tangle
-  :version "24.1"
+  :package-version '(Org . "9.8")
   :type '(repeat
 	  (cons
 	   (string "Language name")
-	   (string "File Extension"))))
+	   (string "File Extension")))
+  :safe #'listp)
 
 (defcustom org-babel-tangle-use-relative-file-links t
   "Use relative path names in links from tangled source back the Org file."
@@ -159,9 +159,10 @@ result.  The default value is `org-remove-indentation'."
   :type 'function)
 
 (defcustom org-babel-tangle-default-file-mode #o644
-  "The default mode used for tangled files, as an integer.
-The default value 420 correspands to the octal #o644, which is
-read-write permissions for the user, read-only for everyone else."
+  "The default mode, an integer value, only used when the :tangle-mode
+header argument specifies chmod-style symbolic notation.  The default
+value 420 corresponds to the octal #o644, which is read-write
+permissions for the user, read-only for everyone else."
   :group 'org-babel-tangle
   :package-version '(Org . "9.6")
   :type 'integer)
@@ -181,7 +182,7 @@ replace contents otherwise."
 	  (const :tag "Replace contents, but keep the same file" nil)
           (const :tag "Re-create file" t)
           (const :tag "Re-create when read-only" auto))
-  :safe t)
+  :safe #'symbolp)
 
 (defun org-babel-find-file-noselect-refresh (file)
   "Find file ensuring that the latest changes on disk are represented in the file."
@@ -227,13 +228,11 @@ Return list of the tangled file names."
              (org-babel-tangle nil target-file lang-re)))))
 
 (defun org-babel-tangle-publish (_ filename pub-dir)
-  "Tangle FILENAME and place the results in PUB-DIR."
-  (unless (file-exists-p pub-dir)
-    (make-directory pub-dir t))
-  (setq pub-dir (file-name-as-directory pub-dir))
-  ;; Rename files to avoid copying to same file when publishing to ./
-  ;; `copy-file' would throw an error when copying file to self.
-  (mapc (lambda (el) (rename-file el pub-dir t))
+  "Tangle FILENAME and copy the tangled file to PUB-DIR."
+  (require 'ox-publish)
+  (declare-function org-publish-attachment "ox-publish"
+                    (plist filename pub-dir))
+  (mapc (lambda (el) (org-publish-attachment nil el pub-dir))
         (org-babel-tangle-file filename)))
 
 ;;;###autoload
@@ -269,7 +268,7 @@ matching a regular expression."
 	       (or (cdr (assq :tangle (nth 2 (org-babel-get-src-block-info 'no-eval))))
 		   (user-error "Point is not in a source code block"))))
 	    path-collector
-            (source-file buffer-file-name))
+            (source-file (org-base-buffer-file-name)))
 	(mapc ;; map over file-names
 	 (lambda (by-fn)
 	   (let ((file-name (car by-fn)))
@@ -290,8 +289,8 @@ matching a regular expression."
 			     (tangle-mode (funcall get-spec :tangle-mode)))
 		        (unless (string-equal block-lang lang)
 			  (setq lang block-lang)
-			  (let ((lang-f (org-src-get-lang-mode lang)))
-			    (when (fboundp lang-f) (ignore-errors (funcall lang-f)))))
+                          (when-let* ((lang-f (org-src-get-lang-mode-if-bound lang)))
+                            (ignore-errors (funcall lang-f))))
 		        ;; if file contains she-bangs, then make it executable
 		        (when she-bang
 			  (unless tangle-mode (setq tangle-mode #o755)))
@@ -509,9 +508,13 @@ code blocks by target file."
 	       (src-lang (nth 0 info))
 	       (src-tfile (cdr (assq :tangle (nth 2 info)))))
 	  (unless (or (string= src-tfile "no")
-                      (not src-lang) ;; src block without lang
+                      ;; src block without lang
+                      (and (not src-lang) (string= src-tfile "yes"))
 		      (and tangle-file (not (equal tangle-file src-tfile)))
-		      (and lang-re (not (string-match-p lang-re src-lang))))
+                      ;; lang-re but either no lang or lang doesn't match
+		      (and lang-re
+                           (or (not src-lang)
+                               (not (string-match-p lang-re src-lang)))))
 	    ;; Add the spec for this block to blocks under its tangled
 	    ;; file name.
 	    (let* ((block (org-babel-tangle-single-block counter))
@@ -531,10 +534,7 @@ code blocks by target file."
 The PARAMS are the 3rd element of the info for the same src block."
   (unless (string= "no" (cdr (assq :comments params)))
     (save-match-data
-      (let* ((l (org-no-properties
-                 (cl-letf (((symbol-function 'org-store-link-functions)
-                            (lambda () nil)))
-                   (org-store-link nil))))
+      (let* ((l (org-no-properties (org-store-link nil)))
              (bare (and l
                         (string-match org-link-bracket-re l)
                         (match-string 1 l))))
@@ -580,7 +580,8 @@ non-nil, return the full association list to be used by
           (let ((body (if (org-babel-noweb-p params :tangle)
                           (if (string= "strip-tangle" (cdr (assq :noweb (nth 2 info))))
                             (replace-regexp-in-string (org-babel-noweb-wrap) "" (nth 1 info))
-			    (org-babel-expand-noweb-references info))
+			    (org-babel-expand-noweb-references
+			     info nil :tangle))
 			(nth 1 info))))
 	    (with-temp-buffer
 	      (insert

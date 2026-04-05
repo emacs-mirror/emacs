@@ -57,6 +57,9 @@
     ("fish" . "function fish_prompt\n\techo \"%s\"\nend")
     ;; prompt2 is like PS2 in POSIX shells.
     ("csh" . "set prompt=\"%s\"\nset prompt2=\"\"")
+    ;; Disable bracketed paste - it messes up out processing and,
+    ;; apparently, comint.el.  Also, unset "%   \r" prompts.
+    ("zsh" . "setopt nopromptcr;unset zle_bracketed_paste;PROMPT_COMMAND=;PS1=\"%s\";PS2=")
     ;; PROMPT_COMMAND can override PS1 settings.  Disable it.
     ;; Disable PS2 to avoid garbage in multi-line inputs.
     (t . "PROMPT_COMMAND=;PS1=\"%s\";PS2="))
@@ -84,6 +87,24 @@ is modified outside the Customize interface."
 	  (let ((explicit-shell-file-name name)
                 (shell-file-name name))
 	    (org-babel-execute:shell body params))))
+      (put fname 'definition-name 'org-babel-shell-initialize))
+    (let ((fname (intern (concat "org-babel-prep-session:" name))))
+      (defalias fname
+        (lambda (session params)
+	  (:documentation
+           (format "Prepare %s SESSION according to the header arguments specified in PARAMS." name))
+	  (let ((explicit-shell-file-name name)
+                (shell-file-name name))
+	    (org-babel-prep-session:shell session params))))
+      (put fname 'definition-name 'org-babel-shell-initialize))
+    (let ((fname (intern (format "org-babel-%s-initiate-session" name))))
+      (defalias fname
+        (lambda (session _params)
+	  (:documentation
+           (format "Initiate %s session named SESSION." name))
+	  (let ((explicit-shell-file-name name)
+                (shell-file-name name))
+	    (org-babel-sh-initiate-session session))))
       (put fname 'definition-name 'org-babel-shell-initialize))
     (defalias (intern (concat "org-babel-variable-assignments:" name))
       #'org-babel-variable-assignments:shell
@@ -245,8 +266,11 @@ var of the same value."
   (let ((echo-var (lambda (v) (if (stringp v) v (format "%S" v)))))
     (cond
      ((and (listp var) (or (listp (car var)) (eq (car var) 'hline)))
-      (orgtbl-to-generic var  (list :sep (or sep "\t") :fmt echo-var
-				    :hline hline)))
+      (orgtbl-to-generic
+       var
+       (list :sep (or sep "\t") :fmt echo-var
+	     :hline hline
+             :with-special-rows nil)))
      ((listp var)
       (mapconcat echo-var var "\n"))
      (t (funcall echo-var var)))))
@@ -255,18 +279,36 @@ var of the same value."
   "String to indicate that evaluation has completed.")
 (defvar org-babel-sh-eoe-output "org_babel_sh_eoe"
   "String to indicate that evaluation has completed.")
-(defvar org-babel-sh-prompt "org_babel_sh_prompt> "
+(defvar org-babel-sh-prompt
+  ;; FIXME: Emacs 27 CI fails non-interactively.  Play it safe and
+  ;; keep the old prompt until we drop Emacs 27 support.
+  (if (version< emacs-version "28") "org_babel_sh_prompt> " "𒆸﻿ ")
   "String to set prompt in session shell.")
 
+(defvar-local org-babel-sh--prompt-initialized nil
+  "When non-nil, ob-shell already initialized the prompt in current buffer.")
+
+(defalias 'org-babel-shell-initiate-session #'org-babel-sh-initiate-session)
 (defun org-babel-sh-initiate-session (&optional session _params)
   "Initiate a session named SESSION according to PARAMS."
   (when (and session (not (string= session "none")))
     (save-window-excursion
-      (or (org-babel-comint-buffer-livep session)
+      (or (and (org-babel-comint-buffer-livep session)
+               (buffer-local-value
+                'org-babel-sh--prompt-initialized
+                (get-buffer session))
+               session)
           (progn
-	    (shell session)
-            ;; Set unique prompt for easier analysis of the output.
-            (org-babel-comint-wait-for-output (current-buffer))
+            (if (org-babel-comint-buffer-livep session)
+                (set-buffer session)
+	      (shell session)
+              ;; Set unique prompt for easier analysis of the output.
+              (org-babel-comint-wait-for-output (current-buffer)))
+            (setq-local
+             org-babel-comint-prompt-regexp-fallback comint-prompt-regexp
+             comint-prompt-regexp
+             (concat "^" (regexp-quote org-babel-sh-prompt)
+                     " *"))
             (org-babel-comint-input-command
              (current-buffer)
              (format
@@ -274,11 +316,7 @@ var of the same value."
                               org-babel-shell-set-prompt-commands))
                   (alist-get t org-babel-shell-set-prompt-commands))
               org-babel-sh-prompt))
-            (setq-local
-             org-babel-comint-prompt-regexp-old comint-prompt-regexp
-             comint-prompt-regexp
-             (concat "^" (regexp-quote org-babel-sh-prompt)
-                     " *"))
+            (setq org-babel-sh--prompt-initialized t)
 	    ;; Needed for Emacs 23 since the marker is initially
 	    ;; undefined and the filter functions try to use it without
 	    ;; checking.
@@ -314,22 +352,28 @@ return the value of the last statement in BODY."
 		  (stdin-file (org-babel-temp-file "sh-stdin-"))
 		  (padline (not (string= "no" (cdr (assq :padline params))))))
 	      (with-temp-file script-file
-		(when shebang (insert shebang "\n"))
+		(if shebang
+                    (insert shebang "\n")
+                  ;; Provide shell name explicitly.
+                  ;; This is necessary because running, for example,
+                  ;; dash script-for-dash.sh will use /bin/sh.
+                  (insert (format "#!/usr/bin/env %s" shell-file-name) "\n"))
 		(when padline (insert "\n"))
 		(insert body))
 	      (set-file-modes script-file #o755)
 	      (with-temp-file stdin-file (insert (or stdin "")))
 	      (with-temp-buffer
                 (with-connection-local-variables
+                 ;; `with-connection-local-variables' will override
+                 ;; `shell-file-name' and `shell-command-swtich' as
+                 ;; needed for the remote connection.
                  (apply #'process-file
-                        (if shebang (file-local-name script-file)
-                          shell-file-name)
+                        shell-file-name
 		        stdin-file
                         (current-buffer)
                         nil
-                        (if shebang (when cmdline (list cmdline))
-                          (list shell-command-switch
-                                (concat (file-local-name script-file)  " " cmdline)))))
+                        (list shell-command-switch
+                              (concat (file-local-name script-file)  " " (format "%s" cmdline)))))
 		(buffer-string))))
 	   (session			; session evaluation
             (if async

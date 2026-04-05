@@ -61,13 +61,14 @@ Valid values include `slime-eval' and `sly-eval'."
   :type 'symbol)
 
 (defcustom org-babel-lisp-dir-fmt
-  "(let ((*default-pathname-defaults* #P%S\n)) %%s\n)"
+  "(cl:let ((cl:*default-pathname-defaults* #P%S\n)) %%s\n)"
   "Format string used to wrap code bodies to set the current directory.
 For example a value of \"(progn ;; %s\\n   %%s)\" would ignore the
 current directory string."
   :group 'org-babel
-  :version "24.1"
-  :type 'string)
+  :package-version '(Org . "9.8")
+  :type 'string
+  :risky t)
 
 (defun org-babel-expand-body:lisp (body params)
   "Expand BODY according to PARAMS, return the expanded body."
@@ -77,10 +78,10 @@ current directory string."
          (prologue (cdr (assq :prologue params)))
          (epilogue (cdr (assq :epilogue params)))
 	 (body (if (null vars) (org-trim body)
-		 (concat "(let ("
+		 (concat "(cl:let ("
 			 (mapconcat
 			  (lambda (var)
-			    (format "(%S (quote %S))" (car var) (cdr var)))
+			    (format "(%S (cl:quote %S))" (car var) (cdr var)))
 			  vars "\n      ")
 			 ")\n"
                          (and prologue (concat prologue "\n"))
@@ -89,7 +90,7 @@ current directory string."
                          ")"))))
     (if (or (member "code" result-params)
 	    (member "pp" result-params))
-	(format "(pprint %s)" body)
+	(format "(cl:pprint %s)" body)
       body)))
 
 (defun org-babel-execute:lisp (body params)
@@ -115,7 +116,7 @@ a property list containing the parameters of the block."
                                                 default-directory)))
                                      (format
                                       (if dir (format org-babel-lisp-dir-fmt dir)
-                                        "(progn %s\n)")
+                                        "(cl:progn %s\n)")
                                       (buffer-substring-no-properties
                                        (point-min) (point-max)))))
                                 (cdr (assq :package params)))))))

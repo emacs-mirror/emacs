@@ -114,7 +114,6 @@
 (declare-function bbdb-records "ext:bbdb" (&optional dont-check-disk already-in-db-buffer))
 (declare-function bbdb-split "ext:bbdb" (string separators))
 (declare-function bbdb-string-trim "ext:bbdb" (string))
-(declare-function bbdb-record-get-field "ext:bbdb" (record field))
 (declare-function bbdb-search-name "ext:bbdb-com" (regexp &optional layout))
 (declare-function bbdb-search-organization "ext:bbdb-com" (regexp &optional layout))
 
@@ -222,6 +221,7 @@ date year)."
 			 :follow #'org-bbdb-open
 			 :export #'org-bbdb-export
 			 :complete #'org-bbdb-complete-link
+                         :insert-description #'org-bbdb-describe-link
 			 :store #'org-bbdb-store-link)
 
 ;;; Implementation
@@ -499,13 +499,19 @@ must be positive"))
 	      dates)))))
 
 (defun org-bbdb-complete-link ()
-  "Read a bbdb link with name completion."
+  "Read a BBDB link with name completion."
   (org-require-package 'bbdb-com "bbdb")
   (let ((rec (bbdb-completing-read-record "Name: ")))
     (concat "bbdb:"
 	    (bbdb-record-name (if (listp rec)
 				  (car rec)
 				rec)))))
+
+(defun org-bbdb-describe-link (link desc)
+  "Return a description for a BBDB link."
+  (or (org-string-nw-p desc)
+      (if (string-prefix-p "bbdb:" link)
+          (string-remove-prefix "bbdb:" link))))
 
 (defun org-bbdb-anniv-export-ical ()
   "Extract anniversaries from BBDB and convert them to icalendar format."

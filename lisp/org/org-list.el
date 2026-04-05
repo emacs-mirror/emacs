@@ -106,6 +106,7 @@
 
 (declare-function org-at-heading-p "org" (&optional invisible-ok))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
+(declare-function org-back-to-heading-or-point-min "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-current-level "org" ())
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
@@ -113,8 +114,8 @@
 (declare-function org-element-interpret-data "org-element" (data))
 (declare-function org-element-lineage "org-element-ast" (blob &optional types with-self))
 (declare-function org-element-macro-interpreter "org-element" (macro ##))
-(declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated))
-(declare-function org-element-normalize-string "org-element" (s))
+(declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated no-undefer))
+(declare-function org-element-normalize-string "org-element" (s &optional keep-newlines))
 (declare-function org-element-parse-buffer "org-element" (&optional granularity visible-only keep-deferred))
 (declare-function org-element-property "org-element-ast" (property node))
 (declare-function org-element-begin "org-element" (node))
@@ -125,7 +126,7 @@
 (declare-function org-element-post-blank "org-element" (node))
 (declare-function org-element-parent "org-element-ast" (node))
 (declare-function org-element-put-property "org-element-ast" (node property value))
-(declare-function org-element-set "org-element-ast" (old new))
+(declare-function org-element-set "org-element-ast" (old new &optional keep-props))
 (declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-element-update-syntax "org-element" ())
 (declare-function org-end-of-meta-data "org" (&optional full))
@@ -147,9 +148,9 @@
 (declare-function org-mode "org" ())
 (declare-function org-narrow-to-subtree "org" (&optional element))
 (declare-function org-outline-level "org" ())
-(declare-function org-previous-line-empty-p "org" ())
 (declare-function org-reduced-level "org" (L))
 (declare-function org-set-tags "org" (tags))
+(declare-function org--deactivate-mark "org" ())
 (declare-function org-fold-show-subtree "org-fold" ())
 (declare-function org-fold-region "org-fold" (from to flag &optional spec))
 (declare-function org-sort-remove-invisible "org" (S))
@@ -1858,7 +1859,10 @@ Initial position of cursor is restored after the changes."
 	 (shift-body-ind
 	  ;; Shift the indentation between END and BEG by DELTA.
 	  ;; Start from the line before END.
-	  (lambda (end beg delta)
+          ;; Take care not to shift to or before IND, which is the
+          ;; containg list item indentation. (otherwise, we are going
+          ;; to break the list structure)
+	  (lambda (end beg delta ind)
 	    (goto-char end)
 	    (skip-chars-backward " \r\t\n")
 	    (forward-line 0)
@@ -1871,7 +1875,8 @@ Initial position of cursor is restored after the changes."
 		(org-inlinetask-goto-beginning))
 	       ;; Shift only non-empty lines.
 	       ((looking-at-p "^[ \t]*\\S-")
-		(indent-line-to (+ (org-current-text-indentation) delta))))
+		(indent-line-to (max (+ (org-current-text-indentation) delta)
+                                     (if ind (1+ ind) -1)))))
 	      (forward-line -1))))
 	 (modify-item
 	  ;; Replace ITEM first line elements with new elements from
@@ -1933,7 +1938,7 @@ Initial position of cursor is restored after the changes."
 	       (ind-shift (- (+ ind-pos (length bul-pos))
 			     (+ ind-old (length bul-old))))
 	       (end-pos (org-list-get-item-end pos old-struct)))
-	  (push (cons pos ind-shift) itm-shift)
+	  (push (list pos ind-shift ind-pos) itm-shift)
 	  (unless (assq end-pos old-struct)
 	    ;; To determine real ind of an ending position that
 	    ;; is not at an item, we have to find the item it
@@ -1955,7 +1960,7 @@ Initial position of cursor is restored after the changes."
 	       (down (car all-ends))
 	       (itemp (assq up struct))
 	       (delta
-		(if itemp (cdr (assq up itm-shift))
+		(if itemp (nth 1 (assq up itm-shift))
 		  ;; If we're not at an item, there's a child of the
 		  ;; item point belongs to above.  Make sure the less
 		  ;; indented line in this slice has the same column
@@ -1981,7 +1986,7 @@ Initial position of cursor is restored after the changes."
 						    down t)))))
 			(forward-line)))
 		    (- ind min-ind)))))
-	  (push (list down up delta) sliced-struct)))
+	  (push (list down up delta (when itemp (nth 2 (assq up itm-shift)))) sliced-struct)))
       ;; 3. Shift each slice in buffer, provided delta isn't 0, from
       ;;    end to beginning.  Take a special action when beginning is
       ;;    at item bullet.
@@ -2358,7 +2363,7 @@ is an integer, 0 means `-', 1 means `+' etc.  If WHICH is
 (define-minor-mode org-list-checkbox-radio-mode
   "When turned on, use list checkboxes as radio buttons."
   :lighter " CheckBoxRadio"
-  (unless (eq major-mode 'org-mode)
+  (unless (derived-mode-p 'org-mode)
     (user-error "Cannot turn this mode outside org-mode buffers")))
 
 (defun org-toggle-radio-button (&optional arg)
@@ -2541,10 +2546,6 @@ portion of the buffer."
       (let* ((cookie-re "\\(\\(\\[[0-9]*%\\]\\)\\|\\(\\[[0-9]*/[0-9]*\\]\\)\\)")
 	     (box-re "^[ \t]*\\([-+*]\\|\\([0-9]+\\|[A-Za-z]\\)[.)]\\)[ \t]+\
 \\(?:\\[@\\(?:start:\\)?\\([0-9]+\\|[A-Za-z]\\)\\][ \t]*\\)?\\(\\[[- X]\\]\\)")
-             (cookie-data (or (org-entry-get nil "COOKIE_DATA") ""))
-	     (recursivep
-	      (or (not org-checkbox-hierarchical-statistics)
-	          (string-match-p "\\<recursive\\>" cookie-data)))
 	     (within-inlinetask (and (not all)
 				     (featurep 'org-inlinetask)
 				     (org-inlinetask-in-task-p)))
@@ -2582,14 +2583,18 @@ portion of the buffer."
         ;; Move to start.
         (cond (all (goto-char (point-min)))
 	      (within-inlinetask (org-back-to-heading t))
-	      (t (org-with-limited-levels (outline-previous-heading))))
+	      (t (org-with-limited-levels (org-back-to-heading-or-point-min t))))
         ;; Build an alist for each cookie found.  The key is the position
         ;; at beginning of cookie and values ending position, format of
         ;; cookie, number of checked boxes to report and total number of
         ;; boxes.
         (while (re-search-forward cookie-re end t)
-          (let ((context (save-excursion (backward-char)
-				         (save-match-data (org-element-context)))))
+          (let* ((context (save-excursion (backward-char)
+				          (save-match-data (org-element-context))))
+                 (cookie-data (save-match-data (or (org-entry-get nil "COOKIE_DATA") "")))
+	         (recursivep
+	          (or (not org-checkbox-hierarchical-statistics)
+	              (string-match-p "\\<recursive\\>" cookie-data))))
 	    (when (and (org-element-type-p context 'statistics-cookie)
                        (not (string-match-p "\\<todo\\>" cookie-data)))
 	      (push
@@ -2725,8 +2730,7 @@ Return t if successful."
                        (no-subtree (1+ (line-beginning-position)))
                        (t (org-list-get-item-end (line-beginning-position) struct))))))
       (let* ((beg (marker-position org-last-indent-begin-marker))
-	     (end (marker-position org-last-indent-end-marker))
-             (deactivate-mark nil))
+	     (end (marker-position org-last-indent-end-marker)))
 	(cond
 	 ;; Special case: moving top-item with indent rule.
 	 (specialp
@@ -2773,6 +2777,7 @@ Return t if successful."
 		    (org-list-struct-indent beg end struct parents prevs))))
 	    (org-list-write-struct struct new-parents old-struct))
 	  (org-update-checkbox-count-maybe))))))
+  (setq deactivate-mark (org--deactivate-mark))
   t)
 
 (defun org-outdent-item ()

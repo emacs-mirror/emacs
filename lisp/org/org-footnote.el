@@ -49,11 +49,11 @@
 (declare-function org-element-property "org-element-ast" (property node))
 (declare-function org-element-type "org-element-ast" (node &optional anonymous))
 (declare-function org-element-type-p "org-element-ast" (node types))
-(declare-function org-end-of-subtree "org"  (&optional invisible-ok to-heading))
+(declare-function org-end-of-subtree "org"  (&optional invisible-ok to-heading element))
 (declare-function org-fill-paragraph "org" (&optional justify region))
 (declare-function org-in-block-p "org" (names))
 (declare-function org-in-verbatim-emphasis "org" ())
-(declare-function org-inside-LaTeX-fragment-p "org" ())
+(declare-function org-inside-LaTeX-fragment-p "org" (&optional element))
 (declare-function org-inside-latex-macro-p "org" ())
 (declare-function org-mark-ring-push "org" (&optional pos buffer))
 (declare-function org-fold-show-context "org-fold" (&optional key))
@@ -248,13 +248,16 @@ otherwise."
 
 ;;;; Internal functions
 
-(defun org-footnote--allow-reference-p ()
-  "Non-nil when a footnote reference can be inserted at point."
+(defun org-footnote--allow-reference-p (&optional inline)
+  "Non-nil when a footnote reference can be inserted at point.
+When optional argument INLINE is non-nil, assume that the footnote
+reference is an inline or anonymous footnote (and can be placed at the
+beginning of the line)."
   ;; XXX: This is similar to `org-footnote-in-valid-context-p' but
   ;; more accurate and usually faster, except in some corner cases.
   ;; It may replace it after doing proper benchmarks as it would be
   ;; used in fontification.
-  (unless (bolp)
+  (unless (and (not inline) (bolp))
     (let* ((context (org-element-context))
 	   (type (org-element-type context)))
       (cond
@@ -401,7 +404,8 @@ References are sorted according to a deep-reading order."
 		   (dolist (r (mapcar (lambda (l) (assoc l references))
 				      (reverse
 				       (cdr (assoc (nth 0 ref) nested)))))
-		     (funcall add-reference r t))))))
+                     (unless (member r ordered) ; avoid infinite recursion when references link to each other
+		       (funcall add-reference r t)))))))
        (dolist (r (reverse references) (nreverse ordered))
 	 (funcall add-reference r nil))))))
 
@@ -665,8 +669,6 @@ This command prompts for a label.  If this is a label referencing an
 existing label, only insert the label.  If the footnote label is empty
 or new, let the user edit the definition of the footnote."
   (interactive)
-  (unless (org-footnote--allow-reference-p)
-    (user-error "Cannot insert a footnote here"))
   (let* ((all (org-footnote-all-labels))
 	 (label
           (unless (eq org-footnote-auto-label 'anonymous)
@@ -680,16 +682,24 @@ or new, let the user edit the definition of the footnote."
 		    (mapcar #'list all) nil nil
 		    (and (eq org-footnote-auto-label 'confirm) propose)))))))))
     (cond ((not label)
+           (unless (org-footnote--allow-reference-p 'anonymous)
+             (user-error "Cannot insert a footnote here"))
 	   (insert "[fn::]")
 	   (backward-char 1))
 	  ((member label all)
+           (unless (org-footnote--allow-reference-p)
+             (user-error "Cannot insert a footnote here"))
 	   (insert "[fn:" label "]")
 	   (message "New reference to existing note"))
 	  (org-footnote-define-inline
+           (unless (org-footnote--allow-reference-p 'inline)
+             (user-error "Cannot insert a footnote here"))
 	   (insert "[fn:" label ":]")
 	   (backward-char 1)
 	   (org-footnote-auto-adjust-maybe))
 	  (t
+           (unless (org-footnote--allow-reference-p)
+             (user-error "Cannot insert a footnote here"))
 	   (insert "[fn:" label "]")
 	   (let ((p (org-footnote-create-definition label)))
 	     ;; `org-footnote-goto-definition' needs to be called

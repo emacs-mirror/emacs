@@ -50,7 +50,6 @@
 (declare-function org-link-heading-search-string "ol" (&optional string))
 (declare-function org-link-make-string "ol" (link &optional description))
 (declare-function org-table-goto-line "org-table" (n))
-(declare-function org-dynamic-block-define "org" (type func))
 (declare-function w32-notification-notify "w32fns.c" (&rest params))
 (declare-function w32-notification-close "w32fns.c" (&rest params))
 (declare-function dbus-list-activatable-names "dbus" (&optional bus))
@@ -132,7 +131,7 @@ clocking out."
   "Rounding minutes when clocking in or out.
 The default value is 0 so that no rounding is done.
 When set to a non-integer value, use the car of
-`org-timestamp-rounding-minutes', like for setting a timestamp.
+`org-time-stamp-rounding-minutes', like for setting a timestamp.
 
 E.g. if `org-clock-rounding-minutes' is set to 5, time is 14:47
 and you clock in: then the clock starts at 14:45.  If you clock
@@ -144,7 +143,7 @@ out time will be 14:50."
   :package-version '(Org . "8.0")
   :type '(choice
 	  (integer :tag "Minutes (0 for no rounding)")
-	  (symbol  :tag "Use `org-time-stamp-rounding-minutes'" 'same-as-time-stamp)))
+	  (const   :tag "Use `org-time-stamp-rounding-minutes'" same-as-time-stamp)))
 
 (defcustom org-clock-out-remove-zero-time-clocks nil
   "Non-nil means remove the clock line when the resulting time is zero."
@@ -741,27 +740,80 @@ pointing to it."
 (defvar org-clock-update-period 60
   "Number of seconds between mode line clock string updates.")
 
-(defun org-clock-get-clock-string ()
+(defun org-clock-get-clock-string (&optional max-length)
   "Form a clock-string, that will be shown in the mode line.
 If an effort estimate was defined for the current item, use
-01:30/01:50 format (clocked/estimated).
-If not, show simply the clocked time like 01:50."
-  (let ((clocked-time (org-clock-get-clocked-time)))
-    (if org-clock-effort
-	(let* ((effort-in-minutes (org-duration-to-minutes org-clock-effort))
-	       (work-done-str
-		(propertize (org-duration-from-minutes clocked-time)
-			    'face
-			    (if (and org-clock-task-overrun
-				     (not org-clock-task-overrun-text))
-				'org-mode-line-clock-overrun
-			      'org-mode-line-clock)))
-	       (effort-str (org-duration-from-minutes effort-in-minutes)))
-	  (format (propertize "[%s/%s] (%s) " 'face 'org-mode-line-clock)
-		  work-done-str effort-str org-clock-heading))
-      (format (propertize "[%s] (%s) " 'face 'org-mode-line-clock)
-	      (org-duration-from-minutes clocked-time)
-	      org-clock-heading))))
+01:30/01:50 format (clocked/estimated).  If not, show simply
+the clocked time like 01:50.
+
+When the optional MAX-LENGTH argument is given, this function
+will preferentially truncate the headline in order to ensure
+that the entire clock string's length remains under the
+limit."
+  (let* ((max-string-length (or max-length 0))
+         (clocked-time (org-clock-get-clocked-time))
+         (clock-str (org-duration-from-minutes clocked-time))
+         (clock-format-str (propertize "[%s]" 'face 'org-mode-line-clock))
+         (clock-format-effort-str (propertize "[%s/%s]"
+                                              'face
+                                              'org-mode-line-clock))
+         (mode-line-str-with-headline (propertize "%s (%s) "
+                                                  'face
+                                                  'org-mode-line-clock))
+         (mode-line-str-without-headline (propertize "%s "
+                                                     'face
+                                                     'org-mode-line-clock))
+         (effort-estimate-str (if org-clock-effort
+                         (org-duration-from-minutes
+                          (org-duration-to-minutes
+                           org-clock-effort))
+                       nil))
+         (time-str (if (not org-clock-effort)
+                       (format clock-format-str clock-str)
+                     (format clock-format-effort-str
+                             (propertize clock-str
+                                         'face
+                                         (if (and org-clock-task-overrun
+                                                  (not
+                                                   org-clock-task-overrun-text))
+                                             'org-mode-line-clock-overrun
+                                           'org-mode-line-clock))
+                             effort-estimate-str)))
+         (spaces-and-parens-length (1+ (length
+                                        (format
+                                         mode-line-str-with-headline "" ""))))
+         (untruncated-length (+ spaces-and-parens-length (length time-str)
+                                (length org-clock-heading))))
+    ;; There are three cases for displaying the mode-line clock string.
+    ;; 1. MAX-STRING-LENGTH is zero or greater than UNTRUNCATED-LENGTH
+    ;;      - We can display the clock and the headline without truncation
+    ;; 2. MAX-STRING-LENGTH is above zero and less than or equal to
+    ;;    (+ SPACES-AND-PARENS-LENGTH (LENGTH TIME-STR))
+    ;;      - There isn't enough room to display any of the headline so just
+    ;;        display a (truncated) time string
+    ;; 3. ORG-CLOCK-STRING-LIMIT is greater than
+    ;;    (+ SPACES-AND-PARENS-LENGTH (LENGTH TIME-STR)) but less than
+    ;;    UNTRUNCATED-LENGTH
+    ;;      - Intelligently truncate the headline such that the total length of
+    ;;        the mode line string is less than ORG-CLOCK-STRING-LIMIT
+    (cond ((or (<= max-string-length 0)
+               (>= max-string-length untruncated-length))
+           (format mode-line-str-with-headline time-str org-clock-heading))
+          ((or (<= max-string-length 0)
+               (<= max-string-length (+ spaces-and-parens-length
+                                        (length time-str))))
+           (format mode-line-str-without-headline
+                   (substring time-str 0 (min (length time-str)
+                                              max-string-length))))
+          (t
+           (let ((heading-length (- max-string-length
+                                    (+ spaces-and-parens-length
+                                       (length time-str)))))
+             (format mode-line-str-with-headline
+                     time-str
+                     (string-join `(,(substring org-clock-heading
+                                                0 heading-length)
+                                    "…"))))))))
 
 (defun org-clock-get-last-clock-out-time ()
   "Get the last clock-out time for the current subtree."
@@ -781,15 +833,10 @@ When optional argument is non-nil, refresh cached heading."
   (when refresh (setq org-clock-heading (org-clock--mode-line-heading)))
   (setq org-mode-line-string
 	(propertize
-	 (let ((clock-string (org-clock-get-clock-string))
+	 (let ((clock-string (org-clock-get-clock-string org-clock-string-limit))
 	       (help-text "Org mode clock is running.\nmouse-1 shows a \
 menu\nmouse-2 will jump to task"))
-	   (if (and (> org-clock-string-limit 0)
-		    (> (length clock-string) org-clock-string-limit))
-	       (propertize
-		(substring clock-string 0 org-clock-string-limit)
-		'help-echo (concat help-text ": " org-clock-heading))
-	     (propertize clock-string 'help-echo help-text)))
+	   (propertize clock-string 'help-echo help-text))
 	 'local-map org-clock-mode-line-map
 	 'mouse-face 'mode-line-highlight))
   (if (and org-clock-task-overrun org-clock-task-overrun-text)
@@ -1245,14 +1292,11 @@ If `only-dangling-p' is non-nil, only ask to resolve dangling
 
 (defvar org-x11idle-exists-p
   ;; Check that x11idle exists.  But don't do that on DOS/Windows,
-  ;; since the command definitely does NOT exist there, and invoking
-  ;; COMMAND.COM on MS-Windows is a bad idea -- it hangs.
+  ;; since the command definitely does NOT exist there.
   (and (null (memq system-type '(windows-nt ms-dos)))
-       (eq 0 (call-process-shell-command
-              (format "command -v %s" org-clock-x11idle-program-name)))
+       (executable-find org-clock-x11idle-program-name)
        ;; Check that x11idle can retrieve the idle time
-       ;; FIXME: Why "..-shell-command" rather than just `call-process'?
-       (eq 0 (call-process-shell-command org-clock-x11idle-program-name))))
+       (eq 0 (call-process org-clock-x11idle-program-name))))
 
 (defun org-x11-idle-seconds ()
   "Return the current X11 idle time in seconds."
@@ -1287,6 +1331,8 @@ This routine returns a floating point number."
     (org-mac-idle-seconds))
    ((and (eq window-system 'x) org-x11idle-exists-p)
     (org-x11-idle-seconds))
+   ((fboundp 'w32-system-idle-time)
+    (/ (w32-system-idle-time) 1000.0))
    ((and
      org-logind-dbus-session-path
      (dbus-get-property
@@ -3251,7 +3297,7 @@ The details of what will be saved are regulated by the variable
 		 org-clock-has-been-used
 		 (not (file-exists-p org-clock-persist-file))))
     (with-temp-file org-clock-persist-file
-      (insert (format ";; %s - %s at %s\n"
+      (insert (format ";; %s - %s at %s  -*- lexical-binding: t; -*-\n"
 		      (file-name-nondirectory org-clock-persist-file)
 		      (system-name)
 		      (format-time-string (org-time-stamp-format t))))
@@ -3316,7 +3362,7 @@ The details of what will be saved are regulated by the variable
   "Query user when killing Emacs.
 This function is added to `kill-emacs-query-functions'."
   (let ((buf (org-clocking-buffer)))
-    (when (and buf (yes-or-no-p "Clock out and save? "))
+    (when (and buf (yes-or-no-p "Clock out before exiting? "))
       (with-current-buffer buf
         (org-clock-out)
         (save-buffer))))

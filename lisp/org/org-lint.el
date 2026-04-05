@@ -37,7 +37,7 @@
 
 ;; Checks currently implemented report the following:
 
-;; - duplicates CUSTOM_ID properties,
+;; - duplicate CUSTOM_ID properties,
 ;; - duplicate NAME values,
 ;; - duplicate targets,
 ;; - duplicate footnote definitions,
@@ -158,6 +158,16 @@ checker.  Currently, two properties are supported:
                      props)
               (seq-remove (lambda (c) (eq name (org-lint-checker-name c)))
                           org-lint--checkers))))
+
+;;;###autoload
+(defun org-lint-remove-checker (name &rest names)
+  "Remove checker(s) from linter.
+NAME is the unique check identifier, as a non-nil symbol.  NAMES
+are additional check identifiers to be removed."
+  (let ((removelist (cons name names)))
+    (setq org-lint--checkers
+          (seq-remove (lambda (c) (memq (org-lint-checker-name c) removelist))
+                      org-lint--checkers))))
 
 
 ;;; Reports UI
@@ -470,7 +480,10 @@ Example:
       (when (= (org-element-post-blank keyword) 0)
         (let ((next-element (org-with-point-at (org-element-end keyword)
                               (org-element-at-point))))
-          (when (< (org-element-begin next-element) (org-element-post-affiliated next-element))
+          (when (and
+                 ;; KEYWORD being the last in the file is OK.
+                 (not (equal (org-element-begin next-element) (org-element-begin keyword)))
+                 (< (org-element-begin next-element) (org-element-post-affiliated next-element)))
             ;; A keyword followed without blank lines by an element with affiliated keywords.
             ;; The keyword may be confused with affiliated keywords.
             (list (org-element-begin keyword)
@@ -553,9 +566,8 @@ Use :header-args: instead"
     (lambda (b)
       (when-let* ((lang (org-element-property :language b)))
         (unless (or (functionp (intern (format "org-babel-execute:%s" lang)))
-                    ;; No babel backend, but there is corresponding
-                    ;; major mode.
-                    (fboundp (org-src-get-lang-mode lang)))
+                    ;; No Babel backend, but relevant major mode is bound.
+                    (org-src-get-lang-mode-if-bound lang))
 	  (list (org-element-property :post-affiliated b)
 	        (format "Unknown source block language: '%s'" lang)))))))
 
@@ -718,6 +730,10 @@ Use :header-args: instead"
 	(pcase type
 	  ((or "attachment" "file")
 	   (let* ((path (org-element-property :path l))
+                  (path (if (and (equal type "attachment")
+                                 (string-match "::\\(.*\\)\\'" path))
+		            (substring path 0 (match-beginning 0))
+                          path))
 		  (file (if (string= type "file")
 			    path
                           (org-with-point-at (org-element-begin l)
@@ -837,7 +853,6 @@ Use \"export %s\" instead"
 
 (defun org-lint-export-option-keywords (ast)
   "Check for options keyword properties without EXPORT in AST."
-  (require 'ox)
   (let (options reports common-options options-alist)
     (dolist (opt org-export-options-alist)
       (when (stringp (nth 1 opt))
@@ -872,6 +887,7 @@ Use \"export %s\" instead"
     reports))
 
 (defun org-lint-invalid-macro-argument-and-template (ast)
+  "Check for invalid macro arguments in AST."
   (let* ((reports nil)
          (extract-placeholders
 	  (lambda (template)
@@ -934,7 +950,7 @@ Use \"export %s\" instead"
 				    name))
 		      reports))))))))
     ;; Check arguments for macros.
-    (org-macro-initialize-templates)
+    (org-macro-initialize-templates org-export-global-macros)
     (let ((templates (append
 		      (mapcar (lambda (m) (cons m "$1"))
 			      '("author" "date" "email" "title" "results"))
@@ -1236,7 +1252,7 @@ Use \"export %s\" instead"
 	   (funcall verify
 		    datum
 		    nil
-		    (cl-mapcan #'org-babel-parse-header-arguments
+		    (cl-mapcan (lambda (s) (org-babel-parse-header-arguments s 'no-eval))
 			       (list
 				(org-element-property :inside-header datum)
 				(org-element-property :end-header datum)))))
@@ -1245,7 +1261,8 @@ Use \"export %s\" instead"
 		    datum
 		    (org-element-property :language datum)
 		    (org-babel-parse-header-arguments
-		     (org-element-property :parameters datum))))
+		     (org-element-property :parameters datum)
+                     'no-eval)))
 	  (`keyword
 	   (when (string= (org-element-property :key datum) "PROPERTY")
 	     (let ((value (org-element-property :value datum)))
@@ -1257,7 +1274,8 @@ Use \"export %s\" instead"
 			  datum
 			  (match-string 1 value)
 			  (org-babel-parse-header-arguments
-			   (substring value (match-end 0))))))))
+			   (substring value (match-end 0))
+                           'no-eval))))))
 	  (`node-property
 	   (let ((key (org-element-property :key datum)))
 	     (when (let ((case-fold-search t))
@@ -1269,12 +1287,13 @@ Use \"export %s\" instead"
 			datum
 			(match-string 1 key)
 			(org-babel-parse-header-arguments
-			 (org-element-property :value datum))))))
+			 (org-element-property :value datum)
+                         'no-eval)))))
 	  (`src-block
 	   (funcall verify
 		    datum
 		    (org-element-property :language datum)
-		    (cl-mapcan #'org-babel-parse-header-arguments
+		    (cl-mapcan (lambda (s) (org-babel-parse-header-arguments s 'no-eval))
 			       (cons (org-element-property :parameters datum)
 				     (org-element-property :header datum))))))))
     reports))
@@ -1339,7 +1358,8 @@ Use \"export %s\" instead"
 		     (concat
 		      (org-element-property :inside-header datum)
 		      " "
-		      (org-element-property :end-header datum))))))))
+		      (org-element-property :end-header datum)))))
+                 'no-eval)))
 	  (dolist (header datum-header-values)
 	    (let ((allowed-values
 		   (cdr (assoc-string (substring (symbol-name (car header)) 1)
@@ -1395,7 +1415,10 @@ Use \"export %s\" instead"
                            (org-export-resolve-link (car result) `(:parse-tree ,ast))
                          (org-link-broken nil))
                      (org-export-get-previous-element el nil))))
-        (when (org-element-type-p origin-block 'src-block)
+        (when (and (org-element-type-p origin-block 'src-block)
+                   (pcase-let ((`(,_ ,_ ,args . ,_)
+                                (org-babel-get-src-block-info 'light origin-block)))
+                     (not (member (alist-get :exports args) '("results" "both")))))
           (list (org-element-begin el)
                 (format "Links to \"%s\" will not be valid during export unless the parent source block has :exports results or both" result-name)))))))
 
@@ -1483,6 +1506,32 @@ Use \"export %s\" instead"
              (format "Bullet counter \"%s\" is not the same with item position %d.  Consider adding manual [@%d] counter."
                      bullet (car (last true-number)) bullet-number))))))))
 
+(defun org-lint-priority (ast)
+  "Report out-of-bounds, invalid, and malformed priorities.
+Raise warnings on headlines containing out-of-bounds, invalid (e.g.,
+`[#-1]', `[#AA]'), or malformed (e.g., `[#1', `[#A') priorities."
+  (let ((bad-priority-rx (rx line-start ?\[ ?#
+                             (group (zero-or-more (not (in ?\[ ?\]))))
+                             (group (zero-or-more ?\])))))
+    (org-element-map ast 'headline
+      (lambda (headline)
+        (if-let* ((priority (org-element-property :priority headline)))
+            (when (and (not (org-priority-valid-value-p priority))
+                       (org-priority-valid-value-p priority t))
+              (list (org-element-begin headline)
+                    (format "Out-of-bounds priority '%s'"
+                            (org-priority-to-string priority))))
+          (when-let* ((headline-value (org-element-property
+                                       :raw-value headline))
+                      (matches (string-match bad-priority-rx
+                                             headline-value)))
+            (list (org-element-begin headline)
+                  (if (string-empty-p (match-string 2 headline-value))
+                      (format "Malformed priority '%s'"
+                              (match-string 0 headline-value))
+                    (format "Invalid priority '%s'"
+                            (match-string 1 headline-value))))))))))
+
 (defun org-lint-LaTeX-$ (ast)
   "Report semi-obsolete $...$ LaTeX fragments.
 AST is the buffer parse tree."
@@ -1491,6 +1540,7 @@ AST is the buffer parse tree."
       (and (string-match-p "^[$][^$]" (org-element-property :value fragment))
            (list (org-element-begin fragment)
                  "Potentially confusing LaTeX fragment format.  Prefer using more reliable \\(...\\)")))))
+
 (defun org-lint-LaTeX-$-ambiguous (_)
   "Report LaTeX fragment-like text.
 AST is the buffer parse tree."
@@ -1507,6 +1557,7 @@ AST is the buffer parse tree."
            "$ symbol potentially matching LaTeX fragment boundary.  Consider using \\dollar entity.")
           report)))
      report)))
+
 (defun org-lint-timestamp-syntax (ast)
   "Report malformed timestamps.
 AST is the buffer parse tree."
@@ -1519,6 +1570,23 @@ AST is the buffer parse tree."
         (unless (equal expected actual)
           (list (org-element-property :begin timestamp)
                 (format "Potentially malformed timestamp %s.  Parsed as: %s" actual expected)))))))
+
+(defun org-lint-clock-syntax (ast)
+  "Report malformed clocks.
+AST is the buffer parse tree."
+  (org-element-map ast 'clock
+    (lambda (clock)
+      (let ((expected (string-trim-right (org-element-interpret-data clock)))
+            (actual (string-trim
+                     (buffer-substring-no-properties
+                      (org-element-property :begin clock)
+                      (org-element-property :end clock)))))
+        (unless (equal expected actual)
+          (list (org-element-property :begin clock)
+                (format "Potentially malformed CLOCK: line
+           %s
+Parsed as: %s" actual expected)))))))
+
 (defun org-lint-inactive-planning (ast)
   "Report inactive timestamp in SCHEDULED/DEADLINE.
 AST is the buffer parse tree."
@@ -1553,7 +1621,7 @@ AST is the buffer parse tree."
   #'org-lint-misplaced-heading :trust 'low)
 
 (org-lint-add-checker 'duplicate-custom-id
-  "Report duplicates CUSTOM_ID properties"
+  "Report duplicate CUSTOM_ID properties"
   #'org-lint-duplicate-custom-id
   :categories '(link))
 
@@ -1822,6 +1890,11 @@ AST is the buffer parse tree."
   #'org-lint-item-number
   :categories '(plain-list))
 
+(org-lint-add-checker 'priority
+  "Report out-of-bounds, invalid, and malformed priorities."
+  #'org-lint-priority
+  :categories '(markup))
+
 (org-lint-add-checker 'LaTeX-$
   "Report potentially confusing $...$ LaTeX markup."
   #'org-lint-LaTeX-$
@@ -1837,6 +1910,10 @@ AST is the buffer parse tree."
 (org-lint-add-checker 'timestamp-syntax
   "Report malformed timestamps."
   #'org-lint-timestamp-syntax
+  :categories '(timestamp) :trust 'low)
+(org-lint-add-checker 'clock-syntax
+  "Report malformed clocks."
+  #'org-lint-clock-syntax
   :categories '(timestamp) :trust 'low)
 (org-lint-add-checker 'planning-inactive
   "Report inactive timestamps in SCHEDULED/DEADLINE."

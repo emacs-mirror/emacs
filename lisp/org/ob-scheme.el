@@ -66,11 +66,10 @@
 (declare-function geiser-eval--retort-output "ext:geiser-eval" (ret))
 (declare-function geiser-eval--retort-result-str "ext:geiser-eval" (ret prefix))
 (declare-function geiser-eval--retort-error "ext:geiser-eval" (ret))
-(declare-function geiser-eval--retort-error-msg "ext:geiser-eval" (err))
 (declare-function geiser-eval--error-msg "ext:geiser-eval" (err))
 
 (defcustom org-babel-scheme-null-to 'hline
-  "Replace `null' and empty lists in scheme tables with this before returning."
+  "Replacement for `()' and `null' in tabulated Scheme results."
   :group 'org-babel
   :version "26.1"
   :package-version '(Org . "9.1")
@@ -86,7 +85,7 @@
   "Expand :var header arguments given as VARS."
   (mapconcat
    (lambda (var)
-     (format "(define %S %S)" (car var) (cdr var)))
+     (format "(define %S '%S)" (car var) (cdr var)))
    vars
    "\n"))
 
@@ -131,12 +130,17 @@ If the variables HOST and PORT are set, connect to the running Scheme REPL."
   (let ((buffer (org-babel-scheme-get-session-buffer name)))
     (or buffer
 	(progn
-          (if (fboundp 'geiser)
-              (if (and host port)
-                  (geiser-connect impl host port)
-                (geiser impl))
-            ;; Obsolete since Geiser 0.26.
-	    (run-geiser impl))
+          (let ((geiser-repl-window-allow-split nil)
+	        (geiser-repl-use-other-window nil)
+                (switch-to-buffer-obey-display-actions t)
+                (display-buffer-overriding-action '(display-buffer-no-window
+                                                    (allow-no-window t))))
+            (if (fboundp 'geiser)
+                (if (and host port)
+                    (geiser-connect impl host port)
+                  (geiser impl))
+              ;; Obsolete since Geiser 0.26.
+	      (run-geiser impl)))
 	  (when name
 	    (rename-buffer name t)
 	    (org-babel-scheme-set-session-buffer name (current-buffer)))
@@ -185,9 +189,7 @@ is true; otherwise returns the last value."
       (let ((beg (point)))
         (insert code)
         (geiser-mode)
-        (let ((geiser-repl-window-allow-split nil)
-	      (geiser-repl-use-other-window nil))
-	  (let ((repl-buffer (save-current-buffer
+        (let ((repl-buffer (save-current-buffer
 			       (org-babel-scheme-get-repl impl repl host port))))
 	    (when (not (eq impl (org-babel-scheme-get-buffer-impl
 			       (current-buffer))))
@@ -226,21 +228,29 @@ is true; otherwise returns the last value."
 		    (let ((msg (geiser-eval--error-msg err)))
 		      (org-babel-eval-error-notify
 		       nil
-		       (concat (if (listp msg) (car msg) msg) "\n")))))))))))
+		       (concat (if (listp msg) (car msg) msg) "\n"))))))))))
     result))
 
 (defun org-babel-scheme--table-or-string (results)
-  "Convert RESULTS into an appropriate elisp value.
-If the results look like a list or tuple, then convert them into an
-Emacs-lisp table, otherwise return the results as a string."
+  "Convert RESULTS into an appropriate Elisp value.
+If the results are in the form of a proper list, then convert them into
+an Emacs Lisp table, otherwise return the results as a string."
   (let ((res (and results (org-babel-script-escape results))))
-    (cond ((listp res)
+    (cond ((proper-list-p res)
            (mapcar (lambda (el)
 		     (if (or (null el) (eq el 'null))
 			 org-babel-scheme-null-to
 		       el))
                    res))
 	  (t res))))
+
+(defun org-babel-scheme--get-impl (&optional params)
+  "Return Scheme implementation to be used according to PARAMS."
+  (or (when (cdr (assq :scheme params))
+	(intern (cdr (assq :scheme params))))
+      geiser-scheme-implementation
+      geiser-default-implementation
+      (car geiser-active-implementations)))
 
 (defun org-babel-execute:scheme (body params)
   "Execute a block of Scheme code with org-babel.
@@ -251,11 +261,7 @@ This function is called by `org-babel-execute-src-block'."
 			      (buffer-name source-buffer))))
     (save-excursion
       (let* ((result-type (cdr (assq :result-type params)))
-	     (impl (or (when (cdr (assq :scheme params))
-			 (intern (cdr (assq :scheme params))))
-		       geiser-scheme-implementation
-		       geiser-default-implementation
-		       (car geiser-active-implementations)))
+	     (impl (org-babel-scheme--get-impl params))
              (host (cdr (assq :host params)))
              (port (cdr (assq :port params)))
 	     (session (org-babel-scheme-make-session-name
@@ -280,6 +286,38 @@ This function is called by `org-babel-execute-src-block'."
 	  (org-babel-result-cond result-params
 	    result
 	    (org-babel-scheme--table-or-string table)))))))
+
+(defun org-babel-scheme-initiate-session (session params)
+  "Return scheme buffer for SESSION according to PARAMS.
+
+Creates new session buffer if necessary."
+  (let ((impl (org-babel-scheme--get-impl params))
+        (host (cdr (assq :host params)))
+        (port (cdr (assq :port params))))
+    (save-current-buffer
+      (org-babel-scheme-get-repl impl
+                                 session
+                                 host
+                                 port))))
+
+(defun org-babel-prep-session:scheme (session params)
+  "Prepare SESSION according to header arguments in PARAMS."
+  (let ((repl (org-babel-scheme-initiate-session session params)))
+    (org-babel-scheme-execute-with-geiser
+     (org-babel-scheme-expand-header-arg-vars (org-babel--get-vars params))
+     nil
+     (org-babel-scheme--get-impl params)
+     session)
+    repl))
+
+(defun org-babel-load-session:scheme (session body params)
+  "Load BODY into SESSION.
+
+Also evaluates any variable assignments in PARAMS before loading BODY."
+  (with-current-buffer (org-babel-prep-session:scheme session params)
+    (goto-char (process-mark (get-buffer-process (current-buffer))))
+    (insert (org-babel-chomp body))
+    (current-buffer)))
 
 (provide 'ob-scheme)
 

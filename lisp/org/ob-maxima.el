@@ -110,11 +110,13 @@ output.  See `org-babel-maxima-expand'.")
 	       "\n")))
 
 (defvar org-babel-maxima--output-filter-regexps
-  '("batch"                     ;; remove the `batch' or `batchload' line
+  '("(linenum:0,$"               ;; remove fragment from command-line (see `org-babel-execute:maxima')
+    "batch"                     ;; remove the `batch' or `batchload' line
     "^rat: replaced .*$"        ;; remove notices from `rat'
     "^;;; Loading #P"           ;; remove notices from the lisp implementation
     "^read and interpret"       ;; remove notice from `batch'
     "^(%\\([i]-?[0-9]+\\))[ ]$" ;; remove empty input lines from `batch'-ing
+    "^Loading .+maxima-init\\.mac" ;; remove message about loading init file
     )
   "Regexps to remove extraneous lines from Maxima's output.
 See `org-babel-maxima--output-filter'.")
@@ -131,7 +133,6 @@ Return nil if LINE is zero-length or it matches a regexp in
 (defun org-babel-execute:maxima (body params)
   "Execute Maxima BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
-  (unless noninteractive (message "Executing Maxima source code block"))
   (let ((result-params (split-string (or (cdr (assq :results params)) "")))
 	(result
 	 (let* ((cmdline (or (cdr (assq :cmdline params)) ""))
@@ -151,7 +152,6 @@ This function is called by `org-babel-execute-src-block'."
                               (format "(linenum:0, %s(%S))$" batch/load in-file))
                              cmdline)))
 	   (with-temp-file in-file (insert (org-babel-maxima-expand body params)))
-	   (unless noninteractive (message cmd))
            ;; " | grep -v batch | grep -v 'replaced' | sed '/^$/d' "
 	   (let ((raw (org-babel-eval cmd "")))
              (mapconcat

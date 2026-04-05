@@ -37,7 +37,7 @@
 (require 'org-compat)
 (require 'pcomplete)
 
-(declare-function org-at-heading-p "org" (&optional ignored))
+(declare-function org-load-export-backends "org" ())
 (declare-function org-babel-combine-header-arg-lists "ob-core" (original &rest others))
 (declare-function org-babel-get-src-block-info "ob-core" (&optional no-eval datum))
 (declare-function org-before-first-heading-p "org" ())
@@ -51,15 +51,14 @@
 (declare-function org-export-backend-options "ox" (cl-x) t)
 (declare-function org-get-buffer-tags "org" ())
 (declare-function org-get-export-keywords "org" ())
-(declare-function org-get-heading "org" (&optional no-tags no-todo no-priority no-comment))
 (declare-function org-get-tags "org" (&optional pos local))
 (declare-function org-link-heading-search-string "ol" (&optional string))
 (declare-function org-tag-alist-to-string "org" (alist &optional skip-key))
 (declare-function org-time-stamp-format "org" (&optional with-time inactive custom))
+(declare-function org-priority-to-string "org" (priority))
 
 (defvar org-babel-common-header-args-w-values)
 (defvar org-current-tag-alist)
-(defvar org-priority-default)
 (defvar org-drawer-regexp)
 (defvar org-element-affiliated-keywords)
 (defvar org-entities)
@@ -68,9 +67,10 @@
 (defvar org-export-select-tags)
 (defvar org-file-tags)
 (defvar org-priority-highest)
+(defvar org-priority-default)
+(defvar org-priority-lowest)
 (defvar org-link-abbrev-alist)
 (defvar org-link-abbrev-alist-local)
-(defvar org-priority-lowest)
 (defvar org-options-keywords)
 (defvar org-outline-regexp)
 (defvar org-property-re)
@@ -157,6 +157,26 @@ The return value is a string naming the thing at point."
     (while (setq e (pop list))
       (setq res (cons (downcase e) (cons (upcase e) res))))
     (nreverse res)))
+
+;; Variables and constants
+
+(defconst org-block-keywords
+  (let (block-names)
+    (dolist (name
+	     '("CENTER" "COMMENT" "EXAMPLE" "EXPORT" "QUOTE" "SRC"
+	       "VERSE")
+	     block-names)
+      (push (format "END_%s" name) block-names)
+      (push (concat "BEGIN_"
+		    name
+		    ;; Since language is compulsory in
+		    ;; export blocks source blocks, add
+		    ;; a space.
+		    (and (member name '("EXPORT" "SRC")) " "))
+	    block-names)
+      (push (concat "ATTR_" name ": ") block-names))
+    block-names)
+  "Keywords related to blocks.")
 
 
 ;;; Completion API
@@ -219,20 +239,7 @@ When completing for #+STARTUP, for example, this function returns
 		    org-options-keywords)
 	    (mapcar (lambda (keyword) (concat keyword ": "))
 		    org-element-affiliated-keywords)
-	    (let (block-names)
-	      (dolist (name
-		       '("CENTER" "COMMENT" "EXAMPLE" "EXPORT" "QUOTE" "SRC"
-			 "VERSE")
-		       block-names)
-		(push (format "END_%s" name) block-names)
-		(push (concat "BEGIN_"
-			      name
-			      ;; Since language is compulsory in
-			      ;; export blocks source blocks, add
-			      ;; a space.
-			      (and (member name '("EXPORT" "SRC")) " "))
-		      block-names)
-		(push (format "ATTR_%s: " name) block-names)))
+            org-block-keywords
 	    (mapcar (lambda (keyword) (concat keyword ": "))
 		    (org-get-export-keywords))))
    (substring pcomplete-stub 2)))
@@ -269,10 +276,11 @@ When completing for #+STARTUP, for example, this function returns
 
 (defun pcomplete/org-mode/file-option/priorities ()
   "Complete arguments for the #+PRIORITIES file option."
-  (pcomplete-here (list (format "%c %c %c"
-				org-priority-highest
-				org-priority-lowest
-				org-priority-default))))
+  (pcomplete-here
+   (list (format "%s %s %s"
+                 (org-priority-to-string org-priority-highest)
+                 (org-priority-to-string org-priority-lowest)
+                 (org-priority-to-string org-priority-default)))))
 
 (defun pcomplete/org-mode/file-option/select_tags ()
   "Complete arguments for the #+SELECT_TAGS file option."
@@ -311,6 +319,7 @@ When completing for #+STARTUP, for example, this function returns
 
 (defun pcomplete/org-mode/file-option/options ()
   "Complete arguments for the #+OPTIONS file option."
+  (org-load-export-backends)
   (while (pcomplete-here
 	  (pcomplete-uniquify-list
 	   (append

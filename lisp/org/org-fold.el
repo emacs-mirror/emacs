@@ -3,6 +3,7 @@
 ;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 ;;
 ;; Author: Ihor Radchenko <yantar92 at posteo dot net>
+;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: folding, invisible text
 ;; URL: https://orgmode.org
 ;;
@@ -58,29 +59,25 @@
 (defvar org-custom-properties-overlays)
 (defvar org-element-headline-re)
 
-(declare-function isearch-filter-visible "isearch" (beg end))
 (declare-function org-element-type "org-element-ast" (node &optional anonymous))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
-(declare-function org-element-property "org-element-ast" (property node))
 (declare-function org-element-end "org-element" (node))
 (declare-function org-element-post-affiliated "org-element" (node))
-(declare-function org-element--current-element "org-element" (limit &optional granularity mode structure))
 (declare-function org-toggle-custom-properties-visibility "org" ())
 (declare-function org-item-re "org-list" ())
 (declare-function org-up-heading-safe "org" ())
-(declare-function org-get-tags "org" (&optional pos local fontify))
+(declare-function org-get-tags "org" (&optional epom local))
 (declare-function org-get-valid-level "org" (level &optional change))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-goto-sibling "org" (&optional previous))
 (declare-function org-block-map "org" (function &optional start end))
 (declare-function org-map-region "org" (fun beg end))
-(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading))
+(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading element))
 (declare-function org-back-to-heading-or-point-min "org" (&optional invisible-ok))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-at-heading-p "org" (&optional invisible-not-ok))
 (declare-function org-cycle-hide-drawers "org-cycle" (state))
 
-(declare-function outline-show-branches "outline" ())
 (declare-function outline-hide-sublevels "outline" (levels))
 (declare-function outline-get-next-sibling "outline" ())
 (declare-function outline-invisible-p "outline" (&optional pos))
@@ -249,7 +246,7 @@ Also, see `org-fold-catch-invisible-edits'."
   ;; overlays for isearch.
   (setq-local org-fold-core--isearch-special-specs '(org-link))
   (org-fold-core-initialize
-   `((,(if (eq org-fold-core-style 'text-properties) 'org-fold-outline 'outline)
+   `((org-fold-outline
       (:ellipsis . ,ellipsis)
       (:fragile . ,#'org-fold--reveal-outline-maybe)
       (:isearch-open . t)
@@ -650,7 +647,7 @@ be shown."
   "Set visibility around point according to DETAIL.
 DETAIL is either nil, `minimal', `local', `ancestors',
 `ancestors-full', `lineage', `tree', `canonical' or t.  See
-`org-show-context-detail' for more information."
+`org-fold-show-context-detail' for more information."
   ;; Show current heading and possibly its entry, following headline
   ;; or all children.
   (if (and (org-at-heading-p) (not (eq detail 'local)))
@@ -745,15 +742,18 @@ This function is intended to be used as a member of
   (setq from (save-excursion (goto-char from) (line-beginning-position 0)))
   (cons from to))
 
-(defun org-fold--reveal-headline-at-point ()
+(defun org-fold--reveal-headline-at-point-delayed ()
   "Reveal header line and empty contents inside.
 Reveal the header line and, if present, also reveal its contents, when
 the contents consists of blank lines.
 
+Only perform actual unfolding in `post-command-hook' by calling
+`org-fold-core--region-delayed'.
+
 Assume that point is located at the header line."
   (org-with-wide-buffer
    (forward-line 0)
-   (org-fold-region
+   (org-fold-core--region-delayed
     (max (point-min) (1- (point)))
     (let ((endl (line-end-position)))
       (save-excursion
@@ -783,19 +783,19 @@ This function is intended to be used as :fragile property of
      (forward-line 0)
      ;; Make sure that headline is not partially hidden.
      (unless (org-fold-folded-p nil 'headline)
-       (org-fold--reveal-headline-at-point))
+       (org-fold--reveal-headline-at-point-delayed))
      ;; Never hide level 1 headlines
      (save-excursion
        (goto-char (line-end-position))
        (unless (>= (point) (cdr region))
          (when (re-search-forward (rx bol "* ") (cdr region) t)
-           (org-fold--reveal-headline-at-point))))
+           (org-fold--reveal-headline-at-point-delayed))))
      ;; Make sure that headline after is not partially hidden.
      (goto-char (cdr region))
      (forward-line 0)
      (unless (org-fold-folded-p nil 'headline)
        (when (looking-at-p org-element-headline-re)
-         (org-fold--reveal-headline-at-point)))
+         (org-fold--reveal-headline-at-point-delayed)))
      ;; Check the validity of headline
      (goto-char (car region))
      (backward-char)

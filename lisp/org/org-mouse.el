@@ -427,13 +427,13 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
    (let ((tags (org-get-tags nil t)))
      (org-mouse-keyword-menu
       (sort (mapcar #'car (org-get-buffer-tags))
-            (or org-tags-sort-function #'org-string<))
+            #'org-tags-sort)
       (lambda (tag)
 	(org-mouse-set-tags
 	 (sort (if (member tag tags)
 		   (delete tag tags)
 		 (cons tag tags))
-	       (or org-tags-sort-function #'org-string<))))
+               #'org-tags-sort)))
       (lambda (tag) (member tag tags))
       ))
    '("--"
@@ -491,7 +491,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
    `("Main Menu"
      ["Show Overview" org-mouse-show-overview t]
      ["Show Headlines" org-mouse-show-headlines t]
-     ["Show All" org-show-all t]
+     ["Show All" org-fold-show-all t]
      ["Remove Highlights" org-remove-occur-highlights
       :visible org-occur-highlights]
      "--"
@@ -504,7 +504,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ("Check Tags"
       ,@(org-mouse-keyword-menu
 	 (sort (mapcar #'car (org-get-buffer-tags))
-               (or org-tags-sort-function #'org-string<))
+               #'org-tags-sort)
          (lambda (tag) (org-tags-sparse-tree nil tag)))
       "--"
       ["Custom Tag ..." org-tags-sparse-tree t])
@@ -515,7 +515,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ("Display Tags"
       ,@(org-mouse-keyword-menu
 	 (sort (mapcar #'car (org-get-buffer-tags))
-               (or org-tags-sort-function #'org-string<))
+               #'org-tags-sort)
          (lambda (tag) (org-tags-view nil tag)))
       "--"
       ["Custom Tag ..." org-tags-view t])
@@ -627,7 +627,7 @@ This means, between the beginning of line and the point."
 	   ["Sparse Tree" (org-occur ',region-string)]
 	   ["Find in Buffer" (occur ',region-string)]
 	   ["Grep in Current Dir"
-	    (grep (format "grep -rnH -e '%s' *" ',region-string))]
+	    (grep (format "grep -rnH -e '%s' ./*" ',region-string))]
 	   ["Grep in Parent Dir"
 	    (grep (format "grep -rnH -e '%s' ../*" ',region-string))]
 	   "--"
@@ -887,7 +887,7 @@ This means, between the beginning of line and the point."
             (when (memq 'activate-stars org-mouse-features)
               (font-lock-add-keywords
                nil
-               `((,org-outline-regexp
+               `((,org-outline-regexp-bol
                   0 `(face org-link mouse-face highlight keymap ,org-mouse-map)
                   'prepend))
                t))
