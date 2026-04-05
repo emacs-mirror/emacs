@@ -2712,8 +2712,8 @@ Helper function for `describe-package'."
          (status (if desc (package-desc-status desc) "orphan"))
          (incompatible-reason (package--incompatible-p desc))
          (signed (if desc (package-desc-signed desc)))
-         (maintainers (or (cdr (assoc :maintainer extras))
-                          (cdr (assoc :maintainers extras))))
+         (maintainers (ensure-proper-list (or (cdr (assoc :maintainer extras))
+                                              (cdr (assoc :maintainers extras)))))
          (authors (cdr (assoc :authors extras)))
          (news (and desc (package-find-news-file desc))))
     (when (string= status "avail-obso")
@@ -2847,8 +2847,6 @@ Helper function for `describe-package'."
         (insert " "))
       (insert "\n"))
     (when maintainers
-      (unless (and (listp (car maintainers)) (listp (cdr maintainers)))
-        (setq maintainers (list maintainers)))
       (package--print-help-section
           (if (cdr maintainers) "Maintainers" "Maintainer"))
       (dolist (maintainer maintainers)
@@ -4869,9 +4867,8 @@ will be signaled in that case."
     (error "Invalid package description: %S" pkg-desc))
   (let* ((name (package-desc-name pkg-desc))
          (extras (package-desc-extras pkg-desc))
-         (maint (ensure-list
-                 (or (and-let* ((list (cdr (assoc :maintainer extras))))
-                       (if (consp (car-safe list)) list (list list)))
+         (maint (ensure-proper-list
+                 (or (cdr (assoc :maintainer extras))
                      (cdr (assoc :maintainers extras))
                      ;; If no maintainers are listed, contact authors
                      ;; instead (bug#80478)
