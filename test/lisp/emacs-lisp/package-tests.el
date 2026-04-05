@@ -141,6 +141,7 @@ This macro interprets the following keywords:
             (package-user-dir package-test-user-dir)
             (package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))
             (package-archives `(("gnu" . ,(or ,location package-test-data-dir))))
+            (package-review-policy nil)
             (default-directory package-test-file-dir)
             abbreviated-home-dir
             package--initialized
