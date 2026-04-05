@@ -241,10 +241,11 @@ buffers."
 
   ;; The foregoing commands in `diff-mode-shared-map' and
   ;; `diff-mode-read-only-map' don't affect buffers beyond this one.
-  ;; The following command is the only one that has a single-character
-  ;; binding and which affects buffers beyond this one.  However, the
-  ;; following command asks for confirmation by default, so that seems
-  ;; okay.  --spwhitton
+  ;; The following commands are the only ones that have a
+  ;; single-character binding and which affect something beyond the
+  ;; current buffer.  However, the following commands ask for
+  ;; confirmation by default, so that seems okay.  --spwhitton
+  "v" #'vc-next-action
   "u" #'diff-revert-and-kill-hunk
   ;; `diff-revert-and-kill-hunk' is the `diff-mode' analogue of what '@'
   ;; does in VC-Dir, so give it the same short binding.

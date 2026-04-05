@@ -2419,6 +2419,9 @@ When the region is active, the command reverse-applies and kills hunks
 that the region overlaps.
 
 ---
+*** 'v' is now bound to 'vc-next-action' in read-only Diff mode buffers.
+
+---
 *** 'diff-file-prev' and 'diff-hunk-prev' always move to start of header.
 Previously, 'diff-file-prev' and 'diff-hunk-prev' would move when point
 is after the corresponding file or hunk header, but not when inside it.
