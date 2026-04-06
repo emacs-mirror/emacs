@@ -282,7 +282,8 @@ A value of `default' means to use the value of `vc-resolve-conflicts'."
   (ignore-errors
     (with-output-to-string
       (vc-hg-command standard-output 0 nil
-                     "log" "-r" "." "--template" "{rev}"))))
+                     "log" "-r" "." "--template"
+                     (if vc-use-short-revision "{node|short}" "{node}")))))
 
 (defcustom vc-hg-symbolic-revision-styles
   '(builtin-active-bookmark

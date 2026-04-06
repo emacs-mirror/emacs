@@ -3088,6 +3088,11 @@ You can use 'C-u C-x v +' to preview or change the arguments.
 *** 'C-u C-x v +' and 'C-u C-x v P' for Git have an input history.
 This was already in place for Mercurial.
 
+---
+*** 'vc-hg-working-revision' now returns changeset hashes.
+Previously it returned local revision numbers, but hashes are more
+robust for how this function is typically used.
+
 ** Package
 
 +++
