@@ -4922,10 +4922,10 @@ window and defaults to the selected one.
 
 Each list element has the form @code{(@var{buffer} @var{window-start}
 @var{window-pos})}, where @var{buffer} is a buffer previously shown in
-the window, @var{window-start} is the window start position
-(@pxref{Window Start and End}) when that buffer was last shown, and
-@var{window-pos} is the window point position (@pxref{Window Point})
-when that buffer was last shown in @var{window}.
+the window, @var{window-start} is a marker that gives the window start
+position (@pxref{Window Start and End}) when that buffer was last shown,
+and @var{window-pos} is a marker that gives the window point position
+(@pxref{Window Point}) when that buffer was last shown in @var{window}.
 
 The list is ordered so that earlier elements correspond to more
 recently-shown buffers, and the first element usually corresponds to the
