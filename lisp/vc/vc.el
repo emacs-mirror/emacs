@@ -287,6 +287,11 @@
 ;;   revision argument is only supported with some older VCSes, like
 ;;   RCS and CVS, and is otherwise silently ignored.
 ;;
+;;   If the backend supports async checkins and `vc-async-checkin' is
+;;   non-nil, the implementation should start an asychronous process to
+;;   commit the changes, and return a cons whose car is `async' and
+;;   whose cdr is that process object.
+;;
 ;; - checkin-patch (patch-string comment)
 ;;
 ;;   Commit a single patch PATCH-STRING to this backend, bypassing any
