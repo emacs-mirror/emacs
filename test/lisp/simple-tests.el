@@ -748,17 +748,16 @@ See bug#35036."
     (point)))
 
 (defun undo-test-point-after-forward-kill ()
-  (with-temp-buffer
-    (ert-with-display-current-buffer
-     (setq buffer-undo-list nil)
-     (insert "kill word forward")
-     ;; Move to word "word".
-     (goto-char 6)
-     (ert-play-keys [;; kill-word
-                     C-delete
-                     ;; undo
-                     ?\C-/
-                     ]))
+  (ert-with-test-buffer (:selected t)
+    (setq buffer-undo-list nil)
+    (insert "kill word forward")
+    ;; Move to word "word".
+    (goto-char 6)
+    (ert-play-keys [;; kill-word
+                    C-delete
+                    ;; undo
+                    ?\C-/
+                    ])
     (point)))
 
 (ert-deftest undo-point-in-wrong-place ()
