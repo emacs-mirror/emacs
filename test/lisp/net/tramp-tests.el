@@ -4473,6 +4473,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; Check, that files in symlinked directories still work.
 	    (make-symbolic-link tmp-name4 tmp-name6)
 	    (should (file-symlink-p tmp-name6))
+	    (should (file-directory-p tmp-name6))
 	    (should-not (file-regular-p tmp-name6))
 	    (write-region "foo" nil (expand-file-name "foo" tmp-name6))
 	    (delete-file (expand-file-name "foo" tmp-name6))
