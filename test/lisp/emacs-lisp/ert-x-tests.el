@@ -300,15 +300,46 @@ test buffer, and check all of them are processed."
   (ert-with-test-buffer (:selected t)
     (dlet (verdict-event verdict-key)
       (let* ((map (let ((map (make-sparse-keymap)))
-                    (define-key map [event] (lambda () (interactive) (setq verdict-event t)))
-                    (define-key map [?$]  (lambda () (interactive) (setq verdict-key t)))
+                    (define-key map [event]
+                                (lambda ()
+                                  (interactive)
+                                  (setq verdict-event
+                                        (list t
+                                              (called-interactively-p 'any)
+                                              (called-interactively-p 'interactive)))))
+                    (define-key map [?$]
+                                (lambda ()
+                                  (interactive)
+                                  (setq verdict-key
+                                        (list t
+                                              (called-interactively-p 'any)
+                                              (called-interactively-p 'interactive)))))
                     map))
              (minor-mode-map-alist (cons (cons t map) minor-mode-map-alist)))
 	(ert-play-keys (vconcat [event] "n'importe $quoi"))
-	(should verdict-event)
-	(should verdict-key)
+	(should (equal verdict-event '(t  t nil)))
+	(should (equal verdict-key '(t  t nil)))
 	(should (string= "n'importe quoi"
 		         (buffer-substring (point-min) (point-max))))))))
+
+(ert-deftest ert-x-tests-simulate-command ()
+  "Test `ert-simulate-command'."
+  (ert-with-test-buffer ()
+    (dlet (verdict)
+      (should (eq (ert-simulate-command
+                   (list
+                    (lambda (x)
+                      (interactive (list "un rien"))
+                      (insert x)
+                      (setq verdict (list t
+                                          (called-interactively-p 'any)
+                                          (called-interactively-p 'interactive)))
+                      :ok)
+                    "n'importe quoi"))
+                   :ok))
+      (should (equal verdict '(t nil nil))))
+    (should (string= "n'importe quoi"
+		     (buffer-substring (point-min) (point-max))))))
 
 (provide 'ert-x-tests)
 

@@ -1361,7 +1361,14 @@ symbol and the rest are arguments to the command.  Example:
 
 @strong{Note}: Since the command is not called by
 @code{call-interactively}, a test for @code{(called-interactively-p
-'interactive)} in the command will fail.
+@var{kind})} in the command will fail for whatever @var{kind}.@*
+Fonction @code{ert-play-keys} may be used instead to start a command if
+you need the predicate @code{(called-interactively-p @var{kind})} tested
+within the command body to return @code{t} for @var{kind} @code{'any},
+note however that it will still be @code{nil} too for @var{kind}
+@code{'interactive} since @code{ert-play-keys} uses keyboard macros
+under the hood, and that @code{ert-play-keys} needs selecting the buffer
+of interest.
 @end defun
 
 @defmac ert-simulate-keys (keys &rest body)
@@ -1396,6 +1403,17 @@ buffer to which input events are intended to insert text or call a
 command. Do this by passing a non-nil @code{:selected} flag to
 @code{ert-with-test-buffer} if the buffer was created this way, or use
 the @code{ert-with-buffer-selected} macro.
+
+@findex ert-simulate-command
+Contrary to @code{ert-simulate-command}, when @code{ert-play-keys}
+generates events starting a command you cannot get the command return
+value. On the other hand, @code{(called-interactively-p 'any)} tested in
+the command body will be @code{t}, but not @code{(called-interactively-p
+'interactive)} as @code{ert-play-keys} does not a true interactive call,
+but uses a keyboard macro under the hood. Another difference is that,
+contrary to @code{ert-simulate-command}, @code{ert-play-keys} needs to
+select the buffer on which the command acts for the input events to
+reach it.
 
 In this example a test buffer is created and selected, then
 @code{ert-play-keys} sets the mark, inserts text @samp{n'importe quoi}
