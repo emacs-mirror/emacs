@@ -157,12 +157,15 @@
 ;; - dir-status-files (dir files update-function)
 ;;
 ;;   Produce RESULT: a list of lists of the form (FILE VC-STATE EXTRA)
-;;   for FILES in DIR.  If FILES is nil, report on all files in DIR.
-;;   (It is OK, though possibly inefficient, to ignore the FILES argument
-;;   and always report on all files in DIR.)
+;;   for FILES in DIR (which need not be the repository root).
+;;   If FILES is nil, report on all files in DIR.
+;;   (It is permitted, though possibly inefficient, to ignore the FILES
+;;   argument and always report on all files in DIR.)
 ;;
 ;;   If FILES is non-nil, this function should report on all requested
 ;;   files, including up-to-date or ignored files.
+;;   If FILES is nil, up-to-date and ignored files may be excluded, but
+;;   need not be.
 ;;
 ;;   EXTRA can be used for backend specific information about FILE.
 ;;
