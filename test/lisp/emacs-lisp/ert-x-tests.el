@@ -293,6 +293,23 @@ desired effect."
   (should-error
    (ert-with-temp-directory dir :text "foo" nil)))
 
+(ert-deftest ert-x-tests-play-keys ()
+  "Test `ert-play-keys'.
+Send one symbolic event, some inserted text, and some key event to the
+test buffer, and check all of them are processed."
+  (ert-with-test-buffer (:selected t)
+    (dlet (verdict-event verdict-key)
+      (let* ((map (let ((map (make-sparse-keymap)))
+                    (define-key map [event] (lambda () (interactive) (setq verdict-event t)))
+                    (define-key map [?$]  (lambda () (interactive) (setq verdict-key t)))
+                    map))
+             (minor-mode-map-alist (cons (cons t map) minor-mode-map-alist)))
+	(ert-play-keys (vconcat [event] "n'importe $quoi"))
+	(should verdict-event)
+	(should verdict-key)
+	(should (string= "n'importe quoi"
+		         (buffer-substring (point-min) (point-max))))))))
+
 (provide 'ert-x-tests)
 
 ;;; ert-x-tests.el ends here

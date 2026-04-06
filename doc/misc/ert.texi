@@ -1404,7 +1404,7 @@ ring and the test buffer is empty, then a second @code{ert-play-keys}
 call yanks again the killed text, and finally the test checks the test
 buffer contains @samp{n'importe quoi}:
 
-@example
+@lisp
 (ert-deftest ert-example-kill&yank ()
   "Test kill and yank."
   (ert-with-test-buffer (:selected t)
@@ -1414,14 +1414,14 @@ buffer contains @samp{n'importe quoi}:
     (ert-play-keys "C-y")
     (should (string= "n'importe quoi"
                      (buffer-substring (point-min) (point-max))))))
-@end example
+@end lisp
 
 @noindent
 Write input events as above with a string in the input format used by
 @code{key-parse}, or directly in the internal Emacs representation like
 here which is otherwise the same test as above:
 
-@example
+@lisp
 (ert-deftest ert-example-kill&yank ()
   "Test kill and yank."
   (ert-with-test-buffer (:selected t)
@@ -1431,7 +1431,7 @@ here which is otherwise the same test as above:
     (ert-play-keys [ ?\C-y ])
     (should (string= "n'importe quoi"
                      (buffer-substring (point-min) (point-max))))))
-@end example
+@end lisp
 @end defun
 
 @defun ert-filter-string (s &rest regexps)
