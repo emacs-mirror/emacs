@@ -3087,7 +3087,8 @@ root of the current project.  It should return an object of the
 format described above.")
 
 ;;;###autoload
-(put 'eglot-workspace-configuration 'safe-local-variable #'listp)
+(put 'eglot-workspace-configuration 'safe-local-variable
+     (lambda (v) (and (listp v) (not (functionp v)))))
 
 (defun eglot-show-workspace-configuration (&optional server)
   "Dump `eglot-workspace-configuration' as JSON for debugging."
