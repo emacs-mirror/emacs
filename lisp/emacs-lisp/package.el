@@ -3625,6 +3625,11 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
   "Face used on the status and version of avail-obso packages."
   :version "25.1")
 
+(defface package-status-obsolete
+  '((t :inherit font-lock-warning-face))
+  "Face used on the status and version of obsolete packages."
+  :version "31.1")
+
 (defface package-mark-install-line
   '((((class color) (background light))
      :background "darkolivegreen1" :extend t)
@@ -3675,7 +3680,7 @@ Return (PKG-DESC [NAME VERSION STATUS DOC])."
     ("dependency" . package-status-dependency)
     ("unsigned"   . package-status-unsigned)
     ("incompat"   . package-status-incompat)
-    ("obsolete"   . font-lock-warning-face))
+    ("obsolete"   . package-status-obsolete))
   "Alist mapping status strings for packages to faces.
 These faces are used in the package menu.")
 
