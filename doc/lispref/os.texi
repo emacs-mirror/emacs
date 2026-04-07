@@ -2382,6 +2382,7 @@ calling a timer function in a row, when many previously scheduled
 calls were unavoidably delayed.
 @end defopt
 
+@cindex running code with timeout
 @defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
 Execute @var{body}, but give up after @var{seconds} seconds.  If
 @var{body} finishes before the time is up, @code{with-timeout} returns
@@ -2400,6 +2401,8 @@ primitive that can wait, @code{with-timeout} cannot stop executing
 @var{body} while it is in the midst of a computation---only when it
 calls one of those primitives.  So use @code{with-timeout} only with a
 @var{body} that waits for input, not one that does a long computation.
+Primitives that wait for input include @code{sit-for}, @code{sleep-for},
+@code{accept-process-output}, and some others.
 @end defmac
 
   The function @code{y-or-n-p-with-timeout} provides a simple way to use
