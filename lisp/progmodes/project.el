@@ -183,7 +183,7 @@
 (require 'cl-generic)
 (require 'cl-lib)
 (require 'seq)
-(require 'generator)
+(eval-when-compile (require 'generator))
 (eval-when-compile (require 'subr-x))
 
 (defgroup project nil
