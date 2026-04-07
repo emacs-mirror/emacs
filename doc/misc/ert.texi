@@ -1362,13 +1362,13 @@ symbol and the rest are arguments to the command.  Example:
 @strong{Note}: Since the command is not called by
 @code{call-interactively}, a test for @code{(called-interactively-p
 @var{kind})} in the command will fail for whatever @var{kind}.@*
-Fonction @code{ert-play-keys} may be used instead to start a command if
+Function @code{ert-play-keys} may be used instead to start a command if
 you need the predicate @code{(called-interactively-p @var{kind})} tested
-within the command body to return @code{t} for @var{kind} @code{'any},
+within the command body to return @code{t} for @var{kind} @code{any},
 note however that it will still be @code{nil} too for @var{kind}
-@code{'interactive} since @code{ert-play-keys} uses keyboard macros
-under the hood, and that @code{ert-play-keys} needs selecting the buffer
-of interest.
+@code{interactive} since @code{ert-play-keys} uses keyboard macros under
+the hood, and that @code{ert-play-keys} needs selecting the buffer of
+interest.
 @end defun
 
 @defmac ert-simulate-keys (keys &rest body)
@@ -1393,7 +1393,7 @@ calling some interactive command, see rather function
 Generate programmatically user input events.
 
 @findex ert-simulate-keys
-Contrary to @code{ert-simulate-keys} these events are not intended to be
+Contrary to @code{ert-simulate-keys}, these events are not intended to be
 consumed by functions reading input, like @code{read-from-minibuffer},
 but are consumed by the command loop which typically will process them
 to start interactive commands or insert text into the selected buffer.
