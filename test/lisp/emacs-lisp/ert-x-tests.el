@@ -298,8 +298,10 @@ desired effect."
 Send one symbolic event, some inserted text, and some key event to the
 test buffer, and check all of them are processed."
   (ert-with-test-buffer (:selected t)
-    (dlet (verdict-event verdict-key)
-      (let* ((map (let ((map (make-sparse-keymap)))
+    (let (verdict-event verdict-key verdict-pre-command-hook verdict-post-command-hook)
+      (let ((pre-command-hook (lambda () (setq verdict-pre-command-hook t)))
+            (post-command-hook (lambda () (setq verdict-post-command-hook t)))
+            (map (let ((map (make-sparse-keymap)))
                     (define-key map [event]
                                 (lambda ()
                                   (interactive)
@@ -314,32 +316,53 @@ test buffer, and check all of them are processed."
                                         (list t
                                               (called-interactively-p 'any)
                                               (called-interactively-p 'interactive)))))
-                    map))
-             (minor-mode-map-alist (cons (cons t map) minor-mode-map-alist)))
-	(ert-play-keys (vconcat [event] "n'importe $quoi"))
-	(should (equal verdict-event '(t  t nil)))
-	(should (equal verdict-key '(t  t nil)))
-	(should (string= "n'importe quoi"
-		         (buffer-substring (point-min) (point-max))))))))
+                    map)))
+        (let ((minor-mode-map-alist (cons (cons t map) minor-mode-map-alist)))
+	  (ert-play-keys (vconcat [event] "n'importe $quoi"))))
+      (should (equal verdict-event '(t  t nil)))
+      (should (equal verdict-key '(t  t nil)))
+      (should (eq verdict-pre-command-hook t))
+      (should (eq verdict-post-command-hook t)))
+    (should (string= "n'importe quoi"
+		     (buffer-substring (point-min) (point-max))))))
 
 (ert-deftest ert-x-tests-simulate-command ()
   "Test `ert-simulate-command'."
   (ert-with-test-buffer ()
-    (dlet (verdict)
-      (should (eq (ert-simulate-command
-                   (list
-                    (lambda (x)
-                      (interactive (list "un rien"))
-                      (insert x)
-                      (setq verdict (list t
-                                          (called-interactively-p 'any)
-                                          (called-interactively-p 'interactive)))
-                      :ok)
-                    "n'importe quoi"))
-                   :ok))
-      (should (equal verdict '(t nil nil))))
+    (let (verdict-interactive verdict-pre-command-hook verdict-post-command-hook)
+      (let ((pre-command-hook (lambda () (setq verdict-pre-command-hook t)))
+            (post-command-hook (lambda () (setq verdict-post-command-hook t))))
+        (should (eq (ert-simulate-command
+                     (list
+                      (lambda (x)
+                        (interactive (list "un rien"))
+                        (insert x)
+                        (setq verdict-interactive (list t
+                                                        (called-interactively-p 'any)
+                                                        (called-interactively-p 'interactive)))
+                        :ok)
+                      "n'importe quoi"))
+                    :ok)))
+      (should (equal verdict-interactive '(t nil nil)))
+      (should (eq verdict-pre-command-hook t))
+      (should (eq verdict-post-command-hook t)))
     (should (string= "n'importe quoi"
 		     (buffer-substring (point-min) (point-max))))))
+
+(ert-deftest ert-x-tests-simulate-keys ()
+  "Test `ert-simulate-keys'."
+  (ert-with-test-buffer ()
+    (let* ((map (let ((map (make-sparse-keymap)))
+                  (define-key map [?b]
+                              (lambda ()
+                                (interactive)
+                                (insert "r"))) map))
+           (minor-mode-map-alist (cons (cons t map) minor-mode-map-alist)))
+      (ert-simulate-keys
+       (mapcar #'identity "un bien\nn'importe quoi")
+       (should (string= (read-from-minibuffer "Please enter something: ") "un rien")))
+      (should (string= "" (buffer-substring (point-min) (point-max)))))))
+
 
 (provide 'ert-x-tests)
 
