@@ -5036,8 +5036,7 @@ Goes through the list `tramp-inline-compress-commands'."
 
    ;; Use plink options.
    ((string-match-p
-     (rx "plink" (? ".exe") eol)
-     (tramp-expand-args vec 'tramp-login-program))
+     (rx "plink" (? ".exe") eol) (tramp-expand-args vec 'tramp-login-program))
     (concat
      (if (eq tramp-use-connection-share 'suppress)
 	 "-noshare" "-share")
@@ -5397,9 +5396,7 @@ connection if a previous connection has died for some reason."
 			  (tramp-get-method-parameter
 			   hop 'tramp-connection-timeout
 			   tramp-connection-timeout))
-			 (command
-			  (tramp-expand-args
-			   hop 'tramp-login-program))
+			 (command (tramp-expand-args hop 'tramp-login-program))
 			 ;; We don't create the temporary file.  In
 			 ;; fact, it is just a prefix for the
 			 ;; ControlPath option of ssh; the real
@@ -5805,7 +5802,8 @@ Nonexistent directories are removed from spec."
 	       remote-path :test #'string-equal :from-end t))
 
 	;; Remove non-existing directories.
-	(let (remote-file-name-inhibit-cache)
+	(let ((remote-file-name-inhibit-cache
+	       (tramp-suppress-remote-file-name-inhibit-cache)))
 	  (tramp-bundle-read-file-names vec remote-path)
 	  (cl-remove-if
 	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))

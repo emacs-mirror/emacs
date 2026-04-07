@@ -3016,7 +3016,8 @@ BODY is the backend specific code."
       (when (file-directory-p ,directory)
 	(seq-uniq (delq nil
          (let* ((case-fold-search read-file-name-completion-ignore-case)
-                remote-file-name-inhibit-cache
+                (remote-file-name-inhibit-cache
+		 (tramp-suppress-remote-file-name-inhibit-cache))
 		(result
 		 (if (tramp-tramp-file-p ,directory)
 		     (with-parsed-tramp-file-name
