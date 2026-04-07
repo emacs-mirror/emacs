@@ -16570,18 +16570,16 @@ M-x customize
 @end smallexample
 
 @noindent
-and find that the group for editing files of text is called ``Text''.
-Enter that group.  Text Mode Hook is the first member.  You can click
-on its various options, such as @code{turn-on-auto-fill}, to set the
-values.  After you click on the button to
-
-@smallexample
-Save for Future Sessions
-@end smallexample
-
-@noindent
-Emacs will write an expression into your @file{.emacs} file.
-It will look like this:
+and find that the group for editing files of text is called @samp{Text}.
+Enter that group by clicking or typing @key{RET} on it.  Text Mode Hook
+is one of the group's members; click on the triangular button (or on the
+@samp{Show Value} button which replaces that on text-only terminals) to
+its left to show its various options.  Then you can click (or type
+@key{RET} if you are on a text-only terminal) on its options, such as
+@code{turn-on-auto-fill}, to set or reset the values.  After you click
+(or type @key{RET}) on the @samp{State} button and select @samp{Save for
+Future Sessions}, Emacs will write an expression into your @file{.emacs}
+file.  It will look like this:
 
 @smallexample
 @group
