@@ -167,14 +167,14 @@ when the command was invoked."
   (let ((buf (current-buffer)))
     (emoji--init)
     (switch-to-buffer (get-buffer-create "*Emoji*"))
-    (setq-local emoji--insert-buffer buf)
     ;; Don't regenerate the buffer if it already exists -- this will
     ;; leave point where it was the last time it was used.
     (when (zerop (buffer-size))
       (let ((inhibit-read-only t))
         (emoji-list-mode)
         (emoji--list-generate nil (cons nil emoji--labels))
-        (goto-char (point-min))))))
+        (goto-char (point-min))))
+    (setq-local emoji--insert-buffer buf)))
 
 ;;;###autoload
 (defun emoji-describe (glyph &optional interactive)
