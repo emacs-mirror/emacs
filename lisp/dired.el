@@ -1237,8 +1237,9 @@ If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
   (prog1 (pop-to-buffer-same-window (dired-noselect dirname switches))
     (dired--display-ls-error)))
 
-;; This is needed to let clicks on the menu bar invoke Dired even if
-;; some feature remaps the Dired command to another command.
+;; This lets clicks on the menu bar invoke Dired even if some feature
+;; remaps the Dired command to another command that does not handle this
+;; situation correctly (e.g. earlier versions of `dired-at-point-prompter').
 ;;;###autoload
 (defun dired-from-menubar (dirname &optional switches)
   "Edit an existing directory."
