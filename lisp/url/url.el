@@ -142,6 +142,11 @@ occurred.  Each pair is one of:
 symbol that says something about where the error occurred, and
 DATA is a list (possibly nil) that describes the error further.
 
+\(:peer GNUTLS-INFO) - GnuTLS information for the retrieval request.
+This will be present only if GnuTLS was used to make an HTTPS request,
+in which case GNUTLS-INFO is the list returned by `gnutls-peer-status'
+describing the state of TLS connection with the peer.
+
 Return the buffer URL will load into, or nil if the process has
 already completed (i.e. URL was a mailto URL or similar; in this case
 the callback is not called).

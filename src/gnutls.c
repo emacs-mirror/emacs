@@ -1383,18 +1383,43 @@ DEFUN ("gnutls-peer-status-warning-describe", Fgnutls_peer_status_warning_descri
 }
 
 DEFUN ("gnutls-peer-status", Fgnutls_peer_status, Sgnutls_peer_status, 1, 1, 0,
-       doc: /* Describe a GnuTLS PROC peer certificate and any warnings about it.
+       doc: /* Describe GnuTLS peer certificate of PROC and any warnings about it.
 
 The return value is a property list with top-level keys :warnings and
 :certificates.
 
-The :warnings entry is a list of symbols you can get a description of
-with `gnutls-peer-status-warning-describe', and :certificates is the
-certificate chain for the connection, with the host certificate
-first, and intermediary certificates (if any) following it.
+The :warnings entry is a list of symbols whose descriptions can be
+obtained with `gnutls-peer-status-warning-describe'.
 
-In addition, for backwards compatibility, the host certificate is also
-returned as the :certificate entry.  */)
+The :certificates entry is the certificate chain for the connection,
+with the host certificate first and intermediary certificates (if any)
+following it.  In addition, for backwards compatibility, the host
+certificate is also returned as the :certificate entry.
+
+The list in :certificates entry can also include one or more of the
+properties of the TLS connection, when applicable, using the following
+keys:
+
+  :cipher              a string naming the cipher algorithm, or "NULL"
+
+  :compression         a string naming the compression algorithm, or "NULL"
+
+  :diffie-hellman-prime-bits
+		       the number if bits used in Diffie-Hellman key exchange,
+			 an integer
+
+  :encrypt-then-mac    t if encrypt-then-mac negotiation was successful,
+                         nil otherwise
+
+  :key-exchange        key exchange algorithm, a string
+
+  :mac                 a string naming the MAC algorithm, or "NULL"
+
+  :protocol            TLS protocol version as a string
+
+  :safe-renegotiation  t if safe renegotiation is used, otherwise nil
+
+*/)
   (Lisp_Object proc)
 {
   Lisp_Object warnings = Qnil, result = Qnil;
