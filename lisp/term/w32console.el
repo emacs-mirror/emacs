@@ -47,7 +47,7 @@
 
 (declare-function x-setup-function-keys "term/common-win" (frame))
 (declare-function get-screen-color "w32console.c" (&optional vtp))
-(declare-function set-screen-color "w32console.c" (&optional vtp))
+(declare-function set-screen-color "w32console.c" (foreground background &optional vtp))
 (declare-function w32-get-console-codepage "w32proc.c" ())
 (declare-function w32-get-console-output-codepage "w32proc.c" ())
 (declare-function w32-use-virtual-terminal "w32console.c" (enable))
