@@ -1168,24 +1168,27 @@ side-effects, and the argument LIST is not modified."
     list))
 
 (defun internal--effect-free-fun-arg-p (x)
-  (or (symbolp x) (closurep x) (memq (car-safe x) '(function quote))))
+  ;; FIXME: Rename it to `macroexp-FOO-p' and give it a proper docstring
+  ;; which explains the finer difference with `macroexp-copyable-p'
+  ;; (and maybe adjust the docstring of `macroexp-copyable-p' accordingly).
+  (or (closurep x) (memq (car-safe x) '(function quote))))
 
 (defun take-while (pred list)
   "Return the longest prefix of LIST whose elements satisfy PRED."
   (declare (compiler-macro
-            (lambda (_form)
+            (lambda (form)
               (let* ((tail (make-symbol "tail"))
-                     (pred (macroexpand-all pred macroexpand-all-environment))
-                     (f (and (not (internal--effect-free-fun-arg-p pred))
-                             (make-symbol "f")))
                      (r (make-symbol "r")))
-                `(let (,@(and f `((,f ,pred)))
-                       (,r nil)
-                       (,tail ,list))
-                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
-                     (push (car ,tail) ,r)
-                     (setq ,tail (cdr ,tail)))
-                   (nreverse ,r))))))
+                (if (not (internal--effect-free-fun-arg-p pred))
+                    ;; Don't inline since it would just duplicate the code
+                    ;; without allowing any more optimizations.
+                    form
+                  `(let ((,r nil)
+                         (,tail ,list))
+                     (while (and ,tail (funcall ,pred (car ,tail)))
+                       (push (car ,tail) ,r)
+                       (setq ,tail (cdr ,tail)))
+                     (nreverse ,r)))))))
   (let ((r nil))
     (while (and list (funcall pred (car list)))
       (push (car list) r)
@@ -1195,23 +1198,29 @@ side-effects, and the argument LIST is not modified."
 (defun drop-while (pred list)
   "Skip initial elements of LIST satisfying PRED and return the rest."
   (declare (compiler-macro
-            (lambda (_form)
-              (let* ((tail (make-symbol "tail"))
-                     (pred (macroexpand-all pred macroexpand-all-environment))
-                     (f (and (not (internal--effect-free-fun-arg-p pred))
-                             (make-symbol "f"))))
-                `(let (,@(and f `((,f ,pred)))
-                       (,tail ,list))
-                   (while (and ,tail (funcall ,(or f pred) (car ,tail)))
-                     (setq ,tail (cdr ,tail)))
-                   ,tail)))))
+            (lambda (form)
+              (let* ((tail (make-symbol "tail")))
+                (if (not (internal--effect-free-fun-arg-p pred))
+                    ;; Don't inline since it would just duplicate the code
+                    ;; without allowing any more optimizations.
+                    form
+                  `(let ((,tail ,list))
+                     (while (and ,tail (funcall ,pred (car ,tail)))
+                       (setq ,tail (cdr ,tail)))
+                     ,tail))))))
   (while (and list (funcall pred (car list)))
     (setq list (cdr list)))
   list)
 
 (defun all (pred list)
   "Non-nil if PRED is true for all elements in LIST."
-  (declare (compiler-macro (lambda (_) `(not (drop-while ,pred ,list)))))
+  (declare (compiler-macro
+            (lambda (form)
+              (if (not (internal--effect-free-fun-arg-p pred))
+                  ;; Don't inline since it would just duplicate the code
+                  ;; without allowing any more optimizations.
+                  form
+                `(not (drop-while ,pred ,list))))))
   (not (drop-while pred list)))
 
 (defun member-if (pred list)
@@ -1229,14 +1238,15 @@ with
 
     (member-if (lambda (x) (foo (bar x))) items)"
   (declare (compiler-macro
-            (lambda (_)
-              (let* ((x (make-symbol "x"))
-                     (f (and (not (internal--effect-free-fun-arg-p pred))
-                             (make-symbol "f")))
-                     (form `(drop-while (lambda (,x)
-                                          (not (funcall ,(or f pred) ,x)))
-                                        ,list)))
-                (if f `(let ((,f ,pred)) ,form) form)))))
+            (lambda (form)
+              (if (not (internal--effect-free-fun-arg-p pred))
+                  ;; Don't inline since it would just duplicate the code
+                  ;; without allowing any more optimizations.
+                  form
+                (let* ((x (make-symbol "x")))
+                  `(drop-while (lambda (,x)
+                                 (not (funcall ,pred ,x)))
+                               ,list))))))
   (drop-while (lambda (x) (not (funcall pred x))) list))
 
 ;; This is good to have for improved readability in certain uses, but
