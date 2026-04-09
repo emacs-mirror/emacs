@@ -774,7 +774,9 @@ be used instead.
     ;; be any need to font-lock-flush all the Elisp buffers.
     (dolist (buf (buffer-list))
       (with-current-buffer buf
-	(when (derived-mode-p 'emacs-lisp-mode)
+        (when (and (derived-mode-p 'emacs-lisp-mode)
+                   ;; Don't flush if it refontifies the whole buffer eagerly.
+                   font-lock-support-mode)
           ;; So as to take into account new macros that may have been defined
           ;; by the just-loaded file.
 	  (font-lock-flush))))))
