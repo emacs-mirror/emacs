@@ -359,7 +359,7 @@ test buffer, and check all of them are processed."
                                 (insert "r"))) map))
            (minor-mode-map-alist (cons (cons t map) minor-mode-map-alist)))
       (ert-simulate-keys
-       (mapcar #'identity "un bien\nn'importe quoi")
+       (listify-key-sequence "un bien\nn'importe quoi")
        (should (string= (read-from-minibuffer "Please enter something: ") "un rien")))
       (should (string= "" (buffer-substring (point-min) (point-max)))))))
 
