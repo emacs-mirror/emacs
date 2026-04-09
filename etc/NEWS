@@ -4520,9 +4520,17 @@ singleton list.
 ---
 ** Support macOS Accessibility Zoom focus tracking.
 This is an important change for visually-impaired users.  If macOS
-Accessibility Zoom is enabled (System Settings, Accessibility, Zoom)
-with keyboard focus tracking (Advanced...), Zoom is informed of updated
-cursor positions during each redisplay cycle.
+Accessibility Zoom is enabled via (System Settings, Accessibility,
+Zoom...)  with keyboard focus tracking (Advanced...), Zoom is informed
+of updated cursor positions during each redisplay cycle.
+
+---
+** New macOS function 'ns-process-is-accessibility-trusted'.
+This function returns t if the macOS Accessibility Framework trusts the
+Emacs.  This is a necessary condition for Accessibility Zoom and other
+accessibility features.  Enable Emacs via (System Settings, Privacy &
+Security, Accessibility...) and add the Emacs.app installed directory to
+the enabled application list.
 
 ---
 ** Process execution has been optimized on Android.
