@@ -1219,7 +1219,7 @@ By default, 24-bit RGB color will be used, but other (8, 16, 256) color
 spaces may be used, by passing the @code{--color} command line argument,
 or setting the value of the @code{tty-color-mode} frame parameter.
 
-   @code{'(w32-use-virtual-terminal-p)} evaluates to @code{t} if and only if
+   @code{(w32-use-virtual-terminal-p)} evaluates to @code{t} if and only if
 the internal variable has a non-zero numerical value, and otherwise to
 @code{nil}.  If it evaluates to @code{t}, ANSI escape sequences are used
 for color, otherwise, the older mechanism is used.  The internal variable
