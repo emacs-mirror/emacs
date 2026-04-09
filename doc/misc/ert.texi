@@ -1383,7 +1383,7 @@ vector.  Examples:
 (ert-simulate-keys [?b ?2 return] @dots{})
 @end lisp
 
-@findex ert-play-keys
+@c @findex ert-play-keys
 To generate input event for inserting some text into a buffer, or
 calling some interactive command, see rather function
 @code{ert-play-keys}.
@@ -1392,7 +1392,7 @@ calling some interactive command, see rather function
 @defun ert-play-keys (keys)
 Generate programmatically user input events.
 
-@findex ert-simulate-keys
+@c @findex ert-simulate-keys
 Contrary to @code{ert-simulate-keys}, these events are not intended to be
 consumed by functions reading input, like @code{read-from-minibuffer},
 but are consumed by the command loop which typically will process them
@@ -1404,7 +1404,7 @@ command. Do this by passing a non-nil @code{:selected} flag to
 @code{ert-with-test-buffer} if the buffer was created this way, or use
 the @code{ert-with-buffer-selected} macro.
 
-@findex ert-simulate-command
+@c @findex ert-simulate-command
 Contrary to @code{ert-simulate-command}, when @code{ert-play-keys}
 generates events starting a command you cannot get the command return
 value. On the other hand, @code{(called-interactively-p 'any)} tested in
