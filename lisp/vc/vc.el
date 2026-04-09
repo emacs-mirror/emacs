@@ -2230,7 +2230,7 @@ have changed; continue with old fileset?" (current-buffer))))
                   (dolist (file files)
                     (let ((file (expand-file-name file)))
                       (vc-file-setprop file 'display-state "committing")
-                      (when (featurep 'vc-dir)
+                      (when vc-dir-buffers
                         (vc-dir-resynch-file file))
                       (push file to-remove-props)))
                   (vc-exec-after #'remove-props-done-msg nil proc))
