@@ -103,6 +103,7 @@ files.")
     ("Eric M. Ludlam" "Eric Ludlam")
     ("Eric S. Raymond" "Eric Raymond")
     ("Etienne Prud’Homme" "Etienne Prud'Homme")
+    ("Ewan Townshend" "ewan@etown\\.dev")
     ("Fabián Ezequiel Gallina" "Fabian Ezequiel Gallina" "Fabi.n E\\. Gallina")
     (nil "felix.*EmacsWiki")
     (nil "felix\\.dick@web\\.de")
@@ -924,7 +925,8 @@ Changes to files in this list are not listed.")
     ("Dale R. Worley" :changed "mail-extr.el")
     ("Jamie Zawinski" :changed "bytecode.c" :wrote "tar-mode.el"
      :cowrote "disass.el")
-    ("Andrea Corallo" :wrote "comp.c"))
+    ("Andrea Corallo" :wrote "comp.c" "[native compilation of Emacs Lisp]")
+    ("Ewan Townshend" :wrote "[24-bit color support for MS-Windows console]"))
   "Manual fixes to the list of actions taken.
 These are mostly taken from the original, manually (un)maintained
 AUTHORS file.  There are also some more recent manual additions.")
