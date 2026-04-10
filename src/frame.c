@@ -2733,8 +2733,6 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	error ("Attempt to delete the only frame");
     }
 
-  /* At this point, we are committed to deleting the frame.
-     There is no more chance for errors to prevent it.  */
   sf = SELECTED_FRAME ();
   /* Don't let the frame remain selected.  */
   if (f == sf)
@@ -2754,7 +2752,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 		 frames on the same terminal as FRAME, excluding FRAME
 		 which we are about to delete.  */
 	      frame1 = safe_calln (Qget_mru_frame, Qvisible, Qnil, frame);
-	      if (!NILP (frame1))
+	      if (FRAMEP (frame1))
 		{
 		  struct frame *f1 = XFRAME (frame1);
 
@@ -2764,6 +2762,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 		      || EQ (frame1, frame))
 		    frame1 = Qnil;
 		}
+	      else
+		frame1 = Qnil;
 	    }
 
 	  if (NILP (frame1))
@@ -2783,6 +2783,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 		      && FRAME_TERMINAL (f) == FRAME_TERMINAL (f1)
 		      && FRAME_VISIBLE_P (f1))
 		    break;
+		  frame1 = Qnil;
 		}
 
 	      /* If there is none, find *some* other frame.  */
@@ -2805,6 +2806,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 			    }
 			  break;
 			}
+		      frame1 = Qnil;
 		    }
 		}
 #ifdef NS_IMPL_COCOA
@@ -2821,8 +2823,18 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 #endif
 	    }
 
-	  do_switch_frame (frame1, 0, 1, Qnil);
+	  if (FRAMEP (frame1) && XFRAME (frame1) != f)
+	    do_switch_frame (frame1, 0, 1, Qnil);
+	  else if (EQ (force, Qnoelisp))
+	    {
+	      /* This is the last frame, and it's being forcibly
+		 deleted.  There's no way to recover from this.  */
+	      Fkill_emacs (make_fixnum (70), Qnil);
+	    }
+	  else
+	    emacs_abort ();
 	  sf = SELECTED_FRAME ();
+	  eassert (sf != f);
 	}
     }
   else
@@ -2830,6 +2842,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
        frame.  */
     move_minibuffers_onto_frame (f, selected_frame, true);
 
+  /* At this point, we are committed to deleting the frame.
+     There is no more chance for errors to prevent it.  */
   /* Don't let echo_area_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, echo_area_window))
     echo_area_window = sf->minibuffer_window;
