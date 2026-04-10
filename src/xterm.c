@@ -26861,6 +26861,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
+ delete_more_minibuffer_frames:
   FOR_EACH_FRAME (tail, frame)
     {
       /* Tooltip frames don't have these, so avoid crashing.  */
@@ -26875,12 +26876,16 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 	  && FRAME_X_P (XFRAME (minibuf_frame))
 	  && ! EQ (frame, minibuf_frame)
 	  && FRAME_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
-	delete_frame (frame, Qnoelisp);
+	{
+	  delete_frame (frame, Qnoelisp);
+	  goto delete_more_minibuffer_frames;
+	}
     }
 
   /* Now delete all remaining frames on the dead display.
      We are now sure none of these is used as the mini-buffer
      for another frame that we need to delete.  */
+ delete_more_frames:
   FOR_EACH_FRAME (tail, frame)
     if (FRAME_X_P (XFRAME (frame))
 	&& FRAME_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
@@ -26889,6 +26894,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 	   trying to find a replacement.  */
 	kset_default_minibuffer_frame (FRAME_KBOARD (XFRAME (frame)), Qt);
 	delete_frame (frame, Qnoelisp);
+	goto delete_more_frames;
       }
 
   /* If DPYINFO is null, this means we didn't open the display in the
@@ -32029,13 +32035,17 @@ x_delete_terminal (struct terminal *terminal)
   /* Delete all remaining frames on the display that is going away.
      Otherwise, font backends assume the display is still up, and
      xftfont_end_for_frame crashes.  */
+ delete_more_frames:
   FOR_EACH_FRAME (tail, frame)
     {
       f = XFRAME (frame);
 
       if (FRAME_LIVE_P (f) && f->terminal == terminal)
-	/* Pass Qnoelisp rather than Qt.  */
-	delete_frame (frame, Qnoelisp);
+	{
+	  /* Pass Qnoelisp rather than Qt.  */
+	  delete_frame (frame, Qnoelisp);
+	  goto delete_more_frames;
+	}
     }
 
 #ifdef HAVE_X_I18N
