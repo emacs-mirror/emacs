@@ -73,6 +73,7 @@
 
 (require 'mh-e)
 (require 'mh-scan)
+(require 'mh-folder)
 
 (cl-defstruct (mh-thread-message (:conc-name mh-message-)
                                  (:constructor mh-thread-make-message))
@@ -193,8 +194,11 @@ sibling."
   (mh-thread-next-sibling t))
 
 ;;;###mh-autoload
-(defun mh-thread-refile (folder  &optional dont-update-last-destination-flag)
-  "Refile (output) thread into FOLDER."
+(defun mh-thread-refile (folder &optional dont-update-last-destination-flag)
+  "Refile (output) thread into FOLDER.
+In a program, update the variables `mh-last-destination' and
+`mh-last-destination-folder' unless DONT-UPDATE-LAST-DESTINATION-FLAG is
+non-nil."
   (interactive (list (intern (mh-prompt-for-refile-folder))))
   (cond ((not (memq 'unthread mh-view-ops))
          (error "Folder isn't threaded"))
