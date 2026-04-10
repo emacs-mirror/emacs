@@ -193,7 +193,7 @@ sibling."
   (mh-thread-next-sibling t))
 
 ;;;###mh-autoload
-(defun mh-thread-refile (folder)
+(defun mh-thread-refile (folder  &optional dont-update-last-destination-flag)
   "Refile (output) thread into FOLDER."
   (interactive (list (intern (mh-prompt-for-refile-folder))))
   (cond ((not (memq 'unthread mh-view-ops))
@@ -201,6 +201,9 @@ sibling."
         ((eobp)
          (error "No message at point"))
         (t (let ((region (mh-thread-find-children)))
+             (unless dont-update-last-destination-flag
+               (setq mh-last-destination (cons 'refile folder)
+                     mh-last-destination-folder mh-last-destination))
              (mh-iterate-on-messages-in-region () (car region) (cadr region)
                (mh-refile-a-msg nil folder))
              (mh-next-msg)))))
