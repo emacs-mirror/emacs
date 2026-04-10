@@ -3,6 +3,19 @@
 Copyright (C) 2001-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+* Changes in Emacs 31.1
+
+** Bug Fixes in Emacs 31.1
+
+*** 'mh-thread-refile' now remembers the destination folder.
+
+For consistency with 'mh-refile-msg', 'mh-thread-refile' now updates
+'mh-last-destination' and 'mh-last-destination-folder' unless the
+optional argument 'dont-update-last-destination-flag' is non-nil (closes
+SF #473).
+
+
+
 * Changes in MH-E 8.6
 
 Version 8.6 fixes composition errors in nmh 1.6.
