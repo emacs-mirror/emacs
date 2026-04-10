@@ -26961,7 +26961,7 @@ For details, see etc/PROBLEMS.\n",
 
   /* The initial "daemon" frame is sometimes not selected by
      `delete_frame' when Emacs is a background daemon.  */
-  if (NILP (selected_frame))
+  if (NILP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
     x_try_restore_frame ();
 
   unblock_input ();
@@ -26970,7 +26970,8 @@ For details, see etc/PROBLEMS.\n",
      terminal caused all frames to vanish.  In that case, simply kill
      Emacs, since the next redisplay will abort as there is no more
      selected frame.  (bug#56528) */
-  if (terminal_list == 0 || NILP (selected_frame))
+  if (terminal_list == 0 || NILP (selected_frame)
+      || !FRAME_LIVE_P (XFRAME (selected_frame)))
     Fkill_emacs (make_fixnum (70), Qnil);
 
   totally_unblock_input ();
