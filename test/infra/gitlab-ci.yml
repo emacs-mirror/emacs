@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2025 Free Software Foundation, Inc.
+# Copyright (C) 2017-2026 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -62,7 +62,7 @@ variables:
   # CI_DEBUG_TRACE: "true"
 
 default:
-  image: docker:19.03.12
+  image: docker:28.5.2
   timeout: 3 hours
   before_script:
     - docker info
