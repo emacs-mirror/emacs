@@ -810,7 +810,10 @@ lexbound_p (Lisp_Object symbol)
 
 DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_value, 1, 1, 0,
        doc: /* Return SYMBOL's toplevel default value.
-"Toplevel" means outside of any let binding.  */)
+"Toplevel" means outside of any let binding.
+Signals `void-variable' if there is no such value, which can
+happen even if `default-boundp' is non-nil.
+Note: In most cases, you'll want to use `default-value' instead.  */)
   (Lisp_Object symbol)
 {
   union specbinding *binding = default_toplevel_binding (symbol);
@@ -824,7 +827,8 @@ DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_valu
 DEFUN ("set-default-toplevel-value", Fset_default_toplevel_value,
        Sset_default_toplevel_value, 2, 2, 0,
        doc: /* Set SYMBOL's toplevel default value to VALUE.
-"Toplevel" means outside of any let binding.  */)
+"Toplevel" means outside of any let binding.
+Note: In most cases, you'll want to use `set-default' instead.  */)
      (Lisp_Object symbol, Lisp_Object value)
 {
   union specbinding *binding = default_toplevel_binding (symbol);
