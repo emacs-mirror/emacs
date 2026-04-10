@@ -774,7 +774,9 @@ be used instead.
     ;; be any need to font-lock-flush all the Elisp buffers.
     (dolist (buf (buffer-list))
       (with-current-buffer buf
-	(when (derived-mode-p 'emacs-lisp-mode)
+        (when (and (derived-mode-p 'emacs-lisp-mode)
+                   ;; Don't flush if it refontifies the whole buffer eagerly.
+                   font-lock-support-mode)
           ;; So as to take into account new macros that may have been defined
           ;; by the just-loaded file.
 	  (font-lock-flush))))))
@@ -868,29 +870,30 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
 
 (defun elisp--local-variables ()
   "Return a list of locally let-bound variables at point."
-  (save-excursion
-    (skip-syntax-backward "w_")
-    (let* ((ppss (syntax-ppss))
-           (txt (buffer-substring-no-properties (or (car (nth 9 ppss)) (point))
-                                                (or (nth 8 ppss) (point))))
-           (closer ()))
-      (dolist (p (nth 9 ppss))
-        (push (cdr (syntax-after p)) closer))
-      (setq closer (apply #'string closer))
-      (let* ((sexp (condition-case nil
-                       (car (read-from-string
-                             (concat txt "elisp--witness--lisp" closer)))
-                     ((invalid-read-syntax end-of-file) nil)))
-             (vars (elisp--local-variables-1
-                    nil (elisp--safe-macroexpand-all sexp))))
-        (delq nil
-              (mapcar (lambda (var)
-                        (and (symbolp var)
-                             (not (string-match (symbol-name var) "\\`[&_]"))
-                             ;; Eliminate uninterned vars.
-                             (intern-soft var)
-                             var))
-                      vars))))))
+  (let* ((sexp
+          (save-excursion
+            (skip-syntax-backward "w_")
+            (let* ((ppss (syntax-ppss))
+                   (txt (buffer-substring-no-properties
+                         (or (car (nth 9 ppss)) (point))
+                         (or (nth 8 ppss) (point))))
+                   (closer
+                    (nreverse (mapcar (lambda (p) (cdr (syntax-after p)))
+                                      (nth 9 ppss)))))
+              (condition-case nil
+                  (car (read-from-string
+                        (concat txt "elisp--witness--lisp" closer)))
+                ((invalid-read-syntax end-of-file) nil)))))
+         (vars (elisp--local-variables-1
+                nil (elisp--safe-macroexpand-all sexp))))
+    (delq nil
+          (mapcar (lambda (var)
+                    (and (symbolp var)
+                         (not (string-match (symbol-name var) "\\`[&_]"))
+                         ;; Eliminate uninterned vars.
+                         (intern-soft var)
+                         var))
+                  vars))))
 
 (defconst elisp--local-variables-completion-table
   (let ((lastpos nil) (lastvars nil))

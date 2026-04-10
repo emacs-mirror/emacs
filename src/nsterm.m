@@ -6517,14 +6517,6 @@ ns_term_shutdown (int sig)
   }
 #endif
 
-#ifdef NS_IMPL_COCOA
-  /* Is accessibility enabled for this process/bundle?  */
-  if (AXIsProcessTrusted())
-    NSLog (@"Emacs is macOS AXIsProcessTrusted");
-  else
-    NSLog (@"Emacs is not macOS AXIsProcessTrusted");
-#endif
-
   ns_send_appdefined (-2);
 }
 

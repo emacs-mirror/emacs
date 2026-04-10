@@ -3755,6 +3755,27 @@ DEFUN ("ns-show-character-palette",
   return Qnil;
 }
 
+
+DEFUN ("ns-process-is-accessibility-trusted",
+       Fns_process_is_accessibility_trusted,
+       Sns_process_is_accessibility_trusted,
+       0, 0, 0,
+       doc: /* Return non-nil if Emacs is trusted by macOS Accessibility.
+Return nil otherwise or if the OS is not macOS.
+This is necessary for Emacs to support Zoom and related accessibility
+features.  Authorize Emacs for accessibility via System
+Settings... Privacy & Security... Accessibility... and add the Emacs.app
+installed directory to the enabled application list.  */)
+  (void)
+{
+#ifdef NS_IMPL_COCOA
+  if (AXIsProcessTrusted())
+    return Qt;
+#endif
+  return Qnil;
+}
+
+
 DEFUN ("ns-badge", Fns_badge, Sns_badge, 1, 1, 0,
        doc: /* Set the app icon badge to BADGE.
 BADGE should be a string short enough to display nicely in the short
@@ -4248,6 +4269,7 @@ The default value is t.  */);
   defsubr (&Sns_set_mouse_absolute_pixel_position);
   defsubr (&Sns_mouse_absolute_pixel_position);
   defsubr (&Sns_show_character_palette);
+  defsubr (&Sns_process_is_accessibility_trusted);
   defsubr (&Sns_badge);
   defsubr (&Sns_request_user_attention);
   defsubr (&Sns_progress_indicator);

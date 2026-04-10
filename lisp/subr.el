@@ -1806,7 +1806,7 @@ See also `current-global-map'.")
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
   (declare (side-effect-free t))
-  (if (vectorp key)
+  (if (or (vectorp key) (multibyte-string-p key))
       (append key nil)
     (mapcar (lambda (c)
               (if (> c 127)

@@ -16979,11 +16979,10 @@ The command invoked by the keys is @code{compare-windows}.  Note that
 @code{compare-windows} is preceded by a single-quote; otherwise, Emacs
 would first try to evaluate the symbol to determine its value.
 
-These three things, the double quotation marks, the backslash before
-the @samp{C}, and the single-quote are necessary parts of
-key binding that I tend to forget.  Fortunately, I have come to
-remember that I should look at my existing @file{.emacs} file, and
-adapt what is there.
+These two things, the double quotation marks and the single-quote, are
+necessary parts of key binding that I tend to forget.  Fortunately, I
+have come to remember that I should look at my existing @file{.emacs}
+file, and adapt what is there.
 
 As for the key binding itself: @kbd{C-c w}.  This combines the prefix
 key, @kbd{C-c}, with a single character, in this case, @kbd{w}.  This

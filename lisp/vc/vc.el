@@ -1276,7 +1276,7 @@ Return the result of evaluating FORM."
          (dolist (file ,flist)
            (dolist (setting ,settings)
              (let ((property (car setting)))
-               (unless (memq property ,vc-touched-properties)
+               (unless (memq property vc-touched-properties)
                  (put (intern file vc-file-prop-obarray)
                       property (cdr setting))))))))))
 
@@ -2230,7 +2230,8 @@ have changed; continue with old fileset?" (current-buffer))))
                   (dolist (file files)
                     (let ((file (expand-file-name file)))
                       (vc-file-setprop file 'display-state "committing")
-                      (vc-dir-resynch-file file)
+                      (when vc-dir-buffers
+                        (vc-dir-resynch-file file))
                       (push file to-remove-props)))
                   (vc-exec-after #'remove-props-done-msg nil proc))
                 ret)
