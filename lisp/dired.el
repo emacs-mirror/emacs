@@ -649,6 +649,9 @@ The match starts at the beginning of the line and ends after the end
 of the line.
 Subexpression 2 must end right before the \\n.")
 
+(defvar dired--ls-error-file nil
+  "When non-nil, name of temporary file an `ls' error is written to.")
+
 (defvar dired--ls-error-buffer nil
   "Non-nil if the current dired invocation yields an `ls' error.
 The non-nil value is the buffer containing the error message.")
@@ -1615,7 +1618,22 @@ wildcards, erases the buffer, and builds the subdir-alist anew
       ;; Else treat it as a wildcard spec
       ;; unless we have an explicit list of files.
       (dired-insert-directory dir dired-actual-switches
-       file-list (not file-list) t)))))
+                              file-list (not file-list) t)))
+    ;; Every time `temporary-file-directory' is (re)displayed in Dired a
+    ;; new `ls' error file is created and the Dired buffer has an entry
+    ;; for it.  The file itself is deleted in `insert-directory' but its
+    ;; Dired entry remains, so we remove it here.
+    (let ((tmpbuf (dired-find-buffer-nocreate temporary-file-directory)))
+      (when tmpbuf
+        (with-current-buffer tmpbuf
+          (widen)
+          (goto-char (point-min))
+          (when (search-forward (file-name-base dired--ls-error-file) nil t)
+            ;; The call chain of `dired-remove-entry' requires non-nil
+            ;; `dired-subdir-alist', but here it is nil, so we set it.
+            (let ((dired-subdir-alist `((,temporary-file-directory
+                                         . ,(point-min-marker)))))
+              (dired-remove-entry dired--ls-error-file))))))))
 
 (defun dired-align-file (beg end)
   "Align the fields of a file to the ones of surrounding lines.

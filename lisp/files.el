@@ -8489,6 +8489,8 @@ normally equivalent short `-D' option is just passed on to
               (erase-buffer)
               (insert-file-contents errfile))
             (setq dired--ls-error-buffer errbuf)))
+        (defvar dired--ls-error-file) ; Pacify byte-compiler.
+        (setq dired--ls-error-file errfile)
         (delete-file errfile)
 
         (insert-directory-clean beg switches)
