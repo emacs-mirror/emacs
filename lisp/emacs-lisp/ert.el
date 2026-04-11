@@ -681,6 +681,15 @@ A and B are the time values to compare."
       ,(format-time-string "%s.%N" (time-subtract a b) t))))
 (function-put #'time-equal-p 'ert-explainer #'ert--explain-time-equal-p)
 
+;;; Facilities for recording the execution of tests from erts files.
+
+(defvar ert--erts-file-test-execution-observer nil)
+
+(defun ert--signal-erts-file-test-execution (test-description)
+  "Tell the current erts-file test observer (if any) about TEST-DESCRIPTION."
+  (when ert--erts-file-test-execution-observer
+    (funcall ert--erts-file-test-execution-observer test-description)))
+
 ;;; Implementation of `ert-info'.
 
 ;; TODO(ohler): The name `info' clashes with
@@ -716,8 +725,8 @@ in front of the value of MESSAGE-FORM."
 (cl-defstruct ert-test-result
   (messages nil)
   (should-forms nil)
-  (duration 0)
-  )
+  (erts-file-tests nil)
+  (duration 0))
 (cl-defstruct (ert-test-passed (:include ert-test-result)))
 (cl-defstruct (ert-test-result-with-condition (:include ert-test-result))
   (condition (cl-assert nil))
@@ -867,11 +876,15 @@ Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
                        (make-ert-test-aborted-with-non-local-exit)
                        :exit-continuation (lambda ()
                                             (cl-return-from error nil))))
-                (should-form-accu (list)))
+                (should-form-accu (list))
+                (erts-file-test-accu (list)))
             (unwind-protect
                 (let ((ert--should-execution-observer
                        (lambda (form-description)
                          (push form-description should-form-accu)))
+                      (ert--erts-file-test-execution-observer
+                       (lambda (test-description)
+                         (push test-description erts-file-test-accu)))
                       (message-log-max t)
                       (ert--running-tests (cons ert-test ert--running-tests)))
                   (ert--run-test-internal info))
@@ -882,9 +895,10 @@ Returns the result and stores it in ERT-TEST's `most-recent-result' slot."
                          (or (marker-position begin-marker) (point-min))
                          (point-max))))
                 (ert--force-message-log-buffer-truncation)
-                (setq should-form-accu (nreverse should-form-accu))
-                (setf (ert-test-result-should-forms result)
-                      should-form-accu)
+                (setq should-form-accu (nreverse should-form-accu)
+                      erts-file-test-accu (nreverse erts-file-test-accu))
+                (setf (ert-test-result-should-forms result) should-form-accu
+                      (ert-test-result-erts-file-tests result) erts-file-test-accu)
                 (setf (ert-test-most-recent-result ert-test) result))))
         (set-marker begin-marker nil))))
   (ert-test-most-recent-result ert-test))
@@ -2363,6 +2377,7 @@ SELECTOR; the default t means run all the defined tests."
            ("b" ert-results-pop-to-backtrace-for-test-at-point)
            ("m" ert-results-pop-to-messages-for-test-at-point)
            ("l" ert-results-pop-to-should-forms-for-test-at-point)
+           ("e" ert-results-pop-to-erts-file-tests-for-test-at-point)
            ("h" ert-results-describe-test-at-point)
            ("D" ert-delete-test)
            ("T" ert-results-pop-to-timings)
@@ -2390,6 +2405,8 @@ SELECTOR; the default t means run all the defined tests."
      :active (ert--results-test-at-point-no-redefinition)]
     ["Show `should' forms" ert-results-pop-to-should-forms-for-test-at-point
      :active (ert--results-test-at-point-no-redefinition)]
+    ["Show tests from erts files" ert-results-pop-to-erts-file-tests-for-test-at-point
+     :active (ert--results-test-at-point-no-redefinition)]
     ["Describe test" ert-results-describe-test-at-point
      :active (ert--results-test-at-point-no-redefinition)]
     "--"
@@ -2409,6 +2426,10 @@ SELECTOR; the default t means run all the defined tests."
 (define-button-type 'ert--results-expand-collapse-button
   'action #'ert--results-expand-collapse-button-action
   'help-echo "mouse-2, RET: Expand/collapse test result")
+
+(define-button-type 'ert--erts-file-test-name-button
+  'action #'ert--erts-file-test-name-button-action
+  'help-echo "mouse-2, RET: Find test definition in erts file")
 
 (defun ert--results-test-node-or-null-at-point ()
   "If point is on a valid ewoc node, return it; return nil otherwise.
@@ -2492,6 +2513,14 @@ To be used in the ERT results buffer."
   (let ((name (or (button-get button 'ert-test-name)
                   (car (button-get button 'help-args)))))
     (ert-find-test-other-window name)))
+
+(defun ert--erts-file-test-name-button-action (button)
+  "Find the definition in an erts file of the test BUTTON belongs to.
+It creates a new window or reuses an existing one."
+  (let ((file (button-get button 'file))
+        (position (button-get button 'position)))
+    (find-file-other-window file)
+    (goto-char position)))
 
 (defun ert--ewoc-position (ewoc node)
   ;; checkdoc-order: nil
@@ -2774,6 +2803,55 @@ To be used in the ERT results buffer."
                         "have been modified destructively.)\n"))
         (forward-line 1)))))
 
+(defun ert-results-pop-to-erts-file-tests-for-test-at-point ()
+  "Display a buffer with the tests from erts files executed by the test at point.
+For tests that call `ert-test-erts-file', the list contains the tests
+defined in the referenced erts files that have been executed.  Tests
+that were skipped are omitted.  If a test fails, the list ends with the
+failing test.
+
+Each entry consists of the name of the test followed by the code that
+performs the transform being tested.  The buffer also contains buttons
+that allow jumping to the test definitions.
+
+To be used in the ERT results buffer.  See Info node `(ert) Running
+Tests Interactively' for more information about how to use this feature."
+  (interactive nil ert-results-mode)
+  (let* ((test (ert--results-test-at-point-no-redefinition t))
+         (stats ert--results-stats)
+         (pos (ert--stats-test-pos stats test))
+         (result (aref (ert--stats-test-results stats) pos)))
+    (let ((buffer (get-buffer-create "*ERT list of tests from erts files*")))
+      (pop-to-buffer buffer)
+      (let ((inhibit-read-only t))
+        (buffer-disable-undo)
+        (erase-buffer)
+        (ert-simple-view-mode)
+        (if (null (ert-test-result-erts-file-tests result))
+            (insert "\n(No tests from erts files executed during this test.)\n")
+          (cl-loop for test-description
+                   in (ert-test-result-erts-file-tests result)
+                   for i from 1 do
+                   (insert (format "\n%d: " i))
+                   (insert-text-button (cdr (assq 'name test-description))
+                                       :type 'ert--erts-file-test-name-button
+                                       'file (cdr (assq 'file test-description))
+                                       'position (cdr (assq 'position test-description)))
+                   (insert "\n\t")
+                   (let* ((begin (point))
+                          (desc-code (cdr (assq 'code test-description)))
+                          (code (if (interpreted-function-p desc-code)
+                                    (macroexp-progn (aref desc-code 1))
+                                  desc-code)))
+                     (ert--pp-with-indentation-and-newline code)
+                     (ert--make-xrefs-region begin (point)))))
+        (goto-char (point-min))
+        (insert (substitute-command-keys
+                 "tests from erts files executed during test `"))
+        (ert-insert-test-name-button (ert-test-name test))
+        (insert (substitute-command-keys "':\n"))
+        (forward-line 1)))))
+
 (defun ert-results-toggle-printer-limits-for-test-at-point ()
   "Toggle how much of the condition to print for the test at point.
 
@@ -2980,6 +3058,11 @@ write erts files."
         (let ((code (cdr (assq 'code gen-specs))))
           (unless code
             (error "No code to run the transform"))
+          ;; Record execution of test from erts file.
+          (ert--signal-erts-file-test-execution `((name . ,name)
+                                                  (code . ,code)
+                                                  (file . ,file)
+                                                  (position . ,start-before)))
           (funcall code))
         (unless (equal (buffer-string) after)
           (ert-fail (list (format "Mismatch in test \"%s\", file %s"

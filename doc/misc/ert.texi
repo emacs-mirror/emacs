@@ -323,6 +323,23 @@ for more information about backtraces.
 Show the list of @code{should} forms executed in the test
 (@code{ert-results-pop-to-should-forms-for-test-at-point}).
 
+@kindex e@r{, in ert results buffer}
+@findex ert-results-pop-to-erts-file-tests-for-test-at-point
+@item e
+Display a buffer with the list of tests from erts files executed by the
+test at point
+(@code{ert-results-pop-to-erts-file-tests-for-test-at-point}).  For
+tests that call @code{ert-test-erts-file}, the list contains the tests
+defined in the referenced erts files that have been executed.  Tests
+that were skipped are omitted.  If a test fails, the list ends with the
+failing test.
+
+Each entry consists of the name of the test followed by the code that
+performs the transform being tested.  The buffer also contains buttons
+that allow jumping to the test definitions.
+
+@xref{erts files} for more information.
+
 @item m
 @kindex m@r{, in ert results buffer}
 @findex ert-results-pop-to-messages-for-test-at-point

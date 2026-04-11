@@ -4249,6 +4249,13 @@ Previously, 'ert-simulate-keys' could be used for sending keys to input
 functions such as 'read-from-minibuffer', but not for other interactive
 input such as starting key-mapped commands.
 
++++
+*** Show executed tests from erts files via the ERT results buffer.
+For tests that call 'ert-test-erts-file', the ERT results buffer now
+allows you to list the tests defined in the referenced erts files that
+have been executed by the test at point.  See "(ert) Running Tests
+Interactively" for more information.
+
 ** Time & Date
 
 +++
