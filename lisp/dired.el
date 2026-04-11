@@ -1622,18 +1622,20 @@ wildcards, erases the buffer, and builds the subdir-alist anew
     ;; Every time `temporary-file-directory' is (re)displayed in Dired a
     ;; new `ls' error file is created and the Dired buffer has an entry
     ;; for it.  The file itself is deleted in `insert-directory' but its
-    ;; Dired entry remains, so we remove it here.
-    (let ((tmpbuf (dired-find-buffer-nocreate temporary-file-directory)))
-      (when tmpbuf
-        (with-current-buffer tmpbuf
-          (widen)
-          (goto-char (point-min))
-          (when (search-forward (file-name-base dired--ls-error-file) nil t)
-            ;; The call chain of `dired-remove-entry' requires non-nil
-            ;; `dired-subdir-alist', but here it is nil, so we set it.
-            (let ((dired-subdir-alist `((,temporary-file-directory
-                                         . ,(point-min-marker)))))
-              (dired-remove-entry dired--ls-error-file))))))))
+    ;; Dired entry remains, so we remove it here.  This is not relevant
+    ;; if ls-lisp emulation is used.
+    (when (files--use-insert-directory-program-p)
+      (let ((tmpbuf (dired-find-buffer-nocreate temporary-file-directory)))
+        (when tmpbuf
+          (with-current-buffer tmpbuf
+            (widen)
+            (goto-char (point-min))
+            (when (search-forward (file-name-base dired--ls-error-file) nil t)
+              ;; The call chain of `dired-remove-entry' requires non-nil
+              ;; `dired-subdir-alist', but here it is nil, so we set it.
+              (let ((dired-subdir-alist `((,temporary-file-directory
+                                           . ,(point-min-marker)))))
+                (dired-remove-entry dired--ls-error-file)))))))))
 
 (defun dired-align-file (beg end)
   "Align the fields of a file to the ones of surrounding lines.
