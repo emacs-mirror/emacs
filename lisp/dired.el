@@ -1456,16 +1456,12 @@ The return value is the target column for the file names."
       (let ((failed t))
 	(unwind-protect
 	    (progn (dired-readin)
-                   ;; Check for file entries (they are listed below the
-                   ;; directory name and (if present) wildcard lines).
-                   (while (and (skip-syntax-forward "\s")
-                               (looking-at "\\(.+:$\\|wildcard\\)"))
-                     (forward-line))
-                   (unless (eobp)
+                   (unless (and dired--ls-error-buffer
+                                (get-buffer "*ls error*"))
 		     (setq failed nil)))
-	  ;; No file entries indicates an `ls' error, and `dired-readin'
-	  ;; can fail if parent directories are inaccessible.  In either
-	  ;; case don't leave the Dired buffer around.
+	  ;; If either `dired-readin' failed (e.g. if parent directories
+	  ;; are inaccessible) or `ls' errored, don't leave the Dired
+	  ;; buffer around.
 	  (when failed
             (kill-buffer buffer)
             (setq buffer nil))))
@@ -4112,8 +4108,8 @@ See `%s' for other alternatives and more information."))
                         (search-backward "Warning (dired)")))))
 
 (defun dired--display-ls-error ()
-  "Pop up a buffer displaying the current `ls' error, if any."
-  (when dired--ls-error-buffer
+  "Pop up the buffer displaying the current `ls' error, if any."
+  (when (buffer-live-p dired--ls-error-buffer)
     (let* ((errwin (display-buffer dired--ls-error-buffer)))
       (fit-window-to-buffer errwin))
     (setq dired--ls-error-buffer nil)))
