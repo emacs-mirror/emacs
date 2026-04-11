@@ -59,12 +59,13 @@ static WORD w32_face_attributes (struct frame *f, int face_id);
 static int  w32con_write_vt_seq (const char *);
 static void turn_on_face (struct frame *, int face_id);
 static void turn_off_face (struct frame *, int face_id);
-static COORD w32con_get_cursor_coords ();
+static COORD w32con_get_cursor_coords (void);
 
 static COORD	cursor_coords;
 static HANDLE	prev_screen, cur_screen;
 static WORD	char_attr_normal;
 static DWORD	prev_console_mode;
+static DWORD	prev_output_mode;
 static int      bg_normal;
 static int      fg_normal;
 
@@ -121,7 +122,7 @@ w32con_write_vt_seq (const char *seq)
 }
 
 static COORD
-w32con_get_cursor_coords ()
+w32con_get_cursor_coords (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO info;
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
@@ -1005,6 +1006,13 @@ initialize_w32_display (struct terminal *term, int *width, int *height)
   GetConsoleCursorInfo (prev_screen, &prev_console_cursor);
 #endif
 
+  /* Record whether we are on ConHost or Windows Terminal.  */
+  const DWORD virt_mode_flags
+    = (ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+  GetConsoleMode (cur_screen, &prev_output_mode);
+  w32__terminal_is_conhost =
+    (prev_output_mode & virt_mode_flags) != virt_mode_flags;
+
   /* Respect setting of LINES and COLUMNS environment variables.  */
   {
     char * lines = getenv ("LINES");
@@ -1203,6 +1211,12 @@ A value of nil means use the current console window dimensions; this
 may be preferable when working directly at the console with a large
 scroll-back buffer.  */);
   w32_use_full_screen_buffer = 0;
+
+  DEFVAR_BOOL ("w32--terminal-is-conhost",
+	       w32__terminal_is_conhost,
+	       doc: /* Non-nil means Emacs text-mode terminal is MS-Windows ConHost.
+If nil, Emacs is displaying text-mode frames on the Windows Terminal.  */);
+  w32__terminal_is_conhost = 0;
 
   defsubr (&Sset_screen_color);
   defsubr (&Sget_screen_color);
