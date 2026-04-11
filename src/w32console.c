@@ -157,6 +157,32 @@ w32con_show_cursor (void)
   SetConsoleCursorInfo (cur_screen, &console_cursor_info);
 }
 
+static void
+w32con_set_cursor_size (EMACS_INT esize)
+{
+
+  if (w32_use_virtual_terminal && !w32__terminal_is_conhost)
+    {
+      /* The Virtual Terminal Sequences don't support arbitrary sizes of
+         the block and underline cursor, so we can only provide 2
+         extreme shapes.  */
+      if (esize < 50)
+	w32con_write_vt_seq ("\x1b[3 q");
+      else
+	w32con_write_vt_seq ("\x1b[1 q");
+    }
+  else
+    {
+      /* Use legacy APIs, which on Windows Terminal don't change the
+         cursor shape.  */
+      CONSOLE_CURSOR_INFO cci;
+      cci.dwSize = esize;
+      cci.bVisible = TRUE;
+      (void) SetConsoleCursorInfo (cur_screen, &cci);
+    }
+}
+
+
 /* Clear from cursor to end of screen.  */
 static void
 w32con_clear_to_end (struct frame *f)
@@ -657,6 +683,8 @@ w32con_reset_terminal_modes (struct terminal *t)
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
   SetConsoleCursorInfo (prev_screen, &prev_console_cursor);
+  if (w32_use_virtual_terminal)
+    w32con_set_cursor_size (prev_console_cursor.dwSize);
 #endif
 
   SetConsoleMode (keyboard_handle, prev_console_mode);
@@ -665,12 +693,8 @@ w32con_reset_terminal_modes (struct terminal *t)
 static void
 w32con_set_terminal_modes (struct terminal *t)
 {
-  CONSOLE_CURSOR_INFO cci;
-
-  /* make cursor big and visible (100 on Windows 95 makes it disappear)  */
-  cci.dwSize = 99;
-  cci.bVisible = TRUE;
-  (void) SetConsoleCursorInfo (cur_screen, &cci);
+  /* Make cursor big and visible (100 on Windows 95 makes it disappear).  */
+  w32con_set_cursor_size (99);
 
   SetConsoleActiveScreenBuffer (cur_screen);
 
@@ -1192,10 +1216,7 @@ DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
        doc: /* Set cursor size.  */)
   (Lisp_Object size)
 {
-  CONSOLE_CURSOR_INFO cci;
-  cci.dwSize = XFIXNAT (size);
-  cci.bVisible = TRUE;
-  (void) SetConsoleCursorInfo (cur_screen, &cci);
+  w32con_set_cursor_size (XFIXNAT (size));
 
   return Qt;
 }
