@@ -1033,16 +1033,23 @@ unquoted file names."
       (let ((errbuf (get-buffer "*ls error*"))
             ;; By the time `ls' is called in `insert-directory', the
             ;; handler prefix has been removed.
-            (nospecial-dir (string-remove-prefix "/:" nospecial-dir)))
+            (nospecial-dir (string-remove-prefix "/:" nospecial-dir))
+            ;; Since different `ls' programs can produce different
+            ;; messages for the nonexisting file error, we make a sample
+            ;; message to use for comparing the expected message with
+            ;; the string in the error buffer.
+            (ls-err (lambda (fn)
+		      (let* ((tmpname (make-temp-name "/bug80499-tests-"))
+                             (errlist (string-split
+                                       (shell-command-to-string
+                                        (concat insert-directory-program
+                                                " -al " tmpname))
+                                       tmpname)))
+                        (concat (car errlist) fn (cadr errlist))))))
         (should errbuf)
         (with-current-buffer errbuf
-          (should (string-match-p
-                   (format
-                    ;; Use .* around file name to account for different
-                    ;; file-name quoting styles, or no quoting at all.
-                    "%s: cannot access .*%s.*: No such file or directory\n"
-                    insert-directory-program nospecial-dir)
-                   (buffer-string))))
+          (should (equal (funcall ls-err nospecial-dir)
+                         (buffer-string))))
         (kill-buffer errbuf)))))
 
 (ert-deftest files-tests-file-name-non-special-insert-file-contents ()
