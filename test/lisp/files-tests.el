@@ -1048,8 +1048,11 @@ unquoted file names."
                         (concat (car errlist) fn (cadr errlist))))))
         (should errbuf)
         (with-current-buffer errbuf
-          (should (equal (funcall ls-err nospecial-dir)
-                         (buffer-string))))
+          ;; The error message may report e.g. "/bin/ls" even though the
+          ;; value of `insert-directory-program' is "ls", so we can't
+          ;; test with `equal'.
+          (should (string-match-p (funcall ls-err nospecial-dir)
+                                  (buffer-string))))
         (kill-buffer errbuf)))))
 
 (ert-deftest files-tests-file-name-non-special-insert-file-contents ()
