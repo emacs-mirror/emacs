@@ -2348,6 +2348,9 @@ installed), maybe you need to \\[package-refresh-contents]")
   "Delete PKG-DESC directory DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled, and remove the DIR from `load-path'."
+  (when (and (file-exists-p (expand-file-name "dir" dir))
+             (boundp 'Info-directory-list))
+    (cl-callf2 delete dir Info-directory-list))
   (setq load-path (cl-remove-if (lambda (s) (file-in-directory-p s dir))
                                 load-path))
   (when (featurep 'native-compile)
