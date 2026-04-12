@@ -811,12 +811,12 @@ sock_err_message (const char *function_name)
 }
 
 
-/* Send to S the data in *DATA when either
+/* Send to S the DATA, of size DLEN, when either
    - the data's last byte is '\n', or
-   - the buffer is full (but this shouldn't happen)
+   - the buffer is full.
    Otherwise, just accumulate the data.  */
 static void
-send_to_emacs (HSOCKET s, const char *data)
+send_to_emacs_len (HSOCKET s, const char *data, ptrdiff_t dlen)
 {
   enum { SEND_BUFFER_SIZE = 4096 };
 
@@ -826,7 +826,7 @@ send_to_emacs (HSOCKET s, const char *data)
   /* Fill pointer for the send buffer.  */
   static int sblen;
 
-  for (ptrdiff_t dlen = strlen (data); dlen != 0; )
+  while (dlen != 0)
     {
       int part = min (dlen, SEND_BUFFER_SIZE - sblen);
       memcpy (&send_buffer[sblen], data, part);
@@ -858,20 +858,27 @@ send_to_emacs (HSOCKET s, const char *data)
     }
 }
 
-
-/* In STR, insert a & before each &, each space, each newline, and
-   any initial -.  Change spaces to underscores, too, so that the
-   return value never contains a space.
-
-   Does not change the string.  Outputs the result to S.  */
+/* Send to S the data in the string DATA.  */
 static void
-quote_argument (HSOCKET s, const char *str)
+send_to_emacs (HSOCKET s, const char *data)
 {
-  char *copy = xmalloc (strlen (str) * 2 + 1);
+  send_to_emacs_len (s, data, strlen (data));
+}
+
+
+/* Output to S a quoted copy of the array of bytes STR with length LEN.
+   Insert a & before each &, each space, each newline, and
+   any initial -.  Change spaces to underscores, too, so that the
+   output never contains a space.  */
+static void
+quote_argument_len (HSOCKET s, const char *str, ptrdiff_t len)
+{
+  char const *lim = str + len;
+  char *copy = xmalloc (len * 2);
   char *q = copy;
-  if (*str == '-')
-    *q++ = '&', *q++ = *str++;
-  for (; *str; str++)
+  if (str < lim && *str == '-')
+    *q++ = '&';
+  for (; str < lim; str++)
     {
       char c = *str;
       if (c == ' ')
@@ -882,13 +889,21 @@ quote_argument (HSOCKET s, const char *str)
 	*q++ = '&';
       *q++ = c;
     }
-  *q = 0;
 
-  send_to_emacs (s, copy);
+  send_to_emacs_len (s, copy, q - copy);
 
   free (copy);
 }
 
+/* Output to S a quoted copy of the string STR.
+   Insert a & before each &, each space, each newline, and
+   any initial -.  Change spaces to underscores, too, so that the
+   output never contains a space.  */
+static void
+quote_argument (HSOCKET s, const char *str)
+{
+  return quote_argument_len (s, str, strlen (str));
+}
 
 /* The inverse of quote_argument.  Remove quoting in string STR by
    modifying the addressed string in place.  Return STR.  */
@@ -990,8 +1005,6 @@ static bool
 get_server_config (const char *config_file, struct sockaddr_in *server,
 		   char *authentication)
 {
-  char dotted[32];
-  char *port;
   FILE *config;
 
   if (IS_ABSOLUTE_FILE_NAME (config_file))
@@ -1009,8 +1022,11 @@ get_server_config (const char *config_file, struct sockaddr_in *server,
   if (! config)
     return false;
 
-  if (fgets (dotted, sizeof dotted, config)
-      && (port = strchr (dotted, ':')))
+  char *dotted = NULL;
+  size_t dottedsize;
+  ssize_t dottedlen = getline (&dotted, &dottedsize, config);
+  char *port = dottedlen < 0 ? NULL : strchr (dotted, ':');
+  if (port)
     *port++ = '\0';
   else
     {
@@ -1022,6 +1038,7 @@ get_server_config (const char *config_file, struct sockaddr_in *server,
   server->sin_family = AF_INET;
   server->sin_addr.s_addr = inet_addr (dotted);
   server->sin_port = htons (atoi (port));
+  free (dotted);
 
   if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
     {
@@ -1060,9 +1077,9 @@ set_tcp_socket (const char *local_server_file)
     struct sockaddr sa;
   } server;
   struct linger l_arg = { .l_onoff = 1, .l_linger = 1 };
-  char auth_string[AUTH_KEY_LENGTH + 1];
+  char auth_buf[AUTH_KEY_LENGTH];
 
-  if (! get_server_config (local_server_file, &server.in, auth_string))
+  if (! get_server_config (local_server_file, &server.in, auth_buf))
     return INVALID_SOCKET;
 
   if (server.in.sin_addr.s_addr != inet_addr ("127.0.0.1") && !quiet)
@@ -1096,10 +1113,8 @@ set_tcp_socket (const char *local_server_file)
     sock_err_message ("setsockopt");
 
   /* Send the authentication.  */
-  auth_string[AUTH_KEY_LENGTH] = '\0';
-
   send_to_emacs (s, "-auth ");
-  send_to_emacs (s, auth_string);
+  send_to_emacs_len (s, auth_buf, sizeof auth_buf);
   send_to_emacs (s, " ");
 
   return s;
@@ -2170,11 +2185,14 @@ main (int argc, char **argv)
   else if (eval)
     {
       /* Read expressions interactively.  */
-      while (fgets (string, BUFSIZ, stdin))
+      char *line = NULL;
+      size_t linesize;
+      for (ssize_t len; 0 <= (len = getline (&line, &linesize, stdin)); )
 	{
 	  send_to_emacs (emacs_socket, "-eval ");
-	  quote_argument (emacs_socket, string);
+	  quote_argument_len (emacs_socket, line, len);
 	}
+      free (line);
       send_to_emacs (emacs_socket, " ");
     }
 
