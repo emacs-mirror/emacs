@@ -883,30 +883,34 @@ This replaces the region with the preprocessed HTML."
 
 (defun eww-handle-link (dom)
   (let* ((rel (dom-attr dom 'rel))
-	 (href (dom-attr dom 'href))
-	 (where (assoc
-		 ;; The text associated with :rel is case-insensitive.
-		 (if rel (downcase rel))
-		 '(("next" . :next)
-		   ;; Texinfo uses "previous", but HTML specifies
-		   ;; "prev", so recognize both.
-		   ("previous" . :previous)
-		   ("prev" . :previous)
-		   ;; HTML specifies "start" but also "contents",
-		   ;; and Gtk seems to use "home".  Recognize
-		   ;; them all; but store them in different
-		   ;; variables so that we can readily choose the
-		   ;; "best" one.
-		   ("start" . :start)
-		   ("home" . :home)
-		   ("contents" . :contents)
-		   ("up" . :up)))))
-    (when (and href where)
-      (when (memq (cdr where) '(:next :previous))
-        ;; Multi-page isearch support.
-        (setq-local multi-isearch-next-buffer-function
-                    #'eww-isearch-next-buffer))
-      (plist-put eww-data (cdr where) href))))
+         (href (dom-attr dom 'href)))
+    (when (and href rel)
+      ;; `rel' is a case-insensitive whitespace-separated set, but
+      ;; without considering vertical tab "\v" whitespace (as defined at
+      ;; https://infra.spec.whatwg.org/#ascii-whitespace).
+      (dolist (relation (split-string (downcase rel) "[\t\n\f\r ]+"))
+        (when-let*
+            ((where (assoc
+                     relation
+                     '(("next" . :next)
+                       ;; Texinfo uses "previous", but HTML specifies
+                       ;; "prev", so recognize both.
+                       ("previous" . :previous)
+                       ("prev" . :previous)
+                       ;; HTML specifies "start" but also "contents",
+                       ;; and Gtk seems to use "home".  Recognize
+                       ;; them all; but store them in different
+                       ;; variables so that we can readily choose the
+                       ;; "best" one.
+                       ("start" . :start)
+                       ("home" . :home)
+                       ("contents" . :contents)
+                       ("up" . :up)))))
+          (when (memq (cdr where) '(:next :previous))
+            ;; Multi-page isearch support.
+            (setq-local multi-isearch-next-buffer-function
+                        #'eww-isearch-next-buffer))
+          (plist-put eww-data (cdr where) href))))))
 
 (defvar eww-redirect-level 1)
 
