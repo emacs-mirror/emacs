@@ -381,11 +381,10 @@ fails.  */)
 	  g_object_set (G_OBJECT (settings), "enable-javascript",
 		        (gboolean) (!xwidget_webkit_disable_javascript), NULL);
 #if WEBKIT_CHECK_VERSION (2, 16, 0)
-	  /* the webkit view is created on an *offscreen* window, on
+	  /* The webkit view is created on an *offscreen* window, on
 	     which hardware acceleration is not supported; we need to
-	     tell webkitgtk _not_ to try that, since it will fail & abort()
-	     with recent versions. */
-
+	     tell webkitgtk _not_ to try that, since it will fail & abort
+	     with recent versions.  */
 	  webkit_settings_set_hardware_acceleration_policy
 	    (settings, WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER);
 #endif
