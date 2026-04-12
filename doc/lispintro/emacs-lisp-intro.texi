@@ -15348,7 +15348,7 @@ Here is the function:
 @c (files-in-below-directory "/usr/local/src/emacs/lisp/")
 @c (files-in-below-directory "/usr/local/share/emacs/22.1.1/lisp/")
 
-The @code{files-in-below-directory} @code{directory-files} function
+The @code{files-in-below-directory} function
 takes one argument, the name of a directory.
 
 @need 1250
