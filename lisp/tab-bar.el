@@ -638,6 +638,7 @@ on different frames: the tab bar can be shown on some frames and
 hidden on others, depending on how many tab-bar tabs are on that
 frame, and whether that number is greater than the numerical value
 of this variable.
+If 0, always keep the tab bar shown.
 If nil, always keep the tab bar hidden.  In this case it's still
 possible to use persistent named window configurations by relying on
 keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc.
@@ -648,13 +649,15 @@ update the tab bar on all frames according to the new value.
 
 To enable or disable the tab bar individually on each frame,
 you can use the command `toggle-frame-tab-bar'."
-  :type '(choice (const :tag "Always" t)
+  :type '(choice (const :tag "On creating a new tab" t)
+                 (const :tag "Always" 0)
                  (const :tag "When more than one tab" 1)
+                 (natnum :tag "When more than this number")
                  (const :tag "Never" nil))
   :initialize #'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (if val
+         (if (natnump val)
              (tab-bar-mode 1)
            (tab-bar--update-tab-bar-lines t)))
   :group 'tab-bar
