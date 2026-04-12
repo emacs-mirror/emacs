@@ -183,7 +183,7 @@ Drawer's name is located in match group 1.")
 (defconst org-element-dynamic-block-open-re
   (rx line-start (0+ (any ?\s ?\t))
       "#+BEGIN:" (0+ (any ?\s ?\t))
-      (group (1+ word))
+      (group (1+ (not space)))
       (opt
        (1+ (any ?\s ?\t))
        (group (1+ nonl))))
@@ -193,7 +193,7 @@ Parameters are in match group 2.")
 
 (defconst org-element-dynamic-block-open-re-nogroup
   (rx line-start (0+ (any ?\s ?\t))
-      "#+BEGIN:" (0+ (any ?\s ?\t)) word)
+      "#+BEGIN:" (0+ (any ?\s ?\t)) (not space))
   "Regexp matching the opening line of a dynamic block.")
 
 (defconst org-element-headline-re

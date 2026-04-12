@@ -573,12 +573,14 @@ Trim string and collapse multiple whitespace characters as they
 are not significant.  Replace leading left parenthesis, when
 followed by a right parenthesis, with a square bracket.  Remove
 periods, commas and colons."
-  (org-trim
-   (replace-regexp-in-string
-    "[ \t]+" " "
-    (replace-regexp-in-string
-     "[:,.]" ""
-     (replace-regexp-in-string "\\`(\\(.*?)\\)" "[\\1" title)))))
+  (thread-last
+    title
+    (replace-regexp-in-string "\\`(\\(.*?)\\)" "[\\1")
+    ;; See https://lists.gnu.org/archive/html/bug-texinfo/2026-03/msg00000.html
+    (replace-regexp-in-string (rx "@comma" (optional "{}")) "")
+    (replace-regexp-in-string "[:,.]" "")
+    (replace-regexp-in-string "[ \t]+" " ")
+    org-trim))
 
 (defun org-texinfo--sanitize-title (title info)
   "Make TITLE suitable as a section name.
