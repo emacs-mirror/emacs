@@ -8706,6 +8706,7 @@ sys_close (int fd)
 {
   int rc = -1;
   bool reader_thread_exited = false;
+  bool reader_thread_reading = false;
 
   if (fd < 0)
     {
@@ -8723,6 +8724,9 @@ sys_close (int fd)
 	  && GetExitCodeThread (cp->thrd, &thrd_status)
 	  && thrd_status != STILL_ACTIVE)
 	reader_thread_exited = true;
+
+      if (cp->thrd != NULL && cp->status == STATUS_READ_IN_PROGRESS)
+	reader_thread_reading = true;
 
       fd_info[fd].cp = NULL;
 
@@ -8773,7 +8777,13 @@ sys_close (int fd)
      because socket handles are fully fledged kernel handles. */
   if (fd < MAXDESC)
     {
-      if ((fd_info[fd].flags & FILE_DONT_CLOSE) == 0
+      if (((fd_info[fd].flags & FILE_DONT_CLOSE) == 0
+	   /* Don't attempt to close a descriptor while reader thread is
+              stuck in _sys_read_ahead attempting to read from it, as
+              that will hang Emacs.  */
+	   && !(((fd_info[fd].flags & (FILE_PIPE | FILE_READ))
+		 == (FILE_PIPE | FILE_READ))
+		&& reader_thread_reading))
 	  /* If the reader thread already exited, close the descriptor,
 	     since otherwise no one will close it, and we will be
 	     leaking descriptors.  */
