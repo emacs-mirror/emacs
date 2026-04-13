@@ -821,7 +821,7 @@ send_to_emacs_len (HSOCKET s, const char *data, ptrdiff_t dlen)
   enum { SEND_BUFFER_SIZE = 4096 };
 
   /* Buffer to accumulate data to send in TCP connections.  */
-  static char send_buffer[SEND_BUFFER_SIZE + 1];
+  static char send_buffer[SEND_BUFFER_SIZE];
 
   /* Fill pointer for the send buffer.  */
   static int sblen;
