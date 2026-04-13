@@ -1975,7 +1975,7 @@ set_socket_timeout (HSOCKET socket, int seconds)
 }
 
 static bool
-check_socket_timeout (int rl)
+check_socket_timeout (ssize_t rl)
 {
 #ifndef WINDOWSNT
   return (rl == -1)
@@ -1994,9 +1994,11 @@ main (int argc, char **argv)
   main_argv = argv;
   progname = argv[0] ? argv[0] : "emacsclient";
 
-  int rl = 0;
+  ssize_t rl = 0;
   bool skiplf = true;
-  char string[BUFSIZ + 1];
+  char *recv_buf = NULL;
+  ptrdiff_t recv_bufsize = 0;
+
   int exit_status = EXIT_SUCCESS;
 
 #ifdef HAVE_NTGUI
@@ -2208,6 +2210,8 @@ main (int argc, char **argv)
 
   set_socket_timeout (emacs_socket, timeout > 0 ? timeout : DEFAULT_TIMEOUT);
   bool saw_response = false;
+  ptrdiff_t nrecv = 0;
+
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
     {
@@ -2216,7 +2220,14 @@ main (int argc, char **argv)
       do
 	{
 	  act_on_signals (emacs_socket);
-	  rl = recv (emacs_socket, string, BUFSIZ, 0);
+	  if (nrecv == recv_bufsize)
+	    {
+	      enum { DEFAULT_RECV_BUFSIZE = 4096 };
+	      recv_bufsize = (recv_bufsize + (recv_bufsize >> 1)
+			      + DEFAULT_RECV_BUFSIZE);
+	      recv_buf = xrealloc (recv_buf, recv_bufsize);
+	    }
+	  rl = recv (emacs_socket, recv_buf + nrecv, recv_bufsize - nrecv, 0);
 	  retry = check_socket_timeout (rl);
 	  if (retry && !saw_response)
 	    {
@@ -2239,16 +2250,17 @@ main (int argc, char **argv)
       if (rl <= 0)
         break;
 
+      nrecv += rl;
       saw_response = true;
-      string[rl] = '\0';
 
       /* Loop over all NL-terminated messages.  */
-      char *p = string;
-      for (char *end_p = p; end_p && *end_p != '\0'; p = end_p)
+      char *p = recv_buf;
+      for (char *end_p = p; end_p < recv_buf + nrecv; p = end_p)
 	{
-	  end_p = strchr (p, '\n');
-	  if (end_p != NULL)
-	    *end_p++ = '\0';
+	  end_p = memchr (p, '\n', recv_buf + nrecv - p);
+	  if (!end_p)
+	    break;
+	  *end_p++ = '\0';
 
           if (strprefix ("-emacs-pid ", p))
             {
@@ -2271,6 +2283,7 @@ main (int argc, char **argv)
                   tty = true;
                 }
 
+	      /* This discards any remaining data in recv_buf.  */
               goto retry;
             }
           else if (strprefix ("-print ", p))
@@ -2324,6 +2337,9 @@ main (int argc, char **argv)
 	      skiplf = true;
 	    }
 	}
+
+      nrecv -= p - recv_buf;
+      memmove (recv_buf, p, nrecv);
     }
 
   if (!skiplf && 0 <= process_grouping ())
