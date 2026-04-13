@@ -104,6 +104,12 @@
 ;; In the list of functions below, each identifier needs to be prepended
 ;; with `vc-sys-'.  Some of the functions are mandatory (marked with a
 ;; `*'), others are optional (`-').
+;;
+;; NOTES
+;;
+;; - Unless otherwise specified, code should be prepared to handle
+;;   absolute, relative, abbreviated and unabbreviated file names:
+;;   the generic code isn't always consistent about what it passes.
 
 ;; BACKEND PROPERTIES
 ;;
