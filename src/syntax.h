@@ -26,8 +26,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
 
-extern void update_syntax_table (ptrdiff_t, EMACS_INT, bool, Lisp_Object);
-extern void update_syntax_table_forward (ptrdiff_t, bool, Lisp_Object);
+extern void update_syntax_table (ptrdiff_t, EMACS_INT, Lisp_Object);
+extern void update_syntax_table_forward (ptrdiff_t, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -175,7 +175,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_FORWARD (ptrdiff_t charpos)
 { /* Performs just-in-time syntax-propertization.  */
   if (parse_sexp_lookup_properties && charpos >= gl_state.e_property)
-    update_syntax_table_forward (charpos, false, gl_state.object);
+    update_syntax_table_forward (charpos, gl_state.object);
 }
 
 /* Make syntax table state (gl_state) good for CHARPOS, assuming it is
@@ -185,7 +185,7 @@ INLINE void
 UPDATE_SYNTAX_TABLE_BACKWARD (ptrdiff_t charpos)
 {
   if (parse_sexp_lookup_properties && charpos < gl_state.b_property)
-    update_syntax_table (charpos, -1, false, gl_state.object);
+    update_syntax_table (charpos, -1, gl_state.object);
 }
 
 /* Make syntax table good for CHARPOS.  */
