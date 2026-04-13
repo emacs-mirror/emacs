@@ -741,6 +741,14 @@ if the user selects a diff-related option during review."
   :version "31.1")
 
 (defun package-matches-selector-p (selector pkg-desc)
+  "Return non-nil if SELECTOR matches PKG-DESC.
+If SELECTOR is t the match always passes.  If SELECTOR is a list to a
+list you can specify a list of conditions.  An entry of the
+form (archive STRING) will match any packages from the archive
+STRING (see `package-archives'), and an entry of the form (package
+SYMBOL) will match any packages whose names match SYMBOL.  If any
+singular condition matches, then the entire selector matches PKG-DESC.
+If you prefix the list with a symbol `not', the rules are inverted."
   (let ((archive (package-desc-archive pkg-desc))
         (name (package-desc-name pkg-desc)))
     (pcase-exhaustive selector
