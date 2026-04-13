@@ -238,7 +238,7 @@ expand)' among their `declare' forms."
                   (load file))
               (error
                (push file loaddefs--load-error-files) ; do not attempt again
-               (warn "loaddefs-gen: load error\n\t%s" e)))))
+               (warn "loaddefs-gen: load error\n\t%S" e)))))
         (and (macrop car)
 	     (eq 'expand (function-get car 'autoload-macro 'macro))
 	     (setq expand (let ((load-true-file-name file)
