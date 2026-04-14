@@ -175,15 +175,26 @@ or array."
                            ,v)))))))))))
 
 (cl-defmethod map-elt ((map list) key &optional default testfn)
+  "Implementation of `map-elt' for maps that are alists or plists.
+In a map that is a plist, property names are the keys, and the
+corresponding property values are the values of those keys.
+In a map that is an alist, the `car' of each cons cell is the key
+and the `cdr' is the value."
   (if (map--plist-p map)
       (let ((res (map--plist-member map key testfn)))
         (if res (cadr res) default))
     (alist-get key map default nil (or testfn #'equal))))
 
 (cl-defmethod map-elt ((map hash-table) key &optional default _testfn)
+  "Implementation of `map-elt' for maps that are hash-tables.
+In a map that is a hash-table, the keys in the table serve as the map
+keys and the associated values are the key values."
   (gethash key map default))
 
 (cl-defmethod map-elt ((map array) key &optional default _testfn)
+  "Implementation of `map-elt' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values."
   (if (map-contains-key map key)
       (aref map key)
     default))
@@ -234,6 +245,13 @@ say
 for this to work reliably.")
 
 (cl-defmethod map-delete ((map list) key)
+  "Implementation of `map-delete' for maps that are plists or alists.
+In a map that is a plist, property names are the keys, and the
+corresponding property values are the values of those keys; this
+function removes the pair whose property-name matches KEY.
+In a map that is an alist, the `car' of each cons cell is the key
+and the `cdr' is the value; this function removes the cons cell
+whose `car' equals KEY."
   ;; FIXME: Signal map-not-inplace i.s.o returning a different list?
   (if (map--plist-p map)
       (map--plist-delete map key)
@@ -241,11 +259,18 @@ for this to work reliably.")
     map))
 
 (cl-defmethod map-delete ((map hash-table) key)
+  "Implementation of `map-delete' for maps that are hash-tables.
+In a map that is a hash-table, the keys in the table serve as the map
+keys and the associated values are the key values.
+Calls `remhash' to remove KEY."
   (remhash key map)
   map)
 
 (cl-defmethod map-delete ((map array) key)
-  "Store nil at index KEY."
+  "Implementation of `map-delete' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+Since array slots cannot be removed, this stores nil at index KEY."
   (when (map-contains-key map key)
     (aset map key nil))
   map)
@@ -273,7 +298,10 @@ The default implementation delegates to `map-apply'."
   (map-apply (lambda (_ value) value) map))
 
 (cl-defmethod map-values ((map array))
-  "Convert MAP into a list."
+  "Implementation of `map-values' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+This creates a list from MAP's slot values."
   (append map ()))
 
 (cl-defgeneric map-pairs (map)
@@ -291,29 +319,45 @@ The default implementation delegates to `map-do'."
     size))
 
 (cl-defmethod map-length ((map hash-table))
+  "Implementation of `map-length' for maps that are hash-tables.
+Value is the number of elements in MAP."
   (hash-table-count map))
 
 (cl-defmethod map-length ((map list))
+  "Implementation of `map-length' for maps that are plists or alists.
+Value is the number of property-value pairs for plists and the number
+of association cons cells in an alist."
   (if (map--plist-p map)
       (/ (length map) 2)
     (length map)))
 
 (cl-defmethod map-length ((map array))
+  "Implementation of `map-length' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+Value is the number of slots in MAP."
   (length map))
 
 (cl-defgeneric map-copy (map)
   "Return a copy of MAP.")
 
 (cl-defmethod map-copy ((map list))
-  "Use `copy-alist' on alists and `copy-sequence' on plists."
+  "Implementation of `map-copy' for maps that are plists or alists.
+Uses `copy-alist' on alists and `copy-sequence' on plists."
   (if (map--plist-p map)
       (copy-sequence map)
     (copy-alist map)))
 
 (cl-defmethod map-copy ((map hash-table))
+  "Implementation of `map-copy' for maps that are hash-tables.
+Returns a copy of MAP produced by `copy-hash-table'."
   (copy-hash-table map))
 
 (cl-defmethod map-copy ((map array))
+  "Implementation of `map-copy' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+Uses `copy-sequence'."
   (copy-sequence map))
 
 (cl-defgeneric map-apply (function map)
@@ -326,10 +370,15 @@ The default implementation delegates to `map-do'."
 
 (cl-defgeneric map-do (function map)
   "Apply FUNCTION to each element of MAP and return nil.
-FUNCTION is called with two arguments, the key and the value.")
+FUNCTION is called with two arguments, the key and the value
+of each MAP's element.")
 
 ;; FIXME: I wish there was a way to avoid this η-redex!
-(cl-defmethod map-do (function (map hash-table)) (maphash function map))
+(cl-defmethod map-do (function (map hash-table))
+  "Implementation of `map-do' for maps that are hash-tables.
+Calls `maphash', which will call FUNCTION with key and value
+of each element of MAP."
+  (maphash function map))
 
 (cl-defgeneric map-keys-apply (function map)
   "Return the result of applying FUNCTION to each key in MAP.
@@ -346,6 +395,10 @@ The default implementation delegates to `map-apply'."
              map))
 
 (cl-defmethod map-values-apply (function (map array))
+  "Implementation of `map-values-apply' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+Calls `mapcar', which will call FUNCTION with each element of MAP."
   (mapcar function map))
 
 (cl-defgeneric map-filter (pred map)
@@ -376,6 +429,8 @@ The default implementation delegates to `map-length'."
   (zerop (map-length map)))
 
 (cl-defmethod map-empty-p ((map list))
+  "Implementation of `map-empty-p' for maps that are plists or alists.
+MAP is empty if `null' returns non-nil for it."
   (null map))
 
 (cl-defgeneric map-contains-key (map key &optional testfn)
@@ -391,20 +446,30 @@ The default implementation delegates to `map-some'."
   (map-some (lambda (k _v) (funcall testfn key k)) map))
 
 (cl-defmethod map-contains-key ((map list) key &optional testfn)
-  "Return non-nil if MAP contains KEY.
+  "Implementation of `map-contains-key' for maps that are plists or alists.
 If MAP is an alist, TESTFN defaults to `equal'.
-If MAP is a plist, TESTFN defaults to `eq'."
+If MAP is a plist, TESTFN defaults to `eq'.
+In a map that is a plist, property names are the keys, and the
+corresponding property values are the values of those keys.
+In a map that is an alist, the `car' of each cons cell is the key
+and the `cdr' is the value."
   (if (map--plist-p map)
       (map--plist-member map key testfn)
     (let ((v '(nil)))
       (not (eq v (alist-get key map v nil (or testfn #'equal)))))))
 
 (cl-defmethod map-contains-key ((map array) key &optional _testfn)
-  "Return non-nil if KEY is an index of MAP, ignoring TESTFN."
+  "Implementation of `map-contains-key' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+Returns non-nil if KEY is a valid index in MAP, ignoring TESTFN."
   (and (natnump key) (< key (length map))))
 
 (cl-defmethod map-contains-key ((map hash-table) key &optional _testfn)
-  "Return non-nil if MAP contains KEY, ignoring TESTFN."
+  "Implementation of `map-contains-key' for maps that are hash-tables.
+Returns non-nil if MAP contains KEY, ignoring TESTFN.
+In a map that is a hash-table, the keys in the table serve as the map
+keys and the associated values are the key values."
   ;; FIXME: use `hash-table-contains-p' from Compat when available.
   (if (fboundp 'hash-table-contains-p)
       (hash-table-contains-p key map)
@@ -494,15 +559,20 @@ This does not modify any of the MAPS."
 
 ;; FIXME: I wish there was a way to avoid this η-redex!
 (cl-defmethod map-into (map (_type (eql list)))
-  "Convert MAP into an alist."
+  "Implementation of `map-into' for TYPE that is list.
+Convert MAP into an alist."
   (map-pairs map))
 
 (cl-defmethod map-into (map (_type (eql alist)))
-  "Convert MAP into an alist."
+  "Implementation of `map-into' for TYPE that is alist.
+Convert MAP into an alist, with keys the `car' of each
+association cons cell and value the `cdr'.."
   (map-pairs map))
 
 (cl-defmethod map-into (map (_type (eql plist)))
-  "Convert MAP into a plist."
+  "Implementation of `map-into' for TYPE that is plist.
+Convert MAP into a plist, with property names serving as keys
+and property values as values."
   (let (plist)
     (map-do (lambda (k v) (setq plist `(,v ,k ,@plist))) map)
     (nreverse plist)))
@@ -518,6 +588,11 @@ To insert an element without modifying MAP, use `map-insert'."
   (declare (advertised-calling-convention (map key value) "27.1")))
 
 (cl-defmethod map-put! ((map list) key value &optional testfn)
+  "Implementation of `map-put!' for maps that are plists or alists.
+In a map that is a plist, property names are the keys, and the
+corresponding property values are the values of those keys.
+In a map that is an alist, the `car' of each cons cell is the key
+and the `cdr' is the value."
   (if (map--plist-p map)
       (map--plist-put map key value testfn)
     (let ((oldmap map))
@@ -528,9 +603,16 @@ To insert an element without modifying MAP, use `map-insert'."
   value)
 
 (cl-defmethod map-put! ((map hash-table) key value &optional _testfn)
+  "Implementation of `map-put!' for maps that are hash-tables.
+In a map that is a hash-table, the keys in the table serve as the map
+keys and the associated values are the key values."
   (puthash key value map))
 
 (cl-defmethod map-put! ((map array) key value &optional _testfn)
+  "Implementation of `map-put!' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+Calls `aset'."
   ;; FIXME: If `key' is too large, should we signal `map-not-inplace'
   ;; and let `map-insert' grow the array?
   (aset map key value))
@@ -550,12 +632,22 @@ The default implementation defaults to `map-copy' and `map-put!'."
     copy))
 
 (cl-defmethod map-insert ((map list) key value)
-  "Cons KEY and VALUE to the front of MAP."
+  "Implementation of `map-insert' for maps that are plists or alists.
+Cons KEY and VALUE to the front of MAP.  If MAP is a plist, KEY and VALUE
+will be the property name and its value,  If MAP is an alist, KEY and
+VALUE will be the `car' and `cdr' of the association cons cell."
   (if (map--plist-p map)
       (cons key (cons value map))
     (cons (cons key value) map)))
 
 (cl-defmethod map-apply (function (map list))
+  "Implementation of `map-apply' for maps that are plists or alists.
+In a map that is a plist, property names are the keys, and the
+corresponding property values are the values of those keys.
+In a map that is an alist, the `car' of each cons cell is the key
+and the `cdr' is the value.
+Calls `mapcar', which will call FUNCTION for each element in MAP,
+passing the element's key and its value as arguments of FUNCTION."
   (if (map--plist-p map)
       (cl-call-next-method)
     (mapcar (lambda (pair)
@@ -563,6 +655,9 @@ The default implementation defaults to `map-copy' and `map-put!'."
             map)))
 
 (cl-defmethod map-apply (function (map hash-table))
+  "Implementation of `map-apply' for maps that are hash-tables.
+Calls `maphash', which will call FUNCTION for each element in MAP,
+passing the element's key and its value as arguments of FUNCTION."
   (let (result)
     (maphash (lambda (key value)
                (push (funcall function key value) result))
@@ -570,11 +665,23 @@ The default implementation defaults to `map-copy' and `map-put!'."
     (nreverse result)))
 
 (cl-defmethod map-apply (function (map array))
+  "Implementation of `map-apply' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+FUNCTION will be called with each element of the map and its
+array index."
   (seq-map-indexed (lambda (elt index)
                      (funcall function index elt))
                    map))
 
 (cl-defmethod map-do (function (map list))
+  "Implementation of `map-do' for maps that are plists or alists.
+In a map that is a plist, property names are the keys, and the
+corresponding property values are the values of those keys.
+In a map that is an alist, the `car' of each cons cell is the key
+and the `cdr' is the value.
+FUNCTION's arguments are property name and property value for plist
+elements, `car' and `cdr' of association cons cell for alists."
   (if (map--plist-p map)
       (while map
         (funcall function (pop map) (pop map)))
@@ -584,6 +691,10 @@ The default implementation defaults to `map-copy' and `map-put!'."
     nil))
 
 (cl-defmethod map-do (function (map array))
+  "Implementation of `map-do' for maps that are arrays.
+In a map that is an array, the keys are the slot indices,
+and slot contents are the values.
+FUNCTION's arguments are the index of the element and the element itself."
   (seq-do-indexed (lambda (elt index)
                     (funcall function index elt))
                   map))
@@ -598,11 +709,13 @@ KEYWORD-ARGS are forwarded to `make-hash-table'."
     ht))
 
 (cl-defmethod map-into (map (_type (eql hash-table)))
-  "Convert MAP into a hash-table with keys compared with `equal'."
+  "Implementation of `map-into' for TYPE that is hash-table.
+Convert MAP into a hash-table with keys compared with `equal'."
   (map--into-hash map (list :size (map-length map) :test #'equal)))
 
 (cl-defmethod map-into (map (type (head hash-table)))
-  "Convert MAP into a hash-table.
+  "Implementation of `map-into' for TYPE that is hash-table with keywords.
+Convert MAP into a hash-table.
 TYPE is a list whose car is `hash-table' and cdr a list of
 keyword-args forwarded to `make-hash-table'.
 
