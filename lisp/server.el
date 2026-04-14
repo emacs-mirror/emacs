@@ -900,25 +900,12 @@ Server mode runs a process that accepts commands from the
 
 (defconst server-msg-size 1024
   "Maximum size of a message sent to a client.")
+(make-obsolete-variable 'server-msg-size nil "31.1")
 
 (defun server-reply-print (qtext proc)
   "Send a `-print QTEXT' command to client PROC.
-QTEXT must be already quoted.
-This handles splitting the command if it would be bigger than
-`server-msg-size'."
-  (let ((prefix "-print ")
-	part)
-    (while (> (+ (length qtext) (length prefix) 1) server-msg-size)
-      ;; We have to split the string
-      (setq part (substring qtext 0 (- server-msg-size (length prefix) 1)))
-      ;; Don't split in the middle of a quote sequence
-      (if (string-match "\\(^\\|[^&]\\)&\\(&&\\)*$" part)
-	  ;; There is an uneven number of & at the end
-	  (setq part (substring part 0 -1)))
-      (setq qtext (substring qtext (length part)))
-      (server-send-string proc (concat prefix part "\n"))
-      (setq prefix "-print-nonl "))
-    (server-send-string proc (concat prefix qtext "\n"))))
+QTEXT must be already quoted."
+  (server-send-string proc (concat "-print " qtext "\n")))
 
 (defun server-create-tty-frame (tty type proc &optional parameters)
   (unless tty
