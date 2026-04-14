@@ -468,6 +468,12 @@ BI-DESC should be a `package--bi-desc' object."
                        :summary (package--bi-desc-summary bi-desc)
                        :dir 'builtin))
 
+(defun package--builtin-alist ()
+  "Return a `package-alist'-like alist for all builtin packages."
+  (cl-loop for bi-desc in package--builtins
+           unless (assq (car bi-desc) package-alist)
+           collect (list (car bi-desc) (package--from-builtin bi-desc))))
+
 (defun package-desc-suffix (pkg-desc)
   "Return file-name extension of package-desc object PKG-DESC.
 Depending on the `package-desc-kind' of PKG-DESC, this is one of:
@@ -1532,6 +1538,13 @@ If successful, set or update `package-archive-contents'."
   (dolist (archive package-archives)
     (run-hook-with-args 'package-read-archive-hook (car archive))))
 
+(defun package--archive-contents ()
+  "Return the package archive contents.
+Load them if they haven't already been loaded."
+  (unless package-archive-contents
+    (package-read-all-archive-contents))
+  package-archive-contents)
+
 
 ;;;; Package Initialize
 ;; A bit of a milestone.  This brings together some of the above
@@ -1837,25 +1850,12 @@ if it is still empty."
     (package--save-selected-packages (package--find-non-dependencies)))
   (memq pkg package-selected-packages))
 
-(defun package--get-deps (pkgs)
-  (let ((seen '()))
-    (while pkgs
-      (let ((pkg (pop pkgs)))
-        (if (memq pkg seen)
-            nil ;; Done already!
-          (let ((pkg-desc (cadr (assq pkg package-alist))))
-            (when pkg-desc
-              (push pkg seen)
-              (setq pkgs (append (mapcar #'car (package-desc-reqs pkg-desc))
-                                 pkgs)))))))
-    seen))
-
 (defun package--user-installed-p (package)
   "Return non-nil if PACKAGE is a user-installed package.
 PACKAGE is the package name, a symbol.  Check whether the package
 was installed into `package-user-dir' where we assume to have
 control over."
-  (let* ((pkg-desc (cadr (assq package package-alist)))
+  (let* ((pkg-desc (package-get-descriptor package 'installed))
          (dir (package-desc-dir pkg-desc)))
     (file-in-directory-p dir package-user-dir)))
 
@@ -1863,7 +1863,7 @@ control over."
   "Return a list of `package-desc' objects that are longer needed.
 These are packages which are neither contained in
 `package-selected-packages' nor a dependency of one that is."
-  (let ((needed (package--get-deps package-selected-packages)))
+  (let ((needed (package--dependencies package-selected-packages)))
     (cl-loop for (name . descs) in (package--alist)
              unless (or (memq name needed)
                         ;; Do not auto-remove external packages.
@@ -2129,12 +2129,12 @@ NAME should be a symbol."
                   "Upgrade package: "
                   (package--upgradeable-packages t) nil t))))
   (cl-check-type name symbol)
-  (let* ((pkg-desc (cadr (assq name package-alist)))
+  (let* ((pkg-desc (package-get-descriptor name 'installed))
          (package-install-upgrade-built-in (not pkg-desc)))
     ;; `pkg-desc' will be nil when the package is an "active built-in".
     (if (and pkg-desc (package-vc-p pkg-desc))
         (error "Use `package-vc-upgrade' for VC packages")
-      (let ((new-desc (cadr (assq name package-archive-contents))))
+      (let ((new-desc (package-get-descriptor name 'archive)))
         (when (or (null new-desc)
                   (and pkg-desc
                        (version-list-= (package-desc-version pkg-desc)
@@ -2157,24 +2157,17 @@ NAME should be a symbol."
    #'car
    (seq-filter
     (lambda (elt)
-      (let ((available
-             (assq (car elt) package-archive-contents)))
+      (let ((available (package-get-descriptor (car elt) 'archive)))
         (and available
              (or (and
                   include-builtins
                   (not (package-desc-version (cadr elt))))
                  (version-list-<
                   (package-desc-version (cadr elt))
-                  (package-desc-version (cadr available))))
+                  (package-desc-version available)))
              (not (package-vc-p (cadr elt))))))
-    (if include-builtins
-        (append package-alist
-                (mapcan
-                 (lambda (elt)
-                   (when (not (assq (car elt) package-alist))
-                     (list (list (car elt) (package--from-builtin elt)))))
-                 package--builtins))
-      package-alist))))
+    (nconc (and include-builtins (package--builtin-alist))
+           (package--alist)))))
 
 ;;;###autoload
 (defun package-upgrade-all (&optional query)
@@ -2210,30 +2203,30 @@ where NAME is a symbol designating the package name and VERSION-LIST
 designates the least version number that any dependency of PKG requires.
 This format is intentionally meant to mirror that of
 `package-desc-reqs', which see.  PKG is either a symbol designating a
-package name known in the archives or a `package-desc' object."
-  (when-let* ((desc (if (package-desc-p pkg) pkg
-                      (cadr (assq pkg package-archive-contents)))))
-    ;; Can we have circular dependencies?  Assume "nope".
-    (let ((all (named-let rec ((pkg-desc desc) (min-version nil))
-                 (cl-loop for (name vlist) in (package-desc-reqs pkg-desc)
-                          if (eq name 'emacs)
-                          collect (list name vlist) into deps
-                          else append
-                          (cl-loop for p in (alist-get name package-archive-contents)
-                                   when (version-list-<= vlist (package-desc-version p))
-                                   return (rec p vlist)
-                                   ;; if we couldn't find a package in
-                                   ;; the archives, we fall back to
-                                   ;; returning the dependency as-is:
-                                   finally return (list (list name vlist)))
-                          into deps
-                          finally (return `((,(package-desc-name pkg-desc) ,min-version) . ,deps))))))
-      (mapcar
-       (lambda (ent)
-         (list (car ent) (seq-reduce (lambda (acc vlist)
-                                       (if (version-list-< acc vlist) vlist acc))
-                                     (mapcar #'cadr (cdr ent)) '())))
-       (seq-group-by #'car (delete-dups (cdr all)))))))
+package name known in the archives or a `package-desc' object, or a list
+of package names."
+  (cl-loop for desc in (mapcar (lambda (d) (package-get-descriptor d t))
+                               (ensure-list pkg))
+           when desc
+           append (named-let rec ((pkg-desc desc) (min-version nil) (seen '()))
+                    (let ((deps '()))
+                      (pcase-dolist (`(,name ,vlist) (package-desc-reqs pkg-desc))
+                        (cond*
+                         ((bind* (pred (lambda (d) (version-list-<= vlist (package-desc-version d))))))
+                         ((memq name seen))
+                         ((eq name 'emacs) (push (list name vlist) deps))
+                         ((bind-and* (desc (package-get-descriptor name t pred)))
+                          (setq deps (nconc (rec desc vlist (cons name seen)) deps)))
+                         (t (push (list name vlist) deps))))
+                      (cons (list (package-desc-name pkg-desc) min-version) deps)))
+           into all
+           finally return
+           (mapcar
+            (lambda (ent)
+              (list (car ent) (seq-reduce (lambda (acc vlist)
+                                            (if (version-list-< acc vlist) vlist acc))
+                                          (mapcar #'cadr (cdr ent)) '())))
+            (seq-group-by #'car (delete-dups (cdr all))))))
 
 (defun package-strip-rcs-id (str)
   "Strip RCS version ID from the version string STR.
@@ -2489,7 +2482,7 @@ object."
                             (mapcar #'car package-alist)))))))
   (package--archives-initialize)
   (package-delete
-   (if (package-desc-p pkg) pkg (cadr (assq pkg package-alist)))
+   (package-get-descriptor pkg 'installed)
    'force 'nosave)
   (package-install pkg 'dont-select))
 
@@ -2502,9 +2495,7 @@ object."
                               "Recompile package: "
                               (mapcar #'symbol-name
                                       (mapcar #'car package-alist))))))
-  (let ((pkg-desc (if (package-desc-p pkg)
-                      pkg
-                    (cadr (assq pkg package-alist)))))
+  (let ((pkg-desc (package-get-descriptor pkg 'installed)))
     ;; Delete the old .elc files to ensure that we don't inadvertently
     ;; load them (in case they contain byte code/macros that are now
     ;; invalid).
@@ -2727,13 +2718,7 @@ If no such file exists, the function returns nil."
   "Insert the package description for PKG.
 Helper function for `describe-package'."
   (require 'lisp-mnt)
-  (let* ((desc (or
-                (if (package-desc-p pkg) pkg)
-                (cadr (assq pkg package-alist))
-                (let ((built-in (assq pkg package--builtins)))
-                  (if built-in
-                      (package--from-builtin built-in)
-                    (cadr (assq pkg package-archive-contents))))))
+  (let* ((desc (package-get-descriptor pkg t))
          (name (if desc (package-desc-name desc) pkg))
          (pkg-dir (if desc (package-desc-dir desc)))
          (reqs (if desc (package--dependencies desc)))
@@ -2898,8 +2883,8 @@ Helper function for `describe-package'."
         (package--print-email-button author)))
     (let* ((all-pkgs (append (cdr (assq name package-alist))
                              (cdr (assq name package-archive-contents))
-                             (let ((bi (assq name package--builtins)))
-                               (if bi (list (package--from-builtin bi))))))
+                             (and-let* ((bi (assq name package--builtins)))
+                               (list (package--from-builtin bi)))))
            (other-pkgs (delete desc all-pkgs)))
       (when other-pkgs
         (package--print-help-section "Other versions"
@@ -3346,14 +3331,14 @@ of these dependencies, similar to the list returned by
        ((not (file-exists-p dir)) "deleted")
        ;; Not inside `package-user-dir'.
        ((not (file-in-directory-p dir package-user-dir)) "external")
-       ((eq pkg-desc (cadr (assq name package-alist)))
+       ((eq pkg-desc (package-get-descriptor name 'installed))
         (if (not signed) "unsigned"
           (if (package--user-selected-p name)
               "installed" "dependency")))
        (t "obsolete")))
      ((package--incompatible-p pkg-desc) "incompat")
      (t
-      (let* ((ins (cadr (assq name package-alist)))
+      (let* ((ins (package-get-descriptor name 'installed))
              (ins-v (if ins (package-desc-version ins))))
         (cond
          ;; Installed obsolete packages are handled in the `dir'
@@ -3511,32 +3496,16 @@ PACKAGES can be nil or t, which means to display all known
 packages, or a list of packages.
 
 Built-in packages are converted with `package--from-builtin'."
-  (unless packages (setq packages t))
-  (let (name)
-    ;; Installed packages:
-    (dolist (elt package-alist)
-      (setq name (car elt))
-      (when (or (eq packages t) (memq name packages))
-        (mapc function (cdr elt))))
-
-    ;; Built-in packages:
-    (dolist (elt package--builtins)
-      (setq name (car elt))
-      (when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
-                 (or package-list-unversioned
-                     (package--bi-desc-version (cdr elt)))
-                 (or (eq packages t) (memq name packages)))
-        (funcall function (package--from-builtin elt))))
-
-    ;; Available and disabled packages:
-    (dolist (elt package-archive-contents)
-      (setq name (car elt))
-      (when (or (eq packages t) (memq name packages))
-        (dolist (pkg (cdr elt))
-          ;; Hide obsolete packages.
-          (unless (package-installed-p (package-desc-name pkg)
-                                       (package-desc-version pkg))
-        (funcall function pkg)))))))
+  (dolist (pkg (if (memq packages '(t nil))
+                   (flatten-tree
+                    (list (mapcar #'cdr (package--builtin-alist))
+                          (mapcar #'cdr (package--archive-contents))
+                          (mapcar #'cdr (package--alist))))
+                 (mapcar #'package-get-descriptor packages)))
+    (unless (or (package-disabled-p (package-desc-name pkg)
+                                    (package-desc-version pkg))
+                (eq (package-desc-name pkg) 'emacs)) ;hide pseudo package
+      (funcall function pkg))))
 
 (defun package--has-keyword-p (desc &optional keywords)
   "Test if package DESC has any of the given KEYWORDS.
@@ -3939,13 +3908,11 @@ of elements of the form (PKG . DESCS), but where DESCS is the `package-desc'
 object corresponding to the newer version."
   (mapcar
    (lambda (pkg-name)
-     (cons pkg-name
-           (seq-find
-            (let ((curr (package-desc-version
-                         (cadr (assq pkg-name package-alist)))))
-              (lambda (pkg-desc)
-                (version-list-< curr (package-desc-version pkg-desc))))
-            (cdr (assq pkg-name package-archive-contents)))))
+     (let* ((desc (package-get-descriptor pkg-name 'installed))
+            (pred (lambda (other)
+                    (version-list-< (package-desc-version desc)
+                                    (package-desc-version other)))))
+       (cons pkg-name (package-get-descriptor pkg-name 'archive pred))))
    (package--upgradeable-packages)))
 
 (defvar package-menu--mark-upgrades-pending nil
@@ -4982,12 +4949,38 @@ DESC must be a `package-desc' object."
 
 ;;;; Introspection
 
-(defun package-get-descriptor (pkg-name)
-  "Return the `package-desc' of PKG-NAME."
-  (unless package--initialized (package-initialize 'no-activate))
-  (or (package--get-activatable-pkg pkg-name)
-      (cadr (assq pkg-name package-alist))
-      (cadr (assq pkg-name package-archive-contents))))
+(defun package-get-descriptor (pkg sources &optional pred)
+  "Return a `package-desc' object for PKG, or nil if none can be found.
+If PKG is a `package-desc' object it will be returned directly.  If PKG
+is a symbol or string it designates a package name.  The argument
+SOURCES can be a list consisting of the symbols `installed', `builtin'
+or `archive', each when present indicating that the function should find
+a `package-desc' object for PKG in the list of installed packages,
+built-in packages or packages available in the archives respectively.
+If SOURCES is t, then the function will interpret this as a shorthand
+for a list consisting of the symbols mentioned in the order given above.
+Any other symbol will be converted to a singleton list.  The order is
+significant, in that the first hit will be returned.  If specified, PRED
+is a function that takes a single `package-desc' argument and prevents
+the object from being returned if the predicate returns nil."
+  (cond
+   ((package-desc-p pkg)
+    (and (or (not pred) (funcall pred pkg)) pkg))
+   ((or (and (stringp pkg) (setq pkg (intern pkg)))
+        (symbolp pkg))
+    (catch 'found
+      (dolist (source (if (eq sources t)
+                          '(installed builtin archive)
+                        (delete-dups (ensure-list sources))))
+        (dolist (ent (pcase-exhaustive source
+                       ('installed (package--alist))
+                       ('builtin (package--builtin-alist))
+                       ('archive (package--archive-contents))))
+          (when (eq (car ent) pkg)
+            (dolist (desc (cdr ent))
+              (when (or (null pred) (funcall pred desc))
+                (throw 'found desc))))))))
+   ((error "Failed to recognize package %S" pkg))))
 
 (provide 'package)
 

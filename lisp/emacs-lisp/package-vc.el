@@ -90,19 +90,18 @@ the `clone' VC function."
   (pcase-dolist (`(,name . ,spec) package-vc-selected-packages)
     (when (stringp name)
       (setq name (intern name)))
-    (let ((pkg-descs (assoc name package-alist #'string=)))
-      (unless (seq-some #'package-vc-p (cdr pkg-descs))
-        (cond
-         ((null spec)
-          (package-vc-install name))
-         ((stringp spec)
-          (package-vc-install name spec))
-         ((listp spec)
-          (package-vc--archives-initialize)
-          (package-vc--unpack
-           (or (cadr (assoc name package-archive-contents))
-               (package-desc-create :name name :kind 'vc))
-           spec)))))))
+    (unless (package-get-descriptor name 'installed #'package-vc-p)
+      (cond
+       ((null spec)
+        (package-vc-install name))
+       ((stringp spec)
+        (package-vc-install name spec))
+       ((listp spec)
+        (package-vc--archives-initialize)
+        (package-vc--unpack
+         (or (package-get-descriptor name 'archive)
+             (package-desc-create :name name :kind 'vc))
+         spec))))))
 
 
 (defcustom package-vc-selected-packages nil
@@ -314,7 +313,7 @@ asynchronously."
     (unless (package-desc-summary pkg-desc)
       (setf (package-desc-summary pkg-desc)
             (or (package-desc-summary pkg-desc)
-                (and-let* ((pkg (cadr (assq name package-archive-contents))))
+                (and-let* ((pkg (package-get-descriptor name 'archive)))
                   (package-desc-summary pkg))
                 (and main-file
                      (lm-summary main-file))
@@ -476,13 +475,11 @@ this function successfully installs all given dependencies)."
                   (cond
                    ((assq (car pkg) to-install)) ;inhibit cycles
                    ((package-installed-p (car pkg) (cadr pkg)))
-                   ((let* ((pac package-archive-contents)
-                           (desc (cadr (assoc (car pkg) pac))))
-                      (if desc
-                          (let ((reqs (package-desc-reqs desc)))
-                            (push desc to-install)
-                            (mapc #'search reqs))
-                        (push pkg missing))))))
+                   ((if-let* ((desc (package-get-descriptor (car pkg) 'archive)))
+                        (let ((reqs (package-desc-reqs desc)))
+                          (push desc to-install)
+                          (mapc #'search reqs))
+                      (push pkg missing)))))
                 (version-order (a b)
                   "Predicate to sort packages in order."
                   (version-list-<
@@ -494,11 +491,10 @@ this function successfully installs all given dependencies)."
                 (depends-on-p (target package)
                   "Does PACKAGE depend on TARGET?"
                   (or (eq target package)
-                      (let* ((pac package-archive-contents)
-                             (desc (cadr (assoc package pac))))
-                        (and desc (seq-some
-                                   (apply-partially #'depends-on-p target)
-                                   (mapcar #'car (package-desc-reqs desc)))))))
+                      (and-let* ((desc (package-get-descriptor package 'archive)))
+                        (seq-some
+                         (apply-partially #'depends-on-p target)
+                         (mapcar #'car (package-desc-reqs desc))))))
                 (dependent-order (a b)
                   (let ((desc-a (package-desc-name a))
                         (desc-b (package-desc-name b)))
@@ -808,9 +804,9 @@ If the optional argument INSTALLED is non-nil, the selection will
 be filtered down to VC packages that have already been
 installed, and the package description will be that of an
 installed package."
-  (cadr (assoc (package-vc--read-package-name prompt nil installed)
-               (if installed package-alist package-archive-contents)
-               #'string=)))
+  (package-get-descriptor
+   (package-vc--read-package-name prompt nil installed)
+   (if installed 'installed 'archive)))
 
 ;;;###autoload
 (defun package-vc-upgrade-all ()
@@ -971,11 +967,11 @@ installs takes precedence."
         :kind 'vc)
        (list :vc-backend backend :url package)
        rev)))
-   ((and-let* ((desc (assoc package package-archive-contents #'string=)))
+   ((and-let* ((desc (package-get-descriptor package 'archive)))
       (package-vc--unpack
-       (cadr desc)
-       (or (package-vc--desc->spec (cadr desc))
-           (and-let* ((extras (package-desc-extras (cadr desc)))
+       desc
+       (or (package-vc--desc->spec desc)
+           (and-let* ((extras (package-desc-extras desc))
                       (url (alist-get :url extras))
                       (backend (vc-guess-url-backend url)))
              (list :vc-backend backend :url url))
@@ -994,7 +990,7 @@ package's repository.  If REV has the special value
 the last released version of the package."
   (interactive
    (let* ((name (package-vc--read-package-name "Fetch package source: ")))
-     (list (cadr (assoc name package-archive-contents #'string=))
+     (list (package-get-descriptor name 'archive)
            (read-directory-name "Clone into new or empty directory: " nil nil
                                 (lambda (dir) (or (not (file-exists-p dir))
                                              (directory-empty-p dir))))
