@@ -142,6 +142,7 @@ undo data, then it is probably a bug and you should report it.
 
 @node Transpose
 @section Transposing Text
+@cindex transposing text
 
 @table @kbd
 @item C-t
@@ -159,6 +160,14 @@ Transpose two paragraphs (@code{transpose-paragraphs}).
 @item M-x transpose-regions
 Transpose two regions.
 @end table
+
+  One of the common editing mistakes is to type characters or words or
+sentences in the wrong order.  To fix that, you could delete the
+incorrectly-typed text and re-type it anew, or you could kill
+(@pxref{Erasing}) the text that's in the wrong place and then yank it
+(@pxref{Yanking}) in its correct place.  But that is inefficient.  Emacs
+has convenient commands, described in this section, to transpose
+characters, words, sentences, etc.
 
 @kindex C-t
 @findex transpose-chars
@@ -215,7 +224,10 @@ across four words.  @kbd{C-u - C-M-t} would cancel the effect of plain
   A numeric argument of zero is assigned a special meaning (because
 otherwise a command with a repeat count of zero would do nothing): to
 transpose the character (or word or expression or line) ending after
-point with the one ending after the mark.
+point with the one ending after the mark.  So to convert, say, @samp{Bob
+and Mary} into @samp{Mary and Bob}, set the mark on @samp{Bob}
+(@pxref{Setting Mark}), then move point to @samp{Mary}, and then type
+@kbd{C-u 0 M-t}.
 
 @findex transpose-regions
   @kbd{M-x transpose-regions} transposes the text between point and
