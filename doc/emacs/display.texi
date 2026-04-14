@@ -811,6 +811,22 @@ Similar to @code{mode-line} for a window's tab line, which appears
 at the top of a window with tabs representing window buffers.
 @xref{Tab Line}.
 
+The @code{tab-line-active} and @code{tab-line-inactive} faces (which
+are the ones actually used on the tab lines) inherit from this face.
+
+@cindex faces for tab lines
+@item tab-line-active
+Like @code{tab-line}, but used for the tab line of the currently
+selected window.  This face inherits from @code{tab-line}, so changes
+in that face affect tab lines in all windows.
+
+@cindex @code{tab-line-inactive} face
+@item tab-line-inactive
+Like @code{tab-line}, but used for tab lines of the windows other
+than the selected one (if those windows have a tab line).  This face
+inherits from @code{tab-line}, so changes in that face affect tab
+lines in all windows.
+
 @cindex @code{vertical-border} face
 @item vertical-border
 This face is used for the vertical divider between windows on text

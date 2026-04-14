@@ -1610,6 +1610,27 @@ struct glyph_string
 	 : estimate_mode_line_height				\
 	 (XFRAME ((W)->frame), CURRENT_HEADER_LINE_ACTIVE_FACE_ID (W)))))
 
+/* Return the desired face id for the tab line of a window, depending
+   on whether the window is selected or not, or if the window is the
+   scrolling window for the currently active minibuffer window.  */
+
+#define CURRENT_TAB_LINE_ACTIVE_FACE_ID_3(SELW, MBW, SCRW)    	\
+     ((!mode_line_in_non_selected_windows			\
+       || (SELW) == XWINDOW (selected_window)			\
+       || (minibuf_level > 0					\
+           && !NILP (minibuf_selected_window)			\
+           && (MBW) == XWINDOW (minibuf_window)			\
+           && (SCRW) == XWINDOW (minibuf_selected_window)))	\
+      ? TAB_LINE_ACTIVE_FACE_ID					\
+      : TAB_LINE_INACTIVE_FACE_ID)
+
+/* Return the desired face id for the tab line of window W.  */
+
+#define CURRENT_TAB_LINE_ACTIVE_FACE_ID(W)		\
+	 CURRENT_TAB_LINE_ACTIVE_FACE_ID_3(W, 		\
+					   XWINDOW (selected_window), \
+					   W)
+
 /* Return the current height of the tab line of window W.  If not known
    from W->tab_line_height, look at W's current glyph matrix, or return
    an estimation based on the height of the font of the face `tab-line'.  */
@@ -1621,7 +1642,7 @@ struct glyph_string
       = (MATRIX_TAB_LINE_HEIGHT ((W)->current_matrix)		\
 	 ? MATRIX_TAB_LINE_HEIGHT ((W)->current_matrix)		\
 	 : estimate_mode_line_height				\
-	     (XFRAME ((W)->frame), TAB_LINE_FACE_ID))))
+	 (XFRAME ((W)->frame), CURRENT_TAB_LINE_ACTIVE_FACE_ID (W)))))
 
 /* Return the height of the desired mode line of window W.  */
 
@@ -1943,7 +1964,8 @@ enum face_id
   INTERNAL_BORDER_FACE_ID,
   CHILD_FRAME_BORDER_FACE_ID,
   TAB_BAR_FACE_ID,
-  TAB_LINE_FACE_ID,
+  TAB_LINE_ACTIVE_FACE_ID,
+  TAB_LINE_INACTIVE_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 

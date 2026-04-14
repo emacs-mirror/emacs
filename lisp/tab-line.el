@@ -54,7 +54,11 @@ is selected."
   :group 'tab-line
   :version "28.1")
 
-(defgroup tab-line-faces '((tab-line custom-face)) ; tab-line is defined in faces.el
+(defgroup tab-line-faces
+  ;; These faces are defined in faces.el
+  '((tab-line custom-face)
+    (tab-line-active custom-face)
+    (tab-line-inactive custom-face))
   "Faces used in the tab line."
   :group 'tab-line
   :group 'faces
@@ -860,13 +864,16 @@ the selected tab visible."
   (with-current-buffer tab-line-auto-hscroll-buffer
     (let ((truncate-partial-width-windows nil)
           (inhibit-modification-hooks t)
+          (face (if (mode-line-window-selected-p)
+                    'tab-line-active
+                  'tab-line-inactive))
           show-arrows)
       (setq truncate-lines nil
             word-wrap nil)
       (erase-buffer)
       (apply 'insert strings)
       (goto-char (point-min))
-      (add-face-text-property (point-min) (point-max) 'tab-line t)
+      (add-face-text-property (point-min) (point-max) face t)
       ;; Continuation means tab-line doesn't fit completely,
       ;; thus scroll arrows are needed for scrolling.
       (setq show-arrows (> (vertical-motion 1) 0))
@@ -888,7 +895,7 @@ the selected tab visible."
             (erase-buffer)
             (apply 'insert (reverse (seq-subseq strings 0 (1+ selected))))
             (goto-char (point-min))
-            (add-face-text-property (point-min) (point-max) 'tab-line)
+            (add-face-text-property (point-min) (point-max) face)
             (if (> (vertical-motion 1) 0)
                 (let* ((point (previous-single-property-change (point) 'tab))
                        (tab-prop (when point
@@ -909,13 +916,13 @@ the selected tab visible."
             (erase-buffer)
             (apply 'insert (seq-subseq strings (truncate hscroll) (1+ selected)))
             (goto-char (point-min))
-            (add-face-text-property (point-min) (point-max) 'tab-line)
+            (add-face-text-property (point-min) (point-max) face)
             (when (> (vertical-motion 1) 0)
               ;; Not visible already
               (erase-buffer)
               (apply 'insert (reverse (seq-subseq strings 0 (1+ selected))))
               (goto-char (point-min))
-              (add-face-text-property (point-min) (point-max) 'tab-line)
+              (add-face-text-property (point-min) (point-max) face)
               (when (> (vertical-motion 1) 0)
                 (let* ((point (previous-single-property-change (point) 'tab))
                        (tab-prop (when point

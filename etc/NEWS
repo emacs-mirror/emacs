@@ -658,6 +658,12 @@ will change its appearance if the tab buffer has been modified.
 This user option controls which buffers should appear in the tab line.
 By default, this is set to not filter the buffers.
 
++++
+*** New faces 'tab-line-active' and 'tab-line-inactive'.
+These inherit from the 'tab-line' face, but the faces actually used
+on the tab lines are now these two: the selected window uses
+'tab-line-active', non-selected windows use 'tab-line-inactive'.
+
 ** Help
 
 +++

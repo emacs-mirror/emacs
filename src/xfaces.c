@@ -5195,7 +5195,8 @@ lookup_basic_face (struct window *w, struct frame *f, int face_id)
     case MODE_LINE_INACTIVE_FACE_ID:	name = Qmode_line_inactive;	break;
     case HEADER_LINE_ACTIVE_FACE_ID:	name = Qheader_line_active;	break;
     case HEADER_LINE_INACTIVE_FACE_ID:	name = Qheader_line_inactive;	break;
-    case TAB_LINE_FACE_ID:		name = Qtab_line;		break;
+    case TAB_LINE_ACTIVE_FACE_ID:	name = Qtab_line_active;	break;
+    case TAB_LINE_INACTIVE_FACE_ID:	name = Qtab_line_inactive;	break;
     case TAB_BAR_FACE_ID:		name = Qtab_bar;		break;
     case TOOL_BAR_FACE_ID:		name = Qtool_bar;		break;
     case FRINGE_FACE_ID:		name = Qfringe;			break;
@@ -5975,7 +5976,8 @@ realize_basic_faces (struct frame *f)
       realize_named_face (f, Qinternal_border, INTERNAL_BORDER_FACE_ID);
       realize_named_face (f, Qchild_frame_border, CHILD_FRAME_BORDER_FACE_ID);
       realize_named_face (f, Qtab_bar, TAB_BAR_FACE_ID);
-      realize_named_face (f, Qtab_line, TAB_LINE_FACE_ID);
+      realize_named_face (f, Qtab_line_active, TAB_LINE_ACTIVE_FACE_ID);
+      realize_named_face (f, Qtab_line_inactive, TAB_LINE_INACTIVE_FACE_ID);
       unbind_to (count, Qnil);
 
       /* Reflect changes in the `menu' face in menu bars.  */
@@ -7534,6 +7536,8 @@ syms_of_xfaces (void)
   DEFSYM (Qtab_bar, "tab-bar");
   DEFSYM (Qfringe, "fringe");
   DEFSYM (Qtab_line, "tab-line");
+  DEFSYM (Qtab_line_inactive, "tab-line-inactive");
+  DEFSYM (Qtab_line_active, "tab-line-active");
   DEFSYM (Qheader_line, "header-line");
   DEFSYM (Qheader_line_inactive, "header-line-inactive");
   DEFSYM (Qheader_line_active, "header-line-active");
