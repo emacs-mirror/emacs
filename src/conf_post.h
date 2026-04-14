@@ -425,3 +425,11 @@ extern int gl_consolesafe_vprintf (const char *restrict format, va_list args)
 #  define vprintf gl_consolesafe_vprintf
 # endif	/* !_UCRT */
 #endif	/* WINDOWSNT */
+
+#if defined WINDOWSNT && !defined HAVE_DECL_GETDELIM
+/* MinGW64 doesn't have getdelim, called by Gnulib's getline, but the
+   MS-Windows build omits stdio.h module, where getdelim is declared.  */
+# include <stdio.h>
+# include <stddef.h>
+extern ssize_t getdelim (char **, size_t *, int, FILE *);
+#endif
