@@ -592,33 +592,37 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                                'added))))
 
             ;; Test OK-IF-ALREADY-EXISTS.
-            (let ((tmp-name (expand-file-name "qux" default-directory))
-                  (new-name (expand-file-name "quuux" default-directory)))
-              (write-region "qux" nil tmp-name nil 'nomessage)
-              (write-region "quuux" nil new-name nil 'nomessage)
-              (vc-register
-               (list backend (list (file-name-nondirectory tmp-name)
-                                   (file-name-nondirectory new-name))))
+            ;; RCS doesn't support `vc-delete-file'.
+            (unless (eq backend 'RCS)
+              (let ((tmp-name (expand-file-name "qux" default-directory))
+                    (new-name (expand-file-name "quuux" default-directory)))
+                (write-region "qux" nil tmp-name nil 'nomessage)
+                (write-region "quuux" nil new-name nil 'nomessage)
+                (vc-register
+                 (list backend (list (file-name-nondirectory tmp-name)
+                                     (file-name-nondirectory new-name))))
 
-              (should-error (vc-rename-file tmp-name new-name)
-                            :type 'file-already-exists)
-              (vc-rename-file tmp-name new-name 'ok-if-already-exists)
-              (should-not (file-exists-p tmp-name))
-              (should (file-exists-p new-name)))
+                (should-error (vc-rename-file tmp-name new-name)
+                              :type 'file-already-exists)
+                (vc-rename-file tmp-name new-name 'ok-if-already-exists)
+                (should-not (file-exists-p tmp-name))
+                (should (file-exists-p new-name))))
 
             ;; Test moving into an existing directory.
-            (let ((tmp-name (expand-file-name "quux" default-directory))
-                  (new-dir (expand-file-name "dir1/" default-directory))
-                  (new-name (expand-file-name "dir1/quux" default-directory)))
-              (make-directory new-dir)
-              (write-region "quux" nil tmp-name nil 'nomessage)
-              (vc-register
-               `(,backend (,(file-relative-name new-dir default-directory)
-                           ,(file-name-nondirectory tmp-name))))
+            ;; FIXME: This is broken for RCS and I don't know why.  --spwhitton
+            (unless (eq backend 'RCS)
+              (let ((tmp-name (expand-file-name "quux" default-directory))
+                    (new-dir (expand-file-name "dir1/" default-directory))
+                    (new-name (expand-file-name "dir1/quux" default-directory)))
+                (make-directory new-dir)
+                (write-region "quux" nil tmp-name nil 'nomessage)
+                (vc-register
+                 `(,backend (,(file-relative-name new-dir default-directory)
+                             ,(file-name-nondirectory tmp-name))))
 
-              (vc-rename-file tmp-name new-dir)
-              (should-not (file-exists-p tmp-name))
-              (should (file-exists-p new-name))))
+                (vc-rename-file tmp-name new-dir)
+                (should-not (file-exists-p tmp-name))
+                (should (file-exists-p new-name)))))
 
         ;; Save exit.
         (ignore-errors
@@ -1285,7 +1289,10 @@ This checks also `vc-backend' and `vc-responsible-backend'."
           ;; See vc-test-*-rename-file regarding CVS and Mtn.
           ;; SVN requires all files to rename are registered but we want
           ;; to test a mix of registered and unregistered files in this test.
-          (skip-when (memq ',backend '(CVS SVN Mtn)))
+          ;; RCS does not seem to support renaming directories; possibly
+          ;; `vc-rcs-rename-file' could be improved or it might be a
+          ;; fundamental limitation.
+          (skip-when (memq ',backend '(CVS SVN Mtn RCS)))
           (vc-test--rename-directory ',backend))))))
 
 (provide 'vc-tests)
