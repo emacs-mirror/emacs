@@ -2468,7 +2468,10 @@ the search words, ignoring punctuation.  If the last search
 command was a regular expression search, REGEXP is the regular
 expression used in that search.  If the last search command searched
 for a literal string, REGEXP is constructed by quoting all the special
-characters in that string."
+characters in that string.
+
+When the symbol property `isearch-exit' of this command is non-nil,
+the search exits before it runs `occur'."
   (interactive
    (let* ((perform-collect (consp current-prefix-arg))
 	  (regexp (cond
@@ -2495,6 +2498,11 @@ characters in that string."
 	     ;; Otherwise normal occur takes numerical prefix argument.
 	     (when current-prefix-arg
 	       (prefix-numeric-value current-prefix-arg))))))
+  (when (and (symbolp this-command)
+             (get this-command 'isearch-exit))
+    (let ((isearch-recursive-edit nil))
+      (isearch-done nil t)
+      (isearch-clean-overlays)))
   (let ((case-fold-search isearch-case-fold-search)
 	;; Set `search-upper-case' to nil to not call
 	;; `isearch-no-upper-case-p' in `occur-1'.
