@@ -651,6 +651,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             (make-directory default-directory)
             (vc-test--create-repo-function backend)
 
+            ;; Test mix of registered and unregistered files.
             (let* ((tmp-dir (expand-file-name "dir1/" default-directory))
                    (tmp-name1 (expand-file-name "foo" tmp-dir))
                    (tmp-name2 (expand-file-name "bar" tmp-dir))
@@ -670,7 +671,22 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (should-not (file-exists-p tmp-name1))
               (should-not (file-exists-p tmp-name2))
               (should (file-exists-p new-name1))
-              (should (file-exists-p new-name2))))
+              (should (file-exists-p new-name2)))
+
+            ;; Test only unregistered files.
+            (let* ((tmp-dir (expand-file-name "dir3/" default-directory))
+                   (tmp-name (expand-file-name "foo" tmp-dir))
+                   (new-dir (expand-file-name "dir4/" default-directory))
+                   (new-name (expand-file-name "foo" new-dir)))
+              (make-directory tmp-dir)
+              (write-region "foo" nil tmp-name nil 'nomessage)
+
+              (vc-rename-file (directory-file-name tmp-dir)
+                              (directory-file-name new-dir))
+              (should-not (file-exists-p tmp-name))
+              (should-not (file-exists-p tmp-name))
+              (should (file-exists-p new-name))
+              (should (file-exists-p new-name))))
 
         ;; Save exit.
         (ignore-errors
