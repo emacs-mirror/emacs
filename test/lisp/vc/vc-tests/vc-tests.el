@@ -589,7 +589,36 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (should (equal (vc-state new-name)
                              (if (memq backend '(RCS SCCS))
                                  'up-to-date
-                               'added)))))
+                               'added))))
+
+            ;; Test OK-IF-ALREADY-EXISTS.
+            (let ((tmp-name (expand-file-name "qux" default-directory))
+                  (new-name (expand-file-name "quuux" default-directory)))
+              (write-region "qux" nil tmp-name nil 'nomessage)
+              (write-region "quuux" nil new-name nil 'nomessage)
+              (vc-register
+               (list backend (list (file-name-nondirectory tmp-name)
+                                   (file-name-nondirectory new-name))))
+
+              (should-error (vc-rename-file tmp-name new-name)
+                            :type 'file-already-exists)
+              (vc-rename-file tmp-name new-name 'ok-if-already-exists)
+              (should-not (file-exists-p tmp-name))
+              (should (file-exists-p new-name)))
+
+            ;; Test moving into an existing directory.
+            (let ((tmp-name (expand-file-name "quux" default-directory))
+                  (new-dir (expand-file-name "dir1/" default-directory))
+                  (new-name (expand-file-name "dir1/quux" default-directory)))
+              (make-directory new-dir)
+              (write-region "quux" nil tmp-name nil 'nomessage)
+              (vc-register
+               `(,backend (,(file-relative-name new-dir default-directory)
+                           ,(file-name-nondirectory tmp-name))))
+
+              (vc-rename-file tmp-name new-dir)
+              (should-not (file-exists-p tmp-name))
+              (should (file-exists-p new-name))))
 
         ;; Save exit.
         (ignore-errors

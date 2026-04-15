@@ -4958,12 +4958,14 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (vc-checkin file new-backend comment (stringp comment)))))
 
 ;;;###autoload
-(defun vc-delete-file (file-or-files)
+(defun vc-delete-file (file-or-files &optional noconfirm)
   "Delete file and mark it as such in the version control system.
 If called interactively, read FILE-OR-FILES, defaulting to the current
 buffer's file name if it's under version control.
 When called from Lisp, FILE-OR-FILES can be a file name or a list of
-file names."
+file names.
+When called from Lisp, optional argument NOCONFIRM non-nil means don't
+prompt to confirm deletion."
   (interactive (list (read-file-name "VC delete file: " nil
                                      (when (vc-backend buffer-file-name)
                                        buffer-file-name)
@@ -4982,11 +4984,12 @@ file names."
           (error "Please commit or undo your changes before deleting %s" file))
         (when (eq state 'conflict)
           (error "Please resolve the conflicts before deleting %s" file)))))
-  (unless (y-or-n-p (if (cdr file-or-files)
-                        (format "Really want to delete these %d files? "
-                                (length file-or-files))
-                      (format "Really want to delete %s? "
-			      (file-name-nondirectory (car file-or-files)))))
+  (unless (or noconfirm
+              (y-or-n-p (if (cdr file-or-files)
+                            (format "Really want to delete these %d files? "
+                                    (length file-or-files))
+                          (format "Really want to delete %s? "
+			          (file-name-nondirectory (car file-or-files))))))
     (error "Abort!"))
   (let ((post-backend-deletion
          ;; Things to do after calling the backend's `delete-file' or
@@ -5032,10 +5035,14 @@ file names."
             (funcall post-backend-deletion file)))))))
 
 ;;;###autoload
-(defun vc-rename-file (old new)
+(defun vc-rename-file (old new &optional ok-if-already-exists)
   "Rename file OLD to NEW in both working tree and repository.
 When called interactively, read OLD and NEW, defaulting OLD to the
-current buffer's file name if it's under version control."
+current buffer's file name if it's under version control.
+If NEW is a directory name, rename FILE to a like-named file under NEW.
+For NEW to be recognized as a directory name, it should end in a slash.
+Signal a `file-already-exists' error if a file NEW already exists unless
+called from Lisp with optional argument OK-IF-ALREADY-EXISTS non-nil."
   ;; FIXME: Support renaming whole directories.
   ;; The use of `vc-call' will need to change to something like
   ;;
@@ -5064,8 +5071,14 @@ current buffer's file name if it's under version control."
       (error "Please save files before moving them"))
     (when (get-file-buffer new)
       (error "Already editing new file name"))
+    ;; Handle OK-IF-ALREADY-EXISTS here because it's not part of the VC
+    ;; backend `delete-file' API.
+    ;; If NEW is a directory we'll fail to delete it, consistent with
+    ;; `rename-file' whose OK-IF-ALREADY-EXISTS argument similarly can't
+    ;; delete existing directories.
     (when (file-exists-p new)
-      (error "New file already exists"))
+      (if ok-if-already-exists (vc-delete-file new 'noconfirm)
+        (signal 'file-already-exists `("File exists" ,new))))
     (unless dirp
       (let ((state (vc-state old)))
         (unless (memq state '(up-to-date edited added))
