@@ -1189,10 +1189,13 @@ Should be called with DEFAULT-DIRECTORY equal to the repository root."
       (file-error nil)))
   (vc-hg-command nil 0 files "remove" "--after" "--force"))
 
-;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
-  (vc-hg-command nil 0 (expand-file-name new) "mv"
+  ;; Do the rename ourselves then update hg.  Otherwise only registered
+  ;; files are moved.  ('git mv' moves both registered and unregistered
+  ;; files which seems more useful.)
+  (rename-file old new)
+  (vc-hg-command nil 0 (expand-file-name new) "mv" "--after"
                  (expand-file-name old)))
 
 (defun vc-hg-register (files &optional _comment)

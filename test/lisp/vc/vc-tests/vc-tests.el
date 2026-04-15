@@ -624,6 +624,54 @@ This checks also `vc-backend' and `vc-responsible-backend'."
         (ignore-errors
           (run-hooks 'vc-test--cleanup-hook))))))
 
+(defun vc-test--rename-directory (backend)
+  "Check the rename-file action for directories."
+  (ert-with-temp-directory tempdir
+    (let ((vc-handled-backends `(,backend))
+          (default-directory
+           (file-name-as-directory
+            (expand-file-name
+             (make-temp-name "vc-test") temporary-file-directory)))
+          (process-environment process-environment)
+          vc-test--cleanup-hook)
+      (vc--fix-home-for-bzr tempdir)
+      (unwind-protect
+          (progn
+            ;; Cleanup.
+            (add-hook
+             'vc-test--cleanup-hook
+             (let ((dir default-directory))
+               (lambda () (delete-directory dir 'recursive))))
+
+            ;; Create empty repository.
+            (make-directory default-directory)
+            (vc-test--create-repo-function backend)
+
+            (let* ((tmp-dir (expand-file-name "dir1/" default-directory))
+                   (tmp-name1 (expand-file-name "foo" tmp-dir))
+                   (tmp-name2 (expand-file-name "bar" tmp-dir))
+                   (new-dir (expand-file-name "dir2/" default-directory))
+                   (new-name1 (expand-file-name "foo" new-dir))
+                   (new-name2 (expand-file-name "bar" new-dir)))
+              (make-directory tmp-dir)
+              (write-region "foo" nil tmp-name1 nil 'nomessage)
+              (write-region "bar" nil tmp-name2 nil 'nomessage)
+              ;; Register TMP-NAME1 but *not* TMP-NAME2.
+              (vc-register `(,backend
+                             (,(file-relative-name tmp-name1
+                                                   default-directory))))
+
+              (vc-rename-file (directory-file-name tmp-dir)
+                              (directory-file-name new-dir))
+              (should-not (file-exists-p tmp-name1))
+              (should-not (file-exists-p tmp-name2))
+              (should (file-exists-p new-name1))
+              (should (file-exists-p new-name2))))
+
+        ;; Save exit.
+        (ignore-errors
+          (run-hooks 'vc-test--cleanup-hook))))))
+
 (defvar vc-hg-global-switches)
 
 (defmacro vc-test--with-author-identity (backend &rest body)
@@ -1222,7 +1270,23 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	      ',(intern
 	         (format "vc-test-%s01-register" backend-string))))))
           (skip-unless (memq ',backend '(Git Hg)))
-          (vc-test--checkin-patch ',backend))))))
+          (vc-test--checkin-patch ',backend))
+
+        (ert-deftest
+            ,(intern (format "vc-test-%s10-rename-directory" backend-string)) ()
+          ,(format "Check `vc-rename-file' with directories for the %s backend."
+                   backend-string)
+          (skip-unless
+           (ert-test-passed-p
+            (ert-test-most-recent-result
+             (ert-get-test
+              ',(intern
+                 (format "vc-test-%s01-register" backend-string))))))
+          ;; See vc-test-*-rename-file regarding CVS and Mtn.
+          ;; SVN requires all files to rename are registered but we want
+          ;; to test a mix of registered and unregistered files in this test.
+          (skip-when (memq ',backend '(CVS SVN Mtn)))
+          (vc-test--rename-directory ',backend))))))
 
 (provide 'vc-tests)
 ;;; vc-tests.el ends here
