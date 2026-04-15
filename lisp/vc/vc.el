@@ -5043,15 +5043,6 @@ If NEW is a directory name, rename FILE to a like-named file under NEW.
 For NEW to be recognized as a directory name, it should end in a slash.
 Signal a `file-already-exists' error if a file NEW already exists unless
 called from Lisp with optional argument OK-IF-ALREADY-EXISTS non-nil."
-  ;; FIXME: Support renaming whole directories.
-  ;; The use of `vc-call' will need to change to something like
-  ;;
-  ;;     (vc-call-backend (if dir
-  ;;                          (vc-responsible-backend file)
-  ;;                        (vc-backend file))
-  ;;                      'rename-file old new)
-  ;;
-  ;; as was done in `vc-revert-file'; see bug#43464.  --spwhitton
   (interactive (list (read-file-name "VC rename file: " nil
                                      (and (vc-backend buffer-file-name)
                                           buffer-file-name)
