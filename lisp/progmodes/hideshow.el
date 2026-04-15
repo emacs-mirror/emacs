@@ -1228,9 +1228,9 @@ DEFAULT is a value to use as fallback."
               (val (if (integerp nth)
                        (nth nth old-lookup)
                      (funcall nth old-lookup))))
-        (set (make-local-variable var) val)
+        (set-local var val)
       (when default
-        (set (make-local-variable var) default)))))
+        (set-local var default)))))
 
 ;; TODO: When `hs-special-modes-alist' is removed, `hs-grok-mode-type'
 ;; and `hs--set-variable' will no longer be necessary, but
