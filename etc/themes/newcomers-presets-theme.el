@@ -163,6 +163,8 @@ This minor mode will enable and disable the theme on startup."
 ;;;; Frame- and window-related options
  '(frame-inhibit-implied-resize t)
  '(tab-bar-history-mode t)
+ ;; FIXME: If you toggle off the theme, without having run any
+ ;; tab-related commands, the tab bar remains visible.
  '(tab-bar-show 0)
 
 ;;;; Programming-related options
