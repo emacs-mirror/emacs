@@ -1,4 +1,3 @@
-
 ### @configure_input@
 
 # Copyright (C) 1994, 1996-2026 Free Software Foundation, Inc.
@@ -96,8 +95,7 @@ TEXI_FROM_ORG = ${ORG_SRC:.org=.texi}
 
 # There are some naming differences between the info targets and the other
 # targets, so let's resolve them here.
-TARGETS_1 = $(INFO_INSTALL:ccmode=cc-mode)
-TARGETS = $(TARGETS_1:info.info=info)
+TARGETS = $(INFO_INSTALL:ccmode=cc-mode)
 
 # Sources are also suffixed, this is useless as they are in different
 # directories, but some people argued that there should not be
@@ -124,15 +122,15 @@ ENVADD = $(AM_V_GEN)TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" \
 gfdl = ${srcdir}/doclicense.texi
 style = ${emacsdir}/docstyle.texi
 
-.PHONY: info dvi html pdf ps echo-info echo-sources $(INFO_TARGETS)
+.PHONY: info dvi html pdf ps echo-info echo-sources $(patsubst info, info-doc, $(INFO_TARGETS))
 ## Prevent implicit rule triggering for foo.info.
 .SUFFIXES:
 
 ## Disable implicit rules.
 %.texi: ;
 
-# Default.
-info: $(INFO_TARGETS)
+# Default. patsubst as "info" is already taken.
+info: $(patsubst info, info-doc,$(INFO_TARGETS))
 
 ## Used by top-level Makefile.
 ## Base file names of output info files.
@@ -164,15 +162,13 @@ ${buildinfodir}/%$(lang_suffix).info: ${srcdir}/$(lang_subdir)%$(lang_suffix).te
 
 ## The short aliases, eg efaq = $(buildinfodir)/efaq.info.
 define info_template
- $(1): $$(buildinfodir)/$(1)$$(lang_suffix).info
+## patsubst as "info" is already taken.
+$$(patsubst info, info-doc, $(1)): $$(buildinfodir)/$(1)$$(lang_suffix).info
 
 $$(buildinfodir)/$(1)$$(lang_suffix).info: $$(srcdir)/$$(lang_subdir)$(1)$$(lang_suffix).texi $$(gfdl) $$(style)
 endef
 
-## "info" is already taken.
-info.info: $(buildinfodir)/info.info
-
-$(foreach ifile,$(filter-out info.info,$(INFO_TARGETS)),$(eval $(call info_template,$(ifile))))
+$(foreach ifile,$(INFO_TARGETS),$(eval $(call info_template,$(ifile))))
 
 
 %$(lang_suffix).dvi: ${srcdir}/$(lang_subdir)%$(lang_suffix).texi ${gfdl} ${style}
