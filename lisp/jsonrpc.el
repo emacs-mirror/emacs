@@ -1053,15 +1053,6 @@ TIMEOUT is nil)."
                                              fn oops)
                            (remove-hook 'jsonrpc-event-hook fn)))))))
 
-(defmacro jsonrpc--save-excursion-maybe (&rest body)
-  "Run BODY, preserving point unless it was at `point-max'.
-If point is already at end of buffer, allow it to follow any
-text inserted there.  Otherwise, restore it afterwards."
-  (declare (indent 0))
-  `(if (= (point) (point-max))
-       (progn ,@body)
-     (save-excursion ,@body)))
-
 (defun jsonrpc--limit-buffer-size (max-size)
   "Limit the current buffer to MAX-SIZE by eating lines at the beginning.
 Do nothing if MAX-SIZE is nil."
@@ -1150,7 +1141,7 @@ of the API instead.")
           ;; slightly to play nice with verbose servers' stderr.
           (when error
             (setq msg (propertize msg 'face 'error)))
-          (jsonrpc--save-excursion-maybe
+          (save-excursion
             (goto-char (point-max))
             (insert-before-markers msg))
           (jsonrpc--limit-buffer-size max))))))
@@ -1178,7 +1169,7 @@ PREFIX to CONN's events buffer."
                                   (line-end-position 0))
                       do (with-current-buffer (jsonrpc-events-buffer conn)
                            (let ((inhibit-read-only t))
-                             (jsonrpc--save-excursion-maybe
+                             (save-excursion
                                (goto-char (point-max))
                                (insert-before-markers
                                 (propertize (format "%s %s\n" prefix line)
