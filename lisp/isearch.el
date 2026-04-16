@@ -2470,8 +2470,9 @@ expression used in that search.  If the last search command searched
 for a literal string, REGEXP is constructed by quoting all the special
 characters in that string.
 
-When the symbol property `isearch-exit' of this command is non-nil,
-the search exits before it runs `occur'."
+If the symbol property `isearch-exit' of this command is non-nil,
+and the command is invoked while in the middle of incremental
+search, it will exit the on-going search before it runs `occur'."
   (interactive
    (let* ((perform-collect (consp current-prefix-arg))
 	  (regexp (cond
