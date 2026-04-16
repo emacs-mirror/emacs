@@ -346,7 +346,6 @@ update_syntax_table (ptrdiff_t charpos, EMACS_INT count,
 	  gl_state.e_property = gl_state.stop;
 	  return;
 	}
-      i = gl_state.forward_i;
       gl_state.b_property = i->position;
       gl_state.e_property = INTERVAL_LAST_POS (i);
     }
