@@ -172,7 +172,7 @@ endef
 ## "info" is already taken.
 info.info: $(buildinfodir)/info.info
 
-$(foreach ifile,$(filter-out info,$(INFO_TARGETS)),$(eval $(call info_template,$(ifile))))
+$(foreach ifile,$(filter-out info.info,$(INFO_TARGETS)),$(eval $(call info_template,$(ifile))))
 
 
 %$(lang_suffix).dvi: ${srcdir}/$(lang_subdir)%$(lang_suffix).texi ${gfdl} ${style}
