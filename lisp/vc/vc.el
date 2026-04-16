@@ -5075,19 +5075,19 @@ called from Lisp with optional argument OK-IF-ALREADY-EXISTS non-nil."
         (unless (memq state '(up-to-date edited added))
           (error "Please %s files before moving them"
 	         (if (stringp state) "check in" "update")))))
-    (let ((backend (if dirp
-                       (vc-responsible-backend old)
-                     (vc-backend old))))
-      ;; The rename commands for several VCS (at least Bzr, Git and
-      ;; Mercurial) will fail if asked to move a directory containing
-      ;; only untracked files.  So skip calling into the backend if OLD
-      ;; is a directory and we walk through the entirety of it without
-      ;; finding any VC-managed files.
-      (unless (and dirp
-                   (catch 'done
-                     (vc-file-tree-walk old (lambda (_) (throw 'done nil)))
-                     t))
-        (vc-call-backend backend 'rename-file old new)))
+    ;; The rename commands for several VCS (at least Bzr, Git and
+    ;; Mercurial) will fail if asked to move a directory containing
+    ;; only untracked files.  So skip calling into the backend if OLD
+    ;; is a directory and we walk through the entirety of it without
+    ;; finding any VC-managed files.
+    (unless (and dirp
+                 (catch 'done
+                   (vc-file-tree-walk old (lambda (_) (throw 'done nil)))
+                   t))
+      (vc-call-backend  (if dirp
+                            (vc-responsible-backend old)
+                          (vc-backend old))
+                        'rename-file old new))
     (vc-file-clearprops old)
     (vc-file-clearprops new)
     ;; Move the actual file (unless the backend did it already)
