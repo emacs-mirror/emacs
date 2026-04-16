@@ -20,9 +20,17 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 * Changes to upcoming Eglot
 
-** New commands for the 'M-x eglot-list-connections' major mode
+** New command 'M-x eglot-describe-connection'
 
-'k' shuts down and 'r' reconnects the server on the current line.
+Pops up a detailed description buffer for the current connection,
+outlining aspects such as the LSP server name and version, the project
+name and root path, among others.
+
+** Improvements to 'M-x eglot-list-connections'
+
+New key bindings: 'k' shuts down, 'r' reconnects, 'e' visits the events
+buffer, 'w' shows workspace configuration, and 'RET' invokes
+'eglot-describe-connection'.
 
 
 * Changes in Eglot 1.23 (2/4/2026)

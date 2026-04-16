@@ -713,12 +713,19 @@ Emacs session.  As with @code{eglot-shutdown}, invoking this command
 with a prefix argument avoids killing the buffers used for
 communications with the language servers.
 
+@item M-x eglot-describe-connection
+This command pops up a detailed description buffer for the current
+connection, outlining aspects such as the LSP server name and version,
+the project name and root path, among others.
+
 @item M-x eglot-list-connections
 This command pops up a buffer listing all active Eglot connections,
 showing aspects such as the server name, project, number of managed
 buffers, major modes, and the server invocation.  In this buffer,
-@kbd{k} shuts down the server on the current line and @kbd{r}
-reconnects to it.
+@kbd{k} shuts down the server on the current line, @kbd{r} reconnects
+to it, @kbd{e} visits its events buffer, @kbd{w} shows its workspace
+configuration, and @kbd{RET} describes the connection with
+@code{eglot-describe-connection}.
 
 @item M-x eglot-rename
 This command renames the program symbol (a.k.a.@: @dfn{identifier}) at

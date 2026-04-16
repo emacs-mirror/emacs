@@ -4943,8 +4943,11 @@ If NOERROR, return predicate, else erroring function."
 
 (defvar eglot-list-connections-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "k" #'eglot-shutdown-listed-connection)
-    (define-key map "r" #'eglot-reconnect-listed-connection)
+    (define-key map "k"           #'eglot-shutdown-listed-connection)
+    (define-key map "r"           #'eglot-reconnect-listed-connection)
+    (define-key map "e"           #'eglot-events-buffer-of-listed-connection)
+    (define-key map "w"           #'eglot-show-workspace-configuration-of-listed-connection)
+    (define-key map (kbd "RET")   #'eglot-describe-listed-connection)
     map)
   "Keymap for `eglot-list-connections-mode'.")
 
@@ -5001,6 +5004,120 @@ If NOERROR, return predicate, else erroring function."
 
 (eglot--list-connections-cmd eglot-reconnect-listed-connection s
   "Reconnect Eglot server on current line" (eglot-reconnect s))
+
+(eglot--list-connections-cmd eglot-events-buffer-of-listed-connection s
+  "Show events buffer for Eglot server on current line"
+  (eglot-events-buffer s))
+
+(eglot--list-connections-cmd eglot-show-workspace-configuration-of-listed-connection s
+  "Show workspace configuration for Eglot server on current line"
+  (save-current-buffer (eglot-show-workspace-configuration s)))
+
+(eglot--list-connections-cmd eglot-describe-listed-connection server
+  "Describe Eglot server on current line in detail"
+  (eglot-describe-connection server))
+
+(cl-defun eglot-describe-connection
+    (server &aux
+            (info    (eglot--server-info server))
+            (project (eglot--project server))
+            (root    (project-root project))
+            (managed (eglot--managed-buffers server))
+            (caps    (eglot--capabilities server))
+            (watches (eglot--file-watches server))
+            (wsconf  (eglot--workspace-configuration-plist server))
+            (sname (or (plist-get info :name) (jsonrpc-name server))))
+  "Describe SERVER in a dedicated buffer."
+  (interactive (list (eglot--current-server-or-lose)))
+  (with-current-buffer
+      (get-buffer-create (format "*EGLOT connection (%s/%s)*"
+                                 (eglot-project-nickname server) sname))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (special-mode)
+      (setq-local revert-buffer-function
+                  (lambda (&rest _)
+                    (eglot-describe-connection server)))
+      (cl-flet ((heading (str &optional first)
+                  (unless first (insert "\n"))
+                  (insert (propertize str 'face 'bold) "\n")))
+        (heading "Server" t)
+        (insert (format "  Name:    %s\n" sname))
+        (insert (format "  Version: %s\n" (plist-get info :version)))
+
+        (heading "Project")
+        (insert (format "  Nickname:  %s\n" (eglot-project-nickname server)))
+        (insert (format "  Root:      %s\n" root))
+        (let ((expanded (expand-file-name root))
+              (trueroot (eglot--trueroot server)))
+          (unless (string= root expanded)
+            (insert (format "  Expanded:  %s\n" expanded)))
+          (unless (string= expanded trueroot)
+            (insert (format "  Canonical: %s\n" trueroot))))
+        (insert (format "  As lisp:   %s\n" project))
+
+        (heading "Major modes")
+        (insert "  "
+                (mapconcat #'symbol-name (eglot--major-modes server) ", ")
+                "\n")
+
+        (heading (format "Managed buffers (%d)" (length managed)))
+        (dolist (buf managed)
+          (if (buffer-live-p buf)
+              (let ((name (or (buffer-file-name buf) (buffer-name buf))))
+                (insert "  ")
+                (insert-text-button name
+                                    'action (lambda (_) (pop-to-buffer buf))
+                                    'follow-link t)
+                (insert "\n"))
+            (insert "  (dead buffer)\n")))
+
+        (heading "Capabilities")
+        (cl-loop
+         with enabled = (cl-loop for (k v) on caps by #'cddr
+                                 unless (eq v :json-false) collect k)
+         with col-width = (+ 1 (cl-reduce
+                                #'max enabled :initial-value 0
+                                :key (lambda (k) (length (symbol-name k)))))
+         for tail on enabled by #'cdddr
+         do (insert "  ")
+         (cl-loop for k in (seq-take tail 3)
+                  for name = (symbol-name k)
+                  do (insert-text-button
+                      name
+                      'action (let ((v (plist-get caps k)))
+                                (lambda (_)
+                                  (pp-eval-expression (list 'quote v))))
+                      'follow-link t)
+                  (insert (make-string (- col-width (length name)) ?\s)))
+         (insert "\n"))
+
+        (heading "Workspace configuration")
+        (if wsconf
+            (insert (with-temp-buffer
+                      (insert (jsonrpc--json-encode wsconf))
+                      (ignore-errors (require 'json) (json-pretty-print-buffer))
+                      (replace-regexp-in-string "^" "  " (buffer-string)))
+                    "\n")
+          (insert "  (none)\n"))
+
+        (heading "File watchers")
+        (if (zerop (hash-table-count watches))
+            (insert "  (none)\n")
+          (maphash (lambda (id descs)
+                     (insert (format "  %s -> %d watcher%s\n" id
+                                     (length descs)
+                                     (if (= 1 (length descs)) "" "s"))))
+                   watches))
+
+        (heading "Events buffer")
+        (insert "  ")
+        (insert-text-button "Show events buffer"
+                            'action (lambda (_) (eglot-events-buffer server))
+                            'follow-link t)
+        (insert "\n")))
+    (goto-char (point-min))
+    (display-buffer (current-buffer))))
 
 
 ;;; Inlay hints
@@ -5658,11 +5775,15 @@ lock machinery calls us again."
                eglot-reconnect
                eglot-rename
                eglot-signal-didChangeConfiguration
-               eglot-stderr-buffer))
+               eglot-stderr-buffer
+               eglot-describe-connection))
   (function-put sym 'command-modes '(eglot--managed-mode)))
 
 (dolist (sym '(eglot-shutdown-listed-connection
-               eglot-reconnect-listed-connection))
+               eglot-reconnect-listed-connection
+               eglot-events-buffer-of-listed-connection
+               eglot-show-workspace-configuration-of-listed-connection
+               eglot-describe-listed-connection))
   (function-put sym 'command-modes '(eglot-list-connections-mode)))
 
 (provide 'eglot)
