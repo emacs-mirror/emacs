@@ -5084,10 +5084,10 @@ called from Lisp with optional argument OK-IF-ALREADY-EXISTS non-nil."
                  (catch 'done
                    (vc-file-tree-walk old (lambda (_) (throw 'done nil)))
                    t))
-      (vc-call-backend  (if dirp
-                            (vc-responsible-backend old)
-                          (vc-backend old))
-                        'rename-file old new))
+      (vc-call-backend (if dirp
+                           (vc-responsible-backend old)
+                         (vc-backend old))
+                       'rename-file old new))
     (vc-file-clearprops old)
     (vc-file-clearprops new)
     ;; Move the actual file (unless the backend did it already)
