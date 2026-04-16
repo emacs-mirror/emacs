@@ -671,7 +671,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (should-not (file-exists-p tmp-name1))
               (should-not (file-exists-p tmp-name2))
               (should (file-exists-p new-name1))
-              (should (file-exists-p new-name2)))
+              (should (vc-registered new-name1))
+              (should (file-exists-p new-name2))
+              (should-not (vc-registered new-name2)))
 
             ;; Test only unregistered files.
             (let* ((tmp-dir (expand-file-name "dir3/" default-directory))
@@ -684,9 +686,26 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (vc-rename-file (directory-file-name tmp-dir)
                               (directory-file-name new-dir))
               (should-not (file-exists-p tmp-name))
+              (should (file-exists-p new-name))
+              (should-not (vc-registered new-name)))
+
+            ;; Test only registered files.
+
+            (let* ((tmp-dir (expand-file-name "dir5/" default-directory))
+                   (tmp-name (expand-file-name "foo" tmp-dir))
+                   (new-dir (expand-file-name "dir6/" default-directory))
+                   (new-name (expand-file-name "foo" new-dir)))
+              (make-directory tmp-dir)
+              (write-region "foo" nil tmp-name nil 'nomessage)
+              (vc-register `(,backend
+                             (,(file-relative-name tmp-name
+                                                   default-directory))))
+
+              (vc-rename-file (directory-file-name tmp-dir)
+                              (directory-file-name new-dir))
               (should-not (file-exists-p tmp-name))
               (should (file-exists-p new-name))
-              (should (file-exists-p new-name))))
+              (should (vc-registered new-name))))
 
         ;; Save exit.
         (ignore-errors

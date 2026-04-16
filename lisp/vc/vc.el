@@ -5080,11 +5080,13 @@ called from Lisp with optional argument OK-IF-ALREADY-EXISTS non-nil."
                      (vc-backend old))))
       ;; The rename commands for several VCS (at least Bzr, Git and
       ;; Mercurial) will fail if asked to move a directory containing
-      ;; only untracked files.
+      ;; only untracked files.  So skip calling into the backend if OLD
+      ;; is a directory and we walk through the entirety of it without
+      ;; finding any VC-managed files.
       (unless (and dirp
-                   (all (lambda (x)
-                          (memq (cadr x) '(ignored unregistered)))
-                        (vc-dir-status-files old (list old) backend)))
+                   (catch 'done
+                     (vc-file-tree-walk old (lambda (_) (throw 'done nil)))
+                     t))
         (vc-call-backend backend 'rename-file old new)))
     (vc-file-clearprops old)
     (vc-file-clearprops new)
