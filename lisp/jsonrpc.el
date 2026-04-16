@@ -1053,6 +1053,15 @@ TIMEOUT is nil)."
                                              fn oops)
                            (remove-hook 'jsonrpc-event-hook fn)))))))
 
+(defmacro jsonrpc--save-excursion-maybe (&rest body)
+  "Run BODY, preserving point unless it was at `point-max'.
+If point is already at end of buffer, allow it to follow any
+text inserted there.  Otherwise, restore it afterwards."
+  (declare (indent 0))
+  `(if (= (point) (point-max))
+       (progn ,@body)
+     (save-excursion ,@body)))
+
 (defun jsonrpc--limit-buffer-size (max-size)
   "Limit the current buffer to MAX-SIZE by eating lines at the beginning.
 Do nothing if MAX-SIZE is nil."
@@ -1137,12 +1146,13 @@ of the API instead.")
                                       (concat "\n" (pp-to-string
                                                     foreign-message))))
                                (concat log-text "\n")))))))
-          (goto-char (point-max))
           ;; XXX: could use `run-at-time' to delay server logs
           ;; slightly to play nice with verbose servers' stderr.
           (when error
             (setq msg (propertize msg 'face 'error)))
-          (insert-before-markers msg)
+          (jsonrpc--save-excursion-maybe
+            (goto-char (point-max))
+            (insert-before-markers msg))
           (jsonrpc--limit-buffer-size max))))))
 
 (defun jsonrpc--forwarding-buffer (name prefix conn)
@@ -1167,11 +1177,12 @@ PREFIX to CONN's events buffer."
                                   (line-beginning-position 0)
                                   (line-end-position 0))
                       do (with-current-buffer (jsonrpc-events-buffer conn)
-                           (goto-char (point-max))
                            (let ((inhibit-read-only t))
-                             (insert
-                              (propertize (format "%s %s\n" prefix line)
-                                          'face 'shadow))
+                             (jsonrpc--save-excursion-maybe
+                               (goto-char (point-max))
+                               (insert-before-markers
+                                (propertize (format "%s %s\n" prefix line)
+                                            'face 'shadow)))
                              (jsonrpc--limit-buffer-size max)))
                       until (eobp)))))
        nil t))
