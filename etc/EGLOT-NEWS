@@ -18,6 +18,13 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes to upcoming Eglot
+
+** New commands for the 'M-x eglot-list-connections' major mode
+
+'k' shuts down and 'r' reconnects the server on the current line.
+
+
 * Changes in Eglot 1.23 (2/4/2026)
 
 ** Unbreak ELPA Eglot (github#1584)
