@@ -1240,7 +1240,7 @@ object."
   (let* ((server (eglot-current-server))
          (remote-prefix (and server (eglot--trampish-p server)))
          (root (and server (project-root (eglot--project server))))
-         (trueroot (and root (eglot--trueroot server)))
+         (trueroot (and server (eglot--trueroot server)))
          (url (url-generic-parse-url uri)))
     ;; Only parse file:// URIs, leave other URI untouched as
     ;; `file-name-handler-alist' should know how to handle them
@@ -1248,19 +1248,22 @@ object."
     (if (string= "file" (url-type url))
         (let* ((unhexed (url-unhex-string (url-filename url)))
                ;; Remove the leading "/" for local MS Windows-style paths.
-               (normalized (if (and (not remote-prefix)
+               (norm (if (and (not remote-prefix)
                                     (eq system-type 'windows-nt)
                                     (cl-plusp (length unhexed))
                                     (eq (aref unhexed 0) ?/))
                                (w32-long-file-name (substring unhexed 1))
                              unhexed))
-               ;; Make sure the final path is relative to project's root
-               ;; (found when the user `M-x eglot''ed), not trueroot.
-               (normalized (if trueroot
-                               (replace-regexp-in-string (concat "^" trueroot) root
-                                                         normalized)
-                             normalized)))
-          (concat remote-prefix normalized))
+               ;; Even though we exchange truename URIs with the server,
+               ;; ensure paths exchanged with Emacs facilities such as
+               ;; Xref contains the familiar root as found by
+               ;; 'project-current', not a potentially obscure
+               ;; canonicalized truename.
+               (norm
+                (if (and trueroot (string-prefix-p trueroot norm))
+                    (expand-file-name (substring norm (length trueroot)) root)
+                  norm)))
+          (concat remote-prefix norm))
       uri)))
 
 (cl-defun eglot-path-to-uri (path &key truenamep)
