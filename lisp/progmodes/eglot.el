@@ -1225,7 +1225,11 @@ object."
     :accessor eglot--saved-initargs)
    (semtok-cache
     :initform (make-hash-table :test #'equal)
-    :documentation "Map LSP token conses to face names."))
+    :documentation "Map LSP token conses to face names.")
+   (trueroot
+    :initform nil
+    :documentation "Cached truename of the associated project root."
+    :accessor eglot--trueroot))
   :documentation
   "Represents a server. Wraps a process for LSP communication.")
 
@@ -1235,19 +1239,27 @@ object."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (let* ((server (eglot-current-server))
          (remote-prefix (and server (eglot--trampish-p server)))
+         (root (and server (project-root (eglot--project server))))
+         (trueroot (and root (eglot--trueroot server)))
          (url (url-generic-parse-url uri)))
     ;; Only parse file:// URIs, leave other URI untouched as
     ;; `file-name-handler-alist' should know how to handle them
     ;; (bug#58790).
     (if (string= "file" (url-type url))
-        (let* ((retval (url-unhex-string (url-filename url)))
+        (let* ((unhexed (url-unhex-string (url-filename url)))
                ;; Remove the leading "/" for local MS Windows-style paths.
                (normalized (if (and (not remote-prefix)
                                     (eq system-type 'windows-nt)
-                                    (cl-plusp (length retval))
-                                    (eq (aref retval 0) ?/))
-                               (w32-long-file-name (substring retval 1))
-                             retval)))
+                                    (cl-plusp (length unhexed))
+                                    (eq (aref unhexed 0) ?/))
+                               (w32-long-file-name (substring unhexed 1))
+                             unhexed))
+               ;; Make sure the final path is relative to project's root
+               ;; (found when the user `M-x eglot''ed), not trueroot.
+               (normalized (if trueroot
+                               (replace-regexp-in-string (concat "^" trueroot) root
+                                                         normalized)
+                             normalized)))
           (concat remote-prefix normalized))
       uri)))
 
@@ -1833,6 +1845,7 @@ This docstring appeases checkdoc, that's all."
     (setf (eglot--saved-initargs server) initargs)
     (setf (eglot--project server) project)
     (setf (eglot--project-nickname server) nickname)
+    (setf (eglot--trueroot server) (file-truename (project-root project)))
     (setf (eglot--languages server)
           (cl-loop for m in managed-modes for l in language-ids
                    collect (cons m l)))
