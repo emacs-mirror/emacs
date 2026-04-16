@@ -192,14 +192,21 @@ Like `minibuffer-complete-word' but for `completing-read-multiple'."
   (crm--completion-command beg end
     (completion-in-region--single-word beg end)))
 
-(defun crm-complete-and-exit ()
+(defun crm-complete-and-exit (&optional no-exit)
   "If all of the minibuffer elements are valid completions then exit.
 All elements in the minibuffer must match.  If there is a mismatch, move point
 to the location of mismatch and do not exit.
 
+If a completion candidate is selected in the *Completions* buffer, it
+will be inserted in the minibuffer first.  If NO-EXIT is non-nil, don't
+actually exit the minibuffer, just insert the selected completion if
+any.
+
 This function is modeled after `minibuffer-complete-and-exit'."
-  (interactive)
-  (let ((doexit t))
+  (interactive "P")
+  (when (completion--selected-candidate)
+    (minibuffer-choose-completion t t))
+  (let ((doexit (not no-exit)))
     (goto-char (minibuffer-prompt-end))
     (while
         (and doexit
