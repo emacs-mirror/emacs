@@ -63,7 +63,7 @@ equal to 2. This is done with low level functions calls, not like
 interactively."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(2 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'ses-cell-set-formula c)
@@ -76,7 +76,7 @@ interactively."
 equal to 2. This is done  using interactive calls."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(2 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'funcall-interactively 'ses-edit-cell c))
@@ -94,7 +94,7 @@ called but instead we use text replacement in the buffer
 previously passed in text mode."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(2 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'ses-cell-set-formula c)
@@ -116,7 +116,7 @@ previously passed in text mode."
 to (1+ ses--foo), makes A2 value equal to 2."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(2 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (ses-rename-cell 'ses--foo (ses-get-cell 0 0))
       (dolist (c '((0 0 1) (1 0 (1+ ses--foo))))
@@ -133,7 +133,7 @@ to (1+ ses--foo), makes A2 value equal to 2."
 renaming A1 to `ses--foo' makes `ses--foo' value equal to 2."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(2 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'funcall-interactively 'ses-edit-cell c))
@@ -151,7 +151,7 @@ to `ses--foo' makes `ses--foo' value equal to 1. Then set A1 to 2 and check
 that `ses--foo' becomes 2."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(3 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 A1)))
         (apply 'funcall-interactively 'ses-edit-cell c))
@@ -178,7 +178,7 @@ to A2 and inserting a row, makes A2 value empty, and A3 equal to
 2."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(2 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'funcall-interactively 'ses-edit-cell c))
@@ -197,7 +197,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
 2."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(2 . 1)))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 0 1) (1 0 (1+ A1))))
         (apply 'funcall-interactively 'ses-edit-cell c))
@@ -222,7 +222,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       ;; C-u 4 M-x ses-jump
       (let ((current-prefix-arg 4))
@@ -236,7 +236,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (funcall-interactively 'ses-jump "b2")
       (ses-command-hook)
@@ -248,7 +248,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (ert-simulate-keys [ ?b ?2 return] (ses-jump))
       (ses-command-hook)
@@ -260,7 +260,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (funcall-interactively 'ses-jump 'B2)
       (ses-command-hook)
@@ -272,7 +272,7 @@ to `ses--bar' and inserting a row, makes A2 value empty, and `ses--bar' equal to
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(3 . 3))
         ses-after-entry-functions)
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (ses-rename-cell 'ses--toto (ses-get-cell 1 1))
       (ses-jump 'ses--toto)
@@ -287,7 +287,7 @@ cell has to be rewritten to data area."
   (ses-tests-unbind-local-vars)
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
-    (with-temp-buffer
+    (ert-with-test-buffer ()
       (ses-mode)
       (dolist (c '((0 1 1); B1
                    (1 0 2) (1 1 (+ B1 A2)); A2 B2
