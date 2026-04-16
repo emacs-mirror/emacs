@@ -565,8 +565,9 @@ Convert MAP into an alist."
 
 (cl-defmethod map-into (map (_type (eql alist)))
   "Implementation of `map-into' for TYPE that is alist.
-Convert MAP into an alist, with keys the `car' of each
-association cons cell and value the `cdr'.."
+Convert MAP into an alist, with the `car' of each
+association cons cell serving as keys and the `cdr' as
+values."
   (map-pairs map))
 
 (cl-defmethod map-into (map (_type (eql plist)))
@@ -668,8 +669,8 @@ passing the element's key and its value as arguments of FUNCTION."
   "Implementation of `map-apply' for maps that are arrays.
 In a map that is an array, the keys are the slot indices,
 and slot contents are the values.
-FUNCTION will be called with each element of the map and its
-array index."
+FUNCTION will be called for each element of MAP with the
+index of the element and the element itself as arguments."
   (seq-map-indexed (lambda (elt index)
                      (funcall function index elt))
                    map))
@@ -694,7 +695,8 @@ elements, `car' and `cdr' of association cons cell for alists."
   "Implementation of `map-do' for maps that are arrays.
 In a map that is an array, the keys are the slot indices,
 and slot contents are the values.
-FUNCTION's arguments are the index of the element and the element itself."
+FUNCTION's arguments are the index of the element and the
+element itself."
   (seq-do-indexed (lambda (elt index)
                     (funcall function index elt))
                   map))
