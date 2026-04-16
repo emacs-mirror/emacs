@@ -1123,7 +1123,7 @@ result of @var{NAME-FORM}.  Example:
 This uses the test buffer @file{*Test buffer
 (backtrace-tests--variables): variables*}.
 
-If @var{select-form} is non-nil, select the buffer after creating it.
+If @var{select-form} is non-@code{nil}, select the buffer after creating it.
 This has the same effect as combining @code{ert-with-test-buffer} with
 @code{ert-with-buffer-selected}.  Example:
 
@@ -1134,7 +1134,7 @@ This has the same effect as combining @code{ert-with-test-buffer} with
 @end lisp
 
 @findex ert-play-keys
-The @var{select-form} shall be set non-nil when @var{body} contains some
+The @var{select-form} shall be set non-@code{nil} when @var{body} contains some
 call to @code{ert-play-keys} to generate programmatically user input
 events inserting text into the test buffer, or starting commands acting
 on the test buffer.
@@ -1161,7 +1161,7 @@ value is the last form in @var{body}.  Example:
 
 This displays a temporary buffer like @file{ *temp*-739785*}.
 
-@findex ert-play-keys
+@c @findex ert-play-keys
 One of the use of @code{ert-with-buffer-selected} is to set the buffer
 to which user input events generated programmatically by one or more
 calls to @code{ert-play-keys} are targetted, which is needed when those
@@ -1270,21 +1270,21 @@ The following keyword arguments are supported:
 @table @code
 @vindex ert-temp-file-prefix
 @item :prefix @var{string}
-If non-nil, pass @var{string} to @code{make-temp-file} as
+If non-@code{nil}, pass @var{string} to @code{make-temp-file} as
 the @var{prefix} argument.  Otherwise, use the value of
 @code{ert-temp-file-prefix}.
 
 @vindex ert-temp-file-suffix
 @item :suffix @var{string}
-If non-nil, pass @var{string} to @code{make-temp-file} as the
+If non-@code{nil}, pass @var{string} to @code{make-temp-file} as the
 @var{suffix} argument.  Otherwise, use the value of
 @code{ert-temp-file-suffix}; if the value of that variable is nil,
 generate a suffix based on the name of the file that
 @code{ert-with-temp-file} is called from.
 
 @item :text @var{string}
-If non-nil, pass @var{string} to @code{make-temp-file} as the @var{text}
-argument.
+If non-@code{nil}, pass @var{string} to @code{make-temp-file} as the
+@var{text} argument.
 
 @item :buffer @var{symbol}
 Open the temporary file using @code{find-file-noselect} and bind
@@ -1292,7 +1292,7 @@ Open the temporary file using @code{find-file-noselect} and bind
 normally or non-locally.
 
 @item :coding @var{coding}
-If non-nil, bind @code{coding-system-for-write} to @var{coding} when
+If non-@code{nil}, bind @code{coding-system-for-write} to @var{coding} when
 executing @var{body}.  This is handy when @var{string} includes
 non-ASCII characters or the temporary file must have a specific encoding
 or end-of-line format.
@@ -1400,7 +1400,7 @@ to start interactive commands or insert text into the selected buffer.
 
 So, before calling @code{ert-play-keys} you generally need to select the
 buffer to which input events are intended to insert text or call a
-command. Do this by passing a non-nil @code{:selected} flag to
+command. Do this by passing a non-@code{nil} @code{:selected} flag to
 @code{ert-with-test-buffer} if the buffer was created this way, or use
 the @code{ert-with-buffer-selected} macro.
 
