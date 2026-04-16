@@ -185,7 +185,7 @@ Should be a list of strings."
 (defcustom lua-always-show t
   "Non-nil means display `lua-process-buffer' after sending a command."
   :type 'boolean
-  :group 'lua)
+  :version "31.1")
 
 (defcustom lua-documentation-function 'browse-url
   "Function used to fetch the Lua reference manual."
@@ -202,7 +202,7 @@ Should be a list of strings."
       "http://www.lua.org/manual/5.1/manual.html")
   "URL pointing to the Lua reference manual."
   :type 'string
-  :group 'lua)
+  :version "31.1")
 
 (defvar lua-process nil
   "The active Lua process.")
