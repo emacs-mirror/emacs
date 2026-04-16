@@ -6062,7 +6062,7 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 
 (defun vc-file-tree-walk-internal (file func args)
   (if (not (file-directory-p file))
-      (when (vc-backend file) (apply func file args))
+      (when (vc-registered file) (apply func file args))
     (message "Traversing directory %s..." (abbreviate-file-name file))
     (let ((dir (file-name-as-directory file)))
       (mapcar
