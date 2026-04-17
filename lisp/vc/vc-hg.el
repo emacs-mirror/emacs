@@ -325,13 +325,14 @@ large repositories."
 
 (defun vc-hg--active-bookmark-internal (rev)
   (when (equal rev ".")
-    (let* ((current-bookmarks-file ".hg/bookmarks.current"))
-      (when (file-exists-p current-bookmarks-file)
-        (ignore-errors
-          (with-temp-buffer
-            (insert-file-contents current-bookmarks-file)
-            (buffer-substring-no-properties
-             (point-min) (point-max))))))))
+    (let* ((current-bookmarks-file
+            (expand-file-name ".hg/bookmarks.current"
+                              (vc-hg-root default-directory))))
+      (and (file-exists-p current-bookmarks-file)
+           (ignore-errors
+             (with-temp-buffer
+               (insert-file-contents current-bookmarks-file)
+               (buffer-substring-no-properties (point-min) (point-max))))))))
 
 (defun vc-hg--run-log (template rev path)
   (ignore-errors
@@ -1305,7 +1306,7 @@ It is an error to supply both or neither."
              ;; need to make both of them part of the async command,
              ;; possibly by writing out a tiny shell script (bug#79235).
              (when patch-file
-               (let ((bmark (alist-get 'bookmark (vc-hg--working-branch))))
+               (let ((bmark (vc-hg--active-bookmark-internal ".")))
                  (when bmark
                    (vc-hg-command nil 0 nil "bookmark" "-f" "-r" "tip" bmark))
                  (vc-hg-command nil 0 nil "update" "--merge"
