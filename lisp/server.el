@@ -1220,7 +1220,7 @@ The following commands are accepted by the client:
       ;; visible for some reason.
       (server--message-sit-for 2 "Authentication failed")
       (server-send-string
-       proc (concat "-error " (server-quote-arg "Authentication failed")))
+       proc (concat "-error " (server-quote-arg "Authentication failed") "\n"))
       (unless (eq system-type 'windows-nt)
         (let ((terminal (process-get proc 'terminal)))
           ;; Only delete the terminal if it is non-nil.
@@ -1576,7 +1576,8 @@ invocations of \"emacs\".")
     (server--message-sit-for 2 (error-message-string err))
     (server-send-string
      proc (concat "-error " (server-quote-arg
-                             (error-message-string err))))
+			     (error-message-string err))
+		  "\n"))
     (server-log (error-message-string err) proc)
     (unless (eq system-type 'windows-nt)
       (let ((terminal (process-get proc 'terminal)))
@@ -1813,7 +1814,7 @@ To abort an edit instead of saying \"Done\", use \\[server-edit-abort]."
       (mapc (lambda (proc)
               (server-send-string
                proc (concat "-error "
-                            (server-quote-arg "Aborted by the user"))))
+                            (server-quote-arg "Aborted by the user") "\n")))
             server-clients)
     (message "This buffer has no clients")))
 
