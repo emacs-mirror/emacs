@@ -1305,8 +1305,11 @@ It is an error to supply both or neither."
              ;; need to make both of them part of the async command,
              ;; possibly by writing out a tiny shell script (bug#79235).
              (when patch-file
-               (vc-hg-command nil 0 nil "update" "--merge"
-                              "--tool" "internal:local" "tip")))))
+               (let ((bmark (alist-get 'bookmark (vc-hg--working-branch))))
+                 (when bmark
+                   (vc-hg-command nil 0 nil "bookmark" "-f" "-r" "tip" bmark))
+                 (vc-hg-command nil 0 nil "update" "--merge"
+                                "--tool" "internal:local" (or bmark "tip")))))))
       (if vc-async-checkin
           (let* ((buffer (vc-hg--async-buffer))
                  (proc (apply #'vc-hg--async-command buffer
