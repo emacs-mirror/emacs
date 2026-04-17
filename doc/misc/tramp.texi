@@ -5556,6 +5556,8 @@ operations.  For example, the GNU ELPA package @file{tramp-hlo}
 implements specialized versions of @code{dir-locals--all-files},
 @code{locate-dominating-file} and @code{dir-locals-find-file} for
 @value{tramp}'s @code{tramp-sh} backend (@pxref{New operations}).
+@c The NonGNU ELPA package @file{tramp-rpc} implements an own
+@c @value{tramp} backend (@pxref{New operations}).
 @end itemize
 
 
@@ -6743,7 +6745,7 @@ The following parameters expand format specifiers for the
 The example above could use
 
 @lisp
-(tramp-login-program "%1")
+(tramp-login-program "%b")
 @end lisp
 
 And you could set @code{tramp-extra-expand-args} as connection-local value:
@@ -6759,7 +6761,7 @@ And you could set @code{tramp-extra-expand-args} as connection-local value:
 (connection-local-set-profile-variables
  'foo-tramp-connection-local-default-profile
  '((tramp-extra-expand-args
-    ?1 (foo-tramp-get-login-program (car tramp-current-connection)))))
+    ?b (foo-tramp-get-login-program (car tramp-current-connection)))))
 
 (connection-local-set-profiles
  '(:application tramp :protocol "foo")
@@ -6867,15 +6869,12 @@ For example, it could implement this by using an own shell script
 which collects the information on the remote host for this very
 special purpose with one round-trip per-call.
 
-@defun tramp-add-external-operation operation function backend
+@defun tramp-add-external-operation operation function backend &optional arg-type
 This adds an implementation of @var{operation} to @value{tramp}'s
 backend @var{backend}.  @var{function} is the new implementation.
 
 Both @var{operation} and @var{function} shall be function symbols.
-They must have the same argument list.  The first argument is used to
-determine, whether @value{tramp} is invoked (check for remote file
-name syntax).  It must be a string or nil, in the latter case
-@code{default-directory} is used for the check.
+They must have the same argument list.
 
 @var{backend}, also a symbol, is the feature name of a @value{tramp}
 backend (except @code{tramp-ftp}).  The new implementation will be
@@ -6883,18 +6882,18 @@ applied only for this backend.  Example:
 
 @lisp
 @group
-(defun test-operation (file)
+(defun my-test-operation (file)
   (message "Original implementation for %s" file))
 @end group
 
 @group
-(defun handle-test-operation (file)
+(defun my-handle-test-operation (file)
   (message "Handler implementation for %s" file))
 @end group
 
 @group
 (tramp-add-external-operation
- #'test-operation #'handle-test-operation 'tramp-sh)
+ #'my-test-operation #'my-handle-test-operation 'tramp-sh)
 @end group
 @end lisp
 
@@ -6903,19 +6902,19 @@ Then we have the different use cases:
 @lisp
 @group
 ;; Local file name.
-(test-operation "/a/b")
+(my-test-operation "/a/b")
 @result{} "Original implementation for /a/b"
 @end group
 
 @group
 ;; Remote file name, handled by `tramp-sh'.
-(test-operation "/ssh::/a/b")
+(my-test-operation "/ssh::/a/b")
 @result{} "Handler implementation for /ssh::/a/b"
 @end group
 
 @group
 ;; Remote file name, handled by `tramp-gvfs'.
-(test-operation "/sftp::/a/b")
+(my-test-operation "/sftp::/a/b")
 @result{} "Original implementation for /sftp::/a/b"
 @end group
 @end lisp
@@ -6935,14 +6934,14 @@ could look like:
 
 @lisp
 @group
-(defun handle-test-operation (file)
+(defun my-handle-test-operation (file)
   (message "Entry handler implementation for %s" file)
-  (tramp-run-real-handler #'test-operation (list file))
+  (tramp-run-real-handler #'my-test-operation (list file))
   (message "Exit handler implementation for %s" file))
 @end group
 
 @group
-(test-operation "/ssh::/a/b")
+(my-test-operation "/ssh::/a/b")
 @result{} "Entry handler implementation for /ssh::/a/b
    Original implementation for /ssh::/a/b
    Exit handler implementation for /ssh::/a/b"
@@ -6952,6 +6951,47 @@ could look like:
 If the same @var{function} shall be used for different @value{tramp}
 backends, @code{tramp-add-external-operation} must be called for every
 backend, respectively.
+
+The optional argument @var{arg-type} specisfies, which argument of
+@var{operation} shall be used in order to determine, whether the
+handler @var{function} should be called.  It can be
+
+@itemize @minus
+@item @code{file}@*
+The first argument of @var{operation} is the remote file name to be
+checked.  This is the default, if @var{arg-type} is @code{nil}.
+
+@item @code{default-directory}@*
+@code{default-directory} is the remote file name to be checked.
+
+@item @code{process}@*
+@code{default-directory} of the process buffer of the first argument
+of @var{operation}, a process, is the remote file name to be checked.
+@end itemize
+
+If the first argument of @var{operation} is nil,
+@code{default-directory} is the remote file name to be checked in case
+of @var{arg-type} being @code{file} or @code{process}.
+
+@findex tramp-file-name-for-operation
+If @var{arg-type} is a function symbol, it will be called with the
+same arguments as @code{tramp-file-name-for-operation}.  It must
+return a string, which is the remote file name to be checked.
+
+The example above could be changed like this:
+
+@lisp
+@group
+(defun my-file-name-for-test-operation (operation &rest args)
+  (if (stringp (car args)) (car args) default-directory))
+@end group
+
+@group
+(tramp-add-external-operation
+ #'my-test-operation #'my-handle-test-operation 'tramp-sh
+ #'my-file-name-for-test-operation)
+@end group
+@end lisp
 @end defun
 
 @defun tramp-remove-external-operation operation backend
@@ -6963,7 +7003,7 @@ they are kept.  Example:
 @lisp
 @group
 (tramp-remove-external-operation
- #'test-operation 'tramp-sh)
+ #'my-test-operation 'tramp-sh)
 @end group
 @end lisp
 @end defun
@@ -6978,6 +7018,10 @@ An example implementing this mechanism is the GNU ELPA package
 @code{dir-locals--all-files}, @code{locate-dominating-file} and
 @code{dir-locals-find-file} for @value{tramp}'s @code{tramp-sh}
 backend.
+
+@c Another example is the NonGNU ELPA package @file{tramp-rpc}.  It
+@c provides an own @value{tramp} backend, using a server process on the
+@c remote host.
 
 
 @node Traces and Profiles

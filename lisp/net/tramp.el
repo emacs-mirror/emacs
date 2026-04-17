@@ -2424,7 +2424,22 @@ arguments to pass to the OPERATION."
     (apply operation args)))
 
 (defvar tramp-file-name-for-operation-external nil
-  "List of operations added by external packages.")
+  "Alist of operations added by external packages.
+An entry has the form `(OPERATION . ARG-TYPE)'.  ARG-TYPE can be the
+symbol
+
+- `file': the first argument of OERATION is the remote file name to be
+  checked.
+- `default-directory': `default-directory' is the remote file name to be
+  checked.
+- `process': `default-directory' of the process buffer of the first
+  argument of OPERATION is the remote file name to be checked.
+
+If the first argument of OPERATION is nil, `default-directory' is the
+remote file name to be checked in case of `file' and `process'.
+
+If ARG-TYPE is a function symbol, it will be called with the same
+arguments as `tramp-file-name-for-operation'.  It must return a string.")
 
 ;; We handle here all file primitives.  Most of them have the file
 ;; name as first parameter; nevertheless we check for them explicitly
@@ -2434,9 +2449,7 @@ arguments to pass to the OPERATION."
 ;; ease the life if `file-name-handler-alist' would support a decision
 ;; function as well but regexp only.
 ;; Operations added by external packages are kept in
-;; `tramp-file-name-for-operation-external'.  They expect the file
-;; name to be checked as first argument or, if there isn't any
-;; argument, `default-directory'.
+;; `tramp-file-name-for-operation-external'.
 (defun tramp-file-name-for-operation (operation &rest args)
   "Return file name related to OPERATION file primitive.
 ARGS are the arguments OPERATION has been called with.
@@ -2446,30 +2459,32 @@ first argument of `expand-file-name' is absolute and not remote.
 Must be handled by the callers."
   (cond
    ;; FILE resp DIRECTORY.
-   ((memq operation
-	  '(access-file byte-compiler-base-file-name delete-directory
-	    delete-file diff-latest-backup-file directory-file-name
-	    directory-files directory-files-and-attributes dired-compress-file
-	    dired-uncache file-acl file-accessible-directory-p file-attributes
-	    file-directory-p file-executable-p file-exists-p file-local-copy
-	    file-locked-p file-modes file-name-as-directory
-	    file-name-case-insensitive-p file-name-directory
-	    file-name-nondirectory file-name-sans-versions
-	    file-notify-add-watch file-ownership-preserved-p file-readable-p
-	    file-regular-p file-remote-p file-selinux-context file-symlink-p
-	    file-system-info file-truename file-writable-p
-	    find-backup-file-name get-file-buffer
-	    insert-directory insert-file-contents load lock-file make-directory
-	    make-lock-file-name set-file-acl set-file-modes
-	    set-file-selinux-context set-file-times substitute-in-file-name
-	    unhandled-file-name-directory unlock-file vc-registered
-	    ;; Emacs 28- only.
-	    make-directory-internal
-	    ;; Emacs 29+ only.
-	    abbreviate-file-name
-	    ;; Tramp internal magic file name function.
-	    tramp-set-file-uid-gid))
-    (if (file-name-absolute-p (nth 0 args))
+   ((or
+     (memq operation
+	   '(access-file byte-compiler-base-file-name delete-directory
+	     delete-file diff-latest-backup-file directory-file-name
+	     directory-files directory-files-and-attributes dired-compress-file
+	     dired-uncache file-acl file-accessible-directory-p file-attributes
+	     file-directory-p file-executable-p file-exists-p file-local-copy
+	     file-locked-p file-modes file-name-as-directory
+	     file-name-case-insensitive-p file-name-directory
+	     file-name-nondirectory file-name-sans-versions
+	     file-notify-add-watch file-ownership-preserved-p file-readable-p
+	     file-regular-p file-remote-p file-selinux-context file-symlink-p
+	     file-system-info file-truename file-writable-p
+	     find-backup-file-name get-file-buffer
+	     insert-directory insert-file-contents load lock-file make-directory
+	     make-lock-file-name set-file-acl set-file-modes
+	     set-file-selinux-context set-file-times substitute-in-file-name
+	     unhandled-file-name-directory unlock-file vc-registered
+	     ;; Emacs 28- only.
+	     make-directory-internal
+	     ;; Emacs 29+ only.
+	     abbreviate-file-name
+	     ;; Tramp internal magic file name function.
+	     tramp-set-file-uid-gid))
+     (eq (alist-get operation tramp-file-name-for-operation-external) 'file))
+    (if (and (stringp (nth 0 args)) (file-name-absolute-p (nth 0 args)))
 	(nth 0 args)
       default-directory))
    ;; STRING FILE.
@@ -2502,31 +2517,45 @@ Must be handled by the callers."
     (buffer-file-name
      (if (bufferp (nth 0 args)) (nth 0 args) (current-buffer))))
    ;; COMMAND.
-   ((memq operation
-	  '(exec-path make-nearby-temp-file make-process process-file
-	    shell-command start-file-process temporary-file-directory
-	    ;; Emacs 29+ only.
-            list-system-processes memory-info process-attributes
-            ;; Emacs 30+ only.
-	    file-group-gid file-user-uid))
+   ((or
+     (memq operation
+	   '(exec-path make-nearby-temp-file make-process process-file
+	     shell-command start-file-process temporary-file-directory
+	     ;; Emacs 29+ only.
+             list-system-processes memory-info process-attributes
+             ;; Emacs 30+ only.
+	     file-group-gid file-user-uid))
+     (eq (alist-get operation tramp-file-name-for-operation-external)
+	 'default-directory))
     default-directory)
-   ;; PROC.
-   ((memq operation '(file-notify-rm-watch file-notify-valid-p))
-    (when (processp (nth 0 args))
-      (tramp-get-default-directory (process-buffer (nth 0 args)))))
+   ;; PROC or BUFFER.
+   ((or
+     (memq operation '(file-notify-rm-watch file-notify-valid-p))
+     (eq (alist-get operation tramp-file-name-for-operation-external) 'process))
+    (or (when-let* (((processp (nth 0 args)))
+		    (vec (process-get (nth 0 args) 'tramp-vector)))
+	  (tramp-make-tramp-file-name vec))
+	(when-let*
+	    ((buf (cond
+		   ((processp (nth 0 args)) (process-buffer (nth 0 args)))
+		   ((bufferp (nth 0 args)) (get-buffer (nth 0 args)))
+		   ((stringp (nth 0 args))
+		    ;; Process or buffer name.
+		    (or (get-process (nth 0 args)) (get-buffer (nth 0 args)))))))
+	  (tramp-get-default-directory buf))
+	""))
    ;; VEC.
    ((memq operation
 	  '(tramp-get-home-directory tramp-get-remote-gid
 	    tramp-get-remote-groups tramp-get-remote-uid))
     (tramp-make-tramp-file-name (nth 0 args)))
-   ;; FILE resp DIRECTORY.
-   ((and (memq operation tramp-file-name-for-operation-external)
-	 (or (stringp (nth 0 args)) (null (nth 0 args))))
-    (if (and (stringp (nth 0 args)) (file-name-absolute-p (nth 0 args)))
-	(nth 0 args)
-      default-directory))
+   ;; A function.
+   ((functionp (alist-get operation tramp-file-name-for-operation-external))
+    (apply
+     (alist-get operation tramp-file-name-for-operation-external)
+     operation args))
    ;; Unknown file primitive.
-   (t (unless (member 'remote-file-error debug-ignored-errors)
+   (t (unless (memq 'remote-file-error debug-ignored-errors)
 	(tramp-error
 	 nil 'remote-file-error "Unknown file I/O primitive: %s" operation)))))
 
@@ -2544,7 +2573,7 @@ Must be handled by the callers."
 		  (funcall (setq func (car elt)) vec)
 		(error
 		 (setcar elt #'ignore)
-		 (unless (member 'remote-file-error debug-ignored-errors)
+		 (unless (memq 'remote-file-error debug-ignored-errors)
 		   (tramp-error
 		    vec 'remote-file-error
 		    "Not a valid Tramp file name function `%s'" func))))
@@ -2552,22 +2581,32 @@ Must be handled by the callers."
 		res (cdr elt))))
       res)))
 
-(defun tramp-add-external-operation (operation function backend)
+(defun tramp-add-external-operation
+    (operation function backend &optional arg-type)
   "Add FUNCTION to Tramp BACKEND as handler for OPERATION.
 OPERATION must not be one of the magic operations listed in Info
 node `(elisp) Magic File Names'.  FUNCTION must have the same argument
 list as OPERATION.  BACKEND, a symbol, must be one of the Tramp backend
-packages like `tramp-sh' (except `tramp-ftp')."
+packages like `tramp-sh' (except `tramp-ftp').  ARG-TYPE is either
+`file' (the default), `default-directory', `process' or a function
+symbol.  It describes the type of the OPERATION argument to be checked.
+See the docstring of `tramp-file-name-for-operation-external' for its
+meaning."
   (require backend)
   (when-let* ((fnha
 	       (intern-soft
 		(concat (symbol-name backend) "-file-name-handler-alist")))
-	      ((boundp fnha)))
+	      ((boundp fnha))
+	      (arg-type (or arg-type 'file)))
+    (unless (or (memq arg-type '(file default-directory process))
+		(functionp arg-type))
+      (tramp-error nil 'remote-file-error "Unknown arg type: %s" arg-type))
     ;; Make BACKEND aware of the new operation.
     (add-to-list fnha (cons operation function))
-    (unless (memq operation tramp-file-name-for-operation-external)
+    (unless (assq operation tramp-file-name-for-operation-external)
       ;; Make Tramp aware of the new operation.
-      (add-to-list 'tramp-file-name-for-operation-external operation)
+      (add-to-list
+       'tramp-file-name-for-operation-external (cons operation arg-type))
       (put #'tramp-file-name-handler
 	   'operations
            (cons operation (get 'tramp-file-name-handler 'operations)))
@@ -2577,8 +2616,7 @@ packages like `tramp-sh' (except `tramp-ftp')."
        `(lambda (orig-fun &rest args)
 	  (if-let* ((handler
 		     (find-file-name-handler
-		      (if (and (car args) (file-name-absolute-p (car args)))
-			  (car args) default-directory)
+		      (apply #'tramp-file-name-for-operation #',operation args)
 		      #',operation)))
 	      (apply handler #',operation args)
 	    (apply orig-fun args)))
@@ -2605,7 +2643,7 @@ Tramp backend packages like `tramp-sh'."
 	   tramp-foreign-file-name-handler-alist)
     ;; Make Tramp unaware of OPERATION.
     (setq tramp-file-name-for-operation-external
-	  (delq operation tramp-file-name-for-operation-external))
+	  (assq-delete-all operation tramp-file-name-for-operation-external))
     (put #'tramp-file-name-handler
 	 'operations (delq operation (get 'tramp-file-name-handler 'operations)))
     ;; Remove the advice for OPERATION.
@@ -6335,7 +6373,7 @@ Mostly useful to protect BODY from being interrupted by timers."
   (declare (indent 1) (debug t))
   `(if (tramp-get-connection-property ,proc "locked")
        ;; Be kind for old versions of Emacs.
-       (if (member 'remote-file-error debug-ignored-errors)
+       (if (memq 'remote-file-error debug-ignored-errors)
 	   (throw 'non-essential 'non-essential)
 	 ;(tramp-backtrace ,proc 'force)
 	 (tramp-error
@@ -6701,7 +6739,7 @@ If FILENAME is remote, a file name handler is called."
 ID-FORMAT valid values are `string' and `integer'."
   ;; We use key nil for local connection properties.
   (with-tramp-connection-property nil (format "uid-%s" id-format)
-    (if (equal id-format 'integer) (user-uid) (user-login-name))))
+    (if (eq id-format 'integer) (user-uid) (user-login-name))))
 
 (defun tramp-get-local-gid (id-format)
   "The gid of the local user, in ID-FORMAT.
@@ -6709,8 +6747,8 @@ ID-FORMAT valid values are `string' and `integer'."
   ;; We use key nil for local connection properties.
   (with-tramp-connection-property nil (format "gid-%s" id-format)
     (cond
-     ((equal id-format 'integer) (group-gid))
-     ((equal id-format 'string) (group-name (group-gid)))
+     ((eq id-format 'integer) (group-gid))
+     ((eq id-format 'string) (group-name (group-gid)))
      ((file-attribute-group-id (file-attributes "~/" id-format))))))
 
 (defun tramp-get-local-locale (&optional vec)
@@ -6906,8 +6944,8 @@ ID-FORMAT valid values are `string' and `integer'."
 	   (with-tramp-connection-property vec (format "uid-%s" id-format)
 	     (tramp-file-name-handler #'tramp-get-remote-uid vec id-format)))
       ;; Ensure there is a valid result.
-      (and (equal id-format 'integer) tramp-unknown-id-integer)
-      (and (equal id-format 'string) tramp-unknown-id-string)))
+      (and (eq id-format 'integer) tramp-unknown-id-integer)
+      (and (eq id-format 'string) tramp-unknown-id-string)))
 
 (defun tramp-get-remote-gid (vec id-format)
   "The gid of the remote connection VEC, in ID-FORMAT.
@@ -6916,8 +6954,8 @@ ID-FORMAT valid values are `string' and `integer'."
 	   (with-tramp-connection-property vec (format "gid-%s" id-format)
 	     (tramp-file-name-handler #'tramp-get-remote-gid vec id-format)))
       ;; Ensure there is a valid result.
-      (and (equal id-format 'integer) tramp-unknown-id-integer)
-      (and (equal id-format 'string) tramp-unknown-id-string)))
+      (and (eq id-format 'integer) tramp-unknown-id-integer)
+      (and (eq id-format 'string) tramp-unknown-id-string)))
 
 (defun tramp-get-remote-groups (vec id-format)
   "The list of groups of the remote connection VEC, in ID-FORMAT.
@@ -7231,9 +7269,9 @@ verbosity of 6."
       (let ((default-directory temporary-file-directory))
 	(dolist (pid (list-system-processes))
 	  (and-let* ((attributes (process-attributes pid))
-		     (comm (cdr (assoc 'comm attributes)))
+		     (comm (cdr (assq 'comm attributes)))
 		     ((string-equal
-		       (cdr (assoc 'user attributes)) (user-login-name)))
+		       (cdr (assq 'user attributes)) (user-login-name)))
 		     ;; The returned command name could be truncated
 		     ;; to 15 characters.  Therefore, we cannot check
 		     ;; for `string-equal'.
