@@ -663,6 +663,7 @@ The current directory at call time should not affect the result (Bug#50630)."
   ;; File names with embedded newlines are not allowed on MS-Windows and
   ;; MS-DOS.
   (skip-when (memq system-type '(windows-nt ms-dos)))
+  (skip-unless (dired--ls-accept-b-switch-p))
   (with-current-buffer "*Messages*"
     (let ((inhibit-read-only t))
       (erase-buffer)))
@@ -698,6 +699,7 @@ The current directory at call time should not affect the result (Bug#50630)."
   ;; File names with embedded newlines are not allowed on MS-Windows and
   ;; MS-DOS.
   (skip-when (memq system-type '(windows-nt ms-dos)))
+  (skip-unless (dired--ls-accept-b-switch-p))
   (with-current-buffer "*Messages*"
     (let ((inhibit-read-only t))
       (erase-buffer)))

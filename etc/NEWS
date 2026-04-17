@@ -2536,7 +2536,8 @@ names relative to the root directory of the current project.
 
 +++
 *** Warning when Dired displays a file name with a literal newline.
-On visiting a directory that contains a file whose name has a newline,
+If Dired uses an 'ls' implementation that supports the '-b' switch, then
+on visiting a directory that contains a file whose name has a newline,
 and Dired displays that character as a literal newline, Emacs now
 automatically pops up a buffer warning that such a display can be
 problematic for Dired and showing a way to change the display to use the
@@ -2544,7 +2545,8 @@ unproblematic character '\n'.
 
 +++
 *** New user option 'dired-auto-toggle-b-switch'.
-When this user option is non-nil and 'dired-listing-switches' does not
+When this user option is non-nil and Dired uses an 'ls' implementation
+that supports the '-b' switch and 'dired-listing-switches' does not
 include the '-b' switch, then on visiting a directory containing a file
 whose name has a newline, Emacs automatically adds the '-b' switch and
 redisplays the directory in Dired to show '\n' in the file name instead
