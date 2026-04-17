@@ -3195,30 +3195,12 @@ fix_mutex (mps_ss_t ss, struct Lisp_Mutex *m)
 }
 
 static mps_res_t
-fix_coding (mps_ss_t ss, struct coding_system *c)
-{
-  MPS_SCAN_BEGIN (ss)
-  {
-    if (c)
-      {
-	IGC_FIX12_OBJ (ss, &c->src_object);
-	IGC_FIX12_OBJ (ss, &c->dst_object);
-      }
-  }
-  MPS_SCAN_END (ss);
-  return MPS_RES_OK;
-}
-
-static mps_res_t
 fix_terminal (mps_ss_t ss, struct terminal *t)
 {
   MPS_SCAN_BEGIN (ss)
   {
     IGC_FIX_CALL_FN (ss, struct Lisp_Vector, t, fix_vectorlike);
     IGC_FIX12_PVEC (ss, &t->next_terminal);
-    /* These are malloc'd, so they can be accessed.  */
-    IGC_FIX_CALL_FN (ss, struct coding_system, t->keyboard_coding, fix_coding);
-    IGC_FIX_CALL_FN (ss, struct coding_system, t->terminal_coding, fix_coding);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
