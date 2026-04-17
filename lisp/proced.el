@@ -1742,13 +1742,12 @@ Replace newline characters by \"^J\" (two characters)."
   (if (symbolp format)
       (setq format (cdr (assq format proced-format-alist))))
 
-  ;; Not all systems give us all attributes.  We take `emacs-pid' as a
-  ;; representative process PID.  If FORMAT contains a list of alternative
-  ;; attributes, we take the first attribute that is non-nil for `emacs-pid'.
+  ;; Not all systems give us all attributes.  We take the first process as a
+  ;; representative process.  If FORMAT contains a list of alternative
+  ;; attributes, we take the first attribute that is non-nil for this process.
   ;; If none of the alternatives is non-nil, the attribute is ignored
   ;; in the listing.
-  (let ((standard-attributes
-         (car (proced-process-attributes (list-system-processes))))
+  (let ((standard-attributes (car process-alist))
         new-format fmi)
     (if (and proced-tree-flag
              (assq 'ppid standard-attributes))
