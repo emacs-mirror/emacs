@@ -308,14 +308,8 @@ create_terminal (enum output_method type, struct redisplay_interface *rif)
   terminal->id = next_terminal_id++;
 
 #ifdef HAVE_MPS
-  terminal->keyboard_coding = xzalloc (sizeof (struct coding_system));
-  igc_root_create_n (&terminal->keyboard_coding->src_object, 1);
-  igc_root_create_n (&terminal->keyboard_coding->dst_object, 1);
-  igc_root_create_n (&terminal->keyboard_coding->safe_charsets_string, 1);
-  terminal->terminal_coding = xzalloc (sizeof (struct coding_system));
-  igc_root_create_n (&terminal->terminal_coding->src_object, 1);
-  igc_root_create_n (&terminal->terminal_coding->dst_object, 1);
-  igc_root_create_n (&terminal->terminal_coding->safe_charsets_string, 1);
+  terminal->keyboard_coding = igc_alloc_coding_system ();
+  terminal->terminal_coding = igc_alloc_coding_system ();
 #else
   terminal->keyboard_coding = xmalloc (sizeof (struct coding_system));
   terminal->terminal_coding = xmalloc (sizeof (struct coding_system));
@@ -385,19 +379,13 @@ delete_terminal_internal (struct terminal *terminal)
   *tp = terminal->next_terminal;
 
 #ifdef HAVE_MPS
-  igc_destroy_root_with_start (&terminal->keyboard_coding->src_object);
-  igc_destroy_root_with_start (&terminal->keyboard_coding->dst_object);
-  igc_destroy_root_with_start (&terminal->keyboard_coding->safe_charsets_string);
-#endif
+  igc_xfree (terminal->keyboard_coding);
+  igc_xfree (terminal->terminal_coding);
+#else
   xfree (terminal->keyboard_coding);
-  terminal->keyboard_coding = NULL;
-
-#ifdef HAVE_MPS
-  igc_destroy_root_with_start (&terminal->terminal_coding->src_object);
-  igc_destroy_root_with_start (&terminal->terminal_coding->dst_object);
-  igc_destroy_root_with_start (&terminal->terminal_coding->safe_charsets_string);
-#endif
   xfree (terminal->terminal_coding);
+#endif
+  terminal->keyboard_coding = NULL;
   terminal->terminal_coding = NULL;
 
   if (terminal->kboard && --terminal->kboard->reference_count == 0)

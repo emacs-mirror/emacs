@@ -7500,8 +7500,7 @@ process has been transmitted to the serial port.  */)
 	{
 #ifdef HAVE_MPS
 	  proc_encode_coding_system[new_outfd]
-	    = igc_xzalloc_ambig (sizeof (struct coding_system),
-				 __func__);
+	    = igc_alloc_coding_system ();
 #else
 	  proc_encode_coding_system[new_outfd]
 	    = xmalloc (sizeof (struct coding_system));
@@ -8405,8 +8404,7 @@ setup_process_coding_systems (Lisp_Object process)
   if (!proc_decode_coding_system[inch])
     {
 #ifdef HAVE_MPS
-      proc_decode_coding_system[inch]
-	= igc_xzalloc_ambig (sizeof (struct coding_system), __func__);
+      proc_decode_coding_system[inch] = igc_alloc_coding_system ();
 #else
       proc_decode_coding_system[inch]
 	= xmalloc (sizeof (struct coding_system));
@@ -8425,8 +8423,7 @@ setup_process_coding_systems (Lisp_Object process)
   if (!proc_encode_coding_system[outch])
     {
 #ifdef HAVE_MPS
-      proc_encode_coding_system[outch]
-	= igc_xzalloc_ambig (sizeof (struct coding_system), __func__);
+      proc_encode_coding_system[outch] = igc_alloc_coding_system ();
 #else
       proc_encode_coding_system[outch]
 	= xmalloc (sizeof (struct coding_system));
