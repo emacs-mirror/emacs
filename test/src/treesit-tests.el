@@ -620,6 +620,22 @@ BODY is the test body."
       ;; First element of the match group should be a node.
       (should (treesit-node-p (nth 0 (nth 0 res)))))))
 
+(ert-deftest treesit-query-marker-position ()
+  "Tests for query API."
+  (skip-unless (treesit-language-available-p 'json))
+  (with-temp-buffer
+    (insert "[1,2,{\"name\": \"Bob\"},3]")
+    (treesit-parser-create 'json)
+
+    ;; Test marker.
+    (let* ((beg (point-min-marker))
+           (end (point-max-marker))
+           (res (treesit-query-capture 'json '((number) @num) beg end)))
+      (should (equal (length res) 3)))
+
+    ;; Test out-of-range.
+    (should-error (treesit-query-capture 'json '((number) @num) -1 1))))
+
 ;;; Narrow
 
 (ert-deftest treesit-narrow ()
