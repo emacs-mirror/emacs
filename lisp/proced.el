@@ -180,9 +180,11 @@ Symbol KEY is the car of a process attribute.
 
 String NAME appears in the header line.
 
-FORMAT specifies the format for displaying the attribute values.  It can
-be a string passed to `format'.  It can be a function called with one
-argument, the value of the attribute.  The value nil means take as is.
+FORMAT specifies the format for displaying the attribute values.
+It can be a string passed to `format'.  It can be a function called with one
+argument, the value of the attribute.  This function can access the full list
+of attributes of the respective process via `proced-format-current-process'.
+If FORMAT is nil take the attribute value as is.
 
 If JUSTIFY is an integer, its modulus gives the width of the attribute
 values formatted with FORMAT.  If JUSTIFY is positive, NAME appears
@@ -427,6 +429,10 @@ cons pairs, see `proced-process-attributes'.")
 (defvar proced-sort-internal nil
   "Sort scheme for listing (internal format).
 It is a list of lists (KEY PREDICATE REVERSE).")
+
+(defvar proced-format-current-process nil
+  "Attributes of current process worked on by function `proced-format'.
+See `proced-grammar-alist'.")
 
 (defvar proced-marker-char ?*		; the answer is 42
   "In Proced, the current mark character.")
@@ -1682,13 +1688,13 @@ Replace newline characters by \"^J\" (two characters)."
 
 (defun proced-format-pid (pid)
   "Format PID."
-  (let ((proc-info (process-attributes pid))
-        (pid-s (number-to-string pid)))
+  (let ((pid-s (number-to-string pid)))
     (cond ((and proced-enable-color-flag
                 (not (file-remote-p default-directory))
                 (equal pid (emacs-pid)))
            (propertize pid-s 'font-lock-face 'proced-emacs-pid))
-          ((and proced-enable-color-flag (equal pid (alist-get 'sess proc-info)))
+          ((and proced-enable-color-flag
+                (equal pid (alist-get 'sess proced-format-current-process)))
            (propertize pid-s 'font-lock-face 'proced-session-leader-pid))
           (proced-enable-color-flag
            (propertize pid-s 'font-lock-face 'proced-pid))
@@ -1813,7 +1819,8 @@ Replace newline characters by \"^J\" (two characters)."
                  (end-of-line)
                  (setq value (cdr (assq key (cdr process))))
                  (insert (if value
-                             (apply #'propertize (funcall fun value) fprops)
+                             (let ((proced-format-current-process process))
+                               (apply #'propertize (funcall fun value) fprops))
                            (format (concat "%" (number-to-string (nth 3 grammar)) "s")
                                    unknown))
                          whitespace)
@@ -1827,7 +1834,9 @@ Replace newline characters by \"^J\" (two characters)."
                (dolist (process process-alist)
                  (end-of-line)
                  (setq value (cdr (assq key (cdr process))))
-                 (insert (if value (apply #'propertize (funcall fun value) fprops)
+                 (insert (if value
+                             (let ((proced-format-current-process process))
+                               (apply #'propertize (funcall fun value) fprops))
                            unknown))
                  (forward-line))
                (push (apply #'propertize (nth 1 grammar) hprops) header-list))
@@ -1838,7 +1847,8 @@ Replace newline characters by \"^J\" (two characters)."
                  (dolist (process process-alist)
                    (setq value (cdr (assq key (cdr process))))
                    (if value
-                       (setq value (apply #'propertize (funcall fun value) fprops)
+                       (setq value (let ((proced-format-current-process process))
+                                     (apply #'propertize (funcall fun value) fprops))
                              width (max width (length value))
                              field-list (cons value field-list))
                      (push unknown field-list)
