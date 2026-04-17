@@ -4070,6 +4070,11 @@ the query.  */)
 	= XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
       ptrdiff_t beg_byte = CHAR_TO_BYTE (fix_position (beg));
       ptrdiff_t end_byte = CHAR_TO_BYTE (fix_position (end));
+      /* In ts_query_cursor_set_byte_range, if end_byte = 0, it's set to
+         UINT32_MAX for some reason.  But range (1, 1) shouldn't capture
+         anything.  So in this case just return Qnil.  (bug#80798)  */
+      if (beg_byte == visible_beg && end_byte == visible_beg) return Qnil;
+
       /* We never let tree-sitter run on buffers too large, so these
 	 assertion should never hit.  */
       eassert (beg_byte - visible_beg <= UINT32_MAX);
