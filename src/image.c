@@ -12052,7 +12052,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     {
       css = xmalloc (SBYTES (lcss) + 1);
       strncpy (css, SSDATA (lcss), SBYTES (lcss));
-      *(css + SBYTES (lcss) + 1) = 0;
+      *(css + SBYTES (lcss)) = 0;
     }
 #endif
 
