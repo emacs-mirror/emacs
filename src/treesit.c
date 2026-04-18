@@ -1295,11 +1295,13 @@ compute_new_linecol_by_change (struct ts_linecol pos_linecol,
   /* 2. When old_end (oe) is before pos, the difference between pos and
      pos' is the difference between old_end and new_end (ne).
 
-     |     |   |           |     |   |
-     s     oe  pos         s     oe  pos
-		      OR
-     |  |   |              |         |
-     s  ne  pos'           s         ne  pos'
+     Delete:                   Insert:
+
+     |     |   |               |     |   |
+     s     oe  pos             s     oe  pos
+
+     |  |   |                  |         |   |
+     s  ne  pos'               s         ne  pos'
 
    */
   else if (old_end_linecol.bytepos <= pos_linecol.bytepos)
