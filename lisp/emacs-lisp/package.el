@@ -2327,11 +2327,12 @@ directory."
           (setq default-directory file)
           (dired-mode))
       (insert-file-contents-literally file)
-      (set-visited-file-name file)
+      (set-visited-file-name file t)
       (set-buffer-modified-p nil)
       (when (string-match "\\.tar\\'" file) (tar-mode)))
     (unwind-protect
-        (package-install-from-buffer)
+        (with-silent-modifications
+          (package-install-from-buffer))
       (fundamental-mode))))             ; free auxiliary data
 
 ;;;###autoload
