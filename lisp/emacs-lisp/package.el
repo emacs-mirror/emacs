@@ -807,7 +807,7 @@ attached."
                            when (stringp switch) collect switch into result
                            when (and (symbolp switch) (boundp switch))
                            append (ensure-list (symbol-value switch)) into result
-                           finally (delq t result))))
+                           finally return (delq t result))))
     (while (pcase-exhaustive
                (car (read-multiple-choice
                      (format "Install \"%s\"?" (package-desc-name pkg-desc))
