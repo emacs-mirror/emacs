@@ -3361,25 +3361,25 @@ their `mode-name' updates to show enabled syntax extensions."
   "Case-sensitive regexps for detecting JSX in JavaScript buffers.
 When `js-jsx-detect-syntax' is non-nil and any of these regexps
 match text near the beginning of a JavaScript buffer,
-`js-jsx-syntax' (which see) will be made buffer-local and set to
-t.")
+`js-jsx-syntax' (which see) will be made buffer-local and set to t.")
 
-(defun js-jsx--detect-and-enable (&optional arbitrarily)
+(defun js-jsx--detect-and-enable (&optional beg end)
   "Detect if JSX is likely to be used, and enable it if so.
 Might make `js-jsx-syntax' buffer-local and set it to t.  Matches
-from the beginning of the buffer, unless optional arg ARBITRARILY
-is non-nil.  Return t after enabling, nil otherwise."
+between BEG..END (defaults to the first 4KB of the buffer).
+Return non-nil after enabling, nil otherwise."
   (when (or (and (buffer-file-name)
                  (string-match-p "\\.jsx\\'" (buffer-file-name)))
             (and js-jsx-detect-syntax
                  (save-excursion
-                   (unless arbitrarily
-                     (goto-char (point-min)))
+                   (unless (integerp beg)
+                     (setq beg (point-min) end (min (+ beg 4000) (point-max))))
+                   (goto-char beg)
                    (catch 'match
                      (mapc
                       (lambda (regexp)
                         (when (let (case-fold-search)
-                                (re-search-forward regexp 4000 t))
+                                (re-search-forward regexp end t))
                           (throw 'match t)))
                       js-jsx-regexps)
                      nil))))
@@ -3393,10 +3393,11 @@ This function is intended for use in `after-change-functions'."
     (save-excursion
       (goto-char beg)
       (beginning-of-line)
-      (save-restriction
-        (narrow-to-region (point) end)
-        (when (js-jsx--detect-and-enable 'arbitrarily)
-          (remove-hook 'after-change-functions #'js-jsx--detect-after-change t))))))
+      ;; `after-change-functions' shouldn't affect the match-data.
+      ;; FIXME: It would be better to move this work to a timer or
+      ;; a `post-command-hook'.
+      (when (save-match-data (js-jsx--detect-and-enable beg end))
+        (remove-hook 'after-change-functions #'js-jsx--detect-after-change t)))))
 
 ;; Ensure all CC Mode "lang variables" are set to valid values.
 ;; js-mode, however, currently uses only those needed for filling.
