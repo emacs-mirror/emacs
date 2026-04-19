@@ -1954,6 +1954,9 @@ scan_xg_pending_quit_event (mps_ss_t ss, void *start, void *end,
 }
 #endif
 
+/* We scan coding_systems ambiguously because that makes fixing the
+   cs->source field simpler.  The disadvantage is that more objects get
+   pinned.  */
 static mps_res_t
 scan_coding_system (mps_ss_t ss, void *start, void *end,
 		    void *closure)
@@ -1963,25 +1966,14 @@ scan_coding_system (mps_ss_t ss, void *start, void *end,
   {
     IGC_FIX12_OBJ (ss, &cs->safe_charsets_string);
     IGC_FIX12_OBJ (ss, &cs->src_object);
-    /* FIXME: race condition  */
-    if (TAGGEDP (cs->src_object, Lisp_String))
-      {
-	/* cs->source can be an interior pointer to a string.  (See
-	   coding_set_source.)  */
-#ifdef IGC_DEBUG
-	{
-	  mps_pool_t pool;
-	  igc_assert (mps_addr_pool (&pool, global_igc->arena,
-				     (mps_addr_t) cs->source));
-	  igc_assert (pool == global_igc->leaf_pool);
-	}
-#endif
-	const unsigned char *sdata = cs->source - cs->src_pos_byte;
-	struct Lisp_String_Data *data
-	  = (struct Lisp_String_Data *) (sdata - sizeof (*data));
-	IGC_FIX12_HEADER (ss, &data);
-	cs->source = data->data + cs->src_pos_byte;
-      }
+    /* cs->source can point to SDATA (see coding_set_source),
+       so pin it.  */
+    {
+      mps_addr_t ref = (mps_addr_t) cs->source;
+      mps_res_t res = MPS_FIX12 (ss, &ref);
+      if (res != MPS_RES_OK)
+	return res;
+    }
     IGC_FIX12_OBJ (ss, &cs->dst_object);
   }
   MPS_SCAN_END (ss);
@@ -4324,8 +4316,8 @@ struct coding_system *
 igc_alloc_coding_system (void)
 {
   struct coding_system *p = xzalloc (sizeof *p);
-  root_create_exact (global_igc, p, p + 1, scan_coding_system,
-		     "coding_system");
+  root_create (global_igc, p, p + 1, mps_rank_ambig (),
+	       scan_coding_system, NULL, true, "coding_system");
   return p;
 }
 
