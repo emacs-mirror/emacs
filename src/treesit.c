@@ -1527,7 +1527,7 @@ treesit_linecol_maybe (ptrdiff_t pos, ptrdiff_t pos_byte,
    does not parse the buffer and only updates the tree, so it should be
    very fast.
 
-   This is a wrapper over treesit_record_change that does a bit more
+   This is a wrapper over treesit_record_change_1 that does a bit more
    boilerplate work: it (optionally) calculates linecol for new_end,
    pass all the positions into treesit_record_change_1 which does the
    real work, and finally (optionally) sets buffer's linecol cache to
