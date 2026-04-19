@@ -4693,13 +4693,14 @@ process to set up.  VEC specifies the connection."
     ;; `connection-local-profile-name-for-criteria' exists since Emacs 29.1.
     ;; We simulate it with `make-symbol'.
     (when (boundp 'command-line-max-length)
-      (let* ((criteria (tramp-get-connection-local-criteria vec))
+      (let* ((arg-max (tramp-get-remote-arg-max vec))
+	     (criteria (tramp-get-connection-local-criteria vec))
 	     (profile (if (fboundp 'connection-local-profile-name-for-criteria)
 			  (connection-local-profile-name-for-criteria criteria)
 			(make-symbol "generated-profile-name"))))
 	(connection-local-set-profile-variables
 	 profile
-	 `((command-line-max-length . ,(tramp-get-remote-pipe-buf vec))))
+	 `((command-line-max-length . ,(if arg-max (floor arg-max 4) 4094))))
 	(connection-local-set-profiles criteria profile)))))
 
 ;; Old text from documentation of tramp-methods:
@@ -5808,6 +5809,17 @@ Nonexistent directories are removed from spec."
 	  (cl-remove-if
 	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
 	   remote-path))))))
+
+(defun tramp-get-remote-arg-max (vec)
+  "Return ARG_MAX config from the remote side."
+  (with-tramp-connection-property vec "arg-max"
+    (when-let* ((result
+		 (tramp-send-command-and-read
+		  vec (format "getconf ARG_MAX 2>%s"
+			      (tramp-get-remote-null-device vec))
+		  'noerror))
+		((natnump result)))
+      result)))
 
 ;; The PIPE_BUF in POSIX [1] can be as low as 512 [2].  Here are the values
 ;; on various platforms:

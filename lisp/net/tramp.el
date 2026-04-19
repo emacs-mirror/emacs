@@ -5227,11 +5227,17 @@ Do not set it manually, it is used buffer-local in `tramp-get-lock-pid'.")
 	      (delete-file local-copy)))))
       t)))
 
+(defvar tramp-multi-hop-p-hook nil
+  "Abnormal hook for `tramp-multi-hop-p'.
+This can be used by external Tramp backends to inform, that they are
+multi-hop capable.")
+
 (defun tramp-multi-hop-p (vec)
   "Whether the method of VEC is capable of multi-hops."
   (let ((tramp-verbose 0))
-    (and (tramp-sh-file-name-handler-p vec)
-	 (tramp-get-method-parameter vec 'tramp-login-args))))
+    (or (and (tramp-sh-file-name-handler-p vec)
+	     (tramp-get-method-parameter vec 'tramp-login-args))
+	(run-hook-with-args-until-success 'tramp-multi-hop-p-hook vec))))
 
 (defun tramp-add-hops (vec)
   "Add ad-hoc proxy definitions to `tramp-default-proxies-alist'."
@@ -5498,6 +5504,10 @@ processes."
 		      (setq env (setenv-internal env "HISTSIZE" "0" 'keep))
 		      (setenv-internal env "HISTFILESIZE" "0" 'keep))
 		     (t env))
+		  env))
+	   ;; Add TERM.
+	   (env (if sh-file-name-handler-p
+		    (setenv-internal env "TERM" tramp-terminal-type 'keep)
 		  env))
 	   ;; Add INSIDE_EMACS.
 	   (env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
