@@ -183,7 +183,7 @@ String NAME appears in the header line.
 FORMAT specifies the format for displaying the attribute values.
 It can be a string passed to `format'.  It can be a function called with one
 argument, the value of the attribute.  This function can access the full list
-of attributes of the respective process via `proced-format-current-process'.
+of attributes of the respective process via `proced-current-process'.
 If FORMAT is nil take the attribute value as is.
 
 If JUSTIFY is an integer, its modulus gives the width of the attribute
@@ -430,7 +430,7 @@ cons pairs, see `proced-process-attributes'.")
   "Sort scheme for listing (internal format).
 It is a list of lists (KEY PREDICATE REVERSE).")
 
-(defvar proced-format-current-process nil
+(defvar proced-current-process nil
   "Attributes of current process worked on by function `proced-format'.
 See `proced-grammar-alist'.")
 
@@ -1694,7 +1694,7 @@ Replace newline characters by \"^J\" (two characters)."
                 (equal pid (emacs-pid)))
            (propertize pid-s 'font-lock-face 'proced-emacs-pid))
           ((and proced-enable-color-flag
-                (equal pid (alist-get 'sess proced-format-current-process)))
+                (equal pid (alist-get 'sess proced-current-process)))
            (propertize pid-s 'font-lock-face 'proced-session-leader-pid))
           (proced-enable-color-flag
            (propertize pid-s 'font-lock-face 'proced-pid))
@@ -1815,12 +1815,11 @@ Replace newline characters by \"^J\" (two characters)."
         (goto-char (point-min))
         (cond ( ;; fixed width of output field
                (numberp (nth 3 grammar))
-               (dolist (process process-alist)
+               (dolist (proced-current-process process-alist)
                  (end-of-line)
-                 (setq value (cdr (assq key (cdr process))))
+                 (setq value (cdr (assq key (cdr proced-current-process))))
                  (insert (if value
-                             (let ((proced-format-current-process process))
-                               (apply #'propertize (funcall fun value) fprops))
+                             (apply #'propertize (funcall fun value) fprops)
                            (format (concat "%" (number-to-string (nth 3 grammar)) "s")
                                    unknown))
                          whitespace)
@@ -1831,12 +1830,11 @@ Replace newline characters by \"^J\" (two characters)."
 
               ( ;; last field left-justified
                (and (not format) (eq 'left (nth 3 grammar)))
-               (dolist (process process-alist)
+               (dolist (proced-current-process process-alist)
                  (end-of-line)
-                 (setq value (cdr (assq key (cdr process))))
+                 (setq value (cdr (assq key (cdr proced-current-process))))
                  (insert (if value
-                             (let ((proced-format-current-process process))
-                               (apply #'propertize (funcall fun value) fprops))
+                             (apply #'propertize (funcall fun value) fprops)
                            unknown))
                  (forward-line))
                (push (apply #'propertize (nth 1 grammar) hprops) header-list))
@@ -1844,11 +1842,10 @@ Replace newline characters by \"^J\" (two characters)."
               (t ;; calculated field width
                (let ((width (length (nth 1 grammar)))
                      field-list value)
-                 (dolist (process process-alist)
-                   (setq value (cdr (assq key (cdr process))))
+                 (dolist (proced-current-process process-alist)
+                   (setq value (cdr (assq key (cdr proced-current-process))))
                    (if value
-                       (setq value (let ((proced-format-current-process process))
-                                     (apply #'propertize (funcall fun value) fprops))
+                       (setq value (apply #'propertize (funcall fun value) fprops)
                              width (max width (length value))
                              field-list (cons value field-list))
                      (push unknown field-list)
