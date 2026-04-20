@@ -339,7 +339,7 @@ NODE and PARENT are ignored."
 (defvar mhtml-ts-mode--prettify-symbols-alist js--prettify-symbols-alist
   "Alist of symbol prettifications for various supported languages.")
 
-;; In order to support `which-fuction-mode' we should define
+;; In order to support `which-function-mode' we should define
 ;; a function that return the defun name.
 ;; In a multilingual treesit mode, this can be implemented simply by
 ;; calling language-specific functions.
