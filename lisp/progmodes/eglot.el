@@ -5683,10 +5683,16 @@ lock machinery calls us again."
                      (convert child (plist-get node :uri)))
                    (eglot--hierarchy-children node))))
               (convert (node parent-uri)
-                (let ((w (widget-convert
+                (let ((w (apply
+                          #'widget-convert
                           'tree-widget
                           :tag (eglot--hierarchy-label node parent-uri)
-                          :expander (expander-for node))))
+                          :expander (expander-for node)
+                          (when (char-displayable-p ?│)
+                            '(:guide          (item :tag " ├" :format "%t")
+                              :nohandle-guide (item :tag " │" :format "%t")
+                              :end-guide      (item :tag " └" :format "%t")
+                              :handle         (item :tag "─"  :format "%t"))))))
                   (widget-put w :empty-icon
                               (widget-get w :leaf-icon))
                   w)))
