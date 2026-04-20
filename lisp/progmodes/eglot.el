@@ -3249,8 +3249,10 @@ When called interactively, use the currently active server"
   ;; potentially slow `file-truename' (bug#70036).
   (cl-loop for b in (eglot--managed-buffers server)
            when (with-current-buffer b
-                  (equal (car eglot--TextDocumentIdentifier-cache)
-                         abspath))
+                  (or
+                   (equal abspath buffer-file-name)
+                   (equal (car eglot--TextDocumentIdentifier-cache)
+                         abspath)))
            return b))
 
 
