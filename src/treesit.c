@@ -5163,7 +5163,7 @@ return the line and column in the form of
 This is used for internal testing and debugging ONLY.  */)
   (Lisp_Object pos)
 {
-  CHECK_NUMBER (pos);
+  treesit_check_position (pos, current_buffer);
   struct ts_linecol pos_linecol
     = treesit_linecol_of_pos (CHAR_TO_BYTE (fix_position (pos)),
 			      BUF_TS_LINECOL_POINT (current_buffer));
