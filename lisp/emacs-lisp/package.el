@@ -2325,6 +2325,12 @@ directory."
       (when (string-match "\\.tar\\'" file) (tar-mode)))
     (unwind-protect
         (with-silent-modifications
+          ;; When installing .tar files, `package-tar-file-info' touches
+          ;; the modified bit which causes Emacs to query the user if
+          ;; they are certain about killing this temporary buffer, since
+          ;; it is marked as visiting FILE.  This of course is OK, since
+          ;; this is not the actual visiting file, so we want to prevent
+          ;; the modified bit from triggering this query.
           (package-install-from-buffer))
       (fundamental-mode))))             ; free auxiliary data
 
