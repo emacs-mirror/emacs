@@ -42,6 +42,7 @@
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-element-lineage "org-element-ast" (datum &optional types with-self))
 (declare-function org-element-begin "org-element" (node))
+(declare-function org-element-end "org-element" (node))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-heading-components "org" ())
@@ -720,8 +721,12 @@ of the current buffer."
       (forward-line 1)
       ;; Try to preserve location of point within the source code in
       ;; tangled code file.
-      (let ((offset (- mid body-start)))
-	(when (> end (+ offset (point)))
+      (let ((offset (- mid body-start))
+            (block-ends-here (org-with-point-at (org-element-end (org-element-at-point))
+                               (skip-chars-backward " \t\n\r")
+                               (forward-line 0)
+                               (point))))
+        (when (> block-ends-here (+ offset (point)))
 	  (forward-char offset)))
       (setq target-char (point)))
     (org-src-switch-to-buffer target-buffer t)
