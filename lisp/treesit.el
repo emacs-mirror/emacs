@@ -4038,9 +4038,11 @@ JUSTIFY is the same as in `fill-paragraph'."
         (fill-paragraph justify (region-active-p))
       (let* ((treesit-defun-tactic 'parent-first)
              (node (treesit-defun-at-point)))
-        (indent-region (treesit-node-start node)
-                       (treesit-node-end node)
-                       nil)))))
+        (if node
+            (indent-region (treesit-node-start node)
+                           (treesit-node-end node)
+                           nil)
+          (user-error "No defun detected at point"))))))
 
 ;;; Imenu
 
