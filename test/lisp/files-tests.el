@@ -397,18 +397,27 @@ be $HOME."
                    (file-name-unquote
                     (file-name-unquote temporary-file-directory))))))
 
+(defconst  files-tests-file-name-non-special--temp-file-prefixes
+  '("foo" "$foo" "~foo" "foo*bar")
+  "Prefixes to be tested for `file-name-non-special' tests.")
+
 (ert-deftest files-tests-file-name-non-special--subprocess ()
   "Check that Bug#25949 and Bug#48177 are fixed."
   (skip-unless (and (executable-find "true") (file-exists-p null-device)
                     ;; These systems cannot set date of the null device.
                     (not (memq system-type '(windows-nt ms-dos)))))
-  (let ((default-directory (file-name-quote temporary-file-directory))
-        (true (file-name-quote (executable-find "true")))
-        (null (file-name-quote null-device)))
-    (should (zerop (process-file true null `((:file ,null) ,null))))
-    (should (processp (start-file-process "foo" nil true)))
-    (should (zerop (shell-command true)))
-    (should (processp (make-process :name "foo" :command `(,true))))))
+  (dolist (prefix files-tests-file-name-non-special--temp-file-prefixes)
+    (ert-with-temp-directory default-directory
+      :prefix prefix :suffix ""
+      (let ((default-directory (file-name-quote temporary-file-directory))
+            (true (file-name-quote (executable-find "true")))
+            (null (file-name-quote null-device)))
+        (should (zerop (process-file true null `((:file ,null) ,null))))
+        (should (processp (start-file-process "foo" nil true)))
+        (with-temp-buffer
+          (should (zerop (shell-command true)))
+          (should (windowp (async-shell-command true (current-buffer)))))
+        (should (processp (make-process :name "foo" :command `(,true))))))))
 
 (defmacro files-tests--with-advice (symbol where function &rest body)
   (declare (indent 3))
@@ -430,40 +439,42 @@ the buffer current and a nil argument, second passing the buffer
 object explicitly.  In both cases no error should be raised and
 the `file-name-non-special' handler for quoted file names should
 be invoked with the right arguments."
-  (ert-with-temp-file temp-file-name
-    (with-temp-buffer
-     (let* ((buffer-visiting-file (current-buffer))
-            (actual-args ())
-            (log (lambda (&rest args) (push args actual-args))))
-       (insert-file-contents (file-name-quote temp-file-name) :visit)
-       (should (stringp buffer-file-name))
-       (should (file-name-quoted-p buffer-file-name))
-       ;; The following is not true for remote files.
-       (should (string-prefix-p "/:" buffer-file-name))
-       (should (consp (visited-file-modtime)))
-       (should (equal (find-file-name-handler buffer-file-name
-                                              #'verify-visited-file-modtime)
-                      #'file-name-non-special))
-       (files-tests--with-advice file-name-non-special :before log
-         ;; This should call the file name handler with the right
-         ;; buffer and not signal an error.  The file hasn't been
-         ;; modified, so `verify-visited-file-modtime' should return
-         ;; t.
-         (should (equal (verify-visited-file-modtime) t))
-         (with-temp-buffer
-           (should (stringp (buffer-file-name buffer-visiting-file)))
-           ;; This should call the file name handler with the right
-           ;; buffer and not signal an error.  The file hasn't been
-           ;; modified, so `verify-visited-file-modtime' should return
-           ;; t.
-           (should (equal (verify-visited-file-modtime buffer-visiting-file)
-                          t))))
-       ;; Verify that the handler was actually called.  We called
-       ;; `verify-visited-file-modtime' twice, so both calls should be
-       ;; recorded in reverse order.
-       (should (equal actual-args
-                      `((verify-visited-file-modtime ,buffer-visiting-file)
-                        (verify-visited-file-modtime nil))))))))
+  (dolist (prefix files-tests-file-name-non-special--temp-file-prefixes)
+    (ert-with-temp-file temp-file-name
+      :prefix prefix :suffix ""
+      (with-temp-buffer
+        (let* ((buffer-visiting-file (current-buffer))
+               (actual-args ())
+               (log (lambda (&rest args) (push args actual-args))))
+          (insert-file-contents (file-name-quote temp-file-name) :visit)
+          (should (stringp buffer-file-name))
+          (should (file-name-quoted-p buffer-file-name))
+          ;; The following is not true for remote files.
+          (should (string-prefix-p "/:" buffer-file-name))
+          (should (consp (visited-file-modtime)))
+          (should (equal (find-file-name-handler buffer-file-name
+                                                 #'verify-visited-file-modtime)
+                         #'file-name-non-special))
+          (files-tests--with-advice file-name-non-special :before log
+            ;; This should call the file name handler with the right
+            ;; buffer and not signal an error.  The file hasn't been
+            ;; modified, so `verify-visited-file-modtime' should return
+            ;; t.
+            (should (equal (verify-visited-file-modtime) t))
+            (with-temp-buffer
+              (should (stringp (buffer-file-name buffer-visiting-file)))
+              ;; This should call the file name handler with the right
+              ;; buffer and not signal an error.  The file hasn't been
+              ;; modified, so `verify-visited-file-modtime' should return
+              ;; t.
+              (should (equal (verify-visited-file-modtime buffer-visiting-file)
+                             t))))
+          ;; Verify that the handler was actually called.  We called
+          ;; `verify-visited-file-modtime' twice, so both calls should be
+          ;; recorded in reverse order.
+          (should (equal actual-args
+                         `((verify-visited-file-modtime ,buffer-visiting-file)
+                           (verify-visited-file-modtime nil)))))))))
 
 (cl-defmacro files-tests--with-temp-non-special
     ((name non-special-name &optional dir-flag) &rest body)
@@ -476,21 +487,14 @@ After evaluating BODY, the temporary file or directory is deleted."
   (declare (indent 1) (debug ((symbolp symbolp &optional form) body)))
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
-  `(let* ((temporary-file-directory (file-truename temporary-file-directory))
-          (temporary-file-directory
-           (file-name-as-directory (make-temp-file "files-tests" t)))
-          (,name (make-temp-file "files-tests" ,dir-flag))
-          (,non-special-name (file-name-quote ,name)))
-     (unwind-protect
-         (progn ,@body)
-       (when (file-exists-p ,name)
-         (if ,dir-flag (delete-directory ,name t)
-           (delete-file ,name)))
-       (when (file-exists-p ,non-special-name)
-         (if ,dir-flag (delete-directory ,non-special-name t)
-           (delete-file ,non-special-name)))
-       (when (file-exists-p temporary-file-directory)
-         (delete-directory temporary-file-directory t)))))
+  `(ert-with-temp-directory temporary-file-directory
+     :prefix "files-tests-" :suffix ""
+     (setq temporary-file-directory (file-truename temporary-file-directory))
+     (dolist (prefix files-tests-file-name-non-special--temp-file-prefixes)
+       (ert-with-temp-file ,name
+         :prefix prefix :suffix "" :directory ,dir-flag
+         (let ((,non-special-name (file-name-quote ,name)))
+           ,@body)))))
 
 (defconst files-tests--special-file-name-extension ".special"
   "Trailing string for test file name handler.")
@@ -531,27 +535,17 @@ unquoted file names."
   (declare (indent 1) (debug ((symbolp symbolp &optional form) body)))
   (cl-check-type name symbol)
   (cl-check-type non-special-name symbol)
-  `(let* ((temporary-file-directory (file-truename temporary-file-directory))
-          (temporary-file-directory
-           (file-name-as-directory (make-temp-file "files-tests" t)))
-          (file-name-handler-alist
-           `((,files-tests--special-file-name-regexp
-              . files-tests--special-file-name-handler)
-             . ,file-name-handler-alist))
-          (,name (concat
-                  (make-temp-file "files-tests" ,dir-flag)
-                  files-tests--special-file-name-extension))
-          (,non-special-name (file-name-quote ,name)))
-     (unwind-protect
-         (progn ,@body)
-       (when (file-exists-p ,name)
-         (if ,dir-flag (delete-directory ,name t)
-           (delete-file ,name)))
-       (when (file-exists-p ,non-special-name)
-         (if ,dir-flag (delete-directory ,non-special-name t)
-           (delete-file ,non-special-name)))
-       (when (file-exists-p temporary-file-directory)
-         (delete-directory temporary-file-directory t)))))
+  `(let ((file-name-handler-alist
+          (cons (cons files-tests--special-file-name-regexp
+                      #'files-tests--special-file-name-handler)
+                file-name-handler-alist)))
+     (files-tests--with-temp-non-special
+         (,name ,non-special-name ,dir-flag)
+       (setq ,name (concat
+                    (make-temp-file "files-tests-" ,dir-flag)
+                    files-tests--special-file-name-extension)
+             ,non-special-name (file-name-quote ,name))
+       ,@body)))
 
 (defun files-tests--new-name (name part)
   (let (file-name-handler-alist)
@@ -1156,6 +1150,7 @@ unquoted file names."
 (ert-deftest files-tests-file-name-non-special-make-symbolic-link ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
     (files-tests--with-temp-non-special (tmpfile nospecial)
+      (ignore nospecial) ; Pacify compiler warning.
       (let* ((linkname (expand-file-name "link" tmpdir))
              (may-symlink (ignore-errors (make-symbolic-link tmpfile linkname)
                                          t)))
@@ -1170,6 +1165,7 @@ unquoted file names."
       (tmpdir nospecial-dir t)
     (files-tests--with-temp-non-special-and-file-name-handler
         (tmpfile nospecial)
+      (ignore nospecial) ; Pacify compiler warning.
       (let* ((linkname (expand-file-name "link" tmpdir))
              (may-symlink (ignore-errors (make-symbolic-link tmpfile linkname)
                                          t)))
