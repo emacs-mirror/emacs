@@ -3997,17 +3997,19 @@ tty_menu_show (struct frame *f, int x, int y, int menuflags,
 	  help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
 	  help_string = STRINGP (help) ? SSDATA (help) : NULL;
 
-	  if (!NILP (descrip))
+	  item_data = SAFE_ALLOCA (maxwidth
+				   + (!NILP (descrip) ? SBYTES (descrip) : 0)
+				   + 1);
+	  memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
+	  if (NILP (descrip))
+	    item_data[SBYTES (item_name)] = 0;
+	  else
 	    {
-	      item_data = SAFE_ALLOCA (maxwidth + SBYTES (descrip) + 1);
-	      memcpy (item_data, SSDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
 	      memcpy (item_data + j, SSDATA (descrip), SBYTES (descrip));
 	      item_data[j + SBYTES (descrip)] = 0;
 	    }
-	  else
-	    item_data = SSDATA (item_name);
 
 	  if (lpane == TTYM_FAILURE
 	      || (! tty_menu_add_selection (menu, lpane, item_data,
