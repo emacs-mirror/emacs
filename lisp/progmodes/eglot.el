@@ -1037,7 +1037,7 @@ object."
       (if (and (null edit) (null command) data
                (eglot-server-capable :codeActionProvider :resolveProvider))
           (eglot-execute server (eglot--request server :codeAction/resolve action))
-        (when edit (eglot--apply-workspace-edit edit this-command))
+        (when edit (eglot--apply-workspace-edit server edit this-command))
         (when command
           ;; Recursive call with what must be a Command object (bug#71642)
           (eglot-execute server command)))))))
@@ -1395,6 +1395,13 @@ when processing many ranges."
 (defun eglot--server-name (s)
   "Name server S, consulting LSP `serverInfo' if available."
   (or (plist-get (eglot--server-info s) :name) (jsonrpc-name s)))
+
+(defun eglot--server-buffer-name (server &optional suffix)
+  "Standard buffer name for SERVER with optional SUFFIX."
+  (format "*EGLOT (%s/%s)%s*"
+          (eglot-project-nickname server)
+          (eglot--server-name server)
+          (if suffix (concat " " suffix) "")))
 
 (cl-defmethod initialize-instance :before ((_server eglot-lsp-server) &optional args)
   (cl-remf args :initializationOptions))
@@ -1895,6 +1902,13 @@ This docstring appeases checkdoc, that's all."
                                 (gethash project eglot--servers-by-project))
                           (setf (eglot--capabilities server) capabilities)
                           (setf (eglot--server-info server) serverInfo)
+                          (with-current-buffer (jsonrpc-events-buffer server)
+                            (rename-buffer (eglot--server-buffer-name server "events") t))
+                          (when-let* ((buf (jsonrpc-stderr-buffer server)))
+                            (with-current-buffer buf
+                              (rename-buffer (concat " " (eglot--server-buffer-name
+                                                          server "stderr"))
+                                             t)))
                           (jsonrpc-notify server :initialized eglot--{})
                           (dolist (buffer (buffer-list))
                             (with-current-buffer buffer
@@ -2885,10 +2899,10 @@ THINGS are either registrations or unregisterations (sic)."
   (eglot--register-unregister server unregisterations 'unregister))
 
 (cl-defmethod eglot-handle-request
-  (_server (_method (eql workspace/applyEdit)) &key _label edit)
+  (server (_method (eql workspace/applyEdit)) &key _label edit)
   "Handle server request workspace/applyEdit."
   (condition-case-unless-debug oops
-      (pcase-let ((`(,retval ,reason) (eglot--apply-workspace-edit edit last-command)))
+      (pcase-let ((`(,retval ,reason) (eglot--apply-workspace-edit server edit last-command)))
         `(:applied ,retval ,@(and reason `(:failureReason ,reason))))
     (quit
      (jsonrpc-error
@@ -3118,7 +3132,8 @@ format described above.")
   "Dump `eglot-workspace-configuration' as JSON for debugging."
   (interactive (list (eglot--read-server "Show workspace configuration for" t)))
   (let ((conf (eglot--workspace-configuration-plist server)))
-    (with-current-buffer (get-buffer-create "*EGLOT workspace configuration*")
+    (with-current-buffer (get-buffer-create (eglot--server-buffer-name
+                                             server "workspace configuration"))
       (erase-buffer)
       (insert (jsonrpc--json-encode conf))
       (with-no-warnings
@@ -4361,12 +4376,13 @@ option and returns a symbol like `diff', `summary' or nil."
           ;; Default entry
           ((setq v (assoc t eglot-confirm-server-edits)) (cdr v)))))
 
-(defun eglot--propose-changes-as-diff (prepared)
+(defun eglot--propose-changes-as-diff (server prepared)
   "Helper for `eglot--apply-workspace-edit'.
 Goal is to popup a `diff-mode' buffer containing all the changes
 of PREPARED, ready to apply with C-c C-a.  PREPARED is a
 list ((FILENAME EDITS VERSION)...)."
-  (with-current-buffer (get-buffer-create "*EGLOT proposed server changes*")
+  (with-current-buffer (get-buffer-create (eglot--server-buffer-name
+                                           server "proposed changes"))
     (buffer-disable-undo (current-buffer))
     (let ((inhibit-read-only t)
           (target (current-buffer)))
@@ -4401,7 +4417,7 @@ list ((FILENAME EDITS VERSION)...)."
     (font-lock-ensure)
     (current-buffer)))
 
-(cl-defun eglot--apply-workspace-edit (wedit origin &aux prepared)
+(cl-defun eglot--apply-workspace-edit (server wedit origin &aux prepared)
   "Apply (or offer to apply) the workspace edit WEDIT.
 ORIGIN is a symbol designating the command that originated this edit
 proposed by the server.  Returns a list (APPLIED REASON) indicating if
@@ -4512,7 +4528,7 @@ the edit was attempted and optionally why not."
          ((memq decision '(diff maybe-diff))
           (cond (all-text-edits
                  (pop-to-buffer
-                  (eglot--propose-changes-as-diff prepared))
+                  (eglot--propose-changes-as-diff server prepared))
                  `(nil "decision to apply manually"))
                 (t
                  ;; `map-y-or-n-p' heroics.  Iterate over prepared
@@ -4527,7 +4543,7 @@ the edit was attempted and optionally why not."
                           (lambda (op)
                             (when (eq (car op) 'text-edit)
                               (display-buffer
-                               (eglot--propose-changes-as-diff (list op))))
+                               (eglot--propose-changes-as-diff server (list op))))
                             (format "[eglot] %s? " (cadr op)))
                           (lambda (op)
                             (set-window-configuration wconf)
@@ -4577,11 +4593,12 @@ the edit was attempted and optionally why not."
 (defun eglot-rename (newname)
   "Rename the current symbol to NEWNAME."
   (interactive (eglot--rename-interactive))
-  (eglot--apply-workspace-edit
-   (eglot--request (eglot--current-server-or-lose)
-                   :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
-                                          :newName ,newname))
-   this-command))
+  (let ((server (eglot--current-server-or-lose)))
+    (eglot--apply-workspace-edit
+     server
+     (eglot--request server :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
+                                                   :newName ,newname))
+     this-command)))
 
 (defun eglot--code-action-bounds ()
   "Calculate appropriate bounds depending on region and point."
@@ -5048,8 +5065,7 @@ If NOERROR, return predicate, else erroring function."
   "Describe SERVER in a dedicated buffer."
   (interactive (list (eglot--current-server-or-lose)))
   (with-current-buffer
-      (get-buffer-create (format "*EGLOT connection (%s/%s)*"
-                                 (eglot-project-nickname server) sname))
+      (get-buffer-create (eglot--server-buffer-name server "connection"))
     (let ((inhibit-read-only t))
       (erase-buffer)
       (special-mode)
@@ -5561,9 +5577,8 @@ lock machinery calls us again."
                      (list
                       (cl-find direction specs :key #'cl-third)))))
        (eglot--hierarchy-1
-        (format "*EGLOT %s hierarchy for %s*"
-                ,kind
-                (eglot-project-nickname (eglot--current-server-or-lose)))
+        (eglot--server-buffer-name (eglot--current-server-or-lose)
+                                   (format "%s hierarchy" ,kind))
         ,feature ,preparer specs))))
 
 (eglot--define-hierarchy-command
