@@ -565,8 +565,7 @@ appropriate."
   "<down-mouse-1>"  #'tab-bar-mouse-down-1
   "<drag-mouse-1>"  #'tab-bar-mouse-move-tab
   "<mouse-1>"       #'tab-bar-mouse-1
-  "<down-mouse-2>"  #'tab-bar-mouse-close-tab
-  "<mouse-2>"       #'ignore
+  "<mouse-2>"       #'tab-bar-mouse-close-tab
   "<down-mouse-3>"  #'tab-bar-mouse-context-menu
 
   "<mouse-4>"       #'tab-previous

@@ -604,6 +604,10 @@ This is useful when you define custom tab parameters that may need
 adjustment when a tab is restored, and avoids advice.
 
 ---
+*** Tabs are closed now on releasing the middle mouse button.
+Previously, closing the tab-bar's tabs was on pressing the button.
+
+---
 *** New user option 'tab-bar-define-keys'.
 This controls which key bindings tab-bar creates.  Values are t, the
 default, which defines all keys and is backwards compatible, 'numeric'
