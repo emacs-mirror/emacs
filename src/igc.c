@@ -3545,6 +3545,13 @@ root_create_kbd_buffer (struct igc *gc)
 	       true, "kbd-buffer");
 }
 
+static void
+root_create_coding_system (struct igc *gc, struct coding_system *p)
+{
+  root_create (gc, p, p + 1, mps_rank_ambig (), scan_coding_system,
+	       NULL, true, "coding_system");
+}
+
 #if defined (USE_GTK) && ! defined (HAVE_PGTK)
 static void
 root_create_xg_pending_quit_event (struct igc *gc)
@@ -4316,8 +4323,7 @@ struct coding_system *
 igc_alloc_coding_system (void)
 {
   struct coding_system *p = xzalloc (sizeof *p);
-  root_create (global_igc, p, p + 1, mps_rank_ambig (),
-	       scan_coding_system, NULL, true, "coding_system");
+  root_create_coding_system (global_igc, p);
   return p;
 }
 
@@ -6041,6 +6047,7 @@ make_igc (void)
   root_create_kbd_buffer (gc);
   root_create_exact_ptr (gc, &buffer_before_last_command_or_undo);
   root_create_exact_ptr (gc, &space_glyph.frame);
+  root_create_coding_system (gc, &safe_terminal_coding);
 #if defined (USE_GTK) && ! defined (HAVE_PGTK)
   root_create_xg_pending_quit_event (gc);
 #endif
