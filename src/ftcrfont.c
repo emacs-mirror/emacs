@@ -769,6 +769,8 @@ syms_of_ftcrfont (void)
 #ifdef HAVE_HARFBUZZ
   DEFSYM (Qftcrhb, "ftcrhb");
   Fput (Qftcr, Qfont_driver_superseded_by, Qftcrhb);
+
+  staticpro (&ftcrhbfont_driver.type);
 #endif	/* HAVE_HARFBUZZ */
   pdumper_do_now_and_after_load (syms_of_ftcrfont_for_pdumper);
 }

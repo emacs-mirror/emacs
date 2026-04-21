@@ -3224,6 +3224,7 @@ syms_of_ftfont (void)
   staticpro (&ft_face_cache);
   ft_face_cache = Qnil;
 
+  staticpro (&fthbfont_driver.type);
   pdumper_do_now_and_after_load (syms_of_ftfont_for_pdumper);
 }
 
