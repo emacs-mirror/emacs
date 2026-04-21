@@ -31784,7 +31784,6 @@ static void
 x_delete_selection_requests (struct x_display_info *dpyinfo)
 {
   union buffered_input_event *event;
-  int moved_events;
 
   for (event = kbd_fetch_ptr; event != kbd_store_ptr;
        event = X_NEXT_KBD_EVENT (event))
@@ -31795,25 +31794,8 @@ x_delete_selection_requests (struct x_display_info *dpyinfo)
 	  if (SELECTION_EVENT_DPYINFO (&event->sie) != dpyinfo)
 	    continue;
 
-	  /* Remove the event from the fifo buffer before processing;
-	     otherwise swallow_events called recursively could see it
-	     and process it again.  To do this, we move the events
-	     between kbd_fetch_ptr and EVENT one slot to the right,
-	     cyclically.  */
-
-	  if (event < kbd_fetch_ptr)
-	    {
-	      memmove (kbd_buffer + 1, kbd_buffer,
-		       (event - kbd_buffer) * sizeof *kbd_buffer);
-	      kbd_buffer[0] = kbd_buffer[KBD_BUFFER_SIZE - 1];
-	      moved_events = kbd_buffer + KBD_BUFFER_SIZE - 1 - kbd_fetch_ptr;
-	    }
-	  else
-	    moved_events = event - kbd_fetch_ptr;
-
-	  memmove (kbd_fetch_ptr + 1, kbd_fetch_ptr,
-		   moved_events * sizeof *kbd_fetch_ptr);
-	  kbd_fetch_ptr = X_NEXT_KBD_EVENT (kbd_fetch_ptr);
+	  EVENT_INIT (event->ie);
+	  event->ie.kind = NO_EVENT;
 
 	  /* `detect_input_pending' will then recompute whether or not
 	     pending input events exist.  */
