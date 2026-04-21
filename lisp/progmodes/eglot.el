@@ -1392,6 +1392,10 @@ when processing many ranges."
 (defun eglot--language-ids (s) "LSP Language ID strings for server S's modes."
   (mapcar #'cdr (eglot--languages s)))
 
+(defun eglot--server-name (s)
+  "Name server S, consulting LSP `serverInfo' if available."
+  (or (plist-get (eglot--server-info s) :name) (jsonrpc-name s)))
+
 (cl-defmethod initialize-instance :before ((_server eglot-lsp-server) &optional args)
   (cl-remf args :initializationOptions))
 
@@ -4980,8 +4984,7 @@ If NOERROR, return predicate, else erroring function."
   (mapcar
    (lambda (server)
      (list server
-           `[,(or (plist-get (eglot--server-info server) :name)
-                  (jsonrpc-name server))
+           `[,(eglot--server-name server)
              ,(eglot-project-nickname server)
              ,(format "%s" (length (eglot--managed-buffers server)))
              ,(mapconcat #'symbol-name
@@ -5041,7 +5044,7 @@ If NOERROR, return predicate, else erroring function."
             (caps    (eglot--capabilities server))
             (watches (eglot--file-watches server))
             (wsconf  (eglot--workspace-configuration-plist server))
-            (sname (or (plist-get info :name) (jsonrpc-name server))))
+            (sname (eglot--server-name server)))
   "Describe SERVER in a dedicated buffer."
   (interactive (list (eglot--current-server-or-lose)))
   (with-current-buffer
