@@ -9310,6 +9310,7 @@ non-nil."
            (if (and truncate-lines visual-line-mode)
                (progn
                  (visual-line-mode -1)
+                 (setq truncate-lines t)
                  (format-message " and `visual-line-mode' disabled"))
              "")))
 
