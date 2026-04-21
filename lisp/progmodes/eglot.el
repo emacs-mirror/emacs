@@ -2385,6 +2385,8 @@ the previous reports for TOKEN.")
     (add-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose nil t)
     (add-hook 'before-revert-hook #'eglot--signal-textDocument/didClose nil t)
     (add-hook 'after-revert-hook #'eglot--after-revert-hook nil t)
+    (add-hook 'after-set-visited-file-name-hook
+              #'eglot--after-set-visited-file-name-hook nil t)
     (add-hook 'before-save-hook #'eglot--signal-textDocument/willSave nil t)
     (add-hook 'after-save-hook #'eglot--signal-textDocument/didSave nil t)
     (unless (eglot--stay-out-of-p 'xref)
@@ -2425,6 +2427,8 @@ the previous reports for TOKEN.")
     (remove-hook 'kill-buffer-hook #'eglot--signal-textDocument/didClose t)
     (remove-hook 'before-revert-hook #'eglot--signal-textDocument/didClose t)
     (remove-hook 'after-revert-hook #'eglot--after-revert-hook t)
+    (remove-hook 'after-set-visited-file-name-hook
+                 #'eglot--after-set-visited-file-name-hook t)
     (remove-hook 'before-save-hook #'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook #'eglot--signal-textDocument/didSave t)
     (remove-hook 'xref-backend-functions #'eglot-xref-backend t)
@@ -3219,6 +3223,15 @@ When called interactively, use the currently active server"
     (jsonrpc-notify
      (eglot--current-server-or-lose)
      :textDocument/didClose `(:textDocument ,(eglot--TextDocumentIdentifier)))))
+
+(defun eglot--after-set-visited-file-name-hook ()
+  "Handle visited file name change: send didClose then didOpen.
+The cache still holds the old URI when this runs, so didClose
+uses it; didOpen then clears it and recomputes from the new
+`buffer-file-name'."
+  (when (and eglot--managed-mode buffer-file-name)
+    (eglot--signal-textDocument/didClose)
+    (eglot--signal-textDocument/didOpen)))
 
 (defun eglot--signal-textDocument/willSave ()
   "Maybe send textDocument/willSave to server."
