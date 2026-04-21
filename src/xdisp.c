@@ -27765,7 +27765,7 @@ display_tty_menu_separator (struct it *it, const char *label, int width)
   else
     c = display_tty_menu_separator_char ('-', BOX_HORIZONTAL);
   Lisp_Object sep = Fmake_string (make_fixnum (width - 1), make_fixnum (c), Qt);
-  display_string ((char *) SDATA (sep), Qnil, Qnil, 0, 0, it, width, -1, -1, 1);
+  display_string ((char *) SDATA (sep), sep, Qnil, 0, 0, it, width, -1, -1, 1);
 }
 
 /* Display one menu item on a TTY, by overwriting the glyphs in the
