@@ -25,13 +25,13 @@ General Public License for more details.
 
 @dircategory Emacs misc features
 @direntry
-* Transient: (transient).       Transient Commands.
+* Transient: (transient). Transient Commands.
 @end direntry
 
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.12.0
+@subtitle for version 0.13.0
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.12.0.
+This manual is for Transient version 0.13.0.
 
 @insertcopying
 @end ifnottex
@@ -385,7 +385,7 @@ than outlined above and even customizable.}
 If the user does not save the value and just exits using a regular
 suffix command, then the value is merely saved to the transient's
 history.  That value won't be used when the transient is next invoked,
-but it is easily accessible (@pxref{Using History}).
+but it is easily accessible (see @ref{Using History}).
 
 Option @code{transient-common-command-prefix} controls the prefix key used
 in the following bindings.  For simplicity's sake the default, @kbd{C-x},
@@ -454,8 +454,8 @@ previously used values.  Usually the same keys as those mentioned
 above are bound to those commands.
 
 Authors of transients should arrange for different infix commands that
-read the same kind of value to also use the same history key
-(@pxref{Suffix Slots}).
+read the same kind of value to also use the same history key (see
+@ref{Suffix Slots}).
 
 Both kinds of history are saved to a file when Emacs is exited.
 
@@ -680,7 +680,7 @@ More options are described in @ref{Common Suffix Commands}, in @ref{Saving Value
 
 Two more essential options are documented in @ref{Common Suffix Commands}.
 
-@defopt transient-show-popup
+@defopt transient-show-menu
 This option controls whether and when transient's menu buffer is
 shown.
 
@@ -747,16 +747,23 @@ from the user.  If @code{nil}, there is no initial input and the first
 element has to be accessed the same way as the older elements.
 @end defopt
 
-@defopt transient-enable-popup-navigation
+@defopt transient-enable-menu-navigation
 This option controls whether navigation commands are enabled in
-transient's menu buffer.  If the value is @code{verbose} (the default),
-brief documentation about the command under point is additionally
-show in the echo area.
+transient menu buffer, and whether additional documentation is shown
+in the echo area while doing so.
 
-While a transient is active the menu buffer is not the current
-buffer, making it necessary to use dedicated commands to act on that
-buffer itself.  If this option is non-@code{nil}, then the following
-features are available:
+If the value is @code{verbose} (the default), additional documentation
+about the command at point is shown in the echo area.  If this would
+result in the same documentation, which is being displayed inside
+the menu buffer, to be duplicated in the echo area, then @code{verbose}
+forgoes doing so.  Use @code{force-verbose} to echo even such documentation.
+Use @code{t} to enable menu navigation without showing documentation in the
+echo area.
+
+While a transient is active, the menu buffer is (by default) not the
+current buffer, making it necessary to use dedicated commands to act
+on that buffer itself.  If this option is non-nil, then the
+following bindings are available:
 
 @itemize
 @item
@@ -766,15 +773,18 @@ features are available:
 @item
 @kbd{M-@key{RET}} invokes the suffix the cursor is on.
 @item
-@kbd{mouse-1} invokes the clicked on suffix.
+@kbd{mouse-1} and @kbd{mouse-2} invokes the clicked on suffix.
 @item
 @kbd{C-s} and @kbd{C-r} start isearch in the menu buffer.
 @end itemize
 
-By default @kbd{M-@key{RET}} is bound to @code{transient-push-button}, instead of
-@kbd{@key{RET}}, because if a transient allows the invocation of non-suffixes,
-then it is likely, that you would want @kbd{@key{RET}} to do what it would do
-if no transient were active."
+@kbd{mouse-1} and @kbd{mouse-2} are bound in @code{transient-button-map}.
+All other bindings are in @code{transient-popup-navigation-map}.
+
+Instead of @kbd{@key{RET}}, @kbd{M-@key{RET}} is used to invoke the suffix command at point by
+default, because if a transient allows the invocation of non-suffixes,
+then it is likely that the user would want the former do what it would
+do if no transient were active.
 @end defopt
 
 @defopt transient-display-buffer-action
@@ -785,7 +795,7 @@ menu buffer.  The menu buffer is displayed in a window using
 The value of this option has the form @code{(@var{FUNCTION} . @var{ALIST})},
 where @var{FUNCTION} is a function or a list of functions.  Each such
 function should accept two arguments: a buffer to display and an
-alist of the same form as @var{ALIST}.  @xref{Choosing Window,,,elisp,},
+alist of the same form as @var{ALIST}.  See @ref{Choosing Window,,,elisp,},
 for details.
 
 The default is:
@@ -798,8 +808,8 @@ The default is:
 @end lisp
 
 This displays the window at the bottom of the selected frame.
-For alternatives @xref{Buffer Display Action Functions,,,elisp,},
-and @xref{Buffer Display Action Alists,,,elisp,}.
+For alternatives see @ref{Buffer Display Action Functions,,,elisp,},
+and @ref{Buffer Display Action Alists,,,elisp,}.
 
 When you switch to a different ACTION, you should keep the ALIST
 entries for @code{dedicated} and @code{inhibit-same-window} in most cases.
@@ -828,11 +838,147 @@ when creating a new prefix with @code{transient-define-prefix}.
 @anchor{Accessibility Options}
 @subheading Accessibility Options
 
+For visually impaired users I recommend the following configuration.
+If you need more guidance or would like to share your experience,
+please don't hesitate to contact me.
+
+@lisp
+(setopt transient-enable-menu-navigation 'force-verbose)
+(setopt transient-navigate-to-group-descriptions t)
+(setopt transient-describe-menu t)
+(setopt transient-select-menu-window t)
+(setopt transient-force-single-column t)
+(setopt transient-prefer-reading-value t)
+(setopt transient-use-accessible-values t)
+(setopt transient-use-accessible-formats t)
+@end lisp
+
+Additionally you have allow the command, which you use to read the
+text at point, to be run when a transient menu is active, for example:
+
+@lisp
+(define-key transient-predicate-map
+  [my-read-text-at-point] #'transient--do-stay)
+@end lisp
+
+@defopt transient-enable-menu-navigation
+This option is documented in the previous node (@ref{Essential Options}).  You might want to change the value from @code{verbose} to
+@code{force-verbose}, which causes information to be shown in the echo
+area, even if it is identical to information already displayed in
+the menu buffer.  Whether that is useful to you depends on whether
+your setup makes it easy to read the last message displayed in the
+echo area.
+@end defopt
+
+@defopt transient-navigate-to-group-descriptions
+This option controls whether menu navigation commands stop at group
+descriptions.  If your output method works by reading the text at
+point, you most likely want to enable this.
+
+If @code{transient-enable-menu-navigation} is non-@code{nil}, which it is by
+default, @kbd{@key{UP}} and @kbd{@key{DOWN}} move from suffix to suffix.  When this option
+is non-@code{nil} as well, then they additionally stop at group descriptions.
+This is useful because it allows braille and audio devices to output
+the group title at point.
+@end defopt
+
+@defopt transient-describe-menu
+This option controls whether a short description about the menu
+itself is inserted at the beginning of the menu buffer.
+
+When this is non-@code{nil}, then the menu buffer begins with a short
+description.  Ideally this is a string written exactly for that
+purpose, but because this is a new feature, most menu commands do
+not provide that yet.  In that case the first line of the prefix
+command's docstring is used as fallback.  If the value is @code{docstring},
+then the docstring is used even if a description is available.
+@end defopt
+
+@defopt transient-select-menu-window
+This option controls whether the window displaying the transient menu
+is automatically selected as soon as it is displayed.
+
+Enabling this is discouraged, except for users of braille and audio
+output devises.  Note that enabling this, or alternatively selecting
+the menu window on demand, are both unnecessary, to be able to move
+the cursor in the menu.  See @code{transient-enable-menu-navigation}.
+@end defopt
+
 @defopt transient-force-single-column
 This option controls whether the use of a single column to display
 suffixes is enforced.  This might be useful for users with low
 vision who use large text and might otherwise have to scroll in two
-dimensions.
+dimensions.  This is also useful for blind users, because it causes
+suffixes to be navigated in a more natural order, because often
+related commands are displayed in the same column but navigation
+first moves horizontally to the next item on the same row.
+@end defopt
+
+@defopt transient-prefer-reading-value
+This option controls whether reading a new value is preferred over
+other value selection methods.
+
+If this is @code{nil} (the default), then certain arguments are directly
+disabled when they are invoked, while they have a non-@code{nil} value.  I.e.,
+to switch from one non-@code{nil} value to another non-@code{nil} value, such commands
+have to be invoked twice.  For other arguments, which happen to have a
+small set of possible values, all values are displayed at all times,
+using solely coloring to indicate which of the values is active.  When
+such an infix command is invoked it cycles to the next value.
+
+This default does not work for visually impaired user.  If this option
+is non-@code{nil}, then more arguments immediately read the new value, instead
+of being toggled off on first invocation, or instead of cycling through
+values.
+@end defopt
+
+@defopt transient-use-accessible-values
+This option controls whether values are shown in a way that does not
+rely on coloring.
+
+If this is @code{nil} (the default), then colors are used to communicate the
+state of arguments.  For certain argument types the state is solely
+communicated that way.  For example, an enabled command-line switch is
+shown using some bright color, and disabling that argument, changes the
+color to gray, without otherwise changing the displayed text.
+
+This default does not work for visually impaired user.  If this option
+is non-@code{nil}, then the state is additionally communicated through other
+means.  A switch, for example, is either followed by "is enabled" or
+"is disabled".  How exactly the state is communicated depends on the
+type of the infix command.
+
+Note that packages, which use Transient, can define their own infix
+command types, which may or may not involve overriding Transient's
+code, which honors this new option.  I.e., it will take some time until
+everything respects this setting.
+@end defopt
+
+@defopt transient-use-accessible-formats
+This option controls whether more accessible format strings are used
+for menu elements.
+
+If this is non-@code{nil}, then menu elements are displayed in a way, that I
+hope, is more suitable for visually impaired users than the default.
+Please provide feedback, so that we can together work on improving this.
+
+By default the format specified by an element's @code{format} slot is used.
+When this is non-@code{nil}, then the @code{accessible-format} slot is used instead.
+One change implemented in the latter is that for an element representing
+a command-line argument, the argument and its value are moved before the
+description, giving quicker access to the current state, while still
+allowing users to read the description, in case they don't know yet what
+the argument in question does.
+
+Enabling this also causes the string "inapt" to be added at the very
+beginning of the text describing a command that currently cannot be
+used.  When using the default format, the only visual clue that a
+command is inapt, is that the complete text representing it is grayed
+out.  (As an example of such an inapt command, consider the case of a
+commands that can only act on the file at point, when there currently
+isn't a file at point.)  Placing the string "inapt" at the very
+beginning gives users the opportunity to immediately skip over unusable
+commands, while still giving them the opportunity to read on.
 @end defopt
 
 @anchor{Auxiliary Options}
@@ -861,7 +1007,7 @@ used to draw the line.
 This user option may be overridden if @code{:mode-line-format} is passed
 when creating a new prefix with @code{transient-define-prefix}.
 
-Otherwise this can be any mode-line format.  @xref{Mode Line Format,,,elisp,}, for details.
+Otherwise this can be any mode-line format.  See @ref{Mode Line Format,,,elisp,}, for details.
 @end defopt
 
 @defopt transient-semantic-coloring
@@ -1002,8 +1148,8 @@ That buffer is current and empty when this hook is runs.
 
 @cindex modifying existing transients
 
-To an extent, transients can be customized interactively,
-@xref{Enabling and Disabling Suffixes}.  This section explains how existing
+To an extent, transients can be customized interactively, see
+@ref{Enabling and Disabling Suffixes}.  This section explains how existing
 transients can be further modified non-interactively.  Let's begin
 with an example:
 
@@ -1029,10 +1175,10 @@ which can be included in multiple prefixes.  See TODO@.
 as expected by @code{transient-define-prefix}.  Note that an infix is a
 special kind of suffix.  Depending on context ``suffixes'' means
 ``suffixes (including infixes)'' or ``non-infix suffixes''.  Here it
-means the former.  @xref{Suffix Specifications}.
+means the former.  See @ref{Suffix Specifications}.
 
 @var{SUFFIX} may also be a group in the same form as expected by
-@code{transient-define-prefix}.  @xref{Group Specifications}.
+@code{transient-define-prefix}.  See @ref{Group Specifications}.
 
 @item
 @var{LOC} is a key description (a string as returned by @code{key-description}
@@ -1072,7 +1218,7 @@ or after @var{LOC}.
 Conceptually adding a binding to a transient prefix is similar to
 adding a binding to a keymap, but this is complicated by the fact
 that multiple suffix commands can be bound to the same key, provided
-they are never active at the same time, @xref{Predicate Slots}.
+they are never active at the same time, see @ref{Predicate Slots}.
 
 Unfortunately both false-positives and false-negatives are possible.
 To deal with the former, use non-@code{nil} @var{KEEP-OTHER@.}  The symbol @code{always}
@@ -1205,14 +1351,14 @@ enabled.  One benefit of the Transient interface is that it remembers
 history not only on a global level (``this command was invoked using
 these arguments, and previously it was invoked using those other
 arguments''), but also remembers the values of individual arguments
-independently.  @xref{Using History}.
+independently.  See @ref{Using History}.
 
 After a transient prefix command is invoked, @kbd{C-h @var{KEY}} can be used to
 show the documentation for the infix or suffix command that @kbd{@var{KEY}} is
-bound to (@pxref{Getting Help for Suffix Commands}), and infixes and
+bound to (see @ref{Getting Help for Suffix Commands}), and infixes and
 suffixes can be removed from the transient using @kbd{C-x l @var{KEY}}.  Infixes
 and suffixes that are disabled by default can be enabled the same way.
-@xref{Enabling and Disabling Suffixes}.
+See @ref{Enabling and Disabling Suffixes}.
 
 Transient ships with support for a few different types of specialized
 infix commands.  A command that sets a command line option, for example,
@@ -1263,7 +1409,7 @@ explicitly.
 
 @var{GROUP}s add key bindings for infix and suffix commands and specify
 how these bindings are presented in the menu buffer.  At least one
-@var{GROUP} has to be specified.  @xref{Binding Suffix and Infix Commands}.
+@var{GROUP} has to be specified.  See @ref{Binding Suffix and Infix Commands}.
 
 The @var{BODY} is optional.  If it is omitted, then @var{ARGLIST} is ignored and
 the function definition becomes:
@@ -1314,13 +1460,11 @@ GROUPs have the same form as for @code{transient-define-prefix}.
 @section Binding Suffix and Infix Commands
 
 The macro @code{transient-define-prefix} is used to define a transient.
-This defines the actual transient prefix command (@pxref{Defining
-Transients}) and adds the transient's infix and suffix bindings, as
+This defines the actual transient prefix command (see @ref{Defining Transients}) and adds the transient's infix and suffix bindings, as
 described below.
 
 Users and third-party packages can add additional bindings using
-functions such as @code{transient-insert-suffix} (@pxref{Modifying Existing Transients}).
-These functions take a ``suffix specification'' as one of
+functions such as @code{transient-insert-suffix} (see @ref{Modifying Existing Transients}).  These functions take a ``suffix specification'' as one of
 their arguments, which has the same form as the specifications used in
 @code{transient-define-prefix}.
 
@@ -1336,7 +1480,7 @@ for a set of suffixes.
 
 Several group classes exist, some of which organize suffixes in
 subgroups.  In most cases the class does not have to be specified
-explicitly, but @xref{Group Classes}.
+explicitly, but see @ref{Group Classes}.
 
 Groups are specified in the call to @code{transient-define-prefix}, using
 vectors.  Because groups are represented using vectors, we cannot use
@@ -1346,13 +1490,10 @@ brackets to do the latter.
 Group specifications then have this form:
 
 @lisp
-[@{@var{LEVEL}@} @{@var{DESCRIPTION}@}
- @{@var{KEYWORD} @var{VALUE}@}...
- @var{ELEMENT}...]
+[@{LEVEL@} @{DESCRIPTION@} @{KEYWORD VALUE@}... ELEMENT...]
 @end lisp
 
-The @var{LEVEL} is optional and defaults to 4.  @xref{Enabling and
-Disabling Suffixes}.
+The @var{LEVEL} is optional and defaults to 4.  See @ref{Enabling and Disabling Suffixes}.
 
 The @var{DESCRIPTION} is optional.  If present, it is used as the heading of
 the group.
@@ -1383,7 +1524,7 @@ useful while rebase is already in progress; and another that uses
 initiate a rebase.
 
 These predicates can also be used on individual suffixes and are
-only documented once, @xref{Predicate Slots}.
+only documented once, see @ref{Predicate Slots}.
 
 @item
 The value of @code{:hide}, if non-@code{nil}, is a predicate that controls
@@ -1488,13 +1629,13 @@ The form of suffix specifications is documented in the next node.
 @cindex suffix specifications
 
 A transient's suffix and infix commands are bound when the transient
-prefix command is defined using @code{transient-define-prefix},
-@xref{Defining Transients}.  The commands are organized into groups,
-@xref{Group Specifications}.  Here we describe the form used to bind an
+prefix command is defined using @code{transient-define-prefix}, see
+@ref{Defining Transients}.  The commands are organized into groups, see
+@ref{Group Specifications}.  Here we describe the form used to bind an
 individual suffix command.
 
 The same form is also used when later binding additional commands
-using functions such as @code{transient-insert-suffix}, @xref{Modifying Existing Transients}.
+using functions such as @code{transient-insert-suffix}, see @ref{Modifying Existing Transients}.
 
 Note that an infix is a special kind of suffix.  Depending on context
 ``suffixes'' means ``suffixes (including infixes)'' or ``non-infix
@@ -1503,9 +1644,7 @@ suffixes''.  Here it means the former.
 Suffix specifications have this form:
 
 @lisp
-([@var{LEVEL}]
- [@var{KEY} [@var{DESCRIPTION}]]
- @var{COMMAND}|@var{ARGUMENT} [@var{KEYWORD} @var{VALUE}]...)
+([LEVEL] [KEY [DESCRIPTION]] COMMAND|ARGUMENT [KEYWORD VALUE]...)
 @end lisp
 
 @var{LEVEL}, @var{KEY} and @var{DESCRIPTION} can also be specified using the @var{KEYWORD}s
@@ -1516,8 +1655,8 @@ the object's values just for the binding inside this transient.
 
 @itemize
 @item
-@var{LEVEL} is the suffix level, an integer between 1 and 7.
-@xref{Enabling and Disabling Suffixes}.
+@var{LEVEL} is the suffix level, an integer between 1 and 7.  See
+@ref{Enabling and Disabling Suffixes}.
 
 @item
 KEY is the key binding, a string in the format returned by
@@ -1591,7 +1730,7 @@ guessed based on the long argument.  If the argument ends with @samp{=}
 
 Finally, details can be specified using optional @var{KEYWORD}-@var{VALUE} pairs.
 Each keyword has to be a keyword symbol, either @code{:class} or a keyword
-argument supported by the constructor of that class.  @xref{Suffix Slots}.
+argument supported by the constructor of that class.  See @ref{Suffix Slots}.
 
 If a keyword argument accepts a function as value, you an use a @code{lambda}
 expression.  As a special case, the @code{##} macro (which returns a @code{lambda}
@@ -1941,8 +2080,8 @@ means that all outer prefixes are exited at once.
 @item
 The behavior for non-suffixes can be set for a particular prefix,
 by the prefix's @code{transient-non-suffix} slot to a boolean, a suitable
-pre-command function, or a shorthand for such a function.
-@xref{Pre-commands for Non-Suffixes}.
+pre-command function, or a shorthand for such a function.  See
+@ref{Pre-commands for Non-Suffixes}.
 
 @item
 The common behavior for the suffixes of a particular prefix can be
@@ -2267,7 +2406,7 @@ Transient itself provides a single class for prefix commands,
 @code{transient-prefix}, but package authors may wish to define specialized
 classes.  Doing so makes it possible to change the behavior of the set
 of prefix commands that use that class, by implementing specialized
-methods for certain generic functions (@pxref{Prefix Methods}).
+methods for certain generic functions (see @ref{Prefix Methods}).
 
 A transient prefix command's object is stored in the @code{transient--prefix}
 property of the command symbol.  While a transient is active, a clone
@@ -2282,7 +2421,7 @@ object should not affect later invocations.
 @item
 All suffix and infix classes derive from @code{transient-suffix}, which in
 turn derives from @code{transient-child}, from which @code{transient-group} also
-derives (@pxref{Group Classes}).
+derives (see @ref{Group Classes}).
 
 @item
 All infix classes derive from the abstract @code{transient-infix} class,
@@ -2290,13 +2429,13 @@ which in turn derives from the @code{transient-suffix} class.
 
 Infixes are a special type of suffixes.  The primary difference is
 that infixes always use the @code{transient--do-stay} pre-command, while
-non-infix suffixes use a variety of pre-commands (@pxref{Transient State}).  Doing that is most easily achieved by using this class,
+non-infix suffixes use a variety of pre-commands (see @ref{Transient State}).  Doing that is most easily achieved by using this class,
 though theoretically it would be possible to define an infix class
 that does not do so.  If you do that then you get to implement many
 methods.
 
 Also, infixes and non-infix suffixes are usually defined using
-different macros (@pxref{Defining Suffix and Infix Commands}).
+different macros (see @ref{Defining Suffix and Infix Commands}).
 
 @item
 Classes used for infix commands that represent arguments should
@@ -2607,7 +2746,7 @@ returns a brief summary about the command at point or hovered with
 the mouse.
 
 This function is called when the mouse is moved over a command and
-(if the value of @code{transient-enable-popup-navigation} is @code{verbose}) when
+(if the value of @code{transient-enable-menu-navigation} is @code{verbose}) when
 the user navigates to a command using the keyboard.
 
 If OBJ's @code{summary} slot is a string, that is used.  If @code{summary} is a
@@ -2706,7 +2845,7 @@ secondary value, called a ``scope''.  See @code{transient-define-prefix}.
 @code{transient-suffix}, @code{transient-non-suffix} and @code{transient-switch-frame}
 play a part when determining whether the currently active transient
 prefix command remains active/transient when a suffix or arbitrary
-non-suffix command is invoked.  @xref{Transient State}.
+non-suffix command is invoked.  See @ref{Transient State}.
 
 @item
 @code{refresh-suffixes} Normally suffix objects and keymaps are only setup
@@ -2766,6 +2905,12 @@ fallback descriptions for suffixes that lack a description.  This
 is intended to be temporarily used when implementing of a new prefix
 command, at which time @code{transient-command-summary-or-name} is a useful
 value.
+
+@item
+@code{description} a short string describing the prefix, which users can
+opt-in to be displayed at the top of the menu buffer.  This should
+be more concise than the first line of the docstring, which is used
+as a fallback if no description is provided.
 @end itemize
 
 @anchor{Internal}
@@ -2788,7 +2933,7 @@ of the same symbol.
 
 @item
 @code{level} The level of the prefix commands.  The suffix commands whose
-layer is equal or lower are displayed.  @pxref{Enabling and Disabling Suffixes}.
+layer is equal or lower are displayed.  See @ref{Enabling and Disabling Suffixes}.
 
 @item
 @code{value} The likely outdated value of the prefix.  Instead of accessing
@@ -2812,19 +2957,46 @@ Here we document most of the slots that are only available for suffix
 objects.  Some slots are shared by suffix and group objects, they are
 documented in @ref{Predicate Slots}.
 
-Also @xref{Suffix Classes}.
+Also see @ref{Suffix Classes}.
 
 @anchor{Slots of @code{transient-child}}
 @subheading Slots of @code{transient-child}
 
-This is the abstract superclass of @code{transient-suffix} and @code{transient-group}.
-This is where the shared @code{if*} and @code{inapt-if*} slots (@pxref{Predicate Slots}),
-the @code{level} slot (@pxref{Enabling and Disabling Suffixes}), and the @code{advice}
-and @code{advice*} slots (@pxref{Slots of @code{transient-suffix}}) are defined.
+This is the abstract superclass of @code{transient-suffix} and
+@code{transient-group}.  In addition to the slots listed below, this class
+is also where the @code{if*} and @code{inapt-if*} slots (see @ref{Predicate Slots}) and
+the @code{level} slot (see @ref{Enabling and Disabling Suffixes}) are defined.
 
 @itemize
 @item
-@code{parent} The object for the parent group.
+@code{parent} The object for the parent group, if any.
+
+@item
+@code{inactive} If an @code{:if*} predicate of a suffix or group returns @code{nil},
+then it is not displayed in the menu, but it has to remain in the
+internal object tree, in case that predicate later returns @code{t}, and
+the @code{object} therefore has to appear in the menu again.  Likewise a
+group or suffix may be (potentially only temporarily) inactive due
+to its @code{level}.  The @code{inactive} slot is set accordingly.  Never set it
+yourself.
+@end itemize
+
+The following two slots are experimental.  If they are set for a
+group, then they apply to all suffixes in that group, except for
+suffixes that themselves set the same slot to a non-@code{nil} value.
+
+@itemize
+@item
+@code{advice} A function used to advise the command.  The advise is called
+using @code{(apply advice command args)}, i.e., it behaves like an "around"
+advice.
+
+@item
+@code{advice*} A function used to advise the command.  Unlike @code{advice}, this
+advises not only the command body but also its @code{interactive} spec.  If
+both slots are non-@code{nil}, @code{advice} is used for the body and @code{advice*} is
+used for the @code{interactive} form.  When advising the @code{interactive} spec,
+called using @code{(funcall advice #'advice-eval-interactive-spec spec)}.
 @end itemize
 
 @anchor{Slots of @code{transient-suffix}}
@@ -2846,7 +3018,7 @@ which is useful for alignment purposes.
 @code{command} The command, a symbol.
 
 @item
-@code{transient} Whether to stay transient.  @xref{Transient State}.
+@code{transient} Whether to stay transient.  See @ref{Transient State}.
 
 @item
 @code{format} The format used to display the suffix in the menu buffer.
@@ -2877,32 +3049,21 @@ unspecified, the prefix controls how help is displayed for its
 suffixes.  See also function @code{transient-show-help}.
 
 @item
-@code{summary} The summary displayed in the echo area, or as a tooltip.
-If this is @code{nil}, which it usually should be, the first line of the
-documentation string is used instead.  See @code{transient-show-summary}
-for details.
+@code{summary} A short description to be displayed in addition to the text
+displayed in the menu itself.  If this is @code{nil}, the first line of the
+documentation string is used instead.  If non-@code{nil}, this must be a
+string or a function that returns a string or @code{nil}.
+
+This description is displayed as a tooltip, when hovering an element
+in the menu.  If @code{transient-enable-menu-navigation} is @code{verbose}, it is
+also shown in the echo area, when navigating the menu.
+
+The generic function @code{transient-get-summary} is used to determine and
+format this description.
 
 @item
 @code{definition} A command, which is used if the body is omitted when
 defining a command using @code{transient-define-suffix}.
-@end itemize
-
-The following two slots are experimental.  They can also be set for a
-group, in which case they apply to all suffixes in that group, except
-for suffixes that set the same slot to a non-@code{nil} value.
-
-@itemize
-@item
-@code{advice} A function used to advise the command.  The advise is called
-using @code{(apply advice command args)}, i.e., it behaves like an "around"
-advice.
-
-@item
-@code{advice*} A function used to advise the command.  Unlike @code{advice}, this
-advises not only the command body but also its @code{interactive} spec.  If
-both slots are non-@code{nil}, @code{advice} is used for the body and @code{advice*} is
-used for the @code{interactive} form.  When advising the @code{interactive} spec,
-called using @code{(funcall advice #'advice-eval-interactive-spec spec)}.
 @end itemize
 
 @anchor{Slots of @code{transient-infix}}
@@ -3070,14 +3231,14 @@ currently cannot be invoked.
 
 By default these predicates run when the prefix command is invoked,
 but this can be changes, using the @code{refresh-suffixes} prefix slot.
-@xref{Prefix Slots}.
+See @ref{Prefix Slots}.
 
 One more slot is shared between group and suffix classes, @code{level}.  Like
 the slots documented above, it is a predicate, but it is used for a
 different purpose.  The value has to be an integer between 1
 and 7.  @code{level} controls whether a suffix or a group should be
 available depending on user preference.
-@xref{Enabling and Disabling Suffixes}.
+See @ref{Enabling and Disabling Suffixes}.
 
 @node FAQ
 @appendix FAQ
@@ -3092,20 +3253,17 @@ by passing @code{:display-action} to @code{transient-define-prefix}.
 @anchor{How can I copy text from the menu buffer?}
 @appendixsec How can I copy text from the menu buffer?
 
-To be able to mark text in Transient's menu buffer using the mouse,
-you have to add the below binding.  Note that for technical reasons,
-the region won't be visualized, while doing so.  After you have quit
-the transient menu, you will be able to yank it in another buffer.
+You can select text in the menu buffer using the mouse, like in most
+other buffers, by clicking @code{mouse-1} and keeping it pressed while
+dragging.
 
-@lisp
-(keymap-set transient-predicate-map
-            "<mouse-set-region>"
-            #'transient--do-stay)
-@end lisp
+(Before v0.13.0, the above required additional configuration and the
+region was not visualized while dragging.  This isn't the case anymore,
+but explains why the following was once deemed necessary.)
 
-Copying the region while not seeing the region is a bit fiddly, so a
-dedicated command, @code{transient-copy-menu-text}, was added.  You have to
-add a binding for this command in @code{transient-map}.
+Alternatively the command @code{transient-copy-menu-text} can be used to copy
+the complete content of the menu buffer.  You have to add a binding
+for this command in @code{transient-map}.
 
 @lisp
 (keymap-set transient-map "C-c C-w" #'transient-copy-menu-text)
@@ -3115,9 +3273,9 @@ add a binding for this command in @code{transient-map}.
 @appendixsec How can I autoload prefix and suffix commands?
 
 If your package only supports Emacs 30, just prefix the definition
-with @code{;;;###autoload}.  If your package supports released versions of
-Emacs, you unfortunately have to use a long form autoload comment
-as described in @ref{Autoload,,,elisp,}.
+with @code{;;;###autoload}.  If your package supports older Emacs releases,
+you unfortunately have to use a long-form autoload comment as
+described in @ref{Autoload,,,elisp,}.
 
 @lisp
 ;;;###autoload (autoload 'magit-dispatch "magit" nil t)
