@@ -398,7 +398,10 @@ be $HOME."
                     (file-name-unquote temporary-file-directory))))))
 
 (defconst  files-tests-file-name-non-special--temp-file-prefixes
-  '("foo" "$foo" "~foo" "foo*bar")
+  (append '("foo" "$foo" "~foo")
+          ;; No amount of quoting will allow creation of a file name
+          ;; with an embedded '*' on MS-Windows and MS-DOS.
+          (if (not (memq system-type '(windows-nt ms-dos))) '("foo*bar")))
   "Prefixes to be tested for `file-name-non-special' tests.")
 
 (ert-deftest files-tests-file-name-non-special--subprocess ()
