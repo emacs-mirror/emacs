@@ -259,13 +259,14 @@ regardless of what part of it (if any) is included in the cited text.")
 
 ;;;###autoload
 (defcustom mail-citation-prefix-regexp
-  ;; Use [[:word:]] rather than \w so we don't get tripped up if one
+  ;; Use [:word:] rather than \w so we don't get tripped up if one
   ;; of those chars has a weird `syntax-table' text property.
-  "\\([ \t]*\\([[:word:]]\\|[_.]\\)+>+\\|[ \t]*[>|]\\)+"
+  ;; FIXME: Merge with `message-cite-prefix-regexp'.
+  "\\(?:[ \t]*\\(?:[[:word:]_.]+>\\|[>|]\\)\\)+"
   "Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
-with whitespace before and after; it should also match just whitespace.
-The default value matches citations like `foo-bar>' plus whitespace."
+including leading whitespace.  The default value matches citations
+like `foo_bar>' plus any leading whitespace."
   :type 'regexp
   :version "24.1")
 
