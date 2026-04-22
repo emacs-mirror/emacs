@@ -789,7 +789,11 @@ message."
 	(sumbuf (rmail-get-create-summary-buffer)))
     ;; Scan the messages, getting their summary strings
     ;; and putting the list of them in SUMMARY-MSGS.
-    (let ((msgnum rmail-summary-starting-message)
+    (let ((msgnum (min rmail-summary-starting-message
+                       ;; If we are before, or close to, msg number
+                       ;; rmail-summary-starting-message,
+                       ;; start the search a little before there.
+                       (max 1 (floor (* .9 rmail-current-message)))))
 	  (main-buffer (current-buffer))
 	  (total rmail-total-messages)
 	  (inhibit-read-only t))
