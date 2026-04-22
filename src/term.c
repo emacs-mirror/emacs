@@ -4635,9 +4635,10 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 		 || ((bg = getenv ("COLORTERM")) != NULL
 		     && strcasecmp (bg, "truecolor") == 0))
 	  {
-	    tty->TS_set_foreground = "\033[38;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
-	    tty->TS_set_background = "\033[48;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
+	    tty->TS_set_foreground = "\033[38;2;%p1%d;%p2%d;%p3%d%;m";
+	    tty->TS_set_background = "\033[48;2;%p1%d;%p2%d;%p3%d%;m";
 	    tty->TN_max_colors = 16777216;
+	    tty->TF_rgb_separate = 1;
 	  }
       }
 #endif
