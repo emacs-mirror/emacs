@@ -3190,6 +3190,7 @@ syms_of_ftfont (void)
 #ifdef HAVE_HARFBUZZ
   DEFSYM (Qfreetypehb, "freetypehb");
   Fput (Qfreetype, Qfont_driver_superseded_by, Qfreetypehb);
+  staticpro (&fthbfont_driver.type);
 #endif	/* HAVE_HARFBUZZ */
 
 #ifdef HAVE_HAIKU
@@ -3224,7 +3225,6 @@ syms_of_ftfont (void)
   staticpro (&ft_face_cache);
   ft_face_cache = Qnil;
 
-  staticpro (&fthbfont_driver.type);
   pdumper_do_now_and_after_load (syms_of_ftfont_for_pdumper);
 }
 
