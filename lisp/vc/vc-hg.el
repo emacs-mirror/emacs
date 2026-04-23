@@ -1469,8 +1469,7 @@ REV is the revision to check out into WORKFILE."
                'face 'font-lock-comment-face)))))
 
 (defun vc-hg-after-dir-status (update-function)
-  (let ((file nil)
-        (translation '((?= . up-to-date)
+  (let ((translation '((?= . up-to-date)
                        (?C . up-to-date)
                        (?A . added)
                        (?R . removed)
@@ -1479,45 +1478,39 @@ REV is the revision to check out into WORKFILE."
                        (?! . missing)
                        (?  . copy-rename-line)
                        (?? . unregistered)))
-        (translated nil)
-        (result nil)
-        (last-added nil)
-        (last-line-copy nil))
-      (goto-char (point-min))
-      (while (not (eobp))
-        (setq translated (cdr (assoc (char-after) translation)))
-        (setq file
-              (buffer-substring-no-properties (+ (point) 2)
-                                              (line-end-position)))
-        (cond ((not translated)
-               (setq last-line-copy nil))
-              ((eq translated 'up-to-date)
-               (setq last-line-copy nil))
-              ((eq translated 'copy-rename-line)
-               ;; For copied files the output looks like this:
-               ;; A COPIED_FILE_NAME
-               ;;   ORIGINAL_FILE_NAME
-               (setf (nth 2 last-added)
-                     (vc-hg-create-extra-fileinfo 'copied file))
-               (setq last-line-copy t))
-              ((and last-line-copy (eq translated 'removed))
-               ;; For renamed files the output looks like this:
-               ;; A NEW_FILE_NAME
-               ;;   ORIGINAL_FILE_NAME
-               ;; R ORIGINAL_FILE_NAME
-               ;; We need to adjust the previous entry to not think it is a copy.
-               (setf (vc-hg-extra-fileinfo->rename-state (nth 2 last-added))
-                     'renamed-from)
-               (push (list file translated
-                           (vc-hg-create-extra-fileinfo
-                            'renamed-to (nth 0 last-added))) result)
-               (setq last-line-copy nil))
-              (t
-               (setq last-added (list file translated nil))
-               (push last-added result)
-               (setq last-line-copy nil)))
-        (forward-line))
-      (funcall update-function result)))
+        (copies (make-hash-table :test #'equal))
+        result)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let ((translated (cdr (assq (char-after) translation)))
+            (file (buffer-substring-no-properties (+ (point) 2)
+                                                  (line-end-position))))
+        (pcase translated
+          ;; For copied files the output looks like this:
+          ;;     A COPIED_FILE_NAME
+          ;;       ORIGINAL_FILE_NAME
+          ;; For renamed files the output looks like this:
+          ;;     A NEW_FILE_NAME
+          ;;       ORIGINAL_FILE_NAME
+          ;;     R ORIGINAL_FILE_NAME
+          ;; but the last line can come arbitrarily later in the output.
+          ;; So we have to remember the entry for the copy in RESULT to
+          ;; potentially modify later.
+          ('copy-rename-line
+           (let ((last (car result)))
+             (setf (caddr last)
+                   (vc-hg-create-extra-fileinfo 'copied file))
+             (puthash file last copies)))
+          ((and 'removed
+                (let (and last (guard last)) (gethash file copies)))
+           (setf (vc-hg-extra-fileinfo->rename-state (caddr last))
+                 'renamed-from)
+           (push (list file translated
+                       (vc-hg-create-extra-fileinfo 'renamed-to (car last)))
+                 result))
+          (_ (push (list file translated nil) result))))
+      (forward-line))
+    (funcall update-function result)))
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.

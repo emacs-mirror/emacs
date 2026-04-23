@@ -57,4 +57,35 @@
                    (vc-annotate-convert-time
                     (encode-time 0 0 0 28 11 2014))))))
 
+(defun vc-hg-test--after-dir-status-expect (in out)
+  "Call `vc-hg-after-dir-status' on IN and assert that it returns OUT."
+  (with-temp-buffer
+    (insert in)
+    (vc-hg-after-dir-status (lambda (res) (should (equal res out))))))
+
+(ert-deftest vc-hg-after-dir-status ()
+  "Test `vc-hg-after-dir-status'."
+  (vc-hg-test--after-dir-status-expect
+   "\
+A bar2
+  bar
+A foo2
+  foo
+R bar"
+   '(("bar" removed #s(vc-hg-extra-fileinfo renamed-to "bar2"))
+     ("foo2" added #s(vc-hg-extra-fileinfo copied "foo"))
+     ("bar2" added #s(vc-hg-extra-fileinfo renamed-from "bar"))))
+  (vc-hg-test--after-dir-status-expect
+   "\
+A bar2
+  bar
+A foo2
+  foo
+R bar
+R foo"
+   '(("foo" removed #s(vc-hg-extra-fileinfo renamed-to "foo2"))
+     ("bar" removed #s(vc-hg-extra-fileinfo renamed-to "bar2"))
+     ("foo2" added #s(vc-hg-extra-fileinfo renamed-from "foo"))
+     ("bar2" added #s(vc-hg-extra-fileinfo renamed-from "bar")))))
+
 ;;; vc-hg-tests.el ends here
