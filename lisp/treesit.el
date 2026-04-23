@@ -545,6 +545,44 @@ See `treesit-query-capture' for QUERY."
        (treesit-parser-root-node parser)
        query))))
 
+(defsubst treesit--range-start (range)
+  "Return the start of RANGE.
+RANGE can be either a simple range (START . END), or a list of ranges
+\((START . END)...).  If RANGE is empty, return nil."
+  (if (consp (car range))
+      (caar range)
+    (car range)))
+
+(defsubst treesit--range-end (range)
+  "Return the end of RANGE.
+RANGE can be either a simple range (START . END), or a list of ranges
+\((START . END)...).  If RANGE is empty, return nil."
+  (let ((last-link (last range)))
+    (if (consp (car last-link))
+        (cdr (car last-link))
+      (cdr last-link))))
+
+(defun treesit--flatten-ranges (ranges)
+  "Flatten RANGES to be a list of (START . END) in-place and return it.
+Each element in RANGES can be either (STRT . END) or ((START . END)...)."
+  (let (head prev elm)
+    (while (setq elm (car ranges))
+      (if (consp (car elm))
+          ;; ELM is ((START . END)...).
+          (progn
+            (if (null head)
+                (setq head elm)
+              (setcdr prev elm))
+            (setq prev (last elm)))
+        ;; ELM is (START . END).
+        (if (null head)
+            (setq head ranges)
+          (setcdr prev ranges))
+        (setq prev ranges))
+
+      (setq ranges (cdr ranges)))
+    head))
+
 (defun treesit-query-range (node query &optional beg end offset range-fn)
   "Query the current buffer and return ranges of captured nodes.
 
@@ -557,7 +595,12 @@ being returned.  Capture names generally don't matter, but names
 that starts with an underscore are ignored.
 
 RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
-returns the ranges to use for that NODE."
+returns the ranges to use for that NODE, it can return either a simple
+range (START . END) or a list ((START . END)...).
+
+Note that each range in the returned list can be either a simple (START
+. END), or a list itself ((START . END)...).  The latter case means the
+embedded parser should have ranges set to that."
   (let ((offset-left (or (car offset) 0))
         (offset-right (or (cdr offset) 0)))
     (cl-loop for capture
@@ -565,11 +608,11 @@ returns the ranges to use for that NODE."
              for name = (car capture)
              for node = (cdr capture)
              if (not (string-prefix-p "_" (symbol-name name)))
-             append
+             collect
              (if range-fn
                  (funcall range-fn node offset)
-               (list (cons (+ (treesit-node-start node) offset-left)
-                           (+ (treesit-node-end node) offset-right)))))))
+               (cons (+ (treesit-node-start node) offset-left)
+                     (+ (treesit-node-end node) offset-right))))))
 
 (defun treesit-query-range-by-language
     (node query language-fn &optional beg end offset range-fn)
@@ -584,9 +627,14 @@ symbols with LANGUAGE-FN.  LANGUAGE-FN can return nil, meaning no
 valid language is detected, in which case the range is skipped.
 
 RANGE-FN, if non-nil, is a function that takes a NODE and OFFSET, and
-returns the ranges to use for that NODE.
+returns the ranges to use for that NODE, it can return either a simple
+range (START . END) or a list ((START . END)...).
 
-BEG, END, OFFSET are the same as in `treesit-query-range'."
+BEG, END, OFFSET are the same as in `treesit-query-range'.
+
+Note that each range in the returned list can be either (START . END)
+or ((START . END)...).  The latter case means the embedded parser should
+have ranges set to that."
   (let ((offset-left (or (car offset) 0))
         (offset-right (or (cdr offset) 0))
         (ranges-by-language nil))
@@ -601,12 +649,11 @@ BEG, END, OFFSET are the same as in `treesit-query-range'."
                          (not (string-prefix-p "_" (symbol-name name))))
                 (push (if range-fn
                           (funcall range-fn node offset)
-                        (list (cons (+ (treesit-node-start node) offset-left)
-                                    (+ (treesit-node-end node) offset-right))))
+                        (cons (+ (treesit-node-start node) offset-left)
+                              (+ (treesit-node-end node) offset-right)))
                       (alist-get lang ranges-by-language))))))))
     (mapcar (lambda (entry)
-              (cons (car entry)
-                    (apply #'append (nreverse (cdr entry)))))
+              (cons (car entry) (nreverse (cdr entry))))
             ranges-by-language)))
 
 (defun treesit-query-valid-p (language query)
@@ -1053,27 +1100,32 @@ Return updated parsers as a list."
           ;; Lay an overlay over each range to mark the start & end of
           ;; it for other functions to access (e.g., outline wants to
           ;; know this).  Refer to (ref:local-parser-overlay) for more
-          ;; explanation of local parser overlays.
+          ;; explanation of local parser overlays.  Each RANGE can be
+          ;; either a simple (START . END) or a ((START . END)...).
           (dolist (range new-ranges)
-            (let ((has-existing-ov nil))
+            (let ((has-existing-ov nil)
+                  (r-start (treesit--range-start range))
+                  (r-end (treesit--range-end range)))
               (setq has-existing-ov
                     (catch 'done
-                      (dolist (ov (overlays-in (car range) (cdr range)))
+                      (dolist (ov (overlays-in r-start r-end))
                         (when (eq (overlay-get ov 'treesit-parser)
                                   embed-parser)
-                          (move-overlay ov (car range) (cdr range))
+                          (move-overlay ov r-start r-end)
                           (overlay-put ov 'treesit-parser-ov-timestamp
                                        modified-tick)
                           (throw 'done t)))))
               (unless has-existing-ov
-                (let ((ov (make-overlay (car range) (cdr range))))
+                (let ((ov (make-overlay r-start r-end)))
                   (overlay-put ov 'treesit-parser embed-parser)
                   (overlay-put ov 'treesit-parser-local-p nil)
                   (overlay-put ov 'treesit-host-parser host-parser)
                   (overlay-put ov 'treesit-parser-ov-timestamp
                                modified-tick)))))
           ;; Set ranges for the embed parser.
-          (let* ((old-ranges (treesit-parser-included-ranges
+          (let* ((new-ranges
+                  (treesit--flatten-ranges new-ranges))
+                 (old-ranges (treesit-parser-included-ranges
                               embed-parser))
                  (set-ranges (treesit--clip-ranges
                               (treesit--merge-ranges
@@ -1133,8 +1185,12 @@ Return the created local parsers as a list."
     (dolist (lang-and-range ranges-by-lang)
       (let ((embedded-lang (car lang-and-range))
             (ranges (cdr lang-and-range)))
-        (pcase-dolist (`(,beg . ,end) ranges)
-          (let ((existing-local-parser
+        ;; Each element of RANGES can be either (START . END) or ((START
+        ;; . END)...).
+        (dolist (range ranges)
+          (let ((beg (treesit--range-start range))
+                (end (treesit--range-end range))
+                (existing-local-parser
                  (catch 'done
                    (dolist (ov (overlays-in beg end) nil)
                      ;; Update range of local parser.
@@ -1148,7 +1204,9 @@ Return the created local parsers as a list."
                                   (eq parser-lang embedded-lang)
                                   (eq embed-level parser-level))
                          (treesit-parser-set-included-ranges
-                          embedded-parser `((,beg . ,end)))
+                          embedded-parser (if (consp (car range))
+                                              range
+                                            (list range)))
                          (move-overlay ov beg end)
                          (overlay-put ov 'treesit-parser-ov-timestamp
                                       modified-tick)
@@ -1168,7 +1226,9 @@ Return the created local parsers as a list."
                 (overlay-put ov 'treesit-parser-ov-timestamp
                              modified-tick)
                 (treesit-parser-set-included-ranges
-                 embedded-parser `((,beg . ,end)))
+                 embedded-parser (if (consp (car range))
+                                     range
+                                   (list range)))
                 (push embedded-parser touched-parsers)))))))
     touched-parsers))
 

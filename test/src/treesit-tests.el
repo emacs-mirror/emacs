@@ -524,6 +524,65 @@ BODY is the test body."
 
 ;;; Query
 
+(ert-deftest treesit-range-helper ()
+  "Test range helpers."
+  ;; Simple.
+  (should (equal (treesit--range-start '(1 . 2)) 1))
+  (should (equal (treesit--range-end '(1 . 2)) 2))
+  ;; Empty.
+  (should (equal (treesit--range-start '()) nil))
+  (should (equal (treesit--range-end '()) nil))
+  ;; List.
+  (should (equal (treesit--range-start '((1 . 2) (3 . 4))) 1))
+  (should (equal (treesit--range-end '((1 . 2) (3 . 4))) 4))
+  ;; The complicated range is...
+  ;; ...in the middle.
+  (should (equal (treesit--flatten-ranges (list (cons 1 2)
+                                                (cons 3 4)
+                                                (list (cons 5 6)
+                                                      (cons 7 8))
+                                                (cons 9 10)))
+
+                 '((1 . 2) (3 . 4) (5 . 6) (7 . 8) (9 . 10))))
+  ;; ... the second.
+  (should (equal (treesit--flatten-ranges (list (cons 1 2)
+                                                (list (cons 5 6)
+                                                      (cons 7 8))
+                                                (cons 3 4)
+                                                (cons 9 10)))
+
+                 '((1 . 2) (5 . 6) (7 . 8) (3 . 4) (9 . 10))))
+  ;; ...last.
+  (should (equal (treesit--flatten-ranges (list (cons 1 2)
+                                                (cons 3 4)
+                                                (cons 9 10)
+                                                (list (cons 5 6)
+                                                      (cons 7 8))))
+                 '((1 . 2) (3 . 4) (9 . 10) (5 . 6) (7 . 8))))
+  ;; ...first.
+  (should (equal (treesit--flatten-ranges (list (list (cons 5 6)
+                                                      (cons 7 8))
+                                                (cons 1 2)
+                                                (cons 3 4)
+                                                (cons 9 10)))
+
+                 '((5 . 6) (7 . 8) (1 . 2) (3 . 4) (9 . 10))))
+  ;; ...doubled.
+  (should (equal (treesit--flatten-ranges (list (list (cons 5 6)
+                                                      (cons 7 8))
+                                                (list (cons 5 6)
+                                                      (cons 7 8))
+                                                (cons 1 2)
+                                                (cons 3 4)
+                                                (cons 9 10)))
+                 '((5 . 6) (7 . 8) (5 . 6) (7 . 8) (1 . 2) (3 . 4) (9 . 10))))
+  ;; ...has one element.
+  (should (equal (treesit--flatten-ranges (list (cons 1 2)
+                                                (cons 3 4)
+                                                (cons 9 10)
+                                                (list (cons 5 6))))
+                 '((1 . 2) (3 . 4) (9 . 10) (5 . 6)))))
+
 (defun treesit--ert-pred-last-sibling (node)
   (null (treesit-node-next-sibling node t)))
 
