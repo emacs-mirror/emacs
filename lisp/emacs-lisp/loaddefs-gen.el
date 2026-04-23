@@ -143,23 +143,6 @@ scanning for autoloads and will be in the `load-path'."
              3)
         form))
 
-;; The following macros are known to define functions, and are treated
-;; specially when encountered during autoload generation, translating
-;; calls to them directly into appropriate (autoload function ...)
-;; forms.
-;;
-;; An alternative to appearing on this list is for a macro to declare
-;; (autoload-macro expand), so calls to it get expanded into more basic
-;; forms during generation.  Macros may be removed from this list once
-;; they request such expansion and produce suitable output (e.g. by
-;; employing :autoload-end to omit unneeded forms).
-(defconst loaddefs--defining-macros
-  '( transient-define-prefix transient-define-suffix transient-define-infix
-     transient-define-argument
-     ;; FIXME: How can this one make sense?  It doesn't put anything
-     ;; into `symbol-function'!
-     transient-define-group))
-
 (defvar loaddefs--load-error-files nil)
 (defun loaddefs-generate--make-autoload (form file &optional expansion)
   "Turn FORM into an autoload or defvar for source file FILE.
@@ -225,7 +208,6 @@ expand)' among their `declare' forms."
         ;; give packages a chance to define their macros.
         (unless (or (not (symbolp car)) (fboundp car)
                     ;; Special cases handled below
-                    (memq car loaddefs--defining-macros)
                     (memq car '(defclass defcustom deftheme defgroup nil))
                     (assoc file load-history)
                     (member file loaddefs--load-error-files))
@@ -247,21 +229,6 @@ expand)' among their `declare' forms."
 	     (not (eq car (car expand)))))
       ;; Recurse on the expansion.
       (loaddefs-generate--make-autoload expand file 'expansion))
-
-     ;; For known special macros which define functions, use `autoload'
-     ;; directly.
-     ((memq car loaddefs--defining-macros)
-      (let* ((name (nth 1 form))
-	     (args (nth 2 form))
-	     (body (nthcdr (or (function-get car 'doc-string-elt) 3) form))
-	     (doc (if (stringp (car body)) (pop body))))
-        ;; Add the usage form at the end where describe-function-1
-        ;; can recover it.
-	(when (listp args) (setq doc (help-add-fundoc-usage doc args)))
-        ;; `define-generic-mode' quotes the name, so take care of that
-        (loaddefs-generate--shorten-autoload
-         `(autoload ,(if (listp name) name (list 'quote name))
-            ,file ,doc t))))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
