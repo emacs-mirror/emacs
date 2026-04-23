@@ -4157,14 +4157,21 @@ setting."
       (when (memq #'syntax-ppss-flush-cache before-change-functions)
         (apply #'syntax-ppss-flush-cache beg rest)))))
 
-(defun comint--fontify-input-fontify-region (fun beg end verbose)
-  "Fontify process output and user input in the current comint buffer.
-First, fontify the region between BEG and END using FUN.  Then
-fontify only the input text in the region with the help of an
-indirect buffer.  VERBOSE is passed to the fontify-region
-functions.  Skip fontification of input regions with non-nil
-`comint--fontify-input-inhibit-fontification' text property."
-  (pcase (funcall fun beg end verbose)
+(defun comint--dummy-fontify-syntax (end)
+  ;; Tell `syntax-propertize' that there's nothing
+  ;; to propertize here.
+  ;; BEWARE: don't use `ignore' because `syntax-propertize'
+  ;; treats it specially.
+  (let ((syntax-propertize-function (lambda (&rest _) nil)))
+    (syntax-propertize end)))
+
+(defun comint--fontify-input-fontify-region (orig-fun beg end &rest args)
+  "Fontify user input in the current comint buffer.
+Fontify the input text in the region with the help of an indirect buffer.
+Skip fontification of input regions with non-nil
+`comint--fontify-input-inhibit-fontification' text property.
+Designed as an advice for use in `font-lock-fontify-region-function'."
+  (pcase (apply orig-fun beg end args)
     (`(jit-lock-bounds ,beg1 . ,end1)
      (setq beg beg1 end end1)))
   (pcase
@@ -4173,10 +4180,12 @@ functions.  Skip fontification of input regions with non-nil
         (with-current-buffer (comint-indirect-buffer)
           (narrow-to-region min max)
           (comint--intersect-regions
-           nil (lambda (beg end)
-                 (unless (get-text-property
-                          beg 'comint--fontify-input-inhibit-fontification)
-                   (font-lock-fontify-region beg end verbose)))
+           (lambda (_beg end) (comint--dummy-fontify-syntax end))
+           (lambda (beg end)
+             (if (get-text-property
+                  beg 'comint--fontify-input-inhibit-fontification)
+                 (comint--dummy-fontify-syntax end)
+               (apply #'font-lock-fontify-region beg end args)))
            beg end)))
     (`((jit-lock-bounds ,beg1 . ,_) . (jit-lock-bounds ,_ . ,end1))
      (setq beg (min beg beg1))
