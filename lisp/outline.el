@@ -1551,6 +1551,26 @@ The rest of arguments are described in `outline-search-function'."
         nil))))
 
 
+;;; Search regexp for outline headings
+
+;;;###autoload
+(defun outline-search-from-regexp (&optional bound move backward looking-at)
+  "Search for the next heading matching `outline-regexp'.
+The arguments BOUND, MOVE, BACKWARD, and LOOKING-AT are described
+in `outline-search-function'.  This function is intended to be
+used in `outline-search-function' by modes and minor modes that
+customize `outline-regexp' but do not need a custom search strategy.
+Install it with
+
+  (setq-local outline-search-function #\\='outline-search-from-regexp)"
+  (if looking-at
+      (looking-at outline-regexp)
+    (funcall (if backward #'re-search-backward #'re-search-forward)
+             (concat "^\\(?:" outline-regexp "\\)")
+             bound
+             (if move 'move t))))
+
+
 (defun outline-headers-as-kill (beg end)
   "Save the visible outline headers between BEG and END to the kill ring.
 

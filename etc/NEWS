@@ -117,6 +117,15 @@ obsolete.
 It is bound to 'C-e' and reveals the current entry
 with its parent hierarchy.
 
+---
+*** New function 'outline-search-from-regexp'.
+A generic 'outline-search-function' implementation driven by
+'outline-regexp', suitable for modes or minor modes that customize
+'outline-regexp' but do not need a custom search strategy.
+Install it with:
+
+  (setq-local outline-search-function #'outline-search-from-regexp)
+
 
 * New Modes and Packages in Emacs 32.1
 
