@@ -329,12 +329,13 @@ automatically killed, which means that in a such case
         ;; Flush BUFFER before making it available again, i.e. clear
         ;; its contents, remove all overlays and buffer-local
         ;; variables.  Is it enough to safely reuse the buffer?
-        (let ((inhibit-read-only t)
-              ;; Avoid deactivating the region as side effect.
-              deactivate-mark)
-          (erase-buffer))
-        (delete-all-overlays)
+        (let ((inhibit-read-only t))
+          (erase-buffer)
+          (delete-all-overlays))
         (let (change-major-mode-hook)
+          ;; `kill-all-local-variables' does not kill permanent locals
+          ;; like `buffer-read-only'.
+          (setq buffer-read-only nil)
           (kill-all-local-variables t))
         ;; Make the buffer available again.
         (push buffer work-buffer--list)))
@@ -349,7 +350,9 @@ automatically killed, which means that in a such case
 (defmacro with-work-buffer (&rest body)
   "Create a work buffer, and evaluate BODY there like `progn'.
 Like `with-temp-buffer', but reuse an already created temporary
-buffer when possible, instead of creating a new one on each call."
+buffer when possible, instead of creating a new one on each call.
+Avoid retaining state referring to a work buffer, and kill
+any indirect buffers you create that use a work buffer as a base."
   (declare (indent 0) (debug t))
   (let ((work-buffer (make-symbol "work-buffer")))
     `(let ((,work-buffer (work-buffer--get)))
