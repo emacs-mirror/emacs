@@ -1222,8 +1222,7 @@ customized setting into your `early-init-file'."
   :type 'directory
   :version "31.1")
 
-(defcustom user-lisp-ignored-directories
-  '(".git" ".hg" "RCS" "CVS" ".svn" "_svn" ".bzr")
+(defcustom user-lisp-ignored-directories vc-directory-exclusion-list
   "List of directory names for `prepare-user-lisp' to not descend into.
 Each entry of the list is a string that denotes the file name without a
 directory component.  If during recursion any single entry matches the
@@ -1234,6 +1233,7 @@ directories that do not contain Lisp files.
 Note that if `prepare-user-lisp' is called at startup, this variable
 must be set in your early-init file, see Info node `(emacs) User Lisp
 Directory' for details."
+  :initialize #'custom-initialize-delay
   :type '(choice (repeat (string :tag "Directory name")))
   :version "31.1")
 
