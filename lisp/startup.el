@@ -1229,7 +1229,11 @@ Each entry of the list is a string that denotes the file name without a
 directory component.  If during recursion any single entry matches the
 file name of any directory, `prepare-user-lisp' will ignore the contents
 of the directory.  This option is most useful to exclude administrative
-directories that do not contain Lisp files."
+directories that do not contain Lisp files.
+
+Note that if `prepare-user-lisp' is called at startup, this variable
+must be set in your early-init file, see Info node `(emacs) User Lisp
+Directory' for details."
   :type '(choice (repeat (string :tag "Directory name")))
   :version "31.1")
 
