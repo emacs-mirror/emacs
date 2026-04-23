@@ -757,10 +757,11 @@ as in 'emacsclient --eval "(length (pop server-eval-args-left))" ""'.
 These are no longer discarded.
 
 +++
-** Emacs will now use 24-bit colors on terminals that support the "setrgbf" and "setrgbb" user-defined terminfo capabilities.
-These have broader support in the wider terminal and application
-ecosystem than the old capabilities, "setf24" and "setb24", which are
-now obsolete.
+** Emacs now uses the 'setrgbf' and 'setrgbb' terminfo capabilities.
+Emacs now uses 24-bit colors on terminals that support the 'setrgbf' and
+'setrgbb' user-defined terminfo capabilities.  These are supported by
+more terminals and applications than the old capabilities, 'setf24' and
+'setb24', which are now obsolete.
 
 +++
 ** New user option 'xterm-update-cursor' to update cursor display on TTYs.
