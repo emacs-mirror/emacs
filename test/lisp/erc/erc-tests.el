@@ -3065,6 +3065,63 @@
 
     (when noninteractive (kill-buffer))))
 
+(ert-deftest erc--pfx-skip-notice-fwd ()
+  (erc-tests-common-make-server-buf)
+  ;; Inhibit login I/O.
+  (setq erc-logged-in t)
+
+  ;; Moves past leading `erc-notice-prefix'.
+  (let* ((calledp nil)
+         (erc-insert-modify-hook
+          (lambda ()
+            (goto-char (point-min))
+            (erc--pfx-skip-notice-fwd)
+            (should (looking-at (rx "One!" eol)))
+            (setq calledp t))))
+    (erc-tests-common-simulate-line ":irc.foonet.net 375 tester :One!")
+    (should calledp))
+
+  ;; Respects customized option.
+  (let* ((erc-notice-prefix "~~> ")
+         (calledp nil)
+         (erc-insert-modify-hook
+          (lambda ()
+            (goto-char (point-min))
+            (erc--pfx-skip-notice-fwd)
+            (should (looking-at (rx "Two!" eol)))
+            (should (looking-back (rx bol "~~> ")))
+            (setq calledp t))))
+    (erc-tests-common-simulate-line ":irc.foonet.net 372 tester :Two!")
+    (should calledp)))
+
+(ert-deftest erc--pfx-skip-template-fwd ()
+  (erc-tests-common-make-server-buf)
+
+  ;; Skips over two leading newlines.
+  (let* ((calledp nil)
+         (erc-insert-modify-hook
+          (lambda ()
+            (goto-char (point-min))
+            (should (looking-at (rx eol bol)))
+            (erc--pfx-skip-template-fwd)
+            (should (equal (buffer-substring (point) (pos-eol))
+                           "ERC finished ***"))
+            (setq calledp t))))
+    (erc-display-message nil 'error (current-buffer) 'finished)
+    (should calledp))
+
+  ;; Does the same for arbitrary non-whitespace prefix.
+  (let* ((calledp nil)
+         (erc-insert-modify-hook
+          (lambda ()
+            (goto-char (point-min))
+            (erc--pfx-skip-template-fwd)
+            (should (looking-at (rx "ERROR from : Quit 123" eol)))
+            (should (looking-back (rx bol "==> ")))
+            (setq calledp t))))
+    (erc-tests-common-simulate-line "ERROR :Quit 123")
+    (should calledp)))
+
 (defun erc-tests--format-my-nick (message)
   (concat (erc-format-my-nick)
           (propertize message 'font-lock-face 'erc-input-face)))

@@ -873,9 +873,7 @@ non-strings, concatenate leading string members before applying
     (with-temp-buffer
       (insert string)
       (goto-char (point-min))
-      (with-syntax-table lisp-mode-syntax-table
-        (skip-syntax-forward "^-"))
-      (forward-char)
+      (erc--pfx-skip-word-fwd)
       (erc--lwarn
        'erc :warning (buffer-substring-no-properties (point) (point-max))))))
 

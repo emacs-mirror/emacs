@@ -188,6 +188,9 @@ as of ERC 5.6:
  - `erc--skip': list of symbols known to modules that indicate an
     intent to skip or simplify module-specific processing
 
+ - `erc--pfx': function taking no args that advances point to the
+    start of the semantic body
+
  - `erc--ephemeral': a symbol prefixed by or matching a module
     name; indicates to other modules and members of modification
     hooks that the current message should not affect stateful
@@ -3269,11 +3272,13 @@ when present.  Assume NICK itself to be free of any text props,
 and return it."
   (cond (erc--msg-props
          (puthash 'erc--spkr nick erc--msg-props)
+         (puthash 'erc--pfx #'erc--pfx-skip-spkr-fwd erc--msg-props)
          (dolist (entry overrides)
            (puthash (car entry) (cdr entry) erc--msg-props)))
         (erc--msg-prop-overrides
          (setq erc--msg-prop-overrides
-               `((erc--spkr . ,nick) ,@overrides ,@erc--msg-prop-overrides))))
+               `((erc--spkr . ,nick) (erc--pfx . ,#'erc--pfx-skip-spkr-fwd)
+                 ,@overrides ,@erc--msg-prop-overrides))))
   nick)
 
 (defun erc-string-invisible-p (string)
@@ -3868,8 +3873,14 @@ retrieval by `text-properties-at' and friends."
 
 See also `erc-make-notice'."
   (cond ((eq type 'notice)
+         (when erc--msg-props
+           (puthash 'erc--pfx #'erc--pfx-skip-notice-fwd erc--msg-props))
          (erc-make-notice string))
         (t
+         (when (and erc--msg-props ; prefer notice if combined
+                    (not (erc--check-msg-prop 'erc--pfx
+                                              #'erc--pfx-skip-notice-fwd)))
+           (puthash 'erc--pfx #'erc--pfx-skip-template-fwd erc--msg-props))
          (erc-put-text-property
           0 (length string)
           'font-lock-face
@@ -6282,6 +6293,35 @@ Assume buffer is narrowed to the confines of an inserted message."
              (beg (text-property-not-all (point-min) (point-max)
                                          'erc--speaker nil)))
     (cons beg (next-single-property-change beg 'erc--speaker))))
+
+(defvar erc--ctcp-action-speaker-in-prefix-p nil
+  ;; This variable replaces `erc-fill--wrap-action-dedent-p' in ERC 5.6.
+  "Whether the speaker of a /ME is part of the prefix rather than the body.")
+
+;; Insertion hook members defer to the function value of the `erc--pfx'
+;; msg prop to find the "body" portion of a message after a prefix, such
+;; as a "<speaker> " tag, assuming the `erc--msg' prop isn't `unknown'.
+(defun erc--pfx-skip-word-fwd ()
+  "Go to a space following an initial run of non-space chars."
+  (unless (and (bobp) (eq ?\s (char-after (point))))
+    (search-forward " " (pos-eol) t)))
+
+(defun erc--pfx-skip-spkr-fwd ()
+  "Move point after the first space following the speaker tag.
+That's one char beyond the last with a `erc--speaker' text property."
+  (let ((bounds (erc--get-speaker-bounds)))
+    (when (or erc--ctcp-action-speaker-in-prefix-p
+              (not (erc--check-msg-prop 'erc--ctcp 'ACTION)))
+      (goto-char (cdr bounds)))
+    (search-forward " " (pos-eol) t)))
+
+(defun erc--pfx-skip-notice-fwd ()
+  "Move point past `erc-notice-prefix'."
+  (search-forward erc-notice-prefix (+ (point) (length erc-notice-prefix)) t))
+
+(defun erc--pfx-skip-template-fwd ()
+  "Skip common prefixes from the English format-template catalog."
+  (search-forward-regexp (rx bol (| "\n\n*** " "==> ")) (+ (point) 6) t))
 
 (defvar erc--cmem-from-nick-function #'erc--cmem-get-existing
   "Function maybe returning a \"channel member\" cons from a nick.

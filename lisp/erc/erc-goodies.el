@@ -633,6 +633,9 @@ Do nothing if the variable `erc-command-indicator' is nil."
           (erc--input-split-substxt state) #'erc--command-indicator-display)
     (erc-send-distinguish-noncommands state)))
 
+(defun erc--command-indicator-body-find ()
+  (search-forward (erc--check-msg-prop 'erc--command-indicator) (pos-eol) t))
+
 ;; This function used to be called `erc-display-command'.  It was
 ;; neutered in ERC 5.3.x (Emacs 24.5), commented out in 5.4, removed
 ;; in 5.5, and restored in 5.6.
@@ -651,6 +654,9 @@ Do nothing if the variable `erc-command-indicator' is nil."
                                             'hash-table)))))
         (when-let* ((string (erc-command-indicator))
                     (erc-input-marker (copy-marker erc-input-marker)))
+          (puthash 'erc--command-indicator string erc--msg-props)
+          (puthash 'erc--pfx #'erc--command-indicator-body-find
+                   erc--msg-props)
           (erc-display-prompt nil nil string 'erc-command-indicator-face)
           (remove-text-properties insert-position (point)
                                   '(field nil erc-prompt nil))
