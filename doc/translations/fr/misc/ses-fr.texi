@@ -340,7 +340,7 @@ Mettre en vedette toutes les cellules (@code{mark-whole-buffer}).
 @cindex valeurs de cellule
 @cindex éditer des cellules
 @findex ses-read-cell
-@findex ses-read-symbole
+@findex ses-read-symbol
 @findex ses-edit-cell
 @findex ses-recalculate-cell
 @findex ses-recalculate-all
