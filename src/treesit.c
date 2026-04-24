@@ -5289,6 +5289,8 @@ syms_of_treesit (void)
   DEFSYM (Qor, "or");
   DEFSYM (Qand, "and");
 
+  DEFSYM (Qhaskell, "haskell");
+
 #ifdef WINDOWSNT
   DEFSYM (Qtree_sitter, "tree-sitter");
 #endif
@@ -5410,7 +5412,7 @@ Most tree-sitter language grammars don't require line and column
 tracking to work, but some languages do.  When creating a parser, if the
 language is in this list, Emacs enables line-column tracking for the
 buffer.  */);
-  Vtreesit_languages_require_line_column_tracking = Qnil;
+  Vtreesit_languages_require_line_column_tracking = list1 (Qhaskell);
 
   DEFVAR_LISP ("treesit-major-mode-remap-alist",
 	       Vtreesit_major_mode_remap_alist,
