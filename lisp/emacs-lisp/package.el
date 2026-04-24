@@ -4955,20 +4955,23 @@ DESC must be a `package-desc' object."
 
 ;;;; Introspection
 
-(defun package-get-descriptor (pkg sources &optional pred)
+(defun package-get-descriptor (pkg &optional sources pred)
   "Return a `package-desc' object for PKG, or nil if none can be found.
 If PKG is a `package-desc' object it will be returned directly.  If PKG
-is a symbol or string it designates a package name.  The argument
+is a symbol or string it designates a package name.  The optional argument
 SOURCES can be a list consisting of the symbols `installed', `builtin'
 or `archive', each when present indicating that the function should find
 a `package-desc' object for PKG in the list of installed packages,
 built-in packages or packages available in the archives respectively.
 If SOURCES is t, then the function will interpret this as a shorthand
 for a list consisting of the symbols mentioned in the order given above.
-Any other symbol will be converted to a singleton list.  The order is
-significant, in that the first hit will be returned.  If specified, PRED
-is a function that takes a single `package-desc' argument and prevents
-the object from being returned if the predicate returns nil."
+If omitted, the argument falls back to a list consisting of `installed'
+and `archive'.  Any other symbol will be converted to a singleton list.
+The order is significant, in that the first hit will be returned.  If
+specified, PRED is a function that takes a single `package-desc' argument
+and prevents the object from being returned if the predicate returns nil."
+  (unless sources
+    (setq sources '(installed archive)))
   (cond
    ((package-desc-p pkg)
     (and (or (not pred) (funcall pred pkg)) pkg))
