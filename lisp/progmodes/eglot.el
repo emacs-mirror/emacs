@@ -2920,29 +2920,35 @@ THINGS are either registrations or unregisterations (sic)."
   "Handle server request workspace/workspaceFolders."
   (eglot-workspace-folders server))
 
+(defun eglot--untitled-buffer (server uri)
+  "Get or create buffer for `untitled:' URI served by SERVER."
+  (get-buffer-create (eglot--server-buffer-name
+                      server (substring uri (length "untitled:")))))
+
 (cl-defmethod eglot-handle-request
-  (_server (_method (eql window/showDocument)) &key
-           uri external takeFocus selection)
+  (server (_method (eql window/showDocument)) &key
+          uri external takeFocus selection)
   "Handle request window/showDocument."
-  (let ((success t)
-        (filename))
-    (cond
-     ((eq external t) (browse-url uri))
-     ((file-readable-p (setq filename (eglot-uri-to-path uri)))
-      ;; Use run-with-timer to avoid nested client requests like the
-      ;; "synchronous imenu" floated in bug#62116 presumably caused by
-      ;; which-func-mode.
-      (run-with-timer
-       0 nil
-       (lambda ()
-         (with-current-buffer (find-file-noselect filename)
-           (cond (takeFocus
-                  (pop-to-buffer (current-buffer))
-                  (select-frame-set-input-focus (selected-frame)))
-                 ((display-buffer (current-buffer))))
-           (when selection
-             (eglot--goto selection))))))
-     (t (setq success :json-false)))
+  (let ((success t) filename)
+    (cl-macrolet
+        ((show-buf (buf)
+           ;; if evaluating `buf' happens to find us an Eglot-managed
+           ;; file, `run-with-timer' avoids nested requests (bug#62116)
+           `(run-with-timer
+             0 nil (lambda ()
+                     (with-current-buffer ,buf
+                       (cond (takeFocus
+                              (pop-to-buffer (current-buffer))
+                              (select-frame-set-input-focus (selected-frame)))
+                             ((display-buffer (current-buffer))))
+                       (when selection (eglot--goto selection)))))))
+      (cond
+       ((eq external t) (browse-url uri))
+       ((string-prefix-p "untitled:" uri)
+        (show-buf (eglot--untitled-buffer server uri)))
+       ((file-readable-p (setq filename (eglot-uri-to-path uri)))
+        (show-buf (find-file-noselect filename)))
+       (t (setq success :json-false))))
     `(:success ,success)))
 
 (defun eglot--TextDocumentIdentifier ()
@@ -4463,14 +4469,20 @@ the edit was attempted and optionally why not."
              (let ((buf (find-buffer-visiting path)))
                (when buf (kill-buffer buf)))
              (delete-file path recursive))))
-       (text-edit-op (path edits version)
-         `(text-edit
-           ,(format "Change %s (%d change%s)" path (length edits)
-                    (if (> (length edits) 1) "s" ""))
-           ,(lambda (_op)
-              (with-current-buffer (find-file-noselect path)
-                (eglot--apply-text-edits edits version)))
-           ,path ,edits ,version))
+       (text-edit-op (uri edits version &aux (path (pathify uri)))
+         (if (string-prefix-p "untitled:" uri)
+             `(untitled-text-edit
+               "Edit to unsaved `untitled:' buffer"
+               ,(lambda (_op)
+                  (with-current-buffer (eglot--untitled-buffer server uri)
+                    (eglot--apply-text-edits edits nil))))
+           `(text-edit
+             ,(format "Change %s (%d change%s)" path (length edits)
+                      (if (> (length edits) 1) "s" ""))
+             ,(lambda (_op)
+                (with-current-buffer (find-file-noselect path)
+                  (eglot--apply-text-edits edits version)))
+             ,path ,edits ,version)))
        (mkfn (doit-fn &rest things)
          (lambda (op)
            (apply doit-fn things)
@@ -4495,7 +4507,8 @@ the edit was attempted and optionally why not."
             ;; It's a TextDocumentEdit (no kind field)
             (eglot--dbind ((TextDocumentEdit) textDocument edits) ch
               (eglot--dbind ((VersionedTextDocumentIdentifier) uri version)
-                  textDocument (text-edit-op (pathify uri) edits version))))))
+                  textDocument
+                (text-edit-op uri edits version))))))
        (user-accepts-p ()
          (y-or-n-p
           (format "[eglot] Server wants to:\n%s\nProceed? "
@@ -4513,7 +4526,15 @@ the edit was attempted and optionally why not."
       (unless (and changes documentChanges)
         ;; Prefer `documentChanges' over sort-of-deprecated `changes'.
         (cl-loop for (uri edits) on changes by #'cddr
-                 do (push (text-edit-op (pathify uri) edits nil) prepared)))
+                 do (push (text-edit-op uri edits nil) prepared)))
+      ;; Apply edits to untitled: buffers unconditionally; they can't
+      ;; be diffed and need no confirmation.
+      (cl-loop for op in prepared
+               if (eq (car op) 'untitled-text-edit)
+               do (funcall (caddr op) op)
+               else collect op into rest
+               finally (setq prepared rest))
+      (unless prepared (cl-return-from eglot--apply-workspace-edit `(t nil)))
       (let* ((decision (eglot--confirm-server-edits origin prepared))
              (all-text-edits (cl-loop for (kind . _) in prepared
                                       always (eq kind 'text-edit)))
