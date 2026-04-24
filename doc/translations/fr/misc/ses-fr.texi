@@ -335,7 +335,7 @@ Mettre en vedette toutes les cellules (@code{mark-whole-buffer}).
 @node Formulas
 @section Formules de cellule
 @cindex formules
-@cindex formules, saisire
+@cindex formules, saisir
 @cindex valeurs
 @cindex valeurs de cellule
 @cindex éditer des cellules
