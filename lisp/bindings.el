@@ -596,7 +596,8 @@ Keymap to display on minor modes.")
 (defvar mode-line-modes
   (let ((recursive-edit-help-echo
          "Recursive edit, type C-M-c to get out"))
-    (list (propertize "%[" 'help-echo recursive-edit-help-echo)
+    (list (propertize "%[" 'help-echo recursive-edit-help-echo
+                      'face 'mode-line-recursive-edit)
           '(:eval (car mode-line-modes-delimiters))
 	  `(:propertize ("" mode-name)
 			help-echo "Major mode\n\
@@ -612,7 +613,8 @@ mouse-3: Toggle minor modes"
 				  'mouse-2 #'mode-line-widen))
 	  '("" mode-line-minor-modes)
           '(:eval (cdr mode-line-modes-delimiters))
-	  (propertize "%]" 'help-echo recursive-edit-help-echo)
+	  (propertize "%]" 'help-echo recursive-edit-help-echo
+	              'face 'mode-line-recursive-edit)
 	  " "))
   "Mode line construct for displaying major and minor modes.")
 (put 'mode-line-modes 'risky-local-variable t)

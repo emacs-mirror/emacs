@@ -167,6 +167,11 @@ of the terminal emulator:
 This corresponds to the face 'header-line-highlight' as
 'mode-line-emphasis' corresponds to 'mode-line-highlight'.
 
+*** New face 'mode-line-recursive-edit'.
+This face is used for the "[" and "]" brackets that appear around the
+modes in the mode line when Emacs is in a recursive edit.  By default
+it inherits from 'mode-line-emphasis'.
+
 *** Underline, overline, and strike-through can now be scaled with text.
 The thickness of the line of these face attributes can now optionally
 be scaled when the text is scaled.  This is by default off; you can use
