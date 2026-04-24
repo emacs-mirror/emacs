@@ -252,5 +252,125 @@
       (should (eq 2 n-deferred-2))
       (should (eq 0 (hash-table-count (jsonrpc--deferred-actions conn)))))))
 
+
+;;; Tests using Python subprocesses (scontrol / anxious mechanism)
+;;;
+
+(defconst jsonrpc--test-dir
+  (file-name-directory (or load-file-name buffer-file-name))
+  "Directory of this test file, captured at load time.")
+
+(cl-defmacro jsonrpc--with-python-fixture ((script conn &rest initargs) &body body)
+  "Start SCRIPT under python3 as a pipe subprocess, bind connection to CONN.
+SCRIPT is a path relative to this file's directory.
+INITARGS are passed to `make-instance' for `jsonrpc-process-connection'."
+  (declare (indent 1))
+  `(let ((,conn nil))
+     (unwind-protect
+         (progn
+           (setq ,conn
+                 (make-instance
+                  'jsonrpc-process-connection
+                  :name "jsonrpc-python-test"
+                  :process (make-process
+                             :name "jsonrpc-python-test"
+                             :command (list "python3"
+                                            (expand-file-name
+                                             ,script
+                                             jsonrpc--test-dir))
+                             :connection-type 'pipe
+                             :noquery t)
+                  ,@initargs))
+           (with-timeout (5
+                          (when ,conn
+                            (let ((buf (jsonrpc--events-buffer ,conn)))
+                              (when (buffer-live-p buf)
+                                (if noninteractive
+                                    (progn
+                                      (message "contents of `%s':" (buffer-name buf))
+                                      (princ (with-current-buffer buf (buffer-string))
+                                             #'external-debugging-output))
+                                  (message "Preserved for inspection: %s"
+                                           (buffer-name buf))))))
+                          (ert-fail "Test timed out after 5s"))
+             ,@body))
+       (when ,conn
+         (ignore-errors
+          (jsonrpc-notify ,conn 'harakiri nil)
+          (kill-buffer (jsonrpc--events-buffer ,conn))
+          (jsonrpc-shutdown ,conn))))))
+
+(ert-deftest scontrol-remote-during-sync ()
+  "Server sends a remote request before the sync-request response (bug#80623).
+The (:remote ID) entry on scontrol defers the response-to-taskA throw
+until the showInfo dispatch completes, preventing a spurious -32603."
+  (skip-unless (executable-find "python3"))
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-remote-during-sync.py" conn
+       :request-dispatcher
+       (lambda (_conn method _params)
+         (pcase method
+           ('showInfo "ack")
+           (_ (error "unexpected method: %s" method)))))
+    (should (equal "done" (jsonrpc-request conn 'taskA [] :timeout 5)))))
+
+(ert-deftest scontrol-anxious-nested ()
+  "Anxious continuation: rdispatcher issues a nested sync request.
+The outer sync response arrives while the inner (followUp) is pending,
+gets queued as anxious, and is rescheduled via run-at-time once the
+inner completes.  Exercises the full three-deep scontrol stack:
+  ((:local followUp-id) (:remote callBack-id) (:local taskA-id))"
+  (skip-unless (executable-find "python3"))
+  (skip-when (eq system-type 'windows-nt))
+  (let (followup-result)
+    (jsonrpc--with-python-fixture
+        ("jsonrpc-resources/server-anxious-nested.py" conn
+         :request-dispatcher
+         (lambda (conn method _params)
+           (pcase method
+             ('callBack
+              (setq followup-result
+                    (jsonrpc-request conn 'followUp [] :timeout 5))
+              followup-result)
+             (_ (error "unexpected method: %s" method)))))
+      (should (equal "done" (jsonrpc-request conn 'taskA [] :timeout 5)))
+      (should (equal "fw-ok" followup-result)))))
+
+(ert-deftest scontrol-remote-error ()
+  "Anxious continuation fires even when the rdispatcher signals a jsonrpc-error.
+The (:remote ID) unwind-protect calls jsonrpc--continue regardless of
+whether dispatch succeeded or produced an error reply."
+  (skip-unless (executable-find "python3"))
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-remote-error.py" conn
+       :request-dispatcher
+       (lambda (_conn method _params)
+         (pcase method
+           ('badMethod
+            (signal 'jsonrpc-error
+                    '((jsonrpc-error-message . "method not allowed")
+                      (jsonrpc-error-code . -32601))))
+           (_ (error "unexpected method: %s" method)))))
+    (should (equal "ok" (jsonrpc-request conn 'taskA [] :timeout 5)))))
+
+(ert-deftest shutdown-clean-after-notification ()
+  "Server exits cleanly after harakiri notification.
+`jsonrpc-shutdown' should not emit a \"Sentinel hasn't run\" warning."
+  (skip-unless (executable-find "python3"))
+  (skip-when (eq system-type 'windows-nt))
+  (let (warned)
+    (cl-letf (((symbol-function 'jsonrpc--warn)
+               (lambda (fmt &rest args)
+                 (setq warned (apply #'format fmt args)))))
+      (jsonrpc--with-python-fixture
+          ("jsonrpc-resources/server-harakiri.py" conn)
+        (jsonrpc-notify conn 'harakiri nil)
+        ;; Give the server time to exit before shutdown checks the sentinel.
+        (accept-process-output nil 0.3)
+        (jsonrpc-shutdown conn)))
+    (should-not warned)))
+
 (provide 'jsonrpc-tests)
 ;;; jsonrpc-tests.el ends here
