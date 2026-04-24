@@ -3892,12 +3892,16 @@ specified right below this list.
 
 @vindex dedicated@r{, a buffer display action alist entry}
 @item dedicated
-If non-@code{nil}, such an entry tells @code{display-buffer} to mark
-any window it creates as dedicated to its buffer (@pxref{Dedicated
+If non-@code{nil}, such an entry tells @code{display-buffer} to mark any
+window it creates as dedicated to its buffer (@pxref{Dedicated
 Windows}).  It does that by calling @code{set-window-dedicated-p} with
 the chosen window as first argument and the entry's value as second.
 Side windows are by default dedicated with the value @code{side}
-(@pxref{Side Window Options and Functions}).
+(@pxref{Side Window Options and Functions}).  Windows that are reused
+are not marked as dedicated regardless of whether they already showed
+the buffer before or not.  If a window dedicated to its buffer gets
+reused for showing the same buffer again, its dedicated flag is left
+alone.
 
 @vindex preserve-size@r{, a buffer display action alist entry}
 @item preserve-size
