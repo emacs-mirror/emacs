@@ -4839,8 +4839,7 @@ form (PKG-NAME PKG-DESC).  If not specified, it will default to
 `package-alist'."
   (or (tabulated-list-get-id)
       (let ((alist (or alist (package--alist))))
-        (cadr (assoc (completing-read "Package: " alist nil t)
-                     alist #'string=)))))
+        (package-get-descriptor (completing-read "Package: " alist nil t)))))
 
 ;;;###autoload
 (defun package-browse-url (desc &optional secondary)
