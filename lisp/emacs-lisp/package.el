@@ -4963,25 +4963,22 @@ and `archive'.  Any other symbol will be converted to a singleton list.
 The order is significant, in that the first hit will be returned.  If
 specified, PRED is a function that takes a single `package-desc' argument
 and prevents the object from being returned if the predicate returns nil."
-  (unless sources
-    (setq sources '(installed archive)))
   (cond
    ((package-desc-p pkg)
     (and (or (not pred) (funcall pred pkg)) pkg))
    ((or (and (stringp pkg) (setq pkg (intern pkg)))
         (symbolp pkg))
     (catch 'found
-      (dolist (source (if (eq sources t)
-                          '(installed builtin archive)
-                        (delete-dups (ensure-list sources))))
-        (dolist (ent (pcase-exhaustive source
-                       ('installed (package--alist))
-                       ('builtin package--builtin-alist)
-                       ('archive (package--archive-contents))))
-          (when (eq (car ent) pkg)
-            (dolist (desc (cdr ent))
-              (when (or (null pred) (funcall pred desc))
-                (throw 'found desc))))))))
+      (dolist (source (cond
+                       ((eq sources nil) '(installed archive))
+                       ((eq sources t) '(installed builtin archive))
+                       ((delete-dups (ensure-list sources)))))
+        (dolist (desc (alist-get pkg (pcase-exhaustive source
+                                       ('installed (package--alist))
+                                       ('builtin package--builtin-alist)
+                                       ('archive (package--archive-contents)))))
+          (when (or (null pred) (funcall pred desc))
+            (throw 'found desc))))))
    ((error "Failed to recognize package %S" pkg))))
 
 (provide 'package)
