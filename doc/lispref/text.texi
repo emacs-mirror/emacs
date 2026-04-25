@@ -1383,7 +1383,11 @@ Here are the kinds of elements an undo list can have:
 This kind of element records a previous value of point; undoing this
 element moves point to @var{position}.  Ordinary cursor motion does not
 make any sort of undo record, but deletion operations use these entries
-to record where point was before the command.
+to record where point was before the command if re-inserting the deleted
+text by undoing the deletion will not already place point at the right
+position.  Lisp programs that need to ensure correct restoration of
+point by undoing a command can explicitly push @code{(point)} to
+@code{buffer-undo-list} to record the position to restore.
 
 @item (@var{beg} . @var{end})
 This kind of element indicates how to delete text that was inserted.
