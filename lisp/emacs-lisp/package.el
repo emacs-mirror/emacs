@@ -2054,7 +2054,6 @@ package archive."
 This excludes packages that are listed in the archives, but have
 incompatible dependencies (either too old or not available at all
 in any archive mentioned in `package-archives')."
-  (package-read-all-archive-contents)
   (package--build-compatibility-table)
   (cl-loop for (name . desc) in package-archive-contents
            unless (any #'package--incompatible-p desc)
