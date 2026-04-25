@@ -39,5 +39,10 @@
                        (quit (car err)))))
       (should-not register-alist))))
 
+(ert-deftest register--jumpable-p ()
+  (should (register--jumpable-p (kmacro "test")))
+  (should (register--jumpable-p (make-marker)))
+  (should-not (register--jumpable-p "test")))
+
 (provide 'register-tests)
 ;;; register-tests.el ends here

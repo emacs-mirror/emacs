@@ -577,7 +577,21 @@ With a prefix argument, prompt for BUFFER as well."
   (set-register register (cons 'buffer buffer)))
 
 (defun register--get-method-type (val genfun &optional other-args-type)
-  (let* ((type (cl-type-of val))
+  ;; Try and return the specializer used in the most specific method
+  ;; applicable to argument VAL in generic function GENFUN.
+  ;; VAL is assumed to be the first argument and OTHER-ARGS-TYPE
+  ;; is a list of types for the other arguments.
+  ;; Go through all the types of VAL (from most specific to least specific)
+  ;; and return the first for which we can find a method with that
+  ;; type as specializer.
+  ;; FIXME: This is ad-hoc and does not handle all possible cases.
+  ;; We should instead do what `cl-generic' does during dispatch,
+  ;; i.e. get the set of generalizers used for the first arg of this generic
+  ;; function, use them to compute the TAGs corresponding to VAL (which
+  ;; we approximate here in TYPE) and then use those TAGs to compute the
+  ;; corresponding set of specializers (which we approximate here in TYPES),
+  ;; then look for the best matching method.
+  (let* ((type (or (oclosure-type val) (cl-type-of val)))
 	 (types (cl--class-allparents (cl--find-class type))))
     (while (and types (not (cl-find-method genfun nil
                                            (cons (car types) other-args-type))))
@@ -587,12 +601,20 @@ With a prefix argument, prompt for BUFFER as well."
 (defun register--jumpable-p (regval)
   "Return non-nil if `register-val-insert' is implemented for REGVAL."
   (pcase (register--get-method-type regval 'register-val-jump-to '(t))
+    ;; The only applicable method is one with the `t' specializer,
+    ;; i.e. the default method which signals an error.
     ('t nil)
+    ;; The best applicable method is that for `registerv' objects
+    ;; which works only if there's a function in `registerv-jump-func'.
     ('registerv (registerv-jump-func regval))
+    ;; The best applicable method is the one below for register values of
+    ;; type `cons' so return non-nil for those values supported by that method.
     ('cons
      (or (frame-configuration-p (car regval))
 	 (window-configuration-p (car regval))
 	 (memq (car regval) '(file buffer file-query))))
+    ;; There's another method that handles VAL.
+    ;; Presumably its presence implies that we can "jump" to that value.
     (type type)))
 
 (cl-defgeneric register-val-jump-to (_val _arg)
