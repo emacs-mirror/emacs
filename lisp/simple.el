@@ -11700,6 +11700,14 @@ seconds."
           (setq undo-auto-current-boundary-timer
                 (run-at-time 5 nil #'undo-auto--boundary-timer)))))))
 
+
+(defvar-local Info-documentlanguage nil
+  "Document language as set by the Texinfo source.
+Currently, this is not used.")
+;; This is to avoid annoying prompts when visiting Info files as normal
+;; files.  Texinfo 7.3 puts this variable into Info files it produces.
+(put 'Info-documentlanguage 'safe-local-variable 'symbolp)
+
 (provide 'simple)
 
 ;;; simple.el ends here
