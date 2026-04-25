@@ -2042,6 +2042,12 @@ Access of a hadoop/hdfs file system.  A file is accessed via
 the user that you want to use, and @samp{node} is the name of the
 hadoop server.
 
+@c @cindex method @option{rpc}
+@c @cindex @option{rpc} method
+@c @item tramp-rpc
+@c This is a @value{tramp} backend of its own.  It uses a remote server
+@c process to serve the requests, which gains better performance.
+
 @cindex method @option{vagrant}
 @cindex @option{vagrant} method
 @item vagrant-tramp

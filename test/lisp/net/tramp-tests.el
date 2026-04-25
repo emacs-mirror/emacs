@@ -2287,6 +2287,8 @@ being the result.")
 
 (ert-deftest tramp-test03-file-error ()
   "Check that Tramp signals an error in case of connection problems."
+  (skip-unless (tramp-file-name-p tramp-test-vec))
+
   ;; Connect to a non-existing host.
   (let ((vec (copy-tramp-file-name tramp-test-vec))
 	;; Don't poison it.
@@ -5394,7 +5396,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   ;; boundaries are always incorrect before that.
   (skip-unless (tramp--test-emacs31-p))
 
-  (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+  (when-let* ((remote (file-remote-p ert-remote-temporary-file-directory)))
     (dolist
 	(file `(,remote ,(concat remote "/~/")
 		,(concat remote "/usr//usr/") ,(concat remote remote "//usr/")))
