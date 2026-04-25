@@ -74,6 +74,14 @@ to the user."
 The Lisp code is executed when the node is selected.")
 (put 'Info-enable-active-nodes 'risky-local-variable t)
 
+(defvar-local Info-documentlanguage nil
+  "Document language as set by the Texinfo source.
+Currently, this is not used.")
+;; Autoload to avoid annoying prompts when visiting Info files as normal
+;; files.  Texinfo 7.3 puts this variable into Info files it produces.
+;;;###autoload
+(put 'Info-documentlanguage 'safe-local-variable #'symbolp)
+
 (defface info-node
   '((((class color) (background light)) :foreground "brown" :weight bold :slant italic)
     (((class color) (background dark)) :foreground "white" :weight bold :slant italic)
