@@ -8558,11 +8558,14 @@ integer or floating point values.
  majflt  -- number of major page faults (number)
  cminflt -- cumulative number of minor page faults (number)
  cmajflt -- cumulative number of major page faults (number)
- utime   -- user time used by the process, in `current-time' format
- stime   -- system time used by the process (current-time)
+ utime   -- total user time used by the process since its start,
+              in `current-time' format
+ stime   -- total system time used by the process since its start
+              (current-time)
  time    -- sum of utime and stime (current-time)
- cutime  -- user time used by the process and its children (current-time)
- cstime  -- system time used by the process and its children (current-time)
+ cutime  -- total user time used by the process and its children (current-time)
+ cstime  -- total system time used by the process and its children
+              (current-time)
  ctime   -- sum of cutime and cstime (current-time)
  pri     -- priority of the process (number)
  nice    -- nice value of the process (number)
@@ -8571,7 +8574,8 @@ integer or floating point values.
  vsize   -- virtual memory size of the process in KB's (number)
  rss     -- resident set size of the process in KB's (number)
  etime   -- elapsed time the process is running (current-time)
- pcpu    -- percents of CPU time used by the process (floating-point number)
+ pcpu    -- percents of total CPU time used by the process since its start
+              (floating-point number)
  pmem    -- percents of total physical memory used by process's resident set
               (floating-point number)
  args    -- command line which invoked the process (string).  */)
