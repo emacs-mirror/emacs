@@ -609,20 +609,18 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                 (should (file-exists-p new-name))))
 
             ;; Test moving into an existing directory.
-            ;; FIXME: This is broken for RCS and I don't know why.  --spwhitton
-            (unless (eq backend 'RCS)
-              (let ((tmp-name (expand-file-name "quux" default-directory))
-                    (new-dir (expand-file-name "dir1/" default-directory))
-                    (new-name (expand-file-name "dir1/quux" default-directory)))
-                (make-directory new-dir)
-                (write-region "quux" nil tmp-name nil 'nomessage)
-                (vc-register
-                 `(,backend (,(file-relative-name new-dir default-directory)
-                             ,(file-name-nondirectory tmp-name))))
+            (let ((tmp-name (expand-file-name "quux" default-directory))
+                  (new-dir (expand-file-name "dir1/" default-directory))
+                  (new-name (expand-file-name "dir1/quux" default-directory)))
+              (make-directory new-dir)
+              (write-region "quux" nil tmp-name nil 'nomessage)
+              (vc-register
+               `(,backend (,(file-relative-name new-dir default-directory)
+                           ,(file-name-nondirectory tmp-name))))
 
-                (vc-rename-file tmp-name new-dir)
-                (should-not (file-exists-p tmp-name))
-                (should (file-exists-p new-name)))))
+              (vc-rename-file tmp-name new-dir)
+              (should-not (file-exists-p tmp-name))
+              (should (file-exists-p new-name))))
 
         ;; Save exit.
         (ignore-errors
@@ -662,10 +660,14 @@ This checks also `vc-backend' and `vc-responsible-backend'."
               (write-region "foo" nil tmp-name1 nil 'nomessage)
               (write-region "bar" nil tmp-name2 nil 'nomessage)
               ;; Register TMP-NAME1 but *not* TMP-NAME2.
-              (vc-register `(,backend
-                             (,(file-relative-name tmp-name1
-                                                   default-directory))))
-
+              ;; (We disable yes-or-no-p for RCS, which asks whether to
+              ;; create the RCS/ subdirectory of a directory where we
+              ;; register the first file.)
+              (cl-letf (((symbol-function #'yes-or-no-p)
+                         #'always))
+                (vc-register `(,backend
+                               (,(file-relative-name tmp-name1
+                                                     default-directory)))))
               (vc-rename-file (directory-file-name tmp-dir)
                               (directory-file-name new-dir))
               (should-not (file-exists-p tmp-name1))
@@ -697,9 +699,14 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                    (new-name (expand-file-name "foo" new-dir)))
               (make-directory tmp-dir)
               (write-region "foo" nil tmp-name nil 'nomessage)
-              (vc-register `(,backend
-                             (,(file-relative-name tmp-name
-                                                   default-directory))))
+              ;; (We disable yes-or-no-p for RCS, which asks whether to
+              ;; create the RCS/ subdirectory of a directory where we
+              ;; register the first file.)
+              (cl-letf (((symbol-function #'yes-or-no-p)
+                         #'always))
+                (vc-register `(,backend
+                               (,(file-relative-name tmp-name
+                                                     default-directory)))))
 
               (vc-rename-file (directory-file-name tmp-dir)
                               (directory-file-name new-dir))
@@ -1324,10 +1331,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
           ;; See vc-test-*-rename-file regarding CVS and Mtn.
           ;; SVN requires all files to rename are registered but we want
           ;; to test a mix of registered and unregistered files in this test.
-          ;; RCS does not seem to support renaming directories; possibly
-          ;; `vc-rcs-rename-file' could be improved or it might be a
-          ;; fundamental limitation.
-          (skip-when (memq ',backend '(CVS SVN Mtn RCS)))
+          (skip-when (memq ',backend '(CVS SVN Mtn)))
           (vc-test--rename-directory ',backend))))))
 
 (provide 'vc-tests)
