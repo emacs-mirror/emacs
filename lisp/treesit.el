@@ -4548,7 +4548,7 @@ as belonging to the node that ends before POS (by subtracting 1 from POS)."
 ;;; Activating tree-sitter
 
 (defun treesit-ready-p (language &optional quiet)
-  "Check whether tree-sitter is ready to be used for MODE and LANGUAGE.
+  "Check whether tree-sitter is ready to be used for LANGUAGE.
 
 LANGUAGE is the language symbol to check for availability.
 It can also be a list of language symbols.
