@@ -793,7 +793,7 @@ compile.el will now use paths specified in both
 'compilation-search-extra-path' and 'compilation-search-path', when
 doing search.  'compilation-search-extra-path' is consulted first.
 One possible use case of this option is to customize add new search
-paths on a per-project basis with directory-local customization.
+paths on a per-project basis with directory-local variables.
 
 
 * Editing Changes in Emacs 31.1

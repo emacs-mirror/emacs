@@ -980,7 +980,8 @@ Elements in this list will be searched before those in
 `compilation-search-path'.
 
 The buffer-local value of this variable will be inherited by the
-compilation buffer.")
+compilation buffer."
+  :type '(repeat (string :tag "Directory")))
 
 ;;;###autoload
 (defcustom compile-command
