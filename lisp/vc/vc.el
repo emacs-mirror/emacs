@@ -5042,8 +5042,8 @@ These are recursively deleted."
           ;; before calling BACKEND's `delete-file' function, so keep it
           ;; for compatibility.  --spwhitton
           (let ((default-directory (file-name-directory file)))
-            (vc-call-backend backend 'delete-file file)
-            (funcall post-backend-deletion file)))))))
+            (vc-call-backend backend 'delete-file file))
+          (funcall post-backend-deletion file))))))
 
 ;;;###autoload
 (defun vc-rename-file (old new &optional ok-if-already-exists)
