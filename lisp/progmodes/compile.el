@@ -966,9 +966,22 @@ of `my-compilation-root' here."
 (defcustom compilation-search-path '(nil)
   "List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
-The value nil as an element means to try the default directory."
+The value nil as an element means to try the default directory.
+
+For directory-local customizations, prefer
+`compilation-search-extra-path' instead."
   :type '(repeat (choice (const :tag "Default" nil)
 			 (string :tag "Directory"))))
+
+;;;###autoload
+(defcustom compilation-search-extra-path nil
+  "List of extra directories to search for source files named in error messages.
+Elements in this list will be searched before those in
+`compilation-search-path'.
+
+The buffer-local value of this variable will be inherited by the
+compilation buffer."
+  :type '(repeat (string :tag "Directory")))
 
 ;;;###autoload
 (defcustom compile-command
@@ -2009,6 +2022,8 @@ Returns the compilation buffer created."
 	    (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
 	 (thisdir default-directory)
 	 (thisenv compilation-environment)
+         (thissearchpath (append compilation-search-extra-path
+                                 compilation-search-path))
          (buffer-path (and (local-variable-p 'exec-path) exec-path))
          (buffer-env (and (local-variable-p 'process-environment)
                           process-environment))
@@ -2084,6 +2099,7 @@ Returns the compilation buffer created."
         ;; NB: must be done after (funcall mode) as that resets local variables
         (setq-local compilation-directory thisdir)
         (setq-local compilation-environment thisenv)
+        (setq-local compilation-search-path thissearchpath)
         (if buffer-path
             (setq-local exec-path buffer-path)
           (kill-local-variable 'exec-path))
