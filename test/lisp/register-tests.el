@@ -39,9 +39,42 @@
                        (quit (car err)))))
       (should-not register-alist))))
 
+(require 'frameset)
+(require 'semantic/senator)
+(require 'doc-view)
 (ert-deftest register--jumpable-p ()
+  ;; Keyboard macro
   (should (register--jumpable-p (kmacro "test")))
+  ;; Marker
   (should (register--jumpable-p (make-marker)))
+  ;; Frameset
+  (should (register--jumpable-p
+           (frameset-make-register
+            (frameset-save nil
+			   :app 'register
+			   :filters frameset-session-filter-alist)
+	    (frameset-frame-id nil)
+	    (point-marker))))
+  ;; Frame configuration
+  (should (register--jumpable-p
+           (list (current-frame-configuration) (point-marker))))
+  ;; Window configuration
+  (should (register--jumpable-p
+           (list (current-window-configuration) (point-marker))))
+  ;; File
+  (should (register--jumpable-p '(file . "foo")))
+  ;; Buffer
+  (should (register--jumpable-p '(buffer . "foo")))
+  ;; File to revisit
+  (should (register--jumpable-p '(file-query "quux" 1)))
+  ;; Senator's semantic tag
+  (should (register--jumpable-p
+           (senator-make-register
+            (list "foo" 'type nil nil (make-overlay 1 1)))))
+  ;; DocView: FIXME -- this should pass!
+  (should-not (register--jumpable-p
+           (cons 'doc-view (list (cons 'buffer (current-buffer))
+                                 '(file . "foo") '(page . 1)))))
   (should-not (register--jumpable-p "test")))
 
 (provide 'register-tests)
