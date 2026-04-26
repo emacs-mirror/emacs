@@ -1869,7 +1869,8 @@ These are packages which are neither contained in
 `package-selected-packages' nor a dependency of one that is."
   (let ((needed (package--dependencies package-selected-packages)))
     (cl-loop for (name . descs) in (package--alist)
-             unless (or (memq name needed)
+             unless (or (assq name needed)
+                        (memq name package-selected-packages)
                         ;; Do not auto-remove external packages.
                         (not (package--user-installed-p name)))
              append descs)))
