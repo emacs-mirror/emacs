@@ -868,7 +868,7 @@ désactive : on dit que la commande « fait basculer le mode ».
    Vous devez mettre des espaces entre eux car le mode Auto Fill ne
    coupe les lignes que sur les espaces.
 
-La marge est habituellement fixée à 70 caractères, mais pouvez
+La marge est habituellement fixée à 70 caractères, mais vous pouvez
 modifier cette valeur avec la commande C-x f. Vous devez fournir la
 nouvelle valeur de la marge sous la forme d'un paramètre numérique.
 
@@ -1133,9 +1133,9 @@ Voici d'autres options utiles de C-h :
 >> Faites C-h a file<Entrée>.
 
 Cela affiche dans une autre fenêtre une liste de toutes les commandes
-M-x ayant « file » dans leurs noms. Vous verrez listée des commandes
-caractères à côté des noms de commandes qui leur correspondent (comme
-C-x C-f à côté de find-file).
+M-x ayant « file » dans leurs noms. À côté des noms de commandes, vous
+verrez les séquences de caractères qui correspondent (comme C-x C-f à
+côté de find-file).
 
 >> Faites C-M-v pour faire défiler la fenêtre d'aide. Faites-le
    plusieurs fois.
