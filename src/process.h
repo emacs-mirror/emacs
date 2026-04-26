@@ -263,6 +263,8 @@ pset_gnutls_cred_type (struct Lisp_Process *p, Lisp_Object val)
 /* True means don't run process sentinels.  This is used
    when exiting.  */
 extern bool inhibit_sentinels;
+/* True means that Glib clobbers Emacs SIGCHLD handler.  */
+extern bool glib_installs_sigchld_handler;
 
 /* Exit statuses for GNU programs that exec other programs.  */
 enum
