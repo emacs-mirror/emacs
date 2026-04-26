@@ -1186,7 +1186,9 @@ hg binary."
   "Delete each of FILES and delete them in the Mercurial repository.
 Should be called with DEFAULT-DIRECTORY equal to the repository root."
   (dolist (file files)
-    (condition-case _ (delete-file file)
+    (condition-case _ (if (eq t (car (file-attributes file)))
+                          (delete-directory file 'recursive)
+                        (delete-file file))
       (file-error nil)))
   (vc-hg-command nil 0 files "remove" "--after" "--force"))
 

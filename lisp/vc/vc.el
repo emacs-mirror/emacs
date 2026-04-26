@@ -737,10 +737,12 @@
 ;;
 ;; - delete-files (files)
 ;;
-;;   As delete-file, except that the first argument is a list of files,
-;;   all of which require deletion.  May assume that it is called from
-;;   the repository root.  Backends can implement this for faster mass
-;;   deletions.
+;;   As delete-file, except that (i) the first argument is a list of
+;;   files, all of which require deletion; and (ii) elements of FILES
+;;   may be directories, which should be recursively removed.
+;;   May assume that it is called from the repository root.
+;;   Backends can implement this for faster mass deletions and to enable
+;;   deleting directories.
 ;;
 ;; - rename-file (old new)
 ;;
@@ -4965,15 +4967,19 @@ buffer's file name if it's under version control.
 When called from Lisp, FILE-OR-FILES can be a file name or a list of
 file names.
 When called from Lisp, optional argument NOCONFIRM non-nil means don't
-prompt to confirm deletion."
+prompt to confirm deletion.
+For some VCS, FILE-OR-FILES can include directories.
+These are recursively deleted."
   (interactive (list (read-file-name "VC delete file: " nil
-                                     (when (vc-backend buffer-file-name)
-                                       buffer-file-name)
+                                     (and (vc-backend buffer-file-name)
+                                          buffer-file-name)
                                      t)))
   (setq file-or-files (mapcar #'expand-file-name (ensure-list file-or-files)))
   (dolist (file file-or-files)
     (let ((buf (get-file-buffer file))
-          (backend (vc-backend file)))
+          (backend (if (file-directory-p file)
+                       (vc-responsible-backend file)
+                     (vc-backend file))))
       (unless (or (not backend)
                   (vc-find-backend-function backend 'delete-file))
         (error "Deleting files under %s is not supported in VC" backend))
@@ -4998,7 +5004,10 @@ prompt to confirm deletion."
          (lambda (file)
            ;; For the case of unregistered files, or if the backend
            ;; didn't actually delete the file.
-           (when (file-exists-p file) (delete-file file))
+           (when-let* ((attrs (file-attributes file)))
+             (if (eq t (car attrs))
+                 (delete-directory file 'recursive)
+               (delete-file file)))
            ;; Forget what VC knew about the file.
            (vc-file-clearprops file)
            ;; Make sure the buffer is killed and *vc-dir* buffers are
@@ -5008,7 +5017,9 @@ prompt to confirm deletion."
         deletions-by-backend)
     (dolist (file file-or-files)
       (let ((buf (get-file-buffer file))
-            (backend (vc-backend file)))
+            (backend (if (file-directory-p file)
+                         (vc-responsible-backend file)
+                       (vc-backend file))))
         (unless (or (file-directory-p file) (null make-backup-files)
                     (not (file-exists-p file)))
           (with-current-buffer (or buf (find-file-noselect file))
