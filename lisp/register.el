@@ -593,6 +593,8 @@ With a prefix argument, prompt for BUFFER as well."
   ;; then look for the best matching method.
   (let* ((type (or (oclosure-type val) (cl-type-of val)))
 	 (types (cl--class-allparents (cl--find-class type))))
+    (if (eq type 'cons) (push `(head ,(car val)) types))
+    (push `(eql ',val) types)
     (while (and types (not (cl-find-method genfun nil
                                            (cons (car types) other-args-type))))
       (setq types (cdr types)))

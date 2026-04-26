@@ -72,7 +72,7 @@
            (senator-make-register
             (list "foo" 'type nil nil (make-overlay 1 1)))))
   ;; DocView: FIXME -- this should pass!
-  (should-not (register--jumpable-p
+  (should (register--jumpable-p
            (cons 'doc-view (list (cons 'buffer (current-buffer))
                                  '(file . "foo") '(page . 1)))))
   (should-not (register--jumpable-p "test")))
