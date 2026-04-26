@@ -1875,6 +1875,16 @@ Emacs Lisp expressions.  Type @kbd{M-x ielm} to create an
 @file{*ielm*} buffer which uses this mode.  For more information, see
 that command's documentation.
 
+@cindex persistent *scratch* buffer
+  By default, the @file{*scratch*} buffer is not associated with any
+file.  Therefore, any text in the buffer is lost when you quit Emacs.
+If you prefer, you can use Remember mode's notes buffer feature to make
+Emacs save and reload the contents of @file{*scratch*}.  Customize the
+variable @code{initial-buffer-choice} to the symbol
+@code{remember-notes} and the variable @code{remember-notes-buffer-name}
+to the string @code{"*scratch*"} to achieve this.  See also @xref{Quick
+Start,,, remember, the Remember mode manual}.
+
 @node External Lisp
 @section Running an External Lisp
 @cindex Lisp mode
