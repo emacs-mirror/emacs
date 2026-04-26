@@ -1134,7 +1134,7 @@ Voici d'autres options utiles de C-h :
 
 Cela affiche dans une autre fenêtre une liste de toutes les commandes
 M-x ayant « file » dans leurs noms. À côté des noms de commandes, vous
-verrez les séquences de caractères qui correspondent (comme C-x C-f à
+verrez les combinaisons de touches qui correspondent (comme C-x C-f à
 côté de find-file).
 
 >> Faites C-M-v pour faire défiler la fenêtre d'aide. Faites-le
