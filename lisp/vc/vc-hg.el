@@ -447,7 +447,7 @@ the log starting from that revision."
              (cond ((not (stringp limit))
                     (format "-r%s:0" start))
                    ((memq vc-log-view-type '(log-outgoing
-                                             log-outstanding))
+                                             log-unintegrated))
                     (format "-rreverse(only(%s, %s))" start limit))
                    (t
                     (format "-r%s:%s & !%s" start limit limit)))
@@ -472,7 +472,7 @@ the log starting from that revision."
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
   (let ((shortp (memq vc-log-view-type
-                      '(short log-incoming log-outgoing log-outstanding))))
+                      '(short log-incoming log-outgoing log-unintegrated))))
    (setq-local log-view-file-re regexp-unmatchable)
    (setq-local log-view-per-file-logs nil)
    (setq-local log-view-message-re
