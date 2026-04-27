@@ -592,8 +592,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                                'added))))
 
             ;; Test OK-IF-ALREADY-EXISTS.
-            ;; RCS doesn't support `vc-delete-file'.
-            (unless (eq backend 'RCS)
+            ;; RCS and SRC don't support `vc-delete-file'.
+            (unless (memq backend '(RCS SRC))
               (let ((tmp-name (expand-file-name "qux" default-directory))
                     (new-name (expand-file-name "quuux" default-directory)))
                 (write-region "qux" nil tmp-name nil 'nomessage)
@@ -1261,7 +1261,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                  (format "vc-test-%s01-register" backend-string))))))
           ;; `vc-mtn.el' gives me:
           ;; "Failed (status 1): mtn commit -m Testing vc-version-diff\n\n foo"
-          (skip-when (memq ',backend '(Mtn)))
+          (skip-when (memq ',backend '(Mtn SRC)))
           ;; `vc-hg.el' gives me, only on MS-Windows and only in batch mode:
           ;; "Failed (status 255): hg --config ui.report_untrusted=0 commit -m Testing vc-version-diff\n\n foo"
           (skip-when (and (memq ',backend '(Hg))
