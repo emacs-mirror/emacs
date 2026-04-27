@@ -70,7 +70,7 @@ representing names.  For instance:
 (define-multisession-variable emoji--recent (list "😀" "😖"))
 (defvar emoji--insert-buffer)
 
-;;;###autoload (autoload 'emoji-insert "emoji" nil t)
+;;;###autoload
 (transient-define-prefix emoji-insert ()
   "Choose and insert an emoji glyph."
   :variable-pitch t
@@ -83,7 +83,7 @@ representing names.  For instance:
                        `(("Recent" ,@(multisession-value emoji--recent))
                          ,@emoji--labels)))
 
-;;;###autoload (autoload 'emoji-recent "emoji" nil t)
+;;;###autoload
 (transient-define-prefix emoji-recent ()
   "Choose and insert one of the recently-used emoji glyphs."
   :variable-pitch t
@@ -95,7 +95,7 @@ representing names.  For instance:
   (emoji--setup-prefix 'emoji-recent "Recent" t
                        (multisession-value emoji--recent)))
 
-;;;###autoload (autoload 'emoji-search "emoji" nil t)
+;;;###autoload
 (transient-define-prefix emoji-search (glyph derived)
   "Choose and insert an emoji glyph by typing its Unicode name.
 This command prompts for an emoji name, with completion, and
@@ -261,7 +261,7 @@ the name is not known."
   :interactive nil
   (setq-local truncate-lines t))
 
-;;;###autoload (autoload 'emoji-list-select "emoji" nil t)
+;;;###autoload
 (transient-define-prefix emoji-list-select (event)
   "Select the emoji under point."
   :variable-pitch t
