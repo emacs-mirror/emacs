@@ -845,9 +845,12 @@ This can be used as a `:range-fn' in `treesit-range-rules'."
     (dolist (child (treesit-node-children node))
       (let ((child-start (treesit-node-start child))
             (child-end (treesit-node-end child)))
-        (push (cons prev-end child-start) ranges)
+        ;; Filter out the case when PREV-END = CHILD-START.
+        (when (< prev-end child-start)
+          (push (cons prev-end child-start) ranges))
         (setq prev-end child-end)))
-    (push (cons prev-end end) ranges)
+    (when (< prev-end end)
+      (push (cons prev-end end) ranges))
     (nreverse ranges)))
 
 (defun treesit--merge-ranges (old-ranges new-ranges start end)
