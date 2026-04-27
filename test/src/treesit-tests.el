@@ -583,6 +583,30 @@ BODY is the test body."
                                                 (list (cons 5 6))))
                  '((1 . 2) (3 . 4) (9 . 10) (5 . 6)))))
 
+(ert-deftest treesit-intersect-ranges ()
+  "Test `treesit--intersect-ranges'."
+  ;; Empty.
+  (should (equal (treesit--intersect-ranges '() '()) '()))
+  (should (equal (treesit--intersect-ranges '((1 . 5)) '()) '()))
+  ;; No overlap.
+  (should (equal (treesit--intersect-ranges '((1 . 3)) '((5 . 7))) '()))
+  ;; Adjacent (touching at boundary, no overlap).
+  (should (equal (treesit--intersect-ranges '((1 . 5)) '((5 . 10))) '()))
+  ;; Partial overlap.
+  (should (equal (treesit--intersect-ranges '((1 . 5)) '((3 . 7)))
+                 '((3 . 5))))
+  ;; One inside another.
+  (should (equal (treesit--intersect-ranges '((1 . 10)) '((3 . 5)))
+                 '((3 . 5))))
+  ;; Multiple ranges, multiple intersections.
+  (should (equal (treesit--intersect-ranges '((1 . 5) (10 . 15))
+                                            '((3 . 12)))
+                 '((3 . 5) (10 . 12))))
+  ;; One range spanning multiple.
+  (should (equal (treesit--intersect-ranges '((2 . 5) (7 . 10) (15 . 18))
+                                            '((1 . 20)))
+                 '((2 . 5) (7 . 10) (15 . 18)))))
+
 (defun treesit--ert-pred-last-sibling (node)
   (null (treesit-node-next-sibling node t)))
 

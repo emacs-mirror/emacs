@@ -675,6 +675,10 @@ If none are valid, return nil."
 
 ;;; Range API supplement
 
+(defvar treesit--range-verbose nil
+  "If non-nil, print verbose debugging info for setting ranges.
+Useful when your multi-parser setup doesn't seem to work.")
+
 ;; (ref:local-parser-overlay) Regarding local parser overlays, we store
 ;; the local parser in an overlay spanning across the code block for
 ;; which the parser is responsible. The `treesit-parser' property stores
@@ -918,6 +922,21 @@ those inside are kept."
            if (<= start (car range) (cdr range) end)
            collect range))
 
+(defun treesit--intersect-ranges (ranges-1 ranges-2)
+  "Return the intersection of RANGES-1 and RANGES-2."
+  (let ((r1 (pop ranges-1))
+        (r2 (pop ranges-2))
+        result)
+    (while (and r1 r2)
+      (let ((start (max (car r1) (car r2)))
+            (end (min (cdr r1) (cdr r2))))
+        (when (< start end)
+          (push (cons start end) result))
+        (if (< (cdr r1) (cdr r2))
+            (setq r1 (pop ranges-1))
+          (setq r2 (pop ranges-2)))))
+    (nreverse result)))
+
 (defvar treesit--parser-overlay-offset 0
   "Defines at which position to get the parser overlay.
 The commands that move backward need to set it to -1 to be
@@ -1050,6 +1069,32 @@ is nil."
                          (null (treesit-parser-embed-level parser)))))
               parsers))
 
+(defun treesit--set-embed-ranges (ranges embed-parser host-parser)
+  "A helper for setting RANGES to EMBED-PARSER.
+
+Take HOST-PARSER's ranges and intersect with RANGES, then set to
+EMBED-PARSER.  If the intersection is empty, give EMBED-PARSER a
+0-length ranges.
+
+RANGES is a list of (START . END) or just (START . END)."
+  (let* ((new-ranges-1 (cond
+                        ((null ranges) nil)
+                        ((consp (car ranges)) ranges)
+                        (t (list ranges))))
+         (host-ranges (treesit-parser-included-ranges host-parser))
+         (new-ranges (if (and host-ranges new-ranges-1)
+                         (treesit--intersect-ranges
+                          new-ranges-1 host-ranges)
+                       new-ranges-1)))
+    (when (and (null new-ranges) treesit--range-verbose)
+      (message "Setting empty ranges to %s\nRanges for embedded parser :%s\nRanges for host parser: %s\nIntersection is empty"
+               new-ranges-1 embed-parser host-parser))
+    ;; When there's no range for the embedded language, set it's range
+    ;; to a dummy (1 . 1), otherwise it would be set to the whole
+    ;; buffer, which is not what we want.
+    (treesit-parser-set-included-ranges
+     embed-parser (or new-ranges `((,(point-min) . ,(point-min)))))))
+
 (defun treesit--update-ranges-non-local
     ( host-parser query embed-lang modified-tick embed-level
       &optional beg end offset range-fn)
@@ -1100,7 +1145,9 @@ Return updated parsers as a list."
                   (car (treesit--parser-at-level
                         (treesit-parser-list nil resolved-embed-lang)
                         embed-level 'include-null)))))
-        (when embed-parser
+        (if (null embed-parser)
+            (when treesit--range-verbose
+              (message "Couldn't find an embed parser for an embedded code block, language=%s, embed level=%s" resolved-embed-lang embed-level))
           ;; Lay an overlay over each range to mark the start & end of
           ;; it for other functions to access (e.g., outline wants to
           ;; know this).  Refer to (ref:local-parser-overlay) for more
@@ -1135,17 +1182,9 @@ Return updated parsers as a list."
                               (treesit--merge-ranges
                                old-ranges new-ranges beg end)
                               (point-min) (point-max))))
-            (treesit-parser-set-embed-level
-             embed-parser embed-level)
-            (treesit-parser-set-included-ranges
-             embed-parser (or set-ranges
-                              ;; When there's no range for the
-                              ;; embedded language, set it's
-                              ;; range to a dummy (1 . 1),
-                              ;; otherwise it would be set to
-                              ;; the whole buffer, which is
-                              ;; not what we want.
-                              `((,(point-min) . ,(point-min)))))
+            (treesit-parser-set-embed-level embed-parser embed-level)
+            (treesit--set-embed-ranges
+             set-ranges embed-parser host-parser)
             (push embed-parser touched-parsers)))))
     touched-parsers))
 
@@ -1207,10 +1246,8 @@ Return the created local parsers as a list."
                        (when (and (overlay-get ov 'treesit-parser-local-p)
                                   (eq parser-lang embedded-lang)
                                   (eq embed-level parser-level))
-                         (treesit-parser-set-included-ranges
-                          embedded-parser (if (consp (car range))
-                                              range
-                                            (list range)))
+                         (treesit--set-embed-ranges
+                          range embedded-parser host-parser)
                          (move-overlay ov beg end)
                          (overlay-put ov 'treesit-parser-ov-timestamp
                                       modified-tick)
@@ -1229,10 +1266,8 @@ Return the created local parsers as a list."
                 (overlay-put ov 'treesit-host-parser host-parser)
                 (overlay-put ov 'treesit-parser-ov-timestamp
                              modified-tick)
-                (treesit-parser-set-included-ranges
-                 embedded-parser (if (consp (car range))
-                                     range
-                                   (list range)))
+                (treesit--set-embed-ranges
+                 range embedded-parser host-parser)
                 (push embedded-parser touched-parsers)))))))
     touched-parsers))
 
