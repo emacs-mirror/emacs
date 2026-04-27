@@ -5438,7 +5438,9 @@ database object.  The database object returned by the
 @defun sqlite-close db
 Close the database @var{db}.  It's usually not necessary to call this
 function explicitly---the database will automatically be closed if
-Emacs shuts down or the database object is garbage collected.
+Emacs shuts down or the database object is garbage collected.  If the
+connection identified by @var{db} is already closed, this function does
+nothing.
 @end defun
 
 @defun sqlite-execute db statement &optional values
