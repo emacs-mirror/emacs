@@ -1635,7 +1635,7 @@ to QUERY.  For example,
     (treesit-font-lock-rules
      :language \\='javascript
      :override t
-     :feature\\='constant
+     :feature \\='constant
      \\='((true) @font-lock-constant-face
        (false) @font-lock-constant-face)
      :language \\='html
