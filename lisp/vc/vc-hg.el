@@ -601,10 +601,17 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
                    table (lambda () (vc-hg-revision-table files)))))
     table))
 
+(defcustom vc-hg-annotate-show-revision-numbers nil
+  "If non-nil, \\[vc-annotate] shows revision numbers for Hg repositories.
+The default when this is nil is to show changeset hashes."
+  :type 'boolean
+  :version "31.1")
+
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (apply #'vc-hg-command buffer 'async file "annotate" "-dq" "-n"
+  (apply #'vc-hg-command buffer 'async file "annotate" "-dq"
+         (if vc-hg-annotate-show-revision-numbers "-n" "-c")
 	 (append (vc-switches 'hg 'annotate)
                  (if revision (list (concat "-r" revision))))))
 
@@ -619,9 +626,9 @@ Optional arg REVISION is a revision to annotate from."
 ;;   b56girard 114590 2012-03-13:
 (defconst vc-hg-annotate-re
   (concat
-   "^\\(?: *[^ ]+ +\\)?\\([0-9]+\\) "   ;User and revision.
-   "\\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\\)" ;Date.
-   "\\(?: +\\([^:]+\\)\\)?:"))                        ;Filename.
+   "^\\(?: *[^ ]+ +\\)?\\([[:xdigit:]]+\\) "          ; User and revision.
+   "\\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\\)" ; Date.
+   "\\(?: +\\([^:]+\\)\\)?:"))                        ; Filename.
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
