@@ -331,7 +331,7 @@ DEFUN ("sqlite-close", Fsqlite_close, Ssqlite_close, 1, 1, 0,
   (Lisp_Object db)
 {
   /* Do nothing when the connection is already closed.
-     This aligns with the behavior of sqlite3_close. */
+     This aligns with the behavior of 'sqlite3_close' itself.  */
   if (SQLITE (db) && !XSQLITE (db)->db)
     return Qt;
 

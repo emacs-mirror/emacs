@@ -3605,6 +3605,8 @@ normal file name starts with "file:", you can disable the URI
 recognition by invoking 'sqlite-open' with the new optional argument
 DISABLE-URI non-nil.
 
+*** 'sqlite-close' now does nothing if the connection is already closed.
+
 ** GUD
 
 +++
