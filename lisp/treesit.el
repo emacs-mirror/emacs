@@ -1079,7 +1079,8 @@ returns the ranges to use for that node.
 
 Return updated parsers as a list."
   (let ((ranges-by-lang
-         (if (functionp embed-lang)
+         ;; Filter out functions like `markdown' using `commandp'.
+         (if (and (functionp embed-lang) (not (commandp embed-lang)))
              (treesit-query-range-by-language
               host-parser query embed-lang beg end offset range-fn)
            (list (cons embed-lang
