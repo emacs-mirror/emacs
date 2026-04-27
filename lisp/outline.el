@@ -1374,7 +1374,7 @@ This also unhides the top heading-less body, if any."
 		(or first (> (funcall outline-level) level)))
       (setq first nil)
       (outline-next-heading))
-    (if (and (bolp) (not (eolp)))
+    (if (or (eobp) (and (bolp) (not (eolp))))
 	;; We stopped at a nonempty line (the next heading).
 	(outline--end-of-previous))))
 
