@@ -1296,6 +1296,17 @@ Multi-language major modes can rely on the default return value from
 'treesit-language-at' that uses the new function 'treesit-parsers-at'.
 
 +++
+*** New function 'treesit-query-with-optional'.
+When used in 'treesit-font-lock-rules', 'treesit-query-with-optional'
+returns a default query plus the valid queries from a list of optional
+queries.
+
++++
+*** New function 'treesit-query-with-fallback'.
+When used in 'treesit-font-lock-rules', 'treesit-query-with-fallback'
+selects the first valid query from a list.
+
++++
 *** Tree-sitter thing functions now work better with multiple parsers.
 The following functions now handle better the case when there are
 multiple parsers at point: 'treesit-thing-prev', 'treesit-thing-next',

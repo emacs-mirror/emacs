@@ -1660,7 +1660,12 @@ name, it is ignored."
           ;; The list this function returns.
           (result nil))
       (while query-specs
-        (let ((token (pop query-specs)))
+        (let ((token (pop query-specs))
+              (reset (lambda ()
+                       (setq current-language nil
+                             current-override nil
+                             current-feature nil
+                             current-reversed nil))))
           (pcase token
             ;; (1) Process keywords.
             (:default-language
@@ -1719,10 +1724,10 @@ name, it is ignored."
                            lang)
                      result)
                ;; Clears any configurations set for this query.
-               (setq current-language nil
-                     current-override nil
-                     current-feature nil
-                     current-reversed nil)))
+               (funcall reset)))
+            ;; (3) Skip this query, for whatever reason.  Currently only
+            ;; utilized by `treesit-query-with-fallback' and undocumented.
+            ('nil (funcall reset))
             (_ (signal 'treesit-font-lock-error
                        `("Unexpected value" ,token))))))
       (nreverse result))))
@@ -1742,6 +1747,18 @@ Use LANGUAGE for validating queries."
         (when (treesit--compile-query-with-cache language query)
           (push query optional))))
     (append mandatory optional)))
+
+(defun treesit-query-with-fallback (language &rest queries)
+  "Return the first valid query in QUERIES.
+
+Return nil if no query is valid.  Use LANGUAGE for validating queries."
+  (declare (indent 1))
+  (catch 'return
+    (dolist (query queries)
+      (ignore-errors
+        (when (treesit--compile-query-with-cache language query)
+          (throw 'return query))))
+    nil))
 
 ;; `font-lock-fontify-region-function' has the LOUDLY argument, but
 ;; `jit-lock-functions' doesn't pass that argument.  So even if we set
