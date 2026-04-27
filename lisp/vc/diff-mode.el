@@ -1252,8 +1252,10 @@ Optional argument DELETE is passed on to `diff-file-kill'."
              (goto-char (point-min))
              (ignore-errors (diff-file-next))
              for (name1 name2) = (diff-hunk-file-names)
-             if (or (equal name1 null-device)
-                    (equal name2 null-device))
+             ;; Allow for "/dev/null" on all platforms, as some versions
+             ;; of Diff produce that for "portability".
+             if (or (member name1 (list null-device "/dev/null"))
+                    (member name2 (list null-device "/dev/null")))
              do (diff-file-kill delete)
              else if (eq (prog1 (point)
                            (ignore-errors (diff-file-next)))
