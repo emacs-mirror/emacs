@@ -152,7 +152,7 @@ This is not used directly, but only via inheritance by other faces."
   :group 'nxml-faces)
 
 (defface nxml-text
-  '((t (:inherit default)))
+  '((t))
   "Face used to highlight text."
   :group 'nxml-faces)
 
