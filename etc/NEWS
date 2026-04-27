@@ -2802,6 +2802,12 @@ To undo this change you can use
 This command prints the log of VC changes to the current fileset on
 another branch.
 
+---
+*** VC Annotate for Mercurial repositories shows changeset hashes.
+To restore showing revision numbers instead of changeset hashes,
+customize the new option vc-hg-annotate-show-revision-numbers to
+non-nil.
+
 +++
 *** New commands to handle repositories with multiple working trees.
 Some VCS support more than one working tree with the same backing
@@ -2992,12 +2998,12 @@ include were committed and will be pushed.
 current VC fileset.
 
 +++
-*** New commands to report information about outstanding changes.
-'C-x v T =' ('vc-diff-outstanding') and 'C-x v T D'
-('vc-root-diff-outstanding') report diffs of changes since the merge
+*** New commands to report information about unintegrated changes.
+'C-x v T =' ('vc-diff-unintegrated') and 'C-x v T D'
+('vc-root-diff-unintegrated') report diffs of changes since the merge
 base with the remote branch, including uncommitted changes.
-'C-x v T l' ('vc-log-outstanding') and 'C-x v T L'
-('vc-root-log-outstanding') show the corresponding revision logs.
+'C-x v T l' ('vc-log-unintegrated') and 'C-x v T L'
+('vc-root-log-unintegrated') show the corresponding revision logs.
 These are useful to view all outstanding (unmerged, unpushed) changes on
 the current branch.  They are also available as 'T =', 'T D', 'T l' and
 'T L' in VC Directory buffers.

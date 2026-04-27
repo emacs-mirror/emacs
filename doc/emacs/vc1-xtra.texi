@@ -11,17 +11,17 @@
   This section explains the less-frequently-used features of VC.
 
 @menu
-* Change Logs and VC::  Generating a change log file from log entries.
-* VC Delete/Rename::    Deleting and renaming version-controlled files.
-* Revision Tags::       Symbolic names for revisions.
-* Merge Bases::         The most recent revision existing on both branches.
-* Outstanding Changes:: Diffs including all outstanding changes on a branch.
-* Other Working Trees:: Multiple sets of workfiles.
-* Version Headers::     Inserting version control headers into working files.
-* Editing VC Commands:: Editing the VC shell commands that Emacs will run.
-* Preparing Patches::   Preparing and composing patches from within VC.
-* VC Auto-Reverting::   Updating buffer contents after VCS operations.
-* Rewinding Branches::  Commands to delete revisions from ends of branches.
+* Change Logs and VC::   Generating a change log file from log entries.
+* VC Delete/Rename::     Deleting and renaming version-controlled files.
+* Revision Tags::        Symbolic names for revisions.
+* Merge Bases::          The most recent revision existing on both branches.
+* Unintegrated Changes:: Diffs including all unintegrated changes on a branch.
+* Other Working Trees::  Multiple sets of workfiles.
+* Version Headers::      Inserting version control headers into working files.
+* Editing VC Commands::  Editing the VC shell commands that Emacs will run.
+* Preparing Patches::    Preparing and composing patches from within VC.
+* VC Auto-Reverting::    Updating buffer contents after VCS operations.
+* Rewinding Branches::   Commands to delete revisions from ends of branches.
 @end menu
 
 @node Change Logs and VC
@@ -293,27 +293,27 @@ on the target branch if you were to merge the source branch into it, and
 @kbd{C-x v M L} shows you a log of the changes on the source branch not
 yet merged into the target branch.
 
-@node Outstanding Changes
-@subsubsection Commands to see all outstanding changes
-@cindex outstanding changes
+@node Unintegrated Changes
+@subsubsection Commands to see all unintegrated changes
+@cindex unintegrated changes
 
 @table @kbd
 @item C-x v T =
 Display diffs of changes to the VC fileset since the merge base of this
-branch and its upstream counterpart (@code{vc-diff-outstanding}).
+branch and its upstream counterpart (@code{vc-diff-unintegrated}).
 
 @item C-x v T D
 Display a diff of all changes since the merge base of this branch and
-its upstream counterpart (@code{vc-root-diff-outstanding}).
+its upstream counterpart (@code{vc-root-diff-unintegrated}).
 
 @item C-x v T l
 Display log messages for changes to the VC fileset since the merge base
 of this branch and its upstream counterpart
-(@code{vc-log-outstanding}).
+(@code{vc-log-unintegrated}).
 
 @item C-x v T L
 Display log messages for all changes since the merge base of this branch
-and its upstream counterpart (@code{vc-root-log-outstanding}).
+and its upstream counterpart (@code{vc-root-log-unintegrated}).
 @end table
 
 For decentralized version control systems (@pxref{VCS Repositories}),
@@ -324,21 +324,21 @@ both when working on a single branch and when developing features on a
 separate branch (@pxref{Branches}).  These two cases are conceptually
 distinct, and so we will introduce them separately.
 
-First, consider working on a single branch.  @dfn{Outstanding changes}
+First, consider working on a single branch.  @dfn{Unintegrated changes}
 are those which you haven't yet pushed upstream.  This includes both
 unpushed commits and uncommitted changes in your working tree.  In many
 cases the reason these changes are not pushed yet is that they are not
 finished: the changes committed so far don't make sense in isolation.
 
 @kindex C-x v T =
-@findex vc-diff-outstanding
+@findex vc-diff-unintegrated
 @kindex C-x v T D
-@findex vc-root-diff-outstanding
-Type @kbd{C-x v T D} (@code{vc-root-diff-outstanding}) to display a
+@findex vc-root-diff-unintegrated
+Type @kbd{C-x v T D} (@code{vc-root-diff-unintegrated}) to display a
 summary of all these changes, committed and uncommitted.  This summary
 is in the form of a diff of what committing and pushing (@pxref{Pulling
 / Pushing}) all these changes would do to the upstream repository.  You
-can use @kbd{C-x v T =} (@code{vc-diff-outstanding}) instead to limit
+can use @kbd{C-x v T =} (@code{vc-diff-unintegrated}) instead to limit
 the display of changes to the current VC fileset.  (The difference
 between @w{@kbd{C-x v T D}} and @w{@kbd{C-x v T =}} is like the
 difference between @kbd{C-x v D} and @kbd{C-x v =} (@pxref{Old
@@ -350,13 +350,13 @@ commands, you can use a prefix argument to specify a particular upstream
 location.}
 
 @kindex C-x v T l
-@findex vc-log-outstanding
+@findex vc-log-unintegrated
 @kindex C-x v T L
-@findex vc-root-log-outstanding
-Type @kbd{C-x v T L} (@code{vc-root-log-outstanding}) to display a
+@findex vc-root-log-unintegrated
+Type @kbd{C-x v T L} (@code{vc-root-log-unintegrated}) to display a
 summary of the same changes in the form of a revision log; this does not
 include uncommitted changes.  You can use @kbd{C-x v T l}
-(@code{vc-log-outstanding}) instead to limit the display of changes to
+(@code{vc-log-unintegrated}) instead to limit the display of changes to
 the current VC fileset.
 
 Second, consider developing a feature on a separate branch.  Call this
@@ -369,11 +369,11 @@ or other branches are repeatedly merged into.} and call the branch from
 which the topic branch was originally created the @dfn{trunk} or
 @dfn{development trunk}.
 
-In this case, outstanding changes is a more specific notion than just
+In this case, unintegrated changes is a more specific notion than just
 unpushed and uncommitted changes on the topic branch.  You're not
 finished sharing changes with your collaborators until they have been
 merged into the trunk, and pushed.  Therefore, in this example,
-outstanding changes are those which haven't yet been integrated into the
+unintegrated changes are those which haven't yet been included in the
 upstream repository's development trunk.  That means committed changes
 on the topic branch that haven't yet been merged into the trunk, plus
 uncommitted changes.

@@ -820,7 +820,7 @@ This works by considering the current branch as a topic branch
 (whether or not it actually is).
 
 If there is a distinct push remote for this branch, assume the target
-for outstanding changes is the tracking branch, and return that.
+for unintegrated changes is the tracking branch, and return that.
 
 Otherwise, fall back to the following algorithm, which requires that the
 corresponding trunk exists as a local branch.  Find all merge bases
@@ -1980,7 +1980,7 @@ log entries."
                 "^commit +\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
   (when (memq vc-log-view-type
-              '(short log-outgoing log-incoming log-outstanding mergebase))
+              '(short log-outgoing log-incoming log-unintegrated mergebase))
     (setq truncate-lines t)
     (setq-local log-view-expanded-log-entry-function
                 'vc-git-expanded-log-entry))

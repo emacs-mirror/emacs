@@ -5134,9 +5134,20 @@ Otherwise, it saves all modified buffers without asking.")
 (defvar compilation-search-path '(nil)
 "List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
-The value nil as an element means to try the default directory.")
+The value nil as an element means to try the default directory.
+
+For directory-local customizations, prefer
+`compilation-search-extra-path' instead.")
 (custom-autoload 'compilation-search-path "compile" t)
-(defvar compile-command (format "make -k -j%d " (ceiling (num-processors) 1.5))
+(defvar compilation-search-extra-path nil
+"List of extra directories to search for source files named in error messages.
+Elements in this list will be searched before those in
+`compilation-search-path'.
+
+The buffer-local value of this variable will be inherited by the
+compilation buffer.")
+(custom-autoload 'compilation-search-extra-path "compile" t)
+(defcustom compile-command (format "make -k -j%d " (ceiling (num-processors) 1.5))
 "Last shell command used to do a compilation; default for next compilation.
 
 Sometimes it is useful for files to supply local values for this variable.
@@ -5152,7 +5163,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 			  (shell-quote-argument
 			    (file-name-sans-extension buffer-file-name))))))))
 
-It's often useful to leave a space at the end of the value.")
+It's often useful to leave a space at the end of the value." :group 'compilation :initialize #'custom-initialize-delay :type 'string)
 (custom-autoload 'compile-command "compile" t)
 (put 'compile-command 'safe-local-variable (lambda (a) (and (stringp a) (if (boundp 'compilation-read-command) compilation-read-command t))))
 (defvar compilation-disable-input nil
@@ -5262,6 +5273,8 @@ evaluate the variable `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
+\\{compilation-shell-minor-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile"
 "Toggle Compilation minor mode.
@@ -5283,6 +5296,8 @@ evaluate the variable `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
+
+\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile"
@@ -6366,6 +6381,26 @@ even if it doesn't match the type.)
 
 (fn [VARIABLE VALUE]...)" nil t)
 (autoload 'setopt--set "cus-edit"
+"
+
+(fn VARIABLE VALUE)")
+(autoload 'setopt-local "cus-edit"
+"Set buffer local VARIABLE/VALUE pairs, and return the final VALUE.
+This is like `setq-local', but is meant for user options instead of
+plain variables.  This means that `setopt-local' will execute any
+`custom-set' form associated with VARIABLE.  Unlike `setopt',
+`setopt-local' does not affect a user option's global value.
+
+Note that `setopt-local' will emit a warning if the type of a VALUE does
+not match the type of the corresponding VARIABLE as declared by
+`defcustom'.  (VARIABLE will be assigned the value even if it doesn't
+match the type.)
+
+Signal an error if a `custom-set' form does not support the
+`buffer-local' argument.
+
+(fn [VARIABLE VALUE]...)" nil t)
+(autoload 'setopt--set-local "cus-edit"
 "
 
 (fn VARIABLE VALUE)")
@@ -8058,6 +8093,10 @@ delete them by typing \\[dired-do-flagged-delete].
 Type \\[describe-mode] after entering Dired for more info.
 
 If DIRNAME is already in a Dired buffer, that buffer is used without refresh.
+
+(fn DIRNAME &optional SWITCHES)" t)
+(autoload 'dired-from-menubar "dired"
+"Edit an existing directory.
 
 (fn DIRNAME &optional SWITCHES)" t)
  (keymap-set ctl-x-4-map "d" #'dired-other-window)
@@ -9923,7 +9962,7 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window.
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 21) package--builtin-versions)
+(push '(eglot 1 23) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot"
 "Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -9985,7 +10024,7 @@ needed.")
 "Update Eglot to latest version.
 
 (fn &rest _)" t)
-(put 'eglot-workspace-configuration 'safe-local-variable #'listp)
+(put 'eglot-workspace-configuration 'safe-local-variable (lambda (v) (and (listp v) (not (functionp v)))))
 (put 'eglot--debbugs-or-github-bug-uri 'bug-reference-url-format t)
 (defun eglot--debbugs-or-github-bug-uri nil (format (if (string= (match-string 2) "github") "https://github.com/joaotavora/eglot/issues/%s" "https://debbugs.gnu.org/%s") (match-string 3)))
 (register-definition-prefixes "eglot" '("eglot-"))
@@ -10643,9 +10682,13 @@ Message buffer where you can explain more about the patch.
  (autoload 'emoji-recent "emoji" nil t)
  (autoload 'emoji-search "emoji" nil t)
 (autoload 'emoji-list "emoji"
-"List emojis and allow selecting and inserting one of them.
+"List Emoji and allow selecting and inserting one of them.
+If you are displaying Emoji on a text-only terminal, and some
+of them look incorrect, or there are display artifacts when
+scrolling the display, turn off `auto-composition-mode'.
+
 Select the emoji by typing \\<emoji-list-mode-map>\\[emoji-list-select] on its picture.
-The glyph will be inserted into the buffer that was current
+The selected glyph will be inserted into the buffer that was current
 when the command was invoked." t)
 (autoload 'emoji-describe "emoji"
 "Display the name of the grapheme cluster composed from GLYPH.
@@ -13808,6 +13851,8 @@ evaluate the variable `flymake-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
+\\{flymake-mode-map}
+
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake"
 "Turn Flymake mode on.")
@@ -15003,6 +15048,9 @@ DELAY is a string, giving the length of the time.  Possible values are:
 
 * YYYY-MM-DD for a specific date.  The time of day is given by the
   variable `gnus-delay-default-hour', minute and second are zero.
+
+* YYYY-MM-DD hh:mm(:ss) for a specific date and time.  If seconds are left
+  out, they will be zero.
 
 * hh:mm for a specific time.  Use 24h format.  If it is later than this
   time, then the deadline is tomorrow, else today.
@@ -17071,6 +17119,24 @@ disabled.
 (defvar hs-special-modes-alist nil)
 (autoload 'turn-off-hideshow "hideshow"
 "Unconditionally turn off `hs-minor-mode'.")
+(autoload 'hs-indentation-mode "hideshow"
+"Toggle indentation-based hiding/showing.
+
+This is a minor mode.  If called interactively, toggle the
+`Hs-Indentation mode' mode.  If the prefix argument is positive, enable
+the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate the variable `hs-indentation-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
 (autoload 'hs-minor-mode "hideshow"
 "Minor mode to selectively hide/show code and comment blocks.
 
@@ -19051,6 +19117,7 @@ quoted using shell quote syntax.
 
 ;;; Generated autoloads from info.el
 
+(put 'Info-documentlanguage 'safe-local-variable #'symbolp)
 (defvar Info-default-directory-list nil
 "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
@@ -19985,7 +20052,7 @@ penultimate step during initialization.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push '(jsonrpc 1 0 27) package--builtin-versions)
+(push '(jsonrpc 1 0 28) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -20167,16 +20234,14 @@ With \\[universal-argument], call second macro in macro ring.
 "Call last keyboard macro, ending it first if currently being defined.
 With numeric prefix ARG, repeat macro that many times.
 Zero argument means repeat until there is an error.
+If triggered via a mouse EVENT, moves point to the position clicked
+with the mouse before calling the macro.
 
 To give a macro a name, so you can call it even after defining other
 macros, use \\[kmacro-name-last-macro].
 
-(fn ARG &optional NO-REPEAT)" t)
-(autoload 'kmacro-end-call-mouse "kmacro"
-"Move point to the position clicked with the mouse and call last kbd macro.
-If kbd macro currently being defined end it before activating it.
-
-(fn EVENT)" t)
+(fn ARG &optional NO-REPEAT EVENT)" t)
+(define-obsolete-function-alias 'kmacro-end-call-mouse #'kmacro-end-and-call-macro "31.1")
 (autoload 'kmacro "kmacro"
 "Create a `kmacro' for macro bound to symbol or key.
 KEYS should be a vector or a string that obeys `key-valid-p'.
@@ -20202,9 +20267,10 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 
 ;;; Generated autoloads from language/korea-util.el
 
-(defvar default-korean-keyboard (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") "")) "3" "")
+(defcustom default-korean-keyboard (if (string-search "3" (or (getenv "HANGUL_KEYBOARD_TYPE") "")) "3" "")
 "The kind of Korean keyboard for Korean (Hangul) input method.
-\"\" for 2, \"3\" for 3, and \"3f\" for 3f.")
+\"\" for 2, \"3\" for 3, and \"3f\" for 3f." :initialize #'custom-initialize-delay :group 'korean :version "31.1" :type 'string)
+(custom-autoload 'default-korean-keyboard "korea-util" t)
 (autoload 'setup-korean-environment-internal "korea-util")
 (register-definition-prefixes "korea-util" '("exit-korean-environment" "isearch-" "korean-key-bindings" "quail-hangul-switch-" "toggle-korean-input-method"))
 
@@ -20358,9 +20424,13 @@ penultimate step during initialization." t)
 (push '(let-alist 1 0 6) package--builtin-versions)
 (autoload 'let-alist "let-alist"
 "Let-bind dotted symbols to their cdrs in ALIST and execute BODY.
-Dotted symbol is any symbol starting with a `.'.  Only those present
-in BODY are let-bound and this search is done at compile time.
-A number will result in a list index.
+Dotted symbol is any symbol starting with a `.'.  This macro creates
+let-bindings for dotted symbols that appear literally in BODY (whether
+or not they are actually used).  It does not create bindings for dotted
+symbols that are introdcued by macro-expansion in BODY.
+
+A symbol of the form `.foo.N' where N is a natural number refers to the
+Nth element of the value that ALIST associates to key `foo'.
 
 For instance, the following code
 
@@ -20372,7 +20442,7 @@ For instance, the following code
 
 essentially expands to
 
-  (let ((.title (nth 0 (cdr (assq \\='title alist))))
+  (let ((.title.0 (nth 0 (cdr (assq \\='title alist))))
         (.body  (cdr (assq \\='body alist)))
         (.site  (cdr (assq \\='site alist)))
         (.site.contents (cdr (assq \\='contents (cdr (assq \\='site alist))))))
@@ -23477,6 +23547,11 @@ step during initialization." t)
 (register-definition-prefixes "ob-core" '("org-"))
 
 
+;;; Generated autoloads from org/ob-csharp.el
+
+(register-definition-prefixes "ob-csharp" '("org-babel-"))
+
+
 ;;; Generated autoloads from org/ob-css.el
 
 (register-definition-prefixes "ob-css" '("org-babel-"))
@@ -23484,7 +23559,7 @@ step during initialization." t)
 
 ;;; Generated autoloads from org/ob-ditaa.el
 
-(register-definition-prefixes "ob-ditaa" '("org-"))
+(register-definition-prefixes "ob-ditaa" '("ob-ditaa--ensure-jar-file" "org-"))
 
 
 ;;; Generated autoloads from org/ob-dot.el
@@ -23700,7 +23775,7 @@ ARG is the prefix argument received when calling interactively the function.
 
 ;;; Generated autoloads from org/oc-bibtex.el
 
-(register-definition-prefixes "oc-bibtex" '("org-cite-bibtex-export-"))
+(register-definition-prefixes "oc-bibtex" '("org-cite-bibtex-"))
 
 
 ;;; Generated autoloads from org/oc-csl.el
@@ -23865,7 +23940,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 7 11) package--builtin-versions)
+(push '(org 9 8 3) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -23946,11 +24021,14 @@ If the file does not exist, throw an error.
 (fn PATH &optional IN-EMACS LINE SEARCH)")
 (autoload 'org-open-at-point-global "org"
 "Follow a link or a timestamp like Org mode does.
+Pass ARG to `org-link-open-to-string'.
 Also follow links and emails as seen by `thing-at-point'.
 This command can be called in any mode to follow an external
 link or a timestamp that has Org mode syntax.  Its behavior
 is undefined when called on internal links like fuzzy links.
-Raise a user error when there is nothing to follow." t)
+Raise a user error when there is nothing to follow.
+
+(fn &optional ARG)" t)
 (autoload 'org-offer-links-in-entry "org"
 "Offer links in the current entry and return the selected link.
 If there is only one link, return it.
@@ -25120,14 +25198,12 @@ installs takes precedence.
 (fn PACKAGE &optional REV BACKEND NAME)" t)
 (autoload 'package-vc-checkout "package-vc"
 "Clone the sources for PKG-DESC into DIRECTORY and visit that directory.
-Unlike `package-vc-install', this does not yet set up the package
-for use with Emacs; use `package-vc-install-from-checkout' for
-setting the package up after this function finishes.  Optional
-argument REV means to clone a specific version of the package; it
-defaults to the last version available from the package's
-repository.  If REV has the special value
-`:last-release' (interactively, the prefix argument), that stands
-for the last released version of the package.
+Unlike `package-vc-install', this does not yet set up the package for
+use with Emacs.  Optional argument REV means to clone a specific version
+of the package; it defaults to the last version available from the
+package's repository.  If REV has the special value
+`:last-release' (interactively, the prefix argument), that stands for
+the last released version of the package.
 
 (fn PKG-DESC DIRECTORY &optional REV)" t)
 (autoload 'package-vc-install-from-checkout "package-vc"
@@ -25140,7 +25216,7 @@ If the optional argument INTERACTIVE is non-nil (as happens
 interactively), DIR must be an absolute file name.
 
 (fn DIR &optional NAME INTERACTIVE)" t)
-(make-obsolete 'package-vc-install-from-checkout '"use the User Lisp directory instead." "31.1")
+(make-obsolete 'package-vc-install-from-checkout '"Use the User Lisp directory instead, see Info node `(emacs) User Lisp Directory'." "31.1")
 (autoload 'package-vc-rebuild "package-vc"
 "Rebuild the installation for package given by PKG-DESC.
 Rebuilding an installation means scraping for new autoload
@@ -26694,7 +26770,7 @@ are both set to t.
 ;;; Generated autoloads from proced.el
 
 (autoload 'proced "proced"
-"Generate a listing of UNIX system processes.
+"Generate a listing of system processes and their attributes.
 \\<proced-mode-map>
 If invoked with optional non-negative ARG, do not select the
 window displaying the process information.
@@ -28000,6 +28076,8 @@ evaluate the variable `rectangle-mark-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
+
+\\{rectangle-mark-mode-map}
 
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
@@ -29926,11 +30004,11 @@ in the cited portion of the message.
 If this hook is entirely empty (nil), a default action is taken
 instead of no action.")
 (custom-autoload 'mail-citation-hook "sendmail" t)
-(defvar mail-citation-prefix-regexp "\\([ \11]*\\([[:word:]]\\|[_.]\\)+>+\\|[ \11]*[>|]\\)+"
+(defvar mail-citation-prefix-regexp "\\(?:[ \11]*\\(?:[[:word:]_.]+>\\|[>|]\\)\\)+"
 "Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
-with whitespace before and after; it should also match just whitespace.
-The default value matches citations like `foo-bar>' plus whitespace.")
+including leading whitespace.  The default value matches citations
+like `foo_bar>' plus any leading whitespace.")
 (custom-autoload 'mail-citation-prefix-regexp "sendmail" t)
 (defvar mail-signature t
 "Text inserted at end of mail buffer when a message is initialized.
@@ -30517,12 +30595,8 @@ be created if necessary, and new remote connections are inhibited.
 
 ;;; Generated autoloads from emacs-lisp/shortdoc.el
 
-(autoload 'shortdoc--check "shortdoc"
-"
-
-(fn GROUP FUNCTIONS)")
 (defvar shortdoc--groups nil)
-(defmacro define-short-documentation-group (group &rest functions)
+(autoload 'define-short-documentation-group "shortdoc"
 "Add GROUP to the list of defined documentation groups.
 FUNCTIONS is a list of elements on the form:
 
@@ -30584,7 +30658,9 @@ execution of the documented form depends on some conditions.
 
 A FUNC form can have any number of `:no-eval' (or `:no-value'),
 `:no-eval*', `:result', `:result-string', `:eg-result' and
-`:eg-result-string' properties." (declare (indent defun)) (shortdoc--check group functions) `(progn (setq shortdoc--groups (delq (assq ',group shortdoc--groups) shortdoc--groups)) (push (cons ',group ',functions) shortdoc--groups)))
+`:eg-result-string' properties.
+
+(fn GROUP &rest FUNCTIONS)" nil t)
 (autoload 'shortdoc-display-group "shortdoc"
 "Pop to a buffer with short documentation summary for functions in GROUP.
 Interactively, prompt for GROUP.
@@ -32254,6 +32330,8 @@ This construct can only be used with lexical binding.
 "Create a work buffer, and evaluate BODY there like `progn'.
 Like `with-temp-buffer', but reuse an already created temporary
 buffer when possible, instead of creating a new one on each call.
+Avoid retaining state referring to a work buffer, and kill
+any indirect buffers you create that use a work buffer as a base.
 
 (fn &rest BODY)" nil t)
 (autoload 'string-pixel-width "subr-x"
@@ -33858,6 +33936,10 @@ value of `texinfo-mode-hook'." t)
 
 ;;; Generated autoloads from international/textsec.el
 
+(autoload 'textsec--create-script-table "textsec"
+"Create the textsec--char-scripts char table.
+
+(fn DATA)")
 (register-definition-prefixes "textsec" '("textsec-"))
 
 
@@ -35116,7 +35198,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 12 0) package--builtin-versions)
+(push '(transient 0 13 0) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient"
 "Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -35678,6 +35760,11 @@ occurred.  Each pair is one of:
 (:error (error type . DATA)) - an error occurred.  TYPE is a
 symbol that says something about where the error occurred, and
 DATA is a list (possibly nil) that describes the error further.
+
+(:peer GNUTLS-INFO) - GnuTLS information for the retrieval request.
+This will be present only if GnuTLS was used to make an HTTPS request,
+in which case GNUTLS-INFO is the list returned by `gnutls-peer-status'
+describing the state of TLS connection with the peer.
 
 Return the buffer URL will load into, or nil if the process has
 already completed (i.e. URL was a mailto URL or similar; in this case
@@ -36852,7 +36939,7 @@ to.  When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like `vc-root-diff-outstanding' except that it does
+This command is like `vc-root-diff-unintegrated' except that it does
 not include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -36868,7 +36955,7 @@ can be a remote branch name.
 When called from Lisp optional argument FILESET overrides the VC
 fileset.
 
-This command is like `vc-diff-outstanding' except that it does not
+This command is like `vc-diff-unintegrated' except that it does not
 include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -36879,7 +36966,7 @@ global binding.
      #'vc--safe-branch-regexps-p)
  (put 'vc-topic-branch-regexps 'safe-local-variable
      #'vc--safe-branch-regexps-p)
-(autoload 'vc-root-diff-outstanding "vc"
+(autoload 'vc-root-diff-unintegrated "vc"
 "Report diff of all changes since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -36902,7 +36989,7 @@ topic branch.  (With a double prefix argument, this command is like
 `vc-diff-outgoing' except that it includes uncommitted changes.)
 
 (fn &optional UPSTREAM-LOCATION)" t)
-(autoload 'vc-diff-outstanding "vc"
+(autoload 'vc-diff-unintegrated "vc"
 "Report changes to VC fileset since the merge base with UPSTREAM-LOCATION.
 
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
@@ -36928,7 +37015,7 @@ topic branch.  (With a double prefix argument, this command is like
 When called from Lisp, optional argument FILESET overrides the fileset.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
-(autoload 'vc-log-outstanding "vc"
+(autoload 'vc-log-unintegrated "vc"
 "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -36951,7 +37038,7 @@ topic branch.
 When called from Lisp, optional argument FILESET overrides the fileset.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
-(autoload 'vc-root-log-outstanding "vc"
+(autoload 'vc-root-log-unintegrated "vc"
 "Show log of revisions since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -37283,14 +37370,22 @@ If called interactively, read FILE-OR-FILES, defaulting to the current
 buffer's file name if it's under version control.
 When called from Lisp, FILE-OR-FILES can be a file name or a list of
 file names.
+When called from Lisp, optional argument NOCONFIRM non-nil means don't
+prompt to confirm deletion.
+For some VCS, FILE-OR-FILES can include directories.
+These are recursively deleted.
 
-(fn FILE-OR-FILES)" t)
+(fn FILE-OR-FILES &optional NOCONFIRM)" t)
 (autoload 'vc-rename-file "vc"
 "Rename file OLD to NEW in both working tree and repository.
 When called interactively, read OLD and NEW, defaulting OLD to the
 current buffer's file name if it's under version control.
+If NEW is a directory name, rename FILE to a like-named file under NEW.
+For NEW to be recognized as a directory name, it should end in a slash.
+Signal a `file-already-exists' error if a file NEW already exists unless
+called from Lisp with optional argument OK-IF-ALREADY-EXISTS non-nil.
 
-(fn OLD NEW)" t)
+(fn OLD NEW &optional OK-IF-ALREADY-EXISTS)" t)
 (autoload 'vc-update-change-log "vc"
 "Find change log file and add entries from recent version control logs.
 Normally, find log entries for all registered files in the default

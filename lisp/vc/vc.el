@@ -638,7 +638,7 @@
 ;;   determination can be made.
 ;;
 ;;   What counts as a longer-lived or shorter-lived branch for VC is
-;;   explained in Info node `(emacs)Outstanding Changes' and in the
+;;   explained in Info node `(emacs)Unintegrated Changes' and in the
 ;;   docstring for `vc-trunk-or-topic-p'.
 ;;
 ;; - topic-outgoing-base ()
@@ -648,7 +648,7 @@
 ;;   branch.  That is, on the assumption that the current branch is a
 ;;   shorter-lived branch which will later be merged into a longer-lived
 ;;   branch, return, if possible, the upstream location to which those
-;;   changes will be merged.  See Info node `(emacs) Outstanding
+;;   changes will be merged.  See Info node `(emacs) Unintegrated
 ;;   Changes'.  The return value should be suitable for passing to the
 ;;   incoming-revision backend function as its UPSTREAM-LOCATION
 ;;   argument.  For example, for Git the value will typically be of the
@@ -3140,7 +3140,7 @@ to.  When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like `vc-root-diff-outstanding' except that it does
+This command is like `vc-root-diff-unintegrated' except that it does
 not include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -3159,7 +3159,7 @@ can be a remote branch name.
 When called from Lisp optional argument FILESET overrides the VC
 fileset.
 
-This command is like `vc-diff-outstanding' except that it does not
+This command is like `vc-diff-unintegrated' except that it does not
 include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -3359,8 +3359,8 @@ BACKEND is the VC backend."
 
 (defun vc--outgoing-base (backend)
   "Return an outgoing base for the current branch under VC backend BACKEND.
-The outgoing base is the upstream location for which outstanding changes
-on this branch are destined once they are no longer outstanding.
+The outgoing base is the upstream location for which unintegrated
+changes on this branch are destined once they are integrated.
 
 There are two stages to determining the outgoing base.
 First we decide whether we think this is a shorter-lived or a
@@ -3397,7 +3397,7 @@ REFRESH is passed on to `vc--incoming-revision'."
                                           refresh)))
 
 ;;;###autoload
-(defun vc-root-diff-outstanding (&optional upstream-location)
+(defun vc-root-diff-unintegrated (&optional upstream-location)
   "Report diff of all changes since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -3421,10 +3421,10 @@ topic branch.  (With a double prefix argument, this command is like
 `vc-diff-outgoing' except that it includes uncommitted changes.)"
   (interactive (list (vc--maybe-read-outgoing-base)))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (vc-diff-outstanding upstream-location `(,backend (,rootdir)))))
+    (vc-diff-unintegrated upstream-location `(,backend (,rootdir)))))
 
 ;;;###autoload
-(defun vc-diff-outstanding (&optional upstream-location fileset)
+(defun vc-diff-unintegrated (&optional upstream-location fileset)
   "Report changes to VC fileset since the merge base with UPSTREAM-LOCATION.
 
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
@@ -3460,7 +3460,7 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                       (called-interactively-p 'interactive))))
 
 ;;;###autoload
-(defun vc-log-outstanding (&optional upstream-location fileset)
+(defun vc-log-unintegrated (&optional upstream-location fileset)
   "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -3490,10 +3490,10 @@ When called from Lisp, optional argument FILESET overrides the fileset."
     (vc-print-log-internal backend (cadr fileset) nil nil
                            (vc--outgoing-base-mergebase backend
                                                         upstream-location)
-                           'log-outstanding)))
+                           'log-unintegrated)))
 
 ;;;###autoload
-(defun vc-root-log-outstanding (&optional upstream-location)
+(defun vc-root-log-unintegrated (&optional upstream-location)
   "Show log of revisions since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -3515,7 +3515,7 @@ i.e., treat this branch as a trunk branch even if Emacs thinks it is a
 topic branch."
   (interactive (list (vc--maybe-read-outgoing-base)))
   (vc--with-backend-in-rootdir "VC revision log"
-    (vc-log-outstanding upstream-location `(,backend (,rootdir)))))
+    (vc-log-unintegrated upstream-location `(,backend (,rootdir)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -4209,14 +4209,14 @@ LIMIT can also be a string, which means the revision before which to stop."
   "Set this to record the type of VC log shown in the current buffer.
 Supported values are:
 
-  `short'           -- short log form, one line for each commit
-  `long'            -- long log form, including full log message and author
-  `with-diff'       -- log including diffs
-  `log-outgoing'    -- log of changes to be pushed to upstream
-  `log-incoming'    -- log of changes to be brought by pulling from upstream
-  `log-outstanding' -- log of changes you've not yet finished sharing
-  `log-search'      -- log entries matching a pattern; shown in long format
-  `mergebase'       -- log created by `vc-log-mergebase'.")
+  `short'            -- short log form, one line for each commit
+  `long'             -- long log form, including full log message and author
+  `with-diff'        -- log including diffs
+  `log-outgoing'     -- log of changes to be pushed to upstream
+  `log-incoming'     -- log of changes to be brought by pulling from upstream
+  `log-unintegrated' -- log of changes you've not yet finished sharing
+  `log-search'       -- log entries matching a pattern; shown in long format
+  `mergebase'        -- log created by `vc-log-mergebase'.")
 (put 'vc-log-view-type 'permanent-local t)
 (defvar vc-sentinel-movepoint)
 
