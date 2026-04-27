@@ -1261,7 +1261,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                  (format "vc-test-%s01-register" backend-string))))))
           ;; `vc-mtn.el' gives me:
           ;; "Failed (status 1): mtn commit -m Testing vc-version-diff\n\n foo"
-          (skip-when (memq ',backend '(Mtn SRC)))
+          (skip-when (memq ',backend '(Mtn)))
           ;; `vc-hg.el' gives me, only on MS-Windows and only in batch mode:
           ;; "Failed (status 255): hg --config ui.report_untrusted=0 commit -m Testing vc-version-diff\n\n foo"
           (skip-when (and (memq ',backend '(Hg))
