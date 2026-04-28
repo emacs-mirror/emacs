@@ -10058,7 +10058,7 @@ DEFUN ("x-gtk-debug", Fx_gtk_debug, Sx_gtk_debug, 1, 1, 0,
 #endif /* HAVE_GTK3 */
 #endif	/* USE_GTK */
 
-DEFUN ("x-display-set-last-user-time", Fx_display_last_user_time,
+DEFUN ("x-display-set-last-user-time", Fx_display_set_last_user_time,
        Sx_display_set_last_user_time, 1, 2, 0,
        doc: /* Set the last user time of TERMINAL to TIME-OBJECT.
 TIME-OBJECT is the X server time, in milliseconds, of the last user
