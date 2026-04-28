@@ -1448,10 +1448,10 @@ queries."
             (signal 'treesit-query-error value))
         (condition-case err
             (let ((compiled (treesit-query-compile lang query 'eager)))
-              (puthash (cons lang query) compiled treesit--query-cache)
+              (puthash (cons lang query-source) compiled treesit--query-cache)
               compiled)
           (treesit-query-error
-           (puthash (cons lang query) (cdr err) treesit--query-cache)
+           (puthash (cons lang query-source) (cdr err) treesit--query-cache)
            (signal 'treesit-query-error (cdr err))))))))
 
 (defvar-local treesit-font-lock-settings nil
