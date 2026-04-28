@@ -256,6 +256,12 @@ This function is destined to be run from `erc-connect-pre-hook'.
 The current buffer is given by BUFFER."
   (when (erc-logging-enabled buffer)
     (with-current-buffer buffer
+      (when-let* ((erc-last-saved-position)
+                  (priors (or erc--server-reconnecting erc--target-priors))
+                  (val (alist-get 'erc-last-saved-position priors))
+                  (_ (eq buffer (marker-buffer val))))
+        ;; Will have been initialized by `erc-initialize-log-marker'.
+        (move-marker erc-last-saved-position val))
       (auto-save-mode -1)
       (setq buffer-file-name nil)
       (add-hook 'write-file-functions #'erc-save-buffer-in-logs nil t)

@@ -43,3 +43,7 @@
  (0 ":irc.foonet.org 329 tester #spam 1620104779")
  (0.1 ":bob!~u@rz2v467q4rwhy.irc PRIVMSG #spam :alice: Signior Iachimo will not from it. Pray, let us follow 'em.")
  (0.1 ":alice!~u@rz2v467q4rwhy.irc PRIVMSG #spam :bob: Our queen and all her elves come here anon."))
+
+((quit 10 "QUIT :\2ERC\2")
+ (0.07 ":tester!~u@h3f95zveyc38a.irc QUIT :Quit: \2ERC\2 5.5 (IRC client for GNU Emacs 30.0.50)")
+ (0.01 "ERROR :Quit: \2ERC\2 5.5 (IRC client for GNU Emacs 30.0.50)"))

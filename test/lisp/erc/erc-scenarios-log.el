@@ -460,4 +460,116 @@
     (erc-truncate-mode -1)
     (when noninteractive (delete-directory tempdir :recursive))))
 
+;; These tests check whether logs contain gaps when reconnecting.
+(defun erc-scenarios-log--reconnect (autop)
+
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "join/reconnect")
+       (dumb-server (erc-d-run "localhost" t 'foonet 'foonet-again))
+       (tempdir (make-temp-file "erc-tests-log." t nil nil))
+       (erc-log-channels-directory tempdir)
+       (erc-modules `(log ,@erc-modules))
+       (erc-timestamp-format-left "\n[@@DATE__STAMP@@]\n")
+       (port (process-contact dumb-server :service))
+       (erc-server-auto-reconnect autop)
+       (erc-server-flood-penalty 0.1)
+       (expect (erc-d-t-make-expecter))
+       ;; Bind these so they'll be killed on teardown.
+       (server-log-buffer (get-buffer-create "*erc-log FooNet*"))
+       (chan-log-buffer (get-buffer-create "*erc-log #chan*"))
+       (spam-log-buffer (get-buffer-create "*erc-log #spam*")))
+
+    (ert-info ("Connect")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :password "changeme"
+                                :full-name "tester")
+        (funcall expect 10 "debug mode")))
+
+    (ert-info ("#chan populated")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#chan"))
+        (funcall expect 10 "@@DATE__STAMP@@")
+        (funcall expect 10 "<alice> tester, welcome")))
+
+    (ert-info ("#spam populated")
+      (with-current-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))
+        (funcall expect 10 "@@DATE__STAMP@@")
+        (funcall expect 10 "<alice> tester, welcome")))
+
+    (ert-info ("Reconnect")
+      (with-current-buffer "FooNet"
+        (funcall expect 10 "Connection failed!")
+
+        (if autop
+            (funcall expect 10 "Reconnecting")
+          (erc-scenarios-common-say "/reconnect"))
+
+        (funcall expect 10 "Welcome")
+        (funcall expect 10 "debug mode")))
+
+    (with-current-buffer "#chan"
+      (funcall expect -0.01 "@@DATE__STAMP@@")
+      (funcall expect 10 "<alice> bob: Well, this"))
+
+    (with-current-buffer "#spam"
+      (funcall expect -0.01 "@@DATE__STAMP@@")
+      (funcall expect 10 "<alice> bob: Our queen and all"))
+
+    (with-current-buffer "FooNet"
+      (erc-scenarios-common-say "/quit")
+      (funcall expect 10 "Quit"))
+
+    (with-current-buffer "FooNet"
+      (let ((file (erc-current-logfile (current-buffer))))
+        (with-current-buffer server-log-buffer
+          (insert-file-contents file)
+          (funcall expect 1 "@@DATE__STAMP@@")
+          (funcall expect 1 "*** Welcome to the foonet")
+          (funcall expect 1 "debug mode")
+          (funcall expect 1 "*** Connection failed!")
+          ;; Full output again on reconnect.
+          (funcall expect -0.01 "@@DATE__STAMP@@") ; but no stamp
+          (funcall expect 1 "*** Welcome to the foonet")
+          (funcall expect 1 "debug mode"))))
+
+    (with-current-buffer "#chan"
+      (let ((file (erc-current-logfile (current-buffer))))
+        (with-current-buffer chan-log-buffer
+          (insert-file-contents file)
+          (funcall expect 1 "@@DATE__STAMP@@")
+          (funcall expect 1 "*** You have joined channel #chan")
+          (funcall expect 1 "<alice> tester, welcome!")
+          ;; No stamp on reconnect.
+          (funcall expect -0.01 "@@DATE__STAMP@@")
+          (funcall expect 1 "*** You have joined channel #chan")
+          (funcall expect 1 "<alice> bob: Well, this is the forest"))))
+
+    (with-current-buffer "#spam"
+      (let ((file (erc-current-logfile (current-buffer))))
+        (with-current-buffer spam-log-buffer
+          (insert-file-contents file)
+          (funcall expect 1 "@@DATE__STAMP@@")
+          (funcall expect 1 "*** You have joined channel #spam")
+          (funcall expect 1 "<alice> tester, welcome!")
+          ;; No stamp on reconnect.
+          (funcall expect -0.01 "@@DATE__STAMP@@")
+          (funcall expect 1 "*** You have joined channel #spam")
+          (funcall expect 1 "<alice> bob: Our queen and all her elves come"))))
+
+    (erc-log-mode -1)
+
+    (if noninteractive
+        (delete-directory tempdir :recursive)
+      (add-hook 'kill-emacs-hook
+                (lambda () (delete-directory tempdir :recursive))))))
+
+(ert-deftest erc-scenarios-log--reconnect/auto ()
+  :tags '(:expensive-test)
+  (erc-scenarios-log--reconnect 'autop))
+
+(ert-deftest erc-scenarios-log--reconnect/manual ()
+  :tags '(:expensive-test)
+  (erc-scenarios-log--reconnect nil))
+
 ;;; erc-scenarios-log.el ends here
