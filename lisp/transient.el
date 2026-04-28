@@ -5523,6 +5523,8 @@ search instead."
                   2)
             lisp-imenu-generic-expression :test #'equal)
 
+(defvar overriding-text-conversion-style)
+
 (defun transient--suspend-text-conversion-style ()
   (when (and text-conversion-style
              (bound-and-true-p overriding-text-conversion-style))
