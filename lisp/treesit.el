@@ -2171,7 +2171,8 @@ If LOUDLY is non-nil, display some debugging information."
         (when (eq treesit--font-lock-fast-mode 'unspecified)
           (pcase-let ((`(,max-depth ,max-width)
                        (treesit-subtree-stat
-                        (treesit-buffer-root-node language))))
+                        (treesit-parser-root-node
+                         treesit-primary-parser))))
             (setq treesit--font-lock-fast-mode
                   (or (> max-depth 100) (> max-width 4000)))))
 
