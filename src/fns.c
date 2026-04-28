@@ -606,7 +606,8 @@ This function obeys the conventions for collation order in your
 locale settings.  For example, punctuation and whitespace characters
 might be considered less significant for sorting:
 
-\(sort \\='("11" "12" "1 1" "1 2" "1.1" "1.2") \\='string-collate-lessp)
+\(sort \\='("11" "12" "1 1" "1 2" "1.1" "1.2")
+      :lessp #\\='string-collate-lessp)
   => ("11" "1 1" "1.1" "12" "1 2" "1.2")
 
 The optional argument LOCALE, a string, overrides the setting of your
