@@ -412,6 +412,9 @@ an \\+`up-to-date' or \\+`ignored' file."
     (define-key map "TL" #'vc-root-log-unintegrated)
     (define-key map "T=" #'vc-diff-unintegrated)
     (define-key map "TD" #'vc-root-diff-unintegrated)
+    (define-key map "EL" #'vc-root-log-outgoing)
+    (define-key map "E=" #'vc-diff-outgoing-and-edited)
+    (define-key map "ED" #'vc-root-diff-outgoing-and-edited)
     (define-key map "V" #'vc-dir-root-next-action)
 
     (let ((branch-map (make-sparse-keymap)))

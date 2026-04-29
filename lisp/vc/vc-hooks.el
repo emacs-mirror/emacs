@@ -1040,6 +1040,14 @@ In the latter case, VC mode is deactivated for this buffer."
   "T L" #'vc-root-log-unintegrated
   "T =" #'vc-diff-unintegrated
   "T D" #'vc-root-diff-unintegrated
+  ;; There are no -log-outgoing-and-edited commands because by
+  ;; definition these are the same as -log-outgoing.
+  ;; Additionally bind the -log-outgoing commands under C-x v E l/L as
+  ;; nothing else could conceivably go there and it might help someone.
+  ;; (Fileset-specific outgoing log command coming in Emacs 32.  --spwhitton)
+  "E L" #'vc-root-log-outgoing
+  "E =" #'vc-diff-outgoing-and-edited
+  "E D" #'vc-root-diff-outgoing-and-edited
   "m"   #'vc-merge
   "r"   #'vc-retrieve-tag
   "s"   #'vc-create-tag

@@ -3460,6 +3460,41 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                       (called-interactively-p 'interactive))))
 
 ;;;###autoload
+(defun vc-root-diff-outgoing-and-edited (&optional upstream-location)
+  "Report combined diff of all outgoing and uncommitted changes.
+Outgoing changes are those that would be pushed to UPSTREAM-LOCATION.
+When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
+to.  When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
+can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC
+fileset.
+
+This command is the same as `vc-root-diff-unintegrated' used on a trunk."
+  (declare (interactive-only vc-root-diff-unintegrated))
+  (interactive (list (or (vc--maybe-read-outgoing-base) t)))
+  (vc-root-diff-unintegrated upstream-location))
+
+;;;###autoload
+(defun vc-diff-outgoing-and-edited (&optional upstream-location fileset)
+  "Report combined diff of outgoing and uncommitted changes to VC fileset.
+Outgoing changes are those that would be pushed to UPSTREAM-LOCATION.
+When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
+to.  When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
+can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC
+fileset.
+
+This command is the same as `vc-diff-unintegrated' used on a trunk."
+  (declare (interactive-only vc-diff-unintegrated))
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (or (vc--maybe-read-outgoing-base (car fileset))
+                           t)
+                       fileset)))
+  (vc-diff-unintegrated upstream-location fileset))
+
+;;;###autoload
 (defun vc-log-unintegrated (&optional upstream-location fileset)
   "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the

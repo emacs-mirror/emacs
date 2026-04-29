@@ -1109,6 +1109,15 @@ but limited to the current fileset.
 If you customize @code{vc-use-incoming-outgoing-prefixes} to
 non-@code{nil}, this command becomes available on @kbd{C-x v O =}.
 
+@item C-x v E D
+Display a combined diff of all changes that will be sent by the next
+push operation plus any uncommitted changes.
+
+@item C-x v E =
+Display a combined diff of all changes that will be sent by the next
+push operation plus any uncommitted changes, but limited to the current
+fileset.
+
 @item C-x v h
 Display the history of changes made in the region of file visited by
 the current buffer (@code{vc-region-history}).
@@ -1222,6 +1231,17 @@ very similar.  They also display changes that would be pulled or pushed.
 The difference is that the diffs reported are limited to the current
 fileset.  Don't forget that actual pull and push operations always
 affect the whole working tree, not just the current fileset.
+
+@kindex C-x v E =
+@kindex C-x v E D
+@findex vc-diff-outgoing-and-edited
+@findex vc-root-diff-outgoing-and-edited
+  Finally, there is also @kbd{C-x v E D}
+(@code{vc-root-diff-outgoing-and-edited}) which shows a combined diff of
+all changes that would be pushed plus any uncommitted changes.  It is
+useful to show all work that's present only locally.  There is also
+@kbd{C-x v E =} (@code{vc-diff-outgoing-and-edited}) which is the same
+but limited to the current fileset.
 
 @cindex VC log buffer, commands in
 @cindex vc-log buffer
