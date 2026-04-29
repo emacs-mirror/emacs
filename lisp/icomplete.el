@@ -489,8 +489,10 @@ if that doesn't produce a completion match."
   "C-m"     #'icomplete-fido-ret
   "DEL"     #'icomplete-fido-backward-updir
   "M-j"     #'icomplete-fido-exit
-  "C-s"     #'icomplete-forward-completions
-  "C-r"     #'icomplete-backward-completions
+  "C-s"     `(menu-item "" icomplete-forward-completions
+                        :filter ,(lambda (x) (unless fido-vertical-mode x)))
+  "C-r"     `(menu-item "" icomplete-backward-completions
+                        :filter ,(lambda (x) (unless fido-vertical-mode x)))
   "<right>" #'icomplete-forward-completions
   "<left>"  #'icomplete-backward-completions
   "C-."     #'icomplete-forward-completions
