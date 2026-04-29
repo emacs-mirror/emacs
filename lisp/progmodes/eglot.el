@@ -4526,7 +4526,12 @@ the edit was attempted and optionally why not."
       (unless (and changes documentChanges)
         ;; Prefer `documentChanges' over sort-of-deprecated `changes'.
         (cl-loop for (uri edits) on changes by #'cddr
-                 do (push (text-edit-op uri edits nil) prepared)))
+                 do (push (text-edit-op
+                           ;; HACK: `uri' has been keywordized by
+                           ;; jsonrpc--read, unkeywordize it.
+                           (substring (symbol-name uri) 1)
+                           edits nil)
+                          prepared)))
       ;; Apply edits to untitled: buffers unconditionally; they can't
       ;; be diffed and need no confirmation.
       (cl-loop for op in prepared
