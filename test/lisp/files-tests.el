@@ -696,6 +696,54 @@ unquoted file names."
       (tmpdir nospecial-dir t)
     (should-error (directory-files-and-attributes nospecial-dir))))
 
+(ert-deftest files-tests-directory-files-recursively-w32 ()
+  "Test MS-Windows specific features of `directory-files-recursively'."
+  (skip-unless (eq system-type 'windows-nt))
+  (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
+    (let ((files-list
+           ;; The list should be in the order that
+           ;; 'directory-files-recursively' returns files and
+           ;; directories.
+           '("Dir/SubDir/SubSubDir/SuBSubFile"
+             "Dir/SubDir/SubSubDir/"
+             "Dir/SubDir/"
+             "Dir/SuBfIlE1"
+             "Dir/sUbFiLe2"
+             "Dir/"
+             "FiLe1"))
+          (fnrel (lambda (fn) (file-relative-name fn tmpdir))))
+      (dolist (file files-list)
+        (if (directory-name-p file)
+            (make-directory (expand-file-name file nospecial-dir) t)
+          (make-empty-file
+           (expand-file-name file tmpdir) t)))
+      ;; Run them through 'directory-file-name' because the list above
+      ;; uses directory names, whereas 'directory-files-recursively'
+      ;; returns their file names.
+      (should (equal (mapcar 'directory-file-name files-list)
+                     ;; Make the returned file names relative.
+                     (mapcar fnrel
+                             (directory-files-recursively tmpdir ".*" t))))
+      ;; Test that 'directory-files-recursively' downcases file names it
+      ;; returns when 'w32-downcase-file-names' is non-nil.
+      (let ((w32-downcase-file-names t))
+        (should (equal (mapcar 'downcase
+                               (mapcar 'directory-file-name files-list))
+                       (mapcar fnrel
+                               (directory-files-recursively tmpdir ".*" t)))))
+      ;; Test that backslashes are mirrored when files are returned.
+      (let* ((tmpdir-with-backslashes
+              (string-replace "/" "\\" (directory-file-name tmpdir)))
+             (nelt 2)
+             (subdir (file-name-concat
+                      (concat tmpdir-with-backslashes "\\")
+                      (string-replace "/" "\\" (nth nelt files-list)))))
+        (should (equal (mapcar 'directory-file-name
+                               (butlast files-list (- (length files-list)
+                                                      nelt)))
+                       (mapcar fnrel
+                             (directory-files-recursively subdir ".*" t))))))))
+
 (ert-deftest files-tests-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
   ;; them, which causes this to fail on `windows-nt' systems.
