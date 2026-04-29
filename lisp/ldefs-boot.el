@@ -10678,9 +10678,9 @@ Message buffer where you can explain more about the patch.
 
 ;;; Generated autoloads from international/emoji.el
 
- (autoload 'emoji-insert "emoji" nil t)
- (autoload 'emoji-recent "emoji" nil t)
- (autoload 'emoji-search "emoji" nil t)
+(autoload 'emoji-insert "emoji")
+(autoload 'emoji-recent "emoji")
+(autoload 'emoji-search "emoji")
 (autoload 'emoji-list "emoji"
 "List Emoji and allow selecting and inserting one of them.
 If you are displaying Emoji on a text-only terminal, and some
@@ -10700,7 +10700,7 @@ If called from Lisp, return the name as a string; return nil if
 the name is not known.
 
 (fn GLYPH &optional INTERACTIVE)" t)
- (autoload 'emoji-list-select "emoji" nil t)
+(autoload 'emoji-list-select "emoji")
 (autoload 'emoji--init "emoji"
 "
 
@@ -37015,6 +37015,34 @@ topic branch.  (With a double prefix argument, this command is like
 When called from Lisp, optional argument FILESET overrides the fileset.
 
 (fn &optional UPSTREAM-LOCATION FILESET)" t)
+(autoload 'vc-root-diff-outgoing-and-edited "vc"
+"Report combined diff of all outgoing and uncommitted changes.
+Outgoing changes are those that would be pushed to UPSTREAM-LOCATION.
+When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
+to.  When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
+can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC
+fileset.
+
+This command is the same as `vc-root-diff-unintegrated' used on a trunk.
+
+(fn &optional UPSTREAM-LOCATION)" t)
+(function-put 'vc-root-diff-outgoing-and-edited 'interactive-only 'vc-root-diff-unintegrated)
+(autoload 'vc-diff-outgoing-and-edited "vc"
+"Report combined diff of outgoing and uncommitted changes to VC fileset.
+Outgoing changes are those that would be pushed to UPSTREAM-LOCATION.
+When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
+to.  When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
+can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC
+fileset.
+
+This command is the same as `vc-diff-unintegrated' used on a trunk.
+
+(fn &optional UPSTREAM-LOCATION FILESET)" t)
+(function-put 'vc-diff-outgoing-and-edited 'interactive-only 'vc-diff-unintegrated)
 (autoload 'vc-log-unintegrated "vc"
 "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
@@ -37057,6 +37085,82 @@ When called interactively with a \\[universal-argument] \\[universal-argument] p
 use the place to which \\[vc-push] would push to as the outgoing base,
 i.e., treat this branch as a trunk branch even if Emacs thinks it is a
 topic branch.
+
+(fn &optional UPSTREAM-LOCATION)" t)
+(autoload 'vc-root-diff-remote-unintegrated "vc"
+"Report diff of remote changes since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and upstream
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
+
+(fn &optional UPSTREAM-LOCATION)" t)
+(autoload 'vc-diff-remote-unintegrated "vc"
+"Show remote fileset changes since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
+
+When called from Lisp, optional argument FILESET overrides the fileset.
+
+(fn &optional UPSTREAM-LOCATION FILESET)" t)
+(autoload 'vc-log-remote-unintegrated "vc"
+"Show remote log for VC fileset since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
+
+When called from Lisp, optional argument FILESET overrides the fileset.
+
+(fn &optional UPSTREAM-LOCATION FILESET)" t)
+(autoload 'vc-root-log-remote-unintegrated "vc"
+"Show log of remote revisions since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
 
 (fn &optional UPSTREAM-LOCATION)" t)
 (autoload 'vc-version-ediff "vc"
