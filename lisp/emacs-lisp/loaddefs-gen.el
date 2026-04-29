@@ -158,6 +158,7 @@ expand)' among their `declare' forms."
      ((and expansion (eq car 'defalias))
       (pcase-let*
           ((`(,_ ,_ ,arg . ,rest) form)
+           (arg (macroexpand arg))
            ;; `type' is non-nil if it defines a macro.
            ;; `fun' is the function part of `arg' (defaults to `arg').
            ((or (and (or `(cons 'macro ,fun) `'(macro . ,fun)) (let type t))
