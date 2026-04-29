@@ -2229,6 +2229,21 @@ void treesit_ensure_query_compiled_signal (Lisp_Object lisp_query)
     xsignal (signal_symbol, signal_data);
 }
 
+/* Call PRED with NODE, signal an error if PRED caused PARSER to
+   re-parse.  Return the funcall result.  If PRED just changes buffer
+   but didn't trigger a reparser, we let it go, to be as out-of-the-way
+   as possible.  */
+static Lisp_Object treesit_pred_with_guard
+(Lisp_Object pred, Lisp_Object node, Lisp_Object parser)
+{
+  ptrdiff_t pre_timestamp = XTS_PARSER (parser)->timestamp;
+  Lisp_Object res = calln (pred, node);
+  if (XTS_PARSER (parser)->timestamp != pre_timestamp)
+    {
+      xsignal (Qtreesit_buffer_changed, list1 (pred));
+    }
+  return res;
+}
 
 /* Lisp definitions.  */
 
@@ -3775,7 +3790,7 @@ treesit_predicate_match (Lisp_Object args, struct capture_range captures,
    if error occurs, set it to a suitable signal data.  */
 static bool
 treesit_predicate_pred (Lisp_Object args, struct capture_range captures,
-			Lisp_Object *signal_data)
+			Lisp_Object *signal_data, Lisp_Object parser)
 {
   if (list_length (args) < 2)
     {
@@ -3799,7 +3814,14 @@ treesit_predicate_pred (Lisp_Object args, struct capture_range captures,
   }
   nodes = Fnreverse (nodes);
 
-  return !NILP (CALLN (Fapply, fn, nodes));
+  ptrdiff_t ts = XTS_PARSER (parser)->timestamp;
+  Lisp_Object val = CALLN (Fapply, fn, nodes);
+  if (XTS_PARSER (parser)->timestamp != ts)
+    {
+      *signal_data = list1 (fn);
+      return false;
+    }
+  return !NILP (val);
 }
 
 /* If all predicates in PREDICATES pass, return true; otherwise
@@ -3807,7 +3829,7 @@ treesit_predicate_pred (Lisp_Object args, struct capture_range captures,
    error occurs, set it to a suitable signal data.  */
 static bool
 treesit_eval_predicates (struct capture_range captures, Lisp_Object predicates,
-			 Lisp_Object *signal_data)
+			 Lisp_Object *signal_data, Lisp_Object parser)
 {
   bool pass = true;
   /* Evaluate each predicates.  */
@@ -3822,7 +3844,7 @@ treesit_eval_predicates (struct capture_range captures, Lisp_Object predicates,
       else if (!NILP (Fstring_equal (fn, Vtreesit_str_match_question_mark)))
 	pass &= treesit_predicate_match (args, captures, signal_data);
       else if (!NILP (Fstring_equal (fn, Vtreesit_str_pred_question_mark)))
-	pass &= treesit_predicate_pred (args, captures, signal_data);
+	pass &= treesit_predicate_pred (args, captures, signal_data, parser);
       else
 	{
 	  *signal_data = list3 (build_string ("Invalid predicate"),
@@ -4167,7 +4189,7 @@ the query.  */)
 	}
       bool match
 	= treesit_eval_predicates (captures_range, predicates,
-				   &predicate_signal_data);
+				   &predicate_signal_data, lisp_parser);
 
       if (!NILP (predicate_signal_data))
 	break;
@@ -4568,7 +4590,8 @@ treesit_traverse_validate_predicate (Lisp_Object pred,
    This function assumes PRED is in one of its valid forms.  If NAMED
    is true, also check that the node is named.
 
-   This function may signal if the predicate function signals.  */
+   This function may signal if the predicate function signals or changes
+   the buffer.  */
 static bool
 treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 				  Lisp_Object parser, bool named)
@@ -4590,7 +4613,8 @@ treesit_traverse_match_predicate (TSTreeCursor *cursor, Lisp_Object pred,
 	   && !(SYMBOLP (pred) && !NILP (Fget (pred, Qtreesit_thing_symbol))))
     {
       Lisp_Object lisp_node = make_treesit_node (parser, node);
-      return !NILP (calln (pred, lisp_node));
+      Lisp_Object res = treesit_pred_with_guard (pred, lisp_node, parser);
+      return !NILP (res);
     }
   else if (SYMBOLP (pred) && BASE_EQ (pred, Qnamed))
     return ts_node_is_named (node);
@@ -4899,7 +4923,8 @@ always traverse leaf nodes first, then upwards.  */)
    Note that the top-level children list is reversed, because
    reasons.
 
-   This function may signal if the predicate function signals.  */
+   This function may signal if the predicate function signals or changes
+   buffer.  */
 static void
 treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
 			   Lisp_Object pred, Lisp_Object process_fn,
@@ -4913,7 +4938,7 @@ treesit_build_sparse_tree (TSTreeCursor *cursor, Lisp_Object parent,
       TSNode node = ts_tree_cursor_current_node (cursor);
       Lisp_Object lisp_node = make_treesit_node (parser, node);
       if (!NILP (process_fn))
-	lisp_node = calln (process_fn, lisp_node);
+	lisp_node = treesit_pred_with_guard (process_fn, lisp_node, parser);
 
       Lisp_Object this = Fcons (lisp_node, Qnil);
       Fsetcdr (parent, Fcons (this, Fcdr (parent)));
@@ -5275,6 +5300,8 @@ syms_of_treesit (void)
 	  "treesit-load-language-error");
   DEFSYM (Qtreesit_node_outdated,
 	  "treesit-node-outdated");
+  DEFSYM (Qtreesit_buffer_changed,
+	  "treesit-buffer_changed");
   DEFSYM (Qtreesit_node_buffer_killed,
 	  "treesit-node-buffer-killed");
   DEFSYM (Quser_emacs_directory,
@@ -5311,6 +5338,9 @@ syms_of_treesit (void)
 		Qtreesit_error);
   define_error (Qtreesit_node_outdated,
 		"This node is outdated, please retrieve a new one",
+		Qtreesit_error);
+  define_error (Qtreesit_buffer_changed,
+		"Buffer content changed, please don't edit buffer in predicate function, etc",
 		Qtreesit_error);
   define_error (Qtreesit_node_buffer_killed,
 		"The buffer associated with this node is killed",
