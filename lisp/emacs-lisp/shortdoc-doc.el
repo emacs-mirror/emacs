@@ -998,7 +998,6 @@
    :eval (seq-some #'floatp '(1 2.0 3)))
   "Building Sequences"
   (seq-concatenate
-   :args (type &rest sequences)
    :eval (seq-concatenate 'vector '(1 2) '(c d)))
   (seq-copy
    :eval (seq-copy '(a 2)))
