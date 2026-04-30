@@ -1124,7 +1124,7 @@ attendee's address matches the regexp in
       (dlet ((attendee-address (ical:strip-mailto value))
              (attendee-cn (when cn (string-trim cn)))
              (attendee-cutype cutype)
-             (attende-role role)
+             (attendee-role role)
              (attendee-partstat partstat)
              (attendee-rsvp rsvp))
         (with-temp-buffer

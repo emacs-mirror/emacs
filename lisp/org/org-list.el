@@ -1860,7 +1860,7 @@ Initial position of cursor is restored after the changes."
 	  ;; Shift the indentation between END and BEG by DELTA.
 	  ;; Start from the line before END.
           ;; Take care not to shift to or before IND, which is the
-          ;; containg list item indentation. (otherwise, we are going
+          ;; containing list item indentation. (otherwise, we are going
           ;; to break the list structure)
 	  (lambda (end beg delta ind)
 	    (goto-char end)

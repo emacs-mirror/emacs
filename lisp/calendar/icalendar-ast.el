@@ -66,7 +66,7 @@
 
 ;; Constructing nodes with these macros automatically validates them
 ;; with the function `icalendar-ast-node-valid-p', which signals an
-;; `icalendar-validation-error' if the node is not valid acccording to
+;; `icalendar-validation-error' if the node is not valid according to
 ;; RFC5545.
 
 
@@ -639,7 +639,7 @@ the following forms:
   or any other expression that evaluates to a parameter node.
 
 \(COMPONENT-TYPE CHILD [CHILD ...]) - constructs a component node of
-  COMPONENT-TYPE with CHILDs as child nodes.  Each CHILD should either be
+  COMPONENT-TYPE with given child nodes.  Each CHILD should either be
   a template for a property (as above), a template for a
   sub-component (of the same form), or any other expression that
   evaluates to an iCalendar syntax node.

@@ -1080,7 +1080,7 @@ unquoted file names."
             ;; handler prefix has been removed.
             (nospecial-dir (string-remove-prefix "/:" nospecial-dir))
             ;; Since different `ls' programs can produce different
-            ;; messages for the nonexisting file error, we make a sample
+            ;; messages for the nonexistent file error, we make a sample
             ;; message to use for comparing the expected message with
             ;; the string in the error buffer.
             (ls-err (lambda (fn)

@@ -112,7 +112,7 @@ errors instead of silently accepting such data."
 ;; `ical:unfold-region'. `ical:fold-region' will fold content lines
 ;; using line breaks appropriate to the buffer's coding system.
 ;;
-;; All the parsing-related code belows assumes that lines have
+;; All the parsing-related code below assumes that lines have
 ;; already been unfolded if necessary.
 (defcustom ical:pre-unfolding-hook nil
   "Hook run before unfolding iCalendar data.

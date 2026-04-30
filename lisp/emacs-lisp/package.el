@@ -4593,7 +4593,7 @@ SUG should be of the form as described in `package--suggestion-applies-p'."
           (with-current-buffer buf
             (funcall-interactively (or (cadddr sug) (car sug)))))))))
 
-(defun package--autosugest-prompt (packages)
+(defun package--autosuggest-prompt (packages)
   "Query the user whether to install PACKAGES or not.
 PACKAGES is a list of package suggestions in the form described in
 `package--suggestion-applies-p'.  The function returns a non-nil value
@@ -4676,7 +4676,7 @@ The optional argument CANDIDATES may be a list of package suggestions
 in the form described in `package--suggestion-applies-p'.  If omitted
 or nil, the list of candidates will be computed from the database."
   (interactive)
-  (package--autosugest-prompt
+  (package--autosuggest-prompt
    (or candidates
        (package--autosuggest-find-candidates)
        (user-error "No package suggestions found"))))

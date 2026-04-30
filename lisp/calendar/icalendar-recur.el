@@ -896,7 +896,7 @@ BYHOUR=... clause; see `icalendar-recur' for the possible values."
                                             :hour h :minute 0 :second 0
                                             :tz vtimezone))
                (high (ical:date/time-add low :hour 1 vtimezone)))
-          (ignore-errors ; do not generate subintervals for nonexisting times
+          (ignore-errors ; do not generate subintervals for nonexistent times
             (when (ical:date/time< low curr-dt)
               (setq low curr-dt))
             (when (ical:date/time< interval-end high)
@@ -932,7 +932,7 @@ BYMINUTE=... clause; see `icalendar-recur' for the possible values."
         (let* ((low (ical:date-time-variant curr-dt :minute m :second 0
                                             :tz vtimezone))
                (high (ical:date/time-add low :minute 1 vtimezone)))
-          (ignore-errors ; do not generate subintervals for nonexisting times
+          (ignore-errors ; do not generate subintervals for nonexistent times
             ;; Clip the subinterval, as above
             (when (ical:date/time< low interval-start)
               (setq low curr-dt))
@@ -1703,7 +1703,7 @@ The check is performed with `icalendar-time<='."
        (ical:time<= dt (encode-time end)))))
 
 ;; DRAGONS DRAGONS DRAGONS
-(defun icr:tz-observance-on (dt vtimezone &optional update nonexisting)
+(defun icr:tz-observance-on (dt vtimezone &optional update nonexistent)
   "Return the time zone observance in effect on DT in VTIMEZONE.
 
 If there is such an observance, the returned value is a list (OBSERVANCE
@@ -1727,7 +1727,7 @@ If UPDATE is non-nil, the observance found will be used to update the
 offset value in DT (as a side effect) before returning the observance
 and onset.
 
-If UPDATE is non-nil, NONEXISTING specifies how to handle clock times
+If UPDATE is non-nil, NONEXISTENT specifies how to handle clock times
 that do not exist in the observance (see
 `icalendar-recur-tz-nonexistent-date-time-p').  The keyword `:error'
 means to signal an \\='icalendar-tz-nonexistent-time error, without
@@ -1735,13 +1735,13 @@ modifying any of the fields in DT.  Otherwise, the default is to
 interpret DT using the offset from UTC before the onset of the found
 observance, and then reset the clock time in DT to the corresponding
 existing time after the onset of the observance.  For example, the
-nonexisting time 2:30AM in Standard time on the day of the switch to
+nonexistent time 2:30AM in Standard time on the day of the switch to
 Daylight time in the US Eastern time zone will be reset to 3:30AM
 Eastern Daylight time.
 
 If DT is a Lisp timestamp, it represents an absolute time and
 comparisons with the onsets in VTIMEZONE are performed with absolute
-times.  UPDATE and NONEXISTING have no meaning in this case and are
+times.  UPDATE and NONEXISTENT have no meaning in this case and are
 ignored."
   (ical:with-component vtimezone
     ((ical:standard :all stds)
@@ -1916,7 +1916,7 @@ ignored."
       (when (and update given-clock-time nearest-observance updated)
         ;; signal an error when `dt' does not exist if requested, so the
         ;; nonexistence can be handled further up the stack:
-        (when (and (eq :error nonexisting)
+        (when (and (eq :error nonexistent)
                    (not (ical:date-time-locally-simultaneous-p dt updated)))
           (signal 'ical:tz-nonexistent-time
                   (list
@@ -1984,7 +1984,7 @@ decoded directly into this UTC offset, and its dst slot is set to -1."
      :dst (if observance (ical:daylight-component-p observance)
             -1))))
 
-(defun icr:tz-set-zone (dt vtimezone &optional nonexisting)
+(defun icr:tz-set-zone (dt vtimezone &optional nonexistent)
   "Set the time zone offset and dst flag in DT based on VTIMEZONE.
 
 DT should be an `icalendar-date-time' and VTIMEZONE should be an
@@ -1999,7 +1999,7 @@ where a different time zone observance may be in effect in the original
 date-time.  It cannot be used to re-decode a fixed point in time into a
 different time zone; for that, see `icalendar-recur-tz-decode-time'.
 
-If given, NONEXISTING is a keyword that specifies what to do if DT
+If given, NONEXISTENT is a keyword that specifies what to do if DT
 represents a clock time that does not exist according to the relevant
 observance in VTIMEZONE.  The value :error means to signal an
 \\='icalendar-tz-nonexistent-time error, and nil means to reset the
@@ -2030,7 +2030,7 @@ clock time in DT to an existing one; see
       ;; This updates the relevant slots in dt as a side effect:
       ;; TODO: if no observance is found, is it ever sensible to signal an error,
       ;; instead of just leaving the zone slot unset?
-      (icr:tz-observance-on dt vtimezone t nonexisting)))
+      (icr:tz-observance-on dt vtimezone t nonexistent)))
     dt)
 
 (defun icr:tz-set-zones-in (vtimezones node)

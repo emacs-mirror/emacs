@@ -4564,7 +4564,7 @@ FG and BG are the main colors."
 ;;     :underline (:style wave :color unspecified)
 ;;
 ;; I checked all the relevant faces and feel that users will not be
-;; benefitting form such a style anyway.  What would be the point of a
+;; benefiting form such a style anyway.  What would be the point of a
 ;; spell checker that cannot highlight its errors, for example?
 ;; Granted, we could have another kind of highlight, but I am here
 ;; focusing on the use of this:

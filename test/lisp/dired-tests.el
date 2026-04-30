@@ -728,9 +728,9 @@ The current directory at call time should not affect the result (Bug#50630)."
     (delete-directory dir t)))
 
 (ert-deftest dired-test-ls-error-message () ; bug#80499
-  "Test invoking `dired' on a nonexisting file.
+  "Test invoking `dired' on a nonexistent file.
 A buffer should pop up containing the error emitted by ls.  The buffer
-visiting the nonexisting file should killed before `dired' returns,
+visiting the nonexistent file should killed before `dired' returns,
 hence another buffer should be returned."
   (let* ((dir (ert-resource-file (file-name-as-directory "empty-dir")))
          (name (concat dir "bla"))
@@ -755,7 +755,7 @@ hence another buffer should be returned."
                  (null ls-lisp-use-insert-directory-program))
       (let ((errbuf (get-buffer "*ls error*"))
             ;; Since different `ls' programs can produce different
-            ;; messages for the nonexisting file error, we make a sample
+            ;; messages for the nonexistent file error, we make a sample
             ;; message to use for comparing the expected message with
             ;; the string in the error buffer.
             (ls-err (lambda (fn)

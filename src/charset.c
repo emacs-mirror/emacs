@@ -2357,7 +2357,7 @@ init_charset_once (void)
   PDUMPER_REMEMBER_SCALAR (charset_ksc5601);
 }
 
-/* Intitial value for charset_table_size.  As of October 2025, the
+/* Initial value for charset_table_size.  As of October 2025, the
    charset table uses 179 entries.  charset_table grows if needed and
    we only dump the used entries; so getting the initial value right
    is not overly important.  */

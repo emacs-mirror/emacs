@@ -2428,7 +2428,7 @@ arguments to pass to the OPERATION."
 An entry has the form `(OPERATION . ARG-TYPE)'.  ARG-TYPE can be the
 symbol
 
-- `file': the first argument of OERATION is the remote file name to be
+- `file': the first argument of OPERATION is the remote file name to be
   checked.
 - `default-directory': `default-directory' is the remote file name to be
   checked.

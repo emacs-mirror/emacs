@@ -216,7 +216,7 @@ Also check that an encoding error can appear in a symlink."
 (put 'fileio-tests--identity-expand-handler 'operations '(expand-file-name))
 
 (ert-deftest fileio--file-name-case-insensitive-p ()
-  ;; Check that we at least don't crash if given nonexisting files
+  ;; Check that we at least don't crash if given nonexistent files
   ;; without a directory (bug#56443).
 
   ;; Use an identity file-name handler, as if called by `ffap'.

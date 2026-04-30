@@ -766,7 +766,7 @@ more terminals and applications than the old capabilities, 'setf24' and
 +++
 ** New user option 'xterm-update-cursor' to update cursor display on TTYs.
 When enabled, Emacs sends Xterm escape sequences on Xterm-compatible
-terminals to update the cursor's appearacse.  Emacs can update the
+terminals to update the cursor's appearance.  Emacs can update the
 cursor's shape and color.  For example, if you use a purple bar cursor
 on graphical displays then when this option is enabled Emacs will use a
 purple bar cursor on compatible terminals as well.  See the Info node

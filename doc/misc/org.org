@@ -2252,7 +2252,7 @@ instead of letting Calc handle the formatting.  A few examples:
 | =exp($2)+exp($1)=  | Math functions can be used                          |
 | =$0;%.1f=          | Reformat current cell to 1 decimal                  |
 | =($3-32)*5/9=      | Fahrenheit to Celsius conversion                    |
-| =$c/$1/$cm=        | Herz to centimeter conversion, using =constants.el= |
+| =$c/$1/$cm=        | Hertz to centimeter conversion using =constants.el= |
 | =tan($1);Dp3s1=    | Compute in degrees, precision 3, display SCI 1      |
 | =sin($1);Dp3%.1e=  | Same, but use ~format~ specifier for display        |
 | =vmean($2..$7)=    | Compute column range mean, using vector function    |
