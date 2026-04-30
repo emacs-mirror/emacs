@@ -168,7 +168,8 @@ longer Info tutorial.)
 @menu
 * Getting Started::       General description and overview.
 @ifinfo
-* Interactive Tutorial::  Using the Emacs Info system with this tutorial.
+* Interactive Tutorial::  Tutorial, and brief instructions on using
+                           the Emacs Info system for reading this manual.
 @end ifinfo
 @ifnotinfo
 * Tutorial::              A step-by-step introduction for beginners.
