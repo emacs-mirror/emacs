@@ -1421,6 +1421,16 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
 
 #ifndef HAVE_PGTK
   gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
+  if (FRAME_PARENT_FRAME (f))
+    {
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      GtkAllocation alloc = {0, 0, outer_width, outer_height};
+      gtk_widget_size_allocate (FRAME_GTK_OUTER_WIDGET (f), &alloc);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
+#endif
+    }
 #else
   if (FRAME_GTK_OUTER_WIDGET (f))
     gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
@@ -1432,7 +1442,11 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
   SET_FRAME_GARBAGED (f);
   cancel_mouse_face (f);
 
-  if (FRAME_VISIBLE_P (f))
+  /* For child frames, don't wait for events — that would flush the X
+     buffer and might show outdated contents in the frame.  Same for
+     invisible frames: this way is faster and x_make_frame_visible will
+     wait for event anyway.  */
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     {
       /* Must call this to flush out events */
       (void)gtk_events_pending ();

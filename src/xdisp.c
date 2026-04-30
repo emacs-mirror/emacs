@@ -13661,11 +13661,6 @@ clear_garbaged_frames (void)
 	      if (is_tty_frame (f))
 		current_matrices_cleared = true;
 
-#ifdef HAVE_WINDOW_SYSTEM
-              if (FRAME_WINDOW_P (f)
-                  && FRAME_RIF (f)->clear_under_internal_border)
-                FRAME_RIF (f)->clear_under_internal_border (f);
-#endif
 	      fset_redisplay (f);
 	      f->garbaged = false;
 	      f->resized_p = false;
