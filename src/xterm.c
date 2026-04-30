@@ -28455,6 +28455,9 @@ x_wait_for_event (struct frame *f, int eventtype)
       block_input ();
       interrupt_input_blocked = level;
 
+      if (!f->wait_event_type)
+	break;
+
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
 
