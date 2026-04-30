@@ -121,7 +121,7 @@ symbol, and each cdr is the same symbol without the `.'."
 Dotted symbol is any symbol starting with a `.'.  This macro creates
 let-bindings for dotted symbols that appear literally in BODY (whether
 or not they are actually used).  It does not create bindings for dotted
-symbols that are introdcued by macro-expansion in BODY.
+symbols that are introduced by macro-expansion in BODY.
 
 A symbol of the form `.foo.N' where N is a natural number refers to the
 Nth element of the value that ALIST associates to key `foo'.
