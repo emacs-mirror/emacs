@@ -7864,8 +7864,9 @@ This function uses the definition of the default face for the currently
 selected frame."
   (let ((dfh (default-font-height))
 	(lsp (if (display-graphic-p)
-		 (total-line-spacing (or line-spacing
-		                         (default-value 'line-spacing)
+		 (total-line-spacing (or (if (local-variable-p 'line-spacing)
+                                             line-spacing
+		                           (default-value 'line-spacing))
 		                         (frame-parameter nil 'line-spacing)
 		                         0))
 	       0)))
