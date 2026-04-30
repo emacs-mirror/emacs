@@ -2239,9 +2239,8 @@ static Lisp_Object treesit_pred_with_guard
   ptrdiff_t pre_timestamp = XTS_PARSER (parser)->timestamp;
   Lisp_Object res = calln (pred, node);
   if (XTS_PARSER (parser)->timestamp != pre_timestamp)
-    {
-      xsignal (Qtreesit_buffer_changed, list1 (pred));
-    }
+    xsignal (Qtreesit_buffer_changed, list1 (pred));
+
   return res;
 }
 
