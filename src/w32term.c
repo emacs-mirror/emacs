@@ -2109,7 +2109,7 @@ w32_draw_image_foreground (struct glyph_string *s)
 		    compat_hdc, s->slice.x, s->slice.y, SRCCOPY);
 	  else
 	    {
-#ifdef HAVE_NATIVE_IMAGE_API
+#ifdef WINDOWSNT
 	      if (s->img->smoothing && w32_gdiplus_startup ())
 		{
 		  GpGraphics *graphics;

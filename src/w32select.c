@@ -825,7 +825,7 @@ static const char *stdfmt_name[] = {
 static bool
 convert_dibv5_to_png (char *data, int size, char *temp_file)
 {
-#ifdef HAVE_NATIVE_IMAGE_API
+#ifdef WINDOWSNT
   CLSID clsid_png;
 
   if (!w32_gdiplus_startup ()
@@ -859,7 +859,7 @@ convert_dibv5_to_png (char *data, int size, char *temp_file)
   if (status != Ok)
     return false;
   return true;
-#else  /* !HAVE_NATIVE_IMAGE_API */
+#else  /* !WINDOWSNT */
   return false;
 #endif
 }

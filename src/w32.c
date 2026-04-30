@@ -10548,9 +10548,8 @@ term_ntproc (int ignored)
   term_w32select ();
   /* Exit all worker threads of sys_select if necessary.  */
   free_wait_pool ();
-#if HAVE_NATIVE_IMAGE_API
+
   w32_gdiplus_shutdown ();
-#endif
 }
 
 void

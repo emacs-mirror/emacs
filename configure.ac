@@ -3079,14 +3079,13 @@ if test "${HAVE_W32}" = "yes"; then
     # the rc file), not a linker script.
     W32_RES_LINK="-Wl,emacs.res"
   else
-    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
+    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32image.o w32inevt.o w32proc.o"
     dnl FIXME: This should probably be supported for Cygwin/w32 as
     dnl well, but the Cygwin build needs to link against -lgdiplus
     if test "${with_native_image_api}" = yes; then
       AC_DEFINE([HAVE_NATIVE_IMAGE_API], [1],
 	[Define to use native OS APIs for images.])
       NATIVE_IMAGE_API="yes (w32)"
-      W32_OBJ="$W32_OBJ w32image.o"
     fi
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32"
