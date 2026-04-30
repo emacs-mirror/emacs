@@ -197,7 +197,7 @@ The name is made by appending a number to PREFIX, default \"T\"."
   '(([&rest cl-lambda-arg]
     [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
     [&optional ["&rest" cl-lambda-arg]]
-    [&optional ["&key" [cl-&key-arg &rest cl-&key-arg]
+    [&optional ["&key" [&optional cl-&key-arg &rest cl-&key-arg]
 		&optional "&allow-other-keys"]]
     [&optional ["&aux" &rest
 		&or (cl-lambda-arg &optional def-form) arg]]
@@ -217,8 +217,8 @@ The name is made by appending a number to PREFIX, default \"T\"."
      [&rest cl-lambda-arg]
      [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
      [&optional ["&rest" cl-lambda-arg]]
-     [&optional ["&key" cl-&key-arg &rest cl-&key-arg
-                 &optional "&allow-other-keys"]]
+     [&optional ["&key" [&optional cl-&key-arg &rest cl-&key-arg]
+		 &optional "&allow-other-keys"]]
      [&optional ["&aux" &rest
                  &or (cl-lambda-arg &optional def-form) arg]]
      . [&or arg nil])))
