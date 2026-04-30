@@ -4611,6 +4611,10 @@ as belonging to the node that ends before POS (by subtracting 1 from POS)."
 LANGUAGE is the language symbol to check for availability.
 It can also be a list of language symbols.
 
+It checks that tree-sitter available, the language(s) grammar are
+available, and the current buffer's size isn't too
+large (`treesit-max-buffer-size').
+
 If tree-sitter is not ready, emit a warning and return nil.  If
 the user has chosen to activate tree-sitter for LANGUAGE and
 tree-sitter is ready, return non-nil.  If QUIET is t, don't emit
