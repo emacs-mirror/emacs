@@ -1200,9 +1200,6 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     }
 #endif
 
-  /* Do this before resize, as we don't know yet if we will be resized.  */
-  FRAME_RIF (f)->clear_under_internal_border (f);
-
   outer_height /= xg_get_scale (f);
   outer_width /= xg_get_scale (f);
 
@@ -1225,13 +1222,26 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     fullscreen = Qnil;
 
 #ifndef HAVE_PGTK
-  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		     outer_width, outer_height);
+  if (FRAME_PARENT_FRAME (f))
+    {
+      gdk_window_resize (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
+			 outer_width, outer_height);
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      GtkAllocation alloc = {0, 0, outer_width, outer_height};
+      gtk_widget_size_allocate (FRAME_GTK_OUTER_WIDGET (f), &alloc);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
+#endif
+    }
+  else
+    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       outer_width, outer_height);
 #else
   if (FRAME_GTK_OUTER_WIDGET (f))
     gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
 		       outer_width, outer_height);
-  else
+  else				/* PGTK child frame.  */
     gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
 				 outer_width, outer_height);
 #endif
@@ -1246,7 +1256,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      size as fast as possible.
      For unmapped windows, we can set rows/cols.  When
      the frame is mapped again we will (hopefully) get the correct size.  */
-  if (FRAME_VISIBLE_P (f))
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     {
       if (CONSP (frame_size_history))
 	frame_size_history_extra
@@ -1347,7 +1357,7 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
 #else
   if (FRAME_GTK_OUTER_WIDGET (f))
     gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
-  else
+  else				/* PGTK child frame.  */
     gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
 				 outer_width, outer_height);
 #endif
