@@ -2222,10 +2222,10 @@ With some possible metadata (to be decided).")
   "Initialize `project--list' if it isn't already initialized."
   (when (eq project--list 'unset)
     (project--read-project-list)
-    (if-let* ((pred (alist-get 'list-first-read project-prune-zombie-projects))
-              ((consp project--list))
-              (inhibit-message t))
-        (project--delete-zombie-projects pred))))
+    (when-let* ((pred (alist-get 'list-first-read project-prune-zombie-projects))
+                ((consp project--list))
+                (inhibit-message t))
+      (project--delete-zombie-projects pred))))
 
 (defun project--write-project-list ()
   "Save `project--list' in `project-list-file'."
@@ -2234,10 +2234,10 @@ With some possible metadata (to be decided).")
       (insert ";;; -*- lisp-data -*-\n")
       (let ((print-length nil)
             (print-level nil))
-        (if-let* ((pred (alist-get 'list-write project-prune-zombie-projects))
-                  ((consp project--list))
-                  (inhibit-message t))
-            (project--delete-zombie-projects pred))
+        (when-let* ((pred (alist-get 'list-write project-prune-zombie-projects))
+                    ((consp project--list))
+                    (inhibit-message t))
+          (project--delete-zombie-projects pred))
         (pp (mapcar (lambda (elem)
                       (let ((name (car elem)))
                         (list (if (file-remote-p name) name
@@ -2323,9 +2323,9 @@ Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
 arbitrary directory not in the list of known projects.
 If ALLOW-EMPTY is non-nil, it is possible to exit with no input."
   (project--ensure-read-project-list)
-  (if-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
-            (inhibit-message t))
-      (project--delete-zombie-projects pred))
+  (when-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
+              (inhibit-message t))
+    (project--delete-zombie-projects pred))
   (let* ((dir-choice "... (choose a dir)")
          (choices
           ;; XXX: Just using this for the category (for the substring
@@ -2367,9 +2367,9 @@ function; see `project-prompter' for more details.
 Unless REQUIRE-KNOWN is non-nil, it's also possible to enter an
 arbitrary directory not in the list of known projects.
 If ALLOW-EMPTY is non-nil, it is possible to exit with no input."
-  (if-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
-            (inhibit-message t))
-      (project--delete-zombie-projects pred))
+  (when-let* ((pred (alist-get 'prompt project-prune-zombie-projects))
+              (inhibit-message t))
+    (project--delete-zombie-projects pred))
   (let* ((dir-choice "... (choose a dir)")
          project--name-history
          (choices
