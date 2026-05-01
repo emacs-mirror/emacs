@@ -1218,56 +1218,23 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      remain unchanged but giving the frame back its normal size will
      be broken ... */
   if (EQ (fullscreen, Qfullwidth) && width == FRAME_PIXEL_WIDTH (f))
-#ifndef HAVE_PGTK
-    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       gwidth, outer_height);
-#else
-    if (FRAME_GTK_OUTER_WIDGET (f))
-      {
-	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   gwidth, outer_height);
-      }
-    else
-      {
-	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				     gwidth, outer_height);
-      }
-#endif
+    outer_width = gwidth;
   else if (EQ (fullscreen, Qfullheight) && height == FRAME_PIXEL_HEIGHT (f))
-#ifndef HAVE_PGTK
-    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       outer_width, gheight);
-#else
-    if (FRAME_GTK_OUTER_WIDGET (f))
-      {
-	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   outer_width, gheight);
-      }
-    else
-      {
-	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				     outer_width, gheight);
-      }
-#endif
+    outer_height = gheight;
   else
-    {
+    fullscreen = Qnil;
+
 #ifndef HAVE_PGTK
-      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 outer_width, outer_height);
+  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		     outer_width, outer_height);
 #else
-      if (FRAME_GTK_OUTER_WIDGET (f))
-	{
-	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			     outer_width, outer_height);
-	}
-      else
-	{
-	  gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				       outer_width, outer_height);
-	}
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       outer_width, outer_height);
+  else
+    gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				 outer_width, outer_height);
 #endif
-      fullscreen = Qnil;
-    }
 
   SET_FRAME_GARBAGED (f);
   cancel_mouse_face (f);
