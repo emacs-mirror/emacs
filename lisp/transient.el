@@ -5,7 +5,7 @@
 ;; Author: Jonas Bernoulli <jonas@bernoul.li>
 ;; URL: https://github.com/magit/transient
 ;; Keywords: extensions
-;; Version: 0.13.1
+;; Version: 0.13.2
 
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -39,7 +39,7 @@
 ;;; Code:
 ;;;; Frontmatter
 
-(defconst transient-version "v0.13.1-10-gc168d396-builtin")
+(defconst transient-version "v0.13.2-10-gf7894ca4-builtin")
 
 (require 'cl-lib)
 (require 'eieio)
