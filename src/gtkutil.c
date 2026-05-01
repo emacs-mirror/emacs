@@ -1181,8 +1181,6 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   int outer_height
     = height + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
   int outer_width = width + FRAME_TOOLBAR_WIDTH (f);
-  bool was_visible = false;
-  bool hide_child_frame;
 
 #ifndef HAVE_PGTK
   gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
@@ -1251,58 +1249,6 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 				     outer_width, gheight);
       }
 #endif
-  else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
-    {
-      was_visible = true;
-#ifndef HAVE_PGTK
-      hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
-#else
-      hide_child_frame = false;
-#endif
-
-      if (outer_width != gwidth || outer_height != gheight)
-	{
-          if (hide_child_frame)
-            {
-              block_input ();
-#ifndef HAVE_PGTK
-              gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
-#else
-	      gtk_widget_hide (FRAME_WIDGET (f));
-#endif
-              unblock_input ();
-            }
-
-#ifndef HAVE_PGTK
-	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			     outer_width, outer_height);
-#else
-	  if (FRAME_GTK_OUTER_WIDGET (f))
-	    {
-	      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-				 outer_width, outer_height);
-	    }
-	  else
-	    {
-	      gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-					   outer_width, outer_height);
-	    }
-#endif
-
-          if (hide_child_frame)
-            {
-              block_input ();
-#ifndef HAVE_PGTK
-              gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
-#else
-	      gtk_widget_show_all (FRAME_WIDGET (f));
-#endif
-              unblock_input ();
-            }
-
-	  fullscreen = Qnil;
-	}
-    }
   else
     {
 #ifndef HAVE_PGTK
@@ -1333,7 +1279,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      size as fast as possible.
      For unmapped windows, we can set rows/cols.  When
      the frame is mapped again we will (hopefully) get the correct size.  */
-  if (FRAME_VISIBLE_P (f) && !was_visible)
+  if (FRAME_VISIBLE_P (f))
     {
       if (CONSP (frame_size_history))
 	frame_size_history_extra
