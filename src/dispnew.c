@@ -1937,6 +1937,11 @@ fake_current_matrices (Lisp_Object window)
 		{
 		  r->used[LEFT_MARGIN_AREA] = m->left_margin_glyphs;
 		  r->used[RIGHT_MARGIN_AREA] = m->right_margin_glyphs;
+		  /* Non-rightmost windows have the border glyph at the
+		     end of the right margin, if any, in addition to the
+		     glyphs reserved for the margin itself.  */
+		  if (m->right_margin_glyphs > 0 && !WINDOW_RIGHTMOST_P (w))
+		    r->used[RIGHT_MARGIN_AREA]++;
 		  r->used[TEXT_AREA] = (m->matrix_w
 					- r->used[LEFT_MARGIN_AREA]
 					- r->used[RIGHT_MARGIN_AREA]);
