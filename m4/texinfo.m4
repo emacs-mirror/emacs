@@ -93,6 +93,7 @@ dnl gl_SET_DOCLANGS
 AC_DEFUN([gl_SET_DOCLANGS],[dnl
 AC_REQUIRE([gl_TEXINFO_VERSION_COMPARE])
 AC_ARG_VAR([DOCLANGS],[languages for which manuals are compiled, languages supported: ]gl_DOCLANGS_FULL()[, list is space separated])
+AC_MSG_CHECKING([for DOCLANGS derivation from texinfo.tex/texindex versions])
 gl_GET_TEXINFO_TEX_VER()
 gl_GET_TEXINDEX_VER()
 gl_TEXINFO_VERSION_COMPARE([$texinfo_tex_ver],[gl_TEXINFO_TEX_MINVER()],[dnl
@@ -101,6 +102,7 @@ gl_TEXINFO_VERSION_COMPARE([$texinfo_tex_ver],[gl_TEXINFO_TEX_MINVER()],[dnl
   AC_MSG_NOTICE([texinfo.tex/texindex versions suggest that indexing is not locale dependant, setting DOCLANGS to ']gl_DOCLANGS_FULL()['])
   ])
 ])
+AC_MSG_RESULT([[']$DOCLANGS[']])
 AC_SUBST([DOCLANGS])
 ])
 dnl
