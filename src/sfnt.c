@@ -5792,6 +5792,10 @@ sfnt_read_name_table (int fd, struct sfnt_offset_subtable *subtable)
   if (directory->length < required)
     return NULL;
 
+  /* Avoid overflow in xmalloc argument below.  */
+  if (directory->length > UINT_MAX - sizeof *name)
+    return NULL;
+
   /* Allocate enough to hold the name table and variable length
      data.  */
   name = xmalloc (sizeof *name + directory->length);
