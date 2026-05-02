@@ -523,14 +523,9 @@ candidates or if there are multiple matching completions and
             (setq sorted (cdr sorted)))
           (list (substring string 0 base) common suffixes))))))
 
-(defvar completion-preview--is-calling nil
-  "Non-nil while Completion Preview mode is calling a completion function.")
-
 (defun completion-preview--capf-wrapper (capf)
   "Translate return value of CAPF to properties for completion preview overlay."
-  (let ((res (ignore-errors
-               (let ((completion-preview--is-calling t))
-                 (funcall capf)))))
+  (let ((res (ignore-errors (funcall capf))))
     (and (consp res)
          (not (functionp res))
          (seq-let (beg end table &rest plist) res
