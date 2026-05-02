@@ -4488,11 +4488,6 @@ the minibuffer, instead of waiting with 'sit-for' and then clearing it.
 This makes 'minibuffer-message' usable in Lisp programs which want to
 print a message and then continue to perform work.
 
----
-** New variable 'completion-preview-is-calling'.
-Completion functions (in 'completion-at-point-functions') can check this
-variable to tell if they are being called by Completion Preview mode.
-
 ** Special Events
 
 +++

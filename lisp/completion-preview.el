@@ -523,19 +523,13 @@ candidates or if there are multiple matching completions and
             (setq sorted (cdr sorted)))
           (list (substring string 0 base) common suffixes))))))
 
-(defvar completion-preview-is-calling nil
-  "Non-nil while Completion Preview mode is calling a completion function.
-
-Completion functions (in `completion-at-point-functions') can check this
-variable and adjust their behavior for completion preview.
-For example, a completion function can skip calculating annotations for
-candidates it produces for display in the completion preview, which does
-not make use of such annotations.")
+(defvar completion-preview--is-calling nil
+  "Non-nil while Completion Preview mode is calling a completion function.")
 
 (defun completion-preview--capf-wrapper (capf)
   "Translate return value of CAPF to properties for completion preview overlay."
   (let ((res (ignore-errors
-               (let ((completion-preview-is-calling t))
+               (let ((completion-preview--is-calling t))
                  (funcall capf)))))
     (and (consp res)
          (not (functionp res))
