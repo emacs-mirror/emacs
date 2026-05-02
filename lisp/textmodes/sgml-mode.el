@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
 ;; Keywords: text, hypermedia, comm, languages
