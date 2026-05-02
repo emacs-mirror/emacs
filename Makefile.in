@@ -115,8 +115,7 @@ HAVE_GSETTINGS = @HAVE_GSETTINGS@
 
 ANDROID = @ANDROID@
 
-# TODO : make a configure option to keep only desired languages
-DOCLANGS?=default fr
+DOCLANGS?=@DOCLANGS@
 
 # ==================== Where To Install Things ====================
 
