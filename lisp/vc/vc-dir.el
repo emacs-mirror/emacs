@@ -1305,7 +1305,7 @@ that file."
 
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FNAME in any directory buffers that list it."
-  (let ((file (expand-file-name (or fname buffer-file-name)))
+  (let ((file (file-truename (or fname buffer-file-name)))
         (drop '()))
     (save-current-buffer
       ;; look for a vc-dir buffer that might show this file.
