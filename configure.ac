@@ -1790,7 +1790,9 @@ AS_IF([test $gl_gcc_warnings = no],
        ;;
   esac
   AS_IF([test $gl_gcc_warnings = yes],
-    [WERROR_CFLAGS=-Werror],
+    [WERROR_CFLAGS=-Werror
+     # Work around GCC bug 125116.
+     gl_WARN_ADD([-Wno-analyzer-allocation-size])],
     [# Use -fanalyzer and related options only if --enable-gcc-warnings,
      # as they slow GCC considerably.
      nw="$nw -fanalyzer -Wno-analyzer-double-free -Wno-analyzer-malloc-leak"
