@@ -114,48 +114,56 @@ Including ?- makes double dashes into comment delimiters, but
 they are really only supposed to delimit comments within DTD
 definitions.  So we normally turn it off.")
 
-(defvar sgml-quick-keys nil
-  "Use <, >, &, /, SPC and `sgml-specials' keys \"electrically\" when non-nil.
-This takes effect when first loading the `sgml-mode' library.")
-
 (defvar sgml-mode-map
   (let ((map (make-keymap)))	;`sparse' doesn't allow binding to charsets.
-    (define-key map "\C-c\C-i" #'sgml-tags-invisible)
+    (define-key map (kbd "C-c C-i") #'sgml-tags-invisible)
     (define-key map "/" #'sgml-slash)
-    (define-key map "\C-c\C-n" #'sgml-name-char)
-    (define-key map "\C-c\C-t" #'sgml-tag)
-    (define-key map "\C-c\C-a" #'sgml-attributes)
-    (define-key map "\C-c\C-b" #'sgml-skip-tag-backward)
-    (define-key map [?\C-c left] #'sgml-skip-tag-backward)
-    (define-key map "\C-c\C-f" #'sgml-skip-tag-forward)
-    (define-key map [?\C-c right] #'sgml-skip-tag-forward)
-    (define-key map "\C-c\C-d" #'sgml-delete-tag)
-    (define-key map "\C-c\^?" #'sgml-delete-tag)
-    (define-key map "\C-c?" #'sgml-tag-help)
-    (define-key map "\C-c]" #'sgml-close-tag)
-    (define-key map "\C-c/" #'sgml-close-tag)
+    (define-key map (kbd "C-c C-n") #'sgml-name-char)
+    (define-key map (kbd "C-c C-t") #'sgml-tag)
+    (define-key map (kbd "C-c C-a") #'sgml-attributes)
+    (define-key map (kbd "C-c C-b") #'sgml-skip-tag-backward)
+    (define-key map (kbd "C-c <left>") #'sgml-skip-tag-backward)
+    (define-key map (kbd "C-c C-f") #'sgml-skip-tag-forward)
+    (define-key map (kbd "C-c <right>") #'sgml-skip-tag-forward)
+    (define-key map (kbd "C-c C-d") #'sgml-delete-tag)
+    (define-key map (kbd "C-c ^ ?") #'sgml-delete-tag)
+    (define-key map (kbd "C-c ?") #'sgml-tag-help)
+    (define-key map (kbd "C-c ]") #'sgml-close-tag)
+    (define-key map (kbd "C-c /") #'sgml-close-tag)
 
     ;; Redundant keybindings, for consistency with TeX mode.
-    (define-key map "\C-c\C-o" #'sgml-tag)
-    (define-key map "\C-c\C-e" #'sgml-close-tag)
+    (define-key map (kbd "C-c C-o") #'sgml-tag)
+    (define-key map (kbd "C-c C-e") #'sgml-close-tag)
 
-    (define-key map "\C-c8" #'sgml-name-8bit-mode)
-    (define-key map "\C-c\C-v" #'sgml-validate)
-    (when sgml-quick-keys
-      (define-key map "&" #'sgml-name-char)
-      (define-key map "<" #'sgml-tag)
-      (define-key map " " #'sgml-auto-attributes)
-      (define-key map ">" #'sgml-maybe-end-tag)
-      (when (memq ?\" sgml-specials)
-        (define-key map "\"" #'sgml-name-self))
-      (when (memq ?' sgml-specials)
-        (define-key map "'" #'sgml-name-self)))
-    (let ((c 127)
-	  (map (nth 1 map)))
-      (while (< (setq c (1+ c)) 256)
-	(aset map c #'sgml-maybe-name-self)))
+    (define-key map (kbd "C-c 8") #'sgml-name-8bit-mode)
+    (define-key map (kbd "C-c C-v") #'sgml-validate)
+
+    (cl-loop for c from 128 upto 255
+             do (define-key map (string c) #'sgml-maybe-name-self))
     map)
   "Keymap for SGML mode.  See also `sgml-specials'.")
+
+(defcustom sgml-quick-keys nil
+  "Use <, >, &, /, SPC and `sgml-specials' keys \"electrically\" when non-nil.
+By setting the option to `indent', Emacs will eagerly reindent the
+current line when you manually close a tag."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (dolist (bind `(("&"  . ,#'sgml-name-char)
+                         ("<"  . ,#'sgml-tag)
+                         ("\s" . ,#'sgml-auto-attributes)
+                         (">"  . ,#'sgml-maybe-end-tag)
+                         ("\"" . ,(and (memq ?\" sgml-specials) #'sgml-name-self))
+                         ("'"  . ,(and (memq ?' sgml-specials) #'sgml-name-self))))
+           (if (and val (cdr bind))
+               (define-key sgml-mode-map (car bind) (cdr bind))
+             (define-key sgml-mode-map (car bind) nil t)))
+         (custom-reevaluate-setting 'html-quick-keys))
+  :type '(choice (const :tag "Enabled" t)
+                 (const :tag "Enabled, and indent when closing tags" indent)
+                 ;; Omit `close' because `electric-pair-mode' already
+                 ;; takes care of paring "<" and ">".
+                 (const :tag "Disabled" nil)))
 
 (easy-menu-define sgml-mode-menu sgml-mode-map
   "Menu for SGML mode."
@@ -1792,53 +1800,62 @@ Currently just returns (EMPTY-TAGS UNCLOSED-TAGS)."
   :type 'hook
   :options '(html-autoview-mode))
 
-(defvar html-quick-keys sgml-quick-keys
-  "Use C-c X combinations for quick insertion of frequent tags when non-nil.
-This defaults to `sgml-quick-keys'.
-This takes effect when first loading the library.")
-
 (defvar html-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map  sgml-mode-map)
-    (define-key map "\C-c6" #'html-headline-6)
-    (define-key map "\C-c5" #'html-headline-5)
-    (define-key map "\C-c4" #'html-headline-4)
-    (define-key map "\C-c3" #'html-headline-3)
-    (define-key map "\C-c2" #'html-headline-2)
-    (define-key map "\C-c1" #'html-headline-1)
-    (define-key map "\C-c\r" #'html-paragraph)
-    (define-key map "\C-c\n" #'html-line)
-    (define-key map "\C-c\C-c-" #'html-horizontal-rule)
-    (define-key map "\C-c\C-co" #'html-ordered-list)
-    (define-key map "\C-c\C-cu" #'html-unordered-list)
-    (define-key map "\C-c\C-cr" #'html-radio-buttons)
-    (define-key map "\C-c\C-cc" #'html-checkboxes)
-    (define-key map "\C-c\C-cl" #'html-list-item)
-    (define-key map "\C-c\C-ch" #'html-href-anchor)
-    (define-key map "\C-c\C-cf" #'html-href-anchor-file)
-    (define-key map "\C-c\C-cn" #'html-name-anchor)
-    (define-key map "\C-c\C-c#" #'html-id-anchor)
-    (define-key map "\C-c\C-ci" #'html-image)
-    (when html-quick-keys
-      (define-key map "\C-cp" #'html-paragraph)
-      (define-key map "\C-c-" #'html-horizontal-rule)
-      (define-key map "\C-cd" #'html-div)
-      (define-key map "\C-co" #'html-ordered-list)
-      (define-key map "\C-cu" #'html-unordered-list)
-      (define-key map "\C-cr" #'html-radio-buttons)
-      (define-key map "\C-cc" #'html-checkboxes)
-      (define-key map "\C-cl" #'html-list-item)
-      (define-key map "\C-ch" #'html-href-anchor)
-      (define-key map "\C-cf" #'html-href-anchor-file)
-      (define-key map "\C-cn" #'html-name-anchor)
-      (define-key map "\C-c#" #'html-id-anchor)
-      (define-key map "\C-ci" #'html-image)
-      (define-key map "\C-cs" #'html-span))
-    (define-key map "\C-c\C-s" #'html-autoview-mode)
-    (define-key map "\C-c\C-v" #'browse-url-of-buffer)
-    (define-key map "\M-o" 'facemenu-keymap)
+    (set-keymap-parent map sgml-mode-map)
+    (define-key map (kbd "C-c 6") #'html-headline-6)
+    (define-key map (kbd "C-c 5") #'html-headline-5)
+    (define-key map (kbd "C-c 4") #'html-headline-4)
+    (define-key map (kbd "C-c 3") #'html-headline-3)
+    (define-key map (kbd "C-c 2") #'html-headline-2)
+    (define-key map (kbd "C-c 1") #'html-headline-1)
+    (define-key map (kbd "C-c C-m") #'html-paragraph)
+    (define-key map (kbd "C-c C-j") #'html-line)
+    (define-key map (kbd "C-c C-c -") #'html-horizontal-rule)
+    (define-key map (kbd "C-c C-c o") #'html-ordered-list)
+    (define-key map (kbd "C-c C-c u") #'html-unordered-list)
+    (define-key map (kbd "C-c C-c r") #'html-radio-buttons)
+    (define-key map (kbd "C-c C-c c") #'html-checkboxes)
+    (define-key map (kbd "C-c C-c l") #'html-list-item)
+    (define-key map (kbd "C-c C-c h") #'html-href-anchor)
+    (define-key map (kbd "C-c C-c f") #'html-href-anchor-file)
+    (define-key map (kbd "C-c C-c n") #'html-name-anchor)
+    (define-key map (kbd "C-c C-c #") #'html-id-anchor)
+    (define-key map (kbd "C-c C-c i") #'html-image)
+    (define-key map (kbd "C-c C-s") #'html-autoview-mode)
+    (define-key map (kbd "C-c C-v") #'browse-url-of-buffer)
+    (define-key map (kbd "M-o") 'facemenu-keymap)
     map)
   "Keymap for commands for use in HTML mode.")
+
+(defcustom html-quick-keys sgml-quick-keys
+  "Use C-c X combinations for quick insertion of frequent tags when non-nil.
+This defaults to `sgml-quick-keys', which see."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (dolist (bind `((,(kbd "C-c p") . ,#'html-paragraph)
+                         (,(kbd "C-c -") . ,#'html-horizontal-rule)
+                         (,(kbd "C-c d") . ,#'html-div)
+                         (,(kbd "C-c o") . ,#'html-ordered-list)
+                         (,(kbd "C-c u") . ,#'html-unordered-list)
+                         (,(kbd "C-c r") . ,#'html-radio-buttons)
+                         (,(kbd "C-c c") . ,#'html-checkboxes)
+                         (,(kbd "C-c l") . ,#'html-list-item)
+                         (,(kbd "C-c h") . ,#'html-href-anchor)
+                         (,(kbd "C-c f") . ,#'html-href-anchor-file)
+                         (,(kbd "C-c n") . ,#'html-name-anchor)
+                         (,(kbd "C-c #") . ,#'html-id-anchor)
+                         (,(kbd "C-c i") . ,#'html-image)
+                         (,(kbd "C-c s") . ,#'html-span)))
+           (if val
+               (define-key html-mode-map (car bind) (cdr bind))
+             (define-key html-mode-map (car bind) nil t))))
+  :set-after '(sgml-quick-keys)
+  :type '(choice (const :tag "Enabled" t)
+                 (const :tag "Enabled, and indent when closing tags" indent)
+                 ;; Omit `close' because `electric-pair-mode' already
+                 ;; takes care of paring "<" and ">".
+                 (const :tag "Disabled" nil)))
 
 (easy-menu-define html-mode-menu html-mode-map
   "Menu for HTML mode."
