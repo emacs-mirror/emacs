@@ -2112,6 +2112,7 @@ This defaults to `sgml-quick-keys', which see."
       ("param" t ("name") ("value")
        ("valuetype" ("data") ("ref") ("object")) ("type"))
       ("person") ;; Tag for person's name tag deprecated in HTML 3.2
+      ("picture" \n)                    ;TODO: suggest inserting <source> and <img>
       ("pre" \n)
       ("progress" nil ("value") ("max"))
       ("q" nil ("cite"))
@@ -2261,6 +2262,7 @@ This defaults to `sgml-quick-keys', which see."
     ("panel" . "Floating panel")
     ("param" . "Parameters for an object")
     ("person" . "Person's name")
+    ("picture" . "Picture")
     ("pre" . "Preformatted fixed width text")
     ("progress" . "Completion progress of a task")
     ("q" . "Quotation")
