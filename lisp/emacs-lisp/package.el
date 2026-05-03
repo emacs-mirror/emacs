@@ -468,7 +468,7 @@ BI-DESC should be a `package--bi-desc' object."
                        :summary (package--bi-desc-summary bi-desc)
                        :dir 'builtin))
 
-(defconst package--builtin-alist nil)
+(defvar package--builtin-alist nil)
 (defun package--builtin-alist ()
   "Return a alist of built-in packages in the form of `package-alist'.
 The alist doesn't include the pseudo-package for Emacs."
