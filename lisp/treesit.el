@@ -4454,12 +4454,14 @@ For BOUND, MOVE, BACKWARD, LOOKING-AT, see the descriptions in
       (setq level (1+ level)))
 
     ;; Continue counting the host nodes.
-    (dolist (parser (mapcar #'cdr (treesit-parsers-at (point) nil t '(global local))))
-      (let* ((node (treesit-node-at (point) parser))
-             (lang (treesit-parser-language parser))
-             (pred (alist-get lang treesit-aggregated-outline-predicate)))
-        (while (setq node (treesit-parent-until node pred))
-          (setq level (1+ level)))))
+    (when treesit-aggregated-outline-predicate
+      (dolist (parser (mapcar #'cdr (treesit-parsers-at
+                                     (point) nil t '(global local))))
+        (let* ((node (treesit-node-at (point) parser))
+               (lang (treesit-parser-language parser))
+               (pred (alist-get lang treesit-aggregated-outline-predicate)))
+          (while (setq node (treesit-parent-until node pred))
+            (setq level (1+ level))))))
 
     level))
 
