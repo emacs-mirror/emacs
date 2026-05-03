@@ -73,6 +73,7 @@ When 2, attribute indentation looks like this:
 It is set to be buffer-local when the file has
 a DOCTYPE or an XML declaration."
   :type 'boolean
+  :safe #'booleanp
   :version "22.1")
 
 (define-obsolete-variable-alias 'sgml-transformation
