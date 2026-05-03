@@ -47,8 +47,8 @@
 
 (defcustom sgml-basic-offset 2
   "Specifies the basic indentation level for `sgml-indent-line'."
-  :type 'integer
-  :safe #'integerp)
+  :type 'natnum
+  :safe #'natnump)
 
 (defcustom sgml-attribute-offset 0
   "Specifies a delta for attribute indentation in `sgml-indent-line'.
@@ -65,8 +65,8 @@ When 2, attribute indentation looks like this:
       attribute=\"value\">
   </element>"
   :version "25.1"
-  :type 'integer
-  :safe #'integerp)
+  :type 'natnum
+  :safe #'natnump)
 
 (defcustom sgml-xml-mode nil
   "When non-nil, tag insertion functions will be XML-compliant.
