@@ -2049,6 +2049,8 @@ This defaults to `sgml-quick-keys', which see."
       ("datalist" \n)
       ("dd" ,(not sgml-xml-mode))
       ("del" nil ("cite") ("datetime"))
+      ("details"
+       (\n "<summary>" (read-string "Title: ") "</summary>" \n _))
       ("dfn")
       ("div" \n ("id") ("class"))
       ("dl" (nil \n
@@ -2191,6 +2193,7 @@ This defaults to `sgml-quick-keys', which see."
     ("datalist" . "A set of predefined options")
     ("dd" . "Definition of term")
     ("del" . "Deleted text")
+    ("details" . "Details disclosure")
     ("dfn" . "Defining instance of a term")
     ("dir" . "Directory list (obsolete)")
     ("div" . "Generic block-level container")
