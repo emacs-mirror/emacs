@@ -2566,7 +2566,7 @@ intended for testing Emacs and/or the packages in a clean environment."
   (interactive
    (cl-loop for p in (append
                       (cl-loop for p in (package--alist) append (cdr p))
-                      (cl-loop for p in package-archive-contents append (cdr p)))
+                      (cl-loop for p in (package--archive-contents) append (cdr p)))
 	    unless (package-built-in-p p)
 	    collect (cons (package-desc-full-name p) p) into table
 	    finally return
