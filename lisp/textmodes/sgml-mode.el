@@ -286,12 +286,11 @@ Currently, only Latin-1 characters are supported.")
         ((executable-find "onsgmls")
          ;; onsgmls is the community version of `nsgmls'
          ;; hosted on https://openjade.sourceforge.net/
-         "onsgmls -s")
-        (t "Install (o)nsgmls, tidy, or some other SGML validator, and set `sgml-validate-command'"))
+         "onsgmls -s"))
   "The command to validate an SGML document.
 The file name of current buffer file name will be appended to this,
 separated by a space."
-  :type 'string
+  :type '(choice (const :tag "Unset" nil) string)
   :version "21.1")
 
 (defvar sgml-saved-validate-command nil
