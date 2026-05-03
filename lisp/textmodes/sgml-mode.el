@@ -1617,6 +1617,8 @@ the current start-tag or the current comment or the current cdata, ..."
   (and (not sgml-xml-mode)
        (assoc-string tag-name sgml-unclosed-tags 'ignore-case)))
 
+(defvar sgml-whitespace-sensitive-tags nil
+  "List of tags where the contents shouldn't be reindented.")
 
 (defun sgml-calculate-indent (&optional lcon)
   "Calculate the column to which this line should be indented.
@@ -1629,7 +1631,16 @@ LCON is the lexical context, if any."
 	   (save-excursion (goto-char (cdr lcon)) (looking-at "<!--")))
       (setq lcon (cons 'comment (+ (cdr lcon) 2))))
 
-  (pcase (car lcon)
+  (pcase-exhaustive (car lcon)
+
+    ((or (guard (let ((case-fold-search t))
+              (cl-find (concat "\\`" (regexp-opt sgml-whitespace-sensitive-tags) "\\'")
+                       (save-excursion (sgml-get-context))
+                       :test #'string-match-p
+                       :key #'sgml-tag-name)))
+         ;; We don't know how to indent it.  Let's be honest about it.
+         'pi 'cdata)
+     nil)
 
     ('string
      ;; Go back to previous non-empty line.
@@ -1659,11 +1670,6 @@ LCON is the lexical context, if any."
        (when (and (not mark) (looking-at "--"))
 	 (forward-char 2) (skip-chars-forward " \t"))
        (current-column)))
-
-    ;; We don't know how to indent it.  Let's be honest about it.
-    ('cdata nil)
-    ;; We don't know how to indent it.  Let's be honest about it.
-    ('pi nil)
 
     ('tag
      (goto-char (+ (cdr lcon) sgml-attribute-offset))
@@ -1733,12 +1739,7 @@ LCON is the lexical context, if any."
 	(t
 	 (goto-char there)
 	 (+ (current-column)
-	    (* sgml-basic-offset (length context)))))))
-
-    (_
-     (error "Unrecognized context %s" (car lcon)))
-
-    ))
+	    (* sgml-basic-offset (length context)))))))))
 
 (defun sgml-indent-line ()
   "Indent the current line as SGML."
@@ -2409,6 +2410,7 @@ To work around that, do:
   (setq-local sgml-tag-alist html-tag-alist)
   (setq-local sgml-face-tag-alist html-face-tag-alist)
   (setq-local sgml-tag-help html-tag-help)
+  (setq-local sgml-whitespace-sensitive-tags '("pre" "textarea"))
   (setq-local outline-regexp "^.*<[Hh][1-6]\\>")
   (setq-local outline-heading-end-regexp "</[Hh][1-6]>")
   (setq-local outline-level
