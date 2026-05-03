@@ -1296,6 +1296,21 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
 
+(defmacro vc-git--with-temp-index (&rest body)
+  "Execute BODY with a temporary Git index file.
+After executing, delete the temporary index.  The index starts empty;
+callers may populate it with, e.g., \\='git read-tree HEAD\\='."
+  (declare (indent 0) (debug t))
+  (cl-with-gensyms (index)
+    `(let ((,index (make-nearby-temp-file "git-index")))
+       (unwind-protect
+           ;; Use `file-local-name' to strip the TRAMP prefix
+           ;; from the index.
+           (with-environment-variables
+               (("GIT_INDEX_FILE" (file-local-name ,index)))
+             ,@body)
+         (delete-file ,index)))))
+
 (defalias 'vc-git-async-checkins #'always)
 
 (defalias 'vc-git-working-revision-symbol (cl-constantly "HEAD"))
@@ -1418,35 +1433,35 @@ It is an error to supply both or neither."
              ;;
              ;; 'git apply --3way --ours' is the way Git provides to
              ;; achieve this.  This requires that the index match the
-             ;; working tree and also implies the --index option, which
-             ;; means applying the changes to the index in addition to
-             ;; the working tree.  These are both okay here because
-             ;; before doing this we know the index is empty (we just
-             ;; committed) and so we can just make use of it and reset
-             ;; afterwards.
+             ;; working tree and also implies the --index option.  Use a
+             ;; temporary index for that.
              (when (and patch-string (not (string-empty-p patch-string)))
-               (vc-git-command nil 0 nil "add" "--all")
-               (with-temp-buffer
-                 (vc-git--with-apply-temp (patch t 1 "--3way")
-                   (with-temp-file patch
-                     (insert patch-string)))
-                 ;; We could delete the following if we could also pass
-                 ;; --ours to git-apply, but that is only available in
-                 ;; recent versions of Git.  --3way is much older.
-                 (cl-loop
-                  initially (goto-char (point-min))
-                  ;; git-apply doesn't apply Git's usual quotation and
-                  ;; escape rules for printing file names so we can do
-                  ;; this simple regexp processing.
-                  ;; (Passing -z does not affect the relevant output.)
-                  while (re-search-forward "^U " nil t)
-                  collect (buffer-substring-no-properties (point)
-                                                          (pos-eol))
-                  into paths
-                  finally (when paths
-                            (vc-git-command nil 0 paths
-                                            "checkout" "--ours"))))
-               (vc-git-command nil 0 nil "reset"))
+               (vc-git--with-temp-index
+                 (vc-git-command nil 0 nil "read-tree" "HEAD")
+                 ;; This index is scratch for 'git apply --3way',
+                 ;; so ignore nonzero exit status (e.g., due to
+                 ;; out-of-cone files in a sparse checkout).
+                 (vc-git-command nil t nil "add" "--all")
+                 (with-temp-buffer
+                   (vc-git--with-apply-temp (patch t 1 "--3way")
+                     (with-temp-file patch
+                       (insert patch-string)))
+                   ;; We could delete the following if we could also pass
+                   ;; --ours to git-apply, but that is only available in
+                   ;; recent versions of Git.  --3way is much older.
+                   (cl-loop
+                    initially (goto-char (point-min))
+                    ;; git-apply doesn't apply Git's usual quotation and
+                    ;; escape rules for printing file names so we can do
+                    ;; this simple regexp processing.
+                    ;; (Passing -z does not affect the relevant output.)
+                    while (re-search-forward "^U " nil t)
+                    collect (buffer-substring-no-properties (point)
+                                                            (pos-eol))
+                    into paths
+                    finally (when paths
+                              (vc-git-command nil 0 paths
+                                              "checkout" "--ours"))))))
              (when to-stash
                (vc-git--with-apply-temp (cached)
                  (with-temp-file cached
@@ -1589,19 +1604,11 @@ REV is ignored."
             (progn
               (with-temp-file cached
                 (vc-git-command t 0 files "diff" "--cached" "--"))
-              (let* ((index (make-nearby-temp-file "git-index"))
-                     (process-environment
-                      (cons (format "GIT_INDEX_FILE=%s" index)
-                            process-environment)))
-                (unwind-protect
-                    (progn
-                      (vc-git-command nil 0 nil "read-tree" "HEAD")
-                      ;; See `vc-git--with-apply-temp'
-                      ;; regarding use of `file-local-name'.
-                      (vc-git-command nil 0 nil "apply" "--cached"
-                                      (file-local-name cached))
-                      (setq tree (git-string "write-tree")))
-                  (delete-file index))))
+              (vc-git--with-temp-index
+                (vc-git-command nil 0 nil "read-tree" "HEAD")
+                (vc-git-command nil 0 nil "apply" "--cached"
+                                (file-local-name cached))
+                (setq tree (git-string "write-tree"))))
           (delete-file cached))
         ;; Prepare stash commit object, which has a special structure.
         (let* ((tree-commit (git-string "commit-tree" "-m" message
