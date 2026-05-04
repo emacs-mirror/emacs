@@ -106,7 +106,7 @@ For instance, this
     anywhere in sight is too confusing.
 
 may not need mentioning, because --daemon will give an error message
-saying it's not implemented, and other cases aren't affected.
+saying it is not implemented, and other cases aren't affected.
 
 The kind of change for which the user really needs help from Antinews
 is where a feature works _differently_ in the previous version.
@@ -164,3 +164,5 @@ like subr.el, which are not quoted.
 Call 'emacs-news-view-mode'.  Lisp symbols and Info manual links shall
 be decorated, and clicking on them shall lead to the respective Help
 buffer or Info node.
+
+*** Do not use "it's", "you're" and alike.
