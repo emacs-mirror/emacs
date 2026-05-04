@@ -219,16 +219,13 @@
     '(fset 'tramp-gvfs-handler-askquestion
 	   (lambda (_message _choices) '(t nil 0)))))
 
-(defconst tramp-test-vec
-  (and (file-remote-p ert-remote-temporary-file-directory)
-       (tramp-dissect-file-name ert-remote-temporary-file-directory))
-  "The used `tramp-file-name' structure.")
-
 (setq auth-source-cache-expiry nil
       auth-source-save-behavior nil
       auto-revert-remote-files t
       auto-revert-use-notify t
       ert-batch-backtrace-right-margin nil
+      ert-remote-temporary-file-directory
+      (expand-file-name ert-remote-temporary-file-directory)
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
       tramp-allow-unsafe-temporary-files t
@@ -238,6 +235,11 @@
       tramp-persistency-file-name nil
       tramp-verbose 0
       vc-handled-backends (unless noninteractive vc-handled-backends))
+
+(defconst tramp-test-vec
+  (and (file-remote-p ert-remote-temporary-file-directory)
+       (tramp-dissect-file-name ert-remote-temporary-file-directory))
+  "The used `tramp-file-name' structure.")
 
 (defconst tramp-test-name-prefix "tramp-test"
   "Prefix to use for temporary test files.")
