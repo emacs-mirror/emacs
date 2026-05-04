@@ -1682,42 +1682,58 @@ capabilities."
     (add-hook hook fun -95 t)
     fun))
 
+(defvar erc--warn-once-before-connect-function
+  #'erc-button--display-error-notice-with-keys
+  "Function to display an \"error notice\".
+See `erc-button--display-error-notice-with-keys' for expected args.")
+
+(defvar-local erc--warn-once-before-connect-calls ()
+  "Alist of (INTEGER . t) for `erc--warn-once-before-connect'.")
+
 (defun erc--warn-once-before-connect (mode-var &rest args)
-  "Display an \"error notice\" once.
-Expect ARGS to be `erc-button--display-error-notice-with-keys'
-compatible parameters, except without any leading buffers or processes.
-If the current buffer has an `erc-server-process', print the notice
-immediately.  Otherwise, if it's a server buffer without a process,
-arrange to do so on `erc-connect-pre-hook'.  In non-ERC buffers, so long
-as MODE-VAR belongs to a global module, try again at most once the next
-time `erc-mode-hook' runs for any connection."
+  "Display an \"error notice\" once per session (logical connection).
+Defer to `erc--warn-once-before-connect-function' to do the displaying.
+If the current buffer is associated with a live server buffer and a
+non-nil `erc-server-process', even if no longer live, display the
+notice.  Do so soon rather than immediately if called by
+`erc-display-message' indirectly.  If in a server buffer that's yet to
+dial, arrange to try again on `erc-connect-pre-hook'.  Otherwise, in
+non-ERC buffers, if MODE-VAR belongs to a global module, try again at
+most once the next time `erc-mode-hook' runs anywhere.  If a message is
+displayed, inhibit duplicates by adding a hash of MODE-VAR and ARGS to
+`erc--warn-once-before-connect-calls'."
   (declare (indent 1))
   (cl-assert (stringp (car args)))
-  (if (derived-mode-p 'erc-mode)
-      (unless
-          (or (erc-with-server-buffer ; needs `erc-server-process'
-                (let ((fn
-                       (lambda (buffer)
-                         (erc-with-buffer (buffer)
-                           (apply #'erc-button--display-error-notice-with-keys
-                                  buffer args)))))
-                  (if erc--msg-props
-                      (run-at-time nil nil fn (current-buffer))
-                    (funcall fn (current-buffer))))
-                t)
-              erc--target) ; unlikely
-        (let (hook)
-          (setq hook
-                (lambda (_)
-                  (remove-hook 'erc-connect-pre-hook hook t)
-                  (apply #'erc-button--display-error-notice-with-keys args)))
-          (add-hook 'erc-connect-pre-hook hook nil t)))
-    (when (custom-variable-p mode-var)
-      (let (hook)
-        (setq hook (lambda ()
-                     (remove-hook 'erc-mode-hook hook)
-                     (apply #'erc--warn-once-before-connect 'erc-fake args)))
-        (add-hook 'erc-mode-hook hook)))))
+  (letrec ((warn-fn erc--warn-once-before-connect-function)
+           (hook-name nil)
+           (hook-fn
+            (lambda (&rest _)
+              (when hook-name
+                (remove-hook hook-name hook-fn (local-variable-p hook-name)))
+              (let ((erc--warn-once-before-connect-function warn-fn))
+                (apply #'erc--warn-once-before-connect 'erc-fake args)))))
+    (cond
+     ((not (derived-mode-p 'erc-mode))
+      (when (custom-variable-p mode-var)
+        (add-hook (setq hook-name 'erc-mode-hook) hook-fn)))
+     ;; Has a live server buffer with a non-nil `erc-server-process'.
+     ((erc-with-server-buffer
+        (let ((do-fn (lambda ()
+                       (with-memoization
+                           ;; Use `sxhash' to avoid weak references.
+                           (alist-get (sxhash-equal (cons mode-var args))
+                                      erc--warn-once-before-connect-calls)
+                         (apply warn-fn args)
+                         t)))) ; for side-effects only
+          (if erc--msg-props ; escape `erc-display-message' call stack
+              (run-at-time nil nil (lambda (buffer)
+                                     (erc-with-buffer (buffer)
+                                       (funcall do-fn)))
+                           (current-buffer))
+            (funcall do-fn)))))
+     ;; A server buffer with a null `erc-server-process'.
+     ((null erc--target)
+      (add-hook (setq hook-name 'erc-connect-pre-hook) hook-fn 0 t)))))
 
 (defun erc-server-buffer ()
   "Return the server buffer for the current buffer's process.

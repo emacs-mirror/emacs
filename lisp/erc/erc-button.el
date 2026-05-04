@@ -857,7 +857,7 @@ non-strings, concatenate leading string members before applying
           (cons (lambda ()
                   (setq string (buffer-substring (point-min)
                                                  (1- (point-max)))))
-                erc-insert-post-hook))
+                (ensure-list erc-insert-post-hook)))
          (erc-button-alist
           `((,(rx "\\[" (group (+ (not "]"))) "]") 0
              erc-button--display-error-with-buttons
