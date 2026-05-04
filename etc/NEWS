@@ -169,6 +169,12 @@ behavior, customize 'find-function-mode-lower-precedence' to non-nil.
 ---
 ** 'find-function' can now find 'cl-defmethod' invocations inside macros.
 
+---
+** New minor mode 'prettify-special-glyphs-mode'.
+The new minor mode prettifies the special character glyphs (truncation
+and continuation) on TTY frames (and GUI frames without fringes).  You
+can customize the associated new face 'special-glyphs'.
+
 ** Minibuffer and Completions
 
 +++
