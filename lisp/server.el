@@ -1143,7 +1143,9 @@ The following commands are accepted by the client:
 `-print-nonl STRING'
   Print STRING on stdout.  Used to continue a
   preceding -print command that would be too big to send
-  in a single message.
+  in a single message.  Unused in the server since Emacs 31;
+  mentioned here only for completeness, because the client
+  needs to support it when it connects to older Emacsen.
 
 `-error DESCRIPTION'
   Signal an error and delete process PROC.

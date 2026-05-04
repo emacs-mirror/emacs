@@ -4,7 +4,7 @@
 ;; Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
-;; Maintainer: emacs-devel@gnu.org
+;; Maintainer: Philip Kaludercic <philipk@posteo.net>
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
 ;; Keywords: text, hypermedia, comm, languages
@@ -47,8 +47,8 @@
 
 (defcustom sgml-basic-offset 2
   "Specifies the basic indentation level for `sgml-indent-line'."
-  :type 'integer
-  :safe #'integerp)
+  :type 'natnum
+  :safe #'natnump)
 
 (defcustom sgml-attribute-offset 0
   "Specifies a delta for attribute indentation in `sgml-indent-line'.
@@ -65,14 +65,15 @@ When 2, attribute indentation looks like this:
       attribute=\"value\">
   </element>"
   :version "25.1"
-  :type 'integer
-  :safe #'integerp)
+  :type 'natnum
+  :safe #'natnump)
 
 (defcustom sgml-xml-mode nil
   "When non-nil, tag insertion functions will be XML-compliant.
 It is set to be buffer-local when the file has
 a DOCTYPE or an XML declaration."
   :type 'boolean
+  :safe #'booleanp
   :version "22.1")
 
 (define-obsolete-variable-alias 'sgml-transformation
@@ -114,48 +115,56 @@ Including ?- makes double dashes into comment delimiters, but
 they are really only supposed to delimit comments within DTD
 definitions.  So we normally turn it off.")
 
-(defvar sgml-quick-keys nil
-  "Use <, >, &, /, SPC and `sgml-specials' keys \"electrically\" when non-nil.
-This takes effect when first loading the `sgml-mode' library.")
-
 (defvar sgml-mode-map
   (let ((map (make-keymap)))	;`sparse' doesn't allow binding to charsets.
-    (define-key map "\C-c\C-i" #'sgml-tags-invisible)
+    (define-key map (kbd "C-c C-i") #'sgml-tags-invisible)
     (define-key map "/" #'sgml-slash)
-    (define-key map "\C-c\C-n" #'sgml-name-char)
-    (define-key map "\C-c\C-t" #'sgml-tag)
-    (define-key map "\C-c\C-a" #'sgml-attributes)
-    (define-key map "\C-c\C-b" #'sgml-skip-tag-backward)
-    (define-key map [?\C-c left] #'sgml-skip-tag-backward)
-    (define-key map "\C-c\C-f" #'sgml-skip-tag-forward)
-    (define-key map [?\C-c right] #'sgml-skip-tag-forward)
-    (define-key map "\C-c\C-d" #'sgml-delete-tag)
-    (define-key map "\C-c\^?" #'sgml-delete-tag)
-    (define-key map "\C-c?" #'sgml-tag-help)
-    (define-key map "\C-c]" #'sgml-close-tag)
-    (define-key map "\C-c/" #'sgml-close-tag)
+    (define-key map (kbd "C-c C-n") #'sgml-name-char)
+    (define-key map (kbd "C-c C-t") #'sgml-tag)
+    (define-key map (kbd "C-c C-a") #'sgml-attributes)
+    (define-key map (kbd "C-c C-b") #'sgml-skip-tag-backward)
+    (define-key map (kbd "C-c <left>") #'sgml-skip-tag-backward)
+    (define-key map (kbd "C-c C-f") #'sgml-skip-tag-forward)
+    (define-key map (kbd "C-c <right>") #'sgml-skip-tag-forward)
+    (define-key map (kbd "C-c C-d") #'sgml-delete-tag)
+    (define-key map (kbd "C-c ^ ?") #'sgml-delete-tag)
+    (define-key map (kbd "C-c ?") #'sgml-tag-help)
+    (define-key map (kbd "C-c ]") #'sgml-close-tag)
+    (define-key map (kbd "C-c /") #'sgml-close-tag)
 
     ;; Redundant keybindings, for consistency with TeX mode.
-    (define-key map "\C-c\C-o" #'sgml-tag)
-    (define-key map "\C-c\C-e" #'sgml-close-tag)
+    (define-key map (kbd "C-c C-o") #'sgml-tag)
+    (define-key map (kbd "C-c C-e") #'sgml-close-tag)
 
-    (define-key map "\C-c8" #'sgml-name-8bit-mode)
-    (define-key map "\C-c\C-v" #'sgml-validate)
-    (when sgml-quick-keys
-      (define-key map "&" #'sgml-name-char)
-      (define-key map "<" #'sgml-tag)
-      (define-key map " " #'sgml-auto-attributes)
-      (define-key map ">" #'sgml-maybe-end-tag)
-      (when (memq ?\" sgml-specials)
-        (define-key map "\"" #'sgml-name-self))
-      (when (memq ?' sgml-specials)
-        (define-key map "'" #'sgml-name-self)))
-    (let ((c 127)
-	  (map (nth 1 map)))
-      (while (< (setq c (1+ c)) 256)
-	(aset map c #'sgml-maybe-name-self)))
+    (define-key map (kbd "C-c 8") #'sgml-name-8bit-mode)
+    (define-key map (kbd "C-c C-v") #'sgml-validate)
+
+    (cl-loop for c from 128 upto 255
+             do (define-key map (string c) #'sgml-maybe-name-self))
     map)
   "Keymap for SGML mode.  See also `sgml-specials'.")
+
+(defcustom sgml-quick-keys nil
+  "Use <, >, &, /, SPC and `sgml-specials' keys \"electrically\" when non-nil.
+By setting the option to `indent', Emacs will eagerly reindent the
+current line when you manually close a tag."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (dolist (bind `(("&"  . ,#'sgml-name-char)
+                         ("<"  . ,#'sgml-tag)
+                         ("\s" . ,#'sgml-auto-attributes)
+                         (">"  . ,#'sgml-maybe-end-tag)
+                         ("\"" . ,(and (memq ?\" sgml-specials) #'sgml-name-self))
+                         ("'"  . ,(and (memq ?' sgml-specials) #'sgml-name-self))))
+           (if (and val (cdr bind))
+               (define-key sgml-mode-map (car bind) (cdr bind))
+             (define-key sgml-mode-map (car bind) nil t)))
+         (custom-reevaluate-setting 'html-quick-keys))
+  :type '(choice (const :tag "Enabled" t)
+                 (const :tag "Enabled, and indent when closing tags" indent)
+                 ;; Omit `close' because `electric-pair-mode' already
+                 ;; takes care of paring "<" and ">".
+                 (const :tag "Disabled" nil)))
 
 (easy-menu-define sgml-mode-menu sgml-mode-map
   "Menu for SGML mode."
@@ -211,7 +220,7 @@ This takes effect when first loading the `sgml-mode' library.")
     table)
   "Syntax table used to parse SGML tags.")
 
-(defcustom sgml-name-8bit-mode nil
+(define-minor-mode sgml-name-8bit-mode
   "When non-nil, insert non-ASCII characters as named entities."
   :type 'boolean)
 
@@ -277,12 +286,11 @@ Currently, only Latin-1 characters are supported.")
         ((executable-find "onsgmls")
          ;; onsgmls is the community version of `nsgmls'
          ;; hosted on https://openjade.sourceforge.net/
-         "onsgmls -s")
-        (t "Install (o)nsgmls, tidy, or some other SGML validator, and set `sgml-validate-command'"))
+         "onsgmls -s"))
   "The command to validate an SGML document.
 The file name of current buffer file name will be appended to this,
 separated by a space."
-  :type 'string
+  :type '(choice (const :tag "Unset" nil) string)
   :version "21.1")
 
 (defvar sgml-saved-validate-command nil
@@ -774,14 +782,6 @@ Uses `sgml-char-names'."
       (sgml-name-char last-command-event)
     (self-insert-command 1)))
 
-(defun sgml-name-8bit-mode ()
-  "Toggle whether to insert named entities instead of non-ASCII characters.
-This only works for Latin-1 input."
-  (interactive)
-  (setq sgml-name-8bit-mode (not sgml-name-8bit-mode))
-  (message "sgml name entity mode is now %s"
-	   (if sgml-name-8bit-mode "ON" "OFF")))
-
 ;; When an element of a skeleton is a string "str", it is passed
 ;; through `skeleton-transformation-function' and inserted.
 ;; If "str" is to be inserted literally, one should obtain it as
@@ -1199,13 +1199,14 @@ with output going to the buffer `*compilation*'.
 You can then use the command \\[next-error] to find the next error message
 and move to the line in the SGML document that caused it."
   (interactive
-   (list (read-string "Validate command: "
-		      (or sgml-saved-validate-command
-			  (concat sgml-validate-command
-				  " "
-                                  (when-let* ((name (buffer-file-name)))
-				    (shell-quote-argument
-				     (file-name-nondirectory name))))))))
+   (list (read-shell-command "Validate command: "
+		             (or sgml-saved-validate-command
+                                 sgml-validate-command
+			         (concat sgml-validate-command
+				         " "
+                                         (when-let* ((name (buffer-file-name)))
+				           (shell-quote-argument
+				            (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compilation-start command))
@@ -1616,6 +1617,8 @@ the current start-tag or the current comment or the current cdata, ..."
   (and (not sgml-xml-mode)
        (assoc-string tag-name sgml-unclosed-tags 'ignore-case)))
 
+(defvar sgml-whitespace-sensitive-tags nil
+  "List of tags where the contents shouldn't be reindented.")
 
 (defun sgml-calculate-indent (&optional lcon)
   "Calculate the column to which this line should be indented.
@@ -1628,7 +1631,16 @@ LCON is the lexical context, if any."
 	   (save-excursion (goto-char (cdr lcon)) (looking-at "<!--")))
       (setq lcon (cons 'comment (+ (cdr lcon) 2))))
 
-  (pcase (car lcon)
+  (pcase-exhaustive (car lcon)
+
+    ((or (guard (let ((case-fold-search t))
+              (cl-find (concat "\\`" (regexp-opt sgml-whitespace-sensitive-tags) "\\'")
+                       (save-excursion (sgml-get-context))
+                       :test #'string-match-p
+                       :key #'sgml-tag-name)))
+         ;; We don't know how to indent it.  Let's be honest about it.
+         'pi 'cdata)
+     nil)
 
     ('string
      ;; Go back to previous non-empty line.
@@ -1658,11 +1670,6 @@ LCON is the lexical context, if any."
        (when (and (not mark) (looking-at "--"))
 	 (forward-char 2) (skip-chars-forward " \t"))
        (current-column)))
-
-    ;; We don't know how to indent it.  Let's be honest about it.
-    ('cdata nil)
-    ;; We don't know how to indent it.  Let's be honest about it.
-    ('pi nil)
 
     ('tag
      (goto-char (+ (cdr lcon) sgml-attribute-offset))
@@ -1732,12 +1739,7 @@ LCON is the lexical context, if any."
 	(t
 	 (goto-char there)
 	 (+ (current-column)
-	    (* sgml-basic-offset (length context)))))))
-
-    (_
-     (error "Unrecognized context %s" (car lcon)))
-
-    ))
+	    (* sgml-basic-offset (length context)))))))))
 
 (defun sgml-indent-line ()
   "Indent the current line as SGML."
@@ -1792,53 +1794,62 @@ Currently just returns (EMPTY-TAGS UNCLOSED-TAGS)."
   :type 'hook
   :options '(html-autoview-mode))
 
-(defvar html-quick-keys sgml-quick-keys
-  "Use C-c X combinations for quick insertion of frequent tags when non-nil.
-This defaults to `sgml-quick-keys'.
-This takes effect when first loading the library.")
-
 (defvar html-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map  sgml-mode-map)
-    (define-key map "\C-c6" #'html-headline-6)
-    (define-key map "\C-c5" #'html-headline-5)
-    (define-key map "\C-c4" #'html-headline-4)
-    (define-key map "\C-c3" #'html-headline-3)
-    (define-key map "\C-c2" #'html-headline-2)
-    (define-key map "\C-c1" #'html-headline-1)
-    (define-key map "\C-c\r" #'html-paragraph)
-    (define-key map "\C-c\n" #'html-line)
-    (define-key map "\C-c\C-c-" #'html-horizontal-rule)
-    (define-key map "\C-c\C-co" #'html-ordered-list)
-    (define-key map "\C-c\C-cu" #'html-unordered-list)
-    (define-key map "\C-c\C-cr" #'html-radio-buttons)
-    (define-key map "\C-c\C-cc" #'html-checkboxes)
-    (define-key map "\C-c\C-cl" #'html-list-item)
-    (define-key map "\C-c\C-ch" #'html-href-anchor)
-    (define-key map "\C-c\C-cf" #'html-href-anchor-file)
-    (define-key map "\C-c\C-cn" #'html-name-anchor)
-    (define-key map "\C-c\C-c#" #'html-id-anchor)
-    (define-key map "\C-c\C-ci" #'html-image)
-    (when html-quick-keys
-      (define-key map "\C-cp" #'html-paragraph)
-      (define-key map "\C-c-" #'html-horizontal-rule)
-      (define-key map "\C-cd" #'html-div)
-      (define-key map "\C-co" #'html-ordered-list)
-      (define-key map "\C-cu" #'html-unordered-list)
-      (define-key map "\C-cr" #'html-radio-buttons)
-      (define-key map "\C-cc" #'html-checkboxes)
-      (define-key map "\C-cl" #'html-list-item)
-      (define-key map "\C-ch" #'html-href-anchor)
-      (define-key map "\C-cf" #'html-href-anchor-file)
-      (define-key map "\C-cn" #'html-name-anchor)
-      (define-key map "\C-c#" #'html-id-anchor)
-      (define-key map "\C-ci" #'html-image)
-      (define-key map "\C-cs" #'html-span))
-    (define-key map "\C-c\C-s" #'html-autoview-mode)
-    (define-key map "\C-c\C-v" #'browse-url-of-buffer)
-    (define-key map "\M-o" 'facemenu-keymap)
+    (set-keymap-parent map sgml-mode-map)
+    (define-key map (kbd "C-c 6") #'html-headline-6)
+    (define-key map (kbd "C-c 5") #'html-headline-5)
+    (define-key map (kbd "C-c 4") #'html-headline-4)
+    (define-key map (kbd "C-c 3") #'html-headline-3)
+    (define-key map (kbd "C-c 2") #'html-headline-2)
+    (define-key map (kbd "C-c 1") #'html-headline-1)
+    (define-key map (kbd "C-c C-m") #'html-paragraph)
+    (define-key map (kbd "C-c C-j") #'html-line)
+    (define-key map (kbd "C-c C-c -") #'html-horizontal-rule)
+    (define-key map (kbd "C-c C-c o") #'html-ordered-list)
+    (define-key map (kbd "C-c C-c u") #'html-unordered-list)
+    (define-key map (kbd "C-c C-c r") #'html-radio-buttons)
+    (define-key map (kbd "C-c C-c c") #'html-checkboxes)
+    (define-key map (kbd "C-c C-c l") #'html-list-item)
+    (define-key map (kbd "C-c C-c h") #'html-href-anchor)
+    (define-key map (kbd "C-c C-c f") #'html-href-anchor-file)
+    (define-key map (kbd "C-c C-c n") #'html-name-anchor)
+    (define-key map (kbd "C-c C-c #") #'html-id-anchor)
+    (define-key map (kbd "C-c C-c i") #'html-image)
+    (define-key map (kbd "C-c C-s") #'html-autoview-mode)
+    (define-key map (kbd "C-c C-v") #'browse-url-of-buffer)
+    (define-key map (kbd "M-o") 'facemenu-keymap)
     map)
   "Keymap for commands for use in HTML mode.")
+
+(defcustom html-quick-keys sgml-quick-keys
+  "Use C-c X combinations for quick insertion of frequent tags when non-nil.
+This defaults to `sgml-quick-keys', which see."
+  :set (lambda (sym val)
+         (set-default sym val)
+         (dolist (bind `((,(kbd "C-c p") . ,#'html-paragraph)
+                         (,(kbd "C-c -") . ,#'html-horizontal-rule)
+                         (,(kbd "C-c d") . ,#'html-div)
+                         (,(kbd "C-c o") . ,#'html-ordered-list)
+                         (,(kbd "C-c u") . ,#'html-unordered-list)
+                         (,(kbd "C-c r") . ,#'html-radio-buttons)
+                         (,(kbd "C-c c") . ,#'html-checkboxes)
+                         (,(kbd "C-c l") . ,#'html-list-item)
+                         (,(kbd "C-c h") . ,#'html-href-anchor)
+                         (,(kbd "C-c f") . ,#'html-href-anchor-file)
+                         (,(kbd "C-c n") . ,#'html-name-anchor)
+                         (,(kbd "C-c #") . ,#'html-id-anchor)
+                         (,(kbd "C-c i") . ,#'html-image)
+                         (,(kbd "C-c s") . ,#'html-span)))
+           (if val
+               (define-key html-mode-map (car bind) (cdr bind))
+             (define-key html-mode-map (car bind) nil t))))
+  :set-after '(sgml-quick-keys)
+  :type '(choice (const :tag "Enabled" t)
+                 (const :tag "Enabled, and indent when closing tags" indent)
+                 ;; Omit `close' because `electric-pair-mode' already
+                 ;; takes care of paring "<" and ">".
+                 (const :tag "Disabled" nil)))
 
 (easy-menu-define html-mode-menu html-mode-map
   "Menu for HTML mode."
@@ -2034,10 +2045,12 @@ This takes effect when first loading the library.")
       ("caption" ("valign" ("top") ("bottom")))
       ("center" \n)
       ("cite")
-      ("code" \n)
+      ("code")
       ("datalist" \n)
       ("dd" ,(not sgml-xml-mode))
       ("del" nil ("cite") ("datetime"))
+      ("details"
+       (\n "<summary>" (read-string "Title: ") "</summary>" \n _))
       ("dfn")
       ("div" \n ("id") ("class"))
       ("dl" (nil \n
@@ -2099,6 +2112,7 @@ This takes effect when first loading the library.")
       ("param" t ("name") ("value")
        ("valuetype" ("data") ("ref") ("object")) ("type"))
       ("person") ;; Tag for person's name tag deprecated in HTML 3.2
+      ("picture" \n)                    ;TODO: suggest inserting <source> and <img>
       ("pre" \n)
       ("progress" nil ("value") ("max"))
       ("q" nil ("cite"))
@@ -2180,6 +2194,7 @@ This takes effect when first loading the library.")
     ("datalist" . "A set of predefined options")
     ("dd" . "Definition of term")
     ("del" . "Deleted text")
+    ("details" . "Details disclosure")
     ("dfn" . "Defining instance of a term")
     ("dir" . "Directory list (obsolete)")
     ("div" . "Generic block-level container")
@@ -2247,6 +2262,7 @@ This takes effect when first loading the library.")
     ("panel" . "Floating panel")
     ("param" . "Parameters for an object")
     ("person" . "Person's name")
+    ("picture" . "Picture")
     ("pre" . "Preformatted fixed width text")
     ("progress" . "Completion progress of a task")
     ("q" . "Quotation")
@@ -2399,6 +2415,7 @@ To work around that, do:
   (setq-local sgml-tag-alist html-tag-alist)
   (setq-local sgml-face-tag-alist html-face-tag-alist)
   (setq-local sgml-tag-help html-tag-help)
+  (setq-local sgml-whitespace-sensitive-tags '("pre" "textarea"))
   (setq-local outline-regexp "^.*<[Hh][1-6]\\>")
   (setq-local outline-heading-end-regexp "</[Hh][1-6]>")
   (setq-local outline-level

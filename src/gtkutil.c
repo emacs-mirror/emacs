@@ -1181,8 +1181,6 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   int outer_height
     = height + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
   int outer_width = width + FRAME_TOOLBAR_WIDTH (f);
-  bool was_visible = false;
-  bool hide_child_frame;
 
 #ifndef HAVE_PGTK
   gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
@@ -1202,9 +1200,6 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     }
 #endif
 
-  /* Do this before resize, as we don't know yet if we will be resized.  */
-  FRAME_RIF (f)->clear_under_internal_border (f);
-
   outer_height /= xg_get_scale (f);
   outer_width /= xg_get_scale (f);
 
@@ -1220,108 +1215,36 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      remain unchanged but giving the frame back its normal size will
      be broken ... */
   if (EQ (fullscreen, Qfullwidth) && width == FRAME_PIXEL_WIDTH (f))
-#ifndef HAVE_PGTK
-    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       gwidth, outer_height);
-#else
-    if (FRAME_GTK_OUTER_WIDGET (f))
-      {
-	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   gwidth, outer_height);
-      }
-    else
-      {
-	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				     gwidth, outer_height);
-      }
-#endif
+    outer_width = gwidth;
   else if (EQ (fullscreen, Qfullheight) && height == FRAME_PIXEL_HEIGHT (f))
+    outer_height = gheight;
+  else
+    fullscreen = Qnil;
+
 #ifndef HAVE_PGTK
-    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       outer_width, gheight);
-#else
-    if (FRAME_GTK_OUTER_WIDGET (f))
-      {
-	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   outer_width, gheight);
-      }
-    else
-      {
-	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				     outer_width, gheight);
-      }
-#endif
-  else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
+  if (FRAME_PARENT_FRAME (f))
     {
-      was_visible = true;
-#ifndef HAVE_PGTK
-      hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
-#else
-      hide_child_frame = false;
+      gdk_window_resize (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
+			 outer_width, outer_height);
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      GtkAllocation alloc = {0, 0, outer_width, outer_height};
+      gtk_widget_size_allocate (FRAME_GTK_OUTER_WIDGET (f), &alloc);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
 #endif
-
-      if (outer_width != gwidth || outer_height != gheight)
-	{
-          if (hide_child_frame)
-            {
-              block_input ();
-#ifndef HAVE_PGTK
-              gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
-#else
-	      gtk_widget_hide (FRAME_WIDGET (f));
-#endif
-              unblock_input ();
-            }
-
-#ifndef HAVE_PGTK
-	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			     outer_width, outer_height);
-#else
-	  if (FRAME_GTK_OUTER_WIDGET (f))
-	    {
-	      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-				 outer_width, outer_height);
-	    }
-	  else
-	    {
-	      gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-					   outer_width, outer_height);
-	    }
-#endif
-
-          if (hide_child_frame)
-            {
-              block_input ();
-#ifndef HAVE_PGTK
-              gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
-#else
-	      gtk_widget_show_all (FRAME_WIDGET (f));
-#endif
-              unblock_input ();
-            }
-
-	  fullscreen = Qnil;
-	}
     }
   else
-    {
-#ifndef HAVE_PGTK
-      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 outer_width, outer_height);
+    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       outer_width, outer_height);
 #else
-      if (FRAME_GTK_OUTER_WIDGET (f))
-	{
-	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			     outer_width, outer_height);
-	}
-      else
-	{
-	  gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				       outer_width, outer_height);
-	}
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       outer_width, outer_height);
+  else				/* PGTK child frame.  */
+    gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				 outer_width, outer_height);
 #endif
-      fullscreen = Qnil;
-    }
 
   SET_FRAME_GARBAGED (f);
   cancel_mouse_face (f);
@@ -1333,7 +1256,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      size as fast as possible.
      For unmapped windows, we can set rows/cols.  When
      the frame is mapped again we will (hopefully) get the correct size.  */
-  if (FRAME_VISIBLE_P (f) && !was_visible)
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     {
       if (CONSP (frame_size_history))
 	frame_size_history_extra
@@ -1421,10 +1344,20 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
 
 #ifndef HAVE_PGTK
   gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
+  if (FRAME_PARENT_FRAME (f))
+    {
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      GtkAllocation alloc = {0, 0, outer_width, outer_height};
+      gtk_widget_size_allocate (FRAME_GTK_OUTER_WIDGET (f), &alloc);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
+#endif
+    }
 #else
   if (FRAME_GTK_OUTER_WIDGET (f))
     gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
-  else
+  else				/* PGTK child frame.  */
     gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
 				 outer_width, outer_height);
 #endif
@@ -1432,7 +1365,11 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
   SET_FRAME_GARBAGED (f);
   cancel_mouse_face (f);
 
-  if (FRAME_VISIBLE_P (f))
+  /* For child frames, don't wait for events — that would flush the X
+     buffer and might show outdated contents in the frame.  Same for
+     invisible frames: this way is faster and x_make_frame_visible will
+     wait for event anyway.  */
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     {
       /* Must call this to flush out events */
       (void)gtk_events_pending ();

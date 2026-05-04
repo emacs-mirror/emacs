@@ -61,6 +61,11 @@ add this string to nicks completed."
 ;;;###autoload(put 'completion 'erc--feature 'erc-pcomplete)
 ;;;###autoload(autoload 'erc-completion-mode "erc-pcomplete" nil t)
 (put 'completion 'erc-group 'erc-pcomplete)
+;; For historical reasons, (the downcased version of) this module's
+;; alias is the canonical name used by `erc-modules'.  But user code
+;; still needs to detect whether the module is enabled based on that
+;; name alone, hence this variable alias.
+(defvaralias 'erc-completion-mode 'erc-pcomplete-mode)
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
   ((add-hook 'erc-mode-hook #'pcomplete-erc-setup)

@@ -2260,9 +2260,12 @@ android_wait_for_event (struct frame *f, int eventtype)
     {
       pending_signals = true;
       totally_unblock_input ();
-      /* XTread_socket is called after unblock.  */
+      /* android_read_socket is called after unblock.  */
       block_input ();
       interrupt_input_blocked = level;
+
+      if (!f->wait_event_type)
+	break;
 
       time_now = current_timespec ();
       if (timespec_cmp (tmo_at, time_now) < 0)

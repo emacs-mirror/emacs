@@ -462,8 +462,7 @@ including line delimiters."
                        (substring string (match-end 0))))
         (erc-d--log process line nil)
         (ring-insert queue (erc-d-i--parse-message line nil))))
-    (when string
-      (setf (process-get process :stashed-input) string))))
+    (setf (process-get process :stashed-input) string)))
 
 ;; Misc process properties:
 ;;

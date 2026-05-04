@@ -1420,7 +1420,7 @@ this variable.  I think."
 
 (gnus-redefine-select-method-widget)
 
-(defcustom gnus-updated-mode-lines '(group article summary tree)
+(defcustom gnus-updated-mode-lines '(group article summary tree server)
   "List of buffers that should update their mode lines.
 The list may contain the symbols `group', `article', `tree' and
 `summary'.  If the corresponding symbol is present, Gnus will keep
@@ -1430,7 +1430,8 @@ If this variable is nil, screen refresh may be quicker."
   :type '(set (const group)
 	      (const article)
 	      (const summary)
-	      (const tree)))
+	      (const tree)
+              (const server)))
 
 (defcustom gnus-mode-non-string-length 30
   "Max length of mode-line non-string contents.

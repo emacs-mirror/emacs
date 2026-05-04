@@ -4483,7 +4483,7 @@ x_window (struct frame *f)
 
   attributes.background_pixel = FRAME_BACKGROUND_PIXEL (f);
   attributes.border_pixel = f->output_data.x->border_pixel;
-  attributes.bit_gravity = NorthWestGravity;
+  attributes.bit_gravity = StaticGravity;
   attributes.backing_store = NotUseful;
   attributes.save_under = True;
   attributes.event_mask = STANDARD_EVENT_SET;
@@ -10483,10 +10483,6 @@ default and usually works with most desktops.  Some desktop environments
 (GNOME shell in particular when using the mutter window manager),
 however, may refuse to resize a child frame when Emacs is built with
 GTK3.  For those environments, the two settings below are provided.
-
-If this equals the symbol `hide', Emacs temporarily hides the child
-frame during resizing.  This approach seems to work reliably, may
-however induce some flicker when the frame is made visible again.
 
 If this equals the symbol `resize-mode', Emacs uses GTK's resize mode to
 always trigger an immediate resize of the child frame.  This method is

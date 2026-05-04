@@ -267,6 +267,10 @@ Dialog resource directories are located by expanding the variable
                               (package-initialize))))
                    (require 'erc)
                    (cl-assert (equal erc-version ,erc-version) t)))
+         ;; Load test-related compat shims too niche for Compat, such as
+         ;; a <31 definition of `ert-with-buffer-selected'.
+         (tcompat (and (featurep 'erc-tests-compat)
+                       (locate-library "erc-tests-compat")))
          ;; Make subprocess terminal bigger than controlling.
          (buf (cl-letf (((symbol-function 'window-screen-lines)
                          (lambda () (car erc-scenarios-common--term-size)))
@@ -277,6 +281,9 @@ Dialog resource directories are located by expanding the variable
                        nil `(,@(or init '("-Q")) "-nw"
                              "-eval" ,(format "%S" setup)
                              "-l" ,file-name
+                             ,@(and tcompat
+                                    (list "-L" (file-name-directory tcompat)
+                                          "-l" tcompat))
                              "-eval" ,(format "%S" cmd)))))
          (proc (get-buffer-process buf))
          (err (lambda ()

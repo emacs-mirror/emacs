@@ -235,6 +235,7 @@ Philip Kaludercic
        lisp/emacs-lisp/package.el
        lisp/emacs-lisp/package-vc.el
        lisp/emacs-lisp/compat.el
+       lisp/textmodes/sgml-mode.el
 
 Yuan Fu
        src/treesit.c

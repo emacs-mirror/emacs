@@ -322,6 +322,7 @@ automatically killed, which means that in a such case
         buffer
       (generate-new-buffer " *work*" t))))
 
+;;;###autoload
 (defun work-buffer--release (buffer)
   "Release work BUFFER."
   (if (buffer-live-p buffer)

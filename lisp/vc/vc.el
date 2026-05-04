@@ -5732,15 +5732,14 @@ When called from Lisp, BACKEND is the VC backend."
   (dired directory))
 
 (defvar project-prompter)
+(declare-function project-root "project")
 
-(defun vc--prompt-other-working-tree (backend prompt &optional allow-empty)
+(defun vc--prompt-other-working-tree (backend prompt &optional allow-current)
   "Invoke `project-prompter' to choose another working tree.
 BACKEND is the VC backend.
 PROMPT is the prompt string for `project-prompter'.
-If ALLOW-EMPTY is non-nil, empty input means the current working tree.
-In typical usage ALLOW-EMPTY non-nil means that it makes sense to apply
-the caller's operation to the current working tree."
-  ;; If there are no other working trees and ALLOW-EMPTY is non-nil, we
+If ALLOW-CURRENT is non-nil, allow selecting the current working tree."
+  ;; If there are no other working trees and ALLOW-CURRENT is non-nil we
   ;; still invoke the `project-prompter' and require the user to type
   ;; \\`RET', even though it's redundant.  Doing it this way means that
   ;; invoking the command on the current working tree works the same
@@ -5752,25 +5751,25 @@ the caller's operation to the current working tree."
   ;; stopping to look at the echo area.
   (let ((trees (vc-call-backend backend 'known-other-working-trees))
         res)
-    (unless (or trees allow-empty)
-      (user-error
-       (substitute-command-keys
-        "No other working trees.  Use \\[vc-add-working-tree] to add one")))
     (require 'project)
+    (cond* ((bind-and* (_ allow-current)
+                       (p (project-current)))
+            (push (project-root p) trees))
+           ((null trees)
+            (user-error
+             (substitute-command-keys
+              "No other working trees.  Use \\[vc-add-working-tree] to add one"))))
     (dolist (tree trees)
       (when-let* ((p (project-current nil tree)))
         (project-remember-project p nil t)))
     (setq res
           (funcall project-prompter
-                   (if allow-empty
-                       (format "%s (empty for this working tree)"
-                               prompt)
+                   (if allow-current
+                       (concat prompt " (default current working tree)")
                      prompt)
-                   (if trees
-                       (lambda (k &optional _v)
-                         (member (or (car-safe k) k) trees))
-                     #'ignore)
-                   t allow-empty))
+                   (lambda (k &optional _v)
+                     (member (or (car-safe k) k) trees))
+                   'require-known))
     (if (string-empty-p res) (vc-root-dir) res)))
 
 (defvar project-current-directory-override)
@@ -5801,7 +5800,8 @@ Prompts for the directory file name of the other working tree."
   (interactive
    (list
     (vc--prompt-other-working-tree (vc-responsible-backend default-directory)
-                                   "Other working tree to switch to")))
+                                   "Other working tree to switch to"
+                                   'allow-current)))
   (project-switch-project dir))
 
 ;;;###autoload
@@ -5814,7 +5814,7 @@ BACKEND is the VC backend."
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
            (vc--prompt-other-working-tree backend "Delete working tree"
-                                          'allow-empty))))
+                                          'allow-current))))
   (let* ((delete-this (file-in-directory-p default-directory directory))
          (directory (expand-file-name directory))
          (default-directory
@@ -5860,7 +5860,7 @@ BACKEND is the VC backend."
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
            (vc--prompt-other-working-tree backend "Relocate working tree"
-                                          'allow-empty)
+                                          'allow-current)
            (read-directory-name "New location for working tree: "
                                 (file-name-parent-directory (vc-root-dir))))))
   (let* ((move-this (file-in-directory-p default-directory from))

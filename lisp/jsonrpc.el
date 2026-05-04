@@ -86,12 +86,14 @@
     :documentation "Map (DEFERRED BUF) to (FN TIMER ID).  FN is\
 a saved DEFERRED `async-request' from BUF, to be sent not later\
 than TIMER as ID.")
-   (-sync-request-alist ; bug#67945
+   (-scontrol ; bug#67945
     :initform nil
-    :accessor jsonrpc--sync-request-alist
-    :documentation "List of ((ID [ANXIOUS...])) where ID refers  \
-to a sync `jsonrpc-request' and each ANXIOUS to another completed\
-request that is higher up in the stack but couldn't run.")
+    :accessor jsonrpc--scontrol
+    :documentation "List of ((KEY [ANXIOUS...])) where KEY is \
+(:local ID) for an outstanding sync `jsonrpc-request', or \
+(:remote ID) while a remote request with that ID is being \
+dispatched.  Each ANXIOUS is a completed response deferred \
+until KEY's entry is popped.")
    (-next-request-id
     :initform 0
     :accessor jsonrpc--next-request-id
@@ -291,7 +293,7 @@ dispatcher in CONN."
           (with-slots (last-error
                        (rdispatcher -request-dispatcher)
                        (ndispatcher -notification-dispatcher)
-                       (sr-alist -sync-request-alist))
+                       (scontrol -scontrol))
               conn
             (setf last-error error)
             (cond
@@ -311,23 +313,31 @@ dispatcher in CONN."
               )
              (;; A remote response that can't run yet (bug#67945)
               (and response-p
-                   (and sr-alist (not (eq id (caar sr-alist)))))
+                   (and scontrol (not (equal `(:local ,id) (caar scontrol)))))
               (jsonrpc--event
                conn 'internal
                :log-text
                (format "anxious continuation to %s can't run, held up by %s"
                        id
-                       (mapcar #'car sr-alist)))
+                       (mapcar #'car scontrol)))
               (push (cons cont (list result error))
-                    (cdr (car sr-alist))))
+                    (cdr (car scontrol))))
              (;; A remote response that can continue now
               response-p
-              (jsonrpc--continue conn id cont result error))
+              (jsonrpc--continue conn `(:local ,id) cont result error))
              (;; A remote request
               (and method id)
               (let* ((debug-on-error (and debug-on-error
                                           (not jsonrpc-inhibit-debug-on-error)))
                      reply)
+                ;; While the rdispatcher runs, any arriving response to
+                ;; a previous sync request must not fire its
+                ;; continuation immediately: the resulting `throw' would
+                ;; unwind through the dispatcher and trigger a spurious
+                ;; -32603 instead of a reply.  Use `jsonrpc--scontrol'
+                ;; mechanism to defer such continuations until the end
+                ;; of the cleanup below.
+                (push `((:remote ,id)) (jsonrpc--scontrol conn))
                 (unwind-protect
                     (setq
                      reply
@@ -349,7 +359,8 @@ dispatcher in CONN."
                   (unless reply
                     (setq reply
                           `(:error (:code -32603 :message "Internal error"))))
-                  (apply #'jsonrpc--reply conn id method reply))))
+                  (apply #'jsonrpc--reply conn id method reply)
+                  (jsonrpc--continue conn `(:remote ,id)))))
              (;; A remote notification
               method
               (funcall ndispatcher conn (intern method) params))
@@ -513,7 +524,7 @@ to the original request (normal or error) are ignored."
         ;; request, it might have been holding up any outer
         ;; "anxious" continuations.  The following ensures we
         ;; call them.
-        (jsonrpc--continue connection id)))
+        (jsonrpc--continue connection `(:local ,id))))
     (cond ((eq 'error (car retval))
            (signal 'jsonrpc-error
                    (cons
@@ -902,11 +913,11 @@ Return the full continuation (ID SUCCESS-FN ERROR-FN TIMER)"
 (defun jsonrpc--continue (conn id &optional cont result error)
   (pcase-let* ((`(,cont-id ,_method ,success-fn ,error-fn ,_timer)
                 cont)
-               (head (pop (jsonrpc--sync-request-alist conn)))
+               (head (pop (jsonrpc--scontrol conn)))
                (anxious (cdr head)))
     (cond
      (anxious
-      (when (not (= (car head) id)) ; sanity check
+      (when (not (equal (car head) id)) ; sanity check
         (error "Internal error: please report this bug"))
       ;; If there are "anxious" `jsonrpc-request' continuations
       ;; that should already have been run, they should run now.
@@ -998,7 +1009,7 @@ TIMEOUT is nil)."
     ;; Setup some control structures
     ;;
     (when sync-request
-      (push (list id) (jsonrpc--sync-request-alist connection)))
+      (push `((:local ,id)) (jsonrpc--scontrol connection)))
 
     (jsonrpc--schedule
      connection id method
@@ -1108,7 +1119,7 @@ of the API instead.")
       (cl-destructuring-bind (&key method id error &allow-other-keys) message
         (let* ((inhibit-read-only t)
                (depth (length
-                       (jsonrpc--sync-request-alist connection)))
+                       (jsonrpc--scontrol connection)))
                (preamble (format "[jsonrpc] %s[%s]%s "
                                  (pcase type ('error "E") ('debug "D")
                                         (_ (pcase origin

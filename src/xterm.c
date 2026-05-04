@@ -28455,6 +28455,9 @@ x_wait_for_event (struct frame *f, int eventtype)
       block_input ();
       interrupt_input_blocked = level;
 
+      if (!f->wait_event_type)
+	break;
+
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
 
@@ -28484,6 +28487,19 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, 0, false);
 
+#ifdef USE_X_TOOLKIT
+  if (FRAME_PARENT_FRAME (f) && f->output_data.x->widget)
+    {
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      XtResizeWidget (f->output_data.x->widget,
+		      width, height + FRAME_MENUBAR_HEIGHT (f), 0);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
+#endif
+    }
+  else
+#endif
   XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		 width, height + FRAME_MENUBAR_HEIGHT (f));
 
@@ -28499,30 +28515,25 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
   if (!NILP (Vx_lax_frame_positioning))
     return;
 
-  /* Now, strictly speaking, we can't be sure that this is accurate,
+  /* Now, strictly speaking, we can't be sure that this is final,
      but the window manager will get around to dealing with the size
      change request eventually, and we'll hear how it went when the
      ConfigureNotify event gets here.
 
-     We could just not bother storing any of this information here,
-     and let the ConfigureNotify event set everything up, but that
-     might be kind of confusing to the Lisp code, since size changes
-     wouldn't be reported in the frame parameters until some random
-     point in the future when the ConfigureNotify event arrives.
-
-     Pass true for DELAY since we can't run Lisp code inside of
-     a BLOCK_INPUT.  */
-
-  /* But the ConfigureNotify may in fact never arrive, and then this is
-     not right if the frame is visible.  Instead wait (with timeout)
-     for the ConfigureNotify.  */
-  if (FRAME_VISIBLE_P (f))
+     We could just let the ConfigureNotify update everything, but
+     waiting creates an implicit X flush which might flicker with
+     outdated contents in the frame.  For child frames, the window
+     manager is not a concern and it's better to finish quickly.  */
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     {
+      /* The event may create delayed size change (delayed because we
+	 can't run Lisp code inside of a BLOCK_INPUT) which will be
+	 applied right after by do_pending_window_change.  */
       x_wait_for_event (f, ConfigureNotify);
 
       if (CONSP (frame_size_history))
 	frame_size_history_extra
-	  (f, build_string ("x_set_window_size_1, visible"),
+	  (f, build_string ("x_set_window_size_1, waited for event"),
 	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
 	   f->new_width, f->new_height);
     }
@@ -28530,7 +28541,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       if (CONSP (frame_size_history))
 	frame_size_history_extra
-	  (f, build_string ("x_set_window_size_1, invisible"),
+	  (f, build_string ("x_set_window_size_1, not waited for event"),
 	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
 	   f->new_width, f->new_height);
 
@@ -28561,7 +28572,8 @@ x_set_window_size (struct frame *f, bool change_gravity,
     x_set_window_size_1 (f, change_gravity, width, height);
 #else /* not USE_GTK */
   x_set_window_size_1 (f, change_gravity, width, height);
-  x_clear_under_internal_border (f);
+  if (!FRAME_PARENT_FRAME (f))
+    x_clear_under_internal_border (f);
 #endif /* not USE_GTK */
 
   /* If cursor was outside the new size, mark it as off.  */
@@ -28586,16 +28598,35 @@ x_set_window_size_and_position_1 (struct frame *f, int width, int height)
 
   x_wm_set_size_hint (f, 0, false);
 
-  XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		     x, y, width, height + FRAME_MENUBAR_HEIGHT (f));
+#ifdef USE_X_TOOLKIT
+  if (FRAME_PARENT_FRAME (f) && f->output_data.x->widget)
+    {
+      /* Clear widget's position coordinates because it only sends
+	 changed values with its XConfigureWindow command.  And these
+	 are likely outdated because XtDispatchEvent does not save them.
+	 The alternative would be to always use XtMoveWidget instead of
+	 XMoveWindow.  */
+      f->output_data.x->widget->core.x = -1;
+      f->output_data.x->widget->core.y = -1;
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      XtConfigureWidget (f->output_data.x->widget,
+			 x, y, width, height + FRAME_MENUBAR_HEIGHT (f), 0);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
+#endif
+    }
+  else
+#endif
+    XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		       x, y, width, height + FRAME_MENUBAR_HEIGHT (f));
 
   SET_FRAME_GARBAGED (f);
 
-  if (FRAME_VISIBLE_P (f))
+  /* Same as x_set_window_size_1.  */
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     x_wait_for_event (f, ConfigureNotify);
   else
-    /* Call adjust_frame_size right away as with GTK.  It might be
-       tempting to clear out f->new_width and f->new_height here.  */
     adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
 		       FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
 		       5, 0, Qx_set_window_size_1);
@@ -28615,7 +28646,8 @@ x_set_window_size_and_position (struct frame *f, int width, int height)
   x_set_window_size_and_position_1 (f, width, height);
 #endif /* USE_GTK */
 
-  x_clear_under_internal_border (f);
+  if (!FRAME_PARENT_FRAME (f))
+    x_clear_under_internal_border (f);
 
   /* If cursor was outside the new size, mark it as off.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));

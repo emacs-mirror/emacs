@@ -28,22 +28,20 @@
 
 (defun erc-d-t-kill-related-buffers ()
   "Kill all erc- or erc-d- related buffers."
-  (let (buflist)
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-        (when (or erc-d-u--process-buffer
-                  (derived-mode-p 'erc-mode 'erc-dcc-chat-mode))
-          (push buf buflist))))
-    (dolist (buf buflist)
-      (when (and (boundp 'erc-server-flood-timer)
-                 (timerp erc-server-flood-timer))
-        (cancel-timer erc-server-flood-timer))
-      (when-let* ((proc (get-buffer-process buf)))
-        (delete-process proc))
-      (when (buffer-live-p buf)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (or erc-d-u--process-buffer
+                (derived-mode-p 'erc-mode
+                                'erc-dcc-chat-mode)
+                (string-match (rx bot
+                                  (? " ") "*erc" (in "- ") (+ nonl) "*"
+                                  eot)
+                              (buffer-name)))
+        (when-let* ((proc (get-buffer-process buf)))
+          (delete-process proc))
         (kill-buffer buf))))
-  (while (when-let* ((buf (pop erc-d-u--canned-buffers)))
-           (kill-buffer buf))))
+  (while-let ((buf (pop erc-d-u--canned-buffers)))
+    (kill-buffer buf)))
 
 (defun erc-d-t-silence-around (orig &rest args)
   "Run ORIG function with ARGS silently.

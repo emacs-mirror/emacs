@@ -1274,7 +1274,8 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
                     "goto_statement"
                     "case_statement")))
     (text ,(regexp-opt '("comment"
-                         "raw_string_literal"))))
+                         "raw_string_literal")))
+    (comment "comment"))
   "`treesit-thing-settings' for both C and C++.")
 
 ;;; Support for FOR_EACH_* macros

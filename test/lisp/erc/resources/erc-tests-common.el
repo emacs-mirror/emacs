@@ -81,11 +81,18 @@ Assign the result to `erc-server-process' in the current buffer."
         ;; To facilitate automatic testing when a fake-server has already
 	;; been created by an earlier ERT test.
 	(kill-buffer-query-functions nil))
-    (dolist (buf (erc-buffer-list))
-      (kill-buffer buf))
+    (mapc #'kill-buffer
+          (match-buffers
+           `(or ,@(static-if (>= emacs-major-version 30)
+                     '((derived-mode erc-mode erc-dcc-chat-mode))
+                   '((major-mode . erc-mode) (major-mode . erc-dcc-chat-mode)))
+                ,(rx bot (? ?\s) "*erc" (in "- ") (+ nonl) ?* eot))))
     (named-let doit ((buffers extra-buffers))
       (dolist (buf buffers)
-        (if (consp buf) (doit buf) (kill-buffer buf))))))
+        (if (consp buf)
+            (doit buf)
+          (when (buffer-live-p buf)
+            (kill-buffer buf)))))))
 
 (defun erc-tests-common-with-process-input-spy (test-fn)
   "Mock `erc-process-input-line' and call TEST-FN.
