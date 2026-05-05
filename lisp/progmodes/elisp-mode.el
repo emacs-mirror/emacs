@@ -289,7 +289,7 @@ of highlighting \"semantic highlighting\".
 
 If `elisp-add-help-echo' is non-nil, also annotate the symbol with the
 `help-echo' text property.  If `cursor-sensor-mode' is enabled, also
-arrange for all occurrences of the each local variable to be highlighted
+arrange for all occurrences of each local variable to be highlighted
 with the `elisp-variable-at-point' face whenever point is on any of that
 variable's occurrences.
 
