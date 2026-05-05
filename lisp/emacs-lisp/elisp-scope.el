@@ -2821,10 +2821,12 @@ It is passed to `elisp-scope-1', which see."
 Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
 SYM, ID and DEF, where ROLE is a symbol that specifies the semantics of
 SYM; POS is the position of SYM in STREAM; ID is an object that uniquely
-identifies (co-)occurrences of SYM in the current defun; and DEF is the
-position in which SYM is locally defined, or nil.  If SYM is itself a
-binding occurrence, then POS and DEF are equal.  If SYM is not lexically
-bound, then DEF is nil.
+identifies the local reference of SYM in the current defun, so different
+occurrences of SYM get the same ID (up to `equal') if and only if they
+refer to the same object; and lastly, DEF is the position in which SYM
+is locally defined, or nil.  If SYM is itself a binding occurrence, then
+POS and DEF are equal.  If SYM is not lexically bound, then DEF is nil
+and so is ID.
 
 If STREAM is nil, it defaults to the current buffer.  When reading from
 the current buffer, this function leaves point at the end of the form.
