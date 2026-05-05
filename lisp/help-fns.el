@@ -215,7 +215,15 @@ type specifier when available."
           (help--load-prefixes prefixes))))
     (let ((prefix-completions
            (and help-enable-completion-autoload
-                (mapcar #'intern (all-completions string definition-prefixes)))))
+                ;; For `all-completions' and `try-completion', consider
+                ;; `definition-prefixes' as valid completions, to help users
+                ;; complete the input to the point where the above
+                ;; `help-enable-completion-autoload' code can take over.
+                ;; But don't do it for other operations, like `test-completion'
+                ;; (bug#80873).
+                (memq action '(nil t))
+                (mapcar #'intern (all-completions string
+                                                  definition-prefixes)))))
       (complete-with-action action obarray string
                             (if pred (lambda (sym)
                                        (or (funcall pred sym)
