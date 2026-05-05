@@ -5772,7 +5772,7 @@ If ALLOW-CURRENT is non-nil, allow selecting the current working tree."
                    'require-known))
     (if (string-empty-p res) (vc-root-dir) res)))
 
-(defvar project-current-directory-override)
+(defvar project-find-matching-buffer-function)
 
 ;;;###autoload
 (defun vc-switch-working-tree (directory)
@@ -5786,8 +5786,17 @@ to the root of this working tree."
    (list
     (vc--prompt-other-working-tree (vc-responsible-backend default-directory)
                                    "Other working tree to visit")))
-  (let ((project-current-directory-override directory))
-    (project-find-matching-buffer)))
+  (let ((backend (or (vc-deduce-backend)
+                     (vc-responsible-backend default-directory)
+                     (error "No VC backend"))))
+    ;; Manually construct VC project objects because `project-current'
+    ;; might find a non-VC project within the VC working tree containing
+    ;; DIRECTORY, but we should ignore that (bug#80939).
+    (funcall project-find-matching-buffer-function
+             `(vc ,backend ,(vc-root-dir backend))
+             `(vc ,backend
+                  ,(let ((default-directory directory))
+                     (vc-root-dir backend))))))
 
 ;;;###autoload
 (defun vc-working-tree-switch-project (dir)
