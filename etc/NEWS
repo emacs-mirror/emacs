@@ -4612,7 +4612,7 @@ it causes 'quit' since it is used for 'C-g'.
 +++
 ** New ':interactive-only' way to add an advice.
 While it is marginally more efficient than ':after' or ':before',
-the main purpose it to make the intention more obvious when the advice
+the main purpose is to make the intention more obvious when the advice
 modifies only the interactive form and not the actual behavior
 of the function.
 
