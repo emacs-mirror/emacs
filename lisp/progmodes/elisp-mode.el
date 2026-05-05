@@ -288,8 +288,10 @@ the role of each symbol and highlight it accordingly.  We call this kind
 of highlighting \"semantic highlighting\".
 
 If `elisp-add-help-echo' is non-nil, also annotate the symbol with the
-`help-echo' text property.  If `cursor-sensor-mode' is enabled,
-also optionally annotate the symbol with `cursor-sensor-functions'.
+`help-echo' text property.  If `cursor-sensor-mode' is enabled, also
+arrange for all occurrences of the each local variable to be highlighted
+with the `elisp-variable-at-point' face whenever point is on any of that
+variable's occurrences.
 
 Semantic highlighting works best when you keep your code syntactically
 correct while editing it, for example by using `electric-pair-mode'.

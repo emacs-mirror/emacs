@@ -2828,6 +2828,39 @@ is locally defined, or nil.  If SYM is itself a binding occurrence, then
 POS and DEF are equal.  If SYM is not lexically bound, then DEF is nil
 and so is ID.
 
+As an example, when this function analyzes the following form
+
+  (lambda (mode) (let ((mode (or mode major-mode))) (symbol-name mode)))
+
+the CALLBACK function is invoked four times with SYM `mode':
+
+- Once for the `mode' in the `lambda' arguments list, with ROLE
+  `binding-variable', some non-nil ID value MODE-ID1, and with POS and
+  DEF both being the same position POS1 where this `mode' occurs.
+
+- Another time for the binder in the let form, with ROLE
+  `binding-variable' some non-nil ID value MODE-ID2 that is not `equal'
+  to MODE-ID1, and with POS and DEF both being the same position POS2.
+
+- Another for the first argument of `or', with ROLE `bound-variable' and
+  ID of MODE-ID1, since this occurrence of `mode' is bound by the
+  `lambda' argument `mode'.  Similarly, DEF is POS1, and POS is now a
+  different position, POS3.
+
+- Finally, CALLBACK is also invoked for the `mode' that appears in the
+  body of `let' as the argument of `symbol-name', with ROLE set to
+  `bound-variable', ID set to MODE-ID2, and DEF set to POS3.
+
+In the above example, CALLBACK is also invoked for `lambda', `let',
+`or', `major-mode' and `symbol-name'.  Since those symbols do not have
+local references (they refer to global functions/macros/variables),
+CALLBACK gets nil ID and nil DEF.
+
+Note that if SYM is locally-bound, but has no specific binding position,
+then DEF is nil while ID is non-nil.  This is the case when SYM is bound
+by a binder that is only introduced during macro expansion and does not
+appear literally in the analyzed code.
+
 If STREAM is nil, it defaults to the current buffer.  When reading from
 the current buffer, this function leaves point at the end of the form.
 
