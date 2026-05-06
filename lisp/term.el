@@ -4128,10 +4128,11 @@ all pending output has been dealt with."))
         ;; contain a space, to force the previous line to continue to wrap.
         ;; We could do this always, but it seems preferable to not add the
         ;; extra space when wrapped is false.
-        (when wrapped
-	  (insert-before-markers ? ))
-        (insert-before-markers ?\n)
-        (delete-region saved-point (point)))
+        (let ((deletion-point (point)))
+          (when wrapped
+	    (insert-before-markers ? ))
+          (insert-before-markers ?\n)
+          (delete-region saved-point deletion-point)))
       (put-text-property saved-point (point) 'font-lock-face 'default)
       (goto-char saved-point))))
 
