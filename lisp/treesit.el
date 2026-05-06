@@ -1234,27 +1234,27 @@ Return the created local parsers as a list."
         ;; Each element of RANGES can be either (START . END) or ((START
         ;; . END)...).
         (dolist (range ranges)
-          (let ((beg (treesit--range-start range))
-                (end (treesit--range-end range))
-                (existing-local-parser
-                 (catch 'done
-                   (dolist (ov (overlays-in beg end) nil)
-                     ;; Update range of local parser.
-                     (when-let* ((embedded-parser
-                                  (overlay-get ov 'treesit-parser))
-                                 (parser-lang (treesit-parser-language
-                                               embedded-parser))
-                                 (parser-level (treesit-parser-embed-level
-                                                embedded-parser)))
-                       (when (and (overlay-get ov 'treesit-parser-local-p)
-                                  (eq parser-lang embedded-lang)
-                                  (eq embed-level parser-level))
-                         (treesit--set-embed-ranges
-                          range embedded-parser host-parser)
-                         (move-overlay ov beg end)
-                         (overlay-put ov 'treesit-parser-ov-timestamp
-                                      modified-tick)
-                         (throw 'done embedded-parser)))))))
+          (let* ((r-start (treesit--range-start range))
+                 (r-end (treesit--range-end range))
+                 (existing-local-parser
+                  (catch 'done
+                    (dolist (ov (overlays-in r-start r-end) nil)
+                      ;; Update range of local parser.
+                      (when-let* ((embedded-parser
+                                   (overlay-get ov 'treesit-parser))
+                                  (parser-lang (treesit-parser-language
+                                                embedded-parser))
+                                  (parser-level (treesit-parser-embed-level
+                                                 embedded-parser)))
+                        (when (and (overlay-get ov 'treesit-parser-local-p)
+                                   (eq parser-lang embedded-lang)
+                                   (eq embed-level parser-level))
+                          (treesit--set-embed-ranges
+                           range embedded-parser host-parser)
+                          (move-overlay ov r-start r-end)
+                          (overlay-put ov 'treesit-parser-ov-timestamp
+                                       modified-tick)
+                          (throw 'done embedded-parser)))))))
             (if existing-local-parser
                 (push existing-local-parser touched-parsers)
               ;; Create overlay and local parser.  Refer to
@@ -1262,7 +1262,7 @@ Return the created local parsers as a list."
               ;; local parser overlays.
               (let ((embedded-parser (treesit-parser-create
                                       embedded-lang nil t 'embedded))
-                    (ov (make-overlay beg end nil nil t)))
+                    (ov (make-overlay r-start r-end nil nil t)))
                 (treesit-parser-set-embed-level embedded-parser embed-level)
                 (overlay-put ov 'treesit-parser embedded-parser)
                 (overlay-put ov 'treesit-parser-local-p t)
