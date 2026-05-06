@@ -2828,6 +2828,10 @@ is locally defined, or nil.  If SYM is itself a binding occurrence, then
 POS and DEF are equal.  If SYM is not lexically bound, then DEF is nil
 and so is ID.
 
+CALLBACK should use ID by checking if it is nil or `equal' to other ID
+values produced in the same call to this function.  The specific value
+of a given ID is otherwise meaningless.
+
 As an example, when this function analyzes the following form
 
   (lambda (mode) (let ((mode (or mode major-mode))) (symbol-name mode)))

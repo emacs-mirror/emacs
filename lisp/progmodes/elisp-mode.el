@@ -618,7 +618,9 @@ semantic highlighting takes precedence."
 
 If `elisp-add-help-echo' is non-nil, also annotate the symbol with the
 `help-echo' text property.  If `cursor-sensor-mode' is enabled and ID is
-non-nil, also annotate the symbol with `cursor-sensor-functions'.
+non-nil (i.e. SYM is local variable), also annotate the symbol with
+`cursor-sensor-functions' that highlight all occurrences of SYM with the
+same ID whenever point is on this SYM.
 
 For the precise meaning of the arguments of this function, see the
 docstring of `elisp-scope-analyze-form'.  This function is intended for
