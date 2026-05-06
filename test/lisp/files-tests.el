@@ -884,8 +884,6 @@ unquoted file names."
         ;; Allow the directory to be deleted.
         (set-file-modes d-b #o700 'nofollow)))))
 
-(defvar w32-downcase-file-names)
-
 (ert-deftest files-tests-directory-files-recursively-w32 ()
   "Test MS-Windows specific features of `directory-files-recursively'."
   (skip-unless (eq system-type 'windows-nt))
@@ -910,15 +908,16 @@ unquoted file names."
       ;; Run them through 'directory-file-name' because the list above
       ;; uses directory names, whereas 'directory-files-recursively'
       ;; returns their file names.
-      (should (equal (mapcar 'directory-file-name files-list)
+      (should (equal (mapcar #'directory-file-name files-list)
                      ;; Make the returned file names relative.
                      (mapcar fnrel
                              (directory-files-recursively tmpdir ".*" t))))
       ;; Test that 'directory-files-recursively' downcases file names it
       ;; returns when 'w32-downcase-file-names' is non-nil.
+      (defvar w32-downcase-file-names)
       (let ((w32-downcase-file-names t))
-        (should (equal (mapcar 'downcase
-                               (mapcar 'directory-file-name files-list))
+        (should (equal (mapcar #'downcase
+                               (mapcar #'directory-file-name files-list))
                        (mapcar fnrel
                                (directory-files-recursively tmpdir ".*" t)))))
       ;; Test that backslashes are mirrored when files are returned.
@@ -928,11 +927,10 @@ unquoted file names."
              (subdir (file-name-concat
                       (concat tmpdir-with-backslashes "\\")
                       (string-replace "/" "\\" (nth nelt files-list)))))
-        (should (equal (mapcar 'directory-file-name
-                               (butlast files-list (- (length files-list)
-                                                      nelt)))
+        (should (equal (mapcar #'directory-file-name
+                               (take nelt files-list))
                        (mapcar fnrel
-                             (directory-files-recursively subdir ".*" t))))))))
+                               (directory-files-recursively subdir ".*" t))))))))
 
 (ert-deftest files-tests-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
