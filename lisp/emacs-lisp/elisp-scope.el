@@ -2824,9 +2824,10 @@ SYM; POS is the position of SYM in STREAM; ID is an object that uniquely
 identifies the local reference of SYM in the current defun, so different
 occurrences of SYM get the same ID (up to `equal') if and only if they
 refer to the same object; and lastly, DEF is the position in which SYM
-is locally defined, or nil.  If SYM is itself a binding occurrence, then
-POS and DEF are equal.  If SYM is not lexically bound, then DEF is nil
-and so is ID.
+is locally defined, or nil.  For the occurrence of SYM at the position
+where it is locally defined (a.k.a. \"bound\"), the values of POS and
+DEF are equal.  If SYM is not lexically bound, then DEF is nil and so
+is ID.
 
 CALLBACK should use ID by checking if it is nil or `equal' to other ID
 values produced in the same call to this function.  The specific value
