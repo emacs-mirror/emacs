@@ -6519,7 +6519,7 @@ INPUT, if non-nil, is a string sent to the process."
 	       ;; 	(should (= 11 (point)))))))))))))
 	       )))))))))
 
-;; This test is inspired by Bug#23952.
+;; This test is inspired by Bug#23952 and Bug#80783.
 (ert-deftest tramp-test33-environment-variables ()
   "Check that remote processes set / unset environment variables properly."
   :tags '(:expensive-test)
@@ -6611,7 +6611,18 @@ INPUT, if non-nil, is a string sent to the process."
 	      ;; We must suppress "_=VAR...".
 	      (funcall
 	       this-shell-command-to-string
-	       "printenv | grep -v PS1 | grep -v _=")))))))))
+	       "printenv | grep -v PS1 | grep -v _="))))))
+
+      ;; Handle looooong environment variables.  Bug#80783.
+      ;; FIXME: Make it also work in the synchronous case.
+      (unless (or (eq this-shell-command-to-string 'shell-command-to-string)
+		  (tramp-direct-async-process-p))
+	(let* ((bad (concat envvar "=" (make-string 2024 ?x)))
+	       (process-environment
+		(cl-list* bad bad bad bad process-environment)))
+	  (should
+	   (string-match-p
+	    "foo" (funcall this-shell-command-to-string "echo foo"))))))))
 
 (tramp--test-deftest-direct-async-process tramp-test33-environment-variables)
 
