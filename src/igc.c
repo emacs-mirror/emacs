@@ -6304,21 +6304,18 @@ igc_busy_p (void)
 
 /* Warn if PTR looks like an MPS reference, which is most likely a
    bug.  */
-void
-igc_assert_not_an_mps_object (void *ptr)
+bool
+igc_warn_if_an_mps_object (void *ptr)
 {
   mps_addr_t object;
-  if (mps_addr_object (&object, global_igc->arena, ptr) == MPS_RES_OK
-      && object != NULL)
-    fprintf (stderr, "Warning: argument should not be an MPS pointer (%p)\n",
+  bool is_mps_object
+    = (mps_addr_object (&object, global_igc->arena, ptr) == MPS_RES_OK
+       && object != NULL);
+  if (is_mps_object)
+    fprintf (stderr,
+	     "Warning: argument should not be an MPS pointer (%p)\n",
 	     ptr);
-}
-
-/* Alternative name for use in lisp.h, which doesn't include igc.h.  */
-void
-gc_assert_untraced_object (void *ptr)
-{
-  igc_assert_not_an_mps_object (ptr);
+  return is_mps_object;
 }
 
 /* If OBJ isn't suitable for storing an extra dependency, return a
@@ -6511,7 +6508,7 @@ Only useful for low-level debugging. */)
  *
  * This is currently useful only in conjunction with GDB or another
  * debugger: set a breakpoint on the 'fprintf' in
- * 'igc_assert_not_an_mps_object', then inspect the memory area '*pprev'
+ * 'igc_warn_if_an_mps_object', then inspect the memory area '*pprev'
  * in the 'scan_xmalloc_allocations' stack frame to find out who
  * allocated it and why they failed to trace MPS pointers.  */
 
@@ -6650,7 +6647,7 @@ check_pointer (void *p)
   value &= ~IGC_TAG_MASK;
   if (!root_find_containing ((void *) p)
       && !staticvec_contains ((void *) p))
-    igc_assert_not_an_mps_object ((void *) value);
+    igc_warn_if_an_mps_object ((void *) value);
 }
 
 /* Scan the region from START to END for values that look like MPS

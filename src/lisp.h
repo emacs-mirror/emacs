@@ -44,10 +44,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 INLINE_HEADER_BEGIN
 
-#ifdef HAVE_MPS
-extern void gc_assert_untraced_object (void *obj);
-#endif
-
 /* Enable this with --enable-checking=igc_check_fwd. */
 # if defined HAVE_MPS && defined IGC_CHECK_FWD
 void igc_check_fwd (void *client, bool is_vector);
@@ -3239,7 +3235,7 @@ INLINE Lisp_Object
 make_mint_ptr (void *a)
 {
 #ifdef HAVE_MPS
-  gc_assert_untraced_object (a);
+  igc_assert_not_an_mps_object (a);
 #endif
   Lisp_Object val = TAG_PTR_INITIALLY (Lisp_Int0, a);
   return FIXNUMP (val) && XFIXNUMPTR (val) == a ? val : make_misc_ptr (a);

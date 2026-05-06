@@ -116,4 +116,12 @@ union igc_header
 static_assert (sizeof (*(union igc_header*) 0).s == 8);
 static_assert (sizeof (union igc_header) == 8);
 
+extern bool igc_warn_if_an_mps_object (void *ptr);
+
+INLINE void
+igc_assert_not_an_mps_object (void *obj)
+{
+  eassert (igc_warn_if_an_mps_object (obj) == false);
+}
+
 #endif /* EMACS_IGC_TYPES_H */
