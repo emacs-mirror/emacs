@@ -22,7 +22,7 @@ dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
-AC_INIT([libexec], [31.0.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([libexec], [31.0.60], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
 AH_TOP([/* Copyright (C) 2026 Free Software Foundation, Inc.
