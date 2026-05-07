@@ -1463,27 +1463,30 @@ USA
 @node Acknowledgments
 @unnumberedsec Acknowledgments
 
+@c Nowadays we add names to this list only while simultaneously adding
+@c them to ack.texi.  There remain lots of names here that aren't in
+@c ack.texi for historical reasons.
 @c It's hard to update this fairly.
 @c I wonder if it would be better to drop it in favor of AUTHORS?
 Contributors to GNU Emacs include Jari Aalto, Eric Abrahamsen, Per Abrahamsen, Tomas
 Abrahamsson, Jay K. Adams, Alon Albert, Michael Albinus, Nagy
-Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Joe Arceneaux, Emil @AA{}str@"om,
+Andras, Benjamin Andresen, Ralf Angeli, Dmitry Antipov, Aur@'elien
+Aptel, Joe Arceneaux, Emil @AA{}str@"om,
 Miles Bader, David Bakhash, Juanma Barranquero, Eli Barzilay, Thomas
 Baumann, Steven L. Baur, Jay Belanger, Alexander L. Belikoff,
 Thomas Bellman, Scott Bender, Boaz Ben-Zvi, Sergey Berezin, Stephen Berman, Jonas Bernoulli, Karl
-Berry, Anna M. Bigatti, Ray Blaak, Martin Blais, Jim Blandy, Johan
+Berry, Anna M. Bigatti, Ray Blaak, David Blacka, Martin Blais, Jim Blandy, Johan
 Bockg@aa{}rd, Jan B@"ocker, Joel Boehland, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, Michael Brouwer, David M. Brown, Ken Brown, Stefan Bruda,
-Damien Cassou, Daniel Colascione,
 Georges Brun-Cottan, Joe Buehler, Scott Byer, W@l{}odek Bzyl, Tino Calancha,
-Bill Carpenter, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
-Chassell, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
+Bill Carpenter, Damien Cassou, Per Cederqvist, Hans Chalupsky, Chris Chase, Bob
+Chassell, Jihyun Cho, Andrew Choi, Chong Yidong, Sacha Chua, Stewart Clamen, James
 Clark, Mike Clarkson, Glynn Clements, Andrea Corallo, Andrew Cohen, Daniel Colascione,
 Christoph Conrad, Ludovic Court@`es, Andrew Csillag,
 Toby Cubitt, Baoqiu Cui, Doug Cutting, Mathias Dahl, Yue Daian, Julien Danjou, Satyaki
 Das, Vivek Dasmohapatra, Dan Davison, Michael DeCorte, Gary Delp, Nachum
-Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eri
+Dershowitz, Dave Detlefs, Matthieu Devin, Christophe de Dinechin, Eric
 Ding, Jan Dj@"arv, Lawrence R. Dodd, Carsten Dominik, Scott Draves,
 Benjamin Drieu, Viktor Dukhovni, Jacques Duthen, Dmitry Dzhus, John
 Eaton, Rolf Ebert, Carl Edman, David Edmondson, Paul Eggert, Stephen
@@ -1495,17 +1498,17 @@ Fuchs, Shigeru Fukaya, Xue Fuqiao, Hallvard Furuseth, Keith Gabryelski, Peter S.
 Galbraith, Kevin Gallagher, Fabi@'an E. Gallina, Kevin Gallo, Juan Le@'en Lahoz Garc@'ia,
 Howard Gayle, Daniel German, Stephen Gildea, Julien Gilles, David
 Gillespie, Bob Glickstein, Nicolas Goaziou, Deepak Goel, David De La Harpe Golden, Boris
-Goldowsky, David Goodger, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
+Goldowsky, David Goodger, Jacob Gore, Chris Gray, Kevin Greiner, Michelangelo Grigni, Odd
 Gripenstam, Kai Gro@ss{}johann, Michael Gschwind, Bastien Guerry, Henry
 Guillaume, Dmitry Gutov, Doug Gwyn, Bruno Haible, Ken'ichi Handa, Lars Hansen, Chris
 Hanson, Jesper Harder, Alexandru Harsanyi, K. Shane Hartman, John
 Heidemann, Jon K. Hellan, Magnus Henoch, Markus Heritsch, Dirk
-Herrmann, Karl Heuer, Manabu Higashida, Konrad Hinsen, Torsten Hilbrich, Anders Holst,
+Herrmann, Karl Heuer, Manabu Higashida, Joe Hildebrand, Konrad Hinsen, Torsten Hilbrich, Anders Holst,
 Jeffrey C. Honig, J@"urgen H@"otzel, Tassilo Horn, Kurt Hornik, Khaled Hosny, Tom Houlder, Joakim
 Hove, Denis Howe, Lars Ingebrigtsen, Andrew Innes, Seiichiro Inoue,
 Philip Jackson, Martyn Jago, Pavel Janik, Paul Jarc, Ulf Jasper,
 Thorsten Jolitz, Michael K. Johnson, Kyle Jones, Terry Jones, Simon
-Josefsson, Alexandre Julliard, Arne J@o{}rgensen, Tomoji Kagatani,
+Josefsson, Alexandre Julliard, Arne J@o{}rgensen, Jambunathan K, Tomoji Kagatani,
 Brewster Kahle, Tokuya Kameshima, Lute Kamstra, Stefan Kangas, Ivan Kanis, David
 Kastrup, David Kaufman, Henry Kautz, Taichi Kawabata, Taro Kawagishi,
 Howard Kaye, Michael Kifer, Richard King, Wilhelm Kirschbaum, Peter Kleiweg,
@@ -1524,7 +1527,7 @@ Brian Marick, Simon Marshall, Bengt Martensson, Charlie Martin,
 Yukihiro Matsumoto, Tomohiro Matsuyama, David Maus, Thomas May, Will Mengarini, David
 Megginson, Jimmy Aguilar Mena, Stefan Merten, Ben A. Mesander, Wayne Mesard, Brad
 Miller, Lawrence Mitchell, Richard Mlynarik, Gerd M@"ollmann, Dani Moncayo, Stefan
-Monnier, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
+Monnier, David Moore, Keith Moore, Jan Moringen, Morioka Tomohiko, Glenn Morris,
 Don Morrison, John Muhl, Diane Murray, Riccardo Murri, Sen Nagata, Erik Naggum,
 Gergely Nagy, Nobuyoshi Nakada, Thomas Neumann, Mike Newton, Thien-Thi Nguyen,
 Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Nik@v{s}i@'c, Jeff Norden,
@@ -1535,7 +1538,8 @@ Jeff Peck, Damon Anton Permezel, Tom Perrine, William M. Perry, Per
 Persson, Jens Petersen, Nicolas Petton, Daniel Pfeiffer, Justus Piater, Richard L.
 Pieri, Fred Pierresteguy, Fran@,{c}ois Pinard, Daniel Pittman, Christian
 Plaunt, Alexander Pohoyda, David Ponce, Noam Postavsky, Francesco A. Potort@`i,
-Michael D. Prange, Mukesh Prasad, Steve Purcell, Vincenzo Pupillo, Ken Raeburn,
+Michael D. Prange, Mukesh Prasad, Steve Purcell, Vincenzo Pupillo,
+Jim Radford, Ken Raeburn,
 Marko Rahamaa, Ashwin Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, David
 Reitter, Alex Rezinsky, Rob Riepel, Lara Rios, Adrian Robert, Nick
 Roberts, Roland B. Roberts, John Robinson, Denis B. Roegel, Danny
@@ -1550,18 +1554,18 @@ Schwartz, Oliver Seidel, Daniel Semyonov, Manuel Serrano, Paul Sexton,
 Hovav Shacham, Stanislav Shalunov, Marc Shapiro, Richard Sharman, Olin
 Shivers, Tibor @v{S}imko, Espen Skoglund, Rick Sladkey, Lynn Slater, Chris Smith,
 David Smith, JD Smith, Paul D. Smith, Wilson Snyder, William Sommerfeld, Simon
-South, Andre Spiegel, Michael Staats, Thomas Steffen, Ulf Stegemann,
+South, Andre Spiegel, Michael Staats, Richard M. Stallman, Thomas Steffen, Ulf Stegemann,
 Reiner Steib, Sam Steingold, Ake Stenhoff, Philipp Stephani, Peter Stephenson, Ken
 Stevens, Andy Stewart, Jonathan Stigelman, Martin Stjernholm, Kim F.
 Storm, Steve Strassmann, Christopher Suckling, Olaf Sylvester, Naoto
 Takahashi, Steven Tamm, Jan Tatarik, Jo@~ao T@'avora, Luc Teirlinck,
 Jean-Philippe Theberge, Jens T.@: Berger Thielemann, Spencer Thomas,
-Jim Thompson, Theodor Thornhill, Toru Tomabechi, David O'Toole, Markus Triska,
+Jim Thompson, Theodor Thornhill, Toru Tomabechi, Andy Oram, David O'Toole, Markus Triska,
 Tom Tromey, Eli Tziperman, Daiki Ueno, Masanobu Umeda, Rajesh Vaidheeswarran, Neil
 W. Van Dyke, Didier Verna, Joakim Verona, Ulrik Vieth, Geoffrey
 Voelker, Johan Vromans, Inge Wallin, John Paul Wallington, Colin
 Walters, Barry Warsaw, Christoph Wedler, Ilja Weis, Zhang Weize,
-Morten Welinder, Joseph Brian Wells, Rodney Whitby, John Wiegley,
+Morten Welinder, Joseph Brian Wells, Rodney Whitby, Sean Whitton, John Wiegley,
 Sascha Wilde, Ed Wilkinson, Mike Williams, Roland Winkler, Bill
 Wohler, Steven A. Wood, Dale R. Worley, Francis J. Wright, Felix
 S. T. Wu, Tom Wurgler, Yamamoto Mitsuharu, Po Lu, Katsumi Yamaoka,

@@ -22,7 +22,8 @@ the distribution.
 @c and anyone who has made major enhancements in Emacs
 @c that many users would notice and consider important.
 @c Note this file is only used ifnottex; otherwise a shorter version in
-@c emacs.texi is used.
+@c emacs.texi is used.  Adding a name to this list should entail adding
+@c it to the list in emacs.texi too.
 
 @itemize @bullet
 @item
