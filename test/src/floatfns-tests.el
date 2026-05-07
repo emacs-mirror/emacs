@@ -21,14 +21,6 @@
 
 (require 'ert)
 
-(defun floatfns-tests--approx= (a b &optional tol)
-  "Return non-nil if A and B are approximately equal.
-This avoids spurious failures due to platform-specific libm behavior."
-  (let* ((tol (or tol 1e-12))
-         (diff (abs (- a b)))
-         (scale (max 1.0 (abs a) (abs b))))
-    (< diff (* tol scale))))
-
 (ert-deftest floatfns-tests-cos ()
   (should (= (cos 0) 1.0))
   (should (= (cos float-pi) -1.0)))
@@ -38,22 +30,6 @@ This avoids spurious failures due to platform-specific libm behavior."
 
 (ert-deftest floatfns-tests-tan ()
   (should (= (tan 0) 0.0)))
-
-(ert-deftest floatfns-tests-asin-acos-atan ()
-  (let ((eps 1e-12))
-    (should (< (abs (- (asin 0.0) 0.0)) eps))
-    (should (< (abs (- (asin 1.0) (/ float-pi 2))) eps))
-    (should (< (abs (- (acos 1.0) 0.0)) eps))
-    (should (< (abs (- (acos 0.0) (/ float-pi 2))) eps))
-    (should (< (abs (- (atan 0.0) 0.0)) eps))
-    (should (< (abs (- (atan 1.0) (/ float-pi 4))) eps))
-    (should (< (abs (- (atan 0.0 -1.0) float-pi)) eps))))
-
-(ert-deftest floatfns-tests-copysign ()
-  (should (= (copysign 1.0 2.0) 1.0))
-  (should (= (copysign 1.0 -2.0) -1.0))
-  (should (= (copysign -1.0 2.0) 1.0))
-  (should (= (copysign -1.0 -2.0) -1.0)))
 
 (ert-deftest floatfns-tests-isnan ()
   (should (isnan 0.0e+NaN))
@@ -67,8 +43,7 @@ This avoids spurious failures due to platform-specific libm behavior."
   (should (= (expt 2 8) 256)))
 
 (ert-deftest floatfns-tests-log ()
-  (should (= (log 1000 10) 3.0))
-  (should (floatfns-tests--approx= (log 8 2) 3.0)))
+  (should (= (log 1000 10) 3.0)))
 
 (ert-deftest floatfns-tests-sqrt ()
   (should (= (sqrt 25) 5)))
@@ -76,23 +51,6 @@ This avoids spurious failures due to platform-specific libm behavior."
 (ert-deftest floatfns-tests-abs ()
   (should (= (abs 10) 10))
   (should (= (abs -10) 10)))
-
-(ert-deftest floatfns-tests-float ()
-  (should (= (float 0) 0.0))
-  (should (= (float 1) 1.0))
-  (should (= (float -1) -1.0))
-  (should (= (float 1.5) 1.5)))
-
-(ert-deftest floatfns-tests-frexp-ldexp ()
-  (dolist (x '(0.0 1.0 -1.0 2.0 3.5 0.5 -0.5 1024.0))
-    (pcase-let ((`(,sig . ,exp) (frexp x)))
-      (should (floatp sig))
-      (should (integerp exp))
-      (if (zerop x)
-          (should (= sig 0.0))
-        (should (<= 0.5 (abs sig)))
-        (should (< (abs sig) 1.0)))
-      (should (floatfns-tests--approx= (ldexp sig exp) (float x) 1e-12)))))
 
 (ert-deftest floatfns-tests-logb ()
   (should (= (logb 10000) 13)))

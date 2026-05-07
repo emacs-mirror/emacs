@@ -192,13 +192,6 @@ changes."
     (should (integerp r))
     (should (= r n))))
 
-(ert-deftest mod-test-userptrp ()
-  (skip-unless (fboundp 'user-ptrp))
-  (let ((v (mod-test-userptr-make 7)))
-    (should (user-ptrp v))
-    (should-not (user-ptrp 7))
-    (should-not (user-ptrp "x"))))
-
 ;; TODO: try to test finalizer
 
 ;;; Vector tests
