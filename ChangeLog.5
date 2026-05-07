@@ -5193,31 +5193,6 @@
 	dimensions to real values.
 	(Fimage_transforms_p): Fix typo.
 
-2026-03-04  Michael Albinus  <michael.albinus@gmx.de>
-
-	Revert "Repair serious breakage in the batch tests."
-
-	This reverts commit feac53141577161c32a7a6dfe75399a5ae98a7c1.
-
-	This patch has deactivated 253 test cases without a sufficient reasoning.
-	Instead it speaks about a shotgun in its commite message.
-
-	The patch is reverted because
-
-	- It hasn't been discussed on emacs-devel. It should have, because it is
-	  a serious change in our infrastructure (new official tag :nobatch). Any
-	  documentation of this change, for example in test/README, is missing.
-
-	- The proper way to deactivate such tests would have been
-
-	  (skip-when noninteractive)
-
-	  Even better to skip for the respective reasons.
-
-	- There is no fault report. There is no information about how these tests
-	  have failed. Since it hasn't been a problem so far for us, nobody will
-	  work on a fix forever.
-
 2026-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	(flymake-start): Give a bit more info in the log
@@ -5253,14 +5228,6 @@
 
 	* lisp/frame.el (frame--purify-parameters):
 	'frame-inherited-parameters' is a parameter list, not an alist.
-
-2026-03-03  Mattias Engdegård  <mattias.engdegard@gmail.com>
-
-	Revert "Rename 'any' to 'member-if' and deprecate 'cl-member-if'"
-
-	This reverts commit 2bdf15f6d8293b21234cd236f39ce68f62e1f6c3.
-
-	There is no consensus for this change.
 
 2026-03-03  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
@@ -5323,22 +5290,6 @@
 
 	* lisp/vc/vc.el (vc-print-change-log, vc-print-root-change-log):
 	Respect vc-log-show-limit when there is no prefix argument (bug#80532).
-
-2026-03-03  Sean Whitton  <spwhitton@spwhitton.name>
-
-	Rename 'any' to 'member-if' and deprecate 'cl-member-if'
-
-	* lisp/subr.el (any): Rename from this ...
-	(member-if): ... to this.  All uses changed.
-	Implement '&key KEY-FN' for backwards compatibility.
-	(any): New function alias.
-	* lisp/emacs-lisp/cl-seq.el (cl-member-if): Make an alias for
-	'member-if'.
-	* lisp/obsolete/cl.el (member-if): Delete obsolete function
-	alias.
-	* doc/lispref/lists.texi (List Elements):
-	* doc/misc/cl.texi (Lists as Sets):
-	* etc/NEWS: Document the change.
 
 2026-03-03  Sean Whitton  <spwhitton@spwhitton.name>
 
@@ -5816,20 +5767,6 @@
 	indentation rules in other TS modes for embedding C/++ segments
 	in other languages.
 
-2026-02-26  Eric S. Raymond  <esr@thyrsus.com>
-
-	Repair another test bollixed by aggressive optimization.
-
-	Repair ab ecal test by making a variable kexical,
-
-	Complete the test set for floatfns,c.
-
-	Tesrts for the portable primitives in fileio.c.
-
-	Tests for primitives in coding.c and charset.c.
-
-	Tests for primitives from the character.c module.
-
 2026-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	lisp/vc/smerge-mode.el (smerge-refine-shadow-cursor): Make it thinner
@@ -5842,67 +5779,6 @@
 	mind because the "too thick" problem seems actually more severe
 	because it's occasionally bad enough that it's unclear which
 	cursor is the real one.
-
-2026-02-26  Eric S. Raymond  <esr@thyrsus.com>
-
-	Tests for the lreaf.c amd print.c primitives.
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	Tests for remaining functions iun eval.c.
-
-	Completing test coverage for dataa.c orimitives.
-
-	More correctness tesrs for orinitives from fns.c.
-
-	More tests for edit functions, buffers, and markers.
-
-	Added more buffer/marker/editing test coverage.
-
-	Category/charset/coding + char-table tests.
-
-	More test coverage improvements.
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	Repair serious breakage in the batch tests.
-
-	There were a bunch of tests that were breaking make check and should
-	never be run in batch mode, because they do things like assuming there
-	is a controlling tty or assuming we can access network services when
-	we can't (e/g. in a CI/CD environment). I have shotgunned this
-	problem by tagging all the failing tests with :nobatch and then
-	changing the default and expensive selectors so make check won't barf
-	all over its shoes.
-
-	As many of these :nobatch should be individually removed as possible, after
-	upgrading the test harness to mock the environmental stuff they need.
-	Investigate these failures with "make check-nobatch".
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	More test coverage improvements.
-
-	Bignum corner-case tests in data-tests.el.
-	More buffer-primitive tests in editfns-test.el
-	Some condition-case tesrs in eval-tests.el.
-	And another marker-primitive test in marker-tests.el.
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	More test coverage improvements for ERT.
-
-	In marker-tests.el, editfbs-tests.el, and data-tests.el.
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	Crrections to tedt coverrage extensuion after bootstrap build.
-
-	Files: data-tests.el, editfns-tests.el.
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	Improve test coverage of builtin predicates.
 
 2026-02-25  Sean Whitton  <spwhitton@spwhitton.name>
 
@@ -5923,25 +5799,6 @@
 	`(autoload-macro expand)`.
 	Don't autoload the `treesit-language-source-alist` setting.
 	Generate simpler code for the common case where AUTO-MODE is a string.
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	Tests for 2 marker primitives previously not covered.
-
-	      - insertion-type
-	      - last-position-after-kill
-
-2026-02-25  Eric S. Raymond  <esr@thyrsus.com>
-
-	Tests for 7 editor primitives previously not covered.
-
-	      - byte-to-position
-	      - byte-to-string
-	      - insert-byte
-	      - insert-buffer-substring
-	      - insert-before-markers-and-inherit
-	      - field-string-and-delete
-	      - constrain-to-field
 
 2026-02-25  Liu Hui  <liuhui1610@gmail.com>
 
@@ -17182,10 +17039,10 @@
 
 2025-11-10  Sean Whitton  <spwhitton@spwhitton.name>
 
-	vc-do-command: Support discarding standard error
+	vc-do-command: Support discarding stdout and stderr
 
 	* lisp/vc/vc-dispatcher.el (vc-do-command): Support discarding
-	standard error.
+	standard output and standard error.
 	* lisp/vc/vc-hg.el (vc-hg-dir-status-files): Discard standard
 	error of 'hg status' to avoid parsing mistakes.
 	(vc-hg-command): Update docstring given new meaning of first
@@ -25520,7 +25377,7 @@
 
 2025-07-25  Sean Whitton  <spwhitton@spwhitton.name>
 
-	VC: New support for other working trees
+	VC: New support for other working trees (bug#79024)
 
 	* lisp/vc/vc-git.el (vc-git--read-start-point): New function,
 	factored out of vc-git-create-tag.
@@ -36502,7 +36359,7 @@
 
 	* lisp/vc/log-edit.el (log-edit-mode): Don't add rear-nonsticky
 	to font-lock-extra-managed-props (bug#77197).  Investigated by
-	Paul D. Nelson <ultrano@gmail.com>.  Fix due to Stefan Monnier.
+	Paul D. Nelson <ultrono@gmail.com>.  Fix due to Stefan Monnier.
 
 2025-03-23  Stefan Kangas  <stefankangas@gmail.com>
 
