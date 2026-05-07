@@ -108,7 +108,7 @@ General steps (for each step, check for possible errors):
 
     Now:
 
-      M-: (require 'authors) RET
+      M-x load-file RET admin/authors.el RET
       M-x authors RET
 
     If this says "Problem updating ChangeLog", find the reason for the
