@@ -192,7 +192,7 @@ Documentation changes might not have been completed!"))))
                     "mv" newsfile oldnewsfile)
       (when (y-or-n-p "Commit move of NEWS file?")
         (call-process admin-git-command nil nil nil
-                      "commit" "-m" (format "; Move etc/%s to etc/%s"
+                      "commit" "-m" (format "; Move etc/%s to etc/%s."
                                             (file-name-nondirectory newsfile)
                                             (file-name-nondirectory oldnewsfile))))
       (find-file oldnewsfile)           ; to prompt you to commit it
