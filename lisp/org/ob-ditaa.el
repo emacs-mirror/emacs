@@ -2,7 +2,8 @@
 
 ;; Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
-;; Authors: Eric Schulte, Jarmo Hurri
+;; Authors: Eric Schulte
+;;          Jarmo Hurri
 ;; Keywords: literate programming, reproducible research
 ;; URL: https://orgmode.org
 
