@@ -1224,6 +1224,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 #ifndef HAVE_PGTK
   if (FRAME_PARENT_FRAME (f))
     {
+      /* Send the resize request immediately.  */
       gdk_window_resize (gtk_widget_get_window (FRAME_GTK_OUTER_WIDGET (f)),
 			 outer_width, outer_height);
       /* Resize all inner widgets and Cairo surface right away so the
@@ -1234,9 +1235,8 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       x_cr_update_surface_desired_size (f, width, height);
 #endif
     }
-  else
-    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       outer_width, outer_height);
+  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		     outer_width, outer_height);
 #else
   if (FRAME_GTK_OUTER_WIDGET (f))
     gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
@@ -1346,6 +1346,8 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
   gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
   if (FRAME_PARENT_FRAME (f))
     {
+      /* Record the dimensions for GTK to remember after remapping.  */
+      gtk_window_resize (GTK_WINDOW (gwin), outer_width, outer_height);
       /* Resize all inner widgets and Cairo surface right away so the
 	 next redisplay drawing isn't clipped to the old size.  */
       GtkAllocation alloc = {0, 0, outer_width, outer_height};
