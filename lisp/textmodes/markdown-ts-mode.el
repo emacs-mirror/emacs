@@ -279,6 +279,8 @@ use that string instead."
 (defcustom markdown-ts-inline-images nil
   "Non-nil means display inline images below image links."
   :type 'boolean
+  :local t
+  :safe #'booleanp
   :version "31.1"
   :package-version "1.0")
 
@@ -1524,6 +1526,7 @@ Remote images are controlled by
                  (<= (overlay-end ov) search-end))
         (delete-overlay ov)))
     (when (and markdown-ts-inline-images
+               (display-images-p)
                ;; Don't create image overlays for nodes inside
                ;; folded (outline-invisible) headings, since the
                ;; images wouldn't be visible and could interfere
