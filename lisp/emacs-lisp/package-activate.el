@@ -431,7 +431,6 @@ Newer versions are always activated, regardless of FORCE."
   "Non-nil if `package-activate-all' has been run.")
 
 ;;;###autoload
-(progn ;; Make the function usable without loading `package.el'.
 (defun package-activate-all ()
   "Activate all installed packages.
 The variable `package-load-list' controls which packages to load."
@@ -460,7 +459,7 @@ The variable `package-load-list' controls which packages to load."
           ;; `declare-function' is currently not scoped, so if we use
           ;; it here, we end up with a redefinition warning instead :-)
           (with-no-warnings
-            (package--activate-all)))))))
+            (package--activate-all))))))
 
 (defun package--activate-all ()
   (dolist (elt (package--alist))
