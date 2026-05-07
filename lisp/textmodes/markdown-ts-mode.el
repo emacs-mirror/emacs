@@ -1698,11 +1698,15 @@ Skip matches already inside tree-sitter link or autolink nodes."
    '((fenced_code_block (code_fence_content) @markdown-ts--fontify-code-block))
 
    :language 'markdown-inline
+   :override 'prepend
+   :feature 'paragraph-inline
+   '(((code_span) @markdown-ts-code-span)
+     ((code_span_delimiter) @markdown-ts--fontify-delimiter))
+
+   :language 'markdown-inline
    :override 'append
    :feature 'paragraph-inline
    '(((link_destination) @markdown-ts--fontify-link-destination)
-     ((code_span) @markdown-ts-code-span)
-     ((code_span_delimiter) @markdown-ts--fontify-delimiter)
      ((emphasis) @markdown-ts-emphasis)
      ((strong_emphasis) @markdown-ts-bold)
      ((strikethrough) @markdown-ts-strikethrough)
