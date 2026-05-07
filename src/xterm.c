@@ -29192,9 +29192,9 @@ x_make_frame_visible (struct frame *f)
 	{
 	  block_input ();
 #ifdef USE_GTK
-	  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		       f->left_pos, f->top_pos);
+	  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
 #else
 	  XMapRaised (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
 #endif
