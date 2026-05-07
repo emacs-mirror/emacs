@@ -26316,7 +26316,10 @@ display_line (struct it *it, int cursor_vpos)
 		      /* Fill the rest of the row with continuation
 			 glyphs like in 20.x.  */
 		      while (row->glyphs[TEXT_AREA] + row->used[TEXT_AREA]
-			     < row->glyphs[1 + TEXT_AREA])
+			     < (row->glyphs[1 + TEXT_AREA]
+				/* Account for the border glyph.  */
+				- (!WINDOW_RIGHTMOST_P (it->w)
+				   && WINDOW_RIGHT_MARGIN_WIDTH (it->w) == 0)))
 			produce_special_glyphs (it, IT_CONTINUATION,
 						it->bidi_it.paragraph_dir, false);
 
