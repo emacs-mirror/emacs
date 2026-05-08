@@ -721,8 +721,12 @@ This can be useful when using docker to run a language server.")
     (executable-find command)))
 
 (defun eglot--accepted-formats ()
-  (if (and (not eglot-prefer-plaintext) (fboundp 'gfm-view-mode))
-      ["markdown" "plaintext"] ["plaintext"]))
+  (if (and (not eglot-prefer-plaintext)
+           (or (fboundp 'gfm-view-mode)
+               (and (fboundp 'markdown-ts-view-mode)
+                    (treesit-grammar-location 'markdown))))
+      ["markdown" "plaintext"]
+    ["plaintext"]))
 
 (defconst eglot--uri-path-allowed-chars
   (let ((vec (copy-sequence url-path-allowed-chars)))
@@ -2225,48 +2229,51 @@ Doubles as an indicator of snippet support."
            (unless (bound-and-true-p yas-minor-mode) (yas-minor-mode 1))
            (apply #'yas-expand-snippet args)))))
 
-(defun eglot--format-markup (markup &optional mode)
+(cl-defun eglot--format-markup
+    (markup &optional mode
+            &aux string lang render extract
+            (built-in (and (fboundp 'markdown-ts-view-mode)
+                           (treesit-grammar-location 'markdown))))
   "Format MARKUP according to LSP's spec.
-MARKUP is either an LSP MarkedString or MarkupContent object."
-  (let (string render-mode language)
-    (cond ((stringp markup)
-           (setq string markup
-                 render-mode (or mode 'gfm-view-mode)))
-          ((setq language (plist-get markup :language))
-           ;; Deprecated MarkedString
-           (setq string (concat "```" language "\n"
-                                (plist-get markup :value) "\n```")
-                 render-mode (or mode 'gfm-view-mode)))
-          (t
-           ;; MarkupContent
-           (setq string (plist-get markup :value)
-                 render-mode
-                 (or mode
-                     (pcase (plist-get markup :kind)
-                       ("markdown" 'gfm-view-mode)
-                       ("plaintext" 'text-mode)
-                       (_ major-mode))))))
+MARKUP is either an LSP MarkedString or MarkupContent object.
+If MODE, force MODE to be used for fontifying MARKUP."
+  (cl-labels
+      ((gfm-extract ()
+         ;; For `gfm-view-mode', the `invisible' regions are set to
+         ;; `markdown-markup'.  Set them to 't' on extraction, since
+         ;; this has actual meaning in the "*eldoc*" buffer where we're
+         ;; taking this string (#bug79552).
+         (cl-loop with inhibit-read-only = t
+                  for from = (point-min) then to
+                  while (< from (point-max))
+                  for inv = (get-text-property from 'invisible)
+                  for to = (or (next-single-property-change from 'invisible)
+                               (point-max))
+                  when inv
+                  do (put-text-property from to 'invisible t)))
+       (calc2 (forced-mode)
+         (cond
+          (forced-mode              `(,forced-mode))
+          (built-in                 `(,#'markdown-ts-view-mode))
+          ((fboundp 'gfm-view-mode) `(,#'gfm-view-mode #'gfm-extract))
+          (t                        `(#'text-mode))))
+       (calc (s &optional (forced-mode mode) &aux (x (calc2 forced-mode)))
+         (setq string s render (car x) extract (or (cadr x) #'buffer-string))))
+    (cond ((stringp markup) (calc string))            ; plain string
+          ((setq lang (plist-get markup :language))   ; deprecated MarkedString
+           (calc (format "```%s\n%s\n```" lang (plist-get markup :value))))
+          (t (calc (plist-get markup :value)          ; Assume MarkupContent
+                   (or mode (pcase (plist-get markup :kind)
+                              ("markdown" nil)
+                              ("plaintext" 'text-mode)
+                              (_ major-mode))))))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
-      (let ((inhibit-message t)
-            (message-log-max nil))
-        (ignore-errors (delay-mode-hooks (funcall render-mode)))
+      (let ((inhibit-message t) (message-log-max nil))
+        (ignore-errors (delay-mode-hooks (funcall render)))
         (font-lock-ensure)
-        (goto-char (point-min))
-        (let ((inhibit-read-only t))
-          ;; If `render-mode' is `gfm-view-mode', the `invisible'
-          ;; regions are set to `markdown-markup'.  Set them to 't'
-          ;; instead, since this has actual meaning in the "*eldoc*"
-          ;; buffer where we're taking this string (#bug79552).
-          (cl-loop for from = (point) then to
-                   while (< from (point-max))
-                   for inv = (get-text-property from 'invisible)
-                   for to = (or (next-single-property-change from 'invisible)
-                                (point-max))
-                   when inv
-                   do (put-text-property from to 'invisible t)))
-        (string-trim (buffer-string))))))
+        (string-trim (funcall extract))))))
 
 (defun eglot--read-server (prompt &optional dont-if-just-the-one)
   "Read a running Eglot server from minibuffer using PROMPT.

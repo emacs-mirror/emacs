@@ -488,12 +488,11 @@ completion package to instantiate these snippets using YASnippet.
 (YASnippet can be installed from GNU ELPA.)
 
 @item
-If the popular third-party package @code{markdown-mode} is installed,
-and the server provides at-point documentation formatted as Markdown in
+When the server provides at-point documentation formatted as Markdown in
 addition to plain text, Eglot arranges for the ElDoc package to enrich
-this text with fontifications and other nice formatting before
-displaying it to the user.  This makes the documentation shown by ElDoc
-look nicer on display.
+this text with fontifications, hyperlinks and other nice formatting
+before displaying it to the user.  This makes the documentation shown by
+ElDoc look nicer on display.
 
 @item
 In addition to enabling and enhancing other features and packages, Eglot
