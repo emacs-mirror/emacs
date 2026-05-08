@@ -76,6 +76,10 @@ Every pipeline generates a JUnit test report for the respective test
 jobs, which can be inspected on the pipeline web page.  This test
 report counts completed ERT tests, aborted tests are not counted.
 
+Twice a day, a pipeline for branch 'master', and another pipeline for
+branch 'emacs-31' are started automatically, running all stages for
+normal and expensive tests.
+
 * Emba configuration
 
 The emba configuration files are hosted on
