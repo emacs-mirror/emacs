@@ -5108,7 +5108,7 @@ module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
 module_env_snippet_30="$srcdir/src/module-env-30.h"
 module_env_snippet_31="$srcdir/src/module-env-31.h"
-module_env_snippet_31="$srcdir/src/module-env-32.h"
+module_env_snippet_32="$srcdir/src/module-env-32.h"
 emacs_major_version=`AS_ECHO([$PACKAGE_VERSION]) | sed 's/[[.]].*//'`
 AC_SUBST([emacs_major_version])
 
