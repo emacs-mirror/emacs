@@ -44,6 +44,7 @@
 (require 'cal-dst)
 (require 'diary-lib)
 (require 'skeleton)
+(require 'cl-seq)
 (require 'seq)
 (require 'rx)
 (require 'pp)
@@ -1138,7 +1139,8 @@ attendee's address matches the regexp in
    '(nil
      (when (or ical-nonmarking (equal ical-transparency "TRANSPARENT"))
        diary-nonmarking-symbol)
-     (or ical-rrule-sexp ical-start-to-end ical-start) & " "
+     (or ical-rrule-sexp ical-date) & " "
+     ical-time & " "
      ical-summary "\n"
      @ ; start of body (for indentation)
      (when ical-location "Location: ") ical-location
@@ -1159,7 +1161,7 @@ attendee's address matches the regexp in
             (start (pop skeleton-positions)))
        ;; TODO: should diary define a customizable indentation level?
        ;; For now, we use 1 because that's what icalendar.el chose
-       (indent-code-rigidly start end 1)
+       (indent-rigidly start end 1)
        nil) ; Don't insert return value
      (when ical-importing "\n"))))
 
@@ -1189,7 +1191,7 @@ attendee's address matches the regexp in
      @ ; end of body
      (let* ((end (pop skeleton-positions))
             (start (pop skeleton-positions)))
-       (indent-code-rigidly start end 1)
+       (indent-rigidly start end 1)
        nil) ; Don't insert return value
      (when ical-importing "\n"))))
 
@@ -1222,7 +1224,7 @@ attendee's address matches the regexp in
      @ ; end of body
      (let* ((end (pop skeleton-positions))
             (start (pop skeleton-positions)))
-       (indent-code-rigidly start end 1)
+       (indent-rigidly start end 1)
        nil) ; Don't insert return value
      (when ical-importing "\n"))))
 
@@ -1419,55 +1421,266 @@ range instead.)
 The date is only formatted once, and the time is formatted as a range, like:
   STARTDATE STARTTIME-ENDTIME
 If OMIT-START-DATE is non-nil, STARTDATE will be omitted."
-  (when (equal (ical:date/time-to-date start) (ical:date/time-to-date end))
+  (when (or (equal (ical:date/time-to-date start) (ical:date/time-to-date end))
+            (< (decoded-time-period (ical:duration-between start end))
+               (* 24 60 60))) ;; duration less than a day
     (format "%s%s-%s"
             (if omit-start-date ""
               (concat (di:format-date start) " "))
             (di:format-time-as-local start)
             (di:format-time-as-local end))))
 
-(defun di:format-block-sexp (start end)
-  "Format a `diary-block' diary S-expression between START and END.
+(defun di:calendar-date (date)
+  "Create a DATE list as calendar date list of desired style.
 
-START and END may be `icalendar-date' or `icalendar-date-time'
-values.  If they are date-times, only the date parts will be considered.
-Returns a string like \"%%(diary-block ...)\" with the arguments properly
-ordered for the current value of `calendar-date-style'."
-  (unless (cl-typep start 'ical:date)
-    (setq start (ical:date-time-to-date start)))
-  (unless (cl-typep end 'ical:date)
-    (setq end (ical:date-time-to-date end)))
-  (concat
-   diary-sexp-entry-symbol
-   (apply #'format "(diary-block %d %d %d %d %d %d)"
-          (cl-case calendar-date-style
-            ;; M/D/Y
-            (american (list (calendar-extract-month start)
-                            (calendar-extract-day start)
-                            (calendar-extract-year start)
-                            (calendar-extract-month end)
-                            (calendar-extract-day end)
-                            (calendar-extract-year end)))
-            ;; D/M/Y
-            (european (list (calendar-extract-day start)
-                            (calendar-extract-month start)
-                            (calendar-extract-year start)
-                            (calendar-extract-day end)
-                            (calendar-extract-month end)
-                            (calendar-extract-year end)))
-            ;; Y/M/D
-            (iso      (list (calendar-extract-year start)
-                            (calendar-extract-month start)
-                            (calendar-extract-day start)
-                            (calendar-extract-year end)
-                            (calendar-extract-month end)
-                            (calendar-extract-day end)))))))
+DATE may be a `icalendar-date' or `icalendar-date-time' value.  If it is
+a date-time, only the date parts will be considered.  Returns a list
+with elements properly ordered for the current value of
+`calendar-date-style'.  DATE may also be a list consisting of date
+values and t as wildcards."
+  (when-let* ((dt (or (ical:date/time-to-date date)
+                      (take 3 date)))  ;; wildcard date list
+              (year (calendar-extract-year dt))
+              (mon (calendar-extract-month dt))
+              (day (calendar-extract-day dt)))
+    (cl-case calendar-date-style
+      (american (list mon day year))  ;; M/D/Y
+      (european (list day mon year))  ;; D/M/Y
+      (iso      (list year mon day))  ;; Y/M/D
+      )))
+
+(defun di:block-sexp (start end)
+  "Create a `diary-block/-date' diary S-expression between START and END.
+
+START and END may be `icalendar-date' or `icalendar-date-time' values.
+If they are date-times, only the date parts will be considered.  If
+START and END are the same date, then return a date expression,
+otherwise use `diary-block'.  The dates are written in proper order for
+`calendar-date-style'."
+  (let ((s (di:calendar-date start))
+        (e (di:calendar-date end)))
+    (if (equal s e)
+        (di:format-date start)
+      `(diary-block ,@s ,@e))))
+
+(defun di:format-block-sexp (start end)
+  "Format diary s-exp string from block sexp using START and END."
+  (let ((block-sexp (di:block-sexp start end)))
+    (cond
+     ((stringp block-sexp)  block-sexp)
+     (t   (concat diary-sexp-entry-symbol
+                  (prin1-to-string block-sexp))))))
 
 (defun di:format-time-block-sexp (start end)
   "Format a `diary-time-block' diary S-expression for times between START and END."
   (concat
    diary-sexp-entry-symbol
    (format "(diary-time-block :start '%s :end '%s)" start end)))
+
+(defun di:recur-by-date-only (rrule)
+  "The RRULE recurrence only varies by date; the time (if any) is constant."
+  (and (memq (icr:freq rrule) '(YEARLY MONTHLY WEEKLY DAILY))
+       (not (cl-find-if
+             (lambda (byunit) (icr:by* byunit rrule))
+             '( BYSECOND BYMINUTE BYHOUR
+                BYDAY BYMONTHDAY BYYEARDAY
+                BYWEEKNO BYMONTH BYSETPOS
+                WKST )))
+       t))
+
+(defun di:calculate-recur-end-date (dtstart dur-value rrule)
+  "Calculate the end date from DTSTART, DUR-VALUE and the RRULE values.
+
+The end date is either RRULE.UNTIL, an offset from the DTSTART based on
+RRULE.INTERVAL and RRULE.COUNT, an offset from the DTSTART based on
+DUR-VALUE, or just fallback on forever.  If this function returns a nil
+end date, then we can't easily replicate the RRULE using legacy diary
+sexps."
+  ; (setq dur-value (mapcar (lambda (a) (or a 0)) dur-value))
+  (cond
+   ((icr:until rrule)  (icr:until rrule))
+   ((icr:count rrule)
+    ;; TODO: Handle BY* specifications for calculating the end date
+    ;; with COUNT
+    (unless (cl-find-if
+             (lambda (byunit) (icr:by* byunit rrule))
+             '( BYSECOND BYMINUTE BYHOUR
+                BYDAY BYMONTHDAY BYYEARDAY
+                BYWEEKNO BYMONTH SYSETPOS
+                WKST ))
+      ;; If we have COUNT, INTERVAL, and UNIT, calculate the end date
+      ;; from DTSTART.  Otherwise, use the end-of-time
+      (when-let* ((count-val (icr:count rrule))
+                  (interval-val (icr:interval-size rrule))
+                  (unit (cl-case (icr:freq rrule)
+                          (YEARLY :year)
+                          (MONTHLY :month)
+                          (WEEKLY :week)
+                          (DAILY :day))))
+        (ical:date-add (ical:date/time-to-date dtstart)
+                       unit
+                       (* interval-val (1- count-val))))))
+   ;; If the duration is multiple days, then calculate the end date
+   ;; based on that.
+   ;; (NOTE: These may not come thru as a recur, so must be handled by
+   ;; ical-date)
+   ((and dur-value
+         (> (decoded-time-period dur-value) (* 24 60 60))) ;; duration longer than a day
+    (ical:date/time-to-date
+     (ical:date/time-add-duration dtstart dur-value)))
+   ;; Forever
+   (t '(12 31 9999))))
+
+(defun di:diary-yearly-sexp (dtstart interval _foreverp block-sexp rdates-sexp exdates-sexp)
+  "Create a yearly event that starts on DTSTART on every INTERVAL years.
+
+The BLOCK-SEXP will limit how long the event occurs.  The RDATES-SEXP
+and EXDATES-SEXP include or exclude dates from the recurrence."
+  (with-no-warnings (defvar date))
+  (let* ((anniv-sexp `(diary-anniversary ,@(di:calendar-date dtstart)))
+         (interval-sexp
+          (cl-case interval
+            (1 nil)
+            (2 (let* ((odd-even (if (evenp (calendar-extract-year dtstart))
+                                    #'evenp #'oddp)))
+                 `((,odd-even (calendar-extract-year date)))))
+            (t `((= (% (calendar-extract-year date) ,interval)
+                    ,(% (calendar-extract-year dtstart) interval)))))))
+    (if (or interval-sexp block-sexp rdates-sexp exdates-sexp)
+        `(and ,anniv-sexp
+              ,@interval-sexp
+              ,@block-sexp
+              ,@rdates-sexp
+              ,@exdates-sexp)
+      anniv-sexp)))
+
+(defun di:diary-monthly-sexp (dtstart interval _foreverp block-sexp rdates-sexp exdates-sexp)
+  "Create a monthly event that starts on DTSTART on every INTERVAL months.
+
+The BLOCK-SEXP will limit how long the event occurs.  The RDATES-SEXP
+and EXDATES-SEXP include or exclude dates from the recurrence.
+
+When INTERVAL is a divisor of 12, the list of matching months is easily
+determined.  For other INTERVAL values, the match must be calculated
+based on the calculated number of months."
+  (with-no-warnings (defvar date))
+  (let* ((day (calendar-extract-day dtstart))
+         (mon (calendar-extract-month dtstart))
+         (interval-sexp
+          (cl-case interval
+            (1 t)
+            (2 (if (evenp mon)
+                   '(quote (2 4 6 8 10 12))
+                 '(quote (1 3 5 7 9 11))))
+            (3 (cl-case (% mon 3)
+                 (0 '(quote (3 6 9 12)))
+                 (1 '(quote (1 4 7 10)))
+                 (2 '(quote (2 5 8 11)))))
+            (4 (cl-case (% mon 4)
+                 (0 '(quote (4 8 12)))
+                 (1 '(quote (1 5  9)))
+                 (2 '(quote (2 6 10)))
+                 (3 '(quote (3 7 11)))))
+            (6 (cl-case (% mon 6)
+                 (0 '(quote (6 12)))
+                 (1 '(quote (1  7)))
+                 (2 '(quote (2  8)))
+                 (3 '(quote (3  9)))
+                 (4 '(quote (4 10)))
+                 (5 '(quote (5 11)))))
+            (12 mon)
+            (t
+             `(zerop (% (diary-months-between ,(di:calendar-date dtstart) date) ,interval)))))
+         (date-sexp `(diary-date ,@(di:calendar-date `(,interval-sexp ,day t)))))
+    (if (or block-sexp rdates-sexp exdates-sexp)
+        `(and ,date-sexp
+              ,@block-sexp
+              ,@rdates-sexp
+              ,@exdates-sexp)
+      date-sexp)))
+
+(defun di:diary-weekly-sexp (dtstart interval _foreverp block-sexp rdates-sexp exdates-sexp)
+  "Create a weekly event that starts on DTSTART on every INTERVAL weeks.
+
+The BLOCK-SEXP will limit how long the event occurs.  The RDATES-SEXP
+and EXDATES-SEXP include or exclude dates from the recurrence."
+  (let ((cyclic-sexp `(diary-cyclic ,(* interval 7)
+                                    ,@(di:calendar-date dtstart))))
+    (if (or block-sexp rdates-sexp exdates-sexp)
+        `(and ,cyclic-sexp
+              ,@block-sexp
+              ,@rdates-sexp
+              ,@exdates-sexp)
+      cyclic-sexp)))
+
+(defun di:diary-daily-sexp (dtstart interval foreverp block-sexp rdates-sexp exdates-sexp)
+  "Create a daily event that starts on DTSTART on every INTERVAL days.
+
+The BLOCK-SEXP will limit how long the event occurs.  The RDATES-SEXP
+and EXDATES-SEXP include or exclude dates from the recurrence.
+
+When the INTERVAL is every day and the event does not occur FOREVERP,
+then `daily-block' will properly constrain the event.  Otherwise,
+`diary-cyclic' and `diary-block' must be combined."
+  (let* ((cyclic-sexp `(diary-cyclic ,interval ,@(di:calendar-date dtstart)))
+         (daily-sexp  (if (= interval 1)
+                          (if foreverp (list cyclic-sexp) block-sexp)
+                        (cons cyclic-sexp block-sexp))))
+    (if (or rdates-sexp exdates-sexp)
+        `(and ,@daily-sexp
+              ,@rdates-sexp
+              ,@exdates-sexp)
+      (if (= 1 (length daily-sexp))
+          (car daily-sexp)
+        `(and ,@daily-sexp)))))
+
+(defun di:diary-sexp (rrule exdates rdates dtstart dur-value)
+  "Create an sexp using `diary-*' functions for recurrence.
+
+Where RRULE is an alist, EXDATES are a list of excluded dates, RDATES
+are a list of included dates, DTSTART is when the recurrence starts, and
+DUR-VALUE is the duration of a single instance."
+  (let* ((dtend (di:calculate-recur-end-date dtstart dur-value rrule))
+         (foreverp (= (calendar-extract-year dtend) 9999)))
+    (or
+     (when (and dtstart dtend
+                (di:recur-by-date-only rrule))
+       (let* ((block-sexp    (unless foreverp (list (di:block-sexp dtstart dtend))))
+              (interval-val  (icr:interval-size rrule))
+              (rdates-sexp   (mapcar
+                              (lambda (dt)
+                                `(diary-date ,@(di:calendar-date dt)))
+                              rdates))
+              (exdates-sexp  (mapcar
+                              (lambda (dt)
+                                `(not (diary-date ,@(di:calendar-date dt))))
+                              exdates))
+              (sexp-func     (cl-case (icr:freq rrule)
+                               ;; Yearly recur (diary-anniversary)
+                               (YEARLY  #'di:diary-yearly-sexp)
+                               ;; Monthly repeat (diary-date, diary-block)
+                               (MONTHLY #'di:diary-monthly-sexp)
+                               ;; Weekly repeat (diary-cyclic)
+                               (WEEKLY  #'di:diary-weekly-sexp)
+                               ;; Daily repeat (diary-cyclic/diary-block)
+                               (DAILY   #'di:diary-daily-sexp))))
+
+         (funcall sexp-func
+                  dtstart interval-val foreverp
+                  block-sexp rdates-sexp exdates-sexp)))
+
+     ;; General repetition (diary-rrule)
+     `(diary-rrule
+       ,@(when rrule
+           (list :rule `(quote ,rrule)))
+       ,@(when dtstart
+           (list :start `(quote ,dtstart)))
+       ,@(when dur-value
+           (list :duration `(quote ,dur-value)))
+       ,@(when rdates
+           (list :include `(quote ,rdates)))
+       ,@(when exdates
+           (list :exclude `(quote ,exdates)))))))
 
 (defun di:format-rrule-sexp (component)
   "Format the recurrence rule data in COMPONENT as a diary S-expression.
@@ -1502,26 +1715,14 @@ the event."
           (dur-value (cond (duration duration)
                            (dtend (unless (equal dtstart dtend)
                                     (ical:duration-between dtstart dtend)))
-                           (t nil)))
-          (arg-plist nil))
+                           (t nil))))
 
-      (when exdates
-        (setq arg-plist (plist-put arg-plist :exclude `(quote ,exdates))))
-      (when rdates
-        (setq arg-plist (plist-put arg-plist :include `(quote ,rdates))))
-      (when dtstart
-        (setq arg-plist (plist-put arg-plist :start `(quote ,dtstart))))
-      (when dur-value
-        (setq arg-plist (plist-put arg-plist :duration `(quote ,dur-value))))
-      (when rrule
-        ;; TODO: make this prettier to look at?
-        (setq arg-plist (append (list :rule `(quote ,rrule)) arg-plist)))
-      ;; TODO: timezones??
-
-      (setq arg-plist (cons 'diary-rrule arg-plist))
       (string-trim ; removing trailing \n added by pp
        (concat diary-sexp-entry-symbol
-               (with-output-to-string (pp arg-plist)))))))
+               (let* (print-level print-length)
+                 (pp-to-string
+                  (di:diary-sexp rrule exdates rdates
+                                 dtstart dur-value))))))))
 
 ;; This function puts all of the above together to format individual
 ;; iCalendar components as diary entries.  The final formatting is done
@@ -1636,6 +1837,40 @@ Returns a string containing the diary entry."
                description-nodes
                "\n\n")
               (ical:trimp description)))
+           (ical-date
+            (cond
+             ((not dtstart) nil)
+             ((or (not dtend) (equal dtstart dtend))
+              (di:format-date dtstart-local))
+             ((and (bound-and-true-p ical-importing)
+                   (cl-typep dtstart 'ical:date)
+                   (cl-typep dtend 'ical:date))
+              ;; Importing two dates:
+              ;; %%(diary-block ...)
+              (di:format-block-sexp
+               dtstart-local
+               ;; DTEND is an exclusive bound, while
+               ;; diary-block needs an inclusive bound, so
+               ;; subtract a day:
+               (ical:date-add dtend-local :day -1)))
+             ((and (bound-and-true-p ical-importing)
+                   (equal (ical:date/time-to-date dtstart-local)
+                          (ical:date/time-to-date dtend-local)))
+              ;; Importing, start and end times on same day:
+              ;; DATE HH:MM-HH:MM
+              (di:format-date dtstart-local))
+             ((bound-and-true-p ical-importing)
+                ;; Importing at least one date-time, on different days:
+                ;; %%(diary-time-block :start ... :end ...)
+              (di:format-block-sexp dtstart-local
+               (ical:date-add (ical:date/time-to-date dtend-local) :day -1)))))
+           (ical-time
+            ;; If we are not using diary-rrule, check if we need times
+            (when (or (and is-recurring (di:recur-by-date-only rrule))
+                      (not is-recurring))
+              (if dtend-local
+                  (di:format-time-range dtstart-local dtend-local t)
+                (di:format-time-as-local dtstart start-tzname))))
            (ical-start
             (when dtstart
               (if (bound-and-true-p ical-importing)
@@ -1671,7 +1906,8 @@ Returns a string containing the diary entry."
                             (ical:date/time-to-date dtend-local)))
                 ;; Importing, start and end times on same day:
                 ;; DATE HH:MM-HH:MM
-                (di:format-time-range dtstart-local dtend-local))
+                (di:format-time-range dtstart-local dtend-local
+                                      is-recurring))
                ((bound-and-true-p ical-importing)
                 ;; Importing at least one date-time, on different days:
                 ;; %%(diary-time-block :start ... :end ...)
@@ -3580,7 +3816,9 @@ values (of the same type as START)."
                       start
                       (ical:date/time-add-duration start duration))
                    (di:format-time-as-local start)))
-                (date-entry (concat entry-time " " entry)))
+                (date-entry (if (string-prefix-p entry-time entry)
+                                entry
+                              (concat entry-time " " entry))))
            (when (memq (ical:recur-freq date-rule) '(HOURLY MINUTELY SECONDLY))
              (setf (alist-get 'FREQ date-rule) 'DAILY)
              (setf (alist-get 'INTERVAL date-rule) 1)

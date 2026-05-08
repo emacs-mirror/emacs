@@ -1,6 +1,6 @@
 ;;; icalendar-utils.el --- iCalendar utility functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024 Richard Lawrence
+;; Copyright (C) 2024-2026  Free Software Foundation, Inc.
 
 ;; Author: Richard Lawrence <rwl@recursewithless.net>
 ;; Created: January 2025
@@ -135,9 +135,9 @@ arguments."
   "Extract a Gregorian date from DT.
 An `icalendar-date' value is returned unchanged.
 An `icalendar-date-time' value is converted to an `icalendar-date'."
-  (if (cl-typep dt 'ical:date)
-      dt
-    (ical:date-time-to-date dt)))
+  (cl-typecase dt
+    (ical:date dt)
+    (ical:date-time (ical:date-time-to-date dt))))
 
 ;; Type-aware accessors for date/time slots that work for both ical:date
 ;; and ical:date-time:

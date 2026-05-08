@@ -1,6 +1,6 @@
 ;;; icalendar-recur.el --- Support for iCalendar recurrences and time zones -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2024 Richard Lawrence
+;; Copyright (C) 2024-2026  Free Software Foundation, Inc.
 
 ;; Author: Richard Lawrence <rwl@recursewithless.net>
 ;; Created: December 2024

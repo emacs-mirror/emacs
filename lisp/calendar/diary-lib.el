@@ -666,32 +666,32 @@ any entries were found."
             (if backup (re-search-backward "\\<" nil t))
             ;; regexp moves us past the end of date, onto the next line.
             ;; Trailing whitespace after date not allowed (see diary-file).
-            (if (and (bolp) (not (looking-at "[ \t]")))
+            (if (and (bolp) (not (looking-at-p "[ \t]")))
                 ;; Diary entry that consists only of date.
                 (backward-char 1)
               ;; Found a nonempty diary entry--make it
               ;; visible and add it to the list.
-                (setq date-start (line-end-position 0))
-                ;; Actual entry starts on the next-line?
-                (if (looking-at "[ \t]*\n[ \t]") (forward-line 1))
-                (setq entry-found t
-                      entry-start (point))
-                (forward-line 1)
-                (while (looking-at "[ \t]") ; continued entry
-                  (forward-line 1))
-                (unless (and (eobp) (not (bolp)))
-                  (backward-char 1))
-                (unless list-only
-                  (remove-overlays date-start (point) 'invisible 'diary))
-                (setq temp (diary-pull-attrs
-                            (buffer-substring-no-properties
-                             entry-start (point))
-                            globattr))
-                (diary-add-to-list
-                 (or gdate date) (car temp)
-                 (buffer-substring-no-properties
-                  (1+ date-start) (1- entry-start))
-                 (copy-marker entry-start) (cadr temp))))))
+              (setq date-start (line-end-position 0))
+              ;; Actual entry starts on the next-line?
+              (if (looking-at-p "[ \t]*\n[ \t]") (forward-line 1))
+              (setq entry-found t
+                    entry-start (point))
+              (forward-line 1)
+              (while (looking-at-p "[ \t]") ; continued entry
+                (forward-line 1))
+              (unless (and (eobp) (not (bolp)))
+                (backward-char 1))
+              (unless list-only
+                (remove-overlays date-start (point) 'invisible 'diary))
+              (setq temp (diary-pull-attrs
+                          (buffer-substring-no-properties
+                           entry-start (point))
+                          globattr))
+              (diary-add-to-list
+               (or gdate date) (car temp)
+               (buffer-substring-no-properties
+                (1+ date-start) (1- entry-start))
+               (copy-marker entry-start) (cadr temp))))))
       entry-found)))
 
 (defvar original-date)                  ; from diary-list-entries
@@ -1460,7 +1460,7 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
       (forward-sexp)
       (setq sexp (buffer-substring-no-properties sexp-start (point)))
       (forward-char 1)
-      (if (and (bolp) (not (looking-at "[ \t]")))
+      (if (and (bolp) (not (looking-at-p "[ \t]")))
           ;; Diary entry consists only of the sexp.
           (progn
             (backward-char 1)
@@ -1468,7 +1468,7 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
         (setq entry-start (point))
         ;; Find end of entry.
         (forward-line 1)
-        (while (looking-at "[ \t]")
+        (while (looking-at-p "[ \t]")
           (forward-line 1))
         (if (bolp) (backward-char 1))
         (setq entry (buffer-substring-no-properties entry-start (point))))
@@ -1739,22 +1739,21 @@ best if they are non-marking."
     (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
     (while (re-search-forward s-entry nil t)
       (backward-char 1)
-      (setq sexp-start (point))
+      (setq sexp-start (point)
+            line-start (line-end-position 0))
       (forward-sexp)
       (setq sexp (buffer-substring-no-properties sexp-start (point))
-            line-start (line-end-position 0)
-            specifier
-            (buffer-substring-no-properties (1+ line-start) (point))
+            specifier (buffer-substring-no-properties (1+ line-start) (point))
             entry-start (1+ line-start))
       (forward-char 1)
-      (if (and (bolp) (not (looking-at "[ \t]")))
+      (if (and (bolp) (not (looking-at-p "[ \t]")))
           ;; Diary entry consists only of the sexp.
           (progn
             (backward-char 1)
             (setq entry ""))
         (setq entry-start (point))
         (forward-line 1)
-        (while (looking-at "[ \t]")
+        (while (looking-at-p "[ \t]")
           (forward-line 1))
         (if (bolp) (backward-char 1))
         (setq entry (buffer-substring-no-properties entry-start (point))))
@@ -1912,6 +1911,91 @@ highlighting the day in the calendar."
       "th"
     (aref ["th" "st" "nd" "rd"] (% n 10))))
 
+(defun diary--replace-count-or-ordinal-string (str)
+  "Replace the match region with STR and return the new end offset."
+  (let ((beg (match-beginning 0))
+        (end (match-end 0)))
+    (replace-region-contents beg end str)
+    (+ beg (length str))))
+
+(defun diary--replace-count-or-ordinal-format (&rest args)
+  "Format the current match data with ARGS, and replace the match data.
+
+Return the offset of the end of the replacement."
+  (let* ((spec (match-string-no-properties 0))
+         (str  (apply #'format spec args)))
+    (diary--replace-count-or-ordinal-string str)))
+
+(defun diary-format-count-and-ordinal (entry count)
+  "Format `%d' in ENTRY with COUNT and then `%s' with ordinal.
+
+The formats specifiers must be in that order.  Any embedded URL's, with
+escape encoding, are skipped."
+
+  (let* ((ordinal (diary-ordinal-suffix count))
+         (format-spec-re "\\(?:[ #+0-]+\\)?\\(?:[[:digit:]]+\\)?\\(?:\\.[[:digit:]]+\\)?")
+         (count-re (concat "%" format-spec-re "d"))
+         (count-n-re (concat "%1\\$" format-spec-re "d"))
+         (ordinal-re (concat "%" format-spec-re "s"))
+         (ordinal-n-re (concat "%2\\$" format-spec-re "s"))
+         (formatted-count nil)
+         (formatted-ordinal nil)
+         (start (point-min))
+         (case-fold-search nil))
+    (with-temp-buffer
+      (insert entry)
+      (while (progn
+               (goto-char start)
+               (re-search-forward "%" nil t))
+        (setq start (match-beginning 0))
+        (goto-char start)
+        (setq start
+              (cond*
+               ;; Protect embedded URLs with percent escapes
+               ((bind-and*
+                 (url-bounds    (thing-at-point-bounds-of-url-at-point))
+                 (beg-url       (car url-bounds))
+                 (end-url       (cdr url-bounds))
+                 (url-str       (buffer-substring-no-properties beg-url end-url))
+                 (new-url       (replace-regexp-in-string "%%" "%" url-str)))
+                (set-match-data (list beg-url end-url))
+                (diary--replace-count-or-ordinal-string new-url))
+
+               ;; Protect double percents
+               ((looking-at "%%")
+                (diary--replace-count-or-ordinal-string "%"))
+
+               ;; Replace %d (count) if we haven't replaced one yet
+               ((and (looking-at count-re)
+                     (not formatted-count))
+                (setq formatted-count t)
+                (diary--replace-count-or-ordinal-format count))
+
+               ;; Replace %s (ordinal) if we've replaced count already
+               ((and (looking-at ordinal-re)
+                     formatted-count
+                     (not formatted-ordinal))
+                (setq formatted-ordinal t)
+                (diary--replace-count-or-ordinal-format ordinal))
+
+               ;; Replace %1$d (explicit count) every time
+               ((looking-at count-n-re)
+                (setq formatted-count t
+                      formatted-ordinal t)
+                (diary--replace-count-or-ordinal-format count))
+
+               ;; Replace %2$s (explicit ordinal) every time
+               ((looking-at ordinal-n-re)
+                (setq formatted-count t
+                      formatted-ordinal t)
+                (diary--replace-count-or-ordinal-format count ordinal))
+
+               ;; Ignore the percent sign
+               (t
+                (1+ start)))))
+      ;; Return the formatted string
+      (buffer-string))))
+
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-anniversary (month day &optional year mark)
   "Anniversary diary entry.
@@ -1938,7 +2022,27 @@ string to use when highlighting the day in the calendar."
          (setq mm 3
                dd 1))
     (and (> diff 0) (calendar-date-equal (list mm dd y) date)
-         (cons mark (format entry diff (diary-ordinal-suffix diff))))))
+         (cons mark (diary-format-count-and-ordinal entry diff)))))
+
+(defun diary-months-between (date1 date2)
+  "Calculate the number of months between DATE1 and DATE2."
+  (let* ((ddate1 (apply #'diary-make-date date1))
+         (mm1    (calendar-extract-month ddate1))
+         (yy1    (calendar-extract-year ddate1))
+         (ddate2 (apply #'diary-make-date date2))
+         (mm2    (calendar-extract-month ddate2))
+         (yy2    (calendar-extract-year ddate2)))
+    ;; Make sure mm1/yy1 <= mm2/yy2
+    (when (or (> yy1 yy2)
+              (and (= yy1 yy2)
+                   (> mm1 mm2)))
+      (setq mm1 (prog1 mm2 (setq mm2 mm1))
+            yy1 (prog1 yy2 (setq yy2 yy1))))
+    (if (= yy1 yy2)
+        (- mm2 mm1)
+      (+ (- 12 mm1)
+         mm2
+         (* 12 (- yy2 yy1 1))))))
 
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-cyclic (n month day year &optional mark)
@@ -1960,7 +2064,7 @@ string to use when highlighting the day in the calendar."
                    (diary-make-date month day year))))
          (cycle (/ diff n)))
     (and (>= diff 0) (zerop (% diff n))
-         (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
+         (cons mark (diary-format-count-and-ordinal entry cycle)))))
 
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-offset (sexp days)
@@ -2410,14 +2514,14 @@ Needed to handle multiline keyword in `diary-fancy-font-lock-keywords'.
 Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
   (goto-char beg)
   (forward-line 0)
-  (if (looking-at "=+$") (forward-line -1))
-  (while (and (looking-at " +[^ ]")
+  (if (looking-at-p "=+$") (forward-line -1))
+  (while (and (looking-at-p " +[^ ]")
               (zerop (forward-line -1))))
   (goto-char end)
   (forward-line 0)
-  (while (and (looking-at " +[^ ]")
+  (while (and (looking-at-p " +[^ ]")
               (zerop (forward-line 1))))
-  (if (looking-at "=+$")
+  (if (looking-at-p "=+$")
       (setq end (line-beginning-position 2)))
   (font-lock-default-fontify-region beg end verbose))
 
