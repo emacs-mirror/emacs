@@ -5789,14 +5789,11 @@ to the root of this working tree."
   (let ((backend (or (vc-deduce-backend)
                      (vc-responsible-backend default-directory)
                      (error "No VC backend"))))
-    ;; Manually construct VC project objects because `project-current'
-    ;; might find a non-VC project within the VC working tree containing
-    ;; DIRECTORY, but we should ignore that (bug#80939).
+    ;; Skip to the VC root, otherwise `project-current' could find a
+    ;; non-VC project between DEFAULT-DIRECTORY and there (bug#80939).
     (funcall project-find-matching-buffer-function
-             `(vc ,backend ,(vc-root-dir backend))
-             `(vc ,backend
-                  ,(let ((default-directory directory))
-                     (vc-root-dir backend))))))
+             (project-current nil (vc-root-dir backend))
+             (project-current nil directory))))
 
 ;;;###autoload
 (defun vc-working-tree-switch-project (dir)

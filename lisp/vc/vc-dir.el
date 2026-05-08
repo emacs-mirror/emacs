@@ -1261,8 +1261,12 @@ that file."
 	     (vc-dir-fileinfo->state crt-data)) result))
     (nreverse result)))
 
-(defun vc-dir-recompute-file-state (fname def-dir)
-  (let* ((file-short (file-relative-name fname def-dir))
+(defun vc-dir-recompute-file-state (fname def-dir &optional truename)
+  "Compute state of FNAME known to live inside DEF-DIR.
+If TRUENAME is non-nil, FNAME is a truename, DEF-DIR not necessarily."
+  (let* ((file-short (file-relative-name
+                      fname (if truename (file-truename def-dir) def-dir)))
+         (fname (if truename (expand-file-name file-short def-dir) fname))
 	 (_remove-me-when-CVS-works
 	  (when (eq vc-dir-backend 'CVS)
 	    ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
@@ -1330,7 +1334,11 @@ that file."
 		      (vc-dir-resync-directory-files file)
 		      (ewoc-set-hf vc-ewoc
 				   (vc-dir-headers vc-dir-backend ddir) ""))
-                  (let* ((complete-state (vc-dir-recompute-file-state file ddir))
+                  (let* ((complete-state
+                          ;; Make sure 'vc-dir-recompute-file-state'
+                          ;; knows about the truename nature of 'file'
+                          ;; (bug#80967).
+                          (vc-dir-recompute-file-state file ddir t))
 			 (state (cadr complete-state)))
                     (vc-dir-update
                      (list complete-state)
