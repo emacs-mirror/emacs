@@ -154,6 +154,17 @@
 ;;   content.  Lowercase `<!doctype html>' works as a workaround.
 ;;   See <https://github.com/tree-sitter-grammars/tree-sitter-markdown/issues/233>.
 ;;
+;; - The grammar parses solo tildes, incorrectly applying strikethrough.
+;;   For example, writing:
+;;
+;;     I see ~approximately four lights.
+;;     I do not see ~approximately five lights.
+;;
+;;   Results in strikethrough incorrectly starting at the first
+;;   ~approximately and extending till the tilde at the second
+;;   ~approximately.
+;;   See <https://github.com/tree-sitter-grammars/tree-sitter-markdown/issues/236>.
+;;
 ;; - Superscript (`^text^') and subscript (`~text~') syntax is not
 ;;   supported by the grammar.  No EXTENSION_ build flag exists for
 ;;   this.  This is Pandoc / PHP Markdown Extra syntax, not CommonMark
@@ -1706,10 +1717,30 @@ Skip matches already inside tree-sitter link or autolink nodes."
    :language 'markdown-inline
    :override 'append
    :feature 'paragraph-inline
+   ;; Order matters: most specific to least specific.
+   '(;; ~ x ~ (strikethrough (emphasis_delimiter) ) : ( (emphasis_delimiter))
+     ;;                                           ^^^
+     ;;                                           inline text needs to be ignored
+     ((strikethrough ((emphasis_delimiter)
+                      :anchor
+                      _ @foo
+                      (emphasis_delimiter))
+                     (:match "\\`[~[:print:]]\\'" @foo)
+                     )
+      @default)
+     ;; ~~x~~ (strikethrough (emphasis_delimiter) (strikethrough (emphasis_delimiter) (emphasis_delimiter)) (emphasis_delimiter))
+     ((strikethrough (emphasis_delimiter) (strikethrough (emphasis_delimiter) (emphasis_delimiter)) (emphasis_delimiter))
+      @markdown-ts-strikethrough)
+     ;;  ~x~  (strikethrough (emphasis_delimiter) (emphasis_delimiter))
+     ((strikethrough (emphasis_delimiter) (emphasis_delimiter))
+      @markdown-ts-strikethrough))
+
+   :language 'markdown-inline
+   :override 'append
+   :feature 'paragraph-inline
    '(((link_destination) @markdown-ts--fontify-link-destination)
      ((emphasis) @markdown-ts-emphasis)
      ((strong_emphasis) @markdown-ts-bold)
-     ((strikethrough) @markdown-ts-strikethrough)
      (inline_link (link_text) @markdown-ts--fontify-link-node)
      (full_reference_link (link_text) @markdown-ts--fontify-link-node)
      (full_reference_link (link_label) @markdown-ts--fontify-link-node)
