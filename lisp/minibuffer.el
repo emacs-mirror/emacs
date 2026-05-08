@@ -2586,7 +2586,7 @@ and with BASE-SIZE appended as the last element."
                  com-str-len (1+ com-str-len)
                  'face 'completions-first-difference str))
               str)))
-      (if completion-lazy-hilit
+      (if (completion-lazy-hilit-p)
           (setq completion-lazy-hilit-fn hilit-fn)
         (setq completions
               (mapcar
@@ -2603,6 +2603,11 @@ and with BASE-SIZE appended as the last element."
                  elem)
                completions)))
       (nconc completions base-size))))
+
+(defun completion-lazy-hilit-p ()
+  "Return non-nil if the completion frontend supports lazy highlighting."
+  (or completion-lazy-hilit
+      (alist-get 'lazy-highlight completion-frontend-properties)))
 
 (defun display-completion-list (completions &optional common-substring group-fun)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
@@ -3197,6 +3202,23 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
 (setq minor-mode-map-alist
       (delq (assq 'completion-in-region-mode minor-mode-map-alist)
             minor-mode-map-alist))
+
+(defvar completion-frontend-properties nil
+  "Alist of properties describing the current completion frontend.
+
+Frontends may let-bind this variable while calling a completion backend
+to provide information which the backend can use to optimize or adjust
+its behavior.  More specifically, frontends should bind this variable
+when calling `completion-try-completion' or `completion-all-completions'.
+
+Currently known frontend properties are:
+
+- \\+`no-annotations': if non-nil, the frontend ignores any
+  `annotation-function'/`affixation-function'.
+
+- \\+`lazy-highlight': If non-nil, the front-end does not require
+  `completion-all-completions' completions to be highlighted and knows
+  to call the function `completion-lazy-hilit' as needed instead.")
 
 (defvar completion-at-point-functions '(tags-completion-at-point-function)
   "Special hook to find the completion table for the entity at point.
@@ -4501,9 +4523,10 @@ strings with the `face' property.")
 
 (defun completion-lazy-hilit (str)
   "Return a copy of completion candidate STR that is `face'-propertized.
-See documentation of the variable `completion-lazy-hilit' for more
-details."
-  (if (and completion-lazy-hilit completion-lazy-hilit-fn)
+Apply `completion-lazy-hilit-fn' if it is set and the frontend supports
+lazy highlighting (see `completion-lazy-hilit-p'), otherwise return STR
+as is."
+  (if (and (completion-lazy-hilit-p) completion-lazy-hilit-fn)
       (funcall completion-lazy-hilit-fn (copy-sequence str))
     str))
 
@@ -4556,7 +4579,7 @@ see) for later lazy highlighting."
            (re (completion-pcm--segments->regex segments 'group))
            (point-idx (completion-pcm--segments-point-idx segments)))
       (setq completion-pcm--regexp re)
-      (cond (completion-lazy-hilit
+      (cond ((completion-lazy-hilit-p)
              (setq completion-lazy-hilit-fn
                    (lambda (str) (completion--hilit-from-re str re point-idx)))
              completions)
@@ -5036,7 +5059,7 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
                    (1+ special-match) (+ 2 special-match)
                    'completions-first-difference nil str))))
             str))
-    (unless completion-lazy-hilit
+    (unless (completion-lazy-hilit-p)
       (setq all (mapcar completion-lazy-hilit-fn all)))
     ;; Store pattern for adjust-metadata to use
     (setq completion-flex--pattern-str pattern-str)

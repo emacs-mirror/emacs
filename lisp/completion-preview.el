@@ -499,7 +499,12 @@ candidates or if there are multiple matching completions and
          (sort-fn (or (completion-metadata-get md 'cycle-sort-function)
                       (completion-metadata-get md 'display-sort-function)
                       completion-preview-sort-function))
-         (all (let ((completion-lazy-hilit t)
+         (all (let (;; This is somewhat redundant since we also specify
+                    ;; non-nil `lazy-highlight' in
+                    ;; `completion-frontend-properties', but we keep it
+                    ;; for compatibility with backends that do not know
+                    ;; about `completion-frontend-properties' yet.
+                    (completion-lazy-hilit t)
                     ;; FIXME: This does not override styles prescribed
                     ;; by the completion category via
                     ;; e.g. `completion-category-defaults'.
@@ -525,7 +530,9 @@ candidates or if there are multiple matching completions and
 
 (defun completion-preview--capf-wrapper (capf)
   "Translate return value of CAPF to properties for completion preview overlay."
-  (let ((res (ignore-errors (funcall capf))))
+  (let* ((completion-frontend-properties '((no-annotations . t)
+                                           (lazy-highlight . t)))
+         (res (ignore-errors (funcall capf))))
     (and (consp res)
          (not (functionp res))
          (seq-let (beg end table &rest plist) res
