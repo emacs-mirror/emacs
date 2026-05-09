@@ -466,10 +466,8 @@ xftfont_text_extents (struct font *font, const unsigned int *code,
   struct font_info *xftfont_info = (struct font_info *) font;
   XGlyphInfo extents;
 
-  block_input ();
   XftGlyphExtents (xftfont_info->display, xftfont_info->xftfont, code, nglyphs,
 		   &extents);
-  unblock_input ();
 
   metrics->lbearing = - extents.x;
   metrics->rbearing = - extents.x + extents.width;
