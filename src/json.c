@@ -854,8 +854,8 @@ json_make_object_workspace_for_slow_path (struct json_parser *parser,
 	= xnmalloc (new_workspace_size, sizeof (Lisp_Object));
 #else
       new_workspace_ptr
-	= igc_xalloc_lisp_objs_exact (new_workspace_size,
-				      "json-parser-object-workspace");
+	= igc_xalloc_lisp (new_workspace_size,
+			   "json-parser-object-workspace");
 #endif
       memcpy (new_workspace_ptr, parser->object_workspace,
 	      (sizeof (Lisp_Object)
@@ -870,11 +870,9 @@ json_make_object_workspace_for_slow_path (struct json_parser *parser,
 #else
       size_t old_size = parser->object_workspace_current;
       new_workspace_ptr
-	= igc_xnrealloc_lisp_objs_exact (old_size,
-					 parser->object_workspace,
-					 new_workspace_size,
-					 "json-parser-object-"
-					 "workspace");
+	= igc_xnrealloc_lisp (old_size, parser->object_workspace,
+			      new_workspace_size,
+			      "json-parser-object-workspace");
 #endif
     }
 

@@ -1592,8 +1592,8 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
 		block_input ();
 #ifdef HAVE_MPS
-		newmodes = igc_xalloc_lisp_objs_exact (newsize,
-						       "current-minor-modes");
+		newmodes
+		  = igc_xalloc_lisp (newsize, "current-minor-modes");
 #else
 		newmodes = malloc (allocsize);
 #endif
@@ -1613,8 +1613,8 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		  }
 
 #ifdef HAVE_MPS
-		newmaps = igc_xalloc_lisp_objs_exact (newsize,
-						      "current-minor-maps");
+		newmaps
+		  = igc_xalloc_lisp (newsize, "current-minor-maps");
 #else
 		newmaps = malloc (allocsize);
 #endif

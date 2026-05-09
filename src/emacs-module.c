@@ -430,7 +430,7 @@ module_make_global_ref (emacs_env *env, emacs_value value)
   else
     {
 #ifdef HAVE_MPS
-      struct module_global_reference *ref = igc_alloc_global_ref ();
+      struct module_global_reference *ref = igc_create_global_ref ();
 #else
       struct module_global_reference *ref
         = ALLOCATE_PLAIN_PSEUDOVECTOR (struct module_global_reference,
@@ -474,7 +474,7 @@ module_free_global_ref (emacs_env *env, emacs_value global_value)
 	{
 	  hash_remove_from_table (h, obj);
 #ifdef HAVE_MPS
-	  igc_free_global_ref (ref);
+	  igc_destroy_global_ref (ref);
 #endif
 	}
     }

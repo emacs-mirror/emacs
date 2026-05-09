@@ -3096,7 +3096,7 @@ init_vectors (void)
 
   zero_vector = make_lisp_ptr (zv, Lisp_Vectorlike);
 #else
-  XSETVECTOR (zero_vector, igc_alloc_vector (0));
+  XSETVECTOR (zero_vector, igc_make_vector (0));
 #endif
   staticpro (&zero_vector);
 }
@@ -3545,7 +3545,7 @@ allocate_clear_vector (ptrdiff_t len, bool clearit)
   if (len == 0)
     return XVECTOR (zero_vector);
 #ifdef HAVE_MPS
-  struct Lisp_Vector *v = igc_alloc_vector (len);
+  struct Lisp_Vector *v = igc_make_vector (len);
 #else
   if (VECTOR_ELTS_MAX < len)
     memory_full (SIZE_MAX);
@@ -3590,7 +3590,7 @@ allocate_pseudovector (int memlen, int lisplen,
   eassert (memlen <= size_max + rest_max);
 
 #ifdef HAVE_MPS
-  return igc_alloc_pseudovector (memlen, lisplen, zerolen, tag);
+  return igc_make_pseudovector (memlen, lisplen, zerolen, tag);
 #else
   verify (size_max + rest_max <= VECTOR_ELTS_MAX);
   struct Lisp_Vector *v = allocate_vectorlike (memlen, false);
@@ -3623,7 +3623,7 @@ allocate_record (EMACS_INT count)
     error ("Attempt to allocate a record of %" pI "d slots; max is %d", count,
 	   PSEUDOVECTOR_SIZE_MASK);
 #ifdef HAVE_MPS
-  return igc_alloc_record (count);
+  return igc_make_record (count);
 #else
   struct Lisp_Vector *p = allocate_vectorlike (count, false);
   p->header.size = count;
@@ -3763,7 +3763,7 @@ usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
   /* Return a copy of the prototype function with the new constant vector. */
   ptrdiff_t protosize = PVSIZE (protofun);
 #ifdef HAVE_MPS
-  struct Lisp_Vector *v = igc_alloc_vector (protosize);
+  struct Lisp_Vector *v = igc_make_vector (protosize);
 #else
   struct Lisp_Vector *v = allocate_vectorlike (protosize, false);
 #endif
@@ -3851,7 +3851,7 @@ Its value is void, and its function definition and property list are nil.  */)
   CHECK_STRING (name);
 
 #ifdef HAVE_MPS
-  Lisp_Object val = igc_alloc_symbol ();
+  Lisp_Object val = igc_make_symbol ();
   init_symbol (val, name);
   return val;
 #else
@@ -5596,7 +5596,7 @@ hash_table_alloc_bytes (ptrdiff_t nbytes)
   tally_consing (nbytes);
   hash_table_allocated_bytes += nbytes;
 #ifdef HAVE_MPS
-  void *p = igc_alloc_bytes (nbytes);
+  void *p = igc_make_bytes (nbytes);
 #else
   void *p = xmalloc (nbytes);
 #endif

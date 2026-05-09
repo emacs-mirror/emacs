@@ -4883,7 +4883,7 @@ hash_table_kv_create (size_t size, hash_table_weakness_t w)
     .values = hash_table_alloc_kv (NULL, size),
   };
 #else
-  hash_table_kv kv2 = igc_alloc_pair_vector (size, w);
+  hash_table_kv kv2 = igc_make_pair_vector (size, w);
 #endif
   hash_table_kv_init (kv2, 0, size);
   return kv2;
@@ -4899,7 +4899,7 @@ hash_table_kv_resize (hash_table_kv kv, hash_table_weakness_t w,
     .values = hash_table_alloc_kv (NULL, new_size),
   };
 #else
-  hash_table_kv kv2 =  igc_alloc_pair_vector (new_size, w);
+  hash_table_kv kv2 =  igc_make_pair_vector (new_size, w);
   eassert (kv == NULL || NILP (kv->ndeleted));
 #endif
   for (size_t i = 0; i < old_size; i++)
@@ -5619,10 +5619,10 @@ allocate_weak_hash_table_parts (struct Lisp_Weak_Hash_Table *h,
 {
   void *strong_pointers[5] = {};
   void *weak_pointers[3] = {};
-  igc_alloc_weak_hash_table_strong_part (weak, strong_pointers, size,
-					 index_bits);
-  igc_alloc_weak_hash_table_weak_part (weak, weak_pointers, size,
-				       index_bits);
+  igc_make_weak_hash_table_strong_part (weak, strong_pointers, size,
+					index_bits);
+  igc_make_weak_hash_table_weak_part (weak, weak_pointers, size,
+				      index_bits);
   h->strong = strong_pointers[0];
   h->strong->h.weakness = weak;
   struct Lisp_String_Data *next_data = strong_pointers[1];

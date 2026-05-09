@@ -44,40 +44,40 @@ void igc_add_marker (struct buffer *b, struct Lisp_Marker *m);
 void igc_remove_marker (struct buffer *b, struct Lisp_Marker *m);
 void igc_remove_all_markers (struct buffer *b);
 void igc_resurrect_markers (struct buffer *b);
-Lisp_Object igc_alloc_symbol (void);
+Lisp_Object igc_make_symbol (void);
 #ifdef HAVE_MODULES
-void *igc_alloc_global_ref (void);
-void igc_free_global_ref (struct module_global_reference *ref);
+void *igc_create_global_ref (void);
+void igc_destroy_global_ref (struct module_global_reference *ref);
 #endif
 
-struct Lisp_Buffer_Local_Value *igc_alloc_blv (void);
+struct Lisp_Buffer_Local_Value *igc_make_blv (void);
 void *igc_alloc_handler (void);
 void *igc_xzalloc_ambig (size_t size, const char *label);
 void *igc_realloc_ambig (void *block, size_t size);
 #ifdef ENABLE_CHECKING
 void igc_check_freeable (void *p);
 #endif
-Lisp_Object *igc_xalloc_lisp_objs_exact (size_t n, const char *label);
-void *igc_xalloc_raw_exact (size_t n, const char *label);
+Lisp_Object *igc_xalloc_lisp (size_t n, const char *label);
+void *igc_xalloc_raw (size_t n, const char *label);
 
 void *igc_xpalloc_ambig (void *pa, ptrdiff_t *nitems,
-			 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-			 ptrdiff_t item_size, const char *label);
+			 ptrdiff_t nitems_incr_min,
+			 ptrdiff_t nitems_max, ptrdiff_t item_size,
+			 const char *label);
 
-void *igc_xpalloc_raw_exact (void *pa, ptrdiff_t *nitems,
-			     ptrdiff_t nitems_incr_min,
-			     ptrdiff_t nitems_max,
-			     const char *label);
+void *igc_xpalloc_raw (void *pa, ptrdiff_t *nitems,
+		       ptrdiff_t nitems_incr_min,
+		       ptrdiff_t nitems_max, const char *label);
 
-Lisp_Object *igc_xpalloc_lisp_objs_exact (Lisp_Object *pa, ptrdiff_t *nitems,
-					  ptrdiff_t nitems_incr_min,
-					  ptrdiff_t nitems_max,
-					  const char *label);
+Lisp_Object *igc_xpalloc_lisp (Lisp_Object *pa, ptrdiff_t *nitems,
+			       ptrdiff_t nitems_incr_min,
+			       ptrdiff_t nitems_max,
+			       const char *label);
 
-Lisp_Object *igc_xnrealloc_lisp_objs_exact (ptrdiff_t nitems_old,
-					    Lisp_Object *old,
-					    ptrdiff_t nitems_new,
-					    const char *label);
+Lisp_Object *igc_xnrealloc_lisp (ptrdiff_t nitems_old,
+				 Lisp_Object *old,
+				 ptrdiff_t nitems_new,
+				 const char *label);
 
 struct kboard *igc_alloc_kboard (void);
 struct hash_table_user_test *igc_alloc_hash_table_user_test (void);
@@ -85,12 +85,12 @@ struct glyph_matrix *igc_alloc_glyph_matrix (void);
 struct glyph_pool *igc_alloc_glyph_pool (void);
 struct coding_system *igc_alloc_coding_system (void);
 
-struct Lisp_Vector *igc_alloc_pseudovector (size_t nwords_mem,
-					    size_t nwords_lisp,
-					    size_t nwords_zero,
-					    enum pvec_type tag);
-struct Lisp_Vector *igc_alloc_vector (ptrdiff_t len);
-struct Lisp_Vector *igc_alloc_record (ptrdiff_t len);
+struct Lisp_Vector *igc_make_pseudovector (size_t nwords_mem,
+					   size_t nwords_lisp,
+					   size_t nwords_zero,
+					   enum pvec_type tag);
+struct Lisp_Vector *igc_make_vector (ptrdiff_t len);
+struct Lisp_Vector *igc_make_record (ptrdiff_t len);
 struct itree_node *igc_make_itree_node (void);
 struct itree_tree *igc_make_itree_tree (void);
 struct image *igc_make_image (void);
@@ -100,11 +100,15 @@ void igc_grow_rdstack (struct read_stack *rs);
 void igc_grow_print_stack (struct print_stack *);
 void igc_grow_pp_stack (struct print_pp_stack *);
 struct Lisp_Vector *igc_make_hash_table_vec (size_t n);
-void igc_alloc_weak_hash_table_strong_part(hash_table_weakness_t, void *ptrs[5], size_t, size_t);
-void igc_alloc_weak_hash_table_weak_part(hash_table_weakness_t, void *ptrs[3], size_t, size_t);
-struct pair_vector *igc_alloc_pair_vector (size_t,
-					   hash_table_weakness_t);
-void *igc_alloc_bytes (size_t nbytes);
+void igc_make_weak_hash_table_strong_part (hash_table_weakness_t,
+					   void *ptrs[5], size_t,
+					   size_t);
+void igc_make_weak_hash_table_weak_part (hash_table_weakness_t,
+					 void *ptrs[3], size_t,
+					 size_t);
+struct pair_vector *igc_make_pair_vector (size_t,
+					  hash_table_weakness_t);
+void *igc_make_bytes (size_t nbytes);
 struct image_cache *igc_make_image_cache (void);
 struct interval *igc_make_interval (void);
 
@@ -137,7 +141,7 @@ char *igc_dump_finish_obj (void *client, enum igc_obj_type type,
 void igc_dump_check_object_starts (Lisp_Object relocs, void *dump_base,
 				   void *hot_start, void *hot_end,
 				   void *cold_start, void *heap_end);
-void *igc_alloc_dump (size_t nbytes);
+void *igc_make_dump (size_t nbytes);
 bool igc_busy_p (void);
 Lisp_Object igc_discard_killed_buffers (Lisp_Object list);
 

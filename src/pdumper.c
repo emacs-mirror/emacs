@@ -5297,7 +5297,7 @@ static bool
 dump_mmap_contiguous_mps (struct dump_memory_map *maps, int nr_maps,
 			  size_t total_size)
 {
-  uint8_t *p = igc_alloc_dump (total_size);
+  uint8_t *p = igc_make_dump (total_size);
   for (size_t i = 0; i < nr_maps; ++i)
     {
       struct dump_memory_map *map = &maps[i];

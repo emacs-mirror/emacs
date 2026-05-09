@@ -20,6 +20,27 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* For an introduction, see the files README-IGC and admin/igc.org.  */
 
+/* Naming convention for allocation functions:
+
+   - Functions with "alloc" in the name return objects that should be
+     freed manually with igc_xfree.  Examples are igc_alloc_kboard,
+     igc_zalloc_ambig or igc_xpalloc_lisp.
+
+   - Functions with "make" in the name return objects that are freed
+     automatically.  Examples are igc_make_cons or igc_make_itree_node.
+
+   - Functions with names like "igc_create_FOO" have a corresponding
+     "igc_destroy_FOO".
+
+   - The suffix "_ambig" indicates that the block is scanned ambiguously.
+     E.g.: igc_xzalloc_ambig or igc_xpalloc_ambig.
+
+   - The suffix "_lisp" is used for arrays of Lisp_Objects.
+     E.g.: igc_xalloc_lisp.
+
+   - The suffix "_raw" is used for arrays of untagged pointers.  E.g.:
+     igc_xpalloc_raw.  */
+
 #include <config.h>
 #include <limits.h>
 #include <signal.h>
@@ -4045,7 +4066,7 @@ igc_grow_rdstack (struct read_stack *rs)
 }
 
 Lisp_Object *
-igc_xalloc_lisp_objs_exact (size_t n, const char *label)
+igc_xalloc_lisp (size_t n, const char *label)
 {
   size_t size = n * sizeof (Lisp_Object);
   void *p = xzalloc (size);
@@ -4054,7 +4075,7 @@ igc_xalloc_lisp_objs_exact (size_t n, const char *label)
 }
 
 void *
-igc_xalloc_raw_exact (size_t n, const char *label)
+igc_xalloc_raw (size_t n, const char *label)
 {
   size_t size = n * sizeof (void *);
   void *p = xzalloc (size);
@@ -4194,18 +4215,18 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
 }
 
 void *
-igc_xpalloc_raw_exact (void *pa, ptrdiff_t *nitems,
-		       ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-		       const char *label)
+igc_xpalloc_raw (void *pa, ptrdiff_t *nitems,
+		 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+		 const char *label)
 {
   ptrdiff_t nitems_old = pa ? *nitems : 0;
   ptrdiff_t nitems_new = nitems_old;
-  ptrdiff_t nbytes
-    = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min, nitems_max,
-		      sizeof (void *));
+  ptrdiff_t nbytes = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min,
+				     nitems_max, sizeof (void *));
   void **old = pa;
   void **new = xzalloc (nbytes);
-  root_create_exact (global_igc, new, new + nitems_new, scan_ptr_exact, label);
+  root_create_exact (global_igc, new, new + nitems_new,
+		     scan_ptr_exact, label);
   for (ptrdiff_t i = 0; i < nitems_old; i++)
     new[i] = old[i];
   igc_destroy_root_with_start (old);
@@ -4235,17 +4256,18 @@ igc_grow_pp_stack (struct print_pp_stack *ps)
 }
 
 Lisp_Object *
-igc_xpalloc_lisp_objs_exact (Lisp_Object *pa, ptrdiff_t *nitems,
-			     ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-			     const char *label)
+igc_xpalloc_lisp (Lisp_Object *pa, ptrdiff_t *nitems,
+		  ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+		  const char *label)
 {
   ptrdiff_t nitems_old = pa ? *nitems : 0;
   ptrdiff_t nitems_new = nitems_old;
-  ptrdiff_t nbytes
-    = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min, nitems_max, word_size);
+  ptrdiff_t nbytes = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min,
+				     nitems_max, word_size);
   Lisp_Object *old = pa;
   Lisp_Object *new = xzalloc (nbytes);
-  root_create_exact (global_igc, new, new + nitems_new, scan_exact, label);
+  root_create_exact (global_igc, new, new + nitems_new, scan_exact,
+		     label);
   for (ptrdiff_t i = 0; i < nitems_old; i++)
     new[i] = old[i];
   igc_destroy_root_with_start (old);
@@ -4255,14 +4277,13 @@ igc_xpalloc_lisp_objs_exact (Lisp_Object *pa, ptrdiff_t *nitems,
 }
 
 Lisp_Object *
-igc_xnrealloc_lisp_objs_exact (ptrdiff_t nitems_old,
-			       Lisp_Object *old,
-			       ptrdiff_t nitems_new,
-			       const char *label)
+igc_xnrealloc_lisp (ptrdiff_t nitems_old, Lisp_Object *old,
+		    ptrdiff_t nitems_new, const char *label)
 {
   ptrdiff_t nbytes = nitems_new * word_size;
   Lisp_Object *new = xzalloc (nbytes);
-  root_create_exact (global_igc, new, new + nitems_new, scan_exact, label);
+  root_create_exact (global_igc, new, new + nitems_new, scan_exact,
+		     label);
   for (ptrdiff_t i = 0, n = min (nitems_old, nitems_new); i < n; i++)
     new[i] = old[i];
   igc_destroy_root_with_start (old);
@@ -5157,7 +5178,7 @@ alloc_immovable (size_t size, enum igc_obj_type type)
 
 #ifdef HAVE_MODULES
 void *
-igc_alloc_global_ref (void)
+igc_create_global_ref (void)
 {
   size_t nwords_mem = VECSIZE (struct module_global_reference);
   struct Lisp_Vector *v
@@ -5168,7 +5189,7 @@ igc_alloc_global_ref (void)
 }
 
 void
-igc_free_global_ref (struct module_global_reference *r)
+igc_destroy_global_ref (struct module_global_reference *r)
 {
   unpin (global_igc, r, r->pin_index);
 }
@@ -5184,7 +5205,7 @@ igc_make_cons (Lisp_Object car, Lisp_Object cdr)
 }
 
 Lisp_Object
-igc_alloc_symbol (void)
+igc_make_symbol (void)
 {
   struct Lisp_Symbol *sym = alloc (sizeof *sym, IGC_OBJ_SYMBOL);
   return make_lisp_symbol (sym);
@@ -5208,7 +5229,7 @@ alloc_string_data (size_t nbytes, bool clear)
 }
 
 void *
-igc_alloc_bytes (size_t nbytes)
+igc_make_bytes (size_t nbytes)
 {
   struct Lisp_String_Data *data =
     alloc (sizeof (*data) + nbytes, IGC_OBJ_STRING_DATA);
@@ -5244,8 +5265,8 @@ igc_make_interval (void)
 }
 
 struct Lisp_Vector *
-igc_alloc_pseudovector (size_t nwords_mem, size_t nwords_lisp,
-			size_t nwords_zero, enum pvec_type tag)
+igc_make_pseudovector (size_t nwords_mem, size_t nwords_lisp,
+		       size_t nwords_zero, enum pvec_type tag)
 {
   /* header_size comes from lisp.h.  */
   size_t size = header_size + nwords_mem * sizeof (Lisp_Object);
@@ -5266,7 +5287,7 @@ igc_alloc_pseudovector (size_t nwords_mem, size_t nwords_lisp,
 }
 
 struct Lisp_Vector *
-igc_alloc_vector (ptrdiff_t len)
+igc_make_vector (ptrdiff_t len)
 {
   struct Lisp_Vector *v
     = alloc (header_size + len * word_size, IGC_OBJ_VECTOR);
@@ -5275,7 +5296,7 @@ igc_alloc_vector (ptrdiff_t len)
 }
 
 struct Lisp_Vector *
-igc_alloc_record (ptrdiff_t len)
+igc_make_record (ptrdiff_t len)
 {
   struct Lisp_Vector *v
     = alloc (header_size + len * word_size, IGC_OBJ_VECTOR);
@@ -5364,9 +5385,9 @@ igc_make_hash_table_vec (size_t n)
 
 #ifndef USE_EPHEMERON_POOL
 void
-igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak,
-				       void *pointers[5],
-				       size_t size, size_t index_bits)
+igc_make_weak_hash_table_strong_part (hash_table_weakness_t weak,
+				      void *pointers[5], size_t size,
+				      size_t index_bits)
 {
   size_t sizes[5] = { };
   enum igc_obj_type types[5] = { };
@@ -5398,9 +5419,9 @@ igc_alloc_weak_hash_table_strong_part (hash_table_weakness_t weak,
 }
 
 void
-igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak,
-				     void *pointers[3],
-				     size_t size, size_t index_bits)
+igc_make_weak_hash_table_weak_part (hash_table_weakness_t weak,
+				    void *pointers[3], size_t size,
+				    size_t index_bits)
 {
   size_t sizes[3] = { };
   enum igc_obj_type types[3] = { };
@@ -5430,7 +5451,7 @@ igc_alloc_weak_hash_table_weak_part (hash_table_weakness_t weak,
 
 #ifdef USE_EPHEMERON_POOL
 struct pair_vector *
-igc_alloc_pair_vector (size_t len, hash_table_weakness_t w)
+igc_make_pair_vector (size_t len, hash_table_weakness_t w)
 {
   struct pair_vector *r;
   size_t header_size = offsetof (struct pair_vector, pairs);
@@ -5460,7 +5481,6 @@ igc_alloc_pair_vector (size_t len, hash_table_weakness_t w)
   emacs_abort ();
 }
 
-
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -5473,7 +5493,7 @@ igc_make_image_cache (void)
 #endif
 
 struct Lisp_Buffer_Local_Value *
-igc_alloc_blv (void)
+igc_make_blv (void)
 {
   struct Lisp_Buffer_Local_Value *blv
     = alloc (sizeof *blv, IGC_OBJ_BLV);
@@ -6275,7 +6295,7 @@ igc_on_pdump_loaded (void *dump_base, void *hot_start, void *hot_end,
 }
 
 void *
-igc_alloc_dump (size_t nbytes)
+igc_make_dump (size_t nbytes)
 {
   igc_assert (global_igc->park_count > 0);
   mps_ap_t ap;

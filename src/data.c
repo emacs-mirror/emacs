@@ -2155,7 +2155,7 @@ make_blv (struct Lisp_Symbol *sym, bool forwarded,
 {
   struct Lisp_Buffer_Local_Value *blv;
 #ifdef HAVE_MPS
-  blv = igc_alloc_blv ();
+  blv = igc_make_blv ();
 #else
   blv = xmalloc (sizeof *blv);
 #endif
