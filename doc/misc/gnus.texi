@@ -26680,11 +26680,11 @@ CloudSynchronizationDataPack(TM)s.  It's easiest to set this from the
 Server buffer (@pxref{Gnus Cloud Setup}).
 @end defvar
 
+@c Section name changed from this in Emacs 31.  @c
+@c This anchor allows old links to continue working.  @c
+@anchor{D-Bus Integration}
 @node System Sleep Integration
 @section System Sleep Integration
-@c Section name changed from this in Emacs 31. @c
-@c This anchor allows old links to continue working. @c
-@anchor{D-Bus Integration}
 @cindex system sleep
 @cindex closing servers automatically
 @cindex hung connections

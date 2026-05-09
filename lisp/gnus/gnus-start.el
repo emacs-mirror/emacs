@@ -734,6 +734,7 @@ the first newsgroup."
 
 (defcustom gnus-close-on-sleep nil
   "When non-nil, close Gnus servers on system sleep."
+  :version "31.1"
   :type 'boolean
   :group 'gnus-start)
 
@@ -744,9 +745,7 @@ See `gnus-close-on-sleep' to enable this functionality.
 SLEEP-EVENT is checked to ensure this is only run before sleep."
   (when (and (eq 'pre-sleep (sleep-event-state sleep-event))
              (gnus-alive-p))
-    (condition-case nil
-        (gnus-close-all-servers)
-      (error nil))))
+    (ignore-errors (gnus-close-all-servers))))
 
 (defun gnus-no-server-1 (&optional arg child)
   "Read network news.
