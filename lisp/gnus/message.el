@@ -4401,6 +4401,9 @@ a non-nil value when called in the message buffer without any
 arguments.  If METHOD is nil in this case, the return value of
 the function will be inserted instead.
 
+For an explanation of the \"X-Message-SMTP-Method\" header, see
+Info node `(message) Mail Variables'.
+
 Note: if the buffer already has a \"X-Message-SMTP-Method\"
 header, these rules are ignored, and the header is left
 unchanged."
