@@ -2791,6 +2791,9 @@ Whether we update the buffer is based on `completion-eager-display' and
 `eager-display' and `eager-update'.
 
 If FORCE-EAGER-UPDATE is non-nil, we only check eager-display."
+  (when (and force-eager-update completions--background-update-timer)
+    (cancel-timer completions--background-update-timer)
+    (setq completions--background-update-timer nil))
   (unless completions--background-update-timer
     (setq completions--background-update-timer
           (run-with-idle-timer
@@ -2811,7 +2814,10 @@ has been requested by the completion table."
       (when completion-auto-deselect
         (with-selected-window window
           (completions--deselect))))
-    (completions--start-background-update)))
+    (when (or completion-in-region-mode
+              (completions--should-show-p
+               (completion--field-metadata (minibuffer-prompt-end))))
+      (completions--start-background-update))))
 
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
