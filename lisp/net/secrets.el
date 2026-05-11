@@ -913,11 +913,14 @@ to their attributes."
    :session dbus-service-dbus dbus-path-dbus
    dbus-interface-dbus "NameOwnerChanged"
    (lambda (&rest args)
-     (when secrets-debug (message "Secret Service has changed: %S" args))
-     (setq secrets-session-path secrets-empty-path
-	   secrets-prompt-signal nil
-	   secrets-collection-paths nil))
-   secrets-service)
+     ;; The flatpak version of Emacs shows also signals from
+     ;; "org.freedesktop.portal.Flatpak".  (Bug#80977)
+     (when (and (stringp (car args)) (string-equal secrets-service (car args)))
+       (when secrets-debug (message "Secret Service has changed: %S" args))
+       (setq secrets-session-path secrets-empty-path
+	     secrets-prompt-signal nil
+	     secrets-collection-paths nil)))
+   :arg-namespace secrets-service)
 
   ;; We want to refresh our cache, when there is a change in
   ;; collections.
