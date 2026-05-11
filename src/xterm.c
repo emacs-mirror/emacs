@@ -28542,6 +28542,27 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     }
 }
 
+/* Resizing an occluding window (such as a child frame) immediately
+   triggers a fill with background color on the exposed area on the
+   parent when the X server receives the corresponding command
+   (XResizeWindow, XMoveResizeWindow, etc).  But only if the window has
+   a background assigned.  Change it to None to block that effect.  */
+static void
+x_suspend_background_fills (struct frame *f)
+{
+  Display *dpy = FRAME_X_DISPLAY (f);
+
+  XSetWindowBackgroundPixmap (dpy, FRAME_X_WINDOW (f), None);
+}
+
+/* No automatmic fill happens when the background is restored.  */
+static void
+x_restore_background_fills (struct frame *f)
+{
+  Display *dpy = FRAME_X_DISPLAY (f);
+
+  XSetWindowBackground (dpy, FRAME_X_WINDOW (f), FRAME_BACKGROUND_PIXEL (f));
+}
 
 /* Change the size of frame F's X window to WIDTH and HEIGHT pixels.  If
    CHANGE_GRAVITY, change to top-left-corner window gravity for this
@@ -28554,6 +28575,9 @@ x_set_window_size (struct frame *f, bool change_gravity,
 {
   block_input ();
 
+  if (FRAME_PARENT_FRAME (f))
+    x_suspend_background_fills (FRAME_PARENT_FRAME (f));
+
 #ifdef USE_GTK
   if (FRAME_GTK_WIDGET (f))
     xg_frame_set_char_size (f, width, height);
@@ -28564,6 +28588,9 @@ x_set_window_size (struct frame *f, bool change_gravity,
   if (!FRAME_PARENT_FRAME (f))
     x_clear_under_internal_border (f);
 #endif /* not USE_GTK */
+
+  if (FRAME_PARENT_FRAME (f))
+    x_restore_background_fills (FRAME_PARENT_FRAME (f));
 
   /* If cursor was outside the new size, mark it as off.  */
   mark_window_cursors_off (XWINDOW (f->root_window));
@@ -28626,6 +28653,9 @@ x_set_window_size_and_position (struct frame *f, int width, int height)
 {
   block_input ();
 
+  if (FRAME_PARENT_FRAME (f))
+    x_suspend_background_fills (FRAME_PARENT_FRAME (f));
+
 #ifdef USE_GTK
   if (FRAME_GTK_WIDGET (f))
     xg_frame_set_size_and_position (f, width, height);
@@ -28637,6 +28667,9 @@ x_set_window_size_and_position (struct frame *f, int width, int height)
 
   if (!FRAME_PARENT_FRAME (f))
     x_clear_under_internal_border (f);
+
+  if (FRAME_PARENT_FRAME (f))
+    x_restore_background_fills (FRAME_PARENT_FRAME (f));
 
   /* If cursor was outside the new size, mark it as off.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -29397,6 +29430,9 @@ x_make_frame_invisible (struct frame *f)
      by hand again (they have already done that once for this window.)  */
   x_wm_set_size_hint (f, 0, true);
 
+  if (FRAME_PARENT_FRAME (f))
+    x_suspend_background_fills (FRAME_PARENT_FRAME (f));
+
 #ifdef USE_GTK
   if (FRAME_GTK_OUTER_WIDGET (f))
     gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
@@ -29413,6 +29449,9 @@ x_make_frame_invisible (struct frame *f)
 	unblock_input ();
 	error ("Can't notify window manager of window withdrawal");
       }
+
+  if (FRAME_PARENT_FRAME (f))
+    x_restore_background_fills (FRAME_PARENT_FRAME (f));
 
   /* Don't perform the synchronization if the network connection is
      slow, and the user says it is unwanted.  */
