@@ -1261,12 +1261,9 @@ that file."
 	     (vc-dir-fileinfo->state crt-data)) result))
     (nreverse result)))
 
-(defun vc-dir-recompute-file-state (fname def-dir &optional truename)
-  "Compute state of FNAME known to live inside DEF-DIR.
-If TRUENAME is non-nil, FNAME is a truename, DEF-DIR not necessarily."
-  (let* ((file-short (file-relative-name
-                      fname (if truename (file-truename def-dir) def-dir)))
-         (fname (if truename (expand-file-name file-short def-dir) fname))
+(defun vc-dir-recompute-file-state (fname def-dir)
+  "Compute state of FNAME known to live inside DEF-DIR."
+  (let* ((file-short (file-relative-name fname def-dir))
 	 (_remove-me-when-CVS-works
 	  (when (eq vc-dir-backend 'CVS)
 	    ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
@@ -1309,8 +1306,9 @@ If TRUENAME is non-nil, FNAME is a truename, DEF-DIR not necessarily."
 
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FNAME in any directory buffers that list it."
-  (let ((file (file-truename (or fname buffer-file-name)))
-        (drop '()))
+  (let* ((file  (or fname buffer-file-name))
+         (file-tn (file-truename file))
+         (drop '()))
     (save-current-buffer
       ;; look for a vc-dir buffer that might show this file.
       (dolist (status-buf vc-dir-buffers)
@@ -1328,17 +1326,15 @@ If TRUENAME is non-nil, FNAME is a truename, DEF-DIR not necessarily."
                          ;; `default-directory' in order to do its work,
                          ;; but that's irrelevant to us here.
                          (buffer-local-toplevel-value 'default-directory))))
-              (when (file-in-directory-p file ddir)
-                (if (file-directory-p file)
+              (when (file-in-directory-p file-tn ddir)
+                (if (file-directory-p file-tn)
 		    (progn
-		      (vc-dir-resync-directory-files file)
+		      (vc-dir-resync-directory-files file-tn)
 		      (ewoc-set-hf vc-ewoc
 				   (vc-dir-headers vc-dir-backend ddir) ""))
                   (let* ((complete-state
-                          ;; Make sure 'vc-dir-recompute-file-state'
-                          ;; knows about the truename nature of 'file'
-                          ;; (bug#80967).
-                          (vc-dir-recompute-file-state file ddir t))
+                          ;; Pass FILE not FILE-TN here.  See bug#80967.
+                          (vc-dir-recompute-file-state file ddir))
 			 (state (cadr complete-state)))
                     (vc-dir-update
                      (list complete-state)
