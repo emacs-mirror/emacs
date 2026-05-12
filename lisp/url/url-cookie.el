@@ -304,7 +304,7 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
                         (let ((system-time-locale "C"))
                           (format-time-string "%a %b %d %H:%M:%S %Y GMT"
 					      (time-add nil (read max-age))
-					      t)))
+					      t))))
       (setq expires (cdr-safe (assoc-string "expires" args t))))
     (while (consp trusted)
       (if (string-match (car trusted) current-url)
