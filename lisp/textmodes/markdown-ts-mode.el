@@ -4392,13 +4392,18 @@ Note: To compute the column, point must be within the column and cannot
 be on the leading or trailing whitespace or on a column delimiter.
 
 ALIGN can be one of the symbols `left', `center', `right' or nil for
-unspecified or the characters l, c, or r.
+unspecified, or the characters l, c, or r.
 
 If ALIGN is nil, assume unspecified.  Make the alignment string a
 minimum of 5 characters to accommodate Markdown conventions.
 
 If point is not at a table, do nothing."
-  (interactive "cAlign column [l]eft [c]enter [r]ight [u]nspecified:")
+  (interactive
+   (list (car (read-multiple-choice
+               "Align column" '((?l "left")
+                                (?c "center")
+                                (?r "right")
+                                (?u "unspecified"))))))
   (markdown-ts--barf-if-not-mode 'markdown-ts-table-align-column)
   (setq align (if (characterp align)
                   (pcase align (?l 'left) (?c 'center) (?r 'right))

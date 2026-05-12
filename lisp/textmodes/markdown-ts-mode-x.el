@@ -736,7 +736,11 @@ is nil and the command is run interactively, prompt for a template.
 The basic template uses all defaults and is likely the best choice for
 most uses.  The complete template illustrates all parameters set to
 their defaults and is useful as a starting point to customize a table."
-  (interactive "cTemplate [b]asic [c]omplete:")
+  (interactive
+   (list (car (read-multiple-choice
+               "Table of contents template"
+               '((?b "basic")
+                 (?c "complete"))))))
   (pcase char
     (?b
      (insert "<!-- markdown-ts-toc: -->\n"
