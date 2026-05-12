@@ -639,7 +639,7 @@ newline."
   "Face for Markdown link destinations (URLs)."
   :version "31.1")
 
-(defface markdown-ts-code-span '((t (:inherit font-lock-string-face)))
+(defface markdown-ts-code-span '((t (:inherit font-lock-keyword-face)))
   "Face for Markdown inline code spans."
   :version "31.1")
 
