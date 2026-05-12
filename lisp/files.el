@@ -8742,6 +8742,9 @@ arguments as the running Emacs)."
 			  (file-in-directory-p 0 1)
 			  (make-symbolic-link 0 1)
 			  (add-name-to-file 0 1)
+                          ;; `get-file-buffer' shall simply run the
+                          ;; original function.
+                          (get-file-buffer)
                           ;; These file-notify-* operations take a
                           ;; descriptor.
                           (file-notify-rm-watch)

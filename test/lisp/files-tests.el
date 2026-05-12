@@ -401,7 +401,8 @@ be $HOME."
   (append '("foo" "$foo" "~foo")
           ;; No amount of quoting will allow creation of a file name
           ;; with an embedded '*' on MS-Windows and MS-DOS.
-          (if (not (memq system-type '(windows-nt ms-dos))) '("foo*bar")))
+          (if (not (memq system-type '(windows-nt ms-dos)))
+              '("foo*bar" "foo?bar")))
   "Prefixes to be tested for `file-name-non-special' tests.")
 
 (ert-deftest files-tests-file-name-non-special--subprocess ()
@@ -695,6 +696,8 @@ unquoted file names."
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
     (should-error (directory-files-and-attributes nospecial-dir))))
+
+(defvar w32-downcase-file-names)
 
 (ert-deftest files-tests-directory-files-recursively-w32 ()
   "Test MS-Windows specific features of `directory-files-recursively'."
@@ -1054,12 +1057,16 @@ unquoted file names."
 (ert-deftest files-tests-file-name-non-special-get-file-buffer ()
   ;; Make sure these buffers don't exist.
   (files-tests--with-temp-non-special (tmpfile nospecial)
+    (find-file-noselect nospecial)
     (let ((fbuf (get-file-buffer nospecial)))
-      (if fbuf (kill-buffer fbuf))
+      (should (get-file-buffer nospecial))
+      (kill-buffer fbuf)
       (should-not (get-file-buffer nospecial))))
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
+    (find-file-noselect nospecial)
     (let ((fbuf (get-file-buffer nospecial)))
-      (if fbuf (kill-buffer fbuf))
+      (should (get-file-buffer nospecial))
+      (kill-buffer fbuf)
       (should-not (get-file-buffer nospecial)))))
 
 (ert-deftest files-tests-file-name-non-special-insert-directory ()
