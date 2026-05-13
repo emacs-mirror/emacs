@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-## Copyright (C) 2017-2023 Free Software Foundation, Inc.
+## Copyright (C) 2017-2026 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -48,30 +48,14 @@ mingw-w64-x86_64-tree-sitter
 mingw-w64-x86_64-sqlite3'''.split()
 
 # Emacs style path to dependancy DLLs on build system
-#DLL_SRC="c:/msys64/mingw64/bin"
 DLL_SRC="mingw64"
 OUT_TAG=""
 
 # libraries we never include
 DLL_SKIP=["libgccjit-0.dll"]
 
-# Report first existing file for entries in dynamic-library-alist
-# ELISP_PROG="""
-# (message "%s" (mapconcat 'identity (remove nil
-# 	(mapcar (lambda(lib)
-# 		  (seq-find
-# 		   (lambda(file)
-# 		     (file-exists-p
-# 		      (file-name-concat "{}"
-# 					file)))
-# 		   (cdr lib)))
-# 		dynamic-library-alist)
-# 	) "\\n"))
-# """.format(DLL_SRC)
-
 ## Options
 DRY_RUN=False
-# NEW_EMACS="bin/emacs.exe"
 
 def check_output_maybe(*args,**kwargs):
     if(DRY_RUN):
@@ -84,7 +68,6 @@ def check_output_maybe(*args,**kwargs):
 
 # entry point
 def gather_deps():
-
     os.mkdir("x86_64")
     os.chdir("x86_64")
 
@@ -132,17 +115,11 @@ zlib1.dll
 liblcms2-2.dll
 libgccjit-0.dll
 libtree-sitter-0.26.dll'''.split()
-    # job_args=[NEW_EMACS, "--batch", "--eval", ELISP_PROG]
-    # #print("args: ", job_args)
-    # return subprocess.check_output(job_args, stderr=subprocess.STDOUT
-    #                                ).decode('utf-8').splitlines()
 
 # Return all second order dependencies
 def full_dll_dependency(dlls):
     deps = [dll_dependency(dep) for dep in dlls]
     return set(sum(deps, []) + dlls)
-
-#xs = filter(lambda x: x.attribute == value, xs)
 
 # Dependencies for a given DLL
 def dll_dependency(dll):
@@ -172,12 +149,18 @@ def ntldd_munge(out):
 
 ## Packages to fiddle with
 ## Source for gcc-libs is part of gcc
-SKIP_SRC_PKGS=["mingw-w64-gcc-libs"] #, "mingw-w64-x86_64-libwinpthread-git"]
-SKIP_DEP_PKGS=["mingw-w64-glib2", "mingw-w64-x86_64-cc-libs", "mingw-w64-ca-certificates-20211016-3"] #, "mingw-w64-x86_64-libwinpthread-git"]
+SKIP_SRC_PKGS=["mingw-w64-gcc-libs"]
+SKIP_DEP_PKGS=["mingw-w64-glib2", "mingw-w64-x86_64-cc-libs", "mingw-w64-ca-certificates-20211016-3"]
+
+## A few source packages don't follow typical naming conventions.
+## Handle transformation from formulaic name to actual name
 MUNGE_SRC_PKGS={
     "mingw-w64-libwinpthread":"mingw-w64-winpthreads",
     "mingw-w64-gettext-runtime":"mingw-w64-gettext"
 }
+
+##  As above, but for source packages of second order deps
+##  Empty as of 30.0.50 (May, 2026), last used for Emacs 30.2
 MUNGE_DEP_PKGS={
     #"mingw-w64-x86_64-libwinpthread":"mingw-w64-x86_64-libwinpthread-git",
     #"mingw-w64-x86_64-libtre": "mingw-w64-x86_64-libtre-git",
@@ -188,7 +171,8 @@ SRC_EXT={
 #    "mingw-w64-brotli": ".src.tar.gz",
 }
 
-## Currently no packages seem to require this!
+## Pick up packages only when building for a given architecture
+## Currently no packages seem to require this! Unused since Emacs 26
 ARCH_PKGS=[]
 
 def immediate_deps(pkg):
@@ -274,7 +258,7 @@ def gather_source(deps):
         ## Switch names if necessary
         pkg_name = MUNGE_SRC_PKGS.get(pkg_name,pkg_name)
 
-        ## src archive is usually a .tar.gz
+        ## src archive is usually a .tar.zst
         if pkg_name in SRC_EXT.keys():
             src_ext = SRC_EXT[pkg_name]
         else:
