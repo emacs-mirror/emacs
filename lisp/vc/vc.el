@@ -1719,7 +1719,7 @@ from which to check out the file(s)."
             (t
              (vc-register vc-fileset))))
      ((eq state 'missing)
-      (vc-delete-file files))
+      (vc-delete-file fileset-only-files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
