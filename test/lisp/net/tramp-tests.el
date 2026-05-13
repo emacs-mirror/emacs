@@ -6555,6 +6555,21 @@ INPUT, if non-nil, is a string sent to the process."
 	  (funcall
 	   this-shell-command-to-string "echo \"${INSIDE_EMACS:-bla}\""))))
 
+      ;; Check EMACSCLIENT_TRAMP.
+      (setenv "EMACSCLIENT_TRAMP")
+      (let ((tramp-propagate-emacsclient-tramp t))
+	(should
+	 (string-equal
+	  (format "%s\n" (tramp-make-tramp-file-name tramp-test-vec 'noloc))
+	  (funcall
+	   this-shell-command-to-string "echo \"${EMACSCLIENT_TRAMP:-bla}\""))))
+      (let (tramp-propagate-emacsclient-tramp)
+	(should
+	 (string-equal
+	  "bla\n"
+	  (funcall
+	   this-shell-command-to-string "echo \"${EMACSCLIENT_TRAMP:-bla}\""))))
+
       ;; Set a value.
       (let ((process-environment
 	     (cons (concat envvar "=foo") process-environment)))

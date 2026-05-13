@@ -3091,6 +3091,11 @@ will be used."
 			(if (string-search "=" elt)
 			    (setq env (append env `(,elt)))
 			  (setq uenv (cons elt uenv))))))
+	     (env (if tramp-propagate-emacsclient-tramp
+		      (setenv-internal
+		       env "EMACSCLIENT_TRAMP"
+		       (tramp-make-tramp-file-name v 'noloc) 'keep)
+		    env))
 	     (env (setenv-internal
 		   env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
 	     ;; Environment is too large.  Keep it here.
@@ -3340,6 +3345,10 @@ will be used."
             (if (string-search "=" elt)
                 (setq env (append env `(,elt)))
               (setq uenv (cons elt uenv)))))
+      (when tramp-propagate-emacsclient-tramp
+	(setq env (setenv-internal
+		   env "EMACSCLIENT_TRAMP"
+		   (tramp-make-tramp-file-name v 'noloc) 'keep)))
       (setq env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
       (when env
 	(setq command

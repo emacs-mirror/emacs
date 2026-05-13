@@ -1528,10 +1528,19 @@ The PATH environment variable should be set via `tramp-remote-path'.
 
 The TERM environment variable should be set via `tramp-terminal-type'.
 
+The EMACSCLIENT_TRAMP environment variable will be set accordingly, if
+`tramp-propagate-emacsclient-tramp' is non-nil.
+
 The INSIDE_EMACS environment variable will automatically be set
 based on the Tramp and Emacs versions, and should not be set here."
   :version "26.1"
   :type '(repeat string)
+  :link '(info-link :tag "Tramp manual" "(tramp) Remote processes"))
+
+(defcustom tramp-propagate-emacsclient-tramp nil
+  "Whether to propagate the EMACSCLIENT_TRAMP environment variable."
+  :version "31.1"
+  :type 'boolean
   :link '(info-link :tag "Tramp manual" "(tramp) Remote processes"))
 
 ;;; Internal Variables:
@@ -5508,6 +5517,13 @@ processes."
 	   ;; Add TERM.
 	   (env (if sh-file-name-handler-p
 		    (setenv-internal env "TERM" tramp-terminal-type 'keep)
+		  env))
+	   ;; Add EMACSCLIENT_TRAMP.
+	   (env (if (and tramp-propagate-emacsclient-tramp
+			 sh-file-name-handler-p)
+		    (setenv-internal
+		     env "EMACSCLIENT_TRAMP"
+		     (tramp-make-tramp-file-name v 'noloc) 'keep)
 		  env))
 	   ;; Add INSIDE_EMACS.
 	   (env (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))

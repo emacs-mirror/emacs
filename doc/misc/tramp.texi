@@ -4227,6 +4227,14 @@ called is local or remote, since @value{tramp} would add just the
 @env{HGPLAIN} setting and local processes would take whole value of
 @code{process-environment} along with the new value of @env{HGPLAIN}.
 
+@vindex tramp-propagate-emacsclient-tramp
+@vindex EMACSCLIENT_TRAMP@r{, environment variable}
+If you set the user option @code{tramp-propagate-emacsclient-tramp} to
+a non-@code{nil} value, the environment variable
+@env{EMACSCLIENT_TRAMP} will be set to a value which allows to call
+@command{emacsclient} from a process running on the remote
+host. @xref{emacsclient Options, , , emacs}.
+
 For integrating other Emacs packages so @value{tramp} can execute
 remotely, please file a bug report.  @xref{Bug Reports}.
 
