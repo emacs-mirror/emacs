@@ -1969,7 +1969,7 @@ directory is a way to tell the maintainers about ELPA package versions.
 
 @item
 Include a recipe to replicate the problem with @emph{a clean Emacs run}.
-The invocation @code{emacs -Q -f package-initialize} starts Emacs with
+The invocation @code{emacs -Q -f package-activate-all} starts Emacs with
 no configuration and initializes the ELPA packages.  A very minimal
 @file{.emacs} initialization file (10 lines or less) is also acceptable
 and good means to describe changes to variables.

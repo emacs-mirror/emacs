@@ -125,7 +125,7 @@ To avoid interference with the built-in Org mode, you can use the
 command line (you need Emacs 30 or later):
 
 #+begin_src sh
-emacs -Q -batch -eval "(progn (require 'package) (package-initialize) (package-refresh-contents) (package-upgrade 'org))"
+emacs -Q -batch -eval "(progn (package-refresh-contents) (package-upgrade 'org))"
 #+end_src
 
 This approach has the advantage of isolating the upgrade process from
