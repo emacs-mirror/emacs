@@ -26657,10 +26657,8 @@ display_line (struct it *it, int cursor_vpos)
 	         != DEFAULT_FACE_ID
 	         || FACE_FROM_ID (it->f, margin_face_id)->background
 	         != FRAME_BACKGROUND_PIXEL (it->f))
-	        && ((WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
-	             && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
-	            || (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
-	                && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)))
+	        && (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+	            || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0))
 	      extend_face_to_end_of_line (it);
 	  }
 
