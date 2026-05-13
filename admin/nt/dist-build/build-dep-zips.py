@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-## Copyright (C) 2017-2026 Free Software Foundation, Inc.
+## Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -25,12 +25,12 @@ import subprocess
 from subprocess import check_output
 
 ## Constants
-EMACS_MAJOR_VERSION= os.getenv('EMACS_MAJOR_VERSION') or "30"
+EMACS_MAJOR_VERSION= os.getenv('EMACS_MAJOR_VERSION') or "31"
 
 # Base URI for the package sources mapped in PKG_REQ
 SRC_REPO="https://repo.msys2.org/mingw/sources"
 
-# Map items in `dynamic-library-alist' to source packages
+# Map items in `dynamic-library-alist' to source pakages
 PKG_REQ='''mingw-w64-x86_64-giflib
 mingw-w64-x86_64-gnutls
 mingw-w64-x86_64-harfbuzz
@@ -47,8 +47,10 @@ mingw-w64-x86_64-xpm-nox
 mingw-w64-x86_64-tree-sitter
 mingw-w64-x86_64-sqlite3'''.split()
 
-# Emacs style path to dependency DLLs on build system
-DLL_SRC="c:/msys64/mingw64/bin"
+# Emacs style path to dependancy DLLs on build system
+#DLL_SRC="c:/msys64/mingw64/bin"
+DLL_SRC="mingw64"
+OUT_TAG=""
 
 # libraries we never include
 DLL_SKIP=["libgccjit-0.dll"]
@@ -95,12 +97,12 @@ def gather_deps():
         if dep not in DLL_SKIP:
             if args.l != True:
                 print("Adding dep", dep)
-            check_output_maybe(["cp /mingw64/bin/{} .".format(dep)], shell=True)
+            check_output_maybe(["cp /{}/bin/{} .".format(DLL_SRC,dep)], shell=True)
         else:
             if args.l != True:
                 print("Skipping dep", dep)
 
-    zipfile="../emacs-{}-{}deps.zip".format(EMACS_MAJOR_VERSION, DATE)
+    zipfile="../emacs-{}{}-{}deps.zip".format(EMACS_MAJOR_VERSION, OUT_TAG, DATE)
     tmpfile="{}.tmp".format(zipfile)
     print("Zipping deps in", os.getcwd(), "as", tmpfile)
     check_output_maybe("zip -9vr {} *.dll".format(tmpfile), shell=True)
@@ -110,7 +112,7 @@ def gather_deps():
     print("Deps updated in", os.getcwd(), "as", zipfile)
     os.chdir("../")
 
-# Return dependencies listed in Emacs
+# Return dependancies listed in Emacs
 def init_deps():
     return '''libXpm-nox4.dll
 libpng16-16.dll
@@ -125,11 +127,11 @@ libglib-2.0-0.dll
 libgio-2.0-0.dll
 libgobject-2.0-0.dll
 libgnutls-30.dll
-libxml2-2.dll
+libxml2-16.dll
 zlib1.dll
 liblcms2-2.dll
 libgccjit-0.dll
-libtree-sitter.dll'''.split()
+libtree-sitter-0.26.dll'''.split()
     # job_args=[NEW_EMACS, "--batch", "--eval", ELISP_PROG]
     # #print("args: ", job_args)
     # return subprocess.check_output(job_args, stderr=subprocess.STDOUT
@@ -170,78 +172,20 @@ def ntldd_munge(out):
 
 ## Packages to fiddle with
 ## Source for gcc-libs is part of gcc
-SKIP_SRC_PKGS=["mingw-w64-gcc-libs"]
-SKIP_DEP_PKGS=["mingw-w64-glib2", "mingw-w64-ca-certificates-20211016-3"]
+SKIP_SRC_PKGS=["mingw-w64-gcc-libs"] #, "mingw-w64-x86_64-libwinpthread-git"]
+SKIP_DEP_PKGS=["mingw-w64-glib2", "mingw-w64-x86_64-cc-libs", "mingw-w64-ca-certificates-20211016-3"] #, "mingw-w64-x86_64-libwinpthread-git"]
 MUNGE_SRC_PKGS={
-    "mingw-w64-libwinpthread-git":"mingw-w64-winpthreads-git",
+    "mingw-w64-libwinpthread":"mingw-w64-winpthreads",
     "mingw-w64-gettext-runtime":"mingw-w64-gettext"
 }
 MUNGE_DEP_PKGS={
-    "mingw-w64-x86_64-libwinpthread":"mingw-w64-x86_64-libwinpthread-git",
-    "mingw-w64-x86_64-libtre": "mingw-w64-x86_64-libtre-git",
+    #"mingw-w64-x86_64-libwinpthread":"mingw-w64-x86_64-libwinpthread-git",
+    #"mingw-w64-x86_64-libtre": "mingw-w64-x86_64-libtre-git",
 }
+
+#  usual source ext is now tar.zst; this overrides that..
 SRC_EXT={
-    "mingw-w64-freetype": ".src.tar.zst",
-    "mingw-w64-fribidi": ".src.tar.zst",
-    "mingw-w64-glib2": ".src.tar.zst",
-    "mingw-w64-harfbuzz": ".src.tar.zst",
-    "mingw-w64-libunistring": ".src.tar.zst",
-    "mingw-w64-winpthreads-git": ".src.tar.zst",
-    "mingw-w64-ca-certificates": ".src.tar.zst",
-    "mingw-w64-libxml2": ".src.tar.zst",
-    "mingw-w64-ncurses": ".src.tar.zst",
-    "mingw-w64-openssl": ".src.tar.zst",
-    "mingw-w64-pango": ".src.tar.zst",
-    "mingw-w64-python": ".src.tar.zst",
-    "mingw-w64-sqlite3": ".src.tar.zst",
-    "mingw-w64-xpm-nox": ".src.tar.zst",
-    "mingw-w64-xz": ".src.tar.zst",
-    "mingw-w64-bzip2": ".src.tar.zst",
-    "mingw-w64-cairo": ".src.tar.zst",
-    "mingw-w64-expat": ".src.tar.zst",
-    "mingw-w64-fontconfig":  ".src.tar.zst",
-    "mingw-w64-gdk-pixbuf2":  ".src.tar.zst",
-    "mingw-w64-giflib":  ".src.tar.zst",
-    "mingw-w64-gmp":  ".src.tar.zst",
-    "mingw-w64-gnutls":  ".src.tar.zst",
-    "mingw-w64-graphite2":  ".src.tar.zst",
-    "mingw-w64-jbigkit":  ".src.tar.zst",
-    "mingw-w64-lcms2":  ".src.tar.zst",
-    "mingw-w64-lerc":  ".src.tar.zst",
-    "mingw-w64-libdatrie":  ".src.tar.zst",
-    "mingw-w64-libffi":  ".src.tar.zst",
-    "mingw-w64-libiconv":  ".src.tar.zst",
-    "mingw-w64-libiconv":  ".src.tar.zst",
-    "mingw-w64-libpng":  ".src.tar.zst",
-    "mingw-w64-librsvg": ".src.tar.zst",
-    "mingw-w64-libsystre": ".src.tar.zst",
-    "mingw-w64-libtasn": ".src.tar.zst",
-    "mingw-w64-libthai": ".src.tar.zst",
-    "mingw-w64-libtiff": ".src.tar.zst",
-    "mingw-w64-libtre-git": ".src.tar.zst",
-    "mingw-w64-libwebp": ".src.tar.zst",
-    "mingw-w64-mpdecimal": ".src.tar.zst",
-    "mingw-w64-nettle": ".src.tar.zst",
-    "mingw-w64-p11-kit": ".src.tar.zst",
-    "mingw-w64-pcre": ".src.tar.zst",
-    "mingw-w64-pixman": ".src.tar.zst",
-    "mingw-w64-python-packaging": ".src.tar.zst",
-    "mingw-w64-readline": ".src.tar.zst",
-    "mingw-w64-tcl": ".src.tar.zst",
-    "mingw-w64-termcap": ".src.tar.zst",
-    "mingw-w64-tk": ".src.tar.zst",
-    "mingw-w64-tree-sitter": ".src.tar.zst",
-    "mingw-w64-tzdata": ".src.tar.zst",
-    "mingw-w64-wineditline": ".src.tar.zst",
-    "mingw-w64-zlib": ".src.tar.zst",
-    "mingw-w64-zstd": ".src.tar.zst",
-    "mingw-w64-brotli": ".src.tar.zst",
-    "mingw-w64-gettext": ".src.tar.zst",
-    "mingw-w64-libdeflate": ".src.tar.zst",
-    "mingw-w64-libidn2": ".src.tar.zst",
-    "mingw-w64-libjpeg-turbo": ".src.tar.zst",
-    "mingw-w64-libtasn1": ".src.tar.zst",
-    "mingw-w64-pcre2": ".src.tar.zst",
+#    "mingw-w64-brotli": ".src.tar.gz",
 }
 
 ## Currently no packages seem to require this!
@@ -296,7 +240,7 @@ def download_source(tarball):
         )
         print("Downloading {}... done".format(tarball))
 
-    print("Copying {} from local".format(tarball))
+    #print("Copying {} from local".format(tarball))
     shutil.copyfile("../emacs-src-cache/{}".format(tarball),
                     "{}".format(tarball))
 
@@ -311,6 +255,7 @@ def gather_source(deps):
     os.chdir("emacs-src")
 
     for pkg in deps:
+        #print("Parsing pkg name and version from {}".format(pkg))
         pkg_name_and_version= \
             check_output(["pacman","-Q", pkg]).decode("utf-8").strip()
 
@@ -321,7 +266,7 @@ def gather_source(deps):
         pkg_version=pkg_name_components[1]
 
         ## source pkgs don't have an architecture in them
-        pkg_name = re.sub(r"x86_64-","",pkg_name)
+        pkg_name = re.sub(r"(ucrt-)?x86_64-","",pkg_name)
 
         if(pkg_name in SKIP_SRC_PKGS):
             continue
@@ -333,13 +278,14 @@ def gather_source(deps):
         if pkg_name in SRC_EXT.keys():
             src_ext = SRC_EXT[pkg_name]
         else:
-            src_ext = ".src.tar.gz"
+            src_ext = ".src.tar.zst"
 
         tarball = "{}-{}{}".format(pkg_name,pkg_version,src_ext)
 
         download_source(tarball)
 
-    srczip="../emacs-{}-{}deps-mingw-w64-src.zip".format(EMACS_MAJOR_VERSION,DATE)
+    srczip="../emacs-{}{}-{}deps-mingw-w64-src.zip".format(
+        EMACS_MAJOR_VERSION,OUT_TAG, DATE)
     tmpzip="{}.tmp".format(srczip)
     print("Zipping Dsrc in", os.getcwd(), "as", tmpzip)
     check_output_maybe("zip -9 {} *".format(tmpzip), shell=True)
@@ -367,6 +313,9 @@ parser = argparse.ArgumentParser()
 
 #parser.add_argument("emacs", help="emacs executable")
 
+parser.add_argument("-u", help="UCRT64 build",
+                    action="store_true")
+
 parser.add_argument("-s", help="snapshot build",
                     action="store_true")
 
@@ -382,15 +331,20 @@ parser.add_argument("-d", help="dry run",
 parser.add_argument("-l", help="list dependencies",
                     action="store_true")
 
-parser.add_argument("-e", help="extract direct dependencies",
+parser.add_argument("-e", help="extract direct dependancies",
                     action="store_true")
 
 args = parser.parse_args()
 do_all=not (args.c or args.r)
 
+
 #NEW_EMACS=args.emacs
 
 DRY_RUN=args.d
+
+if( args.u ):
+    DLL_SRC="ucrt64"
+    OUT_TAG="-ucrt"
 
 if( args.e ):
     print("\n".join(init_deps()))
