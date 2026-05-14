@@ -530,6 +530,7 @@ If INTERACTIVE, display it.  Else, return said buffer."
           (things-reported-on))
       (special-mode)
       (erase-buffer)
+      (visual-line-mode)
       (setq-local nobreak-char-display nil)
       (cl-loop for (docs . rest) on docs
                for (this-doc . plist) = docs
