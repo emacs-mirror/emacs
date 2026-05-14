@@ -761,7 +761,7 @@ that operates on the marked files finishes.
 @cindex operating on files in Dired
 
   This section describes the basic Dired commands to operate on one file
-or several files.  All of these commands are capital letters; all of
+or several files.  Many of these commands are capital letters; all of
 them use the minibuffer, either to read an argument or to ask for
 confirmation, before they act.  All of them let you specify the
 files to manipulate in these ways:
@@ -1021,6 +1021,21 @@ Compress the specified files (@code{dired-do-compress-to}) into a
 single archive anywhere on the file system.  The default archive is
 controlled by the @code{dired-compress-directory-default-suffix} user
 option.  Also see @code{dired-compress-files-alist}.
+
+@cindex Dired and version control
+@findex dired-vc-next-action
+@kindex C-x v v @r{(Dired)}
+@item C-x v v
+@itemx C-x v = @r{(Dired)}
+@itemx C-x v l @r{(Dired)}
+  If the directory you are visiting is under version control
+(@pxref{Version Control}), then the normal VC commands will operate on
+the selected files.  For example, @kbd{C-x v v} invokes
+@code{dired-vc-next-action}, which does the same as
+@code{vc-next-action} in a buffer visiting a file under version control
+(@pxref{Basic VC Editing}).  Similarly, @kbd{C-x v =} shows the diffs
+between the marked files and their committed versions, and @code{C-x v l}
+shows the VC change history for the marked files.
 
 @findex epa-dired-do-decrypt
 @kindex :d @r{(Dired)}
@@ -1946,11 +1961,6 @@ symbolic links, and all lines other than the header line and
 file/directory listings.  To change this, customize the options
 @code{dired-hide-details-hide-symlink-targets} and
 @code{dired-hide-details-hide-information-lines}, respectively.
-
-@cindex Dired and version control
-  If the directory you are visiting is under version control
-(@pxref{Version Control}), then the normal VC diff and log commands
-will operate on the selected files.
 
 @findex dired-compare-directories
   The command @kbd{M-x dired-compare-directories} is used to compare
