@@ -1093,8 +1093,12 @@ CommonMark they are decorative and must be preceded by a space or tab."
   (let* ((n-start (treesit-node-start node))
          (n-end   (treesit-node-end node))
          (face (let ((marker (treesit-node-child node 0)))
-                 (intern (format "markdown-ts-heading-%d"
-                                 (length (treesit-node-text marker t)))))))
+                 (intern
+                  (format "markdown-ts-heading-%d"
+                          (progn
+                            (string-match "[[:blank:]]*\\([#]+\\)"
+                                          (treesit-node-text marker t))
+                            (- (match-end 1) (match-beginning 1))))))))
     (font-lock--remove-face-from-text-property n-start n-end 'face face)
     (font-lock-append-text-property n-start (1- n-end) 'face face)
     (save-excursion
