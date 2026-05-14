@@ -567,8 +567,10 @@ KEYMAP, KEY and DEFINITION are the same arguments as the ones of
      :help "Show all the blocks in the buffer"]
     ["Hide Level"    hs-hide-level
      :help "Hide all block at levels below the current block"]
-    ["Toggle Hiding" hs-toggle-hiding
+    ["Toggle Hiding Current Block" hs-toggle-hiding
      :help "Toggle the hiding state of the current block"]
+    ["Toggle Hiding All Blocks" hs-toggle-all
+     :help "Toggle the hiding state of all the blocks"]
     "----"
     ["Hide comments when hiding all"
      (setq hs-hide-comments-when-hiding-all
