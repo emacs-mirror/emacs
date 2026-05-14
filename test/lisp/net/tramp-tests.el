@@ -6524,8 +6524,7 @@ INPUT, if non-nil, is a string sent to the process."
   "Check that remote processes set / unset environment variables properly."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-environment-variables-p))
 
   (dolist (this-shell-command-to-string
 	   (append
@@ -7796,6 +7795,11 @@ This requires restrictions of file name syntax."
   (or (tramp--test-adb-p) (tramp--test-gvfs-p)
       (tramp--test-sh-p) (tramp--test-smb-p)
       (tramp--test-sudoedit-p)))
+
+(defun tramp--test-supports-environment-variables-p ()
+  "Return whether setting environment variables is supported."
+  (and (tramp--test-sh-p)
+       (not (tramp--test-crypt-p))))
 
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."

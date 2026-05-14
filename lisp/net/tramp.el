@@ -7406,7 +7406,8 @@ T1 and T2 are time values (as returned by `current-time' for example)."
 Suppress `shell-file-name'.  This is needed on w32 systems, which
 would use a wrong quoting for local file names.  See `w32-shell-name'."
   (let (shell-file-name)
-    (shell-quote-argument (file-name-unquote s))))
+    ;; Do not expand remote file names w/o a localname.
+    (shell-quote-argument (file-name-unquote s 'top))))
 
 ;; Currently (as of Emacs 20.5), the function `shell-quote-argument'
 ;; does not deal well with newline characters.  Newline is replaced by
