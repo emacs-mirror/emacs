@@ -3043,6 +3043,7 @@ force mode probe.  Return a valid mode symbol or nil."
 (defvar markdown-ts-code-block-commands '(indent-for-tab-command
                                           electric-newline-and-maybe-indent
                                           completion-at-point
+                                          complete-symbol
                                           newline
                                           comment-dwim
                                           comment-line
@@ -3054,6 +3055,10 @@ See `markdown-ts--run-command-in-code-block'.")
 
 (defvar markdown-ts-code-block-thing-commands '(xref-find-definitions)
   "Commands that need a \"thing\" at point in a code-block context.
+See `markdown-ts--run-command-in-code-block'.")
+
+(defvar markdown-ts-code-block-ignore-output-commands '(xref-find-definitions)
+  "Commands whose output to ignore when executed in a code-block context.
 See `markdown-ts--run-command-in-code-block'.")
 
 (defvar markdown-ts-code-block-region-commands '(comment-or-uncomment-region)
@@ -3179,6 +3184,8 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
            (adj-region-beg (when region-beg (1+ (- orig-point region-beg))))
            (adj-region-end (when region-end (1+ (- orig-point region-end))))
            (point-delta 0)
+           (ignore-output
+            (memq command markdown-ts-code-block-ignore-output-commands))
            (source-buffer (current-buffer)))
       (with-work-buffer
         (insert str)
@@ -3208,22 +3215,24 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
             (funcall-interactively command (car args)))
            (t
             (apply #'funcall-interactively command args)))
-          (setq str (buffer-substring-no-properties (point-min) (point-max)))
-          (setq temp-deactivate-mark deactivate-mark)
-          (setq point-delta (- (point) point)))
-        (let ((work-buffer (current-buffer)))
-          (with-current-buffer source-buffer
-            (replace-region-contents beg end work-buffer)
-            ;; Propagate mark deactivation to the source buffer.
-            (setq deactivate-mark temp-deactivate-mark)
-            ;; Move point if it moved in the temp buffer.
-            (goto-char (+ orig-point point-delta))
-            ;; Record the original command.
-            (setq this-command command)
-            ;; This helps maintain discrete command actions.
-            (undo-boundary)
-            ;; Make sure the originating region is refontified.
-            (font-lock-flush beg end)))))))
+          (unless ignore-output
+            (setq str (buffer-substring-no-properties (point-min) (point-max)))
+            (setq temp-deactivate-mark deactivate-mark)
+            (setq point-delta (- (point) point))))
+        (unless ignore-output
+          (let ((work-buffer (current-buffer)))
+            (with-current-buffer source-buffer
+              (replace-region-contents beg end work-buffer)
+              ;; Propagate mark deactivation to the source buffer.
+              (setq deactivate-mark temp-deactivate-mark)
+              ;; Move point if it moved in the temp buffer.
+              (goto-char (+ orig-point point-delta))
+              ;; This helps maintain discrete command actions.
+              (undo-boundary)
+              ;; Make sure the originating region is refontified.
+              (font-lock-flush beg end))))
+        ;; Record the original command.
+        (setq this-command command)))))
 
 (defun markdown-ts--find-code-block-delimiter (pos &optional backward)
   "Return the next or previous fenced_code_block_delimiter node, or nil.
