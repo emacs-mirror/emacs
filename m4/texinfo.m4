@@ -64,7 +64,8 @@ m4_define([gl_DOCLANGS_FULL],[[default fr]])dnl
 dnl This is minimal texinfo.tex version with "-" removed from the ISO date
 dnl part from which there is no issue with index key sorting when document
 dnl language/encoding corresponding locale is not installer nor active.
-m4_define([gl_TEXINFO_TEX_MINVER],[[20260401.0]])dnl
+dnl See texinfo version 836b8924560.
+m4_define([gl_TEXINFO_TEX_MINVER],[[20260426.12]])dnl
 m4_define([gl_TEXINDEX_MINVER],[[7.1]])dnl
 m4_define([gl_TEXINFO_INDEXING_IS_LOCALE_DEPENDANT],[dnl
 [DOCLANGS='default'
