@@ -583,11 +583,11 @@ newline."
   :group 'markdown-ts-faces
   :group 'faces)
 
-(defface markdown-ts-delimiter '((t (:inherit shadow)))
+(defface markdown-ts-delimiter '((t (:inherit shadow :slant normal :weight normal)))
   "Face for the # before Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-1 '((t (:inherit outline-1)))
+(defface markdown-ts-heading-1 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for first level Markdown headings."
   :version "31.1")
 
@@ -595,23 +595,23 @@ newline."
   "Face for setext Markdown headings (headings underlined by === or ---)."
   :version "31.1")
 
-(defface markdown-ts-heading-2 '((t (:inherit outline-2)))
+(defface markdown-ts-heading-2 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for second level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-3 '((t (:inherit outline-3)))
+(defface markdown-ts-heading-3 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for third level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-4 '((t (:inherit outline-4)))
+(defface markdown-ts-heading-4 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for fourth level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-5 '((t (:inherit outline-5)))
+(defface markdown-ts-heading-5 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for fifth level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-6 '((t (:inherit outline-6)))
+(defface markdown-ts-heading-6 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for sixth level Markdown headings."
   :version "31.1")
 
@@ -627,7 +627,7 @@ newline."
   "Face for Markdown strikethrough text."
   :version "31.1")
 
-(defface markdown-ts-block-quote '((t (:inherit italic)))
+(defface markdown-ts-block-quote '((t (:inherit font-lock-doc-face)))
   "Face for Markdown block quotes."
   :version "31.1")
 
@@ -639,11 +639,11 @@ newline."
   "Face for Markdown link destinations (URLs)."
   :version "31.1")
 
-(defface markdown-ts-code-span '((t (:inherit font-lock-keyword-face)))
+(defface markdown-ts-code-span '((t (:inherit (markdown-ts-code-block font-lock-constant-face))))
   "Face for Markdown inline code spans."
   :version "31.1")
 
-(defface markdown-ts-code-block '((t (:extend t)))
+(defface markdown-ts-code-block '((t (:inherit fixed-pitch :extend t)))
   "Face for Markdown fenced code block content.
 Alter this face to add a `:background' for a visually distinct
 code block region, e.g.:
@@ -666,29 +666,29 @@ Used instead of `markdown-ts-code-block' when `markdown-ts-hide-markup'
 is non-nil."
   :version "31.1")
 
-(defface markdown-ts-indented-code-block '((t (:inherit font-lock-string-face)))
+(defface markdown-ts-indented-code-block '((t (:inherit (markdown-ts-code-block font-lock-constant-face))))
   "Face for Markdown indented code blocks."
   :version "31.1")
 
-(defface markdown-ts-html-tag '((t (:inherit font-lock-doc-markup-face)))
+(defface markdown-ts-html-tag '((t (:inherit font-lock-type-face)))
   "Face for inline HTML tags in Markdown."
   :version "31.1")
 
-(defface markdown-ts-html-block '((t (:inherit font-lock-doc-markup-face)))
+(defface markdown-ts-html-block '((t (:inherit font-lock-type-face)))
   "Face for HTML blocks in Markdown."
   :version "31.1")
 
-(defface markdown-ts-thematic-break '((t (:inherit shadow :extend t)))
+(defface markdown-ts-thematic-break '((t (:inherit markdown-ts-delimiter :extend t)))
   "Face for Markdown thematic breaks (horizontal rules).
 Customize this face to add a :background for a full-width visual rule."
   :version "31.1")
 
-(defface markdown-ts-entity-reference '((t (:inherit font-lock-builtin-face)))
+(defface markdown-ts-entity-reference '((t (:inherit font-lock-variable-name-face)))
   "Face for named HTML entity references like &amp; and &copy;."
   :version "31.1")
 
 (defface markdown-ts-numeric-character-reference
-  '((t (:inherit font-lock-escape-face)))
+  '((t (:inherit font-lock-variable-name-face)))
   "Face for numeric character references like &#65; and &#x41;."
   :version "31.1")
 
@@ -696,19 +696,19 @@ Customize this face to add a :background for a full-width visual rule."
   "Face for LaTeX / math content in Markdown ($...$ and $$...$$)."
   :version "31.1")
 
-(defface markdown-ts-table-header '((t (:inherit (bold font-lock-doc-face))))
+(defface markdown-ts-table-header '((t (:inherit markdown-ts-table)))
   "Face for Markdown pipe table header cells."
   :version "31.1")
 
-(defface markdown-ts-table-cell '((t (:inherit default)))
+(defface markdown-ts-table-cell '((t (:inherit markdown-ts-table)))
   "Face for Markdown pipe table data cells."
   :version "31.1")
 
-(defface markdown-ts-table-delimiter-cell '((t (:inherit font-lock-doc-face)))
+(defface markdown-ts-table-delimiter-cell '((t (:inherit markdown-ts-table)))
   "Face for Markdown pipe table delimiter cells (--- separators)."
   :version "31.1")
 
-(defface markdown-ts-table '((t (:extend t)))
+(defface markdown-ts-table '((t (:inherit (markdown-ts-code-block) :extend t)))
   "Face for Markdown table.
 Alter this face to add a `:background' for a visually distinct table
 region, e.g.:
@@ -722,21 +722,21 @@ region, e.g.:
   (set-face-attribute \\='markdown-ts-in-table nil :background \"gray95\")"
   :version "31.1")
 
-(defface markdown-ts-language-keyword '((t (:inherit font-lock-keyword-face)))
+(defface markdown-ts-language-keyword '((t (:inherit font-lock-type-face)))
   "Face for the language keyword for Markdown code blocks."
   :version "31.1")
 
-(defface markdown-ts-list-marker '((t (:inherit shadow)))
+(defface markdown-ts-list-marker '((t (:inherit shadow :slant normal :weight normal)))
   "Face for Markdown list markers like - and *."
   :version "31.1")
 
 (defface markdown-ts-hard-line-break-backslash
-  '((t (:inherit outline-4 :weight bold)))
+  '((t (:inherit font-lock-constant-face :underline t)))
   "Face for Markdown hard line breaks introduced by a trailing backslash."
   :version "31.1")
 
 (defface markdown-ts-hard-line-break-backslash-hidden
-  '((t (:inherit outline-4 :weight bold)))
+  '((t (:inherit font-lock-constant-face :underline t)))
   "Face for trailing-backslash hard line break when markup is hidden."
   :version "31.1")
 
@@ -749,15 +749,15 @@ shadow-colored block."
   :version "31.1")
 
 (defface markdown-ts-hard-line-break-space-hidden
-  '((t (:inherit outline-4 :weight bold)))
+  '((t (:inherit font-lock-constant-face :underline t)))
   "Face for trailing-spaces hard line break when markup is hidden."
   :version "31.1")
 
-(defface markdown-ts-task-unchecked '((t (:inherit markdown-ts-list-marker)))
+(defface markdown-ts-task-unchecked '((t (:inherit font-lock-builtin-face)))
   "Face for Markdown unchecked task list markers."
   :version "31.1")
 
-(defface markdown-ts-task-checked '((t (:inherit markdown-ts-list-marker)))
+(defface markdown-ts-task-checked '((t (:inherit font-lock-builtin-face)))
   "Face for Markdown checked task list markers."
   :version "31.1")
 
