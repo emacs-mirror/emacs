@@ -9,6 +9,13 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @c %**end of header
+@c compile info with
+@c    make -C doc/misc ../../info/ses.info
+@c or just
+@c    make -C doc/misc ses
+@c compile pdf with
+@c    make -C doc/misc ses.pdf
+
 
 @copying
 This file documents @acronym{SES}: the Simple Emacs Spreadsheet.
