@@ -10,6 +10,12 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @c %**end of header
+@c compiler info avec
+@c    make -C doc/misc ../../info/ses-fr.info LANG=fr
+@c ou juste
+@c    make -C doc/misc ses LANG=fr
+@c compiler pdf avec
+@c    make -C doc/misc ses-fr.pdf LANG=fr
 
 @copying
 Ce fichier documente @acronym{SES} : le tableur simple d’Emacs (Simple
