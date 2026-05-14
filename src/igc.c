@@ -4088,11 +4088,10 @@ void *
 igc_xzalloc_ambig (size_t size, const char *label)
 {
   /* Can't make a root that has zero length.  Want one to be able to
-     detect calling igc_free on something not having a root.  */
+     detect calling igc_xfree on something not having a root.  */
   if (size == 0)
     size = IGC_ALIGN_DFLT;
-  while (size % IGC_ALIGN_DFLT)
-    size++;
+  size = ROUNDUP (size, IGC_ALIGN_DFLT);
   void *p = xzalloc (size);
   void *end = (char *) p + size;
   root_create_ambig (global_igc, p, end, label);
