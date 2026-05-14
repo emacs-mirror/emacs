@@ -22,8 +22,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 /* Naming convention for allocation functions:
 
-   - Functions with "alloc" in the name return objects that should be
-     freed manually with igc_xfree.  Examples are igc_alloc_kboard,
+   - Functions with "igc_*alloc" in the name return objects that should
+     be freed manually with igc_xfree.  Examples are igc_alloc_kboard,
      igc_zalloc_ambig or igc_xpalloc_lisp.
 
    - Functions with "make" in the name return objects that are freed
@@ -39,7 +39,19 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
      E.g.: igc_xalloc_lisp.
 
    - The suffix "_raw" is used for arrays of untagged pointers.  E.g.:
-     igc_xpalloc_raw.  */
+     igc_xpalloc_raw.
+
+   The first three items and last three items describe different aspects
+   and can be used together.  E.g. for "igc_xpalloc_raw" both the
+   "igc_*alloc" part and the "_raw" part apply; this tells us that the
+   block should be freed with igc_xfree and that it contains untagged
+   pointers.  A hypothetical "igc_make_ambig" would return a block that
+   is automatically freed and scanned ambiguously.
+
+   Note: the "igc_*alloc" item only applies if the "*alloc" pattern
+   matches the second part of the name.  E.g. the convention covers
+   "igc_xpalloc_raw" or "igc_realloc_ambig" but not
+   "igc_on_alloc_main_thread_specpdl" or "igc_record_xmalloc_ambig".  */
 
 #include <config.h>
 #include <limits.h>
