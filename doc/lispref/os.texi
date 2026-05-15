@@ -411,8 +411,8 @@ that the early init file is loaded much earlier during the startup
 process, so you can use it to customize some things that are
 initialized before loading the regular init file.  For example, you
 can customize the process of initializing the package system, by
-setting variables such as @var{package-load-list} or
-@var{package-enable-at-startup}.  @xref{Package Installation,,,
+setting variables such as @code{package-load-list} or
+@code{package-enable-at-startup}.  @xref{Package Installation,,,
 emacs,The GNU Emacs Manual}.
 
 @cindex default init file
