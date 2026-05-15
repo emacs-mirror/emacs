@@ -4146,10 +4146,7 @@ igc_realloc_ambig (void *block, size_t size)
 void
 igc_xfree (void *p)
 {
-  /* Check for pdumper_object_p here because xfree does the same.  Means
-     that freeing something that is actually in the dump is not an
-     error.  Make the same true if the dump is loaded into MPS memory.  */
-  if (p == NULL || pdumper_object_p (p))
+  if (p == NULL)
     return;
   igc_destroy_root_with_start (p);
   xfree (p);
