@@ -61,8 +61,10 @@ The recommended way to set this is with a `Local Variables:' list
 in the file it applies to.")
 ;;;###autoload(put 'outline-heading-end-regexp 'safe-local-variable 'stringp)
 
-(defvar outline-search-function nil
-  "Function to search the next outline heading.
+(defcustom outline-search-function nil
+  "If non-nil, the function to search the next outline heading.
+When nil, headings are found by searching for `outline-regexp'.
+
 The function is called with four optional arguments: BOUND, MOVE, BACKWARD,
 LOOKING-AT.  The first two arguments BOUND and MOVE are almost the same as
 the BOUND and NOERROR arguments of `re-search-forward', with the difference
@@ -71,7 +73,15 @@ BACKWARD is non-nil, the search should search backward like
 `re-search-backward' does.  In case of a successful search, the
 function should return non-nil, move point, and set match-data
 appropriately.  When the argument LOOKING-AT is non-nil, it should
-imitate the function `looking-at'.")
+imitate the function `looking-at'."
+  :type '(choice (const :tag "Use `outline-regexp'" nil)
+                 (function-item :tag "Search by `outline-regexp' (regexp-based)"
+                                outline-search-from-regexp)
+                 (function-item :tag "Search by `outline-level' text property"
+                                outline-search-level)
+                 (function :tag "Other function"))
+  :group 'outlines
+  :version "32.1")
 
 (defvar-keymap outline-mode-prefix-map
   "@"   #'outline-mark-subtree

@@ -126,6 +126,13 @@ Install it with:
 
   (setq-local outline-search-function #'outline-search-from-regexp)
 
+---
+*** 'outline-search-function' is now a user option.
+Previously a plain variable, it is now a 'defcustom'
+with named choices for the predefined search functions
+('outline-search-from-regexp' and 'outline-search-level')
+as well as the default nil and arbitrary user functions.
+
 
 * New Modes and Packages in Emacs 32.1
 
