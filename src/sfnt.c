@@ -736,6 +736,7 @@ sfnt_read_cmap_format_12 (int fd,
     return NULL;
 
   /* Allocate a buffer of sufficient size.  */
+  eassert (length < UINT32_MAX - sizeof *format12);
   format12 = xmalloc (length + sizeof *format12);
   format12->format = header->format;
   format12->reserved = header->length;
