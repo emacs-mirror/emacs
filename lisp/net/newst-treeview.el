@@ -1191,6 +1191,15 @@ Arguments are ignored."
         (if newsticker-automatically-mark-visited-items-as-old
             (newsticker-treeview-mark-item-old))))))
 
+(defun newsticker-treeview-copy-url ()
+  "Copy the url for the current item."
+  (interactive)
+  (let ((url (url-encode-url
+              (newsticker--link
+               (newsticker--treeview-get-selected-item)))))
+    (kill-new url)
+    (message "Copied %s" url)))
+
 (defun newsticker--treeview-buffer-init ()
   "Initialize all treeview buffers."
   (setq newsticker--treeview-buffers nil)
@@ -2040,6 +2049,7 @@ Return t if groups have changed, nil otherwise."
   "s"          #'newsticker-treeview-save
   "u"          #'newsticker-treeview-update
   "v"          #'newsticker-treeview-browse-url
+  "w"          #'newsticker-treeview-copy-url
   ;;"C-j"      #'newsticker-treeview-scroll-item
   ;;"RET"      #'newsticker-treeview-scroll-item
   "M-m"        #'newsticker-group-move-feed
