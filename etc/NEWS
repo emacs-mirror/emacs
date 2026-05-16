@@ -39,12 +39,12 @@ applies, and please also update docstrings as needed.
 ** Package
 
 ---
-*** Package-vc can copy local changes from existing installations
-When installing the latest release of a package, package-vc will propose
-copying files from an existing, tarball installation of the same package
-with the same version.  This is useful if you have started making local
-changes to your tarball installation, and then decide to check out the
-repository to prepare a patch for the package maintainer.
+*** Package-vc can copy local changes from existing installations.
+When installing the latest release of a package, 'package-vc' will
+propose copying files from an existing tarball installation of the same
+package with the same version.  This is useful if you have started
+making local changes to your tarball installation, and then decided to
+check out the repository to prepare a patch for the package maintainer.
 
 
 * New Modes and Packages in Emacs 32.1
