@@ -725,7 +725,25 @@ attribute in PKG-SPEC."
     ;; Check out the latest release if requested
     (when (eq rev :last-release)
       (if-let* ((release-rev (package-vc--release-rev pkg-desc)))
-          (vc-retrieve-tag dir release-rev)
+          (progn
+            (vc-retrieve-tag dir release-rev)
+            (when-let* ((vers (version-to-list
+                               (lm-package-version (package-vc--main-file pkg-desc))))
+                        (prev-desc (package-get-descriptor
+                                    name 'installed
+                                    (lambda (desc)
+                                      (version-list-= (package-desc-version desc)
+                                                      vers))))
+                        (_ (yes-or-no-p "Copy files from previous installation?")))
+              (let* ((remove (seq-remove
+                              #'file-exists-p
+                              (let ((default-directory dir))
+                                (mapcar #'expand-file-name '("REAME-elpa"))))))
+                (copy-directory
+                 (file-name-as-directory (package-desc-dir prev-desc))
+                 (file-name-as-directory dir)
+                 nil 'parents 'copy-contents)
+                (mapc #'delete-file remove))))
         (message "No release revision was found, continuing...")))))
 
 (defvar package-vc-non-code-file-names
@@ -941,7 +959,10 @@ installs takes precedence."
      ;; symbols for completion.
      (package-vc--archives-initialize)
      (let* ((name-or-url (package-vc--read-package-name
-                          "Fetch and install package: " t))
+                          (if current-prefix-arg
+                              "Fetch and install latest release of package: "
+                            "Fetch and install package: ")
+                          t))
             (name (file-name-base (directory-file-name name-or-url))))
        (when (string-empty-p name)
          (user-error "Empty package name"))
