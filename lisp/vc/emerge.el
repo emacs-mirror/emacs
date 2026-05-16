@@ -2874,8 +2874,8 @@ for details of the querying process."
   "Ask the user whether to save or write out the incomplete merge.
 If answer is yes, call COMMAND interactively.  During the call, the flags
 around the current difference are removed."
-  (if (yes-or-no-p "Do you really write to write out this unfinished merge? ")
-      ;; He really wants to do it -- unselect the difference for the duration
+  (if (yes-or-no-p "Do you really want to write out this unfinished merge? ")
+      ;; They really want to do it -- unselect the difference for the duration
       (progn
 	(if (and (>= emerge-current-difference 0)
 		 (< emerge-current-difference emerge-number-of-differences))
@@ -2890,7 +2890,7 @@ around the current difference are removed."
 	    (progn
 	      (emerge-select-difference emerge-current-difference)
 	      (emerge-recenter))))
-    ;; He's being smart and not doing it
+    ;; They're being smart and not doing it...
     (message "Not written")))
 
 ;; Make sure the current buffer (for a file) has the same contents as the
