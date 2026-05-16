@@ -1387,8 +1387,10 @@ Will move to previous feed until an item is found."
 (defun newsticker--treeview-get-selected-item ()
   "Return item that is currently selected in list buffer."
   (with-current-buffer (newsticker--treeview-list-buffer)
-    (beginning-of-line)
-    (get-text-property (point) :nt-item)))
+    (goto-char (point-min))
+    (if-let* ((selected (text-property-search-forward :nt-selected t t)))
+        (get-text-property (prop-match-beginning selected) :nt-item)
+      (get-text-property (point-min) :nt-item))))
 
 (defun newsticker-treeview-mark-item-old (&optional dont-proceed)
   "Mark current item as old unless it is obsolete.
