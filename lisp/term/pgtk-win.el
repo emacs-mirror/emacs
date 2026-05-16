@@ -302,7 +302,10 @@ If you don't want stock icons, set the variable to nil."
   :type '(choice (const :tag "Don't use stock icons" nil)
 		 (repeat (choice symbol
 				 (cons (string :tag "Emacs icon")
-				       (string :tag "Stock/named")))))
+                                       (choice
+                                        (group (string "Named")
+                                               (string "Stock"))
+				        (string :tag "Stock/named"))))))
   :group 'pgtk)
 
 (defconst x-gtk-stock-cache (make-hash-table :weakness t :test 'equal))

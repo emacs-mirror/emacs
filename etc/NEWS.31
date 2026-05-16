@@ -795,7 +795,7 @@ docstring for the new option.
 See the file "etc/ORG-NEWS" for user-visible changes in Org.
 
 +++
-** New user option 'compilation-search-extra-path'
+** New user option 'compilation-search-extra-path'.
 compile.el will now use paths specified in both
 'compilation-search-extra-path' and 'compilation-search-path', when
 doing search.  'compilation-search-extra-path' is consulted first.
@@ -1967,6 +1967,17 @@ Gnus, see "(gnus) Symbolic Prefixes" in the Gnus manual.
 ---
 *** Sorting selected groups is now possible with 'gnus-topic-mode'.
 
+---
+*** gnus-dbus.el is now obsolete.
+
++++
+*** System sleep integration is now independent of D-Bus.
+The system sleep integration previously provided by customizing the
+variable 'gnus-dbus-close-on-sleep' is now deprecated.  A new system
+using the builtin 'system-sleep' library is now available by customizing
+'gnus-close-on-sleep'.  This will work on all systems that the
+'system-sleep' library supports.
+
 ** Sieve
 
 +++
@@ -2811,7 +2822,7 @@ another branch.
 ---
 *** VC Annotate for Mercurial repositories shows changeset hashes.
 To restore showing revision numbers instead of changeset hashes,
-customize the new option vc-hg-annotate-show-revision-numbers to
+customize the new user option 'vc-hg-annotate-show-revision-numbers' to
 non-nil.
 
 +++
@@ -4605,7 +4616,7 @@ singleton list.
 By default it kills Emacs, as before, but 'kill-emacs-on-sigint'
 can be set to nil to change that.
 The response to SIGINT in interactive sessions is unaffected,
-e.g. in a normal GUI session it still kills Emacs whereas in a terminal
+e.g., in a normal GUI session it still kills Emacs whereas in a terminal
 it causes 'quit' since it is used for 'C-g'.
 
 +++
@@ -4614,6 +4625,7 @@ While it is marginally more efficient than ':after' or ':before',
 the main purpose is to make the intention more obvious when the advice
 modifies only the interactive form and not the actual behavior
 of the function.
+
 
 * Changes in Emacs 31.1 on Non-Free Operating Systems
 

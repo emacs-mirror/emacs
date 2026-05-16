@@ -1397,7 +1397,13 @@ Returns t if found, nil otherwise."
     (while (re-search-backward "[<>]" limit 'move)
       ;; If this character has "open" or "close" syntax, then we've
       ;; found the one we want.
-      (when (memq (syntax-class (syntax-after (point))) '(4 5))
+      (when (and (memq (syntax-class (syntax-after (point))) '(4 5))
+                 ;; We want to ignore tags in comments.  We could also
+                 ;; check `syntax-ppss', but that can become expensive
+                 ;; in a busy loop, so we re-use the face instead.
+                 (not (memq (get-text-property (point) 'face)
+                            '(font-lock-comment-delimiter-face
+                              font-lock-comment-face))))
         (throw 'found t)))))
 
 (defun sgml-parse-tag-backward (&optional limit)

@@ -1181,6 +1181,7 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   int outer_height
     = height + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
   int outer_width = width + FRAME_TOOLBAR_WIDTH (f);
+  int scale = xg_get_scale (f);
 
 #ifndef HAVE_PGTK
   gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
@@ -1200,8 +1201,10 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     }
 #endif
 
-  outer_height /= xg_get_scale (f);
-  outer_width /= xg_get_scale (f);
+  outer_height /= scale;
+  outer_width /= scale;
+  height = outer_height * scale;
+  width = outer_width * scale;
 
   xg_wm_set_size_hint (f, 0, 0);
 
@@ -1328,6 +1331,9 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
 
   outer_height /= scale;
   outer_width /= scale;
+  height = outer_height * scale;
+  width = outer_width * scale;
+
   x /= scale;
   y /= scale;
 

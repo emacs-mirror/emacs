@@ -2246,11 +2246,12 @@ Interactively, EVENT is the value of `last-nonmenu-event'."
 				    (plist-get eww-data :url)))))))
       (eww-browse-url
        (concat
-	(if (cdr (assq :action form))
-	    (shr-expand-url (cdr (assq :action form)) (plist-get eww-data :url))
-	  (plist-get eww-data :url))
-	"?"
-	(mm-url-encode-www-form-urlencoded values))))))
+        (shr-expand-url
+         (or (cdr (assq :action form))
+             (car (url-path-and-query (url-generic-parse-url (plist-get eww-data :url)))))
+         (plist-get eww-data :url))
+        "?"
+        (mm-url-encode-www-form-urlencoded values))))))
 
 (defun eww-browse-with-external-browser (&optional url)
   "Browse the current URL with an external browser.

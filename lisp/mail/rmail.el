@@ -1328,13 +1328,14 @@ Instead, these commands are available:
       (when rmail-display-summary
 	(rmail-summary))
       (rmail-construct-io-menu))
-    (run-mode-hooks 'rmail-mode-hook)))
+    (run-hooks 'rmail-mode-hook)))
 
 (defun rmail-mode-2 ()
   (kill-all-local-variables)
   (rmail-mode-1)
   (rmail-perm-variables)
-  (rmail-variables))
+  (rmail-variables)
+  (run-mode-hooks))
 
 (defun rmail-mode-1 ()
   (setq major-mode 'rmail-mode)

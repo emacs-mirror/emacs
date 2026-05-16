@@ -1265,7 +1265,7 @@ unconditionally."
          (backup-inhibited t)
          (dirs (list dir)))
     (add-to-list 'load-path (directory-file-name dir))
-    (dolist (file (directory-files-recursively dir "" t pred))
+    (dolist (file (directory-files-recursively dir "" t pred t))
       (cond
        ((and (file-regular-p file) (string-suffix-p ".el" file))
         (unless just-activate

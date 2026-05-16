@@ -6534,10 +6534,19 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 
       if (NILP (location))
 	it->area = TEXT_AREA;
-      else if (EQ (location, Qleft_margin))
-	it->area = LEFT_MARGIN_AREA;
       else
-	it->area = RIGHT_MARGIN_AREA;
+	{
+	  if (EQ (location, Qleft_margin))
+	    it->area = LEFT_MARGIN_AREA;
+	  else
+	    it->area = RIGHT_MARGIN_AREA;
+	  /* Use the 'margin' face for displaying text and images
+	     in the margins.  */
+	  it->face_id =
+	    NILP (Vface_remapping_alist)
+	    ? MARGIN_FACE_ID
+	    : lookup_basic_face (it->w, it->f, MARGIN_FACE_ID);
+	}
 
       if (STRINGP (value))
 	{

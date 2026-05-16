@@ -2295,6 +2295,7 @@ buffer, whether or not it is currently displayed in some window.  */)
       double start_col UNINIT;
       int start_x UNINIT;
       int to_x = -1;
+      ptrdiff_t ovl_start = -1;
 
       bool start_x_given = !NILP (cur_col);
       if (start_x_given)
@@ -2327,13 +2328,29 @@ buffer, whether or not it is currently displayed in some window.  */)
 	{
 	  const char *s = SSDATA (it.string);
 	  const char *e = s + SBYTES (it.string);
+	  Lisp_Object prop;
+	  ptrdiff_t ovl_idx =
+	    it.current.overlay_string_index >= 0
+	     ? it.current.overlay_string_index % OVERLAY_STRING_CHUNK_SIZE
+	     : -1;
+
+	  /* If this is a string from an overlay, compute where that
+             overlay starts.  */
+	  if (!it.string_from_display_prop_p && ovl_idx >= 0)
+	    ovl_start = OVERLAY_START (it.string_overlays[ovl_idx]);
 
 	  disp_string_at_start_p =
 	  /* If it.area is anything but TEXT_AREA, we need not bother
 	     about the display string, as it doesn't affect cursor
 	     positioning.  */
 	    it.area == TEXT_AREA
-	    && it.string_from_display_prop_p
+	    && (it.string_from_display_prop_p
+		/* Overlay string on invisible text has the same effect
+                   on display and cursor movement as a display string.  */
+		|| (ovl_start >= BEGV
+		    && (prop = Fget_char_property (make_fixnum (ovl_start),
+						   Qinvisible, window),
+			TEXT_PROP_MEANS_INVISIBLE (prop))))
 	    /* A display string on anything but buffer text (e.g., on
 	       an overlay string) doesn't affect cursor positioning.  */
 	    && (it.sp > 0 && it.stack[it.sp - 1].method == GET_FROM_BUFFER);
@@ -2456,6 +2473,13 @@ buffer, whether or not it is currently displayed in some window.  */)
 	  if ((nlines < 0 && IT_CHARPOS (it) > BEGV)
 	      || (nlines == 0 && !(start_x_given && start_x <= to_x)))
 	    move_it_by_lines (&it, max (PTRDIFF_MIN, nlines));
+	  /* If we haven't moved due to an overlay string on invisible
+             text, back up past that overlay string.  */
+	  if (IT_CHARPOS (it) == it_start
+	      && disp_string_at_start_p
+	      && ovl_start >= BEGV
+	      && it_overshoot_count > 0)
+	    move_it_by_lines (&it, -it_overshoot_count);
 	}
       else if (overshoot_handled)
 	{

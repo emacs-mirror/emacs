@@ -66,6 +66,7 @@ another.  An overview of D-Bus can be found at
 * Errors and Events::           Errors and events.
 * Monitoring Messages::         Monitoring messages.
 * File Descriptors::            Handle file descriptors.
+* Flatpak integration::         Integration with flatpak
 * Index::                       Index including concepts, functions, variables.
 
 * GNU Free Documentation License:: The license for this documentation.
@@ -2300,6 +2301,38 @@ instance have acquired a file descriptor as well.  Example:
    (25 . "/org/freedesktop/login1"))
 @end lisp
 @end defun
+
+
+@node Flatpak integration
+@chapter Integration with flatpak
+
+@c https://docs.flatpak.org/en/latest/sandbox-permissions.html
+@c TODO: This needs more input.
+
+If you run the Emacs flatpak program, there are restrictions.  By
+default, there is limited access to the session D-Bus, and no access to
+the system D-Bus.  You must enable access to services living outside the
+sandbox like
+
+@example
+# flatpak override --talk-name=org.freedesktop.secrets org.gnu.emacs
+@end example
+
+@samp{org.gnu.emacs} is the Emacs flatpak application, and
+@samp{org.freedesktop.secrets} is a service you want to talk to, for
+example.
+
+Access to the entire bus with @samp{--socket=system-bus} or
+@samp{--socket=session-bus} stops the filtering and using them is a
+security risk. So they must be avoided.
+
+@c Bug#80977.
+Service names might be mapped when arriving Emacs.  For example, you
+will see the @samp{org.freedesktop.DBus.NameOwnerChanged} signal for
+service @samp{org.freedesktop.portal.Flatpak}, even if you have
+registered the signal for another namespace.
+
+@c TODO: What about portals?
 
 
 @node Index

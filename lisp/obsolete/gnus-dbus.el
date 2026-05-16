@@ -3,6 +3,7 @@
 ;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
+;; Obsolete-since: 31.1
 
 ;; This file is part of GNU Emacs.
 
@@ -21,6 +22,10 @@
 
 ;;; Commentary:
 
+;; This library is obsolete.
+;;
+;; Use `gnus-close-on-sleep' instead.
+
 ;; This library contains some Gnus integration for systems using DBUS.
 ;; At present it registers a signal to close all Gnus servers before
 ;; system sleep or hibernation.
@@ -31,17 +36,29 @@
 (require 'dbus)
 (declare-function gnus-close-all-servers "gnus-start")
 
-(defcustom gnus-dbus-close-on-sleep nil
-  "When non-nil, close Gnus servers on system sleep."
-  :group 'gnus-dbus
-  :type 'boolean)
+;; (defcustom gnus-dbus-close-on-sleep nil
+;;   "When non-nil, close Gnus servers on system sleep."
+;;   :group 'gnus-dbus
+;;   :type 'boolean)
+
+;; It is suggested in the elisp documention that we create variable
+;; alias's before executing the `defcustom'.  To reliably accomplish
+;; that in this case we would have to edit gnus-start.el which I don't
+;; want to do.  So I've done this instead.
+(require 'gnus-start) ;; Run defcustom for `gnus-close-on-sleep'
+(when (bound-and-true-p gnus-dbus-close-on-sleep)
+  (setq gnus-close-on-sleep gnus-dbus-close-on-sleep))
+(with-suppressed-warnings ((suspicious nil)) ;; Doesn't like aliasing bound variables
+  (define-obsolete-variable-alias 'gnus-dbus-close-on-sleep 'gnus-close-on-sleep "31.1"))
 
 (defvar gnus-dbus-sleep-registration-object nil
   "Object returned from `dbus-register-signal'.
 Used to unregister the signal.")
+(make-obsolete-variable 'gnus-dbus-sleep-registration-object nil "31.1")
 
 (defun gnus-dbus-register-sleep-signal ()
   "Use `dbus-register-signal' to close servers on sleep."
+  (declare (obsolete nil "31.1"))
   (when (featurep 'dbusbind)
     (setq gnus-dbus-sleep-registration-object
 	  (dbus-register-signal :system
@@ -54,6 +71,7 @@ Used to unregister the signal.")
 
 (defun gnus-dbus-sleep-handler (sleep-start)
   ;; Sleep-start is t before sleeping.
+  (declare (obsolete nil "31.1"))
   (when (and sleep-start
 	     (gnus-alive-p))
     (condition-case nil
@@ -61,6 +79,7 @@ Used to unregister the signal.")
       (error nil))))
 
 (defun gnus-dbus-unregister-sleep-signal ()
+  (declare (obsolete gnus-sleep-handler "31.1"))
   (condition-case nil
       (dbus-unregister-object
        gnus-dbus-sleep-registration-object)
