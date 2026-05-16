@@ -720,6 +720,7 @@ This can be useful when using docker to run a language server.")
   (if (>= emacs-major-version 27) (executable-find command remote)
     (executable-find command)))
 
+(declare-function treesit-grammar-location "treesit.c")
 (defun eglot--accepted-formats ()
   (if (and (not eglot-prefer-plaintext)
            (or (fboundp 'gfm-view-mode)
