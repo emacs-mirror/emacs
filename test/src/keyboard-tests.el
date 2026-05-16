@@ -92,11 +92,11 @@
              `(,(expand-file-name invocation-name invocation-directory)
                "-Q" "--batch" "--eval"
                ,(prin1-to-string
-                 `(progn (setq kill-emacs-on-sigint nil)
-                         (message "Ready!")
-                         (condition-case nil
-                             (dotimes (_ 3) (sit-for 1))
-                           (quit (message "%s" ,exit-msg)))))))))
+                 `(condition-case nil
+                      (progn (setq kill-emacs-on-sigint nil)
+                             (message "Ready!")
+                             (sleep-for 3))
+                    (quit (message "%s" ,exit-msg))))))))
       (while (progn (accept-process-output proc 1.0)
                     (goto-char (point-min))
                     (not (re-search-forward "Ready!" nil t)))

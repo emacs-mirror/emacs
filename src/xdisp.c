@@ -26643,13 +26643,11 @@ display_line (struct it *it, int cursor_vpos)
 
 	  /* If the default face is remapped or the 'margin' face has a
 	     non-default background, and the window has display margins,
-	     and no glyphs were written yet to the margins on this screen
-	     line, fill the margin area so that the margins use the
-	     correct background.  Placed here, after the if/else-if chain
-	     above, so it fires for all three truncation paths: TTY/no-fringe
-	     truncation glyph, GUI newline-overflow-into-fringe, and GUI
-	     regular truncation where the indicator is drawn as a fringe
-	     bitmap.  */
+	     extend the face in the margin area so that the margins use
+	     the correct background.  This handles all three truncation
+	     paths: TTY/no-fringe truncation glyph, GUI
+	     newline-overflow-into-fringe, and GUI regular truncation
+	     where the indicator is drawn as a fringe bitmap.  */
 	  {
 	    int margin_face_id =
 	      lookup_basic_face (it->w, it->f, MARGIN_FACE_ID);
@@ -26657,10 +26655,8 @@ display_line (struct it *it, int cursor_vpos)
 	         != DEFAULT_FACE_ID
 	         || FACE_FROM_ID (it->f, margin_face_id)->background
 	         != FRAME_BACKGROUND_PIXEL (it->f))
-	        && ((WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
-	             && it->glyph_row->used[LEFT_MARGIN_AREA] == 0)
-	            || (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
-	                && it->glyph_row->used[RIGHT_MARGIN_AREA] == 0)))
+	        && (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
+	            || WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0))
 	      extend_face_to_end_of_line (it);
 	  }
 

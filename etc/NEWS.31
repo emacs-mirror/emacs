@@ -2451,6 +2451,13 @@ This can be used by external ELPA packages for performance optimizations
 in special cases.  For more information, see "(tramp) New operations" in
 the Tramp manual.
 
++++
+*** New user option 'tramp-propagate-emacsclient-tramp'.
+When this option is non-nil, Tramp propagates the environment variable
+EMACSCLIENT_TRAMP with a proper value to remote processes.  This is
+helpful if you want to start emacsclient on a remote host from a process
+started inside Emacs.
+
 ** Isearch and Replace
 
 *** Typing 'd' during 'query-replace' shows the diff buffer with replacements.

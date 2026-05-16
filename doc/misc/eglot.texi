@@ -474,11 +474,11 @@ Code reformatting via the @code{eglot-format} and related commands
 supported and is activated automatically as you type.
 
 @item
-If a completion package such as the Company package (a popular
-third-party completion package providing @code{company-mode}), is
-installed, Eglot enhances it by providing completion candidates based on
-the language server's analysis of the source code.  (Company can be
-installed from GNU ELPA.)
+Eglot enhances symbol completion front-ends by providing completion
+candidates based on the language server's understanding of the source
+code (@pxref{Symbol Completion,,, emacs, GNU Emacs Manual}).  The
+Company package, installable from GNU ELPA, is a popular package known
+to work well with Eglot.
 
 @item
 If YASnippet, a popular third-party package for automatic insertion of
@@ -488,12 +488,11 @@ completion package to instantiate these snippets using YASnippet.
 (YASnippet can be installed from GNU ELPA.)
 
 @item
-If the popular third-party package @code{markdown-mode} is installed,
-and the server provides at-point documentation formatted as Markdown in
+When the server provides at-point documentation formatted as Markdown in
 addition to plain text, Eglot arranges for the ElDoc package to enrich
-this text with fontifications and other nice formatting before
-displaying it to the user.  This makes the documentation shown by ElDoc
-look nicer on display.
+this text with fontifications, hyperlinks and other nice formatting
+before displaying it to the user.  This makes the documentation shown by
+ElDoc look nicer on display.
 
 @item
 In addition to enabling and enhancing other features and packages, Eglot
@@ -1969,7 +1968,7 @@ directory is a way to tell the maintainers about ELPA package versions.
 
 @item
 Include a recipe to replicate the problem with @emph{a clean Emacs run}.
-The invocation @code{emacs -Q -f package-initialize} starts Emacs with
+The invocation @code{emacs -Q -f package-activate-all} starts Emacs with
 no configuration and initializes the ELPA packages.  A very minimal
 @file{.emacs} initialization file (10 lines or less) is also acceptable
 and good means to describe changes to variables.

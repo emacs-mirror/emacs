@@ -3262,6 +3262,30 @@ To turn the Windows Magnifier off, click "Start->All Programs", or
 "Accessibility" and click "Magnifier".  In the Magnifier Settings
 dialog that opens, click "Exit".
 
+** Cursor is invisible, or appears at times and then disappears
+
+This is known to happen if 'w32-use-visible-system-caret' is non-nil.
+That variable is nil by default, but if your system has the "Speech
+Recognition" feature enabled, Emacs automatically sets this variable
+non-nil at startup to allow the screen reader to read the relevant part
+of the Emacs display and dictate it.
+
+To turn this off on modern Windows systems, go to "Settings ->
+Accessibility -> Speech", and turn off "Voice access".  If you need to
+leave this accessibility feature turned on, you can alternatively set
+'w32-use-visible-system-caret' to the nil value in your init file:
+
+  (setq w32-use-visible-system-caret nil)
+
+If you do need to see the system caret in Emacs windows, you can instead
+work around this problem by disabling double-buffering in your init
+file:
+
+  (set-frame-parameter nil 'inhibit-double-buffering nil)
+
+Note that inhibiting double-buffering might cause the Emacs display to
+flicker in some cases.
+
 ** Problems with mouse-tracking and focus management
 
 There are problems with display if mouse-tracking is enabled and the

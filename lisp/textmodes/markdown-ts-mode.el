@@ -154,6 +154,17 @@
 ;;   content.  Lowercase `<!doctype html>' works as a workaround.
 ;;   See <https://github.com/tree-sitter-grammars/tree-sitter-markdown/issues/233>.
 ;;
+;; - The grammar parses solo tildes, incorrectly applying strikethrough.
+;;   For example, writing:
+;;
+;;     I see ~approximately four lights.
+;;     I do not see ~approximately five lights.
+;;
+;;   Results in strikethrough incorrectly starting at the first
+;;   ~approximately and extending till the tilde at the second
+;;   ~approximately.
+;;   See <https://github.com/tree-sitter-grammars/tree-sitter-markdown/issues/236>.
+;;
 ;; - Superscript (`^text^') and subscript (`~text~') syntax is not
 ;;   supported by the grammar.  No EXTENSION_ build flag exists for
 ;;   this.  This is Pandoc / PHP Markdown Extra syntax, not CommonMark
@@ -279,6 +290,8 @@ use that string instead."
 (defcustom markdown-ts-inline-images nil
   "Non-nil means display inline images below image links."
   :type 'boolean
+  :local t
+  :safe #'booleanp
   :version "31.1"
   :package-version "1.0")
 
@@ -299,6 +312,28 @@ image into a temporary buffer and display it.
 Remote images are skipped by default for security."
   :type '(choice (const :tag "Skip remote images" nil)
                  (const :tag "Download remote images" download))
+  :version "31.1"
+  :package-version "1.0")
+
+(defcustom markdown-ts-unordered-list-marker '(("● " . "- ")
+                                               ("○ " . "- ")
+                                               ("◼ " . "- ")
+                                               ("• " . "- "))
+  "If markup is hidden, display these for an unordered list marker.
+Each list item marker's depth in its list controls its selected string
+starting at the first element and cycling through the others for deeper
+items.  The list will be cycle around back to the beginning if there are
+insufficient strings to represent deep levels.
+
+Note that the default strings have trailing spaces.
+
+Value forms:
+ - (list (cons (PREFERRED . FALLBACK)) ...): where PREFERRED is used if
+   its first character passes `char-displayable-p', otherwise FALLBACK.
+ - nil: display the raw markup."
+  :type '(choice (repeat (cons (string :tag "Preferred (GUI)")
+                               (string :tag "Fallback (TTY)")))
+                 (const :tag "Display original markup" nil))
   :version "31.1"
   :package-version "1.0")
 
@@ -354,10 +389,14 @@ Consulted only when `markdown-ts-unchecked-checkbox' is the symbol
 
 (defcustom markdown-ts-thematic-break-character '(?─ . ?-)
   "If markup is hidden, display this character for thematic breaks.
-It is repeated to fill the window width.
+It is repeated to fill the window width.  This assumes a static window
+width.
+You may prefer an `:extend' attribute on the
+`markdown-ts-thematic-break' which will span window width dynamically
+using an underline, in which case this character is ignored.
 The value is a cons (PREFERRED . FALLBACK): PREFERRED is used if it passes
 `char-displayable-p', otherwise FALLBACK is used.
-nil displays the raw markup."
+Use nil to display the raw markup."
   :type '(choice (cons (character :tag "Preferred (GUI)")
                        (character :tag "Fallback (TTY)"))
                  (const :tag "Display original markup" nil))
@@ -371,7 +410,8 @@ The value is a cons (PREFERRED . FALLBACK): PREFERRED is used if it passes
 nil keeps the raw markup."
   :type '(choice (cons (character :tag "Preferred (GUI)")
                        (character :tag "Fallback (TTY)"))
-                 (const :tag "Display original markup" nil))
+                 (const :tag "Display original markup" nil)
+                 (const :tag "Hide markup" hide))
   :version "31.1"
   :package-version "1.0")
 
@@ -391,7 +431,8 @@ The value can be:
   :type '(choice (character :tag "Display specified character (no repetition)")
                  (string :tag "Display specified string (no repetition)")
                  (function :tag "Function from count to display string")
-                 (const :tag "Display original markup" nil))
+                 (const :tag "Display original markup" nil)
+                 (const :tag "Hide markup" hide))
   :version "31.1"
   :package-version "1.0")
 
@@ -523,6 +564,18 @@ Set to nil to disable the lighter."
   :version "31.1"
   :package-version "1.0")
 
+(defcustom markdown-ts-view-mode-pre-init-hook (list #'markdown-ts-add-final-newline)
+  "Hooks run before `markdown-ts-view-mode` initialization.
+Functions on this list are intended to amend buffer content for
+`markdown-ts-view-mode' and tree-sitter Markdown grammar compatibility.
+
+For example, `markdown-ts-add-final-newline' ensures the grammar
+correctly parses markup at the end of the buffer that depends on a final
+newline."
+  :type '(hook)
+  :version "31.1"
+  :package-version "1.0")
+
 ;;; Faces:
 
 (defgroup markdown-ts-faces nil
@@ -586,7 +639,7 @@ Set to nil to disable the lighter."
   "Face for Markdown link destinations (URLs)."
   :version "31.1")
 
-(defface markdown-ts-code-span '((t (:inherit font-lock-string-face)))
+(defface markdown-ts-code-span '((t (:inherit font-lock-keyword-face)))
   "Face for Markdown inline code spans."
   :version "31.1")
 
@@ -750,7 +803,6 @@ shadow-colored block."
     (ts typescript-ts-mode)
     (yml yaml-ts-mode))
   "Extra mappings from code block language tags to major modes.
-
 Entries here are only needed when the language tag in a fenced code
 block does NOT match the conventional mode name derivation, e.g. the
 user writes \\=`\\=`\\=`ts instead of \\=`\\=`\\=`typescript, or
@@ -783,7 +835,6 @@ conventional font-lock.  `markdown-ts-mode' itself is one of them.")
 
 (defun markdown-ts--fontify-delimiter (node override start end &rest _)
   "Fontify delimiter NODE and optionally hide its markup.
-
 NODE is the tree-sitter node representing the delimiter.
 OVERRIDE, START, and END are passed through to
 `treesit-fontify-with-override'."
@@ -792,6 +843,26 @@ OVERRIDE, START, and END are passed through to
    'markdown-ts-delimiter override start end)
   (when markdown-ts-hide-markup
     (put-text-property (treesit-node-start node) (treesit-node-end node)
+                       'invisible 'markdown-ts--markup)))
+
+(defun markdown-ts--fontify-atx-delimiter (node override start end &rest _)
+  "Fontify atx_heading delimiter NODE and optionally hide its markup.
+NODE is the tree-sitter node representing the delimiter.
+Leading whitespace between the delimiter and the heading text is hidden
+along with the delimiter when hiding markup.
+OVERRIDE, START, and END are passed through to
+`treesit-fontify-with-override'."
+  (treesit-fontify-with-override
+   (treesit-node-start node) (treesit-node-end node)
+   'markdown-ts-delimiter override start end)
+  (when markdown-ts-hide-markup
+    (put-text-property (treesit-node-start node)
+                       (save-excursion
+                         (goto-char (treesit-node-end node))
+                         (re-search-forward "[^[:blank:]]" (pos-eol) 'no-error)
+                         (if (eq (point) (pos-eol))
+                             (point)
+                           (1- (point))))
                        'invisible 'markdown-ts--markup)))
 
 (defvar url-mail-command) ; url/url-vars.el
@@ -1008,57 +1079,89 @@ Pushes the mark before moving so `C-u C-SPC' returns.  Signals
         (recenter))
     (user-error "No heading for fragment: #%s" id)))
 
-(defun markdown-ts--fontify-heading (node _override _start _end &rest _)
-  "Apply the heading face across NODE.
+(defun markdown-ts--fontify-atx-heading (node _override _start _end &rest _)
+  "Apply the heading face across an atx_heading NODE.
 Layer the face on top of child sub-nodes (e.g. an inline link) so
 their own faces are preserved.  Strip any prior copy of the face
 first so it does not accumulate when the heading is refontified or
 its level/type changes during editing.
-
-For ATX headings, also fontify any optional trailing closing-`#'
-sequence as a delimiter.  The tree-sitter grammar does not produce a
-separate node for these; per CommonMark they are decorative and
-must be preceded by a space or tab."
-  (let* ((type (treesit-node-type node))
-         (n-start (treesit-node-start node))
+Do not fontify the header's trailing newline.
+Elide trailing whitespace when hiding markup.
+Fontify any optional trailing closing-`#' sequence as a delimiter.  The
+tree-sitter grammar does not produce a separate node for these; per
+CommonMark they are decorative and must be preceded by a space or tab."
+  (let* ((n-start (treesit-node-start node))
          (n-end   (treesit-node-end node))
-         (face (cond
-                ((equal type "setext_heading")
-                 'markdown-ts-setext-heading)
-                (t
-                 (let ((marker (treesit-node-child node 0)))
-                   (intern (format "markdown-ts-heading-%d"
-                                   (length (treesit-node-text marker t)))))))))
+         (face (let ((marker (treesit-node-child node 0)))
+                 (intern (format "markdown-ts-heading-%d"
+                                 (length (treesit-node-text marker t)))))))
     (font-lock--remove-face-from-text-property n-start n-end 'face face)
-    (font-lock-append-text-property n-start n-end 'face face)
-    (when (string-prefix-p "atx_" type)
-      (save-excursion
-        (goto-char n-end)
-        (skip-chars-backward " \t\n" n-start)
-        (let ((line-end (point)))
-          (skip-chars-backward " \t" n-start)
-          (let ((trailing-end (point)))
-            (skip-chars-backward "#" n-start)
-            (let ((trailing-start (point)))
-              (when (and (< trailing-start trailing-end)
-                         (> trailing-start n-start)
-                         (memq (char-before trailing-start) '(?\s ?\t)))
-                (font-lock--remove-face-from-text-property
-                 trailing-start trailing-end
-                 'face 'markdown-ts-delimiter)
-                (font-lock-prepend-text-property
-                 trailing-start trailing-end
-                 'face 'markdown-ts-delimiter)
-                (when markdown-ts-hide-markup
-                  ;; Also hide the space(s) preceding the closer and any
-                  ;; trailing whitespace, so the heading looks clean.
-                  (let ((hide-start (save-excursion
-                                      (goto-char trailing-start)
-                                      (skip-chars-backward " \t" n-start)
-                                      (point))))
-                    (put-text-property hide-start line-end
-                                       'invisible
-                                       'markdown-ts--markup)))))))))))
+    (font-lock-append-text-property n-start (1- n-end) 'face face)
+    (save-excursion
+      (goto-char n-end)
+      (skip-chars-backward "[:space:]" n-start)
+      (let ((trailing-end (point)))
+        (skip-chars-backward "#" n-start)
+        (let ((trailing-start (point)))
+          (cond ((and (< trailing-start trailing-end)
+                      (> trailing-start n-start)
+                      (memq (char-before trailing-start) '(?\s ?\t)))
+                 ;; Identify the optional trailing closing-# sequence,
+                 ;; fontify it as a delimiter, and remove whitespace
+                 ;; between the heading text and the delimiter.  The
+                 ;; grammar omits a node for this run despite CommonMark.
+                 (font-lock--remove-face-from-text-property
+                  trailing-start trailing-end
+                  'face 'markdown-ts-delimiter)
+                 (font-lock-prepend-text-property
+                  trailing-start trailing-end
+                  'face 'markdown-ts-delimiter)
+                 (when markdown-ts-hide-markup
+                   (let ((hide-start (save-excursion
+                                       (goto-char trailing-start)
+                                       (skip-chars-backward "[:space:]" n-start)
+                                       (point))))
+                     (put-text-property hide-start (pos-eol)
+                                        'invisible 'markdown-ts--markup))))
+                (markdown-ts-hide-markup
+                 ;; Hide trailing whitespace in the nominal case.
+                 (put-text-property trailing-end (pos-eol)
+                                    'invisible 'markdown-ts--markup))))))))
+
+(defun markdown-ts--fontify-setext-heading (node _override _start _end &rest _)
+  "Apply the heading face across a setext NODE.
+Layer the face on top of child sub-nodes (e.g. an inline link) so
+their own faces are preserved.  Strip any prior copy of the face
+first so it does not accumulate when the heading is refontified or
+its level/type changes during editing.
+Apply the face to the setext heading_content separately from the
+underline rather than treat them as a single range.  This avoids putting
+the face on the heading_content newline.  If `markdown-ts-hide-markup'
+is non-nil, hide the underline line entirely by setting its line-height
+text property to 0.
+Elide trailing whitespace when hiding markup."
+  (let* ((n-start (treesit-node-start node))
+         (n-end (treesit-node-end node))
+         (content (treesit-node-child node 0 'named))
+         (content-start (treesit-node-start content))
+         (content-end (treesit-node-end content))
+         (underline (treesit-node-child node 1 'named))
+         (underline-start (treesit-node-start underline))
+         (underline-end (treesit-node-end underline))
+         (face 'markdown-ts-setext-heading))
+    (font-lock--remove-face-from-text-property n-start n-end 'face face)
+    ;; 1- content-end avoids the newline so it hides correctly.
+    (font-lock-append-text-property content-start (1- content-end) 'face face)
+    (font-lock-append-text-property underline-start underline-end 'face face)
+    (when markdown-ts-hide-markup
+      ;; Hide heading_content trailing spaces.
+      (put-text-property (save-excursion
+                           (goto-char content-end)
+                           (skip-chars-backward "[:space:]" content-start)
+                           (point))
+                         content-end
+                         'invisible 'markdown-ts--markup)
+      (put-text-property underline-start underline-end 'line-height 0))))
 
 (defun markdown-ts--fontify-link-node (node override start end &rest _)
   "Fontify link or image text NODE as a clickable button.
@@ -1248,12 +1351,51 @@ OVERRIDE, START, and END are passed through to
 
 (defun markdown-ts--resolve-display-value (val)
   "Resolve VAL, a cons (PREFERRED . FALLBACK), to a displayable value.
-Return PREFERRED if its first character passes `char-displayable-p',
-otherwise return FALLBACK.  Return nil if VAL is nil."
-  (when val
-    (let* ((preferred (car val))
-           (ch (if (characterp preferred) preferred (aref preferred 0))))
-      (if (char-displayable-p ch) (car val) (cdr val)))))
+PREFERRED and FALLBACK can be a character or a string.  Return PREFERRED
+if it, or its first character, is `char-displayable-p', otherwise return
+FALLBACK.
+If VAL is not a cons or is nil, return VAL."
+  (if (consp val)
+      (let* ((preferred (car val))
+             (ch (if (characterp preferred)
+                     preferred
+                   (aref preferred 0))))
+        (if (char-displayable-p ch)
+            (car val)
+          (cdr val)))
+    val))
+
+(defun markdown-ts--list-item-depth (node)
+  "Compute the depth of list NODE relative to its parents.
+NODE can be a list, list_item, or one of the list_marker_'s.
+If NODE is not in a list, return -1."
+  (let ((depth -1))
+    (while (and node
+                (not (equal (treesit-node-type node) "section")))
+      (when (equal (treesit-node-type node) "list")
+        (setq depth (1+ depth)))
+      (setq node (treesit-node-parent node)))
+    depth))
+
+(defun markdown-ts--fontify-unordered-list-marker (node override start end &rest _)
+  "Fontify unordered list marker NODE, show a symbol when markup is hidden.
+OVERRIDE, START, and END are passed through to
+`treesit-fontify-with-override'."
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (face 'markdown-ts-list-marker))
+    (treesit-fontify-with-override node-start node-end face
+                                   override start end)
+    (cond (markdown-ts-hide-markup
+           (let* ((depth (markdown-ts--list-item-depth node))
+                  (value (if markdown-ts-unordered-list-marker
+                             (nth (mod depth (length markdown-ts-unordered-list-marker))
+                                  markdown-ts-unordered-list-marker)
+                           nil))
+                  (display-spec (markdown-ts--resolve-display-value value)))
+             (put-text-property node-start node-end 'display display-spec)))
+          (t
+           (remove-text-properties node-start node-end '(display nil))))))
 
 (defun markdown-ts--fontify-checkbox (node override start end &rest _)
   "Fontify task list checkbox NODE, show a Unicode symbol when markup is hidden.
@@ -1297,6 +1439,9 @@ A backslash break gets `markdown-ts-hard-line-break-backslash' (or its
 backslash break is replaced by a single `markdown-ts-hard-line-break'
 glyph; a trailing-spaces break replaces each space with the glyph, so the run
 of pilcrows fills the line up to the newline.
+If `markdown-ts-hard-line-break-backslash' or
+`markdown-ts-hard-line-break-space' are the symbol `hide', hide the
+markup entirely.
 OVERRIDE, START, and END are passed through to
 `treesit-fontify-with-override'."
   (let* ((node-start (treesit-node-start node))
@@ -1350,21 +1495,24 @@ OVERRIDE, START, and END are passed through to
                    ((stringp spec) spec)
                    ((functionp spec)
                     (funcall spec (- region-end region-start))))))
-        (when (and (stringp str)
-                   (> (length str) 0)
-                   (char-displayable-p (aref str 0)))
-          (put-text-property region-start (1+ region-start)
-                             'display str)
-          ;; For the trailing-spaces variant, hide the remaining
-          ;; spaces in the run so the line doesn't end with leftover
-          ;; whitespace after the substituted glyph.  Each position
-          ;; gets its own empty-string `display' so cursor placement
-          ;; stays unambiguous.
-          (unless backslash
-            (let ((i (1+ region-start)))
-              (while (< i region-end)
-                (put-text-property i (1+ i) 'display "")
-                (setq i (1+ i))))))))))
+        (if (eq spec 'hide)
+            (put-text-property region-start region-end
+                               'invisible 'markdown-ts--markup)
+          (when (and (stringp str)
+                     (> (length str) 0)
+                     (char-displayable-p (aref str 0)))
+            (put-text-property region-start (1+ region-start)
+                               'display str)
+            ;; For the trailing-spaces variant, hide the remaining
+            ;; spaces in the run so the line doesn't end with leftover
+            ;; whitespace after the substituted glyph.  Each position
+            ;; gets its own empty-string `display' so cursor placement
+            ;; stays unambiguous.
+            (unless backslash
+              (let ((i (1+ region-start)))
+                (while (< i region-end)
+                  (put-text-property i (1+ i) 'display "")
+                  (setq i (1+ i)))))))))))
 
 (defun markdown-ts--fontify-thematic-break (node override start end &rest _)
   "Fontify thematic break NODE and show a line when markup is hidden.
@@ -1375,22 +1523,27 @@ OVERRIDE, START, and END are passed through to
     (treesit-fontify-with-override node-start node-end
                                    'markdown-ts-thematic-break
                                    override start end)
-    (let ((char (markdown-ts--resolve-display-value
-                 markdown-ts-thematic-break-character)))
-      (if (and markdown-ts-hide-markup char (char-displayable-p char))
-          (let* ((col (save-excursion (goto-char node-start)
-                                      (current-column)))
-                 ;; Span if the face has non-nil :extend.
-                 (span-length (if (face-attribute 'markdown-ts-thematic-break
-                                                  :extend nil 'default)
-                                  (- (window-body-width) col)
-                                12)))
-            (put-text-property node-start node-end
-                               'display
-                               (concat
-                                (make-string span-length char)
-                                "\n")))
-        (remove-text-properties node-start node-end '(display nil))))))
+    (if markdown-ts-hide-markup
+        (cond
+         ((and (display-supports-face-attributes-p '(:extend t))
+               (face-attribute 'markdown-ts-thematic-break
+                               :extend nil 'default))
+          (put-text-property node-start node-end
+                             'display
+                             (propertize "\n" 'face '(:extend t :underline t))))
+         (t
+          (when-let* ((char (markdown-ts--resolve-display-value
+                             markdown-ts-thematic-break-character))
+                      (_ (char-displayable-p char)))
+            (let* ((col (save-excursion (goto-char node-start)
+                                        (current-column)))
+                   (span-length (max 12 (- (window-body-width) col))))
+              (put-text-property node-start node-end
+                                 'display
+                                 (concat
+                                  (make-string span-length char)
+                                  "\n"))))))
+      (remove-text-properties node-start node-end '(display nil)))))
 
 (defun markdown-ts--fontify-code-block (node _override _start _end &rest _)
   "Fontify code block content NODE with a background overlay.
@@ -1524,6 +1677,7 @@ Remote images are controlled by
                  (<= (overlay-end ov) search-end))
         (delete-overlay ov)))
     (when (and markdown-ts-inline-images
+               (display-images-p)
                ;; Don't create image overlays for nodes inside
                ;; folded (outline-invisible) headings, since the
                ;; images wouldn't be visible and could interfere
@@ -1623,18 +1777,18 @@ Skip matches already inside tree-sitter link or autolink nodes."
 
    :language 'markdown
    :feature 'heading
-   '(((atx_heading)    @markdown-ts--fontify-heading)
-     ((setext_heading) @markdown-ts--fontify-heading))
+   '(((atx_heading)    @markdown-ts--fontify-atx-heading)
+     ((setext_heading) @markdown-ts--fontify-setext-heading))
 
    :language 'markdown
    :feature 'heading
    :override 'prepend
-   '((atx_h1_marker) @markdown-ts--fontify-delimiter
-     (atx_h2_marker) @markdown-ts--fontify-delimiter
-     (atx_h3_marker) @markdown-ts--fontify-delimiter
-     (atx_h4_marker) @markdown-ts--fontify-delimiter
-     (atx_h5_marker) @markdown-ts--fontify-delimiter
-     (atx_h6_marker) @markdown-ts--fontify-delimiter
+   '((atx_h1_marker) @markdown-ts--fontify-atx-delimiter
+     (atx_h2_marker) @markdown-ts--fontify-atx-delimiter
+     (atx_h3_marker) @markdown-ts--fontify-atx-delimiter
+     (atx_h4_marker) @markdown-ts--fontify-atx-delimiter
+     (atx_h5_marker) @markdown-ts--fontify-atx-delimiter
+     (atx_h6_marker) @markdown-ts--fontify-atx-delimiter
      (setext_h1_underline) @markdown-ts--fontify-delimiter
      (setext_h2_underline) @markdown-ts--fontify-delimiter)
 
@@ -1643,9 +1797,9 @@ Skip matches already inside tree-sitter link or autolink nodes."
    '(((thematic_break) @markdown-ts--fontify-thematic-break)
      ((html_block) @markdown-ts-html-block)
      ((indented_code_block) @markdown-ts-indented-code-block)
-     (list_item (list_marker_star) @markdown-ts-list-marker)
-     (list_item (list_marker_plus) @markdown-ts-list-marker)
-     (list_item (list_marker_minus) @markdown-ts-list-marker)
+     (list_item (list_marker_star) @markdown-ts--fontify-unordered-list-marker)
+     (list_item (list_marker_plus) @markdown-ts--fontify-unordered-list-marker)
+     (list_item (list_marker_minus) @markdown-ts--fontify-unordered-list-marker)
      (list_item (list_marker_dot) @markdown-ts-list-marker)
      (list_item (list_marker_parenthesis) @markdown-ts-list-marker)
      (list_item (task_list_marker_unchecked) @markdown-ts--fontify-checkbox)
@@ -1695,11 +1849,15 @@ Skip matches already inside tree-sitter link or autolink nodes."
    '((fenced_code_block (code_fence_content) @markdown-ts--fontify-code-block))
 
    :language 'markdown-inline
+   :override 'prepend
+   :feature 'paragraph-inline
+   '(((code_span) @markdown-ts-code-span)
+     ((code_span_delimiter) @markdown-ts--fontify-delimiter))
+
+   :language 'markdown-inline
    :override 'append
    :feature 'paragraph-inline
    '(((link_destination) @markdown-ts--fontify-link-destination)
-     ((code_span) @markdown-ts-code-span)
-     ((code_span_delimiter) @markdown-ts--fontify-delimiter)
      ((emphasis) @markdown-ts-emphasis)
      ((strong_emphasis) @markdown-ts-bold)
      ((strikethrough) @markdown-ts-strikethrough)
@@ -2035,7 +2193,8 @@ indentation, which tree-sitter may include in the node."
 (defun markdown-ts--list-ordered-item-p (item)
   "Return non-nil if ITEM is an ordered (numbered) list item."
   (let ((marker (treesit-node-child item 0)))
-    (equal (treesit-node-type marker) "list_marker_dot")))
+    (member (treesit-node-type marker)
+            '("list_marker_dot" "list_marker_parenthesis"))))
 
 (defun markdown-ts--list-promote-or-demote (demote)
   "Change nesting of the list item at point.
@@ -4233,13 +4392,18 @@ Note: To compute the column, point must be within the column and cannot
 be on the leading or trailing whitespace or on a column delimiter.
 
 ALIGN can be one of the symbols `left', `center', `right' or nil for
-unspecified or the characters l, c, or r.
+unspecified, or the characters l, c, or r.
 
 If ALIGN is nil, assume unspecified.  Make the alignment string a
 minimum of 5 characters to accommodate Markdown conventions.
 
 If point is not at a table, do nothing."
-  (interactive "cAlign column [l]eft [c]enter [r]ight [u]nspecified:")
+  (interactive
+   (list (car (read-multiple-choice
+               "Align column" '((?l "left")
+                                (?c "center")
+                                (?r "right")
+                                (?u "unspecified"))))))
   (markdown-ts--barf-if-not-mode 'markdown-ts-table-align-column)
   (setq align (if (characterp align)
                   (pcase align (?l 'left) (?c 'center) (?r 'right))
@@ -4593,15 +4757,16 @@ If point is not at a table, do nothing."
   "Return range settings for `markdown-ts-mode'."
   (apply
    #'treesit-range-rules
-   `(:embed markdown-inline
-     :host markdown
+   `( :embed markdown-inline
+      :host markdown
+      :local t
      ((inline) @markdown-inline)
      ,@(when markdown-ts-fontify-code-blocks-natively
-         '(:embed markdown-ts--code-block-ts-language
-           :host markdown
-           :local t
-           ((fenced_code_block (info_string (language) @language)
-                               (code_fence_content) @content)))))))
+         '( :embed markdown-ts--code-block-ts-language
+            :host markdown
+            :local t
+            ((fenced_code_block (info_string (language) @language)
+                                (code_fence_content) @content)))))))
 
 (defun markdown-ts--remove-image-overlays ()
   "Remove all inline image overlays from the current buffer."
@@ -4886,6 +5051,27 @@ On a heading, call `outline-cycle'.  Otherwise do nothing."
   "M-RET"       #'markdown-ts-insert-list-item
   "TAB"         #'markdown-ts-outline-cycle)
 
+(defvar-keymap markdown-ts-view-mode-map
+  :doc "Keymap for `markdown-ts-view-mode'."
+  :parent special-mode-map
+  :menu nil
+  "g"           #'ignore ; Override special-mode-map #'revert-buffer
+  "C-c C-n"     #'outline-next-heading
+  "n"           #'outline-next-heading
+  "C-c C-p"     #'outline-previous-heading
+  "p"           #'outline-previous-heading
+  "C-c C-u"     #'outline-up-heading
+  "u"           #'outline-up-heading
+  "C-c C-f"     #'outline-forward-same-level
+  "f"           #'outline-forward-same-level
+  "C-c C-b"     #'outline-backward-same-level
+  "b"           #'outline-backward-same-level
+  "C-c C-x C-m" #'markdown-ts-toggle-hide-markup
+  "C-c C-x C-v" #'markdown-ts-toggle-inline-images
+  "C-c C-v n"   #'markdown-ts-move-to-next-code-block
+  "C-c C-v p"   #'markdown-ts-move-to-previous-code-block
+  "TAB"         #'markdown-ts-outline-cycle)
+
 (defvar-keymap markdown-ts-code-block-in-context-mode-map
   :doc "Keymap for `markdown-ts-code-block-in-context-mode'.
 These override keys in `markdown-ts-mode-map' to support executing their
@@ -5009,7 +5195,6 @@ NOTE: Call this function only when the treesit `markdown' and
   (setq-local adaptive-fill-function #'markdown-ts--adaptive-fill)
 
   ;; Create and configure the parsers.
-  (treesit-parser-create 'markdown-inline)
   (setq treesit-primary-parser
         (treesit-parser-create 'markdown))
 
@@ -5021,11 +5206,12 @@ NOTE: Call this function only when the treesit `markdown' and
                                                (image-preview error)))
 
   (cond (markdown-ts--set-up-inline
-          (setq-local treesit-range-settings
-                      (treesit-range-rules
-                       :embed 'markdown-inline
-                       :host 'markdown
-                       '((inline) @markdown-inline))))
+         (treesit-parser-create 'markdown-inline)
+         (setq-local treesit-range-settings
+                     (treesit-range-rules
+                      :embed 'markdown-inline
+                      :host 'markdown
+                      '((inline) @markdown-inline))))
         (t
          ;; Range settings differ in the master buffer vs. inline above.
          (setq-local treesit-range-settings (markdown-ts--range-settings))
@@ -5054,7 +5240,6 @@ NOTE: Call this function only when the treesit `markdown' and
                      #'markdown-ts--outline-view-change nil t))
 
          (progn
-           (make-local-variable 'markdown-ts-hide-markup)
            (make-local-variable 'font-lock-extra-managed-props)
            (dolist (prop '(invisible display button category action help-echo))
              (add-to-list 'font-lock-extra-managed-props prop)))
@@ -5171,10 +5356,8 @@ With a prefix argument, ARG, if needed, install parsers for `html',
       (require 'toml-ts-mode)
       (treesit-install-language-grammar 'toml))))
 
-;;;###autoload
-(define-derived-mode markdown-ts-mode text-mode "Markdown"
-  "Major mode for editing Markdown using tree-sitter grammar.
-NOTE: See `markdown-ts--set-up-inline'."
+(defun markdown-ts-mode--initialize ()
+  "Invoke this from major mode definitions after local variable set up."
   (treesit-ensure-installed 'markdown)
   (treesit-ensure-installed 'markdown-inline)
   ;; Bypass `treesit-max-buffer-size' so the mode activates in large
@@ -5183,15 +5366,56 @@ NOTE: See `markdown-ts--set-up-inline'."
   ;; they are installed.  Revisit if `treesit-parser-create' gains its
   ;; own buffer-size guard (see bug#80909).
   (let ((treesit-max-buffer-size most-positive-fixnum))
-    (if (treesit-ready-p '(markdown markdown-inline) t)
-        (markdown-ts--set-up)
-      (warn "markdown-ts-mode cannot be set up; using fundamental-mode.
+    (cond ((treesit-ready-p '(markdown markdown-inline) t)
+           (markdown-ts--set-up))
+          (t
+           (warn "markdown-ts-mode cannot be set up; using fundamental-mode.
 The tree-sitter parsers `markdown' and `markdown-inline' were not found.
 Use the command `markdown-ts-mode-install-parsers' to install them.
 With a prefix argument, it can also install optional parsers.")
-      (fundamental-mode))))
+           (fundamental-mode)))))
+
+;;;###autoload
+(define-derived-mode markdown-ts-mode text-mode "Markdown"
+  "Major mode for editing Markdown using tree-sitter grammar.
+NOTE: See `markdown-ts--set-up-inline'."
+  (markdown-ts-mode--initialize))
 
 (derived-mode-add-parents 'markdown-ts-mode '(markdown-mode))
+
+;;; View mode:
+
+;;;###autoload
+(define-derived-mode markdown-ts-view-mode
+  nil ; Intentionally left blank.
+  "Markdown View"
+  "Major mode for read-only viewing Markdown using tree-sitter grammar."
+  ;; NOTE: `markdown-ts-mode' is manually added as a parent to avoid
+  ;; invoking its initialization before we set override variables.
+  (setq-local markdown-ts-menu-bar-show nil)
+  (setq-local markdown-ts-hide-markup t)
+  (setq-local markdown-ts-inline-images t)
+  (setq-local markdown-ts-hard-line-break-backslash 'hide)
+  (setq-local markdown-ts-hard-line-break-space 'hide)
+  (setq-local markdown-ts-fontify-code-blocks-natively t)
+  (setq-local markdown-ts-enable-code-block-context-mode nil)
+  (setq-local markdown-ts-enable-table-mode nil)
+  (run-hooks 'markdown-ts-view-mode-pre-init-hook)
+  (markdown-ts-mode--initialize)
+  (setq buffer-read-only t))
+
+(derived-mode-add-parents 'markdown-ts-view-mode '(markdown-ts-mode special-mode))
+
+;;; Mode utilities:
+
+;;;###autoload
+(defun markdown-ts-buffer-string ()
+  "Like `buffer-string', and convert overlay properties to text properties."
+  (let ((str (buffer-string)))
+    (dolist (ov (overlays-in (point-min) (point-max)) str)
+      (when-let* ((face (overlay-get ov 'face)))
+        (font-lock-append-text-property
+         (overlay-start ov) (overlay-end ov) 'face face str)))))
 
 (defun markdown-ts--barf-if-not-mode (&optional context)
   "Signal an error if the current buffer is not a `markdown-ts-mode' buffer.
@@ -5199,6 +5423,18 @@ Prefix the error message with CONTEXT."
   (unless (derived-mode-p 'markdown-ts-mode)
     (user-error "%sis valid only in `markdown-ts-mode' buffers"
                 (if context (format "%s: " context) ""))))
+
+(defun markdown-ts-add-final-newline ()
+  "Add a final newline to the current buffer, if necessary."
+  ;; Inspired by files.el.
+  (let ((inhibit-read-only t))
+    (when (or (eq (buffer-size) 0)
+              (and (/= (char-after (1- (point-max))) ?\n)
+                   (not (and (eq selective-display t)
+                             (= (char-after (1- (point-max))) ?\r)))))
+      (save-excursion
+        (goto-char (point-max))
+        (insert ?\n)))))
 
 (define-minor-mode markdown-ts-code-block-in-context-mode
   "Minor mode enabled if point is within a fenced code block.

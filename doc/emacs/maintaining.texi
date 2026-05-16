@@ -862,7 +862,7 @@ v} to check-out the file and start editing it.
 Compare the work files in the current VC fileset with the versions you
 started from (@code{vc-diff}).  With a prefix argument, prompt for two
 revisions of the current VC fileset and compare them.  You can also
-call this command from a Dired buffer (@pxref{Dired}).
+call this command from a Dired buffer (@pxref{Operating on Files}).
 
 @ifnottex
 @item M-x vc-ediff
@@ -1137,9 +1137,9 @@ Buffer}).  If invoked from a buffer visiting a file, the current
 fileset consists of that single file, and point in the displayed
 @file{*vc-change-log*} buffer is centered at the revision of that
 file.  If invoked from a VC Directory buffer (@pxref{VC Directory
-Mode}) or from a Dired buffer (@pxref{Dired}), the fileset consists of
-all the marked files, defaulting to the file shown on the current line
-in the directory buffer if no file is marked.
+Mode}) or from a Dired buffer (@pxref{Operating on Files}), the fileset
+consists of all the marked files, defaulting to the file shown on the
+current line in the directory buffer if no file is marked.
 
   If the fileset includes one or more directories, the resulting
 @file{*vc-change-log*} buffer shows a short log of changes (one line

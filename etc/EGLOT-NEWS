@@ -32,6 +32,12 @@ New key bindings: 'k' shuts down, 'r' reconnects, 'e' visits the events
 buffer, 'w' shows workspace configuration, and 'RET' invokes
 'eglot-describe-connection'.
 
+** Eglot uses new built-in 'markdown-ts-mode' of Emacs 31 (bug#80127)
+
+This means that on newer versions of Emacs the external
+'markdown-mode.el' package does not need to be installed to render
+Markdown content.
+
 
 * Changes in Eglot 1.23 (2/4/2026)
 
