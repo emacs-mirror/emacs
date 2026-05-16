@@ -317,7 +317,7 @@ Binding}), but it's impractical to @code{defvar} these variables.
 the forms, and then make the variables non-special again.
 @end defspec
 
-@defspec named-let name bindings &rest body
+@defmac named-let name bindings &rest body
 This special form is a looping construct inspired from the
 Scheme language.  It is similar to @code{let}: It binds the variables in
 @var{bindings}, and then evaluates @var{body}.  However,
