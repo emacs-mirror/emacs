@@ -282,7 +282,7 @@ previous example is equivalent to using nested @code{let} bindings:
 
 @end defspec
 
-@defspec letrec (bindings@dots{}) forms@dots{}
+@defmac letrec (bindings@dots{}) forms@dots{}
 This special form is like @code{let*}, but all the variables are bound
 before any of the local values are computed.  The values are then
 assigned to the locally bound variables.  This is useful only when
@@ -299,11 +299,11 @@ being run once:
                     (remove-hook 'post-command-hook hookfun))))
   (add-hook 'post-command-hook hookfun))
 @end lisp
-@end defspec
+@end defmac
 
 @cindex dynamic binding, temporarily
 @cindex dynamic let-binding
-@defspec dlet (bindings@dots{}) forms@dots{}
+@defmac dlet (bindings@dots{}) forms@dots{}
 This special form is like @code{let}, but it binds all variables
 dynamically.  This is rarely useful---you usually want to bind normal
 variables lexically, and special variables (i.e., variables that are
@@ -315,7 +315,7 @@ that certain variables are dynamically bound (@pxref{Dynamic
 Binding}), but it's impractical to @code{defvar} these variables.
 @code{dlet} will temporarily make the bound variables special, execute
 the forms, and then make the variables non-special again.
-@end defspec
+@end defmac
 
 @defmac named-let name bindings &rest body
 This special form is a looping construct inspired from the
@@ -353,7 +353,7 @@ itself, as is the case in the recursive call to @code{sum} above.
 
 @code{named-let} can be used only when lexical-binding is enabled.
 @xref{Lexical Binding}.
-@end defspec
+@end defmac
 
   Here is a complete list of the other facilities that create local
 bindings:
