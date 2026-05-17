@@ -3442,15 +3442,16 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
    /* Maximum precision for a %f conversion such that the trailing
       output digit might be nonzero.  Any precision larger than this
       will not yield useful information.  */
-   USEFUL_PRECISION_MAX = ((1 - LDBL_MIN_EXP)
+   USEFUL_PRECISION_MAX = ((DBL_MANT_DIG - DBL_MIN_EXP)
 			   * (FLT_RADIX == 2 || FLT_RADIX == 10 ? 1
 			      : FLT_RADIX == 16 ? 4
 			      : -1)),
 
    /* Maximum number of bytes (including terminating null) generated
       by any format, if precision is no more than USEFUL_PRECISION_MAX.
-      On all practical hosts, %Lf is the worst case.  */
-   SPRINTF_BUFSIZE = (sizeof "-." + (LDBL_MAX_10_EXP + 1)
+      On all practical hosts %f is the worst case, as %Lf is used only
+      on arguments exactly representable as intmax_t or uintmax_t.  */
+   SPRINTF_BUFSIZE = (sizeof "-." + (DBL_MAX_10_EXP + 1)
 		      + USEFUL_PRECISION_MAX)
   };
   static_assert (USEFUL_PRECISION_MAX > 0);
