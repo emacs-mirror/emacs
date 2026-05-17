@@ -189,13 +189,17 @@ process to complete."
                   ;; convert forward slashes to backslashes.
                   (expand-file-name (executable-find "attrib.exe")))
                  (_ "/bin//sh")))
-         (samepath (copy-sequence path)))
-    ;; Make sure 'start-process' actually goes all the way and invokes
-    ;; the program.
-    (should (process-live-p (condition-case nil
-                                (start-process "" nil path)
-                              (error nil))))
-    (should (equal path samepath)))))
+         (samepath (copy-sequence path))
+         (process (condition-case nil
+                      (start-process "" nil path)
+                    (error nil))))
+    (unwind-protect
+        (progn
+          ;; Make sure 'start-process' actually goes all the way and
+          ;; invokes the program.
+          (should (process-live-p process))
+          (should (equal path samepath)))
+      (delete-process process)))))
 
 (ert-deftest make-process/noquery-stderr ()
   "Checks that Bug#30031 is fixed."
@@ -1056,11 +1060,18 @@ Return nil if FILENAME doesn't exist."
   (should (integerp (num-processors)))
   (should (< 0 (num-processors))))
 
+(defmacro process-test--check-pipe-process (args should-have-buffer)
+  `(let ((pipe-process (make-pipe-process ,@args)))
+     (unwind-protect
+         (,(if should-have-buffer 'should 'should-not)
+          (process-buffer pipe-process))
+       (delete-process pipe-process))))
+
 (ert-deftest process-test-make-pipe-process-no-buffer ()
   "Test that a pipe process can be created without a buffer."
-  (should     (process-buffer (make-pipe-process :name "test")))
-  (should     (process-buffer (make-pipe-process :name "test" :buffer "test")))
-  (should-not (process-buffer (make-pipe-process :name "test" :buffer nil))))
+  (process-test--check-pipe-process (:name "test") t)
+  (process-test--check-pipe-process (:name "test" :buffer "test") t)
+  (process-test--check-pipe-process (:name "test" :buffer nil) nil))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here
