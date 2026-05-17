@@ -215,7 +215,7 @@ Note that ERC prioritizes certain faces reserved for critical
 messages regardless of this option's value."
   :package-version '(ERC . "5.6.1")
   :set #'erc-track--massage-nick-button-faces
-  :type (erc--with-dependent-type-match
+  :type (erc--custom-with-type-match-features
          (repeat (choice face (repeat :tag "Combination" face)))
          erc-button))
 
@@ -259,7 +259,7 @@ module.  To see your changes reflected mid-session, cycle
 The effect may be disabled by setting this variable to nil."
   :package-version '(ERC . "5.6.1")
   :set #'erc-track--massage-nick-button-faces
-  :type (erc--with-dependent-type-match
+  :type (erc--custom-with-type-match-features
          (repeat (choice face (repeat :tag "Combination" face)))
          erc-button))
 

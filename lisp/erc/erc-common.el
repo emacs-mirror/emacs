@@ -572,7 +572,12 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
            (when erc-channel-members-changed-hook
              (run-hooks 'erc-channel-members-changed-hook))))))))
 
-(defmacro erc--with-dependent-type-match (type &rest features)
+;; The default values of some ERC's options contain items defined in
+;; other libraries that may not be loaded when `setopt' is invoked on
+;; the option, which results in an unfriendly warning.  User configs can
+;; simply `require' such dependencies beforehand, but that's often
+;; undesirable in ERC's own library code.
+(defmacro erc--custom-with-type-match-features (type &rest features)
   "Massage Custom :type TYPE with :match function that pre-loads FEATURES."
   `(backquote-list* ',(car type)
                     :match (lambda (w v)
