@@ -811,22 +811,22 @@ sock_err_message (const char *function_name)
 }
 
 
-/* Send to S the data in *DATA when either
+/* Send to S the DATA, of size DLEN, when either
    - the data's last byte is '\n', or
-   - the buffer is full (but this shouldn't happen)
+   - the buffer is full.
    Otherwise, just accumulate the data.  */
 static void
-send_to_emacs (HSOCKET s, const char *data)
+send_to_emacs_len (HSOCKET s, const char *data, ptrdiff_t dlen)
 {
   enum { SEND_BUFFER_SIZE = 4096 };
 
   /* Buffer to accumulate data to send in TCP connections.  */
-  static char send_buffer[SEND_BUFFER_SIZE + 1];
+  static char send_buffer[SEND_BUFFER_SIZE];
 
   /* Fill pointer for the send buffer.  */
   static int sblen;
 
-  for (ptrdiff_t dlen = strlen (data); dlen != 0; )
+  while (dlen != 0)
     {
       int part = min (dlen, SEND_BUFFER_SIZE - sblen);
       memcpy (&send_buffer[sblen], data, part);
@@ -858,20 +858,27 @@ send_to_emacs (HSOCKET s, const char *data)
     }
 }
 
-
-/* In STR, insert a & before each &, each space, each newline, and
-   any initial -.  Change spaces to underscores, too, so that the
-   return value never contains a space.
-
-   Does not change the string.  Outputs the result to S.  */
+/* Send to S the data in the string DATA.  */
 static void
-quote_argument (HSOCKET s, const char *str)
+send_to_emacs (HSOCKET s, const char *data)
 {
-  char *copy = xmalloc (strlen (str) * 2 + 1);
+  send_to_emacs_len (s, data, strlen (data));
+}
+
+
+/* Output to S a quoted copy of the array of bytes STR with length LEN.
+   Insert a & before each &, each space, each newline, and
+   any initial -.  Change spaces to underscores, too, so that the
+   output never contains a space.  */
+static void
+quote_argument_len (HSOCKET s, const char *str, ptrdiff_t len)
+{
+  char const *lim = str + len;
+  char *copy = xmalloc (len * 2);
   char *q = copy;
-  if (*str == '-')
-    *q++ = '&', *q++ = *str++;
-  for (; *str; str++)
+  if (str < lim && *str == '-')
+    *q++ = '&';
+  for (; str < lim; str++)
     {
       char c = *str;
       if (c == ' ')
@@ -882,13 +889,21 @@ quote_argument (HSOCKET s, const char *str)
 	*q++ = '&';
       *q++ = c;
     }
-  *q = 0;
 
-  send_to_emacs (s, copy);
+  send_to_emacs_len (s, copy, q - copy);
 
   free (copy);
 }
 
+/* Output to S a quoted copy of the string STR.
+   Insert a & before each &, each space, each newline, and
+   any initial -.  Change spaces to underscores, too, so that the
+   output never contains a space.  */
+static void
+quote_argument (HSOCKET s, const char *str)
+{
+  return quote_argument_len (s, str, strlen (str));
+}
 
 /* The inverse of quote_argument.  Remove quoting in string STR by
    modifying the addressed string in place.  Return STR.  */
@@ -990,8 +1005,6 @@ static bool
 get_server_config (const char *config_file, struct sockaddr_in *server,
 		   char *authentication)
 {
-  char dotted[32];
-  char *port;
   FILE *config;
 
   if (IS_ABSOLUTE_FILE_NAME (config_file))
@@ -1009,8 +1022,11 @@ get_server_config (const char *config_file, struct sockaddr_in *server,
   if (! config)
     return false;
 
-  if (fgets (dotted, sizeof dotted, config)
-      && (port = strchr (dotted, ':')))
+  char *dotted = NULL;
+  size_t dottedsize;
+  ssize_t dottedlen = getline (&dotted, &dottedsize, config);
+  char *port = dottedlen < 0 ? NULL : strchr (dotted, ':');
+  if (port)
     *port++ = '\0';
   else
     {
@@ -1022,6 +1038,7 @@ get_server_config (const char *config_file, struct sockaddr_in *server,
   server->sin_family = AF_INET;
   server->sin_addr.s_addr = inet_addr (dotted);
   server->sin_port = htons (atoi (port));
+  free (dotted);
 
   if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
     {
@@ -1060,9 +1077,9 @@ set_tcp_socket (const char *local_server_file)
     struct sockaddr sa;
   } server;
   struct linger l_arg = { .l_onoff = 1, .l_linger = 1 };
-  char auth_string[AUTH_KEY_LENGTH + 1];
+  char auth_buf[AUTH_KEY_LENGTH];
 
-  if (! get_server_config (local_server_file, &server.in, auth_string))
+  if (! get_server_config (local_server_file, &server.in, auth_buf))
     return INVALID_SOCKET;
 
   if (server.in.sin_addr.s_addr != inet_addr ("127.0.0.1") && !quiet)
@@ -1096,10 +1113,8 @@ set_tcp_socket (const char *local_server_file)
     sock_err_message ("setsockopt");
 
   /* Send the authentication.  */
-  auth_string[AUTH_KEY_LENGTH] = '\0';
-
   send_to_emacs (s, "-auth ");
-  send_to_emacs (s, auth_string);
+  send_to_emacs_len (s, auth_buf, sizeof auth_buf);
   send_to_emacs (s, " ");
 
   return s;
@@ -1960,7 +1975,7 @@ set_socket_timeout (HSOCKET socket, int seconds)
 }
 
 static bool
-check_socket_timeout (int rl)
+check_socket_timeout (ssize_t rl)
 {
 #ifndef WINDOWSNT
   return (rl == -1)
@@ -1979,9 +1994,11 @@ main (int argc, char **argv)
   main_argv = argv;
   progname = argv[0] ? argv[0] : "emacsclient";
 
-  int rl = 0;
+  ssize_t rl = 0;
   bool skiplf = true;
-  char string[BUFSIZ + 1];
+  char *recv_buf = NULL;
+  ptrdiff_t recv_bufsize = 0;
+
   int exit_status = EXIT_SUCCESS;
 
 #ifdef HAVE_NTGUI
@@ -2170,11 +2187,14 @@ main (int argc, char **argv)
   else if (eval)
     {
       /* Read expressions interactively.  */
-      while (fgets (string, BUFSIZ, stdin))
+      char *line = NULL;
+      size_t linesize;
+      for (ssize_t len; 0 <= (len = getline (&line, &linesize, stdin)); )
 	{
 	  send_to_emacs (emacs_socket, "-eval ");
-	  quote_argument (emacs_socket, string);
+	  quote_argument_len (emacs_socket, line, len);
 	}
+      free (line);
       send_to_emacs (emacs_socket, " ");
     }
 
@@ -2190,6 +2210,8 @@ main (int argc, char **argv)
 
   set_socket_timeout (emacs_socket, timeout > 0 ? timeout : DEFAULT_TIMEOUT);
   bool saw_response = false;
+  ptrdiff_t nrecv = 0;
+
   /* Now, wait for an answer and print any messages.  */
   while (exit_status == EXIT_SUCCESS)
     {
@@ -2198,7 +2220,14 @@ main (int argc, char **argv)
       do
 	{
 	  act_on_signals (emacs_socket);
-	  rl = recv (emacs_socket, string, BUFSIZ, 0);
+	  if (nrecv == recv_bufsize)
+	    {
+	      enum { DEFAULT_RECV_BUFSIZE = 4096 };
+	      recv_bufsize = (recv_bufsize + (recv_bufsize >> 1)
+			      + DEFAULT_RECV_BUFSIZE);
+	      recv_buf = xrealloc (recv_buf, recv_bufsize);
+	    }
+	  rl = recv (emacs_socket, recv_buf + nrecv, recv_bufsize - nrecv, 0);
 	  retry = check_socket_timeout (rl);
 	  if (retry && !saw_response)
 	    {
@@ -2221,16 +2250,22 @@ main (int argc, char **argv)
       if (rl <= 0)
         break;
 
+      nrecv += rl;
       saw_response = true;
-      string[rl] = '\0';
 
       /* Loop over all NL-terminated messages.  */
-      char *p = string;
-      for (char *end_p = p; end_p && *end_p != '\0'; p = end_p)
+      char *p = recv_buf;
+      for (char *end_p = p; end_p < recv_buf + nrecv; p = end_p)
 	{
-	  end_p = strchr (p, '\n');
-	  if (end_p != NULL)
-	    *end_p++ = '\0';
+	  /* An unquoted newline ends a server command.  Keep reading,
+             possibly growing the buffer, until a buffer with a newline
+             is received.  This handles commands with arbitrary-long
+             arguments (actually needed in 'print' and 'error' commands,
+             which are followed by strings).  */
+	  end_p = memchr (p, '\n', recv_buf + nrecv - p);
+	  if (!end_p)
+	    break;
+	  *end_p++ = '\0';
 
           if (strprefix ("-emacs-pid ", p))
             {
@@ -2253,11 +2288,13 @@ main (int argc, char **argv)
                   tty = true;
                 }
 
+	      /* This discards any remaining data in recv_buf.  */
               goto retry;
             }
           else if (strprefix ("-print ", p))
             {
-              /* -print STRING: Print STRING on the terminal. */
+              /* -print STRING: Print STRING, preceeded by a newline, on
+                  the terminal. */
 	      if (!suppress_output)
 		{
 		  char *str = unquote_argument (p + strlen ("-print "));
@@ -2268,8 +2305,10 @@ main (int argc, char **argv)
 	    }
           else if (strprefix ("-print-nonl ", p))
             {
-              /* -print-nonl STRING: Print STRING on the terminal.
-                 Used to continue a preceding -print command.  */
+              /* -print-nonl STRING: Print STRING on the terminal
+                 without a preceding newlin.  Used to continue a
+                 preceding -print command.  Nowadays used only for
+                 servers in Emacs versions before 31.  */
 	      if (!suppress_output)
 		{
 		  char *str = unquote_argument (p + strlen ("-print-nonl "));
@@ -2306,6 +2345,9 @@ main (int argc, char **argv)
 	      skiplf = true;
 	    }
 	}
+
+      nrecv -= p - recv_buf;
+      memmove (recv_buf, p, nrecv);
     }
 
   if (!skiplf && 0 <= process_grouping ())

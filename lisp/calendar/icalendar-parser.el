@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+;; For an overview of the iCalendar library, see icalendar-shortdoc.el.
+
 ;; This file defines regular expressions, constants and functions that
 ;; implement the iCalendar grammar according to RFC5545.
 ;;
@@ -110,7 +112,7 @@ errors instead of silently accepting such data."
 ;; `ical:unfold-region'. `ical:fold-region' will fold content lines
 ;; using line breaks appropriate to the buffer's coding system.
 ;;
-;; All the parsing-related code belows assumes that lines have
+;; All the parsing-related code below assumes that lines have
 ;; already been unfolded if necessary.
 (defcustom ical:pre-unfolding-hook nil
   "Hook run before unfolding iCalendar data.
@@ -4350,7 +4352,7 @@ during printing will be logged in the buffer returned by
 
 ;;; High-level parsing and printing functions.
 (defun ical:parse (&optional buffer)
-  "Parse an `icalendar-vcalendar' object in BUFFER (default: current buffer).
+  "Parse an iCalendar VCALENDAR object in BUFFER (default: current buffer).
 
 An unfolded copy of BUFFER (see `icalendar-unfolded-buffer-from-buffer')
 will first be obtained if necessary.  Parsing will begin at the first
@@ -4359,9 +4361,9 @@ occurrence of \"BEGIN:VCALENDAR\" in the unfolded buffer.
 The buffer may be tidied up by user functions before parsing begins; see
 `icalendar-pre-unfolding-hook' and `icalendar-pre-parsing-hook'.
 
-If parsing is successful, the VCALENDAR object is returned.  Otherwise,
-nil is returned, a warning is issued, and errors are logged in the
-buffer returned by `icalendar-error-buffer'."
+If parsing is successful, an `icalendar-vcalendar' object is returned.
+Otherwise, nil is returned, a warning is issued, and errors are logged
+in the buffer returned by `icalendar-error-buffer'."
   (let* ((buf (or buffer (current-buffer)))
          (unfolded (cond ((ical:unfolded-p buf) buf)
                          ((buffer-file-name buf)

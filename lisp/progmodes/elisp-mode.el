@@ -287,6 +287,12 @@ If this is non-nil, `emacs-lisp-mode' uses code analysis to determine
 the role of each symbol and highlight it accordingly.  We call this kind
 of highlighting \"semantic highlighting\".
 
+If `elisp-add-help-echo' is non-nil, also annotate the symbol with the
+`help-echo' text property.  If `cursor-sensor-mode' is enabled, also
+arrange for all occurrences of each local variable to be highlighted
+with the `elisp-variable-at-point' face whenever point is on any of that
+variable's occurrences.
+
 Semantic highlighting works best when you keep your code syntactically
 correct while editing it, for example by using `electric-pair-mode'.
 
@@ -571,7 +577,12 @@ This option has effect only if `elisp-fontify-semantically' is non-nil."
      ;; HLP is either a string, or a function that takes SYM as an
      ;; additional argument on top of the usual WINDOW, OBJECT and POS
      ;; that `help-echo' functions takes.
-     (if (stringp hlp) hlp (apply-partially hlp sym)))))
+     (if (stringp hlp) hlp
+       (let ((cache 'unset))
+         (lambda (win obj pos)
+           (if (eq cache 'unset)
+               (setq cache (funcall hlp sym win obj pos))
+             cache)))))))
 
 (defvar font-lock-beg)
 (defvar font-lock-end)
@@ -607,7 +618,13 @@ semantic highlighting takes precedence."
 
 If `elisp-add-help-echo' is non-nil, also annotate the symbol with the
 `help-echo' text property.  If `cursor-sensor-mode' is enabled and ID is
-non-nil, also annotate the symbol with `cursor-sensor-functions'."
+non-nil (i.e. SYM is local variable), also annotate the symbol with
+`cursor-sensor-functions' that highlight all occurrences of SYM with the
+same ID whenever point is on this SYM.
+
+For the precise meaning of the arguments of this function, see the
+docstring of `elisp-scope-analyze-form'.  This function is intended for
+use with `elisp-scope-analyze-form' as its CALLBACK argument."
   (let ((end (progn (goto-char beg) (read (current-buffer)) (point))))
     (let ((face (elisp-scope-get-symbol-role-property role :face)))
       (add-face-text-property
@@ -774,7 +791,9 @@ be used instead.
     ;; be any need to font-lock-flush all the Elisp buffers.
     (dolist (buf (buffer-list))
       (with-current-buffer buf
-	(when (derived-mode-p 'emacs-lisp-mode)
+        (when (and (derived-mode-p 'emacs-lisp-mode)
+                   ;; Don't flush if it refontifies the whole buffer eagerly.
+                   font-lock-support-mode)
           ;; So as to take into account new macros that may have been defined
           ;; by the just-loaded file.
 	  (font-lock-flush))))))
@@ -868,29 +887,30 @@ use of `macroexpand-all' as a way to find the \"underlying raw code\".")
 
 (defun elisp--local-variables ()
   "Return a list of locally let-bound variables at point."
-  (save-excursion
-    (skip-syntax-backward "w_")
-    (let* ((ppss (syntax-ppss))
-           (txt (buffer-substring-no-properties (or (car (nth 9 ppss)) (point))
-                                                (or (nth 8 ppss) (point))))
-           (closer ()))
-      (dolist (p (nth 9 ppss))
-        (push (cdr (syntax-after p)) closer))
-      (setq closer (apply #'string closer))
-      (let* ((sexp (condition-case nil
-                       (car (read-from-string
-                             (concat txt "elisp--witness--lisp" closer)))
-                     ((invalid-read-syntax end-of-file) nil)))
-             (vars (elisp--local-variables-1
-                    nil (elisp--safe-macroexpand-all sexp))))
-        (delq nil
-              (mapcar (lambda (var)
-                        (and (symbolp var)
-                             (not (string-match (symbol-name var) "\\`[&_]"))
-                             ;; Eliminate uninterned vars.
-                             (intern-soft var)
-                             var))
-                      vars))))))
+  (let* ((sexp
+          (save-excursion
+            (skip-syntax-backward "w_")
+            (let* ((ppss (syntax-ppss))
+                   (txt (buffer-substring-no-properties
+                         (or (car (nth 9 ppss)) (point))
+                         (or (nth 8 ppss) (point))))
+                   (closer
+                    (nreverse (mapcar (lambda (p) (cdr (syntax-after p)))
+                                      (nth 9 ppss)))))
+              (condition-case nil
+                  (car (read-from-string
+                        (concat txt "elisp--witness--lisp" closer)))
+                ((invalid-read-syntax end-of-file) nil)))))
+         (vars (elisp--local-variables-1
+                nil (elisp--safe-macroexpand-all sexp))))
+    (delq nil
+          (mapcar (lambda (var)
+                    (and (symbolp var)
+                         (not (string-match (symbol-name var) "\\`[&_]"))
+                         ;; Eliminate uninterned vars.
+                         (intern-soft var)
+                         var))
+                  vars))))
 
 (defconst elisp--local-variables-completion-table
   (let ((lastpos nil) (lastvars nil))

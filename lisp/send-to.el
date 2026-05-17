@@ -47,12 +47,13 @@
   :group 'external
   :version "31.1")
 
-(defvar-local send-to-handlers '(((:supported . send-to--ns-supported-p)
-                                  (:collect . send-to--collect-items)
-                                  (:send . send-to--ns-send-items))
-                                 ((:supported . send-to--open-externally-supported-p)
-                                  (:collect . send-to--collect-items)
-                                  (:send . send-to--open-externally)))
+(defvar send-to-handlers
+  '(((:supported . send-to--ns-supported-p)
+     (:collect . send-to--collect-items)
+     (:send . send-to--ns-send-items))
+    ((:supported . send-to--open-externally-supported-p)
+     (:collect . send-to--collect-items)
+     (:send . send-to--open-externally)))
   "A list of handlers that may be able to send files to applications or services.
 
 Sending is handled by the first supported handler from `send-to-handlers' whose
@@ -82,7 +83,8 @@ paths known to exist. In these instances, files will be sent instead.\"
 ;;;###autoload
 (defun send-to-supported-p ()
   "Return non-nil for platforms where `send-to' is supported."
-  (funcall (map-elt (send-to--resolve-handler) :supported)))
+  (when-let* ((handler (send-to--resolve-handler)))
+    (funcall (map-elt handler :supported))))
 
 ;;;###autoload
 (defun send-to (&optional items)

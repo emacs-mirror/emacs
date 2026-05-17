@@ -3892,12 +3892,16 @@ specified right below this list.
 
 @vindex dedicated@r{, a buffer display action alist entry}
 @item dedicated
-If non-@code{nil}, such an entry tells @code{display-buffer} to mark
-any window it creates as dedicated to its buffer (@pxref{Dedicated
+If non-@code{nil}, such an entry tells @code{display-buffer} to mark any
+window it creates as dedicated to its buffer (@pxref{Dedicated
 Windows}).  It does that by calling @code{set-window-dedicated-p} with
 the chosen window as first argument and the entry's value as second.
 Side windows are by default dedicated with the value @code{side}
-(@pxref{Side Window Options and Functions}).
+(@pxref{Side Window Options and Functions}).  Windows that are reused
+are not marked as dedicated regardless of whether they already showed
+the buffer before or not.  If a window dedicated to its buffer gets
+reused for showing the same buffer again, its dedicated flag is left
+alone.
 
 @vindex preserve-size@r{, a buffer display action alist entry}
 @item preserve-size
@@ -4922,10 +4926,10 @@ window and defaults to the selected one.
 
 Each list element has the form @code{(@var{buffer} @var{window-start}
 @var{window-pos})}, where @var{buffer} is a buffer previously shown in
-the window, @var{window-start} is the window start position
-(@pxref{Window Start and End}) when that buffer was last shown, and
-@var{window-pos} is the window point position (@pxref{Window Point})
-when that buffer was last shown in @var{window}.
+the window, @var{window-start} is a marker that gives the window start
+position (@pxref{Window Start and End}) when that buffer was last shown,
+and @var{window-pos} is a marker that gives the window point position
+(@pxref{Window Point}) when that buffer was last shown in @var{window}.
 
 The list is ordered so that earlier elements correspond to more
 recently-shown buffers, and the first element usually corresponds to the

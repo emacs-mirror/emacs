@@ -45,8 +45,6 @@
 
 (require 'cl-lib)
 
-(declare-function org-inlinetask-get-task-level "org-inlinetask" ())
-(declare-function org-inlinetask-in-task-p "org-inlinetask" ())
 (declare-function org-list-item-body-column "org-list" (item))
 (defvar org-inlinetask-show-first-star)
 

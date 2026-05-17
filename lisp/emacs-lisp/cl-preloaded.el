@@ -37,7 +37,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(eval-when-compile (require 'cl-macs))  ;For cl--struct-class.
+(eval-when-compile (require 'cl-macs))  ;For cl--find-class.
 
 ;; The `assert' macro from the cl package signals
 ;; `cl-assertion-failed' at runtime so always define it.
@@ -527,6 +527,14 @@ PARENTS is a list of types NAME is a subtype of, or nil."
     (define-symbol-prop name 'cl-deftype-handler expander)
     (when predicate
       (define-symbol-prop name 'cl-deftype-satisfies predicate))))
+
+(cl-deftype natnum  () (declare (parents integer)) '(satisfies natnump))
+(cl-deftype keyword () (declare (parents symbol)) '(satisfies keywordp))
+(cl-deftype command ()
+  ;; FIXME: Can't use `function' as parent because of arrays as
+  ;; keyboard macros, which are redundant since `kmacro.el'!!
+  ;;(declare (parents function))
+  '(satisfies commandp))
 
 ;; Make sure functions defined with cl-defsubst can be inlined even in
 ;; packages which do not require CL.  We don't put an autoload cookie

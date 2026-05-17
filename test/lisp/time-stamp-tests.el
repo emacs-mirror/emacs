@@ -37,7 +37,7 @@
          (time-stamp-active t)         ;default, but user may have changed it
          (time-stamp-warn-inactive t)  ;default, but user may have changed it
          (time-stamp-time-zone t))     ;use UTC
-     (cl-letf (((symbol-function 'time-stamp-conv-warn)
+     (cl-letf (((symbol-function 'time-stamp--conv-warn)
                 (lambda (old-format _new &optional _newer)
                   (ert-fail
                    (format "Unexpected format warning for '%s'" old-format))))
@@ -85,7 +85,7 @@
   "Similar to `should' and also verify that FORM generates a format warning."
   (declare (debug t))
   `(time-stamp-test--count-function-calls
-       time-stamp-conv-warn (format "format: %S" ',form)
+       time-stamp--conv-warn (format "format: %S" ',form)
      (should ,form)))
 
 (defmacro time-stamp-should-message (variable &rest body)
@@ -112,20 +112,19 @@
 (iter-defun time-stamp-test-pattern-sequential ()
   "Iterate through each possibility for a part of `time-stamp-pattern'."
   (let ((pattern-value-parts
-         '(("4/" "10/" "-9/" "0/" "")                      ;0: line limit
+         '(("3/" "10/" "-9/" "0/" "")                      ;0: line limit
            ("stamp:" "")                                   ;1: start
            ("%-d" "%_H" "%^a" "%#Z" "%:A" "%019z" "%%" "") ;2: format part 1
            (" " "x" ":" "\n" "")                           ;3: format part 2
            ("%-d" "%_H" "%^a" "%#Z" "%:A" "%019z" "%%")    ;4: format part 3
-           ("end" ""))))                                   ;5: end
+           ("fin" ""))))                                   ;5: end
     (dotimes (cur (length pattern-value-parts))
       (dotimes (cur-index (length (nth cur pattern-value-parts)))
-        (cl-flet ((extract-part
-                   (lambda (desired-part)
-                     (let ((part-list (nth desired-part pattern-value-parts)))
-                       (if (= desired-part cur)
-                           (nth cur-index part-list)
-                         (nth 0 part-list))))))
+        (cl-flet ((extract-part (desired-part)
+                    (let ((part-list (nth desired-part pattern-value-parts)))
+                      (if (= desired-part cur)
+                          (nth cur-index part-list)
+                        (nth 0 part-list)))))
           ;; Don't repeat the default pattern.
           (when (or (= cur 0) (> cur-index 0))
             ;; The whole format must start with %, so not all
@@ -213,7 +212,7 @@
           (cl-destructuring-bind
               (line-limit1 start1 whole-format end1) pattern-parts
             (cl-letf
-                (((symbol-function 'time-stamp-once)
+                (((symbol-function 'time-stamp--once-internal)
                   (lambda (start search-limit ts-start ts-end
                                  ts-format _format-lines _end-lines)
                     (incf actual-calls)
@@ -245,7 +244,7 @@
               (setq time-stamp-pattern
                     (concat line-limit1 start1 whole-format end1))
               (incf expected-calls)
-              ;; Call time-stamp, which should call time-stamp-once,
+              ;; Call time-stamp, which should call time-stamp--once-internal,
               ;; triggering the tests above.
               (time-stamp)
               )))
@@ -875,10 +874,10 @@ This function is called by 99% of the `time-stamp' \"%z\" unit tests."
 (defun format-time-offset (format offset-secs)
   "Use FORMAT to format the time zone represented by OFFSET-SECS.
 FORMAT must be time format \"%z\" or some variation thereof.
-This function is a wrapper around `time-stamp-formatz-from-parsed-options'
+This function is a wrapper around `time-stamp--zformat-from-parsed-options'
 and is called by some low-level `time-stamp' \"%z\" unit tests."
   ;; This wrapper adds a simple regexp-based parser that handles only
-  ;; %z and variants.  In normal use, time-stamp-formatz-from-parsed-options
+  ;; %z and variants.  In normal use, time-stamp--zformat-from-parsed-options
   ;; is called from a parser that handles all time string formats.
   (string-match
    "\\`\\([^%]*\\)%\\([-_]?\\)\\(0?\\)\\([1-9][0-9]*\\)?\\([EO]?\\)\\(:*\\)\\([^a-zA-Z]+\\)?z\\(.*\\)"
@@ -896,12 +895,12 @@ and is called by some low-level `time-stamp' \"%z\" unit tests."
     (concat leading-string
             (if garbage
                 ""
-              (time-stamp-formatz-from-parsed-options flag-minimize
-                                                      flag-pad-with-spaces
-                                                      flag-pad-with-zeros
-                                                      colon-count
-                                                      field-width
-                                                      offset-secs))
+              (time-stamp--zformat-from-parsed-options flag-minimize
+                                                       flag-pad-with-spaces
+                                                       flag-pad-with-zeros
+                                                       colon-count
+                                                       field-width
+                                                       offset-secs))
             trailing-string)))
 
 (defun fz-make+zone (h &optional m s)
@@ -1067,11 +1066,11 @@ the other expected results for hours greater than 99 with non-zero seconds."
                  " the macro `define-formatz-tests'.")))
     (dolist (form-string form-strings ert-test-list)
       (let ((test-name-hhmm
-             (intern (concat "formatz-" form-string "-hhmm")))
+             (intern (concat "time-stamp-zformat-" form-string "-hhmm")))
             (test-name-seconds
-             (intern (concat "formatz-" form-string "-seconds")))
+             (intern (concat "time-stamp-zformat-" form-string "-seconds")))
             (test-name-threedigit
-             (intern (concat "formatz-" form-string "-threedigit"))))
+             (intern (concat "time-stamp-zformat-" form-string "-threedigit"))))
         (nconc
          ert-test-list
          (list
@@ -1113,9 +1112,10 @@ the other expected results for hours greater than 99 with non-zero seconds."
 (defun formatz-find-test-def-function (test-name)
   "Search for the `define-formatz-tests' call defining test TEST-NAME.
 Return non-nil if the definition is found."
-  (let* ((z-format (replace-regexp-in-string "\\`formatz-\\([^z]+z\\)-.*\\'"
-                                             "\\1"
-                                             (symbol-name test-name)))
+  (let* ((z-format (replace-regexp-in-string
+                    "\\`time-stamp-zformat-\\([^z]+z\\)-.*\\'"
+                    "\\1"
+                    (symbol-name test-name)))
          (regexp (concat "^(define-formatz-tests ("
                          "\\(?:[^)]\\|;.*\n\\)*"
                          "\"" (regexp-quote z-format) "\"")))
@@ -1153,7 +1153,7 @@ Return non-nil if the definition is found."
 ;; it here, to verify the implementation we will eventually use.
 ;; The legacy exception for %z in time-stamp will need to remain
 ;; through at least 2024 and Emacs 28.
-(ert-deftest formatz-%z-spotcheck ()
+(ert-deftest time-stamp-zformat-%z-spotcheck ()
   "Spot-check internal implementation of `time-stamp' format %z."
   (should (equal (format-time-offset "%z" (fz-make+zone 0)) "+0000"))
   (should (equal (format-time-offset "%z" (fz-make+zone 0 30)) "+0030"))
@@ -1277,7 +1277,7 @@ Return non-nil if the definition is found."
 
 ;;; Test illegal %z formats.
 
-(ert-deftest formatz-illegal-options ()
+(ert-deftest time-stamp-zformat-illegal-options ()
   "Test that illegal/nonsensical/ambiguous %z formats don't produce output."
   ;; multiple options
   (should (equal "" (formatz "%_-z" 0)))

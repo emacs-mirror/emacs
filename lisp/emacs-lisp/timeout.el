@@ -1,10 +1,10 @@
 ;;; timeout.el --- Throttle or debounce Elisp functions  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2023-2026 Free Software Foundation, Inc.
+;; Copyright (C) 2023-2026  Free Software Foundation, Inc.
 
 ;; Author: Karthik Chikmagalur <karthikchikmagalur@gmail.com>
 ;; Keywords: convenience, extensions
-;; Version: 2.1
+;; Version: 2.1.6
 ;; Package-Requires: ((emacs "24.4"))
 ;; URL: https://github.com/karthink/timeout
 
@@ -58,6 +58,9 @@
 ;;; Code:
 (require 'nadvice)
 
+(define-obsolete-function-alias 'timeout-throttle! 'timeout-throttle "v2.0")
+(define-obsolete-function-alias 'timeout-debounce! 'timeout-debounce "v2.0")
+
 (defsubst timeout--eval-value (value)
   "Eval a VALUE.
 If value is a function (either lambda or a callable symbol), eval the
@@ -109,9 +112,13 @@ This is intended for use as function advice."
       "Debounce calls to this function."
       (prog1 default
         (if (timerp debounce-timer)
-            (timer-set-idle-time debounce-timer (timeout--eval-value delay-value))
+            (progn
+              (cancel-timer debounce-timer)
+              (timer-set-time
+               debounce-timer (time-add nil (timeout--eval-value delay-value)))
+              (timer-activate debounce-timer))
           (setq debounce-timer
-                (run-with-idle-timer
+                (run-with-timer
                  (timeout--eval-value delay-value) nil
                  (lambda (buf)
                    (cancel-timer debounce-timer)
@@ -206,7 +213,7 @@ previous successful call is returned."
           (unless (and throttle-timer (timerp throttle-timer))
             (setq result (apply func args))
             (setq throttle-timer
-             (run-with-timer
+                  (run-with-timer
                    (timeout--eval-value throttle-value) nil
                    (lambda ()
                      (cancel-timer throttle-timer)
@@ -238,9 +245,13 @@ returned."
                         (cadr (interactive-form func))))
           (prog1 default
             (if (timerp debounce-timer)
-                (timer-set-idle-time debounce-timer (timeout--eval-value delay-value))
+                (progn
+                  (cancel-timer debounce-timer)
+                  (timer-set-time
+                   debounce-timer (time-add nil (timeout--eval-value delay-value)))
+                  (timer-activate debounce-timer))
               (setq debounce-timer
-                    (run-with-idle-timer
+                    (run-with-timer
                      (timeout--eval-value delay-value) nil
                      (lambda (buf)
                        (cancel-timer debounce-timer)
@@ -259,9 +270,13 @@ returned."
           "\n\nDebounce calls to this function"))
         (prog1 default
           (if (timerp debounce-timer)
-              (timer-set-idle-time debounce-timer (timeout--eval-value delay-value))
+              (progn
+                (cancel-timer debounce-timer)
+                (timer-set-time
+                 debounce-timer (time-add nil (timeout--eval-value delay-value)))
+                (timer-activate debounce-timer))
             (setq debounce-timer
-                  (run-with-idle-timer
+                  (run-with-timer
                    (timeout--eval-value delay-value) nil
                    (lambda (buf)
                      (cancel-timer debounce-timer)

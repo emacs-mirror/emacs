@@ -2586,7 +2586,7 @@ and with BASE-SIZE appended as the last element."
                  com-str-len (1+ com-str-len)
                  'face 'completions-first-difference str))
               str)))
-      (if completion-lazy-hilit
+      (if (completion-lazy-hilit-p)
           (setq completion-lazy-hilit-fn hilit-fn)
         (setq completions
               (mapcar
@@ -2603,6 +2603,11 @@ and with BASE-SIZE appended as the last element."
                  elem)
                completions)))
       (nconc completions base-size))))
+
+(defun completion-lazy-hilit-p ()
+  "Return non-nil if the completion frontend supports lazy highlighting."
+  (or completion-lazy-hilit
+      (alist-get 'lazy-highlight completion-frontend-properties)))
 
 (defun display-completion-list (completions &optional common-substring group-fun)
   "Display the list of completions, COMPLETIONS, using `standard-output'.
@@ -2791,6 +2796,9 @@ Whether we update the buffer is based on `completion-eager-display' and
 `eager-display' and `eager-update'.
 
 If FORCE-EAGER-UPDATE is non-nil, we only check eager-display."
+  (when (and force-eager-update completions--background-update-timer)
+    (cancel-timer completions--background-update-timer)
+    (setq completions--background-update-timer nil))
   (unless completions--background-update-timer
     (setq completions--background-update-timer
           (run-with-idle-timer
@@ -2811,7 +2819,10 @@ has been requested by the completion table."
       (when completion-auto-deselect
         (with-selected-window window
           (completions--deselect))))
-    (completions--start-background-update)))
+    (when (or completion-in-region-mode
+              (completions--should-show-p
+               (completion--field-metadata (minibuffer-prompt-end))))
+      (completions--start-background-update))))
 
 (defun minibuffer-completion-help (&optional start end)
   "Display a list of possible completions of the current minibuffer contents."
@@ -3197,6 +3208,23 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
 (setq minor-mode-map-alist
       (delq (assq 'completion-in-region-mode minor-mode-map-alist)
             minor-mode-map-alist))
+
+(defvar completion-frontend-properties nil
+  "Alist of properties describing the current completion frontend.
+
+Frontends may let-bind this variable while calling a completion backend
+to provide information which the backend can use to optimize or adjust
+its behavior.  More specifically, frontends should bind this variable
+when calling `completion-try-completion' or `completion-all-completions'.
+
+Currently known frontend properties are:
+
+- \\+`no-annotations': if non-nil, the frontend ignores any
+  `annotation-function'/`affixation-function'.
+
+- \\+`lazy-highlight': If non-nil, the front-end does not require
+  `completion-all-completions' completions to be highlighted and knows
+  to call the function `completion-lazy-hilit' as needed instead.")
 
 (defvar completion-at-point-functions '(tags-completion-at-point-function)
   "Special hook to find the completion table for the entity at point.
@@ -3679,6 +3707,27 @@ same as `substitute-in-file-name'."
               all))))))
     (file-error nil)))               ;PCM often calls with invalid directories.
 
+(defun completion--sifn-regardless-of-system-users (filename)
+  ;; `substitute-in-file-name' handles `~FOO' specially (by cutting
+  ;; any prefix to it that ends in `/', so `/foo/~bar/baz' turns into
+  ;; `~bar/baz') but only if `FOO' is the name of a user on the system.
+  ;; Completion of `~FOO' against the set of user names is handled
+  ;; already in `completion-file-name-table' when `~FOO' occurs at the
+  ;; beginning of the file name, but if we want to support such completions
+  ;; "in the middle", I see two ways to do it:
+  ;; - Do something similar to `completion--embedded-envvar-table'.
+  ;; - Extend `substitute-in-file-name's handling of `~FOO' so
+  ;;   `/foo/~bar/baz' turns into `~bar/baz' regardless if `bar'
+  ;;   is a valid user name (because we hope that it will be completed
+  ;;   to a user name).
+  ;; The second option is what we do here.  (bug#32215)
+  ;; FIXME: This breaks completion when you have a file or directory
+  ;; whose name starts with `~'.
+  ;; FIXME: This doesn't take file-name-handlers into account.
+  (while (string-match "/~[[:alnum:]_*-]" filename)
+    (setq filename (substring filename (1+ (match-beginning 0)))))
+  (substitute-in-file-name filename))
+
 (defun completion--sifn-requote (upos qstr)
   ;; We're looking for (the largest) `qpos' such that:
   ;; (equal (substring (substitute-in-file-name qstr) 0 upos)
@@ -3761,7 +3810,10 @@ except that it passes the file name through `substitute-in-file-name'."
   (let ((table #'completion-file-name-table))
     (if (eq (car-safe action) 'boundaries)
         (cons 'boundaries (completion--sifn-boundaries orig table pred (cdr action)))
-      (let* ((sifned (substitute-in-file-name orig))
+      (let* ((sifned
+              (if (eq action 'lambda)
+                  (substitute-in-file-name orig)
+                (completion--sifn-regardless-of-system-users orig)))
              (orig-start (car (completion--sifn-boundaries orig table pred "")))
              (sifned-start (car (completion-boundaries sifned table pred "")))
              (orig-in-bounds (substring orig orig-start))
@@ -4477,9 +4529,10 @@ strings with the `face' property.")
 
 (defun completion-lazy-hilit (str)
   "Return a copy of completion candidate STR that is `face'-propertized.
-See documentation of the variable `completion-lazy-hilit' for more
-details."
-  (if (and completion-lazy-hilit completion-lazy-hilit-fn)
+Apply `completion-lazy-hilit-fn' if it is set and the frontend supports
+lazy highlighting (see `completion-lazy-hilit-p'), otherwise return STR
+as is."
+  (if (and (completion-lazy-hilit-p) completion-lazy-hilit-fn)
       (funcall completion-lazy-hilit-fn (copy-sequence str))
     str))
 
@@ -4532,7 +4585,7 @@ see) for later lazy highlighting."
            (re (completion-pcm--segments->regex segments 'group))
            (point-idx (completion-pcm--segments-point-idx segments)))
       (setq completion-pcm--regexp re)
-      (cond (completion-lazy-hilit
+      (cond ((completion-lazy-hilit-p)
              (setq completion-lazy-hilit-fn
                    (lambda (str) (completion--hilit-from-re str re point-idx)))
              completions)
@@ -5012,7 +5065,7 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
                    (1+ special-match) (+ 2 special-match)
                    'completions-first-difference nil str))))
             str))
-    (unless completion-lazy-hilit
+    (unless (completion-lazy-hilit-p)
       (setq all (mapcar completion-lazy-hilit-fn all)))
     ;; Store pattern for adjust-metadata to use
     (setq completion-flex--pattern-str pattern-str)

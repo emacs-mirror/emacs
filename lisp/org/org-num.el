@@ -76,10 +76,6 @@
 (defvar org-n-level-faces)
 (defvar org-odd-levels-only)
 
-(declare-function org-back-to-heading "org" (&optional invisible-ok))
-(declare-function org-entry-get "org" (pom property &optional inherit literal-nil))
-(declare-function org-reduced-level "org" (l))
-
 
 ;;; Customization
 

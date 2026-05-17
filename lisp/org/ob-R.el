@@ -35,13 +35,24 @@
 (require 'cl-lib)
 (require 'ob)
 
+(require 'subr-x) ; For `string-trim-right', Emacs < 28
+
 (declare-function orgtbl-to-tsv "org-table" (table params))
 (declare-function run-ess-r "ext:ess-r-mode" (&optional start-args))
-(declare-function inferior-ess-send-input "ext:ess-inf" ())
 (declare-function ess-make-buffer-current "ext:ess-inf" ())
 (declare-function ess-eval-buffer "ext:ess-inf" (vis))
 (declare-function ess-wait-for-process "ext:ess-inf"
 		  (&optional proc sec-prompt wait force-redisplay))
+(declare-function ess-send-string "ext:ess-inf"
+                  (process string &optional visibly message type))
+
+(defvar ess-current-process-name) ; ess-custom.el
+(defvar ess-local-process-name)   ; ess-custom.el
+(defvar ess-ask-for-ess-directory) ; ess-custom.el
+(defvar ess-directory-function) ; ess-custom.el
+(defvar ess-directory) ; ess-custom.el
+(defvar ess-gen-proc-buffer-name-function) ; ess-custom.el
+(defvar ess-eval-visibly) ; ess-custom.el
 
 (defconst org-babel-header-args:R
   '((width		 . :any)
@@ -239,7 +250,10 @@ Retrieve variables from PARAMS."
 	     (min (if lengths (apply 'min lengths) 0)))
         ;; Ensure VALUE has an orgtbl structure (depth of at least 2).
         (unless (listp (car value)) (setq value (mapcar 'list value)))
-	(let ((file (orgtbl-to-tsv value '(:fmt org-babel-R-quote-tsv-field)))
+	(let ((file (orgtbl-to-tsv
+                     value
+                     '( :fmt org-babel-R-quote-tsv-field
+                        :with-special-rows nil)))
 	      (header (if (or (eq (nth 1 value) 'hline) colnames-p)
 			  "TRUE" "FALSE"))
 	      (row-names (if rownames-p "1" "NULL")))
@@ -254,19 +268,17 @@ Retrieve variables from PARAMS."
 	  (t                (format "%s <- %S" name (prin1-to-string value))))))
 
 
-(defvar ess-current-process-name) ; dynamically scoped
-(defvar ess-local-process-name)   ; dynamically scoped
-(defvar ess-ask-for-ess-directory) ; dynamically scoped
-(defvar ess-gen-proc-buffer-name-function) ; defined in ess-inf.el
-(defun org-babel-R-initiate-session (session params)
-  "Create or return the current R SESSION buffer.
-Use PARAMS to set default directory when creating a new session."
+(defun org-babel-R-initiate-session (session _params)
+  "Create or return the current R SESSION buffer."
   (unless (string= session "none")
     (let* ((session (or session "*R*"))
-	   (ess-ask-for-ess-directory
-	    (and (boundp 'ess-ask-for-ess-directory)
-		 ess-ask-for-ess-directory
-		 (not (cdr (assq :dir params)))))
+           ;; Force using `default-directory', as we promise in the
+           ;; manual.  The caller should have taken care about setting
+           ;; it according to :dir if necessary.
+           ;; https://ess.r-project.org/Manual/ess.html#Changing-the-startup-actions
+	   (ess-ask-for-ess-directory nil)
+           (ess-directory-function nil)
+           (ess-directory nil)
            ;; Make ESS name the process buffer as SESSION.
            (ess-gen-proc-buffer-name-function
             (lambda (_) session)))
@@ -442,26 +454,20 @@ last statement in BODY, as elisp."
 	  (org-babel-import-elisp-from-file tmp-file '(16)))
 	column-names-p)))
     (output
-     (mapconcat
-      'org-babel-chomp
-      (butlast
-       (delq nil
-	     (mapcar
-	      (lambda (line) (when (> (length line) 0) line))
-	      (mapcar
-	       (lambda (line) ;; cleanup extra prompts left in output
-		 (if (string-match
-		      "^\\([>+.]\\([ ][>.+]\\)*[ ]\\)"
-		      (car (split-string line "\n")))
-		     (substring line (match-end 1))
-		   line))
-	       (with-current-buffer session
-		 (let ((comint-prompt-regexp (concat "^" comint-prompt-regexp)))
-		   (org-babel-comint-with-output (session org-babel-R-eoe-output)
-		     (insert (mapconcat 'org-babel-chomp
-					(list body org-babel-R-eoe-indicator)
-					"\n"))
-		     (inferior-ess-send-input)))))))) "\n"))))
+     (let ((tmp-src-file (org-babel-temp-file "R-")))
+       (with-temp-file tmp-src-file
+         (insert (concat
+                  (org-babel-chomp body) "\n" org-babel-R-eoe-indicator)))
+       (with-current-buffer session
+         (org-babel-chomp
+          (string-trim-right
+           (org-babel-comint-with-output
+             (session org-babel-R-eoe-output nil nil 'disable-prompt-filtering)
+           (ess-send-string (get-buffer-process (current-buffer))
+                            (format "source('%s', echo=F, print.eval=T)"
+                                    (org-babel-process-file-name
+			             tmp-src-file 'noquote))))
+           (rx (literal org-babel-R-eoe-output) (zero-or-more anychar)))))))))
 
 (defun org-babel-R-process-value-result (result column-names-p)
   "R-specific processing of return value.
@@ -486,7 +492,8 @@ by `org-babel-comint-async-filter'."
    session (current-buffer)
    "^\\(?:[>.+] \\)*\\[1\\] \"ob_comint_async_R_\\(start\\|end\\|file\\)_\\(.+\\)\"$"
    'org-babel-chomp
-   'ob-session-async-R-value-callback)
+   'ob-session-async-R-value-callback
+   'disable-prompt-filtering)
   (cl-case result-type
     (value
      (let ((tmp-file (org-babel-temp-file "R-")))

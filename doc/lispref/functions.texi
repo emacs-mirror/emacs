@@ -2100,6 +2100,7 @@ Call the function @var{f} for every piece of advice that was added to
 and its properties.
 @end defun
 
+@anchor{advice-eval-interactive-spec}
 @defun advice-eval-interactive-spec spec
 Evaluate the interactive @var{spec} just like an interactive call to a function
 with such a spec would, and then return the corresponding list of arguments
@@ -2112,7 +2113,7 @@ For instance, if you want to make the @kbd{C-x m}
 could say something like this:
 
 @example
-(defun my-compose-mail-advice (orig &rest args)
+(defun my-compose-mail-advice (&rest _)
   "Read From: address interactively."
   (interactive
    (lambda (spec)
@@ -2126,9 +2127,10 @@ could say something like this:
        ;; Put the From header into the OTHER-HEADERS argument.
        (push (cons 'From from) (nth 2 spec))
        spec)))
-  (apply orig args))
+  ;; This body is not used.
+  nil)
 
-(advice-add 'compose-mail :around #'my-compose-mail-advice)
+(advice-add 'compose-mail :interactive-only #'my-compose-mail-advice)
 @end example
 @end defun
 
@@ -2148,8 +2150,8 @@ instead.  This separate set of functions to manipulate pieces of advice applied
 to named functions, offers the following extra features compared to
 @code{add-function}: they know how to deal with macros and autoloaded
 functions, they let @code{describe-function} preserve the original docstring as
-well as document the added advice, and they let you add and remove advice
-before a function is even defined.
+well as document the added advice, and they let you add and remove
+pieces of advice before a function is even defined.
 
   @code{advice-add} can be useful for altering the behavior of existing calls
 to an existing function without having to redefine the whole function.
@@ -2338,8 +2340,18 @@ More specifically, the composition of the two functions behaves like:
 @example
 (lambda (&rest r) (funcall @var{function} (apply @var{oldfun} r)))
 @end example
-@end table
 
+@item :interactive-only
+While the @var{where} option controls how the body of the two functions
+are composed, it does not actually affect the way interactive forms are
+composed.  So, in a sense, this does the opposite of @code{:override}:
+call only the old function as if no advice was applied.  But it still
+affects the interactive form like any other @var{where} value would: The
+interactive form of @var{function}, if any, overrides that of
+@var{oldfun} and if it is a lambda expression, it receives
+@var{function}'s interactive form as argument.
+See @pxref{advice-eval-interactive-spec} for an example.
+@end table
 
 @node Porting Old Advice
 @subsection Adapting code using the old defadvice

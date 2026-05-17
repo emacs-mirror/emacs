@@ -401,6 +401,9 @@ It's also used so that `syntax-ppss-flush-cache' can be used from within
       ;;          syntax-propertize--done pos)
       (setq-local parse-sexp-lookup-properties t)
       (when (< syntax-propertize--done (point-min))
+        (when (> syntax-propertize--done 0)
+          (message "Cannot syntax-propertize %d..%d because of narrowing!"
+                   syntax-propertize--done (point-min)))
         ;; *Usually* syntax-propertize is called via syntax-ppss which
         ;; takes care of adding syntax-ppss-flush-cache to b-c-f, but this
         ;; is not *always* the case, so since we share a single "flush" function

@@ -24,6 +24,8 @@
 
 ;;; Commentary:
 
+;; For an overview of the iCalendar library, see icalendar-shortdoc.el.
+
 ;; This file defines the abstract syntax tree representation for
 ;; iCalendar data.  The AST is based on `org-element-ast' (which see;
 ;; that feature will eventually be renamed and moved out of the Org tree
@@ -64,7 +66,7 @@
 
 ;; Constructing nodes with these macros automatically validates them
 ;; with the function `icalendar-ast-node-valid-p', which signals an
-;; `icalendar-validation-error' if the node is not valid acccording to
+;; `icalendar-validation-error' if the node is not valid according to
 ;; RFC5545.
 
 
@@ -293,8 +295,11 @@ PROPS should be a plist with any of the following keywords:
 
 (defun ical:ast-node-children-of (type node)
   "Return a list of all the children of NODE of type TYPE."
-  (seq-filter (lambda (c) (eq type (ical:ast-node-type c)))
-              (ical:ast-node-children node)))
+  (let (tchildren)
+    (dolist (c (ical:ast-node-children node))
+      (when (eq type (ical:ast-node-type c))
+        (push c tchildren)))
+    (nreverse tchildren)))
 
 
 ;; A high-level API for constructing iCalendar syntax nodes in Lisp code:
@@ -634,7 +639,7 @@ the following forms:
   or any other expression that evaluates to a parameter node.
 
 \(COMPONENT-TYPE CHILD [CHILD ...]) - constructs a component node of
-  COMPONENT-TYPE with CHILDs as child nodes.  Each CHILD should either be
+  COMPONENT-TYPE with given child nodes.  Each CHILD should either be
   a template for a property (as above), a template for a
   sub-component (of the same form), or any other expression that
   evaluates to an iCalendar syntax node.

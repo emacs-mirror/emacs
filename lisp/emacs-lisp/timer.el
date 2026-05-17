@@ -90,7 +90,8 @@
 
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
-TIME must be a Lisp time value.
+TIME must be a Lisp time value: an integer, a floating-point number,
+or a value in the internal time format returned by, e.g., `current-time'.
 If optional third argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
   (setf (timer--time timer) time)
@@ -100,8 +101,8 @@ fire repeatedly that many seconds apart."
 (defun timer-set-idle-time (timer secs &optional repeat)
   ;; FIXME: Merge with timer-set-time.
   "Set the trigger idle time of TIMER to SECS.
-SECS may be an integer, floating point number, or the internal
-time format returned by, e.g., `current-idle-time'.
+SECS may be an integer, floating point number, or a value in
+the internal time format returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
   (setf (timer--time timer) secs)

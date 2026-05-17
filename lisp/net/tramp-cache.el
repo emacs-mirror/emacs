@@ -161,6 +161,20 @@ If KEY is `tramp-cache-undefined', don't create anything, and return nil."
 ;; would fail.
 (function-put #'tramp-get-hash-table 'tramp-suppress-trace t)
 
+(defsubst tramp-suppress-remote-file-name-inhibit-cache ()
+  "Weaken `remote-file-name-inhibit-cache'.
+This is meant to be let-bound for code over many cache operations, like
+in large directories."
+  ;; If `remote-file-name-inhibit-cache' is already `nil', keep it.
+  (cond
+   (;; A timestamp.  Keep it.
+    (consp remote-file-name-inhibit-cache) remote-file-name-inhibit-cache)
+   (;; A number of seconds.  Set a timestamp with the difference.
+    (numberp remote-file-name-inhibit-cache)
+    (time-subtract nil remote-file-name-inhibit-cache))
+   (;; Cache is disabled.  Set a timestamp from now on.
+    t (current-time))))
+
 ;;;###tramp-autoload
 (defun tramp-get-file-property (key file property &optional default)
   "Get the PROPERTY of FILE from the cache context of KEY.

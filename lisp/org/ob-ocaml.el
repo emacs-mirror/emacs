@@ -44,7 +44,6 @@
 (require 'org-macs)
 
 (declare-function tuareg-run-caml "ext:tuareg" ())
-(declare-function tuareg-run-ocaml "ext:tuareg" ())
 (declare-function tuareg-interactive-send-input "ext:tuareg" ())
 
 (defvar org-babel-tangle-lang-exts)

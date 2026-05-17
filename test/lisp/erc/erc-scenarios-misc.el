@@ -236,7 +236,8 @@
         (set-process-query-on-exit-flag erc-server-process nil)
         (kill-buffer))
       (should-not (eq (current-buffer) (get-buffer "#chan"))) ; *temp*
-      (ert-simulate-command '(erc-track-switch-buffer 1)) ; No longer signals
+      (let ((inhibit-message noninteractive))
+        (ert-simulate-command '(erc-track-switch-buffer 1))) ; doesn't signal
       (should (eq (current-buffer) (get-buffer "#chan"))))))
 
 ;;; erc-scenarios-misc.el ends here

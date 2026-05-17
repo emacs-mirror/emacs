@@ -453,9 +453,15 @@ BODY, instead returning nil."
       (set-window-start wind-A wind-A-start)
       (set-window-start wind-B wind-B-start))
 
-    (select-window (display-buffer-in-direction
-                    control-buffer
-                    '((direction . bottom))))
+    ;; Do not call 'display-buffer-in-direction' directly (Bug#80809).
+    ;; If making a new window fails, reuse an existing one.
+    (pop-to-buffer
+     control-buffer
+     '(display-buffer-in-direction
+       ;; Don't let 'display-buffer' put the control buffer into a new
+       ;; frame - ‘ediff-cleanup-mess’ can't handle it (if you insist,
+       ;; run 'quit-restore-window' instead of 'delete-window' there).
+       . ((direction . bottom) (pop-up-frames . nil))))
     (ediff-setup-control-buffer control-buffer)))
 
 ;; dispatch an appropriate window setup function

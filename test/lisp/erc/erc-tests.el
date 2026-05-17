@@ -674,6 +674,39 @@
   ;; No fallback behavior.
   (should-not (erc--parse-nuh "abc\nde!fg@xy")))
 
+;; NUH interpretation rules:
+;;
+;; 1. "a@b" or "a!b" - "a" is the nick and "b" is the host.  Can't have
+;;    a login without a nick and a host.
+;;
+;; 2. "a" - either a nick or a host, depending on message type.  The
+;;    presence of a "." does not imply a host because some IRC-adjacent
+;;    bridges allow nicks to contain dots, and a host can be a host
+;;    name, like "localhost" without a domain structure.  Nick-only
+;;    types include PRIVMSG, JOIN, PART, QUIT, NICK, KICK, TOPIC, AWAY,
+;;    ACCOUNT, and TAGMSG.  MODE can be either but is usually a nick
+;;    unless recovering from a netsplit or as a response to a ChanServ
+;;    OP.  NOTICE can be either but is always a nick when directed to a
+;;    channel.
+;;
+;; 3. "a!", "a!@", "a@", "!a@", "@a", etc. are pathological.
+;;
+(ert-deftest erc--interpret-nuh ()
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "a@b"))
+                 '("a" nil "b")))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "a!b"))
+                 '("a" nil "b")))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "B..o..b"))
+                 '("B..o..b" nil nil)))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "gnu.org"))
+                 '("gnu.org" nil nil)))
+  (should (equal (erc--interpret-nuh (erc--parse-nuh "localhost"))
+                 '("localhost" nil nil)))
+
+  ;; Reject login containing CHANTYPE chars.
+  (should (equal (erc--parse-nuh "a&b@c") '(nil "a&b" "c")))
+  (should-error (erc--interpret-nuh '(nil "a&b" "c"))))
+
 (ert-deftest erc--parsed-prefix ()
   ;; Effectively a no-op in a non-ERC buffer.
   (should-not (erc--parsed-prefix))
@@ -1429,49 +1462,51 @@
                    #s(erc--target-channel-local "&Bitlbee" &bitlbee nil)))))
 
 (ert-deftest erc--modify-local-map ()
-  (when (and (bound-and-true-p erc-irccontrols-mode)
-             (fboundp 'erc-irccontrols-mode))
-    (erc-irccontrols-mode -1))
-  (when (and (bound-and-true-p erc-match-mode)
-             (fboundp 'erc-match-mode))
-    (erc-match-mode -1))
-  (let* (calls
-         (inhibit-message noninteractive)
-         (cmd-foo (lambda () (interactive) (push 'foo calls)))
-         (cmd-bar (lambda () (interactive) (push 'bar calls))))
+  (erc-tests-common-with-frozen-options
+    (erc-tests-common-with-global-modules (irccontrols match)
+      (let* ((calls ())
+             (erc-mode-map (copy-keymap erc-mode-map))
+             (inhibit-message noninteractive)
+             (cmd-foo (lambda () (interactive) (push 'foo calls)))
+             (cmd-bar (lambda () (interactive) (push 'bar calls))))
 
-    (ert-info ("Add non-existing")
-      (erc--modify-local-map t "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
-      (with-temp-buffer
-        (set-window-buffer (selected-window) (current-buffer))
-        (use-local-map erc-mode-map)
-        (execute-kbd-macro "\C-c\C-c")
-        (execute-kbd-macro "\C-c\C-k"))
-      (should (equal calls '(bar foo))))
-    (setq calls nil)
+        (when (bound-and-true-p erc-irccontrols-mode)
+          (erc-irccontrols-mode -1))
+        (when (bound-and-true-p erc-match-mode)
+          (erc-match-mode -1))
 
-    (ert-info ("Add existing") ; Attempt to swap definitions fails
-      (erc--modify-local-map t "C-c C-c" cmd-bar "C-c C-k" cmd-foo)
-      (with-temp-buffer
-        (set-window-buffer (selected-window) (current-buffer))
-        (use-local-map erc-mode-map)
-        (execute-kbd-macro "\C-c\C-c")
-        (execute-kbd-macro "\C-c\C-k"))
-      (should (equal calls '(bar foo))))
-    (setq calls nil)
+        (ert-info ("Add non-existing")
+          (erc--modify-local-map t "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
+          (with-temp-buffer
+            (set-window-buffer (selected-window) (current-buffer))
+            (use-local-map erc-mode-map)
+            (execute-kbd-macro "\C-c\C-c")
+            (execute-kbd-macro "\C-c\C-k"))
+          (should (equal calls '(bar foo))))
+        (setq calls nil)
 
-    (ert-info ("Remove existing")
-      (erc--modify-local-map nil "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
-      (with-temp-buffer
-        (set-window-buffer (selected-window) (current-buffer))
-        (use-local-map erc-mode-map)
-        (cl-letf (((symbol-function 'undefined)
-                   (lambda ()
-                     (push (key-description (this-single-command-keys))
-                           calls))))
-          (execute-kbd-macro "\C-c\C-c")
-          (execute-kbd-macro "\C-c\C-k")))
-      (should (equal calls '("C-c C-k" "C-c C-c"))))))
+        (ert-info ("Add existing") ; Attempt to swap definitions fails
+          (erc--modify-local-map t "C-c C-c" cmd-bar "C-c C-k" cmd-foo)
+          (with-temp-buffer
+            (set-window-buffer (selected-window) (current-buffer))
+            (use-local-map erc-mode-map)
+            (execute-kbd-macro "\C-c\C-c")
+            (execute-kbd-macro "\C-c\C-k"))
+          (should (equal calls '(bar foo))))
+        (setq calls nil)
+
+        (ert-info ("Remove existing")
+          (erc--modify-local-map nil "C-c C-c" cmd-foo "C-c C-k" cmd-bar)
+          (with-temp-buffer
+            (set-window-buffer (selected-window) (current-buffer))
+            (use-local-map erc-mode-map)
+            (cl-letf (((symbol-function 'undefined)
+                       (lambda ()
+                         (push (key-description (this-single-command-keys))
+                               calls))))
+              (execute-kbd-macro "\C-c\C-c")
+              (execute-kbd-macro "\C-c\C-k")))
+          (should (equal calls '("C-c C-k" "C-c C-c"))))))))
 
 (ert-deftest erc-ring-previous-command-base-case ()
   (ert-info ("Create ring when nonexistent and do nothing")
@@ -3602,8 +3637,7 @@
         (should-not calls))
 
       (ert-info ("Known network, existing chan with key")
-        (save-excursion
-          (with-current-buffer "foonet" (erc--open-target "#chan")))
+        (with-current-buffer "foonet" (erc--open-target "#chan"))
         (erc-handle-irc-url "irc.foonet.org" nil "#chan?sec" nil nil "irc")
         (should (equal '("#chan" "sec") (pop calls)))
         (should-not calls))
@@ -3685,12 +3719,45 @@
       (should (= 0 (erc-channel-user-status u))))))
 
 (defconst erc-tests--modules
-  '( autoaway autojoin bufbar button capab-identify
-     command-indicator completion dcc fill identd
-     imenu irccontrols keep-place list log match menu move-to-prompt netsplit
-     networks nickbar nicks noncommands notifications notify page readonly
-     replace ring sasl scrolltobottom services smiley sound
-     spelling stamp track truncate unmorse xdcc))
+  '(autoaway
+    autojoin
+    bufbar
+    button
+    capab-identify
+    command-indicator
+    completion
+    dcc
+    fill
+    identd
+    imenu
+    irccontrols
+    keep-place
+    list log
+    match
+    menu
+    move-to-prompt
+    netsplit
+    networks
+    nickbar
+    nicks
+    noncommands
+    notifications
+    notify
+    page
+    readonly
+    replace
+    ring
+    sasl
+    scrolltobottom
+    services
+    smiley
+    sound
+    spelling
+    stamp
+    track
+    truncate
+    unmorse
+    xdcc))
 
 ;; Ensure that `:initialize' doesn't change the ordering of the
 ;; members because otherwise the widget's state is "edited".
@@ -3729,11 +3796,14 @@ keyword :result."
       (get-buffer-create
        (concat "*" (symbol-name (ert-test-name (ert-running-test))) "*"))
     (unwind-protect
-        (let ((proc (erc-tests-common-create-subprocess code '("-batch") nil)))
+        (let ((proc (erc-tests-common-create-subprocess
+                     `(,@(butlast code) (prin1 (list :result ,@(last code))))
+                     '("-batch") nil)))
           (while (accept-process-output proc 10))
           (goto-char (point-min))
-          (search-forward "(:result " nil t)
-          (unless (equal (ignore-errors (read (current-buffer))) expected)
+          (unless (equal (and (search-forward "(:result " nil t)
+                              (read (current-buffer)))
+                         expected)
             (ert-fail (list "Mismatch"
                             :expected expected
                             :buffer-string (buffer-string)))))
@@ -3755,18 +3825,15 @@ keyword :result."
         (unless (keywordp mod)
           (push (if-let* ((mode (erc--find-mode mod))) mod (list :missing mod))
                 moded)))
-      (prin1 (list :result
-                   (sort moded (lambda (a b)
-                                 (string< (symbol-name a) (symbol-name b)))))))
+      (sort moded (lambda (a b) (string< (symbol-name a) (symbol-name b)))))
    erc-tests--modules))
 
 (ert-deftest erc--essential-hook-ordering ()
   (erc-tests--assert-printed-in-subprocess
    '(progn
       (erc-update-modules)
-      (prin1 (list :result
-                   (list :erc-insert-modify-hook erc-insert-modify-hook
-                         :erc-send-modify-hook erc-send-modify-hook))))
+      (list :erc-insert-modify-hook erc-insert-modify-hook
+            :erc-send-modify-hook erc-send-modify-hook))
 
    '( :erc-insert-modify-hook (erc-controls-highlight ; 0
                                erc-button-add-buttons ; 30
@@ -3798,26 +3865,37 @@ keyword :result."
     (should (eq (erc--find-group 'foo nil) 'erc))
     (should (eq (erc--find-group 'fake 'baz) 'erc-foo))))
 
-(ert-deftest erc--find-group--real ()
-  :tags '(:unstable)
-  (require 'erc-services)
-  (require 'erc-stamp)
-  (require 'erc-sound)
-  (require 'erc-page)
-  (require 'erc-join)
-  (require 'erc-capab)
-  (require 'erc-pcomplete)
-  (should (eq (erc--find-group 'services 'nickserv) 'erc-services))
-  (should (eq (erc--find-group 'stamp 'timestamp) 'erc-stamp))
-  (should (eq (erc--find-group 'sound 'ctcp-sound) 'erc-sound))
-  (should (eq (erc--find-group 'page 'ctcp-page) 'erc-page))
-  (should (eq (erc--find-group 'autojoin) 'erc-autojoin))
-  (should (eq (erc--find-group 'pcomplete 'Completion) 'erc-pcomplete))
-  (should (eq (erc--find-group 'capab-identify) 'erc-capab))
-  (should (eq (erc--find-group 'completion) 'erc-pcomplete))
-  ;; No group specified.
-  (should (eq (erc--find-group 'smiley nil) 'erc))
-  (should (eq (erc--find-group 'unmorse nil) 'erc)))
+(ert-deftest erc--find-group/realistic ()
+  (erc-tests--assert-printed-in-subprocess
+   '(progn
+      (require 'erc-services)
+      (require 'erc-stamp)
+      (require 'erc-sound)
+      (require 'erc-page)
+      (require 'erc-join)
+      (require 'erc-capab)
+      (require 'erc-pcomplete)
+      (list (erc--find-group 'services 'nickserv)
+            (erc--find-group 'stamp 'timestamp)
+            (erc--find-group 'sound 'ctcp-sound)
+            (erc--find-group 'page 'ctcp-page)
+            (erc--find-group 'autojoin)
+            (erc--find-group 'pcomplete 'Completion)
+            (erc--find-group 'completion)
+            (erc--find-group 'capab-identify)
+            ;; No group specified.
+            (erc--find-group 'smiley nil)
+            (erc--find-group 'unmorse nil)))
+   '(erc-services
+     erc-stamp
+     erc-sound
+     erc-page
+     erc-autojoin
+     erc-pcomplete
+     erc-pcomplete
+     erc-capab
+     erc
+     erc)))
 
 (ert-deftest erc--sort-modules ()
   (should (equal (erc--sort-modules '(networks foo fill bar fill stamp bar))
@@ -3912,7 +3990,7 @@ keyword :result."
 
        ;; Returns local modules.
        (should (equal (mapcar #'symbol-name (erc--update-modules erc-modules))
-                      '("erc-lo2-mode" "erc-lo1-mode")))
+                      '("erc-lo1-mode" "erc-lo2-mode")))
 
        ;; Requiring `erc-lo2' defines `erc-lo2-mode'.
        (should (equal (mapcar #'prin1-to-string (funcall get-calls))
@@ -3920,28 +3998,32 @@ keyword :result."
                         "(req . explicit-feature-lib)")))))))
 
 (ert-deftest erc--update-modules/realistic ()
-  (let ((calls nil)
-        ;; Module `pcomplete' "resolves" to `completion'.
-        (erc-modules '(pcomplete autojoin networks)))
-    (cl-letf (((symbol-function 'require)
-               (lambda (s &rest _) (push (cons 'req s) calls)))
+  (erc-tests--assert-printed-in-subprocess
+   '(progn
+      (require 'ert)
+      (require 'erc)
+      (should (featurep 'erc-networks))
+      (should-not erc-networks-mode)
+      ;; The pcomplete module isn't loaded, and the non-alias form of
+      ;; its command isn't autoloaded, so `erc--find-mode' will do so.
+      (should-not (featurep 'erc-pcomplete))
+      (should-not (intern-soft "erc-pcomplete-mode"))
+      ;; The join module is autoloaded.
+      (should-not (featurep 'erc-join))
+      (should (fboundp 'erc-autojoin-mode))
+      (should-not (boundp 'erc-autojoin-mode))
 
-              ;; Spoof global module detection.
-              ((symbol-function 'custom-variable-p)
-               (lambda (v)
-                 (memq v '(erc-autojoin-mode erc-networks-mode
-                                             erc-completion-mode))))
-              ;; Mock and spy real builtins.
-              ((symbol-function 'erc-autojoin-mode)
-               (lambda (n) (push (cons 'autojoin n) calls)))
-              ((symbol-function 'erc-networks-mode)
-               (lambda (n) (push (cons 'networks n) calls)))
-              ((symbol-function 'erc-completion-mode)
-               (lambda (n) (push (cons 'completion n) calls))))
+      ;; These are all global modules, so no return value is expected.
+      (let ((erc-modules (cons (seq-random-elt '(completion pcomplete))
+                               '(networks autojoin))))
+        (should-not (erc--update-modules erc-modules)))
 
-      (should-not (erc--update-modules erc-modules)) ; no locals
-      (should (equal (nreverse calls)
-                     '((completion . 1) (autojoin . 1) (networks . 1)))))))
+      (list erc-networks-mode
+            (featurep 'erc-pcomplete)
+            (featurep 'erc-join)
+            (symbol-value (intern-soft "erc-pcomplete-mode"))
+            (bound-and-true-p erc-autojoin-mode)))
+   '(t t t t t)))
 
 (ert-deftest erc--merge-local-modes ()
   (cl-letf (((get 'erc-b-mode 'erc-module) 'b)

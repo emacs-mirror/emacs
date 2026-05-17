@@ -124,7 +124,6 @@
 (require 'citeproc nil t)
 (declare-function citeproc-style-cite-note "ext:citeproc")
 (declare-function citeproc-proc-style "ext:citeproc")
-(declare-function citeproc-bt-entry-to-csl "ext:citeproc")
 (declare-function citeproc-locale-getter-from-dir "ext:citeproc")
 (declare-function citeproc-create "ext:citeproc")
 (declare-function citeproc-citation-create "ext:citeproc")
@@ -137,13 +136,12 @@
 (declare-function citeproc-style-cite-superscript-p "ext:citeproc")
 
 (declare-function org-element-interpret-data "org-element" (data))
-(declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated))
+(declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated no-undefer))
 (declare-function org-element-property "org-element-ast" (property node))
-(declare-function org-element-put-property "org-element-ast" (node property value))
 
-(declare-function org-export-data "org-export" (data info))
-(declare-function org-export-derived-backend-p "org-export" (backend &rest backends))
-(declare-function org-export-get-footnote-number "org-export" (footnote info &optional data body-first))
+(declare-function org-export-data "ox" (data info))
+(declare-function org-export-derived-backend-p "ox" (backend &rest backends))
+(declare-function org-export-get-footnote-number "ox" (footnote info &optional data body-first))
 
 
 ;;; Customization
@@ -320,6 +318,24 @@ in the bibliography measured in characters."
   :group 'org-cite
   :type 'string
   :package-version '(Org . "9.7"))
+
+(defcustom org-cite-csl-bibtex-titles-to-sentence-case t
+  "Convert bibtex title fields to sentence-case by default.
+
+When non-nil, title fields in bibtex bibliography entries are
+converted to sentence-case before being formatted according to a
+CSL style, except for entries with a `langid' field specifying a
+non-English language.  When nil, title conversion is limited to
+entries having a `langid' field specifying a variant of English.
+
+Conversion of titles to sentence-case by default is in most cases
+useful because the CSL standard assumes that English titles are
+specified in sentence-case but the bibtex bibliography format
+requires them to be written in title-case."
+  :group 'org-cite
+  :package-version '(Org . "9.8")
+  :type 'boolean
+  :safe #'booleanp)
 
 
 ;;; Internal variables
@@ -579,7 +595,8 @@ property in INFO."
              (processor
               (citeproc-create
                (org-cite-csl--style-file info)
-               (citeproc-hash-itemgetter-from-any bibliography)
+               (citeproc-hash-itemgetter-from-any
+                bibliography (not org-cite-csl-bibtex-titles-to-sentence-case))
                (org-cite-csl--locale-getter)
                locale)))
         (plist-put info :cite-citeproc-processor processor)
@@ -803,6 +820,35 @@ INFO is the export state, as a property list."
               "\\[CSL-MAXLABEL-CHARS\\]" ,(number-to-string max-offset)))
     result))
 
+(defun org-cite-csl--generate-html-head (info)
+  "Generate the CSL-related part of the HTML head.
+INFO is the export state, as a property list.  Return the generated head
+fragment or nil if no fragment should be inserted."
+  (let* ((parameters (cadr (org-cite-csl--rendered-bibliographies info)))
+	 (head-part
+	  (concat
+	   (and (cdr (assq 'second-field-align parameters))
+		(let* ((max-offset (cdr (assq 'max-offset parameters)))
+		       (char-width
+			(string-to-number org-cite-csl-html-label-width-per-char))
+		       (char-width-unit
+			(progn
+			  (string-match (number-to-string char-width)
+					org-cite-csl-html-label-width-per-char)
+			  (substring org-cite-csl-html-label-width-per-char
+				     (match-end 0)))))
+		  (format
+		   "<style>.csl-left-margin{float: left; padding-right: 0em;}
+ .csl-right-inline{margin: 0 0 0 %d%s;}</style>"
+		   (* max-offset char-width)
+		   char-width-unit)))
+	   (and (cdr (assq 'hanging-indent parameters))
+		(format
+		 "<style>.csl-entry{text-indent: -%s; margin-left: %s;}</style>"
+		 org-cite-csl-html-hanging-indent
+		 org-cite-csl-html-hanging-indent)))))
+    (and (not (string= "" head-part)) head-part)))
+
 
 ;;; Export capability
 (defun org-cite-csl-render-citation (citation _style _backend info)
@@ -820,37 +866,20 @@ INFO is the export state, as a property list."
   "Export bibliography.
 INFO is the export state, as a property list."
   (org-require-package 'citeproc)
-  (pcase-let*  ((format (org-cite-csl--output-format info))
-                (`(,outputs ,parameters) (org-cite-csl--rendered-bibliographies info))
-                (output (cdr (assoc props outputs))))
+  (let* ((format (org-cite-csl--output-format info))
+	 (outputs (car (org-cite-csl--rendered-bibliographies info)))
+	 (output (cdr (assoc props outputs))))
     (pcase format
       ('html
-       (concat
-        (and (cdr (assq 'second-field-align parameters))
-             (let* ((max-offset (cdr (assq 'max-offset parameters)))
-                    (char-width
-                     (string-to-number org-cite-csl-html-label-width-per-char))
-                    (char-width-unit
-                     (progn
-                       (string-match (number-to-string char-width)
-                                     org-cite-csl-html-label-width-per-char)
-                       (substring org-cite-csl-html-label-width-per-char
-                                  (match-end 0)))))
-               (format
-                "<style>.csl-left-margin{float: left; padding-right: 0em;}
- .csl-right-inline{margin: 0 0 0 %d%s;}</style>"
-                (* max-offset char-width)
-                char-width-unit)))
-        (and (cdr (assq 'hanging-indent parameters))
-             (format
-              "<style>.csl-entry{text-indent: -%s; margin-left: %s;}</style>"
-              org-cite-csl-html-hanging-indent
-              org-cite-csl-html-hanging-indent))
-        output))
+       (unless (plist-get info :html-head-csl-styles-added)
+	 (if-let* ((head-part (org-cite-csl--generate-html-head info)))
+	     (plist-put info :html-head
+                        (concat (plist-get info :html-head) head-part)))
+	 (plist-put info :html-head-csl-styles-added t))
+       output)
       ('org-latex output)
       (_
-       ;; Parse Org output to re-export it during the regular export
-       ;; process.
+       ;; Parse Org output to re-export it during the regular export process.
        (org-cite-parse-elements output)))))
 
 (defun org-cite-csl-finalizer (output _keys _files _style _backend info)

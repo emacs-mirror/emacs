@@ -19994,14 +19994,14 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               x_clear_area (f,
                             event->xexpose.x, event->xexpose.y,
                             event->xexpose.width, event->xexpose.height);
+	      /* Paint the border before content (few operations, less
+		 chance for a compositor sync in between).  */
+	      x_clear_under_internal_border (f);
 #endif
               expose_frame (f, event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
 #ifndef USE_TOOLKIT_SCROLL_BARS
 	      x_scroll_bar_handle_exposure (f, (XEvent *) event);
-#endif
-#ifdef USE_GTK
-	      x_clear_under_internal_border (f);
 #endif
             }
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -26929,6 +26929,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
+ delete_more_minibuffer_frames:
   FOR_EACH_FRAME (tail, frame)
     {
       /* Tooltip frames don't have these, so avoid crashing.  */
@@ -26943,12 +26944,16 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 	  && FRAME_X_P (XFRAME (minibuf_frame))
 	  && ! EQ (frame, minibuf_frame)
 	  && FRAME_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
-	delete_frame (frame, Qnoelisp);
+	{
+	  delete_frame (frame, Qnoelisp);
+	  goto delete_more_minibuffer_frames;
+	}
     }
 
   /* Now delete all remaining frames on the dead display.
      We are now sure none of these is used as the mini-buffer
      for another frame that we need to delete.  */
+ delete_more_frames:
   FOR_EACH_FRAME (tail, frame)
     if (FRAME_X_P (XFRAME (frame))
 	&& FRAME_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
@@ -26957,6 +26962,7 @@ x_connection_closed (Display *dpy, const char *error_message, bool ioerror)
 	   trying to find a replacement.  */
 	kset_default_minibuffer_frame (FRAME_KBOARD (XFRAME (frame)), Qt);
 	delete_frame (frame, Qnoelisp);
+	goto delete_more_frames;
       }
 
   /* If DPYINFO is null, this means we didn't open the display in the
@@ -27029,7 +27035,7 @@ For details, see etc/PROBLEMS.\n",
 
   /* The initial "daemon" frame is sometimes not selected by
      `delete_frame' when Emacs is a background daemon.  */
-  if (NILP (selected_frame))
+  if (NILP (selected_frame) || !FRAME_LIVE_P (XFRAME (selected_frame)))
     x_try_restore_frame ();
 
   unblock_input ();
@@ -27038,7 +27044,8 @@ For details, see etc/PROBLEMS.\n",
      terminal caused all frames to vanish.  In that case, simply kill
      Emacs, since the next redisplay will abort as there is no more
      selected frame.  (bug#56528) */
-  if (terminal_list == 0 || NILP (selected_frame))
+  if (terminal_list == 0 || NILP (selected_frame)
+      || !FRAME_LIVE_P (XFRAME (selected_frame)))
     Fkill_emacs (make_fixnum (70), Qnil);
 
   totally_unblock_input ();
@@ -28516,6 +28523,9 @@ x_wait_for_event (struct frame *f, int eventtype)
       block_input ();
       interrupt_input_blocked = level;
 
+      if (!f->wait_event_type)
+	break;
+
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
 
@@ -28545,6 +28555,19 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, 0, false);
 
+#ifdef USE_X_TOOLKIT
+  if (FRAME_PARENT_FRAME (f) && f->output_data.x->widget)
+    {
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      XtResizeWidget (f->output_data.x->widget,
+		      width, height + FRAME_MENUBAR_HEIGHT (f), 0);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
+#endif
+    }
+  else
+#endif
   XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		 width, height + FRAME_MENUBAR_HEIGHT (f));
 
@@ -28560,30 +28583,25 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
   if (!NILP (Vx_lax_frame_positioning))
     return;
 
-  /* Now, strictly speaking, we can't be sure that this is accurate,
+  /* Now, strictly speaking, we can't be sure that this is final,
      but the window manager will get around to dealing with the size
      change request eventually, and we'll hear how it went when the
      ConfigureNotify event gets here.
 
-     We could just not bother storing any of this information here,
-     and let the ConfigureNotify event set everything up, but that
-     might be kind of confusing to the Lisp code, since size changes
-     wouldn't be reported in the frame parameters until some random
-     point in the future when the ConfigureNotify event arrives.
-
-     Pass true for DELAY since we can't run Lisp code inside of
-     a BLOCK_INPUT.  */
-
-  /* But the ConfigureNotify may in fact never arrive, and then this is
-     not right if the frame is visible.  Instead wait (with timeout)
-     for the ConfigureNotify.  */
-  if (FRAME_VISIBLE_P (f))
+     We could just let the ConfigureNotify update everything, but
+     waiting creates an implicit X flush which might flicker with
+     outdated contents in the frame.  For child frames, the window
+     manager is not a concern and it's better to finish quickly.  */
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     {
+      /* The event may create delayed size change (delayed because we
+	 can't run Lisp code inside of a BLOCK_INPUT) which will be
+	 applied right after by do_pending_window_change.  */
       x_wait_for_event (f, ConfigureNotify);
 
       if (CONSP (frame_size_history))
 	frame_size_history_extra
-	  (f, build_string ("x_set_window_size_1, visible"),
+	  (f, build_string ("x_set_window_size_1, waited for event"),
 	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
 	   f->new_width, f->new_height);
     }
@@ -28591,7 +28609,7 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       if (CONSP (frame_size_history))
 	frame_size_history_extra
-	  (f, build_string ("x_set_window_size_1, invisible"),
+	  (f, build_string ("x_set_window_size_1, not waited for event"),
 	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
 	   f->new_width, f->new_height);
 
@@ -28622,7 +28640,8 @@ x_set_window_size (struct frame *f, bool change_gravity,
     x_set_window_size_1 (f, change_gravity, width, height);
 #else /* not USE_GTK */
   x_set_window_size_1 (f, change_gravity, width, height);
-  x_clear_under_internal_border (f);
+  if (!FRAME_PARENT_FRAME (f))
+    x_clear_under_internal_border (f);
 #endif /* not USE_GTK */
 
   /* If cursor was outside the new size, mark it as off.  */
@@ -28647,16 +28666,35 @@ x_set_window_size_and_position_1 (struct frame *f, int width, int height)
 
   x_wm_set_size_hint (f, 0, false);
 
-  XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		     x, y, width, height + FRAME_MENUBAR_HEIGHT (f));
+#ifdef USE_X_TOOLKIT
+  if (FRAME_PARENT_FRAME (f) && f->output_data.x->widget)
+    {
+      /* Clear widget's position coordinates because it only sends
+	 changed values with its XConfigureWindow command.  And these
+	 are likely outdated because XtDispatchEvent does not save them.
+	 The alternative would be to always use XtMoveWidget instead of
+	 XMoveWindow.  */
+      f->output_data.x->widget->core.x = -1;
+      f->output_data.x->widget->core.y = -1;
+      /* Resize all inner widgets and Cairo surface right away so the
+	 next redisplay drawing isn't clipped to the old size.  */
+      XtConfigureWidget (f->output_data.x->widget,
+			 x, y, width, height + FRAME_MENUBAR_HEIGHT (f), 0);
+#ifdef USE_CAIRO
+      x_cr_update_surface_desired_size (f, width, height);
+#endif
+    }
+  else
+#endif
+    XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		       x, y, width, height + FRAME_MENUBAR_HEIGHT (f));
 
   SET_FRAME_GARBAGED (f);
 
-  if (FRAME_VISIBLE_P (f))
+  /* Same as x_set_window_size_1.  */
+  if (FRAME_VISIBLE_P (f) && !FRAME_PARENT_FRAME (f))
     x_wait_for_event (f, ConfigureNotify);
   else
-    /* Call adjust_frame_size right away as with GTK.  It might be
-       tempting to clear out f->new_width and f->new_height here.  */
     adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
 		       FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
 		       5, 0, Qx_set_window_size_1);
@@ -28676,7 +28714,8 @@ x_set_window_size_and_position (struct frame *f, int width, int height)
   x_set_window_size_and_position_1 (f, width, height);
 #endif /* USE_GTK */
 
-  x_clear_under_internal_border (f);
+  if (!FRAME_PARENT_FRAME (f))
+    x_clear_under_internal_border (f);
 
   /* If cursor was outside the new size, mark it as off.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -29221,14 +29260,15 @@ x_make_frame_visible (struct frame *f)
 	{
 	  block_input ();
 #ifdef USE_GTK
-	  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
 	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
 		       f->left_pos, f->top_pos);
+	  gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
 #else
 	  XMapRaised (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
 #endif
 	  unblock_input ();
 
+	  SET_FRAME_GARBAGED (f);
 	  SET_FRAME_VISIBLE (f, true);
 	  SET_FRAME_ICONIFIED (f, false);
 	}
@@ -31854,7 +31894,6 @@ static void
 x_delete_selection_requests (struct x_display_info *dpyinfo)
 {
   union buffered_input_event *event;
-  int moved_events;
 
   for (event = kbd_fetch_ptr; event != kbd_store_ptr;
        event = X_NEXT_KBD_EVENT (event))
@@ -31865,25 +31904,8 @@ x_delete_selection_requests (struct x_display_info *dpyinfo)
 	  if (SELECTION_EVENT_DPYINFO (&event->sie) != dpyinfo)
 	    continue;
 
-	  /* Remove the event from the fifo buffer before processing;
-	     otherwise swallow_events called recursively could see it
-	     and process it again.  To do this, we move the events
-	     between kbd_fetch_ptr and EVENT one slot to the right,
-	     cyclically.  */
-
-	  if (event < kbd_fetch_ptr)
-	    {
-	      memmove (kbd_buffer + 1, kbd_buffer,
-		       (event - kbd_buffer) * sizeof *kbd_buffer);
-	      kbd_buffer[0] = kbd_buffer[KBD_BUFFER_SIZE - 1];
-	      moved_events = kbd_buffer + KBD_BUFFER_SIZE - 1 - kbd_fetch_ptr;
-	    }
-	  else
-	    moved_events = event - kbd_fetch_ptr;
-
-	  memmove (kbd_fetch_ptr + 1, kbd_fetch_ptr,
-		   moved_events * sizeof *kbd_fetch_ptr);
-	  kbd_fetch_ptr = X_NEXT_KBD_EVENT (kbd_fetch_ptr);
+	  EVENT_INIT (event->ie);
+	  event->ie.kind = NO_EVENT;
 
 	  /* `detect_input_pending' will then recompute whether or not
 	     pending input events exist.  */
@@ -32109,13 +32131,17 @@ x_delete_terminal (struct terminal *terminal)
   /* Delete all remaining frames on the display that is going away.
      Otherwise, font backends assume the display is still up, and
      xftfont_end_for_frame crashes.  */
+ delete_more_frames:
   FOR_EACH_FRAME (tail, frame)
     {
       f = XFRAME (frame);
 
       if (FRAME_LIVE_P (f) && f->terminal == terminal)
-	/* Pass Qnoelisp rather than Qt.  */
-	delete_frame (frame, Qnoelisp);
+	{
+	  /* Pass Qnoelisp rather than Qt.  */
+	  delete_frame (frame, Qnoelisp);
+	  goto delete_more_frames;
+	}
     }
 
 #ifdef HAVE_X_I18N

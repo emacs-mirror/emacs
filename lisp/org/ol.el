@@ -46,11 +46,13 @@
 
 (declare-function calendar-cursor-to-date "calendar" (&optional error event))
 (declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
-(declare-function org-at-heading-p "org" (&optional _))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-do-occur "org" (regexp &optional cleanup))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
+(declare-function org-element-parse-secondary-string "org-element"
+                  (string restriction &optional parent))
+(declare-function org-element-restriction "org-element" (element))
 (declare-function org-element-cache-refresh "org-element" (pos))
 (declare-function org-element-cache-reset "org-element" (&optional all no-persistence))
 (declare-function org-element-context "org-element" (&optional element))
@@ -74,14 +76,17 @@
 (declare-function org-cycle-overview "org-cycle" ())
 (declare-function org-restart-font-lock "org" ())
 (declare-function org-run-like-in-org-mode "org" (cmd))
-(declare-function org-fold-show-context "org-fold" (&optional key))
 (declare-function org-src-coderef-format "org-src" (&optional element))
 (declare-function org-src-coderef-regexp "org-src" (fmt &optional label))
 (declare-function org-src-edit-buffer-p "org-src" (&optional buffer))
 (declare-function org-src-source-buffer "org-src" ())
 (declare-function org-src-source-type "org-src" ())
-(declare-function org-time-stamp-format "org" (&optional long inactive))
-(declare-function outline-next-heading "outline" ())
+(declare-function org-time-stamp-format "org" (&optional long inactive custom))
+(declare-function image-flush "image" (spec &optional frame))
+(declare-function org-entry-end-position "org" ())
+(declare-function org-element-contents-begin "org-element" (node))
+(declare-function org-element-contents-end "org-element" (node))
+(declare-function org-property-or-variable-value "org" (var &optional inherit))
 
 
 ;;; Customization
@@ -171,6 +176,18 @@ link.
 
   The default face is `org-link'.
 
+`:preview'
+
+  Function to run to generate an in-buffer preview for the link.  It
+  must accept three arguments:
+  - an overlay placed from the start to the end of the link
+  - the link path, as a string
+  - the syntax node for the link
+
+  This function must return a non-nil value to indicate success.
+  A return value of nil implies that the preview failed, and the
+  overlay placed on the link will be removed.
+
 `:help-echo'
 
   String or function used as a value for the `help-echo' text
@@ -194,9 +211,10 @@ link.
   Face used when hovering over the link.  Default is
   `highlight'."
   :group 'org-link
-  :package-version '(Org . "9.1")
+  :package-version '(Org . "9.8")
   :type '(alist :tag "Link display parameters"
-		:value-type plist))
+		:value-type plist)
+  :risky t)
 
 (defun org-link--set-link-display (symbol value)
   "Set `org-link-descriptive' (SYMBOL) to VALUE.
@@ -331,6 +349,7 @@ For Gnus, use any of
     `gnus'
     `gnus-other-frame'
     `org-gnus-no-new-news'
+    `org-gnus-no-new-news-other-frame'
 For FILE, use any of
     `find-file'
     `find-file-other-window'
@@ -342,6 +361,7 @@ For the calendar, use the variable `calendar-setup'.
 For BBDB, it is currently only possible to display the matches in
 another window."
   :group 'org-link-follow
+  :package-version  '(Org . "9.8")
   :type '(list
 	  (cons (const vm)
 		(choice
@@ -357,7 +377,8 @@ another window."
 		(choice
 		 (const gnus)
 		 (const gnus-other-frame)
-		 (const org-gnus-no-new-news)))
+		 (const org-gnus-no-new-news)
+                 (const org-gnus-no-new-news-other-frame)))
 	  (cons (const file)
 		(choice
 		 (const find-file)
@@ -366,7 +387,8 @@ another window."
 	  (cons (const wl)
 		(choice
 		 (const wl)
-		 (const wl-other-frame)))))
+		 (const wl-other-frame))))
+  :risky t)
 
 (defcustom org-link-search-must-match-exact-headline 'query-to-create
   "Control fuzzy link behavior when specific matches not found.
@@ -479,7 +501,7 @@ The following %-escapes will be replaced by corresponding information:
 %T   full \"To\" field
 %t   first name in \"To\" field, address if no name
 %c   correspondent.  Usually \"from NAME\", but if you sent it yourself, it
-     will be \"to NAME\".  See also the variable `org-from-is-user-regexp'.
+     will be \"to NAME\".  See also the variable `org-link-from-user-regexp'.
 %s   subject
 %d   date
 %m   message-id.
@@ -520,6 +542,86 @@ links more efficient."
   :group 'org-link-store
   :type 'boolean
   :safe #'booleanp)
+
+(defcustom org-link-preview-delay 0.05
+  "Idle delay in seconds between link previews when using `org-link-preview'.
+Links are previewed in batches (see
+`org-link-preview-batch-size') spaced out by this delay.  Set
+this to a small number for more immediate previews, but at the
+expense of higher lag."
+  :group 'org-link
+  :package-version '(Org . "9.8")
+  :type 'number
+  :safe #'numberp)
+
+(defcustom org-link-preview-batch-size 6
+  "Number of links that are previewed at once with `org-link-preview'.
+Links are previewed asynchronously, in
+batches spaced out in time (see `org-link-preview-delay').  Set
+this to a large integer for more immediate previews, but at the
+expense of higher lag."
+  :group 'org-link
+  :package-version '(Org . "9.8")
+  :type 'natnum
+  :safe #'natnump)
+
+(defcustom org-display-remote-inline-images 'skip
+  "How to display remote inline images.
+Possible values of this option are:
+
+skip        Don't display remote images.
+download    Always download and display remote images.
+t
+cache       Display remote images, and open them in separate buffers
+            for caching.  Silently update the image buffer when a file
+            change is detected."
+  :group 'org-appearance
+  :package-version '(Org . "9.7")
+  :type '(choice
+	  (const :tag "Ignore remote images" skip)
+	  (const :tag "Always display remote images" download)
+	  (const :tag "Display and silently update remote images" cache))
+  :safe #'symbolp)
+
+(defcustom org-image-max-width 'fill-column
+  "When non-nil, limit the displayed image width.
+This setting only takes effect when `org-image-actual-width' is set to
+t or when #+ATTR* is set to t.
+
+Possible values:
+- `fill-column' :: limit width to `fill-column'
+- `window'      :: limit width to window width
+- integer       :: limit width to number in pixels
+- float         :: limit width to that fraction of window width
+- nil             :: do not limit image width"
+  :group 'org-appearance
+  :package-version '(Org . "9.7")
+  :type '(choice
+          (const :tag "Do not limit image width" nil)
+          (const :tag "Limit to `fill-column'" fill-column)
+          (const :tag "Limit to window width" window)
+          (integer :tag "Limit to a number of pixels")
+          (float :tag "Limit to a fraction of window width"))
+  :safe (lambda (x) (or (numberp x) (member x '(nil 'fill-column 'window)))))
+
+(defcustom org-image-align 'left
+  "How to align images previewed using `org-link-preview-region'.
+
+Only stand-alone image links are affected by this setting.  These
+are links without surrounding text.
+
+Possible values of this option are:
+
+left     Insert image at specified position.
+center   Center image previews.
+right    Right-align image previews."
+  :group 'org-appearance
+  :package-version '(Org . "9.7")
+  :type '(choice
+          (const :tag "Left align (or don\\='t align) image previews" left)
+	  (const :tag "Center image previews" center)
+	  (const :tag "Right align image previews" right))
+  :safe #'symbolp)
 
 ;;; Public variables
 
@@ -648,6 +750,29 @@ exact and fuzzy text search.")
 
 (defvar org-link--search-failed nil
   "Non-nil when last link search failed.")
+
+(defvar-local org-link-preview-overlays nil)
+;; Preserve when switching modes or when restarting Org.
+;; If we clear the overlay list and later enable Or mode, the existing
+;; image overlays will never be cleared by `org-link-preview'
+;; and `org-link-preview-clear'.
+(put 'org-link-preview-overlays 'permanent-local t)
+
+(defvar-local org-link-preview--timer nil
+  "Timer for previewing Org links in buffer.
+
+This timer creates previews for specs in
+`org-link-preview--queue'.")
+
+(defvar-local org-link-preview--queue nil
+  "Queue of pending previews for Org links in buffer.
+
+Each element of this queue is a list of the form
+
+(PREVIEW-FUNC OVERLAY PATH LINK)
+
+where PREVIEW-FUNC places a preview of PATH using OVERLAY.  LINK
+is the Org element being previewed.")
 
 
 ;;; Internal Functions
@@ -846,10 +971,12 @@ Return t when a link has been stored in `org-link-store-props'."
        ;; function.
        (apply #'org-link-store-props
               (cdr (assoc-string
-                    (completing-read
-                     (format "Store link with (default %s): " name)
-                     (mapcar #'car results-alist)
-                     nil t nil nil (symbol-name name))
+                    (if (not interactive?)
+                        (car (nth 0 results-alist))
+                      (completing-read
+                       (format "Store link with (default %s): " name)
+                       (mapcar #'car results-alist)
+                       nil t nil nil (symbol-name name)))
                     results-alist)))
        t))))
 
@@ -881,7 +1008,229 @@ Return t when a link has been stored in `org-link-store-props'."
          (setq desc search-desc))))
     (cons link desc)))
 
+(defun org-link-preview--get-overlays (&optional beg end)
+  "Return link preview overlays between BEG and END."
+  (let* ((beg (or beg (point-min)))
+         (end (or end (point-max)))
+         (overlays (overlays-in beg end))
+         result)
+    (dolist (ov overlays result)
+      (when (memq ov org-link-preview-overlays)
+        (push ov result)))))
+
+(defun org-link-preview--remove-overlay (ov after _beg _end &optional _len)
+  "Remove link-preview overlay OV if a corresponding region is modified.
+
+AFTER is true when this function is called post-change."
+  (when (and ov after)
+    (setq org-link-preview-overlays (delq ov org-link-preview-overlays))
+    ;; Clear image from cache to avoid image not updating upon
+    ;; changing on disk.  See Emacs bug#59902.
+    (when-let* ((disp (overlay-get ov 'display))
+                ((if (fboundp 'imagep)
+                     (imagep disp)
+                   (eq 'image (car-safe disp)))))
+      (image-flush disp))
+    (delete-overlay ov)))
+
 
+
+;;;; Utilities for image preview display
+
+;; For without-x builds.
+(declare-function image-flush "image" (spec &optional frame))
+
+(defun org--create-inline-image (file width)
+  "Create image located at FILE, or return nil.
+WIDTH is the width of the image.  The image may not be created
+according to the value of `org-display-remote-inline-images'."
+  (let* ((remote? (file-remote-p file))
+	 (file-or-data
+	  (pcase org-display-remote-inline-images
+	    ((guard (not remote?)) file)
+	    (`download (with-temp-buffer
+			 (set-buffer-multibyte nil)
+			 (insert-file-contents-literally file)
+			 (buffer-string)))
+	    ((or `cache `t)
+             (let ((revert-without-query '(".")))
+	       (with-current-buffer (find-file-noselect file)
+		 (buffer-string))))
+	    (`skip nil)
+	    (other
+	     (message "Invalid value of `org-display-remote-inline-images': %S"
+		      other)
+	     nil))))
+    (when file-or-data
+      (create-image file-or-data
+		    (and (image-type-available-p 'imagemagick)
+			 width
+			 'imagemagick)
+		    remote?
+		    :width width
+                    :max-width
+                    (pcase org-image-max-width
+                      (`fill-column (* fill-column (frame-char-width (selected-frame))))
+                      (`window (window-width nil t))
+                      ((pred integerp) org-image-max-width)
+                      ((pred floatp) (floor (* org-image-max-width (window-width nil t))))
+                      (`nil nil)
+                      (_ (error "Unsupported value of `org-image-max-width': %S"
+                                org-image-max-width)))
+                    :scale 1))))
+
+(declare-function org-export-read-attribute "ox"
+                  (attribute element &optional property))
+(defvar visual-fill-column-width) ; Silence compiler warning
+(defun org-display-inline-image--width (link)
+  "Determine the display width of the image LINK, in pixels.
+- When `org-image-actual-width' is t, the image's pixel width is used.
+- When `org-image-actual-width' is a number, that value will is used.
+- When `org-image-actual-width' is nil or a list, :width attribute of
+  #+attr_org or the first #+attr_...  (if it exists) is used to set the
+  image width.  A width of X% is divided by 100.  If the value is a
+  float between 0 and 2, it interpreted as that proportion of the text
+  width in the buffer.
+
+  If no :width attribute is given and `org-image-actual-width' is a
+  list with a number as the car, then that number is used as the
+  default value."
+  ;; Apply `org-image-actual-width' specifications.
+  ;; Support subtree-level property "ORG-IMAGE-ACTUAL-WIDTH" specified
+  ;; width.
+  (let ((org-image-actual-width (org-property-or-variable-value 'org-image-actual-width)))
+    (cond
+     ((eq org-image-actual-width t) nil)
+     ((listp org-image-actual-width)
+      (require 'ox)
+      (let* ((par (org-element-lineage link 'paragraph))
+             ;; Try to find an attribute providing a :width.
+             ;; #+ATTR_ORG: :width ...
+             (attr-width (org-export-read-attribute :attr_org par :width))
+             (width-unreadable?
+              (lambda (value)
+                (or (not (stringp value))
+                    (unless (string= value "t")
+                      (or (not (string-match
+                              (rx bos (opt "+")
+                                  (or
+                                   ;; Number of pixels
+                                   ;; must be a lone number, not
+                                   ;; things like 4in
+                                   (seq (1+ (in "0-9")) (? "px") eos)
+                                   ;; Numbers ending with %
+                                   (seq (1+ (in "0-9.")) (group-n 1 "%"))
+                                   ;; Fractions
+                                   (seq (0+ (in "0-9")) "." (1+ (in "0-9")))))
+                              value))
+                          (let ((number (string-to-number value)))
+                            (and (floatp number)
+                                 (not (match-string 1 value)) ; X%
+                                 (not (<= 0.0 number 2.0)))))))))
+             ;; #+ATTR_BACKEND: :width ...
+             (attr-other
+              (catch :found
+                (org-element-properties-map
+                 (lambda (prop _)
+                   (when (and
+                          (not (eq prop :attr_org))
+                          (string-match-p "^:attr_" (symbol-name prop))
+                          (not (funcall width-unreadable? (org-export-read-attribute prop par :width))))
+                     (throw :found prop)))
+                 par)))
+             (attr-width
+              (if (not (funcall width-unreadable? attr-width))
+                  attr-width
+                ;; When #+attr_org: does not have readable :width
+                (and attr-other
+                     (org-export-read-attribute attr-other par :width))))
+             (width
+              (cond
+               ;; Treat :width t as if `org-image-actual-width' were t.
+               ((string= attr-width "t") nil)
+               ;; Fallback to `org-image-actual-width' if no interprable width is given.
+               ((funcall width-unreadable? attr-width)
+                (car org-image-actual-width))
+               ;; Convert numeric widths to numbers, converting percentages.
+               ((string-match-p "\\`[[+]?[0-9.]+%" attr-width)
+                (/ (string-to-number attr-width) 100.0))
+               (t (string-to-number attr-width)))))
+        (if (and (floatp width) (<= 0.0 width 2.0))
+            ;; A float in [0,2] should be interpereted as this portion of
+            ;; the text width in the window.  This works well with cases like
+            ;; #+attr_latex: :width 0.X\{line,page,column,etc.}width,
+            ;; as the "0.X" is pulled out as a float.  We use 2 as the upper
+            ;; bound as cases such as 1.2\linewidth are feasible.
+            (round (* width
+                      (window-pixel-width)
+                      (/ (or (and (bound-and-true-p visual-fill-column-mode)
+                                  (or visual-fill-column-width auto-fill-function))
+                             (when auto-fill-function fill-column)
+                             (- (window-text-width) (line-number-display-width)))
+                         (float (window-total-width)))))
+          width)))
+     ((numberp org-image-actual-width)
+      org-image-actual-width)
+     (t nil))))
+
+(defun org-image--align (link)
+  "Determine the alignment of the image LINK.
+LINK is a link object.
+
+In decreasing order of priority, this is controlled:
+- Per image by the value of `:center' or `:align' in the
+affiliated keyword `#+attr_org'.
+- By the `#+attr_html' or `#+attr_latex` keywords with valid
+  `:center' or `:align' values.
+- Globally by the user option `org-image-align'.
+
+The result is either nil or one of the strings \"left\",
+\"center\" or \"right\".
+
+\"center\" will cause the image preview to be centered, \"right\"
+will cause it to be right-aligned.  A value of \"left\" or nil
+implies no special alignment."
+  (let ((par (org-element-lineage link 'paragraph)))
+    ;; Only align when image is not surrounded by paragraph text:
+    (when (and par ; when image is not in paragraph, but in table/headline/etc, do not align
+               (= (org-element-begin link)
+                  (save-excursion
+                    (goto-char (org-element-contents-begin par))
+                    (skip-chars-forward "\t ")
+                    (point)))           ;account for leading space
+                                        ;before link
+               (<= (- (org-element-contents-end par)
+                     (org-element-end link))
+                  1))                  ;account for trailing newline
+                                        ;at end of paragraph
+      (save-match-data
+        ;; Look for a valid ":center t" or ":align left|center|right"
+        ;; attribute.
+        ;;
+        ;; An attr_org keyword has the highest priority, with
+        ;; any attr.* next.  Choosing between these is
+        ;; unspecified.
+        (let ((center-re ":\\(center\\)[[:space:]]+t\\b")
+              (align-re ":align[[:space:]]+\\(left\\|center\\|right\\)\\b")
+              attr-align)
+          (catch 'exit
+            (org-element-properties-mapc
+             (lambda (propname propval)
+               (when (and propval
+                          (string-match-p ":attr.*" (symbol-name propname)))
+                 (setq propval (car-safe propval))
+                 (when (or (string-match center-re propval)
+                           (string-match align-re propval))
+                   (setq attr-align (match-string 1 propval))
+                   (when (eq propname :attr_org)
+                     (throw 'exit t)))))
+             par))
+          (if attr-align
+              (when (member attr-align '("center" "right")) attr-align)
+            ;; No image-specific keyword, check global alignment property
+            (when (memq org-image-align '(center right))
+              (symbol-name org-image-align))))))))
+
 ;;; Public API
 
 (defun org-link-types ()
@@ -943,7 +1292,13 @@ This should be called after the variable `org-link-parameters' has changed."
                    (group
 		    (1+ (or (regex ,non-space-bracket)
 			    ,parenthesis))
-		    (or (regexp "[^[:punct:] \t\n]")
+		    (or (regexp "[^[:punct:][:space:]\n]")
+                        ;; Allow "-" punctuation, as an exception
+                        ;; See https://list.orgmode.org/orgmode/87sexh9ddv.fsf@ice9.digital/
+                        ;; This is also in line with the heuristics
+                        ;; above - it also does not include "-"
+                        ;; punctuation.
+                        ?-
 		        ?/
 		        ,parenthesis)))))
           org-link-bracket-re
@@ -1087,6 +1442,45 @@ E.g. \"%C3%B6\" becomes the German o-Umlaut."
      (concat (make-string (/ (- (match-end 1) (match-beginning 1)) 2) ?\\)))
    link nil t 1))
 
+(defun org-link-get-description (link &optional default-description)
+  "Return description for LINK.
+When link has :insert-description link property defined, set description
+accordingly.  Otherwise, try `org-link-make-description-function'.
+When the above two methods are not defined, return DEFAULT-DESCRIPTION."
+  (let* ((abbrevs org-link-abbrev-alist-local)
+         (all-prefixes (append (mapcar #'car abbrevs)
+			       (mapcar #'car org-link-abbrev-alist)
+			       (org-link-types)))
+         (type
+          (cond
+           ((and all-prefixes
+                 (string-match (rx-to-string `(: string-start (submatch (or ,@all-prefixes)) ":")) link))
+            (match-string 1 link))
+           ((file-name-absolute-p link) "file")
+           ((string-match "\\`\\.\\.?/" link) "file"))))
+    (cond
+     ((org-link-get-parameter type :insert-description)
+      (let ((def (org-link-get-parameter type :insert-description)))
+        (condition-case nil
+            (cond
+             ((stringp def) def)
+             ((functionp def)
+              (funcall def link default-description)))
+          (error
+           (message "Can't get link description from org link parameter `:insert-description': %S"
+                    def)
+           (sit-for 2)
+           nil))))
+     (org-link-make-description-function
+      (condition-case nil
+          (funcall org-link-make-description-function link default-description)
+        (error
+         (message "Can't get link description from %S"
+                  org-link-make-description-function)
+         (sit-for 2)
+         nil)))
+     (t default-description))))
+
 (defun org-link-make-string (link &optional description)
   "Make a bracket link, consisting of LINK and DESCRIPTION.
 LINK is escaped with backslashes for inclusion in buffer."
@@ -1109,6 +1503,70 @@ LINK is escaped with backslashes for inclusion in buffer."
       (format "[[%s]%s]"
 	      (org-link-escape link)
 	      (if description (format "[%s]" description) "")))))
+
+(defun org-link-make-string-for-buffer (link &optional description interactive-p)
+  "Format LINK with DESCRIPTION for current buffer.
+When BUFFER is nil, format LINK for current buffer.
+When DESCRIPTION is nil, set it according to :insert-description link
+parameter or `org-link-make-description-function'.
+When current buffer is a file buffer and link points to that file,
+strip the file name from the link.
+Make sure that file: link follows `org-link-file-path-type'.
+Strip <..> brackets from LINK, if it is a plain link.
+
+When INTERACTIVE-P is non-nil, prompt user for description.
+
+Return link with description, as a string."
+  (when (and (string-match org-link-plain-re link)
+	     (not (string-match org-ts-regexp link)))
+    ;; URL-like link, normalize the use of angular brackets.
+    (setq link (org-unbracket-string "<" ">" link)))
+
+  ;; Check if we are linking to the current file with a search
+  ;; option If yes, simplify the link by using only the search
+  ;; option.
+  (when (and (buffer-file-name (buffer-base-buffer))
+	     (let ((case-fold-search nil))
+	       (string-match "\\`file:\\(.+?\\)::" link)))
+    (let ((path (match-string-no-properties 1 link))
+	  (search (substring-no-properties link (match-end 0))))
+      (save-match-data
+	(when (equal (file-truename (buffer-file-name (buffer-base-buffer)))
+		     (file-truename path))
+	  ;; We are linking to this same file, with a search option
+	  (setq link search)))))
+
+  ;; Check if we can/should use a relative path.  If yes, simplify
+  ;; the link.
+  (let ((case-fold-search nil))
+    (when (string-match "\\`\\(file\\|docview\\):" link)
+      (let* ((type (match-string-no-properties 0 link))
+	     (path-start (match-end 0))
+	     (search (and (string-match "::\\(.*\\)\\'" link path-start)
+			  (match-string 1 link)))
+	     (path
+	      (if search
+		  (substring-no-properties
+		   link path-start (match-beginning 0))
+		(substring-no-properties link (match-end 0))))
+             ;; file:::search
+             (path (if (org-string-nw-p path) path (buffer-file-name)))
+	     (origpath path))
+	(setq path (org-link--normalize-filename path org-link-file-path-type))
+	(setq link (concat type path (and search (concat "::" search))))
+	(when (equal description origpath)
+	  (setq description path)))))
+
+  (unless description
+    (setq description (org-link-get-description link)))
+
+  (when interactive-p
+    (setq description (read-string "Description: " description)))
+
+  (unless (org-string-nw-p description)
+    (setq description nil))
+
+  (org-link-make-string link description))
 
 (defun org-store-link-functions ()
   "List of functions that are called to create and store a link.
@@ -1152,35 +1610,53 @@ Abbreviations are defined in `org-link-abbrev-alist'."
       (if (not as)
 	  link
 	(setq rpl (cdr as))
-        ;; Drop any potentially dangerous text properties like
-        ;; `modification-hooks' that may be used as an attack vector.
-        (substring-no-properties
-	 (cond
-	  ((symbolp rpl) (funcall rpl tag))
-	  ((string-match "%(\\([^)]+\\))" rpl)
-           (let ((rpl-fun-symbol (intern-soft (match-string 1 rpl))))
-             ;; Using `unsafep-function' is not quite enough because
-             ;; Emacs considers functions like `getenv' safe, while
-             ;; they can potentially be used to expose private system
-             ;; data to attacker if abbreviated link is clicked.
-             (if (or (eq t (get rpl-fun-symbol 'org-link-abbrev-safe))
-                     (eq t (get rpl-fun-symbol 'pure)))
-                 (replace-match
-	          (save-match-data
-	            (funcall (intern-soft (match-string 1 rpl)) tag))
-	          t t rpl)
-               (org-display-warning
-                (format "Disabling unsafe link abbrev: %s
+        (cl-macrolet
+            ((eval-or-disable (&rest body)
+               "Run BODY and disable AS abbrev if it errs."
+               `(condition-case err
+	            (progn ,@body)
+                  (error
+                   (org-display-warning
+                    (format "Disabling link abbrev %s <- %s after expansion failure: %S"
+                            rpl link (error-message-string err)))
+                   (setq org-link-abbrev-alist-local (delete as org-link-abbrev-alist-local)
+	                 org-link-abbrev-alist (delete as org-link-abbrev-alist))
+                   link))))
+          ;; Drop any potentially dangerous text properties like
+          ;; `modification-hooks' that may be used as an attack vector.
+          (substring-no-properties
+           (cond
+            ((symbolp rpl)
+             (eval-or-disable
+              (let ((expanded (funcall rpl tag)))
+                (unless (stringp expanded)
+                  (error "%s did not return a string: %S" rpl expanded))
+                expanded)))
+            ((string-match "%(\\([^)]+\\))" rpl)
+             (let ((rpl-fun-symbol (intern-soft (match-string 1 rpl))))
+               ;; Using `unsafep-function' is not quite enough because
+               ;; Emacs considers functions like `getenv' safe, while
+               ;; they can potentially be used to expose private system
+               ;; data to attacker if abbreviated link is clicked.
+               (if (or (eq t (get rpl-fun-symbol 'org-link-abbrev-safe))
+                       (eq t (get rpl-fun-symbol 'pure)))
+                   (eval-or-disable
+                    (replace-match
+                     (save-match-data
+                       (funcall rpl-fun-symbol tag))
+                     t t rpl))
+                 (org-display-warning
+                  (format "Disabling unsafe link abbrev: %s
 You may mark function safe via (put '%s 'org-link-abbrev-safe t)"
-                        rpl (match-string 1 rpl)))
-               (setq org-link-abbrev-alist-local (delete as org-link-abbrev-alist-local)
-                     org-link-abbrev-alist (delete as org-link-abbrev-alist))
-               link
-	       )))
-	  ((string-match "%s" rpl) (replace-match (or tag "") t t rpl))
-	  ((string-match "%h" rpl)
-	   (replace-match (url-hexify-string (or tag "")) t t rpl))
-	  (t (concat rpl tag))))))))
+                          rpl (match-string 1 rpl)))
+                 (setq org-link-abbrev-alist-local (delete as org-link-abbrev-alist-local)
+                       org-link-abbrev-alist (delete as org-link-abbrev-alist))
+                 link
+                 )))
+            ((string-match "%s" rpl) (replace-match (or tag "") t t rpl))
+            ((string-match "%h" rpl)
+             (replace-match (url-hexify-string (or tag "")) t t rpl))
+            (t (concat rpl tag)))))))))
 
 (defun org-link-open (link &optional arg)
   "Open a link object LINK.
@@ -1251,6 +1727,9 @@ Optional argument ARG is passed to `org-open-file' when S is a
 	     (goto-char (point-min))
 	     (org-element-link-parser)))
     (`nil (user-error "No valid link in %S" s))
+    ((and link (guard (not (equal (org-element-end link) (1+ (length s))))))
+     (user-error "Garbage after link in %S (%S)"
+                 s (substring s (1- (org-element-end link)))))
     (link (org-link-open link arg))))
 
 (defun org-link-search (s &optional avoid-pos stealth new-heading-container)
@@ -1270,7 +1749,7 @@ will be used to search in all files.
 When AVOID-POS is given, ignore matches near that position.
 
 When optional argument STEALTH is non-nil, do not modify
-visibility around point, thus ignoring `org-show-context-detail'
+visibility around point, thus ignoring `org-fold-show-context-detail'
 variable.
 
 When optional argument NEW-HEADING-CONTAINER is an element, any
@@ -1549,6 +2028,263 @@ If there is no description, use the link target."
   (unless (equal (substring s -1) ">") (setq s (concat s ">")))
   s)
 
+;;;###autoload
+(defun org-link-preview (&optional arg beg end)
+  "Toggle display of link previews in the buffer.
+
+When region BEG..END is active, preview links in the
+region.
+
+When point is at a link, display a preview for that link only.
+Otherwise, display previews for links in current entry.
+
+With numeric prefix ARG 1, also preview links with description in
+the active region, at point or in the current section.
+
+With prefix ARG `\\[universal-argument]', clear link previews at
+point or in the current entry.
+
+With prefix ARG `\\[universal-argument] \\[universal-argument]',
+ display link previews in the accessible portion of the
+ buffer.  With numeric prefix ARG 11, do the same, but include
+ links with descriptions.
+
+With prefix ARG `\\[universal-argument] \\[universal-argument] \\[universal-argument]',
+hide all link previews in the accessible portion of the buffer.
+
+This command is designed for interactive use.  From Elisp, you can
+also use `org-link-preview-region'."
+  (interactive (cons current-prefix-arg
+                     (when (use-region-p)
+                       (list (region-beginning) (region-end)))))
+  (let* ((include-linked
+          (cond
+           ((member arg '(nil (4) (16)) ) nil)
+           ((member arg '(1 11)) 'include-linked)
+           (t 'include-linked)))
+         (interactive? (called-interactively-p 'any))
+         (toggle-previews
+          (lambda (&optional beg end scope remove)
+            (let* ((beg (or beg (point-min)))
+                   (end (or end (point-max)))
+                   (old (org-link-preview--get-overlays beg end))
+                   (scope (or scope (format "%d:%d" beg end))))
+              (if remove
+                  (progn
+                    (org-link-preview-clear beg end)
+                    (when interactive?
+                      (message
+                       "[%s] Inline link previews turned off (removed %d images)"
+                       scope (length old))))
+	        (org-link-preview-region include-linked t beg end)
+                (when interactive?
+                  (let ((new (org-link-preview--get-overlays beg end)))
+                    (message
+                     (if new
+		         (format "[%s] Displaying %d images inline %s"
+			         scope (length new)
+                                 (if include-linked "(including images with description)"
+                                   ""))
+                       (if (equal scope "buffer")
+		           (format "[%s] No images to display inline" scope)
+                         (format
+                          (substitute-command-keys
+                           "[%s] No images to display inline.  Use `\\[universal-argument] \\[universal-argument]' or 11 argument to preview the whole buffer")
+                          scope)))))))))))
+    (cond
+     ;; Region selected :: display previews in region.
+     ((and beg end)
+      (funcall toggle-previews beg end "region"
+               (and (equal arg '(4)) 'remove)))
+     ;; C-u argument: clear image at point or in entry
+     ((equal arg '(4))
+      (if-let* ((ov (cdr (get-char-property-and-overlay
+                         (point) 'org-image-overlay))))
+          ;; clear link preview at point
+          (funcall toggle-previews
+                   (overlay-start ov) (overlay-end ov)
+                   "preview at point" 'remove)
+        ;; Clear link previews in entry
+        (funcall toggle-previews
+                 (if (org-before-first-heading-p) (point-min)
+                   (save-excursion
+                     (org-with-limited-levels (org-back-to-heading t) (point))))
+                 (org-with-limited-levels (org-entry-end-position))
+                 "current section" 'remove)))
+     ;; C-u C-u or C-11 argument :: display images in the whole buffer.
+     ((member arg '(11 (16))) (funcall toggle-previews nil nil "buffer"))
+     ;; C-u C-u C-u argument :: unconditionally hide images in the buffer.
+     ((equal arg '(64)) (funcall toggle-previews nil nil "buffer" 'remove))
+     ;; Argument nil or 1, no region selected :: display images in
+     ;; current section or image link at point.
+     ((and (member arg '(nil 1)) (null beg) (null end))
+      (let ((context (org-element-context)))
+        ;; toggle display of inline image link at point.
+        (if (org-element-type-p context 'link)
+            (let* ((ov (cdr-safe (get-char-property-and-overlay
+                                  (point) 'org-image-overlay)))
+                   (remove? (and ov (memq ov org-link-preview-overlays)
+                                 'remove)))
+              (funcall toggle-previews
+                       (org-element-begin context)
+                       (org-element-end context)
+                       "image at point" remove?))
+          (let ((beg (if (org-before-first-heading-p) (point-min)
+	               (save-excursion
+	                 (org-with-limited-levels (org-back-to-heading t) (point)))))
+                (end (org-with-limited-levels (org-entry-end-position))))
+            (funcall toggle-previews beg end "current section")))))
+     ;; Any other non-nil argument.
+     ((not (null arg)) (funcall toggle-previews beg end "region")))))
+
+;;;###autoload
+(defun org-link-preview-refresh ()
+  "Assure display of link previews in buffer and refresh them."
+  (interactive)
+  (org-link-preview-region nil t (point-min) (point-max)))
+
+(defun org-link-preview-region (&optional include-linked refresh beg end)
+  "Display link previews.
+
+A previewable link type is one that has a `:preview' link
+parameter, see `org-link-parameters'.
+
+By default, a file link or attachment is previewable if it
+follows either of these conventions:
+
+  1. Its path is a file with an extension matching return value
+     from `image-file-name-regexp' and it has no contents.
+
+  2. Its description consists in a single link of the previous
+     type.  In this case, that link must be a well-formed plain
+     or angle link, i.e., it must have an explicit \"file\" or
+     \"attachment\" type.
+
+File links are equipped with the keymap `image-map'.
+
+When optional argument INCLUDE-LINKED is non-nil, links with a
+text description part will also be inlined.  This can be nice for
+a quick look at those images, but it does not reflect what
+exported files will look like.
+
+When optional argument REFRESH is non-nil, refresh existing
+images between BEG and END.  This will create new image displays
+only if necessary.
+
+BEG and END define the considered part.  They default to the
+buffer boundaries with possible narrowing."
+  (interactive "P")
+  (when refresh (org-link-preview-clear beg end))
+  (org-with-point-at (or beg (point-min))
+    (let ((case-fold-search t)
+          preview-queue)
+      ;; Collect links to preview
+      (while (re-search-forward org-link-any-re end t)
+        (forward-char -1)               ;ensure we are on the link
+        (when-let*
+            ((link (org-element-lineage (org-element-context) 'link t))
+             (path (or
+                    ;; Link without description or link with description
+                    ;; that is requested to be previewed anyway.
+                    (and (or include-linked
+                             (not (org-element-contents-begin link)))
+                         (org-element-property :path link))
+                    ;; Special case: link with description where
+                    ;; description is itself a sole link
+                    (and (org-element-contents-begin link)
+                         (setq link
+                               (org-with-point-at (org-element-contents-begin link)
+                                 (org-element-put-property
+                                  (org-element-link-parser) :parent link)))
+                         (org-element-type-p link 'link)
+                         (equal (org-element-end link)
+                                (org-element-contents-end
+                                 (org-element-parent link)))
+                         (org-element-property :path link))))
+             (linktype (org-element-property :type link))
+             (preview-func (org-link-get-parameter linktype :preview)))
+          ;; Create an overlay to hold the preview
+          (let ((ov (or (cdr-safe (get-char-property-and-overlay
+                                   (org-element-begin link) 'org-image-overlay))
+                        (make-overlay
+                         (org-element-begin link)
+                         (progn
+		           (goto-char
+		            (org-element-end link))
+		           (unless (eolp) (skip-chars-backward " \t"))
+		           (point))))))
+            (overlay-put ov 'modification-hooks
+                         (list 'org-link-preview--remove-overlay))
+            (push ov org-link-preview-overlays)
+            (push (list preview-func ov path link) preview-queue))))
+      ;; Collect previews in buffer-local LIFO preview queue
+      (setq org-link-preview--queue
+            (nconc (nreverse preview-queue) org-link-preview--queue))
+      ;; Run preview possibly asynchronously
+      (when org-link-preview--queue
+        (org-link-preview--process-queue (current-buffer))))))
+
+(defun org-link-preview--process-queue (org-buffer)
+  "Preview pending Org link previews in ORG-BUFFER.
+
+Previews are generated from the specs in
+`org-link-preview--queue', which see."
+  (and (buffer-live-p org-buffer)
+       (with-current-buffer org-buffer
+         (cl-loop
+          for spec in org-link-preview--queue
+          for ov = (cadr spec)    ;SPEC is (preview-func ov path link)
+          for count from org-link-preview-batch-size above 0
+          do (pop org-link-preview--queue)
+          if (overlay-buffer ov) do
+          (if (apply spec)
+              (overlay-put ov 'org-image-overlay t)
+            ;; Preview was unsuccessful, delete overlay
+            (delete-overlay ov)
+            (setq org-link-preview-overlays
+                  (delq ov org-link-preview-overlays)))
+          else do (cl-incf count) end
+          finally do
+          (setq org-link-preview--timer
+                (and org-link-preview--queue
+                     (run-with-idle-timer
+                      (time-add (or (current-idle-time) 0)
+                                org-link-preview-delay)
+                      nil #'org-link-preview--process-queue org-buffer)))))))
+
+(defun org-link-preview-clear (&optional beg end)
+  "Clear link previews in region BEG to END."
+  (interactive (and (use-region-p) (list (region-beginning) (region-end))))
+  (let* ((beg (or beg (point-min)))
+         (end (or end (point-max)))
+         (overlays (overlays-in beg end)))
+    (dolist (ov overlays)
+      (when (memq ov org-link-preview-overlays)
+        ;; Remove pending preview tasks between BEG and END
+        (when-let* ((spec (cl-find ov org-link-preview--queue
+                                   :key #'cadr)))
+          (setq org-link-preview--queue (delq spec org-link-preview--queue)))
+        ;; Remove placed overlays between BEG and END
+        (when-let* ((image (overlay-get ov 'display)))
+          (when (if (fboundp 'imagep) (imagep image) (eq 'image (car-safe image)))
+            (image-flush image)))
+        (setq org-link-preview-overlays (delq ov org-link-preview-overlays))
+        (delete-overlay ov)))
+    ;; Clear removed overlays.
+    (dolist (ov org-link-preview-overlays)
+      (unless (overlay-buffer ov)
+        (setq org-link-preview-overlays (delq ov org-link-preview-overlays))))))
+
+(defun org-link-frame-setup-function (link-type)
+  "Return the frame setup function for the link type LINK-TYPE.
+This signals an error if the value of the key LINK-TYPE in
+`org-link-frame-setup' is not a function."
+  (let ((fun (cdr (assq link-type org-link-frame-setup))))
+    (if (functionp fun)
+        fun
+      (error "The frame setup configuration `%S' for `%s' link type is ill-defined"
+             fun link-type))))
+
 
 ;;; Built-in link types
 
@@ -1571,7 +2307,46 @@ PATH is the sexp to evaluate, as a string."
 (org-link-set-parameters "elisp" :follow #'org-link--open-elisp)
 
 ;;;; "file" link type
-(org-link-set-parameters "file" :complete #'org-link-complete-file)
+(org-link-set-parameters "file"
+                         :complete #'org-link-complete-file
+                         :preview #'org-link-preview-file)
+
+(defun org-link-preview-file (ov path link)
+  "Display image file PATH in overlay OV for LINK.
+
+LINK is the Org element being previewed.
+
+Equip each image with the keymap `image-map'.
+
+This is intended to be used as the `:preview' link property of
+file links, see `org-link-parameters'."
+  (when (display-graphic-p)
+    (require 'image)
+    (when-let* ((file-full (expand-file-name path))
+                (file (substitute-in-file-name file-full))
+                ((string-match-p (image-file-name-regexp) file))
+                ((file-exists-p file)))
+      (let* ((width (org-display-inline-image--width link))
+	     (align (org-image--align link))
+             (image (org--create-inline-image file width)))
+        (when image            ; Add image to overlay
+	  ;; See bug#59902.  We cannot rely
+          ;; on Emacs to update image if the file
+          ;; has changed.
+          (image-flush image)
+	  (overlay-put ov 'display image)
+	  (overlay-put ov 'face 'default)
+	  (overlay-put ov 'keymap image-map)
+          (when align
+            (overlay-put
+             ov 'before-string
+             (propertize
+              " " 'face 'default
+              'display
+              (pcase align
+                ("center" `(space :align-to (- center (0.5 . ,image))))
+                ("right"  `(space :align-to (- right ,image)))))))
+          t)))))
 
 ;;;; "help" link type
 (defun org-link--open-help (path _)
@@ -1599,6 +2374,52 @@ PATH is a symbol name, as a string."
 (org-link-set-parameters "help"
                          :follow #'org-link--open-help
                          :store #'org-link--store-help)
+
+(defvar shortdoc--groups)
+(declare-function shortdoc-display-group "shortdoc"
+                  (group &optional function same-window))
+(defun org-link--open-shortdoc (path _)
+  "Open a \"shortdoc\" type link.
+PATH is a group name, \"group::#function\" or \"group::search
+string\"."
+  (string-match "\\`\\([^:]*\\)\\(?:::\\(.*\\)\\'\\)?" path)
+  (let* ((group (match-string 1 path))
+         (str (match-string 2 path))
+         (fn (and str
+                  (eq ?# (string-to-char str))
+                  (intern-soft (substring str 1)))))
+    (condition-case nil
+        (progn
+          (shortdoc-display-group group fn)
+          (and str (not fn) (search-forward str nil t)))
+      (error (user-error "Unknown shortdoc group or malformed link: `%s'"
+                         path)))))
+
+(defun org-link--store-shortdoc (&optional _interactive?)
+  "Store \"shortdoc\" type link."
+  (when (derived-mode-p 'shortdoc-mode)
+    (let* ((buffer (buffer-name))
+           (group (when (string-match "*Shortdoc \\(.*\\)\\*" buffer)
+                    (match-string 1 buffer))))
+      (if (and group (assoc (intern-soft group) shortdoc--groups))
+          (org-link-store-props :type "shortdoc"
+                                :link (format "shortdoc:%s" group)
+                                :description nil)
+        (user-error "Unknown shortdoc group: %s" group)))))
+
+(defun org-link--complete-shortdoc ()
+  "Create a \"shortdoc\" link using completion."
+  (concat "shortdoc:"
+          (completing-read "Shortdoc summary for functions in: "
+                           (mapcar #'car shortdoc--groups))))
+
+;; FIXME: Remove the condition when we drop Emacs 27 support.
+;;;; "shortdoc" link type
+(when (version<= "28.0.90" emacs-version)
+  (org-link-set-parameters "shortdoc"
+                           :follow #'org-link--open-shortdoc
+                           :store #'org-link--store-shortdoc
+                           :complete #'org-link--complete-shortdoc))
 
 ;;;; "http", "https", "mailto", "ftp", and "news" link types
 (dolist (scheme '("ftp" "http" "https" "mailto" "news"))
@@ -1731,7 +2552,7 @@ NAME."
 	    (move-beginning-of-line 2)
 	    (set-mark (point)))))
     (setq org-store-link-plist nil)
-    ;; Negate `org-context-in-file-links' when given a single universal arg.
+    ;; Negate `org-link-context-for-files' when given a single universal arg.
     (let ((org-link-context-for-files (org-xor org-link-context-for-files
                                                (equal arg '(4))))
           link desc search agenda-link) ;; description
@@ -1884,6 +2705,31 @@ NAME."
             (org-link--add-to-stored-links link desc)))
         (car org-stored-links)))))
 
+(defun org-link--normalize-filename (filename &optional method)
+  "Return FILENAME as required by METHOD.
+METHOD defaults to the value of `org-link-file-path-type'."
+  (setq method (or method org-link-file-path-type))
+  (cond
+   ((eq method 'absolute)
+    (abbreviate-file-name (expand-file-name filename)))
+   ((eq method 'noabbrev)
+    (expand-file-name filename))
+   ((eq method 'relative)
+    (file-relative-name filename))
+   ((functionp method)
+    (funcall method filename))
+   (t
+    (save-match-data
+      (if (string-match (concat "^" (regexp-quote
+				     (expand-file-name
+				      (file-name-as-directory
+				       default-directory))))
+			(expand-file-name filename))
+	  ;; We are linking a file with relative path name.
+	  (substring (expand-file-name filename)
+		     (match-end 0))
+	(abbreviate-file-name (expand-file-name filename)))))))
+
 ;;;###autoload
 (defun org-insert-link (&optional complete-file link-location description)
   "Insert a link.  At the prompt, enter the link.
@@ -1943,7 +2789,7 @@ non-interactively, don't allow editing the default description."
 	 (all-prefixes (append (mapcar #'car abbrevs)
 			       (mapcar #'car org-link-abbrev-alist)
 			       (org-link-types)))
-         entry link-original)
+         entry)
     (cond
      (link-location)		      ; specified by arg, just use it.
      ((org-in-regexp org-link-bracket-re 1)
@@ -2037,107 +2883,20 @@ non-interactively, don't allow editing the default description."
       (or entry (push link org-link--insert-history))
       (setq desc (or desc (nth 1 entry)))))
 
-    (setq link-original link)
-    (when (and (string-match org-link-plain-re link)
-	       (not (string-match org-ts-regexp link)))
-      ;; URL-like link, normalize the use of angular brackets.
-      (setq link (org-unbracket-string "<" ">" link)))
+    (let (new-link)
+      (let ((org-link-file-path-type
+             (if (equal complete-file '(16))
+                 'absolute
+               org-link-file-path-type)))
+        (setq new-link (org-link-make-string-for-buffer
+                        link (or description desc)
+                        (called-interactively-p 'any))))
 
-    ;; Check if we are linking to the current file with a search
-    ;; option If yes, simplify the link by using only the search
-    ;; option.
-    (when (and (buffer-file-name (buffer-base-buffer))
-	       (let ((case-fold-search nil))
-		 (string-match "\\`file:\\(.+?\\)::" link)))
-      (let ((path (match-string-no-properties 1 link))
-	    (search (substring-no-properties link (match-end 0))))
-	(save-match-data
-	  (when (equal (file-truename (buffer-file-name (buffer-base-buffer)))
-		       (file-truename path))
-	    ;; We are linking to this same file, with a search option
-	    (setq link search)))))
-
-    ;; Check if we can/should use a relative path.  If yes, simplify
-    ;; the link.
-    (let ((case-fold-search nil))
-      (when (string-match "\\`\\(file\\|docview\\):" link)
-	(let* ((type (match-string-no-properties 0 link))
-	       (path-start (match-end 0))
-	       (search (and (string-match "::\\(.*\\)\\'" link)
-			    (match-string 1 link)))
-	       (path
-		(if search
-		    (substring-no-properties
-		     link path-start (match-beginning 0))
-		  (substring-no-properties link (match-end 0))))
-	       (origpath path))
-	  (cond
-	   ((or (eq org-link-file-path-type 'absolute)
-		(equal complete-file '(16)))
-	    (setq path (abbreviate-file-name (expand-file-name path))))
-	   ((eq org-link-file-path-type 'noabbrev)
-	    (setq path (expand-file-name path)))
-	   ((eq org-link-file-path-type 'relative)
-	    (setq path (file-relative-name path)))
-	   ((functionp org-link-file-path-type)
-	    (setq path (funcall org-link-file-path-type path)))
-	   (t
-	    (save-match-data
-	      (if (string-match (concat "^" (regexp-quote
-					     (expand-file-name
-					      (file-name-as-directory
-					       default-directory))))
-				(expand-file-name path))
-		  ;; We are linking a file with relative path name.
-		  (setq path (substring (expand-file-name path)
-					(match-end 0)))
-		(setq path (abbreviate-file-name (expand-file-name path)))))))
-	  (setq link (concat type path (and search (concat "::" search))))
-	  (when (equal desc origpath)
-	    (setq desc path)))))
-
-    (let* ((type
-            (cond
-             ((and all-prefixes
-                   (string-match (rx-to-string `(: string-start (submatch (or ,@all-prefixes)) ":")) link))
-              (match-string 1 link))
-             ((file-name-absolute-p link) "file")
-             ((string-match "\\`\\.\\.?/" link) "file")))
-           (initial-input
-            (cond
-             (description)
-             (desc)
-             ((org-link-get-parameter type :insert-description)
-              (let ((def (org-link-get-parameter type :insert-description)))
-                (condition-case nil
-                    (cond
-                     ((stringp def) def)
-                     ((functionp def)
-                      (funcall def link desc)))
-                  (error
-                   (message "Can't get link description from org link parameter `:insert-description': %S"
-                            def)
-                   (sit-for 2)
-                   nil))))
-             (org-link-make-description-function
-              (condition-case nil
-                  (funcall org-link-make-description-function link desc)
-                (error
-                 (message "Can't get link description from %S"
-                          org-link-make-description-function)
-                 (sit-for 2)
-                 nil))))))
-      (setq desc (if (called-interactively-p 'any)
-                     (read-string "Description: " initial-input)
-                   initial-input)))
-
-    (when (funcall (if (equal complete-file '(64)) 'not 'identity)
-                   (not org-link-keep-stored-after-insertion))
-      (setq org-stored-links (delq (assoc link-original org-stored-links)
-                                   org-stored-links)))
-    (unless (org-string-nw-p desc) (setq desc nil))
-    (when remove (apply #'delete-region remove))
-    (insert (org-link-make-string link desc))
+      (when (funcall (if (equal complete-file '(64)) 'not 'identity)
+                     (not org-link-keep-stored-after-insertion))
+        (setq org-stored-links (delq (assoc link org-stored-links) org-stored-links)))
+      (when remove (apply #'delete-region remove))
+      (insert new-link))
     ;; Redisplay so as the new link has proper invisible characters.
     (sit-for 0)))
 

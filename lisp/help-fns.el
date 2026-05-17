@@ -127,7 +127,7 @@ current help buffer.")
 (defcustom help-enable-completion-autoload t
   "Whether completion for Help commands can perform autoloading.
 If non-nil, whenever invoking completion for `describe-function'
-or `describe-variable' load files that might contain definitions
+or `describe-variable', load files that might contain definitions
 with the current prefix.  The files are chosen according to
 `definition-prefixes'."
   :type 'boolean
@@ -148,7 +148,10 @@ edited even if this option is enabled."
   :version "29.1")
 
 (defcustom help-enable-symbol-autoload nil
-  "Perform autoload if docs are missing from autoload objects."
+  "Perform autoload if doc string is missing from an autoloaded object.
+If non-nil, if an autoloaded object lacks a doc string, Help commands
+will load the file where the object is defined, in order to be able
+to show its documentation."
   :type 'boolean
   :group 'help
   :version "28.1")
@@ -215,7 +218,15 @@ type specifier when available."
           (help--load-prefixes prefixes))))
     (let ((prefix-completions
            (and help-enable-completion-autoload
-                (mapcar #'intern (all-completions string definition-prefixes)))))
+                ;; For `all-completions' and `try-completion', consider
+                ;; `definition-prefixes' as valid completions, to help users
+                ;; complete the input to the point where the above
+                ;; `help-enable-completion-autoload' code can take over.
+                ;; But don't do it for other operations, like `test-completion'
+                ;; (bug#80873).
+                (memq action '(nil t))
+                (mapcar #'intern (all-completions string
+                                                  definition-prefixes)))))
       (complete-with-action action obarray string
                             (if pred (lambda (sym)
                                        (or (funcall pred sym)

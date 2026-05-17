@@ -4447,6 +4447,14 @@ arguments as optional arguments for future extensibility.
 If a capture name is both a face and a function, the face takes
 priority.  If a capture name is neither a face nor a function, it is
 ignored.
+
+@findex treesit-query-with-optional
+@findex treesit-query-with-fallback
+Sometimes, to support different versions of the same grammar, it's
+useful to conditionally include some optional @var{query}, or choose the
+first valid query from a list of queries.  Functions like
+@code{treesit-query-with-optional} and
+@code{treesit-query-with-fallback} can come in handy.
 @end defun
 
 @c FIXME: Cross-ref treesit-font-lock-level to user manual.

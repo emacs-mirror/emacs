@@ -18,6 +18,27 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes to upcoming Eglot
+
+** New command 'M-x eglot-describe-connection'
+
+Pops up a detailed description buffer for the current connection,
+outlining aspects such as the LSP server name and version, the project
+name and root path, among others.
+
+** Improvements to 'M-x eglot-list-connections'
+
+New key bindings: 'k' shuts down, 'r' reconnects, 'e' visits the events
+buffer, 'w' shows workspace configuration, and 'RET' invokes
+'eglot-describe-connection'.
+
+** Eglot uses new built-in 'markdown-ts-mode' of Emacs 31 (bug#80127)
+
+This means that on newer versions of Emacs the external
+'markdown-mode.el' package does not need to be installed to render
+Markdown content.
+
+
 * Changes in Eglot 1.23 (2/4/2026)
 
 ** Unbreak ELPA Eglot (github#1584)

@@ -433,6 +433,9 @@
   (should (eq (global-key-binding "x") 'self-insert-command))
   (should-not (global-key-binding [f12])))
 
+(ert-deftest subr-listify-key-sequence ()
+  (should (equal (listify-key-sequence "ŕ°") '(?ŕ ?°))))
+
 
 ;;;; Mode hooks.
 

@@ -93,13 +93,6 @@
 
 (require 'erc)
 
-(eval-when-compile (require 'erc-join)
-                   (require 'erc-services)
-                   (require 'erc-fill))
-
-(declare-function erc-network "erc-networks")
-(defvar erc-network)
-
 (defvar erc-scenarios-common--resources-dir
   (expand-file-name "../" (ert-resource-directory)))
 
@@ -149,76 +142,96 @@
       (auth-source-do-cache nil)
       (timer-list (copy-sequence timer-list))
       (timer-idle-list (copy-sequence timer-idle-list))
-      (erc-auth-source-parameters-join-function nil)
+      ;; This binding exists to protect the default value because ERC
+      ;; adds all joined channels automatically.
       (erc-autojoin-channels-alist nil)
       (erc-server-auto-reconnect nil)
       (erc-after-connect nil)
       (erc-last-input-time 0)
       (erc-d-linger-secs 10)
+      ;; This buffer, if created by `erc--lwarn', will be killed before
+      ;; `erc-scenarios-common-with-cleanup' exits.
+      (erc--warnings-buffer-name  "*ERC test warnings*")
       ,@bindings)))
 
 (defmacro erc-scenarios-common-with-cleanup (bindings &rest body)
   "Provide boilerplate cleanup tasks after calling BODY with BINDINGS.
+Shadow various options and variables used by ERC with values more
+suitable for test purposes.  These can be overridden in the \"varlist\"
+BINDINGS.  Upon exiting, kill buffers and delete processes created by
+ERC, as well as any bound to variables in BINDINGS.  However, adding
+items not referenced in BODY for this purpose alone can confuse readers.
 
-If an `erc-d' process exists, wait for it to start before running BODY.
-If `erc-autojoin-mode' mode is bound, restore it during cleanup if
-disabled by BODY.  Other defaults common to these test cases are added
-below and can be overridden, except when wanting the \"real\" default
-value, which must be looked up or captured outside of the calling form.
+Avoid taking special care to restore the effect of activating global
+modules in BODY.  However, as a special case, if the variable
+`erc-autojoin-mode' mode is bound, restore its minor-mode activation
+state during teardown if modified by BODY.
 
-When running tests tagged as serially runnable while interactive
-and the flag `erc-scenarios-common--graphical-p' is non-nil, run
-teardown tasks normally inhibited when interactive.  That is,
-behave almost as if `noninteractive' were also non-nil, and
-ensure buffers and other resources are destroyed on completion.
+Additionally, prepare the environment for an `erc-d' test server.  If an
+`erc-d' process exists, wait for it to start before running BODY.
+Locate dialog resource directories by expanding the variable
+`erc-scenarios-common-dialog' or its value in BINDINGS.
 
-Dialog resource directories are located by expanding the variable
-`erc-scenarios-common-dialog' or its value in BINDINGS."
+If the flag `erc-scenarios-common--graphical-p' is non-nil and a test is
+tagged as interactive-aware, usually via the \"ERC_TESTS_GRAPHICAL\"
+environment variable, run teardown tasks normally inhibited when
+interactive.  That is, behave almost as if `noninteractive' were also
+non-nil, and ensure buffers and other resources are destroyed on
+completion."
   (declare (indent 1))
 
   (let* ((orig-autojoin-mode (make-symbol "orig-autojoin-mode"))
          (combined `((,orig-autojoin-mode (bound-and-true-p erc-autojoin-mode))
-                     ,@(erc-scenarios-common--make-bindings bindings))))
+                     ,@(erc-scenarios-common--make-bindings bindings)))
+         (dynvars ()))
 
-    `(erc-d-t-with-cleanup (,@combined)
+    ;; Declare "erc-" variables dynamic in test scope.
+    (dolist (binder combined)
+      (setq binder (ensure-list binder))
+      (when (and (string-prefix-p "erc-" (symbol-name (car binder)))
+                 (not (special-variable-p (car binder))))
+        (push `(defvar ,(car binder)) dynvars)))
+    `(let (_)
+       ,@dynvars
+       (erc-d-t-with-cleanup (,@combined)
 
-         (ert-info ("Restore autojoin, etc., kill ERC buffers")
+           (ert-info ("Restore autojoin, etc., kill ERC buffers")
+             (dolist (buf (buffer-list))
+               (when-let* ((erc-d-u--process-buffer)
+                           (proc (get-buffer-process buf)))
+                 (delete-process proc)))
+
+             (erc-scenarios-common--remove-silence)
+
+             (when erc-scenarios-common-extra-teardown
+               (ert-info ("Running extra teardown")
+                 (funcall erc-scenarios-common-extra-teardown)))
+
+             (erc-buffer-do #'erc-scenarios-common--assert-date-stamps)
+             (when (and (boundp 'erc-autojoin-mode)
+                        (not (eq erc-autojoin-mode ,orig-autojoin-mode)))
+               (erc-autojoin-mode (if ,orig-autojoin-mode +1 -1)))
+
+             (when (or noninteractive erc-scenarios-common--graphical-p)
+               (when noninteractive
+                 (erc-scenarios-common--print-trace))
+               (erc-d-t-kill-related-buffers)
+               (delete-other-windows)))
+
+         (erc-scenarios-common--add-silence)
+
+         (ert-info ("Wait for dumb server")
            (dolist (buf (buffer-list))
-             (when-let* ((erc-d-u--process-buffer)
-                         (proc (get-buffer-process buf)))
-               (delete-process proc)))
+             (with-current-buffer buf
+               (when erc-d-u--process-buffer
+                 (erc-d-t-search-for 3 "Starting")))))
 
-           (erc-scenarios-common--remove-silence)
+         (ert-info ("Activate erc-debug-irc-protocol")
+           (unless (and (or noninteractive erc-scenarios-common--graphical-p)
+                        (not erc-debug-irc-protocol))
+             (erc-toggle-debug-irc-protocol)))
 
-           (when erc-scenarios-common-extra-teardown
-             (ert-info ("Running extra teardown")
-               (funcall erc-scenarios-common-extra-teardown)))
-
-           (erc-buffer-do #'erc-scenarios-common--assert-date-stamps)
-           (when (and (boundp 'erc-autojoin-mode)
-                      (not (eq erc-autojoin-mode ,orig-autojoin-mode)))
-             (erc-autojoin-mode (if ,orig-autojoin-mode +1 -1)))
-
-           (when (or noninteractive erc-scenarios-common--graphical-p)
-             (when noninteractive
-               (erc-scenarios-common--print-trace))
-             (erc-d-t-kill-related-buffers)
-             (delete-other-windows)))
-
-       (erc-scenarios-common--add-silence)
-
-       (ert-info ("Wait for dumb server")
-         (dolist (buf (buffer-list))
-           (with-current-buffer buf
-             (when erc-d-u--process-buffer
-               (erc-d-t-search-for 3 "Starting")))))
-
-       (ert-info ("Activate erc-debug-irc-protocol")
-         (unless (and (or noninteractive erc-scenarios-common--graphical-p)
-                      (not erc-debug-irc-protocol))
-           (erc-toggle-debug-irc-protocol)))
-
-       ,@body)))
+         ,@body))))
 
 (defvar erc-scenarios-common--term-size '(34 . 80))
 (declare-function term-char-mode "term" nil)
@@ -267,6 +280,10 @@ Dialog resource directories are located by expanding the variable
                               (package-initialize))))
                    (require 'erc)
                    (cl-assert (equal erc-version ,erc-version) t)))
+         ;; Load test-related compat shims too niche for Compat, such as
+         ;; a <31 definition of `ert-with-buffer-selected'.
+         (tcompat (and (featurep 'erc-tests-compat)
+                       (locate-library "erc-tests-compat")))
          ;; Make subprocess terminal bigger than controlling.
          (buf (cl-letf (((symbol-function 'window-screen-lines)
                          (lambda () (car erc-scenarios-common--term-size)))
@@ -277,6 +294,9 @@ Dialog resource directories are located by expanding the variable
                        nil `(,@(or init '("-Q")) "-nw"
                              "-eval" ,(format "%S" setup)
                              "-l" ,file-name
+                             ,@(and tcompat
+                                    (list "-L" (file-name-directory tcompat)
+                                          "-l" tcompat))
                              "-eval" ,(format "%S" cmd)))))
          (proc (get-buffer-process buf))
          (err (lambda ()
@@ -329,9 +349,11 @@ See Info node `(emacs) Term Mode' for the various commands."
 
 (defun erc-scenarios-common--assert-date-stamps ()
   "Ensure all date stamps are accounted for."
-  (dolist (stamp erc-stamp--date-stamps)
-    (should (eq 'datestamp (get-text-property (erc-stamp--date-marker stamp)
-                                              'erc--msg)))))
+  (defvar erc-stamp--date-stamps)
+  (when (fboundp 'erc-stamp--date-marker)
+    (dolist (stamp erc-stamp--date-stamps)
+      (should (eq 'datestamp (get-text-property (erc-stamp--date-marker stamp)
+                                                'erc--msg))))))
 
 (defun erc-scenarios-common-assert-initial-buf-name (id port)
   ;; Assert no limbo period when explicit ID given

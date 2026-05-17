@@ -1021,7 +1021,13 @@ the buffer contents as a comment."
             (t
              (quit-windows-on logbuf nil 0)))
 
-      (when (eq (car-safe log-operation-ret) 'async)
+      (when (and (eq (car-safe log-operation-ret) 'async)
+                 ;; For an async commit, if we will display the buffer
+                 ;; if the command fails, don't display it sooner.
+                 ;; The output from successful commit commands isn't
+                 ;; interesting and VC-Dir will show the files as being
+                 ;; committed while it's in progress.
+                 (not vc-display-failed-async-commands))
         (vc--display-async-command-buffer (process-buffer
                                            (cadr log-operation-ret))))
 

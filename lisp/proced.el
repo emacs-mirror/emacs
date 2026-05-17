@@ -176,13 +176,16 @@ Each element has the form
 
   (KEY NAME FORMAT JUSTIFY PREDICATE REVERSE SORT-SCHEME REFINER).
 
-Symbol KEY is the car of a process attribute.
+Symbol KEY is the symbol of a process attribute, see `process-attributes'
+and `proced-process-attributes'.
 
 String NAME appears in the header line.
 
-FORMAT specifies the format for displaying the attribute values.  It can
-be a string passed to `format'.  It can be a function called with one
-argument, the value of the attribute.  The value nil means take as is.
+FORMAT specifies the format for displaying the attribute values.
+It can be a string passed to `format'.  It can be a function called with one
+argument, the value of the attribute.  This function can access the full list
+of attributes of the respective process via `proced-current-process'.
+If FORMAT is nil take the attribute value as is.
 
 If JUSTIFY is an integer, its modulus gives the width of the attribute
 values formatted with FORMAT.  If JUSTIFY is positive, NAME appears
@@ -277,7 +280,7 @@ The car of each element is a symbol, the name of the format.
 The cdr is a list of attribute keys appearing in `proced-grammar-alist'.
 An element of this list may also be a list of attribute keys that specifies
 alternatives.  If the first attribute is absent for a process, use the second
-one, etc."
+one, etc.  See `process-attributes' for the meaning of each attribute."
   :type '(alist :key-type (symbol :tag "Format Name")
                 :value-type (repeat :tag "Keys"
                                     (choice (symbol :tag "")
@@ -287,7 +290,8 @@ one, etc."
 (defcustom proced-format 'short
   "Current format of Proced listing.
 It can be the car of an element of `proced-format-alist'.
-It can also be a list of keys appearing in `proced-grammar-alist'."
+It can also be a list of keys appearing in `proced-grammar-alist'.
+See `process-attributes' for the meaning of each attribute key."
   :type '(choice (symbol :tag "Format Name")
                  (repeat :tag "Keys" (symbol :tag "")))
   :local t)
@@ -427,6 +431,10 @@ cons pairs, see `proced-process-attributes'.")
 (defvar proced-sort-internal nil
   "Sort scheme for listing (internal format).
 It is a list of lists (KEY PREDICATE REVERSE).")
+
+(defvar proced-current-process nil
+  "Attributes of current process worked on by function `proced-format'.
+See `proced-grammar-alist'.")
 
 (defvar proced-marker-char ?*		; the answer is 42
   "In Proced, the current mark character.")
@@ -857,7 +865,8 @@ The variable `proced-filter' specifies which system processes are
 displayed.
 
 The variable `proced-format' specifies which attributes are
-displayed for each process.
+displayed for each process.  See `process-attributes' for the
+meaning of each displayed attribute.
 
 Type \\[proced-filter-interactive] and \\[proced-format-interactive] to \
 change the values of `proced-filter' and
@@ -906,7 +915,7 @@ normal hook `proced-post-display-hook'.
 
 ;;;###autoload
 (defun proced (&optional arg)
-  "Generate a listing of UNIX system processes.
+  "Generate a listing of system processes and their attributes.
 \\<proced-mode-map>
 If invoked with optional non-negative ARG, do not select the
 window displaying the process information.
@@ -1682,13 +1691,13 @@ Replace newline characters by \"^J\" (two characters)."
 
 (defun proced-format-pid (pid)
   "Format PID."
-  (let ((proc-info (process-attributes pid))
-        (pid-s (number-to-string pid)))
+  (let ((pid-s (number-to-string pid)))
     (cond ((and proced-enable-color-flag
                 (not (file-remote-p default-directory))
                 (equal pid (emacs-pid)))
            (propertize pid-s 'font-lock-face 'proced-emacs-pid))
-          ((and proced-enable-color-flag (equal pid (alist-get 'sess proc-info)))
+          ((and proced-enable-color-flag
+                (equal pid (alist-get 'sess proced-current-process)))
            (propertize pid-s 'font-lock-face 'proced-session-leader-pid))
           (proced-enable-color-flag
            (propertize pid-s 'font-lock-face 'proced-pid))
@@ -1742,13 +1751,12 @@ Replace newline characters by \"^J\" (two characters)."
   (if (symbolp format)
       (setq format (cdr (assq format proced-format-alist))))
 
-  ;; Not all systems give us all attributes.  We take `emacs-pid' as a
-  ;; representative process PID.  If FORMAT contains a list of alternative
-  ;; attributes, we take the first attribute that is non-nil for `emacs-pid'.
+  ;; Not all systems give us all attributes.  We take the first process as a
+  ;; representative process.  If FORMAT contains a list of alternative
+  ;; attributes, we take the first attribute that is non-nil for this process.
   ;; If none of the alternatives is non-nil, the attribute is ignored
   ;; in the listing.
-  (let ((standard-attributes
-         (car (proced-process-attributes (list-system-processes))))
+  (let ((standard-attributes (car process-alist))
         new-format fmi)
     (if (and proced-tree-flag
              (assq 'ppid standard-attributes))
@@ -1810,9 +1818,9 @@ Replace newline characters by \"^J\" (two characters)."
         (goto-char (point-min))
         (cond ( ;; fixed width of output field
                (numberp (nth 3 grammar))
-               (dolist (process process-alist)
+               (dolist (proced-current-process process-alist)
                  (end-of-line)
-                 (setq value (cdr (assq key (cdr process))))
+                 (setq value (cdr (assq key (cdr proced-current-process))))
                  (insert (if value
                              (apply #'propertize (funcall fun value) fprops)
                            (format (concat "%" (number-to-string (nth 3 grammar)) "s")
@@ -1825,10 +1833,11 @@ Replace newline characters by \"^J\" (two characters)."
 
               ( ;; last field left-justified
                (and (not format) (eq 'left (nth 3 grammar)))
-               (dolist (process process-alist)
+               (dolist (proced-current-process process-alist)
                  (end-of-line)
-                 (setq value (cdr (assq key (cdr process))))
-                 (insert (if value (apply #'propertize (funcall fun value) fprops)
+                 (setq value (cdr (assq key (cdr proced-current-process))))
+                 (insert (if value
+                             (apply #'propertize (funcall fun value) fprops)
                            unknown))
                  (forward-line))
                (push (apply #'propertize (nth 1 grammar) hprops) header-list))
@@ -1836,8 +1845,8 @@ Replace newline characters by \"^J\" (two characters)."
               (t ;; calculated field width
                (let ((width (length (nth 1 grammar)))
                      field-list value)
-                 (dolist (process process-alist)
-                   (setq value (cdr (assq key (cdr process))))
+                 (dolist (proced-current-process process-alist)
+                   (setq value (cdr (assq key (cdr proced-current-process))))
                    (if value
                        (setq value (apply #'propertize (funcall fun value) fprops)
                              width (max width (length value))
@@ -1892,6 +1901,9 @@ With prefix REVERT non-nil revert listing."
 (defun proced-process-attributes (&optional pid-list)
   "Return alist of attributes for each system process.
 This alist can be customized via `proced-custom-attributes'.
+The function filters the list of attributes returned
+by `process-attributes' by passing each attribute to the
+functions in `proced-custom-attributes'.
 Optional arg PID-LIST is a list of PIDs of system process that are analyzed.
 If no attributes are known for a process (possibly because it already died)
 the process is ignored."

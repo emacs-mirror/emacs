@@ -1730,7 +1730,8 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 
 	if (unbinding_p && blv->fwd)
 	  /* Forbid unbinding built-in variables.  */
-	  error ("Built-in variables may not be unbound");
+	  error ("Built-in variable may not be unbound : %s",
+		 SDATA (SYMBOL_NAME (symbol)));
 
 	if (NILP (where))
 	  XSETBUFFER (where, current_buffer);
@@ -1809,7 +1810,8 @@ set_internal (Lisp_Object symbol, Lisp_Object newval, Lisp_Object where,
 
 	if (unbinding_p)
 	  /* Forbid unbinding built-in variables.  */
-	  error ("Built-in variables may not be unbound");
+	  error ("Built-in variable may not be unbound : %s",
+		 SDATA (SYMBOL_NAME (symbol)));
 
 	if (BUFFER_OBJFWDP (innercontents))
 	  {

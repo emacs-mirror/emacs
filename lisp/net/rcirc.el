@@ -3933,7 +3933,7 @@ PROCESS is the process object for the current connection."
   :group 'faces)
 
 (defface rcirc-monospace-text
-  '((t :family "Monospace"))
+  '((t :inherit fixed-pitch))
   "Face used for monospace text in messages.")
 
 (defface rcirc-my-nick                  ; font-lock-function-name-face

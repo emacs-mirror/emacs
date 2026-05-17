@@ -1772,7 +1772,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\|SQUASHFS\\)\\'"
     ;; https://spec.editorconfig.org/ says:
     ;;     EditorConfig files must be UTF-8 encoded,
     ;;     with LF or CRLF line separators.
-    ("/\\.editorconfig\\'" . utf-8-undecided)
+    ("/\\.editorconfig\\'" . utf-8)
     ("/#[^/]+#\\'" . utf-8-emacs-unix))
   "Alist of filename patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).

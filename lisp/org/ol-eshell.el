@@ -30,7 +30,7 @@
 (require 'esh-mode)
 (require 'ol)
 
-(declare-function eshell/pwd "em-dirs.el" (&rest args))
+(declare-function eshell/pwd "em-dirs" ())
 
 (org-link-set-parameters "eshell"
 			 :follow #'org-eshell-open

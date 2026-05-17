@@ -90,9 +90,7 @@
 (declare-function org-publish-all "ox-publish" (&optional force async))
 (declare-function org-publish-current-file "ox-publish" (&optional force async))
 (declare-function org-publish-current-project "ox-publish" (&optional force async))
-(declare-function org-at-heading-p "org" (&optional _))
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
-(declare-function org-next-visible-heading "org" (arg))
 
 (defvar org-publish-project-alist)
 (defvar org-table-number-fraction)
@@ -184,6 +182,20 @@ BEHAVIOR determines how Org should handle multiple keywords for
 
 Values set through KEYWORD and OPTION have precedence over
 DEFAULT.
+
+When adding new export options to the alist, it is recommended to
+provide OPTION and/or KEYWORD depending on the allowed values for a
+given export option.  For example,
+ (:with-tags nil \"tags\" org-export-with-tags)
+takes short boolean values t/nil and can be succintly set as
+ #+OPTIONS: tags:t
+So, using OPTION makes more sense than forcing something like
+ #+WITH_TAGS: t
+
+On the other hand,
+ (:title \"TITLE\" nil nil parse)
+may have very long string value and may better be set on a separate line
+ #+TITLE: Some very long title that would not fit well into #+OPTIONS
 
 All these properties should be backend agnostic.  Backend
 specific properties are set through `org-export-define-backend'.
@@ -520,10 +532,10 @@ t           Allow export of math snippets."
   :safe (lambda (x) (memq x '(t nil verbatim))))
 
 (defcustom org-export-headline-levels 3
-  "The last level which is still exported as a headline.
+  "This level and its ancestors will be exported as a headline.
 
-Inferior levels will usually produce itemize or enumerate lists
-when exported, but backend behavior may differ.
+Descendants of this level will usually produce itemized or
+enumerated lists when exported, but backend behavior may differ.
 
 This option can also be set with the OPTIONS keyword,
 e.g. \"H:2\"."
@@ -802,10 +814,11 @@ also be set with the OPTIONS keyword, e.g. \"timestamp:nil\"."
   "Non-nil means allow timestamps in export.
 
 It can be set to any of the following values:
-  t          export all timestamps.
-  `active'   export active timestamps only.
-  `inactive' export inactive timestamps only.
-  nil        do not export timestamps
+  t                        export all timestamps.
+  `active'                 export active timestamps, including diary timestamps.
+  `active-exclude-diary'   export active timestamps, excluding diary timestamps.
+  `inactive'               export inactive timestamps only.
+  nil                      do not export timestamps
 
 This only applies to timestamps isolated in a paragraph
 containing only timestamps.  Other timestamps are always
@@ -814,12 +827,15 @@ exported.
 This option can also be set with the OPTIONS keyword, e.g.
 \"<:nil\"."
   :group 'org-export-general
+  :package-version '(Org . "9.8")
   :type '(choice
 	  (const :tag "All timestamps" t)
-	  (const :tag "Only active timestamps" active)
+	  (const :tag "Active timestamps, including diary timestamps" active)
+	  (const :tag "Active timestamps, excluding diary timestamps"
+                 active-exclude-diary)
 	  (const :tag "Only inactive timestamps" inactive)
 	  (const :tag "No timestamp" nil))
-  :safe (lambda (x) (memq x '(t nil active inactive))))
+  :safe (lambda (x) (memq x '(t nil active active-exclude-diary inactive))))
 
 (defcustom org-export-with-todo-keywords t
   "Non-nil means include TODO keywords in export.
@@ -863,6 +879,15 @@ This option can also be set with the OPTIONS keyword, e.g.,
   :group 'org-export-general
   :package-version '(Org . "9.7")
   :type 'boolean)
+
+(defcustom org-export-replace-macros t
+  "When non-nil, replace macros before export.
+This variable does not affect {{{results}}} macros when processing
+code block results."
+  :group 'org-export-general
+  :package-version '(Org . "9.8")
+  :type 'boolean
+  :safe (lambda (obj) (null obj)))
 
 (defcustom org-export-snippet-translation-alist nil
   "Alist between export snippets backends and exporter backends.
@@ -1131,7 +1156,7 @@ Return nil if BACKEND is unknown."
     (let ((options (org-export-backend-options backend))
 	  parent)
       (while (setq parent (org-export-backend-parent backend))
-	(setq backend (org-export-get-backend parent))
+	(setq backend (if (symbolp parent) (org-export-get-backend parent) parent))
 	(setq options (append options (org-export-backend-options backend))))
       options)))
 
@@ -1149,7 +1174,7 @@ returns filters inherited from parent backends, if any."
     (let ((filters (org-export-backend-filters backend))
 	  parent)
       (while (setq parent (org-export-backend-parent backend))
-	(setq backend (org-export-get-backend parent))
+	(setq backend (if (symbolp parent) (org-export-get-backend parent) parent))
 	(setq filters (append filters (org-export-backend-filters backend))))
       filters)))
 
@@ -1433,11 +1458,15 @@ specific items to read, if any."
 	;; Priority is given to backend specific options.
 	(all (append (org-export-get-all-options backend)
 		     org-export-options-alist))
-	(plist))
+	(plist)
+        seen-options)
     (when line
       (dolist (entry all plist)
 	(let ((item (nth 2 entry)))
-	  (when item
+	  (when (and item
+                     ;; Only use the first option set by derived backend.
+                     (not (memq (car entry) seen-options)))
+            (push (car entry) seen-options)
 	    (let ((v (assoc-string item line t)))
 	      (when v (setq plist (plist-put plist (car entry) (cdr v)))))))))))
 
@@ -1469,12 +1498,17 @@ for export.  Return options as a plist."
 	 ;; Look for both general keywords and backend specific
 	 ;; options, with priority given to the latter.
 	 (options (append (org-export-get-all-options backend)
-			  org-export-options-alist)))
+			  org-export-options-alist))
+         seen-properties)
      ;; Handle other keywords.  Then return PLIST.
      (dolist (option options plist)
        (let ((property (car option))
 	     (keyword (nth 1 option)))
-	 (when keyword
+	 (when (and keyword
+                    ;; Only consider the first instance of property
+                    ;; In other words, derived backend settings take precendence.
+                    (not (memq property seen-properties)))
+           (push property seen-properties)
 	   (let ((value
 		  (or (cdr (assoc keyword cache))
 		      (let ((v (org-entry-get (point)
@@ -1510,10 +1544,18 @@ Assume buffer is in Org mode.  Narrowing, if any, is ignored."
     (let ((find-properties
 	   (lambda (keyword)
 	     ;; Return all properties associated to KEYWORD.
-	     (let (properties)
+	     (let (properties seen-properties)
 	       (dolist (option options properties)
-		 (when (equal (nth 1 option) keyword)
-		   (cl-pushnew (car option) properties)))))))
+                 ;; Ignore all but first :export-property
+                 ;; This is to avoid situations like
+                 ;; (:parent-backend-property "PARENT_KEYWORD" ...)
+                 ;; (:child-backend-property "CHILD_KEYWORD" ...)
+                 ;; where we should ignore #+PARENT_KEYWORD when child
+                 ;; backend is used.
+                 (unless (memq (car option) seen-properties)
+                   (push (car option) seen-properties)
+		   (when (equal (nth 1 option) keyword)
+		     (cl-pushnew (car option) properties))))))))
       ;; Read options in the current buffer and return value.
       (dolist (entry (org-collect-keywords
 		      (nconc (delq nil (mapcar #'cadr options))
@@ -1849,13 +1891,23 @@ not exported."
 		         (lambda (obj)
 			   (or (not (stringp obj)) (org-string-nw-p obj)))
 		         options t))))
-       (cl-case (plist-get options :with-timestamps)
-	 ((nil) t)
-	 (active
-	  (not (memq (org-element-property :type datum) '(active active-range))))
-	 (inactive
-	  (not (memq (org-element-property :type datum)
-		     '(inactive inactive-range)))))))))
+       (org-export--skip-timestamp-p
+        (plist-get options :with-timestamps)
+        (org-element-property :type datum))))))
+
+(defun org-export--skip-timestamp-p (with-timestamps timestamp-type)
+  "Decides whether to skip a timestamp during export.
+WITH-TIMESTAMPS should be a valid option for
+`org-export-with-timestamps'.  TIMESTAMP-TYPE should be the
+`:type' property of a timestamp element."
+  (cl-case with-timestamps
+    ((nil) t)
+    (active
+     (not (memq timestamp-type '(active active-range diary))))
+    (active-exclude-diary
+     (not (memq timestamp-type '(active active-range))))
+    (inactive
+     (not (memq timestamp-type '(inactive inactive-range))))))
 
 
 ;;; The Transcoder
@@ -2123,8 +2175,8 @@ keywords before output."
 ;; Filters properties are installed in communication channel with
 ;; `org-export-install-filters' function.
 ;;
-;; Eventually, two hooks (`org-export-before-processing-hook' and
-;; `org-export-before-parsing-hook') are run at the beginning of the
+;; Eventually, two hooks (`org-export-before-processing-functions' and
+;; `org-export-before-parsing-functions') are run at the beginning of the
 ;; export process and just before parsing to allow for heavy structure
 ;; modifications.
 
@@ -3048,12 +3100,13 @@ still inferior to file-local settings."
                                org-export-options-alist))))
         tree modified-tick)
     ;; Run first hook with current backend's name as argument.
-    (run-hook-with-args 'org-export-before-processing-hook
+    (run-hook-with-args 'org-export-before-processing-functions
                         (org-export-backend-name backend))
     (org-export-expand-include-keyword nil nil nil nil (plist-get info :expand-links))
     (org-export--delete-comment-trees)
-    (org-macro-initialize-templates org-export-global-macros)
-    (org-macro-replace-all org-macro-templates parsed-keywords)
+    (when org-export-replace-macros
+      (org-macro-initialize-templates org-export-global-macros)
+      (org-macro-replace-all org-macro-templates parsed-keywords))
     ;; Refresh buffer properties and radio targets after previous
     ;; potentially invasive changes.
     (org-set-regexps-and-options)
@@ -3075,7 +3128,7 @@ still inferior to file-local settings."
     ;; before parsing.
     (goto-char (point-min))
     (save-excursion
-      (run-hook-with-args 'org-export-before-parsing-hook
+      (run-hook-with-args 'org-export-before-parsing-functions
                           (org-export-backend-name backend)))
     (unless (eq modified-tick (buffer-chars-modified-tick))
       (org-set-regexps-and-options)
@@ -3111,6 +3164,17 @@ still inferior to file-local settings."
           (when result (setq info result)))))
     ;; Parse buffer.
     (setq tree (org-element-parse-buffer nil visible-only 'defer))
+    ;; Force parsing ALT_TITLE property of headlines.
+    (org-element-map tree '(headline inlinetask)
+      (lambda (h)
+        (when-let* ((alt-title (org-element-property :ALT_TITLE h)))
+          (org-element-put-property
+           h :ALT_TITLE
+           (org-element-parse-secondary-string
+	    alt-title (org-element-restriction 'headline) h))
+          (org-element-put-property
+           h :secondary
+           (cons :ALT_TITLE (org-element-property :secondary h))))))
     ;; Prune tree from non-exported elements and transform
     ;; uninterpreted elements or objects in both parse tree and
     ;; communication channel.
@@ -3293,7 +3357,8 @@ variables in include file names."
           (when (org-element-type-p element 'keyword)
             (forward-line 0)
             ;; Extract arguments from keyword's value.
-            (let* ((value (org-element-property :value element))
+            (let* ((indentation (org-current-text-indentation))
+                   (value (org-element-property :value element))
                    (parameters (org-export-parse-include-value value dir))
                    (file (if expand-env
                              (substitute-env-in-file-name
@@ -3318,7 +3383,8 @@ variables in include file names."
                  :file-prefix file-prefix
                  :footnotes footnotes
                  :already-included included
-                 :expand-env expand-env)
+                 :expand-env expand-env
+                 :indentation indentation)
                 ;; Expand footnotes after all files have been
                 ;; included.  Footnotes are stored at end of buffer.
                 (unless included
@@ -3413,7 +3479,8 @@ provided as the :unmatched parameter."
 
 (cl-defun org-export--blindly-expand-include
     (parameters
-     &key includer-file file-prefix footnotes already-included expand-env)
+     &key includer-file file-prefix footnotes
+     already-included expand-env indentation)
   "Unconditionally include reference defined by PARAMETERS in the buffer.
 PARAMETERS is a plist of the form returned by `org-export-parse-include-value'.
 
@@ -3425,7 +3492,7 @@ which when provided allows footnotes to be handled appropriately.
 ALREADY-INCLUDED is a list of included names along with their
 line restriction which prevents recursion.  EXPAND-ENV is a flag to
 expand environment variables for #+INCLUDE keywords in the included
-file."
+file.  INDENTATION is the common indentation to be added."
   (let* ((coding-system-for-read
           (or (plist-get parameters :coding-system)
               coding-system-for-read))
@@ -3433,7 +3500,7 @@ file."
          (lines (plist-get parameters :lines))
          (args (plist-get parameters :args))
          (block (plist-get parameters :block))
-         (ind (org-current-text-indentation)))
+         (ind indentation))
     (cond
      ((eq (plist-get parameters :env) 'literal)
       (insert
@@ -4198,10 +4265,8 @@ fail, the fall-back value is \"???\"."
 (defun org-export-get-alt-title (headline _)
   "Return alternative title for HEADLINE, as a secondary string.
 If no optional title is defined, fall-back to the regular title."
-  (let ((alt (org-element-property :ALT_TITLE headline)))
-    (if alt (org-element-parse-secondary-string
-	     alt (org-element-restriction 'headline) headline)
-      (org-element-property :title headline))))
+  (or (org-element-property :ALT_TITLE headline)
+      (org-element-property :title headline)))
 
 (defun org-export-first-sibling-p (blob info)
   "Non-nil when BLOB is the first sibling in its parent.
@@ -4658,7 +4723,6 @@ Return value can be an object or an element:
         (org-persist-register location-type path
                               :write-immediately t))))
 
-(require 'subr-x) ;; FIXME: For `thread-first' in Emacs 26.
 (defun org-export-link-localise (link)
   "Convert remote LINK to local link.
 If LINK refers to a remote resource, modify it to point to a local
@@ -5549,12 +5613,10 @@ Footnote sections are ignored."
 		     (+ (org-export-get-relative-level scope info) n))
 		   limit))))
     (org-element-map (org-element-contents scope) 'headline
-      (lambda (h)
-	(and (not (org-element-property :footnote-section-p h))
-	     (not (equal "notoc"
-		       (org-export-get-node-property :UNNUMBERED h t)))
-	     (>= n (org-export-get-relative-level h info))
-	     h))
+      (lambda (headline)
+        (and (not (org-export-excluded-from-toc-p headline info))
+             (>= n (org-export-get-relative-level headline info))
+             headline))
       info)))
 
 (defun org-export-collect-elements (type info &optional predicate)
@@ -5619,7 +5681,11 @@ contents.  However, it is useful if some additional processing is
 required on headlines excluded from table of contents."
   (or (org-element-property :footnote-section-p headline)
       (org-export-low-level-p headline info)
-      (equal "notoc" (org-export-get-node-property :UNNUMBERED headline t))))
+      (equal "notoc" (org-export-get-node-property :UNNUMBERED headline t))
+      (let ((toc-depth (plist-get info :with-toc)))
+        (and (wholenump toc-depth)
+             (> (org-export-get-relative-level headline info)
+                toc-depth)))))
 
 (defun org-export-toc-entry-backend (parent &rest transcoders)
   "Return an export backend appropriate for table of contents entries.
@@ -6179,6 +6245,7 @@ them."
      ("tr" :default "Devamı sonraki sayfada"))
     ("Created"
      ("cs" :default "Vytvořeno")
+     ("de" :default "Erstellt am")
      ("et" :default "Loodud")
      ("fa" :default "ساخته شده")
      ("nl" :default "Gemaakt op")  ;; must be followed by a date or date+time
@@ -6267,25 +6334,25 @@ them."
     ("Figure %d:"
      ("ar" :default "شكل %d:")
      ("cs" :default "Obrázek %d:")
-     ("da" :default "Figur %d")
+     ("da" :default "Figur %d:")
      ("de" :default "Abbildung %d:")
      ("es" :default "Figura %d:")
      ("et" :default "Joonis %d:")
      ("fa" :default "شکل %d:")
-     ("fr" :default "Figure %d :" :html "Figure&nbsp;%d&nbsp;:")
-     ("is" :default "Mynd %d")
+     ("fr" :default "Figure %d:" :html "Figure&nbsp;%d&nbsp;:")
+     ("is" :default "Mynd %d:")
      ("it" :default "Figura %d:")
-     ("ja" :default "図%d: " :html "&#22259;%d: ")
+     ("ja" :default "図%d:" :html "&#22259;%d:")
      ("nl" :default "Figuur %d:" :html "Figuur&nbsp;%d:")
-     ("no" :default "Illustrasjon %d")
-     ("nb" :default "Illustrasjon %d")
-     ("nn" :default "Illustrasjon %d")
-     ("pl" :default "Obrazek %d") ; alternatively "Rysunek %d"
+     ("no" :default "Illustrasjon %d:")
+     ("nb" :default "Illustrasjon %d:")
+     ("nn" :default "Illustrasjon %d:")
+     ("pl" :default "Obrazek %d:") ; alternatively "Rysunek %d"
      ("pt_BR" :default "Figura %d:")
      ("ro" :default "Imaginea %d:")
      ("ru" :html "&#1056;&#1080;&#1089;. %d.:" :utf-8 "Рис. %d.:")
-     ("sl" :default "Slika %d")
-     ("sv" :default "Illustration %d")
+     ("sl" :default "Slika %d:")
+     ("sv" :default "Illustration %d:")
      ("tr" :default "Şekil %d:")
      ("zh-CN" :html "&#22270;%d&nbsp;" :utf-8 "图%d "))
     ("Footnotes"
@@ -6393,24 +6460,24 @@ them."
     ("Listing %d:"
      ("ar" :default "برنامج %d:")
      ("cs" :default "Program %d:")
-     ("da" :default "Program %d")
-     ("de" :default "Programmlisting %d")
-     ("es" :default "Listado de programa %d")
-     ("et" :default "Loend %d")
+     ("da" :default "Program %d:")
+     ("de" :default "Programmlisting %d:")
+     ("es" :default "Listado de programa %d:")
+     ("et" :default "Loend %d:")
      ("fa" :default "برنامه‌ریزی %d:")
-     ("fr" :default "Programme %d :" :html "Programme&nbsp;%d&nbsp;:")
-     ("it" :default "Listato %d :")
+     ("fr" :default "Programme %d:" :html "Programme&nbsp;%d&nbsp;:")
+     ("it" :default "Listato %d:")
      ("ja" :default "ソースコード%d:")
      ("nl" :default "Programma %d:" :html "Programma&nbsp;%d:")
      ("nn" :default "Program %d:")
-     ("no" :default "Dataprogram %d")
-     ("nb" :default "Dataprogram %d")
-     ("ro" :default "Lista %d")
+     ("no" :default "Dataprogram %d:")
+     ("nb" :default "Dataprogram %d:")
+     ("ro" :default "Lista %d:")
      ("pl" :default "Indeks %d:")
      ("pt_BR" :default "Listagem %d:")
      ("ru" :html "&#1056;&#1072;&#1089;&#1087;&#1077;&#1095;&#1072;&#1090;&#1082;&#1072; %d.:"
       :utf-8 "Распечатка %d.:")
-     ("sl" :default "Izpis programa %d")
+     ("sl" :default "Izpis programa %d:")
      ("sv" :default "Programlistning %d:")
      ("tr" :default "Program %d:")
      ("zh-CN" :html "&#20195;&#30721;%d&nbsp;" :utf-8 "代码%d "))
@@ -6434,6 +6501,7 @@ them."
     ("See figure %s"
      ("cs" :default "Viz obrázek %s")
      ("et" :default "Vaata joonist %s")
+     ("de" :default "Siehe Abbildung %s")
      ("fa" :default "نمایش شکل %s")
      ("fr" :default "cf. figure %s"
       :html "cf.&nbsp;figure&nbsp;%s" :latex "cf.~figure~%s")
@@ -6450,6 +6518,7 @@ them."
     ("See listing %s"
      ("cs" :default "Viz program %s")
      ("et" :default "Vaata loendit %s")
+     ("de" :default "Siehe Programmlisting %s")
      ("fa" :default "نمایش برنامه‌ریزی %s")
      ("fr" :default "cf. programme %s"
       :html "cf.&nbsp;programme&nbsp;%s" :latex "cf.~programme~%s")
@@ -6466,7 +6535,7 @@ them."
      ("ar" :default "انظر قسم %s")
      ("cs" :default "Viz sekce %s")
      ("da" :default "jævnfør afsnit %s")
-     ("de" :default "siehe Abschnitt %s")
+     ("de" :default "Siehe Abschnitt %s")
      ("es" :ascii "Vea seccion %s" :html "Vea secci&oacute;n %s" :default "Vea sección %s")
      ("et" :default "Vaata peatükki %s" :html "Vaata peat&#252;kki %s" :utf-8 "Vaata peatükki %s")
      ("fa" :default "نمایش بخش %s")
@@ -6489,6 +6558,7 @@ them."
     ("See table %s"
      ("cs" :default "Viz tabulka %s")
      ("et" :default "Vaata tabelit %s")
+     ("de" :default "Siehe Tabelle %s")
      ("fa" :default "نمایش جدول %s")
      ("fr" :default "cf. tableau %s"
       :html "cf.&nbsp;tableau&nbsp;%s" :latex "cf.~tableau~%s")
@@ -6526,27 +6596,27 @@ them."
     ("Table %d:"
      ("ar" :default "جدول %d:")
      ("cs" :default "Tabulka %d:")
-     ("da" :default "Tabel %d")
-     ("de" :default "Tabelle %d")
-     ("es" :default "Tabla %d")
-     ("et" :default "Tabel %d")
-     ("fa" :default "جدول %d")
-     ("fr" :default "Tableau %d :")
-     ("is" :default "Tafla %d")
+     ("da" :default "Tabel %d:")
+     ("de" :default "Tabelle %d:")
+     ("es" :default "Tabla %d:")
+     ("et" :default "Tabel %d:")
+     ("fa" :default "جدول %d:")
+     ("fr" :default "Tableau %d:")
+     ("is" :default "Tafla %d:")
      ("it" :default "Tabella %d:")
      ("ja" :default "表%d:" :html "&#34920;%d:")
      ("nl" :default "Tabel %d:" :html "Tabel&nbsp;%d:")
-     ("no" :default "Tabell %d")
-     ("nb" :default "Tabell %d")
-     ("nn" :default "Tabell %d")
-     ("pl" :default "Tabela %d")
+     ("no" :default "Tabell %d:")
+     ("nb" :default "Tabell %d:")
+     ("nn" :default "Tabell %d:")
+     ("pl" :default "Tabela %d:")
      ("pt_BR" :default "Tabela %d:")
-     ("ro" :default "Tabel %d")
+     ("ro" :default "Tabel %d:")
      ("ru" :html "&#1058;&#1072;&#1073;&#1083;&#1080;&#1094;&#1072; %d.:"
       :utf-8 "Таблица %d.:")
-     ("sl" :default "Tabela %d")
+     ("sl" :default "Tabela %d:")
      ("sv" :default "Tabell %d:")
-     ("tr" :default "Tablo %d")
+     ("tr" :default "Tablo %d:")
      ("zh-CN" :html "&#34920;%d&nbsp;" :utf-8 "表%d "))
     ("Table of Contents"
      ("ar" :default "قائمة المحتويات")
@@ -6673,7 +6743,10 @@ and `org-export-to-file' for more specialized functions."
   ;; buffer to a temporary file, as it may be too long for program
   ;; args in `start-process'.
   (with-temp-message "Initializing asynchronous export process"
-    (let ((copy-fun (org-element--generate-copy-script (current-buffer)))
+    (let ((copy-fun (org-element--generate-copy-script
+                     ;; Text properties may contain unreadable Elisp
+                     ;; objects. Avoid them.
+                     (current-buffer) :drop-text-properties t))
           (temp-file (make-temp-file "org-export-process")))
       (let ((coding-system-for-write 'emacs-internal))
         (write-region
@@ -7382,9 +7455,22 @@ Toggle export options when required.  Otherwise, return value is
 a list with action as CAR and a list of interactive export
 options as CDR."
   (let (key)
-    ;; Scrolling: when in non-expert mode, act on motion keys (C-n,
-    ;; C-p, SPC, DEL).
-    (while (and (setq key (read-char-exclusive prompt))
+    ;; Scrolling: When in non-expert mode, act on motion keys (C-n,
+    ;; C-p, SPC, DEL), and translate down/up arrow keys and scroll
+    ;; wheel to C-n/C-p, respectively.
+    (while (and (setq key
+                      (pcase (read-event prompt)
+                        ((or 'up
+                             `(wheel-up . ,_)
+                             `(double-wheel-up . ,_)
+                             `(triple-wheel-up . ,_))
+                         ?\C-p)
+                        ((or 'down
+                             `(wheel-down . ,_)
+                             `(double-wheel-down . ,_)
+                             `(triple-wheel-down . ,_))
+                         ?\C-n)
+                        (event event)))
 		(not expertp)
 		;; FIXME: Don't use C-v (22) here, as it is used as a
 		;; modifier key in the export dispatch.

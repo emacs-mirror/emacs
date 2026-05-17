@@ -3444,15 +3444,16 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
    /* Maximum precision for a %f conversion such that the trailing
       output digit might be nonzero.  Any precision larger than this
       will not yield useful information.  */
-   USEFUL_PRECISION_MAX = ((1 - LDBL_MIN_EXP)
+   USEFUL_PRECISION_MAX = ((DBL_MANT_DIG - DBL_MIN_EXP)
 			   * (FLT_RADIX == 2 || FLT_RADIX == 10 ? 1
 			      : FLT_RADIX == 16 ? 4
 			      : -1)),
 
    /* Maximum number of bytes (including terminating null) generated
       by any format, if precision is no more than USEFUL_PRECISION_MAX.
-      On all practical hosts, %Lf is the worst case.  */
-   SPRINTF_BUFSIZE = (sizeof "-." + (LDBL_MAX_10_EXP + 1)
+      On all practical hosts %f is the worst case, as %Lf is used only
+      on arguments exactly representable as intmax_t or uintmax_t.  */
+   SPRINTF_BUFSIZE = (sizeof "-." + (DBL_MAX_10_EXP + 1)
 		      + USEFUL_PRECISION_MAX)
   };
   static_assert (USEFUL_PRECISION_MAX > 0);
@@ -3474,11 +3475,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   Lisp_Object val;
   bool arg_intervals = false;
   USE_SAFE_ALLOCA;
-  /* FIXME/igc: SAFE_ALLOCA always uses the slow path because
-     SPRINTF_BUFSIZE > MAX_ALLOCA.  SPRINTF_BUFSIZE should probably be a
-     bit smaller.  */
-  sa_avail -= min (sizeof initial_buffer, sa_avail);
-  eassert (sa_avail >= 0);
+  /* Do not bother doing "sa_avail -= sizeof initial_buffer;" here,
+     as it is OK to go somewhat over MAX_ALLOCA bytes
+     for this particular function's stack frame.  */
 
   /* Information recorded for each format spec.  */
   struct info
@@ -3496,29 +3495,34 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   CHECK_STRING (args[0]);
   bool multibyte_format = STRING_MULTIBYTE (args[0]);
   ptrdiff_t formatlen = SBYTES (args[0]);
-  char *format_start = SAFE_ALLOCA (formatlen + 1);
-  memcpy (format_start, SSDATA (args[0]), formatlen + 1);
   bool fmt_props = !!string_intervals (args[0]);
 
   /* Upper bound on number of format specs.  Each uses at least 2 chars.  */
   ptrdiff_t nspec_bound = SCHARS (args[0]) >> 1;
 
-  /* Allocate the info and discarded tables.  */
-  ptrdiff_t info_size, alloca_size;
-  if (ckd_mul (&info_size, nspec_bound, sizeof *info)
-      || ckd_add (&alloca_size, formatlen, info_size)
-      || SIZE_MAX < alloca_size)
+  /* Allocate auxiliary tables in one go, in the order:
+     spec_arguments, info, format_start, discarded.
+     Because nspec_bound <= formatlen / 2, EXTRA is an upper bound on
+     (nspec_bound * sizeof *info {for info} + formatlen {for
+     format_start} + formatlen {for discarded}).  */
+  ptrdiff_t extra;
+  if (ckd_mul (&extra, formatlen, 2 + (sizeof *info + 1) / 2))
     memory_full (SIZE_MAX);
-  info = SAFE_ALLOCA (alloca_size);
   /* One argument belonging to each spec; but needs to be allocated
      separately so GC doesn't free the strings (bug#75754).  */
   Lisp_Object *spec_arguments;
-  SAFE_ALLOCA_LISP (spec_arguments, nspec_bound);
-  /* discarded[I] is 1 if byte I of the format
-     string was not copied into the output.
-     It is 2 if byte I was not the first byte of its character.  */
-  char *discarded = (char *) &info[nspec_bound];
-  memset (discarded, 0, formatlen);
+  SAFE_ALLOCA_LISP_EXTRA (spec_arguments, nspec_bound, extra);
+  /* The info table.  */
+  static_assert (alignof (struct info) <= alignof (Lisp_Object));
+  info = (struct info *) &spec_arguments[nspec_bound];
+  /* The format string's bytes, sans trailing '\0'.  */
+  char *format_start = memcpy (&info[nspec_bound],
+			       SSDATA (args[0]), formatlen);
+  /* discarded[I] is:
+       1 if byte I of the format string was not copied into the output.
+       2 if byte I was not the first byte of its character.
+       0 otherwise.  */
+  char *discarded = memset (&format_start[formatlen], 0, formatlen);
 
   /* Try to determine whether the result should be multibyte.
      This is not always right; sometimes the result needs to be multibyte
@@ -4403,7 +4407,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
     }
 
  return_val:
-  /* If we allocated BUF or INFO with malloc, free it too.  */
+  /* If we allocated BUF or auxiliary tables with malloc, free it too.  */
   SAFE_FREE ();
 
   return val;

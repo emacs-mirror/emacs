@@ -39,12 +39,11 @@
 (declare-function org-clock-sum-today "org-clock" (&optional headline-filter))
 (declare-function org-element-extract "org-element-ast" (node))
 (declare-function org-element-interpret-data "org-element" (data))
-(declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated))
+(declare-function org-element-map "org-element" (data types fun &optional info first-match no-recursion with-affiliated no-undefer))
 (declare-function org-element-parse-secondary-string "org-element" (string restriction &optional parent))
 (declare-function org-element-property "org-element-ast" (property node))
 (declare-function org-element-restriction "org-element" (element))
 (declare-function org-element-type-p "org-element-ast" (node types))
-(declare-function org-dynamic-block-define "org" (type func))
 (declare-function org-link-display-format "ol" (s))
 (declare-function org-link-open-from-string "ol" (s &optional arg))
 (declare-function face-remap-remove-relative "face-remap" (cookie))
@@ -74,7 +73,7 @@ node `(org)Column attributes')."
 
 (defcustom org-columns-modify-value-for-display-function nil
   "Function that modifies values for display in column view.
-For example, it can be used to cut out a certain part from a time stamp.
+For example, it can be used to cut out a certain part from a timestamp.
 The function must take 2 arguments:
 
 column-title    The title of the column (*not* the property name)
@@ -107,9 +106,8 @@ or (LABEL SUMMARIZE COLLECT) where
   properties is set, e.g., to return VACATION_DAYS only if
   CONFIRMED is true.
 
-Note that the return value can become one value for an higher
-order summary, so the function is expected to handle its own
-output.
+Note that the return value can become one value for a higher-order
+summary, so the function is expected to handle its own output.
 
 Types defined in this variable take precedence over those defined
 in `org-columns-summary-types-default', which see."
@@ -151,10 +149,10 @@ This is the compiled version of the format.")
   "Currently active maximum column widths, as a vector.")
 
 (defvar-local org-columns-begin-marker nil
-  "Points to the position where last a column creation command was called.")
+  "Points to the position where a column creation command was last called.")
 
 (defvar-local org-columns-top-level-marker nil
-  "Points to the position where current columns region starts.")
+  "Points to the position where the current columns region starts.")
 
 (defvar org-columns--time 0.0
   "Number of seconds since the epoch, as a floating point number.")
@@ -179,7 +177,7 @@ This is the compiled version of the format.")
     ("@mean" . org-columns--summary-mean-age)
     ("@min"  . org-columns--summary-min-age)
     ("est+"  . org-columns--summary-estimate))
-  "Map operators to summarize functions.
+  "Map operators to summary functions.
 See `org-columns-summary-types' for details.")
 
 (defun org-columns-content ()
@@ -274,12 +272,12 @@ value for ITEM property."
 	(`(,(or "DEADLINE" "SCHEDULED" "TIMESTAMP") . ,_)
 	 (replace-regexp-in-string org-ts-regexp "[\\1]" value))
 	(`(,_ ,_ ,_ ,_ nil) value)
-	;; If PRINTF is set, assume we are displaying a number and
+	;; If FMT is set, assume we are displaying a number and
 	;; obey to the format string.
-	(`(,_ ,_ ,_ ,_ ,printf) (format printf (string-to-number value)))
+	(`(,_ ,_ ,_ ,_ ,fmt) (format fmt (string-to-number value)))
 	(_ (error "Invalid column specification format: %S" spec)))))
 
-(defun org-columns--collect-values (&optional compiled-fmt)
+(defun org-columns--collect-values (&optional compiled-fmt agenda-marker)
   "Collect values for columns on the current line.
 
 Return a list of triplets (SPEC VALUE DISPLAYED) suitable for
@@ -287,7 +285,11 @@ Return a list of triplets (SPEC VALUE DISPLAYED) suitable for
 
 This function assumes `org-columns-current-fmt-compiled' is
 initialized is set in the current buffer.  However, it is
-possible to override it with optional argument COMPILED-FMT."
+possible to override it with optional argument COMPILED-FMT.
+
+The optional argument AGENDA-MARKER is used when called from the
+agenda to pass a marker to the agenda line.
+"
   (let ((summaries (get-text-property (point) 'org-summaries)))
     (mapcar
      (lambda (spec)
@@ -299,11 +301,19 @@ possible to override it with optional argument COMPILED-FMT."
 			     ;; Effort property is not defined.  Try
 			     ;; to use appointment duration.
 			     org-agenda-columns-add-appointments-to-effort-sum
+                             agenda-marker
 			     (string= p (upcase org-effort-property))
-			     (get-text-property (point) 'duration)
-			     (propertize (org-duration-from-minutes
-					  (get-text-property (point) 'duration))
-					 'face 'org-warning))
+			     (get-text-property
+                              (marker-position agenda-marker)
+                              'duration
+                              (marker-buffer agenda-marker))
+			     (propertize
+                              (org-duration-from-minutes
+                               (get-text-property
+                                (marker-position agenda-marker)
+                                'duration
+                                (marker-buffer agenda-marker)))
+			      'face 'org-warning))
 			"")))
 	    ;; A non-nil COMPILED-FMT means we're calling from Org
 	    ;; Agenda mode, where we do not want leading stars for
@@ -498,7 +508,11 @@ substring whose `string-width' does not exceed WIDTH."
   "Inhibit recomputing of columns on column view startup.")
 (defvar org-columns-flyspell-was-active nil
   "Remember the state of `flyspell-mode' before column view.
-Flyspell-mode can cause problems in columns view, so it is turned off
+Flyspell mode can cause problems in columns view, so it is turned off
+for the duration of the command.")
+(defvar org-columns-org-num-was-active nil
+  "Remember the state of `org-num-mode' before column view.
+Org-num mode can cause problems in columns view, so it is turned off
 for the duration of the command.")
 
 (defvar header-line-format)
@@ -564,6 +578,8 @@ for the duration of the command.")
 	(remove-text-properties (point-min) (point-max) '(read-only t))))
     (when org-columns-flyspell-was-active
       (flyspell-mode 1))
+    (when org-columns-org-num-was-active
+      (org-num-mode 1))
     (when (local-variable-p 'org-colview-initial-truncate-line-value)
       (setq truncate-lines org-colview-initial-truncate-line-value))))
 
@@ -685,7 +701,7 @@ Where possible, use the standard interface for changing this line."
      ((eq major-mode 'org-agenda-mode)
       (org-columns--call action)
       ;; The following let preserves the current format, and makes
-      ;; sure that in only a single file things need to be updated.
+      ;; sure that only a single file needs to be updated.
       (let* ((org-overriding-columns-format org-columns-current-fmt)
 	     (buffer (marker-buffer pom))
 	     (org-agenda-contributing-files
@@ -801,8 +817,8 @@ an integer, select that value."
 
 (defun org-colview-construct-allowed-dates (s)
   "Construct a list of three dates around the date in S.
-This respects the format of the time stamp in S, active or non-active,
-and also including time or not.  S must be just a time stamp, no text
+This respects the format of the timestamp in S, active or non-active,
+and also including time or not.  S must be just a timestamp, no text
 around it."
   (when (and s (string-match (concat "^" org-ts-regexp3 "$") s))
     (let* ((time (org-parse-time-string s 'nodefaults))
@@ -873,7 +889,7 @@ Also sets `org-columns-top-level-marker' to the new position."
 Column view applies to the whole buffer if point is before the first
 headline.  Otherwise, it applies to the first ancestor setting
 \"COLUMNS\" property.  If there is none, it defaults to the current
-headline.  With a `\\[universal-argument]' prefix \ argument, GLOBAL,
+headline.  With a `\\[universal-argument]' prefix argument, GLOBAL,
 turn on column view for the whole buffer unconditionally.
 
 When COLUMNS-FMT-STRING is non-nil, use it as the column format."
@@ -909,6 +925,9 @@ When COLUMNS-FMT-STRING is non-nil, use it as the column format."
 	    (when (setq-local org-columns-flyspell-was-active
 			      (bound-and-true-p flyspell-mode))
 	      (flyspell-mode 0))
+            (when (setq-local org-columns-org-num-was-active
+			      (bound-and-true-p org-num-mode))
+	      (org-num-mode 0))
 	    (unless (local-variable-p 'org-colview-initial-truncate-line-value)
 	      (setq-local org-colview-initial-truncate-line-value
 			  truncate-lines))
@@ -918,15 +937,37 @@ When COLUMNS-FMT-STRING is non-nil, use it as the column format."
 	      (goto-char (car entry))
 	      (org-columns--display-here (cdr entry)))))))))
 
+(defun org-columns--summary-types-completion-function (string pred flag)
+  (let ((completion-table
+         (org-completion-table-with-metadata
+          (lambda (str pred comp)
+            (complete-with-action comp
+                                  (delete-dups
+                                   (cons '("" "")
+                                         (mapcar #'car
+                                                 (append org-columns-summary-types
+                                                         org-columns-summary-types-default))))
+                                  str pred))
+          `(metadata
+            . ((annotation-function
+                . ,(lambda (string)
+                     (let* ((doc (ignore-errors
+                                   (documentation
+                                    (cdr (assoc string
+                                                (append org-columns-summary-types
+                                                        org-columns-summary-types-default))))))
+                            (doc (and doc (substring doc 0 (string-search "\n" doc)))))
+                       (if doc (format " -- %s" doc) "")))))))))
+    (complete-with-action flag completion-table string pred)))
+
 (defun org-columns-new (&optional spec &rest attributes)
   "Insert a new column, to the left of the current column.
 Interactively fill attributes for new column.  When column format
 specification SPEC is provided, edit it instead.
 
-When optional argument attributes can be a list of columns
-specifications attributes to create the new column
-non-interactively.  See `org-columns-compile-format' for
-details."
+When optional argument ATTRIBUTES is provided, it should be a list of
+column specification attributes to create the new column
+non-interactively.  See `org-columns-compile-format' for details."
   (interactive)
   (let ((new (or attributes
 		 (let ((prop
@@ -935,8 +976,10 @@ details."
 			 (mapcar #'list (org-buffer-property-keys t nil t))
 			 nil nil (nth 0 spec))))
 		   (list prop
-			 (read-string (format "Column title [%s]: " prop)
-				      (nth 1 spec))
+                         ;; Discard useless whitespace-only titles.
+			 (org-string-nw-p
+                          (read-string (format "Column title [%s]: " prop)
+				       (nth 1 spec)))
 			 ;; Use `read-string' instead of `read-number'
 			 ;; to allow empty width.
 			 (let ((w (read-string
@@ -945,15 +988,10 @@ details."
 					(number-to-string (nth 2 spec))))))
 			   (and (org-string-nw-p w) (string-to-number w)))
 			 (org-string-nw-p
-			  (completing-read
-			   "Summary: "
-			   (delete-dups
-			    (cons '("")	;Allow empty operator.
-				  (mapcar (lambda (x) (list (car x)))
-					  (append
-					   org-columns-summary-types
-					   org-columns-summary-types-default))))
-			   nil t (nth 3 spec)))
+                          (completing-read
+                           "Summary: "
+                           'org-columns--summary-types-completion-function
+                           nil t (nth 3 spec)))
 			 (org-string-nw-p
 			  (read-string "Format: " (nth 4 spec))))))))
     (if spec
@@ -964,7 +1002,7 @@ details."
     (org-columns-redo)))
 
 (defun org-columns-delete ()
-  "Delete the column at point from columns view."
+  "Delete the column at point from column view."
   (interactive)
   (let ((spec (nth (org-current-text-column) org-columns-current-fmt-compiled)))
     (when (y-or-n-p (format "Are you sure you want to remove column %S? "
@@ -1158,13 +1196,13 @@ COMPILED is an alist, as returned by `org-columns-compile-format'."
   (mapconcat
    (lambda (spec)
      (pcase spec
-       (`(,prop ,title ,width ,op ,printf)
+       (`(,prop ,title ,width ,op ,fmt)
 	(concat "%"
 		(and width (number-to-string width))
 		prop
 		(and title (not (equal prop title)) (format "(%s)" title))
 		(cond ((not op) nil)
-		      (printf (format "{%s;%s}" op printf))
+		      (fmt (format "{%s;%s}" op fmt))
 		      (t (format "{%s}" op)))))))
    compiled " "))
 
@@ -1177,26 +1215,30 @@ property    the property name, as an upper-case string
 title       the title field for the columns, as a string
 width       the column width in characters, can be nil for automatic width
 operator    the summary operator, as a string, or nil
-printf      a printf format for computed values, as a string, or nil
+format      a `format' string for computed values, or nil
 
 This function updates `org-columns-current-fmt-compiled'."
   (setq org-columns-current-fmt-compiled nil)
   (let ((start 0))
     (while (string-match
-	    "%\\([0-9]+\\)?\\([[:alnum:]_-]+\\)\\(?:(\\([^)]+\\))\\)?\
-\\(?:{\\([^}]+\\)}\\)?\\s-*"
-	    fmt start)
+            (rx "%"
+                (optional (group (+ digit)))
+                (group (one-or-more (in alnum "_-")))
+                (optional "(" (group (zero-or-more (not (any ")")))) ")")
+                (optional "{" (group (zero-or-more (not (any "}")))) "}")
+                (zero-or-more space))
+            fmt start)
       (setq start (match-end 0))
       (let* ((width (and (match-end 1) (string-to-number (match-string 1 fmt))))
 	     (prop (match-string-no-properties 2 fmt))
-	     (title (or (match-string-no-properties 3 fmt) prop))
-	     (operator (match-string-no-properties 4 fmt)))
+	     (title (or (org-string-nw-p (match-string-no-properties 3 fmt)) prop))
+	     (operator (org-string-nw-p (match-string-no-properties 4 fmt))))
 	(push (if (not operator) (list (upcase prop) title width nil nil)
-		(let (printf)
+		(let (fmt)
 		  (when (string-match ";" operator)
-		    (setq printf (substring operator (match-end 0)))
+		    (setq fmt (substring operator (match-end 0)))
 		    (setq operator (substring operator 0 (match-beginning 0))))
-		  (list (upcase prop) title width operator printf)))
+		  (list (upcase prop) title width operator fmt)))
 	      org-columns-current-fmt-compiled)))
     (setq org-columns-current-fmt-compiled
 	  (nreverse org-columns-current-fmt-compiled))))
@@ -1243,7 +1285,7 @@ properties drawers."
 	 (inminlevel lmax)
 	 (last-level lmax)
 	 (property (car spec))
-	 (printf (nth 4 spec))
+	 (fmt (nth 4 spec))
          ;; Special properties cannot be collected nor summarized, as
          ;; they have their own way to be computed.  Therefore, ignore
          ;; any operator attached to them.
@@ -1275,7 +1317,7 @@ properties drawers."
 			(let ((values
                                (cl-loop for l from (1+ level) to lmax
                                         append (aref lvals l))))
-			  (and values (funcall summarize values printf))))))
+			  (and values (funcall summarize values fmt))))))
 	     ;; Leaf values are not summaries: do not mark them.
 	     (when summary
 	       (let* ((summaries-alist (get-text-property pos 'org-summaries))
@@ -1331,10 +1373,10 @@ column specification."
 	(org-columns--compute-spec spec (not (member property seen)))
 	(push property seen)))))
 
-(defun org-columns--summary-sum (values printf)
+(defun org-columns--summary-sum (values fmt)
   "Compute the sum of VALUES.
-When PRINTF is non-nil, use it to format the result."
-  (format (or printf "%s") (apply #'+ (mapcar #'string-to-number values))))
+When FMT is non-nil, use it to format the result."
+  (format (or fmt "%s") (apply #'+ (mapcar #'string-to-number values))))
 
 (defun org-columns--summary-currencies (values _)
   "Compute the sum of VALUES, with two decimals."
@@ -1363,22 +1405,22 @@ When PRINTF is non-nil, use it to format the result."
 				       check-boxes))
 		 (length check-boxes))))
 
-(defun org-columns--summary-min (values printf)
+(defun org-columns--summary-min (values fmt)
   "Compute the minimum of VALUES.
-When PRINTF is non-nil, use it to format the result."
-  (format (or printf "%s")
+When FMT is non-nil, use it to format the result."
+  (format (or fmt "%s")
 	  (apply #'min (mapcar #'string-to-number values))))
 
-(defun org-columns--summary-max (values printf)
+(defun org-columns--summary-max (values fmt)
   "Compute the maximum of VALUES.
-When PRINTF is non-nil, use it to format the result."
-  (format (or printf "%s")
+When FMT is non-nil, use it to format the result."
+  (format (or fmt "%s")
 	  (apply #'max (mapcar #'string-to-number values))))
 
-(defun org-columns--summary-mean (values printf)
+(defun org-columns--summary-mean (values fmt)
   "Compute the mean of VALUES.
-When PRINTF is non-nil, use it to format the result."
-  (format (or printf "%s")
+When FMT is non-nil, use it to format the result."
+  (format (or fmt "%s")
 	  (/ (apply #'+ (mapcar #'string-to-number values))
 	     (float (length values)))))
 
@@ -1600,7 +1642,7 @@ PARAMS is a property list of parameters:
     (funcall formatter (point) table params)))
 
 (defun org-columns-dblock-write-default (ipos table params)
-  "Write out a columnview table at position IPOS in the current buffer.
+  "Write out a column view table at position IPOS in the current buffer.
 TABLE is a table with data as produced by `org-columns--capture-view'.
 PARAMS is the parameter property list obtained from the dynamic block
 definition."
@@ -1752,8 +1794,9 @@ definition."
 			  ;; agenda buffer.  Since current buffer is
 			  ;; changing, we need to force the original
 			  ;; compiled-fmt there.
-			  (org-with-point-at m
-			    (org-columns--collect-values compiled-fmt)))
+                          (let ((agenda-marker (point-marker)))
+			    (org-with-point-at m
+			      (org-columns--collect-values compiled-fmt agenda-marker))))
 		    cache)))
 	  (forward-line))
 	(when cache
@@ -1762,6 +1805,9 @@ definition."
 	  (when (setq-local org-columns-flyspell-was-active
 			    (bound-and-true-p flyspell-mode))
 	    (flyspell-mode 0))
+          (when (setq-local org-columns-org-num-was-active
+			    (bound-and-true-p org-num-mode))
+	    (org-num-mode 0))
 	  (dolist (entry cache)
 	    (goto-char (car entry))
 	    (org-columns--display-here (cdr entry)))
@@ -1812,7 +1858,7 @@ This will add overlays to the date lines, to show the summary for each day."
 				    (line-end-position))))
 			 (list spec date date)))
 		      (`(,_ ,_ ,_ nil ,_) (list spec "" ""))
-		      (`(,_ ,_ ,_ ,operator ,printf)
+		      (`(,_ ,_ ,_ ,operator ,fmt)
 		       (let* ((summarize (org-columns--summarize operator))
 			      (values
 			       ;; Use real values for summary, not
@@ -1820,10 +1866,10 @@ This will add overlays to the date lines, to show the summary for each day."
 			       (delq nil
 				     (mapcar
 				      (lambda (e) (org-string-nw-p
-					           (nth 1 (assoc spec e))))
+					      (nth 1 (assoc spec e))))
 				      entries)))
 			      (final (if values
-					 (funcall summarize values printf)
+					 (funcall summarize values fmt)
 				       "")))
 			 (unless (equal final "")
 			   (put-text-property 0 (length final)

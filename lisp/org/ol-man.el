@@ -2,7 +2,6 @@
 ;;
 ;; Copyright (C) 2020-2026 Free Software Foundation, Inc.
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
-;; Maintainer: Bastien Guerry <bzg@gnu.org>
 ;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
@@ -52,7 +51,8 @@ If PATH contains extra ::STRING which will use `occur' to search
 matched strings in man buffer."
   (require 'man) ; For `Man-translate-references'
   (string-match "\\(.*?\\)\\(?:::\\(.*\\)\\)?$" path)
-  (let* ((command (match-string 1 path))
+  (let* ((search (match-string 2 path))
+         (command (match-string 1 path))
          ;; FIXME: Remove after we drop Emacs 29 support.
          ;; Working around security bug #66390.
          (command (if (not (equal (Man-translate-references ";id") ";id"))
@@ -65,7 +65,6 @@ matched strings in man buffer."
                                (mapcar #'shell-quote-argument
                                        (split-string command "\\s-+"))
                                " ")))
-         (search (match-string 2 path))
          (buffer (funcall org-man-command command)))
     (when search
       (with-current-buffer buffer

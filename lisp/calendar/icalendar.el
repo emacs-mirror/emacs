@@ -27,21 +27,13 @@
 ;;; Commentary:
 
 ;; Most of the code in this file is now obsolete and has been marked as such.
+;; For an overview of the new iCalendar library, see icalendar-shortdoc.el.
 ;; For the new implementation of diary import/export, see diary-icalendar.el.
 ;; Error handling code, global variables, and user options relevant for the
 ;; entire iCalendar library remain in this file.
 
-;; This package is documented in the Emacs Manual.
+;; The diary-icalendar feature is documented in the Emacs Manual.
 
-;;   Please note:
-;; - Diary entries which have a start time but no end time are assumed to
-;;   last for one hour when they are exported.
-;; - Weekly diary entries are assumed to occur the first time in the first
-;;   week of the year 2000 when they are exported.
-;; - Yearly diary entries are assumed to occur the first time in the year
-;;   1900 when they are exported.
-;; - Float diary entries are assumed to occur the first time on the
-;;   day when they are exported.
 
 ;;; History:
 

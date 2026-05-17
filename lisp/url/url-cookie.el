@@ -103,12 +103,13 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 		    ;; reuse a browser session, so to prevent the
 		    ;; cookie from being detected as expired straight
 		    ;; away, make it expire a year from now
-		    (expires (format-time-string
-			      "%d %b %Y %T [GMT]"
-			      (let ((s (string-to-number (nth 4 fields))))
-				(if (and (zerop s) long-session)
-				    (time-add nil (* 365 24 60 60))
-				  s))))
+		    (expires (let ((system-time-locale "C"))
+                               (format-time-string
+			        "%d %b %Y %T [GMT]"
+			        (let ((s (string-to-number (nth 4 fields))))
+				  (if (and (zerop s) long-session)
+				      (time-add nil (* 365 24 60 60))
+				    s)))))
 		    (key (nth 5 fields))
 		    (val (nth 6 fields)))
                 (incf n)
@@ -300,9 +301,10 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 	 (expires nil))
     (if (and max-age (string-match "\\`-?[0-9]+\\'" max-age))
 	(setq expires (ignore-errors
-                        (format-time-string "%a %b %d %H:%M:%S %Y GMT"
-					    (time-add nil (read max-age))
-					    t)))
+                        (let ((system-time-locale "C"))
+                          (format-time-string "%a %b %d %H:%M:%S %Y GMT"
+					      (time-add nil (read max-age))
+					      t))))
       (setq expires (cdr-safe (assoc-string "expires" args t))))
     (while (consp trusted)
       (if (string-match (car trusted) current-url)

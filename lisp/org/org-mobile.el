@@ -1035,13 +1035,13 @@ be returned that indicates what went wrong."
      ((eq what 'priority)
       (let ((case-fold-search nil))
 	(when (looking-at org-complex-heading-regexp)
-	  (let ((current (and (match-end 3) (substring (match-string 3) 2 3))))
+	  (let ((current (and (match-end 3) (substring (match-string 3) 2 -1))))
 	    (cond
 	     ((equal current new) t)	;no action required
 	     ((or (equal current old)
 		  (eq org-mobile-force-mobile-change t)
 		  (memq 'tags org-mobile-force-mobile-change))
-	      (org-priority (and new (string-to-char new))))
+	      (org-priority (and new (org-priority-to-value new))))
 	     (t (error "Priority was expected to be %s, but is %s"
 		       old current)))))))
 

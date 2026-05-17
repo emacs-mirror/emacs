@@ -59,10 +59,6 @@ should not be inherited from a source block.")
       (let* ((info (org-babel-get-src-block-info 'no-eval))
 	     (source-name (nth 4 info)))
 	(when source-name
-	  (setf (nth 1 info)
-		(if (org-babel-noweb-p (nth 2 info) :eval)
-		    (org-babel-expand-noweb-references info)
-		  (nth 1 info)))
 	  (let ((source (intern source-name)))
 	    (setq org-babel-library-of-babel
 		  (cons (cons source info)
@@ -86,11 +82,13 @@ if so then run the appropriate source block from the Library."
       (org-babel-execute-src-block nil info nil (org-element-type datum))
       t)))
 
-(defun org-babel-lob--src-info (ref)
+(defun org-babel-lob--src-info (ref &optional eval)
   "Return internal representation for Babel data referenced as REF.
 REF is a string.  This function looks into the current document
 for a Babel call or source block.  If none is found, it looks
-after REF in the Library of Babel."
+after REF in the Library of Babel.
+When EVAL is non-nil, evaluate src block parameters.
+"
   (let ((name ref)
 	(file nil))
     ;; Extract the remote file, if specified in the reference.
@@ -112,7 +110,7 @@ after REF in the Library of Babel."
 		(when (equal name (org-element-property :name element))
 		  (throw :found
 			 (pcase (org-element-type element)
-			   (`src-block (org-babel-get-src-block-info t element))
+			   (`src-block (org-babel-get-src-block-info (not eval) element))
 			   (`babel-call (org-babel-lob-get-info element))
 			   ;; Non-executable data found.  Since names
 			   ;; are supposed to be unique throughout
@@ -131,6 +129,12 @@ remote variable references; a process which could likely result
 in the execution of other code blocks, and do not evaluate Lisp
 values in parameters.
 
+The evaluation happens in the context of DATUM (babel call or inline
+babel call) for its local arguments, while evaluation of the references
+code block happens in the context (with point at) of that block.
+`org-babel-current-src-block-location' is bound to DATUM position
+during evaluation.
+
 Return nil when not on an appropriate location.  Otherwise return
 a list compatible with `org-babel-get-src-block-info', which
 see."
@@ -138,34 +142,36 @@ see."
 	 (type (org-element-type context))
 	 (reference (org-element-property :call context)))
     (when (memq type '(babel-call inline-babel-call))
-      (pcase (org-babel-lob--src-info reference)
-	(`(,language ,body ,header ,_ ,_ ,_ ,coderef)
-	 (let ((begin (org-element-property (if (eq type 'inline-babel-call)
-						:begin
-					      :post-affiliated)
-					    context)))
+      (let* ((begin (org-element-property (if (eq type 'inline-babel-call)
+					      :begin
+					    :post-affiliated)
+					  context))
+             ;; Signal downstream to lisp parameter values about current location.
+             (org-babel-current-src-block-location begin))
+        (pcase (org-babel-lob--src-info reference (if no-eval nil 'eval))
+	  (`(,language ,body ,header ,_ ,_ ,_ ,coderef)
 	   (list language
-		 body
-		 (apply #'org-babel-merge-params
-			header
-			org-babel-default-lob-header-args
-			(append
-			 (org-with-point-at begin
+	         body
+	         (apply #'org-babel-merge-params
+		        header
+		        org-babel-default-lob-header-args
+		        (append
+		         (org-with-point-at begin
 			   (org-babel-params-from-properties language no-eval))
-			 (list
+		         (list
 			  (org-babel-parse-header-arguments
 			   (org-element-property :inside-header context) no-eval)
 			  (let ((args (org-element-property :arguments context)))
 			    (and args
-				 (mapcar (lambda (ref) (cons :var ref))
-					 (org-babel-ref-split-args args))))
+			         (mapcar (lambda (ref) (cons :var ref))
+				         (org-babel-ref-split-args args))))
 			  (org-babel-parse-header-arguments
 			   (org-element-property :end-header context) no-eval))))
-		 nil
-		 (org-element-property :name context)
-		 begin
-		 coderef)))
-	(_ nil)))))
+	         nil
+	         (org-element-property :name context)
+	         begin
+	         coderef))
+          (_ nil))))))
 
 (provide 'ob-lob)
 

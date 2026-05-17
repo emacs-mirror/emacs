@@ -32,11 +32,6 @@
 
 (require 'ob-core)
 
-(declare-function org-babel--get-vars "ob" (params))
-(declare-function org-babel-result-cond "ob" (result-params scalar-form &rest table-forms))
-(declare-function org-babel-reassemble-table "ob" (table colnames rownames))
-(declare-function org-babel-pick-name "ob" (names selector))
-
 (defconst org-babel-header-args:emacs-lisp '((lexical . :any))
   "Emacs-lisp specific header arguments.")
 
@@ -77,7 +72,7 @@ by `org-edit-src-code'.")
 		       (org-babel-expand-body:emacs-lisp body params)))
 	 (result (eval (read (if (or (member "code" result-params)
 				     (member "pp" result-params))
-				 (concat "(pp " body ")")
+				 (concat "(pp-to-string " body ")")
 			       body))
 		       (org-babel-emacs-lisp-lexical lexical))))
     (when (and session (not (equal session "none")))
@@ -102,7 +97,7 @@ Convert LEXICAL into the form appropriate for `lexical-binding'
 and the LEXICAL argument to `eval'."
   (if (listp lexical)
       lexical
-    (not (null (member lexical '("yes" "t"))))))
+    (not (null (member lexical '("yes" "t" t))))))
 
 (defun org-babel-edit-prep:emacs-lisp (info)
   "Set `lexical-binding' in Org edit buffer.

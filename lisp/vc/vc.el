@@ -104,6 +104,12 @@
 ;; In the list of functions below, each identifier needs to be prepended
 ;; with `vc-sys-'.  Some of the functions are mandatory (marked with a
 ;; `*'), others are optional (`-').
+;;
+;; NOTES
+;;
+;; - Unless otherwise specified, code should be prepared to handle
+;;   absolute, relative, abbreviated and unabbreviated file names:
+;;   the generic code isn't always consistent about what it passes.
 
 ;; BACKEND PROPERTIES
 ;;
@@ -157,12 +163,15 @@
 ;; - dir-status-files (dir files update-function)
 ;;
 ;;   Produce RESULT: a list of lists of the form (FILE VC-STATE EXTRA)
-;;   for FILES in DIR.  If FILES is nil, report on all files in DIR.
-;;   (It is OK, though possibly inefficient, to ignore the FILES argument
-;;   and always report on all files in DIR.)
+;;   for FILES in DIR (which need not be the repository root).
+;;   If FILES is nil, report on all files in DIR.
+;;   (It is permitted, though possibly inefficient, to ignore the FILES
+;;   argument and always report on all files in DIR.)
 ;;
 ;;   If FILES is non-nil, this function should report on all requested
 ;;   files, including up-to-date or ignored files.
+;;   If FILES is nil, up-to-date and ignored files may be excluded, but
+;;   need not be.
 ;;
 ;;   EXTRA can be used for backend specific information about FILE.
 ;;
@@ -283,6 +292,11 @@
 ;;   vc-checkin-switches to the backend command.  The optional REV
 ;;   revision argument is only supported with some older VCSes, like
 ;;   RCS and CVS, and is otherwise silently ignored.
+;;
+;;   If the backend supports async checkins and `vc-async-checkin' is
+;;   non-nil, the implementation should start an asynchronous process to
+;;   commit the changes, and return a cons whose car is `async' and
+;;   whose cdr is that process object.
 ;;
 ;; - checkin-patch (patch-string comment)
 ;;
@@ -624,7 +638,7 @@
 ;;   determination can be made.
 ;;
 ;;   What counts as a longer-lived or shorter-lived branch for VC is
-;;   explained in Info node `(emacs)Outstanding Changes' and in the
+;;   explained in Info node `(emacs)Unintegrated Changes' and in the
 ;;   docstring for `vc-trunk-or-topic-p'.
 ;;
 ;; - topic-outgoing-base ()
@@ -634,7 +648,7 @@
 ;;   branch.  That is, on the assumption that the current branch is a
 ;;   shorter-lived branch which will later be merged into a longer-lived
 ;;   branch, return, if possible, the upstream location to which those
-;;   changes will be merged.  See Info node `(emacs) Outstanding
+;;   changes will be merged.  See Info node `(emacs) Unintegrated
 ;;   Changes'.  The return value should be suitable for passing to the
 ;;   incoming-revision backend function as its UPSTREAM-LOCATION
 ;;   argument.  For example, for Git the value will typically be of the
@@ -723,10 +737,12 @@
 ;;
 ;; - delete-files (files)
 ;;
-;;   As delete-file, except that the first argument is a list of files,
-;;   all of which require deletion.  May assume that it is called from
-;;   the repository root.  Backends can implement this for faster mass
-;;   deletions.
+;;   As delete-file, except that (i) the first argument is a list of
+;;   files, all of which require deletion; and (ii) elements of FILES
+;;   may be directories, which should be recursively removed.
+;;   May assume that it is called from the repository root.
+;;   Backends can implement this for faster mass deletions and to enable
+;;   deleting directories.
 ;;
 ;; - rename-file (old new)
 ;;
@@ -1268,7 +1284,7 @@ Return the result of evaluating FORM."
          (dolist (file ,flist)
            (dolist (setting ,settings)
              (let ((property (car setting)))
-               (unless (memq property ,vc-touched-properties)
+               (unless (memq property vc-touched-properties)
                  (put (intern file vc-file-prop-obarray)
                       property (cdr setting))))))))))
 
@@ -1596,8 +1612,10 @@ Some files are unregistered; register them before checking in?"))
                             (cadr other-alist))))
              (error "\
 To apply VC operations to multiple files, the files must be in similar VC states.
-%s in state %s clashes with %s in state %s"
-                    (cadr first) (car first) (cadr second) (car second)))))
+%s in state `%s' clashes with
+%s in state `%s'"
+                    (abbreviate-file-name (cadr first)) (car first)
+                    (abbreviate-file-name (cadr second)) (car second)))))
     (list files* state
           (and state (not (eq state 'unregistered))
                (vc-checkout-model backend files*)))))
@@ -1701,7 +1719,7 @@ from which to check out the file(s)."
             (t
              (vc-register vc-fileset))))
      ((eq state 'missing)
-      (vc-delete-file files))
+      (vc-delete-file fileset-only-files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-update)))
       (cond
@@ -2220,7 +2238,8 @@ have changed; continue with old fileset?" (current-buffer))))
                   (dolist (file files)
                     (let ((file (expand-file-name file)))
                       (vc-file-setprop file 'display-state "committing")
-                      (vc-dir-resynch-file file)
+                      (when vc-dir-buffers
+                        (vc-dir-resynch-file file))
                       (push file to-remove-props)))
                   (vc-exec-after #'remove-props-done-msg nil proc))
                 ret)
@@ -2610,40 +2629,42 @@ proceed anyway?")))
       (make-directory (file-name-directory (expand-file-name f tmpdir)) t)
       (copy-file (expand-file-name f)
                  (expand-file-name f tmpdir)))
-    (unwind-protect
-        (progn
-          (vc-revert-files backend
-                           (mapcar (lambda (f)
-                                     (with-current-buffer (find-file-noselect f)
-                                       buffer-file-name))
-                                   files))
-          (with-temp-buffer
-            ;; Trying to support CVS too.  Assuming that vc-diff
-            ;; there will usually have diff root in default-directory.
-            (when (vc-find-backend-function backend 'root)
-              (setq-local default-directory
-                          (vc-call-backend backend 'root (car files))))
-            (unless (eq 0
-                        (call-process-region patch-string
-                                             nil
-                                             "patch"
-                                             nil
-                                             t
-                                             nil
-                                             "-p1"
-                                             "-r" null-device
-                                             "--posix"
-                                             "--remove-empty-files"
-                                             "-i" "-"))
-              (user-error "Patch failed: %s" (buffer-string))))
-          (vc-call-backend backend 'checkin files comment))
-      (dolist (f files)
-        (copy-file (expand-file-name f tmpdir)
-                   (expand-file-name f)
-                   t)
-        (with-current-buffer (get-file-buffer f)
-          (revert-buffer t t t)))
-      (delete-directory tmpdir t))))
+    (cl-flet ((do-it ()
+                (vc-revert-files backend
+                                 (mapcar (lambda (f)
+                                           (with-current-buffer
+                                               (find-file-noselect f)
+                                             buffer-file-name))
+                                         files))
+                (with-temp-buffer
+                  ;; Try to support CVS too.  Assume that vc-diff there
+                  ;; will usually have diff root in `default-directory'.
+                  (when (vc-find-backend-function backend 'root)
+                    (setq-local default-directory
+                                (vc-call-backend backend 'root (car files))))
+                  (unless (zerop (call-process-region patch-string nil "patch"
+                                                      nil t nil
+                                                      "-p1"
+                                                      "-r" null-device
+                                                      "--posix"
+                                                      "--remove-empty-files"
+                                                      "-i" "-"))
+                    (user-error "Patch failed: %s" (buffer-string))))
+                (vc-call-backend backend 'checkin files comment))
+              (cleanup ()
+                (dolist (f files)
+                  (copy-file (expand-file-name f tmpdir)
+                             (expand-file-name f)
+                             t)
+                  (with-current-buffer (get-file-buffer f)
+                    (revert-buffer t t t)))
+                (delete-directory tmpdir t)))
+      (if (and vc-async-checkin
+               (vc-call-backend backend 'async-checkins))
+          (let ((ret (do-it)))
+            (when (eq (car-safe ret) 'async)
+              (vc-exec-after #'cleanup nil (cadr ret))))
+        (unwind-protect (do-it) (cleanup))))))
 
 ;;; Additional entry points for examining version histories
 
@@ -3119,7 +3140,7 @@ to.  When called interactively with a prefix argument, prompt for
 UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
 can be a remote branch name.
 
-This command is like `vc-root-diff-outstanding' except that it does
+This command is like `vc-root-diff-unintegrated' except that it does
 not include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -3138,7 +3159,7 @@ can be a remote branch name.
 When called from Lisp optional argument FILESET overrides the VC
 fileset.
 
-This command is like `vc-diff-outstanding' except that it does not
+This command is like `vc-diff-unintegrated' except that it does not
 include uncommitted changes.
 
 See `vc-use-incoming-outgoing-prefixes' regarding giving this command a
@@ -3336,27 +3357,30 @@ BACKEND is the VC backend."
         ;; branch has no name.
         (vc-call-backend backend 'trunk-or-topic-p branch))))
 
-(defun vc--outgoing-base (backend)
+(defun vc--outgoing-base (backend force-topic)
   "Return an outgoing base for the current branch under VC backend BACKEND.
-The outgoing base is the upstream location for which outstanding changes
-on this branch are destined once they are no longer outstanding.
+The outgoing base is the upstream location for which unintegrated
+changes on this branch are destined once they are integrated.
 
 There are two stages to determining the outgoing base.
 First we decide whether we think this is a shorter-lived or a
-longer-lived (\"trunk\") branch by calling `vc-trunk-or-topic-p'.
-If that function returns nil, assume this is a shorter-lived branch.
-This is based on how it's commands primarily intended for working with
-shorter-lived branches that call this function.
+longer-lived (\"trunk\") branch.  If FORCE-TOPIC is non-nil, assume this
+is a shorter-lived branch.  Otherwise call `vc-trunk-or-topic-p'.
+If that function returns nil, also assume this is a shorter-lived
+branch.  This is based on how it's commands primarily intended for
+working with shorter-lived branches that call this function.
 Second, if we have determined that this is a trunk, return nil, meaning
 that the outgoing base is the place to which `vc-push' would push.
 Otherwise, we have determined that this is a shorter-lived branch, and
 we return the value of calling BACKEND's `topic-outgoing-base' VC API
 function."
   ;; For further discussion see bug#80006.
-  (and (memq (vc-trunk-or-topic-p nil backend) '(topic nil))
+  (and (or force-topic
+           (memq (vc-trunk-or-topic-p nil backend) '(topic nil)))
        (vc-call-backend backend 'topic-outgoing-base)))
 
-(defun vc--outgoing-base-mergebase (backend &optional upstream-location refresh)
+(defun vc--outgoing-base-mergebase
+    (backend &optional upstream-location refresh force-topic)
   "Return, under VC backend BACKEND, the merge base with UPSTREAM-LOCATION.
 Normally UPSTREAM-LOCATION, if non-nil, is a string.
 If UPSTREAM-LOCATION is nil, it means to call `vc--outgoing-base' and
@@ -3366,17 +3390,20 @@ If UPSTREAM-LOCATION is the special value t, it means to use the place
 to which `vc-push' would push as UPSTREAM-LOCATION, unconditionally.
 (This is passed when the user invokes an outgoing base command with a
  \\`C-u C-u' prefix argument; see `vc--maybe-read-outgoing-base'.)
-REFRESH is passed on to `vc--incoming-revision'."
+REFRESH is passed on to `vc--incoming-revision'.
+FORCE-TOPIC is passed on to `vc--outgoing-base'."
   (vc-call-backend backend 'mergebase
                    (vc--incoming-revision backend
                                           (pcase upstream-location
                                             ('t nil)
-                                            ('nil (vc--outgoing-base backend))
+                                            ('nil
+                                             (vc--outgoing-base backend
+                                                                force-topic))
                                             (_ upstream-location))
                                           refresh)))
 
 ;;;###autoload
-(defun vc-root-diff-outstanding (&optional upstream-location)
+(defun vc-root-diff-unintegrated (&optional upstream-location)
   "Report diff of all changes since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -3400,10 +3427,10 @@ topic branch.  (With a double prefix argument, this command is like
 `vc-diff-outgoing' except that it includes uncommitted changes.)"
   (interactive (list (vc--maybe-read-outgoing-base)))
   (vc--with-backend-in-rootdir "VC root-diff"
-    (vc-diff-outstanding upstream-location `(,backend (,rootdir)))))
+    (vc-diff-unintegrated upstream-location `(,backend (,rootdir)))))
 
 ;;;###autoload
-(defun vc-diff-outstanding (&optional upstream-location fileset)
+(defun vc-diff-unintegrated (&optional upstream-location fileset)
   "Report changes to VC fileset since the merge base with UPSTREAM-LOCATION.
 
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
@@ -3439,7 +3466,42 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                       (called-interactively-p 'interactive))))
 
 ;;;###autoload
-(defun vc-log-outstanding (&optional upstream-location fileset)
+(defun vc-root-diff-outgoing-and-edited (&optional upstream-location)
+  "Report combined diff of all outgoing and uncommitted changes.
+Outgoing changes are those that would be pushed to UPSTREAM-LOCATION.
+When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
+to.  When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
+can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC
+fileset.
+
+This command is the same as `vc-root-diff-unintegrated' used on a trunk."
+  (declare (interactive-only vc-root-diff-unintegrated))
+  (interactive (list (or (vc--maybe-read-outgoing-base) t)))
+  (vc-root-diff-unintegrated upstream-location))
+
+;;;###autoload
+(defun vc-diff-outgoing-and-edited (&optional upstream-location fileset)
+  "Report combined diff of outgoing and uncommitted changes to VC fileset.
+Outgoing changes are those that would be pushed to UPSTREAM-LOCATION.
+When unspecified UPSTREAM-LOCATION is the place \\[vc-push] would push
+to.  When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION.  In some version control systems UPSTREAM-LOCATION
+can be a remote branch name.
+When called from Lisp optional argument FILESET overrides the VC
+fileset.
+
+This command is the same as `vc-diff-unintegrated' used on a trunk."
+  (declare (interactive-only vc-diff-unintegrated))
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (or (vc--maybe-read-outgoing-base (car fileset))
+                           t)
+                       fileset)))
+  (vc-diff-unintegrated upstream-location fileset))
+
+;;;###autoload
+(defun vc-log-unintegrated (&optional upstream-location fileset)
   "Show log for the VC fileset since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -3469,10 +3531,10 @@ When called from Lisp, optional argument FILESET overrides the fileset."
     (vc-print-log-internal backend (cadr fileset) nil nil
                            (vc--outgoing-base-mergebase backend
                                                         upstream-location)
-                           'log-outstanding)))
+                           'log-unintegrated)))
 
 ;;;###autoload
-(defun vc-root-log-outstanding (&optional upstream-location)
+(defun vc-root-log-unintegrated (&optional upstream-location)
   "Show log of revisions since the merge base with UPSTREAM-LOCATION.
 The merge base with UPSTREAM-LOCATION means the common ancestor of the
 working revision and UPSTREAM-LOCATION.
@@ -3494,7 +3556,116 @@ i.e., treat this branch as a trunk branch even if Emacs thinks it is a
 topic branch."
   (interactive (list (vc--maybe-read-outgoing-base)))
   (vc--with-backend-in-rootdir "VC revision log"
-    (vc-log-outstanding upstream-location `(,backend (,rootdir)))))
+    (vc-log-unintegrated upstream-location `(,backend (,rootdir)))))
+
+;;;###autoload
+(defun vc-root-diff-remote-unintegrated (&optional upstream-location)
+  "Report diff of remote changes since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and upstream
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name."
+  (interactive (list (vc--maybe-read-outgoing-base nil 'no-double)))
+  (vc--with-backend-in-rootdir "VC root-diff"
+    (vc-diff-remote-unintegrated upstream-location
+                                 `(,backend (,rootdir)))))
+
+;;;###autoload
+(defun vc-diff-remote-unintegrated (&optional upstream-location fileset)
+  "Show remote fileset changes since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset)
+                                                     'no-double)
+                       fileset)))
+  (let* ((fileset (or fileset (vc-deduce-fileset t)))
+         (backend (car fileset)))
+    (vc-diff-internal vc-allow-async-diff fileset
+                      (vc--outgoing-base-mergebase backend
+                                                   upstream-location
+                                                   'refresh 'force-topic)
+                      ;; REFRESH nil here because we just refreshed.
+                      (vc--incoming-revision backend)
+                      (called-interactively-p 'interactive))))
+
+;;;###autoload
+(defun vc-log-remote-unintegrated (&optional upstream-location fileset)
+  "Show remote log for VC fileset since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name.
+
+When called from Lisp, optional argument FILESET overrides the fileset."
+  (interactive (let ((fileset (vc-deduce-fileset t)))
+                 (list (vc--maybe-read-outgoing-base (car fileset))
+                       fileset)))
+  (let* ((fileset (or fileset (vc-deduce-fileset t)))
+         (backend (car fileset)))
+    (vc-print-log-internal backend (cadr fileset)
+                           (vc--incoming-revision backend nil 'refresh)
+                           'is-start-revision
+                           ;; REFRESH nil here because we just refreshed.
+                           (vc--outgoing-base-mergebase backend
+                                                        upstream-location
+                                                        nil 'force-topic))))
+
+;;;###autoload
+(defun vc-root-log-remote-unintegrated (&optional upstream-location)
+  "Show log of remote revisions since merge base with UPSTREAM-LOCATION.
+Remote changes are changes in the incoming revision (instead of the
+working revision), and the merge base with UPSTREAM-LOCATION is the
+common ancestor of the incoming revision and UPSTREAM-LOCATION.
+This command only makes sense for decentralized VCS, because otherwise
+there is no distinction between locally committed changes and remote
+changes.
+
+When unspecified, UPSTREAM-LOCATION is the outgoing base when this
+branch is considered as a topic branch (whether or not it actually is).
+This command with unspecified UPSTREAM-LOCATION only makes sense on
+topic branches.  See `vc-trunk-or-topic-p'.
+
+When called interactively with a prefix argument, prompt for
+UPSTREAM-LOCATION, which should be a remote branch name."
+  (interactive (list (vc--maybe-read-outgoing-base nil 'no-double)))
+  (vc--with-backend-in-rootdir "VC revision log"
+    (vc-log-remote-unintegrated upstream-location
+                                `(,backend (,rootdir)))))
 
 (declare-function ediff-load-version-control "ediff" (&optional silent))
 (declare-function ediff-vc-internal "ediff-vers"
@@ -4188,14 +4359,14 @@ LIMIT can also be a string, which means the revision before which to stop."
   "Set this to record the type of VC log shown in the current buffer.
 Supported values are:
 
-  `short'           -- short log form, one line for each commit
-  `long'            -- long log form, including full log message and author
-  `with-diff'       -- log including diffs
-  `log-outgoing'    -- log of changes to be pushed to upstream
-  `log-incoming'    -- log of changes to be brought by pulling from upstream
-  `log-outstanding' -- log of changes you've not yet finished sharing
-  `log-search'      -- log entries matching a pattern; shown in long format
-  `mergebase'       -- log created by `vc-log-mergebase'.")
+  `short'            -- short log form, one line for each commit
+  `long'             -- long log form, including full log message and author
+  `with-diff'        -- log including diffs
+  `log-outgoing'     -- log of changes to be pushed to upstream
+  `log-incoming'     -- log of changes to be brought by pulling from upstream
+  `log-unintegrated' -- log of changes you've not yet finished sharing
+  `log-search'       -- log entries matching a pattern; shown in long format
+  `mergebase'        -- log created by `vc-log-mergebase'.")
 (put 'vc-log-view-type 'permanent-local t)
 (defvar vc-sentinel-movepoint)
 
@@ -4425,14 +4596,15 @@ starting at that revision.  Tags and remote references also work."
                                nil 'vc-remote-location-history)))
          (and (not (string-empty-p res)) res))))
 
-(defun vc--maybe-read-outgoing-base (&optional backend)
+(defun vc--maybe-read-outgoing-base (&optional backend no-double)
   "Return upstream location for interactive uses of outgoing base commands.
 If there is no prefix argument, return nil.
-If the current prefix argument is \\`C-u C-u', return t.
+If the current prefix argument is \\`C-u C-u' and NO-DOUBLE is nil,
+return t.
 Otherwise prompt for an upstream location.
 BACKEND is the VC backend."
   (cond
-   ((equal current-prefix-arg '(16)) t)
+   ((and (not no-double) (equal current-prefix-arg '(16))) t)
    (current-prefix-arg
     (let* ((outgoing-base (vc-call-backend (or backend
                                                (vc-deduce-backend))
@@ -4939,20 +5111,26 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (vc-checkin file new-backend comment (stringp comment)))))
 
 ;;;###autoload
-(defun vc-delete-file (file-or-files)
+(defun vc-delete-file (file-or-files &optional noconfirm)
   "Delete file and mark it as such in the version control system.
 If called interactively, read FILE-OR-FILES, defaulting to the current
 buffer's file name if it's under version control.
 When called from Lisp, FILE-OR-FILES can be a file name or a list of
-file names."
+file names.
+When called from Lisp, optional argument NOCONFIRM non-nil means don't
+prompt to confirm deletion.
+For some VCS, FILE-OR-FILES can include directories.
+These are recursively deleted."
   (interactive (list (read-file-name "VC delete file: " nil
-                                     (when (vc-backend buffer-file-name)
-                                       buffer-file-name)
+                                     (and (vc-backend buffer-file-name)
+                                          buffer-file-name)
                                      t)))
   (setq file-or-files (mapcar #'expand-file-name (ensure-list file-or-files)))
   (dolist (file file-or-files)
     (let ((buf (get-file-buffer file))
-          (backend (vc-backend file)))
+          (backend (if (file-directory-p file)
+                       (vc-responsible-backend file)
+                     (vc-backend file))))
       (unless (or (not backend)
                   (vc-find-backend-function backend 'delete-file))
         (error "Deleting files under %s is not supported in VC" backend))
@@ -4963,11 +5141,12 @@ file names."
           (error "Please commit or undo your changes before deleting %s" file))
         (when (eq state 'conflict)
           (error "Please resolve the conflicts before deleting %s" file)))))
-  (unless (y-or-n-p (if (cdr file-or-files)
-                        (format "Really want to delete these %d files? "
-                                (length file-or-files))
-                      (format "Really want to delete %s? "
-			      (file-name-nondirectory (car file-or-files)))))
+  (unless (or noconfirm
+              (y-or-n-p (if (cdr file-or-files)
+                            (format "Really want to delete these %d files? "
+                                    (length file-or-files))
+                          (format "Really want to delete %s? "
+			          (file-name-nondirectory (car file-or-files))))))
     (error "Abort!"))
   (let ((post-backend-deletion
          ;; Things to do after calling the backend's `delete-file' or
@@ -4976,7 +5155,10 @@ file names."
          (lambda (file)
            ;; For the case of unregistered files, or if the backend
            ;; didn't actually delete the file.
-           (when (file-exists-p file) (delete-file file))
+           (when-let* ((attrs (file-attributes file)))
+             (if (eq t (car attrs))
+                 (delete-directory file 'recursive)
+               (delete-file file)))
            ;; Forget what VC knew about the file.
            (vc-file-clearprops file)
            ;; Make sure the buffer is killed and *vc-dir* buffers are
@@ -4986,7 +5168,9 @@ file names."
         deletions-by-backend)
     (dolist (file file-or-files)
       (let ((buf (get-file-buffer file))
-            (backend (vc-backend file)))
+            (backend (if (file-directory-p file)
+                         (vc-responsible-backend file)
+                       (vc-backend file))))
         (unless (or (file-directory-p file) (null make-backup-files)
                     (not (file-exists-p file)))
           (with-current-buffer (or buf (find-file-noselect file))
@@ -5009,23 +5193,18 @@ file names."
           ;; before calling BACKEND's `delete-file' function, so keep it
           ;; for compatibility.  --spwhitton
           (let ((default-directory (file-name-directory file)))
-            (vc-call-backend backend 'delete-file file)
-            (funcall post-backend-deletion file)))))))
+            (vc-call-backend backend 'delete-file file))
+          (funcall post-backend-deletion file))))))
 
 ;;;###autoload
-(defun vc-rename-file (old new)
+(defun vc-rename-file (old new &optional ok-if-already-exists)
   "Rename file OLD to NEW in both working tree and repository.
 When called interactively, read OLD and NEW, defaulting OLD to the
-current buffer's file name if it's under version control."
-  ;; FIXME: Support renaming whole directories.
-  ;; The use of `vc-call' will need to change to something like
-  ;;
-  ;;     (vc-call-backend (if dir
-  ;;                          (vc-responsible-backend file)
-  ;;                        (vc-backend file))
-  ;;                      'rename-file old new)
-  ;;
-  ;; as was done in `vc-revert-file'; see bug#43464.  --spwhitton
+current buffer's file name if it's under version control.
+If NEW is a directory name, rename FILE to a like-named file under NEW.
+For NEW to be recognized as a directory name, it should end in a slash.
+Signal a `file-already-exists' error if a file NEW already exists unless
+called from Lisp with optional argument OK-IF-ALREADY-EXISTS non-nil."
   (interactive (list (read-file-name "VC rename file: " nil
                                      (and (vc-backend buffer-file-name)
                                           buffer-file-name)
@@ -5045,17 +5224,32 @@ current buffer's file name if it's under version control."
       (error "Please save files before moving them"))
     (when (get-file-buffer new)
       (error "Already editing new file name"))
+    ;; Handle OK-IF-ALREADY-EXISTS here because it's not part of the VC
+    ;; backend `delete-file' API.
+    ;; If NEW is a directory we'll fail to delete it, consistent with
+    ;; `rename-file' whose OK-IF-ALREADY-EXISTS argument similarly can't
+    ;; delete existing directories.
     (when (file-exists-p new)
-      (error "New file already exists"))
+      (if ok-if-already-exists (vc-delete-file new 'noconfirm)
+        (signal 'file-already-exists `("File exists" ,new))))
     (unless dirp
       (let ((state (vc-state old)))
         (unless (memq state '(up-to-date edited added))
           (error "Please %s files before moving them"
 	         (if (stringp state) "check in" "update")))))
-    (vc-call-backend (if dirp
-                         (vc-responsible-backend old)
-                       (vc-backend old))
-                     'rename-file old new)
+    ;; The rename commands for several VCS (at least Bzr, Git and
+    ;; Mercurial) will fail if asked to move a directory containing
+    ;; only untracked files.  So skip calling into the backend if OLD
+    ;; is a directory and we walk through the entirety of it without
+    ;; finding any VC-managed files.
+    (unless (and dirp
+                 (catch 'done
+                   (vc-file-tree-walk old (lambda (_) (throw 'done nil)))
+                   t))
+      (vc-call-backend (if dirp
+                           (vc-responsible-backend old)
+                         (vc-backend old))
+                       'rename-file old new))
     (vc-file-clearprops old)
     (vc-file-clearprops new)
     ;; Move the actual file (unless the backend did it already)
@@ -5538,15 +5732,14 @@ When called from Lisp, BACKEND is the VC backend."
   (dired directory))
 
 (defvar project-prompter)
+(declare-function project-root "project")
 
-(defun vc--prompt-other-working-tree (backend prompt &optional allow-empty)
+(defun vc--prompt-other-working-tree (backend prompt &optional allow-current)
   "Invoke `project-prompter' to choose another working tree.
 BACKEND is the VC backend.
 PROMPT is the prompt string for `project-prompter'.
-If ALLOW-EMPTY is non-nil, empty input means the current working tree.
-In typical usage ALLOW-EMPTY non-nil means that it makes sense to apply
-the caller's operation to the current working tree."
-  ;; If there are no other working trees and ALLOW-EMPTY is non-nil, we
+If ALLOW-CURRENT is non-nil, allow selecting the current working tree."
+  ;; If there are no other working trees and ALLOW-CURRENT is non-nil we
   ;; still invoke the `project-prompter' and require the user to type
   ;; \\`RET', even though it's redundant.  Doing it this way means that
   ;; invoking the command on the current working tree works the same
@@ -5558,28 +5751,28 @@ the caller's operation to the current working tree."
   ;; stopping to look at the echo area.
   (let ((trees (vc-call-backend backend 'known-other-working-trees))
         res)
-    (unless (or trees allow-empty)
-      (user-error
-       (substitute-command-keys
-        "No other working trees.  Use \\[vc-add-working-tree] to add one")))
     (require 'project)
+    (cond* ((bind-and* (_ allow-current)
+                       (p (project-current)))
+            (push (project-root p) trees))
+           ((null trees)
+            (user-error
+             (substitute-command-keys
+              "No other working trees.  Use \\[vc-add-working-tree] to add one"))))
     (dolist (tree trees)
       (when-let* ((p (project-current nil tree)))
         (project-remember-project p nil t)))
     (setq res
           (funcall project-prompter
-                   (if allow-empty
-                       (format "%s (empty for this working tree)"
-                               prompt)
+                   (if allow-current
+                       (concat prompt " (default current working tree)")
                      prompt)
-                   (if trees
-                       (lambda (k &optional _v)
-                         (member (or (car-safe k) k) trees))
-                     #'ignore)
-                   t allow-empty))
+                   (lambda (k &optional _v)
+                     (member (or (car-safe k) k) trees))
+                   'require-known))
     (if (string-empty-p res) (vc-root-dir) res)))
 
-(defvar project-current-directory-override)
+(defvar project-find-matching-buffer-function)
 
 ;;;###autoload
 (defun vc-switch-working-tree (directory)
@@ -5593,8 +5786,14 @@ to the root of this working tree."
    (list
     (vc--prompt-other-working-tree (vc-responsible-backend default-directory)
                                    "Other working tree to visit")))
-  (let ((project-current-directory-override directory))
-    (project-find-matching-buffer)))
+  (let ((backend (or (vc-deduce-backend)
+                     (vc-responsible-backend default-directory)
+                     (error "No VC backend"))))
+    ;; Skip to the VC root, otherwise `project-current' could find a
+    ;; non-VC project between DEFAULT-DIRECTORY and there (bug#80939).
+    (funcall project-find-matching-buffer-function
+             (project-current nil (vc-root-dir backend))
+             (project-current nil directory))))
 
 ;;;###autoload
 (defun vc-working-tree-switch-project (dir)
@@ -5607,7 +5806,8 @@ Prompts for the directory file name of the other working tree."
   (interactive
    (list
     (vc--prompt-other-working-tree (vc-responsible-backend default-directory)
-                                   "Other working tree to switch to")))
+                                   "Other working tree to switch to"
+                                   'allow-current)))
   (project-switch-project dir))
 
 ;;;###autoload
@@ -5620,7 +5820,7 @@ BACKEND is the VC backend."
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
            (vc--prompt-other-working-tree backend "Delete working tree"
-                                          'allow-empty))))
+                                          'allow-current))))
   (let* ((delete-this (file-in-directory-p default-directory directory))
          (directory (expand-file-name directory))
          (default-directory
@@ -5666,7 +5866,7 @@ BACKEND is the VC backend."
    (let ((backend (vc-responsible-backend default-directory)))
      (list backend
            (vc--prompt-other-working-tree backend "Relocate working tree"
-                                          'allow-empty)
+                                          'allow-current)
            (read-directory-name "New location for working tree: "
                                 (file-name-parent-directory (vc-root-dir))))))
   (let* ((move-this (file-in-directory-p default-directory from))
@@ -6025,13 +6225,11 @@ except that this command works only in file-visiting buffers."
 (defun vc-file-tree-walk (dirname func &rest args)
   "Walk recursively through DIRNAME.
 Invoke FUNC f ARGS on each VC-managed file f underneath it."
-  (vc-file-tree-walk-internal (expand-file-name dirname) func args)
-  (message "Traversing directory %s...done" dirname))
+  (vc-file-tree-walk-internal (expand-file-name dirname) func args))
 
 (defun vc-file-tree-walk-internal (file func args)
   (if (not (file-directory-p file))
-      (when (vc-backend file) (apply func file args))
-    (message "Traversing directory %s..." (abbreviate-file-name file))
+      (when (vc-registered file) (apply func file args))
     (let ((dir (file-name-as-directory file)))
       (mapcar
        (lambda (f) (or

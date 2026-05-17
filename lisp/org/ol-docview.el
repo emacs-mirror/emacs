@@ -48,7 +48,6 @@
 (require 'doc-view)
 (require 'ol)
 
-(declare-function doc-view-goto-page "doc-view" (page))
 (declare-function image-mode-window-get "image-mode" (prop &optional winprops))
 (declare-function org-open-file "org" (path &optional in-emacs line search))
 

@@ -3,6 +3,7 @@
 ;; Copyright (C) 2004-2026 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik@gmail.com>
+;; Maintainer: Ihor Radchenko <yantar92 at posteo dot net>
 ;; Keywords: outlines, hypermedia, calendar, text
 ;; URL: https://orgmode.org
 ;;
@@ -33,6 +34,7 @@
 
 (require 'cl-lib)
 (require 'format-spec)
+(eval-when-compile (require 'subr-x))  ; For `when-let*', Emacs < 29
 
 ;;; Org version verification.
 
@@ -80,7 +82,16 @@ Version mismatch is commonly encountered in the following situations:
    It is recommended to set `load-path' as early in the config as
    possible.
 
-3. New Org version is loaded using straight.el package manager and
+3. New Org version is loaded while an old Org version is partially
+   loaded during compilation or M-x package-upgrade.  This usually
+   should not happen (at least, a number of attemps have been made
+   to avoid this problem in package.el), but sometimes it does anyway.
+
+   You can manually delete Org installation from ~/.emacs.d/elpa/ and
+   try installing again, possibly from emacs -Q without any
+   configuration loaded.
+
+4. New Org version is loaded using straight.el package manager and
    other package depending on Org is loaded before straight triggers
    loading of the newer Org version.
 
@@ -93,7 +104,7 @@ Version mismatch is commonly encountered in the following situations:
    sufficient if the corresponding `use-package' statement is
    deferring the loading.
 
-4. A new Org version is synchronized with Emacs git repository and
+5. A new Org version is synchronized with Emacs git repository and
    stale .elc files are still left from the previous build.
 
    It is recommended to remove .elc files from lisp/org directory and
@@ -108,10 +119,8 @@ Version mismatch is commonly encountered in the following situations:
 (declare-function org-mode "org" ())
 (declare-function org-agenda-files "org" (&optional unrestricted archives))
 (declare-function org-time-string-to-seconds "org" (s))
-(declare-function org-fold-show-context "org-fold" (&optional key))
 (declare-function org-fold-save-outline-visibility "org-fold" (use-markers &rest body))
 (declare-function org-fold-next-visibility-change "org-fold" (&optional pos limit ignore-hidden-p previous-p))
-(declare-function org-fold-core-with-forced-fontification "org-fold" (&rest body))
 (declare-function org-fold-folded-p "org-fold" (&optional pos limit ignore-hidden-p previous-p))
 (declare-function org-time-convert-to-list "org-compat" (time))
 (declare-function org-buffer-text-pixel-width "org-compat" ())
@@ -246,26 +255,37 @@ This function is only useful when called from Agenda buffer."
 (defmacro org-preserve-local-variables (&rest body)
   "Execute BODY while preserving local variables."
   (declare (debug (body)))
-  `(let ((local-variables
-	  (org-with-wide-buffer
-	   (goto-char (point-max))
-	   (let ((case-fold-search t))
-	     (and (re-search-backward "^[ \t]*# +Local Variables:"
-				      (max (- (point) 3000) 1)
-				      t)
-               (let ((buffer-undo-list t))
-	         (delete-and-extract-region (point) (point-max)))))))
-         (tick-counter-before (buffer-modified-tick)))
-     (unwind-protect (progn ,@body)
-       (when local-variables
-	 (org-with-wide-buffer
-	  (goto-char (point-max))
-	  (unless (bolp) (insert "\n"))
-          (let ((modified (< tick-counter-before (buffer-modified-tick)))
-                (buffer-undo-list t))
-	    (insert local-variables)
-            (unless modified
-              (restore-buffer-modified-p nil))))))))
+  (org-with-gensyms (local-variables tick-counter-before)
+    `(org-with-undo-amalgamate
+       (let ((,local-variables
+              (org-with-wide-buffer
+               (goto-char (point-max))
+               (let ((case-fold-search t))
+                 (and (re-search-backward
+                       ,(rx-let ((prefix
+                                  (seq line-start (zero-or-more whitespace)
+                                       "#" (one-or-more whitespace))))
+                          (rx prefix "Local Variables:"
+                              (one-or-more anychar)
+                              prefix "End:"
+                              (zero-or-more whitespace) (optional "\n")))
+                       (max (- (point) 3000) 1)
+                       t)
+                      (cons (match-beginning 0)
+                            (delete-and-extract-region (match-beginning 0)
+                                                         (match-end 0)))))))
+             (,tick-counter-before (buffer-modified-tick)))
+         (unwind-protect (progn ,@body)
+           (when ,local-variables
+             (org-with-wide-buffer
+              (let ((modified (< ,tick-counter-before (buffer-modified-tick))))
+                (if (not modified)
+                    (goto-char (car ,local-variables))
+                  (goto-char (point-max))
+                  (unless (bolp) (insert "\n")))
+	        (insert (cdr ,local-variables))
+                (unless modified
+                  (restore-buffer-modified-p nil))))))))))
 
 ;;;###autoload
 (defmacro org-element-with-disabled-cache (&rest body)
@@ -273,6 +293,16 @@ This function is only useful when called from Agenda buffer."
   (declare (debug (form body)) (indent 0))
   `(cl-letf (((symbol-function #'org-element--cache-active-p) (lambda (&rest _) nil)))
      ,@body))
+
+(defmacro org-with-syntax-table (table &rest body)
+  "Evaluate BODY with syntax table of current buffer set to TABLE.
+
+This is the same as `with-syntax-table' except that it also binds
+`parse-sexp-lookup-properties' to nil."
+  (declare (debug t) (indent 1))
+  `(with-syntax-table ,table
+     (let ((parse-sexp-lookup-properties nil))
+       ,@body)))
 
 
 ;;; Buffer and windows
@@ -672,7 +702,14 @@ ones and overrule settings in the other lists."
     org-element--cache-diagnostics-ring-size
     org-element--cache-sync-keys
     org-element--cache-sync-requests
-    org-element--cache-sync-timer)
+    org-element--cache-sync-timer
+    ;; FIXME: Avoid copying `buffer-file-name' - when closing a
+    ;; temporary buffer, org-persist badly interacts with multiple
+    ;; _different_ buffers with the same `buffer-file-name' and may
+    ;; modify (via `org-element--cache-persist-before-write' by side
+    ;; effect the cache in a _different_ buffer (whatever comes first
+    ;; in `get-file-buffer').
+    buffer-file-name)
   "List of local variables that cannot be transferred to another buffer.")
 
 (defun org-get-local-variables ()
@@ -1142,6 +1179,9 @@ delimiting S."
 	     ((= cursor end) 0)
 	     (t (string-width (substring s cursor end)))))))
 
+(defvar org-string-width--old-emacs (version< emacs-version "28")
+  "When non-nil, use fallback behavior, primarily for old Emacs versions.")
+
 (defun org--string-width-1 (string)
   "Return width of STRING when displayed in the current buffer.
 Unlike `string-width', this function takes into consideration
@@ -1151,17 +1191,47 @@ Results may be off sometimes if it cannot handle a given
 `display' value."
   (org--string-from-props string 'display 0 (length string)))
 
-(defun org-string-width (string &optional pixels default-face)
+(defun org-string-width-invisibility-spec ()
+  "Return the invisibility spec of this buffer without folds and ellipses."
+  ;; We need to remove the folds to make sure that folded table
+  ;; alignment is not messed up.
+  (or (and (not (listp buffer-invisibility-spec))
+           buffer-invisibility-spec)
+      (let (result)
+        (dolist (el buffer-invisibility-spec)
+          (unless (or (memq el
+                            '(org-fold-drawer
+                              org-fold-block
+                              org-fold-outline))
+                      (and (listp el)
+                           (memq (car el)
+                                 '(org-fold-drawer
+                                   org-fold-block
+                                   org-fold-outline))))
+            (push
+             ;; Consider ellipsis to have 0 width.
+             ;; It is what Emacs 28+ does, but we have
+             ;; to force it in earlier Emacs versions.
+             (if (and (consp el) (cdr el))
+                 (list (car el))
+               el)
+             result)))
+        result)))
+
+(defun org-string-width (string &optional pixels default-face invisibility-spec)
   "Return width of STRING when displayed in the current buffer.
 Return width in pixels when PIXELS is non-nil.
 When PIXELS is nil, DEFAULT-FACE is the face used to calculate relative
-STRING width.  When REFERENCE-FACE is nil, `default' face is used."
-  (if (and (version< emacs-version "28") (not pixels))
+STRING width.  When REFERENCE-FACE is nil, `default' face is used.
+Use INVISIBILITY-SPEC when non-nil, otherwise construct one without
+folds and ellipses."
+  (if (and org-string-width--old-emacs (not pixels))
       ;; FIXME: Fallback to old limited version, because
       ;; `window-pixel-width' is buggy in older Emacs.
       (org--string-width-1 string)
     ;; Wrap/line prefix will make `window-text-pixel-size' return too
     ;; large value including the prefix.
+    (setq string (copy-sequence string)) ; do not modify STRING object
     (remove-text-properties 0 (length string)
                             '(wrap-prefix t line-prefix t)
                             string)
@@ -1171,40 +1241,14 @@ STRING width.  When REFERENCE-FACE is nil, `default' face is used."
     ;; when PIXELS are requested though).
     (unless pixels
       (put-text-property 0 (length string) 'face (or default-face 'default) string))
-    (let (;; We need to remove the folds to make sure that folded table
-          ;; alignment is not messed up.
-          (current-invisibility-spec
-           (or (and (not (listp buffer-invisibility-spec))
-                    buffer-invisibility-spec)
-               (let (result)
-                 (dolist (el buffer-invisibility-spec)
-                   (unless (or (memq el
-                                     '(org-fold-drawer
-                                       org-fold-block
-                                       org-fold-outline))
-                               (and (listp el)
-                                    (memq (car el)
-                                          '(org-fold-drawer
-                                            org-fold-block
-                                            org-fold-outline))))
-                     (push el result)))
-                 result)))
+    (let ((current-invisibility-spec (or invisibility-spec (org-string-width-invisibility-spec)))
           (current-char-property-alias-alist char-property-alias-alist))
-      (with-current-buffer (get-buffer-create " *Org string width*")
+      (with-current-buffer (get-buffer-create " *Org string width*" t)
         (setq-local display-line-numbers nil)
         (setq-local line-prefix nil)
         (setq-local wrap-prefix nil)
         (setq-local buffer-invisibility-spec
-                    (if (listp current-invisibility-spec)
-                        (mapcar (lambda (el)
-                                  ;; Consider ellipsis to have 0 width.
-                                  ;; It is what Emacs 28+ does, but we have
-                                  ;; to force it in earlier Emacs versions.
-                                  (if (and (consp el) (cdr el))
-                                      (list (car el))
-                                    el))
-                                current-invisibility-spec)
-                      current-invisibility-spec))
+                    current-invisibility-spec)
         (setq-local char-property-alias-alist
                     current-char-property-alias-alist)
         (let (pixel-width symbol-width)
@@ -1218,7 +1262,7 @@ STRING width.  When REFERENCE-FACE is nil, `default' face is used."
               (setq symbol-width (org-buffer-text-pixel-width))))
           (if pixels
               pixel-width
-            (ceiling pixel-width symbol-width)))))))
+            (round pixel-width symbol-width)))))))
 
 (defmacro org-current-text-column ()
   "Like `current-column' but ignore display properties.
@@ -1228,7 +1272,9 @@ This function forces `tab-width' value because it is used as a part of
 the parser, to ensure parser consistency when calculating list
 indentation."
   `(progn
-     (unless (= 8 tab-width) (error "Tab width in Org files must be 8, not %d.  Please adjust your `tab-width' settings for Org mode" tab-width))
+     (unless (= 8 tab-width)
+       (org--set-tab-width)
+       (warn "Tab width in Org files must be 8, not %d.  Setting back to 8.  Please adjust your `tab-width' settings for Org mode" tab-width))
      (string-width (buffer-substring-no-properties
                     (line-beginning-position) (point)))))
 
@@ -1701,18 +1747,33 @@ it for output."
                         (file-relative-name source pwd))
                     source))
          (log-buf (and log-buf (get-buffer-create log-buf)))
-         (time (file-attribute-modification-time (file-attributes output))))
+         (time (file-attribute-modification-time (file-attributes output)))
+         exit-status (did-error nil))
     (save-window-excursion
       (dolist (command commands)
         (cond
          ((functionp command)
+          ;; We could treat return value of the function
+          ;; as return code in shell command, but that would be
+          ;; a breaking changed compared to historical behavior.
+          ;; Functions might still take care to remove the target file
+          ;; (if it already exists) to mark failure.
           (funcall command (shell-quote-argument relname)))
          ((stringp command)
           (let ((shell-command-dont-erase-buffer t))
-            (shell-command command log-buf))))))
+            (setq exit-status (shell-command command log-buf))
+            (when (and (numberp exit-status) (> exit-status 0))
+              (setq did-error t)))))))
     ;; Check for process failure.  Output file is expected to be
     ;; located in the same directory as SOURCE.
-    (unless (org-file-newer-than-p output time)
+    ;; Sometimes, the (LaTeX) process fails still producing output.
+    ;; Then, assume compilation success. It is way too common for
+    ;; LaTeX to throw non-0 exit code yet producing perfectly usable
+    ;; pdfs.
+    (when (or (not (file-exists-p output))
+              ;; non-0 exit code and output not updated.
+              (and did-error
+                   (not (org-file-newer-than-p output time))))
       (ignore (defvar org-batch-test))
       ;; Display logs when running tests.
       (when (bound-and-true-p org-batch-test)
@@ -1811,6 +1872,15 @@ indirectly called by the latter."
                (or (not (alist-get 'same-frame alist))
                    (eq (window-frame) (window-frame window))))
       (window--display-buffer buffer window 'reuse alist))))
+
+(defun org-base-buffer-file-name (&optional buffer)
+  "Resolve the base file name for the provided BUFFER.
+If BUFFER is not provided, default to the current buffer.  If
+BUFFER does not have a file name associated with it (e.g. a
+transient buffer) then return nil."
+  (if-let* ((base-buffer (buffer-base-buffer buffer)))
+      (buffer-file-name base-buffer)
+    (buffer-file-name buffer)))
 
 (provide 'org-macs)
 

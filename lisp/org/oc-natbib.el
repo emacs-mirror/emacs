@@ -48,9 +48,7 @@
 
 (require 'oc)
 
-(declare-function org-element-property "org-element-ast" (property node))
-
-(declare-function org-export-data "org-export" (data info))
+(declare-function org-export-data "ox" (data info))
 
 
 ;;; Customization

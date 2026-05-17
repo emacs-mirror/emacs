@@ -245,7 +245,7 @@ a communication channel."
    ;; them are included in the result.
    (let ((footnotes
 	  (org-element-map
-	      (list (org-element-lineage section 'headline) section)
+	      (list (or (org-element-lineage section 'headline) "") section)
 	      'footnote-reference
 	    (lambda (fn)
 	      (and (eq (org-element-property :type fn) 'standard)
@@ -337,10 +337,13 @@ is the property list for the given project.  PUB-DIR is the
 publishing directory.
 
 Return output file name."
+  (require 'ox-publish)
+  (declare-function org-publish-org-to "ox-publish" (backend filename extension plist &optional pub-dir))
   (org-publish-org-to 'org filename ".org" plist pub-dir)
   (when (plist-get plist :htmlized-source)
     (org-require-package 'htmlize)
     (require 'ox-html)
+    (defvar org-html-extension) ; defined in ox-html.el
     (let* ((org-inhibit-startup t)
 	   (htmlize-output-type 'css)
 	   (html-ext (concat "." (or (plist-get plist :html-extension)

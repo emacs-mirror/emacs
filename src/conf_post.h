@@ -389,10 +389,11 @@ extern int emacs_setenv_TZ (char const *);
 #endif /* MSDOS */
 
 #if defined WINDOWSNT && !(defined OMIT_CONSOLESAFE && OMIT_CONSOLESAFE == 1)
-# if !defined _UCRT
-#  include <stdarg.h>
+# if !defined _UCRT || !(HAVE_DECL_GETDELIM && HAVE_DECL_GETLINE)
 #  include <stdio.h>
 #  include <stddef.h>
+#  if !defined _UCRT
+#   include <stdarg.h>
 
 /* Workarounds for MSVCRT bugs.
 
@@ -418,10 +419,18 @@ extern int gl_consolesafe_vfprintf (FILE *restrict fp,
 extern int gl_consolesafe_vprintf (const char *restrict format, va_list args)
   ATTRIBUTE_FORMAT_PRINTF (1, 0)
   ARG_NONNULL ((1));
-#  define fwrite gl_consolesafe_fwrite
-#  define fprintf gl_consolesafe_fprintf
-#  define printf gl_consolesafe_printf
-#  define vfprintf gl_consolesafe_vfprintf
-#  define vprintf gl_consolesafe_vprintf
-# endif	/* !_UCRT */
+#   define fwrite gl_consolesafe_fwrite
+#   define fprintf gl_consolesafe_fprintf
+#   define printf gl_consolesafe_printf
+#   define vfprintf gl_consolesafe_vfprintf
+#   define vprintf gl_consolesafe_vprintf
+#  endif /* !_UCRT */
+
+#  if !HAVE_DECL_GETDELIM
+extern ssize_t getdelim (char **, size_t *, int, FILE *);
+#  endif
+#  if !HAVE_DECL_GETLINE
+extern ssize_t getline (char **, size_t *, FILE *);
+#  endif
+# endif
 #endif	/* WINDOWSNT */

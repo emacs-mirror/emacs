@@ -241,10 +241,11 @@ buffers."
 
   ;; The foregoing commands in `diff-mode-shared-map' and
   ;; `diff-mode-read-only-map' don't affect buffers beyond this one.
-  ;; The following command is the only one that has a single-character
-  ;; binding and which affects buffers beyond this one.  However, the
-  ;; following command asks for confirmation by default, so that seems
-  ;; okay.  --spwhitton
+  ;; The following commands are the only ones that have a
+  ;; single-character binding and which affect something beyond the
+  ;; current buffer.  However, the following commands ask for
+  ;; confirmation by default, so that seems okay.  --spwhitton
+  "v" #'vc-next-action
   "u" #'diff-revert-and-kill-hunk
   ;; `diff-revert-and-kill-hunk' is the `diff-mode' analogue of what '@'
   ;; does in VC-Dir, so give it the same short binding.
@@ -1251,8 +1252,10 @@ Optional argument DELETE is passed on to `diff-file-kill'."
              (goto-char (point-min))
              (ignore-errors (diff-file-next))
              for (name1 name2) = (diff-hunk-file-names)
-             if (or (equal name1 null-device)
-                    (equal name2 null-device))
+             ;; Allow for "/dev/null" on all platforms, as some versions
+             ;; of Diff produce that for "portability".
+             if (or (member name1 (list null-device "/dev/null"))
+                    (member name2 (list null-device "/dev/null")))
              do (diff-file-kill delete)
              else if (eq (prog1 (point)
                            (ignore-errors (diff-file-next)))

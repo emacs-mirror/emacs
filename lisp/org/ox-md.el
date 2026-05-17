@@ -93,6 +93,22 @@ headings for its own use."
   ;; Avoid `natnum' because that's not available until Emacs 28.1.
   :type 'integer)
 
+(defcustom org-md-link-org-files-as-md t
+  "Non-nil means make file links to \"file.org\" point to \"file.md\".
+
+When Org mode is exporting an Org file to markdown, links to
+non-markdown files are directly put into a \"href\" tag in
+markdown.  However, links to other Org files \(recognized by the
+extension \".org\") should become links to the corresponding
+markdown file, assuming that the linked Org file will also be
+converted to markdown.
+
+When nil, the links still point to the plain \".org\" file."
+  :group 'org-export-md
+  :package-version '(Org . "9.8")
+  :type 'boolean
+  :safe #'booleanp)
+
 
 
 ;;; Define Backend
@@ -144,7 +160,8 @@ headings for its own use."
   '((:md-footnote-format nil nil org-md-footnote-format)
     (:md-footnotes-section nil nil org-md-footnotes-section)
     (:md-headline-style nil nil org-md-headline-style)
-    (:md-toplevel-hlevel nil nil org-md-toplevel-hlevel)))
+    (:md-toplevel-hlevel nil nil org-md-toplevel-hlevel)
+    (:md-link-org-files-as-md nil nil org-md-link-org-files-as-md)))
 
 
 ;;; Filters
@@ -393,8 +410,8 @@ a communication channel."
 			     (concat "     " (org-make-tag-string tag-list))))))
 	   (priority
 	    (and (plist-get info :with-priority)
-		 (let ((char (org-element-property :priority headline)))
-		   (and char (format "[#%c] " char)))))
+		 (let ((priority-value (org-element-property :priority headline)))
+		   (and priority-value (format "[#%s] " (org-priority-to-string priority-value))))))
 	   ;; Headline text without tags.
 	   (heading (concat todo priority title))
 	   (style (plist-get info :md-headline-style)))
@@ -540,17 +557,19 @@ channel."
 DESC is the description part of the link, or the empty string.
 INFO is a plist holding contextual information.  See
 `org-export-data'."
-  (let* ((link-org-files-as-md
+  (let* ((link-org-files-as-md-maybe
 	  (lambda (raw-path)
 	    ;; Treat links to `file.org' as links to `file.md'.
-	    (if (string= ".org" (downcase (file-name-extension raw-path ".")))
+	    (if (and
+		 (plist-get info :md-link-org-files-as-md)
+		 (string= ".org" (downcase (file-name-extension raw-path "."))))
 		(concat (file-name-sans-extension raw-path) ".md")
 	      raw-path)))
 	 (type (org-element-property :type link))
 	 (raw-path (org-element-property :path link))
 	 (path (cond
 		((string-equal  type "file")
-		 (org-export-file-uri (funcall link-org-files-as-md raw-path)))
+		 (org-export-file-uri (funcall link-org-files-as-md-maybe raw-path)))
 		(t (concat type ":" raw-path)))))
     (cond
      ;; Link type is handled by a special function.
@@ -561,7 +580,7 @@ INFO is a plist holding contextual information.  See
 			   (org-export-resolve-id-link link info))))
 	(pcase (org-element-type destination)
 	  (`plain-text			; External file.
-	   (let ((path (funcall link-org-files-as-md destination)))
+	   (let ((path (funcall link-org-files-as-md-maybe destination)))
 	     (if (not desc) (format "<%s>" path)
 	       (format "[%s](%s)" desc path))))
 	  (`headline

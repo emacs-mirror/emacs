@@ -1,0 +1,32 @@
+Name: foo
+
+=-=
+FOO
+=-=
+FOO
+=-=-=
+
+Name: bar
+
+=-=
+BAR
+=-=
+BAR
+=-=-=
+
+Name: baz
+Skip: t
+
+=-=
+BAZ
+=-=
+BAZ
+=-=-=
+
+Name: quux
+
+=-=
+QUUX
+=-=
+QUUX
+=-=-=

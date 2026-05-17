@@ -23,18 +23,7 @@
 
 ;;; Commentary:
 
-;; Org-Babel support for evaluating Lua source code.
-
-;; Requirements:
-;; for session support, lua-mode is needed.
-;;
-;; lua-mode is not part of GNU Emacs/orgmode, but can be obtained
-;; from NonGNU ELPA (see `M-x list-packages').
-;;
-;; The source repository is here:
-;; https://github.com/immerrr/lua-mode
-
-;; However, sessions are not yet working.
+;; Org Babel support for evaluating Lua source code.
 
 ;;; Code:
 
@@ -44,10 +33,6 @@
 (require 'ob)
 (require 'org-macs)
 (require 'cl-lib)
-
-(declare-function lua-shell "ext:lua-mode" (&optional argprompt))
-(declare-function lua-toggle-shells "ext:lua-mode" (arg))
-(declare-function run-lua "ext:lua" (cmd &optional dedicated show))
 
 (defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("lua" . "lua"))
@@ -62,7 +47,7 @@
   :type 'string)
 
 (defcustom org-babel-lua-mode 'lua-mode
-  "Preferred lua mode for use in running lua interactively.
+  "Preferred Lua mode for use in running Lua interactively.
 This will typically be `lua-mode'."
   :group 'org-babel
   :version "26.1"
@@ -70,7 +55,7 @@ This will typically be `lua-mode'."
   :type 'symbol)
 
 (defcustom org-babel-lua-hline-to "None"
-  "Replace hlines in incoming tables with this when translating to Lua."
+  "Replace `hlines' in incoming tables with this when translating to Lua."
   :group 'org-babel
   :version "26.1"
   :package-version '(Org . "8.3")
@@ -92,11 +77,10 @@ This will typically be `lua-mode'."
 (defun org-babel-execute:lua (body params)
   "Execute Lua BODY according to PARAMS.
 This function is called by `org-babel-execute-src-block'."
-  (let* ((session (org-babel-lua-initiate-session
-		   (cdr (assq :session params))))
+  (let* ((session (cdr (assq :session params)))
          (result-params (cdr (assq :result-params params)))
          (result-type (cdr (assq :result-type params)))
-	 (return-val (when (and (eq result-type 'value) (not session))
+	 (return-val (when (eq result-type 'value)
 		       (cdr (assq :return params))))
 	 (preamble (cdr (assq :preamble params)))
          (full-body
@@ -104,35 +88,15 @@ This function is called by `org-babel-execute-src-block'."
 	   (concat body (if return-val (format "\nreturn %s" return-val) ""))
 	   params (org-babel-variable-assignments:lua params)))
          (result (org-babel-lua-evaluate
-		  session full-body result-type result-params preamble)))
+		  full-body result-type result-params preamble)))
+    (when (and session (not (equal session "none")))
+      (user-error "Sessions not supported for Lua"))
     (org-babel-reassemble-table
      result
      (org-babel-pick-name (cdr (assq :colname-names params))
 			  (cdr (assq :colnames params)))
      (org-babel-pick-name (cdr (assq :rowname-names params))
 			  (cdr (assq :rownames params))))))
-
-(defun org-babel-prep-session:lua (session params)
-  "Prepare SESSION according to the header arguments in PARAMS.
-VARS contains resolved variable references."
-  (let* ((session (org-babel-lua-initiate-session session))
-	 (var-lines
-	  (org-babel-variable-assignments:lua params)))
-    (org-babel-comint-in-buffer session
-      (mapc (lambda (var)
-              (end-of-line 1) (insert var) (comint-send-input)
-              (org-babel-comint-wait-for-output session))
-	    var-lines))
-    session))
-
-(defun org-babel-load-session:lua (session body params)
-  "Load BODY into SESSION."
-  (save-window-excursion
-    (let ((buffer (org-babel-prep-session:lua session params)))
-      (with-current-buffer buffer
-        (goto-char (process-mark (get-buffer-process (current-buffer))))
-        (insert (org-babel-chomp body)))
-      buffer)))
 
 ;; helper functions
 
@@ -168,9 +132,9 @@ specifying a variable of the same value."
        (if (stringp var) (substring-no-properties var) var)))))
 
 (defun org-babel-lua-table-or-string (results)
-  "Convert RESULTS into an appropriate elisp value.
+  "Convert RESULTS into an appropriate Emacs Lisp value.
 If the results look like a list or tuple, then convert them into an
-Emacs-lisp table, otherwise return the results as a string."
+Emacs Lisp table, otherwise return the results as a string."
   (let ((res (org-babel-script-escape results)))
     (if (listp res)
         (mapcar (lambda (el) (if (eq el 'None)
@@ -179,76 +143,6 @@ Emacs-lisp table, otherwise return the results as a string."
       res)))
 
 (defvar org-babel-lua-buffers '((:default . "*Lua*")))
-
-(defun org-babel-lua-session-buffer (session)
-  "Return the buffer associated with SESSION."
-  (cdr (assoc session org-babel-lua-buffers)))
-
-(defun org-babel-lua-with-earmuffs (session)
-  "Return buffer name for SESSION, as *SESSION*."
-  (let ((name (if (stringp session) session (format "%s" session))))
-    (if (and (string= "*" (substring name 0 1))
-	     (string= "*" (substring name (- (length name) 1))))
-	name
-      (format "*%s*" name))))
-
-(defun org-babel-session-buffer:lua (session &optional _)
-  "Return session buffer name for SESSION."
-  (or (org-babel-lua-session-buffer session)
-      (org-babel-lua-with-earmuffs session)))
-
-(defun org-babel-lua-without-earmuffs (session)
-"Remove stars around *SESSION*, leaving SESSION."
-  (let ((name (if (stringp session) session (format "%s" session))))
-    (if (and (string= "*" (substring name 0 1))
-	     (string= "*" (substring name (- (length name) 1))))
-	(substring name 1 (- (length name) 1))
-      name)))
-
-(defvar lua-default-interpreter)
-(defvar lua-which-bufname)
-(defvar lua-shell-buffer-name)
-(defun org-babel-lua-initiate-session-by-key (&optional session)
-  "Initiate a Lua session.
-If there is not a current inferior-process-buffer in SESSION
-then create.  Return the initialized session."
-  ;; (require org-babel-lua-mode)
-  (save-window-excursion
-    (let* ((session (if session (intern session) :default))
-           (lua-buffer (org-babel-lua-session-buffer session))
-	   ;; (cmd (if (member system-type '(cygwin windows-nt ms-dos))
-	   ;; 	    (concat org-babel-lua-command " -i")
-	   ;; 	  org-babel-lua-command))
-	   )
-      (cond
-       ((and (eq 'lua-mode org-babel-lua-mode)
-             (fboundp 'lua-start-process)) ; lua-mode.el
-        ;; Make sure that lua-which-bufname is initialized, as otherwise
-        ;; it will be overwritten the first time a Lua buffer is
-        ;; created.
-        ;;(lua-toggle-shells lua-default-interpreter)
-        ;; `lua-shell' creates a buffer whose name is the value of
-        ;; `lua-which-bufname' with '*'s at the beginning and end
-        (let* ((bufname (if (and lua-buffer (buffer-live-p lua-buffer))
-                            (replace-regexp-in-string ;; zap surrounding *
-                             "^\\*\\([^*]+\\)\\*$" "\\1" (buffer-name lua-buffer))
-                          (concat "Lua-" (symbol-name session))))
-               (lua-which-bufname bufname))
-          (lua-start-process)
-          (setq lua-buffer (org-babel-lua-with-earmuffs bufname))))
-       (t
-	(error "No function available for running an inferior Lua")))
-      (setq org-babel-lua-buffers
-            (cons (cons session lua-buffer)
-                  (assq-delete-all session org-babel-lua-buffers)))
-      session)))
-
-(defun org-babel-lua-initiate-session (&optional session _params)
-  "Create a session named SESSION according to PARAMS."
-  (unless (string= session "none")
-    (error "Sessions currently not supported, work in progress")
-    (org-babel-lua-session-buffer
-     (org-babel-lua-initiate-session-by-key session))))
 
 (defvar org-babel-lua-eoe-indicator "--eoe"
   "A string to indicate that evaluation has completed.")
@@ -263,38 +157,56 @@ function dump(it, indent)
    if indent == nil then
       indent = ''
    end
+
    if type(it) == 'table' and %s then
-      local count = 0
-      for _ in pairs(it) do
-         count = count + 1
-      end
       local result = ''
+
       if #indent ~= 0 then
          result = result .. '\\n'
       end
-      for key, value in pairs(it) do
+
+      local keys = {}
+      for key in pairs(it) do
+        table.insert(keys, key)
+      end
+
+      table.sort(keys)
+
+      for index, key in pairs(keys) do
+         local value = it[key]
          result = result
             .. indent
             .. dump(key)
             .. ' = '
             .. dump(value, indent .. '  ')
-         count = count - 1
-         if count ~= 0 then
+         if index ~= #keys then
             result = result .. '\\n'
          end
       end
+
       return result
    else
-      return tostring(it)
+      return string.gsub(tostring(it), '\"', '\\\"')
    end
 end
 
 function combine(...)
   local result = {}
+
   for index = 1, select('#', ...) do
     result[index] = dump(select(index, ...))
   end
-  return table.concat(result, '%s')
+
+  if #result == 1 then
+    local value = result[1]
+    if string.find(value, '[%%(%%[{]') == 1 then
+      return '\"' .. value .. '\"'
+    else
+      return value
+    end
+  end
+
+  return '\"' .. table.concat(result, '%s') .. '\"'
 end
 
 output = io.open('%s', 'w')
@@ -302,19 +214,6 @@ output:write(combine(main()))
 output:close()")
 
 (defun org-babel-lua-evaluate
-    (session body &optional result-type result-params preamble)
-  "Evaluate BODY in SESSION as Lua code.
-RESULT-TYPE and RESULT-PARAMS are passed to
-`org-babel-lua-evaluate-session' or
-`org-babel-lua-evaluate-external-process'.
-PREAMBLE is passed to `org-babel-lua-evaluate-external-process'."
-  (if session
-      (org-babel-lua-evaluate-session
-       session body result-type result-params)
-    (org-babel-lua-evaluate-external-process
-     body result-type result-params preamble)))
-
-(defun org-babel-lua-evaluate-external-process
     (body &optional result-type result-params preamble)
   "Evaluate BODY in external Lua process.
 If RESULT-TYPE equals `output' then return standard output as a
@@ -349,88 +248,6 @@ PREAMBLE string is appended to BODY."
     (org-babel-result-cond result-params
       raw
       (org-babel-lua-table-or-string (org-trim raw)))))
-
-(defun org-babel-lua-evaluate-session
-    (session body &optional result-type result-params)
-  "Pass BODY to the Lua process in SESSION.
-If RESULT-TYPE equals `output' then return standard output as a
-string.  If RESULT-TYPE equals `value' then return the value of the
-last statement in BODY, as Emacs Lisp."
-  (let* ((send-wait (lambda () (comint-send-input nil t) (sleep-for 0.005)))
-	 (dump-last-value
-	  (lambda
-	    (tmp-file pp)
-	    (mapc
-	     (lambda (statement) (insert statement) (funcall send-wait))
-	     (if pp
-		 (list
-		  "-- table to string
-function t2s(t, indent)
-   if indent == nil then
-      indent = \"\"
-   end
-   if type(t) == \"table\" then
-      ts = \"\"
-      for k,v in pairs(t) do
-         if type(v) == \"table\" then
-            ts = ts .. indent .. t2s(k,indent .. \"  \") .. \" = \\n\" ..
-               t2s(v, indent .. \"  \")
-         else
-            ts = ts .. indent .. t2s(k,indent .. \"  \") .. \" = \" ..
-               t2s(v, indent .. \"  \") .. \"\\n\"
-         end
-      end
-      return ts
-   else
-      return tostring(t)
-   end
-end
-"
-		  (concat "fd:write(_))
-fd:close()"
-			  (org-babel-process-file-name tmp-file 'noquote)))
-	       (list (format "fd=io.open(\"%s\", \"w\")
-fd:write( _ )
-fd:close()"
-			     (org-babel-process-file-name tmp-file
-                                                          'noquote)))))))
-	 (input-body (lambda (body)
-		       (mapc (lambda (line) (insert line) (funcall send-wait))
-			     (split-string body "[\r\n]"))
-		       (funcall send-wait)))
-         (results
-          (pcase result-type
-            (`output
-             (mapconcat
-              #'org-trim
-              (butlast
-               (org-babel-comint-with-output
-                   (session org-babel-lua-eoe-indicator t body)
-                 (funcall input-body body)
-                 (funcall send-wait) (funcall send-wait)
-                 (insert org-babel-lua-eoe-indicator)
-                 (funcall send-wait))
-               2) "\n"))
-            (`value
-             (let ((tmp-file (org-babel-temp-file "lua-")))
-               (org-babel-comint-with-output
-                   (session org-babel-lua-eoe-indicator nil body)
-                 (let ((comint-process-echoes nil))
-                   (funcall input-body body)
-                   (funcall dump-last-value tmp-file
-                            (member "pp" result-params))
-                   (funcall send-wait) (funcall send-wait)
-                   (insert org-babel-lua-eoe-indicator)
-                   (funcall send-wait)))
-               (org-babel-eval-read-file tmp-file))))))
-    (unless (string= (substring org-babel-lua-eoe-indicator 1 -1) results)
-      (org-babel-result-cond result-params
-	results
-        (org-babel-lua-table-or-string results)))))
-
-(defun org-babel-lua-read-string (string)
-  "Strip single quotes from around Lua STRING."
-  (org-unbracket-string "'" "'" string))
 
 (provide 'ob-lua)
 

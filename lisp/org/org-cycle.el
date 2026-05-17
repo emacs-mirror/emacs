@@ -40,27 +40,27 @@
 (declare-function org-element-post-affiliated "org-element" (node))
 (declare-function org-element-lineage "org-element-ast" (datum &optional types with-self))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
-(declare-function org-display-inline-images "org" (&optional include-linked refresh beg end))
-(declare-function org-get-tags "org" (&optional pos local fontify))
+(declare-function org-link-preview-region "ol" (&optional include-linked refresh beg end))
+(declare-function org-get-tags "org" (&optional epom local))
 (declare-function org-subtree-end-visible-p "org" ())
 (declare-function org-narrow-to-subtree "org" (&optional element))
 (declare-function org-next-visible-heading "org" (arg))
 (declare-function org-at-property-p "org" ())
 (declare-function org-re-property "org" (property &optional literal allow-null value))
-(declare-function org-remove-inline-images "org" (&optional beg end))
-(declare-function org-item-beginning-re "org" ())
+(declare-function org-link-preview-clear "ol" (&optional beg end))
+(declare-function org-item-beginning-re "org-list" ())
 (declare-function org-at-heading-p "org" (&optional invisible-not-ok))
-(declare-function org-at-item-p "org" ())
+(declare-function org-at-item-p "org-list" ())
 (declare-function org-before-first-heading-p "org" ())
 (declare-function org-back-to-heading "org" (&optional invisible-ok))
-(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading))
+(declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading element))
 (declare-function org-entry-end-position "org" ())
 (declare-function org-try-cdlatex-tab "org" ())
 (declare-function org-cycle-level "org" ())
 (declare-function org-table-next-field "org-table" ())
 (declare-function org-table-justify-field-maybe "org-table" (&optional new))
 (declare-function org-inlinetask-at-task-p "org-inlinetask" ())
-(declare-function org-inlinetask-toggle-visibility "org-inlinetask" ())
+(declare-function org-inlinetask-toggle-visibility "org-inlinetask" (&optional state))
 (declare-function org-list-get-all-items "org-list" (item struct prevs))
 (declare-function org-list-get-bottom-point "org-list" (struct))
 (declare-function org-list-prevs-alist "org-list" (struct))
@@ -71,7 +71,6 @@
 (declare-function org-list-struct "org-list" ())
 (declare-function org-cycle-item-indentation "org-list" ())
 
-(declare-function outline-previous-heading "outline" ())
 (declare-function outline-next-heading "outline" ())
 (declare-function outline-end-of-heading "outline" ())
 (declare-function outline-up-heading "outline" (arg &optional invisible-ok))
@@ -217,7 +216,7 @@ the values `folded', `children', or `subtree'."
 (defcustom org-cycle-hook '(org-cycle-hide-archived-subtrees
                             org-cycle-show-empty-lines
                             org-cycle-optimize-window-after-visibility-change
-                            org-cycle-display-inline-images)
+                            org-cycle-display-link-previews)
   "Hook that is run after `org-cycle' has changed the buffer visibility.
 The function(s) in this hook must accept a single argument which indicates
 the new state that was set by the most recent `org-cycle' command.  The
@@ -237,12 +236,17 @@ normal outline commands like `show-all', but not with the cycling commands."
   :group 'org-cycle
   :type 'boolean)
 
-(defcustom org-cycle-inline-images-display nil
-  "Non-nil means auto display inline images under subtree when cycling."
+(defvaralias 'org-cycle-inline-images-display
+  'org-cycle-link-previews-display
+  "Non-nil means auto display inline images under subtree when cycling.")
+
+(defcustom org-cycle-link-previews-display nil
+  "Non-nil means auto display link previews under subtree when cycling."
   :group 'org-startup
   :group 'org-cycle
-  :package-version '(Org . "9.6")
-  :type 'boolean)
+  :package-version '(Org . "9.8")
+  :type 'boolean
+  :safe #'booleanp)
 
 (defvaralias 'org-tab-first-hook 'org-cycle-tab-first-hook)
 (defvar org-cycle-tab-first-hook nil
@@ -514,7 +518,7 @@ Use `\\[org-edit-special]' to edit table.el tables"))
       (forward-line 1)
       (if (eq org-fold-core-style 'text-properties)
           (while (and (not (eobp))		;this is like `next-line'
-		      (org-fold-folded-p (1- (point))))
+		      (org-invisible-p (1- (point))))
 	    (goto-char (org-fold-next-visibility-change nil nil t))
 	    (and (eolp) (forward-line 1)))
         (while (and (not (eobp))		;this is like `next-line'
@@ -745,7 +749,9 @@ symbols `content', `all', `folded', `children', or `subtree'."
 The region to be covered depends on STATE when called through
 `org-cycle-hook'.  Lisp program can use t for STATE to get the
 entire buffer covered.  Note that an empty line is only shown if there
-are at least `org-cycle-separator-lines' empty lines before the headline."
+are at least `org-cycle-separator-lines' empty lines before the headline.
+
+Always show empty lines at the end of file."
   (when (/= org-cycle-separator-lines 0)
     (save-excursion
       (let* ((n (abs org-cycle-separator-lines))
@@ -778,11 +784,8 @@ are at least `org-cycle-separator-lines' empty lines before the headline."
   ;; Never hide empty lines at the end of the file.
   (save-excursion
     (goto-char (point-max))
-    (outline-previous-heading)
-    (outline-end-of-heading)
-    (when (and (looking-at "[ \t\n]+")
-               (= (match-end 0) (point-max)))
-      (org-fold-region (point) (match-end 0) nil 'outline))))
+    (skip-chars-backward " \t\n")
+    (org-fold-region (point) (point-max) nil 'outline)))
 
 (defun org-cycle-hide-archived-subtrees (state)
   "Re-hide all archived subtrees after a visibility state change.
@@ -804,12 +807,15 @@ STATE should be one of the symbols listed in the docstring of
 		       "Subtree is archived and stays closed.  Use \
 `\\[org-cycle-force-archived]' to cycle it anyway."))))))
 
-(defun org-cycle-display-inline-images (state)
+(defalias 'org-cycle-inline-images-display
+  'org-cycle-display-link-previews)
+
+(defun org-cycle-display-link-previews (state)
   "Auto display inline images under subtree when cycling.
-It works when `org-cycle-inline-images-display' is non-nil.
+It works when `org-cycle-link-previews-display' is non-nil.
 STATE is the current outline visibility state.  It should be one of
 symbols `content', `all', `folded', `children', or `subtree'."
-  (when org-cycle-inline-images-display
+  (when org-cycle-link-previews-display
     (pcase state
       ('children
        (org-with-wide-buffer
@@ -817,19 +823,19 @@ symbols `content', `all', `folded', `children', or `subtree'."
         ;; If has nested headlines, beg,end only from parent headline
         ;; to first child headline which reference to upper
         ;; let-binding `org-next-visible-heading'.
-        (org-display-inline-images
+        (org-link-preview-region
          nil nil
          (point-min) (progn (org-next-visible-heading 1) (point)))))
       ('subtree
        (org-with-wide-buffer
         (org-narrow-to-subtree)
         ;; If has nested headlines, also inline display images under all sub-headlines.
-        (org-display-inline-images nil nil (point-min) (point-max))))
+        (org-link-preview-region nil nil (point-min) (point-max))))
       ('folded
        (org-with-wide-buffer
         (org-narrow-to-subtree)
         (if (numberp (point-max))
-            (org-remove-inline-images (point-min) (point-max))
+            (org-link-preview-clear (point-min) (point-max))
           (ignore)))))))
 
 (provide 'org-cycle)

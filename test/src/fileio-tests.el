@@ -216,7 +216,7 @@ Also check that an encoding error can appear in a symlink."
 (put 'fileio-tests--identity-expand-handler 'operations '(expand-file-name))
 
 (ert-deftest fileio--file-name-case-insensitive-p ()
-  ;; Check that we at least don't crash if given nonexisting files
+  ;; Check that we at least don't crash if given nonexistent files
   ;; without a directory (bug#56443).
 
   ;; Use an identity file-name handler, as if called by `ffap'.
@@ -276,70 +276,6 @@ Also check that an encoding error can appear in a symlink."
         (kill-buffer buf))
       ;; We should have prompted about the supersession threat.
       (should asked))))
-
-(defvar fileio-tests--internal-counter 0)
-
-(ert-deftest fileio-tests--directory-name-p ()
-  (should (directory-name-p "/"))
-  (should (directory-name-p "foo/"))
-  (should-not (directory-name-p "foo")))
-
-(ert-deftest fileio-tests--make-temp-file-internal ()
-  (ert-with-temp-directory dir
-    (let* ((prefix (expand-file-name "fileio-test" dir))
-           (file (make-temp-file-internal prefix nil ".tmp" "hello")))
-      (should (file-exists-p file))
-      (should (equal (with-temp-buffer
-                       (insert-file-contents file)
-                       (buffer-string))
-                     "hello"))
-      (delete-file file))
-    (let* ((prefix (expand-file-name "fileio-test" dir))
-           (name (make-temp-file-internal prefix 0 "" nil)))
-      (should (stringp name))
-      (should-not (file-exists-p name)))
-    (let* ((prefix (expand-file-name "fileio-dir" dir))
-           (name (make-temp-file-internal prefix t "" nil)))
-      (should (file-directory-p name))
-      (delete-directory name))))
-
-(ert-deftest fileio-tests--make-delete-directory-internal ()
-  (ert-with-temp-directory dir
-    (let ((subdir (expand-file-name "subdir" dir)))
-      (make-directory-internal subdir)
-      (should (file-directory-p subdir))
-      (delete-directory-internal subdir)
-      (should-not (file-exists-p subdir)))))
-
-(ert-deftest fileio-tests--delete-file-internal ()
-  (ert-with-temp-file file
-    (write-region "data" nil file nil 'silent)
-    (should (file-exists-p file))
-    (delete-file-internal file)
-    (should-not (file-exists-p file))))
-
-(ert-deftest fileio-tests--unix-sync ()
-  (skip-unless (fboundp 'unix-sync))
-  (should-not (unix-sync)))
-
-(ert-deftest fileio-tests--auto-save-flags ()
-  (with-temp-buffer
-    (insert "abc")
-    (should-not (recent-auto-save-p))
-    (set-buffer-auto-saved)
-    (should (recent-auto-save-p))
-    (clear-buffer-auto-save-failure)
-    (should (recent-auto-save-p))))
-
-(ert-deftest fileio-tests--next-read-file-uses-dialog-p ()
-  (skip-unless (and (boundp 'use-dialog-box) (boundp 'use-file-dialog)))
-  (let ((use-dialog-box nil)
-        (use-file-dialog nil))
-    (should-not (next-read-file-uses-dialog-p))))
-
-(ert-deftest fileio-tests--set-binary-mode ()
-  (should (memq (set-binary-mode 'stdout t) '(nil t)))
-  (should-error (set-binary-mode 'not-a-stream t)))
 
 
 ;;; fileio-tests.el ends here

@@ -79,6 +79,7 @@
         (switch-to-buffer (erc-d-t-wait-for 10 (get-buffer "#spam"))) ; lower
         (other-window 1)
         (switch-to-buffer "#spam") ; upper
+        (redisplay)
         (erc-scenarios-common-say "one")
         (funcall expect 10 "Ay, the heads")
 
@@ -94,6 +95,7 @@
         ;; Lower window is still centered at start.
         (other-window 1)
         (switch-to-buffer "#chan")
+        (redisplay)
         (save-excursion
           (goto-char (window-point))
           (should (looking-back (rx "<alice> tester, welcome!")))
@@ -107,8 +109,10 @@
 
         (other-window 1) ; upper still at indicator, switches first
         (switch-to-buffer "#spam")
+        (redisplay)
         (other-window 1)
         (switch-to-buffer "#spam") ; lower follows, speaks to sync
+        (redisplay)
         (erc-scenarios-common-say "two")
         (funcall expect 10 "<bob> Cause they take")
         (goto-char (point-max))
@@ -116,6 +120,7 @@
         ;; Upper switches back first, finds indicator gone.
         (other-window 1)
         (switch-to-buffer "#chan")
+        (redisplay)
         (save-excursion
           (goto-char (window-point))
           (should (looking-back (rx "<bob> tester, welcome!")))

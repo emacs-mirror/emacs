@@ -7,11 +7,11 @@
 ;;         2006 Juergen Hoetzel <juergen@hoetzel.info>
 ;;         2004 various (support for Lua 5 and byte compilation)
 ;;         2001 Christian Vogler <cvogler@gradient.cis.upenn.edu>
-;;         1997 Bret Mogilefsky <mogul-lua@gelatinous.com> starting from
-;;              tcl-mode by Gregor Schmid <schmid@fb3-s7.math.tu-berlin.de>
-;;              with tons of assistance from
-;;              Paul Du Bois <pld-lua@gelatinous.com> and
-;;              Aaron Smith <aaron-lua@gelatinous.com>.
+;;         1997 Bret Mogilefsky <mogul-lua@gelatinous.com>
+;;              Gregor Schmid <schmid@fb3-s7.math.tu-berlin.de>
+;; Bret Mogilefsky started from tcl-mode by Gregor Schmid with tons of
+;; assistance from Paul Du Bois <pld-lua@gelatinous.com>
+;; and Aaron Smith <aaron-lua@gelatinous.com>.
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, processes, tools
 
@@ -185,7 +185,7 @@ Should be a list of strings."
 (defcustom lua-always-show t
   "Non-nil means display `lua-process-buffer' after sending a command."
   :type 'boolean
-  :group 'lua)
+  :version "31.1")
 
 (defcustom lua-documentation-function 'browse-url
   "Function used to fetch the Lua reference manual."
@@ -202,7 +202,7 @@ Should be a list of strings."
       "http://www.lua.org/manual/5.1/manual.html")
   "URL pointing to the Lua reference manual."
   :type 'string
-  :group 'lua)
+  :version "31.1")
 
 (defvar lua-process nil
   "The active Lua process.")

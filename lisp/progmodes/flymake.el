@@ -2428,7 +2428,10 @@ symbol `fringes' or the symbol `margins'."
            `((margin ,flymake-margin-indicator-position)
              ,(propertize
                indicator-car
-               'face `(:inherit (,(cdr valuelist) default))
+               'face `(:inherit (,(cdr valuelist)
+                                 ,(if (facep 'margin)
+                                      'margin
+                                    'default)))
                'mouse-face 'highlight
                'help-echo "Open Flymake diagnostics"
                'keymap (let ((map (make-sparse-keymap)))

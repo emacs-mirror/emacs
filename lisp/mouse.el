@@ -407,6 +407,7 @@ and should return the same menu with changes such as added new menu items."
                   (function-item context-menu-global)
                   (function-item context-menu-local)
                   (function-item context-menu-minor)
+                  (function-item context-menu-send-to)
                   (function-item context-menu-buffers)
                   (function-item context-menu-project)
                   (function-item context-menu-vc)
@@ -541,12 +542,16 @@ Some context functions add menu items below the separator."
 (defun context-menu-send-to (menu _click)
   "Add a \"Send to...\" context MENU entry on supported platforms."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-  (when (send-to-supported-p)
+  (when-let* ((_ (send-to-supported-p))
+              (handler (send-to--resolve-handler))
+              (collect (map-elt handler :collect))
+              (items (funcall collect)))
     (define-key-after menu [separator-send] menu-bar-separator)
     (define-key-after menu [send]
-      '(menu-item "Send to..." (lambda ()
-                                 (interactive)
-                                 (send-to))
+      `(menu-item "Send to..."
+                  ,(lambda ()
+                     (interactive)
+                     (send-to items))
                   :help
                   "Send item (region, buffer file, or Dired files) to applications or service")))
   menu)

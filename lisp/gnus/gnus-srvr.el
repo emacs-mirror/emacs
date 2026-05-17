@@ -31,6 +31,7 @@
 (require 'gnus-int)
 (require 'gnus-range)
 (require 'gnus-cloud)
+(require 'gnus-sum)
 
 (autoload 'gnus-group-read-ephemeral-search-group "nnselect")
 
@@ -250,6 +251,8 @@ The following commands are available:
 \\{gnus-server-mode-map}"
   (when (gnus-visual-p 'server-menu 'menu)
     (gnus-server-make-menu-bar))
+  (gnus-update-format-specifications nil 'server 'server-mode)
+  (gnus-set-mode-line 'server)
   (gnus-simplify-mode-line)
   (gnus-set-default-directory)
   (setq mode-line-process nil)

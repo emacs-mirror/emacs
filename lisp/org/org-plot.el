@@ -38,7 +38,6 @@
 (require 'org)
 (require 'org-table)
 
-(declare-function gnuplot-delchar-or-maybe-eof "ext:gnuplot" (arg))
 (declare-function gnuplot-mode "ext:gnuplot" ())
 (declare-function gnuplot-send-buffer-to-gnuplot "ext:gnuplot" ())
 
@@ -48,7 +47,9 @@
     (:ind . 0))
   "Default options to gnuplot used by `org-plot/gnuplot'.")
 
-(defvar org-plot-timestamp-fmt nil)
+(defvar org-plot-timestamp-fmt "%Y-%m-%d-%H:%M:%S"
+  "Default time format to be passed to Gnuplot.
+Can be changed via timefmt plot option.")
 
 (defun org-plot/add-options-to-plist (p options)
   "Parse an OPTIONS line and set values in the property list P.
@@ -130,14 +131,17 @@ will be added.  Returns the resulting property list."
 Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
   (with-temp-file
       data-file
-    (setq-local org-plot-timestamp-fmt (or
-					(plist-get params :timefmt)
-					"%Y-%m-%d-%H:%M:%S"))
-    (insert (orgtbl-to-generic
-	     table
-	     (org-combine-plists
-	      '(:sep "\t" :fmt org-plot-quote-tsv-field)
-	      params))))
+    (let ((org-plot-timestamp-fmt
+           (or
+	    (plist-get params :timefmt)
+            org-plot-timestamp-fmt
+	    "%Y-%m-%d-%H:%M:%S")))
+      (insert (orgtbl-to-generic
+	       table
+	       (org-combine-plists
+	        '( :sep "\t" :fmt org-plot-quote-tsv-field
+                   :with-special-rows nil)
+	        params)))))
   nil)
 
 (defun org-plot/gnuplot-to-grid-data (table data-file params)
@@ -215,9 +219,9 @@ of the NUMS."
 If HARD-MIN and HARD-MAX can be used to fix the ends of the axis."
   (let* ((row-data
 	  (mapcar (lambda (row) (org--plot/values-stats
-			         (mapcar #'string-to-number (cdr row))
-			         hard-min
-			         hard-max)) table))
+			    (mapcar #'string-to-number (cdr row))
+			    hard-min
+			    hard-max)) table))
 	 (row-normalized-ranges (mapcar (lambda (r-data)
 					  (let ((val (round (*
 							     (plist-get r-data :range-factor)
@@ -302,9 +306,10 @@ When NORMALIZE is non-nil, the count is divided by the number of values."
 (defcustom org-plot/gnuplot-script-preamble ""
   "String of function to be inserted before the gnuplot plot command is run.
 
-Note that this is in addition to, not instead of other content generated in
-`org-plot/gnuplot-script'.  If a function, it is called with the plot type as
-the argument, and must return a string to be used."
+Note that this is in addition to, not instead of other content generated
+in `org-plot/gnuplot-script'.  If a function, it is called with the
+parameters used by the current plot type (see
+`org-plot/preset-plot-types'), and must return a string to be used."
   :group 'org-plot
   :type '(choice string function))
 
@@ -349,7 +354,7 @@ the argument, and must return a string to be used."
     (grid :plot-cmd "splot"
 	  :plot-pre (lambda (_table _data-file _num-cols params _plot-str)
 		      (if (plist-get params :map) "set pm3d map" "set map"))
-	  :data-dump (lambda (table data-file params _num-cols)
+	  :data-dump (lambda (table data-file _num-cols params)
 		       (let ((y-labels (org-plot/gnuplot-to-grid-data
 					table data-file params)))
 			 (when y-labels (plist-put params :ylabels y-labels))))
@@ -391,8 +396,8 @@ be set.
 - :data-dump - Function to dump the table to a datafile for ease of
   use.
 
-  Accepts lambda function.  Default lambda body:
-  (org-plot/gnuplot-to-data table data-file params)
+  Accepts function with arguments:
+  (table data-file num-cols params)
 
 - :plot-pre - Gnuplot code to be inserted early into the script, just
   after term and output have been set.
@@ -400,7 +405,9 @@ be set.
    Accepts string, nil, or lambda function which returns string
    or nil.  Defaults to nil."
   :group 'org-plot
-  :type 'alist)
+  :package-version '(Org . "9.8")
+  :type 'alist
+  :risky t)
 
 (defvar org--plot/radar-template
   "### spider plot/chart with gnuplot
@@ -541,7 +548,8 @@ EOD
   "String or function which provides the extra term options.
 E.g. a value of \"size 1050,650\" would cause
 \"set term ... size 1050,650\" to be used.
-If a function, it is called with the plot type as the argument."
+If a function, it is called with the parameters used by the current plot
+type, see `org-plot/preset-plot-types'."
   :group 'org-plot
   :type '(choice string function))
 
@@ -627,7 +635,7 @@ manner suitable for prepending to a user-specified script."
 
 (defun org-plot/redisplay-img-in-buffer (img-file)
   "Find any overlays for IMG-FILE in the current Org buffer, and refresh them."
-  (dolist (img-overlay org-inline-image-overlays)
+  (dolist (img-overlay org-link-preview-overlays)
     (when (string= img-file (plist-get (cdr (overlay-get img-overlay 'display)) :file))
       (when (and (file-exists-p img-file)
                  (fboundp 'image-flush))
@@ -662,8 +670,7 @@ line directly before or after the table."
                   (looking-at "[[:space:]]*#\\+"))
         (setf params (org-plot/collect-options params))))
     ;; collect table and table information
-    (let* ((data-file (make-temp-file "org-plot"))
-           (table (let ((tbl (save-excursion
+    (let* ((table (let ((tbl (save-excursion
                                (org-plot/goto-nearest-table)
                                (org-table-to-lisp))))
 		    (when (pcase (plist-get params :transpose)
@@ -679,14 +686,13 @@ line directly before or after the table."
 		    tbl))
 	   (num-cols (length (if (eq (nth 0 table) 'hline) (nth 1 table)
 			       (nth 0 table))))
-	   (type (assoc (plist-get params :plot-type)
-			org-plot/preset-plot-types))
-           gnuplot-script)
+	   (type (cdr (assoc (plist-get params :plot-type)
+			     org-plot/preset-plot-types)))
+           gnuplot-script data-file)
 
       (unless type
 	(user-error "Org-plot type `%s' is undefined" (plist-get params :plot-type)))
 
-      (run-with-idle-timer 0.1 nil #'delete-file data-file)
       (when (eq (cadr table) 'hline)
 	(setf params
 	      (plist-put params :labels (car table))) ; headers to labels
@@ -695,8 +701,18 @@ line directly before or after the table."
       (save-excursion (while (and (equal 0 (forward-line -1))
 				  (looking-at "[[:space:]]*#\\+"))
 			(setf params (org-plot/collect-options params))))
+      ;; Ensure that the user can override any plot parameter, and
+      ;; that the parameters set by the plot type in
+      ;; `org-plot/preset-plot-types' is respected.
+      (setq params (org-combine-plists type params))
       ;; Dump table to datafile
       (let ((dump-func (plist-get type :data-dump)))
+        ;; Use a stable temporary file to ensure that 'replot' upon
+        ;; resizing a GUI gnuplot terminal window works.
+        (setq data-file (org-babel-temp-stable-file
+                         (list (or dump-func 'org-plot/gnuplot-to-data)
+                               table num-cols params)
+                         "org-plot"))
         (if dump-func
 	    (funcall dump-func table data-file num-cols params)
 	  (org-plot/gnuplot-to-data table data-file params)))

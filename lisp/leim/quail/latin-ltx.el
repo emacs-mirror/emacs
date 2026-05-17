@@ -228,6 +228,12 @@ system, including many technical ones.  Examples:
         (string (if (match-end 2) ?^ ?_) basechar))))
   "\\(.*\\)SU\\(?:B\\|\\(PER\\)\\)SCRIPT \\(.*\\)")
 
+ ;; There are just a small number of these, and only SMALL, no CAPITAL
+ ((lambda (name _char)
+    (let* ((basename (match-string 1 name)))
+      (concat "_\\" (downcase basename))))
+  "\\`GREEK SUBSCRIPT SMALL LETTER \\([[:ascii:]]+\\)\\'")
+
  ((lambda (name _char)
     (let* ((basename (match-string 2 name))
            (name (if (match-end 1) (capitalize basename) (downcase basename))))

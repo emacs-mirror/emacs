@@ -35,10 +35,6 @@
 (require 'ox)
 (require 'table nil 'noerror)
 
-(declare-function org-at-heading-p "org" (&optional _))
-(declare-function org-back-to-heading "org" (&optional invisible-ok))
-(declare-function org-next-visible-heading "org" (arg))
-
 ;;; Define Backend
 
 (org-export-define-backend 'odt
@@ -91,10 +87,12 @@
     (verbatim . org-odt-verbatim)
     (verse-block . org-odt-verse-block))
   :filters-alist '((:filter-parse-tree
-		    . (org-odt--translate-latex-fragments
+		    . (org-odt--strip-trailing-newlines
+                       org-odt--translate-latex-fragments
 		       org-odt--translate-description-lists
 		       org-odt--translate-list-tables
-		       org-odt--translate-image-links)))
+		       org-odt--translate-image-links))
+                   (:filter-final-output . org-odt--remove-forbidden))
   :menu-entry
   '(?o "Export to ODT"
        ((?o "As ODT file" org-odt-export-to-odt)
@@ -108,6 +106,7 @@
     (:keywords "KEYWORDS" nil nil space)
     (:subtitle "SUBTITLE" nil nil parse)
     ;; Other variables.
+    (:odt-with-forbidden-chars nil nil org-odt-with-forbidden-chars)
     (:odt-content-template-file nil nil org-odt-content-template-file)
     (:odt-display-outline-level nil nil org-odt-display-outline-level)
     (:odt-fontify-srcblocks nil nil org-odt-fontify-srcblocks)
@@ -169,6 +168,14 @@ Use this to infer values of `org-odt-styles-dir' and
     ("--\\([^-]\\)" . "&#x2013;\\1")	; ndash
     ("\\.\\.\\." . "&#x2026;"))		; hellip
   "Regular expressions for special string conversion.")
+
+(defconst org-odt-forbidden-char-re
+  (rx (not (in ?\N{U+9} ?\N{U+A} ?\N{U+D}
+               (?\N{U+20} . ?\N{U+D7FF})
+               (?\N{U+E000} . ?\N{U+FFFD})
+               (?\N{U+10000} . ?\N{U+10FFFF}))))
+  "Regexp matching forbidden XML1.0 characters.
+https://www.w3.org/TR/REC-xml/#charsets")
 
 (defconst org-odt-schema-dir-list
   (list (expand-file-name "./schema/" org-odt-data-dir))
@@ -364,6 +371,20 @@ the entity.  See `org-odt--enumerate'.")
   :tag "Org Export ODT"
   :group 'org-export)
 
+(defcustom org-odt-with-forbidden-chars ""
+  "String to replace forbidden XML characters.
+When set to t, forbidden characters are left as-is.
+When set to nil, an error is thrown.
+See `org-odt-forbidden-char-re' for the list of forbidden characters
+that cannot occur inside ODT documents.
+
+You may also consider export filters to perform more fine-grained
+replacements.  See info node `(org)Advanced Export Configuration'."
+  :package-version '(Org . "9.8")
+  :type '(choice (const :tag "Leave forbidden characters as-is" t)
+                 (const :tag "Err when forbidden characters encountered" nil)
+                 (string :tag "Replacement string"))
+  :safe #'always)
 
 ;;;; Debugging
 
@@ -699,26 +720,31 @@ When set, the exporter will process LaTeX environments and
 fragments.
 
 This option can also be set with the +OPTIONS line,
-e.g. \"tex:mathjax\".  Allowed values are:
+e.g. \"tex:dvipng\".  Allowed values are:
 
 nil            Ignore math snippets.
-`verbatim'     Keep everything in verbatim
-`dvipng'       Process the LaTeX fragments to images.  This will also
-               include processing of non-math environments.
-`imagemagick'  Convert the LaTeX fragments to pdf files and use
-               imagemagick to convert pdf files to png files.
-`mathjax'      Do MathJax preprocessing and arrange for MathJax.js to
-               be loaded.
+t, `mathml'    Convert the LaTeX fragments to MathML if the
+               `org-latex-to-mathml-convert-command' is usable.
+SYMBOL         Convert the LaTeX fragments to images using any symbol
+               defined in `org-preview-latex-process-alist', e.g.,
+               `dvipng'.
+`verbatim'     Keep everything in verbatim.
 
-Any other symbol is a synonym for `mathjax'."
-  :version "24.4"
-  :package-version '(Org . "8.0")
-  :type '(choice
-	  (const :tag "Do not process math in any way" nil)
-	  (const :tag "Leave math verbatim" verbatim)
-	  (const :tag "Use dvipng to make images" dvipng)
-	  (const :tag "Use imagemagick to make images" imagemagick)
-	  (other :tag "Use MathJax to display math" mathjax)))
+If the desired converter is not available or any other symbol is
+provided, process as `verbatim'."
+  :package-version '(Org . "9.8")
+  :type `(choice
+          (const :tag "Do not process math in any way" nil)
+          (choice :tag "Convert fragments to MathML" :value t
+                  (const t)
+                  (const mathml))
+          (restricted-sexp :tag "Convert fragments to images"
+                           :value ,(caar org-preview-latex-process-alist)
+                           :match-alternatives
+                           (,(lambda (v)
+                               (assq v org-preview-latex-process-alist))))
+          (const :tag "Leave math verbatim" verbatim))
+  :safe #'always)
 
 
 ;;;; Links
@@ -1097,8 +1123,9 @@ specifying the depth of the table."
 	       (format "<text:span text:style-name=\"%s\">%s</text:span> "
 		       style todo)))
 	   (when priority
-	     (let* ((style (format "OrgPriority-%s" priority))
-		    (priority (format "[#%c]" priority)))
+	     (let* ((priority-string (org-priority-to-string priority))
+                    (style (format "OrgPriority-%s" priority-string))
+		    (priority (format "[#%s]" priority-string)))
 	       (format "<text:span text:style-name=\"%s\">%s</text:span> "
 		       style priority)))
 	   ;; Title.
@@ -1369,7 +1396,11 @@ original parsed data.  INFO is a plist holding export options."
     ;; Ensure we have write permissions to this file.
     (set-file-modes (concat org-odt-zip-dir "styles.xml") #o600)
 
-    (let ((styles-xml (concat org-odt-zip-dir "styles.xml")))
+    (let ((styles-xml (concat org-odt-zip-dir "styles.xml"))
+          ;; Capture the current (possibly buffer-local) values for priorities
+          ;; because these get reset to global values when we use `with-temp-buffer'
+          (priority-high org-priority-highest)
+          (priority-low org-priority-lowest))
       (with-temp-buffer
         (when (file-exists-p styles-xml)
           (insert-file-contents styles-xml))
@@ -1400,6 +1431,16 @@ original parsed data.  INFO is a plist holding export options."
 		          (level (string-to-number (match-string 2))))
 		      (if (wholenump sec-num) (<= level sec-num) sec-num))
 	      (replace-match replacement t nil))))
+
+        ;; Update styles.xml with priority styles for the current valid priority range
+        (when (plist-get info :with-priority)
+          (goto-char (point-min))
+          (when (re-search-forward "<style:style style:name=\"OrgPriority\" style:family=\"text\"/>" nil t)
+            (goto-char (match-end 0))
+            (insert "\n  <!-- Org Priority Styles -->\n")
+            (dolist (priority (number-sequence priority-high priority-low))
+              (insert (format "  <style:style style:name=\"OrgPriority-%s\" style:family=\"text\" style:parent-style-name=\"OrgPriority\"/>\n"
+                              (org-priority-to-string priority))))))
 
         ;; Write back the new contents.
         (write-region nil nil styles-xml))))
@@ -1838,8 +1879,9 @@ See `org-odt-format-headline-function' for details."
      (let ((style (if (eq todo-type 'done) "OrgDone" "OrgTodo")))
        (format "<text:span text:style-name=\"%s\">%s</text:span> " style todo)))
    (when priority
-     (let* ((style (format "OrgPriority-%c" priority))
-	    (priority (format "[#%c]" priority)))
+     (let* ((priority-string (org-priority-to-string priority))
+            (style (format "OrgPriority-%s" priority-string))
+	    (priority (format "[#%s]" priority-string)))
        (format "<text:span text:style-name=\"%s\">%s</text:span> "
 	       style priority)))
    ;; Title.
@@ -2209,9 +2251,10 @@ SHORT-CAPTION are strings."
 	    ;; Use Imagemagick.
 	    (and (executable-find "identify")
 		 (let ((size-in-pixels
-			(let ((dim (shell-command-to-string
-				    (format "identify -format \"%%w:%%h\" \"%s\""
-					    file))))
+			(let ((dim (with-temp-buffer
+                                     (call-process "identify" nil `(,(current-buffer) nil) nil
+                                                   "-format" "%w:%h" (format "%s" file))
+                                     (buffer-string))))
 			  (when (string-match "\\([0-9]+\\):\\([0-9]+\\)" dim)
 			    (cons (string-to-number (match-string 1 dim))
 				  (string-to-number (match-string 2 dim)))))))
@@ -2892,6 +2935,32 @@ contextual information."
        (format " <text:s text:c=\"%d\"/>" (1- (length s)))))
    line))
 
+(defun org-odt--remove-forbidden (text _backend info)
+  "Remove forbidden and discouraged characters from TEXT.
+INFO is the communication plist"
+  (pcase-exhaustive (plist-get info :odt-with-forbidden-chars)
+    ((and (pred stringp) rep)
+     (let ((replacements (make-hash-table :test 'equal)))
+       (with-temp-buffer
+         (insert text)
+         (goto-char (point-min))
+         (while (re-search-forward org-odt-forbidden-char-re nil t)
+           (cl-incf (gethash (match-string 0) replacements 0))
+           (replace-match rep))
+         (cl-loop for forbidden being the hash-keys of replacements
+                  using (hash-values count)
+                  do (display-warning
+                      '(ox-odt ox-odt-with-forbidden-chars)
+                      (format "Replaced forbidden character '%s' with '%s' %d times"
+                              forbidden rep count)))
+         (buffer-string))))
+    (`nil
+     (if (string-match org-odt-forbidden-char-re text)
+         (error "Forbidden character '%s' found.  See `org-odt-with-forbidden-chars'"
+                (match-string 0 text))
+       text))
+    ('t text)))
+
 (defun org-odt--encode-plain-text (text &optional no-whitespace-filling)
   (dolist (pair '(("&" . "&amp;") ("<" . "&lt;") (">" . "&gt;")))
     (setq text (replace-regexp-in-string (car pair) (cdr pair) text t t)))
@@ -2925,7 +2994,11 @@ contextual information."
       ;; FIXME: The unnecessary spacing may still remain when a newline
       ;; is at a boundary between Org objects (e.g. italics markup
       ;; followed by newline).
-      (when (org-string-nw-p output) ; blank string needs not to be re-filled
+      (when (and (org-string-nw-p output) ; blank string needs not to be re-filled
+                 ;; Plain text inside verse blocks gotta preserve newlines
+                 ;; and spaces.
+                 (not (org-element-lineage text '(verse-block)))
+                 )
         (setq output
               (with-temp-buffer
                 (save-match-data
@@ -3116,8 +3189,7 @@ and prefix with \"OrgSrc\".  For example,
 
 (defun org-odt-do-format-code
     (code info &optional lang refs retain-labels num-start)
-  (let* ((lang (or (assoc-default lang org-src-lang-modes) lang))
-	 (lang-mode (if lang (intern (format "%s-mode" lang)) #'ignore))
+  (let* ((lang-mode (if lang (org-src-get-lang-mode lang) #'ignore))
 	 (code-lines (org-split-string code "\n"))
 	 (code-length (length code-lines))
 	 (use-htmlfontify-p (and (functionp lang-mode)
@@ -3711,13 +3783,37 @@ contextual information."
 	  (replace-regexp-in-string
 	   ;; Replace leading tabs and spaces.
 	   "^[ \t]+" #'org-odt--encode-tabs-and-spaces
-	   ;; Add line breaks to each line of verse.
-	   (replace-regexp-in-string
-	    "\\(<text:line-break/>\\)?[ \t]*$" "<text:line-break/>" contents))))
+           (replace-regexp-in-string
+            ;; Remove newlines after line breaks.
+            "<text:line-break/>[\n]" "<text:line-break/>"
+	    (replace-regexp-in-string
+             ;; Add line breaks to each line of verse.
+	     "\\(<text:line-break/>\\)?[ \t]*$" "<text:line-break/>" contents)))))
 
 
 
 ;;; Filters
+
+;;; Plain text
+
+;; Trailing newlines appear as spaces in ODT.
+;; We do not want that in, for example, in paragraphs where
+;; end of paragraph is already signaled by ODT tag.
+(defun org-odt--strip-trailing-newlines (data _backend info)
+  "Strip trailing newlines in DATA at the end of contents.
+INFO is the communication channel."
+  (org-element-map data org-element-all-elements
+    (lambda (el)
+      (when-let* ((last-child (car (last (org-element-contents el)))))
+        (when (and (org-element-type-p last-child 'plain-text)
+                   (string-suffix-p "\n" last-child))
+          (when (length> last-child 1)
+            (org-element-insert-before
+             (substring last-child 0 (1- (length last-child)))
+             last-child))
+          (org-element-extract last-child))))
+    info nil nil t)
+  data)
 
 ;;; Images
 
@@ -3728,26 +3824,35 @@ contextual information."
 
 (defun org-odt--translate-latex-fragments (tree _backend info)
   (let ((processing-type (plist-get info :with-latex))
+	(preview-symbols (mapcar #'car org-preview-latex-process-alist))
 	(count 0)
         (warning nil))
-    ;; Normalize processing-type to one of dvipng, mathml or verbatim.
-    ;; If the desired converter is not available, force verbatim
-    ;; processing.
-    (cl-case processing-type
-      ((t mathml)
+    ;; Normalize processing-type to one of mathml, verbatim, or a
+    ;; symbol in org-preview-latex-process-alist.  If the desired
+    ;; converter is not available, force verbatim processing.
+    (pcase processing-type
+      ((or 't 'mathml)
        (if (and (fboundp 'org-format-latex-mathml-available-p)
 		(org-format-latex-mathml-available-p))
 	   (setq processing-type 'mathml)
          (setq warning "`org-odt-with-latex': LaTeX to MathML converter not available.  Falling back to verbatim.")
 	 (setq processing-type 'verbatim)))
-      ((dvipng imagemagick)
-       (unless (and (org-check-external-command "latex" "" t)
-		    (org-check-external-command
-		     (if (eq processing-type 'dvipng) "dvipng" "convert") "" t))
-	 (setq warning "`org-odt-with-latex': LaTeX to PNG converter not available.  Falling back to verbatim.")
-	 (setq processing-type 'verbatim)))
-      (verbatim) ;; nothing to do
-      (otherwise
+      ((and s (guard (memq s preview-symbols)))
+       (let* ((ext-commands (plist-get
+                             (cdr (assq s org-preview-latex-process-alist))
+                             :programs))
+              (ext-commands-available
+               (seq-reduce (lambda (result cmd)
+                             (and result
+                                  (not
+                                   (null
+                                    (org-check-external-command cmd "" t)))))
+                           ext-commands t)))
+         (unless ext-commands-available
+           (setq warning "`org-odt-with-latex': LaTeX to image converter not available.  Falling back to verbatim.")
+           (setq processing-type 'verbatim))))
+      ('verbatim) ;; nothing to do
+      (_
        (setq warning "`org-odt-with-latex': Unknown LaTeX option.  Forcing verbatim.")
        (setq processing-type 'verbatim)))
 
@@ -3764,34 +3869,32 @@ contextual information."
     (message "Formatting LaTeX using %s" processing-type)
 
     ;; Convert `latex-fragment's and `latex-environment's.
-    (when (memq processing-type '(mathml dvipng imagemagick))
+    (when (memq processing-type (append '(mathml) preview-symbols))
       (org-element-map tree '(latex-fragment latex-environment)
 	(lambda (latex-*)
 	  (cl-incf count)
 	  (let* ((latex-frag (org-element-property :value latex-*))
 		 (input-file (plist-get info :input-file))
+                 (is-image (memq processing-type preview-symbols))
 		 (cache-dir (file-name-directory input-file))
 		 (cache-subdir (concat
-				(cl-case processing-type
-				  ((dvipng imagemagick)
-				   org-preview-latex-image-directory)
-				  (mathml "ltxmathml/"))
+				(if is-image
+				    org-preview-latex-image-directory
+				  org-latex-mathml-directory)
 				(file-name-sans-extension
 				 (file-name-nondirectory input-file))))
 		 (display-msg
-		  (cl-case processing-type
-		    ((dvipng imagemagick)
-		     (format "Creating LaTeX Image %d..." count))
-		    (mathml (format "Creating MathML snippet %d..." count))))
-		 ;; Get an Org-style link to PNG image or the MathML
-		 ;; file.
+		  (if is-image
+		      (format "Creating LaTeX image %d..." count)
+		    (format "Creating MathML snippet %d..." count)))
+		 ;; Get an Org-style link to image or the MathML file.
 		 (link
 		  (with-temp-buffer
 		    (insert latex-frag)
                     (delay-mode-hooks (let ((org-inhibit-startup t)) (org-mode)))
-		    ;; When converting to a PNG image, make sure to
-		    ;; copy all LaTeX header specifications from the
-		    ;; Org source.
+		    ;; When converting to an image, make sure to copy
+		    ;; all LaTeX header specifications from the Org
+		    ;; source.
 		    (unless (eq processing-type 'mathml)
 		      (let ((h (plist-get info :latex-header)))
 			(when h
@@ -4033,7 +4136,11 @@ contextual information."
 		     (kill-buffer buf)))))
 	     ;; Delete temporary directory and also other embedded
 	     ;; files that get copied there.
-	     (delete-directory org-odt-zip-dir t))))
+	     (delete-directory org-odt-zip-dir t)))
+          ;; We specify UTF-8 in `org-odt-template'.  Enforce it even
+          ;; when the buffer text has different encoding.
+          (coding-system-for-write 'utf-8)
+	  (save-buffer-coding-system 'utf-8))
      (condition-case-unless-debug err
 	 (progn
 	   (unless (executable-find "zip")

@@ -399,7 +399,7 @@ template, and where in the file it can occur."
 	   (setq ts-count 1)
            (time-stamp--message "time-stamp-count is not an integer"))
 	  ((< ts-count 1)
-	   ;; We need to call time-stamp-once at least once
+           ;; We need to call time-stamp--once-internal at least once
 	   ;; to output any warnings about time-stamp not being active.
 	   (setq ts-count 1)))
     ;; Figure out what lines the end should be on.
@@ -429,14 +429,14 @@ template, and where in the file it can occur."
       (while (and start
                   (< start search-limit)
                   (> ts-count 0))
-        (setq start (time-stamp-once start search-limit ts-start ts-end
-                                     ts-format format-lines end-lines))
+        (setq start (time-stamp--once-internal start search-limit ts-start ts-end
+                                               ts-format format-lines end-lines))
         (setq ts-count (1- ts-count)))
       (set-marker search-limit nil))))
   nil)
 
-(defun time-stamp-once (start search-limit ts-start ts-end
-			ts-format format-lines end-lines)
+(defun time-stamp--once-internal (start search-limit ts-start ts-end
+                                  ts-format format-lines end-lines)
   "Update one time stamp.  Internal routine called by `time-stamp'.
 Returns the end point, which is where `time-stamp' begins the next search."
   (let ((case-fold-search nil)
@@ -515,7 +515,7 @@ ARG is positive, otherwise nil."
 
 (defun time-stamp--format (format time)
   "FORMAT a TIME in zone `time-stamp-time-zone'.
-Internal helper used by `time-stamp-string-preprocess'."
+Helper used by `time-stamp--string-internal'."
   (format-time-string format time time-stamp-time-zone))
 
 (defun time-stamp-string (&optional ts-format time)
@@ -529,7 +529,7 @@ documentation of `time-stamp-format' for details.
 Optional second argument TIME is only for testing; normally the current
 time is used.  The time zone is determined by `time-stamp-time-zone'."
   (if (stringp (or ts-format (setq ts-format time-stamp-format)))
-      (time-stamp-string-preprocess ts-format time)))
+      (time-stamp--string-internal ts-format time)))
 
 
 (defconst time-stamp-no-file "(no file)"
@@ -544,7 +544,7 @@ time is used.  The time zone is determined by `time-stamp-time-zone'."
 ;;;      The : modifier is a temporary conversion feature used to resolve
 ;;; ambiguous formats--formats that are changing (over time) incompatibly.
 
-(defun time-stamp-string-preprocess (format &optional time)
+(defun time-stamp--string-internal (format &optional time)
   "Use FORMAT to format date, time, and user information.
 Optional second argument TIME is only for testing.
 This is an internal routine implementing extensions to `format-time-string'
@@ -626,7 +626,7 @@ and all `time-stamp-format' compatibility."
 	           ((eq cur-char ?%)
 	            "%")
 	           ((eq cur-char ?a)    ;day of week
-                    (time-stamp-do-letter-case
+                    (time-stamp--do-letter-case
                      nil upcase title-case change-case
                      (if (> colon-cnt 0)
                          (if (string-equal field-width "")
@@ -639,21 +639,22 @@ and all `time-stamp-format' compatibility."
                            (<= (string-to-number field-width) 3)
                            (not flag-minimize)
                            (not flag-pad-with-spaces))
-                      (time-stamp-conv-warn "%3A" "%#a")
+                      (time-stamp--conv-warn "%3A" "%#a")
                       (time-stamp--format "%#a" time))
                      ((or (> colon-cnt 0)
                           change-case upcase title-case
                           flag-minimize flag-pad-with-spaces
                           (string-equal field-width ""))
-                      (time-stamp-do-letter-case
+                      (time-stamp--do-letter-case
                        nil upcase title-case change-case
                        (time-stamp--format "%A" time)))
-                     (t (time-stamp-conv-warn (format "%%%sA" field-width)
-                                              (format "%%#%sA" field-width)
-                                              (format "%%:%sA" field-width))
+                     (t (time-stamp--conv-warn (format "%%%sA" field-width)
+                                               (format "%%#%sA" field-width)
+                                               (format "%%:%sA" field-width))
+
                         (time-stamp--format "%#A" time))))
 	           ((eq cur-char ?b)    ;month name
-                    (time-stamp-do-letter-case
+                    (time-stamp--do-letter-case
                      nil upcase title-case change-case
                      (if (> colon-cnt 0)
                          (if (string-equal field-width "")
@@ -666,41 +667,41 @@ and all `time-stamp-format' compatibility."
                            (<= (string-to-number field-width) 3)
                            (not flag-minimize)
                            (not flag-pad-with-spaces))
-                      (time-stamp-conv-warn "%3B" "%#b")
+                      (time-stamp--conv-warn "%3B" "%#b")
                       (time-stamp--format "%#b" time))
                      ((or (> colon-cnt 0)
                           change-case upcase title-case
                           flag-minimize flag-pad-with-spaces
                           (string-equal field-width ""))
-                      (time-stamp-do-letter-case
+                      (time-stamp--do-letter-case
                        nil upcase title-case change-case
                        (time-stamp--format "%B" time)))
-                     (t (time-stamp-conv-warn (format "%%%sB" field-width)
-                                              (format "%%#%sB" field-width)
-                                              (format "%%:%sB" field-width))
+                     (t (time-stamp--conv-warn (format "%%%sB" field-width)
+                                               (format "%%#%sB" field-width)
+                                               (format "%%:%sB" field-width))
                         (time-stamp--format "%#B" time))))
 	           ((eq cur-char ?d)    ;day of month, 1-31
-                    (time-stamp-do-number cur-char colon-cnt field-width time))
+                    (time-stamp--do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?H)    ;hour, 0-23
-                    (time-stamp-do-number cur-char colon-cnt field-width time))
+                    (time-stamp--do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?I)    ;hour, 1-12
-                    (time-stamp-do-number cur-char colon-cnt field-width time))
+                    (time-stamp--do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?m)    ;month number, 1-12
-                    (time-stamp-do-number cur-char colon-cnt field-width time))
+                    (time-stamp--do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?M)    ;minute, 0-59
-                    (time-stamp-do-number cur-char colon-cnt field-width time))
+                    (time-stamp--do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?p)    ;AM or PM
-                    (time-stamp-do-letter-case
+                    (time-stamp--do-letter-case
                      t upcase title-case change-case
                      (time-stamp--format "%p" time)))
 	           ((eq cur-char ?P)    ;AM or PM
                     (if (and upcase (not change-case))
                         ""              ;discourage inconsistent "%^P"
-                      (time-stamp-do-letter-case
+                      (time-stamp--do-letter-case
                        t upcase title-case change-case
                        (time-stamp--format "%p" time))))
 	           ((eq cur-char ?S)    ;seconds, 00-60
-                    (time-stamp-do-number cur-char colon-cnt field-width time))
+                    (time-stamp--do-number cur-char colon-cnt field-width time))
 	           ((eq cur-char ?w)    ;weekday number, Sunday is 0
 	            (time-stamp--format "%w" time))
 	           ((eq cur-char ?y)    ;year
@@ -708,10 +709,10 @@ and all `time-stamp-format' compatibility."
                         (if (or (string-equal field-width "")
                                 (<= (string-to-number field-width) 2))
                             (string-to-number (time-stamp--format "%y" time))
-                          (time-stamp-conv-warn
+                          (time-stamp--conv-warn
                            (format "%%%sy" field-width) "%Y")
                           (string-to-number (time-stamp--format "%Y" time)))
-                      (time-stamp-conv-warn "%:y" "%Y")
+                      (time-stamp--conv-warn "%:y" "%Y")
                       (string-to-number (time-stamp--format "%Y" time))))
 	           ((eq cur-char ?Y)    ;4-digit year
 	            (string-to-number (time-stamp--format "%Y" time)))
@@ -738,9 +739,9 @@ and all `time-stamp-format' compatibility."
 			          (not flag-pad-with-spaces)
 			          (not flag-pad-with-zeros)
 			          (= field-width-num 0))
-                             (time-stamp-conv-warn "%z" "%#Z" "%5z")
+                             (time-stamp--conv-warn "%z" "%#Z" "%5z")
 		             (time-stamp--format "%#Z" time))
-			    (t (time-stamp-formatz-from-parsed-options
+                            (t (time-stamp--zformat-from-parsed-options
 				flag-minimize
 				flag-pad-with-spaces
 				flag-pad-with-zeros
@@ -748,25 +749,25 @@ and all `time-stamp-format' compatibility."
 				field-width-num
 				offset-secs)))))
 	           ((eq cur-char ?Z)    ;time zone name
-                    (time-stamp-do-letter-case
+                    (time-stamp--do-letter-case
                      t upcase title-case change-case
                      (time-stamp--format "%Z" time)))
 	           ((eq cur-char ?f)    ;buffer-file-name, base name only
 	            (if buffer-file-name
-                        (time-stamp-filtered-buffer-file-name :nondirectory)
+                        (time-stamp--filtered-buffer-file-name :nondirectory)
 	              time-stamp-no-file))
 	           ((eq cur-char ?F)    ;buffer-file-name, absolute name
                     (if buffer-file-name
-                        (time-stamp-filtered-buffer-file-name :absolute)
+                        (time-stamp--filtered-buffer-file-name :absolute)
                       time-stamp-no-file))
 	           ((eq cur-char ?s)    ;system name, legacy
-		    (time-stamp-conv-warn "%s" "%Q")
+                    (time-stamp--conv-warn "%s" "%Q")
                     (time-stamp--system-name :full))
 	           ((eq cur-char ?u)    ;user name, legacy
-		    (time-stamp-conv-warn "%u" "%l")
+                    (time-stamp--conv-warn "%u" "%l")
 	            (user-login-name))
 	           ((eq cur-char ?U)    ;user full name, legacy
-		    (time-stamp-conv-warn "%U" "%L")
+                    (time-stamp--conv-warn "%U" "%L")
 	            (user-full-name))
 	           ((eq cur-char ?l)    ;login name
 	            (user-login-name))
@@ -808,15 +809,15 @@ and all `time-stamp-format' compatibility."
       (setq ind (1+ ind)))
     (apply #'concat (nreverse result))))
 
-(defun time-stamp-do-letter-case (change-is-downcase
-                                  upcase title-case change-case text)
+(defun time-stamp--do-letter-case (change-is-downcase
+                                   upcase title-case change-case text)
   "Apply upper- and lower-case conversions to TEXT per the flags.
 CHANGE-IS-DOWNCASE non-nil indicates that modifier CHANGE-CASE
 requests lowercase, otherwise the modifier requests uppercase.
 UPCASE is non-nil if the \"^\" modifier is active.
 TITLE-CASE is non-nil if the \"*\" modifier is active.
 CHANGE-CASE is non-nil if the \"#\" modifier is active.
-This is an internal helper for `time-stamp-string-preprocess'."
+This is a helper for `time-stamp--string-internal'."
   (cond ((and upcase change-case)
          (downcase text))
         ((and title-case change-case)
@@ -830,18 +831,18 @@ This is an internal helper for `time-stamp-string-preprocess'."
         (t
          text)))
 
-(defun time-stamp-do-number (format-char colon-count field-width time)
+(defun time-stamp--do-number (format-char colon-count field-width time)
   "Handle a FORMAT-CHAR mostly compatible with `format-time-string'.
 The default width/padding may be different from `format-time-string'.
 COLON-COUNT is non-0 if \":\" was specified.  FIELD-WIDTH is the string
 width specification or \"\".  TIME is the time to convert.
-This is an internal helper for `time-stamp-string-preprocess'."
+This is a helper for `time-stamp--string-internal'."
   (let ((format-string (concat "%" (char-to-string format-char))))
     (if (and (> colon-count 0) (not (string-equal field-width "")))
 	""				;discourage "%:2d" and the like
       (string-to-number (time-stamp--format format-string time)))))
 
-(defun time-stamp-filtered-buffer-file-name (type)
+(defun time-stamp--filtered-buffer-file-name (type)
   "Return a printable string representing the buffer file name.
 Non-graphic characters are replaced by ?.  TYPE is :absolute
 for the full name or :nondirectory for base name only."
@@ -864,7 +865,6 @@ for the full name or :nondirectory for base name only."
 
 (defun time-stamp--count-newlines (str)
   "Return the number of newlines in STR."
-  (declare (pure t))
   (let ((nl-count 0)
         (nl-start 0))
     (while (setq nl-start (string-match-p "\n" str nl-start))
@@ -884,7 +884,6 @@ TYPE is :short for the unqualified name, :full for the full name."
 
 (defun time-stamp--system-name-1 (sysname type)
   "Return SYSNAME, shortened if TYPE is :short."
-  (declare (pure t))
   (let (first-dot)
     (if (and (eq type :short)
              (setq first-dot (string-match-p "\\." sysname)))
@@ -909,7 +908,7 @@ to change in the future to be compatible with `format-time-string'.
 The new formats being recommended now will continue to work then.")
 
 
-(defun time-stamp-conv-warn (old-format new-format &optional standard-format)
+(defun time-stamp--conv-warn (old-format new-format &optional standard-format)
   "Display a warning about a soon-to-be-obsolete format.
 Suggests replacing OLD-FORMAT with NEW-FORMAT (same effect, but stable)
 or (if provided) STANDARD-FORMAT (the effect the user may have expected
@@ -1031,12 +1030,12 @@ This is an internal function called by `time-stamp'."
 ;; bighours = 1*digit digitpair
 ;; padding = *" "
 
-(defun time-stamp-formatz-from-parsed-options (flag-minimize
-                                               flag-pad-spaces-only
-                                               flag-pad-zeros-first
-                                               colon-count
-                                               field-width
-                                               offset-secs)
+(defun time-stamp--zformat-from-parsed-options (flag-minimize
+                                                flag-pad-spaces-only
+                                                flag-pad-zeros-first
+                                                colon-count
+                                                field-width
+                                                offset-secs)
   "Format a time offset according to a %z variation.
 
 Format parts FLAG-MINIMIZE, FLAG-PAD-SPACES-ONLY,
@@ -1047,7 +1046,7 @@ This is an internal function used by `time-stamp'."
 
   ;; Callers of this function need to have already parsed the %z
   ;; format string; this function accepts just the parts of the format.
-  ;; `time-stamp-string-preprocess' is the full-fledged parser normally
+  ;; `time-stamp--string-internal' is the full-fledged parser normally
   ;; used.  The unit test (in time-stamp-tests.el) defines the simpler
   ;; parser `format-time-offset'.
 

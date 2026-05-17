@@ -431,7 +431,6 @@ Newer versions are always activated, regardless of FORCE."
   "Non-nil if `package-activate-all' has been run.")
 
 ;;;###autoload
-(progn ;; Make the function usable without loading `package.el'.
 (defun package-activate-all ()
   "Activate all installed packages.
 The variable `package-load-list' controls which packages to load."
@@ -452,15 +451,13 @@ The variable `package-load-list' controls which packages to load."
                    (setq package-activated-list nil))
                  (load qs nil 'nomessage)
                  t)))
-        (progn
-          (require 'package)
-          ;; Silence the "unknown function" warning when this is compiled
-          ;; inside `loaddefs.el'.
-          ;; FIXME: We use `with-no-warnings' because the effect of
-          ;; `declare-function' is currently not scoped, so if we use
-          ;; it here, we end up with a redefinition warning instead :-)
-          (with-no-warnings
-            (package--activate-all)))))))
+        ;; Silence the "unknown function" warning when this is compiled
+        ;; inside `loaddefs.el'.
+        ;; FIXME: We use `with-no-warnings' because the effect of
+        ;; `declare-function' is currently not scoped, so if we use
+        ;; it here, we end up with a redefinition warning instead :-)
+        (with-no-warnings
+          (package--activate-all)))))
 
 (defun package--activate-all ()
   (dolist (elt (package--alist))

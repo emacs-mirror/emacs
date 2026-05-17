@@ -1036,10 +1036,22 @@ In the latter case, VC mode is deactivated for this buffer."
   "O"   #'vc-root-log-outgoing
   "M L" #'vc-log-mergebase
   "M D" #'vc-diff-mergebase
-  "T l" #'vc-log-outstanding
-  "T L" #'vc-root-log-outstanding
-  "T =" #'vc-diff-outstanding
-  "T D" #'vc-root-diff-outstanding
+  "T l" #'vc-log-unintegrated
+  "T L" #'vc-root-log-unintegrated
+  "T =" #'vc-diff-unintegrated
+  "T D" #'vc-root-diff-unintegrated
+  "T R l" #'vc-log-remote-unintegrated
+  "T R L" #'vc-root-log-remote-unintegrated
+  "T R =" #'vc-diff-remote-unintegrated
+  "T R D" #'vc-root-diff-remote-unintegrated
+  ;; There are no -log-outgoing-and-edited commands because by
+  ;; definition these are the same as -log-outgoing.
+  ;; Additionally bind the -log-outgoing commands under C-x v E l/L as
+  ;; nothing else could conceivably go there and it might help someone.
+  ;; (Fileset-specific outgoing log command coming in Emacs 32.  --spwhitton)
+  "E L" #'vc-root-log-outgoing
+  "E =" #'vc-diff-outgoing-and-edited
+  "E D" #'vc-root-diff-outgoing-and-edited
   "m"   #'vc-merge
   "r"   #'vc-retrieve-tag
   "s"   #'vc-create-tag

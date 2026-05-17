@@ -2362,7 +2362,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
                  (ignore-errors (vc-responsible-backend file))
                (vc-backend file))
              (ignore-errors (vc-responsible-backend newname)))
-        (vc-rename-file file newname)
+        (vc-rename-file file newname ok-if-already-exists)
       ;; error is caught in -create-files
       (rename-file file newname ok-if-already-exists))
     ;; Silently rename the visited file of any buffer visiting this file.

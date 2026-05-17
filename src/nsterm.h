@@ -1385,6 +1385,11 @@ enum NSWindowTabbingMode
 #define NSButtonTypeMomentaryPushIn NSMomentaryPushInButton
 #endif
 
+#if !defined (NS_IMPL_COCOA) || !defined (MAC_OS_X_VERSION_10_15)
+/* Deprecated in macOS 10.15.  */
+#define NSLevelIndicatorStyleContinuousCapacity NSContinuousCapacityLevelIndicatorStyle
+#endif
+
 extern void mark_nsterm (void);
 
 #endif	/* HAVE_NS */

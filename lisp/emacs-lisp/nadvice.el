@@ -74,7 +74,8 @@
    (:before-until (or (apply car r) (apply cdr r)))
    (:before-while (and (apply car r) (apply cdr r)))
    (:filter-args (apply cdr (funcall car r)))
-   (:filter-return (funcall car (apply cdr r))))
+   (:filter-return (funcall car (apply cdr r)))
+   (:interactive-only (apply cdr r)))
   "List of descriptions of how to add a function.
 Each element has the form (HOW OCL DOC) where HOW is a keyword,
 OCL is a \"prototype\" function of type `advice', and

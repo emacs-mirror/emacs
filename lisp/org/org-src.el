@@ -44,7 +44,6 @@
 (declare-function org--get-expected-indentation "org" (element contentsp))
 (declare-function org-mode "org" ())
 (declare-function org--get-expected-indentation "org" (element contentsp))
-(declare-function org-fold-region "org-fold" (from to flag &optional spec-or-alias))
 (declare-function org-element-at-point "org-element" (&optional pom cached-only))
 (declare-function org-element-class "org-element" (datum &optional parent))
 (declare-function org-element-context "org-element" (&optional element))
@@ -128,16 +127,20 @@ When this variable is nil, while indenting with `\\[org-indent-block]'
 or after editing with `\\[org-edit-src-code]', the minimum (across-lines)
 number of leading whitespace characters are removed from all lines,
 and the code block is uniformly indented according to the value of
-`org-edit-src-content-indentation'."
+`org-src-content-indentation'."
   :group 'org-edit-structure
   :type 'boolean)
 
-(defcustom org-edit-src-content-indentation 2
+(defcustom org-src-content-indentation 2
   "Indentation for the content of a source code block.
 
 This should be the number of spaces added to the indentation of the #+begin
 line in order to compute the indentation of the block content after
 editing it with `\\[org-edit-src-code]'.
+
+This customization also affects how the source code and example blocks
+are printed - when interpreting Org AST (during export), during
+detangling, and indentation.
 
 It has no effect if `org-src-preserve-indentation' is non-nil."
   :group 'org-edit-structure
@@ -220,7 +223,7 @@ The shells are associated with `sh-mode'."
     ("cpp" . c++)
     ("ditaa" . artist)
     ("desktop" . conf-desktop)
-    ("dot" . fundamental)
+    ("dot" . graphviz-dot)
     ("elisp" . emacs-lisp)
     ("ocaml" . tuareg)
     ("screen" . shell-script)
@@ -238,11 +241,12 @@ not the case, this variable provides a way to simplify things on
 the user side.  For example, there is no `ocaml-mode' in Emacs,
 but the mode to use is `tuareg-mode'."
   :group 'org-edit-structure
-  :package-version '(Org . "9.7")
+  :package-version '(Org . "9.8")
   :type '(repeat
 	  (cons
 	   (string :tag "Language name")
-	   (symbol :tag "Major mode"))))
+	   (symbol :tag "Major mode")))
+  :safe #'listp)
 
 (defcustom org-src-block-faces nil
   "Alist of faces to be used for source-block.
@@ -339,10 +343,14 @@ Return nil if there is no such buffer."
     (dolist (b (buffer-list))
       (with-current-buffer b
 	(and (org-src-edit-buffer-p)
-	     (= beg org-src--beg-marker)
 	     (eq (marker-buffer beg) (marker-buffer org-src--beg-marker))
-	     (= end org-src--end-marker)
 	     (eq (marker-buffer end) (marker-buffer org-src--end-marker))
+             ;; Do it after comparing buffers.  In some scenarios
+             ;; (namely, when Org buffer is generated as a copy and
+             ;; the source buffer gets killed), these markers may
+             ;; point nowhere making `=' throw an error.
+	     (= beg org-src--beg-marker)
+	     (= end org-src--end-marker)
 	     (throw 'exit b))))))
 
 (defun org-src--coordinates (pos beg end)
@@ -585,7 +593,7 @@ Leave point in edit buffer."
                             (org--get-expected-indentation
                              (org-element-parent datum) nil))
                            (t (org-current-text-indentation)))))
-	     (content-ind org-edit-src-content-indentation)
+	     (content-ind org-src-content-indentation)
 	     (preserve-ind (org-src-preserve-indentation-p datum))
 	     ;; Store relative positions of mark (if any) and point
 	     ;; within the edited area.
@@ -605,7 +613,10 @@ Leave point in edit buffer."
 	;; Insert contents.
 	(insert contents)
 	(remove-text-properties (point-min) (point-max)
-				'(display nil invisible nil intangible nil))
+				'( display nil
+                                   invisible nil
+                                   intangible nil
+                                   syntax-table nil ))
 	(let ((lf (eq type 'latex-fragment)))
           (unless preserve-ind (org-do-remove-indentation (and lf block-ind) lf)))
 	(set-buffer-modified-p nil)
@@ -665,96 +676,107 @@ Leave point in edit buffer."
   "Fontify code block between START and END using LANG's syntax.
 This function is called by Emacs's automatic fontification, as long
 as `org-src-fontify-natively' is non-nil."
-  (let ((modified (buffer-modified-p))
-        (native-tab-width tab-width))
+  (let ((modified (buffer-modified-p)) native-tab-width)
     (remove-text-properties start end '(face nil))
-    (let ((lang-mode (org-src-get-lang-mode lang)))
-      (when (fboundp lang-mode)
-        (let ((string (buffer-substring-no-properties start end))
-	      (org-buffer (current-buffer)))
-	  (with-current-buffer
-	      (get-buffer-create
-	       (format " *org-src-fontification:%s*" lang-mode))
-	    (let ((inhibit-modification-hooks nil))
-	      (erase-buffer)
-	      ;; Add string and a final space to ensure property change.
-	      (insert string " "))
-	    (unless (eq major-mode lang-mode) (funcall lang-mode))
-            (setq native-tab-width tab-width)
-            (font-lock-ensure)
-	    (let ((pos (point-min)) next
-	          ;; Difference between positions here and in org-buffer.
-	          (offset (- start (point-min))))
-	      (while (setq next (next-property-change pos))
-	        ;; Handle additional properties from font-lock, so as to
-	        ;; preserve, e.g., composition.
-                ;; FIXME: We copy 'font-lock-face property explicitly because
-                ;; `font-lock-mode' is not enabled in the buffers starting from
-                ;; space and the remapping between 'font-lock-face and 'face
-                ;; text properties may thus not be set.  See commit
-                ;; 453d634bc.
-	        (dolist (prop (append '(font-lock-face face) font-lock-extra-managed-props))
-		  (let ((new-prop (get-text-property pos prop)))
-                    (when new-prop
-                      (if (not (eq prop 'invisible))
-		          (put-text-property
-		           (+ offset pos) (+ offset next) prop new-prop
-		           org-buffer)
-                        ;; Special case.  `invisible' text property may
-                        ;; clash with Org folding.  Do not assign
-                        ;; `invisible' text property directly.  Use
-                        ;; property alias instead.
-                        (let ((invisibility-spec
-                               (or
-                                ;; ATOM spec.
-                                (and (memq new-prop buffer-invisibility-spec)
-                                     new-prop)
-                                ;; (ATOM . ELLIPSIS) spec.
-                                (assq new-prop buffer-invisibility-spec))))
-                          (with-current-buffer org-buffer
-                            ;; Add new property alias.
-                            (unless (memq 'org-src-invisible
-                                          (cdr (assq 'invisible char-property-alias-alist)))
-                              (setq-local
-                               char-property-alias-alist
-                               (cons (cons 'invisible
-			                   (nconc (cdr (assq 'invisible char-property-alias-alist))
-                                                  '(org-src-invisible)))
-		                     (remove (assq 'invisible char-property-alias-alist)
-			                     char-property-alias-alist))))
-                            ;; Carry over the invisibility spec, unless
-                            ;; already present.  Note that there might
-                            ;; be conflicting invisibility specs from
-                            ;; different major modes.  We cannot do much
-                            ;; about this then.
-                            (when invisibility-spec
-                              (add-to-invisibility-spec invisibility-spec))
-                            (put-text-property
-		             (+ offset pos) (+ offset next)
-                             'org-src-invisible new-prop
-		             org-buffer)))))))
-	        (setq pos next)))
-            (set-buffer-modified-p nil)))))
+    (when-let* ((lang-mode (org-src-get-lang-mode-if-bound lang)))
+      (condition-case nil
+          (let ((string (buffer-substring-no-properties start end))
+	        (org-buffer (current-buffer)))
+	    (with-current-buffer
+	        (get-buffer-create
+	         (format " *org-src-fontification:%s*" lang-mode))
+	      (let ((inhibit-modification-hooks nil))
+	        (erase-buffer)
+	        ;; Add string and a final space to ensure property change.
+	        (insert string " "))
+	      (unless (eq major-mode lang-mode) (funcall lang-mode))
+              (setq native-tab-width tab-width)
+              (font-lock-ensure)
+	      (let ((pos (point-min)) next
+	            ;; Difference between positions here and in org-buffer.
+	            (offset (- start (point-min))))
+	        (while (setq next (next-property-change pos))
+	          ;; Handle additional properties from font-lock, so as to
+	          ;; preserve, e.g., composition.
+                  ;; FIXME: We copy 'font-lock-face property explicitly because
+                  ;; `font-lock-mode' is not enabled in the buffers starting from
+                  ;; space and the remapping between 'font-lock-face and 'face
+                  ;; text properties may thus not be set.  See commit
+                  ;; 453d634bc.
+	          (dolist (prop (append '(font-lock-face face syntax-table) font-lock-extra-managed-props))
+		    (let ((new-prop (get-text-property pos prop)))
+                      (when new-prop
+                        (if (not (eq prop 'invisible))
+		            (put-text-property
+		             (+ offset pos) (+ offset next) prop new-prop
+		             org-buffer)
+                          ;; Special case.  `invisible' text property may
+                          ;; clash with Org folding.  Do not assign
+                          ;; `invisible' text property directly.  Use
+                          ;; property alias instead.
+                          (let ((invisibility-spec
+                                 (or
+                                  ;; ATOM spec.
+                                  (and (memq new-prop buffer-invisibility-spec)
+                                       new-prop)
+                                  ;; (ATOM . ELLIPSIS) spec.
+                                  (assq new-prop buffer-invisibility-spec))))
+                            (with-current-buffer org-buffer
+                              ;; Add new property alias.
+                              (unless (memq 'org-src-invisible
+                                            (cdr (assq 'invisible char-property-alias-alist)))
+                                (setq-local
+                                 char-property-alias-alist
+                                 (cons (cons 'invisible
+			                     (nconc (cdr (assq 'invisible char-property-alias-alist))
+                                                    '(org-src-invisible)))
+		                       (remove (assq 'invisible char-property-alias-alist)
+			                       char-property-alias-alist))))
+                              ;; Carry over the invisibility spec, unless
+                              ;; already present.  Note that there might
+                              ;; be conflicting invisibility specs from
+                              ;; different major modes.  We cannot do much
+                              ;; about this then.
+                              (when invisibility-spec
+                                (add-to-invisibility-spec invisibility-spec))
+                              (put-text-property
+		               (+ offset pos) (+ offset next)
+                               'org-src-invisible new-prop
+		               org-buffer)))))))
+	          (setq pos next)))
+              (let ((new-table (syntax-table)))
+                (alter-text-property
+                 start end 'syntax-table
+                 (lambda (old-table) (or old-table new-table))
+                 org-buffer))
+              (set-buffer-modified-p nil)))
+        (error
+         (message "Native code fontification error in %S at pos%d\n Error: %S"
+                  (current-buffer) start
+                  (when (and (fboundp 'backtrace-get-frames)
+                             (fboundp 'backtrace-to-string))
+                    (backtrace-to-string (backtrace-get-frames 'backtrace)))))))
     ;; Add Org faces.
     (let ((src-face (nth 1 (assoc-string lang org-src-block-faces t))))
       (when (or (facep src-face) (listp src-face))
         (font-lock-append-text-property start end 'face src-face))
       (font-lock-append-text-property start end 'face 'org-block))
     ;; Display native tab indentation characters as spaces
-    (save-excursion
-      (goto-char start)
-      (let ((indent-offset
-	     (if (org-src-preserve-indentation-p) 0
-	       (+ (progn (backward-char)
-                         (org-current-text-indentation))
-	          org-edit-src-content-indentation))))
-        (while (re-search-forward "^[ ]*\t" end t)
-          (let* ((b (and (eq indent-offset (move-to-column indent-offset))
-                         (point)))
-                 (e (progn (skip-chars-forward "\t") (point)))
-                 (s (and b (make-string (* (- e b) native-tab-width) ? ))))
-            (when (and b (< b e)) (add-text-properties b e `(display ,s)))
-            (forward-char)))))
+    (when native-tab-width
+      (save-excursion
+        (goto-char start)
+        (let ((indent-offset
+	       (if (org-src-preserve-indentation-p) 0
+	         (+ (progn (backward-char)
+                           (org-current-text-indentation))
+	            org-src-content-indentation))))
+          (while (re-search-forward "^[ ]*\t" end t)
+            (let* ((b (and (eq indent-offset (move-to-column indent-offset))
+                           (point)))
+                   (e (progn (skip-chars-forward "\t") (point)))
+                   (s (and b (make-string (* (- e b) native-tab-width) ? ))))
+              (when (and b (< b e)) (add-text-properties b e `(display ,s)))
+              (forward-char))))))
     (add-text-properties
      start end
      '(font-lock-fontified t fontified t font-lock-multiline t))
@@ -970,12 +992,31 @@ Org-babel commands."
 
 (defun org-src-get-lang-mode (lang)
   "Return major mode that should be used for LANG.
-LANG is a string, and the returned major mode is a symbol."
-  (intern
-   (concat
-    (let ((l (or (cdr (assoc lang org-src-lang-modes)) lang)))
-      (if (symbolp l) (symbol-name l) l))
-    "-mode")))
+LANG is a string, and the returned value is a symbol."
+  (let ((mode (intern
+               (concat
+                (let ((l (or (cdr (assoc lang org-src-lang-modes)) lang)))
+                  (if (symbolp l) (symbol-name l) l))
+                "-mode"))))
+    (cond
+     ((fboundp 'major-mode-remap) (major-mode-remap mode))
+     ((boundp 'major-mode-remap-alist)
+      (or (cdr (assq mode major-mode-remap-alist)) mode))
+     (t mode))))
+
+(defun org-src-get-lang-mode-if-bound (lang &optional fallback fallback-message-p)
+  "Return major mode for LANG, if bound, and FALLBACK otherwise.
+LANG is a string.  FALLBACK and the returned value are both symbols.  If
+FALLBACK-MESSAGE-P and FALLBACK are both non-nil, display a message when
+falling back to a major mode different from that for LANG."
+  (let ((mode (org-src-get-lang-mode lang)))
+    (if (functionp mode)
+        mode
+      (when (and fallback
+                 fallback-message-p
+                 (not (eq fallback mode)))
+        (message "%s not available, falling back to %s" mode fallback))
+      fallback)))
 
 (defun org-src-edit-buffer-p (&optional buffer)
   "Non-nil when current buffer is a source editing buffer.
@@ -1236,16 +1277,21 @@ Throw an error when not at an export block."
     (unless (and (org-element-type-p element 'export-block)
 		 (org-src--on-datum-p element))
       (user-error "Not in an export block"))
-    (let* ((type (downcase (or (org-element-property :type element)
-			       ;; Missing export-block type.  Fallback
-			       ;; to default mode.
-			       "fundamental")))
-	   (mode (org-src-get-lang-mode type)))
-      (unless (functionp mode) (error "No such language mode: %s" mode))
+    (let* ((lang-f-fallback #'fundamental-mode)
+           (lang (or (if-let* ((lang
+                                (org-element-property :type element)))
+                         (downcase lang))
+                     (replace-regexp-in-string
+                      "-mode$" ""
+                      (symbol-name lang-f-fallback))))
+	   (lang-f (org-src-get-lang-mode-if-bound
+                    lang
+                    lang-f-fallback
+                    t)))
       (org-src--edit-element
        element
-       (org-src--construct-edit-buffer-name (buffer-name) type)
-       mode
+       (org-src--construct-edit-buffer-name (buffer-name) lang)
+       lang-f
        (lambda () (org-escape-code-in-region (point-min) (point-max)))))
     t))
 
@@ -1282,8 +1328,9 @@ original code in the Org buffer, and replace it with the edited
 version.  See `org-src-window-setup' to configure the display of
 windows containing the Org buffer and the code buffer.
 
-When optional argument CODE is a string, edit it in a dedicated
-buffer instead.
+When optional argument CODE is a string, edit it in a read-only buffer
+instead.  The contents of that buffer will *not* be written back to
+the source of example block at point.
 
 When optional argument EDIT-BUFFER-NAME is non-nil, use it as the
 name of the sub-editing buffer."
@@ -1296,12 +1343,12 @@ name of the sub-editing buffer."
     (let* ((lang
 	    (if (eq type 'src-block) (org-element-property :language element)
 	      "example"))
-	   (lang-f (and (eq type 'src-block) (org-src-get-lang-mode lang)))
+	   (lang-f (and (eq type 'src-block)
+                        (org-src-get-lang-mode-if-bound
+                         lang #'fundamental-mode lang)))
 	   (babel-info (and (eq type 'src-block)
 			    (org-babel-get-src-block-info 'no-eval)))
 	   deactivate-mark)
-      (when (and (eq type 'src-block) (not (functionp lang-f)))
-	(error "No such language mode: %s" lang-f))
       (org-src--edit-element
        element
        (or edit-buffer-name
@@ -1331,10 +1378,9 @@ name of the sub-editing buffer."
 		 (org-src--on-datum-p context))
       (user-error "Not on inline source code"))
     (let* ((lang (org-element-property :language context))
-	   (lang-f (org-src-get-lang-mode lang))
+           (lang-f (org-src-get-lang-mode-if-bound lang #'fundamental-mode t))
 	   (babel-info (org-babel-get-src-block-info 'no-eval))
 	   deactivate-mark)
-      (unless (functionp lang-f) (error "No such language mode: %s" lang-f))
       (org-src--edit-element
        context
        (org-src--construct-edit-buffer-name (buffer-name) lang)
@@ -1409,15 +1455,22 @@ EVENT is passed to `mouse-set-point'."
 	(overlay org-src--overlay))
     (org-src--contents-for-write-back write-back-buf)
     (with-current-buffer (org-src-source-buffer)
+      ;; Note: be careful to not move point here to make sure that
+      ;; point motion does not get recorded into the undo list,
+      ;; leading to unexpected results.
+      ;; https://orgmode.org/list/XF_7mLNCUN8XKtnd7G-NUoAF5Vq0DDafaDdF0v53eFlhQ35N-H3bPA0VkYyDrbEWE-0PEQg8iiyB7NatUtvPEQe6SQyJaTE5vW0CwoUKzqs=@proton.me
       (undo-boundary)
-      (goto-char beg)
       ;; Temporarily disable read-only features of OVERLAY in order to
       ;; insert new contents.
       (delete-overlay overlay)
-      (let ((expecting-bol (bolp)))
-        (goto-char end)
-        (org-replace-region-contents beg end write-back-buf 0.1 nil)
-        (cl-assert (= (point) (+ beg (buffer-size write-back-buf))))
+      (let ((expecting-bol (save-excursion (goto-char beg) (bolp))))
+	(if (version< emacs-version "27.1")
+	    (progn (delete-region beg end)
+		   (insert (with-current-buffer write-back-buf (buffer-string))))
+	  (save-restriction
+	    (narrow-to-region beg end)
+	    (org-replace-buffer-contents write-back-buf 0.1 nil)
+	    (goto-char (point-max))))
 	(when (and expecting-bol (not (bolp))) (insert "\n")))
       (kill-buffer write-back-buf)
       (save-buffer)
@@ -1453,14 +1506,22 @@ EVENT is passed to `mouse-set-point'."
     (org-with-wide-buffer
      (when (and write-back
                 (not (equal (buffer-substring beg end)
-			    (with-current-buffer write-back-buf
-                              (buffer-string)))))
+			  (with-current-buffer write-back-buf
+                            (buffer-string)))))
+       ;; Note: be careful to not move point here to make sure that
+       ;; point motion does not get recorded into the undo list,
+       ;; leading to unexpected results.
+       ;; https://orgmode.org/list/XF_7mLNCUN8XKtnd7G-NUoAF5Vq0DDafaDdF0v53eFlhQ35N-H3bPA0VkYyDrbEWE-0PEQg8iiyB7NatUtvPEQe6SQyJaTE5vW0CwoUKzqs=@proton.me
        (undo-boundary)
-       (goto-char beg)
-       (let ((expecting-bol (bolp)))
-         (goto-char end)
-         (org-replace-region-contents beg end write-back-buf 0.1 nil)
-         (cl-assert (= (point) (+ beg (buffer-size write-back-buf))))
+       (let ((expecting-bol (save-excursion (goto-char beg) (bolp))))
+	 (if (version< emacs-version "27.1")
+	     (progn (delete-region beg end)
+		    (insert (with-current-buffer write-back-buf
+                              (buffer-string))))
+	   (save-restriction
+	     (narrow-to-region beg end)
+	     (org-replace-buffer-contents write-back-buf 0.1 nil)
+	     (goto-char (point-max))))
 	 (when (and expecting-bol (not (bolp))) (insert "\n")))))
     (when write-back-buf (kill-buffer write-back-buf))
     ;; If we are to return to source buffer, put point at an
@@ -1470,7 +1531,7 @@ EVENT is passed to `mouse-set-point'."
       (goto-char beg)
       (cond
        ;; Block is hidden; move at start of block.
-       ((org-fold-folded-p nil 'block) (forward-line -1))
+       ((org-invisible-p) (forward-line -1))
        (write-back (org-src--goto-coordinates coordinates beg end))))
     ;; Clean up left-over markers and restore window configuration.
     (set-marker beg nil)

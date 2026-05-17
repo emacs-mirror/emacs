@@ -1972,6 +1972,15 @@ This is the same as the above, but uses @samp{other-user} as the user
 name when authenticating.  This is handy if you have several
 @acronym{SMTP} accounts on the same server.
 
+Normally, the connection to the SMTP server follows the value of
+@code{smtpmail-stream-type} except if port is 465, in which case a TLS
+connection is required.  To enforce a specific stream type, mention one
+of the possible values of that variable, like so:
+
+@example
+X-Message-SMTP-Method: smtp smtp.fsf.org 587 other-user starttls
+@end example
+
 This header may also be used to specify an alternative MTA by using a
 @samp{mailer} keyword, where @samp{mailer} is the name of an MTA with
 a corresponding @code{message-send-mail-with-'mailer'} function.  For

@@ -6161,16 +6161,19 @@ If WHERE is `summary', the summary mode line format will be used."
 	     (symbol-value
 	      (intern (format "gnus-%s-mode-line-format-spec" where))))
     (let (mode-string)
-      ;; We evaluate this in the summary buffer since these
-      ;; variables are buffer-local to that buffer.
-      (with-current-buffer gnus-summary-buffer
+      ;; We evaluate this in the summary or server buffer (depending on
+      ;; WHERE) since these variables are buffer-local to these buffers.
+      (with-current-buffer (if (eq where 'server)
+                               gnus-server-buffer
+                             gnus-summary-buffer)
         ;; We bind all these variables that are used in the `eval' form
 	;; below.
 	(let* ((mformat (symbol-value
 			 (intern
 			  (format "gnus-%s-mode-line-format-spec" where))))
-	       (gnus-tmp-group-name (gnus-mode-string-quote
-				     gnus-newsgroup-name))
+	       (gnus-tmp-group-name (and gnus-newsgroup-name
+                                         (gnus-mode-string-quote
+				          gnus-newsgroup-name)))
 	       (gnus-tmp-article-number (or gnus-current-article 0))
 	       (gnus-tmp-unread gnus-newsgroup-unreads)
 	       (gnus-tmp-unread-and-unticked (length gnus-newsgroup-unreads))

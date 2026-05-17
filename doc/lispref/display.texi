@@ -3817,6 +3817,11 @@ Basic faces used for the corresponding decorations of GUI frames.
 @item cursor
 The basic face used for the text cursor.
 
+@item margin
+The basic face used for window margins, both on the left and on the
+right.  It is commonly used to customize the background of the empty
+areas of the margins.  It inherits from the @code{default} face.
+
 @item mouse
 The basic face used for displaying mouse-sensitive text when the mouse
 pointer is on that text.
@@ -5909,12 +5914,14 @@ that text, put on that text an overlay with a @code{before-string}
 property, and put the margin display specification on the contents of
 the before-string.
 
-  Note that if the string to be displayed in the margin doesn't
-specify a face, its face is determined using the same rules and
-priorities as it is for strings displayed in the text area
-(@pxref{Displaying Faces}).  If this results in undesirable
-``leaking'' of faces into the margin, make sure the string has an
-explicit face specified for it.
+  Note that if the string to be displayed in the margin doesn't fully
+specify its face, the nonspecified attributes are inherited from the
+@code{margin} face (@pxref{Basic Faces}).  The face merging mechanism
+ensures that the margin background remains consistent when margin
+annotations specify only a foreground color.  If you want a margin
+string to have a specific appearance independent of the @code{margin}
+face, make sure the string has a face specifying all required
+attributes.
 
   Before the display margins can display anything, you must give
 them a nonzero width.  The usual way to do that is to set these

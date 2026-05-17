@@ -12,7 +12,7 @@ Non-ASCII examples:
   Europe: <x-charset><param>latin-iso8859-1</param>¡Hola!, Grüß Gott, Hyvää päivää,</x-charset> Tere õhtust,<x-charset><param>latin-iso8859-3</param> Bonġu
           Cześć!,</x-charset><x-charset><param>latin-iso8859-2</param> Dobrý den,</x-charset><x-charset><param>cyrillic-iso8859-5</param> Здравствуйте!,</x-charset><x-charset><param>greek-iso8859-7</param> Γειά σας,</x-charset> გამარჯობა
   Africa: <x-charset><param>ethiopic</param>ሠላም</x-charset>
-  Middle/Near East:<x-charset><param>hebrew-iso8859-8</param> שָׁלוֹם,</x-charset> السّلام عليكم
+  Middle/Near East:<x-charset><param>hebrew-iso8859-8</param> שָׁלוֹם,</x-charset> السّلام عليكم, ܣܠܡܐ
   South Asia: નમસ્તે, नमस्ते, ನಮಸ್ಕಾರ, നമസ്കാരം, ନମସ୍କାର,
               ආයුබෝවන්, வணக்கம், నమస్కారం,<x-charset><param>tibetan</param> བཀྲ་ཤིས་བདེ་ལེགས༎</x-charset>
   South East Asia: ជំរាបសួរ,<x-charset><param>lao</param> ສະບາຍດີ,</x-charset> မင်္ဂလာပါ,<x-charset><param>thai-tis620</param> สวัสดีครับ,</x-charset><x-charset><param>vietnamese-viscii-lower</param> </x-charset><x-charset><param>vietnamese-viscii-upper</param>C</x-charset><x-charset><param>vietnamese-viscii-lower</param>hào bạn</x-charset>
@@ -107,6 +107,7 @@ Spanish (español)	¡Hola!
 Sundanese (ᮃᮊ᮪ᮟᮛᮞᮥᮔ᮪ᮓ)	ᮞᮙ᮪ᮕᮥᮛᮞᮥᮔ᮪
 Swedish (svenska)	Hej / Goddag / Hallå
 Syloti Nagri (ꠍꠤꠟꠐꠤ ꠘꠣꠉꠞꠤ)	ꠀꠌ꠆ꠍꠣꠟꠣꠝꠥ ꠀꠟꠣꠁꠇꠥꠝ / ꠘꠝꠡ꠆ꠇꠣꠞ
+Syriac (ܣܘܪܝܝܐ)	ܫܠܡܐ
 Tamil (தமிழ்)	வணக்கம்
 Telugu (తెలుగు)	నమస్కారం
 Tagalog (ᜊᜌ᜔ᜊᜌᜒᜈ᜔)	ᜃᜓᜋᜓᜐ᜔ᜆ

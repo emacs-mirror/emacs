@@ -416,6 +416,19 @@ The same keyword arguments are supported as in
         (format "/mock::%s" temporary-file-directory))))
   "Temporary directory for remote file tests.")
 
+(defun ert-play-keys (keys)
+  "Play the key sequence KEYS as if it was user input.
+
+KEYS shall have the same format as in a call to function `kmacro'.
+
+This macro should be expanded within the body of
+`ert-with-buffer-selected' to select a buffer when keys KEYS start
+commands acting on this buffer, or within the body of
+`ert-with-test-buffer' used with `:selected' flag set."
+  (funcall
+    (kmacro keys)))
+
+
 
 ;;;; Obsolete
 

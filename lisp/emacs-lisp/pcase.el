@@ -228,10 +228,9 @@ Emacs Lisp manual for more information and examples."
 ;;;###autoload
 (defmacro pcase-exhaustive (exp &rest cases)
   "The exhaustive version of `pcase' (which see).
-If EXP fails to match any of the patterns in CASES, an error is
-signaled.
+If EXP fails to match any of the patterns in CASES, signal an error.
 
-In contrast, `pcase' will return nil if there is no match, but
+In contrast, `pcase' will return nil if there is no match, but will
 not signal an error."
   (declare (indent 1) (debug pcase))
   (let* ((x (gensym "x"))

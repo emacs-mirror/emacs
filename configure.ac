@@ -23,7 +23,7 @@ dnl  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.65])
 dnl Note this is parsed by (at least) make-dist and lisp/cedet/ede/emacs.el.
-AC_INIT([GNU Emacs], [31.0.50], [bug-gnu-emacs@gnu.org], [],
+AC_INIT([GNU Emacs], [32.0.50], [bug-gnu-emacs@gnu.org], [],
   [https://www.gnu.org/software/emacs/])
 
 if test "$XCONFIGURE" = "android"; then
@@ -1810,7 +1810,9 @@ AS_IF([test $gl_gcc_warnings = no],
        ;;
   esac
   AS_IF([test $gl_gcc_warnings = yes],
-    [WERROR_CFLAGS=-Werror],
+    [WERROR_CFLAGS=-Werror
+     # Work around GCC bug 125116.
+     gl_WARN_ADD([-Wno-analyzer-allocation-size])],
     [# Use -fanalyzer and related options only if --enable-gcc-warnings,
      # as they slow GCC considerably.
      nw="$nw -fanalyzer -Wno-analyzer-double-free -Wno-analyzer-malloc-leak"
@@ -3099,14 +3101,13 @@ if test "${HAVE_W32}" = "yes"; then
     # the rc file), not a linker script.
     W32_RES_LINK="-Wl,emacs.res"
   else
-    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32inevt.o w32proc.o"
+    W32_OBJ="$W32_OBJ w32.o w32console.o w32heap.o w32image.o w32inevt.o w32proc.o"
     dnl FIXME: This should probably be supported for Cygwin/w32 as
     dnl well, but the Cygwin build needs to link against -lgdiplus
     if test "${with_native_image_api}" = yes; then
       AC_DEFINE([HAVE_NATIVE_IMAGE_API], [1],
 	[Define to use native OS APIs for images.])
       NATIVE_IMAGE_API="yes (w32)"
-      W32_OBJ="$W32_OBJ w32image.o"
     fi
     W32_LIBS="$W32_LIBS -lwinmm -lgdi32 -lcomdlg32"
     W32_LIBS="$W32_LIBS -lmpr -lwinspool -lole32 -lcomctl32"
@@ -4476,11 +4477,10 @@ XWIDGETS_OBJ=
 if test "$with_xwidgets" != "no"; then
   if test "$USE_GTK_TOOLKIT" = "GTK3" && test "$window_system" != "none"; then
     WEBKIT_REQUIRED=2.12
-    WEBKIT_BROKEN=2.41.92
-    WEBKIT_MODULES="webkit2gtk-4.1 >= $WEBKIT_REQUIRED webkit2gtk-4.1 < $WEBKIT_BROKEN"
+    WEBKIT_MODULES="webkit2gtk-4.1 >= $WEBKIT_REQUIRED"
     EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
     if test "$HAVE_WEBKIT" = "no"; then
-      WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED webkit2gtk-4.0 < $WEBKIT_BROKEN"
+      WEBKIT_MODULES="webkit2gtk-4.0 >= $WEBKIT_REQUIRED"
       EMACS_CHECK_MODULES([WEBKIT], [$WEBKIT_MODULES])
     fi
     HAVE_XWIDGETS=$HAVE_WEBKIT
@@ -5120,6 +5120,7 @@ AC_SUBST_FILE([module_env_snippet_28])
 AC_SUBST_FILE([module_env_snippet_29])
 AC_SUBST_FILE([module_env_snippet_30])
 AC_SUBST_FILE([module_env_snippet_31])
+AC_SUBST_FILE([module_env_snippet_32])
 module_env_snippet_25="$srcdir/src/module-env-25.h"
 module_env_snippet_26="$srcdir/src/module-env-26.h"
 module_env_snippet_27="$srcdir/src/module-env-27.h"
@@ -5127,6 +5128,7 @@ module_env_snippet_28="$srcdir/src/module-env-28.h"
 module_env_snippet_29="$srcdir/src/module-env-29.h"
 module_env_snippet_30="$srcdir/src/module-env-30.h"
 module_env_snippet_31="$srcdir/src/module-env-31.h"
+module_env_snippet_32="$srcdir/src/module-env-32.h"
 emacs_major_version=`AS_ECHO([$PACKAGE_VERSION]) | sed 's/[[.]].*//'`
 AC_SUBST([emacs_major_version])
 

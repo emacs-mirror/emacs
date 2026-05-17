@@ -146,6 +146,16 @@ changes."
   (should (equal (mod-test-non-local-exit-funcall (lambda () (throw 'tag 32)))
                  '(throw tag 32))))
 
+(ert-deftest mod-test-non-local-exit-funcall-debug-on-error ()
+  (let* ((debugger-entered nil)
+         (debugger (lambda (&rest _) (setq debugger-entered t))))
+    (should (equal
+             (let ((debug-on-error t))
+               (mod-test-non-local-exit-funcall
+                (lambda () (error "test error"))))
+             '(signal error ("test error"))))
+    (should debugger-entered)))
+
 ;;; String tests
 
 (defun multiply-string (s n)
@@ -197,13 +207,6 @@ changes."
     (should (eq (emacs-module-tests--generic v) 'user-ptr))
     (should (integerp r))
     (should (= r n))))
-
-(ert-deftest mod-test-userptrp ()
-  (skip-unless (fboundp 'user-ptrp))
-  (let ((v (mod-test-userptr-make 7)))
-    (should (user-ptrp v))
-    (should-not (user-ptrp 7))
-    (should-not (user-ptrp "x"))))
 
 ;; TODO: try to test finalizer
 

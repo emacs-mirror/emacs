@@ -159,10 +159,12 @@ struct tty_display_info
   /* "op" -- SVr4 set default pair to its original value.  */
   const char *TS_orig_pair;
 
-  /* "AF"/"AB" or "Sf"/"Sb"-- set ANSI or SVr4 foreground/background color.
-     1 param, the color index.  */
-  const char *TS_set_foreground;
-  const char *TS_set_background;
+  const char *TS_set_foreground; /* "AF"/"Sf"/"setrgbf" -- set foreground color. */
+  const char *TS_set_background; /* "AB"/"Sb"/"setrgbb" -- set background color. */
+  /* If set, TS_set_foreground and TS_set_background take 3 separate
+     params for R, G, and B values ("setrgbf"/"setrgbb" -- non-standard).
+     If unset, they take 1 param ("AF"/"AB" or "Sf"/"Sb" -- ANSI or SVr4r). */
+  int TF_rgb_separate;
 
   int TF_hazeltine;             /* termcap hz flag. */
   int TF_insmode_motion;        /* termcap mi flag: can move while in insert mode. */
@@ -248,5 +250,7 @@ extern struct tty_display_info *tty_list;
 struct input_event;
 extern Lisp_Object tty_handle_tab_bar_click (struct frame *, int, int, bool,
 					     struct input_event *);
+
+extern void tty_setup_colors (struct tty_display_info *tty, int mode);
 
 #endif /* EMACS_TERMCHAR_H */

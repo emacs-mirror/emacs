@@ -1366,8 +1366,11 @@ following in it:
 ---------- Buffer: *Backtrace* ----------
 Debugger entered--Lisp error: (void-function this)
   (this is an unquoted list)
-  eval((this is an unquoted list) nil)
+  (progn (this is an unquoted list))
+  eval((progn (this is an unquoted list)) t)
   elisp--eval-last-sexp(nil)
+  #f(compiled-function () #<bytecode ...>)()
+  handler-bind-1(#f(compiled-function () #<bytecode ...>) (error) eval-expression--debug)
   eval-last-sexp(nil)
   funcall-interactively(eval-last-sexp nil)
   call-interactively(eval-last-sexp nil nil)
@@ -1807,6 +1810,8 @@ Debugger entered--Lisp error: (void-function fill-column)
   (fill-column)
   eval((fill-column) nil)
   elisp--eval-last-sexp(nil)
+  #f(compiled-function () #<bytecode ...>)()
+  handler-bind-1(#f(compiled-function () #<bytecode ...>) (error) eval-expression--debug)
   eval-last-sexp(nil)
   funcall-interactively(eval-last-sexp nil)
   call-interactively(eval-last-sexp nil nil)
@@ -1843,8 +1848,10 @@ says:
 @group
 ---------- Buffer: *Backtrace* ----------
 Debugger entered--Lisp error: (void-variable +)
-  eval(+)
+  eval(+ nil)
   elisp--eval-last-sexp(nil)
+  #f(compiled-function () #<bytecode ...>)()
+  handler-bind-1(#f(compiled-function () #<bytecode ...>) (error) eval-expression--debug)
   eval-last-sexp(nil)
   funcall-interactively(eval-last-sexp nil)
   call-interactively(eval-last-sexp nil nil)
@@ -2099,15 +2106,16 @@ You will create and enter a @file{*Backtrace*} buffer that says:
 @smallexample
 @group
 ---------- Buffer: *Backtrace* ----------
-Debugger entered--Lisp error:
-         (wrong-type-argument number-or-marker-p hello)
+Debugger entered--Lisp error: (wrong-type-argument number-or-marker-p hello)
   +(2 hello)
   eval((+ 2 'hello) nil)
-  elisp--eval-last-sexp(t)
+  elisp--eval-last-sexp(nil)
+  #f(compiled-function () #<bytecode ...>)()
+  handler-bind-1(#f(compiled-function () #<bytecode ...>) (error) eval-expression--debug)
   eval-last-sexp(nil)
-  funcall-interactively(eval-print-last-sexp nil)
-  call-interactively(eval-print-last-sexp nil nil)
-  command-execute(eval-print-last-sexp)
+  funcall-interactively(eval-last-sexp nil)
+  call-interactively(eval-last-sexp nil nil)
+  command-execute(eval-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -15348,7 +15356,7 @@ Here is the function:
 @c (files-in-below-directory "/usr/local/src/emacs/lisp/")
 @c (files-in-below-directory "/usr/local/share/emacs/22.1.1/lisp/")
 
-The @code{files-in-below-directory} @code{directory-files} function
+The @code{files-in-below-directory} function
 takes one argument, the name of a directory.
 
 @need 1250
@@ -16570,18 +16578,16 @@ M-x customize
 @end smallexample
 
 @noindent
-and find that the group for editing files of text is called ``Text''.
-Enter that group.  Text Mode Hook is the first member.  You can click
-on its various options, such as @code{turn-on-auto-fill}, to set the
-values.  After you click on the button to
-
-@smallexample
-Save for Future Sessions
-@end smallexample
-
-@noindent
-Emacs will write an expression into your @file{.emacs} file.
-It will look like this:
+and find that the group for editing files of text is called @samp{Text}.
+Enter that group by clicking or typing @key{RET} on it.  Text Mode Hook
+is one of the group's members; click on the triangular button (or on the
+@samp{Show Value} button which replaces that on text-only terminals) to
+its left to show its various options.  Then you can click (or type
+@key{RET} if you are on a text-only terminal) on its options, such as
+@code{turn-on-auto-fill}, to set or reset the values.  After you click
+(or type @key{RET}) on the @samp{State} button and select @samp{Save for
+Future Sessions}, Emacs will write an expression into your @file{.emacs}
+file.  It will look like this:
 
 @smallexample
 @group
@@ -16981,11 +16987,10 @@ The command invoked by the keys is @code{compare-windows}.  Note that
 @code{compare-windows} is preceded by a single-quote; otherwise, Emacs
 would first try to evaluate the symbol to determine its value.
 
-These three things, the double quotation marks, the backslash before
-the @samp{C}, and the single-quote are necessary parts of
-key binding that I tend to forget.  Fortunately, I have come to
-remember that I should look at my existing @file{.emacs} file, and
-adapt what is there.
+These two things, the double quotation marks and the single-quote, are
+necessary parts of key binding that I tend to forget.  Fortunately, I
+have come to remember that I should look at my existing @file{.emacs}
+file, and adapt what is there.
 
 As for the key binding itself: @kbd{C-c w}.  This combines the prefix
 key, @kbd{C-c}, with a single character, in this case, @kbd{w}.  This
@@ -17941,13 +17946,16 @@ Debugger entered--Lisp error: (void-function 1=)
   (let ((total 0)) (while (> number 0) (setq total ...)
     (setq number ...)) total)
   triangle-bugged(4)
+  eval((triangle-bugged 4) nil)
 @end group
 @group
-  eval((triangle-bugged 4) nil)
-  eval-expression((triangle-bugged 4) nil nil 127)
-  funcall-interactively(eval-expression (triangle-bugged 4) nil nil 127)
-  call-interactively(eval-expression nil nil)
-  command-execute(eval-expression)
+  elisp--eval-last-sexp(nil)
+  #f(compiled-function () #<bytecode ...>)()
+  handler-bind-1(#f(compiled-function () #<bytecode ...>) (error) eval-expression--debug)
+  eval-last-sexp(nil)
+  funcall-interactively(eval-last-sexp nil)
+  call-interactively(eval-last-sexp nil nil)
+  command-execute(eval-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -18045,10 +18053,13 @@ Debugger entered--entering a function:
   eval((triangle-bugged 5) nil)
 @end group
 @group
-  eval-expression((triangle-bugged 5) nil nil 127)
-  funcall-interactively(eval-expression (triangle-bugged 5) nil nil 127)
-  call-interactively(eval-expression nil nil)
-  command-execute(eval-expression)
+  elisp--eval-last-sexp(nil)
+  #f(compiled-function () #<bytecode ...>)()
+  handler-bind-1(#f(compiled-function () #<bytecode ...>) (error) eval-expression--debug)
+  eval-last-sexp(nil)
+  funcall-interactively(eval-last-sexp nil)
+  call-interactively(eval-last-sexp nil nil)
+  command-execute(eval-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample
@@ -18097,12 +18108,15 @@ Debugger entered--beginning evaluation of function call form:
         (setq number ...)) total)
 * triangle-bugged(5)
   eval((triangle-bugged 5) nil)
-@group
 @end group
-  eval-expression((triangle-bugged 5) nil nil 127)
-  funcall-interactively(eval-expression (triangle-bugged 5) nil nil 127)
-  call-interactively(eval-expression nil nil)
-  command-execute(eval-expression)
+@group
+  elisp--eval-last-sexp(nil)
+  #f(compiled-function () #<bytecode ...>)()
+  handler-bind-1(#f(compiled-function () #<bytecode ...>) (error) eval-expression--debug)
+  eval-last-sexp(nil)
+  funcall-interactively(eval-last-sexp nil)
+  call-interactively(eval-last-sexp nil nil)
+  command-execute(eval-last-sexp)
 ---------- Buffer: *Backtrace* ----------
 @end group
 @end smallexample

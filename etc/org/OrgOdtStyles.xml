@@ -404,9 +404,6 @@
   <style:style style:name="OrgTags" style:family="text"/>
 
   <style:style style:name="OrgPriority" style:family="text"/>
-  <style:style style:name="OrgPriority-A" style:family="text" style:parent-style-name="OrgPriority"/>
-  <style:style style:name="OrgPriority-B" style:family="text" style:parent-style-name="OrgPriority"/>
-  <style:style style:name="OrgPriority-C" style:family="text" style:parent-style-name="OrgPriority"/>
 
   <style:style style:name="OrgTimestamp" style:display-name="OrgTimestamp" style:family="text">
     <style:text-properties style:font-name="Courier New" fo:background-color="transparent" style:font-name-asian="NSimSun" style:font-name-complex="Courier New"/>

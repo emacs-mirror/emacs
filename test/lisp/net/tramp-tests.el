@@ -219,16 +219,13 @@
     '(fset 'tramp-gvfs-handler-askquestion
 	   (lambda (_message _choices) '(t nil 0)))))
 
-(defconst tramp-test-vec
-  (and (file-remote-p ert-remote-temporary-file-directory)
-       (tramp-dissect-file-name ert-remote-temporary-file-directory))
-  "The used `tramp-file-name' structure.")
-
 (setq auth-source-cache-expiry nil
       auth-source-save-behavior nil
       auto-revert-remote-files t
       auto-revert-use-notify t
       ert-batch-backtrace-right-margin nil
+      ert-remote-temporary-file-directory
+      (expand-file-name ert-remote-temporary-file-directory)
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
       tramp-allow-unsafe-temporary-files t
@@ -238,6 +235,11 @@
       tramp-persistency-file-name nil
       tramp-verbose 0
       vc-handled-backends (unless noninteractive vc-handled-backends))
+
+(defconst tramp-test-vec
+  (and (file-remote-p ert-remote-temporary-file-directory)
+       (tramp-dissect-file-name ert-remote-temporary-file-directory))
+  "The used `tramp-file-name' structure.")
 
 (defconst tramp-test-name-prefix "tramp-test"
   "Prefix to use for temporary test files.")
@@ -2287,6 +2289,8 @@ being the result.")
 
 (ert-deftest tramp-test03-file-error ()
   "Check that Tramp signals an error in case of connection problems."
+  (skip-unless (tramp-file-name-p tramp-test-vec))
+
   ;; Connect to a non-existing host.
   (let ((vec (copy-tramp-file-name tramp-test-vec))
 	;; Don't poison it.
@@ -4473,6 +4477,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; Check, that files in symlinked directories still work.
 	    (make-symbolic-link tmp-name4 tmp-name6)
 	    (should (file-symlink-p tmp-name6))
+	    (should (file-directory-p tmp-name6))
 	    (should-not (file-regular-p tmp-name6))
 	    (write-region "foo" nil (expand-file-name "foo" tmp-name6))
 	    (delete-file (expand-file-name "foo" tmp-name6))
@@ -5393,7 +5398,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   ;; boundaries are always incorrect before that.
   (skip-unless (tramp--test-emacs31-p))
 
-  (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+  (when-let* ((remote (file-remote-p ert-remote-temporary-file-directory)))
     (dolist
 	(file `(,remote ,(concat remote "/~/")
 		,(concat remote "/usr//usr/") ,(concat remote remote "//usr/")))
@@ -6514,13 +6519,12 @@ INPUT, if non-nil, is a string sent to the process."
 	       ;; 	(should (= 11 (point)))))))))))))
 	       )))))))))
 
-;; This test is inspired by Bug#23952.
+;; This test is inspired by Bug#23952 and Bug#80783.
 (ert-deftest tramp-test33-environment-variables ()
   "Check that remote processes set / unset environment variables properly."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-environment-variables-p))
 
   (dolist (this-shell-command-to-string
 	   (append
@@ -6549,6 +6553,21 @@ INPUT, if non-nil, is a string sent to the process."
 	  (format "%s,foo,tramp:%s\n" emacs-version tramp-version)
 	  (funcall
 	   this-shell-command-to-string "echo \"${INSIDE_EMACS:-bla}\""))))
+
+      ;; Check EMACSCLIENT_TRAMP.
+      (setenv "EMACSCLIENT_TRAMP")
+      (let ((tramp-propagate-emacsclient-tramp t))
+	(should
+	 (string-equal
+	  (format "%s\n" (tramp-make-tramp-file-name tramp-test-vec 'noloc))
+	  (funcall
+	   this-shell-command-to-string "echo \"${EMACSCLIENT_TRAMP:-bla}\""))))
+      (let (tramp-propagate-emacsclient-tramp)
+	(should
+	 (string-equal
+	  "bla\n"
+	  (funcall
+	   this-shell-command-to-string "echo \"${EMACSCLIENT_TRAMP:-bla}\""))))
 
       ;; Set a value.
       (let ((process-environment
@@ -6606,7 +6625,18 @@ INPUT, if non-nil, is a string sent to the process."
 	      ;; We must suppress "_=VAR...".
 	      (funcall
 	       this-shell-command-to-string
-	       "printenv | grep -v PS1 | grep -v _=")))))))))
+	       "printenv | grep -v PS1 | grep -v _="))))))
+
+      ;; Handle looooong environment variables.  Bug#80783.
+      ;; FIXME: Make it also work in the synchronous case.
+      (unless (or (eq this-shell-command-to-string 'shell-command-to-string)
+		  (tramp-direct-async-process-p))
+	(let* ((bad (concat envvar "=" (make-string 2024 ?x)))
+	       (process-environment
+		(cl-list* bad bad bad bad process-environment)))
+	  (should
+	   (string-match-p
+	    "foo" (funcall this-shell-command-to-string "echo foo"))))))))
 
 (tramp--test-deftest-direct-async-process tramp-test33-environment-variables)
 
@@ -7766,6 +7796,11 @@ This requires restrictions of file name syntax."
       (tramp--test-sh-p) (tramp--test-smb-p)
       (tramp--test-sudoedit-p)))
 
+(defun tramp--test-supports-environment-variables-p ()
+  "Return whether setting environment variables is supported."
+  (and (tramp--test-sh-p)
+       (not (tramp--test-crypt-p))))
+
 (defun tramp--test-check-files (&rest files)
   "Run a simple but comprehensive test over every file in FILES."
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
@@ -8858,9 +8893,18 @@ process sentinels.  They shall not disturb each other."
   "Test operation."
   "Test operation")
 
-(defun tramp--handler-for-test-operation (&optional _file)
+(defun tramp--handle-test-operation (&optional _file)
   "Test operation handler."
   "Test operation handler")
+
+(defun tramp--handle-process-id (process)
+  "Handler for `process-id'."
+  ;; Return something else.
+  (1+ (tramp-run-real-handler #'process-id (list process))))
+
+(defun tramp--test-operation-file-name-for-operation (_operation &optional _file)
+  "Helper function for `tramp--test-operation' handler."
+  default-directory)
 
 (ert-deftest tramp-test49-external-backend-function ()
   "Check that Tramp handles external functions for a given backend."
@@ -8878,78 +8922,167 @@ process sentinels.  They shall not disturb each other."
     ;; There is no backend specific code.
     (should-not
      (string-equal (tramp--test-operation ert-remote-temporary-file-directory)
-		   (tramp--handler-for-test-operation
+		   (tramp--handle-test-operation
 		    ert-remote-temporary-file-directory)))
     (should-not
      (string-equal (tramp--test-operation temporary-file-directory)
-		   (tramp--handler-for-test-operation
+		   (tramp--handle-test-operation
 		    temporary-file-directory)))
     (let ((default-directory ert-remote-temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handle-test-operation))))
     (let ((default-directory temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation))))
+		     (tramp--handle-test-operation))))
 
     (should-error
      (tramp-add-external-operation
-      #'tramp--test-operation
-      #'tramp--handler-for-test-operation 'foo)
+      #'tramp--test-operation #'tramp--handle-test-operation 'foo)
      :type 'file-missing)
+    (should-error
+     (tramp-add-external-operation
+      #'tramp--test-operation #'tramp--handle-test-operation backend 'foo)
+     :type 'remote-file-error)
+    ;; This doesn't hurt.
     (tramp-add-external-operation
-     #'tramp--test-operation
-     #'tramp--handler-for-test-operation backend)
+     #'tramp--test-operation #'tramp--handle-test-operation backend 'file)
+
     ;; The backend specific function is called.
     (should
      (string-equal (tramp--test-operation ert-remote-temporary-file-directory)
-		   (tramp--handler-for-test-operation
+		   (tramp--handle-test-operation
 		    ert-remote-temporary-file-directory)))
     (should-not
      (string-equal (tramp--test-operation temporary-file-directory)
-		   (tramp--handler-for-test-operation
+		   (tramp--handle-test-operation
 		    temporary-file-directory)))
     (let ((default-directory ert-remote-temporary-file-directory))
       (should
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation)))
+		     (tramp--handle-test-operation)))
       (should
        (string-equal (tramp--test-operation "foo")
-		     (tramp--handler-for-test-operation "foo"))))
+		     (tramp--handle-test-operation "foo"))))
     (let ((default-directory temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation)))
+		     (tramp--handle-test-operation)))
       (should-not
        (string-equal (tramp--test-operation "foo")
-		     (tramp--handler-for-test-operation "foo"))))
+		     (tramp--handle-test-operation "foo"))))
 
-    (tramp-remove-external-operation
-     #'tramp--test-operation backend)
+    (tramp-remove-external-operation #'tramp--test-operation backend)
     ;; There is no backend specific code.
     (should-not
      (string-equal (tramp--test-operation ert-remote-temporary-file-directory)
-		   (tramp--handler-for-test-operation
+		   (tramp--handle-test-operation
 		    ert-remote-temporary-file-directory)))
     (should-not
      (string-equal (tramp--test-operation temporary-file-directory)
-		   (tramp--handler-for-test-operation
+		   (tramp--handle-test-operation
 		    temporary-file-directory)))
     (let ((default-directory ert-remote-temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation)))
+		     (tramp--handle-test-operation)))
       (should-not
        (string-equal (tramp--test-operation "foo")
-		     (tramp--handler-for-test-operation "foo"))))
+		     (tramp--handle-test-operation "foo"))))
     (let ((default-directory temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
-		     (tramp--handler-for-test-operation)))
+		     (tramp--handle-test-operation)))
       (should-not
        (string-equal (tramp--test-operation "foo")
-		     (tramp--handler-for-test-operation "foo"))))))
+		     (tramp--handle-test-operation "foo"))))
+
+    ;; Test `default-directory' arg type.
+    (tramp-add-external-operation
+     #'tramp--test-operation #'tramp--handle-test-operation
+     backend 'default-directory)
+
+    ;; The backend specific function is called.
+    (let ((default-directory ert-remote-temporary-file-directory))
+      (should
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))
+    (let ((default-directory temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))
+
+    (tramp-remove-external-operation #'tramp--test-operation backend)
+    ;; There is no backend specific code.
+    (let ((default-directory ert-remote-temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handle-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))
+    (let ((default-directory temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handle-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))
+
+    ;; Test `process' arg type.
+    (when (and (tramp--test-supports-processes-p) (not (tramp--test-smb-p)))
+      (let ((default-directory ert-remote-temporary-file-directory)
+	    proc command id)
+	(unwind-protect
+	    (with-temp-buffer
+	      (setq command '("cat")
+		    proc
+		    (make-process
+		     :name "test" :buffer (current-buffer) :command command
+		     :file-handler t))
+	      (should (processp proc))
+	      (should (eq (process-status proc) 'run))
+	      (should (natnump (setq id (process-id proc))))
+	      (tramp-add-external-operation
+	       #'process-id #'tramp--handle-process-id backend 'process)
+	      (should (= (process-id proc) (1+ id))))
+
+	  ;; Cleanup.
+	  (tramp-remove-external-operation #'process-id backend)
+	  (ignore-errors (delete-process proc)))))
+
+    ;; Test function arg type.
+    (tramp-add-external-operation
+     #'tramp--test-operation #'tramp--handle-test-operation
+     backend #'tramp--test-operation-file-name-for-operation)
+
+    ;; The backend specific function is called.
+    (let ((default-directory ert-remote-temporary-file-directory))
+      (should
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))
+    (let ((default-directory temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))
+
+    (tramp-remove-external-operation #'tramp--test-operation backend)
+    ;; There is no backend specific code.
+    (let ((default-directory ert-remote-temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handle-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))
+    (let ((default-directory temporary-file-directory))
+      (should-not
+       (string-equal (tramp--test-operation)
+		     (tramp--handle-test-operation)))
+      (should-not
+       (string-equal (tramp--test-operation "foo")
+		     (tramp--handle-test-operation "foo"))))))
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test50-auto-load ()

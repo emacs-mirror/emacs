@@ -92,9 +92,9 @@
 (declare-function org-element-type-p "org-element-ast" (node types))
 (declare-function org-element-contents "org-element-ast" (node))
 
-(declare-function org-export-data "org-export" (data info))
-(declare-function org-export-derived-backend-p "org-export" (backend &rest backends))
-(declare-function org-export-raw-string "org-export" (contents))
+(declare-function org-export-data "ox" (data info))
+(declare-function org-export-derived-backend-p "ox" (backend &rest backends))
+(declare-function org-export-raw-string "ox" (contents))
 
 
 ;;; Customization
@@ -139,6 +139,31 @@
   :package-version '(Org . "9.5")
   :type 'face
   :safe #'facep)
+
+(defcustom org-cite-basic-complete-key-crm-separator nil
+  "When non-nil, use `completing-read-multiple' with this as the separator.
+When nil, use multiple `completing-read' prompts.  When set to a string,
+it should be a regexp to be used as `crm-separator' (which see).  The
+regexp string can carry the text properties `separator', which if
+present `completing-read-multiple' will show as part of the prompt.
+When set to symbol `dynamic', use \";;...\" as a separator with the
+number of \";\" sufficient so that none of the completion candidates
+contain the separator."
+  :group 'org-cite
+  :package-version '(Org . "9.8")
+  :type
+  '(choice
+    (const
+     :tag
+     "Use \";;\" as the separator."
+     (propertize "[ \t]*;;[ \t]*" 'separator ";;"))
+    (const
+     :tag
+     "Dynamically compute \";\"+ with the needed length."
+     dynamic)
+    (string :tag "Custom regexp for the separator.")
+    (const :tag "Prompt multiple times." nil))
+  :safe (lambda (obj) (or (string-or-null-p obj) (member obj '(dynamic)))))
 
 
 ;;; Internal variables
@@ -884,6 +909,39 @@ Return nil if there are no bibliography files or no entries."
         (puthash entries t org-cite-basic--completion-cache)
         org-cite-basic--completion-cache)))))
 
+(defun org-cite-basic--complete-key-dynamic-crm-separator
+    (completion-candidates separator)
+  "Return a repeated version of SEPARATOR as needed.
+The number of appeared SEPARATORs in the returned string is sufficient
+so that none of COMPLETION-CANDIDATES contains it.  SEPARATOR should be
+a literal string."
+  (let* ((dyn-sep separator)
+         (consecutive-sep-regexp
+          (format "%s+" (regexp-opt (list separator)))))
+    (with-temp-buffer
+      (dolist (cand completion-candidates)
+        (when (stringp cand)
+          (insert cand "\n")))
+      (goto-char (point-min))
+      (while (re-search-forward consecutive-sep-regexp nil t)
+        (while (<= (length dyn-sep) (length (match-string 0)))
+          (setq dyn-sep (concat dyn-sep separator)))))
+    dyn-sep))
+
+(defvar crm-separator) ; defined in crm.el
+
+(defun org-cite-basic--crm-indicate-prompt (orig-prompt)
+  "Return annotated ORIG-PROMPT with `crm-separator'.
+For Emacs version 31 and above, just return ORIG-PROMPT."
+  (cond
+   ((boundp 'crm-prompt)
+    orig-prompt)
+   (t
+    (let ((sep
+           (or (get-text-property 0 'separator crm-separator)
+               (string-replace "[ \t]*" "" crm-separator))))
+      (format "[list separated by %s] %s" sep orig-prompt)))))
+
 (defun org-cite-basic--complete-key (&optional multiple)
   "Prompt for a reference key and return a citation reference string.
 
@@ -895,12 +953,39 @@ Raise an error when no bibliography is set in the buffer."
   (let* ((table
           (or (org-cite-basic--key-completion-table)
               (user-error "No bibliography set")))
-         (prompt
-          (lambda (text)
-            (completing-read text table nil t))))
-    (if (null multiple)
-        (let ((key (gethash (funcall prompt "Key: ") table)))
-          (org-string-nw-p key))
+         (prompt-single
+          (lambda (text) (completing-read text table nil t)))
+         (choice-to-citation
+          (lambda (choice)
+            (let ((key (gethash choice table)))
+              (org-string-nw-p key)))))
+    (cond
+     ((null multiple)
+      (funcall choice-to-citation
+               (completing-read "Key: " table nil t)))
+     (org-cite-basic-complete-key-crm-separator
+      (let*
+          ((crm-separator
+            (pcase org-cite-basic-complete-key-crm-separator
+              ((pred stringp)
+               org-cite-basic-complete-key-crm-separator)
+              (`dynamic
+               (let
+                   ((repeated-sep
+                     (regexp-quote
+                      (org-cite-basic--complete-key-dynamic-crm-separator
+                       (hash-table-keys table) ";"))))
+                 (propertize (format "[ \t]*%s[ \t]*" repeated-sep)
+                             'separator
+                             repeated-sep)))))
+           (prompt (org-cite-basic--crm-indicate-prompt "Keys: ")))
+        ;; FIXME: Use `seq-keep' after we drop Emacs 28 support.
+        (delq
+         nil
+         (seq-map
+          choice-to-citation
+          (completing-read-multiple prompt table nil t)))))
+     (t
       (let* ((keys nil)
              (build-prompt
               (lambda ()
@@ -908,11 +993,12 @@ Raise an error when no bibliography is set in the buffer."
                     (format "Key (empty input exits) %s: "
                             (mapconcat #'identity (reverse keys) ";"))
                   "Key (empty input exits): "))))
-        (let ((key (funcall prompt (funcall build-prompt))))
+        (let ((key (funcall prompt-single (funcall build-prompt))))
           (while (org-string-nw-p key)
             (push (gethash key table) keys)
-            (setq key (funcall prompt (funcall build-prompt)))))
-        keys))))
+            (setq key
+                  (funcall prompt-single (funcall build-prompt)))))
+        keys)))))
 
 
 ;;; Register processor

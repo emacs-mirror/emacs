@@ -2110,7 +2110,7 @@ Also see `help-window-select'."
   'help-enable-autoload "27.1")
 
 (defcustom help-enable-autoload t
-  "Whether Help commands can perform autoloading.
+  "Whether Help commands can perform autoloading in order to show key bindings.
 If non-nil, whenever \\[describe-function] is called for an
 autoloaded function whose docstring contains any key substitution
 construct (see `substitute-command-keys'), the library is loaded,

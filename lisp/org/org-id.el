@@ -80,8 +80,6 @@
 
 (declare-function message-make-fqdn "message" ())
 (declare-function org-goto-location "org-goto" (&optional _buf help))
-;; Declared inside `org-element-with-disabled-cache' macro.
-(declare-function org-element--cache-active-p "org-element.el" (&optional called-from-cache-change-func-p))
 
 ;;; Customization
 
@@ -295,6 +293,16 @@ This variable is only relevant when `org-id-track-globally' is set."
   :group 'org-id
   :type 'boolean)
 
+(defcustom org-id-completion-targets
+  '((nil . t)
+    (org-id-files . t))
+  "Candidate headings for completing \"id:\" links in `\\[org-insert-link]'.
+This variable has the same form as `org-refile-targets', which see."
+  :group 'org-id
+  :type (get 'org-refile-targets 'custom-type)
+  :package-version '(Org . "9.8")
+  :risky t)
+
 ;;; The API functions
 
 ;;;###autoload
@@ -354,7 +362,7 @@ TARGETS may be a setting for `org-refile-targets' to define
 eligible headlines.  When omitted, all headlines in the current
 file are eligible.  This function returns the ID of the entry.
 If necessary, the ID is created."
-  (let* ((org-refile-targets (or targets '((nil . (:maxlevel . 10)))))
+  (let* ((org-refile-targets (or targets '((nil . t))))
 	 (org-refile-use-outline-path
 	  (if (caar org-refile-targets) 'file t))
 	 (org-refile-target-verify-function nil)
@@ -631,7 +639,10 @@ If SILENT is non-nil, messages are suppressed."
 	    (let ((loc (file-name-directory org-id-locations-file)))
 	      (mapc (lambda (item)
 		      (unless (file-name-absolute-p (car item))
-			(setf (car item) (expand-file-name (car item) loc))))
+			(setf (car item)
+                              ;; Abbreviate as `org-id-add-location' does.
+                              (abbreviate-file-name
+                               (expand-file-name (car item) loc)))))
 		    org-id-locations)))
 	(error
          (message "Could not read `org-id-locations' from %s, setting it to nil"
@@ -705,8 +716,9 @@ This is to be able to write it to a file."
 	   (hash-table-p org-id-locations)
 	   (gethash id org-id-locations))
       ;; Fall back on current buffer
-      (buffer-file-name (or (buffer-base-buffer (current-buffer))
-			    (current-buffer)))))
+      (when (derived-mode-p 'org-mode)
+        (buffer-file-name (or (buffer-base-buffer (current-buffer))
+			      (current-buffer))))))
 
 (defun org-id-find-id-in-file (id file &optional markerp)
   "Return the position of the entry ID in FILE.
@@ -884,9 +896,47 @@ will be tried as an ID."
                          (org-element-lineage (org-element-at-point) 'headline t))))
     (org-fold-show-context)))
 
+(defun org-id-complete (&optional _arg)
+  "Complete IDs for `org-insert-link'.
+
+If a headline without an ID is selected, one will automatically be
+created."
+  (unless org-id-locations (org-id-locations-load))
+  (or (ignore-errors ; Catch the error if we have no refile targets.
+        (when-let* ((id (org-id-get-with-outline-path-completion
+                         (if (buffer-file-name) org-id-completion-targets
+                           ;; If the current buffer isn't associated
+                           ;; with a file, we can't include it so we
+                           ;; exclude all "targets" where the car is
+                           ;; nil.
+                           (seq-filter #'car org-id-completion-targets)))))
+          (concat "id:" id)))
+      (read-string "Link: " "id:")))
+
+(defun org-id-description (link desc)
+  "Return a description for an ID link, derived from the linked headline.
+
+Calling convention is similar to `org-link-make-description-function'.
+DESC has higher priority and is returned if it is both non-nil and
+non-empty.  Otherwise, if the passed LINK is an ID link and can be
+resolved to an existing headline, the target headline is returned.  If
+all else fails, DESC is returned as-is.
+
+TODO keywords, tags, and priorities are stripped from the description."
+  (or (org-string-nw-p desc)
+      (when-let* ((loc (org-id-find (string-remove-prefix "id:" link))))
+        (org-with-file-buffer (car loc)
+          (org-with-wide-buffer
+           (goto-char (cdr loc))
+           (org-link-display-format
+            (org-get-heading t t t t)))))
+      desc))
+
 (org-link-set-parameters "id"
   :follow #'org-id-open
-  :store #'org-id-store-link-maybe)
+  :store #'org-id-store-link-maybe
+  :complete #'org-id-complete
+  :insert-description #'org-id-description)
 
 (provide 'org-id)
 

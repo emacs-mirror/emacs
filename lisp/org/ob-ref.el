@@ -66,7 +66,7 @@
 (declare-function org-find-property "org" (property &optional value))
 (declare-function org-id-find-id-file "org-id" (id))
 (declare-function org-id-find-id-in-file "org-id" (id file &optional markerp))
-(declare-function org-in-commented-heading-p "org" (&optional no-inheritance))
+(declare-function org-in-commented-heading-p "org" (&optional no-inheritance element))
 (declare-function org-narrow-to-subtree "org" (&optional element))
 (declare-function org-fold-show-context "org-fold" (&optional key))
 
@@ -236,7 +236,7 @@ to \"0:-1\"."
 	  (if (or (= 0 (length portion)) (string-match ind-re portion))
 	      (mapcar
 	       (lambda (n) (nth n lis))
-	       (apply 'org-number-sequence
+	       (apply #'number-sequence
 		      (if (and (> (length portion) 0) (match-string 2 portion))
 			  (list
 			   (funcall wrap (string-to-number (match-string 2 portion)))

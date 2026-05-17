@@ -168,10 +168,12 @@ longer Info tutorial.)
 @menu
 * Getting Started::       General description and overview.
 @ifinfo
-* Interactive Tutorial::
+* Interactive Tutorial::  Tutorial, and brief instructions on using
+                           the Emacs Info system for reading this manual.
 @end ifinfo
+@ifnotinfo
 * Tutorial::              A step-by-step introduction for beginners.
-
+@end ifnotinfo
 * Introduction::          Introduction to the Calc reference manual.
 * Data Types::            Types of objects manipulated by Calc.
 * Stack and Trail::       Manipulating the stack and trail buffers.
@@ -1244,8 +1246,8 @@ finished in two weeks.
 
 @ifinfo
 @c This node is accessed by the 'C-x * t' command.
-@node Interactive Tutorial, Tutorial, Getting Started, Top
-@chapter Tutorial
+@node Interactive Tutorial, Introduction, Getting Started, Top
+@chapter Interactive Tutorial
 
 @noindent
 Some brief instructions on using the Emacs Info system for this tutorial:
@@ -9572,7 +9574,12 @@ the last rule.
 
 @c [reference]
 
-@node Introduction
+@ifinfo
+@node Introduction, Data Types, Interactive Tutorial, Top
+@end ifinfo
+@ifnotinfo
+@node Introduction, Data Types, Tutorial, Top
+@end ifnotinfo
 @chapter Introduction
 
 @noindent

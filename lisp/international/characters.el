@@ -1711,11 +1711,18 @@ the value of the variable with `setq'."
 				 (car code-range) (cdr code-range)))))
 	(optimize-char-table table)
 	(set-char-table-parent table char-width-table)
-        (let ((tbl (make-char-table nil)))
+        (let ((tbl (make-char-table nil))
+              (ambiguous-is-wide
+               (and cjk-ambiguous-chars-are-wide
+                    ;; MS-Windows Terminal forces all ambiguous
+                    ;; characters to be narrow, even in CJK locales.
+                    (not (and (boundp 'w32--terminal-is-conhost)
+                              (null w32--terminal-is-conhost))))))
           (map-char-table
            (lambda (range _val)
-             (set-char-table-range tbl range
-                                   (if cjk-ambiguous-chars-are-wide 2 1)))
+             (set-char-table-range
+              tbl range
+              (if ambiguous-is-wide 2 1)))
            ambiguous-width-chars)
           (optimize-char-table tbl)
           (set-char-table-parent tbl table)

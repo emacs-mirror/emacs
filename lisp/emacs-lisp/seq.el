@@ -310,9 +310,7 @@ This does not modify SEQUENCE."
 (cl-defgeneric seq-concatenate (type &rest sequences)
   "Concatenate SEQUENCES into a single sequence of type TYPE.
 TYPE must be one of following symbols: `vector', `string' or `list'.
-This does not modify any of the SEQUENCES.
-
-\n(fn TYPE SEQUENCE...)"
+This does not modify any of the SEQUENCES."
   (setq sequences (mapcar #'seq-into-sequence sequences))
   (pcase type
     ('vector (apply #'vconcat sequences))

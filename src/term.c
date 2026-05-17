@@ -1549,7 +1549,15 @@ append_glyph (struct it *it)
   eassert (it->glyph_row);
   glyph = (it->glyph_row->glyphs[it->area]
 	   + it->glyph_row->used[it->area]);
-  end = it->glyph_row->glyphs[1 + it->area];
+  /* The last glyph of TEXT_AREA in all windows but the rightmost one is
+     the border glyph, except when the window has the right margin.  */
+  int reserve_last =
+    it->area == TEXT_AREA
+    /* Exclude mode/header/tab lines and menu/tool bars.  */
+    && !it->glyph_row->full_width_p
+    && !WINDOW_RIGHTMOST_P (it->w)
+    && WINDOW_RIGHT_MARGIN_WIDTH (it->w) == 0;
+  end = it->glyph_row->glyphs[1 + it->area] - reserve_last;
 
   /* If the glyph row is reversed, we need to prepend the glyph rather
      than append it.  */
@@ -1774,7 +1782,15 @@ append_composite_glyph (struct it *it)
 
   eassert (it->glyph_row);
   glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
-  if (glyph < it->glyph_row->glyphs[1 + it->area])
+  /* The last glyph of TEXT_AREA in all windows but the rightmost one is
+     the border glyph, except when the window has the right margin.  */
+  int reserve_last =
+    it->area == TEXT_AREA
+    /* Exclude mode/header/tab lines and menu/tool bars.  */
+    && !it->glyph_row->full_width_p
+    && !WINDOW_RIGHTMOST_P (it->w)
+    && WINDOW_RIGHT_MARGIN_WIDTH (it->w) == 0;
+  if (glyph < it->glyph_row->glyphs[1 + it->area] - reserve_last)
     {
       /* If the glyph row is reversed, we need to prepend the glyph
 	 rather than append it.  */
@@ -1869,7 +1885,15 @@ append_glyphless_glyph (struct it *it, int face_id, const char *str)
 
   eassert (it->glyph_row);
   glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
-  end = it->glyph_row->glyphs[1 + it->area];
+  /* The last glyph of TEXT_AREA in all windows but the rightmost one is
+     the border glyph, except when the window has the right margin.  */
+  int reserve_last =
+    it->area == TEXT_AREA
+    /* Exclude mode/header/tab lines and menu/tool bars.  */
+    && !it->glyph_row->full_width_p
+    && !WINDOW_RIGHTMOST_P (it->w)
+    && WINDOW_RIGHT_MARGIN_WIDTH (it->w) == 0;
+  end = it->glyph_row->glyphs[1 + it->area] - reserve_last;
 
   /* If the glyph row is reversed, we need to prepend the glyph rather
      than append it.  */
@@ -2075,7 +2099,10 @@ turn_on_face (struct frame *f, struct face *face)
       ts = tty->standout_mode ? tty->TS_set_background : tty->TS_set_foreground;
       if (face_tty_specified_color (fg) && ts)
 	{
-          p = tparam (ts, NULL, 0, fg, 0, 0, 0);
+	  if (tty->TF_rgb_separate)
+	    p = tparam (ts, NULL, 0, fg >> 16, (fg >> 8) & 0xFF, fg & 0xFF, 0);
+	  else
+	    p = tparam (ts, NULL, 0, fg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
@@ -2083,7 +2110,10 @@ turn_on_face (struct frame *f, struct face *face)
       ts = tty->standout_mode ? tty->TS_set_foreground : tty->TS_set_background;
       if (face_tty_specified_color (bg) && ts)
 	{
-          p = tparam (ts, NULL, 0, bg, 0, 0, 0);
+	  if (tty->TF_rgb_separate)
+	    p = tparam (ts, NULL, 0, bg >> 16, (bg >> 8) & 0xFF, bg & 0xFF, 0);
+	  else
+	    p = tparam (ts, NULL, 0, bg, 0, 0, 0);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
@@ -2208,7 +2238,7 @@ TERMINAL does not refer to a text terminal.  */)
   return make_fixnum (t ? t->display_info.tty->TN_max_colors : 0);
 }
 
-#if !defined DOS_NT && !defined HAVE_ANDROID
+#if !defined MSDOS && !defined HAVE_ANDROID
 
 /* Declare here rather than in the function, as in the rest of Emacs,
    to work around an HPUX compiler bug (?). See
@@ -2247,7 +2277,7 @@ tty_default_color_capabilities (struct tty_display_info *tty, bool save)
    MODE's value is generally the number of colors which we want to
    support; zero means set up for the default capabilities, the ones
    we saw at init_tty time; -1 means turn off color support.  */
-static void
+void
 tty_setup_colors (struct tty_display_info *tty, int mode)
 {
   /* Canonicalize all negative values of MODE.  */
@@ -2270,6 +2300,10 @@ tty_setup_colors (struct tty_display_info *tty, int mode)
 #ifdef TERMINFO
 	tty->TS_set_foreground = "\033[3%p1%dm";
 	tty->TS_set_background = "\033[4%p1%dm";
+#elif WINDOWSNT
+	tty->TS_orig_pair = "\x1b[39m\x1b[49m";
+	tty->TS_set_foreground = "\x1b[%lum";
+	tty->TS_set_background = "\x1b[%lum";
 #else
 	tty->TS_set_foreground = "\033[3%dm";
 	tty->TS_set_background = "\033[4%dm";
@@ -2277,6 +2311,26 @@ tty_setup_colors (struct tty_display_info *tty, int mode)
 	tty->TN_max_colors = 8;
 	tty->TN_no_color_video = 0;
 	break;
+#ifdef WINDOWSNT
+      case 16:
+	tty->TN_max_colors = 16;
+	tty->TS_set_foreground = "\x1b[%lum";
+	tty->TS_set_background = "\x1b[%lum";
+	tty->TN_no_color_video = 0;
+	break;
+      case 256:
+	tty->TN_max_colors = 256;
+	tty->TS_set_foreground = "\x1b[38;5;%lum";
+	tty->TS_set_background = "\x1b[48;5;%lum";
+	tty->TN_no_color_video = 0;
+	break;
+      case 16777216:
+	tty->TN_max_colors = 16777216;
+	tty->TS_set_foreground = "\x1b[38;2;%lu;%lu;%lum";
+	tty->TS_set_background = "\x1b[48;2;%lu;%lu;%lum";
+	tty->TN_no_color_video = 0;
+	break;
+#endif
     }
 }
 
@@ -2313,7 +2367,7 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
     }
 }
 
-#endif /* !DOS_NT && !HAVE_ANDROID */
+#endif /* !MSDOS && !HAVE_ANDROID */
 
 char *
 tty_type_name (Lisp_Object terminal)
@@ -4581,16 +4635,26 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 
 #ifdef TERMINFO
       {
-	const char *fg = tigetstr ("setf24");
-	const char *bg = tigetstr ("setb24");
-	/* Non-standard support for 24-bit colors. */
-	if (fg && bg
+	const char *fg;
+	const char *bg;
+	/* Our own non-standard support for 24-bit colors. */
+	if ((fg = tigetstr ("setf24")) && (bg = tigetstr ("setb24"))
 	    && fg != (char *) (intptr_t) -1
 	    && bg != (char *) (intptr_t) -1)
 	  {
 	    tty->TS_set_foreground = fg;
 	    tty->TS_set_background = bg;
 	    tty->TN_max_colors = 16777216;
+	  }
+	/* Other non-standard support for 24-bit colors. */
+	else if ((fg = tigetstr ("setrgbf")) && (bg = tigetstr ("setrgbb"))
+	    && fg != (char *) (intptr_t) -1
+	    && bg != (char *) (intptr_t) -1)
+	  {
+	    tty->TS_set_foreground = fg;
+	    tty->TS_set_background = bg;
+	    tty->TN_max_colors = 16777216;
+	    tty->TF_rgb_separate = 1;
 	  }
 	/* Standard support for 24-bit colors.  */
 	else if (tigetflag ("RGB") > 0)
@@ -4599,17 +4663,24 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 	       signed values, tgetnum("Co") and tigetnum("colors")
 	       could return 32767.  */
 	    tty->TN_max_colors = 16777216;
+
+	    /* FIXME: When the RGB terminfo capability is given, we
+	       should avoid trying to use colors 000000 to 000007 as if
+	       they were RGB values.  The escape sequences given by
+	       setaf and setab treat them as the first eight indexed
+	       ANSI colors. */
 	  }
-	/* Fall back to xterm+direct (semicolon version) if Tc is set
-	   (de-facto standard introduced by tmux) or if	requested by
-	   the COLORTERM environment variable.  */
+	/* Fall back to direct colour by RGB value (semicolon version)
+	   if Tc is set (de-facto standard introduced by tmux) or if
+	   requested by the COLORTERM environment variable.  */
 	else if ((tigetflag ("Tc") > 0)
 		 || ((bg = getenv ("COLORTERM")) != NULL
 		     && strcasecmp (bg, "truecolor") == 0))
 	  {
-	    tty->TS_set_foreground = "\033[%?%p1%{8}%<%t3%p1%d%e38;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
-	    tty->TS_set_background = "\033[%?%p1%{8}%<%t4%p1%d%e48;2;%p1%{65536}%/%d;%p1%{256}%/%{255}%&%d;%p1%{255}%&%d%;m";
+	    tty->TS_set_foreground = "\033[38;2;%p1%d;%p2%d;%p3%d%;m";
+	    tty->TS_set_background = "\033[48;2;%p1%d;%p2%d;%p3%d%;m";
 	    tty->TN_max_colors = 16777216;
+	    tty->TF_rgb_separate = 1;
 	  }
       }
 #endif
@@ -4662,6 +4733,22 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 
     initialize_w32_display (terminal, &width, &height);
 
+    tty->TN_no_color_video = 0;
+    tty->TN_max_colors = 16777216;
+    tty->TS_orig_pair = "\x1b[39m\x1b[49m";
+    tty->TS_set_foreground = "\x1b[38;2;%lu;%lu;%lum";
+    tty->TS_set_background = "\x1b[48;2;%lu;%lu;%lum";
+
+    /* Save default color capabilities */
+    tty_default_color_capabilities (tty, 1);
+
+    tty->TS_enter_bold_mode = "\x1b[1m";
+    tty->TS_enter_italic_mode = "\x1b[3m";
+    tty->TS_enter_strike_through_mode = "\x1b[9m";
+    tty->TS_enter_underline_mode = "\x1b[4m";
+    tty->TS_enter_reverse_mode = "\x1b[7m";
+    tty->TS_exit_attribute_mode = "\x1b[0m";
+
     FrameRows (tty) = height;
     FrameCols (tty) = width;
     tty->specified_window = height;
@@ -4707,7 +4794,6 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
      don't think we're losing anything by turning it off.  */
   tty->line_ins_del_ok = 0;
 
-  tty->TN_max_colors = 16;  /* Must be non-zero for tty-display-color-p.  */
 #endif	/* DOS_NT */
 
 #ifdef HAVE_GPM
@@ -5223,11 +5309,11 @@ non-nil to enable this optimization.  */);
   defsubr (&Stty_display_pixel_width);
   defsubr (&Stty_display_pixel_height);
 
-#if !defined DOS_NT && !defined HAVE_ANDROID
+#if !defined MSDOS && !defined HAVE_ANDROID
   default_orig_pair = NULL;
   default_set_foreground = NULL;
   default_set_background = NULL;
-#endif /* !DOS_NT && !HAVE_ANDROID */
+#endif /* !MSDOS && !HAVE_ANDROID */
 
 #ifndef HAVE_ANDROID
   encode_terminal_src = NULL;

@@ -464,7 +464,10 @@ Now type @kbd{]}, to learn about the @kbd{]} and @kbd{[} commands.
 @end menu
 
 @node Help-], , , Help-Inv
-@subsection The @kbd{]} and @kbd{[} commands
+@c @subheading and not @section to avoid warnings from makeinfo due to
+@c the fact that all the 3 items in the above menu point to the same
+@c node.  The downside is that the section name has no number.
+@subheading The @kbd{]} and @kbd{[} commands
 
 If you type @kbd{n} now, you get an error message saying that this
 node has no next node.  Similarly, if you type @kbd{p}, the error
@@ -709,7 +712,10 @@ there's no next node.
 @end format
 
 @node Help-FOO,  ,  , Help-M
-@subsection The @kbd{u} command
+@c @subheading and not @subsection to avoid warnings from makeinfo due to
+@c the fact that all the 3 items in the above menu point to the same
+@c node.  The downside is that the subsection name has no number.
+@subheading The @kbd{u} command
 
   Congratulations!  This is the node @samp{Help-FOO}.  It has an @samp{Up}
 pointer @samp{Help-M}, the node you just came from via the @kbd{m}

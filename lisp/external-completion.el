@@ -67,8 +67,8 @@ may be a shell utility, an inferior process, an http server, etc.
 Given a pattern string, the external tool matches it to an
 arbitrarily large set of candidates.  Since the full set doesn't
 need to be transferred to Emacs's address space, this often
-results in much faster overall experience, at the expense of the
-convenience of offered by other completion styles.
+results in a much faster overall experience, at the expense of the
+convenience offered by other completion styles.
 
 CATEGORY is a symbol uniquely naming the external tool.  This
 function links CATEGORY to the style `external', by modifying
@@ -95,7 +95,7 @@ non-list.
 
 METADATA is an alist of additional properties such as
 `cycle-sort-function' to associate with CATEGORY.  This means
-that the caller may still retain control the sorting of the
+that the caller may still retain control of the sorting of the
 candidates while the tool controls the matching.
 
 Optional TRY-COMPLETION-FUNCTION helps some frontends partially
@@ -105,7 +105,7 @@ ALL-COMPLETIONS), where PATTERN and POINT are as described above
 and ALL-COMPLETIONS are gathered by LOOKUP for these
 arguments (this function ensures LOOKUP isn't called more than
 needed).  If you know the matching method that the external tool
-using, TRY-COMPLETION-FUNCTION may return a cons
+is using, TRY-COMPLETION-FUNCTION may return a cons
 cell (EXPANDED-PATTERN . NEW-POINT).  For example, if the tool is
 completing by prefix, one could call `try-completion' to find the
 largest common prefix in ALL-COMPLETIONS and then return that as

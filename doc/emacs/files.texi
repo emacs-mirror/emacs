@@ -123,7 +123,7 @@ expansion, type @samp{$$}.  This pair is converted to a single
 @samp{$} at the same time that variable substitution is performed for
 a single @samp{$}.  Alternatively, quote the whole file name with
 @samp{/:} (@pxref{Quoted File Names}).  File names which begin with a
-literal @samp{~} should also be quoted with @samp{/:}.
+literal @samp{~} should be quoted with @samp{/:./}.
 
   You can include non-@acronym{ASCII} characters in file names.
 @xref{File Name Coding}.
@@ -2408,6 +2408,8 @@ remote file name, you can quote just the local part.
   @samp{/:} can also prevent @samp{~} from being treated as a special
 character for a user's home directory.  For example, @file{/:/tmp/~hack}
 refers to a file whose name is @file{~hack} in directory @file{/tmp}.
+If @samp{~} is at the beginning of the file name, it must be quoted with
+@samp{/:./}, like in @samp{/:./~foo/bar}.
 
   Quoting with @samp{/:} is also a way to enter in the minibuffer a
 file name that contains @samp{$}.  In order for this to work, the

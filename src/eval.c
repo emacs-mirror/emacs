@@ -826,7 +826,10 @@ lexbound_p (Lisp_Object symbol)
 
 DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_value, 1, 1, 0,
        doc: /* Return SYMBOL's toplevel default value.
-"Toplevel" means outside of any let binding.  */)
+"Toplevel" means outside of any let binding.
+Signals `void-variable' if there is no such value, which can
+happen even if `default-boundp' is non-nil.
+Note: In most cases, you'll want to use `default-value' instead.  */)
   (Lisp_Object symbol)
 {
   union specbinding *binding = default_toplevel_binding (symbol);
@@ -840,7 +843,8 @@ DEFUN ("default-toplevel-value", Fdefault_toplevel_value, Sdefault_toplevel_valu
 DEFUN ("set-default-toplevel-value", Fset_default_toplevel_value,
        Sset_default_toplevel_value, 2, 2, 0,
        doc: /* Set SYMBOL's toplevel default value to VALUE.
-"Toplevel" means outside of any let binding.  */)
+"Toplevel" means outside of any let binding.
+Note: In most cases, you'll want to use `set-default' instead.  */)
      (Lisp_Object symbol, Lisp_Object value)
 {
   union specbinding *binding = default_toplevel_binding (symbol);
@@ -1472,7 +1476,7 @@ Both TAG and VALUE are evalled.  */
   if (!NILP (tag))
     for (c = handlerlist; c; c = c->next)
       {
-	if (c->type == CATCHER_ALL)
+	if (c->type == CATCHER_ALL || c->type == CATCHER_ALL_DEBUGGABLE)
           unwind_to_catch (c, NONLOCAL_EXIT_THROW, Fcons (tag, value));
         if (c->type == CATCHER && EQ (c->tag_or_ch, tag))
 	  unwind_to_catch (c, NONLOCAL_EXIT_THROW, value);
@@ -2008,6 +2012,9 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
         case CATCHER_ALL:
           clause = Qt;
           break;
+        case CATCHER_ALL_DEBUGGABLE:
+          clause = Qdebug;
+          break;
 	case CATCHER:
 	  continue;
         case CONDITION_CASE:
@@ -2051,6 +2058,7 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool continuable)
 	  || NILP (clause)
 	  /* A `debug' symbol in the handler list disables the normal
 	     suppression of the debugger.  */
+	  || EQ (clause, Qdebug)
 	  || (CONSP (clause) && !NILP (Fmemq (Qdebug, clause)))
 	  /* Special handler that means "print a message and run debugger
 	     if requested".  */

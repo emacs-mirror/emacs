@@ -332,6 +332,29 @@ This means that the request was redirected to the URL
 @item (:error (@var{error-symbol} . @var{data}))
 This means that an error occurred.  If so desired, the error can be
 signaled with @code{(signal @var{error-symbol} @var{data})}.
+
+@cindex status of GnuTLS connection, as provided by @code{url-retrieve}
+@findex gnutls-peer-status-warning-describe
+@findex gnutls-peer-status
+@item  (:peer @var{gnutls-information})
+This means that GnuTLS was used for a TLS connection to the peer.  The
+@var{gnutls-information} has the following form:
+
+@lisp
+ ((:warnings @var{warning}@dots{})
+  (:certificates @var{certificate}@dots{} @var{peer-data}))
+@end lisp
+
+@noindent
+where the @var{warning}s are warnings, if any, emitted by GnuTLS for the
+connection, and @var{certificate}s is the list of certificates used for
+the TLS connection followed by the properties of the connection in
+@var{peer-data}.  Both @var{warning}s and @var{peer-data} are in the
+form of a key-value pairs (i.e., they are plists).  The value of each
+key in the @code{:warnings} list is a symbol whose description can be
+obtained by using @code{gnutls-peer-status-warning-describe}, and the
+various keys of the @var{peer-data} list and their values are documented
+in the doc string of @code{gnutls-peer-status}.
 @end table
 
 When the callback function is called, the current buffer is the one

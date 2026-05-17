@@ -33,15 +33,16 @@
 
 (defvar textsec--char-scripts nil)
 
-(eval-and-compile
-  (defun textsec--create-script-table (data)
-    "Create the textsec--char-scripts char table."
-    (setq textsec--char-scripts (make-char-table nil))
-    (dolist (scripts data)
-      (dolist (range (cadr scripts))
-        (set-char-table-range textsec--char-scripts
-                              range (car scripts)))))
-  (require 'uni-scripts))
+;;;###autoload
+(defun textsec--create-script-table (data)
+  "Create the textsec--char-scripts char table."
+  (setq textsec--char-scripts (make-char-table nil))
+  (dolist (scripts data)
+    (dolist (range (cadr scripts))
+      (set-char-table-range textsec--char-scripts
+                            range (car scripts)))))
+
+(if t (require 'uni-scripts))
 
 (defun textsec-scripts (string)
   "Return a list of Unicode scripts used by characters in STRING.

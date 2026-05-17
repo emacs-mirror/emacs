@@ -330,6 +330,11 @@ DEFUN ("sqlite-close", Fsqlite_close, Ssqlite_close, 1, 1, 0,
        doc: /* Close the sqlite database DB.  */)
   (Lisp_Object db)
 {
+  /* Do nothing when the connection is already closed.
+     This aligns with the behavior of 'sqlite3_close' itself.  */
+  if (SQLITE (db) && !XSQLITE (db)->db)
+    return Qt;
+
   check_sqlite (db, false);
   sqlite3_close (XSQLITE (db)->db);
   XSQLITE (db)->db = NULL;

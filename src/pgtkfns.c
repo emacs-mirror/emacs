@@ -775,7 +775,7 @@ xg_set_icon_from_xpm_data (struct frame *f, const char **data)
      Pacify GCC for now.  */
 #if (defined GDK_PIXBUF_VERSION_2_44 \
      && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
-     && GNUC_PREREQ (4, 6, 0))
+     && (GNUC_PREREQ (4, 6, 0) || defined __clang__))
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
@@ -784,7 +784,7 @@ xg_set_icon_from_xpm_data (struct frame *f, const char **data)
 
 #if (defined GDK_PIXBUF_VERSION_2_44 \
      && GDK_PIXBUF_VERSION_2_44 <= GDK_PIXBUF_VERSION_MIN_REQUIRED \
-     && GNUC_PREREQ (4, 6, 0))
+     && (GNUC_PREREQ (4, 6, 0) || defined __clang__))
 # pragma GCC diagnostic pop
 #endif
 
@@ -3788,8 +3788,6 @@ syms_of_pgtkfns (void)
   DEFSYM (Qframe_title_format, "frame-title-format");
   DEFSYM (Qicon_title_format, "icon-title-format");
   DEFSYM (Qdark, "dark");
-  DEFSYM (Qhide, "hide");
-  DEFSYM (Qresize_mode, "resize-mode");
 
   DEFVAR_LISP ("x-cursor-fore-pixel", Vx_cursor_fore_pixel,
 	       doc: /* SKIP: real doc in xfns.c.  */);

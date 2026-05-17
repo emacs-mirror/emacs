@@ -117,8 +117,8 @@ Also see `string-edit'."
   "C-c C-k" #'string-edit-abort)
 
 (define-minor-mode string-edit-minor-mode
-  "Minor mode for editing strings"
-  :lighter "String"
+  "Minor mode for editing strings."
+  :lighter " String"
   :interactive nil)
 
 (define-derived-mode string-edit-mode text-mode "Text"

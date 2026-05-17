@@ -24,10 +24,19 @@
 
 ;;; Commentary:
 
-;; This file defines the macros `ical:define-type', `ical:define-param',
-;; `ical:define-property' and `ical:define-component', used in
-;; icalendar-parser.el to define the particular value types, parameters,
-;; properties and components in the standard as type symbols.
+;; For an overview of the iCalendar library, see icalendar-shortdoc.el.
+
+;; This file defines the macros `icalendar-define-type',
+;; `icalendar-define-param', `icalendar-define-property' and
+;; `icalendar-define-component', used in icalendar-parser.el to define
+;; the particular value types, parameters, properties and components in
+;; the standard as type symbols.  It also defines the following macros
+;; for binding values in iCalendar syntax nodes:
+;; `icalendar-with-component'
+;; `icalendar-with-property'
+;; `icalendar-with-property-of'
+;; `icalendar-with-param'
+;; `icalendar-with-param-of'
 
 ;; TODOs:
 ;;   - in the define* macros, :default needs rethinking.

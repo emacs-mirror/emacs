@@ -160,10 +160,20 @@ proceed to mark and unmark other entries, without asking."
   :group 'vc
   :version "31.1")
 
-(defcustom vc-dir-hide-up-to-date-on-revert nil
-  "If non-nil, \\<vc-dir-mode-map>\\[revert-buffer] in VC-Dir buffers also does \\[vc-dir-hide-up-to-date].
-That is, refreshing the VC-Dir buffer also hides `up-to-date' and
-`ignored' items."
+(defcustom vc-dir-auto-hide-up-to-date nil
+  "If non-nil, VC-Dir automatically hides \\+`up-to-date' and \\+`ignored' items.
+
+If the value of this variable is the symbol `revert', \
+\\<vc-dir-mode-map>\\[revert-buffer] in VC-Dir
+buffers also does \\[vc-dir-hide-up-to-date].  \
+That is, refreshing the VC-Dir buffer also hides
+\\+`up-to-date' and \\+`ignored' items.
+
+If the value of this variable is any other non-nil value, then in
+addition, hide items whenever their state would change to
+\\+`up-to-date' or \\+`ignored'.
+You can still use `vc-dir-show-fileentry' to manually add an entry for
+an \\+`up-to-date' or \\+`ignored' file."
   :type 'boolean
   :group 'vc
   :version "31.1")
@@ -398,10 +408,17 @@ That is, refreshing the VC-Dir buffer also hides `up-to-date' and
     (define-key map (kbd "M-s a M-C-s") #'vc-dir-isearch-regexp)
     (define-key map "G" #'vc-dir-ignore)
     (define-key map "@" #'vc-revert)
-    (define-key map "Tl" #'vc-log-outstanding)
-    (define-key map "TL" #'vc-root-log-outstanding)
-    (define-key map "T=" #'vc-diff-outstanding)
-    (define-key map "TD" #'vc-root-diff-outstanding)
+    (define-key map "Tl" #'vc-log-unintegrated)
+    (define-key map "TL" #'vc-root-log-unintegrated)
+    (define-key map "T=" #'vc-diff-unintegrated)
+    (define-key map "TD" #'vc-root-diff-unintegrated)
+    (define-key map "TRl" #'vc-log-remote-unintegrated)
+    (define-key map "TRL" #'vc-root-log-remote-unintegrated)
+    (define-key map "TR=" #'vc-diff-remote-unintegrated)
+    (define-key map "TRD" #'vc-root-diff-remote-unintegrated)
+    (define-key map "EL" #'vc-root-log-outgoing)
+    (define-key map "E=" #'vc-diff-outgoing-and-edited)
+    (define-key map "ED" #'vc-root-diff-outgoing-and-edited)
     (define-key map "V" #'vc-dir-root-next-action)
 
     (let ((branch-map (make-sparse-keymap)))
@@ -495,6 +512,8 @@ If BODY uses EVENT, it should be a variable,
 	  (expand-file-name
 	   (vc-dir-fileinfo->name data)))))))
 
+(defconst vc-dir--up-to-date-states '(up-to-date ignored))
+
 (defun vc-dir-update (entries buffer &optional noinsert)
   "Update BUFFER's VC-Dir ewoc from ENTRIES.
 This has the effect of adding ENTRIES to the VC-Dir buffer BUFFER.
@@ -552,21 +571,22 @@ Also update some VC file properties from ENTRIES."
 	       ((string-lessp nodefile entryfile)
 		(setq node (ewoc-next vc-ewoc node)))
 	       ((string-equal nodefile entryfile)
-		(if (nth 1 entry)
-		    (progn
-		      (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-		      (setf (vc-dir-fileinfo->display-state (ewoc-data node))
-			    (vc--file-getinheprop nodefile 'display-state))
-		      (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-		      (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-		      (ewoc-invalidate vc-ewoc node))
-		  ;; If the state is nil, the file does not exist
-		  ;; anymore, so remember the entry so we can remove
-		  ;; it after we are done inserting all ENTRIES.
-		  (push node to-remove))
-		(setq entries (cdr entries))
-		(setq entry (car entries))
-		(setq node (ewoc-next vc-ewoc node)))
+                (let ((state (nth 1 entry)))
+		  (if (or (null state)
+                          (and vc-dir-auto-hide-up-to-date
+                               (not (eq vc-dir-auto-hide-up-to-date 'revert))
+                               (memq state vc-dir--up-to-date-states)))
+                      (push node to-remove)
+		    (setf (vc-dir-fileinfo->state (ewoc-data node)) state)
+		    (setf (vc-dir-fileinfo->display-state (ewoc-data node))
+			  (vc--file-getinheprop nodefile 'display-state))
+		    (setf (vc-dir-fileinfo->extra (ewoc-data node))
+                          (nth 2 entry))
+		    (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
+		    (ewoc-invalidate vc-ewoc node))
+		  (setq entries (cdr entries))
+		  (setq entry (car entries))
+		  (setq node (ewoc-next vc-ewoc node))))
 	       (t
 		(unless noinsert
 		  (ewoc-enter-before vc-ewoc node
@@ -593,7 +613,8 @@ Also update some VC file properties from ENTRIES."
 	(let ((lastdir (vc-dir-node-directory (ewoc-nth vc-ewoc -1))))
 	  (dolist (entry entries)
 	    (let ((entrydir (file-name-directory
-			     (directory-file-name (expand-file-name (car entry))))))
+			     (directory-file-name
+                              (expand-file-name (car entry))))))
 	      ;; Insert a directory node if needed.
 	      (unless (string-equal lastdir entrydir)
 		(setq lastdir entrydir)
@@ -604,8 +625,22 @@ Also update some VC file properties from ENTRIES."
 	      (ewoc-enter-last vc-ewoc
 			       (apply #'vc-dir-create-fileinfo entry))))))
       (when to-remove
-	(let ((inhibit-read-only t))
-	  (apply #'ewoc-delete vc-ewoc (nreverse to-remove)))))
+	(let ((inhibit-read-only t)
+              (crt (ewoc-nth vc-ewoc -1))
+              (first (ewoc-nth vc-ewoc 0)))
+          (while (not (eq crt first))
+            (let ((prev (ewoc-prev vc-ewoc crt)))
+              (cond
+               ;; Remove the entries we queued up for removal.
+               ((eq crt (car to-remove))
+                (ewoc-delete vc-ewoc (pop to-remove)))
+               ;; Remove directories which (now) have no child files.
+               ((and (vc-dir-fileinfo->directory (ewoc-data crt))
+                     (let ((next (ewoc-next vc-ewoc crt)))
+                       (or (null next)
+                           (vc-dir-fileinfo->directory (ewoc-data next)))))
+                (ewoc-delete vc-ewoc crt)))
+              (setq crt prev))))))
     ;; Update VC file properties.
     (pcase-dolist (`(,file ,state ,_extra) entries)
       (vc-file-setprop file 'vc-backend
@@ -1028,8 +1063,7 @@ is), this command is useful to check in all local changes at once."
          (vc-buffer-overriding-fileset
           `(,vc-dir-backend
             (,default-directory)
-            . ,(vc-only-files-state-and-model only-files-list
-                                              vc-dir-backend))))
+            . ,(vc-dir--only-files-state-and-model only-files-list))))
     (vc-next-action nil)))
 
 (defun vc-dir-clean-files ()
@@ -1228,6 +1262,7 @@ that file."
     (nreverse result)))
 
 (defun vc-dir-recompute-file-state (fname def-dir)
+  "Compute state of FNAME known to live inside DEF-DIR."
   (let* ((file-short (file-relative-name fname def-dir))
 	 (_remove-me-when-CVS-works
 	  (when (eq vc-dir-backend 'CVS)
@@ -1271,8 +1306,9 @@ that file."
 
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FNAME in any directory buffers that list it."
-  (let ((file (expand-file-name (or fname buffer-file-name)))
-        (drop '()))
+  (let* ((file  (or fname buffer-file-name))
+         (file-tn (file-truename file))
+         (drop '()))
     (save-current-buffer
       ;; look for a vc-dir buffer that might show this file.
       (dolist (status-buf vc-dir-buffers)
@@ -1290,13 +1326,15 @@ that file."
                          ;; `default-directory' in order to do its work,
                          ;; but that's irrelevant to us here.
                          (buffer-local-toplevel-value 'default-directory))))
-              (when (file-in-directory-p file ddir)
-                (if (file-directory-p file)
+              (when (file-in-directory-p file-tn ddir)
+                (if (file-directory-p file-tn)
 		    (progn
-		      (vc-dir-resync-directory-files file)
+		      (vc-dir-resync-directory-files file-tn)
 		      (ewoc-set-hf vc-ewoc
 				   (vc-dir-headers vc-dir-backend ddir) ""))
-                  (let* ((complete-state (vc-dir-recompute-file-state file ddir))
+                  (let* ((complete-state
+                          ;; Pass FILE not FILE-TN here.  See bug#80967.
+                          (vc-dir-recompute-file-state file ddir))
 			 (state (cadr complete-state)))
                     (vc-dir-update
                      (list complete-state)
@@ -1466,7 +1504,7 @@ specific headers."
 
 (defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
   (vc-dir-refresh)
-  (when vc-dir-hide-up-to-date-on-revert
+  (when vc-dir-auto-hide-up-to-date
     (vc-dir-hide-state)))
 
 (defun vc-dir-refresh ()
@@ -1568,9 +1606,10 @@ state of item at point, if any."
 		     (vc-dir-fileinfo->directory (ewoc-data next))))
 	       ;; Remove files in specified STATE.  STATE can be a
 	       ;; symbol, a user-name, or nil.
-               (if state
-                   (equal (vc-dir-fileinfo->state data) state)
-                 (memq (vc-dir-fileinfo->state data) '(up-to-date ignored))))
+               (let ((data-state (vc-dir-fileinfo->state data)))
+                 (if state
+                     (equal data-state state)
+                   (memq data-state vc-dir--up-to-date-states))))
 	  (ewoc-delete vc-ewoc crt))
 	(setq crt prev)))))
 
@@ -1588,22 +1627,46 @@ state of item at point, if any."
 
 (declare-function vc-only-files-state-and-model "vc")
 
+(defun vc-dir--only-files-state-and-model (only-files-list)
+  "Call `vc-only-files-state-and-model' as appropriate for VC-Dir buffers.
+Offer to call `vc-dir-hide-up-to-date' if that might be useful.
+If we did, remove up-to-date items from ONLY-FILES-LIST before passing
+to `vc-only-files-state-and-model'.
+
+There's usually no action to be taken on `up-to-date' or `ignored'
+files, but a new user may include these in their VC-Dir fileset without
+realizing it.  To avoid the user having to know in advance that what
+they must do is invoke \\<vc-dir-mode-map>\\[vc-dir-hide-up-to-date] \
+before \\[vc-next-action], offer to invoke `vc-dir-hide-up-to-date'
+for them, and also filter ONLY-FILES-LIST so as not to include entries
+in those states.  Only do this if there are both up-to-date and
+non-up-to-date files in ONLY-FILES-LIST (in case we add a VC next action
+for `up-to-date' and/or `ignored' files at some point)."
+  (let (up-to-date other)
+    (dolist (entry only-files-list)
+      (push entry (if (memq (cdr entry) vc-dir--up-to-date-states)
+                      up-to-date other)))
+    (vc-only-files-state-and-model
+     (if (or (null up-to-date) (null other)
+             (not (y-or-n-p "Clear up-to-date items before proceeding?")))
+         only-files-list
+       (vc-dir-hide-up-to-date)
+       other)
+     vc-dir-backend)))
+
 (defun vc-dir-deduce-fileset (&optional state-model-only-files)
-  (let ((marked (vc-dir-marked-files))
-	files only-files-list)
-    (if marked
+  (let (files only-files-list)
+    (if-let* ((marked (vc-dir-marked-files)))
 	(progn
 	  (setq files marked)
 	  (when state-model-only-files
 	    (setq only-files-list (vc-dir-marked-only-files-and-states))))
-      (let ((crt (vc-dir-current-file)))
-	(setq files (list crt))
-	(when state-model-only-files
-	  (setq only-files-list (vc-dir-child-files-and-states)))))
+      (setq files (list (vc-dir-current-file)))
+      (when state-model-only-files
+	(setq only-files-list (vc-dir-child-files-and-states))))
     (if state-model-only-files
         (cl-list* vc-dir-backend files
-                  (vc-only-files-state-and-model only-files-list
-                                                 vc-dir-backend))
+                  (vc-dir--only-files-state-and-model only-files-list))
       (list vc-dir-backend files))))
 
 ;;;###autoload

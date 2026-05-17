@@ -41,8 +41,6 @@
 (require 'cl-lib)
 (require 'org-clock)
 
-(declare-function org-agenda-error "org-agenda" ())
-
 (defvar org-timer-start-time nil
   "Start time for the running timer.")
 
@@ -108,7 +106,8 @@ nil          current timer is not displayed"
   "Hook run after countdown timer is set.")
 
 (defvar org-timer-done-hook nil
-  "Hook run after countdown timer reaches zero.")
+  "Hook run after countdown timer reaches zero.
+The hook is run before the timer is actually stopped.")
 
 ;;;###autoload
 (defun org-timer-start (&optional offset)
@@ -426,7 +425,8 @@ using three \\[universal-argument] prefix arguments."
 	    org-timer-default-timer))
 	 (effort-minutes
           (cond ((derived-mode-p 'org-agenda-mode)
-                 (org-get-at-bol 'effort-minutes))
+                 (when-let* ((effort (org-get-at-bol 'effort-minutes)))
+                   (floor effort)))
                 ((derived-mode-p 'org-mode)
                  (let ((effort (org-entry-get nil org-effort-property)))
 	           (when (org-string-nw-p effort)
@@ -470,11 +470,11 @@ time is up."
         (sound org-clock-sound))
     (run-with-timer
      secs nil (lambda ()
-		(setq org-timer-countdown-timer nil
-		      org-timer-start-time nil)
-		(org-notify msg sound)
-		(org-timer-set-mode-line 'off)
-		(run-hooks 'org-timer-done-hook)))))
+	      (org-notify msg sound)
+	      (org-timer-set-mode-line 'off)
+	      (run-hooks 'org-timer-done-hook)
+              (setq org-timer-countdown-timer nil
+		    org-timer-start-time nil)))))
 
 (defun org-timer--get-timer-title ()
   "Construct timer title.

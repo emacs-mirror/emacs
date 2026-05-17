@@ -958,7 +958,7 @@ to prepare for opening the first frame (e.g. open a connection to an X server)."
 	       (push (cons 'tty-color-mode
                            (cond
                             ((numberp argval) argval)
-                            ((string-match "-?[0-9]+" argval)
+                            ((string-match "-?[0-9]+$" argval)
                              (string-to-number argval))
                             (t (intern argval))))
                      default-frame-alist))
@@ -1222,14 +1222,18 @@ customized setting into your `early-init-file'."
   :type 'directory
   :version "31.1")
 
-(defcustom user-lisp-ignored-directories
-  '(".git" ".hg" "RCS" "CVS" ".svn" "_svn" ".bzr")
+(defcustom user-lisp-ignored-directories vc-directory-exclusion-list
   "List of directory names for `prepare-user-lisp' to not descend into.
 Each entry of the list is a string that denotes the file name without a
 directory component.  If during recursion any single entry matches the
 file name of any directory, `prepare-user-lisp' will ignore the contents
 of the directory.  This option is most useful to exclude administrative
-directories that do not contain Lisp files."
+directories that do not contain Lisp files.
+
+Note that if `prepare-user-lisp' is called at startup, this variable
+must be set in your early-init file, see Info node `(emacs) User Lisp
+Directory' for details."
+  :initialize #'custom-initialize-delay
   :type '(choice (repeat (string :tag "Directory name")))
   :version "31.1")
 
@@ -1261,7 +1265,7 @@ unconditionally."
          (backup-inhibited t)
          (dirs (list dir)))
     (add-to-list 'load-path (directory-file-name dir))
-    (dolist (file (directory-files-recursively dir "" t pred))
+    (dolist (file (directory-files-recursively dir "" t pred t))
       (cond
        ((and (file-regular-p file) (string-suffix-p ".el" file))
         (unless just-activate

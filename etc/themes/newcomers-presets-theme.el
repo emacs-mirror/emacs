@@ -19,7 +19,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; This theme configures user options that we can reasonably expect the
 ;; average, new user to want to enable, but would otherwise be unlikely
@@ -163,6 +163,8 @@ This minor mode will enable and disable the theme on startup."
 ;;;; Frame- and window-related options
  '(frame-inhibit-implied-resize t)
  '(tab-bar-history-mode t)
+ ;; FIXME: If you toggle off the theme, without having run any
+ ;; tab-related commands, the tab bar remains visible.
  '(tab-bar-show 0)
 
 ;;;; Programming-related options

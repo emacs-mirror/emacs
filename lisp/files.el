@@ -7989,7 +7989,7 @@ RULE has the form (MATCH EXPANSION...).
 
 MATCH is a regular expression that should match a file name which might
 have a sibling.  It can contain sub-expressions that will be used in
-EXPANSIONs as \\N and \\& replacements.
+each EXPANSION as \\N and \\& replacements.
 
 Each EXPANSION is a string that matches names of files that are to be
 considered siblings of a file whose name matches MATCH.  For instance,
@@ -8340,7 +8340,7 @@ Valid wildcards are `*', `?', `[abc]' and `[a-z]'."
       ;; Take care of the case where the ls output contains a
       ;; "//DIRED-OPTIONS//"-line, but no "//DIRED//"-line
       ;; and we went one line too far back (see above).
-      (unless (bobp) (forward-line 1)))
+      (forward-line 1))
     (if (let ((case-fold-search nil)) (looking-at "//DIRED-OPTIONS//"))
 	(delete-region (point) (progn (forward-line 1) (point))))))
 
@@ -8489,6 +8489,8 @@ normally equivalent short `-D' option is just passed on to
               (erase-buffer)
               (insert-file-contents errfile))
             (setq dired--ls-error-buffer errbuf)))
+        (defvar dired--ls-error-file) ; Pacify byte-compiler.
+        (setq dired--ls-error-file errfile)
         (delete-file errfile)
 
         (insert-directory-clean beg switches)
@@ -8740,6 +8742,9 @@ arguments as the running Emacs)."
 			  (file-in-directory-p 0 1)
 			  (make-symbolic-link 0 1)
 			  (add-name-to-file 0 1)
+                          ;; `get-file-buffer' shall simply run the
+                          ;; original function.
+                          (get-file-buffer)
                           ;; These file-notify-* operations take a
                           ;; descriptor.
                           (file-notify-rm-watch)

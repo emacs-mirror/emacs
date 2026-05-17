@@ -571,5 +571,118 @@ machine c1 port c2 user c3 password c4\n"
        :user '("a" "b") :host '("example.org")
        :port '("irc" "ftp" "https" 123)))))
 
+(defun auth-source-test--displayed-string (string)
+  "Apply `display' properties of STRING and return the displayed string."
+  (let ((i 0)
+        res)
+    (while i
+      (let ((display (get-text-property i 'display string))
+            (i0 i))
+        (setq i (next-single-property-change i 'display string))
+        (if display
+            (push display res)
+          (push (substring string i0 i) res))))
+    (apply #'concat (nreverse res))))
+
+(ert-deftest auth-source-test-read-passwd ()
+  "Check that a password read with `read-passwd' isn't visible by default."
+  (let* ((cursor-in-echo-area t)
+         (screenshot (intern "ert--screenshot"))
+         (keys `[,@"secret"
+                 ;; fake input event to capture the current minibuf string
+                 ,screenshot
+                 ;; leave outer prompt
+                 ,@(kbd "RET")])
+         (minibuffer-string nil)
+         (command-screenshot
+          (lambda ()
+            (interactive)
+            (setq minibuffer-string (buffer-string)))))
+    (unwind-protect
+        (progn
+          (define-key global-map `[,screenshot] command-screenshot)
+          (ert-simulate-keys keys
+            (should (equal (read-passwd "Test: ") "secret"))))
+      (define-key global-map `[,screenshot] command-screenshot t))
+    ;; check that the secret's there
+    (should (equal "Test: secret" minibuffer-string))
+    ;; now simulate what redisplay does to hide the password
+    (setq minibuffer-string
+          (auth-source-test--displayed-string minibuffer-string))
+    ;; check that the secret is not visible
+    (should (equal "Test: ******" minibuffer-string))))
+
+(ert-deftest auth-source-test-read-passwd-revealed ()
+  "Check that a password read with `read-passwd' can be made visible."
+  (let* ((cursor-in-echo-area t)
+         (screenshot (intern "ert--screenshot"))
+         (keys `[,@"secret"
+                 ;; TAB: reveals the password
+                 ,@(kbd "TAB")
+                 ;; fake input event to capture the current minibuf string
+                 ,screenshot
+                 ;; leave outer prompt
+                 ,@(kbd "RET")])
+         (minibuffer-string nil)
+         (command-screenshot
+          (lambda ()
+            (interactive)
+            (setq minibuffer-string (buffer-string)))))
+    (unwind-protect
+        (progn
+          (define-key global-map `[,screenshot] command-screenshot)
+          (ert-simulate-keys keys
+            (should (equal (read-passwd "Test: ") "secret"))))
+      (define-key global-map `[,screenshot] command-screenshot t))
+    ;; check that the secret's there
+    (should (equal "Test: secret" minibuffer-string))
+    ;; now simulate what redisplay does to hide the password
+    (setq minibuffer-string
+          (auth-source-test--displayed-string minibuffer-string))
+    ;; check that the secret is visible once more
+    (should (equal "Test: secret" minibuffer-string))))
+
+(ert-deftest auth-source-test-read-passwd-nested ()
+  "Check that nested `read-passwd' calls do not reveal the password."
+  (let* ((cursor-in-echo-area t)
+         (trigger-nested (intern "ert--trigger-nested"))
+         (screenshot (intern "ert--screenshot"))
+         (keys `[,@"secret"
+                 ;; fake input event to trigger a nested prompt
+                 ,trigger-nested
+                 ,@"SECRET"
+                 ;; leave nested prompt
+                 ,@(kbd "RET")
+                 ;; fake input event to capture the current minibuf string
+                 ,screenshot
+                 ;; leave outer prompt
+                 ,@(kbd "RET")])
+         (inner-password nil)
+         (command-trigger-nested
+          (lambda ()
+            (interactive)
+            (setq inner-password (read-passwd "inner prompt: "))))
+         (minibuffer-string nil)
+         (command-screenshot
+          (lambda ()
+            (interactive)
+            (setq minibuffer-string (buffer-string)))))
+    (unwind-protect
+        (progn
+          (define-key global-map `[,screenshot] command-screenshot)
+          (define-key global-map `[,trigger-nested] command-trigger-nested)
+          (ert-simulate-keys keys
+            (should (equal (read-passwd "Test: ") "secret"))))
+      (define-key global-map `[,screenshot] command-screenshot t)
+      (define-key global-map `[,trigger-nested] command-trigger-nested t))
+    (should (equal inner-password "SECRET"))
+    ;; check that the secret's there
+    (should (equal "Test: secret" minibuffer-string))
+    ;; now simulate what redisplay does to hide the password
+    (setq minibuffer-string
+          (auth-source-test--displayed-string minibuffer-string))
+    ;; check that the secret has been hidden
+    (should (equal "Test: ******" minibuffer-string))))
+
 (provide 'auth-source-tests)
 ;;; auth-source-tests.el ends here

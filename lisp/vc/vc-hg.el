@@ -282,7 +282,8 @@ A value of `default' means to use the value of `vc-resolve-conflicts'."
   (ignore-errors
     (with-output-to-string
       (vc-hg-command standard-output 0 nil
-                     "log" "-r" "." "--template" "{rev}"))))
+                     "log" "-r" "." "--template"
+                     (if vc-use-short-revision "{node|short}" "{node}")))))
 
 (defcustom vc-hg-symbolic-revision-styles
   '(builtin-active-bookmark
@@ -324,13 +325,14 @@ large repositories."
 
 (defun vc-hg--active-bookmark-internal (rev)
   (when (equal rev ".")
-    (let* ((current-bookmarks-file ".hg/bookmarks.current"))
-      (when (file-exists-p current-bookmarks-file)
-        (ignore-errors
-          (with-temp-buffer
-            (insert-file-contents current-bookmarks-file)
-            (buffer-substring-no-properties
-             (point-min) (point-max))))))))
+    (let* ((current-bookmarks-file
+            (expand-file-name ".hg/bookmarks.current"
+                              (vc-hg-root default-directory))))
+      (and (file-exists-p current-bookmarks-file)
+           (ignore-errors
+             (with-temp-buffer
+               (insert-file-contents current-bookmarks-file)
+               (buffer-substring-no-properties (point-min) (point-max))))))))
 
 (defun vc-hg--run-log (template rev path)
   (ignore-errors
@@ -445,7 +447,7 @@ the log starting from that revision."
              (cond ((not (stringp limit))
                     (format "-r%s:0" start))
                    ((memq vc-log-view-type '(log-outgoing
-                                             log-outstanding))
+                                             log-unintegrated))
                     (format "-rreverse(only(%s, %s))" start limit))
                    (t
                     (format "-r%s:%s & !%s" start limit limit)))
@@ -470,7 +472,7 @@ the log starting from that revision."
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
   (let ((shortp (memq vc-log-view-type
-                      '(short log-incoming log-outgoing log-outstanding))))
+                      '(short log-incoming log-outgoing log-unintegrated))))
    (setq-local log-view-file-re regexp-unmatchable)
    (setq-local log-view-per-file-logs nil)
    (setq-local log-view-message-re
@@ -599,10 +601,17 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
                    table (lambda () (vc-hg-revision-table files)))))
     table))
 
+(defcustom vc-hg-annotate-show-revision-numbers nil
+  "If non-nil, \\[vc-annotate] shows revision numbers for Hg repositories.
+The default when this is nil is to show changeset hashes."
+  :type 'boolean
+  :version "31.1")
+
 (defun vc-hg-annotate-command (file buffer &optional revision)
   "Execute \"hg annotate\" on FILE, inserting the contents in BUFFER.
 Optional arg REVISION is a revision to annotate from."
-  (apply #'vc-hg-command buffer 'async file "annotate" "-dq" "-n"
+  (apply #'vc-hg-command buffer 'async file "annotate" "-dq"
+         (if vc-hg-annotate-show-revision-numbers "-n" "-c")
 	 (append (vc-switches 'hg 'annotate)
                  (if revision (list (concat "-r" revision))))))
 
@@ -617,9 +626,9 @@ Optional arg REVISION is a revision to annotate from."
 ;;   b56girard 114590 2012-03-13:
 (defconst vc-hg-annotate-re
   (concat
-   "^\\(?: *[^ ]+ +\\)?\\([0-9]+\\) "   ;User and revision.
-   "\\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\\)" ;Date.
-   "\\(?: +\\([^:]+\\)\\)?:"))                        ;Filename.
+   "^\\(?: *[^ ]+ +\\)?\\([[:xdigit:]]+\\) "          ; User and revision.
+   "\\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\\)" ; Date.
+   "\\(?: +\\([^:]+\\)\\)?:"))                        ; Filename.
 
 (defun vc-hg-annotate-time ()
   (when (looking-at vc-hg-annotate-re)
@@ -1184,14 +1193,19 @@ hg binary."
   "Delete each of FILES and delete them in the Mercurial repository.
 Should be called with DEFAULT-DIRECTORY equal to the repository root."
   (dolist (file files)
-    (condition-case _ (delete-file file)
+    (condition-case _ (if (eq t (car (file-attributes file)))
+                          (delete-directory file 'recursive)
+                        (delete-file file))
       (file-error nil)))
   (vc-hg-command nil 0 files "remove" "--after" "--force"))
 
-;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
-  (vc-hg-command nil 0 (expand-file-name new) "mv"
+  ;; Do the rename ourselves then update hg.  Otherwise only registered
+  ;; files are moved.  ('git mv' moves both registered and unregistered
+  ;; files which seems more useful.)
+  (rename-file old new)
+  (vc-hg-command nil 0 (expand-file-name new) "mv" "--after"
                  (expand-file-name old)))
 
 (defun vc-hg-register (files &optional _comment)
@@ -1301,8 +1315,11 @@ It is an error to supply both or neither."
              ;; need to make both of them part of the async command,
              ;; possibly by writing out a tiny shell script (bug#79235).
              (when patch-file
-               (vc-hg-command nil 0 nil "update" "--merge"
-                              "--tool" "internal:local" "tip")))))
+               (let ((bmark (vc-hg--active-bookmark-internal ".")))
+                 (when bmark
+                   (vc-hg-command nil 0 nil "bookmark" "-f" "-r" "tip" bmark))
+                 (vc-hg-command nil 0 nil "update" "--merge"
+                                "--tool" "internal:local" (or bmark "tip")))))))
       (if vc-async-checkin
           (let* ((buffer (vc-hg--async-buffer))
                  (proc (apply #'vc-hg--async-command buffer
@@ -1461,8 +1478,7 @@ REV is the revision to check out into WORKFILE."
                'face 'font-lock-comment-face)))))
 
 (defun vc-hg-after-dir-status (update-function)
-  (let ((file nil)
-        (translation '((?= . up-to-date)
+  (let ((translation '((?= . up-to-date)
                        (?C . up-to-date)
                        (?A . added)
                        (?R . removed)
@@ -1471,45 +1487,39 @@ REV is the revision to check out into WORKFILE."
                        (?! . missing)
                        (?  . copy-rename-line)
                        (?? . unregistered)))
-        (translated nil)
-        (result nil)
-        (last-added nil)
-        (last-line-copy nil))
-      (goto-char (point-min))
-      (while (not (eobp))
-        (setq translated (cdr (assoc (char-after) translation)))
-        (setq file
-              (buffer-substring-no-properties (+ (point) 2)
-                                              (line-end-position)))
-        (cond ((not translated)
-               (setq last-line-copy nil))
-              ((eq translated 'up-to-date)
-               (setq last-line-copy nil))
-              ((eq translated 'copy-rename-line)
-               ;; For copied files the output looks like this:
-               ;; A COPIED_FILE_NAME
-               ;;   ORIGINAL_FILE_NAME
-               (setf (nth 2 last-added)
-                     (vc-hg-create-extra-fileinfo 'copied file))
-               (setq last-line-copy t))
-              ((and last-line-copy (eq translated 'removed))
-               ;; For renamed files the output looks like this:
-               ;; A NEW_FILE_NAME
-               ;;   ORIGINAL_FILE_NAME
-               ;; R ORIGINAL_FILE_NAME
-               ;; We need to adjust the previous entry to not think it is a copy.
-               (setf (vc-hg-extra-fileinfo->rename-state (nth 2 last-added))
-                     'renamed-from)
-               (push (list file translated
-                           (vc-hg-create-extra-fileinfo
-                            'renamed-to (nth 0 last-added))) result)
-               (setq last-line-copy nil))
-              (t
-               (setq last-added (list file translated nil))
-               (push last-added result)
-               (setq last-line-copy nil)))
-        (forward-line))
-      (funcall update-function result)))
+        (copies (make-hash-table :test #'equal))
+        result)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let ((translated (cdr (assq (char-after) translation)))
+            (file (buffer-substring-no-properties (+ (point) 2)
+                                                  (line-end-position))))
+        (pcase translated
+          ;; For copied files the output looks like this:
+          ;;     A COPIED_FILE_NAME
+          ;;       ORIGINAL_FILE_NAME
+          ;; For renamed files the output looks like this:
+          ;;     A NEW_FILE_NAME
+          ;;       ORIGINAL_FILE_NAME
+          ;;     R ORIGINAL_FILE_NAME
+          ;; but the last line can come arbitrarily later in the output.
+          ;; So we have to remember the entry for the copy in RESULT to
+          ;; potentially modify later.
+          ('copy-rename-line
+           (let ((last (car result)))
+             (setf (caddr last)
+                   (vc-hg-create-extra-fileinfo 'copied file))
+             (puthash file last copies)))
+          ((and 'removed
+                (let (and last (guard last)) (gethash file copies)))
+           (setf (vc-hg-extra-fileinfo->rename-state (caddr last))
+                 'renamed-from)
+           (push (list file translated
+                       (vc-hg-create-extra-fileinfo 'renamed-to (car last)))
+                 result))
+          (_ (push (list file translated nil) result))))
+      (forward-line))
+    (funcall update-function result)))
 
 ;; Follows vc-hg-command (or vc-do-async-command), which uses vc-do-command
 ;; from vc-dispatcher.
