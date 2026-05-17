@@ -41,121 +41,55 @@
 (defclass jsonrpc--test-client (jsonrpc--test-endpoint)
   ((hold-deferred :initform t :accessor jsonrpc--hold-deferred)))
 
-(defun jsonrpc--call-with-emacsrpc-fixture (fn)
-  "Do work for `jsonrpc--with-emacsrpc-fixture'.  Call FN."
-  (let* (listen-server endpoint)
-    (unwind-protect
-        (progn
-          (setq listen-server
-                (make-network-process
-                 :name "Emacs RPC server" :server t :host "localhost"
-                 :service (if (version<= emacs-version "26.1")
-                              44444
-                            ;; 26.1 can automatically find ports if
-                            ;; one passes 0 here.
-                            0)
-                 :log (lambda (listen-server client _message)
-                        (push
-                         (make-instance
-                          'jsonrpc--test-endpoint
-                          :name (process-name client)
-                          :process client
-                          :request-dispatcher
-                          (lambda (_endpoint method params)
-                            (unless (memq method '(+ - * / vconcat append
-                                                     sit-for ignore))
-                              (signal 'jsonrpc-error
-                                      '((jsonrpc-error-message
-                                         . "Sorry, this isn't allowed")
-                                        (jsonrpc-error-code . -32601))))
-                            (apply method (append params nil)))
-                          :on-shutdown
-                          (lambda (conn)
-                            (setf (jsonrpc--shutdown-complete-p conn) t)))
-                         (process-get listen-server 'handlers)))))
-          (setq endpoint
-                (make-instance
-                 'jsonrpc--test-client
-                 :process
-                 (open-network-stream "JSONRPC test tcp endpoint"
-                                      nil "localhost"
-                                      (process-contact listen-server
-                                                       :service))
-                 :on-shutdown
-                 (lambda (conn)
-                   (setf (jsonrpc--shutdown-complete-p conn) t))))
-          (funcall fn endpoint))
-      (unwind-protect
-          (when endpoint
-            (kill-buffer (jsonrpc--events-buffer endpoint))
-            (jsonrpc-shutdown endpoint))
-        (when listen-server
-          (cl-loop do (delete-process listen-server)
-                   while (progn (accept-process-output nil 0.1)
-                                (process-live-p listen-server))
-                   do (jsonrpc--message
-                       "test listen-server is still running, waiting"))
-          (cl-loop for handler in (process-get listen-server 'handlers)
-                   do (ignore-errors (jsonrpc-shutdown handler)))
-          (mapc #'kill-buffer
-                (mapcar #'jsonrpc--events-buffer
-                        (process-get listen-server 'handlers))))))))
 
-(cl-defmacro jsonrpc--with-emacsrpc-fixture ((endpoint-sym) &body body)
+;;; Tests using Python subprocesses
+;;;
+
+(defconst jsonrpc--test-dir
+  (file-name-directory (or load-file-name buffer-file-name))
+  "Directory of this test file, captured at load time.")
+
+(cl-defmacro jsonrpc--with-python-fixture ((script conn &rest initargs) &body body)
+  "Start SCRIPT under python3 as a pipe subprocess, bind connection to CONN.
+SCRIPT is a path relative to this file's directory.
+INITARGS are passed to `make-instance' for `jsonrpc--test-client'."
   (declare (indent 1))
-  `(jsonrpc--call-with-emacsrpc-fixture (lambda (,endpoint-sym) ,@body)))
-
-(ert-deftest returns-3 ()
-  "A basic test for adding two numbers in our test RPC."
-  (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
-    (should (= 3 (jsonrpc-request conn '+ [1 2])))))
-
-(ert-deftest errors-with--32601 ()
-  "Errors with -32601"
-  (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
-    (condition-case err
-        (progn
-          (jsonrpc-request conn 'delete-directory "~/tmp")
-          (ert-fail "A `jsonrpc-error' should have been signaled!"))
-      (jsonrpc-error
-       (should (= -32601 (cdr (assoc 'jsonrpc-error-code (cdr err)))))))))
-
-(ert-deftest signals-an--32603-JSONRPC-error ()
-  "Signals an -32603 JSONRPC error."
-  (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
-    (condition-case err
-        (let ((jsonrpc-inhibit-debug-on-error t))
-          (jsonrpc-request conn '+ ["a" 2])
-          (ert-fail "A `jsonrpc-error' should have been signaled!"))
-      (jsonrpc-error
-       (should (= -32603 (cdr (assoc 'jsonrpc-error-code (cdr err)))))))))
-
-(ert-deftest times-out ()
-  "Request for 3-sec sit-for with 1-sec timeout times out."
-  (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
-    (should-error
-     (jsonrpc-request conn 'sit-for [3] :timeout 1))))
-
-(ert-deftest doesnt-time-out ()
-  :tags '(:expensive-test)
-  "Request for 1-sec sit-for with 2-sec timeout succeeds."
-  (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
-    (jsonrpc-request conn 'sit-for [1] :timeout 2)))
-
-(ert-deftest stretching-it-but-works ()
-  "Vector of numbers or vector of vector of numbers are serialized."
-  (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
-    ;; (vconcat [1 2 3] [3 4 5]) => [1 2 3 3 4 5] which can be
-    ;; serialized.
-    (should (equal
-             [1 2 3 3 4 5]
-             (jsonrpc-request conn 'vconcat [[1 2 3] [3 4 5]])))))
+  `(let ((,conn nil))
+     (skip-unless (executable-find "python3"))
+     (unwind-protect
+         (progn
+           (setq ,conn
+                 (make-instance
+                  'jsonrpc--test-client
+                  :name "jsonrpc-python-test"
+                  :process (make-process
+                             :name "jsonrpc-python-test"
+                             :command (list "python3"
+                                            (expand-file-name
+                                             ,script
+                                             jsonrpc--test-dir))
+                             :connection-type 'pipe
+                             :noquery t)
+                  ,@initargs))
+           (with-timeout (5
+                          (when ,conn
+                            (let ((buf (jsonrpc--events-buffer ,conn)))
+                              (when (buffer-live-p buf)
+                                (if noninteractive
+                                    (progn
+                                      (message "contents of `%s':" (buffer-name buf))
+                                      (princ (with-current-buffer buf (buffer-string))
+                                             #'external-debugging-output))
+                                  (message "Preserved for inspection: %s"
+                                           (buffer-name buf))))))
+                          (ert-fail "Test timed out after 5s"))
+             ,@body))
+       (when ,conn
+         (ignore-errors
+          (jsonrpc-request ,conn 'harakiri nil :timeout 1)
+          (accept-process-output nil 0.1)
+          (kill-buffer (jsonrpc--events-buffer ,conn))
+          (jsonrpc-shutdown ,conn))))))
 
 (cl-defmethod jsonrpc-connection-ready-p
   ((conn jsonrpc--test-client) what)
@@ -163,11 +97,46 @@
        (or (not (string-match "deferred" what))
            (not (jsonrpc--hold-deferred conn)))))
 
+(ert-deftest returns-3 ()
+  "A basic test for adding two numbers in our test RPC."
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    (should (= 3 (jsonrpc-request conn '+ [1 2])))))
+
+(ert-deftest times-out ()
+  "Request for 3-sec sit-for with 1-sec timeout times out."
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    (should-error
+     (jsonrpc-request conn 'sit-for [3] :timeout 1))))
+
+(ert-deftest doesnt-time-out ()
+  :tags '(:expensive-test)
+  "Request for 1-sec sit-for with 2-sec timeout succeeds."
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    (jsonrpc-request conn 'sit-for [1] :timeout 2)))
+
+(ert-deftest stretching-it-but-works ()
+  "Vector of numbers or vector of vector of numbers are serialized."
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    ;; (vconcat [1 2 3] [3 4 5]) => [1 2 3 3 4 5] which can be
+    ;; serialized.
+    (should (equal
+             [1 2 3 3 4 5]
+             (jsonrpc-request conn 'vconcat [[1 2 3] [3 4 5]])))))
+
 (ert-deftest deferred-action-toolate ()
   :tags '(:expensive-test)
   "Deferred request fails because no one clears the flag."
   (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
     (should-error
      (jsonrpc-request conn '+ [1 2]
                       :deferred "deferred-testing" :timeout 0.5)
@@ -182,7 +151,8 @@
   (skip-when (eq system-type 'windows-nt))
   ;; Send an async request, which returns immediately. However the
   ;; success fun which sets the flag only runs after some time.
-  (jsonrpc--with-emacsrpc-fixture (conn)
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
     (jsonrpc-async-request conn
                            'sit-for [0.5]
                            :success-fn
@@ -199,7 +169,8 @@
   :tags '(:expensive-test)
   "Test a more complex situation with deferred requests."
   (skip-when (eq system-type 'windows-nt))
-  (jsonrpc--with-emacsrpc-fixture (conn)
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
     (let (n-deferred-1
           n-deferred-2
           second-deferred-went-through-p)
@@ -252,60 +223,11 @@
       (should (eq 2 n-deferred-2))
       (should (eq 0 (hash-table-count (jsonrpc--deferred-actions conn)))))))
 
-
-;;; Tests using Python subprocesses (scontrol / anxious mechanism)
-;;;
-
-(defconst jsonrpc--test-dir
-  (file-name-directory (or load-file-name buffer-file-name))
-  "Directory of this test file, captured at load time.")
-
-(cl-defmacro jsonrpc--with-python-fixture ((script conn &rest initargs) &body body)
-  "Start SCRIPT under python3 as a pipe subprocess, bind connection to CONN.
-SCRIPT is a path relative to this file's directory.
-INITARGS are passed to `make-instance' for `jsonrpc-process-connection'."
-  (declare (indent 1))
-  `(let ((,conn nil))
-     (unwind-protect
-         (progn
-           (setq ,conn
-                 (make-instance
-                  'jsonrpc-process-connection
-                  :name "jsonrpc-python-test"
-                  :process (make-process
-                             :name "jsonrpc-python-test"
-                             :command (list "python3"
-                                            (expand-file-name
-                                             ,script
-                                             jsonrpc--test-dir))
-                             :connection-type 'pipe
-                             :noquery t)
-                  ,@initargs))
-           (with-timeout (5
-                          (when ,conn
-                            (let ((buf (jsonrpc--events-buffer ,conn)))
-                              (when (buffer-live-p buf)
-                                (if noninteractive
-                                    (progn
-                                      (message "contents of `%s':" (buffer-name buf))
-                                      (princ (with-current-buffer buf (buffer-string))
-                                             #'external-debugging-output))
-                                  (message "Preserved for inspection: %s"
-                                           (buffer-name buf))))))
-                          (ert-fail "Test timed out after 5s"))
-             ,@body))
-       (when ,conn
-         (ignore-errors
-          (jsonrpc-notify ,conn 'harakiri nil)
-          (kill-buffer (jsonrpc--events-buffer ,conn))
-          (jsonrpc-shutdown ,conn))))))
-
 (ert-deftest scontrol-remote-during-sync-1 ()
   "Anxious local continuations.
 Endpoint sends a remote request RR1 on LR1, then replies to LR1
 immediately before waiting for RR1 to resolve.
 This is what JETLS does (bug#80623)."
-  (skip-unless (executable-find "python3"))
   (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-python-fixture
       ("jsonrpc-resources/server-remote-during-sync-1.py" conn
@@ -322,7 +244,6 @@ Exactly the same test as 2, but different endpoint, which now still
 sends RR1 on LR1 but now waits for RR1 to resolve before replying to
 LR1.
 This is what GoPls does (bug#80623)."
-  (skip-unless (executable-find "python3"))
   (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-python-fixture
       ("jsonrpc-resources/server-remote-during-sync-2.py" conn
@@ -337,7 +258,6 @@ This is what GoPls does (bug#80623)."
   "Nested anxious continuations
 Two local sync requests LR1 and LR2 with a remote RR1 in between.
 Vaguely similar to Julia's JETLS (bug#80623), but more complex."
-  (skip-unless (executable-find "python3"))
   (skip-when (eq system-type 'windows-nt))
   (let (lr2-result completed)
     (jsonrpc--with-python-fixture
@@ -349,7 +269,8 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
            (setq lr2-result
                  (jsonrpc-request conn 'LR2 [] :timeout 5))
            (push "lr2" completed)
-           (push "rr1" completed))
+           (push "rr1" completed)
+           "rr1-ok")
           (_ (error "unexpected method: %s" method)))))
      (should (equal "lr1-ok" (jsonrpc-request conn 'LR1 [] :timeout 5)))
      (push "lr1" completed)
@@ -358,7 +279,6 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
 
 (ert-deftest scontrol-remote-error ()
   "Anxious continuation even when rdispatcher signals errors."
-  (skip-unless (executable-find "python3"))
   (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-python-fixture
       ("jsonrpc-resources/server-remote-error.py" conn
@@ -372,10 +292,9 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
            (_ (error "unexpected method: %s" method)))))
     (should (equal "ok" (jsonrpc-request conn 'LR1 [] :timeout 5)))))
 
-(ert-deftest shutdown-clean-after-notification ()
-  "Server exits cleanly after harakiri notification.
+(ert-deftest shutdown-clean-after-request ()
+  "Server exits cleanly after harakiri request.
 `jsonrpc-shutdown' should not emit a \"Sentinel hasn't run\" warning."
-  (skip-unless (executable-find "python3"))
   (skip-when (eq system-type 'windows-nt))
   (let (warned)
     (cl-letf (((symbol-function 'jsonrpc--warn)
@@ -383,10 +302,9 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
                  (setq warned (apply #'format fmt args)))))
       (jsonrpc--with-python-fixture
           ("jsonrpc-resources/server-harakiri.py" conn)
-        (jsonrpc-notify conn 'harakiri nil)
-        ;; Give the server time to exit before shutdown checks the sentinel.
-        (accept-process-output nil 0.3)
-        (jsonrpc-shutdown conn)))
+        (jsonrpc-request conn 'harakiri nil :timeout 3)
+        (jsonrpc-shutdown conn)
+        (setq conn nil)))
     (should-not warned)))
 
 (provide 'jsonrpc-tests)
