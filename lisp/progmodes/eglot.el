@@ -2255,12 +2255,13 @@ If MODE, force MODE to be used for fontifying MARKUP."
                   for to = (or (next-single-property-change from 'invisible)
                                (point-max))
                   when inv
-                  do (put-text-property from to 'invisible t)))
+                  do (put-text-property from to 'invisible t)
+                  finally return (buffer-string)))
        (calc2 (forced-mode)
          (cond
           (forced-mode              `(,forced-mode))
           (built-in                 `(,#'markdown-ts-view-mode))
-          ((fboundp 'gfm-view-mode) `(,#'gfm-view-mode #'gfm-extract))
+          ((fboundp 'gfm-view-mode) `(,#'gfm-view-mode ,#'gfm-extract))
           (t                        `(#'text-mode))))
        (calc (s &optional (forced-mode mode) &aux (x (calc2 forced-mode)))
          (setq string s render (car x) extract (or (cadr x) #'buffer-string))))
