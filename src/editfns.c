@@ -3490,29 +3490,34 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   CHECK_STRING (args[0]);
   bool multibyte_format = STRING_MULTIBYTE (args[0]);
   ptrdiff_t formatlen = SBYTES (args[0]);
-  char *format_start = SAFE_ALLOCA (formatlen + 1);
-  memcpy (format_start, SSDATA (args[0]), formatlen + 1);
   bool fmt_props = !!string_intervals (args[0]);
 
   /* Upper bound on number of format specs.  Each uses at least 2 chars.  */
   ptrdiff_t nspec_bound = SCHARS (args[0]) >> 1;
 
-  /* Allocate the info and discarded tables.  */
-  ptrdiff_t info_size, alloca_size;
-  if (ckd_mul (&info_size, nspec_bound, sizeof *info)
-      || ckd_add (&alloca_size, formatlen, info_size)
-      || SIZE_MAX < alloca_size)
+  /* Allocate auxiliary tables in one go, in the order:
+     spec_arguments, info, format_start, discarded.
+     Because nspec_bound <= formatlen / 2, EXTRA is an upper bound on
+     (nspec_bound * sizeof *info {for info} + formatlen {for
+     format_start} + formatlen {for discarded}).  */
+  ptrdiff_t extra;
+  if (ckd_mul (&extra, formatlen, 2 + (sizeof *info + 1) / 2))
     memory_full (SIZE_MAX);
-  info = SAFE_ALLOCA (alloca_size);
   /* One argument belonging to each spec; but needs to be allocated
      separately so GC doesn't free the strings (bug#75754).  */
   Lisp_Object *spec_arguments;
-  SAFE_ALLOCA_LISP (spec_arguments, nspec_bound);
-  /* discarded[I] is 1 if byte I of the format
-     string was not copied into the output.
-     It is 2 if byte I was not the first byte of its character.  */
-  char *discarded = (char *) &info[nspec_bound];
-  memset (discarded, 0, formatlen);
+  SAFE_ALLOCA_LISP_EXTRA (spec_arguments, nspec_bound, extra);
+  /* The info table.  */
+  static_assert (alignof (struct info) <= alignof (Lisp_Object));
+  info = (struct info *) &spec_arguments[nspec_bound];
+  /* The format string's bytes, sans trailing '\0'.  */
+  char *format_start = memcpy (&info[nspec_bound],
+			       SSDATA (args[0]), formatlen);
+  /* discarded[I] is:
+       1 if byte I of the format string was not copied into the output.
+       2 if byte I was not the first byte of its character.
+       0 otherwise.  */
+  char *discarded = memset (&format_start[formatlen], 0, formatlen);
 
   /* Try to determine whether the result should be multibyte.
      This is not always right; sometimes the result needs to be multibyte
@@ -4397,7 +4402,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
     }
 
  return_val:
-  /* If we allocated BUF or INFO with malloc, free it too.  */
+  /* If we allocated BUF or auxiliary tables with malloc, free it too.  */
   SAFE_FREE ();
 
   return val;
