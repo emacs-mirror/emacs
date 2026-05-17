@@ -103,7 +103,8 @@
 ;;    3   Bottom of current formula (marker).
 ;;    4   Top of current formula's delimiters (marker).
 ;;    5   Bottom of current formula's delimiters (marker).
-;;    6   String representation of current formula.
+;;    6   String representation of current formula (actually, the
+;;          buffer-substring between positions given by 2 and 3 above.
 ;;    7   Non-nil if formula is embedded within a single line.
 ;;    8   Internal representation of current formula.
 ;;    9   Variable assigned by this formula, or nil.
@@ -1140,7 +1141,8 @@ The command \\[yank] can retrieve it from there."
 			(insert str)
 			(set-marker (aref info 3) (+ (point) adjbot))
 			(set-marker (aref info 5) (+ (point) delta))
-			(aset info 6 str))))))
+			(aset info 6 (buffer-substring (aref info 2)
+                                                       (aref info 3))))))))
 	  (if (eq (car-safe val) 'calcFunc-evalto)
 	      (progn
 		(setq evalled (nth 2 val)
