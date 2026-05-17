@@ -238,7 +238,12 @@ SYNTAX_MATCH (int c)
 }
 
 /* A "dummy" value we never dereference, distinct from NULL.  */
-#define uninitialized_interval ((INTERVAL) (intptr_t) 1)
+#ifdef HAVE_MPS
+# define uninitialized_interval (((INTERVAL) NULL) + 2)
+static_assert ((size_t) uninitialized_interval % word_size == 0);
+#else
+# define uninitialized_interval ((INTERVAL) (intptr_t) 1)
+#endif
 
 /* This should be called with FROM at the start of forward
    search, or after the last position of the backward search.  It
