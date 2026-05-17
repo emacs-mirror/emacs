@@ -3472,7 +3472,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   Lisp_Object val;
   bool arg_intervals = false;
   USE_SAFE_ALLOCA;
-  sa_avail -= sizeof initial_buffer;
+  /* Do not bother doing "sa_avail -= sizeof initial_buffer;" here,
+     as it is OK to go somewhat over MAX_ALLOCA bytes
+     for this particular function's stack frame.  */
 
   /* Information recorded for each format spec.  */
   struct info
