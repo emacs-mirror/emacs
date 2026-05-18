@@ -2268,7 +2268,7 @@ If MODE, force MODE to be used for fontifying MARKUP."
           (t                        `(#'text-mode))))
        (calc (s &optional (forced-mode mode) &aux (x (calc2 forced-mode)))
          (setq string s render (car x) extract (or (cadr x) #'buffer-string))))
-    (cond ((stringp markup) (calc string))            ; plain string
+    (cond ((stringp markup) (calc markup))            ; plain string
           ((setq lang (plist-get markup :language))   ; deprecated MarkedString
            (calc (format "```%s\n%s\n```" lang (plist-get markup :value))))
           (t (calc (plist-get markup :value)          ; Assume MarkupContent
