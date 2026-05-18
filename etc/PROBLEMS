@@ -2649,6 +2649,45 @@ all such characters will look the same on display, and the only way of
 knowing what is the real codepoint in the buffer is to go to the
 character and type "C-u C-x =".
 
+*** Display problems with Emoji on text terminals
+
+Some text-mode terminals cause problems with Emoji sequences: when
+displaying them, the Emacs text-mode frame could show gaps, misalignment
+between the display and cursor motion, and other visual artifacts and
+display problems.
+
+This can happen if the terminal and Emacs differ in their notions of how
+many columns (a.k.a. "character cells") a given sequence of characters
+takes on the screen when displayed.  As one example, Emoji sequences
+that begin with a non-Emoji character and end in U+FE0F VARIATION
+SELECTOR 16 are composed on display into an Emoji glyph, but the width
+of this glyph is up to the terminal and the font it uses to show the
+Emoji.  If the non-Emoji character that begins the sequence has the
+width 1, Emacs will think that its composition with VS-16 also takes 1
+column on the screen, because VS-16 has width of zero.  But some
+terminals which support Emoji sequences will show a double-width Emoji
+glyph in this case, without any way for Emacs to know that.  This causes
+cursor addressing to get out of sync and eventually messes up the
+display.  In particular, Kitty, Alacritty, Ghostty, and some other
+terminal emulators are known to behave like that.
+
+Similar problems can happen with composition of characters other than
+Emoji.
+
+The solution is to disable 'auto-composition-mode' on these
+terminals, for example, like this:
+
+  (setq auto-composition-mode "alacritty")
+
+This disables 'auto-composition-mode' on frames that display on
+terminals of the named type.  More generally, customizing the
+'auto-composition-mode' variable to have as value a string that the
+'tty-type' function returns on a terminal will disable compositions in
+windows shown on terminals of that type.  (You can also disable
+'auto-composition-mode' globally, if all your frames are on terminals
+that have this problem, by setting 'auto-composition-mode' to the nil
+value.)
+
 *** Messed-up display on the Kitty text terminal
 
 This terminal has its own peculiar ideas about display of unusual
@@ -2674,33 +2713,6 @@ Another workaround is to set 'nobreak-char-ascii-display' to a non-nil
 value, which will cause any non-ASCII space and hyphen characters to
 be displayed as their ASCII counterparts, with a special face.
 
-Kitty also differs from many other character terminals in how it
-handles character compositions.  As one example, Emoji sequences that
-begin with a non-Emoji character and end in U+FE0F VARIATION SELECTOR
-16 should be composed into an Emoji glyph; Kitty assumes that all such
-Emoji glyphs have 2-column width, whereas Emacs and many other text
-terminals display them as 1-column glyphs.  Again, this causes cursor
-addressing to get out of sync and eventually messes up the display.
-
-One possible workaround for problems caused by character composition
-is to turn off 'auto-composition-mode' on Kitty terminals, e.g. by
-customizing the 'auto-composition-mode' variable to have as value a
-string that the 'tty-type' function returns on those terminals.
-
-*** Display artifacts on the Alacritty text terminal
-
-This terminal is known to cause problems with Emoji sequences: when
-displaying them, the Emacs text-mode frame could show gaps and other
-visual artifacts.
-
-The solution is to disable 'auto-composition-mode' on these
-terminals, for example, like this:
-
-  (setq auto-composition-mode "alacritty")
-
-This disables 'auto-composition-mode' on frames that display on
-terminals of this type.
-
 ** Screen readers get confused about character position
 
 The Emacs display code sometimes emits TAB characters purely for motion
@@ -2712,6 +2724,12 @@ This can confuse screen reader software under certain terminal emulators
 
 in the terminal before starting Emacs may mitigate this.  See also the
 discussion in Bug#78474 <https://debbugs.gnu.org/78474>.
+
+Starting from version 31.1, Emacs by default no longer outputs series of
+TAB characters followed by BACKSPACE, which used to confuse some of the
+screen readers.  If you encounter some problems in this area, verify
+that the variable 'tty-cursor-movement-use-TAB-BS' is set to its default
+nil value.
 
 * Runtime problems specific to individual Unix variants
 

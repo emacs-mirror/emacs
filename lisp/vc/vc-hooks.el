@@ -955,10 +955,16 @@ In the latter case, VC mode is deactivated for this buffer."
       (cond
        ((setq backend (with-demoted-errors "VC refresh error: %S"
                         (vc-backend buffer-file-name)))
-        ;; Let the backend setup any buffer-local things he needs.
-        (vc-call-backend backend 'find-file-hook)
-	;; Compute the state and put it in the mode line.
-	(vc-mode-line buffer-file-name backend)
+        ;; When `auto-revert-handler' calls us then `default-directory'
+        ;; may be let-bound to something else for the purpose of some
+        ;; command that's currently doing some minibuffer prompting.
+        ;; Backend find-file-hook and mode-line-string functions should
+        ;; not need to be written so as to handle that possibility.
+        (let ((default-directory (buffer-local-toplevel-value 'default-directory)))
+          ;; Let the backend setup any buffer-local things it needs.
+          (vc-call-backend backend 'find-file-hook)
+	  ;; Compute the state and put it in the mode line.
+	  (vc-mode-line buffer-file-name backend))
 	(unless vc-make-backup-files
 	  ;; Use this variable, not make-backup-files,
 	  ;; because this is for things that depend on the file name.

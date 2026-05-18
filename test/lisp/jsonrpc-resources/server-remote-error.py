@@ -13,7 +13,7 @@ anxious continuation for LR1 must still fire and resolve to "ok".
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
-from common import read_msg, write_msg, log
+from common import read_msg, write_msg, log, harakiri
 
 
 def main():
@@ -24,9 +24,7 @@ def main():
         mid = msg.get('id')
         method = msg.get('method')
         log(f'<- {method or "(response)"} id={mid}')
-        if method == 'harakiri':
-            log('-> very clean harakiri')
-            break
+        if harakiri(msg): break
         elif method == 'LR1':
             # Send badMethod BEFORE responding to LR1; the client
             # rdispatcher will signal a jsonrpc-error for it.

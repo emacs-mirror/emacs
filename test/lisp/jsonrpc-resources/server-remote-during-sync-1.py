@@ -11,7 +11,7 @@ Choreography (tests bug#80623):
 import os
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from common import read_msg, write_msg, log
+from common import read_msg, write_msg, log, harakiri
 
 
 def main():
@@ -22,9 +22,7 @@ def main():
         mid = msg.get('id')
         method = msg.get('method')
         log(f'<- {method or "(response)"} id={mid}')
-        if method == 'harakiri':
-            log('-> very clean harakiri')
-            break
+        if harakiri(msg): break
         elif method == 'LR1':
             # Send RR1 request
             write_msg({'jsonrpc': '2.0', 'id': 1000,

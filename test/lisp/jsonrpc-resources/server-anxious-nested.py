@@ -15,7 +15,7 @@ LR2 should complete first, then RR1, then LR1.
 import os
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from common import read_msg, write_msg, log
+from common import read_msg, write_msg, log, harakiri
 
 
 def main():
@@ -26,9 +26,7 @@ def main():
         mid = lr1.get('id')
         method = lr1.get('method')
         log(f'<- {method or "(response)"} id={mid}')
-        if method == 'harakiri':
-            log('-> very clean harakiri')
-            break
+        if harakiri(lr1): break
         elif method == 'LR1':
             # Send RR1, then immediately respond to LR1 without awaiting
             # anything.  The response-to-LR1 will be queued as anxious on the
