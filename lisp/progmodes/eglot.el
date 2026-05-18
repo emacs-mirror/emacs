@@ -726,11 +726,15 @@ This can be useful when using docker to run a language server.")
     (executable-find command)))
 
 (declare-function treesit-grammar-location "treesit.c")
+
+(defun eglot--builtin-mdown-p ()
+  (and (fboundp 'markdown-ts-view-mode)
+       (fboundp 'treesit-grammar-location)
+       (treesit-grammar-location 'markdown)))
+
 (defun eglot--accepted-formats ()
   (if (and (not eglot-prefer-plaintext)
-           (or (fboundp 'gfm-view-mode)
-               (and (fboundp 'markdown-ts-view-mode)
-                    (treesit-grammar-location 'markdown))))
+           (or (fboundp 'gfm-view-mode) (eglot--builtin-mdown-p)))
       ["markdown" "plaintext"]
     ["plaintext"]))
 
@@ -2237,9 +2241,7 @@ Doubles as an indicator of snippet support."
 
 (cl-defun eglot--format-markup
     (markup &optional mode
-            &aux string lang render extract
-            (built-in (and (fboundp 'markdown-ts-view-mode)
-                           (treesit-grammar-location 'markdown))))
+            &aux string lang render extract)
   "Format MARKUP according to LSP's spec.
 MARKUP is either an LSP MarkedString or MarkupContent object.
 If MODE, force MODE to be used for fontifying MARKUP."
@@ -2261,7 +2263,7 @@ If MODE, force MODE to be used for fontifying MARKUP."
        (calc2 (forced-mode)
          (cond
           (forced-mode              `(,forced-mode))
-          (built-in                 `(,#'markdown-ts-view-mode))
+          ((eglot--builtin-mdown-p) `(,#'markdown-ts-view-mode))
           ((fboundp 'gfm-view-mode) `(,#'gfm-view-mode ,#'gfm-extract))
           (t                        `(#'text-mode))))
        (calc (s &optional (forced-mode mode) &aux (x (calc2 forced-mode)))
