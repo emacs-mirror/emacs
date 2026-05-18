@@ -1046,7 +1046,7 @@ import/export overhead on most platforms.
 
 /* Documented maximum count of magnitude elements. */
 #define module_bignum_count_max \
-  ((ptrdiff_t) min (SIZE_MAX, PTRDIFF_MAX) / sizeof (emacs_limb_t))
+  ((ptrdiff_t) (min (SIZE_MAX, PTRDIFF_MAX) / sizeof (emacs_limb_t)))
 
 /* Verify that emacs_limb_t indeed has unique object
    representations.  */
@@ -1100,7 +1100,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
          suffice.  */
       EMACS_UINT u;
       enum { required = (sizeof u + size - 1) / size };
-      static_assert (0 < required && +required <= module_bignum_count_max);
+      static_assert (0 < required && required <= module_bignum_count_max);
       if (magnitude == NULL)
         {
           *count = required;
@@ -1132,9 +1132,8 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
       return true;
     }
   size_t required_size = (mpz_sizeinbase (*x, 2) + numb - 1) / numb;
-  eassert (required_size <= PTRDIFF_MAX);
-  ptrdiff_t required = (ptrdiff_t) required_size;
-  eassert (required <= module_bignum_count_max);
+  eassert (required_size <= module_bignum_count_max);
+  ptrdiff_t required = required_size;
   if (magnitude == NULL)
     {
       *count = required;
