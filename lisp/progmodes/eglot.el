@@ -625,6 +625,7 @@ Note additionally:
           (const :tag "ElDoc textual hint" eldoc-hint)
           (const :tag "Right besides point" nearby)
           (const :tag "In mode line" mode-line)
+          (const :tag "In left fringe" left-fringe)
           (const :tag "In margin" margin))
   :package-version '(Eglot . "1.19"))
 
