@@ -26,7 +26,16 @@
 (require 'eshell-tests-helpers
          (ert-resource-file "eshell-tests-helpers"))
 
+(defvar eshell-test-line-number nil)
+
+(defun eshell-test-number (line)
+  "Return LINE with a line number prepended."
+  (format "%2d %s" (incf eshell-test-line-number) line))
+
 ;;; Tests:
+
+
+;; Basic worker pipelines
 
 (ert-deftest esh-worker-test/pipe/eshell-to-function ()
   "Test that piping an Eshell command to a function works."
@@ -80,5 +89,111 @@
     (eshell-match-command-output
      "echo hi | #'upcase | (lambda (i) (concat \"> \" i))"
      "\\`> HI\n\\'")))
+
+
+;; `map-lines' pipelines
+
+(ert-deftest esh-worker-test/map-lines/eshell-one-line ()
+  "Test that piping a single line to `map-lines' works."
+  (let ((eshell-test-line-number 0))
+    (with-temp-eshell
+      (eshell-match-command-output
+       "echo hi | map-lines #'eshell-test-number"
+       "\\` 1 hi\n\\'"))))
+
+(ert-deftest esh-worker-test/map-lines/eshell-multiple-lines ()
+  "Test that piping multiple lines to `map-lines' works.
+It should call the mapped function once per line."
+  (let ((eshell-test-line-number 0))
+    (with-temp-eshell
+      (eshell-match-command-output
+       "echo 'hi\nbye' | map-lines #'eshell-test-number"
+       "\\` 1 hi\n 2 bye\n\\'"))))
+
+(ert-deftest esh-worker-test/map-lines/eshell-multiple-batches ()
+  "Test that piping multiple batches of lines to `map-lines' works.
+It should call the mapped function once per line, reassembling lines as
+needed."
+  (let ((eshell-test-line-number 0))
+    (with-temp-eshell
+      (eshell-match-command-output
+       "{echo 'hi\nhel'; echo 'lo\nhey'} | map-lines #'eshell-test-number"
+       "\\` 1 hi\n 2 hello\n 3 hey\n\\'"))))
+
+(ert-deftest esh-worker-test/map-lines/external-one-line ()
+  "Test that piping a single external line to `map-lines' works."
+  (let ((eshell-test-line-number 0))
+    (with-temp-eshell
+      (eshell-match-command-output
+       "*echo hi | map-lines #'eshell-test-number"
+       "\\` 1 hi\n\\'"))))
+
+(ert-deftest esh-worker-test/map-lines/external-multiple-lines ()
+  "Test that piping multiple external lines to `map-lines' works.
+It should call the mapped function once per line."
+  (let ((eshell-test-line-number 0))
+    (with-temp-eshell
+      (eshell-match-command-output
+       "*echo 'hi\nbye' | map-lines #'eshell-test-number"
+       "\\` 1 hi\n 2 bye\n\\'"))))
+
+(ert-deftest esh-worker-test/map-lines/numbers ()
+  "Test that piping numbers to `map-lines' passes them to the mapped function."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "{echo 10; echo 20} | map-lines #'1+"
+     "\\`11\n21\n\\'")))
+
+(ert-deftest esh-worker-test/map-lines/numeric-conversion ()
+  "Test that `map-lines' converts numeric strings when possible."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "{echo '10\n1'; echo '5\n20'} | map-lines #'1+"
+     "\\`11\n16\n21\n\\'")))
+
+
+;; `apply-lines' pipelines
+
+(ert-deftest esh-worker-test/apply-lines/eshell-one-line ()
+  "Test that piping a single line to `apply-lines' works."
+  (with-temp-eshell
+    (eshell-match-command-output "echo hi | apply-lines #'upcase"
+                                 "\\`HI\n\\'")))
+
+(ert-deftest esh-worker-test/apply-lines/eshell-multiple-lines ()
+  "Test that piping multiple lines to `apply-lines' works.
+It should pass each line as an argument to the applied function."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "echo 'o\ni\nfoobar' | apply-lines #'string-replace"
+     "\\`fiibar\n\\'")))
+
+(ert-deftest esh-worker-test/apply-lines/external-one-line ()
+  "Test that piping a single external line to `apply-lines' works."
+  (with-temp-eshell
+    (eshell-match-command-output "*echo hi | apply-lines #'upcase"
+                                 "\\`HI\n\\'")))
+
+(ert-deftest esh-worker-test/apply-lines/external-multiple-lines ()
+  "Test that piping multiple external lines to `apply-lines' works.
+It should pass each line as an argument to the applied function."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "*echo 'o\ni\nfoobar' | apply-lines #'string-replace"
+     "\\`fiibar\n\\'")))
+
+(ert-deftest esh-worker-test/apply-lines/numbers ()
+  "Test that piping numbers to `apply-lines' passes them to the function."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "{echo 5; echo 8; echo 13} | apply-lines #'+"
+     "\\`26\n\\'")))
+
+(ert-deftest esh-worker-test/apply-lines/numeric-conversion ()
+  "Test that `apply-lines' converts numeric strings when possible."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "{echo '10\n1'; echo '5\n20'} | apply-lines #'+"
+     "\\`45\n\\'")))
 
 ;;; esh-io-tests.el ends here
