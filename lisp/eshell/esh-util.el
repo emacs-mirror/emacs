@@ -429,6 +429,31 @@ trailing newlines removed.  Otherwise, this behaves as follows:
                 lines)
             (eshell-mark-numeric-string string)))))))
 
+(defun eshell-convert-args (args function)
+  "Convert ARGS to their preferred forms when calling FUNCTION.
+This consults the properties `eshell-no-numeric-conversions' and
+`eshell-filename-arguments' on FUNCTION to determine the appropriate
+conversions to apply to each string argument in ARGS."
+  (or (when (symbolp function)
+        (let ((numeric (not (get function 'eshell-no-numeric-conversions)))
+              (fname-args (get function 'eshell-filename-arguments)))
+          (when (or numeric fname-args)
+            (mapcar (lambda (arg)
+                      (cond
+                       ((and numeric (eshell--numeric-string-p arg))
+                        ;; If any of the arguments are flagged as numbers
+                        ;; waiting for conversion, convert them now.
+                        (string-to-number arg))
+                       ((and fname-args (stringp arg)
+                             (string-equal arg "~"))
+                        ;; If any of the arguments match "~", prepend "./"
+                        ;; to treat it as a regular file name.
+                        (concat "./" arg))
+                       (t
+                        arg)))
+                    args))))
+      args))
+
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.
 It might be different from \(getenv \"PATH\"), when
