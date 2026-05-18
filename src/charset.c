@@ -1139,7 +1139,7 @@ usage: (define-charset-internal ...)  */)
 	  charset_table.start = new_table;
 	  charset_table.size = new_size;
 	  Lisp_Object new_attr_table = make_vector (new_size, Qnil);
-	  for (size_t i = 0; i < old_size; i++)
+	  for (int i = 0; i < old_size; i++)
 	    ASET (new_attr_table, i,
 		  AREF (charset_table.attributes_table, i));
 	  charset_table.attributes_table = new_attr_table;
