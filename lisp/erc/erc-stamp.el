@@ -621,6 +621,7 @@ printed just after each line's text (no alignment)."
       (pcase erc-timestamp-use-align-to
         ((guard erc-stamp--display-margin-mode)
          (let ((s (propertize (substring-no-properties string)
+                              'font-lock-face 'erc-timestamp-face
                               'invisible erc-stamp--invisible-property)))
            (insert " ")
            (put-text-property 0 (length string) 'display
