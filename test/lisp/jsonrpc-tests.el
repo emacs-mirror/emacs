@@ -177,25 +177,26 @@ INITARGS are passed to `make-instance' for `jsonrpc--test-client'."
       ;; This returns immediately
       (jsonrpc-async-request
        conn
-       'sit-for [0.1]
+       'sit-for [0.01]
        :success-fn
        (lambda (_result)
          ;; this only gets runs after the "first deferred" is stashed.
          (setq n-deferred-1
                (hash-table-count (jsonrpc--deferred-actions conn)))))
       (should-error
-       ;; This stashes the request and waits. It will error because
-       ;; no-one clears the "hold deferred" flag.
+       ;; This stashes the request and waits. It will error with a
+       ;; timeout after blocking for 1 sec because no-one clears the
+       ;; "hold deferred" flag.
        (jsonrpc-request conn 'ignore ["first deferred"]
                         :deferred "first deferred"
-                        :timeout 0.5)
+                        :timeout 1.0)
        :type 'jsonrpc-error)
       ;; The error means the deferred actions stash is now empty
       (should (zerop (hash-table-count (jsonrpc--deferred-actions conn))))
       ;; Again, this returns immediately.
       (jsonrpc-async-request
        conn
-       'sit-for [0.1]
+       'sit-for [0.01]
        :success-fn
        (lambda (_result)
          ;; This gets run while "third deferred" below is waiting for
