@@ -2783,16 +2783,17 @@ emit_static_object (const char *name, Lisp_Object obj)
      <https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html>.
 
      Adjust if possible to reduce the number of function calls.  */
-  size_t chunk_size = NILP (Fcomp_libgccjit_version ()) ? 200 : 1024;
-  char *buff = xmalloc (chunk_size);
+  char buff[1024];
+  int chunk_size = NILP (Fcomp_libgccjit_version ()) ? 200 : sizeof buff;
   for (ptrdiff_t i = 0; i < len;)
     {
-      strncpy (buff, p, chunk_size);
-      buff[chunk_size - 1] = 0;
-      uintptr_t l = strlen (buff);
+      int l = strnlen (p, chunk_size - 1);
 
       if (l != 0)
         {
+	  char *buff_end = mempcpy (buff, p, l);
+	  *buff_end = '\0';
+
           p += l;
           i += l;
 
@@ -2836,7 +2837,6 @@ emit_static_object (const char *name, Lisp_Object obj)
               NULL));
         }
     }
-  xfree (buff);
 
   gcc_jit_block_add_assignment (
 	block,
