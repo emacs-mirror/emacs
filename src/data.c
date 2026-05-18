@@ -3599,10 +3599,10 @@ discarding bits.  */)
   else if (FIXNUMP (value))
     {
       EMACS_INT v = XFIXNUM (value);
-      EMACS_UINT uv = v < 0 ? ~v : v;
-      EMACS_INT lz = stdc_leading_zeros (uv);
+      EMACS_UINT uv = v, uvcomp = v < 0 ? ~uv : uv;
+      EMACS_INT lz = stdc_leading_zeros (uvcomp);
       if (EMACS_INT_WIDTH - FIXNUM_BITS < lz - c)
-	return make_fixnum (v << c);
+	return make_fixnum ((EMACS_INT) {uv << c});
     }
 
   mpz_t const *zval = bignum_integer (&mpz[0], value);
