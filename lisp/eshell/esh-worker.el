@@ -33,6 +33,25 @@
 ;; also express this explicitly, as in:
 ;;
 ;;   echo hi | accumulate #'upcase
+;;
+;;;_* `map-lines' worker
+;;
+;; You can also map each line of output to a function, similar to how
+;; `mapcar' works.  For example, you could "quote" some output for
+;; pasting into an email like this:
+;;
+;;   cat some-file.txt | map-lines (lambda (i) (format "> %s" i))
+;;
+;; This also shows how you use lambda functions as pipe targets in
+;; Eshell.
+;;
+;;;_* `apply-lines' worker
+;;
+;; Finally, you can apply each line of output as successive arguments to
+;; a function.  For example, to sum up a list of numbers written one per
+;; line:
+;;
+;;   cat numbers.txt | apply-lines #'+
 
 ;;; Code:
 
@@ -186,6 +205,91 @@ will first convert the data to a string before concatenating it.  If
 this structure only receives a single non-string value as input, it will
 pass the value unaltered to FUNCTION."
   (eshell-accumulate-worker-create :function function))
+
+;; Map-lines worker
+
+(cl-defstruct (eshell-map-lines-worker
+               (:include eshell-worker)
+               (:constructor eshell-map-lines-worker-create))
+  "A worker that calls a Lisp function once for each line.
+When outputting string data to this worker, it will call a Lisp
+FUNCTION once per line of text.  When outputting other data types to
+this worker (e.g. lists), it will call FUNCTION once with the
+specified value."
+  (function nil :read-only t)
+  (current-line nil))
+
+(cl-defgeneric eshell-map-lines-worker--apply (line target)
+  (let ((function (eshell-map-lines-worker-function target)))
+    (eshell--apply-print function (list line))))
+
+(cl-defmethod eshell-output-object-to-target
+  (object (target eshell-map-lines-worker))
+  "Send OBJECT to the map-lines worker TARGET.
+This calls the function associated with the worker.
+
+The returned value is the OBJECT in the form that it was actually
+sent to TARGET (e.g. a string representing OBJECT)."
+  (if (stringp object)
+      (let (line-begin line-end line)
+        ;; Prepend any saved text from the current line to the new text.
+        (setq object (concat (eshell-map-lines-worker-current-line target)
+                             object))
+        ;; Pass each full line of text to FUNCTION.
+        (while (setq line-end (string-search "\n" object line-begin))
+          (setq line (eshell-mark-numeric-string
+                      (substring object line-begin line-end))
+                line-begin (1+ line-end))
+          (eshell-map-lines-worker--apply line target))
+        ;; Save any remaining text after the last newline for next time.
+        (setf (eshell-map-lines-worker-current-line target)
+              (and (length> object (or line-begin 0))
+                   (substring object line-begin))))
+    (eshell-map-lines-worker--apply object target)))
+
+(cl-defmethod eshell-close-target ((target eshell-map-lines-worker) _status)
+  (when-let* ((last-line (eshell-map-lines-worker-current-line target)))
+    (eshell-map-lines-worker--apply (eshell-mark-numeric-string last-line)
+                                    target)))
+
+(defun eshell/map-lines (function)
+  "Map each line of output of another command to FUNCTION.
+When outputting string data to this worker, it will call FUNCTION once
+per line of text.  When outputting other data types to this
+worker (e.g. lists), it will call FUNCTION once with the specified
+value."
+  (eshell-map-lines-worker-create :function function))
+
+;; Apply-lines worker
+
+(cl-defstruct
+    (eshell-apply-lines-worker
+     (:include eshell-map-lines-worker)
+     (:constructor eshell-apply-lines-worker-create))
+  "A worker that calls a Lisp function with each line as an argument.
+This worker calls a Lisp FUNCTION once, with each line of string data
+corresponding to one argument passed to the fuction.  When outputting
+other data types to this worker (e.g. lists), each object is passed as a
+single argument to FUNCTION."
+  args)                              ; Arguments stored in reverse order
+
+(cl-defmethod eshell-map-lines-worker--apply
+    (line (target eshell-apply-lines-worker))
+  (push line (eshell-apply-lines-worker-args target)))
+
+(cl-defmethod eshell-close-target ((target eshell-apply-lines-worker) _status)
+  (cl-call-next-method)
+  (let ((function (eshell-map-lines-worker-function target)))
+    (eshell--apply-print
+     function (nreverse (eshell-apply-lines-worker-args target)))))
+
+(defun eshell/apply-lines (function)
+  "Call a Lisp FUNCTION with each line of output as an argument.
+This worker calls a Lisp FUNCTION once, with each line of string data
+corresponding to one argument passed to the fuction.  When outputting
+other data types to this worker (e.g. lists), each object is passed as a
+single argument to FUNCTION."
+  (eshell-apply-lines-worker-create :function function))
 
 (provide 'esh-worker)
 ;;; esh-worker.el ends here
