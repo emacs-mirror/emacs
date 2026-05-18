@@ -1582,31 +1582,16 @@ a string naming a Lisp function."
   (catch 'eshell-external               ; deferred to an external command
     (when (memq eshell-in-pipeline-p '(nil last))
       (eshell-set-exit-info 0))
-    (setq eshell-last-arguments args)
     (let* ((eshell-ensure-newline-p t)
            (command-form-p (and (functionp object)
                                 (symbolp object)))
            result)
       (if command-form-p
-          (let ((numeric (not (get object 'eshell-no-numeric-conversions)))
-                (fname-args (get object 'eshell-filename-arguments)))
-            (when (or numeric fname-args)
-              (while args
-                (let ((arg (car args)))
-                  (cond
-                   ((and numeric (eshell--numeric-string-p arg))
-                    ;; If any of the arguments are flagged as numbers
-                    ;; waiting for conversion, convert them now.
-                    (setcar args (string-to-number arg)))
-                   ((and fname-args (stringp arg)
-                         (string-equal arg "~"))
-                    ;; If any of the arguments match "~", prepend "./"
-                    ;; to treat it as a regular file name.
-                    (setcar args (concat "./" arg)))))
-                (setq args (cdr args))))
-            (setq eshell-last-command-name
-                  (concat "#<function " (symbol-name object) ">")))
-        (setq eshell-last-command-name "#<Lisp object>"))
+          (setq eshell-last-arguments (eshell-convert-args args object)
+                eshell-last-command-name (format "#<function %s>"
+                                                 (symbol-name object)))
+        (setq eshell-last-arguments args
+              eshell-last-command-name "#<Lisp object>"))
       (setq result (eshell-exec-lisp
                     #'eshell-print-maybe-n #'eshell-error-maybe-n
                     object eshell-last-arguments (not command-form-p)))
