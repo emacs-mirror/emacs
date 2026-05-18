@@ -6197,7 +6197,7 @@ extern void init_system_name (void);
       systems to detect stack exhaustion and enlarge the stack as
       needed; this thus risks hitting a segfault where none should
       have happened.  (This problem is real in deeply-recursive cases,
-      but these do happen in Emacs, e.g. in regexp search or during GC.)  */
+      e.g., in regexp search or during GC.)  */
 
 enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 
@@ -6362,49 +6362,8 @@ safe_free_unbind_to (specpdl_ref count, specpdl_ref sa_count, Lisp_Object val)
    memory allocation in SAFE_ALLOCA_LISP_EXTRA.  */
 #if __GNUC__ == 13 && __GNUC_MINOR__ < 3
 # pragma GCC diagnostic ignored "-Wanalyzer-allocation-size"
-# endif
-
-#ifndef HAVE_MPS
-/* Set BUF to point to an allocated array of NELT Lisp_Objects,
-   immediately followed by EXTRA spare bytes.  */
-
-#define SAFE_ALLOCA_LISP_EXTRA(buf, nelt, extra)		\
-  do {								\
-    eassert (sa_avail >= 0);					\
-    eassert ((nelt) >= 0);					\
-    eassert ((extra) >= 0);					\
-    ptrdiff_t alloca_nbytes;					\
-    if (ckd_mul (&alloca_nbytes, nelt, word_size)		\
-	|| ckd_add (&alloca_nbytes, alloca_nbytes, extra)	\
-	|| SIZE_MAX < alloca_nbytes)				\
-      memory_full (SIZE_MAX);					\
-    else if (alloca_nbytes <= sa_avail)				\
-      (buf) = AVAIL_ALLOCA (alloca_nbytes);			\
-    else							\
-      {								\
-	/* Although only the first nelt words need clearing,	\
-	   typically EXTRA is 0 or small so just use xzalloc;	\
-	   this is simpler and often faster.  */		\
-	(buf) = xzalloc (alloca_nbytes);			\
-	record_unwind_protect_array (buf, nelt);		\
-      }								\
-  } while (false)
-#else
-#define SAFE_ALLOCA_LISP_EXTRA(buf, nelt, extra)            \
-  do                                                        \
-    {                                                       \
-      eassert ((nelt) >= 0);                                \
-      eassert ((extra) >= 0);                               \
-      ptrdiff_t alloca_nbytes;                              \
-      if (ckd_mul (&alloca_nbytes, nelt, word_size)         \
-	  || ckd_add (&alloca_nbytes, alloca_nbytes, extra) \
-	  || SIZE_MAX < alloca_nbytes)                      \
-	memory_full (SIZE_MAX);                             \
-      else                                                  \
-	buf = SAFE_ALLOCA_AMBIG (alloca_nbytes);            \
-    }                                                       \
-  while (false)
 #endif
+
 
 /* Set BUF to point to an allocated array of NELT Lisp_Objects.  */
 

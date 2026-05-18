@@ -189,13 +189,17 @@ process to complete."
                   ;; convert forward slashes to backslashes.
                   (expand-file-name (executable-find "attrib.exe")))
                  (_ "/bin//sh")))
-         (samepath (copy-sequence path)))
-    ;; Make sure 'start-process' actually goes all the way and invokes
-    ;; the program.
-    (should (process-live-p (condition-case nil
-                                (start-process "" nil path)
-                              (error nil))))
-    (should (equal path samepath)))))
+         (samepath (copy-sequence path))
+         (process (condition-case nil
+                      (start-process "" nil path)
+                    (error nil))))
+    (unwind-protect
+        (progn
+          ;; Make sure 'start-process' actually goes all the way and
+          ;; invokes the program.
+          (should (process-live-p process))
+          (should (equal path samepath)))
+      (delete-process process)))))
 
 (ert-deftest make-process/noquery-stderr ()
   "Checks that Bug#30031 is fixed."
@@ -1050,17 +1054,87 @@ Return nil if FILENAME doesn't exist."
                            (process-exit-status proc)
                            events))))))
 
+(defun process-tests/broken-pipe (connection-type)
+  "Test handling of broken pipes; see bug#79079.
+This test runs a shell script that reads a line of text and closes
+stdin.  We send two lines of text to the script; the second should
+signal an error indicating that the pipe has been closed.  The script
+should also run to completion, printing out the line of text it read."
+  (with-temp-buffer
+    (let ((saw-error nil)
+          (proc (make-process
+                 :name "test" :buffer (current-buffer)
+                 :command `(,(expand-file-name invocation-name
+                                               invocation-directory)
+                            "-Q" "--batch" "--eval"
+                            ,(prin1-to-string
+                              '(let ((line (read-string "")))
+                                 (file--close-stream 'stdin)
+                                 (message "closed stream")
+                                 (sit-for 1)
+                                 (message "%s" line))))
+                 :connection-type 'pipe)))
+      (process-send-string proc "hello\n")
+      (while (not (string-prefix-p "closed stream\n" (buffer-string)))
+        (accept-process-output))
+      (condition-case err
+          (process-send-string proc "extra\n")
+        (error
+         (setq saw-error t)
+         (should (string-match
+                  (rx bos "Process test" (? "<" (+ digit) ">")
+                      " no longer connected to pipe; closed it"
+                      eos)
+                  (error-message-string err)))))
+      (unless saw-error
+        (ert-fail "Expected error from `process-send-string'"))
+      ;; Wait for the process to finish, and check results.
+      (while (eq (process-status proc) 'run)
+        (accept-process-output))
+      (accept-process-output)
+      (should (eq (process-status proc) 'exit))
+      (should (eq (process-exit-status proc) 0))
+      (should (string-match
+               (rx bos "closed stream\nhello\n\nProcess test"
+                   (? "<" (+ digit) ">") " finished\n" eos)
+               (buffer-string))))))
+
+;; These tests only works when running Emacs interactively, since we
+;; don't catch SIGPIPE in batch mode.  TODO: Fixing bug#66186 would
+;; probably allow running these tests in batch mode.
+(when (not noninteractive)
+  (ert-deftest process-tests/broken-pipe/pipe ()
+    (process-tests/broken-pipe 'pipe))
+
+  ;; Emacs doesn't support PTYs on MS-Windows.
+  (unless (memq system-type '(ms-dos windows-nt))
+    (ert-deftest process-tests/broken-pipe/pty ()
+      (process-tests/broken-pipe 'pty))
+
+    (ert-deftest process-tests/broken-pipe/pipe-stdin ()
+      (process-tests/broken-pipe '(pipe . pty)))
+
+    (ert-deftest process-tests/broken-pipe/pty-stdin ()
+      (process-tests/broken-pipe '(pty . pipe)))))
+
 (ert-deftest process-num-processors ()
   "Sanity checks for num-processors."
   (should (equal (num-processors) (num-processors)))
   (should (integerp (num-processors)))
   (should (< 0 (num-processors))))
 
+(defmacro process-test--check-pipe-process (args should-have-buffer)
+  `(let ((pipe-process (make-pipe-process ,@args)))
+     (unwind-protect
+         (,(if should-have-buffer 'should 'should-not)
+          (process-buffer pipe-process))
+       (delete-process pipe-process))))
+
 (ert-deftest process-test-make-pipe-process-no-buffer ()
   "Test that a pipe process can be created without a buffer."
-  (should     (process-buffer (make-pipe-process :name "test")))
-  (should     (process-buffer (make-pipe-process :name "test" :buffer "test")))
-  (should-not (process-buffer (make-pipe-process :name "test" :buffer nil))))
+  (process-test--check-pipe-process (:name "test") t)
+  (process-test--check-pipe-process (:name "test" :buffer "test") t)
+  (process-test--check-pipe-process (:name "test" :buffer nil) nil))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here

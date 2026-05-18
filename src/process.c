@@ -6925,10 +6925,8 @@ send_process (Lisp_Object proc, const char *buf, ptrdiff_t len,
 		}
 	      else if (errno == EPIPE)
 		{
-		  p->raw_status_new = 0;
-		  pset_status (p, list2 (Qexit, make_fixnum (256)));
-		  p->tick = ++process_tick;
-		  deactivate_process (proc);
+		  close_process_fd (&p->open_fd[WRITE_TO_SUBPROCESS]);
+		  p->outfd = -1;
 		  error ("Process %s no longer connected to pipe; closed it",
 			 SDATA (p->name));
 		}
