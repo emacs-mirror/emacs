@@ -1073,7 +1073,7 @@ should also run to completion, printing out the line of text it read."
                                  (message "closed stream")
                                  (sit-for 1)
                                  (message "%s" line))))
-                 :connection-type 'pipe)))
+                 :connection-type connection-type)))
       (process-send-string proc "hello\n")
       (while (not (string-prefix-p "closed stream\n" (buffer-string)))
         (accept-process-output))
@@ -1102,20 +1102,15 @@ should also run to completion, printing out the line of text it read."
 ;; These tests only works when running Emacs interactively, since we
 ;; don't catch SIGPIPE in batch mode.  TODO: Fixing bug#66186 would
 ;; probably allow running these tests in batch mode.
-(when (not noninteractive)
-  (ert-deftest process-tests/broken-pipe/pipe ()
-    (process-tests/broken-pipe 'pipe))
+(ert-deftest process-tests/broken-pipe/pipe-all ()
+  (skip-when noninteractive)
+  (process-tests/broken-pipe 'pipe))
 
-  ;; Emacs doesn't support PTYs on MS-Windows.
-  (unless (memq system-type '(ms-dos windows-nt))
-    (ert-deftest process-tests/broken-pipe/pty ()
-      (process-tests/broken-pipe 'pty))
-
-    (ert-deftest process-tests/broken-pipe/pipe-stdin ()
-      (process-tests/broken-pipe '(pipe . pty)))
-
-    (ert-deftest process-tests/broken-pipe/pty-stdin ()
-      (process-tests/broken-pipe '(pty . pipe)))))
+(ert-deftest process-tests/broken-pipe/pipe-stdin ()
+  (skip-when (or noninteractive
+                 ;; Emacs doesn't support PTYs on MS-Windows.
+                 (not (memq system-type '(ms-dos windows-nt)))))
+  (process-tests/broken-pipe '(pipe . pty)))
 
 (ert-deftest process-num-processors ()
   "Sanity checks for num-processors."
