@@ -636,9 +636,8 @@ the URL of the image to the kill buffer instead."
     (if (not url)
 	(message "No image under point")
       (message "Inserting %s..." url)
-      (url-retrieve url #'shr-image-fetched
-		    (list (current-buffer) (1- (point)) (point-marker))
-		    t))))
+      (shr--async-put-image url (1- (point)) (point-marker)
+		            :silent t))))
 
 (defvar shr-image-zoom-level-alist
   `((fit         "Zoom to fit"                shr-rescale-image)
@@ -689,11 +688,9 @@ full-buffer size."
                  (url-is-cached url))
             (shr-replace-image (shr-get-image-data url) start
                                (set-marker (make-marker) end) flags)
-          (url-retrieve url #'shr-image-fetched
-                        `(,(current-buffer) ,start
-                          ,(set-marker (make-marker) end)
-                          ,flags)
-                        t))))))
+          (shr--async-put-image url start end
+                                :flags flags
+                                :silent t))))))
 
 ;;; Utility functions.
 
@@ -1154,7 +1151,7 @@ the mouse click event."
 
 (defun shr-image-fetched (status buffer start end &optional flags)
   (let ((image-buffer (current-buffer)))
-    (when (and (buffer-name buffer)
+    (when (and (buffer-live-p buffer)
 	       (not (plist-get status :error)))
       (url-store-in-cache image-buffer)
       (goto-char (point-min))
@@ -1164,6 +1161,30 @@ the mouse click event."
 	  (with-current-buffer buffer
 	    (shr-replace-image data start end flags)))))
     (kill-buffer image-buffer)))
+
+(defun shr--image-fetched (status ol flags)
+  (unwind-protect
+      (shr-image-fetched status (overlay-buffer ol)
+                         (overlay-start ol)
+                         (overlay-end ol)
+                         flags)
+    (delete-overlay ol)))
+
+(cl-defun shr--async-put-image (url beg end
+                                    &key flags silent inhibit-cookies queue)
+  "Fetch image from URL and place it on BEG..END.
+FLAGS has the same meaning as for `shr-put-image'.
+SILENT and inhibit-cookies have the same meaning as for `ulkr-retrieve.'.
+If QUEUE is non-nil use `url-queue-retrieve’ instead of  `url-retrieve’."
+  (let ((ol (make-overlay beg end nil t)))
+    ;; We could also try to delete the overlay when the text between BEG..END
+    ;; is modified (via `modification-hooks'), but then we'd have to be careful
+    ;; not to do it too eagerly (e.g. it's normal for text-properties to be
+    ;; applied).
+    (overlay-put ol 'evaporate t)
+    (funcall (if queue #'url-queue-retrieve #'url-retrieve)
+             url #'shr--image-fetched
+             (list ol flags) silent inhibit-cookies)))
 
 (defun shr-image-from-data (data)
   "Return an image from the data: URI content DATA."
@@ -1383,9 +1404,8 @@ START, and END.  Note that START and END should be markers."
 		(funcall shr-put-image-function
 			 image (buffer-substring start end))
 		(delete-region (point) end))))
-        (url-retrieve url #'shr-image-fetched
-		      (list (current-buffer) start end)
-		      t t)))))
+        (shr--async-put-image url start end
+		              :silent t :inhibit-cookies t)))))
 
 (defun shr-heading (dom &rest types)
   (shr-ensure-paragraph)
@@ -1972,12 +1992,12 @@ The preference is a float determined from `shr-prefer-media-type'."
                (or (string-trim alt) ""))
             ;; No SVG support.  Just use a space as our placeholder.
             (insert " "))
-	  (url-queue-retrieve
-           url #'shr-image-fetched
-	   (list (current-buffer) start (set-marker (make-marker) (point))
-                 (list :width width :height height))
-	   t
-           (not (shr--use-cookies-p url shr-base)))))
+          (shr--async-put-image url start (point)
+	                        :flags (list :width width :height height)
+	                        :queue t
+	                        :silent t
+	                        :inhibit-cookies
+	                        (not (shr--use-cookies-p url shr-base)))))
 	(when (zerop shr-table-depth) ;; We are not in a table.
 	  (put-text-property start (point) 'keymap shr-image-map)
 	  (put-text-property start (point) 'shr-alt alt)

@@ -763,6 +763,7 @@ HEADER is a header component of a MIME-entity object (see
 	;; Image retrieval happens asynchronously, but meanwhile
 	;; `rmail-swap-buffers' may have been run, leaving
 	;; `shr-image-fetched' trying to insert the image in the wrong buffer.
+	;; FIXME: With `shr--async-put-image' this should now work correctly.
 	(shr-inhibit-images t)
 	;; Bind shr-width to nil to force shr-insert-document break
 	;; the lines at the window margin.  The default is
