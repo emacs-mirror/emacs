@@ -842,8 +842,27 @@ OVERRIDE, START, and END are passed through to
    (treesit-node-start node) (treesit-node-end node)
    'markdown-ts-delimiter override start end)
   (when markdown-ts-hide-markup
-    (put-text-property (treesit-node-start node) (treesit-node-end node)
-                       'invisible 'markdown-ts--markup)))
+    (if (and (derived-mode-p 'markdown-ts-view-mode)
+             (equal (treesit-node-type node) "fenced_code_block_delimiter"))
+        ;; In view-mode only, hide the whole line containing the fence
+        ;; (including its terminating newline) so Eldoc/LSP markdown
+        ;; snippets render without stray blank lines around the code
+        ;; block.  Restricted to view-mode because hide-markup while
+        ;; editing already has UX hazards (point movement, backspace
+        ;; across invisible regions) and we should not tune rendering
+        ;; for that mode.  Restricted to fenced_code_block_delimiter
+        ;; because the same handler is shared by inline delimiters
+        ;; (emphasis, code span, link brackets) where munching
+        ;; surrounding whitespace would collapse word separators.
+        (save-excursion
+          (goto-char (treesit-node-start node))
+          (let ((bol (pos-bol))
+                (eol+1 (progn (goto-char (treesit-node-end node))
+                              (min (point-max) (1+ (pos-eol))))))
+            (put-text-property bol eol+1
+                               'invisible 'markdown-ts--markup)))
+      (put-text-property (treesit-node-start node) (treesit-node-end node)
+                         'invisible 'markdown-ts--markup))))
 
 (defun markdown-ts--fontify-atx-delimiter (node override start end &rest _)
   "Fontify atx_heading delimiter NODE and optionally hide its markup.
