@@ -2980,10 +2980,9 @@ int
 serial_open (Lisp_Object port)
 {
   int fd = emacs_open (SSDATA (port), O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
-  if (fd < 0)
-    report_file_error ("Opening serial port", port);
 #ifdef TIOCEXCL
-  ioctl (fd, TIOCEXCL, (char *) 0);
+  if (0 <= fd)
+    ioctl (fd, TIOCEXCL, (char *) 0);
 #endif
 
   return fd;
