@@ -220,7 +220,9 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'cmake
   :syntax-table cmake-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'cmake)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'cmake)
+             (treesit-ready-p 'cmake))
     (setq treesit-primary-parser (treesit-parser-create 'cmake))
 
     ;; Comments.

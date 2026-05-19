@@ -675,7 +675,9 @@ Calls REPORT-FN directly."
   :syntax-table lua-ts--syntax-table
   (use-local-map lua-ts-mode-map)
 
-  (when (treesit-ensure-installed 'lua)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'lua)
+             (treesit-ready-p 'lua))
     (setq treesit-primary-parser (treesit-parser-create 'lua))
 
     ;; Comments.

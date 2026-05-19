@@ -142,7 +142,9 @@ of `define-treesit-generic-mode'.
 ;;;###autoload
 (defun treesit-generic-mode-setup (lang)
   "Go into the treesit generic mode MODE."
-  (when (treesit-ensure-installed lang)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed lang)
+             (treesit-ready-p lang))
     (setq treesit-primary-parser (treesit-parser-create lang))
 
     (when-let* ((query (treesit-generic-mode-font-lock-query lang)))

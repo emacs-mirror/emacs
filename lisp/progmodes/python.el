@@ -7477,9 +7477,11 @@ implementations: `python-mode' and `python-ts-mode'."
 
 \\{python-ts-mode-map}"
   :syntax-table python-mode-syntax-table
-  (when (if (fboundp 'treesit-ensure-installed) ; Emacs 31
-            (treesit-ensure-installed 'python)
-          (treesit-ready-p 'python))
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (if (fboundp 'treesit-ensure-installed) ; Emacs 31
+                 (treesit-ensure-installed 'python)
+               t)
+             (treesit-ready-p 'python))
     (setq treesit-primary-parser (treesit-parser-create 'python))
     (setq-local treesit-font-lock-feature-list
                 '(( comment definition)

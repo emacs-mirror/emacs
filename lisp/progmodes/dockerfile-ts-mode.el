@@ -167,7 +167,9 @@ Return nil if there is no name or if NODE is not a stage node."
   :group 'dockerfile
   :syntax-table dockerfile-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'dockerfile)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'dockerfile)
+             (treesit-ready-p 'dockerfile))
     (setq treesit-primary-parser (treesit-parser-create 'dockerfile))
 
     ;; Comments.

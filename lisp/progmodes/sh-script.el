@@ -1583,7 +1583,9 @@ with your script for an edit-interpret-debug cycle."
 This mode automatically falls back to `sh-mode' if the buffer is
 not written in Bash or sh."
   :syntax-table sh-mode-syntax-table
-  (when (treesit-ensure-installed 'bash)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'bash)
+             (treesit-ready-p 'bash))
     (sh-set-shell "bash" nil nil)
     (add-hook 'flymake-diagnostic-functions #'sh-shellcheck-flymake nil t)
     (add-hook 'hack-local-variables-hook

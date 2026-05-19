@@ -138,7 +138,9 @@ Return nil if there is no name or if NODE is not a defun node."
   :group 'toml-mode
   :syntax-table toml-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'toml)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'toml)
+             (treesit-ready-p 'toml))
     (setq treesit-primary-parser (treesit-parser-create 'toml))
 
     ;; Comments

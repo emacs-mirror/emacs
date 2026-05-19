@@ -287,7 +287,9 @@
   :group 'go
   :syntax-table go-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'go)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'go)
+             (treesit-ready-p 'go))
     (setq treesit-primary-parser (treesit-parser-create 'go))
 
     ;; Comments.
@@ -608,7 +610,9 @@ what the parent of the node would be if it were a node."
   :group 'go
   :syntax-table go-mod-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'gomod)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'gomod)
+             (treesit-ready-p 'gomod))
     (setq treesit-primary-parser (treesit-parser-create 'gomod))
 
     ;; Comments.
@@ -712,7 +716,9 @@ what the parent of the node would be if it were a node."
   "Major mode for editing go.work files, powered by tree-sitter."
   :group 'go
 
-  (when (treesit-ensure-installed 'gowork)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'gowork)
+             (treesit-ready-p 'gowork))
     (setq treesit-primary-parser (treesit-parser-create 'gowork))
 
     ;; Comments.
