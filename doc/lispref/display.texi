@@ -3539,6 +3539,11 @@ buffer text.  Note that this is so even if the overlay or display
 string is displayed in the display margins (@pxref{Display Margins}).
 
 @item
+If the text is to be shown in the display margins, and any given
+attribute has not been specified during the preceding steps, Emacs
+applies the attribute of the @code{margin} face.
+
+@item
 If any given attribute has not been specified during the preceding
 steps, Emacs applies the attribute of the @code{default} face.
 @end itemize
