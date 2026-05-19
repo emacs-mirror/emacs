@@ -1110,6 +1110,7 @@ object."
                                            t
                                          :json-false)
                                       :deprecatedSupport t
+                                      :documentationFormat ,(eglot--accepted-formats)
                                       :resolveSupport (:properties
                                                        ["documentation"
                                                         "details"
