@@ -492,8 +492,7 @@ inrange_fd (int fd)
 }
 
 /* Create a pipe into FD[0] and fd[1], refusing to create file
-   descriptors out of range.  This is like inrange_fd, that it
-   only.  */
+   descriptors out of range.  */
 static int
 inrange_pipe (int fd[2])
 {
