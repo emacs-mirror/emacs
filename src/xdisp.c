@@ -27922,6 +27922,11 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
   struct glyph_row *row;
   size_t item_len = strlen (item_text);
 
+  /* FIXME: callers do not seem to guarantee that the length is sane.
+     If it gets close to or greater than INT_MAX, things will go squirrelly.
+     Also, shouldn't this use menu_item_width rather than strlen?  */
+  eassert (item_len <= INT_MAX / 2);
+
   struct frame *rf = NULL;
 
   if (FRAME_PARENT_FRAME (f) && !FRAME_WINDOW_P (f)
