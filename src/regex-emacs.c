@@ -3044,8 +3044,7 @@ static bool
 forall_firstchar (struct re_pattern_buffer *bufp, re_char *p, re_char *pend,
                   bool f (re_char *p, void *arg), void *arg)
 {
-  eassert (!bufp || bufp->used);
-  eassert (pend || bufp->used);
+  eassert (bufp ? !!bufp->used : !!pend);
   return forall_firstchar_1 (p, pend,
                              bufp ? bufp->buffer - 1 : p,
                              bufp ? bufp->buffer + bufp->used + 1 : pend,
