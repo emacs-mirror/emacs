@@ -26321,8 +26321,6 @@ x_unwind_errors_to (int depth)
     x_uncatch_errors ();
 }
 
-#define X_ERROR_MESSAGE_SIZE 200
-
 /* An X error handler which stores the error message in the first
    applicable handler in the x_error_message stack.  This is called
    from *x_error_handler if an x_catch_errors for DISPLAY is in

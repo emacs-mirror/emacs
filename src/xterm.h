@@ -129,6 +129,8 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include "dispextern.h"
 #include "termhooks.h"
 
+enum { X_ERROR_MESSAGE_SIZE = 200 };
+
 INLINE_HEADER_BEGIN
 
 /* Black and white pixel values for the screen which frame F is on.  */

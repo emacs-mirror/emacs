@@ -1398,10 +1398,9 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if (x_had_errors_p (dpy))
     {
       const char *bad_cursor_name = NULL;
-      /* Bounded by X_ERROR_MESSAGE_SIZE in xterm.c.  */
-      size_t message_length = strlen (cursor_data.error_string);
-      char *xmessage = alloca (1 + message_length);
-      memcpy (xmessage, cursor_data.error_string, message_length);
+      char xmessage[X_ERROR_MESSAGE_SIZE];
+      eassert (strlen (cursor_data.error_string) < sizeof xmessage);
+      strcpy (xmessage, cursor_data.error_string);
 
       x_uncatch_errors_after_check ();
 
