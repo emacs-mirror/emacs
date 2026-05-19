@@ -137,6 +137,8 @@ or `eshell-printn' for display."
         "To terminate with a newline, you should use -N instead."))
      (eshell-echo args output-newline))))
 
+(put 'eshell/echo 'eshell-literal-result t)
+
 (defun eshell/printnl (&rest args)
   "Print out each of the arguments as strings, separated by newlines."
   (let ((elems (flatten-tree args)))

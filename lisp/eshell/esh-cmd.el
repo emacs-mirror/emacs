@@ -105,6 +105,7 @@
 (require 'esh-proc)
 (require 'esh-module)
 (require 'esh-ext)
+(require 'esh-worker)
 
 (require 'eldoc)
 (require 'generator)
@@ -1585,7 +1586,20 @@ a string naming a Lisp function."
     (let* ((eshell-ensure-newline-p t)
            (command-form-p (and (functionp object)
                                 (symbolp object)))
-           result)
+           (literal-result (when command-form-p
+                             (get object 'eshell-literal-result)))
+           result worker-result
+           (printer
+            (lambda (object)
+              (setq worker-result
+                    (cond
+                     ((and (not literal-result) (eshell-worker-p object))
+                      object)
+                     ((and (not literal-result)
+                           (memq eshell-in-pipeline-p '(t last))
+                           (eshell-get-pipe object)))
+                     (t
+                      (ignore (eshell-print-maybe-n object))))))))
       (if command-form-p
           (setq eshell-last-arguments (eshell-convert-args args object)
                 eshell-last-command-name (format "#<function %s>"
@@ -1593,7 +1607,7 @@ a string naming a Lisp function."
         (setq eshell-last-arguments args
               eshell-last-command-name "#<Lisp object>"))
       (setq result (eshell-exec-lisp
-                    #'eshell-print-maybe-n #'eshell-error-maybe-n
+                    printer #'eshell-error-maybe-n
                     object eshell-last-arguments (not command-form-p)))
       (when (memq eshell-in-pipeline-p '(nil last))
         (eshell-set-exit-info
@@ -1606,7 +1620,7 @@ a string naming a Lisp function."
                     (not result))
            2)
          result))
-      nil)))
+      worker-result)))
 
 (define-obsolete-function-alias 'eshell-lisp-command* #'eshell-lisp-command
   "31.1")
