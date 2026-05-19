@@ -607,13 +607,6 @@ static struct link_weight const
 
 /* Dump file creation */
 
-static void dump_grow_buffer (struct dump_context *ctx)
-{
-  ctx->buf = xrealloc (ctx->buf, ctx->buf_size = (ctx->buf_size ?
-						  (ctx->buf_size * 2)
-						  : 8 * 1024 * 1024));
-}
-
 static dump_off dump_object (struct dump_context *ctx, Lisp_Object object);
 static dump_off dump_object_for_offset (struct dump_context *ctx,
 					Lisp_Object object);
@@ -786,9 +779,17 @@ dump_write (struct dump_context *ctx, const void *buf, dump_off nbyte)
   eassert (nbyte == 0 || buf != NULL);
   eassert (ctx->obj_offset == 0);
   eassert (ctx->flags.dump_object_contents);
-  while (ctx->offset + nbyte > ctx->buf_size)
-    dump_grow_buffer (ctx);
-  memcpy ((char *)ctx->buf + ctx->offset, buf, nbyte);
+  dump_off avail = ctx->buf_size - ctx->offset;
+  if (avail < nbyte)
+    {
+      static_assert (DUMP_OFF_MAX <= PTRDIFF_MAX);
+      ptrdiff_t buf_size = ctx->buf_size;
+      ctx->buf = xpalloc (ctx->buf, &buf_size,
+			  max (nbyte - avail, 8 * 1024 * 1024),
+			  DUMP_OFF_MAX, 1);
+      ctx->buf_size = buf_size;
+    }
+  memcpy ((char *) {ctx->buf} + ctx->offset, buf, nbyte);
   ctx->offset += nbyte;
 }
 
