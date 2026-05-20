@@ -361,23 +361,18 @@ soon as a function returns non-nil.")
 (defun auth-source-backend-parse (entry)
   "Create an `auth-source-backend' from an ENTRY in `auth-sources'."
 
-  (let* ((auth-source-backend-parser-functions
-          ;; The functions shall drop backends of type `ignore', in
-          ;; order to let the hook continue.
-          (mapcar
-           (lambda (fun)
-             `(lambda (entry)
-                (and-let* ((result (funcall ',fun entry))
-                           ((not (eq (slot-value result 'type) 'ignore)))
-                            result))))
-           auth-source-backend-parser-functions))
-         (backend
-          (run-hook-with-args-until-success
-           'auth-source-backend-parser-functions entry)))
+  (let* ((backend
+          (run-hook-wrapped
+           'auth-source-backend-parser-functions
+           (lambda (fun entry)
+             (when-let* ((result (funcall fun entry))
+                         (_ (not (eq (slot-value result 'type) 'ignore))))
+               result))
+           entry)))
 
     (unless backend
       ;; none of the parsers worked
-      (auth-source-do-warn
+      (auth-source-do-debug
        "auth-source-backend-parse: invalid backend spec: %S" entry)
       (setq backend (make-instance 'auth-source-backend
                                    :source ""
