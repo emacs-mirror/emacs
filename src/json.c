@@ -244,13 +244,10 @@ symset_add (json_out_t *jo, symset_t *ss, Lisp_Object sym)
 }
 
 static NO_INLINE void
-json_out_grow_buf (json_out_t *jo, ptrdiff_t bytes)
+json_out_grow_buf (json_out_t *jo, ptrdiff_t incr_min)
 {
-  ptrdiff_t need = jo->size + bytes;
-  ptrdiff_t new_size = max (jo->capacity, 512);
-  while (new_size < need)
-    new_size <<= 1;
-  jo->buf = xrealloc (jo->buf, new_size);
+  ptrdiff_t new_size = jo->capacity;
+  jo->buf = xpalloc (jo->buf, &new_size, incr_min, -1, 1);
   jo->capacity = new_size;
 }
 
@@ -267,8 +264,9 @@ cleanup_json_out (void *arg)
 static void
 json_make_room (json_out_t *jo, ptrdiff_t bytes)
 {
-  if (bytes > jo->capacity - jo->size)
-    json_out_grow_buf (jo, bytes);
+  ptrdiff_t avail = jo->capacity - jo->size;
+  if (avail < bytes)
+    json_out_grow_buf (jo, bytes - avail);
 }
 
 #define JSON_OUT_STR(jo, str) (json_out_str (jo, str, sizeof (str) - 1))
@@ -803,36 +801,20 @@ json_parser_done (void *parser)
    Lisp_Objects */
 NO_INLINE static void
 json_make_object_workspace_for_slow_path (struct json_parser *parser,
-					  size_t size)
+					  ptrdiff_t size)
 {
-  size_t needed_workspace_size
-    = (parser->object_workspace_current + size);
-  size_t new_workspace_size = parser->object_workspace_size;
-  while (new_workspace_size < needed_workspace_size)
-    {
-      if (ckd_mul (&new_workspace_size, new_workspace_size, 2))
-	{
-	  json_signal_error (parser, Qjson_out_of_memory);
-	}
-    }
-
-  Lisp_Object *new_workspace_ptr;
-  if (parser->object_workspace_size
-      == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE)
-    {
-      new_workspace_ptr
-	= xnmalloc (new_workspace_size, sizeof (Lisp_Object));
-      memcpy (new_workspace_ptr, parser->object_workspace,
-	      (sizeof (Lisp_Object)
-	       * parser->object_workspace_current));
-    }
-  else
-    {
-      new_workspace_ptr
-	= xnrealloc (parser->object_workspace, new_workspace_size,
-		     sizeof (Lisp_Object));
-    }
-
+  bool internal = (parser->object_workspace_size
+		   == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE);
+  ptrdiff_t new_workspace_size = parser->object_workspace_size;
+  Lisp_Object *new_workspace_ptr
+    = xpalloc (internal ? NULL : parser->object_workspace,
+	       &new_workspace_size,
+	       size - (parser->object_workspace_size
+		       - parser->object_workspace_current),
+	       -1, sizeof (Lisp_Object));
+  if (internal)
+    memcpy (new_workspace_ptr, parser->object_workspace,
+	    sizeof (Lisp_Object) * parser->object_workspace_current);
   parser->object_workspace = new_workspace_ptr;
   parser->object_workspace_size = new_workspace_size;
 }
@@ -854,33 +836,23 @@ json_byte_workspace_reset (struct json_parser *parser)
   parser->byte_workspace_current = parser->byte_workspace;
 }
 
-/* Puts 'value' into the byte_workspace.  If there is no space
-   available, it allocates space */
+/* Put VALUE into the byte_workspace, allocating space.  */
 NO_INLINE static void
 json_byte_workspace_put_slow_path (struct json_parser *parser,
 				   unsigned char value)
 {
-  size_t new_workspace_size
+  ptrdiff_t new_workspace_size
     = parser->byte_workspace_end - parser->byte_workspace;
-  if (ckd_mul (&new_workspace_size, new_workspace_size, 2))
-    {
-      json_signal_error (parser, Qjson_out_of_memory);
-    }
-
-  size_t offset
+  ptrdiff_t offset
     = parser->byte_workspace_current - parser->byte_workspace;
 
-  if (parser->byte_workspace == parser->internal_byte_workspace)
-    {
-      parser->byte_workspace = xmalloc (new_workspace_size);
-      memcpy (parser->byte_workspace, parser->internal_byte_workspace,
-	      offset);
-    }
-  else
-    {
-      parser->byte_workspace
-	= xrealloc (parser->byte_workspace, new_workspace_size);
-    }
+  bool internal = parser->byte_workspace == parser->internal_byte_workspace;
+  unsigned char *new
+    = xpalloc (internal ? NULL : parser->byte_workspace,
+	       &new_workspace_size, 1, -1, 1);
+  if (internal)
+    memcpy (new, parser->byte_workspace, offset);
+  parser->byte_workspace = new;
   parser->byte_workspace_end
     = parser->byte_workspace + new_workspace_size;
   parser->byte_workspace_current = parser->byte_workspace + offset;
