@@ -613,7 +613,7 @@ sfnt_parse_languages (struct sfnt_meta_table *meta,
   /* Now copy metadata and add a trailing NULL byte.  */
 
   if (map.data_length >= SIZE_MAX)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   metadata = SAFE_ALLOCA ((size_t) map.data_length + 1);
   memcpy (metadata, data, map.data_length);

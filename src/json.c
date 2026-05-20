@@ -142,7 +142,7 @@ make_symset_table (int bits, struct symset_tbl *up)
 {
   int maxbits = min (SIZE_WIDTH - 2 - (word_size < 8 ? 2 : 3), 32);
   if (bits > maxbits)
-    memory_full (PTRDIFF_MAX);	/* Will never happen in practice.  */
+    memory_full_up ();	/* Will never happen in practice.  */
   struct symset_tbl *st = xmalloc (sizeof *st + (sizeof *st->entries << bits));
   st->up = up;
   ptrdiff_t size = symset_size (bits);

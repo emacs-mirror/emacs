@@ -2109,7 +2109,7 @@ For an approximate inverse of this, see `kbd'.  */)
   /* This has one extra element at the end that we don't pass to Fconcat.  */
   ptrdiff_t size4;
   if (ckd_mul (&size4, nkeys + nprefix, 4))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   SAFE_ALLOCA_LISP (args, size4);
 
   /* In effect, this computes

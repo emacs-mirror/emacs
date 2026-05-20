@@ -2166,7 +2166,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   outbufsize = str_bytes;
   if (ckd_mul (&outbufsize, outbufsize, buf_magnification)
       || ckd_add (&outbufsize, outbufsize, 256))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   outp = outbuf = xmalloc (outbufsize);
 
   consumed_chars = consumed_bytes = 0;

@@ -1601,7 +1601,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
      SAFE_ALLOCA won't work here due to the setjmp, so impose a
      MAX_ALLOCA limit.  */
   if (MAX_ALLOCA / word_size < clausenb)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   Lisp_Object volatile *clauses = alloca (clausenb * sizeof *clauses);
   clauses += clausenb;
   *--clauses = make_fixnum (0);

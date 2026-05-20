@@ -1882,7 +1882,7 @@ x_get_window_property (Display *display, Window window, Atom property,
   if (data)
     xfree (data);
   unblock_input ();
-  memory_full (SIZE_MAX);
+  memory_full_up ();
 }
 
 /* Use xfree, not XFree, to free the data obtained with this function.  */
@@ -1903,7 +1903,7 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
   Display *display = dpyinfo->display;
 
   if (min (PTRDIFF_MAX, SIZE_MAX) < min_size_bytes)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   *data_ret = xmalloc (min_size_bytes);
   *size_bytes_ret = min_size_bytes;
 
@@ -3063,7 +3063,7 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
   ptrdiff_t format_bytes = format >> 3;
   ptrdiff_t data_bytes;
   if (ckd_mul (&data_bytes, size, format_bytes))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   return selection_data_to_lisp_data (FRAME_DISPLAY_INFO (f), data,
 				      data_bytes, type, format);
 }

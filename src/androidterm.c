@@ -6831,7 +6831,7 @@ android_term_init (void)
 	static char const at[] = " at ";
 	ptrdiff_t nbytes = sizeof (title) + sizeof (at);
 	if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
-	  memory_full (SIZE_MAX);
+	  memory_full_up ();
 	dpyinfo->x_id_name = xmalloc (nbytes);
 	sprintf (dpyinfo->x_id_name, "%s%s%s", title, at,
 		 SDATA (system_name));

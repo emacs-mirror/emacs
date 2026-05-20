@@ -3413,7 +3413,7 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
     nbytes = SBYTES (str);
 
   if (ckd_add (&nbytes, nbytes, ssl->bytes))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   ssl->bytes = nbytes;
 
   if (STRINGP (str2))
@@ -3427,7 +3427,7 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
 	nbytes = SBYTES (str2);
 
       if (ckd_add (&nbytes, nbytes, ssl->bytes))
-	memory_full (SIZE_MAX);
+	memory_full_up ();
       ssl->bytes = nbytes;
     }
 }
@@ -3499,7 +3499,7 @@ overlay_strings (ptrdiff_t pos, struct window *w, unsigned char **pstr)
       ptrdiff_t total;
 
       if (ckd_add (&total, overlay_heads.bytes, overlay_tails.bytes))
-	memory_full (SIZE_MAX);
+	memory_full_up ();
       if (total > overlay_str_len)
 	overlay_str_buf = xpalloc (overlay_str_buf, &overlay_str_len,
 				   total - overlay_str_len, -1, 1);

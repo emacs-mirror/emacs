@@ -2080,7 +2080,7 @@ a buffer or a string.  But this is deprecated.  */)
   ptrdiff_t bytes_needed;
   if (ckd_mul (&bytes_needed, diags, 2 * sizeof *buffer)
       || ckd_add (&bytes_needed, bytes_needed, del_bytes + ins_bytes))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   USE_SAFE_ALLOCA;
   buffer = SAFE_ALLOCA (bytes_needed);
   unsigned char *deletions_insertions = memset (buffer + 2 * diags, 0,
@@ -3510,7 +3510,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   v |= ckd_add (&alloca_size, info_size, format_and_discarded_size);
   v |= SIZE_MAX < alloca_size;
   if (v)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   /* The info table.  */
   info = SAFE_ALLOCA (alloca_size);
   /* A copy of the format string's bytes, needed because the original

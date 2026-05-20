@@ -698,7 +698,7 @@ get_utf8_string (const char *str)
       if (ckd_mul (&alloc, nr_bad, 4)
 	  || ckd_add (&alloc, alloc, len + 1)
 	  || SIZE_MAX < alloc)
-	memory_full (SIZE_MAX);
+	memory_full_up ();
       up = utf8_str = xmalloc (alloc);
       p = (unsigned char *)str;
 
@@ -4382,7 +4382,7 @@ xg_store_widget_in_map (GtkWidget *w)
     {
       ptrdiff_t new_size;
       if (TYPE_MAXIMUM (Window) - ID_TO_WIDGET_INCR < id_to_widget.max_size)
-	memory_full (SIZE_MAX);
+	memory_full_up ();
 
       new_size = id_to_widget.max_size + ID_TO_WIDGET_INCR;
       id_to_widget.widgets = xnrealloc (id_to_widget.widgets,

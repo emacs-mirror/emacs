@@ -315,7 +315,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	       : ASIZE (key));
 
   if (GLYPH_LEN_MAX < glyph_len)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   /* Register the composition in composition_table.  */
   cmp = xmalloc (sizeof *cmp);

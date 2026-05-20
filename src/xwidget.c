@@ -2462,7 +2462,7 @@ webkit_js_to_lisp (JSCValue *value)
 
       Lisp_Object obj;
       if (! (0 <= dlen && dlen < G_MAXINT32))
-	memory_full (SIZE_MAX);
+	memory_full_up ();
 
       ptrdiff_t n = dlen;
       struct Lisp_Vector *p = allocate_nil_vector (n);

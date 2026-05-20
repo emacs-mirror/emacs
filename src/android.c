@@ -4948,7 +4948,7 @@ android_get_image (android_drawable handle,
 		   (size_t) bitmap_info.height))
 	{
 	  ANDROID_DELETE_LOCAL_REF (bitmap);
-	  memory_full (0);
+	  memory_full_up ();
 	}
     }
   else

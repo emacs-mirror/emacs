@@ -618,7 +618,7 @@ does not have any corresponding data.  In that case, use
 
       if (ckd_add (&length, length, rc)
 	  || PTRDIFF_MAX - length < BUFSIZ)
-	memory_full (PTRDIFF_MAX);
+	memory_full_up ();
 
       if (rc < 0)
 	return unbind_to (ref, Qnil);

@@ -1403,7 +1403,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 
   /* Enlarge the glyph pool.  */
   if (ckd_mul (&needed, matrix_dim.height, matrix_dim.width))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   if (needed > pool->nglyphs)
     {
       ptrdiff_t old_nglyphs = pool->nglyphs;
@@ -5412,7 +5412,7 @@ scrolling_window (struct window *w, int tab_line_p)
        - next_almost_prime_increment_max);
     ptrdiff_t current_nrows_max = row_table_max - desired_matrix->nrows;
     if (current_nrows_max < current_matrix->nrows)
-      memory_full (SIZE_MAX);
+      memory_full_up ();
   }
 
   /* Reallocate vectors, tables etc. if necessary.  */

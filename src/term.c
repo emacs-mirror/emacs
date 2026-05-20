@@ -554,7 +554,7 @@ encode_terminal_code (struct glyph *src, int src_len,
      Vglyph_table contains a string or a composite glyph is
      encountered.  */
   if (ckd_mul (&required, src_len, MAX_MULTIBYTE_LENGTH))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   if (encode_terminal_src_size < required)
     encode_terminal_src = xpalloc (encode_terminal_src,
 				   &encode_terminal_src_size,
@@ -1245,7 +1245,7 @@ calculate_costs (struct frame *frame)
       max_frame_cols = max (max_frame_cols, FRAME_COLS (frame));
       if ((min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) - 1) / 2
 	  < max_frame_cols)
-	memory_full (SIZE_MAX);
+	memory_full_up ();
 
       char_ins_del_vector =
 	xrealloc (char_ins_del_vector,

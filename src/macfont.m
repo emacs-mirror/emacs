@@ -3119,7 +3119,7 @@ macfont_shape (Lisp_Object lgstring, Lisp_Object direction)
   len = i;
 
   if (INT_MAX / 2 < len)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   unichars = alloca (sizeof (UniChar) * (len + nonbmp_len));
   nonbmp_indices = alloca (sizeof (CFIndex) * (nonbmp_len + 1));

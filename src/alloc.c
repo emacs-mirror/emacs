@@ -711,7 +711,7 @@ xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
   eassert (0 <= nitems && 0 < item_size);
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   return xmalloc (nbytes);
 }
 
@@ -725,7 +725,7 @@ xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
   eassert (0 <= nitems && 0 < item_size);
   ptrdiff_t nbytes;
   if (ckd_mul (&nbytes, nitems, item_size) || SIZE_MAX < nbytes)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   return xrealloc (pa, nbytes);
 }
 
@@ -792,7 +792,7 @@ xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
       && (ckd_add (&n, n0, nitems_incr_min)
 	  || (0 <= nitems_max && nitems_max < n)
 	  || ckd_mul (&nbytes, n, item_size)))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   pa = xrealloc (pa, nbytes);
   *nitems = n;
   return pa;
@@ -1111,7 +1111,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 	    {
 	      lisp_malloc_loser = base;
 	      free (base);
-	      memory_full (SIZE_MAX);
+	      memory_full_up ();
 	    }
 	}
 #endif
@@ -2181,7 +2181,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   CHECK_FIXNAT (length);
   EMACS_INT len = XFIXNAT (length);
   if (BOOL_VECTOR_LENGTH_MAX < len)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   Lisp_Object val = make_clear_bool_vector (len, NILP (init));
   return NILP (init) ? val : bool_vector_fill (val, init);
 }
@@ -2193,7 +2193,7 @@ usage: (bool-vector &rest OBJECTS)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   if (BOOL_VECTOR_LENGTH_MAX < nargs)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   Lisp_Object vector = make_clear_bool_vector (nargs, true);
   for (ptrdiff_t i = 0; i < nargs; i++)
     if (!NILP (args[i]))
@@ -3397,7 +3397,7 @@ allocate_clear_vector (ptrdiff_t len, bool clearit)
   if (len == 0)
     return XVECTOR (zero_vector);
   if (VECTOR_ELTS_MAX < len)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   struct Lisp_Vector *v = allocate_vectorlike (len, clearit);
   v->header.size = len;
   return v;
@@ -4140,6 +4140,16 @@ memory_full (size_t nbytes)
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
   xsignal (Qnil, Vmemory_signal_data);
+}
+
+/* Report memory exhaustion because size calculations overflowed,
+   or perhaps malloc was invoked successfully but the
+   resulting pointer had problems fitting into a tagged EMACS_INT.  */
+
+void
+memory_full_up (void)
+{
+  memory_full (SIZE_MAX);
 }
 
 /* If we released our reserve (due to running out of memory),

@@ -79,7 +79,7 @@ static size_t max_scanline_buffer_size;
       size_t _size;						\
 								\
       if (ckd_mul (&_size, height, stride))			\
-	memory_full (SIZE_MAX);					\
+	memory_full_up ();					\
 								\
       if (_size < MAX_ALLOCA)					\
 	(buffer) = alloca (_size);				\
@@ -113,7 +113,7 @@ static size_t max_scanline_buffer_size;
       void *_temp;						\
 								\
       if (ckd_mul (&_size, height, stride))			\
-	memory_full (SIZE_MAX);					\
+	memory_full_up ();					\
 								\
       if (_size > scanline_buffer.buffer_size)			\
 	{							\

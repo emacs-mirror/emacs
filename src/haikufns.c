@@ -2025,7 +2025,7 @@ haiku_create_colored_cursor (struct user_cursor_bitmap_info *info,
   bitmap = BBitmap_new (width, height, false);
 
   if (!bitmap)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   for (y = 0; y < height; ++y)
     {

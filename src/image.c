@@ -6950,7 +6950,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
   if (ckd_mul (&nbytes, sizeof *colors, img->width)
       || ckd_mul (&nbytes, nbytes, img->height)
       || SIZE_MAX < nbytes)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   colors = xmalloc (nbytes);
 
   /* Get the X image or create a memory device context for IMG. */
@@ -7100,7 +7100,7 @@ image_detect_edges (struct frame *f, struct image *img,
 
   if (ckd_mul (&nbytes, sizeof *new, img->width)
       || ckd_mul (&nbytes, nbytes, img->height))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   new = xmalloc (nbytes);
 
   for (y = 0; y < img->height; ++y)
@@ -8486,7 +8486,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   /* Allocate memory for the image.  */
   if (ckd_mul (&nbytes, row_bytes, sizeof *pixels)
       || ckd_mul (&nbytes, nbytes, height))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   c->pixels = pixels = xmalloc (nbytes);
   c->rows = rows = xmalloc (height * sizeof *rows);
   for (i = 0; i < height; ++i)

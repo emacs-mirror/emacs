@@ -7045,7 +7045,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 		  ptrdiff_t dst_size;
 		  if (ckd_mul (&dst_size, to_nchars, MAX_MULTIBYTE_LENGTH)
 		      || ckd_add (&dst_size, dst_size, buf_end - buf))
-		    memory_full (SIZE_MAX);
+		    memory_full_up ();
 		  dst = alloc_destination (coding, dst_size, dst);
 		  if (EQ (coding->src_object, coding->dst_object)
 		      /* Input and output are not C buffers, which are safe to

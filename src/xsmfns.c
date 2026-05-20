@@ -224,7 +224,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->type = xstrdup (SmLISTofARRAY8);
   /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir ... */
   if (ckd_add (&i, initial_argc, 3))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   props[props_idx]->num_vals = i;
   vp = xnmalloc (i, sizeof *vp);
   props[props_idx]->vals = vp;
