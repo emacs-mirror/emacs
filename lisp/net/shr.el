@@ -2290,8 +2290,7 @@ See `outline-search-function' for BOUND, MOVE, BACKWARD and LOOKING-AT."
 	  (bound (or bound
 		     (if backward (point-min) (point-max)))))
       (save-excursion
-	(when (and (not (bolp))
-		   (get-text-property (point) 'outline-level))
+	(when (get-text-property (point) 'outline-level)
 	  (forward-line (if backward -1 1)))
 	(if backward
 	    (unless (get-text-property (point) 'outline-level)
