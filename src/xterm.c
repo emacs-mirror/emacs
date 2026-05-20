@@ -12696,7 +12696,7 @@ x_dnd_process_quit (struct frame *f, Time timestamp)
 Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   Lisp_Object return_frame, Atom *ask_action_list,
-			   const char **ask_action_names, size_t n_ask_actions,
+			   const char **ask_action_names, int n_ask_actions,
 			   bool allow_current_frame, Atom *target_atoms,
 			   int ntargets, Lisp_Object selection_target_list,
 			   bool follow_tooltip)
@@ -12710,7 +12710,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   char *atom_name, *ask_actions;
   Lisp_Object action, ltimestamp, val;
   specpdl_ref ref, count, base;
-  ptrdiff_t i, end, fill;
+  ptrdiff_t end, fill;
   XTextProperty prop;
   Lisp_Object frame_object, x, y, frame, local_value;
   bool signals_were_pending, need_sync;
@@ -12802,7 +12802,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       end = 0;
       count = SPECPDL_INDEX ();
 
-      for (i = 0; i < n_ask_actions; ++i)
+      for (int i = 0; i < n_ask_actions; i++)
 	{
 	  fill = end;
 	  end += strlen (ask_action_names[i]) + 1;
