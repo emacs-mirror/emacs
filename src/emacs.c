@@ -753,19 +753,22 @@ default_PATH (void)
     {
 #ifdef _CS_PATH
       char *buf = staticbuf;
-      size_t bufsize = sizeof staticbuf, s;
+      size_t bufsize = sizeof staticbuf;
 
-      /* If necessary call confstr a second time with a bigger buffer.  */
-      while (bufsize < (s = confstr (_CS_PATH, buf, bufsize)))
+      /* If necessary call confstr again with a bigger buffer.  */
+      for (size_t s;
+	   ! (s = confstr (_CS_PATH, buf, bufsize)) || bufsize < s; )
 	{
+	  if (buf != staticbuf)
+	    xfree (buf);
+	  if (!s)
+	    {
+	      staticbuf[0] = 1;
+	      buf = NULL;
+	      break;
+	    }
 	  buf = xmalloc (s);
 	  bufsize = s;
-	}
-
-      if (s == 0)
-	{
-	  staticbuf[0] = 1;
-	  buf = NULL;
 	}
 
       path = buf;
