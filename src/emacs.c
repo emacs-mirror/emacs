@@ -1228,8 +1228,7 @@ load_seccomp (const char *file)
       goto out;
     }
   struct sock_fprog program;
-  if (stat.st_size <= 0 || SIZE_MAX <= stat.st_size
-      || PTRDIFF_MAX <= stat.st_size
+  if (stat.st_size <= 0 || min (PTRDIFF_MAX, SIZE_MAX) <= stat.st_size
       || stat.st_size % sizeof *program.filter != 0)
     {
       fprintf (stderr, "seccomp filter %s has invalid size %ld\n",
