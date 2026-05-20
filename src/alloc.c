@@ -1501,7 +1501,7 @@ sdata_size (ptrdiff_t n)
    calculating a value to be passed to malloc.  */
 static ptrdiff_t const STRING_BYTES_MAX =
   min (STRING_BYTES_BOUND,
-       ((SIZE_MAX
+       ((min (PTRDIFF_MAX, SIZE_MAX)
 	 - GC_STRING_EXTRA
 	 - offsetof (struct sblock, data)
 	 - SDATA_DATA_OFFSET)
