@@ -52,7 +52,7 @@ main (int argc, char **argv)
   int opt, ncolors = 0, i;
   XColor *allocated;
   int nallocated;
-  XColor color;
+  XColor color = {0};
   Colormap cmap;
 
   while ((opt = getopt (argc, argv, "n:")) != EOF)
@@ -76,7 +76,6 @@ main (int argc, char **argv)
 
   allocated = malloc (ncolors * sizeof *allocated);
   nallocated = 0;
-  memset (&color, 0, sizeof color);
 
   while (nallocated < ncolors
 	 && color.red < 65536)
