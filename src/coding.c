@@ -1534,11 +1534,9 @@ detect_coding_utf_16 (struct coding_system *coding,
     {
       /* We check the dispersion of Eth and Oth bytes where E is even and
 	 O is odd.  If both are high, we assume binary data.*/
-      unsigned char e[256], o[256];
+      unsigned char e[256] = {0}, o[256] = {0};
       unsigned e_num = 1, o_num = 1;
 
-      memset (e, 0, 256);
-      memset (o, 0, 256);
       e[c1] = 1;
       o[c2] = 1;
 
@@ -10886,10 +10884,8 @@ usage: (set-coding-system-priority &rest coding-systems)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {
   ptrdiff_t i, j;
-  bool changed[coding_category_max];
+  bool changed[coding_category_max] = {0};
   enum coding_category priorities[coding_category_max];
-
-  memset (changed, 0, sizeof changed);
 
   for (i = j = 0; i < nargs; i++)
     {
