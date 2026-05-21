@@ -652,9 +652,10 @@ static const char Forth_help [] =
 constant, code, create, defer, value, variable, buffer:, field.";
 
 static const char *Fortran_suffixes [] =
-  { "F", "f", "f90", "for", NULL };
+  { "F", "f", "for", "f90", "f95", "f03", "f08", NULL };
 static const char Fortran_help [] =
-"In Fortran code, functions, subroutines and block data are tags.";
+"In Fortran code, modules, subroutines, functions, entries\n\
+and block data are tags.";
 
 static const char *Go_suffixes [] = {"go", NULL};
 static const char Go_help [] =
@@ -4567,6 +4568,10 @@ Fortran_functions (FILE *inf)
 	continue;
       switch (c_tolower (*dbp))
 	{
+	case 'm':
+	  if (nocase_tail ("module"))
+	    F_getit (inf);
+	  continue;
 	case 'f':
 	  if (nocase_tail ("function"))
 	    F_getit (inf);
