@@ -2823,8 +2823,7 @@ emit_static_object (const char *name, Lisp_Object obj)
           /* If strlen returned 0 that means that the static object
              contains a NULL byte.  In that case just move over to the
              next block.  We can rely on the byte being zero because
-             of the previous call to bzero and because the dynamic
-             linker cleared it.  */
+             the dynamic linker cleared it.  */
           p++;
           i++;
           gcc_jit_block_add_assignment (
