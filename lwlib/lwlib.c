@@ -205,9 +205,7 @@ mark_widget_destroyed (Widget widget, XtPointer closure, XtPointer call_data)
 static widget_instance *
 allocate_widget_instance (widget_info* info, Widget parent, Boolean pop_up_p)
 {
-  widget_instance* instance =
-    (widget_instance*) xmalloc (sizeof (widget_instance));
-  memset (instance, 0, sizeof *instance);
+  widget_instance *instance = xzalloc (sizeof *instance);
   instance->parent = parent;
   instance->pop_up_p = pop_up_p;
   instance->info = info;
