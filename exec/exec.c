@@ -863,32 +863,25 @@ insert_args (struct exec_tracee *tracee, USER_REGS_STRUCT *regs,
 
 
 
-/* Format PID, an unsigned process identifier, in base 10.  Place the
-   result in *IN, and return a pointer to the byte after the
-   result.  REM should be NULL.  */
+/* Format PID, a nonnegative process identifier, in base 10.
+   Place the result in *IN.  Do not null-terminate the result.
+   Possibly modify the bytes in IN that are after the result.
+   Return a pointer to the byte after the result.  */
 
 char *
-format_pid (char *in, unsigned int pid)
+format_pid (char in[INT_STRLEN_BOUND (pid_t)], pid_t pid)
 {
-  unsigned int digits[32], *fill;
+  char *pend = in + INT_STRLEN_BOUND (pid_t);
+  char *p = pend;
 
-  fill = digits;
+  do
+    *--p = '0' + pid % 10;
+  while ((pid /= 10) != 0);
 
-  for (; pid != 0; pid = pid / 10)
-    *fill++ = pid % 10;
+  do
+    *in++ = *p++;
+  while (p < pend);
 
-  /* Insert 0 if the number would otherwise be empty.  */
-
-  if (fill == digits)
-    *fill++ = 0;
-
-  while (fill != digits)
-    {
-      --fill;
-      *in++ = '0' + *fill;
-    }
-
-  *in = '\0';
   return in;
 }
 
@@ -904,10 +897,13 @@ format_pid (char *in, unsigned int pid)
    Finally, use REGS to add the required interpreter arguments to the
    caller's argv.
 
+   NAME must be a null-terminated string in a buffer of size PATH_MAX.
+   It might be updated to be a string no longer than PATH_MAX - 1.
+
    Value is NULL upon failure, with errno set accordingly.  */
 
 char *
-exec_0 (char *name, struct exec_tracee *tracee,
+exec_0 (char name[PATH_MAX], struct exec_tracee *tracee,
 	size_t *size, USER_REGS_STRUCT *regs)
 {
   int fd, rc, i;
@@ -916,14 +912,13 @@ exec_0 (char *name, struct exec_tracee *tracee,
   program_header program;
   USER_WORD entry, program_entry, offset;
   USER_WORD header_offset;
+  ptrdiff_t nlen;
   USER_WORD name_len, aligned_len;
   struct exec_jump_command jump;
   /* This also encompasses !__LP64__.  */
 #if defined __mips__ && !defined MIPS_NABI
   int fpu_mode;
 #endif /* defined __mips__ && !defined MIPS_NABI */
-  char buffer[80], buffer1[PATH_MAX + 80], *rewrite;
-  ssize_t link_size;
   size_t remaining;
 
   /* If the process is trying to run /proc/self/exe, make it run
@@ -931,8 +926,13 @@ exec_0 (char *name, struct exec_tracee *tracee,
 
   if (!strcmp (name, "/proc/self/exe") && tracee->exec_file)
     {
-      strncpy (name, tracee->exec_file, PATH_MAX - 1);
-      name[PATH_MAX] = '\0';
+      nlen = strnlen (tracee->exec_file, PATH_MAX);
+      if (PATH_MAX <= nlen)
+	{
+	  errno = ENAMETOOLONG;
+	  return NULL;
+	}
+      memcpy (name, tracee->exec_file, nlen + 1);
     }
   else
     {
@@ -940,45 +940,45 @@ exec_0 (char *name, struct exec_tracee *tracee,
 	 cwd.  Do not use sprintf at it is not reentrant and it
 	 mishandles results longer than INT_MAX.  */
 
+      nlen = strlen (name);
+
       if (name[0] && name[0] != '/')
 	{
-	  /* Clear both buffers.  */
-	  memset (buffer, 0, sizeof buffer);
-	  memset (buffer1, 0, sizeof buffer1);
+	  char buffer[sizeof "/proc//cwd" + INT_STRLEN_BOUND (pid_t)];
+	  char buffer1[PATH_MAX];
 
-	  /* Copy over /proc, the PID, and /cwd/.  */
-	  rewrite = stpcpy (buffer, "/proc/");
+	  /* Copy over "/proc/", the PID, and "/cwd".  */
+	  char *rewrite = stpcpy (buffer, "/proc/");
 	  rewrite = format_pid (rewrite, tracee->pid);
 	  strcpy (rewrite, "/cwd");
 
 	  /* Resolve this symbolic link.  */
 
-	  link_size = readlink (buffer, buffer1,
-				PATH_MAX + 1);
-
+	  ssize_t link_size = readlink (buffer, buffer1, sizeof buffer1);
 	  if (link_size < 0)
 	    return NULL;
 
-	  /* Check that the name is a reasonable size.  */
+	  /* Check that the link is reasonable.  */
 
-	  if (link_size > PATH_MAX)
+	  if (link_size == 0 || buffer1[0] != '/')
 	    {
-	      /* The name is too long.  */
+	      errno = EINVAL;
+	      return NULL;
+	    }
+
+	  ptrdiff_t link_len = link_size - (buffer1[link_size - 1] == '/');
+	  if (PATH_MAX <= link_len + 1 + nlen)
+	    {
 	      errno = ENAMETOOLONG;
 	      return NULL;
 	    }
 
-	  /* Add a directory separator if necessary.  */
-
-	  if (!link_size || buffer1[link_size - 1] != '/')
-	    buffer1[link_size] = '/', link_size++;
-
-	  rewrite = buffer1 + link_size;
-	  remaining = buffer1 + sizeof buffer1 - rewrite - 1;
-	  memcpy (rewrite, name, strnlen (name, remaining));
-
-	  /* Replace name with buffer1.  */
-	  strcpy (name, buffer1);
+	  /* Replace name with link contents,
+	     then '/' if needed, then name.  */
+	  memmove (name + link_len + 1, name, nlen + 1);
+	  memcpy (name, buffer1, link_len);
+	  name[link_len] = '/';
+	  nlen += link_len + 1;
 	}
     }
 
@@ -1151,7 +1151,7 @@ exec_0 (char *name, struct exec_tracee *tracee,
   loader_area_used += sizeof jump;
 
   /* Copy the length of NAME and NAME itself to the loader area.  */
-  name_len = strlen (name);
+  name_len = nlen;
   aligned_len = ((name_len + 1 + sizeof name_len - 1)
 		 & -sizeof name_len);
   if (sizeof loader_area - loader_area_used
