@@ -5402,9 +5402,12 @@ With a prefix argument, ARG, if needed, install parsers for `html',
            (markdown-ts--set-up))
           (t
            (warn "markdown-ts-mode cannot be set up; using fundamental-mode.
-The tree-sitter parsers `markdown' and `markdown-inline' were not found.
+%s."
+                 (if (treesit-available-p)
+                     "The tree-sitter parsers `markdown' and `markdown-inline' were not found.
 Use the command `markdown-ts-mode-install-parsers' to install them.
-With a prefix argument, it can also install optional parsers.")
+With a prefix argument, it can also install optional parsers"
+                   "Emacs was built without Tree-sitter support, or could not load Tree-sitter"))
            (fundamental-mode)))))
 
 ;;;###autoload
