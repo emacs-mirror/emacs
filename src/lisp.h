@@ -5536,6 +5536,8 @@ extern void *xmalloc (size_t)
   ATTRIBUTE_MALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xzalloc (size_t)
   ATTRIBUTE_MALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+extern void *xcalloc (size_t, size_t)
+  ATTRIBUTE_MALLOC_SIZE ((1,2)) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xrealloc (void *, size_t)
   ATTRIBUTE_ALLOC_SIZE ((2)) ATTRIBUTE_RETURNS_NONNULL;
 extern void xfree (void *);

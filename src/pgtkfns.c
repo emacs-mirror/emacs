@@ -2432,7 +2432,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
   gdpy = dpyinfo->gdpy;
   n_monitors = gdk_display_get_n_monitors (gdpy);
   monitor_frames = make_nil_vector (n_monitors);
-  monitors = xzalloc (n_monitors * sizeof *monitors);
+  monitors = xcalloc (n_monitors, sizeof *monitors);
 
   FOR_EACH_FRAME (rest, frame)
     {

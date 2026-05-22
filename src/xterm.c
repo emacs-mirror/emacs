@@ -5730,7 +5730,7 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
       return;
     }
 
-  dpyinfo->devices = xzalloc (sizeof *dpyinfo->devices * ndevices);
+  dpyinfo->devices = xcalloc (ndevices, sizeof *dpyinfo->devices);
 
   for (i = 0; i < ndevices; ++i)
     {
@@ -13881,7 +13881,7 @@ xi_disable_devices (struct x_display_info *dpyinfo,
     return;
 
   ndevices = 0;
-  devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
+  devices = xcalloc (dpyinfo->num_devices, sizeof *devices);
 
   /* Loop through every device currently in DPYINFO, and copy it to
      DEVICES if it is not in TO_DISABLE.  Note that this function

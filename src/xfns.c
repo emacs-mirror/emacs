@@ -6254,7 +6254,7 @@ x_get_monitor_attributes_xinerama (struct x_display_info *dpyinfo)
 			/ x_display_pixel_width (dpyinfo));
   mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
 			 / x_display_pixel_height (dpyinfo));
-  monitors = xzalloc (n_monitors * sizeof *monitors);
+  monitors = xcalloc (n_monitors, sizeof *monitors);
   for (i = 0; i < n_monitors; ++i)
     {
       struct MonitorInfo *mi = &monitors[i];
@@ -6328,7 +6328,7 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
       if (!rr_monitors)
 	goto fallback;
 
-      monitors = xzalloc (n_monitors * sizeof *monitors);
+      monitors = xcalloc (n_monitors, sizeof *monitors);
 #ifdef USE_XCB
       atom_name_cookies = alloca (n_monitors * sizeof *atom_name_cookies);
 #endif
@@ -6427,7 +6427,7 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
       return Qnil;
     }
   n_monitors = resources->noutput;
-  monitors = xzalloc (n_monitors * sizeof *monitors);
+  monitors = xcalloc (n_monitors, sizeof *monitors);
 
 #if RANDR13_LIBRARY
   if (randr13_avail)
@@ -6644,7 +6644,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 			 / x_display_pixel_height (dpyinfo));
 #endif
   monitor_frames = make_nil_vector (n_monitors);
-  monitors = xzalloc (n_monitors * sizeof *monitors);
+  monitors = xcalloc (n_monitors, sizeof *monitors);
 
   FOR_EACH_FRAME (rest, frame)
     {

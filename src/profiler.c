@@ -75,21 +75,24 @@ make_log (int size, int depth)
   int index_size = size * 2 + 1;
   log->index_size = index_size;
 
-  log->trace = xmalloc (depth * sizeof *log->trace);
+  log->trace = xnmalloc (depth, sizeof *log->trace);
 
-  log->index = xmalloc (index_size * sizeof *log->index);
+  log->index = xnmalloc (index_size, sizeof *log->index);
   for (int i = 0; i < index_size; i++)
     log->index[i] = -1;
 
-  log->next = xmalloc (size * sizeof *log->next);
+  log->next = xnmalloc (size, sizeof *log->next);
   for (int i = 0; i < size - 1; i++)
     log->next[i] = i + 1;
   log->next[size - 1] = -1;
   log->next_free = 0;
 
-  log->hash = xmalloc (size * sizeof *log->hash);
-  log->keys = xzalloc (size * depth * sizeof *log->keys);
-  log->counts = xzalloc (size * sizeof *log->counts);
+  log->hash = xnmalloc (size, sizeof *log->hash);
+  size_t size_x_depth;
+  if (ckd_mul (&size_x_depth, size, depth))
+    memory_full_up ();
+  log->keys = xcalloc (size_x_depth, sizeof *log->keys);
+  log->counts = xcalloc (size, sizeof *log->counts);
 
   return log;
 }

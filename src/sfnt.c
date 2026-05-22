@@ -70,11 +70,11 @@ xmalloc (size_t size)
 }
 
 MAYBE_UNUSED static void *
-xzalloc (size_t size)
+xcalloc (ptrdiff_t n, ptrdiff_t s)
 {
   void *ptr;
 
-  ptr = calloc (1, size);
+  ptr = calloc (n, s);
 
   if (!ptr)
     abort ();
@@ -110,6 +110,8 @@ xfree (void *ptr)
 
 /* Also necessary.  */
 #define AVOID _Noreturn ATTRIBUTE_COLD void
+
+#define eassert(expr) assert (expr)
 
 #else
 #define TEST_STATIC
@@ -5047,7 +5049,7 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 		       sfnt_step_raster_proc proc, void *dcontext)
 {
   int y;
-  size_t size, e, edges_processed;
+  size_t e, edges_processed;
   struct sfnt_fedge *active, **prev, *a, sentinel;
   struct sfnt_step_raster raster;
   struct sfnt_step_chunk *next, *last;
@@ -5065,11 +5067,7 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 
   raster.scanlines = height;
   raster.chunks    = NULL;
-
-  if (ckd_mul (&size, height, sizeof *raster.steps))
-    abort ();
-
-  raster.steps = xzalloc (size);
+  raster.steps = xcalloc (height, sizeof *raster.steps);
 
   for (; y != height; y += 1)
     {

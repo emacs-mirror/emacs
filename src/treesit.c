@@ -559,19 +559,13 @@ load_tree_sitter_if_necessary (bool required)
 #endif
 }
 
-static void *
-treesit_calloc_wrapper (size_t n, size_t size)
-{
-  return xzalloc (n * size);
-}
-
 static void
 treesit_initialize (void)
 {
   if (!treesit_initialized)
     {
       load_tree_sitter_if_necessary (true);
-      ts_set_allocator (xmalloc, treesit_calloc_wrapper, xrealloc, xfree);
+      ts_set_allocator (xmalloc, xcalloc, xrealloc, xfree);
       treesit_initialized = true;
     }
 }

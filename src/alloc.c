@@ -656,7 +656,10 @@ xmalloc (size_t size)
   return val;
 }
 
-/* Like the above, but zeroes out the memory just allocated.  */
+/* Like the above, but zero out the memory just allocated.
+   Calling this can be faster than allocating and zeroing,
+   as the calloc implementation can avoid the zeroing overhead
+   when obtaining memory directly from the operating system.  */
 
 void *
 xzalloc (size_t size)
@@ -665,6 +668,21 @@ xzalloc (size_t size)
   if (!val)
     memory_full (size);
   MALLOC_PROBE (size);
+  return val;
+}
+
+/* Like xzalloc, but for an array of N objects each of size S.  */
+
+void *
+xcalloc (size_t n, size_t s)
+{
+  void *val = calloc (n, s);
+  if (!val)
+    {
+      size_t size;
+      memory_full (ckd_mul (&size, n, s) ? SIZE_MAX : size);
+    }
+  MALLOC_PROBE (n * s);
   return val;
 }
 

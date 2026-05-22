@@ -5996,7 +5996,7 @@ DEFUN ("internal--hash-table-histogram",
 {
   struct Lisp_Hash_Table *h = check_hash_table (hash_table);
   ptrdiff_t size = HASH_TABLE_SIZE (h);
-  ptrdiff_t *freq = xzalloc (size * sizeof *freq);
+  ptrdiff_t *freq = xcalloc (size, sizeof *freq);
   ptrdiff_t index_size = hash_table_index_size (h);
   for (ptrdiff_t i = 0; i < index_size; i++)
     {

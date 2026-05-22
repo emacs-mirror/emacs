@@ -1963,7 +1963,7 @@ save_current_matrix (struct frame *f)
   int i;
   struct glyph_matrix *saved = xzalloc (sizeof *saved);
   saved->nrows = f->current_matrix->nrows;
-  saved->rows = xzalloc (saved->nrows * sizeof *saved->rows);
+  saved->rows = xcalloc (saved->nrows, sizeof *saved->rows);
 
   for (i = 0; i < saved->nrows; ++i)
     {
