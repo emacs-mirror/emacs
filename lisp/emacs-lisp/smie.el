@@ -1452,7 +1452,14 @@ This is used when we're not trying to indent point but just
 need to compute the column at which point should be indented
 in order to figure out the indentation of some other (further down) point."
   ;; Trust pre-existing indentation on other lines.
-  (if (smie-indent--bolp) (current-column) (smie-indent-calculate)))
+  (let ((col (if (smie-indent--bolp)
+                 (current-column)
+               (smie-indent-calculate))))
+      (if (numberp col)
+          col
+        (message "Warning: smie-indent-virtual at pos %s got: %S"
+                 (point) col)
+        (current-column))))
 
 (defun smie-indent-fixindent ()
   ;; Obey the `fixindent' special comment.
@@ -1865,11 +1872,12 @@ to which that point should be aligned, if we were to reindent it.")
                          ;; here may not be accurate, but in practice it seems
                          ;; to work well enough.
                          (skip-chars-forward " \t")
-                         (let* ((newcol (smie-indent-calculate))
-                                (newgain (- (current-column) newcol)))
-                           (when (> newgain gain)
-                             (setq gain newgain)
-                             (setq bsf (point)))))
+                         (let* ((newcol (smie-indent-calculate)))
+                           (when (numberp newcol)
+                             (let ((newgain (- (current-column) newcol)))
+                               (when (> newgain gain)
+                                 (setq gain newgain)
+                                 (setq bsf (point)))))))
                        (when (> gain 0)
                          (goto-char bsf)
                          (newline-and-indent)
@@ -2091,7 +2099,8 @@ position corresponding to each rule."
          (goal (current-indentation))
          (cur (smie-indent-calculate)))
     (cond
-     ((and (eq goal
+     ((and (numberp cur)
+           (eq goal
                (progn (setf (car rule) (- goal cur))
                       (smie-indent-calculate))))
       (- goal cur)))))
