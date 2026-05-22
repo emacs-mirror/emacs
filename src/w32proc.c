@@ -63,8 +63,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "w32term.h"
 #include "coding.h"
 
-void w32_raise (int);
-
 #define RVA_TO_PTR(var,section,filedata) \
   ((void *)((section)->PointerToRawData					\
 	    + ((DWORD_PTR)(var) - (section)->VirtualAddress)		\
@@ -169,7 +167,7 @@ sys_signal (int sig, signal_handler handler)
   /* SIGCHLD is needed for supporting subprocesses, see sys_kill
      below.  SIGALRM and SIGPROF are used by setitimer.  All the
      others are the only ones supported by the MS runtime.  */
-  if (!(sig == SIGINT || sig == SIGSEGV || sig == SIGILL
+  if (!(sig == SIGINT || sig == SIGSEGV || sig == SIGILL || sig == SIGBREAK
 	|| sig == SIGFPE || sig == SIGABRT || sig == SIGTERM
 	|| sig == SIGCHLD || sig == SIGALRM || sig == SIGPROF))
     {
@@ -313,19 +311,52 @@ sigismember (const sigset_t *set, int signo)
   return (*set & (1U << signo)) != 0;
 }
 
-/* A fuller emulation of 'raise', which supports signals that MS
-   runtime doesn't know about.  */
-void
+/* A fuller emulation of 'raise', which supports signals that MS runtime
+   doesn't know about, and avoids the danger of invoking the
+   invalid-argument handler.  syssignal.h redirects 'raise' to this.  */
+
+#undef raise
+
+int
 w32_raise (int signo)
 {
-  if (!(signo == SIGCHLD || signo == SIGALRM || signo == SIGPROF))
-    raise (signo);
+  signal_handler handler;
 
-  /* Call the handler directly for the signals that we handle
-     ourselves.  */
-  signal_handler handler = sig_handlers[signo];
-  if (!(handler == SIG_DFL || handler == SIG_IGN || handler == SIG_ERR))
-    handler (signo);
+  switch (signo)
+    {
+      /* Signals supported by MS runtime: */
+    case SIGINT:
+    case SIGILL:
+    case SIGFPE:
+    case SIGSEGV:
+    case SIGTERM:
+    case SIGBREAK:
+    case SIGABRT:
+      return raise (signo);
+    /* For signals for which we have custom support in Emacs, call the
+       handler directly.  */
+    case SIGCHLD:
+    case SIGALRM:
+    case SIGPROF:
+      handler = sig_handlers[signo];
+      /* Implementation note: SIG_DFL does nothing, since these signals
+         are not supported by the MS runtime.  */
+      if (handler == SIG_IGN || handler == SIG_DFL)
+	return 0;
+      else if (handler == SIG_ERR)
+	{
+	  errno = EINVAL;
+	  return -1;
+	}
+      sig_handlers[signo] = SIG_DFL; /* in case handler raises same signal */
+      handler (signo);
+      if (sig_handlers[signo] == SIG_DFL)
+	sig_handlers[signo] = handler;
+      return 0;
+    default:	/* Any unsupported signal.  */
+      errno = EINVAL;
+      return -1;
+    }
 }
 
 pid_t

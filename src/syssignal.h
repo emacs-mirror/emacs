@@ -70,6 +70,11 @@ char const *safe_strsignal (int) ATTRIBUTE_CONST;
 # define SA_SIGINFO 0
 #endif
 
+#ifdef WINDOWSNT
+#define raise(sig) w32_raise(sig)
+int w32_raise (int);
+#endif
+
 #ifndef emacs_raise
 # define emacs_raise(sig) raise (sig)
 #endif
