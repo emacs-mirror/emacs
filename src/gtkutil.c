@@ -1352,8 +1352,6 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
   gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
   if (FRAME_PARENT_FRAME (f))
     {
-      /* Record the dimensions for GTK to remember after remapping.  */
-      gtk_window_resize (GTK_WINDOW (gwin), outer_width, outer_height);
       /* Resize all inner widgets and Cairo surface right away so the
 	 next redisplay drawing isn't clipped to the old size.  */
       GtkAllocation alloc = {0, 0, outer_width, outer_height};
