@@ -3467,7 +3467,7 @@ struct x_xim_text_conversion_data
   struct coding_system *coding;
   char *source;
   struct x_display_info *dpyinfo;
-  size_t size;
+  ptrdiff_t size;
 };
 
 static Lisp_Object
@@ -3600,7 +3600,7 @@ x_xim_text_to_utf8_unix (struct x_display_info *dpyinfo,
 
 static char *
 x_encode_xim_text (struct x_display_info *dpyinfo, char *text,
-		   size_t size, ptrdiff_t *length,
+		   ptrdiff_t size, ptrdiff_t *length,
 		   ptrdiff_t *chars)
 {
   struct coding_system coding;

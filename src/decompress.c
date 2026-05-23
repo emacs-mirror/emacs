@@ -70,10 +70,10 @@ init_zlib_functions (void)
 # define MD5_BLOCKSIZE 32768 /* From md5.c  */
 
 static char acc_buff[2 * MD5_BLOCKSIZE];
-static size_t acc_size;
+static ptrdiff_t acc_size;
 
 static void
-accumulate_and_process_md5 (void *data, size_t len, struct md5_ctx *ctxt)
+accumulate_and_process_md5 (void *data, ptrdiff_t len, struct md5_ctx *ctxt)
 {
   eassert (len <= MD5_BLOCKSIZE);
   /* We may optimize this saving some of these memcpy/move using

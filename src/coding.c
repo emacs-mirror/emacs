@@ -8554,19 +8554,17 @@ from_unicode_buffer (const wchar_t *wstr)
      strings are extended to 32-bit wchar_t.  */
 
   uint16_t *words;
-  size_t length, i;
-
-  length = wcslen (wstr) + 1;
+  ptrdiff_t length = wcslen (wstr);
 
   USE_SAFE_ALLOCA;
-  SAFE_NALLOCA (words, sizeof *words, length);
+  SAFE_NALLOCA (words, sizeof *words, length + 1);
 
-  for (i = 0; i < length - 1; ++i)
+  for (ptrdiff_t i = 0; i < length; i++)
     words[i] = wstr[i];
+  words[length] = '\0';
 
-  words[i] = '\0';
   AUTO_STRING_WITH_LEN (str, (char *) words,
-			(length - 1) * sizeof *words);
+			length * sizeof *words);
   return unbind_to (sa_count, from_unicode (str));
 #endif
 }

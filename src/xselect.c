@@ -522,7 +522,7 @@ struct transfer
 
   /* The current offset in items into the selection data, and the
      number of items to send with each ChangeProperty request.  */
-  size_t offset, items_per_request;
+  ptrdiff_t offset, items_per_request;
 
   /* The display info associated with the transfer.  */
   struct x_display_info *dpyinfo;
@@ -669,7 +669,7 @@ x_selection_request_lisp_error (void)
 
 
 
-static size_t
+static ptrdiff_t
 c_size_for_format (int format)
 {
   switch (format)
@@ -687,7 +687,7 @@ c_size_for_format (int format)
   emacs_abort ();
 }
 
-static size_t
+static ptrdiff_t
 x_size_for_format (int format)
 {
   switch (format)
@@ -712,10 +712,10 @@ x_size_for_format (int format)
 
 static unsigned char *
 selection_data_for_offset (struct selection_data *data,
-			   size_t offset, size_t *remaining)
+			   ptrdiff_t offset, ptrdiff_t *remaining)
 {
   unsigned char *base;
-  size_t size;
+  ptrdiff_t size;
 
   if (!NILP (data->string))
     {
@@ -746,10 +746,10 @@ selection_data_for_offset (struct selection_data *data,
 
    FIXME: Silent truncation is bad.  */
 
-static size_t
+static ptrdiff_t
 selection_data_size (struct selection_data *data)
 {
-  size_t scratch;
+  ptrdiff_t scratch;
   ptrdiff_t max_selection_size = min (min (PTRDIFF_MAX, SIZE_MAX),
 				      X_ULONG_MAX);
 
@@ -856,7 +856,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
   intmax_t timeout;
   intmax_t secs;
   int nsecs;
-  size_t remaining, max_size;
+  ptrdiff_t remaining, max_size;
   unsigned char *xdata;
   unsigned long data_size;
 
@@ -892,9 +892,9 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
 
   max_size = selection_quantum (dpyinfo->display);
 
-  size_t seldata_size = selection_data_size (&transfer->data);
+  ptrdiff_t seldata_size = selection_data_size (&transfer->data);
   TRACE3 (" x_start_selection_transfer: transferring to 0x%lx.  "
-	  "transfer consists of %zu bytes, quantum being %zu",
+	  "transfer consists of %tu bytes, quantum being %tu",
 	  requestor, seldata_size, max_size);
 
   if (max_size < seldata_size)
@@ -905,7 +905,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
       transfer->items_per_request
 	= (max_size / x_size_for_format (transfer->data.format));
       TRACE1 (" x_start_selection_transfer: starting incremental"
-	      " selection transfer, with %zu items per request",
+	      " selection transfer, with %tu items per request",
 	      transfer->items_per_request);
 
       /* Next, link the transfer onto the list of pending selection
@@ -954,7 +954,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
       eassert (remaining <= INT_MAX);
 
       TRACE1 (" x_start_selection_transfer:  writing"
-	      " %zu elements directly to requestor window",
+	      " %tu elements directly to requestor window",
 	      remaining);
 
       x_ignore_errors_for_next_request (dpyinfo, 0);
@@ -977,7 +977,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
 static void
 x_continue_selection_transfer (struct transfer *transfer)
 {
-  size_t remaining;
+  ptrdiff_t remaining;
   unsigned char *xdata;
 
   xdata = selection_data_for_offset (&transfer->data,
@@ -1006,8 +1006,8 @@ x_continue_selection_transfer (struct transfer *transfer)
     }
   else
     {
-      TRACE2 (" x_continue_selection_transfer: writing %zu items"
-	      "; current offset is %zu", remaining, transfer->offset);
+      TRACE2 (" x_continue_selection_transfer: writing %tu items"
+	      "; current offset is %tu", remaining, transfer->offset);
       eassert (remaining <= INT_MAX);
 
       transfer->offset += remaining;

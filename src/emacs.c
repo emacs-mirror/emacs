@@ -1235,39 +1235,33 @@ load_seccomp (const char *file)
                file, (long) stat.st_size);
       goto out;
     }
-  size_t size = stat.st_size;
-  size_t count = size / sizeof *program.filter;
-  eassert (0 < count && count < SIZE_MAX);
-  if (USHRT_MAX < count)
+  if (ckd_add (&program.len, stat.st_size / sizeof *program.filter, 0))
     {
       fprintf (stderr, "seccomp filter %s is too big\n", file);
       goto out;
     }
   /* Try reading one more byte to detect file size changes.  */
+  ptrdiff_t size = stat.st_size;
   buffer = malloc (size + 1);
   if (buffer == NULL)
     {
       emacs_perror ("malloc");
       goto out;
     }
-  ptrdiff_t read = read_full (fd, buffer, size + 1);
-  if (read < 0)
+  ptrdiff_t nread = read_full (fd, buffer, size + 1);
+  if (nread != size)
     {
-      emacs_perror ("read");
-      goto out;
-    }
-  eassert (read <= SIZE_MAX);
-  if (read != size)
-    {
-      fprintf (stderr,
-               "seccomp filter %s changed size while reading\n",
-               file);
+      if (nread < 0)
+	emacs_perror ("read");
+      else
+	fprintf (stderr,
+		 "seccomp filter %s changed size while reading\n",
+		 file);
       goto out;
     }
   if (emacs_close (fd) != 0)
     emacs_perror ("close");  /* not a fatal error */
   fd = -1;
-  program.len = count;
   program.filter = buffer;
 
   /* See man page of `seccomp' why this is necessary.  Note that we
@@ -3131,7 +3125,7 @@ shut_down_emacs (int sig, Lisp_Object stuff)
 			 + INT_STRLEN_BOUND (int) + 1),
 			min (PIPE_BUF, MAX_ALLOCA))];
 	  char const *sig_desc = safe_strsignal (sig);
-	  size_t sig_desclen = strlen (sig_desc);
+	  ptrdiff_t sig_desclen = strlen (sig_desc);
 	  int nlen = sprintf (buf, fmt, sig);
 	  if (nlen + sig_desclen < sizeof buf - 1)
 	    {

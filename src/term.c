@@ -2613,7 +2613,7 @@ This function temporarily suspends and resumes the terminal
 device.  */)
   (Lisp_Object size, Lisp_Object tty)
 {
-  if (!TYPE_RANGED_FIXNUMP (size_t, size))
+  if (!RANGED_FIXNUMP (0, size, min (PTRDIFF_MAX, SIZE_MAX)))
     error ("Invalid output buffer size");
   Fsuspend_tty (tty);
   struct terminal *terminal = decode_tty_terminal (tty);

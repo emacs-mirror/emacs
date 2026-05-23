@@ -899,7 +899,7 @@ void *lisp_malloc_loser EXTERNALLY_VISIBLE;
    L == make_lisp_ptr (P, T), then XPNTR (L) == P and XTYPE (L) == T.  */
 
 static void *
-lisp_malloc (size_t nbytes, bool clearit, enum mem_type type)
+lisp_malloc (ptrdiff_t nbytes, bool clearit, enum mem_type type)
 {
   register void *val;
 
@@ -1083,7 +1083,7 @@ pointer_align (void *ptr, int alignment)
    Alignment is on a multiple of BLOCK_ALIGN and `nbytes' has to be
    smaller or equal to BLOCK_BYTES.  */
 static void *
-lisp_align_malloc (size_t nbytes, enum mem_type type)
+lisp_align_malloc (ptrdiff_t nbytes, enum mem_type type)
 {
   void *base, *val;
   struct ablocks *abase;
@@ -1522,7 +1522,7 @@ sdata_size (ptrdiff_t n)
 
 /* Exact bound on the number of bytes in a string, not counting the
    terminating null.  A string cannot contain more bytes than
-   STRING_BYTES_BOUND, nor can it be so long that the size_t
+   STRING_BYTES_BOUND, nor can it be so long that the
    arithmetic in allocate_string_data would overflow while it is
    calculating a value to be passed to malloc.  */
 static ptrdiff_t const STRING_BYTES_MAX =
@@ -1768,7 +1768,7 @@ allocate_string_data (struct Lisp_String *s,
 
   if (nbytes > LARGE_STRING_BYTES || immovable)
     {
-      size_t size = FLEXSIZEOF (struct sblock, data, needed);
+      ptrdiff_t size = FLEXSIZEOF (struct sblock, data, needed);
 
 #ifdef DOUG_LEA_MALLOC
       if (!mmap_lisp_allowed_p ())
@@ -2996,7 +2996,7 @@ allocate_vector_from_block (ptrdiff_t nbytes)
 {
   struct Lisp_Vector *vector;
   struct vector_block *block;
-  size_t index, restbytes;
+  ptrdiff_t index, restbytes;
 
   eassume (VBLOCK_BYTES_MIN <= nbytes && nbytes <= VBLOCK_BYTES_MAX);
   eassume (nbytes % roundup_size == 0);
@@ -3022,7 +3022,7 @@ allocate_vector_from_block (ptrdiff_t nbytes)
       {
 	/* This vector is larger than requested.  */
 	vector = vector_free_lists[index];
-	size_t vector_nbytes = pseudovector_nbytes (&vector->header);
+	ptrdiff_t vector_nbytes = pseudovector_nbytes (&vector->header);
 	eassert (vector_nbytes > nbytes);
 	ASAN_UNPOISON_VECTOR_CONTENTS (vector, nbytes - header_size);
 	vector_free_lists[index] = next_vector (vector);
@@ -5465,10 +5465,10 @@ inhibit_garbage_collection (void)
 }
 
 /* Return the number of bytes in N objects each of size S, guarding
-   against overflow if size_t is narrower than byte_ct.  */
+   against overflow if ptrdiff_t is narrower than byte_ct.  */
 
 static byte_ct
-object_bytes (object_ct n, size_t s)
+object_bytes (object_ct n, ptrdiff_t s)
 {
   byte_ct b = s;
   return n * b;

@@ -273,7 +273,7 @@ json_make_room (json_out_t *jo, ptrdiff_t bytes)
 
 /* Add `bytes` bytes from `str` to the buffer.  */
 static void
-json_out_str (json_out_t *jo, const char *str, size_t bytes)
+json_out_str (json_out_t *jo, const char *str, ptrdiff_t bytes)
 {
   json_make_room (jo, bytes);
   memcpy (jo->buf + jo->size, str, bytes);
@@ -693,7 +693,7 @@ struct json_parser
 
   struct json_configuration conf;
 
-  size_t additional_bytes_count;
+  ptrdiff_t additional_bytes_count;
 
   /* Lisp_Objects are collected in this area during object/array
      parsing.  To avoid allocations, initially
@@ -704,8 +704,8 @@ struct json_parser
   Lisp_Object internal_object_workspace
   [JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE];
   Lisp_Object *object_workspace;
-  size_t object_workspace_size;
-  size_t object_workspace_current;
+  ptrdiff_t object_workspace_size;
+  ptrdiff_t object_workspace_current;
 
   /* String and number parsing uses this workspace.  The idea behind
      internal_byte_workspace is the same as the idea behind
@@ -805,10 +805,9 @@ json_make_object_workspace_for_slow_path (struct json_parser *parser,
 {
   bool internal = (parser->object_workspace_size
 		   == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE);
-  ptrdiff_t new_workspace_size = parser->object_workspace_size;
   Lisp_Object *new_workspace_ptr
     = xpalloc (internal ? NULL : parser->object_workspace,
-	       &new_workspace_size,
+	       &parser->object_workspace_size,
 	       size - (parser->object_workspace_size
 		       - parser->object_workspace_current),
 	       -1, sizeof (Lisp_Object));
@@ -816,12 +815,11 @@ json_make_object_workspace_for_slow_path (struct json_parser *parser,
     memcpy (new_workspace_ptr, parser->object_workspace,
 	    sizeof (Lisp_Object) * parser->object_workspace_current);
   parser->object_workspace = new_workspace_ptr;
-  parser->object_workspace_size = new_workspace_size;
 }
 
 INLINE void
 json_make_object_workspace_for (struct json_parser *parser,
-				size_t size)
+				ptrdiff_t size)
 {
   if (parser->object_workspace_size - parser->object_workspace_current
       < size)
@@ -1350,7 +1348,7 @@ json_parse_array (struct json_parser *parser)
 {
   int c = json_skip_whitespace (parser);
 
-  const size_t first = parser->object_workspace_current;
+  const ptrdiff_t first = parser->object_workspace_current;
   Lisp_Object result = Qnil;
 
   if (c != ']')
@@ -1402,10 +1400,10 @@ json_parse_array (struct json_parser *parser)
     {
     case json_array_array:
       {
-	size_t number_of_elements
+	ptrdiff_t number_of_elements
 	  = parser->object_workspace_current - first;
 	result = make_vector (number_of_elements, Qnil);
-	for (size_t i = 0; i < number_of_elements; i++)
+	for (ptrdiff_t i = 0; i < number_of_elements; i++)
 	  {
 	    rarely_quit (i);
 	    ASET (result, i, parser->object_workspace[first + i]);
@@ -1441,7 +1439,7 @@ json_parse_object (struct json_parser *parser)
 {
   int c = json_skip_whitespace (parser);
 
-  const size_t first = parser->object_workspace_current;
+  const ptrdiff_t first = parser->object_workspace_current;
   Lisp_Object result = Qnil;
 
   if (c != '}')
@@ -1517,10 +1515,10 @@ json_parse_object (struct json_parser *parser)
     {
     case json_object_hashtable:
       {
-	EMACS_INT value = (parser->object_workspace_current - first) / 2;
+	EMACS_INT value = (parser->object_workspace_current - first) >> 1;
 	result = make_hash_table (&hashtest_equal, value, Weak_None);
 	struct Lisp_Hash_Table *h = XHASH_TABLE (result);
-	for (size_t i = first; i < parser->object_workspace_current; i += 2)
+	for (ptrdiff_t i = first; i < parser->object_workspace_current; i += 2)
 	  {
 	    hash_hash_t hash;
 	    Lisp_Object key = parser->object_workspace[i];

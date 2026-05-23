@@ -80,7 +80,7 @@ enum textconv_operation
 struct textconv_conversion_text
 {
   /* Length of the text in characters and bytes.  */
-  size_t length, bytes;
+  ptrdiff_t length, bytes;
 
   /* Pointer to the text data.  This must be deallocated by the
      caller.  */

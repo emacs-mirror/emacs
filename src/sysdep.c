@@ -304,7 +304,7 @@ get_current_dir_name_or_unreachable (void)
     }
 # endif
 
-  size_t pwdlen;
+  ptrdiff_t pwdlen;
   struct stat dotstat, pwdstat;
   pwd = getenv ("PWD");
 
@@ -1310,9 +1310,9 @@ init_sys_modes (struct tty_display_info *tty_out)
     }
 #endif /* F_GETOWN */
 
-  const size_t buffer_size = (tty_out->output_buffer_size
-			      ? tty_out->output_buffer_size
-			      : BUFSIZ);
+  const ptrdiff_t buffer_size = (tty_out->output_buffer_size
+				 ? tty_out->output_buffer_size
+				 : BUFSIZ);
   setvbuf (tty_out->output, NULL, _IOFBF, buffer_size);
 
   if (tty_out->terminal->set_terminal_modes_hook)
@@ -3136,7 +3136,7 @@ static const struct speed_struct speeds[] =
 static speed_t
 convert_speed (speed_t speed)
 {
-  for (size_t i = 0; i < ARRAYELTS (speeds); i++)
+  for (ptrdiff_t i = 0; i < ARRAYELTS (speeds); i++)
     {
       if (speed == speeds[i].internal)
 	return speed;
