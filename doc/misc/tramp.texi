@@ -6436,6 +6436,13 @@ You can change this directory by setting the user option
 
 
 @item
+I get an error @samp{Method `gdrive' not supported by GVFS}.
+
+@samp{google-drive} has been disabled in @acronym{GNOME} 50.  It is
+not clear yet whether and when it will be reenabled.
+@c @uref{https://discourse.gnome.org/t/google-drive-in-gnome-50/34417}
+
+@item
 How to ignore errors when changing file attributes?
 
 @vindex tramp-inhibit-errors-if-setting-file-attributes-fail
