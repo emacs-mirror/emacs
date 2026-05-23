@@ -712,7 +712,7 @@ x_size_for_format (int format)
 
 static unsigned char *
 selection_data_for_offset (struct selection_data *data,
-			   long offset, size_t *remaining)
+			   size_t offset, size_t *remaining)
 {
   unsigned char *base;
   size_t size;
@@ -741,12 +741,17 @@ selection_data_for_offset (struct selection_data *data,
 
 /* Return the size, in bytes transferred to the X server, of
    data->size items of selection data in data->format-bit
-   quantities.  */
+   quantities.  If this size is too large, silently return
+   the largest supported size in bytes for this format.
+
+   FIXME: Silent truncation is bad.  */
 
 static size_t
 selection_data_size (struct selection_data *data)
 {
   size_t scratch;
+  ptrdiff_t max_selection_size = min (min (PTRDIFF_MAX, SIZE_MAX),
+				      X_ULONG_MAX);
 
   if (!NILP (data->string))
     return SBYTES (data->string);
@@ -754,17 +759,19 @@ selection_data_size (struct selection_data *data)
   switch (data->format)
     {
     case 8:
-      return (size_t) data->size;
+      return min (data->size, max_selection_size);
 
     case 16:
-      if (ckd_mul (&scratch, data->size, 2))
-	return SIZE_MAX;
+      if (ckd_mul (&scratch, data->size, 2)
+	  || max_selection_size - max_selection_size % 2 < scratch)
+	return max_selection_size - max_selection_size % 2;
 
       return scratch;
 
     case 32:
-      if (ckd_mul (&scratch, data->size, 4))
-	return SIZE_MAX;
+      if (ckd_mul (&scratch, data->size, 4)
+	  || max_selection_size - max_selection_size % 4 < scratch)
+	return max_selection_size - max_selection_size % 4;
 
       return scratch;
     }
@@ -885,12 +892,12 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
 
   max_size = selection_quantum (dpyinfo->display);
 
+  size_t seldata_size = selection_data_size (&transfer->data);
   TRACE3 (" x_start_selection_transfer: transferring to 0x%lx.  "
 	  "transfer consists of %zu bytes, quantum being %zu",
-	  requestor, selection_data_size (&transfer->data),
-	  max_size);
+	  requestor, seldata_size, max_size);
 
-  if (selection_data_size (&transfer->data) > max_size)
+  if (max_size < seldata_size)
     {
       /* Begin incremental selection transfer.  First, calculate how
 	 many elements it is ok to write for every ChangeProperty
@@ -918,7 +925,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
       /* Now, write the INCR property to begin incremental selection
 	 transfer.  offset is currently 0.  */
 
-      data_size = selection_data_size (&transfer->data);
+      data_size = seldata_size;
 
       /* Set SELECTED_EVENTS before the actual XSelectInput
 	 request.  */
