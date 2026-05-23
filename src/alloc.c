@@ -638,6 +638,14 @@ static_assert (LISP_ALIGNMENT % GCALIGNMENT == 0);
 enum { MALLOC_IS_LISP_ALIGNED = alignof (max_align_t) % LISP_ALIGNMENT == 0 };
 static_assert (MALLOC_IS_LISP_ALIGNED);
 
+/* Most of Emacs does not assume PTRDIFF_MAX <= SIZE_MAX, and may use
+   expressions like min (PTRDIFF_MAX, SIZE_MAX) to port even to
+   theoretical platforms where the assumption does not hold.
+   However, some parts of Emacs pass nonnegative ptrdiff_t values to
+   allocator functions like xmalloc that expect size_t.
+   This is portable in practice; check it here to document the assumption.  */
+static_assert (PTRDIFF_MAX <= SIZE_MAX);
+
 #define MALLOC_PROBE(size)			\
   do {						\
     if (profiler_memory_running)		\
