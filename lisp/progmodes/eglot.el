@@ -4014,7 +4014,7 @@ for which LSP on-type-formatting should be requested."
              (when annotation
                (concat " "
                        (propertize annotation
-                                   'face 'font-lock-function-name-face))))))
+                                   'face 'completions-annotations))))))
        :company-kind
        ;; Associate each lsp-item with a lsp-kind symbol.
        (lambda (proxy)

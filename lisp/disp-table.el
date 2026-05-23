@@ -458,6 +458,50 @@ which characters can be displayed and which cannot."
       (insert ")\n"))
     (pop-to-buffer buf)))
 
+(defface special-glyphs
+  '((t :inherit (shadow default)))
+  "Face for displaying special glyphs."
+  :group 'basic-faces
+  :version "31.1")
+
+(defvar prettify-special-glyphs-saved-truncation)
+(defvar prettify-special-glyphs-saved-continuation)
+
+;;;###autoload
+(define-minor-mode prettify-special-glyphs-mode
+  "Mode to display pretty special character glyphs.
+If you have already customized your special character glyphs, only the
+`special-glyphs' face is applied to them.  This mode only applies to the
+`standard-display-table'.  Window or buffer display table, if defined,
+still take precedence."
+  :global t
+  :group 'display
+  (if prettify-special-glyphs-mode
+      (let ((tbl standard-display-table)
+            truncation wrap)
+	;; Save current glyphs.
+	(setq prettify-special-glyphs-saved-truncation
+              (display-table-slot tbl 'truncation)
+              prettify-special-glyphs-saved-continuation
+              (display-table-slot tbl 'wrap))
+        ;; Prepare new ones with face.
+        (setq truncation
+              (if prettify-special-glyphs-saved-truncation
+                  (make-glyph-code prettify-special-glyphs-saved-truncation
+                                   'special-glyphs)
+                (make-glyph-code ?→ 'special-glyphs))
+              wrap
+              (if prettify-special-glyphs-saved-continuation
+                  (make-glyph-code prettify-special-glyphs-saved-continuation
+                                   'special-glyphs)
+                (make-glyph-code ?↩ 'special-glyphs)))
+	;; Alter display-table.
+	(set-display-table-slot tbl 'truncation truncation)
+	(set-display-table-slot tbl 'wrap wrap))
+    (let ((tbl standard-display-table))
+      ;; Reset saved glyphs.
+      (set-display-table-slot tbl 'truncation prettify-special-glyphs-saved-truncation)
+      (set-display-table-slot tbl 'wrap prettify-special-glyphs-saved-continuation))))
 
 (provide 'disp-table)
 

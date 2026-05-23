@@ -444,7 +444,7 @@ only affect the Gcc copy, but not the original message."
 (defun gnus-inews-make-draft-meta-information (group articles)
   (when (numberp articles)
     (setq articles (list articles)))
-  (concat "(\"" group "\""
+  (concat "(" (prin1-to-string (or group ""))
 	  (if articles
 	      (concat " "
 		      (mapconcat

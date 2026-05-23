@@ -428,8 +428,7 @@ EmacsFrameResize (Widget widget)
        ew->core.width, ew->core.height,
        f->new_width, f->new_height);
 
-  if (FRAME_PIXEL_WIDTH (f) == ew->core.width
-      && FRAME_PIXEL_HEIGHT (f) == ew->core.height)
+  if (FRAME_PARENT_FRAME (f)) 	/* Size always up to date.  */
     return;
 
   change_frame_size (f, ew->core.width, ew->core.height,

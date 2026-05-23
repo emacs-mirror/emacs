@@ -133,9 +133,11 @@ you can define more of these faces using the same numbering scheme."
 
 (defcustom query-replace-lazy-highlight t
   "Controls the lazy-highlighting during query replacements.
-When non-nil, all text in the buffer matching the current match
-is highlighted lazily using isearch lazy highlighting (see
-`lazy-highlight-initial-delay' and `lazy-highlight-interval')."
+When non-nil, all text matching the current match that is
+currently visible in the window is highlighted lazily using
+isearch lazy highlighting (see `lazy-highlight-initial-delay'
+and `lazy-highlight-interval').  Uses the `lazy-highlight' face
+to highlight matching text."
   :type 'boolean
   :group 'lazy-highlight
   :group 'matching
@@ -143,7 +145,9 @@ is highlighted lazily using isearch lazy highlighting (see
 
 (defface query-replace
   '((t (:inherit isearch)))
-  "Face for highlighting query replacement matches."
+  "Face for highlighting query replacement matches.
+Used in `query-replace' and `query-replace-regexp'
+when `query-replace-highlight' is non-nil"
   :group 'matching
   :version "22.1")
 
@@ -427,6 +431,11 @@ In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer's
 accessible portion.
 
+The current match of FROM-STRING is highlighted using
+the `query-replace' face.  Other matches of FROM-STRING are highlighted
+using the `lazy-highlight' face if `query-replace-lazy-highlight' is
+non-nil.
+
 In interactive use, the prefix arg (non-nil DELIMITED in
 non-interactive use), means replace only matches surrounded by
 word boundaries.  A negative prefix arg means replace backward.
@@ -507,6 +516,11 @@ accessible portion.
 
 When invoked interactively, matching a newline with `\\n' will not work;
 use \\`C-q C-j' instead.  To match a tab character (`\\t'), just press \\`TAB'.
+
+The current match of REGEXP is highlighted using
+the `query-replace' face.  Other matches of REGEXP are highlighted
+using the `lazy-highlight' face if `query-replace-lazy-highlight' is
+non-nil.
 
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search regexp to the minibuffer

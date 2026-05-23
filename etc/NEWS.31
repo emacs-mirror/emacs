@@ -169,6 +169,12 @@ behavior, customize 'find-function-mode-lower-precedence' to non-nil.
 ---
 ** 'find-function' can now find 'cl-defmethod' invocations inside macros.
 
+---
+** New minor mode 'prettify-special-glyphs-mode'.
+The new minor mode prettifies the special character glyphs (truncation
+and continuation) on TTY frames (and GUI frames without fringes).  You
+can customize the associated new face 'special-glyphs'.
+
 ** Minibuffer and Completions
 
 +++
@@ -3931,7 +3937,20 @@ A major mode based on 'conf-mode' for editing ".npmrc" files.
 ** New major modes based on the tree-sitter library
 
 *** New major mode 'markdown-ts-mode'.
-A major mode based on the tree-sitter library for editing Markdown files.
+A major mode based on the tree-sitter library for editing Markdown
+files.  This is now the default major mode for Markdown files.  If you
+don't have the necessary tree-sitter grammar libraries installed, or if
+your Emacs was built without tree-sitter support, Emacs will now show a
+warning to that effect when you visit a Markdown file.  If you don't
+want to use this mode and want to avoid these warnings, add the
+following to your init file:
+
+  (add-to-list 'auto-mode-alist '("\\.md\\'" . fundamental-mode))
+  (add-to-list 'auto-mode-alist '("\\.markdown\\'" . fundamental-mode))
+  (add-to-list 'auto-mode-alist '("\\.mdx\\'" . fundamental-mode))
+
+This will cause Emacs to visit Markdown files in Fundamental mode, which
+was the default before this mode was added to Emacs.
 
 *** New major mode 'mhtml-ts-mode'.
 An optional major mode based on the tree-sitter library for editing HTML

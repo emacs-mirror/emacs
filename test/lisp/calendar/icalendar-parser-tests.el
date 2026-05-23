@@ -388,21 +388,21 @@ test."
 
 (ipt:parse/print-test
 "FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1"
-:type icalendar-recur
+:type icalendar-rrule-value
 :parser icalendar-parse-value-node
 :printer icalendar-print-value-node
 :source rfc5545-sec3.3.10/1)
 
 (ipt:parse/print-test
 "FREQ=YEARLY;INTERVAL=2;BYMONTH=1;BYDAY=SU;BYHOUR=8,9;BYMINUTE=30"
-:type icalendar-recur
+:type icalendar-rrule-value
 :parser icalendar-parse-value-node
 :printer icalendar-print-value-node
 :source rfc5545-sec3.3.10/2)
 
 (ipt:parse/print-test
 "FREQ=DAILY;COUNT=10;INTERVAL=2"
-:type icalendar-recur
+:type icalendar-rrule-value
 :parser icalendar-parse-value-node
 :printer icalendar-print-value-node
 :source rfc5545-sec3.3.10/3)

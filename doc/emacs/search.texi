@@ -2202,24 +2202,20 @@ variable @code{isearch-lazy-highlight} to @code{nil} disables this
 highlighting.  Here are some other variables that customize the lazy
 highlighting:
 
-@table @code
+@vtable @code
 @item lazy-highlight-initial-delay
-@vindex lazy-highlight-initial-delay
 Time in seconds to wait before highlighting visible matches.
 Applies only if the search string is less than
 @code{lazy-highlight-no-delay-length} characters long.
 
 @item lazy-highlight-no-delay-length
-@vindex lazy-highlight-no-delay-length
 For search strings at least as long as the value of this variable,
 lazy highlighting of matches starts immediately.
 
 @item lazy-highlight-interval
-@vindex lazy-highlight-interval
 Time in seconds between highlighting successive matches.
 
 @item lazy-highlight-max-at-a-time
-@vindex lazy-highlight-max-at-a-time
 The maximum number of matches to highlight before checking for input.
 A large number can take some time to highlight, so if you want to
 continue searching and type @kbd{C-s} or @kbd{C-r} during that time,
@@ -2227,17 +2223,28 @@ Emacs will not respond until it finishes highlighting all those
 matches.  Thus, smaller values make Emacs more responsive.
 
 @item isearch-lazy-count
-@vindex isearch-lazy-count
 Show the current match number and the total number of matches in the
 search prompt.
 
 @item lazy-count-prefix-format
 @itemx lazy-count-suffix-format
-@vindex lazy-count-prefix-format
-@vindex lazy-count-suffix-format
 These two variables determine the format of showing the current and
 the total number of matches for @code{isearch-lazy-count}.
-@end table
+
+@item lazy-highlight-buffer
+If non-@code{nil}, lazy highlighting highlights the matches in the
+entire buffer, not only those visible on display of the current window
+(so, for example, they will also become visible in other windows showing
+the same buffer).
+
+@item lazy-highlight-buffer-max-at-a-time
+Like @code{lazy-highlight-max-at-a-time}, but used for highlighting
+matches not currently visible in the window when
+@code{lazy-highlight-buffer} is non-@code{nil}.  It defaults to 200; set
+to @code{nil} to highlight all the matches in a buffer without checking
+for input.  @strong{Warning:} this could make Emacs not responsive when
+searching large buffers.
+@end vtable
 
 @vindex search-nonincremental-instead
   Normally, entering @key{RET} within incremental search when the
