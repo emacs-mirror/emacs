@@ -5401,14 +5401,14 @@ With a prefix argument, ARG, if needed, install parsers for `html',
     (cond ((treesit-ready-p '(markdown markdown-inline) t)
            (markdown-ts--set-up))
           (t
-           (warn "markdown-ts-mode cannot be set up; using fundamental-mode.
+           (warn "markdown-ts-mode cannot be set up; using text-mode.
 %s."
                  (if (treesit-available-p)
                      "The tree-sitter parsers `markdown' and `markdown-inline' were not found.
 Use the command `markdown-ts-mode-install-parsers' to install them.
 With a prefix argument, it can also install optional parsers"
                    "Emacs was built without Tree-sitter support, or could not load Tree-sitter"))
-           (fundamental-mode)))))
+           (text-mode)))))
 
 ;;;###autoload
 (define-derived-mode markdown-ts-mode text-mode "Markdown"
@@ -5620,10 +5620,24 @@ If non-nil and `point' is in a table, enable
                       #'markdown-ts--enable-in-table-mode 'local))))
 
 ;;;###autoload
+(defun markdown-ts-mode-maybe ()
+  "Enable `markdown-ts-mode' when its grammars are available.
+Also propose to install the grammars when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (and (treesit-language-available-p 'markdown)
+               (treesit-language-available-p 'markdown-inline))
+          (eq treesit-enabled-modes t)
+          (memq 'markdown-ts-mode treesit-enabled-modes))
+      (markdown-ts-mode)
+    (text-mode)))
+
+;;;###autoload
 (when (boundp 'treesit-major-mode-remap-alist)
-  (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.md\\'"        . markdown-ts-mode-maybe))
+  (add-to-list 'auto-mode-alist '("\\.markdown\\'"  . markdown-ts-mode-maybe))
+  (add-to-list 'auto-mode-alist '("\\.mdx\\'"       . markdown-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist
                '(markdown-mode . markdown-ts-mode)))
 
