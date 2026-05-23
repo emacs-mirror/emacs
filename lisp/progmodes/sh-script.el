@@ -406,8 +406,6 @@ name symbol."
 	;; to work fine. This is needed so that dabbrev-expand
 	;; $VARNAME works.
 	?$ "'"
-	?* "."
-	?+ "."
 	?! "."
 	?% "."
 	?: "."
