@@ -3647,160 +3647,22 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
   return outline;
 }
 
-#ifndef INT64_MAX
-
-/* 64 bit integer type.  */
-
-struct sfnt_large_integer
-{
-  unsigned int high, low;
-};
-
-/* Calculate (A * B), placing the result in *VALUE.  */
-
-static void
-sfnt_multiply_divide_1 (unsigned int a, unsigned int b,
-			struct sfnt_large_integer *value)
-{
-  unsigned int lo1, hi1, lo2, hi2, lo, hi, i1, i2;
-
-  lo1 = a & 0x0000ffffu;
-  hi1 = a >> 16;
-  lo2 = b & 0x0000ffffu;
-  hi2 = b >> 16;
-
-  lo = lo1 * lo2;
-  i1 = lo1 * hi2;
-  i2 = lo2 * hi1;
-  hi = hi1 * hi2;
-
-  /* Check carry overflow of i1 + i2.  */
-  i1 += i2;
-  hi += (unsigned int) (i1 < i2) << 16;
-
-  hi += i1 >> 16;
-  i1  = i1 << 16;
-
-  /* Check carry overflow of i1 + lo.  */
-  lo += i1;
-  hi += (lo < i1);
-
-  value->low = lo;
-  value->high = hi;
-}
-
-/* Calculate AB / C.  Value is a 32 bit unsigned integer.  */
-
-static unsigned int
-sfnt_multiply_divide_2 (struct sfnt_large_integer *ab,
-			unsigned int c)
-{
-  unsigned int hi, lo;
-  int i;
-  unsigned int r, q; /* Remainder and quotient.  */
-
-  hi = ab->high;
-  lo = ab->low;
-
-  i = stdc_leading_zeros (hi);
-  r = (hi << i) | (lo >> (32 - i));
-  lo <<= i;
-  q = r / c;
-  r -= q * c;
-  i = 32 - i;
-
-  do
-    {
-      q <<= 1;
-      r = (r << 1) | (lo >> 31);
-      lo <<= 1;
-
-      if (r >= c)
-	{
-	  r -= c;
-	  q |= 1;
-	}
-    }
-  while (--i);
-
-  return q;
-}
-
-/* Add the specified unsigned 32-bit N to the large integer
-   INTEGER.  */
-
-static void
-sfnt_large_integer_add (struct sfnt_large_integer *integer,
-			uint32_t n)
-{
-  struct sfnt_large_integer number;
-
-  number.low = integer->low + n;
-  number.high = integer->high + (number.low
-				 < integer->low);
-
-  *integer = number;
-}
-
-#endif /* !INT64_MAX */
-
-/* Calculate (A * B) / C with no rounding and return the result, using
-   a 64 bit integer if necessary.  */
+/* Calculate (A * B) / C with no rounding and return the result.  */
 
 static unsigned int
 sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
 {
-#ifndef INT64_MAX
-  struct sfnt_large_integer temp;
-
-  sfnt_multiply_divide_1 (a, b, &temp);
-  return sfnt_multiply_divide_2 (&temp, c);
-#else /* INT64_MAX */
-  uint64_t temp;
-
-  temp = (uint64_t) a * (uint64_t) b;
-  return temp / c;
-#endif /* !INT64_MAX */
+  return a * (unsigned long long int) {b} / c;
 }
 
-/* Calculate (A * B) / C with rounding and return the result, using a
-   64 bit integer if necessary.  */
+/* Calculate (A * B) / C with rounding and return the result.  */
 
 static unsigned int
 sfnt_multiply_divide_rounded (unsigned int a, unsigned int b,
 			      unsigned int c)
 {
-#ifndef INT64_MAX
-  struct sfnt_large_integer temp;
-
-  sfnt_multiply_divide_1 (a, b, &temp);
-  sfnt_large_integer_add (&temp, c / 2);
-  return sfnt_multiply_divide_2 (&temp, c);
-#else /* INT64_MAX */
-  uint64_t temp;
-
-  temp = (uint64_t) a * (uint64_t) b + c / 2;
-  return temp / c;
-#endif /* !INT64_MAX */
+  return (a * (unsigned long long int) {b} + c / 2) / c;
 }
-
-#ifndef INT64_MAX
-
-/* Calculate (A * B) / C, rounding the result with a threshold of N.
-   Use a 64 bit temporary.  */
-
-static unsigned int
-sfnt_multiply_divide_round (unsigned int a, unsigned int b,
-			    unsigned int n, unsigned int c)
-{
-  struct sfnt_large_integer temp;
-
-  sfnt_multiply_divide_1 (a, b, &temp);
-  sfnt_large_integer_add (&temp, n);
-  return sfnt_multiply_divide_2 (&temp, c);
-}
-
-#endif /* !INT64_MAX */
 
 /* The same as sfnt_multiply_divide_rounded, but handle signed values
    instead.  */
@@ -3831,27 +3693,7 @@ sfnt_multiply_divide_signed (int a, int b, int c)
 static sfnt_fixed
 sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) x * (int64_t) y;
-
-  /* This can be done quickly with int64_t.  */
-  return product / (int64_t) 65536;
-#else /* !INT64_MAX */
-  int sign;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide (abs (x), abs (y),
-			       65536) * sign;
-#endif /* INT64_MAX */
+  return x * (long long int) {y} / (1 << 16);
 }
 
 /* Multiply the two 16.16 fixed point numbers X and Y, with rounding
@@ -3860,28 +3702,8 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 static sfnt_fixed
 sfnt_mul_fixed_round (sfnt_fixed x, sfnt_fixed y)
 {
-#ifdef INT64_MAX
-  int64_t product, round;
-
-  product = (int64_t) x * (int64_t) y;
-  round = product < 0 ? -32768 : 32768;
-
-  /* This can be done quickly with int64_t.  */
-  return (product + round) / (int64_t) 65536;
-#else /* !INT64_MAX */
-  int sign;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide_round (abs (x), abs (y),
-				     32768, 65536) * sign;
-#endif /* INT64_MAX */
+  long long int product = x * (long long int) {y};
+  return (product + (product < 0 ? -(1 << 15) : 1 << 15)) / (1 << 16);
 }
 
 /* Set the pen size to the specified point and return.  POINT will be
@@ -3924,29 +3746,7 @@ sfnt_line_to_and_build (struct sfnt_point point, void *dcontext)
 static sfnt_fixed
 sfnt_div_fixed (sfnt_fixed x, sfnt_fixed y)
 {
-#ifdef INT64_MAX
-  int64_t result;
-
-  result = ((int64_t) x * 65536) / y;
-
-  return result;
-#else
-  int sign;
-  unsigned int a, b;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  a = abs (x);
-  b = abs (y);
-
-  return sfnt_multiply_divide (a, 65536, b) * sign;
-#endif
+  return x * (1LL << 16) / y;
 }
 
 /* Return the ceiling value of the specified fixed point number X.  */
@@ -6391,29 +6191,7 @@ sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
 static sfnt_f26dot6
 sfnt_div_f26dot6 (sfnt_f26dot6 x, sfnt_f26dot6 y)
 {
-#ifdef INT64_MAX
-  int64_t result;
-
-  result = ((int64_t) x * 64) / y;
-
-  return result;
-#else
-  int sign;
-  unsigned int a, b;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  a = abs (x);
-  b = abs (y);
-
-  return sfnt_multiply_divide (a, 64, b) * sign;
-#endif
+  return x * (1LL << 6) / y;
 }
 
 /* Multiply the specified two 26.6 fixed point numbers A and B.
@@ -6422,27 +6200,7 @@ sfnt_div_f26dot6 (sfnt_f26dot6 x, sfnt_f26dot6 y)
 static sfnt_f26dot6
 sfnt_mul_f26dot6 (sfnt_f26dot6 a, sfnt_f26dot6 b)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) a * (int64_t) b;
-
-  /* This can be done quickly with int64_t.  */
-  return product / (int64_t) 64;
-#else
-  int sign;
-
-  sign = 1;
-
-  if (a < 0)
-    sign = -sign;
-
-  if (b < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide (abs (a), abs (b),
-			       64) * sign;
-#endif
+  return a * (long long int) {b} / (1 << 6);
 }
 
 /* Multiply the specified two 26.6 fixed point numbers A and B, with
@@ -6452,27 +6210,7 @@ sfnt_mul_f26dot6 (sfnt_f26dot6 a, sfnt_f26dot6 b)
 static sfnt_f26dot6
 sfnt_mul_f26dot6_round (sfnt_f26dot6 a, sfnt_f26dot6 b)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) a * (int64_t) b;
-
-  /* This can be done quickly with int64_t.  */
-  return (product + 32) / (int64_t) 64;
-#else /* !INT64_MAX */
-  int sign;
-
-  sign = 1;
-
-  if (a < 0)
-    sign = -sign;
-
-  if (b < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide_round (abs (a), abs (b),
-				     32, 64) * sign;
-#endif /* INT64_MAX */
+  return (a * (long long int) {b} + (1 << 5)) / (1 << 6);
 }
 
 /* Multiply the specified 2.14 number with another signed 32 bit
@@ -6481,26 +6219,7 @@ sfnt_mul_f26dot6_round (sfnt_f26dot6 a, sfnt_f26dot6 b)
 static int32_t
 sfnt_mul_f2dot14 (sfnt_f2dot14 a, int32_t b)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) a * (int64_t) b;
-
-  return product / (int64_t) 16384;
-#else
-  int sign;
-
-  sign = 1;
-
-  if (a < 0)
-    sign = -sign;
-
-  if (b < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide (abs (a), abs (b),
-			       16384) * sign;
-#endif
+  return a * (long long int) {b} / (1 << 14);
 }
 
 /* Multiply the specified 26.6 fixed point number X by the specified
@@ -10596,46 +10315,9 @@ sfnt_project_onto_y_axis_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
 static int32_t
 sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
 {
-#ifndef INT64_MAX
-  int32_t m, s, hi1, hi2, hi;
-  uint32_t l, lo1, lo2, lo;
-
-
-  /* Compute ax*bx as 64-bit value.  */
-  l = (uint32_t) ((ax & 0xffffu) * bx);
-  m = (ax >> 16) * bx;
-
-  lo1 = l + ((uint32_t) m << 16);
-  hi1 = (m >> 16) + ((int32_t) l >> 31) + (lo1 < l);
-
-  /* Compute ay*by as 64-bit value.  */
-  l = (uint32_t) ((ay & 0xffffu) * by);
-  m = (ay >> 16) * by;
-
-  lo2 = l + ((uint32_t) m << 16);
-  hi2 = (m >> 16) + ((int32_t) l >> 31) + (lo2 < l);
-
-  /* Add them.  */
-  lo = lo1 + lo2;
-  hi = hi1 + hi2 + (lo < lo1);
-
-  /* Divide the result by 2^14 with rounding.  */
-  s = hi >> 31;
-  l = lo + (uint32_t) s;
-  hi += s + (l < lo);
-  lo = l;
-
-  l = lo + 0x2000u;
-  hi += (l < lo);
-
-  return (int32_t) (((uint32_t) hi << 18) | (l >> 14));
-#else
-  int64_t xx, yy;
-  int64_t temp;
-
-  xx = (int64_t) ax * bx;
-  yy = (int64_t) ay * by;
-
+  long long int
+    xx = ax * (long long int) {bx},
+    yy = ay * (long long int) {by};
   xx += yy;
   yy = xx >> 63;
   xx += 0x2000 + yy;
@@ -10643,10 +10325,9 @@ sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
   /* TrueType fonts rely on "division" here truncating towards
      negative infinity, so compute the arithmetic right shift in place
      of division.  */
-  temp = -(xx < 0);
+  long long int temp = -(xx < 0);
   temp = (temp ^ xx) >> 14 ^ temp;
-  return (int32_t) (temp);
-#endif
+  return temp;
 }
 
 /* Project the specified vector VX and VY onto the unit vector that is
