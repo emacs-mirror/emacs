@@ -75,6 +75,7 @@ exec $awk \
     }
     c_lower = "abcdefghijklmnopqrstuvwxyz"
     unsafe_gnu_url = "(http|ftp)://([" c_lower ".]*\\.)?(gnu|fsf)\\.org"
+    markdown_quotation = "(^|[^\\\\])`[^'\''`]+`"
   }
 
   { input[NR] = $0 }
@@ -89,11 +90,6 @@ exec $awk \
 
   !/^.*$/ {
     print "Invalid character (not UTF-8) in commit message"
-    status = 1
-  }
-
-  /(^|[^\\])`[^'\''`]+`/ {
-    print "Markdown-style quotes in commit message"
     status = 1
   }
 
@@ -141,7 +137,7 @@ exec $awk \
     status = 1
   }
 
-  $0 ~ unsafe_gnu_url {
+  $0 ~ unsafe_gnu_url || $0 ~ markdown_quotation {
     needs_rewriting = 1
   }
 
@@ -167,7 +163,13 @@ exec $awk \
 	  suffix = substr(line, RSTART)
 	  line = prefix "https:" substr(suffix, 5 + (suffix ~ /^http:/))
 	}
-	print line >file
+	while (match(line, markdown_quotation)) {
+	  prefix = substr(line, 1, RSTART)
+	  within = substr(line, RSTART + 2, RLENGTH - 3)
+	  suffix = substr(line, RSTART + RLENGTH)
+	  line = prefix "'\''" within "'\''" suffix
+	}
+        print line >file
       }
       if (close(file) != 0) {
 	print "Cannot rewrite: " file

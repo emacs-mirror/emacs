@@ -3938,19 +3938,12 @@ A major mode based on 'conf-mode' for editing ".npmrc" files.
 
 *** New major mode 'markdown-ts-mode'.
 A major mode based on the tree-sitter library for editing Markdown
-files.  This is now the default major mode for Markdown files.  If you
-don't have the necessary tree-sitter grammar libraries installed, or if
-your Emacs was built without tree-sitter support, Emacs will now show a
-warning to that effect when you visit a Markdown file.  If you don't
-want to use this mode and want to avoid these warnings, add the
-following to your init file:
+files.  Markdown files are visited using this mode when the required
+tree-sitter grammars ('markdown' and 'markdown-inline') are available,
+or when the user has opted in via 'treesit-enabled-modes'.  Otherwise,
+Markdown files fall back to 'text-mode'.
 
-  (add-to-list 'auto-mode-alist '("\\.md\\'" . fundamental-mode))
-  (add-to-list 'auto-mode-alist '("\\.markdown\\'" . fundamental-mode))
-  (add-to-list 'auto-mode-alist '("\\.mdx\\'" . fundamental-mode))
-
-This will cause Emacs to visit Markdown files in Fundamental mode, which
-was the default before this mode was added to Emacs.
+To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
 *** New major mode 'mhtml-ts-mode'.
 An optional major mode based on the tree-sitter library for editing HTML
