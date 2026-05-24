@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "sfnt.h"
 
-#include <assert.h>
 #include <attribute.h>
 #include <byteswap.h>
 #include <fcntl.h>
@@ -48,6 +47,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef TEST
 
+#include <assert.h>
 #include <time.h>
 #include <timespec.h>
 #include <sys/wait.h>
@@ -128,6 +128,8 @@ xfree (void *ptr)
 
 /* Needed for tests.  */
 #define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
+
+#define eassert(expr) assert (expr)
 
 /* Also necessary.  */
 #define AVOID _Noreturn ATTRIBUTE_COLD void
@@ -4362,7 +4364,7 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   if ((left & ~SFNT_POLY_MASK) == (right & ~SFNT_POLY_MASK))
     {
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
 
       w = coverage[right - left];
       a = *start + w;
@@ -4378,7 +4380,7 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   if (left & SFNT_POLY_MASK)
     {
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
 
       /* Compute the coverage for the first pixel, and move left past
 	 it.  The coverage is a number from 1 to 7 describing how
@@ -4405,7 +4407,7 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   while (left + SFNT_POLY_MASK < right)
     {
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
 
       a = *start + w;
       *start++ = sfnt_saturate_short (a);
@@ -4417,7 +4419,7 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   if (right & SFNT_POLY_MASK)
     {
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
 
       w = coverage[right - left];
       a = *start + w;
@@ -12598,7 +12600,7 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
      advance phantom points.  */
   num_points = context->num_points - base_index;
   num_contours = context->num_end_points - base_contour;
-  assert (num_points >= 2);
+  eassert (num_points >= 2);
 
   /* Nothing to instruct! */
   if (!num_points && !num_contours)
@@ -12669,7 +12671,7 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
     }
 
   /* Copy S1 and S2 into the glyph zone.  */
-  assert (num_points >= 2);
+  eassert (num_points >= 2);
   zone->x_points[num_points - 1] = s2;
   zone->x_points[num_points - 2] = s1;
 
@@ -12960,7 +12962,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 		 the outline ultimately produced, they are temporarily
 		 appended to the outline here, so as to enable
 		 defer_offsets below to refer to them.  */
-	      assert (value->num_points >= 2);
+	      eassert (value->num_points >= 2);
 	      last_point = value->num_points - 2;
 	      number_of_contours = value->num_contours;
 
@@ -13015,7 +13017,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 
 		  /* Assert the child anchor is within the confines of
 		     the zone.  */
-		  assert (point2 < value->num_points);
+		  eassert (point2 < value->num_points);
 
 		  /* Get the points and use them to compute the
 		     offsets.  */
@@ -13137,7 +13139,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 	  /* Subtract the two phantom points from context->num_points.
 	     This behavior is correct, as only the subglyph's phantom
 	     points may be provided as anchor points.  */
-	  assert (context->num_points - contour_start >= 2);
+	  eassert (context->num_points - contour_start >= 2);
 	  context->num_points -= 2;
 
 	  sfnt_transform_f26dot6 (component,
