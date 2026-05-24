@@ -4398,7 +4398,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      props = extend_property_ranges (props, len, new_len);
 	      /* If successive arguments have properties, be sure that
 		 the value of `composition' property be the copy.  */
-	      if (1 < i && info[i - 1].end)
+	      if (1 <= i && info[i - 1].end)
 		make_composition_value_copy (props);
 	      add_text_properties_from_list (val, props,
 					     make_fixnum (info[i].start));
