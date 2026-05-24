@@ -489,7 +489,7 @@ internal_self_insert (int c, EMACS_INT n)
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
       auto_fill_result = call0 (Qinternal_auto_fill);
       /* Test PT < ZV in case the auto-fill-function is strange.  */
-      if (c == '\n' && PT < ZV)
+      if (c == '\n' && PT < ZV && FETCH_BYTE (PT) == '\n')
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
       if (!NILP (auto_fill_result))
 	hairy = 2;
