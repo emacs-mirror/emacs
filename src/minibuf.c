@@ -2364,6 +2364,22 @@ STR the i-th character of PAT matched.  */)
     if (patlen == 0 || strlen == 0 || size > FLEX_MAX_MATRIX_SIZE)
       return Qnil;
 
+    /* Also bail if PAT is not a subsequence of STR so bail "cheaply"
+       before the O(N*M) DP algorithm.  Walking both strings
+       byte-by-byte for this purpose (and only for case-sensitive common
+       case) should be valid even for multibyte strings. */
+    if (!completion_ignore_case)
+      {
+	const unsigned char *p = SDATA (pat);
+	const unsigned char *s = SDATA (str);
+	int pi = 0;
+	for (int si = 0; si < strlen && pi < patlen; si++)
+	  if (s[si] == p[pi])
+	    pi++;
+	if (pi < patlen)
+	  return Qnil;
+      }
+
     /* Initialize M and D with positive infinity...  */
     for (int j = 0; j < size; j++)
       M[j] = D[j] = pos_inf;
