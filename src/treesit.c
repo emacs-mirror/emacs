@@ -2917,13 +2917,15 @@ treesit_check_node (Lisp_Object obj)
 }
 
 /* Check that OBJ is a positive integer/marker and it is within the
-   visible portion of BUF.  */
-static void
+   visible portion of BUF.  Signal if invalid, return the value if
+   valid.  */
+static ptrdiff_t
 treesit_check_position (Lisp_Object obj, struct buffer *buf)
 {
   ptrdiff_t pos = fix_position (obj);
   if (pos < BUF_BEGV (buf) || pos > BUF_ZV (buf))
     xsignal1 (Qargs_out_of_range, obj);
+  return pos;
 }
 
 bool
@@ -3346,10 +3348,10 @@ Note that this function returns an immediate child, not the smallest
   struct buffer *buf = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
 
-  treesit_check_position (pos, buf);
+  ptrdiff_t fixpos = treesit_check_position (pos, buf);
   treesit_initialize ();
 
-  ptrdiff_t byte_pos = buf_charpos_to_bytepos (buf, fix_position (pos));
+  ptrdiff_t byte_pos = buf_charpos_to_bytepos (buf, fixpos);
   TSNode treesit_node = XTS_NODE (node)->node;
 
   TSTreeCursor cursor = ts_tree_cursor_new (treesit_node);
@@ -3382,13 +3384,13 @@ If NODE is nil, return nil.  */)
   struct buffer *buf = XBUFFER (XTS_PARSER (XTS_NODE (node)->parser)->buffer);
   ptrdiff_t visible_beg = XTS_PARSER (XTS_NODE (node)->parser)->visible_beg;
 
-  treesit_check_position (beg, buf);
-  treesit_check_position (end, buf);
+  ptrdiff_t fixpos_beg = treesit_check_position (beg, buf);
+  ptrdiff_t fixpos_end = treesit_check_position (end, buf);
 
   treesit_initialize ();
 
-  ptrdiff_t byte_beg = buf_charpos_to_bytepos (buf, fix_position (beg));
-  ptrdiff_t byte_end = buf_charpos_to_bytepos (buf, fix_position (end));
+  ptrdiff_t byte_beg = buf_charpos_to_bytepos (buf, fixpos_beg);
+  ptrdiff_t byte_end = buf_charpos_to_bytepos (buf, fixpos_end);
   TSNode treesit_node = XTS_NODE (node)->node;
   TSNode child;
   if (NILP (named))
@@ -4060,10 +4062,12 @@ the query.  */)
 
   /* Check BEG and END.  */
   struct buffer *buf = XBUFFER (XTS_PARSER (lisp_parser)->buffer);
+  ptrdiff_t fixpos_beg = 0;
+  ptrdiff_t fixpos_end = 0;
   if (!NILP (beg))
-    treesit_check_position (beg, buf);
+    fixpos_beg = treesit_check_position (beg, buf);
   if (!NILP (end))
-    treesit_check_position (end, buf);
+    fixpos_end = treesit_check_position (end, buf);
 
   /* Initialize query objects.  At the end of this block, we should
      have a working TSQuery and a TSQueryCursor.  */
@@ -4085,8 +4089,8 @@ the query.  */)
     {
       ptrdiff_t visible_beg
 	= XTS_PARSER (XTS_NODE (lisp_node)->parser)->visible_beg;
-      ptrdiff_t beg_byte = CHAR_TO_BYTE (fix_position (beg));
-      ptrdiff_t end_byte = CHAR_TO_BYTE (fix_position (end));
+      ptrdiff_t beg_byte = CHAR_TO_BYTE (fixpos_beg);
+      ptrdiff_t end_byte = CHAR_TO_BYTE (fixpos_end);
       /* In ts_query_cursor_set_byte_range, if end_byte = 0, it's set to
          UINT32_MAX for some reason.  But range (1, 1) shouldn't capture
          anything.  So in this case just return Qnil.  (bug#80798)  */
@@ -5181,9 +5185,9 @@ return the line and column in the form of
 This is used for internal testing and debugging ONLY.  */)
   (Lisp_Object pos)
 {
-  treesit_check_position (pos, current_buffer);
+  ptrdiff_t fixpos = treesit_check_position (pos, current_buffer);
   struct ts_linecol pos_linecol
-    = treesit_linecol_of_pos (CHAR_TO_BYTE (fix_position (pos)),
+    = treesit_linecol_of_pos (CHAR_TO_BYTE (fixpos),
 			      BUF_TS_LINECOL_POINT (current_buffer));
   return Fcons (make_fixnum (pos_linecol.line), make_fixnum (pos_linecol.col));
 }
