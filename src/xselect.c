@@ -1624,15 +1624,22 @@ static void
 x_display_selection_waiting_message (struct atimer *timer)
 {
   Lisp_Object val;
+  struct atimer **atimerp = timer->client_data;
 
   val = build_string ("Waiting for reply from selection owner...");
   message3_nolog (val);
+  *atimerp = NULL;
 }
 
 static void
-x_cancel_atimer (void *atimer)
+x_cancel_atimer (void *atimerp)
 {
-  cancel_atimer (atimer);
+  struct atimer **atimer = atimerp;
+  if (*atimer)
+    {
+      cancel_atimer (*atimer);
+      *atimer = NULL;
+    }
 }
 
 
@@ -1701,8 +1708,8 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   message_interval = make_timespec (1, 0);
   delayed_message = start_atimer (ATIMER_RELATIVE, message_interval,
 				  x_display_selection_waiting_message,
-				  NULL);
-  record_unwind_protect_ptr (x_cancel_atimer, delayed_message);
+				  &delayed_message);
+  record_unwind_protect_ptr (x_cancel_atimer, &delayed_message);
 
   /* This allows quits.  Also, don't wait forever.  */
   intmax_t timeout = max (0, x_selection_timeout);
