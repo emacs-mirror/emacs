@@ -56,6 +56,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrender.h>
 
+static void
+memory_full_up (void)
+{
+  abort ();
+}
+
 static void *
 xmalloc (size_t size)
 {
@@ -64,22 +70,37 @@ xmalloc (size_t size)
   ptr = malloc (size);
 
   if (!ptr)
-    abort ();
+    memory_full_up ();
 
   return ptr;
 }
 
-MAYBE_UNUSED static void *
-xcalloc (ptrdiff_t n, ptrdiff_t s)
+static void *
+xcalloc (size_t n, size_t s)
 {
   void *ptr;
 
   ptr = calloc (n, s);
 
   if (!ptr)
-    abort ();
+    memory_full_up ();
 
   return ptr;
+}
+
+static void *
+xzalloc (size_t size)
+{
+  return xcalloc (1, size);
+}
+
+static void *
+xnmalloc (size_t n, size_t s)
+{
+  size_t size;
+  if (ckd_mul (&size, n, s))
+    memory_full_up ();
+  return xmalloc (size);
 }
 
 static void *
@@ -90,7 +111,7 @@ xrealloc (void *ptr, size_t size)
   new_ptr = realloc (ptr, size);
 
   if (!new_ptr)
-    abort ();
+    memory_full_up ();
 
   return new_ptr;
 }
@@ -111,12 +132,28 @@ xfree (void *ptr)
 /* Also necessary.  */
 #define AVOID _Noreturn ATTRIBUTE_COLD void
 
-#define eassert(expr) assert (expr)
-
 #else
 #define TEST_STATIC
 #include "lisp.h"
 #endif
+
+static void *
+xaddmalloc (size_t base, size_t additional)
+{
+  size_t size;
+  if (ckd_add (&size, additional, base))
+    memory_full_up ();
+  return xmalloc (size);
+}
+
+static void *
+xaddrealloc (void *ptr, size_t base, size_t additional)
+{
+  size_t size;
+  if (ckd_add (&size, additional, base))
+    memory_full_up ();
+  return xrealloc (ptr, size);
+}
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -738,8 +775,7 @@ sfnt_read_cmap_format_12 (int fd,
     return NULL;
 
   /* Allocate a buffer of sufficient size.  */
-  eassert (length < UINT32_MAX - sizeof *format12);
-  format12 = xmalloc (length + sizeof *format12);
+  format12 = xaddmalloc (sizeof *format12, length);
   format12->format = header->format;
   format12->reserved = header->length;
   format12->length = length;
@@ -1594,7 +1630,7 @@ sfnt_read_loca_table_short (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Figure out how many glyphs there are based on the length.  */
-  loca = xmalloc (sizeof *loca + directory->length);
+  loca = xaddmalloc (sizeof *loca, directory->length);
   loca->offsets = (uint16_t *) (loca + 1);
   loca->num_offsets = directory->length / 2;
 
@@ -1639,7 +1675,7 @@ sfnt_read_loca_table_long (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Figure out how many glyphs there are based on the length.  */
-  loca = xmalloc (sizeof *loca + directory->length);
+  loca = xaddmalloc (sizeof *loca, directory->length);
   loca->offsets = (uint32_t *) (loca + 1);
   loca->num_offsets = directory->length / 4;
 
@@ -1771,7 +1807,7 @@ sfnt_read_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Allocate enough to hold everything.  */
-  glyf = xmalloc (sizeof *glyf + directory->length);
+  glyf = xaddmalloc (sizeof *glyf, directory->length);
   glyf->size = directory->length;
   glyf->glyphs = (unsigned char *) (glyf + 1);
 
@@ -1885,6 +1921,8 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
   unsigned char *vec_start;
   int16_t delta, x, y;
 
+  glyph->simple = NULL;
+
   /* Calculate the minimum size of the glyph data.  This is the size
      of the instruction length field followed by
      glyph->number_of_contours * sizeof (uint16_t).  */
@@ -1893,14 +1931,11 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 	      + sizeof (uint16_t));
 
   /* Check that the size is big enough.  */
-  if (glyf->size < offset + min_size)
-    {
-      glyph->simple = NULL;
-      return;
-    }
+  if (glyf->size < min_size || glyf->size - min_size < offset)
+    return;
 
   /* Allocate enough to read at least that.  */
-  simple = xmalloc (sizeof *simple + min_size);
+  simple = xaddmalloc (sizeof *simple, min_size);
   simple->end_pts_of_contours = (uint16_t *) (simple + 1);
   memcpy (simple->end_pts_of_contours, glyf->glyphs + offset,
 	  min_size);
@@ -1928,16 +1963,15 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
   else
     number_of_points = 0;
 
-  min_size_2 = (simple->instruction_length
-		+ number_of_points
-		+ (number_of_points
-		   * sizeof (uint16_t) * 2));
-
-  /* Set simple->number_of_points.  */
   simple->number_of_points = number_of_points;
 
   /* Make simple big enough.  */
-  simple = xrealloc (simple, sizeof *simple + min_size + min_size_2);
+  size_t size;
+  if (ckd_mul (&min_size_2, number_of_points, sizeof (uint16_t) * 2 + 1)
+      || ckd_add (&min_size_2, min_size_2, simple->instruction_length)
+      || ckd_add (&size, min_size, min_size_2))
+    memory_full_up ();
+  simple = xaddrealloc (simple, sizeof *simple, size);
   simple->end_pts_of_contours = (uint16_t *) (simple + 1);
 
   /* Set the instruction data pointer and other pointers.
@@ -1958,7 +1992,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
       || (instructions_start + simple->instruction_length
 	  >= glyf->glyphs + glyf->size))
     {
-      glyph->simple = NULL;
       xfree (simple);
       return;
     }
@@ -1973,7 +2006,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
   if (flags_start >= glyf->glyphs + glyf->size)
     {
-      glyph->simple = NULL;
       xfree (simple);
       return;
     }
@@ -1997,7 +2029,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (flags_start + 1 >= glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2025,7 +2056,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
   if (i != number_of_points)
     {
-      glyph->simple = NULL;
       xfree (simple);
       return;
     }
@@ -2051,7 +2081,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 1 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2068,7 +2097,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 2 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2102,7 +2130,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 1 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2119,7 +2146,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 2 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2139,7 +2165,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
   /* All done.  */
   simple->y_coordinates_end = simple->y_coordinates + i;
   glyph->simple = simple;
-  return;
 }
 
 /* Read the compound glyph outline from the glyph GLYPH from the
@@ -2209,8 +2234,7 @@ sfnt_read_compound_glyph (struct sfnt_glyph *glyph,
     }
 
   /* Now allocate the buffer to hold all the glyph data.  */
-  glyph->compound = xmalloc (sizeof *glyph->compound
-			     + required_bytes);
+  glyph->compound = xaddmalloc (sizeof *glyph->compound, required_bytes);
   glyph->compound->components
     = (struct sfnt_compound_glyph_component *) (glyph->compound + 1);
   glyph->compound->num_components = num_components;
@@ -2431,9 +2455,8 @@ sfnt_read_glyph (sfnt_glyph glyph_code,
       glyph.ymax = 0;
       glyph.advance_distortion = 0;
       glyph.origin_distortion = 0;
-      glyph.simple = xmalloc (sizeof *glyph.simple);
+      glyph.simple = xzalloc (sizeof *glyph.simple);
       glyph.compound = NULL;
-      memset (glyph.simple, 0, sizeof *glyph.simple);
       memory = xmalloc (sizeof *memory);
       *memory = glyph;
       return memory;
@@ -3608,17 +3631,19 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
 
   outline->outline_used++;
 
-  /* See if the outline has to be extended.  Checking for overflow
-     should not be necessary.  */
+  /* See if the outline has to be extended.  */
 
   if (outline->outline_used > outline->outline_size)
     {
+      /* This can't overflow, as the old value did not overflow when
+	 multiplied by sizeof *outline->outline.  */
       outline->outline_size = outline->outline_used * 2;
 
       /* Extend the outline to some size past the new size.  */
-      outline = xrealloc (outline, (sizeof *outline
-				    + (outline->outline_size
-				       * sizeof *outline->outline)));
+      size_t size;
+      if (ckd_mul (&size, outline->outline_size, sizeof *outline->outline))
+	memory_full_up ();
+      outline = xaddrealloc (outline, sizeof *outline, size);
       outline->outline
 	= (struct sfnt_glyph_outline_command *) (outline + 1);
     }
@@ -4039,7 +4064,12 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
   sfnt_fixed dx, dy, bot, step_x, ymin, xmin;
   size_t top, bottom, y;
 
-  edges = alloca (outline->outline_used * sizeof *edges);
+  void *edges_alloc = NULL;
+  if (outline->outline_used < 1024 * 16 / sizeof *edges)
+    edges = alloca (outline->outline_used * sizeof *edges);
+  else
+    edges = edges_alloc = xnmalloc (outline->outline_used, sizeof *edges);
+
   edge = 0;
 
   /* ymin and xmin must be the same as the offset used to set offy and
@@ -4132,6 +4162,7 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 
   if (edge)
     edge_proc (edges, edge, dcontext);
+  xfree (edges_alloc);
 }
 
 /* Sort an array of SIZE edges to increase by bottom Y position, in
@@ -4484,11 +4515,15 @@ sfnt_raster_glyph_outline (struct sfnt_glyph_outline *outline)
   /* Get the raster parameters.  */
   sfnt_prepare_raster (&raster, outline);
 
-  /* Allocate the raster data.  */
-  data = xmalloc (sizeof *data + raster.stride * raster.height);
+  /* Allocate the raster data.  Clear the raster; it is easier to use
+     xzalloc and clear everything.  */
+  size_t size;
+  if (ckd_mul (&size, raster.stride, raster.height)
+      || ckd_add (&size, size, sizeof *data))
+    memory_full_up ();
+  data = xzalloc (size);
   *data = raster;
   data->cells = (unsigned char *) (data + 1);
-  memset (data->cells, 0, raster.stride * raster.height);
 
   /* Generate edges for the outline, polying each array of edges to
      the raster.  */
@@ -4688,7 +4723,12 @@ sfnt_build_outline_fedges (struct sfnt_glyph_outline *outline,
   sfnt_fixed dx, dy, step_x, step_y, ymin, xmin;
   size_t top, bottom;
 
-  edges = alloca (outline->outline_used * sizeof *edges);
+  void *edges_alloc = NULL;
+  if (outline->outline_used < 1024 * 16 / sizeof *edges)
+    edges = alloca (outline->outline_used * sizeof *edges);
+  else
+    edges = edges_alloc = xnmalloc (outline->outline_used, sizeof *edges);
+
   edge = 0;
 
   /* ymin and xmin must be the same as the offset used to set offy and
@@ -4773,6 +4813,7 @@ sfnt_build_outline_fedges (struct sfnt_glyph_outline *outline,
 
   if (edge)
     edge_proc (edges, edge, dcontext);
+  xfree (edges_alloc);
 }
 
 typedef void (*sfnt_step_raster_proc) (struct sfnt_step_raster *, void *);
@@ -5376,15 +5417,21 @@ TEST_STATIC struct sfnt_raster *
 sfnt_raster_glyph_outline_exact (struct sfnt_glyph_outline *outline)
 {
   struct sfnt_raster raster, *data;
+  size_t size;
 
   /* Get the raster parameters.  */
   sfnt_prepare_raster (&raster, outline);
 
-  /* Allocate the raster data.  */
-  data = xmalloc (sizeof *data + raster.stride * raster.height);
+  /* Allocate the raster data.  Clear the raster; it is easier to use
+     xcalloc and clear everything.  */
+  if (ckd_mul (&size, raster.stride, raster.height)
+      || ckd_add (&size, size, sizeof *data))
+    return NULL;
+  data = xcalloc (1, size);
+  if (!data)
+    return NULL;
   *data = raster;
   data->cells = (unsigned char *) (data + 1);
-  memset (data->cells, 0, raster.stride * raster.height);
 
   /* Generate edges for the outline, polying each array of edges to
      the raster.  */
@@ -5444,7 +5491,7 @@ sfnt_read_hmtx_table (int fd, struct sfnt_offset_subtable *subtable,
   /* Now allocate enough to hold all of that along with the table
      directory structure.  */
 
-  hmtx = xmalloc (sizeof *hmtx + size);
+  hmtx = xaddmalloc (sizeof *hmtx, size);
 
   /* Read into hmtx + 1.  */
   rc = read (fd, hmtx + 1, size);
@@ -5591,13 +5638,9 @@ sfnt_read_name_table (int fd, struct sfnt_offset_subtable *subtable)
   if (directory->length < required)
     return NULL;
 
-  /* Avoid overflow in xmalloc argument below.  */
-  if (directory->length > UINT_MAX - sizeof *name)
-    return NULL;
-
   /* Allocate enough to hold the name table and variable length
      data.  */
-  name = xmalloc (sizeof *name + directory->length);
+  name = xaddmalloc (sizeof *name, directory->length);
 
   /* Read the fixed length data.  */
   rc = read (fd, name, required);
@@ -5671,10 +5714,11 @@ sfnt_read_name_table (int fd, struct sfnt_offset_subtable *subtable)
 		  - (name->count
 		     * sizeof *name->name_records)))
     {
-      name = xrealloc (name, (sizeof *name
-			      + (name->count
-				 * sizeof *name->name_records)
-			      + required));
+      size_t size;
+      if (ckd_mul (&size, name->count, sizeof *name->name_records)
+	  || ckd_add (&size, size, required))
+	memory_full_up ();
+      name = xaddrealloc (name, sizeof *name, size);
       name->name_records = (struct sfnt_name_record *) (name + 1);
     }
 
@@ -5801,7 +5845,7 @@ sfnt_read_meta_table (int fd, struct sfnt_offset_subtable *subtable)
 
   if (ckd_mul (&map_size, sizeof *meta->data_maps, meta->num_data_maps)
       /* Do so while checking for overflow from bad sfnt files.  */
-      || ckd_add (&data_size, map_size, sizeof *meta)
+      || directory->length - required < map_size
       || ckd_add (&data_size, data_size, directory->length))
     {
       xfree (meta);
@@ -5809,15 +5853,7 @@ sfnt_read_meta_table (int fd, struct sfnt_offset_subtable *subtable)
     }
 
   /* Do the reallocation.  */
-  meta = xrealloc (meta, data_size);
-
-  /* Check that the remaining data is big enough to hold the data
-     maps.  */
-  if (directory->length - required < map_size)
-    {
-      xfree (meta);
-      return NULL;
-    }
+  meta = xaddrealloc (meta, sizeof *meta, data_size);
 
   /* Set pointers to data_maps and data.  */
   meta->data_maps = (struct sfnt_meta_data_map *) (meta + 1);
@@ -5945,7 +5981,7 @@ sfnt_read_ttc_header (int fd)
       return NULL;
     }
 
-  ttc = xrealloc (ttc, sizeof *ttc + size);
+  ttc = xaddrealloc (ttc, sizeof *ttc, size);
   ttc->offset_table = (uint32_t *) (ttc + 1);
   rc = read (fd, ttc->offset_table, size);
   if (rc == -1 || rc < size)
@@ -6113,7 +6149,7 @@ sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Allocate enough for that much data.  */
-  fpgm = xmalloc (sizeof *fpgm + directory->length);
+  fpgm = xaddmalloc (sizeof *fpgm, directory->length);
 
   /* Now set fpgm->num_instructions as appropriate, and make
      fpgm->instructions point to the right place.  */
@@ -6161,7 +6197,7 @@ sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Allocate enough for that much data.  */
-  prep = xmalloc (sizeof *prep + directory->length);
+  prep = xaddmalloc (sizeof *prep, directory->length);
 
   /* Now set prep->num_instructions as appropriate, and make
      prep->instructions point to the right place.  */
@@ -13498,22 +13534,17 @@ TEST_STATIC struct sfnt_uvs_context *
 sfnt_create_uvs_context (struct sfnt_cmap_format_14 *cmap, int fd)
 {
   struct sfnt_table_offset_rec *table_offsets, *rec, template;
-  size_t size, i, nmemb, j;
+  size_t i, nmemb, j;
   off_t offset;
   struct sfnt_uvs_context *context;
-
-  if (ckd_mul (&size, cmap->num_var_selector_records,
-	       sizeof *table_offsets)
-      || ckd_mul (&size, size, 2))
-    return NULL;
 
   context = NULL;
 
   /* First, record and sort the UVS and nondefault UVS table offsets
      in ascending order.  */
 
-  table_offsets = xmalloc (size);
-  memset (table_offsets, 0, size);
+  table_offsets = xcalloc (cmap->num_var_selector_records,
+			   2 * sizeof *table_offsets);
   nmemb = cmap->num_var_selector_records * 2;
   j = 0;
 
@@ -14196,13 +14227,12 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
     goto bail;
 
   /* Figure out how big gvar needs to be.  */
-  if (ckd_add (&min_bytes, coordinate_size, sizeof *gvar)
-      || ckd_add (&min_bytes, min_bytes, off_size)
+  if (ckd_add (&min_bytes, coordinate_size, off_size)
       || ckd_add (&min_bytes, min_bytes, data_size))
     goto bail;
 
   /* Now allocate enough for all of this extra data.  */
-  gvar = xrealloc (gvar, min_bytes);
+  gvar = xaddrealloc (gvar, sizeof *gvar, min_bytes);
 
   /* Start reading offsets.  */
 
@@ -14534,7 +14564,7 @@ sfnt_read_packed_deltas (unsigned char *restrict data,
   if (data >= end)
     return NULL;
 
-  deltas = xmalloc (sizeof *deltas * n);
+  deltas = xnmalloc (n, sizeof *deltas);
   i = 0;
 
   while (i < n)
@@ -15326,7 +15356,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 {
   size_t i, pair_start, pair_end, pair_first;
 
-  pair_start = pair_first = -1;
+  pair_start = pair_first = SIZE_MAX;
 
   /* Look for pairs of touched points.  */
 
@@ -15335,7 +15365,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
       if (!touched[i])
 	continue;
 
-      if (pair_start == -1)
+      if (pair_start == SIZE_MAX)
 	{
 	  pair_first = i;
 	  goto next;
@@ -15538,10 +15568,11 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   /* Start reading each tuple.  */
   tuple = gvar->glyph_variation_data + offset + sizeof header;
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    coords = xmalloc (gvar->axis_count * sizeof *coords * 3);
-  else
+  void *coords_alloc = NULL;
+  if (gvar->axis_count < 1024 * 16 / (3 * sizeof *coords))
     coords = alloca (gvar->axis_count * sizeof *coords * 3);
+  else
+    coords = coords_alloc = xnmalloc (gvar->axis_count, 3 * sizeof *coords);
 
   intermediate_start = coords + gvar->axis_count;
   intermediate_end = intermediate_start + gvar->axis_count;
@@ -15551,6 +15582,8 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   touched = NULL;
   original_x = NULL;
   original_y = NULL;
+  void *touched_alloc = NULL;
+  void *original_x_alloc = NULL;
 
   while (ntuples--)
     {
@@ -15702,21 +15735,23 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	  if (!original_x)
 	    {
-	      if ((glyph->simple->number_of_points
-		   * sizeof *touched) >= 1024 * 16)
-		touched = xmalloc (sizeof *touched
-				   * glyph->simple->number_of_points);
-	      else
+	      if (glyph->simple->number_of_points
+		  < 1024 * 16 / sizeof *touched)
 		touched = alloca (sizeof *touched
 				  * glyph->simple->number_of_points);
-
-	      if ((sizeof *original_x * 2
-		   * glyph->simple->number_of_points) >= 1024 * 16)
-		original_x = xmalloc (sizeof *original_x * 2
-				      * glyph->simple->number_of_points);
 	      else
+		touched = touched_alloc
+		  = xnmalloc (glyph->simple->number_of_points,
+			      sizeof *touched);
+
+	      if (glyph->simple->number_of_points
+		  < 1024 * 16 / (2 * sizeof *original_x))
 		original_x = alloca (sizeof *original_x * 2
 				     * glyph->simple->number_of_points);
+	      else
+		original_x = original_x_alloc
+		  = xnmalloc (glyph->simple->number_of_points,
+			      2 * sizeof *original_x);
 
 	      original_y = original_x + glyph->simple->number_of_points;
 	    }
@@ -15777,16 +15812,9 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   /* Return success.  */
 
-  if ((glyph->simple->number_of_points
-       * sizeof *touched) >= 1024 * 16)
-    xfree (touched);
-
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
-  if ((sizeof *original_x * 2
-       * glyph->simple->number_of_points) >= 1024 * 16)
-    xfree (original_x);
+  xfree (touched_alloc);
+  xfree (coords_alloc);
+  xfree (original_x_alloc);
 
   if (points != (uint16_t *) -1)
     xfree (points);
@@ -15803,16 +15831,9 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   xfree (local_points);
  fail1:
 
-  if ((glyph->simple->number_of_points
-       * sizeof *touched) >= 1024 * 16)
-    xfree (touched);
-
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
-  if ((sizeof *original_x * 2
-       * glyph->simple->number_of_points) >= 1024 * 16)
-    xfree (original_x);
+  xfree (touched_alloc);
+  xfree (coords_alloc);
+  xfree (original_x_alloc);
 
   if (points != (uint16_t *) -1)
     xfree (points);
@@ -15916,10 +15937,11 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   /* Start reading each tuple.  */
   tuple = gvar->glyph_variation_data + offset + sizeof header;
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    coords = xmalloc (gvar->axis_count * sizeof *coords * 3);
-  else
+  void *coords_alloc = NULL;
+  if (gvar->axis_count < 1024 * 16 / (3 * sizeof *coords))
     coords = alloca (gvar->axis_count * sizeof *coords * 3);
+  else
+    coords = coords_alloc = xnmalloc (gvar->axis_count, 3 * sizeof *coords);
 
   intermediate_start = coords + gvar->axis_count;
   intermediate_end = intermediate_start + gvar->axis_count;
@@ -16157,9 +16179,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   /* Return success.  */
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
+  xfree (coords_alloc);
   if (points != (uint16_t *) -1)
     xfree (points);
 
@@ -16175,9 +16195,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   xfree (local_points);
  fail1:
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
+  xfree (coords_alloc);
   if (points != (uint16_t *) -1)
     xfree (points);
 
