@@ -284,6 +284,7 @@ Please report any problems with this script to bug-gnu-emacs@gnu.org .'
   # Restore config.guess etc. in build-aux, and copy them to exec.
   for file in config.guess config.sub install-sh; do
     cp build-aux/$file.tmp exec/$file &&
+    cp build-aux/$file.tmp mps/tool/autoconf/build-aux/$file &&
     mv build-aux/$file.tmp build-aux/$file || exit
   done
 fi
