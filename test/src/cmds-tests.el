@@ -40,5 +40,13 @@
     (let ((shortage (forward-line (+ 2 most-positive-fixnum))))
       (should (= shortage (1+ most-positive-fixnum))))))
 
+(ert-deftest self-insert-zero-newlines ()
+  "Test `self-insert-command' with arguments which used to cause a crash."
+  (with-temp-buffer
+    (let* ((pt nil)
+           (auto-fill-function (lambda () (setq pt (point)))))
+      (self-insert-command 0 10)
+      (should-not (equal pt 0)))))
+
 (provide 'cmds-tests)
 ;;; cmds-tests.el ends here

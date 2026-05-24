@@ -477,7 +477,8 @@ internal_self_insert (int c, EMACS_INT n)
   if ((CHAR_TABLE_P (Vauto_fill_chars)
        ? !NILP (CHAR_TABLE_REF (Vauto_fill_chars, c))
        : (c == ' ' || c == '\n'))
-      && !NILP (BVAR (current_buffer, auto_fill_function)))
+      && !NILP (BVAR (current_buffer, auto_fill_function))
+      && n > 0)
     {
       Lisp_Object auto_fill_result;
 
