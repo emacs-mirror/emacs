@@ -5856,7 +5856,7 @@ sfnt_read_meta_table (int fd, struct sfnt_offset_subtable *subtable)
   if (ckd_mul (&map_size, sizeof *meta->data_maps, meta->num_data_maps)
       /* Do so while checking for overflow from bad sfnt files.  */
       || directory->length - required < map_size
-      || ckd_add (&data_size, data_size, directory->length))
+      || ckd_add (&data_size, map_size, directory->length))
     {
       xfree (meta);
       return NULL;
