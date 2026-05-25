@@ -20,6 +20,9 @@
 ;;; Commentary:
 
 ;; Tests for `visual-wrap-prefix-mode'.
+;;
+;; Pixel values in these tests assume the batch-mode metric of one
+;; pixel per canonical character column (`string-pixel-width " "' = 1).
 
 ;;; Code:
 
@@ -36,12 +39,8 @@
     (should (equal-including-properties
              (buffer-string)
              #("greetings\n* hello\n* hi"
-               10 12 ( wrap-prefix (space :align-to (2 . width))
-                       display (min-width ((2 . width))))
-               12 17 ( wrap-prefix (space :align-to (2 . width)))
-               18 20 ( wrap-prefix (space :align-to (2 . width))
-                       display (min-width ((2 . width))))
-               20 22 ( wrap-prefix (space :align-to (2 . width))))))))
+               10 17 (wrap-prefix (space :align-to (+ (2) (0 . width))))
+               18 22 (wrap-prefix (space :align-to (+ (2) (0 . width)))))))))
 
 (ert-deftest visual-wrap-tests/safe-display ()
   "Test adding wrapping properties to text with safe display properties."
@@ -51,10 +50,9 @@
     (should (equal-including-properties
              (buffer-string)
              #("* hello"
-               0 2 ( wrap-prefix (space :align-to (2 . width))
-                     display (min-width ((2 . width))))
-               2 7 ( wrap-prefix (space :align-to (2 . width))
-                     display (raise 1)))))))
+               0 2 (wrap-prefix (space :align-to (+ (2) (0 . width))))
+               2 7 (wrap-prefix (space :align-to (+ (2) (0 . width)))
+                    display (raise 1)))))))
 
 (ert-deftest visual-wrap-tests/unsafe-display/within-line ()
   "Test adding wrapping properties to text with unsafe display properties.
@@ -66,10 +64,9 @@ When these properties don't extend across multiple lines,
     (should (equal-including-properties
              (buffer-string)
              #("* [img]"
-               0 2 ( wrap-prefix (space :align-to (2 . width))
-                     display (min-width ((2 . width))))
-               2 7 ( wrap-prefix (space :align-to (2 . width))
-                     display (image :type bmp)))))))
+               0 2 (wrap-prefix (space :align-to (+ (2) (0 . width))))
+               2 7 (wrap-prefix (space :align-to (+ (2) (0 . width)))
+                    display (image :type bmp)))))))
 
 (ert-deftest visual-wrap-tests/unsafe-display/spanning-lines ()
   "Test adding wrapping properties to text with unsafe display properties.
@@ -126,18 +123,14 @@ See bug#76018."
     (should (equal-including-properties
              (buffer-string)
              #("* this zoo contains goats"
-               0  2 ( wrap-prefix (space :align-to (2 . width))
-                      display (min-width ((2 . width))))
-               2 25 ( wrap-prefix (space :align-to (2 . width))))))
+               0 25 (wrap-prefix (space :align-to (+ (2) (0 . width)))))))
     (let ((start (point)))
       (insert-and-inherit "\n\nit also contains pandas")
       (visual-wrap-prefix-function start (point-max)))
     (should (equal-including-properties
              (buffer-string)
              #("* this zoo contains goats\n\nit also contains pandas"
-               0  2 ( wrap-prefix (space :align-to (2 . width))
-                      display (min-width ((2 . width))))
-               2 25 ( wrap-prefix (space :align-to (2 . width))))))))
+               0 25 (wrap-prefix (space :align-to (+ (2) (0 . width)))))))))
 
 (ert-deftest visual-wrap-tests/cleanup ()
   "Test that deactivating `visual-wrap-prefix-mode' cleans up text properties."
@@ -146,11 +139,43 @@ See bug#76018."
     (visual-wrap-prefix-function (point-min) (point-max))
     ;; Make sure we've added the visual-wrapping properties.
     (should (equal (text-properties-at (point-min))
-                   '( wrap-prefix (space :align-to (2 . width))
-                      display (min-width ((2 . width))))))
+                   '(wrap-prefix (space :align-to (+ (2) (0 . width))))))
     (visual-wrap-prefix-mode -1)
     (should (equal-including-properties
              (buffer-string)
              "* hello\n* hi"))))
+
+(ert-deftest visual-wrap-tests/negative-extra-indent ()
+  "A large negative `visual-wrap-extra-indent' does not break alignment.
+The mixed-unit `:align-to' sum may go negative, but the display engine
+clamps the stretch width to zero (xdisp.c), so the continuation starts
+at the left margin."
+  (with-temp-buffer
+    (setq-local visual-wrap-extra-indent -20)
+    (insert "* hello")
+    (visual-wrap-prefix-function (point-min) (point-max))
+    ;; The sum (+ (2) (-20 . width)) is negative in batch mode
+    ;; (2 - 20 = -18), but the display engine clamps to zero.
+    (should (equal (get-text-property (point-min) 'wrap-prefix)
+                   '(space :align-to (+ (2) (-20 . width)))))))
+
+(ert-deftest visual-wrap-tests/invisible-prefix ()
+  "Invisible prefix characters do not reserve column space.
+The natural pixel width of a fully invisible prefix is zero, so the
+continuation `wrap-prefix' aligns to pixel 0 and no `min-width' display
+property is installed on line 1.  See bug#81039."
+  (with-temp-buffer
+    (insert (propertize "### " 'invisible t))
+    (insert "Heading")
+    (visual-wrap-prefix-function (point-min) (point-max))
+    (should (equal (get-text-property (point-min) 'wrap-prefix)
+                   '(space :align-to (+ (0) (0 . width)))))
+    ;; The original bug was that `min-width' got installed on the
+    ;; invisible prefix region, padding line 1 even though the prefix
+    ;; rendered at zero pixels.  The redesign installs no `min-width'
+    ;; at all.
+    (should-not (memq 'min-width
+                      (ensure-list
+                       (get-text-property (point-min) 'display))))))
 
 ;; visual-wrap-tests.el ends here

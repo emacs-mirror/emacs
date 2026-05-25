@@ -34,11 +34,20 @@
 ;;; Code:
 
 (defcustom visual-wrap-extra-indent 0
-  "Number of extra spaces to indent in `visual-wrap-prefix-mode'.
+  "Number of extra columns to indent in `visual-wrap-prefix-mode'.
 
 `visual-wrap-prefix-mode' indents the visual lines to the level
 of the actual line plus `visual-wrap-extra-indent'.  A negative
 value will do a relative de-indent.
+
+When the prefix is a repeated string (e.g. `> ' or `;;; '), the extra
+indent is applied by appending or trimming space characters.  When the
+prefix is whitespace-only indentation, the extra indent is measured in
+canonical character widths (the default font's average character width),
+which may differ from the width of a space character in some fonts; the
+canonical width is used because variable-pitch fonts often have
+particularly narrow spaces, and the average character width produces
+more predictable indentation.
 
 Examples:
 
@@ -58,7 +67,7 @@ extra indent = 2
     aliqua. Ut enim ad minim veniam, quis nostrud exercitation
     ullamco laboris nisi ut aliquip ex ea commodo consequat."
   :type 'integer
-  :safe 'integerp
+  :safe #'integerp
   :version "30.1"
   :group 'visual-line)
 
@@ -128,49 +137,47 @@ members of `visual-wrap--safe-display-specs' (which see)."
                                eol-face)))))))
 
 (defun visual-wrap--adjust-prefix (prefix)
-  "Adjust PREFIX with `visual-wrap-extra-indent'."
-  (if (numberp prefix)
-      (+ visual-wrap-extra-indent prefix)
-    (let ((prefix-len (string-width prefix)))
-      (cond
-       ((= 0 visual-wrap-extra-indent)
-        prefix)
-       ((< 0 visual-wrap-extra-indent)
-        (concat prefix (make-string visual-wrap-extra-indent ?\s)))
-       ((< 0 (+ visual-wrap-extra-indent prefix-len))
-        (substring prefix
-                   0 (+ visual-wrap-extra-indent prefix-len)))
-       (t
-        "")))))
+  "Adjust the string PREFIX with `visual-wrap-extra-indent'."
+  (let ((prefix-len (string-width prefix)))
+    (cond
+     ((= 0 visual-wrap-extra-indent)
+      prefix)
+     ((< 0 visual-wrap-extra-indent)
+      (concat prefix (make-string visual-wrap-extra-indent ?\s)))
+     ((< 0 (+ visual-wrap-extra-indent prefix-len))
+      (substring prefix
+                 0 (+ visual-wrap-extra-indent prefix-len)))
+     (t
+      ""))))
 
 (defun visual-wrap--apply-to-line ()
   "Apply visual-wrapping properties to the logical line starting at point."
   (when-let* ((first-line-prefix (fill-match-adaptive-prefix))
               (next-line-prefix (visual-wrap--content-prefix
-                                 first-line-prefix (point))))
-    (when (numberp next-line-prefix)
-      ;; Set a minimum width for the prefix so it lines up correctly
-      ;; with subsequent lines.  Make sure not to do this past the end
-      ;; of the line though!  (`fill-match-adaptive-prefix' could
-      ;; potentially return a prefix longer than the current line in the
-      ;; buffer.)
-      (add-display-text-property
-       (point) (min (+ (point) (length first-line-prefix))
-                     (pos-eol))
-       'min-width `((,next-line-prefix . width))))
-    (setq next-line-prefix (visual-wrap--adjust-prefix next-line-prefix))
+                                 first-line-prefix)))
     (put-text-property
      (point) (pos-eol) 'wrap-prefix
      (if (numberp next-line-prefix)
-         `(space :align-to (,next-line-prefix . width))
-       next-line-prefix))))
+         ;; Whitespace continuation: use a mixed-unit `:align-to' that
+         ;; combines the pixel width from `visual-wrap--content-prefix'
+         ;; with `visual-wrap-extra-indent' specified by the user in
+         ;; canonical character widths.  The display engine resolves
+         ;; each unit per the active frame and sums them.  If a large
+         ;; negative `visual-wrap-extra-indent' makes the sum negative,
+         ;; the display engine clamps the stretch width to zero
+         ;; (xdisp.c), so the continuation starts at the left margin.
+         `(space :align-to (+ (,next-line-prefix)
+                              (,visual-wrap-extra-indent . width)))
+       ;; String prefix (e.g. `> ', `;;; '): adjust for extra
+       ;; indent in characters, then use the string directly.
+       (visual-wrap--adjust-prefix next-line-prefix)))))
 
-(defun visual-wrap--content-prefix (prefix position)
+(defun visual-wrap--content-prefix (prefix)
   "Get the next-line prefix for the specified first-line PREFIX.
 POSITION is the position in the buffer where PREFIX is located.
 
-This returns a string prefix to use for subsequent lines; an integer,
-indicating the number of canonical-width spaces to use; or nil, if
+This returns a string prefix to use for subsequent lines; a number,
+indicating the pixel width to use for whitespace alignment; or nil if
 PREFIX was empty."
   (cond
    ((string= prefix "")
@@ -187,18 +194,13 @@ PREFIX was empty."
     (remove-text-properties 0 (length prefix) '(wrap-prefix) prefix)
     prefix)
    (t
-    ;; Otherwise, we want the prefix to be whitespace of the same width
-    ;; as the first-line prefix.  We want to return an integer width (in
-    ;; units of the font's average-width) large enough to fit the
-    ;; first-line prefix.
-    (let ((avg-space (propertize (buffer-substring position (1+ position))
-                                 'display '(space :width (1 . width)))))
-      ;; Remove any `min-width' display specs since we'll replace with
-      ;; our own later in `visual-wrap--apply-to-line' (bug#73882).
-      (add-display-text-property 0 (length prefix) 'min-width nil prefix)
-      (max (string-width prefix)
-           (ceiling (string-pixel-width prefix (current-buffer))
-                    (string-pixel-width avg-space (current-buffer))))))))
+    ;; Whitespace continuation: return the natural pixel width of the
+    ;; first-line prefix.  Using `string-pixel-width' (rather than a
+    ;; character count) accounts for any display transformation applied
+    ;; to the prefix: invisibility, `display' replacements (e.g. icons,
+    ;; `display ""'), text scaling, proportional fonts.  Continuation
+    ;; lines then align with whatever line 1 actually renders.
+    (string-pixel-width prefix (current-buffer)))))
 
 (defun visual-wrap-fill-context-prefix (beg end)
   "Compute visual wrap prefix from text between BEG and END.
@@ -215,8 +217,8 @@ by `visual-wrap-extra-indent'."
           ;; taskpaper-mode where paragraph-start matches everything).
           (or (let ((paragraph-start regexp-unmatchable))
                 (fill-context-prefix beg end))
-                  ;; Note: fill-context-prefix may return nil; See:
-                  ;; http://article.gmane.org/gmane.emacs.devel/156285
+              ;; Note: fill-context-prefix may return nil; See:
+              ;; http://article.gmane.org/gmane.emacs.devel/156285
               ""))
          (prefix (visual-wrap--adjust-prefix fcp))
          (face (visual-wrap--prefix-face fcp beg end)))
@@ -226,8 +228,6 @@ by `visual-wrap-extra-indent'."
 
 (defun visual-wrap--remove-properties (start end)
   "Remove visual wrapping text properties from START to END."
-  ;; Remove `min-width' from any prefixes we detected.
-  (remove-display-text-property start end 'min-width)
   ;; Remove `wrap-prefix' related properties from any lines with
   ;; prefixes we detected.
   (remove-text-properties start end '(wrap-prefix nil)))
