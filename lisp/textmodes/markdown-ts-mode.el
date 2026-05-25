@@ -1406,8 +1406,16 @@ If NODE is not in a list, return -1."
   "Fontify unordered list marker NODE, show a symbol when markup is hidden.
 OVERRIDE, START, and END are passed through to
 `treesit-fontify-with-override'."
-  (let* ((node-start (treesit-node-start node))
+  ;; The tree-sitter markdown grammar includes the leading indentation
+  ;; in the first list_marker_minus/plus/star node of a list, so skip
+  ;; over any leading whitespace to avoid overwriting the indent with
+  ;; the replacement glyph.
+  (let* ((raw-start (treesit-node-start node))
          (node-end (treesit-node-end node))
+         (node-start (save-excursion
+                       (goto-char raw-start)
+                       (skip-chars-forward " \t" node-end)
+                       (point)))
          (face 'markdown-ts-list-marker))
     (treesit-fontify-with-override node-start node-end face
                                    override start end)
