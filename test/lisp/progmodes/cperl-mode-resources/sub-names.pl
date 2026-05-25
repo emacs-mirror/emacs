@@ -17,6 +17,15 @@ say C->new->m;
 # This comment has a method name in it, and we don't want "method"
 # to be fontified as a keyword, nor "name" fontified as a name.
 
+# Next is a variable named "$method" followed by a keyword.  This
+# keyword is not a subroutine name and should not be fontified
+# accordingly.  Reported by Branislav Zahradnik,
+# https://github.com/HaraldJoerg/cperl-mode/issues/24
+
+push @abstract, $method
+	unless defined &$method
+	;
+
 __END__
 
 =head1 Test using the keywords POD

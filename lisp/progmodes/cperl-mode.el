@@ -6353,7 +6353,7 @@ functions (which they are not).  Inherits from `default'.")
             ;; facespec is evaluated depending on whether the
             ;; statement ends in a "{" (definition) or ";"
             ;; (declaration without body)
-	    (list (concat "\\<" cperl-sub-regexp
+	    (list (concat "\\(?:\\`\\|[^$%@*&]\\)" cperl-sub-regexp
                           ;; group 1: optional subroutine name
                           (rx
                            (sequence (eval cperl--ws+-rx)
@@ -6400,7 +6400,24 @@ functions (which they are not).  Inherits from `default'.")
                         (error (match-end 2))))
                     nil
                     (1 font-lock-variable-name-face)))
-            ;; -------- flow control
+             ;; -------- various stuff calling for a package name
+            ;; (matcher (subexp facespec) (subexp facespec))
+            `(,(rx (sequence
+                    (or (sequence (or line-start space "{" )
+                                  (group-n 1 (or "package" "require" "use"
+                                                 "import" "no" "bootstrap" "class"))
+                                  (eval cperl--ws+-rx))
+                        (sequence (group-n 2 (sequence ":"
+                                                       (eval cperl--ws*-rx)
+                                                       "isa"))
+                                  "("
+                                  (eval cperl--ws*-rx)))
+                    (group-n 3 (eval cperl--normal-identifier-rx))
+                    (any " \t\n;)"))) ; require A if B;
+              (1 font-lock-keyword-face t t)
+              (2 font-lock-constant-face t t)
+	      (3 font-lock-function-name-face))
+           ;; -------- flow control
             ;; (matcher . subexp) font-lock-keyword-face by default
 	    ;; This highlights declarations and definitions differently.
 	    ;; We do not try to highlight in the case of attributes:
@@ -6507,22 +6524,6 @@ functions (which they are not).  Inherits from `default'.")
             ;; (matcher subexp facespec)
 	    '("-[rwxoRWXOezsfdlpSbctugkTBMAC]\\>\\([ \t]+_\\>\\)?" 0
 	      font-lock-function-name-face keep) ; Not very good, triggers at "[a-z]"
-            ;; -------- various stuff calling for a package name
-            ;; (matcher (subexp facespec) (subexp facespec))
-            `(,(rx (sequence
-                    (or (sequence (or line-start space "{" )
-                                  (or "package" "require" "use" "import"
-                                      "no" "bootstrap" "class")
-                                  (eval cperl--ws+-rx))
-                        (sequence (group-n 2 (sequence ":"
-                                                       (eval cperl--ws*-rx)
-                                                       "isa"))
-                                  "("
-                                  (eval cperl--ws*-rx)))
-                    (group-n 1 (eval cperl--normal-identifier-rx))
-                    (any " \t\n;)"))) ; require A if B;
-	      (1 font-lock-function-name-face)
-              (2 font-lock-constant-face t t))
             ;; -------- formats
             ;; (matcher subexp facespec)
 	    '("^[ \t]*format[ \t]+\\([a-zA-Z_][a-zA-Z_0-9:]*\\)[ \t]*=[ \t]*$"
