@@ -95,7 +95,7 @@ static size_t max_scanline_buffer_size;
 	    }							\
 	  else if (_size <= scanline_buffer.buffer_size)	\
 	    (buffer) = scanline_buffer.buffer_data;		\
-	  /* This is unreachable but clang says it is isn't.  */\
+	  /* This is unreachable but clang says it isn't.  */	\
 	  else							\
 	    emacs_abort ();					\
 								\
