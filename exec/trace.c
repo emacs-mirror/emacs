@@ -732,7 +732,7 @@ check_signal (struct exec_tracee *tracee, int status)
 static int
 handle_exec (struct exec_tracee *tracee, USER_REGS_STRUCT *regs)
 {
-  char buffer[PATH_MAX], *area;
+  char buffer[PATH_MAX + 80], *area;
   USER_REGS_STRUCT original;
   size_t size, loader_size;
   USER_WORD loader;
