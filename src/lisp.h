@@ -5833,7 +5833,8 @@ enum { SMALL_LIST_LEN_MAX = 127 };
    set TAIL to the current cons.  If the loop exits normally,
    set TAIL to the terminating non-cons, typically nil.  The loop body
    should not modify the list’s top level structure other than by
-   perhaps deleting the current cons.  */
+   perhaps deleting the current cons.  In practice, this macro rarely
+   quits.  */
 
 #define FOR_EACH_TAIL(tail) \
   FOR_EACH_TAIL_INTERNAL (tail, circular_list (tail), true)
@@ -5847,16 +5848,17 @@ enum { SMALL_LIST_LEN_MAX = 127 };
 /* Iterator intended for use only within FOR_EACH_TAIL_INTERNAL.  */
 struct for_each_tail_internal
 {
+  /* The object we're comparing to.  */
   Lisp_Object tortoise;
-  intptr_t max, n;
-  unsigned short int q;
+  /* How many iterations of the algorithm have happened.  */
+  ptrdiff_t l;
 };
 
 /* Like FOR_EACH_TAIL (LIST), except evaluate CYCLE if a cycle is
    found, and check for quit if CHECK_QUIT.  This is an internal macro
    intended for use only by the above macros.
 
-   Use Brent’s teleporting tortoise-hare algorithm.  See:
+   Modifies Brent’s teleporting tortoise-hare algorithm.  See:
    Brent RP. BIT. 1980;20(2):176-184. doi:10.1007/BF01933190
    https://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf
 
@@ -5871,20 +5873,35 @@ struct for_each_tail_internal
 		     FOR_EACH_TAIL_STEP_CYCLEP (tail, check_quit)	\
 		     ? (cycle) : (void) 0)
 
-#define FOR_EACH_TAIL_BASIC(tail, stepper)			\
-  for (struct for_each_tail_internal li = { tail, 2, 0, 2 };	\
-       CONSP (tail); stepper)
+#define FOR_EACH_TAIL_BASIC(tail, stepper)				\
+  for (struct for_each_tail_internal li = { tail, 0 };			\
+       CONSP (tail) || (likely (NILP (tail)), false);			\
+       stepper)
 
-/* Step TAIL and return whether a cycle has been detected.
-   If CHECK_QUIT then check for quit occasionally.  */
-#define FOR_EACH_TAIL_STEP_CYCLEP(tail, check_quit)		\
-  ((tail) = XCDR (tail),					\
-   ((--li.q != 0						\
-     || ((check_quit) ? maybe_quit () : (void) 0, 0 < --li.n)	\
-     || (li.q = li.n = li.max <<= 1, li.n >>= USHRT_WIDTH,	\
-	 li.tortoise = (tail), false))				\
-    && BASE_EQ (tail, li.tortoise)))
+/* How many iterations until we start advancing the tortoise, which is
+   necessary to detect lists which end in a cycle but whose initial
+   elements aren't part of the cycle.  Also, number of iterations until
+   we check for quits.  Must be a power of two.  */
 
+#define FOR_EACH_TAIL_THRESHOLD 4096
+
+static_assert (POWER_OF_2 (FOR_EACH_TAIL_THRESHOLD));
+
+/* Step TAIL and return whether a cycle has been detected.  If
+   CHECK_QUIT then check for quit occasionally.  We only check for quits
+   once every 4096 iterations, and we don't advance the tortoise until
+   that happens for the first time.
+
+   The C comma operator is used here to avoid statement expressions: the
+   expression evaluates to the value of BASE_EQ (tail, li.tortoise), but
+   has additional side effects, possibly exiting nonlocally.  */
+
+#define FOR_EACH_TAIL_STEP_CYCLEP(tail, check_quit)			\
+  ((tail) = XCDR (tail),						\
+   (! likely (!BASE_EQ (tail, li.tortoise))				\
+    || (! likely (((++li.l) & (FOR_EACH_TAIL_THRESHOLD-1)) != 0)	\
+	&& (((check_quit) ? maybe_quit () : (void) 0, false)		\
+	    || (POWER_OF_2 (li.l) && (li.tortoise = (tail), false))))))
 
 /* Do a `for' loop over alist values.  */
 
