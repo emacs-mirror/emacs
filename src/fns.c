@@ -1824,7 +1824,10 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
 	  mpz_export (&iz, NULL, -1, sizeof iz, 0, 0, mpz[0]);
 	  num += iz;
 	}
-      num += cycle_length - large_num % cycle_length;
+      if (num < cycle_length)
+	num += cycle_length;
+      num -= large_num % cycle_length;
+      eassume (num >= 0);
     }
   num %= cycle_length;
 
