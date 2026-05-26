@@ -544,10 +544,10 @@ instead."
 	(let ((gn gnus-newsgroup-name))
 	  (lambda (&optional arg) (gnus-post-method arg gn))))
   (message-add-action
-   `(progn
-      (setq gnus-current-window-configuration ',winconf-name)
-      (when (gnus-buffer-live-p ,buffer)
-	(set-window-configuration ,winconf)))
+   (lambda ()
+     (setq gnus-current-window-configuration winconf-name)
+     (when (gnus-buffer-live-p buffer)
+       (set-window-configuration winconf)))
    'exit 'postpone 'kill)
   (let ((to-be-marked (cond
 		       (yanked
@@ -556,12 +556,13 @@ instead."
 		       (article (if (listp article) article (list article)))
 		       (t nil))))
     (message-add-action
-     `(when (gnus-buffer-live-p ,buffer)
-	(with-current-buffer ,buffer
-	  ,(when to-be-marked
+     (lambda ()
+       (when (gnus-buffer-live-p buffer)
+	 (with-current-buffer buffer
+	   (when to-be-marked
 	     (if (eq config 'forward)
-		 `(gnus-summary-mark-article-as-forwarded ',to-be-marked)
-	       `(gnus-summary-mark-article-as-replied ',to-be-marked)))))
+		 (gnus-summary-mark-article-as-forwarded to-be-marked)
+	       (gnus-summary-mark-article-as-replied to-be-marked))))))
      'send)))
 
 ;;; Post news commands of Gnus group mode and summary mode

@@ -119,9 +119,10 @@ It accepts the same format specs that `gnus-summary-line-format' does."
   (when (and (gnus-buffer-live-p gnus-summary-buffer)
 	     (with-current-buffer gnus-summary-buffer
 	       gnus-pick-mode))
-    (message-add-action
-     `(gnus-configure-windows ,gnus-current-window-configuration t)
-     'send 'exit 'postpone 'kill)))
+    (let ((gcwc gnus-current-window-configuration))
+      (message-add-action
+       (lambda () (gnus-configure-windows gcwc t))
+       'send 'exit 'postpone 'kill))))
 
 (defvar gnus-pick-line-number 1)
 (defun gnus-pick-line-number ()
