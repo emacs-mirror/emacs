@@ -2180,8 +2180,6 @@ fonts.  Currently it is only used for reftex-label-face."
 
 ;; Define a menu for the menu bar if Emacs is running under X
 
-(defvar-local reftex-isearch-minor-mode nil)
-
 (easy-menu-define reftex-mode-menu reftex-mode-map
  "Menu used in RefTeX mode."
  `("Ref"

@@ -440,7 +440,7 @@ Also checks if buffers visiting the files are in read-only mode."
 		(t
 		 (setq nxt-buff
 		       (funcall isearch-next-buffer-function
-					 (current-buffer)))
+				(current-buffer)))
 		 (if (not nxt-buff)
 		     (progn
 		       (error "Wrap backward"))
@@ -475,54 +475,51 @@ Also checks if buffers visiting the files are in read-only mode."
 
 ;; NB this is a global autoload - see reftex.el.
 ;;;###autoload
-(defun reftex-isearch-minor-mode (&optional arg)
+(define-minor-mode reftex-isearch-minor-mode
   "When on, isearch searches the whole document, not only the current file.
 This minor mode allows isearch to search through all the files of
 the current TeX document.
 
 With no argument, this command toggles
 `reftex-isearch-minor-mode'.  With a prefix argument ARG, turn
-`reftex-isearch-minor-mode' on if ARG is positive, otherwise turn it off."
-  (interactive "P")
-  (let ((old-reftex-isearch-minor-mode reftex-isearch-minor-mode))
-    (setq reftex-isearch-minor-mode
-	  (not (or (and (null arg) reftex-isearch-minor-mode)
-		   (<= (prefix-numeric-value arg) 0))))
-    (unless (eq reftex-isearch-minor-mode old-reftex-isearch-minor-mode)
-      (if reftex-isearch-minor-mode
-	  (progn
-	    (dolist (crt-buf (buffer-list))
-	      (with-current-buffer crt-buf
-		(when reftex-mode
-		  (if (boundp 'multi-isearch-next-buffer-function)
-                      (setq-local multi-isearch-next-buffer-function
-                                  #'reftex-isearch-switch-to-next-file)
-                    (setq-local isearch-wrap-function
-                                #'reftex-isearch-wrap-function)
-                    (setq-local isearch-search-fun-function
-                                (lambda () #'reftex-isearch-isearch-search))
-                    (setq-local isearch-push-state-function
-                                #'reftex-isearch-push-state-function)
-                    (setq-local isearch-next-buffer-function
-                                #'reftex-isearch-switch-to-next-file))
-		  (setq reftex-isearch-minor-mode t))))
-	    (add-hook 'reftex-mode-hook #'reftex-isearch-minor-mode))
+`reftex-isearch-minor-mode' on if ARG is positive, otherwise turn it off.
+This behaviour is derived from `define-minor-mode'."
+  :lighter "/I"
+  :global t
+  (if reftex-isearch-minor-mode
+      (progn
 	(dolist (crt-buf (buffer-list))
 	  (with-current-buffer crt-buf
 	    (when reftex-mode
 	      (if (boundp 'multi-isearch-next-buffer-function)
-		  (kill-local-variable 'multi-isearch-next-buffer-function)
-		(kill-local-variable 'isearch-wrap-function)
-		(kill-local-variable 'isearch-search-fun-function)
-		(kill-local-variable 'isearch-push-state-function)
-		(kill-local-variable 'isearch-next-buffer-function))
-	      (setq reftex-isearch-minor-mode nil))))
-	(remove-hook 'reftex-mode-hook #'reftex-isearch-minor-mode)))
-    ;; Force mode line redisplay.
-    (set-buffer-modified-p (buffer-modified-p))))
+                  (setq-local multi-isearch-next-buffer-function
+                              #'reftex-isearch-switch-to-next-file)
+                (setq-local isearch-wrap-function
+                            #'reftex-isearch-wrap-function)
+                (setq-local isearch-search-fun-function
+                            (lambda () #'reftex-isearch-isearch-search))
+                (setq-local isearch-push-state-function
+                            #'reftex-isearch-push-state-function)
+                (setq-local isearch-next-buffer-function
+                            #'reftex-isearch-switch-to-next-file))
+	      (setq reftex-isearch-minor-mode t))))
+	(add-hook 'reftex-mode-hook #'reftex-isearch-minor-mode))
+    (dolist (crt-buf (buffer-list))
+      (with-current-buffer crt-buf
+	(when reftex-mode
+	  (if (boundp 'multi-isearch-next-buffer-function)
+	      (kill-local-variable 'multi-isearch-next-buffer-function)
+	    (kill-local-variable 'isearch-wrap-function)
+	    (kill-local-variable 'isearch-search-fun-function)
+	    (kill-local-variable 'isearch-push-state-function)
+	    (kill-local-variable 'isearch-next-buffer-function))
+	  (setq reftex-isearch-minor-mode nil))))
+    (remove-hook 'reftex-mode-hook #'reftex-isearch-minor-mode))
+  ;; Force mode line redisplay.
+  (set-buffer-modified-p (buffer-modified-p)))
 
-(add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil
-		'reftex-isearch-minor-mode)
+
+
 
 ;;; reftex-global.el ends here
 
