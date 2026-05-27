@@ -7840,7 +7840,8 @@ pbm_load (struct frame *f, struct image *img)
   /* Maybe fill in the background field while we have ximg handy.  */
 
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    /* Casting avoids a GCC warning.  */
+    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -8586,7 +8587,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   img->height = height;
 
   /* Maybe fill in the background field while we have ximg handy.  */
-  IMAGE_BACKGROUND (img, f, ximg);
+  IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -8595,8 +8596,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   if (mask_img)
     {
       /* Fill in the background_transparent field while we have the
-	 mask handy.  */
-      image_background_transparent (img, f, mask_img);
+	 mask handy.  Casting avoids a GCC warning.  */
+      image_background_transparent (img, f, (Emacs_Pix_Context)mask_img);
 
       image_put_x_image (f, img, mask_img, 1);
     }
@@ -9163,7 +9164,7 @@ jpeg_load_body (struct frame *f, struct image *img,
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -9603,7 +9604,7 @@ tiff_load (struct frame *f, struct image *img)
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -10325,7 +10326,7 @@ gif_load (struct frame *f, struct image *img)
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
