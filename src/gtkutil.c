@@ -5738,8 +5738,7 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
       gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
                                              XG_TOOL_BAR_IMAGE_DATA);
 #ifdef USE_CAIRO
-      void *old_img = (void *) gold_img;
-      if (old_img != img->cr_data)
+      if (gold_img != img->cr_data)
 	return 1;
 #else
       Pixmap old_img = (Pixmap) gold_img;
@@ -6106,7 +6105,7 @@ update_frame_tool_bar (struct frame *f)
               w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
               g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
 #ifdef USE_CAIRO
-                                 (gpointer)img->cr_data
+				 img->cr_data
 #else
                                  (gpointer)img->pixmap
 #endif

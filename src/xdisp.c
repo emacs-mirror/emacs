@@ -2848,7 +2848,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
     text_glyph:
       gr = 0; gy = 0;
       for (; r <= end_row && r->enabled_p; ++r)
-	if (r->y + (int) r->height > y)
+	if (r->y + r->height > y)
 	  {
 	    gr = r; gy = r->y;
 	    break;
@@ -2948,7 +2948,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
     row_glyph:
       gr = 0, gy = 0;
       for (; r <= end_row && r->enabled_p; ++r)
-	if (r->y + (int) r->height > y)
+	if (r->y + r->height > y)
 	  {
 	    gr = r; gy = r->y;
 	    break;
@@ -13509,7 +13509,7 @@ truncate_echo_area (ptrdiff_t nchars)
 	 initialized yet, just toss it.  */
       if (sf->glyphs_initialized_p)
 	with_echo_area_buffer (0, 0, truncate_message_1,
-			       (void *) (intptr_t) nchars, Qnil);
+			       (void *) (intptr_t) {nchars}, Qnil);
     }
 }
 
@@ -29092,7 +29092,7 @@ pint2str (register char *buf, register int width, register ptrdiff_t d)
 	}
     }
 
-  for (width -= (int) (p - buf); width > 0; --width)
+  for (width -= p - buf; width > 0; --width)
     *p++ = ' ';
   *p-- = '\0';
   while (p > buf)

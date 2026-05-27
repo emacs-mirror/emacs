@@ -4585,7 +4585,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   tty->TS_exit_attribute_mode = tgetstr ("me", address);
 #ifdef TERMINFO
   tty->TS_enter_strike_through_mode = tigetstr ("smxx");
-  if (tty->TS_enter_strike_through_mode == (char *) (intptr_t) -1)
+  if (tty->TS_enter_strike_through_mode == (char *) (intptr_t) {-1})
     tty->TS_enter_strike_through_mode = NULL;
 #else
   /* FIXME: Is calling tgetstr here for non-terminfo case correct,
@@ -4621,8 +4621,8 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 	const char *bg;
 	/* Our own non-standard support for 24-bit colors. */
 	if ((fg = tigetstr ("setf24")) && (bg = tigetstr ("setb24"))
-	    && fg != (char *) (intptr_t) -1
-	    && bg != (char *) (intptr_t) -1)
+	    && fg != (char *) (intptr_t) {-1}
+	    && bg != (char *) (intptr_t) {-1})
 	  {
 	    tty->TS_set_foreground = fg;
 	    tty->TS_set_background = bg;
@@ -4630,8 +4630,8 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 	  }
 	/* Other non-standard support for 24-bit colors. */
 	else if ((fg = tigetstr ("setrgbf")) && (bg = tigetstr ("setrgbb"))
-	    && fg != (char *) (intptr_t) -1
-	    && bg != (char *) (intptr_t) -1)
+	    && fg != (char *) (intptr_t) {-1}
+	    && bg != (char *) (intptr_t) {-1})
 	  {
 	    tty->TS_set_foreground = fg;
 	    tty->TS_set_background = bg;
@@ -4692,7 +4692,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
      common default escape sequence and is not recommended.  */
 #ifdef TERMINFO
   tty->TF_set_underline_style = tigetstr ("Smulx");
-  if (tty->TF_set_underline_style == (char *) (intptr_t) -1)
+  if (tty->TF_set_underline_style == (char *) (intptr_t) {-1})
     tty->TF_set_underline_style = NULL;
 #else
   tty->TF_set_underline_style = tgetstr ("Smulx", address);

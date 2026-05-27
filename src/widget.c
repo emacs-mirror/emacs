@@ -299,12 +299,12 @@ update_wm_hints (WMShellWidget wmshell, EmacsFrame ew)
 		 + (rounded_height - (char_height * ch)));
 
   XtVaSetValues ((Widget) wmshell,
-		 XtNbaseWidth, (XtArgVal) base_width,
-		 XtNbaseHeight, (XtArgVal) base_height,
-		 XtNwidthInc, (XtArgVal) (frame_resize_pixelwise ? 1 : cw),
-		 XtNheightInc, (XtArgVal) (frame_resize_pixelwise ? 1 : ch),
-		 XtNminWidth, (XtArgVal) base_width,
-		 XtNminHeight, (XtArgVal) base_height,
+		 XtNbaseWidth, (XtArgVal) {base_width},
+		 XtNbaseHeight, (XtArgVal) {base_height},
+		 XtNwidthInc, (XtArgVal) {frame_resize_pixelwise ? 1 : cw},
+		 XtNheightInc, (XtArgVal) {frame_resize_pixelwise ? 1 : ch},
+		 XtNminWidth, (XtArgVal) {base_width},
+		 XtNminHeight, (XtArgVal) {base_height},
 		 NULL);
 
   /* Return if size hints really changed.  If they did not, then Xt

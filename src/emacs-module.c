@@ -1120,7 +1120,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
         u = -(EMACS_UINT) x;
       static_assert (required * bits < PTRDIFF_MAX);
       for (ptrdiff_t i = 0; i < required; ++i)
-        magnitude[i] = (emacs_limb_t) (u >> (i * bits));
+        magnitude[i] = u >> (i * bits);
       MODULE_INTERNAL_CLEANUP ();
       return true;
     }

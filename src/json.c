@@ -134,7 +134,7 @@ struct symset_tbl
 static inline ptrdiff_t
 symset_size (int bits)
 {
-  return (ptrdiff_t) 1 << bits;
+  return (ptrdiff_t) {1} << bits;
 }
 
 static struct symset_tbl *

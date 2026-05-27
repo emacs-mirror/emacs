@@ -33,6 +33,8 @@ typedef HWND Window;
 typedef HDC Display;  /* HDC so it doesn't conflict with xpm lib.  */
 typedef HCURSOR Emacs_Cursor;
 
+#define WINDOW_HANDLE_UINTPTR(h) ((uintptr_t) (h))
+
 /* Windows equivalent of XImage.  */
 typedef struct _XImage
 {

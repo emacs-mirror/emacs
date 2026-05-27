@@ -500,7 +500,7 @@ check_display_width (Lisp_Object window,
 	      Lisp_Object prop;
 	      EMACS_INT align_to_max =
 		(col < MOST_POSITIVE_FIXNUM - INT_MAX
-		 ? (EMACS_INT) INT_MAX + col
+		 ? (EMACS_INT) {INT_MAX} + col
 		 : MOST_POSITIVE_FIXNUM);
 
 	      plist = XCDR (val);

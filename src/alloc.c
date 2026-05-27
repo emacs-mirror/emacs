@@ -6609,7 +6609,7 @@ process_mark_stack (ptrdiff_t base_sp)
 
 	      case PVEC_CHAR_TABLE:
 	      case PVEC_SUB_CHAR_TABLE:
-		mark_char_table (ptr, (enum pvec_type) pvectype);
+		mark_char_table (ptr, pvectype);
 		break;
 
 	      case PVEC_BOOL_VECTOR:
@@ -7177,28 +7177,28 @@ respective remote host.  */)
 #else
   units = 1;
 #endif
-  return list4i ((uintmax_t) si.totalram * units / 1024,
-		 (uintmax_t) si.freeram * units / 1024,
-		 (uintmax_t) si.totalswap * units / 1024,
-		 (uintmax_t) si.freeswap * units / 1024);
+  return list4i ((uintmax_t) {si.totalram} * units / 1024,
+		 (uintmax_t) {si.freeram} * units / 1024,
+		 (uintmax_t) {si.totalswap} * units / 1024,
+		 (uintmax_t) {si.freeswap} * units / 1024);
 #elif defined WINDOWSNT
   unsigned long long totalram, freeram, totalswap, freeswap;
 
   if (w32_memory_info (&totalram, &freeram, &totalswap, &freeswap) == 0)
-    return list4i ((uintmax_t) totalram / 1024,
-		   (uintmax_t) freeram / 1024,
-		   (uintmax_t) totalswap / 1024,
-		   (uintmax_t) freeswap / 1024);
+    return list4i ((uintmax_t) {totalram} / 1024,
+		   (uintmax_t) {freeram} / 1024,
+		   (uintmax_t) {totalswap} / 1024,
+		   (uintmax_t) {freeswap} / 1024);
   else
     return Qnil;
 #elif defined MSDOS
   unsigned long totalram, freeram, totalswap, freeswap;
 
   if (dos_memory_info (&totalram, &freeram, &totalswap, &freeswap) == 0)
-    return list4i ((uintmax_t) totalram / 1024,
-		   (uintmax_t) freeram / 1024,
-		   (uintmax_t) totalswap / 1024,
-		   (uintmax_t) freeswap / 1024);
+    return list4i ((uintmax_t) {totalram} / 1024,
+		   (uintmax_t) {freeram} / 1024,
+		   (uintmax_t) {totalswap} / 1024,
+		   (uintmax_t) {freeswap} / 1024);
   else
     return Qnil;
 #else /* not HAVE_LINUX_SYSINFO, not WINDOWSNT, not MSDOS */

@@ -1232,7 +1232,7 @@ load_seccomp (const char *file)
       || stat.st_size % sizeof *program.filter != 0)
     {
       fprintf (stderr, "seccomp filter %s has invalid size %ld\n",
-               file, (long) stat.st_size);
+               file, (long) {stat.st_size});
       goto out;
     }
   if (ckd_add (&program.len, stat.st_size / sizeof *program.filter, 0))

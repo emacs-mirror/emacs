@@ -1182,15 +1182,9 @@ static bool x_handle_net_wm_state (struct frame *, const XPropertyEvent *);
 static void x_check_fullscreen (struct frame *);
 static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, bool);
-#ifndef HAVE_XINPUT2
-static int handle_one_xevent (struct x_display_info *,
-			      const XEvent *, int *,
-			      struct input_event *);
-#else
 static int handle_one_xevent (struct x_display_info *,
 			      XEvent *, int *,
 			      struct input_event *);
-#endif
 #if ! (defined USE_X_TOOLKIT || defined USE_MOTIF) && defined USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
 #endif
@@ -6187,7 +6181,9 @@ x_try_cr_xlib_drawable (struct frame *f, GC gc)
   cairo_destroy (buf);
 
   cairo_set_user_data (cr, &saved_drawable_key,
-		       (void *) (uintptr_t) FRAME_X_RAW_DRAWABLE (f), NULL);
+		       ((void *)
+			WINDOW_HANDLE_UINTPTR (FRAME_X_RAW_DRAWABLE (f))),
+		       NULL);
   FRAME_X_RAW_DRAWABLE (f) = pixmap;
   cairo_surface_flush (xlib_surface);
 
@@ -9010,7 +9006,7 @@ cvt_string_to_pixel (Display *dpy, XrmValue *args, Cardinal *nargs,
 
   screen = *(Screen **) args[0].addr;
   cmap = *(Colormap *) args[1].addr;
-  color_name = (String) from->addr;
+  color_name = from->addr;
 
   if (strcmp (color_name, XtDefaultBackground) == 0)
     {
@@ -18868,11 +18864,7 @@ x_find_selection_owner (struct x_display_info *dpyinfo, Atom selection)
 
 static int
 handle_one_xevent (struct x_display_info *dpyinfo,
-#ifndef HAVE_XINPUT2
-		   const XEvent *event,
-#else
 		   XEvent *event,
-#endif
 		   int *finish, struct input_event *hold_quit)
 {
   union buffered_input_event inev;
@@ -19363,7 +19355,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (f)
 	      {
 		_XEditResCheckMessages (f->output_data.x->widget,
-					NULL, (XEvent *) event, NULL);
+					NULL, event, NULL);
 		goto done;
 	      }
 
@@ -19437,7 +19429,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    == dpyinfo->Xatom_net_wm_frame_drawn)
 	  {
 	    if (any)
-	      x_sync_handle_frame_drawn (dpyinfo, (XEvent *) event, any);
+	      x_sync_handle_frame_drawn (dpyinfo, event, any);
 
 	    goto done;
 	  }
@@ -19460,8 +19452,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	dx = 0;
 	dy = 0;
 
-	rc = x_coords_from_dnd_message (dpyinfo, (XEvent *) event,
-					&dx, &dy);
+	rc = x_coords_from_dnd_message (dpyinfo, event, &dx, &dy);
 
 	if (x_handle_dnd_message (f, &event->xclient, dpyinfo, &inev.ie,
 				  rc, dx, dy))
@@ -19938,12 +19929,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               expose_frame (f, event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
 #ifndef USE_TOOLKIT_SCROLL_BARS
-	      x_scroll_bar_handle_exposure (f, (XEvent *) event);
+	      x_scroll_bar_handle_exposure (f, event);
 #endif
             }
 #ifndef USE_TOOLKIT_SCROLL_BARS
 	  else
-	    x_scroll_bar_handle_exposure (f, (XEvent *) event);
+	    x_scroll_bar_handle_exposure (f, event);
 #endif
 
 #ifdef HAVE_XDBE
@@ -19980,7 +19971,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                         event->xgraphicsexpose.width,
                         event->xgraphicsexpose.height);
 #ifndef USE_TOOLKIT_SCROLL_BARS
-	  x_scroll_bar_handle_exposure (f, (XEvent *) event);
+	  x_scroll_bar_handle_exposure (f, event);
 #endif
 #ifdef USE_GTK
 	  x_clear_under_internal_border (f);
@@ -22215,7 +22206,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           x_find_modifier_meanings (dpyinfo);
 	  FALLTHROUGH;
         case MappingKeyboard:
-          XRefreshKeyboardMapping ((XMappingEvent *) &event->xmapping);
+          XRefreshKeyboardMapping (&event->xmapping);
         }
       goto OTHER;
 
@@ -24251,7 +24242,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      Status status_return;
 		      nbytes = XmbLookupString (FRAME_XIC (f),
-						&xkey, (char *) copy_bufptr,
+						&xkey, copy_bufptr,
 						copy_bufsiz, &keysym,
 						&status_return);
 		      coding = FRAME_X_XIM_CODING (f);
@@ -24261,7 +24252,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  copy_bufsiz = nbytes + 1;
 			  copy_bufptr = SAFE_ALLOCA (copy_bufsiz);
 			  nbytes = XmbLookupString (FRAME_XIC (f),
-						    &xkey, (char *) copy_bufptr,
+						    &xkey, copy_bufptr,
 						    copy_bufsiz, &keysym,
 						    &status_return);
 			}
@@ -25494,7 +25485,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
-	    XRRUpdateConfiguration ((XEvent *) event);
+	    XRRUpdateConfiguration (event);
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
@@ -25566,9 +25557,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  && event->xconfigure.height != 0))
 	    {
 #if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
-	      XtDispatchEvent (use_copy ? &copy : (XEvent *) event);
+	      XtDispatchEvent (use_copy ? &copy : event);
 #else
-	      XtDispatchEvent ((XEvent *) event);
+	      XtDispatchEvent (event);
 #endif
 	    }
 	}

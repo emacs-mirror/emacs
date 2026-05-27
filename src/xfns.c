@@ -1559,7 +1559,7 @@ x_set_border_pixel (struct frame *f, unsigned long pix)
     {
       block_input ();
       XtVaSetValues (f->output_data.x->widget, XtNborderColor,
-		     (Pixel) pix, NULL);
+		     (Pixel) {pix}, NULL);
       unblock_input ();
 
       if (FRAME_VISIBLE_P (f))
@@ -2736,11 +2736,6 @@ static int xic_preedit_start_callback (XIC, XPointer, XPointer);
 static void xic_string_conversion_callback (XIC, XPointer,
 					    XIMStringConversionCallbackStruct *);
 
-#ifndef HAVE_XICCALLBACK_CALLBACK
-#define XICCallback XIMCallback
-#define XICProc XIMProc
-#endif
-
 static XIMCallback Xxic_preedit_draw_callback =
   {
     NULL,
@@ -2759,11 +2754,19 @@ static XIMCallback Xxic_preedit_done_callback =
     (XIMProc) xic_preedit_done_callback,
   };
 
+#ifdef HAVE_XICCALLBACK_CALLBACK
 static XICCallback Xxic_preedit_start_callback =
   {
     NULL,
-    (XICProc) xic_preedit_start_callback,
+    xic_preedit_start_callback,
   };
+#else
+static XIMCallback Xxic_preedit_start_callback =
+  {
+    NULL,
+    (XIMProc) xic_preedit_start_callback,
+  };
+#endif
 
 static XIMCallback Xxic_string_conversion_callback =
   {

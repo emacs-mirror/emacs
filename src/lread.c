@@ -5029,7 +5029,7 @@ make_obarray (unsigned bits)
   struct Lisp_Obarray *o = allocate_obarray ();
   o->count = 0;
   o->size_bits = bits;
-  ptrdiff_t size = (ptrdiff_t)1 << bits;
+  ptrdiff_t size = (ptrdiff_t) {1} << bits;
   o->buckets = hash_table_alloc_bytes (size * sizeof *o->buckets);
   for (ptrdiff_t i = 0; i < size; i++)
     o->buckets[i] = make_fixnum (0);
@@ -5053,7 +5053,7 @@ grow_obarray (struct Lisp_Obarray *o)
   int new_bits = o->size_bits + 1;
   if (new_bits > obarray_max_bits)
     error ("Obarray too big");
-  ptrdiff_t new_size = (ptrdiff_t)1 << new_bits;
+  ptrdiff_t new_size = (ptrdiff_t) {1} << new_bits;
   o->buckets = hash_table_alloc_bytes (new_size * sizeof *o->buckets);
   for (ptrdiff_t i = 0; i < new_size; i++)
     o->buckets[i] = make_fixnum (0);
@@ -5123,7 +5123,7 @@ DEFUN ("obarray-clear", Fobarray_clear, Sobarray_clear, 1, 1, 0,
   /* This function does not bother setting the status of its contained symbols
      to uninterned.  It doesn't matter very much.  */
   int new_bits = obarray_default_bits;
-  int new_size = (ptrdiff_t)1 << new_bits;
+  int new_size = (ptrdiff_t) {1} << new_bits;
   Lisp_Object *new_buckets
     = hash_table_alloc_bytes (new_size * sizeof *new_buckets);
   for (ptrdiff_t i = 0; i < new_size; i++)

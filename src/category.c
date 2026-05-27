@@ -117,7 +117,7 @@ the current buffer's category table.  */)
   table = check_category_table (table);
 
   if (!NILP (CATEGORY_DOCSTRING (table, XFIXNAT (category))))
-    error ("Category `%c' is already defined", (int) XFIXNAT (category));
+    error ("Category `%c' is already defined", (int) {XFIXNAT (category)});
   SET_CATEGORY_DOCSTRING (table, XFIXNAT (category), docstring);
 
   return Qnil;
@@ -347,7 +347,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
   table = check_category_table (table);
 
   if (NILP (CATEGORY_DOCSTRING (table, XFIXNAT (category))))
-    error ("Undefined category: %c", (int) XFIXNAT (category));
+    error ("Undefined category: %c", (int) {XFIXNAT (category)});
 
   set_value = NILP (reset);
 

@@ -3959,14 +3959,14 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 # endif
 # ifdef HAVE_LANGINFO__NL_PAPER_WIDTH
   if (EQ (item, Qpaper))
-    /* We have to cast twice here: first to a correctly-sized integer,
+    /* We have to convert twice here: first to a correctly-sized integer,
        then to int, because that's what nl_langinfo is documented to
-       return for _NO_PAPER_{WIDTH,HEIGHT}.  The first cast doesn't
+       return for _NO_PAPER_{WIDTH,HEIGHT}.  The cast doesn't
        suffice because it could overflow an Emacs fixnum.  This can
        happen when running under ASan, which fills allocated but
        uninitialized memory with 0xBE bytes.  */
-    return list2i ((int) (intptr_t) nl_langinfo (_NL_PAPER_WIDTH),
-		   (int) (intptr_t) nl_langinfo (_NL_PAPER_HEIGHT));
+    return list2i ((int) {(intptr_t) nl_langinfo (_NL_PAPER_WIDTH)},
+		   (int) {(intptr_t) nl_langinfo (_NL_PAPER_HEIGHT)});
 # endif
 #endif	/* HAVE_LANGINFO_CODESET*/
   return Qnil;
@@ -4987,7 +4987,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 
       ptrdiff_t old_index_size = hash_table_index_size (h);
       ptrdiff_t index_bits = compute_hash_index_bits (new_size);
-      ptrdiff_t index_size = (ptrdiff_t)1 << index_bits;
+      ptrdiff_t index_size = (ptrdiff_t) {1} << index_bits;
       hash_idx_t *index = hash_table_alloc_bytes (index_size * sizeof *index);
       for (ptrdiff_t i = 0; i < index_size; i++)
 	index[i] = -1;

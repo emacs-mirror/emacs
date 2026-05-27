@@ -2583,7 +2583,7 @@ or a byte-code object.  IDX starts at 0.  */)
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       if (! STRING_MULTIBYTE (array))
-	return make_fixnum ((unsigned char) SREF (array, idxval));
+	return make_fixnum (SREF (array, idxval));
       idxval_byte = string_char_to_byte (array, idxval);
 
       c = STRING_CHAR (SDATA (array) + idxval_byte);
@@ -3587,7 +3587,7 @@ discarding bits.  */)
       if (c == 0)
 	return value;
 
-      if ((EMACS_INT) -1 >> 1 == -1 && FIXNUMP (value))
+      if ((EMACS_INT) {-1} >> 1 == -1 && FIXNUMP (value))
 	{
 	  EMACS_INT shift = -c;
 	  EMACS_INT result

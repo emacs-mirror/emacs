@@ -159,7 +159,7 @@ ptrdiff_t_to_dump_off (ptrdiff_t value)
 {
   eassert (DUMP_OFF_MIN <= value);
   eassert (value <= DUMP_OFF_MAX);
-  return (dump_off) value;
+  return value;
 }
 
 /* Worst-case allocation granularity on any system that might load
@@ -1234,13 +1234,14 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
 
   dump_trace
     (("dump_queue_dequeue basis=%"PRIdDUMP_OFF" fancy=%"PRIdPTR
-      " zero=%"PRIdPTR" normal=%"PRIdPTR" strong=%"PRIdPTR" hash=%td\n"),
+      " zero=%"PRIdPTR" normal=%"PRIdPTR" strong=%"PRIdPTR
+      " hash=%"PRIdHASH_IDX"\n"),
      basis,
      dump_tailq_length (&dump_queue->fancy_weight_objects),
      dump_tailq_length (&dump_queue->zero_weight_objects),
      dump_tailq_length (&dump_queue->one_weight_normal_objects),
      dump_tailq_length (&dump_queue->one_weight_strong_objects),
-     (ptrdiff_t) XHASH_TABLE (dump_queue->link_weights)->count);
+     XHASH_TABLE (dump_queue->link_weights)->count);
 
   #define nr_candidates 3
   struct candidate
@@ -1773,7 +1774,7 @@ field_relpos (const void *in_start, const void *in_field)
      ever violated, make sure the two pointers indeed point into the
      same object, and if so, enlarge the value of PDUMPER_MAX_OBJECT_SIZE.  */
   eassert (relpos < PDUMPER_MAX_OBJECT_SIZE);
-  return (dump_off) relpos;
+  return relpos;
 }
 
 static void
@@ -1967,7 +1968,7 @@ dump_field_emacs_ptr (struct dump_context *ctx,
   intptr_t rel_emacs_ptr = 0;
   if (abs_emacs_ptr)
     {
-      rel_emacs_ptr = emacs_offset ((void *)abs_emacs_ptr);
+      rel_emacs_ptr = emacs_offset (abs_emacs_ptr);
       dump_reloc_dump_to_emacs_ptr_raw (ctx, ctx->obj_offset + relpos);
     }
   cpyptr ((char *) out + relpos, &rel_emacs_ptr);
@@ -1980,7 +1981,7 @@ dump_object_start_pseudovector (struct dump_context *ctx,
 {
   eassert (in_hdr->size & PSEUDOVECTOR_FLAG);
   ptrdiff_t vec_size = vectorlike_nbytes (in_hdr);
-  dump_object_start (ctx, out_hdr, (dump_off) vec_size);
+  dump_object_start (ctx, out_hdr, vec_size);
   *out_hdr = *in_hdr;
 }
 
@@ -4416,7 +4417,7 @@ pdumper_remember_scalar_impl (void *mem, ptrdiff_t nbytes)
 {
   eassert (0 <= nbytes && nbytes <= INT_MAX);
   if (nbytes > 0)
-    pdumper_remember_user_data_1 (mem, (int) nbytes);
+    pdumper_remember_user_data_1 (mem, nbytes);
 }
 
 void
@@ -5655,7 +5656,7 @@ pdumper_load (const char *dump_filename, char *argv0)
   err = PDUMPER_LOAD_BAD_FILE_TYPE;
   if (stat.st_size > INTPTR_MAX)
     goto out;
-  dump_size = (intptr_t) stat.st_size;
+  dump_size = stat.st_size;
 
   err = PDUMPER_LOAD_BAD_FILE_TYPE;
   if (dump_size < sizeof (*header))
@@ -5910,7 +5911,6 @@ syms_of_pdumper (void)
 	       doc: /* The fingerprint of this Emacs binary.
 It is a string that is supposed to be unique to each build of
 Emacs.  */);
-  Vpdumper_fingerprint = make_unibyte_string ((char *) hexbuf,
-					      sizeof hexbuf);
+  Vpdumper_fingerprint = make_unibyte_string (hexbuf, sizeof hexbuf);
 #endif /* HAVE_PDUMPER */
 }

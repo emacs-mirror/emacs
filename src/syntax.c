@@ -236,7 +236,7 @@ SYNTAX_MATCH (int c)
 }
 
 /* A "dummy" value we never dereference, distinct from NULL.  */
-#define uninitialized_interval ((INTERVAL) (intptr_t) 1)
+#define uninitialized_interval ((INTERVAL) (intptr_t) 1u)
 
 /* This should be called with FROM at the start of forward
    search, or after the last position of the backward search.  It

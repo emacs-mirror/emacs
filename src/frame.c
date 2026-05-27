@@ -5458,7 +5458,7 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
      E.g., on MS-Windows it returns a value whose type is HANDLE,
      which is actually a pointer.  Explicit casting avoids compiler
      warnings.  */
-  w = (uintptr_t) FRAME_NATIVE_WINDOW (f);
+  w = WINDOW_HANDLE_UINTPTR (FRAME_NATIVE_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
 		  make_formatted_string ("%"PRIuMAX, w));
 #ifdef HAVE_X_WINDOWS
@@ -5466,7 +5466,7 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
   /* Tooltip frame may not have this widget.  */
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
-    w = (uintptr_t) FRAME_OUTER_WINDOW (f);
+    w = WINDOW_HANDLE_UINTPTR (FRAME_OUTER_WINDOW (f));
   store_in_alist (alistptr, Qouter_window_id,
 		  make_formatted_string ("%"PRIuMAX, w));
 #endif
@@ -5480,7 +5480,8 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
   if (FRAME_OUTPUT_DATA (f)->parent_desc == FRAME_DISPLAY_INFO (f)->root_window)
     tem = Qnil;
   else
-    tem = make_fixed_natnum ((uintptr_t) FRAME_OUTPUT_DATA (f)->parent_desc);
+    tem = make_fixed_natnum (WINDOW_HANDLE_UINTPTR
+			     (FRAME_OUTPUT_DATA (f)->parent_desc));
   store_in_alist (alistptr, Qexplicit_name, (f->explicit_name ? Qt : Qnil));
   store_in_alist (alistptr, Qparent_id, tem);
   store_in_alist (alistptr, Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f));
