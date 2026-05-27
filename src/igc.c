@@ -529,7 +529,7 @@ static const char *obj_type_names[] = {
 #endif
 };
 
-static_assert (ARRAYELTS (obj_type_names) == IGC_OBJ_NUM_TYPES);
+static_assert (countof (obj_type_names) == IGC_OBJ_NUM_TYPES);
 
 static const char *
 obj_type_name (enum igc_obj_type type)
@@ -586,7 +586,7 @@ static const char *pvec_type_names[] = {
   "PVEC_FONT",
 };
 
-static_assert (ARRAYELTS (pvec_type_names) == PVEC_TAG_MAX + 1);
+static_assert (countof (pvec_type_names) == PVEC_TAG_MAX + 1);
 
 static const char *
 pvec_type_name (enum pvec_type type)
@@ -1886,7 +1886,7 @@ static mps_res_t
 scan_kbd_buffer_ambig (mps_ss_t ss, void *start, void *end, void *closure)
 {
   igc_assert (start == kbd_buffer);
-  igc_assert (end == kbd_buffer + ARRAYELTS (kbd_buffer));
+  igc_assert (end == kbd_buffer + countof (kbd_buffer));
 
   /* Instead of tracing the entire kbd_buffer, only scan the region from
      kbd_fetch_ptr - 1 to kbd_store_ptr + 1.  The -1/+1 is supposed to
@@ -2138,7 +2138,7 @@ fix_face (mps_ss_t ss, struct face *f)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX12_NOBJS (ss, f->lface, ARRAYELTS (f->lface));
+    IGC_FIX12_NOBJS (ss, f->lface, countof (f->lface));
     IGC_FIX12_PVEC (ss, &f->font);
     IGC_FIX12_HEADER (ss, &f->next);
     IGC_FIX12_HEADER (ss, &f->prev);
@@ -3546,14 +3546,14 @@ root_create_exact (struct igc *gc, void *start, void *end,
 static void
 root_create_staticvec (struct igc *gc)
 {
-  root_create_exact (gc, staticvec, staticvec + ARRAYELTS (staticvec),
+  root_create_exact (gc, staticvec, staticvec + countof (staticvec),
 		     scan_staticvec, "staticvec");
 }
 
 static void
 root_create_lispsym (struct igc *gc)
 {
-  root_create_exact (gc, lispsym, lispsym + ARRAYELTS (lispsym),
+  root_create_exact (gc, lispsym, lispsym + countof (lispsym),
 		     scan_lispsym, "lispsym");
 }
 
@@ -3573,7 +3573,7 @@ root_create_tty_list (struct igc *gc)
 static void
 root_create_kbd_buffer (struct igc *gc)
 {
-  root_create (gc, kbd_buffer, kbd_buffer + ARRAYELTS (kbd_buffer),
+  root_create (gc, kbd_buffer, kbd_buffer + countof (kbd_buffer),
 	       mps_rank_ambig (), scan_kbd_buffer_ambig, NULL,
 	       true, "kbd-buffer");
 }
@@ -5764,7 +5764,7 @@ IGC statistics:
     make_fake_entry ("committed", NULL, mps_arena_committed, a),
     make_fake_entry_pins ("pins (used, capacity)"),
   };
-  for (size_t i = 0; i < ARRAYELTS (fake_entries); i++)
+  for (size_t i = 0; i < countof (fake_entries); i++)
     result = Fcons (fake_entries[i], result);
 
   return result;
@@ -5951,7 +5951,7 @@ make_arena (struct igc *gc)
     {
       static const mps_gen_param_s default_gens[] = { { 16000, 0.5 } };
       memcpy (gens, default_gens, sizeof (default_gens));
-      ngens = ARRAYELTS (default_gens);
+      ngens = countof (default_gens);
     }
 
   if (getenv ("EMACS_IGC_VERBOSE"))
@@ -6233,7 +6233,7 @@ igc_dump_check_object_starts (Lisp_Object relocs, void *dump_base,
     {hot_start, hot_end},
     {cold_start, heap_end},
   };
-  for (size_t i = 0; i < ARRAYELTS (regions); i++)
+  for (size_t i = 0; i < countof (regions); i++)
     {
       struct region region = regions[i];
       mps_addr_t p = region.start;

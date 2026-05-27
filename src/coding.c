@@ -11890,7 +11890,7 @@ syms_of_coding (void)
      Thus, the 'src_object' and 'dst_object' members of these
      "coding-systems" are never set and never used, and therefore do not
      need to be protected.  */
-  for (size_t i = 0; i < ARRAYELTS (coding_categories); i++)
+  for (size_t i = 0; i < countof (coding_categories); i++)
     {
       struct coding_system* cs = &coding_categories[i];
       Lisp_Object *src = &cs->src_object;

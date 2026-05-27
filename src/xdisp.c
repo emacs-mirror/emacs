@@ -38440,7 +38440,7 @@ doesn't exist, it will be created and put into
 #ifdef HAVE_MPS
   this_line_buffer = NULL;
 
-  for (size_t i = 0; i < ARRAYELTS (default_invis_vector); i++)
+  for (size_t i = 0; i < countof (default_invis_vector); i++)
     {
       default_invis_vector[i] = Qnil;
       staticpro (&default_invis_vector[i]);
@@ -38450,7 +38450,7 @@ doesn't exist, it will be created and put into
   staticpro (&echo_area_window);
   staticpro (&echo_message_buffer);
 
-  for (size_t i = 0; i < ARRAYELTS (scratch_glyphs); i++)
+  for (size_t i = 0; i < countof (scratch_glyphs); i++)
     {
       Lisp_Object *ptr = &scratch_glyphs[i].object;
       *ptr = Qnil;

@@ -8829,7 +8829,7 @@ init_process_emacs (int sockfd)
   kbd_is_on_hold = 0;
 
 #ifdef HAVE_MPS
-  igc_root_create_exact (chan_process, chan_process + ARRAYELTS (chan_process));
+  igc_root_create_exact (chan_process, chan_process + countof (chan_process));
 #endif
 }
 

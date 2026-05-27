@@ -3198,7 +3198,7 @@ define_lisp_cons (void)
       comp.lisp_cons_u
     };
   gcc_jit_struct_set_fields (comp.lisp_cons_s,
-			     NULL, ARRAYELTS (cons_fields), cons_fields);
+			     NULL, countof (cons_fields), cons_fields);
 
 }
 
@@ -3240,7 +3240,7 @@ define_lisp_symbol_with_position (void)
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_lisp_symbol_with_position",
-				     ARRAYELTS (fields),
+				     countof (fields),
 				     fields);
   comp.lisp_symbol_with_position_type =
     gcc_jit_struct_as_type (comp.lisp_symbol_with_position);
