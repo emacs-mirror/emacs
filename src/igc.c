@@ -56,6 +56,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include <config.h>
 #include <limits.h>
 #include <signal.h>
+#pragma GCC diagnostic ignored "-Wuseless-cast"
 #ifdef __clang__
 /* You want to use this without -Wignored-attributes because it warns
    that it cannot add the attribute to functions returning void.  */
