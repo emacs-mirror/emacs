@@ -282,7 +282,9 @@ REPORTER and STATE are the same as in
       ((pred floatp)
        (system-taskbar--progress state))
       ((pred integerp)
-       (system-taskbar--progress (/ (1+ state) 4.0)))
+       ;; This won't show 0.0 to indicate work in process until done.
+       (system-taskbar--progress
+        (/ (1+ (mod state 5)) 5.0)))
       ('done
        (system-taskbar--progress nil)))))
 
