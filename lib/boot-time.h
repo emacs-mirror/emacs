@@ -34,7 +34,7 @@ extern "C" {
    The difference can matter in GNU/Linux, where times in /proc/stat
    might be relative to boot time of the host, not the container.
 
-   This function is not multithread-safe, since on many platforms it
+   This function is not thread-safe, since on many platforms it
    invokes the functions setutxent, getutxent, endutxent.
    These functions may lock a file like /var/log/wtmp (so that we
    don't read garbage when a concurrent process writes to that file),

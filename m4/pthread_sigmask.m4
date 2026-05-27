@@ -1,5 +1,5 @@
 # pthread_sigmask.m4
-# serial 24
+# serial 26
 dnl Copyright (C) 2011-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -19,7 +19,7 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
     [AC_EGREP_CPP([headers_define_pthread_sigmask], [
 #include <pthread.h>
 #include <signal.h>
-#ifdef pthread_sigmask
+#if defined _WIN32 && defined pthread_sigmask
  headers_define_pthread_sigmask
 #endif],
        [gl_cv_func_pthread_sigmask_macro=yes],
@@ -103,6 +103,27 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
     ])
   fi
 
+  dnl We want to be able to use pthread_sigmask as a thread-safe
+  dnl replacement of sigprocmask, in both single-threaded and multithreaded
+  dnl processes. Therefore enforce PTHREAD_SIGMASK_LIB to be empty, whenever
+  dnl possible.
+  if test -n "$PTHREAD_SIGMASK_LIB"; then
+    dnl We get here on glibc ≤ 2.31, NetBSD, OpenBSD ≤ 5.8, AIX.
+    dnl Except on AIX, pthread_sigmask and sigprocmask are equivalent.
+    dnl Whereas on AIX, sigprocmask is not allowed in multithreaded processes
+    dnl <https://www.ibm.com/docs/en/aix/7.2.0?topic=s-sigprocmask-sigsetmask-sigblock-subroutine>.
+    AC_REQUIRE([AC_CANONICAL_HOST])
+    case "$host_os" in
+      aix*) ;;
+      *)
+        REPLACE_PTHREAD_SIGMASK=1
+        AC_DEFINE([PTHREAD_SIGMASK_NOT_IN_LIBC], [1],
+          [Define to 1 if pthread_sigmask requires linking with some library.])
+        PTHREAD_SIGMASK_LIB=
+        ;;
+    esac
+  fi
+
   AC_SUBST([PTHREAD_SIGMASK_LIB])
   dnl For backward compatibility.
   LIB_PTHREAD_SIGMASK="$PTHREAD_SIGMASK_LIB"
@@ -163,6 +184,8 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
 
     dnl On Cygwin 1.7.5, the pthread_sigmask() has a wrong return value
     dnl convention: Upon failure, it returns -1 and sets errno.
+    dnl Likewise on NetBSD 9.3, when libpthread is not in use; see
+    dnl https://gnats.netbsd.org/cgi-bin/query-pr-single.pl?number=57214 .
     AC_CACHE_CHECK([whether pthread_sigmask returns error numbers],
       [gl_cv_func_pthread_sigmask_return_works],
       [

@@ -42,22 +42,17 @@ enum { STACK_BUF_SIZE = 1024 };
 /* Act like careadlinkat (see below), with an additional argument
    STACK_BUF that can be used as temporary storage.
 
-   If GCC_LINT is defined, do not inline this function with GCC 10.1
-   and later, to avoid creating a pointer to the stack that GCC
+   In GCC 10+, do not inline this function
+   to avoid creating a pointer to the stack that
    -Wreturn-local-addr incorrectly complains about.  See:
    https://gcc.gnu.org/PR93644
    Although the noinline attribute can hurt performance a bit, no better way
-   to pacify GCC is known; even an explicit #pragma does not pacify GCC.
-   When the GCC bug is fixed this workaround should be limited to the
+   to pacify GCC is known; even an explicit #pragma does not pacify GCC
+   10 or 11, or GCC 12+ with -flto.
+   If the GCC bug is fixed this workaround should be limited to the
    broken GCC versions.  */
 #if _GL_GNUC_PREREQ (10, 1)
-# if _GL_GNUC_PREREQ (12, 1)
-#  pragma GCC diagnostic ignored "-Wreturn-local-addr"
-# elif defined GCC_LINT || defined lint
 __attribute__ ((__noinline__))
-# elif __OPTIMIZE__ && !__NO_INLINE__
-#  define GCC_BOGUS_WRETURN_LOCAL_ADDR
-# endif
 #endif
 static char *
 readlink_stk (int fd, char const *filename,
@@ -172,10 +167,6 @@ careadlinkat (int fd, char const *filename,
      common case of a symlink of small size, we get away with a
      single small malloc instead of a big malloc followed by a
      shrinking realloc.  */
-  #ifdef GCC_BOGUS_WRETURN_LOCAL_ADDR
-   #warning "GCC might issue a bogus -Wreturn-local-addr warning here."
-   #warning "See <https://gcc.gnu.org/PR93644>."
-  #endif
   char stack_buf[STACK_BUF_SIZE];
   return readlink_stk (fd, filename, buffer, buffer_size, alloc,
                        preadlinkat, stack_buf);

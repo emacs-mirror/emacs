@@ -669,7 +669,8 @@
 # ifdef __GNUC__
 #  define __restrict_arr	/* Not supported in old GCC.  */
 # else
-#  if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+#  if (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L \
+       && !defined _MSC_VER)
 #   define __restrict_arr	restrict
 #  else
 /* Some other non-C99 compiler.  */

@@ -1,5 +1,5 @@
 # free.m4
-# serial 6
+# serial 7
 dnl Copyright (C) 2003-2005, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -18,6 +18,9 @@ AC_DEFUN([gl_FUNC_FREE],
   dnl So far, we know of three platforms that do this:
   dnl * glibc >= 2.33, thanks to the fix for this bug:
   dnl   <https://sourceware.org/PR17924>
+  dnl * musl >= 1.2.3, thanks to these commits:
+  dnl   <https://git.musl-libc.org/cgit/musl/commit/?id=9b77aaca86b53c367f23505c24dd3c02e240efad>
+  dnl   <https://git.musl-libc.org/cgit/musl/commit/?id=2010df0d64570db4ce29cc7df0e31f81aa26ae4a>
   dnl * OpenBSD >= 4.5, thanks to this commit:
   dnl   <https://cvsweb.openbsd.org/cgi-bin/cvsweb/src/lib/libc/stdlib/malloc.c.diff?r1=1.100&r2=1.101&f=h>
   dnl * Solaris, because its malloc() implementation is based on brk(),
@@ -26,11 +29,14 @@ AC_DEFUN([gl_FUNC_FREE],
   dnl documentation, or by code inspection of the free() implementation in libc.
   AC_CACHE_CHECK([whether free is known to preserve errno],
     [gl_cv_func_free_preserves_errno],
-    [AC_COMPILE_IFELSE(
+    [AC_REQUIRE([gl_MUSL_LIBC])
+     AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
           [[#include <stdlib.h>
+            #include <unistd.h>
           ]],
           [[#if 2 < __GLIBC__ + (33 <= __GLIBC_MINOR__)
+            #elif defined MUSL_LIBC && defined SEEK_DATA /* musl >= 1.2.3 */
             #elif defined __OpenBSD__
             #elif defined __sun
             #else

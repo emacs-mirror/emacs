@@ -18,7 +18,7 @@
 /* Written by Paul Eggert.  */
 
 /* Although this module is not thread-safe, any races should be fairly
-   rare and reasonably benign.  For complete thread-safety, use a C
+   rare and reasonably benign.  For complete thread safety, use a C
    library with a working timezone_t type, so that this module is not
    needed.  */
 
@@ -118,7 +118,8 @@ save_abbr (timezone_t tz, struct tm *tm)
 {
 # if HAVE_STRUCT_TM_TM_ZONE
   char const *zone = tm->tm_zone;
-  char *zone_copy = (char *) "";
+  static char const mt[] = "";
+  char *zone_copy = (char *) mt;
 
   /* No need to replace null zones, or zones within the struct tm.  */
   if (!zone || ((char *) tm <= zone && zone < (char *) (tm + 1)))

@@ -32,7 +32,7 @@ set_binary_mode (int fd, int mode)
        with console input or console output.  */
     return O_TEXT;
   else
-    return __gl_setmode (fd, mode);
+    return _gl_set_fd_mode (fd, mode);
 }
 
 #endif

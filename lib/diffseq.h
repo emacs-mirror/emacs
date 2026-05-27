@@ -82,10 +82,11 @@
  #error "Please include config.h first."
 #endif
 
-/* Maximum value of type OFFSET.  */
+/* Maximum value of type OFFSET.  The 1u pacifies -Wuseless-cast, and
+   unlike a compound literal can appear in an integer constant expression.  */
 #ifndef OFFSET_MAX
 # define OFFSET_MAX \
-   ((((OFFSET) 1 << (sizeof (OFFSET) * CHAR_BIT - 2)) - 1) * 2 + 1)
+   ((((OFFSET) 1u << (sizeof (OFFSET) * CHAR_BIT - 2)) - 1) * 2 + 1)
 #endif
 
 /* Default to no early abort.  */

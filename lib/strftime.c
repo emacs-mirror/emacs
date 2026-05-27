@@ -109,6 +109,7 @@
 #include <limits.h>
 #include <locale.h>
 #include <stdckdint.h>
+#include <stdcountof.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -1882,7 +1883,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #endif
             }
 
-          bufp = buf + sizeof (buf) / sizeof (buf[0]);
+          bufp = buf + countof (buf);
 
           if (negative_number)
             u_number_value = - u_number_value;
@@ -1913,7 +1914,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             CHAR_T sign_char = (negative_number ? L_('-')
                                 : always_output_a_sign ? L_('+')
                                 : 0);
-            int number_bytes = buf + sizeof buf / sizeof buf[0] - bufp;
+            int number_bytes = buf + countof (buf) - bufp;
             int number_digits = number_bytes;
 #if SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME
             if (digits_base >= 0x100)
@@ -2098,7 +2099,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             /* Generate string value for T using time_t arithmetic;
                this works even if sizeof (long) < sizeof (time_t).  */
 
-            bufp = buf + sizeof (buf) / sizeof (buf[0]);
+            bufp = buf + countof (buf);
             negative_number = t < 0;
 
             do

@@ -160,8 +160,8 @@ aclinfo_has_xattr (struct aclinfo const *ai, char const *xattr)
 static void
 get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
 {
-  ai->buf = ai->u.__gl_acl_ch;
-  ssize_t acl_alloc = sizeof ai->u.__gl_acl_ch;
+  ai->buf = ai->u._gl_acl_ch;
+  ssize_t acl_alloc = sizeof ai->u._gl_acl_ch;
 
   if (! (USE_ACL || flags & ACL_GET_SCONTEXT))
     ai->size = 0;
@@ -194,10 +194,10 @@ get_aclinfo (int fd, char const *name, struct aclinfo *ai, int flags)
           /* Grow allocation to at least 'size'.  Grow it by a nontrivial
              amount, to defend against denial of service by an adversary
              that fiddles with ACLs.  */
-          if (ai->buf != ai->u.__gl_acl_ch)
+          if (ai->buf != ai->u._gl_acl_ch)
             {
               free (ai->buf);
-              ai->buf = ai->u.__gl_acl_ch;
+              ai->buf = ai->u._gl_acl_ch;
             }
           if (ckd_add (&acl_alloc, acl_alloc, acl_alloc >> 1))
             acl_alloc = SSIZE_MAX;
@@ -297,7 +297,7 @@ aclinfo_scontext_free (char *scontext)
 void
 aclinfo_free (struct aclinfo *ai)
 {
-  if (ai->buf != ai->u.__gl_acl_ch)
+  if (ai->buf != ai->u._gl_acl_ch)
     free (ai->buf);
   aclinfo_scontext_free (ai->scontext);
 }
@@ -510,7 +510,7 @@ fdfile_has_aclinfo (MAYBE_UNUSED int fd,
 
 #else /* !USE_LINUX_XATTR */
 
-  ai->buf = ai->u.__gl_acl_ch;
+  ai->buf = ai->u._gl_acl_ch;
   ai->size = -1;
   ai->u.err = ENOTSUP;
   ai->scontext = (char *) UNKNOWN_SECURITY_CONTEXT;

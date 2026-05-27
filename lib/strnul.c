@@ -1,4 +1,4 @@
-/* gl_strnul function.
+/* _gl_strnul function.
    Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
    This file is free software: you can redistribute it and/or modify

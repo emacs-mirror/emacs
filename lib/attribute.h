@@ -81,8 +81,8 @@
 
 /* This file uses _GL_ATTRIBUTE_ALLOC_SIZE, _GL_ATTRIBUTE_ALWAYS_INLINE,
    _GL_ATTRIBUTE_ARTIFICIAL, _GL_ATTRIBUTE_COLD, _GL_ATTRIBUTE_CONST,
-   _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_DEPRECATED, _GL_ATTRIBUTE_ERROR,
-   _GL_ATTRIBUTE_WARNING, _GL_ATTRIBUTE_EXTERNALLY_VISIBLE,
+   _GL_ATTRIBUTE_COUNTED_BY, _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_DEPRECATED,
+   _GL_ATTRIBUTE_ERROR, _GL_ATTRIBUTE_WARNING, _GL_ATTRIBUTE_EXTERNALLY_VISIBLE,
    _GL_ATTRIBUTE_FALLTHROUGH, _GL_ATTRIBUTE_FORMAT, _GL_ATTRIBUTE_LEAF,
    _GL_ATTRIBUTE_MALLOC, _GL_ATTRIBUTE_MAY_ALIAS, _GL_ATTRIBUTE_MAYBE_UNUSED,
    _GL_ATTRIBUTE_NODISCARD, _GL_ATTRIBUTE_NOINLINE, _GL_ATTRIBUTE_NONNULL,
@@ -208,6 +208,19 @@
    following 'case' or 'default' label.  */
 /* Applies to: Empty statement (;), inside a 'switch' statement.  */
 #define FALLTHROUGH _GL_ATTRIBUTE_FALLTHROUGH
+
+
+/* =================== Attributes for runtime diagnostics =================== */
+
+/* Attributes that provide information to the undefined-behaviour sanitizer
+   (UBSAN).  */
+
+/* COUNTED_BY (C) declares that the number of elements of the field is given
+   by C, which must be another field in the same struct.
+   The programmer is responsible for guaranteeing some invariants; see
+   <https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html> for details.  */
+/* Applies to struct fields of type array or pointer (to data).  */
+#define COUNTED_BY(c) _GL_ATTRIBUTE_COUNTED_BY (c)
 
 
 /* ================== Attributes for debugging information ================== */

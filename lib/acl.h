@@ -48,7 +48,7 @@ struct aclinfo
 {
   /* If 'size' is nonnegative, a buffer holding the concatenation
      of extended attribute names, each terminated by NUL
-     (either u.__gl_acl_ch, or heap-allocated).  */
+     (either u._gl_acl_ch, or heap-allocated).  */
   char *buf;
 
   /* The number of useful bytes at the start of buf, counting trailing NULs.
@@ -72,7 +72,7 @@ struct aclinfo
        trivial NFSv4 ACL (a size used by file-has-acl.c in 2023-2024
        but no longer relevant now), and a different value might be
        better once experience is gained.  For internal use only.  */
-    char __gl_acl_ch[152];
+    char _gl_acl_ch[152];
   } u;
 };
 

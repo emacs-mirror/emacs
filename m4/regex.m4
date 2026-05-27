@@ -1,5 +1,5 @@
 # regex.m4
-# serial 81
+# serial 82
 dnl Copyright (C) 1996-2001, 2003-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -317,6 +317,39 @@ AC_DEFUN([gl_REGEX],
                 free (regs.start);
                 free (regs.end);
               }
+
+            /* These tests are derived from bug#68725, reported by
+               Ed Morton.  The regex uses backrefs with optional groups
+               to detect palindromes.  */
+            {
+              regex_t re68725;
+              i = regcomp (&re68725,
+                           "^(.?)(.?).?\\\\2\\\\1$",
+                           REG_EXTENDED);
+              if (i)
+                result |= 64;
+              else
+                {
+                  regmatch_t pm[3];
+                  /* "ab" is not a palindrome, so must not match
+                     with $.  */
+                  if (regexec (&re68725, "ab", 1, pm, 0) == 0)
+                    result |= 64;
+                  /* Without $, a shorter match (e.g., empty or "a")
+                     is valid at position 0.  Ensure set_regs retries
+                     with a shorter match_last when the longest
+                     structural match fails content validation.  */
+                  regfree (&re68725);
+                  i = regcomp (&re68725,
+                               "^(.?)(.?).?\\\\2\\\\1",
+                               REG_EXTENDED);
+                  if (i)
+                    result |= 64;
+                  else if (regexec (&re68725, "ab", 3, pm, 0) != 0)
+                    result |= 64;
+                  regfree (&re68725);
+                }
+            }
 
 #if 0
             /* It would be nice to reject hosts whose regoff_t values are too

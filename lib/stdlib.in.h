@@ -757,7 +757,7 @@ _GL_WARN_ON_USE (malloc, "malloc is not POSIX compliant everywhere - "
 #if @REPLACE_MB_CUR_MAX@
 # if !GNULIB_defined_MB_CUR_MAX
 _GL_STDLIB_INLINE size_t
-gl_MB_CUR_MAX (void)
+_gl_MB_CUR_MAX (void)
 {
 #  if 0 < @REPLACE_MB_CUR_MAX@
   return @REPLACE_MB_CUR_MAX@;
@@ -768,7 +768,7 @@ gl_MB_CUR_MAX (void)
 #  endif
 }
 #  undef MB_CUR_MAX
-#  define MB_CUR_MAX gl_MB_CUR_MAX ()
+#  define MB_CUR_MAX _gl_MB_CUR_MAX ()
 #  define GNULIB_defined_MB_CUR_MAX 1
 # endif
 #endif
@@ -1458,7 +1458,7 @@ _GL_WARN_ON_USE (setstate_r, "setstate_r is unportable - "
 
 #if @GNULIB_REALLOC_POSIX@
 # if @REPLACE_REALLOC_FOR_REALLOC_POSIX@
-#  if @REPLACE_REALLOC_FOR_REALLOC_POSIX@ == 2
+#  if @REPLACE_REALLOC_FOR_REALLOC_POSIX@ == 2 && !_GL_INLINE_RPL_REALLOC
 #   define _GL_INLINE_RPL_REALLOC 1
 #   ifdef __cplusplus
 extern "C" {

@@ -19,11 +19,17 @@
 #ifndef _IDX_H
 #define _IDX_H
 
-/* Get ptrdiff_t.  */
-#include <stddef.h>
+#ifndef __PTRDIFF_TYPE__
+# include <stddef.h>
+#endif
 
-/* Get PTRDIFF_MAX.  */
-#include <stdint.h>
+/* IDX_MAX is the maximum value of an idx_t.  */
+#ifdef __PTRDIFF_MAX__
+# define IDX_MAX __PTRDIFF_MAX__
+#else
+# include <stdint.h>
+# define IDX_MAX PTRDIFF_MAX
+#endif
 
 /* The type 'idx_t' holds an (array) index or an (object) size.
    Its implementation promotes to a signed integer type,
@@ -127,10 +133,12 @@ extern "C" {
 /* Use the signed type 'ptrdiff_t'.  */
 /* Note: ISO C does not mandate that 'size_t' and 'ptrdiff_t' have the same
    size, but it is so on all platforms we have seen since 1990.  */
+#ifdef __PTRDIFF_TYPE__
+typedef __PTRDIFF_TYPE__ idx_t;
+#else
+/* <stddef.h> already included above.  */
 typedef ptrdiff_t idx_t;
-
-/* IDX_MAX is the maximum value of an idx_t.  */
-#define IDX_MAX PTRDIFF_MAX
+#endif
 
 /* So far no need has been found for an IDX_WIDTH macro.
    Perhaps there should be another macro IDX_VALUE_BITS that does not
