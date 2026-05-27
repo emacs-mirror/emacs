@@ -240,7 +240,7 @@ sha1_process_block (void const *restrict buffer, size_t len,
   ctx->total[0] += lolen;
   ctx->total[1] += (len >> 31 >> 1) + (ctx->total[0] < lolen);
 
-#define rol(x, n) (((x) << (n)) | ((uint32_t) (x) >> (32 - (n))))
+#define rol(x, n) (((x) << (n)) | ((uint32_t) {(x)} >> (32 - (n))))
 
 #define M(I) ( tm =   x[I&0x0f] ^ x[(I-14)&0x0f] \
                     ^ x[(I-8)&0x0f] ^ x[(I-3)&0x0f] \

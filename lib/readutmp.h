@@ -330,7 +330,7 @@ char *extract_trimmed_name (const STRUCT_UTMP *ut)
    If OPTIONS & READ_UTMP_NO_BOOT_TIME is nonzero, omit the boot time
    entries.
 
-   This function is not multithread-safe, since on many platforms it
+   This function is not thread-safe, since on many platforms it
    invokes the functions setutxent, getutxent, endutxent.  These
    functions are needed because they may lock FILE (so that we don't
    read garbage when a concurrent process writes to FILE), but their

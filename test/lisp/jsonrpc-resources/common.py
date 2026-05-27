@@ -30,3 +30,12 @@ def write_msg(msg):
 def log(text):
     """Write a log line to stderr."""
     print(f'[test-server] {text}', file=sys.stderr, flush=True)
+
+def harakiri(msg):
+    """Maybe handle harakiri request/notif in msg."""
+    if msg.get('method') == 'harakiri':
+        log('-> very clean harakiri')
+        if (mid := msg.get('id')) is not None:
+            write_msg({'jsonrpc': '2.0', 'id': mid, 'result': True})
+        return True
+    return False

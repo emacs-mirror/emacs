@@ -169,6 +169,12 @@ behavior, customize 'find-function-mode-lower-precedence' to non-nil.
 ---
 ** 'find-function' can now find 'cl-defmethod' invocations inside macros.
 
+---
+** New minor mode 'prettify-special-glyphs-mode'.
+The new minor mode prettifies the special character glyphs (truncation
+and continuation) on TTY frames (and GUI frames without fringes).  You
+can customize the associated new face 'special-glyphs'.
+
 ** Minibuffer and Completions
 
 +++
@@ -3931,7 +3937,13 @@ A major mode based on 'conf-mode' for editing ".npmrc" files.
 ** New major modes based on the tree-sitter library
 
 *** New major mode 'markdown-ts-mode'.
-A major mode based on the tree-sitter library for editing Markdown files.
+A major mode based on the tree-sitter library for editing Markdown
+files.  Markdown files are visited using this mode when the required
+tree-sitter grammars ('markdown' and 'markdown-inline') are available,
+or when the user has opted in via 'treesit-enabled-modes'.  Otherwise,
+Markdown files fall back to 'text-mode'.
+
+To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
 *** New major mode 'mhtml-ts-mode'.
 An optional major mode based on the tree-sitter library for editing HTML
@@ -3986,6 +3998,21 @@ all versions, sleep events require Windows 8 or later).
 
 
 * Incompatible Lisp Changes in Emacs 31.1
+
++++
+** Boundaries of 'cursor-sensor-functions' now obey stickiness.
+'cursor-sensor-mode' now uses 'get-pos-property' to decide whether a
+boundary is considered as inside or outside.
+
+This means that by default, the boundaries have changed: the end
+position of a stretch of a 'cursor-sensor-functions' text property
+used to be considered outside of the stretch whereas it is now
+considered as inside.  You can recover the previous behavior by
+controlling the stickiness, for example with a call like:
+
+    (add-text-properties BEG END
+                         '(cursor-sensor-functions (MY-FUNCTION)
+                           rear-nonsticky (cursor-sensor-functions)))
 
 +++
 ** 'makunbound' on a variable alias undoes the alias.

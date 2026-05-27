@@ -431,7 +431,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
 
   if (MOST_POSITIVE_FIXNUM < min (PTRDIFF_MAX, SIZE_MAX) / word_size
       && MOST_POSITIVE_FIXNUM < nargs)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   /* ARGS will contain the array of arguments to pass to the function.
      VISARGS will contain the same list but in a nicer form, so that if we

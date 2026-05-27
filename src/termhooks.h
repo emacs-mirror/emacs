@@ -411,8 +411,7 @@ struct input_event
   Lisp_Object device;
 };
 
-#define EVENT_INIT(event) (memset (&(event), 0, sizeof (struct input_event)), \
-			   (event).device = Qt)
+#define EVENT_INIT(event) ((event) = (struct input_event) {.device = Qt})
 
 /* Bits in the modifiers member of the input_event structure.
    Note that reorder_modifiers assumes that the bits are in canonical

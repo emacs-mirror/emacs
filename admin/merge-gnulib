@@ -50,7 +50,7 @@ GNULIB_MODULES='
   qcopy-acl readlink readlinkat realloc-posix regex
   sig2str sigdescr_np socklen stat-time std-gnu23
   stdc_bit_width stdc_count_ones stdc_trailing_zeros
-  stdckdint-h stddef-h stdio-h stdio-windows
+  stdckdint-h stdcountof-h stddef-h stdio-h stdio-windows
   stpcpy streq strnlen strtoimax symlink sys_stat-h sys_time-h
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   unlocked-io update-copyright utimensat
@@ -58,14 +58,18 @@ GNULIB_MODULES='
 '
 
 AVOIDED_MODULES='
-  access btowc chmod close crypto/af_alg dup fchdir fstat gnulib-i18n
-  iswblank iswctype iswdigit iswxdigit langinfo-h libgmp-mpq
-  localcharset locale-h localename-unsafe-limited lock
-  mbrtowc mbsinit memchr mkdir msvc-inval msvc-nothrow nl_langinfo
-  openat-die opendir pthread-h raise
-  save-cwd select setenv sigprocmask stat std-gnu11 stdarg-h strncpy
+  access btoc32
+  c32_apply_type_test c32_get_type_test
+  c32isalnum c32rtomb c32tolower c32toupper
+  chmod close crypto/af_alg dup fchdir fstat gnulib-i18n
+  langinfo-h libgmp-mpq
+  localcharset localeinfo localename-unsafe-limited lock
+  mbrtoc32-regular mbsinit memchr mkdir
+  msvc-inval msvc-nothrow nl_langinfo
+  openat-die opendir pthread-h
+  save-cwd select setenv sigprocmask stat std-gnu11 strncpy
   threadlib tzset unsetenv utime utime-h
-  wchar-h wcrtomb wctype wctype-h
+  wchar-h uchar-h
 '
 
 GNULIB_TOOL_FLAGS='

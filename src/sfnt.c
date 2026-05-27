@@ -21,7 +21,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "sfnt.h"
 
-#include <assert.h>
 #include <attribute.h>
 #include <byteswap.h>
 #include <fcntl.h>
@@ -29,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <inttypes.h>
 #include <stdbit.h>
 #include <stdckdint.h>
+#include <stdcountof.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +48,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef TEST
 
+#include <assert.h>
 #include <time.h>
 #include <timespec.h>
 #include <sys/wait.h>
@@ -55,6 +56,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrender.h>
+
+static void
+memory_full_up (void)
+{
+  abort ();
+}
 
 static void *
 xmalloc (size_t size)
@@ -64,22 +71,37 @@ xmalloc (size_t size)
   ptr = malloc (size);
 
   if (!ptr)
-    abort ();
+    memory_full_up ();
 
   return ptr;
 }
 
-MAYBE_UNUSED static void *
-xzalloc (size_t size)
+static void *
+xcalloc (size_t n, size_t s)
 {
   void *ptr;
 
-  ptr = calloc (1, size);
+  ptr = calloc (n, s);
 
   if (!ptr)
-    abort ();
+    memory_full_up ();
 
   return ptr;
+}
+
+static void *
+xzalloc (size_t size)
+{
+  return xcalloc (1, size);
+}
+
+static void *
+xnmalloc (size_t n, size_t s)
+{
+  size_t size;
+  if (ckd_mul (&size, n, s))
+    memory_full_up ();
+  return xmalloc (size);
 }
 
 static void *
@@ -90,7 +112,7 @@ xrealloc (void *ptr, size_t size)
   new_ptr = realloc (ptr, size);
 
   if (!new_ptr)
-    abort ();
+    memory_full_up ();
 
   return new_ptr;
 }
@@ -106,7 +128,7 @@ xfree (void *ptr)
 #define TEST_STATIC static
 
 /* Needed for tests.  */
-#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
+#define eassert(expr) assert (expr)
 
 /* Also necessary.  */
 #define AVOID _Noreturn ATTRIBUTE_COLD void
@@ -115,6 +137,24 @@ xfree (void *ptr)
 #define TEST_STATIC
 #include "lisp.h"
 #endif
+
+static void *
+xaddmalloc (size_t base, size_t additional)
+{
+  size_t size;
+  if (ckd_add (&size, additional, base))
+    memory_full_up ();
+  return xmalloc (size);
+}
+
+static void *
+xaddrealloc (void *ptr, size_t base, size_t additional)
+{
+  size_t size;
+  if (ckd_add (&size, additional, base))
+    memory_full_up ();
+  return xrealloc (ptr, size);
+}
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -736,8 +776,7 @@ sfnt_read_cmap_format_12 (int fd,
     return NULL;
 
   /* Allocate a buffer of sufficient size.  */
-  eassert (length < UINT32_MAX - sizeof *format12);
-  format12 = xmalloc (length + sizeof *format12);
+  format12 = xaddmalloc (sizeof *format12, length);
   format12->format = header->format;
   format12->reserved = header->length;
   format12->length = length;
@@ -1592,7 +1631,7 @@ sfnt_read_loca_table_short (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Figure out how many glyphs there are based on the length.  */
-  loca = xmalloc (sizeof *loca + directory->length);
+  loca = xaddmalloc (sizeof *loca, directory->length);
   loca->offsets = (uint16_t *) (loca + 1);
   loca->num_offsets = directory->length / 2;
 
@@ -1637,7 +1676,7 @@ sfnt_read_loca_table_long (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Figure out how many glyphs there are based on the length.  */
-  loca = xmalloc (sizeof *loca + directory->length);
+  loca = xaddmalloc (sizeof *loca, directory->length);
   loca->offsets = (uint32_t *) (loca + 1);
   loca->num_offsets = directory->length / 4;
 
@@ -1769,7 +1808,7 @@ sfnt_read_glyf_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Allocate enough to hold everything.  */
-  glyf = xmalloc (sizeof *glyf + directory->length);
+  glyf = xaddmalloc (sizeof *glyf, directory->length);
   glyf->size = directory->length;
   glyf->glyphs = (unsigned char *) (glyf + 1);
 
@@ -1883,6 +1922,8 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
   unsigned char *vec_start;
   int16_t delta, x, y;
 
+  glyph->simple = NULL;
+
   /* Calculate the minimum size of the glyph data.  This is the size
      of the instruction length field followed by
      glyph->number_of_contours * sizeof (uint16_t).  */
@@ -1891,14 +1932,11 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 	      + sizeof (uint16_t));
 
   /* Check that the size is big enough.  */
-  if (glyf->size < offset + min_size)
-    {
-      glyph->simple = NULL;
-      return;
-    }
+  if (glyf->size < min_size || glyf->size - min_size < offset)
+    return;
 
   /* Allocate enough to read at least that.  */
-  simple = xmalloc (sizeof *simple + min_size);
+  simple = xaddmalloc (sizeof *simple, min_size);
   simple->end_pts_of_contours = (uint16_t *) (simple + 1);
   memcpy (simple->end_pts_of_contours, glyf->glyphs + offset,
 	  min_size);
@@ -1926,16 +1964,15 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
   else
     number_of_points = 0;
 
-  min_size_2 = (simple->instruction_length
-		+ number_of_points
-		+ (number_of_points
-		   * sizeof (uint16_t) * 2));
-
-  /* Set simple->number_of_points.  */
   simple->number_of_points = number_of_points;
 
   /* Make simple big enough.  */
-  simple = xrealloc (simple, sizeof *simple + min_size + min_size_2);
+  size_t size;
+  if (ckd_mul (&min_size_2, number_of_points, sizeof (uint16_t) * 2 + 1)
+      || ckd_add (&min_size_2, min_size_2, simple->instruction_length)
+      || ckd_add (&size, min_size, min_size_2))
+    memory_full_up ();
+  simple = xaddrealloc (simple, sizeof *simple, size);
   simple->end_pts_of_contours = (uint16_t *) (simple + 1);
 
   /* Set the instruction data pointer and other pointers.
@@ -1956,7 +1993,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
       || (instructions_start + simple->instruction_length
 	  >= glyf->glyphs + glyf->size))
     {
-      glyph->simple = NULL;
       xfree (simple);
       return;
     }
@@ -1971,7 +2007,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
   if (flags_start >= glyf->glyphs + glyf->size)
     {
-      glyph->simple = NULL;
       xfree (simple);
       return;
     }
@@ -1995,7 +2030,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (flags_start + 1 >= glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2023,7 +2057,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
   if (i != number_of_points)
     {
-      glyph->simple = NULL;
       xfree (simple);
       return;
     }
@@ -2049,7 +2082,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 1 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2066,7 +2098,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 2 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2100,7 +2131,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 1 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2117,7 +2147,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
 
 	  if (vec_start + 2 > glyf->glyphs + glyf->size)
 	    {
-	      glyph->simple = NULL;
 	      xfree (simple);
 	      return;
 	    }
@@ -2137,7 +2166,6 @@ sfnt_read_simple_glyph (struct sfnt_glyph *glyph,
   /* All done.  */
   simple->y_coordinates_end = simple->y_coordinates + i;
   glyph->simple = simple;
-  return;
 }
 
 /* Read the compound glyph outline from the glyph GLYPH from the
@@ -2207,8 +2235,7 @@ sfnt_read_compound_glyph (struct sfnt_glyph *glyph,
     }
 
   /* Now allocate the buffer to hold all the glyph data.  */
-  glyph->compound = xmalloc (sizeof *glyph->compound
-			     + required_bytes);
+  glyph->compound = xaddmalloc (sizeof *glyph->compound, required_bytes);
   glyph->compound->components
     = (struct sfnt_compound_glyph_component *) (glyph->compound + 1);
   glyph->compound->num_components = num_components;
@@ -2429,9 +2456,8 @@ sfnt_read_glyph (sfnt_glyph glyph_code,
       glyph.ymax = 0;
       glyph.advance_distortion = 0;
       glyph.origin_distortion = 0;
-      glyph.simple = xmalloc (sizeof *glyph.simple);
+      glyph.simple = xzalloc (sizeof *glyph.simple);
       glyph.compound = NULL;
-      memset (glyph.simple, 0, sizeof *glyph.simple);
       memory = xmalloc (sizeof *memory);
       *memory = glyph;
       return memory;
@@ -3606,17 +3632,19 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
 
   outline->outline_used++;
 
-  /* See if the outline has to be extended.  Checking for overflow
-     should not be necessary.  */
+  /* See if the outline has to be extended.  */
 
   if (outline->outline_used > outline->outline_size)
     {
+      /* This can't overflow, as the old value did not overflow when
+	 multiplied by sizeof *outline->outline.  */
       outline->outline_size = outline->outline_used * 2;
 
       /* Extend the outline to some size past the new size.  */
-      outline = xrealloc (outline, (sizeof *outline
-				    + (outline->outline_size
-				       * sizeof *outline->outline)));
+      size_t size;
+      if (ckd_mul (&size, outline->outline_size, sizeof *outline->outline))
+	memory_full_up ();
+      outline = xaddrealloc (outline, sizeof *outline, size);
       outline->outline
 	= (struct sfnt_glyph_outline_command *) (outline + 1);
     }
@@ -3645,160 +3673,22 @@ sfnt_build_append (int flags, sfnt_fixed x, sfnt_fixed y)
   return outline;
 }
 
-#ifndef INT64_MAX
-
-/* 64 bit integer type.  */
-
-struct sfnt_large_integer
-{
-  unsigned int high, low;
-};
-
-/* Calculate (A * B), placing the result in *VALUE.  */
-
-static void
-sfnt_multiply_divide_1 (unsigned int a, unsigned int b,
-			struct sfnt_large_integer *value)
-{
-  unsigned int lo1, hi1, lo2, hi2, lo, hi, i1, i2;
-
-  lo1 = a & 0x0000ffffu;
-  hi1 = a >> 16;
-  lo2 = b & 0x0000ffffu;
-  hi2 = b >> 16;
-
-  lo = lo1 * lo2;
-  i1 = lo1 * hi2;
-  i2 = lo2 * hi1;
-  hi = hi1 * hi2;
-
-  /* Check carry overflow of i1 + i2.  */
-  i1 += i2;
-  hi += (unsigned int) (i1 < i2) << 16;
-
-  hi += i1 >> 16;
-  i1  = i1 << 16;
-
-  /* Check carry overflow of i1 + lo.  */
-  lo += i1;
-  hi += (lo < i1);
-
-  value->low = lo;
-  value->high = hi;
-}
-
-/* Calculate AB / C.  Value is a 32 bit unsigned integer.  */
-
-static unsigned int
-sfnt_multiply_divide_2 (struct sfnt_large_integer *ab,
-			unsigned int c)
-{
-  unsigned int hi, lo;
-  int i;
-  unsigned int r, q; /* Remainder and quotient.  */
-
-  hi = ab->high;
-  lo = ab->low;
-
-  i = stdc_leading_zeros (hi);
-  r = (hi << i) | (lo >> (32 - i));
-  lo <<= i;
-  q = r / c;
-  r -= q * c;
-  i = 32 - i;
-
-  do
-    {
-      q <<= 1;
-      r = (r << 1) | (lo >> 31);
-      lo <<= 1;
-
-      if (r >= c)
-	{
-	  r -= c;
-	  q |= 1;
-	}
-    }
-  while (--i);
-
-  return q;
-}
-
-/* Add the specified unsigned 32-bit N to the large integer
-   INTEGER.  */
-
-static void
-sfnt_large_integer_add (struct sfnt_large_integer *integer,
-			uint32_t n)
-{
-  struct sfnt_large_integer number;
-
-  number.low = integer->low + n;
-  number.high = integer->high + (number.low
-				 < integer->low);
-
-  *integer = number;
-}
-
-#endif /* !INT64_MAX */
-
-/* Calculate (A * B) / C with no rounding and return the result, using
-   a 64 bit integer if necessary.  */
+/* Calculate (A * B) / C with no rounding and return the result.  */
 
 static unsigned int
 sfnt_multiply_divide (unsigned int a, unsigned int b, unsigned int c)
 {
-#ifndef INT64_MAX
-  struct sfnt_large_integer temp;
-
-  sfnt_multiply_divide_1 (a, b, &temp);
-  return sfnt_multiply_divide_2 (&temp, c);
-#else /* INT64_MAX */
-  uint64_t temp;
-
-  temp = (uint64_t) a * (uint64_t) b;
-  return temp / c;
-#endif /* !INT64_MAX */
+  return a * (unsigned long long int) {b} / c;
 }
 
-/* Calculate (A * B) / C with rounding and return the result, using a
-   64 bit integer if necessary.  */
+/* Calculate (A * B) / C with rounding and return the result.  */
 
 static unsigned int
 sfnt_multiply_divide_rounded (unsigned int a, unsigned int b,
 			      unsigned int c)
 {
-#ifndef INT64_MAX
-  struct sfnt_large_integer temp;
-
-  sfnt_multiply_divide_1 (a, b, &temp);
-  sfnt_large_integer_add (&temp, c / 2);
-  return sfnt_multiply_divide_2 (&temp, c);
-#else /* INT64_MAX */
-  uint64_t temp;
-
-  temp = (uint64_t) a * (uint64_t) b + c / 2;
-  return temp / c;
-#endif /* !INT64_MAX */
+  return (a * (unsigned long long int) {b} + c / 2) / c;
 }
-
-#ifndef INT64_MAX
-
-/* Calculate (A * B) / C, rounding the result with a threshold of N.
-   Use a 64 bit temporary.  */
-
-static unsigned int
-sfnt_multiply_divide_round (unsigned int a, unsigned int b,
-			    unsigned int n, unsigned int c)
-{
-  struct sfnt_large_integer temp;
-
-  sfnt_multiply_divide_1 (a, b, &temp);
-  sfnt_large_integer_add (&temp, n);
-  return sfnt_multiply_divide_2 (&temp, c);
-}
-
-#endif /* !INT64_MAX */
 
 /* The same as sfnt_multiply_divide_rounded, but handle signed values
    instead.  */
@@ -3829,27 +3719,7 @@ sfnt_multiply_divide_signed (int a, int b, int c)
 static sfnt_fixed
 sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) x * (int64_t) y;
-
-  /* This can be done quickly with int64_t.  */
-  return product / (int64_t) 65536;
-#else /* !INT64_MAX */
-  int sign;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide (abs (x), abs (y),
-			       65536) * sign;
-#endif /* INT64_MAX */
+  return x * (long long int) {y} / (1 << 16);
 }
 
 /* Multiply the two 16.16 fixed point numbers X and Y, with rounding
@@ -3858,28 +3728,8 @@ sfnt_mul_fixed (sfnt_fixed x, sfnt_fixed y)
 static sfnt_fixed
 sfnt_mul_fixed_round (sfnt_fixed x, sfnt_fixed y)
 {
-#ifdef INT64_MAX
-  int64_t product, round;
-
-  product = (int64_t) x * (int64_t) y;
-  round = product < 0 ? -32768 : 32768;
-
-  /* This can be done quickly with int64_t.  */
-  return (product + round) / (int64_t) 65536;
-#else /* !INT64_MAX */
-  int sign;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide_round (abs (x), abs (y),
-				     32768, 65536) * sign;
-#endif /* INT64_MAX */
+  long long int product = x * (long long int) {y};
+  return (product + (product < 0 ? -(1 << 15) : 1 << 15)) / (1 << 16);
 }
 
 /* Set the pen size to the specified point and return.  POINT will be
@@ -3922,29 +3772,7 @@ sfnt_line_to_and_build (struct sfnt_point point, void *dcontext)
 static sfnt_fixed
 sfnt_div_fixed (sfnt_fixed x, sfnt_fixed y)
 {
-#ifdef INT64_MAX
-  int64_t result;
-
-  result = ((int64_t) x * 65536) / y;
-
-  return result;
-#else
-  int sign;
-  unsigned int a, b;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  a = abs (x);
-  b = abs (y);
-
-  return sfnt_multiply_divide (a, 65536, b) * sign;
-#endif
+  return x * (1LL << 16) / y;
 }
 
 /* Return the ceiling value of the specified fixed point number X.  */
@@ -4237,7 +4065,12 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
   sfnt_fixed dx, dy, bot, step_x, ymin, xmin;
   size_t top, bottom, y;
 
-  edges = alloca (outline->outline_used * sizeof *edges);
+  void *edges_alloc = NULL;
+  if (outline->outline_used < 1024 * 16 / sizeof *edges)
+    edges = alloca (outline->outline_used * sizeof *edges);
+  else
+    edges = edges_alloc = xnmalloc (outline->outline_used, sizeof *edges);
+
   edge = 0;
 
   /* ymin and xmin must be the same as the offset used to set offy and
@@ -4330,6 +4163,7 @@ sfnt_build_outline_edges (struct sfnt_glyph_outline *outline,
 
   if (edge)
     edge_proc (edges, edge, dcontext);
+  xfree (edges_alloc);
 }
 
 /* Sort an array of SIZE edges to increase by bottom Y position, in
@@ -4528,8 +4362,10 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 
   if ((left & ~SFNT_POLY_MASK) == (right & ~SFNT_POLY_MASK))
     {
+#ifndef NDEBUG
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
+#endif /* !NDEBUG */
 
       w = coverage[right - left];
       a = *start + w;
@@ -4544,8 +4380,10 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 
   if (left & SFNT_POLY_MASK)
     {
+#ifndef NDEBUG
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
+#endif /* !NDEBUG */
 
       /* Compute the coverage for the first pixel, and move left past
 	 it.  The coverage is a number from 1 to 7 describing how
@@ -4571,8 +4409,10 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
   /* Fill pixels between left and right.  */
   while (left + SFNT_POLY_MASK < right)
     {
+#ifndef NDEBUG
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
+#endif /* !NDEBUG */
 
       a = *start + w;
       *start++ = sfnt_saturate_short (a);
@@ -4583,8 +4423,10 @@ sfnt_fill_span (struct sfnt_raster *raster, sfnt_fixed y,
 
   if (right & SFNT_POLY_MASK)
     {
+#ifndef NDEBUG
       /* Assert that start does not exceed the end of the row.  */
-      assert (start <= row_end);
+      eassert (start <= row_end);
+#endif /* !NDEBUG */
 
       w = coverage[right - left];
       a = *start + w;
@@ -4682,11 +4524,15 @@ sfnt_raster_glyph_outline (struct sfnt_glyph_outline *outline)
   /* Get the raster parameters.  */
   sfnt_prepare_raster (&raster, outline);
 
-  /* Allocate the raster data.  */
-  data = xmalloc (sizeof *data + raster.stride * raster.height);
+  /* Allocate the raster data.  Clear the raster; it is easier to use
+     xzalloc and clear everything.  */
+  size_t size;
+  if (ckd_mul (&size, raster.stride, raster.height)
+      || ckd_add (&size, size, sizeof *data))
+    memory_full_up ();
+  data = xzalloc (size);
   *data = raster;
   data->cells = (unsigned char *) (data + 1);
-  memset (data->cells, 0, raster.stride * raster.height);
 
   /* Generate edges for the outline, polying each array of edges to
      the raster.  */
@@ -4886,7 +4732,12 @@ sfnt_build_outline_fedges (struct sfnt_glyph_outline *outline,
   sfnt_fixed dx, dy, step_x, step_y, ymin, xmin;
   size_t top, bottom;
 
-  edges = alloca (outline->outline_used * sizeof *edges);
+  void *edges_alloc = NULL;
+  if (outline->outline_used < 1024 * 16 / sizeof *edges)
+    edges = alloca (outline->outline_used * sizeof *edges);
+  else
+    edges = edges_alloc = xnmalloc (outline->outline_used, sizeof *edges);
+
   edge = 0;
 
   /* ymin and xmin must be the same as the offset used to set offy and
@@ -4971,6 +4822,7 @@ sfnt_build_outline_fedges (struct sfnt_glyph_outline *outline,
 
   if (edge)
     edge_proc (edges, edge, dcontext);
+  xfree (edges_alloc);
 }
 
 typedef void (*sfnt_step_raster_proc) (struct sfnt_step_raster *, void *);
@@ -5047,7 +4899,7 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 		       sfnt_step_raster_proc proc, void *dcontext)
 {
   int y;
-  size_t size, e, edges_processed;
+  size_t e, edges_processed;
   struct sfnt_fedge *active, **prev, *a, sentinel;
   struct sfnt_step_raster raster;
   struct sfnt_step_chunk *next, *last;
@@ -5065,11 +4917,7 @@ sfnt_poly_edges_exact (struct sfnt_fedge *edges, size_t nedges,
 
   raster.scanlines = height;
   raster.chunks    = NULL;
-
-  if (ckd_mul (&size, height, sizeof *raster.steps))
-    abort ();
-
-  raster.steps = xzalloc (size);
+  raster.steps = xcalloc (height, sizeof *raster.steps);
 
   for (; y != height; y += 1)
     {
@@ -5578,15 +5426,21 @@ TEST_STATIC struct sfnt_raster *
 sfnt_raster_glyph_outline_exact (struct sfnt_glyph_outline *outline)
 {
   struct sfnt_raster raster, *data;
+  size_t size;
 
   /* Get the raster parameters.  */
   sfnt_prepare_raster (&raster, outline);
 
-  /* Allocate the raster data.  */
-  data = xmalloc (sizeof *data + raster.stride * raster.height);
+  /* Allocate the raster data.  Clear the raster; it is easier to use
+     xcalloc and clear everything.  */
+  if (ckd_mul (&size, raster.stride, raster.height)
+      || ckd_add (&size, size, sizeof *data))
+    return NULL;
+  data = xcalloc (1, size);
+  if (!data)
+    return NULL;
   *data = raster;
   data->cells = (unsigned char *) (data + 1);
-  memset (data->cells, 0, raster.stride * raster.height);
 
   /* Generate edges for the outline, polying each array of edges to
      the raster.  */
@@ -5646,7 +5500,7 @@ sfnt_read_hmtx_table (int fd, struct sfnt_offset_subtable *subtable,
   /* Now allocate enough to hold all of that along with the table
      directory structure.  */
 
-  hmtx = xmalloc (sizeof *hmtx + size);
+  hmtx = xaddmalloc (sizeof *hmtx, size);
 
   /* Read into hmtx + 1.  */
   rc = read (fd, hmtx + 1, size);
@@ -5793,13 +5647,9 @@ sfnt_read_name_table (int fd, struct sfnt_offset_subtable *subtable)
   if (directory->length < required)
     return NULL;
 
-  /* Avoid overflow in xmalloc argument below.  */
-  if (directory->length > UINT_MAX - sizeof *name)
-    return NULL;
-
   /* Allocate enough to hold the name table and variable length
      data.  */
-  name = xmalloc (sizeof *name + directory->length);
+  name = xaddmalloc (sizeof *name, directory->length);
 
   /* Read the fixed length data.  */
   rc = read (fd, name, required);
@@ -5873,10 +5723,11 @@ sfnt_read_name_table (int fd, struct sfnt_offset_subtable *subtable)
 		  - (name->count
 		     * sizeof *name->name_records)))
     {
-      name = xrealloc (name, (sizeof *name
-			      + (name->count
-				 * sizeof *name->name_records)
-			      + required));
+      size_t size;
+      if (ckd_mul (&size, name->count, sizeof *name->name_records)
+	  || ckd_add (&size, size, required))
+	memory_full_up ();
+      name = xaddrealloc (name, sizeof *name, size);
       name->name_records = (struct sfnt_name_record *) (name + 1);
     }
 
@@ -6003,23 +5854,15 @@ sfnt_read_meta_table (int fd, struct sfnt_offset_subtable *subtable)
 
   if (ckd_mul (&map_size, sizeof *meta->data_maps, meta->num_data_maps)
       /* Do so while checking for overflow from bad sfnt files.  */
-      || ckd_add (&data_size, map_size, sizeof *meta)
-      || ckd_add (&data_size, data_size, directory->length))
+      || directory->length - required < map_size
+      || ckd_add (&data_size, map_size, directory->length))
     {
       xfree (meta);
       return NULL;
     }
 
   /* Do the reallocation.  */
-  meta = xrealloc (meta, data_size);
-
-  /* Check that the remaining data is big enough to hold the data
-     maps.  */
-  if (directory->length - required < map_size)
-    {
-      xfree (meta);
-      return NULL;
-    }
+  meta = xaddrealloc (meta, sizeof *meta, data_size);
 
   /* Set pointers to data_maps and data.  */
   meta->data_maps = (struct sfnt_meta_data_map *) (meta + 1);
@@ -6147,7 +5990,7 @@ sfnt_read_ttc_header (int fd)
       return NULL;
     }
 
-  ttc = xrealloc (ttc, sizeof *ttc + size);
+  ttc = xaddrealloc (ttc, sizeof *ttc, size);
   ttc->offset_table = (uint32_t *) (ttc + 1);
   rc = read (fd, ttc->offset_table, size);
   if (rc == -1 || rc < size)
@@ -6315,7 +6158,7 @@ sfnt_read_fpgm_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Allocate enough for that much data.  */
-  fpgm = xmalloc (sizeof *fpgm + directory->length);
+  fpgm = xaddmalloc (sizeof *fpgm, directory->length);
 
   /* Now set fpgm->num_instructions as appropriate, and make
      fpgm->instructions point to the right place.  */
@@ -6363,7 +6206,7 @@ sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
     return NULL;
 
   /* Allocate enough for that much data.  */
-  prep = xmalloc (sizeof *prep + directory->length);
+  prep = xaddmalloc (sizeof *prep, directory->length);
 
   /* Now set prep->num_instructions as appropriate, and make
      prep->instructions point to the right place.  */
@@ -6393,29 +6236,7 @@ sfnt_read_prep_table (int fd, struct sfnt_offset_subtable *subtable)
 static sfnt_f26dot6
 sfnt_div_f26dot6 (sfnt_f26dot6 x, sfnt_f26dot6 y)
 {
-#ifdef INT64_MAX
-  int64_t result;
-
-  result = ((int64_t) x * 64) / y;
-
-  return result;
-#else
-  int sign;
-  unsigned int a, b;
-
-  sign = 1;
-
-  if (x < 0)
-    sign = -sign;
-
-  if (y < 0)
-    sign = -sign;
-
-  a = abs (x);
-  b = abs (y);
-
-  return sfnt_multiply_divide (a, 64, b) * sign;
-#endif
+  return x * (1LL << 6) / y;
 }
 
 /* Multiply the specified two 26.6 fixed point numbers A and B.
@@ -6424,27 +6245,7 @@ sfnt_div_f26dot6 (sfnt_f26dot6 x, sfnt_f26dot6 y)
 static sfnt_f26dot6
 sfnt_mul_f26dot6 (sfnt_f26dot6 a, sfnt_f26dot6 b)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) a * (int64_t) b;
-
-  /* This can be done quickly with int64_t.  */
-  return product / (int64_t) 64;
-#else
-  int sign;
-
-  sign = 1;
-
-  if (a < 0)
-    sign = -sign;
-
-  if (b < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide (abs (a), abs (b),
-			       64) * sign;
-#endif
+  return a * (long long int) {b} / (1 << 6);
 }
 
 /* Multiply the specified two 26.6 fixed point numbers A and B, with
@@ -6454,27 +6255,7 @@ sfnt_mul_f26dot6 (sfnt_f26dot6 a, sfnt_f26dot6 b)
 static sfnt_f26dot6
 sfnt_mul_f26dot6_round (sfnt_f26dot6 a, sfnt_f26dot6 b)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) a * (int64_t) b;
-
-  /* This can be done quickly with int64_t.  */
-  return (product + 32) / (int64_t) 64;
-#else /* !INT64_MAX */
-  int sign;
-
-  sign = 1;
-
-  if (a < 0)
-    sign = -sign;
-
-  if (b < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide_round (abs (a), abs (b),
-				     32, 64) * sign;
-#endif /* INT64_MAX */
+  return (a * (long long int) {b} + (1 << 5)) / (1 << 6);
 }
 
 /* Multiply the specified 2.14 number with another signed 32 bit
@@ -6483,26 +6264,7 @@ sfnt_mul_f26dot6_round (sfnt_f26dot6 a, sfnt_f26dot6 b)
 static int32_t
 sfnt_mul_f2dot14 (sfnt_f2dot14 a, int32_t b)
 {
-#ifdef INT64_MAX
-  int64_t product;
-
-  product = (int64_t) a * (int64_t) b;
-
-  return product / (int64_t) 16384;
-#else
-  int sign;
-
-  sign = 1;
-
-  if (a < 0)
-    sign = -sign;
-
-  if (b < 0)
-    sign = -sign;
-
-  return sfnt_multiply_divide (abs (a), abs (b),
-			       16384) * sign;
-#endif
+  return a * (long long int) {b} / (1 << 14);
 }
 
 /* Multiply the specified 26.6 fixed point number X by the specified
@@ -10598,46 +10360,9 @@ sfnt_project_onto_y_axis_vector (sfnt_f26dot6 vx, sfnt_f26dot6 vy,
 static int32_t
 sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
 {
-#ifndef INT64_MAX
-  int32_t m, s, hi1, hi2, hi;
-  uint32_t l, lo1, lo2, lo;
-
-
-  /* Compute ax*bx as 64-bit value.  */
-  l = (uint32_t) ((ax & 0xffffu) * bx);
-  m = (ax >> 16) * bx;
-
-  lo1 = l + ((uint32_t) m << 16);
-  hi1 = (m >> 16) + ((int32_t) l >> 31) + (lo1 < l);
-
-  /* Compute ay*by as 64-bit value.  */
-  l = (uint32_t) ((ay & 0xffffu) * by);
-  m = (ay >> 16) * by;
-
-  lo2 = l + ((uint32_t) m << 16);
-  hi2 = (m >> 16) + ((int32_t) l >> 31) + (lo2 < l);
-
-  /* Add them.  */
-  lo = lo1 + lo2;
-  hi = hi1 + hi2 + (lo < lo1);
-
-  /* Divide the result by 2^14 with rounding.  */
-  s = hi >> 31;
-  l = lo + (uint32_t) s;
-  hi += s + (l < lo);
-  lo = l;
-
-  l = lo + 0x2000u;
-  hi += (l < lo);
-
-  return (int32_t) (((uint32_t) hi << 18) | (l >> 14));
-#else
-  int64_t xx, yy;
-  int64_t temp;
-
-  xx = (int64_t) ax * bx;
-  yy = (int64_t) ay * by;
-
+  long long int
+    xx = ax * (long long int) {bx},
+    yy = ay * (long long int) {by};
   xx += yy;
   yy = xx >> 63;
   xx += 0x2000 + yy;
@@ -10645,10 +10370,9 @@ sfnt_dot_fix_14 (int32_t ax, int32_t ay, int bx, int by)
   /* TrueType fonts rely on "division" here truncating towards
      negative infinity, so compute the arithmetic right shift in place
      of division.  */
-  temp = -(xx < 0);
+  long long int temp = -(xx < 0);
   temp = (temp ^ xx) >> 14 ^ temp;
-  return (int32_t) (temp);
-#endif
+  return temp;
 }
 
 /* Project the specified vector VX and VY onto the unit vector that is
@@ -12883,7 +12607,7 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
      advance phantom points.  */
   num_points = context->num_points - base_index;
   num_contours = context->num_end_points - base_contour;
-  assert (num_points >= 2);
+  eassert (num_points >= 2);
 
   /* Nothing to instruct! */
   if (!num_points && !num_contours)
@@ -12954,7 +12678,7 @@ sfnt_interpret_compound_glyph_2 (struct sfnt_glyph *glyph,
     }
 
   /* Copy S1 and S2 into the glyph zone.  */
-  assert (num_points >= 2);
+  eassert (num_points >= 2);
   zone->x_points[num_points - 1] = s2;
   zone->x_points[num_points - 2] = s1;
 
@@ -13245,7 +12969,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 		 the outline ultimately produced, they are temporarily
 		 appended to the outline here, so as to enable
 		 defer_offsets below to refer to them.  */
-	      assert (value->num_points >= 2);
+	      eassert (value->num_points >= 2);
 	      last_point = value->num_points - 2;
 	      number_of_contours = value->num_contours;
 
@@ -13300,7 +13024,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 
 		  /* Assert the child anchor is within the confines of
 		     the zone.  */
-		  assert (point2 < value->num_points);
+		  eassert (point2 < value->num_points);
 
 		  /* Get the points and use them to compute the
 		     offsets.  */
@@ -13422,7 +13146,7 @@ sfnt_interpret_compound_glyph_1 (struct sfnt_glyph *glyph,
 	  /* Subtract the two phantom points from context->num_points.
 	     This behavior is correct, as only the subglyph's phantom
 	     points may be provided as anchor points.  */
-	  assert (context->num_points - contour_start >= 2);
+	  eassert (context->num_points - contour_start >= 2);
 	  context->num_points -= 2;
 
 	  sfnt_transform_f26dot6 (component,
@@ -13819,22 +13543,17 @@ TEST_STATIC struct sfnt_uvs_context *
 sfnt_create_uvs_context (struct sfnt_cmap_format_14 *cmap, int fd)
 {
   struct sfnt_table_offset_rec *table_offsets, *rec, template;
-  size_t size, i, nmemb, j;
+  size_t i, nmemb, j;
   off_t offset;
   struct sfnt_uvs_context *context;
-
-  if (ckd_mul (&size, cmap->num_var_selector_records,
-	       sizeof *table_offsets)
-      || ckd_mul (&size, size, 2))
-    return NULL;
 
   context = NULL;
 
   /* First, record and sort the UVS and nondefault UVS table offsets
      in ascending order.  */
 
-  table_offsets = xmalloc (size);
-  memset (table_offsets, 0, size);
+  table_offsets = xcalloc (cmap->num_var_selector_records,
+			   2 * sizeof *table_offsets);
   nmemb = cmap->num_var_selector_records * 2;
   j = 0;
 
@@ -14517,13 +14236,12 @@ sfnt_read_gvar_table (int fd, struct sfnt_offset_subtable *subtable)
     goto bail;
 
   /* Figure out how big gvar needs to be.  */
-  if (ckd_add (&min_bytes, coordinate_size, sizeof *gvar)
-      || ckd_add (&min_bytes, min_bytes, off_size)
+  if (ckd_add (&min_bytes, coordinate_size, off_size)
       || ckd_add (&min_bytes, min_bytes, data_size))
     goto bail;
 
   /* Now allocate enough for all of this extra data.  */
-  gvar = xrealloc (gvar, min_bytes);
+  gvar = xaddrealloc (gvar, sizeof *gvar, min_bytes);
 
   /* Start reading offsets.  */
 
@@ -14855,7 +14573,7 @@ sfnt_read_packed_deltas (unsigned char *restrict data,
   if (data >= end)
     return NULL;
 
-  deltas = xmalloc (sizeof *deltas * n);
+  deltas = xnmalloc (n, sizeof *deltas);
   i = 0;
 
   while (i < n)
@@ -15647,7 +15365,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
 {
   size_t i, pair_start, pair_end, pair_first;
 
-  pair_start = pair_first = -1;
+  pair_start = pair_first = SIZE_MAX;
 
   /* Look for pairs of touched points.  */
 
@@ -15656,7 +15374,7 @@ sfnt_infer_deltas_1 (struct sfnt_glyph *glyph, size_t start,
       if (!touched[i])
 	continue;
 
-      if (pair_start == -1)
+      if (pair_start == SIZE_MAX)
 	{
 	  pair_first = i;
 	  goto next;
@@ -15859,10 +15577,11 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   /* Start reading each tuple.  */
   tuple = gvar->glyph_variation_data + offset + sizeof header;
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    coords = xmalloc (gvar->axis_count * sizeof *coords * 3);
-  else
+  void *coords_alloc = NULL;
+  if (gvar->axis_count < 1024 * 16 / (3 * sizeof *coords))
     coords = alloca (gvar->axis_count * sizeof *coords * 3);
+  else
+    coords = coords_alloc = xnmalloc (gvar->axis_count, 3 * sizeof *coords);
 
   intermediate_start = coords + gvar->axis_count;
   intermediate_end = intermediate_start + gvar->axis_count;
@@ -15872,6 +15591,8 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   touched = NULL;
   original_x = NULL;
   original_y = NULL;
+  void *touched_alloc = NULL;
+  void *original_x_alloc = NULL;
 
   while (ntuples--)
     {
@@ -16023,21 +15744,23 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
 	  if (!original_x)
 	    {
-	      if ((glyph->simple->number_of_points
-		   * sizeof *touched) >= 1024 * 16)
-		touched = xmalloc (sizeof *touched
-				   * glyph->simple->number_of_points);
-	      else
+	      if (glyph->simple->number_of_points
+		  < 1024 * 16 / sizeof *touched)
 		touched = alloca (sizeof *touched
 				  * glyph->simple->number_of_points);
-
-	      if ((sizeof *original_x * 2
-		   * glyph->simple->number_of_points) >= 1024 * 16)
-		original_x = xmalloc (sizeof *original_x * 2
-				      * glyph->simple->number_of_points);
 	      else
+		touched = touched_alloc
+		  = xnmalloc (glyph->simple->number_of_points,
+			      sizeof *touched);
+
+	      if (glyph->simple->number_of_points
+		  < 1024 * 16 / (2 * sizeof *original_x))
 		original_x = alloca (sizeof *original_x * 2
 				     * glyph->simple->number_of_points);
+	      else
+		original_x = original_x_alloc
+		  = xnmalloc (glyph->simple->number_of_points,
+			      2 * sizeof *original_x);
 
 	      original_y = original_x + glyph->simple->number_of_points;
 	    }
@@ -16098,16 +15821,9 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   /* Return success.  */
 
-  if ((glyph->simple->number_of_points
-       * sizeof *touched) >= 1024 * 16)
-    xfree (touched);
-
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
-  if ((sizeof *original_x * 2
-       * glyph->simple->number_of_points) >= 1024 * 16)
-    xfree (original_x);
+  xfree (touched_alloc);
+  xfree (coords_alloc);
+  xfree (original_x_alloc);
 
   if (points != (uint16_t *) -1)
     xfree (points);
@@ -16124,16 +15840,9 @@ sfnt_vary_simple_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   xfree (local_points);
  fail1:
 
-  if ((glyph->simple->number_of_points
-       * sizeof *touched) >= 1024 * 16)
-    xfree (touched);
-
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
-  if ((sizeof *original_x * 2
-       * glyph->simple->number_of_points) >= 1024 * 16)
-    xfree (original_x);
+  xfree (touched_alloc);
+  xfree (coords_alloc);
+  xfree (original_x_alloc);
 
   if (points != (uint16_t *) -1)
     xfree (points);
@@ -16237,10 +15946,11 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   /* Start reading each tuple.  */
   tuple = gvar->glyph_variation_data + offset + sizeof header;
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    coords = xmalloc (gvar->axis_count * sizeof *coords * 3);
-  else
+  void *coords_alloc = NULL;
+  if (gvar->axis_count < 1024 * 16 / (3 * sizeof *coords))
     coords = alloca (gvar->axis_count * sizeof *coords * 3);
+  else
+    coords = coords_alloc = xnmalloc (gvar->axis_count, 3 * sizeof *coords);
 
   intermediate_start = coords + gvar->axis_count;
   intermediate_end = intermediate_start + gvar->axis_count;
@@ -16478,9 +16188,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
 
   /* Return success.  */
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
+  xfree (coords_alloc);
   if (points != (uint16_t *) -1)
     xfree (points);
 
@@ -16496,9 +16204,7 @@ sfnt_vary_compound_glyph (struct sfnt_blend *blend, sfnt_glyph id,
   xfree (local_points);
  fail1:
 
-  if (gvar->axis_count * sizeof *coords * 3 >= 1024 * 16)
-    xfree (coords);
-
+  xfree (coords_alloc);
   if (points != (uint16_t *) -1)
     xfree (points);
 
@@ -18355,9 +18061,9 @@ static uint32_t sfnt_sround_values[] =
 static struct sfnt_generic_test_args sround_test_args =
   {
     sfnt_sround_values,
-    ARRAYELTS (sfnt_sround_values),
+    countof (sfnt_sround_values),
     false,
-    ARRAYELTS (sfnt_sround_instructions),
+    countof (sfnt_sround_instructions),
   };
 
 static unsigned char sfnt_s45round_instructions[] =
@@ -18377,9 +18083,9 @@ static uint32_t sfnt_s45round_values[] =
 static struct sfnt_generic_test_args s45round_test_args =
   {
     sfnt_s45round_values,
-    ARRAYELTS (sfnt_s45round_values),
+    countof (sfnt_s45round_values),
     false,
-    ARRAYELTS (sfnt_s45round_instructions),
+    countof (sfnt_s45round_instructions),
   };
 
 static struct sfnt_generic_test_args rutg_test_args =
@@ -19761,14 +19467,14 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "SROUND",
       sfnt_sround_instructions,
-      ARRAYELTS (sfnt_sround_instructions),
+      countof (sfnt_sround_instructions),
       &sround_test_args,
       sfnt_generic_check,
     },
     {
       "S45ROUND",
       sfnt_s45round_instructions,
-      ARRAYELTS (sfnt_s45round_instructions),
+      countof (sfnt_s45round_instructions),
       &s45round_test_args,
       sfnt_generic_check,
     },
@@ -20662,7 +20368,7 @@ main (int argc, char **argv)
 	  interpreter->pop_hook = sfnt_pop_hook;
 	}
 
-      for (i = 0; i < ARRAYELTS (all_tests); ++i)
+      for (i = 0; i < countof (all_tests); ++i)
 	sfnt_run_interpreter_test (&all_tests[i], interpreter);
 
       exit (0);

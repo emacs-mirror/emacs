@@ -277,7 +277,7 @@ int event_record_index;
 
 record_event (char *locus, int type)
 {
-  if (event_record_index == ARRAYELTS (event_record))
+  if (event_record_index == countof (event_record))
     event_record_index = 0;
 
   event_record[event_record_index].locus = locus;
@@ -5260,7 +5260,7 @@ w32_read_socket (struct terminal *terminal,
 		  hlinfo->mouse_face_hidden = true;
 		}
 
-	      if (temp_index == ARRAYELTS (temp_buffer))
+	      if (temp_index == countof (temp_buffer))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 	      inev.kind = NON_ASCII_KEYSTROKE_EVENT;
@@ -5286,7 +5286,7 @@ w32_read_socket (struct terminal *terminal,
 		  hlinfo->mouse_face_hidden = true;
 		}
 
-	      if (temp_index == ARRAYELTS (temp_buffer))
+	      if (temp_index == countof (temp_buffer))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 
@@ -5401,7 +5401,7 @@ w32_read_socket (struct terminal *terminal,
 		  hlinfo->mouse_face_hidden = true;
 		}
 
-	      if (temp_index == ARRAYELTS (temp_buffer))
+	      if (temp_index == countof (temp_buffer))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 	      inev.kind = MULTIMEDIA_KEY_EVENT;
@@ -7826,7 +7826,7 @@ w32_initialize_display_info (Lisp_Object display_name)
       static char const at[] = " at ";
       ptrdiff_t nbytes = sizeof (title) + sizeof (at);
       if (ckd_add (&nbytes, nbytes, SCHARS (Vsystem_name)))
-	memory_full (SIZE_MAX);
+	memory_full_up ();
       dpyinfo->w32_id_name = xmalloc (nbytes);
       sprintf (dpyinfo->w32_id_name, "%s%s%s", title, at, SDATA (Vsystem_name));
     }

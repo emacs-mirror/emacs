@@ -1961,7 +1961,7 @@ get_homedir (void)
     {
       static char const *userenv[] = {"LOGNAME", "USER"};
       struct passwd *pw = NULL;
-      for (int i = 0; i < ARRAYELTS (userenv); i++)
+      for (int i = 0; i < countof (userenv); i++)
 	{
 	  char *user = egetenv (userenv[i]);
 	  if (user)
@@ -4396,7 +4396,7 @@ by calling `format-decode', which see.  */)
 		  Ferase_buffer ();
 		  bset_enable_multibyte_characters (buf, Qnil);
 
-		  insert_1_both ((char *) read_buf, nread, nread, 0, 0, 0);
+		  insert_1_both (read_buf, nread, nread, 0, 0, 0);
 		  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 		  coding_system = calln (Vset_auto_coding_function,
 					 filename, make_fixnum (nread));

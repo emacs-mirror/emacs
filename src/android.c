@@ -4943,12 +4943,10 @@ android_get_image (android_drawable handle,
 
   if (bitmap_info.format != ANDROID_BITMAP_FORMAT_A_8)
     {
-      if (ckd_mul (&byte_size,
-		   (size_t) bitmap_info.stride,
-		   (size_t) bitmap_info.height))
+      if (ckd_mul (&byte_size, bitmap_info.stride, bitmap_info.height))
 	{
 	  ANDROID_DELETE_LOCAL_REF (bitmap);
-	  memory_full (0);
+	  memory_full_up ();
 	}
     }
   else

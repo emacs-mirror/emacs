@@ -117,9 +117,10 @@
        (t (add-to-list
            'tramp-methods
            `("mock"
-	     (tramp-login-program	,tramp-default-remote-shell)
+	     (tramp-login-program	,tramp-encoding-shell)
 	     (tramp-login-args		(("-i")))
              (tramp-direct-async	("-c"))
+             (tramp-tmpdir		,temporary-file-directory)
 	     (tramp-remote-shell	,tramp-default-remote-shell)
 	     (tramp-remote-shell-args	("-c"))
 	     (tramp-connection-timeout	10)))
@@ -225,7 +226,8 @@
       auto-revert-use-notify t
       ert-batch-backtrace-right-margin nil
       ert-remote-temporary-file-directory
-      (expand-file-name ert-remote-temporary-file-directory)
+      (let ((tramp-show-ad-hoc-proxies t) (non-essential t))
+	(expand-file-name ert-remote-temporary-file-directory))
       password-cache-expiry nil
       remote-file-name-inhibit-cache nil
       tramp-allow-unsafe-temporary-files t
@@ -6855,8 +6857,7 @@ INPUT, if non-nil, is a string sent to the process."
   "Check loooong `tramp-remote-path'."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
-  (skip-unless (tramp--test-sh-p))
-  (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (tramp--test-supports-environment-variables-p))
 
   (let* ((tmp-name1 (tramp--test-make-temp-name))
 	 (default-directory ert-remote-temporary-file-directory)
@@ -9329,9 +9330,6 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;;   `tramp-test45-asynchronous-requests'.
 
 ;; Use `skip-when' starting with Emacs 30.1.
-
-;; Starting with Emacs 29, use `ert-with-temp-file' and
-;; `ert-with-temp-directory'.
 
 (provide 'tramp-tests)
 

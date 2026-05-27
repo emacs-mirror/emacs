@@ -2449,7 +2449,7 @@ gnutls_symmetric_aead (bool encrypting, gnutls_cipher_algorithm_t gca,
   ptrdiff_t tagged_size;
   if (ckd_add (&tagged_size, isize, cipher_tag_size)
       || SIZE_MAX < tagged_size)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   size_t storage_length = tagged_size;
   USE_SAFE_ALLOCA;
   char *storage = SAFE_ALLOCA (storage_length);

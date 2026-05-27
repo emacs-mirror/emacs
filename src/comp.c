@@ -845,10 +845,10 @@ freloc_check_fill (void)
 
   eassert (!NILP (Vcomp_subr_list));
 
-  if (ARRAYELTS (helper_link_table) > F_RELOC_MAX_SIZE)
+  if (countof (helper_link_table) > F_RELOC_MAX_SIZE)
     goto overflow;
   memcpy (freloc.link_table, helper_link_table, sizeof (helper_link_table));
-  freloc.size = ARRAYELTS (helper_link_table);
+  freloc.size = countof (helper_link_table);
 
   Lisp_Object subr_l = Vcomp_subr_list;
   FOR_EACH_TAIL (subr_l)
@@ -1528,7 +1528,7 @@ emit_slow_eq (gcc_jit_rvalue *x, gcc_jit_rvalue *y)
 
   return emit_call (intern_c_string ("slow_eq"),
                     comp.bool_type,
-                    ARRAYELTS (args),
+		    countof (args),
                     args,
                     false);
 }
@@ -2172,7 +2172,7 @@ emit_setjmp (gcc_jit_rvalue *buf)
     gcc_jit_context_new_function (comp.ctxt, NULL,
 				  GCC_JIT_FUNCTION_IMPORTED,
 				  comp.int_type, STR (SETJMP_NAME),
-				  ARRAYELTS (params), params,
+				  countof (params), params,
 				  false);
 
   return gcc_jit_context_new_call (comp.ctxt, NULL, f, 1, args);
@@ -2200,7 +2200,7 @@ emit_setjmp (gcc_jit_rvalue *buf)
     gcc_jit_context_new_function (comp.ctxt, NULL,
 				  GCC_JIT_FUNCTION_IMPORTED,
 				  comp.int_type, STR (SETJMP_NAME),
-				  ARRAYELTS (params), params,
+				  countof (params), params,
 				  false);
 
   return gcc_jit_context_new_call (comp.ctxt, NULL, f, 2, args);
@@ -2249,7 +2249,7 @@ emit_limple_insn (Lisp_Object insn)
   ptrdiff_t i = 0;
   FOR_EACH_TAIL (p)
     {
-      if (i == ARRAYELTS (arg))
+      if (i == countof (arg))
 	break;
       arg[i++] = XCAR (p);
     }
@@ -2750,7 +2750,7 @@ emit_static_object (const char *name, Lisp_Object obj)
       gcc_jit_context_new_struct_type (comp.ctxt,
 				       NULL,
 				       format_string ("%s_struct", name),
-				       ARRAYELTS (fields), fields));
+				       countof (fields), fields));
 
   gcc_jit_lvalue *data_struct =
     gcc_jit_context_new_global (comp.ctxt,
@@ -2801,16 +2801,17 @@ emit_static_object (const char *name, Lisp_Object obj)
      <https://gcc.gnu.org/ml/jit/2019-q3/msg00013.html>.
 
      Adjust if possible to reduce the number of function calls.  */
-  size_t chunk_size = NILP (Fcomp_libgccjit_version ()) ? 200 : 1024;
-  char *buff = xmalloc (chunk_size);
+  char buff[1024];
+  int chunk_size = NILP (Fcomp_libgccjit_version ()) ? 200 : sizeof buff;
   for (ptrdiff_t i = 0; i < len;)
     {
-      strncpy (buff, p, chunk_size);
-      buff[chunk_size - 1] = 0;
-      uintptr_t l = strlen (buff);
+      int l = strnlen (p, chunk_size - 1);
 
       if (l != 0)
         {
+	  char *buff_end = mempcpy (buff, p, l);
+	  *buff_end = '\0';
+
           p += l;
           i += l;
 
@@ -2824,7 +2825,7 @@ emit_static_object (const char *name, Lisp_Object obj)
           gcc_jit_block_add_eval (block, NULL,
                                   gcc_jit_context_new_call (comp.ctxt, NULL,
                                                             comp.memcpy,
-                                                            ARRAYELTS (args),
+							    countof (args),
 							    args));
           gcc_jit_block_add_assignment (block, NULL, ptrvar,
             gcc_jit_lvalue_get_address (
@@ -2840,8 +2841,7 @@ emit_static_object (const char *name, Lisp_Object obj)
           /* If strlen returned 0 that means that the static object
              contains a NULL byte.  In that case just move over to the
              next block.  We can rely on the byte being zero because
-             of the previous call to bzero and because the dynamic
-             linker cleared it.  */
+             the dynamic linker cleared it.  */
           p++;
           i++;
           gcc_jit_block_add_assignment (
@@ -2854,7 +2854,6 @@ emit_static_object (const char *name, Lisp_Object obj)
               NULL));
         }
     }
-  xfree (buff);
 
   gcc_jit_block_add_assignment (
 	block,
@@ -2994,7 +2993,7 @@ emit_ctxt_code (void)
       Fcons (Qnative_comp_debug, make_fixnum (comp.debug)),
       Fcons (Qgccjit,
 	     Fcomp_libgccjit_version ()) };
-  emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (ARRAYELTS (opt_qly), opt_qly));
+  emit_static_object (TEXT_OPTIM_QLY_SYM, Flist (countof (opt_qly), opt_qly));
 
   emit_static_object (TEXT_FDOC_SYM,
 		      CALLNI (comp-ctxt-function-docs, Vcomp_ctxt));
@@ -3132,7 +3131,7 @@ define_lisp_cons (void)
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
 				    "comp_cdr_u",
-				    ARRAYELTS (cdr_u_fields),
+				    countof (cdr_u_fields),
 				    cdr_u_fields);
 
   comp.lisp_cons_u_s_car = gcc_jit_context_new_field (comp.ctxt,
@@ -3160,7 +3159,7 @@ define_lisp_cons (void)
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_cons_s",
-				     ARRAYELTS (cons_s_fields),
+				     countof (cons_s_fields),
 				     cons_s_fields);
 
   comp.lisp_cons_u_s = gcc_jit_context_new_field (comp.ctxt,
@@ -3183,7 +3182,7 @@ define_lisp_cons (void)
     gcc_jit_context_new_union_type (comp.ctxt,
 				    NULL,
 				    "comp_cons_u",
-				    ARRAYELTS (cons_u_fields),
+				    countof (cons_u_fields),
 				    cons_u_fields);
 
   comp.lisp_cons_u =
@@ -3282,7 +3281,7 @@ define_memcpy (void)
   comp.memcpy =
     gcc_jit_context_new_function (comp.ctxt, NULL, GCC_JIT_FUNCTION_IMPORTED,
 				  comp.void_ptr_type, "memcpy",
-				  ARRAYELTS (params), params, false);
+				  countof (params), params, false);
 }
 
 /* struct handler definition  */
@@ -3342,7 +3341,7 @@ define_handler_struct (void)
 	"pad2") };
   gcc_jit_struct_set_fields (comp.handler_s,
 			     NULL,
-			     ARRAYELTS (fields),
+			     countof (fields),
 			     fields);
 
 }
@@ -3386,7 +3385,7 @@ define_thread_state_struct (void)
     gcc_jit_context_new_struct_type (comp.ctxt,
 				     NULL,
 				     "comp_thread_state",
-				     ARRAYELTS (fields),
+				     countof (fields),
 				     fields);
   comp.thread_state_ptr_type =
     gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.thread_state_s));
@@ -4189,7 +4188,7 @@ declare_lex_function (Lisp_Object func)
 				      GCC_JIT_FUNCTION_EXPORTED,
 				      comp.lisp_obj_type,
 				      SSDATA (c_name),
-				      ARRAYELTS (params), params, 0);
+				      countof (params), params, 0);
     }
   SAFE_FREE ();
   return res;
@@ -4519,7 +4518,7 @@ DEFUN ("comp--install-trampoline", Fcomp__install_trampoline,
 		  subr_name);
 
   Lisp_Object subr_l = Vcomp_subr_list;
-  ptrdiff_t i = ARRAYELTS (helper_link_table);
+  ptrdiff_t i = countof (helper_link_table);
   FOR_EACH_TAIL (subr_l)
     {
       Lisp_Object subr = XCAR (subr_l);

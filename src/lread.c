@@ -1540,7 +1540,7 @@ Return t if the file exists and loads successfully.  */)
   if (!NILP (Ffboundp (Qdo_after_load_evaluation)))
     calln (Qdo_after_load_evaluation, hist_file_name);
 
-  for (int i = 0; i < ARRAYELTS (saved_strings); i++)
+  for (int i = 0; i < countof (saved_strings); i++)
     {
       xfree (saved_strings[i].string);
       saved_strings[i].string = NULL;
@@ -3455,7 +3455,7 @@ skip_lazy_string (source_t *source)
 	 and record where in the file it comes from.  */
 
       /* First exchange the two saved_strings.  */
-      static_assert (ARRAYELTS (saved_strings) == 2);
+      static_assert (countof (saved_strings) == 2);
       struct saved_string t = saved_strings[0];
       saved_strings[0] = saved_strings[1];
       saved_strings[1] = t;
@@ -3513,7 +3513,7 @@ get_lazy_string (Lisp_Object val)
      compatibility.  */
   EMACS_INT pos = eabs (XFIXNUM (XCDR (val)));
   struct saved_string *ss = &saved_strings[0];
-  struct saved_string *ssend = ss + ARRAYELTS (saved_strings);
+  struct saved_string *ssend = ss + countof (saved_strings);
   while (ss < ssend
 	 && !(pos >= ss->position && pos < ss->position + ss->length))
     ss++;
@@ -4991,7 +4991,7 @@ make_obarray (unsigned bits)
   struct Lisp_Obarray *o = allocate_obarray ();
   o->count = 0;
   o->size_bits = bits;
-  ptrdiff_t size = (ptrdiff_t)1 << bits;
+  ptrdiff_t size = (ptrdiff_t) {1} << bits;
 #ifdef HAVE_MPS
   o->buckets = hash_table_alloc_kv (o, size);
 #else
@@ -5019,7 +5019,7 @@ grow_obarray (struct Lisp_Obarray *o)
   int new_bits = o->size_bits + 1;
   if (new_bits > obarray_max_bits)
     error ("Obarray too big");
-  ptrdiff_t new_size = (ptrdiff_t) 1 << new_bits;
+  ptrdiff_t new_size = (ptrdiff_t) {1} << new_bits;
 #ifdef HAVE_MPS
   o->buckets = hash_table_alloc_kv (o, new_size);
 #else
@@ -5093,7 +5093,7 @@ DEFUN ("obarray-clear", Fobarray_clear, Sobarray_clear, 1, 1, 0,
   /* This function does not bother setting the status of its contained symbols
      to uninterned.  It doesn't matter very much.  */
   int new_bits = obarray_default_bits;
-  int new_size = (ptrdiff_t)1 << new_bits;
+  int new_size = (ptrdiff_t) {1} << new_bits;
 #ifdef HAVE_MPS
   Lisp_KV_Vector new_buckets = hash_table_alloc_kv (o, new_size);
 #else
@@ -5177,7 +5177,7 @@ init_obarray_once (void)
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
 
-  for (int i = 0; i < ARRAYELTS (lispsym); i++)
+  for (int i = 0; i < countof (lispsym); i++)
     {
 #ifdef HAVE_MPS
       igc_init_header (&lispsym[i].gc_header, IGC_OBJ_SYMBOL);

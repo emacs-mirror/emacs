@@ -249,7 +249,7 @@ haiku_message_to_lisp (void *message)
 	    case 'MSGG':
 	      msg = be_get_message_message (message, name, j);
 	      if (!msg)
-		memory_full (SIZE_MAX);
+		memory_full_up ();
 	      t1 = haiku_message_to_lisp (msg);
 	      BMessage_delete (msg);
 
@@ -270,7 +270,7 @@ haiku_message_to_lisp (void *message)
 		}
 
 	      if (!pbuf)
-		memory_full (SIZE_MAX);
+		memory_full_up ();
 
 	      t1 = DECODE_FILE (build_string (pbuf));
 
@@ -837,7 +837,7 @@ haiku_report_system_error (status_t code, const char *format)
       break;
 
     case B_NO_MEMORY:
-      memory_full (SIZE_MAX);
+      memory_full_up ();
       break;
 
     default:

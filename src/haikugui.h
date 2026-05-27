@@ -36,6 +36,8 @@ struct haiku_rect
 
 typedef void *haiku;
 
+#define WINDOW_HANDLE_UINTPTR(h) ((uintptr_t) (h))
+
 typedef haiku Emacs_Pixmap;
 typedef haiku Emacs_Window;
 typedef haiku Emacs_Cursor;

@@ -39,6 +39,7 @@ variants of those files that can be used to sandbox Emacs before
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdcountof.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -119,7 +120,7 @@ set_attribute (enum scmp_filter_attr attr, uint32_t value)
   do                                                                 \
     {                                                                \
       const struct scmp_arg_cmp arg_array[] = {__VA_ARGS__};         \
-      enum { arg_cnt = sizeof arg_array / sizeof *arg_array };       \
+      enum { arg_cnt = countof (arg_array) };			     \
       int status = seccomp_rule_add_array (ctx, action, syscall,     \
                                            arg_cnt, arg_array);      \
       if (status < 0)                                                \

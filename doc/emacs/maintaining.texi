@@ -3250,7 +3250,8 @@ In Erlang code, the tags are the functions, records and macros defined
 in the file.
 
 @item
-In Fortran code, functions, subroutines and block data are tags.
+In Fortran code, modules, subroutines, functions, entries and block data
+are tags.
 
 @item
 In Go code, packages, functions, and types are tags.

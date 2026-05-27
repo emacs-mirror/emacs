@@ -4762,10 +4762,11 @@ Valid types are `send', `return', `exit', `kill' and `postpone'."
 	   (delq action (symbol-value var))))))
 
 (defun message-do-actions (actions)
+  ;; FIXME: Replace it with `run-hooks'?
   "Perform all actions in ACTIONS."
   ;; Now perform actions on successful sending.
   (dolist (action actions)
-    (ignore-errors
+    (with-demoted-errors "message-do-actions: %S"
       (cond
        ;; A simple function.
        ((functionp action)

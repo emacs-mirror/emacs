@@ -938,4 +938,13 @@ sufficiently large to avoid truncation."
                        (pos-bol 2) (pos-eol 2))
     (should (equal (buffer-string) "toto\nEmacs forever!\n"))))
 
+(ert-deftest editfns-tests--format-composition-property ()
+  "Check that composition properties are un-identified by `format'."
+  (let* ((s (compose-chars ?a ?b ?c))
+         (str (format "%s%s%s" s s s)))
+    (should-not (eq (get-text-property 0 'composition str)
+                    (get-text-property 3 'composition str)))
+    (should-not (eq (get-text-property 3 'composition str)
+                    (get-text-property 6 'composition str)))))
+
 ;;; editfns-tests.el ends here

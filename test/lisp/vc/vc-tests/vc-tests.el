@@ -592,8 +592,8 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                                'added))))
 
             ;; Test OK-IF-ALREADY-EXISTS.
-            ;; RCS and SRC don't support `vc-delete-file'.
-            (unless (memq backend '(RCS SRC))
+            ;; RCS, SRC and SCCS don't support `vc-delete-file'.
+            (unless (memq backend '(RCS SRC SCCS))
               (let ((tmp-name (expand-file-name "qux" default-directory))
                     (new-name (expand-file-name "quuux" default-directory)))
                 (write-region "qux" nil tmp-name nil 'nomessage)

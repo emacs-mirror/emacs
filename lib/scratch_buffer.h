@@ -102,9 +102,9 @@ extern bool scratch_buffer_set_array_size (struct scratch_buffer *buffer,
 /* The implementation is imported from glibc.  */
 
 /* Avoid possible conflicts with symbols exported by the GNU libc.  */
-#define __libc_scratch_buffer_grow gl_scratch_buffer_grow
-#define __libc_scratch_buffer_grow_preserve gl_scratch_buffer_grow_preserve
-#define __libc_scratch_buffer_set_array_size gl_scratch_buffer_set_array_size
+#define __libc_scratch_buffer_grow _gl_scratch_buffer_grow
+#define __libc_scratch_buffer_grow_preserve _gl_scratch_buffer_grow_preserve
+#define __libc_scratch_buffer_set_array_size _gl_scratch_buffer_set_array_size
 
 #ifndef _GL_LIKELY
 /* Rely on __builtin_expect, as provided by the module 'builtin-expect'.  */

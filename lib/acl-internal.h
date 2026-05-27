@@ -249,17 +249,19 @@ struct permission_context {
 
 # elif defined GETACL /* Solaris, Cygwin < 2.5 */
   int count;
-  aclent_t *entries;
+  aclent_t *entries
+    _GL_ATTRIBUTE_COUNTED_BY (count);
 #  ifdef ACE_GETACL
   int ace_count;
-  ace_t *ace_entries;
+  ace_t *ace_entries
+    _GL_ATTRIBUTE_COUNTED_BY (ace_count);
 #  endif
 
 # elif HAVE_GETACL /* HP-UX */
-  struct acl_entry entries[NACLENTRIES];
+  struct acl_entry entries[NACLENTRIES] /* COUNTED_BY (count) */;
   int count;
 #  if HAVE_ACLV_H
-  struct acl aclv_entries[NACLVENTRIES];
+  struct acl aclv_entries[NACLVENTRIES] /* COUNTED_BY (aclv_count) */;
   int aclv_count;
 #  endif
 
@@ -268,7 +270,7 @@ struct permission_context {
   bool have_u;
 
 # elif HAVE_ACLSORT /* NonStop Kernel */
-  struct acl entries[NACLENTRIES];
+  struct acl entries[NACLENTRIES] /* COUNTED_BY (count) */;
   int count;
 
 # endif

@@ -253,7 +253,7 @@ do_casify_natnum (struct casing_context *ctx, Lisp_Object obj)
 
   /* If the character has higher bits set above the flags, return it unchanged.
      It is not a real character.  */
-  if (! (0 <= ch && ch <= flagbits))
+  if (! (0 <= ch && ch <= flagbits + MAX_CHAR))
     return obj;
 
   int flags = ch & flagbits;

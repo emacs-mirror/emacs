@@ -16,8 +16,6 @@
 
 /* Written by Bruno Haible <bruno@clisp.org>.  */
 
-#define SIZEOF(a) (sizeof(a)/sizeof(a[0]))
-
 #if defined __linux__ || defined __ANDROID__
 
 /* Store the uptime counter, as managed by the Linux kernel, in *P_UPTIME.
@@ -102,7 +100,7 @@ get_linux_boot_time_fallback (struct timespec *p_boot_time)
          modified when a user logs in, i.e. long after boot.  */
       "/var/run/utmp"                 /* seen on Alpine Linux with OpenRC */
     };
-  for (idx_t i = 0; i < SIZEOF (boot_touched_files); i++)
+  for (idx_t i = 0; i < countof (boot_touched_files); i++)
     {
       const char *filename = boot_touched_files[i];
       struct stat statbuf;
@@ -214,7 +212,7 @@ get_openbsd_boot_time (struct timespec *p_boot_time)
       "/var/db/host.random",
       "/var/run/utmp"
     };
-  for (idx_t i = 0; i < SIZEOF (boot_touched_files); i++)
+  for (idx_t i = 0; i < countof (boot_touched_files); i++)
     {
       const char *filename = boot_touched_files[i];
       struct stat statbuf;
@@ -325,7 +323,7 @@ get_windows_boot_time (struct timespec *p_boot_time)
       "C:\\pagefile.sys"
       #endif
     };
-  for (idx_t i = 0; i < SIZEOF (boot_touched_files); i++)
+  for (idx_t i = 0; i < countof (boot_touched_files); i++)
     {
       const char *filename = boot_touched_files[i];
       struct stat statbuf;

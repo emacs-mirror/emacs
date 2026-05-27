@@ -811,7 +811,7 @@ emacs_module_init (struct emacs_runtime *ert)
     {
       fprintf (stderr, "Runtime size of runtime structure (%"pT" bytes) "
                "smaller than compile-time size (%"pZ" bytes)",
-               (T_TYPE) ert->size, (Z_TYPE) sizeof (*ert));
+               (T_TYPE) {ert->size}, (Z_TYPE) {sizeof (*ert)});
       return 1;
     }
 
@@ -821,7 +821,7 @@ emacs_module_init (struct emacs_runtime *ert)
     {
       fprintf (stderr, "Runtime size of environment structure (%"pT" bytes) "
                "smaller than compile-time size (%"pZ" bytes)",
-               (T_TYPE) env->size, (Z_TYPE) sizeof (*env));
+               (T_TYPE) {env->size}, (Z_TYPE) {sizeof (*env)});
       return 2;
     }
 

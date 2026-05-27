@@ -21,6 +21,7 @@
 /* Specification.  */
 #include "boot-time.h"
 
+#include <stdcountof.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -94,7 +95,8 @@ get_boot_time_uncached (struct timespec *p_boot_time)
      Solaris' utmpname returns 1 upon success -- which is contrary
      to what the GNU libc version does.  In addition, older GNU libc
      versions are actually void.   */
-  UTMP_NAME_FUNCTION ((char *) UTMP_FILE);
+  static char const utmp_file[] = UTMP_FILE;
+  UTMP_NAME_FUNCTION ((char *) utmp_file);
 
   SET_UTMP_ENT ();
 

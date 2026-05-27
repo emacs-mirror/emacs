@@ -715,7 +715,7 @@ get_utf8_string (const char *str)
       if (ckd_mul (&alloc, nr_bad, 4)
 	  || ckd_add (&alloc, alloc, len + 1)
 	  || SIZE_MAX < alloc)
-	memory_full (SIZE_MAX);
+	memory_full_up ();
       up = utf8_str = xmalloc (alloc);
       p = (unsigned char *)str;
 
@@ -1372,8 +1372,6 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
   gdk_window_move_resize (gwin, x, y, outer_width, outer_height);
   if (FRAME_PARENT_FRAME (f))
     {
-      /* Record the dimensions for GTK to remember after remapping.  */
-      gtk_window_resize (GTK_WINDOW (gwin), outer_width, outer_height);
       /* Resize all inner widgets and Cairo surface right away so the
 	 next redisplay drawing isn't clipped to the old size.  */
       GtkAllocation alloc = {0, 0, outer_width, outer_height};
@@ -4426,7 +4424,7 @@ xg_store_widget_in_map (GtkWidget *w)
     {
       ptrdiff_t new_size;
       if (TYPE_MAXIMUM (Window) - ID_TO_WIDGET_INCR < id_to_widget.max_size)
-	memory_full (SIZE_MAX);
+	memory_full_up ();
 
       new_size = id_to_widget.max_size + ID_TO_WIDGET_INCR;
       id_to_widget.widgets = xnrealloc (id_to_widget.widgets,
@@ -5786,8 +5784,7 @@ xg_tool_item_stale_p (GtkWidget *wbutton, const char *stock_name,
       gpointer gold_img = g_object_get_data (G_OBJECT (wimage),
                                              XG_TOOL_BAR_IMAGE_DATA);
 #ifdef USE_CAIRO
-      void *old_img = (void *) gold_img;
-      if (old_img != img->cr_data)
+      if (gold_img != img->cr_data)
 	return 1;
 #else
       Pixmap old_img = (Pixmap) gold_img;
@@ -6158,7 +6155,7 @@ update_frame_tool_bar (struct frame *f)
               w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
               g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
 #ifdef USE_CAIRO
-                                 (gpointer)img->cr_data
+				 img->cr_data
 #else
                                  (gpointer)img->pixmap
 #endif

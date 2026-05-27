@@ -2821,13 +2821,23 @@ and runs `compilation-filter-hook'."
 
 (defun compilation-next-error (n &optional different-file pt)
   "Move point to the next error in the compilation buffer.
-This function does NOT find the source line like \\[next-error].
+This function does NOT find the source line like \\[next-error],
+but you can use \\[compilation-display-error] to find and
+display the corresponding source code.
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
+Where the current error ends and the next one begins is determined
+by the rules from `compilation-error-regexp-alist' that matched
+the compilation messages; this function moves point to where
+the \\+`compilation-message' text property changes its value.
+In general, all the messages that have the same line and column
+numbers are considered parts of a single compilation message.
+
 Optional arg DIFFERENT-FILE, if non-nil, means find next error for a
 file that is different from the current one.
 Optional arg PT, if non-nil, specifies the value of point to start
-looking for the next message."
+looking for the next message.
+In interacvtive invocations, DIFFERENT-FILE and PT are always nil."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
@@ -2871,7 +2881,8 @@ looking for the next message."
   "Move point to the previous error in the compilation buffer.
 Prefix arg N says how many error messages to move backwards (or
 forwards, if negative).
-Does NOT find the source line like \\[previous-error]."
+Does NOT find the source line like \\[previous-error].
+This is like `compilation-next-error', but moves in the other direction."
   (interactive "p")
   (compilation-next-error (- n)))
 

@@ -306,4 +306,13 @@
   (casefiddle-tests--check-syms "aa_bb cc_dd" "Aa_Bb Cc_Dd" "Aa_bb Cc_dd")
   (casefiddle-tests--check-syms "Aa_Bb Cc_Dd" "Aa_Bb Cc_Dd" "Aa_Bb Cc_Dd"))
 
+(ert-deftest casefiddle-allflags ()
+  "Check that all-flags events are properly handled by `upcase'."
+  ;; U+00FF LATIN SMALL LETTER Y WITH DIAERESIS
+  ;; U+0178 LATIN CAPITAL LETTER Y WITH DIAERESIS
+  (should (= (upcase ?\xff)
+             ?\x178))
+  (should (= (upcase ?\A-\C-\H-\S-\s-\M-\xff)
+             ?\A-\C-\H-\S-\s-\M-\x178)))
+
 ;;; casefiddle-tests.el ends here

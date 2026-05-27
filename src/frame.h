@@ -1382,7 +1382,7 @@ FRAME_PARENT_FRAME (struct frame *f)
    width of the frame by 4 because multi-byte form may require at most
    4-byte for a character.  */
 
-#define FRAME_MESSAGE_BUF_SIZE(f) (((int) FRAME_COLS (f)) * 4)
+#define FRAME_MESSAGE_BUF_SIZE(f) (4 * FRAME_COLS (f))
 
 #define CHECK_FRAME(x) \
   CHECK_TYPE (FRAMEP (x), Qframep, x)

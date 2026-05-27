@@ -817,8 +817,8 @@ SOURCE, if given, should be a symbol; it is used to name the test."
    (should (equal (ical:date-time-to-date dtstart)
                   (calendar-nth-named-day 1 4 1 di:recurring-start-year)))
    (should (= 16 (decoded-time-hour dtstart)))
-   (should (eq (ical:recur-freq rrule) 'WEEKLY))
-   (should (equal (ical:recur-by* 'BYDAY rrule) (list 4)))))
+   (should (eq (ical:rrule-freq rrule) 'WEEKLY))
+   (should (equal (ical:rrule-by* 'BYDAY rrule) (list 4)))))
 
 (dit:parse-test
  ;; Multiline entry, parsed as one event:
@@ -961,10 +961,10 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  :tests
  (ical:with-component (car parsed)
      ((ical:dtstart :value dtstart)
-      (ical:rrule :value recur-value)
+      (ical:rrule :value rrule)
       (ical:summary :value summary))
    (should (equal dtstart '(5 28 1995)))
-   (should (eq (ical:recur-freq recur-value) 'YEARLY))
+   (should (eq (ical:rrule-freq rrule) 'YEARLY))
    (should (equal summary "H's birthday"))))
 
 (dit:parse-test
@@ -977,11 +977,11 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  :tests
  (ical:with-component (car parsed)
      ((ical:dtstart :value dtstart)
-      (ical:rrule :value recur-value)
+      (ical:rrule :value rrule)
       (ical:summary :value summary))
    (should (equal dtstart '(6 24 2012)))
-   (should (equal (ical:recur-freq recur-value) 'DAILY))
-   (should (equal (ical:recur-until recur-value) '(7 10 2012)))
+   (should (equal (ical:rrule-freq rrule) 'DAILY))
+   (should (equal (ical:rrule-until rrule) '(7 10 2012)))
    (should (equal summary "Vacation"))))
 
 (dit:parse-test
@@ -994,11 +994,11 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  :tests
  (ical:with-component (car parsed)
      ((ical:dtstart :value dtstart)
-      (ical:rrule :value recur-value)
+      (ical:rrule :value rrule)
       (ical:summary :value summary))
    (should (equal dtstart '(3 1 2012)))
-   (should (eq (ical:recur-freq recur-value) 'DAILY))
-   (should (eq (ical:recur-interval-size recur-value) 50))
+   (should (eq (ical:rrule-freq rrule) 'DAILY))
+   (should (eq (ical:rrule-interval-size rrule) 50))
    (should (equal summary "Renew medication"))))
 
 (dit:parse-test
@@ -1011,13 +1011,13 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  :tests
  (ical:with-component (car parsed)
      ((ical:dtstart :value dtstart)
-      (ical:rrule :value recur-value)
+      (ical:rrule :value rrule)
       (ical:summary :value summary))
    (should (equal dtstart
                   (calendar-nth-named-day 4 4 11 di:recurring-start-year)))
-   (should (eq (ical:recur-freq recur-value) 'MONTHLY))
-   (should (equal (ical:recur-by* 'BYMONTH recur-value) (list 11)))
-   (should (equal (ical:recur-by* 'BYDAY recur-value) (list '(4 . 4))))
+   (should (eq (ical:rrule-freq rrule) 'MONTHLY))
+   (should (equal (ical:rrule-by* 'BYMONTH rrule) (list 11)))
+   (should (equal (ical:rrule-by* 'BYDAY rrule) (list '(4 . 4))))
    (should (equal summary "American Thanksgiving"))))
 
 (dit:parse-test
@@ -1030,13 +1030,13 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  :tests
  (ical:with-component (car parsed)
      ((ical:dtstart :value dtstart)
-      (ical:rrule :value recur-value)
+      (ical:rrule :value rrule)
       (ical:summary :value summary))
    (should (equal dtstart
                   (calendar-nth-named-day 4 5 1 di:recurring-start-year)))
-   (should (eq (ical:recur-freq recur-value) 'MONTHLY))
+   (should (eq (ical:rrule-freq rrule) 'MONTHLY))
    ;; day 3 is Wednesday, so offset of 2 means Friday (=5):
-   (should (equal (ical:recur-by* 'BYDAY recur-value) (list '(5 . 4))))
+   (should (equal (ical:rrule-by* 'BYDAY rrule) (list '(5 . 4))))
    (should (equal summary "Monthly committee meeting"))))
 
 (dit:parse-test
@@ -1052,11 +1052,11 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  :tests
  (ical:with-component (car parsed)
      ((ical:dtstart :value dtstart)
-      (ical:rrule :value recur-value)
+      (ical:rrule :value rrule)
       (ical:exdate :values exdates)
       (ical:summary :value summary))
    (should (equal dtstart '(11 11 2024)))
-   (should (eq (ical:recur-freq recur-value) 'WEEKLY))
+   (should (eq (ical:rrule-freq rrule) 'WEEKLY))
    (should (equal exdates '((12 23 2024) (12 30 2024))))
    (should (equal summary "Reading group"))))
 
@@ -1070,12 +1070,12 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  :tests
  (ical:with-component (car parsed)
      ((ical:dtstart :value dtstart)
-      (ical:rrule :value recur-value)
+      (ical:rrule :value rrule)
       (ical:summary :value summary))
    (should (equal dtstart (list 10 22 di:recurring-start-year)))
-   (should (eq (ical:recur-freq recur-value) 'YEARLY))
-   (should (equal (ical:recur-by* 'BYMONTH recur-value) (list 10 11 12)))
-   (should (equal (ical:recur-by* 'BYMONTHDAY recur-value) (list 22)))
+   (should (eq (ical:rrule-freq rrule) 'YEARLY))
+   (should (equal (ical:rrule-by* 'BYMONTH rrule) (list 10 11 12)))
+   (should (equal (ical:rrule-by* 'BYMONTHDAY rrule) (list 22)))
    (should (equal summary "Rake leaves"))))
 
 (dit:parse-test

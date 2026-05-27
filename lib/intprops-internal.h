@@ -25,6 +25,23 @@
 # pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
+/* Nonzero if this compiler has GCC bug 68193 or Clang bug 25764.  See:
+   https://gcc.gnu.org/PR68193
+   https://github.com/llvm/llvm-project/issues/25764
+   For now, assume GCC < 14 and all Clang versions generate bogus
+   warnings for _Generic.  This matters only for compilers that
+   lack relevant builtins.  */
+#if (__GNUC__ && __GNUC__ < 14) || defined __clang__
+# define _GL__GENERIC_BOGUS 1
+#else
+# define _GL__GENERIC_BOGUS 0
+#endif
+
+/* Suppress -Wuseless-cast for, e.g., gcc-14 -std=gnu99.  */
+#if __STDC_VERSION__ < 201112 && 14 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 /* Return a value with the common real type of E and V and the value of V.
    Do not evaluate E.  */
 #define _GL_INT_CONVERT(e, v) ((1 ? 0 : (e)) + (v))
@@ -32,8 +49,20 @@
 /* The extra casts in the following macros work around compiler bugs,
    e.g., in Cray C 5.0.3.0.  */
 
-/* True if the real type T is signed.  */
-#define _GL_TYPE_SIGNED(t) (! ((t) 0 < (t) -1))
+/* True if the standard integer or standard real type T is signed.  */
+#if (__STDC_VERSION__ < 201112 || (defined _MSC_VER && _MSC_VER < 1944) \
+     || _GL__GENERIC_BOGUS)
+# define _GL_TYPE_SIGNED(t) (! ((t) 0 < (t) -1))
+#else
+/* Pacify -Wuseless-cast, but do not default to the simpler expression;
+   see <https://gcc.gnu.org/PR125261>.  */
+# define _GL_TYPE_SIGNED(t) \
+   (_Generic ((t) {0}, \
+              bool: 0, char: CHAR_MIN < 0, signed char: 1, unsigned char: 0, \
+              short int: 1, unsigned short int: 0, int: 1, unsigned int: 0, \
+              long int: 1, unsigned long int: 0, long long int: 1, unsigned long long int: 0, \
+              float: 1, double: 1, long double: 1))
+#endif
 
 /* Return 1 if the real expression E, after promotion, has a
    signed or floating type.  Do not evaluate E.  */
@@ -179,18 +208,6 @@
    _GL_INT_OP_WRAPV (a, b, r, *, _GL_INT_MULTIPLY_RANGE_OVERFLOW)
 #endif
 
-/* Nonzero if this compiler has GCC bug 68193 or Clang bug 25764.  See:
-   https://gcc.gnu.org/PR68193
-   https://github.com/llvm/llvm-project/issues/25764
-   For now, assume GCC < 14 and all Clang versions generate bogus
-   warnings for _Generic.  This matters only for compilers that
-   lack relevant builtins.  */
-#if (__GNUC__ && __GNUC__ < 14) || defined __clang__
-# define _GL__GENERIC_BOGUS 1
-#else
-# define _GL__GENERIC_BOGUS 0
-#endif
-
 /* Store the low-order bits of A <op> B into *R, where OP specifies
    the operation and OVERFLOW the overflow predicate.  Return 1 if the
    result overflows.  Arguments should not have side effects,
@@ -304,15 +321,15 @@
    ? (*(r) = _GL_INT_OP_WRAPV_VIA_UNSIGNED (a, b, op, ut, t), 1) \
    : (*(r) = _GL_INT_OP_WRAPV_VIA_UNSIGNED (a, b, op, ut, t), 0))
 
-/* Return 1 if the integer expressions A - B and -A would overflow,
-   respectively.  Arguments should not have side effects,
+/* Return 1 if the integer expression -A would overflow.
+   Arguments should not have side effects,
    and can be any signed integer type other than char, bool, a
    bit-precise integer type, or an enumeration type.
    These macros are tuned for their last input argument being a constant.  */
 
 #if _GL_HAS_BUILTIN_OVERFLOW_P
 # define _GL_INT_NEGATE_OVERFLOW(a) \
-   __builtin_sub_overflow_p (0, a, (__typeof__ (- (a))) 0)
+   __builtin_sub_overflow_p (0, a, _GL_INT_CONVERT (- (a), 0))
 #else
 # define _GL_INT_NEGATE_OVERFLOW(a) \
    _GL_INT_NEGATE_RANGE_OVERFLOW (a, _GL_INT_MINIMUM (a), _GL_INT_MAXIMUM (a))

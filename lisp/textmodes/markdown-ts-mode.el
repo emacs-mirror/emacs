@@ -583,11 +583,11 @@ newline."
   :group 'markdown-ts-faces
   :group 'faces)
 
-(defface markdown-ts-delimiter '((t (:inherit shadow)))
+(defface markdown-ts-delimiter '((t (:inherit shadow :slant normal :weight normal)))
   "Face for the # before Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-1 '((t (:inherit outline-1)))
+(defface markdown-ts-heading-1 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for first level Markdown headings."
   :version "31.1")
 
@@ -595,23 +595,23 @@ newline."
   "Face for setext Markdown headings (headings underlined by === or ---)."
   :version "31.1")
 
-(defface markdown-ts-heading-2 '((t (:inherit outline-2)))
+(defface markdown-ts-heading-2 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for second level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-3 '((t (:inherit outline-3)))
+(defface markdown-ts-heading-3 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for third level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-4 '((t (:inherit outline-4)))
+(defface markdown-ts-heading-4 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for fourth level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-5 '((t (:inherit outline-5)))
+(defface markdown-ts-heading-5 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for fifth level Markdown headings."
   :version "31.1")
 
-(defface markdown-ts-heading-6 '((t (:inherit outline-6)))
+(defface markdown-ts-heading-6 '((t (:inherit font-lock-function-name-face :weight bold)))
   "Face for sixth level Markdown headings."
   :version "31.1")
 
@@ -627,7 +627,7 @@ newline."
   "Face for Markdown strikethrough text."
   :version "31.1")
 
-(defface markdown-ts-block-quote '((t (:inherit italic)))
+(defface markdown-ts-block-quote '((t (:inherit font-lock-doc-face)))
   "Face for Markdown block quotes."
   :version "31.1")
 
@@ -639,11 +639,11 @@ newline."
   "Face for Markdown link destinations (URLs)."
   :version "31.1")
 
-(defface markdown-ts-code-span '((t (:inherit font-lock-keyword-face)))
+(defface markdown-ts-code-span '((t (:inherit (markdown-ts-code-block font-lock-constant-face))))
   "Face for Markdown inline code spans."
   :version "31.1")
 
-(defface markdown-ts-code-block '((t (:extend t)))
+(defface markdown-ts-code-block '((t (:inherit fixed-pitch :extend t)))
   "Face for Markdown fenced code block content.
 Alter this face to add a `:background' for a visually distinct
 code block region, e.g.:
@@ -666,29 +666,29 @@ Used instead of `markdown-ts-code-block' when `markdown-ts-hide-markup'
 is non-nil."
   :version "31.1")
 
-(defface markdown-ts-indented-code-block '((t (:inherit font-lock-string-face)))
+(defface markdown-ts-indented-code-block '((t (:inherit (markdown-ts-code-block font-lock-constant-face))))
   "Face for Markdown indented code blocks."
   :version "31.1")
 
-(defface markdown-ts-html-tag '((t (:inherit font-lock-doc-markup-face)))
+(defface markdown-ts-html-tag '((t (:inherit font-lock-type-face)))
   "Face for inline HTML tags in Markdown."
   :version "31.1")
 
-(defface markdown-ts-html-block '((t (:inherit font-lock-doc-markup-face)))
+(defface markdown-ts-html-block '((t (:inherit font-lock-type-face)))
   "Face for HTML blocks in Markdown."
   :version "31.1")
 
-(defface markdown-ts-thematic-break '((t (:inherit shadow :extend t)))
+(defface markdown-ts-thematic-break '((t (:inherit markdown-ts-delimiter :extend t)))
   "Face for Markdown thematic breaks (horizontal rules).
 Customize this face to add a :background for a full-width visual rule."
   :version "31.1")
 
-(defface markdown-ts-entity-reference '((t (:inherit font-lock-builtin-face)))
+(defface markdown-ts-entity-reference '((t (:inherit font-lock-variable-name-face)))
   "Face for named HTML entity references like &amp; and &copy;."
   :version "31.1")
 
 (defface markdown-ts-numeric-character-reference
-  '((t (:inherit font-lock-escape-face)))
+  '((t (:inherit font-lock-variable-name-face)))
   "Face for numeric character references like &#65; and &#x41;."
   :version "31.1")
 
@@ -696,19 +696,19 @@ Customize this face to add a :background for a full-width visual rule."
   "Face for LaTeX / math content in Markdown ($...$ and $$...$$)."
   :version "31.1")
 
-(defface markdown-ts-table-header '((t (:inherit (bold font-lock-doc-face))))
+(defface markdown-ts-table-header '((t (:inherit markdown-ts-table)))
   "Face for Markdown pipe table header cells."
   :version "31.1")
 
-(defface markdown-ts-table-cell '((t (:inherit default)))
+(defface markdown-ts-table-cell '((t (:inherit markdown-ts-table)))
   "Face for Markdown pipe table data cells."
   :version "31.1")
 
-(defface markdown-ts-table-delimiter-cell '((t (:inherit font-lock-doc-face)))
+(defface markdown-ts-table-delimiter-cell '((t (:inherit markdown-ts-table)))
   "Face for Markdown pipe table delimiter cells (--- separators)."
   :version "31.1")
 
-(defface markdown-ts-table '((t (:extend t)))
+(defface markdown-ts-table '((t (:inherit (markdown-ts-code-block) :extend t)))
   "Face for Markdown table.
 Alter this face to add a `:background' for a visually distinct table
 region, e.g.:
@@ -722,21 +722,21 @@ region, e.g.:
   (set-face-attribute \\='markdown-ts-in-table nil :background \"gray95\")"
   :version "31.1")
 
-(defface markdown-ts-language-keyword '((t (:inherit font-lock-keyword-face)))
+(defface markdown-ts-language-keyword '((t (:inherit font-lock-type-face)))
   "Face for the language keyword for Markdown code blocks."
   :version "31.1")
 
-(defface markdown-ts-list-marker '((t (:inherit shadow)))
+(defface markdown-ts-list-marker '((t (:inherit shadow :slant normal :weight normal)))
   "Face for Markdown list markers like - and *."
   :version "31.1")
 
 (defface markdown-ts-hard-line-break-backslash
-  '((t (:inherit outline-4 :weight bold)))
+  '((t (:inherit font-lock-constant-face :underline t)))
   "Face for Markdown hard line breaks introduced by a trailing backslash."
   :version "31.1")
 
 (defface markdown-ts-hard-line-break-backslash-hidden
-  '((t (:inherit outline-4 :weight bold)))
+  '((t (:inherit font-lock-constant-face :underline t)))
   "Face for trailing-backslash hard line break when markup is hidden."
   :version "31.1")
 
@@ -749,15 +749,15 @@ shadow-colored block."
   :version "31.1")
 
 (defface markdown-ts-hard-line-break-space-hidden
-  '((t (:inherit outline-4 :weight bold)))
+  '((t (:inherit font-lock-constant-face :underline t)))
   "Face for trailing-spaces hard line break when markup is hidden."
   :version "31.1")
 
-(defface markdown-ts-task-unchecked '((t (:inherit markdown-ts-list-marker)))
+(defface markdown-ts-task-unchecked '((t (:inherit font-lock-builtin-face)))
   "Face for Markdown unchecked task list markers."
   :version "31.1")
 
-(defface markdown-ts-task-checked '((t (:inherit markdown-ts-list-marker)))
+(defface markdown-ts-task-checked '((t (:inherit font-lock-builtin-face)))
   "Face for Markdown checked task list markers."
   :version "31.1")
 
@@ -842,8 +842,27 @@ OVERRIDE, START, and END are passed through to
    (treesit-node-start node) (treesit-node-end node)
    'markdown-ts-delimiter override start end)
   (when markdown-ts-hide-markup
-    (put-text-property (treesit-node-start node) (treesit-node-end node)
-                       'invisible 'markdown-ts--markup)))
+    (if (and (derived-mode-p 'markdown-ts-view-mode)
+             (equal (treesit-node-type node) "fenced_code_block_delimiter"))
+        ;; In view-mode only, hide the whole line containing the fence
+        ;; (including its terminating newline) so Eldoc/LSP markdown
+        ;; snippets render without stray blank lines around the code
+        ;; block.  Restricted to view-mode because hide-markup while
+        ;; editing already has UX hazards (point movement, backspace
+        ;; across invisible regions) and we should not tune rendering
+        ;; for that mode.  Restricted to fenced_code_block_delimiter
+        ;; because the same handler is shared by inline delimiters
+        ;; (emphasis, code span, link brackets) where munching
+        ;; surrounding whitespace would collapse word separators.
+        (save-excursion
+          (goto-char (treesit-node-start node))
+          (let ((bol (pos-bol))
+                (eol+1 (progn (goto-char (treesit-node-end node))
+                              (min (point-max) (1+ (pos-eol))))))
+            (put-text-property bol eol+1
+                               'invisible 'markdown-ts--markup)))
+      (put-text-property (treesit-node-start node) (treesit-node-end node)
+                         'invisible 'markdown-ts--markup))))
 
 (defun markdown-ts--fontify-atx-delimiter (node override start end &rest _)
   "Fontify atx_heading delimiter NODE and optionally hide its markup.
@@ -1093,8 +1112,12 @@ CommonMark they are decorative and must be preceded by a space or tab."
   (let* ((n-start (treesit-node-start node))
          (n-end   (treesit-node-end node))
          (face (let ((marker (treesit-node-child node 0)))
-                 (intern (format "markdown-ts-heading-%d"
-                                 (length (treesit-node-text marker t)))))))
+                 (intern
+                  (format "markdown-ts-heading-%d"
+                          (progn
+                            (string-match "[[:blank:]]*\\([#]+\\)"
+                                          (treesit-node-text marker t))
+                            (- (match-end 1) (match-beginning 1))))))))
     (font-lock--remove-face-from-text-property n-start n-end 'face face)
     (font-lock-append-text-property n-start (1- n-end) 'face face)
     (save-excursion
@@ -3043,6 +3066,7 @@ force mode probe.  Return a valid mode symbol or nil."
 (defvar markdown-ts-code-block-commands '(indent-for-tab-command
                                           electric-newline-and-maybe-indent
                                           completion-at-point
+                                          complete-symbol
                                           newline
                                           comment-dwim
                                           comment-line
@@ -3054,6 +3078,10 @@ See `markdown-ts--run-command-in-code-block'.")
 
 (defvar markdown-ts-code-block-thing-commands '(xref-find-definitions)
   "Commands that need a \"thing\" at point in a code-block context.
+See `markdown-ts--run-command-in-code-block'.")
+
+(defvar markdown-ts-code-block-ignore-output-commands '(xref-find-definitions)
+  "Commands whose output to ignore when executed in a code-block context.
 See `markdown-ts--run-command-in-code-block'.")
 
 (defvar markdown-ts-code-block-region-commands '(comment-or-uncomment-region)
@@ -3179,6 +3207,8 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
            (adj-region-beg (when region-beg (1+ (- orig-point region-beg))))
            (adj-region-end (when region-end (1+ (- orig-point region-end))))
            (point-delta 0)
+           (ignore-output
+            (memq command markdown-ts-code-block-ignore-output-commands))
            (source-buffer (current-buffer)))
       (with-work-buffer
         (insert str)
@@ -3208,22 +3238,24 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
             (funcall-interactively command (car args)))
            (t
             (apply #'funcall-interactively command args)))
-          (setq str (buffer-substring-no-properties (point-min) (point-max)))
-          (setq temp-deactivate-mark deactivate-mark)
-          (setq point-delta (- (point) point)))
-        (let ((work-buffer (current-buffer)))
-          (with-current-buffer source-buffer
-            (replace-region-contents beg end work-buffer)
-            ;; Propagate mark deactivation to the source buffer.
-            (setq deactivate-mark temp-deactivate-mark)
-            ;; Move point if it moved in the temp buffer.
-            (goto-char (+ orig-point point-delta))
-            ;; Record the original command.
-            (setq this-command command)
-            ;; This helps maintain discrete command actions.
-            (undo-boundary)
-            ;; Make sure the originating region is refontified.
-            (font-lock-flush beg end)))))))
+          (unless ignore-output
+            (setq str (buffer-substring-no-properties (point-min) (point-max)))
+            (setq temp-deactivate-mark deactivate-mark)
+            (setq point-delta (- (point) point))))
+        (unless ignore-output
+          (let ((work-buffer (current-buffer)))
+            (with-current-buffer source-buffer
+              (replace-region-contents beg end work-buffer)
+              ;; Propagate mark deactivation to the source buffer.
+              (setq deactivate-mark temp-deactivate-mark)
+              ;; Move point if it moved in the temp buffer.
+              (goto-char (+ orig-point point-delta))
+              ;; This helps maintain discrete command actions.
+              (undo-boundary)
+              ;; Make sure the originating region is refontified.
+              (font-lock-flush beg end))))
+        ;; Record the original command.
+        (setq this-command command)))))
 
 (defun markdown-ts--find-code-block-delimiter (pos &optional backward)
   "Return the next or previous fenced_code_block_delimiter node, or nil.
@@ -5369,11 +5401,14 @@ With a prefix argument, ARG, if needed, install parsers for `html',
     (cond ((treesit-ready-p '(markdown markdown-inline) t)
            (markdown-ts--set-up))
           (t
-           (warn "markdown-ts-mode cannot be set up; using fundamental-mode.
-The tree-sitter parsers `markdown' and `markdown-inline' were not found.
+           (warn "markdown-ts-mode cannot be set up; using text-mode.
+%s."
+                 (if (treesit-available-p)
+                     "The tree-sitter parsers `markdown' and `markdown-inline' were not found.
 Use the command `markdown-ts-mode-install-parsers' to install them.
-With a prefix argument, it can also install optional parsers.")
-           (fundamental-mode)))))
+With a prefix argument, it can also install optional parsers"
+                   "Emacs was built without Tree-sitter support, or could not load Tree-sitter"))
+           (text-mode)))))
 
 ;;;###autoload
 (define-derived-mode markdown-ts-mode text-mode "Markdown"
@@ -5585,10 +5620,24 @@ If non-nil and `point' is in a table, enable
                       #'markdown-ts--enable-in-table-mode 'local))))
 
 ;;;###autoload
+(defun markdown-ts-mode-maybe ()
+  "Enable `markdown-ts-mode' when its grammars are available.
+Also propose to install the grammars when `treesit-enabled-modes'
+is t or contains the mode name."
+  (declare-function treesit-language-available-p "treesit.c")
+  (if (or (and (treesit-language-available-p 'markdown)
+               (treesit-language-available-p 'markdown-inline))
+          (eq treesit-enabled-modes t)
+          (memq 'markdown-ts-mode treesit-enabled-modes))
+      (markdown-ts-mode)
+    (text-mode)))
+
+;;;###autoload
 (when (boundp 'treesit-major-mode-remap-alist)
-  (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.md\\'"        . markdown-ts-mode-maybe))
+  (add-to-list 'auto-mode-alist '("\\.markdown\\'"  . markdown-ts-mode-maybe))
+  (add-to-list 'auto-mode-alist '("\\.mdx\\'"       . markdown-ts-mode-maybe))
+  ;; To be able to toggle between an external package and core ts-mode:
   (add-to-list 'treesit-major-mode-remap-alist
                '(markdown-mode . markdown-ts-mode)))
 

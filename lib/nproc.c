@@ -25,6 +25,7 @@
 #if HAVE_SETMNTENT
 # include <mntent.h>
 #endif
+#include <stdcountof.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -60,8 +61,6 @@
 #include "c-ctype.h"
 
 #include "minmax.h"
-
-#define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
 
 #define NPROC_MINIMUM 1
 
@@ -335,9 +334,9 @@ num_processors_available (enum nproc_query query)
 # endif
       { CTL_HW, HW_NCPU }
     };
-    for (int i = 0; i < ARRAY_SIZE (mib); i++)
+    for (int i = 0; i < countof (mib); i++)
       {
-        if (sysctl (mib[i], ARRAY_SIZE (mib[i]), &nprocs, &len, NULL, 0) == 0
+        if (sysctl (mib[i], countof (mib[i]), &nprocs, &len, NULL, 0) == 0
             && len == sizeof (nprocs)
             && 0 < nprocs)
           return nprocs;

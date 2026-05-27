@@ -19,6 +19,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+
+#include <stdcountof.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -3612,7 +3614,7 @@ static _Noreturn void
 usage (int error)
 {
   int i;
-  for (i = 0; i < sizeof usage_message / sizeof *usage_message; i++)
+  for (i = 0; i < countof (usage_message); i++)
     fputs (usage_message[i], stdout);
   exit (error ? EXIT_FAILURE : EXIT_SUCCESS);
 }

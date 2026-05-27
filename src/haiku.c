@@ -133,7 +133,7 @@ struct load_sample
 /* We maintain 1-sec samples for the last 16 minutes in a circular buffer.  */
 static struct load_sample samples[16*60];
 static int first_idx = -1, last_idx = -1;
-static int max_idx = ARRAYELTS (samples);
+static int max_idx = countof (samples);
 static unsigned num_of_processors = 0;
 
 static int

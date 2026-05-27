@@ -22,7 +22,7 @@
 #include <time.h>
 
 /* The replacement functions in this file are only used on native Windows.
-   They are multithread-safe, because the gmtime() and localtime() functions
+   They are thread-safe, because the gmtime() and localtime() functions
    on native Windows — both in the ucrt and in the older MSVCRT — return a
    pointer to a 'struct tm' in thread-local memory.  */
 

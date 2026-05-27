@@ -109,7 +109,7 @@ _GL_INLINE_HEADER_BEGIN
 extern "C" {
 #endif
 
-/* These declarations are needed if Gnulib byteswap.h -> stdint.h ->
+/* These declarations are needed if Gnulib byteswap.h -> stdbit.h -> stdint.h ->
    sys/types.h -> endian.h -> Gnulib byteswap.h, the last of which is blocked
    by its include guard so the functions are not yet declared.  */
 #ifdef _GL_BYTESWAP_INLINE
@@ -120,138 +120,174 @@ _GL_BYTESWAP_INLINE uint_least64_t bswap_64 (uint_least64_t);
 
 /* Big endian to host.  */
 
+#if !GNULIB_defined_be16toh
 _GL_ENDIAN_INLINE uint16_t
 be16toh (uint16_t x)
-{
-#if BYTE_ORDER == BIG_ENDIAN
-  return x;
-#else
-  return bswap_16 (x);
-#endif
-}
-
-_GL_ENDIAN_INLINE uint32_t
-be32toh (uint32_t x)
-{
-#if BYTE_ORDER == BIG_ENDIAN
-  return x;
-#else
-  return bswap_32 (x);
-#endif
-}
-
-#ifdef UINT64_MAX
-_GL_ENDIAN_INLINE uint64_t
-be64toh (uint64_t x)
 {
 # if BYTE_ORDER == BIG_ENDIAN
   return x;
 # else
-  return bswap_64 (x);
+  return bswap_16 (x);
 # endif
 }
+# define GNULIB_defined_be16toh 1
+#endif
+
+#if !GNULIB_defined_be32toh
+_GL_ENDIAN_INLINE uint32_t
+be32toh (uint32_t x)
+{
+# if BYTE_ORDER == BIG_ENDIAN
+  return x;
+# else
+  return bswap_32 (x);
+# endif
+}
+# define GNULIB_defined_be32toh 1
+#endif
+
+#ifdef UINT64_MAX
+# if !GNULIB_defined_be64toh
+_GL_ENDIAN_INLINE uint64_t
+be64toh (uint64_t x)
+{
+#  if BYTE_ORDER == BIG_ENDIAN
+  return x;
+#  else
+  return bswap_64 (x);
+#  endif
+}
+#  define GNULIB_defined_be64toh 1
+# endif
 #endif
 
 /* Host to big endian.  */
 
+#if !GNULIB_defined_htobe16
 _GL_ENDIAN_INLINE uint16_t
 htobe16 (uint16_t x)
-{
-#if BYTE_ORDER == BIG_ENDIAN
-  return x;
-#else
-  return bswap_16 (x);
-#endif
-}
-
-_GL_ENDIAN_INLINE uint32_t
-htobe32 (uint32_t x)
-{
-#if BYTE_ORDER == BIG_ENDIAN
-  return x;
-#else
-  return bswap_32 (x);
-#endif
-}
-
-#ifdef UINT64_MAX
-_GL_ENDIAN_INLINE uint64_t
-htobe64 (uint64_t x)
 {
 # if BYTE_ORDER == BIG_ENDIAN
   return x;
 # else
-  return bswap_64 (x);
+  return bswap_16 (x);
 # endif
 }
+# define GNULIB_defined_htobe16 1
+#endif
+
+#if !GNULIB_defined_htobe32
+_GL_ENDIAN_INLINE uint32_t
+htobe32 (uint32_t x)
+{
+# if BYTE_ORDER == BIG_ENDIAN
+  return x;
+# else
+  return bswap_32 (x);
+# endif
+}
+# define GNULIB_defined_htobe32 1
+#endif
+
+#ifdef UINT64_MAX
+# if !GNULIB_defined_htobe64
+_GL_ENDIAN_INLINE uint64_t
+htobe64 (uint64_t x)
+{
+#  if BYTE_ORDER == BIG_ENDIAN
+  return x;
+#  else
+  return bswap_64 (x);
+#  endif
+}
+#  define GNULIB_defined_htobe64 1
+# endif
 #endif
 
 /* Little endian to host.  */
 
+#if !GNULIB_defined_le16toh
 _GL_ENDIAN_INLINE uint16_t
 le16toh (uint16_t x)
 {
-#if BYTE_ORDER == BIG_ENDIAN
-  return bswap_16 (x);
-#else
-  return x;
-#endif
-}
-
-_GL_ENDIAN_INLINE uint32_t
-le32toh (uint32_t x)
-{
-#if BYTE_ORDER == BIG_ENDIAN
-  return bswap_32 (x);
-#else
-  return x;
-#endif
-}
-
-#ifdef UINT64_MAX
-_GL_ENDIAN_INLINE uint64_t
-le64toh (uint64_t x)
-{
 # if BYTE_ORDER == BIG_ENDIAN
-  return bswap_64 (x);
+  return bswap_16 (x);
 # else
   return x;
 # endif
 }
+# define GNULIB_defined_le16toh 1
+#endif
+
+#if !GNULIB_defined_le32toh
+_GL_ENDIAN_INLINE uint32_t
+le32toh (uint32_t x)
+{
+# if BYTE_ORDER == BIG_ENDIAN
+  return bswap_32 (x);
+# else
+  return x;
+# endif
+}
+# define GNULIB_defined_le32toh 1
+#endif
+
+#ifdef UINT64_MAX
+# if !GNULIB_defined_le64toh
+_GL_ENDIAN_INLINE uint64_t
+le64toh (uint64_t x)
+{
+#  if BYTE_ORDER == BIG_ENDIAN
+  return bswap_64 (x);
+#  else
+  return x;
+#  endif
+}
+#  define GNULIB_defined_le64toh 1
+# endif
 #endif
 
 /* Host to little endian.  */
 
+#if !GNULIB_defined_htole16
 _GL_ENDIAN_INLINE uint16_t
 htole16 (uint16_t x)
 {
-#if BYTE_ORDER == BIG_ENDIAN
-  return bswap_16 (x);
-#else
-  return x;
-#endif
-}
-
-_GL_ENDIAN_INLINE uint32_t
-htole32 (uint32_t x)
-{
-#if BYTE_ORDER == BIG_ENDIAN
-  return bswap_32 (x);
-#else
-  return x;
-#endif
-}
-
-#ifdef UINT64_MAX
-_GL_ENDIAN_INLINE uint64_t
-htole64 (uint64_t x)
-{
 # if BYTE_ORDER == BIG_ENDIAN
-  return bswap_64 (x);
+  return bswap_16 (x);
 # else
   return x;
 # endif
 }
+# define GNULIB_defined_htole16 1
+#endif
+
+#if !GNULIB_defined_htole32
+_GL_ENDIAN_INLINE uint32_t
+htole32 (uint32_t x)
+{
+# if BYTE_ORDER == BIG_ENDIAN
+  return bswap_32 (x);
+# else
+  return x;
+# endif
+}
+# define GNULIB_defined_htole32 1
+#endif
+
+#ifdef UINT64_MAX
+# if !GNULIB_defined_htole64
+_GL_ENDIAN_INLINE uint64_t
+htole64 (uint64_t x)
+{
+#  if BYTE_ORDER == BIG_ENDIAN
+  return bswap_64 (x);
+#  else
+  return x;
+#  endif
+}
+#  define GNULIB_defined_htole64 1
+# endif
 #endif
 
 #ifdef __cplusplus

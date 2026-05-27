@@ -118,7 +118,7 @@ xlwMenuResources[] =
   {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
      offset(menu.foreground), XtRString, "XtDefaultForeground"},
   {XtNdisabledForeground, XtCDisabledForeground, XtRPixel, sizeof(Pixel),
-   offset(menu.disabled_foreground), XtRString, (XtPointer)NULL},
+   offset(menu.disabled_foreground), XtRString, NULL},
   {XtNbuttonForeground, XtCButtonForeground, XtRPixel, sizeof(Pixel),
      offset(menu.button_foreground), XtRString, "XtDefaultForeground"},
   {XtNhighlightForeground, XtCHighlightForeground, XtRPixel, sizeof(Pixel),
@@ -147,17 +147,17 @@ xlwMenuResources[] =
      offset (menu.bottom_shadow_pixmap), XtRImmediate, (XtPointer)None},
 
   {XtNopen, XtCCallback, XtRCallback, sizeof(XtPointer),
-     offset(menu.open), XtRCallback, (XtPointer)NULL},
+     offset(menu.open), XtRCallback, NULL},
   {XtNselect, XtCCallback, XtRCallback, sizeof(XtPointer),
-     offset(menu.select), XtRCallback, (XtPointer)NULL},
+     offset(menu.select), XtRCallback, NULL},
   {XtNhighlightCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
-     offset(menu.highlight), XtRCallback, (XtPointer)NULL},
+     offset(menu.highlight), XtRCallback, NULL},
   {XtNenterCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
-     offset(menu.enter), XtRCallback, (XtPointer)NULL},
+     offset(menu.enter), XtRCallback, NULL},
   {XtNleaveCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
-     offset(menu.leave), XtRCallback, (XtPointer)NULL},
+     offset(menu.leave), XtRCallback, NULL},
   {XtNmenu, XtCMenu, XtRPointer, sizeof(XtPointer),
-     offset(menu.contents), XtRImmediate, (XtPointer)NULL},
+     offset(menu.contents), XtRImmediate, NULL},
   {XtNcursor, XtCCursor, XtRCursor, sizeof(Cursor),
      offset(menu.cursor_shape), XtRString, (XtPointer)"right_ptr"},
   {XtNhorizontal, XtCHorizontal, XtRInt, sizeof(int),
@@ -208,7 +208,7 @@ xlwMenuActionsList [] =
 XlwMenuClassRec xlwMenuClassRec =
 {
   {  /* CoreClass fields initialization */
-    (WidgetClass) SuperClass,		/* superclass		  */
+    SuperClass,				/* superclass		  */
     "XlwMenu",				/* class_name		  */
     sizeof(XlwMenuRec),			/* size			  */
     XlwMenuClassInitialize,		/* class_initialize	  */
@@ -430,7 +430,7 @@ resource_widget_value (XlwMenuWidget mw, widget_value *val)
 	resourced_name = val->name;
       if (!val->value)
 	{
-	  complete_name = (char *) XtMalloc (strlen (resourced_name) + 1);
+	  complete_name = XtMalloc (strlen (resourced_name) + 1);
 	  strcpy (complete_name, resourced_name);
 	}
       else
@@ -2259,7 +2259,7 @@ XlwMenuDestroy (Widget w)
   XlwMenuWidget mw = (XlwMenuWidget) w;
 
   if (pointer_grabbed)
-    ungrab_all ((Widget)w, CurrentTime);
+    ungrab_all (w, CurrentTime);
   pointer_grabbed = 0;
   keyboard_grabbed = 0;
 
@@ -2773,7 +2773,7 @@ Select (Widget w, XEvent *ev, String *params, Cardinal *num_params)
      after the initial down-click that brought the menu up,
      do nothing.  */
   if ((selected_item == 0
-       || ((widget_value *) selected_item)->call_data == 0)
+       || selected_item->call_data == 0)
       && !next_release_must_exit
       && (ev->xbutton.time - menu_post_event.xbutton.time
 	  < XtGetMultiClickTime (XtDisplay (w))))

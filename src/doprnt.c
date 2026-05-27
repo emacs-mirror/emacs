@@ -434,7 +434,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 		{
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
-		  do
+		  while (tem != 0)
 		    {
 		      tem--;
 		      if (CHAR_HEAD_P (string[tem]))
@@ -444,7 +444,6 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 			  break;
 			}
 		    }
-		  while (tem != 0);
 
 		  memcpy (bufptr, string, tem);
 		  while (tem < bufsize)

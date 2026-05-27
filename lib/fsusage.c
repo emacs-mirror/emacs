@@ -57,7 +57,7 @@
     && (~ (x) == (sizeof (x) < sizeof (int) \
                   ? - (1 << (sizeof (x) * CHAR_BIT)) \
                   : 0))) \
-   ? UINTMAX_MAX : (uintmax_t) (x))
+   ? UINTMAX_MAX : (uintmax_t) {(x)})
 
 /* Extract the top bit of X as an uintmax_t value.  */
 #define EXTRACT_TOP_BIT(x) ((x) \

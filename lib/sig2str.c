@@ -23,6 +23,7 @@
 #include <signal.h>
 
 #include <limits.h>
+#include <stdcountof.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -260,8 +261,6 @@ static struct numname { int num; char const name[8]; } numname_table[] =
     { 0, "EXIT" }
   };
 
-#define NUMNAME_ENTRIES (sizeof numname_table / sizeof numname_table[0])
-
 /* ISDIGIT differs from isdigit, as follows:
    - Its arg may be any int or unsigned int; it need not be an unsigned char
      or EOF.
@@ -286,7 +285,7 @@ str2signum (char const *signame)
     }
   else
     {
-      for (unsigned int i = 0; i < NUMNAME_ENTRIES; i++)
+      for (int i = 0; i < countof (numname_table); i++)
         if (streq (numname_table[i].name, signame))
           return numname_table[i].num;
 
@@ -331,7 +330,7 @@ str2sig (char const *signame, int *signum)
 int
 sig2str (int signum, char *signame)
 {
-  for (unsigned int i = 0; i < NUMNAME_ENTRIES; i++)
+  for (int i = 0; i < countof (numname_table); i++)
     if (numname_table[i].num == signum)
       {
         strcpy (signame, numname_table[i].name);

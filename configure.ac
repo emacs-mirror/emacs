@@ -1635,6 +1635,10 @@ AC_DEFUN([gt_TYPE_WINT_T],
 AC_DEFUN([gl_TYPE_OFF64_T],
   [HAVE_OFF64_T=1
    AC_SUBST([HAVE_OFF64_T])])
+# Emacs does not want Gnulib's fixes for glibc bug 20381 or for
+# Unicode-compatible case matching, as that brings in too many Gnulib files.
+AC_DEFINE([_REGEX_AVOID_UCHAR_H], [1],
+  [Define to 1 so that the Gnulib regex module does not use Gnulib uchar-h.])
 
 # Initialize gnulib right after choosing the compiler.
 dnl Amongst other things, this sets AR and ARFLAGS.

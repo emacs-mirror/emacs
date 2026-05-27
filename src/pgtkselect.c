@@ -213,7 +213,7 @@ pgtk_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
 
   if (VECTORP (targets))
     {
-      gtargets = xzalloc (sizeof *gtargets * ASIZE (targets));
+      gtargets = xcalloc (ASIZE (targets), sizeof *gtargets);
       ntargets = 0;
 
       for (i = 0; i < ASIZE (targets); ++i)

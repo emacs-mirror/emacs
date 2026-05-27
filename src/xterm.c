@@ -1186,15 +1186,9 @@ static bool x_handle_net_wm_state (struct frame *, const XPropertyEvent *);
 static void x_check_fullscreen (struct frame *);
 static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, bool);
-#ifndef HAVE_XINPUT2
-static int handle_one_xevent (struct x_display_info *,
-			      const XEvent *, int *,
-			      struct input_event *);
-#else
 static int handle_one_xevent (struct x_display_info *,
 			      XEvent *, int *,
 			      struct input_event *);
-#endif
 #if ! (defined USE_X_TOOLKIT || defined USE_MOTIF) && defined USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
 #endif
@@ -5154,7 +5148,7 @@ int event_record_index;
 void
 record_event (char *locus, int type)
 {
-  if (event_record_index == ARRAYELTS (event_record))
+  if (event_record_index == countof (event_record))
     event_record_index = 0;
 
   event_record[event_record_index].locus = locus;
@@ -5750,7 +5744,7 @@ x_cache_xi_devices (struct x_display_info *dpyinfo)
     = igc_xzalloc_ambig ((sizeof *dpyinfo->devices * ndevices),
 			 "xi_device_t[]");
 #else
-  dpyinfo->devices = xzalloc (sizeof *dpyinfo->devices * ndevices);
+  dpyinfo->devices = xcalloc (ndevices, sizeof *dpyinfo->devices);
 #endif
 
   for (i = 0; i < ndevices; ++i)
@@ -6220,7 +6214,9 @@ x_try_cr_xlib_drawable (struct frame *f, GC gc)
   cairo_destroy (buf);
 
   cairo_set_user_data (cr, &saved_drawable_key,
-		       (void *) (uintptr_t) FRAME_X_RAW_DRAWABLE (f), NULL);
+		       ((void *)
+			WINDOW_HANDLE_UINTPTR (FRAME_X_RAW_DRAWABLE (f))),
+		       NULL);
   FRAME_X_RAW_DRAWABLE (f) = pixmap;
   cairo_surface_flush (xlib_surface);
 
@@ -9043,7 +9039,7 @@ cvt_string_to_pixel (Display *dpy, XrmValue *args, Cardinal *nargs,
 
   screen = *(Screen **) args[0].addr;
   cmap = *(Colormap *) args[1].addr;
-  color_name = (String) from->addr;
+  color_name = from->addr;
 
   if (strcmp (color_name, XtDefaultBackground) == 0)
     {
@@ -12729,7 +12725,7 @@ x_dnd_process_quit (struct frame *f, Time timestamp)
 Lisp_Object
 x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
 			   Lisp_Object return_frame, Atom *ask_action_list,
-			   const char **ask_action_names, size_t n_ask_actions,
+			   const char **ask_action_names, int n_ask_actions,
 			   bool allow_current_frame, Atom *target_atoms,
 			   int ntargets, Lisp_Object selection_target_list,
 			   bool follow_tooltip)
@@ -12743,7 +12739,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
   char *atom_name, *ask_actions;
   Lisp_Object action, ltimestamp, val;
   specpdl_ref ref, count, base;
-  ptrdiff_t i, end, fill;
+  ptrdiff_t end, fill;
   XTextProperty prop;
   Lisp_Object frame_object, x, y, frame, local_value;
   bool signals_were_pending, need_sync;
@@ -12835,7 +12831,7 @@ x_dnd_begin_drag_and_drop (struct frame *f, Time time, Atom xaction,
       end = 0;
       count = SPECPDL_INDEX ();
 
-      for (i = 0; i < n_ask_actions; ++i)
+      for (int i = 0; i < n_ask_actions; i++)
 	{
 	  fill = end;
 	  end += strlen (ask_action_names[i]) + 1;
@@ -13924,7 +13920,7 @@ xi_disable_devices (struct x_display_info *dpyinfo,
     = igc_xzalloc_ambig ((sizeof *devices * dpyinfo->num_devices),
 			 "xi_device_t[]");
 #else
-  devices = xzalloc (sizeof *devices * dpyinfo->num_devices);
+  devices = xcalloc (dpyinfo->num_devices, sizeof *devices);
 #endif
 
   /* Loop through every device currently in DPYINFO, and copy it to
@@ -17874,7 +17870,7 @@ static int temp_index;
 static short temp_buffer[100];
 
 #define STORE_KEYSYM_FOR_DEBUG(keysym)				\
-  if (temp_index == ARRAYELTS (temp_buffer))			\
+  if (temp_index == countof (temp_buffer))			\
     temp_index = 0;						\
   temp_buffer[temp_index++] = (keysym)
 
@@ -18931,11 +18927,7 @@ x_find_selection_owner (struct x_display_info *dpyinfo, Atom selection)
 
 static int
 handle_one_xevent (struct x_display_info *dpyinfo,
-#ifndef HAVE_XINPUT2
-		   const XEvent *event,
-#else
 		   XEvent *event,
-#endif
 		   int *finish, struct input_event *hold_quit)
 {
   union buffered_input_event inev;
@@ -19426,7 +19418,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    if (f)
 	      {
 		_XEditResCheckMessages (f->output_data.x->widget,
-					NULL, (XEvent *) event, NULL);
+					NULL, event, NULL);
 		goto done;
 	      }
 
@@ -19500,7 +19492,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    == dpyinfo->Xatom_net_wm_frame_drawn)
 	  {
 	    if (any)
-	      x_sync_handle_frame_drawn (dpyinfo, (XEvent *) event, any);
+	      x_sync_handle_frame_drawn (dpyinfo, event, any);
 
 	    goto done;
 	  }
@@ -19523,8 +19515,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	dx = 0;
 	dy = 0;
 
-	rc = x_coords_from_dnd_message (dpyinfo, (XEvent *) event,
-					&dx, &dy);
+	rc = x_coords_from_dnd_message (dpyinfo, event, &dx, &dy);
 
 	if (x_handle_dnd_message (f, &event->xclient, dpyinfo, &inev.ie,
 				  rc, dx, dy))
@@ -20001,12 +19992,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               expose_frame (f, event->xexpose.x, event->xexpose.y,
 			    event->xexpose.width, event->xexpose.height);
 #ifndef USE_TOOLKIT_SCROLL_BARS
-	      x_scroll_bar_handle_exposure (f, (XEvent *) event);
+	      x_scroll_bar_handle_exposure (f, event);
 #endif
             }
 #ifndef USE_TOOLKIT_SCROLL_BARS
 	  else
-	    x_scroll_bar_handle_exposure (f, (XEvent *) event);
+	    x_scroll_bar_handle_exposure (f, event);
 #endif
 
 #ifdef HAVE_XDBE
@@ -20043,7 +20034,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
                         event->xgraphicsexpose.width,
                         event->xgraphicsexpose.height);
 #ifndef USE_TOOLKIT_SCROLL_BARS
-	  x_scroll_bar_handle_exposure (f, (XEvent *) event);
+	  x_scroll_bar_handle_exposure (f, event);
 #endif
 #ifdef USE_GTK
 	  x_clear_under_internal_border (f);
@@ -22278,7 +22269,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           x_find_modifier_meanings (dpyinfo);
 	  FALLTHROUGH;
         case MappingKeyboard:
-          XRefreshKeyboardMapping ((XMappingEvent *) &event->xmapping);
+          XRefreshKeyboardMapping (&event->xmapping);
         }
       goto OTHER;
 
@@ -24314,7 +24305,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		    {
 		      Status status_return;
 		      nbytes = XmbLookupString (FRAME_XIC (f),
-						&xkey, (char *) copy_bufptr,
+						&xkey, copy_bufptr,
 						copy_bufsiz, &keysym,
 						&status_return);
 		      coding = FRAME_X_XIM_CODING (f);
@@ -24324,7 +24315,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 			  copy_bufsiz = nbytes + 1;
 			  copy_bufptr = SAFE_ALLOCA (copy_bufsiz);
 			  nbytes = XmbLookupString (FRAME_XIC (f),
-						    &xkey, (char *) copy_bufptr,
+						    &xkey, copy_bufptr,
 						    copy_bufsiz, &keysym,
 						    &status_return);
 			}
@@ -25562,7 +25553,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
-	    XRRUpdateConfiguration ((XEvent *) event);
+	    XRRUpdateConfiguration (event);
 
 	  if (event->type == (dpyinfo->xrandr_event_base
 			      + RRScreenChangeNotify))
@@ -25634,9 +25625,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		  && event->xconfigure.height != 0))
 	    {
 #if defined USE_X_TOOLKIT && defined HAVE_XINPUT2
-	      XtDispatchEvent (use_copy ? &copy : (XEvent *) event);
+	      XtDispatchEvent (use_copy ? &copy : event);
 #else
-	      XtDispatchEvent ((XEvent *) event);
+	      XtDispatchEvent (event);
 #endif
 	    }
 	}
@@ -26388,8 +26379,6 @@ x_unwind_errors_to (int depth)
        x_error_message->dpy is still alive before calling XSync.  */
     x_uncatch_errors ();
 }
-
-#define X_ERROR_MESSAGE_SIZE 200
 
 /* An X error handler which stores the error message in the first
    applicable handler in the x_error_message stack.  This is called
@@ -30003,7 +29992,7 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
       && !strcmp (name, dpyinfo->motif_drag_atom_name))
     return dpyinfo->motif_drag_atom;
 
-  for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
+  for (i = 0; i < countof (x_atom_refs); ++i)
     {
       ptr = (char *) dpyinfo;
 
@@ -30091,7 +30080,7 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
 	  return xstrdup (buffer);
 	}
 
-      for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
+      for (i = 0; i < countof (x_atom_refs); ++i)
 	{
 	  ref_atom = *(Atom *) (dpyinfo_pointer
 				+ x_atom_refs[i].offset);
@@ -31068,7 +31057,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       static char const at[] = " at ";
       ptrdiff_t nbytes = sizeof (title) + sizeof (at);
       if (ckd_add (&nbytes, nbytes, SBYTES (system_name)))
-	memory_full (SIZE_MAX);
+	memory_full_up ();
       dpyinfo->x_id_name = xmalloc (nbytes);
       sprintf (dpyinfo->x_id_name, "%s%s%s", title, at, SDATA (system_name));
     }
@@ -31603,7 +31592,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	   XScreenNumberOfScreen (dpyinfo->screen));
 
   {
-    enum { atom_count = ARRAYELTS (x_atom_refs) };
+    enum { atom_count = countof (x_atom_refs) };
     /* 1 for _XSETTINGS_SN.  */
     enum { total_atom_count = 2 + atom_count };
     Atom atoms_return[total_atom_count];

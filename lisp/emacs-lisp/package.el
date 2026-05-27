@@ -4814,6 +4814,10 @@ find FILE."
 ;; byte-compile-warnings: (not make-local)
 ;; End:
 "))
+    (with-demoted-errors "%S"
+      ;; The `.elc' file is now stale.  Remove it so it doesn't affect
+      ;; its own compilation or lingers in case of compilation failure.
+      (delete-file (concat package-quickstart-file "c")))
     ;; FIXME: Do it asynchronously in an Emacs subprocess, and
     ;; don't show the byte-compiler warnings.
     (byte-compile-file package-quickstart-file)))

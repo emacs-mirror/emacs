@@ -1484,7 +1484,7 @@ nsfont_shape (Lisp_Object lgstring, Lisp_Object direction)
   len = i;
 
   if (INT_MAX / 2 < len)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   block_input ();
 

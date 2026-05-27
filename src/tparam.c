@@ -173,7 +173,7 @@ tparam1 (const char *string, char *outstring, int len,
 		      else
 			doleft++, append_len_incr = strlen (left);
 		      if (ckd_add (&append_len, append_len, append_len_incr))
-			memory_full (SIZE_MAX);
+			memory_full_up ();
 		    }
 		}
 	      *op++ = tem ? tem : 0200;

@@ -129,6 +129,8 @@ typedef GtkWidget *xt_or_gtk_widget;
 #include "dispextern.h"
 #include "termhooks.h"
 
+enum { X_ERROR_MESSAGE_SIZE = 200 };
+
 INLINE_HEADER_BEGIN
 
 /* Black and white pixel values for the screen which frame F is on.  */
@@ -1856,7 +1858,7 @@ extern void x_handle_pending_selection_requests (void);
 extern bool x_detect_pending_selection_requests (void);
 extern Lisp_Object x_dnd_begin_drag_and_drop (struct frame *, Time, Atom,
 					      Lisp_Object, Atom *, const char **,
-					      size_t, bool, Atom *, int,
+					      int, bool, Atom *, int,
 					      Lisp_Object, bool);
 extern int x_display_pixel_height (struct x_display_info *);
 extern int x_display_pixel_width (struct x_display_info *);

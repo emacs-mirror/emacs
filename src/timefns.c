@@ -213,7 +213,7 @@ emacs_localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
 #endif
   tm = localtime_rz (tz, t, tm);
   if (!tm && errno == ENOMEM)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   return tm;
 }
 
@@ -317,7 +317,7 @@ tzlookup (Lisp_Object zone, bool settz)
       if (!new_tz)
 	{
 	  if (errno == ENOMEM)
-	    memory_full (SIZE_MAX);
+	    memory_full_up ();
 	  invalid_time_zone_specification (zone);
 	}
     }
@@ -367,7 +367,7 @@ time_error (int err)
 {
   switch (err)
     {
-    case ENOMEM: memory_full (SIZE_MAX);
+    case ENOMEM: memory_full_up ();
     case EOVERFLOW: time_overflow ();
     default: time_spec_invalid ();
     }

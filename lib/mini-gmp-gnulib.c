@@ -39,6 +39,10 @@
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=malloc"
 #endif
 
+#if _GL_GNUC_PREREQ (14, 0)
+# pragma GCC diagnostic ignored "-Wuseless-cast"
+#endif
+
 /* Pacify GCC -Wunused-variable for variables used only in 'assert' calls.  */
 #if (defined NDEBUG \
      && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || defined __clang__))

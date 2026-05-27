@@ -63,7 +63,7 @@ SYNTAX can be one of the symbols `default' (default),
   (interactive
    (list
     (completing-read
-     "method: "
+     "Method: "
      (tramp-compat-seq-keep
       (lambda (x)
 	(when-let* ((name (symbol-name x))

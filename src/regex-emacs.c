@@ -175,7 +175,7 @@ ptrdiff_t emacs_re_safe_alloca = MAX_ALLOCA;
   (destination = SAFE_ALLOCA (nsize),					\
    memcpy (destination, source, osize))
 
-/* True if 'size1' is non-NULL and PTR is pointing anywhere inside
+/* True if 'size1' is nonzero and PTR is pointing anywhere inside
    'string1' or just past its end.  This works if PTR is NULL, which is
    a good thing.  */
 #define FIRST_STRING_P(ptr)					\
@@ -1210,7 +1210,7 @@ static bool analyze_first (struct re_pattern_buffer *bufp,
 #define BUF_PUSH(c)							\
   do {									\
     GET_BUFFER_SPACE (1);						\
-    *b++ = (unsigned char) (c);						\
+    *b++ = (c);								\
   } while (false)
 
 
@@ -1218,8 +1218,8 @@ static bool analyze_first (struct re_pattern_buffer *bufp,
 #define BUF_PUSH_2(c1, c2)						\
   do {									\
     GET_BUFFER_SPACE (2);						\
-    *b++ = (unsigned char) (c1);					\
-    *b++ = (unsigned char) (c2);					\
+    *b++ = (c1);							\
+    *b++ = (c2);							\
   } while (false)
 
 
@@ -3044,8 +3044,7 @@ static bool
 forall_firstchar (struct re_pattern_buffer *bufp, re_char *p, re_char *pend,
                   bool f (re_char *p, void *arg), void *arg)
 {
-  eassert (!bufp || bufp->used);
-  eassert (pend || bufp->used);
+  eassert (bufp ? !!bufp->used : !!pend);
   return forall_firstchar_1 (p, pend,
                              bufp ? bufp->buffer - 1 : p,
                              bufp ? bufp->buffer + bufp->used + 1 : pend,
@@ -3638,7 +3637,7 @@ static bool bcmp_translate (re_char *, re_char *, ptrdiff_t,
 #define POINTER_TO_OFFSET(ptr)			\
   (FIRST_STRING_P (ptr)				\
    ? (ptr) - string1				\
-   : (ptr) - string2 + (ptrdiff_t) size1)
+   : (ptr) - string2 + size1)
 
 /* Call before fetching a character with *d.  This switches over to
    string2 if necessary.

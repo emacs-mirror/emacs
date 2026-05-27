@@ -546,7 +546,7 @@ the same file name is found in the `doc-directory'.  */)
 	{
 	  #include "buildobj.h"
 	};
-      int i = ARRAYELTS (buildobj);
+      int i = countof (buildobj);
       while (0 <= --i)
 	Vbuild_files = Fcons (build_string (buildobj[i]), Vbuild_files);
     }

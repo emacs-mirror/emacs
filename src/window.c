@@ -7630,7 +7630,7 @@ struct saved_window
 {
   struct vectorlike_header header;
 
-  Lisp_Object window, buffer, start, pointm, old_pointm;
+  Lisp_Object window, buffer, old_buffer, start, pointm, old_pointm;
   Lisp_Object pixel_left, pixel_top, pixel_height, pixel_width;
   Lisp_Object left_col, top_line, total_cols, total_lines;
   Lisp_Object normal_cols, normal_lines;
@@ -7854,6 +7854,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  /* If we squirreled away the buffer, restore it now.  */
 	  if (BUFFERP (w->combination_limit))
 	    wset_buffer (w, w->combination_limit);
+	  wset_old_buffer (w, p->old_buffer);
 	  w->pixel_left = XFIXNAT (p->pixel_left);
 	  w->pixel_top = XFIXNAT (p->pixel_top);
 	  w->pixel_width = XFIXNAT (p->pixel_width);
@@ -8240,6 +8241,7 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, ptrdiff_t i)
       wset_temslot (w, make_fixnum (i)); i++;
       p->window = window;
       p->buffer = (WINDOW_LEAF_P (w) ? w->contents : Qnil);
+      p->old_buffer = w->old_buffer;
       p->pixel_left = make_fixnum (w->pixel_left);
       p->pixel_top = make_fixnum (w->pixel_top);
       p->pixel_width = make_fixnum (w->pixel_width);

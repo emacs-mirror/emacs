@@ -1352,9 +1352,9 @@ See `icalendar-read-weekdaynum' for the format of VAL."
     ;; number alone just stands for a day:
     (car (rassq val ical:weekday-numbers))))
 
-(defun ical:read-recur-rule-part (s)
-  "Read an `icalendar-recur-rule-part' from string S.
-S should have been matched against `icalendar-recur-rule-part'.
+(defun ical:read-rrule-part (s)
+  "Read an `icalendar-rrule-part' from string S.
+S should have been matched against `icalendar-rrule-part'.
 The return value is a list (KEYWORD VALUE), where VALUE may
 itself be a list, depending on the values allowed by KEYWORD."
   ;; TODO: this smells like a design flaw.  Silence the byte compiler for now.
@@ -1376,7 +1376,7 @@ itself be a list, depending on the values allowed by KEYWORD."
                               (rx ical:weekdaynum) ","))
         (WKST (cdr (assoc values ical:weekday-numbers)))))))
 
-(defun ical:print-recur-rule-part (part)
+(defun ical:print-rrule-part (part)
   "Serialize recur rule part PART to a string."
   (let ((keyword (car part))
         (values (cadr part))
@@ -1398,7 +1398,7 @@ itself be a list, depending on the values allowed by KEYWORD."
 
     (concat (symbol-name keyword) "=" values-str)))
 
-(rx-define ical:recur-rule-part
+(rx-define ical:rrule-part
   ;; Group 11: keyword
   ;; Group 12: value(s)
   (or (seq (group-n 11 "FREQ") "=" (group-n 12 ical:freq))
@@ -1423,14 +1423,12 @@ itself be a list, depending on the values allowed by KEYWORD."
                                          (ical:comma-list ical:yeardaynum)))
       (seq (group-n 11 "WKST") "=" (group-n 12 ical:weekday))))
 
-(defun ical:read-recur (s)
+(defun ical:read-rrule-value (s)
   "Read a recurrence rule value from string S.
 S should be a match against rx `icalendar-recur'."
-  ;; TODO: let's switch to keywords and a plist, so we can more easily
-  ;; write these clauses also in diary sexp entries without so many parens
-  (ical:read-list-with #'ical:read-recur-rule-part s (rx ical:recur-rule-part) ";"))
+  (ical:read-list-with #'ical:read-rrule-part s (rx ical:rrule-part) ";"))
 
-(defun ical:print-recur (val)
+(defun ical:print-rrule-value (val)
   "Serialize a recurrence rule value VAL to a string."
   ;; RFC5545 sec. 3.3.10: "to ensure backward compatibility with
   ;; applications that pre-date this revision of iCalendar the
@@ -1438,15 +1436,15 @@ S should be a match against rx `icalendar-recur'."
   ;; RECUR value."
   (string-join
    (cons
-    (ical:print-recur-rule-part (assq 'FREQ val))
-    (mapcar #'ical:print-recur-rule-part
+    (ical:print-rrule-part (assq 'FREQ val))
+    (mapcar #'ical:print-rrule-part
             (seq-filter (lambda (part) (not (eq 'FREQ (car part))))
                         val)))
    ";"))
 
-(defconst ical:-recur-value-types
+(defconst ical:-rrule-value-types
   ;; `list-of' is not a cl-type specifier, just a symbol here; it is
-  ;; handled specially when checking types in `ical:recur-value-p':
+  ;; handled specially when checking types in `ical:rrule-value-p':
   '(FREQ (member YEARLY MONTHLY WEEKLY DAILY HOURLY MINUTELY SECONDLY)
     UNTIL (or ical:date-time ical:date)
     COUNT (integer 1 *)
@@ -1470,7 +1468,7 @@ DAYNO must be in [0..6] and OFFSET in [-53..53], excluding 0."
        (cl-typep (car val) '(integer 0 6))
        (cl-typep (cdr val) '(or (integer -53 -1) (integer 1 53)))))
 
-(defun ical:recur-value-p (vals)
+(defun ical:rrule-value-p (vals)
   "Return non-nil if VALS is an iCalendar recurrence rule value."
   (and (listp vals)
        ;; FREQ is always required:
@@ -1487,11 +1485,11 @@ DAYNO must be in [0..6] and OFFSET in [-53..53], excluding 0."
            (assq 'BYHOUR vals)
            (assq 'BYMINUTE vals)
            (assq 'BYSECOND vals))
-       (let ((freq (ical:recur-freq vals))
-             (byday (ical:recur-by* 'BYDAY vals))
-             (byweekno (ical:recur-by* 'BYWEEKNO vals))
-             (bymonthday (ical:recur-by* 'BYMONTHDAY vals))
-             (byyearday (ical:recur-by* 'BYYEARDAY vals)))
+       (let ((freq (ical:rrule-freq vals))
+             (byday (ical:rrule-by* 'BYDAY vals))
+             (byweekno (ical:rrule-by* 'BYWEEKNO vals))
+             (bymonthday (ical:rrule-by* 'BYMONTHDAY vals))
+             (byyearday (ical:rrule-by* 'BYYEARDAY vals)))
          (and
           ;; "The BYDAY rule part MUST NOT be specified with a numeric
           ;; value when the FREQ rule part is not set to MONTHLY or
@@ -1518,7 +1516,7 @@ DAYNO must be in [0..6] and OFFSET in [-53..53], excluding 0."
           (when (consp kv)
             (let* ((keyword (car kv))
                    (val (cadr kv))
-                   (type (plist-get ical:-recur-value-types keyword)))
+                   (type (plist-get ical:-rrule-value-types keyword)))
               (and keyword val type
                    (if (and (consp type)
                             (eq (car type) 'list-of))
@@ -1526,7 +1524,14 @@ DAYNO must be in [0..6] and OFFSET in [-53..53], excluding 0."
                      (cl-typep val type))))))
          vals)))
 
-(ical:define-type ical:recur "RECUR"
+(ical:define-type ical:rrule-value
+                  ;; Renamed from "ical:recur", which turns out to
+                  ;; produce confusing names downstream.  Thus I've
+                  ;; deviated from the standard here, and call
+                  ;; `ical:rrule-value' what the standard calls a RECUR
+                  ;; value.  (`ical:rrule' is not available because that
+                  ;; names the *property* containing such a value.)
+                  "RECUR"
   "Type for Recurrence Rule values.
 
 When printed, a recurrence rule value looks like
@@ -1587,39 +1592,39 @@ Some examples:
 Notice that singleton values are still wrapped in a list when the
 KEY accepts a list of values, but not when the KEY always has a
 single (e.g. integer) value."
-  '(satisfies ical:recur-value-p)
-  (ical:semicolon-list ical:recur-rule-part)
-  :reader ical:read-recur
-  :printer ical:print-recur
+  '(satisfies ical:rrule-value-p)
+  (ical:semicolon-list ical:rrule-part)
+  :reader ical:read-rrule-value
+  :printer ical:print-rrule-value
   :link "https://www.rfc-editor.org/rfc/rfc5545#section-3.3.10")
 
-(defun ical:recur-freq (recur-value)
-  "Return the frequency in RECUR-VALUE."
-  (car (alist-get 'FREQ recur-value)))
+(defun ical:rrule-freq (rrule)
+  "Return the frequency in RRULE."
+  (car (alist-get 'FREQ rrule)))
 
-(defun ical:recur-interval-size (recur-value)
-  "Return the interval size in RECUR-VALUE, or the default of 1."
-  (or (car (alist-get 'INTERVAL recur-value)) 1))
+(defun ical:rrule-interval-size (rrule)
+  "Return the interval size in RRULE, or the default of 1."
+  (or (car (alist-get 'INTERVAL rrule)) 1))
 
-(defun ical:recur-until (recur-value)
-  "Return the UNTIL date(-time) in RECUR-VALUE."
-  (car (alist-get 'UNTIL recur-value)))
+(defun ical:rrule-until (rrule)
+  "Return the UNTIL date(-time) in RRULE."
+  (car (alist-get 'UNTIL rrule)))
 
-(defun ical:recur-count (recur-value)
-  "Return the COUNT in RECUR-VALUE."
-  (car (alist-get 'COUNT recur-value)))
+(defun ical:rrule-count (rrule)
+  "Return the COUNT in RRULE."
+  (car (alist-get 'COUNT rrule)))
 
-(defun ical:recur-weekstart (recur-value)
-  "Return the weekday which starts the work week in RECUR-VALUE.
-If no starting weekday is specified in RECUR-VALUE, returns the default,
+(defun ical:rrule-weekstart (rrule)
+  "Return the weekday which starts the work week in RRULE.
+If no starting weekday is specified in RRULE, returns the default,
 1 (= Monday)."
-  (or (car (alist-get 'WKST recur-value)) 1))
+  (or (car (alist-get 'WKST rrule)) 1))
 
-(defun ical:recur-by* (byunit recur-value)
-  "Return the values in the BYUNIT clause in RECUR-VALUE.
+(defun ical:rrule-by* (byunit rrule)
+  "Return the values in the BYUNIT clause in RRULE.
 BYUNIT should be a symbol: \\='BYMONTH, \\='BYDAY, etc.
-See `icalendar-recur' for all the possible BYUNIT values."
-  (car (alist-get byunit recur-value)))
+See `icalendar-rrule-value' for all the possible BYUNIT values."
+  (car (alist-get byunit rrule)))
 
 ;;;; 3.3.11 Text
 (rx-define ical:escaped-char
@@ -3272,7 +3277,7 @@ and times on which an `icalendar-vevent', `icalendar-todo',
 `icalendar-daylight' component recurs.  Together with the
 `icalendar-dtstart', `icalendar-rdate', and `icalendar-exdate'
 properties, it defines the recurrence set of the component."
-  ical:recur
+  ical:rrule-value
   ;; TODO: faces for subexpressions?
   :child-spec (:zero-or-more (ical:otherparam))
   :link "https://www.rfc-editor.org/rfc/rfc5545#section-3.8.5.3")
@@ -4567,7 +4572,7 @@ which see."
      (ical:dtend :first dtend-node :value dtend)
      (ical:due :value due)
      (ical:duration :value duration)
-     (ical:rrule :value recur-value)
+     (ical:rrule :value rrule)
      (ical:rdate :all rdate-nodes)
      (ical:exdate :all exdate-nodes)
      (ical:uid :value uid))
@@ -4592,7 +4597,7 @@ which see."
          ;; If the component has an RRULE that specifies a fixed number
          ;; of recurrences, compute them now and index them for each date
          ;; in each recurrence:
-         ((and recur-value (ical:recur-count recur-value))
+         ((and rrule (ical:rrule-count rrule))
           (let* ((tz (gethash (ical:with-param-of dtstart-node 'ical:tzidparam)
                               tzid-index))
                  (recs (cons dtstart (icr:recurrences-to-count component tz))))
@@ -4605,7 +4610,7 @@ which see."
                                 (list (ical:date/time-to-date
                                        (ical:date/time-to-local rec))))))))))
          ;; Same with RDATEs when there's no RRULE:
-         ((and rdates (not recur-value))
+         ((and rdates (not rrule))
           (dolist (rec (cons dtstart rdates))
             (unless (or (cl-typep rec 'ical:period) (member rec exdates))
               (let ((end-time
@@ -4624,7 +4629,7 @@ which see."
                 (setq dates (append dates (ical:dates-until start end t)))))))
          ;; A non-recurring event also gets an index entry for each date
          ;; until its end time:
-         ((not recur-value)
+         ((not rrule)
           (let ((end-time
                  (or dtend due
                      (when duration
@@ -4703,13 +4708,13 @@ Only one keyword argument can be queried at a time."
            (dolist (component recurring)
              (ical:with-component component
                  ((ical:dtstart :first dtstart-node :value dtstart)
-                  (ical:rrule :value recur-value)
+                  (ical:rrule :value rrule)
                   (ical:rdate :all rdate-nodes)
                   (ical:duration :value duration))
                (unless (ical:date/time<= date dtstart)
                  (let* ((tz (ical:with-param-of dtstart-node 'ical:tzidparam nil
                               (gethash value (plist-get index :bytzid))))
-                        (int (icr:find-interval date dtstart recur-value tz))
+                        (int (icr:find-interval date dtstart rrule tz))
                         (recs (icr:recurrences-in-interval int component tz)))
                    (catch 'found
                      (dolist (rec recs)

@@ -1773,5 +1773,24 @@ The argument names are important."
                                                          '("foo" "bar" "bazzzzzz"))
                    '(("foo" "bar") ("bazzzzzz"))))))
 
+(ert-deftest subr-test-combine-change-calls-error ()
+  "Test detection of unexpected changes in `combine-change-calls'."
+  (with-temp-buffer
+    (insert "a\nb\nc\n")
+    (combine-change-calls 3 5
+      (goto-char (point-min))
+      (search-forward "b")
+      (replace-match "bbb"))
+    (should-error
+     (combine-change-calls 3 7
+      (goto-char (point-min))
+      (search-forward "a")
+      (replace-match "aaa")))
+    (should-error
+     (combine-change-calls 5 9
+      (goto-char (point-min))
+      (search-forward "c")
+      (replace-match "ccc")))))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

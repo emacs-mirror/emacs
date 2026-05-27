@@ -131,18 +131,18 @@
 
 (cl-defmethod gnus-icalendar-event:recurring-freq ((event gnus-icalendar-event))
   "Return recurring frequency of EVENT."
-  (ical:recur-freq (gnus-icalendar-event:recur event)))
+  (ical:rrule-freq (gnus-icalendar-event:recur event)))
 
 (cl-defmethod gnus-icalendar-event:recurring-interval ((event gnus-icalendar-event))
   "Return recurring interval of EVENT."
-  (ical:recur-interval-size (gnus-icalendar-event:recur event)))
+  (ical:rrule-interval-size (gnus-icalendar-event:recur event)))
 
 (cl-defmethod gnus-icalendar-event:recurring-days ((event gnus-icalendar-event))
   "Return, when available, the week day numbers on which the EVENT recurs."
   (let ((rrule (gnus-icalendar-event:recur event)))
     (when rrule
       (mapcar (lambda (el) (if (consp el) (car el) el))
-              (ical:recur-by* 'BYDAY rrule)))))
+              (ical:rrule-by* 'BYDAY rrule)))))
 
 (cl-defmethod gnus-icalendar-event:start ((event gnus-icalendar-event))
   (format-time-string "%Y-%m-%d %H:%M" (gnus-icalendar-event:start-time event)))

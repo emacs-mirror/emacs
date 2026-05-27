@@ -1,5 +1,5 @@
 # gnulib-common.m4
-# serial 115
+# serial 122
 dnl Copyright (C) 2007-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -433,6 +433,23 @@ AC_DEFUN([gl_COMMON_BODY], [
 #  define _GL_ATTRIBUTE_CONST __attribute__ ((__const__))
 # else
 #  define _GL_ATTRIBUTE_CONST
+# endif
+#endif
+
+/* _GL_ATTRIBUTE_COUNTED_BY (C) declares that the number of elements of
+   the field is given by C, which must be another field in the same struct.
+   The programmer is responsible for guaranteeing some invariants; see
+   <https://gcc.gnu.org/onlinedocs/gcc/Common-Attributes.html> for details.  */
+/* Applies to struct fields of type array or pointer (to data).  */
+#ifndef _GL_ATTRIBUTE_COUNTED_BY
+/* This attributes is supported
+     - for fields of array type: by gcc >= 16, clang >= 18,
+     - for fields of pointer type: by gcc when <https://gcc.gnu.org/PR125072>
+       will be fixed, clang >= 19.  */
+# if defined __clang__ && __clang_major__ >= 19
+#  define _GL_ATTRIBUTE_COUNTED_BY(c) __attribute__ ((__counted_by__ (c)))
+# else
+#  define _GL_ATTRIBUTE_COUNTED_BY(c)
 # endif
 #endif
 
@@ -892,7 +909,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 # endif
 #endif
 
-/* The following attributes enable detection of multithread-safety problems
+/* The following attributes enable detection of thread safety problems
    and resource leaks at compile-time, by clang ≥ 15, when the warning option
    -Wthread-safety is enabled.  For usage, see
    <https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>.  */
@@ -1234,9 +1251,9 @@ Amsterdam
 ])
 
 # AC_C_RESTRICT
-# This definition is copied from post-2.70 Autoconf and overrides the
-# AC_C_RESTRICT macro from autoconf 2.60..2.70.
-m4_version_prereq([2.70.1], [], [
+# This definition is copied from post-2.73 Autoconf and overrides the
+# AC_C_RESTRICT macro from autoconf 2.60..2.73.
+m4_version_prereq([2.73.1], [], [
 AC_DEFUN([AC_C_RESTRICT],
 [AC_CACHE_CHECK([for C/C++ restrict keyword], [ac_cv_c_restrict],
   [ac_cv_c_restrict=no
@@ -1262,9 +1279,14 @@ AC_DEFUN([AC_C_RESTRICT],
   ])
  AH_VERBATIM([restrict],
 [/* Define to the equivalent of the C99 'restrict' keyword, or to
-   nothing if this is not supported.  Do not define if restrict is
-   supported only directly.  */
+   nothing if this is not supported.  In particular it is not supported
+   in MSVC 14.44 and in g++ 7 on Solaris 11, although these compilers
+   define __STDC_VERSION__ to 199901L.
+   Do not define if restrict is supported directly.  */
+#if ! (defined __STDC_VERSION__ && 199901L <= __STDC_VERSION__ \
+       && !defined _MSC_VER && !defined __cplusplus)
 #undef restrict
+#endif
 /* Work around a bug in older versions of Sun C++, which did not
    #define __restrict__ or support _Restrict or __restrict__
    even though the corresponding Sun C compiler ended up with
@@ -1425,6 +1447,7 @@ AC_DEFUN([gl_CC_GNULIB_WARNINGS],
     dnl -Wno-pedantic                         >= 4.8          >= 3.9
     dnl -Wno-sign-compare                     >= 3            >= 3.9
     dnl -Wno-sign-conversion                  >= 4.3          >= 3.9
+    dnl -Wno-string-plus-int                  -               >= 3.9
     dnl -Wno-tautological-out-of-range-compare  -             >= 3.9
     dnl -Wno-type-limits                      >= 4.3          >= 3.9
     dnl -Wno-undef                            >= 3            >= 3.9
@@ -1453,6 +1476,7 @@ AC_DEFUN([gl_CC_GNULIB_WARNINGS],
       -Wno-pedantic
       #endif
       #if 3 < __clang_major__ + (9 <= __clang_minor__)
+      -Wno-string-plus-int
       -Wno-tautological-constant-out-of-range-compare
       #endif
       #if (__GNUC__ + (__GNUC_MINOR__ >= 3) > 4 && !defined __clang__) || (__clang_major__ + (__clang_minor__ >= 9) > 3)

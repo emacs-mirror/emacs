@@ -522,7 +522,7 @@ struct transfer
 
   /* The current offset in items into the selection data, and the
      number of items to send with each ChangeProperty request.  */
-  size_t offset, items_per_request;
+  ptrdiff_t offset, items_per_request;
 
   /* The display info associated with the transfer.  */
   struct x_display_info *dpyinfo;
@@ -669,7 +669,7 @@ x_selection_request_lisp_error (void)
 
 
 
-static size_t
+static ptrdiff_t
 c_size_for_format (int format)
 {
   switch (format)
@@ -687,7 +687,7 @@ c_size_for_format (int format)
   emacs_abort ();
 }
 
-static size_t
+static ptrdiff_t
 x_size_for_format (int format)
 {
   switch (format)
@@ -712,10 +712,10 @@ x_size_for_format (int format)
 
 static unsigned char *
 selection_data_for_offset (struct selection_data *data,
-			   long offset, size_t *remaining)
+			   ptrdiff_t offset, ptrdiff_t *remaining)
 {
   unsigned char *base;
-  size_t size;
+  ptrdiff_t size;
 
   if (!NILP (data->string))
     {
@@ -741,12 +741,17 @@ selection_data_for_offset (struct selection_data *data,
 
 /* Return the size, in bytes transferred to the X server, of
    data->size items of selection data in data->format-bit
-   quantities.  */
+   quantities.  If this size is too large, silently return
+   the largest supported size in bytes for this format.
 
-static size_t
+   FIXME: Silent truncation is bad.  */
+
+static ptrdiff_t
 selection_data_size (struct selection_data *data)
 {
-  size_t scratch;
+  ptrdiff_t scratch;
+  ptrdiff_t max_selection_size = min (min (PTRDIFF_MAX, SIZE_MAX),
+				      X_ULONG_MAX);
 
   if (!NILP (data->string))
     return SBYTES (data->string);
@@ -754,17 +759,19 @@ selection_data_size (struct selection_data *data)
   switch (data->format)
     {
     case 8:
-      return (size_t) data->size;
+      return min (data->size, max_selection_size);
 
     case 16:
-      if (ckd_mul (&scratch, data->size, 2))
-	return SIZE_MAX;
+      if (ckd_mul (&scratch, data->size, 2)
+	  || max_selection_size - max_selection_size % 2 < scratch)
+	return max_selection_size - max_selection_size % 2;
 
       return scratch;
 
     case 32:
-      if (ckd_mul (&scratch, data->size, 4))
-	return SIZE_MAX;
+      if (ckd_mul (&scratch, data->size, 4)
+	  || max_selection_size - max_selection_size % 4 < scratch)
+	return max_selection_size - max_selection_size % 4;
 
       return scratch;
     }
@@ -849,7 +856,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
   intmax_t timeout;
   intmax_t secs;
   int nsecs;
-  size_t remaining, max_size;
+  ptrdiff_t remaining, max_size;
   unsigned char *xdata;
   unsigned long data_size;
 
@@ -885,12 +892,12 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
 
   max_size = selection_quantum (dpyinfo->display);
 
+  ptrdiff_t seldata_size = selection_data_size (&transfer->data);
   TRACE3 (" x_start_selection_transfer: transferring to 0x%lx.  "
-	  "transfer consists of %zu bytes, quantum being %zu",
-	  requestor, selection_data_size (&transfer->data),
-	  max_size);
+	  "transfer consists of %tu bytes, quantum being %tu",
+	  requestor, seldata_size, max_size);
 
-  if (selection_data_size (&transfer->data) > max_size)
+  if (max_size < seldata_size)
     {
       /* Begin incremental selection transfer.  First, calculate how
 	 many elements it is ok to write for every ChangeProperty
@@ -898,7 +905,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
       transfer->items_per_request
 	= (max_size / x_size_for_format (transfer->data.format));
       TRACE1 (" x_start_selection_transfer: starting incremental"
-	      " selection transfer, with %zu items per request",
+	      " selection transfer, with %tu items per request",
 	      transfer->items_per_request);
 
       /* Next, link the transfer onto the list of pending selection
@@ -918,7 +925,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
       /* Now, write the INCR property to begin incremental selection
 	 transfer.  offset is currently 0.  */
 
-      data_size = selection_data_size (&transfer->data);
+      data_size = seldata_size;
 
       /* Set SELECTED_EVENTS before the actual XSelectInput
 	 request.  */
@@ -947,7 +954,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
       eassert (remaining <= INT_MAX);
 
       TRACE1 (" x_start_selection_transfer:  writing"
-	      " %zu elements directly to requestor window",
+	      " %tu elements directly to requestor window",
 	      remaining);
 
       x_ignore_errors_for_next_request (dpyinfo, 0);
@@ -970,7 +977,7 @@ x_start_selection_transfer (struct x_display_info *dpyinfo, Window requestor,
 static void
 x_continue_selection_transfer (struct transfer *transfer)
 {
-  size_t remaining;
+  ptrdiff_t remaining;
   unsigned char *xdata;
 
   xdata = selection_data_for_offset (&transfer->data,
@@ -999,8 +1006,8 @@ x_continue_selection_transfer (struct transfer *transfer)
     }
   else
     {
-      TRACE2 (" x_continue_selection_transfer: writing %zu items"
-	      "; current offset is %zu", remaining, transfer->offset);
+      TRACE2 (" x_continue_selection_transfer: writing %tu items"
+	      "; current offset is %tu", remaining, transfer->offset);
       eassert (remaining <= INT_MAX);
 
       transfer->offset += remaining;
@@ -1882,7 +1889,7 @@ x_get_window_property (Display *display, Window window, Atom property,
   if (data)
     xfree (data);
   unblock_input ();
-  memory_full (SIZE_MAX);
+  memory_full_up ();
 }
 
 /* Use xfree, not XFree, to free the data obtained with this function.  */
@@ -1903,7 +1910,7 @@ receive_incremental_selection (struct x_display_info *dpyinfo,
   Display *display = dpyinfo->display;
 
   if (min (PTRDIFF_MAX, SIZE_MAX) < min_size_bytes)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   *data_ret = xmalloc (min_size_bytes);
   *size_bytes_ret = min_size_bytes;
 
@@ -3063,7 +3070,7 @@ x_property_data_to_lisp (struct frame *f, const unsigned char *data,
   ptrdiff_t format_bytes = format >> 3;
   ptrdiff_t data_bytes;
   if (ckd_mul (&data_bytes, size, format_bytes))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   return selection_data_to_lisp_data (FRAME_DISPLAY_INFO (f), data,
 				      data_bytes, type, format);
 }

@@ -252,22 +252,22 @@
    "(icalendar-recur-recurrences-to-count '(1 1 2026) '(12 31 2026)
                                           vevent)"
    :eg-result-string "((1 10 2026) (2 10 2026) (3 10 2026))")
-  (icalendar-recur-freq
+  (icalendar-rrule-freq
    :eval
-   (icalendar-recur-freq '((FREQ MONTHLY) (INTERVAL 3) (BYDAY ((5 . -1))))))
-  (icalendar-recur-interval-size
-   :eval (icalendar-recur-interval-size '((FREQ MONTHLY) (BYDAY ((5 . -1)))))
-   :eval (icalendar-recur-interval-size '((FREQ MONTHLY) (INTERVAL 3))))
-  (icalendar-recur-count
-   :eval (icalendar-recur-count '((FREQ MONTHLY) (INTERVAL 2) (COUNT 6))))
-  (icalendar-recur-until
-   :eval (icalendar-recur-until '((FREQ WEEKLY) (UNTIL (12 31 2026)))))
-  (icalendar-recur-by*
-   :eval (icalendar-recur-by* 'BYDAY '((FREQ MONTHLY) (BYDAY ((5 . -1))))))
-  (icalendar-recur-weekstart
+   (icalendar-rrule-freq '((FREQ MONTHLY) (INTERVAL 3) (BYDAY ((5 . -1))))))
+  (icalendar-rrule-interval-size
+   :eval (icalendar-rrule-interval-size '((FREQ MONTHLY) (BYDAY ((5 . -1)))))
+   :eval (icalendar-rrule-interval-size '((FREQ MONTHLY) (INTERVAL 3))))
+  (icalendar-rrule-count
+   :eval (icalendar-rrule-count '((FREQ MONTHLY) (INTERVAL 2) (COUNT 6))))
+  (icalendar-rrule-until
+   :eval (icalendar-rrule-until '((FREQ WEEKLY) (UNTIL (12 31 2026)))))
+  (icalendar-rrule-by*
+   :eval (icalendar-rrule-by* 'BYDAY '((FREQ MONTHLY) (BYDAY ((5 . -1))))))
+  (icalendar-rrule-weekstart
    :eval
-   (icalendar-recur-weekstart '((FREQ WEEKLY) (UNTIL (12 31 2026)) (WKST 0)))
+   (icalendar-rrule-weekstart '((FREQ WEEKLY) (UNTIL (12 31 2026)) (WKST 0)))
    :eval
-   (icalendar-recur-weekstart '((FREQ WEEKLY) (UNTIL (12 31 2026))))))
+   (icalendar-rrule-weekstart '((FREQ WEEKLY) (UNTIL (12 31 2026))))))
 
 (provide 'icalendar-shortdoc)

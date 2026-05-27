@@ -44,7 +44,7 @@ init_bignum (void)
 
   init_gmp_memory_functions ();
 
-  for (int i = 0; i < ARRAYELTS (mpz); i++)
+  for (int i = 0; i < countof (mpz); i++)
     mpz_init (mpz[i]);
 }
 

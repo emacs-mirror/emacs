@@ -273,13 +273,13 @@ If DONT-POP is nil, display the buffer after setting it up."
       (setq message-post-method
             (lambda (arg) (gnus-post-method arg (car ga))))
       (unless (equal (cadr ga) "")
-        (dolist (article (cdr ga))
-          (message-add-action
-           `(progn
-              (gnus-add-mark ,(car ga) 'replied ,article)
-              (gnus-request-set-mark ,(car ga) (list (list (list ,article)
-                                                           'add '(reply)))))
-           'send))))
+        (let ((group (car ga)))
+          (dolist (article (cdr ga))
+            (message-add-action
+             (lambda ()
+               (gnus-add-mark group 'replied article)
+               (gnus-request-set-mark group `(((,article) add (reply)))))
+             'send)))))
     (run-hooks 'gnus-draft-setup-hook)))
 
 (defun gnus-draft-article-sendable-p (article)

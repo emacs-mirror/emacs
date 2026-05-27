@@ -225,7 +225,7 @@ mac_font_get_glyph_for_cid (CTFontRef font, NSCharacterCollection collection,
   unichar characters[] = {0xfffd};
   NSString *string =
     [NSString stringWithCharacters:characters
-			    length:ARRAYELTS (characters)];
+			    length:countof (characters)];
   NSGlyphInfo *glyphInfo =
     [NSGlyphInfo glyphInfoWithCharacterIdentifier:cid
 				       collection:collection
@@ -894,7 +894,7 @@ macfont_store_descriptor_attributes (CTFontDescriptorRef desc,
       };
       int i;
 
-      for (i = 0; i < ARRAYELTS (numeric_traits); i++)
+      for (i = 0; i < countof (numeric_traits); i++)
         {
           num = CFDictionaryGetValue (dict, numeric_traits[i].trait);
           if (num && CFNumberGetValue (num, kCFNumberCGFloatType, &floatval))
@@ -2127,7 +2127,7 @@ macfont_create_attributes_with_spec (Lisp_Object spec)
   if (! traits)
     goto err;
 
-  for (i = 0; i < ARRAYELTS (numeric_traits); i++)
+  for (i = 0; i < countof (numeric_traits); i++)
     {
       tmp = AREF (spec, numeric_traits[i].index);
       if (FIXNUMP (tmp))
@@ -3131,7 +3131,7 @@ macfont_shape (Lisp_Object lgstring, Lisp_Object direction)
   len = i;
 
   if (INT_MAX / 2 < len)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   unichars = alloca (sizeof (UniChar) * (len + nonbmp_len));
   nonbmp_indices = alloca (sizeof (CFIndex) * (nonbmp_len + 1));
@@ -3800,7 +3800,7 @@ mac_font_create_line_with_string_and_font (CFStringRef string,
     {
       attributes = CFDictionaryCreate (NULL, (const void **) keys,
                                        (const void **) values,
-                                       ARRAYELTS (keys),
+				       countof (keys),
                                        &kCFTypeDictionaryKeyCallBacks,
                                        &kCFTypeDictionaryValueCallBacks);
       CFRelease (values[1]);
@@ -4014,7 +4014,7 @@ mac_ctfont_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
   CTLineRef ctline = NULL;
 
   string = CFStringCreateWithCharacters (NULL, characters,
-                                         ARRAYELTS (characters));
+					 countof (characters));
 
   if (string)
     {
@@ -4030,7 +4030,7 @@ mac_ctfont_get_glyph_for_cid (CTFontRef font, CTCharacterCollection collection,
 
           attributes = CFDictionaryCreate (NULL, (const void **) keys,
                                            (const void **) values,
-                                           ARRAYELTS (keys),
+					   countof (keys),
                                            &kCFTypeDictionaryKeyCallBacks,
                                            &kCFTypeDictionaryValueCallBacks);
           CFRelease (glyph_info);

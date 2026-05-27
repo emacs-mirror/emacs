@@ -379,6 +379,8 @@ The same keyword arguments are supported as in
   (ffap--gcc-is-clang-p))
 
 (defvar tramp-default-host-alist)
+(defvar tramp-default-remote-shell)
+(defvar tramp-encoding-shell)
 (defvar tramp-methods)
 (defvar tramp-remote-path)
 
@@ -394,16 +396,17 @@ The same keyword arguments are supported as in
     (cond
      ((getenv "REMOTE_TEMPORARY_FILE_DIRECTORY"))
      ((eq system-type 'windows-nt) null-device)
-     ;; Android's built-in shell is far too dysfunctional to support
+     ;; Android's built-in shell is far too dysfunctional to support.
      ;; Tramp.
      ((eq system-type 'android) null-device)
      (t (add-to-list
          'tramp-methods
-         '("mock"
-	   (tramp-login-program	     "sh")
+         `("mock"
+	   (tramp-login-program	     ,tramp-encoding-shell)
 	   (tramp-login-args	     (("-i")))
-           (tramp-direct-async       ("-c"))
-	   (tramp-remote-shell	     "/bin/sh")
+	   (tramp-direct-async       ("-c"))
+	   (tramp-tmpdir	     ,temporary-file-directory)
+	   (tramp-remote-shell	     ,tramp-default-remote-shell)
 	   (tramp-remote-shell-args  ("-c"))
 	   (tramp-connection-timeout 10)))
         (add-to-list

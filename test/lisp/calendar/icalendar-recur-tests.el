@@ -1383,7 +1383,7 @@ END:VTIMEZONE
          (ts-obs/onset (icr:tz-observance-on ts ict:tz-eastern)))
     (should (eq 'ical:daylight (ical:ast-node-type obs)))
     (should (equal dt onset))
-    (should (equal end (ical:recur-until
+    (should (equal end (ical:rrule-until
                         (ical:with-property-of obs 'ical:rrule nil value))))
     (should (equal obs/onset ts-obs/onset)))
 
@@ -1534,10 +1534,10 @@ SOURCE should be a symbol; it is used to name the test."
      ,(format "Parse and evaluate recur-value example from `%s':\n%s"
               source doc)
      :tags ,tags
-     (let* ((parsed (ical:parse-from-string 'ical:recur ,recur-string))
+     (let* ((parsed (ical:parse-from-string 'ical:rrule-value ,recur-string))
             (recvalue (ical:ast-node-value parsed))
-            (until (ical:recur-until recvalue))
-            (count (ical:recur-count recvalue))
+            (until (ical:rrule-until recvalue))
+            (count (ical:rrule-count recvalue))
             (dtstart ,dtstart)
             (tzid
              (when (cl-typep dtstart 'ical:date-time)

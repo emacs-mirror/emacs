@@ -951,56 +951,58 @@ In the latter case, VC mode is deactivated for this buffer."
     (vc-file-clearprops buffer-file-name)
     ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
     (add-hook 'vc-mode-line-hook #'vc-mode-line nil t)
-    (let (backend)
-      (cond
-       ((setq backend (with-demoted-errors "VC refresh error: %S"
-                        (vc-backend buffer-file-name)))
-        ;; Let the backend setup any buffer-local things he needs.
+    (cond*
+     ((bind-and* (backend (with-demoted-errors "VC refresh error: %S"
+                            (vc-backend buffer-file-name))))
+      ;; When `auto-revert-handler' calls us then `default-directory'
+      ;; may be let-bound to something else for the purpose of some
+      ;; command that's currently doing some minibuffer prompting.
+      ;; Backend find-file-hook and mode-line-string functions should
+      ;; not need to be written so as to handle that possibility.
+      (let ((default-directory (buffer-local-toplevel-value 'default-directory)))
+        ;; Let the backend setup any buffer-local things it needs.
         (vc-call-backend backend 'find-file-hook)
 	;; Compute the state and put it in the mode line.
-	(vc-mode-line buffer-file-name backend)
-	(unless vc-make-backup-files
-	  ;; Use this variable, not make-backup-files,
-	  ;; because this is for things that depend on the file name.
-          (setq-local backup-inhibited t)))
-       ((let* ((truename (and buffer-file-truename
-			      (expand-file-name buffer-file-truename)))
-	       (link-type (and truename
-			       (not (equal buffer-file-name truename))
-			       (vc-backend truename))))
-	  (cond ((not link-type) nil)	;Nothing to do.
-		((not vc-follow-symlinks)
-		 (message "Warning: symbolic link to %s-controlled source file"
-                          link-type))
-		((or (not (eq vc-follow-symlinks 'ask))
-		     ;; Assume we cannot ask, default to yes.
-		     noninteractive
-		     ;; Copied from server-start.  Seems like there should
-		     ;; be a better way to ask "can we get user input?"...
-                     ;; Use `frame-initial-p'?
-		     (and (daemonp)
-			  (null (cdr (frame-list)))
-			  (eq (selected-frame) terminal-frame))
-		     ;; If we already visited this file by following
-		     ;; the link, don't ask again if we try to visit
-		     ;; it again.  GUD does that, and repeated questions
-		     ;; are painful.
-		     (get-file-buffer
-		      (abbreviate-file-name
-		       (file-chase-links buffer-file-name))))
-
-		 (vc-follow-link)
-		 (message "Followed link to %s" buffer-file-name)
-		 (vc-refresh-state))
-		(t
-		 (if (yes-or-no-p (format
-				   "Symbolic link to %s-controlled source file; follow link? " link-type))
-		     (progn (vc-follow-link)
-			    (message "Followed link to %s" buffer-file-name)
-			    (vc-refresh-state))
-		   (message
-		    "Warning: editing through the link bypasses version control")
-		   )))))))))
+	(vc-mode-line buffer-file-name backend))
+      (unless vc-make-backup-files
+	;; Use this variable, not make-backup-files,
+	;; because this is for things that depend on the file name.
+        (setq-local backup-inhibited t)))
+     ((bind* (truename (and buffer-file-truename
+			    (expand-file-name buffer-file-truename)))
+	     (link-type (and truename
+			     (not (equal buffer-file-name truename))
+			     (vc-backend truename)))))
+     ((null link-type) nil)             ; Nothing to do.
+     ((not vc-follow-symlinks)
+      (message "Warning: symbolic link to %s-controlled source file"
+               link-type))
+     ((or (not (eq vc-follow-symlinks 'ask))
+	  ;; Assume we cannot ask, default to yes.
+	  noninteractive
+	  ;; Copied from server-start.  Seems like there should
+	  ;; be a better way to ask "can we get user input?"...
+          ;; Use `frame-initial-p'?
+	  (and (daemonp)
+	       (null (cdr (frame-list)))
+	       (eq (selected-frame) terminal-frame))
+	  ;; If we already visited this file by following the link,
+	  ;; don't ask again if we try to visit it again.
+          ;; GUD does that, and repeated questions are painful.
+	  (get-file-buffer
+	   (abbreviate-file-name
+	    (file-chase-links buffer-file-name))))
+      (vc-follow-link)
+      (message "Followed link to %s" buffer-file-name)
+      (vc-refresh-state))
+     ((yes-or-no-p
+       (format "Symbolic link to %s-controlled source file; follow link? "
+               link-type))
+      (vc-follow-link)
+      (message "Followed link to %s" buffer-file-name)
+      (vc-refresh-state))
+     (t
+      (message "Warning: editing through the link bypasses version control")))))
 
 (add-hook 'find-file-hook #'vc-refresh-state)
 (define-obsolete-function-alias 'vc-find-file-hook #'vc-refresh-state "25.1")

@@ -48,8 +48,6 @@
 
 ;;; Code:
 
-(require 'cl-lib) ; for cl-assert
-
 ;;;###autoload
 (defmacro cond* (&rest clauses)
   "Extended form of traditional Lisp `cond' construct.
@@ -370,12 +368,13 @@ This is used for conditional exit clauses."
                    ;; where ELSE is supposed to run after THEN also (and
                    ;; with access to `x' and `y').
                    (error ":non-exit not supported with `pcase*'"))
-                 (cl-assert (or (null iffalse) rest))
+                 (unless (or (null iffalse) rest)
+                   (error "Assertion failed: (or (null iffalse) rest)"))
                  `(pcase ,(nth 2 condition)
                     (,(nth 1 condition) ,@true-exps)
                     (_ ,iffalse)))
-             (cl-assert (null iffalse))
-             (cl-assert (null rest))
+             (unless (and (null iffalse) (null rest))
+               (error "Assertion failed: (and (null iffalse) (null rest))"))
              `(pcase-let ((,(nth 1 condition) ,(nth 2 condition)))
                 (cond* . ,uncondit-clauses))))
           ((eq pat-type 'match*)

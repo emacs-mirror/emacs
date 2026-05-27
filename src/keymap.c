@@ -2130,7 +2130,7 @@ For an approximate inverse of this, see `kbd'.  */)
   /* This has one extra element at the end that we don't pass to Fconcat.  */
   ptrdiff_t size4;
   if (ckd_mul (&size4, nkeys + nprefix, 4))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   SAFE_ALLOCA_LISP (args, size4);
 
   /* In effect, this computes
@@ -2139,7 +2139,7 @@ For an approximate inverse of this, see `kbd'.  */)
 
   Lisp_Object lists[2] = { prefix, keys };
   ptrdiff_t listlens[2] = { nprefix, nkeys };
-  for (int li = 0; li < ARRAYELTS (lists); li++)
+  for (int li = 0; li < countof (lists); li++)
     {
       Lisp_Object list = lists[li];
       ptrdiff_t listlen = listlens[li], i_byte = 0;

@@ -110,6 +110,7 @@ University of California, as described above. */
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdckdint.h>
+#include <stdcountof.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysstdio.h>
@@ -652,9 +653,10 @@ static const char Forth_help [] =
 constant, code, create, defer, value, variable, buffer:, field.";
 
 static const char *Fortran_suffixes [] =
-  { "F", "f", "f90", "for", NULL };
+  { "F", "f", "for", "f90", "f95", "f03", "f08", NULL };
 static const char Fortran_help [] =
-"In Fortran code, functions, subroutines and block data are tags.";
+"In Fortran code, modules, subroutines, functions, entries\n\
+and block data are tags.";
 
 static const char *Go_suffixes [] = {"go", NULL};
 static const char Go_help [] =
@@ -4567,6 +4569,10 @@ Fortran_functions (FILE *inf)
 	continue;
       switch (c_tolower (*dbp))
 	{
+	case 'm':
+	  if (nocase_tail ("module"))
+	    F_getit (inf);
+	  continue;
 	case 'f':
 	  if (nocase_tail ("function"))
 	    F_getit (inf);
@@ -6649,6 +6655,14 @@ static const char *Mercury_decl_tags[] = {"type", "solver type", "pred",
   "initialise", "finalise", "mutable", "module", "interface", "implementation",
   "import_module", "use_module", "include_module", "end_module", "some", "all"};
 
+/* Return true if array of char BUF, of length LEN, equals STR.  */
+
+static bool
+memstreq (char const *buf, ptrdiff_t len, char const *str)
+{
+  return strlen (str) == len && memeq (buf, str, len);
+}
+
 static mercury_pos_t
 mercury_decl (char *s, size_t pos)
 {
@@ -6656,43 +6670,40 @@ mercury_decl (char *s, size_t pos)
 
   if (s == NULL) return null_pos;
 
-  size_t origpos;
-  origpos = pos;
+  size_t origpos = pos;
+  char *decl_type = s + origpos;
 
   while (c_isalnum (s[pos]) || s[pos] == '_')
     pos++;
 
-  unsigned char decl_type_length = pos - origpos;
-  char buf[decl_type_length + 1];
-  memset (buf, 0, decl_type_length + 1);
+  ptrdiff_t decl_type_length = pos - origpos;
 
   /* Mercury declaration tags.  Consume them, then check the declaration item
      following :- is legitimate, then go on as in the prolog case.  */
-
-  memcpy (buf, &s[origpos], decl_type_length);
 
   bool found_decl_tag = false;
 
   if (is_mercury_quantifier)
     {
-      if (strcmp (buf, "pred") != 0 && strcmp (buf, "func") != 0) /* Bad syntax.  */
-	return null_pos;
+      if (! (memstreq (decl_type, decl_type_length, "pred")
+	     || memstreq (decl_type, decl_type_length, "func")))
+	return null_pos; /* Bad syntax.  */
 
       is_mercury_quantifier = false; /* Reset to base value.  */
       found_decl_tag = true;
     }
   else
     {
-      for (int j = 0; j < sizeof (Mercury_decl_tags) / sizeof (char*); ++j)
+      for (int j = 0; j < countof (Mercury_decl_tags); ++j)
 	{
-	  if (strcmp (buf, Mercury_decl_tags[j]) == 0)
+	  if (memstreq (decl_type, decl_type_length, Mercury_decl_tags[j]))
 	    {
 	      found_decl_tag = true;
-	      if (strcmp (buf, "type") == 0)
+	      if (memstreq (decl_type, decl_type_length, "type"))
 		is_mercury_type = true;
 
-	      if (strcmp (buf, "some") == 0
-		  || strcmp (buf, "all") == 0)
+	      if (memstreq (decl_type, decl_type_length, "some")
+		  || memstreq (decl_type, decl_type_length, "all"))
 		{
 		  is_mercury_quantifier = true;
 		}
@@ -6702,18 +6713,15 @@ mercury_decl (char *s, size_t pos)
 	  else
 	    /* 'solver type' has a blank in the middle,
 	       so this is the hard case.  */
-	    if (strcmp (buf, "solver") == 0)
+	    if (memstreq (decl_type, decl_type_length, "solver"))
 	      {
 		do
 		  pos++;
 		while (c_isalnum (s[pos]) || s[pos] == '_');
 
 		decl_type_length = pos - origpos;
-		char buf2[decl_type_length + 1];
-		memset (buf2, 0, decl_type_length + 1);
-		memcpy (buf2, &s[origpos], decl_type_length);
 
-		if (strcmp (buf2, "solver type") == 0)
+		if (memstreq (decl_type, decl_type_length, "solver type"))
 		  {
 		    found_decl_tag = false;
 		    break;  /* Found declaration tag of rank j.  */

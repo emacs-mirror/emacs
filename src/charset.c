@@ -497,11 +497,9 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
   set_unwind_protect_ptr (count, fclose_unwind, fp);
   unbind_to (specpdl_ref_add (count, 1), Qnil);
 
-  /* Use record_xmalloc, as `charset_map_entries' is
-     large (larger than MAX_ALLOCA).  */
-  head = record_xmalloc (sizeof *head);
-  entries = head;
-  memset (entries, 0, sizeof (struct charset_map_entries));
+  /* charset_map_entries is large, so don't SAFE_ALLOCA.  */
+  entries = head = xzalloc (sizeof *head);
+  record_unwind_protect_ptr (xfree, entries);
 
   n_entries = 0;
   int ch = -1;
@@ -533,9 +531,8 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile,
 
       if (n_entries == 0x10000)
 	{
-	  entries->next = record_xmalloc (sizeof *entries->next);
-	  entries = entries->next;
-	  memset (entries, 0, sizeof (struct charset_map_entries));
+	  entries = entries->next = xzalloc (sizeof *entries->next);
+	  record_unwind_protect_ptr (xfree, entries);
 	  n_entries = 0;
 	}
       int idx = n_entries;
@@ -560,7 +557,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
   int n_entries;
   int len = ASIZE (vec);
   int i;
-  USE_SAFE_ALLOCA;
+  specpdl_ref count = SPECPDL_INDEX ();
 
   if (len % 2 == 1)
     {
@@ -568,11 +565,9 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
       return;
     }
 
-  /* Use SAFE_ALLOCA instead of alloca, as `charset_map_entries' is
-     large (larger than MAX_ALLOCA).  */
-  head = SAFE_ALLOCA (sizeof *head);
-  entries = head;
-  memset (entries, 0, sizeof (struct charset_map_entries));
+  /* charset_map_entries is large, so don't SAFE_ALLOCA.  */
+  entries = head = xzalloc (sizeof *head);
+  record_unwind_protect_ptr (xfree, entries);
 
   n_entries = 0;
   for (i = 0; i < len; i += 2)
@@ -601,9 +596,8 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
 
       if (n_entries > 0 && (n_entries % 0x10000) == 0)
 	{
-	  entries->next = SAFE_ALLOCA (sizeof *entries->next);
-	  entries = entries->next;
-	  memset (entries, 0, sizeof (struct charset_map_entries));
+	  entries = entries->next = xzalloc (sizeof *entries->next);
+	  record_unwind_protect_ptr (xfree, entries);
 	}
       idx = n_entries % 0x10000;
       entries->entry[idx].from = from;
@@ -613,7 +607,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
     }
 
   load_charset_map (charset, head, n_entries, control_flag);
-  SAFE_FREE ();
+  unbind_to (count, Qnil);
 }
 
 
@@ -853,13 +847,11 @@ usage: (define-charset-internal ...)  */)
   Lisp_Object val;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (Vcharset_hash_table);
   int i, j;
-  struct charset charset;
+  struct charset charset = {0};
   int id;
   int dimension;
   bool new_definition_p;
   int nchars;
-
-  memset (&charset, 0, sizeof (charset));
 
   if (nargs != charset_arg_max)
     Fsignal (Qwrong_number_of_arguments,
@@ -1140,7 +1132,7 @@ usage: (define-charset-internal ...)  */)
 	  charset_table.start = new_table;
 	  charset_table.size = new_size;
 	  Lisp_Object new_attr_table = make_vector (new_size, Qnil);
-	  for (size_t i = 0; i < old_size; i++)
+	  for (int i = 0; i < old_size; i++)
 	    ASET (new_attr_table, i,
 		  AREF (charset_table.attributes_table, i));
 	  charset_table.attributes_table = new_attr_table;

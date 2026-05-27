@@ -513,16 +513,15 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 
 	  while (row < end)
 	    {
-	      /* Only realloc if matrix got wider or taller (bug#77961).  */
+	      /* Realloc if matrix got wider or taller (bug#77961).  */
 	      if (dim.width > matrix->matrix_w || new_rows)
 		{
-		  row->glyphs[LEFT_MARGIN_AREA]
-		    = xnrealloc (row->glyphs[LEFT_MARGIN_AREA],
-				 dim.width, sizeof (struct glyph));
+		  xfree (row->glyphs[LEFT_MARGIN_AREA]);
+		  row->glyphs[LEFT_MARGIN_AREA] = NULL;
 		  /* We actually need to clear only the 'frame' member, but
 		     it's easier to clear everything.  */
-		  memset (row->glyphs[LEFT_MARGIN_AREA], 0,
-			  dim.width * sizeof (struct glyph));
+		  row->glyphs[LEFT_MARGIN_AREA]
+		    = xcalloc (dim.width, sizeof (struct glyph));
 		}
 
 	      if ((row == matrix->rows + dim.height - 1
@@ -1424,7 +1423,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 
   /* Enlarge the glyph pool.  */
   if (ckd_mul (&needed, matrix_dim.height, matrix_dim.width))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   if (needed > pool->nglyphs)
     {
       ptrdiff_t old_nglyphs = pool->nglyphs;
@@ -1986,7 +1985,7 @@ save_current_matrix (struct frame *f)
   int i;
   struct glyph_matrix *saved = xzalloc (sizeof *saved);
   saved->nrows = f->current_matrix->nrows;
-  saved->rows = xzalloc (saved->nrows * sizeof *saved->rows);
+  saved->rows = xcalloc (saved->nrows, sizeof *saved->rows);
 
   for (i = 0; i < saved->nrows; ++i)
     {
@@ -5462,7 +5461,7 @@ scrolling_window (struct window *w, int tab_line_p)
        - next_almost_prime_increment_max);
     ptrdiff_t current_nrows_max = row_table_max - desired_matrix->nrows;
     if (current_nrows_max < current_matrix->nrows)
-      memory_full (SIZE_MAX);
+      memory_full_up ();
   }
 
   /* Reallocate vectors, tables etc. if necessary.  */

@@ -361,13 +361,18 @@ soon as a function returns non-nil.")
 (defun auth-source-backend-parse (entry)
   "Create an `auth-source-backend' from an ENTRY in `auth-sources'."
 
-  (let ((backend
-         (run-hook-with-args-until-success 'auth-source-backend-parser-functions
-                                           entry)))
+  (let* ((backend
+          (run-hook-wrapped
+           'auth-source-backend-parser-functions
+           (lambda (fun entry)
+             (when-let* ((result (funcall fun entry))
+                         (_ (not (eq (slot-value result 'type) 'ignore))))
+               result))
+           entry)))
 
     (unless backend
       ;; none of the parsers worked
-      (auth-source-do-warn
+      (auth-source-do-debug
        "auth-source-backend-parse: invalid backend spec: %S" entry)
       (setq backend (make-instance 'auth-source-backend
                                    :source ""
@@ -378,12 +383,12 @@ soon as a function returns non-nil.")
   "List of usable backends from `auth-sources'.
 Filter out backends with type `ignore'.
 A fallback backend is added to ensure, that at least `read-passwd' is called."
-  `(or (seq-keep
+  `(or (seq-uniq (seq-keep
         (lambda (entry)
           (and-let* ((backend (auth-source-backend-parse entry))
                      ((not (eq (slot-value backend 'type) 'ignore)))
                      backend)))
-        auth-sources)
+        auth-sources))
        ;; Fallback.
        (list (auth-source-backend
               :source ""

@@ -82,27 +82,27 @@ make_log (int size, int depth)
   log->trace
     = igc_xzalloc_ambig (depth * sizeof *log->trace, __func__);
 #else
-  log->trace = xmalloc (depth * sizeof *log->trace);
+  log->trace = xnmalloc (depth, sizeof *log->trace);
 #endif
 
-  log->index = xmalloc (index_size * sizeof *log->index);
+  log->index = xnmalloc (index_size, sizeof *log->index);
   for (int i = 0; i < index_size; i++)
     log->index[i] = -1;
 
-  log->next = xmalloc (size * sizeof *log->next);
+  log->next = xnmalloc (size, sizeof *log->next);
   for (int i = 0; i < size - 1; i++)
     log->next[i] = i + 1;
   log->next[size - 1] = -1;
   log->next_free = 0;
 
-  log->hash = xmalloc (size * sizeof *log->hash);
+  log->hash = xnmalloc (size, sizeof *log->hash);
 #ifdef HAVE_MPS
   log->keys
     = igc_xzalloc_ambig (size * depth * sizeof *log->keys, __func__);
 #else
-  log->keys = xzalloc (size * depth * sizeof *log->keys);
+  log->keys = xcalloc (size_x_depth, sizeof *log->keys);
 #endif
-  log->counts = xzalloc (size * sizeof *log->counts);
+  log->counts = xcalloc (size, sizeof *log->counts);
 
   return log;
 }
@@ -432,12 +432,11 @@ deliver_profiler_signal (int signal)
 static int
 setup_cpu_timer (Lisp_Object sampling_interval)
 {
-  int billion = 1000000000;
+  EMACS_INT billion = 1000000000;
 
   if (! RANGED_FIXNUMP (1, sampling_interval,
 			 (TYPE_MAXIMUM (time_t) < EMACS_INT_MAX / billion
-			  ? ((EMACS_INT) TYPE_MAXIMUM (time_t) * billion
-			     + (billion - 1))
+			  ? TYPE_MAXIMUM (time_t) * billion + (billion - 1)
 			  : EMACS_INT_MAX)))
     return -1;
 
@@ -470,7 +469,7 @@ setup_cpu_timer (Lisp_Object sampling_interval)
       sigev.sigev_signo = SIGPROF;
       sigev.sigev_notify = SIGEV_SIGNAL;
 
-      for (int i = 0; i < ARRAYELTS (system_clock); i++)
+      for (int i = 0; i < countof (system_clock); i++)
 	if (timer_create (system_clock[i], &sigev, &profiler_timer) == 0)
 	  {
 	    profiler_timer_ok = true;

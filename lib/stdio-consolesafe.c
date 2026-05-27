@@ -56,7 +56,7 @@ workaround_fwrite0 (char *s, size_t n, FILE *fp)
 }
 
 size_t
-gl_consolesafe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *fp)
+_gl_consolesafe_fwrite (const void *ptr, size_t size, size_t nmemb, FILE *fp)
 {
   size_t nbytes;
   if (ckd_mul (&nbytes, size, nmemb) || nbytes == 0)
@@ -133,7 +133,7 @@ local_vasprintf (char **resultp, const char *format, va_list args)
    __mingw_*printf.  */
 
 int
-gl_consolesafe_fprintf (FILE *restrict fp, const char *restrict format, ...)
+_gl_consolesafe_fprintf (FILE *restrict fp, const char *restrict format, ...)
 {
   va_list args;
   va_start (args, format);
@@ -151,7 +151,7 @@ gl_consolesafe_fprintf (FILE *restrict fp, const char *restrict format, ...)
 }
 
 int
-gl_consolesafe_printf (const char *restrict format, ...)
+_gl_consolesafe_printf (const char *restrict format, ...)
 {
   va_list args;
   va_start (args, format);
@@ -169,8 +169,8 @@ gl_consolesafe_printf (const char *restrict format, ...)
 }
 
 int
-gl_consolesafe_vfprintf (FILE *restrict fp,
-                         const char *restrict format, va_list args)
+_gl_consolesafe_vfprintf (FILE *restrict fp,
+                          const char *restrict format, va_list args)
 {
   char *tmpstring;
   int result = vasprintf (&tmpstring, format, args);
@@ -185,7 +185,7 @@ gl_consolesafe_vfprintf (FILE *restrict fp,
 }
 
 int
-gl_consolesafe_vprintf (const char *restrict format, va_list args)
+_gl_consolesafe_vprintf (const char *restrict format, va_list args)
 {
   char *tmpstring;
   int result = vasprintf (&tmpstring, format, args);

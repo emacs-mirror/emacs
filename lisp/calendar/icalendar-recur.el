@@ -451,29 +451,29 @@ See `icalendar-recur-find-interval' for arguments' meanings."
     ;; Return the bounds:
     (icr:make-interval low high next-low)))
 
-(defun icr:find-interval (target dtstart recur-value &optional vtimezone)
+(defun icr:find-interval (target dtstart rrule &optional vtimezone)
   "Return the recurrence interval around TARGET.
 
 TARGET and DTSTART should be `icalendar-date' or `icalendar-date-time'
-values.  RECUR-VALUE should be an `icalendar-recur'.
+values.  RRULE should be an `icalendar-recur'.
 
 The returned value is an interval [LOW HIGH NEXT-LOW] which
 represents the lower and upper bounds of a recurrence interval around
 TARGET.  For some N, LOW is equal to START + N*INTERVALSIZE units, HIGH
 is equal to START + (N+1)*INTERVALSIZE units, and LOW <= TARGET < HIGH.
-START here is a time derived from DTSTART depending on RECUR-VALUE's
+START here is a time derived from DTSTART depending on RRULE's
 FREQ part: the first day of the year for a \\='YEARLY rule, first day
 of the month for a \\='MONTHLY rule, etc.
 
-RECUR-VALUE's interval determines INTERVALSIZE, and its frequency
+RRULE's interval determines INTERVALSIZE, and its frequency
 determines the units: a month for \\='MONTHLY, etc.
 
 If VTIMEZONE is provided, it is used to set time zone information in the
 returned interval bounds.  Otherwise, the bounds contain no time zone
 information and represent floating local times."
-  (let ((freq (ical:recur-freq recur-value))
-        (intsize (ical:recur-interval-size recur-value))
-        (weekstart (ical:recur-weekstart recur-value)))
+  (let ((freq (ical:rrule-freq rrule))
+        (intsize (ical:rrule-interval-size rrule))
+        (weekstart (ical:rrule-weekstart rrule)))
     (cl-case freq
       (SECONDLY (icr:find-secondly-interval target dtstart intsize vtimezone))
       (MINUTELY (icr:find-minutely-interval target dtstart intsize vtimezone))
@@ -484,22 +484,22 @@ information and represent floating local times."
       (MONTHLY (icr:find-monthly-interval target dtstart intsize vtimezone))
       (YEARLY (icr:find-yearly-interval target dtstart intsize vtimezone)))))
 
-(defun icr:nth-interval (n dtstart recur-value &optional vtimezone)
+(defun icr:nth-interval (n dtstart rrule &optional vtimezone)
   "Return the Nth recurrence interval after DTSTART.
 
 The returned value is an interval [LOW HIGH NEXT-LOW] which is the Nth
 recurrence interval after DTSTART.  LOW is equal to START +
 N*INTERVALSIZE units, HIGH is equal to START + (N+1)*INTERVALSIZE units,
 and LOW <= TARGET < HIGH.  START here is a time derived from DTSTART
-depending on RECUR-VALUE's FREQ part: the first day of the year for a
+depending on RRULE's FREQ part: the first day of the year for a
 \\='YEARLY rule, first day of the month for a \\='MONTHLY rule, etc.
 
-RECUR-VALUE's interval determines INTERVALSIZE, and its frequency
+RRULE's interval determines INTERVALSIZE, and its frequency
 determines the units: a month for \\='MONTHLY, etc.
 
 N should be a non-negative integer.  Interval 0 is the interval
 containing DTSTART.  DTSTART should be an `icalendar-date' or
-`icalendar-date-time' value.  RECUR-VALUE should be an
+`icalendar-date-time' value.  RRULE should be an
 `icalendar-recur'.
 
 If VTIMEZONE is provided, it is used to set time zone information in the
@@ -509,8 +509,8 @@ information and represent floating local times."
   (let* ((start-dt (if (cl-typep dtstart 'ical:date)
                        (ical:date-to-date-time dtstart :tz vtimezone)
                      dtstart))
-         (freq (ical:recur-freq recur-value))
-         (intervalsize (ical:recur-interval-size recur-value))
+         (freq (ical:rrule-freq rrule))
+         (intervalsize (ical:rrule-interval-size rrule))
          (unit (cl-case freq
                  (YEARLY :year)
                  (MONTHLY :month)
@@ -520,16 +520,16 @@ information and represent floating local times."
                  (MINUTELY :minute)
                  (SECONDLY :second)))
          (target (ical:date/time-add start-dt unit (* n intervalsize) vtimezone)))
-    (icr:find-interval target dtstart recur-value vtimezone)))
+    (icr:find-interval target dtstart rrule vtimezone)))
 
-(defun icr:next-interval (interval recur-value &optional vtimezone)
+(defun icr:next-interval (interval rrule &optional vtimezone)
   "Return the next recurrence interval after INTERVAL.
 
 Given a recurrence interval [LOW HIGH NEXT], returns the next interval
 [NEXT HIGHER HIGHER-NEXT], where HIGHER and HIGHER-NEXT are determined
-by the frequency and interval sizes of RECUR-VALUE."
+by the frequency and interval sizes of RRULE."
   (let* ((new-low (icr:interval-next interval))
-         (freq (ical:recur-freq recur-value))
+         (freq (ical:rrule-freq rrule))
          (unit (cl-case freq
                  (YEARLY :year)
                  (MONTHLY :month)
@@ -538,7 +538,7 @@ by the frequency and interval sizes of RECUR-VALUE."
                  (HOURLY :hour)
                  (MINUTELY :minute)
                  (SECONDLY :second)))
-         (intervalsize (ical:recur-interval-size recur-value))
+         (intervalsize (ical:rrule-interval-size rrule))
          (new-high (ical:date/time-add new-low unit 1 vtimezone))
          (new-next
           (when (< 1 intervalsize)
@@ -552,17 +552,17 @@ by the frequency and interval sizes of RECUR-VALUE."
 
     (icr:make-interval new-low new-high new-next)))
 
-(defun icr:previous-interval (interval recur-value dtstart &optional vtimezone)
+(defun icr:previous-interval (interval rrule dtstart &optional vtimezone)
   "Given a recurrence INTERVAL, return the previous interval.
 
 For an interval [LOW HIGH NEXT-LOW], the previous interval is
 [PREV-LOW PREV-HIGH LOW], where PREV-LOW and PREV-HIGH are determined by
-the frequency and interval sizes of RECUR-VALUE (see
+the frequency and interval sizes of RRULE (see
 `icalendar-recur-find-interval').  If the resulting period of time
 between PREV-LOW and PREV-HIGH occurs entirely before DTSTART, then the
 interval does not exist; in this case nil is returned."
   (let* ((upper (icr:interval-low interval))
-         (freq (ical:recur-freq recur-value))
+         (freq (ical:rrule-freq rrule))
          (unit (cl-case freq
                  (YEARLY :year)
                  (MONTHLY :month)
@@ -571,7 +571,7 @@ interval does not exist; in this case nil is returned."
                  (HOURLY :hour)
                  (MINUTELY :minute)
                  (SECONDLY :second)))
-         (intervalsize (ical:recur-interval-size recur-value))
+         (intervalsize (ical:rrule-interval-size rrule))
          (new-low (ical:date/time-add upper unit (* -1 intervalsize) vtimezone))
          (new-high
           (if (< 1 intervalsize)
@@ -1032,12 +1032,12 @@ The returned value is RECURRENCES filtered by index."
       (pop dts))
     (nreverse r)))
 
-(defun icr:refine-from-clauses (interval recur-value dtstart
+(defun icr:refine-from-clauses (interval rrule dtstart
                                 &optional vtimezone)
-  "Resolve INTERVAL into subintervals based on the clauses in RECUR-VALUE.
+  "Resolve INTERVAL into subintervals based on the clauses in RRULE.
 
 The resulting list of subintervals represents all times in INTERVAL
-which match the BY* clauses of RECUR-VALUE except BYSETPOS, as well as
+which match the BY* clauses of RRULE except BYSETPOS, as well as
 the constraints implicit in DTSTART.  (For example, if there is no
 BYMINUTE clause, subintervals will have the same minute value as
 DTSTART.)
@@ -1047,14 +1047,14 @@ components and TZID should be the `icalendar-tzid' property value of one
 of those timezones.  In this case, TZID states the time zone of DTSTART,
 and the offsets effective in that time zone on the dates and times of
 recurrences will be local to that time zone."
-  (let ((freq (ical:recur-freq recur-value))
-        (weekstart (ical:recur-weekstart recur-value))
+  (let ((freq (ical:rrule-freq rrule))
+        (weekstart (ical:rrule-weekstart rrule))
         (subintervals (list interval)))
 
     (dolist (byunit (list 'BYMONTH 'BYWEEKNO
                           'BYYEARDAY 'BYMONTHDAY 'BYDAY
                           'BYHOUR 'BYMINUTE 'BYSECOND))
-      (let ((values (ical:recur-by* byunit recur-value))
+      (let ((values (ical:rrule-by* byunit rrule))
             (in-month nil))
         ;; When there is no explicit BY* clause, use the value implicit
         ;; in DTSTART.  (These conditions are adapted from RFC8984:
@@ -1086,26 +1086,26 @@ recurrences will be local to that time zone."
           (setq values (list (ical:date/time-weekday dtstart))))
         (when (and (eq byunit 'BYMONTHDAY)
                    (eq freq 'MONTHLY)
-                   (not (ical:recur-by* 'BYDAY recur-value))
+                   (not (ical:rrule-by* 'BYDAY rrule))
                    (not values))
           (setq values (list (ical:date/time-monthday dtstart))))
         (when (and (eq freq 'YEARLY)
-                   (not (ical:recur-by* 'BYYEARDAY recur-value)))
+                   (not (ical:rrule-by* 'BYYEARDAY rrule)))
           (when (and (eq byunit 'BYMONTH)
                      (not values)
-                     (not (ical:recur-by* 'BYWEEKNO recur-value))
-                     (or (ical:recur-by* 'BYMONTHDAY recur-value)
-                         (not (ical:recur-by* 'BYDAY recur-value))))
+                     (not (ical:rrule-by* 'BYWEEKNO rrule))
+                     (or (ical:rrule-by* 'BYMONTHDAY rrule)
+                         (not (ical:rrule-by* 'BYDAY rrule))))
             (setq values (list (ical:date/time-month dtstart))))
           (when (and (eq byunit 'BYMONTHDAY)
                      (not values)
-                     (not (ical:recur-by* 'BYWEEKNO recur-value))
-                     (not (ical:recur-by* 'BYDAY recur-value)))
+                     (not (ical:rrule-by* 'BYWEEKNO rrule))
+                     (not (ical:rrule-by* 'BYDAY rrule)))
             (setq values (list (ical:date/time-monthday dtstart))))
           (when (and (eq byunit 'BYDAY)
                      (not values)
-                     (ical:recur-by* 'BYWEEKNO recur-value)
-                     (not (ical:recur-by* 'BYMONTHDAY recur-value)))
+                     (ical:rrule-by* 'BYWEEKNO rrule)
+                     (not (ical:rrule-by* 'BYMONTHDAY rrule)))
             (setq values (list (ical:date/time-weekday dtstart)))))
 
         ;; Handle offsets in a BYDAY clause:
@@ -1120,7 +1120,7 @@ recurrences will be local to that time zone."
         (when (and (eq byunit 'BYDAY)
                    (or (eq freq 'MONTHLY)
                        (and (eq freq 'YEARLY)
-                            (ical:recur-by* 'BYMONTH recur-value))))
+                            (ical:rrule-by* 'BYMONTH rrule))))
           (setq in-month t))
 
         ;; On each iteration of the loop, we refine the subintervals
@@ -1246,10 +1246,10 @@ retrieved on subsequent calls with the same arguments."
   (ical:with-component component
       ((ical:dtstart :value dtstart)
        (ical:tzoffsetfrom :value offset-from)
-       (ical:rrule :value recur-value)
+       (ical:rrule :value rrule)
        (ical:rdate :all rdate-nodes) ;; TODO: these can also be ical:period values
        (ical:exdate :all exdate-nodes))
-    (if (not (or recur-value rdate-nodes))
+    (if (not (or rrule rdate-nodes))
         ;; No recurrences to calculate, so just return early:
         nil
       ;; Otherwise, calculate recurrences in the interval:
@@ -1267,19 +1267,19 @@ retrieved on subsequent calls with the same arguments."
                 (t
                  (let* (;; Start by generating all the recurrences matching the
                         ;; BY* clauses except for BYSETPOS:
-                        (subs (icr:refine-from-clauses interval recur-value dtstart
+                        (subs (icr:refine-from-clauses interval rrule dtstart
                                                        vtimezone))
                         (sub-recs (icr:subintervals-to-recurrences subs dtstart
                                                                    vtimezone))
                         ;; Apply any BYSETPOS clause to this set:
-                        (keep-indices (ical:recur-by* 'BYSETPOS recur-value))
+                        (keep-indices (ical:rrule-by* 'BYSETPOS rrule))
                         (pos-recs
                          (if keep-indices
                              (icr:bysetpos-filter keep-indices sub-recs)
                            sub-recs))
                         ;; Remove any recurrences before DTSTART or after UNTIL
                         ;; (both of which are inclusive bounds):
-                        (until (ical:recur-until recur-value))
+                        (until (ical:rrule-until rrule))
                         (until-recs
                          (seq-filter
                           (lambda (rec) (and (ical:date/time<= dtstart rec)
@@ -1345,9 +1345,9 @@ UTC offsets local to that time zone."
   (ical:with-component component
       ((ical:dtstart :value dtstart)
        (ical:tzoffsetfrom :value offset-from)
-       (ical:rrule :value recur-value)
+       (ical:rrule :value rrule)
        (ical:rdate :all rdate-nodes))
-    (if (not (or recur-value rdate-nodes))
+    (if (not (or rrule rdate-nodes))
         ;; No recurrences to calculate, so just return early:
         nil
       ;; Otherwise, calculate the recurrences in the window:
@@ -1362,11 +1362,11 @@ UTC offsets local to that time zone."
 
       (let* (;; don't look for nonexistent intervals:
              (low-start (if (ical:date/time< lower dtstart) dtstart lower))
-             (until (ical:recur-until recur-value))
+             (until (ical:rrule-until rrule))
              (high-end (if (and until (ical:date/time< until upper)) until upper))
-             (curr-interval (icr:find-interval low-start dtstart recur-value
+             (curr-interval (icr:find-interval low-start dtstart rrule
                                                vtimezone))
-             (high-interval (icr:find-interval high-end dtstart recur-value
+             (high-interval (icr:find-interval high-end dtstart rrule
                                                vtimezone))
              (high-intbound (icr:interval-high high-interval))
              (recurrences nil))
@@ -1376,7 +1376,7 @@ UTC offsets local to that time zone."
                 (nconc
                  (icr:recurrences-in-interval curr-interval component vtimezone)
                  recurrences))
-          (setq curr-interval (icr:next-interval curr-interval recur-value
+          (setq curr-interval (icr:next-interval curr-interval rrule
                                                  vtimezone)))
 
         ;; exclude any recurrences inside the first and last intervals but
@@ -1447,7 +1447,7 @@ UTC offsets local to that time zone."
   (ical:with-component component
       ((ical:dtstart :value dtstart)
        (ical:tzoffsetfrom :value offset-from)
-       (ical:rrule :value recur-value)
+       (ical:rrule :value rrule)
        (ical:rdate :all rdate-nodes))
     (when (memq (ical:ast-node-type component) '(ical:standard ical:daylight))
       ;; in time zone observances, set the zone field in dtstart
@@ -1457,18 +1457,18 @@ UTC offsets local to that time zone."
                                     :zone offset-from
                                     :dst (not (ical:daylight-component-p
                                                component)))))
-    (unless (or recur-value rdate-nodes)
+    (unless (or rrule rdate-nodes)
       (error "No recurrence data in component: %s" component))
-    (unless (ical:recur-count recur-value)
+    (unless (ical:rrule-count rrule)
       (error "Recurrence rule has no COUNT clause"))
-    (let ((count (ical:recur-count recur-value))
-          (int (icr:nth-interval 0 dtstart recur-value vtimezone))
+    (let ((count (ical:rrule-count rrule))
+          (int (icr:nth-interval 0 dtstart rrule vtimezone))
           recs)
       (while (length< recs count)
         (setq recs
               (nconc recs (icr:recurrences-in-interval int component vtimezone
                                                        (- count (length recs)))))
-        (setq int (icr:next-interval int recur-value vtimezone)))
+        (setq int (icr:next-interval int rrule vtimezone)))
       recs)))
 
 
@@ -1771,7 +1771,7 @@ ignored."
       (dolist (obs (append stds dls))
         (ical:with-component obs
           ((ical:dtstart :value start)
-           (ical:rrule :value recur-value)
+           (ical:rrule :value rrule)
            (ical:rdate :all rdate-nodes)
            (ical:tzoffsetfrom :value offset-from))
           ;; DTSTART of the observance must be given as local time, and is
@@ -1781,7 +1781,7 @@ ignored."
                  (effective-start
                   (ical:date-time-variant start :zone offset-from
                                           :dst (not is-daylight)))
-                 (until (ical:recur-until recur-value))
+                 (until (ical:rrule-until rrule))
                  (bound
                   ;; Optimization: compute a rough upper bound for when
                   ;; an observance might apply, thus allowing us to skip
@@ -1796,8 +1796,8 @@ ignored."
                   (when until
                     (ical:date-time-variant until
                                             :year (+ (decoded-time-year until)
-                                                     (ical:recur-interval-size
-                                                      recur-value)))))
+                                                     (ical:rrule-interval-size
+                                                      rrule)))))
                  (observance-might-apply
                   (if given-clock-time
                       (icr:-w/in-locally-p given-clock-time effective-start bound)
@@ -1859,11 +1859,11 @@ ignored."
               ;; start of each observance onset), which
               ;; `icr:tz-set-zone' knows to handle specially without
               ;; calling this function.
-              (when recur-value
+              (when rrule
                 (let* ((target (or given-clock-time
                                    (decode-time given-abs-time offset-from)))
                        (int (icr:find-interval
-                             target effective-start recur-value offset-from))
+                             target effective-start rrule offset-from))
                        (<=given
                         (if given-clock-time
                             (lambda (rec)
@@ -1883,7 +1883,7 @@ ignored."
                          ;; actually be in the previous interval, e.g.
                          ;; if `dt' is in January after an annual change to
                          ;; Standard Time in November.  So check that as well.
-                         (setq int (icr:previous-interval int recur-value
+                         (setq int (icr:previous-interval int rrule
                                                           effective-start
                                                           offset-from))
                          (setq int-recs

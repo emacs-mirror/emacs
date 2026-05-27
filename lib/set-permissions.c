@@ -21,6 +21,8 @@
 
 #include "acl.h"
 
+#include <stdcountof.h>
+
 #include "acl-internal.h"
 #include "minmax.h"
 
@@ -251,11 +253,9 @@ set_acls_from_mode (const char *name, int desc, mode_t mode, bool *must_chmod)
 
     int ret;
     if (desc != -1)
-      ret = facl (desc, SETACL,
-                  sizeof (entries) / sizeof (aclent_t), entries);
+      ret = facl (desc, SETACL, countof (entries), entries);
     else
-      ret = acl (name, SETACL,
-                 sizeof (entries) / sizeof (aclent_t), entries);
+      ret = acl (name, SETACL, countof (entries), entries);
     if (ret < 0)
       {
         if (errno == ENOSYS || errno == EOPNOTSUPP)

@@ -387,7 +387,7 @@ build_wcs_upper_buffer (re_string_t *pstr)
 	      {
 		size_t mbcdlen;
 
-		mbcdlen = __wcrtomb ((char *) buf, wcu, &prev_st);
+		mbcdlen = __wcrtomb (buf, wcu, &prev_st);
 		if (__glibc_likely (mbclen == mbcdlen))
 		  memcpy (pstr->mbs + byte_idx, buf, mbclen);
 		else if (mbcdlen != (size_t) -1)
@@ -1241,8 +1241,8 @@ re_node_set_merge (re_node_set *dest, const re_node_set *src)
 }
 
 /* Insert the new element ELEM to the re_node_set* SET.
-   SET should not already have ELEM.
-   Return true if successful.  */
+   SET is not expected to already contain ELEM, but tolerate
+   duplicates as a no-op.  Return true if successful.  */
 
 static bool
 __attribute_warn_unused_result__
@@ -1285,8 +1285,16 @@ re_node_set_insert (re_node_set *set, Idx elem)
   else
     {
       for (idx = set->nelem; set->elems[idx - 1] > elem; idx--)
-	set->elems[idx] = set->elems[idx - 1];
-      DEBUG_ASSERT (set->elems[idx - 1] < elem);
+        {
+          set->elems[idx] = set->elems[idx - 1];
+          /* Although we already guaranteed that idx is at least 2 here,
+             add an assertion to pacify GCC 16.1.1 -Wanalyzer-out-of-bounds
+             when _REGEX_AVOID_UCHAR_H is defined.  */
+          DEBUG_ASSERT (1 < idx);
+        }
+      /* Already in set.  Return early.  */
+      if (__glibc_unlikely (set->elems[idx - 1] == elem))
+	return true;
     }
 
   /* Insert the new element.  */

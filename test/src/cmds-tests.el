@@ -40,5 +40,30 @@
     (let ((shortage (forward-line (+ 2 most-positive-fixnum))))
       (should (= shortage (1+ most-positive-fixnum))))))
 
+(ert-deftest self-insert-zero-newlines ()
+  "Test `self-insert-command' with arguments which used to cause a crash."
+  (with-temp-buffer
+    (let* ((pt nil)
+           (auto-fill-function (lambda () (setq pt (point)))))
+      (self-insert-command 0 10)
+      (should-not (equal pt 0)))))
+
+(ert-deftest self-insert-nonascii-autofill ()
+  "Test `self-insert-command' with a non-ASCII autofill function."
+  (with-temp-buffer
+    (let ((auto-fill-function
+           (lambda ()
+             (delete-char 1)
+             (insert #x2000)
+             (forward-char -1))))
+      (dotimes (_ 10)
+        (self-insert-command 1 10)
+        (goto-char 2)
+        (should (equal (point) 2))
+        (should (equal (length (buffer-string)) 1))
+        (should (equal (format "%S" (buffer-string))
+                       "\"\x2000\""))
+        (delete-char -1)))))
+
 (provide 'cmds-tests)
 ;;; cmds-tests.el ends here

@@ -813,9 +813,9 @@ digest_single_submenu (int start, int end, bool top_level_items)
 	  wv->lname = item_name;
 	  if (!NILP (descrip))
 	    wv->lkey = descrip;
-	  /* The intptr_t cast avoids a warning.  There's no problem
+	  /* The intptr_t avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
-	  wv->call_data = (!NILP (def) ? (void *) (intptr_t) i : 0);
+	  wv->call_data = (!NILP (def) ? (void *) (intptr_t) {i} : 0);
 
 	  if (NILP (type))
 	    wv->button_type = BUTTON_TYPE_NONE;
@@ -1287,12 +1287,12 @@ x_popup_menu_1 (Lisp_Object position, Lisp_Object menu)
 
     xpos += check_integer_range (x,
 				 (xpos < INT_MIN - MOST_NEGATIVE_FIXNUM
-				  ? (EMACS_INT) INT_MIN - xpos
+				  ? (EMACS_INT) {INT_MIN} - xpos
 				  : MOST_NEGATIVE_FIXNUM),
 				 INT_MAX - xpos);
     ypos += check_integer_range (y,
 				 (ypos < INT_MIN - MOST_NEGATIVE_FIXNUM
-				  ? (EMACS_INT) INT_MIN - ypos
+				  ? (EMACS_INT) {INT_MIN} - ypos
 				  : MOST_NEGATIVE_FIXNUM),
 				 INT_MAX - ypos);
 

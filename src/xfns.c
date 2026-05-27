@@ -1399,10 +1399,9 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   if (x_had_errors_p (dpy))
     {
       const char *bad_cursor_name = NULL;
-      /* Bounded by X_ERROR_MESSAGE_SIZE in xterm.c.  */
-      size_t message_length = strlen (cursor_data.error_string);
-      char *xmessage = alloca (1 + message_length);
-      memcpy (xmessage, cursor_data.error_string, message_length);
+      char xmessage[X_ERROR_MESSAGE_SIZE];
+      eassert (strlen (cursor_data.error_string) < sizeof xmessage);
+      strcpy (xmessage, cursor_data.error_string);
 
       x_uncatch_errors_after_check ();
 
@@ -1561,7 +1560,7 @@ x_set_border_pixel (struct frame *f, unsigned long pix)
     {
       block_input ();
       XtVaSetValues (f->output_data.x->widget, XtNborderColor,
-		     (Pixel) pix, NULL);
+		     (Pixel) {pix}, NULL);
       unblock_input ();
 
       if (FRAME_VISIBLE_P (f))
@@ -2738,11 +2737,6 @@ static int xic_preedit_start_callback (XIC, XPointer, XPointer);
 static void xic_string_conversion_callback (XIC, XPointer,
 					    XIMStringConversionCallbackStruct *);
 
-#ifndef HAVE_XICCALLBACK_CALLBACK
-#define XICCallback XIMCallback
-#define XICProc XIMProc
-#endif
-
 static XIMCallback Xxic_preedit_draw_callback =
   {
     NULL,
@@ -2761,11 +2755,19 @@ static XIMCallback Xxic_preedit_done_callback =
     (XIMProc) xic_preedit_done_callback,
   };
 
+#ifdef HAVE_XICCALLBACK_CALLBACK
 static XICCallback Xxic_preedit_start_callback =
   {
     NULL,
-    (XICProc) xic_preedit_start_callback,
+    xic_preedit_start_callback,
   };
+#else
+static XIMCallback Xxic_preedit_start_callback =
+  {
+    NULL,
+    (XIMProc) xic_preedit_start_callback,
+  };
+#endif
 
 static XIMCallback Xxic_string_conversion_callback =
   {
@@ -3069,7 +3071,7 @@ best_xim_style (struct x_display_info *dpyinfo,
 		XIMStyles *xim)
 {
   int i, j;
-  int nr_supported = ARRAYELTS (supported_xim_styles);
+  int nr_supported = countof (supported_xim_styles);
 
   if (dpyinfo->preferred_xim_style)
     return dpyinfo->preferred_xim_style;
@@ -3469,7 +3471,7 @@ struct x_xim_text_conversion_data
   struct coding_system *coding;
   char *source;
   struct x_display_info *dpyinfo;
-  size_t size;
+  ptrdiff_t size;
 };
 
 static Lisp_Object
@@ -3602,7 +3604,7 @@ x_xim_text_to_utf8_unix (struct x_display_info *dpyinfo,
 
 static char *
 x_encode_xim_text (struct x_display_info *dpyinfo, char *text,
-		   size_t size, ptrdiff_t *length,
+		   ptrdiff_t size, ptrdiff_t *length,
 		   ptrdiff_t *chars)
 {
   struct coding_system coding;
@@ -6267,7 +6269,7 @@ x_get_monitor_attributes_xinerama (struct x_display_info *dpyinfo)
 			/ x_display_pixel_width (dpyinfo));
   mm_height_per_pixel = ((double) HeightMMOfScreen (dpyinfo->screen)
 			 / x_display_pixel_height (dpyinfo));
-  monitors = xzalloc (n_monitors * sizeof *monitors);
+  monitors = xcalloc (n_monitors, sizeof *monitors);
   for (i = 0; i < n_monitors; ++i)
     {
       struct MonitorInfo *mi = &monitors[i];
@@ -6341,7 +6343,7 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
       if (!rr_monitors)
 	goto fallback;
 
-      monitors = xzalloc (n_monitors * sizeof *monitors);
+      monitors = xcalloc (n_monitors, sizeof *monitors);
 #ifdef USE_XCB
       atom_name_cookies = alloca (n_monitors * sizeof *atom_name_cookies);
 #endif
@@ -6440,7 +6442,7 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
       return Qnil;
     }
   n_monitors = resources->noutput;
-  monitors = xzalloc (n_monitors * sizeof *monitors);
+  monitors = xcalloc (n_monitors, sizeof *monitors);
 
 #if RANDR13_LIBRARY
   if (randr13_avail)
@@ -6657,7 +6659,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
 			 / x_display_pixel_height (dpyinfo));
 #endif
   monitor_frames = make_nil_vector (n_monitors);
-  monitors = xzalloc (n_monitors * sizeof *monitors);
+  monitors = xcalloc (n_monitors, sizeof *monitors);
 
   FOR_EACH_FRAME (rest, frame)
     {

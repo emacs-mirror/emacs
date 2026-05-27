@@ -304,7 +304,7 @@ get_current_dir_name_or_unreachable (void)
     }
 # endif
 
-  size_t pwdlen;
+  ptrdiff_t pwdlen;
   struct stat dotstat, pwdstat;
   pwd = getenv ("PWD");
 
@@ -430,7 +430,7 @@ init_baud_rate (int fd)
 #endif /* not DOS_NT */
     }
 
-  baud_rate = (emacs_ospeed < ARRAYELTS (baud_convert)
+  baud_rate = (emacs_ospeed < countof (baud_convert)
 	       ? baud_convert[emacs_ospeed] : 9600);
   if (baud_rate == 0)
     baud_rate = 1200;
@@ -1310,9 +1310,9 @@ init_sys_modes (struct tty_display_info *tty_out)
     }
 #endif /* F_GETOWN */
 
-  const size_t buffer_size = (tty_out->output_buffer_size
-			      ? tty_out->output_buffer_size
-			      : BUFSIZ);
+  const ptrdiff_t buffer_size = (tty_out->output_buffer_size
+				 ? tty_out->output_buffer_size
+				 : BUFSIZ);
   setvbuf (tty_out->output, NULL, _IOFBF, buffer_size);
 
   if (tty_out->terminal->set_terminal_modes_hook)
@@ -2980,10 +2980,9 @@ int
 serial_open (Lisp_Object port)
 {
   int fd = emacs_open (SSDATA (port), O_RDWR | O_NOCTTY | O_NONBLOCK, 0);
-  if (fd < 0)
-    report_file_error ("Opening serial port", port);
 #ifdef TIOCEXCL
-  ioctl (fd, TIOCEXCL, (char *) 0);
+  if (0 <= fd)
+    ioctl (fd, TIOCEXCL, (char *) 0);
 #endif
 
   return fd;
@@ -3137,7 +3136,7 @@ static const struct speed_struct speeds[] =
 static speed_t
 convert_speed (speed_t speed)
 {
-  for (size_t i = 0; i < ARRAYELTS (speeds); i++)
+  for (ptrdiff_t i = 0; i < countof (speeds); i++)
     {
       if (speed == speeds[i].internal)
 	return speed;
@@ -3357,7 +3356,7 @@ list_system_processes (void)
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
 #endif
   size_t len;
-  size_t mibsize = ARRAYELTS (mib);
+  size_t mibsize = countof (mib);
   struct kinfo_proc *procs;
   size_t i;
 

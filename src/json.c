@@ -135,7 +135,7 @@ struct symset_tbl
 static inline ptrdiff_t
 symset_size (int bits)
 {
-  return (ptrdiff_t) 1 << bits;
+  return (ptrdiff_t) {1} << bits;
 }
 
 static struct symset_tbl *
@@ -143,7 +143,7 @@ make_symset_table (int bits, struct symset_tbl *up)
 {
   int maxbits = min (SIZE_WIDTH - 2 - (word_size < 8 ? 2 : 3), 32);
   if (bits > maxbits)
-    memory_full (PTRDIFF_MAX);	/* Will never happen in practice.  */
+    memory_full_up ();	/* Will never happen in practice.  */
 #ifdef HAVE_MPS
   struct symset_tbl *st
     = igc_xzalloc_ambig (sizeof *st + (sizeof *st->entries << bits),
@@ -269,13 +269,10 @@ symset_add (json_out_t *jo, symset_t *ss, Lisp_Object sym)
 }
 
 static NO_INLINE void
-json_out_grow_buf (json_out_t *jo, ptrdiff_t bytes)
+json_out_grow_buf (json_out_t *jo, ptrdiff_t incr_min)
 {
-  ptrdiff_t need = jo->size + bytes;
-  ptrdiff_t new_size = max (jo->capacity, 512);
-  while (new_size < need)
-    new_size <<= 1;
-  jo->buf = xrealloc (jo->buf, new_size);
+  ptrdiff_t new_size = jo->capacity;
+  jo->buf = xpalloc (jo->buf, &new_size, incr_min, -1, 1);
   jo->capacity = new_size;
 }
 
@@ -292,15 +289,16 @@ cleanup_json_out (void *arg)
 static void
 json_make_room (json_out_t *jo, ptrdiff_t bytes)
 {
-  if (bytes > jo->capacity - jo->size)
-    json_out_grow_buf (jo, bytes);
+  ptrdiff_t avail = jo->capacity - jo->size;
+  if (avail < bytes)
+    json_out_grow_buf (jo, bytes - avail);
 }
 
 #define JSON_OUT_STR(jo, str) (json_out_str (jo, str, sizeof (str) - 1))
 
 /* Add `bytes` bytes from `str` to the buffer.  */
 static void
-json_out_str (json_out_t *jo, const char *str, size_t bytes)
+json_out_str (json_out_t *jo, const char *str, ptrdiff_t bytes)
 {
   json_make_room (jo, bytes);
   memcpy (jo->buf + jo->size, str, bytes);
@@ -720,7 +718,7 @@ struct json_parser
 
   struct json_configuration conf;
 
-  size_t additional_bytes_count;
+  ptrdiff_t additional_bytes_count;
 
   /* Lisp_Objects are collected in this area during object/array
      parsing.  To avoid allocations, initially
@@ -731,8 +729,8 @@ struct json_parser
   Lisp_Object internal_object_workspace
   [JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE];
   Lisp_Object *object_workspace;
-  size_t object_workspace_size;
-  size_t object_workspace_current;
+  ptrdiff_t object_workspace_size;
+  ptrdiff_t object_workspace_current;
 
   /* String and number parsing uses this workspace.  The idea behind
      internal_byte_workspace is the same as the idea behind
@@ -832,8 +830,9 @@ json_parser_done (void *parser)
    Lisp_Objects */
 NO_INLINE static void
 json_make_object_workspace_for_slow_path (struct json_parser *parser,
-					  size_t size)
+					  ptrdiff_t size)
 {
+#ifdef HAVE_MPS
   size_t needed_workspace_size
     = (parser->object_workspace_current + size);
   size_t new_workspace_size = parser->object_workspace_size;
@@ -849,40 +848,40 @@ json_make_object_workspace_for_slow_path (struct json_parser *parser,
   if (parser->object_workspace_size
       == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE)
     {
-#ifndef HAVE_MPS
-      new_workspace_ptr
-	= xnmalloc (new_workspace_size, sizeof (Lisp_Object));
-#else
       new_workspace_ptr
 	= igc_xalloc_lisp (new_workspace_size,
 			   "json-parser-object-workspace");
-#endif
       memcpy (new_workspace_ptr, parser->object_workspace,
 	      (sizeof (Lisp_Object)
 	       * parser->object_workspace_current));
     }
   else
     {
-#ifndef HAVE_MPS
-      new_workspace_ptr
-	= xnrealloc (parser->object_workspace, new_workspace_size,
-		     sizeof (Lisp_Object));
-#else
       size_t old_size = parser->object_workspace_current;
       new_workspace_ptr
 	= igc_xnrealloc_lisp (old_size, parser->object_workspace,
 			      new_workspace_size,
 			      "json-parser-object-workspace");
-#endif
     }
-
+#else
+  bool internal = (parser->object_workspace_size
+		   == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE);
+  Lisp_Object *new_workspace_ptr
+    = xpalloc (internal ? NULL : parser->object_workspace,
+	       &parser->object_workspace_size,
+	       size - (parser->object_workspace_size
+		       - parser->object_workspace_current),
+	       -1, sizeof (Lisp_Object));
+  if (internal)
+    memcpy (new_workspace_ptr, parser->object_workspace,
+	    sizeof (Lisp_Object) * parser->object_workspace_current);
+#endif
   parser->object_workspace = new_workspace_ptr;
-  parser->object_workspace_size = new_workspace_size;
 }
 
 INLINE void
 json_make_object_workspace_for (struct json_parser *parser,
-				size_t size)
+				ptrdiff_t size)
 {
   if (parser->object_workspace_size - parser->object_workspace_current
       < size)
@@ -897,33 +896,23 @@ json_byte_workspace_reset (struct json_parser *parser)
   parser->byte_workspace_current = parser->byte_workspace;
 }
 
-/* Puts 'value' into the byte_workspace.  If there is no space
-   available, it allocates space */
+/* Put VALUE into the byte_workspace, allocating space.  */
 NO_INLINE static void
 json_byte_workspace_put_slow_path (struct json_parser *parser,
 				   unsigned char value)
 {
-  size_t new_workspace_size
+  ptrdiff_t new_workspace_size
     = parser->byte_workspace_end - parser->byte_workspace;
-  if (ckd_mul (&new_workspace_size, new_workspace_size, 2))
-    {
-      json_signal_error (parser, Qjson_out_of_memory);
-    }
-
-  size_t offset
+  ptrdiff_t offset
     = parser->byte_workspace_current - parser->byte_workspace;
 
-  if (parser->byte_workspace == parser->internal_byte_workspace)
-    {
-      parser->byte_workspace = xmalloc (new_workspace_size);
-      memcpy (parser->byte_workspace, parser->internal_byte_workspace,
-	      offset);
-    }
-  else
-    {
-      parser->byte_workspace
-	= xrealloc (parser->byte_workspace, new_workspace_size);
-    }
+  bool internal = parser->byte_workspace == parser->internal_byte_workspace;
+  unsigned char *new
+    = xpalloc (internal ? NULL : parser->byte_workspace,
+	       &new_workspace_size, 1, -1, 1);
+  if (internal)
+    memcpy (new, parser->byte_workspace, offset);
+  parser->byte_workspace = new;
   parser->byte_workspace_end
     = parser->byte_workspace + new_workspace_size;
   parser->byte_workspace_current = parser->byte_workspace + offset;
@@ -1421,7 +1410,7 @@ json_parse_array (struct json_parser *parser)
 {
   int c = json_skip_whitespace (parser);
 
-  const size_t first = parser->object_workspace_current;
+  const ptrdiff_t first = parser->object_workspace_current;
   Lisp_Object result = Qnil;
 
   if (c != ']')
@@ -1473,10 +1462,10 @@ json_parse_array (struct json_parser *parser)
     {
     case json_array_array:
       {
-	size_t number_of_elements
+	ptrdiff_t number_of_elements
 	  = parser->object_workspace_current - first;
 	result = make_vector (number_of_elements, Qnil);
-	for (size_t i = 0; i < number_of_elements; i++)
+	for (ptrdiff_t i = 0; i < number_of_elements; i++)
 	  {
 	    rarely_quit (i);
 	    ASET (result, i, parser->object_workspace[first + i]);
@@ -1512,7 +1501,7 @@ json_parse_object (struct json_parser *parser)
 {
   int c = json_skip_whitespace (parser);
 
-  const size_t first = parser->object_workspace_current;
+  const ptrdiff_t first = parser->object_workspace_current;
   Lisp_Object result = Qnil;
 
   if (c != '}')
@@ -1588,10 +1577,10 @@ json_parse_object (struct json_parser *parser)
     {
     case json_object_hashtable:
       {
-	EMACS_INT value = (parser->object_workspace_current - first) / 2;
+	EMACS_INT value = (parser->object_workspace_current - first) >> 1;
 	result = make_hash_table (&hashtest_equal, value, Weak_None);
 	struct Lisp_Hash_Table *h = XHASH_TABLE (result);
-	for (size_t i = first; i < parser->object_workspace_current; i += 2)
+	for (ptrdiff_t i = first; i < parser->object_workspace_current; i += 2)
 	  {
 	    hash_hash_t hash;
 	    Lisp_Object key = parser->object_workspace[i];

@@ -20,6 +20,7 @@
 #define __STDC_WANT_IEC_60559_BFP_EXT__
 
 #ifndef _LIBC
+# define _GL_USE_STDLIB_ALLOC 1
 # include <libc-config.h>
 
 # if __GNUC_PREREQ (4, 6)

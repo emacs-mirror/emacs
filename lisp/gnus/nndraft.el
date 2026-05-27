@@ -207,7 +207,7 @@ are generated if and only if they are also in `message-draft-headers'."
     (clear-visited-file-modtime)
     (add-hook 'write-contents-functions #'nndraft-generate-headers nil t)
     (add-hook 'after-save-hook #'nndraft-update-unread-articles nil t)
-    (message-add-action '(nndraft-update-unread-articles)
+    (message-add-action #'nndraft-update-unread-articles
 			'exit 'postpone 'kill)
     article))
 

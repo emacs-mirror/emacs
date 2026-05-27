@@ -627,6 +627,8 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
   /* We must check the longest matching, if nmatch > 0.  */
   fl_longest_match = (nmatch != 0 || dfa->nbackref);
 
+  re_dfastate_t **save_state_log = NULL;
+
   err = re_string_allocate (&mctx.input, string, length, dfa->nodes_len + 1,
 			    preg->translate, (preg->syntax & RE_ICASE) != 0,
 			    dfa);
@@ -802,11 +804,32 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
 	      if ((!preg->no_sub && nmatch > 1 && dfa->has_plural_match)
 		  || dfa->nbackref)
 		{
+		  /* Save state_log before pruning, in case set_regs
+		     later fails and we need to retry with a shorter
+		     match.  */
+		  re_free (save_state_log);
+		  save_state_log = NULL;
+		  if (!preg->no_sub && nmatch > 1 && dfa->nbackref)
+		    {
+		      save_state_log
+			= re_malloc (re_dfastate_t *,
+				     mctx.match_last + 1);
+		      if (__glibc_unlikely (save_state_log == NULL))
+			{
+			  err = REG_ESPACE;
+			  goto free_return;
+			}
+		      memcpy (save_state_log, mctx.state_log,
+			      sizeof (re_dfastate_t *)
+			      * (mctx.match_last + 1));
+		    }
 		  err = prune_impossible_nodes (&mctx);
 		  if (err == REG_NOERROR)
 		    break;
 		  if (__glibc_unlikely (err != REG_NOMATCH))
 		    goto free_return;
+		  re_free (save_state_log);
+		  save_state_log = NULL;
 		  match_last = -1;
 		}
 	      else
@@ -825,24 +848,79 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
     {
       Idx reg_idx;
 
-      /* Initialize registers.  */
-      for (reg_idx = 1; reg_idx < nmatch; ++reg_idx)
-	pmatch[reg_idx].rm_so = pmatch[reg_idx].rm_eo = -1;
-
-      /* Set the points where matching start/end.  */
-      pmatch[0].rm_so = 0;
-      pmatch[0].rm_eo = mctx.match_last;
-      /* FIXME: This function should fail if mctx.match_last exceeds
-	 the maximum possible regoff_t value.  We need a new error
-	 code REG_OVERFLOW.  */
-
-      if (!preg->no_sub && nmatch > 1)
+      /* When set_regs fails for a backref pattern, the structural
+	 match at match_last has no valid register assignment.  Try
+	 shorter match lengths, since a valid shorter match may
+	 exist (e.g., all groups matching empty).  */
+      for (;;)
 	{
+	  /* Initialize registers.  */
+	  for (reg_idx = 1; reg_idx < nmatch; ++reg_idx)
+	    pmatch[reg_idx].rm_so = pmatch[reg_idx].rm_eo = -1;
+	  pmatch[0].rm_so = 0;
+	  pmatch[0].rm_eo = mctx.match_last;
+
+	  if (preg->no_sub || nmatch <= 1)
+	    break;
+
 	  err = set_regs (preg, &mctx, nmatch, pmatch,
 			  dfa->has_plural_match && dfa->nbackref > 0);
+	  if (__glibc_likely (err == REG_NOERROR)
+	      || save_state_log == NULL
+	      || err != REG_NOMATCH)
+	    break;
+
+	  /* set_regs failed; try a shorter match_last.  */
+	  Idx ml = mctx.match_last;
+	  re_free (mctx.state_log);
+	  do
+	    {
+	      --ml;
+	      if (ml < 0)
+		break;
+	    }
+	  while (save_state_log[ml] == NULL
+		 || !save_state_log[ml]->halt
+		 || !check_halt_state_context
+		      (&mctx, save_state_log[ml], ml));
+	  if (ml < 0)
+	    {
+	      err = REG_NOMATCH;
+	      mctx.state_log = save_state_log;
+	      save_state_log = NULL;
+	      break;
+	    }
+	  mctx.state_log
+	    = re_malloc (re_dfastate_t *, ml + 1);
+	  if (__glibc_unlikely (mctx.state_log == NULL))
+	    {
+	      mctx.state_log = save_state_log;
+	      save_state_log = NULL;
+	      err = REG_ESPACE;
+	      break;
+	    }
+	  memcpy (mctx.state_log, save_state_log,
+		  sizeof (re_dfastate_t *) * (ml + 1));
+	  mctx.match_last = ml;
+	  mctx.last_node
+	    = check_halt_state_context
+		(&mctx, save_state_log[ml], ml);
+	  err = prune_impossible_nodes (&mctx);
 	  if (__glibc_unlikely (err != REG_NOERROR))
-	    goto free_return;
+	    {
+	      if (err == REG_NOMATCH)
+		{
+		  re_free (mctx.state_log);
+		  mctx.state_log = save_state_log;
+		  save_state_log = NULL;
+		}
+	      break;
+	    }
 	}
+      re_free (save_state_log);
+      save_state_log = NULL;
+      if (__glibc_unlikely (err != REG_NOERROR))
+	goto free_return;
 
       /* At last, add the offset to each register, since we slid
 	 the buffers so that we could assume that the matching starts
@@ -882,6 +960,7 @@ re_search_internal (const regex_t *preg, const char *string, Idx length,
     }
 
  free_return:
+  re_free (save_state_log);
   re_free (mctx.state_log);
   if (dfa->nbackref)
     match_ctx_free (&mctx);
@@ -934,7 +1013,7 @@ prune_impossible_nodes (re_match_context_t *mctx)
 	      goto free_return;
 	  if (sifted_states[0] != NULL || lim_states[0] != NULL)
 	    break;
-	  do
+	  for (;;)
 	    {
 	      --match_last;
 	      if (match_last < 0)
@@ -942,11 +1021,17 @@ prune_impossible_nodes (re_match_context_t *mctx)
 		  ret = REG_NOMATCH;
 		  goto free_return;
 		}
-	    } while (mctx->state_log[match_last] == NULL
-		     || !mctx->state_log[match_last]->halt);
-	  halt_node = check_halt_state_context (mctx,
-						mctx->state_log[match_last],
-						match_last);
+              if (mctx->state_log[match_last] != NULL
+                  && mctx->state_log[match_last]->halt)
+                {
+                  halt_node
+                    = check_halt_state_context (mctx,
+                                                mctx->state_log[match_last],
+                                                match_last);
+                  if (halt_node)
+                    break;
+                }
+	    }
 	}
       ret = merge_state_array (dfa, sifted_states, lim_states,
 			       match_last + 1);
@@ -2256,7 +2341,7 @@ merge_state_with_log (reg_errcode_t *err, re_match_context_t *mctx,
       mctx->state_log[cur_idx] = next_state;
       mctx->state_log_top = cur_idx;
     }
-  else if (mctx->state_log[cur_idx] == 0)
+  else if (mctx->state_log[cur_idx] == NULL)
     {
       mctx->state_log[cur_idx] = next_state;
     }

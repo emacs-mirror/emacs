@@ -488,7 +488,7 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	{
 	  /* Weight hasn't been found yet.  Scan through the weight
 	     table.  */
-	  for (i = 0; i < ARRAYELTS (sfnt_weight_descriptions); ++i)
+	  for (i = 0; i < countof (sfnt_weight_descriptions); ++i)
 	    {
 	      if (!strcmp (sfnt_weight_descriptions[i].c_string,
 			   single))
@@ -505,7 +505,7 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	{
 	  /* Slant hasn't been found yet.  Scan through the slant
 	     table.  */
-	  for (i = 0; i < ARRAYELTS (sfnt_slant_descriptions); ++i)
+	  for (i = 0; i < countof (sfnt_slant_descriptions); ++i)
 	    {
 	      if (!strcmp (sfnt_slant_descriptions[i].c_string,
 			   single))
@@ -522,7 +522,7 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	{
 	  /* Width hasn't been found yet.  Scan through the width
 	     table.  */
-	  for (i = 0; i < ARRAYELTS (sfnt_width_descriptions); ++i)
+	  for (i = 0; i < countof (sfnt_width_descriptions); ++i)
 	    {
 	      if (!strcmp (sfnt_width_descriptions[i].c_string,
 			   single))
@@ -583,20 +583,18 @@ static void
 sfnt_parse_languages (struct sfnt_meta_table *meta,
 		      struct sfnt_font_desc *desc)
 {
-  char *data, *metadata, *tag;
+  char *data;
   struct sfnt_meta_data_map map;
-  char *saveptr;
 
   /* Look up the ``design languages'' metadata.  This is a comma (and
      possibly space) separated list of scripts that the font was
      designed for.  Here is an example of one such tag:
 
-       zh-Hans,Jpan,Kore
+       zh-Hans,Japn,Kore
 
      for a font that covers Simplified Chinese, along with Japanese
      and Korean text.  */
 
-  saveptr = NULL;
   data = sfnt_find_metadata (meta, SFNT_META_DATA_TAG_DLNG,
 			     &map);
 
@@ -610,34 +608,13 @@ sfnt_parse_languages (struct sfnt_meta_table *meta,
 	return;
     }
 
-  USE_SAFE_ALLOCA;
-
-  /* Now copy metadata and add a trailing NULL byte.  */
-
-  if (map.data_length >= SIZE_MAX)
-    memory_full (SIZE_MAX);
-
-  metadata = SAFE_ALLOCA ((size_t) map.data_length + 1);
-  memcpy (metadata, data, map.data_length);
-  metadata[map.data_length] = '\0';
-
-  /* Loop through each script-language tag.  Note that there may be
-     extra leading spaces.  */
-  while ((tag = strtok_r (metadata, ",", &saveptr)))
-    {
-      metadata = NULL;
-
-      if (strstr (tag, "Hans") || strstr (tag, "Hant"))
-	desc->languages = Fcons (Qzh, desc->languages);
-
-      if (strstr (tag, "Japn"))
-	desc->languages = Fcons (Qja, desc->languages);
-
-      if (strstr (tag, "Kore"))
-	desc->languages = Fcons (Qko, desc->languages);
-    }
-
-  SAFE_FREE ();
+  if (memmem (data, map.data_length, "Hans", 4)
+      || memmem (data, map.data_length, "Hant", 4))
+    desc->languages = Fcons (Qzh, desc->languages);
+  if (memmem (data, map.data_length, "Japn", 4))
+    desc->languages = Fcons (Qja, desc->languages);
+  if (memmem (data, map.data_length, "Kore", 4))
+    desc->languages = Fcons (Qko, desc->languages);
 }
 
 /* Return the font registry corresponding to the encoding subtable
@@ -2028,7 +2005,7 @@ sfntfont_list (struct frame *f, Lisp_Object font_spec)
   for (desc = system_fonts; desc; desc = desc->next)
     {
       rc = sfntfont_list_1 (desc, font_spec, instances,
-			    ARRAYELTS (instances));
+			    countof (instances));
 
       if (rc < 0)
 	matching = Fcons (sfntfont_desc_to_entity (desc, 0),

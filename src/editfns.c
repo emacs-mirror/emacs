@@ -2080,7 +2080,7 @@ a buffer or a string.  But this is deprecated.  */)
   ptrdiff_t bytes_needed;
   if (ckd_mul (&bytes_needed, diags, 2 * sizeof *buffer)
       || ckd_add (&bytes_needed, bytes_needed, del_bytes + ins_bytes))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   USE_SAFE_ALLOCA;
   buffer = SAFE_ALLOCA (bytes_needed);
   unsigned char *deletions_insertions = memset (buffer + 2 * diags, 0,
@@ -2450,7 +2450,7 @@ check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 {
   int initial_buf[16];
   int *buf = initial_buf;
-  ptrdiff_t buf_size = ARRAYELTS (initial_buf);
+  ptrdiff_t buf_size = countof (initial_buf);
   int *bufalloc = 0;
   ptrdiff_t buf_used = 0;
   Lisp_Object result = Qnil;
@@ -3512,7 +3512,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   v |= ckd_add (&alloca_size, info_size, format_and_discarded_size);
   v |= SIZE_MAX < alloca_size;
   if (v)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   /* The info table.  */
   info = SAFE_ALLOCA (alloca_size);
   /* A copy of the format string's bytes, needed because the original
@@ -4400,7 +4400,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      props = extend_property_ranges (props, len, new_len);
 	      /* If successive arguments have properties, be sure that
 		 the value of `composition' property be the copy.  */
-	      if (1 < i && info[i - 1].end)
+	      if (1 <= i && info[i - 1].end)
 		make_composition_value_copy (props);
 	      add_text_properties_from_list (val, props,
 					     make_fixnum (info[i].start));

@@ -1624,7 +1624,7 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
      SAFE_ALLOCA won't work here due to the setjmp, so impose a
      MAX_ALLOCA limit.  */
   if (MAX_ALLOCA / word_size < clausenb)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   Lisp_Object volatile *clauses = alloca (clausenb * sizeof *clauses);
   clauses += clausenb;
   *--clauses = make_fixnum (0);
@@ -3289,7 +3289,7 @@ funcall_subr (struct Lisp_Subr *subr, ptrdiff_t numargs, Lisp_Object *args)
 	  Lisp_Object *a;
 	  if (numargs < maxargs)
 	    {
-	      eassume (maxargs <= ARRAYELTS (argbuf));
+	      eassume (maxargs <= countof (argbuf));
 	      a = argbuf;
 	      memcpy (a, args, numargs * word_size);
 	      memclear (a + numargs, (maxargs - numargs) * word_size);

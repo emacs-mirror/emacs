@@ -1949,7 +1949,7 @@ notify_variable_watchers (Lisp_Object symbol,
       if (SUBRP (watcher))
         {
           Lisp_Object args[] = { symbol, newval, operation, where };
-          funcall_subr (XSUBR (watcher), ARRAYELTS (args), args);
+	  funcall_subr (XSUBR (watcher), countof (args), args);
         }
       else
         calln (watcher, symbol, newval, operation, where);
@@ -2594,7 +2594,7 @@ or a byte-code object.  IDX starts at 0.  */)
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       if (! STRING_MULTIBYTE (array))
-	return make_fixnum ((unsigned char) SREF (array, idxval));
+	return make_fixnum (SREF (array, idxval));
       idxval_byte = string_char_to_byte (array, idxval);
 
       c = STRING_CHAR (SDATA (array) + idxval_byte);
@@ -3598,7 +3598,7 @@ discarding bits.  */)
       if (c == 0)
 	return value;
 
-      if ((EMACS_INT) -1 >> 1 == -1 && FIXNUMP (value))
+      if ((EMACS_INT) {-1} >> 1 == -1 && FIXNUMP (value))
 	{
 	  EMACS_INT shift = -c;
 	  EMACS_INT result
@@ -3610,10 +3610,10 @@ discarding bits.  */)
   else if (FIXNUMP (value))
     {
       EMACS_INT v = XFIXNUM (value);
-      EMACS_UINT uv = v < 0 ? ~v : v;
-      EMACS_INT lz = stdc_leading_zeros (uv);
+      EMACS_UINT uv = v, uvcomp = v < 0 ? ~uv : uv;
+      EMACS_INT lz = stdc_leading_zeros (uvcomp);
       if (EMACS_INT_WIDTH - FIXNUM_BITS < lz - c)
-	return make_fixnum (v << c);
+	return make_fixnum ((EMACS_INT) {uv << c});
     }
 
   mpz_t const *zval = bignum_integer (&mpz[0], value);

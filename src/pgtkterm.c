@@ -7199,7 +7199,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   Lisp_Object system_name = Fsystem_name ();
   ptrdiff_t nbytes;
   if (ckd_add (&nbytes, SBYTES (Vinvocation_name), SBYTES (system_name) + 2))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   dpyinfo->x_id = ++x_display_id;
   dpyinfo->x_id_name = xmalloc (nbytes);
   char *nametail = lispstpcpy (dpyinfo->x_id_name, Vinvocation_name);

@@ -1136,7 +1136,7 @@ set_frame_menubar (struct frame *f, bool deep_p)
 	     menu item is really supposed to be empty.  */
 	  /* The intptr_t cast avoids a warning.
 	     This value just has to be different from small integers.  */
-	  wv->call_data = (void *) (intptr_t) (-1);
+	  wv->call_data = (void *) (intptr_t) {-1};
 
 	  if (prev_wv)
 	    prev_wv->next = wv;

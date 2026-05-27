@@ -56,7 +56,7 @@ struct tty_display_info
   /* Size of output buffer.  A value of zero means use the default of
      BUFIZE.  If non-zero, also minimize writes to the tty by avoiding
      calls to flush.  */
-  size_t output_buffer_size;
+  ptrdiff_t output_buffer_size;
 
   FILE *termscript;             /* If nonzero, send all terminal output
                                    characters to this stream also.  */

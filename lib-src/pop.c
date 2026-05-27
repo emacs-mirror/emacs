@@ -975,10 +975,8 @@ static int
 socket_connection (char *host, int flags)
 {
   struct addrinfo *res, *it;
-  struct addrinfo hints;
   int ret;
   struct servent *servent;
-  struct sockaddr_in addr;
   char found_port = 0;
   const char *service;
   int sock;
@@ -1012,15 +1010,14 @@ socket_connection (char *host, int flags)
   }
 #endif
 
-  memset (&addr, 0, sizeof (addr));
-  addr.sin_family = AF_INET;
-
   /** "kpop" service is  never used: look for 20060515 to see why **/
 #ifdef KERBEROS
   service = (flags & POP_NO_KERBEROS) ? POP_SERVICE : KPOP_SERVICE;
 #else
   service = POP_SERVICE;
 #endif
+
+  struct sockaddr_in addr = {.sin_family = AF_INET};
 
 #ifdef HESIOD
   if (! (flags & POP_NO_HESIOD))
@@ -1063,10 +1060,12 @@ socket_connection (char *host, int flags)
 
     }
 
-  memset (&hints, 0, sizeof (hints));
-  hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_CANONNAME;
-  hints.ai_family = AF_INET;
+  struct addrinfo hints =
+    {
+      .ai_socktype = SOCK_STREAM,
+      .ai_flags = AI_CANONNAME,
+      .ai_family = AF_INET,
+    };
   do
     {
       ret = getaddrinfo (host, service, &hints, &res);

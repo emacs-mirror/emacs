@@ -185,6 +185,14 @@ typedef void *Emacs_Cursor;
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+/* Convert a window handle to uintptr_t.  This default uses a compound literal,
+   which is good for platforms where handles are integers, as it checks
+   types better than a cast would.  Platforms where handles are pointers
+   should override the default with a more-powerful cast.  */
+# ifndef WINDOW_HANDLE_UINTPTR
+#  define WINDOW_HANDLE_UINTPTR(h) ((uintptr_t) {(h)})
+# endif
+
 /* ``box'' structure similar to that found in the X sample server,
    meaning that X2 and Y2 are not actually the end of the box, but one
    pixel past the end of the box, which makes checking for overlaps
@@ -2056,7 +2064,7 @@ GLYPH_CODE_P (Lisp_Object gc)
 	  : (RANGED_FIXNUMP
 	     (0, gc,
 	      (MAX_FACE_ID < EMACS_INT_MAX >> CHARACTERBITS
-	       ? ((EMACS_INT) MAX_FACE_ID << CHARACTERBITS) | MAX_CHAR
+	       ? ((EMACS_INT) {MAX_FACE_ID} << CHARACTERBITS) | MAX_CHAR
 	       : EMACS_INT_MAX))));
 }
 

@@ -38,9 +38,9 @@ _GL_INLINE_HEADER_BEGIN
 #if O_BINARY
 # if defined __EMX__ || defined __DJGPP__ || defined __CYGWIN__
 #  include <io.h> /* declares setmode() */
-#  define __gl_setmode setmode
+#  define _gl_set_fd_mode setmode
 # else
-#  define __gl_setmode _setmode
+#  define _gl_set_fd_mode _setmode
 #  undef fileno
 #  define fileno _fileno
 # endif
@@ -49,7 +49,7 @@ _GL_INLINE_HEADER_BEGIN
   /* Use a function rather than a macro, to avoid gcc warnings
      "warning: statement with no effect".  */
 BINARY_IO_INLINE int
-__gl_setmode (_GL_UNUSED int fd, _GL_UNUSED int mode)
+_gl_set_fd_mode (_GL_UNUSED int fd, _GL_UNUSED int mode)
 {
   return O_BINARY;
 }
@@ -72,7 +72,7 @@ extern int set_binary_mode (int fd, int mode);
 BINARY_IO_INLINE int
 set_binary_mode (int fd, int mode)
 {
-  return __gl_setmode (fd, mode);
+  return _gl_set_fd_mode (fd, mode);
 }
 #endif
 

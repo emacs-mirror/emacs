@@ -111,9 +111,11 @@ random_bits (random_value *r, random_value s)
   __clock_gettime64 (CLOCK_REALTIME, &tv);
   v = mix_random_values (v, tv.tv_sec);
   v = mix_random_values (v, tv.tv_nsec);
+#else
+  v = mix_random_values (v, clock ());
 #endif
 
-  *r = mix_random_values (v, clock ());
+  *r = v;
   return false;
 }
 

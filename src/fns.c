@@ -905,7 +905,7 @@ concat_to_string (ptrdiff_t nargs, Lisp_Object *args)
 
       result_len += len;
       if (MOST_POSITIVE_FIXNUM < result_len)
-	memory_full (SIZE_MAX);
+	memory_full_up ();
     }
 
   if (dest_multibyte && some_unibyte)
@@ -1125,7 +1125,7 @@ concat_to_vector (ptrdiff_t nargs, Lisp_Object *args)
       EMACS_INT len = XFIXNAT (Flength (arg));
       result_len += len;
       if (MOST_POSITIVE_FIXNUM < result_len)
-	memory_full (SIZE_MAX);
+	memory_full_up ();
     }
 
   /* Create the output vector.  */
@@ -2807,7 +2807,8 @@ DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
        doc: /* Return t if two Lisp objects have similar structure and contents.
 They must have the same data type.
 Conses are compared by comparing the cars and the cdrs.
-Vectors and strings are compared element by element.
+Vectors and strings are compared element by element (so text properties
+of strings are ignored).
 Numbers are compared via `eql', so integers do not equal floats.
 \(Use `=' if you want integers and floats to be able to be equal.)
 Symbols must match exactly.  */)
@@ -3961,14 +3962,14 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 # endif
 # ifdef HAVE_LANGINFO__NL_PAPER_WIDTH
   if (EQ (item, Qpaper))
-    /* We have to cast twice here: first to a correctly-sized integer,
+    /* We have to convert twice here: first to a correctly-sized integer,
        then to int, because that's what nl_langinfo is documented to
-       return for _NO_PAPER_{WIDTH,HEIGHT}.  The first cast doesn't
+       return for _NO_PAPER_{WIDTH,HEIGHT}.  The cast doesn't
        suffice because it could overflow an Emacs fixnum.  This can
        happen when running under ASan, which fills allocated but
        uninitialized memory with 0xBE bytes.  */
-    return list2i ((int) (intptr_t) nl_langinfo (_NL_PAPER_WIDTH),
-		   (int) (intptr_t) nl_langinfo (_NL_PAPER_HEIGHT));
+    return list2i ((int) {(intptr_t) nl_langinfo (_NL_PAPER_WIDTH)},
+		   (int) {(intptr_t) nl_langinfo (_NL_PAPER_HEIGHT)});
 # endif
 #endif	/* HAVE_LANGINFO_CODESET*/
   return Qnil;
@@ -4674,7 +4675,7 @@ larger_vector (Lisp_Object vec, ptrdiff_t incr_min, ptrdiff_t nitems_max)
   incr_max = n_max - old_size;
   incr = max (incr_min, min (old_size >> 1, incr_max));
   if (incr_max < incr)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   new_size = old_size + incr;
   v = allocate_vector (new_size);
   memcpy (v->contents, XVECTOR (vec)->contents, old_size * sizeof *v->contents);
@@ -4766,7 +4767,7 @@ cmpfn_user_defined (Lisp_Object key1, Lisp_Object key2,
 		    struct Lisp_Hash_Table *h)
 {
   Lisp_Object args[] = { h->test->user_cmp_function, key1, key2 };
-  return hash_table_user_defined_call (ARRAYELTS (args), args, h);
+  return hash_table_user_defined_call (countof (args), args, h);
 }
 
 static EMACS_INT
@@ -4816,7 +4817,7 @@ static hash_hash_t
 hashfn_user_defined (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
   Lisp_Object args[] = { h->test->user_hash_function, key };
-  Lisp_Object hash = hash_table_user_defined_call (ARRAYELTS (args), args, h);
+  Lisp_Object hash = hash_table_user_defined_call (countof (args), args, h);
   return reduce_emacs_uint_to_hash_hash (FIXNUMP (hash)
 					 ? XUFIXNUM(hash) : sxhash (hash));
 }
@@ -5144,11 +5145,12 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 						old_size, new_size);
 
       hash_hash_t *hash = hash_table_alloc_bytes (new_size * sizeof *hash);
-      memcpy (hash, h->hash, old_size * sizeof *hash);
+      if (old_size)
+	memcpy (hash, h->hash, old_size * sizeof *hash);
 
       ptrdiff_t old_index_size = hash_table_index_size (h);
       ptrdiff_t index_bits = compute_hash_index_bits (new_size);
-      ptrdiff_t index_size = (ptrdiff_t)1 << index_bits;
+      ptrdiff_t index_size = (ptrdiff_t) {1} << index_bits;
       hash_idx_t *index = hash_table_alloc_bytes (index_size * sizeof *index);
       for (ptrdiff_t i = 0; i < index_size; i++)
 	index[i] = -1;
@@ -6155,10 +6157,10 @@ static EMACS_UINT
 sxhash_bignum (Lisp_Object bignum)
 {
   mpz_t const *n = xbignum_val (bignum);
-  size_t i, nlimbs = mpz_size (*n);
-  EMACS_UINT hash = mpz_sgn(*n) < 0;
+  ptrdiff_t nlimbs = mpz_size (*n);
+  EMACS_UINT hash = mpz_sgn (*n) < 0;
 
-  for (i = 0; i < nlimbs; ++i)
+  for (ptrdiff_t i = 0; i < nlimbs; i++)
     hash = sxhash_combine (hash, mpz_getlimbn (*n, i));
 
   return hash;
@@ -6806,7 +6808,7 @@ DEFUN ("internal--hash-table-histogram",
 #endif
   struct Lisp_Hash_Table *h = check_hash_table (hash_table);
   ptrdiff_t size = HASH_TABLE_SIZE (h);
-  ptrdiff_t *freq = xzalloc (size * sizeof *freq);
+  ptrdiff_t *freq = xcalloc (size, sizeof *freq);
   ptrdiff_t index_size = hash_table_index_size (h);
   for (ptrdiff_t i = 0; i < index_size; i++)
     {

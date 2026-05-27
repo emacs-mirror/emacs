@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2025-12-23.13}
+\def\texinfoversion{2026-04-26.12}
 %
 % Copyright 1985, 1986, 1988, 1990-2025 Free Software Foundation, Inc.
 %
@@ -348,7 +348,6 @@
     % before the \shipout runs.
     %
     \atdummies         % don't expand commands in the output.
-    \turnoffactive
     \shipout\vbox{%
       % Do this early so pdf references go to the beginning of the page.
       \ifpdfmakepagedest \pdfdest name{\the\pageno} xyz\fi
@@ -5321,14 +5320,13 @@ $$%
 \def\indexisfl{fl}
 
 % Definition for writing index entry sort key.
-{
-\catcode`\-=13
-\gdef\indexwritesortas{%
+\def\indexwritesortas{%
   \begingroup
   \indexnonalnumreappear
-  \indexwritesortasxxx}
-\gdef\indexwritesortasxxx#1{%
-  \xdef\indexsortkey{#1}\endgroup}
+  \indexwritesortasxxx
+}
+\def\indexwritesortasxxx#1{%
+  \xdef\indexsortkey{#1}\endgroup
 }
 
 \def\indexwriteseealso#1{
@@ -5359,6 +5357,51 @@ $$%
   \expandafter\doindexsegment#1\subentry\finish\subentry
 }
 
+% \checksortas\segment
+% Call \indexwritesortas if a @sortas command appears in the segment
+\def\checksortas#1{
+  \let\sortas\relax
+  \expandafter\checksortasx#1\relax\sortas{}\sortas
+}
+\def\checksortasx#1\sortas#2#3\sortas{%
+  \def\tmp{#3}%
+  \ifx\tmp\empty\else
+    \indexwritesortas{#2}%
+  \fi
+}
+
+% \checkseealso\segment
+% Call \indexwriteseealso if a @seealso command appears in the segment
+\def\checkseealso#1{
+  \let\seealso\relax
+  \expandafter\checkseealsox#1\relax\seealso{}\seealso
+}
+\def\checkseealsox#1\seealso#2#3\seealso{%
+  \def\tmp{#3}%
+  \ifx\tmp\empty\else
+    \indexwriteseealso{#2}%
+  \fi
+}
+
+% \checkseeentry\segment
+% Call \indexwriteseeentry if a @seeentry command appears in the segment
+\def\checkseeentry#1{
+  \let\seeentry\relax
+  \expandafter\checkseeentryx#1\relax\seeentry{}\seeentry
+}
+\def\checkseeentryx#1\seeentry#2#3\seeentry{%
+  \def\tmp{#3}%
+  \ifx\tmp\empty\else
+    \indexwriteseeentry{#2}%
+  \fi
+}
+
+\def\extractindexcommands#1{%
+  \checksortas#1%
+  \checkseealso#1%
+  \checkseeentry#1%
+}
+
 % append the results from the next segment
 \def\doindexsegment#1\subentry{%
   \def\segment{#1}%
@@ -5378,9 +5421,6 @@ $$%
     % Get the string to sort by.  Process the segment with all
     % font commands turned off.
     \bgroup
-      \let\sortas\indexwritesortas
-      \let\seealso\indexwriteseealso
-      \let\seeentry\indexwriteseeentry
       \indexnofonts
       % The braces around the commands are recognized by texindex.
       \def\lbracechar{{\string\indexlbrace}}%
@@ -5394,11 +5434,10 @@ $$%
       %
       \let\indexsortkey\empty
       \global\let\pagenumbertext\empty
-      % Execute the segment and throw away the typeset output.  This executes
-      % any @sortas or @seealso commands in this segment.
-      \setbox\dummybox = \hbox{\segment}%
+      \extractindexcommands\segment
       \ifx\indexsortkey\empty{%
         \indexnonalnumdisappear
+        \inindexsortkeytrue
         \xdef\trimmed{\segment}%
         \xdef\trimmed{\expandafter\eatspaces\expandafter{\trimmed}}%
         \xdef\indexsortkey{\trimmed}%
@@ -5419,7 +5458,6 @@ $$%
   \fi
 }
 \def\isfinish{\finish}%
-\newbox\dummybox % used above
 
 \let\subentry\relax
 
@@ -7007,6 +7045,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \newdimen\curchapmax
 \newdimen\cursecmax
 \newdimen\curssecmax
+\newbox\dummybox % used above
 
 
 % set #1 to the maximum section width for #2
@@ -10231,6 +10270,15 @@ directory should work if nowhere else does.}
   \global\righthyphenmin = #3\relax
 }
 
+% @documentlanguagevariant - do nothing
+\parseargdef\documentlanguagevariant{}
+
+% @documentscript - do nothing
+% This command would only become relevant if we had translations in
+% multiple "scripts", e.g. Sebian in both Latin and Cyrillic alphabets.
+% However, we do not even support loading Cyrillic fonts.
+\parseargdef\documentscript{}
+
 % XeTeX and LuaTeX can handle Unicode natively.
 % Their default I/O uses UTF-8 sequences instead of a byte-wise operation.
 % Other TeX engines' I/O (pdfTeX, etc.) is byte-wise.
@@ -10673,6 +10721,38 @@ directory should work if nowhere else does.}
 \newif\ifutfviiidefinedwarning
 \utfviiidefinedwarningtrue
 
+% Macros to output a string to sort a multibyte UTF-8 sequence by.
+% Check if there is a special definition to be used in the index
+% sort key for a character.
+% Output the sequence as-is, surrounded by curly braces.  The braces are
+% to help texindex find the first character regardless of locale character
+% encoding or version of awk used to run texindex.
+\gdef\UTFviiiSortkeyTwo#1#2{%
+  \expandafter\ifx\csname sort:#1#2\endcsname\relax
+    {\string #1\string #2}%
+  \else
+    \csname sort:#1#2\endcsname
+  \fi
+}
+\gdef\UTFviiiSortkeyThree#1#2#3{%
+  \expandafter\ifx\csname sort:#1#2#3\endcsname\relax
+    {\string #1\string #2\string #3}%
+  \else
+    \csname sort:#1#2#3\endcsname
+  \fi
+}
+\gdef\UTFviiiSortkeyFour#1#2#3#4{%
+  \expandafter\ifx\csname sort:#1#2#3#4\endcsname\relax
+    {\string #1\string #2\string #3\string #4}%
+  \else
+    \csname sort:#1#2#3#4\endcsname
+  \fi
+}
+
+% We use this with the \ifindexsortkey condition to expand and discard
+% an \else block in the containing conditional.
+\def\swapnestedfi#1\fi{\fi\expandafter#1\expandafter}
+
 % Give non-ASCII bytes the active definitions for processing UTF-8 sequences
 \begingroup
   \catcode`\~13
@@ -10691,8 +10771,8 @@ directory should work if nowhere else does.}
       \expandafter\UTFviiiLoop
     \fi}
   %
-  % For bytes other than the first in a UTF-8 sequence.  Not expected to
-  % be expanded except when writing to auxiliary files.
+  % UTF-8 continuation bytes (10XX XXXX) or unused (hex C1, C2).
+  % Not expected to be expanded except when writing to auxiliary files.
   \countUTFx = "80
   \countUTFy = "C2
   \def\UTFviiiTmp{%
@@ -10704,7 +10784,9 @@ directory should work if nowhere else does.}
   \countUTFy = "E0
   \def\UTFviiiTmp{%
     \gdef~{%
-        \ifpassthroughchars $%
+        \ifpassthroughchars
+          \ifinindexsortkey\swapnestedfi\UTFviiiSortkeyTwo\fi
+          $%
         \else\expandafter\UTFviiiTwoOctets\expandafter$\fi}}%
   \UTFviiiLoop
 
@@ -10712,7 +10794,9 @@ directory should work if nowhere else does.}
   \countUTFy = "F0
   \def\UTFviiiTmp{%
     \gdef~{%
-        \ifpassthroughchars $%
+        \ifpassthroughchars
+          \ifinindexsortkey\swapnestedfi\UTFviiiSortkeyThree\fi
+          $%
         \else\expandafter\UTFviiiThreeOctets\expandafter$\fi}}%
   \UTFviiiLoop
 
@@ -10720,7 +10804,9 @@ directory should work if nowhere else does.}
   \countUTFy = "F4
   \def\UTFviiiTmp{%
     \gdef~{%
-        \ifpassthroughchars $%
+        \ifpassthroughchars
+          \ifinindexsortkey\swapnestedfi\UTFviiiSortkeyFour\fi
+          $%
         \else\expandafter\UTFviiiFourOctets\expandafter$\fi
         }}%
   \UTFviiiLoop
@@ -10814,7 +10900,7 @@ directory should work if nowhere else does.}
       \parseXMLCharref
       %
       % Completely expand \UTFviiiTmp, which looks like:
-      % 1.  \UTFviiTwoOctetsName B1 B2
+      % 1.  \UTFviiiTwoOctetsName B1 B2
       % 2.  \csname u8:B1 \string B2 \endcsname
       % 3.  \u8: B1 B2  (a single control sequence token)
       \xdef\UTFviiiTmp{\UTFviiiTmp}%
@@ -10890,6 +10976,55 @@ directory should work if nowhere else does.}
     \uccode `#3\countUTFz
     \uppercase{\gdef\UTFviiiTmp{#2#3#4}}}
 \endgroup
+
+% Used in \DefineSortKey as temporary definitions of \UTFviiiTwoOctetsName etc.
+% Use \expandafter\noexpand to prevent excessive expansion if \DefineSortKey is
+% called more than once for the same codepoint.
+\def\UTFviiiSortTwoOctetsName#1#2{%
+  \expandafter\noexpand\csname sort:#1\string #2\endcsname}%
+\def\UTFviiiSortThreeOctetsName#1#2#3{%
+  \expandafter\noexpand\csname sort:#1\string #2\string #3\endcsname}%
+\def\UTFviiiSortFourOctetsName#1#2#3#4{%
+  \expandafter\noexpand\csname sort:#1\string #2\string #3\string #4\endcsname}%
+
+% To be used in translation files to provide strings to be output
+% in the index sort key where a character occurs.
+\def\DefineSortKey#1#2{%
+  \countUTFz = "#1\relax
+  \parseXMLCharref
+  \def\tmp{#2}%
+  \expandafter\let\csname usort:#1\endcsname\tmp
+  \bgroup
+    \let\UTFviiiTwoOctetsName\UTFviiiSortTwoOctetsName
+    \let\UTFviiiThreeOctetsName\UTFviiiSortThreeOctetsName
+    \let\UTFviiiFourOctetsName\UTFviiiSortFourOctetsName
+    %
+    % Expand \UTFviiiTmp fully, which looks like:
+    % 1.  \UTFviiiTwoOctetsName B1 B2
+    % 2.  \expandafter\noexpand\csname sort:B1 \string B2 \endcsname
+    % 3.  \noexpand\sort: B1 B2
+    % 4.  \sort: B1 B2 (a single control sequence token)
+    %
+    \xdef\UTFviiiTmp{\UTFviiiTmp}%
+  \egroup
+  \expandafter\gdef\UTFviiiTmp{#2}%
+}
+
+% this could be used as follows
+%\DefineSortKey{00F1}{nzzz} % n tilde - sort between n and o
+%\DefineSortKey{00D1}{Nzzz} % N tilde - sort between n and o
+
+% Can be used in place of \DeclareUnicodeCharacter where the value for
+% the character is completely expandable when writing to indices:
+% Good: \DeclareUnicodeCharacterSK{00C9}{\'E}
+%         (\' expands to empty string)
+% Bad:  \DeclareUnicodeCharacterSK{03BB}{\ensuremath\lambda}%
+%         (\ensuremath expands to junk)
+\def\DeclareUnicodeCharacterSK#1#2{%
+  \DeclareUnicodeCharacter{#1}{#2}%
+  \DefineSortKey{#1}{#2}%
+}
+
 
 % For native Unicode handling (XeTeX and LuaTeX),
 % provide a definition macro that sets a catcode to `other' non-globally
@@ -11054,73 +11189,73 @@ directory should work if nowhere else does.}
   \DeclareUnicodeCharacter{00BE}{$3\over4$}%
   \DeclareUnicodeCharacter{00BF}{\questiondown}%
   %
-  \DeclareUnicodeCharacter{00C0}{\`A}%
-  \DeclareUnicodeCharacter{00C1}{\'A}%
-  \DeclareUnicodeCharacter{00C2}{\^A}%
-  \DeclareUnicodeCharacter{00C3}{\~A}%
-  \DeclareUnicodeCharacter{00C4}{\"A}%
-  \DeclareUnicodeCharacter{00C5}{\AA}%
-  \DeclareUnicodeCharacter{00C6}{\AE}%
-  \DeclareUnicodeCharacter{00C7}{\cedilla{C}}%
-  \DeclareUnicodeCharacter{00C8}{\`E}%
-  \DeclareUnicodeCharacter{00C9}{\'E}%
-  \DeclareUnicodeCharacter{00CA}{\^E}%
-  \DeclareUnicodeCharacter{00CB}{\"E}%
-  \DeclareUnicodeCharacter{00CC}{\`I}%
-  \DeclareUnicodeCharacter{00CD}{\'I}%
-  \DeclareUnicodeCharacter{00CE}{\^I}%
-  \DeclareUnicodeCharacter{00CF}{\"I}%
+  \DeclareUnicodeCharacterSK{00C0}{\`A}%
+  \DeclareUnicodeCharacterSK{00C1}{\'A}%
+  \DeclareUnicodeCharacterSK{00C2}{\^A}%
+  \DeclareUnicodeCharacterSK{00C3}{\~A}%
+  \DeclareUnicodeCharacterSK{00C4}{\"A}%
+  \DeclareUnicodeCharacterSK{00C5}{\AA}%
+  \DeclareUnicodeCharacterSK{00C6}{\AE}%
+  \DeclareUnicodeCharacterSK{00C7}{\cedilla{C}}%
+  \DeclareUnicodeCharacterSK{00C8}{\`E}%
+  \DeclareUnicodeCharacterSK{00C9}{\'E}%
+  \DeclareUnicodeCharacterSK{00CA}{\^E}%
+  \DeclareUnicodeCharacterSK{00CB}{\"E}%
+  \DeclareUnicodeCharacterSK{00CC}{\`I}%
+  \DeclareUnicodeCharacterSK{00CD}{\'I}%
+  \DeclareUnicodeCharacterSK{00CE}{\^I}%
+  \DeclareUnicodeCharacterSK{00CF}{\"I}%
   %
-  \DeclareUnicodeCharacter{00D0}{\DH}%
-  \DeclareUnicodeCharacter{00D1}{\~N}%
-  \DeclareUnicodeCharacter{00D2}{\`O}%
-  \DeclareUnicodeCharacter{00D3}{\'O}%
-  \DeclareUnicodeCharacter{00D4}{\^O}%
-  \DeclareUnicodeCharacter{00D5}{\~O}%
-  \DeclareUnicodeCharacter{00D6}{\"O}%
+  \DeclareUnicodeCharacterSK{00D0}{\DH}%
+  \DeclareUnicodeCharacterSK{00D1}{\~N}%
+  \DeclareUnicodeCharacterSK{00D2}{\`O}%
+  \DeclareUnicodeCharacterSK{00D3}{\'O}%
+  \DeclareUnicodeCharacterSK{00D4}{\^O}%
+  \DeclareUnicodeCharacterSK{00D5}{\~O}%
+  \DeclareUnicodeCharacterSK{00D6}{\"O}%
   \DeclareUnicodeCharacter{00D7}{\ensuremath\times}%
-  \DeclareUnicodeCharacter{00D8}{\O}%
-  \DeclareUnicodeCharacter{00D9}{\`U}%
-  \DeclareUnicodeCharacter{00DA}{\'U}%
-  \DeclareUnicodeCharacter{00DB}{\^U}%
-  \DeclareUnicodeCharacter{00DC}{\"U}%
-  \DeclareUnicodeCharacter{00DD}{\'Y}%
+  \DeclareUnicodeCharacterSK{00D8}{\O}%
+  \DeclareUnicodeCharacterSK{00D9}{\`U}%
+  \DeclareUnicodeCharacterSK{00DA}{\'U}%
+  \DeclareUnicodeCharacterSK{00DB}{\^U}%
+  \DeclareUnicodeCharacterSK{00DC}{\"U}%
+  \DeclareUnicodeCharacterSK{00DD}{\'Y}%
   \DeclareUnicodeCharacter{00DE}{\TH}%
-  \DeclareUnicodeCharacter{00DF}{\ss}%
+  \DeclareUnicodeCharacterSK{00DF}{\ss}%
   %
-  \DeclareUnicodeCharacter{00E0}{\`a}%
-  \DeclareUnicodeCharacter{00E1}{\'a}%
-  \DeclareUnicodeCharacter{00E2}{\^a}%
-  \DeclareUnicodeCharacter{00E3}{\~a}%
-  \DeclareUnicodeCharacter{00E4}{\"a}%
-  \DeclareUnicodeCharacter{00E5}{\aa}%
-  \DeclareUnicodeCharacter{00E6}{\ae}%
-  \DeclareUnicodeCharacter{00E7}{\cedilla{c}}%
-  \DeclareUnicodeCharacter{00E8}{\`e}%
-  \DeclareUnicodeCharacter{00E9}{\'e}%
-  \DeclareUnicodeCharacter{00EA}{\^e}%
-  \DeclareUnicodeCharacter{00EB}{\"e}%
-  \DeclareUnicodeCharacter{00EC}{\`{\dotless{i}}}%
-  \DeclareUnicodeCharacter{00ED}{\'{\dotless{i}}}%
-  \DeclareUnicodeCharacter{00EE}{\^{\dotless{i}}}%
-  \DeclareUnicodeCharacter{00EF}{\"{\dotless{i}}}%
+  \DeclareUnicodeCharacterSK{00E0}{\`a}%
+  \DeclareUnicodeCharacterSK{00E1}{\'a}%
+  \DeclareUnicodeCharacterSK{00E2}{\^a}%
+  \DeclareUnicodeCharacterSK{00E3}{\~a}%
+  \DeclareUnicodeCharacterSK{00E4}{\"a}%
+  \DeclareUnicodeCharacterSK{00E5}{\aa}%
+  \DeclareUnicodeCharacterSK{00E6}{\ae}%
+  \DeclareUnicodeCharacterSK{00E7}{\cedilla{c}}%
+  \DeclareUnicodeCharacterSK{00E8}{\`e}%
+  \DeclareUnicodeCharacterSK{00E9}{\'e}%
+  \DeclareUnicodeCharacterSK{00EA}{\^e}%
+  \DeclareUnicodeCharacterSK{00EB}{\"e}%
+  \DeclareUnicodeCharacterSK{00EC}{\`{\dotless{i}}}%
+  \DeclareUnicodeCharacterSK{00ED}{\'{\dotless{i}}}%
+  \DeclareUnicodeCharacterSK{00EE}{\^{\dotless{i}}}%
+  \DeclareUnicodeCharacterSK{00EF}{\"{\dotless{i}}}%
   %
-  \DeclareUnicodeCharacter{00F0}{\dh}%
-  \DeclareUnicodeCharacter{00F1}{\~n}%
-  \DeclareUnicodeCharacter{00F2}{\`o}%
-  \DeclareUnicodeCharacter{00F3}{\'o}%
-  \DeclareUnicodeCharacter{00F4}{\^o}%
-  \DeclareUnicodeCharacter{00F5}{\~o}%
-  \DeclareUnicodeCharacter{00F6}{\"o}%
+  \DeclareUnicodeCharacterSK{00F0}{\dh}%
+  \DeclareUnicodeCharacterSK{00F1}{\~n}%
+  \DeclareUnicodeCharacterSK{00F2}{\`o}%
+  \DeclareUnicodeCharacterSK{00F3}{\'o}%
+  \DeclareUnicodeCharacterSK{00F4}{\^o}%
+  \DeclareUnicodeCharacterSK{00F5}{\~o}%
+  \DeclareUnicodeCharacterSK{00F6}{\"o}%
   \DeclareUnicodeCharacter{00F7}{\ensuremath\div}%
-  \DeclareUnicodeCharacter{00F8}{\o}%
-  \DeclareUnicodeCharacter{00F9}{\`u}%
-  \DeclareUnicodeCharacter{00FA}{\'u}%
-  \DeclareUnicodeCharacter{00FB}{\^u}%
-  \DeclareUnicodeCharacter{00FC}{\"u}%
-  \DeclareUnicodeCharacter{00FD}{\'y}%
+  \DeclareUnicodeCharacterSK{00F8}{\o}%
+  \DeclareUnicodeCharacterSK{00F9}{\`u}%
+  \DeclareUnicodeCharacterSK{00FA}{\'u}%
+  \DeclareUnicodeCharacterSK{00FB}{\^u}%
+  \DeclareUnicodeCharacterSK{00FC}{\"u}%
+  \DeclareUnicodeCharacterSK{00FD}{\'y}%
   \DeclareUnicodeCharacter{00FE}{\th}%
-  \DeclareUnicodeCharacter{00FF}{\"y}%
+  \DeclareUnicodeCharacterSK{00FF}{\"y}%
   %
   \DeclareUnicodeCharacter{0100}{\=A}%
   \DeclareUnicodeCharacter{0101}{\=a}%
@@ -11719,6 +11854,9 @@ directory should work if nowhere else does.}
 \newif\ifpassthroughchars
 \passthroughcharsfalse
 
+\newif\ifinindexsortkey
+\inindexsortkeyfalse
+
 % For native Unicode handling (XeTeX and LuaTeX),
 % provide a definition macro to replace/pass-through a Unicode character
 %
@@ -11730,7 +11868,15 @@ directory should work if nowhere else does.}
         \uccode`\~="##2\relax
         \uppercase{\gdef~}{%
           \ifpassthroughchars
-            ##1%
+            \ifinindexsortkey
+               \expandafter\ifx\csname usort:#1\endcsname\relax
+                 {##1}%
+               \else
+                 \csname usort:#1\endcsname
+               \fi
+            \else
+              ##1%
+            \fi
           \else
             ##3%
           \fi

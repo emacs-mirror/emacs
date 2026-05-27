@@ -3592,7 +3592,7 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       img->face_font_size = font_size;
       img->face_font_height = face->font->height;
       img->face_font_width = face->font->average_width;
-      size_t len = strlen (font_family) + 1;
+      ptrdiff_t len = strlen (font_family) + 1;
       img->face_font_family = xmalloc (len);
       memcpy (img->face_font_family, font_family, len);
       img->load_failed_p = ! img->type->load_img (f, img);
@@ -5018,7 +5018,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
 {
 #ifdef USE_CAIRO
   Emacs_Color fgbg[] = {{.pixel = fg}, {.pixel = bg}};
-  FRAME_TERMINAL (f)->query_colors (f, fgbg, ARRAYELTS (fgbg));
+  FRAME_TERMINAL (f)->query_colors (f, fgbg, countof (fgbg));
   fg = lookup_rgb_color (f, fgbg[0].red, fgbg[0].green, fgbg[0].blue);
   bg = lookup_rgb_color (f, fgbg[1].red, fgbg[1].green, fgbg[1].blue);
   img->pixmap
@@ -5585,7 +5585,7 @@ static struct xpm_cached_color **xpm_color_cache;
 static void
 xpm_init_color_cache (struct frame *f, XpmAttributes *attrs)
 {
-  size_t nbytes = XPM_COLOR_CACHE_BUCKETS * sizeof *xpm_color_cache;
+  ptrdiff_t nbytes = XPM_COLOR_CACHE_BUCKETS * sizeof *xpm_color_cache;
   xpm_color_cache = xzalloc (nbytes);
   init_color_table ();
 
@@ -5645,8 +5645,8 @@ xpm_cache_color (struct frame *f, char *color_name, XColor *color, int bucket)
   if (bucket < 0)
     bucket = xpm_color_bucket (color_name);
 
-  size_t len = strlen (color_name) + 1;
-  size_t nbytes = FLEXSIZEOF (struct xpm_cached_color, name, len);
+  ptrdiff_t len = strlen (color_name) + 1;
+  ptrdiff_t nbytes = FLEXSIZEOF (struct xpm_cached_color, name, len);
   struct xpm_cached_color *p = xmalloc (nbytes);
   memcpy (p->name, color_name, len);
   p->color = *color;
@@ -6345,7 +6345,7 @@ static const char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
 static int
 xpm_str_to_color_key (const char *s)
 {
-  for (int i = 0; i < ARRAYELTS (xpm_color_key_strings); i++)
+  for (int i = 0; i < countof (xpm_color_key_strings); i++)
     if (strcmp (xpm_color_key_strings[i], s) == 0)
       return i;
   return -1;
@@ -6997,7 +6997,7 @@ image_to_emacs_colors (struct frame *f, struct image *img, bool rgb_p)
   if (ckd_mul (&nbytes, sizeof *colors, img->width)
       || ckd_mul (&nbytes, nbytes, img->height)
       || SIZE_MAX < nbytes)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   colors = xmalloc (nbytes);
 
   /* Get the X image or create a memory device context for IMG. */
@@ -7147,7 +7147,7 @@ image_detect_edges (struct frame *f, struct image *img,
 
   if (ckd_mul (&nbytes, sizeof *new, img->width)
       || ckd_mul (&nbytes, nbytes, img->height))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   new = xmalloc (nbytes);
 
   for (y = 0; y < img->height; ++y)
@@ -7778,7 +7778,7 @@ pbm_load (struct frame *f, struct image *img)
 #ifdef USE_CAIRO
       {
 	Emacs_Color fgbg[] = {{.pixel = fg}, {.pixel = bg}};
-	FRAME_TERMINAL (f)->query_colors (f, fgbg, ARRAYELTS (fgbg));
+	FRAME_TERMINAL (f)->query_colors (f, fgbg, countof (fgbg));
 	fg = lookup_rgb_color (f, fgbg[0].red, fgbg[0].green, fgbg[0].blue);
 	bg = lookup_rgb_color (f, fgbg[1].red, fgbg[1].green, fgbg[1].blue);
       }
@@ -7887,8 +7887,7 @@ pbm_load (struct frame *f, struct image *img)
   /* Maybe fill in the background field while we have ximg handy.  */
 
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    /* Casting avoids a GCC warning.  */
-    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
+    IMAGE_BACKGROUND (img, f, ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -8533,7 +8532,7 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   /* Allocate memory for the image.  */
   if (ckd_mul (&nbytes, row_bytes, sizeof *pixels)
       || ckd_mul (&nbytes, nbytes, height))
-    memory_full (SIZE_MAX);
+    memory_full_up ();
   c->pixels = pixels = xmalloc (nbytes);
   c->rows = rows = xmalloc (height * sizeof *rows);
   for (i = 0; i < height; ++i)
@@ -8633,9 +8632,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   img->width = width;
   img->height = height;
 
-  /* Maybe fill in the background field while we have ximg handy.
-     Casting avoids a GCC warning.  */
-  IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
+  /* Maybe fill in the background field while we have ximg handy.  */
+  IMAGE_BACKGROUND (img, f, ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -8644,8 +8642,8 @@ png_load_body (struct frame *f, struct image *img, struct png_load_context *c)
   if (mask_img)
     {
       /* Fill in the background_transparent field while we have the
-	 mask handy.  Casting avoids a GCC warning.  */
-      image_background_transparent (img, f, (Emacs_Pix_Context)mask_img);
+	 mask handy.  */
+      image_background_transparent (img, f, mask_img);
 
       image_put_x_image (f, img, mask_img, 1);
     }
@@ -9212,8 +9210,7 @@ jpeg_load_body (struct frame *f, struct image *img,
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    /* Casting avoids a GCC warning.  */
-    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
+    IMAGE_BACKGROUND (img, f, ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -9653,8 +9650,7 @@ tiff_load (struct frame *f, struct image *img)
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    /* Casting avoids a GCC warning on W32.  */
-    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
+    IMAGE_BACKGROUND (img, f, ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -10376,8 +10372,7 @@ gif_load (struct frame *f, struct image *img)
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    /* Casting avoids a GCC warning.  */
-    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
+    IMAGE_BACKGROUND (img, f, ximg);
 
   /* Put ximg into the image.  */
   image_put_x_image (f, img, ximg, 0);
@@ -13044,7 +13039,7 @@ lookup_image_type (Lisp_Object type)
     return &native_image_type;
 #endif
 
-  for (int i = 0; i < ARRAYELTS (image_types); i++)
+  for (int i = 0; i < countof (image_types); i++)
     {
       struct image_type const *r = &image_types[i];
       if (EQ (type, builtin_lisp_symbol (r->type)))

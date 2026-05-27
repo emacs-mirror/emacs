@@ -1068,7 +1068,7 @@ android_scan_directory_tree (const char *file, size_t *limit_return)
       copy = NULL;
 
       /* Make sure ntokens is within bounds.  */
-      if (ntokens == ARRAYELTS (tokens))
+      if (ntokens == countof (tokens))
 	goto fail;
 
       len = strlen (token) + 1;
@@ -2609,7 +2609,7 @@ android_content_name (struct android_vnode *vnode, char *name,
   else
     i = 0;
 
-  for (; i < ARRAYELTS (content_vnodes); ++i)
+  for (; i < countof (content_vnodes); ++i)
     {
       special = &content_vnodes[i];
 
@@ -2769,7 +2769,7 @@ android_content_readdir (struct android_vdir *vdir)
 
   /* There are no more files to be read.  */
   if (dir->next_name == (content_directory_contents
-			 + ARRAYELTS (content_directory_contents)))
+			 + countof (content_directory_contents)))
     return NULL;
 
   /* Get the next child.  */
@@ -6688,7 +6688,7 @@ android_root_name (struct android_vnode *vnode, char *name,
   /* Now, find out if the first component is a special vnode; if so,
      call its root lookup function with the rest of NAME there.  */
 
-  for (i = 0; i < ARRAYELTS (special_vnodes); ++i)
+  for (i = 0; i < countof (special_vnodes); ++i)
     {
       special = &special_vnodes[i];
 
@@ -6774,7 +6774,7 @@ android_root_readdir (struct android_vdir *vdir)
   dir = (struct android_root_vdir *) vdir;
   p   = dir->directory ? readdir (dir->directory) : NULL;
 
-  if (p || dir->index >= ARRAYELTS (special_vnodes))
+  if (p || dir->index >= countof (special_vnodes))
     return p;
 
   dirent.d_ino = 0;

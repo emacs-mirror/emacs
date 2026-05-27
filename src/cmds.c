@@ -477,7 +477,8 @@ internal_self_insert (int c, EMACS_INT n)
   if ((CHAR_TABLE_P (Vauto_fill_chars)
        ? !NILP (CHAR_TABLE_REF (Vauto_fill_chars, c))
        : (c == ' ' || c == '\n'))
-      && !NILP (BVAR (current_buffer, auto_fill_function)))
+      && !NILP (BVAR (current_buffer, auto_fill_function))
+      && n > 0)
     {
       Lisp_Object auto_fill_result;
 
@@ -488,7 +489,7 @@ internal_self_insert (int c, EMACS_INT n)
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
       auto_fill_result = call0 (Qinternal_auto_fill);
       /* Test PT < ZV in case the auto-fill-function is strange.  */
-      if (c == '\n' && PT < ZV)
+      if (c == '\n' && PT < ZV && FETCH_BYTE (PT_BYTE) == '\n')
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
       if (!NILP (auto_fill_result))
 	hairy = 2;

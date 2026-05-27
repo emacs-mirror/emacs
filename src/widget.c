@@ -303,12 +303,12 @@ update_wm_hints (WMShellWidget wmshell, EmacsFrame ew)
 		 + (rounded_height - (char_height * ch)));
 
   XtVaSetValues ((Widget) wmshell,
-		 XtNbaseWidth, (XtArgVal) base_width,
-		 XtNbaseHeight, (XtArgVal) base_height,
-		 XtNwidthInc, (XtArgVal) (frame_resize_pixelwise ? 1 : cw),
-		 XtNheightInc, (XtArgVal) (frame_resize_pixelwise ? 1 : ch),
-		 XtNminWidth, (XtArgVal) base_width,
-		 XtNminHeight, (XtArgVal) base_height,
+		 XtNbaseWidth, (XtArgVal) {base_width},
+		 XtNbaseHeight, (XtArgVal) {base_height},
+		 XtNwidthInc, (XtArgVal) {frame_resize_pixelwise ? 1 : cw},
+		 XtNheightInc, (XtArgVal) {frame_resize_pixelwise ? 1 : ch},
+		 XtNminWidth, (XtArgVal) {base_width},
+		 XtNminHeight, (XtArgVal) {base_height},
 		 NULL);
 
   /* Return if size hints really changed.  If they did not, then Xt
@@ -439,8 +439,7 @@ EmacsFrameResize (Widget widget)
        ew->core.width, ew->core.height,
        f->new_width, f->new_height);
 
-  if (FRAME_PIXEL_WIDTH (f) == ew->core.width
-      && FRAME_PIXEL_HEIGHT (f) == ew->core.height)
+  if (FRAME_PARENT_FRAME (f)) 	/* Size always up to date.  */
     return;
 
   change_frame_size (f, ew->core.width, ew->core.height,

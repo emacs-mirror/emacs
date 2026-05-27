@@ -215,7 +215,7 @@ w32con_clear_frame (struct frame *f)
 
 static struct glyph glyph_base[80];
 static struct glyph *glyphs = glyph_base;
-static size_t glyphs_len = ARRAYELTS (glyph_base);
+static size_t glyphs_len = countof (glyph_base);
 static BOOL  ceol_initialized = FALSE;
 
 /* Clear from Cursor to end (what's "standout marker"?).  */

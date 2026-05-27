@@ -122,6 +122,20 @@
 # endif
 #endif
 
+/* _GL_ATTRIBUTE_DEALLOC_FREE declares that the function returns pointers that
+   can be freed via 'free'; it can be used only after declaring 'free'.  */
+/* Applies to: functions.  Cannot be used on inline functions.  */
+#ifndef _GL_ATTRIBUTE_DEALLOC_FREE
+# if defined __cplusplus && defined __GNUC__ && !defined __clang__
+/* Work around GCC bug <https://gcc.gnu.org/PR108231> */
+#  define _GL_ATTRIBUTE_DEALLOC_FREE \
+     _GL_ATTRIBUTE_DEALLOC ((void (*) (void *)) free, 1)
+# else
+#  define _GL_ATTRIBUTE_DEALLOC_FREE \
+     _GL_ATTRIBUTE_DEALLOC (free, 1)
+# endif
+#endif
+
 /* The __attribute__ feature is available in gcc versions 2.5 and later.
    The __-protected variants of the attributes 'format' and 'printf' are
    accepted by gcc versions 2.6.4 (effectively 2.7) and later.
@@ -231,6 +245,50 @@
 
 /* The definition of _GL_WARN_ON_USE is copied here.  */
 
+/* Make _GL_ATTRIBUTE_DEALLOC_FREE work, even though <stdlib.h> may not have
+   been included yet.  */
+#if @GNULIB_FREE_POSIX@
+# if (@REPLACE_FREE@ && !defined free \
+      && !(defined __cplusplus && defined GNULIB_NAMESPACE))
+/* We can't do '#define free rpl_free' here.  */
+#  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
+_GL_EXTERN_C void rpl_free (void *) _GL_ATTRIBUTE_NOTHROW;
+#  else
+_GL_EXTERN_C void rpl_free (void *);
+#  endif
+#  undef _GL_ATTRIBUTE_DEALLOC_FREE
+#  define _GL_ATTRIBUTE_DEALLOC_FREE _GL_ATTRIBUTE_DEALLOC (rpl_free, 1)
+# else
+#  if defined _MSC_VER && !defined free
+_GL_EXTERN_C
+#   if defined _DLL
+     __declspec (dllimport)
+#   endif
+     void __cdecl free (void *);
+#  else
+#   if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
+_GL_EXTERN_C void free (void *) _GL_ATTRIBUTE_NOTHROW;
+#   else
+_GL_EXTERN_C void free (void *);
+#   endif
+#  endif
+# endif
+#else
+# if defined _MSC_VER && !defined free
+_GL_EXTERN_C
+#   if defined _DLL
+     __declspec (dllimport)
+#   endif
+     void __cdecl free (void *);
+# else
+#  if defined __cplusplus && (__GLIBC__ + (__GLIBC_MINOR__ >= 14) > 2)
+_GL_EXTERN_C void free (void *) _GL_ATTRIBUTE_NOTHROW;
+#  else
+_GL_EXTERN_C void free (void *);
+#  endif
+# endif
+#endif
+
 /* Macros for stringification.  */
 #define _GL_STDIO_STRINGIZE(token) #token
 #define _GL_STDIO_MACROEXPAND_AND_STRINGIZE(token) _GL_STDIO_STRINGIZE(token)
@@ -273,24 +331,24 @@
 
 #if (defined _WIN32 && !defined __CYGWIN__) && !defined _UCRT
 /* Workarounds against msvcrt bugs.  */
-_GL_FUNCDECL_SYS (gl_consolesafe_fwrite, size_t,
+_GL_FUNCDECL_SYS (_gl_consolesafe_fwrite, size_t,
                   (const void *ptr, size_t size, size_t nmemb, FILE *fp),
                   _GL_ARG_NONNULL ((1, 4)));
 # if defined __MINGW32__
-_GL_FUNCDECL_SYS (gl_consolesafe_fprintf, int,
+_GL_FUNCDECL_SYS (_gl_consolesafe_fprintf, int,
                   (FILE *restrict fp, const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 3)
                   _GL_ARG_NONNULL ((1, 2)));
-_GL_FUNCDECL_SYS (gl_consolesafe_printf, int,
+_GL_FUNCDECL_SYS (_gl_consolesafe_printf, int,
                   (const char *restrict format, ...),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 2)
                   _GL_ARG_NONNULL ((1)));
-_GL_FUNCDECL_SYS (gl_consolesafe_vfprintf, int,
+_GL_FUNCDECL_SYS (_gl_consolesafe_vfprintf, int,
                   (FILE *restrict fp,
                    const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (2, 0)
                   _GL_ARG_NONNULL ((1, 2)));
-_GL_FUNCDECL_SYS (gl_consolesafe_vprintf, int,
+_GL_FUNCDECL_SYS (_gl_consolesafe_vprintf, int,
                   (const char *restrict format, va_list args),
                   _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 0)
                   _GL_ARG_NONNULL ((1)));
@@ -633,7 +691,7 @@ _GL_CXXALIASWARN (fprintf);
 #elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
 # if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #  undef fprintf
-#  define fprintf gl_consolesafe_fprintf
+#  define fprintf _gl_consolesafe_fprintf
 # endif
 #endif
 #if !@GNULIB_FPRINTF_POSIX@ && defined GNULIB_POSIXCHECK
@@ -985,7 +1043,7 @@ _GL_CXXALIASWARN (fwrite);
 #elif (defined _WIN32 && !defined __CYGWIN__) && !defined _UCRT
 # if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #  undef fwrite
-#  define fwrite gl_consolesafe_fwrite
+#  define fwrite _gl_consolesafe_fwrite
 # endif
 #endif
 
@@ -1371,7 +1429,7 @@ _GL_CXXALIASWARN (printf);
 #elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
 # if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #  undef printf
-#  define printf gl_consolesafe_printf
+#  define printf _gl_consolesafe_printf
 # endif
 #endif
 #if !@GNULIB_PRINTF_POSIX@ && defined GNULIB_POSIXCHECK
@@ -1808,6 +1866,26 @@ _GL_CXXALIAS_SYS (vasprintf, int,
 _GL_CXXALIASWARN (vasprintf);
 #endif
 
+#if @GNULIB_VAPRINTF@
+/* Write formatted output to a string dynamically allocated with malloc().
+   Return the resulting string.  Upon memory allocation error, or some
+   other error, return NULL, with errno set.  */
+_GL_FUNCDECL_SYS (aprintf, char *,
+                  (const char *format, ...),
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 2)
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+_GL_CXXALIAS_SYS (aprintf, char *,
+                  (const char *format, ...));
+_GL_FUNCDECL_SYS (vaprintf, char *,
+                  (const char *format, va_list args),
+                  _GL_ATTRIBUTE_FORMAT_PRINTF_STANDARD (1, 0)
+                  _GL_ARG_NONNULL ((1))
+                  _GL_ATTRIBUTE_MALLOC _GL_ATTRIBUTE_DEALLOC_FREE);
+_GL_CXXALIAS_SYS (vaprintf, char *,
+                  (const char *format, va_list args));
+#endif
+
 #if @GNULIB_VDZPRINTF@
 /* Prints formatted output to file descriptor FD.
    Returns the number of bytes written to the file descriptor.  Upon
@@ -1918,7 +1996,7 @@ _GL_CXXALIASWARN (vfprintf);
 #elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
 # if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #  undef vfprintf
-#  define vfprintf gl_consolesafe_vfprintf
+#  define vfprintf _gl_consolesafe_vfprintf
 # endif
 #endif
 #if !@GNULIB_VFPRINTF_POSIX@ && defined GNULIB_POSIXCHECK
@@ -2001,7 +2079,7 @@ _GL_CXXALIASWARN (vprintf);
 #elif defined __MINGW32__ && !defined _UCRT && __USE_MINGW_ANSI_STDIO
 # if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #  undef vprintf
-#  define vprintf gl_consolesafe_vprintf
+#  define vprintf _gl_consolesafe_vprintf
 # endif
 #endif
 #if !@GNULIB_VPRINTF_POSIX@ && defined GNULIB_POSIXCHECK

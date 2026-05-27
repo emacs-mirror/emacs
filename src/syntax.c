@@ -242,7 +242,7 @@ SYNTAX_MATCH (int c)
 # define uninitialized_interval (((INTERVAL) NULL) + 2)
 static_assert ((size_t) uninitialized_interval % word_size == 0);
 #else
-# define uninitialized_interval ((INTERVAL) (intptr_t) 1)
+# define uninitialized_interval ((INTERVAL) (intptr_t) 1u)
 #endif
 
 /* This should be called with FROM at the start of forward

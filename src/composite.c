@@ -317,7 +317,7 @@ get_composition_id (ptrdiff_t charpos, ptrdiff_t bytepos, ptrdiff_t nchars,
 	       : ASIZE (key));
 
   if (GLYPH_LEN_MAX < glyph_len)
-    memory_full (SIZE_MAX);
+    memory_full_up ();
 
   /* Register the composition in composition_table.  */
 #ifdef HAVE_MPS
@@ -1880,8 +1880,7 @@ composition_adjust_point (ptrdiff_t last_pt, ptrdiff_t new_pt)
     return new_pt;
 
   /* Next check the automatic composition.  */
-  if (! find_automatic_composition (new_pt, (ptrdiff_t) -1, (ptrdiff_t) -1,
-				    &beg, &end, &val, Qnil)
+  if (! find_automatic_composition (new_pt, -1, -1, &beg, &end, &val, Qnil)
       || beg == new_pt)
     return new_pt;
   for (i = 0; i < LGSTRING_GLYPH_LEN (val); i++)
@@ -2081,7 +2080,7 @@ See `find-composition' for more details.  */)
 	    && !NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	   || (!NILP (string) && STRING_MULTIBYTE (string)))
 	  && ! inhibit_auto_composition ()
-	  && find_automatic_composition (from, to, (ptrdiff_t) -1,
+	  && find_automatic_composition (from, to, -1,
 					 &start, &end, &gstring, string))
 	return list3 (make_fixnum (start), make_fixnum (end), gstring);
       return Qnil;
@@ -2090,7 +2089,7 @@ See `find-composition' for more details.  */)
     {
       ptrdiff_t s, e;
 
-      if (find_automatic_composition (from, to, (ptrdiff_t) -1,
+      if (find_automatic_composition (from, to, -1,
 				      &s, &e, &gstring, string)
 	  && (e <= fixed_pos ? e > end : s < start))
 	return list3 (make_fixnum (s), make_fixnum (e), gstring);

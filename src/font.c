@@ -734,7 +734,7 @@ get_font_prop_index (Lisp_Object key)
 {
   int i;
 
-  for (i = 0; i < ARRAYELTS (font_property_table); i++)
+  for (i = 0; i < countof (font_property_table); i++)
     if (EQ (key, builtin_lisp_symbol (font_property_table[i].key)))
       return i;
   return -1;
@@ -5700,7 +5700,7 @@ If the named font cannot be opened and loaded, return nil.  */)
 #endif
 
 
-#define BUILD_STYLE_TABLE(TBL) build_style_table (TBL, ARRAYELTS (TBL))
+#define BUILD_STYLE_TABLE(TBL) build_style_table (TBL, countof (TBL))
 
 static Lisp_Object
 build_style_table (const struct table_entry *entry, int nelement)

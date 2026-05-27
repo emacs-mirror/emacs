@@ -112,7 +112,7 @@ xg_select (int fds_lim, fd_set *rfds, fd_set *wfds, fd_set *efds,
   bool have_wfds = wfds != NULL;
   GPollFD gfds_buf[128];
   GPollFD *gfds = gfds_buf;
-  int gfds_size = ARRAYELTS (gfds_buf);
+  int gfds_size = countof (gfds_buf);
   int n_gfds, retval = 0, our_fds = 0, max_fds = fds_lim - 1;
   int i, nfds, tmo_in_millisec, must_free = 0;
   bool need_to_dispatch;
