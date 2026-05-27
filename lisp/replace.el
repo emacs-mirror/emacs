@@ -369,6 +369,8 @@ should a regexp."
                                 (replace--region-filter
                                  (funcall region-extract-function 'bounds)))
                       :highlight (and query-replace-lazy-highlight (not no-highlight))
+                      :lax-whitespace (if regexp-flag replace-regexp-lax-whitespace
+                                          replace-lax-whitespace)
                       :regexp regexp-flag
                       :regexp-function (or replace-regexp-function
                                            delimited-flag
