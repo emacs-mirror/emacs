@@ -4114,7 +4114,17 @@ igc_realloc_ambig (void *block, size_t size)
   struct igc_root_list *r = root_find (block);
   igc_assert (r);
   eassume (r != NULL);
+
+  /* Work around GCC bug 125471.  */
+  #if GNUC_PREREQ (14, 0, 0)
+   #pragma GCC diagnostic push
+   #pragma GCC diagnostic ignored "-Wnull-dereference"
+  #endif
   ptrdiff_t old_size = (char *) r->d.end - (char *) r->d.start;
+  #if GNUC_PREREQ (14, 0, 0)
+   #pragma GCC diagnostic pop
+  #endif
+
   ptrdiff_t min_size = min (old_size, size);
   root_create_ambig (gc, p, (char *) p + size, "realloc-ambig");
   mps_word_t *old_pw = block;
