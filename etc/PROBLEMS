@@ -136,6 +136,9 @@ result in an endless loop.
 If you need Emacs to be able to recover from closing displays, compile
 it with the Lucid toolkit instead of GTK.
 
+One possible mitigation for the problem is described in
+https://debbugs.gnu.org/81124
+
 ** Emacs compiled with GTK+ 3 crashes when run under some X servers.
 This happens when the X server does not provide certain display
 features that the underlying GTK+ 3 toolkit assumes.  For example, this
