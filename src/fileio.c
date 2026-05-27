@@ -1962,7 +1962,7 @@ get_homedir (void)
     {
       static char const *userenv[] = {"LOGNAME", "USER"};
       struct passwd *pw = NULL;
-      for (int i = 0; i < ARRAYELTS (userenv); i++)
+      for (int i = 0; i < countof (userenv); i++)
 	{
 	  char *user = egetenv (userenv[i]);
 	  if (user)

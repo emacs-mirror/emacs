@@ -430,7 +430,7 @@ init_baud_rate (int fd)
 #endif /* not DOS_NT */
     }
 
-  baud_rate = (emacs_ospeed < ARRAYELTS (baud_convert)
+  baud_rate = (emacs_ospeed < countof (baud_convert)
 	       ? baud_convert[emacs_ospeed] : 9600);
   if (baud_rate == 0)
     baud_rate = 1200;
@@ -3136,7 +3136,7 @@ static const struct speed_struct speeds[] =
 static speed_t
 convert_speed (speed_t speed)
 {
-  for (ptrdiff_t i = 0; i < ARRAYELTS (speeds); i++)
+  for (ptrdiff_t i = 0; i < countof (speeds); i++)
     {
       if (speed == speeds[i].internal)
 	return speed;
@@ -3356,7 +3356,7 @@ list_system_processes (void)
   int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PROC};
 #endif
   size_t len;
-  size_t mibsize = ARRAYELTS (mib);
+  size_t mibsize = countof (mib);
   struct kinfo_proc *procs;
   size_t i;
 

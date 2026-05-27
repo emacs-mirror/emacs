@@ -50,7 +50,7 @@ GNULIB_MODULES='
   qcopy-acl readlink readlinkat realloc-posix regex
   sig2str sigdescr_np socklen stat-time std-gnu23
   stdc_bit_width stdc_count_ones stdc_trailing_zeros
-  stdckdint-h stddef-h stdio-h stdio-windows
+  stdckdint-h stdcountof-h stddef-h stdio-h stdio-windows
   stpcpy streq strnlen strtoimax symlink sys_stat-h sys_time-h
   tempname time-h time_r time_rz timegm timer-time timespec-add timespec-sub
   unlocked-io update-copyright utimensat

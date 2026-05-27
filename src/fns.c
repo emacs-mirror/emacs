@@ -4759,7 +4759,7 @@ cmpfn_user_defined (Lisp_Object key1, Lisp_Object key2,
 		    struct Lisp_Hash_Table *h)
 {
   Lisp_Object args[] = { h->test->user_cmp_function, key1, key2 };
-  return hash_table_user_defined_call (ARRAYELTS (args), args, h);
+  return hash_table_user_defined_call (countof (args), args, h);
 }
 
 static EMACS_INT
@@ -4805,7 +4805,7 @@ static hash_hash_t
 hashfn_user_defined (Lisp_Object key, struct Lisp_Hash_Table *h)
 {
   Lisp_Object args[] = { h->test->user_hash_function, key };
-  Lisp_Object hash = hash_table_user_defined_call (ARRAYELTS (args), args, h);
+  Lisp_Object hash = hash_table_user_defined_call (countof (args), args, h);
   return reduce_emacs_uint_to_hash_hash (FIXNUMP (hash)
 					 ? XUFIXNUM(hash) : sxhash (hash));
 }

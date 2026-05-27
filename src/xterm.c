@@ -5142,7 +5142,7 @@ int event_record_index;
 void
 record_event (char *locus, int type)
 {
-  if (event_record_index == ARRAYELTS (event_record))
+  if (event_record_index == countof (event_record))
     event_record_index = 0;
 
   event_record[event_record_index].locus = locus;
@@ -17807,7 +17807,7 @@ static int temp_index;
 static short temp_buffer[100];
 
 #define STORE_KEYSYM_FOR_DEBUG(keysym)				\
-  if (temp_index == ARRAYELTS (temp_buffer))			\
+  if (temp_index == countof (temp_buffer))			\
     temp_index = 0;						\
   temp_buffer[temp_index++] = (keysym)
 
@@ -29921,7 +29921,7 @@ x_intern_cached_atom (struct x_display_info *dpyinfo,
       && !strcmp (name, dpyinfo->motif_drag_atom_name))
     return dpyinfo->motif_drag_atom;
 
-  for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
+  for (i = 0; i < countof (x_atom_refs); ++i)
     {
       ptr = (char *) dpyinfo;
 
@@ -30009,7 +30009,7 @@ x_get_atom_name (struct x_display_info *dpyinfo, Atom atom,
 	  return xstrdup (buffer);
 	}
 
-      for (i = 0; i < ARRAYELTS (x_atom_refs); ++i)
+      for (i = 0; i < countof (x_atom_refs); ++i)
 	{
 	  ref_atom = *(Atom *) (dpyinfo_pointer
 				+ x_atom_refs[i].offset);
@@ -31515,7 +31515,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 	   XScreenNumberOfScreen (dpyinfo->screen));
 
   {
-    enum { atom_count = ARRAYELTS (x_atom_refs) };
+    enum { atom_count = countof (x_atom_refs) };
     /* 1 for _XSETTINGS_SN.  */
     enum { total_atom_count = 2 + atom_count };
     Atom atoms_return[total_atom_count];

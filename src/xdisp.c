@@ -3145,7 +3145,7 @@ funcall_with_backtraces (ptrdiff_t nargs, Lisp_Object *args)
 }
 
 #define SAFE_CALLMANY(inhibit_quit, f, array) \
-  dsafe__call (inhibit_quit, f, ARRAYELTS (array), array)
+  dsafe__call (inhibit_quit, f, countof (array), array)
 #define dsafe_calln(inhibit_quit, ...)                 \
   SAFE_CALLMANY (inhibit_quit,			       \
                  backtrace_on_redisplay_error          \
@@ -7093,7 +7093,7 @@ load_overlay_strings (struct it *it, ptrdiff_t charpos)
 {
   ptrdiff_t n = 0;
   struct overlay_entry entriesbuf[20];
-  ptrdiff_t size = ARRAYELTS (entriesbuf);
+  ptrdiff_t size = countof (entriesbuf);
   struct overlay_entry *entries = entriesbuf;
   struct itree_node *node;
 
@@ -12248,7 +12248,7 @@ vadd_to_log (char const *format, va_list ap)
   ptrdiff_t form_nargs = format_nargs (format);
   ptrdiff_t nargs = 1 + form_nargs;
   Lisp_Object args[10];
-  eassert (nargs <= ARRAYELTS (args));
+  eassert (nargs <= countof (args));
   AUTO_STRING (args0, format);
   args[0] = args0;
   for (ptrdiff_t i = 1; i < nargs; i++)

@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdarg.h>
 #include <stdbit.h>
 #include <stdckdint.h>
+#include <stdcountof.h>
 #include <stddef.h>
 #include <string.h>
 #include <float.h>
@@ -69,9 +70,6 @@ INLINE_HEADER_BEGIN
 #undef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
-
-/* Number of elements in an array.  */
-#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
 
 /* Number of bits in a Lisp_Object tag.  */
 DEFINE_GDB_SYMBOL_BEGIN (int, GCTYPEBITS)
@@ -3452,7 +3450,7 @@ enum maxargs
   };
 
 /* Call a function F that accepts many args, passing it ARRAY's elements.  */
-#define CALLMANY(f, array) (f) (ARRAYELTS (array), array)
+#define CALLMANY(f, array) (f) (countof (array), array)
 
 /* Call a function F that accepts many args, passing it the remaining args,
    E.g., 'return CALLN (Fformat, fmt, text);' is less error-prone than
@@ -4493,7 +4491,7 @@ extern Lisp_Object list5 (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object,
 			  Lisp_Object);
 extern Lisp_Object listn (ptrdiff_t, Lisp_Object, ...);
 #define list(...) \
-  listn (ARRAYELTS (((Lisp_Object []) {__VA_ARGS__})), __VA_ARGS__)
+  listn (countof (((Lisp_Object []) {__VA_ARGS__})), __VA_ARGS__)
 
 enum gc_root_type
 {

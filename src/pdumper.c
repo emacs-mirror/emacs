@@ -4387,7 +4387,7 @@ DEFUN ("dump-emacs-portable--sort-predicate-copied",
 void
 pdumper_do_now_and_after_load_impl (pdumper_hook hook)
 {
-  if (nr_dump_hooks == ARRAYELTS (dump_hooks))
+  if (nr_dump_hooks == countof (dump_hooks))
     fatal ("out of dump hooks: make dump_hooks[] bigger");
   dump_hooks[nr_dump_hooks++] = hook;
   hook ();
@@ -4396,7 +4396,7 @@ pdumper_do_now_and_after_load_impl (pdumper_hook hook)
 void
 pdumper_do_now_and_after_late_load_impl (pdumper_hook hook)
 {
-  if (nr_dump_late_hooks == ARRAYELTS (dump_late_hooks))
+  if (nr_dump_late_hooks == countof (dump_late_hooks))
     fatal ("out of dump hooks: make dump_late_hooks[] bigger");
   dump_late_hooks[nr_dump_late_hooks++] = hook;
   hook ();
@@ -4405,7 +4405,7 @@ pdumper_do_now_and_after_late_load_impl (pdumper_hook hook)
 static void
 pdumper_remember_user_data_1 (void *mem, int nbytes)
 {
-  if (nr_remembered_data == ARRAYELTS (remembered_data))
+  if (nr_remembered_data == countof (remembered_data))
     fatal ("out of remembered data slots: make remembered_data[] bigger");
   remembered_data[nr_remembered_data].mem = mem;
   remembered_data[nr_remembered_data].sz = nbytes;
@@ -5731,7 +5731,7 @@ pdumper_load (const char *dump_filename, char *argv0)
      .protection = DUMP_MEMORY_ACCESS_READWRITE,
     };
 
-  if (!dump_mmap_contiguous (sections, ARRAYELTS (sections)))
+  if (!dump_mmap_contiguous (sections, countof (sections)))
     goto out;
 
   err = PDUMPER_LOAD_ERROR;
@@ -5768,7 +5768,7 @@ pdumper_load (const char *dump_filename, char *argv0)
   dump_do_all_emacs_relocations (header, dump_base);
 
   dump_mmap_discard_contents (&sections[DS_DISCARDABLE]);
-  for (int i = 0; i < ARRAYELTS (sections); ++i)
+  for (int i = 0; i < countof (sections); ++i)
     dump_mmap_reset (&sections[i]);
 
   Lisp_Object hashes = zero_vector;
@@ -5807,7 +5807,7 @@ pdumper_load (const char *dump_filename, char *argv0)
   dump_private.dump_filename = dump_filename_copy;
 
  out:
-  for (int i = 0; i < ARRAYELTS (sections); ++i)
+  for (int i = 0; i < countof (sections); ++i)
     dump_mmap_release (&sections[i]);
   if (dump_fd >= 0)
     emacs_close (dump_fd);

@@ -486,7 +486,7 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	{
 	  /* Weight hasn't been found yet.  Scan through the weight
 	     table.  */
-	  for (i = 0; i < ARRAYELTS (sfnt_weight_descriptions); ++i)
+	  for (i = 0; i < countof (sfnt_weight_descriptions); ++i)
 	    {
 	      if (!strcmp (sfnt_weight_descriptions[i].c_string,
 			   single))
@@ -503,7 +503,7 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	{
 	  /* Slant hasn't been found yet.  Scan through the slant
 	     table.  */
-	  for (i = 0; i < ARRAYELTS (sfnt_slant_descriptions); ++i)
+	  for (i = 0; i < countof (sfnt_slant_descriptions); ++i)
 	    {
 	      if (!strcmp (sfnt_slant_descriptions[i].c_string,
 			   single))
@@ -520,7 +520,7 @@ sfnt_parse_style (Lisp_Object style_name, struct sfnt_font_desc *desc)
 	{
 	  /* Width hasn't been found yet.  Scan through the width
 	     table.  */
-	  for (i = 0; i < ARRAYELTS (sfnt_width_descriptions); ++i)
+	  for (i = 0; i < countof (sfnt_width_descriptions); ++i)
 	    {
 	      if (!strcmp (sfnt_width_descriptions[i].c_string,
 			   single))
@@ -1998,7 +1998,7 @@ sfntfont_list (struct frame *f, Lisp_Object font_spec)
   for (desc = system_fonts; desc; desc = desc->next)
     {
       rc = sfntfont_list_1 (desc, font_spec, instances,
-			    ARRAYELTS (instances));
+			    countof (instances));
 
       if (rc < 0)
 	matching = Fcons (sfntfont_desc_to_entity (desc, 0),

@@ -1,21 +1,21 @@
-// Use the ARRAYELTS macro where possible.
+// Use the countof macro where possible.
 @@
 type T;
 T[] E;
 @@
 - (sizeof (E) / sizeof (E[...]))
-+ ARRAYELTS (E)
++ countof (E)
 
 @@
 type T;
 T[] E;
 @@
 - (sizeof (E) / sizeof (T))
-+ ARRAYELTS (E)
++ countof (E)
 
 @@
 type T;
 T[] E;
 @@
 - (sizeof (E) / sizeof (*E))
-+ ARRAYELTS (E)
++ countof (E)

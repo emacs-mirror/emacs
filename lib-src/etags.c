@@ -110,6 +110,7 @@ University of California, as described above. */
 #include <unistd.h>
 #include <stdarg.h>
 #include <stdckdint.h>
+#include <stdcountof.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysstdio.h>
@@ -6693,7 +6694,7 @@ mercury_decl (char *s, size_t pos)
     }
   else
     {
-      for (int j = 0; j < sizeof (Mercury_decl_tags) / sizeof (char*); ++j)
+      for (int j = 0; j < countof (Mercury_decl_tags); ++j)
 	{
 	  if (memstreq (decl_type, decl_type_length, Mercury_decl_tags[j]))
 	    {

@@ -1539,7 +1539,7 @@ Return t if the file exists and loads successfully.  */)
   if (!NILP (Ffboundp (Qdo_after_load_evaluation)))
     calln (Qdo_after_load_evaluation, hist_file_name);
 
-  for (int i = 0; i < ARRAYELTS (saved_strings); i++)
+  for (int i = 0; i < countof (saved_strings); i++)
     {
       xfree (saved_strings[i].string);
       saved_strings[i].string = NULL;
@@ -3449,7 +3449,7 @@ skip_lazy_string (source_t *source)
 	 and record where in the file it comes from.  */
 
       /* First exchange the two saved_strings.  */
-      static_assert (ARRAYELTS (saved_strings) == 2);
+      static_assert (countof (saved_strings) == 2);
       struct saved_string t = saved_strings[0];
       saved_strings[0] = saved_strings[1];
       saved_strings[1] = t;
@@ -3507,7 +3507,7 @@ get_lazy_string (Lisp_Object val)
      compatibility.  */
   EMACS_INT pos = eabs (XFIXNUM (XCDR (val)));
   struct saved_string *ss = &saved_strings[0];
-  struct saved_string *ssend = ss + ARRAYELTS (saved_strings);
+  struct saved_string *ssend = ss + countof (saved_strings);
   while (ss < ssend
 	 && !(pos >= ss->position && pos < ss->position + ss->length))
     ss++;
@@ -5199,7 +5199,7 @@ init_obarray_once (void)
   initial_obarray = Vobarray;
   staticpro (&initial_obarray);
 
-  for (int i = 0; i < ARRAYELTS (lispsym); i++)
+  for (int i = 0; i < countof (lispsym); i++)
     define_symbol (builtin_lisp_symbol (i), defsym_name[i]);
 
   DEFSYM (Qunbound, "unbound");

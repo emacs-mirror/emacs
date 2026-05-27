@@ -167,6 +167,7 @@
 #  stdc_count_ones \
 #  stdc_trailing_zeros \
 #  stdckdint-h \
+#  stdcountof-h \
 #  stddef-h \
 #  stdio-h \
 #  stdio-windows \

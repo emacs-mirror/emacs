@@ -2118,7 +2118,7 @@ For an approximate inverse of this, see `kbd'.  */)
 
   Lisp_Object lists[2] = { prefix, keys };
   ptrdiff_t listlens[2] = { nprefix, nkeys };
-  for (int li = 0; li < ARRAYELTS (lists); li++)
+  for (int li = 0; li < countof (lists); li++)
     {
       Lisp_Object list = lists[li];
       ptrdiff_t listlen = listlens[li], i_byte = 0;

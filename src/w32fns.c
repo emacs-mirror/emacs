@@ -838,7 +838,7 @@ w32_default_color_map (void)
 
   cmap = Qnil;
 
-  for (i = 0; i < ARRAYELTS (w32_color_map); pc++, i++)
+  for (i = 0; i < countof (w32_color_map); pc++, i++)
     cmap = Fcons (Fcons (build_string (pc->name),
 			 make_fixnum (pc->colorref)),
 		  cmap);
@@ -2834,7 +2834,7 @@ w32_createwindow (struct frame *f, int *coords)
 	}
 
       /* Reset F's touch point array.  */
-      for (i = 0; i < ARRAYELTS (f->output_data.w32->touch_ids); ++i)
+      for (i = 0; i < countof (f->output_data.w32->touch_ids); ++i)
 	f->output_data.w32->touch_ids[i] = -1;
 
       /* Assign an offset for touch points reported to F.  */
@@ -4173,7 +4173,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
       windows_msg.time = GetMessageTime ();
       TranslateMessage (&windows_msg);
     }
-  count = get_wm_chars (hwnd, buf, ARRAYELTS (buf), 1,
+  count = get_wm_chars (hwnd, buf, countof (buf), 1,
 			/* The message may have been synthesized by
 			   who knows what; be conservative.  */
 			modifier_set (VK_LCONTROL)
@@ -8413,7 +8413,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
 	  file_details_w->lStructSize = sizeof (*file_details_w);
 	/* Set up the inout parameter for the selected file name.  */
 	file_details_w->lpstrFile = filename_buf_w;
-	file_details_w->nMaxFile = ARRAYELTS (filename_buf_w);
+	file_details_w->nMaxFile = countof (filename_buf_w);
 	file_details_w->hwndOwner = FRAME_W32_WINDOW (f);
 	/* Undocumented Bug in Common File Dialog:
 	   If a filter is not specified, shell links are not resolved.  */
@@ -8446,7 +8446,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
 	else
 	  file_details_a->lStructSize = sizeof (*file_details_a);
 	file_details_a->lpstrFile = filename_buf_a;
-	file_details_a->nMaxFile = ARRAYELTS (filename_buf_a);
+	file_details_a->nMaxFile = countof (filename_buf_a);
 	file_details_a->hwndOwner = FRAME_W32_WINDOW (f);
 	file_details_a->lpstrFilter = filter_a;
 	file_details_a->lpstrInitialDir = dir_a;

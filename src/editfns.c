@@ -2450,7 +2450,7 @@ check_translation (ptrdiff_t pos, ptrdiff_t pos_byte, ptrdiff_t end,
 {
   int initial_buf[16];
   int *buf = initial_buf;
-  ptrdiff_t buf_size = ARRAYELTS (initial_buf);
+  ptrdiff_t buf_size = countof (initial_buf);
   int *bufalloc = 0;
   ptrdiff_t buf_used = 0;
   Lisp_Object result = Qnil;

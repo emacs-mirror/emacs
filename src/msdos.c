@@ -581,7 +581,7 @@ dos_set_window_size (int *rows, int *cols)
       };
       int i = 0;
 
-      while (i < ARRAYELTS (std_dimension))
+      while (i < countof (std_dimension))
 	{
 	 if (std_dimension[i].need_vga <= have_vga
 	     && std_dimension[i].rows >= *rows)
@@ -2068,7 +2068,7 @@ dos_set_keyboard (int code, int always)
   keyboard_map_all = always;
   dos_keyboard_layout = 1;
 
-  for (i = 0; i < ARRAYELTS (keyboard_layout_list); i++)
+  for (i = 0; i < countof (keyboard_layout_list); i++)
     if (code == keyboard_layout_list[i].country_code)
       {
 	keyboard = keyboard_layout_list[i].keyboard_map;
@@ -2511,7 +2511,7 @@ dos_rawgetc (void)
              one.  */
 	  if (code == -1)
 	    {
-	      if (sc >= ARRAYELTS (ibmpc_translate_map))
+	      if (sc >= countof (ibmpc_translate_map))
 		continue;
 	      if ((code = ibmpc_translate_map[sc]) == Ignore)
 		continue;
@@ -3479,7 +3479,7 @@ init_environment (int argc, char **argv, int skip_args)
   static const char * const tempdirs[] = {
     "$TMPDIR", "$TEMP", "$TMP", "c:/"
   };
-  const int imax = ARRAYELTS (tempdirs);
+  const int imax = countof (tempdirs);
 
   /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
      temporary files and assume "/tmp" if $TMPDIR is unset, which

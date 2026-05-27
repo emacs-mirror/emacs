@@ -4971,7 +4971,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
 {
 #ifdef USE_CAIRO
   Emacs_Color fgbg[] = {{.pixel = fg}, {.pixel = bg}};
-  FRAME_TERMINAL (f)->query_colors (f, fgbg, ARRAYELTS (fgbg));
+  FRAME_TERMINAL (f)->query_colors (f, fgbg, countof (fgbg));
   fg = lookup_rgb_color (f, fgbg[0].red, fgbg[0].green, fgbg[0].blue);
   bg = lookup_rgb_color (f, fgbg[1].red, fgbg[1].green, fgbg[1].blue);
   img->pixmap
@@ -6298,7 +6298,7 @@ static const char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
 static int
 xpm_str_to_color_key (const char *s)
 {
-  for (int i = 0; i < ARRAYELTS (xpm_color_key_strings); i++)
+  for (int i = 0; i < countof (xpm_color_key_strings); i++)
     if (strcmp (xpm_color_key_strings[i], s) == 0)
       return i;
   return -1;
@@ -7731,7 +7731,7 @@ pbm_load (struct frame *f, struct image *img)
 #ifdef USE_CAIRO
       {
 	Emacs_Color fgbg[] = {{.pixel = fg}, {.pixel = bg}};
-	FRAME_TERMINAL (f)->query_colors (f, fgbg, ARRAYELTS (fgbg));
+	FRAME_TERMINAL (f)->query_colors (f, fgbg, countof (fgbg));
 	fg = lookup_rgb_color (f, fgbg[0].red, fgbg[0].green, fgbg[0].blue);
 	bg = lookup_rgb_color (f, fgbg[1].red, fgbg[1].green, fgbg[1].blue);
       }
@@ -12992,7 +12992,7 @@ lookup_image_type (Lisp_Object type)
     return &native_image_type;
 #endif
 
-  for (int i = 0; i < ARRAYELTS (image_types); i++)
+  for (int i = 0; i < countof (image_types); i++)
     {
       struct image_type const *r = &image_types[i];
       if (EQ (type, builtin_lisp_symbol (r->type)))

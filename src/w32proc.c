@@ -4220,7 +4220,7 @@ nl_langinfo (nl_item item)
 		 { 210, 297 }
 		};
 	      int idx = atoi (nl_langinfo_buf);
-	      if (0 <= idx && idx < ARRAYELTS (paper_size))
+	      if (0 <= idx && idx < countof (paper_size))
 		retval = (char *)(intptr_t) (item == _NL_PAPER_WIDTH
 					     ? paper_size[idx][0]
 					     : paper_size[idx][1]);

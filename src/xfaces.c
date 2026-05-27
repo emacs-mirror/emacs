@@ -458,7 +458,7 @@ DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
 
   putc ('\n', stderr);
 
-  for (i = n = 0; i < ARRAYELTS (color_count); ++i)
+  for (i = n = 0; i < countof (color_count); ++i)
     if (color_count[i])
       {
 	fprintf (stderr, "%3d: %5d", i, color_count[i]);
@@ -5807,14 +5807,14 @@ Value is ORDER.  */)
 {
   Lisp_Object list;
   int i;
-  int indices[ARRAYELTS (font_sort_order)];
+  int indices[countof (font_sort_order)];
 
   CHECK_LIST (order);
   memset (indices, 0, sizeof indices);
   i = 0;
 
   for (list = order;
-       CONSP (list) && i < ARRAYELTS (indices);
+       CONSP (list) && i < countof (indices);
        list = XCDR (list), ++i)
     {
       Lisp_Object attr = XCAR (list);
@@ -5836,9 +5836,9 @@ Value is ORDER.  */)
       indices[i] = xlfd;
     }
 
-  if (!NILP (list) || i != ARRAYELTS (indices))
+  if (!NILP (list) || i != countof (indices))
     signal_error ("Invalid font sort order", order);
-  for (i = 0; i < ARRAYELTS (font_sort_order); ++i)
+  for (i = 0; i < countof (font_sort_order); ++i)
     if (indices[i] == 0)
       signal_error ("Invalid font sort order", order);
 
@@ -7340,7 +7340,7 @@ DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
       int i;
 
       fputs ("font selection order: ", stderr);
-      for (i = 0; i < ARRAYELTS (font_sort_order); ++i)
+      for (i = 0; i < countof (font_sort_order); ++i)
 	fprintf (stderr, "%d ", font_sort_order[i]);
       putc ('\n', stderr);
 

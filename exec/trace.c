@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <assert.h>
 #include <signal.h>
+#include <stdcountof.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -1538,9 +1539,6 @@ static int interesting_syscalls[] =
     READLINKAT_SYSCALL,
   };
 
-/* Number of elements in an array.  */
-#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
-
 /* Install a secure computing filter that will notify attached tracers
    when a system call of interest to this module is received.  Value is
    0 if successful, 1 otherwise.  */
@@ -1548,7 +1546,7 @@ static int interesting_syscalls[] =
 static int
 establish_seccomp_filter (void)
 {
-  struct sock_filter statements[1 + ARRAYELTS (interesting_syscalls) + 2];
+  struct sock_filter statements[1 + countof (interesting_syscalls) + 2];
   struct sock_fprog program;
   int index, rc;
 
@@ -1567,27 +1565,27 @@ establish_seccomp_filter (void)
   statements[index]
     = ((struct sock_filter)
        BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, EXEC_SYSCALL,
-		 ARRAYELTS (interesting_syscalls), 0)); index++;
+		 countof (interesting_syscalls), 0)); index++;
 #ifdef OPEN_SYSCALL
   statements[index]
     = ((struct sock_filter)
        BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, OPEN_SYSCALL,
-		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+		 countof (interesting_syscalls) - index + 1, 0)); index++;
 #endif /* OPEN_SYSCALL */
   statements[index]
     = ((struct sock_filter)
        BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, OPENAT_SYSCALL,
-		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+		 countof (interesting_syscalls) - index + 1, 0)); index++;
 #ifdef READLINK_SYSCALL
   statements[index]
     = ((struct sock_filter)
        BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, READLINK_SYSCALL,
-		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+		 countof (interesting_syscalls) - index + 1, 0)); index++;
 #endif /* READLINK_SYSCALL */
   statements[index]
     = ((struct sock_filter)
        BPF_JUMP (BPF_JMP + BPF_JEQ + BPF_K, READLINKAT_SYSCALL,
-		 ARRAYELTS (interesting_syscalls) - index + 1, 0)); index++;
+		 countof (interesting_syscalls) - index + 1, 0)); index++;
 
   /* If not intercepted above, permit this system call to execute as
      normal.  */
@@ -1600,7 +1598,7 @@ establish_seccomp_filter (void)
   if (rc)
     return 1;
 
-  program.len = ARRAYELTS (statements);
+  program.len = countof (statements);
   program.filter = statements;
   rc = prctl (PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &program);
   if (rc)

@@ -1312,7 +1312,7 @@ do_play_sound (const char *psz_file_or_data, unsigned long ui_volume, bool in_me
 	  wcscat (sz_cmd_buf_w, fname_w);
 	  wcscat (sz_cmd_buf_w, L"\" alias GNUEmacs_PlaySound_Device wait");
 	  mci_error = mciSendStringW (sz_cmd_buf_w,
-				      sz_ret_buf_w, ARRAYELTS (sz_ret_buf_w) , NULL);
+				      sz_ret_buf_w, countof (sz_ret_buf_w) , NULL);
 	}
       if (mci_error != 0)
 	{

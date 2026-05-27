@@ -1943,7 +1943,7 @@ notify_variable_watchers (Lisp_Object symbol,
       if (SUBRP (watcher))
         {
           Lisp_Object args[] = { symbol, newval, operation, where };
-          funcall_subr (XSUBR (watcher), ARRAYELTS (args), args);
+	  funcall_subr (XSUBR (watcher), countof (args), args);
         }
       else
         calln (watcher, symbol, newval, operation, where);

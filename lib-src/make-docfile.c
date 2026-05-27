@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdarg.h>
+#include <stdcountof.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -651,7 +652,7 @@ compare_globals (const void *a, const void *b)
       /* Common symbols in decreasing popularity order.  */
       static char const commonsym[][8]
 	= { "nil", "t", "unbound", "error", "lambda" };
-      int ncommonsym = sizeof commonsym / sizeof *commonsym;
+      int ncommonsym = countof (commonsym);
       int ai = ncommonsym, bi = ncommonsym;
       for (int i = 0; i < ncommonsym; i++)
 	{

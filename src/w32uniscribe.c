@@ -882,7 +882,7 @@ uniscribe_check_otf_1 (HDC context, Lisp_Object script, Lisp_Object lang,
 {
   SCRIPT_CACHE cache = NULL;
   OPENTYPE_TAG tags[128], script_tag, lang_tag;
-  int max_tags = ARRAYELTS (tags);
+  int max_tags = countof (tags);
   int ntags, i, ret = 0;
   HRESULT rslt;
 

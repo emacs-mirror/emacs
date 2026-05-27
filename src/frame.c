@@ -5081,7 +5081,7 @@ handle_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val,
 		    Lisp_Object old_value)
 {
   Lisp_Object param_index = Fget (prop, Qx_frame_parameter);
-  if (FIXNATP (param_index) && XFIXNAT (param_index) < ARRAYELTS (frame_parms))
+  if (FIXNATP (param_index) && XFIXNAT (param_index) < countof (frame_parms))
     {
       if (FRAME_RIF (f))
 	{
@@ -7384,10 +7384,10 @@ syms_of_frame (void)
   DEFSYM (Qcloned_from, "cloned-from");
   DEFSYM (Qundeleted, "undeleted");
 
-  for (int i = 0; i < ARRAYELTS (frame_parms); i++)
+  for (int i = 0; i < countof (frame_parms); i++)
     {
       int sym = frame_parms[i].sym;
-      eassert (sym >= 0 && sym < ARRAYELTS (lispsym));
+      eassert (sym >= 0 && sym < countof (lispsym));
       Lisp_Object v = builtin_lisp_symbol (sym);
       Fput (v, Qx_frame_parameter, make_fixnum (i));
     }

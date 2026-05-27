@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <inttypes.h>
 #include <stdbit.h>
 #include <stdckdint.h>
+#include <stdcountof.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,8 +128,6 @@ xfree (void *ptr)
 #define TEST_STATIC static
 
 /* Needed for tests.  */
-#define ARRAYELTS(arr) (sizeof (arr) / sizeof (arr)[0])
-
 #define eassert(expr) assert (expr)
 
 /* Also necessary.  */
@@ -18062,9 +18061,9 @@ static uint32_t sfnt_sround_values[] =
 static struct sfnt_generic_test_args sround_test_args =
   {
     sfnt_sround_values,
-    ARRAYELTS (sfnt_sround_values),
+    countof (sfnt_sround_values),
     false,
-    ARRAYELTS (sfnt_sround_instructions),
+    countof (sfnt_sround_instructions),
   };
 
 static unsigned char sfnt_s45round_instructions[] =
@@ -18084,9 +18083,9 @@ static uint32_t sfnt_s45round_values[] =
 static struct sfnt_generic_test_args s45round_test_args =
   {
     sfnt_s45round_values,
-    ARRAYELTS (sfnt_s45round_values),
+    countof (sfnt_s45round_values),
     false,
-    ARRAYELTS (sfnt_s45round_instructions),
+    countof (sfnt_s45round_instructions),
   };
 
 static struct sfnt_generic_test_args rutg_test_args =
@@ -19468,14 +19467,14 @@ static struct sfnt_interpreter_test all_tests[] =
     {
       "SROUND",
       sfnt_sround_instructions,
-      ARRAYELTS (sfnt_sround_instructions),
+      countof (sfnt_sround_instructions),
       &sround_test_args,
       sfnt_generic_check,
     },
     {
       "S45ROUND",
       sfnt_s45round_instructions,
-      ARRAYELTS (sfnt_s45round_instructions),
+      countof (sfnt_s45round_instructions),
       &s45round_test_args,
       sfnt_generic_check,
     },
@@ -20369,7 +20368,7 @@ main (int argc, char **argv)
 	  interpreter->pop_hook = sfnt_pop_hook;
 	}
 
-      for (i = 0; i < ARRAYELTS (all_tests); ++i)
+      for (i = 0; i < countof (all_tests); ++i)
 	sfnt_run_interpreter_test (&all_tests[i], interpreter);
 
       exit (0);

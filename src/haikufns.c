@@ -85,7 +85,7 @@ get_geometry_from_preferences (struct haiku_display_info *dpyinfo,
   };
 
   int i;
-  for (i = 0; i < ARRAYELTS (r); ++i)
+  for (i = 0; i < countof (r); ++i)
     {
       if (NILP (Fassq (r[i].tem, parms)))
         {
@@ -2065,7 +2065,7 @@ haiku_free_custom_cursors (struct frame *f)
   output = FRAME_OUTPUT_DATA (f);
   dpyinfo = FRAME_DISPLAY_INFO (f);
 
-  for (i = 0; i < ARRAYELTS (custom_cursors); ++i)
+  for (i = 0; i < countof (custom_cursors); ++i)
     {
       cursor = &custom_cursors[i];
       frame_cursor = (Emacs_Cursor *) ((char *) output
@@ -2111,7 +2111,7 @@ haiku_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
      values.  */
   haiku_free_custom_cursors (f);
 
-  for (i = 0; i < ARRAYELTS (custom_cursors); ++i)
+  for (i = 0; i < countof (custom_cursors); ++i)
     {
       frame_cursor = (Emacs_Cursor *) ((char *) output
 				       + custom_cursors[i].output_offset);

@@ -64,7 +64,7 @@ init_bignum (void)
      'longjmp'.  */
   mp_set_memory_functions (xmalloc, xrealloc_for_gmp, xfree_for_gmp);
 
-  for (int i = 0; i < ARRAYELTS (mpz); i++)
+  for (int i = 0; i < countof (mpz); i++)
     mpz_init (mpz[i]);
 }
 

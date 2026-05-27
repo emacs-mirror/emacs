@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
+#include <stdcountof.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -527,11 +528,9 @@ make_dialog (char* name,
   if (! actions_initted)
     {
       XtAppContext app = XtWidgetToApplicationContext (parent);
-      XtAppAddActions (app, xaw_actions,
-		       sizeof (xaw_actions) / sizeof (xaw_actions[0]));
+      XtAppAddActions (app, xaw_actions, countof (xaw_actions));
 #if defined USE_CAIRO || defined HAVE_XFT
-      XtAppAddActions (app, button_actions,
-		       sizeof (button_actions) / sizeof (button_actions[0]));
+      XtAppAddActions (app, button_actions, countof (button_actions));
 #endif
       actions_initted = True;
     }
