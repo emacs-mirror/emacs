@@ -100,6 +100,9 @@ make_log (int size, int depth)
   log->keys
     = igc_xzalloc_ambig (size * depth * sizeof *log->keys, __func__);
 #else
+  size_t size_x_depth;
+  if (ckd_mul (&size_x_depth, size, depth))
+    memory_full_up ();
   log->keys = xcalloc (size_x_depth, sizeof *log->keys);
 #endif
   log->counts = xcalloc (size, sizeof *log->counts);
