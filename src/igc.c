@@ -56,7 +56,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #include <config.h>
 #include <limits.h>
 #include <signal.h>
-#pragma GCC diagnostic ignored "-Wuseless-cast"
 #ifdef __clang__
 /* You want to use this without -Wignored-attributes because it warns
    that it cannot add the attribute to functions returning void.  */
@@ -781,7 +780,7 @@ static size_t igc_round (size_t nbytes, size_t align);
    symbol.  */
 void igc_init_header (union igc_header *header, enum igc_obj_type type)
 {
-  union igc_header *h = (union igc_header *) header;
+  union igc_header *h = header;
   switch (type)
     {
     case IGC_OBJ_CONS:
@@ -862,7 +861,7 @@ void igc_init_header (union igc_header *header, enum igc_obj_type type)
 void igc_init_header_bytes (union igc_header *header, enum igc_obj_type type,
 			    size_t nbytes)
 {
-  union igc_header *h = (union igc_header *) header;
+  union igc_header *h = header;
   switch (type)
     {
     case IGC_OBJ_STRING_DATA:
@@ -1475,10 +1474,10 @@ fix_wrapped_bytes (mps_ss_t ss, mps_addr_t *p)
     }                                  \
   while (0)
 
-#define IGC_FIX_CALL_FN(ss, type, addr, fn)	   \
+#define IGC_FIX_CALL_FN(ss, addr, fn)		   \
   do                                               \
     {                                              \
-      type *obj_ = (type *) addr;		   \
+      void *obj_ = addr;			   \
       mps_res_t res;                               \
       MPS_FIX_CALL (ss, res = fn (ss, obj_));      \
       if (res != MPS_RES_OK)                       \
@@ -2597,11 +2596,11 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 	continue;
 
       case IGC_OBJ_HANDLER:
-	IGC_FIX_CALL_FN (ss, struct handler, addr, fix_handler);
+	IGC_FIX_CALL_FN (ss, addr, fix_handler);
 	break;
 
       case IGC_OBJ_CONS:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Cons, addr, fix_cons);
+	IGC_FIX_CALL_FN (ss, addr, fix_cons);
 	break;
 
       case IGC_OBJ_STRING_DATA:
@@ -2618,35 +2617,35 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 	emacs_abort ();
 
       case IGC_OBJ_SYMBOL:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Symbol, addr, fix_symbol);
+	IGC_FIX_CALL_FN (ss, addr, fix_symbol);
 	break;
 
       case IGC_OBJ_INTERVAL:
-	IGC_FIX_CALL_FN (ss, struct interval, addr, fix_interval);
+	IGC_FIX_CALL_FN (ss, addr, fix_interval);
 	break;
 
       case IGC_OBJ_STRING:
-	IGC_FIX_CALL_FN (ss, struct Lisp_String, addr, fix_string);
+	IGC_FIX_CALL_FN (ss, addr, fix_string);
 	break;
 
       case IGC_OBJ_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, addr, fix_vector);
+	IGC_FIX_CALL_FN (ss, addr, fix_vector);
 	break;
 
       case IGC_OBJ_MARKER_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, addr, fix_marker_vector);
+	IGC_FIX_CALL_FN (ss, addr, fix_marker_vector);
 	break;
 
       case IGC_OBJ_ITREE_TREE:
-	IGC_FIX_CALL_FN (ss, struct itree_tree, addr, fix_itree_tree);
+	IGC_FIX_CALL_FN (ss, addr, fix_itree_tree);
 	break;
 
       case IGC_OBJ_ITREE_NODE:
-	IGC_FIX_CALL_FN (ss, struct itree_node, addr, fix_itree_node);
+	IGC_FIX_CALL_FN (ss, addr, fix_itree_node);
 	break;
 
       case IGC_OBJ_IMAGE:
-	IGC_FIX_CALL_FN (ss, struct image, addr, fix_image);
+	IGC_FIX_CALL_FN (ss, addr, fix_image);
 	break;
 
       case IGC_OBJ_IMAGE_CACHE:
@@ -2655,50 +2654,43 @@ dflt_scan_obj (mps_ss_t ss, mps_addr_t start)
 	break;
 
       case IGC_OBJ_FACE:
-	IGC_FIX_CALL_FN (ss, struct face, addr, fix_face);
+	IGC_FIX_CALL_FN (ss, addr, fix_face);
 	break;
 
       case IGC_OBJ_FACE_CACHE:
-	IGC_FIX_CALL_FN (ss, struct face_cache, addr, fix_face_cache);
+	IGC_FIX_CALL_FN (ss, addr, fix_face_cache);
 	break;
 
       case IGC_OBJ_BLV:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Buffer_Local_Value, addr,
-			 fix_blv);
+	IGC_FIX_CALL_FN (ss, addr, fix_blv);
 	break;
 #ifndef USE_EPHEMERON_POOL
       case IGC_OBJ_WEAK_HASH_TABLE_STRONG_PART:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table_Strong_Part, addr,
-			 fix_weak_hash_table_strong_part);
+	IGC_FIX_CALL_FN (ss, addr, fix_weak_hash_table_strong_part);
 	break;
       case IGC_OBJ_WEAK_HASH_TABLE_WEAK_PART:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table_Weak_Part, addr,
-			 fix_weak_hash_table_weak_part);
+	IGC_FIX_CALL_FN (ss, addr, fix_weak_hash_table_weak_part);
 	break;
 #endif
 #ifdef USE_EPHEMERON_POOL
       case IGC_OBJ_PAIR_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct pair_vector, addr, fix_pair_vector);
+	IGC_FIX_CALL_FN (ss, addr, fix_pair_vector);
 	break;
 
       case IGC_OBJ_WEAK_KEY_PAIR_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
-			 fix_weak_key_pair_vector);
+	IGC_FIX_CALL_FN (ss, addr, fix_weak_key_pair_vector);
 	break;
 
       case IGC_OBJ_WEAK_VALUE_PAIR_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
-			 fix_weak_value_pair_vector);
+	IGC_FIX_CALL_FN (ss, addr, fix_weak_value_pair_vector);
 	break;
 
       case IGC_OBJ_WEAK_OR_PAIR_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
-			 fix_weak_or_pair_vector);
+	IGC_FIX_CALL_FN (ss, addr, fix_weak_or_pair_vector);
 	break;
 
       case IGC_OBJ_WEAK_AND_PAIR_VECTOR:
-	IGC_FIX_CALL_FN (ss, struct pair_vector, addr,
-			 fix_weak_and_pair_vector);
+	IGC_FIX_CALL_FN (ss, addr, fix_weak_and_pair_vector);
 	break;
 #endif
       }
@@ -2791,7 +2783,7 @@ fix_buffer (mps_ss_t ss, struct buffer *b)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, b, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, b, fix_vectorlike);
     IGC_FIX12_HEADER (ss, &b->own_text.intervals);
     IGC_FIX12_OBJ (ss, &b->own_text.markers);
     IGC_FIX12_HEADER (ss, &b->overlays);
@@ -2896,7 +2888,7 @@ fix_frame (mps_ss_t ss, struct frame *f)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, f, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, f, fix_vectorlike);
     IGC_FIX12_HEADER (ss, &f->face_cache);
     if (f->terminal)
       IGC_FIX12_PVEC (ss, &f->terminal);
@@ -2952,7 +2944,7 @@ fix_window (mps_ss_t ss, struct window *w)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, w, fix_vectorlike);
 #if 0
     if (w->current_matrix && !w->current_matrix->pool)
       IGC_FIX_CALL (ss, fix_glyph_matrix (ss, w->current_matrix));
@@ -3160,7 +3152,7 @@ fix_misc_ptr (mps_ss_t ss, struct Lisp_Misc_Ptr *p)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, p, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, p, fix_vectorlike);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -3171,7 +3163,7 @@ fix_user_ptr (mps_ss_t ss, struct Lisp_User_Ptr *p)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, p, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, p, fix_vectorlike);
   }
   MPS_SCAN_END (ss);
   return MPS_RES_OK;
@@ -3182,7 +3174,7 @@ fix_thread (mps_ss_t ss, struct thread_state *s)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, s, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, s, fix_vectorlike);
     IGC_FIX12_PVEC (ss, &s->m_current_buffer);
     IGC_FIX12_PVEC (ss, &s->next_thread);
     IGC_FIX12_HEADER (ss, &s->m_handlerlist);
@@ -3213,7 +3205,7 @@ fix_mutex (mps_ss_t ss, struct Lisp_Mutex *m)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, m, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, m, fix_vectorlike);
     IGC_FIX12_OBJ (ss, &m->name);
   }
   MPS_SCAN_END (ss);
@@ -3225,7 +3217,7 @@ fix_terminal (mps_ss_t ss, struct terminal *t)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, t, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, t, fix_vectorlike);
     IGC_FIX12_PVEC (ss, &t->next_terminal);
   }
   MPS_SCAN_END (ss);
@@ -3261,7 +3253,7 @@ fix_finalizer (mps_ss_t ss, struct Lisp_Finalizer *f)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, f, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, f, fix_vectorlike);
     IGC_FIX12_PVEC (ss, &f->next);
     IGC_FIX12_PVEC (ss, &f->prev);
   }
@@ -3274,7 +3266,7 @@ fix_comp_unit (mps_ss_t ss, struct Lisp_Native_Comp_Unit *u)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, u, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, u, fix_vectorlike);
     /* FIXME/igc: Cannot scan things within the shared object because we
        don't have exclusive (synchronized) access to them.  Instead of
        storing Lisp_Object references in vectors in the dylib data
@@ -3292,7 +3284,7 @@ fix_xwidget (mps_ss_t ss, struct xwidget *w)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, w, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, w, fix_vectorlike);
 # if defined (NS_IMPL_COCOA)
     IGC_FIX12_PVEC (ss, &w->xv);
 # elif defined USE_GTK
@@ -3309,7 +3301,7 @@ fix_xwidget_view (mps_ss_t ss, struct xwidget_view *v)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, v, fix_vectorlike);
 # ifdef USE_GTK
     IGC_FIX12_PVEC (ss, &v->frame);
 # endif
@@ -3326,7 +3318,7 @@ fix_global_ref (mps_ss_t ss, struct module_global_reference *r)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, r, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, r, fix_vectorlike);
     IGC_FIX12_OBJ (ss, &r->value.v);
   }
   MPS_SCAN_END (ss);
@@ -3353,7 +3345,7 @@ fix_ts_parser (mps_ss_t ss, struct Lisp_TS_Parser *p)
 {
   MPS_SCAN_BEGIN (ss)
   {
-    IGC_FIX_CALL_FN (ss, struct Lisp_Vector, p, fix_vectorlike);
+    IGC_FIX_CALL_FN (ss, p, fix_vectorlike);
     IGC_FIX12_RAW (ss, &p->input.payload);
   }
   MPS_SCAN_END (ss);
@@ -3374,113 +3366,113 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
       {
 #ifndef IN_MY_FORK
       case PVEC_OBARRAY:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Obarray, v, fix_obarray);
+	IGC_FIX_CALL_FN (ss, v, fix_obarray);
 	break;
 #endif
 
       case PVEC_BUFFER:
-	IGC_FIX_CALL_FN (ss, struct buffer, v, fix_buffer);
+	IGC_FIX_CALL_FN (ss, v, fix_buffer);
 	break;
 
       case PVEC_FRAME:
-	IGC_FIX_CALL_FN (ss, struct frame, v, fix_frame);
+	IGC_FIX_CALL_FN (ss, v, fix_frame);
 	break;
 
       case PVEC_WINDOW:
-	IGC_FIX_CALL_FN (ss, struct window, v, fix_window);
+	IGC_FIX_CALL_FN (ss, v, fix_window);
 	break;
 
       case PVEC_HASH_TABLE:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Hash_Table, v, fix_hash_table);
+	IGC_FIX_CALL_FN (ss, v, fix_hash_table);
 	break;
 
 #ifndef USE_EPHEMERON_POOL
       case PVEC_WEAK_HASH_TABLE:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Weak_Hash_Table, v, fix_weak_hash_table);
+	IGC_FIX_CALL_FN (ss, v, fix_weak_hash_table);
 	break;
 #endif
 
       case PVEC_CHAR_TABLE:
       case PVEC_SUB_CHAR_TABLE:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_char_table);
+	IGC_FIX_CALL_FN (ss, v, fix_char_table);
 	break;
 
       case PVEC_BOOL_VECTOR:
 	break;
 
       case PVEC_OVERLAY:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Overlay, v, fix_overlay);
+	IGC_FIX_CALL_FN (ss, v, fix_overlay);
 	break;
 
       case PVEC_SUBR:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Subr, v, fix_subr);
+	IGC_FIX_CALL_FN (ss, v, fix_subr);
 	break;
 
       case PVEC_FREE:
 	break;
 
       case PVEC_FINALIZER:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Finalizer, v, fix_finalizer);
+	IGC_FIX_CALL_FN (ss, v, fix_finalizer);
 	break;
 
       case PVEC_MISC_PTR:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Misc_Ptr, v, fix_misc_ptr);
+	IGC_FIX_CALL_FN (ss, v, fix_misc_ptr);
 	break;
 
       case PVEC_USER_PTR:
-	IGC_FIX_CALL_FN (ss, struct Lisp_User_Ptr, v, fix_user_ptr);
+	IGC_FIX_CALL_FN (ss, v, fix_user_ptr);
 	break;
 
 #ifdef HAVE_XWIDGETS
       case PVEC_XWIDGET:
-	IGC_FIX_CALL_FN (ss, struct xwidget, v, fix_xwidget);
+	IGC_FIX_CALL_FN (ss, v, fix_xwidget);
 	break;
 
       case PVEC_XWIDGET_VIEW:
-	IGC_FIX_CALL_FN (ss, struct xwidget_view, v, fix_xwidget_view);
+	IGC_FIX_CALL_FN (ss, v, fix_xwidget_view);
 	break;
 #else
       case PVEC_XWIDGET:
       case PVEC_XWIDGET_VIEW:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+	IGC_FIX_CALL_FN (ss, v, fix_vectorlike);
 	break;
 #endif
 
       case PVEC_THREAD:
-	IGC_FIX_CALL_FN (ss, struct thread_state, v, fix_thread);
+	IGC_FIX_CALL_FN (ss, v, fix_thread);
 	break;
 
       case PVEC_MUTEX:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Mutex, v, fix_mutex);
+	IGC_FIX_CALL_FN (ss, v, fix_mutex);
 	break;
 
       case PVEC_TERMINAL:
-	IGC_FIX_CALL_FN (ss, struct terminal, v, fix_terminal);
+	IGC_FIX_CALL_FN (ss, v, fix_terminal);
 	break;
 
       case PVEC_MARKER:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Marker, v, fix_marker);
+	IGC_FIX_CALL_FN (ss, v, fix_marker);
 	break;
 
       case PVEC_BIGNUM:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Bignum, v, fix_bignum);
+	IGC_FIX_CALL_FN (ss, v, fix_bignum);
 	break;
 
       case PVEC_NATIVE_COMP_UNIT:
-	IGC_FIX_CALL_FN (ss, struct Lisp_Native_Comp_Unit, v, fix_comp_unit);
+	IGC_FIX_CALL_FN (ss, v, fix_comp_unit);
 	break;
 
       case PVEC_MODULE_GLOBAL_REFERENCE:
 #ifdef HAVE_MODULES
-	IGC_FIX_CALL_FN (ss, struct module_global_reference, v, fix_global_ref);
+	IGC_FIX_CALL_FN (ss, v, fix_global_ref);
 #endif
 	break;
 
       case PVEC_TS_PARSER:
 #ifdef HAVE_TREE_SITTER
-	IGC_FIX_CALL_FN (ss, struct Lisp_TS_Parser, v, fix_ts_parser);
+	IGC_FIX_CALL_FN (ss, v, fix_ts_parser);
 #else
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+	IGC_FIX_CALL_FN (ss, v, fix_vectorlike);
 #endif
 	break;
 
@@ -3500,7 +3492,7 @@ fix_vector (mps_ss_t ss, struct Lisp_Vector *v)
 #ifdef IN_MY_FORK
       case PVEC_PACKAGE:
 #endif
-	IGC_FIX_CALL_FN (ss, struct Lisp_Vector, v, fix_vectorlike);
+	IGC_FIX_CALL_FN (ss, v, fix_vectorlike);
 	break;
       }
   }
@@ -4189,7 +4181,7 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   void *new_pa = xzalloc (nbytes);
   char *end = (char *) new_pa + nbytes;
   root_create (global_igc, new_pa, end, mps_rank_exact (),
-	       (mps_area_scan_t) scan_area, closure, false, "xpalloc-exact");
+	       scan_area, closure, false, "xpalloc-exact");
   for (ptrdiff_t i = 0; i < (old_nitems); i++)
     {
       igc_assert (item_size < MAX_ALLOCA);
