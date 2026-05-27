@@ -439,7 +439,7 @@ typedef EMACS_INT Lisp_Word;
 #endif
 #if USE_LSB_TAG
 # define lisp_h_make_fixnum_wrap(n) \
-    XIL ((EMACS_INT) (((EMACS_UINT) (n) << INTTYPEBITS) + Lisp_Int0))
+  XIL ((EMACS_INT) (((EMACS_UINT) {(n)} << INTTYPEBITS) + Lisp_Int0))
 # if defined HAVE_STATEMENT_EXPRESSIONS && defined HAVE_TYPEOF
 #  define lisp_h_make_fixnum(n) \
      ({ typeof (+(n)) lisp_h_make_fixnum_n = n; \

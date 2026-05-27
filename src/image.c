@@ -12554,9 +12554,8 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     img->width  = width;
     img->height = height;
 
-    /* Maybe fill in the background field while we have ximg handy.
-       Casting avoids a GCC warning.  */
-    IMAGE_BACKGROUND (img, f, (Emacs_Pix_Context)ximg);
+    /* Maybe fill in the background field while we have ximg handy.  */
+    IMAGE_BACKGROUND (img, f, ximg);
 
     /* Put ximg into the image.  */
     image_put_x_image (f, img, ximg, 0);
