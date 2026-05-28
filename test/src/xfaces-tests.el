@@ -65,6 +65,16 @@
                      'button))))
     (kill-buffer buf)))
 
+(ert-deftest xfaces-test-face-equality ()
+  "Test `internal-lisp-face-equal-p'."
+  (should (internal-lisp-face-equal-p 'default 'default))
+  (should-not (internal-lisp-face-equal-p 'default 'region))
+  (should-not (internal-lisp-face-equal-p 'line-number 'default))
+  (should-not (internal-lisp-face-equal-p 'line-number '
+                                          line-number-current-line))
+  (should (internal-lisp-face-equal-p 'line-number
+                                      'line-number-current-line t)))
+
 (provide 'xfaces-tests)
 
 ;;; xfaces-tests.el ends here

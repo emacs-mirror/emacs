@@ -19856,7 +19856,7 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp,
       && !(!NILP (Vdisplay_line_numbers)
 	   && NILP (Finternal_lisp_face_equal_p (Qline_number,
 						 Qline_number_current_line,
-						 w->frame)))
+						 w->frame, Qt)))
       /* This code is not used for mini-buffer for the sake of the case
 	 of redisplaying to replace an echo area message; since in
 	 that case the mini-buffer contents per se are usually
@@ -22657,7 +22657,7 @@ try_window_id (struct window *w)
       || (!NILP (Vdisplay_line_numbers)
 	  && NILP (Finternal_lisp_face_equal_p (Qline_number,
 						Qline_number_current_line,
-						w->frame))))
+						w->frame, Qt))))
     GIVE_UP (24);
 
   /* composition-break-at-point is incompatible with the optimizations
