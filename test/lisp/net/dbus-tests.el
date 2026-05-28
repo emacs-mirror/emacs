@@ -842,6 +842,73 @@ Returns the respective error."
       dbus--test-interface "Foo" :authorizable t "foo")
      :type 'dbus-error)))
 
+(defvar dbus--test-method-another-handler nil)
+(defun dbus--test-method-another-handler (&rest args)
+  "Method handler for `dbus-test04-call-method-error-handler'."
+  (should args)
+  (setq dbus--test-method-another-handler t))
+
+(defvar dbus--test-method-error-handler nil)
+(defun dbus--test-method-error-handler (&rest args)
+  "Error handler for `dbus-test04-call-method-error-handler'."
+  (should (eq 'dbus-error (caar args)))
+  (setq dbus--test-method-error-handler t))
+
+(ert-deftest dbus-test04-call-method-error-handler ()
+  "Verify `dbus-call-method-asynchronously' error handler."
+  :tags '(:expensive-test)
+  (skip-unless dbus--test-enabled-session-bus)
+  (dbus-ignore-errors (dbus-unregister-service :session dbus--test-service))
+  (dbus-register-service :session dbus--test-service)
+
+  (unwind-protect
+      (let ((method "Method")
+            (method-handler #'dbus--test-method-handler)
+            (handler #'dbus--test-method-another-handler)
+            (error-handler #'dbus--test-method-error-handler)
+            ;dbus-debug ; There would be errors otherwise.
+            registered)
+
+        ;; Register.
+        (should
+         (equal
+          (setq
+           registered
+           (dbus-register-method
+            :session dbus--test-service dbus--test-path
+            dbus--test-interface method method-handler))
+          `((:method :session ,dbus--test-interface ,method)
+            (,dbus--test-service ,dbus--test-path ,method-handler))))
+
+        ;; Call HANDLER.
+        (setq dbus--test-method-another-handler nil)
+        (dbus-call-method-asynchronously
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface method `(,handler . ,error-handler) "foo")
+        (with-timeout (1 (dbus--test-timeout-handler))
+          (while (not dbus--test-method-another-handler)
+            (read-event nil nil 0.1)))
+        (should dbus--test-method-another-handler)
+
+        ;; Call ERROR-HANDLER.
+        (setq dbus--test-method-error-handler nil)
+        (dbus-call-method-asynchronously
+         :session dbus--test-service dbus--test-path
+         dbus--test-interface method `(,handler . ,error-handler)
+         "foo" "foo" "foo")
+        (with-timeout (1 (dbus--test-timeout-handler))
+          (while (not dbus--test-method-error-handler)
+            (read-event nil nil 0.1)))
+        (should dbus--test-method-error-handler)
+
+        ;; Unregister method.
+        (should (dbus-unregister-object registered))
+        (should-not (dbus-unregister-object registered)))
+
+    ;; Cleanup.
+    (ignore-errors (kill-buffer "*Warnings*"))
+    (dbus-unregister-service :session dbus--test-service)))
+
 (defvar dbus--test-event-expected nil
   "The expected event in `dbus--test-signal-handler'.")
 
@@ -2416,7 +2483,15 @@ The argument EXPECTED-ARGS is a list of expected arguments for the method."
 
     ;; Closing them again is a noop.
     (should-not (dbus--fd-close lock1))
-    (should-not (dbus--fd-close lock2))))
+    (should-not (dbus--fd-close lock2))
+
+    ;; `:keep-fd' cannot be used together with an error handler.
+    (should-error
+     (dbus-call-method-asynchronously
+      :system dbus--test-systemd-service dbus--test-systemd-path
+      dbus--test-systemd-manager-interface "Inhibit"
+      '(ignore . ignore) :keep-fd what who why mode)
+     :type 'dbus-error)))
 
 (ert-deftest dbus-test10-open-close-fd ()
   "Check D-Bus open/close a file descriptor."

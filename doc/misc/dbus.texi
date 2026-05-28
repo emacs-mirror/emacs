@@ -1340,9 +1340,20 @@ keyword @code{:session}.
 D-Bus object path, @var{service} is registered at.  @var{interface} is
 an interface offered by @var{service}.  It must provide @var{method}.
 
-@var{handler} is a Lisp function, which is called when the
-corresponding return message arrives.  If @var{handler} is @code{nil},
-no return message will be expected.
+@var{handler} is a Lisp function, which is called when the corresponding
+return message has arrived.  It uses the returned values from the
+@var{method} call as arguments.  These are the same arguments which are
+returned when @code{dbus-call-method} is invoked instead,
+@pxref{Synchronous Methods}.  If @var{handler} is @code{nil}, no return
+message will be expected.
+
+@var{handler} can also be the cons cell @code{(@var{handler}
+. @var{error-handler})}.  In this case, @var{error-handler} will be
+called in case an error is returned from D-Bus.  It uses the returned
+D-Bus error as argument.
+
+Neither the return value of @var{handler} nor the return value of
+@var{error-handler} is used.
 
 If the parameter @code{:timeout} is given, the following integer
 @var{timeout} specifies the maximum number of milliseconds before a
@@ -1366,19 +1377,40 @@ arguments.  They are converted into D-Bus types as described in
 If @var{handler} is a Lisp function, the function returns a key into
 the hash table @code{dbus-registered-objects-table}.  The
 corresponding entry in the hash table is removed, when the return
-message arrives, and @var{handler} is called.  Example:
+message arrives, and @var{handler} is called.  Examples:
+
+The return value of @samp{org.freedesktop.portal.Settings.ReadOne} is a variant.
 
 @lisp
 (dbus-call-method-asynchronously
- :system "org.freedesktop.Hal"
- "/org/freedesktop/Hal/devices/computer"
- "org.freedesktop.Hal.Device" "GetPropertyString"
- (lambda (msg) (message "%s" msg))
- "system.kernel.machine")
+ :session "org.freedesktop.portal.Desktop"
+ "/org/freedesktop/portal/desktop"
+ "org.freedesktop.portal.Settings" "ReadOne"
+ '((lambda (msg) (message "Method handler %s" msg)) .
+   (lambda (err) (message "Error handler %s" err)))
+ "org.freedesktop.appearance" "color-scheme")
 
-@print{} i686
+@print{} Method handler (0)
 
-@result{} (:serial :system 2)
+@result{} (:serial :session 4)
+@end lisp
+
+There does not exist a method @samp{org.freedesktop.portal.Settings.ReadTwo}.
+
+@lisp
+(dbus-call-method-asynchronously
+ :session "org.freedesktop.portal.Desktop"
+ "/org/freedesktop/portal/desktop"
+ "org.freedesktop.portal.Settings" "ReadTwo"
+ '((lambda (msg) (message "Method handler %s" msg)) .
+   (lambda (err) (message "Error handler %s" err)))
+ "org.freedesktop.appearance" "color-scheme")
+
+@print{} Error handler
+  (dbus-error "org.freedesktop.DBus.Error.UnknownMethod
+               No such method "ReadTwo")
+
+@result{} (:serial :session 5)
 @end lisp
 @end defun
 

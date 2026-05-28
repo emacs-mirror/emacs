@@ -69,6 +69,14 @@ Emacs 30.  It allows Lisp programs that present completion candidates
 ("completion frontends") to provide additional information which can be
 used to adjust or optimize completion candidates computation.
 
+** D-Bus
+
++++
+*** Support error handler in asynchronous method calls.
+The HANDLER argument of 'dbus-call-method-asynchronously' can be a cons
+cell '(HANDLER . ERROR-HANDLER)'.  ERROR-HANDLER is invoked if the
+method call returns with a D-Bus error; the error is passed as argument.
+
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
 
