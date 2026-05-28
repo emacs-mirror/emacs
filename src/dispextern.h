@@ -115,7 +115,6 @@ xstrcasecmp (char const *a, char const *b)
 typedef struct x_display_info Display_Info;
 #ifndef USE_CAIRO
 typedef XImage *Emacs_Pix_Container;
-typedef XImage *Emacs_Pix_Context;
 #endif	/* !USE_CAIRO */
 #define NativeRectangle XRectangle
 #endif
@@ -130,7 +129,6 @@ typedef struct
   int bits_per_pixel;		/* bits per pixel (ZPixmap) */
 } *Emacs_Pix_Container;
 typedef Emacs_Pix_Container Emacs_Pixmap;
-typedef Emacs_Pix_Container Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_NTGUI
@@ -138,6 +136,7 @@ typedef Emacs_Pix_Container Emacs_Pix_Context;
 typedef struct w32_display_info Display_Info;
 typedef XImage *Emacs_Pix_Container;
 typedef HDC Emacs_Pix_Context;
+# define PIX_CONTAINER_TO_CONTEXT(c) ((Emacs_Pix_Context) (c))
 #endif
 
 #ifdef HAVE_NS
@@ -145,7 +144,6 @@ typedef HDC Emacs_Pix_Context;
 /* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
 typedef struct ns_display_info Display_Info;
 typedef Emacs_Pixmap Emacs_Pix_Container;
-typedef Emacs_Pixmap Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_PGTK
@@ -160,14 +158,12 @@ typedef XImagePtr XImagePtr_or_DC;
 #include "haikugui.h"
 typedef struct haiku_display_info Display_Info;
 typedef Emacs_Pixmap Emacs_Pix_Container;
-typedef Emacs_Pixmap Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_ANDROID
 #include "androidgui.h"
 typedef struct android_display_info Display_Info;
 typedef struct android_image *Emacs_Pix_Container;
-typedef struct android_image *Emacs_Pix_Context;
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -191,6 +187,14 @@ typedef void *Emacs_Cursor;
    should override the default with a more-powerful cast.  */
 # ifndef WINDOW_HANDLE_UINTPTR
 #  define WINDOW_HANDLE_UINTPTR(h) ((uintptr_t) {(h)})
+# endif
+
+/* Ordinarily an Emacs_Pix_Context is just an Emacs_Pix_Container;
+   platforms can override this by defining the latter type
+   and defining the conversion macro PIX_CONTAINER_TO_CONTEXT.  */
+# ifndef PIX_CONTAINER_TO_CONTEXT
+typedef Emacs_Pix_Container Emacs_Pix_Context;
+#  define PIX_CONTAINER_TO_CONTEXT(c) (c)
 # endif
 
 /* ``box'' structure similar to that found in the X sample server,

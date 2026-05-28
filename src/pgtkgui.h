@@ -49,6 +49,8 @@ typedef void *Color;
 typedef int Window;
 typedef struct _GdkDisplay Display;
 
+#define WINDOW_HANDLE_UINTPTR(h) ((uintptr_t) (h))
+
 /* Xism */
 typedef void *XrmDatabase;
 
