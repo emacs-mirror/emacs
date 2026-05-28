@@ -56,7 +56,7 @@ extra indent = -1
 
   Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed
  do eiusmod tempor incididunt ut labore et dolore magna
- aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+ aliqua.  Ut enim ad minim veniam, quis nostrud exercitation
  ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
 actual indent = 2
@@ -64,7 +64,7 @@ extra indent = 2
 
   Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed
     do eiusmod tempor incididunt ut labore et dolore magna
-    aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+    aliqua.  Ut enim ad minim veniam, quis nostrud exercitation
     ullamco laboris nisi ut aliquip ex ea commodo consequat."
   :type 'integer
   :safe #'integerp
@@ -174,7 +174,6 @@ members of `visual-wrap--safe-display-specs' (which see)."
 
 (defun visual-wrap--content-prefix (prefix)
   "Get the next-line prefix for the specified first-line PREFIX.
-POSITION is the position in the buffer where PREFIX is located.
 
 This returns a string prefix to use for subsequent lines; a number,
 indicating the pixel width to use for whitespace alignment; or nil if
