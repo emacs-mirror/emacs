@@ -26753,8 +26753,23 @@ display_line (struct it *it, int cursor_vpos)
 	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_string);
 	  struct glyph *glyph = arrow_row->glyphs[TEXT_AREA];
 	  struct glyph *arrow_end = glyph + arrow_row->used[TEXT_AREA];
-	  struct glyph *p = row->glyphs[TEXT_AREA];
-	  struct glyph *p2, *end;
+	  struct glyph *p, *p2, *end, *where;
+	  short *p_used;
+
+	  /* When possible, put the arrow glyphs at the start of the
+	     left margin.  Otherwise put them at the start of the text
+	     area.  */
+	  if (WINDOW_LEFT_MARGIN_WIDTH (it->w) >= arrow_row->used[TEXT_AREA])
+	    {
+	      p = where = row->glyphs[LEFT_MARGIN_AREA];
+	      p_used = &(row->used[LEFT_MARGIN_AREA]);
+	      row->used[LEFT_MARGIN_AREA] += arrow_row->used[TEXT_AREA];
+	    }
+	  else
+	    {
+	      p = where = row->glyphs[TEXT_AREA];
+	      p_used = &(row->used[TEXT_AREA]);
+	    }
 
 	  /* Copy the arrow glyphs.  */
 	  while (glyph < arrow_end)
@@ -26762,14 +26777,14 @@ display_line (struct it *it, int cursor_vpos)
 
 	  /* Throw away padding glyphs.  */
 	  p2 = p;
-	  end = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
+	  end = where + *p_used;
 	  while (p2 < end && CHAR_GLYPH_PADDING_P (*p2))
 	    ++p2;
 	  if (p2 > p)
 	    {
 	      while (p2 < end)
 		*p++ = *p2++;
-	      row->used[TEXT_AREA] = p2 - row->glyphs[TEXT_AREA];
+	      *p_used = p2 - where;
 	    }
 	}
       else

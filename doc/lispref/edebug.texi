@@ -105,8 +105,10 @@ the Lisp code you are debugging.  This is referred to as the @dfn{source
 code buffer}, and it is temporarily read-only.
 
   An arrow in the left fringe indicates the line where the function is
-executing.  Point initially shows where within the line the function is
-executing, but this ceases to be true if you move point yourself.
+executing.  On a non-graphical display (or when the left fringe is not
+shown), this arrow is displayed in the left margin instead.  Point
+initially shows where within the line the function is executing, but
+this ceases to be true if you move point yourself.
 
   If you instrument the definition of @code{fac} (shown below) and then
 execute @code{(fac 3)}, here is what you would normally see.  Point is

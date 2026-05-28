@@ -72,6 +72,13 @@ accept or ignore the value.
 unconditionally.  The previous behavior, toggling the mode, was
 neither reliable nor generally desirable.
 
++++
+** Emacs tries to display overlay arrow in the left margin.
+On a non-graphical display (or when the left fringe is not shown), if a
+left margin is present, Emacs will now display the overlay arrow into
+this margin.  Edebug is now using this feature by explicitly setting up
+a left margin for it.
+
 
 * Editing Changes in Emacs 32.1
 

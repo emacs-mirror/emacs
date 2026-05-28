@@ -2721,6 +2721,9 @@ when edebug becomes active."
                               edebug-function)
                 ))
 
+          ;; Margin setup for overlay arrow.
+          (edebug-prepare-margin)
+
           ;; Make sure we bind those in the right buffer (bug#16410).
           (let ((overlay-arrow-position overlay-arrow-position)
                 (overlay-arrow-string overlay-arrow-string))
@@ -3001,6 +3004,17 @@ when edebug becomes active."
     )
   "Association list of arrows for each edebug mode.")
 
+(defun edebug-prepare-margin ()
+  "Increase (or set) left margin with the size of the longest arrow string."
+  (let ((arrow-len (apply #'max (mapcar (lambda (x)
+                                          (string-width (cdr x)))
+                                        edebug-arrow-alist)))
+        (margins (window-margins)))
+    ;; Set or increase left margin.
+    (if (numberp (car margins))
+        (set-window-margins nil (+ (car margins) arrow-len))
+      (set-window-margins nil arrow-len))))
+
 (defun edebug-overlay-arrow ()
   ;; Set up the overlay arrow at beginning-of-line in current buffer.
   ;; The arrow string is derived from edebug-arrow-alist and
@@ -3010,7 +3024,6 @@ when edebug becomes active."
 	  (cdr (assq edebug-execution-mode edebug-arrow-alist)))
     (setq overlay-arrow-position (make-marker))
     (set-marker overlay-arrow-position pos (current-buffer))))
-
 
 (defun edebug-toggle-save-all-windows ()
   "Toggle the saving and restoring of all windows.

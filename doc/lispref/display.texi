@@ -5065,11 +5065,12 @@ to the left of the display area.
 @defvar overlay-arrow-position
 This variable holds a marker that indicates where to display the overlay
 arrow.  It should point at the beginning of a line.  On a non-graphical
-display, or when the left fringe is not shown, the arrow text
-appears at the beginning of that line, overlaying any text that would
-otherwise appear.  Since the arrow is usually short, and the line
-usually begins with indentation, normally nothing significant is
-overwritten.
+display, or when the left fringe is not shown, the arrow text appears at
+the beginning of that line, overlaying any text that would otherwise
+appear.  Since the arrow is usually short, and the line usually begins
+with indentation, normally nothing significant is overwritten.  If the
+window has a left margin with enough space, Emacs displays the arrow
+there instead and the text area is not overwritten.
 
 The overlay-arrow string is displayed in any given buffer if the value
 of @code{overlay-arrow-position} in that buffer points into that
