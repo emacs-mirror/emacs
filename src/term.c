@@ -4751,6 +4751,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
     FrameCols (tty) = width;
     FrameRows (tty) = height;
     tty->char_ins_del_ok = 0;
+    tty->TN_max_colors = 16;  /* Must be non-zero for tty-display-color-p.  */
     init_baud_rate (fileno (tty->input));
   }
 #endif	/* MSDOS */
