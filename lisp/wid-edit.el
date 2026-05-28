@@ -868,7 +868,8 @@ extension (xpm, xbm, gif, jpg, or png) located in
 	 image)
 	((stringp image)
 	 ;; A string.  Look it up in relevant directories.
-	 (let* ((load-path (cons widget-image-directory load-path))
+	 (let* ((image-load-path (cons widget-image-directory
+				       image-load-path))
 		specs)
 	   (dolist (elt widget-image-conversion)
 	     (dolist (ext (cdr elt))
