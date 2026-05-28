@@ -161,7 +161,7 @@ proceed to mark and unmark other entries, without asking."
   :version "31.1")
 
 (defcustom vc-dir-auto-hide-up-to-date nil
-  "Whether VC-Dir automatically removes \\+`up-to-date'/\\+`ignored' files from display.
+  "Whether VC-Dir auto-removes \\+`up-to-date'/\\+`ignored' files from display.
 
 If the value is nil, files shown in the VC-Dir buffer will remain on
 display if they become \\+`up-to-date' or \\+`ignored'.
