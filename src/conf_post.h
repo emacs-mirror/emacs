@@ -386,6 +386,10 @@ extern int emacs_setenv_TZ (char const *);
     : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
     : S_ISCHR (mode) ? DT_CHR : S_ISFIFO (mode) ? DT_FIFO \
     : S_ISSOCK (mode) ? DT_SOCK : DT_UNKNOWN)
+
+/* DJGPP doesn't provide uchar.h and Emacs doesn't import Gnulib's
+   replacement either.  */
+#define _REGEX_AVOID_UCHAR_H 1
 #endif /* MSDOS */
 
 #if defined WINDOWSNT && !(defined OMIT_CONSOLESAFE && OMIT_CONSOLESAFE == 1)

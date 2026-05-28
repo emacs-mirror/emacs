@@ -292,6 +292,7 @@ If Exist limits.in.h update limits.in.h limits.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
 If Exist signal.in.h update signal.in.h signal.in-h
 If Exist stdalign.in.h update stdalign.in.h stdalign.in-h
+If Exist stdcountof.in.h update stdcountof.in.h stdcountof.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h
 If Exist stdint.in.h update stdint.in.h  stdint.in-h
 If Exist stdio.in.h update stdio.in.h stdio.in-h

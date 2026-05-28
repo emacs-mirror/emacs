@@ -50,6 +50,14 @@
 #       s/^@GL_GENERATE_STDBOOL_H@/1/
 #       s/^@GL_GENERATE_STDINT_H@//
 #
+#  . Functions defined in these headers may also be conditional upon
+#    variables substituted into the generated products bearing the
+#    prefix GL_GNULIB_.  Be certain to examine updates to gnulib.mk for
+#    any variables of this description, and edit them to 1 if the
+#    functions they control must be defined, e.g.:
+#
+#       /^GL_GNULIB_STREQ *=/s/@GL_GNULIB_STREQ@/1/
+#
 #  . Also edit the NEXT_foo_H and NEXT_AS_FIRST_DIRECTIVE_foo_H
 #    variables as appropriately: to an empty value if the gnulib
 #    header is not used, and to the corresponding DJGPP header name
@@ -170,6 +178,7 @@ s/@PACKAGE@/emacs/
 /^BITSIZEOF_WCHAR_T *=/s/@BITSIZEOF_WCHAR_T@/16/
 /^BITSIZEOF_WINT_T *=/s/@BITSIZEOF_WINT_T@/32/
 /^APPLE_UNIVERSAL_BUILD *=/s/@APPLE_UNIVERSAL_BUILD@/0/
+/^CXX_HAVE_STDCOUNTOF_H *=/s/@CXX_HAVE_STDCOUNTOF_H@/0/
 # Most GL_GNULIB_* are replaced with zero even though DJGPP does not
 # have these features.  That's because the gnulib replacements cannot
 # possibly work for DJGPP, so we prefer to fail the link than have a
@@ -186,10 +195,12 @@ s/@PACKAGE@/emacs/
 /^GL_GNULIB_MEMMEM *=/s/@GL_GNULIB_MEMMEM@/1/
 /^GL_GNULIB_MEMRCHR *=/s/@GL_GNULIB_MEMRCHR@/1/
 /^GL_GNULIB_MEMPCPY *=/s/@GL_GNULIB_MEMPCPY@/1/
+/^GL_GNULIB_MEMEQ *=/s/@GL_GNULIB_MEMEQ@/1/
 /^GL_GNULIB_MKOSTEMP *=/s/@GL_GNULIB_MKOSTEMP@/1/
 /^GL_GNULIB_MKTIME *=/s/@GL_GNULIB_MKTIME@/1/
 /^GL_GNULIB_SIGDESCR_NP *=/s/@GL_GNULIB_SIGDESCR_NP@/1/
-/^GL_GNULIB_STRINGEQ *=/s/@GL_GNULIB_STRINGEQ@/1/
+/^GL_GNULIB_STREQ *=/s/@GL_GNULIB_STREQ@/1/
+/^GL_GNULIB_STRNUL *=/s/@GL_GNULIB_STRNUL@/1/
 /^GL_GNULIB_TIME_R *=/s/@GL_GNULIB_TIME_R@/1/
 /^GL_GNULIB_TIMEGM *=/s/@GL_GNULIB_TIMEGM@/1/
 /^GL_GNULIB_TIME_RZ *=/s/@GL_GNULIB_TIME_RZ@/1/
@@ -197,10 +208,10 @@ s/@PACKAGE@/emacs/
 # Apparently without this `rawmemchr' isn't declared, so
 # we get warnings building canonicalize-lgpl.o
 /^GL_GNULIB_RAWMEMCHR *=/s/@GL_GNULIB_RAWMEMCHR@/1/
-/^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
 # These variables control whether ISO C23 features are generated,
 # e.g. those in stdbit.h.
-/^GL_STDC_[^ =]* *= *@/s/@[^@\n]*@/1/
+/^GL_GNULIB_STDC_[^ =]* *= *@/s/@[^@\n]*@/1/
+/^GL_GNULIB_[^ =]* *= *@/s/@[^@\n]*@/0/
 /^GL_GSETTINGS_CFLAGS *=/s/@[^@\n]*@//
 /^GL_GSETTINGS_LIBS *=/s/@[^@\n]*@//
 # Miscellaneous variables.
@@ -288,13 +299,15 @@ s/@PACKAGE@/emacs/
 # are created in config.bat!)
 /^MKDIR_P *=/s/@MKDIR_P@/echo/
 /^NEXT_AS_FIRST_DIRECTIVE_DIRENT_H *=/s/@[^@\n]*@/<dirent.h>/
-/^NEXT_AS_FIRST_DIRECTIVE_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_ENDIAN_H *=/s|@[^@\n]*@|<machine/endian.h>|
+/^NEXT_AS_FIRST_DIRECTIVE_ERRNO_H *=/s/@[^@\n]*@//
 /^NEXT_AS_FIRST_DIRECTIVE_FCNTL_H *=/s/@[^@\n]*@/<fcntl.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_GETOPT_H *=/s/@[^@\n]*@/<getopt.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_LIMITS_H *=/s/@[^@\n]*@/<limits.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H *=/s/@[^@\n]*@/<signal.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_STDBIT_H *=/s/@[^@\n]*@/<stdbit.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDCKDINT_H *=/s/@[^@\n]*@/<stdckdint.h>/
+/^NEXT_AS_FIRST_DIRECTIVE_STDCOUNTOF_H *=/s/@[^@\n]*@/<stdcountof.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDDEF_H *=/s/@[^@\n]*@/<stddef.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDINT_H *=/s/@[^@\n]*@/<stdint.h>/
 /^NEXT_AS_FIRST_DIRECTIVE_STDIO_H *=/s/@[^@\n]*@/<stdio.h>/
@@ -359,6 +372,7 @@ s/@PACKAGE@/emacs/
 /^STDALIGN_H *=/s/@[^@\n]*@/stdalign.h/
 /^STDBIT_H *=/s/@[^@\n]*@/stdbit.h/
 /^STDCKDINT_H *=/s/@[^@\n]*@/stdckdint.h/
+/^STDCOUNTOF_H *=/s/@[^@\n]*@/stdcountof.h/
 /^STDDEF_H *=/s/@[^@\n]*@/stddef.h/
 /^STDDEF_NOT_IDEMPOTENT *=/s/@[^@\n]*@/1/
 /^STDINT_H *=/s/@[^@\n]*@/stdint.h/
@@ -448,6 +462,7 @@ s/= @GL_GENERATE_ENDIAN_H_CONDITION@/= 1/
 s/= @GL_GENERATE_EXECINFO_H_CONDITION@/= 1/
 s/= @GL_GENERATE_IEEE754_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDALIGN_H_CONDITION@/= 1/
+s/= @GL_GENERATE_STDCOUNTOF_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDDEF_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDINT_H_CONDITION@/= 1/
 s/= @GL_GENERATE_LIMITS_H_CONDITION@/= 1/
@@ -458,7 +473,7 @@ s/= @GL_GENERATE_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_GMP_GMP_H_CONDITION@/= /
 s/= @GL_GENERATE_MINI_GMP_H_CONDITION@/= 1/
 s/= @GL_GENERATE_STDCKDINT_H_CONDITION@/= 1/
-s/= @GL_GENERATE_STDBIT_H_CONDITION@/= 1/
+s/= @GL_HAVE_STDBIT_H_CONDITION@/= 0/
 s/= @GL_COND_OBJ_STDIO_READ_CONDITION@/= /
 s/= @GL_COND_OBJ_STDIO_WRITE_CONDITION@/= /
 s/= @GL_COND_OBJ_STPNCPY_CONDITION@/= /
