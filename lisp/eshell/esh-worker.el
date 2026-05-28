@@ -57,6 +57,8 @@
 
 (require 'esh-io)
 
+(declare-function eshell-set-exit-info "esh-cmd" (status &optional result))
+
 (defgroup eshell-worker nil
   "Eshell workers provide a way to construct process-like objects in Emacs
 Lisp that can serve as pipe targets, allowing you to manipulating other
@@ -106,6 +108,14 @@ task in Eshell."
 This just returns RAW-TARGET."
   raw-target)
 
+(cl-defgeneric eshell-worker-name (_worker)
+  "Return the program name for WORKER."
+  nil)
+
+(defsubst eshell-worker--error (worker error)
+  (eshell-errorn (format "%s: %s" (eshell-worker-name worker)
+                         (error-message-string error))))
+
 (cl-defmethod eshell-output-object-to-target :around
   (_object (target eshell-worker))
   "Output OBJECT to the Eshell worker TARGET.
@@ -116,7 +126,11 @@ for let-binding the proper value for `eshell-current-handles'."
   (let ((eshell-current-handles (eshell-worker-output-handles target))
         (eshell-ensure-newline-p (eshell-worker-ensure-newline-p target)))
     (with-current-buffer (eshell-worker-eshell-buffer target)
-      (cl-call-next-method))
+      (eshell-condition-case err
+          (cl-call-next-method)
+        (error
+         (eshell-worker--error target err)
+         (eshell-set-exit-info 1))))
     (setf (eshell-worker-ensure-newline-p target) eshell-ensure-newline-p)))
 
 (cl-defmethod eshell-close-target :around ((target eshell-worker) _status)
@@ -129,11 +143,17 @@ closing the handles when done, and calling
     (let ((eshell-current-handles (eshell-worker-output-handles target))
           (eshell-ensure-newline-p (eshell-worker-ensure-newline-p target)))
       (with-current-buffer (eshell-worker-eshell-buffer target)
-        (cl-call-next-method)
-        (setf (eshell-worker-status target) 'exit)
-        (eshell-close-handles)
-        (declare-function eshell-kill-process-function "esh-proc" (proc status))
-        (eshell-kill-process-function target "finished\n")))))
+        (unwind-protect
+            (eshell-condition-case err
+                (cl-call-next-method)
+              (error
+               (eshell-worker--error target err)
+               (eshell-set-exit-info 1)))
+          (setf (eshell-worker-status target) 'exit)
+          (eshell-close-handles)
+          (declare-function eshell-kill-process-function "esh-proc"
+                            (proc status))
+          (eshell-kill-process-function target "finished\n"))))))
 
 (defun eshell--apply-print (function args)
   "Call FUNCTION with Eshell-converted ARGS and print the result."
@@ -161,6 +181,9 @@ pass the value unaltered to FUNCTION."
   "Ensure WORKER has an internal buffer to add strings to."
   (setf (eshell-accumulate-worker-buffer-or-value worker)
         (generate-new-buffer " *eshell-worker*" t)))
+
+(cl-defmethod eshell-worker-name ((worker eshell-accumulate-worker))
+  (symbol-name (eshell-accumulate-worker-function worker)))
 
 (cl-defmethod eshell-output-object-to-target
   (object (target eshell-accumulate-worker))
@@ -223,6 +246,9 @@ specified value."
   (let ((function (eshell-map-lines-worker-function target)))
     (eshell--apply-print function (list line))))
 
+(cl-defmethod eshell-worker-name ((worker eshell-map-lines-worker))
+  (format "map-lines %s" (eshell-map-lines-worker-function worker)))
+
 (cl-defmethod eshell-output-object-to-target
   (object (target eshell-map-lines-worker))
   "Send OBJECT to the map-lines worker TARGET.
@@ -272,6 +298,9 @@ corresponding to one argument passed to the fuction.  When outputting
 other data types to this worker (e.g. lists), each object is passed as a
 single argument to FUNCTION."
   args)                              ; Arguments stored in reverse order
+
+(cl-defmethod eshell-worker-name ((worker eshell-apply-lines-worker))
+  (format "apply-lines %s" (eshell-map-lines-worker-function worker)))
 
 (cl-defmethod eshell-map-lines-worker--apply
     (line (target eshell-apply-lines-worker))

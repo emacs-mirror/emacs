@@ -90,6 +90,14 @@
      "echo hi | #'upcase | (lambda (i) (concat \"> \" i))"
      "\\`> HI\n\\'")))
 
+(ert-deftest esh-worker-test/pipe/error-handling ()
+  "Test that Eshell workers catch errors."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "echo hi | #'1+"
+     "\\`1\\+: Wrong type argument: number-or-marker-p, \"hi\"\n\\'")
+    (should (= eshell-last-command-status 1))))
+
 
 ;; `map-lines' pipelines
 
@@ -151,6 +159,14 @@ It should call the mapped function once per line."
      "{echo '10\n1'; echo '5\n20'} | map-lines #'1+"
      "\\`11\n16\n21\n\\'")))
 
+(ert-deftest esh-worker-test/map-lines/error-handling ()
+  "Test that `map-lines' catches errors."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "echo hi | map-lines #'1+"
+     "\\`map-lines 1\\+: Wrong type argument: number-or-marker-p, \"hi\"\n\\'")
+    (should (= eshell-last-command-status 1))))
+
 
 ;; `apply-lines' pipelines
 
@@ -195,5 +211,14 @@ It should pass each line as an argument to the applied function."
     (eshell-match-command-output
      "{echo '10\n1'; echo '5\n20'} | apply-lines #'+"
      "\\`45\n\\'")))
+
+(ert-deftest esh-worker-test/apply-lines/error-handling ()
+  "Test that `apply-lines' catches errors."
+  (with-temp-eshell
+    (eshell-match-command-output
+     "echo hi | apply-lines #'1+"
+     (concat "\\`apply-lines 1\\+: Wrong type argument: number-or-marker-p, "
+             "\"hi\"\n\\'"))
+    (should (= eshell-last-command-status 1))))
 
 ;;; esh-io-tests.el ends here
