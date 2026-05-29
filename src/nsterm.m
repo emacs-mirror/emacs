@@ -9947,7 +9947,7 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
 
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-      if ([ourView respondsToSelector:@selector (toggleFullScreen)])
+      if ([ourView respondsToSelector:@selector (toggleFullScreen:)])
 #endif
           /* If we are the descendent of a fullscreen window and we
              have no new parent, go fullscreen.  */
@@ -9972,7 +9972,7 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
 
 #ifdef NS_IMPL_COCOA
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-      if ([ourView respondsToSelector:@selector (toggleFullScreen)])
+      if ([ourView respondsToSelector:@selector (toggleFullScreen:)])
 #endif
 	/* Child frames must not be fullscreen.  */
 	if ([ourView fsIsNative] && [ourView isFullscreen])
