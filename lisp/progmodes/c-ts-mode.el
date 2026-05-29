@@ -1475,7 +1475,9 @@ in your init files, or customize `treesit-enabled-modes'."
   :group 'c
   :after-hook (c-ts-mode-set-modeline)
 
-  (when (treesit-ensure-installed 'c)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'c)
+             (treesit-ready-p 'c))
     ;; Create an "for-each" parser, see `c-ts-mode--emacs-set-ranges'
     ;; for more.
     (when c-ts-mode-emacs-sources-support
@@ -1554,7 +1556,9 @@ recommended to enable `electric-pair-mode' with this mode."
   :group 'c++
   :after-hook (c-ts-mode-set-modeline)
 
-  (when (treesit-ensure-installed 'cpp)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'cpp)
+             (treesit-ready-p 'cpp))
     (let ((primary-parser (treesit-parser-create 'cpp)))
 
       ;; Syntax.

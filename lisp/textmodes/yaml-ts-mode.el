@@ -262,7 +262,9 @@ Calls REPORT-FN directly."
   :group 'yaml
   :syntax-table yaml-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'yaml)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'yaml)
+             (treesit-ready-p 'yaml))
     (setq treesit-primary-parser (treesit-parser-create 'yaml))
 
     ;; Comments.

@@ -201,7 +201,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
   "Major mode for editing HEEx, powered by tree-sitter."
   :group 'heex-ts
 
-  (when (treesit-ensure-installed 'heex)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'heex)
+             (treesit-ready-p 'heex))
     (setq treesit-primary-parser (treesit-parser-create 'heex))
 
     ;; Comments
@@ -236,7 +238,9 @@ Return nil if NODE is not a defun node or doesn't have a name."
     (setq-local treesit-font-lock-feature-list
                 heex-ts--font-lock-feature-list)
 
-    (when (treesit-ensure-installed 'elixir)
+    ;; `treesit-ready-p' also checks for buffer size.
+    (when (and (treesit-ensure-installed 'elixir)
+               (treesit-ready-p 'elixir))
       (require 'elixir-ts-mode)
       (treesit-parser-create 'elixir)
 

@@ -557,7 +557,9 @@ See `prettify-symbols-compose-predicate'."
   :group 'rust
   :syntax-table rust-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'rust)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'rust)
+             (treesit-ready-p 'rust))
     (setq treesit-primary-parser (treesit-parser-create 'rust))
 
     ;; Syntax.

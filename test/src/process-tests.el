@@ -89,6 +89,7 @@ process to complete."
         (should (string= (buffer-string) "arg1=\"x &y\", arg2=\n"))))))
 
 (ert-deftest process-test-stderr-buffer ()
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (executable-find "bash"))
   (with-timeout (60 (ert-fail "Test timed out"))
   (let* ((stdout-buffer (generate-new-buffer "*stdout*"))

@@ -1888,7 +1888,9 @@ can also be used to fill comments.
 
 \\{css-mode-map}"
   :syntax-table css-mode-syntax-table
-  (when (treesit-ensure-installed 'css)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'css)
+             (treesit-ready-p 'css))
     ;; Borrowed from `css-mode'.
     (setq-local syntax-propertize-function
                 css-syntax-propertize-function)

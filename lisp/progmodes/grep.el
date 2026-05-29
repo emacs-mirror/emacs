@@ -1120,6 +1120,8 @@ list is empty)."
 (defvar grep-edit-mode-hook nil
   "Hooks run when changing to Grep-Edit mode.")
 
+(defvar grep-edit-original-mode-map nil)
+
 (defun grep-edit-mode ()
   "Major mode for editing *grep* buffers.
 In this mode, changes to the *grep* buffer are applied to the
@@ -1140,6 +1142,7 @@ The only editable texts in a Grep-Edit buffer are the match results."
     (error "Not a Grep buffer"))
   (when (get-buffer-process (current-buffer))
     (error "Cannot switch when grep is running"))
+  (setq-local grep-edit-original-mode-map (current-local-map))
   (use-local-map grep-edit-mode-map)
   (grep-edit--prepare-buffer)
   (setq buffer-read-only nil)
@@ -1159,7 +1162,7 @@ The only editable texts in a Grep-Edit buffer are the match results."
   (unless (derived-mode-p 'grep-edit-mode)
     (error "Not a Grep-Edit buffer"))
   (remove-hook 'after-change-functions #'occur-after-change-function t)
-  (use-local-map grep-mode-map)
+  (use-local-map grep-edit-original-mode-map)
   (setq buffer-read-only t)
   (setq major-mode 'grep-mode)
   (setq mode-name "Grep")

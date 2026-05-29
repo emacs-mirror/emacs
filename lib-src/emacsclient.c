@@ -902,7 +902,7 @@ quote_argument_len (HSOCKET s, const char *str, ptrdiff_t len)
 static void
 quote_argument (HSOCKET s, const char *str)
 {
-  return quote_argument_len (s, str, strlen (str));
+  quote_argument_len (s, str, strlen (str));
 }
 
 /* The inverse of quote_argument.  Remove quoting in string STR by

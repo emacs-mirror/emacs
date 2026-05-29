@@ -5005,11 +5005,6 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
          (prefix (substring beforepoint 0 (car bounds)))
          (suffix (substring afterpoint (cdr bounds)))
          (pat2 (substring pat (car bounds) (+ point (cdr bounds))))
-         (completion-regexp-list
-          (cons (mapconcat (lambda (c) (regexp-quote (char-to-string c)))
-                           pat2
-                           ".*")
-                completion-regexp-list))
          (all (all-completions prefix table pred))
          (all
           (if (zerop (length pat2)) all

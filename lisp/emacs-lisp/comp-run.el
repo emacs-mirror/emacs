@@ -203,9 +203,10 @@ LOAD and SELECTOR work as described in `native--compile-async'."
                   ;; because power users often configure their batteries
                   ;; to stop charging at less than 100% as a way to
                   ;; extend the lifetime of their battery hardware.
-                  (string= (cdr (assq ?b res)) "+")
-                  (member (cdr (assq ?B res)) '("charging" "pending-charge"))
-                  (not (string= (cdr (assq ?B res)) "discharging")))))))
+                  ;; Further discussion in bug#80922.
+                  (and (not (equal (cdr (assq ?b res)) "+"))
+                       (not (member (cdr (assq ?B res))
+                                    '("charging" "pending-charge")))))))))
 
 (defvar comp-files-queue ()
   "List of Emacs Lisp files to be compiled.")
