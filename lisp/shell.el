@@ -996,7 +996,7 @@ Make the shell buffer the current buffer, and return it.
        (lambda (proc event)
          (when sentinel
            (funcall sentinel proc event))
-         (unless (buffer-live-p proc)
+         (unless (process-live-p proc)
            (kill-buffer buffer))))))
   buffer)
 
