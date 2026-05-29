@@ -478,14 +478,10 @@ Also checks if buffers visiting the files are in read-only mode."
 (define-minor-mode reftex-isearch-minor-mode
   "When on, isearch searches the whole document, not only the current file.
 This minor mode allows isearch to search through all the files of
-the current TeX document.
-
-With no argument, this command toggles
-`reftex-isearch-minor-mode'.  With a prefix argument ARG, turn
-`reftex-isearch-minor-mode' on if ARG is positive, otherwise turn it off.
-This behaviour is derived from `define-minor-mode'."
+the current TeX document."
   :lighter "/I"
   :global t
+  :group 'reftex
   (if reftex-isearch-minor-mode
       (progn
 	(dolist (crt-buf (buffer-list))
@@ -501,8 +497,7 @@ This behaviour is derived from `define-minor-mode'."
                 (setq-local isearch-push-state-function
                             #'reftex-isearch-push-state-function)
                 (setq-local isearch-next-buffer-function
-                            #'reftex-isearch-switch-to-next-file))
-	      (setq reftex-isearch-minor-mode t))))
+                            #'reftex-isearch-switch-to-next-file)))))
 	(add-hook 'reftex-mode-hook #'reftex-isearch-minor-mode))
     (dolist (crt-buf (buffer-list))
       (with-current-buffer crt-buf
@@ -512,11 +507,8 @@ This behaviour is derived from `define-minor-mode'."
 	    (kill-local-variable 'isearch-wrap-function)
 	    (kill-local-variable 'isearch-search-fun-function)
 	    (kill-local-variable 'isearch-push-state-function)
-	    (kill-local-variable 'isearch-next-buffer-function))
-	  (setq reftex-isearch-minor-mode nil))))
-    (remove-hook 'reftex-mode-hook #'reftex-isearch-minor-mode))
-  ;; Force mode line redisplay.
-  (set-buffer-modified-p (buffer-modified-p)))
+	    (kill-local-variable 'isearch-next-buffer-function)))))
+    (remove-hook 'reftex-mode-hook #'reftex-isearch-minor-mode)))
 
 
 
