@@ -17,9 +17,9 @@ AC_DEFUN([gl_SET_MAKEINFO],[dnl
 [## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
 : ${MAKEINFO:=makeinfo}
 case `($MAKEINFO --version) 2>/dev/null` in
-  *' (GNU texinfo) '4.1[[3-9]]* | \
-  *' (GNU texinfo) '[[5-9]]* | \
-  *' (GNU texinfo) '[[1-9][0-9]]* ) ;;
+  *' (GNU texinfo) '4.1[3-9]* | \
+  *' (GNU texinfo) '[5-9]* | \
+  *' (GNU texinfo) '[1-9][0-9]* ) ;;
   *) MAKEINFO=no;;
 esac
 
