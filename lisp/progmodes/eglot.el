@@ -149,6 +149,8 @@
                         'eglot-managed-mode-hook "1.6")
 (define-obsolete-variable-alias 'eglot-confirm-server-initiated-edits
   'eglot-confirm-server-edits "1.16")
+(define-obsolete-variable-alias 'eglot-prefer-plaintext
+  'eglot-documentation-renderer "1.24")
 (make-obsolete-variable 'eglot-events-buffer-size
   'eglot-events-buffer-config "1.16")
 (define-obsolete-function-alias 'eglot--uri-to-path #'eglot-uri-to-path "1.16")
@@ -535,10 +537,21 @@ or file operation kinds not in the alist."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
-(defcustom eglot-prefer-plaintext nil
-  "If non-nil, always request plaintext responses to hover requests."
-  :type 'boolean
-  :package-version '(Eglot . "1.17.30"))
+(defcustom eglot-documentation-renderer (cond ((eglot--builtin-mdown-p)
+                                               'markdown-ts-view-mode)
+                                              ((fboundp 'gfm-view-mode)
+                                               'gfm-view-mode)
+                                              (t
+                                               nil))
+  "Control rendering of LSP documentation fragments.
+If set to a major mode symbol `gfm-view-mode' or `markdown-ts-view-mode'
+request markdown-snippets and use the corresponding Markdown renderer.
+If t, always request and render plain text snippets.  If set to nil,
+decide dynamically."
+  :type '(choice (const :tag "Plain text" t)
+                (const :tag "Auto-detect" nil)
+                (function :tag "Renderer"))
+  :package-version '(Eglot . "1.24"))
 
 (defcustom eglot-report-progress t
   "If non-nil, show progress of long running LSP server work.
@@ -733,7 +746,7 @@ This can be useful when using docker to run a language server.")
        (treesit-grammar-location 'markdown)))
 
 (defun eglot--accepted-formats ()
-  (if (and (not eglot-prefer-plaintext)
+  (if (and (not (eq t eglot-documentation-renderer))
            (or (fboundp 'gfm-view-mode) (eglot--builtin-mdown-p)))
       ["markdown" "plaintext"]
     ["plaintext"]))
@@ -2263,12 +2276,14 @@ If MODE, force MODE to be used for fontifying MARKUP."
                   finally return (buffer-string)))
        (calc2 (forced-mode)
          (cond
-          (forced-mode              `(,forced-mode))
-          ((eglot--builtin-mdown-p) `(,#'markdown-ts-view-mode))
-          ((fboundp 'gfm-view-mode) `(,#'gfm-view-mode ,#'gfm-extract))
-          (t                        `(#'text-mode))))
+          (forced-mode               forced-mode)
+          ((fboundp eglot-documentation-renderer) eglot-documentation-renderer)
+          ((eglot--builtin-mdown-p) #'markdown-ts-view-mode)
+          ((fboundp 'gfm-view-mode) #'gfm-view-mode)
+          (t                        #'text-mode)))
        (calc (s &optional (forced-mode mode) &aux (x (calc2 forced-mode)))
-         (setq string s render (car x) extract (or (cadr x) #'buffer-string))))
+         (setq string s render x
+               extract (if (eq x 'gfm-view-mode) #'gfm-extract #'buffer-string))))
     (cond ((stringp markup) (calc markup))            ; plain string
           ((setq lang (plist-get markup :language))   ; deprecated MarkedString
            (calc (format "```%s\n%s\n```" lang (plist-get markup :value))))
