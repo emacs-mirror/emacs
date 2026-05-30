@@ -12,7 +12,8 @@ AC_REQUIRE([gl_SET_DOCMISC_W32])
 AC_REQUIRE([gl_SET_DOCLANGS])
 ])
 dnl
-dnl gl_FIND_MAKEINFO
+dnl gl_SET_MAKEINFO
+dnl set the MAKEINFO precious variable to the suitable makeinfo compiler.
 AC_DEFUN([gl_SET_MAKEINFO],[dnl
 [## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
 : ${MAKEINFO:=makeinfo}
