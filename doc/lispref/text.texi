@@ -4871,6 +4871,24 @@ Therefore, all else being equal, it is preferable to pass a buffer than
 a string as @var{source} argument.
 @end defun
 
+Sometimes @code{replace-region-contents} is unable to understand the
+nature of the change in which case information such as overlays and
+markers will not be preserved as well as we would like.  If this is
+important and you have enough knowledge about the change, you can
+preserve this information manually.  For example, when sorting the lines
+of a region, you can start by collecting all the overlays and markers in
+the affected region using @code{overlays-in} and @code{markers-in} as
+well as recording a description of the line on which they were found.
+After inserting the sorted lines, you can then move the objects back to
+their rightful position.
+
+@defun markers-in &optional beg end
+Return a list of all the markers found between @var{beg} and @var{end}
+in the current buffer.  @var{beg} defaults the @code{point-min} and
+@var{end} defaults to @code{point-max}.  Do not rely on the order of the
+markers in the list, because it is unspecified.
+@end defun
+
 @node Decompression
 @section Dealing With Compressed Data
 

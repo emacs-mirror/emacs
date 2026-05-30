@@ -90,6 +90,9 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
 * Lisp Changes in Emacs 32.1
 
++++
+** The new function 'markers-in' returns the set of markers in a region.
+
 ---
 ** New variable 'completion-frontend-properties'.
 This variable generalizes the 'completion-lazy-hilit' variable added in
