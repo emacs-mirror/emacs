@@ -1145,10 +1145,17 @@ PDFS  = lispref-pdf  lispintro-pdf  emacs-pdf  misc-pdf
 PSS   = lispref-ps   lispintro-ps   emacs-ps   misc-ps
 
 DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
-define MAKE_DOC
-$(1):
-	$(foreach lang,$(DOCLANGS),$$(MAKE) -C doc/$$(subst -, DOCLANG=$(lang) ,$$@);)
 
+define MAKE_DOC_FOR_DOCLANG
+.PHONY: $(1)-DOCLANG-$(2)
+$(1)-DOCLANG-$(2):
+	$$(MAKE) -C doc/$$(subst -, DOCLANG=$(2) ,$(1))
+
+endef
+define MAKE_DOC
+$(1): $$(addprefix $(1)-DOCLANG-,$(DOCLANGS))
+
+$$(foreach lang,$(DOCLANGS),$$(eval $$(call MAKE_DOC_FOR_DOCLANG,$(1),$$(lang))))
 endef
 $(foreach doc,$(DOCS),$(eval $(call MAKE_DOC,$(doc))))
 
