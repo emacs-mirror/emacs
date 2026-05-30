@@ -222,7 +222,7 @@ From any other buffer, either of these two, in order of preference:
                 (region-beginning)
                 (region-end))))
         ((thing-at-point 'existing-filename)
-         (thing-at-point 'existing-filename))
+         (list (thing-at-point 'existing-filename)))
         ((buffer-file-name)
          (list (buffer-file-name)))))
 
