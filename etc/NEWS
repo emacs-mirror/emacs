@@ -572,6 +572,14 @@ ID.  When called interactively, both functions prompt for an ID.
 
 ** Mode Line
 
+---
+*** New definitions for mode-line faces under dark background mode.
+The faces 'mode-line' and 'mode-line-highlight' now have separate
+definitions for the dark background mode.  Previously, these two faces
+looked the same in both the light and dark background modes.  To get the
+previous visuals for these two faces, customize them to have the colors
+"grey75" and "grey40", respectively, regardless of the background mode.
+
 +++
 *** New user option 'mode-line-collapse-minor-modes'.
 If non-nil, minor mode lighters on the mode line are collapsed into a
