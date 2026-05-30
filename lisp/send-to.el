@@ -152,6 +152,7 @@ explicitly overridden."
             (forward-line 1))))
       filenames)))
 
+;;;###autoload
 (defun send-to--resolve-handler ()
   "Return first supported handler from `send-to-handlers'."
   (seq-find (lambda (handler)
