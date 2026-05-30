@@ -66,6 +66,7 @@ MAKEINFO_OPTS = --force -I$(emacsdir)
 ifeq ($(DOCLANG),)
 DOCLANG:=default
 else ifeq ($(wildcard $(srcdir)/../translations/$(DOCLANG)/info_common.mk),)
+$(error No manual language $(DOCLANG) found)
 DOCLANG:=default
 endif
 
