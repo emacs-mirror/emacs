@@ -8093,4 +8093,35 @@ and return the value found in PLACE instead."
       ((pred numberp) v)
       (`(,above . ,below) (+ above below)))))
 
+(defmacro with-sync-command-loop (&rest body)
+  (let ((mutex (make-symbol "mutex"))
+        (sig-vector (make-symbol "sv"))
+        (cond (make-symbol "cond")))
+    `(let ((,mutex (make-mutex "sync-command-loop"))
+           (,sig-vector (vector t nil)))
+       (let ((,cond (make-condition-variable ,mutex)))
+         (with-mutex ,mutex
+           ;;post body to command loop
+           (insert-special-event
+            (cons
+             'sync-command-loop
+             (lambda ()
+               (aset ,sig-vector 1 (progn ,@body))
+               (aset ,sig-vector 0 nil)
+               (condition-notify ,cond))))
+           ;; wait for command loop to execute body.
+           (while (aref ,sig-vector 0)
+             (condition-wait ,cond))))
+       (aref ,sig-vector 1))))
+
+(defun sync-command-loop-handler (event)
+  (interactive (list last-input-event))
+  (cl-assert (eq 'sync-command-loop (car-safe event)))
+  (funcall (cdr event)))
+
+(keymap-set special-event-map "<sync-command-loop>" 'sync-command-loop-handler)
+
+
+
+
 ;;; subr.el ends here

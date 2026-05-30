@@ -2742,7 +2742,7 @@ right-justified) or a list of one string (will be left-justified)."
   "Set the printer function for the current column.
 See `ses-read-cell-printer' for input forms."
   (interactive
-   (let ((col (cdr (progn
+   (let ((col (cdr (with-sync-command-loop
                      (ses-check-curcell)
                      (ses-sym-rowcol ses--curcell)))))
      (list col (ses-read-printer (format "Column %s printer"

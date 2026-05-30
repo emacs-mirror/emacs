@@ -307,7 +307,6 @@ cell has to be rewritten to data area."
 (ert-deftest ses-tests-read-column-printer ()
   "Test fix of bug#80610.
 The test fails because of bug#80839."
-  :expected-result :failed
   (let ((ses-initial-size '(4 . 3))
         (ses-after-entry-functions nil))
     (ert-with-test-buffer (:selected t)
