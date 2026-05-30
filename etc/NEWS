@@ -4222,6 +4222,11 @@ suggestions.  So the 'M-?' command now works without a tags table.  And
 the 'M-.' will show a message describing the several built-in options
 that will provide an Xref backend when used.
 
++++
+** Calling 'debug' in batch sessions no longer kills Emacs.
+If you want Emacs to exit, your program will now have to call
+'kill-emacs' explicitly.
+
 
 * Lisp Changes in Emacs 31.1
 

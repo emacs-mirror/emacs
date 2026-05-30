@@ -638,11 +638,9 @@ debugger, etc.), and fills it with information about the stack of Lisp
 function calls.  It then enters a recursive edit, showing the
 backtrace buffer in Debugger mode.  In batch mode (more generally,
 when @code{noninteractive} is non-@code{nil}, @pxref{Batch Mode}),
-this function shows the Lisp backtrace on the standard error stream,
-and then kills Emacs, causing it to exit with a non-zero exit code
-(@pxref{Killing Emacs}).  Binding
-@code{backtrace-on-error-noninteractive} to @code{nil} suppresses the
-backtrace in batch mode, see below.
+this function shows the Lisp backtrace on the standard error stream.
+Binding @code{backtrace-on-error-noninteractive} to @code{nil}
+suppresses the backtrace in batch mode, see below.
 
 The Debugger mode @kbd{c}, @kbd{d}, @kbd{j}, and @kbd{r} commands exit
 the recursive edit; then @code{debug} switches back to the previous
