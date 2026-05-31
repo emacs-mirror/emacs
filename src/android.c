@@ -6158,8 +6158,6 @@ android_build_jstring (const char *text)
    if global_foo cannot be allocated, and after the global reference
    is created.  */
 
-#define likely(cond)	__builtin_expect (cond, 1)
-
 /* Check for JNI exceptions and call memory_full in that
    situation.  */
 
