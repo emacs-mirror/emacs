@@ -2953,6 +2953,8 @@ known that the table will be realigned a little later anyway."
 	   (log-first-time (current-time))
 	   (log-last-time log-first-time)
 	   (cnt 0)
+           (table-beg org-table-current-begin-pos)
+           (table-end (org-table-end))
 	   beg end eqlcol eqlfield)
       ;; Insert constants in all formulas.
       (when eqlist
@@ -2989,8 +2991,8 @@ existing formula for column %s"
 	    ;; Get the correct line range to process.
 	    (if all
 	        (progn
-		  (setq end (copy-marker (org-table-end)))
-		  (goto-char (setq beg org-table-current-begin-pos))
+		  (setq end (copy-marker table-end))
+		  (goto-char (setq beg table-beg))
 		  (cond
 		   ((re-search-forward org-table-calculate-mark-regexp end t)
 		    ;; This is a table with marked lines, compute selected
@@ -3005,7 +3007,7 @@ existing formula for column %s"
 		   (t nil)))
 	      (setq beg (line-beginning-position)
 		    end (copy-marker (line-beginning-position 2))))
-            (org-combine-change-calls beg end
+            (org-combine-change-calls table-beg table-end
 	      (goto-char beg)
 	      ;; Mark named fields untouchable.  Also check if several
 	      ;; field/range formulas try to set the same field.
