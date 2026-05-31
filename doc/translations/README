@@ -1,3 +1,19 @@
+* Translated Emacs manuals
+** Translations available
+
+Translations for language _doclang_ can be found under directory
+doc/translations/_doclang_.
+
+** Compiling a manual translation
+
+For the info output, and, say, SES manual in French:
+
+    make -C doc/misc ses DOCLANG=fr
+
+For the pdf output:
+
+    make -C doc/misc ses-fr.pdf DOCLANG=fr
+
 * Translating the Emacs manuals
 
 ** Copyright assignment
