@@ -450,7 +450,7 @@ call as arguments.  These are the same arguments which are returned when
 `dbus-call-method' is invoked instead.  If HANDLER is nil, no return
 message will be expected.
 
-HANDLER can also be the cons cell `(HANDLER . ERROR-HANDLER)'.  In this
+HANDLER can also be the cons cell (HANDLER . ERROR-HANDLER).  In this
 case, ERROR-HANDLER will be called in case an error is returned from
 D-Bus.  It uses the returned D-Bus error as argument.
 
@@ -494,8 +494,8 @@ The return value of \"org.freedesktop.portal.Settings.ReadOne\" is a variant.
  :session \"org.freedesktop.portal.Desktop\"
  \"/org/freedesktop/portal/desktop\"
  \"org.freedesktop.portal.Settings\" \"ReadOne\"
- \\='((lambda (msg) (message \"Method handler %s\" msg)) .
-   (lambda (err) (message \"Error handler %s\" err)))
+ (cons (lambda (msg) (message \"Method handler %s\" msg))
+       (lambda (err) (message \"Error handler %s\" err)))
  \"org.freedesktop.appearance\" \"color-scheme\")
 
   -| Method handler (0)
@@ -508,8 +508,8 @@ There does not exist a method \"org.freedesktop.portal.Settings.ReadTwo\".
  :session \"org.freedesktop.portal.Desktop\"
  \"/org/freedesktop/portal/desktop\"
  \"org.freedesktop.portal.Settings\" \"ReadTwo\"
- \\='((lambda (msg) (message \"Method handler %s\" msg)) .
-   (lambda (err) (message \"Error handler %s\" err)))
+ (cons (lambda (msg) (message \"Method handler %s\" msg))
+       (lambda (err) (message \"Error handler %s\" err)))
  \"org.freedesktop.appearance\" \"color-scheme\")
 
   -| Error handler
@@ -949,8 +949,8 @@ message.  If HANDLER returns a reply message with an empty
 argument list, HANDLER must return the keyword `:ignore' in order
 to distinguish it from nil (the boolean false).
 
-If HANDLER detects an error, it shall return the list `(:error
-ERROR-NAME ERROR-MESSAGE)'.  ERROR-NAME is a namespaced string
+If HANDLER detects an error, it shall return the list (:error
+ERROR-NAME ERROR-MESSAGE).  ERROR-NAME is a namespaced string
 which characterizes the error type, and ERROR-MESSAGE is a free
 text string.  Alternatively, any Emacs signal `dbus-error' in
 HANDLER raises a D-Bus error message with the error name

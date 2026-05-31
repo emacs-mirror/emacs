@@ -1386,8 +1386,8 @@ The return value of @samp{org.freedesktop.portal.Settings.ReadOne} is a variant.
  :session "org.freedesktop.portal.Desktop"
  "/org/freedesktop/portal/desktop"
  "org.freedesktop.portal.Settings" "ReadOne"
- '((lambda (msg) (message "Method handler %s" msg)) .
-   (lambda (err) (message "Error handler %s" err)))
+ (cons (lambda (msg) (message "Method handler %s" msg))
+       (lambda (err) (message "Error handler %s" err)))
  "org.freedesktop.appearance" "color-scheme")
 
 @print{} Method handler (0)
@@ -1402,8 +1402,8 @@ There does not exist a method @samp{org.freedesktop.portal.Settings.ReadTwo}.
  :session "org.freedesktop.portal.Desktop"
  "/org/freedesktop/portal/desktop"
  "org.freedesktop.portal.Settings" "ReadTwo"
- '((lambda (msg) (message "Method handler %s" msg)) .
-   (lambda (err) (message "Error handler %s" err)))
+ (cons (lambda (msg) (message "Method handler %s" msg))
+       (lambda (err) (message "Error handler %s" err)))
  "org.freedesktop.appearance" "color-scheme")
 
 @print{} Error handler
