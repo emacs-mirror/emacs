@@ -1,8 +1,8 @@
-## Info files to build and install on all platforms (onl ses has been
-## translated to Frenchj)
+## Info files to build and install on all platforms (only ses has been
+## translated to French)
 INFO_COMMON = ses
 
-## efac-w32 has not been translated to French
+## efaq-w32 has not been translated to French
 DOCMISC_W32:=#
 
 DOCMISC_W32_TARGET:=#
