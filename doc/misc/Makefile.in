@@ -63,21 +63,21 @@ INSTALL_DATA = @INSTALL_DATA@
 MAKEINFO = @MAKEINFO@
 MAKEINFO_OPTS = --force -I$(emacsdir)
 
-ifeq ($(LANG),)
-LANG:=default
+ifeq ($(INFO_LANG),)
+INFO_LANG:=default
 else ifeq ($(wildcard $(srcdir)/../translations/$(LANG)/info_common.mk),)
-LANG:=default
+INFO_LANG:=default
 endif
 
-lang_suffix:=$(filter-out -default,-$(LANG))
-lang_subdir:=$(filter-out ../translations/default/misc/,../translations/$(LANG)/misc/)
+lang_suffix:=$(filter-out -default,-$(INFO_LANG))
+lang_subdir:=$(filter-out ../translations/default/misc/,../translations/$(INFO_LANG)/misc/)
 
 ## On MS Windows, efaq-w32; otherwise blank.
 DOCMISC_W32 = @DOCMISC_W32@
 DOCMISC_W32_TARGET = efaq-w32
 
 ## Info files to build and install on all platforms.
-include $(srcdir)/../translations/$(LANG)/info_common.mk
+include $(srcdir)/../translations/$(INFO_LANG)/info_common.mk
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
