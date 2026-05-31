@@ -84,7 +84,7 @@ INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
 ## Info files to build on current platform.
 ## This is all of them, even though they might not all get installed,
 ## because the info files are pre-built in release tarfiles.
-INFO_TARGETS = $(INFO_COMMON) $(DOCMISC_W32_TARGET)
+INFO_TARGETS = $(INFO_COMMON) efaq-w32
 
 ## Some manuals have their source in .org format.
 ## This is discouraged because the .texi files it generates
@@ -164,8 +164,6 @@ ${buildinfodir}/%$(lang_suffix).info: ${srcdir}/$(lang_subdir)%$(lang_suffix).te
 define info_template
 ## patsubst as "info" is already taken.
 $$(patsubst info, info-doc, $(1)): $$(buildinfodir)/$(1)$$(lang_suffix).info
-
-$$(buildinfodir)/$(1)$$(lang_suffix).info: $$(srcdir)/$$(lang_subdir)$(1)$$(lang_suffix).texi $$(gfdl) $$(style)
 endef
 
 $(foreach ifile,$(INFO_TARGETS),$(eval $(call info_template,$(ifile))))
