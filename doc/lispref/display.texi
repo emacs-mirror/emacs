@@ -3535,13 +3535,14 @@ contain a @code{face} or @code{mouse-face} property, or these
 properties leave some face attributes undefined, but the buffer text
 affected by the overlay/display property does define a face or those
 attributes, Emacs applies the face attributes of the ``underlying''
-buffer text.  Note that this is so even if the overlay or display
-string is displayed in the display margins (@pxref{Display Margins}).
+buffer text.  This does not apply to strings displayed in the display
+margins, which use the @code{margin} face as the base instead
+(@pxref{Display Margins}).
 
 @item
-If the text is to be shown in the display margins, and any given
-attribute has not been specified during the preceding steps, Emacs
-applies the attribute of the @code{margin} face.
+If the text is to be shown in the display margins, Emacs uses the
+@code{margin} face as the base, so any attribute not specified by the
+string's own face is taken from @code{margin}.
 
 @item
 If any given attribute has not been specified during the preceding
@@ -3825,7 +3826,9 @@ The basic face used for the text cursor.
 @item margin
 The basic face used for window margins, both on the left and on the
 right.  It is commonly used to customize the background of the empty
-areas of the margins.  It inherits from the @code{default} face.
+areas of the margins, and it also provides the base attributes for
+strings displayed in the margins (@pxref{Display Margins}).  It
+inherits from the @code{default} face.
 
 @item mouse
 The basic face used for displaying mouse-sensitive text when the mouse
@@ -5921,12 +5924,9 @@ the before-string.
 
   Note that if the string to be displayed in the margin doesn't fully
 specify its face, the nonspecified attributes are inherited from the
-@code{margin} face (@pxref{Basic Faces}).  The face merging mechanism
-ensures that the margin background remains consistent when margin
-annotations specify only a foreground color.  If you want a margin
-string to have a specific appearance independent of the @code{margin}
-face, make sure the string has a face specifying all required
-attributes.
+@code{margin} face (@pxref{Basic Faces}).  If you want a margin string
+to have a specific appearance independent of the @code{margin} face,
+make sure the string has a face specifying all required attributes.
 
   Before the display margins can display anything, you must give
 them a nonzero width.  The usual way to do that is to set these

@@ -95,6 +95,12 @@ left and right margin areas, which are used by various packages for
 per-line annotations.  Its background defaults to the frame default, so
 existing behavior is unchanged for users who do not customize it.
 
+Margin strings that do not fully specify their face now inherit the
+unspecified attributes from the 'margin' face.  If your code relied on
+the face of the underlying buffer text to specify the face attributes of
+strings displayed in the margin, you must now set their face on the margin
+string itself via 'propertize'.
+
 +++
 ** 'prettify-symbols-mode' attempts to ignore undisplayable characters.
 Previously, such characters would be rendered as, e.g., white boxes.
