@@ -74,6 +74,7 @@ lang_subdir:=$(filter-out ../translations/default/misc/,../translations/$(LANG)/
 
 ## On MS Windows, efaq-w32; otherwise blank.
 DOCMISC_W32 = @DOCMISC_W32@
+DOCMISC_W32_TARGET = efaq-w32
 
 ## Info files to build and install on all platforms.
 include $(srcdir)/../translations/$(LANG)/info_common.mk
@@ -84,7 +85,7 @@ INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
 ## Info files to build on current platform.
 ## This is all of them, even though they might not all get installed,
 ## because the info files are pre-built in release tarfiles.
-INFO_TARGETS = $(INFO_COMMON) efaq-w32
+INFO_TARGETS = $(INFO_COMMON) $(DOCMISC_W32_TARGET)
 
 ## Some manuals have their source in .org format.
 ## This is discouraged because the .texi files it generates
