@@ -259,7 +259,7 @@ enum window_part
 /* Macros to include code only if GLYPH_DEBUG is defined.  */
 
 #ifdef GLYPH_DEBUG
-#define IF_DEBUG(X)	((void) (X))
+#define IF_DEBUG(X)	do { (X); } while (false)
 #else
 #define IF_DEBUG(X)	((void) 0)
 #endif
