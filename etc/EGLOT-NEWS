@@ -32,11 +32,7 @@ New key bindings: 'k' shuts down, 'r' reconnects, 'e' visits the events
 buffer, 'w' shows workspace configuration, and 'RET' invokes
 'eglot-describe-connection'.
 
-** New LSP documentation rendering backends (bug#80127)
-
-Eglot uses new built-in 'markdown-ts-mode' of Emacs 31, which means that
-on newer versions of Emacs the external 'markdown-mode.el' package does
-not need to be installed to render Markdown content.
+** 'eglot-documentation-renderer' replaces 'eglot-prefer-plaintext'.
 
 The variable 'eglot-documentation-renderer' replaces the now-obsolete
 'eglot-prefer-plaintext'.  By default, the variable selects a markdown

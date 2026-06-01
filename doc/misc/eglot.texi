@@ -998,15 +998,14 @@ will consider it to be part of the workspace.  The default is
 
 @cindex markdown renderer
 @item eglot-documentation-renderer
-This variable controls how Eglot renders at-point documentation
-imported from the server (@pxref{Eglot Features}).  By default, the
-variable's value is set during startup to a markdown renderer if
-available, either @code{markdown-ts-view-mode} or
-@code{gfm-view-mode}.  These utilities visually enhance the
-documentation content through fontification and other formatting.  If
-you set it to @code{t}, plain text will be requested from the server
-and no rendering is attempted.  If the variable's value is @code{nil},
-Eglot will attempt to find a suitable renderer every time.
+This variable controls how Eglot renders at-point documentation imported
+from the server (@pxref{Eglot Features}).  By default, the variable's
+value is set during startup to the @code{gfm-view-mode} markdown
+renderer if available.  This utility visually enhances the documentation
+content through fontification and other formatting.  If you set it to
+@code{t}, plain text will be requested from the server and no rendering
+is attempted.  If the variable's value is @code{nil}, Eglot will attempt
+to find a suitable renderer every time.
 
 @item eglot-mode-map
 This variable is the keymap for binding Eglot-related command.  It is in
