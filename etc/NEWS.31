@@ -3944,15 +3944,6 @@ A major mode based on 'conf-mode' for editing ".npmrc" files.
 
 ** New major modes based on the tree-sitter library
 
-*** New major mode 'markdown-ts-mode'.
-A major mode based on the tree-sitter library for editing Markdown
-files.  Markdown files are visited using this mode when the required
-tree-sitter grammars ('markdown' and 'markdown-inline') are available,
-or when the user has opted in via 'treesit-enabled-modes'.  Otherwise,
-Markdown files fall back to 'text-mode'.
-
-To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
-
 *** New major mode 'mhtml-ts-mode'.
 An optional major mode based on the tree-sitter library for editing HTML
 files.  This mode handles indentation, fontification, and commenting for
