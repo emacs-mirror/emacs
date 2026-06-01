@@ -3005,7 +3005,7 @@ In addition, the Git backend has been fixed to display missing files as
 There is still some further work to do to rationalize VC's handling of
 file removal.
 
----
++++
 *** New user option 'vc-dir-auto-hide-up-to-date'.
 If you customize this option to 'revert', the 'g' command to refresh
 the VC Directory buffer also has the effect of the 'x' command.

@@ -3646,6 +3646,41 @@ file; for example:
       "/usr/local/opt/libgccjit/lib/gcc/11"
       "/usr/local/opt/gcc/lib/gcc/11/gcc/x86_64-apple-darwin20/11.2.0") ":"))
 
+** Stuttering and missed keypresses during Native Compilation on macOS
+
+Natively compiled modules are validated by macOS the first time that
+they are loaded.  On some machines, this can cause Emacs to be
+temporarily less responsive while a large number of '*.eln' files are
+being compiled and loaded.
+
+One can force the first load of the module to happen in the async
+compilation worker by adding this to their early-init.el:
+
+  (setq native-comp-async-env-modifier-form
+	'(progn
+	   (defun c/native-comp--preload-eln-after-compile
+	       (compile function-or-file &optional with-late-load output)
+	     "Preload async native-comp output in the compiler child."
+	     (prog1 (funcall compile function-or-file with-late-load output)
+	       (when (and (stringp function-or-file) with-late-load)
+		 (with-demoted-errors "Async native .eln preload: %S"
+		   (let ((eln-file (comp-el-to-eln-filename function-or-file)))
+		     (when (file-exists-p eln-file)
+		       (native-elisp-load eln-file t)))))))
+
+	   (advice-add 'comp--native-compile
+		       :around #'c/native-comp--preload-eln-after-compile)))
+
+Alternatively, if one is willing to accept the associated security
+risks, one could disable library validation on their Emacs binary:
+
+  codesign --force --sign - \
+      --entitlements macos-disable-library-validation.entitlements \
+      src/emacs
+
+Disabling validation might expose you to security risks, so please
+consider that before using this recipe.
+
 ** Text dictation doesn't work on macOS
 
 The indication is that the macOS keyboard shortcut for dictation is ignored.

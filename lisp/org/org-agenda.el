@@ -7875,7 +7875,7 @@ in the agenda."
   "Rebuild possibly ALL agenda view(s) in the current buffer."
   (interactive "P")
   (defvar org-agenda-tag-filter-while-redo) ;FIXME: Where is this var used?
-  (let* ((p (or (and (looking-at "\\'") (1- (point))) (point)))
+  (let* ((p (or (and (/= 1 (point)) (looking-at "\\'") (1- (point))) (point)))
 	 (cpa (unless (eq all t) current-prefix-arg))
 	 (org-agenda-doing-sticky-redo org-agenda-sticky)
 	 (org-agenda-sticky nil)

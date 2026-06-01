@@ -2869,7 +2869,7 @@ Style is a symbol among `quoted', `centered' and nil."
             (org-element-lineage
              paragraph
              '(center-block quote-block section)))
-    (center-block 'center)
+    (center-block 'centered)
     (quote-block 'quoted)))
 
 (defun org-odt--format-paragraph (paragraph contents info default center quote)
