@@ -1100,12 +1100,15 @@ init_gsettings (void)
 
 #if GLIB_CHECK_VERSION (2, 32, 0)
   {
-    GSettingsSchema *sc = g_settings_schema_source_lookup
-      (g_settings_schema_source_get_default (),
-       GSETTINGS_SCHEMA,
-       true);
-    schema_found = sc != NULL;
-    if (sc) g_settings_schema_unref (sc);
+    GSettingsSchemaSource *source = g_settings_schema_source_get_default
+      ();
+    if (source != NULL)
+      {
+	GSettingsSchema *sc = g_settings_schema_source_lookup
+	  (source, GSETTINGS_SCHEMA, true);
+	schema_found = sc != NULL;
+	if (sc) g_settings_schema_unref (sc);
+      }
   }
 #else
   {
