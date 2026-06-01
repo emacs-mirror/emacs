@@ -32,11 +32,14 @@ New key bindings: 'k' shuts down, 'r' reconnects, 'e' visits the events
 buffer, 'w' shows workspace configuration, and 'RET' invokes
 'eglot-describe-connection'.
 
-** 'eglot-documentation-renderer' replaces 'eglot-prefer-plaintext'.
+** New variable 'eglot-documentation-renderer' (bug#80127)
 
 The variable 'eglot-documentation-renderer' replaces the now-obsolete
-'eglot-prefer-plaintext'.  By default, the variable selects a markdown
-renderer to use throughout the session.
+'eglot-prefer-plaintext' and offers more control over what major mode is
+used to render markdown snippets.  By default, the variable is nil and
+'gfm-view-mode' from NonGNU ELPA's markdown-mode package is used if
+found.  You may also set it to the experimental 'markdown-ts-view-mode'
+in Emacs versions with tree-sitter markdown support.
 
 
 * Changes in Eglot 1.23 (2/4/2026)
