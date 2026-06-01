@@ -317,7 +317,8 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
                                  "zen")
                                "firefox")
   "The name by which to invoke Firefox or a variant of it."
-  :type 'string)
+  :type 'string
+  :version "31.1")
 
 (defcustom browse-url-firefox-arguments nil
   "A list of strings to pass to Firefox (or variant) as arguments."
