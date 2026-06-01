@@ -537,15 +537,13 @@ or file operation kinds not in the alist."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
-(defcustom eglot-documentation-renderer (cond ((eglot--builtin-mdown-p)
-                                               'markdown-ts-view-mode)
-                                              ((fboundp 'gfm-view-mode)
+(defcustom eglot-documentation-renderer (cond ((fboundp 'gfm-view-mode)
                                                'gfm-view-mode)
                                               (t
                                                nil))
   "Control rendering of LSP documentation fragments.
-If set to a major mode symbol `gfm-view-mode' or `markdown-ts-view-mode'
-request markdown-snippets and use the corresponding Markdown renderer.
+If set to the major mode symbol `gfm-view-mode', request
+markdown-snippets and use `gfm-view-mode' to render it.
 If t, always request and render plain text snippets.  If set to nil,
 decide dynamically."
   :type '(choice (const :tag "Plain text" t)
@@ -2278,7 +2276,6 @@ If MODE, force MODE to be used for fontifying MARKUP."
          (cond
           (forced-mode               forced-mode)
           ((fboundp eglot-documentation-renderer) eglot-documentation-renderer)
-          ((eglot--builtin-mdown-p) #'markdown-ts-view-mode)
           ((fboundp 'gfm-view-mode) #'gfm-view-mode)
           (t                        #'text-mode)))
        (calc (s &optional (forced-mode mode) &aux (x (calc2 forced-mode)))

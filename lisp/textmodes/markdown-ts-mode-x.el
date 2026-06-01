@@ -27,6 +27,8 @@
 
 ;;; Commentary:
 
+;; This is an experimental mode that has a number of unresolved issues.
+
 ;;; Code:
 
 (require 'markdown-ts-mode)
@@ -196,7 +198,6 @@ fully-qualified file name.  If OUTPUT-FILE is nil, assume stdout, or it
 is a fully-qualified file name.  It should return a list of
 arguments suitable for `call-process'.")
 
-;;;###autoload
 (defun markdown-ts-convert-file (input-file
                                  &optional
                                  format
@@ -226,7 +227,6 @@ found; see the variable `exec-path'."
                        overwrite
                        quiet))
 
-;;;###autoload
 (defun markdown-ts-convert (&optional
                             input-file output-file
                             format display overwrite quiet)
@@ -661,7 +661,6 @@ transformed into \"Heading Text\"."
       (funcall fixer text)
     text))
 
-;;;###autoload
 (define-minor-mode markdown-ts-toc-update-before-save-mode
   "If enabled, update `markdown-ts-mode' tables of contents before saving."
   :init-value nil
@@ -676,7 +675,6 @@ transformed into \"Heading Text\"."
            :warning
            "Minor mode valid only in `markdown-ts-mode' buffers.")))
 
-;;;###autoload
 (defun markdown-ts-toc-clear-and-remove (&optional beg end)
   "Remove `markdown-ts-mode' table of contents bodies and templates.
 Operate on the active region BEG to END, otherwise operate on the
@@ -685,7 +683,6 @@ buffer, which may be narrowed."
   (markdown-ts--barf-if-not-mode 'markdown-ts-toc-clear-and-remove)
   (markdown-ts-toc-clear beg end 'remove))
 
-;;;###autoload
 (defun markdown-ts-toc-clear (&optional beg end remove)
   "Clear `markdown-ts-mode' table of contents bodies.
 Operate on the active region BEG to END, otherwise operate on the
@@ -726,7 +723,6 @@ If optional REMOVE is non-nil, remove tables including their templates."
                              reg-size))
             (setq end-pos (min (point-max) (- end-pos reg-size)))))))))
 
-;;;###autoload
 (defun markdown-ts-toc-insert-template (&optional char)
   "Insert a `markdown-ts-mode` table of contents template at point.
 
@@ -760,7 +756,6 @@ their defaults and is useful as a starting point to customize a table."
              "<!-- markdown-ts-toc-end: -->\n"))
     (_ (user-error "No such template type: %c" char))))
 
-;;;###autoload
 (defun markdown-ts-toc-generate (&optional interactive beg end)
   "Generate tables of contents in the current buffer.
 `markdown-ts-mode' uses Markdown HTML comment elements to identify table

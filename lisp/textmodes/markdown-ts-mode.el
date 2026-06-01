@@ -27,6 +27,8 @@
 
 ;;; Commentary:
 
+;; This is an experimental mode that has a number of unresolved issues.
+;;
 ;;;; Tree-sitter Language Versions
 ;;
 ;; markdown-ts-mode has been tested with the following grammars and version:
@@ -5410,23 +5412,26 @@ With a prefix argument, it can also install optional parsers"
                    "Emacs was built without Tree-sitter support, or could not load Tree-sitter"))
            (text-mode)))))
 
-;;;###autoload
 (define-derived-mode markdown-ts-mode text-mode "Markdown"
   "Major mode for editing Markdown using tree-sitter grammar.
-NOTE: See `markdown-ts--set-up-inline'."
+This is an experimental mode that has a number of unresolved issues,
+therefore Emacs does not yet enable it by default.
+
+See also `markdown-ts--set-up-inline'."
   (markdown-ts-mode--initialize))
 
 (derived-mode-add-parents 'markdown-ts-mode '(markdown-mode))
 
 ;;; View mode:
 
-;;;###autoload
 (define-derived-mode markdown-ts-view-mode
   nil ; Intentionally left blank.
   "Markdown View"
-  "Major mode for read-only viewing Markdown using tree-sitter grammar."
-  ;; NOTE: `markdown-ts-mode' is manually added as a parent to avoid
-  ;; invoking its initialization before we set override variables.
+  "Major mode for read-only viewing Markdown using tree-sitter grammar.
+This is an experimental mode that has a number of unresolved issues,
+therefore Emacs does not yet enable it by default."
+  ;; `markdown-ts-mode' is manually added as a parent to avoid invoking
+  ;; its initialization before we set override variables.
   (setq-local markdown-ts-menu-bar-show nil)
   (setq-local markdown-ts-hide-markup t)
   (setq-local markdown-ts-inline-images t)
@@ -5443,7 +5448,6 @@ NOTE: See `markdown-ts--set-up-inline'."
 
 ;;; Mode utilities:
 
-;;;###autoload
 (defun markdown-ts-buffer-string ()
   "Like `buffer-string', and convert overlay properties to text properties."
   (let ((str (buffer-string)))
@@ -5619,7 +5623,6 @@ If non-nil and `point' is in a table, enable
          (remove-hook 'post-command-hook
                       #'markdown-ts--enable-in-table-mode 'local))))
 
-;;;###autoload
 (defun markdown-ts-mode-maybe ()
   "Enable `markdown-ts-mode' when its grammars are available.
 Also propose to install the grammars when `treesit-enabled-modes'
@@ -5631,15 +5634,6 @@ is t or contains the mode name."
           (memq 'markdown-ts-mode treesit-enabled-modes))
       (markdown-ts-mode)
     (text-mode)))
-
-;;;###autoload
-(when (boundp 'treesit-major-mode-remap-alist)
-  (add-to-list 'auto-mode-alist '("\\.md\\'"        . markdown-ts-mode-maybe))
-  (add-to-list 'auto-mode-alist '("\\.markdown\\'"  . markdown-ts-mode-maybe))
-  (add-to-list 'auto-mode-alist '("\\.mdx\\'"       . markdown-ts-mode-maybe))
-  ;; To be able to toggle between an external package and core ts-mode:
-  (add-to-list 'treesit-major-mode-remap-alist
-               '(markdown-mode . markdown-ts-mode)))
 
 (provide 'markdown-ts-mode)
 ;;; markdown-ts-mode.el ends here
