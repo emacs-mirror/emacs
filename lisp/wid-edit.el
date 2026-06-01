@@ -2546,9 +2546,13 @@ when he invoked the menu."
 		(widget-get widget (if val :on :off))))
 	 (img (widget-image-find
 	       (widget-get widget (if val :on-glyph :off-glyph)))))
-    (widget-image-insert widget (or text "")
-			 (if img
-			     (append img '(:ascent center))))))
+    (and img (null (image-property img :ascent))
+         ;; Unlike (setf (image-property img :ascent) 'center), a simple
+         ;; `append' will not modify img as a side effect, and is safe
+         ;; to use here because the :ascent property is guaranteed to be
+         ;; absent.
+         (setq img (append img '(:ascent center))))
+    (widget-image-insert widget (or text "") img)))
 
 (defun widget-toggle-action (widget &optional event)
   ;; Toggle value.
