@@ -1077,6 +1077,14 @@ bool redisplaying_p;
    the callers.  */
 bool display_working_on_window_p;
 
+/* Non-zero when we do not allow resizing frames.  For example,
+   display_mode_line and other functions produce glyphs for the mode
+   line, in particular when called from non-redisplay code (so
+   redisplaying_p is false).  We inhibit resizing of the frames during
+   that time, because that could change glyph_row pointers in the glyph
+   matrix behind the back of teh code which manipulates these pointers.  */
+int dont_resize_frames;
+
 /* If a string, XTread_socket generates an event to display that string.
    (The display is done in read_char.)  */
 
@@ -14015,6 +14023,9 @@ unwind_format_mode_line (Lisp_Object vector)
     }
 
   Vmode_line_unwind_vector = vector;
+
+  if (dont_resize_frames > 0)
+    dont_resize_frames--;
 }
 
 
@@ -14151,6 +14162,7 @@ gui_consider_frame_title (Lisp_Object frame)
       title_start = MODE_LINE_NOPROP_LEN (0);
       init_iterator (&it, XWINDOW (f->selected_window), -1, -1,
 		     NULL, DEFAULT_FACE_ID);
+      dont_resize_frames++;
       display_mode_element (&it, 0, -1, -1, fmt, Qnil, false);
       len = MODE_LINE_NOPROP_LEN (title_start);
       title = mode_line_noprop_buf + title_start;
@@ -28143,6 +28155,10 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 			 format_mode_line_unwind_data (NULL, NULL,
 						       Qnil, false));
 
+  /* We cannot allow frame-resizing as long as the code below runs,
+     because that could invalidate the it.glyph_row->glyphs pointers.  */
+  dont_resize_frames++;
+
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
@@ -28258,8 +28274,6 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
     }
   pop_kboard ();
 
-  unbind_to (count, Qnil);
-
   /* Fill up with spaces.  */
   display_string (" ", Qnil, Qnil, 0, 0, &it, 10000, -1, -1, 0);
 
@@ -28288,6 +28302,8 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	last->pixel_width += max (0, (box_thickness
 				      - (it.current_x - it.last_visible_x)));
     }
+
+  unbind_to (count, Qnil);
 
   return it.glyph_row->height;
 }
@@ -29031,6 +29047,7 @@ are the selected window and the WINDOW's buffer).  */)
   set_buffer_internal_1 (XBUFFER (buffer));
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
+  dont_resize_frames++;
 
   /* Make sure `base_line_number` is fresh in case we encounter a `%l`.  */
   if (current_buffer == XBUFFER ((w)->contents)

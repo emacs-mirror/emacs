@@ -3603,6 +3603,7 @@ int frame_mode_line_height (struct frame *);
 extern bool redisplaying_p;
 extern unsigned int redisplay_counter;
 extern bool display_working_on_window_p;
+extern int dont_resize_frames;
 extern void unwind_display_working_on_window (void);
 extern bool help_echo_showing_p;
 extern Lisp_Object help_echo_string, help_echo_window;

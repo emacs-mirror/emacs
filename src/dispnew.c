@@ -6663,7 +6663,7 @@ deliver_window_change_signal (int sig)
 void
 do_pending_window_change (bool safe)
 {
-  if (redisplaying_p && !safe)
+  if ((redisplaying_p || dont_resize_frames) && !safe)
     return;
 
   while (delayed_size_change)
