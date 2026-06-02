@@ -1895,15 +1895,9 @@ determines whether case is significant or ignored.  */)
 #define OFFSET ptrdiff_t
 
 #define EXTRA_CONTEXT_FIELDS                    \
-  /* Buffers to compare.  */                    \
-  struct buffer *buffer_a;                      \
-  struct buffer *buffer_b;                      \
-  /* BEGV of each buffer */			\
-  ptrdiff_t beg_a;				\
-  ptrdiff_t beg_b;				\
-  /* Whether each buffer is unibyte/plain-ASCII or not.  */ \
-  bool a_unibyte;				\
-  bool b_unibyte;				\
+  /* Arrays of character codes to compare.  */	\
+  int *chars_a;					\
+  int *chars_b;					\
   /* Bit vectors recording for each character whether it was deleted
      or inserted.  */                           \
   unsigned char *deletions;                     \
@@ -2098,17 +2092,25 @@ a buffer or a string.  But this is deprecated.  */)
     }
   Lisp_Object source_buffer = make_lisp_ptr (b, Lisp_Vectorlike);
 
+  /* Copy the characters to arrays of C integers.  This speeds up
+     comparison dramatically in multibyte buffers.  */
+  int *chars_a = SAFE_ALLOCA (sizeof (chars_a[0]) * size_a);
+  for (ptrdiff_t p = min_a; p < min_a + size_a; p++)
+    chars_a[p - min_a]
+      = BUF_FETCH_CHAR_AS_MULTIBYTE (a, buf_charpos_to_bytepos (a, p));
+
+  int *chars_b = SAFE_ALLOCA (sizeof (chars_b[0]) * size_b);
+  for (ptrdiff_t p = min_b; p < min_b + size_b; p++)
+    chars_b[p - min_b]
+      = BUF_FETCH_CHAR_AS_MULTIBYTE (b, buf_charpos_to_bytepos (b, p));
+
   /* FIXME: It is not documented how to initialize the contents of the
      context structure.  This code cargo-cults from the existing
      caller in src/analyze.c of GNU Diffutils, which appears to
      work.  */
   struct context ctx = {
-    .buffer_a = a,
-    .buffer_b = b,
-    .beg_a = min_a,
-    .beg_b = min_b,
-    .a_unibyte = BUF_ZV (a) == BUF_ZV_BYTE (a),
-    .b_unibyte = BUF_ZV (b) == BUF_ZV_BYTE (b),
+    .chars_a = chars_a,
+    .chars_b = chars_b,
     .deletions = deletions_insertions,
     .insertions = deletions_insertions + del_bytes,
     .fdiag = buffer + size_b + 1,
@@ -2219,17 +2221,17 @@ bit_is_set (const unsigned char *a, ptrdiff_t i)
   return a[i / CHAR_BIT] & (1 << (i % CHAR_BIT));
 }
 
-/* Return true if the characters at position POS_A of buffer
-   CTX->buffer_a and at position POS_B of buffer CTX->buffer_b are
+/* Return true if the characters at position POS_A in the first stretch
+   of text to be compared and at position POS_B of the second one are
    equal.  POS_A and POS_B are zero-based.  Text properties are
    ignored.
 
    Implementation note: this function is called inside the inner-most
    loops of compareseq, so it absolutely must be optimized for speed,
-   every last bit of it.  E.g., each additional use of BEGV or such
-   likes will slow down replace-buffer-contents by dozens of percents,
-   because builtin_lisp_symbol will be called one more time in the
-   innermost loop.  */
+   every last bit of it.  E.g., each use of BEGV or such likes will slow
+   down replace-buffer-contents by dozens of percents, because
+   builtin_lisp_symbol will be called one more time in the innermost
+   loop.  */
 
 static bool
 buffer_chars_equal (struct context *ctx,
@@ -2242,29 +2244,7 @@ buffer_chars_equal (struct context *ctx,
 	sys_longjmp (ctx->jmp, 1);
     }
 
-  pos_a += ctx->beg_a;
-  pos_b += ctx->beg_b;
-
-  ptrdiff_t bpos_a =
-    ctx->a_unibyte ? pos_a : buf_charpos_to_bytepos (ctx->buffer_a, pos_a);
-  ptrdiff_t bpos_b =
-    ctx->b_unibyte ? pos_b : buf_charpos_to_bytepos (ctx->buffer_b, pos_b);
-
-  /* We make the below a series of specific test to avoid using
-     BUF_FETCH_CHAR_AS_MULTIBYTE, which references Lisp symbols, and
-     is therefore significantly slower (see the note in the commentary
-     to this function).  */
-  if (ctx->a_unibyte && ctx->b_unibyte)
-    return BUF_FETCH_BYTE (ctx->buffer_a, bpos_a)
-      == BUF_FETCH_BYTE (ctx->buffer_b, bpos_b);
-  if (ctx->a_unibyte && !ctx->b_unibyte)
-    return UNIBYTE_TO_CHAR (BUF_FETCH_BYTE (ctx->buffer_a, bpos_a))
-      == BUF_FETCH_MULTIBYTE_CHAR (ctx->buffer_b, bpos_b);
-  if (!ctx->a_unibyte && ctx->b_unibyte)
-    return BUF_FETCH_MULTIBYTE_CHAR (ctx->buffer_a, bpos_a)
-      == UNIBYTE_TO_CHAR (BUF_FETCH_BYTE (ctx->buffer_b, bpos_b));
-  return BUF_FETCH_MULTIBYTE_CHAR (ctx->buffer_a, bpos_a)
-    == BUF_FETCH_MULTIBYTE_CHAR (ctx->buffer_b, bpos_b);
+  return ctx->chars_a[pos_a] == ctx->chars_b[pos_b];
 }
 
 static bool
