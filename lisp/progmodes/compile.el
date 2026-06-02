@@ -229,6 +229,19 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (aix
      " in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
 
+    (ansible-fatal
+     "^fatal: .*: FAILED!" nil nil nil 2 0 (0 compilation-error-face))
+    (ansible-error
+     "^\\[ERROR\\]:"
+     nil nil nil 2 0 (0 compilation-error-face))
+    (ansible-warning
+     "^\\[\\(?:DEPRECATION \\)?WARNING\\]:"
+     nil nil nil 1 0 (0 compilation-warning-face))
+    (ansible-included "^included: \\([^[:space:]]+\\)" 1 nil nil 0 1)
+    (ansible-origin
+     "^Origin: \\([^[:space:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"
+     1 2 3 0 1)
+
     ;; Checkstyle task may report its own severity level: "[checkstyle] [ERROR] ..."
     ;; (see AuditEventDefaultFormatter.java in checkstyle sources).
     (ant

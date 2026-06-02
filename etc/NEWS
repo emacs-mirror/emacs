@@ -65,6 +65,11 @@ package with the same version.  This is useful if you have started
 making local changes to your tarball installation, and then decided to
 check out the repository to prepare a patch for the package maintainer.
 
+** Compilation mode
+
+---
+*** Messages from Ansible are now recognized.
+
 
 * New Modes and Packages in Emacs 32.1
 

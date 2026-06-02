@@ -41,6 +41,24 @@ symbol: aix
 ****** Error number 140 in line 8 of file errors.c ******
 
 
+* Ansible
+
+symbols: ansible-error ansible-fatal ansible-warning
+         ansible-included ansible-origin
+
+[ERROR]: couldn't resolve module/action 'shelll'. This often indicates a misspelling, missing collection, or incorrect module path.
+Origin: /home/albinus/src/tramp-tests/roles/test/tasks/adb.yml:19:3
+[WARNING]: Deprecation warnings can be disabled by setting `deprecation_warnings=False` in ansible.cfg.
+[DEPRECATION WARNING]: Importing 'to_bytes' from 'ansible.module_utils._text' is deprecated. This feature will be removed from ansible-core version 2.24. Use ansible.module_utils.common.text.converters instead.
+included: /home/albinus/src/tramp-tests/roles/test/tasks/adb.yml for localhost => (item={'name': 'adb', 'start': '04157df41d46b840'})
+fatal: [localhost]: FAILED! => {
+    "assertion": "message == []",
+    "changed": false,
+    "evaluated_to": false,
+    "msg": "Assertion failed"
+}
+
+
 * Ant Java: works at least for jikes and javac
 
 symbol: ant
@@ -161,7 +179,7 @@ cucumber foo/cucumber.feature:15 # Scenario: deep backtrace in step definition
 
 * EDG C/C++
 
-symbol: edg-1 edg-2
+symbols: edg-1 edg-2
 
 build/intel/debug/../../../struct.cpp(42): error: identifier "foo" is undefined
 build/intel/debug/../../../struct.cpp(44): warning #1011: missing return statement at end of ...
@@ -178,7 +196,7 @@ Error 24 at (2:progran.f90) : syntax error
 
 * Fortran checker
 
-symbols: ftnchek
+symbol: ftnchek
 
     Dummy arg W in module SUBA line 8 file arrayclash.f is array
     L4 used at line 55 file test/assign.f; never set
@@ -336,7 +354,7 @@ boost/container/detail/flat_tree.hpp:589:25:   [ skipping 5 instantiation contex
 
 * Guile backtrace, 2.0.11
 
-symbols: guile-file, guile-line
+symbols: guile-file guile-line
 
 Backtrace:
 In ice-9/boot-9.scm:
@@ -355,6 +373,8 @@ In /home/janneke/vc/guile/examples/gud-break.scm:
 
 
 * Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT 2.1
+
+symbols: lua lua-stack
 
 /usr/bin/lua: database.lua:31: assertion failed!
 stack traceback:
@@ -490,7 +510,7 @@ Fatal error: Call to undefined function: mysql_pconnect() in db.inc on line 66
 
 * Rust
 
-symbol: rust rust-panic
+symbols: rust rust-panic
 
 error[E0277]: `Foo` is not an iterator
   --> src/main.rs:4:16
@@ -612,7 +632,7 @@ bloofle defined( /users/wolfgang/foo.c(4) ), but never used
 
 * GCOV (test coverage program)
 
-symbol: gcov-file gcov-bb-file gcov-never-called-line gcov-called-line
+symbols: gcov-file gcov-bb-file gcov-never-called-line gcov-called-line
 
         -:    0:Source:foo.c
         -:    0:Object:foo.bb
