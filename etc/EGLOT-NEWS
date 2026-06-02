@@ -38,8 +38,7 @@ The variable 'eglot-documentation-renderer' replaces the now-obsolete
 'eglot-prefer-plaintext' and offers more control over what major mode is
 used to render markdown snippets.  By default, the variable is nil and
 'gfm-view-mode' from NonGNU ELPA's markdown-mode package is used if
-found.  You may also set it to the experimental 'markdown-ts-view-mode'
-in Emacs versions with tree-sitter markdown support.
+found.  See docstring for more details.
 
 
 * Changes in Eglot 1.23 (2/4/2026)
