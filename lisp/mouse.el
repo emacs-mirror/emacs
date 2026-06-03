@@ -1864,18 +1864,26 @@ click is the local or global binding of that event.
 
 - Otherwise, the mouse-1 event is translated into a mouse-2 event
 at the same position."
-  (let ((action
-	 (and (or (not (consp pos))
-		  mouse-1-click-in-non-selected-windows
-		  (eq (selected-window) (posn-window pos)))
-	      (or (mouse-posn-property pos 'follow-link)
-                  (let ((area (posn-area pos)))
-                    (when area
-                      (key-binding (vector area 'follow-link) nil t pos)))
-		  (key-binding [follow-link] nil t pos)))))
+  (let* ((area (and (consp pos) (posn-area pos)))
+         (action
+	  (and (or (not (consp pos))
+		   mouse-1-click-in-non-selected-windows
+		   (eq (selected-window) (posn-window pos)))
+	       (or (mouse-posn-property pos 'follow-link)
+                   (when area
+                     (key-binding (vector area 'follow-link) nil t pos))
+		   (key-binding [follow-link] nil t pos)))))
     (cond
      ((eq action 'mouse-face)
-      (and (mouse-posn-property pos 'mouse-face) t))
+      ;; Inhibit follow-link when `mouse-1' is clicked on the tab-bar to
+      ;; prevent misdirected clicks in `dired-mode'.  This does not prevent
+      ;; remapping `mouse-1' to `mouse-2' on the tab-bar.  See bug#49247
+      ;; bug#81036.
+      ;; FIXME: The tab-bar is not associated with a buffer so a better fix
+      ;; might be not to honor the current buffer's keymap when considering
+      ;; tab-bar mouse clicks,
+      (and (not (eq area 'tab-bar))
+           (mouse-posn-property pos 'mouse-face) t))
      ((functionp action)
       ;; FIXME: This seems questionable if the click is not in a buffer.
       ;; Should we instead decide that `action' takes a `posn'?
