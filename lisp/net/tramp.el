@@ -5478,7 +5478,9 @@ should be set connection-local.")
   "Return non-nil if ARG exists in default `process-environment'.
 Tramp does not propagate local environment variables in remote
 processes."
-  (member arg (default-toplevel-value 'process-environment)))
+  (or (ignore-error void-variable
+        (member arg (buffer-local-toplevel-value 'process-environment)))
+      (member arg (default-toplevel-value 'process-environment))))
 
 (defun tramp-handle-make-process (&rest args)
   "An alternative `make-process' implementation for Tramp files."
