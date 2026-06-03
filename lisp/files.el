@@ -4623,7 +4623,9 @@ already the major mode."
      ;; so it is risky to put them on with a local variable list.
      (if (stringp val)
          (set-text-properties 0 (length val) nil val))
-     (set (make-local-variable var) val))))
+     (if (custom-variable-p var)
+         (setopt--set-local var val)
+       (set (make-local-variable var) val)))))
 
 ;;; Handling directory-local variables, aka project settings.
 

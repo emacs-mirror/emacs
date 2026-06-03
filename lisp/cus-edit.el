@@ -1105,6 +1105,22 @@ even if it doesn't match the type.)
   (funcall (or (get variable 'custom-set) #'set-default) variable value))
 
 ;;;###autoload
+(defcustom setopt-local-type-mismatch nil
+  "Behavior of `setopt-local’ if value's type mismatches its definition.
+If nil, emit a warning and assign the value.
+If non-nil, prompt to accept or discard the value.
+If the symbol `accept', ignore type mismatch warning and assign the value.
+If the symbol `discard', ignore warning and discard the mismatched value.
+Note: Accepting mismatched values may result in unexpected behavior."
+  :type '(choice (const :tag "Emit a warning and accept the type value" nil)
+                 (const :tag "Prompt to accept or discard the value" t)
+                 (const :tag "Ignore the warning and accept the value" accept)
+                 (const :tag "Ignore the warning and discard the value" discard))
+  :version "32.1"
+  :safe #'symbolp
+  :group 'customize)
+
+;;;###autoload
 (defmacro setopt-local (&rest pairs)
   "Set buffer local VARIABLE/VALUE pairs, and return the final VALUE.
 This is like `setq-local', but is meant for user options instead of
@@ -1135,17 +1151,37 @@ Signal an error if a `custom-set' form does not support the
 
 ;;;###autoload
 (defun setopt--set-local (variable value)
+  "Set a buffer local VARIABLE to VALUE.
+Consult `setopt-local-type-mismatch'."
   (custom-load-symbol variable)
-  ;; Check that the type is correct.
-  (when-let* ((type (get variable 'custom-type)))
-    (unless (widget-apply (widget-convert type) :match value)
-      (warn "Value does not match %S's type `%S': %S" variable type value)))
-  (condition-case _
-      (funcall (or (get variable 'custom-set)
-                   (lambda (x v &optional _) (set-local x v)))
-               variable value 'buffer-local)
-    (wrong-number-of-arguments
-     (error "The setter of %S does not support setopt-local" variable))))
+  (let ((accept t))
+    ;; Check that the type is correct.
+    (when-let* ((type (get variable 'custom-type)))
+      (unless (widget-apply (widget-convert type) :match value)
+        (let ((msg (format-message
+                    "Value does not match %S's type `%S': %S"
+                    variable type value)))
+        (cond
+         ;; Fall through and try anyway.
+         ((eq setopt-local-type-mismatch 'accept))
+         ;; Silently discard the mismatched value.
+         ((eq setopt-local-type-mismatch 'discard)
+          (setq accept nil))
+         ;; Prompt to accept or discard the value.
+         (setopt-local-type-mismatch
+          (setq accept (eq ?a (car
+                               (read-multiple-choice msg
+                                '((?a "accept" "Accept")
+                                  (?d "discard" "Discard")))))))
+         (t
+          (warn msg))))))
+    (when accept
+      (condition-case _
+          (funcall (or (get variable 'custom-set)
+                       (lambda (x v &optional _) (set-local x v)))
+                   variable value 'buffer-local)
+        (wrong-number-of-arguments
+         (error "The setter of %S does not support setopt-local" variable))))))
 
 ;;;###autoload
 (defun customize-save-variable (variable value &optional comment)

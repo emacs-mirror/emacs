@@ -49,6 +49,28 @@ behavior.
 If this variable is nil, 'tty-cursor-movement-use-TAB-BS' has no effect,
 and Emacs will never use TABs for any cursor-movement sequences.
 
+---
+** File- and directory-locals respect user option setters.
+Values of variables that are user options mentioned in file-local
+variable properties and directory-locals via ".dir-locals.el" are now
+set similarly to 'setopt-local'; i.e., if a user option has a defcustom
+':set' function, that function will be invoked.
+
+---
+** New user option 'setopt-local-type-mismatch'.
+This option controls what 'setopt-local' does when it detects a type
+mismatch between the specified value and the 'defcustom' of its user
+option.  Its backward-compatible default is nil which emits a warning
+and accepts the type-mismatched value.  If you customize it to non-nil,
+you will be prompted to accept or ignore the value.  If it is the symbol
+'accept', warnings are inhibited and type-mismatched values are
+accepted.  If 'discard', warnings are inhibited and type-mismatched
+values are discarded.
+
+*** Specifying a minor mode as a local variables enables that mode,
+unconditionally.  The previous behavior, toggling the mode, was
+neither reliable nor generally desirable.
+
 
 * Editing Changes in Emacs 32.1
 
