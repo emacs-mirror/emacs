@@ -1544,11 +1544,13 @@ REV is the revision to check out into WORKFILE."
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
   (let ((default-directory dir))
-    (apply #'vc-hg-command '(t nil) 'async files
-           "status" (concat "-mardu" (if files "i")) "-C"
-           (if (version<= "4.2" (vc-hg--program-version))
-               '("--config" "commands.status.relative=1")
-             '("re:" "-I" "."))))
+    (set-process-query-on-exit-flag
+     (apply #'vc-hg-command '(t nil) 'async files
+            "status" (concat "-mardu" (if files "i")) "-C"
+            (if (version<= "4.2" (vc-hg--program-version))
+                '("--config" "commands.status.relative=1")
+              '("re:" "-I" ".")))
+     nil))
   (vc-run-delayed-success 0
     (vc-hg-after-dir-status update-function)))
 

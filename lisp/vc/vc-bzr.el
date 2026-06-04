@@ -1032,7 +1032,9 @@ stream.  Standard error output is discarded."
 
 (defun vc-bzr-dir-status-files (dir files update-function)
   "Return a list of conses (file . state) for DIR."
-  (apply #'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
+  (set-process-query-on-exit-flag
+   (apply #'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
+   nil)
   ;; FIXME: Consider `vc-run-delayed-success'.
   (vc-run-delayed
    (vc-bzr-after-dir-status update-function

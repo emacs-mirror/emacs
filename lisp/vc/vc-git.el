@@ -724,44 +724,39 @@ or an empty string if none."
 
 (defun vc-git-dir-status-goto-stage (git-state)
   ;; TODO: Look into reimplementing this using `git status --porcelain=v2'.
-  (let ((files (vc-git-dir-status-state->files git-state))
-        (allowed-exit 1))
-    (erase-buffer)
-    (pcase (vc-git-dir-status-state->stage git-state)
-      ('update-index
-       (if files
-           (progn (vc-git-command (current-buffer) 'async files
-                                  "add" "--refresh" "--")
-                  ;; git-add exits 128 if some of FILES are untracked;
-                  ;; we can ignore that (bug#79999).
-                  (setq allowed-exit 128))
-         (vc-git-command (current-buffer) 'async nil
-                         "update-index" "--refresh")))
-      ('ls-files-added
-       (vc-git-command (current-buffer) 'async files
-                       "ls-files" "-z" "-c" "-s" "--"))
-      ('ls-files-up-to-date
-       (vc-git-command (current-buffer) 'async files
-                       "ls-files" "-z" "-c" "-s" "--"))
-      ('ls-files-conflict
-       (vc-git-command (current-buffer) 'async files
-                       "ls-files" "-z" "-u" "--"))
-      ('ls-files-missing
-       (vc-git-command (current-buffer) 'async files
-                       "ls-files" "-z" "-d" "--"))
-      ('ls-files-unknown
-       (vc-git-command (current-buffer) 'async files
-                       "ls-files" "-z" "-o" "--exclude-standard" "--"))
-      ('ls-files-ignored
-       (vc-git-command (current-buffer) 'async files
-                       "ls-files" "-z" "-o" "-i" "--directory"
-                       "--no-empty-directory" "--exclude-standard" "--"))
-      ;; --relative added in Git 1.5.5.
-      ('diff-index
-       (vc-git-command (current-buffer) 'async files
-                       "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
-    (vc-run-delayed-success allowed-exit
-      (vc-git-after-dir-status-stage git-state))))
+  (cl-flet ((git-cmd (&rest args)
+              (set-process-query-on-exit-flag
+               (apply #'vc-git-command (current-buffer) 'async args)
+               nil)))
+    (let ((files (vc-git-dir-status-state->files git-state))
+          (allowed-exit 1))
+      (erase-buffer)
+      (pcase (vc-git-dir-status-state->stage git-state)
+        ('update-index
+         (if files
+             (progn (git-cmd files "add" "--refresh" "--")
+                    ;; git-add exits 128 if some of FILES are untracked;
+                    ;; we can ignore that (bug#79999).
+                    (setq allowed-exit 128))
+           (git-cmd nil "update-index" "--refresh")))
+        ('ls-files-added
+         (git-cmd files "ls-files" "-z" "-c" "-s" "--"))
+        ('ls-files-up-to-date
+         (git-cmd files "ls-files" "-z" "-c" "-s" "--"))
+        ('ls-files-conflict
+         (git-cmd files "ls-files" "-z" "-u" "--"))
+        ('ls-files-missing
+         (git-cmd files "ls-files" "-z" "-d" "--"))
+        ('ls-files-unknown
+         (git-cmd files "ls-files" "-z" "-o" "--exclude-standard" "--"))
+        ('ls-files-ignored
+         (git-cmd files "ls-files" "-z" "-o" "-i" "--directory"
+                  "--no-empty-directory" "--exclude-standard" "--"))
+        ;; --relative added in Git 1.5.5.
+        ('diff-index
+         (git-cmd files "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
+      (vc-run-delayed-success allowed-exit
+        (vc-git-after-dir-status-stage git-state)))))
 
 (defun vc-git-dir-status-files (_dir files update-function)
   "Return a list of (FILE STATE EXTRA) entries for DIR."
