@@ -468,7 +468,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "12"
+#define ABI_VERSION "13"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -477,7 +477,9 @@ load_gccjit_if_necessary (bool mandatory)
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define F_SYMBOLS_WITH_POS_ENABLED_RELOC_SYM "f_symbols_with_pos_enabled_reloc"
 #define DATA_RELOC_SYM "d_reloc"
+#define DATA_RELOC_ADDR_SYM "d_reloc_addr"
 #define DATA_RELOC_EPHEMERAL_SYM "d_reloc_eph"
+#define DATA_RELOC_EPHEMERAL_ADDR_SYM "d_reloc_eph_addr"
 
 #define FUNC_LINK_TABLE_SYM "freloc_link_table"
 #define LINK_TABLE_HASH_SYM "freloc_hash"
@@ -2850,31 +2852,42 @@ emit_static_object (const char *name, Lisp_Object obj)
 #pragma GCC diagnostic pop
 
 static reloc_array_t
-declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
+declare_imported_data_relocs (Lisp_Object container,
+			      const char *code_symbol,
+			      const char *addr_fun_symbol,
 			      const char *text_symbol)
 {
   /* Imported objects.  */
-  reloc_array_t res;
-  res.len =
+  EMACS_INT len =
     XFIXNUM (CALLNI (hash-table-count,
 		     CALLNI (comp-data-container-idx, container)));
   Lisp_Object d_reloc = CALLNI (comp-data-container-l, container);
   d_reloc = Fvconcat (1, &d_reloc);
 
-  res.r_val =
-    gcc_jit_lvalue_as_rvalue (
-      gcc_jit_context_new_global (
-	comp.ctxt,
-	NULL,
-	GCC_JIT_GLOBAL_EXPORTED,
-	gcc_jit_context_new_array_type (comp.ctxt,
-					NULL,
-					comp.lisp_obj_type,
-					res.len),
-	code_symbol));
-
   emit_static_object (text_symbol, d_reloc);
 
+  gcc_jit_type *d_reloc_type
+    = gcc_jit_context_new_array_type (comp.ctxt, NULL,
+				      comp.lisp_obj_type, len);
+  gcc_jit_lvalue *d_reloc_lval
+    = gcc_jit_context_new_global (comp.ctxt, NULL,
+				  GCC_JIT_GLOBAL_INTERNAL,
+				  d_reloc_type, code_symbol);
+  gcc_jit_rvalue *d_reloc_rval
+    = gcc_jit_lvalue_as_rvalue (d_reloc_lval);
+  gcc_jit_rvalue *addr_rval
+    = gcc_jit_lvalue_get_address (d_reloc_lval, NULL);
+  gcc_jit_type *addr_rval_type = gcc_jit_rvalue_get_type (addr_rval);
+  gcc_jit_function *get_addr_fun
+    = gcc_jit_context_new_function (comp.ctxt, NULL,
+				    GCC_JIT_FUNCTION_EXPORTED,
+				    addr_rval_type, addr_fun_symbol,
+				    0, NULL, false);
+  gcc_jit_block *block
+    = gcc_jit_function_new_block (get_addr_fun, NULL);
+  gcc_jit_block_end_with_return (block, NULL, addr_rval);
+
+  reloc_array_t res = { .len = len, .r_val = d_reloc_rval };
   return res;
 }
 
@@ -2885,10 +2898,12 @@ declare_imported_data (void)
   comp.data_relocs =
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-default, Vcomp_ctxt),
 				  DATA_RELOC_SYM,
+				  DATA_RELOC_ADDR_SYM,
 				  TEXT_DATA_RELOC_SYM);
   comp.data_relocs_ephemeral =
     declare_imported_data_relocs (CALLNI (comp-ctxt-d-ephemeral, Vcomp_ctxt),
 				  DATA_RELOC_EPHEMERAL_SYM,
+				  DATA_RELOC_EPHEMERAL_ADDR_SYM,
 				  TEXT_DATA_RELOC_EPHEMERAL_SYM);
 }
 
@@ -5170,13 +5185,25 @@ load_static_obj (struct Lisp_Native_Comp_Unit *comp_u, const char *name)
 
 }
 
+static Lisp_Object *
+find_relocs (dynlib_handle_ptr handle, const char *fun_sym)
+{
+  Lisp_Object *(*fun) (void) = dynlib_sym (handle, fun_sym);
+  if (!fun)
+    return NULL;
+  return fun ();
+}
+
 /* Return false when something is wrong or true otherwise.  */
 
 static bool
 check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
 {
   dynlib_handle_ptr handle = comp_u->handle;
-  Lisp_Object *data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+  Lisp_Object *data_relocs
+    = find_relocs (handle, DATA_RELOC_ADDR_SYM);
+  if (!data_relocs)
+    return false;
 
   EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
 
@@ -5215,8 +5242,9 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   if (!saved_cu)
     xsignal1 (Qnative_lisp_file_inconsistent, comp_u->file);
   comp_u->loaded_once = !NILP (*saved_cu);
-  Lisp_Object *data_eph_relocs =
-    dynlib_sym (handle, DATA_RELOC_EPHEMERAL_SYM);
+  Lisp_Object *data_eph_relocs
+    = find_relocs (handle, DATA_RELOC_EPHEMERAL_ADDR_SYM);
+  eassert (data_eph_relocs);
 
   /* While resurrecting from an image dump loading more than once the
      same compilation unit does not make any sense.  */
@@ -5254,7 +5282,8 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 
   /* Always set data_imp_relocs pointer in the compilation unit (in can be
      used in 'dump_do_dump_relocation').  */
-  comp_u->data_relocs = dynlib_sym (handle, DATA_RELOC_SYM);
+  comp_u->data_relocs = find_relocs (handle, DATA_RELOC_ADDR_SYM);
+  eassert (comp_u->data_relocs);
 
   if (!comp_u->loaded_once)
     {
