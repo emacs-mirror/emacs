@@ -478,7 +478,7 @@ perform a match."
 	(when match
 	  (setq plist (cdr entry))
 	  (while plist
-	    (if (string-match "\\`:secret-" (symbol-name (car plist)))
+	    (if (plstore--has-secret-keys plstore)
 		(setq decrypt t
 		      plist nil))
 	    (setq plist (nthcdr 2 plist)))
@@ -503,7 +503,7 @@ Return nil if there is none."
 	plist)
     (setq plist (cdr entry))
     (while plist
-      (if (string-match "\\`:secret-" (symbol-name (car plist)))
+      (if (plstore--has-secret-keys plstore)
 	  (progn
 	    (plstore--decrypt plstore)
 	    (setq entry (assoc name (plstore--get-merged-alist plstore))
@@ -663,7 +663,7 @@ GnuPG key, silently save with symmetric encryption." ; (FIXME)
 	       (let ((merged-plist (cdr (assoc (car entry) merged-alist)))
 		     (plist (cdr entry)))
 		 (while plist
-		   (if (string-match "\\`:secret-" (symbol-name (car plist)))
+		   (if (plstore--has-secret-keys plstore)
 		       (setcar (cdr plist)
 			       (plist-get
 				merged-plist
@@ -691,7 +691,7 @@ some plstore."
 	(error "Invalid plstore format %s" string))
       (setq plist (cdr (car pointer)))
       (while plist
-	(when (string-match "\\`:secret-" (symbol-name (car plist)))
+	(when (plstore--has-secret-keys plstore)
 	  (setq entry (assoc (car (car pointer)) secret-alist))
 	  (unless entry
 	    (setq entry (list (car (car pointer)))
