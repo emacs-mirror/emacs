@@ -88,6 +88,12 @@ This means it won't get in your way even if it's slow for your
 repository.  As such, the 'vc-dir-show-outgoing-count' option is now
 obsolete.
 
+** Outline mode
+
+*** New command 'outline-show-entry-and-parents'.
+It is bound to 'C-e' and reveals the current entry
+with its parent hierarchy.
+
 
 * New Modes and Packages in Emacs 32.1
 
