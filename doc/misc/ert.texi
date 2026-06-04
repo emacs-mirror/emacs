@@ -933,8 +933,8 @@ that start with a space are part of the value).
 
 @example
 Name: foo
-Code: (indent-region
-        (point-min) (point-max))
+Code: (lambda ()
+        (indent-region (point-min) (point-max)))
 @end example
 
 @table @samp
