@@ -801,19 +801,23 @@ The regexp should match at end of buffer."
       (? "/[fingerprint]") ")?"
       (* blank))
   "Regular expression matching all yes/no queries which need to be confirmed.
-The confirmation should be done with yes or no.
+The confirmation should be done with \"yes\" or \"no\".
 The regexp should match at end of buffer.
 See also `tramp-yn-prompt-regexp'."
   :type 'regexp)
 
 (defcustom tramp-yn-prompt-regexp
   (rx (| (: "Store key in cache? (y/n" (* nonl) ")")
-	 "Update cached key? (y/n, Return cancels connection)")
+	 "Update cached key? (y/n, Return cancels connection)"
+	 ;; distrobox.
+	 (: "Error: no such container \"" (+ nonl) "\"\n"
+	    "Create it now, out of image " (+ nonl) "? [Y/n]:"))
       (* blank))
   "Regular expression matching all y/n queries which need to be confirmed.
-The confirmation should be done with y or n.
+The confirmation should be done with \"y\" or \"n\".
 The regexp should match at end of buffer.
 See also `tramp-yesno-prompt-regexp'."
+  :version "31.1"
   :type 'regexp)
 
 ;;;###tramp-autoload
