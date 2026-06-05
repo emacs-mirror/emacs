@@ -1,4 +1,4 @@
-;;; elisp-scope.el --- Semantic analysis for Elisp symbols  -*- lexical-binding: t; -*-
+;;; elisp-scope.el --- Semantic analysis for Emacs Lisp symbols  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 

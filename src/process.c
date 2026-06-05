@@ -7662,6 +7662,12 @@ child_signal_notify (void)
 static void dummy_handler (int sig) {}
 static signal_handler_t volatile lib_child_handler;
 
+/* True if Glib installs its own SIGCHLD handler that Emacs must work
+   around.  Determined once in init_process_emacs; consulted elsewhere
+   (e.g. xwidget.c) to decide whether the about:blank load workaround
+   is needed.  */
+bool glib_installs_sigchld_handler;
+
 /* Handle a SIGCHLD signal by looking for known child processes of
    Emacs whose status have changed.  For each one found, record its
    new status.
@@ -8724,6 +8730,7 @@ init_process_emacs (int sockfd)
   if (lib_child_handler != dummy_handler)
     {
       /* The hacky workaround is needed on this platform.  */
+      glib_installs_sigchld_handler = true;
       signal_handler_t lib_child_handler_glib = lib_child_handler;
       catch_child_signal ();
       eassert (lib_child_handler == dummy_handler);

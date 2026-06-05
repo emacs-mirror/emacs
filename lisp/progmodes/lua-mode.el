@@ -1,4 +1,4 @@
-;;; lua-mode.el --- Major-mode for editing Lua files -*- lexical-binding: t -*-
+;;; lua-mode.el --- Major mode for editing Lua files -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 

@@ -478,7 +478,7 @@ and `erc-stamp--margin-left-p', before activating the mode."
 
 (defun erc-stamp--display-prompt-in-left-margin ()
   "Show prompt in the left margin with padding."
-  (when (or (not erc-stamp--last-prompt) (functionp erc-prompt)
+  (when (or (null erc-stamp--last-prompt) (functionp erc-prompt)
             (> (string-width erc-stamp--last-prompt) left-margin-width))
     (let ((s (buffer-substring erc-insert-marker (1- erc-input-marker))))
       ;; Prevent #("abc" n m (display ((...) #("abc" p q (display...))))
@@ -489,7 +489,9 @@ and `erc-stamp--margin-left-p', before activating the mode."
           ;; This papers over a subtle off-by-1 bug here.
           (unless (equal sm s)
             (setq s (concat sm (substring s -1))))))
-      (setq erc-stamp--last-prompt (string-pad s left-margin-width nil t))))
+      (setq erc-stamp--last-prompt
+            (propertize (string-pad s left-margin-width nil t)
+                        'font-lock-face 'erc-prompt-face))))
   (put-text-property erc-insert-marker (1- erc-input-marker)
                      'display `((margin left-margin) ,erc-stamp--last-prompt))
   erc-stamp--last-prompt)
@@ -505,12 +507,15 @@ and `erc-stamp--margin-left-p', before activating the mode."
   (&context (erc-stamp--display-margin-mode (eql t))
             (erc-stamp--margin-left-p (eql t))
             (erc-stamp--skip-left-margin-prompt-p null))
-  (when-let* (((null erc--hidden-prompt-overlay))
-              (prompt (string-pad erc-prompt-hidden left-margin-width nil 'start))
-              (ov (make-overlay erc-insert-marker (1- erc-input-marker)
-                                nil 'front-advance)))
-    (overlay-put ov 'display `((margin left-margin) ,prompt))
-    (setq erc--hidden-prompt-overlay ov)))
+  (unless erc--hidden-prompt-overlay
+    (let ((ov (make-overlay erc-insert-marker (1- erc-input-marker)
+                            nil 'front-advance)))
+      (overlay-put ov 'display
+                   `((margin left-margin)
+                     ,(propertize (string-pad erc-prompt-hidden
+                                              left-margin-width nil 'start)
+                                  'font-lock-face 'erc-prompt-face)))
+      (setq erc--hidden-prompt-overlay ov))))
 
 (defun erc-insert-timestamp-left (string)
   "Insert timestamps at the beginning of the line."

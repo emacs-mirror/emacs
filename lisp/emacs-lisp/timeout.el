@@ -1,4 +1,4 @@
-;;; timeout.el --- Throttle or debounce Elisp functions  -*- lexical-binding: t; -*-
+;;; timeout.el --- Throttle or debounce Emacs Lisp functions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023-2026  Free Software Foundation, Inc.
 

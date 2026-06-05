@@ -537,15 +537,12 @@ or file operation kinds not in the alist."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
-(defcustom eglot-documentation-renderer (cond ((fboundp 'gfm-view-mode)
-                                               'gfm-view-mode)
-                                              (t
-                                               nil))
-  "Control rendering of LSP documentation fragments.
-If set to the major mode symbol `gfm-view-mode', request
-markdown-snippets and use `gfm-view-mode' to render it.
-If t, always request and render plain text snippets.  If set to nil,
-decide dynamically."
+(defcustom eglot-documentation-renderer nil
+  "Controls rendering of LSP documentation fragments.
+If set to a major mode symbol like `gfm-view-mode', or the experimental
+`markdown-ts-view-mode', request markdown snippets and use that mode to
+render them.  If t, request and render plain text instead.  If nil,
+request markdown snippets and select a renderer dynamically."
   :type '(choice (const :tag "Plain text" t)
                 (const :tag "Auto-detect" nil)
                 (function :tag "Renderer"))
@@ -738,16 +735,11 @@ This can be useful when using docker to run a language server.")
 
 (declare-function treesit-grammar-location "treesit.c")
 
-(defun eglot--builtin-mdown-p ()
-  (and (fboundp 'markdown-ts-view-mode)
-       (fboundp 'treesit-grammar-location)
-       (treesit-grammar-location 'markdown)))
-
 (defun eglot--accepted-formats ()
-  (if (and (not (eq t eglot-documentation-renderer))
-           (or (fboundp 'gfm-view-mode) (eglot--builtin-mdown-p)))
-      ["markdown" "plaintext"]
-    ["plaintext"]))
+  (if (or (eq t eglot-documentation-renderer)
+          (not (or eglot-documentation-renderer (fboundp 'gfm-view-mode))))
+      ["plaintext"]
+    ["markdown" "plaintext"]))
 
 (defconst eglot--uri-path-allowed-chars
   (let ((vec (copy-sequence url-path-allowed-chars)))

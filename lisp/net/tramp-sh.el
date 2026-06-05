@@ -3081,7 +3081,7 @@ will be used."
 	     ;; We discard hops, if existing, that's why we cannot use
 	     ;; `file-remote-p'.
 	     (prompt (format "PS1=%s %s"
-			     (tramp-make-tramp-file-name v)
+			     (tramp-make-tramp-file-name v 'noloc)
 			     tramp-initial-end-of-output))
 	     ;; We use as environment the difference to toplevel
 	     ;; `process-environment'.

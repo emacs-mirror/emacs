@@ -1522,7 +1522,7 @@ Throw an error if another update process is in progress."
       (error "Another update process is in progress, cannot run two at a time")
     (let ((def-dir default-directory)
 	  (backend vc-dir-backend))
-      (when vc-dir-save-some-buffers-on-revert
+      (when (and vc-dir-save-some-buffers-on-revert (not non-essential))
         (vc-buffer-sync-fileset `(,vc-dir-backend (,def-dir)) t))
       (vc-set-mode-line-busy-indicator)
       ;; Call the `dir-status' backend function.

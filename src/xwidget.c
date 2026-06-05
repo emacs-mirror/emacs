@@ -361,13 +361,26 @@ fails.  */)
 	      g_signal_connect (G_OBJECT (ctx),
 				"download-started",
 				G_CALLBACK (webkit_download_cb), xw);
+	      /* In process.c:init_process_emacs(), we determine whether GLib
+		 overrides Emacs' SIGCHLD handler (based on Glib version
+		 and kernel; see process.c for details).
 
-	      webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr),
-					"about:blank");
-	      /* webkitgtk uses GSubprocess which sets sigaction causing
-		 Emacs to not catch SIGCHLD with its usual handle setup in
-		 'catch_child_signal'.  This resets the SIGCHLD sigaction.  */
-	      catch_child_signal ();
+		 webkit_web_view_load_uri() is potentially affected by this
+		 (through GSubProcess), so as a workaround we load a minimal
+		 about:blank url and restore the SIGCHLD handler afterward.
+
+		 With PGTK, this workaround has the unfortunate side-effect of
+		 making the first load of an URI not work immediately (it needs
+		 a refresh), so avoid the workaround when we can.
+
+		 See thread
+		 <https://lists.gnu.org/archive/html/emacs-devel/2026-04/msg00810.html>.  */
+	      if (glib_installs_sigchld_handler)
+		{
+		  webkit_web_view_load_uri (WEBKIT_WEB_VIEW (xw->widget_osr),
+					  "about:blank");
+		  catch_child_signal ();
+		}
 	    }
 	  else
 	    {

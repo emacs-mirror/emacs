@@ -2625,7 +2625,8 @@ avoid calling @code{widen} in their indentation code and obey
 @defvar prog-indentation-context
 This variable, when non-@code{nil}, holds the indentation context for
 the sub-mode's indentation engine provided by the superior major mode.
-The value should be a list of the form @code{(@var{first-column} . @var{rest}}.
+The value should be a list of the form @w{@code{(@var{first-column}
+. @var{rest})}}.
 The members of the list have the following meaning:
 
 @table @var

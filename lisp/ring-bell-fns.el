@@ -1,4 +1,4 @@
-;;; ring-bell-fns.el --- Collection of functions for ring-bell  -*- lexical-binding: t; -*-
+;;; ring-bell-fns.el --- Collection of functions for ring-bell-function  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025-2026 Free Software Foundation, Inc.
 
