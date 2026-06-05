@@ -696,6 +696,8 @@ unquoted file names."
       (tmpdir nospecial-dir t)
     (should-error (directory-files-and-attributes nospecial-dir))))
 
+(defvar w32-downcase-file-names)
+
 (ert-deftest files-tests-directory-files-recursively-w32 ()
   "Test MS-Windows specific features of `directory-files-recursively'."
   (skip-unless (eq system-type 'windows-nt))
