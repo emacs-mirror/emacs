@@ -989,7 +989,7 @@ Each binding in BINDINGS should be a list of one of the following forms:
   "Execute BODY with bindings in BINDINGS taken from NODE and its children.
 
 NODE should be an iCalendar syntax node representing a property or
-parameter.  If NODE is not a syntax node, this form evalutes to nil
+parameter.  If NODE is not a syntax node, this form evaluates to nil
 without binding the variables in BINDINGS and without executing BODY.
 
 Within BODY, if NODE's value is itself a syntax node, the symbol
@@ -1044,7 +1044,7 @@ available in BODY; see its docstring for their form."
     "Execute BODY with BINDINGS taken from the value and parameters in NODE.
 
 NODE should be an iCalendar syntax node representing a property.  If NODE
-is not a syntax node, this form evalutes to nil without binding the
+is not a syntax node, this form evaluates to nil without binding the
 variables in BINDINGS and without executing BODY.
 
 Within BODY, if NODE's value is itself a syntax node, the symbol
@@ -1067,7 +1067,7 @@ available in BODY; see its docstring for their form.")
   "Bind the value in PARAMETER and execute BODY.
 
 PARAMETER should be an iCalendar syntax node representing a
-parameter.  If PARAMETER is nil, this form evalutes to nil without
+parameter.  If PARAMETER is nil, this form evaluates to nil without
 executing BODY.
 
 Within BODY, if PARAMETER's value is a syntax node, the symbol
@@ -1087,7 +1087,7 @@ bound to nil."
 
 Find the first child node of type TYPE in NODE, bind that
 child node's value and any of its children in BINDINGS and execute BODY
-with these bindings.  If there is no such node, this form evalutes to
+with these bindings.  If there is no such node, this form evaluates to
 nil without executing BODY.
 
 Within BODY, the symbols `value-node', `value-type', and `value' will be
