@@ -2561,8 +2561,9 @@ used instead of `browse-url-new-window-flag'.
 (make-obsolete 'browse-url-mozilla 'nil "29.1")
 (autoload 'browse-url-firefox "browse-url"
 "Ask the Firefox WWW browser to load URL.
-Defaults to the URL around or before point.  Passes the strings
-in the variable `browse-url-firefox-arguments' to Firefox.
+Defaults to the URL around or before point.  Invokes the program
+specified by `browse-url-firefox-program'.  Passes the strings
+in the variable `browse-url-firefox-arguments' to that program.
 
 Interactively, if the variable `browse-url-new-window-flag' is non-nil,
 loads the document in a new Firefox window.  A non-nil prefix argument
@@ -2578,9 +2579,9 @@ instead of `browse-url-new-window-flag'.
 (fn URL &optional NEW-WINDOW)" t)
 (autoload 'browse-url-chromium "browse-url"
 "Ask the Chromium WWW browser to load URL.
-Default to the URL around or before point.  The strings in
-variable `browse-url-chromium-arguments' are also passed to
-Chromium.
+Default to the URL around or before point.  Invokes the program
+specified by `browse-url-chromium-program'.  Passes the strings in
+variable `browse-url-chromium-arguments' to that program.
 The optional argument NEW-WINDOW is not used.
 
 (fn URL &optional NEW-WINDOW)" t)
@@ -8407,6 +8408,38 @@ Linux console, for which Emacs has a reliable way of determining
 which characters can be displayed and which cannot.
 
 (fn &optional REPL FROM TO)" t)
+(defvar prettify-special-glyphs-mode nil
+"Non-nil if Prettify-Special-Glyphs mode is enabled.
+See the `prettify-special-glyphs-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `prettify-special-glyphs-mode'.")
+(custom-autoload 'prettify-special-glyphs-mode "disp-table" nil)
+(autoload 'prettify-special-glyphs-mode "disp-table"
+"Mode to display pretty special character glyphs.
+
+If you have already customized your special character glyphs, only the
+`special-glyphs' face is applied to them.  This mode only applies to the
+`standard-display-table'.  Window or buffer display table, if defined,
+still take precedence.
+
+This is a global minor mode.  If called interactively, toggle the
+`Prettify-Special-Glyphs mode' mode.  If the prefix argument is
+positive, enable the mode, and if it is zero or negative, disable the
+mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='prettify-special-glyphs-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
 (register-definition-prefixes "disp-table" '("display-table-print-array"))
 
 
@@ -10332,10 +10365,50 @@ Interactively, prompt for ROLE.
 Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
 SYM, ID and DEF, where ROLE is a symbol that specifies the semantics of
 SYM; POS is the position of SYM in STREAM; ID is an object that uniquely
-identifies (co-)occurrences of SYM in the current defun; and DEF is the
-position in which SYM is locally defined, or nil.  If SYM is itself a
-binding occurrence, then POS and DEF are equal.  If SYM is not lexically
-bound, then DEF is nil.
+identifies the local reference of SYM in the current defun, so different
+occurrences of SYM get the same ID (up to `equal') if and only if they
+refer to the same object; and lastly, DEF is the position in which SYM
+is locally defined, or nil.  For the occurrence of SYM at the position
+where it is locally defined (a.k.a. \"bound\"), the values of POS and
+DEF are equal.  If SYM is not lexically bound, then DEF is nil and so
+is ID.
+
+CALLBACK should use ID by checking if it is nil or `equal' to other ID
+values produced in the same call to this function.  The specific value
+of a given ID is otherwise meaningless.
+
+As an example, when this function analyzes the following form
+
+  (lambda (mode) (let ((mode (or mode major-mode))) (symbol-name mode)))
+
+the CALLBACK function is invoked four times with SYM `mode':
+
+- Once for the `mode' in the `lambda' arguments list, with ROLE
+  `binding-variable', some non-nil ID value MODE-ID1, and with POS and
+  DEF both being the same position POS1 where this `mode' occurs.
+
+- Another time for the binder in the let form, with ROLE
+  `binding-variable' some non-nil ID value MODE-ID2 that is not `equal'
+  to MODE-ID1, and with POS and DEF both being the same position POS2.
+
+- Another for the first argument of `or', with ROLE `bound-variable' and
+  ID of MODE-ID1, since this occurrence of `mode' is bound by the
+  `lambda' argument `mode'.  Similarly, DEF is POS1, and POS is now a
+  different position, POS3.
+
+- Finally, CALLBACK is also invoked for the `mode' that appears in the
+  body of `let' as the argument of `symbol-name', with ROLE set to
+  `bound-variable', ID set to MODE-ID2, and DEF set to POS3.
+
+In the above example, CALLBACK is also invoked for `lambda', `let',
+`or', `major-mode' and `symbol-name'.  Since those symbols do not have
+local references (they refer to global functions/macros/variables),
+CALLBACK gets nil ID and nil DEF.
+
+Note that if SYM is locally-bound, but has no specific binding position,
+then DEF is nil while ID is non-nil.  This is the case when SYM is bound
+by a binder that is only introduced during macro expansion and does not
+appear literally in the analyzed code.
 
 If STREAM is nil, it defaults to the current buffer.  When reading from
 the current buffer, this function leaves point at the end of the form.
@@ -10678,9 +10751,12 @@ Message buffer where you can explain more about the patch.
 
 ;;; Generated autoloads from international/emoji.el
 
-(autoload 'emoji-insert "emoji")
-(autoload 'emoji-recent "emoji")
-(autoload 'emoji-search "emoji")
+(autoload 'emoji-insert "emoji" nil t)
+(autoload 'emoji-recent "emoji" nil t)
+(autoload 'emoji-search "emoji"
+"
+
+(fn GLYPH DERIVED)" t)
 (autoload 'emoji-list "emoji"
 "List Emoji and allow selecting and inserting one of them.
 If you are displaying Emoji on a text-only terminal, and some
@@ -10700,7 +10776,10 @@ If called from Lisp, return the name as a string; return nil if
 the name is not known.
 
 (fn GLYPH &optional INTERACTIVE)" t)
-(autoload 'emoji-list-select "emoji")
+(autoload 'emoji-list-select "emoji"
+"
+
+(fn EVENT)" '(emoji-list-mode))
 (autoload 'emoji--init "emoji"
 "
 
@@ -11093,7 +11172,7 @@ a single minimum version string.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push '(erc 5 6 2 -4) package--builtin-versions)
+(push '(erc 5 6 2 31 1) package--builtin-versions)
 (dolist (symbol '( erc-sasl erc-spelling ; 29
                   erc-imenu erc-nicks)) ; 30
  (custom-add-load symbol symbol))
@@ -11310,7 +11389,7 @@ server name and search for a match in `erc-networks-alist'.")
 
 ;;; Generated autoloads from erc/erc-pcomplete.el
 
-(register-definition-prefixes "erc-pcomplete" '("erc-pcomplet" "pcomplete"))
+(register-definition-prefixes "erc-pcomplete" '("erc-" "pcomplete"))
 
 
 ;;; Generated autoloads from erc/erc-replace.el
@@ -15030,11 +15109,6 @@ supported.
 ;;; Generated autoloads from gnus/gnus-cus.el
 
 (register-definition-prefixes "gnus-cus" '("category-fields" "gnus-"))
-
-
-;;; Generated autoloads from gnus/gnus-dbus.el
-
-(register-definition-prefixes "gnus-dbus" '("gnus-dbus-"))
 
 
 ;;; Generated autoloads from gnus/gnus-delay.el
@@ -20427,7 +20501,7 @@ penultimate step during initialization." t)
 Dotted symbol is any symbol starting with a `.'.  This macro creates
 let-bindings for dotted symbols that appear literally in BODY (whether
 or not they are actually used).  It does not create bindings for dotted
-symbols that are introdcued by macro-expansion in BODY.
+symbols that are introduced by macro-expansion in BODY.
 
 A symbol of the form `.foo.N' where N is a natural number refers to the
 Nth element of the value that ALIST associates to key `foo'.
@@ -21429,20 +21503,14 @@ for the current invocation.
 
 ;;; Generated autoloads from textmodes/markdown-ts-mode.el
 
-(autoload 'markdown-ts-mode "markdown-ts-mode"
-"Major mode for editing Markdown using tree-sitter grammar.
-
-In addition to any hooks its parent mode `text-mode' might have run,
-this mode runs the hook `markdown-ts-mode-hook', as the final or
-penultimate step during initialization.
-
-\\{markdown-ts-mode-map}" t)
-(autoload 'markdown-ts-mode-maybe "markdown-ts-mode"
-"Enable `markdown-ts-mode' when its grammar is available.
-Also propose to install the grammar when `treesit-enabled-modes'
-is t or contains the mode name.")
-(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(markdown-mode . markdown-ts-mode)))
+(push '(markdown-ts-mode 1 0) package--builtin-versions)
 (register-definition-prefixes "markdown-ts-mode" '("markdown-ts-"))
+
+
+;;; Generated autoloads from textmodes/markdown-ts-mode-x.el
+
+(push '(markdown-ts-mode-x 1 0) package--builtin-versions)
+(register-definition-prefixes "markdown-ts-mode-x" '("markdown-ts-"))
 
 
 ;;; Generated autoloads from master.el
@@ -23940,7 +24008,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 3) package--builtin-versions)
+(push '(org 9 8 5) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -25081,9 +25149,9 @@ DESC must be a `package-desc' object.
 "List of the names of currently activated packages.")
 (defvar package--activated nil
 "Non-nil if `package-activate-all' has been run.")
-(defun package-activate-all nil
+(autoload 'package-activate-all "package-activate"
 "Activate all installed packages.
-The variable `package-load-list' controls which packages to load." (setq package--activated t) (let* ((elc (concat package-quickstart-file "c")) (qs (if (file-readable-p elc) elc (if (file-readable-p package-quickstart-file) package-quickstart-file)))) (or (and qs (not (bound-and-true-p package-activated-list)) (with-demoted-errors "Error during quickstart: %S" (let ((load-source-file-function nil)) (unless (boundp 'package-activated-list) (setq package-activated-list nil)) (load qs nil 'nomessage) t))) (progn (require 'package) (with-no-warnings (package--activate-all))))))
+The variable `package-load-list' controls which packages to load.")
 (autoload 'package-installed-p "package-activate"
 "Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
 If PACKAGE is a symbol, it is the package name and MIN-VERSION
@@ -25396,10 +25464,9 @@ Emacs Lisp manual for more information and examples.
 (autoload 'pcase--make-docstring "pcase")
 (autoload 'pcase-exhaustive "pcase"
 "The exhaustive version of `pcase' (which see).
-If EXP fails to match any of the patterns in CASES, an error is
-signaled.
+If EXP fails to match any of the patterns in CASES, signal an error.
 
-In contrast, `pcase' will return nil if there is no match, but
+In contrast, `pcase' will return nil if there is no match, but will
 not signal an error.
 
 (fn EXP &rest CASES)" nil t)
@@ -32326,6 +32393,10 @@ as the new values of the bound variables in the recursive invocation.
 This construct can only be used with lexical binding.
 
 (fn NAME BINDINGS &rest BODY)" nil t)
+(autoload 'work-buffer--release "subr-x"
+"Release work BUFFER.
+
+(fn BUFFER)")
 (autoload 'with-work-buffer "subr-x"
 "Create a work buffer, and evaluate BODY there like `progn'.
 Like `with-temp-buffer', but reuse an already created temporary
@@ -34560,7 +34631,7 @@ relative only to the time worked today, and not to past time.
 
 ;;; Generated autoloads from emacs-lisp/timeout.el
 
-(push '(timeout 2 1) package--builtin-versions)
+(push '(timeout 2 1 6) package--builtin-versions)
 (autoload 'timeout-debounce "timeout"
 "Debounce FUNC by making it run DELAY seconds after it is called.
 
@@ -35198,7 +35269,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 13 0) package--builtin-versions)
+(push '(transient 0 13 3) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient"
 "Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
