@@ -842,9 +842,14 @@ The list includes markers at BEG and at END.  */)
       iend = clip_to_bounds (BEGV, XFIXNUM (end), ZV);
     }
 
-  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
-    if (ibeg <= tail->charpos && tail->charpos <= iend)
-      res = Fcons (make_lisp_ptr (tail, Lisp_Vectorlike), res);
+  struct marker_it it = marker_it_init (current_buffer);
+  while (marker_it_valid (&it))
+    {
+      tail = marker_it_marker (&it);
+      if (ibeg <= tail->charpos && tail->charpos <= iend)
+	res = Fcons (make_lisp_ptr (tail, Lisp_Vectorlike), res);
+      marker_it_next (&it);
+    }
 
   return res;
 }
