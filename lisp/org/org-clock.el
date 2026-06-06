@@ -1207,9 +1207,9 @@ to be CLOCKED OUT."))))
 		   (read-number "Keep how many minutes: " default))
 	      (and (memq ch '(?t ?T))
 		   (floor
-		    (/ (float-time
-			(time-subtract (org-read-date t t) last-valid))
-		       60)))))
+		    (float-time
+		     (time-subtract (org-read-date t t) last-valid))
+		    60))))
 	 (gotback
 	  (and (memq ch '(?g ?G))
 	       (read-number "Got back how many minutes ago: " default)))
