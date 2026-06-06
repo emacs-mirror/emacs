@@ -5271,12 +5271,14 @@ if test "${with_native_compilation}" != "no"; then
 	 else
 	   libgccjit_not_found_err
 	 fi])
-    AC_CHECK_HEADERS([libgccjit.h], [],
-        [if test "${with_native_compilation}" = "default"; then
+    # `libgcc_not_found' may set `with_native_compilation' to `no'.
+    AS_IF([test "$with_native_compilation" != "no"],
+      [AC_CHECK_HEADERS([libgccjit.h], [],
+         [if test "${with_native_compilation}" = "default"; then
 	   libgccjit_dev_not_found
 	 else
 	   libgccjit_dev_not_found_err
-	 fi])
+	 fi])])
     if test "${with_native_compilation}" != "no"; then
       # Check if libgccjit really works.
       AC_RUN_IFELSE([libgccjit_smoke_test], [],
