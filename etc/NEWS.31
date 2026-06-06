@@ -93,7 +93,15 @@ below the line, which allows for vertically centering text.
 A new basic face 'margin' is used by default for text displayed in the
 left and right margin areas, which are used by various packages for
 per-line annotations.  Its background defaults to the frame default, so
-existing behavior is unchanged for users who do not customize it.
+existing behavior is unchanged for users who do not customize this new
+face.
+
+Display strings shown in the margins now inherit the unspecified face
+attributes from the 'margin' face, if the string itself does not fully
+specify its face.  If your code relied on the face of the underlying
+buffer text to serve as default for the unspecified face attributes of
+strings displayed in the margin, you must now set those face attributes
+in the margin  string itself via 'propertize'.
 
 +++
 ** 'prettify-symbols-mode' attempts to ignore undisplayable characters.
