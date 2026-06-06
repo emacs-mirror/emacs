@@ -1961,8 +1961,8 @@ in a temporary buffer.  Therefore, all else being equal, it is preferable
 to pass a buffer rather than a string as SOURCE argument.
 
 This function returns t if a non-destructive replacement could be
-performed.  Otherwise, i.e., if MAX-SECS was exceeded, it returns
-nil.
+performed.  Otherwise, i.e., if MAX-SECS was exceeded or too much
+memory would have been needed, it returns nil.
 
 SOURCE can also be a function that will be called with no arguments
 and with current buffer narrowed to BEG..END, and should return
@@ -2065,6 +2065,18 @@ a buffer or a string.  But this is deprecated.  */)
 	time_limit = tlim;
     }
 
+  /* The rest of the code is not prepared to handle a string SOURCE.  */
+  if (!b)
+    {
+      Lisp_Object workbuf
+	= code_conversion_save (true, STRING_MULTIBYTE (source));
+      b = XBUFFER (workbuf);
+      set_buffer_internal (b);
+      CALLN (Finsert, source);
+      set_buffer_internal (a);
+    }
+  Lisp_Object source_buffer = make_lisp_ptr (b, Lisp_Vectorlike);
+
   specpdl_ref count = SPECPDL_INDEX ();
 
   ptrdiff_t diags = size_a + size_b + 3;
@@ -2078,60 +2090,65 @@ a buffer or a string.  But this is deprecated.  */)
   ptrdiff_t bytes_needed;
   if (ckd_mul (&bytes_needed, diags, bytes_per_diag)
       || ckd_add (&bytes_needed, bytes_needed,
-		  align_bytes - surplus_char_bytes + del_bytes + ins_bytes))
-    memory_full_up ();
-  USE_SAFE_ALLOCA;
-  buffer = SAFE_ALLOCA (bytes_needed);
-
-  /* The rest of the code is not prepared to handle a string SOURCE.  */
-  if (!b)
+		  align_bytes - surplus_char_bytes + del_bytes + ins_bytes)
+      || SIZE_MAX < bytes_needed)
+    buffer = NULL;
+  else if (bytes_needed <= MAX_ALLOCA)
+    buffer = alloca (bytes_needed);
+  else
     {
-      Lisp_Object workbuf
-	= code_conversion_save (true, STRING_MULTIBYTE (source));
-      b = XBUFFER (workbuf);
-      set_buffer_internal (b);
-      CALLN (Finsert, source);
-      set_buffer_internal (a);
+      buffer = malloc (bytes_needed);
+      if (buffer)
+	{
+	  if (profiler_memory_running)
+	    malloc_probe (bytes_needed);
+	  record_unwind_protect_ptr (xfree, buffer);
+	}
     }
-  Lisp_Object source_buffer = make_lisp_ptr (b, Lisp_Vectorlike);
 
-  /* Copy the characters to arrays of C integers.  This speeds up
-     comparison dramatically in multibyte buffers.  */
-  int *chars_a = (int *) (((uintptr_t) (buffer + 2 * diags) + align_bytes)
-			  & ~align_bytes);
-  for (ptrdiff_t i = 0; i < size_a; i++)
-    chars_a[i]
-      = BUF_FETCH_CHAR_AS_MULTIBYTE (a, buf_charpos_to_bytepos (a, min_a + i));
-
-  int *chars_b = chars_a + size_a;
-  for (ptrdiff_t i = 0; i < size_b; i++)
-    chars_b[i]
-      = BUF_FETCH_CHAR_AS_MULTIBYTE (b, buf_charpos_to_bytepos (b, min_b + i));
-
-  unsigned char *deletions_insertions = memset (chars_b + size_b, 0,
-						del_bytes + ins_bytes);
-
-  /* FIXME: It is not documented how to initialize the contents of the
-     context structure.  This code cargo-cults from the existing
-     caller in src/analyze.c of GNU Diffutils, which appears to
-     work.  */
-  struct context ctx = {
-    .chars_a = chars_a,
-    .chars_b = chars_b,
-    .deletions = deletions_insertions,
-    .insertions = deletions_insertions + del_bytes,
-    .fdiag = buffer + size_b + 1,
-    .bdiag = buffer + diags + size_b + 1,
-    .heuristic = true,
-    .too_expensive = too_expensive,
-    .time_limit = time_limit,
-  };
-
-  /* compareseq requires indices to be zero-based.  We add BEGV back
-     later.  */
   bool early_abort;
-  if (! sys_setjmp (ctx.jmp))
-    early_abort = compareseq (0, size_a, 0, size_b, false, &ctx);
+  struct context ctx;
+
+  if (buffer)
+    {
+      /* Copy the characters to arrays of C ints.  This speeds up
+	 comparison dramatically in multibyte buffers.  */
+      int *chars_a = (int *) (((uintptr_t) (buffer + 2 * diags) + align_bytes)
+			      & ~align_bytes);
+      for (ptrdiff_t i = 0; i < size_a; i++)
+	chars_a[i] = (BUF_FETCH_CHAR_AS_MULTIBYTE
+		      (a, buf_charpos_to_bytepos (a, min_a + i)));
+
+      int *chars_b = chars_a + size_a;
+      for (ptrdiff_t i = 0; i < size_b; i++)
+	chars_b[i] = (BUF_FETCH_CHAR_AS_MULTIBYTE
+		      (b, buf_charpos_to_bytepos (b, min_b + i)));
+
+      unsigned char *deletions_insertions = memset (chars_b + size_b, 0,
+						    del_bytes + ins_bytes);
+
+      /* FIXME: It is not documented how to initialize the contents of the
+	 context structure.  This code cargo-cults from the existing
+	 caller in src/analyze.c of GNU Diffutils, which appears to
+	 work.  */
+      ctx = (struct context) {
+	.chars_a = chars_a,
+	.chars_b = chars_b,
+	.deletions = deletions_insertions,
+	.insertions = deletions_insertions + del_bytes,
+	.fdiag = buffer + size_b + 1,
+	.bdiag = buffer + diags + size_b + 1,
+	.heuristic = true,
+	.too_expensive = too_expensive,
+	.time_limit = time_limit,
+      };
+
+      /* compareseq wants zero-based indices.  We add BEGV back later.  */
+      if (! sys_setjmp (ctx.jmp))
+	early_abort = compareseq (0, size_a, 0, size_b, false, &ctx);
+      else
+	early_abort = true;
+    }
   else
     early_abort = true;
 
@@ -2141,8 +2158,7 @@ a buffer or a string.  But this is deprecated.  */)
 			       make_fixnum (BUF_BEGV (b)),
 			       make_fixnum (BUF_ZV (b)));
       replace_range (min_a, min_a + size_a, src, true, false, inh);
-      SAFE_FREE_UNBIND_TO (count, Qnil);
-      return Qnil;
+      return unbind_to (count, Qnil);
     }
 
   Fundo_boundary ();
@@ -2196,7 +2212,7 @@ a buffer or a string.  But this is deprecated.  */)
       --j;
     }
 
-  SAFE_FREE_UNBIND_TO (count, Qnil);
+  unbind_to (count, Qnil);
 
   if (modification_hooks_inhibited)
     {

@@ -4863,7 +4863,7 @@ faster but suboptimal solution.  The default value is 1000000.
 
 @code{replace-region-contents} returns @code{t} if a non-destructive
 replacement could be performed.  Otherwise, i.e., if @var{max-secs}
-was exceeded, it returns @code{nil}.
+was exceeded or too much memory would have been needed, it returns @code{nil}.
 
 Note: When using the refined replacement algorithm, if the replacement
 is a string, it will be internally copied to a temporary buffer.
