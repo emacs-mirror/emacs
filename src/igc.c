@@ -5798,7 +5798,7 @@ root.  Each element has the form (LABEL TYPE START END), where
   return roots;
 }
 
-static struct igc_exthdr *
+static struct igc_exthdr
 igc_external_header (union igc_header *h, bool is_builtin)
 {
   if (header_tag (h) != IGC_TAG_EXTHDR)
@@ -5817,10 +5817,24 @@ igc_external_header (union igc_header *h, bool is_builtin)
 	  mps_res_t res = mps_finalize (global_igc->arena, &ref);
 	  IGC_CHECK_RES (res);
 	}
-      return exthdr;
+      return *exthdr;
     }
 
-  return header_exthdr (h);
+  return *header_exthdr (h);
+}
+
+static void
+igc_update_exthdr (union igc_header *h, struct igc_exthdr exthdr_data)
+{
+  struct igc_exthdr *exthdr = xmalloc (sizeof *exthdr);
+  *exthdr = exthdr_data;
+  struct igc_exthdr *old_hdr = (header_tag (h) == IGC_TAG_EXTHDR
+				? header_exthdr (h) : NULL);
+  /* On IA-32, the upper 32-bit word is 0 after this, which is okay.  */
+  uint64_t v = (intptr_t) exthdr + IGC_TAG_EXTHDR;
+  *(uint64_t *) h = v;
+  if (old_hdr)
+    xfree (old_hdr);
 }
 
 DEFUN ("igc--set-commit-limit", Figc__set_commit_limit,
@@ -6400,8 +6414,8 @@ Internal use only.  */)
     return Qnil;
 
   union igc_header *h = addr;
-  struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (obj));
-  return exthdr->extra_dependency;
+  struct igc_exthdr exthdr = igc_external_header (h, is_builtin_obj (obj));
+  return exthdr.extra_dependency;
 }
 
 DEFUN ("igc--add-extra-dependency", Figc__add_extra_dependency,
@@ -6417,11 +6431,11 @@ KEY is the key to associate with DEPENDENCY in a hash table.  */)
     return Qnil;
 
   union igc_header *h = addr;
-  struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (obj));
-  Lisp_Object hash = exthdr->extra_dependency;
+  struct igc_exthdr exthdr = igc_external_header (h, is_builtin_obj (obj));
+  Lisp_Object hash = exthdr.extra_dependency;
 #ifndef USE_EPHEMERON_POOL
   if (!WEAK_HASH_TABLE_P (hash))
-    exthdr->extra_dependency = hash =
+    exthdr.extra_dependency = hash =
       CALLN (Fmake_hash_table, QCtest, Qeq, QCweakness, Qkey);
 #endif
 
@@ -6434,6 +6448,7 @@ KEY is the key to associate with DEPENDENCY in a hash table.  */)
   Lisp_Object count = Fgethash (dependency, hash2, make_fixnum (0));
   count = Fadd1 (count);
   Fputhash (dependency, count, hash2);
+  igc_update_exthdr (h, exthdr);
   return Qt;
 }
 
@@ -6449,8 +6464,8 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
     return Qnil;
 
   union igc_header *h = addr;
-  struct igc_exthdr *exthdr = igc_external_header (h, is_builtin_obj (repl));
-  Lisp_Object hash = exthdr->extra_dependency;
+  struct igc_exthdr exthdr = igc_external_header (h, is_builtin_obj (repl));
+  Lisp_Object hash = exthdr.extra_dependency;
 #ifndef USE_EPHEMERON_POOL
   if (!WEAK_HASH_TABLE_P (hash))
     return Qnil;
@@ -6474,13 +6489,14 @@ KEY is the key associated with DEPENDENCY in a hash table.  */)
 	     remove_dependency_replacement.  */
 	  if (BASE_EQ (Fhash_table_count (hash), make_fixnum (0)))
 	    {
-	      exthdr->extra_dependency = Qnil;
+	      exthdr.extra_dependency = Qnil;
 	      remove_dependency_replacement (obj);
 	    }
 	}
     }
   else
     Fputhash (dependency, count, hash2);
+  igc_update_exthdr (h, exthdr);
 
   return Qt;
 }
