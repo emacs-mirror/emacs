@@ -71,7 +71,7 @@ Here is an example:
 @group
 (silly-loop 100000000)
 @result{} 0.374873305
-end group
+@end group
 @end example
 
   In this example, the interpreted code was about six times slower
