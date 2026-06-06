@@ -708,9 +708,7 @@ point."
   (interactive "i\nP")
   (let ((str
          (format-seconds (or format "%Y, %D, %H, %M, %z%S")
-			 (time-convert
-			  (time-since before-init-time)
-			  'integer))))
+			  (time-since before-init-time))))
     (if here
         (insert str)
       (if (called-interactively-p 'interactive)

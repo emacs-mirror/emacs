@@ -49,10 +49,9 @@
                 (let ((time (timer--time timer)))
                   (format "%12s"
                           (format-seconds "%dd %hh %mm %z%,1ss"
-			                  (float-time
-			                   (if (timer--idle-delay timer)
-			                       time
-			                     (time-subtract time nil))))))
+					  (if (timer--idle-delay timer)
+					      time
+					    (time-subtract time nil)))))
                 'help-echo "Time until next invocation")
               ;; Repeat.
               ,(let ((repeat (timer--repeat-delay timer)))

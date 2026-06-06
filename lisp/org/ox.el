@@ -7137,7 +7137,7 @@ appropriate for `tabulated-list-print'."
 		;; Age.
 		(let ((info (nth 2 entry)))
 		  (if (processp info) (symbol-name (process-status info))
-		    (format-seconds "%h:%.2m" (float-time (time-since info)))))
+		    (format-seconds "%h:%.2m" (time-since info))))
 		;; Source.
 		(if (stringp source) source (buffer-name source))))))
      org-export-stack-contents)))

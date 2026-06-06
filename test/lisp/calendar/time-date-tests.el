@@ -115,6 +115,7 @@
 	   ("%mm %5ss" 66 "1m     6s")
 	   ("%mm %.5ss" 66.4 "1m 00006s")
 	   ("%mm %,1ss" 66.4 "1m 6.4s")
+	   ("%mm %,1ss" (664 . 10) "1m 6.4s")
 	   ("%mm %5,1ss" 66.4 "1m   6.4s")
 	   ("%mm %.5,1ss" 66.4 "1m 006.4s")
 	   ("%hh %z%x%mm %ss" 120 "2m")
@@ -128,8 +129,8 @@
 	    (seconds (nth 1 fs))
 	    (expected (nth 2 fs)))
       (should (equal (format-seconds string seconds) expected))
-      (when (< 0 seconds)
-	(should (equal (format-seconds string (- seconds))
+      (when (time-less-p 0 seconds)
+	(should (equal (format-seconds string (time-subtract 0 seconds))
 		       (concat "-" expected))))))))
 
 (ert-deftest test-ordinal ()
