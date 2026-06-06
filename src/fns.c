@@ -5479,6 +5479,7 @@ keep_entry_p (hash_table_weakness_t weakness,
     case Weak_Value:         return strong_value;
     case Weak_Key_Or_Value:  return strong_key || strong_value;
     case Weak_Key_And_Value: return strong_key && strong_value;
+    case Weak_Key_Strong_Value: return strong_key;
     }
   emacs_abort();
 }
@@ -5638,23 +5639,15 @@ allocate_weak_hash_table_parts (struct Lisp_Weak_Hash_Table *h,
   h->strong->h.hash = (void *) hash_data->data;
   h->strong->h.index = (void *) index_data->data;
   h->weak = weak_pointers[0];
-  switch (weak)
+  if (weak == Weak_Key_Strong_Value)
     {
-    case Weak_Key:
       h->strong->h.kv.keys = weak_pointers[1];
       h->strong->h.kv.values = strong_pointers[4];
-      break;
-    case Weak_Value:
-      h->strong->h.kv.keys = strong_pointers[4];
-      h->strong->h.kv.values = weak_pointers[1];
-      break;
-    case Weak_Key_And_Value:
-    case Weak_Key_Or_Value:
+    }
+  else
+    {
       h->strong->h.kv.keys = weak_pointers[1];
       h->strong->h.kv.values = weak_pointers[2];
-      break;
-    default:
-      emacs_abort ();
     }
 
   /* Mark the new hash table as ready for scanning */
@@ -5892,7 +5885,7 @@ weak_hash_lookup (struct Lisp_Weak_Hash_Table *h, Lisp_Object key)
    HASH is a previously computed hash code of KEY.
    Value is the index of the entry in H matching KEY.  */
 
-ptrdiff_t
+static ptrdiff_t
 weak_hash_put (struct Lisp_Weak_Hash_Table *h, Lisp_Object key,
 	       Lisp_Object value, hash_hash_t hash)
 {
@@ -5900,12 +5893,12 @@ weak_hash_put (struct Lisp_Weak_Hash_Table *h, Lisp_Object key,
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_weak_hash_table (h);
 
-  if (h->strong->h.weakness == Weak_Key_Or_Value)
-    {
-      /* This might add a key -> key dependency, which is fine.  */
-      Figc__add_extra_dependency (key, value, make_lisp_weak_hash_table (h));
-      Figc__add_extra_dependency (value, key, make_lisp_weak_hash_table (h));
-    }
+  if (h->strong->h.weakness == Weak_Key
+      || h->strong->h.weakness == Weak_Key_Or_Value)
+    Figc__add_extra_dependency (key, value, make_lisp_weak_hash_table (h));
+  if (h->strong->h.weakness == Weak_Value
+      || h->strong->h.weakness == Weak_Key_Or_Value)
+    Figc__add_extra_dependency (value, key, make_lisp_weak_hash_table (h));
   /* Store key/value in the key_and_value vector.  */
   ptrdiff_t i = h->strong->h.next_free;
   //eassert (hash_unused_entry_key_p (HASH_KEY (h, i)));
@@ -6603,6 +6596,9 @@ hash_table_weakness_symbol (hash_table_weakness_t weak)
     case Weak_Value:         return Qvalue;
     case Weak_Key_And_Value: return Qkey_and_value;
     case Weak_Key_Or_Value:  return Qkey_or_value;
+    case Weak_Key_Strong_Value:
+      /* shouldn't happen */
+      return intern ("key-strong-value");
     }
   emacs_abort ();
 }
@@ -6692,21 +6688,23 @@ VALUE.  In any case, return VALUE.  */)
       ptrdiff_t i = weak_hash_lookup_with_hash (wh, key, hash);
       if (i >= 0)
 	{
-	  if (wh->strong->h.weakness == Weak_Key_Or_Value)
-	    {
-	      Figc__remove_extra_dependency (WEAK_HASH_KEY (wh, i),
-					     WEAK_HASH_VALUE (wh, i),
-					     table);
-	      Figc__remove_extra_dependency (WEAK_HASH_VALUE (wh, i),
-					     WEAK_HASH_KEY (wh, i),
-					     table);
-	    }
+	  if (wh->strong->h.weakness == Weak_Key
+	      || wh->strong->h.weakness == Weak_Key_Or_Value)
+	    Figc__remove_extra_dependency (WEAK_HASH_KEY (wh, i),
+					   WEAK_HASH_VALUE (wh, i),
+					   table);
+	  if (wh->strong->h.weakness == Weak_Value
+	      || wh->strong->h.weakness == Weak_Key_Or_Value)
+	    Figc__remove_extra_dependency (WEAK_HASH_VALUE (wh, i),
+					   WEAK_HASH_KEY (wh, i),
+					   table);
 	  set_weak_hash_value_slot (wh, i, value);
-	  if (wh->strong->h.weakness == Weak_Key_Or_Value)
-	    {
-	      Figc__add_extra_dependency (key, value, table);
-	      Figc__add_extra_dependency (value, key, table);
-	    }
+	  if (wh->strong->h.weakness == Weak_Key
+	      || wh->strong->h.weakness == Weak_Key_Or_Value)
+	    Figc__add_extra_dependency (key, value, table);
+	  if (wh->strong->h.weakness == Weak_Value
+	      || wh->strong->h.weakness == Weak_Key_Or_Value)
+	    Figc__add_extra_dependency (value, key, table);
 	}
       else
 	weak_hash_put (wh, key, value, hash);

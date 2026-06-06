@@ -1318,14 +1318,11 @@
     (should (= (length expected) (length actual)))
     (should (= (hash-table-count table) (length expected)))))
 
-(defun ft--gc (weakness)
+(defun ft--gc (_weakness)
   (cond ((fboundp 'igc--collect)
-         (igc--collect)
-         (cl-ecase weakness
-           (key-or-value
-            (igc--process-messages)
-            (igc--collect))
-           ((key value key-and-value))))
+         (igc-collect)
+         (igc--process-messages)
+         (igc-collect))
         (t
          (garbage-collect))))
 
@@ -1425,12 +1422,10 @@
     (should (< (hash-table-count h) n))))
 
 (ert-deftest ft-ephemeron-table ()
-  :expected-result (if (fboundp 'igc--collect) :failed :passed)
   (dolist (w '(key value key-and-value key-or-value))
     (ft--test-ephemeron-table w)))
 
 (ert-deftest ft-weak-equal-table ()
-  :expected-result (if (fboundp 'igc--collect) :failed :passed)
   (unless (featurep 'threads)
     (ert-skip '(not (featurep 'threads))))
   (let* ((h (make-hash-table :weakness 'key-or-value :test #'equal))
