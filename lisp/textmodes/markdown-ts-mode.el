@@ -5135,6 +5135,7 @@ commands in a table context."
   :menu nil
   "<return>"    #'markdown-ts-table-next-row
   "S-<return>"  #'markdown-ts-table-previous-row
+  "M-RET"       #'markdown-ts-table-insert-row-below
   "<tab>"       #'markdown-ts-table-next-cell
   "<backtab>"   #'markdown-ts-table-previous-cell
   "M-<up>"      #'markdown-ts-table-move-row-up
