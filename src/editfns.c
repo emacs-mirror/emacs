@@ -2068,17 +2068,20 @@ a buffer or a string.  But this is deprecated.  */)
   specpdl_ref count = SPECPDL_INDEX ();
 
   ptrdiff_t diags = size_a + size_b + 3;
+  ptrdiff_t bytes_per_diag = 2 * sizeof (ptrdiff_t) + sizeof (int);
+  ptrdiff_t surplus_char_bytes = 3 * sizeof (int);
+  ptrdiff_t align_bytes = (alignof (ptrdiff_t) < alignof (int)
+			   ? alignof (int) - alignof (ptrdiff_t) : 0);
   ptrdiff_t del_bytes = size_a / CHAR_BIT + 1;
   ptrdiff_t ins_bytes = size_b / CHAR_BIT + 1;
   ptrdiff_t *buffer;
   ptrdiff_t bytes_needed;
-  if (ckd_mul (&bytes_needed, diags, 2 * sizeof *buffer)
-      || ckd_add (&bytes_needed, bytes_needed, del_bytes + ins_bytes))
+  if (ckd_mul (&bytes_needed, diags, bytes_per_diag)
+      || ckd_add (&bytes_needed, bytes_needed,
+		  align_bytes - surplus_char_bytes + del_bytes + ins_bytes))
     memory_full_up ();
   USE_SAFE_ALLOCA;
   buffer = SAFE_ALLOCA (bytes_needed);
-  unsigned char *deletions_insertions = memset (buffer + 2 * diags, 0,
-						del_bytes + ins_bytes);
 
   /* The rest of the code is not prepared to handle a string SOURCE.  */
   if (!b)
@@ -2094,15 +2097,19 @@ a buffer or a string.  But this is deprecated.  */)
 
   /* Copy the characters to arrays of C integers.  This speeds up
      comparison dramatically in multibyte buffers.  */
-  int *chars_a = SAFE_ALLOCA (sizeof (chars_a[0]) * size_a);
+  int *chars_a = (int *) (((uintptr_t) (buffer + 2 * diags) + align_bytes)
+			  & ~align_bytes);
   for (ptrdiff_t p = min_a; p < min_a + size_a; p++)
     chars_a[p - min_a]
       = BUF_FETCH_CHAR_AS_MULTIBYTE (a, buf_charpos_to_bytepos (a, p));
 
-  int *chars_b = SAFE_ALLOCA (sizeof (chars_b[0]) * size_b);
+  int *chars_b = chars_a + size_a;
   for (ptrdiff_t p = min_b; p < min_b + size_b; p++)
     chars_b[p - min_b]
       = BUF_FETCH_CHAR_AS_MULTIBYTE (b, buf_charpos_to_bytepos (b, p));
+
+  unsigned char *deletions_insertions = memset (chars_b + size_b, 0,
+						del_bytes + ins_bytes);
 
   /* FIXME: It is not documented how to initialize the contents of the
      context structure.  This code cargo-cults from the existing
