@@ -2099,14 +2099,14 @@ a buffer or a string.  But this is deprecated.  */)
      comparison dramatically in multibyte buffers.  */
   int *chars_a = (int *) (((uintptr_t) (buffer + 2 * diags) + align_bytes)
 			  & ~align_bytes);
-  for (ptrdiff_t p = min_a; p < min_a + size_a; p++)
-    chars_a[p - min_a]
-      = BUF_FETCH_CHAR_AS_MULTIBYTE (a, buf_charpos_to_bytepos (a, p));
+  for (ptrdiff_t i = 0; i < size_a; i++)
+    chars_a[i]
+      = BUF_FETCH_CHAR_AS_MULTIBYTE (a, buf_charpos_to_bytepos (a, min_a + i));
 
   int *chars_b = chars_a + size_a;
-  for (ptrdiff_t p = min_b; p < min_b + size_b; p++)
-    chars_b[p - min_b]
-      = BUF_FETCH_CHAR_AS_MULTIBYTE (b, buf_charpos_to_bytepos (b, p));
+  for (ptrdiff_t i = 0; i < size_b; i++)
+    chars_b[i]
+      = BUF_FETCH_CHAR_AS_MULTIBYTE (b, buf_charpos_to_bytepos (b, min_b + i));
 
   unsigned char *deletions_insertions = memset (chars_b + size_b, 0,
 						del_bytes + ins_bytes);
