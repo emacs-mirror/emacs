@@ -13,29 +13,22 @@ Preparations:
 
 Steps to take before starting on the first pretest in any release sequence:
 
-0.  The release branch (e.g. emacs-28) should already have been made
+0.  The release branch (e.g. emacs-31) should already have been made
     and you should use it for all that follows.  Diffs from this
     branch should be going to the emacs-diffs mailing list.
 
 1.  Decide on versions of m4 and autoconf, and ensure you will
     have them available for the duration of the release process.
 
-2.  Consider increasing the value of the variable
-    'customize-changed-options-previous-release' in cus-edit.el to
-    refer to a newer version of Emacs.  (This is now done when cutting
-    the release branch, see admin/release-branch.txt, but it can't
-    hurt to double check its value.)  Commit cus-edit.el if changed.
-
-3.  Remove any old pretests from <https://alpha.gnu.org/gnu/emacs/pretest>.
+2.  Remove any old pretests from <https://alpha.gnu.org/gnu/emacs/pretest>.
     You can use 'gnupload --delete' (see below for more gnupload details).
-    (We currently don't bother with this.)
 
-4.  Check that all new Lisp libraries belong to sensible packages.
+3.  Check that all new Lisp libraries belong to sensible packages.
     Run "make -C lisp finder-data" and check the diff of the generated
     file against the previously released Emacs version to see what has
     changed.
 
-5. If this is an emergency release without a prior pretest, inform the
+4. If this is an emergency release without a prior pretest, inform the
    maintainers of the bundled packages which are developed separately
    to make sure they install adjustments required for an official
    release.  Currently, these packages include:
@@ -70,7 +63,7 @@ General steps (for each step, check for possible errors):
     "M-x emacs-news-delete-temporary-markers" command to delete any
     left-over "---" and "+++" markers from etc/NEWS, as well as the
     "Temporary note" section at the beginning of that file, and commit
-    etc/NEWS if it was modified.  For a bug fix release (e.g. 28.2),
+    etc/NEWS if it was modified.  For a bug fix release (e.g. 31.2),
     delete any empty headlines too.
 
 2.  Regenerate the versioned ChangeLog.N and etc/AUTHORS files.
@@ -268,30 +261,33 @@ General steps (for each step, check for possible errors):
 9.  You can now tag the release/pretest and push it together with the
     last commit:
 
-     cd EMACS_ROOT_DIR && git tag -a TAG -m "Emacs TAG"
+     cd EMACS_ROOT_DIR && git tag -s TAG -m "Emacs STR"
      git push
      git push --tags
 
     Here TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.
-    For a release, if you are producing a release candidate first, use
-    emacs-XX.Y-rcN (N = 1, 2, ...) when you tar the RC, and add the
-    actual release tag later, when the official release tarball is
-    uploaded to ftp.gnu.org.  When adding a tag later, it is safer to
-    use the SHA1 of the last commit which went into the release
+    For STR see below.  For a release, if you are producing a release
+    candidate first, use emacs-XX.Y-rcN (N = 1, 2, ...) when you tar the
+    RC, and add the actual release tag later, when the official release
+    tarball is uploaded to ftp.gnu.org.  When adding a tag later, it is
+    safer to use the SHA1 of the last commit which went into the release
     tarball, in case there were some intervening commits since then:
 
-     git tag -a TAG -m "Emacs TAG" SHA1
+     git tag -s TAG -m "Emacs TAG STR" SHA1
      git push --tags
 
     In the past, we were not always consistent with the annotation
     (i.e. -m "Emacs TAG").  The preferred format is like this for a
     pretest, release candidate and final release:
 
-     git tag -a emacs-28.0.90  -m "Emacs 28.0.90 pretest"
-     git tag -a emacs-28.1-rc1 -m "Emacs 28.1 RC1"
-     git tag -a emacs-28.1     -m "Emacs 28.1 release"
+     git tag -s emacs-31.0.90  -m "Emacs 31.0.90 pretest"
+     git tag -s emacs-31.1-rc1 -m "Emacs 31.1 RC1"
+     git tag -s emacs-31.1     -m "Emacs 31.1 release"
 
-10. Decide what compression schemes to offer.
+10. Merge the release branch to master, checking you skip the right
+    commits.
+
+11. Decide what compression schemes to offer.
     For a release, at least gz and xz:
       gzip --best --no-name -c emacs-NEW.tar > emacs-NEW.tar.gz
       xz -c emacs-NEW.tar > emacs-NEW.tar.xz
@@ -300,7 +296,9 @@ General steps (for each step, check for possible errors):
     Now you should upload the files to the GNU FTP server; your
     GPG key must already be accepted as described above.
     The simplest method of uploading is with the gnulib
-    <https://www.gnu.org/s/gnulib/> script "build-aux/gnupload":
+    <https://www.gnu.org/s/gnulib/> script "build-aux/gnupload"
+    (/usr/share/gnulib/build-aux/gnupload on Debian and its derivatives
+    with the 'gnulib' and 'ncftp' packages installed):
 
     For a pretest or release candidate:
      gnupload [--user your@gpg.key.email] --to alpha.gnu.org:emacs/pretest \
@@ -333,14 +331,14 @@ General steps (for each step, check for possible errors):
     For a pretest, place the files in /incoming/alpha instead, so that
     they appear on <https://alpha.gnu.org/>.
 
-11. After five minutes, verify that the files are visible at
+12. After five minutes, verify that the files are visible at
     <https://alpha.gnu.org/gnu/emacs/pretest/> for a pretest, or
     <https://ftp.gnu.org/gnu/emacs/> for a release.
 
     Download them and check the signatures and SHA1/SHA256 checksums.
     Check they build (./configure --with-native-compilation).
 
-12. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
+13. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
     For a pretest, also bcc: platform-testers@gnu.org.
     For a release, also bcc: info-gnu@gnu.org.
     (The reason for using bcc: is to make it less likely that people
@@ -354,19 +352,19 @@ General steps (for each step, check for possible errors):
     because replies that invariably are not announcements also get
     sent out as if they were.)
 
-    To create the included SHA1 and SHA256 checksums, run:
+    To create the included SHA256 and SHA512 checksums, run:
 
-      sha1sum emacs-NEW.tar.xz
       sha256sum emacs-NEW.tar.xz
+      sha512sum emacs-NEW.tar.xz
 
     You can optionally sign the announcement email using
     the same PGP key that you used for signing the tarball.
     (Use e.g. `M-x mml-secure-message-sign' in `message-mode' to sign
     an email.)
 
-13. After a release, update the Emacs pages as described below.
+14. After a release, update the Emacs pages as described below.
 
-14. After a release, bump the Emacs version on the release branch.
+15. After a release, bump the Emacs version on the release branch.
     There is no need to bump the version after a pretest; the version
     is bumped before the next pretest or release instead.
 
@@ -396,7 +394,7 @@ like this:
 
     <div class="release-banner">
 	<div class="container">
-	    <h2><em>Emacs 28.1 is out</em>, download it <a href="download.html">here</a>!</h2>
+	    <h2><em>Emacs 31.1 is out</em>, download it <a href="download.html">here</a>!</h2>
 	</div>
     </div>
 

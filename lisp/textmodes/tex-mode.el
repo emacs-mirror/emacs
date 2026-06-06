@@ -89,6 +89,7 @@ The command `tex-file' runs TeX on the file specified by `tex-main-file'
 if the variable is non-nil."
   :type '(choice (const :tag "None" nil)
                  file)
+  :safe (lambda (x) (or (stringp x) (null x)))
   :group 'tex-file)
 
 ;;;###autoload
