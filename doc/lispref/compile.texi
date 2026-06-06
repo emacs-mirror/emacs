@@ -52,15 +52,15 @@ Here is an example:
 @group
 (defun silly-loop (n)
   "Return the time, in seconds, to run N iterations of a loop."
-  (let ((t1 (float-time)))
+  (let ((t1 (current-time)))
     (while (> (setq n (1- n)) 0))
-    (- (float-time) t1)))
+    (float-time (time-since t1))))
 @result{} silly-loop
 @end group
 
 @group
-(silly-loop 50000000)
-@result{} 5.200886011123657
+(silly-loop 100000000)
+@result{} 2.236908583
 @end group
 
 @group
@@ -69,13 +69,13 @@ Here is an example:
 @end group
 
 @group
-(silly-loop 50000000)
-@result{} 0.6239290237426758
-@end group
+(silly-loop 100000000)
+@result{} 0.374873305
+end group
 @end example
 
-  In this example, the interpreted code required more than 5 seconds to run,
-whereas the byte-compiled code required less than 1 second.  These
+  In this example, the interpreted code was about six times slower
+than the byte-compiled code.  These
 results are representative, but actual results may vary.
 
 @node Compilation Functions
