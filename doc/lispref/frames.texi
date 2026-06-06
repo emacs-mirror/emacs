@@ -2694,10 +2694,9 @@ The color to use for the background of characters.  It is equivalent to
 the @code{:background} attribute of the @code{default} face.
 
 @vindex mouse-color@r{, a frame parameter}
-@vindex mouse@r{, a face}
 @item mouse-color
 The color for the mouse pointer.  It is equivalent to the @code{:background}
-attribute of the @code{mouse} face.
+attribute of the @code{mouse} face (@pxref{Basic Faces}).
 
 @vindex cursor-color@r{, a frame parameter}
 @item cursor-color

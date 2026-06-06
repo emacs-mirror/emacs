@@ -3527,6 +3527,7 @@ non-selected window, Emacs applies the @code{mode-line-inactive} face.
 For a header line, Emacs applies the @code{header-line} face.
 For a tab line, Emacs applies the @code{tab-line} face.
 
+@cindex @code{margin} face, and face merging
 @item
 If the text comes from an overlay string via @code{before-string} or
 @code{after-string} properties (@pxref{Overlay Properties}), or from a
@@ -3535,14 +3536,14 @@ contain a @code{face} or @code{mouse-face} property, or these
 properties leave some face attributes undefined, but the buffer text
 affected by the overlay/display property does define a face or those
 attributes, Emacs applies the face attributes of the ``underlying''
-buffer text.  This does not apply to strings displayed in the display
-margins, which use the @code{margin} face as the base instead
+buffer text.  However, this does not apply to strings displayed in the
+display margins, which use the @code{margin} face as the base instead
 (@pxref{Display Margins}).
 
 @item
 If the text is to be shown in the display margins, Emacs uses the
 @code{margin} face as the base, so any attribute not specified by the
-string's own face is taken from @code{margin}.
+string's own face is taken from the @code{margin} face.
 
 @item
 If any given attribute has not been specified during the preceding
@@ -3805,24 +3806,34 @@ The default face, whose attributes are all specified.  All other faces
 implicitly inherit from it: any unspecified attribute defaults to the
 attribute on this face (@pxref{Face Attributes}).
 
+@vindex mode-line @r{faces}
 @item mode-line-active
 @itemx mode-line-inactive
 @itemx header-line
 @itemx tab-line
 Basic faces used for the mode line, header line, and tab line.
 
+@vindex tool-bar @r{face}
 @item tool-bar
+@vindex tab-bar @r{face}
 @itemx tab-bar
+@vindex fringe @r{face}
 @itemx fringe
+@vindex scroll-bar @r{face}
 @itemx scroll-bar
+@vindex window-divider @r{face}
 @itemx window-divider
+@vindex border @r{face}
 @itemx border
+@vindex child-frame-border @r{face}
 @itemx child-frame-border
 Basic faces used for the corresponding decorations of GUI frames.
 
+@vindex cursor @r{face}
 @item cursor
 The basic face used for the text cursor.
 
+@vindex margin @r{face}
 @item margin
 The basic face used for window margins, both on the left and on the
 right.  It is commonly used to customize the background of the empty
@@ -3830,6 +3841,7 @@ areas of the margins, and it also provides the base attributes for
 strings displayed in the margins (@pxref{Display Margins}).  It
 inherits from the @code{default} face.
 
+@vindex mouse @r{face}
 @item mouse
 The basic face used for displaying mouse-sensitive text when the mouse
 pointer is on that text.
@@ -3845,6 +3857,7 @@ These have the attributes indicated by their names (e.g., @code{bold}
 has a bold @code{:weight} attribute), with all other attributes
 unspecified (and so given by @code{default}).
 
+@vindex shadow @r{face}
 @item shadow
 For dimmed-out text.  For example, it is used for the ignored
 part of a filename in the minibuffer (@pxref{Minibuffer File,,
@@ -3860,15 +3873,21 @@ For stretches of text that should temporarily stand out.  For example,
 it is commonly assigned to the @code{mouse-face} property for cursor
 highlighting (@pxref{Special Properties}).
 
+@vindex match @r{face}
 @item match
+@vindex isearch @r{face}
 @itemx isearch
+@vindex lazy-highlight @r{face}
 @itemx lazy-highlight
 For text matching (respectively) permanent search matches, interactive
 search matches, and lazy highlighting other matches than the current
 interactive one.
 
+@vindex error @r{face}
 @item error
+@vindex warning @r{face}
 @itemx warning
+@vindex success @r{face}
 @itemx success
 For text concerning errors, warnings, or successes.  For example,
 these are used for messages in @file{*Compilation*} buffers.
