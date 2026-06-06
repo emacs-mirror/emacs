@@ -1989,7 +1989,7 @@ adjust_anchor (FT_Face ft_face, OTF_Anchor *anchor,
       FT_Outline *outline;
       int ap = anchor->f.f1.AnchorPoint;
 
-      FT_Load_Glyph (ft_face, (FT_UInt) {code}, FT_LOAD_MONOCHROME);
+      FT_Load_Glyph (ft_face, code, FT_LOAD_MONOCHROME);
       outline = &ft_face->glyph->outline;
       if (ap < outline->n_points)
 	{

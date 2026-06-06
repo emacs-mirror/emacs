@@ -37,6 +37,18 @@ exit status to 256 if sending input to that process returned EPIPE.
 Now when this happens, Emacs closes the file descriptor to write to the
 child process, but allows it to continue execution as normal.
 
+---
+** New variable 'tty-cursor-movement-use-TAB'.
+If this is set to the nil value, Emacs will not use TABs to optimize
+cursor motion on text-mode terminals.  This is for the rare cases where
+the hardware tabs of the terminal were set to a non-default value by the
+'tabs' command or similar, or if using TABs for cursor movement has any
+other undesired effects.  The default is t, which preserves past
+behavior.
+
+If this variable is nil, 'tty-cursor-movement-use-TAB-BS' has no effect,
+and Emacs will never use TABs for any cursor-movement sequences.
+
 
 * Editing Changes in Emacs 32.1
 
@@ -53,8 +65,24 @@ package with the same version.  This is useful if you have started
 making local changes to your tarball installation, and then decided to
 check out the repository to prepare a patch for the package maintainer.
 
+** Compilation mode
+
+---
+*** Messages from Ansible are now recognized.
+
 
 * New Modes and Packages in Emacs 32.1
+
+** New major modes based on the tree-sitter library
+
+*** New major mode 'markdown-ts-mode'.
+A major mode based on the tree-sitter library for editing Markdown
+files.  Markdown files are visited using this mode when the required
+tree-sitter grammars ('markdown' and 'markdown-inline') are available,
+or when the user has opted in via 'treesit-enabled-modes'.  Otherwise,
+Markdown files fall back to 'text-mode'.
+
+To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
 
 * Incompatible Lisp Changes in Emacs 32.1
@@ -62,12 +90,23 @@ check out the repository to prepare a patch for the package maintainer.
 
 * Lisp Changes in Emacs 32.1
 
++++
+** The new function 'markers-in' returns the set of markers in a region.
+
 ---
 ** New variable 'completion-frontend-properties'.
 This variable generalizes the 'completion-lazy-hilit' variable added in
 Emacs 30.  It allows Lisp programs that present completion candidates
 ("completion frontends") to provide additional information which can be
 used to adjust or optimize completion candidates computation.
+
+** D-Bus
+
++++
+*** Support error handler in asynchronous method calls.
+The HANDLER argument of 'dbus-call-method-asynchronously' can be a cons
+cell '(HANDLER . ERROR-HANDLER)'.  ERROR-HANDLER is invoked if the
+method call returns with a D-Bus error; the error is passed as argument.
 
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems

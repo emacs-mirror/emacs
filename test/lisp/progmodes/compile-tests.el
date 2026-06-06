@@ -52,6 +52,17 @@
     ;; aix
     (aix "****** Error number 140 in line 8 of file errors.c ******"
      25 nil 8 "errors.c" error)
+    ;; Ansible
+    (ansible-error "[ERROR]: couldn't resolve module/action 'shelll'. This often indicates a misspelling, missing collection, or incorrect module path."
+     1 nil nil nil error)
+    (ansible-fatal "fatal: [localhost]: FAILED! => {"
+     1 nil nil nil error)
+    (ansible-warning "[WARNING]: Deprecation warnings can be disabled by setting `deprecation_warnings=False` in ansible.cfg."
+     1 nil nil nil warning)
+    (ansible-included "included: /home/albinus/src/tramp-tests/roles/test/tasks/adb.yml for localhost => (item={'name': 'adb', 'start': '04157df41d46b840'})"
+     11 nil nil "/home/albinus/src/tramp-tests/roles/test/tasks/adb.yml" info)
+    (ansible-origin "Origin: /home/albinus/src/tramp-tests/roles/test/tasks/adb.yml:19:3"
+     9 3 19 "/home/albinus/src/tramp-tests/roles/test/tasks/adb.yml" info)
     ;; ant
     (ant "[javac] /src/DataBaseTestCase.java:27: unreported exception ..."
      13 nil 27 "/src/DataBaseTestCase.java" error)
@@ -561,7 +572,7 @@ The test data is in `compile-tests--test-regexps-data'."
 
       (should (eq compilation-num-errors-found 111))
       (should (eq compilation-num-warnings-found 37))
-      (should (eq compilation-num-infos-found 36)))))
+      (should (eq compilation-num-infos-found 38)))))
 
 (ert-deftest compile-test-grep-regexps ()
   "Test the `grep-regexp-alist' regexps.

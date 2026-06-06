@@ -93,7 +93,15 @@ below the line, which allows for vertically centering text.
 A new basic face 'margin' is used by default for text displayed in the
 left and right margin areas, which are used by various packages for
 per-line annotations.  Its background defaults to the frame default, so
-existing behavior is unchanged for users who do not customize it.
+existing behavior is unchanged for users who do not customize this new
+face.
+
+Display strings shown in the margins now inherit the unspecified face
+attributes from the 'margin' face, if the string itself does not fully
+specify its face.  If your code relied on the face of the underlying
+buffer text to serve as default for the unspecified face attributes of
+strings displayed in the margin, you must now set those face attributes
+in the margin  string itself via 'propertize'.
 
 +++
 ** 'prettify-symbols-mode' attempts to ignore undisplayable characters.
@@ -571,6 +579,14 @@ if deleted.  The command 'undelete-frame-by-id' undeletes a frame by its
 ID.  When called interactively, both functions prompt for an ID.
 
 ** Mode Line
+
+---
+*** New definitions for mode-line faces under dark background mode.
+The faces 'mode-line' and 'mode-line-highlight' now have separate
+definitions for the dark background mode.  Previously, these two faces
+looked the same in both the light and dark background modes.  To get the
+previous visuals for these two faces, customize them to have the colors
+"grey75" and "grey40", respectively, regardless of the background mode.
 
 +++
 *** New user option 'mode-line-collapse-minor-modes'.
@@ -2997,7 +3013,7 @@ In addition, the Git backend has been fixed to display missing files as
 There is still some further work to do to rationalize VC's handling of
 file removal.
 
----
++++
 *** New user option 'vc-dir-auto-hide-up-to-date'.
 If you customize this option to 'revert', the 'g' command to refresh
 the VC Directory buffer also has the effect of the 'x' command.
@@ -3936,15 +3952,6 @@ A major mode based on 'conf-mode' for editing ".npmrc" files.
 
 ** New major modes based on the tree-sitter library
 
-*** New major mode 'markdown-ts-mode'.
-A major mode based on the tree-sitter library for editing Markdown
-files.  Markdown files are visited using this mode when the required
-tree-sitter grammars ('markdown' and 'markdown-inline') are available,
-or when the user has opted in via 'treesit-enabled-modes'.  Otherwise,
-Markdown files fall back to 'text-mode'.
-
-To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
-
 *** New major mode 'mhtml-ts-mode'.
 An optional major mode based on the tree-sitter library for editing HTML
 files.  This mode handles indentation, fontification, and commenting for
@@ -4213,6 +4220,11 @@ When no tags file is loaded, symbol completion just won't provide any
 suggestions.  So the 'M-?' command now works without a tags table.  And
 the 'M-.' will show a message describing the several built-in options
 that will provide an Xref backend when used.
+
++++
+** Calling 'debug' in batch sessions no longer kills Emacs.
+If you want Emacs to exit, your program will now have to call
+'kill-emacs' explicitly.
 
 
 * Lisp Changes in Emacs 31.1

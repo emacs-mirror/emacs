@@ -194,7 +194,7 @@ KEYS is a list of `epa-ks-key' structures, as parsed by
                        (if (epa-ks-key-expires key)
                            (let* ((date (epa-ks-key-expires key))
                                   (str (format-time-string "%F" date)))
-                             (when (< 0 (time-to-seconds (time-since date)))
+			     (when (time-less-p date nil)
                                (setq str (propertize str 'face
                                                      'font-lock-warning-face)))
                              str)

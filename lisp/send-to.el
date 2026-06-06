@@ -152,6 +152,7 @@ explicitly overridden."
             (forward-line 1))))
       filenames)))
 
+;;;###autoload
 (defun send-to--resolve-handler ()
   "Return first supported handler from `send-to-handlers'."
   (seq-find (lambda (handler)
@@ -221,7 +222,7 @@ From any other buffer, either of these two, in order of preference:
                 (region-beginning)
                 (region-end))))
         ((thing-at-point 'existing-filename)
-         (thing-at-point 'existing-filename))
+         (list (thing-at-point 'existing-filename)))
         ((buffer-file-name)
          (list (buffer-file-name)))))
 

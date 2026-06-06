@@ -267,7 +267,7 @@ If DATE is malformed, return a time value of zero."
 
 ;;;###autoload
 (defun format-seconds (string seconds)
-  "Use format control STRING to format the number SECONDS.
+  "Use format control STRING to format the time value SECONDS.
 The valid format specifiers are:
 %y is the number of (365-day) years.
 %d is the number of days.
@@ -325,13 +325,14 @@ right of \"%x\", trailing zero units are not output."
         (push match usedunits)))
     (when (and zeroflag larger)
       (error "Units are not in decreasing order of size"))
-    (unless (numberp seconds)
-      (setq seconds (float-time seconds)))
-    (setq minus (when (< seconds 0) "-") ; Treat -0.0 like 0.0.
-	  seconds (abs seconds)
-	  seconds (let ((s (floor seconds)))
-		    (setq fraction (- seconds s))
-		    s))
+    (unless seconds
+      (setq seconds (current-time)))
+    (let ((negative (time-less-p seconds 0)))
+      (setq minus (when negative "-") ; Treat -0.0 like 0.0.
+	    seconds (if negative (time-subtract 0 seconds) seconds)
+	    seconds (let ((s (time-convert seconds 'integer)))
+		      (setq fraction (time-subtract seconds s))
+		      s)))
     (dolist (u units)
       (setq spec (car u)
             name (cadr u)
@@ -352,9 +353,8 @@ right of \"%x\", trailing zero units are not output."
           ;; Cf article-make-date-line in gnus-art.
           (setq num (floor seconds unit)
                 seconds (- seconds (* num unit)))
-          (let ((is-zero (zerop (if (= unit 1)
-                                    (+ num fraction)
-                                  num))))
+	  (let ((is-zero (and (zerop num)
+			      (or (/= unit 1) (time-equal-p 0 fraction)))))
             ;; Start position of the first non-zero unit.
             (when (and (not leading-zeropos)
                        (not is-zero))
@@ -379,7 +379,9 @@ right of \"%x\", trailing zero units are not output."
                               "f%s")
                            (concat "%" (match-string 1 string) "d%s"))
                          (if (= unit 1)
-                             (+ num fraction)
+			     ;; 'float-time' rounds, then 'format' rounds.
+			     ;; Oh well.
+			     (float-time (time-add num fraction))
                            num)
                          (if (string-equal (match-string 3 string) spec)
                              ""         ; lower-case, no unit-name

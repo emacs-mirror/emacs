@@ -701,7 +701,9 @@ This mode is intended to be inherited by concrete major modes."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'typescript)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'typescript)
+             (treesit-ready-p 'typescript))
     (setq treesit-primary-parser (treesit-parser-create 'typescript))
 
     ;; Indent.
@@ -757,7 +759,9 @@ at least 3 (which is the default value)."
   :group 'typescript
   :syntax-table typescript-ts-mode--syntax-table
 
-  (when (treesit-ensure-installed 'tsx)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'tsx)
+             (treesit-ready-p 'tsx))
     (setq treesit-primary-parser (treesit-parser-create 'tsx))
 
     ;; Comments.

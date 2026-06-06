@@ -445,8 +445,17 @@ object path SERVICE is registered at.  INTERFACE is an interface
 offered by SERVICE.  It must provide METHOD.
 
 HANDLER is a Lisp function, which is called when the corresponding
-return message has arrived.  If HANDLER is nil, no return message
-will be expected.
+return message has arrived.  It uses the returned values from the METHOD
+call as arguments.  These are the same arguments which are returned when
+`dbus-call-method' is invoked instead.  If HANDLER is nil, no return
+message will be expected.
+
+HANDLER can also be the cons cell `(HANDLER . ERROR-HANDLER)'.  In this
+case, ERROR-HANDLER will be called in case an error is returned from
+D-Bus.  It uses the returned D-Bus error as argument.
+
+Neither the return value of HANDLER nor the return value of
+ERROR-HANDLER is used.
 
 If the parameter `:timeout' is given, the following integer
 TIMEOUT specifies the maximum number of milliseconds before the
@@ -477,18 +486,37 @@ about type keywords, see Info node `(dbus)Type Conversion'.
 If HANDLER is a Lisp function, the function returns a key into the
 hash table `dbus-registered-objects-table'.  The corresponding entry
 in the hash table is removed, when the return message arrives,
-and HANDLER is called.
+and HANDLER is called.  Examples:
 
-Example:
+The return value of \"org.freedesktop.portal.Settings.ReadOne\" is a variant.
 
 \(dbus-call-method-asynchronously
- :system \"org.freedesktop.Hal\" \"/org/freedesktop/Hal/devices/computer\"
- \"org.freedesktop.Hal.Device\" \"GetPropertyString\" #\\='message
- \"system.kernel.machine\")
+ :session \"org.freedesktop.portal.Desktop\"
+ \"/org/freedesktop/portal/desktop\"
+ \"org.freedesktop.portal.Settings\" \"ReadOne\"
+ \\='((lambda (msg) (message \"Method handler %s\" msg)) .
+   (lambda (err) (message \"Error handler %s\" err)))
+ \"org.freedesktop.appearance\" \"color-scheme\")
 
-  -| i686
+  -| Method handler (0)
 
-  => (:serial :system 2)"
+  => (:serial :session 4)
+
+There does not exist a method \"org.freedesktop.portal.Settings.ReadTwo\".
+
+\(dbus-call-method-asynchronously
+ :session \"org.freedesktop.portal.Desktop\"
+ \"/org/freedesktop/portal/desktop\"
+ \"org.freedesktop.portal.Settings\" \"ReadTwo\"
+ \\='((lambda (msg) (message \"Method handler %s\" msg)) .
+   (lambda (err) (message \"Error handler %s\" err)))
+ \"org.freedesktop.appearance\" \"color-scheme\")
+
+  -| Error handler
+     (dbus-error org.freedesktop.DBus.Error.UnknownMethod
+                 No such method \"ReadTwo\")
+
+  => (:serial :session 5)"
 
   (or (featurep 'dbusbind)
       (signal 'dbus-error (list "Emacs not compiled with dbus support")))
@@ -504,6 +532,7 @@ Example:
   (or (stringp method)
       (signal 'wrong-type-argument (list 'stringp method)))
   (or (null handler) (functionp handler)
+      (and (listp handler) (functionp (car handler)) (functionp (cdr handler)))
       (signal 'wrong-type-argument (list 'functionp handler)))
 
   (apply #'dbus-message-internal dbus-message-type-method-call
@@ -1111,9 +1140,11 @@ INTERFACE and MEMBER denote the message which has been sent.
 When TYPE is `dbus-message-type-error', MEMBER is the error name.
 
 HANDLER is the function which has been registered for this
-message.  ARGS are the typed arguments as returned from the
-message.  They are passed to HANDLER without type information,
-when it is called during event handling in `dbus-handle-event'.
+message.  It can also be a cons cell (HANDLER . ERROR-HANDLER).
+
+ARGS are the typed arguments as returned from the message.  They are
+passed to HANDLER without type information, when it is called during
+event handling in `dbus-handle-event'.
 
 This function signals a `dbus-error' if the event is not well
 formed."
@@ -1150,7 +1181,10 @@ formed."
 	       (or (= dbus-message-type-method-return (nth 2 event))
 		   (stringp (nth 8 event)))
 	       ;; Handler.
-	       (functionp (nth 9 event))
+	       (or (functionp (nth 9 event))
+                   (and (consp (nth 9 event))
+                        (functionp (car (nth 9 event)))
+                        (functionp (cdr (nth 9 event)))))
                ;; Arguments.
                (listp (nthcdr 10 event)))
     (signal 'dbus-error (list "Not a valid D-Bus event" event))))
@@ -1207,10 +1241,17 @@ If the HANDLER returns a `dbus-error', it is propagated as return message."
             (setq result (dbus-ignore-errors (apply (nth 9 event) args)))
 	  ;; Error messages must be propagated.  The error name is in
 	  ;; the member slot.
-	  (when (= dbus-message-type-error (nth 2 event))
-	    (signal 'dbus-error (cons (nth 8 event) args)))
-	  ;; Apply the handler.
-	  (setq result (apply (nth 9 event) args))
+	  (let* ((handler (nth 9 event))
+	         (error-handler (if (functionp handler) #'signal
+	                          (prog1 (cdr handler)
+	                            (setq handler (car handler))))))
+            (setq result
+	          (if (= dbus-message-type-error (nth 2 event))
+	              (funcall
+                       error-handler
+                       (cons 'dbus-error (cons (nth 8 event) args)))
+	            ;; Apply the handler.
+	            (apply handler args))))
 	  ;; Return an (error) message when it is a message call.
 	  (when (= dbus-message-type-method-call (nth 2 event))
 	    (dbus-ignore-errors

@@ -421,13 +421,14 @@
        (pcase-let ((`((margin left-margin) ,displayed)
                     (get-text-property erc-insert-marker 'display)))
          (should (equal-including-properties
-                  displayed #("    ERC>" 4 8
-                              ( read-only t
-                                front-sticky t
-                                field erc-prompt
-                                erc-prompt t
-                                rear-nonsticky t
-                                font-lock-face erc-prompt-face)))))
+                  displayed #("    ERC>"
+                              0 4 (font-lock-face erc-prompt-face)
+                              4 8 ( read-only t
+                                    front-sticky t
+                                    field erc-prompt
+                                    erc-prompt t
+                                    rear-nonsticky t
+                                    font-lock-face erc-prompt-face)))))
        (erc-fill-tests--compare "stamps-left-01")
 
        (ert-info ("Shrink left margin by 1 col")
@@ -437,13 +438,14 @@
          (pcase-let ((`((margin left-margin) ,displayed)
                       (get-text-property erc-insert-marker 'display)))
            (should (equal-including-properties
-                    displayed #("   ERC>" 3 7
-                                ( read-only t
-                                  front-sticky t
-                                  field erc-prompt
-                                  erc-prompt t
-                                  rear-nonsticky t
-                                  font-lock-face erc-prompt-face))))))))))
+                    displayed #("   ERC>"
+                                0 3 (font-lock-face erc-prompt-face)
+                                3 7 ( read-only t
+                                      front-sticky t
+                                      field erc-prompt
+                                      erc-prompt t
+                                      rear-nonsticky t
+                                      font-lock-face erc-prompt-face))))))))))
 
 (ert-deftest erc-fill--wrap-massage-legacy-indicator-type ()
   (let (calls

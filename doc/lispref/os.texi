@@ -2040,6 +2040,7 @@ system.
 @defun format-seconds format-string seconds
 This function converts its argument @var{seconds} into a string of
 years, days, hours, etc., according to @var{format-string}.  The
+argument @var{seconds} is a time value (@pxref{Time of Day}).  The
 argument @var{format-string} may contain @samp{%}-sequences which
 control the conversion.  Here is a table of what the
 @samp{%}-sequences mean:

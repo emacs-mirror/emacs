@@ -1083,9 +1083,11 @@ Query all files in DIR if files is nil."
   (let ((local (vc-cvs-stay-local-p dir)))
     (if (and (not files) local (not (eq local 'only-file)))
         (vc-cvs-dir-status-heuristic dir update-function))
-    (vc-cvs-command (current-buffer) 'async
-                    files
-                    "-f" "-n" "-q" "update")
+    (set-process-query-on-exit-flag
+     (vc-cvs-command (current-buffer) 'async
+                     files
+                     "-f" "-n" "-q" "update")
+     nil)
     ;; FIXME: Consider `vc-run-delayed-success'.
     (vc-run-delayed
       (vc-cvs-after-dir-status update-function))))

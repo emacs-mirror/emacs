@@ -2570,6 +2570,9 @@ If stopped, start playback."
      (t (mpc-proc-cmd "previous")))
     (mpc-status-refresh)))
 
+;; FIXME - mpc-last-seek-time and mpc--faster are no longer used;
+;; remove them?
+
 (defvar mpc-last-seek-time '(0 . 0))
 
 (defun mpc--faster (event speedup step)

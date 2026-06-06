@@ -272,9 +272,14 @@ It is the default value of `show-paren-data-function'."
       (save-restriction
 	;; Determine the range within which to look for a match.
 	(when blink-matching-paren-distance
-	  (narrow-to-region
-	   (max (point-min) (- (point) blink-matching-paren-distance))
-	   (min (point-max) (+ (point) blink-matching-paren-distance))))
+	  (let ((beg (max (point-min)
+	                  (- (point) blink-matching-paren-distance))))
+	    ;; `syntax-propertize' can't widen so make sure it won't
+	    ;; need to (bug#81035).
+	    (syntax-propertize beg)
+	    (narrow-to-region
+	     beg
+	     (min (point-max) (+ (point) blink-matching-paren-distance)))))
 	;; Scan across one sexp within that range.
 	;; Errors or nil mean there is a mismatch.
 	(condition-case ()

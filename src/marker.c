@@ -819,6 +819,36 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
   return type;
 }
 
+DEFUN ("markers-in", Fmarkers_in, Smarkers_in, 0, 2, 0,
+       doc: /* Return the list of markers in region BEG..END.
+The list includes markers at BEG and at END.  */)
+  (Lisp_Object beg, Lisp_Object end)
+{
+  Lisp_Object res = Qnil;
+  struct Lisp_Marker *tail;
+  ptrdiff_t ibeg, iend;
+  if (NILP (beg))
+    ibeg = BEGV;
+  else
+    {
+      CHECK_FIXNUM_COERCE_MARKER (beg);
+      ibeg = clip_to_bounds (BEGV, XFIXNUM (beg), ZV);
+    }
+  if (NILP (end))
+    iend = ZV;
+  else
+    {
+      CHECK_FIXNUM_COERCE_MARKER (end);
+      iend = clip_to_bounds (BEGV, XFIXNUM (end), ZV);
+    }
+
+  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+    if (ibeg <= tail->charpos && tail->charpos <= iend)
+      res = Fcons (make_lisp_ptr (tail, Lisp_Vectorlike), res);
+
+  return res;
+}
+
 #ifdef MARKER_DEBUG
 
 /* For debugging -- count the markers in buffer BUF.  */
@@ -876,4 +906,5 @@ syms_of_marker (void)
   defsubr (&Scopy_marker);
   defsubr (&Smarker_insertion_type);
   defsubr (&Sset_marker_insertion_type);
+  defsubr (&Smarkers_in);
 }

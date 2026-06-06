@@ -5281,8 +5281,19 @@ On TTY frames, as a display optimization, Emacs may move to a position
 by "overshooting" with TAB characters and one BACKSPACE character, when
 this is more efficient.  This combination can interfere with the
 functioning of some software, such as screen readers.  Set this to
-non-nil to enable this optimization.  */);
+non-nil to enable this optimization.
+If `tty-cursor-movement-use-TAB' is nil, this variable has no effect,
+as Emacs will never use TABs for cursor movement.  */);
   tty_cursor_movement_use_TAB_BS = 0;
+
+  DEFVAR_BOOL ("tty-cursor-movement-use-TAB", tty_cursor_movement_use_TAB,
+    doc: /* Whether TTY frames may use TAB for cursor motion.
+On TTY frames, as a display optimization, Emacs may move cursor to a
+position with TAB characters, when this is more efficient.  This might
+produce wrong results if the hardware tabs of the terminal were set to
+be of different width than Emacs expects.  Set this to nil to disable
+using TABs for cursor motion.  */);
+  tty_cursor_movement_use_TAB = 1;
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);

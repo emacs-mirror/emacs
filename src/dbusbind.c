@@ -1434,7 +1434,11 @@ usage: (dbus-message-internal &rest REST)  */)
       XD_DBUS_VALIDATE_PATH (path);
       XD_DBUS_VALIDATE_INTERFACE (interface);
       XD_DBUS_VALIDATE_MEMBER (member);
-      if (!NILP (handler) && !FUNCTIONP (handler))
+      if (!NILP (handler)
+	  && !(FUNCTIONP (handler)
+	       || (CONSP (handler)
+		   && FUNCTIONP (CAR_SAFE (handler))
+		   && FUNCTIONP (CDR_SAFE (handler)))))
 	wrong_type_argument (Qinvalid_function, handler);
     }
 
@@ -1585,6 +1589,12 @@ usage: (dbus-message-internal &rest REST)  */)
 	  if (mtype != DBUS_MESSAGE_TYPE_METHOD_CALL)
 	    XD_SIGNAL1
 	      (build_string (":keep-fd is only supported on method calls"));
+	  /*  This is because the error handler and the keepfd path use
+	      the same slot in Vdbus_registered_objects_table.  */
+	  if (CONSP (handler))
+	    XD_SIGNAL1
+	      (build_string
+	       (":keep-fd cannot be used when there is an error handler"));
 
 	  /* Ignore this keyword if unsupported.  */
 #ifdef DBUS_TYPE_UNIX_FD
@@ -1865,9 +1875,6 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
       /* Remove the entry.  */
       Fremhash (key, Vdbus_registered_objects_table);
 
-      /* Store the event.  */
-      xd_store_event (CONSP (value) ? CAR_SAFE (value) : value, args, event_args);
-
 #ifdef DBUS_TYPE_UNIX_FD
       /* Check, whether there is a file descriptor to be kept.
 	 value is (handler . path)
@@ -1880,8 +1887,12 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 	    Fcons (Fcons (CAR_SAFE (CDR_SAFE (CAR_SAFE (args))),
 			  CDR_SAFE (value)),
 		   xd_registered_fds);
+	  value = CAR_SAFE (value);
 	}
 #endif
+
+      /* Store the event.  */
+      xd_store_event (value, args, event_args);
     }
 
   else /* DBUS_MESSAGE_TYPE_METHOD_CALL, DBUS_MESSAGE_TYPE_SIGNAL.  */
@@ -2164,8 +2175,9 @@ means a wildcard then.
 
 OBJECT is either the handler to be called when a D-Bus message, which
 matches the key criteria, arrives (TYPE `:method', `:signal' and
-`:monitor'), or a list (ACCESS EMITS-SIGNAL VALUE) for TYPE
-`:property'.
+`:monitor'), or a list (ACCESS EMITS-SIGNAL VALUE) for TYPE `:property'.
+For type `:message', the handler slot can also be a cons cell (HANDLER
+. ERROR-HANDLER) or (HANDLER . KEEP-FD-PATH).
 
 For entries of type `:signal' or `:monitor', there is also a fifth
 element RULE, which keeps the match string the signal or monitor is

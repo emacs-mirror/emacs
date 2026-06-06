@@ -57,4 +57,17 @@
     (set-marker marker-2 marker-1)
     (should (goto-char marker-2))))
 
+(ert-deftest marker-markers-in ()
+  (with-temp-buffer
+    (insert "hello ")
+    (let ((m2 (point-marker)))
+      (insert "world")
+      (let ((m1 (point-min-marker))
+            (m3 (point-max-marker))
+            (ms (markers-in (1+ (point-min)) (1- (point-max)))))
+        (should (memq m2 ms))
+        (should-not (memq m1 ms))
+        (should-not (memq m3 ms))
+        (should (all (lambda (m) (eq (marker-buffer m) (current-buffer))) ms))))))
+
 ;;; marker-tests.el ends here

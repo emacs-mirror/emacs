@@ -161,17 +161,23 @@ proceed to mark and unmark other entries, without asking."
   :version "31.1")
 
 (defcustom vc-dir-auto-hide-up-to-date nil
-  "If non-nil, VC-Dir automatically hides \\+`up-to-date' and \\+`ignored' items.
+  "Whether VC-Dir auto-removes \\+`up-to-date'/\\+`ignored' files from display.
 
-If the value of this variable is the symbol `revert', \
-\\<vc-dir-mode-map>\\[revert-buffer] in VC-Dir
-buffers also does \\[vc-dir-hide-up-to-date].  \
-That is, refreshing the VC-Dir buffer also hides
-\\+`up-to-date' and \\+`ignored' items.
+If the value is nil, files shown in the VC-Dir buffer will remain on
+display if they become \\+`up-to-date' or \\+`ignored'.
+If the value is t, files are automatically removed from display when
+they become \\+`up-to-date' or \\+`ignored'.
+If the value is the symbol `revert', any displayed files that
+are \\+`up-to-date' or \\+`ignored' are removed from display
+by \\<vc-dir-mode-map>\\[revert-buffer], but they are not automatically removed
+when they become \\+`up-to-date' or \\+`ignored'.  That is,
+refreshing the VC-Dir buffer hides \\+`up-to-date' and \\+`ignored'
+files when the value is the symbol `revert'.
+Any other value is treated as t.
 
-If the value of this variable is any other non-nil value, then in
-addition, hide items whenever their state would change to
-\\+`up-to-date' or \\+`ignored'.
+VC-Dir never shows \\+`up-to-date' and \\+`ignored' files when the
+directory is first displayed.
+
 You can still use `vc-dir-show-fileentry' to manually add an entry for
 an \\+`up-to-date' or \\+`ignored' file."
   :type 'boolean
@@ -640,7 +646,8 @@ Also update some VC file properties from ENTRIES."
                        (or (null next)
                            (vc-dir-fileinfo->directory (ewoc-data next)))))
                 (ewoc-delete vc-ewoc crt)))
-              (setq crt prev))))))
+              (setq crt prev))))
+        (cl-assert (null to-remove))))
     ;; Update VC file properties.
     (pcase-dolist (`(,file ,state ,_extra) entries)
       (vc-file-setprop file 'vc-backend
@@ -1515,7 +1522,7 @@ Throw an error if another update process is in progress."
       (error "Another update process is in progress, cannot run two at a time")
     (let ((def-dir default-directory)
 	  (backend vc-dir-backend))
-      (when vc-dir-save-some-buffers-on-revert
+      (when (and vc-dir-save-some-buffers-on-revert (not non-essential))
         (vc-buffer-sync-fileset `(,vc-dir-backend (,def-dir)) t))
       (vc-set-mode-line-busy-indicator)
       ;; Call the `dir-status' backend function.

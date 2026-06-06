@@ -4041,7 +4041,9 @@ See `treesit-thing-settings' for more information.")
 \\<js-ts-mode-map>"
   :group 'js
   :syntax-table js-mode-syntax-table
-  (when (treesit-ensure-installed 'javascript)
+  ;; `treesit-ready-p' also checks for buffer size.
+  (when (and (treesit-ensure-installed 'javascript)
+             (treesit-ready-p 'javascript))
     ;; Borrowed from `js-mode'.
     (setq-local prettify-symbols-alist js--prettify-symbols-alist)
     (setq-local parse-sexp-ignore-comments t)
@@ -4073,7 +4075,9 @@ See `treesit-thing-settings' for more information.")
     (setq-local treesit-font-lock-settings (js--treesit-font-lock-settings))
     (setq-local treesit-font-lock-feature-list js--treesit-font-lock-feature-list)
 
-    (when (treesit-ensure-installed 'jsdoc)
+    ;; `treesit-ready-p' also checks for buffer size.
+    (when (and (treesit-ensure-installed 'jsdoc)
+               (treesit-ready-p 'jsdoc))
       (setq-local treesit-range-settings
                   (treesit-range-rules
                    :embed 'jsdoc

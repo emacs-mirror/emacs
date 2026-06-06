@@ -74,6 +74,7 @@ char *w32_getenv (const char *);
 #include <pwd.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stdckdint.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -146,8 +147,9 @@ static char const *socket_name;
 /* If non-NULL, the filename of the authentication file.  */
 static char const *server_file;
 
-/* Seconds to wait before timing out (0 means wait forever).  */
-static uintmax_t timeout;
+/* Seconds to wait before timing out.  Negative means no --timeout so
+   use DEFAULT_TIMEOUT, 0 means wait forever.  */
+static intmax_t timeout = -1;
 
 /* If non-NULL, the tramp prefix emacs must use to find the files.  */
 static char const *tramp_prefix;
@@ -539,10 +541,8 @@ decode_options (int argc, char **argv)
 	  break;
 
 	case 'w':
-	  timeout = strtoumax (optarg, &endptr, 10);
-	  if (timeout <= 0 ||
-	      ((timeout == INTMAX_MAX || timeout == INTMAX_MIN)
-	       && errno == ERANGE))
+	  timeout = strtoimax (optarg, &endptr, 10);
+	  if (timeout < 0 || endptr == optarg || *endptr)
 	    {
 	      fprintf (stderr, "Invalid timeout: \"%s\"\n", optarg);
 	      exit (EXIT_FAILURE);
@@ -902,7 +902,7 @@ quote_argument_len (HSOCKET s, const char *str, ptrdiff_t len)
 static void
 quote_argument (HSOCKET s, const char *str)
 {
-  return quote_argument_len (s, str, strlen (str));
+  quote_argument_len (s, str, strlen (str));
 }
 
 /* The inverse of quote_argument.  Remove quoting in string STR by
@@ -1952,28 +1952,30 @@ start_daemon_and_retry_set_socket (void)
   return emacs_socket;
 }
 
+/* Set SOCKET's timeout to SECONDS.
+   If SECONDS is zero or out of range, do not set the timeout.
+   Silently ignore errors, as POSIX says it is implementation-defined as
+   to whether SO_RCVTIMEO works.  Although we could fall back on
+   non-blocking I/O if setsockopt fails, it's not worth the trouble.  */
 static void
-set_socket_timeout (HSOCKET socket, int seconds)
+set_socket_timeout (HSOCKET socket, intmax_t seconds)
 {
-  int ret;
+  if (seconds <= 0)
+    return;
 
 #ifndef WINDOWSNT
   struct timeval timeout;
-  timeout.tv_sec = seconds;
+  if (ckd_add (&timeout.tv_sec, seconds, 0))
+    return;
   timeout.tv_usec = 0;
-  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
+  setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof timeout);
 #else
   DWORD timeout;
 
-  if (seconds > INT_MAX / 1000)
-    timeout = INT_MAX;
-  else
-    timeout = seconds * 1000;
-  ret = setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof timeout);
+  if (ckd_mul (&timeout, seconds, 1000))
+    return;
+  setsockopt (socket, SOL_SOCKET, SO_RCVTIMEO, (char *) &timeout, sizeof timeout);
 #endif
-
-  if (ret < 0)
-    sock_err_message ("setsockopt");
 }
 
 static bool
@@ -2210,7 +2212,7 @@ main (int argc, char **argv)
     }
   fflush (stdout);
 
-  set_socket_timeout (emacs_socket, timeout > 0 ? timeout : DEFAULT_TIMEOUT);
+  set_socket_timeout (emacs_socket, timeout < 0 ? DEFAULT_TIMEOUT : timeout);
   bool saw_response = false;
   ptrdiff_t nrecv = 0;
 
@@ -2236,7 +2238,7 @@ main (int argc, char **argv)
 	      if (timeout > 0)
 		{
 		  /* Don't retry if we were given a --timeout flag.  */
-		  fprintf (stderr, "\nServer not responding; timed out after %ju seconds",
+		  fprintf (stderr, "\nServer not responding; timed out after %jd seconds",
 			   timeout);
 		  retry = false;
 		}

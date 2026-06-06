@@ -229,6 +229,19 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (aix
      " in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
 
+    (ansible-fatal
+     "^fatal: .*: FAILED!" nil nil nil 2 0 (0 compilation-error-face))
+    (ansible-error
+     "^\\[ERROR\\]:"
+     nil nil nil 2 0 (0 compilation-error-face))
+    (ansible-warning
+     "^\\[\\(?:DEPRECATION \\)?WARNING\\]:"
+     nil nil nil 1 0 (0 compilation-warning-face))
+    (ansible-included "^included: \\([^[:space:]]+\\)" 1 nil nil 0 1)
+    (ansible-origin
+     "^Origin: \\([^[:space:]]+\\):\\([[:digit:]]+\\):\\([[:digit:]]+\\)"
+     1 2 3 0 1)
+
     ;; Checkstyle task may report its own severity level: "[checkstyle] [ERROR] ..."
     ;; (see AuditEventDefaultFormatter.java in checkstyle sources).
     (ant
@@ -421,6 +434,20 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      nil
      (1 compilation-error-face))
 
+    ;; This must precede the `gnu' rule or the latter would match instead.
+    (rust
+     ,(rx bol (or (group-n 1 "error") (group-n 2 "warning") (group-n 3 "note"))
+          (? "[" (+ (in "A-Z" "0-9")) "]") ":" (* nonl)
+          "\n" (+ " ") "-->"
+          " " (group-n 4 (+ nonl))        ; file
+          ":" (group-n 5 (+ (in "0-9")))  ; line
+          ":" (group-n 6 (+ (in "0-9")))) ; column
+     4 5 6 (2 . 3)
+     nil
+     (1 compilation-error-face)
+     (2 compilation-warning-face)
+     (3 compilation-info-face))
+
     ;; Tested with Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT 2.1.
     (lua
      ,(rx bol
@@ -581,19 +608,6 @@ during global destruction\\.$\\)" 1 2)
     (php
      "\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)"
      2 3 nil nil)
-
-    (rust
-     ,(rx bol (or (group-n 1 "error") (group-n 2 "warning") (group-n 3 "note"))
-          (? "[" (+ (in "A-Z" "0-9")) "]") ":" (* nonl)
-          "\n" (+ " ") "-->"
-          " " (group-n 4 (+ nonl))        ; file
-          ":" (group-n 5 (+ (in "0-9")))  ; line
-          ":" (group-n 6 (+ (in "0-9")))) ; column
-     4 5 6 (2 . 3)
-     nil
-     (1 compilation-error-face)
-     (2 compilation-warning-face)
-     (3 compilation-info-face))
 
     (rxp
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\

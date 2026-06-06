@@ -996,6 +996,17 @@ same language server.  That file is still outside your project
 will consider it to be part of the workspace.  The default is
 @code{nil}.
 
+@cindex markdown renderer
+@item eglot-documentation-renderer
+This variable controls how Eglot renders at-point documentation imported
+from the server (@pxref{Eglot Features}).  The default value is
+@code{nil}, meaning Eglot selects a suitable Markdown renderer on each
+use---for example, @code{gfm-view-mode} from @code{markdown-mode} on
+NonGNU ELPA, which enhances documentation through fontification and
+other formatting.  If you set it to @code{t}, plain text is requested
+from the server and no rendering is attempted.  See docstring for more
+options.
+
 @item eglot-mode-map
 This variable is the keymap for binding Eglot-related command.  It is in
 effect only as long as the buffer is managed by Eglot.  By default, it

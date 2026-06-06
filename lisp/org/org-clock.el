@@ -1207,9 +1207,9 @@ to be CLOCKED OUT."))))
 		   (read-number "Keep how many minutes: " default))
 	      (and (memq ch '(?t ?T))
 		   (floor
-		    (/ (float-time
-			(time-subtract (org-read-date t t) last-valid))
-		       60)))))
+		    (float-time
+		     (time-subtract (org-read-date t t) last-valid))
+		    60))))
 	 (gotback
 	  (and (memq ch '(?g ?G))
 	       (read-number "Got back how many minutes ago: " default)))
@@ -1991,13 +1991,15 @@ Optional argument N tells to change by that many units."
     (user-error "No active clock"))
   (save-excursion    ; Do not replace this with `with-current-buffer'.
     (with-no-warnings (set-buffer (org-clocking-buffer)))
-    (goto-char org-clock-marker)
-    (if (looking-back (concat "^[ \t]*" org-clock-string ".*")
-		      (line-beginning-position))
-        (progn (delete-region (1- (line-beginning-position)) (line-end-position))
-	       (org-remove-empty-drawer-at (point)))
-      (message "Clock gone, cancel the timer anyway")
-      (sit-for 2)))
+    (save-restriction
+      (widen)
+      (goto-char org-clock-marker)
+      (if (looking-back (concat "^[ \t]*" org-clock-string ".*")
+		        (line-beginning-position))
+          (progn (delete-region (1- (line-beginning-position)) (line-end-position))
+	         (org-remove-empty-drawer-at (point)))
+        (message "Clock gone, cancel the timer anyway")
+        (sit-for 2))))
   (move-marker org-clock-marker nil)
   (move-marker org-clock-hd-marker nil)
   (setq org-clock-current-task nil)

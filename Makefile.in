@@ -115,6 +115,8 @@ HAVE_GSETTINGS = @HAVE_GSETTINGS@
 
 ANDROID = @ANDROID@
 
+DOCLANGS?=@DOCLANGS@
+
 # ==================== Where To Install Things ====================
 
 # Location to install Emacs.app under GNUstep / macOS.
@@ -795,7 +797,7 @@ install-info: info
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
 	      [ ! -f ${srcdir}/info/dir ] || \
 	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
-	   info_misc=`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
+	   info_misc="$(foreach lang,$(DOCLANGS),`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc DOCLANG=$(lang) echo-info`)"; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
@@ -945,7 +947,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc uninstall-gsettings-schemas
 	done
 	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
 	thisdir=`pwd -P`; \
-	(info_misc=`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
+	(info_misc="$(foreach lang,$(DOCLANGS),`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc DOCLANG=$(lang) echo-info`)"; \
 	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd "$${thisdir}"; \
@@ -1123,7 +1125,7 @@ TAGS tags: lib lib-src # src
 	$(MAKE) -C doc/emacs tags
 	$(MAKE) -C doc/lispintro tags
 	$(MAKE) -C doc/lispref tags
-	$(MAKE) -C doc/misc tags
+	$(foreach DOCLANG,$(DOCLANGS),$(MAKE) -C doc/misc DOCLANG=$(DOCLANG) tags;)
 
 CHECK_TARGETS = check check-maybe check-expensive check-all check-byte-compile
 .PHONY: $(CHECK_TARGETS)
@@ -1144,8 +1146,21 @@ PDFS  = lispref-pdf  lispintro-pdf  emacs-pdf  misc-pdf
 PSS   = lispref-ps   lispintro-ps   emacs-ps   misc-ps
 
 DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
-$(DOCS):
-	$(MAKE) -C doc/$(subst -, ,$@)
+
+define MAKE_DOC_FOR_DOCLANG
+$(1)-DOCLANG-$(2): $(1)-common
+	$$(MAKE) -C doc/$$(subst -, DOCLANG=$(2) ,$(1))
+
+endef
+define MAKE_DOC
+# Define a target to which dependencies common to all of the doc files
+# in this directory may be assigned.
+$(1)-common:
+$(1): $$(addprefix $(1)-DOCLANG-,$(DOCLANGS))
+
+$$(foreach lang,$(DOCLANGS),$$(eval $$(call MAKE_DOC_FOR_DOCLANG,$(1),$$(lang))))
+endef
+$(foreach doc,$(DOCS),$(eval $(call MAKE_DOC,$(doc))))
 
 .PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist html info-dir check-info
@@ -1162,20 +1177,25 @@ ps: $(PSS)
 # Depending on src is sufficient, but ends up being slow, since the
 # uncompiled lisp/org/*.el files are used to build the .texi files
 # (which can be slow even with the elc files).
-misc-info: lisp
+misc-info-common: lisp
 # Using src rather than lisp because one is less likely to get unnecessary
 # rebuilds of stuff that is not strictly necessary for generating manuals.
-misc-dvi misc-html misc-pdf misc-ps: src
+misc-dvi-common misc-html-common misc-pdf-common misc-ps-common: src
 
 info-dir: ${srcdir}/info/dir
 
-texi_misc = $(shell MAKEFLAGS= ${MAKE} --no-print-directory -s -C doc/misc echo-sources)
+define set_texi_misc
+texi_misc_$(1) = $$(shell MAKEFLAGS= $${MAKE} --no-print-directory -s -C doc/misc LANG=$(1) echo-sources)
+
+endef
+
+$(foreach lang,$(DOCLANGS),$(eval $(call set_texi_misc,$(lang))))
 
 srcdir_doc_info_dir_inputs = \
   ${srcdir}/doc/emacs/emacs.texi \
   ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
   ${srcdir}/doc/lispref/elisp.texi \
-  $(addprefix ${srcdir}/doc/misc/,${texi_misc})
+  $(foreach lang,$(DOCLANGS),$(addprefix ${srcdir}/doc/misc/$(filter-out ../translations/default/misc/,../translations/$(lang)/misc/),$(texi_misc_$(lang)) ))
 info_dir_inputs = \
   ../build-aux/dir_top \
   $(subst ${srcdir}/doc/,,${srcdir_doc_info_dir_inputs})

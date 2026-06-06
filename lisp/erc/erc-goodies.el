@@ -399,16 +399,18 @@ This module is local to individual buffers."
        (progn
          (erc--restore-initialize-priors erc-keep-place-indicator-mode
            erc--keep-place-indicator-overlay (make-overlay 0 0))
-         (when-let* (((memq erc-keep-place-indicator-style '(t arrow)))
-                     (ov-property (if (zerop (fringe-columns 'left))
-                                      'after-string
-                                    'before-string))
-                     (display (if (zerop (fringe-columns 'left))
-                                  `((margin left-margin) ,overlay-arrow-string)
-                                '(left-fringe right-triangle
-                                              erc-keep-place-indicator-arrow)))
-                     (bef (propertize " " 'display display)))
-           (overlay-put erc--keep-place-indicator-overlay ov-property bef))
+         (when (memq erc-keep-place-indicator-style '(t arrow))
+           (overlay-put
+            erc--keep-place-indicator-overlay
+            (if (zerop (fringe-columns 'left)) 'after-string 'before-string)
+            (propertize " " 'display
+                        (if (zerop (fringe-columns 'left))
+                            `((margin left-margin)
+                              ,(propertize overlay-arrow-string
+                                           'font-lock-face
+                                           'erc-keep-place-indicator-arrow))
+                          '(left-fringe right-triangle
+                                        erc-keep-place-indicator-arrow)))))
          (when (memq erc-keep-place-indicator-style '(t face))
            (overlay-put erc--keep-place-indicator-overlay 'face
                         'erc-keep-place-indicator-line)))

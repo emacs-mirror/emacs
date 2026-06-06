@@ -163,6 +163,10 @@ eius. Foo")))
   (skip-unless (functionp 'markdown-mode))
   (ert-test-erts-file (ert-resource-file "fill-paragraph-semlf-markdown-mode.erts")))
 
+(ert-deftest fill-test-fill-paragraph-handle-comment ()
+  "Test the `fill-paragraph-handle-comment' variable."
+  (ert-test-erts-file (ert-resource-file "fill-paragraph-handle-comment.erts")))
+
 (provide 'fill-tests)
 
 ;;; fill-tests.el ends here

@@ -1606,7 +1606,7 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 	 (setq doctor--suicide-flag t)
          (doctor-type '( If you are really suicidal\, you might
                          want to contact the Samaritans via
-                         e-mail: jo@samaritans.org \.
+                         https://www.samaritans.org/how-we-can-help/contact-samaritan/ \.
                          or find a Befrienders crisis center at
                          https://www.befrienders.org/\ \.
                          you can also find other suicide crisis lines at

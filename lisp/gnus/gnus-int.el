@@ -257,10 +257,8 @@ If it is down, start it up (again)."
       (goto-char (point-max))
       (insert (format-time-string "%H:%M:%S")
 	      (format " %.2fs %s %S\n"
-		      (if (numberp gnus-backend-trace-elapsed)
-			  (float-time
-			   (time-since gnus-backend-trace-elapsed))
-			0)
+		      (float-time
+		       (time-since gnus-backend-trace-elapsed))
 		      type form))
       (setq gnus-backend-trace-elapsed (float-time)))))
 

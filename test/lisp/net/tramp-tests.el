@@ -2299,6 +2299,7 @@ being the result.")
 	(tramp-default-proxies-alist tramp-default-proxies-alist)
 	(tramp-show-ad-hoc-proxies t))
     (cl-letf* (((symbol-function #'read-string) #'ignore) ; Suppress password.
+	       ((symbol-function #'y-or-n-p) #'ignore) ; distrobox.
 	       ((tramp-file-name-host vec) "example.com.invalid"))
       (should-error
        (file-exists-p (tramp-make-tramp-file-name vec))

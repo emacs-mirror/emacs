@@ -371,6 +371,11 @@ extern int emacs_setenv_TZ (char const *);
 # define UNINIT /* empty */
 #endif
 
+/* likely (COND) is equivalent to COND ? 1 : 0, but instructs the
+   compiler to provide static branch prediction hints to the CPU so that
+   the branch isn't mispredicted.  */
+#define likely(cond)	__builtin_expect (!!(cond), 1)
+
 /* Emacs needs neither glibc strftime behavior for AM and PM indicators,
    nor Gnulib strftime support for non-Gregorian calendars.  */
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false

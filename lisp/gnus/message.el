@@ -2217,6 +2217,8 @@ see `message-narrow-to-headers-or-head'."
   (beginning-of-line)
   (while (looking-at "[ \t]")
     (forward-line -1))
+  ;; `syntax-propertize' can't widen so make sure it won't need to (bug#81035).
+  (syntax-propertize (point))
   (narrow-to-region
    (point)
    (progn
@@ -8659,6 +8661,9 @@ From headers in the original article."
                   (save-excursion
                     (goto-char end-of-headers)
                     (insert-before-markers header))))))))
+      ;; `syntax-propertize' can't widen so make sure it won't need to
+      ;; (bug#81035).
+      (syntax-propertize end-of-headers)
       (narrow-to-region end-of-headers (point-max)))))
 
 (defun message-hide-header-p (regexps)

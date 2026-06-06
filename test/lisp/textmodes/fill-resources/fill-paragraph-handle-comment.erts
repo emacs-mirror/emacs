@@ -1,0 +1,67 @@
+Point-Char: |
+
+Name: fill-paragraph-handle-comment - current non-comment line before comment line
+Code:
+  (lambda ()
+    (setq-local comment-start "# ")
+    (setq-local fill-paragraph-handle-comment t)
+    (setq-local fill-column 42)
+    (fill-paragraph))
+
+=-=
+
+this is not part of the comment this is not part of the comment|
+# this is a comment this is a comment this is a comment
+
+=-=
+
+this is not part of the comment this is
+not part of the comment
+# this is a comment this is a comment this is a comment
+
+=-=-=
+
+Name: fill-paragraph-handle-comment - non-comment line before current comment line
+
+=-=
+
+this is not part of the comment this is not part of the comment
+# this is a comment this is a comment this is a comment|
+
+=-=
+
+this is not part of the comment this is not part of the comment
+# this is a comment this is a comment this
+# is a comment
+
+=-=-=
+
+Name: fill-paragraph-handle-comment - comment line before current non-comment line
+
+=-=
+
+# this is a comment this is a comment this is a comment
+this is not part of the comment this is not part of the comment|
+
+=-=
+
+# this is a comment this is a comment this is a comment
+this is not part of the comment this is
+not part of the comment
+
+=-=-=
+
+Name: fill-paragraph-handle-comment - current comment line before non-comment line
+
+=-=
+
+# this is a comment this is a comment this is a comment|
+this is not part of the comment this is not part of the comment
+
+=-=
+
+# this is a comment this is a comment this
+# is a comment
+this is not part of the comment this is not part of the comment
+
+=-=-=

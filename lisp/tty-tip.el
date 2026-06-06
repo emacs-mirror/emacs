@@ -1,4 +1,4 @@
-;;; tty-tip.el --- Display help in kind of tooltips on ttys  -*- lexical-binding: t -*-
+;;; tty-tip.el --- Display tooltip-like child frames on ttys  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2024-2026 Free Software Foundation, Inc.
 

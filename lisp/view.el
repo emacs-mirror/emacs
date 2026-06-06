@@ -464,6 +464,10 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
   ;; so that View mode stays off if read-only-mode is called.
   (if (local-variable-p 'view-read-only)
       (kill-local-variable 'view-read-only))
+  ;; Reset the read-only state memory as well, so that 'revert-buffer'
+  ;; won't make the buffer read-only again.
+  (if (local-variable-p 'read-only-mode--state)
+      (setq-local read-only-mode--state nil))
   (if buffer-read-only
       (setq buffer-read-only view-old-buffer-read-only)))
 

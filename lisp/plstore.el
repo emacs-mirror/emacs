@@ -478,7 +478,7 @@ perform a match."
 	(when match
 	  (setq plist (cdr entry))
 	  (while plist
-	    (if (string-match "\\`:secret-" (symbol-name (car plist)))
+	    (if (plstore--has-secret-keys plist)
 		(setq decrypt t
 		      plist nil))
 	    (setq plist (nthcdr 2 plist)))
@@ -503,7 +503,7 @@ Return nil if there is none."
 	plist)
     (setq plist (cdr entry))
     (while plist
-      (if (string-match "\\`:secret-" (symbol-name (car plist)))
+      (if (plstore--has-secret-keys plist)
 	  (progn
 	    (plstore--decrypt plstore)
 	    (setq entry (assoc name (plstore--get-merged-alist plstore))
@@ -550,23 +550,36 @@ SECRET-KEYS is a plist containing secret data."
 	 (cons (cons name secret-plist) (plstore--get-secret-alist plstore)))))
     (plstore--merge-secret plstore)))
 
+(defun plstore--has-secret-keys (plist)
+  "Return t if PLIST of a plstore entry has secret keys."
+  (string-match-p "\\`:secret-" (symbol-name (car plist))))
+
 (defun plstore-delete (plstore name)
   "Delete the first entry named NAME from PLSTORE."
-  (let ((entry (assoc name (plstore--get-alist plstore))))
-    (if entry
-	(plstore--set-alist
-	 plstore
-	 (delq entry (plstore--get-alist plstore))))
-    (setq entry (assoc name (plstore--get-secret-alist plstore)))
-    (if entry
-	(plstore--set-secret-alist
-	 plstore
-	 (delq entry (plstore--get-secret-alist plstore))))
-    (setq entry (assoc name (plstore--get-merged-alist plstore)))
-    (if entry
-	(plstore--set-merged-alist
-	 plstore
-	 (delq entry (plstore--get-merged-alist plstore))))))
+  (when-let* ((entry (assoc name (plstore--get-alist plstore)))
+              (plist (cdr entry)))
+    (when (plstore--has-secret-keys plist)
+      (plstore--decrypt plstore)
+      (setq entry (assoc name (plstore--get-alist plstore))))
+    (plstore--set-alist
+     plstore
+     (delq entry (plstore--get-alist plstore))))
+  (when-let* ((entry (assoc name (plstore--get-secret-alist plstore)))
+              (plist (cdr entry)))
+    (when (plstore--has-secret-keys plist)
+      (plstore--decrypt plstore)
+      (setq entry (assoc name (plstore--get-secret-alist plstore))))
+    (plstore--set-secret-alist
+     plstore
+     (delq entry (plstore--get-secret-alist plstore))))
+  (when-let* ((entry (assoc name (plstore--get-merged-alist plstore)))
+              (plist (cdr entry)))
+    (when (plstore--has-secret-keys plist)
+      (plstore--decrypt plstore)
+      (setq entry (assoc name (plstore--get-merged-alist plstore))))
+    (plstore--set-merged-alist
+     plstore
+     (delq entry (plstore--get-merged-alist plstore)))))
 
 (defvar pp-escape-newlines)
 (defun plstore--insert-buffer (plstore)
@@ -650,7 +663,7 @@ GnuPG key, silently save with symmetric encryption." ; (FIXME)
 	       (let ((merged-plist (cdr (assoc (car entry) merged-alist)))
 		     (plist (cdr entry)))
 		 (while plist
-		   (if (string-match "\\`:secret-" (symbol-name (car plist)))
+		   (if (plstore--has-secret-keys plist)
 		       (setcar (cdr plist)
 			       (plist-get
 				merged-plist
@@ -678,7 +691,7 @@ some plstore."
 	(error "Invalid plstore format %s" string))
       (setq plist (cdr (car pointer)))
       (while plist
-	(when (string-match "\\`:secret-" (symbol-name (car plist)))
+	(when (plstore--has-secret-keys plist)
 	  (setq entry (assoc (car (car pointer)) secret-alist))
 	  (unless entry
 	    (setq entry (list (car (car pointer)))

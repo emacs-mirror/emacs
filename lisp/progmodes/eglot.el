@@ -149,6 +149,8 @@
                         'eglot-managed-mode-hook "1.6")
 (define-obsolete-variable-alias 'eglot-confirm-server-initiated-edits
   'eglot-confirm-server-edits "1.16")
+(define-obsolete-variable-alias 'eglot-prefer-plaintext
+  'eglot-documentation-renderer "1.24")
 (make-obsolete-variable 'eglot-events-buffer-size
   'eglot-events-buffer-config "1.16")
 (define-obsolete-function-alias 'eglot--uri-to-path #'eglot-uri-to-path "1.16")
@@ -535,10 +537,16 @@ or file operation kinds not in the alist."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
-(defcustom eglot-prefer-plaintext nil
-  "If non-nil, always request plaintext responses to hover requests."
-  :type 'boolean
-  :package-version '(Eglot . "1.17.30"))
+(defcustom eglot-documentation-renderer nil
+  "Controls rendering of LSP documentation fragments.
+If set to a major mode symbol like `gfm-view-mode', or the experimental
+`markdown-ts-view-mode', request markdown snippets and use that mode to
+render them.  If t, request and render plain text instead.  If nil,
+request markdown snippets and select a renderer dynamically."
+  :type '(choice (const :tag "Plain text" t)
+                (const :tag "Auto-detect" nil)
+                (function :tag "Renderer"))
+  :package-version '(Eglot . "1.24"))
 
 (defcustom eglot-report-progress t
   "If non-nil, show progress of long running LSP server work.
@@ -727,16 +735,11 @@ This can be useful when using docker to run a language server.")
 
 (declare-function treesit-grammar-location "treesit.c")
 
-(defun eglot--builtin-mdown-p ()
-  (and (fboundp 'markdown-ts-view-mode)
-       (fboundp 'treesit-grammar-location)
-       (treesit-grammar-location 'markdown)))
-
 (defun eglot--accepted-formats ()
-  (if (and (not eglot-prefer-plaintext)
-           (or (fboundp 'gfm-view-mode) (eglot--builtin-mdown-p)))
-      ["markdown" "plaintext"]
-    ["plaintext"]))
+  (if (or (eq t eglot-documentation-renderer)
+          (not (or eglot-documentation-renderer (fboundp 'gfm-view-mode))))
+      ["plaintext"]
+    ["markdown" "plaintext"]))
 
 (defconst eglot--uri-path-allowed-chars
   (let ((vec (copy-sequence url-path-allowed-chars)))
@@ -2263,12 +2266,13 @@ If MODE, force MODE to be used for fontifying MARKUP."
                   finally return (buffer-string)))
        (calc2 (forced-mode)
          (cond
-          (forced-mode              `(,forced-mode))
-          ((eglot--builtin-mdown-p) `(,#'markdown-ts-view-mode))
-          ((fboundp 'gfm-view-mode) `(,#'gfm-view-mode ,#'gfm-extract))
-          (t                        `(#'text-mode))))
+          (forced-mode               forced-mode)
+          ((fboundp eglot-documentation-renderer) eglot-documentation-renderer)
+          ((fboundp 'gfm-view-mode) #'gfm-view-mode)
+          (t                        #'text-mode)))
        (calc (s &optional (forced-mode mode) &aux (x (calc2 forced-mode)))
-         (setq string s render (car x) extract (or (cadr x) #'buffer-string))))
+         (setq string s render x
+               extract (if (eq x 'gfm-view-mode) #'gfm-extract #'buffer-string))))
     (cond ((stringp markup) (calc markup))            ; plain string
           ((setq lang (plist-get markup :language))   ; deprecated MarkedString
            (calc (format "```%s\n%s\n```" lang (plist-get markup :value))))

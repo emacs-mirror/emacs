@@ -11687,34 +11687,37 @@ This function might do hidden buffer changes."
 	   (forward-char)
 	   (c-forward-syntactic-ws)
 	   (setq cast-end (point))
-	   (and (looking-at c-primary-expr-regexp)
-		(progn
-		  (setq pos (match-end 0))
-		  (or
-		   ;; Check if the expression begins with a prefix keyword.
-		   (match-beginning 2)
-		   (if (match-beginning 1)
-		       ;; Expression begins with an ambiguous operator.
-		       (cond
-			((match-beginning c-per-&*+--match)
-			 (memq at-type '(t known found)))
-			((match-beginning c-per-++---match)
-			 t)
-			((match-beginning c-per-\(-match)
-			 (or
-			  (memq at-type '(t known found))
-			  (not inside-macro)))
-			(t nil))
-		     ;; Unless it's a keyword, it's the beginning of a primary
-		     ;; expression.
-		     (not (looking-at c-keywords-regexp)))))
-		;; If `c-primary-expr-regexp' matched a nonsymbol token, check
-		;; that it matched a whole one so that we don't e.g. confuse
-		;; the operator '-' with '->'.  It's ok if it matches further,
-		;; though, since it e.g. can match the float '.5' while the
-		;; operator regexp only matches '.'.
-		(or (not (looking-at c-nonsymbol-token-regexp))
-		    (<= (match-end 0) pos))))
+	   (or
+	    (and (looking-at c-primary-expr-regexp)
+		 (progn
+		   (setq pos (match-end 0))
+		   (or
+		    ;; Check if the expression begins with a prefix keyword.
+		    (match-beginning 2)
+		    (if (match-beginning 1)
+			;; Expression begins with an ambiguous operator.
+			(cond
+			 ((match-beginning c-per-&*+--match)
+			  (memq at-type '(t known found)))
+			 ((match-beginning c-per-++---match)
+			  t)
+			 ((match-beginning c-per-\(-match)
+			  (or
+			   (memq at-type '(t known found))
+			   (not inside-macro)))
+			 (t nil))
+		      ;; Unless it's a keyword, it's the beginning of a primary
+		      ;; expression.
+		      (not (looking-at c-keywords-regexp)))))
+		 ;; If `c-primary-expr-regexp' matched a nonsymbol token,
+		 ;; check that it matched a whole one so that we don't
+		 ;; e.g. confuse the operator '-' with '->'.  It's ok if it
+		 ;; matches further, though, since it e.g. can match the float
+		 ;; '.5' while the operator regexp only matches '.'.
+		 (or (not (looking-at c-nonsymbol-token-regexp))
+		     (<= (match-end 0) pos)))
+	    (and (eq (char-after) ?\{)
+		 (not (eq (c-looking-at-statement-block-1) t)))))
 
 	 ;; There should either be a cast before it or something that isn't an
 	 ;; identifier or close paren.

@@ -388,10 +388,7 @@ VALUE can be `on', `off', or `paused'."
        "No timer set"
      (format-seconds
       "%m minute(s) %s seconds left before next time out"
-      ;; Note: Once our minimal require is Emacs 27, we can drop this
-      ;; org-time-convert-to-integer call.
-      (org-time-convert-to-integer
-       (time-subtract (timer--time org-timer-countdown-timer) nil))))))
+      (time-subtract (timer--time org-timer-countdown-timer) nil)))))
 
 ;;;###autoload
 (defun org-timer-set-timer (&optional opt)
@@ -436,7 +433,7 @@ using three \\[universal-argument] prefix arguments."
 		      (and (not (equal opt '(64)))
 			   effort-minutes
 			   (number-to-string effort-minutes))
-		      (and (consp opt) default-timer)
+		      (and (consp opt) (not (equal opt '(64))) default-timer)
 		      (and (stringp opt) opt)
 		      (read-from-minibuffer
 		       "How much time left? (minutes or h:mm:ss) "

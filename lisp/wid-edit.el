@@ -868,7 +868,8 @@ extension (xpm, xbm, gif, jpg, or png) located in
 	 image)
 	((stringp image)
 	 ;; A string.  Look it up in relevant directories.
-	 (let* ((load-path (cons widget-image-directory load-path))
+	 (let* ((image-load-path (cons widget-image-directory
+				       image-load-path))
 		specs)
 	   (dolist (elt widget-image-conversion)
 	     (dolist (ext (cdr elt))
@@ -2545,9 +2546,13 @@ when he invoked the menu."
 		(widget-get widget (if val :on :off))))
 	 (img (widget-image-find
 	       (widget-get widget (if val :on-glyph :off-glyph)))))
-    (widget-image-insert widget (or text "")
-			 (if img
-			     (append img '(:ascent center))))))
+    (and img (null (image-property img :ascent))
+         ;; Unlike (setf (image-property img :ascent) 'center), a simple
+         ;; `append' will not modify img as a side effect, and is safe
+         ;; to use here because the :ascent property is guaranteed to be
+         ;; absent.
+         (setq img (append img '(:ascent center))))
+    (widget-image-insert widget (or text "") img)))
 
 (defun widget-toggle-action (widget &optional event)
   ;; Toggle value.

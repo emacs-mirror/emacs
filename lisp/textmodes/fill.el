@@ -911,6 +911,7 @@ region, instead of just filling the current paragraph."
             (fill-comment-paragraph justify)))
      ;; 4. If it all fails, default to the good ol' text paragraph filling.
      (let ((before (point))
+           (paragraph-start-orig paragraph-start)
            (paragraph-start paragraph-start)
            ;; Fill prefix used for filling the paragraph.
            fill-pfx)
@@ -933,6 +934,18 @@ region, instead of just filling the current paragraph."
              (setq fill-pfx "")
            (let ((end (point))
                  (beg (progn (fill-forward-paragraph -1) (point))))
+             ;; If the paragraph starts with a comment line preceding point
+             ;; on a non-comment line, skip such comment lines, so they
+             ;; are not filled together (bug#80449).
+             (when (and fill-paragraph-handle-comment comment-start-skip
+                        (< beg before))
+               (save-excursion
+                 (goto-char beg)
+                 (when (looking-at paragraph-start-orig)
+                   (goto-char (1+ (match-end 0))))
+                 (when (looking-at comment-start-skip)
+                   (forward-line 1)
+                   (setq beg (point)))))
              (goto-char before)
              (setq fill-pfx
                    (if use-hard-newlines

@@ -225,7 +225,8 @@ x:
 	goto dodelta;		/* skip all the tab junk */
     }
     /* Tabs (the toughie) */
-    if (tty->Wcm->cc_tab >= BIG || !tty->Wcm->cm_usetabs)
+    if (!tty_cursor_movement_use_TAB
+	|| tty->Wcm->cc_tab >= BIG || !tty->Wcm->cm_usetabs)
 	goto olddelta;		/* forget it! */
 
     /*

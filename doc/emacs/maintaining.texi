@@ -1523,10 +1523,11 @@ on the current line if no files are marked.
 and their version control statuses.  It lists files in the current
 directory (the one specified when you called @kbd{C-x v d}) and its
 subdirectories, but only those with a noteworthy status.  Files
-that are up-to-date (i.e., the same as in the repository) are
-omitted.  If all the files in a subdirectory are up-to-date, the
+that are up-to-date (i.e., the same as in the repository) or ignored
+are omitted.  If all the files in a subdirectory are up-to-date, the
 subdirectory is not listed either.  As an exception, if a file has
-become up-to-date as a direct result of a VC command, it is listed.
+become up-to-date as a direct result of a VC command, it is listed by
+default.
 
   Here is an example of a VC Directory buffer listing:
 
@@ -1565,6 +1566,16 @@ systems can show other statuses.  For instance, CVS shows the
 been applied to the work file.  RCS and SCCS show the name of the user
 locking a file as its status.
 
+@vindex vc-dir-auto-hide-up-to-date
+  As mentioned above, by default files and directories which become
+up-to-date or ignored after the VC Directory buffer is first displayed
+stay displayed.  To automatically remove such files from display,
+customize the variable @code{vc-dir-auto-hide-up-to-date} to the value
+@code{t}.  You can also customize it to the value @code{revert}, in
+which case such files will be removed only when you refresh the VC
+Directory display, e.g., by typing @kbd{g} (@pxref{VC Directory
+Commands}).
+
 @ifnottex
   On CVS, the @code{vc-dir} command normally contacts the repository,
 which may be on a remote machine, to check for updates.  If you change
@@ -1595,7 +1606,7 @@ cases Emacs must occasionally fetch from the remote repository in order
 to determine the count.  If your connection to the remote repository is
 slow then this may cause unacceptable slowdowns in refreshing the VC
 Directory buffer.  If this affects you, you can customize
-@code{vc-dir-show-outgoing-count} to nil to disable the unpushed
+@code{vc-dir-show-outgoing-count} to @code{nil} to disable the unpushed
 revisions count altogether.  You can also set this on a per-repository
 basis using directory local variables (@pxref{Directory Variables}).
 
@@ -1674,9 +1685,6 @@ the VC Directory buffer (@code{vc-dir-root-next-action}).  This is like
 @w{@kbd{C-x v v}} (@pxref{Basic VC Editing}) except that it ignores any
 marks and the position of point.
 
-@item q
-Quit the VC Directory buffer, and bury it (@code{quit-window}).
-
 @item u
 Unmark the file or directory on the current line.  If the region is
 active, unmark all the files in the region (@code{vc-dir-unmark}).
@@ -1691,6 +1699,12 @@ files and directories.
 Hide files with @samp{up-to-date} or @samp{ignored} status
 (@code{vc-dir-hide-up-to-date}).  With a prefix argument, hide items
 whose state is that of the item at point.
+
+@item g
+Refresh the VC Directory buffer display (@code{revert-buffer}).
+
+@item q
+Quit the VC Directory buffer, and bury it (@code{quit-window}).
 @end table
 
 @findex vc-dir-mark

@@ -32,11 +32,13 @@ New key bindings: 'k' shuts down, 'r' reconnects, 'e' visits the events
 buffer, 'w' shows workspace configuration, and 'RET' invokes
 'eglot-describe-connection'.
 
-** Eglot uses new built-in 'markdown-ts-mode' of Emacs 31 (bug#80127)
+** New variable 'eglot-documentation-renderer' (bug#80127)
 
-This means that on newer versions of Emacs the external
-'markdown-mode.el' package does not need to be installed to render
-Markdown content.
+The variable 'eglot-documentation-renderer' replaces the now-obsolete
+'eglot-prefer-plaintext' and offers more control over what major mode is
+used to render markdown snippets.  By default, the variable is nil and
+'gfm-view-mode' from NonGNU ELPA's markdown-mode package is used if
+found.  See docstring for more details.
 
 
 * Changes in Eglot 1.23 (2/4/2026)

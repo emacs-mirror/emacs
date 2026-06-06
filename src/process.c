@@ -7672,6 +7672,37 @@ child_signal_notify (void)
 static void dummy_handler (int sig) {}
 static signal_handler_t volatile lib_child_handler;
 
+/* True if Glib installs its own SIGCHLD handler that Emacs must work
+   around.  Determined once in init_process_emacs; consulted elsewhere
+   (e.g. xwidget.c) to decide whether the about:blank load workaround
+   is needed.  */
+bool glib_installs_sigchld_handler;
+
+/* Handle a SIGCHLD signal by looking for known child processes of
+   Emacs whose status have changed.  For each one found, record its
+   new status.
+
+   All we do is change the status; we do not run sentinels or print
+   notifications.  That is saved for the next time keyboard input is
+   done, in order to avoid timing errors.
+
+   ** WARNING: this can be called during garbage collection.
+   Therefore, it must not be fooled by the presence of mark bits in
+   Lisp objects.
+
+   ** USG WARNING: Although it is not obvious from the documentation
+   in signal(2), on a USG system the SIGCLD handler MUST NOT call
+   signal() before executing at least one wait(), otherwise the
+   handler will be called again, resulting in an infinite loop.  The
+   relevant portion of the documentation reads "SIGCLD signals will be
+   queued and the signal-catching function will be continually
+   reentered until the queue is empty".  Invoking signal() causes the
+   kernel to reexamine the SIGCLD queue.  Fred Fish, UniSoft Systems
+   Inc.
+
+   ** Malloc WARNING: This should never call malloc either directly or
+   indirectly; if it does, that is a bug.  */
+
 void
 process_sigchld_async (int sig)
 {
@@ -8756,6 +8787,7 @@ init_process_emacs (int sockfd)
   if (lib_child_handler != dummy_handler)
     {
       /* The hacky workaround is needed on this platform.  */
+      glib_installs_sigchld_handler = true;
       signal_handler_t lib_child_handler_glib = lib_child_handler;
       catch_child_signal ();
       eassert (lib_child_handler == dummy_handler);

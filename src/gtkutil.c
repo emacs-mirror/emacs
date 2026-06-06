@@ -1223,8 +1223,8 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 
   outer_height /= scale;
   outer_width /= scale;
-  height = outer_height * scale;
-  width = outer_width * scale;
+  height = height / scale * scale;
+  width = width / scale * scale;
 
   xg_wm_set_size_hint (f, 0, 0);
 
@@ -1351,8 +1351,8 @@ xg_frame_set_size_and_position (struct frame *f, int width, int height)
 
   outer_height /= scale;
   outer_width /= scale;
-  height = outer_height * scale;
-  width = outer_width * scale;
+  height = height / scale * scale;
+  width = width / scale * scale;
 
   x /= scale;
   y /= scale;
