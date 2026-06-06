@@ -1028,6 +1028,17 @@ but with a different end of line convention (bug#48137)."
             (list new-pkg-desc simple-depend-desc-2 simple-depend-desc-1
                   multi-file-desc simple-depend-desc simple-single-desc)))))
 
+(ert-deftest package-test-builtin-package-info ()
+  "Test public interfaces for querying package info."
+  (should (not (null (package-versioned-builtin-packages))))
+  ;; Picking any built-in library to check the version. Update results
+  ;; as needed.
+  (require 'lisp-mnt)
+  (should (equal (package-builtin-package-version 'cl-lib)
+                 (with-temp-buffer
+                   (insert-file-contents (locate-library "cl-lib.el"))
+                   (version-to-list (lm-version))))))
+
 (provide 'package-test)
 
 ;;; package-tests.el ends here

@@ -535,6 +535,22 @@ package."
   summary)
 
 
+;;; Public interfaces for accessing built-in package info
+
+(defun package-versioned-builtin-packages ()
+  "Return a list of all the versioned built-in packages.
+The return value is a list of names of built-in packages represented as
+symbols."
+  (mapcar #'car package--builtin-versions))
+
+(defun package-builtin-package-version (package)
+  "Return the version of a built-in PACKAGE given by its symbol.
+The return value is a list of integers representing the version of
+PACKAGE, in the format returned by `version-to-list', or nil if the
+package is built-in but has no version or is not a built-in package."
+  (alist-get package package--builtin-versions))
+
+
 ;;; Installed packages
 
 ;; The following functions are called on each installed package by
