@@ -2215,12 +2215,12 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
        (ignore ,@(mapcar #'car bindings))
        ,@body)))
 
-(defun tramp-progress-reporter-update (reporter &optional value suffix)
+(defun tramp-progress-reporter-update (reporter &optional value update-text)
   "Report progress of an operation for Tramp."
   (let* ((parameters (cdr reporter))
 	 (message (aref parameters 3)))
     (when (string-search message (or (current-message) ""))
-      (progress-reporter-update reporter value suffix))))
+      (progress-reporter-update reporter value update-text))))
 
 ;;;###tramp-autoload
 (defvar tramp-inhibit-progress-reporter nil
