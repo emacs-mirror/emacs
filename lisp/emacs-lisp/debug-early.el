@@ -38,6 +38,8 @@
 
 (defvar debugger--last-error nil)
 
+(defvar cl--generic-compiler)
+
 (defalias 'debug-early-backtrace
   #'(lambda (&optional base)
       "Print a trace of Lisp function calls currently active.
@@ -50,6 +52,8 @@ of the build process."
       (let ((print-escape-newlines t)
             (print-escape-control-characters t)
             (print-escape-nonascii t)
+            (cl--generic-compiler
+             (lambda (exp) (eval exp t)))
             (prin1 (if (and (fboundp 'cl-prin1)
                             (fboundp 'cl-defmethod) ;Used by `cl-print'.
                             (condition-case nil
