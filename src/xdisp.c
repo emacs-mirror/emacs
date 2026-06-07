@@ -14024,11 +14024,15 @@ unwind_format_mode_line (Lisp_Object vector)
 
 	      current_buffer = XBUFFER (buffer);
 	      set_point_from_marker (AREF (vector, 11));
+	      unchain_marker (XMARKER (AREF (vector, 11)));
 	      ASET (vector, 11, Qnil);
 	      current_buffer = cb;
 	    }
 	}
     }
+
+  if (MARKERP (AREF (vector, 11)))
+    unchain_marker (XMARKER (AREF (vector, 11)));
 
   if (!NILP (AREF (vector, 6)))
     {
