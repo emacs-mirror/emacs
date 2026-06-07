@@ -3354,18 +3354,22 @@ With the prefix argument ARG, remain within the current code block."
 
 (defun markdown-ts--table-abutting-pos (pos)
   "Adjust POS to abut its closest text.
-Return pos adjusted to the position of the nearest non-blank character.
+If POS is already in a table, return POS.
+If not, adjust POS to the nearest non-blank character, looking first
+forward and then backward adjusting, if it is in a table, return the adjusted POS.
 Otherwise, return nil, for example, if the line is empty."
   (save-excursion
     (goto-char pos)
-    (skip-chars-forward "[[:blank:]]" (pos-eol))
-    (if (eq pos (pos-eol))
-        (progn
-          (goto-char pos)
-          (skip-chars-backward "[[:blank:]]" (pos-bol))
-          (unless (eq pos (pos-bol))
-            (max (point-min) (1- (point)))))
-      (min (point-max) (1+ (point))))))
+    (if (markdown-ts--table-node-row nil pos)
+        pos
+      (skip-chars-forward "[[:blank:]]" (pos-eol))
+      (if (markdown-ts--table-node-row)
+          (point)
+        (goto-char pos)
+        (skip-chars-backward "[[:blank:]]" (pos-bol))
+        (unless (eq (point) (pos-bol))
+          (if (markdown-ts--table-node-row nil (1- (point)))
+              (1- (point))))))))
 
 (defun markdown-ts--table-node-cell (&optional node pos abutting)
   "Compute table cell from named NODE at POS.
