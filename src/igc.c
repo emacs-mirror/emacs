@@ -4520,7 +4520,6 @@ finalize_vector (mps_addr_t v)
     case PVEC_MARKER:
     case PVEC_MODULE_GLOBAL_REFERENCE:
     case PVEC_BIGNUM:
-      igc_assert (!"finalization not implemented");
       break;
 
     case PVEC_FREE:
