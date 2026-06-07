@@ -82,6 +82,9 @@ Move point to where you click (@code{mouse-set-point}).
 Activate the region around the text selected by dragging, and put the
 text in the primary selection (@code{mouse-set-region}).
 
+@item S-mouse-1
+Adjust already selected region.
+
 @item mouse-2
 Move point to where you click, and insert the contents of the primary
 selection there (@code{mouse-yank-primary}).
@@ -133,6 +136,12 @@ the region is non-empty.  For instance, if you mouse drag an area that
 is less than a half a character, you'd normally get the empty string
 in your kill ring, but with @code{non-empty}, this short mouse drag
 won't affect the kill ring.
+
+@findex mouse-shift-adjust-mode
+  If you activate the Mouse-Shift-Adjust minor mode, clicking the left
+mouse button with the @kbd{Shift} modifier (@kbd{S-down-mouse-1})
+adjusts (extends or shrinks, depending on where you click) the already
+selected region.
 
 @vindex mouse-scroll-min-lines
   If you move the mouse off the top or bottom of the window while
@@ -1918,6 +1927,7 @@ in the mode line when the frame is selected.
 Some text terminals support mouse clicks in the terminal window.
 
 @cindex xterm
+@findex xterm-mouse-mode
   In a terminal emulator which is compatible with @command{xterm}, you
 can use @kbd{M-x xterm-mouse-mode} to give Emacs control over simple
 uses of the mouse---basically, only non-modified single clicks are
@@ -1925,8 +1935,9 @@ supported.  Newer versions of @command{xterm} also support
 mouse-tracking.  The normal @command{xterm} mouse functionality for
 such clicks is still available by holding down the @key{SHIFT} key
 when you press the mouse button.  Xterm Mouse mode is a global minor
-mode (@pxref{Minor Modes}).  Repeating the command turns the mode off
-again.
+mode (@pxref{Minor Modes}), which is turned on by default if Emacs
+detects at start time that the terminal supports it.  Repeating the
+command turns the mode off again.
 
 @findex gpm-mouse-mode
   In the console on GNU/Linux, you can use @kbd{M-x gpm-mouse-mode} to

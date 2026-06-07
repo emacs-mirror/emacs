@@ -3777,14 +3777,15 @@ supplied to input methods (@pxref{Input Methods}).  Use
 if you want to translate characters after input methods operate.
 @end defvar
 
-@defun key-translate from to
-This function modifies @code{keyboard-translate-table} to translate
-character code @var{from} into character code @var{to}.  It creates the
+@deffn Command key-translate from to
+This command modifies @code{keyboard-translate-table} to translate
+character code @var{from} into character code @var{to}.  Interactively,
+it prompts for @var{from} and @var{to}.  It creates the
 keyboard translate table if necessary.  Both @var{from} and @var{to}
 should be strings that satisfy @code{key-valid-p} (@pxref{Key
 Sequences}).  If @var{to} is @code{nil}, the function removes any
 existing translation for @var{from}.
-@end defun
+@end deffn
 
   Here's an example of using the @code{keyboard-translate-table} to
 make @kbd{C-x}, @kbd{C-c} and @kbd{C-v} perform the cut, copy and paste
@@ -3811,6 +3812,12 @@ at the level of @code{read-key-sequence}.  If you need to translate
 input events that are not characters (i.e., @code{characterp} returns
 @code{nil} for them), you must use the event translation mechanism
 described there.
+
+@deffn Command key-translate-remove from
+This command prompts for a key @var{from} and its translation, and
+removes the translation from the translation table.  When calling from
+Lisp, specify just the key @var{from}, without its translation.
+@end deffn
 
 @node Invoking the Input Method
 @subsection Invoking the Input Method

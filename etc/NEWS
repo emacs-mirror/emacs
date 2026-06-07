@@ -51,6 +51,7 @@ systemd is installed; default is '${prefix}/usr/lib/systemd/user'.
 
 * Startup Changes in Emacs 31.1
 
++++
 ** In compatible terminals, 'xterm-mouse-mode' is turned on by default.
 For these terminals the mouse will work by default.  A compatible
 terminal is one that supports Emacs setting and getting the OS selection
@@ -319,10 +320,12 @@ is still waiting for input.
 It still can use 'read-key' when the variable
 'read-char-choice-use-read-key' is non-nil.
 
++++
 *** 'map-y-or-n-p' now uses the minibuffer to read a character.
 It still can use 'read-key' when the variable
 'y-or-n-p-use-read-key' is non-nil.
 
+---
 *** 'flex' completion style rewritten to be faster and more accurate.
 Completion and highlighting use a new superior algorithm.  For example,
 pattern "scope" now ranks 'elisp-scope-*' functions well above
@@ -331,6 +334,7 @@ pattern "scope" now ranks 'elisp-scope-*' functions well above
 
 ** Mouse
 
++++
 *** New mode 'mouse-shift-adjust-mode' extends selection with 'S-<mouse-1>'.
 When enabled, you can use the left mouse button with the '<Shift>' modifier
 to extend the boundaries of the active region by dragging the mouse pointer.
@@ -474,6 +478,7 @@ helps to restore window buffers across Emacs sessions.
 You can use this in 'display-buffer-alist' to match buffers displayed
 during the execution of particular commands.
 
+---
 *** New command 'other-window-backward' ('C-x O').
 This moves in the opposite direction of 'other-window' and is for its
 default keybinding consistent with 'repeat-mode'.
@@ -537,6 +542,7 @@ either resize the frame and change the fullscreen status accordingly or
 keep the frame size unchanged.  The value t means to first reset the
 fullscreen status and then resize the frame.
 
++++
 *** New functions to set frame size and position in one compound step.
 'set-frame-size-and-position' sets the new size and position of a frame
 in one compound step.  Both, size and position, can be specified as with
@@ -544,6 +550,7 @@ the corresponding frame parameters 'width', 'height', 'left' and 'top'.
 'set-frame-size-and-position-pixelwise' is similar but has a more
 restricted set of values for specifying size and position.
 
+---
 *** New commands 'split-frame' and 'merge-frames'.
 'split-frame' moves a specified number of windows from an existing frame
 to a newly-created frame.  'merge-frames' merges all windows from two
@@ -566,6 +573,7 @@ These are useful if you need to detect a cloned frame or undeleted frame
 in hooks like 'after-make-frame-functions' and
 'server-after-make-frame-hook'.
 
++++
 *** Frames now have unique ids and the new function 'frame-id'.
 Each non-tooltip frame is assigned a unique integer id.  This allows you
 to unambiguously identify frames even if they share the same name or
@@ -573,6 +581,7 @@ title.  When 'undelete-frame-mode' is enabled, each deleted frame's id
 is stored for resurrection.  The function 'frame-id' returns a frame's
 id (in C, use the frame struct member 'id').
 
++++
 *** New commands 'select-frame-by-id', 'undelete-frame-by-id'.
 The command 'select-frame-by-id' selects a frame by ID and undeletes it
 if deleted.  The command 'undelete-frame-by-id' undeletes a frame by its
@@ -595,6 +604,7 @@ single button.  The value could also be a list to specify minor mode
 lighters to hide or show.  The default value is nil, which retains the
 previous behavior of showing all minor mode lighters.
 
+---
 *** New user option 'mode-line-modes-delimiters'.
 This option allows changing or removing the delimiters shown around
 the major mode and list of minor modes in the mode line.  The default
@@ -702,6 +712,7 @@ on the tab lines are now these two: the selected window uses
 +++
 *** New keybinding 'C-h u' for 'apropos-user-option'.
 
+---
 ** IDLWAVE has been moved to GNU ELPA.
 The version bundled with Emacs is out-of-date, and is now marked as
 obsolete.  Use 'list-packages' to install the 'idlwave' package from
@@ -713,8 +724,10 @@ These inherit from the 'header-line' face, but the faces actually used
 on the header lines are now these two: the selected window uses
 'header-line-active', non-selected windows use 'header-line-inactive'.
 
+---
 ** In 'customize-face', the "Font family" attribute now supports completion.
 
++++
 ** 'process-adaptive-read-buffering' is now nil by default.
 Setting this variable to a non-nil value reduces performance and leads
 to wrong results in some cases.  We believe that it is no longer useful;
@@ -746,6 +759,7 @@ setting is an alternative to 'help-at-pt-display-when-idle'.
 Customize this to nil to disable starting new asynchronous native
 compilations while AC power is not connected.
 
++++
 ** New user option 'show-paren-not-in-comments-or-strings'.
 If this option is non-nil, it tells 'show-paren-mode' not to highlight
 the parens that are inside comments and strings.  If set to 'all',
@@ -760,6 +774,7 @@ If this option is non-nil, the lossage buffer in 'view-lossage' will be
 refreshed automatically for each new input keystroke and command
 performed.
 
+---
 ** Change in SVG foreground color handling.
 SVG images no longer have the 'fill' attribute set to the value of
 ':foreground' or the current text foreground color.  The 'currentcolor'
@@ -813,6 +828,7 @@ mode in most cases in which Emacs would by default enter that mode.
 This can make things work better for some cases of X forwarding; see the
 docstring for the new option.
 
++++
 ** Emacs now comes with Org v9.8.
 See the file "etc/ORG-NEWS" for user-visible changes in Org.
 
@@ -827,11 +843,13 @@ per-project basis with directory-local variables.
 
 * Editing Changes in Emacs 31.1
 
++++
 ** Commands for keyboard translation.
 'key-translate' is now interactive.  It prompts for a key to translate
 from, and another to translate to, and sets 'keyboard-translate-table'.
 The new command 'key-translate-remove' prompts for a key/translation
-pair with 'completing-read', and removes it from the translation table.
+pair, with 'completing-read', and removes the translation from the
+translation table.
 
 ** Internationalization
 
@@ -926,12 +944,14 @@ Typing 'M-~' while saving some buffers means not to save the buffer and
 also to mark it as unmodified.  This is an alternative way to mark a
 buffer as unmodified which doesn't require switching to that buffer.
 
++++
 ** New minor mode 'delete-selection-local-mode'.
 This mode sets 'delete-selection-mode' buffer-locally.  This can be
 useful for enabling or disabling the features of 'delete-selection-mode'
 based on the state of the buffer, such as for the different states of
 modal editing packages.
 
+---
 ** New user option 'exchange-point-and-mark-highlight-region'.
 When set to nil, this modifies 'exchange-point-and-mark' so that it doesn't
 activate the mark if it is not already active.
@@ -977,6 +997,7 @@ These commands did not previously accept a prefix argument.
 Now a numeric prefix argument specifies a repeat count, just like it
 already did for 'undo'.
 
+---
 ** New minor mode 'center-line-mode'.
 This mode keeps modified lines centered horizontally according to the
 value of 'fill-column', by calling 'center-line' on each non-empty line
@@ -1068,6 +1089,7 @@ When 'uniquify-buffer-name-style' is non-nil, 'project-switch-to-buffer'
 changes the buffer names to only make them unique within the given
 project, during completion.  That makes some items shorter.
 
+---
 *** 'project-switch-to-buffer' uses 'project-buffer' as completion category.
 The category defaults are the same as for 'buffer' but any user
 customizations would need to be re-added.
@@ -1078,6 +1100,7 @@ If the value of 'project-mode-line' is 'non-remote', project name and
 the Project menu will be shown on the mode line only for projects with
 local files.
 
+---
 *** The "VC-aware" project backend caches the current project and its name.
 The duration for which the values are cached depends on whether it is
 called from 'non-essential' context, and it is determined by variables
@@ -1085,9 +1108,11 @@ called from 'non-essential' context, and it is determined by variables
 
 ** Network Security Manager (NSM)
 
+---
 *** NSM warns about TLS 1.1 by default.
 It has been deprecated by RFC 8996, published in 2021.
 
+---
 *** NSM warns about DHE and RSA key exchange by default.
 Emacs now warns about ephemeral Diffie-Hellman key exchange, and static
 RSA key exchange, also when 'network-security-level' is customized to
@@ -1106,6 +1131,7 @@ tables for files in which no tags were found.
 
 ** Delete Selection mode
 
+---
 *** New face 'delete-selection-replacement' for the replacement text.
 This comes with a change to how we track what is considered "the
 replacement text", which should be more robust now, and is made
@@ -1168,21 +1194,25 @@ Depending on customization, it modifies the variable
 'treesit-major-mode-remap-alist' prepared by tree-sitter based mode
 packages.
 
+---
 *** New user option 'treesit-auto-install-grammar'.
 It controls the automatic installation of tree-sitter grammar libraries
 needed for tree-sitter based modes, if these grammar libraries are not
 available when such modes are turned on.
 
+---
 *** 'treesit-extra-load-path' now is a customizable user option.
 The first directory in the list is used as the default directory
 to install the language grammar when 'treesit-auto-install-grammar'
 is 'ask', 'ask-dir' or 'always'.
 
+---
 *** 'treesit-language-source-alist' supports keywords.
 The language and URL are mandatory, but remaining data can use keywords like
 
     (json "https://github.com/tree-sitter/tree-sitter-json" :commit "4d770d3")
 
+---
 *** The file treesit-x.el defines a number of simple tree-sitter modes.
 Using the new macro 'define-treesit-generic-mode', generic modes are
 defined including, but not limited to, 'gitattributes-generic-ts-mode'.
@@ -1190,6 +1220,7 @@ Visiting a file in such mode asks for confirmation before installing
 its tree-sitter grammar.  Then it highlights the visited file
 according to the syntax defined by the grammar.
 
+---
 *** New command 'treesit-cycle-sexp-thing'.
 It cycles the type of navigation for commands that move across sexp's
 and lists, such as 'treesit-forward-sexp', 'treesit-forward-list',
@@ -1223,6 +1254,7 @@ override flag by 'treesit-font-lock-setting-query',
 'treesit-font-lock-setting-feature', 'treesit-font-lock-setting-enable',
 and 'treesit-font-lock-setting-override'.
 
+---
 *** New tree-sitter thing 'list'.
 Unlike the existing thing 'sexp' that defines both lists and atoms,
 'list' defines only lists to be navigated by 'forward-sexp'.
@@ -1230,6 +1262,7 @@ The new command 'treesit-forward-sexp-list' uses 'list'
 to move across lists.  But to move across atoms inside the list
 it uses 'forward-sexp-default-function'.
 
+---
 *** New tree-sitter based functions for moving by lists.
 If a major mode defines 'list' in 'treesit-thing-settings',
 tree-sitter setup for these modes sets 'forward-list-function' to
@@ -1238,15 +1271,18 @@ tree-sitter setup for these modes sets 'forward-list-function' to
 'forward-list', 'up-list', and 'down-list' motion commands for those
 modes.
 
+---
 *** Tree-sitter enabled modes now properly support 'show-paren-mode'.
 They do that by letting 'show-paren-mode' use the results of parsing by
 the tree-sitter library.  The new function 'treesit-show-paren-data' is
 used to communicate the tree-sitter parsing results to 'show-paren-mode'.
 
+---
 *** Tree-sitter enabled modes now properly support 'hs-minor-mode'.
 All commands from hideshow.el can selectively display blocks
 defined by the new tree-sitter thing 'list'.
 
+---
 *** New tree-sitter thing 'comment'.
 The new variable 'forward-comment-function' is set to the new function
 'treesit-forward-comment' if a major mode defines the thing 'comment'.
@@ -1266,12 +1302,14 @@ language symbol.  For example, 'cpp' is translated to "C++".  A new
 variable 'treesit-language-display-name-alist' holds the translations of
 language symbols where that translation is not trivial.
 
+---
 *** New function 'treesit-merge-font-lock-feature-list'.
 This function merges two tree-sitter font-lock feature lists.  It
 returns a new font-lock feature list with no duplicates in the same
 level.  It can be used to merge font-lock feature lists in a
 multi-language major mode.
 
+---
 *** New function 'treesit-replace-font-lock-feature-settings'.
 Given two tree-sitter font-lock settings, it replaces the feature in the
 second font-lock settings with the same feature in the first font-lock
@@ -1279,6 +1317,7 @@ settings.  In a multi-language major mode it is sometimes necessary to
 replace features from one of the major modes with others, that are
 better suited to the new multilingual context.
 
+---
 *** New function 'treesit-simple-indent-modify-rules'.
 Given two tree-sitter indent rules, it replaces, adds, or prepends rules
 in the old rules with new ones, then returns the modified rules.  In a
@@ -1294,10 +1333,12 @@ This variable allows major modes to setup Imenu for multiple languages.
 This variable allows major modes to setup 'outline-minor-mode'
 for multiple languages.
 
+---
 *** New function 'treesit-simple-indent-add-rules'.
 This new function makes it easier to customize indent rules for
 tree-sitter modes.
 
+---
 *** New variable 'treesit-simple-indent-override-rules'.
 Users can customize this variable to add simple custom indentation rules
 for tree-sitter major modes.
@@ -1405,6 +1446,7 @@ This user option determines if Hideshow should display indicators to
 show and toggle the block hiding.  If non-nil, the indicators are enabled.
 By default this is disabled.
 
++++
 *** New user option 'hs-indicator-maximum-buffer-size'.
 This user option limits the display of Hideshow indicators to buffers
 that are not too large.  By default, buffers larger than 2MB have the
@@ -1469,6 +1511,7 @@ available.
 
 ** Csharp-ts mode
 
+---
 *** Renamed feature in 'treesit-font-lock-feature-list'.
 The feature 'property' has been renamed to 'attribute', since this is
 what it is called in the general C# community.
@@ -1518,6 +1561,7 @@ option controls how much is indented for method chaining.
 
 ** JSON-ts mode
 
+---
 *** New command 'json-ts-jq-path-at-point'.
 This command copies the path of the JSON element at point to the
 kill-ring, formatted for use with the 'jq' utility.
@@ -1682,6 +1726,7 @@ default is nil, which retains the old format.
 
 ** Term
 
+---
 *** The terminal emulator now supports auto-margins control.
 Term mode now handles DECAWM escape sequences that control whether text
 automatically wraps at the right margin:
@@ -1689,26 +1734,30 @@ automatically wraps at the right margin:
 - \e[?7h enables auto-margins (default)
 - \e[?7l disables auto-margins
 
-When auto-margins is disabled, characters that would go beyond the right margin
-are discarded, which matches the behavior of physical terminals and other
-terminal emulators.  Control sequences and escape sequences are still processed
-correctly regardless of margin position.
+When auto-margins is disabled, characters that would go beyond the right
+margin are discarded, which matches the behavior of physical terminals
+and other terminal emulators.  Control sequences and escape sequences
+are still processed correctly regardless of margin position.
 
 ---
 ** SMerge mode
 
+---
 *** New 'repeat-map' for SMerge conflict resolution commands.
 With 'repeat-mode' enabled, after invoking an SMerge command (for
 example, 'C-c ^ n'), you can repeat further SMerge commands by typing
 just the final key (for example, 'n', 'p', 'u', 'l').
 
+---
 *** New command 'smerge-extend' extends a conflict over surrounding lines.
 
+---
 *** New command 'smerge-refine-exchange-point' to jump to the other side.
 When used inside a refined chunk, it jumps to the matching position in
 the "other" side of the refinement: if you are in the new text, it jumps
 to the corresponding position in the old text and vice versa.
 
+---
 *** New user option 'smerge-refine-shadow-cursor'.
 When 'smerge-refine' shows the conflict diffs at word granularity, a
 "shadow cursor" is now displayed in the "lower" version when point
@@ -1717,6 +1766,7 @@ just the character corresponding to the position where
 'smerge-refine-exchange-point' would jump, shown in a new distinct
 face 'smerge-refine-shadow-cursor', by default a box face.
 
+---
 *** 'smerge-refine-regions' can compare regions in different buffers.
 
 ** Cursor Sensor mode
@@ -1726,10 +1776,12 @@ face 'smerge-refine-shadow-cursor', by default a box face.
 
 ** Image Dired
 
+---
 *** 'image-dired-show-all-from-dir' takes the same first argument as 'dired'.
 This allows passing a string with wildcards, or a cons cell where the
 first element is a list and the rest is a list of files.
 
+---
 *** Bound unused letters in 'image-dired-thumbnail-mode-map'.
 For a more comfortable navigation experience (as in, no modifier keys),
 the keys 'f', 'b', 'n', 'p', 'a' and 'e' are now bound to the
@@ -1737,6 +1789,7 @@ same functions as their 'C-' counterparts.
 
 ** Browse URL
 
+---
 *** New user option 'browse-url-transform-alist'.
 This user option is an alist that allows transforming URLs before asking
 a web browser to load them.  For example, it could be used like this:
@@ -1744,10 +1797,12 @@ a web browser to load them.  For example, it could be used like this:
     (add-to-list 'browse-url-transform-alist
                  '("www.google.com" . "www.duckduckgo.com"))
 
+---
 *** New command 'browse-url-qutebrowser' for Qutebrowser.
 For better integration with Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
+---
 *** New GTK-native launch mode.
 For better Wayland support, the pgtk toolkit exposes a new
 'x-gtk-launch-uri' browse-url handler and uses it by default when URLs
@@ -1755,15 +1810,18 @@ are browsed from a PGTK frame.  For other frames, we fall back to the
 default URL launch function.  This change allows us to properly raise
 browser windows under Wayland using the xdg_activation_v1 protocol.
 
+---
 *** 'RET' can visit URLs in read-only buffers.
 In some keymaps such as 'ansi-osc-hyperlink-map', 'browse-url-button-map',
 'goto-address-highlight-keymap', 'bug-reference-map' it is possible now
 to visit URLs by typing just 'RET' instead of 'C-c RET' in read-only buffers.
 
+---
 *** Removed support for some obsolete web browsers.
 Conkeror (obsolete since Emacs 28.1), gnome-moz-remote (obsolete since
 Emacs 25.1), and gnudoit (obsolete since Emacs 25.1).
 
+---
 *** 'browse-url-firefox-program' now supports LibreWolf and Zen Browser.
 LibreWolf, Floorp and Zen Browser, three popular Firefox forks, have been
 added to the programs that are automatically recognizable as Firefox
@@ -2321,6 +2379,7 @@ positives.
 It checks the buffer in batch mode, prints all found errors
 and signals the first found error.
 
+---
 *** New file-local variable 'lisp-indent-local-overrides'.
 This variable can be used to locally override the indent specification
 of symbols.
@@ -2480,6 +2539,7 @@ started inside Emacs.
 
 ** Isearch and Replace
 
++++
 *** Typing 'd' during 'query-replace' shows the diff buffer with replacements.
 
 ** Diff
@@ -2610,6 +2670,7 @@ Without 'dired-hide-details-hide-absolute-location':
 When 'dired-make-directory-clickable' is non-nil, clicking on the base
 name of the directory now reverts the Dired buffer.
 
+---
 *** 'dired-copy-filename-as-kill' supports project-relative names.
 With a new value of the prefix argument (1), this command copies file
 names relative to the root directory of the current project.
@@ -2727,6 +2788,7 @@ mode.  Now, one needs to say '(midnight-mode +1)' instead.
 
 ** Python mode
 
+---
 *** New 'repeat-map' for Python indentation commands.
 The commands 'python-indent-shift-left' and 'python-indent-shift-right'
 can now be repeated using 'repeat-mode'.  With 'repeat-mode' enabled,
@@ -2784,6 +2846,7 @@ string instead of prepending it and 'tmm-mid-prompt' to said entry.
 
 ** Foldout
 
++++
 *** Improved behavior of 'foldout-exit-fold' with negative prefix argument.
 When 'foldout-exit-fold' is called with a negative argument (so that the
 exited fold remains visible), the position of point and window view are
@@ -2932,6 +2995,7 @@ from the history of the current branch, though without undoing the
 changes made by those revisions to the working tree.  'X' is similar
 except that it does remove the changes from the working tree.
 
+---
 *** New command 'log-edit-done-strip-cvs-lines'.
 This command strips all lines beginning with "CVS:" from the buffer.
 It is intended to be added to the 'log-edit-done-hook' so that
@@ -3364,7 +3428,7 @@ implementations to suppress messages in Auto Revert modes, for example.
 
 ** Strokes
 
---
+---
 *** 'strokes-mode' no longer demands the presence of a mouse.
 'strokes-mode' now permits itself to be enabled if no mouse is
 connected, to facilitate enabling 'strokes-mode' in sessions where the
@@ -3424,6 +3488,7 @@ Meant to be given a global binding convenient to the user.  Example:
 
 ** Icomplete
 
+---
 *** Change in meaning of 'icomplete-show-matches-on-no-input' (again).
 For Emacs 28 to Emacs 30, when 'icomplete-show-matches-on-no-input' was
 non-nil, 'RET' had special behavior when the minibuffer's contents was
@@ -3438,6 +3503,7 @@ You can opt back in to the special behavior of 'RET' like this:
       icomplete-minibuffer-map "<remap> <minibuffer-complete-and-exit>"
       #'icomplete-ret)
 
+---
 *** New user options for 'icomplete-vertical-mode'.
 New user options have been added to enhance 'icomplete-vertical-mode':
 
@@ -3450,6 +3516,7 @@ New user options have been added to enhance 'icomplete-vertical-mode':
 - 'icomplete-vertical-unselected-prefix-indicator' specifies the prefix
   string for unselected candidates.
 
+---
 *** New faces for 'icomplete-vertical-mode'.
 New faces have been added to 'icomplete-vertical-mode':
 
@@ -3484,7 +3551,7 @@ text field for other values).
 
 ** Pulse
 
---
+---
 *** New function 'pulse-faces'.
 This function pulses a specified list of faces.  The pulse duration is
 determined by the new user option 'pulse-face-duration'.
@@ -3616,11 +3683,13 @@ is still available on 'v'.
 ---
 ** Flymake
 
++++
 *** Enhanced 'flymake-show-diagnostics-at-end-of-line'.
 The new value 'fancy' allowed for this user option will attempt to
 layout diagnostics below the affected line using unicode graphics to
 point to diagnostic locus.
 
+---
 *** Enhanced 'flymake-show-buffer-diagnostics'.
 The command 'flymake-show-buffer-diagnostics' is now capable of
 highlighting a nearby diagnostic in the resulting listing.  Additionally,
@@ -3628,25 +3697,30 @@ it is bound to mouse clicks on fringe and margin indicators, operating
 on the diagnostics of the corresponding line.  The user may bind it in
 other situations such as the diagnostic overlay map.
 
++++
 *** More powerful 'flymake-make-diagnostic' API.
 Flymake backends can now specify origin and code attributes, allowing
 Flymake and other extensions to segregate diagnostics based on this
 extended information.
 
++++
 *** New user option 'flymake-diagnostic-format-alist'.
 This provides fine-grained control over diagnostic formatting across
 different contexts, allowing you to specify which components (origin,
 code, message or one-liner message) appear in each output destination.
 
+---
 *** Dynamic column sizing in diagnostic listings.
 The tabulated listings produced by 'flymake-show-buffer-diagnostics' and
 'flymake-show-project-diagnostics' now automatically adjust their column
 widths based on content, optimizing display space and readability.
 
+---
 *** New value 'auto' of user option 'flymake-indicator-type'.
 This value (set by default) tries to use fringes if possible, otherwise
 falls back to margins.
 
+---
 *** New user option 'elisp-flymake-byte-compile-executable'.
 This allows customizing the Emacs executable used for Flymake byte
 compilation in 'emacs-lisp-mode'.  This option should be set when editing
@@ -3692,6 +3766,7 @@ You can now use the mouse wheel to scroll the calendar by 3 months.
 With the shift modifier, it scrolls by one month.  With the meta
 modifier, it scrolls by year.
 
++++
 *** Simpler key bindings for navigation in calendar by months and by years.
 The month and year navigation key bindings 'M-}', 'M-{', 'C-x ]' and
 'C-x [' now have the alternative keys '}', '{', ']' and '['.
@@ -3702,6 +3777,7 @@ The user options 'calendar-mark-holidays-flag' and
 'calendar-mark-diary-entries-flag' are not modified anymore when
 changing the marking state in the calendar buffer.
 
+---
 *** New library for iCalendar data.
 A new library has been added to the calendar for handling iCalendar
 (RFC 5545) data.  The library is designed for reuse in other parts of
@@ -3715,6 +3791,7 @@ features from icalendar.el; see below.
 
 ** Diary
 
+---
 *** New user option 'diary-date-insertion-form'.
 This user option determines how dates are inserted into the diary by
 Lisp functions.  Its value is a pseudo-pattern of the same type as in
@@ -3746,6 +3823,7 @@ The old names are kept as obsolete aliases.
 
 ** Calc
 
++++
 *** New user option 'calc-string-maximum-character'.
 Previously, the 'calc-display-strings', 'string', and 'bstring'
 functions only considered integer vectors whose elements are all in the
@@ -3761,6 +3839,7 @@ default value is nil to preserve the existing behavior.
 
 ** Time
 
+---
 *** New user option 'world-clock-sort-order'.
 This option controls the order of timezone entries in the 'world-clock'.
 By default, no sorting is done, and entries appear in the same order as
@@ -3814,11 +3893,13 @@ or obsolete.
 
 ** CPerl mode
 
+---
 *** Syntax of Perl up to version 5.42 is supported.
 CPerl mode creates imenu entries for ":writer" generated accessors and
 recognizes the new functions "all" and "any".
 See https://perldoc.perl.org/5.42.0/perldelta for details.
 
+---
 ** Zone
 
 Zone can scramble multiple windows across multiple frames; it may also
@@ -3867,6 +3948,7 @@ it will begrudgingly use the scratch buffer.
 Customize the user option 'abbrev-mode' to non-nil to enable Abbrev mode
 by default in all buffers.
 
+---
 ** Antlr mode
 
 *** Variable 'antlr-tool-version' is no user option anymore.
@@ -3909,6 +3991,7 @@ If an active region exists, the commands 'hi-lock-line-face-buffer' and
 'hi-lock-face-phrase-buffer' now use its contents as their default
 value.  Previously, only 'hi-lock-face-buffer' supported this.
 
+---
 ** Shadowfile
 
 *** 'shadow-info-buffer' and 'shadow-todo-buffer' use ephemeral buffer names now.
@@ -3926,6 +4009,7 @@ percentage, or presence in the bay changes.
 
 ** Etags Regen mode
 
+---
 *** Tags table is not created during completion anymore.
 Previously, when there was no tags table loaded and the default
 completion function was called, 'etags-regen-mode' ensured that tags
@@ -3935,20 +4019,24 @@ were created.  This has been disabled, and the new user option
 
 * New Modes and Packages in Emacs 31.1
 
+---
 ** New major mode 'icalendar-mode'.
 A major mode for displaying and editing iCalendar (RFC 5545) data.  This
 mode handles line unfolding and fontification, including highlighting
 syntax errors in invalid data.
 
++++
 ** New minor mode 'delete-trailing-whitespace-mode'.
 A simple buffer-local mode that runs 'delete-trailing-whitespace'
 before saving the buffer.
 
+---
 ** New major mode 'conf-npmrc-mode'.
 A major mode based on 'conf-mode' for editing ".npmrc" files.
 
 ** New major modes based on the tree-sitter library
 
+---
 *** New major mode 'mhtml-ts-mode'.
 An optional major mode based on the tree-sitter library for editing HTML
 files.  This mode handles indentation, fontification, and commenting for
@@ -3960,9 +4048,11 @@ A major mode based on the tree-sitter library for editing "go.work"
 files.  If tree-sitter is properly set-up by the user, it can be
 enabled for files named "go.work".
 
+---
 ** New package 'lua-mode'.
 The 'lua-mode' package from NonGNU ELPA is now included in Emacs.
 
+---
 ** New library 'timeout'.
 This library provides functions to throttle or debounce Emacs Lisp
 functions.  This is useful for corralling overeager code that is slow
@@ -4035,16 +4125,6 @@ modes used 'FOO-mode-indent-offset' instead of the previous conventional
 'go-ts-indent-offset', 'csharp-ts-indent-offset',
 'cmake-ts-indent-offset', 'c-ts-indent-offset'.
 
-** Files loaded from '-x' and '--script' now use lexical binding.
-If you don't have time to adapt your script's code to the lexical
-binding dialect (see "(elisp) Converting to Lexical Binding"), you can
-wrap your code in:
-
-    #!/usr/bin/env -S emacs --batch --script
-    (eval
-     '(progn
-        YOUR CODE HERE))
-
 +++
 ** String mutation has been restricted further.
 'aset' on unibyte strings now requires the new character to be a single
@@ -4075,6 +4155,7 @@ may return either nil or t.
 ---
 ** The obsolete variable 'redisplay-dont-pause' has been removed.
 
+---
 ** The 'rx' category name 'chinese-two-byte' must now be spelled correctly.
 An old alternative name (without the first 'e') has been removed.
 
@@ -4095,6 +4176,7 @@ All the characters that belong to the 'symbol' script (according to
 'char-script-table') now have the 'symbol' category, whose mnemonic is
 '5'.
 
+---
 ** Some libraries obsolete since Emacs 24.4 and 24.5 have been removed:
 cc-compat.el, info-edit.el, meese.el, otodo-mode.el, rcompile.el,
 sup-mouse.el, terminal.el, vi.el, vip.el, ws-mode.el, and yow.el.
@@ -4300,6 +4382,17 @@ change it globally with:
 *** Loading a file displays a warning if there is no 'lexical-binding' cookie.
 
 ---
+** Files loaded from '-x' and '--script' now use lexical binding.
+If you don't have time to adapt your script's code to the lexical
+binding dialect (see "(elisp) Converting to Lexical Binding"), you can
+wrap your code in:
+
+    #!/usr/bin/env -S emacs --batch --script
+    (eval
+     '(progn
+        YOUR CODE HERE))
+
+---
 ** New function 'set-local'.
 This is the buffer-local equivalent of the function 'set'.
 
@@ -4352,6 +4445,7 @@ construct '(any ...)' is unrelated and not obsolete.
 
 ** ERT
 
+---
 *** Some experimental ERT macros are now considered stable.
 The following macros, previously only available in the experimental
 'ert-x' module, are now considered stable and have been moved to 'ert':
@@ -4431,6 +4525,7 @@ functions 'dbus--fd-open', 'dbus--fd-close' and 'dbus--registered-fds'
 implement managing these file descriptors.  See the Info node "(dbus)
 File Descriptors" for details.
 
+---
 ** The customization group 'wp' has been removed.
 It has been obsolete since Emacs 26.1.  Use the group 'text' instead.
 
@@ -4515,6 +4610,7 @@ the 'repeat-continue' property of each command in that list.  The
 'use-package' and 'bind-keys' macros support a similar keyword
 ':continue-only'.
 
++++
 ** New function 'completion-table-with-metadata'.
 It offers a more concise way to create a completion table with metadata.
 
@@ -4560,6 +4656,7 @@ This function inserts the special EVENT into the input event queue.
 This event is sent when the device running Emacs enters or leaves the
 sleep state.
 
+---
 ** Function aliases obsolete since Emacs 23.2 have been removed:
 'advertised-undo', 'advertised-widget-backward', and
 'dired-advertised-find-file'.
@@ -4570,6 +4667,7 @@ sleep state.
 and set the top-level buffer-local value of a variable.  A top-level
 value is the one that variable has outside of any let-bindings.
 
++++
 ** New function 'exec-suffixes'.
 This function by default returns the value of the corresponding user
 option, but can optionally return the equivalent of 'exec-suffixes' from
@@ -4623,10 +4721,12 @@ which if it is the symbol 'async', inhibits updates in the echo area
 when it is busy.  This is useful, for example, if you want to monitor progress
 of an inherently asynchronous command such as 'compile'.
 
++++
 ** Binary format specifications '%b' and '%B' added.
 These produce the binary representation of a number.
 '%#b' and '%#B' prefix the bits with '0b' and '0B', respectively.
 
+---
 ** 'pp-eval-expression' can now insert results into the current buffer.
 With a prefix argument, 'pp-eval-expression' inserts the result into the
 current buffer, just like 'eval-expression' already did.
@@ -4639,6 +4739,7 @@ safe to run the command multiple times on subsequent partitions of the
 list of arguments.  The variable 'command-line-max-length' controls the
 partitioning.
 
++++
 ** New function 'ensure-proper-list'.
 This function is a variation on 'ensure-list' that checks if an object
 is a proper list, in which case the list will be returned as is,

@@ -2380,9 +2380,12 @@ asking each question individually.  This gives the user certain
 convenient facilities such as the ability to answer the whole series at
 once.
 
+@vindex read-char-choice-use-read-key@r{, and} map-y-or-n-p
 @defun map-y-or-n-p prompter actor list &optional help action-alist no-cursor-in-echo-area
 This function asks the user a series of questions, reading a
-single-character answer in the echo area for each one.
+single-character answer in the minibuffer for each one.  However, if
+@code{read-char-choice-use-read-key} is non-@code{nil} (@pxref{Reading
+One Event}), it reads single keys from the echo area.
 
 The value of @var{list} specifies the objects to ask questions about.
 It should be either a list of objects or a generator function.  If it
