@@ -702,6 +702,15 @@ If status is nil, prompt before killing."
   (when-let* ((close-function (eshell-function-target-close-function target)))
     (funcall close-function status)))
 
+(cl-defgeneric eshell-send-eof-to-target (target)
+  "Send end-of-file to TARGET.
+By default, this is equivalent to `eshell-close-target' with nil status."
+  (eshell-close-target target nil))
+
+(cl-defmethod eshell-send-eof-to-target ((target process))
+  "Send end-of-file to a TARGET process."
+  (process-send-eof target))
+
 (cl-defgeneric eshell-output-object-to-target (object target)
   "Output OBJECT to TARGET.
 Returns what was actually sent, or nil if nothing was sent.")
@@ -765,6 +774,21 @@ command output when `eshell-ensure-newline-p' is non-nil."
 (cl-defmethod eshell-target-line-oriented-p ((_target (eql t)))
   "Return non-nil to indicate that the display is line-oriented."
   t)
+
+(cl-defgeneric eshell-output-region-to-target (start end target)
+  "Output the region from START to END to TARGET."
+  (eshell-output-object-to-target (buffer-substring start end) target))
+
+(cl-defmethod eshell-output-region-to-target (start end (target process))
+  "Output the region from START to END to the process TARGET."
+  (condition-case _
+      (process-send-region target start end)
+    (error
+     ;; NOTE: When running Emacs in batch mode (e.g. during regression
+     ;; tests), Emacs can abort due to SIGPIPE here.  Maybe
+     ;; `process-send-region' should handle SIGPIPE even in batch mode
+     ;; (bug#66186).
+     (signal 'eshell-pipe-broken (list target)))))
 
 (defun eshell-output-object (object &optional handle-index handles)
   "Insert OBJECT, using HANDLE-INDEX specifically.

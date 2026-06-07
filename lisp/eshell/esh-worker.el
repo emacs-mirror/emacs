@@ -66,6 +66,12 @@ commands' output with ordinary Lisp."
   :tag "Worker support"
   :group 'eshell)
 
+(defun eshell-worker-initialize ()   ;Called from `eshell-mode' via intern-soft!
+  "Initialize the Eshell worker code."
+  (setq-local eshell-complex-commands
+              (append '("accumulate" "apply-lines" "map-lines")
+                      eshell-complex-commands)))
+
 (cl-defstruct (eshell-worker
                (:constructor eshell-worker-create)
                (:copier nil))
