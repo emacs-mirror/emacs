@@ -61,8 +61,8 @@
 
 (defgroup eshell-worker nil
   "Eshell workers provide a way to construct process-like objects in Emacs
-Lisp that can serve as pipe targets, allowing you to manipulating other
-command's output with ordinary Lisp."
+Lisp that can serve as pipe targets, allowing you to manipulate other
+commands' output with ordinary Lisp."
   :tag "Worker support"
   :group 'eshell)
 
@@ -195,18 +195,21 @@ sent to TARGET (e.g. a string representing OBJECT)."
   (let ((buf-or-val (eshell-accumulate-worker-buffer-or-value target)))
     (cond
      ((bufferp buf-or-val)
+      (setq object (eshell-stringify object t))
       (with-current-buffer buf-or-val
-        (insert (eshell-stringify object t))))
+        (insert object)))
      (buf-or-val
       (cl-assert (listp buf-or-val))
+      (setq object (eshell-concat t (car buf-or-val) object))
       (with-current-buffer (eshell-accumulate-worker--make-buffer target)
-        (insert (eshell-concat t (car buf-or-val) object))))
+        (insert object)))
      ((stringp object)
       (with-current-buffer (eshell-accumulate-worker--make-buffer target)
         (insert object)))
      (t
       (setf (eshell-accumulate-worker-buffer-or-value target)
-            (list object))))))
+            (list object))))
+    object))
 
 (cl-defmethod eshell-close-target ((target eshell-accumulate-worker) _status)
   "Close the accumulate-worker TARGET, flushing its buffer."
