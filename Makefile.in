@@ -1184,17 +1184,25 @@ misc-dvi-common misc-html-common misc-pdf-common misc-ps-common: src
 info-dir: ${srcdir}/info/dir
 
 define set_texi_misc
-texi_misc_$(1) = $$(shell MAKEFLAGS= $${MAKE} --no-print-directory -s -C doc/misc LANG=$(1) echo-sources)
+texi_misc_$(1) = $$(shell MAKEFLAGS= $${MAKE} --no-print-directory -s -C doc/misc DOCLANG=$(1) echo-sources)
 
 endef
 
 $(foreach lang,$(DOCLANGS),$(eval $(call set_texi_misc,$(lang))))
 
-srcdir_doc_info_dir_inputs = \
+srcdir_doc_info_dir_inputs := \
   ${srcdir}/doc/emacs/emacs.texi \
   ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
-  ${srcdir}/doc/lispref/elisp.texi \
-  $(foreach lang,$(DOCLANGS),$(addprefix ${srcdir}/doc/misc/$(filter-out ../translations/default/misc/,../translations/$(lang)/misc/),$(texi_misc_$(lang)) ))
+  ${srcdir}/doc/lispref/elisp.texi
+TRANSLATED_DIRS:=misc
+# $(1) = dir
+# $(2) = lang
+define GET_DOC_SRC
+-include ${srcdir}/doc/translations/$(1)/$(2)/info_common.mk
+srcdir_doc_info_dir_inputs:=$$(srcdir_doc_info_dir_inputs) $$(patsubst %,${srcdir}/doc/translations/$(1)/$(2)/%$$(filter-out -default,-$(2)).texi,$$(INFO_COMMON))
+endef
+$(foreach dir,$(TRANSLATED_DIRS),$(foreach lang,$(DOCLANGS),$(eval $(call GET_DOC_SRC,$(dir),$(lang)))))
+
 info_dir_inputs = \
   ../build-aux/dir_top \
   $(subst ${srcdir}/doc/,,${srcdir_doc_info_dir_inputs})
