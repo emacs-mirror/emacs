@@ -159,6 +159,21 @@ It should call the mapped function once per line."
      "{echo '10\n1'; echo '5\n20'} | map-lines #'1+"
      "\\`11\n16\n21\n\\'")))
 
+(ert-deftest esh-worker-test/map-lines/interactive ()
+  "Test that `map-lines' works interactively."
+  (with-temp-eshell
+    (let (output-begin)
+      (eshell-insert-command "map-lines #'upcase")
+      (insert "hello")
+      (setq output-begin (1+ (point)))  ; Add one to skip the next newline.
+      (eshell-send-input)
+      (should (string= (buffer-substring output-begin (point)) "HELLO\n"))
+      (insert "goodbye")
+      (setq output-begin (1+ (point)))
+      (eshell-send-input)
+      (should (string= (buffer-substring output-begin (point)) "GOODBYE\n"))
+      (eshell-send-eof-to-process))))
+
 (ert-deftest esh-worker-test/map-lines/error-handling ()
   "Test that `map-lines' catches errors."
   (with-temp-eshell
@@ -220,5 +235,21 @@ It should pass each line as an argument to the applied function."
      (concat "\\`apply-lines 1\\+: Wrong type argument: number-or-marker-p, "
              "\"hi\"\n\\'"))
     (should (= eshell-last-command-status 1))))
+
+(ert-deftest esh-worker-test/apply-lines/interactive ()
+  "Test that `apply-lines' works interactively."
+  (with-temp-eshell
+    (let (output-begin)
+      (eshell-insert-command "apply-lines #'+")
+      (insert "5")
+      (eshell-send-input)
+      (insert "8")
+      (eshell-send-input)
+      (insert "13")
+      (eshell-send-input)
+      (setq output-begin (point))
+      (eshell-send-eof-to-process)
+      (should (string= (buffer-substring output-begin (eshell-end-of-output))
+                       "26\n")))))
 
 ;;; esh-io-tests.el ends here

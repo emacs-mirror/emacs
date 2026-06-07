@@ -57,6 +57,7 @@
 
 (require 'esh-io)
 
+(defvar eshell-complex-commands)
 (declare-function eshell-set-exit-info "esh-cmd" (status &optional result))
 
 (defgroup eshell-worker nil
@@ -65,6 +66,12 @@ Lisp that can serve as pipe targets, allowing you to manipulate another
 command's output with ordinary Lisp."
   :tag "Worker support"
   :group 'eshell)
+
+(defun eshell-worker-initialize ()   ;Called from `eshell-mode' via intern-soft!
+  "Initialize the Eshell worker code."
+  (setq-local eshell-complex-commands
+              (append '("accumulate" "apply-lines" "map-lines")
+                      eshell-complex-commands)))
 
 (cl-defstruct (eshell-worker
                (:constructor eshell-worker-create)
