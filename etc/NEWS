@@ -113,9 +113,9 @@ Previously, such characters would be rendered as, e.g., white boxes.
 that are used for borders around child frames and menu separators on TTY
 frames.
 
-Call the function 'standard-display-unicode-special-glyphs' to set up
+Call the command 'standard-display-unicode-special-glyphs' to set up
 the 'standard-display-table's extra slots with Unicode characters.
-Please see the documentation of that function to see which slots of the
+Please see the documentation of that command to see which slots of the
 display table it changes.
 
 +++
@@ -208,7 +208,7 @@ you type if the completion property 'eager-update', set by the
 completion table, is non-nil.  This property can be overridden for
 different completion categories by customizing
 'completion-category-overrides'.  Alternatively, the new user option
-'completion-eager-update can be set to t to make "*Completions*" always
+'completion-eager-update' can be set to t to make "*Completions*" always
 be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables this can slow down typing.
 
@@ -404,10 +404,10 @@ further destiny of any window showing the buffer to be killed.
 
 +++
 *** 'split-window' can optionally resurrect deleted windows.
-A new argument REFER of 'split-window' makes it possible to, instead of
-making a new window object, reuse an existing, deleted one.  This can be
-used to preserve the identity of windows when swapping or transposing
-them.
+A new optional argument REFER of 'split-window' makes it possible to,
+instead of making a new window object, reuse an existing, deleted one.
+This can be used to preserve the identity of windows when swapping or
+transposing them.
 
 +++
 *** New window parameter 'quit-restore-prev'.
@@ -450,11 +450,11 @@ option to 'vertical'.  The value 'horizontal' always prefers the
 horizontal split.
 
 ---
-The default value of 'split-width-threshold' is changed from 160 to 150.
+*** The default value of 'split-width-threshold' is changed from 160 to 150.
 After splitting it is still comfortable to read text filled to 75 columns.
 
 +++
-*** New argument INDIRECT for 'get-buffer-window-list'.
+*** New optional argument INDIRECT for 'get-buffer-window-list'.
 With this argument non-nil, 'get-buffer-window-list' will include in the
 return value windows whose buffers share their text with BUFFER-OR-NAME.
 
@@ -518,7 +518,7 @@ single frame can be excluded, for example, the selected frame.
 *** After deleting, 'delete-frame' now selects the most recently used frame.
 Previously, after deleting a specified frame, 'delete-frame' would
 select the oldest visible frame on the same terminal.  To revert to the
-old behavior, set the new variable 'after-delete-frame-select-mru-frame'
+old behavior, set the new user option 'after-delete-frame-select-mru-frame'
 to nil.
 
 +++
@@ -581,7 +581,7 @@ ID.  When called interactively, both functions prompt for an ID.
 ** Mode Line
 
 ---
-*** New definitions for mode-line faces under dark background mode.
+*** New definitions for mode line faces under dark background mode.
 The faces 'mode-line' and 'mode-line-highlight' now have separate
 definitions for the dark background mode.  Previously, these two faces
 looked the same in both the light and dark background modes.  To get the
@@ -704,7 +704,7 @@ on the tab lines are now these two: the selected window uses
 
 ** IDLWAVE has been moved to GNU ELPA.
 The version bundled with Emacs is out-of-date, and is now marked as
-obsolete.  Use 'M-x list-packages' to install the 'idlwave' package from
+obsolete.  Use 'list-packages' to install the 'idlwave' package from
 GNU ELPA instead.
 
 +++
@@ -821,8 +821,8 @@ See the file "etc/ORG-NEWS" for user-visible changes in Org.
 compile.el will now use paths specified in both
 'compilation-search-extra-path' and 'compilation-search-path', when
 doing search.  'compilation-search-extra-path' is consulted first.
-One possible use case of this option is to customize add new search
-paths on a per-project basis with directory-local variables.
+One possible use case of this option is to add new search paths on a
+per-project basis with directory-local variables.
 
 
 * Editing Changes in Emacs 31.1
@@ -932,7 +932,7 @@ useful for enabling or disabling the features of 'delete-selection-mode'
 based on the state of the buffer, such as for the different states of
 modal editing packages.
 
-** New user variable 'exchange-point-and-mark-highlight-region'.
+** New user option 'exchange-point-and-mark-highlight-region'.
 When set to nil, this modifies 'exchange-point-and-mark' so that it doesn't
 activate the mark if it is not already active.
 The default value is t, which retains the old behavior.
@@ -1063,12 +1063,12 @@ buffer named "*name-of-project-shell<2>*".  By comparison, a plain
 universal argument as in 'C-u C-x p s' always creates a new session.
 
 ---
-*** 'project-switch-buffer' re-uniquifies buffer names while prompting.
-When 'uniquify-buffer-name-style' is non-nil, 'project-switch-buffer'
+*** 'project-switch-to-buffer' re-uniquifies buffer names while prompting.
+When 'uniquify-buffer-name-style' is non-nil, 'project-switch-to-buffer'
 changes the buffer names to only make them unique within the given
 project, during completion.  That makes some items shorter.
 
-*** 'project-switch-buffer' uses 'project-buffer' as completion category.
+*** 'project-switch-to-buffer' uses 'project-buffer' as completion category.
 The category defaults are the same as for 'buffer' but any user
 customizations would need to be re-added.
 
@@ -1080,7 +1080,7 @@ local files.
 
 *** The "VC-aware" project backend caches the current project and its name.
 The duration for which the values are cached depends on whether it is
-called from 'non-essential' context, and it determined by variables
+called from 'non-essential' context, and it is determined by variables
 'project-vc-cache-timeout' and 'project-vc-non-essential-cache-timeout'.
 
 ** Network Security Manager (NSM)
@@ -1122,11 +1122,11 @@ to call 'editorconfig-apply'.
 
 +++
 *** Non-existing or empty files are ignored in 'auth-sources'.
-File-based data stores are ignored in ‘auth-sources’, if the underlying
+File-based data stores are ignored in 'auth-sources', if the underlying
 data file does not exist.  This is relevant, if a new secret is stored
-in such a file; the first usable entry of ‘auth-sources’ is selected as
+in such a file; the first usable entry of 'auth-sources' is selected as
 target.  If you want also not existing files to be selected, set the
-user option ‘auth-source-ignore-non-existing-file’ to nil.
+user option 'auth-source-ignore-non-existing-file' to nil.
 
 ---
 *** 'auth-sources' set to nil means using the password cache only.
@@ -1143,7 +1143,7 @@ with finer grained control.
 ** Register
 
 +++
-*** New functions 'buffer-to-register' and 'file-to-register'.
+*** New commands 'buffer-to-register' and 'file-to-register'.
 These allow users to interactively store files and buffers in registers.
 Killed buffers stored in a register using 'buffer-to-register' are
 automatically converted to a file-query value if the buffer was visiting
@@ -1179,8 +1179,9 @@ to install the language grammar when 'treesit-auto-install-grammar'
 is 'ask', 'ask-dir' or 'always'.
 
 *** 'treesit-language-source-alist' supports keywords.
-The language and URL are mandatory, but remaining data can use keywords:
-'(json "https://github.com/tree-sitter/tree-sitter-json" :commit "4d770d3")'.
+The language and URL are mandatory, but remaining data can use keywords like
+
+    (json "https://github.com/tree-sitter/tree-sitter-json" :commit "4d770d3")
 
 *** The file treesit-x.el defines a number of simple tree-sitter modes.
 Using the new macro 'define-treesit-generic-mode', generic modes are
@@ -1194,14 +1195,14 @@ It cycles the type of navigation for commands that move across sexp's
 and lists, such as 'treesit-forward-sexp', 'treesit-forward-list',
 'treesit-down-list', and 'treesit-up-list'.  The type can be either
 'list', the default, or 'sexp'.
-With the default 'list' type these commands move using syntax tables for
+With the default 'list' type, these commands move using syntax tables for
 symbols and using the thing 'list' for lists.
-With the 'sexp' type these commands move across nodes defined by
+With the 'sexp' type, these commands move across nodes defined by
 the tree-sitter thing 'sexp' in 'treesit-thing-settings'.
 
 +++
 *** Indirect buffers can have their own parser list.
-Before, indirect buffers share their base buffer’s parser list and
+Before, indirect buffers share their base buffer's parser list and
 parsers.  Now they can have their own parser list.
 
 +++
@@ -1225,7 +1226,7 @@ and 'treesit-font-lock-setting-override'.
 *** New tree-sitter thing 'list'.
 Unlike the existing thing 'sexp' that defines both lists and atoms,
 'list' defines only lists to be navigated by 'forward-sexp'.
-The new function 'treesit-forward-sexp-list' uses 'list'
+The new command 'treesit-forward-sexp-list' uses 'list'
 to move across lists.  But to move across atoms inside the list
 it uses 'forward-sexp-default-function'.
 
@@ -1365,7 +1366,7 @@ newer tree-sitter libraries mandate query predicates to end with a
 question mark.  Emacs will transparently convert ':equal', ':match', and
 ':pred' to ':eq?', ':match?', and ':pred?', respectively, so existing
 queries still work fine with the latest tree-sitter library.  The
-predicate ':equal' is changed to ':eq?' to better follow tree-sitter’s
+predicate ':equal' is changed to ':eq?' to better follow tree-sitter's
 convention.  Also, the ':match?' predicate can now take the regexp as
 either the first or second argument, so it works with both tree-sitter
 convention (regexp arg second) and Emacs convention (regexp arg first).
@@ -1389,7 +1390,7 @@ This command hides or shows all the blocks in the current buffer.
 
 ---
 *** 'hs-hide-level' no longer hides all the blocks in the current buffer.
-If 'hs-hide-level' was not inside a code block it would hide all the
+If 'hs-hide-level' was not inside a code block, it would hide all the
 blocks in the buffer like 'hs-hide-all'.  Now it should only hide all
 the second level blocks.
 
@@ -1511,7 +1512,7 @@ blocks are syntax-highlighted if the Doxygen grammar library is
 available.
 
 ---
-*** New user option 'java-ts-mode-method-chaining-indent-offset'.
+*** New user option 'java-ts-method-chaining-indent-offset'.
 Now method chaining is indented by 8 spaces rather than 4, and this
 option controls how much is indented for method chaining.
 
@@ -1526,7 +1527,7 @@ kill-ring, formatted for use with the 'jq' utility.
 ---
 *** 'php-ts-mode' now depends on 'mhtml-ts-mode'.
 The direct dependency on 'js-ts-mode', 'css-ts-mode' and 'html-ts-mode'
-has now been replaced by ‘mhtml-ts-mode’.  Navigation, Outline and Imenu
+has now been replaced by 'mhtml-ts-mode'.  Navigation, Outline and Imenu
 work for all languages, and code maintenance is easier.
 
 ---
@@ -1611,10 +1612,9 @@ converted to '１', etc.  Companion commands 'halfwidth-region' and
 ** Texinfo mode
 
 ---
-*** texinfo-mode now can auto-close the ``'' pairs.
+*** Texinfo mode now can auto-close the ``'' pairs.
 Now inserting `` in 'texinfo-mode' will close it by inserting its
 respective '', if 'electric-pair-mode' is enabled.
-
 
 ** ASM mode
 
@@ -1647,7 +1647,7 @@ content.
 ---
 *** New Ibuffer-dedicated faces.
 New faces 'ibuffer-marked', 'ibuffer-deletion', 'ibuffer-title', and
-'ibuffer-filter-group-name'.  By default they inherit from the
+'ibuffer-filter-group-name'.  By default, they inherit from the
 general-purpose faces Ibuffer previously used, to preserve previous
 behavior.
 
@@ -1691,7 +1691,7 @@ automatically wraps at the right margin:
 
 When auto-margins is disabled, characters that would go beyond the right margin
 are discarded, which matches the behavior of physical terminals and other
-terminal emulators. Control sequences and escape sequences are still processed
+terminal emulators.  Control sequences and escape sequences are still processed
 correctly regardless of margin position.
 
 ---
@@ -1744,7 +1744,7 @@ a web browser to load them.  For example, it could be used like this:
     (add-to-list 'browse-url-transform-alist
                  '("www.google.com" . "www.duckduckgo.com"))
 
-*** New function 'browse-url-qutebrowser' for Qutebrowser.
+*** New command 'browse-url-qutebrowser' for Qutebrowser.
 For better integration with Qutebrowser, set
 'browse-url(-secondary)-browser-function' to 'browse-url-qutebrowser'.
 
@@ -1774,8 +1774,6 @@ one of these found on your system.
 
 +++
 *** Derived types (i.e. 'cl-deftype')  can now be used as method specializers.
-As part of this new support, the new function 'cl-types-of' returns
-the list of types to which a value belongs.
 
 +++
 *** Some cl-lib functions and macros are now built-in.
@@ -1948,7 +1946,7 @@ a horizontal shift of text on display, and thus could be annoying).
 The "In-Reply-To" header created when replying to a message now contains
 only the originating message's id, conforming to RFC 5322.  The previous
 behavior included additional information about the originating message.
-The new variable 'message-header-use-obsolete-in-reply-to', nil by
+The new user option 'message-header-use-obsolete-in-reply-to', nil by
 default, can be set to a non-nil value to restore the previous behavior.
 
 +++
@@ -1996,7 +1994,7 @@ Gnus, see "(gnus) Symbolic Prefixes" in the Gnus manual.
 *** System sleep integration is now independent of D-Bus.
 The system sleep integration previously provided by customizing the
 variable 'gnus-dbus-close-on-sleep' is now deprecated.  A new system
-using the builtin 'system-sleep' library is now available by customizing
+using the builtin system-sleep.el library is now available by customizing
 'gnus-close-on-sleep'.  This will work on all systems that the
 'system-sleep' library supports.
 
@@ -2187,7 +2185,7 @@ non-nil; customize to nil to disable the check.
 ** Sendmail
 
 ---
-*** Sending an email via 'sendmail' checks for suspicious addressees.
+*** Sending an email via sendmail.el checks for suspicious addressees.
 The command 'mail-send', used to send email in Mail mode, now checks the
 addressees for suspicious email addresses.  If such addresses are found,
 the command will show them and the reason they are considered
@@ -2242,7 +2240,7 @@ HTML 'doctype' declaration to have context-type "text/html".
 When there is no EWW buffer, 'eww-switch-to-buffer' falls back to
 calling 'eww'.
 
-** Url Queue
+** URL Queue
 
 ---
 *** 'url-queue-retrieve' now makes use of some url request variables.
@@ -2290,7 +2288,7 @@ explicitly only support Emacs 30.1 or later, as specified in the
 packages that support earlier versions of Emacs is that package.el in
 those versions can't install packages where that line is missing.
 
-This change affects both 'M-x checkdoc' and the corresponding flymake
+This change affects both 'checkdoc' and the corresponding flymake
 backend.
 
 ---
@@ -2343,23 +2341,23 @@ inside an sexp typing 'RET' inserts a newline, and otherwise Emacs
 proceeds with evaluating the expression.  This is useful when
 'electric-pair-mode', or a similar automatic pairing mode, is enabled.
 
-** DocView
+** Doc View
 
 ---
 *** Dedicated buffer for plain text contents.
 When switching to the plain text contents with 'doc-view-open-text',
-DocView now creates a dedicated buffer to display it.  'C-c C-c' gets you
-back to the real DocView buffer if it still exists.
+Doc View now creates a dedicated buffer to display it.  'C-c C-c' gets you
+back to the real Doc View buffer if it still exists.
 
 +++
 *** New commands to save and restore pages in buffer-local registers.
-Docview can store the current page to buffer-local registers with the new
+Doc View can store the current page to buffer-local registers with the new
 command 'doc-view-page-to-register' (bound to 'm'), and later the stored
 page can be restored with 'doc-view-jump-to-register' (bound to ''').
 
 +++
-*** Docview can generate imenu indices for DjVu and ODF documents.
-When the 'djvused' program is available, Docview can now generate an imenu
+*** Doc View can generate imenu indices for DjVu and ODF documents.
+When the 'djvused' program is available, Doc View can now generate an imenu
 index for DjVu files from its outline.  Indices for Open Document Format
 (ODF) files as used by OpenOffice and LibreOffice are generated using
 the 'mutool' program after their initial conversion to PDF format.  The
@@ -2690,8 +2688,7 @@ with a file-local variable, you may be asked to update the value.
 *** New Xref backend for TeX modes.
 The new backend ('tex-etags') is on by default, and improves the
 functionality of the standard 'xref' commands in TeX buffers.  You can
-restore the standard 'etags' backend with the 'M-x xref-etags-mode'
-toggle.
+restore the standard 'etags' backend with the 'xref-etags-mode' toggle.
 
 ** BibTeX mode
 
@@ -3182,7 +3179,7 @@ already have, consider replacing the default global bindings, like this:
 This command is Diff mode's specialized 'narrow-to-region'.
 'narrow-to-region' has long been disabled by default, so for
 consistency, 'diff-restrict-view' is now too.
-To enable it again, use 'M-x enable-command'.
+To enable it again, use 'enable-command'.
 
 ---
 *** 'C-x v !' has its own input history.
@@ -3199,7 +3196,7 @@ This was already in place for Mercurial.
 
 ---
 *** 'vc-hg-working-revision' now returns changeset hashes.
-Previously it returned local revision numbers, but hashes are more
+Previously, it returned local revision numbers, but hashes are more
 robust for how this function is typically used.
 
 ** Package
@@ -3461,7 +3458,7 @@ New faces have been added to 'icomplete-vertical-mode':
 - 'icomplete-vertical-unselected-prefix-indicator-face' controls the
   appearance of unselected candidate prefixes.
 
-** Customize
+** Custom
 
 +++
 *** New function 'custom-initialize-after-file-load'.
@@ -3471,7 +3468,7 @@ functions defined later than the variable, as is common for minor modes.
 ':init-value' is non-nil.
 
 ---
-*** New major mode 'Customize-dirlocals-mode'.
+*** New major mode 'Custom-dirlocals-mode'.
 This is intended for customizing directory-local variables in the
 current directory's ".dir-locals.el" file.
 
@@ -3569,7 +3566,7 @@ This function flashes the current echo area briefly.
 It is intended to be used in 'ring-bell-function'.
 
 ---
-*** New user option 'flash-face-duration'.
+*** New user option 'pulse-face-duration'.
 This option controls the flash duration for 'flash-face-bell-function'
 and 'flash-echo-area-bell-function'.
 
@@ -3578,7 +3575,7 @@ and 'flash-echo-area-bell-function'.
 This option tells 'flash-face-bell-function' which faces should flash.
 
 ---
-*** New user option 'flash-face-attributes'
+*** New user option 'flash-face-attributes'.
 This option tells 'flash-face-bell-function' and
 'flash-echo-area-bell-function' which face attributes should be used
 for flash.
@@ -3619,7 +3616,7 @@ is still available on 'v'.
 ---
 ** Flymake
 
-*** Enhanced 'flymake-show-diagnostics-at-end-of-line'
+*** Enhanced 'flymake-show-diagnostics-at-end-of-line'.
 The new value 'fancy' allowed for this user option will attempt to
 layout diagnostics below the affected line using unicode graphics to
 point to diagnostic locus.
@@ -3661,7 +3658,7 @@ provide more accurate warnings from byte compilation.
 
 +++
 *** SQLite databases can now be opened in read-only mode.
-The new optional argument READONLY to 'sqlite-open' function allows to
+The new optional argument READONLY of function 'sqlite-open' allows to
 open an existing database only for reading.
 
 +++
@@ -3678,7 +3675,7 @@ DISABLE-URI non-nil.
 
 +++
 *** 'pdb', 'perldb', and 'guiler' suggest debugging the current file via 'M-n'.
-When starting these debuggers (e.g., 'M-x pdb') while visiting a file,
+When starting these debuggers (e.g., 'pdb') while visiting a file,
 pressing 'M-n' in the command prompt suggests a command line including
 the file name, using the minibuffer's "future history".
 
@@ -3707,7 +3704,7 @@ changing the marking state in the calendar buffer.
 
 *** New library for iCalendar data.
 A new library has been added to the calendar for handling iCalendar
-(RFC5545) data.  The library is designed for reuse in other parts of
+(RFC 5545) data.  The library is designed for reuse in other parts of
 Emacs and in third-party packages.  Package authors can find the new
 library in the Emacs distribution under "lisp/calendar/icalendar-*.el".
 
@@ -3725,7 +3722,7 @@ Lisp functions.  Its value is a pseudo-pattern of the same type as in
 entries from the calendar, or when importing them from other formats.
 
 +++
-*** New library 'diary-icalendar'.
+*** New library diary-icalendar.el.
 This library reimplements features previously provided by icalendar.el:
 import from iCalendar format to the diary, and export from the diary to
 iCalendar.  It also adds the ability to include iCalendar files in the
@@ -3795,7 +3792,7 @@ is actually about Org (in which case users should use the Org-specific
 command for reporting bugs).
 
 ---
-** The elint package is now obsolete.
+** The elint.el package is now obsolete.
 Use the byte-compiler instead; it provides more and more useful warnings.
 
 ** Newsticker
@@ -3867,8 +3864,8 @@ it will begrudgingly use the scratch buffer.
 
 +++
 *** You can now enable Abbrev mode by default using Easy Customization.
-Customize the variable 'abbrev-mode' to non-nil to enable Abbrev mode by
-default in all buffers.
+Customize the user option 'abbrev-mode' to non-nil to enable Abbrev mode
+by default in all buffers.
 
 ** Antlr mode
 
@@ -3882,7 +3879,7 @@ value "java org.antlr.Tool") when 'antlr-tool-version' has the value
 
 *** Command 'antlr-mode' now also works on ANTLR v3 or v4 grammars.
 If the variable 'antlr-tool-version' is not set locally, e.g., by the
-file’s local variables specs, the command sets its local value to
+file's local variables specs, the command sets its local value to
 'antlr-v2' if a keyword "class" or "header" appears at the beginning of
 the source, or to 'antlr-v3' otherwise.
 
@@ -3939,7 +3936,7 @@ were created.  This has been disabled, and the new user option
 * New Modes and Packages in Emacs 31.1
 
 ** New major mode 'icalendar-mode'.
-A major mode for displaying and editing iCalendar (RFC5545) data.  This
+A major mode for displaying and editing iCalendar (RFC 5545) data.  This
 mode handles line unfolding and fontification, including highlighting
 syntax errors in invalid data.
 
@@ -4112,7 +4109,7 @@ single binding syntax, which we'd kept only for backwards compatibility.
 ---
 ** The Eshell 'pwd' command now expands the directory name on all systems.
 This ensures that user directories are properly expanded to their full
-name.  Previously, Eshell only did this for MS-Windows systems. To
+name.  Previously, Eshell only did this for MS-Windows systems.  To
 restore the old behavior, you can set 'eshell-pwd-convert-function' to
 'identity'.
 
@@ -4218,8 +4215,8 @@ modification takes place inside 'with-help-window' or
 ** Xref commands don't automatically suggest to visit a tags table anymore.
 When no tags file is loaded, symbol completion just won't provide any
 suggestions.  So the 'M-?' command now works without a tags table.  And
-the 'M-.' will show a message describing the several built-in options
-that will provide an Xref backend when used.
+the 'M-.' command will show a message describing the several built-in
+options that will provide an Xref backend when used.
 
 +++
 ** Calling 'debug' in batch sessions no longer kills Emacs.
@@ -4251,7 +4248,7 @@ without performing a collection.
 
 +++
 ** Improve 'replace-region-contents' to accept more forms of sources.
-It has been promoted from 'subr-x' to the C code.
+It has been promoted from subr-x.el to the C code.
 You can now directly pass it a string or a buffer rather than a function.
 Actually passing it a function is now deprecated.
 
@@ -4619,17 +4616,8 @@ When the theme is set on PGTK, Android, or MS-Windows systems,
 variable 'toolkit-theme' as either symbol 'dark' or 'light', but may be
 extended to encompass other toolkit-specific symbols in the future.
 
-** Progress reporter
-
 +++
-*** Progress reporter callbacks.
-'make-progress-reporter' now accepts optional arguments UPDATE-CALLBACK,
-called on progress steps, and DONE-CALLBACK, called when the progress
-reporter is done.  See the 'make-progress-reporter' docstring for a full
-specification of these new optional arguments.
-
-+++
-*** Progress reporter context.
+** Progress reporter context.
 'make-progress-reporter' now accepts the optional argument CONTEXT,
 which if it is the symbol 'async', inhibits updates in the echo area
 when it is busy.  This is useful, for example, if you want to monitor progress
@@ -4725,8 +4713,8 @@ Note: Accepting this permission allows the use of system APIs, which may
 send user data to Apple's speech recognition servers.
 
 ---
-** Re-introduced dictation, lost in Emacs v30 (macOS).
-We lost macOS dictation in v30 when migrating to NSTextInputClient.
+** Re-introduced dictation, lost in Emacs 30 (macOS).
+We lost macOS dictation in Emacs 30 when migrating to NSTextInputClient.
 Implemented 'selectedRange' in 'nsterm.m' to enable in new subsystem.
 You may notice a slight change in dictation UI provided by macOS.
 
@@ -4747,7 +4735,7 @@ supported.  As on X, the user options 'dnd-scroll-margin' and
 
 ---
 ** Emacs on MS-Windows now supports color fonts.
-On Windows 8.1 and later versions Emacs now uses DirectWrite to draw
+On Windows 8.1 and later versions, Emacs now uses DirectWrite to draw
 text, which supports color fonts.  This can be disabled by setting the
 variable 'w32-inhibit-dwrite' to t.  Also see 'w32-dwrite-available' and
 'w32-dwrite-reinit' to check availability and to configure the
