@@ -1,18 +1,72 @@
 * Translated Emacs manuals
 ** Translations available
 
-Translations for language _doclang_ can be found under directory
-doc/translations/_doclang_.
+Translations for language DOCLANG can be found under directory
+doc/translations/DOCLANG. DOCLANG is for instance fr for French.
 
-** Compiling a manual translation
+** Compiling all manual translations
+
+Manual Texinfo sources are grouped into four subdirectories DIR with DIR
+in { lispref, lispintro, emacs, misc}, and can be compiled to five
+output format FORMAT with FORMAT in { dvi, html, info, pdf, ps}. Texinfo
+source code is under doc/DIR for the default language, and under
+doc/translations/DOCLANG/DIR for language DOCLANG, for instance replace
+DOCLANG by fr for French.
+
+You can build all the manuals including their translations for any
+combination of DIR and FORMAT by making the target DIR-FORMAT with the
+top level Makefile. For instance:
+
+    make misc-infO
+
+to make all manuals from the misc subdirectory into the info format and
+for all the language listed in the DOCLANGS list resulting from the
+./configure step or superseded by setting DOCLANGS in the
+environment. Outputs are made into the info directory for info format
+and into the doc/DIR subdirectory for other formats (the output is in
+doc/DIR, not doc/translations/DOCLANG/DIR, even when the DOCLANG is not
+default).
+
+You can select only some translations by means of the DOCLANGS
+environment variable. DOCLANGS is otherwise set by the ./configure step
+to all language supported by the Texinfo compiler and for which at least
+one manual translation is available. DOCLANGS is a space separated list
+of languages. ./configure --help for values supported. For instance:
+
+    make misc-info DOCLANGS=fr
+
+to make all manuals from the misc subdirectory into the info format and
+for language French only.
+
+Alternatively, you can use:
+
+   make -C doc/DIR FORMAT
+
+to build manuals from DIR subdirectory, output format FORMAT and for the
+default language only.
+
+Use:
+
+   make -C doc/DIR FORMAT DOCLANG=fr
+
+to build manuals from DIR subdirectory and output format FORMAT for the
+French language only (replace fr by any language supported for DOCLANGS
+as listed in ./configure --help).
+
+
+** Compiling one manual translation
 
 For the info output, and, say, SES manual in French:
 
     make -C doc/misc ses DOCLANG=fr
 
+ses-fr.info will go into the info directory.
+
 For the pdf output:
 
     make -C doc/misc ses-fr.pdf DOCLANG=fr
+
+ses-fr.pdf will go into the doc/misc directory.
 
 * Translating the Emacs manuals
 
