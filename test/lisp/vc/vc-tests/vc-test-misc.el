@@ -25,6 +25,7 @@
 
 (require 'ert-x)
 (require 'vc)
+(require 'vc-git)
 
 (ert-deftest vc-test-buffer-sync-fileset ()
   "Test `vc-buffer-sync-fileset'."
@@ -241,6 +242,50 @@
     (let ((vc-topic-branch-regexps t))
       (should (eq (vc--match-branch-name-regexps "master") 'topic))
       (should (eq (vc--match-branch-name-regexps "foo") 'trunk)))))
+
+(ert-deftest vc-test-vc-dir-on-symlink ()
+  "Test VC-Dir on a symlink to a repository.
+See bug#80803 and bug#80967."
+  (skip-unless (executable-find vc-git-program))
+  (let ((vc-handled-backends '(Git)))
+    (ert-with-temp-directory tempdir
+      (let* ((default-directory tempdir)
+             (src (expand-file-name "src/" tempdir))
+             (dest (expand-file-name "dest/" tempdir))
+             (file (expand-file-name "foo" dest))
+             file-buf truename-dir symlink-dir)
+        (make-directory dest)
+        (let ((default-directory dest)
+              vc-async-checkin)
+          (vc-create-repo 'Git)
+          (write-region "foo\n" nil file nil 'nomessage)
+          (with-current-buffer (setq file-buf (find-file-noselect file))
+            (vc-register `(Git (,file)))
+            (vc-checkin (list file) 'Git)
+            (insert "Initial commit")
+            (let (vc-async-checkin)
+              (log-edit-done))))
+        (make-symbolic-link dest src)
+        ;; Emulate an interactive call to `vc-dir'.
+        (vc-dir (file-truename src) 'Git)
+        (while (vc-dir-busy) (sit-for 0.05))
+        (should (equal default-directory dest))
+        (setq truename-dir (current-buffer))
+        ;; Now a `vc-dir' pointed at the symlink, which is unlike an
+        ;; interactive call to `vc-dir'.
+        (vc-dir src 'Git)
+        (while (vc-dir-busy) (sit-for 0.05))
+        (should (equal default-directory src))
+        (setq symlink-dir (current-buffer))
+        (with-current-buffer file-buf
+          (insert "bar")
+          (basic-save-buffer))
+        (dolist (buf (list truename-dir symlink-dir))
+          (with-current-buffer buf
+            (should (equal (vc-dir-fileinfo->name
+                            (ewoc-data
+                             (ewoc-nth vc-ewoc 1)))
+                           (file-name-nondirectory file)))))))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

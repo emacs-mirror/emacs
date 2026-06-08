@@ -1313,8 +1313,7 @@ that file."
 
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FNAME in any directory buffers that list it."
-  (let* ((file  (or fname buffer-file-name))
-         (file-tn (file-truename file))
+  (let* ((file (file-truename (or fname buffer-file-name)))
          (drop '()))
     (save-current-buffer
       ;; look for a vc-dir buffer that might show this file.
@@ -1333,20 +1332,20 @@ that file."
                          ;; `default-directory' in order to do its work,
                          ;; but that's irrelevant to us here.
                          (buffer-local-toplevel-value 'default-directory))))
-              (when (file-in-directory-p file-tn ddir)
-                (if (file-directory-p file-tn)
+              (when (file-in-directory-p file ddir)
+                (if (file-directory-p file)
 		    (progn
-		      (vc-dir-resync-directory-files file-tn)
+		      (vc-dir-resync-directory-files file)
 		      (ewoc-set-hf vc-ewoc
 				   (vc-dir-headers vc-dir-backend ddir) ""))
                   (let* ((complete-state
-                          ;; Pass FILE not FILE-TN here.  See bug#80967.
-                          (vc-dir-recompute-file-state file ddir))
+                          (vc-dir-recompute-file-state file
+                                                       (file-truename ddir)))
 			 (state (cadr complete-state)))
-                    (vc-dir-update
-                     (list complete-state)
-                     status-buf (or (not state)
-				    (eq state 'up-to-date)))))))))))
+                    (vc-dir-update (list complete-state)
+                                   status-buf
+                                   (or (not state)
+				       (eq state 'up-to-date)))))))))))
     ;; Remove out-of-date entries from vc-dir-buffers.
     (setq vc-dir-buffers
           (cl-nset-difference vc-dir-buffers drop :test #'eq))))
