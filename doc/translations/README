@@ -2,36 +2,36 @@
 ** Translations available
 
 Translations for language DOCLANG can be found under directory
-doc/translations/DOCLANG. DOCLANG is for instance fr for French.
+doc/translations/DOCLANG.  DOCLANG is for instance fr for French.
 
 ** Compiling all manual translations
 
 Manual Texinfo sources are grouped into four subdirectories DIR with DIR
 in { lispref, lispintro, emacs, misc}, and can be compiled to five
-output format FORMAT with FORMAT in { dvi, html, info, pdf, ps}. Texinfo
+output formats FORMAT with FORMAT in { dvi, html, info, pdf, ps}.  Texinfo
 source code is under doc/DIR for the default language, and under
 doc/translations/DOCLANG/DIR for language DOCLANG, for instance replace
 DOCLANG by fr for French.
 
 You can build all the manuals including their translations for any
 combination of DIR and FORMAT by making the target DIR-FORMAT with the
-top level Makefile. For instance:
+top level Makefile.  For instance:
 
-    make misc-infO
+    make misc-info
 
 to make all manuals from the misc subdirectory into the info format and
 for all the language listed in the DOCLANGS list resulting from the
 ./configure step or superseded by setting DOCLANGS in the
-environment. Outputs are made into the info directory for info format
+environment.  Outputs are made into the info directory for info format
 and into the doc/DIR subdirectory for other formats (the output is in
 doc/DIR, not doc/translations/DOCLANG/DIR, even when the DOCLANG is not
 default).
 
 You can select only some translations by means of the DOCLANGS
-environment variable. DOCLANGS is otherwise set by the ./configure step
+environment variable.  DOCLANGS is otherwise set by the ./configure step
 to all language supported by the Texinfo compiler and for which at least
-one manual translation is available. DOCLANGS is a space separated list
-of languages. ./configure --help for values supported. For instance:
+one manual translation is available.  DOCLANGS is a space separated list
+of languages.  ./configure --help for values supported.  For instance:
 
     make misc-info DOCLANGS=fr
 
@@ -139,7 +139,7 @@ few rules to follow:
 
 - Most Emacs manuals are set to include the docstyle.Texi file.  This
   file adds the "@documentencoding UTF-8" directive to the targeted
-  manual. There is no need to add this directive in a manual that
+  manual.  There is no need to add this directive in a manual that
   includes docstyle.texi.
 
 - Add a @documentlanguage directive that includes your language.
@@ -166,7 +166,7 @@ See the 'Bugs' section in the Emacs manual.
 ** Sending your contributions
 
 Send your contributions (files or revisions) for review to the Emacs
-development list at emacs-devel@gnu.org. Subscribing to the list is not
+development list at emacs-devel@gnu.org.  Subscribing to the list is not
 obligatory.
 
 Always send contributions in the format of the original document.  Most
