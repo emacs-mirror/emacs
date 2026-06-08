@@ -1220,17 +1220,34 @@ usage: (while TEST BODY...)  */)
   return Qnil;
 }
 
+struct funcall_with_delayed_message_data
+{
+  Lisp_Object *message;
+  struct atimer *timer;
+};
+
 static void
 with_delayed_message_display (struct atimer *timer)
 {
-  message3 (build_string (timer->client_data));
+  struct funcall_with_delayed_message_data *data
+    = timer->client_data;
+  if (data->timer)
+    {
+      message3 (*data->message);
+      data->timer = NULL;
+    }
 }
 
 static void
-with_delayed_message_cancel (void *timer)
+with_delayed_message_cancel (void *datap)
 {
-  xfree (((struct atimer *) timer)->client_data);
-  cancel_atimer (timer);
+  struct funcall_with_delayed_message_data *data
+    = datap;
+  if (data->timer)
+    {
+      cancel_atimer (data->timer);
+      data->timer = NULL;
+    }
 }
 
 DEFUN ("funcall-with-delayed-message",
@@ -1251,10 +1268,12 @@ is not displayed.  */)
 
   /* Set up the atimer.  */
   struct timespec interval = dtotimespec (XFLOATINT (timeout));
-  struct atimer *timer = start_atimer (ATIMER_RELATIVE, interval,
-				       with_delayed_message_display,
-				       xstrdup (SSDATA (message)));
-  record_unwind_protect_ptr (with_delayed_message_cancel, timer);
+  struct funcall_with_delayed_message_data data
+    = { .message = &message };
+  data.timer = start_atimer (ATIMER_RELATIVE, interval,
+			     with_delayed_message_display,
+			     &data);
+  record_unwind_protect_ptr (with_delayed_message_cancel, &data);
 
   Lisp_Object result = calln (function);
 

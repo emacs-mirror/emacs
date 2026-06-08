@@ -201,6 +201,9 @@ cancel_atimer (struct atimer *timer)
 	}
     }
 
+  /* We shouldn't be called with timers which aren't on either list.  */
+  eassert (i != 2);
+
   unblock_atimers (&oldset);
 }
 
