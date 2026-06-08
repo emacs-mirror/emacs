@@ -70,6 +70,16 @@ check out the repository to prepare a patch for the package maintainer.
 ---
 *** Messages from Ansible are now recognized.
 
+** Project
+
+---
+*** 'C-x p v' ('project-vc-dir') uses the truename of the project root.
+'C-x v d' already did this when used interactively.  So e.g. if 'link/'
+is a symbolic link to 'target/', then 'C-x v d link/ RET' is the same as
+'C-x v d target/ RET'.  Now the same is true for 'C-x p v', so that if
+the project root is a symbolic link, 'C-x p v' first finds the truename
+of the directory named by that link, and then opens VC-Dir there.
+
 
 * New Modes and Packages in Emacs 32.1
 
