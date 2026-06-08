@@ -5478,8 +5478,10 @@ should be set connection-local.")
   "Return non-nil if ARG exists in default `process-environment'.
 Tramp does not propagate local environment variables in remote
 processes."
-  (or (ignore-error void-variable
-        (member arg (buffer-local-toplevel-value 'process-environment)))
+  (or ;; `buffer-local-toplevel-value' has been defined in Emacs 31.1.
+      (ignore-error (void-variable void-function)
+        (member arg (tramp-compat-funcall 'buffer-local-toplevel-value
+		      'process-environment)))
       (member arg (default-toplevel-value 'process-environment))))
 
 (defun tramp-handle-make-process (&rest args)
