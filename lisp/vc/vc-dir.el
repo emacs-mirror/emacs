@@ -1424,23 +1424,81 @@ therefore also disable the fetching."
   :group 'vc
   :version "31.1")
 
-(defun vc-dir--count-outgoing (backend)
-  "Call `vc--count-outgoing' with a delayed message and local quits."
-  (let ((inhibit-quit t))
-    (prog1
-        (with-local-quit
-          (with-delayed-message
-              (2 (substitute-command-keys
-                  "Counting outgoing revisions ...
-(\\[keyboard-quit] to skip; \
-see `vc-dir-show-outgoing-count' if this is frequently slow)"))
-            (ignore-errors (vc--count-outgoing backend))))
-      (setq quit-flag nil))))
+(defvar log-view-message-re)
+
+(defun vc-dir--count-outgoing (backend overlay)
+  "Populate OVERLAY with count of outgoing revisions for backend BACKEND.
+See `vc-dir-async-header-values' for an explanation of how this function
+uses OVERLAY."
+  (overlay-put overlay 'after-string
+               (propertize "[counting ...]" 'face 'vc-dir-header-value))
+  (let ((display-buffer-overriding-action
+         '(display-buffer-no-window (allow-no-window . t)))
+        (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
+        (buf (generate-new-buffer " *temp*" t))
+        proc)
+    (with-current-buffer buf
+      (condition-case _
+          (progn
+            (vc-incoming-outgoing-internal backend nil
+                                           (current-buffer) 'log-outgoing)
+            (overlay-put overlay 'proc (get-buffer-process (current-buffer)))
+            (setq proc (get-buffer-process (current-buffer)))
+            (vc-run-delayed
+              (unwind-protect
+                  (overlay-put
+                   overlay 'after-string
+                   (if (or (not (eq (process-status proc) 'exit))
+                           (plusp (process-exit-status proc)))
+                       unknown
+                     (goto-char (point-min))
+                     (let ((count (how-many log-view-message-re)))
+                       (if (zerop count)
+                           (propertize "No unpushed revisions"
+                                       'face 'vc-dir-header-value)
+                         (propertize
+                          (format (ngettext "%d unpushed revision"
+                                            "%d unpushed revisions"
+                                            count)
+                                  count)
+                          'face 'vc-dir-header-urgent-value
+                          'mouse-face 'highlight
+                          'keymap vc-dir-outgoing-revisions-map
+                          'help-echo "\\<vc-dir-outgoing-revisions-map>\
+\\[vc-root-log-outgoing]: List outgoing revisions")))))
+                (kill-buffer))))
+        (error (overlay-put overlay 'after-string unknown)
+               (kill-buffer buf))))))
+
+(defvar-local vc-dir-async-header-values
+  '((vc-dir-show-outgoing-count "Outgoing" vc-dir--count-outgoing))
+  "List of specifications for asynchronously computed VC-Dir header values.
+Each element is a list (VAR HEADER FUN) where
+- VAR is the name of a variable.
+  If the variable's value is nil, the async header will not be included.
+  This is so the user can turn off including the header.
+- HEADER is a string label for the header in the VC-Dir buffer.
+- FUN is a function of two arguments (BACKEND OVERLAY) that starts the
+  asynchronous computation of the header's value.  BACKEND is the VC
+  backend.  OVERLAY is an overlay in the target VC-Dir buffer.
+  FUN should set
+  - the `after-string' property of the overlay to a temporary value
+    indicating that an async computation is in progress, conventionally
+    of the form \"[%s ...]\";
+  - the `proc' property of the overlay to the asynchronous process it starts;
+  - the `after-string' property of the overlay to the computed header
+    value after the asychronous computation completes, \"<<unknown>>\"
+    if the information was not obtainable.
+  See `vc-dir--count-outgoing' for an example.
+
+VC backend `dir-extra-headers' implementations may push additional
+elements to this list.")
 
 (defun vc-dir-headers (backend dir)
   "Display the headers in the *VC-Dir* buffer.
 It calls the `dir-extra-headers' backend method to display backend
 specific headers."
+  (kill-local-variable 'vc-dir-async-header-values)
   (concat
    (propertize "VC backend : " 'face 'vc-dir-header)
    (propertize (format "%s\n" backend) 'face 'vc-dir-header-value)
@@ -1449,21 +1507,12 @@ specific headers."
                'face 'vc-dir-header-value)
    (vc-call-backend backend 'dir-extra-headers dir)
    "\n"
-   (and-let* (vc-dir-show-outgoing-count
-              (count (vc-dir--count-outgoing backend))
-              (_ (plusp count)))
-     (concat (propertize "Outgoing   : "
-                         'face 'vc-dir-header)
-             (propertize (format (ngettext "%d unpushed revision"
-                                           "%d unpushed revisions"
-                                           count)
-                                 count)
-                         'face 'vc-dir-header-urgent-value
-                         'mouse-face 'highlight
-                         'keymap vc-dir-outgoing-revisions-map
-                         'help-echo "\\<vc-dir-outgoing-revisions-map>\
-\\[vc-root-log-outgoing]: List outgoing revisions")
-             "\n"))))
+   (mapconcat (pcase-lambda (`(,var ,header ,_))
+                (and (symbol-value var)
+                     (concat (propertize (format "%-11s: " header)
+                                         'face 'vc-dir-header)
+                             "\n")))
+              vc-dir-async-header-values)))
 
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
@@ -1547,6 +1596,19 @@ Throw an error if another update process is in progress."
       ;; Bzr has serious locking problems, so setup the headers first (this is
       ;; synchronous) rather than doing it while dir-status is running.
       (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) "")
+      ;; Clear overlays in the header from the last run.
+      (dolist (overlay (overlays-in (point-min)
+                                    (length (car (ewoc-get-hf vc-ewoc)))))
+        (when-let* ((proc (overlay-get overlay 'proc))
+                    (_ (eq 'run (process-status proc))))
+          (kill-process proc))
+        (delete-overlay overlay))
+      ;; Set up new async header overlays.
+      (save-excursion
+        (pcase-dolist (`(,_ ,field ,fun) vc-dir-async-header-values)
+          (goto-char (point-min))
+          (when (re-search-forward (format "^%s\\s-" field) nil t)
+            (funcall fun backend (make-overlay (pos-eol) (pos-eol))))))
       (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)
