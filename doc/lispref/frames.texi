@@ -1303,6 +1303,28 @@ The default is @code{inhibit} on NS builds and @code{nil} everywhere
 else.
 @end defopt
 
+@defun set-frame-size-and-position &optional frame width height left top
+This function sets the new size and position of @var{frame} in a single
+step; @var{frame} defaults to the selected frame.  The size and position
+are specified as with the corresponding frame parameters @code{width},
+@code{height}, @code{left}, and @code{top} (@pxref{Size Parameters}, and
+@pxref{Position Parameters}).  If any of these 4 arguments is omitted or
+@code{nil}, that means not to change the corresponding parameter of
+@var{frame}.
+@end defun
+
+@cindex gravity of frame
+@defun set-frame-size-and-position-pixelwise frame width height x y &optional gravity
+This function sets the new size and position of a frame, similarly to
+@code{set-frame-size-and-position}, but in pixel units.  The optional
+argument @var{gravity} specified the new @dfn{gravity} of a frame and
+must be a value between 0 and 10; it defaults to 1.  The gravity
+determines how a window or its contents adjust when resized or
+positioned.  The interpretation is specific to each window-system; for
+example, GTK uses window gravity to define which point of the window
+remains fixed during resizing.
+@end defun
+
 @cindex tracking frame size changes
   The abnormal hook @code{window-size-change-functions} (@pxref{Window
 Hooks}) tracks all changes of the inner size of a frame including those

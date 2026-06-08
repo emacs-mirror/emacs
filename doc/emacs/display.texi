@@ -1640,12 +1640,16 @@ present.
 
 @findex delete-trailing-whitespace
 @vindex delete-trailing-lines
+@findex delete-trailing-whitespace-mode
   Type @kbd{M-x delete-trailing-whitespace} to delete all trailing
 whitespace.  This command deletes all extra spaces at the end of each
 line in the buffer, and all empty lines at the end of the buffer; to
 ignore the latter, change the variable @code{delete-trailing-lines} to
 @code{nil}.  If the region is active, the command instead deletes
-extra spaces at the end of each line in the region.
+extra spaces at the end of each line in the region.  If you enable the
+buffer-local mode @code{delete-trailing-whitespace-mode}, Emacs will
+automatically invoke @code{delete-trailing-whitespace} each time you
+save the buffer.
 
 @vindex indicate-empty-lines
 @cindex unused lines

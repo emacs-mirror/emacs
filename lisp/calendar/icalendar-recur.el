@@ -1644,7 +1644,7 @@ with the UTC offset in effect prior to the OBS-ONSET of OBSERVANCE (see
 RFC5545 Section 3.3.5).  So e.g. at the switch from Standard to Daylight
 in US Eastern, 2:30AM EST (a nonexistent time) becomes 3:30AM EDT, and
 at the switch from Daylight to Standard, 1:30AM (which occurs twice)
-becomes 1:30AM EDT, the first occurence."
+becomes 1:30AM EDT, the first occurrence."
   (ical:with-component observance
       ((ical:tzoffsetfrom :value offset-from)
        (ical:tzoffsetto :value offset-to))

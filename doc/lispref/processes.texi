@@ -1670,9 +1670,10 @@ On some systems, when Emacs reads the output from a subprocess, the
 output data is read in very small blocks, potentially resulting in
 very poor performance.  This behavior can be remedied to some extent
 by setting the variable @code{process-adaptive-read-buffering} to a
-non-@code{nil} value (the default), as it will automatically delay reading
+non-@code{nil} value, as it will automatically delay reading
 from such processes, thus allowing them to produce more output before
-Emacs tries to read it.
+Emacs tries to read it.  The default is @code{nil}, since a
+non-@code{nil} value reduces performance.
 @end defvar
 
 @menu
