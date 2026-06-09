@@ -253,6 +253,8 @@
 (ert-deftest vc-test-vc-dir-on-symlink ()
   "Test VC-Dir on a symlink to a repository.
 See bug#80803 and bug#80967."
+  ;; Git for Windows could fail in a symlinked tree.
+  (skip-when (eq system-type 'windows-nt))
   (skip-unless (executable-find vc-git-program))
   (vc-test--with-author-identity 'Git
     (let ((vc-handled-backends '(Git)))
