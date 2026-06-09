@@ -317,7 +317,7 @@ automatically)."
     ((toml-ts-mode conf-toml-mode) . ("tombi" "lsp"))
     (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
     (nickel-mode . ("nls"))
-    ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))
+    ((nushell-mode nushell-ts-mode nu-ts-mode) . ("nu" "--lsp"))
     (gdscript-mode . ("localhost" 6008))
     (fennel-mode . ("fennel-ls"))
     (move-mode . ("move-analyzer"))
