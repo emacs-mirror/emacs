@@ -1184,7 +1184,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
                     ;; FIXME: If someday Emacs has a function type symbol
                     ;; like `unicode-function' or `hour-function', this
                     ;; will produce an ungrammatical string (bug#79469).
-                    (concat (if (string-match-p "\\`[aeiou]" (symbol-name type))
+                    (concat (if (and (equal beg "a ")
+                                     (string-match-p "\\`[aeiou]" typ-str))
                                 "an "
                               beg)
                             typ-str))))))
