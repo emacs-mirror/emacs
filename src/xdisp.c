@@ -15321,16 +15321,24 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
 
   if (down_p)
     {
-      /* Show the clicked button in pressed state.  */
+      /* Show the clicked button in pressed state, but only when
+	 the click was on the close button.  Clicking elsewhere on
+	 the tab should not change the close button's appearance,
+	 so just keep the ordinary mouse-face highlight.  */
       if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN, true);
+	show_mouse_face (hlinfo, close_p ? DRAW_IMAGE_SUNKEN : DRAW_MOUSE_FACE,
+			 true);
       f->last_tab_bar_item = prop_idx; /* record the pressed tab */
     }
   else
     {
-      /* Show item in released state.  */
+      /* Show item in released state.  Only change the close button's
+	 appearance when the click was on it.  Elsewhere keep the
+	 ordinary mouse-face highlight to avoid the close button
+	 blinking on release.  */
       if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_RAISED, true);
+	show_mouse_face (hlinfo, close_p ? DRAW_IMAGE_RAISED : DRAW_MOUSE_FACE,
+			 true);
       f->last_tab_bar_item = -1;
     }
 
