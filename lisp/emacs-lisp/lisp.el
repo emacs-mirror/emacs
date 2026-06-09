@@ -756,15 +756,10 @@ Interactively, the behavior depends on `narrow-to-defun-include-comments'."
       ;; the function might go to the previous function.
       ;;
       ;; Therefore we first move one character forward and then call
-      ;; `beginning-of-defun'.  However now we must check that we did
-      ;; not move into the next function.
-      (let ((here (point)))
-        (unless (eolp)
-	  (forward-char))
-        (beginning-of-defun)
-        (when (< (point) here)
-          (goto-char here)
-          (beginning-of-defun)))
+      ;; `beginning-of-defun'.
+      (unless (eolp)
+	(forward-char))
+      (beginning-of-defun)
       (setq beg (point))
       (end-of-defun)
       (setq end (point))
