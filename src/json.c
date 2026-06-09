@@ -877,6 +877,7 @@ json_make_object_workspace_for_slow_path (struct json_parser *parser,
 	    sizeof (Lisp_Object) * parser->object_workspace_current);
 #endif
   parser->object_workspace = new_workspace_ptr;
+  parser->object_workspace_size = new_workspace_size;
 }
 
 INLINE void
