@@ -120,6 +120,10 @@
 (require 'project)
 (require 'cl-lib)
 
+(require 'vc-tests-helpers
+         (ert-resource-file "vc-tests-helpers"))
+
+(defvar vc-hg-global-switches)
 (declare-function w32-application-type "w32proc.c")
 
 ;; The working horses.
@@ -131,58 +135,6 @@ Don't set it globally, the functions should be let-bound.")
 (defun vc-test--revision-granularity-function (backend)
   "Run the `revision-granularity' backend function."
   (vc-call-backend backend 'revision-granularity))
-
-(defun vc-test--create-repo-function (backend)
-  "Run the `vc-create-repo' backend function.
-For backends which don't support it, it is emulated."
-
-  (cond
-   ((eq backend 'CVS)
-    (let ((tmp-dir
-	   (expand-file-name
-	    (make-temp-name "vc-test") temporary-file-directory)))
-      (make-directory (expand-file-name "module" tmp-dir) 'parents)
-      (make-directory (expand-file-name "CVSROOT" tmp-dir) 'parents)
-      (if (not (fboundp 'w32-application-type))
-          (shell-command-to-string (format "cvs -Q -d:local:%s co module"
-                                           tmp-dir))
-        (let ((cvs-prog (executable-find "cvs"))
-              (tdir tmp-dir))
-          ;; If CVS executable is an MSYS program, reformat the file
-          ;; name of TMP-DIR to have the /d/foo/bar form supported by
-          ;; MSYS programs.  (FIXME: What about Cygwin cvs.exe?)
-          (if (eq (w32-application-type cvs-prog) 'msys)
-              (setq tdir
-                    (concat "/" (substring tmp-dir 0 1) (substring tmp-dir 2))))
-          (shell-command-to-string (format "cvs -Q -d:local:%s co module"
-                                           tdir))))
-      (rename-file "module/CVS" default-directory)
-      (delete-directory "module" 'recursive)
-      ;; We must cleanup the "remote" CVS repo as well.
-      (add-hook 'vc-test--cleanup-hook
-		(lambda () (delete-directory tmp-dir 'recursive)))))
-
-   ((eq backend 'Arch)
-    (let ((archive-name (format "%s--%s" user-mail-address (random))))
-      (when (string-match
-	     "no arch user id set" (shell-command-to-string "tla my-id"))
-	(shell-command-to-string
-	 (format "tla my-id \"<%s>\"" user-mail-address)))
-      (shell-command-to-string
-       (format "tla make-archive %s %s" archive-name default-directory))
-      (shell-command-to-string
-       (format "tla my-default-archive %s" archive-name))))
-
-   ((eq backend 'Mtn)
-    (let ((archive-name "foo.mtn"))
-      (shell-command-to-string
-       (format
-	"mtn db init --db=%s"
-	(expand-file-name archive-name default-directory)))
-      (shell-command-to-string
-       (format "mtn --db=%s --branch=foo setup ." archive-name))))
-
-   (t (vc-create-repo backend))))
 
 (defmacro vc--fix-home-for-bzr (tempdir)
   ;; See the comment in `vc-bzr-test-bug9726'.
@@ -717,28 +669,6 @@ This checks also `vc-backend' and `vc-responsible-backend'."
         ;; Save exit.
         (ignore-errors
           (run-hooks 'vc-test--cleanup-hook))))))
-
-(defvar vc-hg-global-switches)
-
-(defmacro vc-test--with-author-identity (backend &rest body)
-  (declare (indent 1) (debug t))
-  `(let ((process-environment process-environment)
-         (vc-hg-global-switches vc-hg-global-switches))
-     ;; git tries various approaches to guess a user name and email,
-     ;; which can fail depending on how the system is configured.
-     ;; Eg if the user account has no GECOS, git commit can fail with
-     ;; status 128 "fatal: empty ident name".
-     (when (memq ,backend '(Bzr Git))
-       (push "EMAIL=joh.doe@example.com" process-environment))
-     (when (eq ,backend 'Git)
-       (setq process-environment (append '("GIT_AUTHOR_NAME=A"
-                                           "GIT_COMMITTER_NAME=C")
-                                         process-environment)))
-
-     ;; Mercurial fails to autodetect an identity on MS-Windows.
-     (when (eq ,backend 'Hg)
-       (push "--config=ui.username=john@doe.ee" vc-hg-global-switches))
-     ,@body))
 
 (declare-function log-edit-done "vc/log-edit")
 
