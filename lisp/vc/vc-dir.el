@@ -1275,14 +1275,14 @@ that file."
       ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
       ;; info, this forces the backend to update it.
       (vc-call-backend vc-dir-backend 'registered fname))
-    ;; Ensure we return a nil state if the file does not exist so that
-    ;; it disappears from VC-Dir (bug#81191).
-    (if (file-exists-p fname)
-        (list fname-short
-              (vc-call-backend vc-dir-backend 'state fname)
-              (vc-call-backend vc-dir-backend
-                               'status-fileinfo-extra fname))
-      (list fname-short nil nil))))
+    (let ((state (vc-call-backend vc-dir-backend 'state fname))
+          (extra (vc-call-backend vc-dir-backend
+                                  'status-fileinfo-extra fname)))
+      ;; Ensure we return a nil state if the file does not exist and is
+      ;; not tracked so that it disappears from VC-Dir (bug#81191).
+      (if (and (eq state 'up-to-date) (not (file-exists-p fname)))
+          (list fname-short nil nil)
+        (list fname-short state extra)))))
 
 (defun vc-dir-find-child-files (dirname)
   ;; Give a DIRNAME string return the list of all child files shown in
