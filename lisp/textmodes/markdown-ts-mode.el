@@ -3221,6 +3221,7 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
             (memq command markdown-ts-code-block-ignore-output-commands))
            (source-buffer (current-buffer)))
       (with-work-buffer
+        (setq mark-active nil) ; See bug#81111.
         (insert str)
         (goto-char adj-point)
         ;; Propagate mark (and region).
