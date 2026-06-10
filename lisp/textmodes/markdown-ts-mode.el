@@ -3214,8 +3214,8 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
            (region-end (use-region-end))
            (adj-point (1+ (- orig-point beg)))
            (adj-mark (when orig-mark (1+ (- orig-mark beg))))
-           (adj-region-beg (when region-beg (1+ (- orig-point region-beg))))
-           (adj-region-end (when region-end (1+ (- orig-point region-end))))
+           (adj-region-beg (when region-beg (1+ (- region-beg beg))))
+           (adj-region-end (when region-end (1+ (- region-end beg))))
            (point-delta 0)
            (ignore-output
             (memq command markdown-ts-code-block-ignore-output-commands))
