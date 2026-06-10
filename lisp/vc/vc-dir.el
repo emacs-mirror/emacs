@@ -1275,10 +1275,10 @@ that file."
       ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
       ;; info, this forces the backend to update it.
       (vc-call-backend vc-dir-backend 'registered fname))
-    (let ((default-directory def-dir)
-          (state (vc-call-backend vc-dir-backend 'state fname-short))
-          (extra (vc-call-backend vc-dir-backend
-                                  'status-fileinfo-extra fname-short)))
+    (let* ((default-directory def-dir)
+           (state (vc-call-backend vc-dir-backend 'state fname-short))
+           (extra (vc-call-backend vc-dir-backend
+                                   'status-fileinfo-extra fname-short)))
       ;; Ensure we return a nil state if the file does not exist and is
       ;; not tracked so that it disappears from VC-Dir (bug#81191).
       (if (and (eq state 'up-to-date) (not (file-exists-p fname)))
