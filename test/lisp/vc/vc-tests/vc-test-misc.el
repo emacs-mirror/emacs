@@ -292,10 +292,11 @@ See bug#80803 and bug#80967."
             (basic-save-buffer))
           (dolist (buf (list truename-dir symlink-dir))
             (with-current-buffer buf
-              (should (equal (vc-dir-fileinfo->name
-                              (ewoc-data
-                               (ewoc-nth vc-ewoc 1)))
-                             (file-name-nondirectory file))))))))))
+              (let ((data (ewoc-data (ewoc-nth vc-ewoc 1))))
+                (should (equal (vc-dir-fileinfo->name data)
+                               (file-name-nondirectory file)))
+                (should (equal (vc-dir-fileinfo->state data)
+                               'edited))))))))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here
