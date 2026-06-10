@@ -8920,6 +8920,9 @@ process sentinels.  They shall not disturb each other."
 	  (intern
 	   (string-remove-suffix
 	    "-file-name-handler" (symbol-name file-name-handler)))))
+    ;; Cleanup.
+    (tramp-remove-external-operation #'tramp--test-operation backend)
+    (tramp-remove-external-operation #'process-id backend)
 
     ;; There is no backend specific code.
     (should-not
@@ -8950,6 +8953,9 @@ process sentinels.  They shall not disturb each other."
     ;; This doesn't hurt.
     (tramp-add-external-operation
      #'tramp--test-operation #'tramp--handle-test-operation backend 'file)
+    (should
+     (eq #'tramp--handle-test-operation
+	 (tramp-external-operation-p #'tramp--test-operation backend)))
 
     ;; The backend specific function is called.
     (should
@@ -8977,6 +8983,7 @@ process sentinels.  They shall not disturb each other."
 
     (tramp-remove-external-operation #'tramp--test-operation backend)
     ;; There is no backend specific code.
+    (should-not (tramp-external-operation-p #'tramp--test-operation backend))
     (should-not
      (string-equal (tramp--test-operation ert-remote-temporary-file-directory)
 		   (tramp--handle-test-operation
@@ -9004,6 +9011,9 @@ process sentinels.  They shall not disturb each other."
     (tramp-add-external-operation
      #'tramp--test-operation #'tramp--handle-test-operation
      backend 'default-directory)
+    (should
+     (eq #'tramp--handle-test-operation
+	 (tramp-external-operation-p #'tramp--test-operation backend)))
 
     ;; The backend specific function is called.
     (let ((default-directory ert-remote-temporary-file-directory))
@@ -9017,6 +9027,7 @@ process sentinels.  They shall not disturb each other."
 
     (tramp-remove-external-operation #'tramp--test-operation backend)
     ;; There is no backend specific code.
+    (should-not (tramp-external-operation-p #'tramp--test-operation backend))
     (let ((default-directory ert-remote-temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
@@ -9048,16 +9059,48 @@ process sentinels.  They shall not disturb each other."
 	      (should (natnump (setq id (process-id proc))))
 	      (tramp-add-external-operation
 	       #'process-id #'tramp--handle-process-id backend 'process)
+	      (should
+	       (eq #'tramp--handle-process-id
+		   (tramp-external-operation-p #'process-id backend)))
 	      (should (= (process-id proc) (1+ id))))
 
 	  ;; Cleanup.
 	  (tramp-remove-external-operation #'process-id backend)
+	  (should-not (tramp-external-operation-p #'process-id backend))
 	  (ignore-errors (delete-process proc)))))
+
+    ;; Test `tramp-file-name' arg type.
+    (tramp-add-external-operation
+     #'tramp--test-operation #'tramp--handle-test-operation
+     backend 'tramp-file-name)
+    (should
+     (eq #'tramp--handle-test-operation
+	 (tramp-external-operation-p #'tramp--test-operation backend)))
+
+    ;; The backend specific function is called.
+    (should
+     (string-equal (tramp--test-operation tramp-test-vec)
+		   (tramp--handle-test-operation tramp-test-vec)))
+    (let ((vec (copy-tramp-file-name tramp-test-vec)))
+      (setf (tramp-file-name-method vec) (if (tramp--test-sh-p) "sftp" "sudo"))
+      (should-not
+       (string-equal (tramp--test-operation vec)
+		     (tramp--handle-test-operation vec))))
+
+    (tramp-remove-external-operation #'tramp--test-operation backend)
+    ;; There is no backend specific code.
+    (should-not (tramp-external-operation-p #'tramp--test-operation backend))
+    (should-not
+     (string-equal (tramp--test-operation tramp-test-vec)
+		   (tramp--handle-test-operation tramp-test-vec)))
 
     ;; Test function arg type.
     (tramp-add-external-operation
      #'tramp--test-operation #'tramp--handle-test-operation
      backend #'tramp--test-operation-file-name-for-operation)
+    (should
+     (eq #'tramp--handle-test-operation
+	 (tramp-external-operation-p #'tramp--test-operation backend)))
 
     ;; The backend specific function is called.
     (let ((default-directory ert-remote-temporary-file-directory))
@@ -9071,6 +9114,7 @@ process sentinels.  They shall not disturb each other."
 
     (tramp-remove-external-operation #'tramp--test-operation backend)
     ;; There is no backend specific code.
+    (should-not (tramp-external-operation-p #'tramp--test-operation backend))
     (let ((default-directory ert-remote-temporary-file-directory))
       (should-not
        (string-equal (tramp--test-operation)
