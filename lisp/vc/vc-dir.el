@@ -1336,8 +1336,7 @@ that file."
                 (if (file-directory-p file)
 		    (progn
 		      (vc-dir-resync-directory-files file)
-		      (ewoc-set-hf vc-ewoc
-				   (vc-dir-headers vc-dir-backend ddir) ""))
+		      (vc-dir--set-header ddir))
                   (let* ((complete-state
                           (vc-dir-recompute-file-state file
                                                        (file-truename ddir)))
@@ -1508,6 +1507,23 @@ specific headers."
                         "\n"))
               vc-dir-async-header-values)))
 
+(defun vc-dir--set-header (def-dir)
+  (ewoc-set-hf vc-ewoc (vc-dir-headers vc-dir-backend def-dir) "")
+  ;; Clear overlays in the header from the last run.
+  (dolist (overlay (overlays-in (point-min)
+                                (length (car (ewoc-get-hf vc-ewoc)))))
+    (when-let* ((proc (overlay-get overlay 'proc))
+                (_ (eq 'run (process-status proc))))
+      (kill-process proc))
+    (delete-overlay overlay))
+  ;; Set up new async header overlays.
+  (save-excursion
+    (pcase-dolist (`(,field . ,fun) vc-dir-async-header-values)
+      (goto-char (point-min))
+      (when (re-search-forward (format "^%s\\s-" field) nil t)
+        (funcall fun vc-dir-backend
+                 (make-overlay (pos-eol) (pos-eol)))))))
+
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
   (let ((def-dir default-directory)
@@ -1588,21 +1604,8 @@ Throw an error if another update process is in progress."
 		    (setf (vc-dir-fileinfo->needs-update info) t) nil))
                 vc-ewoc)
       ;; Bzr has serious locking problems, so setup the headers first (this is
-      ;; synchronous) rather than doing it while dir-status is running.
-      (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) "")
-      ;; Clear overlays in the header from the last run.
-      (dolist (overlay (overlays-in (point-min)
-                                    (length (car (ewoc-get-hf vc-ewoc)))))
-        (when-let* ((proc (overlay-get overlay 'proc))
-                    (_ (eq 'run (process-status proc))))
-          (kill-process proc))
-        (delete-overlay overlay))
-      ;; Set up new async header overlays.
-      (save-excursion
-        (pcase-dolist (`(,field . ,fun) vc-dir-async-header-values)
-          (goto-char (point-min))
-          (when (re-search-forward (format "^%s\\s-" field) nil t)
-            (funcall fun backend (make-overlay (pos-eol) (pos-eol))))))
+      ;; mostly synchronous) rather than doing it while dir-status is running.
+      (vc-dir--set-header def-dir)
       (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)
