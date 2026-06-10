@@ -334,10 +334,10 @@ automatically killed, which means that in a such case
           (erase-buffer)
           (delete-all-overlays))
         (let (change-major-mode-hook)
-          ;; `kill-all-local-variables' does not kill permanent locals
-          ;; like `buffer-read-only'.
-          (setq buffer-read-only nil)
-          (kill-all-local-variables t))
+          ;; Ensure `kill-all-local-variables' kills *all* permanent locals
+          ;; rather than exempting any, and resets the buffer to pristine
+          ;; state.
+          (kill-all-local-variables 'reset))
         ;; Make the buffer available again.
         (push buffer work-buffer--list)))
   ;; If the maximum number of reusable work buffers is exceeded, kill

@@ -3031,15 +3031,33 @@ As a special exception, local variables whose names have a non-nil
 the optional KILL-PERMANENT argument is non-nil, clear out these local
 variables, too.
 
+If KILL-PERMANENT is the symbol `permanent-local', kill local variables
+and ignore variable watchers.  If KILL-PERMANENT is the symbol `reset',
+ignore variable watchers and reset the buffer as if newly created.  Use
+these with caution.  For example, `reset' sets buffer variables such as
+`default-directory' to nil and may result in unexpected behavior.
+
 The first thing this function does is run
 the normal hook `change-major-mode-hook'.  */)
   (Lisp_Object kill_permanent)
 {
   run_hook (Qchange_major_mode_hook);
 
-  /* Actually eliminate all local bindings of this buffer.  */
+  int permanent_too = 0;
+  if (!NILP (kill_permanent))
+    {
+      permanent_too = 2;
+      if (EQ (kill_permanent, Qpermanent_local))
+        permanent_too = 1;
+      else if (EQ (kill_permanent, Qreset))
+        {
+          permanent_too = 1;
+          reset_buffer (current_buffer);
+        }
+    }
 
-  reset_buffer_local_variables (current_buffer, !NILP (kill_permanent) ? 2 : 0);
+  /* Actually eliminate all local bindings of this buffer.  */
+  reset_buffer_local_variables (current_buffer, permanent_too);
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */

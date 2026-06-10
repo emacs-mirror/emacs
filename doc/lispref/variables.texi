@@ -1748,6 +1748,14 @@ local hook functions that have a non-@code{nil}
 killed, but if the optional @var{kill-permanent} argument is
 non-@code{nil}, even those variables will be killed.
 
+If @var{kill-permanent} is the symbol @code{permanent-local} the
+function @code{kill-all-local-variables} kills local variables and
+ignores any variable watchers.  If it is the symbol @code{reset},
+variable watchers are ignored and the buffer is reset as if the buffer
+was newly created.  Use the foregoing with caution: For example,
+@code{reset} sets buffer variables such as @code{default-directory} to
+@code{nil} and may result in unexpected behavior.
+
 This function also resets certain other information pertaining to the
 buffer: it sets the local keymap to @code{nil}, the syntax table to the
 value of @code{(standard-syntax-table)}, the case table to
