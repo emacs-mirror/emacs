@@ -3741,6 +3741,18 @@ Return what remains of the list."
                  (and (eq (marker-buffer m) (current-buffer))
                       (= apos m)
                       (push marker-adj valid-marker-adjustments))))
+             ;; The same for weakly held markers
+             (while (pcase-exhaustive (car list)
+                      (`(apply undo--adjust-weak-marker ,ht ,id ,distance)
+                       (pop list)
+                       (let ((m (gethash id ht)))
+                         (when (and m
+                                    (eq (marker-buffer m) (current-buffer))
+                                    (= apos m))
+                           (push (cons m distance)
+                                 valid-marker-adjustments)))
+                       t)
+                      (`,_ nil)))
              ;; Insert string and adjust point
              (if (< pos 0)
                  (progn

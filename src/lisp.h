@@ -5841,6 +5841,9 @@ extern void record_change (ptrdiff_t, ptrdiff_t);
 extern void record_property_change (ptrdiff_t, ptrdiff_t,
 				    Lisp_Object, Lisp_Object,
                                     Lisp_Object);
+#ifdef HAVE_MPS
+extern void scrub_undo_lists (void);
+#endif
 extern void syms_of_undo (void);
 
 /* Defined in textprop.c.  */

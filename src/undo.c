@@ -117,6 +117,108 @@ record_insert (ptrdiff_t beg, ptrdiff_t length)
 		  Fcons (Fcons (lbeg, lend), BVAR (current_buffer, undo_list)));
 }
 
+#ifdef HAVE_MPS
+
+/* A weak_marker_table is a table of weakly held markers for the
+   undo-list.
+
+   To allow the GC to collect markers from the undo-list, we avoid
+   direct references from the undo-list to markers.  Instead, we
+   assign markers an integer id and record (id, marker) pairs in a
+   weak hash table (the id_to_marker field).  Only the id is stored in
+   the undo-list.
+
+   The marker_to_id field is another weak hash table that contains the
+   same pairs but in reverse order (marker, id).  We use that to reuse
+   the id of markers that already have an id.
+
+   The next_id field is a counter used to generate ids.
+
+   The last_count field helps to detect removed markers.  We record
+   the hash-table-count when a new entry is added to the id_to_marker
+   hash table.  Later, we compare last_count with the then current
+   hash-table-count; if it smaller, then we know that the GC has
+   removed some entries.  */
+struct weak_marker_table
+{
+  Lisp_Object id_to_marker;
+  Lisp_Object marker_to_id;
+  EMACS_INT next_id;
+  EMACS_INT last_count;
+};
+
+static struct weak_marker_table weak_marker_table;
+
+/* Remove (apply undo--adjust-weak-marker HASHTABLE KEY D) entries
+   where KEY is no longer in HASHTABLE.  */
+
+static Lisp_Object
+scrub_undo_list (Lisp_Object list)
+{
+  Lisp_Object tail, *prev = &list;
+
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
+    {
+      Lisp_Object entry = XCAR (tail);
+      if (CONSP (entry) && EQ (Qapply, XCAR (entry))
+	  && EQ (Qundo__adjust_weak_marker, XCAR (XCDR (entry)))
+	  && NILP (Fgethash (Fnth (make_fixnum (3), entry),
+			     Fnth (make_fixnum (2), entry), Qnil)))
+	*prev = XCDR (tail);
+      else
+	prev = xcdr_addr (tail);
+    }
+  return list;
+}
+
+void
+scrub_undo_lists (void)
+{
+  struct weak_marker_table *t = &weak_marker_table;
+
+  EMACS_INT count = XFIXNUM (Fhash_table_count (t->id_to_marker));
+
+  if (count == t->last_count)
+    return;
+
+  eassert (count < t->last_count);
+  t->last_count = count;
+
+  Lisp_Object tail, buffer;
+  FOR_EACH_LIVE_BUFFER (tail, buffer)
+    {
+      struct buffer *b = XBUFFER (buffer);
+      if (EQ (BVAR (b, undo_list), Qt))
+	continue;
+      bset_undo_list (b, scrub_undo_list (BVAR (b, undo_list)));
+    }
+}
+
+static Lisp_Object
+alloc_weak_marker_id (struct weak_marker_table *t, Lisp_Object marker)
+{
+  EMACS_INT count = XFIXNUM (Fhash_table_count (t->id_to_marker));
+  if (count < t->last_count)
+    scrub_undo_lists ();
+
+  Lisp_Object id = Fgethash (marker, t->marker_to_id, Qnil);
+  if (!NILP (id) && EQ (Fgethash (id, t->id_to_marker, Qnil), marker))
+    return id;
+
+  do
+    {
+      id = make_fixnum (t->next_id);
+      t->next_id = (t->next_id + 1) % MOST_POSITIVE_FIXNUM;
+    }
+  while (!NILP (Fgethash (id, t->id_to_marker, Qnil)));
+  Fputhash (id, marker, t->id_to_marker);
+  Fputhash (marker, id, t->marker_to_id);
+  t->last_count = count + 1;
+  return id;
+}
+
+#endif
+
 /* Record the fact that markers in the region of FROM, TO are about to
    be adjusted.  This is done only when a marker points within text
    being deleted, because that's the only case where an automatic
@@ -147,10 +249,23 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
           if (adjustment)
             {
 	      Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
+#ifdef HAVE_MPS
+	      Lisp_Object id
+		= alloc_weak_marker_id (&weak_marker_table, marker);
+	      Lisp_Object distance = make_fixnum (adjustment);
+	      Lisp_Object entry
+		= list5 (Qapply, Qundo__adjust_weak_marker,
+			 weak_marker_table.id_to_marker, id,
+			 distance);
+	      bset_undo_list (current_buffer,
+			      Fcons (entry, BVAR (current_buffer,
+						  undo_list)));
+#else
               bset_undo_list
                 (current_buffer,
                  Fcons (Fcons (marker, make_fixnum (adjustment)),
                         BVAR (current_buffer, undo_list)));
+#endif
             }
         }
     }
@@ -492,4 +607,12 @@ so it must make sure not to do a lot of consing.  */);
   DEFVAR_BOOL ("undo-inhibit-record-point", undo_inhibit_record_point,
 	       doc: /* Non-nil means do not record `point' in `buffer-undo-list'.  */);
   undo_inhibit_record_point = false;
+
+  DEFSYM (Qundo__adjust_weak_marker, "undo--adjust-weak-marker");
+  weak_marker_table.id_to_marker
+    = CALLN (Fmake_hash_table, QCweakness, Qvalue);
+  weak_marker_table.marker_to_id
+    = CALLN (Fmake_hash_table, QCweakness, Qkey);
+  staticpro (&weak_marker_table.id_to_marker);
+  staticpro (&weak_marker_table.marker_to_id);
 }

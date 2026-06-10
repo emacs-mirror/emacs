@@ -4706,6 +4706,7 @@ process_one_message (struct igc *gc)
 		   "not_condemned: %" pD "u",
 		   secs, condemned, live, not_condemned);
 	}
+      scrub_undo_lists ();
     }
   else
     emacs_abort ();

@@ -3136,13 +3136,22 @@
       (call-interactively #'delete-backward-char 1)
       (push nil buffer-undo-list)
       (should (= (point) 47))
-      (should (equal buffer-undo-list `(nil
-                                        ("c" . -47)
-                                        (,marker . -1)
-                                        (nil face nil 46 . 47)
-                                        48
-                                        nil
-                                        (45 . 48))))
+      (cond ((featurep 'mps)
+             (should
+              (pcase-exhaustive buffer-undo-list
+                (`(nil ("c" . -47)
+                       (apply undo--adjust-weak-marker ,ht ,id  -1)
+                       (nil face nil 46 . 47) 48 nil (45 . 48))
+                 (eq (gethash id ht) marker))
+                (`_ nil))))
+            (t
+             (should (equal buffer-undo-list `(nil
+                                               ("c" . -47)
+                                               (,marker . -1)
+                                               (nil face nil 46 . 47)
+                                               48
+                                               nil
+                                               (45 . 48))))))
 
       ;; The first char after the prompt is at buffer pos 45.
       (should (= 40 (- 45 (length (erc-prompt))) erc-insert-marker))
@@ -3154,13 +3163,22 @@
       (should (= 11 (length "<bob> test\n") (- (point) 47)))
 
       ;; The list remains unchanged relative to the end of the buffer.
-      (should (equal buffer-undo-list `(nil
-                                        ("c" . -58)
-                                        (,marker . -1)
-                                        (nil face nil 57 . 58)
-                                        59
-                                        nil
-                                        (56 . 59))))
+      (cond ((featurep 'mps)
+             (should
+              (pcase-exhaustive buffer-undo-list
+                (`(nil ("c" . -58)
+                       (apply undo--adjust-weak-marker ,ht ,id -1)
+                       (nil face nil 57 . 58) 59 nil (56 . 59))
+                 (eq (gethash id ht) marker))
+                (`_ nil))))
+            (t
+             (should (equal buffer-undo-list `(nil
+                                               ("c" . -58)
+                                               (,marker . -1)
+                                               (nil face nil 57 . 58)
+                                               59
+                                               nil
+                                               (56 . 59))))))
 
       ;; Undo behavior works as expected.
       (undo nil)
