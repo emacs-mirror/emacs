@@ -585,7 +585,7 @@ If LIMIT is non-nil, show no more than this many entries."
 		 ;; subsequent commits.  At least that's what the
 		 ;; vc-cvs.el code does.
 		 "-rHEAD:0"))
-              (if (eq vc-log-view-type 'with-diff)
+              (if (memq 'with-diff vc-log-view-types)
                   (list "--diff"))
               (when limit (list "--limit" (format "%s" limit))))))
 	;; Dump log for the entire directory.
@@ -593,7 +593,7 @@ If LIMIT is non-nil, show no more than this many entries."
 	       (append
 		(list
 		 (if start-revision (format "-r%s" start-revision) "-rHEAD:0"))
-                (if (eq vc-log-view-type 'with-diff)
+                (if (memq 'with-diff vc-log-view-types)
                     (list "--diff"))
                 (when limit (list "--limit" (format "%s" limit)))))))))
 

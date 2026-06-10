@@ -1438,7 +1438,8 @@ uses OVERLAY."
       (condition-case _
           (progn
             (vc-incoming-outgoing-internal backend nil
-                                           (current-buffer) 'log-outgoing)
+                                           (current-buffer)
+                                           '(log-outgoing short))
             (overlay-put overlay 'proc (get-buffer-process (current-buffer)))
             (setq proc (get-buffer-process (current-buffer)))
             (vc-run-delayed

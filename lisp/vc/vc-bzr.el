@@ -726,18 +726,18 @@ or a superior directory.")
   (setq-local log-view-per-file-logs nil)
   (setq-local log-view-file-re regexp-unmatchable)
   (setq-local log-view-message-re
-       (if (eq vc-log-view-type 'short)
+       (if (memq 'short vc-log-view-types)
 	   "^ *\\([0-9.]+\\): \\(.*?\\)[ \t]+\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)\\( \\[merge\\]\\)?"
 	 "^ *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)"))
   ;; Allow expanding short log entries
-  (when (eq vc-log-view-type 'short)
+  (when (memq 'short vc-log-view-types)
     (setq truncate-lines t)
     (setq-local log-view-expanded-log-entry-function
                 'vc-bzr-expanded-log-entry))
   (setq-local log-view-font-lock-keywords
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
-       (if (eq vc-log-view-type 'short)
+       (if (memq 'short vc-log-view-types)
 	 (append `((,log-view-message-re
 		    (1 'log-view-message)
 		    (2 'change-log-name)
@@ -785,7 +785,7 @@ If LIMIT is non-nil, show no more than this many entries."
 			   "-r%s"
 			 "-r..%s")
 		       start-revision)))
-            (if (eq vc-log-view-type 'with-diff) (list "-p"))
+            (if (memq 'with-diff vc-log-view-types) (list "-p"))
 	    (when limit (list "-l" (format "%s" limit)))
 	    ;; There is no sensible way to combine --limit and --forward,
 	    ;; and it breaks the meaning of START-REVISION as the

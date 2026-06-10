@@ -1898,7 +1898,7 @@ If LIMIT is a non-empty string, use it as a base revision."
                  (if shortlog vc-git-shortlog-switches vc-git-log-switches))
                 (when (numberp limit)
                   (list "-n" (format "%s" limit)))
-                (when (eq vc-log-view-type 'with-diff)
+                (when (memq 'with-diff vc-log-view-types)
                   (list "-p"))
                 (list (concat (and (stringp limit)
                                    (concat limit ".."))
@@ -1970,17 +1970,16 @@ log entries."
   (setq-local log-view-file-re regexp-unmatchable)
   (setq-local log-view-per-file-logs nil)
   (setq-local log-view-message-re
-              (if (not (memq vc-log-view-type '(long log-search with-diff)))
+              (if (memq 'short vc-log-view-types)
                   (cadr vc-git-root-log-format)
                 "^commit +\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
-  (when (memq vc-log-view-type
-              '(short log-outgoing log-incoming log-unintegrated mergebase))
+  (when (memq 'short vc-log-view-types)
     (setq truncate-lines t)
     (setq-local log-view-expanded-log-entry-function
                 'vc-git-expanded-log-entry))
   (setq-local log-view-font-lock-keywords
-       (if (not (memq vc-log-view-type '(long log-search with-diff)))
+       (if (memq 'short vc-log-view-types)
 	   (list (cons (nth 1 vc-git-root-log-format)
 		       (nth 2 vc-git-root-log-format)))
 	 (append

@@ -446,15 +446,15 @@ the log starting from that revision."
              ;; commits from all branches are included in the log.
              (cond ((not (stringp limit))
                     (format "-r%s:0" start))
-                   ((memq vc-log-view-type '(log-outgoing
-                                             log-unintegrated))
+                   ((cl-intersection vc-log-view-types
+                                     '(log-outgoing log-unintegrated))
                     (format "-rreverse(only(%s, %s))" start limit))
                    (t
                     (format "-r%s:%s & !%s" start limit limit)))
 	     (nconc
               (and (numberp limit)
                    (list "-l" (format "%s" limit)))
-              (and (eq vc-log-view-type 'with-diff)
+              (and (memq 'with-diff vc-log-view-types)
                    (list "-p"))
 	      (if shortlog
                   `(,@(and vc-hg-log-graph '("--graph"))
@@ -471,8 +471,7 @@ the log starting from that revision."
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (let ((shortp (memq vc-log-view-type
-                      '(short log-incoming log-outgoing log-unintegrated))))
+  (let ((shortp (memq 'short vc-log-view-types)))
    (setq-local log-view-file-re regexp-unmatchable)
    (setq-local log-view-per-file-logs nil)
    (setq-local log-view-message-re
