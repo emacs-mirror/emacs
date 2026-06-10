@@ -676,8 +676,14 @@ sufficiently large to avoid truncation."
     ;; `type-of' on them will cause Emacs to abort.  Calling
     ;; `garbage-collect' will also abort if it finds any reachable
     ;; freed objects.
-    (should (eq (type-of (car (nth 1 buffer-undo-list))) 'marker))
-    (should (eq (type-of (car (nth 2 buffer-undo-list))) 'marker))
+    (cond ((featurep 'mps)
+           (dolist (i '(1 2))
+             (should (pcase-exhaustive (nth i buffer-undo-list)
+                       (`(apply undo--adjust-weak-marker . ,_) t)
+                       (`,_ nil)))))
+          (t
+           (should (eq (type-of (car (nth 1 buffer-undo-list))) 'marker))
+           (should (eq (type-of (car (nth 2 buffer-undo-list))) 'marker))))
     (garbage-collect)))
 
 (ert-deftest delete-region-undo-markers-2 ()
@@ -701,8 +707,14 @@ sufficiently large to avoid truncation."
     ;; `type-of' on them will cause Emacs to abort.  Calling
     ;; `garbage-collect' will also abort if it finds any reachable
     ;; freed objects.
-    (should (eq (type-of (car (nth 3 buffer-undo-list))) 'marker))
-    (should (eq (type-of (car (nth 4 buffer-undo-list))) 'marker))
+    (cond ((featurep 'mps)
+           (dolist (i '(3 4))
+             (should (pcase-exhaustive (nth i buffer-undo-list)
+                       (`(apply undo--adjust-weak-marker . ,_) t)
+                       (`,_ nil)))))
+          (t
+           (should (eq (type-of (car (nth 3 buffer-undo-list))) 'marker))
+           (should (eq (type-of (car (nth 4 buffer-undo-list))) 'marker))))
     (garbage-collect)))
 
 (ert-deftest format-bignum ()
