@@ -1999,9 +1999,9 @@ The return value is always a string."
   "Return `topic' or nil for BRANCH or the currently active bookmark.
 If BRANCH names a bookmark, or BRANCH is nil but there is a currently
 active bookmark, return `topic'.  Otherwise return nil."
-  (if branch
-      (member branch (vc-hg--bookmarks))
-    (and (assq 'bookmark (vc-hg--working-branch)) 'topic)))
+  (and (if branch (member branch (vc-hg--bookmarks))
+         (assq 'bookmark (vc-hg--working-branch)))
+       'topic))
 
 (defun vc-hg-topic-outgoing-base ()
   "Return outgoing base for current commit considered as a topic branch.
@@ -2012,7 +2012,7 @@ This is based on the following assumptions:
 (i) if there is an active bookmark, it will eventually be merged into
     whatever the remote head is
 (ii) there is only one remote head for the current branch."
-  (assq 'branch (vc-hg--working-branch)))
+  (cdr (assq 'branch (vc-hg--working-branch))))
 
 (provide 'vc-hg)
 
