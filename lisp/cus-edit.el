@@ -1107,10 +1107,10 @@ even if it doesn't match the type.)
 ;;;###autoload
 (defcustom setopt-local-type-mismatch nil
   "Behavior of `setopt-local’ if value's type mismatches its definition.
-If nil, emit a warning and assign the value.
-If non-nil, prompt to accept or discard the value.
+If nil, emit a warning, but accept the mismatched value.
 If the symbol `accept', ignore type mismatch warning and assign the value.
 If the symbol `discard', ignore warning and discard the mismatched value.
+If any other non-nil value, prompt whether to accept or discard the value.
 Note: Accepting mismatched values may result in unexpected behavior."
   :type '(choice (const :tag "Emit a warning and accept the type value" nil)
                  (const :tag "Prompt to accept or discard the value" t)
