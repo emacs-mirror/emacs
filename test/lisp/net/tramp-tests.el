@@ -9082,7 +9082,7 @@ process sentinels.  They shall not disturb each other."
      (string-equal (tramp--test-operation tramp-test-vec)
 		   (tramp--handle-test-operation tramp-test-vec)))
     (let ((vec (copy-tramp-file-name tramp-test-vec)))
-      (setf (tramp-file-name-method vec) (if (tramp--test-sh-p) "sftp" "sudo"))
+      (setf (tramp-file-name-method vec) (if (tramp--test-sh-p) "rclone" "sudo"))
       (should-not
        (string-equal (tramp--test-operation vec)
 		     (tramp--handle-test-operation vec))))
