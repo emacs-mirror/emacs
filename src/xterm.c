@@ -28545,8 +28545,10 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
 /* Resizing an occluding window (such as a child frame) immediately
    triggers a fill with background color on the exposed area on the
    parent when the X server receives the corresponding command
-   (XResizeWindow, XMoveResizeWindow, etc).  But only if the window has
-   a background assigned.  Change it to None to block that effect.  */
+   (XResizeWindow, XMoveResizeWindow, etc), according to the X protocol.
+   But only if the window has a background assigned.
+
+   This creates flickering, so change the background pixmap to None.  */
 static void
 x_suspend_background_fills (struct frame *f)
 {
