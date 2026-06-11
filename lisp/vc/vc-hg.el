@@ -471,8 +471,9 @@ the log starting from that revision."
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (let ((shortp (memq vc-log-view-type
-                      '(short log-incoming log-outgoing log-unintegrated))))
+  (let ((shortp (if (eq vc-log-view-type 'log-unintegrated)
+                    vc--shortlog
+                  (memq vc-log-view-type '(short log-incoming log-outgoing)))))
    (setq-local log-view-file-re regexp-unmatchable)
    (setq-local log-view-per-file-logs nil)
    (setq-local log-view-message-re

@@ -1975,17 +1975,22 @@ log entries."
   (setq-local log-view-file-re regexp-unmatchable)
   (setq-local log-view-per-file-logs nil)
   (setq-local log-view-message-re
-              (if (not (memq vc-log-view-type '(long log-search with-diff)))
+              (if (if (eq vc-log-view-type 'log-unintegrated)
+                      vc--shortlog
+                    (not (memq vc-log-view-type '(long log-search with-diff))))
                   (cadr vc-git-root-log-format)
                 "^commit +\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
-  (when (memq vc-log-view-type
-              '(short log-outgoing log-incoming log-unintegrated mergebase))
+  (when (if (eq vc-log-view-type 'log-unintegrated)
+            vc--shortlog
+          (memq vc-log-view-type '(short log-outgoing log-incoming mergebase)))
     (setq truncate-lines t)
     (setq-local log-view-expanded-log-entry-function
                 'vc-git-expanded-log-entry))
   (setq-local log-view-font-lock-keywords
-       (if (not (memq vc-log-view-type '(long log-search with-diff)))
+       (if (if (eq vc-log-view-type 'log-unintegrated)
+               vc--shortlog
+             (not (memq vc-log-view-type '(long log-search with-diff))))
 	   (list (cons (nth 1 vc-git-root-log-format)
 		       (nth 2 vc-git-root-log-format)))
 	 (append
