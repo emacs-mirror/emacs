@@ -1270,16 +1270,20 @@ that file."
 
 (defun vc-dir-recompute-file-state (fname def-dir)
   "Compute state of FNAME known to live inside DEF-DIR."
-  (let* ((file-short (file-relative-name fname def-dir))
-	 (_remove-me-when-CVS-works
-	  (when (eq vc-dir-backend 'CVS)
-	    ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
-	    ;; info, this forces the backend to update it.
-	    (vc-call-backend vc-dir-backend 'registered fname)))
-	 (state (vc-call-backend vc-dir-backend 'state fname))
-	 (extra (vc-call-backend vc-dir-backend
-				 'status-fileinfo-extra fname)))
-    (list file-short state extra)))
+  (let ((fname-short (file-relative-name fname def-dir)))
+    (when (eq vc-dir-backend 'CVS)
+      ;; FIXME: Warning: UGLY HACK.  The CVS backend caches the state
+      ;; info, this forces the backend to update it.
+      (vc-call-backend vc-dir-backend 'registered fname))
+    (let* ((default-directory def-dir)
+           (state (vc-call-backend vc-dir-backend 'state fname-short))
+           (extra (vc-call-backend vc-dir-backend
+                                   'status-fileinfo-extra fname-short)))
+      ;; Ensure we return a nil state if the file does not exist and is
+      ;; not tracked so that it disappears from VC-Dir (bug#81191).
+      (if (and (eq state 'up-to-date) (not (file-exists-p fname)))
+          (list fname-short nil nil)
+        (list fname-short state extra)))))
 
 (defun vc-dir-find-child-files (dirname)
   ;; Give a DIRNAME string return the list of all child files shown in
@@ -1338,6 +1342,7 @@ that file."
 		      (vc-dir-resync-directory-files file)
 		      (vc-dir--set-header ddir))
                   (let* ((complete-state
+                          ;; Pass two truenames (bug#80803, bug#80967).
                           (vc-dir-recompute-file-state file
                                                        (file-truename ddir)))
 			 (state (cadr complete-state)))

@@ -5116,7 +5116,6 @@ On a heading, call `outline-cycle'.  Otherwise do nothing."
   :doc "Keymap for `markdown-ts-code-block-in-context-mode'.
 These override keys in `markdown-ts-mode-map' to support executing their
 commands in a code-block context."
-  :parent markdown-ts-mode-map
   :menu nil
   "M-."         #'markdown-ts--code-block-xref-find-definitions
   "TAB"         #'indent-for-tab-command
@@ -5129,7 +5128,6 @@ commands in a code-block context."
   :doc "Keymap for `markdown-ts-in-table-mode'.
 These override keys in `markdown-ts-mode-map' to support executing their
 commands in a table context."
-  :parent markdown-ts-mode-map
   :menu nil
   "<return>"    #'markdown-ts-table-next-row
   "S-<return>"  #'markdown-ts-table-previous-row

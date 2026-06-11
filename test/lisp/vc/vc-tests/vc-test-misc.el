@@ -253,6 +253,8 @@
 (ert-deftest vc-test-vc-dir-on-symlink ()
   "Test VC-Dir on a symlink to a repository.
 See bug#80803 and bug#80967."
+  ;; Git for Windows could fail in a symlinked tree.
+  (skip-when (eq system-type 'windows-nt))
   (skip-unless (executable-find vc-git-program))
   (vc-test--with-author-identity 'Git
     (let ((vc-handled-backends '(Git)))
@@ -290,10 +292,11 @@ See bug#80803 and bug#80967."
             (basic-save-buffer))
           (dolist (buf (list truename-dir symlink-dir))
             (with-current-buffer buf
-              (should (equal (vc-dir-fileinfo->name
-                              (ewoc-data
-                               (ewoc-nth vc-ewoc 1)))
-                             (file-name-nondirectory file))))))))))
+              (let ((data (ewoc-data (ewoc-nth vc-ewoc 1))))
+                (should (equal (vc-dir-fileinfo->name data)
+                               (file-name-nondirectory file)))
+                (should (equal (vc-dir-fileinfo->state data)
+                               'edited))))))))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

@@ -808,7 +808,7 @@ install-info: info
 	      done; \
 	     (cd "$${thisdir}"; \
 	      ${INSTALL_INFO} --info-dir="$(DESTDIR)${infodir}" "$(DESTDIR)${infodir}/$$elt"); \
-	      cp elisp_type_hierarchy* $(DESTDIR)${infodir}/; \
+	      cp *.jpg *.png $(DESTDIR)${infodir}/; \
 	   done; \
 	fi
 
