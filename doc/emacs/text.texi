@@ -1197,8 +1197,8 @@ header line.
 Make the current heading line's body invisible
 (@code{outline-hide-entry}).
 @item C-c C-e
-Make the current heading line's body visible
-(@code{outline-show-entry}).
+Reveal the current entry and its parent hierarchy
+(@code{outline-show-entry-and-parents}).
 @item C-c C-d
 Make everything under the current heading invisible, not including the
 heading itself (@code{outline-hide-subtree}).
@@ -1235,14 +1235,14 @@ Show bodies of headings that match @var{regexp}
 @end table
 
 @findex outline-hide-entry
-@findex outline-show-entry
+@findex outline-show-entry-and-parents
 @kindex C-c C-c @r{(Outline mode)}
 @kindex C-c C-e @r{(Outline mode)}
   The simplest of these commands are @kbd{C-c C-c}
 (@code{outline-hide-entry}), which hides the body lines directly
 following the current heading line, and @kbd{C-c C-e}
-(@code{outline-show-entry}), which reveals them.  Subheadings and
-their bodies are not affected.
+(@code{outline-show-entry-and-parents}), which reveals the current entry,
+all of its ancestor headings, and their immediate sibling headings.
 
 @findex outline-hide-subtree
 @findex outline-show-subtree
@@ -1372,9 +1372,9 @@ levels.
 
   Consider an Outline mode buffer with all the text and subheadings under
 level-1 headings hidden.  To look at what is hidden under one of these
-headings, you could use @kbd{C-c C-e} (@kbd{M-x outline-show-entry})
-to expose the body, or @kbd{C-c C-i} to expose the child (level-2)
-headings.
+headings, you could use @kbd{C-c C-e} (@kbd{M-x outline-show-entry-and-parents})
+to expose the body and its parent hierarchy, or @kbd{C-c C-i} to expose
+the child (level-2) headings.
 
 @kindex C-c C-z
 @findex foldout-zoom-subtree
