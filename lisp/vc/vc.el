@@ -3643,7 +3643,8 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                            ;; REFRESH nil here because we just refreshed.
                            (vc--outgoing-base-mergebase backend
                                                         upstream-location
-                                                        nil 'force-topic))))
+                                                        nil 'force-topic)
+                           'log-unintegrated)))
 
 ;;;###autoload
 (defun vc-root-log-remote-unintegrated (&optional upstream-location)
