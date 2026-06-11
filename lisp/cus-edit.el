@@ -1106,7 +1106,7 @@ even if it doesn't match the type.)
 
 ;;;###autoload
 (defcustom setopt-local-type-mismatch nil
-  "Behavior of `setopt-local’ if value's type mismatches its definition.
+  "Behavior of `setopt-local’ if value's type doesn't match its definition.
 If nil, emit a warning, but accept the mismatched value.
 If the symbol `accept', ignore type mismatch warning and assign the value.
 If the symbol `discard', ignore warning and discard the mismatched value.
