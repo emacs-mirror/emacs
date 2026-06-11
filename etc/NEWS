@@ -139,17 +139,18 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
 +++
 ** 'kill-all-local-variables' can kill locals silently and reset the buffer.
-This function's KILL-PERMANENT argument now accepts 'permanent-local'
-which kills all locals ignoring any variable watchers, and also 'reset'
-which does what 'permanent-local' does and also resets the buffer as if
-newly created.  Use these with caution to avoid unexpected behavior such
-as 'default-directory' being reset to nil.
+This function's KILL-PERMANENT argument now accepts the value
+'permanent-local', which kills all locals ignoring any variable
+watchers.  That argument can also be 'reset', which does what
+'permanent-local' does, and also resets the buffer as if it were newly
+created.  Use these with caution to avoid unexpected behavior such as
+'default-directory' being reset to nil.
 
 ---
 ** 'with-work-buffer' kills all locals silently and resets its buffers.
-This macro, when returning a buffer to its share buffer pool, now kills
-all buffer locals silently, ignoring any variable watchers, and resets
-the buffer as if newly created.
+When this macro returns a buffer to its buffer pool, it now kills all
+buffer locals silently, ignoring any variable watchers, and resets the
+buffer as if it were newly created.
 
 +++
 ** The new function 'markers-in' returns the set of markers in a region.
