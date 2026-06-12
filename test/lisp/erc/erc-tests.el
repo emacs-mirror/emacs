@@ -3140,9 +3140,10 @@
              (should
               (pcase-exhaustive buffer-undo-list
                 (`(nil ("c" . -47)
-                       (apply undo--adjust-weak-marker ,ht ,id  -1)
+                       (apply 0 47 48 undo--adjust-weak-markers
+                              47 (,id . 1))
                        (nil face nil 46 . 47) 48 nil (45 . 48))
-                 (eq (gethash id ht) marker))
+                 (eq (undo--lookup-marker id) marker))
                 (`_ nil))))
             (t
              (should (equal buffer-undo-list `(nil
@@ -3167,9 +3168,10 @@
              (should
               (pcase-exhaustive buffer-undo-list
                 (`(nil ("c" . -58)
-                       (apply undo--adjust-weak-marker ,ht ,id -1)
+                       (apply 0 47 48 undo--adjust-weak-markers
+                              47 (,id . 1))
                        (nil face nil 57 . 58) 59 nil (56 . 59))
-                 (eq (gethash id ht) marker))
+                 (eq (undo--lookup-marker id) marker))
                 (`_ nil))))
             (t
              (should (equal buffer-undo-list `(nil

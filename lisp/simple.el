@@ -3741,18 +3741,6 @@ Return what remains of the list."
                  (and (eq (marker-buffer m) (current-buffer))
                       (= apos m)
                       (push marker-adj valid-marker-adjustments))))
-             ;; The same for weakly held markers
-             (while (pcase-exhaustive (car list)
-                      (`(apply undo--adjust-weak-marker ,ht ,id ,distance)
-                       (pop list)
-                       (let ((m (gethash id ht)))
-                         (when (and m
-                                    (eq (marker-buffer m) (current-buffer))
-                                    (= apos m))
-                           (push (cons m distance)
-                                 valid-marker-adjustments)))
-                       t)
-                      (`,_ nil)))
              ;; Insert string and adjust point
              (if (< pos 0)
                  (progn
@@ -3790,6 +3778,33 @@ Return what remains of the list."
         (setq buffer-undo-list
               (cons (list 'apply 'cdr nil) buffer-undo-list))))
   list)
+
+;; ARGS has the format: ({TPOS {(ID . OFFSET)}* }* )
+;;
+;; ID is the id for a marker.  The marker can be obtained with
+;; undo--lookup-marker.
+;;
+;; OFFSET should be added to the marker's current position.
+;;
+;; TPOS is an integer that encodes the expected position and the
+;; insertion type of the marker.  The expected position is (abs TPOS)
+;; and the insertion type is t if TPOS is negative.  Markers that don't
+;; match the expected position and insertion type are ignored.
+(defun undo--adjust-weak-markers (&rest args)
+  (while args
+    (let* ((tpos (pop args))
+           (insertion-type (< tpos 0))
+           (pos (abs tpos)))
+      (while (consp (car args))
+        (let* ((pair (pop args))
+               (id (car pair))
+               (offset (cdr pair))
+               (m (undo--lookup-marker id)))
+          (when (and m
+                     (eq (marker-buffer m) (current-buffer))
+                     (eq (marker-insertion-type m) insertion-type)
+                     (= pos m))
+            (set-marker m (+ pos offset))))))))
 
 ;; Deep copy of a list
 (defun undo-copy-list (list)

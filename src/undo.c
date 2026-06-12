@@ -149,6 +149,33 @@ struct weak_marker_table
 
 static struct weak_marker_table weak_marker_table;
 
+static Lisp_Object
+scrub_id_object_pairs (Lisp_Object id_to_marker, Lisp_Object list)
+{
+  Lisp_Object tail = list, *prev = &list;
+  while (CONSP (tail))
+    {
+      eassert (XFIXNUM (XCAR (tail)));
+      Lisp_Object *prev2 = prev;
+      prev = xcdr_addr (tail);
+      tail = XCDR (tail);
+      while (CONSP (tail) && CONSP (XCAR (tail)))
+	{
+	  Lisp_Object id = XCAR (XCAR (tail));
+	  if (NILP (Fgethash (id, id_to_marker, Qnil)))
+	    *prev = XCDR (tail);
+	  else
+	    prev = xcdr_addr (tail);
+	  tail = XCDR (tail);
+	}
+      if (NILP (XCDR (*prev2)) || FIXNUMP (XCAR (XCDR (*prev2))))
+	{
+	  prev = prev2;
+	  *prev = tail;
+	}
+    }
+  return list;
+}
 /* Remove (apply undo--adjust-weak-marker HASHTABLE KEY D) entries
    where KEY is no longer in HASHTABLE.  */
 
@@ -159,11 +186,21 @@ scrub_undo_list (Lisp_Object list)
 
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
+      bool drop = false;
       Lisp_Object entry = XCAR (tail);
       if (CONSP (entry) && EQ (Qapply, XCAR (entry))
-	  && EQ (Qundo__adjust_weak_marker, XCAR (XCDR (entry)))
-	  && NILP (Fgethash (Fnth (make_fixnum (3), entry),
-			     Fnth (make_fixnum (2), entry), Qnil)))
+	  && FIXNUMP (Fnth (make_fixnum (1), entry))
+	  && EQ (Fnth (make_fixnum (4), entry),
+		 Qundo__adjust_weak_markers))
+	{
+	  Lisp_Object htab = weak_marker_table.id_to_marker;
+	  Lisp_Object head = Fnthcdr (make_fixnum (4), entry);
+	  Lisp_Object pairs =
+	    scrub_id_object_pairs (htab, XCDR (head));
+	  XSETCDR (head, pairs);
+	  drop = NILP (pairs);
+	}
+      if (drop)
 	*prev = XCDR (tail);
       else
 	prev = xcdr_addr (tail);
@@ -217,6 +254,15 @@ alloc_weak_marker_id (struct weak_marker_table *t, Lisp_Object marker)
   return id;
 }
 
+DEFUN ("undo--lookup-marker", Fundo__lookup_marker, Sundo__lookup_marker,
+       1, 1, 0,
+       doc: /* Find the marker for id ID.
+If the marker no longer exists, return nil.  */)
+  (Lisp_Object id)
+{
+  return Fgethash (id, weak_marker_table.id_to_marker, Qnil);
+}
+
 #endif
 
 /* Record the fact that markers in the region of FROM, TO are about to
@@ -229,6 +275,49 @@ static void
 record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
 {
   prepare_record ();
+
+#ifdef HAVE_MPS
+  Lisp_Object left = Qnil;
+  Lisp_Object right = Qnil;
+
+  DO_MARKERS (current_buffer, m)
+    {
+      ptrdiff_t charpos = m->charpos;
+      eassert (charpos <= Z);
+      if (!(from <= charpos && charpos <= to))
+	continue;
+      ptrdiff_t delta = charpos - (m->insertion_type ? to : from);
+      if (delta == 0)
+	continue;
+      Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
+      Lisp_Object id
+	= alloc_weak_marker_id (&weak_marker_table, marker);
+      Lisp_Object offset = make_fixnum (delta);
+      Lisp_Object pair = Fcons (id, offset);
+      if (m->insertion_type)
+	left = Fcons (pair, left);
+      else
+	right = Fcons (pair, right);
+    }
+  END_DO_MARKERS;
+
+  if (!NILP (right) || !NILP (left))
+    {
+      Lisp_Object l
+	= list5 (Qapply, make_fixnum (0), make_fixnum (from),
+		 make_fixnum (to), Qundo__adjust_weak_markers);
+      Lisp_Object args = Qnil;
+      if (!NILP (right))
+	args = Fcons (make_fixnum (from), right);
+      if (!NILP (left))
+	args = Fcons (make_fixnum (-to), nconc2 (left, args));
+      Lisp_Object entry = nconc2 (l, args);
+      bset_undo_list (current_buffer,
+		      Fcons (entry,
+			     BVAR (current_buffer, undo_list)));
+    }
+
+#else
 
   DO_MARKERS (current_buffer, m)
     {
@@ -249,27 +338,15 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
           if (adjustment)
             {
 	      Lisp_Object marker = make_lisp_ptr (m, Lisp_Vectorlike);
-#ifdef HAVE_MPS
-	      Lisp_Object id
-		= alloc_weak_marker_id (&weak_marker_table, marker);
-	      Lisp_Object distance = make_fixnum (adjustment);
-	      Lisp_Object entry
-		= list5 (Qapply, Qundo__adjust_weak_marker,
-			 weak_marker_table.id_to_marker, id,
-			 distance);
-	      bset_undo_list (current_buffer,
-			      Fcons (entry, BVAR (current_buffer,
-						  undo_list)));
-#else
               bset_undo_list
                 (current_buffer,
                  Fcons (Fcons (marker, make_fixnum (adjustment)),
                         BVAR (current_buffer, undo_list)));
-#endif
             }
         }
     }
   END_DO_MARKERS;
+#endif
 }
 
 /* Record that a deletion is about to take place, of the characters in
@@ -608,11 +685,12 @@ so it must make sure not to do a lot of consing.  */);
 	       doc: /* Non-nil means do not record `point' in `buffer-undo-list'.  */);
   undo_inhibit_record_point = false;
 
-  DEFSYM (Qundo__adjust_weak_marker, "undo--adjust-weak-marker");
+  DEFSYM (Qundo__adjust_weak_markers, "undo--adjust-weak-markers");
+  defsubr (&Sundo__lookup_marker);
+  staticpro (&weak_marker_table.id_to_marker);
+  staticpro (&weak_marker_table.marker_to_id);
   weak_marker_table.id_to_marker
     = CALLN (Fmake_hash_table, QCweakness, Qvalue);
   weak_marker_table.marker_to_id
     = CALLN (Fmake_hash_table, QCweakness, Qkey);
-  staticpro (&weak_marker_table.id_to_marker);
-  staticpro (&weak_marker_table.marker_to_id);
 }
