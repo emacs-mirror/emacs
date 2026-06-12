@@ -2065,6 +2065,8 @@ a buffer or a string.  But this is deprecated.  */)
 	time_limit = tlim;
     }
 
+  specpdl_ref count = SPECPDL_INDEX ();
+
   /* The rest of the code is not prepared to handle a string SOURCE.  */
   if (!b)
     {
@@ -2076,8 +2078,6 @@ a buffer or a string.  But this is deprecated.  */)
       set_buffer_internal (a);
     }
   Lisp_Object source_buffer = make_lisp_ptr (b, Lisp_Vectorlike);
-
-  specpdl_ref count = SPECPDL_INDEX ();
 
   ptrdiff_t diags = size_a + size_b + 3;
   ptrdiff_t bytes_per_diag = 2 * sizeof (ptrdiff_t) + sizeof (int);
