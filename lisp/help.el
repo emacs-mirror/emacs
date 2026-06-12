@@ -2003,10 +2003,8 @@ show a temporary buffer are automatically resized in height to
 fit the buffer's contents, but never more than
 `temp-buffer-max-height' nor less than `window-min-height'.
 
-A window is resized only if it has been specially created for the
-buffer.  Windows that have shown another buffer before are not
-resized.  A frame is resized only if `fit-frame-to-buffer' is
-non-nil.
+A window is resized only if it has been specially created for its
+buffer.  A frame is resized only if `fit-frame-to-buffer' is non-nil.
 
 This mode is used by `help', `apropos' and `completion' buffers,
 and some others."
@@ -2050,7 +2048,10 @@ provided `fit-frame-to-buffer' is non-nil."
 	 (quit-cadr (cadr (window-parameter window 'quit-restore))))
     ;; Resize WINDOW only if it was made by `display-buffer'.
     (when (or (and (eq quit-cadr 'window)
-		   (or (and (window-combined-p window)
+                   ;; When WINDOW was reused, its buffer must be the one
+                   ;; initially shown in it (Bug#81207).
+                   (eq buffer (nth 3 (window-parameter window 'quit-restore)))
+                   (or (and (window-combined-p window)
 			    (not (eq fit-window-to-buffer-horizontally
 				     'only))
 			    (pos-visible-in-window-p
