@@ -1608,16 +1608,10 @@ The current buffer's `default-directory' is available as part of
   (dired (project-root (project-current t))))
 
 ;;;###autoload
-(defun project-vc-dir (&optional truenameize)
-  "Run VC-Dir in the current project's root.
-If TRUENAMEIZE is non-nil, as it is interactively, then if the project
-root is a symbolic link, resolve it first.  This matches the behaviour
-of \\[vc-dir] when invoked interactively."
-  (interactive "p")
-  (let ((root (project-root (project-current t))))
-    (vc-dir (if truenameize
-                (abbreviate-file-name (file-truename root))
-              root))))
+(defun project-vc-dir ()
+  "Run VC-Dir in the current project's root."
+  (interactive)
+  (vc-dir (project-root (project-current t))))
 
 ;;;###autoload
 (defun project-customize-dirlocals ()
