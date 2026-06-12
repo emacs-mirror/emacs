@@ -1610,6 +1610,10 @@ The current buffer's `default-directory' is available as part of
 ;;;###autoload
 (defun project-vc-dir ()
   "Run VC-Dir in the current project's root."
+  ;; This is unfortunately inconsistent with `vc-dir' which calls
+  ;; `file-truename' on the directory.  But following symlink results in
+  ;; "mismatched" project for that buffer and any visited from it.  See
+  ;; <https://lists.gnu.org/archive/html/emacs-devel/2026-06/msg00196.html>.
   (interactive)
   (vc-dir (project-root (project-current t))))
 
