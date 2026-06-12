@@ -677,14 +677,20 @@ sufficiently large to avoid truncation."
     ;; `garbage-collect' will also abort if it finds any reachable
     ;; freed objects.
     (cond ((featurep 'mps)
-           (dolist (i '(1 2))
-             (should (pcase-exhaustive (nth i buffer-undo-list)
-                       (`(apply undo--adjust-weak-marker . ,_) t)
-                       (`,_ nil)))))
+           (should (pcase-exhaustive (nth 1 buffer-undo-list)
+                     (`(apply 0 1 6 undo--adjust-weak-markers
+                              -6 (,_ . -1) 1 (,_ . 1))
+                      t)
+                     (`,_ nil))))
           (t
            (should (eq (type-of (car (nth 1 buffer-undo-list))) 'marker))
            (should (eq (type-of (car (nth 2 buffer-undo-list))) 'marker))))
-    (garbage-collect)))
+    (cond ((featurep 'mps)
+           (igc--collect)
+           (igc--process-messages)
+           (should (equal buffer-undo-list '(("12345" . 1)))))
+          (t
+           (garbage-collect)))))
 
 (ert-deftest delete-region-undo-markers-2 ()
   "Make sure we don't end up with freed markers reachable from Lisp."
@@ -708,14 +714,20 @@ sufficiently large to avoid truncation."
     ;; `garbage-collect' will also abort if it finds any reachable
     ;; freed objects.
     (cond ((featurep 'mps)
-           (dolist (i '(3 4))
-             (should (pcase-exhaustive (nth i buffer-undo-list)
-                       (`(apply undo--adjust-weak-marker . ,_) t)
-                       (`,_ nil)))))
+           (should (pcase-exhaustive (nth 2 buffer-undo-list)
+                     (`(apply 0 1 6 undo--adjust-weak-markers
+                              1 (,_ . 1) (,_ . 1) (,_ . 4))
+                      t)
+                     (`,_ nil))))
           (t
            (should (eq (type-of (car (nth 3 buffer-undo-list))) 'marker))
            (should (eq (type-of (car (nth 4 buffer-undo-list))) 'marker))))
-    (garbage-collect)))
+    (cond ((featurep 'mps)
+           (igc--collect)
+           (igc--process-messages)
+           (should (equal buffer-undo-list '(("678" . 1) ("12345" . 1)))))
+          (t
+           (garbage-collect)))))
 
 (ert-deftest format-bignum ()
   (let* ((s1 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
