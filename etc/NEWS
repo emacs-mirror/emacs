@@ -68,7 +68,8 @@ values; the value 'discard' inhibits the warning and discards
 type-mismatched values; any other non-nil value prompts you whether to
 accept or ignore the value.
 
-*** Specifying a minor mode as a local variables enables that mode,
+---
+** Specifying a minor mode as a local variables enables that mode,
 unconditionally.  The previous behavior, toggling the mode, was
 neither reliable nor generally desirable.
 
