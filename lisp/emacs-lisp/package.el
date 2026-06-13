@@ -535,6 +535,22 @@ package."
   summary)
 
 
+;;; Public interfaces for accessing built-in package info
+
+(defun package-versioned-builtin-packages ()
+  "Return a list of all the versioned built-in packages.
+The return value is a list of names of built-in packages represented as
+symbols."
+  (mapcar #'car package--builtin-versions))
+
+(defun package-builtin-package-version (package)
+  "Return the version of a built-in PACKAGE given by its symbol.
+The return value is a list of integers representing the version of
+PACKAGE, in the format returned by `version-to-list', or nil if the
+package is built-in but has no version or is not a built-in package."
+  (alist-get package package--builtin-versions))
+
+
 ;;; Installed packages
 
 ;; The following functions are called on each installed package by
@@ -2379,6 +2395,15 @@ installed), maybe you need to \\[package-refresh-contents]")
   (equal (cadr (assq (package-desc-name pkg) package-alist))
          pkg))
 
+(defun package--dependency-p (pkg)
+  "Return non-nil if PKG is a dependency."
+  (let ((name (package-desc-name pkg)))
+    (catch 'is-dependency
+      (dolist (ent (package--alist) nil)
+        (dolist (desc (cdr ent))
+          (when (assq name (package-desc-reqs desc))
+            (throw 'is-dependency t)))))))
+
 (declare-function comp-el-to-eln-filename "comp.c")
 (defvar package-vc-repository-store)
 (defun package--delete-directory (dir)
@@ -2433,15 +2458,20 @@ If NOSAVE is non-nil, the package is not removed from
                               (if (null (remove pkg-desc (cdr pkgs)))
                                   (remq pkgs package-alist)
                                 package-alist)))
-        pkg-used-elsewhere-by)
+         pkg-used-elsewhere-by)
     ;; If the user is trying to delete this package, they definitely
     ;; don't want it marked as selected, so we remove it from
     ;; `package-selected-packages' even if it can't be deleted.
     (when (and (null nosave)
                (package--user-selected-p name)
-               ;; Don't deselect if this is an older version of an
-               ;; upgraded package.
-               (package--newest-p pkg-desc))
+               (or
+                ;; Don't deselect if this is an older version of an
+                ;; upgraded package.
+                (package--newest-p pkg-desc)
+                ;; Don't deselect if the package is a dependency and
+                ;; there are multiple installations (bug#81082).
+                (and (length< (alist-get name package-alist) 1)
+                     (package--dependency-p pkg-desc))))
       (package--save-selected-packages (remove name package-selected-packages)))
     (cond ((not (string-prefix-p (file-name-as-directory
                                   (expand-file-name package-user-dir))
@@ -2452,7 +2482,16 @@ If NOSAVE is non-nil, the package is not removed from
           ((and (null force)
                 (setq pkg-used-elsewhere-by
                       (let ((package-alist new-package-alist))
-                        (package--used-elsewhere-p pkg-desc)))) ;See bug#65475
+                        (package--used-elsewhere-p pkg-desc))) ;See bug#65475
+                (and-let* ((other (package-get-descriptor
+                                   name 'installed
+                                   (lambda (pkg-other)
+                                     (not (equal pkg-desc pkg-other))))))
+                  (not (yes-or-no-p
+                        (format "Package `%s' is used by `%s' as dependency, but `%s' is also available.  Use that instead?"
+                                (package-desc-full-name pkg-desc)
+                                (package-desc-name pkg-used-elsewhere-by)
+                                (package-desc-full-name other))))))
            ;; Don't delete packages used as dependency elsewhere.
            (error "Package `%s' is used by `%s' as dependency, not deleting"
                   (package-desc-full-name pkg-desc)

@@ -7272,7 +7272,7 @@ merge_faces (struct window *w, Lisp_Object face_name, int face_id,
 	  Lisp_Object lface_attrs[LFACE_VECTOR_SIZE];
 	  int i;
 
-	  memcpy (lface_attrs, face->lface, LFACE_VECTOR_SIZE);
+	  memcpy (lface_attrs, face->lface, sizeof lface_attrs);
 	  /* Make explicit any attributes whose value is 'reset'.  */
 	  for (i = 1; i < LFACE_VECTOR_SIZE; i++)
 	    if (EQ (lface_attrs[i], Qreset))

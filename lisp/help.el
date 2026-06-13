@@ -1998,18 +1998,20 @@ function is called, the window to be resized is selected."
 (define-minor-mode temp-buffer-resize-mode
   "Toggle auto-resizing temporary buffer windows (Temp Buffer Resize Mode).
 
-When Temp Buffer Resize mode is enabled, the windows in which we
-show a temporary buffer are automatically resized in height to
+When Temp Buffer Resize mode is enabled, the windows in which Emacs
+shows a temporary buffer are automatically resized in height to
 fit the buffer's contents, but never more than
 `temp-buffer-max-height' nor less than `window-min-height'.
 
-A window is resized only if it has been specially created for the
-buffer.  Windows that have shown another buffer before are not
-resized.  A frame is resized only if `fit-frame-to-buffer' is
-non-nil.
+When this mode is enabled, a window is resized only if it has been
+specially created for a temporary buffer.  Windows that have shown
+another buffer before being reused for displaying a temporary buffer
+are not resized (but note that if `even-window-sizes' is non-nil, they
+might beresized in some situations anyway).  A frame is resized only
+if `fit-frame-to-buffer' is non-nil.
 
 This mode is used by `help', `apropos' and `completion' buffers,
-and some others."
+and some others, when they display their pop-up buffers."
   :global t :group 'help
   (if temp-buffer-resize-mode
       ;; `help-make-xrefs' may add a `back' button and thus increase the
@@ -2050,7 +2052,10 @@ provided `fit-frame-to-buffer' is non-nil."
 	 (quit-cadr (cadr (window-parameter window 'quit-restore))))
     ;; Resize WINDOW only if it was made by `display-buffer'.
     (when (or (and (eq quit-cadr 'window)
-		   (or (and (window-combined-p window)
+                   ;; When WINDOW was reused, its buffer must be the one
+                   ;; initially shown in it (Bug#81207).
+                   (eq buffer (nth 3 (window-parameter window 'quit-restore)))
+                   (or (and (window-combined-p window)
 			    (not (eq fit-window-to-buffer-horizontally
 				     'only))
 			    (pos-visible-in-window-p
