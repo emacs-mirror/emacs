@@ -2070,12 +2070,8 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   (vc-git-command buffer 'async nil "log" "-p" ;"--follow" ;FIXME: not supported?
                   (format "-L%d,%d:%s" lfrom lto (file-relative-name file))))
 
-(require 'diff-mode)
-
 (defvar vc-git-region-history-mode-map
-  (let ((map (make-composed-keymap
-              nil (make-composed-keymap
-                   (list diff-mode-map vc-git-log-view-mode-map)))))
+  (let ((map (make-sparse-keymap)))
     map))
 
 (defvar vc-git--log-view-long-font-lock-keywords nil)
@@ -2083,6 +2079,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   '((vc-git-region-history-font-lock)))
 
 (defun vc-git-region-history-font-lock (limit)
+  (defvar diff-font-lock-keywords)
   (let ((in-diff (save-excursion
                    (beginning-of-line)
                    (or (looking-at "^\\(?:diff\\|commit\\)\\>")
@@ -2094,8 +2091,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                             limit t)
                          (match-beginning 1)
                        limit))))
-          (let ((font-lock-keywords (if in-diff diff-font-lock-keywords
-                                      vc-git--log-view-long-font-lock-keywords)))
+          (let ((font-lock-keywords
+                 (if in-diff diff-font-lock-keywords
+                   vc-git--log-view-long-font-lock-keywords)))
             (font-lock-fontify-keywords-region (point) end))
           (goto-char end)
           (prog1 (< (point) limit)
@@ -2103,8 +2101,14 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     nil))
 
 (define-derived-mode vc-git-region-history-mode
-    vc-git-log-view-mode "Git-Region-History"
+  vc-git-log-view-mode "Git-Region-History"
   "Major mode to browse Git's \"log -p\" output."
+  (require 'diff-mode)
+  (defvar diff-mode-map)
+  (unless (keymap-parent vc-git-region-history-mode-map)
+    (set-keymap-parent vc-git-region-history-mode-map
+                       (make-composed-keymap
+                        (list diff-mode-map vc-git-log-view-mode-map))))
   (setq-local vc-git--log-view-long-font-lock-keywords
               log-view-font-lock-keywords)
   (setq-local font-lock-defaults
