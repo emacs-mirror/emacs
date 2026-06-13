@@ -68,6 +68,7 @@ Processes}.
 * Misc Network::             Additional relevant functions for net connections.
 * Serial Ports::             Communicating with serial ports.
 * Byte Packing::             Using bindat to pack and unpack binary data.
+* UUIDs::                    Generating and converting UUIDs.
 @end menu
 
 @node Subprocess Creation
@@ -3883,3 +3884,154 @@ arguments @var{args}.  Its behavior follows that of @code{defmacro},
 which the important difference that the new forms can only be used
 within Bindat type expressions.
 @end defmac
+
+@node UUIDs
+@section UUIDs
+@cindex uuids
+
+  Emacs Lisp can generate and parse the most popular UUID variants to
+and from strings and binary.  It can generate UUIDv4, UUIDv5 and UUIDv7
+according to RFC 9562.  UUIDv4 is a randomly generated identifier,
+UUIDv5 is an identifier generated from a standard namespace and a name,
+and UUIDv7 is a combination of a timestamp and random identifier, with
+the advantage of having good index performance in databases.
+
+All UUIDs are 16 byte identifiers with a common string representation,
+consisting of hex digits and dashes of a predetermined length, such as
+@samp{919108f7-52d1-4320-9bac-f847db4148a8}.
+
+@menu
+* UUID Generation::
+* UUID Conversion::
+* Special UUID values::
+@end menu
+
+@node UUID Generation
+@subsection UUID Generation
+@cindex uuid generation
+
+  To generate UUIDs, call @code{uuid-v4}, @code{uuid-v5} or
+@code{uuid-v7}.  UUID v4 and v7 will by default use the normal elisp
+@dfn{random} for random numbers, but a different random number generator
+can be passed in, as long as it can be called with an arg of the end of
+the range of acceptable integers to generate (exclusive), and returns an
+integer.
+
+@defun uuid-v4 &key rng
+Return a @code{uuid-v4} Lisp object representing a new UUIDv4.
+@var{rng}, if provided, is a function that will, when called with a
+numeric argument, return a random number between 0 and that number
+(exclusive).
+@end defun
+
+@defun uuid-v7 &key rng
+Similar to @code{uuid-v4} but returns a @code{uuid-v7}, which is
+generated with a timestamp in addition to random numbers (generated from
+@var{rng} in a similar manner as @code{uuid-v4}).
+@end defun
+
+These use random numbers, which should be cryptographically secure.
+@xref{Random Numbers}, but generally these random numbers are not
+sufficient to generate sufficiently random UUIDs.  For private uses, the
+default behavior should be sufficient, but for professional uses,
+@var{rng} should be used, and provide cryptographically secure random
+numbers.
+
+@noindent
+UUIDv5s must be created with a namespace and a name.  The namespaces are
+defined in @code{uuid-namespace-alist} and are by default @code{dns},
+@code{url}, @code{oid}, and @code{x500}.
+
+@defun uuid-v5 namespace name
+This function returns a new @code{uuid-v5} Lisp object based on
+@var{namespace}, which is a symbol in the key of the
+@code{uuid-namespace-alist}: @code{dns}, @code{url}, @code{oid},
+@code{x500}, or any symbol added.  This is combined with @var{name} to
+construct a new UUIDv5.
+@end defun
+
+An example is:
+
+@cindex uuidv5
+@example
+(uuid-v5 'dns "www.example.com")
+@end example
+
+@defvar uuid-namespace-alist
+A list of namespace symbols and their corresponding UUIDs.  Each alist
+entry is a cons of the symbol and a UUID Lisp object representing the
+namespace.  This is used in @code{uuid-v5}, see above for more info on
+how this is used.
+@end defvar
+
+@node UUID Conversion
+@subsection UUID Conversion
+@cindex uuid conversion
+
+To use a UUID, typically it is converted to a string, and sometimes to a
+binary representation.  This is done using @code{uuid-to-string} function.
+
+@defun uuid-to-string uuid
+Return the standard string value, with hex values and dashes, of Lisp
+object @code{uuid}.
+@end defun
+
+@example
+(uuid-to-string (uuid-v4))     ; @r{"230156d4-488a-45d1-93c9-507ec8be37ca"}
+@end example
+
+@noindent
+Binary can also be generated, which generates a unibyte string, using
+@code{uuid-to-bytes}, and a numeric representation of a UUID can be
+generated with @code{uuid-to-number}.
+
+@defun uuid-to-bytes uuid
+Return a unibyte string representing the binary value of @code{uuid}.
+@end defun
+
+@defun uuid-to-number uuid
+Return a numeric representation of the value of @code{uuid}.
+@end defun
+
+@noindent
+String UUIDs can also be converted to a UUID Lisp object, with
+@code{uuid-from-string}, and bytes can be converted with
+@code{uuid-from-bytes}.  These work with all UUIDs, not just the ones
+this module can generate.
+
+@defun uuid-from-string uuid-str
+Return a UUID Lisp object that represents @var{uuid-str}.
+@end defun
+
+@defun uuid-from-bytes uuid-bytes
+Return a UUID Lisp object that represents @var{uuid-bytes}, which is
+expected to be a unibyte string.
+@end defun
+
+Valid UUIDs have types, which can be used with @code{cl-typep},
+@code{cl-check-type} and @code{cl-typecase}.  The type is specified with
+the type specifier @code{(uuid-v <version>)}.  @var{version} can be any
+version of UUID, but we make sure the UUID variant is correctly
+@code{2}; any other value is not a valid version.
+
+@example
+(when (cl-typep my-uuid '(uuid-v 4))
+    (process-v4-uuid my-uuid))
+
+(defun process-v4-uuid (uuid)
+    ;; Error if not the correct type
+    (cl-check-type uuid (uuid-v 4))
+    ;; Proceed to process the UUIDv4.
+    (more-processing uuid))
+@end example
+
+@node Special UUID values
+@subsection Special UUID values
+@cindex special uuid values
+@cindex uuid nil and uuid max
+@cindex nil uuid
+@cindex max uuid
+
+@code{uuid-nil} and @code{uuid-max} are constant values representing the
+UUID equivalents of @code{nil} and a max sentinel value, as defined in
+RFC 9562.
