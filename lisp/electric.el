@@ -193,7 +193,7 @@ Returns nil when we can't find this char."
 ;;; Electric indentation.
 
 (defcustom electric-indent-actions nil
-  "List of actions to indent.
+  "List of actions that should trigger automatic reindentation.
 
 The valid elements of this list can be:
  - `yank': Indent the yanked text only if point is not in a string or
@@ -202,7 +202,10 @@ The valid elements of this list can be:
 
 The indentation will not happen when the major mode is unable to
 reindent code reliably, such as in buffers where indentation is
-significant."
+significant.
+
+The selected actions only trigger automatic reindentation if
+`electric-indent-mode' is enabled."
   :type '(repeat (choice (const :tag "After yanking" yank)
                          (const :tag "Before saving" before-save)))
   :set (lambda (var val)
@@ -219,17 +222,20 @@ significant."
 ;; value, which only works well if the variable is preloaded.
 ;;;###autoload
 (defvar electric-indent-chars '(?\n)
-  "Characters that should cause automatic reindentation.")
+  "Characters that should cause automatic reindentation.
+Automatic reindentation is performed by `electric-indent-mode'.")
 
 (defvar electric-indent-functions nil
   "Special hook run to decide whether to auto-indent.
-Each function is called with one argument (the inserted char), with
-point right after that char, and it should return t to cause indentation,
-`no-indent' to prevent indentation or nil to let other functions decide.")
+This hook is used by `electric-indent-mode'.  Each function is called
+with one argument (the inserted char), with point right after that char,
+and it should return t to cause indentation, `no-indent' to prevent
+indentation or nil to let other functions decide.")
 
 (defvar-local electric-indent-inhibit nil
-  "If non-nil, reindentation is not appropriate for this buffer.
-This should be set by major modes such as `python-mode' since
+  "If non-nil, inhibit reindentation by `electric-indent-mode'.
+This should be non-nil if reindentation is not appropriate for this
+buffer.  This should be set by major modes such as `python-mode' since
 Python does not lend itself to fully automatic indentation.")
 
 (defvar electric-indent-functions-without-reindent
@@ -419,6 +425,8 @@ use `electric-indent-local-mode'."
 (defvar electric-layout-rules nil
   "List of rules saying where to automatically insert newlines.
 
+These rules control the behavior of `electric-layout-mode'.
+
 Each rule has the form (CHAR . WHERE), the rule matching if the
 character just inserted was CHAR.  WHERE specifies where to
 insert newlines, and can be:
@@ -446,10 +454,14 @@ If multiple rules match, only first one is executed.")
 
 ;; TODO: Make this a defcustom?
 (defvar electric-layout-allow-duplicate-newlines nil
-  "If non-nil, allow duplication of `before' newlines.")
+  "If non-nil, allow `electric-layout-mode' to duplicate `before' newlines.
+See `electric-layout-rules' for the meaning of `before' in this context.")
 
 (defvar electric-layout-allow-in-comment-or-string nil
-  "If non-nil, allow inserting newlines inside a comment or string.")
+  "If non-nil, let `electric-layout-mode' work inside comments or strings.
+The minor mode, `electric-layout-mode', automatically inserts newlines
+around some characters.  By default this does not happen in comments or
+strings, but setting this to non-nil allows it.")
 
 (defun electric-layout-post-self-insert-function ()
   (when electric-layout-mode
@@ -566,12 +578,30 @@ The variable `electric-layout-rules' says when and how to insert newlines."
 ;;; Electric quoting.
 
 (defcustom electric-quote-comment t
-  "Non-nil means to use electric quoting in program comments."
+  "Non-nil means to use electric quoting in program comments.
+Nil means do not use electric quoting in program comments.
+
+This user option controls the behaviour of `electric-quote-mode'.  When
+`electric-quote-mode' is enabled and this option is non-nil, as you type
+inside program comments `electric-quote-mode' replaces \\=` with \\=‘,
+\\=' with \\=’, \\=`\\=` with “, and \\='\\=' with ”.
+
+The above curved quotation characters represent the default and can be
+customized with `electric-quote-chars'."
   :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
 
 (defcustom electric-quote-string nil
-  "Non-nil means to use electric quoting in program strings."
+  "Non-nil means to use electric quoting in program strings.
+Nil means do not use electric quoting in program strings.
+
+This user option controls the behaviour of `electric-quote-mode'.  When
+`electric-quote-mode' is enabled and this option is non-nil, as you type
+inside program strings `electric-quote-mode' replaces \\=` with \\=‘,
+\\=' with \\=’, \\=`\\=` with “, and \\='\\=' with ”.
+
+The above curved quotation characters represent the default and can be
+customized with `electric-quote-chars'."
   :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
 
@@ -621,6 +651,13 @@ The variable `electric-layout-rules' says when and how to insert newlines."
 This list's members correspond to left single quote, right single
 quote, left double quote, and right double quote, respectively.
 
+When `electric-quote-mode' is enabled, as you type it replaces \\=` with
+the first element of this list, \\=' with the second element, \\=`\\=`
+with the third, and \\='\\=' with the fourth.  This occurs only in
+comments, strings, and text paragraphs, and these are selectively
+controlled with `electric-quote-comment', `electric-quote-string', and
+`electric-quote-paragraph'.
+
 Commonly used pairs are predefined, or you can define your own
 completely custom style."
   :version "26.1"
@@ -642,31 +679,56 @@ completely custom style."
   :group 'electricity)
 
 (defcustom electric-quote-paragraph t
-  "Non-nil means to use electric quoting in text paragraphs."
+  "Non-nil means to use electric quoting in text paragraphs.
+Nil means do not use electric quoting in text paragraphs.
+
+This user option controls the behaviour of `electric-quote-mode'.  When
+`electric-quote-mode' is enabled and this option is non-nil, as you type
+inside text paragraphs `electric-quote-mode' replaces \\=` with \\=‘,
+\\=' with \\=’, \\=`\\=` with “, and \\='\\=' with ”.
+
+The above curved quotation characters represent the default and can be
+customized with `electric-quote-chars'."
   :version "25.1"
   :type 'boolean :safe 'booleanp :group 'electricity)
 
 (defcustom electric-quote-context-sensitive nil
   "Non-nil means to replace \\=' with an electric quote depending on context.
-If `electric-quote-context-sensitive' is non-nil, Emacs replaces
-\\=' and \\='\\=' with an opening quote after a line break,
-whitespace, opening parenthesis, or quote and leaves \\=` alone."
+If `electric-quote-context-sensitive' is non-nil and `electric-quote-mode'
+is enabled, as you type Emacs replaces \\=' and \\='\\=' with an opening
+quote after a line break, whitespace, opening parenthesis, or quote and
+leaves \\=` alone.
+
+The quote character used for replacement is defined by the option
+`electric-quote-chars'."
   :version "26.1"
   :type 'boolean :safe #'booleanp :group 'electricity)
 
 (defcustom electric-quote-replace-double nil
   "Non-nil means to replace \" with an electric double quote.
-Emacs replaces \" with an opening double quote after a line
-break, whitespace, opening parenthesis, or quote, and with a
-closing double quote otherwise."
+If `electric-quote-replace-double' is non-nil and `electric-quote-mode'
+is enabled, as you type Emacs replaces \" with an opening double quote
+after a line break, whitespace, opening parenthesis, or quote, and with
+a closing double quote otherwise.
+
+The double quote characters used for replacement are defined by the
+option `electric-quote-chars'."
   :version "26.1"
   :type 'boolean :safe #'booleanp :group 'electricity)
 
 (defcustom electric-quote-replace-consecutive t
   "Non-nil means to replace a pair of single quotes with a double quote.
-Two single quotes are replaced by the corresponding double quote
-when the second quote of the pair is entered (i.e. by typing ` or
-') by default.  If nil, the single quotes are not altered."
+If `electric-quote-replace-consecutive' is non-nil and
+`electric-quote-mode' is enabled, as you type Emacs replaces two single
+quotes with the corresponding double quote when the second quote of the
+pair is entered (i.e. by typing \\=` or \\=') by default.  For example,
+with the default setting of `electric-quote-chars', if you type
+\\=`\\=`, Emacs will replace both characters with a single “.
+
+If this option is nil, the single quotes are not altered.
+
+The double quote characters used for replacement can be customized by
+the option `electric-quote-chars'."
   :version "29.1"
   :type 'boolean
   :safe #'booleanp
@@ -674,13 +736,13 @@ when the second quote of the pair is entered (i.e. by typing ` or
 
 (defvar electric-quote-inhibit-functions ()
   "List of functions that should inhibit electric quoting.
-When the variable `electric-quote-mode' is non-nil, Emacs will
-call these functions in order after the user has typed an \\=` or
-\\=' character.  If one of them returns non-nil, electric quote
-substitution is inhibited.  The functions are called after the
-\\=` or \\=' character has been inserted with point directly
-after the inserted character.  The functions in this hook should
-not move point or change the current buffer.")
+When `electric-quote-mode' is enabled, Emacs will call these functions
+in order after the user has typed an \\=` or \\=' character (or a \"
+character if `electric-quote-replace-double' is non-nil).  If one of
+them returns non-nil, electric quote substitution is inhibited.  The
+functions are called after the \\=` or \\=' character has been inserted
+with point directly after the inserted character.  The functions in this
+hook should not move point or change the current buffer.")
 
 (defvar electric-pair-text-pairs)
 
@@ -761,8 +823,10 @@ and text paragraphs, and these are selectively controlled with
 `electric-quote-comment', `electric-quote-string', and
 `electric-quote-paragraph'.
 
-Customize `electric-quote-chars' to use characters other than the
-ones listed here.  Also see `electric-quote-replace-consecutive'.
+Customize `electric-quote-chars' to use characters other than the ones
+listed here.  To also replace \" with “ or ” depending on the context,
+see `electric-quote-replace-double'.  Also see
+`electric-quote-replace-consecutive'.
 
 This is a global minor mode.  To toggle the mode in a single buffer,
 use `electric-quote-local-mode'."
