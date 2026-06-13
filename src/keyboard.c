@@ -12100,7 +12100,11 @@ Only 'input_event' slots KIND and ARG are set.  */)
   CHECK_CONS (event);
   if (NILP (access_keymap
 	    (get_keymap (Vspecial_event_map, 0, 1), event, 0, 0, 1)))
-    signal_error ("Invalid event kind", XCAR (event));
+    /* FIXME: Remove this check.  Since `special-event-map` may change
+       between now and the moment we process the event, this check is
+       unreliable, and it's redundant anyway since we check below
+       if EVENT is one of the supported ones.  */
+    signal_error ("Invalid special event kind", XCAR (event));
 
   /* Construct an input event.  */
   struct input_event ie;
@@ -12137,7 +12141,7 @@ Only 'input_event' slots KIND and ARG are set.  */)
      : EQ (XCAR (event), Qfocus_out) ? FOCUS_OUT_EVENT
      : EQ (XCAR (event), Qmove_frame) ? MOVE_FRAME_EVENT
      : EQ (XCAR (event), Qsleep_event) ? SLEEP_EVENT
-     : NO_EVENT);
+     : (signal_error ("Invalid special event kind", XCAR (event)), NO_EVENT));
   ie.frame_or_window = Qnil;
   ie.arg = CDR (event);
 
