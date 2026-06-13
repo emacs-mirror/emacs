@@ -241,7 +241,7 @@ not try to reindent lines.  It is normally better to make the major
 mode set `electric-indent-inhibit', but this can be used as a workaround.")
 
 (defun electric-indent-can-reindent-p ()
-  "Return t if `electric-indent-mode' can performs reindentation."
+  "Return t if `electric-indent-mode' can perform reindentation."
   (not (or (memq indent-line-function
                  electric-indent-functions-without-reindent)
            electric-indent-inhibit)))
