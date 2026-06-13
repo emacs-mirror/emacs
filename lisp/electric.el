@@ -275,7 +275,8 @@ mode set `electric-indent-inhibit', but this can be used as a workaround.")
         (indent-region (point-min) (point-max))))))
 
 (defun electric-indent--activate-indent-actions (enable)
-  "Enable the actions specified in `electric-indent-actions'."
+  "If ENABLE is non-nil, enable the actions in `electric-indent-actions'.
+If ENABLE is nil, disable them."
   (advice-remove 'yank #'electric-indent--yank-advice)
   (remove-hook 'before-save-hook #'electric-indent-save-hook)
   (when enable
