@@ -358,7 +358,11 @@ A value of `all' really means all."
                  (const :tag "All" all)
 		 (set :menu-tag "Some"
                       ,@(mapcar (lambda (x) `(const ,x))
-                                byte-compile-warning-types))))
+                                byte-compile-warning-types))
+                 (cons :tag "All Except"
+                       (const :tag "Not" not)
+                       (set ,@(mapcar (lambda (x) `(const ,x))
+                                      byte-compile-warning-types)))))
 
 (defconst byte-compile--emacs-build-warning-types
   '(docstrings-non-ascii-quotes)
