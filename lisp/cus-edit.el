@@ -1181,7 +1181,8 @@ Consult `setopt-local-type-mismatch'."
                        (lambda (x v &optional _) (set-local x v)))
                    variable value 'buffer-local)
         (wrong-number-of-arguments
-         (error "The setter of %S does not support setopt-local" variable))))))
+         (warn "The setter of %S lacks support for setopt-local" variable)
+         (set-local variable value))))))
 
 ;;;###autoload
 (defun customize-save-variable (variable value &optional comment)
