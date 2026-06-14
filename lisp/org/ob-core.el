@@ -2976,6 +2976,7 @@ used as a string to be appended to #+begin_example line."
 		   (forward-line 0) (insert ": ") (forward-line 1)))
 		(t
 		 (goto-char beg)
+		 (unless (bolp) (insert "\n"))
 		 (insert (if results-switches
 			     (format "%s%s\n"
 				     (funcall maybe-cap "#+begin_example")
@@ -2984,7 +2985,9 @@ used as a string to be appended to #+begin_example line."
 		 (let ((p (point)))
 		   (if (markerp end) (goto-char end) (forward-char (- end beg)))
 		   (org-escape-code-in-region p (point)))
-		 (insert (funcall maybe-cap "#+end_example\n")))))))))
+		 (unless (bolp) (insert "\n"))
+		 (insert (funcall maybe-cap "#+end_example"))
+		 (unless (eolp) (insert "\n")))))))))
 
 (defun org-babel-update-block-body (new-body)
   "Update the body of the current code block to NEW-BODY."
