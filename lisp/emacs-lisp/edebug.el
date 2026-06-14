@@ -2721,8 +2721,10 @@ when edebug becomes active."
                               edebug-function)
                 ))
 
-          ;; Margin setup for overlay arrow.
-          (edebug-prepare-margin)
+          ;; Margin setup for overlay arrow when there is no left
+          ;; fringe.
+          (when (zerop (car (window-fringes)))
+            (edebug-prepare-margin))
 
           ;; Make sure we bind those in the right buffer (bug#16410).
           (let ((overlay-arrow-position overlay-arrow-position)
