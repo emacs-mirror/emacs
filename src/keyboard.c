@@ -12100,7 +12100,7 @@ Only 'input_event' slots KIND and ARG are set.  */)
   CHECK_CONS (event);
   if (NILP (access_keymap
 	    (get_keymap (Vspecial_event_map, 0, 1), event, 0, 0, 1)))
-    /* FIXME: Remove this check.  Since `special-event-map` may change
+    /* FIXME: Remove this check.  Since 'special-event-map' may change
        between now and the moment we process the event, this check is
        unreliable, and it's redundant anyway since we check below
        if EVENT is one of the supported ones.  */
