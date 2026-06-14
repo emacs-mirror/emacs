@@ -128,10 +128,6 @@ record_insert (ptrdiff_t beg, ptrdiff_t length)
    weak hash table (the id_to_marker field).  Only the id is stored in
    the undo-list.
 
-   The marker_to_id field is another weak hash table that contains the
-   same pairs but in reverse order (marker, id).  We use that to reuse
-   the id of markers that already have an id.
-
    The next_id field is a counter used to generate ids.
 
    The last_count field helps to detect removed markers.  We record
@@ -142,7 +138,6 @@ record_insert (ptrdiff_t beg, ptrdiff_t length)
 struct weak_marker_table
 {
   Lisp_Object id_to_marker;
-  Lisp_Object marker_to_id;
   EMACS_INT next_id;
   EMACS_INT last_count;
 };
@@ -150,7 +145,7 @@ struct weak_marker_table
 static struct weak_marker_table weak_marker_table;
 
 static Lisp_Object
-scrub_id_object_pairs (Lisp_Object id_to_marker, Lisp_Object list)
+scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
 {
   Lisp_Object tail = list, *prev = &list;
   while (CONSP (tail))
@@ -176,9 +171,10 @@ scrub_id_object_pairs (Lisp_Object id_to_marker, Lisp_Object list)
     }
   return list;
 }
-/* Remove (apply undo--adjust-weak-marker HASHTABLE KEY D) entries
-   where KEY is no longer in HASHTABLE.  */
 
+/* In (apply 0 BEG END undo--adjust-weak-markers . ARGS) entries, remove
+   weak references to markers that are no longer in weak_marker_table.
+   If no weak references remain, remove the entire entry.  */
 static Lisp_Object
 scrub_undo_list (Lisp_Object list)
 {
@@ -195,8 +191,8 @@ scrub_undo_list (Lisp_Object list)
 	{
 	  Lisp_Object htab = weak_marker_table.id_to_marker;
 	  Lisp_Object head = Fnthcdr (make_fixnum (4), entry);
-	  Lisp_Object pairs =
-	    scrub_id_object_pairs (htab, XCDR (head));
+	  Lisp_Object pairs
+	    = scrub_id_offset_pairs (htab, XCDR (head));
 	  XSETCDR (head, pairs);
 	  drop = NILP (pairs);
 	}
@@ -238,19 +234,24 @@ alloc_weak_marker_id (struct weak_marker_table *t, Lisp_Object marker)
   if (count < t->last_count)
     scrub_undo_lists ();
 
-  Lisp_Object id = Fgethash (marker, t->marker_to_id, Qnil);
-  if (!NILP (id) && EQ (Fgethash (id, t->id_to_marker, Qnil), marker))
-    return id;
-
-  do
+  EMACS_INT undo_id = XMARKER (marker)->undo_id;
+  Lisp_Object id;
+  if (undo_id != -1)
+    id = make_fixnum (undo_id);
+  else
     {
-      id = make_fixnum (t->next_id);
-      t->next_id = (t->next_id + 1) % MOST_POSITIVE_FIXNUM;
+      do
+	{
+	  id = make_fixnum (t->next_id);
+	  t->next_id = (t->next_id + 1) % MOST_POSITIVE_FIXNUM;
+	}
+      while (!NILP (Fgethash (id, t->id_to_marker, Qnil)));
+      Fputhash (id, marker, t->id_to_marker);
+      XMARKER (marker)->undo_id = XFIXNUM (id);
+      t->last_count = count + 1;
     }
-  while (!NILP (Fgethash (id, t->id_to_marker, Qnil)));
-  Fputhash (id, marker, t->id_to_marker);
-  Fputhash (marker, id, t->marker_to_id);
-  t->last_count = count + 1;
+  eassert (EQ (Fgethash (id, t->id_to_marker, Qnil), marker));
+  eassert (XMARKER (marker)->undo_id == XFIXNUM (id));
   return id;
 }
 
@@ -688,9 +689,6 @@ so it must make sure not to do a lot of consing.  */);
   DEFSYM (Qundo__adjust_weak_markers, "undo--adjust-weak-markers");
   defsubr (&Sundo__lookup_marker);
   staticpro (&weak_marker_table.id_to_marker);
-  staticpro (&weak_marker_table.marker_to_id);
   weak_marker_table.id_to_marker
     = CALLN (Fmake_hash_table, QCweakness, Qvalue);
-  weak_marker_table.marker_to_id
-    = CALLN (Fmake_hash_table, QCweakness, Qkey);
 }

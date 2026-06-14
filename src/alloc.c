@@ -3974,7 +3974,9 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
   p->buffer = 0;
   p->bytepos = 0;
   p->charpos = 0;
-#ifndef HAVE_MPS
+#ifdef HAVE_MPS
+  p->undo_id = -1;
+#else
   p->next = NULL;
 #endif
   p->insertion_type = 0;
@@ -4002,6 +4004,7 @@ build_marker (struct buffer *buf, ptrdiff_t charpos, ptrdiff_t bytepos)
   m->insertion_type = 0;
   m->need_adjustment = 0;
 #ifdef HAVE_MPS
+  m->undo_id = -1;
   igc_add_marker (buf, m);
 #else
   m->next = BUF_MARKERS (buf);
