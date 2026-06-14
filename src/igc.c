@@ -124,7 +124,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_String_D08B4A1DD1
 #  error "struct Lisp_String changed"
 # endif
-# ifndef HASH_Lisp_Marker_123009D29E
+# ifndef HASH_Lisp_Marker_AEA53151E8
 #  error "struct Lisp_Marker changed"
 # endif
 # ifndef HASH_itree_node_8AF9E94FBA
