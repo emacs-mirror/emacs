@@ -193,7 +193,8 @@ scrub_undo_list (Lisp_Object list)
 	  Lisp_Object head = Fnthcdr (make_fixnum (4), entry);
 	  Lisp_Object pairs
 	    = scrub_id_offset_pairs (htab, XCDR (head));
-	  XSETCDR (head, pairs);
+	  if (pairs != XCDR (head))
+	    XSETCDR (head, pairs);
 	  drop = NILP (pairs);
 	}
       if (drop)
