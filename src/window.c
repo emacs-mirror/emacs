@@ -8006,7 +8006,16 @@ the return value is nil.  Otherwise the value is t.  */)
       if (NILP (data->focus_frame)
 	  || (FRAMEP (data->focus_frame)
 	      && FRAME_LIVE_P (XFRAME (data->focus_frame))))
-	Fredirect_frame_focus (frame, data->focus_frame);
+	{
+	  Lisp_Object frame_focus_frame = f->focus_frame;
+
+	  Fredirect_frame_focus (frame, data->focus_frame);
+
+	  if (EQ (focus_follows_mouse, Qauto_raise)
+	      && NILP (data->focus_frame)
+	      && EQ (selected_frame, frame_focus_frame))
+	    calln (Qselect_frame_set_input_focus, frame, Qnil);
+	}
 
       /* Now, free glyph matrices in windows that were not reused.  */
       for (i = 0; i < n_leaf_windows; i++)
@@ -8094,6 +8103,26 @@ restore_window_configuration (Lisp_Object configuration)
     Fset_window_configuration (configuration, Qnil, Qnil);
 }
 
+void
+restore_focus_frame (Lisp_Object frame_and_focus_frame)
+{
+  Lisp_Object frame = Fcar (frame_and_focus_frame);
+  Lisp_Object focus_frame = Fcdr (frame_and_focus_frame);
+
+  if (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame))
+      && (NILP (focus_frame)
+	  || (FRAMEP (focus_frame) && FRAME_LIVE_P (XFRAME (focus_frame)))))
+    {
+      Lisp_Object frame_focus_frame = XFRAME (frame)->focus_frame;
+
+      Fredirect_frame_focus (frame, focus_frame);
+
+      if (EQ (focus_follows_mouse, Qauto_raise)
+	  && NILP (focus_frame)
+	  && EQ (selected_frame, frame_focus_frame))
+	calln (Qselect_frame_set_input_focus, frame, Qnil);
+    }
+}
 
 /* If WINDOW is an internal window, recursively delete all child windows
    reachable via the next and contents slots of WINDOW.  Otherwise setup

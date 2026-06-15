@@ -29094,13 +29094,19 @@ x_focus_frame (struct frame *f, bool noactivate)
 	  && (!dpyinfo->x_focus_frame
 	      || (x_get_toplevel_parent (dpyinfo->x_focus_frame)
 		  != f))
-	  && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
+	  && x_wm_supports (f, dpyinfo->Xatom_net_active_window)
+	  && !EQ (focus_follows_mouse, Qauto_raise))
 	{
 	  /* When window manager activation is possible, use it
 	     instead.  The window manager is expected to perform any
 	     necessary actions such as raising the frame, moving it to
 	     the current workspace, and mapping it, etc, before moving
-	     input focus to the frame.  */
+	     input focus to the frame.
+
+	     Don't use window manager activation when giving focus to a
+	     frame when the mouse would auto-raise it.  At least xfwm
+	     won't give a frame focus via x_ewmh_activate_frame in that
+	     case.  */
 	  x_ewmh_activate_frame (f);
 	  goto out;
 	}
