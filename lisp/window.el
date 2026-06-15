@@ -8273,7 +8273,7 @@ Action alist entries are:
     and `shrink-window-if-larger-than-buffer'.
  \\+`window-width' -- The value specifies the desired width of the
     window chosen and is either an integer (the total width of
-    the window specified in frame lines), a floating point
+    the window specified in frame columns), a floating point
     number (the fraction of its total width with respect to the
     width of the frame's root window), a cons cell whose car is
     `body-columns' and whose cdr is an integer that specifies the
