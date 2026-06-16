@@ -2252,6 +2252,7 @@ dump_marker (struct dump_context *ctx, const struct Lisp_Marker *marker)
 			    Lisp_Vectorlike, WEIGHT_STRONG);
 #else
       DUMP_FIELD_COPY (out, marker, slot);
+      DUMP_FIELD_COPY (out, marker, undo_id);
 #endif
       DUMP_FIELD_COPY (out, marker, charpos);
       DUMP_FIELD_COPY (out, marker, bytepos);
