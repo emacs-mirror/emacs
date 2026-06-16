@@ -88,6 +88,7 @@
 ;;; Code:
 
 (require 'ansi-color)
+(require 'ansi-osc)
 (require 'cl-lib)
 
 (defgroup man nil
@@ -154,6 +155,9 @@ This variable is obsolete.  To customize the faces used by ansi-color,
 set `Man-ansi-color-basic-faces-vector'.")
 (make-obsolete-variable 'Man-ansi-color-map
                         'Man-ansi-color-basic-faces-vector "28.1")
+
+(defvar Man-ansi-osc-handlers '(("8" . ansi-osc-hyperlink-handler))
+  "The value used here for `ansi-osc-handlers'.")
 
 (defcustom Man-notify-method 'friendly
   "Selects the behavior when manpage is ready.
@@ -1377,6 +1381,8 @@ Same for the ANSI bold and normal escape sequences."
   (let ((ansi-color-apply-face-function #'ansi-color-apply-text-property-face)
 	(ansi-color-basic-faces-vector Man-ansi-color-basic-faces-vector))
     (ansi-color-apply-on-region (point-min) (point-max)))
+  (let ((ansi-osc-handlers Man-ansi-osc-handlers))
+    (ansi-osc-apply-on-region (point-min) (point-max)))
   ;; Other highlighting.
   (let ((buffer-undo-list t))
     (if (< (buffer-size) (position-bytes (point-max)))

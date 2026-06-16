@@ -101,6 +101,13 @@ check out the repository to prepare a patch for the package maintainer.
 ---
 *** Messages from Ansible are now recognized.
 
+** Man
+
+---
+*** OSC 8 hyperlinks in man pages are now buttonized.
+When a man page contains OSC 8 hyperlink escape sequences, they
+are now buttonized, allowing using mouse or 'RET' to follow them.
+
 ** VC
 
 +++
