@@ -6596,9 +6596,11 @@ hash_table_weakness_symbol (hash_table_weakness_t weak)
     case Weak_Value:         return Qvalue;
     case Weak_Key_And_Value: return Qkey_and_value;
     case Weak_Key_Or_Value:  return Qkey_or_value;
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
     case Weak_Key_Strong_Value:
       /* shouldn't happen */
       return intern ("key-strong-value");
+#endif
     }
   emacs_abort ();
 }

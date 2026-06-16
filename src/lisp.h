@@ -2656,7 +2656,9 @@ typedef enum hash_table_weakness_t {
   Weak_Key_And_Value,	 /* References to key and value are weak:
 			    element kept as long as strong references to
 			    both key and value remain.  */
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
   Weak_Key_Strong_Value,
+#endif
 } hash_table_weakness_t;
 
 /* The type of a hash table index, both for table indices and index

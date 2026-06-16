@@ -6701,9 +6701,11 @@ were the default value.  */);
      doc: /* Whether to balance buffer intervals when idle.  */);
   igc__balance_intervals = false;
 
+#ifndef USE_EPHEMERON_POOL
   DEFVAR_LISP ("igc--dependency-replacements", Vigc__dependency_replacements,
      doc: /* Internal use only.  */);
   Vigc__dependency_replacements
     = make_hash_table (&hashtest_eq, DEFAULT_HASH_SIZE,
 		       Weak_Key_Strong_Value);
+#endif
 }
