@@ -2202,15 +2202,10 @@ fix_handler (mps_ss_t ss, struct handler *h)
 }
 
 #ifdef USE_EPHEMERON_POOL
-static union igc_header *
-as_igc_header (union igc_header *h) {
-  return (union igc_header *)h;
-}
-
 static mps_res_t
 fix_pair_vector (mps_ss_t ss, struct pair_vector *pv)
 {
-  size_t nbytes = obj_size (as_igc_header (&pv->gc_header));
+  size_t nbytes = obj_size (&pv->gc_header);
   size_t header_size = offsetof (struct pair_vector, pairs);
   size_t npairs = (nbytes - header_size) / sizeof pv->pairs[0];
   MPS_SCAN_BEGIN (ss)
@@ -2498,7 +2493,7 @@ typedef mps_res_t (*fix_weak_pair) (mps_ss_t ss, struct pair_vector *,
 static mps_res_t
 scan_pair_vector (mps_ss_t ss, struct pair_vector *pv, fix_weak_pair f)
 {
-  size_t nbytes = obj_size (as_igc_header (&pv->gc_header));
+  size_t nbytes = obj_size (&pv->gc_header);
   size_t header_size = offsetof (struct pair_vector, pairs);
   size_t npairs = (nbytes - header_size) / sizeof pv->pairs[0];
   for (size_t i = 0; i < npairs; i++)
