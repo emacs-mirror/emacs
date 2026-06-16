@@ -687,9 +687,11 @@ so it must make sure not to do a lot of consing.  */);
 	       doc: /* Non-nil means do not record `point' in `buffer-undo-list'.  */);
   undo_inhibit_record_point = false;
 
+#ifdef HAVE_MPS
   DEFSYM (Qundo__adjust_weak_markers, "undo--adjust-weak-markers");
   defsubr (&Sundo__lookup_marker);
   staticpro (&weak_marker_table.id_to_marker);
   weak_marker_table.id_to_marker
     = CALLN (Fmake_hash_table, QCweakness, Qvalue);
+#endif
 }
