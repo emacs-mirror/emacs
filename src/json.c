@@ -832,52 +832,27 @@ NO_INLINE static void
 json_make_object_workspace_for_slow_path (struct json_parser *parser,
 					  ptrdiff_t size)
 {
-#ifdef HAVE_MPS
-  size_t needed_workspace_size
-    = (parser->object_workspace_current + size);
-  size_t new_workspace_size = parser->object_workspace_size;
-  while (new_workspace_size < needed_workspace_size)
-    {
-      if (ckd_mul (&new_workspace_size, new_workspace_size, 2))
-	{
-	  json_signal_error (parser, Qjson_out_of_memory);
-	}
-    }
-
-  Lisp_Object *new_workspace_ptr;
-  if (parser->object_workspace_size
-      == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE)
-    {
-      new_workspace_ptr
-	= igc_xalloc_lisp (new_workspace_size,
-			   "json-parser-object-workspace");
-      memcpy (new_workspace_ptr, parser->object_workspace,
-	      (sizeof (Lisp_Object)
-	       * parser->object_workspace_current));
-    }
-  else
-    {
-      size_t old_size = parser->object_workspace_current;
-      new_workspace_ptr
-	= igc_xnrealloc_lisp (old_size, parser->object_workspace,
-			      new_workspace_size,
-			      "json-parser-object-workspace");
-    }
-#else
   bool internal = (parser->object_workspace_size
 		   == JSON_PARSER_INTERNAL_OBJECT_WORKSPACE_SIZE);
+#ifdef HAVE_MPS
+  Lisp_Object *new_workspace_ptr
+    = igc_xpalloc_lisp (internal ? NULL : parser->object_workspace,
+			&parser->object_workspace_size,
+			size - (parser->object_workspace_size
+				- parser->object_workspace_current),
+			-1, "json-parser-object-workspace");
+#else
   Lisp_Object *new_workspace_ptr
     = xpalloc (internal ? NULL : parser->object_workspace,
 	       &parser->object_workspace_size,
 	       size - (parser->object_workspace_size
 		       - parser->object_workspace_current),
 	       -1, sizeof (Lisp_Object));
+#endif
   if (internal)
     memcpy (new_workspace_ptr, parser->object_workspace,
 	    sizeof (Lisp_Object) * parser->object_workspace_current);
-#endif
   parser->object_workspace = new_workspace_ptr;
-  parser->object_workspace_size = new_workspace_size;
 }
 
 INLINE void
