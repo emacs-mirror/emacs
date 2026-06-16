@@ -5479,7 +5479,9 @@ keep_entry_p (hash_table_weakness_t weakness,
     case Weak_Value:         return strong_value;
     case Weak_Key_Or_Value:  return strong_key || strong_value;
     case Weak_Key_And_Value: return strong_key && strong_value;
+#if defined HAVE_MPS && !defined USE_EPHEMERON_POOL
     case Weak_Key_Strong_Value: return strong_key;
+#endif
     }
   emacs_abort();
 }
