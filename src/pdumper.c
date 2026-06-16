@@ -2896,7 +2896,7 @@ dump_hash_table_kv_part (struct dump_context *ctx,
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_825D844598
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_D082C20BC0
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);

@@ -157,7 +157,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_vectorlike_header_AF1B22D957
 #  error "struct vectorlike_header changed"
 # endif
-# ifndef HASH_Lisp_Hash_Table_825D844598
+# ifndef HASH_Lisp_Hash_Table_D082C20BC0
 #  error "struct Lisp_Hash_Table changed"
 # endif
 # ifndef HASH_Lisp_Weak_Hash_Table_7C5D3EDAD7
