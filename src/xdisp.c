@@ -23780,7 +23780,8 @@ usage: (trace-to-stderr STRING &rest OBJECTS)  */)
    fringe.  */
 
 static struct glyph_row *
-get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
+get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string,
+			     enum face_id face_id)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct buffer *buffer = XBUFFER (w->contents);
@@ -23819,7 +23820,13 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
       /* Get its face.  */
       ilisp = make_fixnum (char_num++);
       face = Fget_text_property (ilisp, Qface, overlay_arrow_string);
-      it.face_id = compute_char_face (f, it.char_to_display, face);
+
+      /* If no face was found in the overlay arrow string, use the one
+	 provided by the caller.  */
+      if (NILP (face))
+	it.face_id = lookup_basic_face (it.w, f, face_id);
+      else
+	it.face_id = compute_char_face (f, it.char_to_display, face);
 
       /* Compute its width, get its glyphs.  */
       n_glyphs_before = it.glyph_row->used[TEXT_AREA];
@@ -26749,31 +26756,43 @@ display_line (struct it *it, int cursor_vpos)
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
       if (STRINGP (overlay_arrow_string))
 	{
+	  short left_margin_glyphs
+	    = row->glyphs[TEXT_AREA] - row->glyphs[LEFT_MARGIN_AREA];
 	  struct glyph_row *arrow_row
-	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_string);
-	  struct glyph *glyph = arrow_row->glyphs[TEXT_AREA];
-	  struct glyph *arrow_end = glyph + arrow_row->used[TEXT_AREA];
+	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_string,
+					   MARGIN_FACE_ID);
+	  short arrow_used_glyphs = arrow_row->used[TEXT_AREA];
+	  struct glyph *glyph;
+	  struct glyph *arrow_end;
 	  struct glyph *p, *p2, *end, *where;
 	  short *p_used;
+	  enum glyph_row_area area;
 
 	  /* When possible, put the arrow glyphs at the start of the
 	     left margin.  Otherwise put them at the start of the text
-	     area.  */
-	  if (WINDOW_LEFT_MARGIN_WIDTH (it->w) >= arrow_row->used[TEXT_AREA])
-	    {
-	      p = where = row->glyphs[LEFT_MARGIN_AREA];
-	      p_used = &(row->used[LEFT_MARGIN_AREA]);
-	      row->used[LEFT_MARGIN_AREA] += arrow_row->used[TEXT_AREA];
-	    }
+	     area.  Also privilege the margin face in the margin.  */
+	  if (left_margin_glyphs >= arrow_used_glyphs)
+	    area = LEFT_MARGIN_AREA;
 	  else
 	    {
-	      p = where = row->glyphs[TEXT_AREA];
-	      p_used = &(row->used[TEXT_AREA]);
+	      arrow_row = get_overlay_arrow_glyph_row (it->w,
+						       overlay_arrow_string,
+						       DEFAULT_FACE_ID);
+	      arrow_used_glyphs = arrow_row->used[TEXT_AREA];
+	      area = TEXT_AREA;
 	    }
+	  glyph = arrow_row->glyphs[TEXT_AREA];
+	  arrow_end = glyph + arrow_used_glyphs;
+	  p = where = row->glyphs[area];
+	  p_used = &(row->used[area]);
 
 	  /* Copy the arrow glyphs.  */
 	  while (glyph < arrow_end)
 	    *p++ = *glyph++;
+
+	  /* Update the 'used' count of the area where we copied the
+	     arrow.  */
+	  row->used[area] = max (row->used[area], arrow_used_glyphs);
 
 	  /* Throw away padding glyphs.  */
 	  p2 = p;
