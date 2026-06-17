@@ -178,4 +178,37 @@ property is installed on line 1.  See bug#81039."
                       (ensure-list
                        (get-text-property (point-min) 'display))))))
 
+(ert-deftest visual-wrap-tests/line-numbers-align-to-wrap-prefix ()
+  "With line numbers, `wrap-prefix' `:align-to' aligns from text start."
+  (skip-unless (display-graphic-p))
+  (let ((buffer (generate-new-buffer " *visual-wrap-test*")))
+    (unwind-protect
+        (let ((window (display-buffer buffer)))
+          (with-selected-window window
+            (setq-local display-line-numbers t)
+            (visual-line-mode 1)
+            (let* ((columns (window-width))
+                   ;; Make the first word fit on visual line 1, but leave
+                   ;; too little room for the second word so word wrapping
+                   ;; moves it to visual line 2.
+                   (first-word-width (max 10 (- columns 20))))
+              (insert "- "
+                      (make-string first-word-width ?n)
+                      " "
+                      (make-string 20 ?n)))
+            (visual-wrap-prefix-function (point-min) (point-max))
+            (redisplay t)
+            (let* ((bol-x (car (posn-x-y (posn-at-point (point-min)))))
+                   (prefix-width (string-pixel-width "- " (current-buffer)))
+                   (second-word-pos
+                    (save-excursion
+                      (goto-char (point-min))
+                      (search-forward " " nil t 2)
+                      (point)))
+                   (second-word-x
+                    (car (posn-x-y (posn-at-point second-word-pos)))))
+              (should (= second-word-x (+ bol-x prefix-width))))))
+      (when (buffer-live-p buffer)
+        (kill-buffer buffer)))))
+
 ;; visual-wrap-tests.el ends here
