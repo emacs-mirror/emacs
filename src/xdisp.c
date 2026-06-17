@@ -857,7 +857,7 @@ bool help_echo_showing_p;
 enum { REDISPLAY_SOME = 2};	/* Arbitrary choice.  */
 
 static bool calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
-					struct font *, bool, int *);
+					struct font *, bool, int *, bool *);
 
 void
 redisplay_other_windows (void)
@@ -5807,7 +5807,7 @@ display_min_width (struct it *it, ptrdiff_t charpos,
 	      font = face->font ? face->font : FRAME_FONT (it->f);
 	      calc_pixel_width_or_height (&width, it,
 					  XCAR (it->min_width_property),
-					  font, true, NULL);
+					  font, true, NULL, NULL);
 	      width -= it->current_x - it->min_width_start;
 	      /* It makes no sense to try to obey min-width which yields
                  a stretch that ends beyond the visible portion of the
@@ -5823,7 +5823,7 @@ display_min_width (struct it *it, ptrdiff_t charpos,
 	    {
 	      calc_pixel_width_or_height (&width, it,
 					  XCAR (it->min_width_property),
-					  NULL, true, NULL);
+					  NULL, true, NULL, NULL);
 	      width -= (it->current_x - it->min_width_start) /
 		FRAME_COLUMN_WIDTH (it->f);
 	      if (width > 0
@@ -30391,15 +30391,26 @@ display may depend on `buffer-invisibility-spec', which see.  */)
    If ALIGN_TO is NULL, returns the result in *RES.  If ALIGN_TO is
    non-NULL, the value of *ALIGN_TO is a window-relative pixel
    coordinate, and *RES is the additional pixel width from that point
-   till the end of the stretch glyph.  If *ALIGN_TO is negative, it
-   means no element contributed to alignment (yet).  The value starts at
-   -1, and is set to either -2 or a positive number once we've processed
-   the first element that contributes to the alignment.
+   till the end of the stretch glyph.  *ALIGN_TO starts at -1 and stays
+   negative until a window element (e.g. 'left' or 'center') contributes
+   an anchor position, at which point it holds that non-negative
+   coordinate.
+
+   LNUM_ADDED, if non-NULL, must point to a flag initialized to false.
+   The default text-area base, which includes the line-number width,
+   must contribute to the alignment exactly once; whichever term first
+   establishes that base adds the line-number width and sets
+   *LNUM_ADDED, so it is never counted more than once per alignment.
+   Because of the recursive nature of the function, the state needs to
+   be managed with a pointer: if the code flow branches into subcalls of
+   the same function and one of the subcalls applies the line-number
+   width offset, the change of state needs to propagate to the sibling
+   subcalls to avoid applying the offset once again.
 
    WIDTH_P non-zero means take the width dimension or X coordinate of
    the object specified by PROP, WIDTH_P zero means take the height
-   dimension or the Y coordinate.  (Therefore, if ALIGN_TO is
-   non-NULL, WIDTH_P should be non-zero.)
+   dimension or the Y coordinate.  (Therefore, if ALIGN_TO is non-NULL,
+   WIDTH_P should be non-zero.)
 
    FONT is the font of the face of the surrounding text.
 
@@ -30407,8 +30418,9 @@ display may depend on `buffer-invisibility-spec', which see.  */)
    calculated, i.e. if PROP is a valid spec.  */
 
 static bool
-calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
-			    struct font *font, bool width_p, int *align_to)
+calc_pixel_width_or_height (double *res, struct it *it,
+			    Lisp_Object prop, struct font *font,
+			    bool width_p, int *align_to, bool *lnum_added)
 {
   /* Don't adjust for line number if we didn't yet produce it for this
      screen line.  This is for when this function is called from
@@ -30419,6 +30431,11 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 
 # define OK_PIXELS(val) (*res = (val), true)
 # define OK_ALIGN_TO(val) (*align_to = (val), true)
+  /* Add the line-number width to an alignment base only once;
+     LNUM_ONCE yields it the first time and 0 after.  */
+# define LNUM_ONCE (lnum_added && !*lnum_added			\
+		    ? (*lnum_added = true, lnum_pixel_width)	\
+		    : 0)
 
   if (NILP (prop))
     return OK_PIXELS (0);
@@ -30479,20 +30496,20 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
       /* ':align_to'.  First time we compute the value, window
 	 elements are interpreted as the position of the element's
 	 left edge.  */
-      if (align_to && *align_to == -1)
+      if (align_to && *align_to < 0)
 	{
 	  *res = 0;
 	  /* 'left': left edge of the text area.  */
 	  if (EQ (prop, Qleft))
 	    return OK_ALIGN_TO (window_box_left_offset (it->w, TEXT_AREA)
-				+ lnum_pixel_width);
+				+ LNUM_ONCE);
 	  /* 'right': right edge of the text area.  */
 	  if (EQ (prop, Qright))
 	    return OK_ALIGN_TO (window_box_right_offset (it->w, TEXT_AREA));
 	  /* 'center': the center of the text area.  */
 	  if (EQ (prop, Qcenter))
 	    return OK_ALIGN_TO (window_box_left_offset (it->w, TEXT_AREA)
-				+ lnum_pixel_width
+				+ LNUM_ONCE
 				+ window_box_width (it->w, TEXT_AREA) / 2);
 	  /* 'left-fringe': left edge of the left fringe.  */
 	  if (EQ (prop, Qleft_fringe))
@@ -30544,15 +30561,12 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
       int base_unit = (width_p
 		       ? FRAME_COLUMN_WIDTH (it->f)
 		       : FRAME_LINE_HEIGHT (it->f));
-      /* `align_to' starts at -1.  A numeric value without an explicit
-	 base is relative to the text area's left edge, so account for
-	 line numbers once and mark the default base as consumed, so we
-	 don't account for the line-number width more than once.  */
-      if (width_p && align_to && *align_to == -1)
-	{
-	  *align_to = -2;
-	  return OK_PIXELS (XFLOATINT (prop) * base_unit + lnum_pixel_width);
-	}
+      /* A numeric value is measured from the text area's left edge
+	 until a window element sets an anchor.  While *align_to < 0,
+	 include the line-number width, but only once per alignment via
+	 the macro LNUM_ONCE.  */
+      if (width_p && align_to && *align_to < 0)
+	return OK_PIXELS (XFLOATINT (prop) * base_unit + LNUM_ONCE);
       return OK_PIXELS (XFLOATINT (prop) * base_unit);
     }
 
@@ -30591,7 +30605,8 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	      while (CONSP (cdr))
 		{
 		  if (!calc_pixel_width_or_height (&px, it, XCAR (cdr),
-						   font, width_p, align_to))
+						   font, width_p, align_to,
+						   lnum_added))
 		    return false;
 		  if (first)
 		    pixels = (EQ (car, Qplus) ? px : -px), first = false;
@@ -30613,20 +30628,16 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
       if (NUMBERP (car))
 	{
 	  double fact;
-	  int offset = 0;
-	  /* See the NUMBERP case above: the default text-area base
-	     should apply only once to the whole pixel expression, not
-	     once for each numeric subexpression.  */
-	  if (width_p && align_to && *align_to == -1)
-	    {
-	      offset = lnum_pixel_width;
-	      *align_to = -2;
-	    }
+	  /* As in the NUMBERP case above: while *align_to < 0, add the
+	     line-number width, but only once per alignment via the macro
+	     LNUM_ONCE.  */
+	  int offset = (width_p && align_to && *align_to < 0) ? LNUM_ONCE : 0;
 	  pixels = XFLOATINT (car);
 	  if (NILP (cdr))
 	    return OK_PIXELS (pixels + offset);
 	  if (calc_pixel_width_or_height (&fact, it, cdr,
-					  font, width_p, align_to))
+					  font, width_p, align_to,
+					  lnum_added))
 	    return OK_PIXELS (pixels * fact + offset);
 	  return false;
 	}
@@ -32858,9 +32869,13 @@ produce_stretch_glyph (struct it *it)
   eassert (CONSP (it->object) && EQ (XCAR (it->object), Qspace));
   plist = XCDR (it->object);
 
+  /* Seeds calc_pixel_width_or_height's recursion; must start false.
+     Its value on return is ignored here, hence the name.  */
+  bool lnum_added_ignored = false;
+
   /* Compute the width of the stretch.  */
   if ((prop = plist_get (plist, QCwidth), !NILP (prop))
-      && calc_pixel_width_or_height (&tem, it, prop, font, true, NULL))
+      && calc_pixel_width_or_height (&tem, it, prop, font, true, NULL, NULL))
     {
       /* Absolute width `:width WIDTH' specified and valid.  */
       zero_width_ok_p = true;
@@ -32905,7 +32920,7 @@ produce_stretch_glyph (struct it *it)
     }
   else if ((prop = plist_get (plist, QCalign_to), !NILP (prop))
 	   && calc_pixel_width_or_height (&tem, it, prop, font, true,
-					  &align_to))
+					  &align_to, &lnum_added_ignored))
     {
       int x = it->current_x + (it->align_visually_p
 			       ? 0
@@ -32959,7 +32974,7 @@ produce_stretch_glyph (struct it *it)
 	font ? normal_char_height (font, ' ') : FRAME_LINE_HEIGHT (it->f);
 
       if ((prop = plist_get (plist, QCheight), !NILP (prop))
-	  && calc_pixel_width_or_height (&tem, it, prop, font, false, NULL))
+	  && calc_pixel_width_or_height (&tem, it, prop, font, false, NULL, NULL))
 	{
 	  height = (int)tem;
 	  zero_height_ok_p = true;
@@ -32980,7 +32995,7 @@ produce_stretch_glyph (struct it *it)
           NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
 	ascent = height * NUMVAL (prop) / 100.0;
       else if (!NILP (prop)
-	       && calc_pixel_width_or_height (&tem, it, prop, font, false, 0))
+	       && calc_pixel_width_or_height (&tem, it, prop, font, false, NULL, NULL))
 	ascent = min (max (0, (int)tem), height);
       else
 	ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
