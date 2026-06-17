@@ -30367,7 +30367,10 @@ display may depend on `buffer-invisibility-spec', which see.  */)
    If ALIGN_TO is NULL, returns the result in *RES.  If ALIGN_TO is
    non-NULL, the value of *ALIGN_TO is a window-relative pixel
    coordinate, and *RES is the additional pixel width from that point
-   till the end of the stretch glyph.
+   till the end of the stretch glyph.  If *ALIGN_TO is negative, it
+   means no element contributed to alignment (yet).  The value starts at
+   -1, and is set to either -2 or a positive number once we've processed
+   the first element that contributes to the alignment.
 
    WIDTH_P non-zero means take the width dimension or X coordinate of
    the object specified by PROP, WIDTH_P zero means take the height
@@ -30519,7 +30522,8 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 		       : FRAME_LINE_HEIGHT (it->f));
       /* `align_to' starts at -1.  A numeric value without an explicit
 	 base is relative to the text area's left edge, so account for
-	 line numbers once and mark the default base as consumed.  */
+	 line numbers once and mark the default base as consumed, so we
+	 don't account for the line-number width more than once.  */
       if (width_p && align_to && *align_to == -1)
 	{
 	  *align_to = -2;
@@ -30587,8 +30591,8 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	  double fact;
 	  int offset = 0;
 	  /* See the NUMBERP case above: the default text-area base
-	     should apply once to the whole pixel expression, not once
-	     for each numeric subexpression.  */
+	     should apply only once to the whole pixel expression, not
+	     once for each numeric subexpression.  */
 	  if (width_p && align_to && *align_to == -1)
 	    {
 	      offset = lnum_pixel_width;
