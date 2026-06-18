@@ -1782,11 +1782,7 @@ resize and move FRAME."
     (when negative
       (setq gravity 3)
       (setq left (- parent-or-display-width (- left)
-                    (+ text-width
-                       (frame-scroll-bar-width frame)
-                       (frame-fringe-width frame)
-                       (* 2 (frame-internal-border-width frame))
-                       outer-minus-text-width))))
+                    text-width outer-minus-text-width)))
 
     (setq negative nil)
     (cond
@@ -1813,9 +1809,7 @@ resize and move FRAME."
       ;; This should get us 7 or 9.
       (setq gravity (+ gravity 6))
       (setq top (- parent-or-display-height (- top)
-                   (+ text-height
-                      (* 2 (frame-internal-border-width frame)))
-                   outer-minus-text-height)))
+                   text-height outer-minus-text-height)))
 
     (set-frame-size-and-position-pixelwise
      frame text-width text-height left top gravity)))
