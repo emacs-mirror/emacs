@@ -532,37 +532,49 @@ See also `incf'."
 
 (put 'cond 'gv-expander
      (lambda (do &rest branches)
-       (if (or (not lexical-binding)  ;The other code requires lexical-binding.
-               (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy))))
-           ;; This duplicates the `do' code, which is a problem if that
-           ;; code is large, but otherwise results in more efficient code.
-           `(cond
-             ,@(mapcar (lambda (branch)
-                         (if (cdr branch)
-                             (cons (car branch)
-                                   (macroexp-unprogn
-                                    (gv-get (macroexp-progn (cdr branch)) do)))
-                           (gv-get (car branch) do)))
-                       branches))
-         (let ((v (gensym "v")))
-           (macroexp-let2 nil
-               gv `(cond
-                    ,@(mapcar
-                       (lambda (branch)
-                         (if (cdr branch)
-                             `(,(car branch)
-                               ,@(macroexp-unprogn
-                                  (gv-letplace (getter setter)
-                                      (macroexp-progn (cdr branch))
-                                    `(cons (lambda () ,getter)
-                                           (lambda (,v) ,(funcall setter v))))))
-                           (gv-letplace (getter setter)
-                               (car branch)
-                             `(cons (lambda () ,getter)
-                                    (lambda (,v) ,(funcall setter v))))))
-                       branches))
-             (funcall do `(funcall (car ,gv))
-                      (lambda (v) `(funcall (cdr ,gv) ,v))))))))
+       (let ((res (apply #'gv--cond-expander do branches))
+             (last-test (caar (last branches))))
+         (if (and (macroexp-const-p last-test)
+                  (if (consp last-test) (cadr last-test) last-test))
+             res
+           ;; There is no setter for the nil expression, so a missing default
+           ;; branch is a bug (bug#81217).  Let's not signal an error, tho,
+           ;; for backward compatibility reasons.
+           (macroexp-warn-and-return "Missing default branch in cond"
+                                     res '(suspicious cond))))))
+
+(defun gv--cond-expander (do &rest branches)
+  (if (or (not lexical-binding) ;The other code requires lexical-binding.
+          (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy))))
+      ;; This duplicates the `do' code, which is a problem if that
+      ;; code is large, but otherwise results in more efficient code.
+      `(cond
+        ,@(mapcar (lambda (branch)
+                    (if (cdr branch)
+                        (cons (car branch)
+                              (macroexp-unprogn
+                               (gv-get (macroexp-progn (cdr branch)) do)))
+                      (gv-get (car branch) do)))
+                  branches))
+    (let ((v (gensym "v")))
+      (macroexp-let2 nil
+          gv `(cond
+               ,@(mapcar
+                  (lambda (branch)
+                    (if (cdr branch)
+                        `(,(car branch)
+                          ,@(macroexp-unprogn
+                             (gv-letplace (getter setter)
+                                 (macroexp-progn (cdr branch))
+                               `(cons (lambda () ,getter)
+                                      (lambda (,v) ,(funcall setter v))))))
+                      (gv-letplace (getter setter)
+                          (car branch)
+                        `(cons (lambda () ,getter)
+                               (lambda (,v) ,(funcall setter v))))))
+                  branches))
+        (funcall do `(funcall (car ,gv))
+                 (lambda (v) `(funcall (cdr ,gv) ,v)))))))
 
 (put 'error 'gv-expander
      (lambda (do &rest args)
