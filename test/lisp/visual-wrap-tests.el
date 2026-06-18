@@ -206,7 +206,8 @@ property is installed on line 1.  See bug#81039."
 
 (ert-deftest visual-wrap-tests/line-numbers-align-to-wrap-prefix ()
   "With line numbers, `wrap-prefix' `:align-to' aligns from text start."
-  (skip-unless (not (frame-initial-p)))
+  ;; `posn-point' returns nil in batch sessions.
+  (skip-when (frame-initial-p))
   (let ((buffer (generate-new-buffer " *visual-wrap-test*")))
     (unwind-protect
         (let ((window (display-buffer buffer)))
