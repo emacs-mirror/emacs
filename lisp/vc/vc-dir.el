@@ -64,6 +64,11 @@ See `run-hooks'."
   :group 'vc
   :version "28.1")
 
+(defface vc-dir-key-binding-hint-label '((t :inherit font-lock-builtin-face))
+  "Face for key binding labels in VC-Dir buffers."
+  :group 'vc
+  :version "32.1")
+
 (defface vc-dir-header-urgent-value '((t :inherit font-lock-warning-face))
   "Face for urgent header values in VC-Dir buffers."
   :group 'vc
@@ -1494,6 +1499,12 @@ Each element is a pair (HEADER . FUN) where
 VC backend `dir-extra-headers' implementations may push additional
 elements to this list.")
 
+(defcustom vc-dir-show-key-binding-hints t
+  "Whether to show key binding hints in VC-Dir buffers."
+  :type 'boolean
+  :group 'vc
+  :version "32.1")
+
 (defun vc-dir-headers (backend dir)
   "Display the headers in the *VC-Dir* buffer.
 It calls the `dir-extra-headers' backend method to display backend
@@ -1511,7 +1522,35 @@ specific headers."
                 (concat (propertize (format "%-11s: " header)
                                     'face 'vc-dir-header)
                         "\n"))
-              vc-dir-async-header-values)))
+              vc-dir-async-header-values)
+   (and
+    vc-dir-show-key-binding-hints
+    (concat
+     "\n"
+     (substitute-command-keys
+      (concat
+       "\\<vc-dir-mode-map>"
+       (propertize "Act  " 'font-lock-face 'vc-dir-key-binding-hint-label)
+       " "
+       "(\\[vc-revert]) Revert, "
+       "(\\[vc-dir-delete-file]) Delete, "
+       "(\\[vc-dir-ignore]) Ignore, "
+       "(\\[vc-next-action]/\\[vc-dir-root-next-action]) Commit/commit all, "
+       "(\\[vc-push]) Push"
+       "\n"
+       (propertize "Marks" 'font-lock-face 'vc-dir-key-binding-hint-label)
+       "  "
+       "(\\[vc-dir-mark]) Mark, "
+       "(\\[vc-dir-unmark]) Unmark, "
+       "(\\[vc-dir-unmark-all-files]) Unmark same state/dir, "
+       "(\\[universal-argument] \\[vc-dir-unmark-all-files]) Unmark all"
+       "\n"
+       (propertize "View " 'font-lock-face 'vc-dir-key-binding-hint-label)
+       "              "
+       "(\\[vc-diff]) Diff, "
+       "(\\[revert-buffer]) Refresh, "
+       "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"))
+     "\n"))))
 
 (defun vc-dir--set-header (def-dir)
   (ewoc-set-hf vc-ewoc (vc-dir-headers vc-dir-backend def-dir) "")

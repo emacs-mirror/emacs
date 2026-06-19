@@ -109,6 +109,11 @@ This means it won't get in your way even if it's slow for your
 repository.  As such, the 'vc-dir-show-outgoing-count' option is now
 obsolete.
 
+---
+*** VC-Dir now shows key binding hints.
+To hide these, you can customize the new user option
+'vc-dir-show-key-binding-hints' to nil.
+
 ** Outline mode
 
 *** New command 'outline-show-entry-and-parents'.
