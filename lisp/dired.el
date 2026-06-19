@@ -1459,10 +1459,20 @@ The return value is the target column for the file names."
       ;; (buffer-local), so we can call dired-readin:
       (let ((failed t))
 	(unwind-protect
-	    (progn (dired-readin)
-                   (unless (and dired--ls-error-buffer
-                                (get-buffer "*ls error*"))
-		     (setq failed nil)))
+            (progn
+              ;; `dired--ls-error-buffer' should only be set in
+              ;; `insert-directory', and if `ls' errors and the buffer
+              ;; displaying the error message pops ups,
+              ;; `dired--ls-error-buffer' is then unset.  But if for
+              ;; some reason it gets set before the next Dired
+              ;; buffer-display command is invoked, this can raise an
+              ;; error, so ensure the variable is unset before reading
+              ;; the directory contents into a Dired buffer.
+              (setq dired--ls-error-buffer nil)
+              (dired-readin)
+              (unless (and dired--ls-error-buffer
+                           (get-buffer "*ls error*"))
+                (setq failed nil)))
 	  ;; If either `dired-readin' failed (e.g. if parent directories
 	  ;; are inaccessible) or `ls' errored, don't leave the Dired
 	  ;; buffer around.

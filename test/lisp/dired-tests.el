@@ -820,5 +820,15 @@ of the value of `dired-auto-toggle-b-switch'."
   (let ((dired-auto-toggle-b-switch nil))
     (dired-test--filename-with-backslash-n)))
 
+(ert-deftest dired-test-set-dired--ls-error-buffer () ; bug#80499, Message #218
+  "Test visiting a directory after setting `dired--ls-error-buffer'."
+  (let ((dir (ert-resource-file (file-name-as-directory "test-dir"))))
+    (make-directory dir t)
+    (setq dired--ls-error-buffer (get-buffer-create "*ls error*"))
+    (find-file dir)
+    (should (equal list-buffers-directory dir))
+    (kill-buffer (current-buffer))
+    (delete-directory dir)))
+
 (provide 'dired-tests)
 ;;; dired-tests.el ends here
