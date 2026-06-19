@@ -909,6 +909,11 @@ them one-by-one, accepting the first that has an upstream.)"
               (when-let* ((upstream (branch-upstream target)))
                 (throw 'ret upstream))))))))))
 
+(declare-function vc-standard-log-outgoing "vc")
+
+(defun vc-git-log-outgoing (buffer upstream-location)
+  (vc-standard-log-outgoing 'Git buffer upstream-location 'skip-mergebase))
+
 (defun vc-git-dir--branch-headers ()
   "Return headers for branch-related information."
   (let ((branch (vc-git-working-branch))

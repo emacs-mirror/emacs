@@ -460,17 +460,21 @@
 ;;   revision shown, rather than the working revision, which is normally
 ;;   the case).  Not all backends support this.
 ;;
-;; - log-outgoing (buffer upstream-location) (DEPRECATED)
+;; - log-outgoing (buffer upstream-location) (SOFT DEPRECATED)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   sent when performing a push operation to UPSTREAM-LOCATION.
-;;   Deprecated: implement incoming-revision and mergebase instead.
+;;   Deprecated: implement incoming-revision and mergebase instead,
+;;   unless what `vc-default-log-outgoing' does with those is too slow
+;;   for this backend.
 ;;
-;; - log-incoming (buffer upstream-location) (DEPRECATED)
+;; - log-incoming (buffer upstream-location) (SOFT DEPRECATED)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   received when performing a pull operation from UPSTREAM-LOCATION.
-;;   Deprecated: implement incoming-revision and mergebase instead.
+;;   Deprecated: implement incoming-revision and mergebase instead,
+;;   unless what `vc-default-log-incoming' does with those is too slow
+;;   for this backend.
 ;;
 ;; * incoming-revision (&optional upstream-location refresh)
 ;;
@@ -4710,11 +4714,25 @@ can be a remote branch name."
   "31.1")
 
 (defun vc-default-log-outgoing (backend buffer upstream-location)
+  (vc-standard-log-outgoing backend buffer upstream-location nil))
+
+(defun vc-standard-log-outgoing
+    (backend buffer upstream-location &optional skip-mergebase)
+  "VC `log-outgoing' in terms of `incoming-revision' and `mergebase'.
+BACKEND is the VC backend, BUFFER is the buffer to log to,
+UPSTREAM-LOCATION is the place to which the changes are outgoing.
+Optional argument SKIP-MERGEBASE, if non-nil, skips calling `mergebase'
+and instead passes `incoming-revision' directly as the log limit.
+For some backends this is equivalent, and saves running one external
+command.  Whether this equivalence holds depends on the details of the
+`print-log' implementation for BACKEND when `vc-log-view-types' contains
+`log-outgoing'."
   (let ((incoming (vc--incoming-revision backend upstream-location))
         (default-directory (vc-root-dir backend)))
     (vc-call-backend backend 'print-log (list default-directory)
                      buffer t ""
-                     (vc-call-backend backend 'mergebase incoming))))
+                     (if skip-mergebase incoming
+                       (vc-call-backend backend 'mergebase incoming)))))
 
 ;;;###autoload
 (defun vc-log-search (pattern)
