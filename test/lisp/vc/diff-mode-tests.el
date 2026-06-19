@@ -744,5 +744,53 @@ plum
           (set-buffer-modified-p nil)
           (kill-buffer buf-after))))))
 
+(ert-deftest diff-mode-test-setup-buffer-type ()
+  "Check that `diff-setup-buffer-type' recognizes the diff's origin."
+  (with-temp-buffer
+    (insert "diff --git a/foo b/foo\n--- a/foo\n+++ b/foo\n")
+    (diff-mode)
+    (should (eq diff-buffer-type 'git)))
+  (with-temp-buffer
+    (insert "diff -r 0123456789ab foo\n--- a/foo\n+++ b/foo\n")
+    (diff-mode)
+    (should (eq diff-buffer-type 'hg)))
+  (with-temp-buffer
+    (insert "--- foo\n+++ foo\n@@ -1 +1 @@\n-a\n+b\n")
+    (diff-mode)
+    (should (eq diff-buffer-type nil))))
+
+(ert-deftest diff-mode-test-find-file-name-create ()
+  "Check `diff-find-file-name' for a Git/Hg file creation.
+It should not use existing file without subdirectory."
+  (ert-with-temp-directory temp-dir
+    (let ((default-directory temp-dir)
+          call-dir call-initial call-mustmatch)
+      ;; A decoy with the same basename as the created file, but in a
+      ;; different directory.
+      (with-temp-file (expand-file-name "created.txt" temp-dir)
+        (insert "decoy\n"))
+      (with-temp-buffer
+        (insert "diff --git a/sub/created.txt b/sub/created.txt
+new file mode 100644
+index 0000000..3456789
+--- /dev/null
++++ b/sub/created.txt
+@@ -0,0 +1 @@
++new
+")
+        (diff-mode)
+        (goto-char (point-min))
+        (let ((read-file-name-function
+               (lambda (_p &optional dir _def mustmatch initial _pred)
+                 (setq call-dir dir
+                       call-initial initial
+                       call-mustmatch mustmatch)
+                 "magic")))
+          (should (equal (diff-find-file-name)
+                         "magic"))
+          (should (equal call-dir (expand-file-name "sub/" temp-dir)))
+          (should (equal call-initial "created.txt"))
+          (should (equal call-mustmatch nil)))))))
+
 (provide 'diff-mode-tests)
 ;;; diff-mode-tests.el ends here
