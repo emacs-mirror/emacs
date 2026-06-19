@@ -576,11 +576,6 @@ See also `incf'."
         (funcall do `(funcall (car ,gv))
                  (lambda (v) `(funcall (cdr ,gv) ,v)))))))
 
-(put 'error 'gv-expander
-     (lambda (do &rest args)
-       (funcall do `(error . ,args)
-                (lambda (v) `(progn ,v (error . ,args))))))
-
 (defun gv-synthetic-place (getter setter)
   "Special place described by its setter and getter.
 GETTER and SETTER (typically obtained via `gv-letplace') get and
@@ -683,11 +678,9 @@ REF must have been previously obtained with `gv-ref'."
 
 ;;; Generalized variables.
 
-;; You'd think no one would write `(setf (error ...) ..)' but it
-;; appears naturally as the result of macroexpansion of things like
-;; (setf (pcase-exhaustive ...)).
-;; We could generalize this to `throw' and `signal', but it seems
-;; preferable to wait until there's a concrete need.
+;; `error' and `ignore' places come in handy in the default branch
+;; of `cond/pcase' places.
+(gv-define-setter ignore (store &rest _args) store) ;; A kind of >/dev/null
 (gv-define-expander error (lambda (_do &rest args) `(error . ,args)))
 
 ;; Some Emacs-related place types.

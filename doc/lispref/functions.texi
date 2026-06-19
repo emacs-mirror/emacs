@@ -1131,6 +1131,8 @@ This function returns @var{argument} and has no side effects.
 
 @defun ignore &rest arguments
 This function ignores any @var{arguments} and returns @code{nil}.
+When used as a place (@pxref{Generalized Variables}), the assignment has
+simply no effect.
 @end defun
 
 @defun always &rest arguments

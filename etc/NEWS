@@ -172,6 +172,10 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 * Lisp Changes in Emacs 32.1
 
 +++
+** 'ignore' is now also a place, acting as a "blackhole" like /dev/null.
+E.g. (push (new-elem) (pcase (foo) (0 var1) (1 var2) (_ (ignore))))
+
++++
 ** 'kill-all-local-variables' can kill locals silently and reset the buffer.
 This function's KILL-PERMANENT argument now accepts the value
 'permanent-local', which kills all locals ignoring any variable
