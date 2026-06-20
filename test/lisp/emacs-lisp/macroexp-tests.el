@@ -182,4 +182,25 @@
               (user-error (error-message-string err))))))
      (should (and (stringp res) (string-match "new-replacement" res))))))
 
+(defmacro macroexp--test-with-foo (&rest body)
+  "Eagerly macro-expand BODY."
+  (macroexpand-all `(progn . ,body) macroexpand-all-environment))
+
+(ert-deftest macroexp--test-macroexp-enable-pos-preservation ()
+  (let* ((symbols-with-pos-enabled t)
+         (form (read-positioning-symbols
+                "(macroexp--test-with-foo (pop command-history))"))
+         (pop-pos (symbol-with-pos-pos (caadr form)))
+         (exp1 (macroexpand-1 form))
+         (macroexp-enable-pos-preservation nil)
+         (exp2 (macroexpand-1 form)))
+    ;; Position of `pop' preserved in EXP1.  There's no way to tell that
+    ;; the position information in EXP1 is synthetic, which may confuse
+    ;; consumers such as semantic highlighting.
+    (should (symbol-with-pos-p (caadr exp1)))
+    (should (= (symbol-with-pos-pos (caadr exp1)) pop-pos))
+    ;; Position preservation was disabled, so EXP2 is clean of synthetic
+    ;; position information.
+    (should-not (symbol-with-pos-p (caadr exp2)))))
+
 ;;; macroexp-tests.el ends here
