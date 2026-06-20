@@ -30506,11 +30506,12 @@ calc_pixel_width_or_height (double *res, struct it *it,
 	  /* 'right': right edge of the text area.  */
 	  if (EQ (prop, Qright))
 	    return OK_ALIGN_TO (window_box_right_offset (it->w, TEXT_AREA));
-	  /* 'center': the center of the text area.  */
+	  /* 'center': the center of the editable text area, i.e. the text
+	     area excluding the line-number display.  */
 	  if (EQ (prop, Qcenter))
 	    return OK_ALIGN_TO (window_box_left_offset (it->w, TEXT_AREA)
-				+ LNUM_ONCE
-				+ window_box_width (it->w, TEXT_AREA) / 2);
+				+ (LNUM_ONCE
+				   + window_box_width (it->w, TEXT_AREA)) / 2);
 	  /* 'left-fringe': left edge of the left fringe.  */
 	  if (EQ (prop, Qleft_fringe))
 	    return OK_ALIGN_TO (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (it->w)

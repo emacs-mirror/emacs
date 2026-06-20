@@ -5701,7 +5701,9 @@ edge, center, or right edge of the text area.  When the window
 displays line numbers, and @code{:align-to} is used in display
 properties of buffer text (as opposed to header line, see below), the
 @code{left} and the @code{center} positions are offset to account for
-the screen space taken by the line-number display.
+the screen space taken by the line-number display.  In particular,
+@code{center} then denotes the center of the editable text area, i.e.@:
+the text area excluding the line-number display.
 
   Any of the above window elements (except @code{text}) can also be
 used with @code{:align-to} to specify that the position is relative to
