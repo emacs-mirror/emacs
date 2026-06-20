@@ -2869,7 +2869,7 @@ The value string normally has text properties that correspond to the
 faces, keymaps, etc., that the mode line would have.  Any character for
 which no @code{face} property is specified by @var{format} gets a
 default value determined by @var{face}.  If @var{face} is @code{t}, that
-stands for either @code{mode-line} if @var{window} is selected,
+stands for either @code{mode-line-active} if @var{window} is selected,
 otherwise @code{mode-line-inactive}.  If @var{face} is @code{nil} or
 omitted, that stands for the default face.  If @var{face} is an integer,
 the value returned by this function will have no text properties.

@@ -179,4 +179,17 @@ int main () {
         (buffer-string)))
     "foo\n")))
 
+(ert-deftest xdisp-test-format-mode-line ()
+  ;; 'format-mode-line' returns an empty string with no properties in
+  ;; noninteractive sessions.
+  (skip-when noninteractive)
+  (with-temp-buffer
+    (insert (format-mode-line " " t))
+    (should (equal (buffer-string) #(" " 0 1 (face mode-line-active)))))
+  (with-temp-buffer
+    (insert (format-mode-line
+             (propertize "x" 'face 'bold-italic)
+             1200000000000000000000000000))
+    (should (null (get-text-property 1 'face)))))
+
 ;;; xdisp-tests.el ends here

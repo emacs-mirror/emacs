@@ -29005,7 +29005,7 @@ By default, the format is evaluated for the currently selected window.
 Optional second arg FACE specifies the face property to put on all
 characters for which no face is specified.  The value nil means the
 default face.  The value t means whatever face the window's mode line
-currently uses (either `mode-line' or `mode-line-inactive',
+currently uses (either `mode-line-active' or `mode-line-inactive',
 depending on whether the window is the selected window or not).
 An integer value means the value string has no text
 properties.
@@ -29055,6 +29055,11 @@ are the selected window and the WINDOW's buffer).  */)
     : EQ (face, Qtab_bar) ? TAB_BAR_FACE_ID
     : EQ (face, Qtool_bar) ? TOOL_BAR_FACE_ID
     : DEFAULT_FACE_ID;
+
+  if (EQ (face, Qt))
+    face = EQ (window, selected_window)
+      ? Qmode_line_active
+      : Qmode_line_inactive;
 
   old_buffer = current_buffer;
 
