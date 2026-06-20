@@ -388,7 +388,16 @@ It is a single, isolated character.
 
 @table @samp
 @item *
-Signal an error if the current buffer is read-only.  Special.
+Signal an error if the current buffer is read-only.  Special.  Note that
+many Emacs primitives will signal an error if a command attempts to
+modify text of a read-only buffer, even if the command's interactive
+spec does not include @samp{*}.  So this character is for when you want
+to forcibly signal an error even if the command's implementation doesn't
+invoke any primitives which modify the buffer.  For example, a command
+that binds @code{inhibit-read-only} non-@code{nil} (because it affects
+more than just read-only buffers), or a command which, depending on the
+conditions, might end up not modifying the buffer, but you want it to
+signal this error anyway.
 
 @item @@
 Select the window mentioned in the first mouse event in the key
