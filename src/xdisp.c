@@ -29021,7 +29021,7 @@ are the selected window and the WINDOW's buffer).  */)
   struct window *w;
   struct buffer *old_buffer = NULL;
   int face_id;
-  bool no_props = FIXNUMP (face);
+  bool no_props = INTEGERP (face);
   specpdl_ref count = SPECPDL_INDEX ();
   Lisp_Object str;
   int string_start = 0;
