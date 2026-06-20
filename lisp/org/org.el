@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "28.2"))
 
-;; Version: 9.8.5
+;; Version: 9.8.6
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -9551,6 +9551,7 @@ When foo is written as FOO, upcase the #+BEGIN/END as well."
 	  (goto-char region-end)
 	  ;; Ignore empty lines at the end of the region.
 	  (skip-chars-backward " \r\t\n")
+	  (unless (eolp) (insert "\n") (forward-line -1))
 	  (end-of-line))
 	(unless (bolp) (insert "\n"))
 	(indent-to column)
@@ -9877,7 +9878,8 @@ When called through Elisp, arg is also interpreted in the following way:
 	      (org-update-parent-todo-statistics))
 	    (when (bound-and-true-p org-clock-out-when-done)
 	      (org-clock-out-if-current))
-	    (run-hooks 'org-after-todo-state-change-hook)
+            (save-excursion
+	      (run-hooks 'org-after-todo-state-change-hook))
 	    (when (and arg (not (member org-state org-done-keywords)))
 	      (setq head (org-get-todo-sequence-head org-state)))
             (put-text-property (line-beginning-position)
@@ -10583,7 +10585,8 @@ enough to shift date past today.  Continue? "
 		  (org-timestamp-change n (cdr (assoc what whata)) nil t))
 		(setq msg
 		      (concat msg type " " org-last-changed-timestamp " ")))))))
-      (run-hooks 'org-todo-repeat-hook)
+      (save-excursion
+        (run-hooks 'org-todo-repeat-hook))
       (setq org-log-post-message msg)
       (message msg))))
 

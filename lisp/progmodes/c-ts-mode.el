@@ -501,6 +501,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
            ((parent-is ,(rx (or "function_definition"
                                 "struct_specifier"
                                 "enum_specifier"
+                                "union_specifier"
                                 "function_declarator"
                                 "template_declaration")))
             standalone-parent 0)

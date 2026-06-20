@@ -272,8 +272,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 ;; Make sure point does not end up in the minibuffer and delete
-;; windows displaying dead or boring buffers
-;; (cf. `winner-boring-buffers') and `winner-boring-buffers-regexp'.
+;; windows displaying dead or boring buffers,
+;; cf. `winner-boring-buffers' and `winner-boring-buffers-regexp'.
 ;; Return nil if all the windows should be deleted.  Preserve correct
 ;; points and marks.
 (defun winner-set (conf)
@@ -425,7 +425,10 @@ In other words, \"undo\" changes in window configuration."
 
 
 (defun winner-redo ()			; If you change your mind.
-  "Restore a more recent window configuration saved by Winner mode."
+  "Cancel the current sequence of `winner-undo' commands.
+This restores the window configuration before that sequence.  If any
+other command has intervened, `winner-redo' is no longer applicable;
+but the configuration can then be restored with `winner-undo'."
   (interactive)
   (cond
    ((eq last-command 'winner-undo)

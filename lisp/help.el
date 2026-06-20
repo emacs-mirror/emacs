@@ -2007,7 +2007,7 @@ When this mode is enabled, a window is resized only if it has been
 specially created for a temporary buffer.  Windows that have shown
 another buffer before being reused for displaying a temporary buffer
 are not resized (but note that if `even-window-sizes' is non-nil, they
-might beresized in some situations anyway).  A frame is resized only
+might be resized in some situations anyway).  A frame is resized only
 if `fit-frame-to-buffer' is non-nil.
 
 This mode is used by `help', `apropos' and `completion' buffers,

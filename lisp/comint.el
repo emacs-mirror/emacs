@@ -4234,7 +4234,9 @@ function called, or nil, if no function was called (if BEG = END)."
                        (eq is-output
                            (eq (get-text-property (1+ end2) 'field) 'output)))
               (setq end2 (field-end end2)))
-            ;; Narrow to the whole field surrounding the region
+            ;; Narrow to the whole field surrounding the region.
+            ;; `syntax-propertize' can't widen so avoid the need to (bug#81243).
+            (syntax-propertize beg2)
             (narrow-to-region beg2 end2))
           (setq return-end (list (funcall fun beg1
                                           (marker-position end1)))))

@@ -5145,19 +5145,6 @@ You can find the instructions on how to compile and install libgccjit from
 source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
-HAVE_NATIVE_COMP=no
-LIBGCCJIT_LIBS=
-LIBGCCJIT_CFLAGS=
-if test "$canonical" = i686-pc-cygwin; then
-  if test "${with_cygwin32_native_compilation}" = yes; then
-    with_native_compilation=yes
-  elif test "${with_native_compilation}" != no; then
-    AC_MSG_ERROR([Native compilation is not supported on 32-bit Cygwin.
-If you really want to try it anyway, use the configure option
-'--with-cygwin32-native-compilation'.])
-  fi
-fi
-
 AC_DEFUN([libgccjit_not_found], [
   AC_MSG_WARN([Elisp native compiler can't be enabled as libgccjit was not
 found.
@@ -5190,6 +5177,19 @@ source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])
 
   with_native_compilation=no])
+
+HAVE_NATIVE_COMP=no
+LIBGCCJIT_LIBS=
+LIBGCCJIT_CFLAGS=
+if test "$canonical" = i686-pc-cygwin; then
+  if test "${with_cygwin32_native_compilation}" = yes; then
+    with_native_compilation=yes
+  elif test "${with_native_compilation}" != no; then
+    AC_MSG_ERROR([Native compilation is not supported on 32-bit Cygwin.
+If you really want to try it anyway, use the configure option
+'--with-cygwin32-native-compilation'.])
+  fi
+fi
 
 if test "$with_features" = "no" \
    && test "${with_native_compilation}" = "default"; then
@@ -5234,24 +5234,23 @@ if test "${with_native_compilation}" != "no"; then
     fi
 
     # Check if libgccjit is available.
+    native_compilation_requested=${with_native_compilation}
     AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire], [],
-        [if test "${with_native_compilation}" = "default"; then
+        [if test "${native_compilation_requested}" = "default"; then
 	   libgccjit_not_found
 	 else
 	   libgccjit_not_found_err
 	 fi])
-    # `libgcc_not_found' may set `with_native_compilation' to `no'.
-    AS_IF([test "$with_native_compilation" != "no"],
-      [AC_CHECK_HEADERS([libgccjit.h], [],
-         [if test "${with_native_compilation}" = "default"; then
+    AC_CHECK_HEADERS([libgccjit.h], [],
+        [if test "${native_compilation_requested}" = "default"; then
 	   libgccjit_dev_not_found
 	 else
 	   libgccjit_dev_not_found_err
-	 fi])])
+	 fi])
     if test "${with_native_compilation}" != "no"; then
       # Check if libgccjit really works.
       AC_RUN_IFELSE([libgccjit_smoke_test], [],
-        [if test "${with_native_compilation}" = "default"; then
+        [if test "${native_compilation_requested}" = "default"; then
            libgccjit_broken
 	 else
            libgccjit_broken_err

@@ -125,3 +125,12 @@ if (true)
 else
         break;
 =-=-=
+
+Name: Union (bug#81255)
+
+=-=
+union u
+{
+        int i;
+};
+=-=-=

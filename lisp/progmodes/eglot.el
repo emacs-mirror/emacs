@@ -317,7 +317,7 @@ automatically)."
     ((toml-ts-mode conf-toml-mode) . ("tombi" "lsp"))
     (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
     (nickel-mode . ("nls"))
-    ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))
+    ((nushell-mode nushell-ts-mode nu-ts-mode) . ("nu" "--lsp"))
     (gdscript-mode . ("localhost" 6008))
     (fennel-mode . ("fennel-ls"))
     (move-mode . ("move-analyzer"))
@@ -2117,7 +2117,7 @@ and also used as a hint of the request cancellation mechanism (see
                       :timeout-fn (wrapfn timeout-fn)
                       moreargs)))
     (when (and hint eglot-advertise-cancellation)
-      (push id (plist-get inflight hint)))
+      (push id (cl-getf inflight hint)))
     id))
 
 (cl-defun eglot--delete-overlays (&optional (prop 'eglot--overlays))

@@ -1176,6 +1176,10 @@ PREFIX is only used internally: don't use it."
         (or (ignore-errors (diff-beginning-of-file))
 	    (re-search-forward diff-file-header-re nil t)))
       (let ((fs (diff-hunk-file-names old)))
+        (when (memq diff-buffer-type '(git hg))
+          (setq fs
+                (mapcar (lambda (f) (replace-regexp-in-string "\\`[icoawib]/" "" f))
+                        fs)))
         (if prefix (setq fs (mapcar (lambda (f) (concat prefix f)) fs)))
         (or
          ;; use any previously used preference
@@ -1186,7 +1190,10 @@ PREFIX is only used internally: don't use it."
 	     (if (and newfile (file-exists-p newfile)) (cl-return newfile))))
          ;; look for each file in turn.  If none found, try again but
          ;; ignoring the first level of directory, ...
-         (cl-do* ((files fs (delq nil (mapcar #'diff-filename-drop-dir files)))
+         (cl-do* ((files fs (and (not (and (memq diff-buffer-type '(git hg))
+                                           (not old)
+                                           (equal null-device (cadr files))))
+                              (delq nil (mapcar #'diff-filename-drop-dir files))))
                   (file nil nil))
 	     ((or (null files)
 		  (setq file (cl-do* ((files files (cdr files))
@@ -1212,10 +1219,6 @@ PREFIX is only used internally: don't use it."
            (let ((file (or (car fs) ""))
                  (creation (equal null-device
                                   (car (diff-hunk-file-names (not old))))))
-             (when (and (memq diff-buffer-type '(git hg))
-                        (string-match "/" file))
-               ;; Strip the dst prefix (like b/) if diff is from Git/Hg.
-               (setq file (substring file (match-end 0))))
              (setq file (expand-file-name file))
 	     (setq file
 		   (read-file-name (format "Use file %s: " file)
@@ -1822,7 +1825,7 @@ modified lines of the diff."
     (setq-local diff-buffer-type
                 (if (re-search-forward "^diff --git" nil t)
                     'git
-                  (if (re-search-forward "^diff -r.*-r" nil t)
+                  (if (re-search-forward "^diff -r " nil t)
                       'hg
                     nil))))
   (when (eq diff-buffer-type 'git)

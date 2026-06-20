@@ -1600,19 +1600,14 @@ properties `markdown-ts-code-block-language' and
                  (markdown-ts--code-block-language-mode lang)))
          (existing (seq-find (lambda (ov)
                                (overlay-get ov 'markdown-ts-code-block))
-                             (overlays-at node-start))))
+                             (overlays-in node-start node-end))))
     (if existing
         (progn
           (move-overlay existing node-start node-end)
           (overlay-put existing 'face face)
           (overlay-put existing 'markdown-ts-code-block-language lang)
           (overlay-put existing 'markdown-ts-code-block-mode mode))
-      (let ((ov (make-overlay node-start node-end nil t nil)))
-        ;; Markers need to be set only once.
-        (overlay-put ov 'markdown-ts-code-beg-marker (set-marker (make-marker)
-                                                                 node-start))
-        (overlay-put ov 'markdown-ts-code-end-marker (set-marker (make-marker)
-                                                                 node-end))
+      (let ((ov (make-overlay node-start node-end nil nil t)))
         (overlay-put ov 'markdown-ts-code-block t)
         (overlay-put ov 'face face)
         (overlay-put ov 'priority '(nil . 10))
@@ -1623,7 +1618,8 @@ properties `markdown-ts-code-block-language' and
 (defun markdown-ts-at-code-block-p (&optional pos)
   "Return non nil if point is in a code block.
 If POS is nil, use point."
-  (get-char-property (or pos (point)) 'markdown-ts-code-block))
+  (cl-some (lambda (ov) (overlay-get ov 'markdown-ts-code-block))
+           (overlays-at (or pos (point)))))
 
 (defun markdown-ts-code-block-language-at (&optional pos)
   "Return the language symbol of the code block at POS.
@@ -1631,14 +1627,18 @@ If POS is nil, use point.  Returns nil if POS is not inside a fenced
 code block.  This works regardless of whether a guest tree-sitter parser
 is active, since the language is stored on the code block overlay by the
 host parser's fontification."
-  (get-char-property (or pos (point)) 'markdown-ts-code-block-language))
+  (cl-some (lambda (ov) (overlay-get ov 'markdown-ts-code-block-language))
+           (overlays-at (or pos (point)))))
 
 (defun markdown-ts-code-block-mode-at (&optional pos)
   "Return the major mode for the code block at POS.
 If POS is nil, use point.  Returns nil if POS is not inside a fenced
-code block or if the language has no recognized mode."
+code block, or `markdown-ts-default-code-block-mode' if the language has
+no recognized mode."
+  (setq pos (or pos (point)))
   (when (markdown-ts-at-code-block-p pos)
-    (or (get-char-property (or pos (point)) 'markdown-ts-code-block-mode)
+    (or (cl-some (lambda (ov) (overlay-get ov 'markdown-ts-code-block-mode))
+           (overlays-at pos))
         markdown-ts-default-code-block-mode)))
 
 (defun markdown-ts--host-ranges-notifier (ranges _parser)
@@ -2901,8 +2901,8 @@ node as a non-ts mode."
               (mode (alist-get lang markdown-ts--code-block-non-ts-modes))
               (tick (buffer-chars-modified-tick))
               (block-start (treesit-node-start node))
-              ;; Cannot use markers 'markdown-ts-code-beg-marker
-              ;; 'markdown-ts-code-end-marker they are set after this
+              ;; Cannot rely on anything set in
+              ;; `markdown-ts--fontify-code-block' that runs after this
               ;; function runs.
               (node-start (save-excursion
                             (goto-char (treesit-node-start node))
@@ -3098,6 +3098,8 @@ See `markdown-ts--run-command-in-code-block'.")
 
 (defun markdown-ts--enable-code-block-in-context-mode ()
   "Enable `markdown-ts-code-block-in-context-mode' if in a fenced code block."
+  ;; Let treesit catch up with buffer edits.
+  (sit-for 0)
   (markdown-ts-code-block-in-context-mode
    (if (markdown-ts-at-code-block-p) 1 -1)))
 
@@ -3198,8 +3200,12 @@ command will run in the context of the `markdown-ts-mode' buffer."
 (defun markdown-ts--run-command-in-code-block (block-mode command &rest args)
   "Run COMMAND in BLOCK-MODE.
 ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
-  (when-let* ((beg (get-char-property (point) 'markdown-ts-code-beg-marker))
-              (end (get-char-property (point) 'markdown-ts-code-end-marker))
+  (when-let* ((ov (cl-some
+                   (lambda (ov)
+                     (when (overlay-get ov 'markdown-ts-code-block) ov))
+                   (overlays-at (point))))
+              (beg (overlay-start ov))
+              (end (overlay-end ov))
               (str (buffer-substring-no-properties beg end)))
     ;; Use a temp (or work) buffer because treesit currently confuses
     ;; nodes in an indirect buffer even if the indirect buffer is not
@@ -3212,8 +3218,8 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
            (region-end (use-region-end))
            (adj-point (1+ (- orig-point beg)))
            (adj-mark (when orig-mark (1+ (- orig-mark beg))))
-           (adj-region-beg (when region-beg (1+ (- orig-point region-beg))))
-           (adj-region-end (when region-end (1+ (- orig-point region-end))))
+           (adj-region-beg (when region-beg (1+ (- region-beg beg))))
+           (adj-region-end (when region-end (1+ (- region-end beg))))
            (point-delta 0)
            (ignore-output
             (memq command markdown-ts-code-block-ignore-output-commands))
@@ -5491,20 +5497,24 @@ This enables the keymap `markdown-ts-code-block-in-context-mode-map'."
 (defun markdown-ts--code-block-in-context-mode-update-ov ()
   "Manage `markdown-ts--code-block-in-context-mode-ov'."
   (cond (markdown-ts-code-block-in-context-mode
-         (let ((beg (get-char-property (point) 'markdown-ts-code-beg-marker))
-               (end (get-char-property (point) 'markdown-ts-code-end-marker)))
+         (when-let* ((ov (cl-some
+                          (lambda (ov)
+                            (when (overlay-get ov 'markdown-ts-code-block) ov))
+                          (overlays-at (point))))
+                     (beg (overlay-start ov))
+                     (end (overlay-end ov)))
            (if markdown-ts--code-block-in-context-mode-ov
                (move-overlay markdown-ts--code-block-in-context-mode-ov beg end)
              (setq markdown-ts--code-block-in-context-mode-ov
-                   (make-overlay beg end nil t nil)))
-           (overlay-put markdown-ts--code-block-in-context-mode-ov
-                        'markdown-ts-in-code-block t)
-           (overlay-put markdown-ts--code-block-in-context-mode-ov
-                        'evaporate t)
-           (overlay-put markdown-ts--code-block-in-context-mode-ov
-                        'priority '(nil . 20))
-           (overlay-put markdown-ts--code-block-in-context-mode-ov
-                        'face 'markdown-ts-in-code-block)))
+                   (make-overlay beg end nil nil t))
+             (overlay-put markdown-ts--code-block-in-context-mode-ov
+                          'markdown-ts-in-code-block t)
+             (overlay-put markdown-ts--code-block-in-context-mode-ov
+                          'evaporate t)
+             (overlay-put markdown-ts--code-block-in-context-mode-ov
+                          'priority '(nil . 20))
+             (overlay-put markdown-ts--code-block-in-context-mode-ov
+                          'face 'markdown-ts-in-code-block))))
         (t
          (when markdown-ts--code-block-in-context-mode-ov
            (delete-overlay markdown-ts--code-block-in-context-mode-ov)))))
@@ -5586,22 +5596,21 @@ It is up to this function's callers to call
                      (end (treesit-node-end table)))
            (if markdown-ts--in-table-mode-ov
                ;; Move the overlay, if needed, and reset the tick if so.
-               (when (not (eq (overlay-start markdown-ts--in-table-mode-ov)
-                              beg))
+               (unless (and (eq (overlay-start markdown-ts--in-table-mode-ov) beg)
+                            (eq (overlay-end markdown-ts--in-table-mode-ov) end))
                  (move-overlay markdown-ts--in-table-mode-ov beg end)
                  (overlay-put markdown-ts--in-table-mode-ov
                               'markdown-ts-in-table-tick nil))
              (setq markdown-ts--in-table-mode-ov
-                   (make-overlay beg end nil t nil)))
-           (overlay-put markdown-ts--in-table-mode-ov
-                        'markdown-ts-in-table t)
-           (overlay-put markdown-ts--in-table-mode-ov
-                        'evaporate t)
-           (overlay-put markdown-ts--in-table-mode-ov
-                        'priority '(nil . 20))
-           (overlay-put markdown-ts--in-table-mode-ov
-                        'face 'markdown-ts-in-table)
-           ))
+                   (make-overlay beg end nil t t))
+             (overlay-put markdown-ts--in-table-mode-ov
+                          'markdown-ts-in-table t)
+             (overlay-put markdown-ts--in-table-mode-ov
+                          'evaporate t)
+             (overlay-put markdown-ts--in-table-mode-ov
+                          'priority '(nil . 20))
+             (overlay-put markdown-ts--in-table-mode-ov
+                          'face 'markdown-ts-in-table))))
         (t
          (when markdown-ts--in-table-mode-ov
            (delete-overlay markdown-ts--in-table-mode-ov)))))
