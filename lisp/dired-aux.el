@@ -361,12 +361,16 @@ only in the active region if `dired-mark-region' is non-nil."
      dir1 nil
      (lambda ()
        (dired-mark-if
-        (member (dired-get-filename nil t) file-list1) nil)))
+        (and (not (dired--hidden-p))
+             (member (dired-get-filename nil t) file-list1))
+        nil)))
     (dired-fun-in-all-buffers
      dir2 nil
      (lambda ()
        (dired-mark-if
-        (member (dired-get-filename nil t) file-list2) nil)))
+        (and (not (dired--hidden-p))
+             (member (dired-get-filename nil t) file-list2))
+        nil)))
     (message "Marked in dir1: %s, in dir2: %s"
              (format-message (ngettext "%d file" "%d files" (length file-list1))
                              (length file-list1))
