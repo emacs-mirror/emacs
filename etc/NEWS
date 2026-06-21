@@ -179,6 +179,12 @@ as well as the default nil and arbitrary user functions.
 The new command 'newsticker-copy-url', bound to 'w', adds the URL of
 the currently selected item in the list view to the kill-ring.
 
+** Rmail
+
++++
+*** Files named "RMAIL" or ending in ".rmail" now visit in Rmail mode.
+You can now visit such files in Rmail mode using ordinary file-visiting
+commands, such as 'C-x C-f'.
 
 
 * New Modes and Packages in Emacs 32.1

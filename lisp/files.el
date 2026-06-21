@@ -3155,6 +3155,7 @@ since only a single case-insensitive search through the alist is made."
     ("\\.srt\\'" . srecode-template-mode)
     ("\\.prolog\\'" . prolog-mode)
     ("\\.tar\\'" . tar-mode)
+    ("\\(?:\\.rmail\\|\\(?:\\`\\|[/\\]\\)RMAIL\\)\\'" . rmail-mode)
     ;; The list of archive file extensions should be in sync with
     ;; `auto-coding-alist' with `no-conversion' coding system.
     ("\\.\\(\
