@@ -1,9 +1,9 @@
 ;;; modus-operandi-tritanopia-theme.el --- Tritanopia-optimized theme with a white background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026  Free Software Foundation, Inc.
 
-;; Author: Protesilaos Stavrou <info@protesilaos.com>
-;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+;; Author: Protesilaos <info@protesilaos.com>
+;; Maintainer: Protesilaos <info@protesilaos.com>
 ;; URL: https://github.com/protesilaos/modus-themes
 ;; Keywords: faces, theme, accessibility
 
@@ -89,5 +89,7 @@ standard)."
  'modus-operandi-tritanopia-palette-user
  'modus-operandi-tritanopia-palette-overrides
  'modus-themes-faces-tritanopia)
+
+(provide 'modus-operandi-tritanopia-theme)
 
 ;;; modus-operandi-tritanopia-theme.el ends here

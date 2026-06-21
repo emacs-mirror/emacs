@@ -1,9 +1,9 @@
 ;;; modus-vivendi-deuteranopia-theme.el --- Deuteranopia-optimized theme with a black background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026  Free Software Foundation, Inc.
 
-;; Author: Protesilaos Stavrou <info@protesilaos.com>
-;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+;; Author: Protesilaos <info@protesilaos.com>
+;; Maintainer: Protesilaos <info@protesilaos.com>
 ;; URL: https://github.com/protesilaos/modus-themes
 ;; Keywords: faces, theme, accessibility
 
@@ -89,5 +89,7 @@ standard)."
  'modus-vivendi-deuteranopia-palette-user
  'modus-vivendi-deuteranopia-palette-overrides
  'modus-themes-faces-deuteranopia)
+
+(provide 'modus-vivendi-deuteranopia-theme)
 
 ;;; modus-vivendi-deuteranopia-theme.el ends here
