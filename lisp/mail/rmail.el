@@ -1517,11 +1517,6 @@ If so restore the actual mbox message collection."
       (rmail-mode-2)
       ;; Convert all or part to Babyl file if possible.
       (rmail-convert-file-maybe)
-      ;; We have read the file as raw-text, so the buffer is set to
-      ;; unibyte.  Make it multibyte if necessary.
-      (if (and rmail-enable-multibyte
-	       (not enable-multibyte-characters))
-	  (set-buffer-multibyte t))
       (goto-char (point-max))
       (rmail-set-message-counters)
       (rmail-show-message rmail-total-messages)
