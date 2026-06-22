@@ -523,7 +523,7 @@ single frame can be excluded, for example, the selected frame.
 *** After deleting, 'delete-frame' now selects the most recently used frame.
 Previously, after deleting a specified frame, 'delete-frame' would
 select the oldest visible frame on the same terminal.  To revert to the
-old behavior, set the new user option 'after-delete-frame-select-mru-frame'
+old behavior, set the new user option 'delete-frame-choose-selected'
 to nil.
 
 +++

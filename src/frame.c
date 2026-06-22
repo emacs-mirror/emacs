@@ -2745,7 +2745,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	{
 	  frame1 = Qnil;
 
-	  if (after_delete_frame_select_mru_frame
+	  if (EQ (delete_frame_choose_selected, Qmru)
 	      && !EQ (force, Qnoelisp))
 	    {
 	      /* Find the most recently used visible frame among all
@@ -7220,6 +7220,7 @@ syms_of_frame (void)
   DEFSYM (Qframe_monitor_attributes, "frame-monitor-attributes");
   DEFSYM (Qwindow__pixel_to_total, "window--pixel-to-total");
   DEFSYM (Qmake_initial_minibuffer_frame, "make-initial-minibuffer-frame");
+  DEFSYM (Qmru, "mru");
   DEFSYM (Qget_mru_frame, "get-mru-frame");
   DEFSYM (Qexplicit_name, "explicit-name");
   DEFSYM (Qheight, "height");
@@ -7793,12 +7794,13 @@ The default is \\+`inhibit' in NS builds and nil everywhere else.  */);
   alter_fullscreen_frames = Qnil;
 #endif
 
-  DEFVAR_BOOL ("after-delete-frame-select-mru-frame",
-	       after_delete_frame_select_mru_frame,
-	       doc: /* Non-nil means `delete-frame' selects most recently used frame.
+  DEFVAR_LISP ("delete-frame-choose-selected",
+	       delete_frame_choose_selected,
+	       doc: /* What frame to select after frame deletion.
+The value `mru' means `delete-frame' selects most recently used frame.
 If this is nil, `delete-frame' will select the oldest visible frame on
 the same terminal.  */);
-  after_delete_frame_select_mru_frame = true;
+  delete_frame_choose_selected = Qmru;
 
   defsubr (&Sframe_id);
   defsubr (&Sframep);
