@@ -2794,7 +2794,7 @@ are analyzed."
                    (symbols-with-pos-enabled t)
                    (message-log-max nil)
                    (inhibit-message t)
-                   (macroexp-enable-pos-preservation nil)
+                   (macroexp-enable-preserve-posification nil)
                    (macroexpand-all-environment
                     (append (mapcar #'list elisp-scope-unsafe-macros) macroexpand-all-environment)))
                (ignore-errors (macroexpand-1 form macroexpand-all-environment)))

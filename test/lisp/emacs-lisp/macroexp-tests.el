@@ -186,13 +186,13 @@
   "Eagerly macro-expand BODY."
   (macroexpand-all `(progn . ,body) macroexpand-all-environment))
 
-(ert-deftest macroexp--test-macroexp-enable-pos-preservation ()
+(ert-deftest macroexp--test-macroexp-enable-preserve-posification ()
   (let* ((symbols-with-pos-enabled t)
          (form (read-positioning-symbols
                 "(macroexp--test-with-foo (pop command-history))"))
          (pop-pos (symbol-with-pos-pos (caadr form)))
          (exp1 (macroexpand-1 form))
-         (macroexp-enable-pos-preservation nil)
+         (macroexp-enable-preserve-posification nil)
          (exp2 (macroexpand-1 form)))
     ;; Position of `pop' preserved in EXP1.  There's no way to tell that
     ;; the position information in EXP1 is synthetic, which may confuse
