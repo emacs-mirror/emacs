@@ -1439,44 +1439,52 @@ See `vc-dir-async-header-values' for an explanation of how this function
 uses OVERLAY."
   (overlay-put overlay 'after-string
                (propertize "[counting ...]" 'face 'vc-dir-header-value))
-  (let ((display-buffer-overriding-action
-         '(display-buffer-no-window (allow-no-window . t)))
-        (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
-        (buf (generate-new-buffer " *temp*" t))
-        proc)
-    (with-current-buffer buf
-      (condition-case _
-          (progn
-            (vc-incoming-outgoing-internal backend nil
-                                           (current-buffer)
-                                           '(log-outgoing short))
-            (overlay-put overlay 'proc (get-buffer-process (current-buffer)))
-            (setq proc (get-buffer-process (current-buffer)))
-            (vc-run-delayed
-              (unwind-protect
-                  (overlay-put
-                   overlay 'after-string
-                   (if (or (not (eq (process-status proc) 'exit))
-                           (plusp (process-exit-status proc)))
-                       unknown
-                     (goto-char (point-min))
-                     (let ((count (how-many log-view-message-re)))
-                       (if (zerop count)
-                           (propertize "No unpushed revisions"
-                                       'face 'vc-dir-header-value)
-                         (propertize
-                          (format (ngettext "%d unpushed revision"
-                                            "%d unpushed revisions"
-                                            count)
-                                  count)
-                          'face 'vc-dir-header-urgent-value
-                          'mouse-face 'highlight
-                          'keymap vc-dir-outgoing-revisions-map
-                          'help-echo "\\<vc-dir-outgoing-revisions-map>\
+  ;; `vc-incoming-outgoing-internal' invokes external processes
+  ;; synchronously before we can get to the `vc-run-delayed', so
+  ;; postpone running it a little.
+  (overlay-put
+   overlay 'timer
+   (run-with-idle-timer
+    0.2 nil
+    (lambda ()
+      (let ((display-buffer-overriding-action
+             '(display-buffer-no-window (allow-no-window . t)))
+            (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
+            (buf (generate-new-buffer " *temp*" t))
+            proc)
+        (with-current-buffer buf
+          (condition-case _
+              (progn
+                (vc-incoming-outgoing-internal backend nil
+                                               (current-buffer)
+                                               '(log-outgoing short))
+                (setq proc (get-buffer-process (current-buffer)))
+                (overlay-put overlay 'proc proc)
+                (vc-run-delayed
+                  (unwind-protect
+                      (overlay-put
+                       overlay 'after-string
+                       (if (or (not (eq (process-status proc) 'exit))
+                               (plusp (process-exit-status proc)))
+                           unknown
+                         (goto-char (point-min))
+                         (let ((count (how-many log-view-message-re)))
+                           (if (zerop count)
+                               (propertize "No unpushed revisions"
+                                           'face 'vc-dir-header-value)
+                             (propertize
+                              (format (ngettext "%d unpushed revision"
+                                                "%d unpushed revisions"
+                                                count)
+                                      count)
+                              'face 'vc-dir-header-urgent-value
+                              'mouse-face 'highlight
+                              'keymap vc-dir-outgoing-revisions-map
+                              'help-echo "\\<vc-dir-outgoing-revisions-map>\
 \\[vc-root-log-outgoing]: List outgoing revisions")))))
-                (kill-buffer))))
-        (error (overlay-put overlay 'after-string unknown)
-               (kill-buffer buf))))))
+                    (kill-buffer))))
+            (error (overlay-put overlay 'after-string unknown)
+                   (kill-buffer buf)))))))))
 
 (defvar-local vc-dir-async-header-values
   '(("Outgoing" . vc-dir--count-outgoing))
@@ -1490,6 +1498,7 @@ Each element is a pair (HEADER . FUN) where
   - the `after-string' property of the overlay to a temporary value
     indicating that an async computation is in progress, conventionally
     of the form \"[%s ...]\";
+  - the `timer' property of the overlay to any idle timer it schedules
   - the `proc' property of the overlay to the asynchronous process it starts;
   - the `after-string' property of the overlay to the computed header
     value after the asychronous computation completes, \"<<unknown>>\"
@@ -1560,6 +1569,8 @@ specific headers."
     (when-let* ((proc (overlay-get overlay 'proc))
                 (_ (eq 'run (process-status proc))))
       (kill-process proc))
+    (when-let* ((timer (overlay-get overlay 'timer)))
+      (cancel-timer timer))
     (delete-overlay overlay))
   ;; Set up new async header overlays.
   (save-excursion
