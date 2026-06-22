@@ -65,6 +65,21 @@
 (defun ex-cmd-not-yet (name)
   (error "`%s': Command not implemented in Viper" name))
 
+;; map for characters that are considered ambiguous according
+;; to POSIX with their literal replacement
+(defvar ex-ambiguous-char-map
+  '(("$"  . "\\$")  ;; dollar sign
+    ("\\" . "\\\\") ;; backslash
+    ("" . "^G")  ;; alert
+    ("" . "^?")  ;; backspace
+    ("" . "^L")  ;; form-feed
+    ("
+" . "$\n")          ;; newline
+    ("" . "^M")  ;; carriage-return
+    ("	" . "^I")  ;; tab
+    ("" . "^K")  ;; vertical-tab
+    ))
+
 ;; alist entries: name (in any order), command, cont(??)
 ;; If command is a string, then that is an alias to the real command
 ;; to execute (for instance, ":m" -> ":move").
@@ -117,6 +132,7 @@
 	("mark"			(ex-mark))
 	("move"			(ex-copy t))
 	("next"			(ex-next ex-cycle-other-window))
+        ("number"		(ex-print t nil))
 	("p"			"print")
 	("preserve"		(ex-preserve))
 	("print"		(ex-print))
@@ -162,9 +178,9 @@
 	("insert"		(ex-cmd-obsolete "insert"))
 	("open"			(ex-cmd-obsolete "open"))
 
-	("list"			(ex-cmd-not-yet "list"))
+	("list"			(ex-print nil t))
 	("z"			(ex-cmd-not-yet "z"))
-	("#"			(ex-cmd-not-yet "#"))
+	("#"			"number")
 
 	("abbreviate"	    	(error "`%s': Vi abbreviations are obsolete.  Use the more powerful Emacs abbrevs" ex-token))
 	("unabbreviate"	    	(error "`%s': Vi abbreviations are obsolete.  Use the more powerful Emacs abbrevs" ex-token))
@@ -2278,7 +2294,7 @@ Type `mak ' (including the space) to run make with no args."
 					  'none)))
     ))
 
-(defun ex-print ()
+(defun ex-print (&optional line-numbers unambiguously)
   (viper-default-ex-addresses)
   (let ((end (car ex-addresses))
 	(beg (car (cdr ex-addresses))))
@@ -2293,23 +2309,34 @@ Type `mak ' (including the space) to run make with no args."
 	    ;; Is this the last mark for the global command?
 	    (unless (cdr ex-g-marks)
 	      (with-current-buffer viper-ex-print-buf
-		(ex-print-display-lines (buffer-string))
+		(ex-print-display-lines (buffer-string) (when line-numbers (line-number-at-pos (mark))) unambiguously)
 		(erase-buffer))))
-	(ex-print-display-lines (buffer-substring (point) (mark t)))))))
+	(ex-print-display-lines (buffer-substring (point) (mark t)) (when line-numbers (line-number-at-pos (mark))) unambiguously)))))
 
-(defun ex-print-display-lines (lines)
+(defun ex-print-display-lines (lines &optional line-number unambiguously)
+  (when unambiguously
+    (dolist (char ex-ambiguous-char-map)
+      (setq lines (string-replace (car char) (cdr char) lines))))
   (cond
    ;; String doesn't contain a newline.
    ((not (string-search "\n" lines))
-    (message "%s" lines))
+    (if line-number
+        (message "%s %s" line-number lines)
+      (message "%s" lines)))
    ;; String contains only one newline at the end.  Strip it off.
    ((= (string-search "\n" lines) (1- (length lines)))
-    (message "%s" (substring lines 0 -1)))
+    (if line-number
+        (message "%s %s" line-number (substring lines 0 -1))
+      (message "%s" (substring lines 0 -1))))
    ;; String spans more than one line.  Use a temporary buffer.
    (t
     (save-current-buffer
       (with-output-to-temp-buffer " *viper-info*"
-	(princ lines))))))
+	(princ lines))
+      (when line-number
+        (with-current-buffer " *viper-info*"
+          (setq-local display-line-numbers-offset (1- line-number))
+          (display-line-numbers-mode 1)))))))
 
 (provide 'viper-ex)
 ;;; viper-ex.el ends here
