@@ -2053,11 +2053,6 @@ If ARGUMENT is non-nil, use it as argument for
 
 	      (let* (coding-system-for-read
 		     (process-connection-type tramp-process-connection-type)
-		     ;; There might be some unfortunate values of
-                     ;; `tramp-smb-connection-local-default-system-variables'.
-                     ;(path-separator (default-value 'path-separator))
-                     ;(null-device (default-value 'null-device))
-                     ;(exec-suffixes (default-value 'exec-suffixes))
 		     (p (apply #'tramp-start-process vec
 			       (tramp-get-connection-name vec)
 			       (tramp-get-connection-buffer vec)

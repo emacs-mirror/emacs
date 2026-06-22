@@ -263,15 +263,17 @@ If QUOTED is non-nil, the local part of the file name is quoted.
 The temporary file is not created."
   (make-temp-name (tramp--test-make-temp-prefix local quoted)))
 
-;; Method "smb" supports `make-symbolic-link' only if the remote host
-;; has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el, tramp-rclone.el
-;; and tramp-sshfs.el do not support symbolic links at all.
+;; If `system-type' is `windows-nt', making symbolic links is not
+;; supported.  Method "smb" supports `make-symbolic-link' only if the
+;; remote host has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el,
+;; tramp-rclone.el and tramp-sshfs.el do not support symbolic links at
+;; all.
 (defmacro tramp--test-ignore-make-symbolic-link-error (&rest body)
   "Run BODY, ignoring \"make-symbolic-link not supported\" file error."
   (declare (indent defun) (debug (body)))
   `(condition-case err
        (progn ,@body)
-     (remote-file-error
+     (file-error
       (unless (string-match-p
 	       (rx bol (| "make-symbolic-link not supported"
 			  (: "Making symbolic link"
@@ -282,7 +284,7 @@ The temporary file is not created."
 ;; Don't print messages in nested `tramp--test-instrument-test-case' calls.
 (defvar tramp--test-instrument-test-case-p nil
   "Whether `tramp--test-instrument-test-case' run.
-This shall used dynamically bound only.")
+This shall be used dynamically bound only.")
 
 ;; When `tramp-verbose' is greater than 10, and you want to trace
 ;; other functions as well, do something like
@@ -2980,8 +2982,14 @@ This checks also `file-name-as-directory', `file-name-directory',
 	      (should (string-equal (buffer-string) "foo\nbar\n")))))
 
       ;; Cleanup.
-      (ignore-errors (kill-buffer buffer1))
-      (ignore-errors (kill-buffer buffer2))
+      ;; Modifying `read-from-minibuffer' doesn't work on MS Windows.
+      ;; `kill-buffer--possibly-save' exists since Emacs 29.1.
+      (if (fboundp 'kill-buffer--possibly-save)
+	  (cl-letf (((symbol-function #'kill-buffer--possibly-save) #'always))
+	    (ignore-errors (kill-buffer buffer1))
+	    (ignore-errors (kill-buffer buffer2)))
+	(ignore-errors (kill-buffer buffer1))
+	(ignore-errors (kill-buffer buffer2)))
       (ignore-errors (delete-file tmp-file)))))
 
 (ert-deftest tramp-test11-copy-file ()
@@ -9081,8 +9089,12 @@ process sentinels.  They shall not disturb each other."
     (should
      (string-equal (tramp--test-operation tramp-test-vec)
 		   (tramp--handle-test-operation tramp-test-vec)))
-    (let ((vec (copy-tramp-file-name tramp-test-vec)))
-      (setf (tramp-file-name-method vec) (if (tramp--test-sh-p) "rclone" "sudo"))
+    (let ((vec (copy-tramp-file-name tramp-test-vec))
+	  ;; This is needed for the `simplified' syntax.
+	  (tramp-default-method (if (tramp--test-sh-p) "rclone" "sudo"))
+	  ;; "rclone" is not multi-hop capable.
+	  (tramp-multi-hop-p-hook #'always))
+      (setf (tramp-file-name-method vec) tramp-default-method)
       (should-not
        (string-equal (tramp--test-operation vec)
 		     (tramp--handle-test-operation vec))))
