@@ -334,6 +334,9 @@ Ex can now display lines unambiguously when printing using the 'list'
 command.  This means that certain characters such as tab will be shown
 with their literal equivalents i.e. "^I".
 
+*** New ex command: 'z'.
+Ex can now print lines using the 'z' command which allows
+scrolling the output of the lines.
 
 * New Modes and Packages in Emacs 32.1
 

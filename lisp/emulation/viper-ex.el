@@ -179,7 +179,7 @@
 	("open"			(ex-cmd-obsolete "open"))
 
 	("list"			(ex-print nil t))
-	("z"			(ex-cmd-not-yet "z"))
+	("z"			(ex-adjust-window))
 	("#"			"number")
 
 	("abbreviate"	    	(error "`%s': Vi abbreviations are obsolete.  Use the more powerful Emacs abbrevs" ex-token))
@@ -364,6 +364,12 @@ corresponding function symbol."
 ;; e.g., :r !date
 (defvar ex-cmdfile nil)
 (defvar ex-cmdfile-args "")
+
+(defvar ex-adjust-window-point 1
+  "Last point used for `ex-adjust-window'.")
+
+(defvar ex-adjust-window-count 15
+  "Last count used for `ex-adjust-window'.")
 
 ;; flag used in viper-ex-read-file-name to indicate that we may be reading
 ;; multiple file names.  Used for :edit and :next
@@ -1897,6 +1903,23 @@ The Info file for Viper does not seem to be installed.
 
 This file is part of the standard distribution of Emacs.
 Please contact your system administrator. ")))))
+
+(defun ex-adjust-window ()
+  "Show and adjust the output of ex lines in a window."
+  (viper-default-ex-addresses)
+  (viper-get-ex-count)
+  (let ((end (car ex-addresses)) (beg (cadr ex-addresses)))
+    (when (> beg end) (error viper-FirstAddrExceedsSecond))
+    (unless ex-count (setq ex-count ex-adjust-window-count))
+    (let* ((emptyp (and (characterp beg)
+                        (characterp end)))
+           (pos (save-excursion
+                  (goto-char (if emptyp ex-adjust-window-point end))
+                  (forward-line ex-count)
+                  (pos-bol))))
+      (ex-print-display-lines (buffer-substring (if emptyp ex-adjust-window-point end) pos))
+      (setq ex-adjust-window-count ex-count
+            ex-adjust-window-point pos))))
 
 ;; Ex source command.
 ;; Loads the file specified as argument or viper-custom-file-name.
