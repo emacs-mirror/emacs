@@ -39,6 +39,9 @@
 (defconst files-x-test--variables5
   '((remote-lazy-var . nil)
     (remote-null-device . "/dev/null")))
+(defconst files-x-test--variables6
+  '((exec-suffixes . ("foo"))
+    (path-separator . "foo")))
 (defvar remote-shell-file-name)
 (defvar remote-null-device)
 (defvar remote-lazy-var nil)
@@ -600,6 +603,40 @@ If it's not initialized yet, initialize it."
     (custom-set-variables
      `(connection-local-profile-alist ',clpa now)
      `(connection-local-criteria-alist ',clca now))))
+
+(ert-deftest files-x-test-connection-local-special-variables ()
+  "Test special local variables.
+The connection-local variables `exec-suffixes' and `path-separator' are
+used for remote processes.  When calling `call-process', `make-process'
+or `executable-find', their default value must be used nonetheless."
+
+  (let ((clpa connection-local-profile-alist)
+	(clca connection-local-criteria-alist)
+        (program (file-name-sans-extension
+                  (file-name-concat invocation-directory invocation-name)))
+        proc)
+    (connection-local-set-profile-variables
+     'special-variables files-x-test--variables6)
+    (connection-local-set-profiles
+     nil 'special-variables)
+
+    (unwind-protect
+        (with-temp-buffer
+          (let ((enable-connection-local-variables t))
+            (hack-connection-local-variables-apply nil)
+            (should (zerop (call-process program nil nil nil "--help")))
+            (should
+             (processp
+              (setq proc
+                    (make-process
+                     :name invocation-name :command `(,program "--help")))))
+            (should (executable-find program))))
+
+      ;; Cleanup.
+      (when (processp proc) (kill-process proc))
+      (custom-set-variables
+       `(connection-local-profile-alist ',clpa now)
+       `(connection-local-criteria-alist ',clca now)))))
 
 (provide 'files-x-tests)
 ;;; files-x-tests.el ends here

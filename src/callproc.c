@@ -520,7 +520,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   {
     int ok;
 
-    ok = openp (Vexec_path, args[0], Vexec_suffixes, &path,
+    ok = openp (Vexec_path, args[0], Fdefault_value (Qexec_suffixes), &path,
 		make_fixnum (X_OK), false, false, NULL);
     if (ok < 0)
       report_file_error ("Searching for program", args[0]);
@@ -2258,4 +2258,5 @@ multiple times on subsequent partitions of the list of arguments.
   DEFSYM (Qafter_insert_file_set_buffer_file_coding_system,
 	  "after-insert-file-set-buffer-file-coding-system");
   DEFSYM (Qcoding_system_for_write, "coding-system-for-write");
+  DEFSYM (Qexec_suffixes, "exec-suffixes");
 }
