@@ -5415,7 +5415,7 @@ See the related form `with-temp-buffer-window'."
              (with-current-buffer (get-buffer-create ,bufname)
                (prog1 (current-buffer)
                  (kill-all-local-variables)
-                 ;; FIXME: delete_all_overlays
+                 (delete-all-overlays)
                  (setq default-directory ,old-dir)
                  (setq buffer-read-only nil)
                  (setq buffer-file-name nil)
