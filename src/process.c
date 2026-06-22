@@ -2073,7 +2073,7 @@ usage: (make-process &rest ARGS)  */)
 	       && IS_DEVICE_SEP (SREF (program, 1))))
 	{
 	  tem = Qnil;
-	  openp (Vexec_path, program, Vexec_suffixes, &tem,
+	  openp (Vexec_path, program, Fdefault_value (Qexec_suffixes), &tem,
 		 make_fixnum (X_OK), false, false, NULL);
 	  if (NILP (tem))
 	    report_file_error ("Searching for program", program);

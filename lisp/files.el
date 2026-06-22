@@ -1331,7 +1331,7 @@ remote, otherwise search locally."
     ;; Use 1 rather than file-executable-p to better match the
     ;; behavior of call-process.
     (let ((default-directory (file-name-quote default-directory 'top)))
-      (locate-file command exec-path exec-suffixes 1))))
+      (locate-file command exec-path (default-value 'exec-suffixes) 1))))
 
 (declare-function read-library-name "find-func" nil)
 
