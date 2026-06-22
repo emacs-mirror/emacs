@@ -980,7 +980,8 @@ drop_overlay (struct Lisp_Overlay *ov)
   if (! ov->buffer)
     return;
 
-  modify_overlay (ov->buffer, overlay_start (ov), overlay_end (ov));
+  if (!NILP (ov->plist))
+    modify_overlay (ov->buffer, overlay_start (ov), overlay_end (ov));
   remove_buffer_overlay (ov->buffer, ov);
 }
 
@@ -3763,7 +3764,9 @@ buffer.  */)
                               n_beg, n_end);
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
-  if (!BASE_EQ (buffer, obuffer))
+  if (NILP (OVERLAY_PLIST (overlay)))
+    ; /* No props so the overlay doesn't affect the display.  */
+  else if (!BASE_EQ (buffer, obuffer))
     {
       /* Redisplay where the overlay was.  */
       if (ob)
