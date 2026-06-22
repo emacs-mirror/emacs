@@ -2587,6 +2587,7 @@ one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
 
 *** 'diff-apply-hunk' now supports creating and deleting files.
+diff-apply-buffer supports creating files but not deleting them, yet.
 
 +++
 *** Diff mode's application and killing commands now consider the region.
