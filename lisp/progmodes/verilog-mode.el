@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2026.01.18.088738971
+;; Version: 2026.04.14.010117132
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2026-01-18-54a0c9b-vpo-GNU"
+(defconst verilog-mode-version "2026-04-14-09a600c-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -2790,9 +2790,9 @@ find the errors."
 	   "\\|\\(\\<table\\>\\)"		;7
 	   "\\|\\(\\<specify\\>\\)"		;8
 	   "\\|\\(\\<function\\>\\)"		;9
-           "\\|\\(\\(?:\\<\\(?:virtual\\|protected\\|static\\)\\>\\s-+\\)*\\<function\\>\\)"  ;10
+           "\\|\\(\\(?:\\<\\(?:virtual\\|protected\\|local\\|static\\)\\>\\s-+\\)*\\<function\\>\\)"  ;10
            "\\|\\(\\<task\\>\\)"                ;11
-           "\\|\\(\\(?:\\<\\(?:virtual\\|protected\\|static\\)\\>\\s-+\\)*\\<task\\>\\)"      ;12
+           "\\|\\(\\(?:\\<\\(?:virtual\\|protected\\|local\\|static\\)\\>\\s-+\\)*\\<task\\>\\)"      ;12
            "\\|\\(\\<generate\\>\\)"            ;13
            "\\|\\(\\<covergroup\\>\\)"          ;14
            "\\|\\(\\(?:\\(?:\\<cover\\>\\s-+\\)\\|\\(?:\\<assert\\>\\s-+\\)\\)*\\<property\\>\\)" ;15
@@ -6406,7 +6406,7 @@ Jump from end to matching begin, from endcase to matching case, and so on."
 			"\\(\\<endcase\\>\\)\\|\\(\\<join\\(_any\\|_none\\)?\\>\\)" )))
      ((looking-at "\\<endtask\\>")
       ;; 2: Search back for matching task
-      (setq reg "\\(\\<task\\>\\)\\|\\(\\(\\<\\(virtual\\|protected\\|static\\)\\>\\s-+\\)+\\<task\\>\\)")
+      (setq reg "\\(\\<task\\>\\)\\|\\(\\(\\<\\(virtual\\|protected\\|local\\|static\\)\\>\\s-+\\)+\\<task\\>\\)")
       (setq nesting 'no))
      ((looking-at "\\<endcase\\>")
       (catch 'nesting
@@ -6430,7 +6430,7 @@ Jump from end to matching begin, from endcase to matching case, and so on."
       (setq reg "\\(\\<specify\\>\\)\\|\\(\\<endspecify\\>\\)" ))
      ((looking-at "\\<endfunction\\>")
       ;; 8: Search back for matching function
-      (setq reg "\\(\\<function\\>\\)\\|\\(\\(\\<\\(virtual\\|protected\\|static\\)\\>\\s-+\\)+\\<function\\>\\)")
+      (setq reg "\\(\\<function\\>\\)\\|\\(\\(\\<\\(virtual\\|protected\\|local\\|static\\)\\>\\s-+\\)+\\<function\\>\\)")
       (setq nesting 'no))
      ;;(setq reg "\\(\\<function\\>\\)\\|\\(\\<endfunction\\>\\)" ))
      ((looking-at "\\<endgenerate\\>")
@@ -7396,7 +7396,7 @@ Do not count named blocks or case-statements."
                (current-column))
               (;; 3) Inside a module/defun param list or function/task argument list
                (or (looking-at verilog-defun-level-re)
-                   (looking-at "\\(\\<\\(virtual\\|protected\\|static\\)\\>\\s-+\\)?\\(\\<task\\>\\|\\<function\\>\\)"))
+                   (looking-at "\\(\\<\\(virtual\\|protected\\|local\\|static\\)\\>\\s-+\\)?\\(\\<task\\>\\|\\<function\\>\\)"))
                (setq pos-arg-paren (save-excursion
                                      (goto-char start-pos)
                                      (verilog-backward-up-list 1)
