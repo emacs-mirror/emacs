@@ -18,7 +18,7 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
-* Changes to upcoming Eglot
+* Changes in Eglot 1.24 (23/6/2026)
 
 ** New command 'M-x eglot-describe-connection'
 
