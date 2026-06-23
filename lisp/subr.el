@@ -7108,7 +7108,8 @@ to deactivate this transient map, regardless of KEEP-PRED."
 ;;			      MESSAGE
 ;;			      MIN-CHANGE
 ;;                            MIN-TIME
-;;                            MESSAGE-SUFFIX])
+;;                            UNUSED (formerly SUFFIX)
+;;                            CONTEXT])
 ;;
 ;; This weirdness is for optimization reasons: we want
 ;; `progress-reporter-update' to be as fast as possible, so
@@ -7120,15 +7121,18 @@ to deactivate this transient map, regardless of KEEP-PRED."
 
 (defvar progress-reporter-update-functions (list #'progress-reporter-echo-area)
   "Special hook run on progress-reporter updates.
-Each function is called with two arguments:
+Each function is called with three arguments:
 REPORTER is the result of a call to `make-progress-reporter'.
 STATE can be one of:
 - A float representing the percentage complete in the range 0.0-1.0
 for a numeric reporter.
 - A monotonically increasing integer for a pulsing reporter.
-- The symbol `done' to indicate that the progress reporter is complete.")
+- The symbol `done' to indicate that the progress reporter is complete.
+UPDATE-TEXT is a string that a progress-reporter back-end might display
+as a result of this update.  A typical use is as the \"step\" of the
+progress reporting process.")
 
-(defsubst progress-reporter-update (reporter &optional value suffix)
+(defsubst progress-reporter-update (reporter &optional value update-text)
   "Report progress of an operation, by default, in the echo area.
 REPORTER should be the result of a call to `make-progress-reporter'.
 
@@ -7137,10 +7141,11 @@ made using non-nil MIN-VALUE and MAX-VALUE arguments to
 `make-progress-reporter'---then VALUE should be a number between
 MIN-VALUE and MAX-VALUE.
 
-Optional argument SUFFIX is a string to be displayed after REPORTER's
-main message and progress text.  If REPORTER is a non-numerical
-reporter, then VALUE should be nil, or a string to use instead of
-SUFFIX.
+Optional argument UPDATE-TEXT is a string that a progress-reporter
+back-end might display as a result of this update.  A typical use is as
+the \"step\" of the progress reporting process.  If REPORTER is a
+non-numerical reporter, then VALUE should be nil, or a string to use
+instead of UPDATE-TEXT.
 
 See `progress-reporter-update-functions' for the list of functions
 called on each update.
@@ -7150,7 +7155,7 @@ last update is too small or insufficient time has passed, it does
 nothing."
   (when (or (not (numberp value))      ; For pulsing reporter
 	    (>= value (car reporter))) ; For numerical reporter
-    (progress-reporter-do-update reporter value suffix)))
+    (progress-reporter-do-update reporter value update-text)))
 
 (defun make-progress-reporter (message &optional min-value max-value
 				       current-value min-change min-time
@@ -7200,7 +7205,7 @@ the echo area progress reports may be muted if the echo area is busy."
 		       message
 		       (if min-change (max (min min-change 50) 1) 1)
                        min-time
-                       ;; SUFFIX
+                       ;; Unused (formerly SUFFIX).
                        nil
                        ;;
                        context))))
@@ -7218,24 +7223,26 @@ the echo area progress reports may be muted if the echo area is busy."
   "Return REPORTER's context."
   (aref (cdr reporter) 7))
 
-(defun progress-reporter-force-update (reporter &optional value new-message suffix)
+(defun progress-reporter-force-update (reporter &optional
+                                                value new-message update-text)
   "Report progress of an operation in the echo area unconditionally.
 
-REPORTER, VALUE, and SUFFIX are the same as in `progress-reporter-update'.
+REPORTER, VALUE, and UPDATE-TEXT are the same as in
+`progress-reporter-update'.
 NEW-MESSAGE, if non-nil, sets a new message for the reporter."
   (let ((parameters (cdr reporter)))
     (when new-message
       (aset parameters 3 new-message))
     (when (aref parameters 0)
       (aset parameters 0 (float-time)))
-    (progress-reporter-do-update reporter value suffix)))
+    (progress-reporter-do-update reporter value update-text)))
 
 (defvar progress-reporter--pulse-characters ["-" "\\" "|" "/"]
   "Characters to use for pulsing progress reporters.")
 
-(defun progress-reporter-echo-area (reporter state)
+(defun progress-reporter-echo-area (reporter state update-text)
   "Progress reporter echo area update function.
-REPORTER and STATE are the same as in
+REPORTER, STATE, and UPDATE-TEXT are the same as in
 `progress-reporter-update-functions'.
 
 Do not emit a message if the reporter context is `async' and the echo
@@ -7244,21 +7251,22 @@ area is busy with something else."
     (unless (and (eq (progress-reporter-context reporter) 'async)
                  (current-message)
                  (not (string-prefix-p text (current-message))))
+      (setq update-text (concat (if update-text " " "") update-text))
       (pcase state
         ((pred floatp)
          (if (plusp state)
-             (message "%s%d%%" text (* state 100.0))
-           (message "%s" text)))
+             (message "%s%d%%%s" text (* state 100.0) update-text)
+           (message "%s%s" text update-text)))
         ((pred integerp)
          (let ((message-log-max nil)
                (pulse-char
                 (aref progress-reporter--pulse-characters
                       (mod state (length progress-reporter--pulse-characters)))))
-           (message "%s %s" text pulse-char)))
+           (message "%s %s%s" text pulse-char update-text)))
         ('done
          (message "%sdone" text))))))
 
-(defun progress-reporter-do-update (reporter value &optional suffix)
+(defun progress-reporter-do-update (reporter value &optional update-text)
   (let* ((parameters      (cdr reporter))
 	 (update-time     (aref parameters 0))
 	 (min-value       (aref parameters 1))
@@ -7292,31 +7300,26 @@ area is busy with something else."
 	       (setcar reporter (ceiling (car reporter))))
 	     ;; Print message only if enough time has passed
 	     (when enough-time-passed
-               (if suffix
-                   (aset parameters 6 suffix)
-                 (setq suffix (or (aref parameters 6) "")))
                (run-hook-with-args 'progress-reporter-update-functions
                                    reporter
-                                   (/ percentage 100.0)))))
+                                   (/ percentage 100.0)
+                                   update-text))))
 	  ;; Pulsing indicator
 	  (enough-time-passed
-           (when (and value (not suffix))
-             (setq suffix value))
-           (if suffix
-               (aset parameters 6 suffix)
-             (setq suffix (or (aref parameters 6) "")))
            (let ((index (1+ (car reporter))))
 	     (setcar reporter index)
              (run-hook-with-args 'progress-reporter-update-functions
                                  reporter
-                                 index))))))
+                                 index
+                                 (or update-text value)))))))
 
 (defun progress-reporter-done (reporter)
   "Print reporter's message followed by word \"done\" in echo area.
 Call the functions on `progress-reporter-update-functions`."
   (run-hook-with-args 'progress-reporter-update-functions
                       reporter
-                      'done))
+                      'done
+                      nil))
 
 (defmacro dotimes-with-progress-reporter (spec reporter-or-message &rest body)
   "Loop a certain number of times and report progress in the echo area.

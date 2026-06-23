@@ -236,7 +236,9 @@ A value of `default' means to use the value of `vc-resolve-conflicts'."
   (setq file (expand-file-name file))
   (let*
       ((status nil)
-       (default-directory (file-name-directory file))
+       (root (vc-hg-root file))
+       (file (file-relative-name file root))
+       (default-directory root)
        (out
         (with-output-to-string
           (with-current-buffer

@@ -571,7 +571,9 @@ interpreted as a regular expression which always matches."
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
   (when (and (eq system-type 'windows-nt)
-             (not (string-match-p (rx "sh" eol) tramp-encoding-shell)))
+             (not (string-match-p
+		   (rx "sh" eol)
+		   (file-name-sans-extension tramp-encoding-shell))))
     (list (rx
 	   bos (| (literal (downcase tramp-system-name))
 		  (literal (upcase tramp-system-name)))
@@ -2213,12 +2215,12 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
        (ignore ,@(mapcar #'car bindings))
        ,@body)))
 
-(defun tramp-progress-reporter-update (reporter &optional value suffix)
+(defun tramp-progress-reporter-update (reporter &optional value update-text)
   "Report progress of an operation for Tramp."
   (let* ((parameters (cdr reporter))
 	 (message (aref parameters 3)))
     (when (string-search message (or (current-message) ""))
-      (progress-reporter-update reporter value suffix))))
+      (progress-reporter-update reporter value update-text))))
 
 ;;;###tramp-autoload
 (defvar tramp-inhibit-progress-reporter nil
@@ -3006,24 +3008,26 @@ not in completion mode."
   "Like `expand-file-name' for partial Tramp files."
   ;; We need special handling only when a method is needed.  Then we
   ;; check, whether DIRECTORY is "/method:" or "/[method/".
-  (let ((dir (or directory default-directory "/")))
-    (cond
-     ((file-name-absolute-p filename)
-      ;; FILENAME could be like "~/".  We must expand this.
-      (tramp-run-real-handler #'expand-file-name (list filename directory)))
-     ((and (eq tramp-syntax 'simplified)
-           (string-match-p (rx (regexp tramp-postfix-host-regexp) eos) dir))
-      (concat dir filename))
-     ((string-match-p
-       (rx (regexp tramp-prefix-regexp)
-	   (* (regexp tramp-remote-file-name-spec-regexp)
-	      (regexp tramp-postfix-hop-regexp))
-	   (? (regexp tramp-method-regexp) (regexp tramp-postfix-method-regexp)
-	      (? (regexp tramp-user-regexp) (regexp tramp-postfix-user-regexp)))
-	   eos)
-       dir)
-      (concat dir filename))
-     (t (tramp-run-real-handler #'expand-file-name (list filename directory))))))
+  (tramp-drop-volume-letter
+   (let ((dir (or directory default-directory "/")))
+     (cond
+      ((file-name-absolute-p filename)
+       ;; FILENAME could be like "~/".  We must expand this.
+       (tramp-run-real-handler #'expand-file-name (list filename directory)))
+      ((and (eq tramp-syntax 'simplified)
+            (string-match-p (rx (regexp tramp-postfix-host-regexp) eos) dir))
+       (concat dir filename))
+      ((string-match-p
+	(rx (regexp tramp-prefix-regexp)
+	    (* (regexp tramp-remote-file-name-spec-regexp)
+	       (regexp tramp-postfix-hop-regexp))
+	    (? (regexp tramp-method-regexp) (regexp tramp-postfix-method-regexp)
+	       (? (regexp tramp-user-regexp) (regexp tramp-postfix-user-regexp)))
+	    eos)
+	dir)
+       (concat dir filename))
+      (t (tramp-run-real-handler
+	  #'expand-file-name (list filename directory)))))))
 
 ;; This is needed in pcomplete.el.
 (defun tramp-completion-handle-file-directory-p (filename)

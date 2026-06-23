@@ -1105,7 +1105,10 @@ tracked by a VCS."
 The files will also be marked as deleted in the version control
 system."
   (interactive)
-  (vc-delete-file (or (vc-dir-marked-files) (vc-dir-current-file))))
+  (if-let* ((fileset-only-files
+             (nth 2 (vc-dir-deduce-fileset 'state-model-only-files))))
+      (vc-delete-file fileset-only-files)
+    (user-error "Nothing to delete here")))
 
 (defun vc-dir-find-file ()
   "Find the file on the current line."

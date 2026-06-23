@@ -1264,7 +1264,8 @@ object."
     ;; `file-name-handler-alist' should know how to handle them
     ;; (bug#58790).
     (if (string= "file" (url-type url))
-        (let* ((unhexed (url-unhex-string (url-filename url)))
+        (let* ((unhexed (decode-coding-string
+                         (url-unhex-string (url-filename url)) 'utf-8-unix))
                ;; Remove the leading "/" for local MS Windows-style paths.
                (norm (if (and (not remote-prefix)
                                     (eq system-type 'windows-nt)

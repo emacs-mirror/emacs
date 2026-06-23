@@ -4766,6 +4766,7 @@ object files--just `.o' will mark more than you might think."
     (dired-mark-if
      (and (not (looking-at-p dired-re-dot))
 	  (not (eolp))			; empty line
+	  (not (dired--hidden-p))
 	  (let ((fn (dired-get-filename t t)))
 	    (and fn (string-match-p regexp fn))))
      "matching file")))
@@ -4817,6 +4818,7 @@ since it was last visited."
     (dired-mark-if
      (and (not (looking-at-p dired-re-dot))
 	  (not (eolp))			; empty line
+	  (not (dired--hidden-p))
 	  (let ((fn (dired-get-filename nil t)))
 	    (when (and fn (file-readable-p fn)
 		       (not (file-directory-p fn)))
