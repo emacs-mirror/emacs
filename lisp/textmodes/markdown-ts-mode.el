@@ -3354,10 +3354,10 @@ With the prefix argument ARG, remain within the current code block."
 
 (defun markdown-ts--table-abutting-pos (pos)
   "Adjust POS to abut its closest text.
-If POS is already in a table, return POS.
-If not, adjust POS to the nearest non-blank character, looking first
-forward and then backward adjusting, if it is in a table, return the adjusted POS.
-Otherwise, return nil, for example, if the line is empty."
+If POS is already in a table, return POS.  If not, adjust POS to the
+nearest non-blank character, looking first forward and then backward
+adjusting, if it is in a table, return the adjusted POS.  Otherwise
+return nil, for example, if the line is empty."
   (save-excursion
     (goto-char pos)
     (if (markdown-ts--table-node-row nil pos)
