@@ -151,6 +151,7 @@ unique id.
 * Frame Titles::                Automatic updating of frame titles.
 * Deleting Frames::             Frames last until explicitly deleted.
 * Finding All Frames::          How to examine all existing frames.
+* Splitting and Merging Frames:: Transferring window layouts between frames.
 * Minibuffers and Frames::      How a frame finds the minibuffer to use.
 * Input Focus::                 Specifying the selected frame.
 * Visibility of Frames::        Frames may be visible or invisible, or icons.
@@ -3075,6 +3076,85 @@ function of one argument, a frame to be tested against the filtering
 criteria, and should return non-@code{nil} if the frame satisfies the
 criteria.
 @end defun
+
+
+@node Splitting and Merging Frames
+@section Splitting and Merging Frames
+@cindex splitting a frame
+@cindex merging two frames
+@cindex Transferring window layouts
+
+The following two functions are useful to transfer parts of the window
+layout (@pxref{Basic Windows}) of one frame to two separate frames and
+to merge the window layouts of two separate frames into one frame.
+
+@deffn Command split-frame &optional frame arg
+This command transfers some windows of the specified @var{frame} to a
+new frame and subsequently deletes them on @var{frame}.  @var{frame}
+must be a live frame and defaults to the selected frame.  @var{arg}
+specifies the number of windows to transfer and defaults to 1.
+Interactively, @var{arg} is the prefix argument.
+
+In a first step, it divides the child windows (@pxref{Windows and
+Frames}) of @var{frame}'s main window (@pxref{Side Windows}) into two
+parts.  The first part includes the first @var{arg} child windows if
+@var{arg} is positive, and the -@var{arg} last child windows if
+@var{arg} is negative.  The second part includes the remaining child
+windows of @var{frame}'s main window.
+
+In a second step, it clones (@pxref{Window Configurations}) into a newly
+created frame each of the windows of the part which does not include
+@var{frame}'s selected window (@pxref{Selecting Windows}) and removes
+those windows from @var{frame}.  Note that the original identity
+(@pxref{Basic Windows}) of the cloned windows is lost in this step.  The
+identity of the windows retained on @var{frame} is preserved, however.
+In a final step, it deletes the windows that have been cloned from
+@var{frame} and returns the newly created frame.
+
+This function signals an error if @var{arg} is either zero or not a
+number, or if @var{frame}'s main window is either live or does not have
+more child windows than specified by the absolute value of @var{arg}.
+@end deffn
+
+@deffn Command merge-frames &optional frame1 frame2 vertical
+This command transfers the main window (@pxref{Side Windows}) of
+@var{frame2} to @var{frame1}.  Both @var{frame1} and @var{frame2} must
+specify live frames.
+
+In a first step it splits the main window of @var{frame1}.  If
+@var{vertical} is non-@code{nil}, it makes the new window below the old
+main window of @var{frame1}.  Otherwise, it makes the new window on the
+right of @var{frame1}'s main window.
+
+In a second step it makes the new window a clone (@pxref{Window
+Configurations}) of the main window of @var{frame2}.  The original
+identity (@pxref{Basic Windows}) of the cloned windows is lost in that
+step.  In a final step, it deletes @var{frame2} if the merge completed
+successfully and returns @var{frame1}.
+
+Interactively, @var{vertical} is the prefix argument, @var{frame1} is
+the selected frame and @var{frame2} is the frame following @var{frame1}
+in the list of all frames (@pxref{Finding All Frames}).
+@end deffn
+
+In general you cannot ``undo'' a @code{split-frame} call with a
+subsequent @code{merge-frames} call for the following reasons: In its
+second step @code{merge-frame} puts the main window of @var{frame2} into
+an internal window split off in the first step.  No such window was
+present in the configuration of @var{frame1} before calling
+@code{split-frame}.  Also, after merging is complete, the window cloned
+from the main window of @var{frame2} will occupy as much space as the
+main window of @var{frame1} before merging.  This might not match the
+space distribution of the original layout.
+
+Hence, if your preferred workflow is to temporarily split off windows
+for working on them in a separate frame and later continue with the
+original layout of the original frame, you should proceed as follows:
+Save the configuration (@pxref{Window Configurations}) of the original
+frame, call @code{split-frame} to create the separate frame and finally
+restore the saved configuration of the original frame and delete the
+separate frame.
+
 
 @node Minibuffers and Frames
 @section Minibuffers and Frames

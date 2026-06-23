@@ -1137,6 +1137,7 @@ Frames
 * Frame Titles::            Automatic updating of frame titles.
 * Deleting Frames::         Frames last until explicitly deleted.
 * Finding All Frames::      How to examine all existing frames.
+* Splitting and Merging Frames:: Transferring window layouts between frames.
 * Minibuffers and Frames::  How a frame finds the minibuffer to use.
 * Input Focus::             Specifying the selected frame.
 * Visibility of Frames::    Frames may be visible or invisible, or icons.
