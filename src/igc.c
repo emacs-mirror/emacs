@@ -4211,7 +4211,7 @@ igc_xpalloc_lisp (Lisp_Object *pa, ptrdiff_t *nitems,
 		  const char *label)
 {
   ptrdiff_t nitems_old = pa ? *nitems : 0;
-  ptrdiff_t nitems_new = nitems_old;
+  ptrdiff_t nitems_new = *nitems;
   ptrdiff_t nbytes = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min,
 				     nitems_max, word_size);
   Lisp_Object *old = pa;
