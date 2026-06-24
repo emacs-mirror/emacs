@@ -2204,8 +2204,8 @@ nil and a non-nil value of the option `search-invisible'
    (if (setq isearch-invisible
              (if isearch-invisible
                  nil (or search-invisible 'open)))
-       "match invisible text"
-     "match visible text")))
+       "match also invisible text"
+     "match only visible text")))
 
 
 ;; Word search
