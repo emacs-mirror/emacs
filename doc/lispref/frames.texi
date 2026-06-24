@@ -3001,7 +3001,7 @@ should try to select the most recently used frame as returned by
 @code{get-mru-frame} (@pxref{Input Focus}) on the same terminal.  The
 value @code{nil} means that @code{delete-frame} will try to select the
 oldest visible frame on the same terminal as the deleted one.
-@end defvar
+@end defopt
 
 
 @node Finding All Frames
