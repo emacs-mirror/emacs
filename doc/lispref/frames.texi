@@ -2991,6 +2991,18 @@ for example, deleting a frame during a drag-and-drop operation
 the @code{delete-frame} call in a @code{condition-case} form.
 @end defun
 
+When the selected frame gets deleted Emacs has to select another frame
+instead.  The following option lets you choose which one.
+
+@defopt delete-frame-choose-selected
+This variable specifies which frame to select after deleting the
+selected frame.  The default value @code{mru} means @code{delete-frame}
+should try to select the most recently used frame as returned by
+@code{get-mru-frame} (@pxref{Input Focus}) on the same terminal.  The
+value @code{nil} means that @code{delete-frame} will try to select the
+oldest visible frame on the same terminal as the deleted one.
+@end defvar
+
 
 @node Finding All Frames
 @section Finding All Frames
