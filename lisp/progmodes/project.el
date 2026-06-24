@@ -974,7 +974,7 @@ DIRS must contain directory names."
            (let ((res (project--read-dir-locals dir)))
              (project--set-cached dir 'project-vc-dir-locals (or res 'none))
              res))))
-   (symbol-value var)))
+   (default-value var)))
 
 (defun project--read-dir-locals (dir)
   (with-temp-buffer
