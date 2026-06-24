@@ -2998,13 +2998,6 @@ killed.  */
     }
 #endif
 
-#ifdef HAVE_LIBSYSTEMD
-  /* Notify systemd we are shutting down, but only if we have notified
-     it about startup.  */
-  if (daemon_type == -1)
-    sd_notify(0, "STOPPING=1");
-#endif /* HAVE_LIBSYSTEMD */
-
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
      set.  */
   waiting_for_input = 0;
@@ -3015,6 +3008,13 @@ killed.  */
       else
 	calln (Qrun_hook_query_error_with_timeout, Qkill_emacs_hook);
     }
+
+#ifdef HAVE_LIBSYSTEMD
+  /* Notify systemd we are shutting down, but only if we have notified
+     it about startup.  */
+  if (daemon_type == -1)
+    sd_notify (0, "STOPPING=1");
+#endif /* HAVE_LIBSYSTEMD */
 
 #ifdef HAVE_X_WINDOWS
   /* Transfer any clipboards we own to the clipboard manager.  */
