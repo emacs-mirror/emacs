@@ -1,3 +1,742 @@
+2026-06-24  Martin Rudalics  <rudalics@gmx.at>
+
+	Document new option 'delete-frame-choose-selected' (Bug#80397)
+
+	* doc/lispref/frames.texi (Deleting Frames): Document new option
+	'delete-frame-choose-selected'.
+	* etc/NEWS: Mark 'delete-frame-choose-selected', 'split-frame'
+	and 'merge-frames' as documented.
+
+2026-06-23  Martin Rudalics  <rudalics@gmx.at>
+
+	Document 'split-frame' and 'merge-frames' in Elisp manual
+
+	* doc/lispref/frames.texi (Splitting and Merging Frames): New
+	section.
+	* doc/lispref/elisp.texi (Top): Add new section.
+	* doc/lispref/windows.texi (Basic Windows): Explain terms
+	'layout' and 'identity' of windows.
+	(Window Configurations): Explain that window identities are
+	preserved by window configurations and get lost with window
+	states.
+
+2026-06-23  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Eglot: release version 1.24
+
+	* lisp/progmodes/eglot.el (Version): Bump to 1.24.
+
+	* etc/EGLOT-NEWS: Announce new version.
+
+2026-06-23  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Jsonrpc: release version 1.0.29
+
+	(Version): Bump to 1.0.29.
+
+2026-06-23  João Távora  <joaotavora@gmail.com>
+
+	jsonrpc-shutdown: Ensure we wait whole timeout & increase timeout
+
+	* lisp/jsonrpc.el (jsonrpc-shutdown): Ensure that we wait for
+	the whole timeout and increase the timeout to 300ms (bug#80140).
+
+2026-06-23  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-hg-state-slow: Run from the repository root
+
+	* lisp/vc/vc-hg.el (vc-hg-state-slow): Run command from the
+	repository root.  This fixes cases where a whole subdirectory no
+	longer exists.  We should return 'missing' for any files within
+	it.
+
+2026-06-23  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-dir-delete-file: Call vc-delete-file on FILESET-ONLY-FILES
+
+	* lisp/vc/vc-dir.el (vc-dir-delete-file): Call vc-delete-file on
+	FILESET-ONLY-FILES.  See bug#80998.
+
+2026-06-23  Stéphane Marks  <shipmints@gmail.com>
+
+	Fix 'truncate-string-pixelwise' to restore the window buffer
+
+	* lisp/emacs-lisp/subr-x.el (truncate-string-pixelwise): Safely
+	save/restore the selected window's buffer, and not the reference
+	or current buffers.  Guard dedicated windows.  Remove the work
+	buffer from the window's buffer list.  Bind
+	'buffer-list-update-hook' 'window-scroll-functions'
+	'window-configuration-change-hook' to nil around the window
+	buffer swap.  (Bug#81262; see also bug#80244.)
+
+2026-06-23  Stéphane Marks  <shipmints@gmail.com>
+
+	Restore progress-reporter suffix as update-text (bug#81134)
+
+	* lisp/subr.el (progress-reporter-update-functions): Update
+	docstring.
+	(progress-reporter-update): New UPDATE-TEXT argument replacing
+	previously deleted SUFFIX.
+	(make-progress-reporter): Document suffix slot available for
+	reuse.
+	(progress-reporter-force-update): Update function signature.
+	(progress-reporter-echo-area): Restore the text argument and
+	echo it.
+	(progress-reporter-do-update): Update function signature.  Treat
+	UPDATE-TEXT as ephemeral and do not persist it in the reporter
+	instance.  Update the hook.
+	(progress-reporter-done): Update the hook.
+	* lisp/system-taskbar.el
+	(system-taskbar--progress-reporter-update): Update function
+	signature.
+	* lisp/net/tramp.el (tramp-progress-reporter-update): Update
+	function signature.
+	* doc/lispref/display.texi (Progress): Update documentation.
+
+2026-06-22  Juri Linkov  <juri@linkov.net>
+
+	Rename recently added after-delete-frame-select-mru-frame
+
+	Rename 'after-delete-frame-select-mru-frame' to
+	'delete-frame-choose-selected' for symmetry with
+	'delete-window-choose-selected' with the same
+	default value 'mru' (bug#80397).
+
+	* lisp/cus-start.el: Add a choice like in
+	'delete-window-choose-selected'.
+
+	* src/frame.c (delete_frame): Compare delete_frame_choose_selected
+	with Qmru.
+	(syms_of_frame): Define symbol Qmru.
+	Use DEFVAR_LISP for 'delete-frame-choose-selected'
+	and set the default value to Qmru.
+
+2026-06-22  duli  <duli4868@gmail.com>  (tiny change)
+
+	Eglot: decode unhexed file URI paths as UTF-8 (bug#79897)
+
+	'url-unhex-string' only decodes %XX sequences and returns a
+	unibyte string; it does not interpret the resulting octets as
+	UTF-8.  Its docstring says that the resulting string generally
+	requires decoding with an appropriate coding system.
+
+	LSP messages are UTF-8, and document URIs are transferred as URI
+	strings.  When recovering the file path from the URI, decode the
+	unhexed octets as UTF-8 instead of using them directly as an
+	Emacs string.  This should fix bug#79897.
+
+
+	* lisp/progmodes/eglot.el (eglot-uri-to-path): Decode the
+	  result of 'url-unhex-string' with 'utf-8-unix'.
+
+2026-06-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.8.2
+
+	* lisp/net/tramp-message.el (tramp-trace-add-package): New defun.
+
+	* lisp/net/tramp-smb.el (tramp-smb-maybe-open-connection):
+	Remove superfluous comment.
+
+	* lisp/net/tramp.el (tramp-restricted-shell-hosts-alist):
+	Use `file-name-sans-extension'.
+	(tramp-completion-handle-expand-file-name):
+	Apply `tramp-drop-volume-letter' consequently.
+
+	* test/lisp/net/tramp-tests.el
+	(tramp--test-ignore-make-symbolic-link-error): Use `file-error'
+	instead of `remote-file-error'
+	(tramp--test-instrument-test-case-p): Fix doxstring.
+	(tramp-test10-write-region-other-file-name-handler)
+	(tramp-test49-external-backend-function): Adapt tests.
+
+2026-06-22  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Rename variable to macroexp-enable-preserve-posification
+
+	* lisp/emacs-lisp/macroexp.el
+	(macroexp-enable-pos-preservation): Rename ...
+	(macroexp-enable-preserve-posification): ... to this.  All uses
+	changes.
+
+2026-06-22  Eshel Yaron  <me@eshelyaron.com>
+
+	New variable 'macroexp-enable-pos-preservation' (bug#79599)
+
+	* lisp/emacs-lisp/macroexp.el
+	(macroexp-enable-pos-preservation): New variable.
+	(macroexp-preserve-posification): Respect it.
+	* lisp/emacs-lisp/elisp-scope.el (elisp-scope-1): Use it.
+	* test/lisp/emacs-lisp/macroexp-tests.el
+	(macroexp--test-macroexp-enable-pos-preservation): New test.
+
+2026-06-21  milkvetch  <xuhi@distruzione.org>
+
+	Avoid infinite loop in some Dired marking commands
+
+	These commands use dired-get-filename inside a dired-mark-if form;
+	when the bottom subdirectory is hidden, dired-get-filename makes
+	it so the dired-mark-if loop never reaches the end of the buffer.
+	This is fixed by skipping hidden subdirectories (bug#80964).
+
+	* lisp/dired.el (dired-mark-files-regexp)
+	(dired-mark-files-containing-regexp):
+	* lisp/dired-x.el (dired-mark-unmarked-files):
+	* lisp/dired-aux.el (dired-compare-directories): Skip hidden subdirectories.
+
+2026-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Resurrect effect of 2nd arg t in 'format-mode-line'
+
+	* src/xdisp.c (Fformat_mode_line): Resurrect support for FACE = t.
+	Doc fix.  (Bug#81271)
+
+	* doc/lispref/modes.texi (Emulating Mode Line): Fix documentation
+	of 'format-mode-line' when 2nd argument is t.
+
+	* test/src/xdisp-tests.el (xdisp-test-format-mode-line): New test.
+
+2026-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix 'format-mode-line' for integer second argument
+
+	* src/xdisp.c (Fformat_mode_line): Test for integers with
+	INTEGERP.  (Bug#81272)
+
+2026-06-20  Stéphane Marks  <shipmints@gmail.com>
+
+	markdown-ts-mode: fix code block and table overlays (bug#81195)
+
+	Fix to eliminate erroneous multiple code block overlays.  Fixes
+	to deal with 'treesit' fontification catching up to
+	user-initiated code block range expansions; e.g., inserting,
+	yanking.  Set overlay properties only once.
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts--fontify-code-block): Use 'overlays-in' not
+	'overlays-at'.  Use only overlays, eliminate markers.
+	(markdown-ts--enable-code-block-in-context-mode): Add 'sit-for'
+	to allow 'treesit' to catch up (pending input should not be an
+	issue).
+	(markdown-ts--run-command-in-code-block): Use overlays instead
+	of 'get-char-property'.
+	(markdown-ts--code-block-in-context-mode-update-ov): Use
+	overlays instead of 'get-char-property'.  Set overlay properties
+	only once.
+	(markdown-ts--in-table-mode-update-ov): Set overlay properties
+	only once.
+
+2026-06-20  Stéphane Marks  <shipmints@gmail.com>
+
+	markdown-ts-mode: Fix computing code block current region (bug#81219)
+
+	This ensures that commands such as 'comment-or-uncomment-region'
+	operate on the correct region in the work buffer.
+
+	* lisp/textmodes/markdown-ts-mode.el (markdown-ts--run-command-in-code-block):
+	Fix adj-region-beg and adj-region-end.
+
+2026-06-20  Oleksandr Makhmudov  <oleksandr.makhmudov@pm.me>  (tiny change)
+
+	Eglot: add 'nu-ts-mode' as a nushell major mode
+
+	'nu-ts-mode' is an alternative tree-sitter-based major mode for
+	nushell.  This commit adds it to the list of major modes that run
+	the nushell language server.
+	* lisp/progmodes/eglot.el (eglot-server-programs): Add 'nu-ts-mode'.
+	(Bug#81206)
+
+2026-06-20  समीर सिंह Sameer Singh  <lumarzeli30@gmail.com>
+
+	Fix c-ts-mode bsd-style indentation of union bodies (bug#81255)
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--simple-indent-rules): Add
+	"union_specifier" to the parent-is regexp.
+
+	* test/lisp/progmodes/c-ts-mode-resources/indent-bsd.erts: New test.
+
+2026-06-20  Yuan Fu  <casouri@gmail.com>
+
+	Fix markdown-inline incremental parsing issue (bug#81019)
+
+	* lisp/treesit.el:
+	(treesit--embed-languages-need-full-parse): New variable.
+	(treesit--set-embed-ranges): Reparse full range if the langauge
+	needs it.
+
+2026-06-19  Stephen Berman  <stephen.berman@gmx.net>
+
+	Avoid an unusual error when visiting a directory in Dired
+
+	* lisp/dired.el (dired-internal-noselect): Unset
+	'dired--ls-error-buffer' before calling 'dired-readin'.  This is a
+	safeguard to prevent an error when visiting a directory in Dired,
+	which apparently happens when the variable somehow gets set even
+	though 'ls' has not emitted an error message (bug#80499, Message #218).
+
+	* test/lisp/dired-tests.el (dired-test-set-dired--ls-error-buffer): New test.
+
+2026-06-19  Dmitry Gutov  <dmitry@gutov.dev>
+
+	Fix "diff-apply-buffer applies to the wrong file"
+
+	* lisp/vc/diff-mode.el (diff-find-file-name): Inhibit the "drop
+	dir" behavior in diffs produced by Git and Hg (bug#81210).
+	Except for the virtual subdirectories like a/b/etc, which is
+	moved and happens for all such diffs.  Tighten the check for
+	such virtual directory names, though (characters are the chars
+	used by the configuration option 'diff.mnemonicPrefix').
+	(diff-setup-buffer-type): Recognize Hg diffs where only one
+	revision is specified, too.
+
+	* test/lisp/vc/diff-mode-tests.el
+	(diff-mode-test-setup-buffer-type)
+	(diff-mode-test-find-file-name-create): New tests.
+
+2026-06-18  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix thinko in 'set-frame-size-and-position' (Bug#81193)
+
+	* lisp/frame.el (set-frame-size-and-position): Do not subtract
+	scoll bar, fringes and internal border sizes twice (Bug#81193).
+
+2026-06-17  JD Smith  <jdtsmith@gmail.com>
+
+	Correct default native-comp tests
+
+	Supersedes 5bd9d1f7df3.
+
+	* configure.ac: Store `with_native_compilation' to correctly test
+	whether to use the soft or hard (error) checks, as these set the
+	variable by side-effect.
+
+2026-06-16  JD Smith  <jdtsmith@gmail.com>
+
+	Revert "Fix the Android build"
+
+	This reverts commit 916572f6e0ab3e36f7098b6d9b5ff19f87240da4, in favor
+	of another fix.
+
+2026-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	(comint--intersect-regions): Fix bug#81243
+
+	* lisp/comint.el (comint--intersect-regions): Fix syntax-propertization.
+
+2026-06-14  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.8.6
+
+2026-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	src/keyboard.c (Finsert_special_event): Don't ignore unknown events
+
+2026-06-13  João Távora  <joaotavora@gmail.com>
+
+	Eglot: restore compatibility to Emacs 26.3
+
+	Github-reference: https://github.com/joaotavora/eglot/discussions/1591
+
+	Can't use setf plist-get.
+
+	* lisp/progmodes/eglot.el (eglot--async-request): Use cl-getf.
+
+2026-06-12  Martin Rudalics  <rudalics@gmx.at>
+
+	Fix behavior of 'temp-buffer-resize-mode' (Bug#81207)
+
+	* lisp/help.el (temp-buffer-resize-mode): Fix doc-string - a
+	window can be resized now even if it has shown another buffer in
+	between (Bug#81207).
+	(resize-temp-buffer-window): Resize window if and only if its
+	buffer is the buffer it has shown initially (Bug#81207).
+
+2026-06-11  Xiyue Deng  <manphiz@debian.org>
+
+	Restore public interfaces for accessing built-in package info
+
+	These functions were removed in ab36f5892203e4b1f59da7c995e0f1fa0a81d1b6
+	during the reorganization of package.el as part of Bug#80079.
+
+	Also add a simple test for these functions to avoid future regressions.
+
+	See also discussion at
+	https://lists.gnu.org/archive/html/emacs-devel/2026-06/msg00149.html.
+
+	* lisp/emacs-lisp/package.el (package-versioned-builtin-packages,
+	package-builtin-package-version): Restore.
+	* lisp/emacs-lisp/package-activate.el: Remove lingering comments.
+	* test/lisp/emacs-lisp/package-tests.el
+	(package-test-builtin-package-info): Add.
+
+2026-06-11  Philip Kaludercic  <philipk@posteo.net>
+
+	Allow uninstalling dependency with multiple installations
+
+	* lisp/emacs-lisp/package.el (package--dependency-p): Add new
+	function to check if a package is a dependency.
+	(package-delete): Prompt user if it is OK to uninstall a package
+	that serves as a dependency, but where the package has multiple
+	installations.  This also means that we don't de-select a
+	selected dependency if there are multiple installations.
+
+	(Bug#81082)
+
+2026-06-11  Andrea Alberti  <a.alberti82@gmail.com>
+
+	Fix memcpy size in 'merge_faces'
+
+	* src/xfaces.c (merge_faces): Use 'sizeof lface_attrs' instead of
+	LFACE_VECTOR_SIZE as the 'memcpy' size argument.  (Bug#81224)
+
+2026-06-11  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Fix fontification in short unintegrated changes logs (bug#81215)
+
+	Do not merge to master.
+
+	* lisp/vc/vc.el (vc--shortlog): New variable.
+	(vc-print-log-internal):
+	* lisp/vc/vc-git.el (vc-git-log-view-mode):
+	* lisp/vc/vc-hg.el (vc-hg-log-view-mode): Use it.
+
+2026-06-11  Sean Whitton  <spwhitton@spwhitton.name>
+
+	* lisp/vc/vc.el (vc-log-remote-unintegrated): Set vc-log-view-type.
+
+	Do not merge to master.
+
+2026-06-11  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-hg-trunk-or-topic-p, vc-hg-topic-outgoing-base: Fix ret vals
+
+	* lisp/vc/vc-hg.el (vc-hg-trunk-or-topic-p)
+	(vc-hg-topic-outgoing-base): Fix return values.
+
+2026-06-11  Stéphane Marks  <shipmints@gmail.com>
+
+	markdown-ts-mode: Sanitize work-buffer pool
+
+	This a workaround for the release branch due to the work-buffer
+	pool being insufficiently sanitized.
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts--run-command-in-code-block): Reset 'mark-active'.
+	Do not merge to master.  (Bug#81218)  (Bug#81111)
+
+2026-06-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Extend Tramp external operations
+
+	* doc/misc/tramp.texi (New operations): Extend.
+
+	* lisp/net/tramp.el (tramp-file-name-for-operation-external):
+	Extend docstring.
+	(tramp-file-name-for-operation): Make more use of
+	`tramp-file-name-for-operation-external'.
+	(tramp-add-external-operation): Support ARG-TYPE `tramp-file-name'.
+
+	* test/lisp/net/tramp-tests.el (tramp-test49-external-backend-function):
+	Extend test.
+
+2026-06-10  Rahul Martim Juliato  <rahul.juliato@gmail.com>
+
+	markdown-ts-mode: fix duplicated menu entries (bug#81201)
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts-code-block-in-context-mode-map)
+	(markdown-ts-in-table-mode-map): Remove redundant :parent.
+
+2026-06-10  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-dir-recompute-file-state: Change directory to DEF-DIR
+
+	* lisp/vc/vc-dir.el (vc-dir-recompute-file-state): Change
+	directory to DEF-DIR before calling into the backend.
+	* test/lisp/vc/vc-tests/vc-test-misc.el
+	(vc-test-vc-dir-on-symlink): Test that the file has the right
+	state.
+
+2026-06-10  Pip Cet  <pipcet@protonmail.com>
+
+	Restore "interactive" when describing functions
+
+	* lisp/help-fns.el (help-fns-function-description-header): Only
+	substitute "an" for "a", not for a longer BEG (bug#81203).
+
+2026-06-09  Stéphane Marks  <shipmints@gmail.com>
+
+	Inhibit follow-link via `mouse-1' on the tab-bar (bug#81036)
+
+	Prevent 'tab-bar' mouse clicks from being directed to the
+	current buffer, for example, in `dired-mode'.  This prevents the
+	side effect that the clicked tab is erroneously closed.
+
+	* lisp/mouse.el (mouse-on-link-p): Explicitly exempt clicks in
+	'tab-bar' if there is a 'follow-link' property.
+
+2026-06-09  Juri Linkov  <juri@linkov.net>
+
+	Fix the tab close button appearance when clicking (bug#76394)
+
+	* src/xdisp.c (handle_tab_bar_click): Use the variable 'close_p'
+	to show mouse face as sunken/raised only when clicked
+	on the close button.  Clicking elsewhere on the tab should not
+	change the close button's appearance using DRAW_MOUSE_FACE.
+
+2026-06-09  Peter Oliver  <git@mavit.org.uk>
+
+	Install images with info documentation (bug#81204)
+
+	* Makefile.in (info_misc): Install all files with .png and .jpg
+	extensions into the info directory (bug#81204).
+
+2026-06-09  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-dir-recompute-file-state: Return nil state for nonexistent file
+
+	* lisp/vc/vc-dir.el (vc-dir-recompute-file-state): Return nil
+	state for nonexistent file (bug#81191).
+
+2026-06-09  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-test-vc-dir-on-symlink: Use vc-test--with-author-identity
+
+	* test/lisp/vc/vc-tests/vc-tests.el (vc-hg-global-switches):
+	Declare.
+	(vc-tests-helpers): Require.
+	(vc-test--create-repo-function, vc-test--with-author-identity):
+	Move these from here ...
+	* test/lisp/vc/vc-tests/resources/vc-tests-helpers.el
+	(vc-test--create-repo-function, vc-test--with-author-identity):
+	... to here.
+	(vc-hg-global-switches):
+	* test/lisp/vc/vc-tests/vc-test-misc.el (vc-hg-global-switches):
+	Declare.
+	(vc-dir, log-edit, vc-tests-helpers): Require.
+	(vc-test-vc-dir-on-symlink): Use vc-test--with-author-identity
+	and vc-test--create-repo-function.
+
+2026-06-08  Stéphane Marks  <shipmints@gmail.com>
+
+	Fix M-RET in 'markdown-ts-in-table-mode-map'
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts-in-table-mode-map): Map 'M-RET' to
+	'markdown-ts-table-insert-row-below' (bug#81196).
+
+2026-06-08  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Fix recurrence of bug#80803 after changes in bug#80967
+
+	* lisp/vc/vc-dir.el (vc-dir-resynch-file): Pass only truenames
+	to vc-dir-recompute-file-state.
+	* test/lisp/vc/vc-tests/vc-test-misc.el (vc-git): Require.
+	(vc-test-vc-dir-on-symlink): New test.
+
+2026-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Ensure Tramp backward compatibility
+
+	* lisp/net/tramp.el (tramp-local-environment-variable-p):
+	Use `tramp-compat-funcall'.
+
+2026-06-07  Juri Linkov  <juri@linkov.net>
+
+	Read a key sequence instead of a single key in 'map-y-or-n-p'
+
+	This is necessary to correctly read keys like 'M-~'
+	used by 'save-some-buffers' that is two keys 'ESC ~'
+	on a tty.
+
+	* doc/lispref/minibuf.texi (Multiple Queries):
+	Index 'y-or-n-p-use-read-key' for 'map-y-or-n-p'.
+	Mention using a key sequence instead of single keys.
+
+	* lisp/emacs-lisp/map-ynp.el (map-y-or-n-p):
+	In the 'y-or-n-p-use-read-key' cond-branch,
+	use 'read-key-sequence-vector' instead of 'read-key'.
+	In the default cond-branch, use 'this-command-keys-vector'
+	instead of 'last-command-event'.  In both cond-branches
+	use 'key-description' instead of 'single-key-description'
+	(bug#81168).
+	Instead of '(eq def nil)' check if chars are either nil
+	or an empty vector in noninteractive mode (bug#67836).
+
+	* test/lisp/emacs-lisp/map-ynp-tests.el (test-map-ynp-kmacro):
+	Test separately nil/non-nil 'y-or-n-p-use-read-key'.
+	(test-map-ynp-keys): New test for complete coverage of
+	'map-y-or-n-p'.
+
+2026-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid recursive error in debug-early in batch mode
+
+	* lisp/emacs-lisp/debug-early.el (cl--generic-compiler): Defvar it.
+	(debug-early-backtrace): Bind it so as to avoid loading
+	byte-compiler; see the value of the variable in cl-generic.el.
+	Do not merge to master.  (Bug#80916)
+
+2026-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove from CC Mode code that modifies 'major-mode-remap-defaults'
+
+	* lisp/progmodes/cc-mode.el: Remove code that adds to
+	'major-mode-remap-defaults', as enabling and disabling tree-sitter
+	based modes now goes through 'treesit-enabled-modes'.
+
+2026-06-06  Pip Cet  <pipcet@protonmail.com>
+
+	Assert we don't double-free timers (bug#81108)
+
+	* src/atimer.c (cancel_atimer): Assert that we found the timer.
+
+2026-06-06  Pip Cet  <pipcet@protonmail.com>
+
+	Don't cancel random timers in x_get_foreign_selection (bug#81108)
+
+	* src/pgtkselect.c (pgtk_display_selection_waiting_message):
+	(pgtk_cancel_atimer):
+	(pgtk_get_foreign_selection):
+	* src/xselect.c (x_display_selection_waiting_message):
+	(x_cancel_atimer):
+	(x_get_foreign_selection): Use a pointer to a timer variable, which is
+	cleared when the timer runs or is otherwise cancelled.  Don't cancel
+	the timer twice.
+
+2026-06-06  Pip Cet  <pipcet@protonmail.com>
+
+	Fix use-after-free in Ffuncall_with_delayed_message (bug#81108)
+
+	* src/eval.c (with_delayed_message_display):
+	(with_delayed_message_cancel):
+	(Ffuncall_with_delayed_message): Use new temporary data
+	structure.  Cancel timer at most once.
+
+2026-06-06  Andrea Alberti  <a.alberti82@gmail.com>
+
+	Document 'margin' face as base for margin display strings (Bug#80693)
+
+	* doc/lispref/display.texi (Displaying Faces): Note that the
+	underlying-text rule does not apply to strings displayed in the
+	display margins, and reword the margin-face bullet to describe
+	'margin' as the base.
+	(Basic Faces): Note that the 'margin' face also provides the base
+	attributes for strings displayed in the margins.
+	(Display Margins): Drop a sentence that restated the preceding one
+	about unspecified attributes inheriting from 'margin'.
+	* etc/NEWS: Document the change for margin strings.
+
+	Suggested by F. Jason Park <jp@neverwas.me>.
+
+2026-06-06  Augusto Stoffel  <arstoffel@gmail.com>
+
+	Improve prompting for mail sending by by 'report-emacs-bug'
+
+	* lisp/mail/emacsbug.el (report-emacs-bug-hook): Don't ask about
+	mail sending options if 'message-server-alist' is set.  (Bug#81176)
+
+2026-06-06  Po Lu  <luangruo@yahoo.com>
+
+	Fix the Android build
+
+	* configure.ac: Don't test for libgccjit.h if a preceding test
+	have already concluded that native compilation is unavailable.
+
+2026-06-05  Andrea Alberti  <a.alberti82@gmail.com>
+
+	Don't resurrect invisible child frames when rebuilding parent links
+
+	On the NS port, -[EmacsWindow setParentChildRelationships] reattaches
+	every child frame to its parent via -addChildWindow:ordered:, which also
+	orders the child window onto the screen.  This runs whenever the
+	parent/child relationships are rebuilt, e.g., when entering non-native
+	fullscreen, which allocates a fresh EmacsWindow whose initializer
+	rebuilds the relationships.  A child frame that Emacs had made invisible
+	(e.g. a corfu/company completion popup) was thereby brought back as a
+	stale, non-responsive child frame.  Emacs never repaints to clear it
+	because frame_redisplay_p trusts FRAME_VISIBLE_P on the NS port and
+	avoids dealing with the child frame when it is marked as invisible.
+
+	Native fullscreen does not trigger this: -toggleFullScreen: hands off to
+	AppKit without allocating a new window, so the rebuild never runs.
+
+	A hidden child frame is normally detached from its parent already: Emacs
+	hides it with -orderOut: (ns_make_frame_invisible), which per Apple's
+	documentation removes a child window from its parent before ordering it
+	out.  The fix is therefore not to re-attach a child while it is
+	invisible; ns_make_frame_visible already reinstates the parent/child link
+	when the frame is shown again.
+
+	* src/nsterm.m ([EmacsWindow setParentChildRelationships]): Only
+	re-attach a child window when the frame is marked visible.
+	(ns_make_frame_visible): Explain, with a reference to Apple's
+	documentation, why the parent/child link must be reinstated on show.
+
+2026-06-05  Stéphane Marks  <shipmints@gmail.com>
+
+	Improve progress-reporter state to remove hard coded length (bug#80988)
+
+	Remove hard-coded state range, now a monotonically increasing
+	integer.
+
+	* lisp/subr.el (progress-reporter-update-functions): Update
+	docstring.
+	(progress-reporter-echo-area): Use
+	'progress-reporter--pulse-characters' length.
+	(progress-reporter-do-update): Increase 'state' by 1 each pass.
+	*
+	lisp/system-taskbar.el (system-taskbar--progress-reporter-update):
+	Make steps independent of 'progress-reporter-echo-area' steps.
+
+2026-06-05  Arash Esbati  <arash@gnu.org>
+
+	(tex-main-file): Add forgotten safety predicate (bug#81099)
+
+	That variable is commonly set file-locally.
+
+	* lisp/textmodes/tex-mode.el (tex-main-file): Add safety predicate.
+
+2026-06-05  Al Haji-Ali  <a.hajiali@hw.ac.uk>
+
+	Fix bug in latexenc when AUCTeX is loaded
+
+	* lisp/international/latexenc.el
+	(latexenc-find-file-coding-system): Set file name correctly when
+	`TeX-master' is a string.  (Bug#81099)
+
+2026-06-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	paren.el: Fix part of bug#81035
+
+	* lisp/paren.el (show-paren--default): Syntax-propertize before narrowing.
+
+2026-06-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	Adapt Tramp version
+
+	* lisp/net/trampver.el (customize-package-emacs-version-alist):
+	Add Tramp version integrated in Emacs 31.1.
+
+	* doc/misc/trampver.texi:
+	* lisp/net/trampver.el (tramp-version): Adapt Tramp versions.
+
+2026-06-05  Augusto Stoffel  <arstoffel@gmail.com>
+
+	Check buffer-local value in tramp-local-environment-variable-p
+
+	* lisp/net/tramp.el (tramp-local-environment-variable-p): Do it.
+
+2026-06-05  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Bump Emacs version to 31.0.90
+
+	* README:
+	* configure.ac:
+	* exec/configure.ac:
+	* java/AndroidManifest.xml.in (Version-code):
+	* msdos/sed2v2.inp:
+	* nt/README.W32: Bump Emacs version to 31.0.90.
+
 2026-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	message.el: Fix part of bug#81035
@@ -65759,7 +66498,7 @@
 
 This file records repository revisions from
 commit 1cda0967b4d3c815fc610794ad6a8fc2b913a3c5 (exclusive) to
-commit 5e3e1a5bb23b5e7813a60c2b121b1393ff6ca86f (inclusive).
+commit 884d7a198c9eff1cf0a9cc6e2a021f7d82cb57c6 (inclusive).
 See ChangeLog.4 for earlier changes.
 
 ;; Local Variables:
