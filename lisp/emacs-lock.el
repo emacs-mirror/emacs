@@ -146,7 +146,7 @@ Used from `kill-emacs-hook' (which see)."
   (let ((locked (emacs-lock--exit-locked-buffer)))
     (when locked
       (run-hook-with-args 'emacs-lock-locked-buffer-functions locked)
-      (error "Emacs cannot exit because buffer %S is locked"
+      (user-error "Emacs cannot exit because buffer %S is locked"
              (buffer-name locked)))))
 
 (defun emacs-lock--kill-emacs-query-functions ()
