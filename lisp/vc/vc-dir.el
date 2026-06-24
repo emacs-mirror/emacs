@@ -658,6 +658,36 @@ Also update some VC file properties from ENTRIES."
       (vc-file-setprop file 'vc-backend
                        (if (eq state 'unregistered) 'none vc-dir-backend)))))
 
+(defun vc-dir-mark-some-files (fun)
+  "Mark and unmark VC-Dir items based on return value of FUN.
+This function calls FUN for each file entry in the current VC-Dir
+buffer.  If FUN returns non-nil the file is marked if it wasn't already;
+if FUN returns nil, the file is unmarked if it wasn't already.
+FUN is not called for directory entries, and all such are unmarked.
+
+FUN should be a function of five arguments
+    (NAME STATE DISPLAY-STATE MARKED EXTRA)
+where these are the file name; its VC state; its VC-Dir display state if
+any; whether the file is already marked; and any extra backend-specific
+information."
+  ;; `save-excursion' won't do because when the ewoc elements refresh it
+  ;; invalidates its marker.  But we know the ewoc's size won't change,
+  ;; so we can just use an integer.
+  (let ((opoint (point)))
+    (unwind-protect
+        (ewoc-map (lambda (f)
+                    (setf (vc-dir-fileinfo->marked f)
+                          (and (not (vc-dir-fileinfo->directory f))
+                               (funcall fun
+                                        (vc-dir-fileinfo->name f)
+                                        (vc-dir-fileinfo->state f)
+                                        (vc-dir-fileinfo->display-state f)
+                                        (vc-dir-fileinfo->marked f)
+                                        (vc-dir-fileinfo->extra f))))
+                    t)
+                  vc-ewoc)
+      (goto-char opoint))))
+
 (defun vc-dir-busy ()
   (and (buffer-live-p vc-dir-process-buffer)
        (get-buffer-process vc-dir-process-buffer)))
