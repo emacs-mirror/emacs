@@ -1433,7 +1433,13 @@ therefore also disable the fetching."
 
 (defun vc-dir--count-outgoing (backend)
   "Call `vc--count-outgoing' with a delayed message and local quits."
-  (let ((inhibit-quit t))
+  (let ((inhibit-quit t)
+        ;; Hack for bug#81233 for the Emacs 30 release.
+        (enable-local-variables
+         (if (memq enable-local-variables '(:safe :all nil))
+             enable-local-variables
+           ;; Ignore other values that query.
+           :safe)))
     (prog1
         (with-local-quit
           (with-delayed-message
