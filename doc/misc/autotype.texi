@@ -269,7 +269,7 @@ certain contexts.  For example an escaped character stands for itself.
 the buffer.  The main application for this function, as its name suggests,
 is to have it be called automatically every time an empty, and only an
 empty file is visited.  This is accomplished by putting
-@code{(auto-insert-mode t)} into your init file
+@code{(auto-insert-mode)} into your init file
 (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 
 @vindex auto-insert-alist
@@ -333,12 +333,13 @@ Insert something if possible, but mark as unmodified.
 @end table
 
 @vindex auto-insert-query
-  The variable @code{auto-insert-query} controls whether to ask about
-inserting something.  When this is @code{nil}, inserting is only done with
-@kbd{M-x auto-insert}.  When this is @code{function}, you are queried
-whenever @code{auto-insert} is called as a function, such as when Emacs
-visits an empty file and you have set the above-mentioned hook.  Otherwise
-you are always queried.
+  The variable @code{auto-insert-query} controls whether Emacs asks
+before inserting.  When it is @code{nil}, Emacs inserts without asking.
+When it is @code{function}, Emacs asks unless you invoke
+@code{auto-insert} interactively, such as with @kbd{M-x auto-insert} or
+a key binding.  For example, Emacs asks whenever @code{auto-insert-mode}
+attempts to insert after you visit an empty file.  With any other
+non-@code{nil} value, Emacs always asks before inserting.
 
 @vindex auto-insert-prompt
   When querying, the variable @code{auto-insert-prompt}'s value is used as a

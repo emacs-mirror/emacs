@@ -32,7 +32,7 @@
 ;;
 ;; To use, add this to your Init file:
 ;;
-;;     (auto-insert-mode t)
+;;     (auto-insert-mode)
 ;;     (setq auto-insert-directory "~/some-dir")
 ;;
 ;; You can also customize the variable `auto-insert-mode' to load the
