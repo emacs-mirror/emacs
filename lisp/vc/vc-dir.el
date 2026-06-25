@@ -1520,7 +1520,19 @@ specific headers."
 					     'up-to-date))
 				(setf (vc-dir-fileinfo->state info) nil))
 
-                              (not (vc-dir-fileinfo->needs-update info))))))))))))
+                              (not (vc-dir-fileinfo->needs-update info))))
+               ;; One more pass to remove directory entries with no children.
+               (let ((inhibit-read-only t)
+                     (crt (ewoc-nth vc-ewoc -1))
+                     (first (ewoc-nth vc-ewoc 0)))
+                 (while (not (eq crt first))
+                   (let ((prev (ewoc-prev vc-ewoc crt)))
+                     (when (and (vc-dir-fileinfo->directory (ewoc-data crt))
+                                (let ((next (ewoc-next vc-ewoc crt)))
+                                  (or (null next)
+                                      (vc-dir-fileinfo->directory (ewoc-data next)))))
+                       (ewoc-delete vc-ewoc crt))
+                     (setq crt prev))))))))))))
 
 (defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
   (vc-dir-refresh)
