@@ -1666,17 +1666,8 @@ specific headers."
                ;; file/dir doesn't exist and isn't versioned.
                (ewoc-filter vc-ewoc
                             (lambda (info)
-			      ;; The state for directory entries might
-			      ;; have been changed to 'up-to-date,
-			      ;; reset it, otherwise it will be removed when doing 'x'
-			      ;; next time.
-			      ;; FIXME: There should be a more elegant way to do this.
-			      (when (and (vc-dir-fileinfo->directory info)
-					 (eq (vc-dir-fileinfo->state info)
-					     'up-to-date))
-				(setf (vc-dir-fileinfo->state info) nil))
-
-                              (not (vc-dir-fileinfo->needs-update info))))))))))))
+                              (not
+                               (vc-dir-fileinfo->needs-update info))))))))))))
 
 (defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
   (vc-dir-refresh)
@@ -1782,10 +1773,11 @@ state of item at point, if any."
 		     (vc-dir-fileinfo->directory (ewoc-data next))))
 	       ;; Remove files in specified STATE.  STATE can be a
 	       ;; symbol, a user-name, or nil.
-               (let ((data-state (vc-dir-fileinfo->state data)))
-                 (if state
-                     (equal data-state state)
-                   (memq data-state vc-dir--up-to-date-states))))
+               (and (not dir)
+                    (let ((data-state (vc-dir-fileinfo->state data)))
+                      (if state
+                          (equal data-state state)
+                        (memq data-state vc-dir--up-to-date-states)))))
 	  (ewoc-delete vc-ewoc crt))
 	(setq crt prev)))))
 
