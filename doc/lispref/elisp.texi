@@ -1453,6 +1453,7 @@ Processes
 * Misc Network::            Additional relevant functions for net connections.
 * Serial Ports::            Communicating with serial ports.
 * Byte Packing::            Using bindat to pack and unpack binary data.
+* UUIDs::                   Generating and converting UUIDs.
 
 Receiving Output from Processes
 
