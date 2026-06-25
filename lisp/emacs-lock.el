@@ -62,13 +62,13 @@ Possible values are:
 ;; the old emacs-lock.el.
 (defcustom emacs-lock-unlockable-modes '((shell-mode . all)
                                          (telnet-mode . all))
-  "Alist of auto-unlockable modes.
+  "Alist of major modes whose buffers can be automatically unlocked.
 Each element is a pair (MAJOR-MODE . ACTION), where ACTION is
 one of `kill', `exit' or `all'.  Buffers with matching major
-modes are auto-unlocked for the specific action if their
-inferior processes are not alive.  If this variable is t, all
-buffers associated to inferior processes are auto-unlockable
-for both actions (NOT RECOMMENDED)."
+modes that have `emacs-lock-mode' turned on can be auto-unlocked
+for the specific action if their inferior processes are not alive.
+If this variable is t, all buffers associated with inferior processes
+are auto-unlockable for all actions (NOT RECOMMENDED)."
   :type '(choice
           (const :tag "All buffers with inferior processes" t)
           (repeat :tag "Selected modes"
@@ -82,15 +82,20 @@ for both actions (NOT RECOMMENDED)."
   :version "24.1")
 
 (defcustom emacs-lock-locked-buffer-functions nil
-  "Abnormal hook run when Emacs Lock prevents exiting Emacs, or killing a buffer.
-The functions get one argument, the first locked buffer found."
+  "Abnormal hook run when exiting Emacs or killing a buffer.
+When exiting Emacs, the hook is run from `kill-emacs-query-functions'
+and from `kill-emacs-hook' if any buffer has `emacs-lock-mode' turned on.
+When killing a buffer, the hook is run if the buffer has `emacs-lock-mode'
+turned on.
+The functions on this hook are called with one argument, the first (or
+only) locked buffer that is found."
   :type 'hook
   :group 'emacs-lock
   :version "24.3")
 
 (defvar-local emacs-lock-mode nil
   "If non-nil, the current buffer is locked.
-It can be one of the following values:
+The value can be one of the following:
  exit   -- Emacs cannot exit while the buffer is locked
  kill   -- the buffer cannot be killed, but Emacs can exit as usual
  all    -- the buffer is locked against both actions
@@ -116,7 +121,7 @@ Internal use only.")
 
 (defun emacs-lock--can-auto-unlock (action)
   "Return t if the current buffer can auto-unlock for ACTION.
-ACTION must be one of `kill' or `exit'.
+ACTION must be one of `kill', `exit' or `all'.
 See `emacs-lock-unlockable-modes'."
   (and emacs-lock--try-unlocking
        (not (emacs-lock-live-process-p (current-buffer)))
@@ -136,7 +141,7 @@ See `emacs-lock-unlockable-modes'."
       nil)))
 
 (defun emacs-lock--kill-emacs-hook ()
-  "Signal an error if any buffer is exit-locked.
+  "Signal an error if any buffer is exit-locked to prevent Emacs from exiting.
 Used from `kill-emacs-hook' (which see)."
   (let ((locked (emacs-lock--exit-locked-buffer)))
     (when locked
@@ -145,7 +150,7 @@ Used from `kill-emacs-hook' (which see)."
              (buffer-name locked)))))
 
 (defun emacs-lock--kill-emacs-query-functions ()
-  "Display a message if any buffer is exit-locked.
+  "Display a message if any buffer is exit-locked and prevent Emacs exiting.
 Return a value appropriate for `kill-emacs-query-functions' (which see)."
   (let ((locked (emacs-lock--exit-locked-buffer)))
     (if (not locked)
@@ -156,7 +161,7 @@ Return a value appropriate for `kill-emacs-query-functions' (which see)."
       nil)))
 
 (defun emacs-lock--kill-buffer-query-functions ()
-  "Display a message if the current buffer is kill-locked.
+  "Display a message if the current buffer is kill-locked and prevent killing it.
 Return a value appropriate for `kill-buffer-query-functions' (which see)."
   (if (or (emacs-lock--can-auto-unlock 'kill)
           (memq emacs-lock-mode '(nil exit)))
@@ -190,13 +195,17 @@ Return a value appropriate for `kill-buffer-query-functions' (which see)."
 ;;;###autoload
 (define-minor-mode emacs-lock-mode
   "Toggle Emacs Lock mode in the current buffer.
+When a buffer is locked, it cannot be killed and/or Emacs cannot exit
+unless the buffer is unlocked first.  This protects buffers from
+being accidentally killed or lost.
+
 If called with a plain prefix argument, ask for the locking mode
-to be used.
+to be used in the buffer.
 
 Initially, if the user does not pass an explicit locking mode, it
 defaults to `emacs-lock-default-locking-mode' (which see);
 afterwards, the locking mode most recently set on the buffer is
-used instead.
+used as the default instead.
 
 When called from Elisp code, ARG can be any locking mode:
 
@@ -204,7 +213,7 @@ When called from Elisp code, ARG can be any locking mode:
  kill   -- the buffer cannot be killed, but Emacs can exit as usual
  all    -- the buffer is locked against both actions
 
-Other values are interpreted as usual.
+Other values are interpreted as usual for turning modes on/off.
 
 See also `emacs-lock-unlockable-modes', which exempts buffers under
 some major modes from being locked under some circumstances."
@@ -233,7 +242,8 @@ some major modes from being locked under some circumstances."
   (add-hook 'kill-emacs-query-functions 'emacs-lock--kill-emacs-query-functions))
 
 (defun emacs-lock-unload-function ()
-  "Unload the Emacs Lock library."
+  "Unload the Emacs Lock library.
+This is called from `unload-feature', which see."
   (catch :continue
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
