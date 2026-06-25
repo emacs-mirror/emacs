@@ -686,6 +686,12 @@ The renaming scheme is performed in accordance with
     (when rename-string
       (rename-buffer rename-string t))))
 
+(defun eww-parse-target (target)
+  "Separate TARGET from its optional text fragments."
+  (when (stringp target)
+    (string-match "\\([^:]*\\)\\(:~:\\)?\\(.*\\)" target)
+    (cons (match-string 1 target) (match-string 3 target))))
+
 (defun eww-render (status url &optional point buffer encode)
   (let* ((headers (eww-parse-headers))
 	 (content-type
@@ -699,7 +705,8 @@ The renaming scheme is performed in accordance with
 			(eww-detect-charset (eww-html-p (car content-type)))
 			"utf-8"))))
 	 (data-buffer (current-buffer))
-	 (shr-target-id (url-target (url-generic-parse-url url)))
+         (full-target (eww-parse-target (url-target (url-generic-parse-url url))))
+         (shr-target-id (car full-target))
 	 last-coding-system-used)
     (let ((redirect (plist-get status :redirect)))
       (when redirect
