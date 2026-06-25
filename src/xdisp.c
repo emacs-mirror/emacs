@@ -24463,11 +24463,10 @@ extend_face_to_end_of_line (struct it *it)
 	     to fill the rest.  */
 	  if (WINDOW_LEFT_MARGIN_WIDTH (it->w) > 0
 	      && (it->glyph_row->used[LEFT_MARGIN_AREA]
-		  < WINDOW_LEFT_MARGIN_WIDTH (it->w)))
+		  < WINDOW_LEFT_MARGIN_COLS (it->w)))
 	    {
 	      int used = it->glyph_row->used[LEFT_MARGIN_AREA];
-	      int remaining_pixels = (WINDOW_LEFT_MARGIN_WIDTH (it->w)
-				      * FRAME_COLUMN_WIDTH (f));
+	      int remaining_pixels = WINDOW_LEFT_MARGIN_WIDTH (it->w);
 
 	      /* Subtract width of existing glyphs.  */
 	      struct glyph *g = it->glyph_row->glyphs[LEFT_MARGIN_AREA];
@@ -24502,11 +24501,10 @@ extend_face_to_end_of_line (struct it *it)
 	     to fill the rest.  */
 	  if (WINDOW_RIGHT_MARGIN_WIDTH (it->w) > 0
 	      && (it->glyph_row->used[RIGHT_MARGIN_AREA]
-		  < WINDOW_RIGHT_MARGIN_WIDTH (it->w)))
+		  < WINDOW_RIGHT_MARGIN_COLS (it->w)))
 	    {
 	      int used = it->glyph_row->used[RIGHT_MARGIN_AREA];
-	      int remaining_pixels = (WINDOW_RIGHT_MARGIN_WIDTH (it->w)
-				      * FRAME_COLUMN_WIDTH (f));
+	      int remaining_pixels = WINDOW_RIGHT_MARGIN_WIDTH (it->w);
 
 	      /* Subtract width of existing glyphs.  */
 	      struct glyph *g = it->glyph_row->glyphs[RIGHT_MARGIN_AREA];
