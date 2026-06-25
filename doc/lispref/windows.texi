@@ -89,7 +89,7 @@ tiling operations for that frame.
 @cindex window object
 @cindex window identity
 In Emacs Lisp, windows are represented by a special Lisp object type
-(@pxref{Window Type}).  Two windows are identic if and only if they are
+(@pxref{Window Type}).  Two windows are identical if and only if they are
 represented by the same Lisp object.
 
 @defun windowp object

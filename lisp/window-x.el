@@ -319,8 +319,10 @@ ones in `window--transpose'."
 (defun merge-frames (&optional frame1 frame2 vertical)
   "Merge the main window of FRAME2 into FRAME1.
 Split the main window of FRAME1 and make the new window display the main
-window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  If
-VERTICAL is non-nil, make the new window below the old main window of
+window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  FRAME1
+defaults to the selected frame and FRAME2 to the frame that follows FRAME1
+in the frame list.
+If VERTICAL is non-nil, make the new window below the old main window of
 FRAME1.  Otherwise, make the new window on the right of FRAME1's main
 window.  Interactively, VERTICAL is the prefix argument, FRAME1 is the
 selected frame and FRAME2 is the frame following FRAME1 in the frame

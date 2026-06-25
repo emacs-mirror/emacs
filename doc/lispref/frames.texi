@@ -3094,7 +3094,7 @@ criteria.
 @section Splitting and Merging Frames
 @cindex splitting a frame
 @cindex merging two frames
-@cindex Transferring window layouts
+@cindex transferring window layouts to frames
 
 The following two functions are useful to transfer parts of the window
 layout (@pxref{Basic Windows}) of one frame to two separate frames and
@@ -3110,7 +3110,7 @@ Interactively, @var{arg} is the prefix argument.
 In a first step, it divides the child windows (@pxref{Windows and
 Frames}) of @var{frame}'s main window (@pxref{Side Windows}) into two
 parts.  The first part includes the first @var{arg} child windows if
-@var{arg} is positive, and the -@var{arg} last child windows if
+@var{arg} is positive, and the @minus{}@var{arg} last child windows if
 @var{arg} is negative.  The second part includes the remaining child
 windows of @var{frame}'s main window.
 
@@ -3133,20 +3133,22 @@ This command transfers the main window (@pxref{Side Windows}) of
 @var{frame2} to @var{frame1}.  Both @var{frame1} and @var{frame2} must
 specify live frames.
 
-In a first step it splits the main window of @var{frame1}.  If
+In the first step it splits the main window of @var{frame1}.  If
 @var{vertical} is non-@code{nil}, it makes the new window below the old
 main window of @var{frame1}.  Otherwise, it makes the new window on the
 right of @var{frame1}'s main window.
 
-In a second step it makes the new window a clone (@pxref{Window
+In the second step it makes the new window a clone (@pxref{Window
 Configurations}) of the main window of @var{frame2}.  The original
 identity (@pxref{Basic Windows}) of the cloned windows is lost in that
-step.  In a final step, it deletes @var{frame2} if the merge completed
+step.  In the final step, it deletes @var{frame2} if the merge completed
 successfully and returns @var{frame1}.
 
 Interactively, @var{vertical} is the prefix argument, @var{frame1} is
 the selected frame and @var{frame2} is the frame following @var{frame1}
-in the list of all frames (@pxref{Finding All Frames}).
+in the list of all frames (@pxref{Finding All Frames}).  If @var{frame1}
+and @var{frame2} are omitted or @code{nil} in calls from Lisp, they
+default to the above values.
 @end deffn
 
 In general you cannot ``undo'' a @code{split-frame} call with a
