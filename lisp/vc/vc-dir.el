@@ -525,11 +525,13 @@ If BODY uses EVENT, it should be a variable,
 
 (defconst vc-dir--up-to-date-states '(up-to-date ignored))
 
-(defun vc-dir-update (entries buffer &optional noinsert)
+(defun vc-dir-update (entries buffer &optional noinsert clear-others)
   "Update BUFFER's VC-Dir ewoc from ENTRIES.
 This has the effect of adding ENTRIES to the VC-Dir buffer BUFFER.
 If optional argument NOINSERT is non-nil, update ewoc nodes, but don't
 add elements of ENTRIES to the buffer that aren't already in the ewoc.
+If optional argument CLEAR-OTHERS is non-nil, remove any remaining
+entries we didn't update.
 Also update some VC file properties from ENTRIES."
   (with-current-buffer buffer
     ;; Insert the entries sorted by name into the ewoc.
@@ -542,7 +544,7 @@ Also update some VC file properties from ENTRIES."
                                   (directory-file-name (expand-file-name (car entry))))
                                  entry))
                          entries)))
-	  ;; Sort: first files and then subdirectories.
+	    ;; Sort: first files and then subdirectories.
             (mapcar #'cdr
                     (sort entry-dirs
                           (lambda (pair1 pair2)
@@ -635,8 +637,15 @@ Also update some VC file properties from ENTRIES."
 	      ;; Now insert the node itself.
 	      (ewoc-enter-last vc-ewoc
 			       (apply #'vc-dir-create-fileinfo entry))))))
-      (when to-remove
-	(let ((inhibit-read-only t)
+      (when clear-others
+        ;; Remove the ones that haven't been updated at all.
+        ;; Those not-updated are those whose state is nil because the
+        ;; file/dir doesn't exist and isn't versioned.
+        (ewoc-filter vc-ewoc
+                     (lambda (info)
+                       (not (vc-dir-fileinfo->needs-update info)))))
+      (when (or to-remove clear-others)
+        (let ((inhibit-read-only t)
               (crt (ewoc-nth vc-ewoc -1))
               (first (ewoc-nth vc-ewoc 0)))
           (while (not (eq crt first))
@@ -1658,16 +1667,8 @@ specific headers."
            ;; If MORE-TO-COME is true, then more updates will come from
            ;; the asynchronous process.
            (with-current-buffer buffer
-             (vc-dir-update entries buffer)
-             (unless more-to-come
-               (setq mode-line-process nil)
-               ;; Remove the ones that haven't been updated at all.
-               ;; Those not-updated are those whose state is nil because the
-               ;; file/dir doesn't exist and isn't versioned.
-               (ewoc-filter vc-ewoc
-                            (lambda (info)
-                              (not
-                               (vc-dir-fileinfo->needs-update info))))))))))))
+             (vc-dir-update entries buffer nil (not more-to-come))
+             (unless more-to-come (setq mode-line-process nil)))))))))
 
 (defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
   (vc-dir-refresh)
@@ -1721,11 +1722,11 @@ Throw an error if another update process is in progress."
                (vc-dir-update entries buffer)
                (unless more-to-come
                  (let ((remaining
-                        (ewoc-collect
-                         vc-ewoc 'vc-dir-fileinfo->needs-update)))
+                        (ewoc-collect vc-ewoc
+                                      'vc-dir-fileinfo->needs-update)))
                    (if remaining
-                       (vc-dir-refresh-files
-                        (mapcar #'vc-dir-fileinfo->name remaining))
+                       (vc-dir-refresh-files (mapcar #'vc-dir-fileinfo->name
+                                                     remaining))
                      (setq mode-line-process nil)
                      (run-hooks 'vc-dir-refresh-hook))))))))))))
 
