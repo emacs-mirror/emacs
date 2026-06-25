@@ -298,7 +298,7 @@ See bug#80803 and bug#80967."
                 (should (equal (vc-dir-fileinfo->state data)
                                'edited))))))))))
 
-(ert-deftest vc-test-vc-dir-next/previous ()
+(ert-deftest vc-test-vc-dir-next/previous () ; bug#81248
   "Test navigating with `vc-dir-{next,previous}-{line,directory}'."
   (skip-unless (executable-find vc-git-program))
   (vc-test--with-author-identity 'Git
@@ -358,7 +358,7 @@ See bug#80803 and bug#80967."
           (should (and (looking-at "\\./$") (looking-back "^ +")))
           (kill-buffer vc-dir-buf))))))
 
-(ert-deftest vc-test-vc-dir-mark/unmark-all-dir-entry ()
+(ert-deftest vc-test-vc-dir-mark/unmark-all-dir-entry () ; bug#81249
   "Test `vc-dir-{un}mark-all' called on directory entry."
   (skip-unless (executable-find vc-git-program))
   (vc-test--with-author-identity 'Git
@@ -424,6 +424,103 @@ See bug#80803 and bug#80967."
                                          (ewoc-data (ewoc-locate vc-ewoc))))
                                        dir-children))))))
               (should (seq-set-equal-p (vc-dir-marked-files) dir-children))))
+          (kill-buffer vc-dir-buf))))))
+
+(ert-deftest vc-test-vc-dir-mark-all-with-marked-directory () ; bug#81277
+  "Test `vc-dir-mark-all' called on a marked directory entry."
+  (skip-unless (executable-find vc-git-program))
+  (vc-test--with-author-identity 'Git
+    (let ((vc-handled-backends '(Git)))
+      (ert-with-temp-directory tempdir
+        (let ((default-directory tempdir)
+              (files '("dir1/file11" "dir1/file12"))
+              vc-dir-buf
+              dir-children)
+          (vc-test--create-repo-function 'Git)
+          (dolist (file files)
+            (make-empty-file file t))
+          (vc-dir default-directory 'Git)
+          (while (vc-dir-busy) (sit-for 0.05))
+          (setq vc-dir-buf (current-buffer))
+          ;; Move point to "dir1/" entry line.
+          (goto-char (ewoc-location (ewoc-nth vc-ewoc 1)))
+          ;; Mark "dir1/".
+          (vc-dir-mark-file)
+          ;; Move back to "dir1/" entry.
+          (vc-dir-previous-line 1)
+          ;; Test that it's marked.
+          (should (vc-dir-fileinfo->marked (ewoc-data (ewoc-locate vc-ewoc))))
+          (vc-dir-mark-all-files nil)
+          ;; Now it should have been unmarked.
+          (should-not
+           (vc-dir-fileinfo->marked (ewoc-data (ewoc-locate vc-ewoc))))
+          ;; All its children should be marked.
+          (let ((dir-children (vc-dir-find-child-files
+                               (expand-file-name
+                                (vc-dir-fileinfo->name
+                                 (ewoc-data (ewoc-nth vc-ewoc 1)))))))
+            (should (seq-set-equal-p (vc-dir-marked-files) dir-children)))
+          (kill-buffer vc-dir-buf))))))
+
+(defun vc-test--vc-dir-unmark-file ()
+  "Execute `vc-dir-unmark-file' assuming \"y\" at `y-or-n-p' prompt."
+  (cl-letf (((symbol-function 'y-or-n-p)
+             (lambda (_prompt) t)))
+    (vc-dir-unmark-file)))
+
+(ert-deftest vc-test-vc-dir-unmark-file-with-marked-directory () ; bug#81277
+  "Test `vc-dir-unmark-file' with a marked ancestor directory."
+  (skip-unless (executable-find vc-git-program))
+  (vc-test--with-author-identity 'Git
+    (let ((vc-handled-backends '(Git)))
+      (ert-with-temp-directory tempdir
+        (let ((default-directory tempdir)
+              (files '("dir1/file11" "dir1/file12"
+                       "dir1/dir2/file21" "dir1/dir2/file22"
+                       "dir1/dir3/file31" "dir1/dir3/file32"))
+              vc-dir-buf unmarked directories)
+          (vc-test--create-repo-function 'Git)
+          (dolist (file files)
+            (make-empty-file file t))
+          (vc-dir default-directory 'Git)
+          (while (vc-dir-busy) (sit-for 0.05))
+          (setq vc-dir-buf (current-buffer))
+          ;; Move point to "dir1/" entry line.
+          (goto-char (ewoc-location (ewoc-nth vc-ewoc 1)))
+          ;; Mark "dir1/".
+          (vc-dir-mark-file)
+          ;; On next entry simulate invoking `vc-dir-unmark-file' and
+          ;; answering "y" to `y-or-n-p' prompt.
+          (vc-test--vc-dir-unmark-file)
+          ;; Move back to that entry and test that it's unmarked.
+          (vc-dir-previous-line 1)
+          (should-not
+           (vc-dir-fileinfo->marked (ewoc-data (ewoc-locate vc-ewoc))))
+          (push (expand-file-name
+                 (vc-dir-fileinfo->name
+                  (ewoc-data (ewoc-locate vc-ewoc))))
+                unmarked)
+          ;; All other non-directory descendents of "dir1/" should be
+          ;; marked.
+          (let* ((dir-children (vc-dir-find-child-files
+                                (expand-file-name
+                                 (vc-dir-fileinfo->name
+                                  (ewoc-data (ewoc-nth vc-ewoc 1))))))
+                 (rest-children (seq-difference dir-children unmarked)))
+            (should (seq-set-equal-p (vc-dir-marked-files) rest-children)))
+          ;; All directory entries should be unmarked.
+          (goto-char (point-max))
+          (while (not (bobp))
+            (vc-dir-previous-directory)
+            (push (expand-file-name
+                   (vc-dir-fileinfo->name
+                    (ewoc-data (ewoc-locate vc-ewoc))))
+                  directories)
+            (when (equal
+                   (vc-dir-fileinfo->name (ewoc-data (ewoc-locate vc-ewoc)))
+                   (vc-dir-fileinfo->name (ewoc-data (ewoc-nth vc-ewoc 1))))
+              (goto-char (point-min))))
+          (should-not (seq-intersection directories (vc-dir-marked-files)))
           (kill-buffer vc-dir-buf))))))
 
 (provide 'vc-test-misc)

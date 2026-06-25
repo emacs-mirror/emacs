@@ -928,6 +928,11 @@ share the same state."
       (if (vc-dir-fileinfo->directory data)
 	  ;; It's a directory, mark child files.
 	  (let (crt-data)
+            ;; First, if the directory itself is marked, unmark it,
+            ;; since we don't allow both a directory and its children to
+            ;; be marked.
+            (setf (vc-dir-fileinfo->marked data) nil)
+	    (ewoc-invalidate vc-ewoc crt)
 	    (while (and (setq crt (ewoc-next vc-ewoc crt))
 			(setq crt-data (ewoc-data crt))
 			(not (vc-dir-fileinfo->directory crt-data)))
@@ -1027,9 +1032,12 @@ Replace mark on `%s' with marks on all subitems but this one?"
               (setf (vc-dir-fileinfo->marked (ewoc-data parent)) nil)
               (push parent to-inval)
               (dolist (child all-children)
-                (setf (vc-dir-fileinfo->marked (ewoc-data child))
-                      (not (memq child subtree)))
-                (push child to-inval))))
+                (let ((data (ewoc-data child)))
+                  ;; Mark only file children, not directory children.
+                  (unless (vc-dir-fileinfo->directory data)
+                    (setf (vc-dir-fileinfo->marked data)
+                          (not (memq child subtree)))
+                    (push child to-inval))))))
         ;; The current item is a directory that's not marked, implicitly
         ;; or explicitly, but it has marked items below it.
         ;; Offer to unmark those.
