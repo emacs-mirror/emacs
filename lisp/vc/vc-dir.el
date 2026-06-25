@@ -1651,6 +1651,19 @@ specific headers."
         (funcall fun vc-dir-backend
                  (make-overlay (pos-eol) (pos-eol)))))))
 
+(defun vc-dir--set-vc-dir-process-buffer (backend)
+  ;; Create a buffer that can be used by `dir-status' and call
+  ;; `dir-status' with this buffer as the current buffer.  Use
+  ;; `vc-dir-process-buffer' to remember this buffer, so that it can be
+  ;; used later to kill the update process in case it takes too long.
+  (let ((buffer (current-buffer)))
+    (unless (buffer-live-p vc-dir-process-buffer)
+      (with-current-buffer
+          (setq vc-dir-process-buffer
+                (generate-new-buffer (format " *VC-%s* tmp status"
+                                             backend)))
+        (setq vc-parent-buffer buffer)))))
+
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
   (let ((def-dir default-directory)
@@ -1661,9 +1674,7 @@ specific headers."
     ;; It should compute the results, and then call the function
     ;; passed as an argument in order to update the vc-dir buffer
     ;; with the results.
-    (unless (buffer-live-p vc-dir-process-buffer)
-      (setq vc-dir-process-buffer
-            (generate-new-buffer (format " *VC-%s* tmp status" backend))))
+    (vc-dir--set-vc-dir-process-buffer backend)
     (let ((buffer (current-buffer)))
       (with-current-buffer vc-dir-process-buffer
         (setq default-directory def-dir)
@@ -1699,15 +1710,7 @@ Throw an error if another update process is in progress."
       ;; It should compute the results, and then call the function
       ;; passed as an argument in order to update the vc-dir buffer
       ;; with the results.
-
-      ;; Create a buffer that can be used by `dir-status' and call
-      ;; `dir-status' with this buffer as the current buffer.  Use
-      ;; `vc-dir-process-buffer' to remember this buffer, so that
-      ;; it can be used later to kill the update process in case it
-      ;; takes too long.
-      (unless (buffer-live-p vc-dir-process-buffer)
-        (setq vc-dir-process-buffer
-              (generate-new-buffer (format " *VC-%s* tmp status" backend))))
+      (vc-dir--set-vc-dir-process-buffer backend)
       ;; set the needs-update flag on all non-directory entries
       (ewoc-map (lambda (info)
 		  (unless (vc-dir-fileinfo->directory info)
