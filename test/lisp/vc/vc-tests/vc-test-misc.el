@@ -358,5 +358,73 @@ See bug#80803 and bug#80967."
           (should (and (looking-at "\\./$") (looking-back "^ +")))
           (kill-buffer vc-dir-buf))))))
 
+(ert-deftest vc-test-vc-dir-mark/unmark-all-dir-entry ()
+  "Test `vc-dir-{un}mark-all' called on directory entry."
+  (skip-unless (executable-find vc-git-program))
+  (vc-test--with-author-identity 'Git
+    (let ((vc-handled-backends '(Git)))
+      (ert-with-temp-directory tempdir
+        (let ((default-directory tempdir)
+              (files '("file01" "file02" "dir1/file11" "dir1/file12"
+                       "dir2/file21" "dir2/file22"))
+              vc-dir-buf
+              dir-children)
+          (vc-test--create-repo-function 'Git)
+          (dolist (file files)
+            (make-empty-file file t))
+          (vc-dir default-directory 'Git)
+          (while (vc-dir-busy) (sit-for 0.05))
+          (setq vc-dir-buf (current-buffer))
+          ;; Put point on line of "./" entry.
+          (goto-char (ewoc-location (ewoc-nth vc-ewoc 0)))
+          ;; Cumulatively mark file entries directory-wise.
+          (let ((next t))
+            (while next
+             (vc-dir-mark-all-files nil)
+             ;; Can't use this to set dir-children because it returns
+             ;; all files below directory entry, so loop over file
+             ;; entries until next directory entry.
+             ;; (vc-dir-find-child-files
+             ;;  (expand-file-name
+             ;;   (vc-dir-fileinfo->name
+             ;;    (ewoc-data (ewoc-locate vc-ewoc)))))
+             (catch 'done
+               (while t
+                 (vc-dir-next-line 1)
+                 (cond ((vc-dir-fileinfo->directory
+                          (ewoc-data (ewoc-locate vc-ewoc)))
+                        (throw 'done nil))
+                         ;; After last entry.
+                       ((looking-at "^$")
+                        (throw 'done (setq next nil)))
+                       (t
+                        (push (expand-file-name
+                               (vc-dir-fileinfo->name
+                                (ewoc-data (ewoc-locate vc-ewoc))))
+                              dir-children)))))
+             (should (seq-set-equal-p (vc-dir-marked-files) dir-children))))
+          (goto-char (ewoc-location (ewoc-nth vc-ewoc 0)))
+          ;; Cumulatively unmark file entries directory-wise.
+          (let ((next t))
+            (while next
+              (vc-dir-unmark-all-files nil)
+              (catch 'done
+                (while t
+                  (vc-dir-next-line 1)
+                  (cond ((vc-dir-fileinfo->directory
+                           (ewoc-data (ewoc-locate vc-ewoc)))
+                         (throw 'done nil))
+                          ;; After last entry.
+                        ((looking-at "^$")
+                         (throw 'done (setq next nil)))
+                        (t
+                         (setq dir-children
+                               (delete (expand-file-name
+                                        (vc-dir-fileinfo->name
+                                         (ewoc-data (ewoc-locate vc-ewoc))))
+                                       dir-children))))))
+              (should (seq-set-equal-p (vc-dir-marked-files) dir-children))))
+          (kill-buffer vc-dir-buf))))))
+
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

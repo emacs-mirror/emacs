@@ -1079,11 +1079,12 @@ that share the same state."
 	   (data (ewoc-data crt)))
       (if (vc-dir-fileinfo->directory data)
 	  ;; It's a directory, unmark child files.
-	  (while (setq crt (ewoc-next vc-ewoc crt))
-	    (let ((crt-data (ewoc-data crt)))
-	      (unless (vc-dir-fileinfo->directory crt-data)
-		(setf (vc-dir-fileinfo->marked crt-data) nil)
-		(ewoc-invalidate vc-ewoc crt))))
+          (let (crt-data)
+	    (while (and (setq crt (ewoc-next vc-ewoc crt))
+			(setq crt-data (ewoc-data crt))
+			(not (vc-dir-fileinfo->directory crt-data)))
+	      (setf (vc-dir-fileinfo->marked crt-data) nil)
+	      (ewoc-invalidate vc-ewoc crt)))
 	;; It's a file
 	(let ((crt-state (vc-dir-fileinfo->state (ewoc-data crt))))
 	  (ewoc-map
