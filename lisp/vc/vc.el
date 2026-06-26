@@ -4898,9 +4898,9 @@ tip revision are merged into the working file."
       ;; FIXME: Ideally we would only clear out the stored value for the
       ;; REMOTE-LOCATION from which we are pulling.
       (vc-run-delayed
-        (vc--repo-setprop backend 'vc-incoming-revision nil))
-      (when vc-dir-buffers
-        (vc-dir--refresh-headers (vc-root-dir backend))))
+        (vc--repo-setprop backend 'vc-incoming-revision nil)
+        (when vc-dir-buffers
+          (vc-dir--refresh-headers (vc-root-dir backend)))))
      ;; If VCS has `merge-news' functionality (CVS and SVN), use it.
      ((vc-find-backend-function backend 'merge-news)
       (save-some-buffers                ; save buffers visiting files
@@ -4943,9 +4943,9 @@ It also signals an error in a Bazaar bound branch."
                ;; FIXME: Ideally we would only clear out the
                ;; REMOTE-LOCATION to which we are pushing.
                (vc-run-delayed
-                 (vc--repo-setprop backend 'vc-incoming-revision nil))
-               (when vc-dir-buffers
-                 (vc-dir--refresh-headers (vc-root-dir backend))))
+                 (vc--repo-setprop backend 'vc-incoming-revision nil)
+                 (when vc-dir-buffers
+                   (vc-dir--refresh-headers (vc-root-dir backend)))))
       (user-error "VC push is unsupported for `%s'" backend))))
 
 ;;;###autoload
