@@ -222,16 +222,24 @@ A value of `default' means to use the value of `vc-resolve-conflicts'."
 
 (autoload 'vc-expand-dirs "vc")
 
+(declare-function vc-dir-maybe-narrow-and-show-more-button "vc-dir")
+(defvar vc-dir-process-output-limit)
+
 (defun vc-svn-dir-status-files (_dir files callback)
   "Run \"svn status\" for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
-  ;; FIXME shouldn't this rather default to all the files in dir?
-  (set-process-query-on-exit-flag
-   (apply #'vc-svn-command (current-buffer) 'async nil "status" "-u" files)
-   nil)
-  ;; FIXME: Consider `vc-run-delayed-success'.
-  (vc-run-delayed (vc-svn-after-dir-status callback t)))
+  (require 'vc-dir)
+  (let ((limit vc-dir-process-output-limit))
+    ;; FIXME shouldn't this rather default to all the files in dir?
+    (set-process-query-on-exit-flag
+     (apply #'vc-svn-command (current-buffer) 'async nil "status" "-u" files)
+     nil)
+    ;; FIXME: Consider `vc-run-delayed-success'.
+    (vc-run-delayed
+      (let ((vc-dir-process-output-limit limit))
+        (vc-dir-maybe-narrow-and-show-more-button)
+        (vc-svn-after-dir-status callback t)))))
 
 (defun vc-svn-dir-extra-headers (_dir)
   "Generate extra status headers for a Subversion working copy."

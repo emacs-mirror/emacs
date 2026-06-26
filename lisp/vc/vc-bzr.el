@@ -1030,22 +1030,29 @@ stream.  Standard error output is discarded."
         (forward-line))
       (funcall update-function result)))
 
+(declare-function vc-dir-maybe-narrow-and-show-more-button "vc-dir")
+
 (defun vc-bzr-dir-status-files (dir files update-function)
   "Return a list of conses (file . state) for DIR."
-  (set-process-query-on-exit-flag
-   (apply #'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
-   nil)
-  ;; FIXME: Consider `vc-run-delayed-success'.
-  (vc-run-delayed
-   (vc-bzr-after-dir-status update-function
-                            ;; "bzr status" results are relative to
-                            ;; the bzr root directory, NOT to the
-                            ;; directory "bzr status" was invoked in.
-                            ;; Ugh.
-                            ;; We pass the relative directory here so
-                            ;; that `vc-bzr-after-dir-status' can
-                            ;; frob the results accordingly.
-                            (file-relative-name dir (vc-bzr-root dir)))))
+  (require 'vc-dir)
+  (let ((limit vc-dir-process-output-limit))
+    (set-process-query-on-exit-flag
+     (apply #'vc-bzr-command "status" (current-buffer) 'async dir
+            "-v" "-S" files)
+     nil)
+    ;; FIXME: Consider `vc-run-delayed-success'.
+    (vc-run-delayed
+      (let ((vc-dir-process-output-limit limit))
+        (vc-dir-maybe-narrow-and-show-more-button)
+        (vc-bzr-after-dir-status update-function
+                                 ;; "bzr status" results are relative to
+                                 ;; the bzr root directory, NOT to the
+                                 ;; directory "bzr status" was invoked in.
+                                 ;; Ugh.
+                                 ;; We pass the relative directory here so
+                                 ;; that `vc-bzr-after-dir-status' can
+                                 ;; frob the results accordingly.
+                                 (file-relative-name dir (vc-bzr-root dir)))))))
 
 (defvar-keymap vc-bzr-shelve-map
   ;; Turn off vc-dir marking

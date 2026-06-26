@@ -722,14 +722,18 @@ or an empty string if none."
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
+(declare-function vc-dir-maybe-narrow-and-show-more-button "vc-dir")
+
 (defun vc-git-dir-status-goto-stage (git-state)
   ;; TODO: Look into reimplementing this using `git status --porcelain=v2'.
+  (require 'vc-dir)
   (cl-flet ((git-cmd (&rest args)
               (set-process-query-on-exit-flag
                (apply #'vc-git-command (current-buffer) 'async args)
                nil)))
     (let ((files (vc-git-dir-status-state->files git-state))
-          (allowed-exit 1))
+          (allowed-exit 1)
+          (limit vc-dir-process-output-limit))
       (erase-buffer)
       (pcase (vc-git-dir-status-state->stage git-state)
         ('update-index
@@ -756,7 +760,10 @@ or an empty string if none."
         ('diff-index
          (git-cmd files "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
       (vc-run-delayed-success allowed-exit
-        (vc-git-after-dir-status-stage git-state)))))
+        (let ((vc-dir-process-output-limit limit))
+          (vc-dir-maybe-narrow-and-show-more-button
+           "(reported states may be incorrect)")
+          (vc-git-after-dir-status-stage git-state))))))
 
 (defun vc-git-dir-status-files (_dir files update-function)
   "Return a list of (FILE STATE EXTRA) entries for DIR."

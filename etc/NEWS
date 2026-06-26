@@ -121,6 +121,17 @@ obsolete.
 To hide these, you can customize the new user option
 'vc-dir-show-key-binding-hints' to nil.
 
+---
+*** VC-Dir doesn't process very large status output by default.
+If the VCS status process used to populate the VC-Dir buffer produces a
+very large amount of output, it often means that you did something
+accidental like renaming a subdirectory containing thousands of files,
+and Emacs can become unresponsive while trying to process all the
+output.  Now Emacs stops early.  When this happens, VC-Dir includes a
+message saying so, with a button to override it.  You can customize the
+new user option 'vc-dir-process-output-limit' to control how early to
+stop, and to disable this feature.
+
 ** Outline mode
 
 *** New command 'outline-show-entry-and-parents'.

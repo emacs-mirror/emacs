@@ -177,7 +177,9 @@
 ;;
 ;;   If a command needs to be run to compute this list, it should be
 ;;   run asynchronously using (current-buffer) as the buffer for the
-;;   command.
+;;   command.  It should respect `vc-dir-process-output-limit', usually
+;;   by calling `vc-dir-maybe-narrow-and-show-more-button' to narrow the
+;;   output buffer before processing it.
 ;;
 ;;   When RESULT is computed, it should be passed back by doing:
 ;;   (funcall UPDATE-FUNCTION RESULT nil).  If the backend uses a

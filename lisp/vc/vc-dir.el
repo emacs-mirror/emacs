@@ -1632,8 +1632,10 @@ specific headers."
        "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"))
      "\n"))))
 
-(defun vc-dir--set-header (def-dir)
-  (ewoc-set-hf vc-ewoc (vc-dir-headers vc-dir-backend def-dir) "")
+(defun vc-dir--set-header (def-dir &optional reset-footer)
+  (ewoc-set-hf vc-ewoc
+               (vc-dir-headers vc-dir-backend def-dir)
+               (and reset-footer ""))
   ;; Clear overlays in the header from the last run.
   (dolist (overlay (overlays-in (point-min)
                                 (length (car (ewoc-get-hf vc-ewoc)))))
@@ -1694,6 +1696,55 @@ specific headers."
   (when vc-dir-auto-hide-up-to-date
     (vc-dir-hide-state)))
 
+;; Assume that user normally has around 50 uncommitted files and the
+;; status output for each is approximately 60 characters long.
+(defcustom vc-dir-process-output-limit 3000
+  "Maximum output from VC-Dir status process to use, in characters.
+If non-nil, ignore status process output beyond this much.
+If nil, process all the status process's output.
+This is useful to prevent Emacs becoming unresponsive trying to process
+too much status output because, say, you accidentally renamed or deleted
+a subdirectory of your repository containing thousands of files."
+  :type 'natnum
+  :group 'vc
+  :version "32.1")
+
+(defun vc-dir-show-more-button (&optional text)
+  "Show a button to refresh VC-Dir with `vc-dir-process-output-limit' nil.
+TEXT is added to the EWOC footer on a line after the button.
+Called by VC backend `dir-status-files' implementations when the output
+to process exceeds a non-nil `vc-dir-process-output-limit'."
+  (ewoc-set-hf
+   vc-ewoc nil
+   (with-temp-buffer
+     (insert (substitute-quotes "\nHit `"))
+     (insert-text-button "vc-dir-process-output-limit"
+                         'type 'help-variable
+                         'help-args '(vc-dir-process-output-limit))
+     (insert (substitute-quotes "': "))
+     (insert-text-button
+      "run again with no limit"
+      'action (lambda (&rest _)
+                (let (vc-dir-process-output-limit)
+                  (vc-dir-refresh)))
+      'help-echo "Regenerate the VC-Dir buffer with no process output limit")
+     (when text (insert "\n" text))
+     (buffer-string))))
+
+(defun vc-dir-maybe-narrow-and-show-more-button (&optional text)
+  "Handle `vc-dir-process-output-limit' in `vc-dir-process-buffer'.
+TEXT is passed on to `vc-dir-show-more-button'.
+Called by VC backend `dir-status-files' implementations."
+  (when (and (natnump vc-dir-process-output-limit)
+             (> (buffer-size) vc-dir-process-output-limit))
+    (narrow-to-region (point-min)
+                      (save-excursion
+                        (goto-char (+ (point-min)
+                                      vc-dir-process-output-limit))
+                        (pos-bol)))
+    (with-current-buffer vc-parent-buffer
+      (vc-dir-show-more-button text))))
+
 (defun vc-dir-refresh ()
   "Refresh the contents of the *VC-Dir* buffer.
 Throw an error if another update process is in progress."
@@ -1718,7 +1769,7 @@ Throw an error if another update process is in progress."
                 vc-ewoc)
       ;; Bzr has serious locking problems, so setup the headers first (this is
       ;; mostly synchronous) rather than doing it while dir-status is running.
-      (vc-dir--set-header def-dir)
+      (vc-dir--set-header def-dir 'reset-footer)
       (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)

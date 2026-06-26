@@ -1528,6 +1528,8 @@ REV is the revision to check out into WORKFILE."
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
+(declare-function vc-dir-maybe-narrow-and-show-more-button "vc-dir")
+
 (defvar vc-hg--program-version nil)
 
 (defun vc-hg--program-version ()
@@ -1542,18 +1544,22 @@ REV is the revision to check out into WORKFILE."
                  (string-trim-right (match-string 1) "\\.")))))))
 
 (defun vc-hg-dir-status-files (dir files update-function)
+  (require 'vc-dir)
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
-  (let ((default-directory dir))
+  (let ((default-directory dir)
+        (limit vc-dir-process-output-limit))
     (set-process-query-on-exit-flag
      (apply #'vc-hg-command '(t nil) 'async files
             "status" (concat "-mardu" (if files "i")) "-C"
             (if (version<= "4.2" (vc-hg--program-version))
                 '("--config" "commands.status.relative=1")
               '("re:" "-I" ".")))
-     nil))
-  (vc-run-delayed-success 0
-    (vc-hg-after-dir-status update-function)))
+     nil)
+    (vc-run-delayed-success 0
+      (let ((vc-dir-process-output-limit limit))
+        (vc-dir-maybe-narrow-and-show-more-button)
+        (vc-hg-after-dir-status update-function)))))
 
 (defun vc-hg-dir-extra-headers (dir)
   "Generate extra status headers for a repository in DIR.
