@@ -453,5 +453,19 @@ See also `with-temp-buffer'."
         (goto-char (1+ (length junk)))
         (should (equal (json-tests--parse-buffer-error-pos) 16))))))
 
+(ert-deftest json-tests-big-array ()
+  ;; this calls json_make_object_workspace_for_slow_path (bug#81283)
+  (with-temp-buffer
+    (let ((len 10000))
+      (insert "[")
+      (dotimes (i len)
+        (when (> i 0)
+          (insert ","))
+        (insert "true"))
+      (insert "]")
+      (goto-char 1)
+      (should (equal (json-parse-buffer)
+                     (make-vector len t))))))
+
 (provide 'json-tests)
 ;;; json-tests.el ends here
