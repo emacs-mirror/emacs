@@ -3485,6 +3485,27 @@ root_create_exact (struct igc *gc, void *start, void *end,
 		      label);
 }
 
+static igc_root_list *
+root_create_lisp (struct igc *gc, void *start, void *end,
+		  const char *label)
+{
+  igc_assert ((uintptr_t) start % sizeof (Lisp_Object) == 0);
+  igc_assert (((uintptr_t) end - (uintptr_t) start)
+		% sizeof (Lisp_Object)
+	      == 0);
+  return root_create_exact (gc, start, end, scan_exact, label);
+}
+
+static igc_root_list *
+root_create_raw (struct igc *gc, void *start, void *end,
+		 const char *label)
+{
+  igc_assert ((uintptr_t) start % sizeof (void *) == 0);
+  igc_assert (((uintptr_t) end - (uintptr_t) start) % sizeof (void *)
+	      == 0);
+  return root_create_exact (gc, start, end, scan_ptr_exact, label);
+}
+
 static void
 root_create_staticvec (struct igc *gc)
 {
@@ -4104,26 +4125,60 @@ igc_xfree (void *p)
   xfree (p);
 }
 
+typedef igc_root_list *(*root_create_fn) (struct igc *gc, void *start,
+					  void *end,
+					  const char *label);
+
+
+static void *
+igc_xpalloc (void *old_pa, ptrdiff_t *nitems,
+	     ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+	     ptrdiff_t item_size, root_create_fn fun, const char *label)
+{
+  ptrdiff_t old_nitems = old_pa ? *nitems : 0;
+  ptrdiff_t nbytes = xpalloc_nbytes (old_pa, nitems, nitems_incr_min,
+				     nitems_max, item_size);
+  void *new_pa = xzalloc (nbytes);
+  char *end = (char *) new_pa + nbytes;
+  fun (global_igc, new_pa, end, label);
+  if (old_pa)
+    {
+      mps_word_t *old_word = old_pa;
+      mps_word_t *new_word = new_pa;
+      size_t nwords = (old_nitems * item_size) / sizeof (mps_word_t);
+      for (ptrdiff_t i = 0; i != nwords; i++)
+	new_word[i] = old_word[i];
+      igc_destroy_root_with_start (old_pa);
+      xfree (old_pa);
+    }
+  return new_pa;
+}
+
 void *
 igc_xpalloc_ambig (void *old_pa, ptrdiff_t *nitems,
 		   ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
 		   ptrdiff_t item_size, const char *label)
 {
-  ptrdiff_t old_nitems = old_pa ? *nitems : 0;
-  ptrdiff_t new_nitems = *nitems;
-  ptrdiff_t nbytes = xpalloc_nbytes (old_pa, &new_nitems, nitems_incr_min,
-				     nitems_max, item_size);
-  void *new_pa = xzalloc (nbytes);
-  char *end = (char *) new_pa + nbytes;
-  root_create_ambig (global_igc, new_pa, end, label);
-  mps_word_t *old_word = old_pa;
-  mps_word_t *new_word = new_pa;
-  for (ptrdiff_t i = 0;
-       i < (old_nitems * item_size) / sizeof (mps_word_t); i++)
-    new_word[i] = old_word[i];
-  *nitems = new_nitems;
-  igc_xfree (old_pa);
-  return new_pa;
+  return igc_xpalloc (old_pa, nitems, nitems_incr_min, nitems_max,
+		      item_size, root_create_ambig, label);
+}
+
+Lisp_Object *
+igc_xpalloc_lisp (Lisp_Object *pa, ptrdiff_t *nitems,
+		  ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+		  const char *label)
+{
+  return igc_xpalloc (pa, nitems, nitems_incr_min, nitems_max,
+		      sizeof (Lisp_Object), root_create_lisp, label);
+}
+
+void *
+igc_xpalloc_raw (void *pa, ptrdiff_t *nitems,
+		 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
+		 const char *label)
+{
+  return igc_xpalloc (pa, nitems, nitems_incr_min, nitems_max,
+		      sizeof (void *), root_create_raw, label);
 }
 
 static void
@@ -4164,27 +4219,6 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   igc_xfree (old_pa);
 }
 
-void *
-igc_xpalloc_raw (void *pa, ptrdiff_t *nitems,
-		 ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-		 const char *label)
-{
-  ptrdiff_t nitems_old = pa ? *nitems : 0;
-  ptrdiff_t nitems_new = *nitems;
-  ptrdiff_t nbytes = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min,
-				     nitems_max, sizeof (void *));
-  void **old = pa;
-  void **new = xzalloc (nbytes);
-  root_create_exact (global_igc, new, new + nitems_new,
-		     scan_ptr_exact, label);
-  for (ptrdiff_t i = 0; i < nitems_old; i++)
-    new[i] = old[i];
-  igc_destroy_root_with_start (old);
-  xfree (old);
-  *nitems = nitems_new;
-  return new;
-}
-
 void
 igc_grow_print_stack (struct print_stack *ps)
 {
@@ -4203,27 +4237,6 @@ igc_grow_pp_stack (struct print_pp_stack *ps)
 		     sizeof *ps->stack, scan_ppstack, NULL);
   for (ptrdiff_t i = old_size; i < ps->size; ++i)
     ppstack.stack[i].is_in_use = false;
-}
-
-Lisp_Object *
-igc_xpalloc_lisp (Lisp_Object *pa, ptrdiff_t *nitems,
-		  ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-		  const char *label)
-{
-  ptrdiff_t nitems_old = pa ? *nitems : 0;
-  ptrdiff_t nitems_new = *nitems;
-  ptrdiff_t nbytes = xpalloc_nbytes (pa, &nitems_new, nitems_incr_min,
-				     nitems_max, word_size);
-  Lisp_Object *old = pa;
-  Lisp_Object *new = xzalloc (nbytes);
-  root_create_exact (global_igc, new, new + nitems_new, scan_exact,
-		     label);
-  for (ptrdiff_t i = 0; i < nitems_old; i++)
-    new[i] = old[i];
-  igc_destroy_root_with_start (old);
-  xfree (old);
-  *nitems = nitems_new;
-  return new;
 }
 
 Lisp_Object *
