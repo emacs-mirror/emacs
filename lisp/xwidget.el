@@ -672,7 +672,7 @@ XW is the xwidget identifier, TEXT is retrieved from the webkit."
 
 (defun xwidget-webkit-end-edit-textarea ()
   "End editing of a webkit text area."
-  (interactive nil xwidget-webkit-mode)
+  (interactive)
   (goto-char (point-min))
   (while (search-forward "\n" nil t)
     (replace-match "\\n" nil t))
