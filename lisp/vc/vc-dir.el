@@ -1388,44 +1388,52 @@ that file."
 	      fileentries))
       (vc-dir-update fileentries (current-buffer)))))
 
+(defmacro vc-dir--buffers-dolist (status-buf &rest body)
+  "Bind STATUS-BUF to each of `vc-dir-buffers' in turn and execute BODY.
+Also removes any out-of-date entries in `vc-dir-buffers'."
+  (declare (indent 1) (debug (sexp body)))
+  (cl-with-gensyms (drop)
+    `(let (,drop)
+       (save-current-buffer
+         (unwind-protect
+             (dolist (,status-buf vc-dir-buffers)
+               (if (not (buffer-live-p status-buf))
+                   (push ,status-buf ,drop)
+                 (set-buffer ,status-buf)
+                 (if (not (derived-mode-p 'vc-dir-mode))
+                     (push ,status-buf ,drop)
+                   ,@body)))
+           ;; Remove out-of-date entries from `vc-dir-buffers'.
+           (setq vc-dir-buffers
+                 (cl-nset-difference vc-dir-buffers ,drop :test #'eq)))))))
+
 (defun vc-dir-resynch-file (&optional fname)
   "Update the entries for FNAME in any directory buffers that list it."
-  (let* ((file (file-truename (or fname buffer-file-name)))
-         (drop '()))
-    (save-current-buffer
-      ;; look for a vc-dir buffer that might show this file.
-      (dolist (status-buf vc-dir-buffers)
-        (if (not (buffer-live-p status-buf))
-            (push status-buf drop)
-          (set-buffer status-buf)
-          (if (not (derived-mode-p 'vc-dir-mode))
-              (push status-buf drop)
-            (let ((ddir (expand-file-name
-                         ;; The actual contents of this VC-Dir buffer,
-                         ;; which is what we care about here, is always
-                         ;; relative to the toplevel value.
-                         ;; If we invoked the current command from
-                         ;; STATUS-BUF then it might have shadowed
-                         ;; `default-directory' in order to do its work,
-                         ;; but that's irrelevant to us here.
-                         (buffer-local-toplevel-value 'default-directory))))
-              (when (file-in-directory-p file ddir)
-                (if (file-directory-p file)
-		    (progn
-		      (vc-dir-resync-directory-files file)
-		      (vc-dir--set-header ddir))
-                  (let* ((complete-state
-                          ;; Pass two truenames (bug#80803, bug#80967).
-                          (vc-dir-recompute-file-state file
-                                                       (file-truename ddir)))
-			 (state (cadr complete-state)))
-                    (vc-dir-update (list complete-state)
-                                   status-buf
-                                   (or (not state)
-				       (eq state 'up-to-date)))))))))))
-    ;; Remove out-of-date entries from vc-dir-buffers.
-    (setq vc-dir-buffers
-          (cl-nset-difference vc-dir-buffers drop :test #'eq))))
+  (let ((file (file-truename (or fname buffer-file-name))))
+    (vc-dir--buffers-dolist status-buf
+      ;; Look for a VC-Dir buffer that might show this file.
+      (let ((ddir (expand-file-name
+                   ;; The actual contents of this VC-Dir buffer, which
+                   ;; is what we care about here, is always relative to
+                   ;; the toplevel value.  If we invoked the current
+                   ;; command from STATUS-BUF then it might have
+                   ;; shadowed `default-directory' in order to do its
+                   ;; work, but that's irrelevant to us here.
+                   (buffer-local-toplevel-value 'default-directory))))
+        (when (file-in-directory-p file ddir)
+          (if (file-directory-p file)
+	      (progn
+		(vc-dir-resync-directory-files file)
+		(vc-dir--set-header ddir))
+            (let* ((complete-state
+                    ;; Pass two truenames (bug#80803, bug#80967).
+                    (vc-dir-recompute-file-state file
+                                                 (file-truename ddir)))
+		   (state (cadr complete-state)))
+              (vc-dir-update (list complete-state)
+                             status-buf
+                             (or (not state)
+				 (eq state 'up-to-date))))))))))
 
 (defvar use-vc-backend)  ;; dynamically bound
 
@@ -1792,12 +1800,21 @@ Throw an error if another update process is in progress."
                      (setq mode-line-process nil)
                      (run-hooks 'vc-dir-refresh-hook))))))))))))
 
+(defun vc-dir--refresh-headers (directory)
+  "Refresh the headers for any VC-Dir buffers within DIRECTORY."
+  (let ((directory (expand-file-name directory)))
+    (vc-dir--buffers-dolist status-buf
+      (let ((ddir (buffer-local-toplevel-value 'default-directory)))
+        (when (file-in-directory-p ddir directory)
+          (vc-dir--set-header ddir))))))
+
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current *VC-Dir* listing.
 This is typically used if the file is up-to-date (or has been added
 outside of VC) and one wants to do some operation on it."
   (interactive "fShow file: ")
-  (vc-dir-update (list (list (file-relative-name file) (vc-state file))) (current-buffer)))
+  (vc-dir-update `((,(file-relative-name file) ,(vc-state file)))
+                 (current-buffer)))
 
 (defun vc-dir-hide-state (&optional state)
   "Hide items that are in STATE from display.
