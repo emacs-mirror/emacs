@@ -694,7 +694,7 @@ happens in interactive invocations.
 When calling from Lisp, use nil or a positive number as the value
 of INTERACTIVE to enable `lexical-binding', a negative number to
 disable it."
-  (interactive "p")
+  (interactive "@p")
   (let* ((disable-lexbind (or (and (numberp interactive)
                                    (< interactive 0))
                               (if current-prefix-arg t)))
