@@ -476,6 +476,54 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; so don't try to match it.
      ": \\*\\*\\* \\[\\(\\(.+?\\):\\([0-9]+\\): .+\\)\\]" 2 3 nil 0 1)
 
+    (gcc-nested-notes
+     ;; GCC 16 and onwards can produce messages that have structured and
+     ;; elaborate nested notes.  These messages are, in fact,
+     ;; informative, and not errors unto themselves.
+     ;;
+     ;; The issue is that these messages can include locations (and
+     ;; indeed do include a location by default), which Emacs may
+     ;; misconstrue as a new diagnostic.  So, catch it early, to
+     ;; consider it an informative message.
+     ,(rx
+       bol
+       ;; The structure of these messages is something like:
+       ;;   INDENT BULLET MESSAGE \n
+       ;;          INDENT LOCATION
+       ;; ... where INDENT are spaces, BULLET is either an ASCII star or
+       ;; a Unicode bullet (U+2022), MESSAGE is informative text and
+       ;; LOCATION is the usual FILE:LINE:COL coordinate.
+       ;;
+       ;; Sample:
+       ;;      • candidate is: ‘void foo::test(int, int, void*, int)’
+       ;;        test.cc:4:10:
+       ;;            4 |     void test(int i, int j, void *ptr, int k);
+
+       ;; Match first line.
+       (group-n 9 (+ "  ")) (| ?* ?\N{BULLET}) space (* nonl) (+ (any "\r\n"))
+
+       ;; Match second line.
+       (backref 9) "  "
+       ;; File name group, from `gnu' rule.
+       (group-n 1
+         ;; Avoid matching the file name as a program in the pattern
+         ;; above by disallowing file names entirely composed of digits.
+         ;; Do not allow file names beginning with a space.
+         (| (not (in "0-9" "\n\t "))
+            (: (+ (in "0-9"))
+               (not (in "0-9" "\n"))))
+         ;; A file name can be composed of any non-newline char, but
+         ;; rule out some valid but unlikely cases, such as a trailing
+         ;; space or a space followed by a -, or a colon followed by a
+         ;; space.
+         (*? (| (not (in "\n :"))
+                (: " " (not (in ?- "/\n")))
+                (: ":" (not (in " \n"))))))
+       ?: (group-n 2 (+ (in "0-9")))              ; Line
+       ?: (group-n 3 (+ (in "0-9")))              ; Column
+       ?:)
+     1 2 3 0)
+
     (gnu
      ;; The `gnu' message syntax is
      ;;   [PROGRAM:]FILE:LINE[-ENDLINE]:[COL[-ENDCOL]:] MESSAGE

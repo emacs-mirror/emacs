@@ -322,6 +322,251 @@ In file included from /usr/include/c++/3.3/backward/warn.h:4,
                  from /usr/include/c++/3.3/backward/iostream.h:31:0,
                  from test_clt.cc:1:
 
+* GCC nested notes
+
+symbol: gcc-nested-notes
+
+Example from https://developers.redhat.com/articles/2026/04/28/gcc-16-improved-error-messages-sarif-output#new_c___error_improvements with and without Unicode
+
+test.cc:8:6: error: no declaration matches 'void foo::test(int, int, const void*, int)'
+    8 | void foo::test(int i, int j, const void *ptr, int k)
+      |      ^~~
+  * there is 1 candidate
+    * candidate is: 'void foo::test(int, int, void*, int)'
+      test.cc:4:10:
+          4 |     void test(int i, int j, void *ptr, int k);
+            |          ^~~~
+      * parameter 3 of candidate has type 'void*'...
+        test.cc:4:35:
+            4 |     void test(int i, int j, void *ptr, int k);
+              |                             ~~~~~~^~~
+      * ...which does not match type 'const void*'
+        test.cc:8:42:
+            8 | void foo::test(int i, int j, const void *ptr, int k)
+              |                              ~~~~~~~~~~~~^~~
+test.cc:1:7: note: 'class foo' defined here
+    1 | class foo
+      |       ^~~
+
+test.cc:8:6: error: no declaration matches ‘void foo::test(int, int, const void*, int)’
+    8 | void foo::test(int i, int j, const void *ptr, int k)
+      |      ^~~
+  • there is 1 candidate
+    • candidate is: ‘void foo::test(int, int, void*, int)’
+      test.cc:4:10:
+          4 |     void test(int i, int j, void *ptr, int k);
+            |          ^~~~
+      • parameter 3 of candidate has type ‘void*’...
+        test.cc:4:35:
+            4 |     void test(int i, int j, void *ptr, int k);
+              |                             ~~~~~~^~~
+      • ...which does not match type ‘const void*’
+        test.cc:8:42:
+            8 | void foo::test(int i, int j, const void *ptr, int k)
+              |                              ~~~~~~~~~~~~^~~
+test.cc:1:7: note: ‘class foo’ defined here
+    1 | class foo
+      |       ^~~
+
+../../gcc/gcc/cp/module.cc: In member function ‘void {anonymous}::trees_out::type_node(tree)’:
+../../gcc/gcc/cp/module.cc:9628:40: error: cannot convert ‘qualifier_set’ to ‘int’ in initialization
+ 9628 |           int quals = type_memfn_quals (type);
+      |                       ~~~~~~~~~~~~~~~~~^~~~~~
+      |                                        |
+      |                                        qualifier_set
+../../gcc/gcc/cp/module.cc:9635:24: error: no match for ‘operator!=’ (operand types are ‘int’ and ‘qualifier_set’)
+ 9635 |               || quals != type_memfn_quals (root)
+      |                  ~~~~~ ^~ ~~~~~~~~~~~~~~~~~~~~~~~
+      |                  |                         |
+      |                  int                       qualifier_set
+  • there are 3 candidates
+    ../../gcc/gcc/cp/module.cc:9635:24:
+     9635 |               || quals != type_memfn_quals (root)
+          |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from ../../gcc/gcc/cp/module.cc:215:
+    • candidate 1: ‘bool operator==(const cp_expr&, tree)’ (reversed)
+      ../../gcc/gcc/cp/cp-tree.h:126:1:
+        126 | operator == (const cp_expr &lhs, tree rhs)
+            | ^~~~~~~~
+      • no known conversion for argument 1 from ‘qualifier_set’ to ‘const cp_expr&’
+        ../../gcc/gcc/cp/cp-tree.h:126:29:
+          126 | operator == (const cp_expr &lhs, tree rhs)
+              |              ~~~~~~~~~~~~~~~^~~
+In file included from ../../gcc/gcc/coretypes.h:479,
+                 from ../../gcc/gcc/cp/module.cc:214:
+    • candidate 2: ‘template<class T1, class T2> typename wi::binary_traits<T1, T2>::predicate_result operator!=(const T1&, const T2&)’
+      ../../gcc/gcc/wide-int.h:3853:19:
+       3853 | BINARY_PREDICATE (operator !=, ne_p)
+            |                   ^~~~~~~~
+    • in definition of macro ‘BINARY_PREDICATE’
+       3829 |   OP (const T1 &x, const T2 &y) \
+            |   ^~
+      • template argument deduction/substitution failed:
+      • in definition of macro ‘BINARY_PREDICATE’
+         3829 |   OP (const T1 &x, const T2 &y) \
+              |   ^~
+        • ../../gcc/gcc/wide-int.h: In substitution of ‘template<class T1, class T2> typename wi::binary_traits<T1, T2>::predicate_result operator!=(const T1&, const T2&) [with T1 = int; T2 = qualifier_set]’:
+        • required from here
+          ../../gcc/gcc/cp/module.cc:9635:42:
+           9635 |               || quals != type_memfn_quals (root)
+                |                                                 ^
+        • error: incomplete type ‘wi::int_traits<qualifier_set>’ used in nested name specifier
+          ../../gcc/gcc/wide-int.h:3853:19:
+           3853 | BINARY_PREDICATE (operator !=, ne_p)
+                |                   ^~~~~~~~
+        • in definition of macro ‘BINARY_PREDICATE’
+           3829 |   OP (const T1 &x, const T2 &y) \
+                |   ^~
+In file included from ../../gcc/gcc/input.h:24,
+                 from ../../gcc/gcc/coretypes.h:507:
+    • candidate 3: ‘bool operator!=(const expanded_location&, const expanded_location&)’
+      ../../gcc/gcc/../libcpp/include/line-map.h:1313:1:
+       1313 | operator!= (const expanded_location &a,
+            | ^~~~~~~~
+      • no known conversion for argument 1 from ‘int’ to ‘const expanded_location&’
+        ../../gcc/gcc/../libcpp/include/line-map.h:1313:38:
+         1313 | operator!= (const expanded_location &a,
+              |             ~~~~~~~~~~~~~~~~~~~~~~~~~^
+../../gcc/gcc/c/c-typeck.cc:8719:38: error: no match for ‘operator|’ (operand types are ‘qualifier_set’ and ‘qualifier_set’)
+ 8719 |                           : ((lquals | rquals) == lquals)))
+      |                               ~~~~~~ ^ ~~~~~~
+      |                               |        |
+      |                               |        qualifier_set
+      |                               qualifier_set
+  • there are 6 candidates
+    ../../gcc/gcc/c/c-typeck.cc:8719:38:
+     8719 |                           : ((lquals | rquals) == lquals)))
+          |                               ~~~~~~~^~~~~~~~
+    • candidate 1: ‘template<class T1, class T2> typename wi::binary_traits<T1, T2>::operator_result operator|(const T1&, const T2&)’
+      ../../gcc/gcc/wide-int.h:3855:18:
+       3855 | BINARY_OPERATOR (operator |, bit_or)
+            |                  ^~~~~~~~
+    • in definition of macro ‘BINARY_OPERATOR’
+       3837 |   OP (const T1 &x, const T2 &y) \
+            |   ^~
+      • template argument deduction/substitution failed:
+      • in definition of macro ‘BINARY_OPERATOR’
+         3837 |   OP (const T1 &x, const T2 &y) \
+              |   ^~
+        • ../../gcc/gcc/wide-int.h: In substitution of ‘template<class T1, class T2> typename wi::binary_traits<T1, T2>::operator_result operator|(const T1&, const T2&) [with T1 = qualifier_set; T2 = qualifier_set]’:
+        • required from here
+          ../../gcc/gcc/c/c-typeck.cc:8719:19:
+           8719 |                           : ((lquals | rquals) == lquals)))
+                |                                        ^~~~~~
+        • error: incomplete type ‘wi::int_traits<qualifier_set>’ used in nested name specifier
+          ../../gcc/gcc/wide-int.h:3855:18:
+           3855 | BINARY_OPERATOR (operator |, bit_or)
+                |                  ^~~~~~~~
+        • in definition of macro ‘BINARY_OPERATOR’
+           3837 |   OP (const T1 &x, const T2 &y) \
+                |   ^~
+    • candidate 2: ‘dump_flags_t operator|(dump_flags_t, dump_flags_t)’
+      ../../gcc/gcc/dumpfile.h:212:1:
+        212 | operator| (dump_flags_t lhs, dump_flags_t rhs)
+            | ^~~~~~~~
+      • no known conversion for argument 1 from ‘qualifier_set’ to ‘dump_flags_t’ {aka ‘dump_flag’}
+        ../../gcc/gcc/dumpfile.h:212:25:
+          212 | operator| (dump_flags_t lhs, dump_flags_t rhs)
+              |            ~~~~~~~~~~~~~^~~
+    • candidate 3: ‘optgroup_flags_t operator|(optgroup_flags_t, optgroup_flags_t)’
+      ../../gcc/gcc/dumpfile.h:280:1:
+        280 | operator| (optgroup_flags_t lhs, optgroup_flags_t rhs)
+            | ^~~~~~~~
+      • no known conversion for argument 1 from ‘qualifier_set’ to ‘optgroup_flags_t’ {aka ‘optgroup_flag’}
+        ../../gcc/gcc/dumpfile.h:280:29:
+          280 | operator| (optgroup_flags_t lhs, optgroup_flags_t rhs)
+              |            ~~~~~~~~~~~~~~~~~^~~
+    • candidate 4: ‘constexpr cv_qualifier operator|(cv_qualifier, cv_qualifier)’
+      ../../gcc/gcc/tree-core.h:716:1:
+        716 | operator| (cv_qualifier l, cv_qualifier r)
+            | ^~~~~~~~
+      • no known conversion for argument 1 from ‘qualifier_set’ to ‘cv_qualifier’
+        ../../gcc/gcc/tree-core.h:716:25:
+          716 | operator| (cv_qualifier l, cv_qualifier r)
+              |            ~~~~~~~~~~~~~^
+    • candidate 5: ‘constexpr qualifier_set operator|(qualifier_set, cv_qualifier)’
+      ../../gcc/gcc/tree.h:2816:1:
+       2816 | operator| (qualifier_set qs, cv_qualifier cvs)
+            | ^~~~~~~~
+      • no known conversion for argument 2 from ‘qualifier_set’ to ‘cv_qualifier’
+        ../../gcc/gcc/tree.h:2816:43:
+         2816 | operator| (qualifier_set qs, cv_qualifier cvs)
+              |                              ~~~~~~~~~~~~~^~~
+    • candidate 6: ‘constexpr qualifier_set operator|(cv_qualifier, qualifier_set)’
+      ../../gcc/gcc/tree.h:2822:1:
+       2822 | operator| (cv_qualifier cvs, qualifier_set qs)
+            | ^~~~~~~~
+      • no known conversion for argument 1 from ‘qualifier_set’ to ‘cv_qualifier’
+        ../../gcc/gcc/tree.h:2822:25:
+         2822 | operator| (cv_qualifier cvs, qualifier_set qs)
+              |            ~~~~~~~~~~~~~^~~
+
+The g++.dg/diagnostic/pr100716.C example has some more complex cases:
+
+pr100716.C: In function ‘int main()’:
+pr100716.C:34:13: error: no matching function for call to ‘A<int>::f(int)’
+   34 |   A<int>().f(0); // { dg-error "no matching function for call to 'A<int>::f\\(int\\)'" }
+      |   ~~~~~~~~~~^~~
+  • there is 1 candidate
+    • candidate 1: ‘template<class U> void A<T>::f() [with T = int]’
+      pr100716.C:7:12:
+          7 |       void f() {} // { dg-line Af }
+            |            ^
+      • candidate expects 0 arguments, 1 provided
+pr100716.C:37:13: error: no matching function for call to ‘A<int>::g()’
+   37 |   A<int>().g(); // { dg-error "no matching function for call to 'A<int>::g\\(\\)'" }
+      |   ~~~~~~~~~~^~
+  • there is 1 candidate
+    • candidate 1: ‘template<class U> void A<T>::g(U) [with T = int]’
+      pr100716.C:10:12:
+         10 |       void g(U) {} // { dg-line Ag }
+            |            ^
+      • candidate expects 1 argument, 0 provided
+pr100716.C:40:13: error: no matching function for call to ‘B<int>::f()’
+   40 |   B<int>().f(); // { dg-error "no matching function for call to 'B<int>::f\\(\\)'" }
+      |   ~~~~~~~~~~^~
+  • there is 1 candidate
+    • candidate 1: ‘template<class U> void B<T>::f(U) [with T = int]’
+      pr100716.C:17:12:
+         17 |       void f(U) {} // { dg-line Bf }
+            |            ^
+      • candidate expects 1 argument, 0 provided
+pr100716.C:43:13: error: no matching function for call to ‘B<int>::g()’
+   43 |   B<int>().g(); // { dg-error "no matching function for call to 'B<int>::g\\(\\)'" }
+      |   ~~~~~~~~~~^~
+  • there is 1 candidate
+    • candidate 1: ‘template<class U> void B<T>::g(U, T) [with T = int]’
+      pr100716.C:20:12:
+         20 |       void g(U, T) {} // { dg-line Bg }
+            |            ^
+      • candidate expects 2 arguments, 0 provided
+pr100716.C:46:15: error: no matching function for call to ‘B<float>::g(int)’
+   46 |   B<float>().g(0); // { dg-error "no matching function for call to 'B<float>::g\\(int\\)'" }
+      |   ~~~~~~~~~~~~^~~
+  • there is 1 candidate
+    • candidate 1: ‘template<class U> void B<T>::g(U, T) [with T = float]’
+      pr100716.C:20:12:
+         20 |       void g(U, T) {} // { dg-line Bg }
+            |            ^
+      • candidate expects 2 arguments, 1 provided
+pr100716.C:49:8: error: no matching function for call to ‘C::f()’
+   49 |   C().f(); // { dg-error "no matching function for call to 'C::f\\(\\)'" }
+      |   ~~~~~^~
+  • there is 1 candidate
+    • candidate 1: ‘template<class U> void C::f(U)’
+      pr100716.C:26:10:
+         26 |     void f(U) {} // { dg-line Cf }
+            |          ^
+      • candidate expects 1 argument, 0 provided
+pr100716.C:52:8: error: no matching function for call to ‘C::g(int)’
+   52 |   C().g(0); // { dg-error "no matching function for call to 'C::g\\(int\\)'" }
+      |   ~~~~~^~~
+  • there is 1 candidate
+    • candidate 1: ‘template<class U> void C::g()’
+      pr100716.C:29:10:
+         29 |     void g() {} // { dg-line Cg }
+            |          ^
+      • candidate expects 0 arguments, 1 provided
 
 * GNU style
 
