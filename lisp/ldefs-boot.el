@@ -2561,8 +2561,9 @@ used instead of `browse-url-new-window-flag'.
 (make-obsolete 'browse-url-mozilla 'nil "29.1")
 (autoload 'browse-url-firefox "browse-url"
 "Ask the Firefox WWW browser to load URL.
-Defaults to the URL around or before point.  Passes the strings
-in the variable `browse-url-firefox-arguments' to Firefox.
+Defaults to the URL around or before point.  Invokes the program
+specified by `browse-url-firefox-program'.  Passes the strings
+in the variable `browse-url-firefox-arguments' to that program.
 
 Interactively, if the variable `browse-url-new-window-flag' is non-nil,
 loads the document in a new Firefox window.  A non-nil prefix argument
@@ -2578,9 +2579,9 @@ instead of `browse-url-new-window-flag'.
 (fn URL &optional NEW-WINDOW)" t)
 (autoload 'browse-url-chromium "browse-url"
 "Ask the Chromium WWW browser to load URL.
-Default to the URL around or before point.  The strings in
-variable `browse-url-chromium-arguments' are also passed to
-Chromium.
+Default to the URL around or before point.  Invokes the program
+specified by `browse-url-chromium-program'.  Passes the strings in
+variable `browse-url-chromium-arguments' to that program.
 The optional argument NEW-WINDOW is not used.
 
 (fn URL &optional NEW-WINDOW)" t)
@@ -6384,6 +6385,15 @@ even if it doesn't match the type.)
 "
 
 (fn VARIABLE VALUE)")
+(defvar setopt-local-type-mismatch nil
+"Behavior of `setopt-local’ if value's type doesn't match its definition.
+If nil, emit a warning, but accept the mismatched value.
+If the symbol `accept', ignore type mismatch warning and assign the value.
+If the symbol `discard', ignore warning and discard the mismatched value.
+If any other non-nil value, prompt whether to accept or discard the value.
+Note: Accepting mismatched values may result in unexpected behavior.")
+(custom-autoload 'setopt-local-type-mismatch "cus-edit" t)
+(put 'setopt-local-type-mismatch 'safe-local-variable #'symbolp)
 (autoload 'setopt-local "cus-edit"
 "Set buffer local VARIABLE/VALUE pairs, and return the final VALUE.
 This is like `setq-local', but is meant for user options instead of
@@ -6401,7 +6411,8 @@ Signal an error if a `custom-set' form does not support the
 
 (fn [VARIABLE VALUE]...)" nil t)
 (autoload 'setopt--set-local "cus-edit"
-"
+"Set a buffer local VARIABLE to VALUE.
+Consult `setopt-local-type-mismatch'.
 
 (fn VARIABLE VALUE)")
 (autoload 'customize-save-variable "cus-edit"
@@ -8407,6 +8418,38 @@ Linux console, for which Emacs has a reliable way of determining
 which characters can be displayed and which cannot.
 
 (fn &optional REPL FROM TO)" t)
+(defvar prettify-special-glyphs-mode nil
+"Non-nil if Prettify-Special-Glyphs mode is enabled.
+See the `prettify-special-glyphs-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `prettify-special-glyphs-mode'.")
+(custom-autoload 'prettify-special-glyphs-mode "disp-table" nil)
+(autoload 'prettify-special-glyphs-mode "disp-table"
+"Mode to display pretty special character glyphs.
+
+If you have already customized your special character glyphs, only the
+`special-glyphs' face is applied to them.  This mode only applies to the
+`standard-display-table'.  Window or buffer display table, if defined,
+still take precedence.
+
+This is a global minor mode.  If called interactively, toggle the
+`Prettify-Special-Glyphs mode' mode.  If the prefix argument is
+positive, enable the mode, and if it is zero or negative, disable the
+mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate `(default-value \\='prettify-special-glyphs-mode)'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
 (register-definition-prefixes "disp-table" '("display-table-print-array"))
 
 
@@ -9962,7 +10005,7 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window.
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 23) package--builtin-versions)
+(push '(eglot 1 24) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot"
 "Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -10332,10 +10375,50 @@ Interactively, prompt for ROLE.
 Call CALLBACK for each analyzed symbol SYM with arguments ROLE, POS,
 SYM, ID and DEF, where ROLE is a symbol that specifies the semantics of
 SYM; POS is the position of SYM in STREAM; ID is an object that uniquely
-identifies (co-)occurrences of SYM in the current defun; and DEF is the
-position in which SYM is locally defined, or nil.  If SYM is itself a
-binding occurrence, then POS and DEF are equal.  If SYM is not lexically
-bound, then DEF is nil.
+identifies the local reference of SYM in the current defun, so different
+occurrences of SYM get the same ID (up to `equal') if and only if they
+refer to the same object; and lastly, DEF is the position in which SYM
+is locally defined, or nil.  For the occurrence of SYM at the position
+where it is locally defined (a.k.a. \"bound\"), the values of POS and
+DEF are equal.  If SYM is not lexically bound, then DEF is nil and so
+is ID.
+
+CALLBACK should use ID by checking if it is nil or `equal' to other ID
+values produced in the same call to this function.  The specific value
+of a given ID is otherwise meaningless.
+
+As an example, when this function analyzes the following form
+
+  (lambda (mode) (let ((mode (or mode major-mode))) (symbol-name mode)))
+
+the CALLBACK function is invoked four times with SYM `mode':
+
+- Once for the `mode' in the `lambda' arguments list, with ROLE
+  `binding-variable', some non-nil ID value MODE-ID1, and with POS and
+  DEF both being the same position POS1 where this `mode' occurs.
+
+- Another time for the binder in the let form, with ROLE
+  `binding-variable' some non-nil ID value MODE-ID2 that is not `equal'
+  to MODE-ID1, and with POS and DEF both being the same position POS2.
+
+- Another for the first argument of `or', with ROLE `bound-variable' and
+  ID of MODE-ID1, since this occurrence of `mode' is bound by the
+  `lambda' argument `mode'.  Similarly, DEF is POS1, and POS is now a
+  different position, POS3.
+
+- Finally, CALLBACK is also invoked for the `mode' that appears in the
+  body of `let' as the argument of `symbol-name', with ROLE set to
+  `bound-variable', ID set to MODE-ID2, and DEF set to POS3.
+
+In the above example, CALLBACK is also invoked for `lambda', `let',
+`or', `major-mode' and `symbol-name'.  Since those symbols do not have
+local references (they refer to global functions/macros/variables),
+CALLBACK gets nil ID and nil DEF.
+
+Note that if SYM is locally-bound, but has no specific binding position,
+then DEF is nil while ID is non-nil.  This is the case when SYM is bound
+by a binder that is only introduced during macro expansion and does not
+appear literally in the analyzed code.
 
 If STREAM is nil, it defaults to the current buffer.  When reading from
 the current buffer, this function leaves point at the end of the form.
@@ -10565,13 +10648,17 @@ or penultimate step during initialization.
 
 (autoload 'emacs-lock-mode "emacs-lock"
 "Toggle Emacs Lock mode in the current buffer.
+When a buffer is locked, it cannot be killed and/or Emacs cannot exit
+unless the buffer is unlocked first.  This protects buffers from
+being accidentally killed or lost.
+
 If called with a plain prefix argument, ask for the locking mode
-to be used.
+to be used in the buffer.
 
 Initially, if the user does not pass an explicit locking mode, it
 defaults to `emacs-lock-default-locking-mode' (which see);
 afterwards, the locking mode most recently set on the buffer is
-used instead.
+used as the default instead.
 
 When called from Elisp code, ARG can be any locking mode:
 
@@ -10579,7 +10666,7 @@ When called from Elisp code, ARG can be any locking mode:
  kill   -- the buffer cannot be killed, but Emacs can exit as usual
  all    -- the buffer is locked against both actions
 
-Other values are interpreted as usual.
+Other values are interpreted as usual for turning modes on/off.
 
 See also `emacs-lock-unlockable-modes', which exempts buffers under
 some major modes from being locked under some circumstances.
@@ -10678,9 +10765,12 @@ Message buffer where you can explain more about the patch.
 
 ;;; Generated autoloads from international/emoji.el
 
-(autoload 'emoji-insert "emoji")
-(autoload 'emoji-recent "emoji")
-(autoload 'emoji-search "emoji")
+(autoload 'emoji-insert "emoji" nil t)
+(autoload 'emoji-recent "emoji" nil t)
+(autoload 'emoji-search "emoji"
+"
+
+(fn GLYPH DERIVED)" t)
 (autoload 'emoji-list "emoji"
 "List Emoji and allow selecting and inserting one of them.
 If you are displaying Emoji on a text-only terminal, and some
@@ -10700,7 +10790,10 @@ If called from Lisp, return the name as a string; return nil if
 the name is not known.
 
 (fn GLYPH &optional INTERACTIVE)" t)
-(autoload 'emoji-list-select "emoji")
+(autoload 'emoji-list-select "emoji"
+"
+
+(fn EVENT)" '(emoji-list-mode))
 (autoload 'emoji--init "emoji"
 "
 
@@ -11093,7 +11186,7 @@ a single minimum version string.
 
 ;;; Generated autoloads from erc/erc.el
 
-(push '(erc 5 6 2 -4) package--builtin-versions)
+(push '(erc 5 7 -4) package--builtin-versions)
 (dolist (symbol '( erc-sasl erc-spelling ; 29
                   erc-imenu erc-nicks)) ; 30
  (custom-add-load symbol symbol))
@@ -11310,7 +11403,7 @@ server name and search for a match in `erc-networks-alist'.")
 
 ;;; Generated autoloads from erc/erc-pcomplete.el
 
-(register-definition-prefixes "erc-pcomplete" '("erc-pcomplet" "pcomplete"))
+(register-definition-prefixes "erc-pcomplete" '("erc-" "pcomplete"))
 
 
 ;;; Generated autoloads from erc/erc-replace.el
@@ -13851,8 +13944,6 @@ evaluate the variable `flymake-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-\\{flymake-mode-map}
-
 (fn &optional ARG)" t)
 (autoload 'flymake-mode-on "flymake"
 "Turn Flymake mode on.")
@@ -15030,11 +15121,6 @@ supported.
 ;;; Generated autoloads from gnus/gnus-cus.el
 
 (register-definition-prefixes "gnus-cus" '("category-fields" "gnus-"))
-
-
-;;; Generated autoloads from gnus/gnus-dbus.el
-
-(register-definition-prefixes "gnus-dbus" '("gnus-dbus-"))
 
 
 ;;; Generated autoloads from gnus/gnus-delay.el
@@ -20052,7 +20138,7 @@ penultimate step during initialization.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push '(jsonrpc 1 0 28) package--builtin-versions)
+(push '(jsonrpc 1 0 29) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -20427,7 +20513,7 @@ penultimate step during initialization." t)
 Dotted symbol is any symbol starting with a `.'.  This macro creates
 let-bindings for dotted symbols that appear literally in BODY (whether
 or not they are actually used).  It does not create bindings for dotted
-symbols that are introdcued by macro-expansion in BODY.
+symbols that are introduced by macro-expansion in BODY.
 
 A symbol of the form `.foo.N' where N is a natural number refers to the
 Nth element of the value that ALIST associates to key `foo'.
@@ -20442,7 +20528,7 @@ For instance, the following code
 
 essentially expands to
 
-  (let ((.title.0 (nth 0 (cdr (assq \\='title alist))))
+  (let ((.title.0 (elt (cdr (assq \\='title alist)) 0))
         (.body  (cdr (assq \\='body alist)))
         (.site  (cdr (assq \\='site alist)))
         (.site.contents (cdr (assq \\='contents (cdr (assq \\='site alist))))))
@@ -21429,20 +21515,271 @@ for the current invocation.
 
 ;;; Generated autoloads from textmodes/markdown-ts-mode.el
 
+(push '(markdown-ts-mode 1 0) package--builtin-versions)
 (autoload 'markdown-ts-mode "markdown-ts-mode"
 "Major mode for editing Markdown using tree-sitter grammar.
+NOTE: See `markdown-ts--set-up-inline'.
 
 In addition to any hooks its parent mode `text-mode' might have run,
 this mode runs the hook `markdown-ts-mode-hook', as the final or
 penultimate step during initialization.
 
 \\{markdown-ts-mode-map}" t)
+(autoload 'markdown-ts-view-mode "markdown-ts-mode"
+"Major mode for read-only viewing Markdown using tree-sitter grammar.
+
+This mode runs the hook `markdown-ts-view-mode-hook', as the final or
+penultimate step during initialization.
+
+\\{markdown-ts-view-mode-map}" t)
+(autoload 'markdown-ts-buffer-string "markdown-ts-mode"
+"Like `buffer-string', and convert overlay properties to text properties.")
 (autoload 'markdown-ts-mode-maybe "markdown-ts-mode"
-"Enable `markdown-ts-mode' when its grammar is available.
-Also propose to install the grammar when `treesit-enabled-modes'
+"Enable `markdown-ts-mode' when its grammars are available.
+Also propose to install the grammars when `treesit-enabled-modes'
 is t or contains the mode name.")
-(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(markdown-mode . markdown-ts-mode)))
+(when (boundp 'treesit-major-mode-remap-alist) (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-ts-mode-maybe)) (add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-ts-mode-maybe)) (add-to-list 'treesit-major-mode-remap-alist '(markdown-mode . markdown-ts-mode)))
 (register-definition-prefixes "markdown-ts-mode" '("markdown-ts-"))
+
+
+;;; Generated autoloads from textmodes/markdown-ts-mode-x.el
+
+(push '(markdown-ts-mode-x 1 0) package--builtin-versions)
+(autoload 'markdown-ts-convert-file "markdown-ts-mode-x"
+"Convert Markdown INPUT-FILE to FORMAT.
+If optional DISPLAY is non-nil, show the output file in a buffer, if
+possible, using the function `markdown-ts-convert-display-function'.
+
+With a prefix argument, DISPLAY will be non-nil.
+
+Optional FORMAT is a format/converter pair specified as a cons
+\\='(format . converter) for example \\='(html . pandoc).  See
+`markdown-ts-converters'.  If nil, prompt for the format and converter.
+
+If optional OVERWRITE is non-nil, silently overwrite OUTPUT-FILE if it
+exists.
+
+If QUIET is non-nil, inhibit showing conversion warnings or errors.
+
+The external executable specified by a converter must be installed and
+found; see the variable `exec-path'.
+
+(fn INPUT-FILE &optional FORMAT OUTPUT-FILE DISPLAY OVERWRITE QUIET)" t)
+(autoload 'markdown-ts-convert "markdown-ts-mode-x"
+"Convert a `markdown-ts-mode' buffer or file to FORMAT.
+Convert INPUT-FILE to OUTPUT-FILE.
+
+If INPUT-FILE is nil, use the current buffer.
+
+If OUTPUT-FILE is nil, prompt for an output file.
+
+Optional FORMAT is a format/converter pair specified as a cons
+\\='(format . converter) for example \\='(html . pandoc).  See
+`markdown-ts-converters'.  If nil, prompt for the format and converter.
+
+If optional DISPLAY is non-nil, show the output file in a buffer, if
+possible, using the function `markdown-ts-convert-display-function'.
+
+With a prefix argument, DISPLAY will be non-nil.
+
+If optional OVERWRITE is non-nil, silently overwrite OUTPUT-FILE if it
+exists.
+
+If QUIET is non-nil, inhibit showing conversion warnings or errors.
+
+The external executable specified by a converter must be installed and
+found; see the variable `exec-path'.
+
+(fn &optional INPUT-FILE OUTPUT-FILE FORMAT DISPLAY OVERWRITE QUIET)" t)
+(autoload 'markdown-ts-toc-update-before-save-mode "markdown-ts-mode-x"
+"If enabled, update `markdown-ts-mode' tables of contents before saving.
+
+This is a minor mode.  If called interactively, toggle the
+`Markdown-Ts-Toc-Update-Before-Save mode' mode.  If the prefix argument
+is positive, enable the mode, and if it is zero or negative, disable the
+mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate the variable `markdown-ts-toc-update-before-save-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
+(autoload 'markdown-ts-toc-clear-and-remove "markdown-ts-mode-x"
+"Remove `markdown-ts-mode' table of contents bodies and templates.
+Operate on the active region BEG to END, otherwise operate on the
+buffer, which may be narrowed.
+
+(fn &optional BEG END)" t)
+(autoload 'markdown-ts-toc-clear "markdown-ts-mode-x"
+"Clear `markdown-ts-mode' table of contents bodies.
+Operate on the active region BEG to END, otherwise operate on the
+buffer, which may be narrowed.
+If optional REMOVE is non-nil, remove tables including their templates.
+
+(fn &optional BEG END REMOVE)" t)
+(autoload 'markdown-ts-toc-insert-template "markdown-ts-mode-x"
+"Insert a `markdown-ts-mode` table of contents template at point.
+
+CHAR is the template type \"b\" for basic, \"c\" for complete.  If CHAR
+is nil and the command is run interactively, prompt for a template.
+
+The basic template uses all defaults and is likely the best choice for
+most uses.  The complete template illustrates all parameters set to
+their defaults and is useful as a starting point to customize a table.
+
+(fn &optional CHAR)" t)
+(autoload 'markdown-ts-toc-generate "markdown-ts-mode-x"
+"Generate tables of contents in the current buffer.
+`markdown-ts-mode' uses Markdown HTML comment elements to identify table
+of contents (aka toc) insertion boundaries and the parameters for each
+table.  Derive table content from the Markdown elements in the current
+buffer which are usually headings but can also be list items, setext
+headers, named code blocks.
+
+Operate on the active region BEG to END, otherwise operate on the
+buffer, which may be narrowed.
+
+Each time you run this command, existing tables of contents are cleared
+and refreshed with new content.  So don't place toc elements around
+important text.
+
+The buffer can have one or more tocs.  By default, populate each toc
+with elements that appear in the buffer below the toc.  Therefore, the
+easiest way to insert a complete table of contents, is to put the toc
+template near the top of your buffer.
+
+A basic empty toc template looks like this:
+
+Header text you want here.
+
+<!-- markdown-ts-toc: -->
+Contents inserted between these elements.
+<!-- markdown-ts-toc-end: -->
+
+Footer text you want here.
+
+Use the command `markdown-ts-toc-insert-template' to insert a table of
+contents template.
+
+Use the command `markdown-ts-toc-clear' to clear table content, and the
+command `markdown-ts-toc-clear-and-remove' to both clear and remove
+table content and templates.
+
+By default, a toc includes headers at all levels below the toc which are
+presented as list items with links.
+
+To ignore a Markdown element that would otherwise be included in the
+toc, add a toc ignore element:
+
+## Ignore Me <!-- markdown-ts-toc-ignore: -->
+
+The starting toc element accepts parameters in the syntax of Emacs file
+variables.
+
+For example, if you want to generate a table of contents limited to
+headings two levels deep:
+
+<!-- markdown-ts-toc: -*- max-depth: 2; -*- -->
+<!-- markdown-ts-toc-end: -->
+
+Or use only headings two and three levels deep.
+
+<!-- markdown-ts-toc: -*- min-depth: 2; max-depth: 3; -*- -->
+<!-- markdown-ts-toc-end: -->
+
+These are the supported parameters which are optional.  They each list
+their defaults.
+
+  min-depth: 1          ; an integer
+  max-depth: nil        ; an integer
+  candidates: (heading) ; a list
+  from: below           ; a symbol
+  style: item           ; a symbol
+  indent: 1             ; a number
+  no-link: nil          ; a boolean
+  relative-depth: nil   ; a boolean
+  ignore: nil           ; a boolean
+
+`min-depth' and `max-depth' both default to using all candidates at
+every level.  Use `min-depth' to ignore level 1 headings like \"#
+Heading\", by using 2.  Use `max-depth' to control how deep into the
+heading hierarchy you need your toc to go.  Use 3 to stop at level three
+headings.
+
+Headings dictate the level of their children even if headings are
+excluded from candidates.  Other element types inherit the level of
+their preceding heading.
+
+`candidates' is a list and can contain any of the following Markdown
+element shortcut names.  You can mix higher-level grouping symbols and
+lower level symbols.
+
+  all (includes everything)
+  heading (includes the below)
+    h1 h2 h3 h4 h5 h6
+  setext (includes the below)
+    sh1 sh2
+  item (includes the below)
+    minus plus star
+  numbered-item (includes the below)
+    dot paren
+  code (named code blocks)
+
+`from' controls the direction and scope from which candidates are
+selected.  Typically, a toc is placed at the beginning of a buffer and
+`from' is `below' to capture entry candidates after the toc.  If you set
+`from' to `above', candidates are selected from above the toc.  Use
+`all' to capture every entry candidate.  This is useful to create a
+complete toc at the end of your buffer.
+
+The `style' parameter can be nil, `item', `number' or `number.'.  Under
+nil, entries have no decorations.  If `item', entries are prefixed with
+\"-\".  If `bullet', prefix with \"*\".  If `number', numeric prefixes
+are generated, for example 1, 1.1, 2, 2.1, 2.1.1, 2.1.2.  Use `number.'
+to add a period to each entry's number.
+
+`indent' is an integer between 0 and 10.  0 means nothing should be
+indented.  Otherwise, each entry is indented by the number of spaces of
+its Markdown level multiplied by this value.  Candidates that have no
+native level such as list items inherit the base indentation level of
+its preceding header.  List item hierarchies and code blocks indent
+under that base.
+
+Set `no-link' to t if you do not want your entries to have header links.
+By default, each entry derived from a heading is presented as a link to
+its source heading.  NOTE: The elements represented by `setext', `item',
+`numbered-item', `code' do not support links.
+
+Use `relative-depth' to create a toc underneath a heading, limiting the
+toc to heading depths underneath the preceding header and specify the
+levels relative to that header.  More concretely, if the preceding
+header is a level 1 \"#\" header, `min-depth' 1 and `max-depth' 2 will
+be interpreted to be 2 and 3.  If you demote the header to level 2
+\"##\" they will be interpreted as 3 and 4.  This is useful to avoid
+fussing with toc configurations under headers when you change their
+levels.
+
+For example:
+
+<!-- markdown-ts-toc: -*- relative-depth: t; min-depth: 1; max-depth: 2; -*- -->
+<!-- markdown-ts-toc-end: -->
+
+Finally, if `ignore' is t, you can keep a toc element in place and skip
+it.
+
+INTERACTIVE will be non-nil if this command was invoked interactively.
+
+See `markdown-ts-toc-generate-warn-if-none' to configure warnings about
+tables not being processed when this function is called.
+
+(fn &optional INTERACTIVE BEG END)" t)
+(register-definition-prefixes "markdown-ts-mode-x" '("markdown-ts-"))
 
 
 ;;; Generated autoloads from master.el
@@ -23940,7 +24277,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 3) package--builtin-versions)
+(push '(org 9 8 6) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -24702,6 +25039,17 @@ except the hard-coded property name `outline-level'.
 This function is intended to be used in `outline-search-function'.
 
 (fn &optional BOUND MOVE BACKWARD LOOKING-AT)")
+(autoload 'outline-search-from-regexp "outline"
+"Search for the next heading matching `outline-regexp'.
+The arguments BOUND, MOVE, BACKWARD, and LOOKING-AT are described
+in `outline-search-function'.  This function is intended to be
+used in `outline-search-function' by modes and minor modes that
+customize `outline-regexp' but do not need a custom search strategy.
+Install it with
+
+  (setq-local outline-search-function #\\='outline-search-from-regexp)
+
+(fn &optional BOUND MOVE BACKWARD LOOKING-AT)")
 (register-definition-prefixes "outline" '("outline-"))
 
 
@@ -25081,9 +25429,9 @@ DESC must be a `package-desc' object.
 "List of the names of currently activated packages.")
 (defvar package--activated nil
 "Non-nil if `package-activate-all' has been run.")
-(defun package-activate-all nil
+(autoload 'package-activate-all "package-activate"
 "Activate all installed packages.
-The variable `package-load-list' controls which packages to load." (setq package--activated t) (let* ((elc (concat package-quickstart-file "c")) (qs (if (file-readable-p elc) elc (if (file-readable-p package-quickstart-file) package-quickstart-file)))) (or (and qs (not (bound-and-true-p package-activated-list)) (with-demoted-errors "Error during quickstart: %S" (let ((load-source-file-function nil)) (unless (boundp 'package-activated-list) (setq package-activated-list nil)) (load qs nil 'nomessage) t))) (progn (require 'package) (with-no-warnings (package--activate-all))))))
+The variable `package-load-list' controls which packages to load.")
 (autoload 'package-installed-p "package-activate"
 "Return non-nil if PACKAGE, of MIN-VERSION or newer, is installed.
 If PACKAGE is a symbol, it is the package name and MIN-VERSION
@@ -25396,10 +25744,9 @@ Emacs Lisp manual for more information and examples.
 (autoload 'pcase--make-docstring "pcase")
 (autoload 'pcase-exhaustive "pcase"
 "The exhaustive version of `pcase' (which see).
-If EXP fails to match any of the patterns in CASES, an error is
-signaled.
+If EXP fails to match any of the patterns in CASES, signal an error.
 
-In contrast, `pcase' will return nil if there is no match, but
+In contrast, `pcase' will return nil if there is no match, but will
 not signal an error.
 
 (fn EXP &rest CASES)" nil t)
@@ -28077,8 +28424,6 @@ evaluate the variable `rectangle-mark-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-\\{rectangle-mark-mode-map}
-
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
 
@@ -29905,6 +30250,8 @@ ITEMS list is also populated by the resolved handler, but can be
 explicitly overridden.
 
 (fn &optional ITEMS)" t)
+(autoload 'send-to--resolve-handler "send-to"
+"Return first supported handler from `send-to-handlers'.")
 (register-definition-prefixes "send-to" '("send-to-"))
 
 
@@ -32326,6 +32673,10 @@ as the new values of the bound variables in the recursive invocation.
 This construct can only be used with lexical binding.
 
 (fn NAME BINDINGS &rest BODY)" nil t)
+(autoload 'work-buffer--release "subr-x"
+"Release work BUFFER.
+
+(fn BUFFER)")
 (autoload 'with-work-buffer "subr-x"
 "Create a work buffer, and evaluate BODY there like `progn'.
 Like `with-temp-buffer', but reuse an already created temporary
@@ -33565,6 +33916,7 @@ if it matches the first line of the file,
 The command `tex-file' runs TeX on the file specified by `tex-main-file'
 if the variable is non-nil.")
 (custom-autoload 'tex-main-file "tex-mode" t)
+(put 'tex-main-file 'safe-local-variable (lambda (x) (or (stringp x) (null x))))
 (defvar tex-offer-save t
 "If non-nil, ask about saving modified buffers before \\[tex-file] is run.")
 (custom-autoload 'tex-offer-save "tex-mode" t)
@@ -34358,7 +34710,7 @@ If DATE is malformed, return a time value of zero.
 
 (fn DATE)")
 (autoload 'format-seconds "time-date"
-"Use format control STRING to format the number SECONDS.
+"Use format control STRING to format the time value SECONDS.
 The valid format specifiers are:
 %y is the number of (365-day) years.
 %d is the number of days.
@@ -34560,7 +34912,7 @@ relative only to the time worked today, and not to past time.
 
 ;;; Generated autoloads from emacs-lisp/timeout.el
 
-(push '(timeout 2 1) package--builtin-versions)
+(push '(timeout 2 1 6) package--builtin-versions)
 (autoload 'timeout-debounce "timeout"
 "Debounce FUNC by making it run DELAY seconds after it is called.
 
@@ -35192,13 +35544,13 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 2 -1) package--builtin-versions)
+(push '(tramp 2 8 2) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 13 0) package--builtin-versions)
+(push '(transient 0 13 3) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient"
 "Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -36663,6 +37015,11 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 (register-definition-prefixes "uudecode" '("uudecode-"))
 
 
+;;; Generated autoloads from emacs-lisp/uuid.el
+
+(register-definition-prefixes "uuid" '("uuid-"))
+
+
 ;;; Generated autoloads from vc/vc.el
 
 (defvar vc-checkout-hook nil
@@ -37899,7 +38256,7 @@ step during initialization." t)
 
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
-(push '(verilog-mode 2026 1 18 88738971) package--builtin-versions)
+(push '(verilog-mode 2026 4 14 10117132) package--builtin-versions)
 (autoload 'verilog-mode "verilog-mode"
 "Major mode for editing Verilog code.
 \\<verilog-mode-map>
@@ -40211,8 +40568,10 @@ selected window.
 (autoload 'merge-frames "window-x"
 "Merge the main window of FRAME2 into FRAME1.
 Split the main window of FRAME1 and make the new window display the main
-window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  If
-VERTICAL is non-nil, make the new window below the old main window of
+window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  FRAME1
+defaults to the selected frame and FRAME2 to the frame that follows FRAME1
+in the frame list.
+If VERTICAL is non-nil, make the new window below the old main window of
 FRAME1.  Otherwise, make the new window on the right of FRAME1's main
 window.  Interactively, VERTICAL is the prefix argument, FRAME1 is the
 selected frame and FRAME2 is the frame following FRAME1 in the frame
