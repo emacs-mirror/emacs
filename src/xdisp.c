@@ -29040,6 +29040,8 @@ are the selected window and the WINDOW's buffer).  */)
     face = EQ (window, selected_window)
       ? Qmode_line_active
       : Qmode_line_inactive;
+  else if (EQ (face, Qdefault))
+    face = Qnil;
 
   old_buffer = current_buffer;
 
