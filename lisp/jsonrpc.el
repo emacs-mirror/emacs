@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.28
+;; Version: 1.0.29
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -678,14 +678,16 @@ If CONN is not shutdown within a reasonable amount of time, warn
 and delete the network process."
   (unwind-protect
       (cl-loop
-       with proc = (jsonrpc--process conn) for i from 0
+       with proc = (jsonrpc--process conn)
+       with grace = 0.3 with start = (float-time)
+       for i from 0
        while (not (process-get proc 'jsonrpc-sentinel-cleanup-started))
-       unless (zerop i) do
+       unless (or (zerop i) (< (- (float-time) start) grace)) do
        (jsonrpc--warn "Sentinel for %s still hasn't run, deleting it!" proc)
        (delete-process proc)
        do
        ;; Let sentinel have a chance to run
-       (accept-process-output nil 0.1))
+       (accept-process-output nil grace))
     (when cleanup
       (kill-buffer (process-buffer (jsonrpc--process conn)))
       (kill-buffer (jsonrpc-stderr-buffer conn)))))

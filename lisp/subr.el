@@ -7810,7 +7810,7 @@ seconds."
         (unless (y-or-n-p-with-timeout (format "Error %s; continue?"
                                                (error-message-string err))
                                        5 t)
-          (error err))))
+          (signal err))))
      ;; Continue running.
      nil)))
 

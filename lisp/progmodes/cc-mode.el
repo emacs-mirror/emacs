@@ -675,24 +675,16 @@ that requires a literal mode spec at compile time."
   (setq c-min-syn-tab-mkr nil)
   (setq c-max-syn-tab-mkr nil)
 
-  (when (or c-recognize-<>-arglists
-	    (c-major-mode-is 'awk-mode)
-	    (c-major-mode-is '(java-mode c-mode c++-mode objc-mode pike-mode)))
-    ;; We'll use the syntax-table text property to change the syntax
-    ;; of some chars for this language, so do the necessary setup for
-    ;; that.
-    ;;
-    ;; Note to other package developers: It's ok to turn this on in CC
-    ;; Mode buffers when CC Mode doesn't, but it's not ok to turn it
-    ;; off if CC Mode has turned it on.
-
-    ;; Emacs.
-    (when (boundp 'parse-sexp-lookup-properties)
-      (set (make-local-variable 'parse-sexp-lookup-properties) t))
-
-    ;; Same as above for XEmacs.
-    (when (boundp 'lookup-syntax-properties)
-      (set (make-local-variable 'lookup-syntax-properties) t)))
+  ;; We use the syntax-table text property to change the syntax of some
+  ;; chars, potentially in every language, so set this up.
+  ;; Emacs.
+  (when (boundp 'parse-sexp-lookup-properties)
+    (make-local-variable 'parse-sexp-lookup-properties)
+    (setq parse-sexp-lookup-properties t))
+  ;; Same as above for XEmacs.
+  (when (boundp 'lookup-syntax-properties)
+    (make-local-variable 'lookup-syntax-properties)
+    (setq lookup-syntax-properties t))
 
   ;; Use this in Emacs 21+ to avoid meddling with the rear-nonsticky
   ;; property on each character.

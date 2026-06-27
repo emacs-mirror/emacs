@@ -519,7 +519,7 @@ same terminal as the selected frame.  Child frames can be excluded.  A
 single frame can be excluded, for example, the selected frame.
 'get-mru-frame' returns the single most recently used frame.
 
----
++++
 *** After deleting, 'delete-frame' now selects the most recently used frame.
 Previously, after deleting a specified frame, 'delete-frame' would
 select the oldest visible frame on the same terminal.  To revert to the
@@ -550,7 +550,7 @@ the corresponding frame parameters 'width', 'height', 'left' and 'top'.
 'set-frame-size-and-position-pixelwise' is similar but has a more
 restricted set of values for specifying size and position.
 
----
++++
 *** New commands 'split-frame' and 'merge-frames'.
 'split-frame' moves a specified number of windows from an existing frame
 to a newly-created frame.  'merge-frames' merges all windows from two
@@ -2587,7 +2587,7 @@ one as before.  This makes them different from 'vc-diff' and
 'vc-root-diff' when those are called without a prefix argument.
 
 *** 'diff-apply-hunk' now supports creating and deleting files.
-diff-apply-buffer supports creating files but not deleting them, yet.
+'diff-apply-buffer' supports creating files but not deleting them, yet.
 
 +++
 *** Diff mode's application and killing commands now consider the region.

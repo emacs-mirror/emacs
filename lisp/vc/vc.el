@@ -5002,11 +5002,11 @@ If FILE is a directory, revert all files inside that directory."
                            (vc-responsible-backend file)
                          (vc-backend file))
                        'revert file backup-file))
-    `((vc-state . ,(if (eq (vc-state file) 'added)
-                       'unregistered
-                     'up-to-date))
-      (vc-checkout-time
-       . ,(file-attribute-modification-time (file-attributes file)))))
+    (let ((state (vc-state file)))
+      `(,@(and (eq state 'added) '((vc-backend . nil)))
+        (vc-state . ,(if (eq state 'added) 'unregistered 'up-to-date))
+        (vc-checkout-time
+         . ,(file-attribute-modification-time (file-attributes file))))))
   (vc-resynch-buffer file t t))
 
 (defun vc-revert-files (backend files)
@@ -5022,7 +5022,7 @@ For entries in FILES that are directories, revert all files inside them."
         ;; Use `vc-file-getprop' directly here because we may be
         ;; handling very many files and do not want to hit the disk.
         `(,@(pcase (vc-file-getprop file 'vc-state)
-              ('added '((vc-state . unregistered)))
+              ('added '((vc-backend . nil) (vc-state . unregistered)))
               ;; If we have no known state for the file somehow, leave
               ;; it that way.
               ('nil nil)

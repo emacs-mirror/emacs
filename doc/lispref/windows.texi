@@ -78,14 +78,19 @@ disambiguation, we use the term @dfn{window-system window} when we mean
 the window-system window corresponding to an Emacs frame.
 
 @cindex tiled windows
+@cindex window layout
   Unlike X windows, Emacs windows are @dfn{tiled}; they never overlap
 within the area of their frame.  When a window is created, resized, or
 deleted, the change in window space is taken from or given to other
 windows on the same frame, so that the total area of the frame is
-unchanged.
+unchanged.  The @dfn{window layout} of a frame is the result of all
+tiling operations for that frame.
 
+@cindex window object
+@cindex window identity
 In Emacs Lisp, windows are represented by a special Lisp object type
-(@pxref{Window Type}).
+(@pxref{Window Type}).  Two windows are identical if and only if they are
+represented by the same Lisp object.
 
 @defun windowp object
 This function returns @code{t} if @var{object} is a window (whether or
@@ -7263,11 +7268,16 @@ and/or two columns.
 In the context of window states, the @dfn{clone of a window} is a window
 that has the same decorations and contents as the window whose state was
 used to produce it, but is actually represented by another window
-object.  Operating on the original or the clone of a window does not
-affect the other in any way.  Note that while @code{window-state-get}
-clones existing windows, these clones are not yet valid windows.  They
-become valid only after @code{window-state-put} has put them into a live
-frame.
+object.  Hence it does not have the same identity as the original
+window.  Operating on the original or the clone of a window does not
+affect the other in any way.
+
+Note that while @code{set-window-configuration} always restores the
+identity of the windows it puts back into their frame,
+@code{window-state-put} never does that.  Note also that while
+@code{window-state-get} clones existing windows, these clones are not
+yet valid windows.  They become valid only after @code{window-state-put}
+has put them into a live frame.
 
 By default, @code{set-window-configuration} and @code{window-state-put}
 may delete a window from the restored configuration or state when they
