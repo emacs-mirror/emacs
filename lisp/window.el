@@ -7993,7 +7993,13 @@ variable to t, strong dedication will be used by default and
 \\[universal-argument] will make the window weakly dedicated.
 
 See the info node `(elisp)Dedicated Windows' for more details."
-  (interactive "@i\nP\np")
+  (interactive "i\nP\np")
+
+  (when (and (not window) (mouse-event-p last-input-event))
+    (let ((event-window (posn-window (event-start last-input-event))))
+      (unless (eq (selected-window) event-window)
+        (setq window event-window))))
+
   (setq window (window-normalize-window window))
   (setq flag (cond
               ((consp flag)

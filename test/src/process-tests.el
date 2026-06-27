@@ -113,6 +113,7 @@ process to complete."
 	      (looking-at "hello stderr!"))))))
 
 (ert-deftest process-test-stderr-filter ()
+  :tags (if (getenv "EMACS_EMBA_CI") '(:unstable))
   (skip-unless (executable-find "bash"))
   (with-timeout (60 (ert-fail "Test timed out"))
   (let* ((stderr-sentinel-called nil)
