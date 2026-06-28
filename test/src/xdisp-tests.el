@@ -190,6 +190,12 @@ int main () {
     (insert (format-mode-line
              (propertize "x" 'face 'bold-italic)
              1200000000000000000000000000))
-    (should (null (get-text-property 1 'face)))))
+    (should (null (get-text-property 1 'face))))
+  (should
+   (equal
+    (text-properties-at
+     0
+     (format-mode-line '((:propertize "Hello!" face bold)) 'mode-line))
+    (list 'face '(bold mode-line) 'mode-line-elt-no 3))))
 
 ;;; xdisp-tests.el ends here
