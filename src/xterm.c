@@ -28133,7 +28133,8 @@ do_ewmh_fullscreen (struct frame *f)
 		  || cur == FULLSCREEN_MAXIMIZED)
 		set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
 			      dpyinfo->Xatom_net_wm_state_maximized_vert);
-	      if (cur != FULLSCREEN_MAXIMIZED || x_frame_normalize_before_maximize)
+	      if ((cur != FULLSCREEN_MAXIMIZED  && cur != FULLSCREEN_BOTH)
+		  || x_frame_normalize_before_maximize)
 		set_wm_state (frame, true,
 			      dpyinfo->Xatom_net_wm_state_maximized_horz, None);
 	    }
@@ -28153,7 +28154,8 @@ do_ewmh_fullscreen (struct frame *f)
 		  || cur == FULLSCREEN_MAXIMIZED)
 		set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
 			      dpyinfo->Xatom_net_wm_state_maximized_horz);
-	      if (cur != FULLSCREEN_MAXIMIZED || x_frame_normalize_before_maximize)
+	      if ((cur != FULLSCREEN_MAXIMIZED && cur != FULLSCREEN_BOTH)
+		  || x_frame_normalize_before_maximize)
 		set_wm_state (frame, true,
 			      dpyinfo->Xatom_net_wm_state_maximized_vert, None);
 	    }
