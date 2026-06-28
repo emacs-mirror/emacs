@@ -196,6 +196,19 @@ int main () {
     (text-properties-at
      0
      (format-mode-line '((:propertize "Hello!" face bold)) 'mode-line))
-    (list 'face '(bold mode-line) 'mode-line-elt-no 3))))
+    (list 'face '(bold mode-line) 'mode-line-elt-no 3)))
+  (with-temp-buffer
+    ;; This test is due to Markus Triska <triska@metalevel.at>.
+    (let ((m1 (format-mode-line mode-line-format nil))
+	  (m2 (format-mode-line mode-line-format 'default))
+	  s1 s2)
+      (font-lock-mode 0)
+      (insert "\n")
+      (insert m1)
+      (setq s1 (window-text-pixel-size nil (line-beginning-position) (point)))
+      (insert "\n")
+      (insert m2)
+      (setq s2 (window-text-pixel-size nil (line-beginning-position) (point)))
+      (should (equal m1 m2)))))
 
 ;;; xdisp-tests.el ends here
