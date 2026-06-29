@@ -4895,9 +4895,9 @@ tip revision are merged into the working file."
      ;; If a pull operation is defined, use it.
      (fn
       (funcall fn arg)
-      ;; FIXME: Ideally we would only clear out the stored value for the
-      ;; REMOTE-LOCATION from which we are pulling.
       (vc-run-delayed
+        ;; FIXME: Ideally we would only clear out the stored value for
+        ;; the REMOTE-LOCATION from which we are pulling.
         (vc--repo-setprop backend 'vc-incoming-revision nil)
         (when vc-dir-buffers
           (vc-dir--refresh-headers (vc-root-dir backend)))))
@@ -4940,9 +4940,9 @@ It also signals an error in a Bazaar bound branch."
 	 (backend (car fileset)))
     (if (vc-find-backend-function backend 'push)
         (progn (vc-call-backend backend 'push arg)
-               ;; FIXME: Ideally we would only clear out the
-               ;; REMOTE-LOCATION to which we are pushing.
                (vc-run-delayed
+                 ;; FIXME: Ideally we would only clear out the
+                 ;; REMOTE-LOCATION to which we are pushing.
                  (vc--repo-setprop backend 'vc-incoming-revision nil)
                  (when vc-dir-buffers
                    (vc-dir--refresh-headers (vc-root-dir backend)))))
