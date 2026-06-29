@@ -4608,6 +4608,11 @@ filter out additional entries (because TABLE might not obey PRED)."
                      ;; Text that goes between the new submatches and the
                      ;; completion substring.
                      (between nil))
+          ;; SUBPAT was computed with point=(length substring); remove
+          ;; the trailing `point' since that's not the real location of
+          ;; point (bug#80914).
+          (cl-assert (eq (car (last subpat)) 'point))
+          (setq subpat (butlast subpat))
           ;; Eliminate submatches that don't end with the separator.
           (dolist (submatch (prog1 suball (setq suball ())))
             (when (eq sep (aref submatch (1- (length submatch))))

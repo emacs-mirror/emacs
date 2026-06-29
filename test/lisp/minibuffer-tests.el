@@ -340,6 +340,21 @@
                   "" '("fooxbar" "fooybar") nil 0)
                  '("foobar" . 3))))
 
+(ert-deftest completion-pcm-bug80914 ()
+  ;; Completing a partial match in an earlier component (here "s"
+  ;; matches both "sys" and "sources", which contain "class" and
+  ;; "clang") should not leave a stray `point' in the middle of the
+  ;; merged pattern (bug#80914).
+  (let ((default-directory (ert-resource-directory))
+        (input "pcm/s/cl"))
+    ;; The pattern has a single `point' at the end rather than an extra
+    ;; `point' after the "s".
+    (should (equal (completion-pcm--find-all-completions
+                    input #'completion--file-name-table nil (length input))
+                   '(("s" any "/" "cl" point)
+                     ("sources/clang" "sys/class")
+                     "pcm/" "")))))
+
 (ert-deftest completion-pcm-test-anydelim ()
   ;; After each delimiter is a special wildcard which matches any
   ;; sequence of delimiters.
