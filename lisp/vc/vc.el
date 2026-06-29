@@ -364,9 +364,17 @@
 ;;
 ;; - pull (prompt)
 ;;
-;;   Pull "upstream" changes into the current branch (for distributed
+;;   Pull upstream changes into the current branch (for distributed
 ;;   VCS).  If PROMPT is non-nil, or if necessary, prompt for a
-;;   location to pull from.
+;;   location to pull from.  If the pull is done asynchronously, return
+;;   the process object.
+;;
+;; - push (prompt)
+;;
+;;   Push local changes to the upstream of the current branch (for
+;;   distributed VCS).  If PROMPT is non-nil, or if necessary, prompt
+;;   for the command to run.  If the pull is done asynchronously, return
+;;   the process object.
 ;;
 ;; - steal-lock (file &optional revision)
 ;;
@@ -4894,13 +4902,15 @@ tip revision are merged into the working file."
     (cond
      ;; If a pull operation is defined, use it.
      (fn
-      (funcall fn arg)
-      (vc-run-delayed
-        ;; FIXME: Ideally we would only clear out the stored value for
-        ;; the REMOTE-LOCATION from which we are pulling.
-        (vc--repo-setprop backend 'vc-incoming-revision nil)
-        (when vc-dir-buffers
-          (vc-dir--refresh-headers (vc-root-dir backend)))))
+      (let ((proc (funcall fn arg)))
+        (vc-exec-after
+         (lambda ()
+           ;; FIXME: Ideally we would only clear out the stored value
+           ;; for the REMOTE-LOCATION from which we are pulling.
+           (vc--repo-setprop backend 'vc-incoming-revision nil)
+           (when vc-dir-buffers
+             (vc-dir--refresh-headers (vc-root-dir backend))))
+         nil (and (processp proc) proc))))
      ;; If VCS has `merge-news' functionality (CVS and SVN), use it.
      ((vc-find-backend-function backend 'merge-news)
       (save-some-buffers                ; save buffers visiting files
@@ -4939,13 +4949,15 @@ It also signals an error in a Bazaar bound branch."
   (let* ((fileset (vc-deduce-fileset t t))
 	 (backend (car fileset)))
     (if (vc-find-backend-function backend 'push)
-        (progn (vc-call-backend backend 'push arg)
-               (vc-run-delayed
-                 ;; FIXME: Ideally we would only clear out the
-                 ;; REMOTE-LOCATION to which we are pushing.
-                 (vc--repo-setprop backend 'vc-incoming-revision nil)
-                 (when vc-dir-buffers
-                   (vc-dir--refresh-headers (vc-root-dir backend)))))
+        (let ((proc (vc-call-backend backend 'push arg)))
+          (vc-exec-after
+           (lambda ()
+             ;; FIXME: Ideally we would only clear out the
+             ;; REMOTE-LOCATION to which we are pushing.
+             (vc--repo-setprop backend 'vc-incoming-revision nil)
+             (when vc-dir-buffers
+               (vc-dir--refresh-headers (vc-root-dir backend))))
+           nil (and (processp proc) proc)))
       (user-error "VC push is unsupported for `%s'" backend))))
 
 ;;;###autoload

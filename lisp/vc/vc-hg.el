@@ -1632,7 +1632,7 @@ revisions, fetch only those revisions."
 		      (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
       (let* ((root (vc-hg-root default-directory))
 	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
-	      ;; Disable pager.
+	     ;; Disable pager.
              (process-environment (cons "HGPLAIN=1" process-environment))
 	     (hg-program vc-hg-program)
 	     args)
@@ -1648,31 +1648,32 @@ revisions, fetch only those revisions."
 	  (setq hg-program (car  args)
 		command    (cadr args)
 		args       (cddr args)))
-	(set-process-query-on-exit-flag
-         (apply #'vc-do-async-command buffer root hg-program command args)
-         t)
-        (with-current-buffer buffer
-          (vc-run-delayed
-            (dolist (cmd post-processing)
-              (apply #'vc-do-command buffer nil hg-program nil cmd))
-            (vc-compilation-mode 'hg)
-            (setq-local compile-command
-                        (concat hg-program " " command " "
-                                (mapconcat #'identity args " ")
-                                (mapconcat (lambda (args)
-                                             (concat " && " hg-program " "
-                                                     (mapconcat #'identity
-                                                                args " ")))
-                                           post-processing "")))
-            (setq-local compilation-directory root)
-            ;; Either set `compilation-buffer-name-function' locally to nil
-            ;; or use `compilation-arguments' to set `name-function'.
-            ;; See `compilation-buffer-name'.
-            (setq-local compilation-arguments
-                        (list compile-command nil
-                              (lambda (_name-of-mode) buffer)
-                              nil))))
-	(vc-set-async-update buffer)))))
+        (let ((proc (apply #'vc-do-async-command buffer root hg-program
+                           command args)))
+          (set-process-query-on-exit-flag proc t)
+          (with-current-buffer buffer
+            (vc-run-delayed
+              (dolist (cmd post-processing)
+                (apply #'vc-do-command buffer nil hg-program nil cmd))
+              (vc-compilation-mode 'hg)
+              (setq-local compile-command
+                          (concat hg-program " " command " "
+                                  (mapconcat #'identity args " ")
+                                  (mapconcat (lambda (args)
+                                               (concat " && " hg-program " "
+                                                       (mapconcat #'identity
+                                                                  args " ")))
+                                             post-processing "")))
+              (setq-local compilation-directory root)
+              ;; Either set `compilation-buffer-name-function' locally to nil
+              ;; or use `compilation-arguments' to set `name-function'.
+              ;; See `compilation-buffer-name'.
+              (setq-local compilation-arguments
+                          (list compile-command nil
+                                (lambda (_name-of-mode) buffer)
+                                nil))))
+	  (vc-set-async-update buffer)
+          proc)))))
 
 (defun vc-hg-pull (prompt)
   "Issue a Mercurial pull command.
