@@ -1793,14 +1793,13 @@ Throw an error if another update process is in progress."
              (with-current-buffer buffer
                (vc-dir-update entries buffer)
                (unless more-to-come
-                 (let ((remaining
-                        (ewoc-collect vc-ewoc
-                                      'vc-dir-fileinfo->needs-update)))
-                   (if remaining
-                       (vc-dir-refresh-files (mapcar #'vc-dir-fileinfo->name
-                                                     remaining))
-                     (setq mode-line-process nil)
-                     (run-hooks 'vc-dir-refresh-hook))))))))))))
+                 (if-let* ((remaining
+                            (ewoc-collect vc-ewoc
+                                          'vc-dir-fileinfo->needs-update)))
+                     (vc-dir-refresh-files (mapcar #'vc-dir-fileinfo->name
+                                                   remaining))
+                   (setq mode-line-process nil)
+                   (run-hooks 'vc-dir-refresh-hook)))))))))))
 
 (defun vc-dir--refresh-headers (directory)
   "Refresh the headers for any VC-Dir buffers within DIRECTORY."
