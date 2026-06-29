@@ -1669,10 +1669,10 @@ specific headers."
   (let ((buffer (current-buffer)))
     (unless (buffer-live-p vc-dir-process-buffer)
       (with-current-buffer
-          (setq vc-dir-process-buffer
-                (generate-new-buffer (format " *VC-%s* tmp status"
-                                             backend)))
-        (setq vc-parent-buffer buffer)))))
+          (setq-local vc-dir-process-buffer
+                      (generate-new-buffer (format " *VC-%s* tmp status"
+                                                   backend)))
+        (setq-local vc-parent-buffer buffer)))))
 
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
