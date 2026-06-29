@@ -736,11 +736,10 @@ information."
   "Go to the next line.
 With prefix argument ARG, move that many lines."
   (interactive "p")
-  (with-no-warnings
-    (if (vc-dir--before-dotname-p)
-        (ewoc-goto-node vc-ewoc (ewoc-nth vc-ewoc 0))
-      (ewoc-goto-next vc-ewoc arg))
-    (vc-dir-move-to-goal-column)))
+  (if (vc-dir--before-dotname-p)
+      (ewoc-goto-node vc-ewoc (ewoc-nth vc-ewoc 0))
+    (ewoc-goto-next vc-ewoc arg))
+  (vc-dir-move-to-goal-column))
 
 (defun vc-dir-previous-line (arg)
   "Go to the previous line.
