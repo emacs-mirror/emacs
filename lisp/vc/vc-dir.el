@@ -804,7 +804,8 @@ With prefix argument ARG, move that many lines."
 	      ;; `vc-dir-mark-file' signals an error if we try marking
 	      ;; a directory containing marked files in its tree, or a
 	      ;; file in a marked directory tree.  Just continue.
-	      (error (vc-dir-next-line 1))))))
+	      (error (ewoc-goto-next vc-ewoc 1)
+                     (vc-dir-move-to-goal-column))))))
     (funcall mark-unmark-function)))
 
 (defun vc-dir--parent (arg &optional if-marked)
@@ -884,7 +885,8 @@ Replace marks on subitems with marking `%s' itself?"
     (setf (vc-dir-fileinfo->marked file) t)
     (apply #'ewoc-invalidate vc-ewoc to-inval)
     (unless (or arg (mouse-event-p last-command-event))
-      (vc-dir-next-line 1))))
+      (ewoc-goto-next vc-ewoc 1)
+      (vc-dir-move-to-goal-column))))
 
 (defun vc-dir-mark ()
   "Mark the current file or all files in the region.
@@ -1053,7 +1055,8 @@ Replace mark on `%s' with marks on all subitems but this one?"
     (when to-inval
       (apply #'ewoc-invalidate vc-ewoc to-inval))
     (unless (mouse-event-p last-command-event)
-      (vc-dir-next-line 1))))
+      (ewoc-goto-next vc-ewoc 1)
+      (vc-dir-move-to-goal-column))))
 
 (defun vc-dir-unmark ()
   "Unmark the current file or all files in the region.
