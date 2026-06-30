@@ -646,8 +646,7 @@ Also update some VC file properties from ENTRIES."
                        (or (null next)
                            (vc-dir-fileinfo->directory (ewoc-data next)))))
                 (ewoc-delete vc-ewoc crt)))
-              (setq crt prev))))
-        (cl-assert (null to-remove))))
+              (setq crt prev))))))
     ;; Update VC file properties.
     (pcase-dolist (`(,file ,state ,_extra) entries)
       (vc-file-setprop file 'vc-backend
