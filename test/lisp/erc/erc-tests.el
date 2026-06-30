@@ -1305,7 +1305,8 @@
                (lambda (_ _ _ line) (push line calls))))
 
       (ert-info ("Baseline")
-        (setq args '("tester" "BOT=B" "CHANTYPES=" "EXCEPTS" "PREFIX=(ov)@+"
+        (setq args '("tester" "BOT=B" "A.B/c=d"
+                     "CHANTYPES=" "EXCEPTS" "PREFIX=(ov)@+"
                      "are supp...")
               parsed (make-erc-response :command-args args :command "005"))
 
@@ -1316,14 +1317,17 @@
                                  ;; Should be ("CHANTYPES") but
                                  ;; retained for compatibility.
                                  ("CHANTYPES" . "")
+                                 ("A.B/c" . "d")
                                  ("BOT" . "B"))))
                 (should (zerop (hash-table-count erc--isupport-params)))
                 (should (equal "(ov)@+" (erc--get-isupport-entry 'PREFIX t)))
                 (should (equal '(EXCEPTS) (erc--get-isupport-entry 'EXCEPTS)))
                 (should (equal "B" (erc--get-isupport-entry 'BOT t)))
-                (should (string=
-                         (pop calls)
-                         "BOT=B CHANTYPES= EXCEPTS PREFIX=(ov)@+ are supp..."))
+                (should (equal "d" (erc--get-isupport-entry 'A.B/c t)))
+                (should
+                 (string=
+                  "BOT=B A.B/c=d CHANTYPES= EXCEPTS PREFIX=(ov)@+ are supp..."
+                  (pop calls)))
                 (should (equal args (erc-response.command-args parsed)))))
 
         (erc-call-hooks nil parsed))
@@ -1336,7 +1340,8 @@
         (setq verify
               (lambda ()
                 (should (equal erc-server-parameters
-                               '(("PREFIX" . "(ohv)@%+") ("BOT" . "B"))))
+                               '(("PREFIX" . "(ohv)@%+") ("A.B/c" . "d")
+                                 ("BOT" . "B"))))
                 (should (string-prefix-p
                          "-EXCEPTS -CHANTYPES -FAKE PREFIX=(ohv)@%+ "
                          (pop calls)))
