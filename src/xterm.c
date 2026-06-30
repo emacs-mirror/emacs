@@ -28926,25 +28926,6 @@ x_get_focus_frame (struct frame *f)
   return lisp_focus;
 }
 
-/* Return the toplevel parent of F, if it is a child frame.
-   Otherwise, return NULL.  */
-
-static struct frame *
-x_get_toplevel_parent (struct frame *f)
-{
-  struct frame *parent;
-
-  if (!FRAME_PARENT_FRAME (f))
-    return NULL;
-
-  parent = FRAME_PARENT_FRAME (f);
-
-  while (FRAME_PARENT_FRAME (parent))
-    parent = FRAME_PARENT_FRAME (parent);
-
-  return parent;
-}
-
 static void
 x_set_input_focus (struct x_display_info *dpyinfo, Window window,
 		   Time time)
@@ -29068,11 +29049,9 @@ x_focus_frame (struct frame *f, bool noactivate)
 	     may not work if its parent is not activated.  */
 	  && !FRAME_PARENT_FRAME (f)
 	  /* If the focus is being transferred from a child frame to
-	     its toplevel parent, also use SetInputFocus.  */
+	     another frame, also use SetInputFocus.  */
 	  && (!dpyinfo->x_focus_frame
-	      || (x_get_toplevel_parent (dpyinfo->x_focus_frame)
-		  != f))
-	  && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
+	      || !FRAME_PARENT_FRAME (dpyinfo->x_focus_frame)))
 	{
 	  /* When window manager activation is possible, use it
 	     instead.  The window manager is expected to perform any
