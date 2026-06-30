@@ -80,6 +80,15 @@ left margin is present, Emacs will now display the overlay arrow into
 this margin.  Edebug is now using this feature by explicitly setting up
 a left margin for it.
 
+** Mode Line
+
+*** Popup menus invoked from mode line select another window.
+Clicking mode line elements in inactive windows now first
+selects another window before displaying the menu, so the
+commands invoked from the menu will operate on the right buffer.
+You can restore the previous behavior by removing
+'mode-line-window-select' from 'x-pre-popup-menu-hook'.
+
 
 * Editing Changes in Emacs 32.1
 

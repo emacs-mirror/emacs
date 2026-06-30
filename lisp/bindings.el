@@ -889,6 +889,18 @@ or not."
 	     (with-selected-window (minibuffer-window)
 	       (eq window (minibuffer-selected-window)))))))
 
+(defun mode-line-window-select (&optional _ignored-arg)
+  "Select the window on whose mode-line the mouse was clicked."
+  (when-let* ((_ (mouse-event-p last-input-event))
+	      (event (event-start last-input-event))
+	      (_ (eq (posn-area event) 'mode-line))
+	      (window (posn-window event))
+	      (_ (not (eq (selected-window) window))))
+    (mouse-select-window last-input-event)))
+
+(add-hook 'x-pre-popup-menu-hook #'mode-line-window-select)
+
+
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil.
 Note that if `lexical-binding' is in effect, this function isn't
