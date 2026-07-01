@@ -5070,12 +5070,14 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
         ;; to /usr/share/a/e just because we mistyped "ae" for "ar",
         ;; so we probably don't want initials to touch anything that
         ;; looks like /usr/share/foo.  As a heuristic, we just check that
-        ;; the text before the boundary char is at most 1 char.
-        ;; This allows both ~/eee and /eee and not much more.
+        ;; the previous completion field is empty.
+        ;; This allows ~/eee and /eee and /usr//eee and not much more.
         ;; FIXME: It sadly also disallows the use of ~/eee when that's
         ;; embedded within something else (e.g. "(~/eee" in Info node
         ;; completion or "ancestor:/eee" in bzr-revision completion).
-        (when (< (car bounds) 3)
+        (when (let ((str-without-last-field (substring str 0 (1- (car bounds)))))
+                (= (car (completion-boundaries str-without-last-field table pred ""))
+                   (length str-without-last-field)))
           (let ((sep (substring str (1- (car bounds)) (car bounds))))
             ;; FIXME: the above string-match checks the whole string, whereas
             ;; we end up only caring about the after-boundary part.

@@ -355,6 +355,18 @@
                      ("sources/clang" "sys/class")
                      "pcm/" "")))))
 
+(ert-deftest completion-initials ()
+  ;; Should expand initials:
+  (should (equal (completion-initials-expand "/ttab" #'read-file-name-internal nil)
+                 "/t/t/a/b"))
+  (should (equal (completion-initials-expand "~/ttab" #'read-file-name-internal nil)
+                 "~/t/t/a/b"))
+  (should (equal (completion-initials-expand "/home//ttab" #'read-file-name-internal nil)
+                 "/home//t/t/a/b"))     ; bug#81241
+  ;; Should not expand initials:
+  (should-not (completion-initials-expand "/x/ttab" #'read-file-name-internal nil))
+  (should-not (completion-initials-expand "/usr/share/ttab" #'read-file-name-internal nil)))
+
 (ert-deftest completion-pcm-test-anydelim ()
   ;; After each delimiter is a special wildcard which matches any
   ;; sequence of delimiters.
