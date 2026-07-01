@@ -4106,6 +4106,12 @@ the query.  */)
 				      (uint32_t) (beg_byte - visible_beg),
 				      (uint32_t) (end_byte - visible_beg));
     }
+  else
+    {
+      /* If range is unbounded, set it explicitly, in case the cursor is
+         reused and carries the range from last call.  */
+      ts_query_cursor_set_byte_range (cursor, 0, UINT32_MAX);
+    }
 
   /* Execute query.  */
   ts_query_cursor_exec (cursor, treesit_query, treesit_node);
