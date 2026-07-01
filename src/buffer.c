@@ -1318,7 +1318,7 @@ immediately before it was killed.  */)
 }
 
 DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
-       doc: /* Return name of file BUFFER is visiting, or nil if none.
+       doc: /* Return absolute name of file BUFFER is visiting, or nil if none.
 No argument or nil as argument means use the current buffer.  */)
   (register Lisp_Object buffer)
 {
