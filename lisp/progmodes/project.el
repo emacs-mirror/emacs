@@ -647,7 +647,9 @@ It is used when `non-essential' is non-nil.")
   (obarray-map
    (lambda (sym)
      (if (get sym 'project-vc)
-         (put sym 'project-vc nil)))
+         (put sym 'project-vc nil))
+     (if (get sym 'project-vc-dir-locals)
+         (put sym 'project-vc-dir-locals nil)))
    vc-file-prop-obarray))
 
 (defun project-try-vc (dir)
@@ -967,13 +969,15 @@ DIRS must contain directory names."
 (defun project--value-in-dir (var dir)
   (alist-get
    var
-   (let ((cached (project--get-cached dir 'project-vc-dir-locals)))
-     (if (eq cached 'none)
-         nil
-       (or cached
-           (let ((res (project--read-dir-locals dir)))
-             (project--set-cached dir 'project-vc-dir-locals (or res 'none))
-             res))))
+   (and
+    enable-dir-local-variables
+    (let ((cached (project--get-cached dir 'project-vc-dir-locals)))
+      (if (eq cached 'none)
+          nil
+        (or cached
+            (let ((res (project--read-dir-locals dir)))
+              (project--set-cached dir 'project-vc-dir-locals (or res 'none))
+              res)))))
    (default-value var)))
 
 (defun project--read-dir-locals (dir)
