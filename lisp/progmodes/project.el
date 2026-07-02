@@ -157,11 +157,9 @@
 ;;   force every project backend to be aware of the build tool(s) the
 ;;   project is using.
 ;;
-;; * Command to (re)build the tag files in all project roots.  To that
-;;   end, we might need to add a way to provide file whitelist
-;;   wildcards for each root to limit etags to certain files (in
-;;   addition to the blacklist provided by ignores), and/or allow
-;;   specifying additional tag regexps.
+;; * Minor mode to (re)build the tags across the current project:
+;;   `etags-regen-mode'.  It would be straightforward to add support for
+;;   multiple roots, if someone works with a project organized this way.
 ;;
 ;; * UI for the user to be able to pick the current project for the
 ;;   whole Emacs session, independent of the current directory.  Or,
