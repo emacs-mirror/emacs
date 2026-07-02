@@ -84,11 +84,11 @@
 ;; This project type can also be used for non-VCS controlled
 ;; directories, see the variable `project-vc-extra-root-markers'.
 ;;
-;; Some of the methods on this backend cache their computations for time
-;; determined either by variable `project-vc-cache-timeout' or
+;; Some of the methods on this backend cache their computations.
+;; Cache invalidation is done inside the `project-current' call, with
+;; duration determined either by variable `project-vc-cache-timeout' or
 ;; `project-vc-non-essential-cache-timeout', depending on whether the
-;; MAYBE-PROMPT argument to `project-current' is non-nil, or the value
-;; of `non-essential' when project methods are called.
+;; argument MAYBE-PROMPT is non-nil.
 ;;
 ;; Utils:
 ;;
@@ -613,27 +613,21 @@ higher numbers, intended for \"background\" things like
 `project-mode-line' indicators and `project-uniquify-dirname-transform'.
 It is used when `non-essential' is non-nil.")
 
-(defun project--get-cached (dir key)
+(defun project--get-cached (dir key timeout)
   (let ((cached (vc-file-getprop dir key))
         (current-time (float-time)))
     (when (and (numberp (cdr cached))
                ;; Support package upgrade mid-session.
-               (let* ((project-vc-cache-timeout
-                       (if non-essential
-                           project-vc-non-essential-cache-timeout
-                         project-vc-cache-timeout))
-                      (timeout
+               (let* ((timeout
                        (cond
-                        ((numberp project-vc-cache-timeout)
-                         project-vc-cache-timeout)
-                        ((null project-vc-cache-timeout)
-                         nil)
-                        ((listp project-vc-cache-timeout)
+                        ((numberp timeout)
+                         timeout)
+                        ((listp timeout)
                          (cdr
                           (seq-find (lambda (pair)
                                       (and (functionp (car pair))
                                            (funcall (car pair) dir)))
-                                    project-vc-cache-timeout)))
+                                    timeout)))
                         (t nil))))
                  (or (null timeout)
                      (< (- current-time (cdr cached)) timeout))))
@@ -658,15 +652,18 @@ It is used when `non-essential' is non-nil.")
 The value is cached, and depending on whether MAYBE-PROMPT was non-nil
 in the `project-current' call, the timeout is determined by
 `project-vc-cache-timeout' or `project-vc-non-essential-cache-timeout'."
-  (let ((cached (project--get-cached dir 'project-vc)))
+  (let* ((timeout (if non-essential
+                      project-vc-non-essential-cache-timeout
+                    project-vc-cache-timeout))
+         (cached (project--get-cached dir 'project-vc timeout)))
     (if (eq cached 'none)
         nil
       (or cached
-          (let ((res (project-try-vc--search dir)))
+          (let ((res (project-try-vc--search dir timeout)))
             (project--set-cached dir 'project-vc (or res 'none))
             res)))))
 
-(defun project-try-vc--search (dir)
+(defun project-try-vc--search (dir timeout)
   (let* ((backend-markers
           (delete
            nil
@@ -679,7 +676,7 @@ in the `project-current' call, the timeout is determined by
            (mapconcat
             (lambda (m) (format "\\(%s\\)" (wildcard-to-regexp m)))
             (append backend-markers
-                    (project--value-in-dir 'project-vc-extra-root-markers dir))
+                    (project--value-in-dir 'project-vc-extra-root-markers dir timeout))
             "\\|")
            "\\'"))
          (locate-dominating-stop-dir-regexp
@@ -704,7 +701,7 @@ in the `project-current' call, the timeout is determined by
     (while (and
             root
             (eq backend 'Git)
-            (project--vc-merge-submodules-p root)
+            (project--vc-merge-submodules-p root timeout)
             (project--submodule-p root))
       (let* ((parent (file-name-directory (directory-file-name root))))
         (setq root (vc-call-backend 'Git 'root parent))))
@@ -715,7 +712,7 @@ in the `project-current' call, the timeout is determined by
         (let* ((project-vc-extra-root-markers nil)
                ;; Avoid submodules scan.
                (enable-dir-local-variables nil)
-               (parent (project-try-vc--search root)))
+               (parent (project-try-vc--search root timeout)))
           (and parent (setq backend (nth 1 parent)))))
       (setq project (list 'vc backend root))
       project)))
@@ -764,7 +761,7 @@ in the `project-current' call, the timeout is determined by
 (cl-defmethod project-files ((project (head vc)) &optional dirs)
   (mapcan
    (lambda (dir)
-     (let ((ignores (project--value-in-dir 'project-vc-ignores dir))
+     (let ((ignores (project--value-in-dir 'project-vc-ignores dir nil))
            (backend (project-vc--backend project dir)))
        (if backend
            (vc-call-backend backend 'project-list-files dir ignores)
@@ -792,7 +789,8 @@ in the `project-current' call, the timeout is determined by
            (vc-git-use-literal-pathspecs nil)
            (include-untracked (project--value-in-dir
                                'project-vc-include-untracked
-                               dir))
+                               dir
+                               nil))
            (submodules (project--git-submodules))
            (gitver (vc-git--program-version))
            (dedup (and (version<= "2.31" gitver) '("--deduplicate")))
@@ -844,7 +842,7 @@ in the `project-current' call, the timeout is determined by
                     (with-output-to-string
                       (apply #'vc-git-command standard-output 0 nil "ls-files" args))
                     "\0" t))))
-      (when (project--vc-merge-submodules-p default-directory)
+      (when (project--vc-merge-submodules-p default-directory nil)
         ;; Unfortunately, 'ls-files --recurse-submodules' conflicts with '-o'.
         (let ((sub-files
                (mapcar
@@ -869,7 +867,8 @@ in the `project-current' call, the timeout is determined by
   (let* ((default-directory (expand-file-name (file-name-as-directory dir)))
          (include-untracked (project--value-in-dir
                              'project-vc-include-untracked
-                             dir))
+                             dir
+                             nil))
          (args (list (concat "-mcard" (and include-untracked "u"))
                      "--no-status"
                      "-0"))
@@ -889,10 +888,11 @@ in the `project-current' call, the timeout is determined by
                      files)))
       files)))
 
-(defun project--vc-merge-submodules-p (dir)
+(defun project--vc-merge-submodules-p (dir timeout)
   (project--value-in-dir
    'project-vc-merge-submodules
-   dir))
+   dir
+   timeout))
 
 (defun project--git-submodules ()
   ;; 'git submodule foreach' is much slower.
@@ -909,7 +909,7 @@ in the `project-current' call, the timeout is determined by
 (cl-defmethod project-ignores ((project (head vc)) dir)
   (project--vc-ignores dir
                        (project-vc--backend project dir)
-                       (project--value-in-dir 'project-vc-ignores dir)))
+                       (project--value-in-dir 'project-vc-ignores dir nil)))
 
 (defun project--vc-ignores (dir backend extra-ignores)
   (require 'vc)             ; Can be removed when we require Emacs 31.1.
@@ -966,12 +966,14 @@ DIRS must contain directory names."
   ;; Sidestep the issue of expanded/abbreviated file names here.
   (cl-set-difference files dirs :test #'file-in-directory-p))
 
-(defun project--value-in-dir (var dir)
+(defun project--value-in-dir (var dir timeout)
+  "Look up variable VAR's value in DIR, with cache duration TIMEOUT.
+If TIMEOUT is nil, the cache is not invalidated."
   (alist-get
    var
    (and
     enable-dir-local-variables
-    (let ((cached (project--get-cached dir 'project-vc-dir-locals)))
+    (let ((cached (project--get-cached dir 'project-vc-dir-locals timeout)))
       (if (eq cached 'none)
           nil
         (or cached
@@ -990,7 +992,7 @@ DIRS must contain directory names."
 
 (cl-defmethod project-buffers ((project (head vc)))
   (let* ((root (expand-file-name (file-name-as-directory (project-root project))))
-         (modules (unless (or (project--vc-merge-submodules-p root)
+         (modules (unless (or (project--vc-merge-submodules-p root nil)
                               (condition-case nil
                                   (project--submodule-p root)
                                 (file-missing nil)))
@@ -1008,12 +1010,8 @@ DIRS must contain directory names."
     (nreverse bufs)))
 
 (cl-defmethod project-name ((project (head vc)))
-  "Returns the name of this VC-aware type PROJECT.
-
-The value is cached, and depending on whether `non-essential' is nil,
-the timeout is determined by `project-vc-cache-timeout' or
-`project-vc-non-essential-cache-timeout'."
-  (or (project--value-in-dir 'project-vc-name (project-root project))
+  "Returns the name of this VC-aware type PROJECT."
+  (or (project--value-in-dir 'project-vc-name (project-root project) nil)
       (cl-call-next-method)))
 
 
@@ -2735,8 +2733,7 @@ slash-separated components from `project-name' will be appended to
 the buffer's directory name when buffers from two different projects
 would otherwise have the same name."
   (if-let* ((proj (project-current nil dirname)))
-      (let ((root (project-root proj))
-            (non-essential t))
+      (let ((root (project-root proj)))
         (expand-file-name
          (file-name-concat
           (file-name-directory root)
@@ -2782,7 +2779,6 @@ value is `non-remote', show the project name only for local files."
     ;; 'last-coding-system-used' when reading the project name
     ;; from .dir-locals.el also enables flyspell-mode (bug#66825).
     (when-let* ((last-coding-system-used last-coding-system-used)
-                (non-essential t)
                 (project (project-current))
                 (project-name (project-name project)))
       (concat
