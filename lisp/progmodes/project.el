@@ -406,7 +406,7 @@ to find the list of ignores for each directory."
          ;; expanded and not left for the shell command
          ;; to interpret.
          (localdir (file-name-unquote (file-local-name (expand-file-name dir))))
-         (command (format "%s -H . %s -type f %s -print0"
+         (command (format "%s -L . %s -type f %s -print0"
                           find-program
                           (xref--find-ignores-arguments ignores "./")
                           (if files
