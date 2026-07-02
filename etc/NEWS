@@ -237,6 +237,15 @@ The HANDLER argument of 'dbus-call-method-asynchronously' can be a cons
 cell '(HANDLER . ERROR-HANDLER)'.  ERROR-HANDLER is invoked if the
 method call returns with a D-Bus error; the error is passed as argument.
 
+** elisp-scope.el
+
+*** Custom analyzers can be associated with multiple functions.
+'elisp-scope' macros that define custom analyzer functions, such as
+'elisp-scope-define-function-analyzer' and
+'elisp-scope-define-macro-analyzer', can now take a list of symbols to
+which the defined analyzer should apply (or a single symbol, as before).
+This makes it easy to specify the same analyzer for multiple functions.
+
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
 
