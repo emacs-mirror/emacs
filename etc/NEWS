@@ -246,6 +246,13 @@ method call returns with a D-Bus error; the error is passed as argument.
 which the defined analyzer should apply (or a single symbol, as before).
 This makes it easy to specify the same analyzer for multiple functions.
 
+*** New macro 'elisp-scope-define-function-spec'.
+This macro in a declarative alternative to
+'elisp-scope-define-function-analyzer'.  It lets you tell 'elisp-scope'
+how to analyze the arguments of a function by declaring the
+specification of each argument, rather than implementing an analyzer
+function as you would with 'elisp-scope-define-function-analyzer'.
+
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
 
