@@ -4483,7 +4483,8 @@ set_fullscreen_state (struct frame *f)
 
     case FULLSCREEN_WIDTH:
     case FULLSCREEN_HEIGHT:
-      /* Not supported by gtk. Ignore them. */
+      /* Restoring from fullscreen to tiled (Bug#81165, Bug#81320).  */
+      gtk_window_unfullscreen (widget);
       break;
     }
 
