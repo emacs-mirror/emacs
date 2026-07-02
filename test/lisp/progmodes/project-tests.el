@@ -276,7 +276,6 @@ When `project-ignores' includes a name matching project dir."
 
 (ert-deftest project-try-vc-invalidates-cache ()
   "Check that it invalidates the cached value that's too old."
-  "Check that one can add wildcard entries."
   (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
   ;; Prepare
   (let* ((dir (file-name-directory project-tests--this-file))
