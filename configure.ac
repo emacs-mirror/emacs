@@ -966,7 +966,7 @@ a valid path to android.jar.  See config.log for more details.])
   fi
 
   AC_CACHE_CHECK([whether android.jar is new enough],
-    [emacs_cv_android_w_or_later],
+    [emacs_cv_android_x_or_later],
     AS_IF([rm -f conftest.class
 cat << EOF > conftest.java
 
@@ -974,7 +974,7 @@ import android.os.Build;
 
 class conftest
 {
-  private static int test = Build.VERSION_CODES.BAKLAVA;
+  private static int test = Build.VERSION_CODES.CINNAMON_BUN;
 }
 
 EOF
@@ -985,7 +985,7 @@ EOF
 
   if test "$emacs_cv_android_w_or_later" = "no"; then
     AC_MSG_ERROR([Emacs must be built with an android.jar file produced for \
-Android 16 (BAKLAVA) or later.])
+Android 17 (CINNAMON_BUN) or later.])
   fi
 
   dnl See if the Java compiler supports the `--release' option which

@@ -206,8 +206,12 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. -->
 
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
 
+  <!-- Under Android 17 or later to access local network devices.  -->
+
+  <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK"/>
+
   <uses-sdk android:minSdkVersion="@ANDROID_MIN_SDK@"
-	    android:targetSdkVersion="36"/>
+	    android:targetSdkVersion="37"/>
 
   <application android:name="org.gnu.emacs.EmacsApplication"
 	       android:label="Emacs"

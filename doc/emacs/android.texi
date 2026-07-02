@@ -529,6 +529,8 @@ version of Android installed:
 @item
 @code{android.permission.ACCESS_LOCATION_EXTRA_COMMANDS}
 @item
+@code{android.permission.ACCESS_LOCAL_NETWORK}
+@item
 @code{android.permission.ACCESS_NETWORK_STATE}
 @item
 @code{android.permission.ACCESS_NOTIFICATION_POLICY}

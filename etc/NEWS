@@ -231,6 +231,15 @@ method call returns with a D-Bus error; the error is passed as argument.
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
 
++++
+*** Emacs has been updated to target Android 17.
+
+Emacs has been updated to require the SDK for Android 17 during
+compilation, and to target that version of the operating system.  A
+corollary of this change is that on Android 17 and later systems, it
+must be granted permission to access nearby devices from Settings in
+order to connect to hosts on local networks.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
