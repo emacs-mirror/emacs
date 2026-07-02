@@ -54,7 +54,6 @@ Valid methods are `sqlite' and `files'."
   :version "29.1"
   :group 'files)
 
-;;;###autoload
 (defmacro define-multisession-variable (name initial-value &optional doc
                                              &rest args)
   "Make NAME into a multisession variable initialized from INITIAL-VALUE.
