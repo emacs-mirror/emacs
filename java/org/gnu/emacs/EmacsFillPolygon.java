@@ -30,7 +30,6 @@ import android.os.Build;
 
 public final class EmacsFillPolygon
 {
-  @SuppressWarnings ("deprecation") /* computeBounds (IZ) */
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc, Point points[])
   {
@@ -67,7 +66,7 @@ public final class EmacsFillPolygon
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA)
       path.computeBounds (rectF, true);
     else
-       path.computeBounds (rectF);
+      path.computeBounds (rectF);
 
     rect = new Rect ((int) Math.floor (rectF.left),
 		     (int) Math.floor (rectF.top),
