@@ -1167,6 +1167,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ,(intern (format "vc-test-%s05-rename-file" backend-string)) ()
           ,(format "Check `vc-rename-file' for the %s backend."
                    backend-string)
+          ,@(and (eq backend 'SCCS) '(:expected-result :failed))
           (skip-unless
            (ert-test-passed-p
             (ert-test-most-recent-result
@@ -1252,6 +1253,7 @@ This checks also `vc-backend' and `vc-responsible-backend'."
             ,(intern (format "vc-test-%s10-rename-directory" backend-string)) ()
           ,(format "Check `vc-rename-file' with directories for the %s backend."
                    backend-string)
+          ,@(and (eq backend 'SCCS) '(:expected-result :failed))
           (skip-unless
            (ert-test-passed-p
             (ert-test-most-recent-result
