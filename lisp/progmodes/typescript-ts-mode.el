@@ -860,8 +860,8 @@ at least 3 (which is the default value)."
               (match-beginning 0) (match-end 0)
               'syntax-table (string-to-syntax
                              (cond
-                              ((equal (match-string 0) "<") "(<")
-                              ((equal (match-string 0) ">") ")>")
+                              ((equal (match-string 0) "<") "(>")
+                              ((equal (match-string 0) ">") ")<")
                               (t ".")))))))))))
 
 ;;;###autoload
