@@ -842,11 +842,10 @@ per-project basis with directory-local variables.
 
 ---
 ** Standard mode line no longer specifies minimum widths.
-The 'mode-line-position' and 'standard-mode-line-format' variables no
-longer specify any minimum widths.  If you use a proportional font for
-your mode line, you may need to customize the vales of these variables
-to include minimum widths again.
-
+The default values for the 'mode-line-position' and 'mode-line-format'
+variables no longer specify any minimum widths.  If you use a
+proportional font for your mode line, you may need to customize the
+vales of these variables to include minimum widths again.
 
 
 * Editing Changes in Emacs 31.1
