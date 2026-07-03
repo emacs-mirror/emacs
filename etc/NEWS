@@ -117,6 +117,12 @@ check out the repository to prepare a patch for the package maintainer.
 When a man page contains OSC 8 hyperlink escape sequences, they
 are now buttonized, allowing using mouse or 'RET' to follow them.
 
+** Woman
+
+---
+*** The variable 'woman-topic-history' is now obsolete
+Use 'Man-topic-history' instead.
+
 ** VC
 
 +++

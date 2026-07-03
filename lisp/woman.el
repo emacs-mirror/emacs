@@ -1227,7 +1227,7 @@ It is saved to the file named by the variable `woman-cache-filename'."
 	  (kill-buffer standard-output)
 	  ))))
 
-(defvaralias 'woman-topic-history 'Man-topic-history)
+(define-obsolete-variable-alias 'woman-topic-history 'Man-topic-history "32.1")
 (defvar woman-file-history nil "File-name read history.")
 
 (defun woman-file-name (topic &optional re-cache)
@@ -1271,7 +1271,7 @@ cache to be re-read."
 		(completing-read (format-prompt "Manual entry" default)
 		                 woman-topic-all-completions nil 1
 		                 nil
-		                 'woman-topic-history
+		                 'Man-topic-history
 		                 default))))
     ;; Note that completing-read always returns a string.
     (unless (= (length topic) 0)
