@@ -3322,6 +3322,16 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   (dolist (quoted (if (tramp--test-expensive-test-p) '(nil t) '(nil)))
     (let* ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	   (tmp-name2 (expand-file-name "foo" tmp-name1)))
+      ;; Deleting a non-existing file should not fail.
+      (delete-file tmp-name1)
+      (delete-file tmp-name1 'trash)
+      ;; Deleting a non-existing directory should fail.
+      (should-error
+       (delete-directory tmp-name1)
+       :type 'file-missing)
+      (should-error
+       (delete-directory tmp-name1 nil 'trash)
+       :type 'file-missing)
       ;; Delete empty directory.
       (make-directory tmp-name1)
       (should (file-directory-p tmp-name1))

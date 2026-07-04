@@ -3734,14 +3734,15 @@ BODY is the backend specific code."
 		 ;; This variable exists since Emacs 30.1.
 		 (not (bound-and-true-p
 		       remote-file-name-inhibit-delete-by-moving-to-trash)))))
-       (if (and delete-by-moving-to-trash ,trash)
-	   ;; Move non-empty dir to trash only if recursive deletion was
-	   ;; requested.
-	   (if (not (or ,recursive (directory-empty-p ,directory)))
-	       (tramp-error
-		v 'file-error "Directory is not empty, not moving to trash")
-	     (move-file-to-trash ,directory))
-	 ,@body)
+       (tramp-barf-if-file-missing v ,directory
+	 (if (and delete-by-moving-to-trash ,trash)
+	     ;; Move non-empty dir to trash only if recursive deletion was
+	     ;; requested.
+	     (if (not (or ,recursive (directory-empty-p ,directory)))
+		 (tramp-error
+		  v 'file-error "Directory is not empty, not moving to trash")
+	       (move-file-to-trash ,directory))
+	   ,@body))
        (tramp-flush-directory-properties v localname))))
 
 (defmacro tramp-skeleton-delete-file (filename &optional trash &rest body)
@@ -3754,9 +3755,10 @@ BODY is the backend specific code."
 		 ;; This variable exists since Emacs 30.1.
 		 (not (bound-and-true-p
 		       remote-file-name-inhibit-delete-by-moving-to-trash)))))
-       (if (and delete-by-moving-to-trash ,trash)
-	   (move-file-to-trash ,filename)
-	 ,@body)
+       (ignore-errors
+	 (if (and delete-by-moving-to-trash ,trash)
+	     (move-file-to-trash ,filename)
+	   ,@body))
        (tramp-flush-file-properties v localname))))
 
 (defmacro tramp-skeleton-directory-files
