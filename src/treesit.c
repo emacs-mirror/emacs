@@ -632,6 +632,56 @@ struct treesit_loaded_lang
   const char *filename;
 };
 
+/* Cache of loaded languages, keyed by language symbols.  Resolving a
+   language does dlopen + dlsym plus an ABI-version check that creates a
+   throwaway TSParser; repeating that for every parser created is
+   expensive when a mode creates many embedded parsers (e.g. one
+   markdown-inline parser per block).  We don't support
+   unloading/reloading languages so we can cache loaded languages for
+   the entire session; in fact, we _want_ to cache the language object
+   so it stays stable for the whole session.  */
+struct treesit_lang_cache_entry
+{
+  /* Symbol for the cached langauge, never gc'ed.  */
+  Lisp_Object symbol;
+  /* The cached language object.  */
+  struct treesit_loaded_lang lang;
+};
+
+/* The cache, a monotonically growing array on the heap.  */
+static struct treesit_lang_cache_entry *treesit_lang_cache = NULL;
+/* Number of available slots in the allocated space.  */
+static ptrdiff_t treesit_lang_cache_size = 0;
+/* Number of existing cache entry in the array.  */
+static ptrdiff_t treesit_lang_cache_used = 0;
+
+/* Return the cached language object for LANGUAGE_SYMBOL, or {NULL,
+   NULL} if there is none.  */
+static struct treesit_loaded_lang
+treesit_lang_cache_get (Lisp_Object language_symbol)
+{
+  for (ptrdiff_t i = 0; i < treesit_lang_cache_used; i++)
+    if (EQ (treesit_lang_cache[i].symbol, language_symbol))
+      return treesit_lang_cache[i].lang;
+  return (struct treesit_loaded_lang) { NULL, NULL };
+}
+
+/* Cache LOADED_LANG keyed by LANGUAGE_SYMBOL.  */
+static void
+treesit_lang_cache_put (Lisp_Object language_symbol,
+			struct treesit_loaded_lang loaded_lang)
+{
+  if (treesit_lang_cache_used == treesit_lang_cache_size)
+    {
+      treesit_lang_cache
+	= xpalloc (treesit_lang_cache, &treesit_lang_cache_size, 1, -1,
+		   sizeof *treesit_lang_cache);
+    }
+  treesit_lang_cache[treesit_lang_cache_used].symbol = language_symbol;
+  treesit_lang_cache[treesit_lang_cache_used].lang = loaded_lang;
+  treesit_lang_cache_used++;
+}
+
 /* Translate a symbol treesit-<lang> to a C name treesit_<lang>.  */
 static void
 treesit_symbol_to_c_name (char *symbol_name)
@@ -762,6 +812,11 @@ static struct treesit_loaded_lang
 treesit_load_language (Lisp_Object language_symbol,
 		       Lisp_Object *signal_symbol, Lisp_Object *signal_data)
 {
+  struct treesit_loaded_lang cached
+    = treesit_lang_cache_get (language_symbol);
+  if (cached.lang != NULL)
+    return cached;
+
   Lisp_Object symbol_name = Fsymbol_name (language_symbol);
 
   CHECK_LIST (Vtreesit_extra_load_path);
@@ -886,6 +941,7 @@ treesit_load_language (Lisp_Object language_symbol,
   dynlib_addr ((void (*)) langfn, &loaded_lang.filename, &sym);
 
   loaded_lang.lang = lang;
+  treesit_lang_cache_put (language_symbol, loaded_lang);
   return loaded_lang;
 }
 
