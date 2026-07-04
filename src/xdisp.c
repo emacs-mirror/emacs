@@ -5960,7 +5960,11 @@ handle_display_prop (struct it *it)
 	  pos = IT_STRING_CHARPOS (*it);
 	  start = 0;
 	}
-      if (pos > start)
+      if (pos > start
+	  /* If we are iterating over a string and display-stack level
+	     is zero, this is a mode line or similar.  The case of
+	     it->sp > 0 is handled in set_iterator_to_next.  */
+	  || (STRINGP (object) && it->sp == 0))
 	display_min_width (it, pos, objwin, Qnil);
     }
 
