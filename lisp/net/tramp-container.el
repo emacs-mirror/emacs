@@ -290,14 +290,14 @@ see its function help for a description of the format."
   (tramp-skeleton-completion-function method
     (when-let* ((raw-list
 		 (shell-command-to-string
-		  (concat program " ps --format '{{.ID}}\t{{.Names}}'")))
+		  (concat program " ps --format '{{.ID}}<>{{.Names}}'")))
 		(lines (split-string raw-list "\n" 'omit))
 		(names
 		 (tramp-compat-seq-keep
 		  (lambda (line)
 		    (when (string-match
 			   (rx bol (group (1+ nonl))
-			       "\t" (? (group (1+ nonl))) eol)
+			       "<>" (? (group (1+ nonl))) eol)
 			   line)
 		      (or (match-string 2 line) (match-string 1 line))))
 		  lines)))

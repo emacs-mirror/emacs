@@ -1028,6 +1028,8 @@ but with a different end of line convention (bug#48137)."
             (list new-pkg-desc simple-depend-desc-2 simple-depend-desc-1
                   multi-file-desc simple-depend-desc simple-single-desc)))))
 
+(declare-function lm-version "lisp-mnt")
+
 (ert-deftest package-test-builtin-package-info ()
   "Test public interfaces for querying package info."
   (should (not (null (package-versioned-builtin-packages))))

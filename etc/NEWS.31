@@ -617,6 +617,13 @@ The command 'mode-line-invisible-mode' toggles the visibility of the
 current-buffer's mode line.  The default is to show the mode line of
 every buffer.
 
+---
+*** Standard mode line no longer specifies minimum widths.
+The default values for the 'mode-line-position' variable and
+'mode-line-format' user option no longer specify any minimum widths.  If
+you use a proportional font for your mode line, you may need to
+customize the values of these variables to include minimum widths again.
+
 ** Tab Bars and Tab Lines
 
 ---
