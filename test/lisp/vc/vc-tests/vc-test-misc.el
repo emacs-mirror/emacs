@@ -522,5 +522,59 @@ See bug#80803 and bug#80967."
           (should-not (seq-intersection directories (vc-dir-marked-files)))
           (kill-buffer vc-dir-buf))))))
 
+(ert-deftest vc-test-log-message-from-changelog () ; bug#80928
+  "Test automatic insertion of log message from ChangeLog."
+  (skip-unless (executable-find vc-git-program))
+  (vc-test--with-author-identity 'Git
+    (let ((vc-handled-backends '(Git))
+          file-buf vc-dir-buf vc-diff-buf changelog-buf log-edit-buf
+          changelog-entry log-edit-entry)
+      (unwind-protect
+          (ert-with-temp-directory tempdir
+            (let* ((default-directory tempdir)
+                   (file (expand-file-name "README" default-directory))
+                   vc-async-checkin)
+              (vc-test--create-repo-function 'Git)
+              (write-region "hello\n" nil file)
+              (with-current-buffer (setq file-buf (find-file-noselect file))
+                (vc-register `(Git (,file)))
+                (vc-checkin (list file) 'Git)
+                (insert "Initial commit")
+                (let (vc-async-checkin)
+                  (log-edit-done))
+                (write-region "Hello\n" nil "README" nil t))
+              (vc-dir default-directory 'Git)
+              (while (vc-dir-busy) (sit-for 0.05))
+              (setq vc-dir-buf (current-buffer))
+              (save-window-excursion
+                (vc-diff)
+                (setq vc-diff-buf (current-buffer))
+                (diff-add-change-log-entries-other-window)
+                (with-current-buffer (window-buffer (frame-first-window))
+                  (setq changelog-buf (current-buffer))
+                  (insert "Change text.")
+                  (forward-line -1)
+                  (newline-and-indent)
+                  (insert "Summary line")
+                  (newline)
+                  (save-restriction
+                    (log-edit-narrow-changelog)
+                    ;; ChangeLog entry ends with "\n\n" so omit last "\n" to
+                    ;; ensure equivalence with to commit log entry in the test.
+                    (let ((s (buffer-substring-no-properties
+                              (point-min) (1- (point-max)))))
+                      (setq changelog-entry
+                            (mapconcat #'concat (string-split s "\t")))))))
+              (vc-next-action nil)
+              (setq log-edit-buf (current-buffer))
+              (goto-char (point-min))
+              (re-search-forward "^Summary: " nil t)
+              (setq log-edit-entry
+                    (buffer-substring-no-properties (point) (point-max)))
+              (should (equal changelog-entry log-edit-entry))))
+        (dolist (buf (list file-buf vc-dir-buf vc-diff-buf changelog-buf
+                           log-edit-buf "*log-edit-files*" "*vc*"))
+          (kill-buffer buf))))))
+
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

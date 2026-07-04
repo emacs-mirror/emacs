@@ -562,10 +562,12 @@ v}.  Note that registering the files doesn't commit them; you must
 invoke @w{@kbd{C-x v v}} again to commit; see the next point.
 
 @item
-If every file in the VC fileset has been either newly-added or
-modified, commit the changed files.  To do this, Emacs pops up a
-@file{*vc-log*} buffer; type the desired log entry for the changes,
-followed by @kbd{C-c C-c} to commit.  @xref{Log Buffer}.
+If every file in the VC fileset has been either newly-added or modified,
+commit the changed files.  To do this, Emacs pops up a @file{*vc-log*}
+buffer, in which you can type the log entry for the changes (or, if the
+entry has been automatically inserted from a ChangeLog file or buffer,
+further edit it).  When you are satisfied with the log entry, type
+@kbd{C-c C-c} to commit the changes.  See @ref{Log Buffer} for details.
 
 If @kbd{C-x v v} is invoked from a buffer under Diff mode, the command
 treats the buffer as holding a set of patches for one or more files.  It
@@ -715,49 +717,83 @@ out individual files.
   When you tell VC to commit a change, it pops up a buffer named
 @file{*vc-log*}.  In this buffer, you should write a @dfn{log entry}
 describing the changes you have made (@pxref{Why Version Control?}).
-After you are done, type @kbd{C-c C-c} (@code{log-edit-done}) to exit
-the buffer and commit the change, together with your log entry.
+Alternatively, you can have the entry automatically inserted from a
+ChangeLog file or buffer (see below), which you can further edit in the
+@file{*vc-log*} buffer if necessary.  After you are done, type @kbd{C-c
+C-c} (@code{log-edit-done}) to exit the buffer and commit the change,
+together with your log entry.
 
-@cindex Log Edit mode
-@cindex mode, Log Edit
-@vindex vc-log-mode-hook
-@c FIXME: Mention log-edit-mode-hook here?  --xfq
-  The major mode for the @file{*vc-log*} buffer is Log Edit mode, a
-variant of Text mode (@pxref{Text Mode}).  On entering Log Edit mode,
-Emacs runs the hooks @code{text-mode-hook} and @code{vc-log-mode-hook}
-(@pxref{Hooks}).
-
-  In the @file{*vc-log*} buffer, you can write one or more @dfn{header
-lines}, specifying additional information to be supplied to the
-version control system.  Each header line must occupy a single line at
-the top of the buffer; the first line that is not a header line is
-treated as the start of the log entry.  For example, the following
-header line states that the present change was not written by you, but
-by another developer:
+  In the @file{*vc-log*} buffer, you can also write one or more
+@dfn{header lines} specifying additional information to be supplied to
+the version control system.  For example, the following header line
+states that the present change was not written by you, but by another
+developer:
 
 @smallexample
 Author: J. R. Hacker <jrh@@example.com>
 @end smallexample
 
 @noindent
-Apart from the @samp{Author} header, Emacs recognizes the headers
-@samp{Summary} (a one-line summary of the changeset), @samp{Date} (a
-manually-specified commit time), and @samp{Fixes} (a reference to a
-bug fixed by the change).  Not all version control systems recognize
-all headers.  If you specify a header for a system that does not
-support it, the header is treated as part of the log entry.
+Each header line must occupy a single line at the top of the buffer; the
+first line that is not a header line is treated as the start of the log
+entry.  In addition to the @samp{Author} header, most version control
+systems also support the headers @samp{Summary} (a one-line summary of
+the changeset) and @samp{Date} (a manually specified commit time).
+Emacs recognizes these as well as several VCS-specific headers.  If you
+specify a header for a VCS that does not support it, the header is
+treated as part of the log entry.
+
+@cindex Log Edit mode
+@cindex mode, Log Edit
+@vindex vc-log-mode-hook
+@c FIXME: Mention log-edit-mode-hook here?  --xfq
+@vindex log-edit-hook
+  The major mode for the @file{*vc-log*} buffer is Log Edit mode, a
+variant of Text mode (@pxref{Text Mode}).  On entering Log Edit mode,
+Emacs runs the hooks @code{text-mode-hook} and @code{vc-log-mode-hook}
+(@pxref{Hooks}).  In addition, to set up the @file{*vc-log*} buffer,
+Emacs runs the hook @code{log-edit-hook}, which optionally makes several
+useful features available.  The following paragraphs describe several of
+these features, including three that are generally useful and enabled by
+default.  (To see a complete list of the features and enable or disable
+any of them, type @w{@kbd{M-x customize-option RET log-edit-hook RET}};
+@pxref{Specific Customization}.)
+
+@findex log-edit-insert-message-template
+  The function @code{log-edit-insert-message-template} produces the
+default @file{*vc-log*} buffer setup, containing @samp{Author} and
+@samp{Summary} headers, and displays a thick line separating the header
+part of the buffer from the log entry part.  If you remove
+@code{log-edit-insert-message-template} from @code{log-edit-hook}, then
+the initial @file{*vc-log*} buffer is simply empty.  The two header
+lines are initially empty.  If you are the author of the change and you
+have configured the VCS to use your name and email address in commit
+messages, you can leave the @samp{Author} header empty.  If you leave
+the @samp{Summary} header empty, most systems will use the first line of
+the log entry as the summary line (see below for a way to have the
+@samp{Summary} header automatically filled).
 
 @kindex C-c C-f @r{(Log Edit mode)}
 @findex log-edit-show-files
+  When VC pops up the @file{*vc-log*} buffer, a buffer named
+@file{*log-edit-files*} listing the current VC fileset, that is, the
+files that will be committed if you type @w{@kbd{C-c C-c}}, also pops up
+by default.  If you have removed the command @code{log-edit-show-files}
+from @code{log-edit-hook}, the @file{*log-edit-files*} buffer does not
+automatically pop up, but you can invoke the command by typing
+@w{@kbd{C-c C-f}}.  Likewise, if you kill or bury the
+@file{*log-edit-files*} buffer, typing @w{@kbd{C-c C-f}} will pop it up
+again.
+
 @kindex C-c C-d @r{(Log Edit mode)}
 @findex log-edit-show-diff
-  While in the @file{*vc-log*} buffer, the current VC fileset is
-considered to be the fileset that will be committed if you type
-@w{@kbd{C-c C-c}}.  To view a list of the files in the VC fileset,
-type @w{@kbd{C-c C-f}} (@code{log-edit-show-files}).  To view a diff
-of changes between the VC fileset and the version from which you
-started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
-(@code{log-edit-show-diff}).
+  To view a diff of changes between the VC fileset and the version from
+which you started editing (@pxref{Old Revisions}), type @kbd{C-c C-d}
+(@code{log-edit-show-diff}).  This command also selects the window
+displaying the diff.  To have VC automatically display the diff when it
+pops up the @file{*vc-log*} buffer, add @code{log-edit-maybe-show-diff}
+to @code{log-edit-hook}; unlike @kbd{C-c C-d}, this function does not
+select the window displaying the diff.
 
 @kindex C-c C-w @r{(Log Edit mode)}
 @findex log-edit-generate-changelog-from-diff
@@ -773,15 +809,37 @@ VC root, customize @code{diff-add-log-use-relative-names}.
 
 @kindex C-c C-a @r{(Log Edit mode)}
 @findex log-edit-insert-changelog
-  If the VC fileset includes one or more @file{ChangeLog} files
-(@pxref{Change Log}), type @kbd{C-c C-a}
-(@code{log-edit-insert-changelog}) to pull the relevant entries into
-the @file{*vc-log*} buffer.  If the topmost item in each
-@file{ChangeLog} was made under your user name on the current date,
-this command searches that item for entries matching the file(s) to be
-committed, and inserts them.
+  If you have added log entries for the current VC fileset to one or
+more @file{ChangeLog} files or to a temporary ChangeLog buffer
+(@pxref{Change Log}), by default VC automatically inserts these entries
+into the @file{*vc-log*} buffer on popping it up.  If you have removed
+the command @code{log-edit-insert-changelog} from @code{log-edit-hook},
+VC does not automatically insert the log entries, but you can invoke the
+command by typing @kbd{C-c C-a}.  Likewise, if you delete or otherwise
+change the content of this buffer and then decide you want to use the
+ChangeLog entries after all, type @kbd{C-c C-a} to repopulate the buffer
+with these entries.
+
+  If the relevant log entries are in one or more @file{ChangeLog} files
+and the topmost item in each file was made under your user name on the
+current date, this command searches that item (or those items) for
+entries matching the file(s) to be committed, and inserts them.  If you
+invoke the command with a prefix argument (@kbd{C-u C-c C-a}) or repeat
+it immediately (@kbd{C-c C-a C-c C-a}), it searches the topmost item
+regardless of the user name and date of the item.
+
+  If VC detects that all log entries come from the same ChangeLog file
+or buffer, then the command simply inserts the entire body of the entry
+into the @file{*vc-log*} buffer.  In addition, if the first line of the
+entry does not begin with @samp{* } (an asterisk followed by a space),
+VC considers it to be a summary line and moves it to the @samp{Summary}
+header.  Finally, if VC detects that the set of changed files listed in
+the ChangeLog entry differs from the current VC fileset, it displays a
+warning urging you to fix this discrepancy before committing the
+changes.
+
 @ifnottex
-If you are using CVS or RCS, see @ref{Change Logs and VC}, for the
+  If you are using CVS or RCS, see @ref{Change Logs and VC}, for the
 opposite way of working---generating ChangeLog entries from the Log
 Edit buffer.
 @end ifnottex
@@ -1641,9 +1699,10 @@ cannot be marked with this command if any file in its tree is marked.
 
 @item M
 If point is on a file entry, mark all files with the same status; if
-point is on a directory entry, mark all files in that directory tree
-(@code{vc-dir-mark-all-files}).  With a prefix argument, mark all
-listed files and directories.
+point is on a directory entry, mark all and only the files that are
+immediate descendents (i.e., children) of that directory
+(@code{vc-dir-mark-all-files}).  With a prefix argument, mark all listed
+files.
 
 @findex vc-dir-mark-by-regexp
 @item % m
@@ -1680,9 +1739,10 @@ active, unmark all the files in the region (@code{vc-dir-unmark}).
 
 @item U
 If point is on a file entry, unmark all files with the same status; if
-point is on a directory entry, unmark all files in that directory tree
+point is on a directory entry, unmark all and only the files that are
+immediate descendents (i.e., children) of that directory
 (@code{vc-dir-unmark-all-files}).  With a prefix argument, unmark all
-files and directories.
+listed files and directories.
 
 @item x
 Hide files with @samp{up-to-date} or @samp{ignored} status
@@ -1701,13 +1761,22 @@ Quit the VC Directory buffer, and bury it (@code{quit-window}).
   While in the VC Directory buffer, all the files that you mark with
 @kbd{m} (@code{vc-dir-mark}) or @kbd{M} (@code{vc-dir-mark-all-files})
 are in the current VC fileset.  If you mark a directory entry with
-@kbd{m}, all the listed files in that directory tree are in the
-current VC fileset.  The files and directories that belong to the
-current VC fileset are indicated with a @samp{*} character in the VC
-Directory buffer, next to their VC status.  In this way, you can set
-up a multi-file VC fileset to be acted on by VC commands like
-@w{@kbd{C-x v v}} (@pxref{Basic VC Editing}), @w{@kbd{C-x v =}}
-(@pxref{Old Revisions}), and @w{@kbd{C-x v u}} (@pxref{VC Undo}).
+@kbd{m}, all the listed files in that directory tree (i.e., not only the
+listed files of the directory but also the listed files of its
+subdirectories) are in the current VC fileset.  The files and
+directories that belong to the current VC fileset are indicated with a
+@samp{*} character in the VC Directory buffer, next to their VC status.
+In this way, you can set up a multi-file VC fileset to be acted on by VC
+commands like @w{@kbd{C-x v v}} (@pxref{Basic VC Editing}), @w{@kbd{C-x
+v =}} (@pxref{Old Revisions}), and @w{@kbd{C-x v u}} (@pxref{VC Undo}).
+
+  In a VC Directory buffer containing no marked file or directory
+entries, the current VC fileset is determined as follows.  If point is
+on a file entry, the fileset consists of just that file.  If point is on
+a directory entry, the fileset consists of all files in that directory
+tree.  Consequently, if point in on (or above) the entry @samp{./}
+(representing the working directory), the fileset consists of all listed
+files.
 
   The VC Directory buffer also defines some single-key shortcuts for
 VC commands with the @kbd{C-x v} prefix: @kbd{=}, @kbd{+}, @kbd{l},
@@ -2526,13 +2595,36 @@ dated in May 1993, with two items and one item respectively.
 @end smallexample
 
   One entry can describe several changes; each change should have its
-own item, or its own line in an item.  Normally there should be a
-blank line between items.  When items are related (parts of the same
-change, in different places), group them by leaving no blank line
-between them.
+own item, or its own line in an item.  Normally there should be a blank
+line between items.  When items are related (parts of the same change,
+in different places), group them by leaving no blank line between them.
+Such a multi-item entry often begins with a single line of text that
+succintly summarizes the whole changeset.  The entry may also contain
+additional explanatory text between the summary line and the first
+change item; the explanatory text should also be bounded by blank lines.
+Here is an example:
 
-  You should put a copyright notice and permission notice at the
-end of the change log file.  Here is an example:
+@iftex
+@medbreak
+@end iftex
+@smallexample
+2026-02-27  Sean Whitton  <spwhitton@@spwhitton.name>
+
+        New 'log-outstanding' value for vc-log-view-type
+
+        This fixes vc-hg-print-log's choice of -r arguments to 'hg log'.
+
+        * lisp/vc/vc.el (vc-log-view-type): New 'log-outstanding' value.
+        (vc-log-outstanding): Pass it.
+        * lisp/vc/vc-git.el (vc-git-log-view-mode):
+        * lisp/vc/vc-hg.el (vc-hg-print-log, vc-hg-log-view-mode): Treat
+        'log-outstanding' the same as 'log-outgoing'.
+@end smallexample
+
+  If you include one or more change log files in a software package that
+is distributed to others, you should put a copyright notice and
+permission notice at the end of each change log file.  Here is an
+example:
 
 @smallexample
 Copyright 1997--1998, 2025--2026 Free Software Foundation, Inc.

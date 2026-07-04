@@ -120,6 +120,15 @@ are now buttonized, allowing using mouse or 'RET' to follow them.
 ** VC
 
 +++
+*** Improved creation of commit log entry from ChangeLog.
+When VC detects that all log entries for the current changeset come from
+the same ChangeLog file or buffer, it now inserts the entire body of the
+ChangeLog entry into the *vc-log* buffer.  If the ChangeLog entry
+contains a summary line, VC inserts it into the *vc-log* Summary header.
+If VC detects that the set of changed files listed in the ChangeLog
+entry differs from the current VC fileset, it displays a warning.
+
++++
 *** VC-Dir outgoing revisions count is now asynchronous.
 This means it won't get in your way even if it's slow for your
 repository.  As such, the 'vc-dir-show-outgoing-count' option is now
