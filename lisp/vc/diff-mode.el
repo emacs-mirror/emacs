@@ -3504,25 +3504,25 @@ hunk text is not found in the source file."
     ;; When initialization is requested, we should be in a brand new
     ;; temp buffer.
     (cl-assert (null buffer-file-name))
-    ;; Use `:safe' to find `mode:'.  In case of hunk-only, use nil because
-    ;; Local Variables list might be incomplete when context is truncated.
-    (let ((enable-local-variables
-           (unless hunk-only
-             (if (memq enable-local-variables '(:safe :all nil))
-                 enable-local-variables
-               ;; Ignore other values that query.
-               :safe)))
-          (buffer-file-name file))
-      ;; Don't run hooks that might assume buffer-file-name
-      ;; really associates buffer with a file (bug#39190).
-      (delay-mode-hooks (set-auto-mode))
-      ;; FIXME: Is this really worth the trouble?
-      (when (and (fboundp 'generic-mode-find-file-hook)
-                 (memq #'generic-mode-find-file-hook
-                       ;; There's no point checking the buffer-local value,
-                       ;; we're in a fresh new buffer.
-                       (default-value 'find-file-hook)))
-        (generic-mode-find-file-hook))))
+    (cl-flet
+        ((set-mode ()
+           ;; Don't run hooks that might assume buffer-file-name
+           ;; really associates buffer with a file (bug#39190).
+           (delay-mode-hooks (set-auto-mode))
+           ;; FIXME: Is this really worth the trouble?
+           (when (and (fboundp 'generic-mode-find-file-hook)
+                      (memq #'generic-mode-find-file-hook
+                            ;; There's no point checking the
+                            ;; buffer-local value because we're in a
+                            ;; fresh new buffer.
+                            (default-value 'find-file-hook)))
+             (generic-mode-find-file-hook))))
+      ;; Use `:safe' to find `mode:'.  In case of hunk-only, use nil because
+      ;; Local Variables list might be incomplete when context is truncated.
+      (let ((buffer-file-name file))
+        (if hunk-only
+            (let (enable-local-variables) (set-mode))
+          (without-local-variable-queries (set-mode))))))
 
   (let ((font-lock-defaults (or font-lock-defaults '(nil t)))
         props beg end)

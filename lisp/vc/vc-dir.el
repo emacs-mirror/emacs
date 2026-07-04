@@ -1534,39 +1534,40 @@ uses OVERLAY."
              (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
              (buf (generate-new-buffer " *temp*" t))
              proc)
-        (with-current-buffer buf
-          (condition-case _
-              (progn
-                (vc-incoming-outgoing-internal backend nil
-                                               (current-buffer)
-                                               '(log-outgoing short))
-                (setq proc (get-buffer-process (current-buffer)))
-                (overlay-put overlay 'proc proc)
-                (vc-run-delayed
-                  (unwind-protect
-                      (overlay-put
-                       overlay 'after-string
-                       (if (or (not (eq (process-status proc) 'exit))
-                               (plusp (process-exit-status proc)))
-                           unknown
-                         (goto-char (point-min))
-                         (let ((count (how-many log-view-message-re)))
-                           (if (zerop count)
-                               (propertize "No unpushed revisions"
-                                           'face 'vc-dir-header-value)
-                             (propertize
-                              (format (ngettext "%d unpushed revision"
-                                                "%d unpushed revisions"
-                                                count)
-                                      count)
-                              'face 'vc-dir-header-urgent-value
-                              'mouse-face 'highlight
-                              'keymap vc-dir-outgoing-revisions-map
-                              'help-echo "\\<vc-dir-outgoing-revisions-map>\
+        (without-local-variable-queries
+          (with-current-buffer buf
+            (condition-case _
+                (progn
+                  (vc-incoming-outgoing-internal backend nil
+                                                 (current-buffer)
+                                                 '(log-outgoing short))
+                  (setq proc (get-buffer-process (current-buffer)))
+                  (overlay-put overlay 'proc proc)
+                  (vc-run-delayed
+                    (unwind-protect
+                        (overlay-put
+                         overlay 'after-string
+                         (if (or (not (eq (process-status proc) 'exit))
+                                 (plusp (process-exit-status proc)))
+                             unknown
+                           (goto-char (point-min))
+                           (let ((count (how-many log-view-message-re)))
+                             (if (zerop count)
+                                 (propertize "No unpushed revisions"
+                                             'face 'vc-dir-header-value)
+                               (propertize
+                                (format (ngettext "%d unpushed revision"
+                                                  "%d unpushed revisions"
+                                                  count)
+                                        count)
+                                'face 'vc-dir-header-urgent-value
+                                'mouse-face 'highlight
+                                'keymap vc-dir-outgoing-revisions-map
+                                'help-echo "\\<vc-dir-outgoing-revisions-map>\
 \\[vc-root-log-outgoing]: List outgoing revisions")))))
-                    (kill-buffer))))
-            (error (overlay-put overlay 'after-string unknown)
-                   (kill-buffer buf)))))))))
+                      (kill-buffer))))
+              (error (overlay-put overlay 'after-string unknown)
+                     (kill-buffer buf))))))))))
 
 (defvar-local vc-dir-async-header-values
   '(("Outgoing" . vc-dir--count-outgoing))

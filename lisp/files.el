@@ -3991,6 +3991,18 @@ variable `enable-remote-dir-locals' is non-nil."
   :risky t
   :group 'find-file)
 
+(defmacro without-local-variable-queries (&rest body)
+  "Execute BODY without querying user about local variable values.
+In some uses, this is a workaround for the problem that a command
+disables displaying new windows for its own reasons but this also breaks
+`hack-local-variables-confirm'.  See Emacs bug#80528 and bug#81233."
+  (declare (indent 0) (debug t))
+  `(let ((enable-local-variables
+          (if (memq enable-local-variables '(:safe :all nil))
+              enable-local-variables
+            :safe)))
+     ,@body))
+
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
@@ -4055,6 +4067,9 @@ i  -- to ignore the local variables list, and permanently mark these
       ;; Display the buffer and read a choice.
       (save-window-excursion
 	(pop-to-buffer buf '(display-buffer--maybe-at-bottom))
+        (unless (get-buffer-window buf)
+          (error "Failed to display local variables buffer; this is a bug
+Possibly caller should use `without-local-variable-queries', which see."))
 	(let* ((exit-chars '(?y ?n ?\s))
 	       (prompt (format "Please type %s%s: "
 			       (if offer-save
