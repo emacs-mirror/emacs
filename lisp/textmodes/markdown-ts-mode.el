@@ -5313,6 +5313,7 @@ NOTE: Call this function only when the treesit `markdown' and
 
                                 :embed 'html
                                 :host 'markdown-inline
+                                :local t
                                 '((html_tag) @html)))))
 
          (when (treesit-ready-p 'yaml t)
