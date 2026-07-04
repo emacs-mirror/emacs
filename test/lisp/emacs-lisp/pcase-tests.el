@@ -210,4 +210,19 @@
     (should (equal (f4 nil) 1))
     (should (equal (f4 '(a)) 2))))
 
+(ert-deftest pcase-tests-let*-strict ()
+  (should (equal '(1 2 4 5)
+                 (pcase-let*-strict ((`(,a ,b) (list 1 2))
+                                     (`[,c ,d] (vector 4 5)))
+                   (list a b c d))))
+
+  (should (equal '(1 2 nil nil)
+                 (pcase-let* ((`(,a ,b) (list 1 2))
+                              (`(,c ,d) (vector 4 5)))
+                   (list a b c d))))
+
+  (should-error (pcase-let*-strict ((`(,a ,b) (list 1 2))
+                                    (`(,c ,d) (vector 4 5)))
+                  (list a b c d))))
+
 ;;; pcase-tests.el ends here.

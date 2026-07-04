@@ -211,6 +211,15 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
 * Incompatible Lisp Changes in Emacs 32.1
 
+** Pcase
+
++++
+*** Add 'pcase-let*-strict'
+This macro is like 'pcase-let*', but signals an error if a 'pcase'
+pattern does not match its corresponding value.  This can be useful for
+destructuring values when you do not wish to continue if the
+corresponding value is not as expected.
+
 
 * Lisp Changes in Emacs 32.1
 

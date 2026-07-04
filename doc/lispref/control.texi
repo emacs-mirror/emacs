@@ -1489,6 +1489,13 @@ introduced in each one of the @var{bindings} are available in the
 being available in @var{body}.
 @end defmac
 
+@defmac pcase-let*-strict bindings body@dots{}
+Like @code{pcase-let*}, but signals an error if a @var{pattern} does
+not match its corresponding @var{exp}.  For example, this can alert
+you when a value that you would like to destructure is not as
+expected.
+@end defmac
+
 @defmac pcase-dolist (pattern list) body@dots{}
 Execute @var{body} once for each element of @var{list}, on each
 iteration performing a destructuring binding of variables in

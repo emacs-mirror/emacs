@@ -268,22 +268,28 @@ nil."
     `(lambda ,args ,@(car parsed-body)
        (pcase-let* ,(nreverse bindings) ,@(cdr parsed-body)))))
 
-(defun pcase--let* (bindings body)
+(defun pcase--let* (bindings body &optional strict)
   (cond
    ((null bindings) (macroexp-progn body))
    ((pcase--trivial-upat-p (caar bindings))
     (macroexp-let* `(,(car bindings)) (pcase--let* (cdr bindings) body)))
    (t
-    (let ((binding (pop bindings)))
+    (let* ((binding (pop bindings))
+           (x (gensym "x"))
+           (pcase--dontwarn-upats (cons x pcase--dontwarn-upats)))
       (pcase--expand
        (cadr binding)
-       `((,(car binding) ,(pcase--let* bindings body))
-         ;; We can either signal an error here, or just use `pcase--dontcare'
-         ;; which generates more efficient code.  In practice, if we use
-         ;; `pcase--dontcare' we will still often get an error and the few
-         ;; cases where we don't do not matter that much, so
-         ;; it's a better choice.
-         (pcase--dontcare nil)))))))
+       `((,(car binding) ,(pcase--let* bindings body strict))
+         ,(if strict
+              `(,x (error "`pcase' pattern does not match value: %S %S"
+                          (quote ,(car binding))
+                          ,x))
+            ;; We can either signal an error here, or just use `pcase--dontcare'
+            ;; which generates more efficient code.  In practice, if we use
+            ;; `pcase--dontcare' we will still often get an error and the few
+            ;; cases where we don't do not matter that much, so
+            ;; it's a better choice.
+            '(pcase--dontcare nil))))))))
 
 ;;;###autoload
 (defmacro pcase-let* (bindings &rest body)
@@ -304,6 +310,27 @@ undetected, binding variables to arbitrary values, such as nil."
       (let ((expansion (pcase--let* bindings body)))
         (puthash bindings (cons body expansion) pcase--memoize)
         expansion))))
+
+;;;###autoload
+(defmacro pcase-let*-strict (bindings &rest body)
+  "Like `pcase-let*', but signal an error when a pattern does not match.
+As with `pcase-let*', BINDINGS are of the form (PATTERN EXP), but the
+EXP in each binding in BINDINGS can use the results of the destructuring
+bindings that precede it in BINDINGS' order.
+
+Each EXP should match its respective PATTERN (i.e. be of structure
+compatible to PATTERN); a mismatch may signal an error or may go
+undetected, binding variables to arbitrary values, such as nil."
+  (declare (indent 1)
+           (debug ((&rest (pcase-PAT &optional form)) body)))
+  (let ((cached (gethash bindings pcase--memoize)))
+    ;; cached = (BODY . EXPANSION)
+    (if (equal (car cached) body)
+        (cdr cached)
+      (let ((expansion (pcase--let* bindings body t)))
+        (puthash bindings (cons body expansion) pcase--memoize)
+        expansion))))
+
 
 ;;;###autoload
 (defmacro pcase-let (bindings &rest body)
