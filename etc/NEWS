@@ -1640,15 +1640,6 @@ at run-time for the use of the associated deprecated features.
 '(setq eieio-backward-compatibility t)' can be used to recover
 the previous silence.
 
-** Emacs Lisp mode
-
-+++
-*** Semantic highlighting support for Emacs Lisp.
-'emacs-lisp-mode' can now use code analysis to highlight more symbols
-more accurately.  Customize the new user option
-'elisp-fontify-semantically' to non-nil to enable this feature, and see
-the Info node "(emacs) Semantic Font Lock" for more information.
-
 ** Text mode
 
 ---
@@ -2337,6 +2328,13 @@ To get the old behavior back, add an element '(enum-open
 "(ccmode) Config Basics" node of the CC mode manual.
 
 ** Emacs Lisp mode
+
++++
+*** Semantic highlighting support for Emacs Lisp.
+'emacs-lisp-mode' can now use code analysis to highlight more symbols
+more accurately.  Customize the new user option
+'elisp-fontify-semantically' to non-nil to enable this feature, and see
+the Info node "(emacs) Semantic Font Lock" for more information.
 
 ---
 *** Checkdoc no longer warns about missing footer lines in some cases.
