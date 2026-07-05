@@ -1198,8 +1198,9 @@ TRANSLATED_DIRS:=misc
 # $(1) = dir
 # $(2) = lang
 define GET_DOC_SRC
--include ${srcdir}/doc/translations/$(1)/$(2)/info_common.mk
-srcdir_doc_info_dir_inputs:=$$(srcdir_doc_info_dir_inputs) $$(patsubst %,${srcdir}/doc/translations/$(1)/$(2)/%$$(filter-out -default,-$(2)).texi,$$(INFO_COMMON))
+-include ${srcdir}/doc/translations/$(2)/$(1)/info_common.mk
+INFO_COMMON:=$$(subst ccmode,cc-mode,$$(INFO_COMMON))
+srcdir_doc_info_dir_inputs:=$$(srcdir_doc_info_dir_inputs) $$(patsubst ${srcdir}/doc/translations/default/$(1)/%-default.texi,${srcdir}/doc/$(1)/%.texi,$$(patsubst %,${srcdir}/doc/translations/$(2)/$(1)/%-$(2).texi,$$(INFO_COMMON)))
 endef
 $(foreach dir,$(TRANSLATED_DIRS),$(foreach lang,$(DOCLANGS),$(eval $(call GET_DOC_SRC,$(dir),$(lang)))))
 

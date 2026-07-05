@@ -65,7 +65,7 @@ MAKEINFO_OPTS = --force -I$(emacsdir)
 
 ifeq ($(DOCLANG),)
 DOCLANG:=default
-else ifeq ($(wildcard $(srcdir)/../translations/$(DOCLANG)/info_common.mk),)
+else ifeq ($(wildcard $(srcdir)/../translations/$(DOCLANG)/misc/info_common.mk),)
 $(error No manual language $(DOCLANG) found)
 DOCLANG:=default
 endif
@@ -78,7 +78,7 @@ DOCMISC_W32 = @DOCMISC_W32@
 DOCMISC_W32_TARGET = efaq-w32
 
 ## Info files to build and install on all platforms.
-include $(srcdir)/../translations/$(DOCLANG)/info_common.mk
+include $(srcdir)/../translations/$(DOCLANG)/misc/info_common.mk
 
 ## Info files to install on current platform.
 INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
