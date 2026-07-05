@@ -112,7 +112,7 @@
 
 (defcustom org-feed-alist nil
   "Alist specifying RSS feeds that should create inputs for Org.
-Each entry in this list specified an RSS feed tat should be queried
+Each entry in this list specified an RSS feed that should be queried
 to create inbox items in Org.  Each entry is a list with the following items:
 
 name         a custom name for this feed
