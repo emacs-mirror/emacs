@@ -182,7 +182,7 @@ the currently selected item in the list view to the kill-ring.
 ** Rmail
 
 +++
-*** Files named "RMAIL" or ending in ".rmail" now visit in Rmail mode.
+*** Files named "RMAIL" or ending in ".rmail" are now visited in Rmail mode.
 You can now visit such files in Rmail mode using ordinary file-visiting
 commands, such as 'C-x C-f'.
 
