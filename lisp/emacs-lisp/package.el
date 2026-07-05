@@ -2186,8 +2186,8 @@ NAME should be a symbol."
                   (package-desc-version (cadr elt))
                   (package-desc-version available)))
              (not (package-vc-p (cadr elt))))))
-    (nconc (and include-builtins (package--builtin-alist))
-           (package--alist)))))
+    (append (and include-builtins (package--builtin-alist))
+            (package--alist)))))
 
 ;;;###autoload
 (defun package-upgrade-all (&optional query)
