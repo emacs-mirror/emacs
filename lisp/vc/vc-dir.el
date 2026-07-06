@@ -1601,6 +1601,31 @@ It calls the `dir-extra-headers' backend method to display backend
 specific headers."
   (kill-local-variable 'vc-dir-async-header-values)
   (concat
+   (and
+    vc-dir-show-key-binding-hints
+    (substitute-command-keys
+     (concat
+      (propertize "Act  " 'font-lock-face 'vc-dir-key-binding-hint-label)
+      " "
+      "(\\[vc-revert]) Revert, "
+      "(\\[vc-dir-delete-file]) Delete, "
+      "(\\[vc-dir-ignore]) Ignore, "
+      "(\\[vc-next-action]/\\[vc-dir-root-next-action]) Commit/commit all, "
+      "(\\[vc-push]) Push"
+      "\n"
+      (propertize "Marks" 'font-lock-face 'vc-dir-key-binding-hint-label)
+      "  "
+      "(\\[vc-dir-mark]) Mark, "
+      "(\\[vc-dir-unmark]) Unmark, "
+      "(\\[vc-dir-unmark-all-files]) Unmark same state/dir, "
+      "(\\[universal-argument] \\[vc-dir-unmark-all-files]) Unmark all"
+      "\n"
+      (propertize "View " 'font-lock-face 'vc-dir-key-binding-hint-label)
+      "              "
+      "(\\[vc-diff]) Diff, "
+      "(\\[revert-buffer]) Refresh, "
+      "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"
+      "\n\n")))
    (propertize "VC backend : " 'face 'vc-dir-header)
    (propertize (format "%s\n" backend) 'face 'vc-dir-header-value)
    (propertize "Working dir: " 'face 'vc-dir-header)
@@ -1612,35 +1637,7 @@ specific headers."
                 (concat (propertize (format "%-11s: " header)
                                     'face 'vc-dir-header)
                         "\n"))
-              vc-dir-async-header-values)
-   (and
-    vc-dir-show-key-binding-hints
-    (concat
-     "\n"
-     (substitute-command-keys
-      (concat
-       "\\<vc-dir-mode-map>"
-       (propertize "Act  " 'font-lock-face 'vc-dir-key-binding-hint-label)
-       " "
-       "(\\[vc-revert]) Revert, "
-       "(\\[vc-dir-delete-file]) Delete, "
-       "(\\[vc-dir-ignore]) Ignore, "
-       "(\\[vc-next-action]/\\[vc-dir-root-next-action]) Commit/commit all, "
-       "(\\[vc-push]) Push"
-       "\n"
-       (propertize "Marks" 'font-lock-face 'vc-dir-key-binding-hint-label)
-       "  "
-       "(\\[vc-dir-mark]) Mark, "
-       "(\\[vc-dir-unmark]) Unmark, "
-       "(\\[vc-dir-unmark-all-files]) Unmark same state/dir, "
-       "(\\[universal-argument] \\[vc-dir-unmark-all-files]) Unmark all"
-       "\n"
-       (propertize "View " 'font-lock-face 'vc-dir-key-binding-hint-label)
-       "              "
-       "(\\[vc-diff]) Diff, "
-       "(\\[revert-buffer]) Refresh, "
-       "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"))
-     "\n"))))
+              vc-dir-async-header-values)))
 
 (defun vc-dir--set-header (def-dir &optional reset-footer)
   (ewoc-set-hf vc-ewoc
