@@ -469,7 +469,7 @@ To be used in hook functions."
 	  ;; Emacs 21 has no buffer file name for directory edits.
 	  ;; so we need to add these hacks in.
 	  (eq major-mode 'dired-mode)
-	  (eq major-mode 'vc-dir-mode))
+	  (derived-mode-p 'vc-dir-mode))
       (ede-minor-mode 1)))
 
 (define-minor-mode ede-minor-mode

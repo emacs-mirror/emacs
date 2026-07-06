@@ -1597,8 +1597,10 @@ elements to this list.")
 
 (defun vc-dir-headers (backend dir)
   "Display the headers in the *VC-Dir* buffer.
-It calls the `dir-extra-headers' backend method to display backend
-specific headers."
+It calls the `dir-extra-hints' backend method to display
+backend-specific key binding hints.
+It calls the `dir-extra-headers' backend method to display
+backend-specific headers."
   (kill-local-variable 'vc-dir-async-header-values)
   (concat
    (and
@@ -1625,7 +1627,9 @@ specific headers."
       "(\\[vc-diff]) Diff, "
       "(\\[revert-buffer]) Refresh, "
       "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"
-      "\n\n")))
+      "\n"
+      (vc-call-backend backend 'dir-extra-hints)
+      "\n")))
    (propertize "VC backend : " 'face 'vc-dir-header)
    (propertize (format "%s\n" backend) 'face 'vc-dir-header-value)
    (propertize "Working dir: " 'face 'vc-dir-header)
@@ -1968,7 +1972,7 @@ These are the commands available for use in the file status buffer:
       (vc-dir-refresh)
     ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
     (let ((use-vc-backend backend))
-      (vc-dir-mode)
+      (vc-call-backend backend 'dir-mode)
       ;; Activate the backend-specific minor mode, if any.
       (when-let* ((minor-mode
                    (intern-soft (format "vc-dir-%s-mode"

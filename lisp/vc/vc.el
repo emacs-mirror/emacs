@@ -190,7 +190,7 @@
 ;;
 ;;   To provide more backend specific functionality for `vc-dir'
 ;;   the following functions might be needed: `dir-extra-headers',
-;;   `dir-printer', and `extra-dir-menu'.
+;;   `dir-extra-hints', `dir-mode', `dir-printer', and `extra-dir-menu'.
 ;;
 ;;   NOTE: project.el includes a similar method `project-list-files'
 ;;   that has a slightly different return value and performance
@@ -202,6 +202,17 @@
 ;; - dir-extra-headers (dir)
 ;;
 ;;   Return a string that will be added to the *vc-dir* buffer header.
+;;
+;; - dir-extra-hints ()
+;;
+;;   Return a string of additional key bindings hints for the *vc-dir*
+;;   buffer header, or nil.
+;;
+;; - dir-mode ()
+;;
+;;   Mode to use for the *vc-dir* buffer.  This defaults to
+;;   `vc-dir-mode' and is expected to be changed (if at all) to a
+;;   derived mode of `vc-dir-mode'.
 ;;
 ;; - dir-printer (fileinfo)
 ;;
@@ -5631,6 +5642,12 @@ to provide the `find-revision' operation instead."
 (defun vc-default-dir-status-files (_backend _dir files update-function)
   (funcall update-function
            (mapcar (lambda (file) (list file 'up-to-date)) files)))
+
+(declare-function vc-dir-mode "vc-dir")
+
+(defun vc-default-dir-mode (_backend) (vc-dir-mode))
+
+(defalias 'vc-default-dir-extra-hints #'ignore)
 
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."
