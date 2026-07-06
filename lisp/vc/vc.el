@@ -208,12 +208,6 @@
 ;;   Return a string of additional key bindings hints for the *vc-dir*
 ;;   buffer header, or nil.
 ;;
-;; - dir-mode ()
-;;
-;;   Mode to use for the *vc-dir* buffer.  This defaults to
-;;   `vc-dir-mode' and is expected to be changed (if at all) to a
-;;   derived mode of `vc-dir-mode'.
-;;
 ;; - dir-printer (fileinfo)
 ;;
 ;;   Pretty print the `vc-dir-fileinfo' FILEINFO.
@@ -5642,10 +5636,6 @@ to provide the `find-revision' operation instead."
 (defun vc-default-dir-status-files (_backend _dir files update-function)
   (funcall update-function
            (mapcar (lambda (file) (list file 'up-to-date)) files)))
-
-(declare-function vc-dir-mode "vc-dir")
-
-(defun vc-default-dir-mode (_backend) (vc-dir-mode))
 
 (defalias 'vc-default-dir-extra-hints #'ignore)
 

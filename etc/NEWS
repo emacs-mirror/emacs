@@ -129,11 +129,8 @@ obsolete.
 *** VC-Dir now shows key binding hints.
 To hide these, you can customize the new user option
 'vc-dir-show-key-binding-hints' to nil.
-
----
-*** Backends can supply a derived mode for VC-Dir buffers.
-Backend authors can use the new backend methods 'dir-mode' and
-'dir-extra-hints'.
+Backends can supply additional hints using the new 'dir-extra-hints'
+backend method.
 
 ---
 *** VC-Dir doesn't process very large status output by default.
