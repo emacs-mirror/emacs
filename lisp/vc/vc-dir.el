@@ -431,6 +431,7 @@ an \\+`up-to-date' or \\+`ignored' file."
     (define-key map "E=" #'vc-diff-outgoing-and-edited)
     (define-key map "ED" #'vc-root-diff-outgoing-and-edited)
     (define-key map "V" #'vc-dir-root-next-action)
+    (define-key map "?" #'vc-dir-toggle-hints)
 
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "b" branch-map)
@@ -1595,6 +1596,29 @@ elements to this list.")
   :group 'vc
   :version "32.1")
 
+(defvar-local vc-dir--key-binding-hints ""
+  "Key binding hints for this VC-Dir buffer.")
+
+(defun vc-dir-toggle-hints (&rest _ignore)
+  "Toggle display of the key bindings hints in current VC-Dir buffer.
+The toggle is preserved across refreshes of this VC-Dir buffer."
+  (interactive)
+  (if (and (local-variable-p 'vc-dir-show-key-binding-hints)
+           (not (eq vc-dir-show-key-binding-hints
+                    (default-value 'vc-dir-show-key-binding-hints))))
+      (kill-local-variable 'vc-dir-show-key-binding-hints)
+    (setq-local vc-dir-show-key-binding-hints
+                (not vc-dir-show-key-binding-hints)))
+  ;; Preserve point across the toggle.  We don't currently try to
+  ;; preserve point across the operation of customizing the value of
+  ;; `vc-dir-show-key-binding-hints'.
+  (let ((opoint (point)))
+    (vc-dir--set-header default-directory)
+    (let ((hints-length (length vc-dir--key-binding-hints)))
+      (goto-char (if vc-dir-show-key-binding-hints
+                     (+ opoint hints-length)
+                   (- opoint hints-length))))))
+
 (defun vc-dir-headers (backend dir)
   "Display the headers in the *VC-Dir* buffer.
 It calls the `dir-extra-hints' backend method to display
@@ -1602,36 +1626,51 @@ backend-specific key binding hints.
 It calls the `dir-extra-headers' backend method to display
 backend-specific headers."
   (kill-local-variable 'vc-dir-async-header-values)
+  (setq-local
+   vc-dir--key-binding-hints
+   (substitute-command-keys
+    (concat
+     (propertize "Act  " 'font-lock-face 'vc-dir-key-binding-hint-label)
+     " "
+     "(\\[vc-revert]) Revert, "
+     "(\\[vc-dir-delete-file]) Delete, "
+     "(\\[vc-dir-ignore]) Ignore, "
+     "(\\[vc-next-action]/\\[vc-dir-root-next-action]) Commit/commit all, "
+     "(\\[vc-push]) Push"
+     "\n"
+     (propertize "Marks" 'font-lock-face 'vc-dir-key-binding-hint-label)
+     "  "
+     "(\\[vc-dir-mark]) Mark, "
+     "(\\[vc-dir-unmark]) Unmark, "
+     "(\\[vc-dir-unmark-all-files]) Unmark same state/dir, "
+     "(\\[universal-argument] \\[vc-dir-unmark-all-files]) Unmark all"
+     "\n"
+     (propertize "View " 'font-lock-face 'vc-dir-key-binding-hint-label)
+     "              "
+     "(\\[vc-diff]) Diff, "
+     "(\\[revert-buffer]) Refresh, "
+     "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"
+     "\n"
+     (vc-call-backend backend 'dir-extra-hints)
+     "\n")))
   (concat
-   (and
-    vc-dir-show-key-binding-hints
-    (substitute-command-keys
-     (concat
-      (propertize "Act  " 'font-lock-face 'vc-dir-key-binding-hint-label)
-      " "
-      "(\\[vc-revert]) Revert, "
-      "(\\[vc-dir-delete-file]) Delete, "
-      "(\\[vc-dir-ignore]) Ignore, "
-      "(\\[vc-next-action]/\\[vc-dir-root-next-action]) Commit/commit all, "
-      "(\\[vc-push]) Push"
-      "\n"
-      (propertize "Marks" 'font-lock-face 'vc-dir-key-binding-hint-label)
-      "  "
-      "(\\[vc-dir-mark]) Mark, "
-      "(\\[vc-dir-unmark]) Unmark, "
-      "(\\[vc-dir-unmark-all-files]) Unmark same state/dir, "
-      "(\\[universal-argument] \\[vc-dir-unmark-all-files]) Unmark all"
-      "\n"
-      (propertize "View " 'font-lock-face 'vc-dir-key-binding-hint-label)
-      "              "
-      "(\\[vc-diff]) Diff, "
-      "(\\[revert-buffer]) Refresh, "
-      "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"
-      "\n"
-      (vc-call-backend backend 'dir-extra-hints)
-      "\n")))
+   (and vc-dir-show-key-binding-hints vc-dir--key-binding-hints)
    (propertize "VC backend : " 'face 'vc-dir-header)
-   (propertize (format "%s\n" backend) 'face 'vc-dir-header-value)
+   (propertize (format "%s" backend) 'face 'vc-dir-header-value)
+   (let ((label (substitute-command-keys "\
+[toggle hints (\\[vc-dir-toggle-hints])]")))
+     (concat
+      (propertize " " 'display
+                  `(space
+                    :align-to
+                    ,(- (length (car (string-split vc-dir--key-binding-hints
+                                                   "\n")))
+                        (length label))))
+      (with-temp-buffer
+        (insert-text-button label 'action #'vc-dir-toggle-hints
+                            'help-echo "Toggle display of key binding hints")
+        (buffer-string))))
+   "\n"
    (propertize "Working dir: " 'face 'vc-dir-header)
    (propertize (format "%s\n" (abbreviate-file-name dir))
                'face 'vc-dir-header-value)
