@@ -982,7 +982,7 @@ the docstrings eventually produced, using
 (defun eldoc-show-help-at-pt (&rest _)
   "Show help at point via Eldoc if `eldoc-help-at-pt' is non-nil.
 Intended for `eldoc-documentation-functions' (which see)."
-  (when-let* ((help (and eldoc-help-at-pt (help-at-pt-kbd-string))))
+  (when-let* ((help (help-at-pt-kbd-string)))
     (format "Help: %s" (substitute-command-keys help))))
 
 
