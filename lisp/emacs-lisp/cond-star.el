@@ -333,34 +333,34 @@ This is used for conditional exit clauses."
                       (when ,init-gensym
                         . ,true-exps)))))))
           ((eq pat-type 'bind-and*)
-           (let ((checks '()) (last t))
+           (let ((checks '()) (rebinds '()) (last t))
              (dolist (bind (cdr condition))
-               (if (symbolp bind)
-                   (push (list (make-symbol "s") (list 'and last bind))
-                         checks)
-                 (push (list (car bind) (list 'and last (cadr bind)))
+               (let ((temp (gensym "s")))
+                 (push (list temp (list 'and last
+                                        (cond*-bind-around
+                                         rebinds
+                                         (if (symbolp bind) bind (cadr bind)))))
                        checks)
-                 (when (eq (caar checks) '_)
-                   (setcar (car checks) (make-symbol "s"))))
-               (setq last (caar checks)))
-             (cond
-              ;; For explanations on these cases, see "Ordinary
-              ;; Lisp expression is the condition." below.
-              (rest
-               (let ((quit (gensym "quit")))
-                 `(catch ',quit
-                    (let* (,@(nreverse checks))
-                      (if ,last (throw ',quit ,(macroexp-progn true-exps))))
-                    ,iffalse)))
-              (uncondit-clauses
-               `(progn
-                  (let* (,@(nreverse checks))
-                    (if ,last ,(macroexp-progn true-exps)))
-                  ,(cond*-convert uncondit-clauses)))
-              (true-exps
-               `(let* (,@(nreverse checks))
-                  (if ,last ,(macroexp-progn true-exps))))
-              (t last))))
+                 ;; No need to rebind a `_'.
+                 (when (and (consp bind) (not (eq (car bind) '_)))
+                   (push (list (car bind) temp) rebinds))
+                 (setq last temp)))
+             (macroexp-let*
+              (nreverse checks)
+              (let ((body (macroexp-if last
+                                       (cond*-bind-around
+                                        rebinds
+                                        (if true-exps
+                                            (macroexp-progn true-exps)
+                                          (macroexp-warn-and-return
+                                           "`bind-and*' clause with empty body"
+                                           nil '(empty-body cond*))))
+                                       iffalse)))
+                (if uncondit-clauses
+                    `(progn
+                       ,body
+                       ,(cond*-convert uncondit-clauses))
+                  body)))))
           ((eq pat-type 'pcase*)
            (if true-exps
                (progn
