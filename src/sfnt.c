@@ -263,7 +263,7 @@ sfnt_read_table_directory (int fd)
 
   rc = read (fd, subtable->subtables, subtable_size);
 
-  if (rc == -1 || rc < offset)
+  if (rc == -1 || rc < subtable_size)
     {
       xfree (subtable);
       return NULL;
