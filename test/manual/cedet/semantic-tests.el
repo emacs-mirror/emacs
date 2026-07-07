@@ -100,7 +100,7 @@ global enabled."
     (condition-case err
 	(semanticdb-enable-gnu-global-in-buffer)
       (error (if standardfile
-		 (error err)
+		 (signal err)
 	       (save-match-data
 		 (set-buffer (find-file-noselect semanticdb-test-gnu-global-startfile)))
 	       (semanticdb-enable-gnu-global-in-buffer))))
