@@ -5432,7 +5432,8 @@ elsewhere.  This value is used by `quit-windows-on'."
 	 (quit-restore-prev-2 (nth 2 quit-restore-prev))
          (prev-buffer (catch 'prev-buffer
                         (dolist (buf (window-prev-buffers window))
-                          (unless (eq (car buf) buffer)
+                          (when (and (not (eq (car buf) buffer))
+                                     (buffer-live-p (car buf)))
                             (throw 'prev-buffer (car buf))))))
          (dedicated (window-dedicated-p window))
 	 (frame (window-frame window))
