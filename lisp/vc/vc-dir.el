@@ -1652,7 +1652,7 @@ backend-specific headers."
      "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"
      "\n"
      (vc-call-backend backend 'dir-extra-hints)
-     "\n")))
+     "\n" (make-separator-line) "\n")))
   (concat
    (and vc-dir-show-key-binding-hints vc-dir--key-binding-hints)
    (propertize "VC backend : " 'face 'vc-dir-header)
