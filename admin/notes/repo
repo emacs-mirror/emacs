@@ -138,9 +138,9 @@ command for you, recording a result based on the exit code.
 Suppose 'emacs -batch -eval "(foo)"' exits non-zero if and only if the
 bug is present.  Then you may be able to use something like this:
 
-    git bisect run sh -ec '{ test -e configure && { make || make	\
-    bootstrap; }; } || { git clean -xdff && ./autogen.sh autoconf &&	\
-    ./configure && make; } || exit 125; src/emacs -batch -eval "(foo)"'
+    git bisect run sh -xc '{ test -e Makefile && { make || make bootstrap; }; } \
+	|| { git clean -xdff && ./autogen.sh autoconf && ./configure && make; } \
+	|| exit 125; src/emacs -batch -eval "(foo)"'
 
 This tries to recompile Emacs, tries a bootstrap build if that fails,
 and completely empties out your working tree of build products with 'git
