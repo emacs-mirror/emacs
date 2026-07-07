@@ -118,6 +118,8 @@ again.
 This is a semi-automated way to find the revision that introduced a bug.
 Browse 'git help bisect' for technical instructions.
 
+** Starting a bisection
+
 It is recommended to start a bisection with the admin/git-bisect-start
 script.  Using that script ensures that commits in branches that are
 the result of merging external trees into the Emacs repository, as
@@ -125,6 +127,34 @@ well as certain commits on which Emacs fails to build, are skipped
 during the bisection process.  That script can also be executed
 automatically when 'git bisect start' is called, with the help of a
 wrapper script that is included in its commentary section.
+
+** Automated bisection
+
+In the case that you have a command which exits non-zero if and only if
+the bug is present, then after starting the bisection, you can have Git
+automatically recompile Emacs at the relevant revisions and run that
+command for you, recording a result based on the exit code.
+
+Suppose 'emacs -batch -eval "(foo)"' exits non-zero if and only if the
+bug is present.  Then you may be able to use something like this:
+
+    git bisect run sh -ec '{ test -e configure && { make || make	\
+    bootstrap; }; } || { git clean -xdff && ./autogen.sh autoconf &&	\
+    ./configure && make; } || exit 125; src/emacs -batch -eval "(foo)"'
+
+This tries to recompile Emacs, tries a bootstrap build if that fails,
+and completely empties out your working tree of build products with 'git
+clean -xdff' if even that fails.  If that isn't enough for a successful
+build, returning code 125 tells Git to skip evaluating that commit.
+
+You can substitute in any options to './configure' you need on your
+machine, and the test command at the end.  It is usually best to
+configure with '--without-native-compilation' for rebuild speed, unless
+the bug only occurs with native compilation enabled.
+
+Note that this runs 'git clean -xdff', which deletes **any and all
+untracked files**, so it is best to run it in a throwaway Git worktree.
+You can create these using 'C-x v w c' from inside Emacs.
 
 * Maintaining ChangeLog history
 
