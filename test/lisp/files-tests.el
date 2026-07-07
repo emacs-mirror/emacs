@@ -2155,10 +2155,10 @@ CALLERS-DIR specifies the value to let-bind
             (setq nb-saved-buffers 0)
             (with-current-buffer (car buffers)
               (cl-letf
-                  (((symbol-function 'read-key)
+                  (((symbol-function 'read-key-sequence-vector)
                     ;; Increase counter and answer 'n' when prompted
                     ;; to save a buffer.
-                    (lambda (&rest _) (incf nb-saved-buffers) ?n))
+                    (lambda (&rest _) (incf nb-saved-buffers) [?n]))
                    ;; Do not kill Emacs.
                    ((symbol-function 'kill-emacs) #'ignore)
                    (save-some-buffers-default-predicate callers-dir))
