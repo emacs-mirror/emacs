@@ -1598,7 +1598,7 @@ variable `treesit-font-lock-feature-list'.
 
 Setting this variable directly with `setq' or `let' doesn't work;
 use `setopt' or \\[customize-option] instead."
-  :type 'integer
+  :type '(choice integer (alist :key-type symbol :value-type integer))
   :set #'treesit--font-lock-level-setter
   :version "29.1")
 

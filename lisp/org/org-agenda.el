@@ -9723,8 +9723,10 @@ the dedicated frame."
 	 (pos (marker-position marker)))
     (with-current-buffer buffer
       (save-excursion
-	(goto-char pos)
-	(org-tree-to-indirect-buffer arg))))
+	(save-restriction
+	  (widen)
+	  (goto-char pos)
+	  (org-tree-to-indirect-buffer arg)))))
   (setq org-agenda-last-indirect-buffer org-last-indirect-buffer))
 
 (defvar org-last-heading-marker (make-marker)

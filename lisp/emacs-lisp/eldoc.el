@@ -144,6 +144,11 @@ This setting is an alternative to `help-at-pt-display-when-idle'.  If
 the value is non-nil, `eldoc-show-help-at-pt' will show help-at-point
 via Eldoc."
   :type 'boolean
+  :set (lambda (sym val)
+         (custom-set-default sym val)
+         (if val
+             (add-hook 'eldoc-documentation-functions #'eldoc-show-help-at-pt 90)
+           (remove-hook 'eldoc-documentation-functions #'eldoc-show-help-at-pt)))
   :version "31.1")
 
 (defface eldoc-highlight-function-argument
@@ -417,7 +422,7 @@ Also store it in `eldoc-last-message' and return that value."
                       (overlay-end show-paren--overlay)))))))
 
 
-(defvar eldoc-documentation-functions (list #'eldoc-show-help-at-pt)
+(defvar eldoc-documentation-functions nil
   "Hook of functions that produce doc strings.
 
 A doc string is typically relevant if point is on a function-like
@@ -813,7 +818,9 @@ all."
 
 (defun eldoc--supported-p ()
   "Non-nil if an ElDoc function is set for this buffer."
-  (and (not (memq eldoc-documentation-strategy '(nil ignore)))
+  ;; Exclude ephemeral *eldoc* buffers, to avoid blinking (bug#81356).
+  (and (not (string-prefix-p " *eldoc" (buffer-name)))
+       (not (memq eldoc-documentation-strategy '(nil ignore)))
        (or eldoc-documentation-functions
            ;; The old API had major modes set `eldoc-documentation-function'
            ;; to provide eldoc support.  It's impossible now to determine

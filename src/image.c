@@ -7774,19 +7774,22 @@ pbm_load (struct frame *f, struct image *img)
     }
   else
     {
-      int expected_size = height * width;
       bool two_byte = 255 < max_color_idx;
-      if (two_byte)
-	expected_size *= 2;
-      if (type == PBM_COLOR)
-	expected_size *= 3;
 
-      if (raw_p && p + expected_size > end)
+      if (raw_p)
 	{
-	  image_destroy_x_image (ximg);
-	  image_clear_image (f, img);
-	  image_error ("Invalid image size in image `%s'", img->spec);
-	  goto error;
+	  ptrdiff_t expected_size;
+	  bool bad = ckd_mul (&expected_size, height, width);
+	  bad |= ckd_mul (&expected_size, expected_size,
+			  (two_byte ? 2 : 1) * (type == PBM_COLOR ? 3 : 1));
+	  bad |= end - p < expected_size;
+	  if (bad)
+	    {
+	      image_destroy_x_image (ximg);
+	      image_clear_image (f, img);
+	      image_error ("Invalid image size in image `%s'", img->spec);
+	      goto error;
+	    }
 	}
 
       for (y = 0; y < height; ++y)
