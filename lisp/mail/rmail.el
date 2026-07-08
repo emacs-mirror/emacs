@@ -903,6 +903,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       ;; The mail file is either unchanged or not visited.  Visit it.
       (switch-to-buffer
        (let ((enable-local-variables nil)
+             ;; Prevent recursive invocation of 'rmail' via
+             ;; 'auto-mode-alist'.
 	     (auto-mode-alist nil)
 	     ;; Force no-conversion by default, since that's what
 	     ;; pre-mbox Rmail did with BABYL files (via
