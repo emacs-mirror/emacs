@@ -3233,10 +3233,6 @@ struct image
 # if !defined USE_CAIRO && defined HAVE_XRENDER
   /* Picture versions of pixmap and mask for compositing.  */
   Picture picture, mask_picture;
-
-  /* We need to store the original image dimensions in case we have to
-     call XGetImage.  */
-  int original_width, original_height;
 # endif
 #endif	/* HAVE_X_WINDOWS */
 #ifdef HAVE_ANDROID
@@ -3253,9 +3249,6 @@ struct image
 #ifdef HAVE_HAIKU
   /* The affine transformation to apply to this image.  */
   double transform[3][3];
-
-  /* The original width and height of the image.  */
-  int original_width, original_height;
 
   /* Whether or not bilinear filtering should be used to "smooth" the
      image.  */
@@ -3296,7 +3289,17 @@ struct image
      valid, respectively. */
   bool_bf background_valid : 1, background_transparent_valid : 1;
 
-  /* Width and height of the image.  */
+  /* Refresh counter reflecting the current version of the image.
+     Always larger than zero for images which may need refreshing.
+     Right now it is only used by canvas images.  */
+  uint32_t refresh;
+
+  /* The original width and height of the image before transformations
+     like scaling or rotation.  */
+  int original_width, original_height;
+
+  /* Width and height of the image.  These values depend on
+     the :scale or :rotation image parameters.  */
   int width, height;
 
   /* The scale factor applied to the image.  */
@@ -3627,6 +3630,7 @@ extern void get_font_ascent_descent (struct font *, int *, int *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+extern void redraw_image_glyphs (Lisp_Object);
 extern void gui_get_glyph_overhangs (struct glyph *, struct frame *,
                                      int *, int *);
 extern struct font *font_for_underline_metrics (struct glyph_string *);
@@ -3715,6 +3719,8 @@ extern bool buffer_flipping_blocked_p (void);
 extern void update_redisplay_ticks (int, struct window *);
 
 /* Defined in image.c */
+
+extern uint32_t *canvas_data (Lisp_Object);
 
 #ifdef HAVE_WINDOW_SYSTEM
 

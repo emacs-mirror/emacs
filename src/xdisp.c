@@ -32850,6 +32850,82 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
     IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
+static void
+redraw_image_glyphs_window (struct window *w, Lisp_Object spec)
+{
+  if (w->current_matrix == NULL)
+    return;
+
+  struct frame* f = WINDOW_XFRAME (w);
+
+  if (w->must_be_updated_p)
+    {
+      SET_FRAME_GARBAGED (f);
+      return;
+    }
+
+  for (int area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
+    {
+      for (int y = 0; y < w->current_matrix->nrows; ++y)
+	{
+	  struct glyph_row *row = w->current_matrix->rows + y;
+	  if (row->enabled_p)
+	    {
+	      int pos_x = area == TEXT_AREA ? row->x : 0;
+	      for (int x = 0; x < row->used[area]; ++x)
+		{
+		  struct glyph *glyph = row->glyphs[area] + x;
+		  if (glyph->type == IMAGE_GLYPH)
+		    {
+		      struct image* img =
+			IMAGE_OPT_FROM_ID (f, glyph->u.img_id);
+		      if (img && EQ (img->spec, spec))
+			{
+			  prepare_image_for_display (f, img);
+			  draw_glyphs (w, pos_x, row, area, x, x + 1,
+				       DRAW_NORMAL_TEXT, 0);
+			}
+		    }
+		  pos_x += glyph->pixel_width;
+		}
+	    }
+	}
+    }
+}
+
+static void
+redraw_image_glyphs_window_tree (struct window *w, Lisp_Object spec)
+{
+  while (w)
+    {
+      if (WINDOWP (w->contents))
+	redraw_image_glyphs_window_tree (XWINDOW (w->contents), spec);
+      else
+	redraw_image_glyphs_window (w, spec);
+      w = NILP (w->next) ? NULL : XWINDOW (w->next);
+    }
+}
+
+/* redraw_image_glyphs: Redraw only the image glyphs.  Image redrawing is similar to the
+   handling of Expose or GraphicsExpose events in xterm.c.
+   GraphicsExpose event
+      -> expose_frame -> expose_window_tree -> expose_window
+      -> expose_line -> expose_area -> draw_glyphs */
+
+void
+redraw_image_glyphs (Lisp_Object spec)
+{
+  Lisp_Object tail, frame;
+  FOR_EACH_FRAME (tail, frame)
+    {
+      /* When the frame is garbaged, wait for full redisplay.  Only use
+         the fast path when the frame is in a consistent state.  */
+      struct frame* f = XFRAME (frame);
+      if (!FRAME_GARBAGED_P (f))
+        redraw_image_glyphs_window_tree (XWINDOW (f->root_window), spec);
+    }
+}
+
 #endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Produce a stretch glyph for iterator IT.  IT->object is the value

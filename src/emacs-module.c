@@ -962,6 +962,15 @@ module_vec_size (emacs_env *env, emacs_value vector)
   return ASIZE (lisp);
 }
 
+static uint32_t *
+module_canvas_data (emacs_env *env, emacs_value canvas)
+{
+  MODULE_FUNCTION_BEGIN (NULL);
+  uint32_t *data = canvas_data (value_to_lisp (canvas));
+  MODULE_INTERNAL_CLEANUP ();
+  return data;
+}
+
 /* This function should return true if and only if maybe_quit would
    quit.  */
 static bool
@@ -1612,6 +1621,7 @@ initialize_environment (emacs_env *env, struct emacs_env_private *priv)
   env->open_channel = module_open_channel;
   env->make_interactive = module_make_interactive;
   env->make_unibyte_string = module_make_unibyte_string;
+  env->canvas_data = module_canvas_data;
   return env;
 }
 

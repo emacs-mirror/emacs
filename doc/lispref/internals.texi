@@ -1117,6 +1117,7 @@ option.  @xref{Initial Options,,,emacs, The GNU Emacs Manual}.
 * Module Functions::
 * Module Values::
 * Module Misc::
+* Module Canvas API::
 * Module Nonlocal::
 @end menu
 
@@ -2019,6 +2020,53 @@ use the @code{write} function to write to the file descriptor.  Once
 done, close the file descriptor using @code{close}.  @ref{Low-Level
 I/O,,,libc}.
 @end deftypefun
+
+@node Module Canvas API
+@subsection Using Canvas API With Modules
+
+Emacs supports creating image objects called ``canvas'' which have a
+pixel buffer associated with them.  These image objects can be accessed
+and updated natively via dynamic modules.  @xref{Canvas Images}, for what
+they are.
+
+The following functions allow you to operate on canvas image objects
+with dynamic modules:
+
+@anchor{canvas_data}
+@deftypefn Function uint32_t *canvas_data (emacs_env *@var{env}, emacs_value @var{canvas})
+The function gives access to the pixel buffer of @var{canvas}.  The
+pixel buffer is in row-major order with a size @var{width} * @var{height}.
+The pixel format is ARGB32 on all platforms.  Return @code{NULL} in case
+of error.
+@end deftypefn
+
+Note that the pixel buffer is only valid as long as the canvas object is
+alive and its dimensions have not been changed.  If it has changed, Emacs
+will create a new pixel buffer and automatically resize the canvas.
+
+Once we update the canvas pixel buffer via dynamic modules, we also have
+to call @code{canvas-refresh} for Emacs to redisplay the canvas.  This
+can be done from the module via an Elisp funcall.
+
+@example
+/* Access the pixel buffer */
+uint32_t *pixel = env->canvas_data (env, canvas);
+/* Write to the pixel buffer */
+...
+/* Redraw the canvas */
+env->funcall(env, env->intern(env, "canvas-refresh"), 2,
+             (emacs_value[])@{canvas, Qnil@});
+@end example
+
+Note that @code{canvas-refresh} has an optional boolean argument to
+reload the @code{:data} vector or string from the canvas image
+specification.  When called from dynamic modules, the argument should
+usually be @code{nil}.
+
+Thus, one can simply define a module function that takes as an argument
+a canvas image object, following the specification as laid down in
+@ref{Canvas Images}, and then use the above code to manipulate the pixel
+buffer of the canvas and redraw it.
 
 @node Module Nonlocal
 @subsection Nonlocal Exits in Modules

@@ -6026,6 +6026,7 @@ displayed (@pxref{Display Feature Testing}).
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
 * Multi-Frame Images::  Some images contain more than one frame.
+* Canvas Images::       Easily modifiable image with a pixel buffer.
 * Image Cache::         Internal mechanisms of image display.
 @end menu
 
@@ -7477,6 +7478,113 @@ This function returns the timer responsible for animating @var{image},
 if there is one.
 @end defun
 
+@node Canvas Images
+@subsection Canvas Images
+@cindex canvas image
+
+Canvas images can be updated and displayed efficiently with high frame
+rates, for example by document viewers, visualization tools, dynamically
+computed animations or games.  Canvas images have an associated
+writeable pixel buffer in ARGB32 format.  For portability the format is
+the same on all platforms.  Unlike other image types supported in Emacs,
+canvas images do not require creating a new Emacs Lisp object every time
+they get updated.
+
+An image specifier with @code{:type canvas} creates a canvas, for instance
+as follows:
+
+@lisp
+(defvar my-canvas
+  '(image :type canvas
+          :id my-canvas
+          :data-width 800
+          :data-height 600))
+@end lisp
+
+The image specification object uniquely (with respect to @code{eq})
+identifies a canvas image object.  The properties @code{:data-width},
+@code{:data-height} and @code{:id} are mandatory.  The width and height
+must both be positive integers and the id must be a symbol.
+
+Canvases can be created by either providing ARGB32 data as a vector of
+fixnums or as an unibyte string in @code{:data}.  Path to a file
+containing the ARGB32 data in @code{:file} can also be provided.
+Furthermore @code{create-image} can create canvas images as follows,
+where the data is initially loaded from a file, or from a vector:
+
+@lisp
+(setq my-file-canvas (create-image "/path/to/file"
+                                   'canvas nil
+                                   :data-width 800
+                                   :data-height 600))
+(setq my-vec (make-vector (* 800 600) #xFFFF0000))
+(setq my-vec-canvas (create-image my-vec
+                                  'canvas t
+                                  :data-width 800
+                                  :data-height 600))
+@end lisp
+
+If the values for dimensions change (i.e., @code{:data-height} or
+@code{:data-width}), then Emacs will automatically adjust the underlying
+pixel buffer and resize the canvas.
+
+Other image properties like @code{:scale}, @code{:margin}, @code{:relief},
+@code{:transform-smoothing} and @code{:map} are supported.
+@xref{Image Descriptors}, for further details on these properties.
+
+In order to display the canvas, specify it as the display property of a
+string or overlay:
+
+@lisp
+(insert (propertize "#" 'display my-canvas))
+(overlay-put some-overlay 'display my-canvas)
+@end lisp
+
+Once a canvas image object has been created and displayed, it can be
+``refreshed'' via @code{canvas-refresh}.
+
+@defun canvas-refresh image &optional reload-data
+Refresh canvas @var{image} and update it on screen. If the optional
+argument @var{reload-data} is non-nil, reload the @code{:data} or
+@code{file} from the image specification before redrawing the canvas.
+@end defun
+
+The following code refreshes the canvas by reloading the data or file:
+
+@lisp
+;; Draw pixels
+(aset my-vec <index> <color>)
+;; Reload and refresh canvas images
+(canvas-refresh my-vec-canvas 'reload-data)
+@end lisp
+
+When refreshing the canvas in a loop, we must explicitly call @code{redisplay}:
+
+@example
+(setq canvas (create-image (make-vector (* 100 100) 0) 'canvas t
+			   :data-width 100 :data-height 100))
+(insert (propertize "#" 'display canvas))
+(dotimes (i (* 100 100))
+  (aset (plist-get (cdr canvas) :data) i #xFF)
+  (canvas-refresh canvas 'reload-data)
+  (redisplay))
+@end example
+
+But, if we are refreshing the canvas via a timer or a command, @code{redisplay}
+is implicitly called after the timer or command. The following example updates
+the above canvas in a timer ~30 times per second:
+
+@example
+(let ((i 0))
+  (run-at-time nil 0.033 (lambda ()
+			  (when (< i (* 100 100))
+			    (aset (plist-get (cdr canvas) :data) i #xFF)
+			    (incf i)
+			    (canvas-refresh canvas 'reload-data)))))
+@end example
+
+Canvas images can be manipulated and refreshed via dynamic modules.
+@xref{Module Canvas API}, for further details.
 
 @node Image Cache
 @subsection Image Cache

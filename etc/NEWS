@@ -33,6 +33,8 @@ systems.
 
 * Changes in Emacs 32.1
 
++++
+
 ---
 ** Emacs no longer kills child processes after EPIPE.
 Previously, Emacs would immediately kill a child process and set its
@@ -310,6 +312,15 @@ older '(HIGH LOW USEC PSEC)' form.
 
 
 * Lisp Changes in Emacs 32.1
+
++++
+** Support for canvas image objects.
+Canvas images support efficient updating and refreshing.  An image
+specifier with ':type canvas' creates a canvas image.  The canvas has an
+associated writable pixel buffer.  The dynamic module function 'canvas_data'
+provides access to the pixel buffer.  After changing the ':data' vector or
+writing to the pixel buffer a call to 'canvas-refresh' redraws the canvas
+image.
 
 +++
 ** 'ignore' is now also a place, acting as a "blackhole" like "/dev/null".
