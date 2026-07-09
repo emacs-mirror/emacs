@@ -1190,19 +1190,27 @@ endef
 
 $(foreach lang,$(DOCLANGS),$(eval $(call set_texi_misc,$(lang))))
 
+## For the default language, depend on the actual sources reported by
+## doc/misc (echo-sources): .org files for the org-based manuals and
+## .texi files for the rest.  Deriving foo.texi names from INFO_COMMON
+## would break in a fresh checkout, because the .texi files of the
+## org-based manuals (e.g. modus-themes.texi) are generated and there
+## is no rule to build them at this level.  make-info-dir extracts dir
+## entries from both formats.
 srcdir_doc_info_dir_inputs := \
   ${srcdir}/doc/emacs/emacs.texi \
   ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
-  ${srcdir}/doc/lispref/elisp.texi
+  ${srcdir}/doc/lispref/elisp.texi \
+  $(addprefix ${srcdir}/doc/misc/,${texi_misc_default})
 TRANSLATED_DIRS:=misc
 # $(1) = dir
 # $(2) = lang
 define GET_DOC_SRC
 -include ${srcdir}/doc/translations/$(2)/$(1)/info_common.mk
 INFO_COMMON:=$$(subst ccmode,cc-mode,$$(INFO_COMMON))
-srcdir_doc_info_dir_inputs:=$$(srcdir_doc_info_dir_inputs) $$(patsubst ${srcdir}/doc/translations/default/$(1)/%-default.texi,${srcdir}/doc/$(1)/%.texi,$$(patsubst %,${srcdir}/doc/translations/$(2)/$(1)/%-$(2).texi,$$(INFO_COMMON)))
+srcdir_doc_info_dir_inputs:=$$(srcdir_doc_info_dir_inputs) $$(patsubst %,${srcdir}/doc/translations/$(2)/$(1)/%-$(2).texi,$$(INFO_COMMON))
 endef
-$(foreach dir,$(TRANSLATED_DIRS),$(foreach lang,$(DOCLANGS),$(eval $(call GET_DOC_SRC,$(dir),$(lang)))))
+$(foreach dir,$(TRANSLATED_DIRS),$(foreach lang,$(filter-out default,$(DOCLANGS)),$(eval $(call GET_DOC_SRC,$(dir),$(lang)))))
 
 info_dir_inputs = \
   ../build-aux/dir_top \
