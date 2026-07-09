@@ -140,9 +140,9 @@ is only skipped if the documentation needs to be truncated there."
 
 (defcustom eldoc-help-at-pt nil
   "If non-nil, show `help-at-pt-kbd-string' at point via Eldoc.
-This setting is an alternative to `help-at-pt-display-when-idle'.  If
-the value is non-nil, `eldoc-show-help-at-pt' will show help-at-point
-via Eldoc."
+This setting is an alternative to `help-at-pt-display-when-idle'.  In
+order to enable help at point only in certain buffers add
+`eldoc-show-help-at-pt' locally to `eldoc-documentation-functions'."
   :type 'boolean
   :set (lambda (sym val)
          (custom-set-default sym val)
@@ -980,8 +980,10 @@ the docstrings eventually produced, using
              (eldoc--invoke-strategy nil))))))
 
 (defun eldoc-show-help-at-pt (&rest _)
-  "Show help at point via Eldoc if `eldoc-help-at-pt' is non-nil.
-Intended for `eldoc-documentation-functions' (which see)."
+  "Show help at point via Eldoc taken from `help-at-pt-kbd-string'.
+This function is intended to be added buffer-locally by major modes to
+`eldoc-documentation-functions'.  In order to enable help at point
+globally, users can set `eldoc-help-at-pt' to t."
   (when-let* ((help (help-at-pt-kbd-string)))
     (format "Help: %s" (substitute-command-keys help))))
 
