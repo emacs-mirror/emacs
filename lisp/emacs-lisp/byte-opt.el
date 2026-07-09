@@ -1771,7 +1771,7 @@ See Info node `(elisp) Integer Basics'."
          ;; json.c
          json-serialize json-parse-string
          ;; keyboard.c
-         posn-at-point posn-at-x-y
+         posn-at-point posn-at-x-y posn-point
          ;; keymap.c
          copy-keymap keymap-parent keymap-prompt make-keymap make-sparse-keymap
          ;; lread.c

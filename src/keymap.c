@@ -1742,7 +1742,7 @@ means to return the active maps for that window's buffer.  */)
 		}
 	    }
 
-	  Lisp_Object buffer_posn = POSN_BUFFER_POSN (position);
+	  Lisp_Object buffer_posn = Fposn_point (position);
 	  /* Then, if the click was in the buffer, get the local
 	     text-property keymap of the place clicked on.  */
 
@@ -3481,6 +3481,7 @@ that describe key bindings.  That is why the default is nil.  */);
 
   DEFSYM (Qkey_parse, "key-parse");
   DEFSYM (Qkey_valid_p, "key-valid-p");
+  DEFSYM (Qposn_point, "posn-point");
   DEFSYM (Qnon_key_event, "non-key-event");
   DEFSYM (Qprinc, "princ");
   DEFSYM (Qsuppress_keymap, "suppress-keymap");

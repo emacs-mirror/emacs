@@ -2013,19 +2013,6 @@ and `event-end' functions."
 		(nth 1 position))))
     (and (symbolp area) area)))
 
-(defun posn-point (position)
-  "Return the buffer location in POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions.
-Returns nil if POSITION does not correspond to any buffer location (e.g.
-a click on a scroll bar)."
-  (declare (side-effect-free t))
-  (or (nth 5 position)
-      (let ((pt (nth 1 position)))
-        (or (car-safe pt)
-            ;; Apparently this can also be `vertical-scroll-bar' (bug#13979).
-            (if (integerp pt) pt)))))
-
 (defun posn-set-point (position)
   "Move point to POSITION.
 Select the corresponding window as well."
