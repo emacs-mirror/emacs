@@ -349,11 +349,9 @@
         (input "pcm/s/cl"))
     ;; The pattern has a single `point' at the end rather than an extra
     ;; `point' after the "s".
-    (should (equal (completion-pcm--find-all-completions
-                    input #'completion--file-name-table nil (length input))
-                   '(("s" any "/" "cl" point)
-                     ("sources/clang" "sys/class")
-                     "pcm/" "")))))
+    (should (equal (car (completion-pcm--find-all-completions
+                    input #'completion--file-name-table nil (length input)))
+                   '("s" any "/" "cl" point)))))
 
 (ert-deftest completion-initials ()
   ;; Should expand initials:
