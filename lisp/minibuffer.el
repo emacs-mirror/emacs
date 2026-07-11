@@ -2769,22 +2769,24 @@ is always true."
 
 (defvar completions--background-update-timer nil)
 
-(defun completions--background-update (force-eager-update)
+(defun completions--background-update (force-eager-update buffer)
   "Try to update *Completions* without blocking input.
 
 This function uses `while-no-input' and sets `non-essential' to t
 so that the update is less likely to interfere with user typing."
   (setq completions--background-update-timer nil)
-  (when (while-no-input
-          (let ((non-essential t))
-            (redisplay)
-            (cond
-             (completion-in-region-mode (completion-help-at-point t))
-             ((completions--should-show-p
-               (completion--field-metadata (minibuffer-prompt-end))
-               force-eager-update)
-              (minibuffer-completion-help))))
-          nil)
+  (when (and
+         (eq buffer (current-buffer))
+         (while-no-input
+           (let ((non-essential t))
+             (redisplay)
+             (cond
+              (completion-in-region-mode (completion-help-at-point t))
+              ((completions--should-show-p
+                (completion--field-metadata (minibuffer-prompt-end))
+                force-eager-update)
+               (minibuffer-completion-help))))
+           nil))
     ;; If we got interrupted, try again the next time the user is idle.
     (completions--start-background-update force-eager-update)))
 
@@ -2802,7 +2804,8 @@ If FORCE-EAGER-UPDATE is non-nil, we only check eager-display."
   (unless completions--background-update-timer
     (setq completions--background-update-timer
           (run-with-idle-timer
-           0 nil #'completions--background-update force-eager-update))))
+           0 nil #'completions--background-update
+           force-eager-update (current-buffer)))))
 
 (defun completions--start-eager-display ()
   "Maybe display the *Completions* buffer when the user is next idle.
