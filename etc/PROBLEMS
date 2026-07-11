@@ -3930,6 +3930,18 @@ The organization of the Settings app might disagree with that
 illustrated above, which if true you should consult the documentation
 or any search mechanism for it.
 
+** Emacs Input Methods don't work.
+
+When using the Android touchscreen keyboard, Emacs input methods set by
+'C-\' don't work.  This is because Android's virtual input methods
+function by applying editing commands directly to Emacs buffers, which
+circumvents and is not compatible with Emacs's character-centric input
+methods.  You can disable what the virtual input methods do by setting
+'overriding-text-conversion-style' to nil rather than 'lambda', at the
+cost of your virtual input method's own text editing aids, or (in some
+cases) the ability to perform character composition or input CJK or
+non-Latin scripts.
+
 ** Emacs is not compatible with the "Microsoft SwiftKey" input method.
 
 When enabled, windows are repeatedly recentered around earlier buffer
