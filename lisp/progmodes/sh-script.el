@@ -1492,12 +1492,19 @@ implementations.  Currently there are two: `sh-mode' and
   (setq-local skeleton-filter-function #'sh-feature)
   (setq-local skeleton-newline-indent-rigidly t)
   (setq-local defun-prompt-regexp
-              (concat
-               "^\\("
-               "\\(function[ \t]\\)?[ \t]*[[:alnum:]_]+[ \t]*([ \t]*)"
-               "\\|"
-               "function[ \t]+[[:alnum:]_]+[ \t]*\\(([ \t]*)\\)?"
-               "\\)[ \t]*"))
+              (let* ((fname-char "^ \t\n\r\v\f\\\"'`$|&;()<>")
+                     (fname-char0 (concat fname-char "#"))
+                     (fname-re
+                      (concat "[" fname-char0 "]"
+                              "[" fname-char "]*")))
+                (concat
+                 "^\\([ \t]*"
+                 "\\("
+                 "\\(function[ \t]+\\)?" fname-re "[ \t]*([ \t]*)"
+                 "\\|"
+                 "function[ \t]+" fname-re "[ \t]*\\(([ \t]*)\\)?"
+                 "\\)"
+                 "\\)[ \t]*")))
   (setq-local add-log-current-defun-function #'sh-current-defun-name)
   (add-hook 'completion-at-point-functions
             #'sh-completion-at-point-function nil t)

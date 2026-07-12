@@ -31,8 +31,11 @@
 
 ;; Note that this variable is used by non-lisp modes too.
 (defcustom defun-prompt-regexp nil
-  "If non-nil, a regexp to ignore before a defun.
-This is only necessary if the opening paren or brace is not in column 0.
+  "If non-nil, matches a prefix on the line of a defun's opening paren.
+This regexp should begin with \"^\".  It is used to recognize a function's
+opening paren or brace when it is not in column 0.
+The prefix typically names the defun, and possibly gives its type and
+arguments.
 See function `beginning-of-defun'."
   :type '(choice (const nil)
 		 regexp)
