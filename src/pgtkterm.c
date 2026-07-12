@@ -2223,8 +2223,8 @@ pgtk_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w,
 
 static void
 pgtk_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
-		    int src_x, int src_y, int width, int height,
-		    int dest_x, int dest_y, bool overlay_p)
+		    cairo_surface_t *surface, int src_x, int src_y, int width,
+		    int height, int dest_x, int dest_y, bool overlay_p)
 {
   cairo_t *cr = pgtk_begin_cr_clip (f);
 
@@ -2239,12 +2239,17 @@ pgtk_cr_draw_image (struct frame *f, Emacs_GC *gc, cairo_pattern_t *image,
 
   cairo_translate (cr, dest_x - src_x, dest_y - src_y);
 
-  cairo_surface_t *surface;
-  cairo_pattern_get_surface (image, &surface);
-  cairo_format_t format = cairo_image_surface_get_format (surface);
+  cairo_surface_t *image_surface;
+  cairo_pattern_get_surface (image, &image_surface);
+  cairo_format_t format = cairo_image_surface_get_format (image_surface);
+
   if (format != CAIRO_FORMAT_A8 && format != CAIRO_FORMAT_A1)
     {
-      cairo_set_source (cr, image);
+      if (surface)
+	cairo_set_source_surface (cr, surface, 0, 0);
+      else
+	cairo_set_source (cr, image);
+
       cairo_fill (cr);
     }
   else
@@ -2283,7 +2288,7 @@ pgtk_draw_image_foreground (struct glyph_string *s)
     {
       cairo_t *cr = pgtk_begin_cr_clip (s->f);
       pgtk_set_glyph_string_clipping (s, cr);
-      pgtk_cr_draw_image (s->f, &s->xgcv, s->img->cr_data,
+      pgtk_cr_draw_image (s->f, &s->xgcv, s->img->cr_data, s->img->cr_surface,
 			  s->slice.x, s->slice.y, s->slice.width, s->slice.height,
 			  x, y, true);
       if (!s->img->mask)
@@ -3704,7 +3709,7 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 			   : FRAME_X_OUTPUT (f)->cursor_color)
 			: face->foreground);
       gcv.background = face->background;
-      pgtk_cr_draw_image (f, &gcv, fringe_bmp[p->which], 0, p->dh,
+      pgtk_cr_draw_image (f, &gcv, fringe_bmp[p->which], NULL, 0, p->dh,
 			  p->wd, p->h, p->x, p->y, p->overlay_p);
     }
 

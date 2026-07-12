@@ -6285,8 +6285,8 @@ x_cr_destroy_fringe_bitmap (int which)
 
 static void
 x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
-		 int src_x, int src_y, int width, int height,
-		 int dest_x, int dest_y, bool overlay_p)
+		 cairo_surface_t *surface, int src_x, int src_y, int width,
+		 int height, int dest_x, int dest_y, bool overlay_p)
 {
   cairo_t *cr = x_begin_cr_clip (f, gc);
 
@@ -6301,12 +6301,17 @@ x_cr_draw_image (struct frame *f, GC gc, cairo_pattern_t *image,
 
   cairo_translate (cr, dest_x - src_x, dest_y - src_y);
 
-  cairo_surface_t *surface;
-  cairo_pattern_get_surface (image, &surface);
-  cairo_format_t format = cairo_image_surface_get_format (surface);
+  cairo_surface_t *image_surface;
+  cairo_pattern_get_surface (image, &image_surface);
+  cairo_format_t format = cairo_image_surface_get_format (image_surface);
+
   if (format != CAIRO_FORMAT_A8 && format != CAIRO_FORMAT_A1)
     {
-      cairo_set_source (cr, image);
+      if (surface)
+	cairo_set_source_surface (cr, surface, 0, 0);
+      else
+	cairo_set_source (cr, image);
+
       cairo_fill (cr);
     }
   else
@@ -7908,7 +7913,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 	     daemon Emacs.  Create the missing pattern now.  */
 	  gui_define_fringe_bitmap (f, p->which);
 	}
-      x_cr_draw_image (f, gc, fringe_bmp[p->which], 0, p->dh,
+      x_cr_draw_image (f, gc, fringe_bmp[p->which], NULL, 0, p->dh,
 		       p->wd, p->h, p->x, p->y, p->overlay_p);
       XSetForeground (display, gc, gcv.foreground);
       XSetBackground (display, gc, gcv.background);
@@ -10186,7 +10191,7 @@ x_draw_image_foreground (struct glyph_string *s)
   if (s->img->cr_data)
     {
       x_set_glyph_string_clipping (s);
-      x_cr_draw_image (s->f, s->gc, s->img->cr_data,
+      x_cr_draw_image (s->f, s->gc, s->img->cr_data, s->img->cr_surface,
 		       s->slice.x, s->slice.y, s->slice.width, s->slice.height,
 		       x, y, true);
       if (!s->img->mask)
