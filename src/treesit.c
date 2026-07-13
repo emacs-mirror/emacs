@@ -2565,7 +2565,6 @@ embedding increments the embed level by 1.  */)
   return XTS_PARSER (parser)->embed_level;
 }
 
-/* TODO: Mention in manual, once the API stabilizes.  */
 DEFUN ("treesit-parser-set-embed-level",
        Ftreesit_parser_set_embed_level, Streesit_parser_set_embed_level,
        2, 2, 0,
