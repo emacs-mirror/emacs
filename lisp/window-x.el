@@ -243,7 +243,9 @@ ones in `window--transpose'."
   ;; `flen' is max size the window could be converted to the opposite
   ;; of the given split type.
   (let ((parent-window-is-set t)
-	(flen (if (xor no-resize (car subtree))
+        ;; Make sure combination resizing is turned off (Bug#81406).
+        window-combination-resize
+        (flen (if (xor no-resize (car subtree))
 		  (float (window-pixel-width cwin))
 		(float (window-pixel-height cwin)))))
     (mapc
