@@ -2028,8 +2028,8 @@ affected by a non-@code{nil} value of @code{window-combination-limit}.
 
 If you plan to use a sequence of @code{split-window} calls to produce a
 specific, predefined layout of windows on a frame, bind this variable
-temporarily to nil.  @code{window-state-put} (@pxref{Window
-Configurations}) and the functions to change window layouts
+temporarily to @code{nil}.  @code{window-state-put} (@pxref{Window
+Configurations}) and the functions which change window layouts
 (@pxref{Changing Window Layouts}) do that in order to restore a previous
 or systematically changed layout of a frame.
 @end defopt
@@ -2309,9 +2309,9 @@ below, we shall always assume that the windows displayed constitute
 their frame's main window and the @var{window} argument is @code{nil}
 unless stated otherwise.
 
+@cindex rotate window layout
    The first two commands rotate an entire window layout either
 clockwise or counterclockwise.
-@cindex rotate window layout
 
 @deffn Command window-layout-rotate-clockwise &optional window
 This command rotates the window layout clockwise by 90 degrees.  Imagine
@@ -2351,9 +2351,10 @@ layout in the opposite direction as demonstrated in the example below.
 @end smallexample
 @end deffn
 
-The next two commands @sc{flip} the window layout---rotate it around an
-imaginary horizontal or vertical axis.
 @cindex flip window layout
+The next two commands @sc{flip} the window layout---rotate it around an
+imaginary horizontal or vertical axis.  If the number of windows to be
+flipped is odd, the window in the middle remains in its original place.
 
 @deffn Command window-layout-flip-topdown &optional window
 This command flips windows such that windows on the bottom become
@@ -2413,17 +2414,17 @@ becomes a vertical split and vice versa.
 @end smallexample
 @end deffn
 
-The final two commands can be used to rotate windows within the existing
+@cindex rotating windows
+The final two commands can be used to @dfn{rotate} windows within the existing
 layout.  They are like the commands that rotate the layout but leave the
 underlying structure of the layout unchanged.  What actually changes are
 the positions of windows within the existing layout.  This happens in a
 way that the space formerly occupied by any window will be occupied by
-the window preceding (following if @var{reverse} is non-nil) it in the
-cyclic ordering of windows (@pxref{Cyclic Window Ordering}) on
+the window preceding (following if @var{reverse} is non-@code{nil}) it
+in the cyclic ordering of windows (@pxref{Cyclic Window Ordering}) on
 @var{window}'s frame.  These commands may signal an error if windows
 chosen to rotate are dedicated to their buffers, atomic or of fixed
 size.
-@cindex rotating windows
 
 @deffn Command rotate-windows &optional window reverse
 This command rotates @var{window}'c child windows in cyclic ordering.

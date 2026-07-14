@@ -358,14 +358,23 @@ increments as with Emacs 24 through Emacs 30 you now have to set
 
 +++
 *** New commands to modify window layouts of frames.
-'window-layout-rotate-clockwise' and its counterpart
-'window-layout-rotate-anticlockwise' rotate an entire window layout.
-'window-layout-flip-topdown' and 'window-layout-flip-leftright' flip the
-window layout vertically and horizontally.
-'window-layout-transpose' reorganizes windows such that every horizontal
-split becomes a vertical split and vice versa.
-'rotate-windows' and its counterpart 'rotate-windows-back' rotate
-windows in cylic ordering.
+'window-layout-rotate-clockwise' ('C-x w r <RIGHT>') and its counterpart
+'window-layout-rotate-anticlockwise' ('C-x v r <LEFT>') rotate an entire
+window layout.
+'window-layout-flip-topdown' ('C-x w r <DOWN>') and
+'window-layout-flip-leftright' ('C-x w r <LEFT>') flip the window layout
+vertically and horizontally.
+'window-layout-transpose' ('C-x w t') reorganizes windows such that
+every horizontal split becomes a vertical split and vice versa.
+'rotate-windows' ('C-x w o <RIGHT>') and its counterpart
+'rotate-windows-back' ('C-x w o <LEFT>') rotate windows in cyclic
+ordering.
+
+*** New user option 'rotate-windows-change-selected'.
+This controls whether 'rotate-windows' and 'rotate-windows-back' change
+the selected window.  If nil, the selected window does not change.
+The default is t, which means the new selected window will be the one
+that winds up at the location of the previously-selected window.
 
 +++
 *** Windmove commands now move to skipped windows if invoked twice in a row.

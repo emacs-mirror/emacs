@@ -69,7 +69,7 @@ where HEIGHT and WIDTH are the normal height and width of the window.
 
 ;;;###autoload
 (defun window-layout-rotate-clockwise (&optional window)
-  "Clockwise rotate layout of WINDOW's child windows.
+  "Rotate layout of WINDOW's child windows clockwise by 90 degrees.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate clockwise
 the layout of the child windows of the selected window's parent.  Signal
@@ -99,7 +99,7 @@ layout, consider using `rotate-windows-back' instead."
 
 ;;;###autoload
 (defun window-layout-flip-leftright (&optional window)
-  "Horizontally flip WINDOW's child windows.
+  "Flip WINDOW's child windows horizontally.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip
 horizontally the layout of the child windows of the selected window's
@@ -112,7 +112,7 @@ window on the right becomes a child window on the left and vice-versa."
 
 ;;;###autoload
 (defun window-layout-flip-topdown (&optional window)
-  "Vertically flip WINDOW's child windows.
+  "Flip WINDOW's child windows vertically.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip vertically
 the layout of the child windows of the selected window's parent.  Signal
@@ -143,6 +143,7 @@ a frame's selected window.  Otherwise, the new selected window will be
 the window that appears at the location of the previously selected
 window."
   :type 'boolean
+  :version "31.1"
   :group 'windows)
 
 ;;;###autoload
