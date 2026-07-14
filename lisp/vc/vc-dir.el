@@ -1636,7 +1636,8 @@ backend-specific headers."
      "(\\[vc-revert]) Revert, "
      "(\\[vc-dir-delete-file]) Delete, "
      "(\\[vc-dir-ignore]) Ignore, "
-     "(\\[vc-next-action]/\\[vc-dir-root-next-action]) Commit/commit all, "
+     ;; "this/these/all" is too long.
+     "(\\[vc-next-action]/\\[vc-dir-root-next-action]) DWIM next this/all, "
      "(\\[vc-push]) Push"
      "\n"
      (propertize "Marks" 'font-lock-face 'vc-dir-key-binding-hint-label)
