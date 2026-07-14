@@ -9454,7 +9454,10 @@ windows in the same combination.
 Other values are reserved for future use.
 
 A specific split operation may ignore the value of this variable if it
-is affected by a non-nil value of `window-combination-limit'.  */);
+is affected by a non-nil value of `window-combination-limit'.  If you
+want to use a sequence of `split-window' calls to produce a specific,
+predefined layout of windows on a frame, bind this variable temporarily
+to nil.  */);
   Vwindow_combination_resize = Qnil;
 
   DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,

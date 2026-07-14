@@ -357,14 +357,15 @@ increments as with Emacs 24 through Emacs 30 you now have to set
 ** Windows
 
 +++
-*** New commands to modify window layouts.
-
-- 'C-x w t' and 'C-x w r <left>/<right>' rotate the window layout.
-- 'C-x w o <left>/<right>' rotate the windows within the current layout.
-- 'C-x w f <left>/<right>/<up>/<down>' flip window layouts.
-
-By default, these commands operate on the selected frame's root window.
-With a prefix argument, they operate on the selected window's parent.
+*** New commands to modify window layouts of frames.
+'window-layout-rotate-clockwise' and its counterpart
+'window-layout-rotate-anticlockwise' rotate an entire window layout.
+'window-layout-flip-topdown' and 'window-layout-flip-leftright' flip the
+window layout vertically and horizontally.
+'window-layout-transpose' reorganizes windows such that every horizontal
+split becomes a vertical split and vice versa.
+'rotate-windows' and its counterpart 'rotate-windows-back' rotate
+windows in cylic ordering.
 
 +++
 *** Windmove commands now move to skipped windows if invoked twice in a row.

@@ -2025,6 +2025,13 @@ combination.
 The default is @code{nil}.  Other values are reserved for future use.  A
 specific split operation may ignore the value of this variable if it is
 affected by a non-@code{nil} value of @code{window-combination-limit}.
+
+If you plan to use a sequence of @code{split-window} calls to produce a
+specific, predefined layout of windows on a frame, bind this variable
+temporarily to nil.  @code{window-state-put} (@pxref{Window
+Configurations}) and the functions to change window layouts
+(@pxref{Changing Window Layouts}) do that in order to restore a previous
+or systematically changed layout of a frame.
 @end defopt
 
   To illustrate the effect of @code{window-combination-resize}, consider
@@ -2302,8 +2309,8 @@ below, we shall always assume that the windows displayed constitute
 their frame's main window and the @var{window} argument is @code{nil}
 unless stated otherwise.
 
-   The first two commands rotate a window layout either clockwise or
-counterclockwise.
+   The first two commands rotate an entire window layout either
+clockwise or counterclockwise.
 @cindex rotate window layout
 
 @deffn Command window-layout-rotate-clockwise &optional window
@@ -2368,7 +2375,7 @@ windows on the top and vice-versa as in the example below.
 
 @deffn Command window-layout-flip-leftright &optional window
 This command rearranges window in a way that the windows on the right
-become the window on the left, and vice-versa.
+become the windows on the left, and vice-versa.
 
 @smallexample
 @group
@@ -2409,13 +2416,19 @@ becomes a vertical split and vice versa.
 The final two commands can be used to rotate windows within the existing
 layout.  They are like the commands that rotate the layout but leave the
 underlying structure of the layout unchanged.  What actually changes are
-the positions of windows within the existing layout.
+the positions of windows within the existing layout.  This happens in a
+way that the space formerly occupied by any window will be occupied by
+the window preceding (following if @var{reverse} is non-nil) it in the
+cyclic ordering of windows (@pxref{Cyclic Window Ordering}) on
+@var{window}'s frame.  These commands may signal an error if windows
+chosen to rotate are dedicated to their buffers, atomic or of fixed
+size.
 @cindex rotating windows
 
 @deffn Command rotate-windows &optional window reverse
-This rotate windows under @var{window} in cyclic ordering.  The optional
-argument @var{reverse} means to rotate windows backward, in reverse
-cyclic order.
+This command rotates @var{window}'c child windows in cyclic ordering.
+The optional argument @var{reverse} means to rotate windows backwards,
+in reverse cyclic order.
 
 @smallexample
 @group
@@ -2432,7 +2445,7 @@ cyclic order.
 @end deffn
 
 @deffn Command rotate-windows-back &optional window
-This command rotates windows under @var{window} backward in cyclic
+This command rotates @var{window}'s child windows backwards in cyclic
 ordering.
 
 @smallexample
@@ -2455,7 +2468,7 @@ The last two commands are subject to the following option.
 If this is @code{nil}, the selected window will remain unaffected by
 @code{rotate-windows} and @code{rotate-windows-back}.  Otherwise, the
 selected window will change to the window that appears at the location
-of the selected window before any of these commands were invoked.
+of the window selected before any of these commands were invoked.
 @end defopt
 
 
