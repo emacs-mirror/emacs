@@ -356,7 +356,7 @@ If the locale never uses daylight saving time, set this to 0."
         "-0000")
     (or (nth 2 calendar-current-time-zone-cache) "UTC"))
   "Abbreviated name of standard time zone at `calendar-location-name'.
-For example, \"-0500\" or \"EST\" in New York City."
+For example, \"+1200\" or \"NZST\" in New Zealand."
   :type 'string
   :version "28.1"
   :set-after '(calendar-time-zone-style))
@@ -369,7 +369,7 @@ For example, \"-0500\" or \"EST\" in New York City."
         "-0000")
     (or (nth 3 calendar-current-time-zone-cache) "UTC"))
   "Abbreviated name of daylight saving time zone at `calendar-location-name'.
-For example, \"-0400\" or \"EDT\" in New York City."
+For example, \"+1300\" or \"NZDT\" in New Zealand."
   :type 'string
   :version "28.1"
   :set-after '(calendar-time-zone-style))

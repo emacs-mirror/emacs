@@ -1543,12 +1543,15 @@ UTC offsets local to that time zone."
 ;; time described occurs more than once (when changing from daylight to
 ;; standard time), the DATE-TIME value refers to the first occurrence of
 ;; the referenced time.  Thus, TZID=America/New_York:20071104T013000
-;; indicates November 4, 2007 at 1:30 A.M.  EDT (UTC-04:00).  If the
+;; indicates November 4, 2007 at 1:30 A.M. EDT (UTC-04:00).  If the
 ;; local time described does not occur (when changing from standard to
 ;; daylight time), the DATE-TIME value is interpreted using the UTC
 ;; offset before the gap in local times.  Thus,
 ;; TZID=America/New_York:20070311T023000 indicates March 11, 2007 at
-;; 3:30 A.M.  EDT (UTC-04:00), one hour after 1:30 A.M.  EST (UTC-05:00)."
+;; 3:30 A.M. EDT (UTC-04:00), one hour after 1:30 A.M. EST (UTC-05:00)."
+;; This quote from RFC 5545 is based on New York's 2007 timekeeping practice;
+;; although that practice may change in the future, the example is still
+;; valid for 2007.
 
 ;; TODO: verify that these functions are correct for time zones other
 ;; than US Eastern.
@@ -1641,10 +1644,10 @@ OBS-ONSET, or a range of local times that occur twice (see
 `icalendar-recur-nonexistent-date-time-p' and
 `icalendar-recur-date-time-occurs-twice-p'), it needs to be interpreted
 with the UTC offset in effect prior to the OBS-ONSET of OBSERVANCE (see
-RFC5545 Section 3.3.5).  So e.g. at the switch from Standard to Daylight
-in US Eastern, 2:30AM EST (a nonexistent time) becomes 3:30AM EDT, and
-at the switch from Daylight to Standard, 1:30AM (which occurs twice)
-becomes 1:30AM EDT, the first occurrence."
+RFC5545 Section 3.3.5).  So, for example, at the switch from standard to
+daylight in New Zealand, 2:30AM NZST (a nonexistent time) becomes 3:30AM NZDT,
+and at the switch from daylight to standard, 2:30AM (which occurs twice)
+becomes 1:30AM NZDT, the first occurrence."
   (ical:with-component observance
       ((ical:tzoffsetfrom :value offset-from)
        (ical:tzoffsetto :value offset-to))

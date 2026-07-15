@@ -1474,7 +1474,10 @@ This is measured in the integer number of days from December 31,
     ( "PGT" 8 "PST" "PDT" ) ( "PST" 8 0 ) ( "PDT" 8 -1 )  ; Pacific
     ( "YGT" 9 "YST" "YDT" ) ( "YST" 9 0 ) ( "YDT" 9 -1 )  ; Yukon
     )
-  "No doc yet.  See calc manual for now.")
+  "No doc yet.  See calc manual for now.
+This variable is obsolete and new software should not rely on its
+contents.  Its abbreviations like \"PST\" have their circa 1970 meanings
+even if timekeeping has changed since then.")
 
 (defvar var-TimeZone nil)
 

@@ -660,9 +660,9 @@ if these values are not what you want (or if the operating system does
 not supply them), you must set them yourself.  Here is an example:
 
 @example
-(setq calendar-time-zone -360)
-(setq calendar-standard-time-zone-name "CST")
-(setq calendar-daylight-time-zone-name "CDT")
+(setq calendar-time-zone (* 12 60))
+(setq calendar-standard-time-zone-name "NZST")
+(setq calendar-daylight-time-zone-name "NZDT")
 @end example
 
 @noindent

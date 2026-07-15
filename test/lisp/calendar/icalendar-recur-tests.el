@@ -83,7 +83,8 @@ TZNAME:EST
 END:STANDARD
 END:VTIMEZONE
 ")
-"`icalendar-vtimezone' representing America/New_York (Eastern) time.")
+"`icalendar-vtimezone' representing America/New_York (Eastern) time
+from 1967 to at least 2026.")
 
 (defconst ict:est-latest
   (ical:with-component ict:tz-eastern

@@ -17373,6 +17373,8 @@ For example @samp{tzone(PST) = tzone(8)} and @samp{tzone(pdt) = tzone(7)}
 North American and European time zone names are defined as follows.
 These names are obsolescent and new code should not rely on them:
 the @samp{YST}-related names have disagreed with time in Yukon since 1973,
+the @samp{PST}- and @samp{MST-}related names have disagreed with
+time in western Canada since 2026,
 and other names could well become confusing or wrong in the future
 as countries change their time zone rules.
 For each time zone there is one name for standard time,
@@ -17397,7 +17399,7 @@ To define time zone names that do not appear in the above table,
 you must modify the Lisp variable @code{math-tzone-names}.  This
 is a list of lists describing the different time zone names; its
 structure is best explained by an example.  The three entries for
-circa-2022 US Pacific Time look like this:
+circa-2025 US Pacific Time look like this:
 
 @smallexample
 @group
