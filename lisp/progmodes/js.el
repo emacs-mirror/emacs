@@ -289,7 +289,7 @@ Match group 1 is the name of the macro.")
      "instanceof" "interface" "native" "new" "of" "package"
      "private" "protected" "public" "return" "static"
      "super" "switch" "synchronized" "throw"
-     "throws" "transient" "try" "typeof" "var" "void" "let"
+     "throws" "transient" "try" "typeof" "using" "var" "void" "let"
      "yield" "volatile" "while" "with"))
   "Regexp matching any JavaScript keyword.")
 
@@ -1740,7 +1740,7 @@ point of view of font-lock.  It applies highlighting directly with
 
     ;; variable declarations
     ,(list
-      (concat "\\_<\\(const\\|var\\|let\\)\\_>\\|" js--basic-type-re)
+      (concat "\\_<\\(const\\|var\\|let\\|using\\)\\_>\\|" js--basic-type-re)
       (list #'js--variable-decl-matcher nil nil nil))
 
     ;; class instantiation
@@ -2352,7 +2352,7 @@ testing for syntax only valid as JSX."
   "Regexp matching keywords optionally followed by an opening brace.")
 
 (defconst js--declaration-keyword-re
-  (regexp-opt '("var" "let" "const") 'words)
+  (regexp-opt '("var" "let" "const" "using") 'words)
   "Regular expression matching variable declaration keywords.")
 
 (defconst js--indent-operator-re
@@ -3581,6 +3581,14 @@ characters of the current line."
     "typeof" "var" "void" "while" "with" "yield")
   "JavaScript keywords for tree-sitter font-locking.")
 
+
+;; "using" support was only added in tree-sitter-javascript 0.25.0, in
+;; https://github.com/tree-sitter/tree-sitter-javascript/commit/ebdb4f17a4da79a70344a41ae76bb95b2415a653
+;; So make it optional
+(defvar js--treesit-optional-keywords
+  '("using")
+  "JavaScript optional keywords for tree-sitter font-locking.")
+
 (defvar js--treesit-operators
   '("=" "+=" "-=" "*=" "/=" "%=" "**=" "<<=" ">>=" ">>>=" "&=" "^="
     "|=" "&&=" "||=" "??=" "==" "!=" "===" "!==" ">" ">=" "<" "<=" "+"
@@ -3605,8 +3613,10 @@ characters of the current line."
 
    :language 'javascript
    :feature 'keyword
-   `([,@js--treesit-keywords] @font-lock-keyword-face
-     [(this) (super)] @font-lock-keyword-face)
+   (treesit-query-with-optional 'javascript
+     `([,@js--treesit-keywords] @font-lock-keyword-face
+       [(this) (super)] @font-lock-keyword-face)
+     `([,@js--treesit-optional-keywords] @font-lock-keyword-face))
 
    :language 'javascript
    :feature 'string
@@ -3789,7 +3799,7 @@ Return nil if there is no name or if NODE is not a defun node."
   (treesit-node-text
    (treesit-node-child-by-field-name
     (pcase (treesit-node-type node)
-      ((or "lexical_declaration" "variable_declaration")
+      ((or "lexical_declaration" "variable_declaration" "using_declaration")
        (treesit-search-subtree node "variable_declarator" nil nil 1))
       ((or "function_declaration" "method_definition" "class_declaration")
        node))
@@ -3799,7 +3809,7 @@ Return nil if there is no name or if NODE is not a defun node."
 (defun js--treesit-valid-imenu-entry (node)
   "Return nil if NODE is a non-top-level lexical/variable declaration."
   (pcase (treesit-node-type node)
-    ((or "lexical_declaration" "variable_declaration")
+    ((or "lexical_declaration" "variable_declaration" "using_declaration")
      (not (treesit-node-top-level
            node (rx bos (or "class_declaration"
                             "method_definition"
@@ -3930,6 +3940,7 @@ Currently there are `js-mode' and `js-ts-mode'."
     "labeled_statement"
     "variable_declaration"
     "lexical_declaration"
+    "using_declaration"
     "jsx_opening_element"
     "jsx_attribute"
     "jsx_closing_element")
@@ -3997,7 +4008,8 @@ See `treesit-thing-settings' for more information.")
     ("Method" "\\`method_definition\\'" nil nil)
     ("Function" "\\`function_declaration\\'" nil nil)
     ("Variable" ,(rx bos (or "lexical_declaration"
-                             "variable_declaration")
+                             "variable_declaration"
+                             "using_declaration")
                      eos)
      ,#'js--treesit-valid-imenu-entry nil))
   "Settings for `treesit-simple-imenu'.")
@@ -4015,7 +4027,8 @@ See `treesit-thing-settings' for more information.")
               "method_definition"
               "function_declaration"
               "lexical_declaration"
-              "variable_declaration")
+              "variable_declaration"
+              "using_declaration")
       eos)
   "Settings for `treesit-defun-type-regexp'.")
 

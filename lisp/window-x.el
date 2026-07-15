@@ -29,17 +29,8 @@
 
 ;;; Code:
 
-(defcustom rotate-windows-change-selected t
-  "If nil the selected window will not change with `rotate-windows'.
-
-The selected window before and after the function call will stay
-unchanged if nil.  `rotate-windows-back' is also affected."
-  :type 'boolean
-  :group 'windows)
-
 (defun window-tree-normal-sizes (window &optional next)
   "Return normal sizes of all windows rooted at WINDOW.
-
 The return value is a list of the form (SPLIT-TYPE PARENT-WIN
 PARENT-WIN-HEIGHT PARENT-WIN-WIDTH . WS), where SPLIT-TYPE is non-nil if
 PARENT-WIN is split horizontally; PARENT-WIN is the internal window;
@@ -47,7 +38,7 @@ PARENT-WIN-HEIGHT and PARENT-WIN-WIDTH are the normal heights of
 PARENT-WIN; and WS is a list of lists the form (WINDOW HEIGHT WIDTH)
 where HEIGHT and WIDTH are the normal height and width of the window.
 
-(fn WINDOW)"
+\(fn WINDOW)"
   (let (list)
     (while window
       (setq list
@@ -77,97 +68,117 @@ where HEIGHT and WIDTH are the normal height and width of the window.
   (if current-prefix-arg (window-parent) (window-main-window)))
 
 ;;;###autoload
-(defun window-layout-rotate-anticlockwise (&optional window)
-  "Rotate window layout of WINDOW counterclockwise by 90 degrees.
+(defun window-layout-rotate-clockwise (&optional window)
+  "Rotate layout of WINDOW's child windows clockwise by 90 degrees.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate clockwise
+the layout of the child windows of the selected window's parent.  Signal
+an error if WINDOW is not a parent window.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window."
+Recursively rotate the entire layout of WINDOW's child windows clockwise
+by 90 degrees.  Do not change the selected window of WINDOW's frame.  If
+you want to rotate windows within their frame's layout, consider using
+`rotate-windows' instead."
   (interactive (list (window--rotate-interactive-arg)))
-  (window--transpose window '(right . above) nil))
+  (window--transpose (or window (window-main-window)) '(left . below) nil))
 
 ;;;###autoload
-(defun window-layout-rotate-clockwise (&optional window)
-  "Rotate window layout under WINDOW clockwise by 90 degrees.
+(defun window-layout-rotate-anticlockwise (&optional window)
+  "Rotate layout of WINDOW's child windows counterclockwise by 90 degrees.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate
+counterclockwise the layout of the child windows of the selected
+window's parent.  Signal an error if WINDOW is not a parent window.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window."
+Recursively rotate the entire layout of WINDOW's child windows
+counterclockwise by 90 degrees.  Do not change the selected window of
+WINDOW's frame.  If you want to rotate windows within their frame's
+layout, consider using `rotate-windows-back' instead."
   (interactive (list (window--rotate-interactive-arg)))
-  (window--transpose window '(left . below) nil))
+  (window--transpose (or window (window-main-window)) '(right . above) nil))
 
 ;;;###autoload
 (defun window-layout-flip-leftright (&optional window)
-  "Horizontally flip windows under WINDOW.
+  "Flip WINDOW's child windows horizontally.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, flip
+horizontally the layout of the child windows of the selected window's
+parent.  Signal an error if WINDOW is not a parent window.
 
-Flip the window layout so that the window on the right becomes the
-window on the left, and vice-versa.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to flip the parent window of the
-selected window."
+Recursively flip the layout of WINDOW's child windows so that a child
+window on the right becomes a child window on the left and vice-versa."
   (interactive (list (window--rotate-interactive-arg)))
-  (window--transpose window '(below . left) t))
+  (window--transpose (or window (window-main-window)) '(below . left) t))
 
 ;;;###autoload
 (defun window-layout-flip-topdown (&optional window)
-  "Vertically flip windows under WINDOW.
+  "Flip WINDOW's child windows vertically.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, flip vertically
+the layout of the child windows of the selected window's parent.  Signal
+an error if WINDOW is not a parent window.
 
-Flip the window layout so that the top window becomes the bottom window,
-and vice-versa.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to flip the parent window of the
-selected window."
+Recursively flip the layout of WINDOW's child windows so that a child
+window on the top becomes a child window on the bottom and vice-versa."
   (interactive (list (window--rotate-interactive-arg)))
-  (window--transpose window '(above . right) t))
+  (window--transpose (or window (window-main-window)) '(above . right) t))
 
 ;;;###autoload
 (defun window-layout-transpose (&optional window)
-  "Transpose windows under WINDOW.
+  "Transpose child windows of WINDOW.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, transpose the
+layout of the child windows of the selected window's parent.  Signal an
+error if WINDOW is not a parent window.
 
-Reorganize the windows under WINDOW so that every horizontal split
-becomes a vertical split, and vice versa.  This is equivalent to
-diagonally flipping.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to transpose the parent window of
-the selected window."
+Recursively reorganize WINDOW's child windows so that each horizontal
+split becomes a vertical split and vice versa."
   (interactive (list (window--rotate-interactive-arg)))
-  (window--transpose window '(right . below) nil))
+  (window--transpose (or window (window-main-window)) '(right . below) nil))
 
-;;;###autoload
-(defun rotate-windows-back (&optional window)
-  "Rotate windows under WINDOW backward in cyclic ordering.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window."
-  (interactive (list (window--rotate-interactive-arg)))
-  (rotate-windows window t))
+(defcustom rotate-windows-change-selected t
+  "Whether rotating windows will change the selected window.
+If this is nil, `rotate-windows' and `rotate-windows-back' do not change
+a frame's selected window.  Otherwise, the new selected window will be
+the window that appears at the location of the previously selected
+window."
+  :type 'boolean
+  :version "31.1"
+  :group 'windows)
 
 ;;;###autoload
 (defun rotate-windows (&optional window reverse)
-  "Rotate windows under WINDOW in cyclic ordering.
+  "Rotate child windows of WINDOW in cyclic ordering.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate the child
+windows of the selected window's parent.
 
-Optional argument REVERSE says to rotate windows backward, in reverse
-cyclic order.
+Optional argument REVERSE non-nil means to rotate windows backwards, in
+reverse cyclic order.  Signal an error if WINDOW is not a parent window,
+all descendants of WINDOW are dedicated or some windows are of fixed
+size or atomic.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
+Rotating windows leaves the way a frame layout has been produced via
+splitting, deleting and resizing windows unaltered.  It only \"moves\"
+windows within that layout such that the space formerly occupied by any
+window is now occupied by the window preceding (following if REVERSE is
+non-nil) it in the cycling ordering.
 
-Interactively, a prefix argument says to rotate the parent window of the
-selected window."
+If you want to rotate the entire layout of windows, consider using the
+function `window-layout-rotate-clockwise' instead.  If you want to
+rotate a layout twice in a row in order to have a window on the bottom
+appear on the top and a window on the right appear on the left (or
+vice-versa), consider running `window-layout-flip-leftright' and
+`window-layout-flip-topdown' instead."
   (interactive (list (window--rotate-interactive-arg)))
-  (when (or (not window) (window-live-p window))
+  (setq window (or window (window-main-window)))
+  (when (window-live-p window)
     (user-error "No windows to rotate"))
   (let* ((frame (window-frame window))
 	 (selected-window (frame-selected-window window))
+         (x-y (and rotate-windows-change-selected
+                   (cons (1+ (window-pixel-left selected-window))
+                         (1+ (window-pixel-top selected-window)))))
 	 (win-tree (car (window-tree-normal-sizes window)))
 	 (winls (or
                  (seq-filter
@@ -175,11 +186,12 @@ selected window."
                     (and (window-live-p win)
                          (not (window-dedicated-p win))))
                   (flatten-list win-tree))
+                 ;; Do we really care - the window/buffer relationship
+                 ;; should not be affected by rotating.
                  (user-error "All windows are dedicated")))
 	 (rotated-ls (if reverse
 			 (append (cdr winls) (list (car winls)))
 		       (append (last winls) winls)))
-	 (other-window-arg (if reverse 1 -1))
 	 (first-window (car rotated-ls))
 	 (new-win-tree
           ;; Recursively process `win-tree' and construct a new tree
@@ -193,14 +205,40 @@ selected window."
              (t tree)))))
     (when (or (seq-some #'window-atom-root winls)
 	      (seq-some #'window-fixed-size-p winls))
-      (user-error "Cannot rotate windows due to fixed size or atom windows"))
+      (user-error "Cannot rotate windows due to fixed size or atomic windows"))
     (delete-other-windows-internal first-window window)
     (window--transpose-1 new-win-tree first-window '(below . right) t nil)
-    (set-frame-selected-window frame selected-window)
-    (when rotate-windows-change-selected
-      (other-window other-window-arg)
-      (while (not (memq (selected-window) winls))
-        (other-window other-window-arg)))))
+    (when x-y
+      ;; Try to select the window at the position previously occupied by
+      ;; the selected window.
+      (let ((window-at-x-y (window-at-x-y (car x-y) (cdr x-y) frame t)))
+        (when window-at-x-y
+          (setq selected-window window-at-x-y))))
+
+    (set-frame-selected-window frame selected-window)))
+
+;;;###autoload
+(defun rotate-windows-back (&optional window)
+  "Rotate child windows of WINDOW backwards in cyclic ordering.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate backwards
+the child windows of the selected window's parent.  Signal an error if
+WINDOW is not a parent window, all descendants of WINDOW are dedicated
+or some of them are of fixed size or atomic.
+
+Rotating windows backwards leaves the way a frame layout has been
+produced via splitting, deleting and resizing windows unaltered.  It
+only \"moves\" windows within that layout such that the space formerly
+occupied by any window is now occupied by the window following it in
+the cycling ordering.
+
+If you want to rotate the entire layout of windows backwards, consider
+using the function `window-layout-rotate-anticlockwise' instead.  If you
+want to rotate a layout backwards twice in a row, consider running
+`window-layout-flip-leftright' and `window-layout-flip-topdown'
+instead."
+  (interactive (list (window--rotate-interactive-arg)))
+  (rotate-windows window t))
 
 (defun window--transpose (window conf no-resize)
   "Rearrange windows under WINDOW recursively.
@@ -243,7 +281,9 @@ ones in `window--transpose'."
   ;; `flen' is max size the window could be converted to the opposite
   ;; of the given split type.
   (let ((parent-window-is-set t)
-	(flen (if (xor no-resize (car subtree))
+        ;; Make sure combination resizing is turned off (Bug#81406).
+        window-combination-resize
+        (flen (if (xor no-resize (car subtree))
 		  (float (window-pixel-width cwin))
 		(float (window-pixel-height cwin)))))
     (mapc
@@ -422,8 +462,7 @@ absolute value of ARG.  Return the new frame."
       (let ((comb (window-get-split-combination main arg)))
         (window-state-put (window-state-get comb)
 			  (window-main-window (make-frame)))
-        (delete-window comb))
-      ))))
+        (delete-window comb))))))
 
 (provide 'window-x)
 ;;; window-x.el ends here

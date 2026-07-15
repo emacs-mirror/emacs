@@ -238,7 +238,10 @@ reordering of bidirectional text, use the
 @defun filter-buffer-substring start end &optional delete
 This function filters the buffer text between @var{start} and @var{end}
 using a function specified by the variable
-@code{filter-buffer-substring-function}, and returns the result.
+@code{filter-buffer-substring-function}, and returns the result.  The
+order of buffer positions specified by @var{start} and @var{end} should
+not matter, since this function is frequently used for extracting text
+passed to kill functions (@pxref{Kill Functions}).
 
 The default filter function consults the obsolete wrapper hook
 @code{filter-buffer-substring-functions} (see the documentation string
@@ -264,6 +267,9 @@ will call to do the actual work.  The function receives three
 arguments, the same as those of @code{filter-buffer-substring},
 which it should treat as per the documentation of that function.  It
 should return the filtered text (and optionally delete the source text).
+Note that it must process the @var{start} and @var{end} arguments
+regardless of the order of the buffer positions they specify, to comply
+with the protocol of extracting text for the purposes of killing it.
 @end defvar
 
 @noindent The following two variables are obsoleted by

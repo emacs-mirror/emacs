@@ -29,6 +29,9 @@ applies, and please also update docstrings as needed.
 The traditional unexec dumper, deprecated since Emacs 27, has been
 removed.
 
++++
+*** The portable dumper now works on m68k a.out targets.
+
 ---
 ** Emacs's old 'ctags' program is no longer built or installed.
 You are encouraged to use Universal Ctags <https://ctags.io/> instead.
@@ -357,14 +360,24 @@ increments as with Emacs 24 through Emacs 30 you now have to set
 ** Windows
 
 +++
-*** New commands to modify window layouts.
+*** New commands to modify window layouts of frames.
+'window-layout-rotate-clockwise' ('C-x w r <right>') and its counterpart
+'window-layout-rotate-anticlockwise' ('C-x w r <left>') rotate an entire
+window layout.
+'window-layout-flip-topdown' ('C-x w f <down>', 'C-x w f <up>') and
+'window-layout-flip-leftright' ('C-x w f <left>', 'C-x w f <right>')
+flip the window layout vertically and horizontally.
+'window-layout-transpose' ('C-x w t') reorganizes windows such that
+every horizontal split becomes a vertical split and vice versa.
+'rotate-windows' ('C-x w o <right>') and its counterpart
+'rotate-windows-back' ('C-x w o <left>') rotate windows in cyclic
+ordering.
 
-- 'C-x w t' and 'C-x w r <left>/<right>' rotate the window layout.
-- 'C-x w o <left>/<right>' rotate the windows within the current layout.
-- 'C-x w f <left>/<right>/<up>/<down>' flip window layouts.
-
-By default, these commands operate on the selected frame's root window.
-With a prefix argument, they operate on the selected window's parent.
+*** New user option 'rotate-windows-change-selected'.
+This controls whether 'rotate-windows' and 'rotate-windows-back' change
+the selected window.  If nil, the selected window does not change.
+The default is t, which means the new selected window will be the one
+that winds up at the location of the previously-selected window.
 
 +++
 *** Windmove commands now move to skipped windows if invoked twice in a row.

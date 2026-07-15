@@ -5579,12 +5579,14 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   "Function to perform the filtering in `filter-buffer-substring'.
 The function is called with the same 3 arguments (BEG END DELETE)
 that `filter-buffer-substring' received.  It should return the
-buffer substring between BEG and END, after filtering.  If DELETE is
-non-nil, it should delete the text between BEG and END from the buffer.")
+buffer substring between BEG and END, regardless of the order of
+BEG and END, after filtering.  If DELETE is non-nil, it should
+delete the text between BEG and END from the buffer.")
 
 (defun filter-buffer-substring (beg end &optional delete)
   "Return the buffer substring between BEG and END, after filtering.
 If DELETE is non-nil, delete the text between BEG and END from the buffer.
+The order of BEG and END does not matter.
 
 This calls the function that `filter-buffer-substring-function' specifies
 \(passing the same three arguments that it received) to do the work,
