@@ -29,6 +29,9 @@ applies, and please also update docstrings as needed.
 The traditional unexec dumper, deprecated since Emacs 27, has been
 removed.
 
++++
+*** The portable dumper now works on m68k a.out targets.
+
 ---
 ** Emacs's old 'ctags' program is no longer built or installed.
 You are encouraged to use Universal Ctags <https://ctags.io/> instead.
