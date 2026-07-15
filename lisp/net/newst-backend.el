@@ -1598,7 +1598,7 @@ is present, this function defaults to universal time."
 RFC822-STRING should use RFC 822 (or later) format.
 Examples:
 Sat, 07 September 2002 00:00:01 +0100
-Sat, 07 September 2002 00:00:01 MET
+Sat, 07 September 2002 00:00:01 MDT
 Sat, 07 Sep 2002 00:00:01 GMT
 07 Sep 2002 00:00:01 GMT
 07 Sep 2002"
