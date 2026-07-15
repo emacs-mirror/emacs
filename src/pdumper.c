@@ -271,17 +271,8 @@ enum
 
    /* Minimum alignment required by dump file format.  Although this can
       be any integer power of 2 up to alignof (Lisp_Alignment),
-      larger values help dump_reloc_set_offset support larger offsets.
-      The fix for bug#44531 was discovered late during Emacs 31 development,
-      so on Emacs 31 the value is 4 except on hosts where 4 is known to fail.
-      The only known failure is m68k a.out, so work around the problem
-      only if __mc68000__ is defined and the Lisp_Object alignment is 2,
-      which is a known property of the m68k a.out format.  */
-#ifdef __mc68000__
-   DUMP_RELOCATION_ALIGNMENT = min (4, alignof (Lisp_Object)),
-#else
-   DUMP_RELOCATION_ALIGNMENT = 4,
-#endif
+      larger values help dump_reloc_set_offset support larger offsets.  */
+   DUMP_RELOCATION_ALIGNMENT = alignof (Lisp_Object),
 
    /* The alignment granularity (in bytes) for objects we store in the
       dump.  Always suitable for heap objects; may be more aligned.  */
