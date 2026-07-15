@@ -358,16 +358,16 @@ increments as with Emacs 24 through Emacs 30 you now have to set
 
 +++
 *** New commands to modify window layouts of frames.
-'window-layout-rotate-clockwise' ('C-x w r <RIGHT>') and its counterpart
-'window-layout-rotate-anticlockwise' ('C-x w r <LEFT>') rotate an entire
+'window-layout-rotate-clockwise' ('C-x w r <right>') and its counterpart
+'window-layout-rotate-anticlockwise' ('C-x w r <left>') rotate an entire
 window layout.
-'window-layout-flip-topdown' ('C-x w r <DOWN>') and
-'window-layout-flip-leftright' ('C-x w r <LEFT>') flip the window layout
-vertically and horizontally.
+'window-layout-flip-topdown' ('C-x w f <down>', 'C-x w f <up>') and
+'window-layout-flip-leftright' ('C-x w f <left>', 'C-x w f <right>')
+flip the window layout vertically and horizontally.
 'window-layout-transpose' ('C-x w t') reorganizes windows such that
 every horizontal split becomes a vertical split and vice versa.
-'rotate-windows' ('C-x w o <RIGHT>') and its counterpart
-'rotate-windows-back' ('C-x w o <LEFT>') rotate windows in cyclic
+'rotate-windows' ('C-x w o <right>') and its counterpart
+'rotate-windows-back' ('C-x w o <left>') rotate windows in cyclic
 ordering.
 
 *** New user option 'rotate-windows-change-selected'.
