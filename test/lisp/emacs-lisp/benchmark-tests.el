@@ -32,8 +32,9 @@
     (should (consp (benchmark-run 1 (setq m (1+ 0)))))
     (should (stringp (benchmark nil (1+ 0))))
     (should (stringp (benchmark 1 (1+ 0))))
-    (should (consp (benchmark-run-compiled (1+ 0))))
-    (should (consp (benchmark-run-compiled 1 (1+ 0))))
+    (when (featurep 'native-compile)
+      (should (consp (benchmark-run-compiled (1+ 0))))
+      (should (consp (benchmark-run-compiled 1 (1+ 0)))))
     ;; First test is heavier, must need longer time.
     (let ((count1 0)
           (count2 0)
