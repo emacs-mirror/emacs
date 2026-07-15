@@ -73,7 +73,7 @@ where HEIGHT and WIDTH are the normal height and width of the window.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate clockwise
 the layout of the child windows of the selected window's parent.  Signal
-an error if WINDOW is not a parent window
+an error if WINDOW is not a parent window.
 
 Recursively rotate the entire layout of WINDOW's child windows clockwise
 by 90 degrees.  Do not change the selected window of WINDOW's frame.  If
@@ -88,7 +88,7 @@ you want to rotate windows within their frame's layout, consider using
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate
 counterclockwise the layout of the child windows of the selected
-window's parent.  Signal an error if WINDOW is not a parent window
+window's parent.  Signal an error if WINDOW is not a parent window.
 
 Recursively rotate the entire layout of WINDOW's child windows
 counterclockwise by 90 degrees.  Do not change the selected window of
@@ -103,7 +103,7 @@ layout, consider using `rotate-windows-back' instead."
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip
 horizontally the layout of the child windows of the selected window's
-parent.  Signal an error if WINDOW is not a parent window
+parent.  Signal an error if WINDOW is not a parent window.
 
 Recursively flip the layout of WINDOW's child windows so that a child
 window on the right becomes a child window on the left and vice-versa."
@@ -116,7 +116,7 @@ window on the right becomes a child window on the left and vice-versa."
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip vertically
 the layout of the child windows of the selected window's parent.  Signal
-an error if WINDOW is not a parent window
+an error if WINDOW is not a parent window.
 
 Recursively flip the layout of WINDOW's child windows so that a child
 window on the top becomes a child window on the bottom and vice-versa."
@@ -129,7 +129,7 @@ window on the top becomes a child window on the bottom and vice-versa."
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, transpose the
 layout of the child windows of the selected window's parent.  Signal an
-error if WINDOW is not a parent window
+error if WINDOW is not a parent window.
 
 Recursively reorganize WINDOW's child windows so that each horizontal
 split becomes a vertical split and vice versa."

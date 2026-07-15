@@ -359,7 +359,7 @@ increments as with Emacs 24 through Emacs 30 you now have to set
 +++
 *** New commands to modify window layouts of frames.
 'window-layout-rotate-clockwise' ('C-x w r <RIGHT>') and its counterpart
-'window-layout-rotate-anticlockwise' ('C-x v r <LEFT>') rotate an entire
+'window-layout-rotate-anticlockwise' ('C-x w r <LEFT>') rotate an entire
 window layout.
 'window-layout-flip-topdown' ('C-x w r <DOWN>') and
 'window-layout-flip-leftright' ('C-x w r <LEFT>') flip the window layout
