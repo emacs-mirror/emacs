@@ -201,7 +201,7 @@ XMenuCreate(Display *display, Window parent, register char const *def_env)
   /*
    * Create the XAssocTable
    */
-  assoc_tab = (XAssocTable *)XCreateAssocTable(XASSOC_TABLE_SIZE);
+  assoc_tab = XCreateAssocTable (XASSOC_TABLE_SIZE);
   if(assoc_tab == NULL) {
     _XMErrorCode= XME_CREATE_ASSOC;
     return(NULL);
@@ -441,31 +441,31 @@ XMenuCreate(Display *display, Window parent, register char const *def_env)
     switch (inact_pnum)
       {
       case 0:
-	data = (char *)dimple1_bits;
+	data = dimple1_bits;
 	width = dimple1_width;
 	height = dimple1_height;
 	break;
 
       case 1:
-	data = (char *)dimple3_bits;
+	data = dimple3_bits;
 	width = dimple3_width;
 	height = dimple3_height;
 	break;
 
       case 2:
-	data = (char *)gray1_bits;
+	data = gray1_bits;
 	width = gray1_width;
 	height = gray1_height;
 	break;
 
       case 3:
-	data = (char *)gray3_bits;
+	data = gray3_bits;
 	width = gray3_width;
 	height = gray3_height;
 	break;
 
       case 4:
-	data = (char *)cross_weave_bits;
+	data = cross_weave_bits;
 	width = cross_weave_width;
 	height = cross_weave_height;
 	break;
