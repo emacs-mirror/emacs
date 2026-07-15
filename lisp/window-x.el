@@ -159,13 +159,17 @@ all descendants of WINDOW are dedicated or some windows are of fixed
 size or atomic.
 
 Rotating windows leaves the way a frame layout has been produced via
-splitting and deleting windows unaltered.  It only \"moves\" windows
-within that layout such that the space formerly occupied by any window
-is now occupied by the window preceding (following if REVERSE is
-non-nil) it in that order.
+splitting, deleting and resizing windows unaltered.  It only \"moves\"
+windows within that layout such that the space formerly occupied by any
+window is now occupied by the window preceding (following if REVERSE is
+non-nil) it in the cycling ordering.
 
-If you want to rotate the entire layout of windows consider using the
-function `window-layout-rotate-clockwise' instead."
+If you want to rotate the entire layout of windows, consider using the
+function `window-layout-rotate-clockwise' instead.  If you want to
+rotate a layout twice in a row in order to have a window on the bottom
+appear on the top and a window on the right appear on the left (or
+vice-versa), consider running `window-layout-flip-leftright' and
+`window-layout-flip-topdown' instead."
   (interactive (list (window--rotate-interactive-arg)))
   (setq window (or window (window-main-window)))
   (when (window-live-p window)
@@ -222,8 +226,17 @@ the child windows of the selected window's parent.  Signal an error if
 WINDOW is not a parent window, all descendants of WINDOW are dedicated
 or some of them are of fixed size or atomic.
 
-If you want to rotate the entire layout of windows, consider using the
-function `window-layout-rotate-anticlockwise' instead."
+Rotating windows backwards leaves the way a frame layout has been
+produced via splitting, deleting and resizing windows unaltered.  It
+only \"moves\" windows within that layout such that the space formerly
+occupied by any window is now occupied by the window following it in
+the cycling ordering.
+
+If you want to rotate the entire layout of windows backwards, consider
+using the function `window-layout-rotate-anticlockwise' instead.  If you
+want to rotate a layout backwards twice in a row, consider running
+`window-layout-flip-leftright' and `window-layout-flip-topdown'
+instead."
   (interactive (list (window--rotate-interactive-arg)))
   (rotate-windows window t))
 
