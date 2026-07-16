@@ -313,7 +313,8 @@ dump_reloc_set_offset (struct dump_reloc *reloc, dump_off offset)
   eassume (offset >= 0);
   reloc->raw_offset = offset / DUMP_RELOCATION_ALIGNMENT;
   if (dump_reloc_get_offset (*reloc) != offset)
-    error ("dump relocation out of range");
+    error ("dump relocation not an integral multiple of %d: %d",
+	   DUMP_RELOCATION_ALIGNMENT, offset);
 }
 
 void
