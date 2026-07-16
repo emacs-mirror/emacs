@@ -269,9 +269,10 @@ enum
   {
    DUMP_RELOC_TYPE_BITS = 5,
 
-   /* Minimum alignment required by dump file format.  Although this can
-      be any integer power of 2 up to alignof (Lisp_Alignment),
-      larger values help dump_reloc_set_offset support larger offsets.
+   /* Minimum alignment required by dump file format.  Lisp_Objects and raw
+      pointers can both be relocated, so this can be any integer power of 2
+      up to min (alignof (Lisp_Object), alignof (void *)).
+      Larger values help dump_reloc_set_offset support larger offsets.
       The fix for bug#44531 was discovered late during Emacs 31 development,
       so on Emacs 31 the value is 4 except on hosts where 4 is known to fail.
       The only known failure is m68k a.out, so work around the problem
