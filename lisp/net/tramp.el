@@ -7228,6 +7228,7 @@ might have improper values."
 	  (mapcar #'car tramp-connection-local-default-system-variables))))
     `(let* ((default-directory tramp-compat-temporary-file-directory)
 	    (temporary-file-directory tramp-compat-temporary-file-directory)
+	    (process-environment (copy-sequence process-environment))
             ,@bindings)
        (setenv "TERM" tramp-terminal-type)
        (setenv "PROMPT_COMMAND")
