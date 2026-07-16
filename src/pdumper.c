@@ -269,10 +269,12 @@ enum
   {
    DUMP_RELOC_TYPE_BITS = 5,
 
-   /* Minimum alignment required by dump file format.  Although this can
-      be any integer power of 2 up to alignof (Lisp_Alignment),
-      larger values help dump_reloc_set_offset support larger offsets.  */
-   DUMP_RELOCATION_ALIGNMENT = alignof (Lisp_Object),
+   /* Minimum alignment required by dump file format.  Lisp_Objects and raw
+      pointers can both be relocated, so this can be any integer power of 2
+      up to min (alignof (Lisp_Object), alignof (void *)).
+      Larger values help dump_reloc_set_offset support larger offsets.  */
+   DUMP_RELOCATION_ALIGNMENT = min (alignof (Lisp_Object),
+				    alignof (void *)),
 
    /* The alignment granularity (in bytes) for objects we store in the
       dump.  Always suitable for heap objects; may be more aligned.  */
