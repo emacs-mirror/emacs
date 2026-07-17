@@ -1,5 +1,5 @@
 # fstatat.m4
-# serial 5
+# serial 8
 dnl Copyright (C) 2004-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -45,6 +45,11 @@ AC_DEFUN([gl_FUNC_FSTATAT],
           esac
          ])
       ])
+    AS_CASE([$gl_cv_func_fstatat_zero_flag],
+      [*yes],
+        [AC_DEFINE([HAVE_WORKING_FSTATAT_ZERO_FLAG], [1],
+           [Define to 1 if fstatat (..., 0) works.
+            For example, it does not work in AIX 7.1.])])
 
     case $gl_cv_func_fstatat_zero_flag+$gl_cv_func_lstat_dereferences_slashed_symlink in
     *yes+*yes) ;;
@@ -56,12 +61,44 @@ AC_DEFUN([gl_FUNC_FSTATAT],
         REPLACE_FSTATAT=1 ;;
     esac
 
-    case $REPLACE_FSTATAT,$gl_cv_func_fstatat_zero_flag in
-      1,*yes)
-         AC_DEFINE([HAVE_WORKING_FSTATAT_ZERO_FLAG], [1],
-           [Define to 1 if fstatat (..., 0) works.
-            For example, it does not work in AIX 7.1.])
-         ;;
-    esac
+    dnl Check for the AT_EMPTY_PATH compatibility issue with null pointers
+    dnl only if not already replacing fstatat.
+    dnl There is no need to AC_DEFINE anything here, as the Gnulib
+    dnl replacement works around the compatibility bug even if the bug
+    dnl is not present, and it is not worth the trouble to tune this.
+    AS_CASE([$REPLACE_FSTATAT],
+      [0],
+        [AC_CACHE_CHECK([for no AT_EMPTY_PATH or fstatat with null file],
+           [gl_cv_func_fstatat_null_file],
+           [AC_RUN_IFELSE(
+              [AC_LANG_PROGRAM(
+                 [[#include <stddef.h>
+                   #include <fcntl.h>
+                   #include <sys/stat.h>
+                   #ifndef AT_EMPTY_PATH
+                    #define AT_EMPTY_PATH 0
+                   #endif
+                   /* Don't check via -Wnonnull, as the problem could in
+                      theory exist with compilers lacking -Wnonnull.  */
+                   #if __GLIBC__ && ! (2 < __GLIBC__ + (41 <= __GLIBC_MINOR__))
+                    #error "glibc 2.40 and earlier can fail with null file"
+                   #endif
+                 ]],
+                 [[struct stat st;
+                   if (!AT_EMPTY_PATH)
+                     return 0; /* No need to replace fstatat.  */
+                   if (fstatat (AT_FDCWD, NULL, &st, AT_EMPTY_PATH) < 0)
+                     return 1;
+                   int fd = open (".", O_RDONLY);
+                   if (fd < 0)
+                     return 1; /* Play it safe.  */
+                   return fstatat (fd, NULL, &st, AT_EMPTY_PATH) < 0;
+                 ]])],
+              [gl_cv_func_fstatat_null_file=yes],
+              [gl_cv_func_fstatat_null_file=no],
+              [gl_cv_func_fstatat_null_file="guessing no"])])
+         AS_CASE([$gl_cv_func_fstatat_null_file],
+           [*no],
+             [REPLACE_FSTATAT=1])])
   fi
 ])

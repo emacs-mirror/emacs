@@ -200,7 +200,7 @@ _GL_CXXALIAS_RPL (pthread_sigmask, int,
                    const sigset_t *restrict new_mask,
                    sigset_t *restrict old_mask));
 # else
-#  if !(@HAVE_PTHREAD_SIGMASK@ || defined pthread_sigmask)
+#  if !@HAVE_PTHREAD_SIGMASK@
 _GL_FUNCDECL_SYS (pthread_sigmask, int,
                   (int how,
                    const sigset_t *restrict new_mask,

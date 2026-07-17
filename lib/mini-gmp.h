@@ -1,6 +1,7 @@
 /* mini-gmp, a minimalistic implementation of a GNU GMP subset.
 
-Copyright 2011-2015, 2017, 2019-2021 Free Software Foundation, Inc.
+Copyright 2011-2015, 2017, 2019-2021, 2024, 2026 Free Software
+Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
@@ -211,6 +212,7 @@ int mpz_invert (mpz_t, const mpz_t, const mpz_t);
 
 void mpz_sqrtrem (mpz_t, mpz_t, const mpz_t);
 void mpz_sqrt (mpz_t, const mpz_t);
+int mpz_perfect_square_root (mpz_t, const mpz_t);
 int mpz_perfect_square_p (const mpz_t);
 
 void mpz_pow_ui (mpz_t, const mpz_t, unsigned long);
@@ -272,6 +274,7 @@ void mpz_set_d (mpz_t, double);
 void mpz_init_set_si (mpz_t, signed long int);
 void mpz_init_set_ui (mpz_t, unsigned long int);
 void mpz_init_set (mpz_t, const mpz_t);
+void mpz_init_setbit (mpz_t, mp_bitcnt_t);
 void mpz_init_set_d (mpz_t, double);
 
 size_t mpz_sizeinbase (const mpz_t, int);
