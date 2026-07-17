@@ -634,13 +634,12 @@ report errors as appropriate for this kind of usage."
             (funcall end-of-defun-function))))
        ((< arg 0)
         ;; Moving backward.
-        (if (< (point) pos)
-            ;; We already moved backward because we started from between
-            ;; two functions.
-            (setq arg (1+ arg))
-          ;; We started from inside a function.
-          (goto-char beg))
+        (when (< (point) pos)
+          ;; We already moved backward because we started from between
+          ;; two functions.
+          (setq arg (1+ arg)))
         (unless (zerop arg)
+          (goto-char beg)
           (when (setq success (beginning-of-defun-raw (- arg)))
             (setq beg (point))
             (funcall end-of-defun-function)))))
