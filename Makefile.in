@@ -1151,15 +1151,26 @@ $(1)-DOCLANG-$(2): $(1)-common
 	$$(MAKE) -C doc/$$(subst -, DOCLANG=$(2) ,$(1))
 
 endef
+## Languages to build the manuals in doc/$(1) for: the default
+## language, plus every other language in DOCLANGS that has
+## translations for this directory (doc/translations/<lang>/$(1)).
+## Directories without translations for a language must not run a
+## sub-make for it: the doc Makefiles of untranslated directories
+## ignore DOCLANG, so such a sub-make would just repeat the
+## default-language build, and two sub-makes producing the same
+## outputs race under "make -j" (e.g. "cp: cannot create regular
+## file ...: File exists").
+doc_langs = default $(foreach lang,$(filter-out default,$(DOCLANGS)),$(if $(wildcard ${srcdir}/doc/translations/$(lang)/$(1)),$(lang)))
+# $(1) = doc target (e.g. lispintro-info), $(2) = languages to build
 define MAKE_DOC
 # Define a target to which dependencies common to all of the doc files
 # in this directory may be assigned.
 $(1)-common:
-$(1): $$(addprefix $(1)-DOCLANG-,$(DOCLANGS))
+$(1): $$(addprefix $(1)-DOCLANG-,$(2))
 
-$$(foreach lang,$(DOCLANGS),$$(eval $$(call MAKE_DOC_FOR_DOCLANG,$(1),$$(lang))))
+$$(foreach lang,$(2),$$(eval $$(call MAKE_DOC_FOR_DOCLANG,$(1),$$(lang))))
 endef
-$(foreach doc,$(DOCS),$(eval $(call MAKE_DOC,$(doc))))
+$(foreach doc,$(DOCS),$(eval $(call MAKE_DOC,$(doc),$(call doc_langs,$(word 1,$(subst -, ,$(doc)))))))
 
 .PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist html info-dir check-info

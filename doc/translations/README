@@ -68,6 +68,17 @@ For the pdf output:
 
 ses-fr.pdf will go into the doc/misc directory.
 
+** Adding new languages
+
+For instance to add Japanese (ja):
+
+- add 'ja' to the list into list gl_DOCLANGS_FULL in file EMACS-REPO/m4/texinfo.m4
+- add a subdirectory 'ja' under directory EMACS-REPO/doc/translations/,
+- create a info_common.mk file into each subdirectory
+  EMACS-REPO/doc/translations/ja/TRANSLATED_DIR, eg TRANSLATED_DIR is
+  'misc' if you translate to Japanese a manual from the misc category.
+
+
 * Translating the Emacs manuals
 
 ** Copyright assignment
