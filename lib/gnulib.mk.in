@@ -44,7 +44,6 @@
 #  --avoid=c32toupper \
 #  --avoid=chmod \
 #  --avoid=close \
-#  --avoid=crypto/af_alg \
 #  --avoid=dup \
 #  --avoid=fchdir \
 #  --avoid=fstat \

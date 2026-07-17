@@ -7882,10 +7882,10 @@ if test "$XCONFIGURE" != "android"; then
   AS_MKDIR_P([cross/etc])
 
   AS_IF([test "x$with_android" != "xno"], [
-    dnl Link gnulib files to cross/lib as well.  af_alg.h and
-    dnl lib/save-cwd.h are copied manually from gnulib, and as such
-    dnl aren't specified in gl_FILE_LIST.
-    emacs_files='gl_FILE_LIST lib/af_alg.h lib/save-cwd.h'
+    dnl Link gnulib files to cross/lib as well.
+    dnl lib/save-cwd.h is copied manually from gnulib,
+    dnl and as such isn't specified in gl_FILE_LIST.
+    emacs_files='gl_FILE_LIST lib/save-cwd.h'
     dnl These files are specific to Emacs.
     emacs_files="$emacs_files lib/fingerprint.c lib/fingerprint.h \
 		   lib/save-cwd.c lib/openat-die.c lib/save-cwd.c \
