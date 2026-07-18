@@ -5791,6 +5791,9 @@ fstatat (int fd, char const *name, struct stat *st, int flags)
      Gnulib does this and can serve as a model.  */
   char fullname[MAX_UTF8_PATH];
 
+  if (flags & AT_EMPTY_PATH && !name)
+    name = "";
+
   if (fd != AT_FDCWD)
     {
       char lastc = dir_pathname[strlen (dir_pathname) - 1];

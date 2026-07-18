@@ -29,6 +29,7 @@ extern int faccessat (int, char const *, int, int);
 #define AT_FDCWD (-3041965)
 #define AT_EACCESS 4
 #define AT_SYMLINK_NOFOLLOW 4096
+#define AT_EMPTY_PATH 8192
 
 #define O_IGNORE_CTTY 0
 #define O_NOCTTY 0
