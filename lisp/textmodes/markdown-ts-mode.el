@@ -2989,7 +2989,7 @@ content as a standalone markdown document, which is what we want."
                    'markdown-ts-inhibit-code-block-mode-warnings
                    (delay-mode-hooks (funcall mode)))
                  (narrow-to-region beg end)
-                 (font-lock-ensure)
+                 (let ((font-lock-dont-widen t)) (font-lock-ensure))
                  (let ((pos (point-min)))
                    (while (< pos (point-max))
                      (let ((next (next-single-property-change
