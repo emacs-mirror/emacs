@@ -1318,7 +1318,7 @@ infinite loops when the code/environment contains a circular object.")
      (aref sexp 0) (mapcar #'edebug-unwrap* (aref sexp 1))
      (mapcar (lambda (x) (if (consp x) (cons (car x) (edebug-unwrap* (cdr x))) x))
              (aref sexp 2))
-     (documentation sexp 'raw) (interactive-form sexp)))
+     (documentation sexp 'raw) (edebug-unwrap* (interactive-form sexp))))
    (t sexp)))
 
 
