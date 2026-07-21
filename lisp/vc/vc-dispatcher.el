@@ -696,7 +696,11 @@ If the current buffer visits a file, call `vc-refresh-state'."
                            (with-current-buffer buf
                              ,@body))))))
       (cond ((derived-mode-p 'vc-dir-mode)
-             (run-delayed (vc-dir-refresh)))
+             (run-delayed
+              ;; Avoid interrupting the user with prompts to save
+              ;; buffers.
+              (let ((non-essential t))
+                (vc-dir-refresh))))
             ((derived-mode-p 'dired-mode)
              (run-delayed
               (when (= (buffer-modified-tick buf) tick)
