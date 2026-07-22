@@ -4773,9 +4773,19 @@ the same set of elements."
                     (setq prefix (substring prefix 0 (length fixed))))
                   (push prefix res)
                   ;; Push all the wildcards in this stretch, to preserve `point' and
-                  ;; `star' wildcards before ELEM.
-                  (dolist (wildcard wildcards)
-                    (push wildcard res))
+                  ;; `star' wildcards before ELEM.  Collapse multiple `star's down to one
+                  ;; on each side of point. (bug#81394)
+                  (let ((star-seen nil))
+                    (dolist (wildcard wildcards)
+                      (cond
+                       ((eq wildcard 'star)
+                        (unless star-seen
+                          (push 'star res))
+                        (setq star-seen t))
+                       (t
+                        (when (eq wildcard 'point)
+                          (setq star-seen nil))
+                        (push wildcard res)))))
                   ;; Extract common suffix additionally to common prefix.
                   ;; Don't do it for `any' since it could lead to a merged
                   ;; completion that doesn't itself match the candidates.

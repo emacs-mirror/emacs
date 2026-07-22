@@ -312,11 +312,12 @@
             '("lisp/minibuffer.el" "src/minibuf.c")
             nil 9)
            '("*/minibuf" . 9)))
-  ;; A series of wildcards is preserved (for now), along with point's position.
+  ;; A series of `star's is collapsed into a single one, but point's
+  ;; position is preserved in the middle. (bug#81394)
   (should (equal
            (completion-pcm--merge-try
             '(star star point star "foo") '("xxfoo" "xyfoo") "" "")
-           '("x***foo" . 3)))
+           '("x**foo" . 2)))
   ;; The series of wildcards is considered together; if any of them wants the common suffix, it's generated.
   (should (equal
            (completion-pcm--merge-try
