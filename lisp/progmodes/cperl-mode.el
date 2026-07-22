@@ -959,7 +959,6 @@ Unless KEEP, removes the old indentation."
             ("foreachmy" cperl-electric-keyword)
             ("do" cperl-electric-keyword)
             ("=pod" cperl-electric-pod)
-            ("=begin" cperl-electric-pod t)
             ("=over" cperl-electric-pod)
             ("=head1" cperl-electric-pod)
             ("=head2" cperl-electric-pod)
@@ -2302,7 +2301,6 @@ to nil."
 	 (save-excursion (or (not (re-search-backward "^=" nil t))
 			     (or
 			      (looking-at "=cut")
-			      (looking-at "=end")
 			      (and cperl-use-syntax-table-text-property
 				   (not (eq (get-text-property (point)
 							       'syntax-type)
@@ -2378,7 +2376,7 @@ Go to POS which defaults to the current point after processing."
 	     (get-text-property (point) 'in-pod)
 	     (cperl-after-expr-p nil "{;:")
 	     (and (re-search-backward "\\(\\`\n?\\|^\n\\)=\\sw+" (point-min) t)
-		  (not (or (looking-at "\n*=cut") (looking-at "\n*=end")))
+		  (not (looking-at "\n*=cut"))
 		  (or (not cperl-use-syntax-table-text-property)
 		      (eq (get-text-property (point) 'syntax-type) 'pod))))))
 	 (progn
@@ -2436,7 +2434,6 @@ to nil."
 	     beg t)))
 	 (save-excursion (or (not (re-search-backward "^=" nil t))
 			     (looking-at "=cut")
-			     (looking-at "=end")
 			     (and cperl-use-syntax-table-text-property
 				  (not (eq (get-text-property (point)
 							      'syntax-type)
@@ -2536,7 +2533,7 @@ If in POD, insert appropriate lines."
 	  ;; We are after \n now, so look for the rest
 	  (if (looking-at "\\(\\`\n?\\|\n\\)=\\sw+")
 	      (progn
-		(setq cut (looking-at "\\(\\`\n?\\|\n\\)=\\(cut\\|end\\)\\>"))
+		(setq cut (looking-at "\\(\\`\n?\\|\n\\)=cut\\>"))
 		(setq over (looking-at "\\(\\`\n?\\|\n\\)=over\\>"))
 		t)))
 	(if (and over
@@ -4496,7 +4493,7 @@ recursive calls in starting lines of here-documents."
 			     state-point b nil nil state)
 		      state-point b)
 		(if (or (nth 3 state) (nth 4 state)
-			(looking-at "\\(cut\\|end\\)\\>"))
+			(looking-at "cut\\>"))
 		    (if (or (nth 3 state) (nth 4 state) ignore-max)
 			nil		; Doing a chunk only
 		      (setq warning-message "=cut is not preceded by a POD section")
@@ -4509,10 +4506,10 @@ recursive calls in starting lines of here-documents."
 			b1 nil)		; error condition
 		  ;; We do not search to max, since we may be called from
 		  ;; some hook of fontification, and max is random
-		  (or (re-search-forward "^\n=\\(cut\\|end\\)\\>" stop-point 'toend)
+		  (or (re-search-forward "^\n=cut\\>" stop-point 'toend)
 		      (progn
 			(goto-char b)
-			(if (re-search-forward "\n=\\(cut\\|end\\)\\>" stop-point 'toend)
+			(if (re-search-forward "\n=cut\\>" stop-point 'toend)
 			    (progn
 			      (setq warning-message "=cut is not preceded by an empty line")
 			      (setq b1 t)
