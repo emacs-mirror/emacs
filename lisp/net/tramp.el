@@ -2235,15 +2235,16 @@ without a visible progress reporter."
   `(if (or noninteractive inhibit-message)
        (progn ,@body)
      (tramp-message ,vec ,level "%s..." ,message)
-     (let ((cookie "failed")
-           (tm
-            ;; We start a pulsing progress reporter after 3 seconds.
-            ;; Start only when there is no other progress reporter
-            ;; running, and when there is a minimum level.
-	    (when-let* ((pr (and (null tramp-inhibit-progress-reporter)
-				 (<= ,level (min tramp-verbose 3))
-				 (make-progress-reporter ,message))))
-	      (run-at-time 3 0.1 #'tramp-progress-reporter-update pr))))
+     (let* ((cookie "failed")
+            (pr (and (null tramp-inhibit-progress-reporter)
+		     (<= ,level (min tramp-verbose 3))
+		     (make-progress-reporter ,message)))
+            (tm
+             ;; We start a pulsing progress reporter after 3 seconds.
+             ;; Start only when there is no other progress reporter
+             ;; running, and when there is a minimum level.
+	     (when pr
+	       (run-at-time 3 0.1 #'tramp-progress-reporter-update pr))))
        (unwind-protect
            ;; Execute the body.
            (prog1
@@ -2253,7 +2254,8 @@ without a visible progress reporter."
 		 ,@body)
 	     (setq cookie "done"))
          ;; Stop progress reporter.
-         (if tm (cancel-timer tm))
+         (when tm (cancel-timer tm))
+         (when pr (progress-reporter-done pr))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
 
 (defmacro with-tramp-timeout (list &rest body)
