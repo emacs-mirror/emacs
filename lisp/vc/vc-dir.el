@@ -1542,6 +1542,7 @@ uses OVERLAY."
                                                  (current-buffer)
                                                  '(log-outgoing short))
                   (setq proc (get-buffer-process (current-buffer)))
+                  (set-process-query-on-exit-flag proc nil)
                   (overlay-put overlay 'proc proc)
                   (vc-run-delayed
                     (unwind-protect
