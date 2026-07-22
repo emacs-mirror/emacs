@@ -291,7 +291,7 @@ cover the range from the oldest annotation to the newest."
                                    :style toggle :selected
                                    (eql vc-annotate-display-mode ,days) ]))
                              vc-annotate-menu-elements)
-                   . ,(cddr items))))
+                   . ,(cdr items))))
     ["By Color Map Range" (unless (null vc-annotate-display-mode)
                  (setq vc-annotate-display-mode nil)
                  (vc-annotate-display-select))
