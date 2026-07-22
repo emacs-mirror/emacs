@@ -248,6 +248,7 @@ automatically)."
     ((cmake-mode cmake-ts-mode)
      . ,(eglot-alternatives '(("neocmakelsp" "stdio") "cmake-language-server")))
     (vimrc-mode . ("vim-language-server" "--stdio"))
+    (vala-mode . ("vala-language-server"))
     ((python-mode python-ts-mode)
      . ,(eglot-alternatives
          '(("rass" "python")
