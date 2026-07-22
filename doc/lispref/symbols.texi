@@ -781,6 +781,45 @@ those names.
 Symbol forms whose names start with @samp{#_} are not transformed.
 @end itemize
 
+@subsection Converting to/from shorthands
+
+Shorthands are automatically expanded by the Lisp reader.
+If you want to apply @code{read-symbol-shorthands} to a symbol
+name without going through the reader, for example because the symbol
+comes from another buffer (e.g., the minibuffer), you can use
+@code{shorthands-to-longhand}.  Similarly, if you are looking for
+a symbol in a buffer, you can consider all its possible
+shorthand forms with the use of @code{shorthands-of-symbol}.
+
+@defun shorthands-to-longhand string
+Return the full name (so called ``longhand'' form) of the symbol whose
+shorthand is @var{string}.  It always returns a string since
+if there is no use of any shorthand notation in @var{string}, it just
+returns @var{string} unchanged.
+@end defun
+
+@defun shorthands-of-symbol string-or-symbol
+Return the list of all the alternative ways to write this symbol.
+The argument can be a symbol or its name, and 
+the return value is a list of strings.  Note that the return value
+includes only the shorthand forms of the argument, not its longhand
+form, so it is common and normal for the return value to be @code{nil}.
+@end defun
+
+@defun shorthands-intern string &optional obarray
+Interns the string @var{string} in the obarray @var{obarray},
+just like @code{intern}, except that it obeys
+@code{read-symbol-shorthands} and thus expands any shorthand in
+@var{string} if applicable before interning it.
+Returns the interned symbol.
+@end defun
+
+@defun shorthands-intern-soft string &optional obarray
+Same as @code{shorthands-intern}, except that it returns @code{nil}
+if there is no symbol by that name in the obarray instead of
+interning a new symbol.
+@end defun
+
 @node Symbols with Position
 @section Symbols with Position
 @cindex symbol with position
