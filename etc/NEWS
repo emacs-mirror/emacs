@@ -194,6 +194,12 @@ the currently selected item in the list view to the kill-ring.
 You can now visit such files in Rmail mode using ordinary file-visiting
 commands, such as 'C-x C-f'.
 
+** timeclock
+
+---
+*** New variable 'timeclock-use-24hr-format'.
+If this variable is set to non-nil, displayed times (clocked in/out
+since, time to leave) will use 24-hour clock instead of 12-hour clock.
 
 * New Modes and Packages in Emacs 32.1
 

@@ -136,6 +136,11 @@ This variable only has effect if set with \\[customize]."
 	 (set symbol value))
   :type 'boolean)
 
+(defcustom timeclock-use-24hr-format nil
+  "If non-nil, use 24-hour clock when displaying times.
+Otherwise use 12-hour clock with AM/PM suffix."
+  :type 'boolean)
+
 (defvar timeclock-update-timer nil
   "The timer used to update `timeclock-mode-string'.")
 
@@ -411,11 +416,8 @@ worked today, ignoring the time worked on previous days."
          (status
 	  (format "Currently %s since %s (%s), %s %s, leave at %s"
 		  (if last-in "IN" "OUT")
-		  (if show-seconds
-		      (format-time-string "%-I:%M:%S %p"
-					  (nth 1 timeclock-last-event))
-		    (format-time-string "%-I:%M %p"
-					(nth 1 timeclock-last-event)))
+		  (format-time-string (timeclock-time-format show-seconds)
+				      (nth 1 timeclock-last-event))
 		  (or (nth 2 timeclock-last-event)
 		      (if last-in "**UNKNOWN**" "workday over"))
 		  (timeclock-seconds-to-string remainder show-seconds t)
@@ -539,10 +541,8 @@ relative only to the time worked today, and not to past time."
   ;; Should today-only be removed in favor of timeclock-relative? - gm
   (interactive)
   (let* ((then (timeclock-when-to-leave today-only))
-	 (string
-	  (if show-seconds
-	      (format-time-string "%-I:%M:%S %p" then)
-	    (format-time-string "%-I:%M %p" then))))
+         (string (format-time-string (timeclock-time-format show-seconds)
+                                     then)))
     (if (called-interactively-p 'interactive)
 	(message "%s" string)
       string)))
@@ -1171,7 +1171,9 @@ HTML-P is non-nil, HTML markup is added."
 		   (setq done t))
 	  (insert "OUT")))
       (unless done
-	(insert " since " (format-time-string "%Y/%m/%d %-I:%M %p" begin))
+	(insert " since " (format-time-string
+                           (concat "%Y/%m/%d " (timeclock-time-format))
+                           begin))
 	(if html-p
 	    (insert "<br>\n<b>")
 	  (insert "\n*"))
@@ -1321,6 +1323,14 @@ HTML-P is non-nil, HTML markup is added."
   "Open the file named by `timeclock-file' in another window."
   (interactive)
   (find-file-other-window timeclock-file))
+
+(defun timeclock-time-format (&optional seconds)
+  "Return a time format string suitable for format-time-string.
+Use 24-hour clock if `timeclock-use-24hr-format' is non-nil, otherwise
+use 12-hour clock.  Include seconds field if SECONDS is non-nil."
+  (if timeclock-use-24hr-format
+      (if seconds "%-H:%M:%S" "%-H:%M")
+    (if seconds "%-I:%M:%S %p" "%-I:%M %p")))
 
 (provide 'timeclock)
 
