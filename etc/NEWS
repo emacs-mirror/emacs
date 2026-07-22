@@ -211,6 +211,13 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
 * Incompatible Lisp Changes in Emacs 32.1
 
++++
+** 'intern' and 'intern-soft' ignore 'read-symbol-shorthands'.
+This means they revert to the behavior of Emacs<28.
+In those cases where shorthands need to be obeyed, you now need to use
+'shorthands-intern', 'shorthands-intern-soft', or 'shorthands-to-longhand'.
+And 'shorthands-of-symbol' provides the reverse mapping.
+
 ** Pcase
 
 +++
