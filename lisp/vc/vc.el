@@ -2207,7 +2207,7 @@ have changed; continue with old fileset?" (current-buffer))))
       (unless patch-string
         ;; Must not pass non-nil NOT-ESSENTIAL because we will shortly
         ;; call (in `vc-finish-logentry') `vc-resynch-buffer' with its
-        ;; NOQUERY parameter non-nil.
+        ;; NOQUERY parameter t (unless `vc-async-checkin').
         (vc-buffer-sync-fileset (list backend files)))
       (when register (vc-register (list backend register)))
       (let (to-remove-props proc)
