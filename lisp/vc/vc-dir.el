@@ -1479,7 +1479,7 @@ the *vc-dir* buffer.
   ;; modes are activated before the calls to `substitute-command-keys'
   ;; in `vc-dir-headers'.  Then any bindings shadowed by minor modes
   ;; won't be included in the key binding hints.
-  :after-hook (let (buffer-read-only) (vc-dir-refresh))
+  :after-hook (vc-dir-refresh)
   (setq-local vc-dir-backend use-vc-backend)
   (setq-local desktop-save-buffer 'vc-dir-desktop-buffer-misc-data)
   (setq-local bookmark-make-record-function #'vc-dir-bookmark-make-record)
@@ -1487,7 +1487,7 @@ the *vc-dir* buffer.
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (setq-local tool-bar-map vc-dir-tool-bar-map))
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (erase-buffer)
     (setq-local vc-dir-process-buffer nil)
     (setq-local vc-ewoc (ewoc-create #'vc-dir-printer))
