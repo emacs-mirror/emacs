@@ -4727,6 +4727,7 @@ can be a remote branch name."
       (vc-incoming-outgoing-internal backend nil
                                      (current-buffer) 'log-outgoing))
     (let ((proc (get-buffer-process (current-buffer))))
+      (set-process-query-on-exit-flag proc nil)
       (while (accept-process-output proc)))
     (how-many log-view-message-re)))
 
