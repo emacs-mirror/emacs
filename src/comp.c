@@ -5244,7 +5244,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   comp_u->loaded_once = !NILP (*saved_cu);
   Lisp_Object *data_eph_relocs
     = find_relocs (handle, DATA_RELOC_EPHEMERAL_ADDR_SYM);
-  eassert (data_eph_relocs);
+  eassume (data_eph_relocs);
 
   /* While resurrecting from an image dump loading more than once the
      same compilation unit does not make any sense.  */
