@@ -9995,7 +9995,7 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window.
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 23) package--builtin-versions)
+(push '(eglot 1 24) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot"
 "Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -10638,13 +10638,17 @@ or penultimate step during initialization.
 
 (autoload 'emacs-lock-mode "emacs-lock"
 "Toggle Emacs Lock mode in the current buffer.
+When a buffer is locked, it cannot be killed and/or Emacs cannot exit
+unless the buffer is unlocked first.  This protects buffers from
+being accidentally killed or lost.
+
 If called with a plain prefix argument, ask for the locking mode
-to be used.
+to be used in the buffer.
 
 Initially, if the user does not pass an explicit locking mode, it
 defaults to `emacs-lock-default-locking-mode' (which see);
 afterwards, the locking mode most recently set on the buffer is
-used instead.
+used as the default instead.
 
 When called from Elisp code, ARG can be any locking mode:
 
@@ -10652,7 +10656,7 @@ When called from Elisp code, ARG can be any locking mode:
  kill   -- the buffer cannot be killed, but Emacs can exit as usual
  all    -- the buffer is locked against both actions
 
-Other values are interpreted as usual.
+Other values are interpreted as usual for turning modes on/off.
 
 See also `emacs-lock-unlockable-modes', which exempts buffers under
 some major modes from being locked under some circumstances.
@@ -20126,7 +20130,7 @@ penultimate step during initialization.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push '(jsonrpc 1 0 28) package--builtin-versions)
+(push '(jsonrpc 1 0 29) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -22924,19 +22928,13 @@ QUALITY can be:
 
 ;;; Generated autoloads from emacs-lisp/multisession.el
 
-(autoload 'define-multisession-variable "multisession"
-"Make NAME into a multisession variable initialized from INITIAL-VALUE.
-DOC should be a doc string, and ARGS are keywords as applicable to
-`make-multisession'.
-
-(fn NAME INITIAL-VALUE &optional DOC &rest ARGS)" nil t)
 (autoload 'list-multisession-values "multisession"
 "List all values in the \"multisession\" database.
 If CHOOSE-STORAGE (interactively, the prefix), query for the
 storage method to list.
 
 (fn &optional CHOOSE-STORAGE)" t)
-(register-definition-prefixes "multisession" '("multisession-"))
+(register-definition-prefixes "multisession" '("define-multisession-variable" "multisession-"))
 
 
 ;;; Generated autoloads from mwheel.el
@@ -24008,7 +24006,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 5) package--builtin-versions)
+(push '(org 9 8 7) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -26940,7 +26938,7 @@ If MODE is `mem' or `cpu+mem', start profiler that samples CPU
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push '(project 0 11 2) package--builtin-versions)
+(push '(project 0 12 0) package--builtin-versions)
 (autoload 'project-current "project"
 "Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -33636,6 +33634,7 @@ if it matches the first line of the file,
 The command `tex-file' runs TeX on the file specified by `tex-main-file'
 if the variable is non-nil.")
 (custom-autoload 'tex-main-file "tex-mode" t)
+(put 'tex-main-file 'safe-local-variable (lambda (x) (or (stringp x) (null x))))
 (defvar tex-offer-save t
 "If non-nil, ask about saving modified buffers before \\[tex-file] is run.")
 (custom-autoload 'tex-offer-save "tex-mode" t)
@@ -35263,7 +35262,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 2 -1) package--builtin-versions)
+(push '(tramp 2 8 2 31 1) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -40203,87 +40202,118 @@ mode.
 
 ;;; Generated autoloads from window-x.el
 
-(autoload 'window-layout-rotate-anticlockwise "window-x"
-"Rotate window layout of WINDOW counterclockwise by 90 degrees.
+(autoload 'window-layout-rotate-clockwise "window-x"
+"Rotate layout of WINDOW's child windows clockwise by 90 degrees.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate clockwise
+the layout of the child windows of the selected window's parent.  Signal
+an error if WINDOW is not a parent window.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+Recursively rotate the entire layout of WINDOW's child windows clockwise
+by 90 degrees.  Do not change the selected window of WINDOW's frame.  If
+you want to rotate windows within their frame's layout, consider using
+`rotate-windows' instead.
 
 (fn &optional WINDOW)" t)
-(autoload 'window-layout-rotate-clockwise "window-x"
-"Rotate window layout under WINDOW clockwise by 90 degrees.
+(autoload 'window-layout-rotate-anticlockwise "window-x"
+"Rotate layout of WINDOW's child windows counterclockwise by 90 degrees.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate
+counterclockwise the layout of the child windows of the selected
+window's parent.  Signal an error if WINDOW is not a parent window.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+Recursively rotate the entire layout of WINDOW's child windows
+counterclockwise by 90 degrees.  Do not change the selected window of
+WINDOW's frame.  If you want to rotate windows within their frame's
+layout, consider using `rotate-windows-back' instead.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-leftright "window-x"
-"Horizontally flip windows under WINDOW.
+"Flip WINDOW's child windows horizontally.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, flip
+horizontally the layout of the child windows of the selected window's
+parent.  Signal an error if WINDOW is not a parent window.
 
-Flip the window layout so that the window on the right becomes the
-window on the left, and vice-versa.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to flip the parent window of the
-selected window.
+Recursively flip the layout of WINDOW's child windows so that a child
+window on the right becomes a child window on the left and vice-versa.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-topdown "window-x"
-"Vertically flip windows under WINDOW.
+"Flip WINDOW's child windows vertically.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, flip vertically
+the layout of the child windows of the selected window's parent.  Signal
+an error if WINDOW is not a parent window.
 
-Flip the window layout so that the top window becomes the bottom window,
-and vice-versa.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to flip the parent window of the
-selected window.
+Recursively flip the layout of WINDOW's child windows so that a child
+window on the top becomes a child window on the bottom and vice-versa.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-transpose "window-x"
-"Transpose windows under WINDOW.
+"Transpose child windows of WINDOW.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, transpose the
+layout of the child windows of the selected window's parent.  Signal an
+error if WINDOW is not a parent window.
 
-Reorganize the windows under WINDOW so that every horizontal split
-becomes a vertical split, and vice versa.  This is equivalent to
-diagonally flipping.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to transpose the parent window of
-the selected window.
-
-(fn &optional WINDOW)" t)
-(autoload 'rotate-windows-back "window-x"
-"Rotate windows under WINDOW backward in cyclic ordering.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+Recursively reorganize WINDOW's child windows so that each horizontal
+split becomes a vertical split and vice versa.
 
 (fn &optional WINDOW)" t)
 (autoload 'rotate-windows "window-x"
-"Rotate windows under WINDOW in cyclic ordering.
+"Rotate child windows of WINDOW in cyclic ordering.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate the child
+windows of the selected window's parent.
 
-Optional argument REVERSE says to rotate windows backward, in reverse
-cyclic order.
+Optional argument REVERSE non-nil means to rotate windows backwards, in
+reverse cyclic order.  Signal an error if WINDOW is not a parent window,
+all descendants of WINDOW are dedicated or some windows are of fixed
+size or atomic.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
+Rotating windows leaves the way a frame layout has been produced via
+splitting, deleting and resizing windows unaltered.  It only \"moves\"
+windows within that layout such that the space formerly occupied by any
+window is now occupied by the window preceding (following if REVERSE is
+non-nil) it in the cycling ordering.
 
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+If you want to rotate the entire layout of windows, consider using the
+function `window-layout-rotate-clockwise' instead.  If you want to
+rotate a layout twice in a row in order to have a window on the bottom
+appear on the top and a window on the right appear on the left (or
+vice-versa), consider running `window-layout-flip-leftright' and
+`window-layout-flip-topdown' instead.
 
 (fn &optional WINDOW REVERSE)" t)
+(autoload 'rotate-windows-back "window-x"
+"Rotate child windows of WINDOW backwards in cyclic ordering.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate backwards
+the child windows of the selected window's parent.  Signal an error if
+WINDOW is not a parent window, all descendants of WINDOW are dedicated
+or some of them are of fixed size or atomic.
+
+Rotating windows backwards leaves the way a frame layout has been
+produced via splitting, deleting and resizing windows unaltered.  It
+only \"moves\" windows within that layout such that the space formerly
+occupied by any window is now occupied by the window following it in
+the cycling ordering.
+
+If you want to rotate the entire layout of windows backwards, consider
+using the function `window-layout-rotate-anticlockwise' instead.  If you
+want to rotate a layout backwards twice in a row, consider running
+`window-layout-flip-leftright' and `window-layout-flip-topdown'
+instead.
+
+(fn &optional WINDOW)" t)
 (autoload 'merge-frames "window-x"
 "Merge the main window of FRAME2 into FRAME1.
 Split the main window of FRAME1 and make the new window display the main
-window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  If
-VERTICAL is non-nil, make the new window below the old main window of
+window of FRAME2.  Both FRAME1 and FRAME2 must be live frames.  FRAME1
+defaults to the selected frame and FRAME2 to the frame that follows FRAME1
+in the frame list.
+If VERTICAL is non-nil, make the new window below the old main window of
 FRAME1.  Otherwise, make the new window on the right of FRAME1's main
 window.  Interactively, VERTICAL is the prefix argument, FRAME1 is the
 selected frame and FRAME2 is the frame following FRAME1 in the frame
