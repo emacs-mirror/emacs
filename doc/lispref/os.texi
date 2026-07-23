@@ -1534,9 +1534,10 @@ in.
 The value has the form @code{(@var{offset} @var{abbr})}.  Here
 @var{offset} is an integer giving the number of seconds ahead of Universal Time
 (east of Greenwich).  A negative value means west of Greenwich.  The
-second element, @var{abbr}, is a string giving an abbreviation for the
-time zone, e.g., @samp{"CST"} for China Standard Time or for
-U.S. Central Standard Time.  Both elements can change when daylight
+second element, @var{abbr}, is a string giving a possibly-ambiguous
+abbreviation for the time zone, e.g., @samp{"IST"} for India Standard
+Time, Irish Standard Time, or Israel Standard Time.
+Both elements can change when daylight
 saving time begins or ends; if the user has specified a time zone that
 does not use a seasonal time adjustment, then the value is constant
 through time.
@@ -1981,7 +1982,7 @@ This stands for the year without century (00--99).
 @item %Y
 This stands for the year with century.
 @item %Z
-This stands for the time zone abbreviation (e.g., @samp{EST}).
+This stands for the time zone abbreviation (e.g., @samp{IST}).
 @item %z
 This stands for the time zone numerical offset.  The @samp{z} can be
 preceded by one, two, or three colons; if plain @samp{%z} stands for

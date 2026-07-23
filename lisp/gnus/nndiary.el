@@ -345,7 +345,8 @@ all.  This may very well take some time.")
   ;; The list of time zone values is obsolescent, and new code should
   ;; not rely on it.  Many of the time zone abbreviations are wrong;
   ;; in particular, all single-letter abbreviations other than "Z" have
-  ;; been wrong since Internet RFC 2822 (2001).  However, the
+  ;; been wrong since Internet RFC 2822 (2001), and abbreviations like "PST"
+  ;; do not match current practice in some locations.  However, the
   ;; abbreviations have not been changed due to backward compatibility
   ;; concerns.
   )

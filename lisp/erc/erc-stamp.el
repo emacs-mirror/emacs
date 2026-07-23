@@ -150,7 +150,7 @@ This string specifies the format of the timestamp being echoed in
 the minibuffer."
   :type '(choice (const :tag "Timestamped Monday, 15:04:05"
                         "Timestamped %A, %H:%M:%S")
-                 (const :tag "2006-01-02 15:04:05 MST" "%F %T %Z")
+                 (const :tag "2026-07-21 15:04:05 JST" "%F %T %Z")
                  string))
 
 (defcustom erc-echo-timestamp-zone nil

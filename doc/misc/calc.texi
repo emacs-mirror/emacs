@@ -17367,8 +17367,8 @@ and @kbd{t U}, the normal argument is then taken from the second-to-top
 stack position.)  This allows you to give a non-integer time zone
 adjustment.  The time-zone argument can also be an HMS form, or
 it can be a variable which is a time zone name in upper- or lower-case.
-For example @samp{tzone(PST) = tzone(8)} and @samp{tzone(pdt) = tzone(7)}
-(for Pacific standard and daylight saving times, respectively).
+For example @samp{tzone(JST) = tzone(-9)} and @samp{tzone(gmt) = tzone(0)}
+(for Japan standard and Greenwich mean time, respectively).
 
 North American and European time zone names are defined as follows.
 These names are obsolescent and new code should not rely on them:
@@ -17399,13 +17399,13 @@ To define time zone names that do not appear in the above table,
 you must modify the Lisp variable @code{math-tzone-names}.  This
 is a list of lists describing the different time zone names; its
 structure is best explained by an example.  The three entries for
-circa-2025 US Pacific Time look like this:
+circa-2026 time in Sydney, Australia might look like this:
 
 @smallexample
 @group
-( ( "PST" 8 0 )    ; Name as an upper-case string, then standard
-  ( "PDT" 8 -1 )   ; adjustment, then daylight saving adjustment.
-  ( "PGT" 8 "PST" "PDT" ) )   ; Generalized time zone.
+(("AEST" -10  0)  ; Name as an upper-case string, then standard
+ ("AEDT" -10 -1)  ; adjustment, then daylight saving adjustment.
+ ("AEGT" -10 "AEST" "AEDT"))  ; Generalized time zone.
 @end group
 @end smallexample
 
