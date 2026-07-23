@@ -13100,7 +13100,7 @@ DEFUN ("posn-point", Fposn_point, Sposn_point, 1, 1, 0,
        doc: /* Return the buffer location in POSITION.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions.
-Returns nil if POSITION does not correspond to any buffer location (e.g.
+Return nil if POSITION does not correspond to any buffer location (e.g.,
 a click on a scroll bar).  */)
   (Lisp_Object position)
 {
@@ -13109,12 +13109,12 @@ a click on a scroll bar).  */)
     return posn;
   /* POSITION is a short position list (such as returned by
      `event--posn-at-point') without a POSN_BUFFER_POSN; fall back to
-     the location in POSN_POSN. */
+     the location in POSN_POSN.  */
   posn = POSN_POSN (position);
   if (CONSP (posn))
     return XCAR (posn);
-  /* Apparently this can also be `vertical-scroll-bar' (bug#13979).  */
-  if (INTEGERP (posn))
+  /* Apparently, POSN can also be `vertical-scroll-bar' (bug#13979).  */
+  if (FIXNUMP (posn))
     return posn;
   return Qnil;
 }
