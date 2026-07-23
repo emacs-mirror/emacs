@@ -149,16 +149,25 @@
 
 (defun gnus-icalendar-event--find-attendee (attendees ids)
   "Return the first `icalendar-attendee' in ATTENDEES matching IDS.
-IDS should be a list of strings. The first attendee is returned whose
-name (as `icalendar-cnparam') or email address (without \"mailto:\")
-is a member of IDS."
+IDS should be a list whose values are strings or functions. The first
+attendee is returned whose name (as `icalendar-cnparam') or email
+address (without \"mailto:\") matches a member of IDS."
   (catch 'found
     (dolist (attendee attendees)
       (ical:with-property attendee ((ical:cnparam :value name))
          (let ((email (ical:strip-mailto value)))
-           (when (or (member name ids)
-                     (member email ids))
-             (throw 'found attendee)))))))
+           (dolist (matcher ids)
+             ;; Each MATCHER can be either a string or a function.
+             ;; The previous implementation returned an attendee if:
+             ;; - its NAME was `equal' to MATCHER as a string
+             ;; - its EMAIL matched MATCHER as a regexp
+             ;; - its EMAIL matched MATCHER if it was a predicate
+             ;; See also bug#81408.
+             (when (or (and (functionp matcher) (funcall matcher email))
+                       (and (stringp matcher)
+                            (or (equal matcher name)
+                                (string-match-p matcher email))))
+               (throw 'found attendee))))))))
 
 (defun gnus-icalendar-event--attendees-by-type (attendees)
   "Return lists of required and optional participants in ATTENDEES.
