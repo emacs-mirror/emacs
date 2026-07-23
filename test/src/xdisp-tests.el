@@ -205,10 +205,12 @@ int main () {
       (font-lock-mode 0)
       (insert "\n")
       (insert m1)
-      (setq s1 (window-text-pixel-size nil (line-beginning-position) (point)))
+      (setq s1 (buffer-text-pixel-size))
+      (erase-buffer)
       (insert "\n")
       (insert m2)
-      (setq s2 (window-text-pixel-size nil (line-beginning-position) (point)))
-      (should (equal m1 m2)))))
+      (setq s2 (buffer-text-pixel-size))
+      (should (equal m1 m2))
+      (should (equal s1 s2)))))
 
 ;;; xdisp-tests.el ends here
