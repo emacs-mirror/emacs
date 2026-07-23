@@ -380,7 +380,7 @@ itree_inherit_offset (uintmax_t otick, struct itree_node *node)
     }
   /* The only thing that matters about 'otick' is whether it's equal to
      that of the tree.  We could also "blindly" inherit from parent->otick,
-     but we need to tree's 'otick' anyway for when there's no parent.  */
+     but we need the tree's 'otick' anyway for when there's no parent.  */
   if (node->parent == NULL || node->parent->otick == otick)
     node->otick = otick;
 }
@@ -767,12 +767,16 @@ static bool
 itree_contains (struct itree_tree *tree, struct itree_node *node)
 {
   eassert (node);
-  struct itree_node *other;
-  ITREE_FOREACH (other, tree, node->begin, PTRDIFF_MAX, ASCENDING)
-    if (other == node)
-      return true;
-
-  return false;
+  struct itree_node *root = tree->root;
+  while (node != root)
+    {
+      struct itree_node *parent = node->parent;
+      if (!parent)
+	return false;
+      eassert (parent->left == node || parent->right == node);
+      node = parent;
+    }
+  return true;
 }
 
 static bool
@@ -964,10 +968,15 @@ itree_remove (struct itree_tree *tree, struct itree_node *node)
   eassert (itree_contains (tree, node));
   eassert (check_tree (tree, true)); /* FIXME: Too expensive.  */
 
+  /* We can get here straight from, say, 'move-overlay', so NODE may be dirty.
+     Strictly speaking, we could propagate NODE's offset to its children
+     locally (and thus leave it dirty if there are pending offsets higher
+     up the tree), but it's not clear it's worth the added complexity
+     in the resulting invariants.  */
+  itree_validate (tree, node);
   /* Find 'splice', the leaf node to splice out of the tree.  When
      'node' has at most one child this is 'node' itself.  Otherwise,
      it is the in order successor of 'node'.  */
-  itree_inherit_offset (tree->otick, node);
   struct itree_node *splice
     = (node->left == NULL || node->right == NULL)
 	? node
