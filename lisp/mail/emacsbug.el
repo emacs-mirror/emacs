@@ -127,7 +127,9 @@ This requires either the macOS \"open\" command, or the freedesktop
                  (goto-char (point-min))
                  (if (re-search-forward (format "^%s\\s-*:\\s-+\\(.*\\)$" s)
                                         nil t)
-                     (setq os (concat os " " (match-string 1)))))))
+                     (setq os (concat os
+                                      (if os " ")
+                                      (match-string 1)))))))
            os))
         ((eq system-type 'windows-nt)
          (or report-emacs-bug--os-description
