@@ -137,8 +137,8 @@ General steps (for each step, check for possible errors):
 
       ; Update exported ChangeLog files and etc/AUTHORS
 
-      * ChangeLog.N: Update.
-      * etc/AUTHORS: Regenerate.
+      * ChangeLog.N:
+      * etc/AUTHORS: Update.
 
     (i.e. these changes should be merged to master -- don't say
     "regenerate" or "re-generate" so they aren't skipped).
