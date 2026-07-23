@@ -8266,7 +8266,10 @@ ns_in_echo_area (void)
             old_title = 0;
           }
       }
-    else if (fs_state == FULLSCREEN_NONE && ! maximizing_resize
+    /* Redraw the window title with new dimensions only when actively
+       being resized by a user.  */
+    else if ([[self window] inLiveResize]
+	     && fs_state == FULLSCREEN_NONE && ! maximizing_resize
              && [[self window] title] != NULL)
       {
         char *size_title;
