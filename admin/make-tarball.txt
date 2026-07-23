@@ -1,14 +1,14 @@
 Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
--- originally written by Gerd Möllmann, amended by Francesco Potortì
-   with the initial help of Eli Zaretskii
+-- originally written by Gerd Möllmann; amended by Francesco Potortì
+   with the initial help of Eli Zaretskii; amended by Sean Whitton
 
 
 Preparations:
 
 0.  In order to upload to the GNU FTP server, you must be registered as
     an Emacs maintainer and have your GPG key acknowledged by the FTP
-    people.  Do this as soon as possible to avoid lead time.  For
-    instructions, see:
+    people.  Do this as soon as possible to avoid lead time.
+    For instructions, see:
     <https://www.gnu.org/prep/maintain/html_node/Automated-Upload-Registration.html>.
 
 Steps to take before starting on the first pretest in any release sequence:
@@ -16,57 +16,64 @@ Steps to take before starting on the first pretest in any release sequence:
 0.  The release branch (e.g. emacs-31) should already have been made
     and you should use it for all that follows.  Diffs from this
     branch should be going to the emacs-diffs mailing list.
+    Check that it builds and that 'make check' passes.
+
+    If there has been a change in who is the Emacs maintainer since the
+    last release, update doc/misc/ack.texi and admin/MAINTAINERS to
+    reflect this.  You can commit this separately.
 
 1.  Decide on versions of m4 and autoconf, and ensure you will
     have them available for the duration of the release process.
 
-2.  Remove any old pretests from <https://alpha.gnu.org/gnu/emacs/pretest>.
-    You can use 'gnupload --delete' (see below for more gnupload details).
+2.  Ensure you have the gnulib <https://www.gnu.org/s/gnulib/> script
+    "build-aux/gnupload" available (/usr/share/gnulib/build-aux/gnupload
+    on Debian and its derivatives with the 'gnulib' and 'ncftp' packages
+    installed).
 
 3.  Check that all new Lisp libraries belong to sensible packages.
     Run "make -C lisp finder-data" and check the diff of the generated
     file against the previously released Emacs version to see what has
     changed.
 
-4. If this is an emergency release without a prior pretest, inform the
-   maintainers of the bundled packages which are developed separately
-   to make sure they install adjustments required for an official
-   release.  Currently, these packages include:
+4.  If this is an emergency release without a prior pretest, inform the
+    maintainers of the bundled packages which are developed separately
+    to make sure they install adjustments required for an official
+    release.  Currently, these packages include:
 
-    . Tramp
+     . Tramp
 
 General steps (for each step, check for possible errors):
 
-1.    git pull     # fetch from the repository
-      git status   # check for locally modified files
+1.  Ensure that you have a clean, unmodified Git state.  The easiest way
+    is to use a new Git worktree.  First switch branches in your
+    existing worktrees so that you don't have the emacs-NN branch
+    checked out anywhere.  Then, from a buffer with default-directory in
+    one of those worktrees,
 
-    Ensure that you have a clean, unmodified state.
-    If you switched in-place from another branch to the release branch,
-    there could be inappropriate generated ignored files left over.
-    You might want to use "git status --ignored" to check for such files,
-    or some form of "git clean -x".  It's probably simpler and safer to
-    make a new working directory exclusively for the release branch.
+      C-x v w c ~/src/emacs/tarballs/ RET emacs-NN RET
 
-    If the working directory has subdirectories created when making
-    previous releases or pretests, remove those subdirectories, as the
-    command which updates the ChangeLog file might attempt to recurse
-    there and scan any ChangeLog.* files there.
+    If this worktree already exists then either delete with 'C-x v w x'
+    and recreate, or do a full clean -- this sequence will delete all
+    untracked *and ignored* files, so first make sure you don't have any
+    valuable work in the worktree (that's why we suggest a new one):
 
-    Make sure the tree is built, or at least configured.  That's
-    because some of the commands below run Make, so they need
-    Makefiles to be present.
+      git reset
+      git checkout .
+      git clean -xdff
 
-      ./autogen.sh
-      ./configure --without-native-compilation && make
+    Configure the tree:
 
-    For a release (as opposed to pretest), visit etc/NEWS and use the
+      ./autogen.sh autoconf
+      ./configure --without-native-compilation
+
+2.  For a release (as opposed to pretest), visit etc/NEWS and use the
     "M-x emacs-news-delete-temporary-markers" command to delete any
     left-over "---" and "+++" markers from etc/NEWS, as well as the
     "Temporary note" section at the beginning of that file, and commit
     etc/NEWS if it was modified.  For a bug fix release (e.g. 31.2),
     delete any empty headlines too.
 
-2.  Regenerate the versioned ChangeLog.N and etc/AUTHORS files.
+3.  Regenerate the versioned ChangeLog.N and etc/AUTHORS files.
 
     The "M-x authors" command below will first update the current
     versioned ChangeLog.N file.  For this to work correctly, make sure
@@ -126,14 +133,23 @@ General steps (for each step, check for possible errors):
     Save the "*Authors*" buffer as etc/AUTHORS.
     Check the diff looks reasonable.  Maybe add more entries to
     authors-ambiguous-files or authors-aliases, and repeat.
-    Commit any fixes to authors.el.
+    Commit and push any fixes to authors.el with a message like this:
+
+      ; Update exported ChangeLog files and etc/AUTHORS
+
+      * ChangeLog.N: Update.
+      * etc/AUTHORS: Regenerate.
+
+    (i.e. these changes should be merged to master -- don't say
+    "regenerate" or "re-generate" so they aren't skipped).
 
 3.  Set the version number (M-x load-file RET admin/admin.el RET, then
     M-x set-version RET).  For a pretest, start at version .90.  After
-    .99, use .990 (so that it sorts).  Commit the resulting changes
-    as one, with nothing else included, and using a log message
+    .99, use .990 (so that it sorts).  'C-x s' and commit the changes
+    as one, with nothing else included, using a log message
     of the format "Bump Emacs version to ...", so that the commit can
-    be skipped when merging branches (see admin/gitmerge.el).
+    be skipped when merging branches (see admin/gitmerge.el; i.e., these
+    changes should *not* be merged to master).  Push.
 
     If this is a final pretest before the release:
 
@@ -170,13 +186,28 @@ General steps (for each step, check for possible errors):
       Never replace an existing tarfile!  If you need to fix something,
       always upload it with a different name.
 
-4.    autoreconf -i -I m4 --force
-      make bootstrap
+4.    autoreconf -i -I m4 --force && make bootstrap
 
-    Then do this:
+    Copy lisp/loaddefs.el to lisp/ldefs-boot.el.
+    Edit ldefs-boot.el to add
 
-      make -C etc/refcards
-      make -C etc/refcards clean
+    ;; no-byte-compile: t
+
+    to its file-local variables section.  I.e. your changes to
+    ldefs-boot.el should not include any changes to its file-local
+    variables block.  Commit with a message like
+
+      ; Update ldefs-boot.el.
+
+      Do not merge to master.
+
+    and push.
+
+    If someone else makes a commit and you pull it, repeat from this
+    step onwards.  Or you can just continue and allow that commit to be
+    part of the next pretest/release.
+
+5.    make -C etc/refcards && make -C etc/refcards clean
 
     If some of the etc/refcards, especially the non-English ones, fail
     to build, you probably need to install some TeX/LaTeX packages, in
@@ -187,39 +218,7 @@ General steps (for each step, check for possible errors):
     messages from TeX, but those seem to be harmless, as the result
     looks just fine.)
 
-5.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el.  After copying, edit
-    ldefs-boot.el to add
-
-    ;; no-byte-compile: t
-
-    to its file-local variables section, otherwise make-dist will
-    complain.
-
-    Commit ChangeLog.N, etc/AUTHORS, lisp/ldefs-boot.el, and the files
-    changed by M-x set-version.  Note that the set-version changes
-    should be committed separately, as described in step 3 above, to
-    avoid them being merged to master.  The lisp/ldefs-boot.el file
-    should not be merged to master either, so it could be added to the
-    same commit or committed separately.  To make sure the changes to
-    ChangeLog.N and etc/AUTHORS are _not_ skipped, do NOT describe their
-    updates as "regenerate" or "re-generate", since gitmerge.el by
-    default skips such commits; instead, use "update" or some such.
-
-    The easiest way of doing that is "C-x v d ROOT-DIR RET", then go
-    to the first modified file, press 'M' to mark all modified files,
-    and finally 'v' to commit them.  Make sure the commit log message
-    mentions all the changes in all modified files, as by default 'v'
-    doesn't necessarily do so.
-
-    If someone else made a commit between step 1 and now,
-    you need to repeat from step 4 onwards.  (You can commit the files
-    from step 2 and 3 earlier to reduce the chance of this.)
-
-6.  If there has been a change in who is the Emacs maintainer since
-    the last release, update doc/misc/ack.texi and admin/MAINTAINERS
-    to reflect this.  You can commit this separately.
-
-7.   ./make-dist --snapshot --no-compress
+7.    ./make-dist --snapshot --no-compress
 
     Check the contents of the new tar with admin/diff-tar-files
     against the previous release (if this is the first pretest) or the
@@ -227,7 +226,7 @@ General steps (for each step, check for possible errors):
     yourself, find it at <https://alpha.gnu.org/gnu/emacs/pretest>.
     Releases are at <https://ftp.gnu.org/pub/gnu/emacs/>.
 
-     ./admin/diff-tar-files emacs-OLD.tar emacs-NEW.tar
+     ./admin/diff-tar-files .../emacs-OLD.tar emacs-NEW.tar
 
     Alternatively, if you want to do this manually using the compressed
     tarballs:
@@ -249,21 +248,22 @@ General steps (for each step, check for possible errors):
     tarball than the one you get from find.
 
 8.   tar xf emacs-NEW.tar; cd emacs-NEW
-     ./configure --prefix=/tmp/emacs && make check && make install
+     ./configure --prefix=/tmp/emacs && make -j1 check && make -j1 install
 
-    Use 'script' or M-x compile to save the compilation log in
+    Use script(1) or M-x compile to save the compilation log in
     compile-NEW.log and compare it against an old one.  The easiest way
     to do that is to visit the old log in Emacs, change the version
     number of the old Emacs to __, do the same with the new log and do
-    M-x ediff.  Especially check that Info files aren't built, and that
-    no autotools (autoconf etc) run.
+    'M-x ediff'.  Doing a non-parallel build (the '-j1') should make the
+    diff smaller but it is not strictly necessary.
 
-9.  You can now tag the release/pretest and push it together with the
-    last commit:
+    Especially check that Info files aren't built, and that no autotools
+    (autoconf etc.) run.
 
-     cd EMACS_ROOT_DIR && git tag -s TAG -m "Emacs STR"
-     git push
-     git push --tags
+9.  You can now tag the release/pretest:
+
+     git tag -s TAG -m "Emacs STR"
+     git push origin tag TAG
 
     Here TAG is emacs-XX.Y.ZZ for a pretest, emacs-XX.Y for a release.
     For STR see below.  For a release, if you are producing a release
@@ -273,11 +273,11 @@ General steps (for each step, check for possible errors):
     safer to use the SHA1 of the last commit which went into the release
     tarball, in case there were some intervening commits since then:
 
-     git tag -s TAG -m "Emacs TAG STR" SHA1
-     git push --tags
+     git tag -s TAG -m "Emacs STR" SHA1
+     git push origin tag TAG
 
     In the past, we were not always consistent with the annotation
-    (i.e. -m "Emacs TAG").  The preferred format is like this for a
+    (i.e. the -m "Emacs STR").  The preferred format is like this for a
     pretest, release candidate and final release:
 
      git tag -s emacs-31.0.90  -m "Emacs 31.0.90 pretest"
@@ -293,20 +293,19 @@ General steps (for each step, check for possible errors):
       xz -c emacs-NEW.tar > emacs-NEW.tar.xz
     For pretests, just xz is probably fine (saves bandwidth).
 
-    Now you should upload the files to the GNU FTP server; your
-    GPG key must already be accepted as described above.
-    The simplest method of uploading is with the gnulib
-    <https://www.gnu.org/s/gnulib/> script "build-aux/gnupload"
-    (/usr/share/gnulib/build-aux/gnupload on Debian and its derivatives
-    with the 'gnulib' and 'ncftp' packages installed):
+    Now we will upload the files to the GNU FTP server.  In the case of
+    a pretest we will also remove the previous pretest; if there are
+    other old ones still there, explicitly list those too before the
+    '--' in order to remove them.
 
     For a pretest or release candidate:
      gnupload [--user your@gpg.key.email] --to alpha.gnu.org:emacs/pretest \
-       FILE.gz FILE.xz ...
+       --delete OLD_FILE.gz OLD_FILE.xz \
+       -- NEW_FILE.gz NEW_FILE.xz ...
 
     For a release:
      gnupload [--user your@gpg.key.email] --to ftp.gnu.org:emacs \
-       FILE.gz FILE.xz ...
+       NEW_FILE.gz NEW_FILE.xz ...
 
     You only need the --user part if you have multiple GPG keys and do
     not want to use the default.  Instead of "your@gpg.key.email" you
@@ -333,10 +332,11 @@ General steps (for each step, check for possible errors):
 
 12. After five minutes, verify that the files are visible at
     <https://alpha.gnu.org/gnu/emacs/pretest/> for a pretest, or
-    <https://ftp.gnu.org/gnu/emacs/> for a release.
+    <https://ftp.gnu.org/gnu/emacs/> for a release.  If uploading a
+    pretest, the delete of the previous pretest a few minutes before the
+    creation of the new file.
 
     Download them and check the signatures and SHA1/SHA256 checksums.
-    Check they build (./configure --with-native-compilation).
 
 13. Send an announcement to: emacs-devel, and bcc: info-gnu-emacs@gnu.org.
     For a pretest, also bcc: platform-testers@gnu.org.
@@ -344,8 +344,7 @@ General steps (for each step, check for possible errors):
     (The reason for using bcc: is to make it less likely that people
     will followup on the wrong list.)
     See the info-gnu-emacs mailing list archives for the form
-    of past announcements.  The first pretest announcement, and the
-    release announcement, should have more detail.
+    of past announcements.
     Use the emacs-devel topic 'emacs-announce'.  The best way to do
     this is to add a header "Keywords: emacs-announce" to your mail.
     (You can also put it in the Subject, but this is not as good
