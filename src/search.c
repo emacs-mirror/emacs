@@ -2801,7 +2801,7 @@ Return value is undefined if the last search failed.  */)
 DEFUN ("match-end", Fmatch_end, Smatch_end, 1, 1, 0,
        doc: /* Return position of end of text matched by last search.
 SUBEXP, a number, specifies the parenthesized subexpression in the last
-  regexp for which to return the start position.
+  regexp for which to return the end position.
 Value is nil if SUBEXPth subexpression didn't match, or there were fewer
   than SUBEXP subexpressions.
 SUBEXP zero means the entire text matched by the whole regexp or whole

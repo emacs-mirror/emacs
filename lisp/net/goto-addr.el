@@ -191,6 +191,7 @@ and `goto-address-fontify-p'."
 	    (overlay-put this-overlay
 			 'keymap goto-address-highlight-keymap)
 	    (overlay-put this-overlay 'button this-overlay)
+	    (overlay-put this-overlay 'action #'goto-address--button-action)
 	    (overlay-put this-overlay 'category 'goto-address)
 	    (overlay-put this-overlay 'goto-address t))))
       (goto-char (or start (point-min)))
@@ -249,6 +250,12 @@ using `browse-url-secondary-browser-function' instead."
         (if-let* ((url (browse-url-url-at-point)))
             (browse-url-button-open-url url)
           (error "No e-mail address or URL found"))))))
+
+(defun goto-address--button-action (button)
+  "Open the URL represented by BUTTON."
+  (save-excursion
+    (goto-char (overlay-start button))
+    (goto-address-at-point)))
 
 (defun goto-address-find-address-at-point ()
   "Find e-mail address around or before point.
