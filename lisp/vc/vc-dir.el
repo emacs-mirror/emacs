@@ -1475,6 +1475,11 @@ commands act on the child files of that directory that are displayed in
 the *vc-dir* buffer.
 
 \\{vc-dir-mode-map}"
+  ;; Delay the initial refresh until after mode hooks so that any minor
+  ;; modes are activated before the calls to `substitute-command-keys'
+  ;; in `vc-dir-headers'.  Then any bindings shadowed by minor modes
+  ;; won't be included in the key binding hints.
+  :after-hook (let (buffer-read-only) (vc-dir-refresh))
   (setq-local vc-dir-backend use-vc-backend)
   (setq-local desktop-save-buffer 'vc-dir-desktop-buffer-misc-data)
   (setq-local bookmark-make-record-function #'vc-dir-bookmark-make-record)
@@ -1482,7 +1487,7 @@ the *vc-dir* buffer.
   (setq buffer-read-only t)
   (when (boundp 'tool-bar-map)
     (setq-local tool-bar-map vc-dir-tool-bar-map))
-  (let ((buffer-read-only nil))
+  (let (buffer-read-only)
     (erase-buffer)
     (setq-local vc-dir-process-buffer nil)
     (setq-local vc-ewoc (ewoc-create #'vc-dir-printer))
@@ -1492,8 +1497,7 @@ the *vc-dir* buffer.
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
     (add-hook 'kill-buffer-query-functions #'vc-dir-kill-query nil t)
-    (hack-dir-local-variables-non-file-buffer)
-    (vc-dir-refresh)))
+    (hack-dir-local-variables-non-file-buffer)))
 
 (defvar-keymap vc-dir-outgoing-revisions-map
   :doc "Local keymap for viewing outgoing revisions."
