@@ -2257,8 +2257,7 @@ without a visible progress reporter."
          ;; Stop progress reporter.
 	 (when (and tm pr)
 	   (cancel-timer tm)
-	   (cl-letf (((symbol-function #'progress-reporter-echo-area)
-		      #'ignore))
+	   (let (message-log-max)
 	     (progress-reporter-done pr)))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
 
