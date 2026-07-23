@@ -2775,174 +2775,183 @@ The method used must be an out-of-band method."
     (unless wildcard
       (access-file filename "Reading directory"))
     (with-parsed-tramp-file-name (expand-file-name filename) nil
-      (let ((dired (tramp-get-ls-command-with v "--dired")))
-	(when (stringp switches)
-          (setq switches (split-string switches)))
-        ;; Newer coreutils versions of ls (9.5 and up) imply long format
-        ;; output when "--dired" is given.  Suppress this implicit rule.
-        (when dired
-          (let ((tem switches)
-                case-fold-search)
-            (catch 'long
-              (while tem
-                (when (and (not (string-match-p "--" (car tem)))
-                           (string-match-p "l" (car tem)))
-                  (throw 'long nil))
-                (setq tem (cdr tem)))
-              (setq dired nil))))
-	(setq switches
-	      (append switches (split-string (tramp-sh--quoting-style-options v))
-		      (when dired `(,dired))))
-	(unless dired
-	  (setq switches (seq-difference switches '("-N" "--dired")))))
-      (when wildcard
-        (setq wildcard (tramp-run-real-handler
-			#'file-name-nondirectory (list localname)))
-        (setq localname (tramp-run-real-handler
-			 #'file-name-directory (list localname))))
-      (unless (or full-directory-p (member "-d" switches))
-        (setq switches (append switches '("-d"))))
-      (setq switches (seq-uniq switches)
-	    switches (mapconcat #'tramp-shell-quote-argument switches " "))
-      (when wildcard
-	(setq switches (concat switches " " wildcard)))
-      (tramp-message
-       v 4 "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
-       switches filename (if wildcard "yes" "no")
-       (if full-directory-p "yes" "no"))
-      ;; If `full-directory-p', we just say `ls -l FILENAME'.  Else we
-      ;; chdir to the parent directory, then say `ls -ld BASENAME'.
-      (if full-directory-p
+      (with-tramp-progress-reporter
+	  v 0 (format "Opening directory %s" filename)
+	(let ((dired (tramp-get-ls-command-with v "--dired")))
+	  (when (stringp switches)
+            (setq switches (split-string switches)))
+          ;; Newer coreutils versions of ls (9.5 and up) imply long
+          ;; format output when "--dired" is given.  Suppress this
+          ;; implicit rule.
+          (when dired
+            (let ((tem switches)
+                  case-fold-search)
+              (catch 'long
+		(while tem
+                  (when (and (not (string-match-p "--" (car tem)))
+                             (string-match-p "l" (car tem)))
+                    (throw 'long nil))
+                  (setq tem (cdr tem)))
+		(setq dired nil))))
+	  (setq switches
+		(append switches
+			(split-string (tramp-sh--quoting-style-options v))
+			(when dired `(,dired))))
+	  (unless dired
+	    (setq switches (seq-difference switches '("-N" "--dired")))))
+	(when wildcard
+          (setq wildcard (tramp-run-real-handler
+			  #'file-name-nondirectory (list localname)))
+          (setq localname (tramp-run-real-handler
+			   #'file-name-directory (list localname))))
+	(unless (or full-directory-p (member "-d" switches))
+          (setq switches (append switches '("-d"))))
+	(setq switches (seq-uniq switches)
+	      switches (mapconcat #'tramp-shell-quote-argument switches " "))
+	(when wildcard
+	  (setq switches (concat switches " " wildcard)))
+	(tramp-message
+	 v 4 "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
+	 switches filename (if wildcard "yes" "no")
+	 (if full-directory-p "yes" "no"))
+	;; If `full-directory-p', we just say `ls -l FILENAME'.  Else
+	;; we chdir to the parent directory, then say `ls -ld
+	;; BASENAME'.
+	(if full-directory-p
+	    (tramp-send-command
+	     v (format "%s %s %s 2>%s"
+		       (tramp-get-ls-command v)
+		       switches
+		       (if wildcard
+			   localname
+			 (tramp-shell-quote-argument (concat localname ".")))
+                       (tramp-get-remote-null-device v)))
+	  (tramp-barf-unless-okay
+	   v (format "cd %s" (tramp-shell-quote-argument
+			      (tramp-run-real-handler
+			       #'file-name-directory (list localname))))
+	   "Couldn't `cd %s'"
+	   (tramp-shell-quote-argument
+	    (tramp-run-real-handler #'file-name-directory (list localname))))
 	  (tramp-send-command
 	   v (format "%s %s %s 2>%s"
 		     (tramp-get-ls-command v)
 		     switches
-		     (if wildcard
-			 localname
-		       (tramp-shell-quote-argument (concat localname ".")))
-                     (tramp-get-remote-null-device v)))
-	(tramp-barf-unless-okay
-	 v (format "cd %s" (tramp-shell-quote-argument
-			    (tramp-run-real-handler
-			     #'file-name-directory (list localname))))
-	 "Couldn't `cd %s'"
-	 (tramp-shell-quote-argument
-	  (tramp-run-real-handler #'file-name-directory (list localname))))
-	(tramp-send-command
-	 v (format "%s %s %s 2>%s"
-		   (tramp-get-ls-command v)
-		   switches
-		   (if (or wildcard
-			   (tramp-string-empty-or-nil-p
-			    (tramp-run-real-handler
-			     #'file-name-nondirectory (list localname))))
-		       ""
-		     (tramp-shell-quote-argument
-		      (tramp-run-real-handler
-                       #'file-name-nondirectory (list localname))))
-                   (tramp-get-remote-null-device v))))
+		     (if (or wildcard
+			     (tramp-string-empty-or-nil-p
+			      (tramp-run-real-handler
+			       #'file-name-nondirectory (list localname))))
+			 ""
+		       (tramp-shell-quote-argument
+			(tramp-run-real-handler
+			 #'file-name-nondirectory (list localname))))
+                     (tramp-get-remote-null-device v))))
 
-      (let ((beg-marker (copy-marker (point) nil))
-	    (end-marker (copy-marker (point) t))
-	    (emc enable-multibyte-characters))
-	;; We cannot use `insert-buffer-substring' because the Tramp
-	;; buffer changes its contents before insertion due to calling
-	;; `expand-file-name' and alike.
-	(insert (tramp-get-buffer-string (tramp-get-buffer v)))
+	(let ((beg-marker (copy-marker (point) nil))
+	      (end-marker (copy-marker (point) t))
+	      (emc enable-multibyte-characters))
+	  ;; We cannot use `insert-buffer-substring' because the Tramp
+	  ;; buffer changes its contents before insertion due to
+	  ;; calling `expand-file-name' and alike.
+	  (insert (tramp-get-buffer-string (tramp-get-buffer v)))
 
-	;; We must enable unibyte strings, because the "--dired"
-	;; output counts in bytes.
-	(set-buffer-multibyte nil)
-	(save-restriction
-	  (narrow-to-region beg-marker end-marker)
-	  ;; Check for "--dired" output.
-	  (when (search-backward-regexp
-		 (rx bol "//DIRED//" (+ blank) (group (+ nonl)) eol)
-		 nil 'noerror)
-	    (let ((beg (match-beginning 1))
-		  (end (match-end 0)))
-	      ;; Now read the numeric positions of file names.
-	      (goto-char beg)
-	      (while (< (point) end)
-		(let ((start (+ (point-min) (read (current-buffer))))
-		      (end (+ (point-min) (read (current-buffer)))))
-		  (if (memq (char-after end) '(?\n ?\ ))
-		      ;; End is followed by \n or by " -> ".
-		      (put-text-property start end 'dired-filename t))))))
-	  ;; Remove trailing lines.
-	  (goto-char (point-max))
-	  (while (search-backward-regexp (rx bol "//") nil 'noerror)
-	    (forward-line 1)
-	    (delete-region (match-beginning 0) (point))))
-	;; Reset multibyte if needed.
-	(set-buffer-multibyte emc)
-
-	(save-restriction
-	  (narrow-to-region beg-marker end-marker)
-	  ;; Some busyboxes are reluctant to discard colors.
-	  (unless (string-search
-		   "color" (tramp-get-connection-property v "ls" ""))
-	    (goto-char (point-min))
-	    (while (search-forward-regexp ansi-color-control-seq-regexp nil t)
-	      (replace-match "")))
-
-          ;; Now decode what read if necessary.  Stolen from `insert-directory'.
-	  (let ((coding (or coding-system-for-read
-			    file-name-coding-system
-			    default-file-name-coding-system
-			    'undecided))
-		coding-no-eol
-		val pos)
-	    (when (and enable-multibyte-characters
-		       (not (memq (coding-system-base coding)
-				  '(raw-text no-conversion))))
-	      ;; If no coding system is specified or detection is
-	      ;; requested, detect the coding.
-	      (if (eq (coding-system-base coding) 'undecided)
-		  (setq coding (detect-coding-region (point-min) (point) t)))
-	      (unless (eq (coding-system-base coding) 'undecided)
-		(setq coding-no-eol
-		      (coding-system-change-eol-conversion coding 'unix))
-		(goto-char (point-min))
-		(while (not (eobp))
-		  (setq pos (point)
-			val (get-text-property (point) 'dired-filename))
-		  (goto-char (next-single-property-change
-			      (point) 'dired-filename nil (point-max)))
-		  ;; Force no eol conversion on a file name, so that
-		  ;; CR is preserved.
-		  (decode-coding-region
-		   pos (point) (if val coding-no-eol coding))
-		  (if val (put-text-property pos (point) 'dired-filename t))))))
-
-	  ;; The inserted file could be from somewhere else.
-	  (when (and (not wildcard) (not full-directory-p))
+	  ;; We must enable unibyte strings, because the "--dired"
+	  ;; output counts in bytes.
+	  (set-buffer-multibyte nil)
+	  (save-restriction
+	    (narrow-to-region beg-marker end-marker)
+	    ;; Check for "--dired" output.
+	    (when (search-backward-regexp
+		   (rx bol "//DIRED//" (+ blank) (group (+ nonl)) eol)
+		   nil 'noerror)
+	      (let ((beg (match-beginning 1))
+		    (end (match-end 0)))
+		;; Now read the numeric positions of file names.
+		(goto-char beg)
+		(while (< (point) end)
+		  (let ((start (+ (point-min) (read (current-buffer))))
+			(end (+ (point-min) (read (current-buffer)))))
+		    (if (memq (char-after end) '(?\n ?\ ))
+			;; End is followed by \n or by " -> ".
+			(put-text-property start end 'dired-filename t))))))
+	    ;; Remove trailing lines.
 	    (goto-char (point-max))
-	    (when (file-symlink-p filename)
-	      (goto-char (search-backward "->" (point-min) 'noerror)))
-	    (search-backward
-	     (if (directory-name-p filename)
-		 "."
-	       (file-name-nondirectory filename))
-	     (point-min) 'noerror)
-	    (replace-match (file-relative-name filename) t))
+	    (while (search-backward-regexp (rx bol "//") nil 'noerror)
+	      (forward-line 1)
+	      (delete-region (match-beginning 0) (point))))
+	  ;; Reset multibyte if needed.
+	  (set-buffer-multibyte emc)
 
-	  ;; Try to insert the amount of free space.
-	  (goto-char (point-min))
-	  ;; First find the line to put it on.
-	  (when-let* (((search-forward-regexp
-			(rx bol (group (* blank) "total")) nil t))
-		      ;; Emacs 29.1 or later.
-		      ((not (fboundp 'dired--insert-disk-space)))
-		      (available (get-free-disk-space ".")))
-	    ;; Replace "total" with "total used", to avoid confusion.
-	    (replace-match "\\1 used in directory")
-	    (end-of-line)
-	    (insert " available " available)))
+	  (save-restriction
+	    (narrow-to-region beg-marker end-marker)
+	    ;; Some busyboxes are reluctant to discard colors.
+	    (unless (string-search
+		     "color" (tramp-get-connection-property v "ls" ""))
+	      (goto-char (point-min))
+	      (while
+		  (search-forward-regexp ansi-color-control-seq-regexp nil t)
+		(replace-match "")))
 
-	(prog1 (goto-char end-marker)
-	  (set-marker beg-marker nil)
-	  (set-marker end-marker nil))))))
+            ;; Now decode what read if necessary.  Stolen from
+            ;; `insert-directory'.
+	    (let ((coding (or coding-system-for-read
+			      file-name-coding-system
+			      default-file-name-coding-system
+			      'undecided))
+		  coding-no-eol
+		  val pos)
+	      (when (and enable-multibyte-characters
+			 (not (memq (coding-system-base coding)
+				    '(raw-text no-conversion))))
+		;; If no coding system is specified or detection is
+		;; requested, detect the coding.
+		(if (eq (coding-system-base coding) 'undecided)
+		    (setq coding
+			  (detect-coding-region (point-min) (point) t)))
+		(unless (eq (coding-system-base coding) 'undecided)
+		  (setq coding-no-eol
+			(coding-system-change-eol-conversion coding 'unix))
+		  (goto-char (point-min))
+		  (while (not (eobp))
+		    (setq pos (point)
+			  val (get-text-property (point) 'dired-filename))
+		    (goto-char (next-single-property-change
+				(point) 'dired-filename nil (point-max)))
+		    ;; Force no eol conversion on a file name, so that
+		    ;; CR is preserved.
+		    (decode-coding-region
+		     pos (point) (if val coding-no-eol coding))
+		    (when val
+		      (put-text-property pos (point) 'dired-filename t))))))
+
+	    ;; The inserted file could be from somewhere else.
+	    (when (and (not wildcard) (not full-directory-p))
+	      (goto-char (point-max))
+	      (when (file-symlink-p filename)
+		(goto-char (search-backward "->" (point-min) 'noerror)))
+	      (search-backward
+	       (if (directory-name-p filename)
+		   "."
+		 (file-name-nondirectory filename))
+	       (point-min) 'noerror)
+	      (replace-match (file-relative-name filename) t))
+
+	    ;; Try to insert the amount of free space.
+	    (goto-char (point-min))
+	    ;; First find the line to put it on.
+	    (when-let* (((search-forward-regexp
+			  (rx bol (group (* blank) "total")) nil t))
+			;; Emacs 29.1 or later.
+			((not (fboundp 'dired--insert-disk-space)))
+			(available (get-free-disk-space ".")))
+	      ;; Replace "total" with "total used", to avoid confusion.
+	      (replace-match "\\1 used in directory")
+	      (end-of-line)
+	      (insert " available " available)))
+
+	  (prog1 (goto-char end-marker)
+	    (set-marker beg-marker nil)
+	    (set-marker end-marker nil)))))))
 
 ;; Canonicalization of file names.
 
