@@ -463,11 +463,12 @@ Given a parser, we can query information about it:
 @code{treesit-parser-buffer} returns the buffer associated with a
 parser, and @code{treesit-parser-language} returns the language used by
 the parser.  A parser's tag can be retrieved by
-@code{treesit-parser-tag}.  Each parser also optionally carries a embed
+@code{treesit-parser-tag}.  Each parser also optionally carries an embed
 level that can be set by @code{treesit-parser-set-embed-level} and
-retrieved by @code{treesit-parser-embed-level} (for embed level,
-@pxref{parser-embed-level}).  Finally, @code{treesit-parser-p} tells you
-whether an object is a tree-sitter parser.
+retrieved by @code{treesit-parser-embed-level} (see
+@ref{parser-embed-level}, for more about embed level).  Finally,
+@code{treesit-parser-p} tells you whether an object is a tree-sitter
+parser.
 
 There is no need to explicitly parse a buffer, because parsing is done
 automatically and lazily.  A parser only parses when a Lisp program
@@ -2164,16 +2165,16 @@ parsers.
 If @var{query} is a tree-sitter query, it should be preceded by two
 @var{keyword}/@var{value} pairs, where the @code{:embed} keyword
 specifies the embedded language, and the @code{:host} keyword specifies
-the host language. The captured nodes determines the range of embedded
-parsers. The capture name doesn't matter, but names that starts with an
+the host language.  The captured nodes determine the range of embedded
+parsers.  The capture names don't matter, but names that starts with an
 underscore are ignored, and the @code{@@language} capture name is
 reserved.
 
 If the embedded language is dynamic, then @code{:embed} can specify a
-function rathar than a static language. The function takes the node
-captured with @code{@@language} capturename. Care have to be taken that
+function rathar than a static language.  The function takes the node
+captured with @code{@@language} capture name.  Care have to be taken that
 the @code{@@language} capture and the range capture are in the same
-match group. The function should return either a language symbol, or nil
+match group.  The function should return either a language symbol, or nil
 if no valid language can be found.
 
 If the query is given a @code{:offset} keyword whose value is a pair
@@ -2202,7 +2203,7 @@ differently:
 
 @itemize @bullet
 @item
-Local parsers are managed by Emacs. Emacs create new local parsers when
+Local parsers are managed by Emacs.  Emacs creates new local parsers when
 they are needed and deletes them when they are not.  Non-local parsers
 must be created by major modes, and Emacs only make use of them if one
 exists.
@@ -2210,28 +2211,28 @@ exists.
 @item
 Because local parsers can be freely created by Emacs, they are suitable
 for recursively nested embedded parsers, where the embed level can be
-arbitrarily deep.  On the other hand, since non-local parsers are major
-mode created, they can only handle a fix number of embed levels.
+arbitrarily deep.  On the other hand, since non-local parsers created by
+major modes, they can only handle a fix number of embed levels.
 @end itemize
 
 @anchor{parser-embed-level}
 @cindex embed level, tree-sitter
-The embed level of the top-level parsers is 0, or omitted, the first
+The embed level of the top-level parsers is 0 or omitted, the first
 level of embedded parsers get embed level 1, and so on.  For local
 parsers, each embed level creates a new parser; for non-local parsers,
 since Emacs cannot create non-local parsers freely, it tries to find a
-usable parser at the right embed level, if none exists, Emacs just gives
+usable parser at the right embed level; if none exists, Emacs just gives
 up.
 
 If the query is given a @code{:range-fn} keyword whose value is a
 function, Emacs uses that function to compute the ranges to use for the
-embedded parser.  The function takes captured node and the offset given
-by the @code{:offset} keyword, and returns a list of ranges, where each
-range is a cons of the start and end position. For local parsers, each
-@var{query} creates one local parser, and the ranges set by the
-@code{:range-fn} is applied to that parser; for non-local parsers, all
-the ranges (including ranges created by @code{:range-fn}) in that embed
-level are joined together and applied to the same parser.
+embedded parser.  The function takes as arguments the captured node and
+the offset given by the @code{:offset} keyword, and returns a list of
+ranges, where each range is a cons of the start and end position.  For
+local parsers, each @var{query} creates one local parser, and the ranges
+set by the @code{:range-fn} are applied to that parser; for non-local
+parsers, all the ranges (including ranges created by @code{:range-fn})
+in that embed level are joined together and applied to the same parser.
 
 If @var{query} is a function, it doesn't need any @var{keyword} and
 @var{value} pair.  It should be a function that takes 2 arguments,
