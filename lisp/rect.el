@@ -868,16 +868,16 @@ Ignores `line-move-visual'."
          (eq (nth 5 rol) (point)))
     rol)
    (t
-    (save-excursion
-      (let* ((pt (point))
-             (nrol nil)
-             (old (if (eq 'rectangle (car-safe rol))
-                      (nthcdr 6 rol)
-                    (funcall redisplay-unhighlight-region-function rol)
-                    nil)))
-        (cl-assert (eq (window-buffer window) (current-buffer)))
-        ;; `rectangle--pos-cols' looks up the `selected-window's parameter!
-        (with-selected-window window
+    (let* ((pt (point))
+           (nrol nil)
+           (old (if (eq 'rectangle (car-safe rol))
+                    (nthcdr 6 rol)
+                  (funcall redisplay-unhighlight-region-function rol)
+                  nil)))
+      (cl-assert (eq (window-buffer window) (current-buffer)))
+      ;; `rectangle--pos-cols' looks up the `selected-window's parameter!
+      (with-selected-window window
+        (save-excursion
           (let* ((cols (rectangle--pos-cols start end))
                  (startcol (car cols))
                  (endcol (cdr cols))
@@ -976,12 +976,12 @@ Ignores `line-move-visual'."
                   (and (zerop (forward-line 1))
                        (bolp)
                        (<= (point) end-pt))))
-            )
-          )
-        (mapc #'delete-overlay old)
-        `(rectangle ,(buffer-chars-modified-tick)
-                    ,start ,end ,(rectangle--crutches) ,pt
-                    ,@nrol))))))
+            ))
+        )
+      (mapc #'delete-overlay old)
+      `(rectangle ,(buffer-chars-modified-tick)
+                  ,start ,end ,(rectangle--crutches) ,pt
+                  ,@nrol)))))
 
 (defun rectangle--unhighlight-for-redisplay (orig rol)
   (if (not (eq 'rectangle (car-safe rol)))
