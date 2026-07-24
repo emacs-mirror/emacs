@@ -123,6 +123,9 @@ Amin Bandali
 	ERC
 	    lisp/erc/*
 	    doc/misc/erc.texi
+	lisp/net/browse-url.el
+	lisp/net/eww.el
+	lisp/url/*
 
 Andrea Corallo
 	Lisp native compiler
