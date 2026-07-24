@@ -1467,20 +1467,20 @@ is owned by the user with name @samp{lh}.
 @item "users"
 is in the group with name @samp{users}.
 
-@item (20614 64019 50040 152000)
+@item (1351023123050040152 . 1000000000)
 was last accessed on October 23, 2012, at 20:12:03.050040152 UTC@.
-(This timestamp is @code{(1351023123050040152 . 1000000000)}
-if @code{current-time-list} is @code{nil}.)
+(This timestamp is @code{(20614 64019 50040 152000)}
+if @code{current-time-list} is @code{t}.)
 
-@item (20000 23 0 0)
+@item (1310720023000000000 . 1000000000)
 was last modified on July 15, 2001, at 08:53:43.000000000 UTC@.
-(This timestamp is @code{(1310720023000000000 . 1000000000)}
-if @code{current-time-list} is @code{nil}.)
+(This timestamp is @code{(20000 23 0 0)}
+if @code{current-time-list} is @code{t}.)
 
-@item (20614 64555 902289 872000)
+@item (1351023659902289872 . 1000000000)
 last had its status changed on October 23, 2012, at 20:20:59.902289872 UTC@.
-(This timestamp is @code{(1351023659902289872 . 1000000000)}
-if @code{current-time-list} is @code{nil}.)
+(This timestamp is @code{(20614 64555 902289 872000)}
+if @code{current-time-list} is @code{t}.)
 
 @item 122295
 is 122295 bytes long.  (It may not contain 122295 characters, though,

@@ -1447,15 +1447,13 @@ The operating system limits the range of time and zone values.
 @end defun
 
 @defvar current-time-list
-This boolean variable is a transition aid.  If @code{t},
-@code{current-time} and related functions return timestamps in list
-form, typically @code{(@var{high} @var{low} @var{micro} @var{pico})};
-otherwise, they use @code{(@var{ticks} . @var{hz})} form.  Currently
-this variable defaults to @code{t}, for behavior compatible with
-previous Emacs versions.  Developers are encouraged to test
-timestamp-related code with this variable set to @code{nil}, as it
-will default to @code{nil} in a future Emacs version, and will be
-removed in some version after that.
+This boolean variable is a transition aid.  If @code{nil} (the default),
+@code{current-time} and related functions return timestamps in
+@code{(@var{ticks} . @var{hz})} form.  If @code{t}, these functions
+return in list form, typically @code{(@var{high} @var{low} @var{micro}
+@var{pico})}, for behavior compatible with previous Emacs versions.
+As it is merely a transition aid, this variable is planned to be removed
+in some future Emacs version.
 @end defvar
 
 @defun current-time

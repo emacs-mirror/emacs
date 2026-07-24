@@ -226,6 +226,11 @@ pattern does not match its corresponding value.  This can be useful for
 destructuring values when you do not wish to continue if the
 corresponding value is not as expected.
 
++++
+** The transition variable 'current-time-list' now defaults to nil,
+so timestamps now default to (TICKS . HZ) form instead of the older
+(HIGH LOW USEC PSEC) form.
+
 
 * Lisp Changes in Emacs 32.1
 
