@@ -116,6 +116,11 @@ END:VCALENDAR
 ;; FIXME: is "icalendary" (not "icalendar") intentional, here and below?
 (ert-deftest gnus-icalendary-byday ()
   ""
+  ;; Skip the test if encode-time rejects old dates.
+  ;; This test assumes underlying timekeeping works for dates in the 1600s,
+  ;; but POSIX requires only dates starting in 1970.
+  (skip-unless (ignore-errors (encode-time '(0 0 0 1 1 1601 1 nil -18000))))
+
   (let* ((tz (getenv "TZ"))
         (icalendar-pre-parsing-hook
          ;; clean up " <at> " addresses so the parser doesn't choke...
