@@ -1402,8 +1402,9 @@ else cover the whole buffer."
                   ;; a single entry that uses diff-context->unified to do
                   ;; the work.
 		  (setq buffer-undo-list
-			(cons (list 'apply (- old-end end) start (point-max)
-				    'diff-context->unified start (point-max))
+			(cons (list 'apply (- old-end end)
+                                    (cons start (point-max))
+                                    'diff-context->unified)
 			      old-undo)))))))))))
 
 (defun diff-context->unified (start end &optional to-context)
@@ -1500,8 +1501,9 @@ With a prefix argument, convert unified format to context format."
                   ;; of undo elements with just a single special one.
                   (unless (or (not reversible) (eq buffer-undo-list t))
                     (setq buffer-undo-list
-                          (cons (list 'apply (- old-end end) pt1 (point)
-                                      'diff-unified->context pt1 (point))
+                          (cons (list 'apply (- old-end end)
+                                      (cons pt1 (point))
+                                      'diff-unified->context)
                                 old-undo)))
                   )))))))))
 
