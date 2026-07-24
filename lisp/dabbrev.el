@@ -601,7 +601,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	(message nil))
       ;; To get correct further expansions we have to be sure to use the
       ;; buffer containing the already found expansions.
-      (when dabbrev--last-buffer-found
+      (when (buffer-live-p dabbrev--last-buffer-found)
         (setq buf dabbrev--last-buffer-found))
       ;; If the buffer where we called dabbrev-expand differs from the
       ;; buffer containing the expansion, make sure copy-marker is
