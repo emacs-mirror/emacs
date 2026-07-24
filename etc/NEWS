@@ -59,7 +59,7 @@ set similarly to 'setopt-local'; i.e., if a user option has a defcustom
 ---
 ** New user option 'setopt-local-type-mismatch'.
 This option controls what 'setopt-local' does when it detects a type
-mismatch between the specified value and the :type specification of a
+mismatch between the specified value and the ':type' specification of a
 user option.  Its backward-compatible default is nil which emits a
 warning and accepts the type-mismatched value.  You can control this by
 customizing 'setopt-local-type-mismatch' to a non-nil value: the value
@@ -69,12 +69,12 @@ type-mismatched values; any other non-nil value prompts you whether to
 accept or ignore the value.
 
 ---
-** Specifying a minor mode as a local variables enables that mode,
-unconditionally.  The previous behavior, toggling the mode, was
-neither reliable nor generally desirable.
+** Specifying a minor mode as a local variable enables that mode.
+The previous behavior, toggling the mode, was neither reliable nor
+generally desirable.
 
 +++
-** Emacs tries to display overlay arrow in the left margin.
+** Emacs tries to display the overlay arrow in the left margin.
 On a non-graphical display (or when the left fringe is not shown), if a
 left margin is present, Emacs will now display the overlay arrow into
 this margin.  Edebug is now using this feature by explicitly setting up
@@ -120,41 +120,42 @@ are now buttonized, allowing using mouse or 'RET' to follow them.
 ** Woman
 
 ---
-*** The variable 'woman-topic-history' is now obsolete
+*** The variable 'woman-topic-history' is now obsolete.
 Use 'Man-topic-history' instead.
 
 ** VC
 
 +++
-*** VC-Dir outgoing revisions count is now asynchronous.
+
+*** VC Directory outgoing revisions count is now asynchronous.
 This means it won't get in your way even if it's slow for your
 repository.  As such, the 'vc-dir-show-outgoing-count' option is now
 obsolete.
 
 ---
-*** VC-Dir now shows key binding hints.
+*** VC Directory now shows key binding hints.
 To hide these, you can customize the new user option
 'vc-dir-show-key-binding-hints' to nil.
 Backends can supply additional hints using the new 'dir-extra-hints'
 backend method.
 
 ---
-*** VC-Dir doesn't process very large status output by default.
-If the VCS status process used to populate the VC-Dir buffer produces a
-very large amount of output, it often means that you did something
-accidental like renaming a subdirectory containing thousands of files,
-and Emacs can become unresponsive while trying to process all the
-output.  Now Emacs stops early.  When this happens, VC-Dir includes a
-message saying so, with a button to override it.  You can customize the
-new user option 'vc-dir-process-output-limit' to control how early to
-stop, and to disable this feature.
+*** VC Directory doesn't process very large status output by default.
+If the VCS status process used to populate the VC Directory buffer
+produces a very large amount of output, it often means that you did
+something accidental like renaming a subdirectory containing thousands
+of files, and Emacs can become unresponsive while trying to process all
+the output.  Now Emacs stops early.  When this happens, VC Directory
+includes a message saying so, with a button to override it.  You can
+customize the new user option 'vc-dir-process-output-limit' to control
+how early to stop, and to disable this feature.
 
 +++
 *** Improved creation of commit log entry from ChangeLog.
 When VC detects that all log entries for the current changeset come from
 the same ChangeLog file or buffer, it now inserts the entire body of the
-ChangeLog entry into the *vc-log* buffer.  If the ChangeLog entry
-contains a summary line, VC inserts it into the *vc-log* Summary header.
+ChangeLog entry into the "*vc-log*" buffer.  If the ChangeLog entry
+contains a summary line, VC inserts it into the "*vc-log*" Summary header.
 If VC detects that the set of changed files listed in the ChangeLog
 entry differs from the current VC fileset, it displays a warning.
 
@@ -171,7 +172,7 @@ A generic 'outline-search-function' implementation driven by
 'outline-regexp' but do not need a custom search strategy.
 Install it with:
 
-  (setq-local outline-search-function #'outline-search-from-regexp)
+    (setq-local outline-search-function #'outline-search-from-regexp)
 
 ---
 *** 'outline-search-function' is now a user option.
@@ -184,8 +185,8 @@ as well as the default nil and arbitrary user functions.
 
 ---
 *** New command to copy the URL of the selected newsticker item.
-The new command 'newsticker-copy-url', bound to 'w', adds the URL of
-the currently selected item in the list view to the kill-ring.
+The new command 'newsticker-treeview-copy-url', bound to 'w', adds the
+URL of the currently selected item in the list view to the kill ring.
 
 ** Rmail
 
@@ -194,12 +195,13 @@ the currently selected item in the list view to the kill-ring.
 You can now visit such files in Rmail mode using ordinary file-visiting
 commands, such as 'C-x C-f'.
 
-** timeclock
+** Timeclock
 
 ---
-*** New variable 'timeclock-use-24hr-format'.
-If this variable is set to non-nil, displayed times (clocked in/out
+*** New user option 'timeclock-use-24hr-format'.
+If this option is set to non-nil, displayed times (clocked in/out
 since, time to leave) will use 24-hour clock instead of 12-hour clock.
+
 
 * New Modes and Packages in Emacs 32.1
 
@@ -220,23 +222,23 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 ** Pcase
 
 +++
-*** Add 'pcase-let*-strict'
+*** Add 'pcase-let*-strict'.
 This macro is like 'pcase-let*', but signals an error if a 'pcase'
 pattern does not match its corresponding value.  This can be useful for
 destructuring values when you do not wish to continue if the
 corresponding value is not as expected.
 
 +++
-** The transition variable 'current-time-list' now defaults to nil,
-so timestamps now default to (TICKS . HZ) form instead of the older
-(HIGH LOW USEC PSEC) form.
+** The transition variable 'current-time-list' now defaults to nil.
+Therefore, timestamps now default to '(TICKS . HZ)' form instead of the
+older '(HIGH LOW USEC PSEC)' form.
 
 
 * Lisp Changes in Emacs 32.1
 
 +++
-** 'ignore' is now also a place, acting as a "blackhole" like /dev/null.
-E.g. (push (new-elem) (pcase (foo) (0 var1) (1 var2) (_ (ignore))))
+** 'ignore' is now also a place, acting as a "blackhole" like "/dev/null".
+E.g., '(push (new-elem) (pcase (foo) (0 var1) (1 var2) (_ (ignore))))'.
 
 +++
 ** 'kill-all-local-variables' can kill locals silently and reset the buffer.
@@ -271,10 +273,10 @@ The HANDLER argument of 'dbus-call-method-asynchronously' can be a cons
 cell '(HANDLER . ERROR-HANDLER)'.  ERROR-HANDLER is invoked if the
 method call returns with a D-Bus error; the error is passed as argument.
 
-** elisp-scope.el
+** Elisp Scope
 
 *** Custom analyzers can be associated with multiple functions.
-'elisp-scope' macros that define custom analyzer functions, such as
+Elisp Scope macros that define custom analyzer functions, such as
 'elisp-scope-define-function-analyzer' and
 'elisp-scope-define-macro-analyzer', can now take a list of symbols to
 which the defined analyzer should apply (or a single symbol, as before).
@@ -282,7 +284,7 @@ This makes it easy to specify the same analyzer for multiple functions.
 
 *** New macro 'elisp-scope-define-function-spec'.
 This macro in a declarative alternative to
-'elisp-scope-define-function-analyzer'.  It lets you tell 'elisp-scope'
+'elisp-scope-define-function-analyzer'.  It lets you tell Elisp Scope
 how to analyze the arguments of a function by declaring the
 specification of each argument, rather than implementing an analyzer
 function as you would with 'elisp-scope-define-function-analyzer'.
@@ -292,7 +294,6 @@ function as you would with 'elisp-scope-define-function-analyzer'.
 
 +++
 *** Emacs has been updated to target Android 17.
-
 Emacs has been updated to require the SDK for Android 17 (API level 37)
 during compilation, and to target that version of the operating system.
 A corollary of this change is that on Android 17 and later systems, it
