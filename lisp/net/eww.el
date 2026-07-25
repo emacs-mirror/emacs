@@ -3068,8 +3068,8 @@ Otherwise, the restored buffer will contain a prompt to do so by using
 (defun eww--alternate-urls (dom &optional base)
   "Return a list of alternate links in DOM.
 
-Each element is a string URL, which is the the href attribute of the
-link, expanded relative to BASE.  Each URL has text properties \\+`type'
+Each element is a string URL, which is the href attribute of the link,
+expanded relative to BASE.  Each URL string has text properties \\+`type'
 which is the link's type attribute, and \\+`title', its title attribute."
   (seq-keep
    (lambda (link)
