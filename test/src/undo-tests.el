@@ -511,6 +511,28 @@ Case 3: a file-visiting buffer with `buffer-undo-list' nil and
         (replace-match "Z "))
       (should (= (length buffer-undo-list) 1)))))
 
+(ert-deftest undo-test-combine-change-calls-4 ()
+  "Test `combine-change-calls' in combination with undo-in-region."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (dolist (s '("A" "B" "C" "D"))
+      (insert s)
+      (undo-boundary))
+    (combine-change-calls (point-min) (point-max)
+      (goto-char (point-min))
+      (while (re-search-forward "[BD]" nil t)
+        (delete-char -1)
+        (insert "xy")))
+    (goto-char (point-min))
+    (insert "<")
+    (goto-char (point-max))
+    (insert ">")
+    (undo-boundary)
+    (should (equal (buffer-string) "<AxyCxy>"))
+    (undo-tests--mark-region 2 8)
+    (undo)
+    (should (equal (buffer-string) "<ABCD>"))))
+
 (defun undo-test-all (&optional interactive)
   "Run all tests for \\[undo]."
   (interactive "p")
