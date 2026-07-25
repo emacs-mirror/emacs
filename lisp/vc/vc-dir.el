@@ -1995,14 +1995,21 @@ These are the commands available for use in the file status buffer:
 
   (interactive
    (list
-    ;; When you hit C-x v d in a visited VC file,
-    ;; the *vc-dir* buffer visits the directory under its truename;
-    ;; therefore it makes sense to always do that.
-    ;; Otherwise if you do C-x v d -> C-x C-f -> C-x v d
-    ;; you may get a new *vc-dir* buffer, different from the original
-    (file-truename (read-directory-name "VC status for directory: "
-					(vc-root-dir) nil t
-					nil))
+    (let ((dir (read-directory-name "VC status for directory: "
+                                    (vc-root-dir) nil t
+                                    nil))
+          truename)
+      ;; Try to match the result of `vc-refresh-state' in a file buffer.
+      ;; Otherwise if you do C-x v d -> C-x C-f -> C-x v d you may get a
+      ;; new *vc-dir* buffer, different from the original.
+      ;; If DIR has no VC backend but its truename does, use that
+      ;; instead of DIR.
+      (if (and vc-follow-symlinks
+               (not (vc-responsible-backend dir t))
+               (not (equal dir (setq truename (file-truename dir))))
+               (vc-responsible-backend truename t))
+          truename
+        dir))
     (if current-prefix-arg
 	(intern
 	 (completing-read

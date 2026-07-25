@@ -150,6 +150,13 @@ includes a message saying so, with a button to override it.  You can
 customize the new user option 'vc-dir-process-output-limit' to control
 how early to stop, and to disable this feature.
 
+---
+*** M-x VC-Dir resolves symbolic link only if the directory has no backend
+When called interatively, 'vc-dir' checks if the passed directory has no
+VC backend.  And if its truename does and 'vc-follow-symlinks' is
+non-nil, the truename is used instead.  Before this change, the truename
+was used unconditionally.
+
 +++
 *** Improved creation of commit log entry from ChangeLog.
 When VC detects that all log entries for the current changeset come from
