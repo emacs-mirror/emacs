@@ -3098,8 +3098,6 @@ See `markdown-ts--run-command-in-code-block'.")
 
 (defun markdown-ts--enable-code-block-in-context-mode ()
   "Enable `markdown-ts-code-block-in-context-mode' if in a fenced code block."
-  ;; Let treesit catch up with buffer edits.
-  (sit-for 0)
   (markdown-ts-code-block-in-context-mode
    (if (markdown-ts-at-code-block-p) 1 -1)))
 
