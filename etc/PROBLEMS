@@ -3187,6 +3187,25 @@ XKeymacs Version 3.47, deactivating XKeymacs when Emacs is active is
 not enough to avoid its messing with the keyboard input.  Exiting
 XKeymacs completely is reported to solve the problem.
 
+** Pasting non-ASCII characters into "emacs -nw" doesn't work.
+
+This happens if you paste using the Windows shortcuts, such as
+S-<Insert> and C-v or C-S-v.  Evidently, these paste methods support
+only ASCII text, at least in some Windows configurations.
+
+Instead, use the Emacs C-y key to paste from the clipboard, which on
+Windows works on text-only frames as well.  Make sure your
+customizations don't affect the value of 'interprogram-paste-function',
+which should be 'gui-selection-value', even in -nw sessions.  In
+addition, you should make sure the font used by the Windows Terminal
+supports the characters you paste (the default font set by Windows
+should be okay).  For best results, we also recommend to set the console
+codepage to 65001, which is the UTF-8 codepage.  You can do that with
+the following command, which should be done _before_ running Emacs on
+the Windows Terminal:
+
+  c:\> chcp 65001
+
 ** Pasting from Windows clipboard into Emacs doesn't work.
 
 This was reported to be the result of an anti-virus software blocking
