@@ -845,17 +845,26 @@ editing!"
 	  (vc-resynch-buffer fname keep noquery reset-vc-info))))))
 
 (defun vc-resynch-buffer (file &optional keep noquery reset-vc-info)
-  "If FILE is currently visited, resynch its buffer."
-  (if (string= buffer-file-name
-               (if (file-name-absolute-p file)
-                   file
-                 (expand-file-name file (vc-root-dir))))
-      (vc-resynch-window file keep noquery reset-vc-info)
+  "If FILE is currently visited, resynch its buffer.
+If NOQUERY is `unless-modified' then silently skip reverting or
+unvisiting if the buffer is modified.  Any other non-nil value inhibits
+getting confirmation before reverting.  NOQUERY should be a non-nil
+value other than `unless-modified' only if it is known that the only
+difference between the buffer and the file is due to modifications by
+the dispatcher client code, rather than user editing."
+  (if (equal buffer-file-name
+             (if (file-name-absolute-p file)
+                 file
+               (expand-file-name file (vc-root-dir))))
+      (unless (and (eq noquery 'unless-modified)
+                   (buffer-modified-p))
+        (vc-resynch-window file keep noquery reset-vc-info))
     (if (file-directory-p file)
 	(vc-resynch-buffers-in-directory file keep noquery reset-vc-info)
-      (let ((buffer (get-file-buffer file)))
-	(when buffer
-	  (with-current-buffer buffer
+      (when-let* ((buffer (get-file-buffer file)))
+	(with-current-buffer buffer
+          (unless (and (eq noquery 'unless-modified)
+                       (buffer-modified-p))
 	    (vc-resynch-window file keep noquery reset-vc-info))))))
   ;; Try to avoid unnecessary work, a *vc-dir* buffer is only present
   ;; if this is true.
@@ -1006,10 +1015,11 @@ the buffer contents as a comment."
         (after-hook vc-log-after-operation-hook)
         (parent vc-parent-buffer))
     ;; OK, do it to it
-    (let ((log-operation-ret
-           (with-current-buffer parent
-             (let ((vc--inhibit-async-window t))
-               (funcall log-operation log-fileset log-entry)))))
+    (let* ((log-operation-ret
+            (with-current-buffer parent
+              (let ((vc--inhibit-async-window t))
+                (funcall log-operation log-fileset log-entry))))
+           (asyncp (eq (car-safe log-operation-ret) 'async)))
 
       (pop-to-buffer parent)
       (setq vc-log-operation nil)
@@ -1021,7 +1031,7 @@ the buffer contents as a comment."
             (t
              (quit-windows-on logbuf nil 0)))
 
-      (when (and (eq (car-safe log-operation-ret) 'async)
+      (when (and asyncp
                  ;; For an async commit, if we will display the buffer
                  ;; if the command fails, don't display it sooner.
                  ;; The output from successful commit commands isn't
@@ -1038,10 +1048,18 @@ the buffer contents as a comment."
       (cl-flet ((resynch-and-hooks ()
                   (when (buffer-live-p parent)
                     (with-current-buffer parent
-                      (mapc (lambda (file) (vc-resynch-buffer file t t))
+                      (mapc (lambda (file)
+                              ;; Maybe we should pass `unless-modified'
+                              ;; unconditionally here.  Currently we do
+                              ;; so in the async case to fix bug#81453,
+                              ;; and leave the synchronous case the same
+                              ;; to preserve old behavior.
+                              (vc-resynch-buffer file t (if asyncp
+                                                            'unless-modified
+                                                          t)))
                             log-fileset)
                       (run-hooks after-hook 'vc-finish-logentry-hook)))))
-        (if (eq (car-safe log-operation-ret) 'async)
+        (if asyncp
             (vc-exec-after #'resynch-and-hooks nil (cadr log-operation-ret))
           (resynch-and-hooks))))))
 
