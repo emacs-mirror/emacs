@@ -1296,10 +1296,10 @@ which is based on `image-mode'."
     (when buf (pop-to-buffer buf))
     (select-window cur-win)))
 
-(defun image-dired-display-this (&optional arg)
+(defun image-dired-display-this (&optional _ignore)
   "Display current thumbnail's original image in display buffer.
-See documentation for `image-dired-display-image' for more information.
-With prefix argument ARG, display image in its original size."
+See documentation for `image-dired-display-image' for more information."
+  (declare (advertised-calling-convention () "29.1"))
   (interactive "P" image-dired-thumbnail-mode)
   (unless (string-equal major-mode "image-dired-thumbnail-mode")
     (user-error "Not in `image-dired-thumbnail-mode'"))
@@ -1309,7 +1309,7 @@ With prefix argument ARG, display image in its original size."
           ((not file)
            (message "No original file name found"))
           (t
-           (image-dired-display-image file arg)))))
+           (image-dired-display-image file)))))
 
 (defun image-dired-display-next (&optional arg)
   "Move to the next image in the thumbnail buffer and display it.
