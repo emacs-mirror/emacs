@@ -1037,7 +1037,7 @@ subshells can nest."
               ;; Skip through one pattern
               (while
                   (or (/= 0 (skip-syntax-backward "w_"))
-                      (/= 0 (skip-chars-backward "-$=?[]*@/\\\\"))
+                      (/= 0 (skip-chars-backward "-$=?[]*@/\\\\!%:.^~,"))
                       (and (sh-is-quoted-p (1- (point)))
                            (goto-char (- (point) 2)))
                       (when (memq (char-before) '(?\" ?\' ?\}))
