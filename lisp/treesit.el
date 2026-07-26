@@ -3810,7 +3810,7 @@ the current line if the beginning of the defun is indented."
 Return the first non-nil evaluation of BODY.
 
 \(fn (SYM VAL) &rest BODY)"
-  (declare (indent 1))
+  (declare (indent 1) (debug ((symbolp form) body)))
   (let ((result-sym (gensym))
         (val-sym (gensym))
         (sym (car sym-val))
