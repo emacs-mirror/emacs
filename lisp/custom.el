@@ -108,9 +108,8 @@ or (last of all) the value of EXP."
   (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
            symbol
            (condition-case nil
-               (let ((def (default-toplevel-value symbol))
-                     (getter (get symbol 'custom-get)))
-                 (if getter (funcall getter symbol) def))
+               (funcall (or (get symbol 'custom-get) #'default-toplevel-value)
+                        symbol)
              (error
               (eval (let ((sv (get symbol 'saved-value)))
                       (if sv (car sv) exp)))))))
@@ -120,26 +119,26 @@ or (last of all) the value of EXP."
 Like `custom-initialize-reset', but only use the `:set' function if
 not using the standard setting.
 For the standard setting, use `set-default-toplevel-value'."
-  (condition-case nil
-      (let ((def (default-toplevel-value symbol)))
-        (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
-                 symbol
-                 (let ((getter (get symbol 'custom-get)))
-                   (if getter (funcall getter symbol) def))))
-    (error
-     (cond
-      ((get symbol 'saved-value)
-       (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
-                symbol
-                (eval (car (get symbol 'saved-value)))))
-      (t
-       (set-default-toplevel-value symbol (eval exp)))))))
+  (let ((set-exp
+         (condition-case nil
+             (let ((val (funcall (or (get symbol 'custom-get)
+                                     #'default-toplevel-value)
+                                 symbol)))
+               (list (list 'quote val)))
+           (error (get symbol 'saved-value)))))
+    (cond
+     (set-exp
+      (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
+               symbol
+               (eval (car set-exp))))
+     (t
+      (set-default-toplevel-value symbol (eval exp))))))
 
 (defvar custom-delayed-init-variables nil
   "List of variables whose initialization is pending until startup.
 Once this list has been processed, this var is set to a non-list value.")
 
-(defun custom-initialize-delay (symbol value)
+(defun custom-initialize-delay (symbol exp)
   ;; FIXME: Rename to `custom-initialize-after-dump'?
   "Delay initialization of SYMBOL to the next Emacs start.
 This is used in files that are preloaded (or for autoloaded
@@ -152,15 +151,15 @@ the :set function."
 
   ;; Until the var is actually initialized, it is kept unbound.
   ;; This seemed to be at least as good as setting it to an arbitrary
-  ;; value like nil (evaluating `value' is not an option because it
+  ;; value like nil (evaluating `exp' is not an option because it
   ;; may have undesirable side-effects).
   (if (listp custom-delayed-init-variables)
       (push symbol custom-delayed-init-variables)
     ;; In case this is called after startup, there is no "later" to which to
     ;; delay it, so initialize it "normally" (bug#47072).
-    (custom-initialize-reset symbol value)))
+    (custom-initialize-reset symbol exp)))
 
-(defun custom-initialize-after-file-load (symbol value)
+(defun custom-initialize-after-file-load (symbol exp)
   "Delay initialization to after the current file is loaded.
 This is handy when the initialization needs functions defined after the
 variable, such as for global minor modes."
@@ -169,16 +168,16 @@ variable, such as for global minor modes."
 
   ;; Until the var is actually initialized, it is kept unbound.
   ;; This seemed to be at least as good as setting it to an arbitrary
-  ;; value like nil (evaluating `value' is not an option because it
+  ;; value like nil (evaluating `exp' is not an option because it
   ;; may have undesirable side-effects).
   (if (not load-file-name)
       ;; There's no "after file" to speak of.
-      (custom-initialize-set symbol value)
+      (custom-initialize-set symbol exp)
     (let ((thisfile load-file-name))
       (letrec ((f (lambda (file)
                     (when (equal file thisfile)
                       (remove-hook 'after-load-functions f)
-                      (custom-initialize-set symbol value)))))
+                      (custom-initialize-set symbol exp)))))
         (add-hook 'after-load-functions f)))))
 
 (defun custom-declare-variable (symbol default doc &rest args)
