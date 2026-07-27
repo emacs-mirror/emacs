@@ -8502,9 +8502,12 @@ normally equivalent short `-D' option is just passed on to
         ;; error.
         (when (> (file-attribute-size (file-attributes errfile)) 0)
           (defvar dired--ls-error-buffer) ; Pacify byte-compiler.
-          (let ((errbuf (get-buffer-create "*ls error*")))
+          (let ((errbuf (or (get-buffer "*ls error*")
+                            (let ((buf (generate-new-buffer "*ls error*")))
+                              (with-current-buffer buf
+                                (setq buffer-read-only t))
+                              buf))))
             (with-current-buffer errbuf
-              (setq buffer-read-only t)
               (let ((inhibit-read-only t))
                 (erase-buffer)
                 (insert-file-contents errfile)))
