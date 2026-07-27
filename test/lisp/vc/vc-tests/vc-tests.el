@@ -1010,13 +1010,13 @@ This checks also `vc-backend' and `vc-responsible-backend'."
                 (should (eq (vc-state "qux"  backend) 'added))
                 (should (eq (vc-state "quux" backend) 'unregistered)))
 
-              (cl-flet ((go ()
-                          (let ((default-directory first)
-                                (vc-no-confirm-moving-changes t))
-                            (vc--apply-to-other-working-tree
-                             second second `(,backend
-                                             ("foo" "bar" "baz" "qux" "quux"))
-                             nil t))))
+              (cl-flet
+                  ((go ()
+                     (let ((default-directory first)
+                           (vc-no-confirm-moving-changes t))
+                       (vc--apply-to-other-working-tree second second
+                                                        `(,backend (,first))
+                                                        nil t))))
                 (let ((default-directory second))
                   ;; Set up a series of incompatibilities, one-by-one, and
                   ;; try to move.  In each case the problem should block the
