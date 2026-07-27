@@ -74,7 +74,7 @@ RUN apt-get update && \
       clangd npm node-typescript rust-analyzer cargo \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g typescript-language-server typescript
+RUN npm install -g typescript-language-server
 RUN npm install -g vscode-json-languageserver
 
 # eclipse-jdt-ls is planned as Java language server.
