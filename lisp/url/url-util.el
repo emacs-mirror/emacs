@@ -230,10 +230,12 @@ Will not do anything if `url-show-status' is nil."
         (setq cur (concat cur "=")))
 
       (when (string-match "=" cur)
-        (setq key (url-unhex-string (substring cur 0 (match-beginning 0))
-                                    allow-newlines))
-        (setq val (url-unhex-string (substring cur (match-end 0) nil)
-                                    allow-newlines))
+        (let ((beg (match-beginning 0))
+              (end (match-end 0)))
+          (setq key (url-unhex-string (substring cur 0 beg)
+                                      allow-newlines))
+          (setq val (url-unhex-string (substring cur end nil)
+                                      allow-newlines)))
         (if downcase
             (setq key (downcase key)))
         (setq cur (assoc key retval))

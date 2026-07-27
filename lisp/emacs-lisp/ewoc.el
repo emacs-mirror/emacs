@@ -152,6 +152,7 @@ and (ewoc--node-nth dll -1) returns the last node."
 `dll' will be bound when VARLIST is initialized, but
 the current buffer will *not* have been changed.
 Return value of last form in FORMS."
+  (declare (debug (form let)))
   (let ((hnd (make-symbol "ewoc")))
     `(let* ((,hnd ,ewoc)
             (dll (ewoc--dll ,hnd))
@@ -568,15 +569,21 @@ Return nil if the buffer has been deleted."
 	(ewoc--node-data (ewoc--footer ewoc))))
 
 (defun ewoc-set-hf (ewoc header footer)
-  "Set the HEADER and FOOTER of EWOC."
+  "Set the HEADER and/or FOOTER of EWOC.
+To change only the header (respectively footer), pass nil for
+FOOTER (respectively HEADER).
+To clear the header (respectively footer), pass an empty string for
+HEADER (respectively FOOTER)."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((head (ewoc--header ewoc))
        (foot (ewoc--footer ewoc))
        (hf-pp (ewoc--hf-pp ewoc)))
-    (setf (ewoc--node-data head) header
-          (ewoc--node-data foot) footer)
-    (ewoc--refresh-node hf-pp head dll)
-    (ewoc--refresh-node hf-pp foot dll)))
+    (when header
+      (setf (ewoc--node-data head) header)
+      (ewoc--refresh-node hf-pp head dll))
+    (when footer
+      (setf (ewoc--node-data foot) footer)
+      (ewoc--refresh-node hf-pp foot dll))))
 
 
 (provide 'ewoc)

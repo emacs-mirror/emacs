@@ -403,10 +403,14 @@ of two."
   \"docstring\"
   body)
 
-;; end
+=!p3=;; end
 "
     (goto-char p1)
     (end-of-defun 2)
+    (should (= (point) p2))
+    ;; Negative arg
+    (goto-char p3)
+    (end-of-defun -2)
     (should (= (point) p2))))
 
 ;;; mark-defun

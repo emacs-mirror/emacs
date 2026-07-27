@@ -1021,7 +1021,7 @@ Returns (parse-state) if line starts inside a string."
 	   (containing-sexp (nth 1 state))
 	   ;; Don't auto-indent in a quoted string or a here-document.
            (unindentable (or (nth 3 state) (eq 2 (nth 7 state))))
-           (format (and (nth 3 state)
+           (format (and (characterp (nth 3 state))
                         (char-equal (nth 3 state) ?\n))))
       (when (and (eq t (nth 3 state))
                  (save-excursion

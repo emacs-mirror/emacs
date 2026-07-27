@@ -693,17 +693,23 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   record_unwind_protect_void (minibuffer_unwind);
   if (read_minibuffer_restore_windows)
-    record_unwind_protect (restore_window_configuration,
-			   list3 (Fcurrent_window_configuration (Qnil),
-				  Qt, Qt));
+    {
+      record_unwind_protect
+	(restore_window_configuration,
+	 list3 (Fcurrent_window_configuration (Qnil), Qt, Qt));
 
-  /* If the minibuffer window is on a different frame, save that
-     frame's configuration too.  */
-  if (read_minibuffer_restore_windows &&
-      !EQ (mini_frame, selected_frame))
-    record_unwind_protect (restore_window_configuration,
-			   list3 (Fcurrent_window_configuration (mini_frame),
-				  Qnil, Qt));
+      /* If the minibuffer window is on a different frame, save that
+	 frame's configuration too.  */
+      if (!EQ (mini_frame, selected_frame))
+	record_unwind_protect
+	  (restore_window_configuration,
+	   list3 (Fcurrent_window_configuration (mini_frame), Qnil, Qt));
+    }
+  else if (!EQ (mini_frame, selected_frame))
+    record_unwind_protect
+      (restore_focus_frame,
+       Fcons (selected_frame, XFRAME (selected_frame)->focus_frame));
+
 
   /* If the minibuffer is on an iconified or invisible frame,
      make it visible now.  */

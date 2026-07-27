@@ -21,13 +21,28 @@
 
 ;; Tests for `visual-wrap-prefix-mode'.
 ;;
-;; Pixel values in these tests assume the batch-mode metric of one
-;; pixel per canonical character column (`string-pixel-width " "' = 1).
+;; Expected `wrap-prefix' values use `string-pixel-width', because
+;; `visual-wrap--content-prefix' records the rendered width of the
+;; prefix.  This is 1 pixel per character cell in batch/TTY, but depends
+;; on the selected frame font in graphical frames.
 
 ;;; Code:
 
 (require 'visual-wrap)
 (require 'ert)
+
+(defun visual-wrap-tests--wrap-prefix (prefix &optional extra-indent)
+  "Return the expected `wrap-prefix' for PREFIX and EXTRA-INDENT."
+  `(space :align-to (+ (,(string-pixel-width prefix (current-buffer)))
+                       (,(or extra-indent 0) . width))))
+
+(defun visual-wrap-tests--string-with-properties (string ranges)
+  "Return STRING with RANGES of text properties added.
+Each element in RANGES has the form (START END PROPERTIES)."
+  (let ((string (copy-sequence string)))
+    (dolist (range ranges string)
+      (add-text-properties (nth 0 range) (nth 1 range) (nth 2 range)
+                           string))))
 
 ;;; Tests:
 
@@ -35,24 +50,27 @@
   "Test adding wrapping properties to text without display properties."
   (with-temp-buffer
     (insert "greetings\n* hello\n* hi")
-    (visual-wrap-prefix-function (point-min) (point-max))
-    (should (equal-including-properties
-             (buffer-string)
-             #("greetings\n* hello\n* hi"
-               10 17 (wrap-prefix (space :align-to (+ (2) (0 . width))))
-               18 22 (wrap-prefix (space :align-to (+ (2) (0 . width)))))))))
+    (let ((wrap-prefix (visual-wrap-tests--wrap-prefix "* ")))
+      (visual-wrap-prefix-function (point-min) (point-max))
+      (should (equal-including-properties
+               (buffer-string)
+               (visual-wrap-tests--string-with-properties
+                "greetings\n* hello\n* hi"
+                `((10 17 (wrap-prefix ,wrap-prefix))
+                  (18 22 (wrap-prefix ,wrap-prefix)))))))))
 
 (ert-deftest visual-wrap-tests/safe-display ()
   "Test adding wrapping properties to text with safe display properties."
   (with-temp-buffer
     (insert #("* hello" 2 7 (display (raise 1))))
-    (visual-wrap-prefix-function (point-min) (point-max))
-    (should (equal-including-properties
-             (buffer-string)
-             #("* hello"
-               0 2 (wrap-prefix (space :align-to (+ (2) (0 . width))))
-               2 7 (wrap-prefix (space :align-to (+ (2) (0 . width)))
-                    display (raise 1)))))))
+    (let ((wrap-prefix (visual-wrap-tests--wrap-prefix "* ")))
+      (visual-wrap-prefix-function (point-min) (point-max))
+      (should (equal-including-properties
+               (buffer-string)
+               (visual-wrap-tests--string-with-properties
+                "* hello"
+                `((0 2 (wrap-prefix ,wrap-prefix))
+                  (2 7 (wrap-prefix ,wrap-prefix display (raise 1))))))))))
 
 (ert-deftest visual-wrap-tests/unsafe-display/within-line ()
   "Test adding wrapping properties to text with unsafe display properties.
@@ -60,13 +78,15 @@ When these properties don't extend across multiple lines,
 `visual-wrap-prefix-mode' can still add wrapping properties."
   (with-temp-buffer
     (insert #("* [img]" 2 7 (display (image :type bmp))))
-    (visual-wrap-prefix-function (point-min) (point-max))
-    (should (equal-including-properties
-             (buffer-string)
-             #("* [img]"
-               0 2 (wrap-prefix (space :align-to (+ (2) (0 . width))))
-               2 7 (wrap-prefix (space :align-to (+ (2) (0 . width)))
-                    display (image :type bmp)))))))
+    (let ((wrap-prefix (visual-wrap-tests--wrap-prefix "* ")))
+      (visual-wrap-prefix-function (point-min) (point-max))
+      (should (equal-including-properties
+               (buffer-string)
+               (visual-wrap-tests--string-with-properties
+                "* [img]"
+                `((0 2 (wrap-prefix ,wrap-prefix))
+                  (2 7 (wrap-prefix ,wrap-prefix
+                        display (image :type bmp))))))))))
 
 (ert-deftest visual-wrap-tests/unsafe-display/spanning-lines ()
   "Test adding wrapping properties to text with unsafe display properties.
@@ -119,27 +139,31 @@ should *not* add wrapping properties to either block."
 See bug#76018."
   (with-temp-buffer
     (insert "* this zoo contains goats")
-    (visual-wrap-prefix-function (point-min) (point-max))
-    (should (equal-including-properties
-             (buffer-string)
-             #("* this zoo contains goats"
-               0 25 (wrap-prefix (space :align-to (+ (2) (0 . width)))))))
-    (let ((start (point)))
-      (insert-and-inherit "\n\nit also contains pandas")
-      (visual-wrap-prefix-function start (point-max)))
-    (should (equal-including-properties
-             (buffer-string)
-             #("* this zoo contains goats\n\nit also contains pandas"
-               0 25 (wrap-prefix (space :align-to (+ (2) (0 . width)))))))))
+    (let ((wrap-prefix (visual-wrap-tests--wrap-prefix "* ")))
+      (visual-wrap-prefix-function (point-min) (point-max))
+      (should (equal-including-properties
+               (buffer-string)
+               (visual-wrap-tests--string-with-properties
+                "* this zoo contains goats"
+                `((0 25 (wrap-prefix ,wrap-prefix))))))
+      (let ((start (point)))
+        (insert-and-inherit "\n\nit also contains pandas")
+        (visual-wrap-prefix-function start (point-max)))
+      (should (equal-including-properties
+               (buffer-string)
+               (visual-wrap-tests--string-with-properties
+                "* this zoo contains goats\n\nit also contains pandas"
+                `((0 25 (wrap-prefix ,wrap-prefix)))))))))
 
 (ert-deftest visual-wrap-tests/cleanup ()
   "Test that deactivating `visual-wrap-prefix-mode' cleans up text properties."
   (with-temp-buffer
     (insert "* hello\n* hi")
-    (visual-wrap-prefix-function (point-min) (point-max))
-    ;; Make sure we've added the visual-wrapping properties.
-    (should (equal (text-properties-at (point-min))
-                   '(wrap-prefix (space :align-to (+ (2) (0 . width))))))
+    (let ((wrap-prefix (visual-wrap-tests--wrap-prefix "* ")))
+      (visual-wrap-prefix-function (point-min) (point-max))
+      ;; Make sure we've added the visual-wrapping properties.
+      (should (equal (text-properties-at (point-min))
+                     `(wrap-prefix ,wrap-prefix))))
     (visual-wrap-prefix-mode -1)
     (should (equal-including-properties
              (buffer-string)
@@ -153,11 +177,13 @@ at the left margin."
   (with-temp-buffer
     (setq-local visual-wrap-extra-indent -20)
     (insert "* hello")
-    (visual-wrap-prefix-function (point-min) (point-max))
-    ;; The sum (+ (2) (-20 . width)) is negative in batch mode
-    ;; (2 - 20 = -18), but the display engine clamps to zero.
-    (should (equal (get-text-property (point-min) 'wrap-prefix)
-                   '(space :align-to (+ (2) (-20 . width)))))))
+    (let ((wrap-prefix (visual-wrap-tests--wrap-prefix
+                        "* " visual-wrap-extra-indent)))
+      (visual-wrap-prefix-function (point-min) (point-max))
+      ;; The sum is negative in batch mode (2 - 20 = -18), but the
+      ;; display engine clamps to zero.
+      (should (equal (get-text-property (point-min) 'wrap-prefix)
+                     wrap-prefix)))))
 
 (ert-deftest visual-wrap-tests/invisible-prefix ()
   "Invisible prefix characters do not reserve column space.
@@ -177,5 +203,39 @@ property is installed on line 1.  See bug#81039."
     (should-not (memq 'min-width
                       (ensure-list
                        (get-text-property (point-min) 'display))))))
+
+(ert-deftest visual-wrap-tests/line-numbers-align-to-wrap-prefix ()
+  "With line numbers, `wrap-prefix' `:align-to' aligns from text start."
+  ;; `posn-point' returns nil in batch sessions.
+  (skip-when (frame-initial-p))
+  (let ((buffer (generate-new-buffer " *visual-wrap-test*")))
+    (unwind-protect
+        (let ((window (display-buffer buffer)))
+          (with-selected-window window
+            (setq-local display-line-numbers t)
+            (visual-line-mode 1)
+            (let* ((columns (window-width))
+                   ;; Make the first word fit on visual line 1, but leave
+                   ;; too little room for the second word so word wrapping
+                   ;; moves it to visual line 2.
+                   (first-word-width (max 10 (- columns 20))))
+              (insert "- "
+                      (make-string first-word-width ?n)
+                      " "
+                      (make-string 20 ?n)))
+            (visual-wrap-prefix-function (point-min) (point-max))
+            (redisplay t)
+            (let* ((bol-x (car (posn-x-y (posn-at-point (point-min)))))
+                   (prefix-width (string-pixel-width "- " (current-buffer)))
+                   (second-word-pos
+                    (save-excursion
+                      (goto-char (point-min))
+                      (search-forward " " nil t 2)
+                      (point)))
+                   (second-word-x
+                    (car (posn-x-y (posn-at-point second-word-pos)))))
+              (should (= second-word-x (+ bol-x prefix-width))))))
+      (when (buffer-live-p buffer)
+        (kill-buffer buffer)))))
 
 ;; visual-wrap-tests.el ends here

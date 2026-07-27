@@ -695,5 +695,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
         <string>Emacs requires permission to access files on Removable Volumes.</string>
         <key>NSSpeechRecognitionUsageDescription</key>
         <string>Emacs requires permission to handle any speech recognition.</string>
+	<!-- Prevent macOS 26 (Tahoe) and later from spawning an
+	     "AutoFill (Emacs)" helper process that heuristically scans
+	     text fields for one-time codes; Emacs never marks fields as
+	     one-time-code, so the helper is pure overhead.  -->
+	<key>NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac</key>
+	<true/>
 </dict>
 </plist>

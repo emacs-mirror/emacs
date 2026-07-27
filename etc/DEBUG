@@ -25,8 +25,15 @@ happens only with optimized code, you may need to enable optimizations.
 If that happens, try using -Og first instead of -O2, as -Og disables
 some optimizations that make debugging some code exceptionally hard.
 
-Older versions of GCC may need more than just the -g3 flag.  For more,
-search for "analyze failed assertions" below.
+The -g3 option is needed to allow GDB expand macros, which the Emacs C
+code uses a lot; without it, you will need to look up the macro
+definitions in the C headers and source files, and expand them by hand,
+before using them in expressions you want GDB to evaluate.  Older
+versions of GCC may need more than just the -g3 flag.  Also, Emacs
+compiled with -g3 reportedly causes GDB to crash on OpenBSD, so on that
+OS you should instead use either -ggdb or just -g (and the macro
+information will be unavailable to GDB, unfortunately).  For more about
+-g3, search for "analyze failed assertions" below.
 
 The 2 --enable-* switches are optional.  They don't have any effect on
 debugging with GDB, but will compile additional code that might catch

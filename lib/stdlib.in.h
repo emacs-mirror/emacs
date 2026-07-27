@@ -103,7 +103,8 @@ struct random_data
 # endif
 #endif
 
-#if (@GNULIB_MKSTEMP@ || @GNULIB_MKSTEMPS@ || @GNULIB_MKOSTEMP@ || @GNULIB_MKOSTEMPS@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !(defined _WIN32 && ! defined __CYGWIN__)
+#if (@GNULIB_MKDTEMP@ || @GNULIB_MKSTEMP@ || @GNULIB_MKSTEMPS@ || @GNULIB_MKOSTEMP@ || @GNULIB_MKOSTEMPS@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !(defined _WIN32 && ! defined __CYGWIN__)
+/* On macOS 26, only <unistd.h> declares mkdtemp.  */
 /* On Mac OS X 10.3, only <unistd.h> declares mkstemp.  */
 /* On Mac OS X 10.5, only <unistd.h> declares mkstemps.  */
 /* On Mac OS X 10.13, only <unistd.h> declares mkostemp and mkostemps.  */

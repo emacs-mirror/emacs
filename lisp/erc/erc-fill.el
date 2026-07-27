@@ -706,15 +706,17 @@ See `erc-fill-wrap-mode' for details."
     (let ((len (or (and erc-fill--wrap-length-function
                         (funcall erc-fill--wrap-length-function))
                    (and-let* ((msg-prop (erc--check-msg-prop 'erc--msg))
-                              ((not (eq msg-prop 'unknown))))
-                     (when-let* ((e (erc--get-speaker-bounds))
-                                 (b (pop e))
-                                 ((or erc-fill--wrap-action-dedent-p
-                                      (not (erc--check-msg-prop 'erc--ctcp
-                                                                'ACTION)))))
-                       (goto-char e))
-                     (skip-syntax-forward "^-")
-                     (forward-char)
+                              (_ (not (eq msg-prop 'unknown))))
+                     (if-let* ((fn (erc--check-msg-prop 'erc--pfx)))
+                         (let ((erc--ctcp-action-speaker-in-prefix-p
+                                erc-fill--wrap-action-dedent-p))
+                           (funcall fn))
+                       ;; FIXME remove this before releasing ERC 5.7.
+                       (unless (eq msg-prop 'datestamp)
+                         (erc--lwarn 'erc-fill :error
+                                     "Missing `erc--pfx' skip-fwd function: %S"
+                                     (list :msg-prop msg-prop
+                                           :buffer-string (buffer-string)))))
                      (cond ((eq msg-prop 'datestamp)
                             (when erc-fill--wrap-rejigger-last-message
                               (set-marker erc-fill--wrap-last-msg (point-min)))

@@ -2327,7 +2327,11 @@ WINDOW must be a live window and defaults to the selected one.
 
 The return value is a list of elements (BUFFER WINDOW-START POS),
 where BUFFER is a buffer, WINDOW-START is the start position of the
-window for that buffer, and POS is a window-specific point value.  */)
+window for that buffer, and POS is a window-specific point value.
+
+In rare ocasions BUFFER may have been already killed.  It's therefore
+advisable to always check the return value for the occurrence of dead
+buffers before using it.  */)
   (Lisp_Object window)
 {
 #ifdef HAVE_MPS
@@ -8025,7 +8029,16 @@ the return value is nil.  Otherwise the value is t.  */)
       if (NILP (data->focus_frame)
 	  || (FRAMEP (data->focus_frame)
 	      && FRAME_LIVE_P (XFRAME (data->focus_frame))))
-	Fredirect_frame_focus (frame, data->focus_frame);
+	{
+	  Lisp_Object frame_focus_frame = f->focus_frame;
+
+	  Fredirect_frame_focus (frame, data->focus_frame);
+
+	  if (EQ (focus_follows_mouse, Qauto_raise)
+	      && NILP (data->focus_frame)
+	      && EQ (selected_frame, frame_focus_frame))
+	    calln (Qselect_frame_set_input_focus, frame, Qnil);
+	}
 
       /* Now, free glyph matrices in windows that were not reused.  */
       for (i = 0; i < n_leaf_windows; i++)
@@ -8113,6 +8126,26 @@ restore_window_configuration (Lisp_Object configuration)
     Fset_window_configuration (configuration, Qnil, Qnil);
 }
 
+void
+restore_focus_frame (Lisp_Object frame_and_focus_frame)
+{
+  Lisp_Object frame = Fcar (frame_and_focus_frame);
+  Lisp_Object focus_frame = Fcdr (frame_and_focus_frame);
+
+  if (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame))
+      && (NILP (focus_frame)
+	  || (FRAMEP (focus_frame) && FRAME_LIVE_P (XFRAME (focus_frame)))))
+    {
+      Lisp_Object frame_focus_frame = XFRAME (frame)->focus_frame;
+
+      Fredirect_frame_focus (frame, focus_frame);
+
+      if (EQ (focus_follows_mouse, Qauto_raise)
+	  && NILP (focus_frame)
+	  && EQ (selected_frame, frame_focus_frame))
+	calln (Qselect_frame_set_input_focus, frame, Qnil);
+    }
+}
 
 /* If WINDOW is an internal window, recursively delete all child windows
    reachable via the next and contents slots of WINDOW.  Otherwise setup
@@ -9469,7 +9502,10 @@ windows in the same combination.
 Other values are reserved for future use.
 
 A specific split operation may ignore the value of this variable if it
-is affected by a non-nil value of `window-combination-limit'.  */);
+is affected by a non-nil value of `window-combination-limit'.  If you
+want to use a sequence of `split-window' calls to produce a specific,
+predefined layout of windows on a frame, bind this variable temporarily
+to nil.  */);
   Vwindow_combination_resize = Qnil;
 
   DEFVAR_LISP ("window-combination-limit", Vwindow_combination_limit,

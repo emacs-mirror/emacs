@@ -813,7 +813,11 @@ Fall back to `prin1' if there is an error."
 
 (defun backtrace--filter-visible (beg end &optional _delete)
   "Return the visible text between BEG and END."
-  (let ((result ""))
+  (let ((result "")
+        (b (min beg end))
+        (e (max beg end)))
+    ;; Make sure BEG and END are in the correct order.
+    (setq beg b end e)
     (while (< beg end)
       (let ((next (next-single-char-property-change beg 'invisible)))
         (unless (get-char-property beg 'invisible)

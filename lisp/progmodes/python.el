@@ -7056,6 +7056,10 @@ REPORT-FN is Flymake's callback function."
 
 ;;; Import management
 (defconst python--list-imports "\
+import sys
+
+sys.path = [p for p in sys.path if p]
+
 from sys import argv, exit, stdin
 
 try:
@@ -7164,6 +7168,17 @@ PROMPT string, is made unless there is a single candidate."
     (unless (string-empty-p statement)
       statement)))
 
+(defconst python--run-module "\
+import runpy, sys
+
+sys.path = [p for p in sys.path if p]
+
+runpy.run_module(sys.argv.pop(1), run_name='__main__', alter_sys=True)
+"
+  "Script to run a Python module.
+It removes the leading empty string from `sys.path' before executing the
+module.")
+
 (defun python--do-isort (&rest args)
   "Edit the current buffer using isort called with ARGS.
 Return non-nil if the buffer was actually modified."
@@ -7178,7 +7193,7 @@ Return non-nil if the buffer was actually modified."
                                (append
                                  (split-string-shell-command
                                   python-interpreter-args)
-                                 '("-m" "isort" "-")
+                                 `("-c" ,python--run-module "isort" "-")
                                  args)))
                 (tick (buffer-chars-modified-tick)))
             (unless (eq 0 status)
@@ -7272,7 +7287,7 @@ and may appear to hang."
                   (append
                    (split-string-shell-command
                     python-interpreter-args)
-                   '("-m" "pyflakes"))))
+                   `("-c" ,python--run-module "pyflakes"))))
         (goto-char (point-min))
         (when (looking-at-p ".* No module named pyflakes$")
           (error "%s couldn't find pyflakes" python-interpreter))

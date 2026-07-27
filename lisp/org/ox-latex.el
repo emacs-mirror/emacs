@@ -1712,7 +1712,7 @@ Return the new header."
 	 ;; exclusively through ini files, return HEADER as-is.
 	 (header (if (or language-ini-only
 			 (not (stringp language-code))
-			 (not (string-match "\\\\usepackage\\[\\(.*\\)\\]{babel}" header)))
+			 (not (string-match "\\\\usepackage\\[\\([^]]*\\)\\]{babel}" header)))
 		     header
 		   (let ((options (save-match-data
 				    (org-split-string (match-string 1 header) ",[ \t]*"))))

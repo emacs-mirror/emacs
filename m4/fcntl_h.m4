@@ -1,5 +1,5 @@
 # fcntl_h.m4
-# serial 21
+# serial 22
 dnl Copyright (C) 2006-2007, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -67,7 +67,7 @@ AC_DEFUN([gl_FCNTL_H_DEFAULTS],
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_FCNTL=1;          AC_SUBST([HAVE_FCNTL])
   HAVE_OPENAT=1;         AC_SUBST([HAVE_OPENAT])
-  HAVE_OPENAT2=0;        AC_SUBST([HAVE_OPENAT2])
+  HAVE_OPENAT2=1;        AC_SUBST([HAVE_OPENAT2]) dnl GNU/Linux only
   REPLACE_CREAT=0;       AC_SUBST([REPLACE_CREAT])
   REPLACE_FCNTL=0;       AC_SUBST([REPLACE_FCNTL])
   REPLACE_OPEN=0;        AC_SUBST([REPLACE_OPEN])

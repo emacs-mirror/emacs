@@ -57,7 +57,7 @@ with %, which are converted as follows:
 %S    seconds
 %w    day number of week, Sunday is 0
 %Y    4-digit year                     %y    2-digit year
-%Z    time zone name: `EST'
+%Z    time zone name: `JST'
 %-z   zone offset with hour: `-08'     %:::z adds colons as needed: `+05:30'
 %5z   zone offset with mins: `-0800'   %:z   adds colon: `-08:00'
 

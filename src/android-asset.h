@@ -72,6 +72,10 @@ struct android_asset
   /* The length of the asset, or -1.  */
   jlong length;
 
+  /* The number of bytes which have already been read from this
+     asset.  */
+  jlong bytes_read;
+
   /* The asset file descriptor and input stream.  */
   jobject fd, stream;
 
@@ -250,6 +254,10 @@ AAssetManager_open (AAssetManager *manager, const char *c_name,
     }
   else /* if (name) */
     {
+      /* If no file descriptor was returned, more recent Android
+	 releases will probably have signaled an exception.  */
+      (*(manager->env))->ExceptionClear (manager->env);
+
       /* Pop the local frame and return name.  */
       name = (*(manager->env))->NewGlobalRef (manager->env, name);
 
@@ -279,7 +287,7 @@ AAssetManager_open (AAssetManager *manager, const char *c_name,
   return NULL;
 }
 
-static AAsset *
+static void
 AAsset_close (AAsset *asset)
 {
   JNIEnv *env;
@@ -341,8 +349,7 @@ android_asset_create_stream (AAsset *asset)
       return 1;
     }
 
-  asset->stream
-    = (*env)->NewGlobalRef (env, stream);
+  asset->stream = (*env)->NewGlobalRef (env, stream);
 
   if (!asset->stream)
     {
@@ -415,7 +422,8 @@ android_asset_read_internal (AAsset *asset, int nbytes, char *buffer)
 
       /* Finally write out the amount that was read.  */
       bytes_read = MIN (bytes_read, nbytes);
-      (*env)->GetByteArrayRegion (env, stash, 0, bytes_read, buffer);
+      (*env)->GetByteArrayRegion (env, stash, 0, bytes_read,
+				  (jbyte *) buffer);
 
       buffer += bytes_read;
       total += bytes_read;
@@ -426,6 +434,7 @@ android_asset_read_internal (AAsset *asset, int nbytes, char *buffer)
   assert (nbytes >= 0);
 
  out:
+  asset->bytes_read += total;
   (*env)->ExceptionClear (env);
   (*env)->DeleteLocalRef (env, stash);
   return total;
@@ -433,6 +442,7 @@ android_asset_read_internal (AAsset *asset, int nbytes, char *buffer)
  out_errno:
   /* Return an error indication if an exception arises while the file
      is being read.  */
+  asset->bytes_read += total;
   (*env)->ExceptionClear (env);
   (*env)->DeleteLocalRef (env, stash);
   errno = EIO;
@@ -459,10 +469,8 @@ AAsset_getLength (AAsset *asset)
 static char *
 AAsset_getBuffer (AAsset *asset)
 {
-  long length;
+  long length = AAsset_getLength (asset);
   char *buffer;
-
-  length = AAsset_getLength (asset);
 
   if (!length)
     return NULL;
@@ -472,8 +480,7 @@ AAsset_getBuffer (AAsset *asset)
   if (!buffer)
     return NULL;
 
-  if (android_asset_read_internal (asset, length, buffer)
-      != length)
+  if (android_asset_read_internal (asset, length, buffer) != length)
     {
       free (buffer);
       return NULL;
@@ -492,6 +499,29 @@ AAsset_read (AAsset *asset, void *buffer, size_t size)
 static off_t
 AAsset_seek (AAsset *asset, off_t offset, int whence)
 {
+  /* It is necessary to attempt to satisfy calls to `seek' to identify
+     the current offset or which do not actually move the file pointer,
+     in the interests of scenarios where, e.g., Finsert_file_contents is
+     called with BEG set to 0.  */
+
+  switch (whence)
+    {
+    case SEEK_SET:
+      if (offset == asset->bytes_read)
+	return (off_t) asset->bytes_read;
+
+    case SEEK_CUR:
+      if (offset == 0)
+	return (off_t) asset->bytes_read;
+
+    case SEEK_END:
+      if (offset == 0 && (asset->bytes_read == asset->length))
+	return (off_t) asset->bytes_read;
+
+    default:
+      break;
+    }
+
   /* Java InputStreams don't support seeking at all.  */
   errno = ESPIPE;
   return -1;

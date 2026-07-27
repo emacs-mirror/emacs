@@ -58,7 +58,7 @@
       (error
        (unless (string= "No further undo information"
                         (cadr err))
-         (error err))))
+         (signal err))))
     (undo-boundary)
     (insert "This")
     (undo-boundary)

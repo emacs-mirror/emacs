@@ -4,6 +4,7 @@
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
+;; Maintainer: Pedro A. Aranda <paaguti aT gmail d.T com>
 ;; Keywords: org, text, tex
 
 ;; This file is part of GNU Emacs.

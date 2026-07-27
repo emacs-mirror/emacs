@@ -277,22 +277,25 @@ cover the range from the oldest annotation to the newest."
 			 (- current newest))
 	       (format "Spanned to %.1f days old" (- current oldest))))))
 
-;; Menu -- Using easymenu.el
 (easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
-  "VC Annotate Display Menu."
+  "Menu for VC-Annotate buffers."
   `("VC-Annotate"
+    :filter ,(lambda (items)
+               (let ((o-i-m (vc-annotate-oldest-in-map
+                             (default-value 'vc-annotate-color-map))))
+                 `(,(car items)
+                   ,@(mapcar (lambda (element)
+                               (let ((days (* element o-i-m)))
+                                 `[,(format "Span %.1f days" days)
+                                   (vc-annotate-display-select nil ,days)
+                                   :style toggle :selected
+                                   (eql vc-annotate-display-mode ,days) ]))
+                             vc-annotate-menu-elements)
+                   . ,(cdr items))))
     ["By Color Map Range" (unless (null vc-annotate-display-mode)
                  (setq vc-annotate-display-mode nil)
                  (vc-annotate-display-select))
      :style toggle :selected (null vc-annotate-display-mode)]
-    ,@(let ((oldest-in-map (vc-annotate-oldest-in-map vc-annotate-color-map)))
-        (mapcar (lambda (element)
-                  (let ((days (* element oldest-in-map)))
-                    `[,(format "Span %.1f days" days)
-                      (vc-annotate-display-select nil ,days)
-                      :style toggle :selected
-                      (eql vc-annotate-display-mode ,days) ]))
-                vc-annotate-menu-elements))
     ["Span ..."
      (vc-annotate-display-select
       nil (float (string-to-number (read-string "Span how many days? "))))]

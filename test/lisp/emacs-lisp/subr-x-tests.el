@@ -815,5 +815,19 @@
   (should (equal (string-truncate-left "band" 2) "...d"))
   (should (equal (string-truncate-left "longstring" 8) "...tring")))
 
+(ert-deftest subr-x-with-work-buffer-locals-killed ()
+  (let (b)
+    (with-work-buffer
+      (setq b (current-buffer))
+      (setq-local test-buffer-local 123)
+      (setq mark-active t)
+      (setq buffer-read-only t))
+    (with-work-buffer
+      ;; Sanity check `with-work-buffer' yields the same buffer.
+      (should (eq b (current-buffer)))
+      (should-not (buffer-local-boundp 'test-buffer-local (current-buffer)))
+      (should-not mark-active)
+      (should-not buffer-read-only))))
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

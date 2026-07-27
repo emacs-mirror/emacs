@@ -391,7 +391,7 @@ the buffer name are distinct and can be set independently.
 @xref{Visiting Files}.
 
 @defun buffer-file-name &optional buffer
-This function returns the absolute file name of the file that
+This function returns the fully-expanded absolute file name of the file that
 @var{buffer} is visiting.  If @var{buffer} is not visiting any file,
 @code{buffer-file-name} returns @code{nil}.  If @var{buffer} is not
 supplied, it defaults to the current buffer.
@@ -405,10 +405,11 @@ supplied, it defaults to the current buffer.
 @end defun
 
 @defvar buffer-file-name
-This buffer-local variable contains the name of the file being visited
+This buffer-local variable contains the absolute name of the file being visited
 in the current buffer, or @code{nil} if it is not visiting a file.  It
 is a permanent local variable, unaffected by
-@code{kill-all-local-variables}.
+@code{kill-all-local-variables}.  The value is identical to the one
+which the @code{buffer-file-name} function returns.
 
 @example
 @group

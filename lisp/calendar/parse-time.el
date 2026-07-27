@@ -95,7 +95,11 @@ letters, digits, plus or minus signs or colons."
 			      ("mst" ,(* -7 3600)) ("mdt" ,(* -6 3600) t)
 			      ("cst" ,(* -6 3600)) ("cdt" ,(* -5 3600) t)
 			      ("est" ,(* -5 3600)) ("edt" ,(* -4 3600) t))
-  "(zoneinfo seconds-off daylight-savings-time-p)")
+  "List of some RFC 822 (or later) alphabetic time zones.
+
+Each entry is in the form (ABBR UTC-OFFSET DAYLIGHT-SAVING-TIME-P).
+As specified in the RFCs, a time zone abbreviation like \"PST\" retains
+its circa 1970 meaning even if legislation changes Pacific time.")
 
 (defvar parse-time-rules
   `(((6) parse-time-weekdays)
@@ -163,6 +167,8 @@ affect the returned value of date and time, they only affect the
 last two members of the returned value.  This function simply
 parses the textual representation of date and time into separate
 numerical values, and doesn't care whether the time is local or UTC.
+Also, alphabetic time zone abbreviations like \"PST\" have their
+circa 1970 meanings, even if current usage differs.
 
 See `decode-time' for the meaning of FORM."
   (condition-case ()

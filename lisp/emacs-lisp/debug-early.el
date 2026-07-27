@@ -115,8 +115,12 @@ available before `debug' was usable.)"
 
 (defalias 'debug-early--handler         ;Called from C.
   #'(lambda (err)
-      (if backtrace-on-error-noninteractive
-          (debug--early err #'debug-early--handler))))
+      ;; Do the same `inhibit-debugger' dance as we do in
+      ;; `(maybe_)call_debugger' to avoid nested debugging (bug#80916).
+      (if (and backtrace-on-error-noninteractive
+               (not inhibit-debugger))
+          (let ((inhibit-debugger t))
+            (debug--early err #'debug-early--handler)))))
 
 (defalias 'debug-early--muted           ;Called from C.
   #'(lambda (err)

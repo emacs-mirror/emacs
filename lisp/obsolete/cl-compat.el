@@ -177,8 +177,4 @@
 
 (provide 'cl-compat)
 
-;; Local variables:
-;; byte-compile-warnings: (not cl-functions)
-;; End:
-
 ;;; cl-compat.el ends here

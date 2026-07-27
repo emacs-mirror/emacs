@@ -694,7 +694,7 @@ happens in interactive invocations.
 When calling from Lisp, use nil or a positive number as the value
 of INTERACTIVE to enable `lexical-binding', a negative number to
 disable it."
-  (interactive "p")
+  (interactive "@p")
   (let* ((disable-lexbind (or (and (numberp interactive)
                                    (< interactive 0))
                               (if current-prefix-arg t)))
@@ -2618,11 +2618,12 @@ Calls REPORT-FN directly."
             (generate-new-buffer " *checkdoc-temp*")))
       (unwind-protect
           (save-excursion
-            ;; checkdoc-current-buffer can error if there are
-            ;; unbalanced parens, for example, but this shouldn't
-            ;; disable the backend (bug#29176).
-            (ignore-errors
-              (checkdoc-current-buffer t)))
+            (without-restriction
+              ;; checkdoc-current-buffer can error if there are
+              ;; unbalanced parens, for example, but this shouldn't
+              ;; disable the backend (bug#29176).
+              (ignore-errors
+                (checkdoc-current-buffer t))))
         (kill-buffer checkdoc-diagnostic-buffer)))
     (funcall report-fn
              (cl-loop for (text start end _unfixable) in

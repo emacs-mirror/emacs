@@ -150,7 +150,7 @@ When `project-ignores' includes a name matching project dir."
   "Check that it picks up dir-locals settings from somewhere else."
   (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
   (let* ((dir (ert-resource-directory))
-         (_ (vc-file-clearprops dir))
+         (_ (project--clear-cache))
          (project-vc-extra-root-markers '(".dir-locals.el"))
          (project (project-current nil dir)))
     (should-not (null project))
@@ -181,7 +181,7 @@ When `project-ignores' includes a name matching project dir."
   "Check that it applies project-vc-ignores when DIR is external to root."
   (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
   (let* ((dir (ert-resource-directory))
-         (_ (vc-file-clearprops dir))
+         (_ (project--clear-cache))
          ;; Do not detect VC backend.
          (project-vc-backend-markers-alist nil)
          (project-vc-extra-root-markers '("configure.ac"))
@@ -258,5 +258,80 @@ When `project-ignores' includes a name matching project dir."
                      '(".dir-locals" "etc")))
       (should (equal (sort (mapcar #'xref-item-summary matches) #'string<)
                      '("((nil . ((project-vc-ignores . (\"etc\")))))" "etc"))))))
+
+(ert-deftest project-try-vc-uses-cache ()
+  "Check that it reuses the value that's already cached."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  ;; Prepare
+  (let* ((dir (file-name-directory project-tests--this-file))
+         (_ (project--clear-cache))
+         (project-vc-extra-root-markers '("files-x-tests.*"))
+         (project (project-current nil dir)))
+    (should (nth 1 project))
+    (should (string-match-p "/test/lisp/\\'" (project-root project)))
+    (let* ((project-vc-extra-root-markers nil)
+           (project-vc-non-essential-cache-timeout 0.1)
+           (project-cached (project-current nil dir)))
+      (should (equal project project-cached)))))
+
+(ert-deftest project-try-vc-invalidates-cache ()
+  "Check that it invalidates the cached value that's too old."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  ;; Prepare
+  (let* ((dir (file-name-directory project-tests--this-file))
+         (_ (project--clear-cache))
+         (project-vc-extra-root-markers '("files-x-tests.*"))
+         (project (project-current nil dir)))
+    (should (nth 1 project))
+    (should (string-match-p "/test/lisp/\\'" (project-root project)))
+    (let* ((project-vc-extra-root-markers nil)
+           (project-vc-non-essential-cache-timeout 0.0)
+           (project-fresh (project-current nil dir)))
+      (should (file-equal-p
+               (project-root project-fresh)
+               (expand-file-name "../../../" dir))))))
+
+(ert-deftest project-name-<vc>-reuses-cache ()
+  "Check that it reuses the cached value."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (project--clear-cache)
+  (ert-with-temp-directory dir
+    (write-region "((nil . ((project-vc-name . \"barbaz\"))))"
+                  nil
+                  (expand-file-name ".dir-locals.el" dir))
+    (write-region "" nil (expand-file-name "project-marker" dir))
+    (let* ((project-vc-extra-root-markers '("project-marker"))
+           (project (project-current nil dir)))
+      (should (equal (project-name project)
+                     "barbaz"))
+      (let* ((project-vc-extra-root-markers nil)
+             (project-vc-non-essential-cache-timeout 0))
+        ;; No change, even if the corresponding cache expired.
+        (should (equal (project-name project)
+                       "barbaz"))))))
+
+(ert-deftest project-name-<vc>-obeys-cache-invalidation ()
+  "Check that project-name cache obeys invalidation in project-try-vc."
+  (skip-unless (eq (vc-responsible-backend default-directory) 'Git))
+  (project--clear-cache)
+  (ert-with-temp-directory dir
+    (write-region "((nil . ((project-vc-name . \"barbaz\"))))"
+                  nil
+                  (expand-file-name ".dir-locals.el" dir))
+    (write-region "" nil (expand-file-name "project-marker" dir))
+    (let* ((project-vc-extra-root-markers '("project-marker"))
+           (project (project-current nil dir)))
+      (should (equal (project-name project)
+                     "barbaz"))
+      (delete-file (expand-file-name ".dir-locals.el" dir))
+      (let* ((project-vc-non-essential-cache-timeout 0)
+             (project-fresh (project-current nil dir)))
+        ;; Same project root.
+        (should (equal project project-fresh))
+        ;; But the name is refreshed.
+        (should (not (equal (project-name project) "barbaz")))
+        (should (equal (project-name project)
+                       (file-name-nondirectory
+                        (directory-file-name dir))))))))
 
 ;;; project-tests.el ends here

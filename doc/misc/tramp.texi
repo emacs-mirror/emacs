@@ -6973,7 +6973,7 @@ If the same @var{function} shall be used for different @value{tramp}
 backends, @code{tramp-add-external-operation} must be called for every
 backend, respectively.
 
-The optional argument @var{arg-type} specisfies, which argument of
+The optional argument @var{arg-type} specifies, which argument of
 @var{operation} shall be used in order to determine, whether the
 handler @var{function} should be called.  It can be
 
@@ -6988,6 +6988,10 @@ checked.  This is the default, if @var{arg-type} is @code{nil}.
 @item @code{process}@*
 @code{default-directory} of the process buffer of the first argument
 of @var{operation}, a process, is the remote file name to be checked.
+
+@item @code{tramp-file-name}@*
+The @code{tramp-file-name} structure of the first argument of
+@var{operation} is the remote file name to be checked.
 @end itemize
 
 If the first argument of @var{operation} is nil,
@@ -7011,6 +7015,26 @@ The example above could be changed like this:
 (tramp-add-external-operation
  #'my-test-operation #'my-handle-test-operation 'tramp-sh
  #'my-file-name-for-test-operation)
+@end group
+@end lisp
+@end defun
+
+@defun tramp-external-operation-p operation backend
+This checks, whether @value{tramp}'s backend @var{backend} supports
+external @var{operation}.  It returns the function registered as
+handler, or @code{nil}.  Example:
+
+@lisp
+@group
+(tramp-external-operation-p
+ #'my-test-operation 'tramp-sh)
+@result{} my-handle-test-operation
+@end group
+
+@group
+(tramp-external-operation-p
+ #'my-test-operation 'tramp-gvfs)
+@result{} nil
 @end group
 @end lisp
 @end defun

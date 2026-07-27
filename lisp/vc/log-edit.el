@@ -1367,15 +1367,73 @@ entry."
 	  (if (setq entry (assoc key log-entries))
 	      (setcdr entry (append (cdr entry) (list file)))
 	    (push (list key file) log-entries)))))
-    ;; Now map over log-entries, and extract the strings.
-    (dolist (log-entry (nreverse log-entries))
-      (apply 'log-edit-changelog-insert-entries
-	     (append (car log-entry) (cdr log-entry)))
-      (insert "\n"))
+    ;; Check whether all log entries come from the same ChangeLog file.
+    (if (length= (seq-uniq (mapcar #'caar log-entries)) 1)
+        ;; If so, extract the commit message in toto from that file.
+        (log-edit-insert-changelog-entry (caaar log-entries))
+      ;; Otherwise, map over the entries constructed from each ChangeLog
+      ;; file used, and extract the strings.
+      (dolist (log-entry (nreverse log-entries))
+        (apply 'log-edit-changelog-insert-entries
+               (append (car log-entry) (cdr log-entry)))
+        (insert "\n")))
     ;; No newline after the last entry.
     (when log-entries
       (delete-char -1))
     log-edit-author))
+
+(declare-function vc-deduce-fileset "vc")
+
+(defun log-edit-insert-changelog-entry (buffer)
+  "Use body of ChangeLog entry in BUFFER as commit message.
+Insert the body of the latest entry in the ChangeLog file that BUFFER is
+visiting into the \"*vc-log*\" buffer.  If the first line of the body
+does not begin with \"* \", move it to the Summary header in the
+\"*vc-log*\" buffer, thus making is the summary line of the commit
+message.
+
+If the set of files listed in the ChangeLog entry differs from the set
+of files with changes to commit according to VC, display a warning
+urging the user to correct this discrepancy before committing the
+changes."
+  (let (summary beg end files-in-changelog)
+    (with-current-buffer buffer
+      (save-restriction
+        (log-edit-narrow-changelog)
+        (setq summary (let ((s (buffer-substring-no-properties
+                               (pos-bol) (pos-eol))))
+                        (and (string-match "^\t\\([^*].+\\)$" s)
+                             (match-string 1 s)))
+              beg (or (and summary (forward-line)
+                           (skip-syntax-forward "\s-")
+                           (goto-char (pos-bol)))
+                      (point))
+              end (point-max))
+        ;; List of changed files according to the ChangeLog entry.
+        (save-excursion
+          (let* ((bfn (buffer-file-name buffer))
+                 (bn (buffer-name))
+                 (fnd (or (and bfn (file-name-directory bfn))
+                          ;; If ChangeLog buffer is not visiting a file,
+                          ;; extract the directory from the buffer name.
+                          (and
+                           (string-match "\\`\\*changes to \\(.+\\)\\*\\'" bn)
+                           (match-string 1 bn)))))
+            (while (re-search-forward "\t\\* \\([^ :\n]+\\)[ :\n]" nil t)
+              (let ((fn (concat fnd (match-string-no-properties 1))))
+                (when (file-exists-p fn)
+                  (push fn files-in-changelog))))))))
+    (log-edit-changelog-insert-entries buffer beg end)
+    (when summary (log-edit-set-header "Summary" summary))
+    (unless (seq-set-equal-p
+             (save-current-buffer
+               (nth 2 (vc-deduce-fileset nil nil 'state-model-only-files)))
+             files-in-changelog)
+      (display-warning
+       'log-edit
+       "Files in ChangeLog entry differ from files with changes to commit!
+Remove this discrepancy before committing the changes by adjusting as
+appropriate either the ChangeLog entry or the selection of files to commit."))))
 
 (defun log-edit-toggle-header (header value)
   "Toggle a boolean-type header in the current buffer.

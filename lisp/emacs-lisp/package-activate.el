@@ -208,8 +208,6 @@ called via `package-activate-all'.  To change which packages are
 loaded and/or activated, customize `package-load-list'.")
 (put 'package-alist 'risky-local-variable t)
 
-;;;; Public interfaces for accessing built-in package info
-
 ;;;###autoload
 (defvar package-activated-list nil
   ;; FIXME: This should implicitly include all builtin packages.

@@ -304,6 +304,9 @@ modified FORM."
   (let ((new-form (macroexp--posify-form-1 form call-pos 10)))
     (or new-form form)))
 
+(defvar macroexp-enable-preserve-posification t
+  "Whether to attach position of a macro call to the expanded form.")
+
 (defmacro macroexp-preserve-posification (pos-form &rest body)
   "Evaluate BODY..., posifying the result with POS-FORM's position, if any.
 If the result of body happens to have a position already, we do not
@@ -316,7 +319,7 @@ change this."
                     ((symbol-with-pos-p ,pos-form)
                      (symbol-with-pos-pos ,pos-form))))
          (new-value (progn ,@body)))
-     (if (and call-pos
+     (if (and macroexp-enable-preserve-posification call-pos
               (not (or (and (consp new-value)
                             (symbol-with-pos-p (car new-value)))
                        (and (symbol-with-pos-p new-value)))))

@@ -480,18 +480,18 @@ _GL_CXXALIASWARN (chmod);
 #   define fchmodat rpl_fchmodat
 #  endif
 _GL_FUNCDECL_RPL (fchmodat, int,
-                  (int fd, char const *file, mode_t mode, int flag),
-                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_NODISCARD);
+                  (int fd, char const *file, mode_t mode, int flags),
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (fchmodat, int,
-                  (int fd, char const *file, mode_t mode, int flag));
+                  (int fd, char const *file, mode_t mode, int flags));
 # else
 #  if !@HAVE_FCHMODAT@
 _GL_FUNCDECL_SYS (fchmodat, int,
-                  (int fd, char const *file, mode_t mode, int flag),
-                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_NODISCARD);
+                  (int fd, char const *file, mode_t mode, int flags),
+                  _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (fchmodat, int,
-                  (int fd, char const *file, mode_t mode, int flag));
+                  (int fd, char const *file, mode_t mode, int flags));
 # endif
 _GL_CXXALIASWARN (fchmodat);
 #elif defined GNULIB_POSIXCHECK
@@ -542,7 +542,7 @@ _GL_WARN_ON_USE (fstat, "fstat has portability problems - "
 _GL_FUNCDECL_RPL (fstatat, int,
                   (int fd, char const *restrict name, struct stat *restrict st,
                    int flags),
-                  _GL_ARG_NONNULL ((2, 3)));
+                  _GL_ARG_NONNULL ((3)));
 _GL_CXXALIAS_RPL (fstatat, int,
                   (int fd, char const *restrict name, struct stat *restrict st,
                    int flags));
@@ -551,7 +551,7 @@ _GL_CXXALIAS_RPL (fstatat, int,
 _GL_FUNCDECL_SYS (fstatat, int,
                   (int fd, char const *restrict name, struct stat *restrict st,
                    int flags),
-                  _GL_ARG_NONNULL ((2, 3)));
+                  _GL_ARG_NONNULL ((3)));
 #  endif
 _GL_CXXALIAS_SYS (fstatat, int,
                   (int fd, char const *restrict name, struct stat *restrict st,
@@ -966,18 +966,18 @@ _GL_CXXALIASWARN (umask);
 #   define utimensat rpl_utimensat
 #  endif
 _GL_FUNCDECL_RPL (utimensat, int, (int fd, char const *name,
-                                   struct timespec const times[2], int flag),
-                                  _GL_ARG_NONNULL ((2)));
+                                   struct timespec const times[2], int flags),
+                  );
 _GL_CXXALIAS_RPL (utimensat, int, (int fd, char const *name,
-                                   struct timespec const times[2], int flag));
+                                   struct timespec const times[2], int flags));
 # else
 #  if !@HAVE_UTIMENSAT@
 _GL_FUNCDECL_SYS (utimensat, int, (int fd, char const *name,
-                                   struct timespec const times[2], int flag),
-                                  _GL_ARG_NONNULL ((2)));
+                                   struct timespec const times[2], int flags),
+                  );
 #  endif
 _GL_CXXALIAS_SYS (utimensat, int, (int fd, char const *name,
-                                   struct timespec const times[2], int flag));
+                                   struct timespec const times[2], int flags));
 # endif
 # if __GLIBC__ >= 2 && @HAVE_UTIMENSAT@
 _GL_CXXALIASWARN (utimensat);

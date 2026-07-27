@@ -236,7 +236,9 @@ A value of `default' means to use the value of `vc-resolve-conflicts'."
   (setq file (expand-file-name file))
   (let*
       ((status nil)
-       (default-directory (file-name-directory file))
+       (root (vc-hg-root file))
+       (file (file-relative-name file root))
+       (default-directory root)
        (out
         (with-output-to-string
           (with-current-buffer
@@ -446,15 +448,15 @@ the log starting from that revision."
              ;; commits from all branches are included in the log.
              (cond ((not (stringp limit))
                     (format "-r%s:0" start))
-                   ((memq vc-log-view-type '(log-outgoing
-                                             log-unintegrated))
+                   ((cl-intersection vc-log-view-types
+                                     '(log-outgoing log-unintegrated))
                     (format "-rreverse(only(%s, %s))" start limit))
                    (t
                     (format "-r%s:%s & !%s" start limit limit)))
 	     (nconc
               (and (numberp limit)
                    (list "-l" (format "%s" limit)))
-              (and (eq vc-log-view-type 'with-diff)
+              (and (memq 'with-diff vc-log-view-types)
                    (list "-p"))
 	      (if shortlog
                   `(,@(and vc-hg-log-graph '("--graph"))
@@ -471,8 +473,7 @@ the log starting from that revision."
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (let ((shortp (memq vc-log-view-type
-                      '(short log-incoming log-outgoing log-unintegrated))))
+  (let ((shortp (memq 'short vc-log-view-types)))
    (setq-local log-view-file-re regexp-unmatchable)
    (setq-local log-view-per-file-logs nil)
    (setq-local log-view-message-re
@@ -1159,11 +1160,11 @@ hg binary."
         (t
          ;; We can't simply decrement by 1, because that revision might
          ;; be e.g. on a different branch (bug#22032).
-         (with-temp-buffer
-           (and (zerop (vc-hg-command t nil nil "id" "-n"
-                                      "-r" (concat rev "~1")))
-                ;; Trim the trailing newline.
-                (buffer-substring (point-min) (1- (point-max))))))))
+         (with-output-to-string
+           (vc-hg-command standard-output 0 nil "log"
+                          "-r" (format "revset(%s~1)" rev)
+                          "--template" (if vc-use-short-revision
+                                           "{node|short}" "{node}"))))))
 
 (defun vc-hg-next-revision (_file rev)
   (let ((newrev (1+ (string-to-number rev)))
@@ -1527,6 +1528,8 @@ REV is the revision to check out into WORKFILE."
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
+(declare-function vc-dir-maybe-narrow-and-show-more-button "vc-dir")
+
 (defvar vc-hg--program-version nil)
 
 (defun vc-hg--program-version ()
@@ -1541,18 +1544,22 @@ REV is the revision to check out into WORKFILE."
                  (string-trim-right (match-string 1) "\\.")))))))
 
 (defun vc-hg-dir-status-files (dir files update-function)
+  (require 'vc-dir)
   ;; XXX: We can't pass DIR directly to 'hg status' because that
   ;; returns all ignored files if FILES is non-nil (bug#22481).
-  (let ((default-directory dir))
+  (let ((default-directory dir)
+        (limit vc-dir-process-output-limit))
     (set-process-query-on-exit-flag
      (apply #'vc-hg-command '(t nil) 'async files
             "status" (concat "-mardu" (if files "i")) "-C"
             (if (version<= "4.2" (vc-hg--program-version))
                 '("--config" "commands.status.relative=1")
               '("re:" "-I" ".")))
-     nil))
-  (vc-run-delayed-success 0
-    (vc-hg-after-dir-status update-function)))
+     nil)
+    (vc-run-delayed-success 0
+      (let ((vc-dir-process-output-limit limit))
+        (vc-dir-maybe-narrow-and-show-more-button)
+        (vc-hg-after-dir-status update-function)))))
 
 (defun vc-hg-dir-extra-headers (dir)
   "Generate extra status headers for a repository in DIR.
@@ -1625,7 +1632,7 @@ revisions, fetch only those revisions."
 		      (mapcar (lambda (arg) (list "-r" arg)) marked-list)))
       (let* ((root (vc-hg-root default-directory))
 	     (buffer (format "*vc-hg : %s*" (expand-file-name root)))
-	      ;; Disable pager.
+	     ;; Disable pager.
              (process-environment (cons "HGPLAIN=1" process-environment))
 	     (hg-program vc-hg-program)
 	     args)
@@ -1641,31 +1648,32 @@ revisions, fetch only those revisions."
 	  (setq hg-program (car  args)
 		command    (cadr args)
 		args       (cddr args)))
-	(set-process-query-on-exit-flag
-         (apply #'vc-do-async-command buffer root hg-program command args)
-         t)
-        (with-current-buffer buffer
-          (vc-run-delayed
-            (dolist (cmd post-processing)
-              (apply #'vc-do-command buffer nil hg-program nil cmd))
-            (vc-compilation-mode 'hg)
-            (setq-local compile-command
-                        (concat hg-program " " command " "
-                                (mapconcat #'identity args " ")
-                                (mapconcat (lambda (args)
-                                             (concat " && " hg-program " "
-                                                     (mapconcat #'identity
-                                                                args " ")))
-                                           post-processing "")))
-            (setq-local compilation-directory root)
-            ;; Either set `compilation-buffer-name-function' locally to nil
-            ;; or use `compilation-arguments' to set `name-function'.
-            ;; See `compilation-buffer-name'.
-            (setq-local compilation-arguments
-                        (list compile-command nil
-                              (lambda (_name-of-mode) buffer)
-                              nil))))
-	(vc-set-async-update buffer)))))
+        (let ((proc (apply #'vc-do-async-command buffer root hg-program
+                           command args)))
+          (set-process-query-on-exit-flag proc t)
+          (with-current-buffer buffer
+            (vc-run-delayed
+              (dolist (cmd post-processing)
+                (apply #'vc-do-command buffer nil hg-program nil cmd))
+              (vc-compilation-mode 'hg)
+              (setq-local compile-command
+                          (concat hg-program " " command " "
+                                  (mapconcat #'identity args " ")
+                                  (mapconcat (lambda (args)
+                                               (concat " && " hg-program " "
+                                                       (mapconcat #'identity
+                                                                  args " ")))
+                                             post-processing "")))
+              (setq-local compilation-directory root)
+              ;; Either set `compilation-buffer-name-function' locally to nil
+              ;; or use `compilation-arguments' to set `name-function'.
+              ;; See `compilation-buffer-name'.
+              (setq-local compilation-arguments
+                          (list compile-command nil
+                                (lambda (_name-of-mode) buffer)
+                                nil))))
+	  (vc-set-async-update buffer)
+          proc)))))
 
 (defun vc-hg-pull (prompt)
   "Issue a Mercurial pull command.
@@ -2001,9 +2009,9 @@ The return value is always a string."
   "Return `topic' or nil for BRANCH or the currently active bookmark.
 If BRANCH names a bookmark, or BRANCH is nil but there is a currently
 active bookmark, return `topic'.  Otherwise return nil."
-  (if branch
-      (member branch (vc-hg--bookmarks))
-    (and (assq 'bookmark (vc-hg--working-branch)) 'topic)))
+  (and (if branch (member branch (vc-hg--bookmarks))
+         (assq 'bookmark (vc-hg--working-branch)))
+       'topic))
 
 (defun vc-hg-topic-outgoing-base ()
   "Return outgoing base for current commit considered as a topic branch.
@@ -2014,7 +2022,12 @@ This is based on the following assumptions:
 (i) if there is an active bookmark, it will eventually be merged into
     whatever the remote head is
 (ii) there is only one remote head for the current branch."
-  (assq 'branch (vc-hg--working-branch)))
+  (cdr (assq 'branch (vc-hg--working-branch))))
+
+(declare-function vc-standard-log-outgoing "vc")
+
+(defun vc-hg-log-outgoing (buffer upstream-location)
+  (vc-standard-log-outgoing 'Hg buffer upstream-location 'skip-mergebase))
 
 (provide 'vc-hg)
 

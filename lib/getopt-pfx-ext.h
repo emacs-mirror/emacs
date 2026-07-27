@@ -58,6 +58,7 @@
 #ifndef __getopt_argv_const
 # if defined __GETOPT_PREFIX
 #  define __getopt_argv_const /* empty */
+#  define __getopt_argv_const_is_empty 1
 # else
 #  define __getopt_argv_const const
 # endif

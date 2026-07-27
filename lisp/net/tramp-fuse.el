@@ -108,11 +108,16 @@
 (defun tramp-fuse-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (insert-directory
-   (tramp-fuse-local-file-name filename) switches wildcard full-directory-p)
-  (goto-char (point-min))
-  (while (search-forward (tramp-fuse-local-file-name filename) nil 'noerror)
-    (replace-match filename)))
+  (with-tramp-progress-reporter
+      (tramp-dissect-file-name filename)
+      0 (format "Opening directory %s" filename)
+    (insert-directory
+     (tramp-fuse-local-file-name filename)
+     switches wildcard full-directory-p)
+    (goto-char (point-min))
+    (while
+	(search-forward (tramp-fuse-local-file-name filename) nil 'noerror)
+      (replace-match filename))))
 
 (defun tramp-fuse-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."

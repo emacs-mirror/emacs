@@ -1,9 +1,9 @@
 ;;; modus-operandi-tinted-theme.el --- Elegant, highly legible theme with a light ochre background -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2026 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2026  Free Software Foundation, Inc.
 
-;; Author: Protesilaos Stavrou <info@protesilaos.com>
-;; Maintainer: Protesilaos Stavrou <info@protesilaos.com>
+;; Author: Protesilaos <info@protesilaos.com>
+;; Maintainer: Protesilaos <info@protesilaos.com>
 ;; URL: https://github.com/protesilaos/modus-themes
 ;; Keywords: faces, theme, accessibility
 
@@ -86,5 +86,7 @@ which corresponds to a minimum contrast in relative luminance of
  'modus-themes-operandi-tinted-palette
  'modus-operandi-tinted-palette-user
  'modus-operandi-tinted-palette-overrides)
+
+(provide 'modus-operandi-tinted-theme)
 
 ;;; modus-operandi-tinted-theme.el ends here

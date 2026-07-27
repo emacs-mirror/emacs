@@ -3,7 +3,7 @@
    Contributed to the GNU project by Niels Möller
    Additional functionalities and improvements by Marco Bodrato.
 
-Copyright 1991-1997, 1999-2022 Free Software Foundation, Inc.
+Copyright 1991-1997, 1999-2026 Free Software Foundation, Inc.
 
 This file is part of the GNU MP Library.
 
@@ -2832,10 +2832,10 @@ mpz_gcd (mpz_t g, const mpz_t u, const mpz_t v)
     mpz_swap (tu, tv);
 
   tu->_mp_size = mpn_gcd (tu->_mp_d, tu->_mp_d, tu->_mp_size, tv->_mp_d, tv->_mp_size);
-  mpz_mul_2exp (g, tu, gz);
-
-  mpz_clear (tu);
   mpz_clear (tv);
+
+  mpz_mul_2exp (g, tu, gz);
+  mpz_clear (tu);
 }
 
 void
@@ -2969,6 +2969,7 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
   else
     mpz_setbit (t0, uz);
 
+  mpz_clear (tu);
   /* Now tv = odd part of gcd, and -s0 and t0 are corresponding
      cofactors. */
 
@@ -3005,13 +3006,19 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
      the one with smallest corresponding t (this asymmetric condition
      is needed to prefer s = 0, |t| = 1 when g = |a| = |b|). */
   mpz_add (s1, s0, s1);
-  mpz_sub (t1, t0, t1);
   cmp = mpz_cmpabs (s0, s1);
-  if (cmp > 0 || (cmp == 0 && mpz_cmpabs (t0, t1) > 0))
+  if (cmp >= 0)
     {
+      mpz_sub (t1, t0, t1);
+      if (cmp > 0 || mpz_cmpabs (t0, t1) > 0)
+      {
       mpz_swap (s0, s1);
       mpz_swap (t0, t1);
+      }
     }
+  mpz_clear (s1);
+  mpz_clear (t1);
+
   if (u->_mp_size < 0)
     mpz_neg (s0, s0);
   if (v->_mp_size < 0)
@@ -3023,12 +3030,9 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
   if (t)
     mpz_swap (t, t0);
 
-  mpz_clear (tu);
   mpz_clear (tv);
   mpz_clear (s0);
-  mpz_clear (s1);
   mpz_clear (t0);
-  mpz_clear (t1);
 }
 
 void
@@ -3081,6 +3085,7 @@ mpz_invert (mpz_t r, const mpz_t u, const mpz_t m)
 
   mpz_gcdext (g, tr, NULL, u, m);
   invertible = (mpz_cmp_ui (g, 1) == 0);
+  mpz_clear (g);
 
   if (invertible)
     {
@@ -3094,7 +3099,6 @@ mpz_invert (mpz_t r, const mpz_t u, const mpz_t m)
       mpz_swap (r, tr);
     }
 
-  mpz_clear (g);
   mpz_clear (tr);
   return invertible;
 }
@@ -3222,6 +3226,7 @@ mpz_powm (mpz_t r, const mpz_t b, const mpz_t e, const mpz_t m)
 	}
       while (bit > 0);
     }
+  mpz_clear (base);
 
   /* Final reduction */
   if (tr->_mp_size >= mn)
@@ -3235,7 +3240,6 @@ mpz_powm (mpz_t r, const mpz_t b, const mpz_t e, const mpz_t m)
 
   mpz_swap (r, tr);
   mpz_clear (tr);
-  mpz_clear (base);
 }
 
 void
@@ -3271,9 +3275,8 @@ mpz_rootrem (mpz_t x, mpz_t r, const mpz_t y, unsigned long z)
   }
 
   mpz_init (u);
-  mpz_init (t);
   bc = (mpz_sizeinbase (y, 2) - 1) / z + 1;
-  mpz_setbit (t, bc);
+  mpz_init_setbit (t, bc);
 
   if (z == 2) /* simplify sqrt loop: z-1 == 1 */
     do {
@@ -3339,12 +3342,23 @@ mpz_sqrt (mpz_t s, const mpz_t u)
 }
 
 int
-mpz_perfect_square_p (const mpz_t u)
+mpz_perfect_square_root (mpz_t r, const mpz_t u)
 {
   if (u->_mp_size <= 0)
-    return (u->_mp_size == 0);
+    {
+      int ret = u->_mp_size == 0;
+      if (r != NULL)
+	r->_mp_size = 0;
+      return ret;
+    }
   else
-    return mpz_root (NULL, u, 2);
+    return mpz_root (r, u, 2);
+}
+
+int
+mpz_perfect_square_p (const mpz_t u)
+{
+  return mpz_perfect_square_root (NULL, u);
 }
 
 int
@@ -3842,6 +3856,14 @@ mpz_combit (mpz_t d, mp_bitcnt_t bit_index)
     mpz_abs_sub_bit (d, bit_index);
   else
     mpz_abs_add_bit (d, bit_index);
+}
+
+void
+mpz_init_setbit (mpz_t r, mp_bitcnt_t b)
+{
+  mpz_init (r);
+  /* mpz_setbit (r, b); */
+  mpz_abs_add_bit (r, b);
 }
 
 void

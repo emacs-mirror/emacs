@@ -918,7 +918,9 @@ including those inserted into the diary from the calendar with
 (defconst diary-european-date-insertion-form '(day "/" month "/" year)
   "Pseudo-pattern for European dates in `diary-date-insertion-form'")
 
-(defconst diary-iso-date-insertion-form '(year "/" month "/" day)
+(defconst diary-iso-date-insertion-form '((format "%s-%.2d-%.2d" year
+                                                  (string-to-number month)
+                                                  (string-to-number day)))
   "Pseudo-pattern for ISO dates in `diary-date-insertion-form'")
 
 (defcustom diary-date-insertion-form

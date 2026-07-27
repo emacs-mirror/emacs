@@ -39,7 +39,7 @@ script like so:
 Replacing the paths in the command line above with:
 
   - the path to the `android.jar' headers which come with the Android
-    SDK.  They must correspond to Android version 16 (API level 36).
+    SDK.  They must correspond to Android version 17 (API level 37).
 
   - the path to the C compiler in the Android NDK, for the kind of CPU
     you are building Emacs to run on.
@@ -85,15 +85,10 @@ whose headers have been installed.  Each of these directories in turn
 includes the android.jar archive for that version of Android, also
 necessary for compiling Emacs.
 
-It is imperative that Emacs is compiled using the headers for the
-exact API level that it is written for.  This is currently API level
-35, so the correct android.jar archive is located within a directory
-whose name begins with `android-35'.  Minor revisions to the headers
-are inconsequential towards the Emacs compilation process; if there is
-a directory named `android-35-extN' (where N represents a revision to
-the Android SDK), whether you provide `configure' with that
-directory's android.jar or the android.jar contained within the
-directory named `android-35' is of no special importance.
+It is imperative that Emacs is compiled using the headers for the exact
+API level that it is written for.  This is currently API level 37, so
+the correct android.jar archive is located within a directory whose name
+begins with `android-37.0' or `android-37.1'.
 
 The ndk directory contains one subdirectory for each version of the
 Android NDK installed.  This directory in turn contains the C and C++
@@ -116,7 +111,8 @@ DEX format employed by Android.  There is one subdirectory for each
 version of the build tools, but the version you opt for is not of
 paramount significance: if your version does not work, configure will
 protest, so install a newer one.  We anticipate that most recent
-releases will work, such as those from the 35.0.x and 36.0.x series.
+releases will work, such as those from the 35.0.x, 36.0.x, and 37.0.x
+series.
 
 
 BUILDING WITH OLD NDK VERSIONS

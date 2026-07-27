@@ -444,6 +444,9 @@ characters, and removes all text properties.  It may also change
 @var{string}'s length.
 @end defun
 
+  To modify the text properties of a string, use the functions described
+in @ref{Changing Properties}.
+
 @need 2000
 @node Text Comparison
 @section Comparison of Characters and Strings

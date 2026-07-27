@@ -61,8 +61,10 @@ The recommended way to set this is with a `Local Variables:' list
 in the file it applies to.")
 ;;;###autoload(put 'outline-heading-end-regexp 'safe-local-variable 'stringp)
 
-(defvar outline-search-function nil
-  "Function to search the next outline heading.
+(defcustom outline-search-function nil
+  "If non-nil, the function to search the next outline heading.
+When nil, headings are found by searching for `outline-regexp'.
+
 The function is called with four optional arguments: BOUND, MOVE, BACKWARD,
 LOOKING-AT.  The first two arguments BOUND and MOVE are almost the same as
 the BOUND and NOERROR arguments of `re-search-forward', with the difference
@@ -71,7 +73,15 @@ BACKWARD is non-nil, the search should search backward like
 `re-search-backward' does.  In case of a successful search, the
 function should return non-nil, move point, and set match-data
 appropriately.  When the argument LOOKING-AT is non-nil, it should
-imitate the function `looking-at'.")
+imitate the function `looking-at'."
+  :type '(choice (const :tag "Use `outline-regexp'" nil)
+                 (function-item :tag "Search by `outline-regexp' (regexp-based)"
+                                outline-search-from-regexp)
+                 (function-item :tag "Search by `outline-level' text property"
+                                outline-search-level)
+                 (function :tag "Other function"))
+  :group 'outlines
+  :version "32.1")
 
 (defvar-keymap outline-mode-prefix-map
   "@"   #'outline-mark-subtree
@@ -86,7 +96,7 @@ imitate the function `looking-at'.")
   "C-t" #'outline-hide-body
   "C-a" #'outline-show-all
   "C-c" #'outline-hide-entry
-  "C-e" #'outline-show-entry
+  "C-e" #'outline-show-entry-and-parents
   "C-l" #'outline-hide-leaves
   "C-k" #'outline-show-branches
   "C-q" #'outline-hide-sublevels
@@ -130,8 +140,8 @@ imitate the function `looking-at'.")
     (define-key map [show outline-show-branches]
       '(menu-item "Show Branches" outline-show-branches
 		  :help "Show all subheadings of this heading, but not their bodies"))
-    (define-key map [show outline-show-entry]
-      '(menu-item "Show Entry" outline-show-entry
+    (define-key map [show outline-show-entry-and-parents]
+      '(menu-item "Show Entry" outline-show-entry-and-parents
 		  :help "Show the body directly following this heading"))
     (define-key map [show outline-show-all]
       '(menu-item "Show All" outline-show-all
@@ -1095,7 +1105,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 ;; `outline-flag-region').
 (defun outline-isearch-open-invisible (_overlay)
   ;; We rely on the fact that isearch places point on the matched text.
-  (outline-show-entry))
+  (outline-show-entry-and-parents))
 
 (defun outline-hide-entry ()
   "Hide the body directly following this heading."
@@ -1122,6 +1132,67 @@ Show the heading too, if it is currently invisible."
                          nil)))
 
 (define-obsolete-function-alias 'show-entry #'outline-show-entry "25.1")
+
+(defun outline-show-entry-and-parents ()
+  "Reveal the current entry and its parent hierarchy.
+This command ensures that the current entry, all of its ancestor
+headings, and their immediate sibling headings are visible.
+
+The function iteratively unfolds the children and body of the target
+entry until it is fully revealed.  If invoked when the point is inside
+a completely hidden subtree, it manages the visibility state to avoid
+leaving the buffer in an inconsistent layout.  This guarantees a safe
+and predictable visual expansion."
+  (interactive)
+  ;; Wrap in `save-match-data' because outline functions use regular
+  ;; expressions.  Without this, calling `outline-show-entry-and-parents'
+  ;; programmatically would clobber the caller's match data, leading to
+  ;; subtle, hard-to-trace bugs.
+  (save-match-data
+    ;; Repeatedly expand the outline structure at point from the outside
+    ;; in until the target text is fully visible.
+    ;;
+    ;; Think of this block as manually opening nested folds:
+    ;; - It checks whether the heading at point is folded.
+    ;; - If it is folded, it moves backward to that parent heading.
+    ;; - It opens the heading to reveal its text and subheadings.
+    ;; - It repeats this process layer by layer down to the target.
+    (let (heading-point
+          prior-heading-point)
+      (while (condition-case nil
+                 (save-excursion
+                   ;; Workaround: `outline-back-to-heading' throws an
+                   ;; `outline-before-first-heading' error if the
+                   ;; heading is on the first line (e.g., in
+                   ;; `markdown-ts-mode') and point is deep within the
+                   ;; hidden body of that folded first heading.
+                   (vertical-motion 0)
+                   ;; Navigate backward to the nearest visible heading
+                   (outline-back-to-heading)
+                   (setq heading-point (point))
+                   ;; Break the loop if we stop making progress,
+                   ;; preventing infinite recursion
+                   (if (eq heading-point prior-heading-point)
+                       ;; Break out of the loop
+                       nil
+                     (setq prior-heading-point heading-point)
+                     ;; Check if the heading is folded by inspecting the
+                     ;; end of the line
+                     (when (invisible-p (pos-eol))
+                       ;; Ignore errors to guarantee the target entry is
+                       ;; still revealed via `outline-show-entry' even
+                       ;; if a buggy third-party `outline-level'
+                       ;; function fails during child expansion.
+                       (ignore-errors (outline-show-children))
+
+                       ;; Show the body directly following this heading
+                       (outline-show-entry)
+
+                       ;; Return t to continue drilling down to the next
+                       ;; layer of the outline hierarchy
+                       t)))
+               (outline-before-first-heading
+                nil))))))
 
 (defun outline-hide-body ()
   "Hide all body lines in buffer, leaving all headings visible.
@@ -1313,7 +1384,7 @@ This also unhides the top heading-less body, if any."
 		(or first (> (funcall outline-level) level)))
       (setq first nil)
       (outline-next-heading))
-    (if (and (bolp) (not (eolp)))
+    (if (or (eobp) (and (bolp) (not (eolp))))
 	;; We stopped at a nonempty line (the next heading).
 	(outline--end-of-previous))))
 
@@ -1488,6 +1559,26 @@ The rest of arguments are described in `outline-search-function'."
               nil))
         (when move (goto-char (or bound (if backward (point-min) (point-max)))))
         nil))))
+
+
+;;; Search regexp for outline headings
+
+;;;###autoload
+(defun outline-search-from-regexp (&optional bound move backward looking-at)
+  "Search for the next heading matching `outline-regexp'.
+The arguments BOUND, MOVE, BACKWARD, and LOOKING-AT are described
+in `outline-search-function'.  This function is intended to be
+used in `outline-search-function' by modes and minor modes that
+customize `outline-regexp' but do not need a custom search strategy.
+Install it with
+
+  (setq-local outline-search-function #\\='outline-search-from-regexp)"
+  (if looking-at
+      (looking-at outline-regexp)
+    (funcall (if backward #'re-search-backward #'re-search-forward)
+             (concat "^\\(?:" outline-regexp "\\)")
+             bound
+             (if move 'move t))))
 
 
 (defun outline-headers-as-kill (beg end)

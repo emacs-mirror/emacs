@@ -2769,22 +2769,24 @@ is always true."
 
 (defvar completions--background-update-timer nil)
 
-(defun completions--background-update (force-eager-update)
+(defun completions--background-update (force-eager-update buffer)
   "Try to update *Completions* without blocking input.
 
 This function uses `while-no-input' and sets `non-essential' to t
 so that the update is less likely to interfere with user typing."
   (setq completions--background-update-timer nil)
-  (when (while-no-input
-          (let ((non-essential t))
-            (redisplay)
-            (cond
-             (completion-in-region-mode (completion-help-at-point t))
-             ((completions--should-show-p
-               (completion--field-metadata (minibuffer-prompt-end))
-               force-eager-update)
-              (minibuffer-completion-help))))
-          nil)
+  (when (and
+         (eq buffer (current-buffer))
+         (while-no-input
+           (let ((non-essential t))
+             (redisplay)
+             (cond
+              (completion-in-region-mode (completion-help-at-point t))
+              ((completions--should-show-p
+                (completion--field-metadata (minibuffer-prompt-end))
+                force-eager-update)
+               (minibuffer-completion-help))))
+           nil))
     ;; If we got interrupted, try again the next time the user is idle.
     (completions--start-background-update force-eager-update)))
 
@@ -2802,7 +2804,8 @@ If FORCE-EAGER-UPDATE is non-nil, we only check eager-display."
   (unless completions--background-update-timer
     (setq completions--background-update-timer
           (run-with-idle-timer
-           0 nil #'completions--background-update force-eager-update))))
+           0 nil #'completions--background-update
+           force-eager-update (current-buffer)))))
 
 (defun completions--start-eager-display ()
   "Maybe display the *Completions* buffer when the user is next idle.
@@ -4631,6 +4634,11 @@ filter out additional entries (because TABLE might not obey PRED)."
                      ;; Text that goes between the new submatches and the
                      ;; completion substring.
                      (between nil))
+          ;; SUBPAT was computed with point=(length substring); remove
+          ;; the trailing `point' since that's not the real location of
+          ;; point (bug#80914).
+          (cl-assert (eq (car (last subpat)) 'point))
+          (setq subpat (butlast subpat))
           ;; Eliminate submatches that don't end with the separator.
           (dolist (submatch (prog1 suball (setq suball ())))
             (when (eq sep (aref submatch (1- (length submatch))))
@@ -5088,12 +5096,14 @@ usual. Returns (ALL PAT PREFIX SUFFIX)."
         ;; to /usr/share/a/e just because we mistyped "ae" for "ar",
         ;; so we probably don't want initials to touch anything that
         ;; looks like /usr/share/foo.  As a heuristic, we just check that
-        ;; the text before the boundary char is at most 1 char.
-        ;; This allows both ~/eee and /eee and not much more.
+        ;; the previous completion field is empty.
+        ;; This allows ~/eee and /eee and /usr//eee and not much more.
         ;; FIXME: It sadly also disallows the use of ~/eee when that's
         ;; embedded within something else (e.g. "(~/eee" in Info node
         ;; completion or "ancestor:/eee" in bzr-revision completion).
-        (when (< (car bounds) 3)
+        (when (let ((str-without-last-field (substring str 0 (1- (car bounds)))))
+                (= (car (completion-boundaries str-without-last-field table pred ""))
+                   (length str-without-last-field)))
           (let ((sep (substring str (1- (car bounds)) (car bounds))))
             ;; FIXME: the above string-match checks the whole string, whereas
             ;; we end up only caring about the after-boundary part.

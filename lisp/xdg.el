@@ -346,10 +346,11 @@ which is expected to be ordered by priority as in
                     (forward-line)
                   (dolist (str (xdg-desktop-strings (match-string 1)))
                     (cl-pushnew str
-                                (cond ((eq sec ?D) defaults)
-                                      ((eq sec ?A) added)
-                                      ((eq sec ?R) removed)
-                                      ((eq sec ?M) cached))
+                                (pcase-exhaustive sec
+                                  (?D defaults)
+                                  (?A added)
+                                  (?R removed)
+                                  (?M cached))
                                 :test #'equal))
                   (while (and (zerop (forward-line))
                               (/= (following-char) ?\[)))))))

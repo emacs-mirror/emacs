@@ -44,7 +44,6 @@
 #  --avoid=c32toupper \
 #  --avoid=chmod \
 #  --avoid=close \
-#  --avoid=crypto/af_alg \
 #  --avoid=dup \
 #  --avoid=fchdir \
 #  --avoid=fstat \
@@ -265,6 +264,7 @@ DBUS_OBJ = @DBUS_OBJ@
 DEFS = @DEFS@
 DESLIB = @DESLIB@
 DIR_HAS_FD_MEMBER = @DIR_HAS_FD_MEMBER@
+DOCLANGS = @DOCLANGS@
 DOCMISC_W32 = @DOCMISC_W32@
 DUMPING = @DUMPING@
 DYNAMIC_LIB_SECONDARY_SUFFIX = @DYNAMIC_LIB_SECONDARY_SUFFIX@

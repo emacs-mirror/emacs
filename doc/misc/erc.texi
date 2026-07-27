@@ -76,12 +76,24 @@ Getting Started
 * Sample Session::              Example of connecting to the @samp{#emacs} channel
 * Special Features::            Differences from standalone IRC clients
 
+Advanced Module Topics
+
+* Scope: Module Scope.          Differences between module types.
+* Loading: Module Loading.      How ERC loads modules.
+* Example: Module Example.      An example module.
+* Usage: Module Usage.          How to use specific modules.
+
+Individual Modules
+
+* Settings: Settings Module.    Per-buffer configuration.
+
 Advanced Usage
 
 * Connecting::                  Ways of connecting to an IRC server.
 * SASL::                        Authenticating via SASL.
 * Sample Configuration::        An example configuration file.
 * Integrations::                Integrations available for ERC.
+* Match API::                   Custom matching and highlighting.
 * Options::                     Options that are available for ERC.
 
 @end detailmenu
@@ -136,7 +148,6 @@ ERC comes with the following capabilities enabled by default.
 
 @node Getting Started
 @chapter Getting Started
-@cindex settings
 
 The command @kbd{M-x erc} will start ERC and prompt for the server to
 connect to.  If you're unsure of which server or network to connect
@@ -544,6 +555,10 @@ Scroll to the bottom of the buffer
 @item services
 Identify to Nickserv (IRC Services) automatically
 
+@cindex modules, settings
+@item settings
+Apply options locally per-buffer (@pxref{Settings Module})
+
 @cindex modules, smiley
 @item smiley
 Convert smileys to pretty icons
@@ -615,9 +630,19 @@ so demands special precautions to avoid degrading the user experience.
 At present, the only such module is @code{networks}, whose library ERC
 always loads anyway.
 
+@c Advanced module topics and individual module usage.
+@menu
+* Scope: Module Scope.          Differences between module types.
+* Loading: Module Loading.      How ERC loads modules.
+* Example: Module Example.      An example module.
+* Usage: Module Usage.          How to use specific modules.
+@end menu
+
 @anchor{Local Modules}
-@subheading Local Modules
+@node Module Scope
+@section Scope
 @cindex local modules
+@cindex module scope
 
 @c Earlier language in code comments, commit messages, and tracker
 @c discussions used to describe a local module as being "active" in a
@@ -698,10 +723,8 @@ buffers belonging to their connection (when called interactively).  And
 unlike global toggles, none of these ever mutates @code{erc-modules}.
 
 
-@c FIXME add section to Advanced chapter for creating modules, and
-@c move this there.
-@anchor{Module Loading}
-@subheading Loading
+@node Module Loading
+@section Loading
 @cindex module loading
 
 ERC loads internal modules in alphabetical order and third-party
@@ -755,7 +778,623 @@ Customize into displaying the widget for @code{erc-modules}
 incorrectly, with built-in modules moved from the predefined checklist
 to the user-provided free-form area.
 
+@node Module Example
+@section Example
+@cindex module example
+
+This is a walkthrough of a working module, presented in sections.
+If you'd prefer to view it as a whole, you can install it as a
+third-party package through ERC's devel archive:
+@uref{https://emacs-erc.gitlab.io/bugs/archive/erc-view.html}.
+
+@lisp
+;;; erc-view.el -- Automatic view-mode for ERC -*- lexical-binding: t; -*-
+
+;; Maintainer: The ERC Maintainers <emacs-erc@@gnu.org>
+;; Keywords: convenience
+;; Version: 0.1
+;; Package-Requires: ((emacs "30.1"))
+;; URL: https://gitlab.com/emacs-erc/erc-view
+
+;;; Commentary:
+
+;; This is a demo local module for ERC.  It automatically enables
+;; `view-mode' when leaving the prompt area and disables it when
+;; reentering.  It also ensures `view-mode' stays enabled or disabled
+;; when reconnecting.
+
+;;; Code:
+@end lisp
+
+@noindent
+You need to import ERC's main library somehow.  The easiest way is
+directly, via a simple @code{(require 'erc)}, although this module does
+so indirectly because it also uses definitions from @file{erc-goodies}:
+
+@lisp
+(require 'erc-goodies)
+(require 'view)
+@end lisp
+
+@noindent
+Avoid headaches by aligning the name of your module with its containing
+library and Custom group: one group and module per library.
+
+@lisp
+(defgroup erc-view nil
+  "Automatically enter and exit `view-mode' in ERC."
+  :version "0.1"
+  :group 'erc)
+
+(defcustom erc-view-enable-when-exiting-prompt t
+  "Whether to enable `view-mode' when exiting the prompt area."
+  :type 'boolean)
+
+(defcustom erc-view-disable-when-entering-prompt t
+  "Whether to disable `view-mode' when entering the prompt area."
+  :type 'boolean)
+
+(defcustom erc-view-backspace-at-prompt-scrolls-down t
+  "Whether a \\`<backspace>' at the prompt scrolls down to enter `view-mode'."
+  :type 'boolean)
+
+(defvar-local erc-view--enabled-p nil
+  "Current reconnect-aware activation state of `view-mode'.")
+@end lisp
+
+@noindent
+In some cases, you may need a variable's value to survive the
+reinitialization of ERC's @code{major-mode} performed in each buffer
+upon reconnecting.  Do this by leveraging the @code{permanent-local}
+symbol property.  (@pxref{Creating Buffer-Local,,,elisp,}.)  Also see
+the mini-section after this example for a few caveats regarding the
+durability of permanent values like this.
+
+@lisp
+(put 'erc-view--enabled-p 'permanent-local t)
+@end lisp
+
+Moving on, if your module needs to bind keys, define its keymap
+@emph{before} the module itself, and use the standard minor-mode naming
+convention of @code{erc-my-module-mode-map}.
+
+@lisp
+(defvar-keymap erc-view-mode-map
+  :doc "Keymap for `view-mode' in ERC."
+  "<remap> <delete-backward-char>" #'erc-view--enable-on-backspace)
+
+(defvar-keymap erc-view-mode-overriding-map
+  :parent view-mode-map
+  :doc "Overriding keymap for `view-mode' when `erc-view-mode' is active.
+Hitting \\`<RET>' atop a button prompts for an action by default.  Use
+\\`C-j' or \\`j' for scrolling up by a line."
+  "C" nil ; View-kill-and-leave
+  "E" #'erc-view--exit-to-bottom ; View-exit-and-edit
+  "Q" nil ; View-quit-all
+  "k" #'View-scroll-line-backward ; Vi backwards line
+  "j" #'View-scroll-line-forward ; Vi forwards line
+  "S-<return>" #'View-scroll-line-backward)
+@end lisp
+
+You'll almost always want to define your module as buffer-local.  Do
+this by including a @code{localp} flag as the final parameter to
+@code{define-erc-module}, after the @dfn{disable body}.  If your module
+only operates in one kind of buffer, disable it elsewhere in the
+@dfn{enable body}.  For example, if it should only run in server
+buffers, disable it in target buffers by doing something like @code{(if
+(erc-target) (erc-my-module-mode -1) (erc-my-module--setup))}.  And in
+all cases, do mention the module's intended @dfn{scope} in the doc
+string.  Some informal adjectives that may help with that are:
+
+@itemize
+@item query-local
+@item channel-local
+@item target-local (query or channel)
+@item server-local
+@item session-local (server and target)
+@item buffer-local (server or target)
+@end itemize
+
+@noindent
+You may also wish to mention this in the Custom group's doc string.
+
+@lisp
+(define-erc-module view nil
+  "Use `view-mode' for reading and navigating \"scrollback\".
+If enabling, restore `view-mode' activation state.
+
+Note that if paired with the `scrolltobottom' module, the option
+`erc-scrolltobottom-all' should probably be enabled.  This module is
+buffer-local."
+  ((add-hook 'view-mode-hook #'erc-view--remember 0 t)
+   (add-hook 'post-command-hook #'erc-view--enforce-prompt-boundary 0 t)
+   (setf (alist-get 'view-mode minor-mode-overriding-map-alist)
+         erc-view-mode-overriding-map)
+   (unless (local-variable-p 'erc-view--enabled-p)
+     (setq-local erc-view--enabled-p nil))
+   (view-mode (if erc-view--enabled-p +1 -1)))
+  ((kill-local-variable 'erc-view--enabled-p)
+   (remove-hook 'post-command-hook #'erc-view--enforce-prompt-boundary t)
+   (remove-hook 'view-mode-hook #'erc-view--remember t)
+   (setf (alist-get 'view-mode minor-mode-overriding-map-alist nil 'remove)
+         nil))
+  localp)
+@end lisp
+
+Always define your module early, before any code that refers to its mode
+command or minor-mode variable.
+
+@lisp
+(defun erc-view--enable-on-backspace (lines)
+  "Enable `view-mode' at the prompt by hitting \\`<backspace>'."
+  (interactive "P")
+  (if (and erc-view-backspace-at-prompt-scrolls-down (not view-mode)
+           (= (point) erc-input-marker))
+      (progn
+        (view-mode +1)
+        (View-scroll-page-backward lines))
+    (call-interactively #'delete-backward-char)))
+
+(defun erc-view--enforce-prompt-boundary ()
+  "Enable or disable `view-mode' when crossing prompt boundary."
+  (when-let*
+      ((new (if (>= (point) erc-input-marker)
+                (and view-mode erc-view-disable-when-entering-prompt -1)
+              (and (not view-mode) erc-view-enable-when-exiting-prompt +1))))
+    (run-at-time 0 nil (lambda (buffer new)
+                         (with-current-buffer buffer (view-mode new)))
+                 (current-buffer) new)))
+
+(defun erc-view--exit-to-bottom ()
+  "Scroll to prompt, exit `view-mode', and move to EOB."
+  (interactive)
+  (let (view-no-disable-on-exit)
+    (View-scroll-to-buffer-end)
+    (View-exit)
+    (goto-char (point-max))))
+
+(defun erc-view--remember ()
+  "Remember the value of `view-mode'.
+Disable `erc-move-to-prompt-setup' locally when `view-mode' is enabled."
+  (setq erc-view--enabled-p view-mode)
+  (when erc-move-to-prompt-mode
+    (if view-mode
+        (remove-hook 'pre-command-hook #'erc-move-to-prompt t)
+      (erc-move-to-prompt-setup))))
+@end lisp
+
+Don't forget to @code{provide} your module so that
+@code{erc-update-modules} can find it.
+
+@lisp
+(provide 'erc-view)
+
+;;; erc-view.el ends here
+
+@end lisp
+Mimicking the above should just about cover most use cases.  If your
+module isn't loading correctly, it's likely a naming, layout, or
+packaging issue.  If you @emph{must} defy the convention recommended
+earlier regarding a library-group-module correspondence or if you've
+designed your module mainly to be toggled interactively rather than
+added to @code{erc-modules}, try placing a line like the following above
+the module's definition.
+
+@lisp
+;;;###autoload(autoload 'erc-my-module-mode "erc-my-module" nil t)
+@end lisp
+
+@noindent
+Just remember, doing so means you'll need to (re)generate the autoload
+file when hacking locally (@pxref{Fetching Package Sources,,, emacs,}).
+
+@subsection Nuances Regarding Local Module State
+By convention, disabling a module's minor mode kills local bindings.
+Mode commands, like @code{erc-view-mode}, do so in the current buffer
+only, while unidirectional ones, like @code{erc-view-mode-disable}, do
+so connection-wide if given a prefix argument.
+
+There are also occasions in which the persistence of a buffer-local
+variable is undefined, most notably during a @dfn{transplant}, when
+copying an old buffer's contents into its replacement buffer.  This
+crude merge operation can occur, for example, in server buffers upon
+@dfn{logical connection} (at @samp{MOTD}'s end) if a user reconnects
+with a new invocation of an entry-point command, like @code{erc-tls},
+instead of via the auto-reconnect facility or by issuing a
+@samp{/reconnect} at the prompt.  (Unaffected are entry-point
+invocations that include an @code{:id} keyword because reassociation
+happens immediately in such cases, before ERC even initializes any
+modules.)
+
+Transplants can also happen in target buffers, most often after a user
+reconnects under a new nick and conducts business in the same channel
+and query buffers, only to renick @emph{back} to the previous nick via a
+@samp{/nick oldme} or similar.  As of version 5.7, ERC retains the
+current buffer's permanent value in all such situations, meaning ERC
+ignores permanent values from previous buffers and retains default ones
+assigned during module initialization.  Package authors needing access
+to these internal transplant junctures should make a case on the mailing
+list or the bug tracker.
+
+
 @c PRE5_4: Document every option of every module in its own subnode
+@node Module Usage
+@section Usage
+@cindex individual modules
+@cindex module usage
+
+Detailed documentation on individual built-in modules.
+
+@menu
+* Settings: Settings Module.          Scoped user options.
+@end menu
+
+@node Settings Module
+@subsection Settings
+@cindex settings
+
+This global module lets you apply ERC options on a per-buffer basis as
+local variable bindings (@pxref{Buffer-Local Variables,,, elisp,}).  It
+consists of a single @dfn{meta option}:
+
+@defopt erc-settings
+An alist where each key is a @dfn{match condition} and each value a list
+of bindings that loosely resembles a @code{let}-style @var{varlist}.
+The first element of each binding is the variable of a user option and
+the second an arbitrary sexp assigned to it locally in all matching
+buffers.  You can tell ERC to evaluate a given sexp as a Lisp form
+before assigning it by including a trailing third element: the
+@dfn{modifier flag} @code{:eval}.
+
+A match condition specifies when and whether ERC should apply each group
+of bindings.  These resemble @code{buffer-match-p} conditions, with two
+major differences (@pxref{Buffer List,,, elisp,}).  The first is that
+predicate conditions don't take any arguments.  Instead, ERC runs them
+with the candidate buffer current.  The second difference is that the
+assortment of associative cons-cell conditions is completely new.  Gone
+are @code{major-mode}, @code{category}, etc.  In their place, ERC offers
+the following:
+
+@itemize
+@item @code{(network . @samp{<symbol>})}
+@item @code{(id . @samp{<symbol>})}
+@item @code{(name . @samp{<string>})}
+@item @code{(target . @samp{<string or nil>})}
+@end itemize
+
+The associated @code{cdr} values for the @code{network} and @code{id}
+conditions are symbols identifying the current IRC network and the
+@dfn{network context}, respectively.  When first connecting, a
+@code{network} condition is always @code{nil}, but an @code{id}
+condition can be non-@code{nil} if you supply a matching @var{ID}
+argument to an entry-point command, like @code{erc-tls} (@pxref{Network
+Identifier}).
+
+Additionally, ERC also recognizes @code{buffer-match-p}'s boolean
+operations and constants:
+
+@itemize
+@item @code{(and @samp{<condition...>})}
+@item @code{(or @samp{<condition...>})}
+@item @code{(not @samp{<condition>})}
+@item @code{t}
+@item @code{nil}
+@end itemize
+
+Also valid are regular expressions and nullary predicates:
+
+@itemize
+@item @code{"<some regexp>"}
+@item @code{<predicate symbol>}
+@end itemize
+
+@end defopt
+
+@noindent
+Here's a contrived @code{erc-settings} value containing seven entries,
+the first of which has two assignments:
+
+@lisp
+(((and (network . Libera.Chat)          ; buffers #emacs,
+       "\\`#emacs")                     ; #emacs-foo, etc.,
+  (my-own-variable 42)                  ; on Libera.Chat only
+  (erc-foo ""))
+
+ ((or (target . "#chan")                ; buffers #chan, bob,
+      (target . "bob"))                 ; chan@@Libera.Chat,
+  (erc-foo (erc-current-nick) :eval))   ; bob@@OFTC, etc.
+
+ (erc-open-server-buffer-p (erc-bar 1)) ; connected server buffers
+ (erc-query-buffer-p (erc-bar 2))       ; query buffers only
+ (erc-channel-buffer-p (erc-bar 3))     ; channel buffers only
+ (erc-target (erc-bar 4))               ; query or channel buffers
+ (t (erc-bar 5)))                       ; any `erc-mode' buffer
+@end lisp
+
+@noindent
+Unfortunately, predicate functions too dissimilar from those in the last
+hunk above may not work in all match contexts due to the interaction
+between this module and ERC's rather convoluted major-mode setup.  While
+the only way to know for sure is to try them, selecting them becomes
+much easier if you can gain a sense for when exactly @samp{settings}
+attempts to create bindings:
+
+@itemize
+@item
+In server buffers
+@enumerate
+@item
+before ERC enables any modules or sets any local variables
+@item
+after establishing a logical IRC connection and learning what network
+it's connected to
+@end enumerate
+
+@item
+In target buffers
+@enumerate
+@item
+before enabling any modules, but only if you're overriding
+@code{erc-modules} and, only then, for that option alone
+@item
+after ERC has set most of its default local variables and run
+global-module setup but before running major-mode hooks or local-module
+setup
+@end enumerate
+@end itemize
+
+The main downside of this staggered approach is that @samp{settings}
+skips any bindings for variables that already have a local binding
+rather than do the intuitive thing and simply clobber them.  The reason
+for this is to retain a consistent state between a global module's minor
+mode setup and any local-module setup or major-mode hooks.  They must
+all witness the same value for the same variable.
+
+Revisiting the phony example above with this precedence quirk in mind,
+notice that the made-up variable @code{erc-bar} will be @code{2} in
+query buffers, @code{3} in channel buffers, and @code{5} in server
+buffers.  It's never @code{1} because the first binding opportunity
+occurs before connecting, when @code{erc-open-server-buffer-p} returns
+@code{nil}.  It's likewise never @code{4} because that binding appears
+lower in the list than those for @code{2} and @code{3}.  For more on
+this behavior, see the very last example below.
+
+When it comes to binding the option @code{erc-modules}, @samp{settings}
+must make special accommodations.  Getting it right may take some trial
+and error, and it's only guaranteed to work for local modules because
+most global ones share state among all sessions.  However, it's fine to
+include global modules in an @code{erc-modules} binding as long as they
+also appear in the @code{default-value}.  To set @code{erc-modules} for
+a specific server buffer, specify an entry like
+
+@lisp
+("[.]libera[.]chat:"
+ (erc-modules (seq-union '(sasl keep-place-indicator) erc-modules)
+              :eval)
+ (erc-sasl-user :nick))
+@end lisp
+
+@noindent
+Here, the match condition is a regexp matching a dialed @acronym{TCP}
+address because server buffers typically have these as temporary names
+while connecting.  As mentioned, ERC later renames them to reflect a
+discovered network, after which @samp{settings} binds any matching
+unbound options.
+
+A session's target buffers normally share the @code{erc-modules} value
+bound locally in their server buffer.  To specify a separate, overriding
+set of modules for certain target buffers, use a condition that only
+applies to them:
+
+@lisp
+((and (network . Libera.Chat) erc-channel-buffer-p)
+ (erc-modules (seq-union '(fill-wrap) erc-modules) :eval))
+@end lisp
+
+@noindent
+This is often unnecessary because local modules that only operate in one
+kind of buffer tend to disable themselves elsewhere.  And some, like
+@samp{keep-place-indicator}, offer an option to restrict activation
+based on buffer type.
+
+@anchor{Settings Examples}
+@subsection Settings Examples
+@cindex settings, examples
+
+A typical setup might include configuration for two networks, one that
+uses @acronym{SASL} to authenticate and another that uses a server
+password.
+
+@lisp
+(setopt erc-modules
+        `(settings ,@@erc-modules) ; assuming `erc' is loaded
+
+        erc-settings
+        ;; Pre-connect and server buffer config for @samp{Libera.Chat}.
+        '(("libera\\.chat:"
+           (erc-prompt "Libera>")
+           (erc-autojoin-channels-alist ((Libera.Chat "##jrh")))
+           (erc-header-line-format "%n on %S (%m, %l)")
+           (erc-sasl-user :nick)
+           (erc-modules `(sasl ,@@erc-modules) :eval))
+
+          ;; Channel buffer config for @samp{Libera.Chat}.
+          ((and (network . Libera.Chat) erc-channel-buffer-p)
+           (erc-modules `(keep-place-indicator ,@@erc-modules) :eval)
+           (erc-prompt erc-prompt-format)
+           (erc-prompt-format "%c%b>")
+           (erc-header-line-format "%t: %o"))
+
+          ;; Query buffer configuration for any network.
+          (erc-query-buffer-p
+           (erc-prompt erc-prompt-format)
+           (erc-prompt-format "%S>")
+           (erc-header-line-format nil))
+
+          ;; Pre-connect and server-buffer config for @samp{OFTC}.
+          ("oftc\\.net:"
+           (erc-prompt "OFTC!")
+           (erc-modules `(nicks ,@@erc-modules) :eval))))
+@end lisp
+
+@noindent
+Note that the pre-connection config described in the last entry can't
+use the @dfn{global module} @samp{services} because it's incompatible
+with the @dfn{local module} @samp{sasl}, needed for Libera by the first
+entry.  In this scenario, instead of a server password, the @samp{OFTC}
+connection could alternatively use @dfn{CertFP} via auth-source (see
+next example).
+
+@anchor{ID-based Settings Example}
+@subsubsection ID-based
+@cindex settings, examples, id-based
+
+New users coming from traditional IRC clients often express a desire to
+store connection details alongside other per-network or per-connection
+configuration.  Although ERC was designed to keep these concerns
+separate, the @samp{settings} module can emulate that experience to some
+degree.
+
+@lisp
+(setopt erc-modules
+        `(settings ,@@erc-modules)
+
+        erc-settings
+        ;; Connection details common to both @samp{Libera.Chat} IDs.
+        '(((and (or (id . lib-jrh) (id . lib-jrbot))
+                (not erc-server-process-alive))
+           (erc-server "irc.libera.chat")
+           (erc-port 6697)
+           (erc-modules `(sasl ,@@erc-modules) :eval))
+
+          ;; Connection details for account @samp{jrh}.
+          ((and (id . lib-jrh) (not erc-server-process-alive))
+           (erc-nick "jrh")
+           (erc-user-full-name "J. Random Hacker")
+           (erc-email-userid "jrh")
+           (erc-autojoin-channels-alist ((lib-jrh "##jrh"))))
+
+          ;; Connection details for account @samp{jrbot}.
+          ((and (id . lib-jrbot) (not erc-server-process-alive))
+           (erc-nick "jrbot")
+           (erc-email-userid "jrbot")
+           (erc-user-full-name "J.R. Bot (jrh's bot)")
+           (erc-sasl-auth-source-function erc-auth-source-function)
+           (erc-autojoin-channels-alist ((lib-jrbot "##jrh" "##jrbot"))))
+
+          ;; Non-connection opts for both @samp{Libera.Chat} sessions.
+          ((and (network . Libera.Chat) erc-open-server-buffer-p)
+           (erc-prompt "libera>")
+           (erc-header-line-format "%n on %S (%m, %l)"))
+          ((and (network . Libera.Chat) erc-channel-buffer-p)
+           (erc-modules `(keep-place-indicator ,@@erc-modules) :eval)
+           (erc-prompt erc-prompt-format)
+           (erc-prompt-format "%c%b>")
+           (erc-header-line-format "%t: %o"))
+
+          ;; Server details for @samp{OFTC}.
+          ((and (id . oftc) (target . nil))
+           (erc-server "irc.oftc.net")
+           (erc-port 6697)
+           (erc-nick "jrh")
+           (erc-email-userid "jrh")
+           (erc-user-full-name "J. Random Hacker")
+           (network-stream-use-client-certificates t)
+           (erc-modules `(services-regain ,@@erc-modules) :eval)
+           (erc-prompt "jrh@@OFTC!"))))
+
+(defun my-erc-up (id)
+  "Connect to preconfigured session identified by ID."
+  (interactive "SNet id: ")
+  (erc-tls :server nil
+           :port nil
+           :nick nil
+           :user nil
+           :password nil
+           :full-name nil
+           :id network-id))
+@end lisp
+
+@noindent
+With a setup like the above, you can connect to a predefined session by
+supplying an identifying symbol, like @code{lib-jrh}, along with the
+@var{ID} keyword parameter to the entry-point command @code{erc-tls}.
+The main gotcha when using these identifiers is that a regexp targeting
+a dialed @acronym{TCP} address, like
+@code{"\\`irc[.]libera[.]chat:6697\\'"}, won't work for conditions like
+the first one above because server buffers receive permanent names
+immediately upon creation, long before connecting.  Instead, you'll want
+to specify a chosen identifier via the @samp{(id . <symbol>)} pattern
+and likely qualify it with another subcondition, like @code{(not
+erc-server-process-alive)}, to ensure that the @code{erc-modules}
+binding only matches the server buffer and not any target buffers.
+Equivalent qualifying subconditions would be @code{(not erc-target)} and
+@code{(target . nil)}.
+
+Regarding authentication, notice that the @samp{lib-jrbot} connection
+retrieves its @acronym{SASL} credentials, which might be a client
+certificate, via auth-source, while session @samp{lib-jrh} prompts you
+interactively for a password.  (@xref{SASL, SASL in ERC}.)  The
+@samp{oftc} connection also uses auth-source to supply its credentials,
+this time for non-@acronym{SASL} client-cert (@dfn{CertFP})
+authentication.  Lastly, in the scenario above, a user would need to run
+@kbd{M-x my-erc-up @key{RET}} instead of @kbd{M-x erc @key{RET}} when
+connecting to IRC.  For convenience, ERC provides a similar command:
+
+@defun erc-settings-connect-by-id network-id
+Prompt the user and provide completion for some @samp{(id . <symbol>)}
+appearing in their @code{erc-settings}, and specify it as the argument
+to the @var{ID} keyword parameter when invoking @code{erc-tls}.
+@end defun
+
+With both traditional and ID-based setups, it's often more convenient to
+define less exclusive, more ``overlapping'' match conditions:
+
+@lisp
+(use-package erc-settings
+  :custom
+  (erc-settings
+   '(((not erc-server-process-alive) ; common to all servers
+      (erc-nick "jrh")
+      (erc-port 6697)
+      (erc-email-userid "jrh")
+      (erc-user-full-name "J. Random Hacker"))
+
+     (erc-channel-buffer-p ; all channels
+      (erc-modules `(keep-place-indicator ,@@erc-modules) :eval))
+
+     ((id . id-libera) ; Libera.Chat only, including targets
+      (erc-server "irc.libera.chat")
+      (erc-sasl-password "changeme")
+      (erc-modules `(sasl ,@@erc-modules) :eval)
+      (erc-prompt erc-prompt-format)
+      (erc-autojoin-channels-alist ((id-foonet "#erc"))))
+
+     ((id . id-oftc) ; OFTC only, including targets
+      (erc-server "irc.oftc.net")
+      (erc-modules `(fill-wrap ,@@erc-modules) :eval)
+      (erc-autojoin-channels-alist ((id-barnet "##jrh")))))))
+@end lisp
+
+If you go this route, know that @samp{settings} will often create local
+bindings in buffers where they're not applicable.  In the above example,
+buffer @file{#erc} on @samp{Libera.Chat} will have @code{erc-server} and
+@code{erc-sasl-password} bound locally for no reason.  In most cases,
+this is perfectly harmless.
+
+A final thing to notice about the example above is that the
+@code{erc-modules} binding in the second group, the one with match
+condition @code{erc-channel-buffer-p}, effectively @dfn{shadow}s that
+same variable in all remaining settings affecting channel buffers.  If
+it instead appeared at the end of the list, ERC would skip its
+@code{erc-modules} binding because the variable would already be locally
+bound.  But, as is, both @file{##jrh} on @samp{OFTC} and @file{#erc} on
+@samp{Libera.Chat} activate @samp{keep-place-indicator} but not
+@samp{fll-wrap}.  Server buffer @file{id-oftc} has only @samp{fll-wrap},
+and server buffer @file{id-libera} has neither.  And, if you were to
+receive a query from @samp{alice} on @samp{OFTC}, buffer @file{alice}
+would only have @samp{fill-wrap} but not @samp{keep-place-indicator}
+because it's a non-channel on @samp{OFTC}.
 
 
 @node Advanced Usage
@@ -767,6 +1406,7 @@ to the user-provided free-form area.
 * SASL::                        Authenticating via SASL.
 * Sample Configuration::        An example configuration file.
 * Integrations::                Integrations available for ERC.
+* Match API::                   Custom matching and highlighting.
 * Options::                     Options that are available for ERC.
 
 @detailmenu
@@ -1262,6 +1902,11 @@ authenticate successfully.
 
 @item
 Multiple networks
+
+If you use the @samp{settings} module, introduced in ERC 5.7, please
+refer to that section's guide for a more modern, config-based approach
+to specifying buffer-local @acronym{SASL} options (@pxref{Settings
+Examples}).
 
 @example
 # ~/.authinfo.gpg
@@ -2100,6 +2745,322 @@ All keys are symbols, as are values, unless otherwise noted.
 @end itemize
 @end itemize
 @end table
+
+@node Match API
+@section Match API
+@cindex low-level match
+
+This section describes the low-level @samp{match} @acronym{API}
+introduced in ERC 5.7.  For basic configuration help, please see the doc
+strings for option @code{erc-pal-highlight-type} and friends in the
+@code{erc-match} group.  Unfortunately, those options often prove
+insufficient for more granular filtering and highlighting needs, and
+advanced users may come to outgrow them.  However, under the hood, those
+options all use the same foundational @code{erc-match} API, which
+centers around a @code{cl-defstruct} @dfn{type} of the same name:
+
+@deftp {Struct} erc-match @
+  predicate spkr-beg spkr-end body-beg sender nick command handler newlinep
+
+  This is a @code{cl-struct} type that contains some handy facts about
+  the message being processed.  That formatted message occupies the
+  narrowed buffer when ERC creates and provides access to each
+  @code{erc-match} instance.  To use this interface, you add a
+  @dfn{constructor}-like function to the hook
+  @code{erc-match-functions}:
+
+  @defopt erc-match-functions
+
+  An abnormal hook for which each member function accepts the parameters
+  named above as an @samp{&rest}-style plist and returns a new
+  @code{erc-match} instance.  Conforming to this interface are, of
+  course, traditional constructors automatically provided by a
+  @code{cl-defstruct} definition derived from @code{erc-match}, such as
+  @samp{make-my-match} for some @dfn{subtype} @samp{my-match}.
+
+  @end defopt
+
+  The only slot you definitely need to specify is @samp{predicate}.
+  Both it and @samp{handler} are functions that take a single argument:
+  the instance itself.  As its name implies, @samp{predicate} must
+  return non-@code{nil} if @samp{handler}, whose return value ERC
+  ignores, should run.
+
+  A few slots, like @samp{spkr-beg}, @samp{spkr-end}, and @samp{nick},
+  may surprise you.  The first two are null for non-chat messages, like
+  those displayed for @samp{JOIN} events.  The @samp{nick} slot can
+  likewise be @code{nil} if the sender of the message is a domain-style
+  host name, such as @samp{irc.example.org}, which it often is for
+  informational messages, like @samp{*** #chan was created on 2023-12-26
+  00:36:42}.  This includes, for example, server-sent @samp{NOTICE}s and
+  @samp{221} user-mode changes.
+
+  To locate the start of the just-inserted message, use slot
+  @samp{body-beg}, a marker indicating the beginning of the message
+  proper.  Locating the end depends on whether the narrowed buffer
+  includes a trailing newline, which it does if the slot @samp{newlinep}
+  is non-nil.  If you want to extract just the message body's text, use
+  the function @code{erc-match-get-message-body}:
+
+  @defun erc-match-get-message-body match
+
+  Takes an @code{erc-match} instance and returns a string containing the
+  message body, sans trailing newline and any leading speaker or
+  decorative component, such as @code{erc-notice-prefix}.  The match
+  buffer must be current.
+
+  @end defun
+
+@end deftp
+
+@noindent
+Unless you're writing a module, there's often no need to subclass
+@code{erc-match}.  For everyday tasks or simple customizations in your
+@file{init.el}, you can often just instantiate it directly (it's
+@dfn{concrete}).  To do this, define a function that invokes its
+constructor:
+
+@lisp
+(require 'erc-match)
+
+(defvar my-mentions 0)
+
+(defun my-match (&rest plist)
+  (apply #'erc-match
+         :predicate (lambda (_) (search-forward "my-project" nil t))
+         :handler (lambda (_) (cl-incf my-mentions))
+         plist))
+
+(add-hook 'erc-match-functions #'my-match)
+(setopt erc-prompt (lambda () (format "%d!" my-mentions)))
+@end lisp
+
+@noindent
+Here, the user could just as well shove the incrementer into the
+@samp{predicate} body, since @samp{handler} is set to @code{ignore} by
+default (however, some frown at the notion of a predicate exhibiting
+side effects).  The user could also choose to concentrate only on chat
+content by filtering out non-@samp{PRIVMSG} messages via the slot
+@samp{command}.
+
+In cases where you need a handler to only run when some other match type
+appearing earlier in @code{erc-match-functions} has _not_ yielded a
+match, use:
+
+@defun erc-match-get-match constructor
+
+When called from a @samp{handler} or a @samp{predicate} body, this
+utility returns the @code{erc-match} instance from the last successful
+match by @code{erc-match-functions} member @var{constructor} for the
+current message.  Use this for deduplication and to share data between
+match instances.
+
+@end defun
+
+@noindent
+For a detailed example of matching for non-highlighting purposes, see
+the @samp{jabbycat} demo module, available on ERC's dev-oriented package
+archive: @uref{https://emacs-erc.gitlab.io/bugs/archive/jabbycat.html}.
+If you're in a hurry, check out @file{erc-desktop-notifications.el},
+which ships with ERC.  Just be aware that it's full of potentially
+confusing compatibility-related fuss you'll want to ignore, such as
+adapting the global setup and teardown business to a buffer-local
+context.  (New modules most likely adhere to the modern convention of
+being defined as @code{local} in order to allow things like adding local
+members to @code{erc-match-functions} in their @dfn{enable body}.)
+
+@anchor{highlighting}
+@subsection Highlighting
+@cindex highlighting
+
+Module authors and normal users alike will often want to manage and
+apply faces themselves.  If that's you, feel free to skip to the more
+extensive examples in the subsection below.  However, for the sake of
+completeness, it's worth mentioning that (especially in a pinch) you can
+likely piggyback atop the highlighting functionality already provided by
+@samp{match} to support its traditional high-level options.
+
+@lisp
+(require 'erc-match)
+
+(defvar my-keywords
+  `((foonet ("#chan" ,(rx bow (or "foo" "bar" "baz") eow)))))
+
+(defface my-face
+  '((t (:inherit font-lock-constant-face :weight bold)))
+  "My face.")
+
+(defun my-match (&rest plist)
+  (apply #'erc-match-opt-keyword
+         :data (and-let* ((chans (alist-get (erc-network) my-keywords)))
+                 (cdr (assoc (erc-target) chans)))
+         :face 'my-face
+         plist))
+
+(add-hook 'erc-match-functions #'my-match)
+@end lisp
+
+@noindent
+Here, the user leverages a handy subtype of @code{erc-match}, called
+@code{erc-match-opt-keyword}, which actually descends directly from
+another, intermediate @code{erc-match} type:
+
+@deftp {Struct} erc-match-traditional category face data part
+
+Use this type or one of its descendants (see below) if you want
+@code{erc-text-matched-hook} to run right after the @samp{handler}
+slot's default highlighter, @code{erc-match-highlight}, on every match
+for which the @samp{category} slot's value is non-@code{nil} (it becomes
+the argument provided for the hook's @var{match-type} parameter).
+
+The @samp{part} slot determines what portion of the message is being
+highlighted or otherwise operated on.  It can be any symbol, but the
+ones with predefined methods are @code{nick}, @code{message},
+@code{all}, @code{keyword}, @code{nick-or-keyword}, and
+@code{nick-or-mention}.
+
+Accompanying the @samp{part} slot is @samp{data}, which holds the value
+of the module's option corresponding to the specific type.  For example,
+ERC initializes the @samp{data} slot for the @code{erc-match-opt-pal}
+type with the value of @code{erc-pals}.
+
+The default handler, @code{erc-match-highlight}, does its work by
+deferring to a purpose-built @dfn{method} meant to handle
+@samp{part}-based highlighting:
+
+@defop {Method} erc-match-traditional erc-match-highlight-by-part @
+  instance part
+
+  You can override this method by @dfn{specializing} on any subclassed
+  @code{erc-match-traditional} type and/or non-reserved @var{part}, such
+  as one known only to your @file{init.el} or (informally) associated
+  with your package by its library @dfn{namespace}.
+
+@end defop
+
+Note that when the handler runs, the narrowed buffer contains a trailing
+newline after the inserted message because, unlike with a normal
+@code{erc-match} object, the @samp{newlinep} slot is non-nil.
+
+@end deftp
+
+@noindent
+You likely won't be needing these, but just for the record, other
+options-based types similar to @code{erc-match-opt-keyword} include
+@code{erc-match-opt-current-nick}, @code{erc-match-opt-fool},
+@code{erc-match-opt-pal}, and @code{erc-match-opt-dangerous-host}.  (If
+you're familiar with this module's user options, you'll notice some
+parallels here.)
+
+@anchor{highlighting examples}
+@subsubsection Complete Highlighting Examples
+@cindex highlighting examples
+
+As mentioned, most users needn't bother with the piggybacking approach
+detailed above, which can oftentimes be more complicated than starting
+afresh.  Here's a more elaborate, module-like example demoing some
+highlighting with a custom @code{erc-match}-derived type.  It's a
+superficial rewrite of @file{erc-colorize.el} by Sylvain Rousseau
+@uref{https://github.com/thisirs/erc-colorize.git}.
+
+@lisp
+;;; erc-colorize.el --- Per-user message faces -*- lexical-binding: t; -*-
+
+(require 'ring)
+(require 'erc-match)
+(require 'erc-button) ; for `erc-button-add-face'
+
+(defgroup erc-colorize nil
+  "Highlight messages with per-user faces from a limited pool."
+  :group 'erc)
+
+(defface erc-colorize-1 '((t :inherit font-lock-keyword-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-2 '((t :inherit font-lock-type-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-3 '((t :inherit font-lock-string-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-4 '((t :inherit font-lock-constant-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-5 '((t :inherit font-lock-preprocessor-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-6 '((t :inherit font-lock-variable-name-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defface erc-colorize-7 '((t :inherit font-lock-warning-face))
+  "Auto-assigned face for distinguishing between messages.")
+
+(defvar erc-colorize-faces '(erc-colorize-1
+                             erc-colorize-2
+                             erc-colorize-3
+                             erc-colorize-4
+                             erc-colorize-5
+                             erc-colorize-6
+                             erc-colorize-7)
+  "List of faces to apply to chat messages.")
+
+(defvar-local erc-colorize-ring nil
+  "Ring of cons cells of the form (NICK . FACE).")
+
+(define-erc-module colorize nil
+  "Highlight messages from a speaker with the same face in target buffers."
+  ((when (erc-target)
+     (add-hook 'erc-match-functions 'erc-colorize 0 t)
+     (setq erc-colorize-ring (make-ring (length erc-colorize-faces)))))
+  ((remove-hook 'erc-match-functions 'erc-colorize t))
+  localp)
+
+(defun erc-colorize-color (ring nick)
+  "Return a face to use for string NICK.
+Prefer an existing entry in RING.  If there isn't one, pick the first
+unused face in `erc-colorize-faces'.  Otherwise, pick the least used
+face."
+  (or
+   (and-let* ((i (catch 'found
+                   (dotimes (i (ring-length ring))
+                     (when (equal (car (ring-ref ring i)) nick)
+                       (throw 'found i))))))
+     (ring-insert ring (ring-remove ring i))
+     (cdr (ring-ref ring 0)))
+   (let ((used (mapcar #'cdr (ring-elements ring))))
+     (and-let* ((face (catch 'found
+                        (dolist (face erc-colorize-faces)
+                          (unless (member face used)
+                            (throw 'found face))))))
+       (prog1 face
+         (ring-insert ring (cons nick face)))))
+   (let ((older (ring-remove ring)))
+     (ring-insert ring (cons nick (cdr older)))
+     (cdr older))))
+
+(cl-defstruct (erc-colorize ( :include erc-match
+                              (predicate #'erc-colorize-nick)
+                              (handler #'erc-colorize-message))
+                            (:constructor erc-colorize))
+  "An `erc-match' type for the `erc-colorize' module.")
+
+(defun erc-colorize-message (match)
+  "Highlight MATCH's full message with a face from `erc-colorize-faces'."
+  (erc-button-add-face (point-min) (point-max)
+                       (erc-colorize-color erc-colorize-ring
+                                           (erc-colorize-nick match))))
+
+(provide 'erc-colorize)
+
+;;; erc-colorize.el ends here
+@end lisp
+
+@noindent
+Finally, for an even more thorough example in the form of a package,
+check out @uref{https://emacs-erc.gitlab.io/bugs/archive/erc-link.html},
+which demos some good practices for integrating with other modules and
+passing data from predicate to handler.
+
 
 @node Options
 @section Options

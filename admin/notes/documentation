@@ -145,6 +145,10 @@ This results in clickable Lisp symbols when the NEWS file is visited via
 follow this rule, like 'TAB' or ':type'.  Exception: the symbols t and
 nil are not quoted.
 
+Key names are embedded in angle brackets like '<LEFT>', except keys that
+have a special shorthand syntax: 'NUL', 'RET', 'TAB', 'LFD', 'ESC',
+'SPC' and 'DEL'.
+
 Arguments of a function are written in capital letters LIKE-THIS, and they
 are not quoted.
 

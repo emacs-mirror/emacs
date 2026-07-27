@@ -221,7 +221,7 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
    in *ST, if this platform suffers from a macOS and Solaris bug where
    tv_nsec might be negative.  Return the adjusted RESULT, setting
    errno to EOVERFLOW if normalization overflowed.  This function
-   is intended to be private to this .h file.  */
+   is intended to be private to Gnulib.  */
 _GL_STAT_TIME_INLINE int
 stat_time_normalize (int result, _GL_UNUSED struct stat *st)
 {

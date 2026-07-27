@@ -794,9 +794,8 @@ This is needed if there are compatibility problems."
   (interactive)
   ;; We expect just one Tramp package is installed.
   (when-let*
-      ((dir (tramp-compat-funcall
-	     'package-desc-dir
-	     (car (alist-get 'tramp (bound-and-true-p package-alist))))))
+      ((dir (tramp-compat-funcall 'package-desc-dir
+	      (car (alist-get 'tramp (bound-and-true-p package-alist))))))
     (dolist (elc (directory-files dir 'full (rx ".elc" eos)))
       (delete-file elc))
     (with-current-buffer (get-buffer-create byte-compile-log-buffer)

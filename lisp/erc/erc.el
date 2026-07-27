@@ -188,6 +188,9 @@ as of ERC 5.6:
  - `erc--skip': list of symbols known to modules that indicate an
     intent to skip or simplify module-specific processing
 
+ - `erc--pfx': function taking no args that advances point to the
+    start of the semantic body
+
  - `erc--ephemeral': a symbol prefixed by or matching a module
     name; indicates to other modules and members of modification
     hooks that the current message should not affect stateful
@@ -2013,6 +2016,10 @@ buries those."
                     (target (buffer-local-value 'erc--target target))
                     ((erc--target-channel-p target)))))))
 
+(defun erc-channel-buffer-p (&optional buffer)
+  "Call `erc-channel-p' with BUFFER or the current buffer."
+  (erc-channel-p (or buffer (current-buffer))))
+
 ;; For the sake of compatibility, a historical quirk concerning this
 ;; option, when nil, has been preserved: all buffers are suffixed with
 ;; the original dialed host name, which is usually something like
@@ -2407,6 +2414,7 @@ removed modules.  It also gives packages access to the hook
            scrolltobottom)
     (const :tag "services: Identify to Nickserv (IRC Services) automatically"
            services)
+    (const :tag "settings: Set ERC user options buffer locally" settings)
     (const :tag "smiley: Convert smileys to pretty icons" smiley)
     (const :tag "sound: Play sounds when you receive CTCP SOUND requests"
            sound)
@@ -2493,6 +2501,11 @@ This means that when a dependent module is initializing and
 realizes it's missing some required module \"foo\", it can
 confidently call (erc-foo-mode 1) without having to learn
 anything about the dependency's implementation.")
+
+(defvar erc--set-modules-functions nil
+  "Abnormal hook run before updating modules on major-mode init.
+Calls members with ID and TARGET parameters of `erc-open', both possibly
+nil, along with a non-nil TARGET's server buffer when applicable.")
 
 (defvar erc--setup-buffer-hook '(erc--warn-about-aberrant-modules)
   "Internal hook for module setup involving windows and frames.")
@@ -2649,14 +2662,15 @@ side effect of setting the current buffer to the one it returns.  Use
     (when connect (run-hook-with-args 'erc-before-connect server port nick))
     (set-buffer buffer)
     (setq old-point (point))
+    (delay-mode-hooks (erc-mode))
+    (run-hook-with-args 'erc--set-modules-functions id channel
+                        (and channel old-buffer))
     (setq delayed-modules
           (erc--merge-local-modes (let ((erc--updating-modules-p t))
                                     (erc--update-modules
                                      (erc--sort-modules erc-modules)))
                                   (or erc--server-reconnecting
                                       erc--target-priors)))
-
-    (delay-mode-hooks (erc-mode))
 
     (setq erc-server-reconnect-count old-recon-count)
 
@@ -3269,11 +3283,13 @@ when present.  Assume NICK itself to be free of any text props,
 and return it."
   (cond (erc--msg-props
          (puthash 'erc--spkr nick erc--msg-props)
+         (puthash 'erc--pfx #'erc--pfx-skip-spkr-fwd erc--msg-props)
          (dolist (entry overrides)
            (puthash (car entry) (cdr entry) erc--msg-props)))
         (erc--msg-prop-overrides
          (setq erc--msg-prop-overrides
-               `((erc--spkr . ,nick) ,@overrides ,@erc--msg-prop-overrides))))
+               `((erc--spkr . ,nick) (erc--pfx . ,#'erc--pfx-skip-spkr-fwd)
+                 ,@overrides ,@erc--msg-prop-overrides))))
   nick)
 
 (defun erc-string-invisible-p (string)
@@ -3868,8 +3884,14 @@ retrieval by `text-properties-at' and friends."
 
 See also `erc-make-notice'."
   (cond ((eq type 'notice)
+         (when erc--msg-props
+           (puthash 'erc--pfx #'erc--pfx-skip-notice-fwd erc--msg-props))
          (erc-make-notice string))
         (t
+         (when (and erc--msg-props ; prefer notice if combined
+                    (not (erc--check-msg-prop 'erc--pfx
+                                              #'erc--pfx-skip-notice-fwd)))
+           (puthash 'erc--pfx #'erc--pfx-skip-template-fwd erc--msg-props))
          (erc-put-text-property
           0 (length string)
           'font-lock-face
@@ -6282,6 +6304,35 @@ Assume buffer is narrowed to the confines of an inserted message."
              (beg (text-property-not-all (point-min) (point-max)
                                          'erc--speaker nil)))
     (cons beg (next-single-property-change beg 'erc--speaker))))
+
+(defvar erc--ctcp-action-speaker-in-prefix-p nil
+  ;; This variable replaces `erc-fill--wrap-action-dedent-p' in ERC 5.6.
+  "Whether the speaker of a /ME is part of the prefix rather than the body.")
+
+;; Insertion hook members defer to the function value of the `erc--pfx'
+;; msg prop to find the "body" portion of a message after a prefix, such
+;; as a "<speaker> " tag, assuming the `erc--msg' prop isn't `unknown'.
+(defun erc--pfx-skip-word-fwd ()
+  "Go to a space following an initial run of non-space chars."
+  (unless (and (bobp) (eq ?\s (char-after (point))))
+    (search-forward " " (pos-eol) t)))
+
+(defun erc--pfx-skip-spkr-fwd ()
+  "Move point after the first space following the speaker tag.
+That's one char beyond the last with a `erc--speaker' text property."
+  (let ((bounds (erc--get-speaker-bounds)))
+    (when (or erc--ctcp-action-speaker-in-prefix-p
+              (not (erc--check-msg-prop 'erc--ctcp 'ACTION)))
+      (goto-char (cdr bounds)))
+    (search-forward " " (pos-eol) t)))
+
+(defun erc--pfx-skip-notice-fwd ()
+  "Move point past `erc-notice-prefix'."
+  (search-forward erc-notice-prefix (+ (point) (length erc-notice-prefix)) t))
+
+(defun erc--pfx-skip-template-fwd ()
+  "Skip common prefixes from the English format-template catalog."
+  (search-forward-regexp (rx bol (| "\n\n*** " "==> ")) (+ (point) 6) t))
 
 (defvar erc--cmem-from-nick-function #'erc--cmem-get-existing
   "Function maybe returning a \"channel member\" cons from a nick.

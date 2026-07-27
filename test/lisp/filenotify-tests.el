@@ -37,7 +37,7 @@
 ;; a respective command.  The first command found is used.  In order to
 ;; use a dedicated one, the environment variable
 ;; $REMOTE_FILE_NOTIFY_LIBRARY shall be set, possible values are
-;; "inotifywait", "gio", and "smb-notify".
+;; "inotifywait", "gio", "smb-notify" and "tramp-rpc".
 
 ;; Local file-notify libraries are auto-detected during Emacs
 ;; configuration.  This can be changed with a respective configuration
@@ -60,7 +60,7 @@
 
 ;; Filter suppressed remote file-notify libraries.
 (when (stringp (getenv "REMOTE_FILE_NOTIFY_LIBRARY"))
-  (dolist (lib '("inotifywait" "gio" "smb-notify"))
+  (dolist (lib '("inotifywait" "gio" "smb-notify" "tramp-rpc"))
     (unless (string-equal (getenv "REMOTE_FILE_NOTIFY_LIBRARY") lib)
       (add-to-list 'tramp-connection-properties `(nil ,lib nil)))))
 
@@ -255,11 +255,16 @@ must be a valid watch descriptor."
   ;; - GKqueueFileMonitor (gfilenotify and gio on FreeBSD)
   ;; - GPollFileMonitor (gio on cygwin)
   ;; - SMBSamba (smb-notify on Samba server)
-  ;; - SMBWindows (smb-notify on MS Windows).
+  ;; - SMBWindows (smb-notify on MS Windows)
+  ;; - TrampRPCinotify (tramp-rpc on GNU/Linux)
+  ;; - TrampRPCkqueue (tramp-rpc on FreeBSD)
+  ;; - TrampRPCfsevent (tramp-rpc on macOS)
+  ;; - TrampRPCpoll (tramp-rpc).
   (if file-notify--test-desc
       (or (alist-get file-notify--test-desc file-notify--test-monitors)
           (when (member
-                 (file-notify--test-library) '("gfilenotify" "gio" "smb-notify"))
+                 (file-notify--test-library)
+                 '("gfilenotify" "gio" "smb-notify" "tramp-rpc"))
 	    (add-to-list
 	     'file-notify--test-monitors
 	     (cons file-notify--test-desc
@@ -884,18 +889,15 @@ delivered."
                '(GFamFileMonitor GFamDirectoryMonitor
                  GKqueueFileMonitor GPollFileMonitor))
          '())
-	;; For GInotifyFileMonitor, `write-region' raises also an
-	;; `attribute-changed' event on gio.
-	((and (string-equal (file-notify--test-library) "gio")
-              (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
-	 '(attribute-changed attribute-changed attribute-changed))
-	;; For kqueue, `write-region' raises also an `attribute-changed'
-	;; event.
-        ((string-equal (file-notify--test-library) "kqueue")
-	 '(attribute-changed attribute-changed attribute-changed))
-	;; For inotifywait, `write-region' raises also an
+	;; For kqueue, inotifywait, GInotifyFileMonitor and
+	;; TrampRPCinotify, `write-region' raises also an
 	;; `attribute-changed' event.
-        ((string-equal (file-notify--test-library) "inotifywait")
+	((or (string-equal (file-notify--test-library) "kqueue")
+             (string-equal (file-notify--test-library) "inotifywait")
+             (and (string-equal (file-notify--test-library) "gio")
+                  (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
+             (and (string-equal (file-notify--test-library) "tramp-rpc")
+              (eq (file-notify--test-monitor) 'TrampRPCinotify)))
 	 '(attribute-changed attribute-changed attribute-changed))
 	(t '(attribute-changed attribute-changed)))
      (write-region "any text" nil file-notify--test-tmpfile nil 'no-message)
@@ -1177,10 +1179,10 @@ delivered."
 	   file-notify--test-tmpdir
 	   '(change) #'file-notify--test-event-handler)))
    (let ((file-notify-debug ;; Temporarily.
-         (or file-notify-debug
-             (and (getenv "EMACS_EMBA_CI")
-                  (string-equal (file-notify--test-library) "gio")
-                  (eq (file-notify--test-monitor) 'GInotifyFileMonitor))))
+          (or file-notify-debug
+              (and (getenv "EMACS_EMBA_CI")
+                   (string-equal (file-notify--test-library) "gio")
+                   (eq (file-notify--test-monitor) 'GInotifyFileMonitor))))
          (n 10);00)
          source-file-list target-file-list
          (default-directory file-notify--test-tmpdir))
@@ -1680,6 +1682,10 @@ the file watch."
                ((or "inotify" "inotifywait") '(unmount isdir))
                ((or "gfilenotify" "gio") '(unmounted))
                ("kqueue" '(revoke))
+               ("tramp-rpc"
+                (pcase (file-notify--test-monitor)
+                  ('TrampRPCinotify '(unmount isdir))
+                  (err (ert-fail (format "Monitor %s not supported" err)))))
                (err (ert-fail (format "Library %s not supported" err))))
              (pcase (file-notify--test-library)
                ("kqueue" (file-local-name file-notify--test-tmpfile))
@@ -1692,7 +1698,7 @@ the file watch."
          ("inotify" #'file-notify--callback-inotify)
          ("gfilenotify" #'file-notify--callback-gfilenotify)
          ("kqueue" #'file-notify--callback-kqueue)
-         ((or "inotifywait" "gio") #'file-notify-callback)
+         ((or "inotifywait" "gio" "tramp-rpc") #'file-notify-callback)
          (err (ert-fail (format "Library %s not supported" err)))))))
 
    ;; The watch has been stopped.

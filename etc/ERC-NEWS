@@ -14,6 +14,33 @@ GNU Emacs since Emacs version 22.1.
 
 * Changes in ERC 5.7
 
+** A flexible 'match' API.
+To the frustration many, ERC has long lacked of a flexible API for
+reacting to a message's contents and envelope info, like its sender and
+associated IRC command.  While the long-term plan is to transition to an
+object-based formatting model that should offer more useful access to
+the various parts of a message before they're assembled, it's become
+obvious that users need something practical in the interim.  This
+'match' API is based on a simple hook-like handler system that offers
+more opportunities for things like filtering and styling.  See Info node
+'Match API' to find out more.
+
+** Exercise more control in skipping certain desktop notifications.
+Skip select notifications that ERC would otherwise emit with new hook
+option 'erc-desktop-notifications-skip-predicates'.  Its default members
+skip messages from "fools" and those in untracked buffers.
+
+** Opt out of desktop notifications from the active buffer.
+Option 'erc-desktop-notifications-ignored-when-focused' can spare users
+from being notified when interacting with the initiating buffer.
+
+** Apply options granularly to specific connections or buffers.
+Based on an idea drafted nearly a quarter century ago by ERC's earliest
+contributors, the 'settings' module offers a ready-made method for
+binding arbitrary user options to various "scopes" of interest.  It
+leverages buffer-local variables and match conditions reminiscent of
+'buffer-match-p'.
+
 ** Changes in the library API.
 
 *** Module setup runs in query buffers on reconnect.
@@ -30,6 +57,20 @@ activated in reverse lexicographic order after third-party ones, which
 were simply reversed as given.  Now, just like with global modules, ERC
 preserves the preferred order when activating local modules for new
 sessions.
+
+*** Major-mode setup runs before global-module setup in 'erc-open'.
+The "enable" body of a global module's minor-mode command will now see
+'erc-mode' as the 'major-mode'.  Although ERC still delays its
+major-mode hook until after it has initialized its main session
+variables, a module can also now set any of its own variables that don't
+depend on such initialization immediately and without fear of their
+being killed.  For modules still needing to run delayed, session-aware
+code, a new convenience macro called 'erc-with-initialized-session' is
+now available to automate any 'erc-mode-hook' wrangling for you.
+
+*** A predicate to detect if the current buffer is a channel.
+New function 'erc-channel-buffer-p' is a channel-detecting complement to
+'erc-query-buffer-p' and a light wrapper around 'erc-channel-p'.
 
 
 * Changes in ERC 5.6.2

@@ -108,7 +108,7 @@
 ;;
 ;; When analyzer functions invoke `elisp-scope-1/n' to analyze some
 ;; sub-forms, they specify the OUTSPEC argument to convey information
-;; but the expected value of the evaluated sub-form(s), so
+;; about the expected value of the evaluated sub-form(s), so
 ;; `elisp-scope-1/n' will know what to do with a sub-form that is just
 ;; (quoted) data.  For example, the analyzer function for
 ;; `face-attribute' calls `elisp-scope-1' to analyze its first argument
@@ -130,6 +130,10 @@
 ;;
 ;; See also the docstring of `elisp-scope-1' for details about the
 ;; format of the `outspec' argument.
+;;
+;; To define custom analyzers, you can use the macros
+;; `elisp-scope-define-function-spec' and
+;; `elisp-scope-define-macro-analyzer', which see.
 
 ;;; Code:
 
@@ -1576,16 +1580,23 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
 
 (defmacro elisp-scope-define-analyzer (fsym args &rest body)
   "Define an analyzer function for function/macro FSYM.
+FSYM is a symbol, or a list of symbols that all share the same analyzer.
 ARGS is the arguments list of the analyzer function, and BODY is its body."
   (declare (indent defun))
-  (let ((analyzer (intern (concat "elisp-scope--analyze-" (symbol-name fsym)))))
+  (let* ((syms (ensure-list fsym))
+         (fsym (car syms))
+         (analyzer (intern (concat "elisp-scope--analyze-" (symbol-name fsym)))))
     `(progn
        (defun ,analyzer ,args ,@body)
-       (put ',fsym 'elisp-scope-analyzer #',analyzer))))
+       . ,(mapcar (lambda (sym)
+                    `(put ',sym 'elisp-scope-analyzer #',analyzer))
+                  syms))))
 
 (defmacro elisp-scope--define-function-analyzer (fsym args role &rest body)
   (declare (indent defun))
-  (let ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+  (let ((helper (intern (concat "elisp-scope--analyze-"
+                                (symbol-name (car (ensure-list fsym)))
+                                "-1"))))
     `(progn
        (defun ,helper ,args ,@body)
        (elisp-scope-define-analyzer ,fsym (f &rest args)
@@ -1594,19 +1605,48 @@ ARGS is the arguments list of the analyzer function, and BODY is its body."
 
 (defmacro elisp-scope-define-function-analyzer (fsym args &rest body)
   "Define an analyzer function for function FSYM.
+FSYM is a symbol, or a list of symbols that all share the same analyzer.
 The analyzer function analyzes occurrences of FSYM as a function call,
 and it analyzes the arguments in calls to FSYM by executing BODY with
 ARGS bound to the analyzed arguments."
   (declare (indent defun))
   `(elisp-scope--define-function-analyzer ,fsym ,args function ,@body))
 
+(defun elisp-scope--analyze-function-args (args specs &optional rest-spec)
+  (while (and args specs) (elisp-scope-1 (pop args) (pop specs)))
+  (dolist (arg args) (elisp-scope-1 arg rest-spec)))
+
+(defmacro elisp-scope-define-function-spec (fsym arg-specs &optional rest-spec)
+  "Specify how to analyze arguments of FSYM.
+FSYM is a function symbol or a list of function symbols, and ARG-SPECS
+is a list of output specs corresponding to the arguments of FSYM.
+Optional argument REST-SPEC is the output spec of any remaining
+arguments after those specified by ARG-SPECS.
+
+For example, the following form says that the functions `foo' and `bar'
+take a face name as their second argument, and that all arguments after
+the second are macro names.  The first argument remains unspecified.
+
+  (elisp-scope-define-function-spec (foo bar)
+   (nil (symbol . face))
+   (symbol . macro))"
+  (declare (indent 1))
+  `(elisp-scope-define-function-analyzer ,fsym (&rest args)
+     (elisp-scope--analyze-function-args args ',arg-specs ',rest-spec)))
+
+(elisp-scope-define-function-spec elisp-scope--analyze-function-args
+  (nil (repeat . spec) spec))
+
 (defmacro elisp-scope-define-macro-analyzer (fsym args &rest body)
   "Define an analyzer function for macro FSYM.
+FSYM is a symbol, or a list of symbols that all share the same analyzer.
 The analyzer function analyzes occurrences of FSYM as a macro call, and
 it analyzes the arguments in calls to FSYM by executing BODY with ARGS
 bound to the analyzed arguments."
   (declare (indent defun))
-  (let ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+  (let ((helper (intern (concat "elisp-scope--analyze-"
+                                (symbol-name (car (ensure-list fsym)))
+                                "-1"))))
     `(progn
        (defun ,helper ,args ,@body)
        (elisp-scope-define-analyzer ,fsym (f &rest args)
@@ -1615,11 +1655,14 @@ bound to the analyzed arguments."
 
 (defmacro elisp-scope-define-special-form-analyzer (fsym args &rest body)
   "Define an analyzer function for special form FSYM.
+FSYM is a symbol, or a list of symbols that all share the same analyzer.
 The analyzer function analyzes occurrences of FSYM as a special form,
 and it analyzes the arguments in calls to FSYM by executing BODY with
 ARGS bound to the analyzed arguments."
   (declare (indent defun))
-  (let ((helper (intern (concat "elisp-scope--analyze-" (symbol-name fsym) "-1"))))
+  (let ((helper (intern (concat "elisp-scope--analyze-"
+                                (symbol-name (car (ensure-list fsym)))
+                                "-1"))))
     `(progn
        (defun ,helper ,args ,@body)
        (elisp-scope-define-analyzer ,fsym (f &rest args)
@@ -1647,16 +1690,10 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-1 (or (elisp-scope--unquote form) form))
   (elisp-scope-1 lexical))
 
-(elisp-scope-define-function-analyzer funcall (&optional f &rest args)
-  (elisp-scope-1 f '(symbol . function))
-  (elisp-scope-n args))
+(elisp-scope-define-function-spec (funcall apply) ((symbol . function)))
 
-(put 'apply 'elisp-scope-analyzer #'elisp-scope--analyze-funcall)
-
-(elisp-scope-define-function-analyzer defalias (&optional sym def docstring)
-  (elisp-scope-1 sym '(symbol . defun))
-  (elisp-scope-1 def '(symbol . defun))
-  (elisp-scope-1 docstring))
+(elisp-scope-define-function-spec defalias
+  ((symbol . defun) (symbol . defun)))
 
 (elisp-scope-define-function-analyzer oclosure--define
   (&optional name docstring parent-names slots &rest props)
@@ -1676,120 +1713,81 @@ ARGS bound to the analyzed arguments."
     (setq props (cddr props)))
   (when props (elisp-scope-n props)))
 
-(elisp-scope-define-function-analyzer define-charset
-  (&optional name docstring &rest props)
-  (elisp-scope-1 name '(symbol . defcharset))
-  (elisp-scope-1 docstring)
-  (elisp-scope-n props))
+(elisp-scope-define-function-spec define-charset ((symbol . defcharset)))
 
-(elisp-scope-define-function-analyzer define-charset-alias
-  (&optional alias charset)
-  (elisp-scope-1 alias '(symbol . defcharset))
-  (elisp-scope-1 charset '(symbol . charset)))
+(elisp-scope-define-function-spec define-charset-alias
+  ((symbol . defcharset) (symbol . charset)))
 
-(elisp-scope-define-function-analyzer charset-chars
-  (&optional charset &rest rest)
-  (elisp-scope-1 charset '(symbol . charset))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec
+    (charset-chars
+     charset-description charset-info charset-iso-final-char
+     charset-long-name charset-plist charset-short-name
+     get-charset-property put-charset-property list-charset-chars
+     set-charset-plist set-charset-priority unify-charset
+     locale-charset-to-coding-system)
+  ((symbol . charset)))
 
-(dolist (sym '(charset-description charset-info charset-iso-final-char
-                                   charset-long-name charset-plist
-                                   charset-short-name
-                                   get-charset-property put-charset-property
-                                   list-charset-chars
-                                   set-charset-plist
-                                   set-charset-priority
-                                   unify-charset
-                                   locale-charset-to-coding-system))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-charset-chars))
+(elisp-scope-define-function-spec define-coding-system ((symbol . defcoding)))
 
-(elisp-scope-define-function-analyzer define-coding-system
-  (&optional name &rest rest)
-  (elisp-scope-1 name '(symbol . defcoding))
-  (mapc #'elisp-scope-1 rest))
+(elisp-scope-define-function-spec define-coding-system-alias
+  ((symbol . defcoding) (symbol . coding)))
 
-(elisp-scope-define-function-analyzer define-coding-system-alias
-  (&optional alias coding-system)
-  (elisp-scope-1 alias '(symbol . defcoding))
-  (elisp-scope-1 coding-system '(symbol . coding)))
+(elisp-scope-define-function-spec
+    (decode-coding-region encode-coding-region)
+  (nil nil (symbol . coding)))
 
-(elisp-scope-define-function-analyzer decode-coding-region
-  (&optional start end coding-system &rest rest)
-  (elisp-scope-1 start)
-  (elisp-scope-1 end)
-  (elisp-scope-1 coding-system '(symbol . coding))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec
+    (decode-coding-string encode-coding-char encode-coding-string)
+  (nil (symbol . coding)))
 
-(put 'encode-coding-region 'elisp-scope-analyzer #'elisp-scope--analyze-decode-coding-region)
+(elisp-scope-define-function-spec
+    (coding-system-mnemonic
+     add-to-coding-system-list
+     check-coding-system
+     coding-system-aliases
+     coding-system-base
+     coding-system-category
+     coding-system-change-eol-conversion
+     coding-system-change-text-conversion
+     coding-system-charset-list
+     coding-system-doc-string
+     coding-system-eol-type
+     coding-system-eol-type-mnemonic
+     coding-system-get
+     coding-system-plist
+     coding-system-post-read-conversion
+     coding-system-pre-write-conversion
+     coding-system-put
+     coding-system-translation-table-for-decode
+     coding-system-translation-table-for-encode
+     coding-system-type
+     describe-coding-system
+     prefer-coding-system
+     print-coding-system
+     print-coding-system-briefly
+     revert-buffer-with-coding-system
+     set-buffer-file-coding-system
+     set-clipboard-coding-system
+     set-coding-system-priority
+     set-default-coding-systems
+     set-file-name-coding-system
+     set-keyboard-coding-system
+     set-next-selection-coding-system
+     set-selection-coding-system
+     set-terminal-coding-system
+     universal-coding-system-argument)
+  ((symbol . coding)))
 
-(elisp-scope-define-function-analyzer decode-coding-string
-  (&optional string coding-system &rest rest)
-  (elisp-scope-1 string)
-  (elisp-scope-1 coding-system '(symbol . coding))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec
+    (thing-at-point
+     forward-thing beginning-of-thing end-of-thing bounds-of-thing-at-point)
+  ((symbol . thing)))
 
-(dolist (sym '(encode-coding-char encode-coding-string))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-decode-coding-string))
+(elisp-scope-define-function-spec bounds-of-thing-at-mouse
+  (nil (symbol . thing)))
 
-(elisp-scope-define-function-analyzer coding-system-mnemonic
-  (&optional coding-system &rest rest)
-  (elisp-scope-1 coding-system '(symbol . coding))
-  (elisp-scope-n rest))
-
-(dolist (sym '(add-to-coding-system-list
-               check-coding-system
-               coding-system-aliases
-               coding-system-base
-               coding-system-category
-               coding-system-change-eol-conversion
-               coding-system-change-text-conversion
-               coding-system-charset-list
-               coding-system-doc-string
-               coding-system-eol-type
-               coding-system-eol-type-mnemonic
-               coding-system-get
-               coding-system-plist
-               coding-system-post-read-conversion
-               coding-system-pre-write-conversion
-               coding-system-put
-               coding-system-translation-table-for-decode
-               coding-system-translation-table-for-encode
-               coding-system-type
-               describe-coding-system
-               prefer-coding-system
-               print-coding-system
-               print-coding-system-briefly
-               revert-buffer-with-coding-system
-               set-buffer-file-coding-system
-               set-clipboard-coding-system
-               set-coding-system-priority
-               set-default-coding-systems
-               set-file-name-coding-system
-               set-keyboard-coding-system
-               set-next-selection-coding-system
-               set-selection-coding-system
-               set-terminal-coding-system
-               universal-coding-system-argument))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-coding-system-mnemonic))
-
-(elisp-scope-define-function-analyzer thing-at-point (&optional thing no-props)
-  (elisp-scope-1 thing '(symbol . thing))
-  (elisp-scope-1 no-props))
-
-(dolist (sym '( forward-thing
-                beginning-of-thing
-                end-of-thing
-                bounds-of-thing-at-point))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-thing-at-point))
-
-(elisp-scope-define-function-analyzer bounds-of-thing-at-mouse (&optional event thing)
-  (elisp-scope-1 event)
-  (elisp-scope-1 thing '(symbol . thing)))
-
-(elisp-scope-define-function-analyzer thing-at-mouse (&optional event thing no-props)
-  (elisp-scope-1 event)
-  (elisp-scope-1 thing '(symbol . thing))
-  (elisp-scope-1 no-props))
+(elisp-scope-define-function-spec thing-at-mouse
+  (nil (symbol . thing)))
 
 (elisp-scope-define-function-analyzer custom-declare-variable (sym default doc &rest args)
   (elisp-scope-1 sym '(symbol . defvar))
@@ -1830,14 +1828,10 @@ ARGS bound to the analyzed arguments."
     (setq args (cddr args)))
   (when args (elisp-scope-n args)))
 
-(elisp-scope-define-function-analyzer cl-typep (val type)
-  (elisp-scope-1 val)
-  (elisp-scope-1 type 'cl-type))
+(elisp-scope-define-function-spec cl-typep (nil cl-type))
 
-(elisp-scope-define-function-analyzer pulse-momentary-highlight-region (start end &optional face)
-  (elisp-scope-1 start)
-  (elisp-scope-1 end)
-  (elisp-scope-1 face '(symbol . face)))
+(elisp-scope-define-function-spec pulse-momentary-highlight-region
+  (nil nil (symbol . face)))
 
 (elisp-scope--define-function-analyzer throw (&optional tag val) non-local-exit
   (elisp-scope-1 tag '(symbol . throw-tag))
@@ -1847,19 +1841,17 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-1 error-symbol '(symbol . condition))
   (elisp-scope-1 data))
 
-(elisp-scope--define-function-analyzer kill-emacs (&rest rest) non-local-exit
+(elisp-scope--define-function-analyzer
+  (kill-emacs
+   abort-recursive-edit top-level exit-recursive-edit
+   tty-frame-restack error user-error
+   minibuffer-quit-recursive-edit exit-minibuffer)
+  (&rest rest) non-local-exit
   (elisp-scope-n rest))
 
-(dolist (sym '( abort-recursive-edit top-level exit-recursive-edit
-                tty-frame-restack error user-error
-                minibuffer-quit-recursive-edit exit-minibuffer))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-kill-emacs))
+(elisp-scope-define-function-spec run-hooks () (symbol . free-variable))
 
-(elisp-scope-define-function-analyzer run-hooks (&rest hooks)
-  (dolist (hook hooks) (elisp-scope-1 hook '(symbol . free-variable))))
-
-(elisp-scope-define-function-analyzer fboundp (&optional symbol)
-  (elisp-scope-1 symbol '(symbol . function)))
+(elisp-scope-define-function-spec fboundp ((symbol . function)))
 
 (elisp-scope-define-function-analyzer overlay-put (&optional ov prop val)
   (elisp-scope-1 ov)
@@ -1870,63 +1862,47 @@ ARGS bound to the analyzed arguments."
      (when (memq (elisp-scope--sym-bare q) '(face mouse-face))
        'face))))
 
-(elisp-scope-define-function-analyzer add-face-text-property (&optional start end face &rest rest)
-  (elisp-scope-1 start)
-  (elisp-scope-1 end)
-  (elisp-scope-1 face 'face)
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec add-face-text-property (nil nil face))
 
-(elisp-scope-define-function-analyzer facep (&optional face &rest rest)
-  (elisp-scope-1 face '(symbol . face))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec
+    (facep
+     check-face face-id face-differs-from-default-p
+     face-name face-all-attributes face-attribute
+     face-foreground face-background face-stipple
+     face-underline-p face-inverse-video-p face-bold-p
+     face-italic-p face-extend-p face-documentation
+     set-face-documentation set-face-attribute
+     set-face-font set-face-background set-face-foreground
+     set-face-stipple set-face-underline set-face-inverse-video
+     set-face-bold set-face-italic set-face-extend)
+  ((symbol . face)))
 
-(dolist (sym '( check-face face-id face-differs-from-default-p
-                face-name face-all-attributes face-attribute
-                face-foreground face-background face-stipple
-                face-underline-p face-inverse-video-p face-bold-p
-                face-italic-p face-extend-p face-documentation
-                set-face-documentation set-face-attribute
-                set-face-font set-face-background set-face-foreground
-                set-face-stipple set-face-underline set-face-inverse-video
-                set-face-bold set-face-italic set-face-extend))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-facep))
+(elisp-scope-define-function-spec
+    (boundp
+     set symbol-value define-abbrev-table
+     special-variable-p local-variable-p
+     local-variable-if-set-p add-variable-watcher
+     get-variable-watchers remove-variable-watcher
+     default-value set-default make-local-variable
+     buffer-local-value add-to-list add-to-history find-buffer
+     customize-set-variable set-variable
+     add-hook remove-hook run-hook-with-args run-hook-wrapped)
+  ((symbol . free-variable)))
 
-(elisp-scope-define-function-analyzer boundp (&optional var &rest rest)
-  (elisp-scope-1 var '(symbol . free-variable))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec defvaralias
+  ((symbol . defvar) (symbol . free-variable)))
 
-(dolist (sym '( set symbol-value define-abbrev-table
-                special-variable-p local-variable-p
-                local-variable-if-set-p add-variable-watcher
-                get-variable-watchers remove-variable-watcher
-                default-value set-default make-local-variable
-                buffer-local-value add-to-list add-to-history find-buffer
-                customize-set-variable set-variable
-                add-hook remove-hook run-hook-with-args run-hook-wrapped))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-boundp))
+(elisp-scope-define-function-spec define-error
+  ((symbol . defcondition) nil
+   (or (symbol . condition)
+       (repeat . (symbol . condition)))))
 
-(elisp-scope-define-function-analyzer defvaralias (new base &optional docstring)
-  (elisp-scope-1 new '(symbol . defvar))
-  (elisp-scope-1 base '(symbol . free-variable))
-  (elisp-scope-1 docstring))
+(elisp-scope-define-function-spec (featurep require) ((symbol . feature)))
 
-(elisp-scope-define-function-analyzer define-error (&optional name message parent)
-  (elisp-scope-1 name '(symbol . defcondition))
-  (elisp-scope-1 message)
-  (elisp-scope-1 parent '(or (symbol . condition)
-                             (repeat . (symbol . condition)))))
+(elisp-scope-define-function-spec provide ((symbol . deffeature)))
 
-(elisp-scope-define-function-analyzer featurep (feature &rest rest)
-  (elisp-scope-1 feature '(symbol . feature))
-  (elisp-scope-n rest))
-
-(put 'require 'elisp-scope-analyzer #'elisp-scope--analyze-featurep)
-
-(elisp-scope-define-function-analyzer provide (feature &rest rest)
-  (elisp-scope-1 feature '(symbol . deffeature))
-  (elisp-scope-n rest))
-
-(elisp-scope-define-function-analyzer put-text-property (&optional beg end prop val obj)
+(elisp-scope-define-function-analyzer (put-text-property remove-overlays)
+  (&optional beg end prop val obj)
   (elisp-scope-1 beg)
   (elisp-scope-1 end)
   (elisp-scope-1 prop)
@@ -1936,8 +1912,6 @@ ARGS bound to the analyzed arguments."
      (when (memq (elisp-scope--sym-bare q) '(face mouse-face))
        'face)))
   (elisp-scope-1 obj))
-
-(put 'remove-overlays 'elisp-scope-analyzer #'elisp-scope--analyze-put-text-property)
 
 (elisp-scope-define-function-analyzer propertize (string &rest props)
   (elisp-scope-1 string)
@@ -1951,37 +1925,26 @@ ARGS bound to the analyzed arguments."
     (setq props (cddr props)))
   (when props (elisp-scope-n props)))
 
-(elisp-scope-define-function-analyzer eieio-defclass-internal
-  (&optional name superclasses slots options)
-  (elisp-scope-1 name '(symbol . deftype))
-  (elisp-scope-1 superclasses '(repeat . (symbol . type)))
-  (elisp-scope-1 slots
-                 '(repeat
-                   cons
-                   (symbol . slot)
-                   plist
-                   (:initform   . code)
-                   (:initarg    . (symbol . constant))
-                   (:accessor   . (symbol . defun))
-                   (:allocation . code)
-                   (:writer     . (symbol . function))
-                   (:reader     . (symbol . function))
-                   (:type       . cl-type)
-                   ;; TODO: add (:custom  . custom-type)
-                   ))
-  (elisp-scope-1 options))
+(elisp-scope-define-function-spec eieio-defclass-internal
+  ((symbol . deftype)
+   (repeat . (symbol . type))
+   (repeat
+    cons
+    (symbol . slot)
+    plist
+    (:initform   . code)
+    (:initarg    . (symbol . constant))
+    (:accessor   . (symbol . defun))
+    (:allocation . code)
+    (:writer     . (symbol . function))
+    (:reader     . (symbol . function))
+    (:type       . cl-type)
+    ;; TODO: add (:custom  . custom-type)
+    )))
 
-(elisp-scope-define-function-analyzer cl-struct-define
-  (&optional name doc parent type named slots children tag print)
-  (elisp-scope-1 name '(symbol . deftype))
-  (elisp-scope-1 doc)
-  (elisp-scope-1 parent '(symbol . type))
-  (elisp-scope-1 type)
-  (elisp-scope-1 named)
-  (elisp-scope-1 slots)           ;TODO: Specify type of `slots'.
-  (elisp-scope-1 children)
-  (elisp-scope-1 tag)
-  (elisp-scope-1 print))
+;; TODO: Specify spec of the `slots' argument.
+(elisp-scope-define-function-spec cl-struct-define
+  ((symbol . deftype) nil (symbol . type)))
 
 (elisp-scope-define-function-analyzer define-widget (name class doc &rest args)
   (elisp-scope-1 name '(symbol . widget-type-definition))
@@ -1998,63 +1961,43 @@ ARGS bound to the analyzed arguments."
     (setq args (cddr args)))
   (when args (elisp-scope-n args)))
 
-(elisp-scope-define-function-analyzer provide-theme (name &rest rest)
-  (elisp-scope-1 name '(symbol . theme))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec
+    (provide-theme enable-theme disable-theme load-theme custom-theme-p)
+  ((symbol . theme)))
 
-(dolist (sym '(enable-theme disable-theme load-theme custom-theme-p))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-provide-theme))
+(elisp-scope-define-function-spec custom-theme-set-variables
+  ((symbol . theme))
+  (cons (symbol . free-variable) .
+        (cons code .
+              (or (cons t .
+                        (cons (repeat . (symbol . feature)) .
+                              t))
+                  t))))
 
-(elisp-scope-define-function-analyzer custom-theme-set-variables (theme &rest args)
-  (elisp-scope-1 theme '(symbol . theme))
-  (dolist (arg args)
-    (elisp-scope-1
-     arg
-     '(cons (symbol . free-variable) .
-            (cons code .
-                  (or (cons t .
-                            (cons (repeat . (symbol . feature)) .
-                                  t))
-                      t))))))
+(elisp-scope-define-function-spec custom-declare-theme ((symbol . deftheme)))
 
-(elisp-scope-define-function-analyzer custom-declare-theme (name &rest rest)
-  (elisp-scope-1 name '(symbol . deftheme))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec
+    (eieio-oref slot-boundp slot-makeunbound slot-exists-p eieio-oref-default)
+  (nil (symbol . slot)))
 
-(elisp-scope-define-function-analyzer eieio-oref (obj slot)
-  (elisp-scope-1 obj)
-  (elisp-scope-1 slot '(symbol . slot)))
+(elisp-scope-define-function-spec (eieio-oset eieio-oset-default)
+  (nil (symbol . slot)))
 
-(dolist (fun '(slot-boundp slot-makeunbound slot-exists-p eieio-oref-default))
-  (put fun 'elisp-scope-analyzer #'elisp-scope--analyze-eieio-oref))
+(elisp-scope-define-function-spec derived-mode-p
+  ((or (repeat . (symbol . major-mode))
+       (symbol . major-mode)))
+  (symbol . major-mode))
 
-(elisp-scope-define-function-analyzer eieio-oset (obj slot value)
-  (elisp-scope-1 obj)
-  (elisp-scope-1 slot '(symbol . slot))
-  (elisp-scope-1 value))
+(elisp-scope-define-function-spec derived-mode-set-parent
+  ((symbol . major-mode) (symbol . major-mode)))
 
-(put 'eieio-oset-default 'elisp-scope-analyzer #'elisp-scope--analyze-eieio-oset)
+(elisp-scope-define-function-spec elisp-scope-report
+  ((symbol . symbol-role)))
 
-(elisp-scope-define-function-analyzer derived-mode-p (modes &rest rest)
-  (elisp-scope-1 modes '(or (repeat . (symbol . major-mode))
-                            (symbol . major-mode)))
-  (dolist (mode rest) (elisp-scope-1 mode '(symbol . major-mode))))
+(elisp-scope-define-function-spec elisp-scope-report-s
+  (nil (symbol . symbol-role)))
 
-(elisp-scope-define-function-analyzer derived-mode-set-parent (&optional mode parent)
-  (elisp-scope-1 mode '(symbol . major-mode))
-  (elisp-scope-1 parent '(symbol . major-mode)))
-
-(elisp-scope-define-function-analyzer elisp-scope-report (role &rest args)
-  (elisp-scope-1 role '(symbol . symbol-role))
-  (mapc #'elisp-scope-1 args))
-
-(elisp-scope-define-function-analyzer elisp-scope-report-s (&optional sym role)
-  (elisp-scope-1 sym)
-  (elisp-scope-1 role '(symbol . symbol-role)))
-
-(elisp-scope-define-function-analyzer elisp-scope-1 (&optional form outspec)
-  (elisp-scope-1 form)
-  (elisp-scope-1 outspec 'spec))
+(elisp-scope-define-function-spec elisp-scope-1 (nil spec))
 
 (elisp-scope-define-function-analyzer icons--register (&optional name parent spec doc kws)
   (elisp-scope-1 name '(symbol . deficon))
@@ -2076,21 +2019,15 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-1 var '(symbol . free-variable))
   (elisp-scope-1 val elisp-scope-output-spec))
 
-(elisp-scope-define-function-analyzer autoload (&optional func file doc int type)
-  (elisp-scope-1 func '(symbol . function))
-  (elisp-scope-1 file)
-  (elisp-scope-1 doc)
-  (elisp-scope-1 int '(repeat . (symbol . major-mode)))
-  (elisp-scope-1 type))
+(elisp-scope-define-function-spec autoload
+  ((symbol . function) nil nil (repeat . (symbol . major-mode))))
 
-(elisp-scope-define-function-analyzer define-completion-category (&optional name parents &rest rest)
-  (elisp-scope-1 name '(symbol . completion-category-definition))
-  (elisp-scope-1 parents '(repeat . (symbol . completion-category)))
-  (elisp-scope-n rest))
+(elisp-scope-define-function-spec define-completion-category
+  ((symbol . completion-category-definition)
+   (repeat . (symbol . completion-category))))
 
-(elisp-scope-define-function-analyzer completion-table-with-category (&optional category table)
-  (elisp-scope-1 category '(symbol . completion-category))
-  (elisp-scope-1 table))
+(elisp-scope-define-function-spec completion-table-with-category
+  ((symbol . completion-category)))
 
 (defun elisp-scope--easy-menu-do-define-menu (menu)
   (let ((items (cdr menu)))
@@ -2149,9 +2086,8 @@ ARGS bound to the analyzed arguments."
     (elisp-scope-1 def))
   (elisp-scope-1 remove))
 
-(elisp-scope-define-function-analyzer eval-after-load (&optional file form)
-  (elisp-scope-1 file '(symbol . feature))
-  (elisp-scope-1 form 'code))
+(elisp-scope-define-function-spec eval-after-load
+  ((symbol . feature) code))
 
 ;; We use a bespoke analyzer for `if-let*' instead of letting
 ;; `elisp-scope-1' expand it because `if-let*' expands to a form that
@@ -2332,24 +2268,18 @@ ARGS bound to the analyzed arguments."
 (elisp-scope-define-macro-analyzer define-minor-mode (&optional mode doc &rest body)
   (when mode (elisp-scope-define-minor-mode mode doc body)))
 
-(elisp-scope-define-macro-analyzer setq-local (&rest args)
+(elisp-scope-define-macro-analyzer (setq-local setq-default) (&rest args)
   (elisp-scope-setq args))
 
-(put 'setq-default 'elisp-scope-analyzer #'elisp-scope--analyze-setq-local)
-
-(elisp-scope-define-macro-analyzer cl-defun (name arglist &rest body)
+(elisp-scope-define-macro-analyzer (cl-defun cl-defmacro) (name arglist &rest body)
   (elisp-scope-cl-defun name arglist body))
 
-(put 'cl-defmacro 'elisp-scope-analyzer #'elisp-scope--analyze-cl-defun)
-
-(elisp-scope-define-macro-analyzer defun (&optional name arglist &rest body)
+(elisp-scope-define-macro-analyzer (defun ert-deftest) (&optional name arglist &rest body)
   (when name (elisp-scope-defun name arglist body)))
 
 (elisp-scope-define-macro-analyzer defmacro (&optional name arglist &rest body)
   (elisp-scope-report-s name 'defmacro)
   (elisp-scope-lambda arglist body))
-
-(put 'ert-deftest 'elisp-scope-analyzer #'elisp-scope--analyze-defun)
 
 (elisp-scope-define-macro-analyzer elisp-scope-define-symbol-role (&optional name parents &rest props)
   (elisp-scope-report-s name 'symbol-role-definition)
@@ -2386,33 +2316,24 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-1 place)
   (elisp-scope-n body elisp-scope-output-spec))
 
-(elisp-scope-define-macro-analyzer cl-pushnew (&rest args)
+(elisp-scope-define-macro-analyzer (cl-pushnew incf decf) (&rest args)
   (mapc #'elisp-scope-1 args))
-
-(dolist (sym '(incf decf))
-  (put sym 'elisp-scope-analyzer #'elisp-scope--analyze-cl-pushnew))
 
 (elisp-scope-define-macro-analyzer static-if (&optional test then &rest else)
   (elisp-scope-1 test)
   (elisp-scope-1 then elisp-scope-output-spec)
   (elisp-scope-n else elisp-scope-output-spec))
 
-(elisp-scope-define-macro-analyzer static-when (&optional test &rest body)
+(elisp-scope-define-macro-analyzer (static-when static-unless) (&optional test &rest body)
   (elisp-scope-1 test)
   (elisp-scope-n body elisp-scope-output-spec))
 
-(put 'static-unless 'elisp-scope-analyzer #'elisp-scope--analyze-static-when)
-
-(elisp-scope-define-macro-analyzer eval-when-compile (&rest body)
+(elisp-scope-define-macro-analyzer (eval-when-compile eval-and-compile) (&rest body)
   (elisp-scope-n body elisp-scope-output-spec))
 
-(put 'eval-and-compile 'elisp-scope-analyzer #'elisp-scope--analyze-eval-when-compile)
-
-(elisp-scope-define-macro-analyzer cl-callf (&rest args)
+(elisp-scope-define-macro-analyzer (cl-callf cl-callf2) (&rest args)
   (elisp-scope-sharpquote (car args))
   (elisp-scope-n (cdr args)))
-
-(put 'cl-callf2 'elisp-scope-analyzer #'elisp-scope--analyze-cl-callf)
 
 (elisp-scope-define-macro-analyzer seq-let (args sequence &rest body)
   (elisp-scope-1 sequence)
@@ -2696,22 +2617,17 @@ ARGS bound to the analyzed arguments."
   (elisp-scope-1 tag '(symbol . throw-tag))
   (elisp-scope-n body elisp-scope-output-spec))
 
-(elisp-scope-define-special-form-analyzer progn (&rest body)
+(elisp-scope-define-special-form-analyzer
+  (progn inline save-current-buffer save-excursion save-restriction)
+  (&rest body)
   (elisp-scope-n body elisp-scope-output-spec))
-
-(put 'inline 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
-(put 'save-current-buffer 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
-(put 'save-excursion 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
-(put 'save-restriction 'elisp-scope-analyzer #'elisp-scope--analyze-progn)
 
 (elisp-scope-define-special-form-analyzer while (&rest rest)
   (mapc #'elisp-scope-1 rest))
 
-(elisp-scope-define-special-form-analyzer prog1 (&rest body)
+(elisp-scope-define-special-form-analyzer (prog1 unwind-protect) (&rest body)
   (when (consp body) (elisp-scope-1 (pop body) elisp-scope-output-spec))
   (elisp-scope-n body))
-
-(put 'unwind-protect 'elisp-scope-analyzer #'elisp-scope--analyze-prog1)
 
 ;;; Specifications for some common variables:
 (put 'coding-system-for-read 'elisp-scope-variable-spec '(symbol . coding))
@@ -2794,6 +2710,7 @@ are analyzed."
                    (symbols-with-pos-enabled t)
                    (message-log-max nil)
                    (inhibit-message t)
+                   (macroexp-enable-preserve-posification nil)
                    (macroexpand-all-environment
                     (append (mapcar #'list elisp-scope-unsafe-macros) macroexpand-all-environment)))
                (ignore-errors (macroexpand-1 form macroexpand-all-environment)))

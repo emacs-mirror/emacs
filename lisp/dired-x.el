@@ -552,6 +552,7 @@ files in the active region if `dired-mark-region' is non-nil."
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if
      (and
+      (not (dired--hidden-p))
       (if unflag-p
           ;; Already marked.
           (not (= (following-char) ?\s))

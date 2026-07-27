@@ -903,6 +903,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       ;; The mail file is either unchanged or not visited.  Visit it.
       (switch-to-buffer
        (let ((enable-local-variables nil)
+             ;; Avoid entering 'rmail-mode' via 'auto-mode-alist';
+             ;; 'rmail' does its own setup after visiting the file.
+	     (auto-mode-alist nil)
 	     ;; Force no-conversion by default, since that's what
 	     ;; pre-mbox Rmail did with BABYL files (via
 	     ;; auto-coding-regexp-alist).
@@ -1259,8 +1262,6 @@ The buffer is expected to be narrowed to just the header of the message."
 (defun rmail-mode-kill-summary ()
   (if rmail-summary-buffer (kill-buffer rmail-summary-buffer)))
 
-(defvar rmail-enable-multibyte)         ; dynamically bound
-
 ;;;###autoload
 (defun rmail-mode ()
   "Rmail Mode is used by \\<rmail-mode-map>\\[rmail] for editing Rmail files.
@@ -1317,11 +1318,9 @@ Instead, these commands are available:
     (rmail-mode-2)
     (when (and finding-rmail-file
 	       (null coding-system-for-read))
-      (let ((rmail-enable-multibyte t))
-	(rmail-require-mime-maybe)
-	(rmail-convert-file-maybe)
-	(goto-char (point-max))
-	(set-buffer-multibyte t)))
+      (rmail-require-mime-maybe)
+      (rmail-convert-file-maybe)
+      (goto-char (point-max)))
     (rmail-set-message-counters)
     (rmail-show-message rmail-total-messages)
     (when finding-rmail-file
@@ -1504,10 +1503,8 @@ If so restore the actual mbox message collection."
 (defun rmail-revert (arg noconfirm)
   (set-buffer rmail-buffer)
   (let* ((revert-buffer-function (default-value 'revert-buffer-function))
-	 (rmail-enable-multibyte enable-multibyte-characters)
-	 ;; See similar code in `rmail'.
-	 ;; FIXME needs updating?
-	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
+	 (coding-system-for-read
+	  (or coding-system-for-read 'no-conversion))
 	 (before-revert-hook 'rmail-swap-buffers-maybe))
     ;; Call our caller again, but this time it does the default thing.
     (when (revert-buffer arg noconfirm)
@@ -1515,13 +1512,7 @@ If so restore the actual mbox message collection."
       ;; reparse the messages.
       (set-buffer rmail-buffer)
       (rmail-mode-2)
-      ;; Convert all or part to Babyl file if possible.
       (rmail-convert-file-maybe)
-      ;; We have read the file as raw-text, so the buffer is set to
-      ;; unibyte.  Make it multibyte if necessary.
-      (if (and rmail-enable-multibyte
-	       (not enable-multibyte-characters))
-	  (set-buffer-multibyte t))
       (goto-char (point-max))
       (rmail-set-message-counters)
       (rmail-show-message rmail-total-messages)
@@ -1728,7 +1719,6 @@ not be a new one).  It returns non-nil if it got any new messages."
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
   (let ((all-files (if file-name (list file-name) rmail-inbox-list))
-	(rmail-enable-multibyte t)
 	found)
     (unwind-protect
 	(progn

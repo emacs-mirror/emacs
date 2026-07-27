@@ -255,7 +255,7 @@ For the meaning of the rest of the parameters, see `gnutls-boot-parameters'."
      (setq ret (gnutls-boot process type
                             (append (list :complete-negotiation t)
                                     params)))
-     "boot: %s" params)
+     "boot: %S" params)
 
     (when (gnutls-errorp ret)
       ;; This is an error from the underlying C code.

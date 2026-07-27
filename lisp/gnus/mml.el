@@ -556,12 +556,19 @@ type detected."
 				(libxml-parse-html-region
 				 (point) (progn (forward-sexp) (point))))))
 		 (end (point))
-		 (parsed (url-generic-parse-url (cdr (assq 'src (cadr img))))))
-	    (when (and (null (url-type parsed))
+                 (url (cdr (assq 'src (cadr img))))
+                 (parsed (url-generic-parse-url url)))
+            (when (and (let ((type (url-type parsed)))
+                         (or
+                          ;; No scheme.
+                          (null type)
+                          ;; A file scheme with an empty host part.
+                          (and (string-equal type "file")
+                               (string-empty-p (url-host parsed)))))
                        (not (zerop (length (url-filename parsed))))
 		       (file-exists-p (url-filename parsed)))
 	      (goto-char start)
-	      (when (search-forward (url-filename parsed) end t)
+              (when (search-forward url end t)
 		(let ((cid (format "fsf.%d" cid)))
 		  (replace-match (concat "cid:" cid) t t)
 		  (push (list cid (url-filename parsed)

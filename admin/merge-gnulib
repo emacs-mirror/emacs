@@ -61,7 +61,7 @@ AVOIDED_MODULES='
   access btoc32
   c32_apply_type_test c32_get_type_test
   c32isalnum c32rtomb c32tolower c32toupper
-  chmod close crypto/af_alg dup fchdir fstat gnulib-i18n
+  chmod close dup fchdir fstat gnulib-i18n
   langinfo-h libgmp-mpq
   localcharset localeinfo localename-unsafe-limited lock
   mbrtoc32-regular mbsinit memchr mkdir
@@ -164,8 +164,7 @@ cp -- "$gnulib_srcdir"/build-aux/config.guess \
       "$gnulib_srcdir"/build-aux/install-sh \
       "$gnulib_srcdir"/build-aux/move-if-change \
    "$src"build-aux &&
-cp -- "$gnulib_srcdir"/lib/af_alg.h \
-      "$gnulib_srcdir"/lib/save-cwd.h \
+cp -- "$gnulib_srcdir"/lib/save-cwd.h \
    "$src"lib &&
 cp -- "$gnulib_srcdir"/m4/codeset.m4 \
    "$src"m4 &&

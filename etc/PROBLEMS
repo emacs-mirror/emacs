@@ -959,6 +959,16 @@ specified run-time search path in the executable.
 
 Please refer to the documentation of your dynamic linker for details.
 
+*** Using Enchant 2.x as the Ispell back-end signals an error.
+
+The error message says "enchant-2: Unknown option -C".
+
+This is because many dictionary definitions in the default value of
+'ispell-dictionary-alist' use the '-C' command-line option, which is not
+supported by some versions of Enchant 2.x.  Support for '-C' was added
+to Enchant in version 2.8.17, so use that or later version to solve this
+problem.
+
 *** When you run Ispell from Emacs, it reports a "misalignment" error.
 
 This can happen if you compiled the Ispell program to use ASCII
@@ -3177,6 +3187,25 @@ XKeymacs Version 3.47, deactivating XKeymacs when Emacs is active is
 not enough to avoid its messing with the keyboard input.  Exiting
 XKeymacs completely is reported to solve the problem.
 
+** Pasting non-ASCII characters into "emacs -nw" doesn't work.
+
+This happens if you paste using the Windows shortcuts, such as
+S-<Insert> and C-v or C-S-v.  Evidently, these paste methods support
+only ASCII text, at least in some Windows configurations.
+
+Instead, use the Emacs C-y key to paste from the clipboard, which on
+Windows works on text-only frames as well.  Make sure your
+customizations don't affect the value of 'interprogram-paste-function',
+which should be 'gui-selection-value', even in -nw sessions.  In
+addition, you should make sure the font used by the Windows Terminal
+supports the characters you paste (the default font set by Windows
+should be okay).  For best results, we also recommend to set the console
+codepage to 65001, which is the UTF-8 codepage.  You can do that with
+the following command, which should be done _before_ running Emacs on
+the Windows Terminal:
+
+  c:\> chcp 65001
+
 ** Pasting from Windows clipboard into Emacs doesn't work.
 
 This was reported to be the result of an anti-virus software blocking
@@ -3919,6 +3948,18 @@ selecting "Don't Optimize" in the dialog box thus displayed.
 The organization of the Settings app might disagree with that
 illustrated above, which if true you should consult the documentation
 or any search mechanism for it.
+
+** Emacs Input Methods don't work.
+
+When using the Android touchscreen keyboard, Emacs input methods set by
+'C-\' don't work.  This is because Android's virtual input methods
+function by applying editing commands directly to Emacs buffers, which
+circumvents and is not compatible with Emacs's character-centric input
+methods.  You can disable what the virtual input methods do by setting
+'overriding-text-conversion-style' to nil rather than 'lambda', at the
+cost of your virtual input method's own text editing aids, or (in some
+cases) the ability to perform character composition or input CJK or
+non-Latin scripts.
 
 ** Emacs is not compatible with the "Microsoft SwiftKey" input method.
 

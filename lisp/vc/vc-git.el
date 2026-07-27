@@ -722,14 +722,18 @@ or an empty string if none."
 ;; Follows vc-exec-after.
 (declare-function vc-set-async-update "vc-dispatcher" (process-buffer))
 
+(declare-function vc-dir-maybe-narrow-and-show-more-button "vc-dir")
+
 (defun vc-git-dir-status-goto-stage (git-state)
   ;; TODO: Look into reimplementing this using `git status --porcelain=v2'.
+  (require 'vc-dir)
   (cl-flet ((git-cmd (&rest args)
               (set-process-query-on-exit-flag
                (apply #'vc-git-command (current-buffer) 'async args)
                nil)))
     (let ((files (vc-git-dir-status-state->files git-state))
-          (allowed-exit 1))
+          (allowed-exit 1)
+          (limit vc-dir-process-output-limit))
       (erase-buffer)
       (pcase (vc-git-dir-status-state->stage git-state)
         ('update-index
@@ -756,7 +760,10 @@ or an empty string if none."
         ('diff-index
          (git-cmd files "diff-index" "--relative" "-z" "-M" "HEAD" "--")))
       (vc-run-delayed-success allowed-exit
-        (vc-git-after-dir-status-stage git-state)))))
+        (let ((vc-dir-process-output-limit limit))
+          (vc-dir-maybe-narrow-and-show-more-button
+           "(reported states may be incorrect)")
+          (vc-git-after-dir-status-stage git-state))))))
 
 (defun vc-git-dir-status-files (_dir files update-function)
   "Return a list of (FILE STATE EXTRA) entries for DIR."
@@ -908,6 +915,11 @@ them one-by-one, accepting the first that has an upstream.)"
             (dolist (target indep-branches)
               (when-let* ((upstream (branch-upstream target)))
                 (throw 'ret upstream))))))))))
+
+(declare-function vc-standard-log-outgoing "vc")
+
+(defun vc-git-log-outgoing (buffer upstream-location)
+  (vc-standard-log-outgoing 'Git buffer upstream-location 'skip-mergebase))
 
 (defun vc-git-dir--branch-headers ()
   "Return headers for branch-related information."
@@ -1291,6 +1303,21 @@ It is based on `log-edit-mode', and has Git-specific extensions."
                                             (file-local-name ,temp)))
        (delete-file ,temp))))
 
+(defmacro vc-git--with-temp-index (&rest body)
+  "Execute BODY with a temporary Git index file.
+After executing, delete the temporary index.  The index starts empty;
+callers may populate it with, e.g., \\='git read-tree HEAD\\='."
+  (declare (indent 0) (debug t))
+  (cl-with-gensyms (index)
+    `(let ((,index (make-nearby-temp-file "git-index")))
+       (unwind-protect
+           ;; Use `file-local-name' to strip the TRAMP prefix
+           ;; from the index.
+           (with-environment-variables
+               (("GIT_INDEX_FILE" (file-local-name ,index)))
+             ,@body)
+         (delete-file ,index)))))
+
 (defalias 'vc-git-async-checkins #'always)
 
 (defalias 'vc-git-working-revision-symbol (cl-constantly "HEAD"))
@@ -1413,35 +1440,35 @@ It is an error to supply both or neither."
              ;;
              ;; 'git apply --3way --ours' is the way Git provides to
              ;; achieve this.  This requires that the index match the
-             ;; working tree and also implies the --index option, which
-             ;; means applying the changes to the index in addition to
-             ;; the working tree.  These are both okay here because
-             ;; before doing this we know the index is empty (we just
-             ;; committed) and so we can just make use of it and reset
-             ;; afterwards.
+             ;; working tree and also implies the --index option.  Use a
+             ;; temporary index for that.
              (when (and patch-string (not (string-empty-p patch-string)))
-               (vc-git-command nil 0 nil "add" "--all")
-               (with-temp-buffer
-                 (vc-git--with-apply-temp (patch t 1 "--3way")
-                   (with-temp-file patch
-                     (insert patch-string)))
-                 ;; We could delete the following if we could also pass
-                 ;; --ours to git-apply, but that is only available in
-                 ;; recent versions of Git.  --3way is much older.
-                 (cl-loop
-                  initially (goto-char (point-min))
-                  ;; git-apply doesn't apply Git's usual quotation and
-                  ;; escape rules for printing file names so we can do
-                  ;; this simple regexp processing.
-                  ;; (Passing -z does not affect the relevant output.)
-                  while (re-search-forward "^U " nil t)
-                  collect (buffer-substring-no-properties (point)
-                                                          (pos-eol))
-                  into paths
-                  finally (when paths
-                            (vc-git-command nil 0 paths
-                                            "checkout" "--ours"))))
-               (vc-git-command nil 0 nil "reset"))
+               (vc-git--with-temp-index
+                 (vc-git-command nil 0 nil "read-tree" "HEAD")
+                 ;; This index is scratch for 'git apply --3way',
+                 ;; so ignore nonzero exit status (e.g., due to
+                 ;; out-of-cone files in a sparse checkout).
+                 (vc-git-command nil t nil "add" "--all")
+                 (with-temp-buffer
+                   (vc-git--with-apply-temp (patch t 1 "--3way")
+                     (with-temp-file patch
+                       (insert patch-string)))
+                   ;; We could delete the following if we could also pass
+                   ;; --ours to git-apply, but that is only available in
+                   ;; recent versions of Git.  --3way is much older.
+                   (cl-loop
+                    initially (goto-char (point-min))
+                    ;; git-apply doesn't apply Git's usual quotation and
+                    ;; escape rules for printing file names so we can do
+                    ;; this simple regexp processing.
+                    ;; (Passing -z does not affect the relevant output.)
+                    while (re-search-forward "^U " nil t)
+                    collect (buffer-substring-no-properties (point)
+                                                            (pos-eol))
+                    into paths
+                    finally (when paths
+                              (vc-git-command nil 0 paths
+                                              "checkout" "--ours"))))))
              (when to-stash
                (vc-git--with-apply-temp (cached)
                  (with-temp-file cached
@@ -1584,19 +1611,11 @@ REV is ignored."
             (progn
               (with-temp-file cached
                 (vc-git-command t 0 files "diff" "--cached" "--"))
-              (let* ((index (make-nearby-temp-file "git-index"))
-                     (process-environment
-                      (cons (format "GIT_INDEX_FILE=%s" index)
-                            process-environment)))
-                (unwind-protect
-                    (progn
-                      (vc-git-command nil 0 nil "read-tree" "HEAD")
-                      ;; See `vc-git--with-apply-temp'
-                      ;; regarding use of `file-local-name'.
-                      (vc-git-command nil 0 nil "apply" "--cached"
-                                      (file-local-name cached))
-                      (setq tree (git-string "write-tree")))
-                  (delete-file index))))
+              (vc-git--with-temp-index
+                (vc-git-command nil 0 nil "read-tree" "HEAD")
+                (vc-git-command nil 0 nil "apply" "--cached"
+                                (file-local-name cached))
+                (setq tree (git-string "write-tree"))))
           (delete-file cached))
         ;; Prepare stash commit object, which has a special structure.
         (let* ((tree-commit (git-string "commit-tree" "-m" message
@@ -1898,7 +1917,7 @@ If LIMIT is a non-empty string, use it as a base revision."
                  (if shortlog vc-git-shortlog-switches vc-git-log-switches))
                 (when (numberp limit)
                   (list "-n" (format "%s" limit)))
-                (when (eq vc-log-view-type 'with-diff)
+                (when (memq 'with-diff vc-log-view-types)
                   (list "-p"))
                 (list (concat (and (stringp limit)
                                    (concat limit ".."))
@@ -1906,28 +1925,18 @@ If LIMIT is a non-empty string, use it as a base revision."
 		'("--")))))))
 
 (defun vc-git-incoming-revision (&optional upstream-location refresh)
-  (let* ((remotes (and (not upstream-location) (vc-git--branch-remotes)))
-         (rev (or upstream-location
-                  (cdr (assq 'push remotes))
-                  (cdr (assq 'upstream remotes)))))
-    (when (and (or refresh (null (vc-git--rev-parse rev)))
-               ;; If the branch has no upstream, and we weren't supplied
-               ;; with one, then fetching is always useless (bug#79952).
-               (or upstream-location
-                   (and-let* ((branch (vc-git-working-branch)))
-                     (with-temp-buffer
-                       (vc-git--out-ok "config" "--get"
-                                       (format "branch.%s.remote"
-                                               branch))))))
-      (vc-git-command nil 0 nil "fetch"
-                      (and upstream-location
-                           ;; Extract remote from "remote/branch".
-                           (replace-regexp-in-string "/.*" ""
-                                                     upstream-location))))
-    (ignore-errors            ; in order to return nil if no such branch
-      (with-output-to-string
-        (vc-git-command standard-output 0 nil
-                        "log" "--max-count=1" "--pretty=format:%H" rev)))))
+  (let ((remotes (and (not upstream-location) (vc-git--branch-remotes))))
+    (and-let* ((rev (or upstream-location
+                        (cdr (assq 'push remotes))
+                        (cdr (assq 'upstream remotes)))))
+      (when (or refresh (null (vc-git--rev-parse rev)))
+        (vc-git-command nil 0 nil "fetch"
+                        ;; Extract remote from "remote/branch".
+                        (replace-regexp-in-string "/.*" "" rev)))
+      (ignore-errors          ; in order to return nil if no such branch
+        (with-output-to-string
+          (vc-git-command standard-output 0 nil
+                          "log" "--max-count=1" "--pretty=format:%H" rev))))))
 
 (defun vc-git-log-search (buffer pattern)
   "Search the log of changes for PATTERN and output results into BUFFER.
@@ -1970,17 +1979,16 @@ log entries."
   (setq-local log-view-file-re regexp-unmatchable)
   (setq-local log-view-per-file-logs nil)
   (setq-local log-view-message-re
-              (if (not (memq vc-log-view-type '(long log-search with-diff)))
+              (if (memq 'short vc-log-view-types)
                   (cadr vc-git-root-log-format)
                 "^commit +\\([0-9a-z]+\\)"))
   ;; Allow expanding short log entries.
-  (when (memq vc-log-view-type
-              '(short log-outgoing log-incoming log-unintegrated mergebase))
+  (when (memq 'short vc-log-view-types)
     (setq truncate-lines t)
     (setq-local log-view-expanded-log-entry-function
                 'vc-git-expanded-log-entry))
   (setq-local log-view-font-lock-keywords
-       (if (not (memq vc-log-view-type '(long log-search with-diff)))
+       (if (memq 'short vc-log-view-types)
 	   (list (cons (nth 1 vc-git-root-log-format)
 		       (nth 2 vc-git-root-log-format)))
 	 (append
@@ -2071,12 +2079,8 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   (vc-git-command buffer 'async nil "log" "-p" ;"--follow" ;FIXME: not supported?
                   (format "-L%d,%d:%s" lfrom lto (file-relative-name file))))
 
-(require 'diff-mode)
-
 (defvar vc-git-region-history-mode-map
-  (let ((map (make-composed-keymap
-              nil (make-composed-keymap
-                   (list diff-mode-map vc-git-log-view-mode-map)))))
+  (let ((map (make-sparse-keymap)))
     map))
 
 (defvar vc-git--log-view-long-font-lock-keywords nil)
@@ -2084,6 +2088,7 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
   '((vc-git-region-history-font-lock)))
 
 (defun vc-git-region-history-font-lock (limit)
+  (defvar diff-font-lock-keywords)
   (let ((in-diff (save-excursion
                    (beginning-of-line)
                    (or (looking-at "^\\(?:diff\\|commit\\)\\>")
@@ -2095,8 +2100,9 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
                                             limit t)
                          (match-beginning 1)
                        limit))))
-          (let ((font-lock-keywords (if in-diff diff-font-lock-keywords
-                                      vc-git--log-view-long-font-lock-keywords)))
+          (let ((font-lock-keywords
+                 (if in-diff diff-font-lock-keywords
+                   vc-git--log-view-long-font-lock-keywords)))
             (font-lock-fontify-keywords-region (point) end))
           (goto-char end)
           (prog1 (< (point) limit)
@@ -2104,8 +2110,14 @@ This requires git 1.8.4 or later, for the \"-L\" option of \"git log\"."
     nil))
 
 (define-derived-mode vc-git-region-history-mode
-    vc-git-log-view-mode "Git-Region-History"
+  vc-git-log-view-mode "Git-Region-History"
   "Major mode to browse Git's \"log -p\" output."
+  (require 'diff-mode)
+  (defvar diff-mode-map)
+  (unless (keymap-parent vc-git-region-history-mode-map)
+    (set-keymap-parent vc-git-region-history-mode-map
+                       (make-composed-keymap
+                        (list diff-mode-map vc-git-log-view-mode-map))))
   (setq-local vc-git--log-view-long-font-lock-keywords
               log-view-font-lock-keywords)
   (setq-local font-lock-defaults

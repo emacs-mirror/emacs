@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 2018-2026 Free Software Foundation, Inc.
 
-;; Version: 1.23
+;; Version: 1.24
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (eldoc "1.16.0") (external-completion "0.1") (flymake "1.4.5") (jsonrpc "1.0.28") (project "0.11.2") (seq "2.23") (xref "1.7.0"))
+;; Package-Requires: ((emacs "26.3") (eldoc "1.16.0") (external-completion "0.1") (flymake "1.4.5") (jsonrpc "1.0.29") (project "0.11.2") (seq "2.23") (xref "1.7.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -317,7 +317,7 @@ automatically)."
     ((toml-ts-mode conf-toml-mode) . ("tombi" "lsp"))
     (nix-mode . ,(eglot-alternatives '("nil" "rnix-lsp" "nixd")))
     (nickel-mode . ("nls"))
-    ((nushell-mode nushell-ts-mode) . ("nu" "--lsp"))
+    ((nushell-mode nushell-ts-mode nu-ts-mode) . ("nu" "--lsp"))
     (gdscript-mode . ("localhost" 6008))
     (fennel-mode . ("fennel-ls"))
     (move-mode . ("move-analyzer"))
@@ -1264,7 +1264,8 @@ object."
     ;; `file-name-handler-alist' should know how to handle them
     ;; (bug#58790).
     (if (string= "file" (url-type url))
-        (let* ((unhexed (url-unhex-string (url-filename url)))
+        (let* ((unhexed (decode-coding-string
+                         (url-unhex-string (url-filename url)) 'utf-8-unix))
                ;; Remove the leading "/" for local MS Windows-style paths.
                (norm (if (and (not remote-prefix)
                                     (eq system-type 'windows-nt)
@@ -2117,7 +2118,7 @@ and also used as a hint of the request cancellation mechanism (see
                       :timeout-fn (wrapfn timeout-fn)
                       moreargs)))
     (when (and hint eglot-advertise-cancellation)
-      (push id (plist-get inflight hint)))
+      (push id (cl-getf inflight hint)))
     id))
 
 (cl-defun eglot--delete-overlays (&optional (prop 'eglot--overlays))

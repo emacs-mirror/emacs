@@ -225,7 +225,7 @@ Argument LANGUAGE is either `typescript' or `tsx'."
     "get" "if" "implements" "import" "in" "instanceof" "interface" "is" "infer"
     "keyof" "let" "namespace" "new" "of" "private" "protected"
     "public" "readonly" "return" "satisfies" "set" "static" "switch"
-    "target" "throw" "try" "type" "typeof" "var" "void"
+    "target" "throw" "try" "type" "typeof" "using" "var" "void"
     "while" "with" "yield")
   "TypeScript keywords for tree-sitter font-locking.")
 
@@ -860,8 +860,8 @@ at least 3 (which is the default value)."
               (match-beginning 0) (match-end 0)
               'syntax-table (string-to-syntax
                              (cond
-                              ((equal (match-string 0) "<") "(<")
-                              ((equal (match-string 0) ">") ")>")
+                              ((equal (match-string 0) "<") "(>")
+                              ((equal (match-string 0) ">") ")<")
                               (t ".")))))))))))
 
 ;;;###autoload

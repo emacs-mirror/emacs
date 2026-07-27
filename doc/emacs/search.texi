@@ -1937,6 +1937,10 @@ case.  I.e., if you have a @code{query-replace} from @samp{foo} to
 @samp{Bar}.  Use this command to do the current replacement with exact
 case.
 
+@item d
+to show the replacement of the current match as a buffer of diffs
+between the original text and text with the match replaced.
+
 @item C-l
 to redisplay the screen.  Then you must type another character to
 specify what to do with this occurrence.

@@ -79,12 +79,11 @@ be experimental.  It currently only works with Emacs 28+."
 ;;;###autoload(autoload 'erc-scrolltobottom-mode "erc-goodies" nil t)
 (define-erc-module scrolltobottom nil
   "This mode causes the prompt to stay at the end of the window."
-  ((add-hook 'erc-mode-hook #'erc--scrolltobottom-setup)
-   (when (and erc-scrolltobottom-all (< emacs-major-version 28))
+  ((when (and erc-scrolltobottom-all (< emacs-major-version 28))
      (erc-button--display-error-notice-with-keys
       "Option `erc-scrolltobottom-all' requires Emacs 28+. Disabling.")
      (setq erc-scrolltobottom-all nil))
-   (unless erc--updating-modules-p (erc-buffer-do #'erc--scrolltobottom-setup))
+   (erc-with-initialized-session (erc--scrolltobottom-setup))
    (if erc-scrolltobottom-all
        (progn
          (remove-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)
@@ -97,8 +96,7 @@ be experimental.  It currently only works with Emacs 28+."
      (remove-hook 'erc-insert-done-hook #'erc--scrolltobottom-all)
      (remove-hook 'erc-send-completed-hook #'erc--scrolltobottom-all)
      (add-hook 'erc-insert-done-hook #'erc-possibly-scroll-to-bottom)))
-  ((remove-hook 'erc-mode-hook #'erc--scrolltobottom-setup)
-   (erc-buffer-do #'erc--scrolltobottom-setup)
+  ((erc-buffer-do #'erc--scrolltobottom-setup)
    (remove-hook 'erc-insert-pre-hook #'erc--scrolltobottom-on-pre-insert)
    (remove-hook 'erc-send-completed-hook #'erc--scrolltobottom-all)
    (remove-hook 'erc-insert-done-hook #'erc--scrolltobottom-all)
@@ -258,10 +256,8 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
 ;;;###autoload(autoload 'erc-move-to-prompt-mode "erc-goodies" nil t)
 (define-erc-module move-to-prompt nil
   "This mode causes the point to be moved to the prompt when typing text."
-  ((add-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
-   (unless erc--updating-modules-p (erc-buffer-do #'erc-move-to-prompt-setup)))
-  ((remove-hook 'erc-mode-hook #'erc-move-to-prompt-setup)
-   (dolist (buffer (erc-buffer-list))
+  ((erc-with-initialized-session (erc-move-to-prompt-setup)))
+  ((dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer
        (remove-hook 'pre-command-hook #'erc-move-to-prompt t)))))
 
@@ -633,6 +629,9 @@ Do nothing if the variable `erc-command-indicator' is nil."
           (erc--input-split-substxt state) #'erc--command-indicator-display)
     (erc-send-distinguish-noncommands state)))
 
+(defun erc--command-indicator-body-find ()
+  (search-forward (erc--check-msg-prop 'erc--command-indicator) (pos-eol) t))
+
 ;; This function used to be called `erc-display-command'.  It was
 ;; neutered in ERC 5.3.x (Emacs 24.5), commented out in 5.4, removed
 ;; in 5.5, and restored in 5.6.
@@ -651,6 +650,9 @@ Do nothing if the variable `erc-command-indicator' is nil."
                                             'hash-table)))))
         (when-let* ((string (erc-command-indicator))
                     (erc-input-marker (copy-marker erc-input-marker)))
+          (puthash 'erc--command-indicator string erc--msg-props)
+          (puthash 'erc--pfx #'erc--command-indicator-body-find
+                   erc--msg-props)
           (erc-display-prompt nil nil string 'erc-command-indicator-face)
           (remove-text-properties insert-position (point)
                                   '(field nil erc-prompt nil))

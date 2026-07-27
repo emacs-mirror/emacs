@@ -46,6 +46,10 @@ orig_fstatat (int fd, char const *filename, struct stat *buf, int flags)
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef AT_EMPTY_PATH
+# define AT_EMPTY_PATH 0
+#endif
+
 #if HAVE_FSTATAT && HAVE_WORKING_FSTATAT_ZERO_FLAG
 
 # ifndef LSTAT_FOLLOWS_SLASHED_SYMLINK
@@ -68,14 +72,19 @@ normal_fstatat (int fd, char const *file, struct stat *st, int flag)
    Work around this bug if FSTATAT_AT_FDCWD_0_BROKEN is nonzero.  */
 
 int
-rpl_fstatat (int fd, char const *file, struct stat *st, int flag)
+rpl_fstatat (int fd, char const *file, struct stat *st, int flags)
 {
-  int result = normal_fstatat (fd, file, st, flag);
+  /* Implement Linux kernel 6.11+ behavior on platforms that have
+     AT_EMPTY_PATH but do not support it on null pointers.  */
+  if (flags & AT_EMPTY_PATH && !file)
+    file = "";
+
+  int result = normal_fstatat (fd, file, st, flags);
   if (LSTAT_FOLLOWS_SLASHED_SYMLINK || result != 0)
     return result;
 
   size_t len = strlen (file);
-  if (flag & AT_SYMLINK_NOFOLLOW)
+  if (flags & AT_SYMLINK_NOFOLLOW)
     {
       /* Fix lstat behavior.  */
       if (file[len - 1] != '/' || S_ISDIR (st->st_mode))
@@ -85,7 +94,7 @@ rpl_fstatat (int fd, char const *file, struct stat *st, int flag)
           errno = ENOTDIR;
           return -1;
         }
-      result = normal_fstatat (fd, file, st, flag & ~AT_SYMLINK_NOFOLLOW);
+      result = normal_fstatat (fd, file, st, flags & ~AT_SYMLINK_NOFOLLOW);
     }
   /* Fix stat behavior.  */
   if (result == 0 && !S_ISDIR (st->st_mode) && file[len - 1] == '/')

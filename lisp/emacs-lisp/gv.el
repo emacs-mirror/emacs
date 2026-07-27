@@ -532,42 +532,49 @@ See also `incf'."
 
 (put 'cond 'gv-expander
      (lambda (do &rest branches)
-       (if (or (not lexical-binding)  ;The other code requires lexical-binding.
-               (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy))))
-           ;; This duplicates the `do' code, which is a problem if that
-           ;; code is large, but otherwise results in more efficient code.
-           `(cond
-             ,@(mapcar (lambda (branch)
-                         (if (cdr branch)
-                             (cons (car branch)
-                                   (macroexp-unprogn
-                                    (gv-get (macroexp-progn (cdr branch)) do)))
-                           (gv-get (car branch) do)))
-                       branches))
-         (let ((v (gensym "v")))
-           (macroexp-let2 nil
-               gv `(cond
-                    ,@(mapcar
-                       (lambda (branch)
-                         (if (cdr branch)
-                             `(,(car branch)
-                               ,@(macroexp-unprogn
-                                  (gv-letplace (getter setter)
-                                      (macroexp-progn (cdr branch))
-                                    `(cons (lambda () ,getter)
-                                           (lambda (,v) ,(funcall setter v))))))
-                           (gv-letplace (getter setter)
-                               (car branch)
-                             `(cons (lambda () ,getter)
-                                    (lambda (,v) ,(funcall setter v))))))
-                       branches))
-             (funcall do `(funcall (car ,gv))
-                      (lambda (v) `(funcall (cdr ,gv) ,v))))))))
+       (let ((res (apply #'gv--cond-expander do branches))
+             (last-test (caar (last branches))))
+         (if (and (macroexp-const-p last-test)
+                  (if (consp last-test) (cadr last-test) last-test))
+             res
+           ;; There is no setter for the nil expression, so a missing default
+           ;; branch is a bug (bug#81217).  Let's not signal an error, tho,
+           ;; for backward compatibility reasons.
+           (macroexp-warn-and-return "Missing default branch in cond"
+                                     res '(suspicious cond))))))
 
-(put 'error 'gv-expander
-     (lambda (do &rest args)
-       (funcall do `(error . ,args)
-                (lambda (v) `(progn ,v (error . ,args))))))
+(defun gv--cond-expander (do &rest branches)
+  (if (or (not lexical-binding) ;The other code requires lexical-binding.
+          (macroexp-small-p (funcall do 'dummy (lambda (_) 'dummy))))
+      ;; This duplicates the `do' code, which is a problem if that
+      ;; code is large, but otherwise results in more efficient code.
+      `(cond
+        ,@(mapcar (lambda (branch)
+                    (if (cdr branch)
+                        (cons (car branch)
+                              (macroexp-unprogn
+                               (gv-get (macroexp-progn (cdr branch)) do)))
+                      (gv-get (car branch) do)))
+                  branches))
+    (let ((v (gensym "v")))
+      (macroexp-let2 nil
+          gv `(cond
+               ,@(mapcar
+                  (lambda (branch)
+                    (if (cdr branch)
+                        `(,(car branch)
+                          ,@(macroexp-unprogn
+                             (gv-letplace (getter setter)
+                                 (macroexp-progn (cdr branch))
+                               `(cons (lambda () ,getter)
+                                      (lambda (,v) ,(funcall setter v))))))
+                      (gv-letplace (getter setter)
+                          (car branch)
+                        `(cons (lambda () ,getter)
+                               (lambda (,v) ,(funcall setter v))))))
+                  branches))
+        (funcall do `(funcall (car ,gv))
+                 (lambda (v) `(funcall (cdr ,gv) ,v)))))))
 
 (defun gv-synthetic-place (getter setter)
   "Special place described by its setter and getter.
@@ -671,11 +678,9 @@ REF must have been previously obtained with `gv-ref'."
 
 ;;; Generalized variables.
 
-;; You'd think no one would write `(setf (error ...) ..)' but it
-;; appears naturally as the result of macroexpansion of things like
-;; (setf (pcase-exhaustive ...)).
-;; We could generalize this to `throw' and `signal', but it seems
-;; preferable to wait until there's a concrete need.
+;; `error' and `ignore' places come in handy in the default branch
+;; of `cond/pcase' places.
+(gv-define-setter ignore (store &rest _args) store) ;; A kind of >/dev/null
 (gv-define-expander error (lambda (_do &rest args) `(error . ,args)))
 
 ;; Some Emacs-related place types.

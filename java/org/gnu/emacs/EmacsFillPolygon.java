@@ -30,7 +30,6 @@ import android.os.Build;
 
 public final class EmacsFillPolygon
 {
-  @SuppressWarnings ("deprecation") /* computeBounds (IZ) */
   public static void
   perform (EmacsDrawable drawable, EmacsGC gc, Point points[])
   {
@@ -64,14 +63,10 @@ public final class EmacsFillPolygon
     /* Compute the damage rectangle.  */
     rectF = new RectF (0, 0, 0, 0);
 
-    /* computeBounds (IZ) is deprecated but the incompetence of
-       Android's release management has caused its replacement to be
-       omitted from published header files.  */
-
-    /* if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) */
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA)
       path.computeBounds (rectF, true);
-    /* else
-       path.computeBounds (rectF); */
+    else
+      path.computeBounds (rectF);
 
     rect = new Rect ((int) Math.floor (rectF.left),
 		     (int) Math.floor (rectF.top),

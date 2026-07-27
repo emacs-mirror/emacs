@@ -140,10 +140,15 @@ is only skipped if the documentation needs to be truncated there."
 
 (defcustom eldoc-help-at-pt nil
   "If non-nil, show `help-at-pt-kbd-string' at point via Eldoc.
-This setting is an alternative to `help-at-pt-display-when-idle'.  If
-the value is non-nil, `eldoc-show-help-at-pt' will show help-at-point
-via Eldoc."
+This setting is an alternative to `help-at-pt-display-when-idle'.  In
+order to enable help at point only in certain buffers add
+`eldoc-show-help-at-pt' locally to `eldoc-documentation-functions'."
   :type 'boolean
+  :set (lambda (sym val)
+         (custom-set-default sym val)
+         (if val
+             (add-hook 'eldoc-documentation-functions #'eldoc-show-help-at-pt 90)
+           (remove-hook 'eldoc-documentation-functions #'eldoc-show-help-at-pt)))
   :version "31.1")
 
 (defface eldoc-highlight-function-argument
@@ -417,7 +422,7 @@ Also store it in `eldoc-last-message' and return that value."
                       (overlay-end show-paren--overlay)))))))
 
 
-(defvar eldoc-documentation-functions (list #'eldoc-show-help-at-pt)
+(defvar eldoc-documentation-functions nil
   "Hook of functions that produce doc strings.
 
 A doc string is typically relevant if point is on a function-like
@@ -813,7 +818,9 @@ all."
 
 (defun eldoc--supported-p ()
   "Non-nil if an ElDoc function is set for this buffer."
-  (and (not (memq eldoc-documentation-strategy '(nil ignore)))
+  ;; Exclude ephemeral *eldoc* buffers, to avoid blinking (bug#81356).
+  (and (not (string-prefix-p " *eldoc" (buffer-name)))
+       (not (memq eldoc-documentation-strategy '(nil ignore)))
        (or eldoc-documentation-functions
            ;; The old API had major modes set `eldoc-documentation-function'
            ;; to provide eldoc support.  It's impossible now to determine
@@ -973,9 +980,11 @@ the docstrings eventually produced, using
              (eldoc--invoke-strategy nil))))))
 
 (defun eldoc-show-help-at-pt (&rest _)
-  "Show help at point via Eldoc if `eldoc-help-at-pt' is non-nil.
-Intended for `eldoc-documentation-functions' (which see)."
-  (when-let* ((help (and eldoc-help-at-pt (help-at-pt-kbd-string))))
+  "Show help at point via Eldoc taken from `help-at-pt-kbd-string'.
+This function is intended to be added buffer-locally by major modes to
+`eldoc-documentation-functions'.  In order to enable help at point
+globally, users can set `eldoc-help-at-pt' to t."
+  (when-let* ((help (help-at-pt-kbd-string)))
     (format "Help: %s" (substitute-command-keys help))))
 
 

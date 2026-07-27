@@ -176,6 +176,7 @@ For a description of possible values, see `vc-check-master-templates'."
 
 (autoload 'vc-expand-dirs "vc")
 
+;; FIXME: Respect `vc-dir-process-output-limit'.
 (defun vc-src-dir-status-files (dir files update-function)
   (let* ((result nil)
          (status nil)

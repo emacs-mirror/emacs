@@ -809,7 +809,7 @@ install-info: info
 	      done; \
 	     (cd "$${thisdir}"; \
 	      ${INSTALL_INFO} --info-dir="$(DESTDIR)${infodir}" "$(DESTDIR)${infodir}/$$elt"); \
-	      cp elisp_type_hierarchy* $(DESTDIR)${infodir}/; \
+	      cp *.jpg *.png $(DESTDIR)${infodir}/; \
 	   done; \
 	fi
 
@@ -1152,15 +1152,26 @@ $(1)-DOCLANG-$(2): $(1)-common
 	$$(MAKE) -C doc/$$(subst -, DOCLANG=$(2) ,$(1))
 
 endef
+## Languages from DOCLANGS to build the manuals in doc/$(1) for: the
+## default language (when in DOCLANGS), plus every other language in
+## DOCLANGS that has translations for this directory
+## (doc/translations/<lang>/$(1)).  Directories without translations
+## for a language must not run a sub-make for it: the doc Makefiles of
+## untranslated directories ignore DOCLANG, so such a sub-make would
+## just repeat the default-language build, and two sub-makes producing
+## the same outputs race under "make -j" (e.g. "cp: cannot create
+## regular file ...: File exists").
+FILTER_DOCLANGS = $(filter $(DOCLANGS),default) $(foreach lang,$(filter-out default,$(DOCLANGS)),$(if $(wildcard ${srcdir}/doc/translations/$(lang)/$(1)),$(lang)))
+# $(1) = doc target (e.g. lispintro-info), $(2) = languages to build
 define MAKE_DOC
 # Define a target to which dependencies common to all of the doc files
 # in this directory may be assigned.
 $(1)-common:
-$(1): $$(addprefix $(1)-DOCLANG-,$(DOCLANGS))
+$(1): $$(addprefix $(1)-DOCLANG-,$(2))
 
-$$(foreach lang,$(DOCLANGS),$$(eval $$(call MAKE_DOC_FOR_DOCLANG,$(1),$$(lang))))
+$$(foreach lang,$(2),$$(eval $$(call MAKE_DOC_FOR_DOCLANG,$(1),$$(lang))))
 endef
-$(foreach doc,$(DOCS),$(eval $(call MAKE_DOC,$(doc))))
+$(foreach doc,$(DOCS),$(eval $(call MAKE_DOC,$(doc),$(call FILTER_DOCLANGS,$(word 1,$(subst -, ,$(doc)))))))
 
 .PHONY: $(DOCS) docs pdf ps
 .PHONY: info dvi dist html info-dir check-info
@@ -1185,17 +1196,34 @@ misc-dvi-common misc-html-common misc-pdf-common misc-ps-common: src
 info-dir: ${srcdir}/info/dir
 
 define set_texi_misc
-texi_misc_$(1) = $$(shell MAKEFLAGS= $${MAKE} --no-print-directory -s -C doc/misc LANG=$(1) echo-sources)
+texi_misc_$(1) = $$(shell MAKEFLAGS= $${MAKE} --no-print-directory -s -C doc/misc DOCLANG=$(1) echo-sources)
 
 endef
 
 $(foreach lang,$(DOCLANGS),$(eval $(call set_texi_misc,$(lang))))
 
-srcdir_doc_info_dir_inputs = \
+## For the default language, depend on the actual sources reported by
+## doc/misc (echo-sources): .org files for the org-based manuals and
+## .texi files for the rest.  Deriving foo.texi names from INFO_COMMON
+## would break in a fresh checkout, because the .texi files of the
+## org-based manuals (e.g. modus-themes.texi) are generated and there
+## is no rule to build them at this level.  make-info-dir extracts dir
+## entries from both formats.
+srcdir_doc_info_dir_inputs := \
   ${srcdir}/doc/emacs/emacs.texi \
   ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
   ${srcdir}/doc/lispref/elisp.texi \
-  $(foreach lang,$(DOCLANGS),$(addprefix ${srcdir}/doc/misc/$(filter-out ../translations/default/misc/,../translations/$(lang)/misc/),$(texi_misc_$(lang)) ))
+  $(addprefix ${srcdir}/doc/misc/,${texi_misc_default})
+TRANSLATED_DIRS:=misc
+# $(1) = dir
+# $(2) = lang
+define GET_DOC_SRC
+-include ${srcdir}/doc/translations/$(2)/$(1)/info_common.mk
+INFO_COMMON:=$$(subst ccmode,cc-mode,$$(INFO_COMMON))
+srcdir_doc_info_dir_inputs:=$$(srcdir_doc_info_dir_inputs) $$(patsubst %,${srcdir}/doc/translations/$(2)/$(1)/%-$(2).texi,$$(INFO_COMMON))
+endef
+$(foreach dir,$(TRANSLATED_DIRS),$(foreach lang,$(filter-out default,$(DOCLANGS)),$(eval $(call GET_DOC_SRC,$(dir),$(lang)))))
+
 info_dir_inputs = \
   ../build-aux/dir_top \
   $(subst ${srcdir}/doc/,,${srcdir_doc_info_dir_inputs})

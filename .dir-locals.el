@@ -7,7 +7,6 @@
 	 (emacs-lisp-docstring-fill-column . 72)
          (vc-git-annotate-switches . "-w")
          (bug-reference-url-format . "https://debbugs.gnu.org/%s")
-	 (diff-add-log-use-relative-names . t)
          (etags-regen-regexp-alist
           .
           ((("c" "objc") .
@@ -57,7 +56,8 @@
  (change-log-mode . ((add-log-time-zone-rule . t)
 		     (fill-column . 74)
 		     (mode . bug-reference)))
- (diff-mode . ((mode . whitespace)))
+ (diff-mode . ((mode . whitespace)
+	       (diff-add-log-use-relative-names . t)))
  (emacs-lisp-mode . ((indent-tabs-mode . nil)
                      (electric-quote-comment . nil)
                      (electric-quote-string . nil)

@@ -1331,7 +1331,7 @@ remote, otherwise search locally."
     ;; Use 1 rather than file-executable-p to better match the
     ;; behavior of call-process.
     (let ((default-directory (file-name-quote default-directory 'top)))
-      (locate-file command exec-path exec-suffixes 1))))
+      (locate-file command exec-path (default-value 'exec-suffixes) 1))))
 
 (declare-function read-library-name "find-func" nil)
 
@@ -3155,6 +3155,7 @@ since only a single case-insensitive search through the alist is made."
     ("\\.srt\\'" . srecode-template-mode)
     ("\\.prolog\\'" . prolog-mode)
     ("\\.tar\\'" . tar-mode)
+    ("\\(?:\\.rmail\\|\\(?:\\`\\|[/\\]\\)RMAIL\\)\\'" . rmail-mode)
     ;; The list of archive file extensions should be in sync with
     ;; `auto-coding-alist' with `no-conversion' coding system.
     ("\\.\\(\
@@ -3990,6 +3991,18 @@ variable `enable-remote-dir-locals' is non-nil."
   :risky t
   :group 'find-file)
 
+(defmacro without-local-variable-queries (&rest body)
+  "Execute BODY without querying user about local variable values.
+In some uses, this is a workaround for the problem that a command
+disables displaying new windows for its own reasons but this also breaks
+`hack-local-variables-confirm'.  See Emacs bug#80528 and bug#81233."
+  (declare (indent 0) (debug t))
+  `(let ((enable-local-variables
+          (if (memq enable-local-variables '(:safe :all nil))
+              enable-local-variables
+            :safe)))
+     ,@body))
+
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
@@ -4054,6 +4067,9 @@ i  -- to ignore the local variables list, and permanently mark these
       ;; Display the buffer and read a choice.
       (save-window-excursion
 	(pop-to-buffer buf '(display-buffer--maybe-at-bottom))
+        (unless (get-buffer-window buf)
+          (error "Failed to display local variables buffer; this is a bug
+Possibly caller should use `without-local-variable-queries', which see."))
 	(let* ((exit-chars '(?y ?n ?\s))
 	       (prompt (format "Please type %s%s: "
 			       (if offer-save
@@ -4623,7 +4639,9 @@ already the major mode."
      ;; so it is risky to put them on with a local variable list.
      (if (stringp val)
          (set-text-properties 0 (length val) nil val))
-     (set (make-local-variable var) val))))
+     (if (custom-variable-p var)
+         (setopt--set-local var val)
+       (set (make-local-variable var) val)))))
 
 ;;; Handling directory-local variables, aka project settings.
 
@@ -8486,8 +8504,10 @@ normally equivalent short `-D' option is just passed on to
           (defvar dired--ls-error-buffer) ; Pacify byte-compiler.
           (let ((errbuf (get-buffer-create "*ls error*")))
             (with-current-buffer errbuf
-              (erase-buffer)
-              (insert-file-contents errfile))
+              (setq buffer-read-only t)
+              (let ((inhibit-read-only t))
+                (erase-buffer)
+                (insert-file-contents errfile)))
             (setq dired--ls-error-buffer errbuf)))
         (defvar dired--ls-error-file) ; Pacify byte-compiler.
         (setq dired--ls-error-file errfile)

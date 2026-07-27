@@ -150,7 +150,7 @@ This string specifies the format of the timestamp being echoed in
 the minibuffer."
   :type '(choice (const :tag "Timestamped Monday, 15:04:05"
                         "Timestamped %A, %H:%M:%S")
-                 (const :tag "2006-01-02 15:04:05 MST" "%F %T %Z")
+                 (const :tag "2026-07-21 15:04:05 JST" "%F %T %Z")
                  string))
 
 (defcustom erc-echo-timestamp-zone nil
@@ -178,13 +178,11 @@ from entering them and instead jump over them."
 ;;;###autoload(autoload 'erc-timestamp-mode "erc-stamp" nil t)
 (define-erc-module stamp timestamp
   "This mode timestamps messages in the channel buffers."
-  ((add-hook 'erc-mode-hook #'erc-stamp--setup)
-   (add-hook 'erc-insert-modify-hook #'erc-add-timestamp 70)
+  ((add-hook 'erc-insert-modify-hook #'erc-add-timestamp 70)
    (add-hook 'erc-send-modify-hook #'erc-add-timestamp 70)
    (add-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
-   (unless erc--updating-modules-p (erc-buffer-do #'erc-stamp--setup)))
-  ((remove-hook 'erc-mode-hook #'erc-stamp--setup)
-   (remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
+   (erc-with-initialized-session (erc-stamp--setup)))
+  ((remove-hook 'erc-insert-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-send-modify-hook #'erc-add-timestamp)
    (remove-hook 'erc-mode-hook #'erc-stamp--recover-on-reconnect)
    (erc-buffer-do #'erc-stamp--setup)))

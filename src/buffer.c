@@ -984,7 +984,8 @@ drop_overlay (struct Lisp_Overlay *ov)
   if (! ov->buffer)
     return;
 
-  modify_overlay (ov->buffer, overlay_start (ov), overlay_end (ov));
+  if (!NILP (ov->plist))
+    modify_overlay (ov->buffer, overlay_start (ov), overlay_end (ov));
   remove_buffer_overlay (ov->buffer, ov);
 }
 
@@ -1322,7 +1323,7 @@ immediately before it was killed.  */)
 }
 
 DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
-       doc: /* Return name of file BUFFER is visiting, or nil if none.
+       doc: /* Return absolute name of file BUFFER is visiting, or nil if none.
 No argument or nil as argument means use the current buffer.  */)
   (register Lisp_Object buffer)
 {
@@ -3069,15 +3070,33 @@ As a special exception, local variables whose names have a non-nil
 the optional KILL-PERMANENT argument is non-nil, clear out these local
 variables, too.
 
+If KILL-PERMANENT is the symbol `permanent-local', kill local variables
+and ignore variable watchers.  If KILL-PERMANENT is the symbol `reset',
+ignore variable watchers and reset the buffer as if newly created.  Use
+these with caution.  For example, `reset' sets buffer variables such as
+`default-directory' to nil and may result in unexpected behavior.
+
 The first thing this function does is run
 the normal hook `change-major-mode-hook'.  */)
   (Lisp_Object kill_permanent)
 {
   run_hook (Qchange_major_mode_hook);
 
-  /* Actually eliminate all local bindings of this buffer.  */
+  int permanent_too = 0;
+  if (!NILP (kill_permanent))
+    {
+      permanent_too = 2;
+      if (EQ (kill_permanent, Qpermanent_local))
+        permanent_too = 1;
+      else if (EQ (kill_permanent, Qreset))
+        {
+          permanent_too = 1;
+          reset_buffer (current_buffer);
+        }
+    }
 
-  reset_buffer_local_variables (current_buffer, !NILP (kill_permanent) ? 2 : 0);
+  /* Actually eliminate all local bindings of this buffer.  */
+  reset_buffer_local_variables (current_buffer, permanent_too);
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */
@@ -3798,7 +3817,9 @@ buffer.  */)
                               n_beg, n_end);
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
-  if (!BASE_EQ (buffer, obuffer))
+  if (NILP (OVERLAY_PLIST (overlay)))
+    ; /* No props so the overlay doesn't affect the display.  */
+  else if (!BASE_EQ (buffer, obuffer))
     {
       /* Redisplay where the overlay was.  */
       if (ob)

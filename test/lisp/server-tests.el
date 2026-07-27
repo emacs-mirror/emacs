@@ -25,7 +25,8 @@
 
 (defconst server-tests/can-create-frames-p
   (and (not (memq system-type '(windows-nt ms-dos)))
-       (not (member (getenv "TERM") '("dumb" "" nil)))
+       (not (member (getenv "TERM")
+                    '("dumb" "dumb-emacs-ansi" "" nil)))
        (or (not (eq system-type 'cygwin))
            (featurep 'gfilenotify)
            (featurep 'dbus)

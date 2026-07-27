@@ -30,7 +30,9 @@
 # include "unlocked-io.h"
 #endif
 
-#include "af_alg.h"
+#if GNULIB_AF_ALG
+# include "af_alg.h"
+#endif
 
 #ifdef _LIBC
 # include <endian.h>
@@ -57,11 +59,13 @@
 int
 md5_stream (FILE *stream, void *resblock)
 {
+#if GNULIB_AF_ALG
   switch (afalg_stream (stream, "md5", resblock, MD5_DIGEST_SIZE))
     {
     case 0: return 0;
     case -EIO: return 1;
     }
+#endif
 
   char *buffer = malloc (BLOCKSIZE);
   if (!buffer)

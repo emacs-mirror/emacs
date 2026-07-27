@@ -1,5 +1,5 @@
 # manywarnings.m4
-# serial 35
+# serial 37
 dnl Copyright (C) 2008-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -97,8 +97,8 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   # export LC_ALL=C && comm -3 \
   #  <((sed -n 's/^  *\(-[^ 0-9][^ ]*\).*/\1/p' manywarnings.m4; \
   #     awk '/^[^#]/ {print $1}' ../build-aux/gcc-warning.spec) | sort) \
-  #  <((gcc --help=c,warnings && gcc --help=common,warnings) \
-  #    | sed -n 's/^  \(-[^ ]*\) .*/\1/p' | sort)
+  #  <((gcc -Q --help=c,warnings && gcc -Q --help=common,warnings) \
+  #    | sed -n '/\[ignored]$/d;s/^  \(-[^ ]*\) .*/\1/p' | sort)
 
   $1=
   for gl_manywarn_item in -fanalyzer -fstrict-flex-arrays \
@@ -133,7 +133,6 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
     -Wshadow \
     -Wstack-protector \
     -Wstrict-flex-arrays \
-    -Wstrict-overflow \
     -Wstrict-prototypes \
     -Wsuggest-attribute=cold \
     -Wsuggest-attribute=const \
@@ -145,7 +144,6 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
     -Wtrampolines \
     -Wuninitialized \
     -Wunknown-pragmas \
-    -Wunsafe-loop-optimizations \
     -Wunused-macros \
     -Wvariadic-macros \
     -Wvector-operation-performance \
@@ -171,36 +169,41 @@ AC_DEFUN([gl_MANYWARN_ALL_GCC(C)],
   AS_VAR_APPEND([$1], [' -Wvla-larger-than=4031'])
 
   # These depend on the GCC version.
-  if test -n "$GCC" && gl_gcc_version=`($CC --version) 2>/dev/null`; then
+  if test -n "$GCC" \
+     && gl_gcc_version=`($CC --version) 2>/dev/null | sed 1q`; then
     case $gl_gcc_version in
-      gcc*' ('*') '[[0-3]].* | \
-      gcc*' ('*') '4.[[0-7]].*)
+      *gcc*' ('*') '[[0-3]].* | \
+      *gcc*' ('*') '4.[[0-7]].*)
         AS_VAR_APPEND([$1], [' -fdiagnostics-show-option'])
         AS_VAR_APPEND([$1], [' -funit-at-a-time'])
-          ;;
+        ;;
     esac
     case $gl_gcc_version in
-      gcc*' ('*') '[[0-9]].*)
+      *gcc*' ('*') '[[0-9]].*)
+        # In GCC >= 10 this option is no longer needed, as it is
+        # enabled by default.
         AS_VAR_APPEND([$1], [' -fno-common'])
-          ;;
+        ;;
     esac
     case $gl_gcc_version in
-      gcc*' ('*') '?.* | gcc*' ('*') '1[[0-3]].*)
-          # In GCC < 14 the option either does not exist,
-          # or is accepted but always warns.
-          ;;
+      *gcc*' ('*') '[[0-9]].* | \
+      *gcc*' ('*') '1[[0-3]].*)
+        # In GCC < 14 the option either does not exist,
+        # or is accepted but always warns.
+        ;;
       *)
-          AS_VAR_APPEND([$1], [' -Wuseless-cast'])
-          ;;
+        AS_VAR_APPEND([$1], [' -Wuseless-cast'])
+        ;;
     esac
     case $gl_gcc_version in
-      gcc*' ('*') '?.* | gcc*' ('*') '1[[0-4]].*)
-          # In GCC < 15 the option either does not exist,
-          # or is accepted but always warns.
-          ;;
+      *gcc*' ('*') '[[0-9]].* | \
+      *gcc*' ('*') '1[[0-4]].*)
+        # In GCC < 15 the option either does not exist,
+        # or is accepted but always warns.
+        ;;
       *)
-          AS_VAR_APPEND([$1], [' -Wzero-as-null-pointer-constant'])
-          ;;
+        AS_VAR_APPEND([$1], [' -Wzero-as-null-pointer-constant'])
+        ;;
     esac
   fi
 

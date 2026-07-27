@@ -710,11 +710,12 @@ offered."
 (defun tramp-archive-handle-insert-file-contents
   (filename &optional visit beg end replace)
   "Like `insert-file-contents' for file archives."
+  (setq filename (expand-file-name filename))
   (let ((result
 	 (insert-file-contents
 	  (tramp-archive-gvfs-file-name filename) visit beg end replace)))
     (when visit (setq buffer-file-name filename))
-    (cons (expand-file-name filename) (cdr result))))
+    (cons filename (cdr result))))
 
 (defun tramp-archive-handle-load
     (file &optional noerror nomessage nosuffix must-suffix)

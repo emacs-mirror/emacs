@@ -211,6 +211,13 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
 (defvar tramp-trace-functions nil
   "A list of non-Tramp functions to be traced with `tramp-verbose' > 10.")
 
+(defun tramp-trace-add-package (package)
+  "Add all functions of PACKAGE to `tramp-trace-functions'."
+  (when (and (symbolp package) (require package nil 'noerror))
+    (dolist (elt (apropos-internal
+		  (rx bos (literal (symbol-name package))) #'functionp))
+      (add-to-list 'tramp-trace-functions elt))))
+
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
 Message is formatted with FMT-STRING as control string and the remaining

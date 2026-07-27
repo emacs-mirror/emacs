@@ -2238,9 +2238,9 @@ some of this variable's contents the diagnostic listings.")
 (defun flymake-show-project-diagnostics ()
   "Show a list of Flymake diagnostics for the current project."
   (interactive)
-  (let* ((prj (project-current))
-         (root (project-root prj))
-         (buffer (flymake--project-diagnostics-buffer root)))
+  (let* ((prj (project-current t))
+         (default-directory (project-root prj))
+         (buffer (flymake--project-diagnostics-buffer default-directory)))
     (with-current-buffer buffer
       (flymake-project-diagnostics-mode)
       (setq-local flymake--project-diagnostic-list-project prj)

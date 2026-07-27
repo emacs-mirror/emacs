@@ -434,6 +434,22 @@ if ARG is omitted or nil.
        (put ',enable  'definition-name ',name)
        (put ',disable 'definition-name ',name))))
 
+(defmacro erc-with-initialized-session (&rest body)
+  "Run BODY in all ERC buffers if outside `erc-open' and soon otherwise.
+When inside `erc-open', run BODY after session variables have been
+initialzied and after all `erc-mode-hook' members but before any
+`after-change-major-mode-hook' members.  Expect caller to know this is
+only useful in global-module setup and that they're still responsible
+for teardown, which is often done with `erc-buffer-do' or similar."
+  (let ((fn (make-symbol "fn"))
+        (hook-var (make-symbol "hook-var")))
+    `(let ((,fn (lambda () ,@body)))
+       (if erc--updating-modules-p
+           (let ((,hook-var (gensym "erc--oneoff-major-mode-hook-")))
+             (set ,hook-var ,fn)
+             (push ,hook-var delayed-mode-hooks))
+         (erc-buffer-do ,fn)))))
+
 (defmacro erc-with-buffer (spec &rest body)
   "Execute BODY in the buffer associated with SPEC.
 
@@ -572,7 +588,12 @@ Use the CASEMAPPING ISUPPORT parameter to determine the style."
            (when erc-channel-members-changed-hook
              (run-hooks 'erc-channel-members-changed-hook))))))))
 
-(defmacro erc--with-dependent-type-match (type &rest features)
+;; The default values of some ERC's options contain items defined in
+;; other libraries that may not be loaded when `setopt' is invoked on
+;; the option, which results in an unfriendly warning.  User configs can
+;; simply `require' such dependencies beforehand, but that's often
+;; undesirable in ERC's own library code.
+(defmacro erc--custom-with-type-match-features (type &rest features)
   "Massage Custom :type TYPE with :match function that pre-loads FEATURES."
   `(backquote-list* ',(car type)
                     :match (lambda (w v)

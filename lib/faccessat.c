@@ -53,21 +53,25 @@ orig_faccessat (int fd, char const *name, int mode, int flag)
 #if HAVE_FACCESSAT
 
 int
-rpl_faccessat (int fd, char const *file, int mode, int flag)
+rpl_faccessat (int fd, char const *file, int mode, int flags)
 {
-  int result = orig_faccessat (fd, file, mode, flag);
+  int result = orig_faccessat (fd, file, mode, flags);
 
-  if (file[strlen (file) - 1] == '/')
+  if (file)
     {
-      struct stat st;
-      int ret = fstatat (fd, file, &st, 0);
-      if (ret == 0 && !S_ISDIR (st.st_mode))
+      size_t len = strlen (file);
+      if (len && file[len - 1] == '/')
         {
-          errno = ENOTDIR;
-          return -1;
+          struct stat st;
+          int ret = fstatat (fd, file, &st, 0);
+          if (ret == 0 && !S_ISDIR (st.st_mode))
+            {
+              errno = ENOTDIR;
+              return -1;
+            }
+          if (result == 0)
+            result = ret;
         }
-      if (result == 0)
-        result = ret;
     }
 
   return result;

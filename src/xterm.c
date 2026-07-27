@@ -28190,7 +28190,8 @@ do_ewmh_fullscreen (struct frame *f)
 		  || cur == FULLSCREEN_MAXIMIZED)
 		set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
 			      dpyinfo->Xatom_net_wm_state_maximized_vert);
-	      if (cur != FULLSCREEN_MAXIMIZED || x_frame_normalize_before_maximize)
+	      if ((cur != FULLSCREEN_MAXIMIZED  && cur != FULLSCREEN_BOTH)
+		  || x_frame_normalize_before_maximize)
 		set_wm_state (frame, true,
 			      dpyinfo->Xatom_net_wm_state_maximized_horz, None);
 	    }
@@ -28210,7 +28211,8 @@ do_ewmh_fullscreen (struct frame *f)
 		  || cur == FULLSCREEN_MAXIMIZED)
 		set_wm_state (frame, false, dpyinfo->Xatom_net_wm_state_fullscreen,
 			      dpyinfo->Xatom_net_wm_state_maximized_horz);
-	      if (cur != FULLSCREEN_MAXIMIZED || x_frame_normalize_before_maximize)
+	      if ((cur != FULLSCREEN_MAXIMIZED && cur != FULLSCREEN_BOTH)
+		  || x_frame_normalize_before_maximize)
 		set_wm_state (frame, true,
 			      dpyinfo->Xatom_net_wm_state_maximized_vert, None);
 	    }
@@ -28613,8 +28615,10 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
 /* Resizing an occluding window (such as a child frame) immediately
    triggers a fill with background color on the exposed area on the
    parent when the X server receives the corresponding command
-   (XResizeWindow, XMoveResizeWindow, etc).  But only if the window has
-   a background assigned.  Change it to None to block that effect.  */
+   (XResizeWindow, XMoveResizeWindow, etc), according to the X protocol.
+   But only if the window has a background assigned.
+
+   This creates flickering, so change the background pixmap to None.  */
 static void
 x_suspend_background_fills (struct frame *f)
 {
@@ -29014,25 +29018,6 @@ x_get_focus_frame (struct frame *f)
   return lisp_focus;
 }
 
-/* Return the toplevel parent of F, if it is a child frame.
-   Otherwise, return NULL.  */
-
-static struct frame *
-x_get_toplevel_parent (struct frame *f)
-{
-  struct frame *parent;
-
-  if (!FRAME_PARENT_FRAME (f))
-    return NULL;
-
-  parent = FRAME_PARENT_FRAME (f);
-
-  while (FRAME_PARENT_FRAME (parent))
-    parent = FRAME_PARENT_FRAME (parent);
-
-  return parent;
-}
-
 static void
 x_set_input_focus (struct x_display_info *dpyinfo, Window window,
 		   Time time)
@@ -29156,17 +29141,21 @@ x_focus_frame (struct frame *f, bool noactivate)
 	     may not work if its parent is not activated.  */
 	  && !FRAME_PARENT_FRAME (f)
 	  /* If the focus is being transferred from a child frame to
-	     its toplevel parent, also use SetInputFocus.  */
+	     another frame, also use SetInputFocus.  */
 	  && (!dpyinfo->x_focus_frame
-	      || (x_get_toplevel_parent (dpyinfo->x_focus_frame)
-		  != f))
-	  && x_wm_supports (f, dpyinfo->Xatom_net_active_window))
+	      || !FRAME_PARENT_FRAME (dpyinfo->x_focus_frame))
+	  && !EQ (focus_follows_mouse, Qauto_raise))
 	{
 	  /* When window manager activation is possible, use it
 	     instead.  The window manager is expected to perform any
 	     necessary actions such as raising the frame, moving it to
 	     the current workspace, and mapping it, etc, before moving
-	     input focus to the frame.  */
+	     input focus to the frame.
+
+	     Don't use window manager activation when giving focus to a
+	     frame when the mouse would auto-raise it.  At least xfwm
+	     won't give a frame focus via x_ewmh_activate_frame in that
+	     case.  */
 	  x_ewmh_activate_frame (f);
 	  goto out;
 	}
@@ -32473,6 +32462,13 @@ static struct textconv_interface text_conversion_interface =
 void
 init_xterm (void)
 {
+#if defined(HAVE_XWIDGETS) && !defined(HAVE_PGTK)
+  /* Emacs uses off-screen gtk widgets for webkit views, which do not support
+     DMABUF or Compositing Mode; webkit aborts unless we disable those.  */
+    xputenv ("WEBKIT_DISABLE_DMABUF_RENDERER=1");
+    xputenv ("WEBKIT_DISABLE_COMPOSITING_MODE=1");
+#endif
+
 #ifndef HAVE_XINPUT2
   /* Emacs can handle only core input events when built without XI2
      support, so make sure Gtk doesn't use Xinput or Xinput2

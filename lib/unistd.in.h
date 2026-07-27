@@ -930,18 +930,18 @@ _GL_CXXALIASWARN (execvpe);
 #   define faccessat rpl_faccessat
 #  endif
 _GL_FUNCDECL_RPL (faccessat, int,
-                  (int fd, char const *name, int mode, int flag),
-                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_NODISCARD);
+                  (int fd, char const *name, int mode, int flags),
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (faccessat, int,
-                  (int fd, char const *name, int mode, int flag));
+                  (int fd, char const *name, int mode, int flags));
 # else
 #  if !@HAVE_FACCESSAT@
 _GL_FUNCDECL_SYS (faccessat, int,
-                  (int fd, char const *file, int mode, int flag),
-                  _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_NODISCARD);
+                  (int fd, char const *file, int mode, int flags),
+                  _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (faccessat, int,
-                  (int fd, char const *file, int mode, int flag));
+                  (int fd, char const *file, int mode, int flags));
 # endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (faccessat);
@@ -997,18 +997,18 @@ _GL_WARN_ON_USE (fchdir, "fchdir is unportable - "
 #   define fchownat rpl_fchownat
 #  endif
 _GL_FUNCDECL_RPL (fchownat, int, (int fd, char const *file,
-                                  uid_t owner, gid_t group, int flag),
-                                 _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_NODISCARD);
+                                  uid_t owner, gid_t group, int flags),
+                  _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (fchownat, int, (int fd, char const *file,
-                                  uid_t owner, gid_t group, int flag));
+                                  uid_t owner, gid_t group, int flags));
 # else
 #  if !@HAVE_FCHOWNAT@
 _GL_FUNCDECL_SYS (fchownat, int, (int fd, char const *file,
-                                  uid_t owner, gid_t group, int flag),
-                                 _GL_ARG_NONNULL ((2)) _GL_ATTRIBUTE_NODISCARD);
+                                  uid_t owner, gid_t group, int flags),
+                  _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (fchownat, int, (int fd, char const *file,
-                                  uid_t owner, gid_t group, int flag));
+                                  uid_t owner, gid_t group, int flags));
 # endif
 _GL_CXXALIASWARN (fchownat);
 #elif defined GNULIB_POSIXCHECK
@@ -1728,21 +1728,21 @@ _GL_WARN_ON_USE (link, "link is unportable - "
 #  endif
 _GL_FUNCDECL_RPL (linkat, int,
                   (int fd1, const char *path1, int fd2, const char *path2,
-                   int flag),
+                   int flags),
                   _GL_ARG_NONNULL ((2, 4)) _GL_ATTRIBUTE_NODISCARD);
 _GL_CXXALIAS_RPL (linkat, int,
                   (int fd1, const char *path1, int fd2, const char *path2,
-                   int flag));
+                   int flags));
 # else
 #  if !@HAVE_LINKAT@
 _GL_FUNCDECL_SYS (linkat, int,
                   (int fd1, const char *path1, int fd2, const char *path2,
-                   int flag),
+                   int flags),
                   _GL_ARG_NONNULL ((2, 4)) _GL_ATTRIBUTE_NODISCARD);
 #  endif
 _GL_CXXALIAS_SYS (linkat, int,
                   (int fd1, const char *path1, int fd2, const char *path2,
-                   int flag));
+                   int flags));
 # endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (linkat);

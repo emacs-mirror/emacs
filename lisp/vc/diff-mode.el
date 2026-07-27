@@ -1176,6 +1176,10 @@ PREFIX is only used internally: don't use it."
         (or (ignore-errors (diff-beginning-of-file))
 	    (re-search-forward diff-file-header-re nil t)))
       (let ((fs (diff-hunk-file-names old)))
+        (when (memq diff-buffer-type '(git hg))
+          (setq fs
+                (mapcar (lambda (f) (replace-regexp-in-string "\\`[icoawib]/" "" f))
+                        fs)))
         (if prefix (setq fs (mapcar (lambda (f) (concat prefix f)) fs)))
         (or
          ;; use any previously used preference
@@ -1186,7 +1190,10 @@ PREFIX is only used internally: don't use it."
 	     (if (and newfile (file-exists-p newfile)) (cl-return newfile))))
          ;; look for each file in turn.  If none found, try again but
          ;; ignoring the first level of directory, ...
-         (cl-do* ((files fs (delq nil (mapcar #'diff-filename-drop-dir files)))
+         (cl-do* ((files fs (and (not (and (memq diff-buffer-type '(git hg))
+                                           (not old)
+                                           (equal null-device (cadr files))))
+                              (delq nil (mapcar #'diff-filename-drop-dir files))))
                   (file nil nil))
 	     ((or (null files)
 		  (setq file (cl-do* ((files files (cdr files))
@@ -1212,10 +1219,6 @@ PREFIX is only used internally: don't use it."
            (let ((file (or (car fs) ""))
                  (creation (equal null-device
                                   (car (diff-hunk-file-names (not old))))))
-             (when (and (memq diff-buffer-type '(git hg))
-                        (string-match "/" file))
-               ;; Strip the dst prefix (like b/) if diff is from Git/Hg.
-               (setq file (substring file (match-end 0))))
              (setq file (expand-file-name file))
 	     (setq file
 		   (read-file-name (format "Use file %s: " file)
@@ -1290,7 +1293,7 @@ else cover the whole buffer."
       (goto-char start)
       (while (and (re-search-forward
                    (concat "^\\(\\(---\\) .+\n\\(\\+\\+\\+\\) .+\\|"
-                           diff-hunk-header-re-unified ".*\\)$")
+                           diff-hunk-header-re-unified "\\( .*\\)?\\)$")
                    nil t)
 		  (< (point) end))
 	(combine-after-change-calls
@@ -1305,13 +1308,14 @@ else cover the whole buffer."
 		  (lines1 (or (match-string 5) "1"))
 		  (line2 (match-string 6))
 		  (lines2 (or (match-string 7) "1"))
+                  (comment (match-string 8))
 		  ;; Variables to use the special undo function.
 		  (old-undo buffer-undo-list)
 		  (old-end (marker-position end))
 		  (start (match-beginning 0))
 		  (reversible t))
 	      (replace-match
-	       (concat "***************\n*** " line1 ","
+	       (concat "***************" comment "\n*** " line1 ","
 		       (number-to-string (+ (string-to-number line1)
 					    (string-to-number lines1)
 					    -1))
@@ -1414,7 +1418,7 @@ With a prefix argument, convert unified format to context format."
           (inhibit-read-only t))
       (save-excursion
         (goto-char start)
-        (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}.*\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)\\(?: \\(.*\\)\\|$\\)" nil t)
+        (while (and (re-search-forward "^\\(\\(\\*\\*\\*\\) .+\n\\(---\\) .+\\|\\*\\{15\\}\\( .*\\)?\n\\*\\*\\* \\([0-9]+\\),\\(-?[0-9]+\\) \\*\\*\\*\\*\\)$" nil t)
                     (< (point) end))
           (combine-after-change-calls
             (if (match-beginning 2)
@@ -1424,15 +1428,14 @@ With a prefix argument, convert unified format to context format."
                   (replace-match "+++" t t nil 3)
                   (replace-match "---" t t nil 2))
               ;; we matched a hunk header
-              (let ((line1s (match-string 4))
-                    (line1e (match-string 5))
+              (let ((comment (match-string 4))
+                    (line1s (match-string 5))
+                    (line1e (match-string 6))
                     (pt1 (match-beginning 0))
                     ;; Variables to use the special undo function.
                     (old-undo buffer-undo-list)
                     (old-end (marker-position end))
-                    ;; We currently throw away the comment that can follow
-                    ;; the hunk header.  FIXME: Preserve it instead!
-                    (reversible (not (match-end 6))))
+                    (reversible t))
                 (replace-match "")
                 (unless (re-search-forward
                          diff-context-mid-hunk-header-re nil t)
@@ -1487,7 +1490,8 @@ With a prefix argument, convert unified format to context format."
                             " +" line2s ","
                             (number-to-string (- (string-to-number line2e)
                                                  (string-to-number line2s)
-                                                 -1)) " @@"))
+                                                 -1))
+                            " @@" (or comment "")))
                   (set-marker pt2 nil)
                   ;; The whole procedure succeeded, let's replace the myriad
                   ;; of undo elements with just a single special one.
@@ -1822,7 +1826,7 @@ modified lines of the diff."
     (setq-local diff-buffer-type
                 (if (re-search-forward "^diff --git" nil t)
                     'git
-                  (if (re-search-forward "^diff -r.*-r" nil t)
+                  (if (re-search-forward "^diff -r " nil t)
                       'hg
                     nil))))
   (when (eq diff-buffer-type 'git)
@@ -3501,25 +3505,25 @@ hunk text is not found in the source file."
     ;; When initialization is requested, we should be in a brand new
     ;; temp buffer.
     (cl-assert (null buffer-file-name))
-    ;; Use `:safe' to find `mode:'.  In case of hunk-only, use nil because
-    ;; Local Variables list might be incomplete when context is truncated.
-    (let ((enable-local-variables
-           (unless hunk-only
-             (if (memq enable-local-variables '(:safe :all nil))
-                 enable-local-variables
-               ;; Ignore other values that query.
-               :safe)))
-          (buffer-file-name file))
-      ;; Don't run hooks that might assume buffer-file-name
-      ;; really associates buffer with a file (bug#39190).
-      (delay-mode-hooks (set-auto-mode))
-      ;; FIXME: Is this really worth the trouble?
-      (when (and (fboundp 'generic-mode-find-file-hook)
-                 (memq #'generic-mode-find-file-hook
-                       ;; There's no point checking the buffer-local value,
-                       ;; we're in a fresh new buffer.
-                       (default-value 'find-file-hook)))
-        (generic-mode-find-file-hook))))
+    (cl-flet
+        ((set-mode ()
+           ;; Don't run hooks that might assume buffer-file-name
+           ;; really associates buffer with a file (bug#39190).
+           (delay-mode-hooks (set-auto-mode))
+           ;; FIXME: Is this really worth the trouble?
+           (when (and (fboundp 'generic-mode-find-file-hook)
+                      (memq #'generic-mode-find-file-hook
+                            ;; There's no point checking the
+                            ;; buffer-local value because we're in a
+                            ;; fresh new buffer.
+                            (default-value 'find-file-hook)))
+             (generic-mode-find-file-hook))))
+      ;; Use `:safe' to find `mode:'.  In case of hunk-only, use nil because
+      ;; Local Variables list might be incomplete when context is truncated.
+      (let ((buffer-file-name file))
+        (if hunk-only
+            (let (enable-local-variables) (set-mode))
+          (without-local-variable-queries (set-mode))))))
 
   (let ((font-lock-defaults (or font-lock-defaults '(nil t)))
         props beg end)

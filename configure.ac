@@ -985,7 +985,7 @@ a valid path to android.jar.  See config.log for more details.])
   fi
 
   AC_CACHE_CHECK([whether android.jar is new enough],
-    [emacs_cv_android_w_or_later],
+    [emacs_cv_android_x_or_later],
     AS_IF([rm -f conftest.class
 cat << EOF > conftest.java
 
@@ -993,7 +993,7 @@ import android.os.Build;
 
 class conftest
 {
-  private static int test = Build.VERSION_CODES.BAKLAVA;
+  private static int test = Build.VERSION_CODES.CINNAMON_BUN;
 }
 
 EOF
@@ -1004,7 +1004,7 @@ EOF
 
   if test "$emacs_cv_android_w_or_later" = "no"; then
     AC_MSG_ERROR([Emacs must be built with an android.jar file produced for \
-Android 16 (BAKLAVA) or later.])
+Android 17 (CINNAMON_BUN) or later.])
   fi
 
   dnl See if the Java compiler supports the `--release' option which
@@ -5165,19 +5165,6 @@ You can find the instructions on how to compile and install libgccjit from
 source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])])
 
-HAVE_NATIVE_COMP=no
-LIBGCCJIT_LIBS=
-LIBGCCJIT_CFLAGS=
-if test "$canonical" = i686-pc-cygwin; then
-  if test "${with_cygwin32_native_compilation}" = yes; then
-    with_native_compilation=yes
-  elif test "${with_native_compilation}" != no; then
-    AC_MSG_ERROR([Native compilation is not supported on 32-bit Cygwin.
-If you really want to try it anyway, use the configure option
-'--with-cygwin32-native-compilation'.])
-  fi
-fi
-
 AC_DEFUN([libgccjit_not_found], [
   AC_MSG_WARN([Elisp native compiler can't be enabled as libgccjit was not
 found.
@@ -5210,6 +5197,19 @@ source on this site:
 <https://gcc.gnu.org/wiki/JIT>.])
 
   with_native_compilation=no])
+
+HAVE_NATIVE_COMP=no
+LIBGCCJIT_LIBS=
+LIBGCCJIT_CFLAGS=
+if test "$canonical" = i686-pc-cygwin; then
+  if test "${with_cygwin32_native_compilation}" = yes; then
+    with_native_compilation=yes
+  elif test "${with_native_compilation}" != no; then
+    AC_MSG_ERROR([Native compilation is not supported on 32-bit Cygwin.
+If you really want to try it anyway, use the configure option
+'--with-cygwin32-native-compilation'.])
+  fi
+fi
 
 if test "$with_features" = "no" \
    && test "${with_native_compilation}" = "default"; then
@@ -5254,24 +5254,23 @@ if test "${with_native_compilation}" != "no"; then
     fi
 
     # Check if libgccjit is available.
+    native_compilation_requested=${with_native_compilation}
     AC_CHECK_LIB([gccjit], [gcc_jit_context_acquire], [],
-        [if test "${with_native_compilation}" = "default"; then
+        [if test "${native_compilation_requested}" = "default"; then
 	   libgccjit_not_found
 	 else
 	   libgccjit_not_found_err
 	 fi])
-    # `libgcc_not_found' may set `with_native_compilation' to `no'.
-    AS_IF([test "$with_native_compilation" != "no"],
-      [AC_CHECK_HEADERS([libgccjit.h], [],
-         [if test "${with_native_compilation}" = "default"; then
+    AC_CHECK_HEADERS([libgccjit.h], [],
+        [if test "${native_compilation_requested}" = "default"; then
 	   libgccjit_dev_not_found
 	 else
 	   libgccjit_dev_not_found_err
-	 fi])])
+	 fi])
     if test "${with_native_compilation}" != "no"; then
       # Check if libgccjit really works.
       AC_RUN_IFELSE([libgccjit_smoke_test], [],
-        [if test "${with_native_compilation}" = "default"; then
+        [if test "${native_compilation_requested}" = "default"; then
            libgccjit_broken
 	 else
            libgccjit_broken_err
@@ -7943,10 +7942,10 @@ if test "$XCONFIGURE" != "android"; then
   AS_MKDIR_P([cross/etc])
 
   AS_IF([test "x$with_android" != "xno"], [
-    dnl Link gnulib files to cross/lib as well.  af_alg.h and
-    dnl lib/save-cwd.h are copied manually from gnulib, and as such
-    dnl aren't specified in gl_FILE_LIST.
-    emacs_files='gl_FILE_LIST lib/af_alg.h lib/save-cwd.h'
+    dnl Link gnulib files to cross/lib as well.
+    dnl lib/save-cwd.h is copied manually from gnulib,
+    dnl and as such isn't specified in gl_FILE_LIST.
+    emacs_files='gl_FILE_LIST lib/save-cwd.h'
     dnl These files are specific to Emacs.
     emacs_files="$emacs_files lib/fingerprint.c lib/fingerprint.h \
 		   lib/save-cwd.c lib/openat-die.c lib/save-cwd.c \

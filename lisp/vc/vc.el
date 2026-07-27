@@ -177,7 +177,9 @@
 ;;
 ;;   If a command needs to be run to compute this list, it should be
 ;;   run asynchronously using (current-buffer) as the buffer for the
-;;   command.
+;;   command.  It should respect `vc-dir-process-output-limit', usually
+;;   by calling `vc-dir-maybe-narrow-and-show-more-button' to narrow the
+;;   output buffer before processing it.
 ;;
 ;;   When RESULT is computed, it should be passed back by doing:
 ;;   (funcall UPDATE-FUNCTION RESULT nil).  If the backend uses a
@@ -188,7 +190,7 @@
 ;;
 ;;   To provide more backend specific functionality for `vc-dir'
 ;;   the following functions might be needed: `dir-extra-headers',
-;;   `dir-printer', and `extra-dir-menu'.
+;;   `dir-extra-hints', `dir-mode', `dir-printer', and `extra-dir-menu'.
 ;;
 ;;   NOTE: project.el includes a similar method `project-list-files'
 ;;   that has a slightly different return value and performance
@@ -200,6 +202,11 @@
 ;; - dir-extra-headers (dir)
 ;;
 ;;   Return a string that will be added to the *vc-dir* buffer header.
+;;
+;; - dir-extra-hints ()
+;;
+;;   Return a string of additional key bindings hints for the *vc-dir*
+;;   buffer header, or nil.
 ;;
 ;; - dir-printer (fileinfo)
 ;;
@@ -362,9 +369,17 @@
 ;;
 ;; - pull (prompt)
 ;;
-;;   Pull "upstream" changes into the current branch (for distributed
+;;   Pull upstream changes into the current branch (for distributed
 ;;   VCS).  If PROMPT is non-nil, or if necessary, prompt for a
-;;   location to pull from.
+;;   location to pull from.  If the pull is done asynchronously, return
+;;   the process object.
+;;
+;; - push (prompt)
+;;
+;;   Push local changes to the upstream of the current branch (for
+;;   distributed VCS).  If PROMPT is non-nil, or if necessary, prompt
+;;   for the command to run.  If the pull is done asynchronously, return
+;;   the process object.
 ;;
 ;; - steal-lock (file &optional revision)
 ;;
@@ -460,17 +475,21 @@
 ;;   revision shown, rather than the working revision, which is normally
 ;;   the case).  Not all backends support this.
 ;;
-;; - log-outgoing (buffer upstream-location) (DEPRECATED)
+;; - log-outgoing (buffer upstream-location) (SOFT DEPRECATED)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   sent when performing a push operation to UPSTREAM-LOCATION.
-;;   Deprecated: implement incoming-revision and mergebase instead.
+;;   Deprecated: implement incoming-revision and mergebase instead,
+;;   unless what `vc-default-log-outgoing' does with those is too slow
+;;   for this backend.
 ;;
-;; - log-incoming (buffer upstream-location) (DEPRECATED)
+;; - log-incoming (buffer upstream-location) (SOFT DEPRECATED)
 ;;
 ;;   Insert in BUFFER the revision log for the changes that will be
 ;;   received when performing a pull operation from UPSTREAM-LOCATION.
-;;   Deprecated: implement incoming-revision and mergebase instead.
+;;   Deprecated: implement incoming-revision and mergebase instead,
+;;   unless what `vc-default-log-incoming' does with those is too slow
+;;   for this backend.
 ;;
 ;; * incoming-revision (&optional upstream-location refresh)
 ;;
@@ -2207,7 +2226,7 @@ have changed; continue with old fileset?" (current-buffer))))
       (unless patch-string
         ;; Must not pass non-nil NOT-ESSENTIAL because we will shortly
         ;; call (in `vc-finish-logentry') `vc-resynch-buffer' with its
-        ;; NOQUERY parameter non-nil.
+        ;; NOQUERY parameter t (unless `vc-async-checkin').
         (vc-buffer-sync-fileset (list backend files)))
       (when register (vc-register (list backend register)))
       (let (to-remove-props proc)
@@ -3531,7 +3550,7 @@ When called from Lisp, optional argument FILESET overrides the fileset."
     (vc-print-log-internal backend (cadr fileset) nil nil
                            (vc--outgoing-base-mergebase backend
                                                         upstream-location)
-                           'log-unintegrated)))
+                           '(log-unintegrated))))
 
 ;;;###autoload
 (defun vc-root-log-unintegrated (&optional upstream-location)
@@ -3643,7 +3662,8 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                            ;; REFRESH nil here because we just refreshed.
                            (vc--outgoing-base-mergebase backend
                                                         upstream-location
-                                                        nil 'force-topic))))
+                                                        nil 'force-topic)
+                           '(log-unintegrated))))
 
 ;;;###autoload
 (defun vc-root-log-remote-unintegrated (&optional upstream-location)
@@ -3851,17 +3871,15 @@ Unlike `vc-find-revision-save', doesn't save the buffer to the file."
                 (after-insert-file-set-coding (- (point-max) (point-min)))
                 (goto-char (point-min))
                 (if buffer
-                    ;; For non-interactive, skip any questions
-                    (let ((enable-local-variables
-                           (if (memq enable-local-variables '(:safe :all nil))
-                               enable-local-variables
-                             ;; Ignore other values that query,
-                             ;; use `:safe' to find `mode:'.
-                             :safe))
-                          (buffer-file-name file))
-                      ;; Don't run hooks that might assume buffer-file-name
-                      ;; really associates buffer with a file (bug#39190).
-                      (ignore-errors (delay-mode-hooks (set-auto-mode))))
+                    ;; For non-interactive, skip any questions.
+                    ;; Use `:safe' to find `mode:'.
+                    (without-local-variable-queries
+                      (let ((buffer-file-name file))
+                        ;; Don't run hooks that might assume
+                        ;; buffer-file-name really associates buffer
+                        ;; with a file (bug#39190).
+                        (ignore-errors
+                          (delay-mode-hooks (set-auto-mode)))))
                   ;; Use non-nil 'find-file' arg of 'normal-mode'
                   ;; to not ignore 'enable-local-variables' when nil.
                   (normal-mode (not enable-local-variables)))
@@ -4309,7 +4327,7 @@ button for.  Same for CURRENT-REVISION.  LIMIT means the usual."
       before-after))))
 
 (defun vc-print-log-internal (backend files working-revision
-                                      &optional is-start-revision limit type)
+                                      &optional is-start-revision limit types)
   "For specified BACKEND and FILES, show the VC log.
 Leave point at WORKING-REVISION, if it is non-nil.
 If IS-START-REVISION is non-nil, start the log from WORKING-REVISION
@@ -4323,9 +4341,9 @@ LIMIT can also be a string, which means the revision before which to stop."
          (shortlog (not (null (memq (if dir-present 'directory 'file)
                                     vc-log-short-style))))
 	 (buffer-name "*vc-change-log*")
-         (type (or type (if shortlog 'short 'long))))
+         (types (cl-adjoin (if shortlog 'short 'long) types)))
       (vc-log-internal-common
-       backend buffer-name files type
+       backend buffer-name files types
        (lambda (bk buf _type-arg files-arg)
          (vc-call-backend bk 'print-log files-arg buf shortlog
                           (when is-start-revision working-revision) limit)
@@ -4353,11 +4371,12 @@ LIMIT can also be a string, which means the revision before which to stop."
            (vc-call-backend bk 'show-log-entry working-revision)))
        (lambda (_ignore-auto _noconfirm)
 	 (vc-print-log-internal backend files working-revision
-                                is-start-revision limit type)))))
+                                is-start-revision limit types)))))
 
-(defvar vc-log-view-type nil
-  "Set this to record the type of VC log shown in the current buffer.
-Supported values are:
+(define-obsolete-variable-alias 'vc-log-view-type 'vc-log-view-types "32.1")
+(defvar vc-log-view-types nil
+  "List of types of the VC log shown in the current buffer.
+Supported elements are:
 
   `short'            -- short log form, one line for each commit
   `long'             -- long log form, including full log message and author
@@ -4367,7 +4386,7 @@ Supported values are:
   `log-unintegrated' -- log of changes you've not yet finished sharing
   `log-search'       -- log entries matching a pattern; shown in long format
   `mergebase'        -- log created by `vc-log-mergebase'.")
-(put 'vc-log-view-type 'permanent-local t)
+(put 'vc-log-view-types 'permanent-local t)
 (defvar vc-sentinel-movepoint)
 
 (defvar vc-log-finish-functions '(vc-shrink-buffer-window)
@@ -4377,21 +4396,22 @@ Each function runs in the log output buffer without args.")
 (defun vc-log-internal-common (backend
 			       buffer-name
 			       files
-			       type
+			       types
 			       backend-func
 			       setup-buttons-func
 			       goto-location-func
 			       rev-buff-func)
   (let (retval (buffer (get-buffer-create buffer-name)))
     (with-current-buffer buffer
-      (setq-local vc-log-view-type type))
-    (setq retval (funcall backend-func backend buffer-name type files))
+      (setq-local vc-log-view-types types))
+    (setq retval
+          (funcall backend-func backend buffer-name (car types) files))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
 	;; log-view-mode used to be called with inhibit-read-only bound
 	;; to t, so let's keep doing it, just in case.
 	(vc-call-backend backend
-                         (if (and (eq type 'with-diff)
+                         (if (and (memq 'with-diff types)
                                   (vc-find-backend-function
                                    backend 'region-history-mode))
                              'region-history-mode
@@ -4411,15 +4431,16 @@ Each function runs in the log output buffer without args.")
        (set-buffer-modified-p nil)
        (run-hooks 'vc-log-finish-functions)))))
 
-(defun vc-incoming-outgoing-internal (backend upstream-location buffer-name type)
+(defun vc-incoming-outgoing-internal
+    (backend upstream-location buffer-name types)
   (vc-log-internal-common
-   backend buffer-name (list (vc-root-dir)) type
+   backend buffer-name (list (vc-root-dir)) types
    (lambda (bk buf type-arg _files)
      (vc-call-backend bk type-arg buf upstream-location))
    (lambda (_bk _files-arg _ret) nil)
    nil ;; Don't move point.
    (lambda (_ignore-auto _noconfirm)
-     (vc-incoming-outgoing-internal backend upstream-location buffer-name type))))
+     (vc-incoming-outgoing-internal backend upstream-location buffer-name types))))
 
 (defun vc--read-limit ()
   "Read a LIMIT argument for a VC log command."
@@ -4509,7 +4530,7 @@ with its diffs (if the underlying VCS backend supports that)."
     (let* ((with-diff (and (eq limit 1) revision))
            (vc-log-short-style (and (not with-diff) vc-log-short-style)))
       (vc-print-log-internal backend (list rootdir) revision revision limit
-                             (and with-diff 'with-diff))
+                             (and with-diff '(with-diff)))
       ;; We're looking at the root, so displaying " from <some-file>" in
       ;; the mode line isn't helpful.
       (setq vc-parent-buffer-name nil))))
@@ -4673,7 +4694,8 @@ can be a remote branch name."
   (interactive (list (vc--maybe-read-upstream-location)))
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend upstream-location
-                                   "*vc-incoming*" 'log-incoming)))
+                                   "*vc-incoming*"
+                                   '(log-incoming short))))
 ;; We plan to reuse the name `vc-log-incoming' for the fileset-specific
 ;; command in Emacs 32.1.  --spwhitton
 (define-obsolete-function-alias 'vc-log-incoming #'vc-root-log-incoming
@@ -4697,29 +4719,33 @@ can be a remote branch name."
   (interactive (list (vc--maybe-read-upstream-location)))
   (vc--with-backend-in-rootdir "VC root-log"
     (vc-incoming-outgoing-internal backend upstream-location
-                                   "*vc-outgoing*" 'log-outgoing)))
+                                   "*vc-outgoing*"
+                                   '(log-outgoing short))))
 ;; We plan to reuse the name `vc-log-outgoing' for the fileset-specific
 ;; command in Emacs 32.1.  --spwhitton
 (define-obsolete-function-alias 'vc-log-outgoing #'vc-root-log-outgoing
   "31.1")
 
 (defun vc-default-log-outgoing (backend buffer upstream-location)
+  (vc-standard-log-outgoing backend buffer upstream-location nil))
+
+(defun vc-standard-log-outgoing
+    (backend buffer upstream-location &optional skip-mergebase)
+  "VC `log-outgoing' in terms of `incoming-revision' and `mergebase'.
+BACKEND is the VC backend, BUFFER is the buffer to log to,
+UPSTREAM-LOCATION is the place to which the changes are outgoing.
+Optional argument SKIP-MERGEBASE, if non-nil, skips calling `mergebase'
+and instead passes `incoming-revision' directly as the log limit.
+For some backends this is equivalent, and saves running one external
+command.  Whether this equivalence holds depends on the details of the
+`print-log' implementation for BACKEND when `vc-log-view-types' contains
+`log-outgoing'."
   (let ((incoming (vc--incoming-revision backend upstream-location))
         (default-directory (vc-root-dir backend)))
     (vc-call-backend backend 'print-log (list default-directory)
                      buffer t ""
-                     (vc-call-backend backend 'mergebase incoming))))
-
-(defun vc--count-outgoing (backend)
-  "Return number of changes that will be sent with a `vc-push'."
-  (with-temp-buffer
-    (let ((display-buffer-overriding-action
-           '(display-buffer-no-window (allow-no-window . t))))
-      (vc-incoming-outgoing-internal backend nil
-                                     (current-buffer) 'log-outgoing))
-    (let ((proc (get-buffer-process (current-buffer))))
-      (while (accept-process-output proc)))
-    (how-many log-view-message-re)))
+                     (if skip-mergebase incoming
+                       (vc-call-backend backend 'mergebase incoming)))))
 
 ;;;###autoload
 (defun vc-log-search (pattern)
@@ -4740,7 +4766,8 @@ will output log entries, and displays those log entries instead."
     (unless backend
       (error "Buffer is not version controlled"))
     (vc-incoming-outgoing-internal backend pattern
-                                   "*vc-search-log*" 'log-search)))
+                                   "*vc-search-log*"
+                                   '(log-search long))))
 
 ;;;###autoload
 (defun vc-log-mergebase (_files rev1 rev2)
@@ -4749,8 +4776,9 @@ The merge base is a common ancestor of revisions REV1 and REV2."
   (interactive
    (vc-diff-build-argument-list-internal
     (or (ignore-errors (vc-deduce-fileset t))
-        (let ((backend (or (vc-deduce-backend) (vc-responsible-backend default-directory))))
-          (list backend (list (vc-call-backend backend 'root default-directory)))))))
+        (let ((backend (or (vc-deduce-backend)
+                           (vc-responsible-backend default-directory))))
+          `(,backend (,(vc-call-backend backend 'root default-directory)))))))
   (vc--with-backend-in-rootdir "VC root-log"
     (setq rev1 (vc-call-backend backend 'mergebase rev1 rev2))
     (vc-print-log-internal backend (list rootdir) (or rev2 "") t rev1)))
@@ -4764,18 +4792,19 @@ mark."
   (interactive "r")
   (let* ((lfrom (line-number-at-pos from t))
          (lto   (line-number-at-pos (1- to) t))
-         (file buffer-file-name)
-         (backend (vc-backend file))
+         (fileset (vc-deduce-fileset t))
+         (backend (car fileset))
+         (file (caadr fileset))
          (buf (get-buffer-create "*VC-history*")))
     (unless backend
       (error "Buffer is not version controlled"))
     (with-current-buffer buf
-      (setq-local vc-log-view-type 'long))
+      (setq-local vc-log-view-types '(long)))
     (vc-call region-history file buf lfrom lto)
     (with-current-buffer buf
       (vc-call-backend backend 'region-history-mode)
       (setq-local log-view-vc-backend backend)
-      (setq-local log-view-vc-fileset (list file))
+      (setq-local log-view-vc-fileset (cadr fileset))
       (setq-local revert-buffer-function
                   (lambda (_ignore-auto _noconfirm)
                     (with-current-buffer buf
@@ -4841,6 +4870,8 @@ to the working revision (except for keyword expansion)."
 ;;;###autoload
 (defalias 'vc-restore #'vc-revert)
 
+(declare-function vc-dir--refresh-headers "vc-dir")
+
 ;;;###autoload
 (defun vc-pull (&optional arg)
   "Update the current fileset or branch.
@@ -4874,11 +4905,15 @@ tip revision are merged into the working file."
     (cond
      ;; If a pull operation is defined, use it.
      (fn
-      (funcall fn arg)
-      ;; FIXME: Ideally we would only clear out the stored value for the
-      ;; REMOTE-LOCATION from which we are pulling.
-      (vc-run-delayed
-        (vc--repo-setprop backend 'vc-incoming-revision nil)))
+      (let ((proc (funcall fn arg)))
+        (vc-exec-after
+         (lambda ()
+           ;; FIXME: Ideally we would only clear out the stored value
+           ;; for the REMOTE-LOCATION from which we are pulling.
+           (vc--repo-setprop backend 'vc-incoming-revision nil)
+           (when vc-dir-buffers
+             (vc-dir--refresh-headers (vc-root-dir backend))))
+         nil (and (processp proc) proc))))
      ;; If VCS has `merge-news' functionality (CVS and SVN), use it.
      ((vc-find-backend-function backend 'merge-news)
       (save-some-buffers                ; save buffers visiting files
@@ -4917,11 +4952,15 @@ It also signals an error in a Bazaar bound branch."
   (let* ((fileset (vc-deduce-fileset t t))
 	 (backend (car fileset)))
     (if (vc-find-backend-function backend 'push)
-        (progn (vc-call-backend backend 'push arg)
-               ;; FIXME: Ideally we would only clear out the
-               ;; REMOTE-LOCATION to which we are pushing.
-               (vc-run-delayed
-                 (vc--repo-setprop backend 'vc-incoming-revision nil)))
+        (let ((proc (vc-call-backend backend 'push arg)))
+          (vc-exec-after
+           (lambda ()
+             ;; FIXME: Ideally we would only clear out the
+             ;; REMOTE-LOCATION to which we are pushing.
+             (vc--repo-setprop backend 'vc-incoming-revision nil)
+             (when vc-dir-buffers
+               (vc-dir--refresh-headers (vc-root-dir backend))))
+           nil (and (processp proc) proc)))
       (user-error "VC push is unsupported for `%s'" backend))))
 
 ;;;###autoload
@@ -4978,11 +5017,11 @@ If FILE is a directory, revert all files inside that directory."
                            (vc-responsible-backend file)
                          (vc-backend file))
                        'revert file backup-file))
-    `((vc-state . ,(if (eq (vc-state file) 'added)
-                       'unregistered
-                     'up-to-date))
-      (vc-checkout-time
-       . ,(file-attribute-modification-time (file-attributes file)))))
+    (let ((state (vc-state file)))
+      `(,@(and (eq state 'added) '((vc-backend . nil)))
+        (vc-state . ,(if (eq state 'added) 'unregistered 'up-to-date))
+        (vc-checkout-time
+         . ,(file-attribute-modification-time (file-attributes file))))))
   (vc-resynch-buffer file t t))
 
 (defun vc-revert-files (backend files)
@@ -4998,7 +5037,7 @@ For entries in FILES that are directories, revert all files inside them."
         ;; Use `vc-file-getprop' directly here because we may be
         ;; handling very many files and do not want to hit the disk.
         `(,@(pcase (vc-file-getprop file 'vc-state)
-              ('added '((vc-state . unregistered)))
+              ('added '((vc-backend . nil) (vc-state . unregistered)))
               ;; If we have no known state for the file somehow, leave
               ;; it that way.
               ('nil nil)
@@ -5595,6 +5634,8 @@ to provide the `find-revision' operation instead."
 (defun vc-default-dir-status-files (_backend _dir files update-function)
   (funcall update-function
            (mapcar (lambda (file) (list file 'up-to-date)) files)))
+
+(defalias 'vc-default-dir-extra-hints #'ignore)
 
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."

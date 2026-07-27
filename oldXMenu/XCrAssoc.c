@@ -52,7 +52,7 @@ XAssocTable *XCreateAssocTable(register int size)
 	}
 
 	/* calloc the buckets (actually just their headers). */
-	buckets = (XAssoc *)calloc((unsigned)size, (unsigned)sizeof(XAssoc));
+	buckets = calloc (size, sizeof (XAssoc));
 	if (buckets == NULL) {
 		/* calloc call failed! */
 		errno = ENOMEM;
@@ -72,4 +72,3 @@ XAssocTable *XCreateAssocTable(register int size)
 
 	return(table);
 }
-

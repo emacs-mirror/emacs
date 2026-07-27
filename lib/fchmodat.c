@@ -48,18 +48,32 @@ orig_fchmodat (int dir, char const *file, mode_t mode, int flags)
 
 #include "issymlinkat.h"
 
+#ifndef AT_EMPTY_PATH
+# define AT_EMPTY_PATH 0
+#endif
+
 /* Invoke chmod or lchmod on FILE, using mode MODE, in the directory
    open on descriptor FD.  If possible, do it without changing the
    working directory.  Otherwise, resort to using save_cwd/fchdir,
    then (chmod|lchmod)/restore_cwd.  If either the save_cwd or the
    restore_cwd fails, then give a diagnostic and exit nonzero.
-   Note that an attempt to use a FLAG value of AT_SYMLINK_NOFOLLOW
-   on a system without lchmod support causes this function to fail.  */
+   Fail if FLAGS contains AT_SYMLINK_NOFOLLOW on a system lacking
+   lchmod support.  */
 
 #if HAVE_FCHMODAT
 int
 fchmodat (int dir, char const *file, mode_t mode, int flags)
 {
+  if (file && *file)
+    flags &= ~AT_EMPTY_PATH;
+  else if (! (flags & AT_EMPTY_PATH))
+    {
+      errno = ENOENT;
+      return -1;
+    }
+  else if (! (flags & AT_SYMLINK_NOFOLLOW) && 0 <= dir)
+    return fchmod (dir, mode);
+
 # if HAVE_NEARLY_WORKING_FCHMODAT
   /* Correct the trailing slash handling.  */
   size_t len = strlen (file);
@@ -77,17 +91,21 @@ fchmodat (int dir, char const *file, mode_t mode, int flags)
 # endif
 
 # if NEED_FCHMODAT_NONSYMLINK_FIX
-  if (flags == AT_SYMLINK_NOFOLLOW)
+  if ((flags & ~AT_EMPTY_PATH) == AT_SYMLINK_NOFOLLOW)
     {
 #  if HAVE_READLINKAT
 #   ifdef O_PATH
-      /* Open a file descriptor with O_NOFOLLOW, to make sure we don't
-         follow symbolic links, if /proc is mounted.  O_PATH is used to
-         avoid a failure if the file is not readable.
-         Cf. <https://sourceware.org/PR14578>  */
-      int fd = openat (dir, file, O_PATH | O_NOFOLLOW | O_CLOEXEC);
-      if (fd < 0)
-        return fd;
+      int fd;
+      if (flags & AT_EMPTY_PATH)
+        fd = dir;
+      else
+        {
+          /* Open with O_NOFOLLOW, so we don't follow symlinks.
+             See <https://sourceware.org/PR14578>.  */
+          fd = openat (dir, file, O_PATH | O_NOFOLLOW | O_CLOEXEC);
+          if (fd < 0)
+            return fd;
+        }
 
       int err;
       {
@@ -105,7 +123,8 @@ fchmodat (int dir, char const *file, mode_t mode, int flags)
           err = errno == ENOENT ? -1 : errno;
       }
 
-      close (fd);
+      if (! (flags & AT_EMPTY_PATH))
+        close (fd);
 
       errno = err;
       if (0 <= err)
@@ -114,15 +133,16 @@ fchmodat (int dir, char const *file, mode_t mode, int flags)
 
       /* O_PATH + /proc is not supported.  */
 
-      if (issymlinkat (dir, file) > 0)
+      if (issymlinkat (dir, file ? file : "") > 0)
         {
           errno = EOPNOTSUPP;
           return -1;
         }
 #  endif
 
-      /* Fall back on orig_fchmodat with no flags, despite a possible race.  */
-      flags = 0;
+      /* Fall back on orig_fchmodat without AT_SYMLINK_NOFOLLOW,
+         despite a possible race.  */
+      flags &= ~AT_SYMLINK_NOFOLLOW;
     }
 # endif
 

@@ -166,6 +166,14 @@ instead."
         (and (re-search-forward "\\s-*\\s<" (line-end-position) t)
              (nth 8 (syntax-ppss))))))
 
+(defun prog--text-at-point-or-region-p ()
+  "Return non-nil if point or region's other end are in text."
+  (or (prog--text-at-point-p)
+      (and (use-region-p)
+           (save-excursion
+             (goto-char (mark))
+             (prog--text-at-point-p)))))
+
 (defvar prog-fill-reindent-defun-function
   #'prog-fill-reindent-defun-default
   "Function called by `prog-fill-reindent-defun' to do the actual work.
@@ -176,7 +184,7 @@ It should take the same argument as `prog-fill-reindent-defun'.")
 JUSTIFY is the same as in `fill-paragraph'."
   (interactive "P")
   (save-excursion
-    (if (prog--text-at-point-p)
+    (if (prog--text-at-point-or-region-p)
         (fill-paragraph justify (region-active-p))
       (beginning-of-defun)
       (let ((start (point)))

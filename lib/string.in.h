@@ -1647,15 +1647,21 @@ _GL_EXTERN_C bool mbs_endswith (const char *string, const char *suffix)
 
 /* Map any int, typically from errno, into an error message.  */
 #if @GNULIB_STRERROR@
+/* The return type 'const char *' serves the purpose of producing warnings
+   for invalid uses of the value returned from this function.  */
 # if @REPLACE_STRERROR@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef strerror
 #   define strerror rpl_strerror
+#   define GNULIB_defined_strerror 1
 #  endif
-_GL_FUNCDECL_RPL (strerror, char *, (int), );
-_GL_CXXALIAS_RPL (strerror, char *, (int));
+_GL_FUNCDECL_RPL (strerror, const char *, (int), );
+_GL_CXXALIAS_RPL (strerror, const char *, (int));
 # else
-_GL_CXXALIAS_SYS (strerror, char *, (int));
+_GL_CXXALIAS_SYS_CAST (strerror, const char *, (int));
+#  if !defined strerror && !defined __cplusplus
+#   define strerror(...) ((const char *) strerror (__VA_ARGS__))
+#  endif
 # endif
 # if __GLIBC__ >= 2
 _GL_CXXALIASWARN (strerror);

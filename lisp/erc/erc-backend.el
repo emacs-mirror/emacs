@@ -2381,8 +2381,8 @@ A server may send more than one 005 message."
             value
             negated)
         (when (string-match
-               (rx bot (| (: (group (+ (any "A-Z"))) "=" (group (* nonl)))
-                          (: (? (group "-")) (group (+ (any "A-Z")))))
+               (rx bot (| (: (group (+ (any "A-Z./"))) "=" (group (* nonl)))
+                          (: (? (group "-")) (group (+ (any "A-Z./")))))
                    eot)
                section)
           (setq key (or (match-string 1 section) (match-string 4 section))

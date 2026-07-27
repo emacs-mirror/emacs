@@ -746,13 +746,13 @@ for special commands that can be used in the GUD interaction buffer.
   As you debug a program, Emacs displays the relevant source files by
 visiting them in Emacs buffers, with an arrow in the left fringe
 indicating the current execution line.  (On a text terminal, the arrow
-appears as @samp{=>}, overlaid on the first two text columns.)  Moving
-point in such a buffer does not move the arrow.  You are free to edit
-these source files, but note that inserting or deleting lines will
-throw off the arrow's positioning, as Emacs has no way to figure out
-which edited source line corresponds to the line reported by the
-debugger subprocess.  To update this information, you typically have
-to recompile and restart the program.
+appears as @samp{=>}, in the left margin.)  Moving point in such a
+buffer does not move the arrow.  You are free to edit these source
+files, but note that inserting or deleting lines will throw off the
+arrow's positioning, as Emacs has no way to figure out which edited
+source line corresponds to the line reported by the debugger subprocess.
+To update this information, you typically have to recompile and restart
+the program.
 
 @cindex GUD and hl-line-mode
 @cindex highlighting execution lines in GUD

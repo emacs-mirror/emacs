@@ -83,7 +83,8 @@ TZNAME:EST
 END:STANDARD
 END:VTIMEZONE
 ")
-"`icalendar-vtimezone' representing America/New_York (Eastern) time.")
+"`icalendar-vtimezone' representing America/New_York (Eastern) time
+from 1967 to at least 2026.")
 
 (defconst ict:est-latest
   (ical:with-component ict:tz-eastern
@@ -1285,7 +1286,8 @@ END:VTIMEZONE
   (let* ((dt (ical:make-date-time :year 1900 :month 1 :day 1
                                   :hour 12 :minute 0 :second 0
                                   :zone ict:est :dst nil))
-         (ts (encode-time dt)))
+         (ts (ignore-errors (encode-time dt))))
+    (skip-unless ts) ; Skip the test on platforms that can't represent 1900.
     (should (null (icr:tz-observance-on dt ict:tz-eastern)))
     (should (null (icr:tz-observance-on ts ict:tz-eastern))))
 

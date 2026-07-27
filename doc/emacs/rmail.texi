@@ -451,6 +451,10 @@ in Rmail mode.  You can use @kbd{M-x rmail-input} even when not in
 Rmail, but it is easier to type @kbd{C-u M-x rmail}, which does the
 same thing.
 
+  Files named @file{RMAIL} or ending in @file{.rmail} are visited in
+Rmail mode automatically by ordinary file-visiting commands, such as
+@kbd{C-x C-f}.
+
   The file you read with @kbd{i} should normally be a valid mbox file.
 If it is not, Rmail tries to convert its text to mbox format, and
 visits the converted text in the buffer.  If you save the buffer, that

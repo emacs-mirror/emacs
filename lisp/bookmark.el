@@ -286,7 +286,7 @@ described below.  An entry with a key but null value means the entry
 is not used.
 
  (filename . FILENAME)
- (buf . BUFFER-OR-NAME)
+ (buffer . BUFFER-OR-NAME)
  (position . POS)
  (front-context-string . STR-AFTER-POS)
  (rear-context-string  . STR-BEFORE-POS)

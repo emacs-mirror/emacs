@@ -726,7 +726,6 @@ mouse-1: Display Line and Column Mode Menu"))
   `((:propertize
      ("" mode-line-percent-position)
      local-map ,mode-line-column-line-number-mode-map
-     display (min-width (5.0))
      mouse-face mode-line-highlight
      ;; XXX needs better description
      help-echo "Window Scroll Percentage
@@ -745,31 +744,26 @@ mouse-1: Display Line and Column Mode Menu")))
        (10
         (:propertize
          mode-line-position-column-line-format
-         display (min-width (10.0))
          ,@mode-line-position--column-line-properties))
        (10
         (:propertize
          (:eval (string-replace
                  "%c" "%C" (car mode-line-position-column-line-format)))
-         display (min-width (10.0))
          ,@mode-line-position--column-line-properties)))
       (6
        (:propertize
 	mode-line-position-line-format
-        display (min-width (6.0))
         ,@mode-line-position--column-line-properties)))
      (column-number-mode
       (column-number-indicator-zero-based
        (6
         (:propertize
          mode-line-position-column-format
-         display (min-width (6.0))
          ,@mode-line-position--column-line-properties))
        (6
         (:propertize
          (:eval (string-replace
                  "%c" "%C" (car mode-line-position-column-format)))
-         display (min-width (6.0))
          ,@mode-line-position--column-line-properties))))))
   "Mode line construct for displaying the position in the buffer.
 Normally displays the buffer percentage and, optionally, the
@@ -824,15 +818,11 @@ By default, this shows the information specified by `global-mode-string'.")
 (let ((standard-mode-line-format
        (list "%e"
 	     'mode-line-front-space
-             (list
-              :propertize
-              (list ""
-	            'mode-line-mule-info
-	            'mode-line-client
-	            'mode-line-modified
-		    'mode-line-remote
-		    'mode-line-window-dedicated)
-              'display '(min-width (6.0)))
+             'mode-line-mule-info
+	     'mode-line-client
+	     'mode-line-modified
+	     'mode-line-remote
+	     'mode-line-window-dedicated
 	     'mode-line-frame-identification
 	     'mode-line-buffer-identification
 	     "   "
@@ -889,6 +879,18 @@ or not."
 	     (with-selected-window (minibuffer-window)
 	       (eq window (minibuffer-selected-window)))))))
 
+(defun mode-line-window-select (&optional _ignored-arg)
+  "Select the window on whose mode-line the mouse was clicked."
+  (when-let* ((_ (mouse-event-p last-input-event))
+	      (event (event-start last-input-event))
+	      (_ (eq (posn-area event) 'mode-line))
+	      (window (posn-window event))
+	      (_ (not (eq (selected-window) window))))
+    (mouse-select-window last-input-event)))
+
+(add-hook 'x-pre-popup-menu-hook #'mode-line-window-select)
+
+
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil.
 Note that if `lexical-binding' is in effect, this function isn't

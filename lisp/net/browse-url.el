@@ -988,8 +988,8 @@ opposite of the browser kind of `browse-url-browser-function'."
           (default (if (eq (browse-url--browser-kind
                             browse-url-browser-function (car url-arg))
                            'internal)
-                       'external
-                     'internal))
+                       "external"
+                     "internal"))
           (k (intern (completing-read
                       (format-prompt "Browser kind" default)
                       '(internal external)

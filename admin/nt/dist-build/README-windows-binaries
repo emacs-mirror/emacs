@@ -21,7 +21,6 @@ Making a link to our copy of the source is NOT sufficient, since we
 might upgrade to a new version while you are still distributing the
 old binaries.
 
-
 Windows Binaries
 ================
 
@@ -62,18 +61,34 @@ intended that these will be updated after that point.
 
 Source for Emacs itself is found in the directory above.
 
+Emacs binaries are normally built using MSYS2/MINGW64 and include a full
+"Ahead of Time" (AOT) build of provided elisp.  Other binaries for a
+given version of Emacs, if any, that have been created from atypical
+compilation environments or built using alternative (e.g. "noaot")
+settings may include architecture (e.g. "i668") and or other "tags"
+following the version identifier (for example:
+emacs-X.Y.Z-i686-notreesitter-nognutls.zip).
+
 Snapshots
 =========
 
 We also distribute "snapshots" of Emacs built at points throughout the
 development cycle, for those interested in following this cycle.  They
 are not recommended for normal users; however, they are useful for
-people who want to report bugs against the current master.
+people who want to report bugs against the current master, to help in
+"pretesting" new release versions, and so on.
 
 The files follow the same naming convention, but also include a date
-(and sometimes information about their branch).  The Emacs source at
-the time of these builds is also distributed.
+(and sometimes information about their branch) or they may releate to a
+sepecific pretest or release candidate for an "uncut" Emacs.  Emacs
+sources are distributed along with each dated snapshot.  Sources are
+provided for the pretest and release candidate Emacs versions here, as
+for release builds, are found in the directory (or directories) above.
 
+Meta
+====
+
+You can find a copy this file, along with other programs used to build Emacs as a native windows program using the MSYS2 toolchain, within the emacs source tree, see: https://git.savannah.gnu.org/cgit/emacs.git/tree/admin/nt/dist-build
 
 LICENSE
 ======

@@ -274,6 +274,7 @@ Calls REPORT-FN directly."
 
     ;; Indentation.
     (setq-local indent-tabs-mode nil)
+    (setq-local tab-width 2)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings yaml-ts-mode--font-lock-settings)

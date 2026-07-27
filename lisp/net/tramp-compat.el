@@ -103,7 +103,7 @@ Add the extension of F, if existing."
    dir-flag (file-name-extension f t)))
 
 (defalias 'tramp-compat-error-type-p
-  (if (fboundp 'error-type-p)           ;Emacs-31
+  (if (fboundp 'error-type-p)           ; Emacs-31
       #'error-type-p
     (lambda (symbol) (get symbol 'error-conditions))))
 
@@ -264,10 +264,20 @@ value is the default binding of the variable."
 ;;   kept, for example when the HANDLER propagates the error with
 ;;   `(signal (car err) (cdr err)'.
 ;;
-;; * Starting with Emacs 31.1, use `(signal err)' instead of `(signal
-;;   (car err) (cdr err)'.
-;;
 ;; * Starting with Emacs 30.1, use '(_ VALUEFORM)' instead of
 ;;   '(VALUEFORM)' in 'if-let*/when-let*/and-let*'.
+;;
+;; * Starting with Emacs 30, use `static-if'.  Starting with Emacs 31,
+;;   use `static-when' and `static-unless'.
+;;
+;; * Starting with Emacs 31.1, use `(signal err)' instead of `(signal
+;;   (car err) (cdr err)'.  Use also the functions `error-type-p', `error-type',
+;;   `error-has-type-p', and `error-slot-value'.
+;;
+;; * Starting with Emacs 31.1, use `set-local' and `setopt-local'.
+;;
+;; * Starting with Emacs 31.1, use `plusp', `minusp', `oddp' and `evenp'.
+;;
+;; * Starting with Emacs 31.1, use `hash-table-contains-p'.
 
 ;;; tramp-compat.el ends here

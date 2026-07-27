@@ -1609,28 +1609,12 @@ return the host alone sans URL formatting (for compatibility)."
          (scheme (if (cdr pspec) "ircs" "irc")))
     (if ports (format "%s://%s:%d" scheme host (seq-random-elt ports)) host)))
 
-;;; The following experimental
-;; It does not work yet, help me with it if you
-;; think it is worth the effort.
+;; Longtime occupant of this file `erc-settings' was repurposed in ERC
+;; 5.7 and moved to erc-settings.el.
 
-(defvar erc-settings
-  '((pals Libera.Chat ("kensanata" "shapr" "anti\\(fuchs\\|gone\\)"))
-    (format-nick-function (Libera.Chat "#emacs") erc-format-@nick))
-  "Experimental: Alist of configuration options.
-
-WARNING: this variable is a vestige from a long-abandoned
-experiment.  ERC may redefine it using the same name for any
-purpose at any time.
-
-The format is (VARNAME SCOPE VALUE) where
-VARNAME is a symbol identifying the configuration option,
-SCOPE is either a symbol which identifies an entry from
-  `erc-networks-alist' or a list (NET TARGET) where NET is a network symbol and
-  TARGET is a string identifying the channel/query target.
-VALUE is the options value.")
-(make-obsolete-variable 'erc-settings
-                        "temporarily deprecated for later repurposing" "30.1")
-
+;; Attempting to provide a "working" version of this function would be
+;; nonsensical because `erc-settings' now has a completely different
+;; layout than the unfinished version from `erc-networks' (circa 2002).
 (defun erc-get (var &optional net target)
   "Retrieve configuration values from `erc-settings'.
 
@@ -1639,27 +1623,9 @@ long-abandoned experiment.  ERC may redefine it using the same
 name for any purpose at any time.
 
 \(fn &rest UNKNOWN)"
-  (declare (obsolete "temporarily deprecated for later repurposing" "30.1"))
-  (let ((items erc-settings)
-	elt val)
-    (while items
-      (setq elt (car items)
-	    items (cdr items))
-      (when (eq (car elt) var)
-	(cond ((and net target (listp (nth 1 elt))
-		    (eq net (car (nth 1 elt)))
-		    (string-equal target (nth 1 (nth 1 elt))))
-	       (setq val (nth 2 elt)
-		     items nil))
-	      ((and net (eq net (nth 1 elt)))
-	       (setq val (nth 2 elt)
-		     items nil))
-	      ((and (not net) (not target) (not (nth 1 elt)))
-	       (setq val (nth 2 elt)
-		     items nil)))))
-    val))
-
-;; (erc-get 'pals 'Libera.Chat)
+  (declare (obsolete "`erc-settings' schema incompatible with PoC from 2002"
+                     "31.1"))
+  (ignore var net target))
 
 (provide 'erc-networks)
 

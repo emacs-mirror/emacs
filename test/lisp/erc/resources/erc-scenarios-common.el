@@ -284,6 +284,30 @@ completion."
          ;; a <31 definition of `ert-with-buffer-selected'.
          (tcompat (and (featurep 'erc-tests-compat)
                        (locate-library "erc-tests-compat")))
+         (control-process nil)
+         ;; Create a control channel to communicate between the term
+         ;; subprocess and the controlling Emacs.  Must run before
+         ;; creating the subprocess so it sees the env var.
+         (control-server-process nil)
+         (_ (progn
+              (setq control-server-process
+                    (make-network-process
+                     :server 1
+                     :sentinel (lambda (p s)
+                                 (when (string-prefix-p "open" s)
+                                   (setq control-process p)
+                                   (set-process-buffer
+                                    p (get-buffer-create
+                                       "*erc-test-term-c2/superior*"))
+                                   (delete-process control-server-process)))
+                     :noquery t ; client inherits
+                     :host "localhost"
+                     :service t
+                     :coding 'utf-8-emacs
+                     :name "*erc-test-term-c2/superior*"))
+              (push (format "ERC_TEST_TERM_C2_PORT=%d"
+                            (process-contact control-server-process :service))
+                    process-environment)))
          ;; Make subprocess terminal bigger than controlling.
          (buf (cl-letf (((symbol-function 'window-screen-lines)
                          (lambda () (car erc-scenarios-common--term-size)))
@@ -311,7 +335,23 @@ completion."
       (set-process-query-on-exit-flag proc nil)
       (unless noninteractive (term-char-mode))
       (erc-d-t-wait-for 30 (process-live-p proc))
-      (while (accept-process-output proc))
+      (with-timeout (30 nil)
+        (while (accept-process-output proc)
+          ;; If the subprocess emitted something readable, assume it's a
+          ;; named function and call it, letting errors propagate.
+          (when control-process
+            (unless (zerop (buffer-size (process-buffer control-process)))
+              (with-current-buffer (process-buffer control-process)
+                (goto-char (point-min))
+                (let* ((test (read (current-buffer)))
+                       (result (and (symbolp test)
+                                    (string-prefix-p "erc-" (symbol-name test))
+                                    (with-current-buffer buf
+                                      (funcall test)))))
+                  (cl-assert (eq (get-buffer-process buf) proc))
+                  (run-at-time 0 nil #'process-send-string
+                               control-process (format "%S\n" result)))
+                (erase-buffer))))))
       (term-line-mode)
       (goto-char (point-min))
       ;; Otherwise gives process exited abnormally with exit-code >0
@@ -321,8 +361,45 @@ completion."
                     (buffer-substring-no-properties (line-beginning-position)
                                                     (line-end-position)))))
       (delete-file temp-file)
+      ;; Kill client if connected, else server that's still listening.
+      (delete-process (or control-process control-server-process))
       (when noninteractive
         (kill-buffer)))))
+
+(defmacro erc-scenarios-common-term-with-line-mode (&rest body)
+  "Run BODY to validate contents of term window's contents."
+  `(save-restriction
+     (cl-assert (eq major-mode 'term-mode))
+     (when (fboundp 'term-handle-deferred-scroll)
+       (term-handle-deferred-scroll))
+     (defvar term-home-marker)
+     (narrow-to-region term-home-marker (point-max))
+     (goto-char (point-min))
+     ,@body))
+
+(defvar erc-scenarios-common--inferior-term-c2-proc nil)
+
+(defun erc-scenarios-common-term-call-in-superior (sym)
+  "Run function SYM in superior process instead of term subprocess."
+  (run-at-time
+   0 nil #'process-send-string
+   (or (and erc-scenarios-common--inferior-term-c2-proc
+            (process-live-p erc-scenarios-common--inferior-term-c2-proc))
+       (setq erc-scenarios-common--inferior-term-c2-proc
+             (let ((b (get-buffer-create "*erc-test-term-c2/inferior*")))
+               (make-network-process
+                :buffer b
+                :noquery t
+                :host "localhost"
+                :service (string-to-number (getenv "ERC_TEST_TERM_C2_PORT"))
+                :coding 'utf-8-emacs
+                :name (buffer-name b)))))
+   (concat (symbol-name sym) "\n"))
+  (ert-with-buffer-selected (current-buffer)
+    (with-current-buffer "*erc-test-term-c2/inferior*"
+      (ert-info ("Superior process assertion confirmed")
+        (erc-d-t-wait-for 10 (> (point-max) 1))
+        (erase-buffer)))))
 
 (defvar erc-scenarios-common-interactive-debug-term-p nil
   "Non-nil means run test in an inferior Emacs, even if interactive.")
