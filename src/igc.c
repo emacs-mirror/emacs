@@ -5280,12 +5280,19 @@ igc_make_pseudovector (size_t nwords_mem, size_t nwords_lisp,
   return v;
 }
 
+/* FIXME/igc: The INT_MAX bound is there for the assertion
+   AVER(AddrOffset(base, limit) <= INT_MAX) in ProtSet
+   (mps/code/protix.c:76).  That assertion looks like a bug and could
+   probably be removed.  */
 static size_t
 igc_vector_elts_max (void)
 {
-  size_t obj_size_max = to_bytes (igc_header_nwords_max ());
-  return (obj_size_max - header_size) / sizeof (Lisp_Object);
-};
+  size_t nwords_max
+    = min (igc_header_nwords_max (), INT_MAX / sizeof (mps_word_t));
+  return min (((nwords_max - to_words (header_size))
+	       / to_words (word_size)),
+	      PSEUDOVECTOR_FLAG - 1);
+}
 
 struct Lisp_Vector *
 igc_make_vector (ptrdiff_t len)

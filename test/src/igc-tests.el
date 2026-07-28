@@ -72,4 +72,34 @@
   (igc-collect)
   (thread-join (make-thread #'igc-test--trigger-incremental-gc)))
 
+(defun igc-tests--binary-search (start end cmp)
+  (named-let search ((start start) (end end))
+    (let* ((len (- end start))
+           (mid (+ start (/ len 2))))
+      (cond ((= len 0)
+             nil)
+            (t
+             (cl-ecase (funcall cmp mid)
+               (= mid)
+               (< (search start mid))
+               (> (search (1+ mid) end))))))))
+
+(defun igc-tests--try-vector-size (len)
+  (message "testing: %d (0x%x) (logb: %d)" len len (logb len))
+  (igc--process-messages)
+  (cond ((ignore-errors (length (make-vector len nil)))
+         (cond ((ignore-errors (length (make-vector (1+ len) nil)))
+                '>)
+               (t
+                '=)))
+        (t '<)))
+
+;; FIXME: this crashes with 32-bit configurations
+(ert-deftest igc-tests-find-largest-vector-size ()
+  "Find the largest size which we can allocate a vector."
+  :tags '(:igc :expensive-test)
+  (let ((garbage-collection-messages t))
+    (igc-tests--binary-search 0 (1+ most-positive-fixnum)
+                              #'igc-tests--try-vector-size)))
+
 ;;; igc-tests.el ends here.
