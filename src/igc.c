@@ -762,7 +762,8 @@ static void
 set_header (union igc_header *h, enum igc_obj_type type,
 	    mps_word_t nbytes, mps_word_t hash)
 {
-  igc_assert (nbytes < ((uint64_t) 1 << IGC_HEADER_NWORDS_BITS));
+  igc_assert (to_words (nbytes)
+	      < ((uint64_t) 1 << IGC_HEADER_NWORDS_BITS));
   igc_assert (type == IGC_OBJ_PAD
 	      || nbytes >= sizeof (struct igc_fwd));
   union igc_header val = { .s = { .tag = IGC_TAG_OBJ,
