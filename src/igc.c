@@ -755,6 +755,12 @@ obj_size (const union igc_header *h)
   return nbytes;
 }
 
+static size_t
+igc_header_nwords_max (void)
+{
+  return ~(~(uint64_t) 0 << IGC_HEADER_NWORDS_BITS);
+}
+
 /* Set the fields of header H to the given values.  Use this instead of
    setting the fields directly to make it easy to add assertions.  */
 
@@ -762,14 +768,14 @@ static void
 set_header (union igc_header *h, enum igc_obj_type type,
 	    mps_word_t nbytes, mps_word_t hash)
 {
-  igc_assert (to_words (nbytes)
-	      < ((uint64_t) 1 << IGC_HEADER_NWORDS_BITS));
+  size_t nwords = to_words (nbytes);
+  igc_assert (nwords <= igc_header_nwords_max ());
   igc_assert (type == IGC_OBJ_PAD
 	      || nbytes >= sizeof (struct igc_fwd));
   union igc_header val = { .s = { .tag = IGC_TAG_OBJ,
 				  .obj_type = type,
 				  .hash = hash,
-				  .nwords = to_words (nbytes) } };
+				  .nwords = nwords } };
   *h = val;
 }
 
@@ -5277,15 +5283,14 @@ igc_make_pseudovector (size_t nwords_mem, size_t nwords_lisp,
 static size_t
 igc_vector_elts_max (void)
 {
-  size_t nwords_max = ~(~(uint64_t) 0 << IGC_HEADER_NWORDS_BITS);
-  size_t obj_size_max = to_bytes (nwords_max);
+  size_t obj_size_max = to_bytes (igc_header_nwords_max ());
   return (obj_size_max - header_size) / sizeof (Lisp_Object);
 };
 
 struct Lisp_Vector *
 igc_make_vector (ptrdiff_t len)
 {
-  if (len < 0 || (size_t) len > igc_vector_elts_max ())
+  if (!(0 <= len && (size_t) len <= igc_vector_elts_max ()))
     xsignal1 (Qargs_out_of_range, make_int (len));
 
   struct Lisp_Vector *v
