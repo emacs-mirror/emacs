@@ -2070,6 +2070,7 @@ char-offset in TEXT."
   "Return the buffer position (BEG . END) of the nearest occurrence of TEXT.
 If TEXT isn't found, nil is returned."
   (let* ((orig (point))
+         (case-fold-search nil)
 	 (forw (and (search-forward text nil t)
 		    (cons (match-beginning 0) (match-end 0))))
 	 (back (and (goto-char (+ orig (length text)))
