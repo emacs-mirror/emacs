@@ -1238,8 +1238,11 @@ Type \\[describe-mode] after entering Dired for more info.
 If DIRNAME is already in a Dired buffer, that buffer is used without refresh."
   ;; Cannot use (interactive "D") because of wildcards.
   (interactive (dired-read-dir-and-switches ""))
-  (prog1 (pop-to-buffer-same-window (dired-noselect dirname switches))
-    (dired--display-ls-error)))
+  (let ((buf (dired-noselect dirname switches)))
+    (prog1 (if buf
+               (pop-to-buffer-same-window buf)
+             (current-buffer))
+    (dired--display-ls-error))))
 
 ;; This lets clicks on the menu bar invoke Dired even if some feature
 ;; remaps the Dired command to another command that does not handle this
@@ -1258,24 +1261,33 @@ If this command needs to split the current window, it by default obeys
 the user options `split-height-threshold' and `split-width-threshold',
 when it decides whether to split the window horizontally or vertically."
   (interactive (dired-read-dir-and-switches "in other window "))
-  (prog1 (switch-to-buffer-other-window (dired-noselect dirname switches))
-    (dired--display-ls-error)))
+  (let ((buf (dired-noselect dirname switches)))
+    (prog1 (if buf
+               (switch-to-buffer-other-window buf)
+             (current-buffer))
+      (dired--display-ls-error))))
 
 ;;;###autoload (keymap-set ctl-x-5-map "d" #'dired-other-frame)
 ;;;###autoload
 (defun dired-other-frame (dirname &optional switches)
   "\"Edit\" directory DIRNAME.  Like `dired' but make a new frame."
   (interactive (dired-read-dir-and-switches "in other frame "))
-  (prog1 (switch-to-buffer-other-frame (dired-noselect dirname switches))
-    (dired--display-ls-error)))
+  (let ((buf (dired-noselect dirname switches)))
+    (prog1 (if buf
+               (switch-to-buffer-other-frame buf)
+             (current-buffer))
+      (dired--display-ls-error))))
 
 ;;;###autoload (keymap-set tab-prefix-map "d" #'dired-other-tab)
 ;;;###autoload
 (defun dired-other-tab (dirname &optional switches)
   "\"Edit\" directory DIRNAME.  Like `dired' but make a new tab."
   (interactive (dired-read-dir-and-switches "in other tab "))
-  (prog1 (switch-to-buffer-other-tab (dired-noselect dirname switches))
-    (dired--display-ls-error)))
+  (let ((buf (dired-noselect dirname switches)))
+    (prog1 (if buf
+               (switch-to-buffer-other-tab buf)
+             (current-buffer))
+        (dired--display-ls-error))))
 
 ;;;###autoload
 (defun dired-noselect (dir-or-list &optional switches)
