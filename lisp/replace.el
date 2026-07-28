@@ -2062,7 +2062,7 @@ See also `multi-occur'."
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)
-            (display-buffer occur-buf)
+            (display-buffer occur-buf '(nil (category . occur)))
             (when occur--final-pos
               (set-window-point
                (get-buffer-window occur-buf 'all-frames)

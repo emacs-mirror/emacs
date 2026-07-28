@@ -206,6 +206,13 @@ with named choices for the predefined search functions
 ('outline-search-from-regexp' and 'outline-search-level')
 as well as the default nil and arbitrary user functions.
 
+---
+*** New command 'outline-occur'.
+It allows users to navigate the current buffer's outline using Occur.
+The 'outline-regexp' variable is used to find the beginning of the
+outline headings.  The 'outline-occur-regexp' buffer-local variable
+allows overriding this regexp.  It is bound to 'M-o'.
+
 ** Newsticker
 
 ---
@@ -326,6 +333,11 @@ This macro in a declarative alternative to
 how to analyze the arguments of a function by declaring the
 specification of each argument, rather than implementing an analyzer
 function as you would with 'elisp-scope-define-function-analyzer'.
+
++++
+** New variable 'display-buffer-default-alist'.
+Lisp programs may let-bind this variable to specify conditional actions
+for nested 'display-buffer' calls.
 
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems

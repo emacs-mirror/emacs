@@ -3120,6 +3120,9 @@ The variable @code{display-buffer-overriding-action}.
 The user option @code{display-buffer-alist}.
 
 @item
+The variable @code{display-buffer-default-alist}.
+
+@item
 The @var{action} argument.
 
 @item
@@ -3181,6 +3184,13 @@ treated with the highest priority by @code{display-buffer}.  The
 default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 @end defvar
 
+@defvar display-buffer-default-alist
+The value of this variable is an alist mapping conditions to display
+actions (@pxref{display-buffer-alist}).  Lisp programs may let-bind it
+to specify conditional actions for nested @code{display-buffer} calls.
+@end defvar
+
+@anchor{display-buffer-alist}
 @defopt display-buffer-alist
 The value of this option is an alist mapping conditions to display
 actions.  Each condition is passed to @code{buffer-match-p}
@@ -4475,10 +4485,42 @@ displaying @file{*foo*} at the bottom of the frame.
 the window already showing @file{*foo*} since both functions supplied
 by the @var{action} argument try to reuse such a window first.
 
-   By setting the @var{action} argument, an application effectively
+   There are cases, however, where Lisp programs want to modify the
+default behavior of a @code{display-buffer} call hidden behind another
+function.  In those cases, setting the @var{action} argument is not an
+option.  Fortunately, the @code{display-buffer-default-alist} variable
+can be used to specify a list of conditional default actions.  Consider
+the following example:
+
+@example
+@group
+(defun foo (buffer)
+   (display-buffer
+    buffer
+    '((display-buffer-below-selected display-buffer-at-bottom))))
+
+(defun bar ()
+   (let ((display-buffer-default-alist
+         '(("\\*bar\\*" (display-buffer-pop-up-frame)))))
+     (foo (get-buffer-create "*bar*"))))
+
+(defun baz ()
+   (let ((display-buffer-default-alist
+         '(("\\*baz\\*" (display-buffer-same-window)))))
+     (foo (get-buffer-create "*baz*"))))
+@end group
+@end example
+
+   Here, @code{foo} calls @code{display-buffer} with a specific
+@var{action}.  Let-binding @code{display-buffer-default-alist} allows
+the functions @code{bar} and @code{baz} to specify their own action
+functions.
+
+   By setting the @var{action} argument and/or the
+@code{display-buffer-default-alist} variable, an application effectively
 overrules any customization of @code{display-buffer-base-action}.  Our
-user can now either accept the choice of the application, or redouble
-by customizing the option @code{display-buffer-alist} as follows:
+user can now either accept the choice of the application, or redouble by
+customizing the option @code{display-buffer-alist} as follows:
 
 @example
 @group

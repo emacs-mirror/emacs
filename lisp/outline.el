@@ -107,7 +107,8 @@ imitate the function `looking-at'."
   "/ h" #'outline-hide-by-heading-regexp
   "C-<" #'outline-promote
   "C->" #'outline-demote
-  "RET" #'outline-insert-heading)
+  "RET" #'outline-insert-heading
+  "M-o" #'outline-occur)
 
 (defvar outline-mode-menu-bar-map
   (let ((map (make-sparse-keymap)))
@@ -148,6 +149,9 @@ imitate the function `looking-at'."
 		  :help "Show all of the text in the buffer"))
     (define-key map [headings]
       (cons "Headings" (make-sparse-keymap "Headings")))
+    (define-key map [headings outline-occur]
+      '(menu-item "Show in Occur" outline-occur
+		  :help "Navigate the buffer's outline using Occur"))
     (define-key map [headings demote-subtree]
       '(menu-item "Demote Subtree" outline-demote
 		  :help "Demote headings lower down the tree"))
@@ -2178,6 +2182,31 @@ With a prefix argument, show headings up to that LEVEL."
   ">"   #'outline-demote
   "C-<" #'outline-promote
   "<"   #'outline-promote)
+
+
+;;; Occur outline navigation
+
+(defvar-local outline-occur-regexp nil
+  "Regexp used by `outline-occur' to override `outline-regexp'.
+Matches the beginning of the outline headings.  Any line whose beginning
+matches this regexp is considered to start a heading.  As Outline mode
+does with `outline-regexp', `outline-occur' only checks this regexp at
+the start of a line, so the regexp need not start with `^'.")
+
+(defun outline-occur ()
+  "Navigate the current buffer's outline using `occur'.
+The `outline-regexp' variable is used to find the beginning of the
+outline headings.  The `outline-occur-regexp' buffer-local variable
+allows overriding this regexp."
+  (interactive)
+  (if-let* ((regexp (or outline-occur-regexp outline-regexp)))
+      (let ((display-buffer-default-alist
+	     (append '(((category . occur)
+		        (display-buffer-pop-up-window)
+		        (post-command-select-window . t)))
+		     display-buffer-default-alist)))
+        (occur (concat "^\\(?:" regexp "\\)")))
+    (user-error "No outline regexp defined")))
 
 
 (provide 'outline)

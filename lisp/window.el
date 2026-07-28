@@ -8084,9 +8084,9 @@ See `other-frame-prefix' for an example of use.")
 
 (defcustom display-buffer-alist nil
   "Alist of user-defined conditional actions for `display-buffer'.
-Its value takes effect before processing the ACTION argument of
-`display-buffer' and before `display-buffer-base-action' and
-`display-buffer-fallback-action', but after
+Its value takes effect before processing `display-buffer-default-alist',
+the ACTION argument of `display-buffer', `display-buffer-base-action'
+and `display-buffer-fallback-action', but after
 `display-buffer-overriding-action', which see.
 
 If non-nil, this is an alist of elements (CONDITION . ACTION),
@@ -8109,6 +8109,21 @@ and adds the associated ACTION to the list of actions it will try."
   :risky t
   :version "24.1"
   :group 'windows)
+
+(defvar display-buffer-default-alist nil
+  "Alist of conditional default actions for `display-buffer'.
+Its value takes effect before processing the ACTION argument of
+`display-buffer' and before `display-buffer-base-action' and
+`display-buffer-fallback-action', but after
+`display-buffer-overriding-action' and `display-buffer-alist', which
+see.
+
+Lisp programs may let-bind this variable to specify conditional actions
+for nested `display-buffer' calls.
+
+If non-nil, this is an alist of elements (CONDITION . ACTION) like
+`display-buffer-alist'.")
+(put 'display-buffer-default-alist 'risky-local-variable t)
 
 (defcustom display-buffer-base-action '(nil . nil)
   "User-specified default action for `display-buffer'.
@@ -8398,6 +8413,9 @@ specified by the ACTION argument."
             (display-buffer-assq-regexp
              buf-name display-buffer-alist action))
            (special-action (display-buffer--special-action buffer))
+           (default-action
+            (display-buffer-assq-regexp
+             buf-name display-buffer-default-alist action))
            ;; Extra actions from the arguments to this function:
            (extra-action
             (cons nil (append (if inhibit-same-window
@@ -8405,9 +8423,9 @@ specified by the ACTION argument."
                               (if frame
                                   `((reusable-frames . ,frame))))))
            ;; Construct action function list and action alist.
-           (actions (list display-buffer-overriding-action
-                          user-action special-action action extra-action
-                          display-buffer-base-action
+           (actions (list display-buffer-overriding-action user-action
+                          special-action default-action action
+                          extra-action display-buffer-base-action
                           display-buffer-fallback-action))
            (functions (apply #'append
                              (mapcar (lambda (x)
