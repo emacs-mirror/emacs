@@ -52,4 +52,7 @@
     (dotimes (i 4)
       (should (eql (aref x i) (aref y i))))))
 
-;;; alloc-tests.el ends here
+(ert-deftest alloc-tests-large-vector ()
+  (should-error (make-vector most-positive-fixnum nil)))
+
+;;; alloc-tests.el ends here1

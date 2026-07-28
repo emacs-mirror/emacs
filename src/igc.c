@@ -5274,9 +5274,20 @@ igc_make_pseudovector (size_t nwords_mem, size_t nwords_lisp,
   return v;
 }
 
+static size_t
+igc_vector_elts_max (void)
+{
+  size_t nwords_max = ~(~(uint64_t) 0 << IGC_HEADER_NWORDS_BITS);
+  size_t obj_size_max = to_bytes (nwords_max);
+  return (obj_size_max - header_size) / sizeof (Lisp_Object);
+};
+
 struct Lisp_Vector *
 igc_make_vector (ptrdiff_t len)
 {
+  if (len < 0 || (size_t) len > igc_vector_elts_max ())
+    xsignal1 (Qargs_out_of_range, make_int (len));
+
   struct Lisp_Vector *v
     = alloc (header_size + len * word_size, IGC_OBJ_VECTOR);
   v->header.size = len;
