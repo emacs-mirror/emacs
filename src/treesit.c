@@ -4263,7 +4263,7 @@ treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
      Also, ts_tree_cursor_goto_first_child_for_byte can't find
      zero-width nodes (which exist and are legit, e.g., markdown's
      block_continuation), because a zero-width node can't contain a pos
-     (end > pos).  */
+     (end > pos); instead, it'll falsely return the next child.  */
   if (!((start_pos != end_pos
 	 && ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) != -1)
 	|| ts_tree_cursor_goto_first_child (cursor)))
