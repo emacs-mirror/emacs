@@ -198,6 +198,7 @@ PATH is a list of keys (strings) and indices (numbers)."
   ;; Comments.
   (setq-local comment-start "// ")
   (setq-local comment-start-skip "\\(?://+\\|/\\*+\\)\\s *")
+  (setq-local comment-start-line-regexp "//+\\s *")
   (setq-local comment-end "")
 
   ;; Electric

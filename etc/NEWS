@@ -305,6 +305,12 @@ buffer as if it were newly created.
 +++
 ** The new function 'markers-in' returns the set of markers in a region.
 
++++
+** New buffer-local variable 'comment-start-line-regexp'.
+Modes that support both line and block comments should set this
+variable to a regexp that matches only the start of line comments, so
+Emacs can distinguish between line and block comments.
+
 ---
 ** New variable 'completion-frontend-properties'.
 This variable generalizes the 'completion-lazy-hilit' variable added in

@@ -271,6 +271,7 @@ Calls REPORT-FN directly."
     (setq-local comment-start "# ")
     (setq-local comment-end "")
     (setq-local comment-start-skip "#+ *")
+    (setq-local comment-start-line-regexp comment-start-skip)
 
     ;; Indentation.
     (setq-local indent-tabs-mode nil)

@@ -1385,6 +1385,12 @@ comments also.  (Note that @samp{\\} is needed in Lisp syntax to
 include a @samp{\} in the string, which is needed to deny the first
 star its special meaning in regexp syntax.  @xref{Regexp Backslash}.)
 
+@vindex comment-start-line-regexp
+  Modes that support both line and block comments should also set
+@code{comment-start-line-regexp} to a regexp that matches only line
+comment starters.  This lets Emacs distinguish between the two kinds of
+comments.
+
 @vindex comment-start
 @vindex comment-end
   When a comment command makes a new comment, it inserts the value of
