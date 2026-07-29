@@ -587,12 +587,13 @@ If FILE is not registered, this function always returns nil.
 This function does not return nil without first confirming with the
 underlying VCS that FILE is unregistered; this is in contrast to
 `vc-symbolic-working-revision'."
-  (or (vc-file-getprop file 'vc-working-revision)
-      (let ((default-directory (file-name-directory file)))
-        (and (setq backend (or backend (vc-backend file)))
-             (vc-file-setprop file 'vc-working-revision
-                              (vc-call-backend backend 'working-revision
-                                               file))))))
+  (let ((abs (expand-file-name file)))
+    (or (vc-file-getprop abs 'vc-working-revision)
+        (let ((default-directory (file-name-directory abs)))
+          (and (setq backend (or backend (vc-backend file)))
+               (vc-file-setprop abs 'vc-working-revision
+                                (vc-call-backend backend 'working-revision
+                                                 file)))))))
 
 (defun vc-symbolic-working-revision (file &optional backend)
   "Return BACKEND's symbolic name for FILE's working revision.
