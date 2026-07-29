@@ -569,8 +569,13 @@ The resulting syntax node is checked for validity by
   ;; Add templates for required properties automatically if we can:
   (when (memq type '(ical:vevent ical:vtodo ical:vjournal ical:vfreebusy))
     (unless (assq 'ical:dtstamp templates)
-      (push '(ical:dtstamp (decode-time nil t))
-            templates))
+      (push
+       '(icalendar-make-property icalendar-dtstamp
+            (let ((stamp (decode-time nil t)))
+              ;; Ensure we return UTC, not just :zone 0:
+              (setf (decoded-time-zone stamp) t)
+              stamp))
+       templates))
     (unless (assq 'ical:uid templates)
       (push `(ical:uid ,(ical:make-uid templates))
             templates)))
@@ -652,7 +657,6 @@ added to the component or property node.
 For example, an iCalendar VEVENT could be written like this:
 
   (icalendar-make-node-from-templates icalendar-vevent
-    (icalendar-dtstamp (decode-time (current-time) 0))
     (icalendar-uid \"some-unique-id\")
     (icalendar-summary \"Party\")
     (icalendar-location \"Robot House\")

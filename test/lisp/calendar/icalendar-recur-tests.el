@@ -271,7 +271,7 @@ END:VTIMEZONE
                                        ;; Use UTC for the tests with no
                                        ;; time zone, so that the results
                                        ;; don't depend on system's local time
-                                       :zone 0))
+                                       :zone t))
          (dtstart/tz (ical:date-time-variant dtstart :zone ict:est :dst nil)))
 
     ;; Year numbers are monotonically increasing in the following test cases,
@@ -279,24 +279,24 @@ END:VTIMEZONE
 
     ;; No timezone, just clock time, around a target that doesn't fall on
     ;; an interval boundary:
-    (let* ((target (ical:date-time-variant dtstart :year 2026 :second 5 :zone 0))
+    (let* ((target (ical:date-time-variant dtstart :year 2026 :second 5 :zone t))
            (expected-int
             (icr:make-interval
-             (ical:date-time-variant target :second 0 :tz 'preserve)
-             (ical:date-time-variant target :second 1 :tz 'preserve)
-             (ical:date-time-variant target :second 10 :tz 'preserve))))
+             (ical:date-time-variant target :second 0 :dst nil :tz 'preserve)
+             (ical:date-time-variant target :second 1 :dst nil :tz 'preserve)
+             (ical:date-time-variant target :second 10 :dst nil :tz 'preserve))))
       (should
        (equal expected-int
               (icr:find-secondly-interval target dtstart 10))))
 
     ;; No timezone, just clock time, around a target that does fall on
     ;; an interval boundary:
-    (let* ((target (ical:date-time-variant dtstart :year 2027 :second 10 :zone 0))
+    (let* ((target (ical:date-time-variant dtstart :year 2027 :second 10 :zone t))
            (expected-int
             (icr:make-interval
-             (ical:date-time-variant target :second 10 :tz 'preserve)
-             (ical:date-time-variant target :second 11 :tz 'preserve)
-             (ical:date-time-variant target :second 20 :tz 'preserve))))
+             (ical:date-time-variant target :second 10 :dst nil :tz 'preserve)
+             (ical:date-time-variant target :second 11 :dst nil :tz 'preserve)
+             (ical:date-time-variant target :second 20 :dst nil :tz 'preserve))))
       (should
        (equal expected-int
               (icr:find-secondly-interval target dtstart 10))))
@@ -1334,7 +1334,7 @@ END:VTIMEZONE
   ;; A date matching the end of a STANDARD observance:
   (let* ((ut (ical:make-date-time :year 2006 :month 10 :day 29
                                   :hour 6 :minute 0 :second 0
-                                  :zone 0 :dst nil)) ; UNTIL is in UTC
+                                  :zone t :dst nil)) ; UNTIL is in UTC
          (dt (ical:make-date-time :year 2006 :month 10 :day 29
                                   :hour 2 :minute 0 :second 0
                                   :zone ict:edt :dst t))
@@ -1352,7 +1352,7 @@ END:VTIMEZONE
   ;; A date matching the end of a DAYLIGHT observance:
   (let* ((ut (ical:make-date-time :year 2006 :month 4 :day 2
                                   :hour 7 :minute 0 :second 0
-                                  :zone 0 :dst nil)) ; UNTIL is in UTC
+                                  :zone t :dst nil)) ; UNTIL is in UTC
          (dt (ical:make-date-time :year 2006 :month 4 :day 2
                                   :hour 2 :minute 0 :second 0
                                   :zone ict:est :dst nil))
@@ -1374,7 +1374,7 @@ END:VTIMEZONE
                                   :zone ict:est :dst nil))
          (end (ical:make-date-time :year 1986 :month 4 :day 27
                                    :hour 7 :minute 0 :second 0
-                                   :zone 0)) ; UNTIL is in UTC
+                                   :zone t)) ; UNTIL is in UTC
          (obs/onset (icr:tz-observance-on dt ict:tz-eastern))
          (obs (car obs/onset))
          (onset (cadr obs/onset))
@@ -2009,7 +2009,7 @@ SOURCE should be a symbol; it is used to name the test."
                                :hour 9 :minute 0 :second 0
                                :zone ict:edt :dst t)
  :high (ical:make-date-time :year 1997 :month 10 :day 8
-                            :hour 0 :minute 0 :second 0 :zone 0)
+                            :hour 0 :minute 0 :second 0 :zone t)
  :members
  (list
   ;; ==> (1997 9:00 AM EDT) September 2,4,9,11,16,18,23,25,30;
@@ -2034,7 +2034,7 @@ SOURCE should be a symbol; it is used to name the test."
                                :hour 9 :minute 0 :second 0
                                :zone ict:edt :dst t)
  :high (ical:make-date-time :year 1997 :month 10 :day 8
-                            :hour 0 :minute 0 :second 0 :zone 0)
+                            :hour 0 :minute 0 :second 0 :zone t)
  :members
  (list
   ;; ==> (1997 9:00 AM EDT) September 2,4,9,11,16,18,23,25,30;

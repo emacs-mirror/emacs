@@ -1366,7 +1366,7 @@ the iCalendar data."
             (local-dt (decode-time ts local-tz))
             (local-str (di:format-time local-dt)))
        (if (and original-tzname original-offset
-                (not (= original-offset local-offset)))
+                (not (eql original-offset local-offset)))
            (format "%s (%s)" local-str (di:format-time dt original-tzname))
          local-str)))))
 
@@ -2508,8 +2508,8 @@ zone export strategy requires it."
             (icr:tz-decode-time (encode-time dt) vtimezone)
           (icr:tz-set-zone dt vtimezone :error)))
        ((or (eq 'to-utc di:time-zone-export-strategy)
-            (di:-tz-is-utc-p)) ; we're already in UTC, so mark dt as such
-        (decode-time (encode-time dt) t))
+            (di:-tz-is-utc-p))
+        (icr:tz-decode-time (encode-time dt) t)) ; ensure dt is in UTC
        ((eq 'floating di:time-zone-export-strategy)
         (setf (decoded-time-zone dt) nil)
         dt)))))
@@ -3341,7 +3341,10 @@ recursive calls to this function made by
           ;; Collect the remaining properties:
           (setq all-props (append (di:parse-summary-and-description) all-props))
           (setq all-props (append (di:parse-attendees-and-organizer) all-props))
-          (push (ical:make-property ical:dtstamp (decode-time nil t)) all-props)
+          (push
+           (ical:make-property ical:dtstamp
+               (icr:tz-decode-time (current-time) t)) ; ensure UTC
+           all-props)
           (let ((class (di:parse-class))
                 (location (di:parse-location))
                 (status (di:parse-status))
