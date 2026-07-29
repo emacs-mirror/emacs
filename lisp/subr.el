@@ -7240,7 +7240,7 @@ area is busy with something else."
     (unless (and (eq (progress-reporter-context reporter) 'async)
                  (current-message)
                  (not (string-prefix-p text (current-message))))
-      (setq update-text (concat (if update-text " " "") update-text))
+      (setq update-text (if update-text (format " %s" update-text) ""))
       (pcase state
         ((pred floatp)
          (if (plusp state)
