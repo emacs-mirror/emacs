@@ -114,8 +114,14 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
     prot_all = PROT_READ | PROT_WRITE;
     result = mprotect((void *)base, (size_t)AddrOffset(base, limit), flags & prot_all);
   }
-  if (result != 0)
+  if (result != 0) {
+    int error = errno;
+    AVER(error != EACCES);
+    AVER(error != EINVAL);
+    AVER(error != ENOMEM);
+    AVER(error != 0);
     NOTREACHED;
+  }
 }
 
 
