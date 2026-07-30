@@ -653,8 +653,9 @@ functions.  @xref{Documentation Basics}.
 @cindex symbolic shorthands
 @cindex namespacing
 @cindex namespaces
+@cindex renamed symbols
 
-  The symbol @dfn{shorthands}, sometimes known as ``renamed symbols'', are
+  The symbol @dfn{shorthands}, sometimes known as @dfn{renamed symbols}, are
 symbolic forms found in Lisp source.  They're just like regular
 symbolic forms, except that when the Lisp reader encounters them, it
 produces symbols which have a different and usually longer @dfn{print
@@ -791,16 +792,18 @@ comes from another buffer (e.g., the minibuffer), you can use
 a symbol in a buffer, you can consider all its possible
 shorthand forms with the use of @code{shorthands-of-symbol}.
 
+@cindex longhand form of symbol name
 @defun shorthands-to-longhand string
-Return the full name (so called ``longhand'' form) of the symbol whose
-shorthand is @var{string}.  It always returns a string since
+Return the full name (so called @dfn{longhand} form) of the symbol whose
+shorthand name is @var{string}.  It always returns a string;
 if there is no use of any shorthand notation in @var{string}, it just
 returns @var{string} unchanged.
 @end defun
 
 @defun shorthands-of-symbol string-or-symbol
-Return the list of all the alternative ways to write this symbol.
-The argument can be a symbol or its name, and 
+Return the list of all the alternative ways to write the name of the
+specified symbol.
+The argument @var{string-or-symbol} can be a symbol or its name, and
 the return value is a list of strings.  Note that the return value
 includes only the shorthand forms of the argument, not its longhand
 form, so it is common and normal for the return value to be @code{nil}.
