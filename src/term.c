@@ -567,7 +567,7 @@ encode_terminal_code (struct glyph *src, int src_len,
   nchars = 0;
   while (src < src_end)
     {
-      if (src->type == COMPOSITE_GLYPH)
+      if (src->type == COMPOSITE_GLYPH && ! CHAR_GLYPH_PADDING_P (*src))
 	{
 	  struct composition *cmp;
 	  Lisp_Object gstring UNINIT;
@@ -1528,7 +1528,7 @@ term_get_fkeys_1 (void)
    available from the initial frame as in batch mode.  */
 
 static void append_glyph (struct it *);
-static void append_composite_glyph (struct it *);
+static void append_composite_glyph (struct it *, int padding);
 static void produce_composite_glyph (struct it *);
 static void append_glyphless_glyph (struct it *, int, const char *);
 static void produce_glyphless_glyph (struct it *, Lisp_Object);
@@ -1775,9 +1775,10 @@ produce_glyphs (struct it *it)
    face.  */
 
 static void
-append_composite_glyph (struct it *it)
+append_composite_glyph (struct it *it, int padding)
 {
-  struct glyph *glyph;
+  struct glyph *glyph, *end;
+  int i, width = 1 + padding;
 
   eassert (it->glyph_row);
   glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
@@ -1789,74 +1790,131 @@ append_composite_glyph (struct it *it)
     && !it->glyph_row->full_width_p
     && !WINDOW_RIGHTMOST_P (it->w)
     && WINDOW_RIGHT_MARGIN_WIDTH (it->w) == 0;
-  if (glyph < it->glyph_row->glyphs[1 + it->area] - reserve_last)
+  end = it->glyph_row->glyphs[1 + it->area] - reserve_last;
+  if (glyph < end)
     {
       /* If the glyph row is reversed, we need to prepend the glyph
 	 rather than append it.  */
       if (it->glyph_row->reversed_p && it->area == TEXT_AREA)
 	{
 	  struct glyph *g;
+	  int move_by = width;
 
 	  /* Make room for the new glyph.  */
+	  if (move_by > end - glyph)
+	    move_by = end - glyph;
 	  for (g = glyph - 1; g >= it->glyph_row->glyphs[it->area]; g--)
-	    g[1] = *g;
+	    g[move_by] = *g;
 	  glyph = it->glyph_row->glyphs[it->area];
-	}
-      glyph->type = COMPOSITE_GLYPH;
-      eassert (it->pixel_width <= SHRT_MAX);
-      glyph->pixel_width = it->pixel_width;
-      glyph->u.cmp.id = it->cmp_it.id;
-      if (it->cmp_it.ch < 0)
-	{
-	  glyph->u.cmp.automatic = 0;
-	  glyph->u.cmp.id = it->cmp_it.id;
-	}
-      else
-	{
-	  glyph->u.cmp.automatic = 1;
-	  glyph->u.cmp.id = it->cmp_it.id;
-	  glyph->slice.cmp.from = it->cmp_it.from;
-	  glyph->slice.cmp.to = it->cmp_it.to - 1;
+	  end = glyph + move_by;
 	}
 
-      glyph->avoid_cursor_p = it->avoid_cursor_p;
-      glyph->multibyte_p = it->multibyte_p;
-      glyph->frame = it->f;
-      glyph->face_id = it->face_id;
-      glyph->padding_p = false;
-      glyph->charpos = CHARPOS (it->position);
-      glyph->object = it->object;
-      if (it->bidi_p)
+      eassert(it->pixel_width <= SHRT_MAX);
+      for (i = 0;
+	   i < width && glyph < end;
+	   ++i)
 	{
-	  glyph->resolved_level = it->bidi_it.resolved_level;
-	  eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
-	  glyph->bidi_type = it->bidi_it.type;
-	}
-      else
-	{
-	  glyph->resolved_level = 0;
-	  glyph->bidi_type = UNKNOWN_BT;
-	}
+	  glyph->type = COMPOSITE_GLYPH;
+	  glyph->pixel_width = it->pixel_width - padding;
+	  glyph->u.cmp.id = it->cmp_it.id;
+	  if (it->cmp_it.ch < 0)
+	    {
+	      glyph->u.cmp.automatic = 0;
+	      glyph->u.cmp.id = it->cmp_it.id;
+	    }
+	  else
+	    {
+	      glyph->u.cmp.automatic = 1;
+	      glyph->u.cmp.id = it->cmp_it.id;
+	      glyph->slice.cmp.from = it->cmp_it.from;
+	      glyph->slice.cmp.to = it->cmp_it.to - 1;
+	    }
+	  glyph->avoid_cursor_p = it->avoid_cursor_p;
+	  glyph->multibyte_p = it->multibyte_p;
+	  glyph->frame = it->f;
+	  glyph->face_id = it->face_id;
+	  glyph->padding_p = i > 0;
+	  glyph->charpos = CHARPOS (it->position);
+	  glyph->object = it->object;
+	  if (it->bidi_p)
+	    {
+	      glyph->resolved_level = it->bidi_it.resolved_level;
+	      eassert ((it->bidi_it.type & 7) == it->bidi_it.type);
+	      glyph->bidi_type = it->bidi_it.type;
+	    }
+	  else
+	    {
+	      glyph->resolved_level = 0;
+	      glyph->bidi_type = UNKNOWN_BT;
+	    }
 
-      ++it->glyph_row->used[it->area];
-      ++glyph;
+	  ++it->glyph_row->used[it->area];
+	  ++glyph;
+	}
     }
+}
+
+
+/* For some emoji sequences, the first character width might be 1.
+   Possibly render them as wide glyphs if it's requested.  */
+
+static bool
+composite_glyph_is_emoji_sequence (struct it *it)
+{
+  Lisp_Object gstring;
+  ptrdiff_t len;
+  int first, second, third;
+
+  /* Skip static compositions.  */
+  if (it->cmp_it.ch < 0)
+    return false;
+
+  gstring = composition_gstring_from_id (it->cmp_it.id);
+  len = LGSTRING_CHAR_LEN (gstring);
+  first = XFIXNUM (LGSTRING_CHAR (gstring, 0));
+  second = len < 2 ? 0 : XFIXNUM (LGSTRING_CHAR (gstring, 1));
+
+  /* Regional Indicators ("Flags" in emoji_zwj.awk).  */
+  if (0x1F1E6 <= first && first <= 0x1F1FF
+      && 0x1F1E6 <= second && second <= 0x1F1FF)
+    return true;
+
+  /* The rest two cases both require Base.  */
+  if (NILP (Fmemq (make_fixnum (first),
+		   Vauto_composition_emoji_tty_eligible_codepoints)))
+    return false;
+
+  /* Base + VS16/Modifier.  */
+  if (second == 0xFE0F || (0x1F3FB <= second && second <= 0x1F3FF))
+    return true;
+
+  /* Unqualified RGI sequences: Base + ZWJ + TailInitial ...  */
+  third = len < 3 ? 0 : XFIXNUM (LGSTRING_CHAR (gstring, 2));
+  return second == 0x200D
+    && ! NILP (Fmemq (make_fixnum (third),
+		      Vauto_composition_emoji_unqualified_tail_initials));
 }
 
 
 /* Produce a composite glyph for iterator IT.  IT->cmp_id is the ID of
    the composition.  We simply produces components of the composition
    assuming that the terminal has a capability to layout/render it
-   correctly.  */
+   correctly.  A padding glyph is added if both the composition and the
+   first character has width >= 2.  As a special case, if the composite
+   glyph is determined to be an emoji sequence, it may also add a
+   padding glyph.  */
 
 static void
 produce_composite_glyph (struct it *it)
 {
+  int padding, first_char;
+
   if (it->cmp_it.ch < 0)
     {
       struct composition *cmp = composition_table[it->cmp_it.id];
 
       it->pixel_width = cmp->width;
+      first_char = it->c;
     }
   else
     {
@@ -1864,10 +1922,16 @@ produce_composite_glyph (struct it *it)
 
       it->pixel_width = composition_gstring_width (gstring, it->cmp_it.from,
 						   it->cmp_it.to, NULL);
+      first_char = LGLYPH_CHAR (LGSTRING_GLYPH (gstring,
+						it->cmp_it.from));
     }
-  it->nglyphs = 1;
+
+  padding = (it->pixel_width >= 2 && CHARACTER_WIDTH (first_char) >= 2)
+    || (tty_display_emoji_force_wide
+	&& composite_glyph_is_emoji_sequence (it));
+  it->nglyphs = 1 + padding;
   if (it->glyph_row)
-    append_composite_glyph (it);
+    append_composite_glyph (it, padding);
 }
 
 
@@ -5276,6 +5340,44 @@ produce wrong results if the hardware tabs of the terminal were set to
 be of different width than Emacs expects.  Set this to nil to disable
 using TABs for cursor motion.  */);
   tty_cursor_movement_use_TAB = 1;
+
+  DEFVAR_LISP ("auto-composition-emoji-tty-eligible-codepoints", Vauto_composition_emoji_tty_eligible_codepoints,
+    doc: /* List of characters displayed as Emoji on TTY frames when followed by VS-16.
+
+These are codepoints which have Emoji_Presentation = No, and thus by
+default are not displayed as Emoji.  When followed by U+FE0F (VS-16),
+they may be considered as the beginning of an Emoji sequence instead.
+
+Some initial code points may have character width 1, and non-compliant
+terminals may render them narrow.  In that case, set
+`tty-display-emoji-force-wide' to nil.
+
+This list is auto-generated, you should not need to modify it.  */);
+  Vauto_composition_emoji_tty_eligible_codepoints = Qnil;
+
+  DEFVAR_LISP ("auto-composition-emoji-unqualified-tail-initials", Vauto_composition_emoji_unqualified_tail_initials,
+    doc: /* List of characters that may begin the tail of an unqualified RGI sequence.
+
+An unqualified RGI sequence begins with a codepoint in
+`auto-composition-emoji-tty-eligible-codepoints', followed by a
+Zero-Width Joiner.  The first character after the first ZWJ must be in
+this list to be recognized as an Emoji sequence.
+
+This list is auto-generated, you should not need to modify it.  */);
+  Vauto_composition_emoji_unqualified_tail_initials = Qnil;
+
+  DEFVAR_BOOL ("tty-display-emoji-force-wide", tty_display_emoji_force_wide,
+    doc: /* Whether Emoji sequences on TTY frames should always be considered wide.
+
+On TTY frames, an Emoji sequence considered for composition may begin
+with any code point in `auto-composition-emoji-tty-eligible-codepoints',
+which does not necessarily has width 2.  A compliant terminal emulator
+typically render an Emoji sequence as a wide glyph.
+
+When nil, an Emoji sequence whose first character's width is 1 may be
+considered as a narrow glyph to be compatible with some non-compliant
+terminal emulators.  */);
+  tty_display_emoji_force_wide = true;
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
