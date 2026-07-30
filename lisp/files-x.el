@@ -201,7 +201,8 @@ the user how to make the new value take effect."
 				       (match-beginning 0)))
 	     (suffix (buffer-substring (point) (line-end-position)))
 	     (prefix-re (concat "^" (regexp-quote prefix)))
-	     (suffix-re (concat (regexp-quote suffix) "$")))
+	     (suffix-re (concat (regexp-quote suffix) "$"))
+	     (deleted nil))
 
 	;; Find or add missing "End:".
 	(forward-line 1)
@@ -224,7 +225,17 @@ the user how to make the new value take effect."
 	    (while (re-search-forward
 		    (format "%s%S:.*%s" prefix-re variable suffix-re) end t)
 	      (delete-region (match-beginning 0) (1+ (match-end 0)))
-	      (setq replaced-pos (point)))))
+	      (setq replaced-pos (point)
+		    deleted t))
+	    ;; Delete empty local variables block.
+	    (when (and (eq op 'delete) deleted (= beg end))
+	      (save-excursion
+		(delete-region (progn (goto-char beg)
+				      (forward-line -1)
+				      (point))
+			       (progn (goto-char end)
+				      (forward-line 1)
+				      (point)))))))
 
 	;; Add a new variable/value pair.  Add `mode' to the start, add new
 	;; variable to the end, and add a replaced variable to its last location.
@@ -295,7 +306,7 @@ from the -*- line ignoring the input argument VALUE.
 If optional variable INTERACTIVE is non-nil, display a message telling
 the user how to make the new value take effect."
   (catch 'exit
-    (let ((beg (point)) end replaced-pos)
+    (let ((beg (point)) end replaced-pos deleted)
       (unless enable-local-variables
 	(throw 'exit (message "File-local variables are disabled")))
 
@@ -357,6 +368,7 @@ the user how to make the new value take effect."
 	    ;; Replace or delete MODENAME
 	    (progn
 	      (when (member op '(add-or-replace delete))
+		(setq deleted t)
 		(delete-region (match-beginning 1) (match-end 1)))
 	      (when (eq op 'add-or-replace)
 		(goto-char (match-beginning 1))
@@ -387,7 +399,8 @@ the user how to make the new value take effect."
 		(skip-chars-forward " \t;")
 		(when (eq key variable)
 		  (delete-region (match-beginning 0) (point))
-		  (setq replaced-pos (point)))))))
+		  (setq replaced-pos (point)
+                        deleted t))))))
 	;; Add a new variable/value pair.  Add `mode' to the start, add new
 	;; variable to the end, and add a replaced variable to its last location.
 	(when (eq op 'add-or-replace)
@@ -405,6 +418,28 @@ the user how to make the new value take effect."
 	  (unless (eq (char-before) ?\s) (insert " "))
 	  (insert (format "%S: %S;" variable value))
 	  (unless (eq (char-after) ?\s) (insert " ")))))
+
+      ;; Delete empty prop-line.
+      (when (and (eq op 'delete) deleted (= beg end))
+	(save-excursion
+          ;; First delete -*- -*-
+	  (delete-region
+	   (progn
+	     (goto-char beg)
+	     (search-backward "-*-" (line-beginning-position))
+	     (point))
+	   (progn
+	     (goto-char end)
+	     (search-forward "-*-" (line-end-position))
+	     (point)))
+          ;; And then delete line if comment is empty.
+	  (goto-char (line-beginning-position))
+	  (when (looking-at-p
+		 (concat
+                  "^[ \t]*\\(?:" (regexp-quote (or comment-start ";"))
+		  "\\)+[ \t]*" (regexp-quote (or comment-end ""))
+                  "[ \t]*$"))
+	    (delete-region (point) (progn (forward-line 1) (point))))))
 
       (when interactive
 	(modify-file-local-variable-message variable value op)))))
