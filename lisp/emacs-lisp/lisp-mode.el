@@ -1276,7 +1276,8 @@ Lisp function does not specify a special indentation."
           ;; inside the innermost containing sexp.
           (backward-prefix-chars)
           (current-column))
-      (let* ((function (intern-soft
+      ;; FIXME: Using `shorthands-intern-soft' is wrong for non-Emacs Lisp.
+      (let* ((function (shorthands-intern-soft
                         (buffer-substring (point)
                                           (progn (forward-sexp 1) (point)))))
              (local (assq function lisp-indent-local-overrides))

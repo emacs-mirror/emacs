@@ -1166,8 +1166,11 @@ Can only be used from within the lexical body of a primary or around method."
 (defun cl--generic-search-method (met-name)
   "For `find-function-regexp-alist'.  Search for a `cl-defmethod'.
 MET-NAME is as returned by `cl--generic-load-hist-format'."
+  ;; Presumably our caller is `find-function-search-for-symbol'.
+  (declare-function find-func--regexp-of-symbol-name "find-func" (name))
+  ;; FIXME: Handle also shorthands in the cdr of MET-NAME!
   (let ((base-re (concat "(\\(?:cl-\\)?defmethod[ \t]+"
-                         (regexp-quote (format "%s" (car met-name)))
+                         (find-func--regexp-of-symbol-name (car met-name))
 			 "\\_>")))
     (or
      (re-search-forward
