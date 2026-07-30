@@ -1808,11 +1808,20 @@ Move to the next hunk-start (@code{diff-hunk-next}).  With prefix
 argument @var{n}, move forward to the @var{n}th next hunk.
 
 @vindex diff-refine
-By default, Diff mode @dfn{refines} hunks as Emacs displays them,
-highlighting their changes with better granularity.  Alternatively, if
-you set @code{diff-refine} to the symbol @code{navigation}, Diff mode
-only refines the hunk you move to with this command or with
-@code{diff-hunk-prev}.
+By default, Diff mode automatically @dfn{refines} hunks as Emacs
+displays them, highlighting their changes with better granularity.
+Alternatively, if you set @code{diff-refine} to the symbol
+@code{navigation}, Diff mode only refines the hunk you move to with this
+command or with @code{diff-hunk-prev}.  Finally, you can set
+@code{diff-refine} to @code{nil} and manually refine hunks using
+@kbd{C-c C-b} (@code{diff-refine-hunk}), described below.
+
+@cindex shadow cursor (Diff mode)
+@vindex smerge-refine-shadow-cursor
+By default, refining a hunk in any way displays a @dfn{shadow cursor} at
+one of the two edges of the refined region, to better show where the
+refined region starts or ends.  This can be controlled by customizing
+the variable @code{smerge-refine-shadow-cursor}.
 
 @findex diff-hunk-prev
 @item M-p
@@ -1895,7 +1904,8 @@ parts of the buffer where the hunks' file names are specified.
 @item C-c C-b
 Highlight the changes of the hunk at point with a finer granularity
 (@code{diff-refine-hunk}).  This allows you to see exactly which parts
-of each changed line were actually changed.
+of each changed line were actually changed.  Refining a hunk by default
+shows a ``shadow cursor'' at one of the two edges of the refined region.
 
 @vindex diff-refine
 By default, Diff mode refines hunks as Emacs displays them, so you may

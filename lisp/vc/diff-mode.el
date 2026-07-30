@@ -107,7 +107,10 @@ The value `font-lock' means to refine during font-lock.
 The value `navigation' means to refine each hunk as you visit it
 with `diff-hunk-next' or `diff-hunk-prev'.
 
-You can always manually refine a hunk with `diff-refine-hunk'."
+You can always manually refine a hunk with `diff-refine-hunk'.
+
+By default, refining a hunk in any way displays the \"shadow cursor\"
+at one end of the refined region.  See `smerge-refine-shadow-cursor'."
   :version "27.1"
   :type '(choice (const :tag "Don't refine hunks" nil)
                  (const :tag "Refine hunks during font-lock" font-lock)
