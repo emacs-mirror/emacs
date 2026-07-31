@@ -57,6 +57,7 @@
 
 (require 'esh-io)
 
+(defvar eshell-complex-commands)
 (declare-function eshell-set-exit-info "esh-cmd" (status &optional result))
 
 (defgroup eshell-worker nil
