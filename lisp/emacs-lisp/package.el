@@ -3978,9 +3978,10 @@ Implementation of `package-menu-mark-upgrades'."
                   ((equal pkg-desc upgrade)
                    (package-menu-mark-install))
                   (t
-                   (unless (package-matches-selector-p
-                            package-retention-policy
-                            pkg-desc)
+                   (if (package-matches-selector-p
+                        package-retention-policy
+                        pkg-desc)
+                       (forward-line)
                      (package-menu-mark-delete)))))))
       (message "Packages marked for upgrading: %d"
                (length upgrades)))))
