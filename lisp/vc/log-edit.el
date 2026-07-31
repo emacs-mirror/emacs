@@ -1420,7 +1420,8 @@ changes."
                            (string-match "\\`\\*changes to \\(.+\\)\\*\\'" bn)
                            (match-string 1 bn)))))
             (while (re-search-forward "\t\\* \\([^ :\n]+\\)[ :\n]" nil t)
-              (let ((fn (concat fnd (match-string-no-properties 1))))
+              (let ((fn (expand-file-name
+                         (concat fnd (match-string-no-properties 1)))))
                 (when (file-exists-p fn)
                   (push fn files-in-changelog))))))))
     (log-edit-changelog-insert-entries buffer beg end)
