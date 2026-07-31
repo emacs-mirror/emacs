@@ -5,6 +5,7 @@
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

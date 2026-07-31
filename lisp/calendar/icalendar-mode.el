@@ -7,6 +7,7 @@
 ;; Created: October 2024
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, iCalendar
+;; Package: icalendar
 
 ;; This file is part of GNU Emacs.
 

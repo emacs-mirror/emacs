@@ -5,6 +5,7 @@
 ;; Author: Richard Lawrence <rwl@recursewithless.net>
 ;; Created: December 2024
 ;; Keywords: calendar
+;; Package: icalendar
 
 ;; This file is part of GNU Emacs.
 

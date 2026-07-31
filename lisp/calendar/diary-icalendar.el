@@ -6,6 +6,7 @@
 ;; Created: January 2025
 ;; Keywords: calendar
 ;; Human-Keywords: diary, calendar, iCalendar
+;; Package: icalendar
 
 ;; This file is part of GNU Emacs.
 
