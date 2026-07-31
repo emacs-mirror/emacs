@@ -560,22 +560,18 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
 
 (defun vc-hg-diff (files &optional oldvers newvers buffer async)
   "Get a difference report using hg between two revisions of FILES."
-  (let* ((firstfile (car files))
-         (working (and firstfile (vc-working-revision firstfile 'Hg))))
-    (when (and (not newvers) (member oldvers (list working ".")))
-      (setq oldvers nil))
-    (when (and newvers (not oldvers))
-      (setq oldvers "null"))
-    (apply #'vc-hg-command
-	   (or buffer "*vc-diff*")
-           (if async 'async 1)
-           files "diff"
-           (append
-            (vc-switches 'hg 'diff)
-            (when oldvers
-              (if newvers
-                  (list "-r" oldvers "-r" newvers)
-                (list "-r" oldvers)))))))
+  (when (and newvers (not oldvers))
+    (setq oldvers "null"))
+  (apply #'vc-hg-command
+	 (or buffer "*vc-diff*")
+         (if async 'async 1)
+         files "diff"
+         (append
+          (vc-switches 'hg 'diff)
+          (when oldvers
+            (if newvers
+                (list "-r" oldvers "-r" newvers)
+              (list "-r" oldvers))))))
 
 (defun vc-hg-expanded-log-entry (revision)
   (with-temp-buffer
