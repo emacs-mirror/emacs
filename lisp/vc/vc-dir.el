@@ -1520,59 +1520,67 @@ longer needed."
   "Populate OVERLAY with count of outgoing revisions for backend BACKEND.
 See `vc-dir-async-header-values' for an explanation of how this function
 uses OVERLAY."
-  (overlay-put overlay 'after-string
-               (propertize "[counting ...]" 'face 'vc-dir-header-value))
-  ;; `vc-incoming-outgoing-internal' invokes external processes
-  ;; synchronously before we can get to the `vc-run-delayed', so
-  ;; postpone running it a little.
-  (overlay-put
-   overlay 'timer
-   (run-with-idle-timer
-    0.2 nil
-    (lambda ()
-      (let* ((default-directory
-	      (buffer-local-value 'default-directory
-				  (overlay-buffer overlay)))
-	     (display-buffer-overriding-action
-              '(display-buffer-no-window (allow-no-window . t)))
-             (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
-             (buf (generate-new-buffer " *temp*" t))
-             proc)
-        (without-local-variable-queries
-          (with-current-buffer buf
-            (condition-case _
-                (progn
-                  (vc-incoming-outgoing-internal backend nil
-                                                 (current-buffer)
-                                                 '(log-outgoing short))
-                  (setq proc (get-buffer-process (current-buffer)))
-                  (set-process-query-on-exit-flag proc nil)
-                  (overlay-put overlay 'proc proc)
-                  (vc-run-delayed
-                    (unwind-protect
-                        (overlay-put
-                         overlay 'after-string
-                         (if (or (not (eq (process-status proc) 'exit))
-                                 (plusp (process-exit-status proc)))
-                             unknown
-                           (goto-char (point-min))
-                           (let ((count (how-many log-view-message-re)))
-                             (if (zerop count)
-                                 (propertize "No unpushed revisions"
-                                             'face 'vc-dir-header-value)
-                               (propertize
-                                (format (ngettext "%d unpushed revision"
-                                                  "%d unpushed revisions"
-                                                  count)
-                                        count)
-                                'face 'vc-dir-header-urgent-value
-                                'mouse-face 'highlight
-                                'keymap vc-dir-outgoing-revisions-map
-                                'help-echo "\\<vc-dir-outgoing-revisions-map>\
+  (cl-flet ((set-overlay-text (text)
+              (with-current-buffer (overlay-buffer overlay)
+                (save-excursion
+                  (let ((inhibit-read-only t)
+                        (start (overlay-start overlay)))
+                    (delete-region start (overlay-end overlay))
+                    (goto-char start)
+                    (insert text)
+                    (move-overlay overlay start (point)))))))
+    (set-overlay-text (propertize "[counting ...]"
+                                  'face 'vc-dir-header-value))
+    ;; `vc-incoming-outgoing-internal' invokes external processes
+    ;; synchronously before we can get to the `vc-run-delayed', so
+    ;; postpone running it a little.
+    (overlay-put
+     overlay 'timer
+     (run-with-idle-timer
+      0.2 nil
+      (lambda ()
+        (let* ((default-directory
+	        (buffer-local-value 'default-directory
+				    (overlay-buffer overlay)))
+	       (display-buffer-overriding-action
+                '(display-buffer-no-window (allow-no-window . t)))
+               (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
+               (buf (generate-new-buffer " *temp*" t))
+               proc)
+          (without-local-variable-queries
+            (with-current-buffer buf
+              (condition-case _
+                  (progn
+                    (vc-incoming-outgoing-internal backend nil
+                                                   (current-buffer)
+                                                   '(log-outgoing short))
+                    (setq proc (get-buffer-process (current-buffer)))
+                    (set-process-query-on-exit-flag proc nil)
+                    (overlay-put overlay 'proc proc)
+                    (vc-run-delayed
+                      (unwind-protect
+                          (set-overlay-text
+                           (if (or (not (eq (process-status proc) 'exit))
+                                   (plusp (process-exit-status proc)))
+                               unknown
+                             (goto-char (point-min))
+                             (let ((count (how-many log-view-message-re)))
+                               (if (zerop count)
+                                   (propertize "No unpushed revisions"
+                                               'face 'vc-dir-header-value)
+                                 (propertize
+                                  (format (ngettext "%d unpushed revision"
+                                                    "%d unpushed revisions"
+                                                    count)
+                                          count)
+                                  'face 'vc-dir-header-urgent-value
+                                  'mouse-face 'highlight
+                                  'keymap vc-dir-outgoing-revisions-map
+                                  'help-echo "\\<vc-dir-outgoing-revisions-map>\
 \\[vc-root-log-outgoing]: List outgoing revisions")))))
-                      (kill-buffer))))
-              (error (overlay-put overlay 'after-string unknown)
-                     (kill-buffer buf))))))))))
+                        (kill-buffer))))
+                (error (kill-buffer buf)
+                       (set-overlay-text unknown)))))))))))
 
 (defvar-local vc-dir-async-header-values
   '(("Outgoing" . vc-dir--count-outgoing))
@@ -1583,14 +1591,14 @@ Each element is a pair (HEADER . FUN) where
   asynchronous computation of the header's value.  BACKEND is the VC
   backend.  OVERLAY is an overlay in the target VC-Dir buffer.
   FUN should set
-  - the `after-string' property of the overlay to a temporary value
-    indicating that an async computation is in progress, conventionally
-    of the form \"[%s ...]\";
+  - the text and bounds of the overlay to a temporary value indicating
+    that an async computation is in progress, conventionally of the form
+    \"[%s ...]\";
   - the `timer' property of the overlay to any idle timer it schedules
   - the `proc' property of the overlay to the asynchronous process it starts;
-  - the `after-string' property of the overlay to the computed header
-    value after the asychronous computation completes, \"<<unknown>>\"
-    if the information was not obtainable.
+  - the text and bounds of the overlay to the computed header value
+    after the asychronous computation completes, \"<<unknown>>\" if the
+    information was not obtainable.
   See `vc-dir--count-outgoing' for an example.
 
 VC backend `dir-extra-headers' implementations may push additional
