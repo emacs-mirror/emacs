@@ -11308,7 +11308,7 @@ Customize `erc-url-connect-function' to override this.
 
 ;;; Generated autoloads from erc/erc-desktop-notifications.el
 
-(register-definition-prefixes "erc-desktop-notifications" '("erc-notifications-"))
+(register-definition-prefixes "erc-desktop-notifications" '("erc-"))
 
 
 ;;; Generated autoloads from erc/erc-ezbounce.el
@@ -11424,6 +11424,11 @@ server name and search for a match in `erc-networks-alist'.")
 ;;; Generated autoloads from erc/erc-services.el
 
 (register-definition-prefixes "erc-services" '("erc-"))
+
+
+;;; Generated autoloads from erc/erc-settings.el
+
+(register-definition-prefixes "erc-settings" '("erc-settings"))
 
 
 ;;; Generated autoloads from erc/erc-sound.el
@@ -23193,19 +23198,13 @@ QUALITY can be:
 
 ;;; Generated autoloads from emacs-lisp/multisession.el
 
-(autoload 'define-multisession-variable "multisession"
-"Make NAME into a multisession variable initialized from INITIAL-VALUE.
-DOC should be a doc string, and ARGS are keywords as applicable to
-`make-multisession'.
-
-(fn NAME INITIAL-VALUE &optional DOC &rest ARGS)" nil t)
 (autoload 'list-multisession-values "multisession"
 "List all values in the \"multisession\" database.
 If CHOOSE-STORAGE (interactively, the prefix), query for the
 storage method to list.
 
 (fn &optional CHOOSE-STORAGE)" t)
-(register-definition-prefixes "multisession" '("multisession-"))
+(register-definition-prefixes "multisession" '("define-multisession-variable" "multisession-"))
 
 
 ;;; Generated autoloads from mwheel.el
@@ -24277,7 +24276,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 6) package--builtin-versions)
+(push '(org 9 8 7) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -25621,6 +25620,8 @@ affect the returned value of date and time, they only affect the
 last two members of the returned value.  This function simply
 parses the textual representation of date and time into separate
 numerical values, and doesn't care whether the time is local or UTC.
+Also, alphabetic time zone abbreviations like \"PST\" have their
+circa 1970 meanings, even if current usage differs.
 
 See `decode-time' for the meaning of FORM.
 
@@ -25766,6 +25767,17 @@ nil.
 (autoload 'pcase-let* "pcase"
 "Like `let*', but supports destructuring BINDINGS using `pcase' patterns.
 As with `pcase-let', BINDINGS are of the form (PATTERN EXP), but the
+EXP in each binding in BINDINGS can use the results of the destructuring
+bindings that precede it in BINDINGS' order.
+
+Each EXP should match its respective PATTERN (i.e. be of structure
+compatible to PATTERN); a mismatch may signal an error or may go
+undetected, binding variables to arbitrary values, such as nil.
+
+(fn BINDINGS &rest BODY)" nil t)
+(autoload 'pcase-let*-strict "pcase"
+"Like `pcase-let*', but signal an error when a pattern does not match.
+As with `pcase-let*', BINDINGS are of the form (PATTERN EXP), but the
 EXP in each binding in BINDINGS can use the results of the destructuring
 bindings that precede it in BINDINGS' order.
 
@@ -27220,7 +27232,7 @@ If MODE is `mem' or `cpu+mem', start profiler that samples CPU
 
 ;;; Generated autoloads from progmodes/project.el
 
-(push '(project 0 11 2) package--builtin-versions)
+(push '(project 0 12 0) package--builtin-versions)
 (autoload 'project-current "project"
 "Return the project instance in DIRECTORY, defaulting to `default-directory'.
 
@@ -35544,7 +35556,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 2) package--builtin-versions)
+(push '(tramp 2 8 3 -1) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -40489,82 +40501,111 @@ mode.
 
 ;;; Generated autoloads from window-x.el
 
-(autoload 'window-layout-rotate-anticlockwise "window-x"
-"Rotate window layout of WINDOW counterclockwise by 90 degrees.
+(autoload 'window-layout-rotate-clockwise "window-x"
+"Rotate layout of WINDOW's child windows clockwise by 90 degrees.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate clockwise
+the layout of the child windows of the selected window's parent.  Signal
+an error if WINDOW is not a parent window.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+Recursively rotate the entire layout of WINDOW's child windows clockwise
+by 90 degrees.  Do not change the selected window of WINDOW's frame.  If
+you want to rotate windows within their frame's layout, consider using
+`rotate-windows' instead.
 
 (fn &optional WINDOW)" t)
-(autoload 'window-layout-rotate-clockwise "window-x"
-"Rotate window layout under WINDOW clockwise by 90 degrees.
+(autoload 'window-layout-rotate-anticlockwise "window-x"
+"Rotate layout of WINDOW's child windows counterclockwise by 90 degrees.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate
+counterclockwise the layout of the child windows of the selected
+window's parent.  Signal an error if WINDOW is not a parent window.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+Recursively rotate the entire layout of WINDOW's child windows
+counterclockwise by 90 degrees.  Do not change the selected window of
+WINDOW's frame.  If you want to rotate windows within their frame's
+layout, consider using `rotate-windows-back' instead.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-leftright "window-x"
-"Horizontally flip windows under WINDOW.
+"Flip WINDOW's child windows horizontally.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, flip
+horizontally the layout of the child windows of the selected window's
+parent.  Signal an error if WINDOW is not a parent window.
 
-Flip the window layout so that the window on the right becomes the
-window on the left, and vice-versa.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to flip the parent window of the
-selected window.
+Recursively flip the layout of WINDOW's child windows so that a child
+window on the right becomes a child window on the left and vice-versa.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-topdown "window-x"
-"Vertically flip windows under WINDOW.
+"Flip WINDOW's child windows vertically.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, flip vertically
+the layout of the child windows of the selected window's parent.  Signal
+an error if WINDOW is not a parent window.
 
-Flip the window layout so that the top window becomes the bottom window,
-and vice-versa.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to flip the parent window of the
-selected window.
+Recursively flip the layout of WINDOW's child windows so that a child
+window on the top becomes a child window on the bottom and vice-versa.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-transpose "window-x"
-"Transpose windows under WINDOW.
+"Transpose child windows of WINDOW.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, transpose the
+layout of the child windows of the selected window's parent.  Signal an
+error if WINDOW is not a parent window.
 
-Reorganize the windows under WINDOW so that every horizontal split
-becomes a vertical split, and vice versa.  This is equivalent to
-diagonally flipping.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to transpose the parent window of
-the selected window.
-
-(fn &optional WINDOW)" t)
-(autoload 'rotate-windows-back "window-x"
-"Rotate windows under WINDOW backward in cyclic ordering.
-
-If WINDOW is nil, it defaults to the root window of the selected frame.
-
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+Recursively reorganize WINDOW's child windows so that each horizontal
+split becomes a vertical split and vice versa.
 
 (fn &optional WINDOW)" t)
 (autoload 'rotate-windows "window-x"
-"Rotate windows under WINDOW in cyclic ordering.
+"Rotate child windows of WINDOW in cyclic ordering.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate the child
+windows of the selected window's parent.
 
-Optional argument REVERSE says to rotate windows backward, in reverse
-cyclic order.
+Optional argument REVERSE non-nil means to rotate windows backwards, in
+reverse cyclic order.  Signal an error if WINDOW is not a parent window,
+all descendants of WINDOW are dedicated or some windows are of fixed
+size or atomic.
 
-If WINDOW is nil, it defaults to the root window of the selected frame.
+Rotating windows leaves the way a frame layout has been produced via
+splitting, deleting and resizing windows unaltered.  It only \"moves\"
+windows within that layout such that the space formerly occupied by any
+window is now occupied by the window preceding (following if REVERSE is
+non-nil) it in the cycling ordering.
 
-Interactively, a prefix argument says to rotate the parent window of the
-selected window.
+If you want to rotate the entire layout of windows, consider using the
+function `window-layout-rotate-clockwise' instead.  If you want to
+rotate a layout twice in a row in order to have a window on the bottom
+appear on the top and a window on the right appear on the left (or
+vice-versa), consider running `window-layout-flip-leftright' and
+`window-layout-flip-topdown' instead.
 
 (fn &optional WINDOW REVERSE)" t)
+(autoload 'rotate-windows-back "window-x"
+"Rotate child windows of WINDOW backwards in cyclic ordering.
+WINDOW must be a parent window and defaults to the main window of the
+selected frame.  Interactively, with a prefix argument, rotate backwards
+the child windows of the selected window's parent.  Signal an error if
+WINDOW is not a parent window, all descendants of WINDOW are dedicated
+or some of them are of fixed size or atomic.
+
+Rotating windows backwards leaves the way a frame layout has been
+produced via splitting, deleting and resizing windows unaltered.  It
+only \"moves\" windows within that layout such that the space formerly
+occupied by any window is now occupied by the window following it in
+the cycling ordering.
+
+If you want to rotate the entire layout of windows backwards, consider
+using the function `window-layout-rotate-anticlockwise' instead.  If you
+want to rotate a layout backwards twice in a row, consider running
+`window-layout-flip-leftright' and `window-layout-flip-topdown'
+instead.
+
+(fn &optional WINDOW)" t)
 (autoload 'merge-frames "window-x"
 "Merge the main window of FRAME2 into FRAME1.
 Split the main window of FRAME1 and make the new window display the main
