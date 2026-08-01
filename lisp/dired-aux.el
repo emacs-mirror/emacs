@@ -2276,7 +2276,7 @@ that suppresses the confirmation, and backup files are always created."
 (declare-function make-symbolic-link "fileio.c")
 
 (defcustom dired-create-destination-dirs nil
-  "Whether Dired should create destination dirs when copying/removing files.
+  "Whether Dired should create destination dirs when copying/moving files.
 If nil, don't create non-existent destination directories.
 If `ask', ask the user whether to create them.
 If `always', create them without asking.

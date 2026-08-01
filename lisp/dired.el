@@ -1506,7 +1506,10 @@ The return value is the target column for the file names."
                 (dired-switches-escape-p dired-listing-switches)
                 (dired-switches-escape-p dired-actual-switches))
       (when (and (dired--filename-with-newline-p)
-                 (dired--ls-accept-b-switch-p))
+                 ;; Can't use `dired-use-ls-dired' because users could
+                 ;; set it to `t' even though their `ls' does not
+                 ;; support "--dired".
+                 (dired--check-use-ls-dired))
         (dired--display-filename-with-newline-warning buffer)))
     (set-buffer old-buf)
     buffer))
@@ -1796,6 +1799,10 @@ BEG..END is the line where the file info is located."
   "Return non-nil if the string SWITCHES contains -R or --recursive."
   (dired-check-switches switches "R" "recursive"))
 
+(defun dired--check-use-ls-dired ()
+  "Return non-nil if `ls' supports the \"--dired\" switch."
+  (eq 0 (call-process insert-directory-program nil nil nil "--dired" "-N")))
+
 (defun dired-insert-directory (dir switches &optional file-list wildcard hdr)
   "Insert a directory listing of DIR, Dired style.
 Use SWITCHES to make the listings.
@@ -1815,11 +1822,7 @@ If HDR is non-nil, insert a header line with the directory name."
          (not (bound-and-true-p eshell-ls-use-in-dired))
 	 (or remotep
              (if (eq dired-use-ls-dired 'unspecified)
-		 ;; Check whether "ls --dired" gives exit code 0, and
-		 ;; save the answer in `dired-use-ls-dired'.
-		 (or (setq dired-use-ls-dired
-			   (eq 0 (call-process insert-directory-program
-                                               nil nil nil "--dired" "-N")))
+		 (or (setq dired-use-ls-dired (dired--check-use-ls-dired))
 		     (progn
 		       (message "ls does not support --dired -N; \
 see `dired-use-ls-dired' for more details.")
@@ -4087,10 +4090,6 @@ or as \"\\n\")."
             (and res (throw 'found res)))))
     (directory-files default-directory nil "\n")))
 
-(defun dired--ls-accept-b-switch-p ()
-  "Return non-nil if the `ls' used by Dired accepts the `b' switch."
-  (eq 0 (call-process insert-directory-program nil nil nil "-b")))
-
 (defun dired--remove-b-switch ()
   "Remove all variants of the `b' switch from `dired-actual-switches'.
 This removes not only all occurrences of the short form `-b' but also
@@ -4125,7 +4124,10 @@ otherwise remove the `b' switch unless it is in
 (defun dired--set-auto-toggle-b-switch (symbol value)
   "The :set function for user option `dired-auto-toggle-b-switch'."
   (custom-set-default symbol value)
-  (when (dired--ls-accept-b-switch-p)
+  (when
+      ;; Can't use `dired-use-ls-dired' because users could set it to
+      ;; `t' even though their `ls' does not support "--dired".
+      (dired--check-use-ls-dired)
     (if value
         (add-hook 'post-command-hook #'dired--toggle-b-switch nil t)
       (remove-hook 'post-command-hook #'dired--toggle-b-switch t))

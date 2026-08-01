@@ -2202,7 +2202,8 @@ from ELPA by either using `\\[package-upgrade]' or
 `\\<package-menu-mode-map>\\[package-menu-mark-install]' after `\\[list-packages]'."
   (interactive (list (not noninteractive)))
   (package-refresh-contents)
-  (let ((upgradeable (package--upgradeable-packages package-install-upgrade-built-in)))
+  (let ((upgradeable (package--upgradeable-packages package-install-upgrade-built-in))
+        (upgraded '()))
     (if (not upgradeable)
         (message "No packages to upgrade")
       (when (and query
@@ -2214,7 +2215,15 @@ from ELPA by either using `\\[package-upgrade]' or
         (user-error "Upgrade aborted"))
       (dolist (pkg upgradeable)
         (with-demoted-errors "Error while upgrading: %S"
-          (package-upgrade pkg))))))
+          (package-upgrade pkg)
+          (push pkg upgraded)))
+      (let ((rejected (cl-set-difference upgradeable upgraded)))
+        (message
+         "Upgraded: %s%s"
+         (mapconcat #'symbol-name upgraded ", ")
+         (if rejected
+             (concat "; Rejected: " (mapconcat #'symbol-name rejected ", "))
+           ""))))))
 
 (defun package--dependencies (pkg)
   "Return a list of all transitive dependencies of PKG.
@@ -3978,9 +3987,10 @@ Implementation of `package-menu-mark-upgrades'."
                   ((equal pkg-desc upgrade)
                    (package-menu-mark-install))
                   (t
-                   (unless (package-matches-selector-p
-                            package-retention-policy
-                            pkg-desc)
+                   (if (package-matches-selector-p
+                        package-retention-policy
+                        pkg-desc)
+                       (forward-line)
                      (package-menu-mark-delete)))))))
       (message "Packages marked for upgrading: %d"
                (length upgrades)))))
