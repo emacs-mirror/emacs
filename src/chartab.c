@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "character.h"
 #include "charset.h"
+#include "coding.h"
 
 /* 64/16/32/128 */
 
@@ -1271,7 +1272,17 @@ uniprop_table (Lisp_Object prop)
   if (STRINGP (table))
     {
       AUTO_STRING (intl, "international/");
+      /* The uni-*.el files _must_ be read using utf-8-emacs-unix, or
+         else Emacs might crash.  We bind coding-system-for-read below
+         to protect against some Lisp which overrides the coding:
+         cookies in the uni-*.el files by, for example, binding
+         auto-coding-regexp-alist to some strange value.  */
+      specpdl_ref count = SPECPDL_INDEX ();
+      Lisp_Object coding = coding_inherit_eol_type (Qutf_8_emacs, Qunix);
+      specbind (Qcoding_system_for_read, coding);
       result = save_match_data_load (concat2 (intl, table), Qt, Qt, Qt, Qt);
+      unbind_to (count, Qnil);
+
       if (NILP (result))
 	return Qnil;
       table = XCDR (val);
@@ -1376,4 +1387,5 @@ syms_of_chartab (void)
 	       doc: /* Alist of character property name vs char-table containing property values.
 Internal use only.  */);
   Vchar_code_property_alist = Qnil;
+  DEFSYM (Qcoding_system_for_read, "coding-system-for-read");
 }
