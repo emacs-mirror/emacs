@@ -273,6 +273,19 @@ commands, such as 'C-x C-f'.
 If this option is set to non-nil, displayed times (clocked in/out
 since, time to leave) will use 24-hour clock instead of 12-hour clock.
 
+** Eshell
+
++++
+*** Eshell now supports piping output to Lisp functions.
+You can now manipulate the output of other commands using the many Lisp
+functions provided in Emacs.  For example, to uppercase the output of
+some other command:
+
+  echo hi | #'upcase
+
+See the "(eshell) Lisp Pipelines" node in the Eshell manual for more
+details.
+
 
 * New Modes and Packages in Emacs 32.1
 

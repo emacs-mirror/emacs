@@ -650,6 +650,12 @@ passing any @var{arguments} to the script (@pxref{Scripts}).  This is
 not to be confused with the command @command{source}, which sources a
 file in a subshell environment.
 
+@cmindex accumulate
+@item accumulate @var{function}
+When used as a pipe target (@pxref{Lisp Pipelines}), this accumulates
+all the output from the left side of the pipe and passes it to
+@var{function} as a single argument.
+
 @cmindex addpath
 @item addpath
 @itemx addpath [-b] @var{directory}@dots{}
@@ -669,6 +675,12 @@ Define an alias named @var{name} and expanding to @var{command},
 adding it to the aliases file (@pxref{Aliases}).  If @var{command} is
 omitted, delete the alias named @var{name}.  With no arguments at all,
 list all the currently-defined aliases.
+
+@cmindex apply-lines
+@item apply-lines @var{function}
+When used as a pipe target (@pxref{Lisp Pipelines}), this passes each
+line of output from the left side of the pipe as a list of arguments to
+@var{function}.
 
 @cmindex basename
 @item basename @var{filename}
@@ -1174,6 +1186,12 @@ Manual}.  Otherwise call the external @command{make} command.
 @item man [@var{arg}]@dots{}
 Display Man pages using the Emacs @code{man} command.
 @xref{Man Page, , , emacs, The GNU Emacs Manual}.
+
+@cmindex map-lines
+@item map-lines @var{function}
+When used as a pipe target (@pxref{Lisp Pipelines}), this calls
+@var{function} once for each line of output from the left side of the
+pipe with that line as a single argument.
 
 @cmindex mkdir
 @item mkdir [-p] @var{directory}@dots{}
@@ -2503,6 +2521,71 @@ olleh
 To send both the standard output and standard error of a command to
 another command's input, you can use the @code{|&} operator.
 
+@menu
+* Lisp Pipelines::
+* Running Shell Pipelines Natively::
+@end menu
+
+@node Lisp Pipelines
+@subsection Lisp Pipelines
+
+In addition to piping data to ordinary programs on your system, Eshell
+supports piping to ordinary Lisp functions.  This lets you mix and match
+external commands and Lisp functions in your pipelines to manipulate
+output however works best.  Normally in Eshell, entering the bare name
+of a function in a command calls that function, so e.g.@: @samp{ding}
+will beep or flash the screen.  To avoid this, pass the quoted name of
+the function:
+
+@example
+~ $ echo hello | #'upcase
+HELLO
+@end example
+
+You can also use forms that return a function, such as @code{lambda}:
+
+@example
+~ $ echo hello | (lambda (i) (format ">> %s" i))
+>> hello
+@end example
+
+For simple cases, the above is likely all you need.  When passed
+directly as a pipe target like this, Eshell collects all the output from
+the left side of the pipe and passes it as a single argument to the
+right side.  However, Lisp functions have many other ways they could be
+called, so Eshell supports these with some higher-order commands:
+
+@table @code
+
+@cmindex accumulate
+@item accumulate @var{function}
+This is equivalent to passing @var{function} directly as a pipe target,
+accumulating all the output from the left side of the pipe and passing
+it as a single argument to @var{function}.
+
+@cmindex map-lines
+@item map-lines @var{function}
+For each line of output from the left side of the pipe, call
+@var{function} with that line as a single argument.  For example, you
+could "quote" some output for pasting into an email like this:
+
+@example
+cat some-file.txt | map-lines (lambda (i) (format "> %s" i))
+@end example
+
+@cmindex apply-lines
+@item apply-lines @var{function}
+Pass each line of output from the left side of the pipe as a list of
+arguments to @var{function}.  For example, to sum up a list of numbers
+written one per line:
+
+@example
+cat numbers.txt | apply-lines #'+
+@end example
+
+@end table
+
+@node Running Shell Pipelines Natively
 @subsection Running Shell Pipelines Natively
 When constructing shell pipelines that will move a lot of data, it is
 a good idea to bypass Eshell's own pipelining support and use the
@@ -3016,15 +3099,11 @@ scrolls back.
 
 @item Use a timer instead of @code{sleep-for} when killing child processes
 
-@item Piping to a Lisp function is not supported
-
-Make it so that the Lisp command on the right of the pipe is repeatedly
-called with the input strings as arguments.  This will require changing
-@code{eshell-do-pipelines} to handle non-process targets.
-
 @item Input redirection is not supported
 
-See the above entry.
+With support for piping to Lisp functions, this should mostly be a
+matter of parsing the redirection operator and generating a Lisp form
+roughly equivalent to what @code{cat file.txt | some-command} produces.
 
 @item Problem running @command{less} without arguments on Windows
 
