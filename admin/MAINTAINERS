@@ -262,6 +262,11 @@ Stephane Marks
 Elías Gabriel Pérez
 	lisp/progmodes/hideshow.el
 
+F. Jason Park
+	ERC
+	    lisp/erc/*
+	    doc/misc/erc.texi
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.

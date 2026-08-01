@@ -5731,9 +5731,9 @@ yourself with a function like `vc-file-tree-walk'."
   ;; having to load `vc-dir' just to get access to this simple wrapper.
   (let ((morep t) results)
     (with-temp-buffer
-      (setq default-directory directory)
+      (setq default-directory (expand-file-name directory))
       (vc-call-backend (or backend (vc-responsible-backend directory))
-                       'dir-status-files directory files
+                       'dir-status-files default-directory files
                        (lambda (entries &optional more-to-come)
                          (let (entry)
                            (while (setq entry (pop entries))
@@ -6067,16 +6067,17 @@ non-ignored, non-up-to-date files within those directories."
         (remaining (cadr fileset))
         ret-val)
     (while remaining
-      (cond* ((bind* (next (pop remaining))))
-             ((atom next)
-              (push next (alist-get (vc-state next backend) ret-val)))
-             ((bind* (file (car next))))
-             ((file-directory-p file)
-              (setq remaining
-                    (nconc (vc-dir-status-files file nil backend)
-                           remaining)))
-             (t
-              (push file (alist-get (cadr next) ret-val)))))
+      (let* ((next (pop remaining))
+             (file (if (consp next) (car next) next)))
+        (if (file-directory-p file)
+            (setq remaining
+                  (nconc (vc-dir-status-files file nil backend)
+                         remaining))
+          (push file
+                (alist-get (if (consp next)
+                               (cadr next)
+                             (vc-state next backend))
+                           ret-val)))))
     ret-val))
 
 (declare-function diff-kill-creations-deletions "diff-mode")

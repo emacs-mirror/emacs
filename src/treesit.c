@@ -4315,12 +4315,12 @@ treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
   /* ts_tree_cursor_goto_first_child_for_byte is significantly faster,
      so despite it having problems (see bug#60127), we try it first.
      Also, ts_tree_cursor_goto_first_child_for_byte can't find
-     zero-width nodes (which exists and are legit, e.g., markdown's
+     zero-width nodes (which exist and are legit, e.g., markdown's
      block_continuation), because a zero-width node can't contain a pos
-     (end > pos).  */
-  if (start_pos != end_pos
-      && ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) == -1
-      && !ts_tree_cursor_goto_first_child (cursor))
+     (end > pos); instead, it'll falsely return the next child.  */
+  if (!((start_pos != end_pos
+	 && ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) != -1)
+	|| ts_tree_cursor_goto_first_child (cursor)))
     return false;
 
   /* Go through each sibling that could contain TARGET.  Because of

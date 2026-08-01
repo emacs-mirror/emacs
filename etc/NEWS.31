@@ -2566,6 +2566,14 @@ started inside Emacs.
 *** 'diff-mode' now refrains from automatically refining big hunks.
 What is big is defined by the new 'diff-refine-threshold' user option.
 
++++
+*** Refining a hunk shows a "shadow cursor" at the beginning/end of region.
+By default, the shadow cursor looks like an empty rectangle the size of
+a character cell.  It is displayed at the beginning or the end of the
+refined region, to better show where the refined region starts or ends.
+This can be controlled by the new user option
+'smerge-refine-shadow-cursor', which also affects SMerge mode, see below.
+
 ---
 *** New command 'diff-kill-ring-save'.
 This command copies to the 'kill-ring' a region of text modified
