@@ -27,6 +27,9 @@ applies, and please also update docstrings as needed.
 
 * Startup Changes in Emacs 32.1
 
+** New terminal type Kmscon.
+Emacs now supports the Kmscon terminal emulator available on GNU/Linux
+systems.
 
 * Changes in Emacs 32.1
 
