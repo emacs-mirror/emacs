@@ -1715,8 +1715,15 @@ the value of the variable with `setq'."
               (ambiguous-is-wide
                (and cjk-ambiguous-chars-are-wide
                     ;; MS-Windows Terminal forces all ambiguous
-                    ;; characters to be narrow, even in CJK locales.
-                    (not (and (boundp 'w32--terminal-is-conhost)
+                    ;; characters to be narrow, even in CJK locales,
+                    ;; assuming the fonts it uses were left at their
+                    ;; defaults.
+                    (not (and (eq system-type 'windows-nt)
+                              ;; 'window-system' might be nil when this
+                              ;; code is called from startup.el, as part
+                              ;; of 'set-locale-environment', so we must
+                              ;; test 'initial-window-system' instead.
+                              (null initial-window-system)
                               (null w32--terminal-is-conhost))))))
           (map-char-table
            (lambda (range _val)
