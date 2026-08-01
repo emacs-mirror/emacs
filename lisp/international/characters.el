@@ -1724,6 +1724,7 @@ the value of the variable with `setq'."
                               ;; of 'set-locale-environment', so we must
                               ;; test 'initial-window-system' instead.
                               (null initial-window-system)
+                              (boundp 'w32--terminal-is-conhost)
                               (null w32--terminal-is-conhost))))))
           (map-char-table
            (lambda (range _val)
