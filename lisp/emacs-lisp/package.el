@@ -2217,7 +2217,7 @@ from ELPA by either using `\\[package-upgrade]' or
         (with-demoted-errors "Error while upgrading: %S"
           (package-upgrade pkg)
           (push pkg upgraded)))
-      (let ((rejected (cl-set-difference upgradable upgraded)))
+      (let ((rejected (cl-set-difference upgradeable upgraded)))
         (message
          "Upgraded: %s%s"
          (mapconcat #'symbol-name upgraded ", ")
