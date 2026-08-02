@@ -5029,6 +5029,7 @@ ns_send_appdefined (int value)
   if (send_appdefined)
     {
       NSEvent *nxev;
+      NSWindow *dest;
 
       /* We only need one NX_APPDEFINED event to stop NXApp from running.  */
       send_appdefined = NO;
@@ -5041,11 +5042,28 @@ ns_send_appdefined (int value)
           timed_entry = nil;
         }
 
+      /* Address the event to a window that actually exists.  With no main
+         window -- miniaturized, or mid handover of key/main status -- the
+         window number would be 0 and AppKit would silently discard the
+         event.  That is fatal here: send_appdefined has just been cleared
+         and timed_entry invalidated, so nothing would ever end [NSApp run]
+         again, and Emacs would hang forever with its UI unresponsive.  */
+      dest = [NSApp mainWindow];
+      if (dest == nil)
+        dest = [NSApp keyWindow];
+      if (dest == nil)
+        for (NSWindow *cand in [NSApp windows])
+          if ([cand windowNumber] > 0)
+            {
+              dest = cand;
+              break;
+            }
+
       nxev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
                                 location: NSMakePoint (0, 0)
                            modifierFlags: 0
                                timestamp: 0
-                            windowNumber: [[NSApp mainWindow] windowNumber]
+                            windowNumber: [dest windowNumber]
                                  context: [NSApp context]
                                  subtype: 0
                                    data1: value
