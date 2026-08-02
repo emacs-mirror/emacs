@@ -15,6 +15,16 @@
 ;;                  ^ elisp-bound-variable
   )
 
+(pulse-momentary-highlight-region (point) (point-max)
+;; ^ elisp-function
+;;                                 ^ elisp-function
+;;                                         ^ elisp-function
+                                  (or (and t '(bold success))
+;;                                             ^ elisp-face
+;;                                                  ^ elisp-face
+                                      'warning))
+;;                                     ^ elisp-face
+
 (add-face-text-property
 ;; ^ elisp-function
  (point) (mark)
@@ -163,10 +173,12 @@
 ;;                  ^ elisp-function
 
 (defface foobar
-  '((default :inherit font-lock-function-call-face)
+  '((default :inherit (font-lock-function-call-face error))
 ;;            ^ (elisp-constant font-lock-builtin-face)
-;;                    ^ elisp-face
-    (((background light)) :foreground "#00008b")
+;;                     ^ elisp-face
+;;                                                  ^ elisp-face
+    (((background light)) :foreground "#00008b" :inherit bold)
+;;                                                       ^ elisp-face
     (((background dark))  :foreground "#5c9cff"))
   "Face for highlighting symbol role names in Emacs Lisp code."
   :version "31.1")

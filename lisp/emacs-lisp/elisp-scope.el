@@ -1818,7 +1818,10 @@ ARGS bound to the analyzed arguments."
 
 (elisp-scope-define-function-analyzer custom-declare-face (face spec doc &rest args)
   (elisp-scope-1 face '(symbol . defface))
-  (elisp-scope-1 spec '(repeat . (cons t . (plist (:inherit . (symbol . face))))))
+  (elisp-scope-1
+   spec
+   '(repeat . (cons t . (plist (:inherit . (or (symbol . face)
+                                               (repeat . (symbol . face))))))))
   (elisp-scope-1 doc)
   (while-let ((kw (car-safe args))
               (bkw (elisp-scope--sym-bare kw))
@@ -1831,7 +1834,7 @@ ARGS bound to the analyzed arguments."
 (elisp-scope-define-function-spec cl-typep (nil cl-type))
 
 (elisp-scope-define-function-spec pulse-momentary-highlight-region
-  (nil nil (symbol . face)))
+  (nil nil face))
 
 (elisp-scope--define-function-analyzer throw (&optional tag val) non-local-exit
   (elisp-scope-1 tag '(symbol . throw-tag))
@@ -2495,10 +2498,12 @@ ARGS bound to the analyzed arguments."
    (if (consp arg)
        (if (keywordp (elisp-scope--sym-bare (car arg)))
            ;; One face, given as a plist of face attributes.
-           '(plist (:inherit . (symbol . face)))
+           '(plist (:inherit . (or (symbol . face)
+                                   (repeat . (symbol . face)))))
          ;; Multiple faces.
          '(repeat . (or (symbol . face)
-                        (plist (:inherit . (symbol . face))))))
+                        (plist (:inherit . (or (symbol . face)
+                                               (repeat . (symbol . face))))))))
      '(symbol . face))
    arg))
 
