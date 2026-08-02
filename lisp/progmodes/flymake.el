@@ -454,20 +454,27 @@ diagnostics at BEG."
 
 (defcustom flymake-diagnostic-format-alist
   '((:help-echo . (origin code oneliner))
-    (:eol . (oneliner))
+    (:inline-eol . (oneliner code))
+    (:inline-short . (oneliner))
+    (:inline-fancy . (oneliner code))
     (:eldoc . (origin code message))
     (:eldoc-echo . (origin code oneliner))
     (t . (origin code oneliner)))
-  "How to format diagnostics for different output destinations.
+  "Specify which parts of diagnostics to use when formatting them.
+
 Value is an alist where each element looks like (DESTINATION . PARTS).
 DESTINATION is a symbol designating an outlet.  One of:
 
 - `:help-echo', for the native Flymake echoing of diagnostics in the
-   echo area as used my `flymake-goto-next-error' and `flymake-goto-prev-error';
-- `:eol', for use with `flymake-show-diagnostics-at-end-of-line';
+   echo area as used by `flymake-goto-next-error' and
+   `flymake-goto-prev-error';
+- `:inline-eol', `:inline-short' or `:inline-fancy', for use
+   `flymake-inline-diagnostics' in non-nil, meaning  the diagnostic text is
+   presented in the the buffer itself.  See `flymake-inline-diagnostics'
+   for the meaning of `eol', `short' and `fancy'.
 - `:eldoc', for use with Flymake's ElDoc backend;
-- `:eldoc-echo', for use with Flymake's ElDoc backend, but for ElDoc's own
-   confined outlets;
+- `:eldoc-echo', like `:eldoc' but specifically when Eldoc has little
+   space to spare in the echo area.
 - t for all other destinations.
 
 PARTS says which parts of the diagnostic to include.  It is a list of
@@ -479,7 +486,9 @@ symbols where the following values are meaningful:
 - `oneliner': include truncated diagnostic text;"
   :package-version '(Flymake . "1.4.0")
   :type '(alist :key-type (choice (const :help-echo)
-                                  (const :eol)
+                                  (const :inline-eol)
+                                  (const :inline-short)
+                                  (const :inline-fancy)
                                   (const :eldoc)
                                   (const :eldoc-echo)
                                   (const t))
@@ -515,6 +524,7 @@ order to concatenate them.  It is a list of symbols as described in
    when text concat it))
 
 (defun flymake--format-diagnostic (diag destination face-prop)
+  (when (eq destination :eol) (setq destination :inline-eol)) ;; backward compat
   (let ((txt (flymake-diagnostic-text
               diag (alist-get destination flymake-diagnostic-format-alist
                               (alist-get t flymake-diagnostic-format-alist
@@ -591,29 +601,29 @@ verify FILTER, a function, and sort them by COMPARE (using KEY)."
   "Face used for showing summarized descriptions of notes."
   :package-version '(Flymake . "1.3.4"))
 
-(defface flymake-end-of-line-diagnostics-face
+(defface flymake-inline-annotation-face
   '((t :height 0.85))
-  "Face used for end-of-line diagnostics.
-See variable `flymake-show-diagnostics-at-end-of-line'."
-  :package-version '(Flymake . "1.3.5"))
+  "Face used for inline diagnostics text.
+See variable `flymake-inline-diagnostics'."
+  :package-version '(Flymake . "1.4.5"))
 
-(defface flymake-error-echo-at-eol
-  '((t :inherit (flymake-end-of-line-diagnostics-face compilation-error)))
-  "Face like `flymake-error-echo', but for end-of-line overlays."
-  :package-version '(Flymake . "1.3.5"))
+(defface flymake-error-inline
+  '((t :inherit (flymake-inline-annotation-face compilation-error)))
+  "Face for error annotations in the buffer."
+  :package-version '(Flymake . "1.4.5"))
 
-(defface flymake-warning-echo-at-eol
-  '((t :inherit (flymake-end-of-line-diagnostics-face compilation-warning)))
-  "Face like `flymake-warning-echo', but for end-of-line overlays."
-  :package-version '(Flymake . "1.3.5"))
+(defface flymake-warning-inline
+  '((t :inherit (flymake-inline-annotation-face compilation-warning)))
+  "Face for warning annotations in the buffer."
+  :package-version '(Flymake . "1.4.5"))
 
-(defface flymake-note-echo-at-eol
-  '((t :inherit (flymake-end-of-line-diagnostics-face compilation-info)))
-  "Face like `flymake-note-echo', but for end-of-line overlays."
-  :package-version '(Flymake . "1.3.5"))
+(defface flymake-note-inline
+  '((t :inherit (flymake-inline-annotation-face compilation-info)))
+  "Face for note annotations in the buffer."
+  :package-version '(Flymake . "1.4.5"))
 
 (defface flymake-eol-information-face
-  '((t :inherit (flymake-end-of-line-diagnostics-face)
+  '((t :inherit (flymake-inline-annotation-face)
        :box nil
        :slant italic))
   "Face used for information about end-of-line diagnostics."
@@ -634,22 +644,55 @@ See variable `flymake-show-diagnostics-at-end-of-line'."
   :version "31.1"
   :package-version '(Flymake . "1.4.4"))
 
-(defcustom flymake-show-diagnostics-at-end-of-line nil
-  "If non-nil, add diagnostic summary messages at end-of-line.
-The value `short' means that only the most severe diagnostic
-shall be shown.
-The value `fancy' means to layout diagnostic summary information
-below the affected line with Unicode graphics.
-Any other non-nil value means show all diagnostic summaries at
-end-of-line."
-  :type '(choice (const :tag "Display most severe diagnostic" short)
-                 (const :tag "Display all diagnostics" t)
-                 (const :tag "Display all diagnostics using Unicode" fancy)
-                 (const :tag "Don't display diagnostics at end-of-line" nil))
-  :package-version '(Flymake . "1.3.6"))
+(define-obsolete-variable-alias 'flymake-show-diagnostics-at-end-of-line
+  'flymake-inline-diagnostics "32.1")
+
+(defcustom flymake-inline-diagnostics nil
+  "How Flymake styles diagnostic text in the buffer itself.
+
+The following values designating styles are possible:
+
+- `nil': no diagnostic info is added in the buffer;
+- `eol': diagnostic information is shown at the end of line;
+- `short': like `eol' but only the most severe diagnostic is considered;
+- `fancy': layout diagnostic information below the affected line with
+  Unicode graphics.
+- An alist ((WHERE . HOW) ...) where WHERE is `current', `current-line'
+  or t.  `current' selects the style for diagnostics that point is on;
+  `current-line' selects the style used for diagnostic on the same line
+  as point; and t selects the style used for every other diagnostic.  If
+  both `current' and `current-line' are given, `current' takes
+  precedence.  HOW is one of the symbols above.
+
+Regardless of styles, see variable `flymake-diagnostic-format-alist' for
+exactly which elements of information are included for each possibility."
+  :type
+  '(choice
+    (const :tag "No inline diagnostics" nil)
+    (const :tag "All diagnostics inlined at end of line" eol)
+    (const :tag "Most severe diagnostic inlined at end of line" short)
+    (const :tag "All diagnostics laid out with Unicode graphics" fancy)
+    (alist
+     :tag "Different inlining styles depending on situation"
+     :key-type (choice (const :tag "Diagnostics near point" current)
+                       (const :tag "Diagnostics on current line" current-line)
+                       (const :tag "Every other diagnostic" t))
+     :value-type (choice (const :tag "No inline diagnostics" nil)
+                         (const :tag "All diagnostics" eol)
+                         (const :tag "Only the most severe" short)
+                         (const :tag "Fancy Unicode graphics" fancy))))
+  :package-version '(Flymake . "1.4.5"))
 
 (define-obsolete-face-alias 'flymake-warnline 'flymake-warning "26.1")
 (define-obsolete-face-alias 'flymake-errline 'flymake-error "26.1")
+(define-obsolete-face-alias 'flymake-end-of-line-diagnostics-face
+  'flymake-inline-annotation-face "32.1")
+(define-obsolete-face-alias 'flymake-error-echo-at-eol
+  'flymake-error-inline "32.1")
+(define-obsolete-face-alias 'flymake-warning-echo-at-eol
+  'flymake-warning-inline "32.1")
+(define-obsolete-face-alias 'flymake-note-echo-at-eol
+  'flymake-note-inline "32.1")
 
 ;;;###autoload
 (defun flymake-diag-region (buffer line &optional col)
@@ -987,9 +1030,10 @@ Return nil or the overlay created."
     (overlay-put ov 'evaporate t)
     (overlay-put ov 'flymake-overlay t)
     (overlay-put ov 'flymake-diagnostic diagnostic)
-    ;; Handle `flymake-show-diagnostics-at-end-of-line'
+    ;; Handle `flymake-inline-diagnostics'.  If anything except nil,
+    ;; create an `flymake--eold
     ;;
-    (when flymake-show-diagnostics-at-end-of-line
+    (when flymake-inline-diagnostics
       (save-excursion
         (goto-char (overlay-start ov))
         (let* ((start (line-end-position))
@@ -1117,14 +1161,17 @@ report applies to that region."
                      (float-time
                       (time-since flymake-check-start-time))))))
     (setf (flymake--state-reported-p state) t)
-    ;; All of the above might have touched the eol overlays, so issue
-    ;; a call to update them.  But check running and reporting
-    ;; backends first to flickering when multiple backends touch the
-    ;; same eol overlays.
-    (when (and flymake-show-diagnostics-at-end-of-line
+    ;; All of the above might have influecned the eol overlays, so maybe
+    ;; issue a call to update them.  But to avoid flickering, wait for
+    ;; backends to finish first to avoid flickering when multiple
+    ;; backends touch the same eol overlays.  Also don't update if
+    ;; `flymake-timer' is non-nil, meaning the a scheduled
+    ;; `flymake-start' hasn't yet finished.
+    (when (and flymake-inline-diagnostics
+               (not flymake-timer)
                (not (cl-set-difference (flymake-running-backends)
                                        (flymake-reporting-backends))))
-      (flymake--update-eol-overlays))
+      (flymake--update-all-eol-overlays))
     (flymake--update-diagnostics-listings (current-buffer))))
 
 (defun flymake--clear-foreign-diags (state)
@@ -1209,10 +1256,12 @@ and other buffers."
 BACKEND is used to help Flymake distinguish different diagnostic
 sources.  If provided, TOKEN helps Flymake distinguish between
 different runs of the same backend."
-  (let ((buffer (current-buffer)))
+  (let ((buffer (current-buffer))
+        (point (point)))
     (lambda (&rest args)
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
+          (goto-char point)
           (apply #'flymake--handle-report backend token args))))))
 
 (defun flymake--collect (fn &optional message-prefix)
@@ -1473,6 +1522,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (add-hook 'after-change-functions 'flymake-after-change-function nil t)
     (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
     (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
+    (add-hook 'post-command-hook 'flymake--update-current-eol-overlay nil t)
     (add-hook 'eldoc-documentation-functions 'flymake-eldoc-function t t)
 
     ;; Maybe auto-resize margins
@@ -1492,6 +1542,7 @@ special *Flymake log* buffer."  :group 'flymake :lighter
     (remove-hook 'after-change-functions 'flymake-after-change-function t)
     (remove-hook 'after-save-hook 'flymake-after-save-hook t)
     (remove-hook 'kill-buffer-hook 'flymake-kill-buffer-hook t)
+    (remove-hook 'post-command-hook 'flymake--update-current-eol-overlay t)
     ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
     (remove-hook 'eldoc-documentation-functions 'flymake-eldoc-function t)
 
@@ -1554,7 +1605,7 @@ START and STOP and LEN are as in `after-change-functions'."
     (flymake--schedule-timer-maybe))
   ;; Some special handling to prevent eol overlays from temporarily
   ;; moving to wrong line
-  (when (and flymake-show-diagnostics-at-end-of-line
+  (when (and flymake-inline-diagnostics
              (zerop pre-change-len))
     (save-excursion
       (goto-char start)
@@ -2269,44 +2320,100 @@ some of this variable's contents the diagnostic listings.")
 
 ;;; Eol overlay helpers
 ;;;
-(defun flymake--update-eol-overlays ()
-  "Update the `display' property of end-of-line overlays."
+(defvar-local flymake--eol-current-overlay nil
+  "Eol overlay, if any, currently styled for the diagnostic at point.")
+
+(cl-defun flymake--update-current-eol-overlay
+    (&aux style-entry (fid flymake-inline-diagnostics)
+          (old-o flymake--eol-current-overlay))
+  "Maybe paint nearby eol diagnostics with special `current-*' styles."
+  (when (and (consp fid)
+             (setq style-entry (or (assoc 'current fid)
+                                   (assoc 'current-line fid)))
+             ;; JT@2026-08-09: Don't consider current/current-line
+             ;; entries if a region is active or a flymake hasn't
+             ;; finished.  FIXME: An active in-buffer completion session
+             ;; should probably also have the same inhibiting effect,
+             ;; but at time of writing there is no easy way to answer
+             ;; that question.
+             (not (region-active-p))
+             (not flymake-timer))
+    (cl-loop
+     for style = (cdr style-entry)
+     for o in (overlays-at (line-end-position))
+     for src-ovs = (overlay-get o 'flymake-eol-source-overlays)
+     when (and src-ovs
+               (or (eq (car style-entry) 'current-line)
+                   (cl-some (lambda (o) (<= (overlay-start o) (point)
+                                            (overlay-end o)))
+                            src-ovs)))
+     do
+     (unless (eq o old-o)
+       (when (and old-o (overlay-buffer old-o))
+         (overlay-put old-o 'display (flymake--eol-overlay-summary old-o)))
+       (overlay-put o 'display (flymake--eol-overlay-summary o style))
+       (setq flymake--eol-current-overlay o))
+     (cl-return-from flymake--update-current-eol-overlay))
+    (when old-o
+      (overlay-put old-o 'display (flymake--eol-overlay-summary old-o))
+      (setq flymake--eol-current-overlay nil))))
+
+(defun flymake--update-all-eol-overlays ()
+  "Helper for flymake--handle-report."
   (save-restriction
     (widen)
     (dolist (o (overlays-in (point-min) (point-max)))
       (when (overlay-get o 'flymake--eol-overlay)
-        (if-let* ((src-ovs (overlay-get o 'flymake-eol-source-overlays)))
-            (overlay-put o 'display (flymake--eol-overlay-summary src-ovs))
-          (delete-overlay o))))))
+        (if (cl-some #'overlay-buffer
+                     (overlay-get o 'flymake-eol-source-overlays))
+            (overlay-put o 'display (flymake--eol-overlay-summary o))
+          (delete-overlay o))))
+    (flymake--update-current-eol-overlay)))
 
-(defun flymake--eol-overlay-summary (src-ovs)
-  "Helper function for `flymake--update-eol-overlays'."
-  (cl-flet ((summarize (d)
-              (flymake--format-diagnostic d :eol 'eol-face)))
-    (let* ((diags
+(defun flymake--eol-default-style ()
+  (cond ((not (consp flymake-inline-diagnostics))
+         flymake-inline-diagnostics)
+        (t
+         (alist-get t flymake-inline-diagnostics))))
+
+(cl-defun flymake--eol-overlay-summary
+    (eol-ov &optional (style (flymake--eol-default-style)))
+  "Helper function for `flymake--update-eol-overlays-1'."
+  (cl-labels ((summarize (d)
+                (flymake--format-diagnostic
+                 d
+                 (cl-case style
+                   (short :inline-short)
+                   (eol   :inline-eol)
+                   (fancy :inline-fancy)
+                   (default :inline-eol))
+                 'eol-face)))
+    (let* ((src-ovs (overlay-get eol-ov 'flymake-eol-source-overlays))
+           (diags
             (cl-sort
              (mapcar (lambda (o) (overlay-get o 'flymake-diagnostic)) src-ovs)
              #'>
              :key (lambda (d) (flymake--severity (flymake-diagnostic-type d)))))
            (summary
-            (concat
-             "  "
-             (cond ((eq flymake-show-diagnostics-at-end-of-line 'short)
+            (and diags
+                 (cl-case style
+                   (short
                     (concat
                      (summarize (car diags))
                      (and (cdr diags)
                           (concat
                            " "
-                           (propertize (format "and %s more"
+                           (propertize (format "(%s more)"
                                                (1- (length diags)))
                                        'face 'flymake-eol-information-face)))))
-                   ((eq flymake-show-diagnostics-at-end-of-line 'fancy)
+                   (fancy
                     (flymake--eol-draw-fancy diags #'summarize))
-                   (t
-                    (mapconcat #'summarize diags " ")))
-             "\n")))
-      (put-text-property 0 1 'cursor t summary)
-      summary)))
+                   (eol
+                    (mapconcat #'summarize diags " "))))))
+      (when summary
+        (setq summary (concat "  " summary "\n"))
+        (put-text-property 0 1 'cursor t summary)
+        summary))))
 
 (defun flymake--eol-draw-fancy-1 (text boxdraw-face line-beg-col
                                        height-to-clear
@@ -2339,13 +2446,13 @@ some of this variable's contents the diagnostic listings.")
        (insert
         (propertize
          (cond ;; ((zerop i) "┬")
-          ((memq c '(?└ ?├)) fork)
+          ((memq c '(?╰ ?├)) fork)
           (t         pipe))
          'face boxdraw-face)))
      (onward))
     (move line-beg-col)
     (delete-char -1)
-    (insert (propertize "└" 'face boxdraw-face))
+    (insert (propertize "╰" 'face boxdraw-face))
     (insert (propertize (make-string (- text-beg-col line-beg-col 1)
                                      ?─)
                         'face boxdraw-face))
@@ -2366,21 +2473,22 @@ some of this variable's contents the diagnostic listings.")
      with sorted = (cl-sort diags #'> :key #'flymake-diagnostic-beg)
      for diag in sorted
      for text = (funcall summarize-fn diag)
+     for beg = (flymake-diagnostic-beg diag)
+     for prev-line-beg-col = nil then line-beg-col
      for line-beg-col =
      (with-current-buffer (flymake-diagnostic-buffer diag)
-       (save-excursion
-         (goto-char (flymake-diagnostic-beg diag))
-         (1+ (current-column))))
+       (save-excursion (goto-char beg) (1+ (current-column))))
      for height-to-clear = 0 then ret
      for i from 0
-     for adjust = (* i 2)
+     for prev-adjust = 0 then adjust
+     for adjust = (+ prev-adjust (if (eql line-beg-col prev-line-beg-col) 0 2))
      for face = `(:foreground
                   ,(face-attribute
                     (or (get-text-property 0 'face text)
                         'flymake-error)
                     :foreground nil t))
-     for text-beg-col = (max (- (max 30 (+ line-beg-col 5)) adjust) (+ line-beg-col 1))
-     for text-end-col = (max 100 (+ text-beg-col 40))
+     for text-beg-col = (max (- (max 25 (+ line-beg-col 3)) adjust) (+ line-beg-col 1))
+     for text-end-col = (max 80 (+ text-beg-col 50))
      for ret = (flymake--eol-draw-fancy-1
                 text
                 face

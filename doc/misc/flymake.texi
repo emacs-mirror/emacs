@@ -146,10 +146,9 @@ is.  Alternatively, place point on the highlighted regions and use the
 commands @code{eldoc} or @code{display-local-help}.
 
 Another easy way to get instant access to the diagnostic text is to
-set @code{flymake-show-diagnostics-at-end-of-line} to a non-@code{nil}
-value.  This makes the diagnostic messages appear at the end of the
-line where the regular annotation is located (@pxref{Customizable
-variables})
+set @code{flymake-inline-diagnostics} to a non-@code{nil} value.  This
+makes the diagnostic messages appear directly in the buffer, in the
+vicinity of the affected line (@pxref{Customizable variables})
 
 @cindex next and previous diagnostic
 If the diagnostics are outside the visible region of the buffer,
@@ -347,26 +346,39 @@ Only relevant if @code{flymake-indicator-type} is set to @code{margins}.
 If non-@code{nil}, moving to errors with @code{flymake-goto-next-error} and
 @code{flymake-goto-prev-error} wraps around buffer boundaries.
 
-@item flymake-show-diagnostics-at-end-of-line
-If non-@code{nil}, show summarized descriptions of diagnostics at the
-end of the line.  Depending on your preference, this can either be
-distracting and easily confused with actual code, or a significant early
-aid that relieves you from moving around or reaching for the mouse to
-consult an error message.  This value may also be set to @code{fancy},
-which will attempt to layout diagnostics below the affected line using
-unicode graphics to point to diagnostic locus.
+@item flymake-inline-diagnostics
+If non-@code{nil}, annotate lines with diagnostics directly in the
+buffer.  Depending on your preference, this can either be distracting
+and easily confused with actual code, or a significant early aid that
+relieves you from moving around or reaching for the mouse to consult an
+error message.  A number of styles can be used: the value @code{eol}
+shows all diagnostics at the end of the line, @code{short} shows only
+the most severe one, and @code{fancy} lays out the diagnostics below the
+affected line using Unicode graphics to point to the diagnostic locus.
+
+The value can also be an alist, which allows you to have the position of
+point dictate the style used for nearby annotation of nearby
+diagnostics.  The alist keys @code{current} and @code{current-line}
+designate the style affect the appearance of nearby diagnostics, while a
+value keyed by @code{t} is style used for every other diagnostic.  For
+example, to keep a discreet @code{short} annotation on most lines while
+expanding to @code{fancy} only for the diagnostic point in currently on:
+
+@lisp
+(setopt flymake-inline-diagnostics '((current . fancy) (t . short)))
+@end lisp
 
 @item flymake-diagnostic-format-alist
 Control which parts of a diagnostic to show in various situations.
 
-@item flymake-error-eol
-A custom face for summarizing diagnostic error messages.
+@item flymake-error-inline
+A custom face for inline diagnostic error messages.
 
-@item flymake-warning-eol
-A custom face for summarizing diagnostic warning messages.
+@item flymake-warning-inline
+A custom face for inline diagnostic warning messages.
 
-@item flymake-note-eol
-A custom face for summarizing diagnostic notes.
+@item flymake-note-inline
+A custom face for inline diagnostic notes.
 @end vtable
 
 @node Flymake API, The legacy Proc backend, Using Flymake, Top

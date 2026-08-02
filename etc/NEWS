@@ -136,6 +136,20 @@ check out the repository to prepare a patch for the package maintainer.
 ---
 *** Messages from Ansible are now recognized.
 
+** Flymake
+
++++
+*** Overhauled inline diagnostics
+A new variable 'flymake-inline-diagnostics' replaces
+'flymake-show-diagnostics-at-end-of-line' and controls how Flymake
+annotates diagnostic text directly in the buffer.  Besides the previous
+styles ('eol', 'short', and 'fancy'), it can be used to only display
+certain styles in certain situations, such as using a 'fancy' inline
+displays on nearby diagnostic only.  The old variable is now an obsolete
+alias.  In parallel, the variable 'flymake-diagnostic-format-alist'
+contains new options to configure exactly which parts of a diagnostic to
+show for each inline layout possibility.
+
 ** Man
 
 ---
