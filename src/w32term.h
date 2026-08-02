@@ -872,6 +872,8 @@ typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN UINT_PTR,
     IN LPCWSTR);
 
+extern struct font *w32_system_remap_font;
+
 extern HWND w32_system_caret_hwnd;
 extern int w32_system_caret_height;
 extern int w32_system_caret_x;
