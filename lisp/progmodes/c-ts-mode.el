@@ -473,6 +473,24 @@ PARENT is the same as other simple-indent rules."
     (cons (treesit-node-start parent)
           c-ts-indent-offset))))
 
+(defun c-ts-mode--block-comment-offset (_n parent bol &rest _)
+  "Indentation offset for lines in block comments.
+
+One space if line starts with \"*\", three if the previous line is blank
+or the first line of the comment, and otherwise same as previous line."
+  (save-excursion
+    (beginning-of-line)
+    (let* ((c-point (treesit-node-start parent))
+	   (starred? (looking-at-p (rx (* blank) "*")))
+	   (first-or-second? (<= (line-beginning-position 0) c-point)))
+      (forward-line -1)
+      (let ((prev-indent (current-indentation)))
+        (cond (starred? 1)
+              ((or first-or-second? (= prev-indent 0)) 3)
+              (t (- prev-indent (progn (goto-char c-point)
+                                       (current-column)))))))))
+
+
 (defun c-ts-mode--simple-indent-rules (mode style)
   "Return the indent rules for MODE and STYLE.
 
@@ -513,15 +531,7 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
            ;; ((match nil "function_declarator" "parameters") parent 0)
            ;; ((parent-is "template_declaration") parent 0)
 
-           ;; `c-ts-common-looking-at-star' has to come before
-           ;; `c-ts-common-comment-2nd-line-matcher'.
-           ;; FIXME: consolidate into a single rule.
-           ((and (parent-is "comment") c-ts-common-looking-at-star)
-            c-ts-common-comment-start-after-first-star -1)
-           (c-ts-common-comment-2nd-line-matcher
-            c-ts-common-comment-2nd-line-anchor
-            1)
-           ((parent-is "comment") prev-adaptive-prefix 0)
+           ((parent-is "comment") parent c-ts-mode--block-comment-offset)
 
            ;; Preproc directives
            ((node-is "preproc_arg") no-indent)
