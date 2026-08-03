@@ -491,22 +491,28 @@ symbols where the following values are meaningful:
 (cl-defun flymake-diagnostic-text (diag
                                    &optional (parts '(origin code message)))
   "Describe diagnostic DIAG's as a string.
-PARTS says which parts of the diagnostic to include.  It is a list of
-symbols as described in `flymake-diagnostic-format-alist' (which see).
-PARTS defaults to `(origin code message)'."
-  (let* ((w parts)
-         (a (and (memq 'origin w) (flymake--diag-origin diag)))
-         (b (and (memq 'code w) (flymake--diag-code diag)))
-         (c (cond ((memq 'message w) (flymake--diag-message diag))
-                  ((memq 'oneliner w)
-                   (let* ((msg (flymake--diag-message diag)))
-                     (substring msg 0 (cl-loop for i from 0 for a across msg
-                                               when (eq a ?\n) return i)))))))
-    (concat a
-            (when (and a b) " ")
-            (when b (concat "[" b "]"))
-            (when (and c (or a b)) ": ")
-            c)))
+PARTS says which parts of the diagnostic to include, and in which
+order to concatenate them.  It is a list of symbols as described in
+`flymake-diagnostic-format-alist' (which see).  PARTS defaults to
+`(origin code message)'."
+  (cl-loop
+   with headline-seen
+   for prev-part = nil then part
+   for part in parts
+   while part
+   for text = (pcase part
+                ('origin (flymake--diag-origin diag))
+                ('code (when-let* ((code (flymake--diag-code diag)))
+                         (concat "[" code "]")))
+                ('message (flymake--diag-message diag))
+                ('oneliner
+                 (let ((msg (flymake--diag-message diag)))
+                   (substring msg 0 (cl-loop for i from 0 for a across msg
+                                             when (eq a ?\n) return i)))))
+   when (and (memq part '(origin code)) text) do (setq headline-seen t)
+   when (and (memq part '(message oneliner)) headline-seen) concat ":"
+   when prev-part concat " "
+   when text concat it))
 
 (defun flymake--format-diagnostic (diag destination face-prop)
   (let ((txt (flymake-diagnostic-text
