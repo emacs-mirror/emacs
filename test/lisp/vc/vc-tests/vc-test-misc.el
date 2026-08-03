@@ -522,6 +522,8 @@ See bug#80803 and bug#80967."
           (should-not (seq-intersection directories (vc-dir-marked-files)))
           (kill-buffer vc-dir-buf))))))
 
+(declare-function diff-add-change-log-entries-other-window "diff-mode")
+
 (ert-deftest vc-test-log-message-from-changelog () ; bug#80928
   "Test automatic insertion of log message from ChangeLog."
   (skip-unless (executable-find vc-git-program))
