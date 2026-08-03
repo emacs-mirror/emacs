@@ -1781,7 +1781,7 @@ scroll the window of possible completions."
                (#b000 nil)
                (_     t))
         ;; FIXME: This part of the fix for bug#81537 reintroduces
-        ;; bug#67001 for `icomplete-in-region' users.  It's not as bad
+        ;; bug#67001 for `icomplete-in-buffer' users.  It's not as bad
         ;; for them because Icomplete users probably expect to have to
         ;; C-g out of completion before using other bindings, but maybe
         ;; we can still fix it.  --spwhitton
