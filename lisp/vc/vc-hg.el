@@ -565,7 +565,7 @@ This requires hg 4.4 or later, for the \"-L\" option of \"hg log\"."
     (when (and (not newvers) (member oldvers (list working ".")))
       (setq oldvers nil))
     (when (and newvers (not oldvers))
-      (setq oldvers working))
+      (setq oldvers "null"))
     (apply #'vc-hg-command
 	   (or buffer "*vc-diff*")
            (if async 'async 1)

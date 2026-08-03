@@ -3130,8 +3130,6 @@ Also respects the obsolete wrapper hook `completion-in-region-functions'.
       completion-in-region-functions (start end collection predicate)
     (let ((minibuffer-completion-table collection)
           (minibuffer-completion-predicate predicate))
-      ;; HACK: if the text we are completing is already in a field, we
-      ;; want the completion field to take priority (e.g. Bug#6830).
       (when completion-in-region-mode-predicate
         (setq completion-in-region--data
 	      `(,(if (markerp start) start (copy-marker start))

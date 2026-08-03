@@ -1491,6 +1491,11 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
          (lambda (x) (eq server
                          (get-text-property 0 'eglot--server (car x))))
          flymake-list-only-diagnostics))
+  ;; Cleanup progress reporters
+  (maphash (lambda (_ r)
+             (unless (eq (car r) 'eglot--mode-line-reporter )
+               (progress-reporter-done r)))
+           (eglot--progress-reporters server))
   (cond ((eglot--shutdown-requested server)
          t)
         ((not (eglot--inhibit-autoreconnect server))
@@ -2888,10 +2893,10 @@ return it back to the server.  :null is returned if the list was empty."
       (eglot--dbind ((WorkDoneProgress) kind title percentage message) value
         (pcase kind
           ("begin"
-           (upd percentage (fmt title message)
+           (upd (or percentage 0) (fmt title message)
                 (puthash token (mkpr title)
                          (eglot--progress-reporters server))))
-          ("report" (upd percentage message))
+          ("report" (upd (or percentage 0) message))
           ("end" (upd (or percentage 100) message)
            (run-at-time 2 nil
                         (lambda ()

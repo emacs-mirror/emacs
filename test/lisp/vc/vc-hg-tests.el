@@ -88,4 +88,21 @@ R foo"
      ("foo2" added #s(vc-hg-extra-fileinfo renamed-from "foo"))
      ("bar2" added #s(vc-hg-extra-fileinfo renamed-from "bar")))))
 
+(ert-deftest vc-hg-diff-revision-arguments ()
+  "Test `vc-hg-diff' revision arguments."
+  (cl-letf (((symbol-function 'vc-hg-command) #'list)
+            (vc-hg-diff-switches t))
+    ;; REV1 REV2 both nil: diff file against working revision
+    (should (equal (vc-hg-diff '("foo") nil nil)
+                   '("*vc-diff*" 1 ("foo") "diff")))
+    ;; REV1 nil and REV2 non-nil: diff REV2 against empty tree
+    (should (equal (vc-hg-diff '("foo") nil "22222")
+                   '("*vc-diff*" 1 ("foo") "diff" "-r" "null" "-r" "22222")))
+    ;; REV1 non-nil and REV2 nil: diff working copy against older revision
+    (should (equal (vc-hg-diff '("foo") "11111" nil)
+                   '("*vc-diff*" 1 ("foo") "diff" "-r" "11111")))
+    ;; REV1 REV2 both non-nil: diff two revisions
+    (should (equal (vc-hg-diff '("foo") "11111" "22222")
+                   '("*vc-diff*" 1 ("foo") "diff" "-r" "11111" "-r" "22222")))))
+
 ;;; vc-hg-tests.el ends here
