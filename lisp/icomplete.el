@@ -154,15 +154,7 @@ See `icomplete-delay-completions-threshold'."
 (defcustom icomplete-in-buffer nil
   "If non-nil, use Icomplete when completing in buffers other than minibuffer.
 This affects commands like `completion-in-region', but not commands
-that use their own completions setup.
-
-If you would prefer to see only Icomplete's in-buffer display, but do
-not want the \"*Completions*\" buffer to pop up in those cases, add
-this advice to your init file:
-
-  (advice-add \\='completion-at-point
-              :after #\\='minibuffer-hide-completions)
-"
+that use their own completions setup."
   :type 'boolean)
 
 (defcustom icomplete-minibuffer-setup-hook nil
