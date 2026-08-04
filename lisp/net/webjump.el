@@ -110,7 +110,8 @@ external browser like IceCat."
      [simple-query "https://duckduckgo.com"
 		   "https://duckduckgo.com/?q=" ""])
     ("Wikipedia" .
-     [simple-query "https://wikipedia.org" "https://wikipedia.org/wiki/" ""])
+     [simple-query "https://wikipedia.org"
+                   "https://wikipedia.org/w/?search=" ""])
 
     ;; Computer social issues, privacy, professionalism.
     ("Association for Computing Machinery" . "https://www.acm.org")
