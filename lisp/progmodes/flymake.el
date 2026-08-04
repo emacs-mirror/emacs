@@ -986,11 +986,6 @@ Return nil or the overlay created."
     ;;
     (overlay-put ov 'evaporate t)
     (overlay-put ov 'flymake-overlay t)
-    (overlay-put ov 'modification-hooks
-                 `(,(lambda (ov after &rest _)
-                      (when-let* ((eolov
-                                   (and (null after) (overlay-get ov 'flymake--eol-ov))))
-                        (delete-overlay eolov)))))
     (overlay-put ov 'flymake-diagnostic diagnostic)
     ;; Handle `flymake-show-diagnostics-at-end-of-line'
     ;;
@@ -1011,7 +1006,8 @@ Return nil or the overlay created."
             (overlay-put eolov 'flymake-overlay t)
             (overlay-put eolov 'flymake--eol-overlay t)
             (overlay-put eolov 'flymake-eol-source-overlays (list ov))
-            (overlay-put eolov 'evaporate (not (= start end)))) ; FIXME: fishy
+            ;; FIXME: next line fishy, should be just t
+            (overlay-put eolov 'evaporate (not (= start end))))
           (overlay-put ov 'flymake--eol-ov eolov))))
     ov))
 
