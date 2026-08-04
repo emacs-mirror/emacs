@@ -3585,7 +3585,7 @@ current buffer.  This is used by 'setopt-local', which will signal an
 error if this optional argument is not supported by the ':set' function.
 
 +++
-** The 'defcustom' ':local' keyword can now be 'permanent-only'.
+*** The 'defcustom' ':local' keyword can now be 'permanent-only'.
 This means that the variable's 'permanent-local' property is set to t,
 without marking it as automatically buffer-local.
 
