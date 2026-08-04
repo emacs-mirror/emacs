@@ -2193,6 +2193,7 @@ matches this regexp is considered to start a heading.  As Outline mode
 does with `outline-regexp', `outline-occur' only checks this regexp at
 the start of a line, so the regexp need not start with `^'.")
 
+;;;###autoload
 (defun outline-occur ()
   "Navigate the current buffer's outline using `occur'.
 The `outline-regexp' variable is used to find the beginning of the
