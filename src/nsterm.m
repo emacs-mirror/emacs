@@ -446,10 +446,11 @@ ev_modifiers_helper (unsigned int flags, unsigned int left_mask,
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
 #define EV_TRAILER(e)						\
-  {								\
-    XSETFRAME (emacs_event->frame_or_window, emacsframe);	\
-    EV_TRAILER2 (e);						\
-  }
+  if (emacs_event->kind != NO_EVENT)				\
+    {								\
+      XSETFRAME (emacs_event->frame_or_window, emacsframe);	\
+      EV_TRAILER2 (e);						\
+    }
 
 #define EV_TRAILER2(e)                                                  \
   {                                                                     \
