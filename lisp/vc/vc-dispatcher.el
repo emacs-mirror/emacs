@@ -223,10 +223,16 @@ Another is that undo information is not kept."
 
 (defvar vc-sentinel-movepoint)
 
+(defface vc-mode-line-busy-indicator
+  '((t :inherit mode-line-emphasis))
+  "Face for VC mode line indicator that a command is in progress."
+  :version "32.1"
+  :group 'mode-line-faces)
+
 (defun vc-set-mode-line-busy-indicator ()
   (setq mode-line-process
 	(concat " " (propertize "[waiting...]"
-                                'face 'mode-line-emphasis
+                                'face 'vc-mode-line-busy-indicator
                                 'help-echo
                                 "A command is in progress in this buffer"))))
 
