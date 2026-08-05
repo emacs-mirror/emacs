@@ -4030,6 +4030,12 @@ The solution is to tell configure to use the correct C preprocessor
 for your C compiler (CPP="/opt/developerstudio12.6/bin/cc -E" in the
 above example).
 
+*** The Android build works with only older versions of Java.
+
+Only Java 19 and older work, because Java 19 was the last version to
+support "-source 7".  See <URL:https://debbugs.gnu.org/81211> for more
+details.
+
 ** Compilation
 
 *** Link-time optimization with clang doesn't work on Fedora 20.
