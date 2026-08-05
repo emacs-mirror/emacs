@@ -176,6 +176,7 @@ man1dir=$(mandir)/man1
 # Where to install and expect the info files describing Emacs.
 infodir=@infodir@
 # Info files not in the doc/misc directory (we get those via make echo-info).
+# These are not gated by DOCLANGS: see MANDATORY_DOC_DIRS below.
 INFO_NONMISC=emacs.info eintr.info elisp.info
 
 # Directory for local state files for all programs.
@@ -1151,16 +1152,22 @@ $(1)-DOCLANG-$(2): $(1)-common
 	$$(MAKE) -C doc/$$(subst -, DOCLANG=$(2) ,$(1))
 
 endef
+## Directories whose manuals are always built in the default language,
+## whatever DOCLANGS says: the Emacs and Emacs Lisp manuals are
+## referenced from doc strings, and the Emacs Lisp Intro is an
+## important enough part of Emacs to be available regardless of the
+## language preferences of the user who builds the manuals.
+MANDATORY_DOC_DIRS = emacs lispintro lispref
 ## Languages from DOCLANGS to build the manuals in doc/$(1) for: the
-## default language (when in DOCLANGS), plus every other language in
-## DOCLANGS that has translations for this directory
-## (doc/translations/<lang>/$(1)).  Directories without translations
-## for a language must not run a sub-make for it: the doc Makefiles of
-## untranslated directories ignore DOCLANG, so such a sub-make would
-## just repeat the default-language build, and two sub-makes producing
-## the same outputs race under "make -j" (e.g. "cp: cannot create
-## regular file ...: File exists").
-FILTER_DOCLANGS = $(filter $(DOCLANGS),default) $(foreach lang,$(filter-out default,$(DOCLANGS)),$(if $(wildcard ${srcdir}/doc/translations/$(lang)/$(1)),$(lang)))
+## default language (when in DOCLANGS, or always for the directories
+## above), plus every other language in DOCLANGS that has translations
+## for this directory (doc/translations/<lang>/$(1)).  Directories
+## without translations for a language must not run a sub-make for it:
+## the doc Makefiles of untranslated directories ignore DOCLANG, so
+## such a sub-make would just repeat the default-language build, and
+## two sub-makes producing the same outputs race under "make -j" (e.g.
+## "cp: cannot create regular file ...: File exists").
+FILTER_DOCLANGS = $(if $(filter $(1),$(MANDATORY_DOC_DIRS)),default,$(filter $(DOCLANGS),default)) $(foreach lang,$(filter-out default,$(DOCLANGS)),$(if $(wildcard ${srcdir}/doc/translations/$(lang)/$(1)),$(lang)))
 # $(1) = doc target (e.g. lispintro-info), $(2) = languages to build
 define MAKE_DOC
 # Define a target to which dependencies common to all of the doc files
@@ -1207,7 +1214,8 @@ $(foreach lang,$(DOCLANGS),$(eval $(call set_texi_misc,$(lang))))
 ## would break in a fresh checkout, because the .texi files of the
 ## org-based manuals (e.g. modus-themes.texi) are generated and there
 ## is no rule to build them at this level.  make-info-dir extracts dir
-## entries from both formats.
+## entries from both formats.  The first three are not gated by
+## DOCLANGS, because MANDATORY_DOC_DIRS always builds them.
 srcdir_doc_info_dir_inputs := \
   ${srcdir}/doc/emacs/emacs.texi \
   ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
