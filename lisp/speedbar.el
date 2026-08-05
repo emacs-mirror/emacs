@@ -661,12 +661,22 @@ before speedbar has been loaded."
 	       (speedbar-extension-list-to-regex val))))
 
 (defcustom speedbar-directory-unshown-regexp "^\\(\\..*\\)\\'"
-  "Regular expression matching directories not to show in speedbar.
-They should include commonly existing directories which are not
-useful.  It is no longer necessary to include version-control
-directories here; see `vc-directory-exclusion-list'."
+  "Hide matching directories.
+The value can either be nil or a regular expression:
+
+- The nil value means to not hide any directory.
+
+- The regular expression means to hide the matching directories.  Note
+  that it is no longer necessary to include version-control directories
+  here; see `vc-directory-exclusion-list'.
+
+The default value is a regular expression.  It hides all directories
+whose name starts with a dot."
   :group 'speedbar
-  :type 'regexp)
+  :type '(choice
+          (regexp :tag "Hide matches of regular expression")
+          (const :tag "Do not hide anything" nil))
+  :version "32.1")
 
 (defcustom speedbar-file-unshown-regexp
   (let ((nstr "") (noext completion-ignored-extensions))
@@ -676,10 +686,20 @@ directories here; see `vc-directory-exclusion-list'."
 	    noext (cdr noext)))
     ;;               backup      refdir      lockfile
     (concat nstr "\\|#[^#]+#$\\|\\.\\.?\\'\\|\\.#"))
-  "Regexp matching files we don't want displayed in a speedbar buffer.
-It is generated from the variable `completion-ignored-extensions'."
+  "Hide matching files.
+The value can either be nil or a regular expression:
+
+- The nil value means to not hide any file.
+
+- The regular expression means to hide the matching files.
+
+The default value is a regular expression.  It is generated from the
+variable `completion-ignored-extensions'."
   :group 'speedbar
-  :type 'regexp)
+  :type '(choice
+          (regexp :tag "Hide matches of regular expression")
+          (const :tag "Do not hide anything" nil))
+  :version "32.1")
 
 (defvar speedbar-file-regexp nil
   "Regular expression matching files we know how to expand.
@@ -1999,12 +2019,19 @@ the file-system."
       (let ((default-directory directory)
 	    (dir (directory-files directory nil))
 	    (dirs nil)
-	    (files nil))
+	    (files nil)
+            (hide-p (lambda (name user-option)
+                      (let ((value (symbol-value user-option)))
+                        (or (and value
+                                 (not (stringp value))
+                                 (user-error "The `%s' must either be a string or nil" user-option))
+                            (and value
+                                 (string-match value name)))))))
 	(while dir
 	  (if (not
-	       (or (string-match speedbar-file-unshown-regexp (car dir))
+	       (or (funcall hide-p (car dir) 'speedbar-file-unshown-regexp)
 		   (member (car dir) vc-directory-exclusion-list)
-		   (string-match speedbar-directory-unshown-regexp (car dir))))
+                   (funcall hide-p (car dir) 'speedbar-directory-unshown-regexp)))
 	      (if (file-directory-p (car dir))
 		  (setq dirs (cons (car dir) dirs))
 		(setq files (cons (car dir) files))))
