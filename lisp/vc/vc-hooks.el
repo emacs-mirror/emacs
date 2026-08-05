@@ -299,7 +299,10 @@ properties further down the directory hierarchy override ones higher up."
   "Return BACKEND-specific implementation of FUN.
 If there is no such implementation, return the default implementation;
 if that doesn't exist either, return nil."
-  (let ((f (vc-make-backend-sym backend fun)))
+  ;; Nullify `read-symbol-shorthands' to guard the `intern' calls below
+  ;; and in `vc-make-backend-sym' from potentially malicious shorthands.
+  (let* ((read-symbol-shorthands nil)
+         (f (vc-make-backend-sym backend fun)))
     (if (fboundp f) f
       ;; Load vc-BACKEND.el if needed.
       (require (intern (concat "vc-" (downcase (symbol-name backend)))))

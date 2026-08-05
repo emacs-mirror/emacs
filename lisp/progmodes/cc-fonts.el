@@ -2585,9 +2585,13 @@ higher."
   (let* ((doc-keywords (c-get-doc-comment-style))
 	 (list (nconc (c--mapcan
 		       (lambda (doc-style)
-			 (let ((sym (intern
-				     (concat (symbol-name doc-style)
-					     "-font-lock-keywords"))))
+			 (let ((sym
+				;; Guard `intern' from potentially
+				;; malicious shorthands.
+				(let (read-symbol-shorthands)
+				  (intern
+				   (concat (symbol-name doc-style)
+					   "-font-lock-keywords")))))
 			   (cond ((fboundp sym)
 				  (funcall sym))
 				 ((boundp sym)
