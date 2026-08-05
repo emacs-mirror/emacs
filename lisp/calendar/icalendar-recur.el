@@ -1974,19 +1974,21 @@ based on whether the observance is an `icalendar-standard' or
 observance that applies to TS, it is decoded into UTC time.
 
 VTIMEZONE may also be an `icalendar-utc-offset'.  In this case TS is
-decoded directly into this UTC offset, and its dst slot is set to -1."
+decoded directly into this UTC offset, and its dst slot is set to -1.
+If VTIMEZONE is t, TS is decoded to UTC time."
   (let* ((observance (when (ical:vtimezone-component-p vtimezone)
                        (car (icr:tz-observance-on ts vtimezone))))
          (offset (cond (observance (icr:tz-offset-in observance))
                        ((cl-typep vtimezone 'ical:utc-offset)
                         vtimezone)
-                       (t 0))))
+                       (t t)))) ; decode to UTC
 
     (ical:date-time-variant ; ensures weekday gets set, too
      (decode-time ts offset)
      :zone offset
-     :dst (if observance (ical:daylight-component-p observance)
-            -1))))
+     :dst (cond (observance (ical:daylight-component-p observance))
+                ((eq t vtimezone) nil) ; UTC
+                (t -1)))))
 
 (defun icr:tz-set-zone (dt vtimezone &optional nonexistent)
   "Set the time zone offset and dst flag in DT based on VTIMEZONE.

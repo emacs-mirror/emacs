@@ -289,7 +289,7 @@ returned from `current-time-zone' is used as the missing offset; if
 signaled."
   (let ((zone1 (decoded-time-zone dt1))
         (zone2 (decoded-time-zone dt2)))
-    (cond ((and (integerp zone1) (integerp zone2))
+    (cond ((and zone1 zone2)
            (time-less-p (encode-time dt1) (encode-time dt2)))
           ((and (null zone1) (null zone2))
            (ical:date-time-locally< dt1 dt2))
@@ -357,11 +357,11 @@ non-simultaneous if they represent different clock times according to
 signaled."
   (let ((zone1 (decoded-time-zone dt1))
         (zone2 (decoded-time-zone dt2)))
-    (cond ((and (integerp zone1) (integerp zone2))
+    (cond ((and zone1 zone2)
            (time-equal-p (encode-time dt1) (encode-time dt2)))
           ((and (null zone1) (null zone2))
-           (time-equal-p (encode-time (ical:date-time-variant dt1 :zone 0))
-                         (encode-time (ical:date-time-variant dt2 :zone 0))))
+           (time-equal-p (encode-time (ical:date-time-variant dt1 :zone t))
+                         (encode-time (ical:date-time-variant dt2 :zone t))))
           (t
            ;; Best effort:
            ;; TODO: I'm not convinced this is the right thing to do yet.

@@ -299,11 +299,15 @@ The following keywords are meaningful:
 	given in the `defcustom' call.  The default is
 	`custom-initialize-reset'.
 :set	VALUE should be a function to set the value of the symbol
-	when using the Customize user interface.  It takes two arguments,
-	the symbol to set and the value to give it.  The function should
-	not modify its value argument destructively.  The default choice
-	of function is `set-default-toplevel-value'.  If this keyword is
-	defined, modifying the value of SYMBOL via `setopt' will call the
+	when using the Customize user interface.  It takes two
+        mandatory arguments, the symbol to set and the value to give
+        it, and one optional argument, which, if its value is
+        `buffer-local', means the value should be set
+        buffer-locally, without affecting the global or default
+        value.  The function should not modify its value argument
+        destructively.  The default choice of function is
+        `set-default-toplevel-value'.  If this keyword is defined,
+        modifying the value of SYMBOL via `setopt' will call the
 	function specified by VALUE to install the new value.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return

@@ -3576,6 +3576,19 @@ can use this command as a shortcut to jump to the first actionable
 button or field (for instance an on/off button for boolean options, or a
 text field for other values).
 
++++
+*** The ':set' function should accept an optional argument BUFFER-LOCAL.
+This is the third argument, in addition to SYMBOL and VALUE.  If that
+argument's value is 'buffer-local', the ':set' function should use
+'set-local' to set the value of its SYMBOL argument locally in the
+current buffer.  This is used by 'setopt-local', which will signal an
+error if this optional argument is not supported by the ':set' function.
+
++++
+*** The 'defcustom' ':local' keyword can now be 'permanent-only'.
+This means that the variable's 'permanent-local' property is set to t,
+without marking it as automatically buffer-local.
+
 ** Pulse
 
 ---
@@ -4525,11 +4538,6 @@ list whose elements are blended in linear space proportional to ALPHA.
 This function gets all the text within a DOM node recursively, returning
 it as a concatenated string.  It replaces the now-obsolete functions
 'dom-text' and 'dom-texts'.
-
-+++
-** The 'defcustom' ':local' keyword can now be 'permanent-only'.
-This means that the variable's 'permanent-local' property is set to t,
-without marking it as automatically buffer-local.
 
 ---
 ** The obsolete face attribute ':reverse-video' has been removed.

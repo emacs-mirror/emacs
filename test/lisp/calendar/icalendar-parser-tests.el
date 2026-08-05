@@ -1962,7 +1962,7 @@ END:VCALENDAR
               (expected-dtstamp
                (ical:make-date-time :year 2023 :month 7 :day 30
                                     :hour 19 :minute 47 :second 0
-                                    :zone 0)))
+                                    :zone t)))
           (should (not (ical:errors-p)))
           (should (ical:ast-node-valid-p vcal t))
           (ical:with-component vcal
@@ -2023,6 +2023,41 @@ END:VCALENDAR
                   ((ical:sentbyparam :value sent-by))
                   (should (equal sent-by expected-sender))))))))))
 
+
+;; Tests for bugfixes:
+(ert-deftest ipt:utc+0-is-not-utc ()
+  "Are UTC times parsed distinctly from times in other zones with 0 offset?"
+  ;; An explicit UTC time should parse with `t' in its zone field; this
+  ;; distinguishes it from times that merely have a 0 second offset from
+  ;; UTC, but might have a defined non-UTC time zone, e.g. in Europe/London
+  ;; or Europe/Dublin.  Bug discussion:
+  ;; https://https://lists.gnu.org/archive/html/emacs-devel/2026-07/msg00445.html
+  (let* ((s-utc "20260101T111111Z")
+         (s-non "20260101T111111")
+         (parsed-utc (ical:ast-node-value
+                      (ical:parse-from-string 'ical:date-time s-utc)))
+         (expected-utc (ical:make-date-time :year 2026 :month 1 :day 1
+                                            :hour 11 :minute 11 :second 11
+                                            :zone t))
+         (parsed-non (ical:ast-node-value
+                      (ical:parse-from-string 'ical:date-time s-non)))
+         (parsed-non-zoned (ical:date-time-variant parsed-non :zone 0))
+         (expected-non (ical:make-date-time :year 2026 :month 1 :day 1
+                                            :hour 11 :minute 11 :second 11
+                                            :zone nil))
+         (expected-non-zoned (ical:date-time-variant expected-non :zone 0)))
+    ;; Test that the two times are parsed distinctly:
+    (should (equal parsed-utc expected-utc))
+    (should (equal parsed-non expected-non))
+    (should-not (equal (decoded-time-zone parsed-utc)
+                       (decoded-time-zone parsed-non)))
+    ;; Test that `icalendar-date-time-is-utc-p' distinguishes the two cases:
+    (should (ical:date-time-is-utc-p parsed-utc))
+    (should-not (ical:date-time-is-utc-p parsed-non))
+    (should-not (ical:date-time-is-utc-p parsed-non-zoned))
+    ;; but also that `icalendar-date-time-simultaneous-p' does not:
+    (should (ical:date-time-simultaneous-p parsed-utc expected-utc))
+    (should (ical:date-time-simultaneous-p parsed-utc parsed-non-zoned))))
 
 
 

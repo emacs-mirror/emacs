@@ -896,7 +896,7 @@ S should be a match against rx `icalendar-time'."
         (second (string-to-number (substring s 4 6)))
         (utcoffset (if (and (length= s 7)
                             (equal "Z" (substring s 6 7)))
-                       0
+                       t ; UTC
                      ;; unknown/'floating' time zone:
                      nil)))
     (ical:make-date-time :second second
@@ -910,7 +910,7 @@ S should be a match against rx `icalendar-time'."
           (decoded-time-hour time)
           (decoded-time-minute time)
           (decoded-time-second time)
-          (if (eql 0 (decoded-time-zone time))
+          (if (eq t (decoded-time-zone time))
               "Z" "")))
 
 (defun ical:-decoded-time-p (val)
@@ -923,7 +923,7 @@ for that, see `icalendar--decoded-date-time-p'."
        (cl-typep (decoded-time-minute val) 'ical:numeric-minute)
        (cl-typep (decoded-time-hour val) 'ical:numeric-hour)
        (cl-typep (decoded-time-dst val) '(member t nil -1))
-       (cl-typep (decoded-time-zone val) '(or integer null))))
+       (cl-typep (decoded-time-zone val) '(or integer boolean))))
 
 (ical:define-type ical:time "TIME"
   "Type for Time values.
@@ -967,7 +967,7 @@ fields and DST are ignored when printed."
        ;; `make-decoded-time':
        ;; (cl-typep (decoded-time-weekday val) '(integer 0 6))
        (cl-typep (decoded-time-dst val) '(member t nil -1))
-       (cl-typep (decoded-time-zone val) '(or integer null))))
+       (cl-typep (decoded-time-zone val) '(or integer boolean))))
 
 (defun ical:read-date-time (s)
   "Read an `icalendar-date-time' from a string S.
@@ -982,7 +982,7 @@ S should be a match against rx `icalendar-date-time'."
         (second (string-to-number (substring s 13 15)))
         (utcoffset (if (and (length= s 16)
                             (equal "Z" (substring s 15 16)))
-                       0
+                       t ; UTC
                      ;; unknown/'floating' time zone:
                      nil)))
     (ical:make-date-time :second second
@@ -1007,16 +1007,15 @@ S should be a match against rx `icalendar-date-time'."
 
 (defun ical:date-time-is-utc-p (datetime)
   "Return non-nil if DATETIME is in UTC time."
-  (let ((offset (decoded-time-zone datetime)))
-    (and offset (= 0 offset))))
+  (eq t (decoded-time-zone datetime)))
 
 (ical:define-type ical:date-time "DATE-TIME"
    "Type for Date-Time values.
 
 When printed, a date-time is a string of digits like:
   YYYYMMDDTHHMMSS
-where the 'T' is literal, and separates the date string from the
-time string.
+where the 'T' is literal, and separates the date string from the time
+string.  If followed by a 'Z', the string represents a UTC date-time.
 
 When read, a date-time is a decoded time, i.e. a list in the format
 (SEC MINUTE HOUR DAY MONTH YEAR DOW DST UTCOFF).  See
@@ -2933,6 +2932,7 @@ an `icalendar-vtodo' was actually completed.  The value must be an
 `icalendar-date-time' with a UTC time."
   ical:date-time
   :child-spec (:zero-or-more (ical:otherparam))
+  :other-validator ical:requires-utc-validator
   :link "https://www.rfc-editor.org/rfc/rfc5545#section-3.8.2.1")
 
 (ical:define-property ical:dtend "DTEND"
@@ -3381,6 +3381,7 @@ initially created an `icalendar-vevent', `icalendar-vtodo', or
 in UTC time."
   ical:date-time
   :child-spec (:zero-or-more (ical:otherparam))
+  :other-validator ical:requires-utc-validator
   :link "https://www.rfc-editor.org/rfc/rfc5545#section-3.8.7.1")
 
 (ical:define-property ical:dtstamp "DTSTAMP"
@@ -3404,7 +3405,16 @@ object *representing* that data was created.
 The value must be in UTC time."
   ical:date-time
   :child-spec (:zero-or-more (ical:otherparam))
+  :other-validator ical:requires-utc-validator
   :link "https://www.rfc-editor.org/rfc/rfc5545#section-3.8.7.2")
+
+(defun ical:requires-utc-validator (node)
+  "Validate that a property NODE's value is a UTC date-time"
+  (ical:with-property node nil
+    (unless (ical:date-time-is-utc-p value)
+      (ical:signal-validation-error
+       (format "An `%s's value must be in UTC" (ical:ast-node-type node))
+       :node node))))
 
 (ical:define-property ical:last-modified "LAST-MODIFIED"
   "Last Modified timestamp.
