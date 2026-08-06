@@ -4226,10 +4226,10 @@ x_window (struct frame *f, long window_prompting)
 
   ac = 0;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
-  XtSetArg (al[ac], (char *) XtNshowGrip, 0); ac++;
-  XtSetArg (al[ac], (char *) XtNallowResize, 1); ac++;
-  XtSetArg (al[ac], (char *) XtNresizeToPreferred, 1); ac++;
-  XtSetArg (al[ac], (char *) XtNemacsFrame, f); ac++;
+  XtSetArg (al[ac], XtNshowGrip, 0); ac++;
+  XtSetArg (al[ac], XtNallowResize, 1); ac++;
+  XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
+  XtSetArg (al[ac], XtNemacsFrame, f); ac++;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
@@ -9632,7 +9632,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
   if (result == XmCR_OK)
     {
       XmString text_string;
-      String data;
+      char *data;
 
       XtVaGetValues (dialog, XmNtextString, &text_string, NULL);
       XmStringGetLtoR (text_string, XmFONTLIST_DEFAULT_TAG, &data);

@@ -30455,21 +30455,21 @@ x_free_pixmap (struct frame *f, Emacs_Pixmap pixmap)
 
 #ifdef USE_X_TOOLKIT
 static XrmOptionDescRec emacs_options[] = {
-  {(char *) "-geometry", (char *) ".geometry", XrmoptionSepArg, NULL},
-  {(char *) "-iconic", (char *) ".iconic", XrmoptionNoArg, (XtPointer) "yes"},
+  {"-geometry", ".geometry", XrmoptionSepArg, NULL},
+  {"-iconic", ".iconic", XrmoptionNoArg, (XtPointer) "yes"},
 
-  {(char *) "-internal-border-width",
-   (char *) "*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
-  {(char *) "-ib", (char *) "*EmacsScreen.internalBorderWidth",
+  {"-internal-border-width",
+   "*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
+  {"-ib", "*EmacsScreen.internalBorderWidth",
    XrmoptionSepArg, NULL},
-  {(char *) "-T", (char *) "*EmacsShell.title", XrmoptionSepArg, NULL},
-  {(char *) "-wn", (char *) "*EmacsShell.title", XrmoptionSepArg, NULL},
-  {(char *) "-title", (char *) "*EmacsShell.title", XrmoptionSepArg, NULL},
-  {(char *) "-iconname", (char *) "*EmacsShell.iconName",
+  {"-T", "*EmacsShell.title", XrmoptionSepArg, NULL},
+  {"-wn", "*EmacsShell.title", XrmoptionSepArg, NULL},
+  {"-title", "*EmacsShell.title", XrmoptionSepArg, NULL},
+  {"-iconname", "*EmacsShell.iconName",
    XrmoptionSepArg, NULL},
-  {(char *) "-in", (char *) "*EmacsShell.iconName", XrmoptionSepArg, NULL},
-  {(char *) "-mc", (char *) "*pointerColor", XrmoptionSepArg, NULL},
-  {(char *) "-cr", (char *) "*cursorColor", XrmoptionSepArg, NULL}
+  {"-in", "*EmacsShell.iconName", XrmoptionSepArg, NULL},
+  {"-mc", "*pointerColor", XrmoptionSepArg, NULL},
+  {"-cr", "*cursorColor", XrmoptionSepArg, NULL}
 };
 
 /* Whether atimer for Xt timeouts is activated or not.  */
@@ -30797,11 +30797,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     int argc = 0;
     char *argv[3];
 
-    argv[0] = (char *) "";
+    static char const mt[] = "";
+    argv[0] = (char *) mt;
     argc = 1;
     if (xrm_option)
       {
-	argv[argc++] = (char *) "-xrm";
+	static char const xrmopt[] = "-xrm";
+	argv[argc++] = (char *) xrmopt;
 	argv[argc++] = xrm_option;
       }
     turn_on_atimers (false);
@@ -31612,7 +31614,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     dpy = dpyinfo->display;
     d.addr = (XPointer) &dpy;
     d.size = sizeof (Display *);
-    fr.addr = (char *) XtDefaultFont;
+    fr.addr = XtDefaultFont;
     fr.size = sizeof (XtDefaultFont);
     to.size = sizeof (Font *);
     to.addr = (XPointer) &font;

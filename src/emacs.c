@@ -1707,7 +1707,8 @@ android_emacs_init (int argc, char **argv, char *dump_file)
       /* Convert --script to -scriptload, un-skip it, and sort again
 	 so that it will be handled in proper sequence.  */
       /* FIXME broken for --script=FILE - is that supposed to work?  */
-      argv[skip_args - 1] = (char *) "-scriptload";
+      static char const scriptload_option[] = "-scriptload";
+      argv[skip_args - 1] = (char *) scriptload_option;
       skip_args -= 2;
       sort_args (argc, argv);
     }
@@ -2112,7 +2113,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	    argv[count_before + 2] = displayname;
 	    argc++;
 	  }
-	argv[count_before + 1] = (char *) "-d";
+	static char const d_option[] = "-d";
+	argv[count_before + 1] = (char *) d_option;
       }
 #endif	/* HAVE_X_WINDOWS */
 
@@ -2130,7 +2132,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	noninteractive = 1;
 	no_site_lisp = 1;
 	/* This is picked up in startup.el.  */
-	argv[skip_args - 1] = (char *) "-scripteval";
+	static char const scripteval_option[] = "-scripteval";
+	argv[skip_args - 1] = (char *) scripteval_option;;
 	skip_args -= 1;
 	sort_args (argc, argv);
       }

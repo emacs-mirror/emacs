@@ -54,34 +54,34 @@ static XtGeometryResult EmacsFrameQueryGeometry (Widget, XtWidgetGeometry *,
 #define offset(field) offsetof (EmacsFrameRec, emacs_frame.field)
 
 static XtResource resources[] = {
-  {(char *) XtNgeometry, (char *) XtCGeometry, XtRString, sizeof (String),
+  {XtNgeometry, XtCGeometry, XtRString, sizeof (String),
      offset (geometry), XtRString, (XtPointer) 0},
   {XtNiconic, XtCIconic, XtRBoolean, sizeof (Boolean),
      offset (iconic), XtRImmediate, (XtPointer) False},
 
-  {(char *) XtNemacsFrame, (char *) XtCEmacsFrame,
+  {XtNemacsFrame, XtCEmacsFrame,
      XtRPointer, sizeof (XtPointer),
      offset (frame), XtRImmediate, 0},
 
-  {(char *) XtNminibuffer, (char *) XtCMinibuffer, XtRInt, sizeof (int),
+  {XtNminibuffer, XtCMinibuffer, XtRInt, sizeof (int),
      offset (minibuffer), XtRImmediate, (XtPointer)0},
-  {(char *) XtNunsplittable, (char *) XtCUnsplittable,
+  {XtNunsplittable, XtCUnsplittable,
      XtRBoolean, sizeof (Boolean),
      offset (unsplittable), XtRImmediate, (XtPointer)0},
-  {(char *) XtNinternalBorderWidth, (char *) XtCInternalBorderWidth,
+  {XtNinternalBorderWidth, XtCInternalBorderWidth,
      XtRInt, sizeof (int),
      offset (internal_border_width), XtRImmediate, (XtPointer)4},
-  {(char *) XtNinterline, (char *) XtCInterline, XtRInt, sizeof (int),
+  {XtNinterline, XtCInterline, XtRInt, sizeof (int),
      offset (interline), XtRImmediate, (XtPointer)0},
-  {(char *) XtNforeground, (char *) XtCForeground, XtRPixel, sizeof (Pixel),
-     offset (foreground_pixel), XtRString, (char *) "XtDefaultForeground"},
-  {(char *) XtNcursorColor, (char *) XtCForeground, XtRPixel, sizeof (Pixel),
-     offset (cursor_color), XtRString, (char *) "XtDefaultForeground"},
-  {(char *) XtNbarCursor, (char *) XtCBarCursor, XtRBoolean, sizeof (Boolean),
+  {XtNforeground, XtCForeground, XtRPixel, sizeof (Pixel),
+     offset (foreground_pixel), XtRString, "XtDefaultForeground"},
+  {XtNcursorColor, XtCForeground, XtRPixel, sizeof (Pixel),
+     offset (cursor_color), XtRString, "XtDefaultForeground"},
+  {XtNbarCursor, XtCBarCursor, XtRBoolean, sizeof (Boolean),
      offset (bar_cursor), XtRImmediate, (XtPointer)0},
-  {(char *) XtNvisualBell, (char *) XtCVisualBell, XtRBoolean, sizeof (Boolean),
+  {XtNvisualBell, XtCVisualBell, XtRBoolean, sizeof (Boolean),
      offset (visual_bell), XtRImmediate, (XtPointer)0},
-  {(char *) XtNbellVolume, (char *) XtCBellVolume, XtRInt, sizeof (int),
+  {XtNbellVolume, XtCBellVolume, XtRInt, sizeof (int),
      offset (bell_volume), XtRImmediate, (XtPointer)0},
 };
 
@@ -106,7 +106,7 @@ emacsFrameTranslations [] = "\
 static EmacsFrameClassRec emacsFrameClassRec = {
     { /* core fields */
     /* superclass		*/	0, /* filled in by emacsFrameClass */
-    /* class_name		*/	(char *) "EmacsFrame",
+    /* class_name		*/	"EmacsFrame",
     /* widget_size		*/	sizeof (EmacsFrameRec),
     /* class_initialize		*/	0,
     /* class_part_initialize	*/	0,

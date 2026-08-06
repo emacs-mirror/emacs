@@ -18571,12 +18571,12 @@ update_redisplay_ticks (int ticks, struct window *w)
 	 windows, not expected here) or nil (for pseudo-windows like
 	 the one used for the native tool bar).  */
       Lisp_Object contents = w ? w->contents : Qnil;
-      char *bufname =
+      char const *bufname =
 	NILP (contents)
 	? SSDATA (BVAR (current_buffer, name))
 	: (BUFFERP (contents)
 	   ? SSDATA (BVAR (XBUFFER (contents), name))
-	   : (char *) "<unknown>");
+	   : "<unknown>");
 
       windows_or_buffers_changed = 177;
       /* scrolling_window depends too much on the glyph matrices being

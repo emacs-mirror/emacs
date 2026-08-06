@@ -762,7 +762,7 @@ xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
      all instances of a button have the same call data. */
   {
     widget_value *val = instance->info->val->contents;
-    char *name = XtName (widget);
+    char const *name = XtName (widget);
     while (val)
       {
 	if (val->name && !strcmp (val->name, name))

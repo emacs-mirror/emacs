@@ -7277,6 +7277,8 @@ AC_SUBST([LIBXT_OTHER])
 if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE([HAVE_X11], [1],
 	    [Define to 1 if you want to use version 11 of X windows.])
+  AC_DEFINE([_CONST_X_STRING], [1],
+    [Define to 1 for X11 headers to use the 'const' keyword of C89 or later.])
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
 else
   LIBX_OTHER=

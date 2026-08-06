@@ -1795,7 +1795,7 @@ create_and_show_popup_menu (struct frame *f, widget_value *first_wv,
       event->button = i;
 
   /* Don't allow any geometry request from the user.  */
-  XtSetArg (av[ac], (char *) XtNgeometry, 0); ac++;
+  XtSetArg (av[ac], XtNgeometry, 0); ac++;
   XtSetValues (menu, av, ac);
 
 #ifdef HAVE_XINPUT2
