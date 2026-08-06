@@ -705,6 +705,55 @@ bound to HIGHLIGHT-LOCUS."
            (if (match-string 2) "R" "L"))))
       (should (equal (buffer-string) after)))))
 
+(defun replace-tests--preview (text from to regexp-flag &optional case-fold)
+  "Return the previews of replacing FROM with TO in a buffer holding TEXT.
+Each preview is a list (BEG END STRING)."
+  (with-temp-buffer
+    (insert text)
+    (set-window-buffer (selected-window) (current-buffer))
+    (unwind-protect
+        (progn
+          (replace-preview-update from to regexp-flag nil case-fold)
+          (mapcar (lambda (ov)
+                    (list (overlay-start ov)
+                          (overlay-end ov)
+                          (substring-no-properties
+                           (or (overlay-get ov 'display)
+                               (overlay-get ov 'before-string)))))
+                  (reverse replace-preview-overlays)))
+      (replace-preview-cleanup))))
+
+(ert-deftest replace-tests-preview-update ()
+  ;; Back-references are expanded in the preview.
+  (should (equal (replace-tests--preview "foo1 foo2\n" "foo\\([0-9]\\)"
+                                         "bar-\\1" t)
+                 '((1 5 "bar-1") (6 10 "bar-2"))))
+  ;; So is the whole match.
+  (should (equal (replace-tests--preview "abc\n" "b" "[\\&]" t)
+                 '((2 3 "[b]"))))
+  ;; The preview adapts the case like the replacement itself does.
+  (should (equal (replace-tests--preview "Foo foo\n" "foo" "bar" nil t)
+                 '((1 4 "Bar") (5 8 "bar"))))
+  ;; An empty match is previewed with a zero-length overlay.
+  (should (equal (replace-tests--preview "ab\n" "x*" "Z" t)
+                 '((1 1 "Z") (2 2 "Z") (3 3 "Z")))))
+
+(ert-deftest replace-tests-preview-cleanup ()
+  (with-temp-buffer
+    (insert "foo foo\n")
+    (set-window-buffer (selected-window) (current-buffer))
+    (replace-preview-update "foo" "bar" nil nil nil)
+    (should replace-preview-overlays)
+    (replace-preview-cleanup)
+    (should-not replace-preview-overlays)
+    (should-not (overlays-in (point-min) (point-max)))))
+
+(ert-deftest replace-tests-preview-disabled ()
+  (let ((query-replace-show-preview nil))
+    (should (eq (replace-preview-setup "foo" nil nil) #'ignore)))
+  (let ((query-replace-show-preview t))
+    (should-not (eq (replace-preview-setup "foo" nil nil) #'ignore))))
+
 (ert-deftest test-count-matches ()
   (with-temp-buffer
     (insert "oooooooooo")

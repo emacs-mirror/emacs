@@ -2450,7 +2450,7 @@ type \\[help-command] at that time."
               (isearch--describe-regexp-mode (or delimited isearch-regexp-function) t)
 	      (if backward " backward" "")
 	      (if (use-region-p) " in region" ""))
-      isearch-regexp)
+      isearch-regexp (or delimited isearch-regexp-function))
      t isearch-regexp (or delimited isearch-regexp-function) nil nil
      (use-region-beginning) (use-region-end)
      backward))
