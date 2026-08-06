@@ -661,21 +661,20 @@ before speedbar has been loaded."
 	       (speedbar-extension-list-to-regex val))))
 
 (defcustom speedbar-directory-unshown-regexp "^\\(\\..*\\)\\'"
-  "Hide matching directories.
+  "How to hide matching directories.
 The value can either be nil or a regular expression:
 
-- The nil value means to not hide any directory.
+- nil means to not hide any directory.
 
-- The regular expression means to hide the matching directories.  Note
-  that it is no longer necessary to include version-control directories
-  here; see `vc-directory-exclusion-list'.
+- A regular expression means to hide matching directories.
+  It is no longer necessary to include version-control directories here;
+  see `vc-directory-exclusion-list'.
 
-The default value is a regular expression.  It hides all directories
+The default value is a regular expression that hides all directories
 whose name starts with a dot."
   :group 'speedbar
-  :type '(choice
-          (regexp :tag "Hide matches of regular expression")
-          (const :tag "Do not hide anything" nil))
+  :type '(choice (regexp :tag "Hide matches of regular expression")
+                 (const :tag "Do not hide anything" nil))
   :version "32.1")
 
 (defcustom speedbar-file-unshown-regexp
@@ -2021,17 +2020,18 @@ the file-system."
 	    (dirs nil)
 	    (files nil)
             (hide-p (lambda (name user-option)
-                      (let ((value (symbol-value user-option)))
-                        (or (and value
-                                 (not (stringp value))
-                                 (user-error "The `%s' must either be a string or nil" user-option))
-                            (and value
-                                 (string-match value name)))))))
+                      (and-let* ((value (symbol-value user-option)))
+                        (if (stringp value)
+                            (string-match value name)
+                          (user-error "`%s' must either be a string or nil"
+                                      user-option))))))
 	(while dir
 	  (if (not
-	       (or (funcall hide-p (car dir) 'speedbar-file-unshown-regexp)
+	       (or (funcall hide-p (car dir)
+                            'speedbar-file-unshown-regexp)
 		   (member (car dir) vc-directory-exclusion-list)
-                   (funcall hide-p (car dir) 'speedbar-directory-unshown-regexp)))
+                   (funcall hide-p (car dir)
+                            'speedbar-directory-unshown-regexp)))
 	      (if (file-directory-p (car dir))
 		  (setq dirs (cons (car dir) dirs))
 		(setq files (cons (car dir) files))))

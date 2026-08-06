@@ -251,10 +251,10 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 ** Speedbar
 
 ---
-*** A nil value for 'speedbar-directory-unshown-regexp' means "show all"
+*** A nil value for 'speedbar-directory-unshown-regexp' means "show all".
 
 ---
-*** A nil value for 'speedbar-file-unshown-regexp' means "show all"
+*** A nil value for 'speedbar-file-unshown-regexp' means "show all".
 
 
 * Incompatible Lisp Changes in Emacs 32.1
