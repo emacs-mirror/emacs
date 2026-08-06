@@ -8242,14 +8242,15 @@ window.  An action alist is an association list mapping symbols
 to values.  Action functions use the action alist passed to them
 to fine-tune their behaviors.
 
-`display-buffer' builds a list of action functions and an action
-alist by combining any action functions and alists specified by
-`display-buffer-overriding-action', `display-buffer-alist', the
-ACTION argument, `display-buffer-base-action', and
-`display-buffer-fallback-action' (in order).  Then it calls each
-function in the combined function list in turn, passing the
-buffer as the first argument and the combined action alist as the
-second argument, until one of the functions returns non-nil.
+`display-buffer' builds a list of action functions and an action alist
+by combining any action functions and alists specified by
+`display-buffer-overriding-action', `display-buffer-alist',
+`display-buffer-default-alist', the ACTION argument,
+`display-buffer-base-action', and `display-buffer-fallback-action' (in
+order).  Then it calls each function in the combined function list in
+turn, passing the buffer as the first argument and the combined action
+alist as the second argument, until one of the functions returns
+non-nil.
 
 See above for the action functions and the action they try to
 perform.
@@ -8374,9 +8375,9 @@ Action alist entries are:
     selected regardless of which windows were selected afterwards within
     this command.
  `category' -- If the caller of `display-buffer' passes an alist entry
-    `(category . symbol)' in its action argument, then you can match
-    the displayed buffer by using the same category in the condition
-    part of `display-buffer-alist' entries.
+    `(category . symbol)' in its action argument, then you can match the
+    displayed buffer by using the same category in the condition part of
+    `display-buffer-alist' and `display-buffer-default-alist' entries.
  `tab-name' -- If non-nil, specifies the name of the tab in which to
     display the buffer; see `display-buffer-in-new-tab'.
  \\+`tab-group' -- If non-nil, specifies the tab group to use when creating

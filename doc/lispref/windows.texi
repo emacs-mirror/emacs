@@ -3203,10 +3203,10 @@ use @code{derived-mode} or @code{major-mode} as condition,
 @code{display-buffer} is called before the major mode of the buffer is
 set.
 
-If the caller of @code{display-buffer} passes a category as a symbol
-in its @var{action} argument, then you can use the same category in
-@code{display-buffer-alist} to match buffers with different names,
-for example:
+If the caller of @code{display-buffer} passes a category as a symbol in
+its @var{action} argument, then you can use the same category in
+@code{display-buffer-alist} and @code{display-buffer-default-alist} to
+match buffers with different names, for example:
 
 @example
 @group
@@ -3224,10 +3224,10 @@ for example:
 @xref{Buffer List, @code{buffer-match-p}}.
 
 Regardless of the displayed buffer's name the caller defines a category
-as a symbol @code{comint}.  Then @code{display-buffer-alist} matches
-this category for all buffers displayed with the same category.
-This avoids the need to construct a complex regular expression
-that matches a buffer name.
+as a symbol @code{comint}.  Then @code{display-buffer-alist} and
+@code{display-buffer-default-alist} match this category for all buffers
+displayed with the same category.  This avoids the need to construct a
+complex regular expression that matches a buffer name.
 
 You can also match on the command now being executed.  This is useful
 when different commands display buffers with the same name, but you want
@@ -4077,13 +4077,15 @@ windows were selected afterwards within this command.
 @vindex category@r{, a buffer display action alist entry}
 @item category
 If the caller of @code{display-buffer} passes an alist entry
-@w{@code{(category . @var{symbol})}} in its @var{action} argument, then you
-can match the displayed buffer by using the same category symbol in the
-condition part of @code{display-buffer-alist} entries.  @xref{Buffer
-List, @code{buffer-match-p}}.  Thus, if a Lisp program uses a particular
+@w{@code{(category . @var{symbol})}} in its @var{action} argument, then
+you can match the displayed buffer by using the same category symbol in
+the condition part of @code{display-buffer-alist} and
+@code{display-buffer-default-alist} entries.  @xref{Buffer List,
+@code{buffer-match-p}}.  Thus, if a Lisp program uses a particular
 @var{symbol} as the category when calling @code{display-buffer}, users
 can customize how these buffers will be displayed by including such an
-entry in @code{display-buffer-alist}.
+entry in @code{display-buffer-alist}.  Programs can let-bind
+@code{display-buffer-default-alist} to achieve the same effect.
 
 @vindex tab-name@r{, a buffer display action alist entry}
 @item tab-name
