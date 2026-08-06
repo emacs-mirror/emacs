@@ -100,11 +100,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # include "xwidget.h"
 #endif
 
-#ifdef GNU_LINUX
-#include <sys/resource.h>
-#include <errno.h>
-#endif
-
 #if !USE_LSB_TAG
 # error "USE_LSB_TAG required"
 #endif
@@ -5912,26 +5907,6 @@ read_arena_size (size_t *size)
   if (!ok)
     return parse_error (key);
   return ok;
-}
-
-static bool
-read_commit_limit (size_t *size_o)
-{
-  size_t limit = SIZE_MAX;
-#ifdef GNU_LINUX
-  {
-    errno = 0;
-    long phys_limit = sysconf (_SC_PHYS_PAGES);
-    if (phys_limit != -1 && errno == 0)
-      limit = min (limit, (size_t) phys_limit * getpagesize ());
-
-    struct rlimit data_limit;
-    if (getrlimit (RLIMIT_DATA, &data_limit) == 0)
-      limit = min (limit, data_limit.rlim_cur);
-  }
-#endif
-  *size_o = limit;
-  return limit != SIZE_MAX;
 }
 
 static void

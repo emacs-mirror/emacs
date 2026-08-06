@@ -5928,6 +5928,7 @@ extern int renameat_noreplace (int, char const *, int, char const *);
 #endif
 extern int str_collate (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
 extern void syms_of_sysdep (void);
+extern bool read_commit_limit (size_t *);
 
 /* Defined in filelock.c.  */
 extern void unlock_all_files (void);

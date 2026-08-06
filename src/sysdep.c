@@ -4707,6 +4707,41 @@ str_collate (Lisp_Object s1, Lisp_Object s2,
 }
 #endif	/* WINDOWSNT */
 
+
+#ifdef HAVE_MPS
+/* Commit limit for MPS.   */
+
+
+bool
+read_commit_limit (size_t *size_o)
+{
+  size_t limit = SIZE_MAX;
+
+#ifdef _SC_PHYS_PAGES
+  errno = 0;
+  long phys_limit = sysconf (_SC_PHYS_PAGES);
+  if (phys_limit != -1 && errno == 0)
+    limit = min (limit, (size_t) phys_limit * getpagesize ());
+#endif
+
+#if defined HAVE_GETRLIMIT && defined RLIMIT_DATA
+  struct rlimit data_limit;
+  if (getrlimit (RLIMIT_DATA, &data_limit) == 0)
+    limit = min (limit, data_limit.rlim_cur);
+#endif
+
+#ifdef WINDOWSNT
+  unsigned long long phys_limit, commit_limit;
+  unsigned long long ignored1, ignored2;
+  if (w32_memory_info (&phys_limit, &ignored1, &commit_limit, &ignored2) == 0)
+    limit = min (min (limit, phys_limit), commit_limit);
+#endif
+
+  *size_o = limit;
+  return limit != SIZE_MAX;
+}
+
+#endif	/* HAVE_MPS */
 void
 syms_of_sysdep (void)
 {
