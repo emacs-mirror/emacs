@@ -325,7 +325,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 
 static Lisp_Object
 access_keymap_1 (Lisp_Object map, Lisp_Object idx,
-		 bool t_ok, bool noinherit, bool autoload)
+		 bool t_ok, bool noinherit)
 {
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
@@ -352,8 +352,8 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
       if (XFIXNUM (meta_prefix_char) & CHAR_META)
 	meta_prefix_char = make_fixnum (27);
       event_meta_binding = access_keymap_1 (map, meta_prefix_char, t_ok,
-					    noinherit, autoload);
-      event_meta_map = get_keymap (event_meta_binding, 0, autoload);
+					    noinherit);
+      event_meta_map = get_keymap (event_meta_binding, 0, true);
       if (CONSP (event_meta_map))
 	{
 	  map = event_meta_map;
@@ -378,13 +378,13 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 
     for (tail = (CONSP (map) && EQ (Qkeymap, XCAR (map))) ? XCDR (map) : map;
 	 (CONSP (tail)
-	  || (tail = get_keymap (tail, 0, autoload), CONSP (tail)));
+	  || (tail = get_keymap (tail, 0, true), CONSP (tail)));
 	 tail = XCDR (tail))
       {
 	/* Qunbound in VAL means we have found no binding.  */
 	Lisp_Object val = Qunbound;
 	Lisp_Object binding = XCAR (tail);
-	Lisp_Object submap = get_keymap (binding, 0, autoload);
+	Lisp_Object submap = get_keymap (binding, 0, true);
 
 	if (EQ (binding, Qkeymap))
 	  {
@@ -396,9 +396,8 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 		Lisp_Object parent_entry;
 		eassert (KEYMAPP (retval));
 		parent_entry
-		  = get_keymap (access_keymap_1 (tail, idx,
-						 t_ok, 0, autoload),
-				0, autoload);
+		  = get_keymap (access_keymap_1 (tail, idx, t_ok, 0),
+				0, true);
 		if (KEYMAPP (parent_entry))
 		  {
 		    if (CONSP (retval_tail))
@@ -414,7 +413,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 	  }
 	else if (CONSP (submap))
 	  {
-	    val = access_keymap_1 (submap, idx, t_ok, noinherit, autoload);
+	    val = access_keymap_1 (submap, idx, t_ok, noinherit);
 	  }
 	else if (CONSP (binding))
 	  {
@@ -458,7 +457,7 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
 		 keymaps of lower precedence).  */
 	      val = Qnil;
 
-	    val = get_keyelt (val, autoload);
+	    val = get_keyelt (val, true);
 
 	    if (!KEYMAPP (val))
 	      {
@@ -484,15 +483,15 @@ access_keymap_1 (Lisp_Object map, Lisp_Object idx,
       }
 
     return BASE_EQ (Qunbound, retval)
-           ? get_keyelt (t_binding, autoload) : retval;
+           ? get_keyelt (t_binding, true) : retval;
   }
 }
 
 Lisp_Object
 access_keymap (Lisp_Object map, Lisp_Object idx,
-	       bool t_ok, bool noinherit, bool autoload)
+	       bool t_ok, bool noinherit)
 {
-  Lisp_Object val = access_keymap_1 (map, idx, t_ok, noinherit, autoload);
+  Lisp_Object val = access_keymap_1 (map, idx, t_ok, noinherit);
   return BASE_EQ (val, Qunbound) ? Qnil : val;
 }
 
@@ -1187,7 +1186,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
       if (idx == length)
 	return store_in_keymap (keymap, c, def, !NILP (remove));
 
-      Lisp_Object cmd = access_keymap (keymap, c, 0, 1, 1);
+      Lisp_Object cmd = access_keymap (keymap, c, 0, 1);
 
       /* If this key is undefined, make it a prefix.  */
       if (NILP (cmd))
@@ -1273,7 +1272,7 @@ lookup_key_1 (Lisp_Object keymap, Lisp_Object key, Lisp_Object accept_default)
       if (!FIXNUMP (c) && !SYMBOLP (c) && !CONSP (c) && !STRINGP (c))
 	message_with_string ("Key sequence contains invalid event %s", c, 1);
 
-      Lisp_Object cmd = access_keymap (keymap, c, t_ok, 0, 1);
+      Lisp_Object cmd = access_keymap (keymap, c, t_ok, 0);
       if (idx == length)
 	return cmd;
 

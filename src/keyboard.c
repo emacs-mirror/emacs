@@ -3110,7 +3110,7 @@ read_char (int commandflag, Lisp_Object map,
      and loop around to read another event.  */
   save = Vquit_flag;
   Vquit_flag = Qnil;
-  tem = access_keymap (get_keymap (Vspecial_event_map, 0, 1), c, 0, 0, 1);
+  tem = access_keymap (get_keymap (Vspecial_event_map, 0, 1), c, 0, 0);
   Vquit_flag = save;
 
   if (!NILP (tem))
@@ -8721,7 +8721,7 @@ menu_bar_items (Lisp_Object old)
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
     if (!NILP (maps[mapno]))
       {
-	def = get_keymap (access_keymap (maps[mapno], Qmenu_bar, 1, 0, 1),
+	def = get_keymap (access_keymap (maps[mapno], Qmenu_bar, 1, 0),
 			  0, 1);
 	if (CONSP (def))
 	  {
@@ -9279,7 +9279,7 @@ tab_bar_items (Lisp_Object reuse, int *nitems)
       {
 	Lisp_Object keymap;
 
-	keymap = get_keymap (access_keymap (maps[i], Qtab_bar, 1, 0, 1), 0, 1);
+	keymap = get_keymap (access_keymap (maps[i], Qtab_bar, 1, 0), 0, 1);
 	if (CONSP (keymap))
 	  map_keymap (keymap, process_tab_bar_item, Qnil, NULL, 1);
       }
@@ -9663,7 +9663,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
       {
 	Lisp_Object keymap;
 
-	keymap = get_keymap (access_keymap (maps[i], Qtool_bar, 1, 0, 1), 0, 1);
+	keymap = get_keymap (access_keymap (maps[i], Qtool_bar, 1, 0), 0, 1);
 	if (CONSP (keymap))
 	  map_keymap (keymap, process_tool_bar_item, Qnil, NULL, 1);
       }
@@ -10158,7 +10158,7 @@ static Lisp_Object
 follow_key (Lisp_Object keymap, Lisp_Object key)
 {
   return access_keymap (get_keymap (keymap, 0, 1),
-			key, 1, 0, 1);
+			key, 1, 0);
 }
 
 static Lisp_Object
@@ -10438,7 +10438,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
   Lisp_Object next;
   specpdl_ref count;
 
-  next = access_keymap (map, key, 1, 0, 1);
+  next = access_keymap (map, key, 1, 0);
 
   /* Handle a symbol whose function definition is a keymap
      or an array.  */
