@@ -4103,6 +4103,7 @@ objects removed."
 (defun package-menu--perform-transaction (install-list delete-list)
   "Install packages in INSTALL-LIST and delete DELETE-LIST.
 Return nil if there were no errors; non-nil otherwise."
+  (remove-overlays (point-min) (point-max) 'pkg-menu-ov t)
   (let ((errors nil))
     (if install-list
         (let ((status-format (format ":Installing %%d/%d"
