@@ -5761,6 +5761,12 @@ in the active region.  BEG and END is the range affected by this entry
 and DELTA is the number of characters added or deleted in that range by
 this change.
 
+An entry (apply DELTA (BEG . END) FUN-NAME . ARGS) is similar to the
+previous kind.  The difference is that Emacs invokes FUN-NAME with
+\(apply FUN-NAME BEG2 END2 ARGS), where BEG2 and END2 are the adjusted
+values of BEG and END.  The function can use those arguments to compute
+positions relative to the adjusted region.
+
 An entry (MARKER . DISTANCE) indicates that the marker MARKER
 was adjusted in position by the offset DISTANCE (an integer).
 
