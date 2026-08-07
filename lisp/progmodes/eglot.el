@@ -2062,7 +2062,7 @@ Unless IMMEDIATE, send pending changes before making request."
 
 (defvar-local eglot--inflight-async-requests nil
   "An plist of symbols to lists of JSONRPC ids.
-The ids designate in-flight asynchronous requests that may be cancelled
+The ids designate in-flight asynchronous requests that may be canceled
 according to `eglot-advertise-cancellation'.")
 
 (cl-defun eglot--cancel-inflight-async-requests

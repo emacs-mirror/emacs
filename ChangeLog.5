@@ -963,7 +963,7 @@
 
 	* lisp/treesit.el:
 	(treesit--embed-languages-need-full-parse): New variable.
-	(treesit--set-embed-ranges): Reparse full range if the langauge
+	(treesit--set-embed-ranges): Reparse full range if the language
 	needs it.
 
 2026-06-19  Stephen Berman  <stephen.berman@gmx.net>
@@ -1302,7 +1302,7 @@
 	* src/xselect.c (x_display_selection_waiting_message):
 	(x_cancel_atimer):
 	(x_get_foreign_selection): Use a pointer to a timer variable, which is
-	cleared when the timer runs or is otherwise cancelled.  Don't cancel
+	cleared when the timer runs or is otherwise canceled.  Don't cancel
 	the timer twice.
 
 2026-06-06  Pip Cet  <pipcet@protonmail.com>
@@ -2752,7 +2752,7 @@
 	call into the backend to gather the VC state.  Since this function is
 	also called from another context, where the requirements are less clear,
 	keeping current smenatics in that situation seemed prudent, so the new
-	behaviour is activate with a new optional parameter.
+	behavior is activate with a new optional parameter.
 
 	* lisp/vc/vc-dir.el (vc-dir-resynch-file): Call
 	vc-dir-recompute-file-state with truename=t.
@@ -3936,7 +3936,7 @@
 
 2026-04-30  Vladimir Kazanov  <vekazanov@gmail.com>
 
-	Add ERT coverage for read_key_sequence behaviour
+	Add ERT coverage for read_key_sequence behavior
 
 	* test/src/keyboard-tests.el
 	(keyboard-tests--rks-fake-posn)
@@ -6419,7 +6419,7 @@
 	Implement new Dired handling of errors from 'ls'
 
 	The error messages are now displayed in a popped up buffer instead
-	of being output in the Dired buffer and signalling an error.  The
+	of being output in the Dired buffer and signaling an error.  The
 	file name bounds in Dired entries are now determined solely by the
 	offsets calculated by 'ls' with the --dired option and
 	consequently Dired now reliably recognizes file names that contain
@@ -7991,10 +7991,10 @@
 
 2026-03-03  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Faster JSON string serialisation (bug#80529)
+	Faster JSON string serialization (bug#80529)
 
 	* src/json.c (json_out_string):
-	Optimise for runs of non-special ASCII chars.
+	Optimize for runs of non-special ASCII chars.
 
 	This seems to be a a substantial performance gain for long strings but a
 	smaller regression for short strings (up to 6 chars or thereabouts,
@@ -8269,7 +8269,7 @@
 
 2026-02-28  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Implement string> as a compiler macro instead of an optimisation
+	Implement string> as a compiler macro instead of an optimization
 
 	This doesn't affect the generated code.
 
@@ -8493,10 +8493,10 @@
 
 2026-02-26  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Simplify peephole optimisation rule
+	Simplify peephole optimization rule
 
 	* lisp/emacs-lisp/byte-opt.el (byte-optimize-lapcode):
-	Remove some obsolete dynamic variable optimisations that no longer
+	Remove some obsolete dynamic variable optimizations that no longer
 	improve any code.  Fix broken logging (thanks Pip).
 
 2026-02-26  Yuan Fu  <casouri@gmail.com>
@@ -8580,7 +8580,7 @@
 	Fix eglot-tests on MacOS (bug#80479)
 
 	* test/lisp/progmodes/eglot-tests.el (eglot--call-with-fixture):
-	Normalise 'temporary-file-directory' to stave off problems that
+	Normalize 'temporary-file-directory' to stave off problems that
 	occur when it contains symlinks, which is common on MacOS.
 
 2026-02-24  Mattias Engdegård  <mattias.engdegard@gmail.com>
@@ -9230,7 +9230,7 @@
 
 2026-02-20  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Optimise closed-over variables earlier
+	Optimize closed-over variables earlier
 
 	* lisp/emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
 	Treat 'internal-get-closed-var' as a special form and delete it in
@@ -9238,7 +9238,7 @@
 
 2026-02-20  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Remove two obsolete peephole optimisation rules
+	Remove two obsolete peephole optimization rules
 
 	* lisp/emacs-lisp/byte-opt.el (byte-optimize-lapcode):
 	Remove two rules: the first could sometimes skip a varref in a loop;
@@ -9247,7 +9247,7 @@
 	from the top to the bottom of a loop but depended on the first to work.
 
 	Both were quite slow, easily measurable when compiling big files, and
-	arguably O(n³) which isn't very good for a peephole optimisation.
+	arguably O(n³) which isn't very good for a peephole optimization.
 
 2026-02-20  Sean Whitton  <spwhitton@spwhitton.name>
 
@@ -10375,7 +10375,7 @@
 
 2026-02-11  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Better 'prog1' optimisation
+	Better 'prog1' optimization
 
 	* lisp/emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
 	Always evaporate 'prog1' when the tail is effect-free, even
@@ -10844,7 +10844,7 @@
 	(package--autosuggest-find-candidates)
 	(package--autosugest-line-format, package-autosuggest-face)
 	(package--autosuggest-after-change-mode, package-autosuggest):
-	Remove definitions needed to recognise suggestions from here.
+	Remove definitions needed to recognize suggestions from here.
 
 	* lisp/emacs-lisp/package-activate.el (package-autosuggest-style)
 	(package--autosuggest-database, package--autosuggest-suggested)
@@ -10892,7 +10892,7 @@
 	Eglot: fix thinko in eglot--async-request
 
 	Just because a specific request of a specific "hint" is
-	cancelled doesn't mean we can cancel the other's too.  Also
+	canceled doesn't mean we can cancel the other's too.  Also
 	eglot-advertise-cancellation = nil was subtly broken.
 
 	This manifested itself mostly in Eglot semantic tokens.
@@ -11331,7 +11331,7 @@
 
 	* lisp/progmodes/eglot.el (eglot-server-programs): Use "elp" for erlang-mode.
 
-	erlang_ls has been archived in favour of erlang-language-platform.
+	erlang_ls has been archived in favor of erlang-language-platform.
 	Suggested by Alan & Kim Zimmerman <alan.zimm@gmail.com> (bug#79943).
 
 2026-01-30  Juri Linkov  <juri@linkov.net>
@@ -11991,11 +11991,11 @@
 
 2026-01-23  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	* lisp/emacs-lisp/pcase.el (pcase--macroexpand): Normalise atom etc.
+	* lisp/emacs-lisp/pcase.el (pcase--macroexpand): Normalize atom etc.
 
 	Transform (pred P) for P in {atom, nlistp, identity, not} into
 	predicates that pcase already understands in type terms.
-	This doesn't affect the behaviour but generates better code.
+	This doesn't affect the behavior but generates better code.
 
 2026-01-23  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
@@ -12237,7 +12237,7 @@
 
 	It was completely broken, with a cancel being set for every sent (and
 	probably already received) async request, and no actual discarding
-	of the response of a cancelled request.
+	of the response of a canceled request.
 
 	* lisp/progmodes/eglot.el (eglot--async-request): Fix cancellation
 	of async requests.
@@ -14054,7 +14054,7 @@
 	associated alist entries `tab-name' and `tab-group'.
 
 	* lisp/tab-bar.el (display-buffer-in-tab): Restructure docstring for
-	clarity.  Describe the `reusable-frames' behaviour first (as if it finds
+	clarity.  Describe the `reusable-frames' behavior first (as if it finds
 	a frame with a suitable tab then the `tab-name' entry is not used).
 
 	(display-buffer-in-new-tab): Use consistent wording.
@@ -14157,7 +14157,7 @@
 
 2026-01-01  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Clean up a lapcode peephole optimisation rule
+	Clean up a lapcode peephole optimization rule
 
 	* lisp/emacs-lisp/byte-opt.el (byte-optimize-lapcode):
 	Clean up and simplify an old jump-to-conditional-jump rule that was
@@ -14618,7 +14618,7 @@
 	* lisp/subr.el (split-string):
 
 	Make it clear that the SEPARATORS argument should not match the empty
-	string, since the behaviour was entirely an artefact of the original
+	string, since the behavior was entirely an artefact of the original
 	implementation in this case; it makes little sense otherwise.
 
 	Clean up the examples for conciseness and do not waste space on
@@ -14629,8 +14629,8 @@
 	Various split-string improvements
 
 	* lisp/subr.el (split-string):
-	Fix quadratic behaviour in (split-string "x:x:x..." ":" nil " +").
-	General code reorganisation for speed and reduced allocation.
+	Fix quadratic behavior in (split-string "x:x:x..." ":" nil " +").
+	General code reorganization for speed and reduced allocation.
 	Fix a regexp bug; eg, (split-string "A;B" "," nil ";\\|:")
 
 	* test/lisp/subr-tests.el (subr-test-split-string):
@@ -14897,7 +14897,7 @@
 
 2025-12-22  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Recognise %b and %B in compile-time format string checker
+	Recognize %b and %B in compile-time format string checker
 
 	* lisp/emacs-lisp/bytecomp.el (byte-compile-format-warn): Add b and B.
 
@@ -16137,7 +16137,7 @@
 	(package-vc-tests-packages): Rename test packages to avoid
 	suffix being treated as a version number by
 	`package--description-file'.
-	(package-vc-tests-add): Ensure suffix capitalisation remains as
+	(package-vc-tests-add): Ensure suffix capitalization remains as
 	original when calling `replace-regexp-in-string'.
 	(package-vc-tests-create-repository): Fix typo in temporary
 	email and use a reserved TLD.
@@ -16542,7 +16542,7 @@
 	* lisp/progmodes/antlr-mode.el: Correct indentation of rule headers.
 	(antlr-indent-line): When looking for the end of a rule header, do
 	not stop at colon if that is followed by another one, because this
-	the scope name of a preceeding grammar action.
+	the scope name of a preceding grammar action.
 
 	* lisp/progmodes/antlr-mode.el: Support more action languages.
 	(antlr-language-alist): Add entries for C, Delphi, JavaScript,
@@ -17893,7 +17893,7 @@
 	Therefore it's better for the ergonomics of this commonly used command
 	to leave the code as it was and simply rely on C-n to bring in the
 	default value (which is the current symbol name), instead of forcing
-	users accustomed to the previous behaviour remember to press sth like
+	users accustomed to the previous behavior remember to press sth like
 	M-DEL to clean the input.
 
 	* lisp/progmodes/eglot.el (eglot-rename): Tweak.
@@ -18431,7 +18431,7 @@
 	* lisp/emacs-lisp/cond-star.el (cond*-convert-condition): Bind
 	unused values to fresh symbols, to avoid the compiler warning
 	that a symbol starting with an underscore is accessed later on.
-	This mirrors the behaviour of `if-let*' and family.
+	This mirrors the behavior of `if-let*' and family.
 
 2025-11-24  Juri Linkov  <juri@linkov.net>
 
@@ -20637,9 +20637,9 @@
 	(rcirc-markup-attributes): Delete markup codes straight after
 	processing it, to correctly handle toggling codes.  E.g. when
 	processing the message "one ^Btwo^B three", we previously
-	recognised the first interval "^Btwo^B" and moved over the ^B.
+	recognized the first interval "^Btwo^B" and moved over the ^B.
 	Searching for the next range to markup, we would now falsely
-	recognise "^B three" to be another markup range, instead of it
+	recognize "^B three" to be another markup range, instead of it
 	being the negative toggle.  By removing the processed codes, we
 	avoid this issue.  This reverts the functionality removed in
 	946ceca2, and therefore also re-adds the check to make an
@@ -20897,7 +20897,7 @@
 	Define compiler macros for /=, atom and nlistp
 
 	Calls to these functions were previously rewritten in terms of other
-	functions both in the optimiser and during codegen, for no good reason.
+	functions both in the optimizer and during codegen, for no good reason.
 
 	This also resulted in poor diagnostics: wrong-arity calls to 'atom' and
 	'nlistp' produced doubled but slightly-different warnings, and no
@@ -20911,11 +20911,11 @@
 
 2025-10-30  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Fix numeric comparison bug when optimisation is disabled
+	Fix numeric comparison bug when optimization is disabled
 
 	* lisp/emacs-lisp/bytecomp.el (byte-compile-cmp):
-	Don't assume that N-ary comparisons have been normalised, which is done
-	in the optimiser.  Reported by Pip Cet.
+	Don't assume that N-ary comparisons have been normalized, which is done
+	in the optimizer.  Reported by Pip Cet.
 
 2025-10-30  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
@@ -20937,7 +20937,7 @@
 
 	* lisp/textmodes/markdown-ts-mode.el:
 	(markdown-ts--convert-code-block-language): Return nil if the
-	langauge doesn't have a corresponding major mode in
+	language doesn't have a corresponding major mode in
 	markdown-ts-code-block-source-mode-map.
 
 2025-10-30  Yuan Fu  <casouri@gmail.com>
@@ -21141,14 +21141,14 @@
 
 2025-10-24  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Fix peephole optimiser bug for symbolp
+	Fix peephole optimizer bug for symbolp
 
 	* lisp/emacs-lisp/byte-opt.el (byte-optimize-lapcode):
 	Don't sink 'symbolp' past 'unbind'; it's unsafe.
 
 2025-10-24  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Move some constants into the peephole optimiser
+	Move some constants into the peephole optimizer
 
 	* lisp/emacs-lisp/byte-opt.el (byte-tagref-ops, byte-conditional-ops)
 	(byte-after-unbind-ops, byte-compile-side-effect-and-error-free-ops)
@@ -22178,7 +22178,7 @@
 	Fix Tramp customization
 
 	Do not use the ;;;###tramp-autoload cookie for defcustoms.  This
-	damages the customisation when Tramp is autoloaded.  Reported by
+	damages the customization when Tramp is autoloaded.  Reported by
 	Joel Reicher <joel.reicher@gmail.com>.
 
 	* lisp/net/tramp-cache.el (tramp-verbose): Declare.
@@ -24579,7 +24579,7 @@
 
 2025-09-07  Mattias Engdegård  <mattias.engdegard@gmail.com>
 
-	Harmonise doc strings for {re-,posix-,}search-{forward,backward}
+	Harmonize doc strings for {re-,posix-,}search-{forward,backward}
 
 	The doc strings for re-search-forward and re-search-backward have been
 	improved (bug#25193, bug#31584) but the corresponding posix- and
@@ -26098,7 +26098,7 @@
 
 	The previous fix for this bug is an acceptable approach, but
 	more care must be taken when clearing a flymake--state object's
-	diagnostics.  Refactor this behaviour into a helper.
+	diagnostics.  Refactor this behavior into a helper.
 
 	* lisp/progmodes/flymake.el (flymake--clear-state): New helper.
 	(flymake--publish-diagnostics, flymake-start): Use it.
@@ -34561,7 +34561,7 @@
 
 	* lisp/emacs-lisp/package.el (package-unpack, package-dir-info):
 	Check the marked files if in a Dired buffer, and otherwise
-	fallback on the previous behaviour or if there was no selection.
+	fallback on the previous behavior or if there was no selection.
 	(package-install-from-buffer): Document the feature.
 	* etc/NEWS: Mention the change.
 
@@ -39020,7 +39020,7 @@
 
 2025-03-25  Philipp Stephani  <p.stephani2@gmail.com>
 
-	Mimic behavior of 'aref' when signalling out-of-range errors.
+	Mimic behavior of 'aref' when signaling out-of-range errors.
 
 	The convention used by 'aref' and friends is that for
 	'args-out-of-range', the error data is a list (SEQ INDEX).  Use the same
@@ -39036,7 +39036,7 @@
 	'args-out-of-range' means that some index argument isn't valid for a
 	given sequence/range, which isn't the case here.  Instead, define a new
 	error symbol to mean "user-supplied buffer is too small."  Since we
-	never specified nor tested which error symbol was signalled in this
+	never specified nor tested which error symbol was signaled in this
 	case, changing it shouldn't cause severe breakages.
 
 	* src/emacs-module.c (module_buffer_too_small): New helper function.
@@ -44046,7 +44046,7 @@
 	type by default.
 	* doc/emacs/killing.texi (Clipboard):
 	* doc/lispref/frames.texi (Yanking Media): Document the new
-	behaviour, and the new variables.
+	behavior, and the new variables.
 	* etc/NEWS: Announce the change.  (Bug#75116)
 
 2025-02-22  Mauro Aranda  <maurooaranda@gmail.com>
@@ -50187,7 +50187,7 @@
 
 	* lisp/progmodes/go-ts-mode.el (go-ts-mode-test-flags):
 	(go-ts-mode--get-test-flags): New custom variable and function
-	for controlling test behaviour.
+	for controlling test behavior.
 	(go-ts-mode--compile-test): Updated to use new test flags
 	variable for passing extra information to the go test command
 	line.
@@ -51504,13 +51504,13 @@
 	usability problem.  It is relatively too easy to mistakenly
 	launch the function and, if a region of text is selected, have
 	potentially sensitive data sent out to a third-party service.
-	This commit changes the search function's default behaviour so
+	This commit changes the search function's default behavior so
 	that explicit confirmation is required before a region is sent
-	to a search engine.  The behaviour can be adjusted via the
+	to a search engine.  The behavior can be adjusted via the
 	newly-introduced 'eww-search-confirm-send-region' variable,
 	which is set to true by default.
 	* lisp/net/eww.el (eww-search-confirm-send-region): Add.
-	(eww-search-words): Update default 'eww-search-words' behaviour
+	(eww-search-words): Update default 'eww-search-words' behavior
 	so as to ask confirmation before sending the region to a search
 	engine.  (Bug#74218)
 
@@ -58890,7 +58890,7 @@
 
 	* lisp/vc/diff-mode.el (diff-vc-deduce-fileset): Signal
 	user-error when the buffer is narrowed.
-	* lisp/vc/vc.el (vc-next-action): Remove code signalling a
+	* lisp/vc/vc.el (vc-next-action): Remove code signaling a
 	user-error when the buffer is narrowed.
 
 2024-10-02  Stefan Kangas  <stefankangas@gmail.com>
@@ -59324,7 +59324,7 @@
 	(Finternal_set_lisp_face_attribute_from_resource)
 	(Finternal_get_lisp_face_attribute)
 	(Finternal_lisp_face_attribute_values, syms_of_xfaces):
-	Stop recognising :reverse-video.
+	Stop recognizing :reverse-video.
 	* etc/NEWS: Announce.
 
 2024-09-29  Mattias Engdegård  <mattiase@acm.org>
@@ -59787,7 +59787,7 @@
 	when the mode is activated.
 	(midnight-delay-set): Only start the timer if the mode is turned
 	on.  (Bug#73291)
-	* etc/NEWS: Document the change in behaviour.
+	* etc/NEWS: Document the change in behavior.
 
 2024-09-21  Stefan Kangas  <stefankangas@gmail.com>
 
@@ -60619,7 +60619,7 @@
 
 2024-09-09  Mattias Engdegård  <mattiase@acm.org>
 
-	* etc/emacs_lldb.py (Lisp_Object): Recognise Lisp_Sub_Char_Table
+	* etc/emacs_lldb.py (Lisp_Object): Recognize Lisp_Sub_Char_Table
 
 2024-09-09  Mattias Engdegård  <mattiase@acm.org>
 
@@ -63559,7 +63559,7 @@
 	Improve implementation of built-in Eshell "kill" command
 
 	* lisp/eshell/esh-proc.el (eshell/kill): Fix handling of commands like
-	"kill 123".  Use REMOTE when signalling PIDs in remote directories.
+	"kill 123".  Use REMOTE when signaling PIDs in remote directories.
 	Signal using process objects when possible.  Report errors when failing
 	to signal.
 

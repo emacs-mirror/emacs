@@ -4652,7 +4652,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 	       setaf and setab treat them as the first eight indexed
 	       ANSI colors. */
 	  }
-	/* Fall back to direct colour by RGB value (semicolon version)
+	/* Fall back to direct color by RGB value (semicolon version)
 	   if Tc is set (de-facto standard introduced by tmux) or if
 	   requested by the COLORTERM environment variable.  */
 	else if ((tigetflag ("Tc") > 0)

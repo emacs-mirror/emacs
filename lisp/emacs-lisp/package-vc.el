@@ -738,7 +738,7 @@ attribute in PKG-SPEC."
               (let* ((remove (seq-remove
                               #'file-exists-p
                               (let ((default-directory dir))
-                                (mapcar #'expand-file-name '("REAME-elpa"))))))
+                                (mapcar #'expand-file-name '("README-elpa"))))))
                 (copy-directory
                  (file-name-as-directory (package-desc-dir prev-desc))
                  (file-name-as-directory dir)

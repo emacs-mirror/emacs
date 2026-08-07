@@ -14990,7 +14990,7 @@ set it to =toc=:
 #+cindex: LaTeX ToC export a la ~org~
 #+cindex: @samp{org-latex-toc-include-unnumbered}
 If you want the LaTeX exporter to behave like other exporters,
-customise the variable ~org-latex-toc-include-unnumbered~ and
+customize the variable ~org-latex-toc-include-unnumbered~ and
 set it to ~t~:
 
 #+begin_example

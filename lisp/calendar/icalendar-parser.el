@@ -2885,7 +2885,7 @@ facilitate parsing that property."
 
 This property is a keyword used by an Organizer to inform
 Attendees about the status of a component, e.g. whether an
-`icalendar-vevent' has been cancelled, whether an
+`icalendar-vevent' has been canceled, whether an
 `icalendar-vtodo' has been completed, or whether an
 `icalendar-vjournal' is still in draft form.  It can be specified
 at most once on these components."

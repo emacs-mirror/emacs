@@ -34,7 +34,7 @@ skip messages from "fools" and those in untracked buffers.
 Option 'erc-desktop-notifications-ignored-when-focused' can spare users
 from being notified when interacting with the initiating buffer.
 
-** Apply options granularly to specific connections or buffers.
+** Apply options in detail to specific connections or buffers.
 Based on an idea drafted nearly a quarter century ago by ERC's earliest
 contributors, the 'settings' module offers a ready-made method for
 binding arbitrary user options to various "scopes" of interest.  It

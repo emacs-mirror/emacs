@@ -4862,7 +4862,7 @@ to the working revision (except for keyword expansion)."
                                (format (ngettext "%d file" "%d files"
                                                  nfiles)
                                        nfiles)))))
-	    (error "Revert cancelled")))
+	    (error "Revert canceled")))
       (when diff-buffer
 	(quit-windows-on diff-buffer (eq vc-revert-show-diff 'kill))))
     (vc-revert-files backend files)))

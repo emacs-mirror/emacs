@@ -6070,7 +6070,7 @@ Modifies the match data; use `save-match-data' if necessary."
                  (< start len)))))
     ;; field after last separator, if any
     (let ((item (if (= start 0)
-                    string    ; optimisation when there is no separator
+                    string    ; optimization when there is no separator
                   (substring string start))))
       (when trim
         (let* ((item-beg (if (string-match trim-left-re item 0)

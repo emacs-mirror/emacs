@@ -467,7 +467,7 @@ matches lines like:
       (one-or-more space)
       "Status:"
       (zero-or-more space)
-      (group-n 1 (or "tentative" "confirmed" "cancelled" "needs-action" "completed"
+      (group-n 1 (or "tentative" "confirmed" "canceled" "needs-action" "completed"
                      "in-process" "draft" "final")))
   "Regular expression to match status of an event.
 

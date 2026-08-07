@@ -5027,7 +5027,7 @@ If narrowing is in effect, only parse the visible part of the
 buffer.
 
 This function assumes that current major mode is `org-mode'.  When the
-major mode is different, the behaviour is undefined.
+major mode is different, the behavior is undefined.
 
 Optional argument GRANULARITY determines the depth of the
 recursion.  It can be set to the following symbols:

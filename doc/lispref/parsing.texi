@@ -2171,7 +2171,7 @@ underscore are ignored, and the @code{@@language} capture name is
 reserved.
 
 If the embedded language is dynamic, then @code{:embed} can specify a
-function rathar than a static language.  The function takes the node
+function rather than a static language.  The function takes the node
 captured with @code{@@language} capture name.  Care have to be taken that
 the @code{@@language} capture and the range capture are in the same
 match group.  The function should return either a language symbol, or nil

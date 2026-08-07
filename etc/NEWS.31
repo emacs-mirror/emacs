@@ -3378,7 +3378,7 @@ contents of the current buffer.
 When enabled, this displays indications about the availability of add-on
 ELPA packages for the current buffer and suggestions for installing
 those packages.  The default is to show a button on the mode line that
-can be used to install such packages, but you can customise the
+can be used to install such packages, but you can customize the
 presentation style of these suggestions using
 'package-autosuggest-style'.
 

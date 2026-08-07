@@ -58,8 +58,8 @@ fi
 ]AC_SUBST([DOCMISC_W32])
 ])
 dnl
-dnl gl_dollar is needed for $1, $2 etc. in AWK snippets not to be intepreted by
-dnl M4 as macros arguments.
+dnl gl_dollar is needed for $1, $2 etc. in AWK snippets not to be interpreted by
+dnl M4 as macro arguments.
 m4_define([gl_dollar],[m4_quote([$])])dnl
 m4_define([gl_DOCLANGS_FULL],[[default fr]])dnl
 dnl This is minimal texinfo.tex version with "-" removed from the ISO date
@@ -68,10 +68,10 @@ dnl language/encoding corresponding locale is not installer nor active.
 dnl See texinfo version 836b8924560.
 m4_define([gl_TEXINFO_TEX_MINVER],[[20260426.12]])dnl
 m4_define([gl_TEXINDEX_MINVER],[[7.1]])dnl
-m4_define([gl_TEXINFO_INDEXING_IS_LOCALE_DEPENDANT],[dnl
+m4_define([gl_TEXINFO_INDEXING_IS_LOCALE_DEPENDENT],[dnl
 [DOCLANGS='default'
 gl_fn_doclangs_info () {]
-  AC_MSG_WARN([texinfo.tex/texindex versions suggest that indexing is locale dependant, manual compilation is restricted to lang 'default', override this by setting DOCLANGS in the environment])
+  AC_MSG_WARN([texinfo.tex/texindex versions suggest that indexing is locale dependent, manual compilation is restricted to lang 'default', override this by setting DOCLANGS in the environment])
 [}]])dnl
 m4_define([gl_GET_TEXINFO_TEX_VER],[dnl
 [texinfo_tex_ver=`tex -jobname=conftest '\nonstopmode\input texinfo.tex @typeout{TEXINFO_TEX_VER=@texinfoversion}@bye' | awk 'BEGIN{R=1;FS="="};]gl_dollar[1=="TEXINFO_TEX_VER" { gsub("-","");print ]gl_dollar[2; R=0; exit}; END{ exit R}'`
@@ -92,7 +92,7 @@ if test $? -ne 0; then
 ])dnl
 AC_DEFUN([gl_TEXINFO_VERSION_COMPARE],[dnl
 AC_REQUIRE([AS_VERSION_COMPARE])
-AS_VERSION_COMPARE([$1],[$2],[gl_TEXINFO_INDEXING_IS_LOCALE_DEPENDANT()],[$3],[$3])dnl
+AS_VERSION_COMPARE([$1],[$2],[gl_TEXINFO_INDEXING_IS_LOCALE_DEPENDENT()],[$3],[$3])dnl
 ])dnl
 dnl gl_SET_DOCLANGS
 AC_DEFUN([gl_SET_DOCLANGS],[dnl
@@ -107,7 +107,7 @@ gl_TEXINFO_VERSION_COMPARE([$texinfo_tex_ver],[gl_TEXINFO_TEX_MINVER()],[dnl
   gl_TEXINFO_VERSION_COMPARE([$texindex_ver],[gl_TEXINDEX_MINVER()],[dnl
   [DOCLANGS=']gl_DOCLANGS_FULL()['
   gl_fn_doclangs_info () {]
-    AC_MSG_NOTICE([texinfo.tex/texindex versions suggest that indexing is not locale dependant])
+    AC_MSG_NOTICE([texinfo.tex/texindex versions suggest that indexing is not locale dependent])
   [}]])
 ])
 AC_MSG_RESULT([[']$DOCLANGS[']])

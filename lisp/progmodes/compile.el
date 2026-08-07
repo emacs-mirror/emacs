@@ -2851,7 +2851,7 @@ Optional arg DIFFERENT-FILE, if non-nil, means find next error for a
 file that is different from the current one.
 Optional arg PT, if non-nil, specifies the value of point to start
 looking for the next message.
-In interacvtive invocations, DIFFERENT-FILE and PT are always nil."
+In interactive invocations, DIFFERENT-FILE and PT are always nil."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))

@@ -28559,7 +28559,7 @@ x_suspend_background_fills (struct frame *f)
   XSetWindowBackgroundPixmap (dpy, FRAME_X_WINDOW (f), None);
 }
 
-/* No automatmic fill happens when the background is restored.  */
+/* No automatic fill happens when the background is restored.  */
 static void
 x_restore_background_fills (struct frame *f)
 {

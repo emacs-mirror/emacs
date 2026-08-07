@@ -2328,7 +2328,7 @@ The return value is a list of elements (BUFFER WINDOW-START POS),
 where BUFFER is a buffer, WINDOW-START is the start position of the
 window for that buffer, and POS is a window-specific point value.
 
-In rare ocasions BUFFER may have been already killed.  It's therefore
+In rare occasions BUFFER may have been already killed.  It's therefore
 advisable to always check the return value for the occurrence of dead
 buffers before using it.  */)
   (Lisp_Object window)

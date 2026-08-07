@@ -2297,7 +2297,7 @@ main (int argc, char **argv)
             }
           else if (strprefix ("-print ", p))
             {
-              /* -print STRING: Print STRING, preceeded by a newline, on
+              /* -print STRING: Print STRING, preceded by a newline, on
                   the terminal. */
 	      if (!suppress_output)
 		{
@@ -2310,7 +2310,7 @@ main (int argc, char **argv)
           else if (strprefix ("-print-nonl ", p))
             {
               /* -print-nonl STRING: Print STRING on the terminal
-                 without a preceding newlin.  Used to continue a
+                 without a preceding newline.  Used to continue a
                  preceding -print command.  Nowadays used only for
                  servers in Emacs versions before 31.  */
 	      if (!suppress_output)

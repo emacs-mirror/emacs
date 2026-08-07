@@ -1552,7 +1552,7 @@ calling `org-latex-compile'."
 (defcustom org-latex-toc-include-unnumbered nil
   "Whether to include unnumbered headings in the table of contents.
 
-The default behaviour is to include numbered headings only, as it is
+The default behavior is to include numbered headings only, as it is
 usually the case in LaTeX (but different from other Org exporters).
 To include an unnumbered heading, set the `:UNNUMBERED:'
 property to `toc'"
@@ -1983,7 +1983,7 @@ INFO is a plist used as a communication channel."
 (defcustom org-latex-use-sans nil
   "Whether to typeset the document with the Sans font family.
 
-The default behaviour is to typeset with the Roman font family."
+The default behavior is to typeset with the Roman font family."
   :group 'org-export-latex
   :package-version '(Org . "9.8")
   :type 'boolean

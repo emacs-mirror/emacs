@@ -5946,7 +5946,7 @@ property, and put the margin display specification on the contents of
 the before-string.
 
   Note that if the string to be displayed in the margin doesn't fully
-specify its face, the nonspecified attributes are inherited from the
+specify its face, the unspecified attributes are inherited from the
 @code{margin} face (@pxref{Basic Faces}).  If you want a margin string
 to have a specific appearance independent of the @code{margin} face,
 make sure the string has a face specifying all required attributes.

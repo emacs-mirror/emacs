@@ -1860,7 +1860,7 @@ Used to populate `package-selected-packages'."
   "Set `package-selected-packages' to VALUE.
 During initialization, we record VALUE but to not persist it using
 Customize, to avoid overwriting configurations that haven't yet been
-loaded.  After initisation we update the user option directly."
+loaded.  After initialization we update the user option directly."
   (when (or value after-init-time)
     ;; It is valid to set it to nil, for example when the last package
     ;; is uninstalled.  But it shouldn't be done at init time, to avoid

@@ -699,7 +699,7 @@ If optional REMOVE is non-nil, remove tables including their templates."
     ;; Convert markers to absolute positions.
     (setq beg (if (markerp beg) (marker-position beg) beg))
     (setq end (if (markerp end) (marker-position end) end))
-    ;; NOTE: Operate on the widened buffer to avoid treesiter crash issues.
+    ;; NOTE: Operate on the widened buffer to avoid treesitter crash issues.
     (without-restriction
       (let ((tocs)
             (beg-pos beg)
@@ -914,7 +914,7 @@ tables not being processed when this function is called."
     ;; Convert markers to absolute positions.
     (setq beg (if (markerp beg) (marker-position beg) beg))
     (setq end (if (markerp end) (marker-position end) end))
-    ;; NOTE: Operate on the widened buffer to avoid treesiter crash issues.
+    ;; NOTE: Operate on the widened buffer to avoid treesitter crash issues.
     (without-restriction
       (let ((tocs (markdown-ts--tocs beg end)))
         (unless tocs

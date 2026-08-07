@@ -1082,7 +1082,7 @@ bool display_working_on_window_p;
    line, in particular when called from non-redisplay code (so
    redisplaying_p is false).  We inhibit resizing of the frames during
    that time, because that could change glyph_row pointers in the glyph
-   matrix behind the back of teh code which manipulates these pointers.  */
+   matrix behind the back of the code which manipulates these pointers.  */
 int dont_resize_frames;
 
 /* If a string, XTread_socket generates an event to display that string.

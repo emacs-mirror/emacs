@@ -642,7 +642,7 @@ struct treesit_loaded_lang
    so it stays stable for the whole session.  */
 struct treesit_lang_cache_entry
 {
-  /* Symbol for the cached langauge, never gc'ed.  */
+  /* Symbol for the cached language, never gc'ed.  */
   Lisp_Object symbol;
   /* The cached language object.  */
   struct treesit_loaded_lang lang;
