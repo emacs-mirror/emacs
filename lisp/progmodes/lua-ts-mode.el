@@ -683,10 +683,6 @@ Calls REPORT-FN directly."
     ;; Comments.
     (setq-local comment-start "--")
     (setq-local comment-start-skip "--\\s-*")
-    (setq-local comment-start-line-regexp
-                (rx (seq "--" (or (not (any "["))
-                                  (seq "[" (zero-or-more "=")
-                                       (not (any "=[")))))))
     (setq-local comment-end "")
 
     ;; Pairs.

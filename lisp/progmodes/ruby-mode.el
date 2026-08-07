@@ -2693,7 +2693,6 @@ Currently there are `ruby-mode' and `ruby-ts-mode'."
   (setq-local comment-end "")
   (setq-local comment-column ruby-comment-column)
   (setq-local comment-start-skip "#+ *")
-  (setq-local comment-start-line-regexp comment-start-skip)
 
   (setq-local parse-sexp-ignore-comments t)
   (setq-local parse-sexp-lookup-properties t)

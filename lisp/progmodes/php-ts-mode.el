@@ -1405,9 +1405,6 @@ If FORCE is t setup comment for PHP.  Depends on
 						 (seq "/" (+ "/"))
 						 (seq "/" (+ "*")))
 					     (* (syntax whitespace)))
-		      comment-start-line-regexp
-		      (rx (or (seq "#" (or eol (not (any "["))))
-			      (seq "/" (+ "/"))))
 		      ;; reset the state of mhtml-ts-mode--comment-setup
 		      mhtml-ts-mode--comment-current-lang nil))
       ;; otherwise set comment style for other languages.

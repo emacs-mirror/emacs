@@ -7358,7 +7358,6 @@ implementations: `python-mode' and `python-ts-mode'."
 
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+\\s-*")
-  (setq-local comment-start-line-regexp comment-start-skip)
 
   (setq-local parse-sexp-lookup-properties t)
   (setq-local parse-sexp-ignore-comments t)

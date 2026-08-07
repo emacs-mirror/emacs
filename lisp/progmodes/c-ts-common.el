@@ -60,11 +60,6 @@
       (* (syntax whitespace)))
   "The `comment-start-skip' used by `c-ts-common-comment-setup'.")
 
-(defvar c-ts-common-comment-start-line-regexp
-  (rx (seq "/" (+ "/"))
-      (* (syntax whitespace)))
-  "The `comment-start-line-regexp' used by `c-ts-common-comment-setup'.")
-
 (defun c-ts-common-looking-at-star (_n _p bol &rest _)
   "A tree-sitter simple indent matcher.
 Matches if there is a \"*\" after BOL."
@@ -292,7 +287,6 @@ Set up:
  - `comment-start'
  - `comment-end'
  - `comment-start-skip'
- - `comment-start-line-regexp'
  - `comment-end-skip'
  - `adaptive-fill-mode'
  - `adaptive-fill-first-line-regexp'
@@ -304,7 +298,6 @@ Set up:
   (setq-local comment-start "// ")
   (setq-local comment-end "")
   (setq-local comment-start-skip c-ts-common-comment-start-skip)
-  (setq-local comment-start-line-regexp c-ts-common-comment-start-line-regexp)
   (setq-local comment-end-skip
               (rx (* (syntax whitespace))
                   (group (or (syntax comment-end)

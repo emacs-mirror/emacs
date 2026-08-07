@@ -229,7 +229,6 @@ Return nil if there is no name or if NODE is not a defun node."
     (setq-local comment-start "# ")
     (setq-local comment-end "")
     (setq-local comment-start-skip (rx "#" (* (syntax whitespace))))
-    (setq-local comment-start-line-regexp comment-start-skip)
 
     ;; Defuns.
     (setq-local treesit-defun-type-regexp (rx (or "function" "macro")

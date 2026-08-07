@@ -1475,7 +1475,6 @@ implementations.  Currently there are two: `sh-mode' and
   (setq-local paragraph-separate (concat paragraph-start "\\|#!/"))
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+[\t ]*")
-  (setq-local comment-start-line-regexp comment-start-skip)
   (setq-local local-abbrev-table sh-mode-abbrev-table)
   (setq-local comint-dynamic-complete-functions
 	      sh-dynamic-complete-functions)

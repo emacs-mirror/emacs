@@ -724,7 +724,6 @@ Return nil if NODE is not a defun node or doesn't have a name."
   (setq-local comment-start "# ")
   (setq-local comment-start-skip
               (rx "#" (* (syntax whitespace))))
-  (setq-local comment-start-line-regexp comment-start-skip)
 
   (setq-local comment-end "")
   (setq-local comment-end-skip
