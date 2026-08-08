@@ -174,12 +174,12 @@ and if a matching region is found, place point at the start of the region."
             (progn
               (goto-char origin)
               (setq ended t))
-          (goto-char (1- pos))
-          (if (text-property--match-p value (get-text-property (point) property)
+          (goto-char pos)
+          (if (text-property--match-p value (get-text-property (1- (point)) property)
                                       predicate)
               (setq ended
                     (text-property--find-end-backward
-                     (point) property value predicate))
+                     (1- (point)) property value predicate))
             ;; Skip past this section of non-matches.
             (setq pos (previous-single-property-change (point) property))
             (unless pos
@@ -203,9 +203,9 @@ and if a matching region is found, place point at the start of the region."
                   (goto-char (point-min))
                   (setq end (point)
                         ended t))
-              (goto-char (1- end))
+              (goto-char end)
               (unless (text-property--match-p
-                       value (get-text-property (point) property) predicate)
+                       value (get-text-property (1- (point)) property) predicate)
                 (goto-char end)
                 (setq ended t)))))
       ;; End this at the first place the property changes value.

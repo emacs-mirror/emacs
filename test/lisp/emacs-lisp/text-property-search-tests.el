@@ -36,7 +36,7 @@
           " and this is "
           (propertize "italic1" 'face 'italic)
           (propertize "bold2" 'face 'bold)
-          (propertize "italic2" 'face 'italic)
+          (propertize "i" 'face 'italic) ; One char long to test bug#81539.
           " at the end")
   (goto-char (point-min)))
 
@@ -59,7 +59,7 @@
 
 (ert-deftest text-property-search-forward-bold-nil ()
   (with-test (text-property-search-forward 'face 'bold nil)
-             '("This is " " and this is italic1" "italic2 at the end")))
+             '("This is " " and this is italic1" "i at the end")))
 
 (ert-deftest text-property-search-forward-nil-t ()
   (with-test (text-property-search-forward 'face nil t)
@@ -67,7 +67,7 @@
 
 (ert-deftest text-property-search-forward-nil-nil ()
   (with-test (text-property-search-forward 'face nil nil)
-             '("bold1" "italic1" "bold2" "italic2")))
+             '("bold1" "italic1" "bold2" "i")))
 
 (ert-deftest text-property-search-forward-partial-bold-t ()
   (with-test (text-property-search-forward 'face 'bold t)
@@ -87,7 +87,7 @@
 
 (ert-deftest text-property-search-backward-bold-nil ()
   (with-test (text-property-search-backward 'face 'bold nil)
-             '( "italic2 at the end" " and this is italic1" "This is ")
+             '("i at the end" " and this is italic1" "This is ")
              (point-max)))
 
 (ert-deftest text-property-search-backward-nil-t ()
@@ -97,7 +97,7 @@
 
 (ert-deftest text-property-search-backward-nil-nil ()
   (with-test (text-property-search-backward 'face nil nil)
-             '("italic2" "bold2" "italic1" "bold1")
+             '("i" "bold2" "italic1" "bold1")
              (point-max)))
 
 (ert-deftest text-property-search-backward-partial-bold-t ()
@@ -138,19 +138,19 @@
 (ert-deftest text-property-search-backward-prop-match-match-face-nil-nil ()
   (with-match-test
    (text-property-search-backward 'face nil nil)
-   39 46 'italic
+   39 40 'italic
    (point-max)))
 
 (ert-deftest text-property-search-backward-prop-match-match-face-italic-t ()
   (with-match-test
    (text-property-search-backward 'face 'italic t)
-   39 46 'italic
+   39 40 'italic
    (point-max)))
 
 (ert-deftest text-property-search-backward-prop-match-match-face-italic-nil ()
   (with-match-test
    (text-property-search-backward 'face 'italic nil)
-   46 57 nil
+   40 51 nil
    (point-max)))
 
 
