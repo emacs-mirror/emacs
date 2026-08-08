@@ -353,12 +353,12 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
   ptrdiff_t from_byte = i_byte;
   ptrdiff_t width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
-#ifdef HAVE_WINDOW_SYSTEM
   struct frame *f =
     (FRAMEP (selected_frame) && FRAME_LIVE_P (XFRAME (selected_frame)))
     ? XFRAME (selected_frame)
     : NULL;
   int font_width = -1;
+#ifdef HAVE_WINDOW_SYSTEM
   Lisp_Object default_font, frame_font;
 #endif
 
@@ -379,9 +379,8 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 	  chars = end - i;
 	  bytes = string_char_to_byte (string, end) - i_byte;
 	}
-#ifdef HAVE_WINDOW_SYSTEM
       else if (auto_comp
-	       && f && FRAME_WINDOW_P (f)
+	       && f
 	       && multibyte
 	       && find_automatic_composition (i, -1, i, &ignore,
 					      &end, &val, string)
@@ -394,9 +393,10 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 
 	  int pixelwidth = composition_gstring_width (val, 0, j, NULL);
 
+#ifdef HAVE_WINDOW_SYSTEM
 	  /* The below is somewhat expensive, so compute it only once
 	     for the entire loop, and only if needed.  */
-	  if (font_width < 0)
+	  if (FRAME_WINDOW_P (f) && font_width < 0)
 	    {
 	      font_width = FRAME_COLUMN_WIDTH (f);
 	      default_font = Fface_font (Qdefault, Qnil, Qnil);
@@ -417,11 +417,14 @@ lisp_string_width (Lisp_Object string, ptrdiff_t from, ptrdiff_t to,
 		    }
 		}
 	    }
-	  thiswidth = (double) pixelwidth / font_width + 0.5;
+#endif
+
+	  thiswidth = FRAME_WINDOW_P (f)
+	    ? ((double) pixelwidth / font_width + 0.5)
+	    : pixelwidth;
 	  chars = end - i;
 	  bytes = string_char_to_byte (string, end) - i_byte;
 	}
-#endif	/* HAVE_WINDOW_SYSTEM */
       else
 	{
 	  int c;

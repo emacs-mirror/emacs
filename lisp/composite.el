@@ -956,7 +956,9 @@ This function is only called on TTY frames.  On graphical displays,
     (dotimes (i nglyphs)
       (let ((glyph (lgstring-glyph gstring i)))
         (when glyph
-          (lglyph-set-from-to glyph 0 (1- nglyphs))))))
+          (lglyph-set-from-to glyph 0 (1- nglyphs))
+          ;; Adjust the total width of the gstring to 2.
+          (lglyph-set-width glyph (if (= i 0) 2 0))))))
   gstring)
 
 (provide 'composite)
