@@ -899,11 +899,22 @@ The value is a gstring containing information for shaping the characters.
 
 This function is the default value of `auto-composition-function' (which see)."
   (let ((gstring (composition-get-gstring from to font-object string)))
-    (if (lgstring-shaped-p gstring)
-	gstring
-      (or (fontp font-object 'font-object)
-	  (setq func 'compose-gstring-for-terminal))
-      (funcall func gstring direction))))
+    (cond
+     ((lgstring-shaped-p gstring)
+      gstring)
+     ;; The graphical composition function already handles the
+     ;; composition of Emoji sequences based on the font.  On textual
+     ;; terminals, we compose Emoji sequences and leave the actual
+     ;; rendering to the terminal emulator.
+     ((and (eq func #'compose-gstring-and-emoji)
+           (fontp font-object 'font-object))
+      (compose-gstring-for-graphic gstring direction))
+     ((eq func #'compose-gstring-and-emoji)
+      (compose-gstring-and-emoji gstring direction))
+     ((fontp font-object 'font-object)
+      (funcall func gstring direction))
+     (t
+      (compose-gstring-for-terminal gstring direction)))))
 
 (put 'auto-composition-mode 'permanent-local t)
 
@@ -935,6 +946,18 @@ For more information on Auto Composition mode, see
   :variable (default-value 'auto-composition-mode))
 
 (defalias 'toggle-auto-composition 'auto-composition-mode)
+
+(defun compose-gstring-and-emoji (gstring _direction)
+  "Compose Emoji sequences into a grapheme cluster.
+This function is only called on TTY frames.  On graphical displays,
+`auto-compose-chars' will call `compose-gstring-for-graphic' instead."
+  ;; Emoji sequences are matched exactly.
+  (let ((nglyphs (lgstring-char-len gstring)))
+    (dotimes (i nglyphs)
+      (let ((glyph (lgstring-glyph gstring i)))
+        (when glyph
+          (lglyph-set-from-to glyph 0 (1- nglyphs))))))
+  gstring)
 
 (provide 'composite)
 

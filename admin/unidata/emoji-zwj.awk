@@ -39,7 +39,9 @@
 
 ### Code:
 
-/^[0-9A-F].*; RGI_Emoji_(ZWJ|Modifier)_Sequence/ {
+(/^[0-9A-F].*; RGI_Emoji_(ZWJ|Modifier)_Sequence/)||
+(/^[0-9A-F].*; (un|minimally-)qualified/ && /.+200D.+;/) {
+    is_unqualified = $0 ~ /; unqualified/
     sub(/ *;.*/, "", $0)
     num = split($0, elts)
     if (ch[elts[1]] == "")
@@ -58,6 +60,14 @@
         vec[elts[1]] = vec[elts[1]] c
     }
     vec[elts[1]] = vec[elts[1]] "\""
+
+    if (is_unqualified && elts[2] == "200D") {
+        unqualified_tail_initials[++n_unqualified_tail_initials] = elts[3]
+    }
+}
+
+/^[0-9A-F]+ FE0F *; *emoji style;/ {
+    tty_trigger_codepoints[++n_tty_triggers] = $1
 }
 
 END {
@@ -86,10 +96,29 @@ END {
 
      print "(setq auto-composition-emoji-eligible-codepoints"
      print "'("
-
      for (trig in trigger_codepoints)
      {
          print "?\\N{U+" trigger_codepoints[trig] "}"
+     }
+     print "))"
+
+     # On tty terminals, emoji sequences are simply composed and the
+     # rendering is delegated to the terminal emulators.  All codepoints
+     # in the variation sequence is considered a valid beginning.
+     print "(setq auto-composition-emoji-tty-eligible-codepoints"
+     print "'("
+     for (trig in tty_trigger_codepoints)
+     {
+         print "?\\N{U+" tty_trigger_codepoints[trig] "}"
+     }
+     print "))"
+
+     # Generate unqualified tail initials.
+     print "(setq auto-composition-emoji-unqualified-tail-initials"
+     print "'("
+     for (trig in unqualified_tail_initials)
+     {
+         print "?\\N{U+" unqualified_tail_initials[trig] "}"
      }
      print "))"
 
@@ -114,7 +143,7 @@ END {
      print "                        (nconc (char-table-range composition-function-table (car elt))"
      print "                               (list (vector (cdr elt)"
      print "                                             0"
-     print "                                             #'compose-gstring-for-graphic)))))"
+     print "                                             #'compose-gstring-and-emoji)))))"
 
      print ";; The following two blocks are derived by hand from emoji-sequences.txt"
      print ";; FIXME: add support for Emoji_Keycap_Sequence once we learn how to respect FE0F/VS-16"
@@ -126,7 +155,7 @@ END {
      print "                      (nconc (char-table-range composition-function-table '(#x1F1E6 . #x1F1FF))"
      print "                             (list (vector \"[\\U0001F1E6-\\U0001F1FF][\\U0001F1E6-\\U0001F1FF]\""
      print "                                           0"
-     print "                                           #'compose-gstring-for-graphic))))"
+     print "                                           #'compose-gstring-and-emoji))))"
 
      print ";; UK Flags"
      print "(set-char-table-range composition-function-table"
@@ -134,7 +163,7 @@ END {
      print "                      (nconc (char-table-range composition-function-table #x1F3F4)"
      print "                             (list (vector \"\\U0001F3F4\\U000E0067\\U000E0062\\\\(?:\\U000E0065\\U000E006E\\U000E0067\\\\|\\U000E0073\\U000E0063\\U000E0074\\\\|\\U000E0077\\U000E006C\\U000E0073\\\\)\\U000E007F\""
      print "                                           0"
-     print "                                           #'compose-gstring-for-graphic))))"
+     print "                                           #'compose-gstring-and-emoji))))"
 
      printf "\n(provide 'emoji-zwj)"
 }

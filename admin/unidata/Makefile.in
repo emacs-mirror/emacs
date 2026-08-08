@@ -116,7 +116,7 @@ ${unidir}/charscript.el: ${blocks_sources}
 emoji-zwj.el: ${unidir}/emoji-zwj.el
 
 zwj = ${srcdir}/emoji-zwj.awk
-zwj_sources = ${srcdir}/emoji-zwj-sequences.txt $(srcdir)/emoji-sequences.txt
+zwj_sources = ${srcdir}/emoji-zwj-sequences.txt $(srcdir)/emoji-sequences.txt $(srcdir)/emoji-variation-sequences.txt $(srcdir)/emoji-test.txt
 ${unidir}/emoji-zwj.el: ${zwj}
 
 # Don't use $^, since that includes the awk script.
