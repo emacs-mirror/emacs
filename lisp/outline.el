@@ -38,6 +38,7 @@
   (require 'cl-lib)
   (require 'subr-x))
 (require 'icons)
+(require 'xref)
 
 (defgroup outlines nil
   "Support for hierarchical outlining."
@@ -108,7 +109,7 @@ imitate the function `looking-at'."
   "C-<" #'outline-promote
   "C->" #'outline-demote
   "RET" #'outline-insert-heading
-  "M-o" #'outline-occur)
+  "M-o" #'outline-xref)
 
 (defvar outline-mode-menu-bar-map
   (let ((map (make-sparse-keymap)))
@@ -149,9 +150,9 @@ imitate the function `looking-at'."
 		  :help "Show all of the text in the buffer"))
     (define-key map [headings]
       (cons "Headings" (make-sparse-keymap "Headings")))
-    (define-key map [headings outline-occur]
-      '(menu-item "Show in Occur" outline-occur
-		  :help "Navigate the buffer's outline using Occur"))
+    (define-key map [headings outline-xref]
+      '(menu-item "Show in Xref" outline-xref
+		  :help "Navigate the buffer's outline using Xref"))
     (define-key map [headings demote-subtree]
       '(menu-item "Demote Subtree" outline-demote
 		  :help "Demote headings lower down the tree"))
@@ -2184,30 +2185,49 @@ With a prefix argument, show headings up to that LEVEL."
   "<"   #'outline-promote)
 
 
-;;; Occur outline navigation
+;;; Xref outline navigation
 
-(defvar-local outline-occur-regexp nil
-  "Regexp used by `outline-occur' to override `outline-regexp'.
-Matches the beginning of the outline headings.  Any line whose beginning
-matches this regexp is considered to start a heading.  As Outline mode
-does with `outline-regexp', `outline-occur' only checks this regexp at
-the start of a line, so the regexp need not start with `^'.")
+(defun outline-xref--fetch-headings (search-function buffer)
+  "Return a list of Xref values matching SEARCH-FUNCTION in BUFFER."
+  (let (headings)
+    (with-current-buffer buffer
+      (save-excursion
+        (goto-char (point-min))
+        (while (funcall search-function nil t)
+          (let* ((line-beg (line-beginning-position))
+                 (line-end (line-end-position))
+                 (summary (progn
+                            (font-lock-ensure line-beg line-end)
+                            (buffer-substring line-beg line-end)))
+                 (location (xref-make-buffer-location buffer line-beg))
+                 (length (length summary)))
+            (push (xref-make-match summary location length) headings))
+          (forward-line 1))))
+    (nreverse headings)))
+
+(defun outline-xref--show-xrefs (search-function)
+  "Display search results in an Xref buffer.
+Populate an Xref buffer with the matches returned by SEARCH-FUNCTION
+applied to the current buffer."
+  (let ((buf (current-buffer)))
+    (xref-show-xrefs
+     (lambda ()
+       (outline-xref--fetch-headings search-function buf))
+     nil)))
 
 ;;;###autoload
-(defun outline-occur ()
-  "Navigate the current buffer's outline using `occur'.
-The `outline-regexp' variable is used to find the beginning of the
-outline headings.  The `outline-occur-regexp' buffer-local variable
-allows overriding this regexp."
+(defun outline-xref ()
+  "Navigate the current buffer's outline using Xref.
+If `outline-search-function' is defined, it is used to find the outline
+headings.  Otherwise, the `outline-regexp' variable is used."
   (interactive)
-  (if-let* ((regexp (or outline-occur-regexp outline-regexp)))
-      (let ((display-buffer-default-alist
-	     (append '(((category . occur)
-		        (display-buffer-pop-up-window)
-		        (post-command-select-window . t)))
-		     display-buffer-default-alist)))
-        (occur (concat "^\\(?:" regexp "\\)")))
-    (user-error "No outline regexp defined")))
+  (cond
+   (outline-search-function
+    (outline-xref--show-xrefs outline-search-function))
+   (outline-regexp
+    (outline-xref--show-xrefs #'outline-search-from-regexp))
+   (t
+    (user-error "Undefined outline search strategy"))))
 
 
 (provide 'outline)

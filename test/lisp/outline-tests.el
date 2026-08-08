@@ -27,42 +27,44 @@
 (require 'ert-x)
 (require 'outline)
 
-(ert-deftest outline-tests--outline-occur ()
-  "Test the `outline-occur' function with `outline-regexp'."
+(ert-deftest outline-tests--outline-xref-search-function ()
+  "Test the `outline-xref' function with `outline-search-function'."
   (let ((test-file (ert-resource-file "outline.txt")))
     (with-temp-buffer
       (insert-file-contents test-file)
-      (setq-local outline-regexp "\\*"
-		  outline-occur-regexp nil)
-      (outline-occur))
-    (with-current-buffer (get-buffer "*Occur*")
-      (goto-char (point-min))
-      (should (search-forward "* Star heading"))
-      (goto-char (point-min))
-      (should-error (search-forward "- Dash heading")))))
-
-(ert-deftest outline-tests--outline-occur-override ()
-  "Test the `outline-occur' function with `outline-occur-regexp'."
-  (let ((test-file (ert-resource-file "outline.txt")))
-    (with-temp-buffer
-      (insert-file-contents test-file)
-      (setq-local outline-regexp "\\*"
-		  outline-occur-regexp "-")
-      (outline-occur))
-    (with-current-buffer (get-buffer "*Occur*")
+      (let ((outline-regexp "\\*")
+            (outline-search-function
+             (lambda (&optional bound move _backward _looking-at)
+               (re-search-forward "^-" bound move))))
+        (outline-xref)))
+    (with-current-buffer (get-buffer "*xref*")
       (goto-char (point-min))
       (should-error (search-forward "* Star heading"))
       (goto-char (point-min))
       (should (search-forward "- Dash heading")))))
 
-(ert-deftest outline-tests--outline-occur-undefined-regexp ()
-  "Test the `outline-occur' function with undefined regexp."
+(ert-deftest outline-tests--outline-xref-regexp ()
+  "Test the `outline-xref' function with `outline-regexp'."
   (let ((test-file (ert-resource-file "outline.txt")))
     (with-temp-buffer
       (insert-file-contents test-file)
-      (setq-local outline-regexp nil
-		  outline-occur-regexp nil)
-      (should-error (outline-occur)))))
+      (let ((outline-regexp "\\*")
+            (outline-search-function nil))
+        (outline-xref)))
+    (with-current-buffer (get-buffer "*xref*")
+      (goto-char (point-min))
+      (should (search-forward "* Star heading"))
+      (goto-char (point-min))
+      (should-error (search-forward "- Dash heading")))))
+
+(ert-deftest outline-tests--outline-xref-undefined ()
+  "Test the `outline-xref' function with undefined search strategy."
+  (let ((test-file (ert-resource-file "outline.txt")))
+    (with-temp-buffer
+      (insert-file-contents test-file)
+      (let ((outline-regexp nil)
+            (outline-search-function nil))
+        (should-error (outline-xref))))))
 
 (provide 'outline-tests)
 

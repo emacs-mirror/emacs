@@ -207,11 +207,9 @@ with named choices for the predefined search functions
 as well as the default nil and arbitrary user functions.
 
 ---
-*** New command 'outline-occur'.
-It allows users to navigate the current buffer's outline using Occur.
-The 'outline-regexp' variable is used to find the beginning of the
-outline headings.  The 'outline-occur-regexp' buffer-local variable
-allows overriding this regexp.  It is bound to 'M-o'.
+*** New command 'outline-xref'.
+It allows users to navigate the current buffer's outline using Xref.
+It is bound to 'M-o'.
 
 ** Newsticker
 
