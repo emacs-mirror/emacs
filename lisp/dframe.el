@@ -652,7 +652,7 @@ who requested the timer.  NULL-ON-ERROR is ignored."
        timeout
        ;; We have a timer, an off is requested, and no client
        ;; functions are left, shut er down.
-       (and dframe-timer (not timeout) dframe-client-functions))
+       (and dframe-timer (not timeout) (not dframe-client-functions)))
       ;; Only call the low level function if we are changing the state.
       (dframe-set-timer-internal timeout)))
 

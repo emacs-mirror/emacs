@@ -1123,7 +1123,8 @@ supported at a time.
       (setq speedbar--window nil
 	    speedbar-frame nil
 	    dframe-attached-frame nil)
-      (speedbar-set-timer nil)
+      (with-current-buffer speedbar-buffer
+        (speedbar-set-timer nil))
       (kill-buffer speedbar-buffer)
       (setq speedbar-buffer nil)
       (when (and current-window (window-live-p current-window))
