@@ -3604,119 +3604,6 @@ without marking it as automatically buffer-local.
 This function pulses a specified list of faces.  The pulse duration is
 determined by the new user option 'pulse-face-duration'.
 
-** Miscellaneous
-
----
-*** 'tooltip-mode' now shows tooltips on TTY frames after a delay.
-Display of tooltips on text-only terminals now happens after
-'tooltip-delay', as it already did on GUI terminals.  To get back the
-old behavior, customize the value of 'tooltip-delay' to zero.
-
----
-*** New user option 'follow-mode-prefix-key'.
-This user option replaces 'follow-mode-prefix', which had to be set
-before loading Follow mode.  This new option allows you to change the
-prefix even after it was loaded, using 'customize-option' or 'setopt'.
-
----
-*** cdl.el is now obsolete.
-Use 'shell-command' and 'shell-command-on-region' instead.
-
----
-*** echistory.el is now obsolete.
-
----
-*** hashcash.el is now obsolete.
-It is believed to no longer be useful as a method to fight spam.
-
----
-*** kermit.el is now obsolete.
-
----
-*** New user option 'ns-click-through' on Nextstep (GNUstep/Mac OS).
-This controls whether activation clicks are passed through to Emacs
-commands.  When nil, clicking on an inactive Emacs frame will only
-activate it.  When t (the default), the click will both activate the
-frame and be interpreted as a command.
-
----
-*** New user option 'global-hl-line-buffers'.
-This specifies the buffers in which 'global-hl-line-mode' should be
-switched on.  The default is all buffers except the minibuffer, and
-buffers that enable 'cursor-face-highlight-mode', like the
-"*Completions*" buffer
-
----
-*** New value 'window' for the user option 'global-hl-line-sticky-flag'.
-Unlike the value t that highlights the line containing point, it
-highlights the line with the window's point.  Also it uses the new face
-'hl-line-nonselected' for highlighting the line with the window's point
-in non-selected windows.
-
----
-*** New user option 'display-fill-column-indicator-warning'.
-Customize it to a non-nil value to have the fill-column indicators
-change their face if the current line exceeds the 'fill-column'.  The
-new face 'display-fill-column-indicator-warning-face' is used to
-highlight the fill-column indicators.  By default, this is disabled.
-
----
-*** New function 'flash-face-bell-function'.
-This function flashes a face briefly.
-It is intended to be used in 'ring-bell-function'.
-
----
-*** New function 'flash-echo-area-bell-function'.
-This function flashes the current frame's echo area briefly.
-It is intended to be used in 'ring-bell-function'.
-
----
-*** New user option 'pulse-face-duration'.
-This option controls the flash duration for 'flash-face-bell-function'
-and 'flash-echo-area-bell-function'.
-
----
-*** New user option 'flash-face-faces'.
-This option tells 'flash-face-bell-function' which faces should flash.
-
----
-*** New user option 'flash-face-attributes'.
-This option tells 'flash-face-bell-function' and
-'flash-echo-area-bell-function' which face attributes should be used
-to flash.
-
-+++
-*** 'face-all-attributes' now accepts an optional argument INHERIT.
-It has the same meaning as the INHERIT argument to 'face-attribute',
-which already takes this argument for a single attribute.  This is
-useful when you want the face attributes to be absolute and not
-'unspecified'.
-
----
-*** New user option 'ffap-prefer-remote-file'.
-If non-nil, FFAP always finds remote files in buffers with remote
-'default-directory'.  If nil, FFAP finds local files first for absolute
-file names in those buffers.  The default is nil.
-
-+++
-*** New theme 'newcomers-presets'.
-This new theme configures user options and minor modes that might
-interest new users, but would otherwise be too invasive to enable by
-default.  (An Emacs theme is a generic collection of settings, and need
-not affect Emacs's appearance.)  See the Info node "(emacs) Newcomers
-Theme" for more information.
-
----
-*** 'report-emacs-bug' now checks whether the bug report is about Org.
-The command 'report-emacs-bug' looks in the report text for symbols that
-indicate problems in Org, and if found, will ask whether the bug report
-is actually about Org (in which case users should use the Org-specific
-command for reporting bugs).
-
----
-*** The elint.el package is now obsolete.
-Use the byte-compiler instead; it provides more and more useful warnings.
-
 ** Edebug
 
 +++
@@ -4054,6 +3941,119 @@ Previously, when there was no tags table loaded and the default
 completion function was called, 'etags-regen-mode' ensured that tags
 were created.  This has been disabled, and the new user option
 'etags-regen-create-on-completion' can be used to enable it again.
+
+** Miscellaneous
+
+---
+*** 'tooltip-mode' now shows tooltips on TTY frames after a delay.
+Display of tooltips on text-only terminals now happens after
+'tooltip-delay', as it already did on GUI terminals.  To get back the
+old behavior, customize the value of 'tooltip-delay' to zero.
+
+---
+*** New user option 'follow-mode-prefix-key'.
+This user option replaces 'follow-mode-prefix', which had to be set
+before loading Follow mode.  This new option allows you to change the
+prefix even after it was loaded, using 'customize-option' or 'setopt'.
+
+---
+*** cdl.el is now obsolete.
+Use 'shell-command' and 'shell-command-on-region' instead.
+
+---
+*** echistory.el is now obsolete.
+
+---
+*** hashcash.el is now obsolete.
+It is believed to no longer be useful as a method to fight spam.
+
+---
+*** kermit.el is now obsolete.
+
+---
+*** New user option 'ns-click-through' on Nextstep (GNUstep/Mac OS).
+This controls whether activation clicks are passed through to Emacs
+commands.  When nil, clicking on an inactive Emacs frame will only
+activate it.  When t (the default), the click will both activate the
+frame and be interpreted as a command.
+
+---
+*** New user option 'global-hl-line-buffers'.
+This specifies the buffers in which 'global-hl-line-mode' should be
+switched on.  The default is all buffers except the minibuffer, and
+buffers that enable 'cursor-face-highlight-mode', like the
+"*Completions*" buffer
+
+---
+*** New value 'window' for the user option 'global-hl-line-sticky-flag'.
+Unlike the value t that highlights the line containing point, it
+highlights the line with the window's point.  Also it uses the new face
+'hl-line-nonselected' for highlighting the line with the window's point
+in non-selected windows.
+
+---
+*** New user option 'display-fill-column-indicator-warning'.
+Customize it to a non-nil value to have the fill-column indicators
+change their face if the current line exceeds the 'fill-column'.  The
+new face 'display-fill-column-indicator-warning-face' is used to
+highlight the fill-column indicators.  By default, this is disabled.
+
+---
+*** New function 'flash-face-bell-function'.
+This function flashes a face briefly.
+It is intended to be used in 'ring-bell-function'.
+
+---
+*** New function 'flash-echo-area-bell-function'.
+This function flashes the current frame's echo area briefly.
+It is intended to be used in 'ring-bell-function'.
+
+---
+*** New user option 'pulse-face-duration'.
+This option controls the flash duration for 'flash-face-bell-function'
+and 'flash-echo-area-bell-function'.
+
+---
+*** New user option 'flash-face-faces'.
+This option tells 'flash-face-bell-function' which faces should flash.
+
+---
+*** New user option 'flash-face-attributes'.
+This option tells 'flash-face-bell-function' and
+'flash-echo-area-bell-function' which face attributes should be used
+to flash.
+
++++
+*** 'face-all-attributes' now accepts an optional argument INHERIT.
+It has the same meaning as the INHERIT argument to 'face-attribute',
+which already takes this argument for a single attribute.  This is
+useful when you want the face attributes to be absolute and not
+'unspecified'.
+
+---
+*** New user option 'ffap-prefer-remote-file'.
+If non-nil, FFAP always finds remote files in buffers with remote
+'default-directory'.  If nil, FFAP finds local files first for absolute
+file names in those buffers.  The default is nil.
+
++++
+*** New theme 'newcomers-presets'.
+This new theme configures user options and minor modes that might
+interest new users, but would otherwise be too invasive to enable by
+default.  (An Emacs theme is a generic collection of settings, and need
+not affect Emacs's appearance.)  See the Info node "(emacs) Newcomers
+Theme" for more information.
+
+---
+*** 'report-emacs-bug' now checks whether the bug report is about Org.
+The command 'report-emacs-bug' looks in the report text for symbols that
+indicate problems in Org, and if found, will ask whether the bug report
+is actually about Org (in which case users should use the Org-specific
+command for reporting bugs).
+
+---
+*** The elint.el package is now obsolete.
+Use the byte-compiler instead; it provides more and more useful warnings.
 
 
 * New Modes and Packages in Emacs 31.1
