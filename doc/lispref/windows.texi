@@ -2298,7 +2298,10 @@ windows by deleting them first and resurrecting them
 (@pxref{Resurrecting Windows}) in their new locations afterwards.  No
 window gets lost and no window is added or duplicated.  Where possible,
 these commands try to preserve the relative size of windows as well as
-all other non-geometric properties including parameters.
+all other non-geometric properties including parameters.  These commands
+will signal an error if windows chosen to transpose or rotate are atomic
+or of fixed size.  The option @code{transpose-dedicated-windows} below
+decides whether dedicated windows may be transposed or rotated.
 
    The @var{window} argument of all functions described in this section
 must specify a valid parent window (@pxref{Windows and Frames}).  If it
@@ -2415,16 +2418,14 @@ becomes a vertical split and vice versa.
 @end deffn
 
 @cindex rotating windows
-The final two commands can be used to @dfn{rotate} windows within the existing
-layout.  They are like the commands that rotate the layout but leave the
-underlying structure of the layout unchanged.  What actually changes are
-the positions of windows within the existing layout.  This happens in a
-way that the space formerly occupied by any window will be occupied by
-the window preceding (following if @var{reverse} is non-@code{nil}) it
-in the cyclic ordering of windows (@pxref{Cyclic Window Ordering}) on
-@var{window}'s frame.  These commands may signal an error if windows
-chosen to rotate are dedicated to their buffers, atomic or of fixed
-size.
+The final two commands can be used to @dfn{rotate} windows within the
+existing layout.  They are like the commands that rotate the layout but
+leave the underlying structure of the layout unchanged.  What actually
+changes are the positions of windows within the existing layout.  This
+happens in a way that the space formerly occupied by any window will be
+occupied by the window preceding (following if @var{reverse} is
+non-@code{nil}) it in the cyclic ordering of windows (@pxref{Cyclic
+Window Ordering}) on @var{window}'s frame.
 
 @deffn Command rotate-windows &optional window reverse
 This command rotates @var{window}'c child windows in cyclic ordering.
@@ -2462,6 +2463,15 @@ ordering.
 @end group
 @end smallexample
 @end deffn
+
+All commands described above are subject to the following option.
+
+@defopt transpose-dedicated-windows
+If this is @code{nil}, the functions described in this section will
+report an error when they encounter a dedicated window (@pxref{Dedicated
+Windows}).  If this is @code{t}, they handle dedicated windows like
+non-dedicated ones.
+@end defopt
 
 The last two commands are subject to the following option.
 

@@ -21,10 +21,13 @@ fine-tuning your use of the package.
 @cindex Emacs Lisp package archive
   Packages can also be provided by @dfn{package archives}, which are
 large collections of Emacs Lisp packages.  Each package is a separate
-Emacs Lisp program, sometimes including other components such as an
-Info manual.  Emacs includes a facility that lets you easily download
-and install packages from such archives.  The rest of this chapter
-describes this facility.
+Emacs Lisp program, sometimes including other components such as an Info
+manual@footnote{Note that if your system sets the @env{INFOPATH}
+environmental variable, without a trailing path separator, then this
+shadows the manuals that Emacs registers during startup, @xref{Other Info
+Directories,,,texinfo, Texinfo}.}.  Emacs includes a facility that lets
+you easily download and install packages from such archives.  The rest
+of this chapter describes this facility.
 
   To list the packages available for installation from package
 archives, type @w{@kbd{M-x list-packages @key{RET}}}.  It brings up a

@@ -5360,7 +5360,9 @@ The net effect of making this non-nil is that if `quit-restore-window'
 doesn't find a suitable buffer previously shown in the window, it will
 rather try to delete the window (and maybe its frame) than show a buffer
 the window has never shown before."
-  :type 'boolean
+  :type '(choice (const :tag "Switch to previous buffer" nil)
+                 (const :tag "Skip previous buffer" skip-first)
+                 (const :tag "Try to delete window" t))
   :version "31.1"
   :group 'windows)
 

@@ -2057,7 +2057,8 @@ END:VCALENDAR
     (should-not (ical:date-time-is-utc-p parsed-non-zoned))
     ;; but also that `icalendar-date-time-simultaneous-p' does not:
     (should (ical:date-time-simultaneous-p parsed-utc expected-utc))
-    (should (ical:date-time-simultaneous-p parsed-utc parsed-non-zoned))))
+    (should (ical:date-time-simultaneous-p parsed-utc parsed-non-zoned))
+    (should (ical:date-time-simultaneous-p parsed-non-zoned expected-non-zoned))))
 
 
 

@@ -3478,8 +3478,9 @@ The redirection lasts until @code{redirect-frame-focus} is called to
 change it.
 @end defun
 
-@defun frame-focus-state frame
+@defun frame-focus-state &optional frame
 This function retrieves the last known focus state of @var{frame}.
+@var{frame} defaults to the selected frame.
 
 It returns @code{nil} if the frame is known not to be focused,
 @code{t} if the frame is known to be focused, or @code{unknown} if
