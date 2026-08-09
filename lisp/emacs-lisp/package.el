@@ -2708,7 +2708,7 @@ intended for testing Emacs and/or the packages in a clean environment."
                                (append (list package-user-dir)
                                        temp-install-dir
                                        package-directory-list))
-                            (setq package-load-list ',package-load-list)
+                            (setq package-load-list ',load-list)
                             (package--activate-all)))))))
 
 
