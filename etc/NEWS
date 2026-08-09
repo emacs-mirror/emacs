@@ -91,7 +91,7 @@ problems in your initialization file, these are shown in a "*Warnings*"
 buffer.  Until now such warnings were not made visible in the case that
 Emacs was started as a daemon.  Now the first frame after daemon startup
 will show the "*Warnings*" buffer.  So for example, starting Emacs with
-a command like 'emacsclient -a"" -c' will now show "*Warnings*" just
+a command like 'emacsclient -a "" -c' will now show "*Warnings*" just
 like a plain invocation of 'emacs' would.
 
 
@@ -325,7 +325,7 @@ inhibit the mode's operation.
 ---
 *** New mode 'minibuffer-nonselected-mode'.
 This mode, enabled by default, directs attention to the active
-minibuffer window in the case the the minibuffer window is no longer
+minibuffer window in the case the minibuffer window is no longer
 selected, but still waiting for input.  This uses the new
 'minibuffer-nonselected' face.
 
@@ -670,7 +670,7 @@ This hook allows you to control which tab-bar tabs are auto-resized.
 
 ---
 *** 'mouse-face' properties are now supported on the 'tab-bar'.
-'tab-bar' tab buttonsd" are now highlighted when the mouse pointer
+'tab-bar' tab buttons are now highlighted when the mouse pointer
 hovers over them.  You can customize the new face
 'tab-bar-tab-highlight'.
 
@@ -819,7 +819,7 @@ invoked.
 ** Change in SVG foreground color handling.
 SVG images no longer have the 'fill' attribute set to the value of
 ':foreground' or the current text foreground color.  The 'currentcolor'
-CSS attribute continues is still set, as before.
+CSS attribute is still set, as before.
 
 This change should result in more consistent display of SVG images.
 
@@ -1100,7 +1100,7 @@ This user option describes projects that should always be skipped by
 *** New user option 'project-prune-zombie-projects'.
 This user option controls the automatic deletion of projects from
 'project-list-file', when prompting for a project, that cannot be
-accessed.  The value must be an alist where each element is of the the
+accessed.  The value must be an alist where each element is of the
 form:
 
     (WHEN . PREDICATE)
@@ -3388,7 +3388,7 @@ contents of the current buffer.
 When enabled, this displays indications about the availability of add-on
 ELPA packages for the current buffer and suggestions for installing
 those packages.  The default is to show a button on the mode line that
-can be used to install such packages, but you can customise the
+can be used to install such packages, but you can customize the
 presentation style of these suggestions using
 'package-autosuggest-style'.
 
@@ -3406,7 +3406,7 @@ stated in its description.
 ** Rcirc
 
 +++
-*** Authentication via NickServ can access 'auth source' passwords.
+*** Authentication via NickServ can access auth source passwords.
 For details, consult 'rcirc-authinfo'.
 
 ** Xref
@@ -4653,7 +4653,7 @@ It offers a more concise way to create a completion table with metadata.
 
 +++
 ** New symbol property 'find-function-type-alist'.
-Used by 'fund-function' and similar commands.  Macros that define an
+Used by 'find-function' and similar commands.  Macros that define an
 object in a way that makes it hard to associate the object's name with
 the macro call site defining the object can add an entry to the property
 'find-function-type-alist' on the object's name to provide information
