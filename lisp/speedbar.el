@@ -2822,8 +2822,7 @@ Also resets scanner functions."
 		(unless (and (or (member major-mode speedbar-ignored-modes)
 				 (and
 				  (eq af (speedbar-current-frame))
-				  (speedbar-window-current-window))
-				 (not (buffer-file-name)))
+				  (speedbar-window-current-window)))
 			     ;; Always update for GUD.
 			     (not (string-equal "GUD"
 						speedbar-initial-expansion-list-name)))
