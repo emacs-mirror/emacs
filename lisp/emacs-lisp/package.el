@@ -2652,8 +2652,22 @@ intended for testing Emacs and/or the packages in a clean environment."
              current-prefix-arg)))
   (let* ((name (concat "package-isolate-"
                        (mapconcat #'package-desc-full-name packages ",")))
-         (dependencies (apply #'append (mapcar #'package-desc-reqs packages)))
-         (all-packages (package-compute-transaction packages dependencies))
+         (all-packages
+          (delete-dups
+           (nconc
+            (mapcan
+             (pcase-lambda (`(,name ,vers))
+               (and (not (eq name 'emacs))
+                    (not (cl-find name packages :key #'package-desc-name))
+                    (if-let* ((desc (package-get-descriptor
+                                     name t
+                                     (lambda (desc)
+                                       (version-list-<= vers (package-desc-version desc))))))
+                        (list desc)
+                      (error "Failed to find package: (%s %S)" name vers))))
+             (package--dependencies packages))
+            packages)))
+         (all-packages (seq-remove #'package-built-in-p all-packages))
          (package-alist (copy-tree package-alist t))
          (temp-install-dir nil) initial-scratch-message load-list)
     (when-let* ((missing (seq-remove #'package-installed-p all-packages))
