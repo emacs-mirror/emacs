@@ -109,6 +109,25 @@ to your initialization file no longer apply, and you may remove it.
 If you still want to show the "*Completions*" buffer, then customize
 the user option 'icomplete-in-buffer' to the value 'with-completions-popup'.
 
+---
+** Improved Emoji support on textual terminals
+Emacs now composes Emoji sequences as two-column glyphs on textual
+terminals when 'auto-composition-mode' is enabled.  This should correct
+a number of movement and display issues on an Emoji-capable terminal
+emulator.
+
+However, the actual rendering of Emoji still depends on the capability
+of the terminal emulator:
+
+- If the terminal emulator does not support grapheme clusters at all,
+  composed Emoji sequences will not work.  In this case, disable
+  'auto-composition-mode'.
+
+- Non-compliant terminal emulators may not always render an Emoji
+  sequence as a wide glyph, depending on the character width of the
+  first code point in the sequence.  In this case, it might help to set
+  'tty-display-emoji-force-wide' to nil.
+
 
 * Editing Changes in Emacs 32.1
 
