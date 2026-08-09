@@ -127,10 +127,11 @@ is not useful to the user.")
 
 (defcustom dframe-update-speed 1
   "Idle time in seconds needed before dframe will update itself.
-Updates occur to allow dframe to display directory information
-relevant to the buffer you are currently editing."
+Updates occur to allow dframe to display directory information relevant
+to the buffer you are currently editing.  The value can be an integer or
+float since it is passed to `run-with-idle-timer'."
   :group 'dframe
-  :type 'integer)
+  :type 'number)
 
 (defcustom dframe-activity-change-focus-flag nil
   "Non-nil means the selected frame will change based on activity.
