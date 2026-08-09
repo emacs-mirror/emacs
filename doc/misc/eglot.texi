@@ -513,8 +513,7 @@ Finally, it's worth noting that, by default, Eglot generally turns on
 all features that it @emph{can} turn on.  It's possible to opt out of
 features via the @code{eglot-ignored-server-capabilities} user option
 (@pxref{Customizing Eglot}) and the @code{eglot-managed-mode-hook} hook
-that runs after Eglot starts managing a buffer (@pxref{Eglot and
-Buffers}).
+that runs after Eglot starts managing a buffer (@pxref{Other Variables}).
 
 @node Eglot and Buffers
 @section Buffers, Projects, and Eglot
@@ -625,33 +624,13 @@ starting an Eglot session for the buffer.  When Eglot stops managing the
 buffer, the minor mode is turned off, and all the settings that Eglot
 changed are restored to their original values.
 
-@vindex eglot-managed-mode-hook
-@vindex eglot-managed-p
 @item
 The minor mode's main job is to ``hook up'' Eglot to other Emacs
 functionality, i.e.  arrange for these features to receive information
 from the language server, by changing special variables controlling
-these features.  @xref{Eglot Features}.
-
-@item
-To customize this, Eglot's special minor mode provides a hook variable
-@code{eglot-managed-mode-hook} specifically to alter Eglot's interaction
-with these variables in each buffer.  This hook is run both when the
-minor mode is turned on and when it's turned off; use the function
-@code{eglot-managed-p} to tell if current buffer is still being managed
-or not.
+these features.  @xref{Eglot Features} and @xref{Other Variables} for
+how to exercise finer control over this minor mode's activation.
 @end itemize
-
-For example, to turn off @dfn{inlay hints} and @dfn{semantic tokens} by
-default but still retain the ability to turn them on again
-interactively use this:
-
-@lisp
-  (add-hook 'eglot-managed-mode-hook
-    (lambda ()
-      (eglot-inlay-hints-mode -1)
-      (eglot-semantic-tokens-mode -1)))
-@end lisp
 
 @node Eglot Commands
 @section Eglot Commands
@@ -1116,9 +1095,25 @@ A hook run after the LSP connection to the server is successfully
 established.  Each function receives a @code{eglot-lsp-server} instance
 as argument.  @xref{Starting Eglot}.
 
+@vindex eglot-managed-mode-hook
+@vindex eglot-managed-p
 @item eglot-managed-mode-hook
 A hook run after Eglot started or stopped managing a buffer.
-@xref{Eglot and Buffers}, for details of its usage.
+
+You may use it to alter Eglot's setting of other Eglot and Emacs
+variables in each buffer.  This hook is run both when the minor mode is
+turned on and when it's turned off; use the function
+@code{eglot-managed-p} to tell if current buffer is still being managed
+or not.  For example, to turn off @dfn{inlay hints} and @dfn{semantic
+tokens} by default but still retain the ability to turn them on again
+interactively use this:
+
+@lisp
+  (add-hook 'eglot-managed-mode-hook
+    (lambda ()
+      (eglot-inlay-hints-mode -1)
+      (eglot-semantic-tokens-mode -1)))
+@end lisp
 
 @vindex eglot-stay-out-of
 @item eglot-stay-out-of
@@ -1876,9 +1871,17 @@ slowly, try to customize the variable @code{eglot-events-buffer-config}
 0.  This will disable recording any events and may speed things up.
 
 In other situations, the cause of poor performance lies in the language
-server itself.  Some servers use aggressive caching and other techniques
-to improve their performance.  Often, this can be tweaked by changing
-the server configuration (@pxref{Advanced server configuration}).
+server itself.  Some servers may have poor implementations of some LSP
+features that Eglot turns on by default.  Some servers use aggressive
+caching and other techniques to improve their performance.  Often, this
+can be tweaked by changing the server configuration (@pxref{Advanced
+server configuration}).
+
+Depending on the specific nature of the performance bottleneck,
+sometimes a workaround is to turn off these features on the Eglot side
+using the @code{eglot-ignored-server-capabilities} and
+@code{eglot-managed-mode-hook} variables (@pxref{Other Variables} and
+@pxref{More Customization}).
 
 Another aspect that may cause performance degradation is the amount of
 JSONRPC information exchanged with Emacs.  Using an LSP program like
