@@ -2857,7 +2857,6 @@ ns_scroll_run (struct window *w, struct run *run)
 
   NSTRACE ("ns_scroll_run");
 
-  /* begin copy from other terms */
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
      fringe of W.  */
@@ -2875,6 +2874,15 @@ ns_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - from_y;
       else
 	height = run->height;
+
+      /* If the destination is off the top of the current window, don't
+	 draw over the window above.  */
+      if (to_y < y) {
+	int d = y - to_y;
+	height -= d;
+	to_y += d;
+	from_y += d;
+      }
     }
   else
     {
@@ -2885,7 +2893,6 @@ ns_scroll_run (struct window *w, struct run *run)
       else
 	height = run->height;
     }
-  /* end copy from other terms */
 
   if (height == 0)
       return;
@@ -9335,6 +9342,16 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
   NSTRACE ("[EmacsView copyRect:To:]");
   NSTRACE_RECT ("Source", srcRect);
   NSTRACE_POINT ("Destination", dest);
+
+  /* If the destination is off the top of the pixel buffer, fix the
+     source and destination to copy only to y = 0.  */
+  if (dest.y < 0)
+    {
+      int d = dest.y;
+      dest.y = 0;
+      srcRect.origin.y -= d;
+      srcRect.size.height += d;
+    }
 
   NSRect dstRect = NSMakeRect (dest.x, dest.y, NSWidth (srcRect),
                                NSHeight (srcRect));
