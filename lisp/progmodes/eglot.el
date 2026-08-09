@@ -2962,19 +2962,22 @@ THINGS are either registrations or unregisterations (sic)."
     (cond
      ((eq external t) (browse-url uri))
      ((file-readable-p (setq filename (eglot-uri-to-path uri)))
-      ;; Use run-with-timer to avoid nested client requests like the
-      ;; "synchronous imenu" floated in bug#62116 presumably caused by
-      ;; which-func-mode.
-      (run-with-timer
-       0 nil
-       (lambda ()
-         (with-current-buffer (find-file-noselect filename)
-           (cond (takeFocus
-                  (pop-to-buffer (current-buffer))
-                  (select-frame-set-input-focus (selected-frame)))
-                 ((display-buffer (current-buffer))))
-           (when selection
-             (eglot--goto selection))))))
+      ;; Really ensure this runs when it is safe to run it.
+      ;; run-with-timer avoid nested client requests like the
+      ;; "synchronous imenu" floated in bug#62116, while the
+      ;; "post-command once" trick is for bug#81538.
+      (cl-labels ((findit ()
+                  (remove-hook 'post-command-hook #'findit)
+                  (with-current-buffer (find-file-noselect filename)
+                    (cond (takeFocus
+                           (pop-to-buffer (current-buffer))
+                           (select-frame-set-input-focus (selected-frame)))
+                          ((display-buffer (current-buffer))))
+                    (when selection
+                      (eglot--goto selection)))))
+                (if this-command
+                    (add-hook 'post-command-hook #'findit)
+                  (run-at-time 0 nil #'findit))))
      (t (setq success :json-false)))
     `(:success ,success)))
 
