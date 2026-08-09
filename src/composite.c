@@ -1535,12 +1535,12 @@ composition_update_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff
       glyph = LGSTRING_GLYPH (gstring, cmp_it->from);
       cmp_it->nchars = LGLYPH_TO (glyph) + 1 - from;
       cmp_it->nbytes = 0;
-      cmp_it->width = 0;
+      cmp_it->width = composition_gstring_width (gstring, cmp_it->from, cmp_it->to, NULL);
+
       for (i = cmp_it->nchars - 1; i >= 0; i--)
 	{
 	  c = XFIXNUM (LGSTRING_CHAR (gstring, from + i));
 	  cmp_it->nbytes += CHAR_BYTES (c);
-	  cmp_it->width += CHARACTER_WIDTH (c);
 	}
     }
   return c;
