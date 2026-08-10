@@ -176,6 +176,11 @@ Line numbers start from 1 and columns from 0."
     (let ((m (make-marker)))
       (move-marker m position buffer))))
 
+(cl-defmethod xref-location-line ((l xref-buffer-location))
+  (pcase-let (((cl-struct xref-buffer-location buffer position) l))
+    (with-current-buffer buffer
+      (line-number-at-pos position))))
+
 (cl-defmethod xref-location-group ((l xref-buffer-location))
   (pcase-let (((cl-struct xref-buffer-location buffer) l))
     (or (buffer-file-name buffer)
