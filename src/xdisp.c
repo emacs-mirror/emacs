@@ -10122,6 +10122,8 @@ move_it_in_display_line_to (struct it *it,
   bool saw_smaller_pos = prev_pos < to_charpos;
   bool line_number_pending = false;
   int this_line_subject_to_line_prefix = 0;
+  bool moved_to_next = false;
+  bool saved_start_of_box_run = it->start_of_box_run_p;
 
 #ifdef GLYPH_DEBUG
   /* atx_flag, atpos_flag and wrap_flag are assigned but never used;
@@ -10202,6 +10204,8 @@ move_it_in_display_line_to (struct it *it,
 
   if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
     SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
+
+  saved_start_of_box_run = it->start_of_box_run_p;
 
   while (true)
     {
@@ -10331,7 +10335,11 @@ move_it_in_display_line_to (struct it *it,
 	 line.  */
       x = it->current_x;
 
+      /* We will record the start_of_box_run_p flag to restore it before
+         exiting if we never move from this glyph.  */
+      saved_start_of_box_run = it->start_of_box_run_p;
       PRODUCE_GLYPHS (it);
+      moved_to_next = false;
 
       if (it->area != TEXT_AREA)
 	{
@@ -10339,6 +10347,7 @@ move_it_in_display_line_to (struct it *it,
 	  if (it->method == GET_FROM_BUFFER)
 	    prev_pos = IT_CHARPOS (*it);
 	  set_iterator_to_next (it, true);
+	  moved_to_next = true;
 	  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
 	    SET_TEXT_POS (this_line_min_pos,
 			  IT_CHARPOS (*it), IT_BYTEPOS (*it));
@@ -10517,6 +10526,7 @@ move_it_in_display_line_to (struct it *it,
 			  if (it->method == GET_FROM_BUFFER)
 			    prev_pos = IT_CHARPOS (*it);
 			  set_iterator_to_next (it, true);
+			  moved_to_next = true;
 			  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
 			    SET_TEXT_POS (this_line_min_pos,
 					  IT_CHARPOS (*it), IT_BYTEPOS (*it));
@@ -10722,6 +10732,7 @@ move_it_in_display_line_to (struct it *it,
       /* The current display element has been consumed.  Advance to
 	 the next.  */
       set_iterator_to_next (it, true);
+      moved_to_next = true;
 
       /* If IT has just finished producing glyphs for the wrap prefix
 	 and is proceeding to the next method, there might not be
@@ -10851,6 +10862,13 @@ move_it_in_display_line_to (struct it *it,
     bidi_unshelve_cache (wrap_data, true);
   if (ppos_data)
     bidi_unshelve_cache (ppos_data, true);
+
+  /* Restore the start_of_box_run_p flag, if we haven't moved from the
+     position where it might have been set by get_next_display_element.
+     This is so the following iteration picks up this flag instead of
+     losing it (because PRODUCE_GLYPHS resets it).   */
+  if (!moved_to_next)
+    it->start_of_box_run_p = saved_start_of_box_run;
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
