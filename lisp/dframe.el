@@ -128,8 +128,10 @@ is not useful to the user.")
 (defcustom dframe-update-speed 1
   "Idle time in seconds needed before dframe will update itself.
 Updates occur to allow dframe to display directory information relevant
-to the buffer you are currently editing.  The value can be an integer or
-float since it is passed to `run-with-idle-timer'."
+to the buffer you are currently editing.  The value will be passed
+to `run-with-idle-timer', and can be an integer or a float.
+However, `setopt' will not accept a list of the kind returned
+by `current-idle-time' as valid."
   :group 'dframe
   :type 'number)
 
