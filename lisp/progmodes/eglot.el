@@ -2478,21 +2478,24 @@ the previous reports for TOKEN.")
                  #'eglot--after-set-visited-file-name-hook t)
     (remove-hook 'before-save-hook #'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook #'eglot--signal-textDocument/didSave t)
-    (remove-hook 'xref-backend-functions #'eglot-xref-backend t)
+    (unless (eglot--stay-out-of-p 'xref)
+      (remove-hook 'xref-backend-functions #'eglot-xref-backend t))
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush t)
     (remove-hook 'company-after-completion-hook #'eglot--capf-session-flush t)
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
     (remove-hook 'post-self-insert-hook #'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook #'eglot--pre-command-hook t)
-    (dolist (f (list #'eglot-hover-eldoc-function
-                     #'eglot-signature-eldoc-function
-                     #'eglot-highlight-eldoc-function
-                     #'eglot-code-action-suggestion))
-        (remove-hook 'eldoc-documentation-functions f t))
+    (unless (eglot--stay-out-of-p 'eldoc)
+      (dolist (f (list #'eglot-hover-eldoc-function
+                       #'eglot-signature-eldoc-function
+                       #'eglot-highlight-eldoc-function
+                       #'eglot-code-action-suggestion))
+        (remove-hook 'eldoc-documentation-functions f t)))
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
-    (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
+    (unless (eglot--stay-out-of-p 'imenu)
+      (remove-function (local 'imenu-create-index-function) #'eglot-imenu))
     (eglot--flymake-reset)
     (setq eglot--flymake-report-fn nil)
     (run-hooks 'eglot-managed-mode-hook)
