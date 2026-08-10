@@ -201,12 +201,13 @@ VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
 If optional parameter FRAME is non-nil, then it should be a
-frame.  This function will look up VARIABLE in its `environment'
+frame.  This function will look up VARIABLE in FRAME's `environment'
 parameter.
 
 Otherwise, this function searches `process-environment' for
-VARIABLE.  If it is not found there, then it continues the search
-in the environment list of the selected frame."
+VARIABLE and returns its value if found.  If not found, and VARIABLE
+is \"DISPLAY\", the function uses the `display' parameter of the selected
+frame, and if that is also nil, it searches the `initial-environment' list."
   (declare (ftype (function (string &optional frame) (or null string)))
            (side-effect-free t))
   (interactive (list (read-envvar-name "Get environment variable: " t)))

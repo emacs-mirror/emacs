@@ -1023,6 +1023,18 @@ in the environment, @code{getenv} returns @code{nil}.  It returns
 @samp{""} if @var{var} is set but null.  Within Emacs, a list of environment
 variables and their values is kept in the variable @code{process-environment}.
 
+Optional argument @var{frame}, if non-@code{nil}, specifies a frame, in
+which case the function searches @var{frame}'s parameter
+@code{environment} (@pxref{Basic Parameters}) for @var{var} instead of
+looking for it in @code{process-environment}.
+
+@cindex DISPLAY environment variable search
+The @samp{DISPLAY} environment variable is treated specially when
+@var{frame} is omitted or @code{nil}: if that variable is not found in
+@code{process-environment}, the function looks at the selected-frame's
+@code{display} parameter, and if that is @code{nil}, it also looks in
+@code{initial-environment}.
+
 @example
 @group
 (getenv "USER")
