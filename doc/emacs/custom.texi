@@ -194,11 +194,11 @@ the customization buffer:
 @end smallexample
 
 @findex Custom-goto-first-choice
-@kindex C-x C-i @r{(customization buffer)}
+@kindex C-c TAB @r{(customization buffer)}
   The first line shows that the variable is named @code{kill-ring-max},
 formatted as @samp{Kill Ring Max} for easier viewing, and also shows its
 expected type: a positive integer or zero.  The default value is
-@samp{120}.  You can move directly to the value with @kbd{C-x C-i}
+@samp{120}.  You can move directly to the value with @kbd{C-c @key{TAB}}
 (Custom-goto-first-choice).  The button labeled @samp{[Hide]}, if
 activated, hides the variable's value and state; this is useful to avoid
 cluttering up the customization buffer with very long values (for this
@@ -348,8 +348,8 @@ does not appear if Emacs was started with the @option{-q} or
 @option{-Q} option (@pxref{Initial Options}).
 
 @kindex C-c C-c @r{(customization buffer)}
-@kindex C-x C-c @r{(customization buffer)}
-@kindex C-x C-k @r{(customization buffer)}
+@kindex C-x C-s @r{(customization buffer)}
+@kindex C-c C-k @r{(customization buffer)}
 @findex Custom-set
 @findex Custom-save
 @findex Custom-reset-standard
