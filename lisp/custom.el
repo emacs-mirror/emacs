@@ -91,20 +91,6 @@ The value is either the symbol's current value
  (as obtained using the `:get' function), if any,
 or the value in the symbol's `saved-value' property if any,
 or (last of all) the value of EXP."
-  ;; If this value has been set with `setopt' (for instance in
-  ;; ~/.emacs), we didn't necessarily know the type of the user option
-  ;; then.  So check now, and issue a warning if it's wrong.
-  (let ((value (get symbol 'custom-check-value)))
-    (when value
-      (let ((type (get symbol 'custom-type)))
-        (when (and type
-                   (boundp symbol)
-                   (eq (car value) (symbol-value symbol))
-                   ;; Check that the type is correct.
-                   (not (widget-apply (widget-convert type)
-                                      :match (car value))))
-          (warn "Value `%S' for `%s' does not match type %s"
-                value symbol type)))))
   (funcall (or (get symbol 'custom-set) #'set-default-toplevel-value)
            symbol
            (condition-case nil
@@ -245,6 +231,18 @@ set to nil, as the value is no longer rogue."
     ;; as set the special-variable-p flag.
     (internal--define-uninitialized-variable symbol doc)
     (put symbol 'custom-requests requests)
+    ;; If this value has been set with `setopt' (for instance in
+    ;; ~/.emacs), we didn't necessarily know the type of the user option
+    ;; then.  So check now, and issue a warning if it's wrong.
+    (dolist (value (prog1 (nreverse (get symbol 'custom-check-values))
+                     (put symbol 'custom-check-values nil)))
+      (let ((type (get symbol 'custom-type)))
+        (when (and type
+                   ;; Check that the type is correct.
+                   (not (widget-apply (widget-convert type)
+                                      :match (car value))))
+          (warn "Value previously set by setopt did not match %S's type %S:\n%S"
+                symbol type value))))
     ;; Do the actual initialization.
     (unless custom-dont-initialize
       (funcall initialize symbol default)
