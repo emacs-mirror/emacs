@@ -4,7 +4,7 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Spencer Baugh <sbaugh@janestreet.com>
-;; Version: 1.4.5
+;; Version: 1.4.6
 ;; Keywords: c languages tools
 ;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.11.1"))
 
@@ -1627,7 +1627,7 @@ default) no filter is applied."
                         (cl-sort retval (if (cl-plusp n) #'< #'>)
                                  :key #'overlay-start))))
          (tail ;; For compatibility with older Emacs.
-               (with-suppressed-warnings ((obsolete cl-member-if))
+               (with-no-warnings
                  (cl-member-if (lambda (ov)
                                  (if (cl-plusp n)
                                      (> (overlay-start ov)
