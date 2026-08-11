@@ -2254,10 +2254,13 @@ without a visible progress reporter."
 		      (or tramp-inhibit-progress-reporter tm)))
 		 ,@body)
 	     (setq cookie "done"))
-         ;; Stop progress reporter.
+	 ;; Stop progress reporter.  We suppress the message in the
+	 ;; message buffer and echo area; proper handling is performed
+	 ;; by `tramp-message'.
 	 (when (and tm pr)
 	   (cancel-timer tm)
-	   (let (message-log-max)
+	   (let ((inhibit-message t)
+		 message-log-max)
 	     (progress-reporter-done pr)))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
 

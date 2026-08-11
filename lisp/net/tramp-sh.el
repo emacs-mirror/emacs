@@ -3897,8 +3897,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      ;; "%c" is not documented as format specifier, but it
 	      ;; has been added to version 3.20 (likely), see
 	      ;; <https://github.com/inotify-tools/inotify-tools/issues/72>
-	      sequence `(,command "-mqP" "-e" ,events
-			 "--format=%c %e %f" ,localname)
+	      sequence
+	      `(,command
+		,(if (tramp-remote-inotifywait-with-P v) "-mqP"  "-mq")
+		"-e" ,events "--format=%c %e %f" ,localname)
 	      ;; Make events a list of symbols.
 	      events
 	      (mapcar
@@ -4056,6 +4058,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 	      (or (match-string 3 line)
 		  (file-name-nondirectory
 		   (process-get proc 'tramp-watch-name)))
+	      ;; Older inotifywait versions print "%c" here.  This is
+	      ;; converted to "0".
 	      (string-to-number (match-string 1 line) 16))))
         ;; Add an Emacs event now.
 	;; `insert-special-event' exists since Emacs 31.
@@ -6135,6 +6139,18 @@ Nonexistent directories are removed from spec."
   (with-tramp-connection-property vec "inotifywait"
     (tramp-message vec 5 "Finding a suitable `inotifywait' command")
     (tramp-find-executable vec "inotifywait" (tramp-get-remote-path vec) t t)))
+
+(defun tramp-remote-inotifywait-with-P (vec)
+  "Check, whether remote `inotifywait' option \"-P\" is applicable."
+  (with-tramp-connection-property vec "inotifywait-P"
+    (tramp-message vec 5 "Checking, whether `inotifywait -P' works")
+    (let ((result
+	   (tramp-send-command-and-read
+	    vec
+	    (format
+	     "echo \\\"`%s -P 2>&1`\\\"" (tramp-get-remote-inotifywait vec))
+	    'noerror)))
+      (string-match-p "No files specified to watch!" result))))
 
 (defun tramp-get-remote-id (vec)
   "Determine remote `id' command."
