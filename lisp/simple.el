@@ -3911,26 +3911,44 @@ list can be applied to the current buffer."
        (t
         (let ((adjusted-undo-elt (undo-adjust-elt undo-elt
                                                   undo-deltas)))
-          (if (undo-elt-in-region adjusted-undo-elt start end)
-              (progn
-                (setq end (+ end (cdr (undo-delta adjusted-undo-elt))))
-                (push adjusted-undo-elt selective-list)
-                ;; Keep (MARKER . ADJUSTMENT) if their (TEXT . POS) was
-                ;; kept.  primitive-undo may discard them later.
-                (when (and (stringp (car-safe adjusted-undo-elt))
-                           (integerp (cdr-safe adjusted-undo-elt)))
-                  (let ((list-i (cdr ulist)))
-                    (while (markerp (car-safe (car list-i)))
-                      (push (pop list-i) selective-list)))))
-            (let ((delta (undo-delta undo-elt)))
-              (when (/= 0 (cdr delta))
-                (push delta undo-deltas)))))))
+          (cl-ecase (undo-elt-in-region adjusted-undo-elt start end
+                                        'partial)
+            ((t)
+             (setq end (+ end (cdr (undo-delta adjusted-undo-elt))))
+             (push adjusted-undo-elt selective-list)
+             ;; Keep (MARKER . ADJUSTMENT) if their (TEXT . POS) was
+             ;; kept.  primitive-undo may discard them later.
+             (when (and (stringp (car-safe adjusted-undo-elt))
+                        (integerp (cdr-safe adjusted-undo-elt)))
+               (let ((list-i (cdr ulist)))
+                 (while (markerp (car-safe (car list-i)))
+                   (push (pop list-i) selective-list)))))
+            ((nil)
+             (let ((delta (undo-delta undo-elt)))
+               (when (/= 0 (cdr delta))
+                 (push delta undo-deltas))))
+            (partial
+             ;; Stop searching for more applicable elements, because we
+             ;; aren't sure whether subsequent elements depend on the
+             ;; changes caused by this one; in particular for 'apply
+             ;; entries.
+             (setq ulist nil))))))
       (pop ulist))
     (nreverse selective-list)))
 
-(defun undo-elt-in-region (undo-elt start end)
+(defun undo--region-in-region (start1 end1 start2 end2 partial)
+  (cond ((<= start2 start1 end1 end2)
+         t)
+        ((or (<= start1 start2 end2 end1)
+             (and (<= start2 start1) (< start1 end2))
+             (and (< start2 end1) (<= end1 end2)))
+         partial)
+        (t
+         nil)))
+
+(defun undo-elt-in-region (undo-elt start end &optional partial)
   "Determine whether UNDO-ELT falls inside the region START ... END.
-If it crosses the edge, we return nil.
+If it crosses the edge, we return PARTIAL; nil otherwise.
 
 Generally this function is not useful for determining
 whether (MARKER . ADJUSTMENT) undo elements are in the region,
@@ -3951,12 +3969,12 @@ marker adjustment's corresponding (TEXT . POS) element."
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
 	 (let ((tail (nthcdr 3 undo-elt)))
-	   (and (>= (car tail) start)
-		(<= (cdr tail) end))))
+           (undo--region-in-region (car tail) (cdr tail)
+                                   start end partial)))
 	((integerp (car undo-elt))
 	 ;; (BEGIN . END)
-	 (and (>= (car undo-elt) start)
-	      (<= (cdr undo-elt) end)))
+         (undo--region-in-region (car undo-elt) (cdr undo-elt)
+                                 start end partial))
         ((and (eq (nth 0 undo-elt) 'apply)
               (integerp (nth 1 undo-elt))
               (consp (nth 2 undo-elt))
@@ -3964,8 +3982,11 @@ marker adjustment's corresponding (TEXT . POS) element."
               (natnump (cdr (nth 2 undo-elt)))
               (symbolp (nth 3 undo-elt)))
          ;; (apply DELTA (BEG . END) FUN . ARGS)
-         (and (>= (car (nth 2 undo-elt)) start)
-	      (<= (cdr (nth 2 undo-elt)) end)))))
+         (let* ((_delta (nth 1 undo-elt))
+                (region (nth 2 undo-elt))
+                (rbeg (car region))
+                (rend (cdr region)))
+           (undo--region-in-region rbeg rend start end partial)))))
 
 (defun undo-elt-crosses-region (undo-elt start end)
   "Test whether UNDO-ELT crosses one edge of that region START ... END.

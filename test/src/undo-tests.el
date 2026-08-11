@@ -645,5 +645,54 @@ Demonstrates bug 25599."
              (apply -1 (1 . 1) undo-tests--undo-insert)
              . ,l)))))
 
+(ert-deftest undo-tests-selective-apply-3 ()
+  "Test partially selected 'apply entries."
+  ;; If the active region covers the region of an apply entry only
+  ;; partially, then the 'apply entry and all older entries should be
+  ;; ignored.
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "abcde")
+    (undo-boundary)
+    (delete-region 3 4)
+    (should (equal (buffer-string) "abde"))
+    (let ((l buffer-undo-list))
+      (upcase-region 2 4)
+      (setq buffer-undo-list
+            `((apply 0 (2 . 4) downcase-region)
+              . ,l)))
+    (should (equal (buffer-string) "aBDe"))
+    (should (equal buffer-undo-list
+                   '((apply 0 (2 . 4) downcase-region)
+                     ("c" . 3) 6 nil (1 . 6) (t . 0))))
+    (undo-boundary)
+    ;; select "B"
+    (undo-tests--mark-region 2 3)
+    (should-error (undo) :type 'user-error)
+    (should (equal (buffer-string) "aBDe"))))
+
+(ert-deftest undo-tests-selective-apply-4 ()
+  "Test partially selected \"undo-insert\" (BEG . END) entries."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "12345")
+    (undo-boundary)
+    (delete-region 3 5)
+    (should (equal (buffer-string) "125"))
+    (goto-char 2)
+    (insert "ab")
+    (should (equal (buffer-string) "1ab25"))
+    (undo-boundary)
+    (goto-char 3)
+    ;; select "b2"
+    (undo-tests--mark-region 3 5)
+    (should (equal buffer-undo-list
+                   '(nil (2 . 4) ("34" . 3) 6 nil (1 . 6) (t . 0))))
+    ;; The entry (2 . 4) "undo-insert" is ignored because it is only
+    ;; partially covered by the region (3 . 5).  Older entries are still
+    ;; undone.  Not sure if this is a bug or a feature.
+    (undo)
+    (should (equal (buffer-string) "1ab2345"))))
+
 (provide 'undo-tests)
 ;;; undo-tests.el ends here
