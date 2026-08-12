@@ -240,7 +240,7 @@ set to nil, as the value is no longer rogue."
         (when (and type
                    ;; Check that the type is correct.
                    (not (widget-apply (widget-convert type)
-                                      :match (car value))))
+                                      :match value)))
           (warn "Value previously set by setopt did not match %S's type %S:\n%S"
                 symbol type value))))
     ;; Do the actual initialization.
