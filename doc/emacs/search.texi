@@ -1565,15 +1565,15 @@ is possible to perform several replacements in parallel, using the
 command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
 @cindex preview of replacement text
-@cindex @code{query-replace-preview} face
+@vindex query-replace-preview@r{ face}
 @vindex query-replace-show-preview
   If you set @code{query-replace-show-preview} to a non-@code{nil}
-value, the replace commands preview the replacement while you type it:
-the matches visible in the window are displayed as they would look
-after the replacement, using the face @code{query-replace-preview}.
+value, the replace commands shows a preview of the replacement while
+you type it: the matches visible in the window are displayed as they
+would look after the replacement, using the face @code{query-replace-preview}.
 This tells you what back-references like @samp{\1} (@pxref{Regexp
-Replace}) expand to before you commit to the edit.  Replacements that
-use @samp{\,} or @samp{\#} are not previewed.
+Replace}) expand to before you commit to the replacement.  However,
+replacements that use @samp{\,} or @samp{\#} are not previewed.
 
 @menu
 * Unconditional Replace::   Replacing all matches for a string.

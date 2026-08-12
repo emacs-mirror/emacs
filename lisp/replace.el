@@ -115,11 +115,11 @@ This variable affects only `query-replace-regexp'."
   :version "23.1")
 
 (defcustom query-replace-show-preview nil
-  "Non-nil means preview the replacement while you type it.
-The matches visible in the window are shown as they would look after
+  "Non-nil means show preview of the result of replacement while you type it.
+The matches that are visible in the window are shown as they would look after
 the replacement, using the `query-replace-preview' face.  This tells
 you what back-references like \\1 expand to before you commit to the
-edit.  Replacements that use \\, or \\# are never previewed."
+edit.  However, replacements that use \\, or \\# are not previewed."
   :type 'boolean
   :group 'matching
   :version "32.1")
@@ -368,7 +368,7 @@ the original string if not."
   "List of overlays used to preview the replacement text.")
 
 (defun replace-preview-cleanup ()
-  "Remove the overlays that preview the replacement text."
+  "Remove the overlays shoowing the preview of the replacement text."
   (mapc #'delete-overlay replace-preview-overlays)
   (setq replace-preview-overlays nil))
 
