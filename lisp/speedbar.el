@@ -1083,7 +1083,6 @@ supported at a time.
 	    speedbar-last-selected-file nil)
 
       (set-buffer speedbar-buffer)
-      (speedbar-mode)
 
       ;; let's create the window
       (setq speedbar--window
@@ -1102,14 +1101,19 @@ supported at a time.
       (speedbar-update-contents)
       (speedbar-set-timer dframe-update-speed)
 
+      ;; handle kill-buffer
+      (add-hook 'kill-buffer-hook (lambda () (speedbar-window--close t)) nil t)
+
       ;; hscroll
       (setq-local auto-hscroll-mode nil)
       ;; reset the selection variable
       (setq speedbar-last-selected-file nil)
       (select-window current-window))))
 
-(defun speedbar-window--close ()
-  "Close `speedbar-window'."
+(defun speedbar-window--close (&optional no-kill-buffer)
+  "Close `speedbar-window'.
+When NO-KILL-BUFFER is not nil, close window without killing
+'speedbar-buffer', which is useful for 'kill-buffer-hook'."
   (when (speedbar-window--live-p)
     (let ((current-window (selected-window)))
       ;; store the current window width
@@ -1123,10 +1127,11 @@ supported at a time.
       (setq speedbar--window nil
 	    speedbar-frame nil
 	    dframe-attached-frame nil)
-      (with-current-buffer speedbar-buffer
-        (speedbar-set-timer nil))
-      (kill-buffer speedbar-buffer)
-      (setq speedbar-buffer nil)
+
+      (speedbar-set-timer nil)
+      (unless no-kill-buffer
+        (kill-buffer speedbar-buffer)
+        (setq speedbar-buffer nil))
       (when (and current-window (window-live-p current-window))
 	(select-window current-window)))))
 
@@ -2724,13 +2729,15 @@ This should only be used by modes classified as special."
   "Set up the speedbar timer with TIMEOUT.
 Uses `dframe-set-timer'.
 Also resets scanner functions."
-  (dframe-set-timer timeout 'speedbar-timer-fn 'speedbar-update-flag)
-  ;; Apply a revert hook that will reset the scanners.  We attach to revert
-  ;; because most reverts occur during VC state change, and this lets our
-  ;; VC scanner fix itself.
-  (if timeout
-      (add-hook 'after-revert-hook 'speedbar-reset-scanners)
-    (remove-hook 'after-revert-hook 'speedbar-reset-scanners))
+  ;; `dframe-set-timer' must be called from `speedbar-buffer'.
+  (with-current-buffer speedbar-buffer
+    (dframe-set-timer timeout 'speedbar-timer-fn 'speedbar-update-flag)
+    ;; Apply a revert hook that will reset the scanners.  We attach to revert
+    ;; because most reverts occur during VC state change, and this lets our
+    ;; VC scanner fix itself.
+    (if timeout
+        (add-hook 'after-revert-hook 'speedbar-reset-scanners)
+      (remove-hook 'after-revert-hook 'speedbar-reset-scanners)))
   ;; change this if it changed for some reason
   (speedbar-set-mode-line-format))
 
@@ -2740,7 +2747,7 @@ Also resets scanner functions."
    ((and (speedbar-current-frame)
 	 (frame-live-p (speedbar-current-frame)))
     t)
-   ((speedbar-window--window-live-p) t)
+   ((speedbar-window--live-p) t)
    (t nil)))
 
 (defun speedbar-timer-fn ()
