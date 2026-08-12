@@ -3197,7 +3197,7 @@ default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 @defvar display-buffer-default-alist
 The value of this variable is an alist mapping conditions to display
 actions (@pxref{display-buffer-alist}).  Lisp programs may let-bind it
-to specify conditional actions for nested @code{display-buffer} calls.
+to specify conditional actions for wrapped @code{display-buffer} calls.
 @end defvar
 
 @anchor{display-buffer-alist}
