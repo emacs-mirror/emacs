@@ -1638,12 +1638,12 @@ frame.
 
 @item @code{pos}
 means to choose the window comprising the position of
-(@code{window-point}, @ref{Window Point}) of the previously selected
+@code{window-point} (@pxref{Window Point}) of the previously selected
 window on that frame.
 
 @item @code{nil}
 means to choose the first window (the window returned by
-@code{frame-first-window}, @ref{Windows and Frames}) on that frame.
+@code{frame-first-window}, @pxref{Windows and Frames}) on that frame.
 @end itemize
 
 A window for which @code{window-no-other-p} (@pxref{Cyclic Window

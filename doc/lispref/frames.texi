@@ -1320,7 +1320,7 @@ This function sets the new size and position of a frame, similarly to
 @code{set-frame-size-and-position}, but in pixel units.  The optional
 argument @var{gravity} specifies the new @dfn{gravity} of @var{frame}
 and must be a value between 0 and 10; it defaults to 1.  Gravity is
-window-system dependent and conceptually determine which corner of a
+window-system dependent and conceptually determines which corner of a
 frame retains its position relative to that of its parent frame when the
 size of that frame or its parent changes.  (Top-level frames have no
 parent frame, the window-system root window will be considered their
@@ -3996,7 +3996,7 @@ prevent such a situation, it is advisable to set the frame's
 Dragging Parameters}).
 
   Set the @code{top-visible} parameter of a child frame to a number when
-you intend to allow the user dragging that frame by its header or tab
+you intend to allow dragging that frame by its header or tab
 line.  Setting @code{top-visible} to a number inhibits dragging the top
 edge of the child frame above the top edge of its parent.  Set the
 @code{bottom-visible} parameter to a number when you intend to drag that
