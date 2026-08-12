@@ -1110,8 +1110,6 @@ free_frame_tool_bar (struct frame *f)
   [[[view window] toolbar] setVisible:NO];
   f->output_data.ns->in_animation = 0;
 
-  [[view window] setToolbar:nil];
-
   unblock_input ();
 }
 
