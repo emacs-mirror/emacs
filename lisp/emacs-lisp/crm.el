@@ -217,17 +217,6 @@ adjusted for the presence of multiple elements."
       (goto-char (match-end 0)))
     (if doexit (exit-minibuffer))))
 
-(defun crm--choose-completion-string (choice buffer base-position
-                                             &rest _ignored)
-  "Completion string chooser for `completing-read-multiple'.
-This is called from `choose-completion-string-functions'.
-It replaces the string that is currently being completed, without
-exiting the minibuffer."
-  (let ((completion-no-auto-exit t)
-        (choose-completion-string-functions nil))
-    (choose-completion-string choice buffer base-position)
-    t))
-
 ;; superemulates behavior of completing_read in src/minibuf.c
 ;; Use \\<crm-local-completion-map> so that help-enable-autoload can
 ;; do its thing.  Any keymap that is defined will do.
@@ -259,21 +248,7 @@ with empty strings removed."
          input)
     (minibuffer-with-setup-hook
         (lambda ()
-          (add-hook 'choose-completion-string-functions
-                    'crm--choose-completion-string nil 'local)
-          (setq-local completion-list-insert-choice-function
-                      (lambda (_start _end choice)
-                        (let* ((beg (save-excursion
-                                      (if (search-backward-regexp crm-separator
-                                                                  (field-beginning)
-                                                                  t)
-                                          (1+ (point))
-                                        (minibuffer-prompt-end))))
-                               (end (save-excursion
-                                      (if (search-forward-regexp crm-separator nil t)
-                                          (1- (point))
-                                        (point-max)))))
-                          (completion--replace beg end choice))))
+          (setq-local completion-no-auto-exit t)
           (setq-local crm-completion-table table)
           (use-local-map map))
       (setq input (completing-read
