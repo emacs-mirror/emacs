@@ -8114,17 +8114,17 @@ and adds the associated ACTION to the list of actions it will try."
 
 (defvar display-buffer-default-alist nil
   "Alist of conditional default actions for `display-buffer'.
-Its value takes effect before processing the ACTION argument of
-`display-buffer' and before `display-buffer-base-action' and
-`display-buffer-fallback-action', but after
-`display-buffer-overriding-action' and `display-buffer-alist', which
-see.
+If non-nil, this is an alist of elements (CONDITION . ACTION) like
+`display-buffer-alist'.  Its value takes effect before processing the
+ACTION argument of `display-buffer' and before
+`display-buffer-base-action' and `display-buffer-fallback-action', but
+after `display-buffer-overriding-action' and `display-buffer-alist',
+which see.
 
 Lisp programs may let-bind this variable to specify conditional actions
-for nested `display-buffer' calls.
-
-If non-nil, this is an alist of elements (CONDITION . ACTION) like
-`display-buffer-alist'.")
+for wrapped `display-buffer' calls.  Users are not supposed to set this
+variable.  They should customize `display-buffer-alist' instead which
+has higher priority and, as a rule, is left alone by Lisp programs.")
 (put 'display-buffer-default-alist 'risky-local-variable t)
 
 (defcustom display-buffer-base-action '(nil . nil)

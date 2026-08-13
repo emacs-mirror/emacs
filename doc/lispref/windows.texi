@@ -3196,8 +3196,13 @@ default value is an empty display action, i.e., @w{@code{(nil . nil)}}.
 
 @defvar display-buffer-default-alist
 The value of this variable is an alist mapping conditions to display
-actions (@pxref{display-buffer-alist}).  Lisp programs may let-bind it
-to specify conditional actions for wrapped @code{display-buffer} calls.
+actions (@pxref{display-buffer-alist}).
+
+Lisp programs may let-bind this variable to specify conditional actions
+for wrapped @code{display-buffer} calls.  Users are not supposed to set
+this variable.  They should customize @code{display-buffer-alist}
+instead which has higher priority and, as a rule, is left alone by Lisp
+programs.
 @end defvar
 
 @anchor{display-buffer-alist}
