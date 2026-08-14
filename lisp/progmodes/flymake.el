@@ -1261,8 +1261,11 @@ different runs of the same backend."
     (lambda (&rest args)
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
-          (goto-char point)
-          (apply #'flymake--handle-report backend token args))))))
+          (save-excursion
+            ;; A report touches the eol overlays whose style could be
+            ;; influenced by current-ish position.
+            (goto-char point)
+            (apply #'flymake--handle-report backend token args)))))))
 
 (defun flymake--collect (fn &optional message-prefix)
   "Collect Flymake backends matching FN.
