@@ -66,7 +66,8 @@ highlighted."
 ;; This caches the result of applying `regexp-opt' analogs to the
 ;; regexp-based user options, mainly for history playback bursts.
 (defvar erc-match--opt-pat-cache nil
-  "Alist of (COMPUTE-FN . PAIRS) where PAIRS is an alist of (IN . OUT).")
+  "Alist of (COMPUTE-FN . PAIRS) where PAIRS is an alist of (IN . OUT).
+IN is a hash of an input option's list value.")
 
 (defun erc-match--opt-pat-custom-set (sym val &optional _)
   "Assign VAL to SYM via `set'."
@@ -78,12 +79,25 @@ highlighted."
 ;; Remaining customizations
 
 (defcustom erc-pals nil
-  "List of pals on IRC."
+  "List of regexps for messages involving \"pals\" on IRC.
+ERC handles patterns for pals much the way it does for \"fools\" in
+`erc-fools'.  However, with pals, ERC only searches for \"mentions\" if
+the corresponding highlight option, `erc-pal-highlight-type', is set to
+`nick-or-mention'."
   :set #'erc-match--opt-pat-custom-set
   :type '(repeat regexp))
 
 (defcustom erc-fools nil
-  "List of fools on IRC."
+  "List of regexp patterns matching \"fools\" on IRC.
+ERC tests each pattern against a message's sender, also known as its
+\"source\" or its \"NUH\", which normally looks like: nick!user@host.
+ERC also looks for \"mentions\" in a message's body.  To match an
+initial addressee, it tries both \"pattern: \" and \"pattern, \".
+Absent either, ERC scans the rest of the body for phrases like
+\". pattern,\" and \", pattern!\", which may seem unintuitive.  See
+legacy function `erc-match-directed-at-fool-p' as well as the variables
+`erc-match-mention-beg-rx-sexp' and `erc-match-mention-any-rx-sexp' for
+particulars regarding this behavior and ways to possibly modify it."
   :set #'erc-match--opt-pat-custom-set
   :type '(repeat regexp))
 
@@ -200,11 +214,10 @@ Any other value disables keyword highlighting altogether."
   "Determines how to highlight messages by nicks from dangerous-hosts.
 Use option `erc-dangerous-hosts' to specify patterns.  See
 `erc-pal-highlight-type' for a summary of possible values as well as
-additional details common to categories like \\+`dangerous-host' that
-normally match against a message's sender."
+additional details common to options whose patterns ERC matches against
+a message's sender."
   :type '(choice (const nil)
 		 (const nick)
-                 (const nick-or-mention)
                  (const message)
 		 (const all)))
 
@@ -615,10 +628,29 @@ trailing newline."
 
 (defun erc-match--opt-pat-get (compute-fn input)
   "Retrieve cached results for computing INPUT with COMPUTE-FN."
-  (with-memoization (alist-get input (alist-get compute-fn
-                                                erc-match--opt-pat-cache nil t)
+  (with-memoization (alist-get (sxhash-equal input)
+                               (alist-get compute-fn
+                                          erc-match--opt-pat-cache nil t)
                                nil t)
     (funcall compute-fn input)))
+
+(defvar erc-match-mention-beg-rx-sexp
+  '(: bow (group candidates) (| ?, ?:) ?\s)
+  "An `rx' sexp matching at the beginning of an inserted message body.
+By default, it matches an addressee to which the message is directed.
+ERC replaces the symbol `candidates' with a pattern combining all
+members from relevant options, like `erc-fools'.")
+
+(defvar erc-match-mention-any-rx-sexp
+  '(: (syntax ?.) ?\s (group candidates) (syntax ?.))
+  "An `rx' sexp matching anywhere in the message body.
+By default, it matches the relevant option's value, such as that of
+`erc-fools', if the combined regexp pattern appears as a phrase
+surrounded by punctuation.  Note that the purpose of this default
+pattern is no longer known.  It survives purely for the sake of
+compatibility and may be replaced by something more obviously useful in
+the future.  See `erc-match-mention-beg-rx-sexp' for the meaning of
+`candidates'.")
 
 (defun erc-match--opt-pat-make (patterns)
   "Act like `regexp-opt' but for regexp PATTERNS, not fixed strings."
@@ -628,10 +660,12 @@ trailing newline."
   (mapconcat (lambda (w) (or (car-safe w) w)) patterns "\\|"))
 
 (defun erc-match--opt-pat-make-addr-beg (patterns)
-  (concat "\\<\\(" (erc-match--opt-pat-make patterns) "\\)[:,] "))
+  (rx-let-eval `((candidates ,(erc-match--opt-pat-make patterns)))
+    (rx-to-string erc-match-mention-beg-rx-sexp 'no-group)))
 
-(defun erc-match--opt-pat-make-addr-end (patterns)
-  (concat "\\s. \\(" (erc-match--opt-pat-make patterns) "\\)\\s."))
+(defun erc-match--opt-pat-make-addr-any (patterns)
+  (rx-let-eval `((candidates ,(erc-match--opt-pat-make patterns)))
+    (rx-to-string erc-match-mention-any-rx-sexp 'no-group)))
 
 (defun erc-match--current-nick-p (match)
   (re-search-forward (car (erc-match-traditional-data match)) nil t))
@@ -645,9 +679,11 @@ trailing newline."
                        nil t)))
 
 (defun erc-match--user-nuh-or-mention-p (match)
-  "Return non-nil on matching \"NUH\" for MATCH object.
+  "Return non-nil if pattern in MATCH's data slot matches its sender.
 Also do so on mentions if the category is `fool' or the corresponding
-\"part\" option is `nick-or-mention'."
+\"highlight-type\" option is `nick-or-mention'.  For mentions, match
+against the inserted message in the narrowed buffer.  Expect caller to
+know that `match-data' may describe a buffer or a string match."
   (and-let* ((patterns (erc-match-traditional-data match)))
     (or (string-match (erc-match--opt-pat-get #'erc-match--opt-pat-make
                                               patterns)
@@ -661,7 +697,7 @@ Also do so on mentions if the category is `fool' or the corresponding
                               #'erc-match--opt-pat-make-addr-beg
                               patterns))
                  (search-forward-regexp
-                  (erc-match--opt-pat-get #'erc-match--opt-pat-make-addr-end
+                  (erc-match--opt-pat-get #'erc-match--opt-pat-make-addr-any
                                           patterns)
                   nil t))))))
 
@@ -713,9 +749,9 @@ Also do so on mentions if the category is `fool' or the corresponding
 (cl-defmethod erc-match-highlight-by-part ((match erc-match-traditional)
                                            (_ (eql nick-or-mention)))
   "Highlight MATCH's speaker tag nick of matching users or all mentions."
-  (cl-letf (((erc-match-body-beg match)
-             (or (erc-match-spkr-beg match) (point-min))))
-    (erc-match-highlight-by-part match 'keyword)))
+  (if (bufferp (car (last (match-data 'integers))))
+      (erc-match-highlight-by-part match 'keyword)
+    (erc-match-highlight-by-part match 'nick)))
 
 (defvar erc-match-highlight-matched nil
   "Matched `erc-match' instance in `erc-text-matched-hook'.")
