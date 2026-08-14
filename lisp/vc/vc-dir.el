@@ -1801,7 +1801,10 @@ to process exceeds a non-nil `vc-dir-process-output-limit'."
 TEXT is passed on to `vc-dir-show-more-button'.
 Called by VC backend `dir-status-files' implementations."
   (when (and (natnump vc-dir-process-output-limit)
-             (> (buffer-size) vc-dir-process-output-limit))
+             (> (buffer-size) vc-dir-process-output-limit)
+             vc-parent-buffer
+             (with-current-buffer vc-parent-buffer
+               (derived-mode-p 'vc-dir-mode)))
     (narrow-to-region (point-min)
                       (save-excursion
                         (goto-char (+ (point-min)
