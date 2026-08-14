@@ -334,15 +334,13 @@ comments too."
 (defcustom hs-hide-block-behavior 'after-bol
   "How hideshow should hide a block.
 If set to `after-bol', hide the innermost block to which the current
-line belongs.
+line belongs.  If set to `after-point', hide the block after point.
 
-If set to `after-cursor', hide the block after cursor position.
-
-This only has effect in `hs-hide-block', `hs-cycle', `hs-hide-level' and
+This affects only the `hs-hide-block', `hs-cycle', `hs-hide-level' and
 `hs-toggle-hiding' commands."
   :type
   '(choice
-    (const :tag "Hide the block after cursor" after-cursor)
+    (const :tag "Hide the block after point" after-point)
     (const :tag "Hide the block after beginning of current line" after-bol))
   :version "31.1")
 

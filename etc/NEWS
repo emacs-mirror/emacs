@@ -1510,7 +1510,7 @@ customize the indicators appearance, but apply only if
 'hs-hide-block', 'hs-hide-level', 'hs-cycle' and 'hs-toggle-hiding' now
 hide the innermost block to which the current line belongs instead of
 the block after point.  To restore the old behavior, set the new user
-option 'hs-hide-block-behavior' to 'after-cursor'.
+option 'hs-hide-block-behavior' to 'after-point'.
 
 +++
 *** New user option 'hs-cycle-filter' for visibility-cycling with 'TAB'.
