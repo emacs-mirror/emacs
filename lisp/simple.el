@@ -6684,8 +6684,10 @@ and KILLP is t if a prefix arg was specified."
 
 (defun char-uppercase-p (char)
   "Return non-nil if CHAR is an upper-case character.
+A character is considered upper-case if there's a correspoding
+lower-case character.
 If the Unicode tables are not yet available, e.g. during bootstrap,
-then gives correct answers only for ASCII characters."
+this function gives correct return values only for ASCII characters."
   (cond ((unicode-property-table-internal 'lowercase)
          (characterp (get-char-code-property char 'lowercase)))
         ((<= ?A char ?Z))))
