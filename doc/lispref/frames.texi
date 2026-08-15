@@ -1665,6 +1665,12 @@ looking up X resources for the frame.
 If the frame name was specified explicitly when the frame was created,
 this parameter will be that name.  If the frame wasn't explicitly
 named, this parameter will be @code{nil}.
+
+@vindex environment@r{, a frame parameter}
+@item environment
+The list of strings, each one describing one environment variable.  This
+list is similar to the one in @code{process-environment} (@pxref{System
+Environment}), but it lists variables and values specific to the frame.
 @end table
 
 

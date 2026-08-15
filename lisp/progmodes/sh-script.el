@@ -1626,11 +1626,11 @@ not written in Bash or sh."
                                  "process_substitution")
                          eos))
                    (sexp-default
-                    ;; For `C-M-f' in "$|(a)"
-                    ("$(" .
+                    ;; For `C-M-f' in "$|{a}" or "$|(a)"
+                    ("$[{(]" .
                      ,(lambda (node)
-                        (equal (treesit-node-type (treesit-node-parent node))
-                               "command_substitution"))))
+                        (member (treesit-node-type (treesit-node-parent node))
+                                '("expansion" "command_substitution")))))
                    (sentence
                     ,(rx bos (or "redirected_statement"
                                  "declaration_command"

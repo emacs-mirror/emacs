@@ -2478,21 +2478,24 @@ the previous reports for TOKEN.")
                  #'eglot--after-set-visited-file-name-hook t)
     (remove-hook 'before-save-hook #'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook #'eglot--signal-textDocument/didSave t)
-    (remove-hook 'xref-backend-functions #'eglot-xref-backend t)
+    (unless (eglot--stay-out-of-p 'xref)
+      (remove-hook 'xref-backend-functions #'eglot-xref-backend t))
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush t)
     (remove-hook 'company-after-completion-hook #'eglot--capf-session-flush t)
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
     (remove-hook 'post-self-insert-hook #'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook #'eglot--pre-command-hook t)
-    (dolist (f (list #'eglot-hover-eldoc-function
-                     #'eglot-signature-eldoc-function
-                     #'eglot-highlight-eldoc-function
-                     #'eglot-code-action-suggestion))
-        (remove-hook 'eldoc-documentation-functions f t))
+    (unless (eglot--stay-out-of-p 'eldoc)
+      (dolist (f (list #'eglot-hover-eldoc-function
+                       #'eglot-signature-eldoc-function
+                       #'eglot-highlight-eldoc-function
+                       #'eglot-code-action-suggestion))
+        (remove-hook 'eldoc-documentation-functions f t)))
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
-    (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
+    (unless (eglot--stay-out-of-p 'imenu)
+      (remove-function (local 'imenu-create-index-function) #'eglot-imenu))
     (eglot--flymake-reset)
     (setq eglot--flymake-report-fn nil)
     (run-hooks 'eglot-managed-mode-hook)
@@ -2962,19 +2965,22 @@ THINGS are either registrations or unregisterations (sic)."
     (cond
      ((eq external t) (browse-url uri))
      ((file-readable-p (setq filename (eglot-uri-to-path uri)))
-      ;; Use run-with-timer to avoid nested client requests like the
-      ;; "synchronous imenu" floated in bug#62116 presumably caused by
-      ;; which-func-mode.
-      (run-with-timer
-       0 nil
-       (lambda ()
-         (with-current-buffer (find-file-noselect filename)
-           (cond (takeFocus
-                  (pop-to-buffer (current-buffer))
-                  (select-frame-set-input-focus (selected-frame)))
-                 ((display-buffer (current-buffer))))
-           (when selection
-             (eglot--goto selection))))))
+      ;; Really ensure this runs when it is safe to run it.
+      ;; run-with-timer avoid nested client requests like the
+      ;; "synchronous imenu" floated in bug#62116, while the
+      ;; "post-command once" trick is for bug#81538.
+      (cl-labels ((findit ()
+                  (remove-hook 'post-command-hook #'findit)
+                  (with-current-buffer (find-file-noselect filename)
+                    (cond (takeFocus
+                           (pop-to-buffer (current-buffer))
+                           (select-frame-set-input-focus (selected-frame)))
+                          ((display-buffer (current-buffer))))
+                    (when selection
+                      (eglot--goto selection)))))
+                (if this-command
+                    (add-hook 'post-command-hook #'findit)
+                  (run-at-time 0 nil #'findit))))
      (t (setq success :json-false)))
     `(:success ,success)))
 
@@ -4961,8 +4967,8 @@ not watching some directories" eglot-max-file-watches)
                       (:*       "\\*"                   eglot--glob-emit-*)
                       (:?       "\\?"                   eglot--glob-emit-?)
                       (:{}      "{[^{}]+}"              eglot--glob-emit-{})
-                      (:range   "\\[\\^?[^][/,*{}]+\\]" eglot--glob-emit-range)
-                      (:literal "[^][,*?{}]+"           eglot--glob-emit-self))
+                      (:range   "\\[\\^?[^][/*{}]+\\]"  eglot--glob-emit-range)
+                      (:literal "[^][*?{}]+"            eglot--glob-emit-self))
      until (eobp)
      collect (cl-loop
               for (_token regexp emitter) in grammar

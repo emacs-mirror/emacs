@@ -1492,7 +1492,11 @@ GUESSED-MAJOR-MODES-SYM are bound to the useful return values of
   (should (eglot--glob-match "prefix/{**/*.js,**/foo.[0-9]}.suffix"
                              "prefix/a/b/c/d/foo.5.suffix"))
   (should (eglot--glob-match "prefix/{**/*.js,**/foo.[0-9]}.suffix"
-                             "prefix/a/b/c/d/foo.js.suffix")))
+                             "prefix/a/b/c/d/foo.js.suffix"))
+  ;; bug#81425
+  (should (eglot--glob-match "foo/**/notes,extra.py" "foo/bar/notes,extra.py"))
+  (should (eglot--glob-match "foo,bar.txt" "foo,bar.txt"))
+  (should (eglot--glob-match "example.[a,b]" "example.,")))
 
 (defvar tramp-histfile-override)
 (defun eglot--call-with-tramp-test (fn)
