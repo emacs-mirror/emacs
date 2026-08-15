@@ -2214,8 +2214,10 @@ Tables}).  The width of a tab character is usually @code{tab-width}
 @end defun
 
 @defun char-uppercase-p char
-Return non-@code{nil} if @var{char} is an uppercase character
-according to Unicode.
+Return non-@code{nil} if @var{char} is an upper-case character
+according to Unicode.  Note that a character is considered to be
+upper-case if the Unicode Standard defines a corresponding lower-case
+character.
 @end defun
 
 @defun string-width string &optional from to
