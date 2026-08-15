@@ -280,11 +280,12 @@ display a message."
                        "`comp-files-queue' should be \".el\" files: %s"
                        source-file)
          when (and
-               ;; Verify that the source file still exists on disk
-               ;; as a regular file before calling
-               ;; `comp-el-to-eln-filename'. This check prevents
-               ;; `file-missing' errors caused by stale jobs in the
-               ;; async compilation queue.
+               ;; Verify that the source file still exists on disk as a
+               ;; regular file before calling `comp-el-to-eln-filename'.
+               ;; This check prevents `file-missing' errors caused by
+               ;; stale jobs in the async compilation queue.  (For
+               ;; example, this can happen when files are removed during
+               ;; a package's upgrade or deletion.)
                (file-regular-p source-file)
                (or native-comp-always-compile
                    load ; Always compile when the compilation is
@@ -372,7 +373,7 @@ display a message."
                                ;; Catch the file-missing error that
                                ;; occurs if the original source file is
                                ;; deleted while the asynchronous worker
-                               ;; is compiling it. Handling this error
+                               ;; is compiling it.  Handling this error
                                ;; prevents the sentinel from aborting
                                ;; and ensures the compilation queue
                                ;; continues processing.
