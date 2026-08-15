@@ -1318,12 +1318,15 @@ are specified as with the corresponding frame parameters @code{width},
 @defun set-frame-size-and-position-pixelwise frame width height x y &optional gravity
 This function sets the new size and position of a frame, similarly to
 @code{set-frame-size-and-position}, but in pixel units.  The optional
-argument @var{gravity} specified the new @dfn{gravity} of a frame and
-must be a value between 0 and 10; it defaults to 1.  The gravity
-determines how a window or its contents adjust when resized or
-positioned.  The interpretation is specific to each window-system; for
-example, GTK uses window gravity to define which point of the window
-remains fixed during resizing.
+argument @var{gravity} specifies the new @dfn{gravity} of @var{frame}
+and must be a value between 0 and 10; it defaults to 1.  Gravity is
+window-system dependent and conceptually determines which corner of a
+frame retains its position relative to that of its parent frame when the
+size of that frame or its parent changes.  (Top-level frames have no
+parent frame, the window-system root window will be considered their
+parent in this regard.)  The value 1 specifies NorthWest gravity and
+means that the top-left corner of the frame should keep its relative
+position.  Many window managers seem to ignore gravity.
 @end defun
 
 @cindex tracking frame size changes
@@ -2974,16 +2977,16 @@ A frame cannot be safely deleted in the following cases:
 @itemize @bullet
 @item
 It is the only visible or iconified frame (@pxref{Visibility of
-Frames}).
+Frames}) on its terminal.
 
 @item
 It hosts the active minibuffer window and minibuffer windows do not
 follow the selected frame (@pxref{Basic Minibuffer,,, emacs}).
 
 @item
-All other visible or iconified frames are either child frames
-(@pxref{Child Frames}) or have a non-@code{nil} @code{delete-before}
-parameter.
+All other visible or iconified frames on the same terminal are either
+child frames (@pxref{Child Frames}) or have a non-@code{nil}
+@code{delete-before} parameter.
 
 @item
 The frame or one of its descendants hosts the minibuffer window of a
@@ -3970,12 +3973,14 @@ parameter indicates the number of pixels where the frame @dfn{snaps} at
 the respective edge or corner of its parent frame.  On a text terminal,
 the outer border can used for resizing.
 
-  There are two ways to drag an entire child frame with the mouse: The
+  There are three ways to drag an entire child frame with the mouse: The
 @code{drag-with-mode-line} parameter, if non-@code{nil}, enables
-dragging a frame without minibuffer window (@pxref{Minibuffer
-Windows}) via the mode line area of its bottommost window.  The
-@code{drag-with-header-line} parameter, if non-@code{nil}, enables
-dragging the frame via the header line area of its topmost window.
+dragging a frame without minibuffer window (@pxref{Minibuffer Windows})
+via the mode line area of its bottommost window.  The
+@code{drag-with-header-line} and the @code{drag-with-tab-line}
+parameters, if non-@code{nil}, enable dragging the frame via the header
+or tab line area of its topmost window (dragging with the tab line is
+possible only when there's no header line above the tab line).
 
   In order to give a child frame a draggable header or mode line, the
 window parameters @code{mode-line-format} and @code{header-line-format}
@@ -3990,15 +3995,15 @@ prevent such a situation, it is advisable to set the frame's
 @code{top-visible} or @code{bottom-visible} parameter (@pxref{Mouse
 Dragging Parameters}).
 
-  Set the @code{top-visible} parameter of a child frame to a number
-when you intend to allow the user dragging that frame by its header
-line.  Setting @code{top-visible} to a number inhibits dragging the
-top edge of the child frame above the top edge of its parent.  Set the
-@code{bottom-visible} parameter to a number when you intend to drag
-that frame via its mode line; this inhibits dragging the bottom edge
-of the child frame beneath the bottom edge of its parent.  In either
-case, that number also specifies width and height (in pixels) of the
-area of the child frame that remains visible during dragging.
+  Set the @code{top-visible} parameter of a child frame to a number when
+you intend to allow dragging that frame by its header or tab
+line.  Setting @code{top-visible} to a number inhibits dragging the top
+edge of the child frame above the top edge of its parent.  Set the
+@code{bottom-visible} parameter to a number when you intend to drag that
+frame via its mode line; this inhibits dragging the bottom edge of the
+child frame beneath the bottom edge of its parent.  In either case, that
+number also specifies width and height (in pixels) of the area of the
+child frame that remains visible during dragging.
 
   When a child frame is used for displaying a buffer via
 @code{display-buffer-in-child-frame} (@pxref{Buffer Display Action
