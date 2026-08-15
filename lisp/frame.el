@@ -198,7 +198,7 @@ FRAME must be a live frame and defaults to the selected frame.
 
 FRAME cannot be safely deleted in the following cases:
 
-- FRAME is the only visible or iconified frame.
+- There is no other visible or iconified frame on FRAME's terminal.
 
 - FRAME hosts the active minibuffer window that does not follow the
   selected frame.
@@ -216,6 +216,7 @@ will be better to wrap the `delete-frame' call in a `condition-case'
 form."
   (setq frame (window-normalize-frame frame))
   (let ((active-minibuffer-window (active-minibuffer-window))
+        (terminal (frame-terminal frame))
 	deletable)
     (catch 'deletable
       (when (and active-minibuffer-window
@@ -228,12 +229,13 @@ form."
 
       (let ((frames (delq frame (frame-list))))
 	(dolist (other frames)
-	  ;; A suitable "other" frame must be either visible or
-	  ;; iconified.  Child frames and frames with a non-nil
-	  ;; 'delete-before' parameter do not qualify as other frame -
-	  ;; either of these will depend on a "suitable" frame found in
-	  ;; this loop.
-	  (unless (or (frame-parent other)
+	  ;; A suitable "other" frame must be on the same terminal as
+          ;; FRAME and must be either visible or iconified.  Child
+          ;; frames and frames with a non-nil 'delete-before' parameter
+          ;; do not qualify as other frame - either of these will depend
+          ;; on a "suitable" frame found in this loop.
+	  (unless (or (not (eq (frame-terminal other) terminal))
+                      (frame-parent other)
 		      (frame-parameter other 'delete-before)
 		      (not (frame-visible-p other)))
 	    (setq deletable t))
