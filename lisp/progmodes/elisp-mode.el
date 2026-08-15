@@ -1665,6 +1665,27 @@ namespace but with lower confidence."
 
     xrefs))
 
+(cl-defmethod xref-backend-xref-kinds ((_backend (eql 'elisp)))
+  '((:kind nil :name "function" :key ?f)
+    (:kind defvar :name "variable" :key ?v)
+    (:kind cl-defgeneric :name "generic function" :key ?g)
+    (:kind cl-defmethod :name "generic method" :key ?m)
+    (:kind define-type :name "constructor" :key ?o)
+    (:kind defalias :name "function alias" :key ?a)
+    (:kind defface :name "face" :key ?c)
+    (:kind feature :name "feature" :key ?e)))
+
+(cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql 'elisp)) identifier kind)
+  (require 'find-func)
+  (let ((sym (intern-soft identifier)))
+    (when sym
+      ;; FIXME: Should be less work if we limit the search, not filter.
+      (let* ((defs (elisp--xref-find-definitions sym)))
+        (cl-loop for d in defs
+                 for def-kind = (xref-elisp-location-type (xref-item-location d))
+                 when (eq def-kind kind)
+                 collect d)))))
+
 (declare-function xref-apropos-regexp "xref" (pattern))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql 'elisp)) pattern)

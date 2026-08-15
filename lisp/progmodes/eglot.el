@@ -3826,6 +3826,49 @@ If BUFFER, switch to it before."
                        :workspace/symbol
                        `(:query ,pattern))))))
 
+(cl-defmethod xref-backend-xref-kinds ((_backend (eql eglot)))
+  (delq
+   nil
+   (list
+    (when (eglot-server-capable :declarationProvider)
+      '(:kind declaration :name "declaration" :key ?d))
+    (when (eglot-server-capable :implementationProvider)
+      '(:kind implementation :name "implementation" :key ?i))
+    (when (eglot-server-capable :typeDefinitionProvider)
+      '(:kind type-definition :name "type definition" :key ?t)))))
+
+(cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql eglot)) id kind)
+  ;; First check whether ID is an identifier from the workspace.
+  (let ((probe (eglot--recover-workspace-symbol-meta id)))
+    (if (not probe)
+        ;; Symbol at point, or prompted input without match.
+        ;; FIXME: Might want to handle the latter differently.
+        (eglot--lsp-xrefs-for-method
+         (cl-ecase kind
+           (declaration :textDocument/declaration)
+           (implementation :textDocument/implementation)
+           (type-definition :textDocument/typeDefinition)))
+      ;; Function was selected from the prompt.  We do the best-effort
+      ;; thing, basically saving the user the extra 'C-u M-.'.
+      (eglot--dbind ((WorkspaceSymbol) name location)
+          (get-text-property 0 'eglot--lsp-workspaceSymbol probe)
+        (eglot--dbind ((Location) uri range) location
+          (let* ((match (eglot--xref-make-match name uri range))
+                 (loc (xref-match-item-location match)))
+            (save-current-buffer
+              ;; TODO: Clean up the buffer afterwards if it didn't exist
+              ;; before this lookup.
+              (xref--goto-location loc)
+              (when (eglot-current-server)
+                ;; Only works if the definition buffer is "managed",
+                ;; unfortunately.  Querying non-expecting server is
+                ;; likely to error with something like
+                ;;   "trying to get AST for non-added document"
+                ;; But `eglot-extend-to-xref' can help.
+                (xref-backend-xrefs-by-kind 'eglot
+                                            "LSP identifier at point"
+                                            kind)))))))))
+
 
 ;;; Eglot interactive commands and helpers
 (defun eglot-format-buffer ()
