@@ -498,6 +498,23 @@ support for those formats by default, so you might need to install
 additional support packages.  E.g., on Fedora you need to install the
 'gdk-pixbuf2-modules-extra' package.
 
+*** Resizing frames of GTK Emacs does not work on Wayland running on X11.
+
+This was reported with KDE Plasma, which recently is based on Wayland
+exclusively (as is GNOME).  The default character-wise resizing of the
+frame depends on whether the window manager is willing to process the
+hints provided by Emacs; evidently, Wayland-based window managers no
+longer do.
+
+One workaround is to customize frame-resize-pixelwise to a non-nil
+value.  Another workaround is to add a window rule in KDE Plasma's
+System Settings (under "Window Management->Application settings for
+Emacs->Size and Position") that forces KDE Plasma to obey geometry
+restrictions.
+
+Yet another solution is to use the PGTK build of Emacs, which works
+better on Wayland.
+
 ** Lisp problems
 
 *** Changes made to .el files do not take effect.
