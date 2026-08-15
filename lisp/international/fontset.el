@@ -161,6 +161,9 @@
 	(arabic #x628 #x6C1)
 	(syriac #x710)
 	(thaana #x78C)
+        (nko #x7C0 #x7CA)
+        (samaritan #x800)
+        (mandaic #x841)
 	(devanagari #x915)
 	(bengali #x995)
 	(gurmukhi #xA15)
@@ -193,11 +196,14 @@
         (sundanese #x1B8A #x1BAB #x1CC4)
         (batak #x1BC2 #x1BE7 #x1BFF)
         (lepcha #x1C00 #x1C24 #x1C40)
+        (ol-chiki #x1C50 #xC5A)
         (tai-le #x1950)
         (tai-lue #x1980)
         (tai-tham #x1A20 #x1A55 #x1A61 #x1A80)
+        (vedic #x1CD0 #x1CE2)
 	(symbol . [#x201C #x2200 #x2500])
 	(braille #x2800)
+        (glagolitic #x2C00)
         (tifinagh #x2D30 #x2D60)
 	(ideographic-description #x2FF0)
         ;; Noto Sans Phags Pa is broken and reuses the CJK misc code
@@ -206,17 +212,22 @@
 	(cjk-misc #x300E #xff0c #x300a #xff09 #x5b50)
 	(kana #x304B)
 	(bopomofo #x3105)
-	(kanbun #x319D)
 	(han #x3410 #x4e10 #x5B57 #xfe30 #xf900)
-	(yi #xA288)
+	(yi #xA288 #xA49A)
+        (lisu #xA4D0 #xA4F9)
+        (bamum #xA6A0)
         (syloti-nagri #xA807 #xA823 #xA82C)
+        (north-indic-number #xA830)
+        (phags-pa #xA840)
+        (saurashtra #xA882 #xA8B5 #xA8D0)
+        (kayah-li #xA900 #xA90A #xA926)
         (rejang #xA930 #xA947 #xA95F)
 	(javanese #xA98F #xA9B4 #xA9CA)
 	(cham #xAA00)
 	(tai-viet #xAA80)
         (meetei-mayek #xABC0 #xABE3 #xAAE0 #xAAF6)
 	(hangul #xAC00)
-	(linear-b #x10000)
+	(linear-b #x10000 #x10080)
 	(aegean-number #x10100)
 	(ancient-greek-number #x10140)
 	(ancient-symbol #x10190)
@@ -238,15 +249,24 @@
         (todhri #x105C0 #x105ED)
 	(linear-a #x10600)
 	(cypriot-syllabary #x10800)
+        (aramaic #x10840 #x10858)
 	(palmyrene #x10860)
 	(nabataean #x10880)
+        (hatran #x108E0 #x108FB)
 	(phoenician #x10900)
 	(lydian #x10920)
         (sidetic #x10940)
+        (meroitic #x10980 #x109A0)
 	(kharoshthi #x10A00)
+        (old-south-arabian #x10A60 #x10A7D)
+        (old-north-arabian #x10A80 #x10A9D)
 	(manichaean #x10AC0)
 	(avestan #x10B00)
+        (inscriptional-parthian #x10B40 #x10B58)
+        (inscriptional-pahlavi #x10B60 #x10B78)
+        (psalter-pahlavi #x10B80 #x10BA9)
 	(old-turkic #x10C00 #x10C01)
+        (old-hungarian #x10C80 #x10CC0 #x10CFA)
 	(hanifi-rohingya #x10D00 #x10D24 #x10D39)
         (garay #x10D50 #x10D70 #x10D4A #x10D41)
 	(yezidi #x10E80)
@@ -257,18 +277,21 @@
 	(old-uyghur #x10F70)
         (brahmi #x11013 #x11045 #x11052 #x11065)
         (kaithi #x1108D #x110B0 #x110BD)
+        (sora-sompeng #x110D0 #x110F1)
         (chakma #x11103 #x11127)
 	(mahajani #x11150)
         (sharada #x11191 #x111B3 #x111CD)
 	(khojki #x11200)
-	(khudawadi #x112B0)
+        (multani #x11280)
+	(khudawadi #x112B0 #x112E0)
 	(grantha #x11315 #x1133E #x11374)
         (tulu-tigalari #x11380 #x113B8)
-	(newa #x11400)
+	(newa #x11400 #x11435)
 	(tirhuta #x11481 #x1148F #x114D0)
 	(siddham #x1158E #x115AF #x115D4)
 	(modi #x1160E #x11630 #x11655)
 	(takri #x11680)
+        (ahom #x11700 #x11720 #x11730)
 	(dogra #x11800)
 	(warang-citi #x118A1)
 	(dives-akuru #x11900)
@@ -287,6 +310,7 @@
 	(cuneiform #x12000)
 	(cypro-minoan #x12F90)
 	(egyptian #x13000)
+        (anatolian #x14400)
         (gurung-khema #x16100 #x1611E #x16131)
 	(mro #x16A40)
 	(tangsa #x16A70 #x16AC0)
@@ -295,6 +319,7 @@
         (kirat-rai #x16D43 #x16D63 #x16D71)
 	(medefaidrin #x16E40)
         (beria-erfe #x16EA0)
+        (miao #x16F00 #x16F54)
 	(tangut #x17000)
 	(khitan-small-script #x18B00)
 	(nushu #x1B170)
@@ -304,8 +329,10 @@
 	(musical-symbol #x1D100)
 	(ancient-greek-musical-notation #x1D200)
         (kaktovik-numeral #x1D2C0)
+        (mayan-numeral #x1D2E0)
 	(tai-xuan-jing-symbol #x1D300)
 	(counting-rod-numeral #x1D360)
+        (sutton-sign-writing #x1D800)
 	(nyiakeng-puachue-hmong #x1e100)
 	(toto #x1E290 #x1E295 #x1E2AD)
 	(wancho #x1E2C0 #x1E2E8 #x1E2EF)
@@ -318,6 +345,7 @@
 	(ottoman-siyaq-number #x1ED01 #x1ED27)
 	(mahjong-tile #x1F000)
 	(domino-tile #x1F030)
+        (playing-cards #x1F0A0)
         (emoji #x1F300 #x1F600)
         (chess-symbol . [#x1FA00 #x1FA67])))
 
@@ -389,8 +417,6 @@
 	(hatr . hatran)
 	(hebr . hebrew)
 	(hung . old-hungarian)
-	(phli . inscriptional-pahlavi)
-	(prti . inscriptional-parthian)
 	(java . javanese)
 	(kthi . kaithi)
 	(knda . kannada)
@@ -660,8 +686,6 @@
 	  ,(font-spec :registry "iso10646-1" :script 'lao)
 	  (nil . "MuleLao-1"))
 
-     (tai-viet ("TaiViet" . "iso10646-1"))
-
      (greek ,(font-spec :registry "iso10646-1" :script 'greek)
 	    (nil . "ISO8859-7"))
 
@@ -684,6 +708,13 @@
 	     (nil . "ISO8859-6"))
      (mongolian ,(font-spec :registry "iso10646-1"
 			    :otf '(mong nil (init medi fina isol))))
+     (syriac ,(if (featurep 'android)
+                  (font-spec :registry "iso10646-1" :script 'syriac)
+                (font-spec :registry "iso10646-1"
+                           ;; Don't use isol, as it rejects Syriac fonts
+			   :otf '(syrc nil (init medi med2 fina fin2 fin3)))))
+     (nko ,(font-spec :registry "iso10646-1"
+		      :otf '(nko\  nil (init medi fina isol))))
 
      (hebrew ,(font-spec :registry "iso10646-1" :script 'hebrew)
 	     (nil . "ISO8859-8"))
@@ -809,11 +840,13 @@
   (dolist (script '(phonetic
 		    armenian
 		    thaana
-		    syriac
+                    samaritan
+                    mandaic
 		    georgian
 		    cherokee
 		    canadian-aboriginal
                     cham
+                    tai-viet
 		    ogham
 		    runic
                     tagalog
@@ -826,14 +859,24 @@
                     sundanese
                     batak
                     lepcha
+                    ol-chiki
 		    symbol
 		    braille
+                    glagolitic
                     coptic
 		    yi
+                    lisu
+                    bamum
+                    vai
                     syloti-nagri
+                    north-indic-number
+                    phags-pa
+                    saurashtra
+                    kayah-li
                     rejang
                     javanese
-		    tai-viet
+		    tai-le
+                    tai-lue
                     meetei-mayek
 		    aegean-number
 		    ancient-greek-number
@@ -844,36 +887,50 @@
 		    old-italic
                     gothic
 		    ugaritic
+                    old-permic
 		    old-persian
 		    deseret
 		    shavian
 		    osmanya
 		    osage
                     vithkuqi
+                    todhri
 		    cypriot-syllabary
+                    aramaic
 		    phoenician
 		    lydian
                     hanifi-rohingya
                     yezidi
 		    kharoshthi
+                    old-south-arabian
+                    old-north-arabian
 		    manichaean
 		    avestan
+                    inscriptional-parthian
+                    inscriptional-pahlavi
+                    psalter-pahlavi
                     chorasmian
 		    elymaic
                     old-uyghur
                     brahmi
                     kaithi
+                    sora-sompeng
                     chakma
                     sharada
                     grantha
+                    tulu-tigalari
+                    newa
                     tirhuta
                     siddham
                     modi
 		    makasar
                     kawi
                     dives-akuru
+                    nandinagari
 		    cuneiform
+                    cypro-minoan
 		    egyptian
+                    anatolian
                     tangsa
 		    bassa-vah
 		    pahawh-hmong
@@ -881,11 +938,14 @@
                     znamenny-musical-notation
                     khudawadi
                     khojki
+                    multani
                     mahajani
                     sogdian
                     old-sogdian
                     old-turkic
+                    old-hungarian
                     nabataean
+                    hatran
                     palmyrene
                     linear-a
                     linear-b
@@ -895,35 +955,49 @@
 		    musical-symbol
 		    ancient-greek-musical-notation
                     kaktovik-numeral
+                    mayan-numeral
 		    tai-xuan-jing-symbol
 		    counting-rod-numeral
                     toto
                     wancho
                     nag-mundari
+                    ol-onal
                     mende-kikakui
                     nyiakeng-puachue-hmong
                     mro
                     masaram-gondi
+                    gunjala-gondi
                     pau-cin-hau
                     soyombo
                     zanabazar-square
                     warang-citi
                     dogra
                     takri
+                    ahom
 		    adlam
                     tifinagh
                     tai-tham
+                    vedic
                     indic-siyaq-number
                     ottoman-siyaq-number
 		    mahjong-tile
 		    domino-tile
+                    playing-cards
                     emoji
                     chess-symbol
                     garay
                     sunuwar
+                    bhaiksuki
+                    marchen
                     sidetic
+                    meroitic
                     tolong-siki
                     beria-erfe
+                    miao
+                    tangut
+                    khitan-small-script
+                    nushu
+                    duployan-shorthand
                     tai-yo))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
@@ -985,6 +1059,7 @@
              (#x203B . #x206F)
              (#x2070 . #x209F)	;; Superscripts and Subscripts
              (#x20B6 . #x20CF)	;; Currency Symbols
+             (#x20D0 . #x20EF)  ;; Combining Diacritical Marks for Symbols
              (#x2100 . #x2121)	;; Letterlike Symbols
              (#x2123 . #x214F)
              (#x2150 . #x215A)	;; Number Forms
@@ -1018,6 +1093,7 @@
              (#x2E00 . #x2E7F)	;; Supplemental Punctuation
              (#x4DC0 . #x4DFF)	;; Yijing Hexagram Symbols
              (#xFE10 . #xFE1F)	;; Vertical Forms
+             (#xFFFC . #xFFFD)  ;; Replacement symbols
              (#x10100 . #x1013F)	;; Aegean Numbers
              (#x10190 . #x101CF)	;; Ancient Symbols
              (#x101D0 . #x101FF)	;; Phaistos Disc

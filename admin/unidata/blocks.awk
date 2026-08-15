@@ -64,6 +64,8 @@ BEGIN {
     alias["halfwidth and fullwidth forms"] = "cjk-misc"
     alias["yijing hexagram symbols"] = "cjk-misc"
     alias["common indic number forms"] = "north-indic-number"
+    alias["kanbun"] = "han"
+    alias["vertical forms"] = "cjk-misc"
 
     tohex["a"] = 10
     tohex["b"] = 11
@@ -159,6 +161,17 @@ FILENAME ~ "Blocks.txt" && /^[0-9A-F]/ {
 	start[i] = "3358"
 	end[i] = "33FF"
 	name[i] = "CJK Compatibility"
+    }
+    else if (start[i] == "FFF0")
+    {
+	start[i] = "FFFC"
+	end[i] = "FFFD"
+	name[i] = "Replacement Symbols"
+	alt[i] = "symbol"
+	i++
+	start[i] = "FFFE"
+	end[i] = "FFFF"
+	name[i] = "Specials"
     }
 
     alt[i] = name2alias(name[i])
