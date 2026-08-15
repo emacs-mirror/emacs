@@ -1747,18 +1747,20 @@ These are the commands available for use in the file status buffer:
 	  nil t nil nil)))))
   (unless backend
     (setq backend (vc-responsible-backend dir)))
-  (let (pop-up-windows)		      ; based on cvs-examine; bug#6204
-    (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend)))
-  (if (derived-mode-p 'vc-dir-mode)
-      (vc-dir-refresh)
-    ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
-    (let ((use-vc-backend backend))
-      (vc-dir-mode)
-      ;; Activate the backend-specific minor mode, if any.
-      (when-let* ((minor-mode
-                   (intern-soft (format "vc-dir-%s-mode"
-                                        (downcase (symbol-name backend))))))
-        (funcall minor-mode 1)))))
+  (let ((pop-up-windows)		      ; based on cvs-examine; bug#6204
+        (buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend)))
+    (with-current-buffer buffer
+      (if (derived-mode-p 'vc-dir-mode)
+          (vc-dir-refresh)
+        ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
+        (let ((use-vc-backend backend))
+          (vc-dir-mode)
+          ;; Activate the backend-specific minor mode, if any.
+          (when-let* ((minor-mode
+                       (intern-soft (format "vc-dir-%s-mode"
+                                            (downcase (symbol-name backend))))))
+            (funcall minor-mode 1)))))
+    (pop-to-buffer buffer)))
 
 (defun vc-default-dir-extra-headers (_backend _dir)
   ;; Be loud by default to remind people to add code to display

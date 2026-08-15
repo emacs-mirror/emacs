@@ -209,11 +209,6 @@ can be overridden for different completion categories by customizing
 "*Completions*" for all minibuffers, or nil to suppress this for all
 minibuffers.
 
----
-*** Support for completion category inheritance.
-You can now define completion categories that inherit properties from
-existing categories, using the new function 'define-completion-category'.
-
 +++
 *** Support for updating "*Completions*" as you type.
 If the "*Completions*" buffer is displayed and the completion table sets
@@ -224,6 +219,11 @@ be overridden for different completion categories by customizing
 'completion-eager-update' can be set to t to make "*Completions*" always
 be updated as you type, or nil to suppress this always.  Note that for
 large or inefficient completion tables, this can slow down typing.
+
+---
+*** Support for completion category inheritance.
+You can now define completion categories that inherit properties from
+existing categories, using the new function 'define-completion-category'.
 
 +++
 *** New optional value of 'minibuffer-visible-completions'.
@@ -1356,13 +1356,6 @@ settings.  In a multi-language major mode it is sometimes necessary to
 replace features from one of the major modes with others that are
 better suited to the new multilingual context.
 
----
-*** New function 'treesit-simple-indent-modify-rules'.
-Given two tree-sitter indent rules, it replaces, adds, or prepends rules
-in the old rules with new ones, then returns the modified rules.  In a
-multi-language major mode it is sometimes necessary to modify rules from
-one of the major modes to better suit the new multilingual context.
-
 +++
 *** New variable 'treesit-aggregated-simple-imenu-settings'.
 This variable allows major modes to setup Imenu for multiple languages.
@@ -1376,6 +1369,13 @@ for multiple languages.
 *** New function 'treesit-simple-indent-add-rules'.
 This new function makes it easier to customize indent rules for
 tree-sitter modes.
+
+---
+*** New function 'treesit-simple-indent-modify-rules'.
+Given two tree-sitter indent rules, it replaces, adds, or prepends rules
+in the old rules with new ones, then returns the modified rules.  In a
+multi-language major mode it is sometimes necessary to modify rules from
+one of the major modes to better suit the new multilingual context.
 
 ---
 *** New variable 'treesit-simple-indent-override-rules'.
@@ -1465,6 +1465,11 @@ hiding the parent block, hiding only the nested blocks and showing all
 the blocks.
 
 +++
+*** New user option 'hs-cycle-filter' for visibility-cycling with 'TAB'.
+This user option controls the positions on the headline of hideable blocks
+where the 'TAB' key cycles the blocks' visibility.
+
++++
 *** New command 'hs-toggle-all'.
 This command hides or shows all the blocks in the current buffer.
 
@@ -1510,12 +1515,7 @@ customize the indicators appearance, but apply only if
 'hs-hide-block', 'hs-hide-level', 'hs-cycle' and 'hs-toggle-hiding' now
 hide the innermost block to which the current line belongs instead of
 the block after point.  To restore the old behavior, set the new user
-option 'hs-hide-block-behavior' to 'after-cursor'.
-
-+++
-*** New user option 'hs-cycle-filter' for visibility-cycling with 'TAB'.
-This user option controls the positions on the headline of hideable blocks
-where the 'TAB' key cycles the blocks' visibility.
+option 'hs-hide-block-behavior' to 'after-point'.
 
 ---
 *** The variable 'hs-special-modes-alist' is now obsolete.
@@ -1637,7 +1637,7 @@ Rules for finding siblings of a PHP file.
 
 ---
 *** New user option 'php-ts-mode-phpdoc-highlight-errors'.
-When non nil, it highlights unknown PHPDOC tags using
+When non-nil, it highlights unknown PHPDOC tags using
 'font-lock-warning-face' so that the user can identify them more easily.
 
 ---
@@ -1952,7 +1952,7 @@ bookmark state that you, or a package that you use, maintains.
 Customize user option 'recentf-autosave-interval' to the number of
 seconds between auto saving recently opened files.  For example,
 customize this variable to 300 to save recently opened files every 5
-minutes.  From Lisp, use 'setopt' not 'setq'.  If
+minutes.  From Lisp, use 'setopt', not 'setq'.  If
 'recentf-autosave-interval' is nil, auto saving is disabled; this is the
 default.
 
@@ -1986,7 +1986,7 @@ extensions by customizing the new user option
 *** You can now regularly auto-save places.
 Customize user option 'save-place-autosave-interval' to the number of
 seconds between auto-saving places.  For example, customize this
-variable to 300 to save places every 5 minutes.  From Lisp, use 'setopt'
+variable to 300 to save places every 5 minutes.  From Lisp, use 'setopt',
 not 'setq'.  If 'save-place-autosave-interval' is nil, auto saving is
 disabled; this is the default.
 
@@ -3600,6 +3600,11 @@ without marking it as automatically buffer-local.
 ** Pulse
 
 ---
+*** New user option 'pulse-face-duration'.
+This option controls the flash duration for 'flash-face-bell-function'
+and 'flash-echo-area-bell-function'.
+
+---
 *** New function 'pulse-faces'.
 This function pulses a specified list of faces.  The pulse duration is
 determined by the new user option 'pulse-face-duration'.
@@ -3982,7 +3987,7 @@ frame and be interpreted as a command.
 This specifies the buffers in which 'global-hl-line-mode' should be
 switched on.  The default is all buffers except the minibuffer, and
 buffers that enable 'cursor-face-highlight-mode', like the
-"*Completions*" buffer
+"*Completions*" buffer.
 
 ---
 *** New value 'window' for the user option 'global-hl-line-sticky-flag'.
@@ -4007,11 +4012,6 @@ It is intended to be used in 'ring-bell-function'.
 *** New function 'flash-echo-area-bell-function'.
 This function flashes the current frame's echo area briefly.
 It is intended to be used in 'ring-bell-function'.
-
----
-*** New user option 'pulse-face-duration'.
-This option controls the flash duration for 'flash-face-bell-function'
-and 'flash-echo-area-bell-function'.
 
 ---
 *** New user option 'flash-face-faces'.
@@ -4184,7 +4184,7 @@ The compiler now unifies more constants that are 'equal' for better code
 generation.  This does not affect correct programs but may expose some
 coding mistakes.  For example,
 
-    (eq (cdr '(1 2 3)) '(2 3)))
+    (eq (cdr '(1 2 3)) '(2 3))
 
 may return either nil or t.
 
