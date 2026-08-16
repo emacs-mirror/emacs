@@ -1831,7 +1831,7 @@ properties `:kind' and `:name'."
                   ;; "identifier completion table for kind".  But
                   ;; probably only the elisp backend would have it.
                   (xref--read-identifier
-                   (format-message "Find %s of: " (plist-get desc :name)))
+                   (format-message "Find %s: " (plist-get desc :name)))
                   desc)))
   (unless kind-desc (user-error "Have to choose the kind"))
   (xref--show-defs
