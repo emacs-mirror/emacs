@@ -965,8 +965,13 @@ module_vec_size (emacs_env *env, emacs_value vector)
 static uint32_t *
 module_canvas_data (emacs_env *env, emacs_value canvas)
 {
+  uint32_t *data = 0;
   MODULE_FUNCTION_BEGIN (NULL);
-  uint32_t *data = canvas_data (value_to_lisp (canvas));
+#ifdef HAVE_WINDOW_SYSTEM
+  data = canvas_data (value_to_lisp (canvas));
+#else
+  error ("Canvas: No window system");
+#endif
   MODULE_INTERNAL_CLEANUP ();
   return data;
 }
