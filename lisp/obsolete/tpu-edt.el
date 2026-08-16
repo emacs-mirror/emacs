@@ -881,7 +881,7 @@ if no region is selected."
   (interactive)
   (cond (overwrite-mode
 	 (tpu-local-set-key "\177" tpu-saved-delete-func)
-	 (overwrite-mode 0))
+	 (overwrite-mode -1))
 	(t
 	 (setq tpu-saved-delete-func (local-key-binding "\177"))
 	 (tpu-local-set-key "\177" 'picture-backward-clear-column)

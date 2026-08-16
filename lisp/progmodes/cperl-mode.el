@@ -7411,7 +7411,7 @@ by CPerl."
   (set-buffer (get-buffer-create cperl-tmp-buffer))
   (set-syntax-table cperl-mode-syntax-table)
   (buffer-disable-undo)
-  (auto-fill-mode 0)
+  (auto-fill-mode -1)
   (if cperl-use-syntax-table-text-property-for-tags
       (progn
 	;; Do not introduce variable if not needed, we check it!

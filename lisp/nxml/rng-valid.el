@@ -450,13 +450,13 @@ The schema is set like `rng-auto-set-schema'."
 	;; will get mysteriously stuck at a single place
 	(rng-compile-error
 	 (message "Incorrect schema. %s" (nth 1 err))
-	 (rng-validate-mode 0)
+	 (rng-validate-mode -1)
 	 nil)
 	(error
 	 (message "Internal error in rng-validate-mode triggered at buffer position %d. %s"
 		  (point)
 		  (error-message-string err))
-	 (rng-validate-mode 0)
+	 (rng-validate-mode -1)
 	 nil)))))
 
 (defun rng-validate-prepare ()

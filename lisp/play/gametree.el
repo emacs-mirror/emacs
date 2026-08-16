@@ -601,7 +601,7 @@ Useful to postal and email chess (and, it is hoped, also checkers, go,
 shogi, etc.) players, it is a slightly modified version of Outline mode.
 
 \\{gametree-mode-map}"
-  (auto-fill-mode 0)
+  (auto-fill-mode -1)
   (add-hook 'write-contents-functions 'gametree-save-and-hack-layout nil t))
 
 (provide 'gametree)

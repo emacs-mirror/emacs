@@ -3236,8 +3236,8 @@ choose a font."
 	      ((eq choice 'text-scale-decrease)
 	       (text-scale-increase -1))
 	      ((eq choice 'face-remap-reset-base)
-	       (text-scale-mode 0)
-	       (buffer-face-mode 0))
+	       (text-scale-mode -1)
+	       (buffer-face-mode -1))
 	      (choice
 	       ;; Either choice == 'x-select-font, or choice is a
 	       ;; symbol whose name is a font.

@@ -49,7 +49,7 @@
   ((remove-hook 'erc-connect-pre-hook #'erc-spelling-init)
    (dolist (buffer (erc-buffer-list))
      (remove-hook 'flyspell-incorrect-hook #'erc-spelling--flyspell-check t)
-     (with-current-buffer buffer (flyspell-mode 0)))))
+     (with-current-buffer buffer (flyspell-mode -1)))))
 
 (defcustom erc-spelling-dictionaries nil
   "An alist mapping buffer names to dictionaries.

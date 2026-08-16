@@ -591,7 +591,7 @@ local, and sets it to FACE."
   (while (and (consp specs) (null (cdr specs)))
     (setq specs (car specs)))
   (if (null specs)
-      (buffer-face-mode 0)
+      (buffer-face-mode -1)
     (setq-local buffer-face-mode-face specs)
     (buffer-face-mode t)))
 
@@ -619,7 +619,7 @@ buffer local, and set it to SPECS."
     (setq specs (car specs)))
   (if (or (null specs)
 	  (and buffer-face-mode (equal buffer-face-mode-face specs)))
-      (buffer-face-mode 0)
+      (buffer-face-mode -1)
     (setq-local buffer-face-mode-face specs)
     (buffer-face-mode t)))
 

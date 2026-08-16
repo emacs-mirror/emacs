@@ -457,12 +457,12 @@ Use `auto-revert-mode' for changes other than appends!"
   :group 'find-file :lighter auto-revert-tail-mode-text
   (when auto-revert-tail-mode
     (unless buffer-file-name
-      (auto-revert-tail-mode 0)
+      (auto-revert-tail-mode -1)
       (error "This buffer is not visiting a file"))
     (if (and (buffer-modified-p)
 	     (zerop auto-revert-tail-pos) ; library was loaded only after finding file
 	     (not (y-or-n-p "Buffer is modified, so tail offset may be wrong.  Proceed? ")))
-	(auto-revert-tail-mode 0)
+	(auto-revert-tail-mode -1)
       ;; a-r-tail-pos stores the size of the file at the time of the
       ;; last revert. After this package loads, it adds a
       ;; find-file-hook to set this variable every time a file is
@@ -480,7 +480,7 @@ Perform a full revert? ")
            ;; Use this (not just revert-buffer) for point-preservation.
            (auto-revert-buffer (current-buffer)))
       ;; else we might reappend our own end when we save
-      (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
+      (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode -1)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
 	  (setq-local auto-revert-tail-pos
                       (file-attribute-size

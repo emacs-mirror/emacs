@@ -274,7 +274,7 @@
 ;; Refer to M-: (info "(emacs) Specifying File Variables") RET
 ;;
 ;; If so-long itself causes problems, disable the automated behavior with
-;; M-- M-x global-so-long-mode, or M-: (global-so-long-mode 0)
+;; M-- M-x global-so-long-mode, or M-: (global-so-long-mode -1)
 
 ;; * Example configuration
 ;; -----------------------
@@ -1325,7 +1325,7 @@ This is the default `so-long-predicate' function in Emacs versions < 28.1.
     (if state
         (unless (equal (cadr state) longlines-mode)
           (longlines-mode (if (cadr state) 1 0)))
-      (longlines-mode 0))))
+      (longlines-mode -1))))
 
 (defun turn-on-so-long-minor-mode ()
   "Enable minor mode `so-long-minor-mode'."
@@ -1333,7 +1333,7 @@ This is the default `so-long-predicate' function in Emacs versions < 28.1.
 
 (defun turn-off-so-long-minor-mode ()
   "Disable minor mode `so-long-minor-mode'."
-  (so-long-minor-mode 0))
+  (so-long-minor-mode -1))
 
 ;;;###autoload
 (define-minor-mode so-long-minor-mode
@@ -1908,9 +1908,9 @@ Equivalent to calling (global-so-long-mode 1)"
 (defun so-long-disable ()
   "Disable the `so-long' library's functionality.
 
-Equivalent to calling (global-so-long-mode 0)"
+Equivalent to calling (global-so-long-mode -1)"
   (interactive)
-  (global-so-long-mode 0))
+  (global-so-long-mode -1))
 
 (make-obsolete 'so-long-enable 'global-so-long-mode "so-long 1.0")
 (make-obsolete 'so-long-disable 'global-so-long-mode "so-long 1.0")
@@ -1990,7 +1990,7 @@ or call the function `global-so-long-mode'.")
   "Handler for `unload-feature'."
   (condition-case err
       (progn
-        (global-so-long-mode 0)
+        (global-so-long-mode -1)
         ;; Process existing buffers.
         (dolist (buf (buffer-list))
           (with-current-buffer buf

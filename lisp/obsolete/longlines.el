@@ -168,7 +168,7 @@ newlines are indicated with a symbol."
 	(add-hook 'after-change-functions #'longlines-after-change-function nil t)
 	(add-hook 'post-command-hook #'longlines-post-command-function nil t)
         (when longlines-auto-wrap
-          (auto-fill-mode 0)))
+          (auto-fill-mode -1)))
     ;; Turn off longlines mode
     (setq buffer-file-format (delete 'longlines buffer-file-format))
     (if longlines-showing
@@ -202,7 +202,7 @@ newlines are indicated with a symbol."
   "Turn off longlines mode.
 This function exists to be called by `change-major-mode-hook' when the
 major mode changes."
-  (longlines-mode 0))
+  (longlines-mode -1))
 
 ;;; Showing the effect of hard newlines in the buffer
 
@@ -475,7 +475,7 @@ This is called by `window-configuration-change-hook'."
 
 (defun longlines-before-revert-hook ()
   (add-hook 'after-revert-hook #'longlines-after-revert-hook nil t)
-  (longlines-mode 0))
+  (longlines-mode -1))
 
 (defun longlines-after-revert-hook ()
   (remove-hook 'after-revert-hook #'longlines-after-revert-hook t)

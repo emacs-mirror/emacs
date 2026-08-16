@@ -1595,7 +1595,7 @@ Do it only if `flymake-no-changes-timeout' is non-nil."
 ;;;###autoload
 (defun flymake-mode-off ()
   "Turn Flymake mode off."
-  (flymake-mode 0))
+  (flymake-mode -1))
 
 (make-obsolete 'flymake-mode-on 'flymake-mode "26.1")
 (make-obsolete 'flymake-mode-off 'flymake-mode "26.1")

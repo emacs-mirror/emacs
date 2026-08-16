@@ -1432,14 +1432,14 @@ mail status in mode line"))
 (defun menu-bar--toggle-truncate-long-lines ()
   "Toggle long lines mode."
   (interactive)
-  (if visual-line-mode (visual-line-mode 0))
+  (if visual-line-mode (visual-line-mode -1))
   (setq word-wrap nil)
   (toggle-truncate-lines 1))
 
 (defun menu-bar--wrap-long-lines-window-edge ()
   "Wrap long lines at window edge."
   (interactive)
-  (if visual-line-mode (visual-line-mode 0))
+  (if visual-line-mode (visual-line-mode -1))
   (setq word-wrap nil)
   (if truncate-lines (toggle-truncate-lines -1)))
 

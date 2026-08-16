@@ -772,7 +772,7 @@ that requires a literal mode spec at compile time."
   (when (and (featurep 'font-lock)
 	     (symbol-value 'font-lock-mode))
     ;; Force font lock mode to reinitialize itself.
-    (font-lock-mode 0)
+    (font-lock-mode -1)
     (font-lock-mode 1)))
 
 ;; Buffer local variables defining the region to be fontified by a font lock

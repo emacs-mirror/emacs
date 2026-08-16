@@ -7880,7 +7880,7 @@ active it will overwrite that mode for the current buffer.
 Internally it provides a default for the `dictionary-tooltip-mode'.
 It can be overwritten for each buffer using `dictionary-tooltip-mode'.
 
-Note: (global-dictionary-tooltip-mode 0) will not disable the mode
+Note: (global-dictionary-tooltip-mode -1) will not disable the mode
 any buffer where (dictionary-tooltip-mode 1) has been called.
 
 (fn &optional ARG)" t)

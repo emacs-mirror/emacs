@@ -1267,7 +1267,7 @@ See `whitespace-style' and `indent-tabs-mode' for documentation."
   (interactive (whitespace-interactive-char t))
   (let ((whitespace-style
 	 (whitespace-toggle-list t arg whitespace-active-style)))
-    (whitespace-mode 0)
+    (whitespace-mode -1)
     (whitespace-mode 1)))
 
 
@@ -1353,7 +1353,7 @@ See `whitespace-style' and `indent-tabs-mode' for documentation."
   (let ((whitespace-style
 	 (whitespace-toggle-list nil arg whitespace-toggle-style)))
     (setq whitespace-toggle-style whitespace-style)
-    (global-whitespace-mode 0)
+    (global-whitespace-mode -1)
     (global-whitespace-mode 1)))
 
 

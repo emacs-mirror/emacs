@@ -113,7 +113,7 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
 	 (add-hook 'completion-at-point-functions #'rng-completion-at-point nil t)
 	 (add-hook 'nxml-in-mixed-content-hook #'rng-in-mixed-content-p nil t))
 	(t
-	 (rng-validate-mode 0)
+	 (rng-validate-mode -1)
 	 (remove-hook 'completion-at-point-functions #'rng-completion-at-point t)
 	 (remove-hook 'nxml-in-mixed-content-hook #'rng-in-mixed-content-p t))))
 
