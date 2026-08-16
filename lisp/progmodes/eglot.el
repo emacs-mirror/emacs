@@ -3854,20 +3854,23 @@ If BUFFER, switch to it before."
           (get-text-property 0 'eglot--lsp-workspaceSymbol probe)
         (eglot--dbind ((Location) uri range) location
           (let* ((match (eglot--xref-make-match name uri range))
-                 (loc (xref-match-item-location match)))
+                 (loc (xref-match-item-location match))
+                 (bl (buffer-list)))
             (save-current-buffer
-              ;; TODO: Clean up the buffer afterwards if it didn't exist
-              ;; before this lookup.
-              (xref--goto-location loc)
-              (when (eglot-current-server)
-                ;; Only works if the definition buffer is "managed",
-                ;; unfortunately.  Querying non-expecting server is
-                ;; likely to error with something like
-                ;;   "trying to get AST for non-added document"
-                ;; But `eglot-extend-to-xref' can help.
-                (xref-backend-xrefs-by-kind 'eglot
-                                            "LSP identifier at point"
-                                            kind)))))))))
+              (unwind-protect
+                  (progn
+                    (xref--goto-location loc)
+                    (when (eglot-current-server)
+                      ;; Only works if the definition buffer is "managed",
+                      ;; unfortunately.  Querying non-expecting server is
+                      ;; likely to error with something like
+                      ;;   "trying to get AST for non-added document"
+                      ;; But `eglot-extend-to-xref' can help.
+                      (xref-backend-xrefs-by-kind 'eglot
+                                                  "LSP identifier at point"
+                                                  kind)))
+                (unless (memq (current-buffer) bl)
+                  (kill-buffer))))))))))
 
 
 ;;; Eglot interactive commands and helpers
