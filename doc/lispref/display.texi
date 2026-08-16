@@ -7544,7 +7544,7 @@ Once a canvas image object has been created and displayed, it can be
 ``refreshed'' via @code{canvas-refresh}.
 
 @defun canvas-refresh image &optional reload-data
-Refresh canvas @var{image} and update it on screen. If the optional
+Refresh canvas @var{image} and update it on screen.  If the optional
 argument @var{reload-data} is non-nil, reload the @code{:data} or
 @code{file} from the image specification before redrawing the canvas.
 @end defun
@@ -7571,7 +7571,7 @@ When refreshing the canvas in a loop, we must explicitly call @code{redisplay}:
 @end example
 
 But, if we are refreshing the canvas via a timer or a command, @code{redisplay}
-is implicitly called after the timer or command. The following example updates
+is implicitly called after the timer or command.  The following example updates
 the above canvas in a timer ~30 times per second:
 
 @example

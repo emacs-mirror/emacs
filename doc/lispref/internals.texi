@@ -2035,7 +2035,7 @@ with dynamic modules:
 @anchor{canvas_data}
 @deftypefn Function uint32_t *canvas_data (emacs_env *@var{env}, emacs_value @var{canvas})
 The function gives access to the pixel buffer of @var{canvas}.  The
-pixel buffer is in row-major order with a size @var{width} * @var{height}.
+pixel buffer is in row-major order with a size @code{@var{width}x@var{height}}.
 The pixel format is ARGB32 on all platforms.  Return @code{NULL} in case
 of error.
 @end deftypefn
@@ -2061,7 +2061,7 @@ env->funcall(env, env->intern(env, "canvas-refresh"), 2,
 Note that @code{canvas-refresh} has an optional boolean argument to
 reload the @code{:data} vector or string from the canvas image
 specification.  When called from dynamic modules, the argument should
-usually be @code{nil}.
+usually be @code{Qnil}.
 
 Thus, one can simply define a module function that takes as an argument
 a canvas image object, following the specification as laid down in
