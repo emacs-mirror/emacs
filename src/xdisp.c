@@ -11301,15 +11301,15 @@ move_it_vertically_backward (struct it *it, int dy)
   ptrdiff_t to_pos = start_pos;
   do
     {
+      move_it_to (&it2, to_pos, -1, -1, it2.vpos + 1,
+		  (to_pos > 0
+		    ? (MOVE_TO_POS | MOVE_TO_VPOS)
+		   : MOVE_TO_VPOS));
       /* Avoid inflooping of there's a large display string with several
          embedded newlines, which makes move_it_to stop after START_POS
          but still inside a display or overlay string.  */
       if (IT_CHARPOS (it2) >= start_pos)
 	to_pos = -1;
-      move_it_to (&it2, start_pos, -1, -1, it2.vpos + 1,
-		  (to_pos > 0
-		    ? (MOVE_TO_POS | MOVE_TO_VPOS)
-		   : MOVE_TO_VPOS));
     }
   while (!(IT_POS_VALID_AFTER_MOVE_P (&it2)
 	   /* If we are in a display string which starts at START_POS,
