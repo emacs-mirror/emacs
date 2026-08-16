@@ -158,8 +158,6 @@ where CAUSE can be:
     (`(error ,err . ,_) (and (consp err) (eq err debugger--last-error)))))
 
 ;;;###autoload
-(setq debugger 'debug)
-;;;###autoload
 (defun debug (&rest args)
   "Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
 

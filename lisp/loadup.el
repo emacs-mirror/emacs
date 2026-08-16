@@ -118,6 +118,7 @@
 ;; We don't want to have any undo records in the dumped Emacs.
 (set-buffer "*scratch*")
 (setq buffer-undo-list t)
+(setq debugger 'debug)
 
 (load "emacs-lisp/debug-early")
 (load "emacs-lisp/byte-run")
