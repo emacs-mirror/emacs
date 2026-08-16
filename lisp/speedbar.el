@@ -1112,8 +1112,8 @@ supported at a time.
 
 (defun speedbar-window--close (&optional no-kill-buffer)
   "Close `speedbar-window'.
-When NO-KILL-BUFFER is not nil, close window without killing
-'speedbar-buffer', which is useful for 'kill-buffer-hook'."
+If optional argument NO-KILL-BUFFER is not nil, close window without
+killing `speedbar-buffer', which is useful for `kill-buffer-hook'."
   (when (speedbar-window--live-p)
     (let ((current-window (selected-window)))
       ;; store the current window width
