@@ -702,6 +702,8 @@ The command \\[comint-accumulate] sets this.")
 
 (put 'comint-mode 'mode-class 'special)
 
+(defvar electric-pair-field-search-size)
+
 (define-derived-mode comint-mode fundamental-mode "Comint"
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
@@ -792,7 +794,8 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (add-hook 'isearch-mode-hook #'comint-history-isearch-setup nil t)
   (add-hook 'completion-at-point-functions #'comint-completion-at-point nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
-  (setq-local next-line-add-newlines nil))
+  (setq-local next-line-add-newlines nil)
+  (setq-local electric-pair-field-search-size 1000))
 
 (defun comint-check-proc (buffer)
   "Return non-nil if there is a living process associated w/buffer BUFFER.

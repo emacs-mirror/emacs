@@ -120,6 +120,15 @@ look after the replacement, using the new face 'query-replace-preview'.
 This tells you what back-references like '\1' expand to before you
 commit to the edit.  The preview is off by default.
 
+** Electric Pair mode
+
+*** Electric pair mode can restrict operation to nearby fields
+This is particularly useful in comint-based modes (like 'M-x shell' or
+'M-x run-python') and other situations where process output may contain
+unpaired delimiters, while keeping delimiters you insert balanced. The
+'electric-pair-field-search-size' variable controls the search distance
+for nearby fields.
+
 
 * Changes in Specialized Modes and Packages in Emacs 32.1
 

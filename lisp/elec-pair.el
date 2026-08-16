@@ -596,10 +596,32 @@ happened."
       (electric-pair-inhibit-if-helps-balance char)
     (electric-pair-conservative-inhibit char)))
 
+(defvar electric-pair-field-search-size nil
+  "How far to look for nearby fields to restrict `electric-pair-mode'.
+
+If nil, do not look for nearby fields and use the accessible portion of
+the buffer.  If a integer number of characters, look at most that far
+backward and forward for a field boundary, falling back to the
+accessible portion of the buffer in that direction.")
+
 (defun electric-pair-post-self-insert-function ()
   "Do main work for `electric-pair-mode'.
 This function is added to `post-self-insert-hook' when
-`electric-pair-mode' is enabled.
+`electric-pair-mode' is enabled."
+  ;; First, figure out whether to restrit the buffer (bug#50236)
+  (if (or (null electric-pair-field-search-size)
+          (use-region-p))
+      (electric--pair-psif-1)
+    (let* ((min (- (point) electric-pair-field-search-size))
+           (max (+ (point) electric-pair-field-search-size))
+           (beg (field-beginning nil nil (max (point-min) min)))
+           (end (field-end nil nil (min (point-max) max))))
+      (with-restriction
+          (if (= min beg) (point-min) beg) (if (= max end) (point-max) end)
+        (electric--pair-psif-1)))))
+
+(defun electric--pair-psif-1 ()
+  "Do main work for `electric-pair-post-self-insert-function.'
 
 If the newly inserted character C has delimiter syntax, this
 function may decide to insert additional paired delimiters, or
