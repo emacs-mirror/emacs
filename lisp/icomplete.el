@@ -154,8 +154,11 @@ See `icomplete-delay-completions-threshold'."
 (defcustom icomplete-in-buffer nil
   "If non-nil, use Icomplete when completing in buffers other than minibuffer.
 This affects commands like `completion-in-region', but not commands
-that use their own completions setup."
-  :type 'boolean)
+that use their own completions setup.  If the value is `with-completions-popup',
+display both in-buffer completions and the *Completions* buffer."
+  :type '(choice (const :tag "Disable" nil)
+                 (const :tag "Enable" t)
+                 (const :tag "Enable with popup window" with-completions-popup)))
 
 (defcustom icomplete-minibuffer-setup-hook nil
   "Icomplete-specific customization of minibuffer setup.
@@ -621,6 +624,11 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 
 (defvar icomplete--in-region-buffer nil)
 
+(defun icomplete-list-inhibit ()
+  "Decide whether to inhibit the display of the *Completions* buffer."
+  (and (not (eq icomplete-in-buffer 'with-completions-popup))
+       (eq icomplete--in-region-buffer (current-buffer))))
+
 (defun icomplete--in-region-setup ()
   (when (or (not completion-in-region-mode)
 	    (and icomplete--in-region-buffer
@@ -629,6 +637,8 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (setq icomplete--in-region-buffer nil)
       (delete-overlay icomplete-overlay)
       (kill-local-variable 'completion-show-inline-help)
+      (remove-hook 'completion-list-inhibit-functions
+                   #'icomplete-list-inhibit t)
       (remove-hook 'post-command-hook #'icomplete-post-command-hook t)
       (message nil)))
   (when (and completion-in-region-mode
@@ -640,7 +650,9 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (unless (memq icomplete-minibuffer-map (cdr tem))
 	(setcdr tem (make-composed-keymap icomplete-minibuffer-map
 					  (cdr tem)))))
-    (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)))
+    (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)
+    (add-hook 'completion-list-inhibit-functions
+              #'icomplete-list-inhibit nil t)))
 
 (defun icomplete--sorted-completions ()
   (or completion-all-sorted-completions

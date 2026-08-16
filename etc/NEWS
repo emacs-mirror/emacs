@@ -106,6 +106,8 @@ Therefore, the instructions in the NEWS file for Emacs 30.1 to add
     (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
 
 to your initialization file no longer apply, and you may remove it.
+If you still want to show the "*Completions*" buffer, then customize
+the user option 'icomplete-in-buffer' to the value 'with-completions-popup'.
 
 
 * Editing Changes in Emacs 32.1

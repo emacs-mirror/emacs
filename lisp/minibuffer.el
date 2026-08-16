@@ -1581,8 +1581,14 @@ Calls `completion-boundaries' with STRING, COLLECTION, PRED, SUFFIX."
          (end (+ (length string) (cdr boundaries))))
     (>= start pos end)))
 
-(defun completion--icomplete-in-buffer-p ()
-  (eq (bound-and-true-p icomplete--in-region-buffer) (current-buffer)))
+(defvar completion-list-inhibit-functions nil
+  "Abnormal hook for inhibiting display of the *Completions* buffer.
+If any of these functions returns non-nil, it inhibits the display
+of *Completions*.")
+
+(defun completion-list-inhibit-p ()
+  "Return non-nil to inhibit the display of the *Completions* buffer."
+  (run-hook-with-args-until-success 'completion-list-inhibit-functions))
 
 (defun completion--do-completion (beg end &optional
                                       try-completion-function expect-exact)
@@ -1689,7 +1695,7 @@ when the buffer's text is already an exact match."
               (minibuffer-force-complete beg end))
              ((or completed only-changed-boundaries)
               (cond
-               ((completion--icomplete-in-buffer-p)) ; Bug#81537.
+               ((completion-list-inhibit-p)) ; Bug#81537.
                ((pcase completion-auto-help
                   ('visible (minibuffer--completions-visible))
                   ('always t))
@@ -1704,7 +1710,7 @@ when the buffer's text is already an exact match."
              ;; Show the completion table, if requested.
              ((not exact)
 	      (if (if (or (eq completion-auto-help 'lazy)
-                          (completion--icomplete-in-buffer-p)) ; Bug#81537.
+                          (completion-list-inhibit-p)) ; Bug#81537.
                       (eq this-command last-command)
                     completion-auto-help)
                   (minibuffer-completion-help beg end)
@@ -1712,7 +1718,7 @@ when the buffer's text is already an exact match."
              ;; If the last exact completion and this one were the same, it
              ;; means we've already given a "Complete, but not unique" message
              ;; and the user's hit TAB again, so now we give him help
-             ;; (even if `completion--icomplete-in-buffer-p' is non-nil).
+             ;; (even if `completion-list-inhibit-p' returns non-nil).
              (t
               (when (and (eq this-command last-command) completion-auto-help)
                 (minibuffer-completion-help beg end))
@@ -1785,7 +1791,7 @@ scroll the window of possible completions."
         ;; for them because Icomplete users probably expect to have to
         ;; C-g out of completion before using other bindings, but maybe
         ;; we can still fix it.  --spwhitton
-        (unless (completion--icomplete-in-buffer-p)
+        (unless (completion-list-inhibit-p)
           (if (window-live-p minibuffer-scroll-window)
               (and (eq completion-auto-select t)
                    (eq t (frame-visible-p (window-frame minibuffer-scroll-window)))
