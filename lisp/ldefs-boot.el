@@ -9995,7 +9995,7 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window.
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 24) package--builtin-versions)
+(push '(eglot 1 24 31) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot"
 "Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -13830,7 +13830,7 @@ lines.
 
 ;;; Generated autoloads from progmodes/flymake.el
 
-(push '(flymake 1 4 5) package--builtin-versions)
+(push '(flymake 1 4 6) package--builtin-versions)
 (autoload 'flymake-log "flymake"
 "Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
@@ -40206,13 +40206,17 @@ mode.
 "Rotate layout of WINDOW's child windows clockwise by 90 degrees.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate clockwise
-the layout of the child windows of the selected window's parent.  Signal
-an error if WINDOW is not a parent window.
+the layout of the child windows of the selected window's parent.
 
 Recursively rotate the entire layout of WINDOW's child windows clockwise
 by 90 degrees.  Do not change the selected window of WINDOW's frame.  If
 you want to rotate windows within their frame's layout, consider using
 `rotate-windows' instead.
+
+Signal an error if WINDOW is not a parent window or some descendants of
+WINDOW are of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-rotate-anticlockwise "window-x"
@@ -40220,12 +40224,17 @@ you want to rotate windows within their frame's layout, consider using
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate
 counterclockwise the layout of the child windows of the selected
-window's parent.  Signal an error if WINDOW is not a parent window.
+window's parent.
 
 Recursively rotate the entire layout of WINDOW's child windows
 counterclockwise by 90 degrees.  Do not change the selected window of
 WINDOW's frame.  If you want to rotate windows within their frame's
 layout, consider using `rotate-windows-back' instead.
+
+Signal an error if WINDOW is not a parent window or one of WINDOW's
+descendants is of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-leftright "window-x"
@@ -40233,32 +40242,41 @@ layout, consider using `rotate-windows-back' instead.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip
 horizontally the layout of the child windows of the selected window's
-parent.  Signal an error if WINDOW is not a parent window.
+parent.
 
 Recursively flip the layout of WINDOW's child windows so that a child
 window on the right becomes a child window on the left and vice-versa.
+Signal an error if WINDOW is not a parent window or one of WINDOW's
+descendants is of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-topdown "window-x"
 "Flip WINDOW's child windows vertically.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip vertically
-the layout of the child windows of the selected window's parent.  Signal
-an error if WINDOW is not a parent window.
+the layout of the child windows of the selected window's parent.
 
 Recursively flip the layout of WINDOW's child windows so that a child
 window on the top becomes a child window on the bottom and vice-versa.
+Signal an error if WINDOW is not a parent window or one of WINDOW's
+descendants is of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-transpose "window-x"
 "Transpose child windows of WINDOW.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, transpose the
-layout of the child windows of the selected window's parent.  Signal an
-error if WINDOW is not a parent window.
+layout of the child windows of the selected window's parent.
 
 Recursively reorganize WINDOW's child windows so that each horizontal
-split becomes a vertical split and vice versa.
+split becomes a vertical split and vice versa.  Signal an error if
+WINDOW is not a parent window or one of WINDOW's descendants is of fixed
+size or atomic.  Also signal an error if `transpose-dedicated-windows'
+is nil and a descendant window is dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'rotate-windows "window-x"
@@ -40268,9 +40286,10 @@ selected frame.  Interactively, with a prefix argument, rotate the child
 windows of the selected window's parent.
 
 Optional argument REVERSE non-nil means to rotate windows backwards, in
-reverse cyclic order.  Signal an error if WINDOW is not a parent window,
-all descendants of WINDOW are dedicated or some windows are of fixed
-size or atomic.
+reverse cyclic order.  Signal an error if WINDOW is not a parent window
+or some descendants of WINDOW are of fixed size or atomic.  Also signal
+an error if `transpose-dedicated-windows' is nil and a descendant window
+is dedicated.
 
 Rotating windows leaves the way a frame layout has been produced via
 splitting, deleting and resizing windows unaltered.  It only \"moves\"
@@ -40290,9 +40309,12 @@ vice-versa), consider running `window-layout-flip-leftright' and
 "Rotate child windows of WINDOW backwards in cyclic ordering.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate backwards
-the child windows of the selected window's parent.  Signal an error if
-WINDOW is not a parent window, all descendants of WINDOW are dedicated
-or some of them are of fixed size or atomic.
+the child windows of the selected window's parent.
+
+Signal an error if WINDOW is not a parent window or descendants of
+WINDOW are of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 Rotating windows backwards leaves the way a frame layout has been
 produced via splitting, deleting and resizing windows unaltered.  It
@@ -40347,7 +40369,7 @@ window is live or does not have more child windows than specified by the
 absolute value of ARG.  Return the new frame.
 
 (fn &optional FRAME ARG)" t)
-(register-definition-prefixes "window-x" '("rotate-windows-change-selected" "window-"))
+(register-definition-prefixes "window-x" '("rotate-windows-change-selected" "transpose-dedicated-windows" "window-"))
 
 
 ;;; Generated autoloads from winner.el
