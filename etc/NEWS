@@ -1113,6 +1113,7 @@ project should be removed.
 *** New command 'project-save-some-buffers' bound to 'C-x p C-x s'.
 This is like 'C-x s', but only for this project's buffers.
 
++++
 *** 'project-remember-project' is now interactive.
 
 ---
