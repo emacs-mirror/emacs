@@ -473,7 +473,7 @@ PARENT is the same as other simple-indent rules."
     (cons (treesit-node-start parent)
           c-ts-indent-offset))))
 
-(defun c-ts-mode--block-comment-offset (_n parent bol &rest _)
+(defun c-ts-mode--block-comment-offset (_n parent _bol &rest _)
   "Indentation offset for lines in block comments.
 
 One space if line starts with \"*\", three if the previous line is blank
