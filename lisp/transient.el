@@ -51,6 +51,9 @@
 
 (eval-when-compile (require 'subr-x))
 
+(add-to-list 'customize-package-emacs-version-alist
+             '(transient ("0.13.3" . "31.1")))
+
 (declare-function info "info" (&optional file-or-node buffer))
 (declare-function Man-find-section "man" (section))
 (declare-function Man-next-section "man" (n))
@@ -2236,6 +2239,8 @@ For historic reasons \\`C-x' is used by default, but users are
 encouraged to pick another key, preferably one that is not commonly used
 in Emacs but is still convenient to them.  See info node `(transient)
 Common Suffix Commands'."
+  :package-version '(transient . "0.8.8")
+  :group 'transient
   :type 'key
   :initialize (lambda (symbol exp)
                 (custom-initialize-default symbol exp)

@@ -871,6 +871,15 @@ invokes the same Emacs executable as the process that called this
 function.
 @end defun
 
+@defun native-compile-directory directory
+This function recursively searches for @file{.el} files in
+@var{directory} and any subdirectories thereof, and runs
+native-compilation on any that have not already been compiled.  To
+determine whether a file has already been compiled, it searches for a
+corresponding @file{.eln} in the @code{native-comp-eln-load-path}
+variable (@pxref{Native-Compilation Variables}).
+@end defun
+
 @defun batch-native-compile &optional for-tarball
 This function runs native-compilation on files specified on the Emacs
 command line in batch mode.  It must be used only in a batch execution

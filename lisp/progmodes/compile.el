@@ -995,7 +995,8 @@ Elements in this list will be searched before those in
 
 The buffer-local value of this variable will be inherited by the
 compilation buffer."
-  :type '(repeat (string :tag "Directory")))
+  :type '(repeat (string :tag "Directory"))
+  :version "31.1")
 
 ;;;###autoload
 (defcustom compile-command

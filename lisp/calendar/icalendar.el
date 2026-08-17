@@ -246,13 +246,15 @@ The following specifiers are available:
 For example, a value of \"%h%t@mydomain.com\" will generate a UID code
 for each entry composed of a hash of the event data, a creation
 timestamp, and your personal domain name."
-  :type 'string)
+  :type 'string
+  :version "31.1")
 
 (defcustom ical:vcalendar-prodid
   (format "-//gnu.org//GNU Emacs %s//EN" emacs-version)
   "The value of the `icalendar-prodid' property for VCALENDAR objects
 produced by this Emacs."
-  :type 'string)
+  :type 'string
+  :version "31.1")
 
 (defconst ical:vcalendar-version "2.0"
   "The current version of the VCALENDAR object, used in the
@@ -298,7 +300,8 @@ RFC5545.")
 A value of 2 only logs errors.
 A value of 1 also logs warnings.
 A value of 0 also logs debugging information."
-  :type 'integer)
+  :type 'integer
+  :version "31.1")
 
 (defvar icalendar-debug nil
   "Enable icalendar debug messages.")

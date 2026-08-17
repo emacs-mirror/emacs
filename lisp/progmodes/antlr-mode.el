@@ -417,7 +417,8 @@ end of a rule with negative prefix arg.
 
 Default nil means: `antlr-end-of-rule' jumps to beginning of a
 rule, `antlr-end-of-rule' jumps to end of a rule."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defcustom antlr-options-use-submenus t
   "Non-nil, if the major mode menu should include option submenus.
@@ -743,7 +744,8 @@ The value might be tool-dependent, see `antlr-tool-version-variables'.")
 (defcustom antlr-run-tool-on-buffer-file t ; was nil before 3.2.0
   "Non-nil, if \\[antlr-run-tool] runs on the file for the current buffer.
 If nil, the provided tool command must include the file name."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defcustom antlr-tool-command nil
   "Command used in \\[antlr-run-tool] to run the Antlr tool.
@@ -759,20 +761,23 @@ OBSOLETE as user option - customize version dependent user options."
   "Command used in \\[antlr-run-tool] to run the Antlr tool.
 This variable should include all options passed to Antlr.
 Value for `antlr-tool-command' when using ANTLR v4."
-  :type 'string)
+  :type 'string
+  :version "31.1")
 
 (defcustom antlr-v3-tool-command "java org.antlr.Tool"
   "Command used in \\[antlr-run-tool] to run the Antlr tool.
 This variable should include all options passed to Antlr.
 Value for `antlr-tool-command' when using ANTLR v3."
-  :type 'string)
+  :type 'string
+  :version "31.1")
 
 (defcustom antlr-v2-tool-command "java antlr.Tool"
   "Command used in \\[antlr-run-tool] to run the Antlr tool.
 This variable should include all options passed to Antlr except the
 option \"-glib\" which is automatically suggested if necessary.
 Value for `antlr-tool-command' when using ANTLR v2."
-  :type 'string)
+  :type 'string
+  :version "31.1")
 
 (defcustom antlr-ask-about-save t
   "If not nil, \\[antlr-run-tool] asks which buffers to save.

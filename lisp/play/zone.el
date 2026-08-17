@@ -136,17 +136,20 @@ If the element is a function or a list of a function and a number,
 (defcustom zone-all-frames nil
   "When non-nil, zone in all open frames.
 Displays the `*zone*' buffer in all windows in all frames."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defcustom zone-all-windows-in-frame nil
   "When non-nil, zone in all windows in the current frame."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defcustom zone-delete-other-windows nil
   "When non-nil, make the frame a single window before zoning.
 The original windows and their content will be restored when zoning
 completes."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 ;;;; Hooks to detect the start and finish of zone activity
 

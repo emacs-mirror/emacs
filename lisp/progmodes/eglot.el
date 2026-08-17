@@ -187,7 +187,8 @@
                      ("1.12" . "29.2")
                      ("1.12" . "29.3")
                      ("1.12.29" . "29.4")
-                     ("1.17.30" . "30.1")))
+                     ("1.17.30" . "30.1")
+                     ("1.24.31" . "31.1")))
 
 (defun eglot-alternatives (alternatives)
   "Compute server-choosing function for `eglot-server-programs'.
@@ -601,7 +602,8 @@ This is done by sending an additional '$/cancelRequest' notification
 every time Eglot decides to forget a request.  The effect of this
 notification is implementation defined, and is only useful for some
 servers."
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(Eglot . "1.22"))
 
 (defface eglot-code-action-indicator-face
   '((t (:inherit warning :weight bold)))
@@ -5409,11 +5411,13 @@ initial delay and repeat rate, and may not be 100% accurate."
          (defcustom eglot-semantic-token-types
            ',types "LSP-supplied semantic types Eglot should consider."
            :type '(set ,@(mapcar (lambda (o) `(const ,o)) types))
-           :group 'eglot-semantic-fontification)
+           :group 'eglot-semantic-fontification
+           :package-version '(Eglot . "1.20"))
          (defcustom eglot-semantic-token-modifiers
            ',modifiers "LSP-supplied semantic modifiers Eglot should consider."
            :type '(set ,@(mapcar (lambda (o) `(const ,o)) modifiers))
-           :group 'eglot-semantic-fontification)))))
+           :group 'eglot-semantic-fontification
+           :package-version '(Eglot . "1.20"))))))
 
 (eglot--semtok-define-things)
 

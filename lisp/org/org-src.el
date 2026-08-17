@@ -144,6 +144,7 @@ detangling, and indentation.
 
 It has no effect if `org-src-preserve-indentation' is non-nil."
   :group 'org-edit-structure
+  :package-version '(Org . "9.8")
   :type 'integer
   :safe #'wholenump)
 

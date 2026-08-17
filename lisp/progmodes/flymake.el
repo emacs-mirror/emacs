@@ -131,7 +131,8 @@
 (add-to-list 'customize-package-emacs-version-alist
              '(Flymake ("1.3.4" . "30.1")
                        ("1.3.5" . "30.1")
-                       ("1.3.6" . "30.1")))
+                       ("1.3.6" . "30.1")
+                       ("1.4.6" . "31.1")))
 
 (defcustom flymake-error-bitmap '(flymake-double-exclamation-mark
                                   flymake-error-fringe)

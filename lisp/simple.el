@@ -6684,7 +6684,7 @@ and KILLP is t if a prefix arg was specified."
 
 (defun char-uppercase-p (char)
   "Return non-nil if CHAR is an upper-case character.
-A character is considered upper-case if there's a correspoding
+A character is considered upper-case if there's a corresponding
 lower-case character.
 If the Unicode tables are not yet available, e.g. during bootstrap,
 this function gives correct return values only for ASCII characters."
