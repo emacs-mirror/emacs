@@ -1696,8 +1696,14 @@ The meanings of both arguments are the same as documented in
           (not (memq command (cdr xref-prompt-for-identifier)))
         (memq command xref-prompt-for-identifier))))
 
-(defun xref--read-identifier (prompt)
-  "Return the identifier at point or read it from the minibuffer."
+(defun xref-read-identifier (prompt)
+  "Return the identifier at point or read it from the minibuffer.
+
+Reads and returns the identifier to use as input for the command being
+executed now.  If the current command should prompt, as defined in
+`xref-prompt-for-identifier', it uses the result of
+`xref-backend-identifier-at-point'.  Otherwise, it reads with completion
+from `xref-backend-identifier-completion-table'."
   (let* ((backend (xref-find-backend))
          (def (xref-backend-identifier-at-point backend))
          (completion-ignore-case
@@ -1725,6 +1731,10 @@ The meanings of both arguments are the same as documented in
                  (or def (user-error "There is no default identifier"))
                id)))
           (t def))))
+
+(define-obsolete-function-alias
+  'xref--read-identifier 'xref-read-identifier
+  "32.1")
 
 
 ;;; Commands
@@ -1779,7 +1789,7 @@ Otherwise, display the list of the possible definitions in a
 buffer where the user can select from the list.
 
 Use \\[xref-go-back] to return back to where you invoked this command."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref-read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier nil))
 
 ;;;###autoload
@@ -1788,13 +1798,13 @@ Use \\[xref-go-back] to return back to where you invoked this command."
 If this command needs to split the current window, it by default obeys
 the user options `split-height-threshold' and `split-width-threshold',
 when it decides whether to split the window horizontally or vertically."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref-read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier 'window))
 
 ;;;###autoload
 (defun xref-find-definitions-other-frame (identifier)
   "Like `xref-find-definitions' but switch to the other frame."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref-read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier 'frame))
 
 (defun xref--read-kind (prompt)
@@ -1830,7 +1840,7 @@ properties `:kind' and `:name'."
                   ;; For completeness, we can also add a specialized
                   ;; "identifier completion table for kind".  But
                   ;; probably only the elisp backend would have it.
-                  (xref--read-identifier
+                  (xref-read-identifier
                    (format-message "Find %s: " (plist-get desc :name)))
                   desc)))
   (unless kind-desc (user-error "Have to choose the kind"))
@@ -1847,7 +1857,7 @@ offering the symbol at point as the default.
 With prefix argument, or if `xref-prompt-for-identifier' is t,
 always prompt for the identifier.  If `xref-prompt-for-identifier'
 is nil, prompt only if there's no usable symbol at point."
-  (interactive (list (xref--read-identifier "Find references of: ")))
+  (interactive (list (xref-read-identifier "Find references of: ")))
   (xref--find-xrefs identifier 'references identifier nil))
 
 (defun xref-find-references-and-replace (from to)
