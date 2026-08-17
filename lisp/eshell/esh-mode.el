@@ -92,7 +92,8 @@ That is to say, the first time during an Emacs session."
 
 (defcustom eshell-after-initialize-hook nil
   "A hook that gets run after an Eshell session has been fully initialized."
-  :type 'hook)
+  :type 'hook
+  :version "31.1")
 
 (defcustom eshell-exit-hook nil
   "A hook that is run whenever `eshell' is exited.

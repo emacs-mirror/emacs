@@ -656,7 +656,8 @@ compilation and evaluation time conflicts."
   "Number of spaces for each indentation step in `csharp-ts-mode'."
   :type 'integer
   :safe 'integerp
-  :group 'csharp)
+  :group 'csharp
+  :version "31.1")
 
 (defvar csharp-ts-mode--indent-rules
   `((c-sharp
