@@ -255,7 +255,7 @@ and displayed in a help buffer."
   (interactive)
   (let* ((help (or help-messages
                   (cdr (assoc nil (assoc major-mode mh-help-messages)))))
-         (text (substitute-command-keys (mapconcat #'identity help ""))))
+         (text (substitute-command-keys (mapconcat #'identity help))))
     (with-electric-help
      (lambda ()
        (insert text))

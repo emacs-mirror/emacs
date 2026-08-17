@@ -3316,7 +3316,8 @@ characters."
 					  (or (and (symbolp delimited-flag)
 						   (get delimited-flag
 							'isearch-message-prefix))
-					      "word ") "")
+					      "word ")
+					"")
 				      (if regexp-flag "regexp " "")
 				      from-string " with "
 				      next-replacement ".\n\n"

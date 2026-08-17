@@ -1675,8 +1675,7 @@ If NAME is a `signal' or a `property', DIRECTION is ignored."
                     (dbus-introspect-get-attribute arg "direction")))
                (dbus-introspect-get-attribute arg "type")
              "")))
-       (dbus-introspect-get-argument-names bus service path interface name)
-       ""))))
+       (dbus-introspect-get-argument-names bus service path interface name)))))
 
 
 ;;; D-Bus properties.

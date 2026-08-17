@@ -1659,7 +1659,7 @@ revisions, fetch only those revisions."
                                                (concat " && " hg-program " "
                                                        (mapconcat #'identity
                                                                   args " ")))
-                                             post-processing "")))
+                                             post-processing)))
               (setq-local compilation-directory root)
               ;; Either set `compilation-buffer-name-function' locally to nil
               ;; or use `compilation-arguments' to set `name-function'.

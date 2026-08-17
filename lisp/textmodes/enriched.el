@@ -368,7 +368,7 @@ if nil, the matching close."
 	       (params (cdr internal-ann)))
 	   (concat (format enriched-annotation-format "" item)
 		   (mapconcat (lambda (i) (concat "<param>" i "</param>"))
-			      params ""))))
+			      params))))
 	(t (format enriched-annotation-format "/" (car internal-ann)))))
 
 (defun enriched-encode-other-face (old new)

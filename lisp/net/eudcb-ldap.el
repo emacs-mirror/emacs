@@ -187,7 +187,7 @@ attribute names are returned.  Default to `person'."
                         "*" ""))))))
     (format "(&%s)"
 	    (concat
-	     (mapconcat formatter (butlast query) "")
+	     (mapconcat formatter (butlast query))
 	     (funcall formatter (car (last query)) t)))))
 
 ;;}}}

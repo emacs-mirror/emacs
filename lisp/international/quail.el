@@ -152,7 +152,7 @@ See the documentation of `quail-define-package' for the other elements.")
 		    (if (symbol-value (car x))
 			(nth 1 x) (nth 2 x)))
 		   (t "")))
-	   title "")
+	   title)
 	(error "")))))
 (defsubst quail-map ()
   "Return the translation map of the current Quail package."

@@ -878,11 +878,11 @@ Ensure that `comment-normalize-vars' has been called before you use this."
 	;; construct a regexp that would match anything from just S
 	;; to any possible output of this function for any N.
 	(concat (mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
-			   lpad "")	;padding is not required
+			   lpad)	;padding is not required
 		(regexp-quote s)
 		(when multi "+") ;the last char of S might be repeated
 		(mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
-			   rpad "")))))) ;padding is not required
+			   rpad)))))) ;padding is not required
 
 (defun comment-padleft (str &optional n)
   "Construct a string composed of `comment-padding' plus STR.

@@ -346,8 +346,7 @@ For consistent results, only call this function within an Eshell buffer."
 		     (or (eshell-quote-backslash string index)
 			 (char-to-string c))
 		   (setq index (1+ index))))
-	       string
-	       "")))
+	       string)))
 
 ;; Argument parsing
 

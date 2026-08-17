@@ -1903,7 +1903,7 @@ If WITHVALUES is t, query is based on current article."
                    (cadr flag)
                  (if (string= "no" temp)
                      (concat "-" (cadr flag)))))
-	     '(("seen" "s") ("replied" "r") ("flagged" "f")) ""))
+	     '(("seen" "s") ("replied" "r") ("flagged" "f"))))
       (when (not (zerop (length flag)))
 	(push (concat "F:" flag) query)))
     ;; return query string

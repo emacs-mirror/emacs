@@ -762,7 +762,7 @@ Note: In overwrite mode, the rectangle is inserted as separate text lines."
     (if ring
         (kill-new (mapconcat
                    (lambda (row) (concat row "\n"))
-                   killed-rectangle "")))))
+                   killed-rectangle)))))
 
 (defun cua--activate-rectangle ()
   ;; Set cua--rectangle to indicate we're marking a rectangle.
@@ -1098,7 +1098,7 @@ The text previously in the rectangle is overwritten by the blanks."
     (let* ((rect (cua--extract-rectangle))
            (text (mapconcat
                   (lambda (row) (concat row "\n"))
-                  rect "")))
+                  rect)))
       (setq arg (cua--prefix-arg arg))
       (if cua--register
           (set-register cua--register text)

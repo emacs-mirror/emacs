@@ -1553,7 +1553,7 @@ else cover the whole buffer."
 			(insert (or half2 ""))))
 		    (goto-char pt-lines1)
 		    (insert str1))))))
-	   ;; a unified-diff hunk header
+	   ;; A unified-diff hunk header.
 	   ((match-beginning 7)
 	    (replace-match "@@ -\\8 +\\7 @@" nil)
 	    (forward-line 1)

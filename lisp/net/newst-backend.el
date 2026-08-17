@@ -1133,7 +1133,7 @@ Restore an xml-string from a an xml NODE that was returned by xml-parse..."
             (when att-list " ")
             (mapconcat #'newsticker--unxml-attribute att-list " ")
             ">"
-            (mapconcat #'newsticker--unxml children "") "</" qname ">")))
+            (mapconcat #'newsticker--unxml children) "</" qname ">")))
 
 (defun newsticker--unxml-attribute (attribute)
   "Actually restore xml-string of an ATTRIBUTE of an xml node."

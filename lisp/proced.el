@@ -1809,7 +1809,7 @@ Replace newline characters by \"^J\" (two characters)."
                                                      (nth 1 grammar)
                                                      (mapconcat (lambda (s)
                                                                   (if s "+" "-"))
-                                                                refiner ""))))))
+                                                                refiner))))))
              value)
 
         ;; highlight the header of the sort column

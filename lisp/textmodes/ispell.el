@@ -1641,7 +1641,7 @@ about special characters such as ?\\, ?^, ?], and ?- in CHARS.)
 If after this filtering there are no chars left, or only one, a
 special form of the expression is generated."
   (let ((filtered
-	 (mapconcat #'ispell--\\w-filter chars "")))
+	 (mapconcat #'ispell--\\w-filter chars)))
     (concat
      "\\(\\w"
      (cond

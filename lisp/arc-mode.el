@@ -889,8 +889,7 @@ when parsing the archive."
            help-echo "mouse-2: extract this file into a buffer")
          text)
         text))
-    files
-    ""))
+    files))
   (setq archive-file-list-end (point-marker)))
 
 (defun archive-alternate-display ()

@@ -132,7 +132,7 @@ docstring.  The variable becomes buffer-local whenever set."
   (append (vconcat string) nil))
 
 (defsubst viper-charlist-to-string (list)
-  (mapconcat #'char-to-string list ""))
+  (mapconcat #'char-to-string list))
 
 ;; like char-after/before, but saves typing
 (defun viper-char-at-pos (direction &optional offset)

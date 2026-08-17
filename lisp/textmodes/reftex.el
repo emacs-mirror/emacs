@@ -954,7 +954,7 @@ This enforces rescanning the buffer on next use."
     (setq reftex-type-query-prompt
           (concat "Label type: ["
                   (mapconcat (lambda(x) (format "%s" (car x)))
-                             qh-list "")
+                             qh-list)
                   "]"))
     ;; In the help string, we need to wrap lines...
     (setq reftex-type-query-help
@@ -1034,7 +1034,7 @@ This enforces rescanning the buffer on next use."
     (setq reftex-query-index-macro-prompt
           (concat "Index macro: ["
                   (mapconcat (lambda (x) (char-to-string (car x)))
-                             reftex-key-to-index-macro-alist "")
+                             reftex-key-to-index-macro-alist)
                   "]"))
     (setq i 0
           reftex-query-index-macro-help
@@ -1044,7 +1044,7 @@ This enforces rescanning the buffer on next use."
             (lambda(x)
               (format "[%c] %-20.20s%s" (car x) (nth 1 x)
                       (if (= 0 (mod (incf i) 3)) "\n" "")))
-            reftex-key-to-index-macro-alist "")))
+            reftex-key-to-index-macro-alist)))
 
     ;; Make the full list of section levels
     (setq reftex-section-levels-all

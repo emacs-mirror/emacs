@@ -1820,8 +1820,8 @@ You can update the global isearch variables by setting new values to
 				     "")
 
 		  isearch-message
-		  (mapconcat 'isearch-text-char-description
-			     isearch-string ""))
+		  (mapconcat #'isearch-text-char-description
+			     isearch-string))
 	    ;; After taking the last element, adjust ring to previous one.
 	    (isearch-ring-adjust1 nil)))
 
@@ -1891,8 +1891,8 @@ The following additional command keys are active while editing.
 		      (1+ (or search-ring-yank-pointer -1))))
 	      nil t))
 	   isearch-new-message
-	   (mapconcat 'isearch-text-char-description
-		      isearch-new-string "")))))
+	   (mapconcat #'isearch-text-char-description
+		      isearch-new-string)))))
 
 (defun isearch-nonincremental-exit-minibuffer ()
   (interactive)
@@ -1957,8 +1957,8 @@ Use `isearch-exit' to quit without signaling."
 	    (setq isearch-string
 		  (car (if isearch-regexp regexp-search-ring search-ring))
 		  isearch-message
-		  (mapconcat 'isearch-text-char-description
-			     isearch-string "")
+		  (mapconcat #'isearch-text-char-description
+			     isearch-string)
 		  isearch-case-fold-search isearch-last-case-fold-search)
 	    ;; After taking the last element, adjust ring to previous one.
 	    (isearch-ring-adjust1 nil))
@@ -2227,7 +2227,7 @@ Used in `word-search-forward', `word-search-backward',
    (t (concat
        (if (string-match-p "\\`\\W" string) "\\W+"
 	 "\\<")
-       (mapconcat 'regexp-quote (split-string string "\\W+" t) "\\W+")
+       (mapconcat #'regexp-quote (split-string string "\\W+" t) "\\W+")
        (if (string-match-p "\\W\\'" string) "\\W+"
 	 (unless lax "\\>"))))))
 
@@ -2356,7 +2356,7 @@ the beginning or the end of the string need not match a symbol boundary."
 	 (if (string-match-p (format "\\`%s" not-word-symbol-re) string)
 	     not-word-symbol-re
 	   "\\_<")
-	 (mapconcat 'regexp-quote (split-string string not-word-symbol-re t)
+	 (mapconcat #'regexp-quote (split-string string not-word-symbol-re t)
 		    not-word-symbol-re)
 	 (if (string-match-p (format "%s\\'" not-word-symbol-re) string)
 	     not-word-symbol-re
@@ -2618,8 +2618,8 @@ If search string is empty, just beep."
     (setq isearch-string (substring isearch-string 0
 				    (- (min (or arg 1)
 					    (length isearch-string))))
-          isearch-message (mapconcat 'isearch-text-char-description
-                                     isearch-string "")))
+          isearch-message (mapconcat #'isearch-text-char-description
+                                     isearch-string)))
   ;; Do the following before moving point.
   (funcall (or isearch-message-function #'isearch-message) nil t)
   ;; Use the isearch-other-end as new starting point to be able
@@ -2643,7 +2643,7 @@ If search string is empty, just beep."
   ;; Don't move cursor in reverse search.
   (setq isearch-yank-flag t)
   (isearch-process-search-string
-   string (mapconcat 'isearch-text-char-description string "")))
+   string (mapconcat #'isearch-text-char-description string)))
 
 (defun isearch-yank-kill ()
   "Pull string from kill ring into search string."
@@ -2662,9 +2662,9 @@ If search string is empty, just beep."
      (if isearch-regexp (setq string (regexp-quote string)))
      (setq isearch-yank-flag t)
      (setq isearch-new-string (concat isearch-string string)
-           isearch-new-message (concat isearch-message
-                                       (mapconcat 'isearch-text-char-description
-                                                  string ""))))))
+           isearch-new-message
+           (concat isearch-message
+                   (mapconcat #'isearch-text-char-description string))))))
 
 (defun isearch-yank-pop ()
   "Replace just-yanked search string with previously killed string.
@@ -2841,8 +2841,8 @@ With argument, add COUNT copies of the character."
 		       (char-to-string char))))
 	 (setq isearch-new-string (concat isearch-new-string string)
 	       isearch-new-message (concat isearch-new-message
-					   (mapconcat 'isearch-text-char-description
-						      string ""))))))))
+					   (mapconcat #'isearch-text-char-description
+						      string))))))))
 
 (defun isearch-emoji-by-name (&optional count)
   "Read an Emoji name and add it to the search string COUNT times.
@@ -2863,8 +2863,8 @@ The command accepts Unicode names like \"smiling face\" or
      (when emoji
        (setq isearch-new-string (concat isearch-new-string emoji)
              isearch-new-message (concat isearch-new-message
-					   (mapconcat 'isearch-text-char-description
-						      emoji "")))))))
+					   (mapconcat #'isearch-text-char-description
+						      emoji)))))))
 
 (defun isearch-search-and-update ()
   "Do the search and update the display."
@@ -3291,8 +3291,8 @@ See more for options in `search-exit-option'."
                       (or isearch-other-end isearch-opoint) (point))))
          (if isearch-regexp (setq string (regexp-quote string)))
          (setq isearch-string string)
-         (setq isearch-message (mapconcat 'isearch-text-char-description
-                                          string ""))
+         (setq isearch-message (mapconcat #'isearch-text-char-description
+                                          string))
          (setq isearch-yank-flag t)
          (setq isearch-forward (<= (or isearch-other-end isearch-opoint) (point)))
          (when isearch-forward
@@ -3356,7 +3356,7 @@ Search is updated accordingly."
 		   (char-to-string char)))
 	 (message (if (>= char ?\200)
 		      string
-		    (mapconcat 'isearch-text-char-description string ""))))
+		    (mapconcat #'isearch-text-char-description string))))
     (isearch-process-search-string string message)))
 
 (defun isearch-process-search-string (string message)
@@ -3383,8 +3383,8 @@ Search is updated accordingly."
 			 (if advance -1 1))
 		      length)))
       (setq isearch-string (nth yank-pointer ring)
-	    isearch-message (mapconcat 'isearch-text-char-description
-				       isearch-string ""))
+	    isearch-message (mapconcat #'isearch-text-char-description
+				       isearch-string))
       (isearch-update-from-string-properties isearch-string))))
 
 (defun isearch-ring-adjust (advance)
@@ -3444,8 +3444,8 @@ If there is no completion possible, say so and continue searching."
   (interactive)
   (if (isearch-complete1)
       (progn (setq isearch-message
-		   (mapconcat 'isearch-text-char-description
-			      isearch-string ""))
+		   (mapconcat #'isearch-text-char-description
+			      isearch-string))
 	     (isearch-edit-string))
     ;; else
     (sit-for 1)

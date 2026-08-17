@@ -3446,8 +3446,7 @@ Used as default value of `bibtex-summary-function'."
                      (if (not (string= "" (cdr arg)))
                          (concat (car arg) (cdr arg))))
                    `((" " . ,names) (" " . ,year) (": " . ,title)
-                     (", " . ,journal) (" " . ,volume) (":" . ,pages))
-                   ""))
+                     (", " . ,journal) (" " . ,volume) (":" . ,pages))))
     (user-error "Entry not found")))
 
 (defun bibtex-pop (arg direction)

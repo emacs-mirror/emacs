@@ -565,11 +565,11 @@ After interpretation of ARGS the results are concatenated as for
                      (mapcar #'rst-re (cdr re))))
                 (cond
                  ((eq (car re) :seq)
-                  (mapconcat #'identity nested ""))
+                  (mapconcat #'identity nested))
                  ((eq (car re) :shy)
-                  (concat "\\(?:" (mapconcat #'identity nested "") "\\)"))
+                  (concat "\\(?:" (mapconcat #'identity nested) "\\)"))
                  ((eq (car re) :grp)
-                  (concat "\\(" (mapconcat #'identity nested "") "\\)"))
+                  (concat "\\(" (mapconcat #'identity nested) "\\)"))
                  ((eq (car re) :alt)
                   (concat "\\(?:" (mapconcat #'identity nested "\\|") "\\)"))
                  (t

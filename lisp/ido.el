@@ -3825,7 +3825,7 @@ frame, rather than all frames, regardless of value of `ido-all-frames'."
 		       (mapconcat (lambda (c)
 				    (concat "[^" (string c) "]*"
 					    (regexp-quote (string c))))
-				  (substring ido-text 1) "")))
+				  (substring ido-text 1))))
       (if ido-enable-prefix
 	  (setq re (concat "\\`" re)))
       (mapc

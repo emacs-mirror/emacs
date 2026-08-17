@@ -573,7 +573,7 @@ displayed."
                                      (if (= column 0)
                                          elp-field-len
                                        (length title))))))
-                 (list title cc-header et-header at-header) ""))))
+                 (list title cc-header et-header at-header)))))
       ;; if sorting is enabled, then sort the results list. in either
       ;; case, call elp-output-result to output the result in the
       ;; buffer

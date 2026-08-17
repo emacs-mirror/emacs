@@ -3745,7 +3745,7 @@ possible values."
 			(if (> num 1) "s" ""))
 	      (setq prev t
 		    segments (1+ segments)))))
-	article-time-units "")
+	article-time-units)
        ;; If dates are odd, then it might appear like the
        ;; article was sent in the future.
        (if (> real-sec 0)
@@ -4341,7 +4341,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 					 (concat header ": "
 						 (mail-fetch-field header)
 						 "\n"))
-				       (split-string (nth 1 items) ",") "")))
+				       (split-string (nth 1 items) ","))))
 	    (delete-region (point-min) (point-max))
 	    (insert "-----BEGIN PGP SIGNED MESSAGE-----\n\n")
 	    (insert "X-Signed-Headers: " (nth 1 items) "\n")
@@ -8204,7 +8204,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	  (let ((overlay (make-overlay start end)))
 	    (overlay-put overlay 'evaporate t)
 	    (overlay-put overlay 'gnus-button-url
-			 (list (mapconcat #'identity (nreverse url) "")))
+			 (list (mapconcat #'identity (nreverse url))))
 	    (when gnus-article-mouse-face
 	      (overlay-put overlay 'mouse-face gnus-article-mouse-face)))
 	  t)

@@ -1683,7 +1683,7 @@ Returns an alist."
            (alarm-specs (cadr icalendar-export-alarms))
            (fun (lambda (spec)
                   (icalendar--do-create-ical-alarm advance-time spec summary))))
-      (mapconcat fun alarm-specs ""))))
+      (mapconcat fun alarm-specs))))
 
 (defun icalendar--do-create-ical-alarm (advance-time alarm-spec summary)
   "Return a VALARM block.
@@ -1709,7 +1709,7 @@ alarm."
          (att (if (eq action 'email)
                   (mapconcat (lambda (i)
                                (format "\nATTENDEE:MAILTO:%s" i))
-                             (cadr alarm-spec) "")
+                             (cadr alarm-spec))
                 "")))
 
     (concat "\nBEGIN:VALARM" act tri des sum att "\nEND:VALARM")))

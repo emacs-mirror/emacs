@@ -3035,7 +3035,7 @@ See also `auto-save-file-name-p'."
 		 (if (>= b ?/)
 		     (setq b (1+ b)))
 		 (char-to-string b))
-	       bins "")))
+	       bins)))
 
 ;; Quote any /s in a string by replacing them with \!.
 ;; Also, replace any \s by \\, to make it one-to-one.

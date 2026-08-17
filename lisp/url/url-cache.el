@@ -122,13 +122,14 @@ The actual return value is the last modification time of the cache file."
                          "/")
                         (t
                          (setq slash nil)
-                         (char-to-string x)))) fname ""))))
+                         (char-to-string x))))
+                     fname))))
 
 	(setq fname (and fname
 			 (mapconcat
                           (lambda (x)
                             (if (= x ?~) "" (char-to-string x)))
-			  fname ""))
+			  fname))
 	      fname (cond
 		     ((null fname) nil)
 		     ((or (string= "" fname) (string= "/" fname))

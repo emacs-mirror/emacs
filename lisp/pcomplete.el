@@ -953,12 +953,12 @@ component, `default-directory' is used as the basis for completion."
                       (or (eq action t)
                           (eq (car-safe action) 'boundaries))))
             (let ((newstring
-                   (mapconcat #'identity (nreverse (cons string strings)) "")))
+                   (mapconcat #'identity (nreverse (cons string strings)))))
               ;; FIXME: We could also try to return unexpanded envvars.
               (complete-with-action action table newstring pred))
           (let* ((envpos (apply #'+ (mapcar #' length strings)))
                  (newstring
-                  (mapconcat #'identity (nreverse (cons string strings)) ""))
+                  (mapconcat #'identity (nreverse (cons string strings))))
                  (bounds (completion-boundaries newstring table pred
                                                 (or (cdr-safe action) ""))))
             (if (>= (car bounds) envpos)

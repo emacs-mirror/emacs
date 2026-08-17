@@ -792,9 +792,9 @@ mistakes in macro names to be passed to this function is to use
 ;; string--do so.  Otherwise, do nothing.
 (defun viper-display-macro (macro-name-or-body)
   (cond ((viper-char-symbol-sequence-p macro-name-or-body)
-	 (mapconcat #'symbol-name macro-name-or-body ""))
+	 (mapconcat #'symbol-name macro-name-or-body))
 	((viper-char-array-p macro-name-or-body)
-	 (mapconcat #'char-to-string macro-name-or-body ""))
+	 (mapconcat #'char-to-string macro-name-or-body))
 	(t macro-name-or-body)))
 
 ;; convert sequence of events (that came presumably from emacs kbd macro) into

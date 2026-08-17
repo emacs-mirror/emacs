@@ -379,8 +379,7 @@ spaces.  Die Die Die."
 	  ((= char ?  ) "+")
 	  ((memq char mm-url-unreserved-chars) (char-to-string char))
 	  (t (upcase (format "%%%02x" char)))))
-       (encode-coding-string chunk (car (find-coding-systems-string chunk)))
-       "")))
+       (encode-coding-string chunk (car (find-coding-systems-string chunk))))))
 
 (defun mm-url-encode-www-form-urlencoded (pairs)
   "Return PAIRS encoded for forms."

@@ -480,7 +480,7 @@ in the order given by `git status'."
                      (?\\ "\\\\")
                      (?\" "\\\"")
                      (_ (char-to-string c))))
-                 name "")
+                 name)
               "\"")
     name))
 

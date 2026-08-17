@@ -342,8 +342,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
                  (cond ((string= s " ") "+")
 		       ((string-match "[a-zA-Z_./~-]" s) s)
                        (t (upcase (format "%%%02x" c))))))
-             (encode-coding-string str 'utf-8)
-             ""))
+             (encode-coding-string str 'utf-8)))
 
 (defun webjump-url-fix (url)
   (if (webjump-null-or-blank-string-p url)

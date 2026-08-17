@@ -559,8 +559,7 @@ you have determined the keyword."
                 (concat
                  (char-to-string (car a))
                  (char-to-string (cdr a))))
-              decipher-alphabet
-              "")))
+              decipher-alphabet)))
 
 (defun decipher-resync ()
   "Reprocess the buffer using the alphabet from the top.
@@ -820,8 +819,7 @@ TOTAL is the total number of letters in the ciphertext."
                   (cond ((> x 99) (incf total) "XX")
                         ((> x 0)  (incf total) (format "%2d" x))
                         (t        "  ")))
-                counts
-                "")
+                counts)
      (format "%4d" (if (> (aref counts 26) 0)
                        (1- total)    ;Don't count space
                      total)))))
