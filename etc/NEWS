@@ -2101,6 +2101,7 @@ Shell bookmarks can be loaded via the menu and by using the command
 its current directory, and creates a remote connection, if necessary.
 You can customize 'shell-bookmark-name-function'.
 
++++
 *** New command to complete the shell history.
 'comint-complete-input-ring' ('C-x <UP>') is like 'minibuffer-complete-history'
 but completes on comint inputs.
