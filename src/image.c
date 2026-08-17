@@ -5615,16 +5615,9 @@ canvas_apply_data (struct canvas *c, struct image_keyword *fmt)
     }
   else if (STRINGP (file)) /* Binary file with ARGB32 data.  */
     {
-      Lisp_Object found = image_find_image_file (file);
-      if (NILP (found))
-	{
-	  image_error ("Cannot find image :file to load for canvas %s", file);
-	  return;
-	}
-
-      Lisp_Object encoded = ENCODE_FILE (found);
-      int fd = emacs_open (SSDATA (encoded), O_RDONLY | O_BINARY, 0);
-      if (fd < 0)
+      image_fd fd;
+      Lisp_Object found = image_find_image_fd (file, &fd);
+      if (!STRINGP (found))
 	{
 	  image_error ("Cannot open image :file for canvas %s", file);
 	  return;
@@ -5632,7 +5625,6 @@ canvas_apply_data (struct canvas *c, struct image_keyword *fmt)
 
       ptrdiff_t nbytes;
       uint32_t *buf = (uint32_t *) slurp_file (fd, &nbytes);
-      emacs_close (fd);
       if (!buf)
 	{
 	  image_error ("Cannot read image :file for canvas %s", file);
