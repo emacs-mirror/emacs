@@ -118,7 +118,6 @@
 ;; We don't want to have any undo records in the dumped Emacs.
 (set-buffer "*scratch*")
 (setq buffer-undo-list t)
-(setq debugger 'debug)
 
 (load "emacs-lisp/debug-early")
 (load "emacs-lisp/byte-run")
@@ -559,6 +558,15 @@ directory got moved.  This is set to be a pair in the form of:
   ;; file-local variables.
   (defvar comp--no-native-compile (make-hash-table :test #'equal)))
 
+;; `debugger' is initialized to `debug-early' in `eval.c' so as to help
+;; debug bootstrap problems (where loading the real `debug.el' could itself
+;; bump into bootstrap problems), but now that we have brought things
+;; up, we can switch to the real deal.
+;; FIXME: Maybe a simpler option would be to use a single function
+;; that dispatches to `debug-early' or to the full debugger
+;; depending on context, so we don't need to mutate `debugger' and we
+;; additionally avoid bootstrap issues that might occur after the dump.
+(setq debugger #'debug)
 
 ;; Avoid error if user loads some more libraries now.
 (setq purify-flag nil)
