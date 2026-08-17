@@ -105,8 +105,7 @@ with defcustoms that use :package-version have the appropriate
 add-to-list that determines the correspondence between package versions
 and Emacs versions.  Any changes you make in :version etc. should be
 tested by running "M-x customize-changed" after regenerating cus-load.el
-(run "make custom-deps" in the lisp/ directory) and loaddefs.el (run
-"make autoloads-force").
+and loaddefs.el (run "make -C lisp custom-deps autoloads-force").
 
 ** Manuals
 Check for node names using problematic characters:
