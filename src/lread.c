@@ -1950,8 +1950,16 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 			if (platform_fd.asset
 			    && platform_fd.asset != (void *) -1)
 			  {
-			    *storeptr = string;
-			    goto handle_platform_fd;
+			    /* Here, openp found a platform specific
+			       file descriptor.  It can't be a directory
+			       under Android, so return it in *PLATFORM
+			       and then indicate this by returning -3
+			       for the file descriptor.  */
+			    if (storeptr)
+			      *storeptr = string;
+			    *platform = platform_fd.asset;
+			    SAFE_FREE ();
+			    return -3;
 			  }
 
 			if (platform_fd.asset == (void *) -1)
@@ -2030,16 +2038,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   SAFE_FREE ();
   errno = last_errno;
   return -1;
-
-#ifdef USE_ANDROID_ASSETS
- handle_platform_fd:
-
-  /* Here, openp found a platform specific file descriptor.  It can't
-     be a directory under Android, so return it in *PLATFORM and then
-     -3 as the file descriptor.  */
-  *platform = platform_fd.asset;
-  return -3;
-#endif
 }
 
 
