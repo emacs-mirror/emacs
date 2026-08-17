@@ -16,8 +16,9 @@ Aaron Jensen: changed nsterm.m frameset.el ruby-bracketed-args-indent.rb
 
 Aaron Larson: co-wrote bibtex.el
 
-Aaron L. Zeng: changed savehist.el emacs-module-tests.el emacs-module.c
-  eval.c goto-addr.el lisp.h vc-hg.el
+Aaron L. Zeng: changed savehist.el vc-hg.el eglot.el
+  emacs-module-tests.el emacs-module.c eval.c goto-addr.el lisp.h
+  vc-dispatcher.el vc-hg-tests.el
 
 Aaron S. Hawley: wrote lisp-tests.el undo-tests.el
 and changed simple.el files.texi isearch.el morse.el sgml-mode.el
@@ -737,8 +738,8 @@ Billy Lei: wrote burmese.el
 
 Billy Zheng: changed README.md eglot.el
 
-Binbin Ye: changed json-ts-mode-tests.el json-ts-mode.el
-  typescript-ts-mode.el
+Binbin Ye: changed typescript-ts-mode.el json-ts-mode-tests.el
+  json-ts-mode.el typescript-ts-mode-tests.el
 
 Bjarte Johansen: wrote ob-sed.el
 and changed use-package-bind-key.el
@@ -1308,7 +1309,7 @@ Daniel Mendler: co-wrote compat.el
 and changed minibuffer.el simple.el browse-url.el eldoc.el ibuffer.el
   crm.el eww.el minibuf.texi project.el buffer-tests.el buffer.c buffer.h
   dispextern.h display.texi faces.el frame.c frame.h package.el
-  picture.el subr-tests.el subr.el and 30 other files
+  picture.el subr-tests.el subr.el and 31 other files
 
 Daniel M German: co-wrote org-protocol.el
 
@@ -1978,8 +1979,8 @@ Eshel Yaron: wrote completion-preview.el elisp-scope.el
 and changed completion-preview-tests.el programs.texi eglot.el
   elisp-mode.el emacs.texi emoji.el eww.el help-fns.el info.el
   minibuffer-tests.el minibuffer.el text-mode.el window.c xdisp.c xref.el
-  bookmark.el dictionary.el display.texi easy-mmode.el eldoc.el
-  elec-pair.el and 24 other files
+  bookmark.el cc-fonts.el dictionary.el display.texi easy-mmode.el
+  eldoc.el and 26 other files
 
 Espen Skoglund: wrote pascal.el
 
@@ -2102,9 +2103,9 @@ Filippo Argiolas: changed eglot.el eglot.texi c-ts-common.el
 
 F. Jason Park: changed erc.el erc-tests.el erc-backend.el erc-stamp.el
   erc-common.el erc-fill.el erc.texi erc-goodies.el erc-button.el
-  erc-fill-tests.el erc-networks.el foonet.eld erc-compat.el erc-match.el
-  erc-speedbar.el erc-dcc.el erc-scenarios-common.el erc-sasl.el
-  erc-networks-tests.el erc-track.el erc-goodies-tests.el
+  erc-fill-tests.el erc-networks.el foonet.eld erc-compat.el
+  erc-speedbar.el erc-match.el erc-dcc.el erc-scenarios-common.el
+  erc-sasl.el erc-networks-tests.el erc-track.el erc-goodies-tests.el
   and 209 other files
 
 Flemming Hoejstrup Hansen: changed forms.el
@@ -5165,7 +5166,7 @@ and co-wrote compat.el
 and changed package.el rcirc.el package.texi rcirc.texi vc.el
   sgml-mode.el vc-git.el project.el which-key.el package-autosuggest.eld
   startup.el package-activate.el message.el subr.el custom.texi eglot.el
-  simple.el bytecomp.el cus-edit.el custom.el help.el and 94 other files
+  simple.el bytecomp.el cus-edit.el custom.el help.el and 95 other files
 
 Philippe Altherr: changed sh-script.el sh-script-tests.el shell.sh
 
@@ -5454,13 +5455,13 @@ Richard Lawrence: wrote calendar-tests.el diary-icalendar.el
   icalendar-parser.el icalendar-recur.el icalendar-shortdoc.el
   icalendar-utils.el
 and changed calendar.el diary-icalendar-tests.el icalendar-recur-tests.el
-  icalendar.el calendar.texi diary-lib.el gnus-icalendar.el
-  icalendar-parser-tests.el icalendar-tests.el .gitattributes cal-dst.el
-  cal-move.el cond-star.el diary-icalendar-resources emacs.texi
+  icalendar.el calendar.texi icalendar-parser-tests.el gnus-icalendar.el
+  diary-lib.el icalendar-tests.el .gitattributes cal-dst.el cal-move.el
+  cond-star.el diary-icalendar-resources emacs.texi
   gnus-icalendar-tests.el icalendar-ast-tests.el
   import-bug-11473.diary-iso import-bug-22092.diary-iso
-  import-bug-33277.diary-iso import-legacy-function.ics
-  and 22 other files
+  import-bug-24199.diary-all import-bug-33277.diary-iso
+  and 23 other files
 
 Richard Levitte: changed vc-mtn.el
 
@@ -5784,9 +5785,9 @@ Sean Whitton: wrote em-elecslash.el em-extpipe-tests.el em-extpipe.el
   vc-test-misc.el
 and co-wrote vc-tests-helpers.el vc-tests.el
 and changed vc.el vc-git.el vc-dispatcher.el vc-hg.el vc-dir.el
-  diff-mode.el vc-hooks.el vc1-xtra.texi log-view.el maintaining.texi
+  vc-hooks.el diff-mode.el vc1-xtra.texi log-view.el maintaining.texi
   subr.el project.el log-edit.el files.texi server.el simple.el window.el
-  cond-star.el dired-aux.el keyboard.c vc/vc-bzr.el and 334 other files
+  cond-star.el configure.ac dired-aux.el keyboard.c and 347 other files
 
 Sebastian Fieber: changed gnus-art.el mm-decode.el mm-view.el
 
@@ -6032,7 +6033,7 @@ and co-wrote font-lock.el gitmerge.el pcvs.el visual-wrap.el
 and changed subr.el simple.el cl-macs.el bytecomp.el files.el keyboard.c
   lisp.h vc.el eval.c xdisp.c alloc.c help-fns.el buffer.c sh-script.el
   package.el tex-mode.el progmodes/compile.el lread.c keymap.c window.c
-  easy-mmode.el and 1744 other files
+  easy-mmode.el and 1745 other files
 
 Stefano Facchini: changed gtkutil.c
 
@@ -6059,10 +6060,10 @@ Steinar Bang: changed gnus-setup.el imap.el
 Stéphane Boucher: changed replace.el
 
 Stephane Marks: wrote savehist-tests.el system-sleep.el system-taskbar.el
-and changed frame.el markdown-ts-mode.el frames.texi nsfns.m tab-bar.el
-  bookmark.el frame.c nsterm.m subr.el project.el display.texi recentf.el
-  savehist.el vtable.el w32fns.c ibuf-macs.el os.texi saveplace.el
-  shell.el subr-x.el treesit.el and 34 other files
+and changed frame.el markdown-ts-mode.el nsfns.m frames.texi subr.el
+  tab-bar.el bookmark.el frame.c nsterm.m project.el display.texi
+  recentf.el savehist.el vtable.el w32fns.c ibuf-macs.el os.texi
+  saveplace.el shell.el subr-x.el tramp.el and 34 other files
 
 Stephane Zermatten: changed term-tests.el term.el ansi-osc.el
 
@@ -6697,10 +6698,10 @@ Vincent Del Vecchio: changed info.el mh-utils.el
 
 Vincenzo Pupillo: wrote mhtml-ts-mode.el php-ts-mode.el
 and changed js.el c-ts-mode.el java-ts-mode.el c-ts-common.el
-  cmake-ts-mode.el typescript-ts-mode.el speedbar.el treesit.el
-  Makefile.in compilation.txt compile-tests.el css-mode.el frames.texi
-  html-ts-mode.el progmodes/compile.el progmodes/python.el speedbar.texi
-  sql.el treesit-admin.el yaml-ts-mode.el
+  cmake-ts-mode.el speedbar.el typescript-ts-mode.el treesit.el
+  Makefile.in compilation.txt compile-tests.el css-mode.el dframe.el
+  frames.texi html-ts-mode.el progmodes/compile.el progmodes/python.el
+  speedbar.texi sql.el treesit-admin.el yaml-ts-mode.el
 
 Vince Salvino: changed msdos.texi w32.c w32fns.c
 
