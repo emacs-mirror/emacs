@@ -117,7 +117,7 @@ Lisp files), and add the relevant authors to the Acknowledgments in
 doc/emacs/ack.texi and emacs.texi.  To find new files, you could run a
 command such as this:
 
-  $ git diff --name-status emacs-NN emacs-XX | grep -E "^A"
+  $ git diff --name-status --diff-filter=A emacs-NN emacs-XX
 
 where emacs-NN is the previous Emacs release branch, and emacs-XX is the
 new one.
