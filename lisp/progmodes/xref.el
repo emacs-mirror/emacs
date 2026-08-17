@@ -320,8 +320,9 @@ recognize and then delegate the work to an external process."
   "Return list of descriptors for xref kinds supported by BACKEND.
 
 Each descriptor is a plist with properties `:kind', `:name' and `:key'
-where the kind is a symbol value, name is a string and the key
-is a unique character that can be used to choose among them.
+where the kind is a symbol value, name is a string and the key is a
+unique character that can be used to choose among them.  Optionally, it
+can also include `:prompt-format' which defaults to \"Find %s\".
 
 Having a kind in this list means that the backend can try to find such
 xrefs in the current buffer, with no guarantee of success.  These
@@ -1835,13 +1836,14 @@ Use \\[xref-go-back] to return back to where you invoked this command.
 
 When called programmatically, KIND-DESC should be a plist that includes
 properties `:kind' and `:name'."
-  (interactive (let ((desc (xref--read-kind "Find kind")))
+  (interactive (let ((desc (xref--read-kind "Find by kind")))
                  (list
                   ;; For completeness, we can also add a specialized
                   ;; "identifier completion table for kind".  But
                   ;; probably only the elisp backend would have it.
                   (xref-read-identifier
-                   (format-message "Find %s: " (plist-get desc :name)))
+                   (format-message (or (plist-get desc :prompt-format) "Find %s")
+                                   (plist-get desc :name)))
                   desc)))
   (unless kind-desc (user-error "Have to choose the kind"))
   (xref--show-defs

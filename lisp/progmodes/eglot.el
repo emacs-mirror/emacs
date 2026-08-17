@@ -3831,11 +3831,14 @@ If BUFFER, switch to it before."
    nil
    (list
     (when (eglot-server-capable :declarationProvider)
-      '(:kind declaration :name "declaration" :key ?d))
+      '( :kind declaration :name "declaration" :key ?d
+         :prompt-format "Find %s of"))
     (when (eglot-server-capable :implementationProvider)
-      '(:kind implementation :name "implementation" :key ?i))
+      '( :kind implementation :name "implementation" :key ?i
+         :prompt-format "Find %s of"))
     (when (eglot-server-capable :typeDefinitionProvider)
-      '(:kind type-definition :name "type definition" :key ?t)))))
+      '( :kind type-definition :name "type definition" :key ?t
+         :prompt-format "Find %s of")))))
 
 (cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql eglot)) id kind)
   ;; First check whether ID is an identifier from the workspace.
