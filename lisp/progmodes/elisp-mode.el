@@ -1670,7 +1670,7 @@ namespace but with lower confidence."
     (:kind defvar :name "variable" :key ?v)
     (:kind cl-defgeneric :name "generic function" :key ?g)
     (:kind cl-defmethod :name "generic method" :key ?m)
-    (:kind define-type :name "constructor" :key ?o)
+    (:kind define-type :name "constructor" :key ?n)
     (:kind defalias :name "function alias" :key ?a)
     (:kind defface :name "face" :key ?c)
     (:kind feature :name "feature" :key ?e)))
