@@ -3354,6 +3354,7 @@ Directory".  This also means that combining the 'use-package' keywords
 ---
 *** Package menu now highlights packages marked for installation or deletion.
 
+---
 *** Package menu now displays the total number of the package type.
 The package menu now displays in the mode line the total number of
 packages installed, the total number of packages from all the package
@@ -3831,7 +3832,6 @@ CPerl mode creates Imenu entries for ":writer" generated accessors and
 recognizes the new builtin functions "all" and "any".
 See https://perldoc.perl.org/5.42.0/perldelta for details.
 
----
 ** Zone
 
 Zone can scramble multiple windows across multiple frames; it may also
@@ -3842,22 +3842,26 @@ control the use of frames and windows beyond the currently active ones.
 It identifies suitable buffers for zoning out so that potentially
 important buffer contents are not exposed.
 
+---
 *** New user option 'zone-delete-other-windows'.
 When non-nil, the frame is made into a single full frame window to hold
 the zoned buffer.  If all frames were to be used ('zone-all-frames' set
 to non-nil), then all frames are converted to single window frames.
 
+---
 *** New user option 'zone-all-frames'.
 When non-nil, Zone will appear on all visible frames.  While the buffer
 scrambling will appear on each frame, it will be the same buffer so they
 will all behave the same way.
 
+---
 *** New user option 'zone-all-windows-in-frame'.
 When non-nil, the zoned buffer will be mapped to all of the windows
 present on the frame.  If the option is nil, then only the selected
 window will show the zoned buffer.  Note, however, that each window
 holding the zoned buffer is showing the same zoned buffer.
 
+---
 *** New variable 'zone-ignored-buffers'.
 This variable is a list of criteria for excluding a buffer from
 consideration as the source of zoning.  The list has entries that are
@@ -3881,9 +3885,9 @@ begrudgingly use the "*scratch*" buffer.
 Customize the user option 'abbrev-mode' to non-nil to enable Abbrev mode
 by default in all buffers.
 
----
 ** Antlr mode
 
+---
 *** Variable 'antlr-tool-version' is no longer a user option.
 It is now buffer-local and has the symbol 'antlr-v2', 'antlr-v3' or
 'antlr-v4' as its value.  The value determines which of the tool
@@ -3892,16 +3896,19 @@ command 'antlr-run-tool' uses the option 'antlr-v3-tool-command' (with
 default value "java org.antlr.Tool") when 'antlr-tool-version' has the
 value 'antlr-v3'.
 
+---
 *** 'antlr-mode' now also works on ANTLR v3 or v4 grammars.
 If the variable 'antlr-tool-version' is not set locally, e.g., by the
 file's local variables specs, the command sets its local value to
 'antlr-v2' if a keyword "class" or "header" appears at the beginning of
 the source, or to 'antlr-v3' otherwise.
 
+---
 *** New 'antlr-v4-mode' is a derived mode of 'antlr-mode'.
 It sets 'antlr-tool-version' to value 'antlr-v4', and is automatically
 used for files with extension ".g4".
 
+---
 *** The variable 'antlr-language' is now used more generally.
 The variable's value is a symbol which determines which of the
 language-dependent customization options are used.  These options
@@ -3911,6 +3918,7 @@ of 'antlr-v2-language-list', 'antlr-v3-language-list' and
 'antlr-v4-language-list'.  This mode now supports C, Delphi, JavaScript,
 ObjC, Python and Ruby, in addition to Java and C++.
 
+---
 *** New user option 'antlr-run-tool-on-buffer-file'.
 The command 'antlr-run-tool' now usually runs on the file for the
 current buffer.  Customize this user option to nil to get the previous
@@ -3924,9 +3932,9 @@ If an active region exists, the commands 'hi-lock-line-face-buffer' and
 'hi-lock-face-phrase-buffer' now use its contents as their default
 value.  Previously, only 'hi-lock-face-buffer' supported this.
 
----
 ** Shadowfile
 
+---
 *** 'shadow-info-buffer' and 'shadow-todo-buffer' now use ephemeral buffer names.
 
 ** Display Battery mode
@@ -4190,6 +4198,7 @@ coding mistakes.  For example,
 
 may return either nil or t.
 
+---
 ** Nested backquotes are no longer supported in Pcase patterns.
 
 ---
@@ -4525,6 +4534,7 @@ This function returns non-nil if a given key is present in a hash table.
 +++
 ** The function 'purecopy' is now an obsolete alias for 'identity'.
 
++++
 ** New function 'native-compile-directory'.
 This function natively compiles all Lisp files in a directory and in its
 sub-directories, recursively, excluding those already natively compiled.
