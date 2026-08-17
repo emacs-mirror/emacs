@@ -848,6 +848,7 @@ in the Emacs development repository (@pxref{Latest version of Emacs}).
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 31::
 * New in Emacs 30::
 * New in Emacs 29::
 * New in Emacs 28::
@@ -921,6 +922,92 @@ few Emacs releases.  For full details of the changes in any version of
 Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
 this command a prefix argument to read about which features were new
 in older versions.
+
+
+@node New in Emacs 31
+@section What is different about Emacs 31?
+@cindex Differences between Emacs 30 and Emacs 31
+@cindex Emacs 31, new features in
+
+Here's a selection of changes in Emacs 31 as compared to Emacs 30.  The
+full list is too long to fit here, but can be read in the Emacs
+@file{NEWS} file by typing @kbd{C-h n} inside Emacs.
+
+@itemize
+@item
+Using the mouse to control Emacs is enabled by default in most
+terminals.
+
+@item
+New @file{user-lisp/} subdirectory of your Emacs configuration
+directory.  Lisp files placed here will be automatically compiled and
+loaded without additional configuration.
+
+@item
+Child frames (used e.g. for completion and tooltips) are now supported
+on text frames.
+
+@item
+Various improvements to the way the @file{*Completions*} buffer works.
+In particular, it can be configured to be displayed immediately and to
+be updated dynamically as you type.
+
+@item
+Commands to split windows now make better choices between splitting
+vertically and splitting horizontally.  Whether the frame is landscape
+or portrait now has more of an influence.
+
+@item
+New built-in facility to hide minor mode lighters:
+@code{mode-line-collapse-minor-modes}.
+
+@item
+New commands to interactively store buffers and files in registers:
+@code{buffer-to-register} and @code{file-to-register}.
+
+@item
+You can now bookmark local and remote shell buffers.
+
+@item
+SHR slices large images into rows, so scrolling no longer jumps past the
+entire image.
+
+@item
+Ispell can now save spelling corrections as abbrevs, such that if you
+make the same mistake again it will be immediately corrected.
+
+@item
+Typing @kbd{d} during @code{query-replace} shows a diff buffer with the
+replacements.
+
+@item
+The @file{*grep*} and @file{*xref*} now support editable modes, like
+Occur Edit mode.  The edits will be reflected in buffers visiting the
+originating files.
+
+@item
+New VC commands to handle repositories with multiple working trees.  The
+VC Directory and Log View mode interfaces have seen a number of
+usability improvements.
+
+@item
+New feature to review changes to packages before installing or upgrading
+them, and new minor mode to automatically suggest packages to install
+when visiting files with no specific major mode yet available.
+
+@item
+The Speedbar can be configured to open in a window instead of a frame.
+
+@item
+New theme, the Newcomers Presets theme, designed to make Emacs more
+approachable for new users.  It is basically a set of alternative
+defaults.
+
+@item
+New library to handle iCalendar (RFC 5545) data, with integrations for
+the Calendar and Diary packages.
+
+@end itemize
 
 
 @node New in Emacs 30

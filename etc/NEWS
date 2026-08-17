@@ -548,7 +548,8 @@ visuals for these two faces, customize them to have the colors "grey75"
 and "grey40", respectively, regardless of the background mode.
 
 *** New user option 'mode-line-collapse-minor-modes'.
-If non-nil, minor mode lighters on the mode line are collapsed into a
+This is a new, built-in facility to hide minor mode lighters.  If
+non-nil, minor mode lighters on the mode line are collapsed into a
 single button.  The value can also be a list to specify minor mode
 lighters to hide or show.  The default value is nil, which retains the
 previous behavior of showing all minor mode lighters.
@@ -2351,7 +2352,7 @@ outputting it in the Dired buffer and signalling an error.
 
 *** Grep results can be edited to reflect changes in the originating file.
 Like Occur Edit mode, typing 'e' in the "*grep*" buffer will now make
-the 'grep' results editable.  The edits will be reflected in the buffers
+the 'grep' results editable.  The edits will be reflected in buffers
 visiting the originating files.  Typing 'C-c C-c' will leave the Grep
 Edit mode.
 
@@ -3480,9 +3481,10 @@ file names in those buffers.  The default is nil.
 *** New theme 'newcomers-presets'.
 This new theme configures user options and minor modes that might
 interest new users, but would otherwise be too invasive to enable by
-default.  (An Emacs theme is a generic collection of settings, and need
-not affect Emacs's appearance.)  See the Info node "(emacs) Newcomers
-Theme" for more information.
+default.  It is basically a set of alternative defaults.  (An Emacs
+theme is a generic collection of settings, and need not affect Emacs's
+appearance.)  See the Info node "(emacs) Newcomers Theme" for more
+information.
 
 *** 'report-emacs-bug' now checks whether the bug report is about Org.
 The command 'report-emacs-bug' looks in the report text for symbols that
