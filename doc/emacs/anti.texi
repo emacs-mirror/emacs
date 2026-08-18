@@ -4,133 +4,123 @@
 @c See file emacs.texi for copying conditions.
 
 @node Antinews
-@appendix Emacs 29 Antinews
+@appendix Emacs 30 Antinews
 @c Update the emacs.texi Antinews menu entry with the above version number.
 
   For those users who live backwards in time, here is information
-about downgrading to Emacs version 29.4.  We hope you will enjoy the
+about downgrading to Emacs version 30.2.  We hope you will enjoy the
 greater simplicity that results from the absence of many @w{Emacs
 @value{EMACSVER}} features.
 
 @itemize @bullet
 @item
-Emacs can no longer be built for Android mobile devices.  We have
-removed the Android support because it was deemed unnecessary, what with
-the screens of the mobile devices becoming smaller and smaller as you
-move back in time.  We expect Android users to enjoy the much simpler
-text editors available on their devices.  As a nice bonus, removing
-Android support allowed us to get rid of gobs of related files, thus
-making the release tarballs much leaner.
+The venerable @code{unexec} dumper is back!  It is still deprecated, but
+we plan on un-deprecating it in Emacs 26, in preparation for the
+@file{glibc} developers' reinstating the various hooks which Emacs needs
+to reliably be built using @code{unexec}.
 
 @item
-We have deleted much of the enhanced support for touchscreen devices,
-for the same reason we dropped Android: there will be no need for that
-as you move back in time.
+@command{ctags} is once again a separate program.  We decided that the
+need to remember the @option{--ctags} option to @command{etags} is not
+friendly enough to our users, and switched back to a time-proven Unix
+philosophy of ``programs that do one thing and do it well''.
 
 @item
-We also dropped support for sophisticated input methods that include
-text conversions, again because those are mostly needed on mobile and
-hand-held devices, which we gradually remove from Emacs in each past
-version.
+We dropped the annoying feature of scraping at startup files and
+directories in @file{user-lisp} subdirectory of your Emacs configuration
+directory.  It slows down startup, especially as computers and hard
+disks become slower and slower as you move back in time.
 
 @item
-Like its newer releases, Emacs 29 can still be built with support of
-native compilation of Lisp programs.  However, in preparation for
-removal of this feature in some previous version, we've made the native
-compiler support off by default; you will now have to request it
-explicitly at configure time.  This makes the default Emacs build
-process much faster.
+As part of our continuous struggle to make Emacs simpler, we've removed
+the @code{margin} face, so text shown in display margins will now use
+the same @code{default} face as the rest of buffer text.  Our long-term
+goal is to remove faces completely, thus leaving the Emacs with just two
+colors, so we gradually remove more and more faces as we go.
 
 @item
-JSON interfaces slowly move into oblivion as past years come closer, so
-we have removed our internal implementation of JSON; you will now need
-to build Emacs with the libjansson library, if you need JSON.
-Eventually, we plan on removing JSON support from Emacs altogether; this
-move will make the removal much simpler.
+Yet another complication which we got rid of is child frames on
+text-only terminals.  They are still supported on GUI frames, but one
+improvement at a time.
 
 @item
-Tree-sitter based modes are now completely independent of their
-non-Tree-Sitter counterparts.  We decided that keeping the settings
-separate and independent goes a long way toward simplicity, which is one
-of our main motivations for removing stuff from Emacs.
+Fancy completion bells and whistles, such as eager display of completion
+candidates, updating the @file{*Completions*} buffer as you type,
+control of point motion in @file{*Completions*} via
+@code{completions-format}, etc.@: will no longer confuse you because we
+deleted all of that stuff.  No one should need completion features
+beyond what typing @key{TAB} produces!
 
 @item
-Various Help commands no longer turn on Outline minor mode.  With less
-material to display in the *Help* buffers, due to removing of excess
-documentation from Emacs, we think using outlining is an unnecessary
-complication, as scrolling through plain text is so much simpler.
+Commands that modify the window layout of a frame are gone.  You can no
+longer be seduced to transpose or rotate windows on their frame.  Once
+again, only Emacs decides how to arrange and re-arrange windows.
 
-For the same reasons, Emacs no longer shows Unicode names of characters
-in *Help* buffers shown by @code{describe-bindings}.
-
-@item
-To make Emacs configuration simpler and easier to control, the tool bar
-can now be displayed only in its natural and logical position: on the
-top of the frame; no more of that @code{tool-bar-position} nonsense with
-tool bars on the bottom.  For the same reasons @code{modifier-bar-mode}
-is now gone.
+For the same reason, we nuked @code{split-frame} and @code{merge-frames}
+commands.  @kbd{C-x 2} and @kbd{C-x 0} should be enough for everyone!
 
 @item
-The command @code{recover-file} no longer lets you display the diffs
-between a file and its auto-save file.  You either want to recover a
-file or you don't; confusing users with a third alternative when they
-are anxious already by the possibility of losing precious edits is
-considered a bad idea, certainly so as we move further towards smaller,
-simpler Emacs.
+We removed quite a few complications due to Unicode Standard version
+17.0 and related features.  This includes quite a few characters which
+will never be needed in the past, the language environments for Syriac
+and Tifinagh, and several input methods which no one should miss, and
+which will fall in disuse soon enough anyway.  As memory becomes more
+and more at premium, we must make Emacs leaner and meaner to follow
+suit.
 
 @item
-Several languages and input methods, which will fall in disuse as you
-move back in time, were removed.  This includes Urdu, Pashto, and Sindhi
-languages, and the input method for the Colemak keyboard layout.  Many
-@kbd{C-x 8} key sequences, including those which insert various
-quotation characters and guillemets, were deleted for the same reason.
+User option @code{treesit-enabled-modes} is no longer part of Emacs.
+Customize @code{major-mode-remap-alist} to activate Tree-sitter based
+modes instead of the traditional modes; this is much simpler and easier
+to remember and manage.
 
 @item
-The support for @code{lzip}-compressed Info manuals was removed from the
-Info mode.  We anticipate that @command{lzip} will disappear from the
-face of the Earth in the near past, and are preparing Emacs for that in
-advance.
+Sendmail and Rmail no longer try to detect suspicious email addresses
+and warn you about them.  As you move back in time, people become nicer
+and nicer, and all those malevolent souls who constantly look for
+opportunities to cause you damage become more and more vague memories
+from the distant future.  Eventually, we will once again have just the
+small Arpanet where everyone were your friends, and who needs these
+paranoid features then?
 
 @item
-Support for LLDB in Grand Unified Debugger mode was dropped.  We decided
-that given LLDB's diminishing popularity, its support is just code
-bloat.
+You can no longer edit Grep results and have the edits reflected in the
+original files.  We've removed that because we believe one should only
+edit the original files directly, with the full benefit of the
+surrounding context.
 
 @item
-Several fancy Project and VC commands were deleted, as part of our
-consistent effort of making Emacs simpler to use.
+Commands for handling VCS repositories with multiple working trees were
+deleted from VC.  We concluded that multiple working tree in a single
+project are a clear sign of design bloat, and we refuse to admit such
+bloatware into Emacs.  So this is gone---good riddance!
+
+Numerous other VC features, which we considered too fancy and not
+useful enough, were removed for the same reason.
 
 @item
-The user option @code{shell-command-guess-functions} and the context
-menu @samp{Open With} in Dired are gone.  We trust Emacs users to always
-know themselves which shell command is the appropriate one for a given
-file, so no guessing by Dired is needed, or welcome.  The
-@code{dired-do-open} command was deleted for the same reasons.
+To review an Emacs Lisp package before installing it from ELPA, you will
+now need to actually read its code and documentation, because the user
+option @code{package-review-policy}, and the associated functionalities
+to show the diffs from the previous version, are gone.  ``Use the
+source, Luke!''
+
+We also deleted @code{package-autosuggest} and
+@code{package-autosuggest-mode}, since we want to trust our users to
+know better.
 
 @item
-We went back to the original lean-and-mean interface for specifying
-registers for register-related commands.  The fancy preview and the
-options to go with it were deemed gratuitous and were removed.
+In preparation for removal of the @code{customize-dirlocals} command in
+the previous Emacs version, we nuked @code{Custom-dirlocals-mode}.
 
 @item
-Eshell is now much smaller and easier to use, due to dropping quite a
-few of the new commands and fancy new options.
-
-@item
-The command @code{customize-dirlocals} was removed.  Editing the
-@file{.dir-locals.el} files as plain text is so much simpler, and quite
-enough.
-
-@item
-We have removed several packages that we consider unnecessary for the
-past of Emacs.  This includes EditorConfig support, @samp{which-key},
-PEG, and Window-Tool-Bar.
-
-@item
-The @code{etags-regen-mode} was deleted.  Regeneration of @file{TAGS}
-tables manually is all Emacs users will need in the past.
+We have removed several packages and modes that we consider unnecessary
+for the past of Emacs.  This includes @code{icalendar-mode} and
+@code{lua-mode} modes, and the @code{timeout} and
+@code{system-taskbar-mode} libraries.  the @code{system-sleep} package
+is gone for the same reasons.
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many
-other functions and files have been eliminated in Emacs 29.4.
+other functions and files have been eliminated in Emacs 30.2.
 @end itemize
