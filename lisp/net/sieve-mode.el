@@ -85,12 +85,14 @@
       (,(regexp-opt '("require" "if" "else" "elsif" "stop") 'words)
        . 'sieve-control-commands)
       ;; action commands
-      (,(regexp-opt '("fileinto" "redirect" "reject" "keep" "discard") 'words)
+      (,(regexp-opt '("fileinto" "redirect" "reject" "keep" "discard"
+         "setflag" "addflag" "removeflag")
+         'words)
        . 'sieve-action-commands)
       ;; test commands
       (,(regexp-opt '("address" "allof" "anyof" "exists" "false"
 		      "true" "header" "not" "size" "envelope"
-                      "body")
+                      "body" "hasflag")
                     'words)
        . 'sieve-test-commands)
       ("\\Sw+:\\sw+" . 'sieve-tagged-arguments))))
