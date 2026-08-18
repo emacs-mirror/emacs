@@ -312,6 +312,10 @@ recognize and then delegate the work to an external process."
   "Return the completion table for identifiers."
   nil)
 
+(cl-defgeneric xref-backend-identifier-kind-predicate (_backend _kind)
+  "Return the completion predicate for identifiers based on KIND."
+  nil)
+
 (cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
   "Return t if case is not significant in identifier completion."
   completion-ignore-case)
@@ -1697,7 +1701,7 @@ The meanings of both arguments are the same as documented in
           (not (memq command (cdr xref-prompt-for-identifier)))
         (memq command xref-prompt-for-identifier))))
 
-(defun xref-read-identifier (prompt)
+(defun xref-read-identifier (prompt &optional predicate)
   "Return the identifier at point or read it from the minibuffer.
 
 Reads and returns the identifier to use as input for the command being
@@ -1726,7 +1730,8 @@ from `xref-backend-identifier-completion-table'."
                                  def)
                        prompt))
                    (xref-backend-identifier-completion-table backend)
-                   nil nil nil
+                   predicate
+                   nil nil
                    'xref--read-identifier-history def t)))
              (if (equal id "")
                  (or def (user-error "There is no default identifier"))
@@ -1844,7 +1849,9 @@ When called programmatically, KIND should be one of supported symbols."
                   ;; probably only the elisp backend would have it.
                   (xref-read-identifier
                    (format-message (or (plist-get desc :prompt-format) "Find %s")
-                                   (plist-get desc :name)))
+                                   (plist-get desc :name))
+                   (xref-backend-identifier-kind-predicate (xref-find-backend)
+                                                           kind))
                   kind)))
   (let ((kind-desc (cl-find-if
                     (lambda (kind-desc) (eq (plist-get kind-desc :kind) kind))

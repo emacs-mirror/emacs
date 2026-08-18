@@ -1683,7 +1683,10 @@ namespace but with lower confidence."
       (let* ((defs (elisp--xref-find-definitions sym)))
         (cl-loop for d in defs
                  for def-kind = (xref-elisp-location-type (xref-item-location d))
-                 when (eq def-kind kind)
+                 when (if kind
+                          (eq def-kind kind)
+                        (memq def-kind '( nil cl-defgeneric cl-defmethod
+                                          define-type defalias)))
                  collect d)))))
 
 (declare-function xref-apropos-regexp "xref" (pattern))
@@ -1709,6 +1712,25 @@ namespace but with lower confidence."
 (cl-defmethod xref-backend-identifier-completion-table ((_backend
                                                          (eql 'elisp)))
   elisp--xref-identifier-completion-table)
+
+(cl-defmethod xref-backend-identifier-kind-predicate ((_backend (eql 'elisp)) kind)
+  (lambda (identifier)
+    (let ((sym (intern-soft identifier)))
+      (cl-ecase kind
+        ((nil) (fboundp sym))
+        (defvar (boundp sym))
+        (cl-defgeneric (cl--generic sym))
+        (cl-defmethod (and (cl--generic sym)
+                           (cl--generic-method-table (cl--generic sym))))
+        (define-type (and (functionp sym)
+                          (let ((doc (documentation sym t)))
+                            (and doc
+                                 (string-search "Constructor for objects of type" doc)))))
+        (defalias (and (symbolp sym)
+                       (symbol-function sym)
+                       (symbolp (symbol-function sym))))
+        (defface (facep sym))
+        (feature (featurep sym))))))
 
 (cl-defstruct (xref-elisp-location
                (:constructor xref-make-elisp-location (symbol type file)))
