@@ -3818,6 +3818,12 @@ are ignored.  If BEG and END are nil, all undo elements are used."
 	    (undo-make-selective-list (min beg end) (max beg end))
 	  buffer-undo-list)))
 
+(defcustom undo-partially-in-region-policy 'partial-ignore
+  "Policy for undo items that are only partially selected."
+  :type '(choice (const partial-ignore)
+                 (const partial-stop)
+                 (const partial-expand)))
+
 ;; The positions given in elements of the undo list are the positions
 ;; as of the time that element was recorded to undo history.  In
 ;; general, subsequent buffer edits render those positions invalid in
@@ -3912,7 +3918,7 @@ list can be applied to the current buffer."
         (let ((adjusted-undo-elt (undo-adjust-elt undo-elt
                                                   undo-deltas)))
           (cl-ecase (undo-elt-in-region adjusted-undo-elt start end
-                                        'partial)
+                                        undo-partially-in-region-policy)
             ((t)
              (setq end (+ end (cdr (undo-delta adjusted-undo-elt))))
              (push adjusted-undo-elt selective-list)
@@ -3922,17 +3928,30 @@ list can be applied to the current buffer."
                         (integerp (cdr-safe adjusted-undo-elt)))
                (let ((list-i (cdr ulist)))
                  (while (markerp (car-safe (car list-i)))
-                   (push (pop list-i) selective-list)))))
-            ((nil)
+                   (push (pop list-i) selective-list))))
+             )
+            ((nil partial-ignore)
              (let ((delta (undo-delta undo-elt)))
                (when (/= 0 (cdr delta))
                  (push delta undo-deltas))))
-            (partial
+            (partial-stop
              ;; Stop searching for more applicable elements, because we
              ;; aren't sure whether subsequent elements depend on the
              ;; changes caused by this one; in particular for 'apply
              ;; entries.
-             (setq ulist nil))))))
+             (setq ulist nil))
+            (partial-expand
+             (let* ((region (undo--region adjusted-undo-elt))
+                    (rstart (car region))
+                    (rend (cdr region)))
+               (setq start (min start rstart))
+               (setq end (max end rend)))
+             (push adjusted-undo-elt selective-list)
+             (when (and (stringp (car-safe adjusted-undo-elt))
+                        (integerp (cdr-safe adjusted-undo-elt)))
+               (let ((list-i (cdr ulist)))
+                 (while (markerp (car-safe (car list-i)))
+                   (push (pop list-i) selective-list)))))))))
       (pop ulist))
     (nreverse selective-list)))
 
@@ -4099,6 +4118,27 @@ with < or <= based on USE-<."
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
+
+(defun undo--region (undo-elt)
+  (pcase-exhaustive undo-elt
+    ((and `(,beg . ,end) (guard (and (natnump beg) (natnump end))))
+     undo-elt)
+    ((or (and `(,text . ,pos) (guard (and (stringp text) (integerp pos))))
+         (and pos (pred natnump)))
+      (let ((p (abs pos)))
+        (cons p p)))
+    ((or `(t . _)
+         (and `(apply ,fun-name) (guard (symbolp fun-name))))
+     t)
+    ((or `(nil _ _ ,beg . ,end)
+         (and `(apply ,delta ,beg ,end . ,_)
+              (guard (and (integerp delta) (natnump beg))))
+         (and `(apply ,delta (,beg . ,end) . ,_)
+              (guard (and (integerp delta) (natnump beg)))))
+     (cons beg end))
+    ((or (and `(,m . ,_) (guard (markerp m)))
+         `nil)
+     nil)))
 
 ;;; Default undo-boundary addition
 ;;

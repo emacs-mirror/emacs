@@ -315,10 +315,19 @@ undo-make-selective-list."
     (push-mark 2 t t)
     (setq mark-active t)
     (goto-char 6)
-    (undo)
-    (undo-boundary)
-    (should (string= (buffer-string)
-                     "ccaaaddd"))))
+    (cl-ecase undo-partially-in-region-policy
+      (partial-ignore
+       (undo)
+       (should (string= (buffer-string)
+                        "ccaaaddd")))
+      (partial-stop
+       (should-error (undo) :type 'user-error)
+       (should (string= (buffer-string)
+                        "ccaabaddd")))
+      (partial-expand
+       (undo)
+       (should (string= (buffer-string)
+                        "aabaddd"))))))
 
 (ert-deftest undo-test-region-eob ()
   "Test undo in region of a deletion at EOB, demonstrating bug 16411."
@@ -668,8 +677,16 @@ Demonstrates bug 25599."
     (undo-boundary)
     ;; select "B"
     (undo-tests--mark-region 2 3)
-    (should-error (undo) :type 'user-error)
-    (should (equal (buffer-string) "aBDe"))))
+    (cl-ecase undo-partially-in-region-policy
+      (partial-ignore
+       (undo)
+       (should (equal (buffer-string) "aBcDe")))
+      (partial-stop
+       (should-error (undo) :type 'user-error)
+       (should (equal (buffer-string) "aBDe")))
+      (partial-expand
+       (undo)
+       (should (equal (buffer-string) "abcde"))))))
 
 (ert-deftest undo-tests-selective-apply-4 ()
   "Test partially selected \"undo-insert\" (BEG . END) entries."
@@ -688,11 +705,16 @@ Demonstrates bug 25599."
     (undo-tests--mark-region 3 5)
     (should (equal buffer-undo-list
                    '(nil (2 . 4) ("34" . 3) 6 nil (1 . 6) (t . 0))))
-    ;; The entry (2 . 4) "undo-insert" is ignored because it is only
-    ;; partially covered by the region (3 . 5).  Older entries are still
-    ;; undone.  Not sure if this is a bug or a feature.
-    (undo)
-    (should (equal (buffer-string) "1ab2345"))))
+    (cl-ecase undo-partially-in-region-policy
+      (partial-ignore
+       (undo)
+       (should (equal (buffer-string) "1ab2345")))
+      (partial-stop
+       (should-error (undo) :type 'user-error)
+       (should (equal (buffer-string) "1ab25")))
+      (partial-expand
+       (undo)
+       (should (equal (buffer-string) "12345"))))))
 
 (provide 'undo-tests)
 ;;; undo-tests.el ends here

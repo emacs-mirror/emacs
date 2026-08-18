@@ -591,8 +591,16 @@ See bug#35036."
         (goto-char midbeg)
         (set-mark midend)
         (setq last-command 'something-else) ;Not `undo', so we start a new run.
-        (undo '(4))
-        (should (equal (buffer-substring midbeg midend) "midmid")))
+        (cl-ecase undo-partially-in-region-policy
+          (partial-ignore
+           (undo '(4))
+           (should (equal (buffer-substring midbeg midend) "midmid")))
+          (partial-stop
+           (should-error (undo '(4)) :type 'user-error)
+           (should (equal (buffer-substring midbeg midend) "mid\nmid")))
+          (partial-expand
+           (undo '(4))
+           (should (equal (buffer-substring midbeg midend) "mid\nmid")))))
       ;; (progn
       ;;   (goto-char (point-min))
       ;;   ;; FIXME: `comment-region-default' puts a too conservative boundary
