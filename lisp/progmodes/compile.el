@@ -500,7 +500,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
        ;;            4 |     void test(int i, int j, void *ptr, int k);
 
        ;; Match first line.
-       (group-n 9 (+ "  ")) (| ?* ?\N{BULLET}) space (* nonl) (+ (any "\r\n"))
+       (group-n 9 (+ "  ")) (| ?* ?\u2022) space (* nonl) (+ (any "\r\n"))
 
        ;; Match second line.
        (backref 9) "  "
