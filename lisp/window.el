@@ -5439,7 +5439,7 @@ elsewhere.  This value is used by `quit-windows-on'."
                             (throw 'prev-buffer (car buf))))))
          (dedicated (window-dedicated-p window))
 	 (frame (window-frame window))
-	 quad entry reset-prev)
+	 quint entry reset-prev)
     (cond
      ;; First try to delete dedicated windows that are not side windows.
      ((and dedicated (not (eq dedicated 'side))
@@ -5469,27 +5469,34 @@ elsewhere.  This value is used by `quit-windows-on'."
 	    window nil (memq bury-or-kill '(kill killing))))
       ;; If the previously selected window is still alive, select it.
       (window--quit-restore-select-window quit-restore-2 frame))
-     ((or (and (listp (setq quad (nth 1 quit-restore-prev)))
-	       (buffer-live-p (car quad))
+     ((or (and (listp (setq quint (nth 1 quit-restore-prev)))
+	       (buffer-live-p (car quint))
 	       (eq (nth 3 quit-restore-prev) buffer)
 	       ;; Use selected window from quit-restore-prev.
 	       (setq quit-restore-2 quit-restore-prev-2)
 	       ;; We want to reset quit-restore-prev only.
 	       (setq reset-prev t))
-	  (and (listp (setq quad (nth 1 quit-restore)))
-	       (buffer-live-p (car quad))
+	  (and (listp (setq quint (nth 1 quit-restore)))
+	       (buffer-live-p (car quint))
 	       (eq (nth 3 quit-restore) buffer)))
       ;; Show another buffer stored in quit-restore(-prev) parameter.
-      (when (and (integerp (nth 3 quad))
+      (when (and (integerp (nth 3 quint))
+                 ;; Make sure the actual combination type of WINDOW
+                 ;; matches the one stored in the new fifth subslot of
+                 ;; the second slot of the 'quit-restore-prev' or
+                 ;; 'quit-restore' parameter.  Otherwise we might end up
+                 ;; with a window unexpectedly resizing in the wrong
+                 ;; direction (Rahguzar's scenario for Bug#81614).
+                 (eq (nth 4 quint) (window-combined-p window))
 		 (if (window-combined-p window)
-                     (/= (nth 3 quad) (window-total-height window))
-                   (/= (nth 3 quad) (window-total-width window))))
+                     (/= (nth 3 quint) (window-total-height window))
+                   (/= (nth 3 quint) (window-total-width window))))
 	;; Try to resize WINDOW to its old height but don't signal an
 	;; error.
 	(condition-case nil
 	    (window-resize
              window
-             (- (nth 3 quad) (if (window-combined-p window)
+             (- (nth 3 quint) (if (window-combined-p window)
                                  (window-total-height window)
                                (window-total-width window)))
              (window-combined-p window t))
@@ -5497,7 +5504,7 @@ elsewhere.  This value is used by `quit-windows-on'."
       (set-window-dedicated-p window nil)
       ;; Restore WINDOW's previous buffer, start and point position.
       (set-window-buffer-start-and-point
-       window (nth 0 quad) (nth 1 quad) (nth 2 quad))
+       window (nth 0 quint) (nth 1 quint) (nth 2 quint))
       ;; Restore the 'side' dedicated flag as well.
       (when (eq dedicated 'side)
         (set-window-dedicated-p window 'side))
@@ -5939,16 +5946,6 @@ changed by this function."
 	   window (- (if new-parent 1.0 (window-normal-size window horizontal))
 		     new-normal)))
 
-	(unless horizontal
-	  (let ((quit-restore (window-parameter window 'quit-restore)))
-	    (when quit-restore
-	      (let ((quad (nth 1 quit-restore)))
-		(when (and (listp quad) (integerp (nth 3 quad)))
-		  ;; When WINDOW has a 'quit-restore' parameter that
-		  ;; specifies a previous height to restore, remove that
-		  ;; - it does more harm than good now (Bug#78835).
-		  (setf (nth 3 quad) nil))))))
-
 	(let ((new (split-window-internal
 		    window new-pixel-size side new-normal refer)))
           (window--pixel-to-total frame horizontal)
@@ -6065,10 +6062,7 @@ amount of redisplay; this is convenient on slow terminals."
 	     (<= (window-start new-window) old-point)
 	     (set-window-point new-window old-point)
 	     (select-window new-window))))
-    ;; Always copy quit-restore parameter in interactive use.
-    (let ((quit-restore (window-parameter window-to-split 'quit-restore)))
-      (when quit-restore
-	(set-window-parameter new-window 'quit-restore quit-restore)))
+
     new-window))
 
 (defalias 'split-window-vertically 'split-window-below)
@@ -6106,10 +6100,6 @@ right, if any.  Interactively, SIZE is the prefix numeric argument."
       ;; `split-window' would not signal an error here.
       (error "Size of new window too small"))
     (setq new-window (split-window window-to-split size t))
-    ;; Always copy quit-restore parameter in interactive use.
-    (let ((quit-restore (window-parameter window-to-split 'quit-restore)))
-      (when quit-restore
-	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
 (defalias 'split-window-horizontally 'split-window-right)
@@ -7042,14 +7032,16 @@ if that parameter's fourth element equals WINDOW's buffer."
 	  (set-window-parameter
 	   window (if quit-restore 'quit-restore-prev 'quit-restore)
 	   (list 'other
-		 ;; A quadruple of WINDOW's buffer, start, point and height.
+		 ;; A quintuple of WINDOW's buffer, start, point, height
+                 ;; and combination direction.
 		 (list (current-buffer) (window-start window)
 		       ;; Preserve window-point-insertion-type (Bug#12855).
 		       (copy-marker
 			(window-point window) window-point-insertion-type)
 		       (if (window-combined-p window)
                            (window-total-height window)
-			 (window-total-width window)))
+			 (window-total-width window))
+                       (window-combined-p window))
 		 (selected-window) buffer))))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.
@@ -9322,15 +9314,16 @@ indirectly called by the latter."
 	      (get-largest-window 0 nil not-this-window)))
 	 (quit-restore (and (window-live-p window)
 			    (window-parameter window 'quit-restore)))
-	 (quad (nth 1 quit-restore)))
+	 (quint (nth 1 quit-restore)))
     (when (window-live-p window)
       ;; If the window was used by `display-buffer' before, try to
       ;; resize it to its old height but don't signal an error.
-      (when (and (listp quad)
-		 (integerp (nth 3 quad))
-		 (> (nth 3 quad) (window-total-height window)))
+      (when (and (listp quint)
+		 (integerp (nth 3 quint))
+                 (eq (nth 4 quint) (window-combined-p window))
+		 (> (nth 3 quint) (window-total-height window)))
 	(condition-case nil
-	    (window-resize window (- (nth 3 quad) (window-total-height window)))
+	    (window-resize window (- (nth 3 quint) (window-total-height window)))
 	  (error nil)))
 
       (prog1
@@ -9388,15 +9381,16 @@ window for another buffer."
               (let ((window (display-buffer--lru-window alist)))
                 (when (window-live-p window)
                   (let* ((quit-restore (window-parameter window 'quit-restore))
-	                 (quad (nth 1 quit-restore)))
+	                 (quint (nth 1 quit-restore)))
                     ;; If the window was used by `display-buffer' before, try to
                     ;; resize it to its old height but don't signal an error.
-                    (when (and (listp quad)
-		               (integerp (nth 3 quad))
-		               (> (nth 3 quad) (window-total-height window)))
+                    (when (and (listp quint)
+		               (integerp (nth 3 quint))
+                               (eq (nth 4 quint) (window-combined-p window))
+		               (> (nth 3 quint) (window-total-height window)))
 	              (condition-case nil
 	                  (window-resize
-                           window (- (nth 3 quad) (window-total-height window)))
+                           window (- (nth 3 quint) (window-total-height window)))
 	                (error nil)))
                     (prog1
 	                (window--display-buffer buffer window 'reuse alist)

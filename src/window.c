@@ -3412,16 +3412,16 @@ window_discard_buffer_from_window (Lisp_Object buffer, Lisp_Object window, bool 
     {
       Lisp_Object quit_restore = window_parameter (w, Qquit_restore);
       Lisp_Object quit_restore_prev = window_parameter (w, Qquit_restore_prev);
-      Lisp_Object quad;
+      Lisp_Object quint;
 
       if (EQ (buffer, Fnth (make_fixnum (3), quit_restore_prev))
-	  || (CONSP (quad = Fcar (Fcdr (quit_restore_prev)))
-	      && EQ (Fcar (quad), buffer)))
+	  || (CONSP (quint = Fcar (Fcdr (quit_restore_prev)))
+	      && EQ (Fcar (quint), buffer)))
 	Fset_window_parameter (window, Qquit_restore_prev, Qnil);
 
       if (EQ (buffer, Fnth (make_fixnum (3), quit_restore))
-	  || (CONSP (quad = Fcar (Fcdr (quit_restore)))
-	      && EQ (Fcar (quad), buffer)))
+	  || (CONSP (quint = Fcar (Fcdr (quit_restore)))
+	      && EQ (Fcar (quint), buffer)))
 	{
 	  Fset_window_parameter (window, Qquit_restore,
 				 window_parameter (w, Qquit_restore_prev));
