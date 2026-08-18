@@ -325,8 +325,8 @@ unique character that can be used to choose among them.  Optionally, it
 can also include `:prompt-format' which defaults to \"Find %s\".
 
 Having a kind in this list means that the backend can try to find such
-xrefs in the current buffer, with no guarantee of success.  These
-locations might or might not be included in the results of
+xrefs in the current and related buffers, with no guarantee of success.
+These locations might or might not be included in the results of
 `xref-backend-definitions' or `xref-backend-references'."
   (user-error "Xref kinds not supported by the backend"))
 
