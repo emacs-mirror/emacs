@@ -1697,7 +1697,7 @@ The meanings of both arguments are the same as documented in
           (not (memq command (cdr xref-prompt-for-identifier)))
         (memq command xref-prompt-for-identifier))))
 
-(defun xref-read-identifier (prompt)
+(defun xref-read-identifier (prompt &optional kind)
   "Return the identifier at point or read it from the minibuffer.
 
 Reads and returns the identifier to use as input for the command being
@@ -1725,7 +1725,11 @@ from `xref-backend-identifier-completion-table'."
                                                       "[ :]+\\'" prompt))
                                  def)
                        prompt))
-                   (xref-backend-identifier-completion-table backend)
+                   (condition-case nil
+                       (xref-backend-identifier-completion-table backend
+                                                                 kind)
+                     (wrong-number-of-arguments
+                      (xref-backend-identifier-completion-table backend)))
                    nil nil nil
                    'xref--read-identifier-history def t)))
              (if (equal id "")
@@ -1822,11 +1826,11 @@ when it decides whether to split the window horizontally or vertically."
      descs)))
 
 ;;;###autoload
-(defun xref-find-by-kind (identifier kind-desc)
+(defun xref-find-by-kind (identifier kind)
   "Find some certain kind of definitions of the identifier at point.
 
-Prompt for kind to search for.  With prefix argument or when there's no
-identifier at point, prompt for the identifier.
+Prompt for KIND to search for.  With prefix argument or when there's no
+identifier at point, prompt for the identifier too.
 
 If only one location is found, display it in the selected window.
 Otherwise, display the list of the possible definitions in a
@@ -1834,22 +1838,26 @@ buffer where the user can select from the list.
 
 Use \\[xref-go-back] to return back to where you invoked this command.
 
-When called programmatically, KIND-DESC should be a plist that includes
-properties `:kind' and `:name'."
-  (interactive (let ((desc (xref--read-kind "Find by kind")))
+When called programmatically, KIND should be one of supported symbols."
+  (interactive (let* ((desc (xref--read-kind "Find by kind"))
+                      (kind (plist-get desc :kind)))
+                 (unless desc (user-error "Have to choose the kind"))
                  (list
                   ;; For completeness, we can also add a specialized
                   ;; "identifier completion table for kind".  But
                   ;; probably only the elisp backend would have it.
                   (xref-read-identifier
                    (format-message (or (plist-get desc :prompt-format) "Find %s")
-                                   (plist-get desc :name)))
-                  desc)))
-  (unless kind-desc (user-error "Have to choose the kind"))
-  (xref--show-defs
-   (xref--create-fetcher identifier 'xrefs-by-kind (plist-get kind-desc :name)
-                         identifier (plist-get kind-desc :kind))
-   nil))
+                                   (plist-get desc :name))
+                   kind)
+                  kind)))
+  (let ((kind-desc (cl-find-if
+                    (lambda (kind-desc) (eq (plist-get kind-desc :kind) kind))
+                    (xref-backend-xref-kinds (xref-find-backend)))))
+    (xref--show-defs
+     (xref--create-fetcher identifier 'xrefs-by-kind (plist-get kind-desc :name)
+                           identifier (plist-get kind-desc :kind))
+     nil)))
 
 ;;;###autoload
 (defun xref-find-references (identifier)
