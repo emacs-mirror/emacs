@@ -1480,15 +1480,13 @@ Test both rear-advance and non-rear-advance overlays."
 (ert-deftest test-make-indirect-buffer-clone-hook ()
   (let ((base-buf (generate-new-buffer "base")))
     (unwind-protect
-        (progn
-          (with-current-buffer base-buf
-            (insert "sample text"))
+        (save-current-buffer
           (set-buffer base-buf)
+          (insert "sample text")
           (let ((clone-indirect-buffer-hook
                  (list (lambda ()
                          (error "clone hook error")))))
-            (should-error
-             (make-indirect-buffer base-buf "indirect" t)))
+            (should-error (make-indirect-buffer base-buf "indirect" t)))
           (should (eq (current-buffer) base-buf)))
       (ignore-errors (kill-buffer "indirect"))
       (when (buffer-live-p base-buf)
