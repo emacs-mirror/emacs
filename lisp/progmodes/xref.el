@@ -1697,7 +1697,7 @@ The meanings of both arguments are the same as documented in
           (not (memq command (cdr xref-prompt-for-identifier)))
         (memq command xref-prompt-for-identifier))))
 
-(defun xref-read-identifier (prompt &optional kind)
+(defun xref-read-identifier (prompt)
   "Return the identifier at point or read it from the minibuffer.
 
 Reads and returns the identifier to use as input for the command being
@@ -1725,11 +1725,7 @@ from `xref-backend-identifier-completion-table'."
                                                       "[ :]+\\'" prompt))
                                  def)
                        prompt))
-                   (condition-case nil
-                       (xref-backend-identifier-completion-table backend
-                                                                 kind)
-                     (wrong-number-of-arguments
-                      (xref-backend-identifier-completion-table backend)))
+                   (xref-backend-identifier-completion-table backend)
                    nil nil nil
                    'xref--read-identifier-history def t)))
              (if (equal id "")
@@ -1848,8 +1844,7 @@ When called programmatically, KIND should be one of supported symbols."
                   ;; probably only the elisp backend would have it.
                   (xref-read-identifier
                    (format-message (or (plist-get desc :prompt-format) "Find %s")
-                                   (plist-get desc :name))
-                   kind)
+                                   (plist-get desc :name)))
                   kind)))
   (let ((kind-desc (cl-find-if
                     (lambda (kind-desc) (eq (plist-get kind-desc :kind) kind))
