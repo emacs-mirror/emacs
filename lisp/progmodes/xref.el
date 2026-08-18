@@ -1822,9 +1822,7 @@ when it decides whether to split the window horizontally or vertically."
                    descs))
          (key (nth 0
                    (read-multiple-choice prompt choices))))
-    (cl-find-if
-     (lambda (desc) (eql (plist-get desc :key) key))
-     descs)))
+    (cl-find key descs :key (lambda (desc) (plist-get desc :key)))))
 
 ;;;###autoload
 (defun xref-find-by-kind (identifier kind)
@@ -1853,9 +1851,8 @@ When called programmatically, KIND should be one of supported symbols."
                    (xref-backend-identifier-kind-predicate (xref-find-backend)
                                                            kind))
                   kind)))
-  (let ((kind-desc (cl-find-if
-                    (lambda (kind-desc) (eq (plist-get kind-desc :kind) kind))
-                    (xref-backend-xref-kinds (xref-find-backend)))))
+  (let ((kind-desc (cl-find kind (xref-backend-xref-kinds (xref-find-backend))
+                            :key (lambda (desc) (plist-get desc :kind)))))
     (xref--show-defs
      (xref--create-fetcher identifier 'xrefs-by-kind (plist-get kind-desc :name)
                            identifier (plist-get kind-desc :kind))
