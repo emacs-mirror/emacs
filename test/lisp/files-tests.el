@@ -2302,6 +2302,24 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
   (should (file-expand-wildcards
            (concat (directory-file-name default-directory) "*/"))))
 
+(ert-deftest files-tests--make-empty-file--no-parent ()
+  (ert-with-temp-directory base
+    (let ((file (file-name-concat base "file.txt")))
+      (make-empty-file file)
+      (let ((attrs (file-attributes file)))
+        (should attrs)  ; file exists
+        (should-not (file-attribute-type attrs))  ; file is regular
+        (should (zerop (file-attribute-size attrs)))))))
+
+(ert-deftest files-tests--make-empty-file--parent ()
+  (ert-with-temp-directory base
+    (let ((file (file-name-concat base "dir" "file.txt")))
+      (make-empty-file file :parents)
+      (let ((attrs (file-attributes file)))
+        (should attrs)  ; file exists
+        (should-not (file-attribute-type attrs))  ; file is regular
+        (should (zerop (file-attribute-size attrs)))))))
+
 (ert-deftest files-tests--make-empty-file--exists ()
   (ert-with-temp-directory base
     (let ((file (file-name-concat base "file.txt")))
