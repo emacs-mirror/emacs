@@ -6759,10 +6759,13 @@ If called interactively, then PARENTS is non-nil."
      (list filename t)))
   (when (and (file-exists-p filename) (null parents))
     (signal 'file-already-exists `("File exists" ,filename)))
-  (let ((paren-dir (file-name-directory filename)))
-    (when (and paren-dir (not (file-exists-p paren-dir)))
-      (make-directory paren-dir parents)))
-  (write-region "" nil filename nil 0))
+  (when parents
+    (let ((paren-dir (file-name-directory filename)))
+      (when (and paren-dir (not (file-exists-p paren-dir)))
+        (make-directory paren-dir parents))))
+  ;; The `excl' is crucial, in case someone else has created the file in
+  ;; the meantime (TOCTTOU).
+  (write-region "" nil filename nil 0 nil 'excl))
 
 (defconst directory-files-no-dot-files-regexp
   "[^.]\\|\\.\\.\\."
