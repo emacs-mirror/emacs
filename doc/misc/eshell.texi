@@ -2529,7 +2529,7 @@ another command's input, you can use the @code{|&} operator.
 @node Lisp Pipelines
 @subsection Lisp Pipelines
 
-In addition to piping data to ordinary programs on your system, Eshell
+In addition to piping data to external programs on your system, Eshell
 supports piping to ordinary Lisp functions.  This lets you mix and match
 external commands and Lisp functions in your pipelines to manipulate
 output however works best.  Normally in Eshell, entering the bare name
