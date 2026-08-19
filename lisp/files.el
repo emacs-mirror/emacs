@@ -6757,12 +6757,9 @@ If called interactively, then PARENTS is non-nil."
   (interactive
    (let ((filename (read-file-name "Create empty file: ")))
      (list filename t)))
-  (when (and (file-exists-p filename) (null parents))
-    (signal 'file-already-exists `("File exists" ,filename)))
   (when parents
-    (let ((paren-dir (file-name-directory filename)))
-      (when (and paren-dir (not (file-exists-p paren-dir)))
-        (make-directory paren-dir parents))))
+    (when-let* ((paren-dir (file-name-directory filename)))
+      (make-directory paren-dir :parents)))
   ;; The `excl' is crucial, in case someone else has created the file in
   ;; the meantime (TOCTTOU).
   (write-region "" nil filename nil 0 nil 'excl))
