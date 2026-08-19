@@ -3301,13 +3301,6 @@ from @samp{!:1*}.
 
 @item Specifying a frame as a redirection target should imply the currently active window's buffer
 
-@item Implement @samp{>@var{func-or-func-list}}
-
-This would allow for an ``output translators'', that take a function to
-modify output with, and a target.  Devise a syntax that works well with
-pipes, and can accommodate multiple functions (i.e., @samp{>'(upcase
-regexp-quote)} or @samp{>'upcase}).
-
 @item Allow Eshell to read/write to/from standard input and output
 
 This would be optional, rather than always using the Eshell buffer.
