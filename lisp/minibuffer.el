@@ -4404,7 +4404,7 @@ or a symbol, see `completion-pcm--merge-completions'."
               (setq p0 p)
             (push (substring string p (match-end 0)) pattern)
             ;; `any-delim' is used so that "a-b" also finds "array->beginning".
-            (setq pending (if completion-pcm-leading-wildcard 'prefix 'any-delim))
+            (setq pending 'any-delim)
             (setq p0 (match-end 0))))
         (setq p p0))
 
@@ -4813,6 +4813,10 @@ the same set of elements."
                   (when (seq-some (lambda (elem) (eq elem 'prefix)) wildcards)
                     (setq prefix (substring prefix 0 (length fixed))))
                   (push prefix res)
+                  (when (seq-every-p (lambda (comp) (< (length prefix) (length comp))) comps)
+                    ;; Wherever the user could type a character to disambiguate between
+                    ;; completions, possibly move point there.
+                    (push 'nonempty res))
                   ;; Push all the wildcards in this stretch, to preserve `point' and
                   ;; `star' wildcards before ELEM.  Collapse multiple `star's down to one
                   ;; on each side of point. (bug#81394)
@@ -4892,6 +4896,7 @@ the same set of elements."
            ;; the last place where there's something to choose, or
            ;; at the very end.
            (pointpat (or (memq 'point mergedpat)
+                         (memq 'nonempty mergedpat)
                          (memq 'any   mergedpat)
                          (memq 'star  mergedpat)
                          ;; Not `prefix'.
