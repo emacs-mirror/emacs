@@ -2573,7 +2573,9 @@ Must be handled by the callers."
 		   ((bufferp (nth 0 args)) (get-buffer (nth 0 args)))
 		   ((stringp (nth 0 args))
 		    ;; Process or buffer name.
-		    (or (get-process (nth 0 args)) (get-buffer (nth 0 args)))))))
+		    (or (when-let* ((proc (get-process (nth 0 args))))
+                          (process-buffer proc))
+                        (get-buffer (nth 0 args)))))))
 	  (tramp-get-default-directory buf))
 	""))
 
