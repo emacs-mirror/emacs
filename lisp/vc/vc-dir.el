@@ -1436,7 +1436,7 @@ Also removes any out-of-date entries in `vc-dir-buffers'."
               (vc-dir-update (list complete-state)
                              status-buf
                              (or (not state)
-				 (eq state 'up-to-date))))))))))
+                                 (memq state vc-dir--up-to-date-states))))))))))
 
 (defvar use-vc-backend)  ;; dynamically bound
 
