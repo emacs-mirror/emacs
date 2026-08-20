@@ -7288,7 +7288,25 @@ INPUT, if non-nil, is a string sent to the process."
 
 	;; Cleanup.
 	(ignore-errors (delete-file tmp-name1))
-	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)))))
+	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password))
+
+      ;; Check connection-local `make-backup-files'.
+      (let ((clpa connection-local-profile-alist)
+	    (clca connection-local-criteria-alist))
+	(connection-local-set-profile-variables
+	 'no-remote-backup-files '((make-backup-files . nil)))
+	(connection-local-set-profiles
+	 `(:application tramp
+	   :protocol ,(file-remote-p default-directory 'method)
+	   :user ,(file-remote-p default-directory 'user)
+	   :machine ,(file-remote-p default-directory 'host))
+	 'no-remote-backup-files)
+
+	(should-not (find-backup-file-name tmp-name1))
+
+	(custom-set-variables
+	 `(connection-local-profile-alist ',clpa now)
+	 `(connection-local-criteria-alist ',clca now))))))
 
 (ert-deftest tramp-test39-make-lock-file-name ()
   "Check `make-lock-file-name', `lock-file', `unlock-file' and `file-locked-p'."

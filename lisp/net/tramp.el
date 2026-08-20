@@ -4792,40 +4792,42 @@ existing) are returned."
 
 (defun tramp-handle-find-backup-file-name (filename)
   "Like `find-backup-file-name' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (let ((backup-directory-alist
-	   (if tramp-backup-directory-alist
-	       (mapcar
-		(lambda (x)
-		  (cons
-		   (car x)
-		   (if (and (stringp (cdr x))
-			    (file-name-absolute-p (cdr x))
-			    (not (tramp-tramp-file-p (cdr x))))
-		       (tramp-make-tramp-file-name v (cdr x))
-		     (cdr x))))
-		tramp-backup-directory-alist)
-	     backup-directory-alist))
-	  result)
-      (prog1 ;; Run plain `find-backup-file-name'.
-	  (setq result
-		(tramp-run-real-handler
-		 #'find-backup-file-name (list filename)))
-        ;; Protect against security hole.
-	(when (and (not tramp-allow-unsafe-temporary-files)
-		   (not backup-inhibited)
-		   (file-in-directory-p (car result) temporary-file-directory)
-		   (= (or (file-attribute-user-id
-			   (file-attributes filename 'integer))
-			  tramp-unknown-id-integer)
-		      tramp-root-id-integer)
-		   (not (with-tramp-connection-property
-			    (tramp-get-process v) "unsafe-temporary-file"
-			  (yes-or-no-p
-			   (concat
-			    "Backup file on local temporary directory, "
-			    "do you want to continue?")))))
-	  (tramp-error v 'file-error "Unsafe backup file name"))))))
+  (when-let* ((default-directory (file-name-directory filename))
+	      ((tramp-compat-connection-local-value make-backup-files)))
+    (with-parsed-tramp-file-name filename nil
+      (let ((backup-directory-alist
+	     (if tramp-backup-directory-alist
+		 (mapcar
+		  (lambda (x)
+		    (cons
+		     (car x)
+		     (if (and (stringp (cdr x))
+			      (file-name-absolute-p (cdr x))
+			      (not (tramp-tramp-file-p (cdr x))))
+			 (tramp-make-tramp-file-name v (cdr x))
+		       (cdr x))))
+		  tramp-backup-directory-alist)
+	       backup-directory-alist))
+	    result)
+	(prog1 ;; Run plain `find-backup-file-name'.
+	    (setq result
+		  (tramp-run-real-handler
+		   #'find-backup-file-name (list filename)))
+          ;; Protect against security hole.
+	  (when (and (not tramp-allow-unsafe-temporary-files)
+		     (not backup-inhibited)
+		     (file-in-directory-p (car result) temporary-file-directory)
+		     (= (or (file-attribute-user-id
+			     (file-attributes filename 'integer))
+			    tramp-unknown-id-integer)
+			tramp-root-id-integer)
+		     (not (with-tramp-connection-property
+			      (tramp-get-process v) "unsafe-temporary-file"
+			    (yes-or-no-p
+			     (concat
+			      "Backup file on local temporary directory, "
+			      "do you want to continue?")))))
+	    (tramp-error v 'file-error "Unsafe backup file name")))))))
 
 (defun tramp-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)

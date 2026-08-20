@@ -3380,13 +3380,23 @@ of the secretfile is now owned by the user logged in from
 When @code{backup-directory-alist} is @code{nil} (the default), such
 problems do not occur.
 
-To ``turn off'' the backup feature for remote files and stop
-@value{tramp} from saving to the backup directory, use this:
+@vindex make-backup-files
+In case you do not want to use backup files for remote files, use
+connection-local variable @code{make-backup-files}
+@ifinfo
+(@pxref{Connection Variables, , , emacs})
+@end ifinfo
+like this:
 
 @lisp
 @group
-(add-to-list 'backup-directory-alist
-             (cons tramp-file-name-regexp nil))
+(connection-local-set-profile-variables
+ 'no-remote-backup-files '((make-backup-files . nil)))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp) 'no-remote-backup-files)
 @end group
 @end lisp
 
@@ -3396,13 +3406,13 @@ Disabling backups can be targeted to just the @option{su} and
 
 @lisp
 @group
-(setq backup-enable-predicate
-      (lambda (name)
-        (and (normal-backup-enable-predicate name)
-             (not
-              (let ((method (file-remote-p name 'method)))
-                (when (stringp method)
-                  (member method '("su" "sudo"))))))))
+(connection-local-set-profiles
+ '(:application tramp :protocol "su") 'no-remote-backup-files)
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp :protocol "sudo") 'no-remote-backup-files)
 @end group
 @end lisp
 
