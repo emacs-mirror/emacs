@@ -853,8 +853,7 @@ cannot be completed sensibly: `custom-ident',
 (defcustom css-electric-keys '(?\} ?\;) ;; '()
   "Self inserting keys which should trigger re-indentation."
   :version "22.2"
-  :type '(repeat character)
-  :group 'css)
+  :type '(repeat character))
 
 (defvar css-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -940,11 +939,9 @@ cannot be completed sensibly: `custom-ident',
 (defconst scss--hash-re "#\\(?:{[$-_[:alnum:]]+}\\|[[:alnum:]]+\\)")
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
-  "Face to use for selectors."
-  :group 'css)
+  "Face to use for selectors.")
 (defface css-property '((t :inherit font-lock-keyword-face))
-  "Face to use for properties."
-  :group 'css)
+  "Face to use for properties.")
 (defface css-proprietary-property '((t :inherit (css-property italic)))
   "Face to use for vendor-specific properties.")
 
@@ -976,14 +973,14 @@ cannot be completed sensibly: `custom-ident',
 
 (defun css--font-lock-keywords (&optional sassy)
   `((,(concat "!\\s-*" (regexp-opt css--bang-ids))
-     (0 font-lock-builtin-face))
+     (0 'font-lock-builtin-face))
     ;; Atrules keywords.  IDs not in css-at-ids are valid (ignored).
     ;; In fact the regexp should probably be
     ;; (,(concat "\\(@" css-ident-re "\\)\\([ \t\n][^;{]*\\)[;{]")
     ;;  (1 font-lock-builtin-face))
     ;; Since "An at-rule consists of everything up to and including the next
     ;; semicolon (;) or the next block, whichever comes first."
-    (,(concat "@" css-ident-re) (0 font-lock-builtin-face))
+    (,(concat "@" css-ident-re) (0 'font-lock-builtin-face))
     ;; Selectors.
     ;; Allow plain ":root" as a selector.
     ("^[ \t]*\\(:root\\)[\n \t]*{" (1 'css-selector keep))
@@ -1017,7 +1014,8 @@ cannot be completed sensibly: `custom-ident',
                      ;; No face.
                      nil)))
     ;; Variables.
-    (,(concat (rx symbol-start) "--" css-ident-re) (0 font-lock-variable-name-face))
+    (,(concat (rx symbol-start) "--" css-ident-re)
+     (0 'font-lock-variable-name-face))
     ;; Properties.  Again, we don't limit ourselves to css-property-ids.
     (,(concat "\\(?:[{;]\\|^\\)[ \t]*\\("
               "\\(?:\\(" css-proprietary-nmstart-re "\\)\\|"
@@ -1211,9 +1209,8 @@ When non-nil, a text representing CSS color will be fontified
 such that its background is the color itself.  E.g., #ff0000 will
 be fontified with a red background."
   :version "26.1"
-  :group 'css
   :type 'boolean
-  :safe 'booleanp)
+  :safe #'booleanp)
 
 (defun css--fontify-region (start end &optional loudly)
   "Fontify a CSS buffer between START and END.
@@ -1253,7 +1250,7 @@ START and END are buffer positions."
   "Basic size of one indentation step."
   :version "22.2"
   :type 'integer
-  :safe 'integerp)
+  :safe #'integerp)
 
 (defconst css-smie-grammar
   (smie-prec2->grammar
@@ -2070,10 +2067,10 @@ be used to fill comments.
     st))
 
 (defun scss-font-lock-keywords ()
-  (append `((,(concat "$" css-ident-re) (0 font-lock-variable-name-face)))
+  (append `((,(concat "$" css-ident-re) (0 'font-lock-variable-name-face)))
           (css--font-lock-keywords 'sassy)
           `((,(concat "@mixin[ \t]+\\(" css-ident-re "\\)[ \t]*(")
-             (1 font-lock-function-name-face)))))
+             (1 'font-lock-function-name-face)))))
 
 (defun scss-smie--not-interpolation-p ()
   (save-excursion
@@ -2107,8 +2104,7 @@ The format should include a single \"%s\" substitution.
 The name of the CSS property, @-id, pseudo-class, or pseudo-element
 to look up will be substituted there."
   :version "26.1"
-  :type 'string
-  :group 'css)
+  :type 'string)
 
 (defun css--mdn-after-render ()
   (setf header-line-format nil)
