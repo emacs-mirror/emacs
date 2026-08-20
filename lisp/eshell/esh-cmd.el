@@ -126,6 +126,10 @@ There are several different kinds of commands, however."
   "If non-nil, prefer Lisp functions to external commands."
   :type 'boolean)
 
+(defcustom eshell-lexical-binding lexical-binding
+  "If non-nil, use lexical binding when evaluating Eshell forms."
+  :type 'boolean)
+
 (defcustom eshell-lisp-regexp "\\([(`]\\|#'\\)"
   "A regexp which, if matched at beginning of an argument, means Lisp.
 Such arguments will be passed to `read', and then evaluated."
@@ -1141,6 +1145,10 @@ the form (:eshell-background . PROCESSES)."
            (eshell-always-debug-command 'form
              "done %s\n\n%s" ,tag-symbol (eshell-stringify ,form)))))))
 
+(defsubst eshell--eval (form)
+  "Evaluate FORM, respecting `eshell-lexical-binding'."
+  (eval form eshell-lexical-binding))
+
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate FORM, simplifying it as we go.
 Unless SYNCHRONOUS-P is non-nil, throws `eshell-defer' if it needs to
@@ -1155,7 +1163,7 @@ again.  Any forms preceding one that throw `eshell-defer' will
 have been replaced by constants."
   (cond
    ((not (listp form))
-    (list 'quote (eval form)))
+    (list 'quote (eshell--eval form)))
    ((memq (car form) '(quote function))
     form)
    (t
@@ -1232,10 +1240,10 @@ have been replaced by constants."
               (eshell-do-eval form synchronous-p)))))
        ((eq (car form) 'setcar)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
-	(eval form))
+	(eshell--eval form))
        ((eq (car form) 'setcdr)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
-	(eval form))
+	(eshell--eval form))
        ((eq (car form) 'let)
         (unless (eq (car-safe (cadr args)) 'eshell-do-eval)
           (eshell-manipulate form "evaluating let args"
@@ -1251,7 +1259,7 @@ have been replaced by constants."
                     (car args))
             ;; These expressions should all be constants now.
             (mapcar (lambda (binding)
-                      (when (consp binding) (eval (cadr binding))))
+                      (when (consp binding) (eshell--eval (cadr binding))))
                     (car args))
           (let (deferred result)
             ;; Evaluate the `let' body, catching `eshell-defer' so we
@@ -1291,7 +1299,7 @@ have been replaced by constants."
 	(unless (eq (caar args) 'eshell-do-eval)
           (eshell-manipulate form "handling special form"
 	    (setcar args `(eshell-do-eval ',(car args) ,synchronous-p))))
-	(eval form))
+	(eshell--eval form))
        ((eq (car form) 'unwind-protect)
         ;; `unwind-protect' has to be handled specially, because we
         ;; only want to call `eshell-do-eval' on its first form, and
@@ -1317,7 +1325,7 @@ have been replaced by constants."
 	(if (cddr args) (error "Unsupported form (setq X1 E1 X2 E2..)"))
         (eshell-manipulate form "evaluating arguments to setq"
           (setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p)))
-	(list 'quote (eval form)))
+	(list 'quote (eshell--eval form)))
        (t
 	(if (and args (not (memq (car form) '(run-hooks))))
             (eshell-manipulate form
@@ -1358,7 +1366,7 @@ have been replaced by constants."
                  (new-form
                   (catch 'eshell-replace-command
                     (ignore
-                     (setq result (eval form))))))
+                     (setq result (eshell--eval form))))))
 	    (if new-form
 		(progn
                   (eshell-manipulate form "substituting replacement form"
@@ -1484,7 +1492,7 @@ case."
       (let ((result
              (save-current-buffer
                (if form-p
-                   (eval func-or-form)
+                   (eshell--eval func-or-form)
                  (apply func-or-form args)))))
         (and result (funcall printer result))
         result)

@@ -41,6 +41,7 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(require 'esh-cmd)
 (require 'esh-util)
 (require 'esh-mode)
 
@@ -77,7 +78,7 @@ This can be any sexp, and should end with at least two newlines."
   (unless eshell-non-interactive-p
     (cl-assert eshell-mode)
     (cl-assert eshell-banner-message)
-    (let ((msg (eval eshell-banner-message)))
+    (let ((msg (eshell--eval eshell-banner-message)))
       (cl-assert msg)
       (eshell-interactive-print msg))))
 

@@ -593,7 +593,8 @@ Possible variable references are:
                                             (eshell-parse-double-quote)))))))
           (throw 'eshell-incomplete (concat "$" delim)))
         (when name
-          `(eshell-get-variable ,(eval name) indices ,eshell-current-quoted)))))
+          `(eshell-get-variable ,(eshell--eval name) indices
+                                ,eshell-current-quoted)))))
    ((assoc (char-to-string (char-after))
            eshell-variable-aliases-list)
     (forward-char)

@@ -628,6 +628,31 @@ NAME is the name of the test case."
 (esh-cmd-test--deftest-invoke-directly complex-subcmd "echo {ls .}" nil)
 
 
+;; Lexical/dynamic binding
+
+(defun esh-cmd-test--binding-check ()
+  "Run a sequence of Eshell commands that depend on the binding type."
+  (unwind-protect
+      (with-temp-eshell
+        (eshell-insert-command "(defun test-function () test-value)")
+        (eshell-insert-command "(setq test-value 1)")
+        (eshell-insert-command "(let ((test-value 2)) (test-function))")
+        (eshell-last-output))
+    (with-no-warnings
+      (fmakunbound #'test-function)
+      (makunbound 'test-value))))
+
+(ert-deftest esh-cmd-test/lexical-binding ()
+  "Test that enabling `eshell-lexical-binding' works."
+  (let ((eshell-lexical-binding t))
+    (should (string-match-p "\\`1\n\\'" (esh-cmd-test--binding-check)))))
+
+(ert-deftest esh-cmd-test/dynamic-binding ()
+  "Test that disabling `eshell-lexical-binding' works."
+  (let ((eshell-lexical-binding nil))
+    (should (string-match-p "\\`2\n\\'" (esh-cmd-test--binding-check)))))
+
+
 ;; Error handling
 
 (ert-deftest esh-cmd-test/empty-background-command ()
