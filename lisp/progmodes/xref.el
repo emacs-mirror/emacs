@@ -312,8 +312,12 @@ recognize and then delegate the work to an external process."
   "Return the completion table for identifiers."
   nil)
 
-(cl-defgeneric xref-backend-identifier-kind-predicate (_backend _kind)
-  "Return the completion predicate for identifiers based on KIND."
+(cl-defgeneric xref-backend-identifier-completion-predicate (_backend
+                                                             &optional _kind)
+  "Return the predicate for identifier completion.
+The argument KIND will be provided when the caller intends to narrow
+down the search.  The backend can use it to narrow down to only
+identifiers that have xrefs belonging to KIND."
   nil)
 
 (cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
@@ -1701,14 +1705,16 @@ The meanings of both arguments are the same as documented in
           (not (memq command (cdr xref-prompt-for-identifier)))
         (memq command xref-prompt-for-identifier))))
 
-(defun xref-read-identifier (prompt &optional predicate)
+(defun xref-read-identifier (prompt &optional kind)
   "Return the identifier at point or read it from the minibuffer.
 
 Reads and returns the identifier to use as input for the command being
 executed now.  If the current command should prompt, as defined in
 `xref-prompt-for-identifier', it uses the result of
 `xref-backend-identifier-at-point'.  Otherwise, it reads with completion
-from `xref-backend-identifier-completion-table'."
+from the table returned by `xref-backend-identifier-completion-table',
+together with `xref-backend-identifier-completion-predicate'.
+The argument KIND is passed on to the latter function."
   (let* ((backend (xref-find-backend))
          (def (xref-backend-identifier-at-point backend))
          (completion-ignore-case
@@ -1730,7 +1736,7 @@ from `xref-backend-identifier-completion-table'."
                                  def)
                        prompt))
                    (xref-backend-identifier-completion-table backend)
-                   predicate
+                   (xref-backend-identifier-completion-predicate backend kind)
                    nil nil
                    'xref--read-identifier-history def t)))
              (if (equal id "")
@@ -1842,14 +1848,10 @@ When called programmatically, KIND should be one of supported symbols."
                       (kind (plist-get desc :kind)))
                  (unless desc (user-error "Have to choose the kind"))
                  (list
-                  ;; For completeness, we can also add a specialized
-                  ;; "identifier completion table for kind".  But
-                  ;; probably only the elisp backend would have it.
                   (xref-read-identifier
                    (format-message (or (plist-get desc :prompt-format) "Find %s")
                                    (plist-get desc :name))
-                   (xref-backend-identifier-kind-predicate (xref-find-backend)
-                                                           kind))
+                   kind)
                   kind)))
   (let ((kind-desc (cl-find kind (xref-backend-xref-kinds (xref-find-backend))
                             :key (lambda (desc) (plist-get desc :kind)))))
