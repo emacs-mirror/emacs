@@ -477,6 +477,35 @@ _ACEOF
    exec_loader=loader-mips64el.s], [*],
   [AC_MSG_ERROR([Please port libexec to $host])])
 
+# Test whether the linker supports `-Wl,--rosegment'.  Recent versions
+# of the Android NDK forbid the linker to place executable code in a
+# separate PT_LOAD segment on older systems by enabling `--no-rosegment'
+# in the machine specifications:
+#
+# https://reviews.llvm.org/D95166
+#
+# Which occasions the text segment to be combined with the executable
+# header, which is loaded at a much lower base address (e.g.,
+# 0x200000-0x2000000000), to produce an outsized executable containing
+# as many bytes as the difference between the virtual addresses of the
+# start and the end of such data.  This must be disabled.  (bug#81211)
+
+AC_CACHE_CHECK([whether ld supports --rosegment],
+  [exec_cv_ld_supports_rosegment],
+  [new_loaderflags="$LOADERFLAGS $LDPREFIX--rosegment"
+   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[int _start, __start;]],[[]])],
+  [exec_cv_ld_supports_rosegment=no
+   $LD -o conftest$EXEEXT $new_loaderflags conftest.$OBJEXT \
+     >&AS_MESSAGE_LOG_FD 2>&1				    \
+     && exec_cv_ld_supports_rosegment=yes],
+  [exec_cv_ld_supports_rosegment=unknown])])
+AS_CASE([$exec_cv_ld_supports_rosegment],
+  [yes],
+  [LOADERFLAGS="$LOADERFLAGS $LDPREFIX--rosegment"],
+  [unknown],
+  [AC_MSG_WARN([configure could not ascertain whether $LDPREFIX--rosegment was supported by the linker.
+An excessively large `loader' binary may be produced in consequence of this failure.])])
+
 AC_SUBST([DADDI_BROKEN])
 
 MIPS_N32=$exec_cv_mips_nabi
