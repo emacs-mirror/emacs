@@ -2742,6 +2742,13 @@ The candidate will still be chosen by `choose-completion' unless
     (goto-char (or (next-single-property-change (point) 'completion--string)
                    (point-max)))))
 
+(defun completions--clear-selection ()
+  "Clear the selected candidate in the completions buffer.
+
+Unlike `completions--deselect' this fully clears all selected-completion
+state from the buffer."
+  (goto-char (point-min)))
+
 (defun completions--should-show-p (metadata &optional force-eager-update)
   "Return non-nil if *Completions* should be automatically updated or displayed.
 
@@ -3020,7 +3027,7 @@ has been requested by the completion table."
     (with-selected-window win
       ;; Move point off any completions, so we don't move point there
       ;; again the next time `minibuffer-completion-help' is called.
-      (goto-char (point-min))
+      (completions--clear-selection)
       (bury-buffer))))
 
 (defun exit-minibuffer ()

@@ -10269,7 +10269,9 @@ Also see the `completion-auto-wrap' variable."
                          (not (eq completions-format 'vertical))))
             (if (and (eq completion-auto-select t) tabcommand
                      (minibufferp completion-reference-buffer))
-                (throw 'bound nil)
+                (progn
+                  (completions--clear-selection)
+                  (throw 'bound nil))
               (first-completion))))
         (when (and (eq completions-format 'vertical)
                    (or last
@@ -10321,8 +10323,8 @@ Also see the `completion-auto-wrap' variable."
                    (completion--move-to-candidate-start))
                   ((and (eq completion-auto-select t) tabcommand
                         (minibufferp completion-reference-buffer))
-                   (progn
-                     (throw 'bound nil)))
+                   (completions--clear-selection)
+                   (throw 'bound nil))
                   (t
                    (last-completion)))))
         (setq n (1+ n))))
