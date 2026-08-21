@@ -3699,7 +3699,9 @@ brackets @file{@value{ipv6prefix}} and @file{@value{ipv6postfix}}.
 By default, @value{tramp} will use the current local user name as the
 remote user name for log in to the remote host.  Specifying a
 different name using the proper syntax will override this default
-behavior: @file{@trampfn{method,user@@host,path/to/file}}.
+behavior: @file{@trampfn{method,user@@host,path/to/file}}.  The user
+name can also be taken from an environment variable, like
+@file{@trampfn{method,@env{$MY_REMOTE_USER}@@host,path/to/file}}.
 
 @file{@trampfn{ssh,daniel@@melancholia,.emacs}} is for file
 @file{.emacs} in @samp{daniel}'s home directory on the host,
