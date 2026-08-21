@@ -530,7 +530,8 @@ non-Quail commands."
   (if (and (overlayp quail-overlay) (overlay-start quail-overlay))
       (delete-overlay quail-overlay))
   (if (and (overlayp quail-conv-overlay) (overlay-start quail-conv-overlay))
-      (delete-overlay quail-conv-overlay)))
+      (delete-overlay quail-conv-overlay))
+  (quail--delete-guidance-overlay))
 
 (defun quail-deactivate ()
   "Deactivate Quail input method.
@@ -1996,19 +1997,64 @@ Remaining args are for FUNC."
 ;; Quail specific version of minibuffer-message.  It displays STRING
 ;; with timeout 1000000 seconds instead of two seconds.
 
+(defvar quail--guidance-overlay nil
+  "Overlay used to display the Quail guidance text, or nil.")
+
+(defvar quail--guidance-timer nil
+  "Timer that removes `quail--guidance-overlay', or nil.")
+
+(defun quail--delete-guidance-overlay ()
+  "Delete `quail--guidance-overlay' and cancel `quail--guidance-timer'."
+  (when (overlayp quail--guidance-overlay)
+    (delete-overlay quail--guidance-overlay)
+    (setq quail--guidance-overlay nil))
+  (when (timerp quail--guidance-timer)
+    (cancel-timer quail--guidance-timer)
+    (setq quail--guidance-timer nil))
+  (remove-hook 'pre-command-hook #'quail--delete-guidance-overlay))
+
+(defvar quail-guidance-use-overlay nil
+  "Non-nil means display the guidance with an overlay, not by inserting it.
+Inserted guidance is part of `minibuffer-contents' while it is shown, so
+code reading them from `after-change-functions' sees it too.  Bind this
+around such code rather than setting it globally: an overlay string
+places the cursor by rules of its own.")
+
 (defun quail-minibuffer-message (string)
   (message nil)
-  (let ((point-max (point-max))
-	(inhibit-quit t)
-        (deactivate-mark nil))
-    (save-excursion
-      (goto-char point-max)
-      (insert string))
-    (sit-for 1000000)
-    (delete-region point-max (point-max))
-    (when quit-flag
-      (setq quit-flag nil)
-      (quail-add-unread-command-events 7 t))))
+  (if quail-guidance-use-overlay
+      (quail-minibuffer-message-overlay string)
+    (let ((point-max (point-max))
+	  (inhibit-quit t)
+          (deactivate-mark nil))
+      (save-excursion
+        (goto-char point-max)
+        (insert string))
+      (sit-for 1000000)
+      (delete-region point-max (point-max))
+      (when quit-flag
+        (setq quit-flag nil)
+        (quail-add-unread-command-events 7 t)))))
+
+(defun quail-minibuffer-message-overlay (string)
+  "Show STRING at the end of the minibuffer, using an overlay.
+Unlike `quail-minibuffer-message', this leaves the minibuffer contents
+alone."
+  (quail--delete-guidance-overlay)
+  (let ((ov (make-overlay (point-max) (point-max) nil t t)))
+    ;; With a trailing newline the `cursor' property below has no
+    ;; effect and the cursor drops to the next screen line.
+    (when (string-suffix-p "\n" string)
+      (setq string (concat string " ")))
+    (unless (zerop (length string))
+      (setq string (copy-sequence string))
+      (put-text-property 0 1 'cursor t string))
+    (overlay-put ov 'after-string string)
+    (overlay-put ov 'priority 1100)
+    (setq quail--guidance-overlay ov
+          quail--guidance-timer
+          (run-at-time 1000000 nil #'quail--delete-guidance-overlay))
+    (add-hook 'pre-command-hook #'quail--delete-guidance-overlay)))
 
 (defun quail-show-guidance ()
   "Display a guidance for Quail input method in some window.

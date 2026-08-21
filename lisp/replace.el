@@ -497,6 +497,8 @@ in `replace-search'."
 	    (when (and (= beg end) (not (eobp)))
 	      (forward-char 1))))))))
 
+(defvar quail-guidance-use-overlay)
+
 (defun replace-preview-setup (from regexp-flag delimited-flag
 			      &optional backward)
   "Return a closure that previews the replacement of FROM.
@@ -590,6 +592,8 @@ FROM when previewing the replacement (see `query-replace-show-preview')."
   (query-replace-compile-replacement
    (save-excursion
      (let* ((history-add-new-input nil)
+            ;; Keep the Quail guidance out of the preview (bug#81667).
+            (quail-guidance-use-overlay (and query-replace-show-preview t))
 	    (to (minibuffer-with-setup-hook
 		    (replace-preview-setup from regexp-flag delimited-flag
 					   backward)
@@ -612,6 +616,9 @@ FROM when previewing the replacement (see `query-replace-show-preview')."
            (delimited-flag (and current-prefix-arg
                                 (not (eq current-prefix-arg '-))))
            (backward (and current-prefix-arg (eq current-prefix-arg '-)))
+           ;; Highlight the text to be replaced when a Quail
+           ;; IME is active in the minibuffer (bug#81696).
+           (quail-guidance-use-overlay t)
            (from (minibuffer-with-setup-hook
                      ;; A nil FROM: this input can hold both halves.
                      (replace-preview-setup nil regexp-flag delimited-flag
