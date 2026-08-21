@@ -1657,7 +1657,7 @@ VEC or USER, or if there is no home directory, return nil."
   "Return the share name of LOCALNAME."
   (save-match-data
     (let ((localname (tramp-file-name-unquote-localname vec)))
-      (when (string-match (rx bol (? "/") (group (+ (not "/"))) "/") localname)
+      (when (string-match (rx bos (? "/") (group (+ (not "/"))) "/") localname)
 	(match-string 1 localname)))))
 
 (defun tramp-smb-get-localname (vec &optional share)
@@ -1670,7 +1670,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	(setq
 	 localname
 	 (if (string-match
-	      (rx bol (? "/") (+ (not "/")) (group "/" (* nonl))) localname)
+	      (rx bos (? "/") (+ (not "/")) (group "/" (* nonl))) localname)
 	     ;; There is a share, separated by "/".
 	     (if (not (tramp-smb-get-cifs-capabilities vec))
 		 (mapconcat
@@ -1679,7 +1679,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	       (match-string 1 localname))
 	   ;; There is just a share.
 	   (if (string-match
-		(rx bol (? "/") (group (+ (not "/"))) eol) localname)
+		(rx bos (? "/") (group (+ (not "/"))) eos) localname)
 	       (match-string 1 localname)
 	     ""))))
 

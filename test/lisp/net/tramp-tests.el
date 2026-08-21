@@ -413,6 +413,7 @@ being the result.")
 	  (should (tramp-tramp-file-p "/method:user@:"))
 	  (should (tramp-tramp-file-p "/method:user@host:"))
 	  (should (tramp-tramp-file-p "/method:user@email@host:"))
+	  (should (tramp-tramp-file-p "/method:$USER@host:"))
 
 	  ;; Using a port.
 	  (should (tramp-tramp-file-p "/method:host#1234:"))
@@ -509,6 +510,7 @@ being the result.")
 	  (should (tramp-tramp-file-p "/user@:"))
 	  (should (tramp-tramp-file-p "/user@host:"))
 	  (should (tramp-tramp-file-p "/user@email@host:"))
+	  (should (tramp-tramp-file-p "/$USER@host:"))
 
 	  ;; Using a port.
 	  (should (tramp-tramp-file-p "/host#1234:"))
@@ -571,6 +573,7 @@ being the result.")
 	  (should (tramp-tramp-file-p "/[method/user@]"))
 	  (should (tramp-tramp-file-p "/[method/user@host]"))
 	  (should (tramp-tramp-file-p "/[method/user@email@host]"))
+	  (should (tramp-tramp-file-p "/[method/$USER@host]"))
 
 	  ;; Using a port.
 	  (should (tramp-tramp-file-p "/[method/host#1234]"))
@@ -758,6 +761,28 @@ being the result.")
 		   (file-remote-p "/method:user@email@host:" 'localname) ""))
 	  (should (string-equal
 		   (file-remote-p "/method:user@email@host:" 'hop) nil))
+
+	  ;; Expand environment variable.  It can be cascaded.
+	  (with-environment-variables
+	      (("REMOTE_USER" "$REMOTE_USER1") ("REMOTE_USER1" "remote-user"))
+	    (should (string-equal
+		     (file-remote-p "/method:$REMOTE_USER@host:")
+		     (format "/%s:%s@%s:" "method" "remote-user" "host")))
+	    (should
+	     (string-equal
+	      (file-remote-p "/method:$REMOTE_USER@host:" 'method) "method"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/method:$REMOTE_USER@host:" 'user) "remote-user"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/method:$REMOTE_USER@host:" 'host) "host"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/method:$REMOTE_USER@host:" 'localname) ""))
+	    (should
+	     (string-equal
+	      (file-remote-p "/method:$REMOTE_USER@host:" 'hop) nil)))
 
 	  ;; Expand `tramp-default-method' and `tramp-default-user'.
 	  (should
@@ -1239,6 +1264,28 @@ being the result.")
 	  (should (string-equal
 		   (file-remote-p "/user@email@host:" 'hop) nil))
 
+	  ;; Expand environment variable.  It can be cascaded.
+	  (with-environment-variables
+	      (("REMOTE_USER" "$REMOTE_USER1") ("REMOTE_USER1" "remote-user"))
+	    (should (string-equal
+		     (file-remote-p "/$REMOTE_USER@host:")
+		     (format "/%s@%s:" "remote-user" "host")))
+	    (should
+	     (string-equal
+	      (file-remote-p "/$REMOTE_USER@host:" 'method) "default-method"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/$REMOTE_USER@host:" 'user) "remote-user"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/$REMOTE_USER@host:" 'host) "host"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/$REMOTE_USER@host:" 'localname) ""))
+	    (should
+	     (string-equal
+	      (file-remote-p "/$REMOTE_USER@host:" 'hop) nil)))
+
 	  ;; Expand `tramp-default-method' and `tramp-default-user'.
 	  (should (string-equal
 		   (file-remote-p "/host#1234:")
@@ -1714,6 +1761,28 @@ being the result.")
 		   (file-remote-p "/[method/user@email@host]" 'localname) ""))
 	  (should (string-equal
 		   (file-remote-p "/[method/user@email@host]" 'hop) nil))
+
+	  ;; Expand environment variable.  It can be cascaded.
+	  (with-environment-variables
+	      (("REMOTE_USER" "$REMOTE_USER1") ("REMOTE_USER1" "remote-user"))
+	    (should (string-equal
+		     (file-remote-p "/[method/$REMOTE_USER@host]")
+		     (format "/[%s/%s@%s]" "method" "remote-user" "host")))
+	    (should
+	     (string-equal
+	      (file-remote-p "/[method/$REMOTE_USER@host]" 'method) "method"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/[method/$REMOTE_USER@host]" 'user) "remote-user"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/[method/$REMOTE_USER@host]" 'host) "host"))
+	    (should
+	     (string-equal
+	      (file-remote-p "/[method/$REMOTE_USER@host]" 'localname) ""))
+	    (should
+	     (string-equal
+	      (file-remote-p "/[method/$REMOTE_USER@host]" 'hop) nil)))
 
 	  ;; Expand `tramp-default-method' and `tramp-default-user'.
 	  (should (string-equal
@@ -4582,15 +4651,19 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (should (file-equal-p tmp-name1 tmp-name2))
 	    ;; Symbolic links could look like a remote file name.
 	    ;; They must be quoted then.
-	    (let ((penguin
-		   (if (eq tramp-syntax 'separate)
-		       "/[penguin/motd]" "/penguin:motd:")))
+	    (let ((penguin (pcase tramp-syntax
+			     ('default "/penguin:motd:")
+			     ('simplified "/motd:")
+			     ('separate "/[penguin/motd]"))))
 	      (delete-file tmp-name2)
-	      (make-symbolic-link
-	       (funcall (if quoted #'file-name-unquote #'identity) penguin)
-	       tmp-name2)
-	      (should (file-symlink-p tmp-name2))
-	      (should-not (file-regular-p tmp-name2))
+	      (make-symbolic-link penguin tmp-name2)
+	      (should
+	       (string-equal
+		(file-attribute-type (file-attributes tmp-name2))
+		(file-name-quote penguin 'top)))
+	      (should
+	       (string-equal
+		(file-symlink-p tmp-name2) (file-name-quote penguin 'top)))
 	      (should
 	       (string-equal
 		(file-truename tmp-name2)
