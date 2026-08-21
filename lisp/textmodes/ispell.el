@@ -655,6 +655,14 @@ Standard dict names are defined in `ispell-dictionary-base-alist'.")
 ;;; The following are used by ispell, and should not be changed.
 ;;; **********************************************************************
 
+(defconst ispell--minversion-alist
+  `((Aspell "0.60")
+    (Hunspell "1.1.6")
+    (Enchant "2.1.0")
+    (,(intern "International Ispell") "3.1.12"))
+"Alist of the form (engine version) declaring minimally permitted versions."
+)
+
 (defun ispell-check-version (&optional interactivep)
   "Ensure that `ispell-program-name' is valid and has the correct version.
 Return version number if called interactively, or if INTERACTIVEP is non-nil.
@@ -729,10 +737,14 @@ Otherwise return the library directory name, if that is defined."
                     nil t)
 		   (match-string 1)))))
 
-      (let* ((aspell8-minver   "0.60")
-             (ispell-minver    "3.1.12")
-             (hunspell8-minver "1.1.6")
-             (enchant-minver   "2.1.0")
+      (let* ((aspell8-minver   (car (alist-get 'Aspell
+                                          ispell--minversion-alist)))
+             (ispell-minver    (car (alist-get 'International\ Ispell
+                                          ispell--minversion-alist)))
+             (hunspell8-minver (car (alist-get 'Hunspell
+                                          ispell--minversion-alist)))
+             (enchant-minver   (car (alist-get 'Enchant
+                                          ispell--minversion-alist)))
              (minver (cond
                       ((not (version<= ispell-minver ispell-program-version))
                        ispell-minver)

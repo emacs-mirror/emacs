@@ -37,9 +37,11 @@
 (ert-deftest ispell/aspell/ispell-check-version/works ()
   "Test that aspell is correctly detected."
   (skip-unless (and (executable-find "aspell")
-                    (with-temp-buffer
-                      (call-process "aspell" nil t nil "-vv")
-                      (search-backward "but really Aspell"))))
+                  (with-temp-buffer
+                    (call-process "aspell" nil t nil "-vv")
+                    (search-backward "but really Aspell"))
+                  (ispell-tests--valid-version-triple?
+                   (ispell-tests--parse-v "aspell"))))
   (ispell-tests--letopt ((ispell-program-name "aspell"))
     (setq ispell-last-program-name (time-to-seconds))
     (setf ispell-program-name "aspell")
@@ -72,6 +74,8 @@
   (skip-unless (equal
                 0
                 (call-process "aspell" nil nil nil "-vv")))
+  (skip-unless (ispell-tests--valid-version-triple?
+                   (ispell-tests--parse-v "aspell")))
   (skip-unless (equal
                 0
                 (with-temp-buffer
@@ -104,6 +108,8 @@
   (skip-unless (equal
                 0
                 (call-process "aspell" nil nil nil "-vv")))
+  (skip-unless (ispell-tests--valid-version-triple?
+                   (ispell-tests--parse-v "aspell")))
   (skip-unless (equal
                 0
                 (with-temp-buffer

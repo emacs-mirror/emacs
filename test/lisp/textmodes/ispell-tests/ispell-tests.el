@@ -316,6 +316,8 @@ file is present in `ispell-library-directory'."
 For aspell, `ispell-valid-dictionary-list' computes an intersection of
 `ispell-dictionary-alist' and `ispell--aspell-found-dictionaries'."
   (skip-unless (executable-find "aspell"))
+  (skip-unless (ispell-tests--valid-version-triple?
+                             (ispell-tests--parse-v "aspell")))
   (skip-unless (with-temp-buffer
                  (call-process "aspell" nil t nil "dicts")
                  (> (length (buffer-string)) 2)))
@@ -1368,6 +1370,7 @@ One correct an one incorrect in the same buffer."
 
 (ert-deftest ispell/ispell-lookup-words/simple ()
   "Test if `ispell-lookup-words' is runnable."
+  (skip-unless (not (ispell-tests--broken-system?)))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
            (tempfile (make-temp-file "emacs-ispell.el-test" nil nil ispell-tests--constants/completion)))
@@ -1389,6 +1392,7 @@ One correct an one incorrect in the same buffer."
 
 (ert-deftest ispell/ispell-complete-word/ispell-completion-at-point ()
   "Test if `ispell-complete-word' and `ispell-completion-at-point' are runnable."
+  (skip-unless (not (ispell-tests--broken-system?)))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
            (tempfile (make-temp-file "emacs-ispell.el-test" nil nil ispell-tests--constants/completion)))
@@ -1420,9 +1424,10 @@ One correct an one incorrect in the same buffer."
 
 (ert-deftest ispell/ispell-complete-word-interior-frag/simple ()
   "Test if `ispell-complete-word-interior-frag' is runnable."
+  (skip-unless (not (ispell-tests--broken-system?)))
   (with-environment-variables (("HOME" temporary-file-directory))
     (let* ((default-directory temporary-file-directory)
-           (tempfile (make-temp-file "emacs-ispell.el-test" nil nil "waveguides")))
+           (tempfile (make-temp-file "emacs-ispell.el-test" nil nil ispell-tests--constants/completion)))
       (ispell-tests--letopt
           ((ispell-program-name (ispell-tests--some-backend))
            (ispell-complete-word-dict tempfile))
