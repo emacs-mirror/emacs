@@ -126,7 +126,7 @@ There are several different kinds of commands, however."
   "If non-nil, prefer Lisp functions to external commands."
   :type 'boolean)
 
-(defcustom eshell-lexical-binding lexical-binding
+(defcustom eshell-lexical-binding (eval-when-compile (default-toplevel-value 'lexical-binding))
   "If non-nil, use lexical binding when evaluating Eshell forms."
   :type 'boolean)
 
