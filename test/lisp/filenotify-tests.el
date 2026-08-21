@@ -66,6 +66,7 @@
 
 (defvar file-notify--test-rootdir temporary-file-directory)
 (defvar file-notify--test-tmpdir nil)
+(defvar file-notify--test-tmpdir1 nil)
 (defvar file-notify--test-tmpfile nil)
 (defvar file-notify--test-tmpfile1 nil)
 (defvar file-notify--test-desc nil)
@@ -168,6 +169,7 @@ Return nil when any other file notification watch is still active."
 
   (setq auto-revert-buffer-list nil
         file-notify--test-tmpdir nil
+        file-notify--test-tmpdir1 nil
         file-notify--test-tmpfile nil
         file-notify--test-tmpfile1 nil
         file-notify--test-desc nil
@@ -191,6 +193,10 @@ Return nil when any other file notification watch is still active."
       ;; When the remote user id is 0, Tramp refuses unsafe temporary files.
       tramp-allow-unsafe-temporary-files
       (or tramp-allow-unsafe-temporary-files noninteractive))
+
+;; (setq file-notify-debug t)
+;; (dolist (elt (apropos-internal (rx bos "file-notify-") #'functionp))
+;;   (trace-function-background elt))
 
 (defun file-notify--test-add-watch (file flags callback)
   "Like `file-notify-add-watch', but also passing FILE to CALLBACK."
@@ -243,9 +249,9 @@ remote host, or nil."
 
 (defun file-notify--test-monitor ()
   "The used monitor for the test, as a symbol.
-This returns only for (local) gfilenotify, (remote) gio or (remote)
-smb-notify libraries; otherwise it is nil.  `file-notify--test-desc'
-must be a valid watch descriptor."
+This returns only for (local) gfilenotify, (remote) gio, (remote)
+smb-notify or (remote) tramp-rpc libraries; otherwise it is nil.
+`file-notify--test-desc' must be a valid watch descriptor."
   ;; We cache the result, because after `file-notify-rm-watch',
   ;; `gfile-monitor-name' does not return a proper result anymore.
   ;; But we still need this information.  So far, we know the monitors
@@ -530,10 +536,11 @@ and `file-notify--test-file' are bound somewhere."
     (should (equal (file-notify--test-event-desc file-notify--test-event)
                    file-notify--test-desc)))
   ;; Check the file name.
-  (should
-   (string-prefix-p
-    file-notify--test-file
-    (file-notify--test-event-file file-notify--test-event)))
+  (unless (eq (file-notify--test-event-action file-notify--test-event) 'stopped)
+    (should
+     (string-prefix-p
+      file-notify--test-file
+      (file-notify--test-event-file file-notify--test-event))))
   ;; Check the second file name if exists.
   (when (eq (file-notify--test-event-action file-notify--test-event) 'renamed)
     (should
@@ -733,14 +740,12 @@ delivered."
 	((eq (file-notify--test-monitor) 'SMBSamba)
          '(created changed changed changed deleted deleted stopped))
 	;; There are two `deleted' events, for the file and for the
-	;; directory.  Except for GFam{File,Directory}Monitor,
-	;; GPollFileMonitor and kqueue.  And GFam{File,Directory}Monitor
-	;; and GPollFileMonitor do not raise a `changed' event.
+	;; directory.  Except for GFam{File,Directory}Monitor and
+	;; GPollFileMonitor.  And GFam{File,Directory}Monitor and
+	;; GPollFileMonitor do not raise a `changed' event.
 	((memq (file-notify--test-monitor)
                '(GFamFileMonitor GFamDirectoryMonitor GPollFileMonitor))
 	 '(created deleted stopped))
-	((string-equal (file-notify--test-library) "kqueue")
-	 '(created changed deleted stopped))
 	;; GKqueueFileMonitor does not report the `changed' event.
 	((eq (file-notify--test-monitor) 'GKqueueFileMonitor)
 	 '(created deleted deleted stopped))
@@ -783,13 +788,14 @@ delivered."
            '(created changed changed changed created changed changed changed
              changed changed deleted deleted deleted stopped))
 	  ;; There are three `deleted' events, for two files and for the
-	  ;; directory.  Except for GFam{File,Directory}Monitor,
-	  ;; GPollFileMonitor and kqueue.
+	  ;; directory.  Except for GFam{File,Directory}Monitor and
+	  ;; GPollFileMonitor.
 	  ((memq (file-notify--test-monitor)
                  '(GFamFileMonitor GFamDirectoryMonitor GPollFileMonitor))
 	   '(created created changed changed deleted stopped))
+	  ;; kqueue reports two `deleted' events.
 	  ((string-equal (file-notify--test-library) "kqueue")
-	   '(created changed created changed deleted stopped))
+	   '(created changed created changed deleted deleted stopped))
 	  ;; GKqueueFileMonitor does not report the `changed' event.
 	  ((eq (file-notify--test-monitor) 'GKqueueFileMonitor)
 	   '(created created deleted deleted deleted stopped))
@@ -834,16 +840,13 @@ delivered."
            '(created changed changed changed
              renamed changed changed deleted deleted stopped))
 	  ;; There are two `deleted' events, for the file and for the
-	  ;; directory.  Except for GFam{File,Directory}Monitor,
-	  ;; GPollfileMonitor and kqueue.  And
-	  ;; GFam{File,Directory}Monitor and GPollFileMonitor raise
-	  ;; `created' and `deleted' events instead of a `renamed'
-	  ;; event.
+	  ;; directory.  Except for GFam{File,Directory}Monitor and
+	  ;; GPollfileMonitor.  And GFam{File,Directory}Monitor and
+	  ;; GPollFileMonitor raise `created' and `deleted' events
+	  ;; instead of a `renamed' event.
 	  ((memq (file-notify--test-monitor)
                  '(GFamFileMonitor GFamDirectoryMonitor GPollFileMonitor))
 	   '(created created deleted deleted stopped))
-	  ((string-equal (file-notify--test-library) "kqueue")
-	   '(created changed renamed deleted stopped))
 	  ;; GKqueueFileMonitor does not report the `changed' event.
 	  ((eq (file-notify--test-monitor) 'GKqueueFileMonitor)
 	   '(created renamed deleted deleted stopped))
@@ -1093,14 +1096,12 @@ delivered."
 	((eq (file-notify--test-monitor) 'SMBSamba)
          '(created changed changed changed deleted deleted stopped))
 	;; There are two `deleted' events, for the file and for the
-	;; directory.  Except for GFam{File,Directory}Monitor,
-	;; GPollFileMonitor and kqueue.  And GFam{File,Directory}Monitor
-	;; and GPollfileMonitor do not raise a `changed' event.
+	;; directory.  Except for GFam{File,Directory}Monitor and
+	;; GPollFileMonitor.  And GFam{File,Directory}Monitor and
+	;; GPollfileMonitor do not raise a `changed' event.
 	((memq (file-notify--test-monitor)
                '(GFamFileMonitor GFamDirectoryMonitor GPollFileMonitor))
 	 '(created deleted stopped))
-	((string-equal (file-notify--test-library) "kqueue")
-	 '(created changed deleted stopped))
 	;; GKqueueFileMonitor does not report the `changed' event.
 	((eq (file-notify--test-monitor) 'GKqueueFileMonitor)
 	 '(created deleted deleted stopped))
@@ -1116,7 +1117,7 @@ delivered."
    ;; filenotify.el to remove the descriptor from the internal hash
    ;; table it maintains.  So we must remove the descriptor manually.
    (if (string-equal (file-notify--test-library) "w32notify")
-       (file-notify--rm-descriptor file-notify--test-desc))
+       (file-notify-rm-watch file-notify--test-desc))
 
    ;; The environment shall be cleaned up.
    (file-notify--test-cleanup-p)))
@@ -1159,7 +1160,7 @@ delivered."
     (not (file-notify-valid-p file-notify--test-desc)))
    (should-not (file-notify-valid-p file-notify--test-desc))
    (if (string-equal (file-notify--test-library) "w32notify")
-       (file-notify--rm-descriptor file-notify--test-desc))
+       (file-notify-rm-watch file-notify--test-desc))
 
    ;; The environment shall be cleaned up.
    (file-notify--test-cleanup-p)))
@@ -1245,7 +1246,7 @@ delivered."
        (dolist (file target-file-list)
          (file-notify--test-wait-event)
          (delete-file file)))
-     (file-notify--rm-descriptor file-notify--test-desc)
+     (file-notify-rm-watch file-notify--test-desc)
 
      ;; The environment shall be cleaned up.
      (file-notify--test-cleanup-p))))
@@ -1291,7 +1292,7 @@ delivered."
          (save-buffer))))
    ;; After saving the buffer, the descriptor is still valid.
    (should (file-notify-valid-p file-notify--test-desc))
-   (file-notify--rm-descriptor file-notify--test-desc)
+   (file-notify-rm-watch file-notify--test-desc)
 
    ;; The environment shall be cleaned up.
    (file-notify--test-cleanup-p))
@@ -1337,7 +1338,7 @@ delivered."
            (save-buffer))))
      ;; After saving the buffer, the descriptor is still valid.
      (should (file-notify-valid-p file-notify--test-desc))
-     (file-notify--rm-descriptor file-notify--test-desc)
+     (file-notify-rm-watch file-notify--test-desc)
 
      ;; The environment shall be cleaned up.
      (file-notify--test-cleanup-p)))))
@@ -1385,7 +1386,7 @@ the file watch."
        (file-notify--test-with-actions
            ;; There could be one or two `changed' events.
            (list
-            ;; SMBSamba.  Sometimes, tha last `changed' event is
+            ;; SMBSamba.  Sometimes, the last `changed' event is
             ;; missing, so we add two alternatives.
             (append
              '(:random)
@@ -1450,7 +1451,8 @@ the file watch."
      ;; file monitor are triggered.
      (file-notify--test-with-actions
          '((:random deleted deleted stopped)
-           (:random deleted deleted deleted stopped))
+           (:random deleted deleted deleted stopped)
+           (:random deleted deleted deleted deleted stopped))
        (delete-file file-notify--test-tmpfile))
      (should (file-notify-valid-p file-notify--test-desc1))
      (unless (string-equal (file-notify--test-library) "w32notify")
@@ -1459,13 +1461,14 @@ the file watch."
      ;; Now we delete the directory.
      (file-notify--test-with-actions
          (cond
-          ;; GFam{File,Directory}Monitor, GPollFileMonitor and kqueue
-          ;; raise just one `deleted' event for the directory.
+          ;; GFam{File,Directory}Monitor and GPollFileMonitor raise
+          ;; just one `deleted' event for the directory.
 	  ((memq (file-notify--test-monitor)
                  '(GFamFileMonitor GFamDirectoryMonitor GPollFileMonitor))
            '(deleted stopped))
+	  ;; kqueue raises two `deleted' events.
 	  ((string-equal (file-notify--test-library) "kqueue")
-           '(deleted stopped))
+           '(deleted deleted stopped))
           (t (append
               ;; The directory monitor raises a `deleted' event for
               ;; every file contained in the directory, we must count
@@ -1488,8 +1491,8 @@ the file watch."
        (should-not (file-notify-valid-p file-notify--test-desc1))
        (should-not (file-notify-valid-p file-notify--test-desc2)))
      (when (string-equal (file-notify--test-library) "w32notify")
-       (file-notify--rm-descriptor file-notify--test-desc1)
-       (file-notify--rm-descriptor file-notify--test-desc2))
+       (file-notify-rm-watch file-notify--test-desc1)
+       (file-notify-rm-watch file-notify--test-desc2))
 
      ;; The environment shall be cleaned up.
      (file-notify--test-cleanup-p))))
@@ -1497,7 +1500,88 @@ the file watch."
 (file-notify--deftest-remote file-notify-test09-watched-file-in-watched-dir
   "Check `file-notify-test09-watched-file-in-watched-dir' for remote files.")
 
-(ert-deftest file-notify-test10-sufficient-resources ()
+(ert-deftest file-notify-test10-move-file-to-another-watched-dir ()
+  "Watches two directories, and move a file from one directory to the other one."
+  :tags '(:expensive-test)
+  (skip-unless (file-notify--test-local-enabled))
+  ;; This works only for inotify-based backends.
+  (skip-unless
+   (or (member (file-notify--test-library) '("inotify" "inotifywait"))
+       (ignore-errors
+         ;; `file-notify--test-desc' is needed for `file-notify--test-monitor'.
+         (when-let* ((file-notify--test-desc
+                      (file-notify-add-watch
+                       file-notify--test-rootdir '(change) #'ignore)))
+           (prog1 (memq (file-notify--test-monitor)
+                        '(GInotifyFileMonitor TrampRPCinotify))
+             (file-notify-rm-watch file-notify--test-desc)
+             (file-notify--test-cleanup-p))))))
+
+  (with-file-notify-test
+   (setq file-notify--test-tmpdir1 file-notify--test-tmpdir
+         file-notify--test-tmpfile1 file-notify--test-tmpfile)
+  (with-file-notify-test
+   (setq file-notify--test-tmpdir file-notify--test-tmpdir
+         file-notify--test-tmpfile file-notify--test-tmpfile)
+
+   (write-region "any text" nil file-notify--test-tmpfile1 nil 'no-message)
+   (should
+    (setq file-notify--test-desc1
+          (file-notify--test-add-watch
+           file-notify--test-tmpdir1
+           '(change) #'file-notify--test-event-handler)))
+   (should
+    (setq file-notify--test-desc
+          (file-notify--test-add-watch
+           file-notify--test-tmpdir
+           '(change) #'file-notify--test-event-handler)))
+   (should (file-notify-valid-p file-notify--test-desc1))
+   (should (file-notify-valid-p file-notify--test-desc))
+   (should-not (equal file-notify--test-desc1 file-notify--test-desc))
+
+   ;; `file-notify--test-event-test' would signal a false alarm.
+   (cl-letf* (((symbol-function #'file-notify--test-event-test) #'ignore))
+     (file-notify--test-with-actions '(renamed renamed)
+       ;; Both file notification watches receive the `renamed' action.
+       (rename-file file-notify--test-tmpfile1 file-notify--test-tmpdir)))
+
+   ;; If one file notification watch has been removed, the synthesis of
+   ;; `move-to' and `move-from' doesn't work anymore due to different
+   ;; cookies.  With one exception.
+   (file-notify-rm-watch file-notify--test-desc1)
+   (file-notify--test-with-actions
+       (cond
+        ;; GInotifyFileMonitor uses `moved' instead of `moved-from' and
+        ;; `moved-to'.  So it reports `renamed' twice.
+        ((eq (file-notify--test-monitor) 'GInotifyFileMonitor)
+	 '(renamed renamed))
+        (t '(deleted created)))
+     (rename-file file-notify--test-tmpfile file-notify--test-tmpdir1)
+     (rename-file
+      (expand-file-name
+       (file-name-nondirectory file-notify--test-tmpfile)
+       file-notify--test-tmpdir1)
+      file-notify--test-tmpdir))
+
+   ;; Fire a pending `moved-from' event when the file notification watch
+   ;; has been removed.
+   (file-notify--test-with-actions
+       (cond
+        ;; GInotifyFileMonitor still reports `renamed'.
+        ((eq (file-notify--test-monitor) 'GInotifyFileMonitor)
+	 '(renamed stopped))
+        (t '(deleted stopped)))
+     (rename-file file-notify--test-tmpfile file-notify--test-tmpdir1)
+     (file-notify--test-wait-event)
+     (file-notify-rm-watch file-notify--test-desc))
+
+   ;; The environment shall be cleaned up.
+   (file-notify--test-cleanup-p))))
+
+(file-notify--deftest-remote file-notify-test10-move-file-to-another-watched-dir
+  "Check `file-notify-test10-move-file-to-another-watched-dir' for remote files.")
+
+(ert-deftest file-notify-test11-sufficient-resources ()
   "Check that file notification does not use too many resources."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
@@ -1531,10 +1615,10 @@ the file watch."
      ;; The environment shall be cleaned up.
      (file-notify--test-cleanup-p))))
 
-(file-notify--deftest-remote file-notify-test10-sufficient-resources
-  "Check `file-notify-test10-sufficient-resources' for remote files.")
+(file-notify--deftest-remote file-notify-test11-sufficient-resources
+  "Check `file-notify-test11-sufficient-resources' for remote files.")
 
-(ert-deftest file-notify-test11-symlinks ()
+(ert-deftest file-notify-test12-symlinks ()
   "Check that file notification do not follow symbolic links."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
@@ -1653,8 +1737,8 @@ the file watch."
        (file-notify-rm-watch file-notify--test-desc)
        (file-notify--test-cleanup-p)))))
 
-(file-notify--deftest-remote file-notify-test11-symlinks
-  "Check `file-notify-test11-symlinks' for remote files.")
+(file-notify--deftest-remote file-notify-test12-symlinks
+  "Check `file-notify-test12-symlinks' for remote files.")
 
 (ert-deftest file-notify-test12-unmount ()
   "Check that file notification stop after unmounting the filesystem."

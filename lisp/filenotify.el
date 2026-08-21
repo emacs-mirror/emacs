@@ -72,22 +72,6 @@ A key in this hash table is the descriptor as returned from
 handler.  The value in the hash table is a `file-notify--watch'
 struct.")
 
-(defun file-notify--rm-descriptor (descriptor)
-  "Remove DESCRIPTOR from `file-notify-descriptors'.
-DESCRIPTOR should be an object returned by `file-notify-add-watch'.
-If it is registered in `file-notify-descriptors', a `stopped' event is sent."
-  (when-let* ((watch (gethash descriptor file-notify-descriptors)))
-    (unwind-protect
-        ;; Insert `stopped' event.
-        (insert-special-event
-         (make-file-notify
-          :-event `(,descriptor stopped
-                    ,(file-notify--watch-absolute-filename watch))
-          :-callback (file-notify--watch-callback watch)))
-      ;; Make sure this is the last time the callback was invoked.
-      (setf (file-notify--watch-callback watch) nil)
-      (remhash descriptor file-notify-descriptors))))
-
 (cl-defstruct (file-notify (:type list) :named)
   "A file system monitoring event, coming from the backends."
   -event -callback)
@@ -124,7 +108,8 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
   "Full file name of FILE reported for WATCH."
   (directory-file-name
    (if (file-name-absolute-p file)
-       (concat (file-remote-p (file-notify--watch-directory watch)) file)
+       (concat (file-remote-p (file-notify--watch-directory watch))
+               (file-local-name file))
      (expand-file-name file (file-notify--watch-directory watch)))))
 
 (cl-defun file-notify--callback-inotify ((desc actions file
@@ -140,7 +125,7 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                         ((memq action '(delete delete-self move-self)) 'deleted)
                         ((eq action 'moved-from) 'renamed-from)
                         ((eq action 'moved-to) 'renamed-to)
-                        ((memq action '(ignored unmount)) 'stopped)))
+                        ((memq action '(stopped ignored unmount)) 'stopped)))
                      actions))
    file file1-or-cookie))
 
@@ -156,7 +141,7 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                         ((memq action '(attrib link)) 'attribute-changed)
                         ((eq action 'delete) 'deleted)
                         ((eq action 'rename) 'renamed)
-                        ((eq action 'revoke) 'stopped)))
+                        ((memq action '(stopped revoke)) 'stopped)))
                      actions))
    file file1-or-cookie))
 
@@ -168,7 +153,8 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                  ('modified 'changed)
                  ('removed 'deleted)
                  ('renamed-from 'renamed-from)
-                 ('renamed-to 'renamed-to))))
+                 ('renamed-to 'renamed-to)
+                 ('stopped 'stopped))))
     (when action
       (file-notify--handle-event desc (list action) file file1-or-cookie))))
 
@@ -183,7 +169,7 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                                '(created changed attribute-changed deleted))
                          action)
                         ((eq action 'moved) 'renamed)
-                        ((eq action 'unmounted) 'stopped)))
+                        ((memq action '(stopped unmounted)) 'stopped)))
                      (if (consp actions) actions (list actions))))
    file file1-or-cookie))
 
@@ -195,6 +181,8 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
    (delq nil (mapcar
               (lambda (action)
                 (cond
+                 ;; Synthetic event.
+                 ((eq action 'stopped) 'stopped)
                  ;; gfilenotify actions:
                  ((memq action '(created changed attribute-changed deleted))
                   action)
@@ -219,6 +207,8 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
 (defun file-notify--call-handler (watch desc action file file1)
   "Call the handler of WATCH with the arguments DESC, ACTION, FILE and FILE1."
   (when (or
+         ;; A stop action shall always be handled.
+         (eq action 'stopped)
          ;; If there is no relative file name for that
          ;; watch, we watch the whole directory.
          (null (file-notify--watch-filename watch))
@@ -240,7 +230,7 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
          (and (stringp file1)
               (string-equal (file-notify--watch-filename watch)
                             (file-name-nondirectory file1))))
-    ;; The callback could have removed in `file-notify--rm-descriptor'.
+    ;; The callback could have been removed in `file-notify-rm-watch'.
     (when (file-notify--watch-callback watch)
       (when file-notify-debug
         (message
@@ -264,11 +254,12 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
  `renamed-from'      -- FILE is old name, FILE1-OR-COOKIE is cookie or nil
  `renamed-to'        -- FILE is new name, FILE1-OR-COOKIE is cookie or nil
  `stopped'           -- no more events after this should be sent"
-  (let* ((watch (gethash desc file-notify-descriptors))
-         (file (and watch (file-notify--expand-file-name watch file))))
-    (when watch
-      (while actions
-        (let ((action (pop actions)))
+  (when-let* ((watch (gethash desc file-notify-descriptors))
+              (file (file-notify--expand-file-name watch file)))
+    (while actions
+      (let ((action (pop actions))
+            (file1 nil))
+        (when watch
           ;; We only handle {renamed,moved}-{from,to} pairs when these
           ;; arrive in order without anything else in-between.
           ;; If there is a pending rename that does not match this event,
@@ -279,68 +270,72 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
                                  file-notify--pending-rename)
                                 file1-or-cookie)
                          (eq action 'renamed-to))
-              (let ((callback (file-notify--watch-callback
-                               (file-notify--rename-watch
-                                file-notify--pending-rename))))
-                (when callback
-                  (funcall callback (list (file-notify--rename-desc
-                                           file-notify--pending-rename)
-                                          'deleted
-                                          (file-notify--rename-from-file
-                                           file-notify--pending-rename))))
-                (setq file-notify--pending-rename nil))))
+              (file-notify--call-handler
+               (file-notify--rename-watch file-notify--pending-rename)
+               (file-notify--rename-desc file-notify--pending-rename)
+               'deleted
+               (file-notify--rename-from-file file-notify--pending-rename)
+               nil)
+              (setq file-notify--pending-rename nil)))
 
-          (let ((file1 nil))
-            (cond
-             ((eq action 'renamed)
-              ;; A `renamed' event may not have a destination name;
-              ;; if none, treat it as a deletion.
-              (if file1-or-cookie
-                  (setq file1
-                        (file-notify--expand-file-name watch file1-or-cookie))
-                (setq action 'deleted)))
-             ((eq action 'stopped)
-              (file-notify-rm-watch desc)
-              (setq actions nil
-                    action nil))
-             ;; Make the event pending.
-             ((eq action 'renamed-from)
-              (setq file-notify--pending-rename
-                    (file-notify--rename-make watch desc file file1-or-cookie)
-                    action nil))
-             ;; Look for pending event.
-             ((eq action 'renamed-to)
-              (if file-notify--pending-rename
-                  (let ((callback (file-notify--watch-callback
-                                   (file-notify--rename-watch
-                                    file-notify--pending-rename)))
-                        (pending-desc (file-notify--rename-desc
-                                       file-notify--pending-rename))
-                        (from-file (file-notify--rename-from-file
-                                    file-notify--pending-rename)))
-                    (setq file1 file
-                          file from-file)
-                    ;; If the source is handled by another watch, we
-                    ;; must fire the rename event there as well.
-                    (when (and (not (equal desc pending-desc))
-                               callback)
-                      (funcall callback
-                               (list pending-desc 'renamed file file1)))
-                    (setq file-notify--pending-rename nil
-                          action 'renamed))
-                (setq action 'created))))
+          (cond
+           ((eq action 'renamed)
+            ;; A `renamed' event may not have a destination name;
+            ;; if none, treat it as a deletion.
+            (if file1-or-cookie
+                (setq file1
+                      (file-notify--expand-file-name watch file1-or-cookie))
+              (setq action 'deleted)))
+           ;; Make the event pending.
+           ((eq action 'renamed-from)
+            (setq file-notify--pending-rename
+                  (file-notify--rename-make watch desc file file1-or-cookie)
+                  action nil))
+           ;; Look for pending event.
+           ((eq action 'renamed-to)
+            (if file-notify--pending-rename
+                (let ((pending-watch (file-notify--rename-watch
+                                      file-notify--pending-rename))
+                      (pending-desc (file-notify--rename-desc
+                                     file-notify--pending-rename))
+                      (from-file (file-notify--rename-from-file
+                                  file-notify--pending-rename)))
+                  (setq file1 file
+                        file from-file)
+                  ;; If the source is handled by another watch, we
+                  ;; must fire the rename event there as well.
+                  (unless (equal desc pending-desc)
+                    (file-notify--call-handler
+                     pending-watch pending-desc 'renamed file file1))
+                  (setq file-notify--pending-rename nil
+                        action 'renamed))
+              (setq action 'created))))
 
-            (when action
-              (file-notify--call-handler watch desc action file file1))
+          (when action
+            (file-notify--call-handler watch desc action file file1)))
 
-            ;; Send `stopped' event.
-            (when (and (memq action '(deleted renamed))
+        ;; Stop handling.
+        (when (or (eq action 'stopped)
+                  (and watch (memq action '(deleted renamed))
                        ;; Not when a file is backed up.
                        (not (and (stringp file1) (backup-file-name-p file1)))
                        ;; Watched file or directory is concerned.
                        (string-equal
-                        file (file-notify--watch-absolute-filename watch)))
-              (file-notify-rm-watch desc))))))))
+                        file (file-notify--watch-absolute-filename watch))))
+          ;; Fire pending `renamed-from' event.
+          (when file-notify--pending-rename
+            (file-notify--call-handler
+             (file-notify--rename-watch file-notify--pending-rename)
+             (file-notify--rename-desc file-notify--pending-rename)
+             'deleted
+             (file-notify--rename-from-file file-notify--pending-rename)
+             nil)
+            (setq file-notify--pending-rename nil))
+          (setq actions nil)
+          ;; Make sure this is the last time the callback was invoked.
+          (when (eq action 'stopped)
+            (setf (file-notify--watch-callback watch) nil))
+          (file-notify-rm-watch desc))))))
 
 (declare-function inotify-add-watch "inotify.c" (file flags callback))
 (declare-function kqueue-add-watch "kqueue.c" (file flags callback))
@@ -491,8 +486,21 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
                 ((eq file-notify--library 'w32notify) 'w32notify-rm-watch))
                descriptor))
           (file-notify-error nil)))
-      ;; Modify `file-notify-descriptors' and send a `stopped' event.
-      (file-notify--rm-descriptor descriptor))))
+
+      ;; Send a `stopped' event.
+      (unwind-protect
+          ;; Insert `stopped' event.
+          (insert-special-event
+           (make-file-notify
+            :-event `(,descriptor stopped
+                    ,(file-notify--watch-absolute-filename watch))
+            :-callback 'file-notify-callback))
+        (read-event nil nil 0.01)
+        ;; Make sure this is the last time the callback was invoked.
+        (setf (file-notify--watch-callback watch) nil)))
+
+    ;; Remove descriptor.
+    (remhash descriptor file-notify-descriptors)))
 
 (defun file-notify-rm-all-watches ()
   "Remove all existing file notification watches from Emacs."
