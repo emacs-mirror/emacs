@@ -1276,7 +1276,10 @@ if `c-ts-mode-emacs-sources-support' is non-nil."
                     "case_statement")))
     (text ,(regexp-opt '("comment"
                          "raw_string_literal")))
-    (comment "comment"))
+    ;; This is commented out in Emacs 31 since 'treesit-forward-comment'
+    ;; can't uncomment block comments.  It's already fixed in Emacs 32.
+    ;; (comment "comment")
+    )
   "`treesit-thing-settings' for both C and C++.")
 
 ;;; Support for FOR_EACH_* macros
