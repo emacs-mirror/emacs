@@ -131,13 +131,20 @@ of the terminal emulator:
 
 * Editing Changes in Emacs 32.1
 
-+++
 ** New user option 'query-replace-show-preview'.
-When set to t, the replacement commands preview the replacement while
-you type it: the matches visible in the window are shown as they would
-look after the replacement, using the new face 'query-replace-preview'.
-This tells you what back-references like '\1' expand to before you
-commit to the edit.  The preview is off by default.
+If non-nil, the replacement commands preview the replacement while you
+type it: the matches visible in the window are shown as they would look
+after the replacement.  This tells you what back-references like '\1'
+expand to before you commit to the edit.  However, replacements that use
+'\,' or '\#' are not previewed.  The preview is off by default.
+
+If the value is t, each match is shown as the replacement text, in the
+new face 'query-replace-preview'.  If the value is 'both', the match and
+the replacement are shown side by side, separated by an arrow, in the
+new faces 'query-replace-preview-match' and 'query-replace-preview'.
+The value can also be a function of two arguments, the match and the
+replacement, returning the string to show in place of the match, or nil
+to leave that match alone.
 
 ** Electric Pair mode
 

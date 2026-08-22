@@ -116,11 +116,32 @@ This variable affects only `query-replace-regexp'."
 
 (defcustom query-replace-show-preview nil
   "Non-nil means show preview of the result of replacement while you type it.
-The matches that are visible in the window are shown as they would look after
-the replacement, using the `query-replace-preview' face.  This tells
-you what back-references like \\1 expand to before you commit to the
-edit.  However, replacements that use \\, or \\# are not previewed."
-  :type 'boolean
+The matches visible in the window are shown as they would look after the
+replacement, showing what back-references like \\1 expand to before you
+commit.  Replacements using \\, or \\# are not previewed.
+
+If the value is t, each match is shown as the replacement text in the
+`query-replace-preview' face.
+
+If the value is `both', the match and the replacement appear side by
+side, separated by an arrow, in the faces `query-replace-preview-match'
+and `query-replace-preview'.  Inheriting these two faces from
+`diff-removed' and `diff-added' makes the preview read like a diff.
+
+The value can also be a function of two arguments, the match and the
+replacement, returning the string to show in place of the match, or nil
+to leave that match alone.  The string is shown as it is, so propertize
+it if you want it to stand out.  The function is called for each match
+visible in the window, on every keystroke, so it should be fast, it
+should not modify the buffer being searched, and it should cope with a
+replacement that is still being typed:
+
+  (lambda (match replacement)
+    (concat \"[\" match \"]~>{\" replacement \"}\"))"
+  :type '(choice (const    :tag "No preview" nil)
+                 (const    :tag "Show the replacement" t)
+                 (const    :tag "Show both match and replacement" both)
+                 (function :tag "Function returning the preview string"))
   :group 'matching
   :version "32.1")
 
@@ -166,6 +187,14 @@ when `query-replace-highlight' is non-nil"
   "Face for the preview of the replacement text.
 Used while reading the replacement string of `query-replace' and
 friends when `query-replace-show-preview' is non-nil."
+  :group 'matching
+  :version "32.1")
+
+(defface query-replace-preview-match
+  '((t (:inherit lazy-highlight)))
+  "Face for the matched text in the preview.
+Used for the left half of the preview when `query-replace-show-preview'
+is `both'."
   :group 'matching
   :version "32.1")
 
@@ -372,12 +401,39 @@ the original string if not."
   (mapc #'delete-overlay replace-preview-overlays)
   (setq replace-preview-overlays nil))
 
+(defun replace-preview--propertize (text face)
+  "Return a copy of TEXT with FACE merged into its own faces.
+Its `display' and `invisible' properties are dropped, because inside an
+overlay string they would show something other than the preview."
+  (setq text (copy-sequence text))
+  (remove-list-of-text-properties 0 (length text) '(display invisible) text)
+  (add-face-text-property 0 (length text) face nil text)
+  text)
+
+(defun replace-preview--format (match replacement)
+  "Return the text to show in place of MATCH, or nil for no preview.
+MATCH is the matched text and REPLACEMENT is the text that would replace
+it.  How they are combined is decided by `query-replace-show-preview'."
+  (pcase query-replace-show-preview
+    ('both (let ((sep (if (char-displayable-p ?→) "→" "->")))
+             (concat (replace-preview--propertize (concat match sep)
+                                                  'query-replace-preview-match)
+                     (replace-preview--propertize replacement
+                                                  'query-replace-preview))))
+    ((and (pred functionp) fun)
+     (let ((s (save-match-data (funcall fun match replacement))))
+       (and (stringp s) s)))
+    (_ (replace-preview--propertize replacement 'query-replace-preview))))
+
 (defun replace-preview-update (from to regexp-flag delimited-flag case-fold)
   "Preview the result of replacing FROM with TO in the current buffer.
-Each match of FROM visible in the selected window is displayed as the
-text it would be replaced with, using the `query-replace-preview' face.
-REGEXP-FLAG, DELIMITED-FLAG and CASE-FOLD say how to search for FROM,
-as in `replace-search'."
+Each match of FROM visible in the selected window gets an overlay
+showing the text that `replace-preview--format' returns for it, which
+depends on `query-replace-show-preview'.  Matches for which it returns
+nil are left alone.
+
+REGEXP-FLAG, DELIMITED-FLAG and CASE-FOLD say how to search for FROM, as
+in `replace-search'."
   (replace-preview-cleanup)
   (let ((nocasify (not (and case-replace case-fold)))
 	(literal (or (not regexp-flag) (eq regexp-flag 'literal)))
@@ -390,10 +446,10 @@ as in `replace-search'."
 				    case-fold))
 	  (let* ((beg (match-beginning 0))
 		 (end (match-end 0))
-		 (text (propertize (match-substitute-replacement
-				    to nocasify literal)
-				   'face 'query-replace-preview)))
-	    (when (funcall isearch-filter-predicate beg end)
+		 (text (replace-preview--format
+			(buffer-substring beg end)
+			(match-substitute-replacement to nocasify literal))))
+	    (when (and text (funcall isearch-filter-predicate beg end))
 	      (let ((ov (make-overlay beg end)))
 		;; A zero-length overlay displays nothing, so for an
 		;; empty match show the replacement next to it instead.
