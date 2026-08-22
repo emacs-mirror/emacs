@@ -660,11 +660,11 @@ the future.  See `erc-match-mention-beg-rx-sexp' for the meaning of
   (mapconcat (lambda (w) (or (car-safe w) w)) patterns "\\|"))
 
 (defun erc-match--opt-pat-make-addr-beg (patterns)
-  (rx-let-eval `((candidates ,(erc-match--opt-pat-make patterns)))
+  (rx-let-eval `((candidates (regexp ,(erc-match--opt-pat-make patterns))))
     (rx-to-string erc-match-mention-beg-rx-sexp 'no-group)))
 
 (defun erc-match--opt-pat-make-addr-any (patterns)
-  (rx-let-eval `((candidates ,(erc-match--opt-pat-make patterns)))
+  (rx-let-eval `((candidates (regexp ,(erc-match--opt-pat-make patterns))))
     (rx-to-string erc-match-mention-any-rx-sexp 'no-group)))
 
 (defun erc-match--current-nick-p (match)
