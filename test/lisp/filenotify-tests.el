@@ -1541,8 +1541,14 @@ the file watch."
 
    ;; `file-notify--test-event-test' would signal a false alarm.
    (cl-letf* (((symbol-function #'file-notify--test-event-test) #'ignore))
-     (file-notify--test-with-actions '(renamed renamed)
-       ;; Both file notification watches receive the `renamed' action.
+     (file-notify--test-with-actions
+       (cond
+        ;; gfilenotify / GInotifyFileMonitor reports `created' as second event.
+        ((and (string-equal (file-notify--test-library) "gfilenotify")
+	      (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
+	 '(renamed created))
+	;; Both file notification watches receive the `renamed' action.
+	(t '(renamed renamed)))
        (rename-file file-notify--test-tmpfile1 file-notify--test-tmpdir)))
 
    ;; If one file notification watch has been removed, the synthesis of
@@ -1553,7 +1559,8 @@ the file watch."
        (cond
         ;; GInotifyFileMonitor uses `moved' instead of `moved-from' and
         ;; `moved-to'.  So it reports `renamed' twice.
-        ((eq (file-notify--test-monitor) 'GInotifyFileMonitor)
+        ((and (not (string-equal (file-notify--test-library) "gfilenotify"))
+	      (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
 	 '(renamed renamed))
         (t '(deleted created)))
      (rename-file file-notify--test-tmpfile file-notify--test-tmpdir1)
@@ -1568,7 +1575,8 @@ the file watch."
    (file-notify--test-with-actions
        (cond
         ;; GInotifyFileMonitor still reports `renamed'.
-        ((eq (file-notify--test-monitor) 'GInotifyFileMonitor)
+        ((and (not (string-equal (file-notify--test-library) "gfilenotify"))
+	      (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
 	 '(renamed stopped))
         (t '(deleted stopped)))
      (rename-file file-notify--test-tmpfile file-notify--test-tmpdir1)
