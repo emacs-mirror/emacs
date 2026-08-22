@@ -127,20 +127,21 @@ standard-compliant URI parser, as well as function
 @code{url-recreate-url}, which converts a parsed URI back into a URI
 string.
 
-@defun url-generic-parse-url uri-string
-This function returns a parsed version of the string @var{uri-string}.
+@defun url-generic-parse-url url
+This function returns a parsed version of the string @var{url}.
 @end defun
 
-@defun url-recreate-url uri-obj
+@defun url-recreate-url urlobj
 @cindex unparsing URLs
-Given a parsed URI, this function returns the corresponding URI string.
+Given a parsed URI in @var{urlobj}, this function returns the
+corresponding URI string.
 @end defun
 
 @cindex parsed URI
   The return value of @code{url-generic-parse-url}, and the argument
 expected by @code{url-recreate-url}, is a @dfn{parsed URI}: a CL
 structure whose slots hold the various components of the URI@.
-@xref{Top,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
+@xref{Structures,the CL Manual,,cl,GNU Emacs Common Lisp Emulation}, for
 details about CL structures.  Most of the other functions in the
 @code{url} library act on parsed URIs.
 
@@ -240,15 +241,15 @@ appear in URI components.)
 string containing arbitrary characters to one that is properly
 percent-encoded in accordance with RFC 3986.
 
-@defun url-encode-url url-string
+@cindex URI normalization
+@defun url-encode-url url
 This function return a properly URI-encoded version of
-@var{url-string}.  It also performs @dfn{URI normalization},
+@var{url}.  It also performs @dfn{URI normalization},
 e.g., converting the scheme component to lowercase if it was
 previously uppercase.
 @end defun
 
-@findex url-hexify-string
-@findex url-unhex-string
+@cindex percent-encoding of URL
   To convert between a string containing arbitrary characters and a
 percent-encoded all-@acronym{ASCII} string, use the functions
 @code{url-hexify-string} and @code{url-unhex-string}:
@@ -272,8 +273,8 @@ be either a list of allowed chars, or a vector whose Nth element is
 non-@code{nil} if character N is allowed.
 @end defun
 
-@defun url-unhex-string string &optional allow-newlines
-This function replaces percent-encoding sequences in @var{string} with
+@defun url-unhex-string str &optional allow-newlines
+This function replaces percent-encoding sequences in @var{str} with
 their character equivalents, and returns the resulting string.
 
 If @var{allow-newlines} is non-@code{nil}, it allows the decoding of
@@ -294,20 +295,20 @@ string or a parsed URL structure.  If it is a string, that string is
 passed through @code{url-encode-url} before using it, to ensure that
 it is properly URI-encoded (@pxref{URI Encoding}).
 
-@defun url-retrieve-synchronously url &optional silent no-cookies timeout
+@defun url-retrieve-synchronously url &optional silent inhibit-cookies timeout
 This function synchronously retrieves the data specified by @var{url},
 and returns a buffer containing the data.  The return value is
 @code{nil} if there is no data associated with the URL (as is the case
 for @code{dired}, @code{info}, and @code{mailto} URLs).
 
 If the optional argument @var{silent} is non-@code{nil}, progress
-messages are suppressed.  If the optional argument @var{no-cookies} is
+messages are suppressed.  If the optional argument @var{inhibit-cookies} is
 non-@code{nil}, cookies are not stored or sent.  If the optional
 argument @var{timeout} is non-@code{nil}, it should be a number that
 says (in seconds) how long to wait for a response before giving up.
 @end defun
 
-@defun url-retrieve url callback &optional cbargs silent no-cookies
+@defun url-retrieve url callback &optional cbargs silent inhibit-cookies
 This function retrieves @var{url} asynchronously, calling the function
 @var{callback} when the object has been completely retrieved.  The
 return value is the buffer into which the data will be inserted, or
@@ -336,7 +337,7 @@ signaled with @code{(signal @var{error-symbol} @var{data})}.
 @cindex status of GnuTLS connection, as provided by @code{url-retrieve}
 @findex gnutls-peer-status-warning-describe
 @findex gnutls-peer-status
-@item  (:peer @var{gnutls-information})
+@item (:peer @var{gnutls-information})
 This means that GnuTLS was used for a TLS connection to the peer.  The
 @var{gnutls-information} has the following form:
 
@@ -362,11 +363,11 @@ containing the retrieved data (if any).  The buffer also contains any
 MIME headers associated with the data retrieval.
 
 If the optional argument @var{silent} is non-@code{nil}, progress
-messages are suppressed.  If the optional argument @var{no-cookies} is
+messages are suppressed.  If the optional argument @var{inhibit-cookies} is
 non-@code{nil}, cookies are not stored or sent.
 @end defun
 
-@defun url-queue-retrieve url callback &optional cbargs silent no-cookies
+@defun url-queue-retrieve url callback &optional cbargs silent inhibit-cookies
 This function acts like @code{url-retrieve}, but with limits on the
 number of concurrently-running network processes.  The option
 @code{url-queue-parallel-processes} controls the number of concurrent
@@ -376,7 +377,6 @@ seconds.
 To use this function, you must @code{(require 'url-queue)}.
 @end defun
 
-@vindex url-queue-parallel-processes
 @defopt url-queue-parallel-processes
 The value of this option is an integer specifying the maximum number
 of concurrent @code{url-queue-retrieve} network processes.  If the
@@ -451,10 +451,11 @@ cookies, if there are any.  You can remove a cookie using the
 @kbd{C-k} (@code{url-cookie-delete}) command.
 @end defun
 
-@defun url-cookie-delete-cookies &optional regexp
+@defun url-cookie-delete-cookies &optional regexp keep
 This function takes a regular expression as its parameters and deletes
 all cookies from that domain.  If @var{regexp} is @code{nil}, delete
-all cookies.
+all cookies.  If @var{keep} is non-@code{nil}, instead delete all cookies
+that do not match @var{regexp}.
 @end defun
 
 @defopt url-cookie-file
@@ -533,7 +534,7 @@ HTTP supports an @samp{OPTIONS} method describing things supported by
 the URL@.
 
 @defun url-http-options url
-Returns a property list describing options available for URL@.  The
+Returns a property list describing options available for @var{url}.  The
 property list members are:
 
 @table @code
@@ -935,10 +936,13 @@ more likely to conflict with other files.
 @end smallexample
 @end defun
 
-@defun url-cache-expired
-This function returns non-@code{nil} if a cache entry has expired (or is absent).
-The arguments are a URL and optional expiration delay in seconds
-(default @var{url-cache-expire-time}).
+@defun url-cache-expired url &optional expire-time
+This function returns non-@code{nil} if a cache entry for @var{url} has
+expired (or is absent).  The expiration time is given by the option
+@code{url-cache-expire-time}, but if the optional argument
+@var{expire-time} is non-@code{nil}, its value overrides that option.
+However, if the value of the @code{url-standalone-mode} option is
+non-@code{nil}, cached URLs never expire.
 @end defun
 
 @defopt url-cache-expire-time
@@ -946,7 +950,7 @@ This variable is the default number of seconds to use for the
 expire-time argument of the function @code{url-cache-expired}.
 @end defopt
 
-@defun url-fetch-from-cache
+@defun url-fetch-from-cache url
 This function takes a URL as its argument and returns a buffer
 containing the data cached for that URL.
 @end defun
@@ -1037,12 +1041,14 @@ others.@footnote{Proxies (which only operate over HTTP) are
 implemented using this.}  The library's basic function responsible for
 making connections is @code{url-open-stream}.
 
-@defun url-open-stream name buffer host service
 @cindex opening a stream
 @cindex stream, opening
+@defun url-open-stream name buffer host service &optional gateway-method
 Open a stream to @var{host}, possibly via a gateway.  The other
 arguments are as for @code{open-network-stream}.  This will not make a
-connection if @code{url-gateway-unplugged} is non-@code{nil}.
+connection if @code{url-gateway-unplugged} is non-@code{nil}.  Optional
+argument @var{gateway-method} specifies the gateway to be used, and
+defaults to the value of @code{url-gateway-method}, described below.
 @end defun
 
 @defvar url-gateway-local-host-regexp
