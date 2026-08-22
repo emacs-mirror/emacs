@@ -71,6 +71,15 @@
          (pop-up-frame-alist frame-params)
          (frame-auto-hide-function 'delete-frame))
 
+    ;; After commit 293eaf323a0 (bug#81575) 'frame-deletable-p'
+    ;; checks if frames are on the same terminal.  But in this test
+    ;; the first frame F1 is on initial_terminal, but other created
+    ;; frames are on #<terminal 1 on /dev/tty>.  So create a new frame
+    ;; on the same terminal as other created frames, and delete
+    ;; the initial frame that is on another terminal.
+    (make-frame pop-up-frame-alist)
+    (delete-frame (car (last (frame-list))) nil)
+
     ;; 1.1. 'quit-restore-window' should delete the frame
     ;; from initial window (bug#59862)
     (progn

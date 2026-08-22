@@ -2560,9 +2560,11 @@ as the anchor.")
                          ;; has a prefix, indent to the beginning of
                          ;; prev line's prefix rather than the end of
                          ;; prev line's prefix. (Bug#61314).
-                         (or (and this-line-has-prefix
-                                  (match-beginning 1))
-                             (match-end 0)))))))
+                         (if this-line-has-prefix
+                             (progn
+                               (skip-syntax-forward "-")
+                               (point))
+                           (match-end 0)))))))
         (cons 'grand-parent
               (lambda (_n parent &rest _)
                 (treesit-node-start (treesit-node-parent parent))))

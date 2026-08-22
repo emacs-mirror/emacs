@@ -3738,8 +3738,8 @@ modification takes place inside 'with-help-window' or
 
 ** Xref commands don't automatically suggest visiting a tags table anymore.
 When no tags file is loaded, symbol completion now just won't provide
-any suggestions.  Thus, so the 'M-?' command now works without a tags
-table.  And the 'M-.' command will show a message describing the several
+any suggestions.  Thus, the 'M-?' command now works without a tags
+table, and the 'M-.' command will show a message describing the several
 built-in options that will provide an Xref backend when used.
 
 ** Calling 'debug' in batch sessions no longer kills Emacs.
