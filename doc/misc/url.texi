@@ -133,7 +133,8 @@ This function returns a parsed version of the string @var{url}.
 
 @defun url-recreate-url urlobj
 @cindex unparsing URLs
-Given a parsed URI, this function returns the corresponding URI string.
+Given a parsed URI in @var{urlobj}, this function returns the
+corresponding URI string.
 @end defun
 
 @cindex parsed URI
@@ -240,6 +241,7 @@ appear in URI components.)
 string containing arbitrary characters to one that is properly
 percent-encoded in accordance with RFC 3986.
 
+@cindex URI normalization
 @defun url-encode-url url
 This function return a properly URI-encoded version of
 @var{url}.  It also performs @dfn{URI normalization},
@@ -247,8 +249,7 @@ e.g., converting the scheme component to lowercase if it was
 previously uppercase.
 @end defun
 
-@findex url-hexify-string
-@findex url-unhex-string
+@cindex percent-encoding of URL
   To convert between a string containing arbitrary characters and a
 percent-encoded all-@acronym{ASCII} string, use the functions
 @code{url-hexify-string} and @code{url-unhex-string}:
@@ -376,7 +377,6 @@ seconds.
 To use this function, you must @code{(require 'url-queue)}.
 @end defun
 
-@vindex url-queue-parallel-processes
 @defopt url-queue-parallel-processes
 The value of this option is an integer specifying the maximum number
 of concurrent @code{url-queue-retrieve} network processes.  If the
@@ -937,9 +937,12 @@ more likely to conflict with other files.
 @end defun
 
 @defun url-cache-expired url &optional expire-time
-This function returns non-@code{nil} if a cache entry has expired (or is absent).
-The arguments are a URL and optional expiration delay in seconds
-(default @code{url-cache-expire-time}).
+This function returns non-@code{nil} if a cache entry for @var{url} has
+expired (or is absent).  The expiration time is given by the option
+@code{url-cache-expire-time}, but if the optional argument
+@var{expire-time} is non-@code{nil}, its value overrides that option.
+However, if the value of the @code{url-standalone-mode} option is
+non-@code{nil}, cached URLs never expire.
 @end defun
 
 @defopt url-cache-expire-time
@@ -1038,12 +1041,14 @@ others.@footnote{Proxies (which only operate over HTTP) are
 implemented using this.}  The library's basic function responsible for
 making connections is @code{url-open-stream}.
 
-@defun url-open-stream name buffer host service &optional gateway-method
 @cindex opening a stream
 @cindex stream, opening
+@defun url-open-stream name buffer host service &optional gateway-method
 Open a stream to @var{host}, possibly via a gateway.  The other
 arguments are as for @code{open-network-stream}.  This will not make a
-connection if @code{url-gateway-unplugged} is non-@code{nil}.
+connection if @code{url-gateway-unplugged} is non-@code{nil}.  Optional
+argument @var{gateway-method} specifies the gateway to be used, and
+defaults to the value of @code{url-gateway-method}, described below.
 @end defun
 
 @defvar url-gateway-local-host-regexp
