@@ -6134,13 +6134,15 @@ ns_term_init (Lisp_Object display_name)
 #endif
                             NSPasteboardTypeURL, nil] retain];
 
-  /* If fullscreen is in init/default-frame-alist, focus isn't set
-     right for fullscreen windows, so set this.  */
-  [NSApp activateIgnoringOtherApps:YES];
-
   NSTRACE_MSG ("Call NSApp run");
-
   [NSApp run];
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
+  [NSApp activate];
+#else
+  [NSApp activateIgnoringOtherApps:YES];
+#endif
+
   ns_do_open_file = YES;
 
 #ifdef NS_IMPL_GNUSTEP
