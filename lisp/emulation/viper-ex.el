@@ -65,8 +65,8 @@
 (defun ex-cmd-not-yet (name)
   (error "`%s': Command not implemented in Viper" name))
 
-;; map for characters that are considered ambiguous according
-;; to POSIX with their literal replacement
+;; Map for characters that are considered ambiguous according
+;; to POSIX with their literal replacement.
 (defvar ex-ambiguous-char-map
   '(("$"  . "\\$")  ;; dollar sign
     ("\\" . "\\\\") ;; backslash
