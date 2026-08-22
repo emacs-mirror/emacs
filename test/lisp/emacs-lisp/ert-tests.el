@@ -1064,12 +1064,28 @@ F failing-test
                   (result (ert-run-test ert-test))
                   (erts-file-tests (ert-test-result-erts-file-tests result)))
              (mapcar (lambda (desc)
-                       (cdr (assq 'name desc)))
+                       (ert--erts-file-test-description-name desc))
                      erts-file-tests)))))
     (should (equal (funcall run-erts-file-tests "erts-file-test-list.erts")
                    '("foo" "bar" "quux")))
     (should (equal (funcall run-erts-file-tests "erts-file-test-list-fail.erts")
                    '("foo" "bar")))))
+
+(ert-deftest ert-test-erts-file-test-output-mismatch ()
+  "Test that mismatch data is captured for failed erts-file tests."
+  (let ((run-erts-file-tests
+         (lambda (erts-file)
+           (let* ((ert-test (make-ert-test
+                             :body (lambda ()
+                                     (ert-test-erts-file
+                                      (ert-resource-file erts-file)
+                                      (lambda () ())))))
+                  (result (ert-run-test ert-test))
+                  (first-test (nth 0 (ert-test-result-erts-file-tests result))))
+             (ert--erts-file-test-description-mismatch first-test)))))
+    (should-not (funcall run-erts-file-tests "erts-pass.erts"))
+    (should (funcall run-erts-file-tests "erts-fail.erts"))
+    (should (funcall run-erts-file-tests "erts-fail-point.erts"))))
 
 (provide 'ert-tests)
 

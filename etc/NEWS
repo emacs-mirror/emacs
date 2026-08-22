@@ -456,6 +456,13 @@ function as you would with 'elisp-scope-define-function-analyzer'.
 Lisp programs may let-bind this variable to specify conditional actions
 for nested 'display-buffer' calls.
 
++++
+** New button to diff failed erts-file test output in ERT.
+When a test fails, the erts-file tests buffer displayed by
+'ert-results-pop-to-erts-file-tests-for-test-at-point' now includes a
+button labeled "diff".  Pushing it displays a Diff Mode buffer comparing
+the actual and expected output.
+
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
 
