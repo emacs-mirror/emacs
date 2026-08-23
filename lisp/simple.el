@@ -10176,8 +10176,11 @@ the completions is popped up and down."
           (last-col (progn
                       (first-completion)
                       (goto-char (pos-eol))
-                      (goto-char (previous-single-property-change
-                                  (point) 'mouse-face))
+                      ;; Go to the beginning of the candidate.  We loop
+                      ;; to move past any completion annotations.
+                      (while (not (get-text-property (point) 'mouse-face))
+                        (goto-char
+                         (previous-single-property-change (point) 'mouse-face)))
                       (current-column))))
       (if (zerop last-col)
           ;; If there is only one column of completions, the last
