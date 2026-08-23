@@ -932,7 +932,9 @@ invert the prefix arg instead."
       (if (stringp dpy)
         (cond
          ((featurep 'pgtk)
-          (setq classname (pgtk-backend-display-class))
+          (setq classname
+                (if (window-system)
+                    (pgtk-backend-display-class)))
           (if (equal classname "GdkWaylandDisplay")
               (progn
                 ;; The `display' frame parameter is probably wrong.
