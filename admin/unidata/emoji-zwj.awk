@@ -68,6 +68,7 @@
 
 /^[0-9A-F]+ FE0F *; *emoji style;/ {
     tty_trigger_codepoints[++n_tty_triggers] = $1
+    ch[$1] = $1
 }
 
 END {
@@ -112,6 +113,11 @@ END {
          print "?\\N{U+" tty_trigger_codepoints[trig] "}"
      }
      print "))"
+     # Exclude keycap sequence initials
+     delete ch["0023"]
+     delete ch["002A"]
+     for (i = 0; i <= 9; i ++)
+         delete ch[sprintf("003%d", i)]
 
      # Generate unqualified tail initials.
      print "(setq auto-composition-emoji-unqualified-tail-initials"
