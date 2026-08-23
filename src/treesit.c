@@ -421,19 +421,19 @@ init_treesit_functions (void)
    :-)
 
    Parsers in indirect buffers: We make indirect buffers share the
-   parser of their base buffer.  Indirect buffers and their base buffer
-   share the same buffer content but not other buffer attributes.  If
-   they have separate parser lists, changes made in an indirect buffer
-   will only update parsers of that indirect buffer, and not parsers in
-   the base buffer or other indirect buffers, and vice versa.  For that
-   reason, the base buffer and all ot its indirect buffers share a
-   single parser list.  But each parser in this shared parser list still
-   points to their own buffer.  On top of that, treesit-parser-list only
-   return parsers that belongs to the calling buffer.  So ultimately,
-   from the user's POV, each buffer, regardless of indirect or not,
-   appears to have their own parser list.  A discussion can be found in
-   bug#59693.  Note that that discussion led to an earlier design, which
-   is different from the current one.
+   parser list of their base buffer.  Indirect buffers and their base
+   buffer share the same buffer content but not other buffer attributes.
+   If they have separate parser lists, changes made in an indirect
+   buffer will only update parsers of that indirect buffer, and not
+   parsers in the base buffer or other indirect buffers, and vice versa.
+   For that reason, the base buffer and all ot its indirect buffers
+   share a single parser list.  But each parser in this shared parser
+   list still points to their own buffer.  On top of that,
+   treesit-parser-list only return parsers that belongs to the calling
+   buffer.  So ultimately, from the user's POV, each buffer, regardless
+   of indirect or not, appears to have their own parser list.  A
+   discussion can be found in bug#59693.  Note that that discussion led
+   to an earlier design, which is different from the current one.
 
    Line and column reporting to tree-sitter: technically we had to send
    tree-sitter the line and column position of each edit.  But in
@@ -2348,12 +2348,7 @@ already has a parser for LANGUAGE with TAG, return that parser, but if
 NO-REUSE is non-nil, always create a new parser.
 
 TAG can be any symbol except t, and defaults to nil.  Different
-parsers can have the same tag.
-
-If that buffer is an indirect buffer, its base buffer is used instead.
-That is, indirect buffers use their base buffer's parsers.  Lisp
-programs should widen as necessary should they want to use a parser in
-an indirect buffer.  */)
+parsers can have the same tag.  */)
   (Lisp_Object language, Lisp_Object buffer, Lisp_Object no_reuse,
    Lisp_Object tag)
 {
@@ -2467,9 +2462,7 @@ DEFUN ("treesit-parser-list",
        0, 3, 0,
        doc: /* Return BUFFER's parser list, filtered by LANGUAGE and TAG.
 
-BUFFER defaults to the current buffer.  If that buffer is an indirect
-buffer, its base buffer is used instead.  That is, indirect buffers
-use their base buffer's parsers.
+BUFFER defaults to the current buffer.
 
 If LANGUAGE is non-nil, only return parsers for that language.
 
