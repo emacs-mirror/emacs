@@ -1,4 +1,4 @@
-;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
+;;; cperl-mode.el --- Perl code editing commands -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
@@ -6,8 +6,9 @@
 ;;	Bob Olson
 ;;	Jonathan Rockway <jon@jrock.us>
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: languages, Perl
+;; Keywords: languages
 ;; Package-Requires: ((emacs "26.1"))
+;; URL: https://github.com/HaraldJoerg/cperl-mode/issues/32
 
 ;; This file is part of GNU Emacs.
 
@@ -61,7 +62,7 @@
 ;; above), please eliminate the corresponding compatibility-helpers.
 ;; Whenever you create a new compatibility-helper, please add it here.
 
-;; Available in Emacs 27.1: time-convert
+;; Available in Emacs 27.1: time-convert (not provided by Compat)
 (defalias 'cperl--time-convert
   (if (fboundp 'time-convert) 'time-convert
     'encode-time))
