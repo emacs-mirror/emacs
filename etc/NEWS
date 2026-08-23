@@ -110,11 +110,11 @@ If you still want to show the "*Completions*" buffer, then customize
 the user option 'icomplete-in-buffer' to the value 'with-completions-popup'.
 
 ---
-** Improved Emoji support on textual terminals
-Emacs now composes Emoji sequences as two-column glyphs on textual
+** Improved Emoji support on text-only terminals.
+Emacs now composes Emoji sequences as two-column glyphs on text-mode
 terminals when 'auto-composition-mode' is enabled.  This should correct
 a number of movement and display issues on an Emoji-capable terminal
-emulator.
+emulators.
 
 However, the actual rendering of Emoji still depends on the capability
 of the terminal emulator:
