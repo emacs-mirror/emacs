@@ -423,16 +423,16 @@ init_treesit_functions (void)
    Parsers in indirect buffers: We make indirect buffers share the
    parser list of their base buffer.  Indirect buffers and their base
    buffer share the same buffer content but not other buffer attributes.
-   If they have separate parser lists, changes made in an indirect
-   buffer will only update parsers of that indirect buffer, and not
+   If they had separate parser lists, changes made in an indirect
+   buffer would only update parsers of that indirect buffer, and not
    parsers in the base buffer or other indirect buffers, and vice versa.
-   For that reason, the base buffer and all ot its indirect buffers
+   For that reason, the base buffer and all of its indirect buffers
    share a single parser list.  But each parser in this shared parser
    list still points to their own buffer.  On top of that,
-   treesit-parser-list only return parsers that belongs to the calling
+   treesit-parser-list only returns parsers that belong to the calling
    buffer.  So ultimately, from the user's POV, each buffer, regardless
-   of indirect or not, appears to have their own parser list.  A
-   discussion can be found in bug#59693.  Note that that discussion led
+   of whether indirect or not, appears to have its own parser list.  A
+   discussion can be found in bug#59693.  Note that the discussion led
    to an earlier design, which is different from the current one.
 
    Line and column reporting to tree-sitter: technically we had to send
