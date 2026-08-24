@@ -362,6 +362,11 @@ General steps (for each step, check for possible errors):
     an email.)
 
 14. After a release, update the Emacs pages as described below.
+    Note: it is important to add the new NEWS file _before_ bumping the
+    Emacs version on the release branch, because doing the latter will
+    add (empty) sections to NEWS for the next version, and you don't
+    want those sections in the NEWS file reachable from the GNU Emacs
+    page.
 
 15. After a release, bump the Emacs version on the release branch.
     There is no need to bump the version after a pretest; the version
