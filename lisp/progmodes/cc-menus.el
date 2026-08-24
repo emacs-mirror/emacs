@@ -325,7 +325,7 @@ nested angle brackets constructs."
    ;; Pick a token by (match-string 3 or 4)
    ;;
    "\\|\\("
-   "^[-+][:" c-alnum "()*_<>\n\t ]*[;{]"        ; Methods
+   "^[-+][:" c-alnum "()*_,<>\n\t ]*[;{]"        ; Methods
    "\\|"
    "^@interface[\t ]+[" c-alnum "_]+[\t ]*:"
    "\\|"
@@ -501,14 +501,17 @@ Example:
 	(let ((classname (car (car toplist)))
 	      (p (cdr (car (cdr (car toplist)))))
 	      last)
-	  (setq toplist (cons (cons classname p) (cdr (cdr (car toplist)))))
+	  (when classname
+	    (setq toplist (cons (cons classname p) (cdr (cdr (car toplist))))))
 	  ;; Add C lang token
 	  (if clist
-	      (progn
-		(setq last toplist)
-		(while (cdr last)
-		  (setq last (cdr last)))
-		(setcdr last clist))))
+	      (if toplist
+		  (progn
+		    (setq last toplist)
+		    (while (cdr last)
+		      (setq last (cdr last)))
+		    (setcdr last clist))
+		(setq toplist clist))))
       ;; Add C lang tokens as a sub menu
       (if clist
 	  (setq toplist (cons (cons "C" clist) toplist))))
