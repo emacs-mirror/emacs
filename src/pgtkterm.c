@@ -852,12 +852,15 @@ pgtk_make_frame_visible (struct frame *f)
 void
 pgtk_make_frame_invisible (struct frame *f)
 {
-  gtk_widget_hide (FRAME_WIDGET (f));
+  if (FRAME_VISIBLE_P (f))
+    {
+      gtk_widget_hide (FRAME_WIDGET (f));
 
-  pgtk_wait_for_event (f, "unmap-event");
+      pgtk_wait_for_event (f, "unmap-event");
 
-  SET_FRAME_VISIBLE (f, 0);
-  SET_FRAME_ICONIFIED (f, false);
+      SET_FRAME_VISIBLE (f, 0);
+      SET_FRAME_ICONIFIED (f, false);
+    }
 }
 
 static void
