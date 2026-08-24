@@ -787,9 +787,9 @@ pgtk_iconify_frame (struct frame *f)
 }
 
 static gboolean
-pgtk_make_frame_visible_wait_for_map_event_cb (GtkWidget *widget,
-					       GdkEventAny *event,
-					       gpointer user_data)
+pgtk_make_frame_visible_wait_for_event_cb (GtkWidget *widget,
+					   GdkEventAny *event,
+					   gpointer user_data)
 {
   int *foundptr = user_data;
   *foundptr = 1;
@@ -797,7 +797,7 @@ pgtk_make_frame_visible_wait_for_map_event_cb (GtkWidget *widget,
 }
 
 static gboolean
-pgtk_make_frame_visible_wait_for_map_event_timeout (gpointer user_data)
+pgtk_make_frame_visible_wait_for_event_timeout (gpointer user_data)
 {
   int *timedoutptr = user_data;
   *timedoutptr = 1;
@@ -805,7 +805,7 @@ pgtk_make_frame_visible_wait_for_map_event_timeout (gpointer user_data)
 }
 
 static void
-pgtk_wait_for_map_event (struct frame *f, bool multiple_times)
+pgtk_wait_for_event (struct frame *f, const gchar *signal_name)
 {
   if (FLOATP (Vpgtk_wait_for_event_timeout))
     {
@@ -814,25 +814,17 @@ pgtk_wait_for_map_event (struct frame *f, bool multiple_times)
       int found = 0;
       int timed_out = 0;
       gulong id
-	= g_signal_connect (FRAME_WIDGET (f), "map-event",
+	= g_signal_connect (FRAME_WIDGET (f), signal_name,
 			    G_CALLBACK
-			    (pgtk_make_frame_visible_wait_for_map_event_cb),
+			    (pgtk_make_frame_visible_wait_for_event_cb),
 			    &found);
       guint src
 	= g_timeout_add (msec,
-			 pgtk_make_frame_visible_wait_for_map_event_timeout,
+			 pgtk_make_frame_visible_wait_for_event_timeout,
 			 &timed_out);
 
-      if (!multiple_times)
-	{
-	  while (!found && !timed_out)
-	    gtk_main_iteration ();
-	}
-      else
-	{
-	  while (!timed_out)
-	    gtk_main_iteration ();
-	}
+      while (!found && !timed_out)
+	gtk_main_iteration ();
 
       g_signal_handler_disconnect (FRAME_WIDGET (f), id);
 
@@ -852,7 +844,7 @@ pgtk_make_frame_visible (struct frame *f)
       if (win)
 	gtk_window_deiconify (GTK_WINDOW (win));
 
-      pgtk_wait_for_map_event (f, false);
+      pgtk_wait_for_event (f, "map-event");
     }
 }
 
@@ -862,9 +854,7 @@ pgtk_make_frame_invisible (struct frame *f)
 {
   gtk_widget_hide (FRAME_WIDGET (f));
 
-  /* Handle any pending map event(s), then make the frame visible
-     manually, to avoid race conditions.  */
-  pgtk_wait_for_map_event (f, true);
+  pgtk_wait_for_event (f, "unmap-event");
 
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, false);
