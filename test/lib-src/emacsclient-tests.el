@@ -50,12 +50,13 @@
 
 (ert-deftest emacsclient-test-alternate-editor-allows-arguments ()
   (emacsclient-test-call-emacsclient
-   (concat (expand-file-name invocation-name invocation-directory) " --batch")))
+   (concat (expand-file-name invocation-name invocation-directory)
+           " --batch -Q")))
 
 (ert-deftest emacsclient-test-alternate-editor-allows-quotes ()
   (emacsclient-test-call-emacsclient
    (concat "\"" (expand-file-name invocation-name invocation-directory)
-           "\"" " --batch")))
+           "\"" " --batch -Q")))
 
 (provide 'emacsclient-tests)
 ;;; emacsclient-tests.el ends here

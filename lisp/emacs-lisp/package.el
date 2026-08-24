@@ -2815,7 +2815,10 @@ If no such file exists, the function returns nil."
   "Insert the package description for PKG.
 Helper function for `describe-package'."
   (require 'lisp-mnt)
-  (let* ((desc (package-get-descriptor pkg t))
+  (let* ((desc (if (eq pkg 'emacs)
+                   (package--from-builtin
+                    (assq 'emacs package--builtins))
+                 (package-get-descriptor pkg t)))
          (name (if desc (package-desc-name desc) pkg))
          (pkg-dir (if desc (package-desc-dir desc)))
          (reqs (if desc (package--dependencies desc)))
