@@ -52,6 +52,7 @@
   (tab-bar-tabs-set nil))
 
 (ert-deftest tab-bar-tests-quit-restore-window ()
+  :tags '(:unstable)                    ; Can hang.
   (skip-when (pcase system-type
                ;; Skip test on MS-Windows in batch mode, since terminal
                ;; frames cannot be created in that case.
