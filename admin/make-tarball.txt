@@ -102,9 +102,7 @@ General steps (for each step, check for possible errors):
     easiest way of creating the new ChangeLog.N is to rename the file
     ChangeLog (without the .N suffix) left over from the last release
     (it is usually unversioned) and commit it, together with the
-    modified Makefile.in.  If you don't have the unversioned ChangeLog
-    file from the last release, you can take it from the release
-    tarball.
+    modified Makefile.in.
 
     Now:
 
@@ -133,6 +131,7 @@ General steps (for each step, check for possible errors):
     Save the "*Authors*" buffer as etc/AUTHORS.
     Check the diff looks reasonable.  Maybe add more entries to
     authors-ambiguous-files or authors-aliases, and repeat.
+    If making a release, move the "Version NN.N released." back to the top.
     Commit and push any fixes to authors.el with a message like this:
 
       ; Update exported ChangeLog files and etc/AUTHORS
@@ -161,30 +160,17 @@ General steps (for each step, check for possible errors):
       one, as described above).  Pick a date about a week from now when
       you intend to make the release.  Use M-x add-release-logs from
       admin/admin.el to add entries to etc/HISTORY and the ChangeLog
-      file.  It's best not to commit these files until the release is
-      actually made.  Merge the entries from (unversioned) ChangeLog
-      into the top of the current versioned ChangeLog.N and commit that
-      along with etc/HISTORY.  Then you can tag that commit as the
-      release.
+      file.  Merge the entries from the unversioned ChangeLog into the
+      top of the current versioned ChangeLog.N and commit that along
+      with etc/HISTORY.  Name the tar file as emacs-XX.Y-rc1.tar.
 
-      Alternatively, you can commit and tag with the RC tag right away,
-      and delay the final tagging until you actually decide to make a
-      release and announce it.  The "git tag" command can tag a specific
-      commit if you give it the SHA1 of that commit, even if additional
-      commits have been pushed in the meantime.
+      If you need another release candidate, remember to adjust the
+      ChangeLog and etc/HISTORY entries.  Never replace an existing
+      tarfile!  If you need to fix something, always upload it with a
+      different name.
 
-      Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
-      following week, you can simply rename the file and use it for the
-      actual release.  If you need another release candidate, remember
-      to adjust the ChangeLog and etc/HISTORY entries.
-
-      If you need to change only a file(s) that cannot possibly affect
-      the build (README, ChangeLog, NEWS, etc.) then rather than doing
-      an entirely new build, it is better to unpack the existing
-      tarfile, modify the file(s), and tar it back up again.
-
-      Never replace an existing tarfile!  If you need to fix something,
-      always upload it with a different name.
+    If this is the release itself, copy the unversioned ChangeLog from
+    the previous release candidate tarball into your worktree.
 
 4.    autoreconf -i -I m4 --force && make bootstrap
 
@@ -231,8 +217,8 @@ General steps (for each step, check for possible errors):
     Alternatively, if you want to do this manually using the compressed
     tarballs:
 
-     tar tJf emacs-OLD.tar.xz | sed -e 's,^[^/]*,,' | sort > old_tmp
-     tar tJf emacs-NEW.tar.xz | sed -e 's,^[^/]*,,' | sort > new_tmp
+     tar tJf emacs-OLD.tar.xz | sed -e 's,^[^/]*,,' | sort >old_tmp
+     tar tJf emacs-NEW.tar.xz | sed -e 's,^[^/]*,,' | sort >new_tmp
      diff -u old_tmp new_tmp
 
     If this is the first pretest of a major release, just comparing
@@ -289,8 +275,8 @@ General steps (for each step, check for possible errors):
 
 11. Decide what compression schemes to offer.
     For a release, at least gz and xz:
-      gzip --best --no-name -c emacs-NEW.tar > emacs-NEW.tar.gz
-      xz -c emacs-NEW.tar > emacs-NEW.tar.xz
+      gzip --best --no-name -c emacs-NEW.tar >emacs-NEW.tar.gz
+      xz -c emacs-NEW.tar >emacs-NEW.tar.xz
     For pretests, just xz is probably fine (saves bandwidth).
 
     Now we will upload the files to the GNU FTP server.  In the case of
@@ -304,6 +290,8 @@ General steps (for each step, check for possible errors):
        -- NEW_FILE.gz NEW_FILE.xz ...
 
     For a release:
+     gnupload [--user your@gpg.key.email] --to alpha.gnu.org:emacs/pretest \
+       --delete NEW-rc1_FILE.xz
      gnupload [--user your@gpg.key.email] --to ftp.gnu.org:emacs \
        NEW_FILE.gz NEW_FILE.xz ...
 
@@ -321,8 +309,8 @@ General steps (for each step, check for possible errors):
     clearsigned directive file like this:
 
      gpg -b FILE
-     echo directory: emacs/pretest > FILE.directive      (for a pretest)
-     echo directory: emacs > FILE.directive              (for a release)
+     echo directory: emacs/pretest >FILE.directive      (for a pretest)
+     echo directory: emacs >FILE.directive              (for a release)
      gpg --clearsign FILE.directive
     Upload by anonymous ftp to ftp://ftp-upload.gnu.org/ the files FILE,
     FILE.sig, FILE.directive.asc.
@@ -333,8 +321,8 @@ General steps (for each step, check for possible errors):
 12. After five minutes, verify that the files are visible at
     <https://alpha.gnu.org/gnu/emacs/pretest/> for a pretest, or
     <https://ftp.gnu.org/gnu/emacs/> for a release.  If uploading a
-    pretest, the delete of the previous pretest a few minutes before the
-    creation of the new file.
+    pretest, the deletion of the previous pretest happens a few minutes
+    before the creation of the new file.
 
     Download them and check the signatures and SHA1/SHA256 checksums.
 
