@@ -12143,6 +12143,20 @@ This function might do hidden buffer changes."
       (c-clear-c-type-property start (point) 'c-decl-end)
       nil)))
 
+(defun c-beginning-of-objc-method-header ()
+  ;; Move to the - or + character which begins the objc method header we're in
+  ;; or just after, and return t.  If we're not in such a construct, leave
+  ;; point unchanged and return nil.
+  (let ((here (point)))
+    (c-syntactic-skip-backward "^-+;{}" nil t)
+    (if (and (memq (char-before) '(?- ?+))
+	     (c-bs-at-toplevel-p (point)))
+	(progn
+	  (backward-char)
+	  t)
+      (goto-char here)
+      nil)))
+
 (defun c-beginning-of-inheritance-list (&optional lim)
   ;; Go to the first non-whitespace after the colon that starts a
   ;; multiple inheritance introduction.  Optional LIM is the farthest

@@ -2493,89 +2493,92 @@ with // and /*, not more generic line and block comments."
   ;; c-after-change (to prepare for after-change font-locking) or from font
   ;; lock context (etc.) fontification.
   (goto-char pos)
-  (let ((lit-start (c-literal-start))
-	old-pos
-	(new-pos pos)
-	capture-opener
-	bod-lim bo-decl
-	paren-state containing-brace)
-    (goto-char (c-point 'bol new-pos))
-    (unless lit-start
-      (setq bod-lim (c-determine-limit 500))
+  (or (and (c-major-mode-is 'objc-mode)
+	   (c-beginning-of-objc-method-header)
+	   (point))
+      (let ((lit-start (c-literal-start))
+	    old-pos
+	    (new-pos pos)
+	    capture-opener
+	    bod-lim bo-decl
+	    paren-state containing-brace)
+	(goto-char (c-point 'bol new-pos))
+	(unless lit-start
+	  (setq bod-lim (c-determine-limit 500))
 
-      ;; In C++ Mode, first check if we are within a (possibly nested) lambda
-      ;; form capture list.
-      (when (c-major-mode-is 'c++-mode)
-	(save-excursion
-	  (while (and (c-go-up-list-backward nil bod-lim)
-		      (c-looking-at-c++-lambda-capture-list))
-	    (setq capture-opener (point)))))
+	  ;; In C++ Mode, first check if we are within a (possibly nested) lambda
+	  ;; form capture list.
+	  (when (c-major-mode-is 'c++-mode)
+	    (save-excursion
+	      (while (and (c-go-up-list-backward nil bod-lim)
+			  (c-looking-at-c++-lambda-capture-list))
+		(setq capture-opener (point)))))
 
-      (while
-	  ;; Go to a less nested declaration each time round this loop.
-	  (and
-	   (setq old-pos (point))
-	   ;; The following form tries to move to the end of the previous
-	   ;; declaration without moving outside of an enclosing {.
-	   (let (pseudo)
-	     (while
-		 (and
-		  ;; N.B. `c-syntactic-skip-backward' doesn't check (> (point)
-		  ;; lim) and can loop if that's not the case.
-		  (> (point) bod-lim)
-		  (progn
-		    (c-syntactic-skip-backward "^;{}" bod-lim t)
-		    (and (eq (char-before) ?})
-			 (save-excursion
-			   (backward-char)
-			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
-	       (goto-char pseudo))
-	     (or pseudo (bobp) (> (point) bod-lim)))
-	   ;; Move forward to the start of the next declaration.
-	   (progn (c-forward-syntactic-ws)
-		  ;; Have we got stuck in a comment at EOB?
-		  (not (and (eobp)
-			    (c-literal-start))))
-	   (< (point) old-pos)
-	   (progn (setq bo-decl (point))
-		  (or (not (looking-at c-protection-key))
-		      (c-forward-keyword-clause 1)))
-	   (progn
-	     ;; Are we looking at a keyword such as "template" or
-	     ;; "typedef" which can decorate a type, or the type itself?
-	     (when (or (looking-at c-prefix-spec-kwds-re)
-		       (c-forward-type t))
-	       ;; We've found another candidate position.
-	       (setq new-pos (min new-pos bo-decl))
-	       (goto-char bo-decl))
-	     t)
-	   ;; Try and go out a level to search again.
-	   (progn
-	     (c-backward-syntactic-ws bod-lim)
-	     (and (> (point) bod-lim)
-		  (or (memq (char-before) '(?\( ?\[))
-		      (and (eq (char-before) ?\<)
-			   (equal
-			    (c-get-char-property
-				(1- (point)) 'syntax-table)
-			       c-<-as-paren-syntax))
-		      (and (eq (char-before) ?{)
-			   (save-excursion
-			     (backward-char)
-			     (setq paren-state (c-parse-state))
-			     (while
-				 (and
-				  (setq containing-brace
-					(c-pull-open-brace paren-state))
-				  (not (eq (char-after containing-brace) ?{))))
-			     (consp (c-looking-at-or-maybe-in-bracelist
-				     containing-brace containing-brace))))
-		      )))
-	   (not (bobp)))
-	(backward-char))		; back over (, [, <.
-      (when (and capture-opener (< capture-opener new-pos))
-	(setq new-pos capture-opener))
-      (and (/= new-pos pos) new-pos))))
+	  (while
+	      ;; Go to a less nested declaration each time round this loop.
+	      (and
+	       (setq old-pos (point))
+	       ;; The following form tries to move to the end of the previous
+	       ;; declaration without moving outside of an enclosing {.
+	       (let (pseudo)
+		 (while
+		     (and
+		      ;; N.B. `c-syntactic-skip-backward' doesn't check (> (point)
+		      ;; lim) and can loop if that's not the case.
+		      (> (point) bod-lim)
+		      (progn
+			(c-syntactic-skip-backward "^;{}" bod-lim t)
+			(and (eq (char-before) ?})
+			     (save-excursion
+			       (backward-char)
+			       (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
+		   (goto-char pseudo))
+		 (or pseudo (bobp) (> (point) bod-lim)))
+	       ;; Move forward to the start of the next declaration.
+	       (progn (c-forward-syntactic-ws)
+		      ;; Have we got stuck in a comment at EOB?
+		      (not (and (eobp)
+				(c-literal-start))))
+	       (< (point) old-pos)
+	       (progn (setq bo-decl (point))
+		      (or (not (looking-at c-protection-key))
+			  (c-forward-keyword-clause 1)))
+	       (progn
+		 ;; Are we looking at a keyword such as "template" or
+		 ;; "typedef" which can decorate a type, or the type itself?
+		 (when (or (looking-at c-prefix-spec-kwds-re)
+			   (c-forward-type t))
+		   ;; We've found another candidate position.
+		   (setq new-pos (min new-pos bo-decl))
+		   (goto-char bo-decl))
+		 t)
+	       ;; Try and go out a level to search again.
+	       (progn
+		 (c-backward-syntactic-ws bod-lim)
+		 (and (> (point) bod-lim)
+		      (or (memq (char-before) '(?\( ?\[))
+			  (and (eq (char-before) ?\<)
+			       (equal
+				(c-get-char-property
+				 (1- (point)) 'syntax-table)
+				c-<-as-paren-syntax))
+			  (and (eq (char-before) ?{)
+			       (save-excursion
+				 (backward-char)
+				 (setq paren-state (c-parse-state))
+				 (while
+				     (and
+				      (setq containing-brace
+					    (c-pull-open-brace paren-state))
+				      (not (eq (char-after containing-brace) ?{))))
+				 (consp (c-looking-at-or-maybe-in-bracelist
+					 containing-brace containing-brace))))
+			  )))
+	       (not (bobp)))
+	    (backward-char))		; back over (, [, <.
+	  (when (and capture-opener (< capture-opener new-pos))
+	    (setq new-pos capture-opener))
+	  (and (/= new-pos pos) new-pos)))))
 
 (defun c-fl-decl-end (pos)
   ;; If POS is inside a declarator, return the position of the end of the
