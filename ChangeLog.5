@@ -1,5 +1,120 @@
 2026-08-24  Sean Whitton  <spwhitton@spwhitton.name>
 
+	Delete test that hangs
+
+	* test/lisp/tab-bar-tests.el
+	(tab-bar-tests-quit-restore-window): Delete test that hangs, for
+	the Emacs 31.1 release.  Do not merge to master.
+
+2026-08-23  Ulrich Müller  <ulm@gentoo.org>
+
+	em-script-tests: don't load the site file
+
+	* test/lisp/eshell/em-script-tests.el (em-script-test/batch-file)
+	(em-script-test/batch-file/shebang): Invoke Emacs with -Q to
+	suppress site file loading.  (Bug#81679)
+
+2026-08-23  Ulrich Müller  <ulm@gentoo.org>
+
+	emacsclient-tests: don't load the site file
+
+	* test/lib-src/emacsclient-tests.el
+	(emacsclient-test-alternate-editor-allows-arguments)
+	(emacsclient-test-alternate-editor-allows-quotes): Invoke the
+	alternate editor with -Q to suppress site file loading.  (Bug#81676)
+
+2026-08-23  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix navigating vertical completions with annotations (bug#81645)
+
+	* lisp/simple.el (last-completion): When finding the last column
+	in the completions list, account for annotations on the candidate.
+
+2026-08-23  Philip Kaludercic  <philipk@posteo.net>
+
+	Fix 'describe-package' for the Emacs pseudo package
+
+	* lisp/emacs-lisp/package.el (describe-package-1): Manually
+	construct a package-desc object if the package being described
+	in 'emacs', otherwise fall back to 'package-get-descriptor'.
+	This is necessary since 'package-get-descriptor' doesn't handle
+	pseudo packages.  (Bug#81671)
+
+2026-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in text-only client frames of PGTK build
+
+	* lisp/net/browse-url.el (browse-url): Don't call
+	pgtk-backend-display-class on TTY frame, as it will signal an
+	error.  (Bug#81666)
+
+2026-08-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	Backport: Restrict Tramp user name
+
+	* doc/misc/tramp.texi (File name syntax): The user name can also
+	be an environment variable.
+
+	* lisp/net/tramp.el (tramp-build-prefix-regexp):
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-handle-expand-file-name)
+	(tramp-gvfs-get-file-attributes, tramp-gvfs-file-name)
+	(tramp-gvfs-url-host, tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p, tramp-gvfs-mount-spec-entry)
+	(tramp-gvfs-mount-spec):
+	* lisp/net/tramp-rclone.el (tramp-rclone-parse-device-names)
+	(tramp-rclone-remote-file-name):
+	* lisp/net/tramp-smb.el (tramp-smb-get-share, tramp-smb-get-localname):
+	Use string-anchored regexp, not line-anchored.
+
+	* lisp/net/tramp.el (tramp-prefix-regexp): Adapt docstring.
+	(tramp-user-regexp): Exclude shell meta characters.
+	(tramp-dissect-file-name, tramp-file-name-handler):
+	Expand environment variable.
+	(tramp-convert-file-attributes):
+	* lisp/net/tramp-gvfs.el (tramp-gvfs-handle-file-attributes):
+	Quote symbolic link target with remote file name syntax.
+
+	* test/lisp/net/tramp-tests.el (tramp-test01-file-name-syntax)
+	(tramp-test01-file-name-syntax-simplified)
+	(tramp-test01-file-name-syntax-separate)
+	(tramp-test02-file-name-dissect)
+	(tramp-test02-file-name-dissect-simplified)
+	(tramp-test02-file-name-dissect-separate)
+	(tramp-test21-file-links): Extend test.
+
+	(cherry picked from commit f3e7104d05bdb8e32ba13bf75604108ad88536dc)
+
+2026-08-21  Spencer Baugh  <sbaugh@janestreet.com>
+
+	Fix TAB to wrap with completion-auto-select t
+
+	* lisp/minibuffer.el (completions--clear-selection): New
+	function.
+	(minibuffer-hide-completions): Call it.
+	* lisp/simple.el (next-column-completion): Call it (bug#81635).
+	* test/lisp/minibuffer-tests.el
+	(completion-auto-select-test-bug81635): New test.
+
+2026-08-21  Juri Linkov  <juri@linkov.net>
+
+	* lisp/progmodes/c-ts-mode.el (c-ts-mode--thing-settings): Remove 'comment'.
+
+	Comment out the 'comment' thing since 'treesit-forward-comment'
+	is not ready to handle block comments (bug#80837).
+	Do not merge to master.
+
+2026-08-20  Yuan Fu  <casouri@gmail.com>
+
+	Fix prev-adaptive-prefix anchor (bug#61314)
+
+	* lisp/treesit.el (treesit-simple-indent-presets):
+	Replace (match-beginning 1) with (skip-syntax-forward "-"), both
+	returns the position of the beginning of the prefix, but
+	skip-syntax-forward always works regardless whether
+	adaptive-fill-regexp has a match group for the prefix.
+
+2026-08-24  Sean Whitton  <spwhitton@spwhitton.name>
+
 	* Version 31.1 released.
 
 2026-08-17  Sean Whitton  <spwhitton@spwhitton.name>
@@ -67874,7 +67989,7 @@
 
 This file records repository revisions from
 commit 1cda0967b4d3c815fc610794ad6a8fc2b913a3c5 (exclusive) to
-commit 0968d7e5e268a8b698730addb22bc84fe88782d5 (inclusive).
+commit 76846eede34ea7bc7b8bbe4183ed070783e11d6b (inclusive).
 See ChangeLog.4 for earlier changes.
 
 ;; Local Variables:
