@@ -148,9 +148,10 @@ Test is done using `equal'."
                   :metavar (rx (group (+ " " (>= 2 (any upper "[]|."))))))))
     (while (not (member (pcomplete-arg 1) subcmds))
       (if (string-prefix-p "-" (pcomplete-arg 0))
-          (pcomplete-here (pcomplete-from-help "systemctl --help"
-                                               :metavar "[^ ]+"
-                                               :separator " \\(\\)-"))
+          (pcomplete-here (pcomplete-long-option-completion-table
+                           (pcomplete-from-help "systemctl --help"
+                                                :metavar "[^ ]+"
+                                                :separator " \\(\\)-")))
         (pcomplete-here subcmds)))
     (let ((subcmd (pcomplete-arg 1))
           (context (if (member "--user" pcomplete-args) "--user" "--system")))

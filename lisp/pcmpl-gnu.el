@@ -274,7 +274,8 @@ Return the new list."
       (if (pcomplete-match "^--" 0)
           (cond
            ((pcomplete-match "^--\\([^= \t\n\f]*\\)\\'" 0)
-            (pcomplete-here* pcmpl-gnu--tar-long-options))
+            (pcomplete-here* (pcomplete-long-option-completion-table
+                              pcmpl-gnu--tar-long-options)))
            ((pcomplete-match "\\`--directory=\\(.*\\)" 0)
             (pcomplete-here* (pcomplete-dirs)
                              (pcomplete-match-string 1 0)))
