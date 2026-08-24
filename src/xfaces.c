@@ -4552,6 +4552,7 @@ that makes them have the same attributes when used on display.   */)
   lface2 = lface_from_face_name (f, face2, true);
   equal_p = lface_equal_p (XVECTOR (lface1)->contents,
 			   XVECTOR (lface2)->contents);
+
   if (!(NILP (inherit) || equal_p))
     {
       /* The below is a subset of merging the descendant face with its
@@ -4562,7 +4563,6 @@ that makes them have the same attributes when used on display.   */)
          face that inherits from line-number.  */
       Lisp_Object attrs1[LFACE_VECTOR_SIZE], attrs2[LFACE_VECTOR_SIZE];
       int i;
-      equal_p = true;
       memcpy (attrs1, xvector_contents (lface1), sizeof attrs1);
       memcpy (attrs2, xvector_contents (lface2), sizeof attrs2);
       /* If either face inherits from the other one, and all the other
@@ -4570,6 +4570,7 @@ that makes them have the same attributes when used on display.   */)
          or equal to those of the parent face, consider the faces equal.  */
       if (EQ (attrs1[LFACE_INHERIT_INDEX], face2))
 	{
+	  equal_p = true;
 	  for (i = 1; i < LFACE_VECTOR_SIZE && equal_p; ++i)
 	    {
 	      if (i == LFACE_INHERIT_INDEX)
@@ -4580,6 +4581,7 @@ that makes them have the same attributes when used on display.   */)
 	}
       else if (EQ (attrs2[LFACE_INHERIT_INDEX], face1))
 	{
+	  equal_p = true;
 	  for (i = 1; i < LFACE_VECTOR_SIZE && equal_p; ++i)
 	    {
 	      if (i == LFACE_INHERIT_INDEX)
