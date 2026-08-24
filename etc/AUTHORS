@@ -5787,7 +5787,7 @@ and co-wrote vc-tests-helpers.el vc-tests.el
 and changed vc.el vc-git.el vc-dispatcher.el vc-hg.el vc-dir.el
   vc-hooks.el diff-mode.el vc1-xtra.texi log-view.el maintaining.texi
   subr.el project.el log-edit.el files.texi server.el simple.el window.el
-  cond-star.el configure.ac dired-aux.el keyboard.c and 347 other files
+  cond-star.el configure.ac dired-aux.el keyboard.c and 348 other files
 
 Sebastian Fieber: changed gnus-art.el mm-decode.el mm-view.el
 
@@ -6076,9 +6076,9 @@ Stephen Berman: wrote todo-mode-tests.el
 and co-wrote todo-mode.el visual-wrap.el
 and changed dired.el wid-edit.el dired-tests.el wdired.el files.el
   todo-mode.texi dabbrev-tests.el wdired-tests.el diary-lib.el
-  menu-bar.el minibuffer.el dabbrev.el dired-aux.el doc-view.el info.el
-  outline.el simple.el todo-test-1.todo widget.texi INSTALL_BEGIN
-  allout.el and 89 other files
+  menu-bar.el minibuffer.el simple.el dabbrev.el dired-aux.el doc-view.el
+  info.el outline.el todo-test-1.todo widget.texi INSTALL_BEGIN allout.el
+  and 89 other files
 
 Stephen C. Gilardi: changed configure.ac
 
@@ -6616,7 +6616,7 @@ Ulrich Müller: changed configure.ac calc-units.el Makefile.in
   emacsclient-mail.desktop lib-src/Makefile.in src/Makefile.in version.el
   bindings.el calc-ext.el doctor.el emacs.1 files.el gamegrid.el gud.el
   language/cyrillic.el server.el strings.texi ChgPane.c ChgSel.c HELLO
-  INSTALL and 61 other files
+  INSTALL and 63 other files
 
 Ulrich Neumerkel: changed xterm.c
 
