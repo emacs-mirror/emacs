@@ -322,8 +322,8 @@ Optional argument TYPE is type of output (nil means all)."
 				   (push (concat i j) res))))
 			     (manual-misc-manuals root)))))))
   (let* ((dest (expand-file-name "manual" root))
-	 (html-node-dir (expand-file-name "html_node" dest))
-	 (html-mono-dir (expand-file-name "html_mono" dest))
+	 (html-node-dir (expand-file-name "html_node/" dest))
+	 (html-mono-dir (expand-file-name "html_mono/" dest))
 	 (ps-dir (expand-file-name "ps" dest))
 	 (pdf-dir (expand-file-name "pdf" dest))
 	 (emacs (expand-file-name "doc/emacs/emacs.texi" root))
@@ -369,6 +369,13 @@ Optional argument TYPE is type of output (nil means all)."
     (dolist (manual misc)
       (if (member type `(nil ,manual "misc"))
 	  (manual-misc-html manual root html-node-dir html-mono-dir)))
+    ;; Auxiliary files
+    (when (member type '(nil "elisp" "elisp-mono" "elisp-node"))
+      (dolist (file '("doc/lispref/elisp_type_hierarchy.txt"
+                      "doc/lispref/elisp_type_hierarchy.jpg"))
+        (let ((file (expand-file-name file root)))
+          (copy-file file html-mono-dir t)
+          (copy-file file (expand-file-name "elisp/" html-node-dir) t))))
     (message "Manuals created in %s" dest)))
 
 (defconst manual-doctype-string
@@ -761,6 +768,9 @@ style=\"text-align:left\">")
 	      (and (equal type "lispintro")
 		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
 	  (copy-file file stem)))
+    (when (equal type "lispref")
+      (copy-file "../doc/lispref/elisp_type_hierarchy.txt" stem)
+      (copy-file "../doc/lispref/elisp_type_hierarchy.jpg" stem))
     (with-temp-buffer
       (let ((outvars make-manuals-dist-output-variables)
             (case-fold-search nil))
