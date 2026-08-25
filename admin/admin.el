@@ -896,7 +896,10 @@ $Date: %s $
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (admin--require-external-package 'htmlize)
-  (let* ((newsfile (expand-file-name "etc/NEWS" root))
+  (let* ((oldnewsfile (expand-file-name (format "etc/NEWS.%s" version) root))
+         (newsfile (if (file-exists-p oldnewsfile)
+                       oldnewsfile
+                     (expand-file-name "etc/NEWS" root)))
          (orgfile (expand-file-name (format "etc/NEWS.%s.org" version) root))
          (html (format "%s.html" (file-name-base orgfile)))
          (copyright-years (format-time-string "%Y")))
@@ -906,7 +909,7 @@ $Date: %s $
 
     ;; Find the copyright range.
     (goto-char (point-min))
-    (re-search-forward "^Copyright (C) \\([0-9-]+\\) Free Software Foundation, Inc.")
+    (re-search-forward "^Copyright (C) \\([0-9, -]+\\) Free Software Foundation, Inc.")
     (setq copyright-years (match-string 1))
 
     ;; Delete some unnecessary stuff.
