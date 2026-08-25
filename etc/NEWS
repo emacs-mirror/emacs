@@ -317,6 +317,10 @@ details.
 When enabled, this causes Eshell to evaluate commands in Lisp syntax
 using lexical binding.
 
+** Dired
+
+*** The repeat-mode key 'j' has been removed from 'dired-jump-map'.
+
 ** Viper
 
 ---

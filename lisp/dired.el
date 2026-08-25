@@ -5521,7 +5521,6 @@ when it decides whether to split the window horizontally or vertically."
 (defvar-keymap dired-jump-map
   :doc "Keymap to repeat `dired-jump'.  Used in `repeat-mode'."
   :repeat t
-  "j"   #'dired-jump
   "C-j" #'dired-jump)
 
 
