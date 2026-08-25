@@ -349,14 +349,18 @@ General steps (for each step, check for possible errors):
     (Use e.g. `M-x mml-secure-message-sign' in `message-mode' to sign
     an email.)
 
-14. After a release, update the Emacs pages as described below.
+14. Generate an HTML-formatted version of the NEWS file:
+
+      ./src/emacs --batch --load=admin/admin.el --funcall=make-news-html-file
+
+15. After a release, update the Emacs pages as described below.
     Note: it is important to add the new NEWS file _before_ bumping the
     Emacs version on the release branch, because doing the latter will
     add (empty) sections to NEWS for the next version, and you don't
     want those sections in the NEWS file reachable from the GNU Emacs
     page.
 
-15. After a release, bump the Emacs version on the release branch.
+16. After a release, bump the Emacs version on the release branch.
     There is no need to bump the version after a pretest; the version
     is bumped before the next pretest or release instead.
 
@@ -376,6 +380,7 @@ The pages and files to update are:
    update is needed)
  . history.html (add a line for the new release)
  . add the new NEWS file as news/NEWS.xx.y
+ . add the new NEWS.xx.html file as news/NEWS.xx.html
  . copy new etc/MACHINES to MACHINES and CONTRIBUTE to CONTRIBUTE
  . possibly/rarely also download.html (see below)
 
