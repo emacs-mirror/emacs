@@ -6,6 +6,7 @@
 ;;	Bob Olson
 ;;	Jonathan Rockway <jon@jrock.us>
 ;; Maintainer: emacs-devel@gnu.org
+;; Version: 32.0.50
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "26.1"))
 ;; URL: https://github.com/HaraldJoerg/cperl-mode/issues/32
@@ -1491,8 +1492,7 @@ does not need a semicolon to terminate the statement.")
     "field"
     (1+ ,cperl--ws-or-comment-rx)
     ,cperl--basic-variable-rx
-    (optional (sequence ,cperl--ws+-rx ,cperl--attribute-list-rx))
-    )
+    (optional (sequence ,cperl--ws+-rx ,cperl--attribute-list-rx)))
   "A regular expression to find a declaration for a field.
 Fields can have attributes for fontification, and even for imenu because
 for example \":reader\" implicitly declares a method.")
@@ -2262,8 +2262,7 @@ Argument ARG is the closing parenthesis."
     (if (and other-end
 	     (cperl-val 'cperl-electric-parens)
 	     (memq last-command-event '( ?\) ?\] ?\} ?\> ))
-	     (>= (save-excursion (cperl-to-comment-or-eol) (point)) (point))
-	     )
+	     (>= (save-excursion (cperl-to-comment-or-eol) (point)) (point)))
 	(progn
 	  (self-insert-command (prefix-numeric-value arg))
 	  (setq p (point))
@@ -4058,8 +4057,7 @@ an attribute.  ST-L and POS are a cached from a previous call."
       ;; be included into the area marked as sub-decl.
       nil)
      ;; Else, we are in no mans land.  Just keep trying.
-     (t
-      ))
+     (t))
     (when (looking-at (rx (in ";{")))
       ;; A semicolon ends the declaration, an opening brace begins the
       ;; BLOCK.  Neither is part of the declaration.
@@ -4118,8 +4116,7 @@ and character escapes, respectively."
 	  "\\|"
 	  "\\("				; 7: other escapes
 	    "\\\\[pP]" "\\([^{]\\|{[^{}]*}\\)"
-	    "\\|" "\\\\[^pP]" "\\)"
-	  )
+	    "\\|" "\\\\[^pP]" "\\)")
 	 endbracket 'toend)
       (if (match-beginning 4)
 	  (cperl-postpone-fontification
@@ -4249,8 +4246,7 @@ This is part of `cperl-find-pods-heres' (below)."
                                    'syntax-type 'here-doc)
                 (put-text-property (1- defs-eol) defs-eol
                                    'syntax-table
-                                   (string-to-syntax "< c"))
-                )
+                                   (string-to-syntax "< c")))
             ;; line ends with a "regular" comment: make
             ;; the last character of the comment closing
             ;; it so that we can use the line feed to
@@ -6546,9 +6542,7 @@ functions (which they are not).  Inherits from `default'.")
                     (in "$@%*")
                     (or
                      (eval cperl--normal-identifier-rx)
-                     (eval cperl--special-identifier-rx))
-                    )
-                   )
+                     (eval cperl--special-identifier-rx))))
               ;; (concat "\\<\\(state\\|my\\|local\\|our\\)"
 	      ;;          cperl-maybe-white-and-comment-rex
 	      ;;          "\\(("
@@ -6564,10 +6558,7 @@ functions (which they are not).  Inherits from `default'.")
                                (in "$@%*")
                                (or
                                 (eval cperl--normal-identifier-rx)
-                                (eval cperl--special-identifier-rx))
-                               )
-                              )
-                    )
+                                (eval cperl--special-identifier-rx)))))
                ;; ,(concat "\\="
 	       ;;  	cperl-maybe-white-and-comment-rex
 	       ;;  	","
