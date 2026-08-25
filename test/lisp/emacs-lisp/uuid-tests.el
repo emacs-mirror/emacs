@@ -104,7 +104,7 @@
 (ert-deftest uuid-v7-generator-known-rnd-and-ts ()
   "Verifies that a UUIDv7 uses random, timestamps correctly."
   (cl-letf (((symbol-function 'float-time)
-             (lambda () 0.123)))
+             (lambda (&optional _) 0.123)))
     (let ((id (uuid-v7 :rng (lambda (n) 789))))
       (should (cl-typep id '(uuid-v 7)))
       (should (equal (uuid--var id) 2))
