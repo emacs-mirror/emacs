@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is Emacs 30.  This
+;; Tramp's main Emacs version for development is Emacs 31.  This
 ;; package provides compatibility functions for Emacs 28, Emacs 29 and
 ;; Emacs 30.
 

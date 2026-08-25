@@ -2259,10 +2259,13 @@ without a visible progress reporter."
 		      (or tramp-inhibit-progress-reporter tm)))
 		 ,@body)
 	     (setq cookie "done"))
-         ;; Stop progress reporter.
+	 ;; Stop progress reporter.  We suppress the message in the
+	 ;; message buffer and echo area; proper handling is performed
+	 ;; by `tramp-message'.
 	 (when (and tm pr)
 	   (cancel-timer tm)
-	   (let (message-log-max)
+	   (let ((inhibit-message t)
+		 message-log-max)
 	     (progress-reporter-done pr)))
          (tramp-message ,vec ,level "%s...%s" ,message cookie)))))
 
@@ -2575,7 +2578,9 @@ Must be handled by the callers."
 		   ((bufferp (nth 0 args)) (get-buffer (nth 0 args)))
 		   ((stringp (nth 0 args))
 		    ;; Process or buffer name.
-		    (or (get-process (nth 0 args)) (get-buffer (nth 0 args)))))))
+		    (or (and-let* ((proc (get-process (nth 0 args))))
+                          (process-buffer proc))
+                        (get-buffer (nth 0 args)))))))
 	  (tramp-get-default-directory buf))
 	""))
 
@@ -4792,40 +4797,42 @@ existing) are returned."
 
 (defun tramp-handle-find-backup-file-name (filename)
   "Like `find-backup-file-name' for Tramp files."
-  (with-parsed-tramp-file-name filename nil
-    (let ((backup-directory-alist
-	   (if tramp-backup-directory-alist
-	       (mapcar
-		(lambda (x)
-		  (cons
-		   (car x)
-		   (if (and (stringp (cdr x))
-			    (file-name-absolute-p (cdr x))
-			    (not (tramp-tramp-file-p (cdr x))))
-		       (tramp-make-tramp-file-name v (cdr x))
-		     (cdr x))))
-		tramp-backup-directory-alist)
-	     backup-directory-alist))
-	  result)
-      (prog1 ;; Run plain `find-backup-file-name'.
-	  (setq result
-		(tramp-run-real-handler
-		 #'find-backup-file-name (list filename)))
-        ;; Protect against security hole.
-	(when (and (not tramp-allow-unsafe-temporary-files)
-		   (not backup-inhibited)
-		   (file-in-directory-p (car result) temporary-file-directory)
-		   (= (or (file-attribute-user-id
-			   (file-attributes filename 'integer))
-			  tramp-unknown-id-integer)
-		      tramp-root-id-integer)
-		   (not (with-tramp-connection-property
-			    (tramp-get-process v) "unsafe-temporary-file"
-			  (yes-or-no-p
-			   (concat
-			    "Backup file on local temporary directory, "
-			    "do you want to continue?")))))
-	  (tramp-error v 'file-error "Unsafe backup file name"))))))
+  (when-let* ((default-directory (file-name-directory filename))
+	      ((tramp-compat-connection-local-value make-backup-files)))
+    (with-parsed-tramp-file-name filename nil
+      (let ((backup-directory-alist
+	     (if tramp-backup-directory-alist
+		 (mapcar
+		  (lambda (x)
+		    (cons
+		     (car x)
+		     (if (and (stringp (cdr x))
+			      (file-name-absolute-p (cdr x))
+			      (not (tramp-tramp-file-p (cdr x))))
+			 (tramp-make-tramp-file-name v (cdr x))
+		       (cdr x))))
+		  tramp-backup-directory-alist)
+	       backup-directory-alist))
+	    result)
+	(prog1 ;; Run plain `find-backup-file-name'.
+	    (setq result
+		  (tramp-run-real-handler
+		   #'find-backup-file-name (list filename)))
+          ;; Protect against security hole.
+	  (when (and (not tramp-allow-unsafe-temporary-files)
+		     (not backup-inhibited)
+		     (file-in-directory-p (car result) temporary-file-directory)
+		     (= (or (file-attribute-user-id
+			     (file-attributes filename 'integer))
+			    tramp-unknown-id-integer)
+			tramp-root-id-integer)
+		     (not (with-tramp-connection-property
+			      (tramp-get-process v) "unsafe-temporary-file"
+			    (yes-or-no-p
+			     (concat
+			      "Backup file on local temporary directory, "
+			      "do you want to continue?")))))
+	    (tramp-error v 'file-error "Unsafe backup file name")))))))
 
 (defun tramp-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
