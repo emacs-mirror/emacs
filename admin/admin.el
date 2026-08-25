@@ -955,7 +955,7 @@ $Date: %s $
 
     ;; Delete buffer local variables.
     (goto-char (point-max))
-    (when (re-search-backward "Local variables:")
+    (when (re-search-backward "Local variables:" nil t)
       (forward-line -1)
       (delete-region (point) (point-max)))
 
