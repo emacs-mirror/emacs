@@ -372,7 +372,13 @@ entirely by setting `warning-suppress-types' or
 		     (if (bolp)
 			 (forward-char -1))
 		     (message "%s" (buffer-substring start (point))))))
-                ;; Use `frame-initial-p'?
+		;; Interactively, decide whether the warning merits display.
+		((or (< (warning-numeric-level level)
+			(warning-numeric-level warning-minimum-level))
+		     (warning-suppress-p type warning-suppress-types))
+		 ;; Don't display the warning.
+		 nil)
+		;; Use `frame-initial-p'?
 		((and (daemonp) (eq (selected-frame) terminal-frame))
 		 ;; Display daemon startup warnings on the first client frame.
 		 (letrec ((afterfun
@@ -391,12 +397,8 @@ entirely by setting `warning-suppress-types' or
 				  (forward-char -1))
 			      (buffer-substring start (point))))))
 		(t
-		 ;; Interactively, decide whether the warning merits
-		 ;; immediate display.
-		 (or (< (warning-numeric-level level)
-			(warning-numeric-level warning-minimum-level))
-		     (warning-suppress-p type warning-suppress-types)
-                     (warning--display-buffer buffer))))))))
+		 ;; Display immediately.
+		 (warning--display-buffer buffer)))))))
 
 (defun warning--display-buffer (buffer)
   (let ((window (display-buffer
