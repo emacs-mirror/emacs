@@ -925,6 +925,7 @@ $Date: %s $
 
     ;; Escape some characters.
     (replace-regexp-in-region (rx "$") "@@html:&dollar;@@" (point-min) (point-max))
+    (replace-regexp-in-region (rx "[[") "[\u200B[" (point-min) (point-max))
 
     ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
     (replace-regexp-in-region
