@@ -127,14 +127,9 @@ This hook will be run even when there are no matching sections in
   "0.5")
 (defcustom editorconfig-indentation-alist
   ;; For contributors: Sort modes in alphabetical order
-  '((awk-mode c-basic-offset)
-    (bash-ts-mode sh-basic-offset)
-    (bpftrace-mode c-basic-offset)
-    (c++-mode c-basic-offset)
+  '((bash-ts-mode sh-basic-offset)
     (cmake-mode cmake-tab-width)
     (coffee-mode coffee-tab-width)
-    (csharp-mode c-basic-offset)
-    (d-mode c-basic-offset)
     (elixir-ts-mode elixir-ts-indent-offset)
     (emacs-lisp-mode . editorconfig--get-indentation-lisp-mode)
     (f90-mode f90-associate-indent
@@ -158,9 +153,7 @@ This hook will be run even when there are no matching sections in
                   haskell-indentation-where-pre-offset
                   shm-indent-spaces)
     (haxor-mode haxor-tab-width)
-    (idl-mode c-basic-offset)
     (jade-mode jade-tab-width)
-    (java-mode c-basic-offset)
     (js-ts-mode js-indent-level)
     (js-jsx-mode js-indent-level sgml-basic-offset)
     (js2-jsx-mode js2-basic-offset sgml-basic-offset)
@@ -174,15 +167,7 @@ This hook will be run even when there are no matching sections in
     (meson-mode meson-indent-basic)
     (mips-mode mips-tab-width)
     (nxml-mode . editorconfig--get-indentation-nxml-mode)
-    (objc-mode c-basic-offset)
     (octave-mode octave-block-offset)
-    ;; No need to change `php-mode-coding-style' value for php-mode
-    ;; since we run editorconfig later than it resets `c-basic-offset'.
-    ;; See https://github.com/editorconfig/editorconfig-emacs/issues/116
-    ;; for details.
-    (php-mode c-basic-offset)
-    (pike-mode c-basic-offset)
-    (protobuf-mode c-basic-offset)
     (ps-mode ps-mode-tab)
     (pug-mode pug-tab-width)
     (python-mode . editorconfig--get-indentation-python-mode)

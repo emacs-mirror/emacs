@@ -643,6 +643,7 @@ that requires a literal mode spec at compile time."
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-line-break-function)
        'c-indent-new-comment-line)
+  (set (make-local-variable 'editorconfig-indent-size-vars) '(c-basic-offset))
 
   ;; Prevent time-wasting activity on C-y.
   (when (boundp 'yank-handled-properties)
