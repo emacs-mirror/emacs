@@ -521,7 +521,8 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
                                 "enum_specifier"
                                 "union_specifier"
                                 "function_declarator"
-                                "template_declaration")))
+                                "template_declaration"
+                                "concatenated_string")))
             standalone-parent 0)
            ;; This is for the trailing-star stype:  int *
            ;;                                       func()
