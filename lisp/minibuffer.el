@@ -1742,6 +1742,9 @@ scroll the window of possible completions."
                         minibuffer-completion-table
                         minibuffer-completion-predicate))
 
+(defvar-local completion--attempt-state nil
+  "`buffer-chars-modified-tick' and `point' at the time of the last TAB.")
+
 (defun completion--in-region-1 (beg end)
   ;; If the previous command was not this,
   ;; mark the completion buffer obsolete.
@@ -1751,10 +1754,16 @@ scroll the window of possible completions."
     (setq minibuffer-scroll-window nil))
 
   (cond
-   ;; If there's a fresh completion window with a live buffer,
-   ;; and this command is repeated, scroll that window.
-   ((and (window-live-p minibuffer-scroll-window)
-         (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
+   ((and
+     ;; If this command is repeated, and the buffer hasn't changed since
+     ;; the last time we tried to complete...
+     (let ((state (cons (buffer-chars-modified-tick) (point))))
+       (prog1 (equal completion--attempt-state state)
+         (setq completion--attempt-state state)))
+     ;; ...and there's a window displaying completions...
+     (window-live-p minibuffer-scroll-window)
+     (eq t (frame-visible-p (window-frame minibuffer-scroll-window))))
+    ;; ...scroll that window.
     (let ((window minibuffer-scroll-window))
       (with-current-buffer (window-buffer window)
         (let* ((pm (point-max))

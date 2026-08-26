@@ -617,6 +617,26 @@
          (execute-kbd-macro (kbd "ch TAB"))
          (should (equal (car messages) "Sole completion")))))))
 
+(ert-deftest completion-tab-with-completions-visible-bug81578 ()
+  "TAB doesn't scroll *Completions* if it completes or cycles completions."
+  ;; The scrolling behavior can only be triggered when *Completions* is
+  ;; displayed.
+  (let ((completion-auto-help 'always))
+    ;; If TAB does completion, it doesn't scroll.
+    (with-minibuffer-setup
+        (read-file-name "Prompt: "
+                        (expand-file-name "lisp/" (ert-resource-directory)))
+      ;; Use a single keyboard macro so the scrolling *could* trigger.
+      (execute-kbd-macro (kbd "TAB TAB"))
+      (should (string-suffix-p "lisp/cedet/semantic-utest" (minibuffer-contents))))
+    ;; If TAB cycles through completions, it doesn't scroll.
+    (let ((completion-cycle-threshold t))
+      (completing-read-with-minibuffer-setup
+          '("aa" "ab")
+        ;; The final C-a deactivates the transient keymap.
+        (execute-kbd-macro (kbd "TAB TAB TAB C-a"))
+        (should (equal (minibuffer-contents) "ab"))))))
+
 (ert-deftest completion-auto-select-test ()
   (let ((completion-auto-select t))
     (completing-read-with-minibuffer-setup
