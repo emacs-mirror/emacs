@@ -356,6 +356,13 @@ To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 ---
 *** A nil value for 'speedbar-file-unshown-regexp' means "show all".
 
++++
+** New library 'uuid'.
+This library provides useful code for handling Universally Unique
+Identifiers (UUIDs).  It provides methods for generating UUIDs, parsing
+them, and outputting them as a string, a unibyte binary string, or as a
+number.
+
 
 * Incompatible Lisp Changes in Emacs 32.1
 
