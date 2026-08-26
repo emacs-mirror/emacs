@@ -1064,10 +1064,10 @@ Positive ARG means turn on, negative turn off.
 A nil ARG means toggle.  Once the speedbar window is activated, a buffer in
 `speedbar-mode' will be displayed.  Currently, only one speedbar is
 supported at a time.
-`speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted."
   (interactive "P")
   (when (eq (speedbar-frame-or-window) 'frame)
+    (run-hooks 'speedbar-before-delete-hook)
     (delete-frame (speedbar-current-frame)))
 
   (if (or (and (not arg) (speedbar-window--live-p))
