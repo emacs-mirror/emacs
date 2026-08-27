@@ -743,34 +743,45 @@ fail (void)
       ptrdiff_t toks = 0;
 
       /* Unpack alternate_editor's space-separated tokens into new_argv.  */
-      for (char *tok = s; tok != NULL && *tok != '\0';)
+      for (char *tok = s;;)
         {
+	  /* Skip leading delimiters, and set separator, skipping any
+	     opening quote.  Break out of loop if no remaining tokens.  */
+	  while (*tok == ' ')
+	    tok++;
+	  if (!*tok)
+	    break;
+	  char sep = ' ';
+	  if (*tok == '"')
+	    {
+	      tok++;
+	      sep = '"';
+	    }
+
           /* Allocate new token.  */
           ++toks;
           new_argv = xrealloc (new_argv,
 			       new_argv_size + toks * sizeof (char *));
-
-          /* Skip leading delimiters, and set separator, skipping any
-             opening quote.  */
-          size_t skip = strspn (tok, " \"");
-          tok += skip;
-          char sep = (skip > 0 && tok[-1] == '"') ? '"' : ' ';
 
           /* Record start of token.  */
           new_argv[toks - 1] = tok;
 
           /* Find end of token and overwrite it with NUL.  */
           tok = strchr (tok, sep);
-          if (tok != NULL)
-            *tok++ = '\0';
+	  if (!tok)
+	    break;
+	  *tok++ = '\0';
         }
 
-      /* Append main_argv arguments to new_argv.  */
-      memcpy (&new_argv[toks], main_argv + optind, extra_args_size);
+      if (toks)
+	{
+	  /* Append main_argv arguments to new_argv.  */
+	  memcpy (&new_argv[toks], main_argv + optind, extra_args_size);
 
-      execvp (*new_argv, new_argv);
-      message (true, "%s: error executing alternate editor \"%s\"\n",
-	       progname, alternate_editor);
+	  execvp (*new_argv, new_argv);
+	  message (true, "%s: error executing alternate editor \"%s\"\n",
+		   progname, alternate_editor);
+	}
     }
   exit (EXIT_FAILURE);
 }
