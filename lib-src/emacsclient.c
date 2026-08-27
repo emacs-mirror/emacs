@@ -779,8 +779,8 @@ fail (void)
 	  memcpy (&new_argv[toks], main_argv + optind, extra_args_size);
 
 	  execvp (*new_argv, new_argv);
-	  message (true, "%s: error executing alternate editor \"%s\"\n",
-		   progname, alternate_editor);
+	  message (true, "%s: error executing alternate editor \"%s\": %s\n",
+		   progname, alternate_editor, strerror (errno));
 	}
     }
   exit (EXIT_FAILURE);
