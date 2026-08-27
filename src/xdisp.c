@@ -11936,7 +11936,11 @@ window_text_pixel_size (Lisp_Object window, Lisp_Object from, Lisp_Object to,
   /* If FROM is on a newline, pretend that we start at the beginning
      of the next line, because the newline takes no place on display.  */
   if (FETCH_BYTE (start_bpos) == '\n')
-    it.current_x = 0, it.wrap_prefix_width = 0;
+    {
+      it.current_x = 0;
+      start_x = 0;	/* in case TO == FROM */
+      it.wrap_prefix_width = 0;
+    }
   if (!NILP (x_limit))
     {
       it.last_visible_x = max_x;
