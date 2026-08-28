@@ -1784,7 +1784,7 @@ Skip matches already inside tree-sitter link or autolink nodes."
                     (get-text-property uri-start 'button))
           (markdown-ts--make-link-button
            uri-start uri-end
-           (if (eq uri-start 0)
+           (if (eq re markdown-ts--bare-url-regexp)
                uri
              (concat "mailto:" uri))))))))
 
