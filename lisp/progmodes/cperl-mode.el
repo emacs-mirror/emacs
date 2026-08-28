@@ -6,10 +6,13 @@
 ;;	Bob Olson
 ;;	Jonathan Rockway <jon@jrock.us>
 ;; Maintainer: emacs-devel@gnu.org
-;; Version: 32.0.50
+;; Version: 33.0.0
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "26.1"))
-;; URL: https://github.com/HaraldJoerg/cperl-mode/issues/32
+;; URL: https://elpa.gnu.org/packages/cperl-mode.html
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,25 +31,17 @@
 
 ;;; Commentary:
 
-;; You can either fine-tune the bells and whistles of this mode or
-;; bulk enable them by putting this in your Init file:
-
-;;     (setq cperl-hairy t)
+;; This package supports editing of Perl sources and handles the syntax
+;; up to Perl version 5.44.
 
 ;; DO NOT FORGET to read micro-docs (available from `Perl' menu)   <<<<<<
-;; or as help on variables `cperl-tips', `cperl-praise',           <<<<<<
-;; `cperl-speed'.                                                  <<<<<<
+;; or as help on variables `cperl-tips', `cperl-praise'.
 ;;
 ;; Or search for "Short extra-docs" further down in this file for
 ;; details on how to use `cperl-mode' instead of `perl-mode' and lots
 ;; of other details.
 
 ;; The mode information (on C-h m) provides some customization help.
-
-;; Faces used: three faces for first-class and second-class keywords
-;; and control flow words, one for each: comments, string, labels,
-;; functions definitions and packages, arrays, hashes, and variable
-;; definitions.
 
 ;; This mode supports imenu.  You can use imenu from the keyboard
 ;; (M-g i), but you might prefer binding it like this:
@@ -661,6 +656,12 @@ If your Emacs does not default to `cperl-mode' on Perl files, and you
 want it to: put the following into your .emacs file:
 
   (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
+
+You can either fine-tune the bells and whistles of this mode in the
+\"Cperl\" customization group or bulk enable them by putting this in
+your Init file:
+
+  (setq cperl-hairy t)
 
 To read Perl documentation in info format you can convert POD to
 texinfo with the converter `pod2texi' from the texinfo project:
