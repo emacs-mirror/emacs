@@ -749,7 +749,7 @@ When called from Lisp code, ARG may be a prefix string to copy."
     (((type graphic) (background light))
      :height 0.1 :background "#a0a0a0")
     (t
-     :foreground "ForestGreen" :underline t))
+     :foreground "ForestGreen" :strike-through t))
   "Face for separator lines."
   :version "29.1"
   :group 'text)
@@ -760,12 +760,12 @@ This uses the `separator-line' face.
 
 If LENGTH is nil, use the window width."
   (if (or (display-graphic-p)
-          (display-supports-face-attributes-p '(:underline t)))
+          (display-supports-face-attributes-p '(:strike-through t)))
       (if length
           (concat (propertize (make-string length ?\s) 'face 'separator-line)
                   "\n")
         (propertize "\n" 'face '(:inherit separator-line :extend t)))
-    ;; In terminals (that don't support underline), use a line of dashes.
+    ;; In terminals that don't support strike-through, use a line of dashes.
     (concat (propertize (make-string (or length (1- (window-width))) ?-)
                         'face 'separator-line)
             "\n")))
