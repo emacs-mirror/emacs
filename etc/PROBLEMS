@@ -3763,6 +3763,13 @@ This is because the SECONDARY selection is not implemented by the
 Wayland compositor being used.  A workaround is to use other kinds of
 selections.
 
+** Pasting non-ASCII text from Emacs into Chromium or Brave inserts mojibake.
+
+These are bugs in these browsers: they chose incorrect format of the
+copied text amongst those which Emacs provides.  Emacs provides UTF-8 as
+one of the formats, but these browsers use Latin-1 instead.  So please
+report these bugs to the developers of the respective browsers.
+
 ** Giant tool bar icons are displayed in some cases
 
 This is because some icon themes (such as the KDE Breeze icon theme)
