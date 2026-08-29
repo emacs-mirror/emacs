@@ -1102,6 +1102,10 @@ character `w' (119) is returned.
 The characters that correspond to various syntax codes
 are listed in the documentation of `modify-syntax-entry'.
 
+Caveat: if the current buffer is unibyte, this function interprets
+values between 128 and 255 as raw bytes, and returns the syntax of
+the correspoinding `eight-bit' character.
+
 If you're trying to determine the syntax of characters in the buffer,
 this is probably the wrong function to use, because it can't take
 `syntax-table' text properties into account.  Consider using
@@ -1111,7 +1115,8 @@ this is probably the wrong function to use, because it can't take
   CHECK_CHARACTER (character);
   int char_int = XFIXNAT (character);
   SETUP_BUFFER_SYNTAX_TABLE ();
-  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
+      && SINGLE_BYTE_CHAR_P (char_int))
     char_int = make_char_multibyte (char_int);
   return make_fixnum (syntax_code_spec[SYNTAX (char_int)]);
 }
