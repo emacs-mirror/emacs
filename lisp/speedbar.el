@@ -1102,6 +1102,7 @@ supported at a time.
 	    speedbar-last-selected-file nil)
 
       (set-buffer speedbar-buffer)
+      (speedbar-mode)
 
       ;; let's create the window
       (setq speedbar--window
