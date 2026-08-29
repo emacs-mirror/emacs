@@ -1490,7 +1490,8 @@ e.g. (mapc \\='frame-set-background-mode (frame-list))."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
-	   (mapc #'frame-set-background-mode (frame-list)))
+	   (mapc #'frame-set-background-mode (frame-list))
+           (redraw-display))
   :initialize #'custom-initialize-changed
   :type '(choice (const dark)
 		 (const light)
