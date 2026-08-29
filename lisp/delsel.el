@@ -92,7 +92,7 @@ and shift-selection."
                  (const :tag "Replace region from mouse and shift-selection" selection)))
 
 ;;;###autoload
-(defalias 'pending-delete-mode 'delete-selection-mode)
+(defalias 'pending-delete-mode #'delete-selection-mode)
 
 ;;;###autoload
 (define-minor-mode delete-selection-mode
@@ -106,8 +106,8 @@ See `delete-selection-helper' and `delete-selection-pre-hook' for
 information on adapting behavior of commands in Delete Selection mode."
   :global t :group 'editing-basics
   (if (not delete-selection-mode)
-      (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
-    (add-hook 'pre-command-hook 'delete-selection-pre-hook)))
+      (remove-hook 'pre-command-hook #'delete-selection-pre-hook)
+    (add-hook 'pre-command-hook #'delete-selection-pre-hook)))
 
 ;;;###autoload
 (define-minor-mode delete-selection-local-mode
@@ -316,7 +316,8 @@ See `delete-selection-helper'."
                  (and (not (eq delete-selection-temporary-region 'selection))
                       (eq transient-mark-mode 'lambda))))
     (delete-selection-helper (and (symbolp this-command)
-                                  (get this-command 'delete-selection)))))
+                                  (function-get this-command
+                                                'delete-selection 'autoload)))))
 
 (defun delete-selection-uses-region-p ()
   "Return t when `delete-selection-mode' should not delete the region.
@@ -365,11 +366,11 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (setq deactivate-mark t)
     (abort-minibuffers)))
 
-(define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-map "\C-g" #'minibuffer-keyboard-quit)
 
 (defun delsel-unload-function ()
   "Unload the Delete Selection library."
-  (define-key minibuffer-local-map "\C-g" 'abort-recursive-edit)
+  (define-key minibuffer-local-map "\C-g" #'abort-recursive-edit)
   (dolist (sym '(self-insert-command insert-char quoted-insert yank
                  clipboard-yank insert-register newline-and-indent
                  reindent-then-newline-and-indent newline open-line))
