@@ -136,20 +136,25 @@ just toggles it when zero or omitted."
                 (string-trim-right comment-start)))
   (force-mode-line-update))
 
-(defun c-ts-mode--indent-style-setter (sym val)
+(defun c-ts-mode--indent-style-setter (sym val &optional buffer-local)
   "Custom setter for `c-ts-mode-set-style'.
 
-Apart from setting the default value of SYM to VAL, also change
-the value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL.
+Apart from setting the default value of SYM to VAL, also change the
+value of SYM in `c-ts-mode' and `c++-ts-mode' buffers to VAL.  If a
+buffer has a buffer-local SYM, do not override it.
 
 SYM should be `c-ts-mode-indent-style', and VAL should be a style
-symbol."
-  (set-default sym val)
-  (dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when (derived-mode-p '(c-ts-mode c++-ts-mode))
-        (setq-local c-ts-mode-indent-style val)
-        (c-ts-mode-set-style val)))))
+symbol.
+
+If optional BUFFER-LOCAL is non-nil, affect only the current buffer."
+  (if buffer-local
+      (c-ts-mode-set-style val)
+    (set-default sym val)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+          (when (derived-mode-p '(c-ts-mode c++-ts-mode))
+            (unless (local-variable-p sym)
+              (c-ts-mode-set-style val)))))))
 
 (defun c-ts-indent-style-safep (style)
   "Non-nil if STYLE's value is safe for file-local variables."
@@ -199,11 +204,7 @@ To set the default indent style globally, use
   (if (not (derived-mode-p '(c-ts-mode c++-ts-mode)))
       (user-error "The current buffer is not in `c-ts-mode' nor `c++-ts-mode'")
     (setq-local c-ts-mode-indent-style style)
-    (setq treesit-simple-indent-rules
-          (let ((lang (if (derived-mode-p 'c-ts-mode) 'c 'cpp)))
-            (if (functionp style)
-                (list (cons lang (funcall style)))
-              (c-ts-mode--simple-indent-rules lang style))))))
+    (c-ts-mode--simple-indent-rules (if (derived-mode-p 'c-ts-mode) 'c 'cpp))))
 
 (defcustom c-ts-mode-emacs-sources-support t
   "Whether to enable Emacs source-specific C features.
@@ -491,62 +492,64 @@ or the first line of the comment, and otherwise same as previous line."
                                        (current-column)))))))))
 
 
-(defun c-ts-mode--simple-indent-rules (mode style)
-  "Return the indent rules for MODE and STYLE.
-
-The returned value can be set to `treesit-simple-indent-rules'.
-MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
+(defun c-ts-mode--simple-indent-rules (mode)
+  "Set `treesit-simple-indent-rules' for MODE.
+Consult `c-ts-mode-indent-style' which should be one of the symbols
+`gnu', `k&r', `linux', `bsd', or a function that produces indent rules.
+MODE is one of the symbols `c', `cpp'."
   (let ((rules
-         `((c-ts-mode--for-each-tail-body-matcher
-            prev-line c-ts-indent-offset)
+         (if (functionp c-ts-mode-indent-style)
+             (funcall c-ts-mode-indent-style)
+           `((c-ts-mode--for-each-tail-body-matcher
+              prev-line c-ts-indent-offset)
 
-           ;; Misc overrides.
-           ((parent-is "translation_unit") column-0 0)
-           ((node-is ,(rx (or "else" "case"))) standalone-parent 0)
-           ;; Align the while keyword to the do keyword.
-           ((match "while" "do_statement") parent 0)
-           c-ts-mode--parenthesized-expression-indent-rule
-           ;; Thanks to tree-sitter-c's weird for-loop grammar, we can't
-           ;; use the baseline indent rule for it.
-           c-ts-mode--for-loop-indent-rule
-           c-ts-mode--label-indent-rules
-           ,@c-ts-mode--preproc-indent-rules
-           c-ts-mode--macro-heuristic-rules
-           c-ts-mode--emacs-macro-rules
+             ;; Misc overrides.
+             ((parent-is "translation_unit") column-0 0)
+             ((node-is ,(rx (or "else" "case"))) standalone-parent 0)
+             ;; Align the while keyword to the do keyword.
+             ((match "while" "do_statement") parent 0)
+             c-ts-mode--parenthesized-expression-indent-rule
+             ;; Thanks to tree-sitter-c's weird for-loop grammar, we can't
+             ;; use the baseline indent rule for it.
+             c-ts-mode--for-loop-indent-rule
+             c-ts-mode--label-indent-rules
+             ,@c-ts-mode--preproc-indent-rules
+             c-ts-mode--macro-heuristic-rules
+             c-ts-mode--emacs-macro-rules
 
-           ;; Make sure type and function definition components align and
-           ;; don't indent. Also takes care of GNU style opening braces.
-           ((parent-is ,(rx (or "function_definition"
-                                "struct_specifier"
-                                "enum_specifier"
-                                "union_specifier"
-                                "function_declarator"
-                                "template_declaration"
-                                "concatenated_string")))
-            standalone-parent 0)
-           ;; This is for the trailing-star stype:  int *
-           ;;                                       func()
-           ((match "function_declarator" nil "declarator") parent-bol 0)
-           ;; ((match nil "function_definition" "declarator") parent 0)
-           ;; ((match nil "struct_specifier" "name") parent 0)
-           ;; ((match nil "function_declarator" "parameters") parent 0)
-           ;; ((parent-is "template_declaration") parent 0)
+             ;; Make sure type and function definition components align and
+             ;; don't indent. Also takes care of GNU style opening braces.
+             ((parent-is ,(rx (or "function_definition"
+                                  "struct_specifier"
+                                  "enum_specifier"
+                                  "union_specifier"
+                                  "function_declarator"
+                                  "template_declaration"
+                                  "concatenated_string")))
+              standalone-parent 0)
+             ;; This is for the trailing-star stype:  int *
+             ;;                                       func()
+             ((match "function_declarator" nil "declarator") parent-bol 0)
+             ;; ((match nil "function_definition" "declarator") parent 0)
+             ;; ((match nil "struct_specifier" "name") parent 0)
+             ;; ((match nil "function_declarator" "parameters") parent 0)
+             ;; ((parent-is "template_declaration") parent 0)
 
-           ((parent-is "comment") parent c-ts-mode--block-comment-offset)
+             ((parent-is "comment") parent c-ts-mode--block-comment-offset)
 
-           ;; Preproc directives
-           ((node-is "preproc_arg") no-indent)
-           ((node-is "preproc") column-0 0)
-           ((node-is "#endif") column-0 0)
+             ;; Preproc directives
+             ((node-is "preproc_arg") no-indent)
+             ((node-is "preproc") column-0 0)
+             ((node-is "#endif") column-0 0)
 
-           ;; C++
-           ((node-is "access_specifier") parent-bol 0)
-           ((prev-line-is "access_specifier")
-            parent-bol c-ts-indent-offset)
+             ;; C++
+             ((node-is "access_specifier") parent-bol 0)
+             ((prev-line-is "access_specifier")
+              parent-bol c-ts-indent-offset)
 
-           c-ts-common-baseline-indent-rule)))
+             c-ts-common-baseline-indent-rule))))
     (setq rules
-          (pcase style
+          (pcase c-ts-mode-indent-style
             ('gnu rules)
             ('k&r rules)
             ('linux
@@ -560,9 +563,10 @@ MODE can be `c' or `cpp'.  STYLE can be `gnu', `k&r', `linux', `bsd'."
                 standalone-parent c-ts-indent-offset)
                ((node-is "compound_statement") standalone-parent 0)
                ,@rules))))
-    (pcase mode
-      ('c `((c . ,rules)))
-      ('cpp `((cpp . ,rules))))))
+    (setq-local treesit-simple-indent-rules
+                (pcase mode
+                  ('c `((c . ,rules)))
+                  ('cpp `((cpp . ,rules)))))))
 
 (defun c-ts-mode--parenthesized-expression-indent-rule (_node parent &rest _)
   "Indent rule that indents parenthesized expression.
@@ -1501,11 +1505,7 @@ in your init files, or customize `treesit-enabled-modes'."
       (setq-local comment-start "/* ")
       (setq-local comment-end " */")
       ;; Indent.
-      (setq-local treesit-simple-indent-rules
-                  (if (functionp c-ts-mode-indent-style)
-                      (funcall c-ts-mode-indent-style)
-                    (c-ts-mode--simple-indent-rules
-                     'c c-ts-mode-indent-style)))
+      (c-ts-mode--simple-indent-rules 'c)
       ;; (setq-local treesit-simple-indent-rules
       ;;             `((c . ,(alist-get 'gnu (c-ts-mode--indent-styles 'c)))))
       ;; Font-lock.
@@ -1578,11 +1578,7 @@ recommended to enable `electric-pair-mode' with this mode."
                   #'c-ts-mode--syntax-propertize)
 
       ;; Indent.
-      (setq-local treesit-simple-indent-rules
-                  (if (functionp c-ts-mode-indent-style)
-                      (funcall c-ts-mode-indent-style)
-                    (c-ts-mode--simple-indent-rules
-                     'cpp c-ts-mode-indent-style)))
+      (c-ts-mode--simple-indent-rules 'cpp)
       (setq-local editorconfig-indent-size-vars '(c-ts-indent-offset))
 
       ;; Font-lock.
