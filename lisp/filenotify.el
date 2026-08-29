@@ -461,6 +461,8 @@ FILE is the name of the file whose event is being reported."
                     callback)))
         (puthash desc watch file-notify-descriptors))
       ;; Return descriptor.
+      (when file-notify-debug
+	(message "file-notify-add-watch %S %S %S %S" desc file flags callback))
       desc)))
 
 (defun file-notify-rm-watch (descriptor)
@@ -469,6 +471,8 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
   (when-let* ((watch (gethash descriptor file-notify-descriptors)))
     ;; If we are called from a `stopped' event, do nothing.
     (when (file-notify--watch-callback watch)
+      (when file-notify-debug
+        (message "file-notify-rm-watch %S" descriptor))
       (let ((handler (find-file-name-handler
                       (file-notify--watch-directory watch)
                       'file-notify-rm-watch)))
@@ -490,12 +494,11 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
       ;; Send a `stopped' event.
       (unwind-protect
           ;; Insert `stopped' event.
-          (insert-special-event
+          (file-notify-handle-event
            (make-file-notify
             :-event `(,descriptor stopped
-                    ,(file-notify--watch-absolute-filename watch))
+                      ,(file-notify--watch-absolute-filename watch))
             :-callback 'file-notify-callback))
-        (read-event nil nil 0.01)
         ;; Make sure this is the last time the callback was invoked.
         (setf (file-notify--watch-callback watch) nil)))
 
