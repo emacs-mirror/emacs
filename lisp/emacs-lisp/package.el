@@ -3041,7 +3041,7 @@ Helper function for `describe-package'."
 
       ;; Insert news if available.
       (when news
-        (insert "\n" (make-separator-line) "\n"
+        (insert (make-separator-line)
                 (propertize "* News" 'face 'package-help-section-name)
                 "\n\n")
         (insert-file-contents news))

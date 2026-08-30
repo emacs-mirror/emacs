@@ -1261,13 +1261,13 @@ current buffer."
                              "\n"))
           (when (delq nil on-link)
             (insert "\n\nThose are influenced by `mouse-1-click-follows-link'"))
-          (insert "\n\nThey're all described below."))
+          (insert "\n\nThey're all described below.\n"))
         (pcase-dolist (`(,_seq ,brief-desc ,defn ,locus)
                        info-list)
           (when defn
             (when (> (length info-list) 1)
               (with-current-buffer standard-output
-                (insert "\n\n" (make-separator-line) "\n")))
+                (insert (make-separator-line))))
 
             (insert brief-desc)
             (when locus

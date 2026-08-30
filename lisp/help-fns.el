@@ -2007,9 +2007,7 @@ current buffer and the selected frame, respectively."
                 (doc (cdr (cadr docs))))  ;Doc to add at BOB.
             (when doc
               (insert doc)
-              (delete-region (point)
-                             (progn (skip-chars-backward " \t\n") (point)))
-              (insert "\n\n" (make-separator-line) "\n")
+              (insert "\n" (make-separator-line))
               (when name
                 (insert (symbol-name symbol)
                         " is also a " name "." "\n\n"))))
