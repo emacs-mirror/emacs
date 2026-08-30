@@ -71,30 +71,21 @@ RUN apt-get update && \
 # Install clangd, tsserver, rust-analyzer.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      clangd npm node-typescript rust-analyzer cargo \
+      clangd npm node-typescript pipx rust-analyzer cargo \
     && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g typescript-language-server
 RUN npm install -g vscode-json-languageserver
 
+# rassumfrassum is available as Debian package in forky.
+# ruff is available as Debian package in sid.
+RUN pipx install rassumfrassum
+RUN pipx install ruff
+RUN pipx install ty
+RUN pipx ensurepath
+
 # eclipse-jdt-ls is planned as Java language server.
 # See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1024246>.
-
-# The following LSP servers exist as snap packages.  However, snap
-# cannot be used inside containers.  We keep this here for reference.
-
-# # Install snapd.
-# RUN apt-get update && \
-#     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-#       snapd \
-#     && rm -rf /var/lib/apt/lists/*
-# RUN snap install core
-
-# # Install typescript-language-server.
-# RUN snap install typescript-language-server
-
-# # Install vscode-json-languageserver.
-# RUN snap install vscode-json-languageserver
 
 COPY . /checkout
 WORKDIR /checkout
