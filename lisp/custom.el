@@ -1338,6 +1338,9 @@ This variable cannot be set in a Custom theme."
   :risky t
   :version "24.1")
 
+(defvar custom--theme-load-file nil
+  "File name of a theme being loaded.")
+
 (defun load-theme (theme &optional no-confirm no-enable)
   "Load Custom theme named THEME from its file and possibly enable it.
 The theme file is named THEME-theme.el, in one of the directories
@@ -1397,10 +1400,12 @@ Return t if THEME was successfully loaded, nil otherwise."
                     (equal (file-name-directory file)
                            (expand-file-name "themes/" data-directory))))
            ;; Theme is safe; load byte-compiled version if available.
-           (load (file-name-sans-extension file) nil t nil t))
+           (let ((custom--theme-load-file file))
+             (load (file-name-sans-extension file) nil t nil t)))
           ((with-temp-buffer
              (insert-file-contents file)
-             (let ((hash (secure-hash 'sha256 (current-buffer))))
+             (let ((hash (secure-hash 'sha256 (current-buffer)))
+                   (custom--theme-load-file file))
                (when (or (member hash custom-safe-themes)
                          (custom-theme-load-confirm hash))
                  (eval-buffer nil nil file)
