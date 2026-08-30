@@ -27,6 +27,18 @@
 (require 'xref)
 (require 'cl-lib)
 
+(defconst xref-tests--xargs-0-works
+  (zerop (call-process "xargs" nil nil nil "-0")))
+
+(defmacro xref-tests--deftest (name args &rest body)
+  "Define an xref test that skips if xargs does not support -0.
+xref requires xargs -0, standardized by POSIX.1-2024,
+and there is little point to testing xref on platforms lacking support."
+  (declare (indent 1))
+  `(ert-deftest ,name ,args
+     (skip-unless xref-tests--xargs-0-works)
+     ,@body))
+
 (defvar xref-tests--data-dir
   (expand-file-name "xref-resources/"
                     (file-name-directory
@@ -43,16 +55,16 @@
              #'string<
              :key #'xref-location-group)))
 
-(ert-deftest xref-matches-in-directory-finds-none-for-some-regexp ()
+(xref-tests--deftest xref-matches-in-directory-finds-none-for-some-regexp ()
   (should (null (xref-tests--matches-in-data-dir "zzz"))))
 
-(ert-deftest xref-matches-in-directory-finds-some-for-bar ()
+(xref-tests--deftest xref-matches-in-directory-finds-some-for-bar ()
   (let ((locs (xref-tests--locations-in-data-dir "bar")))
     (should (= 2 (length locs)))
     (should (string-match-p "file1\\.txt\\'" (xref-location-group (nth 0 locs))))
     (should (string-match-p "file2\\.txt\\'" (xref-location-group (nth 1 locs))))))
 
-(ert-deftest xref-matches-in-directory-filters-with-ignores ()
+(xref-tests--deftest xref-matches-in-directory-filters-with-ignores ()
   (let ((locs (xref-matches-in-directory "bar" "*" xref-tests--data-dir
                                          '("./file1.*"))))
     (should (= 1 (length locs)))
@@ -60,7 +72,8 @@
                                               (xref-item-location
                                                (nth 0 locs)))))))
 
-(ert-deftest xref-matches-in-directory-finds-two-matches-on-the-same-line ()
+(xref-tests--deftest
+ xref-matches-in-directory-finds-two-matches-on-the-same-line ()
   (let ((locs (xref-tests--locations-in-data-dir "foo")))
     (should (= 2 (length locs)))
     (should (string-match-p "file1\\.txt\\'" (xref-location-group (nth 0 locs))))
@@ -70,14 +83,16 @@
     (should (equal 1 (xref-file-location-column (nth 0 locs))))
     (should (equal 5 (xref-file-location-column (nth 1 locs))))))
 
-(ert-deftest xref-matches-in-directory-finds-an-empty-line-regexp-match ()
+(xref-tests--deftest
+ xref-matches-in-directory-finds-an-empty-line-regexp-match ()
   (let ((locs (xref-tests--locations-in-data-dir "^$")))
     (should (= 1 (length locs)))
     (should (string-match-p "file2\\.txt\\'" (xref-location-group (nth 0 locs))))
     (should (equal 1 (xref-location-line (nth 0 locs))))
     (should (equal 0 (xref-file-location-column (nth 0 locs))))))
 
-(ert-deftest xref-matches-in-files-includes-matches-from-all-the-files ()
+(xref-tests--deftest
+ xref-matches-in-files-includes-matches-from-all-the-files ()
   (let ((matches (xref-matches-in-files "bar"
                                         (directory-files xref-tests--data-dir t
                                                          "\\`[^.]"))))
@@ -86,7 +101,8 @@
              (lambda (match) (equal (xref-item-summary match) "bar"))
              matches))))
 
-(ert-deftest xref-matches-in-files-trims-summary-for-matches-on-same-line ()
+(xref-tests--deftest
+ xref-matches-in-files-trims-summary-for-matches-on-same-line ()
   (let ((matches (xref-matches-in-files "match"
                                         (directory-files xref-tests--data-dir t
                                                          "\\`[^.]"))))
@@ -95,7 +111,7 @@
      (equal (mapcar #'xref-item-summary matches)
             '(" match some words " "match more " "match ends here")))))
 
-(ert-deftest xref--buf-pairs-iterator-groups-markers-by-buffers-1 ()
+(xref-tests--deftest xref--buf-pairs-iterator-groups-markers-by-buffers-1 ()
   (let* ((xrefs (xref-tests--matches-in-data-dir "foo"))
          (iter (xref--buf-pairs-iterator xrefs))
          (cons (funcall iter :next)))
@@ -103,7 +119,7 @@
     (should (string-match "file1\\.txt\\'" (buffer-file-name (car cons))))
     (should (= 2 (length (cdr cons))))))
 
-(ert-deftest xref--buf-pairs-iterator-groups-markers-by-buffers-2 ()
+(xref-tests--deftest xref--buf-pairs-iterator-groups-markers-by-buffers-2 ()
   (let* ((xrefs (xref-tests--matches-in-data-dir "bar"))
          (iter (xref--buf-pairs-iterator xrefs))
          (cons1 (funcall iter :next))
@@ -113,7 +129,7 @@
     (should (= 1 (length (cdr cons1))))
     (should (= 1 (length (cdr cons2))))))
 
-(ert-deftest xref--buf-pairs-iterator-cleans-up-markers ()
+(xref-tests--deftest xref--buf-pairs-iterator-cleans-up-markers ()
   (let* ((xrefs (xref-tests--matches-in-data-dir "bar"))
          (iter (xref--buf-pairs-iterator xrefs))
          (cons1 (funcall iter :next))
@@ -124,7 +140,7 @@
     (should (null (marker-position (car (nth 0 (cdr cons2))))))
     (should (null (marker-position (cdr (nth 0 (cdr cons2))))))))
 
-(ert-deftest xref--xref-file-name-display-is-abs ()
+(xref-tests--deftest xref--xref-file-name-display-is-abs ()
   (let ((xref-file-name-display 'abs))
     (should (equal
              (delete-dups
@@ -138,7 +154,7 @@
               (concat xref-tests--data-dir "file1.txt")
               (concat xref-tests--data-dir "file2.txt"))))))
 
-(ert-deftest xref--xref-file-name-display-is-nondirectory ()
+(xref-tests--deftest xref--xref-file-name-display-is-nondirectory ()
   (let ((xref-file-name-display 'nondirectory))
     (should (equal (delete-dups
                     (mapcar
@@ -151,7 +167,8 @@
                     "file1.txt"
                     "file2.txt")))))
 
-(ert-deftest xref--xref-file-name-display-is-relative-to-project-root ()
+(xref-tests--deftest
+ xref--xref-file-name-display-is-relative-to-project-root ()
   (let* ((data-parent-dir
           (file-name-directory (directory-file-name xref-tests--data-dir)))
          (xref-file-name-display 'project-relative))
