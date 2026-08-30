@@ -700,6 +700,7 @@ font-lock keywords will not be case sensitive."
                                      lisp-mode-autoload-regexp
                                      "\\)"))
   (setq-local outline-level 'lisp-outline-level)
+  (setq-local outline-comment-regexp ";;; \\([*]+\\)")
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
   (setq-local comment-start-skip ";+ *")
