@@ -1993,10 +1993,14 @@ static bool
 check_socket_timeout (ssize_t rl)
 {
 #ifndef WINDOWSNT
-  return (rl == -1)
-    && (errno == EAGAIN)
-    && (errno == EWOULDBLOCK);
-#else
+  if (rl != -1)
+    return false;
+#ifdef EWOULDBLOCK
+  if (EWOULDBLOCK != EAGAIN && errno == EWOULDBLOCK)
+    return true;
+#endif
+  return errno == EAGAIN;
+#else /* WINDOWSNT */
   return (rl == SOCKET_ERROR)
     && (WSAGetLastError() == WSAETIMEDOUT);
 #endif
