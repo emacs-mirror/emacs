@@ -1836,8 +1836,9 @@ Throw an error if another update process is in progress."
       ;; Bzr has serious locking problems, so setup the headers first (this is
       ;; mostly synchronous) rather than doing it while dir-status is running.
       (vc-dir--set-header def-dir 'reset-footer)
-      (when vc-dir-show-key-binding-hints
-        (goto-char (1+ (length vc-dir--key-binding-hints))))
+      (unless revert-buffer-in-progress
+        (when vc-dir-show-key-binding-hints
+          (goto-char (1+ (length vc-dir--key-binding-hints)))))
       (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)
