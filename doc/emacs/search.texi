@@ -338,6 +338,7 @@ value of the variable @code{search-upper-case} (@pxref{Lax Search,
 search-upper-case}) is other than @code{not-yanks}, that disables this
 down-casing.
 
+@kindex M-s .
 @kindex M-s M-.
 @findex isearch-forward-thing-at-point
   To begin a new incremental search with the text near point yanked
