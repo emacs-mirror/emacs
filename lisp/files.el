@@ -4323,19 +4323,22 @@ all the specified local variables, but ignores any settings of \"mode:\"."
               (push elem file-local-variables-alist)))
           (hack-local-variables-apply))))))
 
+(defvar-local files--name-of-loading-file nil
+  "File name of the file loaded/evaluated in the buffer.")
+
 (defun internal--get-default-lexical-binding (from)
   (let ((mib (lambda (node) (buttonize node (lambda (_) (info node))
                                   nil "mouse-2: Jump to Info node"))))
     (or (and (bufferp from) (zerop (buffer-size from)))
         (and (stringp from)
              (eql 0 (file-attribute-size (file-attributes from))))
-        (let ((source
-               (if (not (and (bufferp from)
-                             (string-match-p "\\` \\*load\\*\\(-[0-9]+\\)?\\'"
-                                             (buffer-name from))
-                             load-file-name))
-                   from
-                 (abbreviate-file-name load-file-name))))
+        (let* ((fname
+                (if (bufferp from)
+                    (buffer-local-value 'files--name-of-loading-file from)))
+               (source
+                (if fname
+                    (abbreviate-file-name fname)
+                  from)))
           (condition-case nil
               (display-warning
                `(files missing-lexbind-cookie
