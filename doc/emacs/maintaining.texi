@@ -2796,7 +2796,7 @@ new frame for it.  The former is @w{@kbd{C-x 4 .}}
 around the place of a mouse event.  The @code{xref-mouse-mode} minor
 mode binds the command to @kbd{C-mouse-1}.
 
-@kindex M-'
+@kindex M-g M-.
 @findex xref-find-by-kind
   @kbd{M-'} finds all definitions of a certain kind for the identifier
 at point.  First it prompts to choose the kind using a key character,

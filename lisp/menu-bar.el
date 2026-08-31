@@ -460,6 +460,9 @@ in the tool bar will close the current window where possible."
     (define-key menu [xref-apropos]
       '(menu-item "Find Apropos..." xref-find-apropos
                   :help "Find function/variables whose names match regexp"))
+    (define-key menu [xref-by-kind]
+      '(menu-item "Find Definition by Kind..." xref-find-by-kind
+                  :help "Find some certain kind of definition"))
 
     (define-key menu [xref-find-otherw]
       '(menu-item "Find Definition in Other Window..."

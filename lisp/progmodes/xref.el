@@ -1984,7 +1984,8 @@ output of this command when the backend is etags."
 ;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
-;;;###autoload (define-key esc-map "'" #'xref-find-by-kind)
+;;;###autoload (define-key goto-map    "." 'xref-find-by-kind)
+;;;###autoload (define-key goto-map "\M-." 'xref-find-by-kind)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 
