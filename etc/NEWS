@@ -237,7 +237,7 @@ It is bound to 'M-o'.
 
 +++ New command 'xref-find-by-kind'.
 It allows you to jump to a specific kind of definition. The available
-kinds are defined by the backend. It is bound to 'M-g M-.'.
+kinds are defined by the backend. It is bound to 'M-g .' and 'M-g M-.'.
 
 ** CPerl mode
 
