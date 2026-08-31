@@ -1541,9 +1541,13 @@ MS-Windows.
 This function returns a list describing the time zone that the user is
 in.
 
+@cindex Univeral Time
 The value has the form @code{(@var{offset} @var{abbr})}.  Here
-@var{offset} is an integer giving the number of seconds ahead of Universal Time
-(east of Greenwich).  A negative value means west of Greenwich.  The
+@var{offset} is an integer number of seconds of time ahead of
+Universal Time, the time scale originally based on Greenwich Mean Time (GMT),
+the local mean time at the Royal Observatory, Greenwich.
+A positive value is suitable for time zones east of Greenwich,
+and negative for west of Greenwich.  The
 second element, @var{abbr}, is a string giving a possibly-ambiguous
 abbreviation for the time zone, e.g., @samp{"IST"} for India Standard
 Time, Irish Standard Time, or Israel Standard Time.
