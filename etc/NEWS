@@ -474,9 +474,10 @@ button labeled "diff".  Pushing it displays a Diff Mode buffer comparing
 the actual and expected output.
 
 +++
-** The variable 'math-tzone-names' is now now marked obsolete.
-Strings should use numeric abbreviations like "-0600" instead of
-alphabetic abbreviations like "CST", which are too often ambiguous.
+** The variables 'math-tzone-names' and 'timezone-world-timezones' are
+now marked obsolete.  Strings should use numeric abbreviations like
+"-0600" instead of alphabetic abbreviations like "CST", which are too
+often ambiguous.
 
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
