@@ -6555,7 +6555,10 @@ If POS is outside the buffer's accessible portion, return nil."
     (let ((st (if parse-sexp-lookup-properties
 		  (get-char-property pos 'syntax-table))))
       (if (consp st) st
-	(aref (or st (syntax-table)) (char-after pos))))))
+	(let ((c (char-after pos)))
+	  (aref (or st (syntax-table))
+	        (if enable-multibyte-characters
+	            c (unibyte-char-to-multibyte c))))))))
 
 (defun syntax-class (syntax)
   "Return the code for the syntax class described by SYNTAX.
