@@ -1547,6 +1547,8 @@ The value has the form @code{(@var{offset} @var{abbr})}.  Here
 second element, @var{abbr}, is a string giving a possibly-ambiguous
 abbreviation for the time zone, e.g., @samp{"IST"} for India Standard
 Time, Irish Standard Time, or Israel Standard Time.
+POSIX-compatible time zone abbreviations are three to six characters
+that are each an ASCII alphanumeric, @samp{+}, or @samp{-}.
 Both elements can change when daylight
 saving time begins or ends; if the user has specified a time zone that
 does not use a seasonal time adjustment, then the value is constant
