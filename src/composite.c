@@ -1535,7 +1535,16 @@ composition_update_it (struct composition_it *cmp_it, ptrdiff_t charpos, ptrdiff
       glyph = LGSTRING_GLYPH (gstring, cmp_it->from);
       cmp_it->nchars = LGLYPH_TO (glyph) + 1 - from;
       cmp_it->nbytes = 0;
-      cmp_it->width = composition_gstring_width (gstring, cmp_it->from, cmp_it->to, NULL);
+      int column_width = 1;
+      /* Compute column width for GUI frames.  */
+      if (FONT_OBJECT_P (LGSTRING_FONT (gstring))
+	  && cmp_it->parent_it
+	  && cmp_it->parent_it->f)
+	column_width = FRAME_COLUMN_WIDTH (cmp_it->parent_it->f);
+      cmp_it->width = composition_gstring_width (gstring, cmp_it->from,
+						 cmp_it->to, NULL);
+      /* We need width in column units!  */
+      cmp_it->width /= column_width;
 
       for (i = cmp_it->nchars - 1; i >= 0; i--)
 	{
