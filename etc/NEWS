@@ -484,6 +484,10 @@ A corollary of this change is that on Android 17 and later systems, it
 must be granted permission to access nearby devices from Settings in
 order to establish network connections to hosts on local networks.
 
+---
+*** Emacs on MS-Windows now supports IME compositions on text-only frames.
+This support is only available on Windows versions of the NT family.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
