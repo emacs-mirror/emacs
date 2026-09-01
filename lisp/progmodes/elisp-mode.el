@@ -307,6 +307,7 @@ and therefore will not be semantically highlighted.
 See the function `elisp-scope-analyze-form' for more details about the
 code analysis."
   :type 'boolean
+  :safe #'booleanp
   :version "31.1")
 
 (defface elisp-symbol-at-mouse
@@ -569,6 +570,7 @@ code analysis."
   "Whether to add `help-echo' property to symbols while highlighting them.
 This option has effect only if `elisp-fontify-semantically' is non-nil."
   :version "31.1"
+  :safe #'booleanp
   :type 'boolean)
 
 (defun elisp--annotate-symbol-with-help-echo (role beg end sym)
