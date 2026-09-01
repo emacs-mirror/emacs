@@ -313,7 +313,7 @@ See bug#80803 and bug#80967."
           (vc-dir default-directory 'Git)
           (while (vc-dir-busy) (sit-for 0.05))
           (setq vc-dir-buf (current-buffer))
-          (should (bobp))
+          (should (looking-at "VC backend :"))
           (while (vc-dir--before-dotname-p)
             (vc-dir-next-line 1)
             (should (and (looking-at "\\./$") (looking-back "^ +" (pos-bol))))
