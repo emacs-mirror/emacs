@@ -1,6 +1,6 @@
 ;;; crm-tests.el --- Tests for crm.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2026-2026 Free Software Foundation, Inc.
+;; Copyright (C) 2026 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
