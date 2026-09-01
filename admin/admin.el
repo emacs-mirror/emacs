@@ -947,11 +947,15 @@ $Date: %s $
     ;; Format code blocks.
     (while (re-search-forward "^    " nil t)
       (let ((elisp-block (looking-at "(")))
-        (backward-paragraph)
+        (let ((paragraph-start "^    "))
+          (backward-paragraph))
+        (unless (looking-at paragraph-separate)
+          (save-excursion (insert "\n")))
         (insert (if elisp-block
                     "\n#+BEGIN_SRC emacs-lisp"
                   "\n#+BEGIN_EXAMPLE"))
-        (forward-paragraph)
+        (let ((paragraph-start "^[^ ]"))
+          (forward-paragraph))
         (insert (if elisp-block
                     "#+END_SRC\n"
                   "#+END_EXAMPLE\n"))))
