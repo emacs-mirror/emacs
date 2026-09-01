@@ -1180,12 +1180,7 @@ delivered."
 	  (file-notify--test-add-watch
 	   file-notify--test-tmpdir
 	   '(change) #'file-notify--test-event-handler)))
-   (let ((file-notify-debug ;; Temporarily.
-          (or file-notify-debug
-              (and (getenv "EMACS_EMBA_CI")
-                   (string-equal (file-notify--test-library) "gio")
-                   (eq (file-notify--test-monitor) 'GInotifyFileMonitor))))
-         (n 10);00)
+   (let ((n 10);00)
          source-file-list target-file-list
          (default-directory file-notify--test-tmpdir))
      (dotimes (i n)
@@ -1259,10 +1254,6 @@ delivered."
   "Check that backup keeps file notification."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
-
-  (let ((file-notify-debug ;; Temporarily.
-         (or file-notify-debug
-             (getenv "EMACS_EMBA_CI"))))
 
   (with-file-notify-test
    (write-region "any text" nil file-notify--test-tmpfile nil 'no-message)
@@ -1342,7 +1333,7 @@ delivered."
      (file-notify-rm-watch file-notify--test-desc)
 
      ;; The environment shall be cleaned up.
-     (file-notify--test-cleanup-p)))))
+     (file-notify--test-cleanup-p))))
 
 (file-notify--deftest-remote file-notify-test08-backup
   "Check that backup keeps file notification for remote files.")
