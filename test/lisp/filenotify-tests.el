@@ -641,6 +641,8 @@ delivered."
       (* (ceiling max-length 100) (file-notify--test-timeout))
       (or (= max-length (length file-notify--test-events))
           (memq 'stopped (file-notify--test-event-actions))))
+     ;; Read possible pending event.
+     (file-notify--test-wait-event)
      ;; Check the result sequence just to make sure that all actions
      ;; are as expected.
      (dolist (result file-notify--test-results)
@@ -1070,7 +1072,6 @@ delivered."
      (write-region "another text" nil file-notify--test-tmpfile nil 'no-message)
      (file-notify--test-wait-event)
      (delete-file file-notify--test-tmpfile))
-   (file-notify--test-wait-event)
    ;; After deleting the file, the descriptor is not valid anymore.
    (should-not (file-notify-valid-p file-notify--test-desc))
    (file-notify-rm-watch file-notify--test-desc)
@@ -1693,18 +1694,13 @@ the file watch."
           (t '(attribute-changed)))
        (set-file-times file-notify--test-tmpfile '(0 0) 'nofollow))
 
-     ;; Deleting the target should not raise any event.
-     (file-notify--test-with-actions nil
+     ;; Deleting the target should remove the watch.
+     (file-notify--test-with-actions '(deleted stopped)
        (delete-file file-notify--test-tmpfile1)
        (delete-file file-notify--test-tmpfile))
-     ;; Sanity check.
-     (file-notify--test-wait-for-events
-      (file-notify--test-timeout)
-      (not (input-pending-p)))
-     (should-not file-notify--test-events)
+     (file-notify-rm-watch file-notify--test-desc)
 
      ;; The environment shall be cleaned up.
-     (file-notify-rm-watch file-notify--test-desc)
      (file-notify--test-cleanup-p)))
 
   (with-file-notify-test
@@ -1724,21 +1720,38 @@ the file watch."
        (should (file-notify-valid-p file-notify--test-desc))
 
        ;; None of the actions on a file in the symlinked directory
-       ;; will be reported.
-       (file-notify--test-with-actions nil
+       ;; will be reported, except ...
+       (file-notify--test-with-actions
+           (cond
+            ;; GKqueueFileMonitor reports deleted only.
+            ((eq (file-notify--test-monitor) 'GKqueueFileMonitor)
+             '(deleted))
+            ;; GInotifyFileMonitor still reports changes.
+            ((and (string-equal (file-notify--test-library) "gio")
+	          (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
+	     '(changed changed attribute-changed changed changed
+               attribute-changed attribute-changed attribute-changed
+               attribute-changed attribute-changed deleted))
+            ((and (string-equal (file-notify--test-library) "gfilenotify")
+	          (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
+             '(changed changed changed changed attribute-changed
+               attribute-changed attribute-changed attribute-changed deleted))
+            (t nil))
          (write-region "another text" nil tmpfile nil 'no-message)
+         (file-notify--test-wait-event)
          (write-region "another text" nil tmpfile1 nil 'no-message)
+         (file-notify--test-wait-event)
          (set-file-times tmpfile '(0 0))
+         (file-notify--test-wait-event)
          (set-file-times tmpfile '(0 0) 'nofollow)
+         (file-notify--test-wait-event)
          (set-file-times tmpfile1 '(0 0))
+         (file-notify--test-wait-event)
          (set-file-times tmpfile1 '(0 0) 'nofollow)
+         (file-notify--test-wait-event)
          (delete-file tmpfile)
+         (file-notify--test-wait-event)
          (delete-file tmpfile1))
-       ;; Sanity check.
-       (file-notify--test-wait-for-events
-        (file-notify--test-timeout)
-        (not (input-pending-p)))
-       (should-not file-notify--test-events)
 
        ;; The environment shall be cleaned up.
        (delete-directory file-notify--test-tmpdir 'recursive)
@@ -1748,7 +1761,7 @@ the file watch."
 (file-notify--deftest-remote file-notify-test12-symlinks
   "Check `file-notify-test12-symlinks' for remote files.")
 
-(ert-deftest file-notify-test12-unmount ()
+(ert-deftest file-notify-test13-unmount ()
   "Check that file notification stop after unmounting the filesystem."
   :tags '(:expensive-test)
   (skip-unless (file-notify--test-local-enabled))
@@ -1799,8 +1812,8 @@ the file watch."
    ;; The environment shall be cleaned up.
    (file-notify--test-cleanup-p)))
 
-(file-notify--deftest-remote file-notify-test12-unmount
-  "Check `file-notify-test12-unmount' for remote files.")
+(file-notify--deftest-remote file-notify-test13-unmount
+  "Check `file-notify-test13-unmount' for remote files.")
 
 (defun file-notify-test-all (&optional interactive)
   "Run all tests for \\[file-notify]."

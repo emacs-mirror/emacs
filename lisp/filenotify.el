@@ -243,6 +243,16 @@ It is nil or a `file-notify--rename' defstruct where the cookie can be nil.")
                    (list desc action file file1)
                  (list desc action file))))))
 
+(defun file-notify--check-pending-rename ()
+  "Fire a `deleted' event from a pending `rename'."
+  (when file-notify--pending-rename
+    (file-notify--call-handler
+     (file-notify--rename-watch file-notify--pending-rename)
+     (file-notify--rename-desc file-notify--pending-rename)
+     'deleted
+     (file-notify--rename-from-file file-notify--pending-rename)
+     (setq file-notify--pending-rename nil))))
+
 (defun file-notify--handle-event (desc actions file file1-or-cookie)
   "Handle an event returned from file notification.
 DESC is the back-end descriptor.  ACTIONS is a list of:
@@ -290,7 +300,8 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
            ((eq action 'renamed-from)
             (setq file-notify--pending-rename
                   (file-notify--rename-make watch desc file file1-or-cookie)
-                  action nil))
+                  action nil)
+	    (run-at-time 0.1 nil #'file-notify--check-pending-rename))
            ;; Look for pending event.
            ((eq action 'renamed-to)
             (if file-notify--pending-rename
@@ -323,14 +334,7 @@ DESC is the back-end descriptor.  ACTIONS is a list of:
                        (string-equal
                         file (file-notify--watch-absolute-filename watch))))
           ;; Fire pending `renamed-from' event.
-          (when file-notify--pending-rename
-            (file-notify--call-handler
-             (file-notify--rename-watch file-notify--pending-rename)
-             (file-notify--rename-desc file-notify--pending-rename)
-             'deleted
-             (file-notify--rename-from-file file-notify--pending-rename)
-             nil)
-            (setq file-notify--pending-rename nil))
+          (file-notify--check-pending-rename)
           (setq actions nil)
           ;; Make sure this is the last time the callback was invoked.
           (when (eq action 'stopped)
