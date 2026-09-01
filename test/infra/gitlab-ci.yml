@@ -326,8 +326,12 @@ test-eglot:
       check-expensive
       TEST_HOME=/root
       LOGFILES="lisp/progmodes/eglot-tests.log"
-      EMACS_EXTRAOPT='--eval \(use-package\ company\ :ensure\ t\) --eval \(use-package\ yasnippet\ :ensure\ t\)'
-    PATH: $$PATH:/root/.local/bin
+      # "/root/.local/bin" is needed for pragrams installed by pipx.
+      EMACS_EXTRAOPT='
+        --eval \(package-install\ \(quote\ company\)\)
+        --eval \(package-install\ \(quote\ yasnippet\)\)
+        --eval \(setopt\ package-selected-packages\ \(quote\ \(company\ yasnippet\)\)\)
+        --eval \(setq\ exec-path\ \(cons\ \"/root/.local/bin\"\ exec-path\)\)'
 
 build-image-tree-sitter:
   stage: platform-images

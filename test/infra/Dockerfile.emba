@@ -82,7 +82,6 @@ RUN npm install -g vscode-json-languageserver
 RUN pipx install rassumfrassum
 RUN pipx install ruff
 RUN pipx install ty
-RUN pipx ensurepath
 
 # eclipse-jdt-ls is planned as Java language server.
 # See <https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1024246>.
@@ -92,13 +91,6 @@ WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure
 RUN make -j `nproc` bootstrap
-
-# # Install company and yasnippet.
-# RUN mkdir /root/.emacs.d
-# RUN src/emacs --batch \
-#     --eval '(setq url-debug 0 debug-on-error t)' \
-#     --eval '(package-install (quote company))' \
-#     --eval '(package-install (quote yasnippet))'
 
 FROM emacs-base AS emacs-tree-sitter
 
