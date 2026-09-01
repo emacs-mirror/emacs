@@ -6757,9 +6757,7 @@ Signal an error if unsuccessful."
 Optional arg PARENTS, if non-nil then creates parent dirs as needed.
 
 If called interactively, then PARENTS is non-nil."
-  (interactive
-   (let ((filename (read-file-name "Create empty file: ")))
-     (list filename t)))
+  (interactive "FCreate empty file: \np")
   (when parents
     (when-let* ((paren-dir (file-name-directory filename)))
       (make-directory paren-dir :parents)))
