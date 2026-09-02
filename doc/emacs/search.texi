@@ -1565,15 +1565,30 @@ is possible to perform several replacements in parallel, using the
 command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
 @cindex preview of replacement text
-@vindex query-replace-preview@r{ face}
 @vindex query-replace-show-preview
+@findex replace-preview-only-replacement
+@findex replace-preview-both
   If you set @code{query-replace-show-preview} to a non-@code{nil}
-value, the replace commands shows a preview of the replacement while
-you type it: the matches visible in the window are displayed as they
-would look after the replacement, using the face @code{query-replace-preview}.
-This tells you what back-references like @samp{\1} (@pxref{Regexp
-Replace}) expand to before you commit to the replacement.  However,
-replacements that use @samp{\,} or @samp{\#} are not previewed.
+value, the replace commands show a preview of the replacement while you
+type it: the matches visible in the window are displayed as they would
+look after the replacement.  This tells you what back-references like
+@samp{\1} (@pxref{Regexp Replace}) expand to before you commit to the
+replacement.  However, replacements that use @samp{\,} or @samp{\#} are
+not previewed.
+
+  The value can be @code{replace-preview-only-replacement}, to display
+the replacement alone, @code{replace-preview-both}, to display the match
+next to its replacement, separated by an arrow, or a function of your
+own, written by copying either of those two.  Such a function takes the
+match and the replacement and returns the string to display in place of
+the match.  If the replacement is empty,
+@code{replace-preview-only-replacement} would display nothing at all, so
+it displays a thin bar to mark the place of the match.
+
+@vindex query-replace-preview@r{ face}
+@vindex query-replace-preview-match@r{ face}
+  The preview uses the faces @code{query-replace-preview} and
+@code{query-replace-preview-match}.
 
 @menu
 * Unconditional Replace::   Replacing all matches for a string.
