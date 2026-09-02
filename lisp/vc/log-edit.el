@@ -466,7 +466,8 @@ The first subexpression is the actual text of the field.")
        (progn (goto-char (match-end 0)) (1+ (match-end 0))))
       nil
       (0 '( face log-edit-headers-separator
-            display-line-numbers-disable t rear-nonsticky t))))
+            display-line-numbers-disable t front-sticky t rear-nonsticky t
+            cursor-intangible t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
 
 (defvar log-edit-font-lock-gnu-style nil
@@ -579,12 +580,14 @@ the \\[vc-prefix-map] prefix for VC commands, for example).
   (setq-local font-lock-defaults '(log-edit-font-lock-keywords t))
   (make-local-variable 'font-lock-extra-managed-props)
   (cl-pushnew 'display-line-numbers-disable font-lock-extra-managed-props)
+  (cl-pushnew 'cursor-intangible font-lock-extra-managed-props)
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
   (setq-local normal-auto-fill-function #'log-edit-do-auto-fill)
   (make-local-variable 'log-edit-comment-ring-index)
   (add-hook 'kill-buffer-hook 'log-edit-remember-comment nil t)
   (hack-dir-local-variables-non-file-buffer)
+  (cursor-intangible-mode 1)
   ;; Replace the tool bar map with `log-edit-tool-bar-map'.
   (setq-local tool-bar-map log-edit-tool-bar-map))
 
