@@ -1665,6 +1665,30 @@ namespace but with lower confidence."
 
     xrefs))
 
+(cl-defmethod xref-backend-xref-kinds ((_backend (eql 'elisp)))
+  '((:kind defun :name "function" :key ?f)
+    (:kind defvar :name "variable" :key ?v)
+    (:kind cl-defgeneric :name "generic function" :key ?g)
+    (:kind cl-defmethod :name "generic method" :key ?m)
+    (:kind define-type :name "constructor" :key ?n)
+    (:kind defalias :name "function alias" :key ?a)
+    (:kind defface :name "face" :key ?c)
+    (:kind feature :name "feature" :key ?e)))
+
+(cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql 'elisp)) identifier kind)
+  (require 'find-func)
+  (let ((sym (intern-soft identifier)))
+    (when sym
+      ;; FIXME: Should be less work if we limit the search, not filter.
+      (let* ((defs (elisp--xref-find-definitions sym)))
+        (cl-loop for d in defs
+                 for def-kind = (xref-elisp-location-type (xref-item-location d))
+                 when (if (not (eq kind 'defun))
+                          (eq def-kind kind)
+                        (memq def-kind '( nil cl-defgeneric cl-defmethod
+                                          define-type defalias)))
+                 collect d)))))
+
 (declare-function xref-apropos-regexp "xref" (pattern))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql 'elisp)) pattern)
@@ -1675,19 +1699,35 @@ namespace but with lower confidence."
              (push (elisp--xref-find-definitions sym) lst))
            (nreverse lst))))
 
-(defvar elisp--xref-identifier-completion-table
-  (apply-partially #'completion-table-with-predicate
-                   obarray
-                   (lambda (sym)
-                     (or (boundp sym)
-                         (fboundp sym)
-                         (featurep sym)
-                         (facep sym)))
-                   'strict))
-
 (cl-defmethod xref-backend-identifier-completion-table ((_backend
                                                          (eql 'elisp)))
-  elisp--xref-identifier-completion-table)
+  obarray)
+
+(cl-defmethod xref-backend-identifier-completion-predicate ((_backend (eql 'elisp))
+                                                            &optional kind)
+  (if (not kind)
+      (lambda (sym)
+        (or (boundp sym)
+            (fboundp sym)
+            (featurep sym)
+            (facep sym)))
+    (cl-ecase kind
+      (defun #'fboundp)
+      (defvar #'boundp)
+      (cl-defgeneric #'cl--generic)
+      (cl-defmethod
+        (lambda (sym)
+          (and (cl--generic sym)
+               (cl--generic-method-table (cl--generic sym)))))
+      (define-type
+       (lambda (sym)
+         (and (functionp sym)
+              (let ((doc (documentation sym t)))
+                (and doc
+                     (string-search "Constructor for objects of type" doc))))))
+      (defalias #'function-alias-p)
+      (defface #'facep)
+      (feature #'featurep))))
 
 (cl-defstruct (xref-elisp-location
                (:constructor xref-make-elisp-location (symbol type file)))

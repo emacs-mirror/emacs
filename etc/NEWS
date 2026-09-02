@@ -282,6 +282,12 @@ Otherwise, a pattern is built from 'comment-start' and the new option
 It allows users to navigate the current buffer's outline using Xref.
 It is bound to 'M-o'.
 
+** Xref
+
++++ New command 'xref-find-by-kind'.
+It allows you to jump to a specific kind of definition. The available
+kinds are defined by the backend. It is bound to 'M-g .' and 'M-g M-.'.
+
 ** CPerl mode
 
 *** Perl 5.44 support: Signatures with named parameters

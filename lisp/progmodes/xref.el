@@ -74,6 +74,7 @@
 (require 'ring)
 (require 'project)
 (require 'text-property-search)
+(require 'map)
 
 (eval-and-compile
   (when (version< emacs-version "28.0.60")
@@ -311,9 +312,39 @@ recognize and then delegate the work to an external process."
   "Return the completion table for identifiers."
   nil)
 
+(cl-defgeneric xref-backend-identifier-completion-predicate (_backend
+                                                             &optional _kind)
+  "Return the predicate for identifier completion.
+The argument KIND will be provided when the caller intends to narrow
+down the search.  The backend can use it to narrow down to only
+identifiers that have xrefs belonging to KIND."
+  nil)
+
 (cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
   "Return t if case is not significant in identifier completion."
   completion-ignore-case)
+
+(cl-defgeneric xref-backend-xref-kinds (_backend)
+  "Return list of descriptors for xref kinds supported by BACKEND.
+
+Each descriptor is a plist with properties `:kind', `:name' and `:key'
+where the kind is a symbol value, name is a string and the key is a
+unique character that can be used to choose among them.  Optionally, it
+can also include `:prompt-format' which defaults to \"Find %s\".
+
+Having a kind in this list means that the backend can try to find such
+xrefs in the current and related buffers, with no guarantee of success.
+These locations might or might not be included in the results of
+`xref-backend-definitions' or `xref-backend-references'."
+  (user-error "Xref kinds not supported by the backend"))
+
+(cl-defgeneric xref-backend-xrefs-by-kind (_backend _identifier _kind)
+  "Find xrefs of KIND for IDENTIFIER.
+
+KIND must be one of the values of `:kind' from `xref-backend-xref-kinds'
+The result must be a list of xref values, like in
+`xref-backend-definitions'."
+  nil)
 
 
 ;;; misc utilities
@@ -369,7 +400,8 @@ otherwise unused.")
 
 (defcustom xref-prompt-for-identifier '(not xref-find-definitions
                                             xref-find-definitions-other-window
-                                            xref-find-definitions-other-frame)
+                                            xref-find-definitions-other-frame
+                                            xref-find-by-kind)
   "If non-nil, prompt for the identifier to find.
 
 When t, always prompt for the identifier name.
@@ -1673,8 +1705,16 @@ The meanings of both arguments are the same as documented in
           (not (memq command (cdr xref-prompt-for-identifier)))
         (memq command xref-prompt-for-identifier))))
 
-(defun xref--read-identifier (prompt)
-  "Return the identifier at point or read it from the minibuffer."
+(defun xref-read-identifier (prompt &optional kind)
+  "Return the identifier at point or read it from the minibuffer.
+
+Reads and returns the identifier to use as input for the command being
+executed now.  If the current command should prompt, as defined in
+`xref-prompt-for-identifier', it uses the result of
+`xref-backend-identifier-at-point'.  Otherwise, it reads with completion
+from the table returned by `xref-backend-identifier-completion-table',
+together with `xref-backend-identifier-completion-predicate'.
+The argument KIND is passed on to the latter function."
   (let* ((backend (xref-find-backend))
          (def (xref-backend-identifier-at-point backend))
          (completion-ignore-case
@@ -1696,35 +1736,40 @@ The meanings of both arguments are the same as documented in
                                  def)
                        prompt))
                    (xref-backend-identifier-completion-table backend)
-                   nil nil nil
+                   (xref-backend-identifier-completion-predicate backend kind)
+                   nil nil
                    'xref--read-identifier-history def t)))
              (if (equal id "")
                  (or def (user-error "There is no default identifier"))
                id)))
           (t def))))
 
+(define-obsolete-function-alias
+  'xref--read-identifier 'xref-read-identifier
+  "32.1")
+
 
 ;;; Commands
 
-(defun xref--find-xrefs (input kind arg display-action)
+(defun xref--find-xrefs (input method arg display-action)
   (xref--show-xrefs
-   (xref--create-fetcher input kind arg)
+   (xref--create-fetcher input method method arg)
    display-action))
 
 (defun xref--find-definitions (id display-action)
   (xref--show-defs
-   (xref--create-fetcher id 'definitions id)
+   (xref--create-fetcher id 'definitions "definitions" id)
    display-action))
 
-(defun xref--create-fetcher (input kind arg)
+(defun xref--create-fetcher (input method source-name &rest args)
   "Return an xref list fetcher function.
 
 It revisits the saved position and delegates the finding logic to
-the xref backend method indicated by KIND and passes ARG to it."
+the xref backend method indicated by METHOD and passes ARGS to it."
   (let* ((orig-buffer (current-buffer))
          (orig-position (point))
          (backend (xref-find-backend))
-         (method (intern (format "xref-backend-%s" kind))))
+         (method (intern (format "xref-backend-%s" method))))
     (lambda ()
       (save-excursion
         ;; Xref methods are generally allowed to depend on the text
@@ -1736,13 +1781,13 @@ the xref backend method indicated by KIND and passes ARG to it."
         (when (buffer-live-p orig-buffer)
           (set-buffer orig-buffer)
           (ignore-errors (goto-char orig-position)))
-        (let ((xrefs (funcall method backend arg)))
+        (let ((xrefs (apply method backend args)))
           (unless xrefs
-            (xref--not-found-error kind input))
+            (xref--not-found-error source-name input))
           xrefs)))))
 
-(defun xref--not-found-error (kind input)
-  (user-error "No %s found for: %s" (symbol-name kind) input))
+(defun xref--not-found-error (source-name input)
+  (user-error "No %s found for: %s" source-name input))
 
 ;;;###autoload
 (defun xref-find-definitions (identifier)
@@ -1756,7 +1801,7 @@ Otherwise, display the list of the possible definitions in a
 buffer where the user can select from the list.
 
 Use \\[xref-go-back] to return back to where you invoked this command."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref-read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier nil))
 
 ;;;###autoload
@@ -1765,14 +1810,55 @@ Use \\[xref-go-back] to return back to where you invoked this command."
 If this command needs to split the current window, it by default obeys
 the user options `split-height-threshold' and `split-width-threshold',
 when it decides whether to split the window horizontally or vertically."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref-read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier 'window))
 
 ;;;###autoload
 (defun xref-find-definitions-other-frame (identifier)
   "Like `xref-find-definitions' but switch to the other frame."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref-read-identifier "Find definitions of: ")))
   (xref--find-definitions identifier 'frame))
+
+(defun xref--read-kind (prompt)
+  (let* ((descs (xref-backend-xref-kinds (xref-find-backend)))
+         (choices (mapcar
+                   (pcase-lambda ((map (:key key)
+                                  (:name name)))
+                     (list key name))
+                   descs))
+         (key (nth 0
+                   (read-multiple-choice prompt choices))))
+    (cl-find key descs :key (lambda (desc) (plist-get desc :key)))))
+
+;;;###autoload
+(defun xref-find-by-kind (identifier kind)
+  "Find some certain kind of definitions of the identifier at point.
+
+Prompt for KIND to search for.  With prefix argument or when there's no
+identifier at point, prompt for the identifier too.
+
+If only one location is found, display it in the selected window.
+Otherwise, display the list of the possible definitions in a
+buffer where the user can select from the list.
+
+Use \\[xref-go-back] to return back to where you invoked this command.
+
+When called programmatically, KIND should be one of supported symbols."
+  (interactive (let* ((desc (xref--read-kind "Find by kind"))
+                      (kind (plist-get desc :kind)))
+                 (unless desc (user-error "Have to choose the kind"))
+                 (list
+                  (xref-read-identifier
+                   (format-message (or (plist-get desc :prompt-format) "Find %s")
+                                   (plist-get desc :name))
+                   kind)
+                  kind)))
+  (let ((kind-desc (cl-find kind (xref-backend-xref-kinds (xref-find-backend))
+                            :key (lambda (desc) (plist-get desc :kind)))))
+    (xref--show-defs
+     (xref--create-fetcher identifier 'xrefs-by-kind (plist-get kind-desc :name)
+                           identifier (plist-get kind-desc :kind))
+     nil)))
 
 ;;;###autoload
 (defun xref-find-references (identifier)
@@ -1782,7 +1868,7 @@ offering the symbol at point as the default.
 With prefix argument, or if `xref-prompt-for-identifier' is t,
 always prompt for the identifier.  If `xref-prompt-for-identifier'
 is nil, prompt only if there's no usable symbol at point."
-  (interactive (list (xref--read-identifier "Find references of: ")))
+  (interactive (list (xref-read-identifier "Find references of: ")))
   (xref--find-xrefs identifier 'references identifier nil))
 
 (defun xref-find-references-and-replace (from to)
@@ -1898,6 +1984,8 @@ output of this command when the backend is etags."
 ;;;###autoload (define-key esc-map [?\C-,] #'xref-go-forward)
 ;;;###autoload (define-key esc-map "?" #'xref-find-references)
 ;;;###autoload (define-key esc-map [?\C-.] #'xref-find-apropos)
+;;;###autoload (define-key goto-map    "." 'xref-find-by-kind)
+;;;###autoload (define-key goto-map "\M-." 'xref-find-by-kind)
 ;;;###autoload (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
 ;;;###autoload (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 
