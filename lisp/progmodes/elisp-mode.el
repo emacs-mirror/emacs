@@ -1714,7 +1714,7 @@ namespace but with lower confidence."
     (cl-ecase kind
       (defun #'fboundp)
       (defvar #'boundp)
-      (cl-defgeneric #'cl--generic)
+      (cl-defgeneric (lambda (sym) (cl--generic sym)))
       (cl-defmethod
         (lambda (sym)
           (and (cl--generic sym)
