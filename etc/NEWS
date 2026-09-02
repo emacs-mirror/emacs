@@ -27,9 +27,10 @@ applies, and please also update docstrings as needed.
 
 * Startup Changes in Emacs 32.1
 
-** New terminal type Kmscon.
-Emacs now supports the Kmscon terminal emulator available on GNU/Linux
+** New terminal type 'Kmscon'.
+Emacs now supports the 'Kmscon' terminal emulator available on GNU/Linux
 systems.
+
 
 * Changes in Emacs 32.1
 
@@ -113,7 +114,7 @@ the user option 'icomplete-in-buffer' to the value 'with-completions-popup'.
 ** Improved Emoji support on text-only terminals.
 Emacs now composes Emoji sequences as two-column glyphs on text-mode
 terminals when 'auto-composition-mode' is enabled.  This should correct
-a number of movement and display issues on an Emoji-capable terminal
+a number of movement and display issues on Emoji-capable terminal
 emulators.
 
 However, the actual rendering of Emoji still depends on the capability
@@ -148,10 +149,10 @@ to leave that match alone.
 
 ** Electric Pair mode
 
-*** Electric pair mode can restrict operation to nearby fields
+*** Electric pair mode can restrict operation to nearby fields.
 This is particularly useful in comint-based modes (like 'M-x shell' or
 'M-x run-python') and other situations where process output may contain
-unpaired delimiters, while keeping delimiters you insert balanced. The
+unpaired delimiters, while keeping delimiters you insert balanced.  The
 'electric-pair-field-search-size' variable controls the search distance
 for nearby fields.
 
@@ -177,13 +178,13 @@ check out the repository to prepare a patch for the package maintainer.
 
 +++
 *** Overhauled inline diagnostics.
-A new variable 'flymake-inline-diagnostics' replaces
+A new user option 'flymake-inline-diagnostics' replaces
 'flymake-show-diagnostics-at-end-of-line' and controls how Flymake
 annotates diagnostic text directly in the buffer.  Besides the previous
 styles ('eol', 'short', and 'fancy'), it can be used to only display
 certain styles in certain situations, such as using a 'fancy' inline
 displays on nearby diagnostic only.  The old variable is now an obsolete
-alias.  In parallel, the variable 'flymake-diagnostic-format-alist'
+alias.  In parallel, the user option 'flymake-diagnostic-format-alist'
 contains new options to configure exactly which parts of a diagnostic to
 show for each inline layout possibility.
 
@@ -228,7 +229,7 @@ customize the new user option 'vc-dir-process-output-limit' to control
 how early to stop, and to disable this feature.
 
 ---
-*** VC-Dir resolves symbolic links only if the directory has no backend.
+*** VC Directory resolves symbolic links only if the directory has no backend.
 When called interactively, 'M-x vc-dir' checks if the passed directory
 has a VC backend.  If it doesn't, but the directory's truename does
 have a backend, and 'vc-follow-symlinks' is non-nil, the truename is
@@ -244,8 +245,8 @@ If VC detects that the set of changed files listed in the ChangeLog
 entry differs from the current VC fileset, it displays a warning.
 
 ---
-*** The face log-edit-headers-separator inherits from separator-line
-The default definition of log-edit-headers-separator now inherits its
+*** The face 'log-edit-headers-separator' inherits from separator-line.
+The default definition of 'log-edit-headers-separator' now inherits its
 attributes from the face 'separator-line'.  That changes the default
 color and makes it work better in the terminal.
 
@@ -291,16 +292,15 @@ It is bound to 'M-o'.
 ** Xref
 
 +++ New command 'xref-find-by-kind'.
-It allows you to jump to a specific kind of definition. The available
-kinds are defined by the backend. It is bound to 'M-g .' and 'M-g M-.'.
+It allows you to jump to a specific kind of definition.  The available
+kinds are defined by the backend.  It is bound to 'M-g .' and 'M-g M-.'.
 
 ** CPerl mode
 
-*** Perl 5.44 support: Signatures with named parameters
-
+*** Perl 5.44 support: Signatures with named parameters.
 Perl 5.44 allows to declare a signature like "sub subname (:$par)", see
-https://perldoc.perl.org/5.44.0/perldelta#Named-Parameters-in-Signatures
-CPerl mode now recognizes this as a variable declaration
+<https://perldoc.perl.org/5.44.0/perldelta#Named-Parameters-in-Signatures>.
+CPerl mode now recognizes this as a variable declaration.
 
 ** Newsticker
 
@@ -331,7 +331,7 @@ You can now manipulate the output of other commands using the many Lisp
 functions provided in Emacs.  For example, to uppercase the output of
 some other command:
 
-  echo hi | #'upcase
+    echo hi | #'upcase
 
 See the "(eshell) Lisp Pipelines" node in the Eshell manual for more
 details.
@@ -343,24 +343,25 @@ using lexical binding.
 
 ** Dired
 
-*** The repeat-mode key 'j' has been removed from 'dired-jump-map'.
+*** The 'repeat-mode' key 'j' has been removed from 'dired-jump-map'.
 
 ** Viper
 
 ---
-*** New ex command: 'number' (#).
+*** New ex command: 'number' ('#').
 Ex can now display line numbers when printing lines with the 'number'
-(#) command.
+('#') command.
 
 ---
 *** New ex command: 'list'.
 Ex can now display lines unambiguously when printing using the 'list'
-command.  This means that certain characters such as tab will be shown
-with their literal equivalents i.e. "^I".
+command.  This means that certain characters such as 'TAB' will be shown
+with their literal equivalents i.e. '^I'.
 
 *** New ex command: 'z'.
-Ex can now print lines using the 'z' command which allows
-scrolling the output of the lines.
+Ex can now print lines using the 'z' command which allows scrolling the
+output of the lines.
+
 
 * New Modes and Packages in Emacs 32.1
 
@@ -395,7 +396,7 @@ number.
 
 +++
 ** 'intern' and 'intern-soft' ignore 'read-symbol-shorthands'.
-This means they revert to the behavior of Emacs<28.
+This means they revert to the behavior of Emacs < 28.
 In those cases where shorthands need to be obeyed, you now need to use
 'shorthands-intern', 'shorthands-intern-soft', or 'shorthands-to-longhand'.
 And 'shorthands-of-symbol' provides the reverse mapping.
@@ -423,7 +424,7 @@ Canvas images support efficient updating and refreshing.  An image
 specifier with type 'canvas' creates a canvas image.  The canvas has an
 associated writable pixel buffer.  The dynamic module function 'canvas_data'
 provides access to the pixel buffer.  After changing the ':data' vector or
-writing to the pixel buffer a call to 'canvas-refresh' redraws the canvas
+writing to the pixel buffer, a call to 'canvas-refresh' redraws the canvas
 image.
 
 +++
@@ -494,14 +495,13 @@ for nested 'display-buffer' calls.
 ** New button to diff failed erts-file test output in ERT.
 When a test fails, the erts-file tests buffer displayed by
 'ert-results-pop-to-erts-file-tests-for-test-at-point' now includes a
-button labeled "diff".  Pushing it displays a Diff Mode buffer comparing
+button labeled "diff".  Pushing it displays a Diff mode buffer comparing
 the actual and expected output.
 
 +++
-** The variables 'math-tzone-names' and 'timezone-world-timezones' are
-now marked obsolete.  Strings should use numeric abbreviations like
-"-0600" instead of alphabetic abbreviations like "CST", which are too
-often ambiguous.
+** 'math-tzone-names' and 'timezone-world-timezones' are now marked obsolete.
+Strings should use numeric abbreviations like "-0600" instead of
+alphabetic abbreviations like "CST", which are too often ambiguous.
 
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
