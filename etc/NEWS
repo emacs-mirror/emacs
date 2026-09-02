@@ -243,6 +243,12 @@ contains a summary line, VC inserts it into the "*vc-log*" Summary header.
 If VC detects that the set of changed files listed in the ChangeLog
 entry differs from the current VC fileset, it displays a warning.
 
+---
+*** The face log-edit-headers-separator inherits from separator-line
+The default definition of log-edit-headers-separator now inherits its
+attributes from the face 'separator-line'.  That changes the default
+color and makes it work better in the terminal.
+
 ** Outline mode
 
 *** New command 'outline-show-entry-and-parents'.

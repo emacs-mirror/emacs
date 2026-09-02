@@ -387,9 +387,9 @@ automatically."
   "Face for the summary in `log-edit-mode' buffers.")
 
 (defface log-edit-headers-separator
-  '((t :height 0.1 :inverse-video t :extend t))
+  '((t :inherit separator-line :extend t))
   "Face for the separator line in `log-edit-mode' buffers."
-  :version "29.1")
+  :version "32.1")
 
 (defface log-edit-header '((t :inherit font-lock-keyword-face))
   "Face for the headers in `log-edit-mode' buffers.")
