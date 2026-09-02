@@ -1559,6 +1559,27 @@ trusted code macro expansion is always safe."
      cl-eval-when eval-when-compile eval-and-compile let-when-compile
      rx cl-macrolet nnoo-define-basics))
 
+(defvar elisp-scope--trust-cache 'none
+  "Cached value of `trusted-content-p'.
+
+The function `elisp-scope--trusted-p' consults this cache.  If the value
+is \\+`unset', `elisp-scope--trusted-p' initializes it to the return
+value of `trusted-content-p'.
+
+The default value, \\+`none', says that the cache is disabled.
+
+The function `elisp-scope-analyze-form' enables the cache by let-binding
+this variable to \\+`unset', so that a cached value survives for the
+duration of one `elisp-scope-analyze-form' call, i.e. the analysis of
+one form.")
+
+(defun elisp-scope--trusted-p ()
+  "Check whether the analyzed code is trusted."
+  (cl-case elisp-scope--trust-cache
+    (none (trusted-content-p))
+    (unset (setq elisp-scope--trust-cache (trusted-content-p)))
+    (otherwise elisp-scope--trust-cache)))
+
 (defun elisp-scope-safe-macro-p (macro)
   "Check whether it is safe to expand MACRO, return non-nil iff so.
 
@@ -1570,7 +1591,7 @@ property, or if the current buffer is trusted (see `trusted-content-p')."
        (or (eq elisp-scope-safe-macros t)
            (memq macro elisp-scope-safe-macros)
            (get macro 'safe-macro)
-           (trusted-content-p))))
+           (elisp-scope--trusted-p))))
 
 (defvar warning-minimum-log-level)
 
@@ -2902,6 +2923,7 @@ for the `identity' function:
          (form (read-positioning-symbols stream))
          (elisp-scope--counter 0)
          (elisp-scope--callback callback)
+         (elisp-scope--trust-cache 'unset)
          (max-lisp-eval-depth 32768))
     (if (eq stream (current-buffer))
         ;; `save-excursion' so CALLBACK can change point freely.
