@@ -52,8 +52,10 @@ char *w32_getenv (const char *);
 # include <arpa/inet.h>
 # include <fcntl.h>
 # include <netinet/in.h>
+# include <sys/select.h>
 # include <sys/socket.h>
 # include <sys/un.h>
+# include <timespec.h>
 
 # define SOCKETS_IN_FILE_SYSTEM
 
@@ -1082,6 +1084,121 @@ cloexec_socket (int domain, int type, int protocol)
 #endif
 }
 
+/* Like connect(2), but possibly with a timeout, exiting if the timeout
+   is reached.  */
+
+static int
+connect_with_timeout (HSOCKET sockfd, const struct sockaddr *addr,
+		      int addr_len)
+{
+#ifndef WINDOWSNT
+  if (timeout == 0)
+    return connect (sockfd, addr, addr_len);
+
+  int flags = fcntl (sockfd, F_GETFL);
+  if (flags == -1 || fcntl (sockfd, F_SETFL, flags | O_NONBLOCK) == -1)
+    return -1;
+
+  const intmax_t limit = timeout < 0 ? DEFAULT_TIMEOUT : timeout;
+  const struct timespec interval = make_timespec (0, TIMESPEC_HZ / 20);
+
+  int rc, res = 0, xerrno = 0;
+  fd_set fdset;
+  struct timespec end = timespec_add (current_timespec (),
+				      make_timespec (limit, 0));
+
+  for (;;)
+    {
+      if (connect (sockfd, addr, addr_len) == 0)
+	goto done;
+#ifdef EWOULDBLOCK
+      else if (errno == EAGAIN
+	       || (EWOULDBLOCK != EAGAIN && errno == EWOULDBLOCK))
+#else
+      else if (errno == EAGAIN)
+#endif
+	{
+	  /* For connections to Unix domain sockets under the Linux
+	     kernel, we get EAGAIN if the listen queue is full.  */
+	  if (timespec_cmp (end, current_timespec ()) <= 0)
+	    goto timeout;
+	  pselect (0, NULL, NULL, NULL, &interval, NULL);
+	}
+      else if (errno != EINPROGRESS)
+	{
+	  res = -1;
+	  xerrno = errno;
+	  goto done;
+	}
+      else
+	break;
+    }
+
+  for (;;)
+    {
+      FD_ZERO (&fdset);
+      FD_SET (sockfd, &fdset);
+      struct timespec now = current_timespec ();
+      if (timespec_cmp (end, now) <= 0)
+	goto timeout;
+      struct timespec remaining = timespec_sub (end, now);
+      rc = pselect (sockfd + 1, NULL, &fdset, NULL, &remaining, NULL);
+      if (rc != -1 || errno != EINTR)
+	break;
+    }
+
+  switch (rc)
+    {
+    case -1:
+      res = -1;
+      xerrno = errno;
+      goto done;
+    case 0:
+      goto timeout;
+    default:
+      {
+	socklen_t xlen = sizeof (xerrno);
+	if (getsockopt (sockfd, SOL_SOCKET, SO_ERROR, &xerrno, &xlen)
+	    == -1)
+	  {
+	    res = -1;
+	    xerrno = errno;
+	    goto done;
+	  }
+	else if (xerrno)
+	  {
+	    res = -1;
+	    goto done;
+	  }
+	break;
+      }
+    }
+
+ done:
+  /* If we can't switch the socket flags back we have to abort because
+     other code later on assumes it's blocking.  */
+  if (fcntl (sockfd, F_SETFL, flags) == -1)
+    {
+      message (true, "%s: couldn't unset non-blocking on socket\n",
+	       progname);
+      exit (EXIT_FAILURE);
+    }
+  errno = xerrno;
+  /* FIXME: Subtract time used up in this function from TIMEOUT?  */
+  return res;
+
+ timeout:
+  /* Timeout, but in the -a '' case we don't want to respond by starting
+     another server, so exit immediately.  */
+  message (true, "%s: Connection timed out after %jd %s\n",
+	   progname, limit, limit == 1 ? "second" : "seconds");
+  exit (EXIT_FAILURE);
+#else /* WINDOWSNT */
+  /* FIXME: Implement connect_with_timeout for MS-Windows.  */
+  return connect (sockfd, addr, addr_len);
+#endif /* WINDOWSNT */
+}
+
 static HSOCKET
 set_tcp_socket (const char *local_server_file)
 {
@@ -1112,7 +1229,7 @@ set_tcp_socket (const char *local_server_file)
     }
 
   /* Set up the socket.  */
-  if (connect (s, &server.sa, sizeof server.in) != 0)
+  if (connect_with_timeout (s, &server.sa, sizeof server.in) != 0)
     {
       sock_err_message ("connect");
       CLOSE_SOCKET (s);
@@ -1272,7 +1389,9 @@ connect_socket (int dirfd, char const *addr, int s, uid_t uid)
     }
 
   if (!sock_status)
-    sock_status = connect (s, &server.sa, sizeof server.un) == 0 ? 0 : errno;
+    sock_status = (connect_with_timeout (s, &server.sa,
+					 sizeof server.un) == 0
+		   ? 0 : errno);
 
   /* Fail immediately if we cannot change back to the initial working
      directory, as that can mess up the rest of execution.  */
