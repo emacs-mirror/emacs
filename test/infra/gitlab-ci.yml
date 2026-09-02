@@ -322,15 +322,15 @@ test-eglot:
   variables:
     target: emacs-eglot
     # This is needed in order to get a JUnit test report.
+    # "/root/.local/bin" is needed for pragrams installed by pipx.
     make_params: >-
       check-expensive
       TEST_HOME=/root
       LOGFILES="lisp/progmodes/eglot-tests.log"
-      # "/root/.local/bin" is needed for pragrams installed by pipx.
-      EMACS_EXTRAOPT='
-        --eval \(package-install\ \(quote\ company\)\)
-        --eval \(package-install\ \(quote\ yasnippet\)\)
-        --eval \(setopt\ package-selected-packages\ \(quote\ \(company\ yasnippet\)\)\)
+      EMACS_EXTRAOPT='\
+        --eval \(package-install\ \(quote\ company\)\)\
+        --eval \(package-install\ \(quote\ yasnippet\)\)\
+        --eval \(setopt\ package-selected-packages\ \(quote\ \(company\ yasnippet\)\)\)\
         --eval \(setq\ exec-path\ \(cons\ \"/root/.local/bin\"\ exec-path\)\)'
 
 build-image-tree-sitter:
