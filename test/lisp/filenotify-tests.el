@@ -1718,11 +1718,15 @@ the file watch."
             ((eq (file-notify--test-monitor) 'GKqueueFileMonitor)
              '(deleted))
             ;; GInotifyFileMonitor still reports changes.
+	    ;; There could be one or two `changed' events.
             ((and (string-equal (file-notify--test-library) "gio")
 	          (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
-	     '(changed changed attribute-changed changed changed
-               attribute-changed attribute-changed attribute-changed
-               attribute-changed attribute-changed deleted))
+	     '((changed attribute-changed changed changed
+                attribute-changed attribute-changed attribute-changed
+		attribute-changed attribute-changed deleted)
+	       (changed changed attribute-changed changed changed
+                attribute-changed attribute-changed attribute-changed
+		attribute-changed attribute-changed deleted)))
             ((and (string-equal (file-notify--test-library) "gfilenotify")
 	          (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
              '(changed changed changed changed attribute-changed
