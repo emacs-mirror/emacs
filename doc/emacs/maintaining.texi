@@ -2802,12 +2802,12 @@ mode binds the command to @kbd{C-mouse-1}.
 @kindex M-g .
 @kindex M-g M-.
 @findex xref-find-by-kind
-  @kbd{M-'} finds all definitions of a certain kind for the identifier
-at point.  First it prompts to choose the kind using a key character,
-from the available set that is returned by the current backend
-(@pxref{Xref}).  Then it either uses the identifier at point or prompts
-for it if none found or the command was invoked with a prefix argument.
-(If you want it to always prompt, customize
+  @kbd{M-g .} (or @kbd{M-g M-.}) finds all definitions of a certain kind
+for the identifier at point.  First it prompts to choose the kind using
+a key character, from the available set that is returned by the current
+backend (@pxref{Xref}).  Then it either uses the identifier at point or
+prompts for it if none found or the command was invoked with a prefix
+argument.  (If you want it to always prompt, customize
 @code{xref-prompt-for-identifier}.)  The list of supported kinds depends
 on the backend, which are advised to use mnemonic keys and common sense.
 For example, the Emacs Lisp mode has ``variable'', ``function alias''
