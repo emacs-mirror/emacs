@@ -896,7 +896,10 @@ $Date: %s $
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (admin--require-external-package 'htmlize)
-  (let* ((newsfile (expand-file-name "etc/NEWS" root))
+  (let* ((oldnewsfile (expand-file-name (format "etc/NEWS.%s" version) root))
+         (newsfile (if (file-exists-p oldnewsfile)
+                       oldnewsfile
+                     (expand-file-name "etc/NEWS" root)))
          (orgfile (expand-file-name (format "etc/NEWS.%s.org" version) root))
          (html (format "%s.html" (file-name-base orgfile)))
          (copyright-years (format-time-string "%Y")))
@@ -906,7 +909,7 @@ $Date: %s $
 
     ;; Find the copyright range.
     (goto-char (point-min))
-    (re-search-forward "^Copyright (C) \\([0-9-]+\\) Free Software Foundation, Inc.")
+    (re-search-forward "^Copyright (C) \\([0-9, -]+\\) Free Software Foundation, Inc.")
     (setq copyright-years (match-string 1))
 
     ;; Delete some unnecessary stuff.
@@ -925,6 +928,7 @@ $Date: %s $
 
     ;; Escape some characters.
     (replace-regexp-in-region (rx "$") "@@html:&dollar;@@" (point-min) (point-max))
+    (replace-regexp-in-region (rx "[[") "[\u200B[" (point-min) (point-max))
 
     ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
     (replace-regexp-in-region
@@ -943,18 +947,22 @@ $Date: %s $
     ;; Format code blocks.
     (while (re-search-forward "^    " nil t)
       (let ((elisp-block (looking-at "(")))
-        (backward-paragraph)
+        (let ((paragraph-start "^    "))
+          (backward-paragraph))
+        (unless (looking-at paragraph-separate)
+          (save-excursion (insert "\n")))
         (insert (if elisp-block
                     "\n#+BEGIN_SRC emacs-lisp"
                   "\n#+BEGIN_EXAMPLE"))
-        (forward-paragraph)
+        (let ((paragraph-start "^[^ ]"))
+          (forward-paragraph))
         (insert (if elisp-block
                     "#+END_SRC\n"
                   "#+END_EXAMPLE\n"))))
 
     ;; Delete buffer local variables.
     (goto-char (point-max))
-    (when (re-search-backward "Local variables:")
+    (when (re-search-backward "Local variables:" nil t)
       (forward-line -1)
       (delete-region (point) (point-max)))
 

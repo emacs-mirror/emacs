@@ -561,7 +561,13 @@ The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).
 WHEN should be a string indicating when the function
-was first made obsolete, for example a date or a release number."
+was first made obsolete, for example a date or a release number.
+
+If OBSOLETE-NAME is a command, and WHEN is a release number, then it
+also determines whether Emacs offers the command as a completion
+candidate in `execute-extended-command' and similar commands: Emacs
+includes only obsolete commands that were first obsoleted in the running
+version of Emacs."
   (byte-run--constant-obsolete-warning obsolete-name)
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
@@ -581,8 +587,13 @@ is equivalent to the following two lines of code:
 \(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
 \(make-obsolete \\='old-fun \\='new-fun \"28.1\")
 
-WHEN should be a string indicating when the function was first
-made obsolete, for example a date or a release number.
+WHEN should be a string indicating when the function was first made
+obsolete, for example a date or a release number.
+If OBSOLETE-NAME is a command, and WHEN is a release number, then it
+also determines whether Emacs offers the command as a completion
+candidate in `execute-extended-command' and similar commands: Emacs
+includes only obsolete commands that were first obsoleted in the running
+version of Emacs.
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
   (declare (doc-string 4) (indent defun))
