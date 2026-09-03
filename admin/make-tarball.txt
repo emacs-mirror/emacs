@@ -349,9 +349,8 @@ General steps (for each step, check for possible errors):
     (Use e.g. `M-x mml-secure-message-sign' in `message-mode' to sign
     an email.)
 
-14. Generate an HTML-formatted version of the NEWS file:
-
-      ./src/emacs --batch --load=admin/admin.el --funcall=make-news-html-file
+14. Generate an HTML-formatted version of the NEWS file: M-x load-file
+    RET admin/admin.el RET, then M-x make-news-html-file RET.
 
 15. After a release, update the Emacs pages as described below.
     Note: it is important to add the new NEWS file _before_ bumping the
