@@ -2368,7 +2368,11 @@ applied to the current buffer."
 ;;;###autoload
 (defun outline-xref ()
   "Navigate the current buffer's outline using Xref.
-If `outline-search-function' is defined, it is used to find the outline
+Display an Xref buffer with the outline headings found in the current
+buffer.  Xref commands can be used from this buffer to navigate and edit
+the outline.
+
+If `outline-search-function' is non-nil, it is used to find the outline
 headings.  Otherwise, the `outline-regexp' variable is used."
   (interactive)
   (cond
