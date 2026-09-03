@@ -220,6 +220,12 @@ If it is nil, `log-view-toggle-entry-display' does nothing.")
   "Face for the commit body in `log-view-mode'."
   :version "28.1")
 
+(defface log-view-marked
+  '((t :inherit log-view-file))
+  "Face for marked log entries in `log-view-mode'."
+  :version "32.1"
+  :group 'log-view)
+
 (defvar log-view-file-re
   (concat "^\\(?:Working file: \\(?1:.+\\)"                ;RCS and CVS.
           ;; Subversion has no such thing??
@@ -446,7 +452,7 @@ marked revisions."
 		      (log-view-end-of-defun)
 		      (point)))
 	       (ov (make-overlay beg end)))
-	  (overlay-put ov 'face 'log-view-file)
+	  (overlay-put ov 'face 'log-view-marked)
 	  ;; This is used to check if the overlay is present.
 	  (overlay-put ov 'log-view-self ov)
 	  (overlay-put ov 'log-view-marked (nth 1 entry)))))
