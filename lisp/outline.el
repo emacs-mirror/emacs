@@ -2369,7 +2369,7 @@ applied to the current buffer."
 (defun outline-xref ()
   "Navigate the current buffer's outline using Xref.
 Display an Xref buffer with the outline headings found in the current
-buffer.  Xref commands can be used from this buffer to navigate and edit
+buffer.  You can use Xref commands in that Xref buffer to navigate and edit
 the outline.
 
 If `outline-search-function' is non-nil, it is used to find the outline
