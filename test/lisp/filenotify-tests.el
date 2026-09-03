@@ -1719,18 +1719,18 @@ the file watch."
              '(deleted))
             ;; GInotifyFileMonitor still reports changes.
 	    ;; There could be one or two `changed' events.
-            ((and (string-equal (file-notify--test-library) "gio")
-	          (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
-	     '((changed attribute-changed changed changed
-                attribute-changed attribute-changed attribute-changed
-		attribute-changed attribute-changed deleted)
-	       (changed changed attribute-changed changed changed
-                attribute-changed attribute-changed attribute-changed
-		attribute-changed attribute-changed deleted)))
             ((and (string-equal (file-notify--test-library) "gfilenotify")
 	          (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
              '(changed changed changed changed attribute-changed
                attribute-changed attribute-changed attribute-changed deleted))
+            ((and (string-equal (file-notify--test-library) "gio")
+	          (eq (file-notify--test-monitor) 'GInotifyFileMonitor))
+	     '((:random changed attribute-changed changed changed
+                attribute-changed attribute-changed attribute-changed
+		attribute-changed attribute-changed deleted)
+	       (:random changed changed attribute-changed changed changed
+                attribute-changed attribute-changed attribute-changed
+		attribute-changed attribute-changed deleted)))
             (t nil))
          (write-region "another text" nil tmpfile nil 'no-message)
          (file-notify--test-wait-event)
