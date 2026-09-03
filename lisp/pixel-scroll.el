@@ -474,13 +474,15 @@ window, and the pixel height of that line."
     ;; restore initial position
     (set-window-start nil pos0 t)
     (set-window-vscroll nil vscroll0 t)
-    (when (and line-height
-               (> (car (posn-x-y (posn-at-point pos0)))
-                  (line-number-display-width t)))
-      (setq line-height (- line-height
-                           (save-excursion
-                             (goto-char pos0)
-                             (line-pixel-height)))))
+    (let ((posn (posn-at-point pos0)))
+      (when (and posn
+                 line-height
+                 (> (car (posn-x-y posn))
+                    (line-number-display-width t)))
+        (setq line-height (- line-height
+                             (save-excursion
+                               (goto-char pos0)
+                               (line-pixel-height))))))
     (cons pos line-height)))
 
 (defun pixel-point-at-unseen-line ()
