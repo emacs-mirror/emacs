@@ -115,17 +115,15 @@ This variable affects only `query-replace-regexp'."
   :version "23.1")
 
 (defcustom query-replace-show-preview nil
-  "Non-nil means show preview of the result of replacement while you type it.
+  "Non-nil means show a preview of the result of a replacement.
 The matches visible in the window are shown as they would look after the
 replacement.  Replacements using \\, or \\# are not previewed.
 
 The value can be nil, for no preview;
-`replace-preview-only-replacement', to show the replacement alone;
+`replace-preview-replacement-only', to show the replacement alone;
 `replace-preview-both', to show the match and the replacement side by
 side; or a function of two string arguments, the match and the
-replacement, returning the string to show in place of the match.  To
-write such a function, copy either of the two above to your init file
-and change it."
+replacement, returning the string to show in place of the match."
   :type '(choice (const         :tag "No preview" nil)
                  (function-item :tag "Show the replacement"
                                 replace-preview-only-replacement)
@@ -410,7 +408,7 @@ MATCH and REPLACEMENT are strings, shown in the faces
             (replace-preview-propertize replacement
                                         'query-replace-preview))))
 
-(defun replace-preview-only-replacement (_match replacement)
+(defun replace-preview-replacement-only (_match replacement)
   "Return REPLACEMENT in the face `query-replace-preview'.
 REPLACEMENT is a string.  If it is empty, previewing it would show
 nothing at all, so return a thin bar to mark the place of the match."

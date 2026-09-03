@@ -1566,7 +1566,7 @@ command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
 @cindex preview of replacement text
 @vindex query-replace-show-preview
-@findex replace-preview-only-replacement
+@findex replace-preview-replacement-only
 @findex replace-preview-both
   If you set @code{query-replace-show-preview} to a non-@code{nil}
 value, the replace commands show a preview of the replacement while you
@@ -1576,13 +1576,13 @@ look after the replacement.  This tells you what back-references like
 replacement.  However, replacements that use @samp{\,} or @samp{\#} are
 not previewed.
 
-  The value can be @code{replace-preview-only-replacement}, to display
+  The value can be @code{replace-preview-replacement-only}, to display
 the replacement alone, @code{replace-preview-both}, to display the match
 next to its replacement, separated by an arrow, or a function of your
 own, written by copying either of those two.  Such a function takes the
 match and the replacement and returns the string to display in place of
 the match.  If the replacement is empty,
-@code{replace-preview-only-replacement} would display nothing at all, so
+@code{replace-preview-replacement-only} would display nothing at all, so
 it displays a thin bar to mark the place of the match.
 
 @vindex query-replace-preview@r{ face}
