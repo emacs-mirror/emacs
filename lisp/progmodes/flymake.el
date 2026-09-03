@@ -4,7 +4,7 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: Spencer Baugh <sbaugh@janestreet.com>
-;; Version: 1.4.6
+;; Version: 1.4.7
 ;; Keywords: c languages tools
 ;; Package-Requires: ((emacs "26.1") (eldoc "1.14.0") (project "0.11.1"))
 
@@ -1937,8 +1937,9 @@ TYPE is usually keyword `:error', `:warning' or `:note'."
     (define-key map (kbd "C-o") #'flymake-show-diagnostic)
     (define-key map (kbd "C-m") #'flymake-goto-diagnostic)
     (when (fboundp 'next-error-this-buffer-no-select)
-      (define-key map (kbd "n") #'next-error-this-buffer-no-select)
-      (define-key map (kbd "p") #'previous-error-this-buffer-no-select))
+      (define-key map (kbd "n") #'next-error-this-buffer-no-select))
+    (when (fboundp 'previous-error-this-buffer-no-select)
+     (define-key map (kbd "p") #'previous-error-this-buffer-no-select))
     map))
 
 (defun flymake-show-diagnostic (pos &optional other-window)
