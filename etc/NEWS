@@ -292,8 +292,9 @@ It is bound to 'M-o'.
 +++
 *** New command 'M-g .'/'M-g M-.' ('xref-find-by-kind').
 This command allows you to jump to a specific kind of definition, such
-as a variable definition, instead of the function of the same name.
-The xref backend defines what kinds of definition are available.
+as a variable or face definition, or a constructor, instead of the
+function of the same name.  The xref backend defines what kinds of
+definitions are available.
 
 ** CPerl mode
 
