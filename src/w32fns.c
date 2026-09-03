@@ -3808,19 +3808,23 @@ w32_msg_pump (deferred_msg * msg_buf)
 
 		set_ime_open_status_fn (context, msg.wParam != 0);
 		release_ime_context_fn (focus_window, context);
-		break;
+
+		goto dispatch;
 	      }
 
+	    default:
 #ifdef MSG_DEBUG
 	      /* Broadcast messages make it here, so you need to be looking
 		 for something in particular for this to be useful.  */
-	    default:
 	      DebPrint (("msg %x not expected by w32_msg_pump\n", msg.message));
 #endif
+	      /* Handle extra events for compatibility, preventing not dispatch.  */
+	      goto dispatch;
 	    }
 	}
       else
 	{
+	dispatch:
 	  if (w32_unicode_gui)
 	    DispatchMessageW (&msg);
 	  else
