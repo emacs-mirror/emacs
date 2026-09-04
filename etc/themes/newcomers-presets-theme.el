@@ -91,7 +91,12 @@ This minor mode will enable and disable the theme on startup."
 
 ;;;###theme-autoload
 (deftheme newcomers-presets
-  "Theme of user options settings interesting for newcomers."
+  "Theme of user options settings interesting for newcomers.
+
+The functionality enabled by this theme will change between releases of
+Emacs.  Therefore, if you get used to these presets, **you should copy
+them into your own configuration and then disable this theme again.**
+You can use \\[copy-theme-options] to do this."
   :kind 'user-options)
 
 (custom-theme-set-variables
