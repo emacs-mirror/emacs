@@ -27,8 +27,8 @@
 (require 'ert-x)
 (require 'outline)
 
-(ert-deftest outline-tests--outline-xref-search-function ()
-  "Test the `outline-xref' function with `outline-search-function'."
+(ert-deftest outline-tests--outline-find-headings-search-function ()
+  "Test the `outline-find-headings' function with `outline-search-function'."
   (let ((test-file (ert-resource-file "outline.txt")))
     (with-temp-buffer
       (insert-file-contents test-file)
@@ -36,35 +36,35 @@
             (outline-search-function
              (lambda (&optional bound move _backward _looking-at)
                (re-search-forward "^-" bound move))))
-        (outline-xref)))
+        (outline-find-headings)))
     (with-current-buffer (get-buffer "*xref*")
       (goto-char (point-min))
       (should-error (search-forward "* Star heading"))
       (goto-char (point-min))
       (should (search-forward "- Dash heading")))))
 
-(ert-deftest outline-tests--outline-xref-regexp ()
-  "Test the `outline-xref' function with `outline-regexp'."
+(ert-deftest outline-tests--outline-find-headings-regexp ()
+  "Test the `outline-find-headings' function with `outline-regexp'."
   (let ((test-file (ert-resource-file "outline.txt")))
     (with-temp-buffer
       (insert-file-contents test-file)
       (let ((outline-regexp "\\*")
             (outline-search-function nil))
-        (outline-xref)))
+        (outline-find-headings)))
     (with-current-buffer (get-buffer "*xref*")
       (goto-char (point-min))
       (should (search-forward "* Star heading"))
       (goto-char (point-min))
       (should-error (search-forward "- Dash heading")))))
 
-(ert-deftest outline-tests--outline-xref-undefined ()
-  "Test the `outline-xref' function with undefined search strategy."
+(ert-deftest outline-tests--outline-find-headings-undefined ()
+  "Test the `outline-find-headings' function with undefined search strategy."
   (let ((test-file (ert-resource-file "outline.txt")))
     (with-temp-buffer
       (insert-file-contents test-file)
       (let ((outline-regexp nil)
             (outline-search-function nil))
-        (should-error (outline-xref))))))
+        (should-error (outline-find-headings))))))
 
 (provide 'outline-tests)
 

@@ -109,7 +109,7 @@ imitate the function `looking-at'."
   "C-<" #'outline-promote
   "C->" #'outline-demote
   "RET" #'outline-insert-heading
-  "M-o" #'outline-xref)
+  "M-o" #'outline-find-headings)
 
 (defvar outline-mode-menu-bar-map
   (let ((map (make-sparse-keymap)))
@@ -150,9 +150,9 @@ imitate the function `looking-at'."
 		  :help "Show all of the text in the buffer"))
     (define-key map [headings]
       (cons "Headings" (make-sparse-keymap "Headings")))
-    (define-key map [headings outline-xref]
-      '(menu-item "Show in Xref" outline-xref
-		  :help "Navigate the buffer's outline using Xref"))
+    (define-key map [headings outline-find-headings]
+      '(menu-item "Find All Headings" outline-find-headings
+		  :help "Find all outline headings in the buffer"))
     (define-key map [headings demote-subtree]
       '(menu-item "Demote Subtree" outline-demote
 		  :help "Demote headings lower down the tree"))
@@ -2337,7 +2337,7 @@ when comment-heading setup was not performed."
 
 ;;; Xref outline navigation
 
-(defun outline-xref--fetch-headings (search-function buffer)
+(defun outline-find-headings--fetch-xrefs (search-function buffer)
   "Return a list of Xref values matching SEARCH-FUNCTION in BUFFER."
   (let (headings)
     (with-current-buffer buffer
@@ -2355,31 +2355,30 @@ when comment-heading setup was not performed."
           (forward-line 1))))
     (nreverse headings)))
 
-(defun outline-xref--show-xrefs (search-function)
+(defun outline-find-headings--show-xrefs (search-function)
   "Display search results in an Xref buffer.
 Populate an Xref buffer with the matches returned by SEARCH-FUNCTION
 applied to the current buffer."
   (let ((buf (current-buffer)))
     (xref-show-xrefs
      (lambda ()
-       (outline-xref--fetch-headings search-function buf))
+       (outline-find-headings--fetch-xrefs search-function buf))
      nil)))
 
 ;;;###autoload
-(defun outline-xref ()
-  "Navigate the current buffer's outline using Xref.
+(defun outline-find-headings ()
+  "Find all outline headings in the current buffer.
 Display an Xref buffer with the outline headings found in the current
-buffer.  You can use Xref commands in that Xref buffer to navigate and edit
-the outline.
+buffer.  You can use that Xref buffer to navigate and edit the outline.
 
 If `outline-search-function' is non-nil, it is used to find the outline
-headings.  Otherwise, the `outline-regexp' variable is used."
+headings.  Otherwise, `outline-regexp' is used."
   (interactive)
   (cond
    (outline-search-function
-    (outline-xref--show-xrefs outline-search-function))
+    (outline-find-headings--show-xrefs outline-search-function))
    (outline-regexp
-    (outline-xref--show-xrefs #'outline-search-from-regexp))
+    (outline-find-headings--show-xrefs #'outline-search-from-regexp))
    (t
     (user-error "Undefined outline search strategy"))))
 

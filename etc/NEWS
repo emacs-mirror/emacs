@@ -281,9 +281,10 @@ Otherwise, a pattern is built from 'comment-start' and the new option
 'outline-comment-regexp-suffix'.
 
 ---
-*** New command 'outline-xref'.
-It allows users to navigate the current buffer's outline using Xref.
-It is bound to 'M-o'.
+*** New command 'outline-find-headings'.
+It finds all outline headings in the current buffer and displays them in
+an Xref buffer.  Users can use that Xref buffer to navigate and edit the
+outline.  It is bound to 'M-o'.
 
 ** Xref
 
