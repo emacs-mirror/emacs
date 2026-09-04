@@ -200,6 +200,7 @@ recipient."
           (ical:description :value description)
           (ical:dtstart :value dtstart)
           (ical:dtend :value dtend)
+          (ical:duration :value duration)
           (ical:location :value location)
           (ical:rrule :value rrule)
           (ical:uid :value uid))
@@ -223,7 +224,8 @@ recipient."
                 :location location
                 :recur rrule
                 :start-time (encode-time dtstart)
-                :end-time (and dtend (encode-time dtend))
+                :end-time (encode-time
+                           (or dtend (decoded-time-add dtstart duration)))
                 :rsvp rsvp-p
                 :participation-type participation-type
                 :req-participants (car req/opt)
