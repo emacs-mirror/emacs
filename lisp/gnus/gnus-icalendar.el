@@ -223,7 +223,7 @@ recipient."
                 :location location
                 :recur rrule
                 :start-time (encode-time dtstart)
-                :end-time (encode-time dtend)
+                :end-time (and dtend (encode-time dtend))
                 :rsvp rsvp-p
                 :participation-type participation-type
                 :req-participants (car req/opt)
