@@ -1451,10 +1451,16 @@ whether the element pertains to that region.
 
 @item (apply @var{delta} (@var{beg} . @var{end}) @var{funname} . @var{args})
 This kind of element is similar to the previous form.  The difference is
-that @var{funname} is invoked with @w{@code{(apply @var{funname}
-@var{beg2} @var{end2} @var{args})}}, where @var{beg2} and @var{end2} are
-the adjusted values of @var{beg} and @var{end}.  The function can use
-those arguments to compute positions relative to the adjusted region.
+that, to undo it, @var{funname} is invoked like this:
+
+@lisp
+(apply @var{funname} @var{beg2} @var{end2} @var{args})
+@end lisp
+
+@noindent
+where @var{beg2} and @var{end2} are the adjusted values of @var{beg} and
+@var{end}.  The function can use those arguments to compute positions
+relative to the adjusted region.
 
 @item nil
 This element is a boundary.  The elements between two boundaries are
