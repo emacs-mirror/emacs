@@ -2881,13 +2881,16 @@ has been requested by the completion table."
                        minibuffer-completion-table
                        minibuffer-completion-predicate
                        (- (point) start)
-                       md)))
+                       md))
+         (last (last completions))
+         (base-size (or (cdr last) 0)))
     (message nil)
     (when (or completion-auto-deselect completion-eager-update)
       (add-hook 'after-change-functions #'completions--after-change nil t))
     (if (or (null completions)
             (and (not (consp (cdr completions)))
-                 (equal (car completions) string)))
+                 (equal (car completions)
+                        (substring string base-size))))
         (progn
           ;; If there are no completions, or if the current input is already
           ;; the sole completion, then hide (previous&stale) completions.
@@ -2898,9 +2901,8 @@ has been requested by the completion table."
 	      (ding)
 	      (completion--message "No match"))))
 
-      (let* ((last (last completions))
-             (base-size (or (cdr last) 0))
-             (prefix (unless (zerop base-size) (substring string 0 base-size)))
+      (let* ((prefix (and (plusp base-size)
+                          (substring string 0 base-size)))
              (minibuffer-completion-base (substring string 0 base-size))
              (ctable minibuffer-completion-table)
              (cpred minibuffer-completion-predicate)
