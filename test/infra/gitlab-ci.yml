@@ -327,7 +327,7 @@ test-eglot:
       check-expensive
       TEST_HOME=/root
       LOGFILES="lisp/progmodes/eglot-tests.log"
-      EMACS_EXTRAOPT='--eval \(package-install\ \(quote\ company\)\) --eval \(package-install\ \(quote\ yasnippet\)\) --eval \(setopt\ package-selected-packages\ \(quote\ \(company\ yasnippet\)\)\) --eval \(setq\ exec-path\ \(cons\ \"/root/.local/bin\"\ exec-path\)\)'
+      EMACS_EXTRAOPT='--eval \(package-install\ \(quote\ company\)\) --eval \(package-install\ \(quote\ yasnippet\)\) --eval \(setopt\ package-selected-packages\ \(quote\ \(company\ yasnippet\)\)\) --eval \(setq\ exec-path\ \(cons\ \"/root/.local/bin\"\ exec-path\)\) --eval \(setenv\ \"PATH\"\ \(concat\ \(getenv\ \"PATH\"\)\ \":/root/.local/bin\"\)\)'
 
 build-image-tree-sitter:
   stage: platform-images

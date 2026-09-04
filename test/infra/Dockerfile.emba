@@ -71,7 +71,7 @@ RUN apt-get update && \
 # Install clangd, tsserver, rust-analyzer.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      clangd npm node-typescript pipx rust-analyzer cargo \
+      clangd npm node-typescript pipx rust-analyzer cargo rust-src \
     && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g typescript-language-server
