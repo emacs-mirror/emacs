@@ -3748,81 +3748,85 @@ If BUFFER, switch to it before."
              eglot--workspace-symbols-cache)))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
-  (let ((attempt
-         (and (xref--prompt-p this-command)
-              (puthash :default
-                       (ignore-errors
-                         (eglot--workspace-symbols (symbol-name (symbol-at-point))))
-                       eglot--workspace-symbols-cache))))
-    (if attempt (car attempt) "LSP identifier at point")))
+  (let* ((sap (symbol-at-point))
+         (attempt
+          (and (xref--prompt-p this-command)
+               (puthash :default
+                        (ignore-errors
+                          (eglot--workspace-symbols
+                           (if sap (symbol-name sap) "")))
+                        eglot--workspace-symbols-cache))))
+    (if attempt (car attempt) sap)))
 
-(defvar eglot--lsp-xref-refs nil
-  "`xref' objects for overriding `xref-backend-references''s.")
-
-(cl-defun eglot--lsp-xrefs-for-method (method &key extra-params capability)
-  "Make `xref''s for METHOD, EXTRA-PARAMS, check CAPABILITY."
-  (eglot-server-capable-or-lose
-   (or capability
-       (intern
-        (format ":%sProvider"
-                (cadr (split-string (symbol-name method)
-                                    "/"))))))
-  (let ((response
-         (eglot--request
-          (eglot--current-server-or-lose)
-          method (append (eglot--TextDocumentPositionParams) extra-params))))
-    (eglot--collecting-xrefs (collect)
-      (mapc
-       (lambda (loc-or-loc-link)
-         (let ((sym-name (symbol-name (symbol-at-point))))
-           (eglot--dcase loc-or-loc-link
-             (((LocationLink) targetUri targetSelectionRange)
-              (collect (eglot--xref-make-match sym-name
-                                               targetUri targetSelectionRange)))
-             (((Location) uri range)
-              (collect (eglot--xref-make-match sym-name
-                                               uri range))))))
-       (if (vectorp response) response (and response (list response)))))))
-
-(cl-defun eglot--lsp-xref-helper (method &key extra-params capability)
-  "Helper for `eglot-find-declaration' & friends."
-  (let ((eglot--lsp-xref-refs (eglot--lsp-xrefs-for-method
-                               method
-                               :extra-params extra-params
-                               :capability capability)))
-    (if eglot--lsp-xref-refs
-        (xref-find-references "LSP identifier at point.")
-      (eglot--message "%s returned no references" method))))
-
-(defun eglot-find-declaration ()
-  "Find declaration for SYM, the identifier at point."
-  (interactive)
-  (eglot--lsp-xref-helper :textDocument/declaration))
-
-(defun eglot-find-implementation ()
-  "Find implementation for SYM, the identifier at point."
-  (interactive)
-  (eglot--lsp-xref-helper :textDocument/implementation))
-
-(defun eglot-find-typeDefinition ()
-  "Find type definition for SYM, the identifier at point."
-  (interactive)
-  (eglot--lsp-xref-helper :textDocument/typeDefinition))
-
-(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) id)
-  (let ((probe (eglot--recover-workspace-symbol-meta id)))
-    (if probe
+(cl-defun eglot--lsp-xrefs-for-id (id method &key just-def extra-args)
+  "Make `xref''s for ID and METHOD.
+Check first if ID is enriched from a previous `workspace/symbol' request
+. If so we can craft the LSP request to collect xrefs from that
+location's URI and RANGE or, if JUST-DEF is non-nil, immediately return
+a list of a single xref that is that location without bothering the
+server at all.  Otherwise, make the request for the thing at point.
+EXTRA-ARGS are added to the request."
+  (cl-flet ((make-xrefs (position-params name)
+              (eglot-server-capable-or-lose
+               (intern
+                (format ":%sProvider"
+                        (cadr (split-string (symbol-name method)
+                                            "/")))))
+              (let ((response
+                     (eglot--request
+                      (eglot--current-server-or-lose)
+                      method (append position-params extra-args))))
+                (eglot--collecting-xrefs (collect)
+                  (mapc
+                   (lambda (loc-or-loc-link)
+                     (eglot--dcase loc-or-loc-link
+                       (((LocationLink) targetUri targetSelectionRange)
+                        (collect (eglot--xref-make-match name
+                                                         targetUri targetSelectionRange)))
+                       (((Location) uri range)
+                        (collect (eglot--xref-make-match name
+                                                         uri range)))))
+                   (if (vectorp response) response
+                     (and response (list response))))))))
+    (if-let* ((probe (eglot--recover-workspace-symbol-meta id)))
         (eglot--dbind ((WorkspaceSymbol) name location)
             (get-text-property 0 'eglot--lsp-workspaceSymbol probe)
           (eglot--dbind ((Location) uri range) location
-            (list (eglot--xref-make-match name uri range))))
-      (eglot--lsp-xrefs-for-method :textDocument/definition))))
+            (if just-def
+                (list (eglot--xref-make-match name uri range))
+              ;; JT@2026-09-05: clangd will fail the uri isn't already
+              ;; managed.  This is a server bug.  See commit message.
+              (make-xrefs
+               (list :textDocument (list :uri uri)
+                     :position (cl-getf range :start))
+               name))))
+      (make-xrefs (eglot--TextDocumentPositionParams)
+                  (symbol-name (symbol-at-point))))))
 
-(cl-defmethod xref-backend-references ((_backend (eql eglot)) _identifier)
-  (or
-   eglot--lsp-xref-refs
-   (eglot--lsp-xrefs-for-method
-    :textDocument/references :extra-params `(:context (:includeDeclaration t)))))
+(defmacro eglot--deffinder (name kind blurb)
+  `(defun ,name ()
+     ,(format "Find LSP %s of symbol at point.  With prefix arg, prompt." blurb)
+     (interactive)
+     (xref-find-by-kind
+      (xref-read-identifier ,(format "Find %s of" blurb) ',kind) ',kind)))
+
+(eglot--deffinder eglot-find-declaration declaration "declaration")
+(eglot--deffinder eglot-find-implementation implementation "implementation")
+(eglot--deffinder eglot-find-type-definition type-definition "type definition")
+
+(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) id)
+  (eglot--lsp-xrefs-for-id id :textDocument/definition :just-def t))
+
+(cl-defmethod xref-backend-references ((_backend (eql eglot)) id)
+  (eglot--lsp-xrefs-for-id
+   id :textDocument/references :extra-args `(:context (:includeDeclaration t))))
+
+(cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql eglot)) id kind)
+  (eglot--lsp-xrefs-for-id
+   id (cl-ecase kind
+        (declaration :textDocument/declaration)
+        (implementation :textDocument/implementation)
+        (type-definition :textDocument/typeDefinition))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot-server-capable :workspaceSymbolProvider)
@@ -3836,53 +3840,13 @@ If BUFFER, switch to it before."
                        `(:query ,pattern))))))
 
 (cl-defmethod xref-backend-xref-kinds ((_backend (eql eglot)))
-  (delq
-   nil
-   (list
-    (when (eglot-server-capable :declarationProvider)
-      '( :kind declaration :name "declaration" :key ?d
-         :prompt-format "Find %s of"))
-    (when (eglot-server-capable :implementationProvider)
-      '( :kind implementation :name "implementation" :key ?i
-         :prompt-format "Find %s of"))
-    (when (eglot-server-capable :typeDefinitionProvider)
-      '( :kind type-definition :name "type definition" :key ?t
-         :prompt-format "Find %s of")))))
-
-(cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql eglot)) id kind)
-  ;; First check whether ID is an identifier from the workspace.
-  (let ((probe (eglot--recover-workspace-symbol-meta id)))
-    (if (not probe)
-        ;; Symbol at point, or prompted input without match.
-        ;; FIXME: Might want to handle the latter differently.
-        (eglot--lsp-xrefs-for-method
-         (cl-ecase kind
-           (declaration :textDocument/declaration)
-           (implementation :textDocument/implementation)
-           (type-definition :textDocument/typeDefinition)))
-      ;; Function was selected from the prompt.  We do the best-effort
-      ;; thing, basically saving the user the extra 'C-u M-.'.
-      (eglot--dbind ((WorkspaceSymbol) name location)
-          (get-text-property 0 'eglot--lsp-workspaceSymbol probe)
-        (eglot--dbind ((Location) uri range) location
-          (let* ((match (eglot--xref-make-match name uri range))
-                 (loc (xref-match-item-location match))
-                 (bl (buffer-list)))
-            (save-current-buffer
-              (unwind-protect
-                  (progn
-                    (xref--goto-location loc)
-                    (when (eglot-current-server)
-                      ;; Only works if the definition buffer is "managed",
-                      ;; unfortunately.  Querying non-expecting server is
-                      ;; likely to error with something like
-                      ;;   "trying to get AST for non-added document"
-                      ;; But `eglot-extend-to-xref' can help.
-                      (xref-backend-xrefs-by-kind 'eglot
-                                                  "LSP identifier at point"
-                                                  kind)))
-                (unless (memq (current-buffer) bl)
-                  (kill-buffer))))))))))
+  (cl-loop for (cap kind name key)
+           in '((:declarationProvider declaration "declaration" ?d)
+                (:implementationProvider implementation "implementation" ?i)
+                (:typeDefinitionProvider type-definition "type definition" ?t))
+           when (eglot-server-capable cap)
+           collect
+           `(:kind ,kind :name ,name :key ,key :prompt-format "Find %s of")))
 
 
 ;;; Eglot interactive commands and helpers
