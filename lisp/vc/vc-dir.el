@@ -1813,12 +1813,26 @@ Called by VC backend `dir-status-files' implementations."
     (with-current-buffer vc-parent-buffer
       (vc-dir-show-more-button text))))
 
-(defun vc-dir-refresh ()
+(defun vc-dir-refresh (&optional ok-if-already-running)
   "Refresh the contents of the *VC-Dir* buffer.
-Throw an error if another update process is in progress."
+
+Signal an error if another update process is in progress, unless
+OK-IF-ALREADY-RUNNING is non-nil.
+
+If OK-IF-ALREADY-RUNNING is `restart' and another update process is in
+progress, kill it and start a new one."
   (interactive)
-  (if (vc-dir-busy)
-      (error "Another update process is in progress, cannot run two at a time")
+  (cond*
+   ((bind* (proc (and (buffer-live-p vc-dir-process-buffer)
+                      (get-buffer-process vc-dir-process-buffer)))))
+   ((and proc (not ok-if-already-running))
+    (error "Another update process is in progress, cannot run two at a time"))
+   ((and proc (not (eq ok-if-already-running 'restart)))) ;do nothing
+   (proc
+    ;; OK-IF-ALREADY-RUNNING is `restart'.
+    (delete-process proc)
+    :non-exit)
+   (t
     (let ((def-dir default-directory)
 	  (backend vc-dir-backend))
       (when (and vc-dir-save-some-buffers-on-revert (not non-essential))
@@ -1860,7 +1874,7 @@ Throw an error if another update process is in progress."
                      (vc-dir-refresh-files (mapcar #'vc-dir-fileinfo->name
                                                    remaining))
                    (setq mode-line-process nil)
-                   (run-hooks 'vc-dir-refresh-hook)))))))))))
+                   (run-hooks 'vc-dir-refresh-hook))))))))))))
 
 (defun vc-dir--refresh-headers (directory)
   "Refresh the headers for any VC-Dir buffers within DIRECTORY."
@@ -2047,7 +2061,7 @@ These are the commands available for use in the file status buffer:
   (let (pop-up-windows)		      ; based on cvs-examine; bug#6204
     (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend)))
   (if (derived-mode-p 'vc-dir-mode)
-      (vc-dir-refresh)
+      (vc-dir-refresh t)
     ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
     (let ((use-vc-backend backend))
       (vc-dir-mode)

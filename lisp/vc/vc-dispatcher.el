@@ -682,7 +682,7 @@ Sets `compilation-error-regexp-alist' in accordance with the VC backend."
                   error-regexp-alist)))
   (run-mode-hooks 'vc-compilation-mode-hook))
 
-(declare-function vc-dir-refresh "vc-dir" ())
+(declare-function vc-dir-refresh "vc-dir" (&optional ok-if-already-running))
 
 (defun vc-set-async-update (process-buffer)
   "Set a `vc-exec-after' action appropriate to the current buffer.
@@ -706,7 +706,7 @@ If the current buffer visits a file, call `vc-refresh-state'."
               ;; Avoid interrupting the user with prompts to save
               ;; buffers.
               (let ((non-essential t))
-                (vc-dir-refresh))))
+                (vc-dir-refresh 'restart))))
             ((derived-mode-p 'dired-mode)
              (run-delayed
               (when (= (buffer-modified-tick buf) tick)
