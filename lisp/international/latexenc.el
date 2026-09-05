@@ -160,6 +160,8 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                                      (stringp TeX-master)
                                      TeX-master)
                                 (bound-and-true-p tex-main-file)))))
+                ;; Decode the main file name, assuming it's in UTF-8.
+                (setq file (decode-coding-string file 'utf-8))
                 (dolist (ext `("" ,(if (boundp 'TeX-default-extension)
                                        (concat "." TeX-default-extension)
                                      "")
