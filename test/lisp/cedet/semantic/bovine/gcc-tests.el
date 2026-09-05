@@ -38,7 +38,10 @@
        ;; No longer test for prefixes.
        ;; (should .--prefix)
        (should .version)
-       (should (or .target
+       ;; "gcc -v" didn't start outputting "--host" etc. until
+       ;; GCC 4 (2005), when the GCC folks switched to using Autoconf.
+       (should (or (version< .version "4.0")
+                   .target
                    .--target
                    .--host)))))
 
@@ -46,10 +49,10 @@
 
 (ert-deftest semantic-gcc-test/1 ()
   ;; My old box:
-  (semantic-gcc-test "Reading specs from /usr/lib/gcc-lib/i386-redhat-linux/3.2.2/specs
+  (semantic-gcc-test "Reading specs from /usr/lib/gcc-lib/i386-redhat-linux/4.2.2/specs
 Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --enable-shared --enable-threads=posix --disable-checking --with-system-zlib --enable-__cxa_atexit --host=i386-redhat-linux
 Thread model: posix
-gcc version 3.2.2 20030222 (Red Hat Linux 3.2.2-5)"))
+gcc version 4.2.2 20030222 (Red Hat Linux 4.2.2-5)"))
 
 (ert-deftest semantic-gcc-test/2 ()
   ;; Alex Ott:
@@ -85,10 +88,10 @@ gcc version 4.3.2 (Ubuntu 4.3.2-1ubuntu12)"))
 
 (ert-deftest semantic-gcc-test/6 ()
   ;; Red Hat EL4
-  (semantic-gcc-test "Reading specs from /usr/lib/gcc/x86_64-redhat-linux/3.4.6/specs
+  (semantic-gcc-test "Reading specs from /usr/lib/gcc/x86_64-redhat-linux/4.4.6/specs
 Configured with: ../configure --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --enable-shared --enable-threads=posix --disable-checking --with-system-zlib --enable-__cxa_atexit --disable-libunwind-exceptions --enable-java-awt=gtk --host=x86_64-redhat-linux
 Thread model: posix
-gcc version 3.4.6 20060404 (Red Hat 3.4.6-10)"))
+gcc version 4.4.6 20060404 (Red Hat 4.4.6-10)"))
 
 (ert-deftest semantic-gcc-test/7 ()
   ;; Red Hat EL5

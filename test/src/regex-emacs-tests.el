@@ -105,7 +105,8 @@ are known failures, and are skipped."
 
   `(with-temp-buffer
     (modify-syntax-entry ?_ "w;; ") ; tests expect _ to be a word
-    (insert-file-contents (concat regex-tests--resources-dir ,test-file))
+    (let ((coding-system-for-read 'utf-8-unix))
+      (insert-file-contents (concat regex-tests--resources-dir ,test-file)))
     (let ((case-fold-search nil)
           (line-number 1)
           (whitelist-idx 0))
