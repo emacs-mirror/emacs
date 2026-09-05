@@ -510,10 +510,11 @@ select the source buffer."
 (defvar next-error-follow-last-line nil)
 
 (define-minor-mode next-error-follow-minor-mode
-  "Minor mode for compilation, occur and diff modes.
+  "Minor mode for Compilation, Grep, Occur and Diff modes.
 
-When turned on, cursor motion in the compilation, grep, occur or diff
-buffer causes automatic display of the corresponding source code location."
+When turned on, cursor motion in Compilation, Grep, Occur and Diff mode
+buffers causes automatic display of the corresponding source code
+location."
   :group 'next-error :init-value nil :lighter " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)

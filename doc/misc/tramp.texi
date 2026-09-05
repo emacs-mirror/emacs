@@ -1833,7 +1833,7 @@ and the target host matching @var{user}@@@var{host}.  @var{host} and
 @var{user} are regular expressions or @code{nil}, interpreted as a
 regular expression which always matches.
 
-@var{proxy} is a literal @value{tramp} file name whose local name part
+@var{proxy} is a literal @value{tramp} file name whose localname part
 is ignored, and the method and user name parts are optional.
 
 The method must be an inline method (@pxref{Inline methods}).  If
@@ -3712,7 +3712,7 @@ name.  For example: @file{@trampfn{ssh,daniel@@melancholia#42,.emacs}}.
 If the host is an IPv6 address, the port is appended like this:
 @file{@trampfn{ssh,@value{ipv6prefix}::1@value{ipv6postfix}#42,.emacs}}.
 
-All method, user name, host name, port number and local name parts are
+All method, user name, host name, port number and localname parts are
 optional, @xref{Default Method}, @xref{Default User}, @xref{Default Host}.
 @ifset unified
 For syntactical reasons, the default method must be indicated by the
@@ -4102,6 +4102,24 @@ configured to expand a home directory via a connection property,
 
 When your remote file name does not contain a @samp{user} part, the
 connection property @t{"~"} must be used instead.
+
+In case there is no remote home directory and you haven't specified a
+respective connection property, you should avoid using @file{~} in
+file names. This means for example
+
+@itemize
+@item
+Don't use a remote file name like @file{@trampfn{ssh,user@@host,}} or
+@file{@trampfn{ssh,user@@host,~/}}.  Use an absolute localname part
+instead, like @file{@trampfn{ssh,user@@host,/path/to/file}}.
+
+@item
+Disable @code{tramp-histfile-override}, @ref{Managing remote shell history}:
+
+@lisp
+(setopt tramp-histfile-override nil)
+@end lisp
+@end itemize
 
 
 @node Remote processes
