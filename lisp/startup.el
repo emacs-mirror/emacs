@@ -1277,7 +1277,8 @@ unconditionally."
           (add-to-list 'load-path (directory-file-name file))
           (push file dirs))
          ;; Everything else.
-         ((and (eq attr nil) (string-suffix-p ".el" file))
+         ((and (or (null attr) (stringp attr))
+               (string-suffix-p ".el" file))
           (push file files)))))
     (unless just-activate
       (loaddefs-generate dirs autoload-file excluded nil nil force)
