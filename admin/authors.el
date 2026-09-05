@@ -2236,6 +2236,7 @@ and changed by AUTHOR."
 	    (cons (list author wrote-list cowrote-list changed-list)
 		  authors-author-list)))))
 
+;;;###autoload
 (defun authors (root &optional nologupdate)
   "Extract author information from change logs and Lisp source files.
 ROOT is the root directory under which to find the files.

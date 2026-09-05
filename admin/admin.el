@@ -35,6 +35,7 @@
 (defun admin--read-version ()
   (read-string "Version number: " emacs-version))
 
+;;;###autoload
 (defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Also update the etc/HISTORY file.
@@ -102,6 +103,7 @@ Optional argument DATE is the release date, default today."
   "\\bAuto-incrementing version code\\(?:.\\|\n\\)*\\([[:digit:]]\\{9\\}\\)$"
   "Regexp with which to detect the version code in AndroidManifest.xml.")
 
+;;;###autoload
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -246,6 +248,7 @@ Non-Free Operating Systems\n" newshort)))
   (message "Setting version numbers...done"))
 
 ;; Note this makes some assumptions about form of short copyright.
+;;;###autoload
 (defun set-copyright (root copyright)
   "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -300,6 +303,7 @@ ROOT should be the root of an Emacs source tree."
 	      '("efaq-w32")))))
 
 ;; TODO report the progress
+;;;###autoload
 (defun make-manuals (root &optional type)
   "Generate the web manuals for the Emacs webpage.
 ROOT should be the root of an Emacs source tree.
@@ -792,6 +796,7 @@ style=\"text-align:left\">")
     (message "...created %s" tarfile)))
 
 ;; Does anyone actually use these tarfiles?
+;;;###autoload
 (defun make-manuals-dist (root &optional type)
   "Make the standalone manual source tarfiles for the Emacs webpage.
 ROOT should be the root of an Emacs source tree.
@@ -883,6 +888,7 @@ $Date: %s $
 (defvar org-html-mathjax-template)
 (defvar htmlize-output-type)
 
+;;;###autoload
 (defun make-news-html-file (root version)
   "Convert the NEWS file into an HTML file."
   (interactive (let ((root
@@ -1117,6 +1123,7 @@ If optional argument OLD is non-nil, also scan for `defvar's."
 ;; to check the results of this look sensible.
 ;; TODO Check cus-start if something moved from C to Lisp.
 ;; TODO Handle renamed things with aliases to the old names.
+;;;###autoload
 (defun cusver-check (newdir olddir version)
   "Check that `defcustom's have :version tags where needed.
 NEWDIR is the current lisp/ directory, OLDDIR is that from the
@@ -1190,6 +1197,7 @@ changes (in a non-trivial way).  This function does not check for that."
 ;; Reminder message for open release-blocking bugs.  This requires the
 ;; GNU ELPA package `debbugs'.
 
+;;;###autoload
 (defun reminder-for-release-blocking-bugs (version)
   "Submit a reminder message for release-blocking bugs of Emacs VERSION."
   (interactive
