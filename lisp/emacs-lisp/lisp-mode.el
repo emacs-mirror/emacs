@@ -269,7 +269,8 @@ to a package-local <package>-loaddefs.el file.")
     (while (re-search-forward
             (concat "(\\(" (rx lisp-mode-symbol) "\\)\\_>")
             limit t)
-      (let ((sym (intern-soft (match-string 1))))
+      ;; FIXME: Doesn't properly un-escape \ in the symbol name.
+      (let ((sym (shorthands-intern-soft (match-string 1))))
 	(when (and (or (special-form-p sym) (macrop sym))
                    (not (get sym 'no-font-lock-keyword))
                    (lisp--el-funcall-position-p (match-beginning 0)))
@@ -454,6 +455,7 @@ This will generate compile-time constants from BINDINGS."
 
     (defconst lisp-cl-font-lock-keywords-1
       `( ;; Definitions.
+        ;; FIXME: Copy&paste from `lisp-el-font-lock-keywords-1'.
         (,(concat "(" cl-defs-re "\\_>"
                   ;; Any whitespace and defined object.
                   "[ \t']*"
@@ -617,7 +619,8 @@ containing STARTPOS."
                                         (rx lisp-mode-symbol) "\\)"))
                                (match-string 1)))))
          (docelt (and firstsym
-                      (function-get (intern-soft firstsym)
+                      ;; FIXME: Doesn't properly un-escape \ in the symbol name.
+                      (function-get (shorthands-intern-soft firstsym)
                                     lisp-doc-string-elt-property))))
     (and docelt
          ;; It's a string in a form that can have a docstring.
