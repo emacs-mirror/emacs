@@ -1376,7 +1376,7 @@ OPTIONS should be a list of option strings; if a string ends in
 \"=\", it's an option that accepts a value."
   (lambda (string pred action)
     (pcase action
-      ('nil                               ; try-completion
+      ('nil                             ; try-completion
        (let ((result (try-completion string options pred)))
          ;; If the completion ends in "=", then it's not really
          ;; complete yet: we expect a value after the "=".  Return the
@@ -1385,10 +1385,22 @@ OPTIONS should be a list of option strings; if a string ends in
          (if (and (eq result t) (string-suffix-p "=" string))
              string
            result)))
-      ('t                                 ; all-completions
-       (all-completions string options pred))
-      ('lambda                            ; test-completion
-        (test-completion string options pred)))))
+      ('t                               ; all-completions
+       ;; Don't list completions when the boundary starts after an "=".
+       (unless (and (string-suffix-p "=" string)
+                    (member string options))
+         (all-completions string options pred)))
+      ('lambda                          ; test-completion
+       (test-completion string options pred))
+      (`(boundaries . ,suffix)          ; completion-boundaries
+       ;; As above, if the completion ends in "=", then it's not
+       ;; complete yet.  The completion's boundary should start after
+       ;; the "=" to indicate that that's where subsequent completions
+       ;; will occur.
+       (if (and (string-suffix-p "=" string)
+                (member string options))
+           `(boundaries ,(length string) . ,(length suffix))
+         (completion-boundaries string options pred suffix))))))
 
 ;;; Parsing help messages
 
