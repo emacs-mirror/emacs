@@ -5847,6 +5847,7 @@ If FIX is non-nil, run `copyright-fix-years' instead.
 
 ;;; Generated autoloads from progmodes/cperl-mode.el
 
+(push '(cperl-mode 33 0 0) package--builtin-versions)
 (put 'cperl-file-style 'safe-local-variable 'stringp)
 (put 'cperl-indent-level 'safe-local-variable 'integerp)
 (put 'cperl-brace-offset 'safe-local-variable 'integerp)
@@ -7053,7 +7054,6 @@ There is some minimal font-lock support (see vars
 
 ;;; Generated autoloads from emacs-lisp/debug.el
 
-(setq debugger 'debug)
 (autoload 'debug "debug"
 "Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
 
@@ -7214,7 +7214,7 @@ START and END delimit the corners of the text rectangle.
 
 ;;; Generated autoloads from delsel.el
 
-(defalias 'pending-delete-mode 'delete-selection-mode)
+(defalias 'pending-delete-mode #'delete-selection-mode)
 (defvar delete-selection-mode nil
 "Non-nil if Delete-Selection mode is enabled.
 See the `delete-selection-mode' command
@@ -10306,7 +10306,7 @@ The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
 (fn &optional ARG)" t)
-(register-definition-prefixes "elec-pair" '("electric-pair-"))
+(register-definition-prefixes "elec-pair" '("electric-"))
 
 
 ;;; Generated autoloads from elide-head.el
@@ -11652,6 +11652,11 @@ penultimate step during initialization.
 ;;; Generated autoloads from eshell/esh-var.el
 
 (register-definition-prefixes "esh-var" '("eshell" "pcomplete/eshell-mode/"))
+
+
+;;; Generated autoloads from eshell/esh-worker.el
+
+(register-definition-prefixes "esh-worker" '("eshell"))
 
 
 ;;; Generated autoloads from eshell/eshell.el
@@ -13845,7 +13850,7 @@ lines.
 
 ;;; Generated autoloads from progmodes/flymake.el
 
-(push '(flymake 1 4 5) package--builtin-versions)
+(push '(flymake 1 4 7) package--builtin-versions)
 (autoload 'flymake-log "flymake"
 "Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
@@ -25049,6 +25054,15 @@ Install it with
   (setq-local outline-search-function #\\='outline-search-from-regexp)
 
 (fn &optional BOUND MOVE BACKWARD LOOKING-AT)")
+(put 'outline-comment-regexp 'safe-local-variable 'stringp)
+(autoload 'outline-xref "outline"
+"Navigate the current buffer's outline using Xref.
+Display an Xref buffer with the outline headings found in the current
+buffer.  You can use Xref commands in that Xref buffer to navigate and edit
+the outline.
+
+If `outline-search-function' is non-nil, it is used to find the outline
+headings.  Otherwise, the `outline-regexp' variable is used." t)
 (register-definition-prefixes "outline" '("outline-"))
 
 
@@ -25620,8 +25634,8 @@ affect the returned value of date and time, they only affect the
 last two members of the returned value.  This function simply
 parses the textual representation of date and time into separate
 numerical values, and doesn't care whether the time is local or UTC.
-Also, alphabetic time zone abbreviations like \"PST\" have their
-circa 1970 meanings, even if current usage differs.
+Also, obsolete alphabetic time zone abbreviations like \"PST\" have
+their circa 1970 meanings, even if current usage differs.
 
 See `decode-time' for the meaning of FORM.
 
@@ -25776,14 +25790,10 @@ undetected, binding variables to arbitrary values, such as nil.
 
 (fn BINDINGS &rest BODY)" nil t)
 (autoload 'pcase-let*-strict "pcase"
-"Like `pcase-let*', but signal an error when a pattern does not match.
-As with `pcase-let*', BINDINGS are of the form (PATTERN EXP), but the
+"Like `pcase-let*', but always signal an error when a pattern does not match.
+As with `pcase-let*', BINDINGS are of the form (PATTERN EXP), and the
 EXP in each binding in BINDINGS can use the results of the destructuring
 bindings that precede it in BINDINGS' order.
-
-Each EXP should match its respective PATTERN (i.e. be of structure
-compatible to PATTERN); a mismatch may signal an error or may go
-undetected, binding variables to arbitrary values, such as nil.
 
 (fn BINDINGS &rest BODY)" nil t)
 (autoload 'pcase-let "pcase"
@@ -31892,7 +31902,6 @@ Positive ARG means turn on, negative turn off.
 A nil ARG means toggle.  Once the speedbar window is activated, a buffer in
 `speedbar-mode' will be displayed.  Currently, only one speedbar is
 supported at a time.
-`speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted.
 
 (fn &optional ARG)" t)
@@ -35562,7 +35571,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 13 3) package--builtin-versions)
+(push '(transient 0 13 8) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient"
 "Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -40505,13 +40514,17 @@ mode.
 "Rotate layout of WINDOW's child windows clockwise by 90 degrees.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate clockwise
-the layout of the child windows of the selected window's parent.  Signal
-an error if WINDOW is not a parent window.
+the layout of the child windows of the selected window's parent.
 
 Recursively rotate the entire layout of WINDOW's child windows clockwise
 by 90 degrees.  Do not change the selected window of WINDOW's frame.  If
 you want to rotate windows within their frame's layout, consider using
 `rotate-windows' instead.
+
+Signal an error if WINDOW is not a parent window or some descendants of
+WINDOW are of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-rotate-anticlockwise "window-x"
@@ -40519,12 +40532,17 @@ you want to rotate windows within their frame's layout, consider using
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate
 counterclockwise the layout of the child windows of the selected
-window's parent.  Signal an error if WINDOW is not a parent window.
+window's parent.
 
 Recursively rotate the entire layout of WINDOW's child windows
 counterclockwise by 90 degrees.  Do not change the selected window of
 WINDOW's frame.  If you want to rotate windows within their frame's
 layout, consider using `rotate-windows-back' instead.
+
+Signal an error if WINDOW is not a parent window or one of WINDOW's
+descendants is of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-leftright "window-x"
@@ -40532,32 +40550,41 @@ layout, consider using `rotate-windows-back' instead.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip
 horizontally the layout of the child windows of the selected window's
-parent.  Signal an error if WINDOW is not a parent window.
+parent.
 
 Recursively flip the layout of WINDOW's child windows so that a child
 window on the right becomes a child window on the left and vice-versa.
+Signal an error if WINDOW is not a parent window or one of WINDOW's
+descendants is of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-flip-topdown "window-x"
 "Flip WINDOW's child windows vertically.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, flip vertically
-the layout of the child windows of the selected window's parent.  Signal
-an error if WINDOW is not a parent window.
+the layout of the child windows of the selected window's parent.
 
 Recursively flip the layout of WINDOW's child windows so that a child
 window on the top becomes a child window on the bottom and vice-versa.
+Signal an error if WINDOW is not a parent window or one of WINDOW's
+descendants is of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'window-layout-transpose "window-x"
 "Transpose child windows of WINDOW.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, transpose the
-layout of the child windows of the selected window's parent.  Signal an
-error if WINDOW is not a parent window.
+layout of the child windows of the selected window's parent.
 
 Recursively reorganize WINDOW's child windows so that each horizontal
-split becomes a vertical split and vice versa.
+split becomes a vertical split and vice versa.  Signal an error if
+WINDOW is not a parent window or one of WINDOW's descendants is of fixed
+size or atomic.  Also signal an error if `transpose-dedicated-windows'
+is nil and a descendant window is dedicated.
 
 (fn &optional WINDOW)" t)
 (autoload 'rotate-windows "window-x"
@@ -40567,9 +40594,10 @@ selected frame.  Interactively, with a prefix argument, rotate the child
 windows of the selected window's parent.
 
 Optional argument REVERSE non-nil means to rotate windows backwards, in
-reverse cyclic order.  Signal an error if WINDOW is not a parent window,
-all descendants of WINDOW are dedicated or some windows are of fixed
-size or atomic.
+reverse cyclic order.  Signal an error if WINDOW is not a parent window
+or some descendants of WINDOW are of fixed size or atomic.  Also signal
+an error if `transpose-dedicated-windows' is nil and a descendant window
+is dedicated.
 
 Rotating windows leaves the way a frame layout has been produced via
 splitting, deleting and resizing windows unaltered.  It only \"moves\"
@@ -40589,9 +40617,12 @@ vice-versa), consider running `window-layout-flip-leftright' and
 "Rotate child windows of WINDOW backwards in cyclic ordering.
 WINDOW must be a parent window and defaults to the main window of the
 selected frame.  Interactively, with a prefix argument, rotate backwards
-the child windows of the selected window's parent.  Signal an error if
-WINDOW is not a parent window, all descendants of WINDOW are dedicated
-or some of them are of fixed size or atomic.
+the child windows of the selected window's parent.
+
+Signal an error if WINDOW is not a parent window or descendants of
+WINDOW are of fixed size or atomic.  Also signal an error if
+`transpose-dedicated-windows' is nil and a descendant window is
+dedicated.
 
 Rotating windows backwards leaves the way a frame layout has been
 produced via splitting, deleting and resizing windows unaltered.  It
@@ -40646,7 +40677,7 @@ window is live or does not have more child windows than specified by the
 absolute value of ARG.  Return the new frame.
 
 (fn &optional FRAME ARG)" t)
-(register-definition-prefixes "window-x" '("rotate-windows-change-selected" "window-"))
+(register-definition-prefixes "window-x" '("rotate-windows-change-selected" "transpose-dedicated-windows" "window-"))
 
 
 ;;; Generated autoloads from winner.el
@@ -40927,6 +40958,21 @@ when it decides whether to split the window horizontally or vertically.
 "Like `xref-find-definitions' but switch to the other frame.
 
 (fn IDENTIFIER)" t)
+(autoload 'xref-find-by-kind "xref"
+"Find some certain kind of definitions of the identifier at point.
+
+Prompt for KIND to search for.  With prefix argument or when there's no
+identifier at point, prompt for the identifier too.
+
+If only one location is found, display it in the selected window.
+Otherwise, display the list of the possible definitions in a
+buffer where the user can select from the list.
+
+Use \\[xref-go-back] to return back to where you invoked this command.
+
+When called programmatically, KIND should be one of supported symbols.
+
+(fn IDENTIFIER KIND)" t)
 (autoload 'xref-find-references "xref"
 "Find references to the identifier at point.
 This command might prompt for the identifier as needed, perhaps
@@ -41003,6 +41049,8 @@ output of this command when the backend is etags.
  (define-key esc-map [?\C-,] #'xref-go-forward)
  (define-key esc-map "?" #'xref-find-references)
  (define-key esc-map [?\C-.] #'xref-find-apropos)
+ (define-key goto-map    "." 'xref-find-by-kind)
+ (define-key goto-map "\M-." 'xref-find-by-kind)
  (define-key ctl-x-4-map "." #'xref-find-definitions-other-window)
  (define-key ctl-x-5-map "." #'xref-find-definitions-other-frame)
 (autoload 'xref-references-in-directory "xref"
