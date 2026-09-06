@@ -709,9 +709,9 @@ bound to HIGHLIGHT-LOCUS."
   "Return the previews of replacing FROM with TO in a buffer holding TEXT.
 Each preview is a list (BEG END STRING).
 Unless the caller binds `query-replace-show-preview' to something else,
-the previews are those of `replace-preview-replacement-only'."
+the previews are those of `replacement-only'."
   (let ((query-replace-show-preview
-         (or query-replace-show-preview #'replace-preview-replacement-only)))
+         (or query-replace-show-preview 'replacement-only)))
     (with-temp-buffer
       (insert text)
       (set-window-buffer (selected-window) (current-buffer))
@@ -751,7 +751,7 @@ the previews are those of `replace-preview-replacement-only'."
                  '((1 4 " ")))))
 
 (ert-deftest replace-tests-preview-both ()
-  (let ((query-replace-show-preview #'replace-preview-both)
+  (let ((query-replace-show-preview 'both)
         (arrow (if (char-displayable-p ?→) "→" "->")))
     (should (equal (replace-tests--preview "foo\n" "foo" "bar" nil)
                    `((1 4 ,(concat "foo" arrow "bar")))))))
@@ -767,7 +767,7 @@ the previews are those of `replace-preview-replacement-only'."
   (with-temp-buffer
     (insert "foo foo\n")
     (set-window-buffer (selected-window) (current-buffer))
-    (let ((query-replace-show-preview #'replace-preview-replacement-only))
+    (let ((query-replace-show-preview 'replacement-only))
       (replace-preview-update "foo" "bar" nil nil nil))
     (should replace-preview-overlays)
     (replace-preview-cleanup)
@@ -777,7 +777,7 @@ the previews are those of `replace-preview-replacement-only'."
 (ert-deftest replace-tests-preview-disabled ()
   (let ((query-replace-show-preview nil))
     (should (eq (replace-preview-setup "foo" nil nil) #'ignore)))
-  (let ((query-replace-show-preview #'replace-preview-replacement-only))
+  (let ((query-replace-show-preview 'replacement-only))
     (should-not (eq (replace-preview-setup "foo" nil nil) #'ignore))))
 
 (ert-deftest test-count-matches ()

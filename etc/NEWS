@@ -139,9 +139,10 @@ type it: the matches visible in the window are shown as they would look
 after the replacement.  Replacements that use '\,' or '\#' are not
 previewed.  The preview is off by default.
 
-The value is a function.  'replace-preview-replacement-only' shows the
-replacement alone, and 'replace-preview-both' shows the match and
-replacement side-by-side.  Or you can use a custom function.
+The value can be the symbol 'replacement-only', which shows the
+replacement alone, the symbol 'both', which shows the match and the
+replacement side-by-side, or a custom function of the match and the
+replacement, returning the string to show in place of the match.
 
 ** Electric Pair mode
 

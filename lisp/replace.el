@@ -119,17 +119,17 @@ This variable affects only `query-replace-regexp'."
 The matches visible in the window are shown as they would look after the
 replacement.  Replacements using \\, or \\# are not previewed.
 
-The value can be nil, for no preview;
-`replace-preview-replacement-only', to show the replacement alone;
-`replace-preview-both', to show the match and the replacement side by
-side; or a function of two string arguments, the match and the
-replacement, returning the string to show in place of the match."
-  :type '(choice (const         :tag "No preview" nil)
-                 (function-item :tag "Show the replacement"
-                                replace-preview-only-replacement)
-                 (function-item :tag "Show both match and replacement"
-                                replace-preview-both)
-                 (function      :tag "Other function"))
+The value can be nil, for no preview; the symbol `replacement-only', to
+show the replacement alone; the symbol `both', to show the match and the
+replacement side by side; or a function of two string arguments, the
+match and the replacement, returning the string to show in place of the
+match, or nil to leave that match alone.  See the functions
+`replace-preview-replacement-only' and `replace-preview-both' for two
+examples of such a function."
+  :type '(choice (const    :tag "No preview" nil)
+                 (const    :tag "Show the replacement" replacement-only)
+                 (const    :tag "Show both match and replacement" both)
+                 (function :tag "Other function"))
   :group 'matching
   :version "32.1")
 
@@ -182,7 +182,7 @@ friends when `query-replace-show-preview' is non-nil."
   '((t (:inherit lazy-highlight)))
   "Face for the matched text in the preview.
 Used for the left half of the preview when `query-replace-show-preview'
-is `replace-preview-both'."
+is `both'."
   :group 'matching
   :version "32.1")
 
@@ -401,7 +401,8 @@ overlay string they would show something other than the preview."
 (defun replace-preview-both (match replacement)
   "Return MATCH and REPLACEMENT side by side, separated by an arrow.
 MATCH and REPLACEMENT are strings, shown in the faces
-`query-replace-preview-match' and `query-replace-preview'."
+`query-replace-preview-match' and `query-replace-preview'.  This is what
+`query-replace-show-preview' does when it is `both'."
   (let ((sep (if (char-displayable-p ?→) "→" "->")))
     (concat (replace-preview-propertize (concat match sep)
                                         'query-replace-preview-match)
@@ -411,7 +412,9 @@ MATCH and REPLACEMENT are strings, shown in the faces
 (defun replace-preview-replacement-only (_match replacement)
   "Return REPLACEMENT in the face `query-replace-preview'.
 REPLACEMENT is a string.  If it is empty, previewing it would show
-nothing at all, so return a thin bar to mark the place of the match."
+nothing at all, so return a thin bar to mark the place of the match.
+This is what `query-replace-show-preview' does when it is
+`replacement-only'."
   (let ((text (replace-preview-propertize replacement
                                           'query-replace-preview)))
     (if (equal text "")
@@ -421,12 +424,17 @@ nothing at all, so return a thin bar to mark the place of the match."
 (defun replace-preview--format (match replacement)
   "Return the string to show in place of MATCH, or nil for no preview.
 MATCH is the matched string and REPLACEMENT is the string that would
-replace it.  They are combined by the function
-`query-replace-show-preview'."
-  (when (functionp query-replace-show-preview)
-    (let ((s (save-match-data
-               (funcall query-replace-show-preview match replacement))))
-      (and (stringp s) s))))
+replace it.  They are combined as `query-replace-show-preview' says."
+  (let ((s (save-match-data
+             (pcase query-replace-show-preview
+               ('nil nil)
+               ('replacement-only
+                (replace-preview-replacement-only match replacement))
+               ('both
+                (replace-preview-both match replacement))
+               ((pred functionp)
+                (funcall query-replace-show-preview match replacement))))))
+    (and (stringp s) s)))
 
 (defun replace-preview-update (from to regexp-flag delimited-flag case-fold)
   "Preview the result of replacing FROM with TO in the current buffer.
@@ -472,7 +480,7 @@ on every change it shows, in the original window, how the visible
 matches of FROM would look after the replacement.
 REGEXP-FLAG and DELIMITED-FLAG say how to search for FROM, as in
 `replace-search'."
-  (if (or (not (functionp query-replace-show-preview)) (minibufferp))
+  (if (or (not query-replace-show-preview) (minibufferp))
       #'ignore
     (let ((unwind (make-symbol "replace-preview--unwind"))
 	  (after-change (make-symbol "replace-preview--after-change"))
