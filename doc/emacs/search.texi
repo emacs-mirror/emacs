@@ -1573,8 +1573,16 @@ value, the replace commands show a preview of the replacement while you
 type it: the matches visible in the window are displayed as they would
 look after the replacement.  This tells you what back-references like
 @samp{\1} (@pxref{Regexp Replace}) expand to before you commit to the
-replacement.  However, replacements that use @samp{\,} or @samp{\#} are
-not previewed.
+replacement.  The preview also appears at the prompt that reads the text
+to replace, as soon as its input holds both halves separated by an
+arrow, which is what @kbd{M-p} recalls from the history.  However,
+replacements that use @samp{\,} or @samp{\#} are not previewed.
+
+  Only the matches that the command will replace are previewed: those
+after point, or those before it when replacing backward
+(@pxref{Query Replace}).  The other ones are still highlighted, to show
+that the buffer has more of them.  When the region is active, the
+preview covers all of it, as the replacement does.
 
   The value can be @code{replacement-only}, to display the replacement
 alone, @code{both}, to display the match next to its replacement,

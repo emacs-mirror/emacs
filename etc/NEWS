@@ -136,7 +136,11 @@ of the terminal emulator:
 ** New user option 'query-replace-show-preview'.
 If non-nil, the replacement commands preview the replacement while you
 type it: the matches visible in the window are shown as they would look
-after the replacement.  Replacements that use '\,' or '\#' are not
+after the replacement.  Only the matches that the command will replace
+are previewed: those after point, or those before it when replacing
+backward.  The preview also appears at the first prompt, as soon as its
+input holds both halves, as it does after recalling a replacement from
+the history with 'M-p'.  Replacements that use '\,' or '\#' are not
 previewed.  The preview is off by default.
 
 The value can be the symbol 'replacement-only', which shows the

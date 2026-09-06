@@ -436,22 +436,41 @@ replace it.  They are combined as `query-replace-show-preview' says."
                 (funcall query-replace-show-preview match replacement))))))
     (and (stringp s) s)))
 
-(defun replace-preview-update (from to regexp-flag delimited-flag case-fold)
+(defun replace-preview--input (from contents)
+  "Return the pair of strings to preview, or nil if there is none.
+FROM is the string to search for and CONTENTS is the minibuffer input,
+which is then the replacement text.  FROM nil means that CONTENTS holds
+both halves, as at the prompt of `query-replace-read-from', which splits
+them on the `separator' text property; until the input has both of them
+there is nothing to preview, and nil is returned."
+  (if from
+      (cons from (substring-no-properties contents))
+    (let ((split (query-replace--split-string contents)))
+      (when (consp split)
+	(cons (substring-no-properties (car split)) (cdr split))))))
+
+(defun replace-preview-update (from to regexp-flag delimited-flag case-fold
+				    &optional start end)
   "Preview the result of replacing FROM with TO in the current buffer.
 Each match of FROM visible in the selected window gets an overlay
 showing the text that `replace-preview--format' returns for it, which
 depends on `query-replace-show-preview'.  Matches for which it returns
 nil are left alone.
 
+START and END limit the previewed portion of the buffer, as in
+`perform-replace': a visible match outside of them will not be replaced,
+so previewing it would be misleading.  Matches to leave alone for other
+reasons are still expected to be rejected by `isearch-filter-predicate'.
+
 REGEXP-FLAG, DELIMITED-FLAG and CASE-FOLD say how to search for FROM, as
 in `replace-search'."
   (replace-preview-cleanup)
   (let ((nocasify (not (and case-replace case-fold)))
 	(literal (or (not regexp-flag) (eq regexp-flag 'literal)))
-	(limit (window-end nil t)))
+	(limit (min (window-end nil t) (or end (point-max)))))
     (save-excursion
       (save-match-data
-	(goto-char (window-start))
+	(goto-char (max (window-start) (or start (point-min))))
 	(while (and (< (point) limit)
 		    (replace-search from limit regexp-flag delimited-flag
 				    case-fold))
@@ -473,21 +492,31 @@ in `replace-search'."
 	    (when (and (= beg end) (not (eobp)))
 	      (forward-char 1))))))))
 
-(defun replace-preview-setup (from regexp-flag delimited-flag)
+(defun replace-preview-setup (from regexp-flag delimited-flag
+			      &optional backward)
   "Return a closure that previews the replacement of FROM.
 Add it to `minibuffer-setup-hook' while reading the replacement text:
 on every change it shows, in the original window, how the visible
 matches of FROM would look after the replacement.
+
+FROM nil means that the same minibuffer reads it too, as at the prompt
+of `query-replace-read-from': then both halves come from the input, and
+nothing is previewed until it has both of them.
+
 REGEXP-FLAG and DELIMITED-FLAG say how to search for FROM, as in
-`replace-search'."
+`replace-search'.  BACKWARD non-nil means that the replacement will go
+from point to the beginning of the buffer instead of to its end."
   (if (or (not query-replace-show-preview) (minibufferp))
       #'ignore
     (let ((unwind (make-symbol "replace-preview--unwind"))
 	  (after-change (make-symbol "replace-preview--after-change"))
 	  (buffer (current-buffer))
-	  (case-fold (if (and case-fold-search search-upper-case)
-			 (isearch-no-upper-case-p from regexp-flag)
-		       case-fold-search))
+	  ;; All of an active region is replaced, and only the
+	  ;; filter below keeps the preview inside it.
+	  (bounds (unless (use-region-p)
+		    (if backward
+			(cons (point-min) (point))
+		      (cons (point) (point-max)))))
 	  (region-filter (when (use-region-p)
 			   (replace--region-filter
 			    (funcall region-extract-function 'bounds)))))
@@ -503,29 +532,39 @@ REGEXP-FLAG and DELIMITED-FLAG say how to search for FROM, as in
 		  (replace-preview-cleanup)))))
       (fset after-change
 	    (lambda (_beg _end _len)
-	      (let ((to (minibuffer-contents-no-properties)))
+	      (let* ((input (replace-preview--input
+			     from (minibuffer-contents)))
+		     (search (car input))
+		     (replacement (cdr input)))
 		(with-minibuffer-selected-window
 		  ;; The replacement text is typed one character at a
 		  ;; time, so it's expected to be invalid meanwhile,
 		  ;; e.g. when it ends with a backslash or refers to a
 		  ;; group that the regexp doesn't have.
 		  (condition-case nil
-		      (if (and regexp-flag
-			       (string-match
-				query-replace-eval-replacement-regexp to))
-			  ;; Neither \, nor \# can be previewed, for
-			  ;; different reasons.  \, is a Lisp expression
-			  ;; that the user is still typing: evaluating it
-			  ;; on each keystroke would run the side effects
-			  ;; of a half-typed form as soon as it happens
-			  ;; to be readable.  \# expands to the number of
-			  ;; replacements made so far, and none has been
-			  ;; made yet, so the preview would show 0 for
-			  ;; every match where the replacement itself
-			  ;; will show 0, 1, 2...
+		      (if (or
+			   (null input) (equal search "")
+			   ;; Neither \, nor \# can be previewed, for
+			   ;; different reasons.  \, is a Lisp expression
+			   ;; that the user is still typing: evaluating it
+			   ;; on each keystroke would run the side effects
+			   ;; of a half-typed form as soon as it happens
+			   ;; to be readable.  \# expands to the number of
+			   ;; replacements made so far, and none has been
+			   ;; made yet, so the preview would show 0 for
+			   ;; every match where the replacement itself
+			   ;; will show 0, 1, 2...
+			   (and regexp-flag
+				(string-match
+				 query-replace-eval-replacement-regexp
+				 replacement)))
 			  (replace-preview-cleanup)
-			(replace-preview-update from to regexp-flag
-						delimited-flag case-fold))
+			(replace-preview-update
+			 search replacement regexp-flag delimited-flag
+			 (if (and case-fold-search search-upper-case)
+			     (isearch-no-upper-case-p search regexp-flag)
+			   case-fold-search)
+			 (car bounds) (cdr bounds)))
 		    (error (replace-preview-cleanup)))))))
       (lambda ()
 	(add-hook 'minibuffer-exit-hook unwind nil t)
@@ -536,17 +575,19 @@ REGEXP-FLAG and DELIMITED-FLAG say how to search for FROM, as in
 			  region-filter)))
 	(funcall after-change nil nil nil)))))
 
-(defun query-replace-read-to (from prompt regexp-flag &optional delimited-flag)
+(defun query-replace-read-to (from prompt regexp-flag &optional delimited-flag
+				   backward)
   "Query and return the TO argument of a `query-replace' operation.
 Prompt with PROMPT.  REGEXP-FLAG non-nil means the response
 should a regexp.
-DELIMITED-FLAG is used to search for the occurrences of FROM when
-previewing the replacement (see `query-replace-show-preview')."
+DELIMITED-FLAG and BACKWARD are used to search for the occurrences of
+FROM when previewing the replacement (see `query-replace-show-preview')."
   (query-replace-compile-replacement
    (save-excursion
      (let* ((history-add-new-input nil)
 	    (to (minibuffer-with-setup-hook
-		    (replace-preview-setup from regexp-flag delimited-flag)
+		    (replace-preview-setup from regexp-flag delimited-flag
+					   backward)
 		  (read-from-minibuffer
 		   (format "%s %s with: " prompt (query-replace-descr from))
 		   nil nil nil
@@ -560,39 +601,47 @@ previewing the replacement (see `query-replace-show-preview')."
   (unless noerror
     (barf-if-buffer-read-only))
   (save-mark-and-excursion
-    (let* ((delimited-flag (and current-prefix-arg
+    (let* ((query-replace-show-preview
+            ;; No highlighting in this buffer means no preview in it.
+            (and (not no-highlight) query-replace-show-preview))
+           (delimited-flag (and current-prefix-arg
                                 (not (eq current-prefix-arg '-))))
+           (backward (and current-prefix-arg (eq current-prefix-arg '-)))
            (from (minibuffer-with-setup-hook
-                     (minibuffer-lazy-highlight-setup
-                      :case-fold case-fold-search
-                      :filter (when (use-region-p)
-                                (replace--region-filter
-                                 (funcall region-extract-function 'bounds)))
-                      :highlight (and query-replace-lazy-highlight (not no-highlight))
-                      :lax-whitespace (if regexp-flag replace-regexp-lax-whitespace
+                     ;; A nil FROM: this input can hold both halves.
+                     (replace-preview-setup nil regexp-flag delimited-flag
+                                            backward)
+                   (minibuffer-with-setup-hook
+                       (minibuffer-lazy-highlight-setup
+                        :case-fold case-fold-search
+                        :filter (when (use-region-p)
+                                  (replace--region-filter
+                                   (funcall region-extract-function 'bounds)))
+                        :highlight (and query-replace-lazy-highlight (not no-highlight))
+                        :lax-whitespace (if regexp-flag replace-regexp-lax-whitespace
                                           replace-lax-whitespace)
-                      :regexp regexp-flag
-                      :regexp-function (or replace-regexp-function
-                                           delimited-flag
-                                           (and replace-char-fold
-	                                        (not regexp-flag)
-	                                        #'char-fold-to-regexp))
-                      :transform (lambda (string)
-                                   (let* ((split (query-replace--split-string string))
-                                          (from-string (if (consp split) (car split) split)))
-                                     (when (and case-fold-search search-upper-case)
-	                               (setq isearch-case-fold-search
-                                             (isearch-no-upper-case-p from-string regexp-flag)))
-                                     from-string)))
-                   (query-replace-read-from prompt regexp-flag)))
+                        :regexp regexp-flag
+                        :regexp-function (or replace-regexp-function
+                                             delimited-flag
+                                             (and replace-char-fold
+	                                          (not regexp-flag)
+	                                          #'char-fold-to-regexp))
+                        :transform (lambda (string)
+                                     (let* ((split (query-replace--split-string string))
+                                            (from-string (if (consp split) (car split) split)))
+                                       (when (and case-fold-search search-upper-case)
+	                                 (setq isearch-case-fold-search
+                                               (isearch-no-upper-case-p from-string regexp-flag)))
+                                       from-string)))
+                     (query-replace-read-from prompt regexp-flag))))
            (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
                  (query-replace-read-to from prompt regexp-flag
-                                        delimited-flag))))
+                                        delimited-flag backward))))
       (list from to
             (or delimited-flag
                 (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
                      (get-text-property 0 'isearch-regexp-function from)))
-            (and current-prefix-arg (eq current-prefix-arg '-))))))
+            backward))))
 
 (defun query-replace-read-transpose-from-to ()
   "Transpose the FROM and TO arguments of a `query-replace' operation.

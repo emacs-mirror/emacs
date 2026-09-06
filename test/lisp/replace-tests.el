@@ -705,9 +705,11 @@ bound to HIGHLIGHT-LOCUS."
            (if (match-string 2) "R" "L"))))
       (should (equal (buffer-string) after)))))
 
-(defun replace-tests--preview (text from to regexp-flag &optional case-fold)
+(defun replace-tests--preview (text from to regexp-flag &optional case-fold
+                                    start end)
   "Return the previews of replacing FROM with TO in a buffer holding TEXT.
-Each preview is a list (BEG END STRING).
+Each preview is a list (BEG END STRING).  START and END limit the
+previewed portion of the buffer.
 Unless the caller binds `query-replace-show-preview' to something else,
 the previews are those of `replacement-only'."
   (let ((query-replace-show-preview
@@ -717,7 +719,8 @@ the previews are those of `replacement-only'."
       (set-window-buffer (selected-window) (current-buffer))
       (unwind-protect
           (progn
-            (replace-preview-update from to regexp-flag nil case-fold)
+            (replace-preview-update from to regexp-flag nil case-fold
+                                    start end)
             (mapcar (lambda (ov)
                       (list (overlay-start ov)
                             (overlay-end ov)
@@ -749,6 +752,26 @@ the previews are those of `replacement-only'."
   ;; So is a match that an empty replacement deletes.
   (should (equal (replace-tests--preview "foo\n" "foo" "" nil)
                  '((1 4 " ")))))
+
+(ert-deftest replace-tests-preview-bounds ()
+  ;; Only the matches that would be replaced are previewed.
+  (should (equal (replace-tests--preview "foo foo foo\n" "foo" "bar" nil nil 5)
+                 '((5 8 "bar") (9 12 "bar"))))
+  ;; When the replacement goes backward, the other side is the valid one.
+  (should (equal (replace-tests--preview "foo foo foo\n" "foo" "bar" nil nil
+                                         nil 8)
+                 '((1 4 "bar") (5 8 "bar")))))
+
+(ert-deftest replace-tests-preview-input ()
+  (let ((from-to (concat "foo" (propertize " \N{RIGHTWARDS ARROW} "
+                                           'separator t)
+                         "bar")))
+    ;; While only the replacement is read, FROM is fixed.
+    (should (equal (replace-preview--input "foo" "bar") '("foo" . "bar")))
+    ;; While both halves are read, they are split apart.
+    (should (equal (replace-preview--input nil from-to) '("foo" . "bar")))
+    ;; There is nothing to preview until the input has both of them.
+    (should-not (replace-preview--input nil "foo"))))
 
 (ert-deftest replace-tests-preview-both ()
   (let ((query-replace-show-preview 'both)
