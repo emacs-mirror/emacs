@@ -351,7 +351,7 @@ baz"))))
                                        (ert-resource-directory))
                        :failed :passed)
   (skip-unless (executable-find shell-file-name))
-  (skip-unless (executable-find diff-command))
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (let ((default-directory (ert-resource-directory))
         (old "hello_world.c")
         (new "hello_emacs.c")
@@ -416,7 +416,7 @@ baz"))))
                                        (ert-resource-directory))
                        :failed :passed)
   (skip-unless (executable-find shell-file-name))
-  (skip-unless (executable-find diff-command))
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (let ((default-directory (ert-resource-directory))
         (old "hello_world_1.c")
         (new "hello_emacs_1.c")
@@ -612,6 +612,7 @@ index 9f6c5fe43e47eab441232e54456c5c2b06297b65..7b3f91a8b4ed923c8f43183276e3ab36
 ")
 
 (ert-deftest diff-mode-test-git-patch ()
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (with-temp-buffer
     (insert diff-mode-tests--git-patch)
     (diff-mode)
@@ -625,6 +626,7 @@ index 9f6c5fe43e47eab441232e54456c5c2b06297b65..7b3f91a8b4ed923c8f43183276e3ab36
                 'diff-added))))
 
 (ert-deftest diff-mode-test-git-patch/before-first-hunk ()
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (with-temp-buffer
     (insert diff-mode-tests--git-patch)
     (diff-mode)
@@ -639,6 +641,7 @@ index 9f6c5fe43e47eab441232e54456c5c2b06297b65..7b3f91a8b4ed923c8f43183276e3ab36
                 'diff-context))))
 
 (ert-deftest diff-mode-test-git-patch/signature ()
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (with-temp-buffer
     (insert diff-mode-tests--git-patch)
     (diff-mode)
