@@ -512,7 +512,7 @@ See bug#35036."
       (insert x)
       (undo-boundary))
     (should (equal (buffer-string) "abcde"))
-    (simple-tests--exec '(undo undo))
+    (simple-tests--exec '(ignore undo undo))
     (should (equal (buffer-string) "abc"))
     (simple-tests--exec '(backward-char undo))
     (should (equal (buffer-string) "abcd"))
