@@ -4444,16 +4444,21 @@ file exists and nonzero exit status otherwise."
     (tramp-wait-for-output (tramp-get-connection-process vec))
 
     ;; Check proper HISTFILE setting.  We give up when not working.
-    (when (and (stringp tramp-histfile-override)
-	       (file-name-directory tramp-histfile-override))
-      (tramp-barf-unless-okay
-       vec
-       (format
-	"(cd %s)"
-	(tramp-shell-quote-argument
-	 (file-name-directory tramp-histfile-override)))
-       "`tramp-histfile-override' uses invalid file `%s'"
-       tramp-histfile-override))
+    (when (stringp tramp-histfile-override)
+      (when (and (string-match-p "~" tramp-histfile-override)
+		 (or (not (tramp-get-home-directory vec))
+		     (not (file-directory-p (tramp-get-home-directory vec)))))
+	(tramp-user-error
+	 vec "No home directory, change `tramp-histfile-override'"))
+      (when (file-name-directory tramp-histfile-override)
+	(tramp-barf-unless-okay
+	 vec
+	 (format
+	  "(cd %s)"
+	  (tramp-shell-quote-argument
+	   (file-name-directory tramp-histfile-override)))
+	 "`tramp-histfile-override' uses invalid file `%s'"
+	 tramp-histfile-override)))
 
     (tramp-flush-connection-property
      (tramp-get-connection-process vec) "scripts")
