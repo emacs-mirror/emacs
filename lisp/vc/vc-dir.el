@@ -730,8 +730,10 @@ information."
 ;; entry, as determined by the following function.  See bug#81248 for
 ;; further details.
 (defun vc-dir--before-dotname-p ()
-  "Return non-nil if point is before the \"./\" entry."
-  (< (point) (ewoc-location (ewoc-nth vc-ewoc 0))))
+  "Return non-nil if point is before the \"./\" entry.
+If that entry hasn't appeared yet, return nil."
+  (and-let* ((zeroth (ewoc-nth vc-ewoc 0)))
+    (< (point) (ewoc-location zeroth))))
 
 (defun vc-dir-next-line (arg)
   "Go to the next line.
