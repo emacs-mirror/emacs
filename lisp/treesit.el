@@ -2403,10 +2403,13 @@ This variable should take the same form as
 over `treesit-simple-indent-rules'.")
 
 (defun treesit--indent-prev-line-node (pos)
-  "Return the largest node on the previous line of POS."
+  "Return the largest node on the previous (non-empty) line of POS."
   (save-excursion
     (goto-char pos)
     (when (eq (forward-line -1) 0)
+      ;; Skip blank lines.
+      (while (and (looking-at-p (rx (* (syntax whitespace)) eol))
+                  (eq (forward-line -1) 0)))
       (back-to-indentation)
       (treesit--indent-largest-node-at (point)))))
 
