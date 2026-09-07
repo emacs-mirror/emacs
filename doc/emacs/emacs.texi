@@ -480,7 +480,7 @@ Saving Files
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
 * File Shadowing::      Copying files to shadows automatically.
-* Time Stamps::         Emacs can update time stamps on saved files.
+* Time Stamps::         Emacs can update time stamp text when saving a file.
 
 Backup Files
 

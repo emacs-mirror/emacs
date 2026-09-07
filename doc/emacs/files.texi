@@ -412,7 +412,7 @@ that was visited in the buffer.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
 * Shadowing: File Shadowing.  Copying files to ``shadows'' automatically.
-* Time Stamps::         Emacs can update time stamps when a file is saved.
+* Time Stamps::         Emacs can update time stamp text when saving a file.
 @end menu
 
 @node Save Commands
