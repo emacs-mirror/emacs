@@ -5606,12 +5606,19 @@ canvas_apply_data (struct canvas *c, struct image_keyword *fmt)
       for (ptrdiff_t i = 0; i < expected_size; ++i)
 	{
           Lisp_Object pixel = AREF (data, i);
-	  if (!FIXNUMP (pixel))
+	  uint32_t pix;
+	  intmax_t bigpix;
+	  if (FIXNUMP (pixel)
+	      ? ckd_add (&pix, XFIXNUM (pixel), 0)
+	      : (UINT32_MAX <= MOST_POSITIVE_FIXNUM || !BIGNUMP (pixel)
+		 || ! (bigpix = bignum_to_intmax (pixel))
+		 || ckd_add (&pix, bigpix, 0)))
 	    {
-	      image_error ("Expected fixnum in the canvas :data vector");
+	      image_error ("Expected 0 <= datum < 2**32 "
+			   "in the canvas :data vector");
 	      return;
 	    }
-	  c->data[i] = (uint32_t) XFIXNUM (pixel);
+	  c->data[i] = pix;
 	}
     }
   else if (STRINGP (file)) /* Binary file with ARGB32 data.  */
