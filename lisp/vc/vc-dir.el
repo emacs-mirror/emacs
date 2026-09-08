@@ -1521,14 +1521,19 @@ longer needed."
 See `vc-dir-async-header-values' for an explanation of how this function
 uses OVERLAY."
   (cl-flet ((set-overlay-text (text)
-              (with-current-buffer (overlay-buffer overlay)
-                (save-excursion
-                  (let ((inhibit-read-only t)
-                        (start (overlay-start overlay)))
-                    (delete-region start (overlay-end overlay))
-                    (goto-char start)
-                    (insert text)
-                    (move-overlay overlay start (point)))))))
+              ;; If `vc-dir--set-header' was called again before our
+              ;; sentinel ran (either because we were still counting or
+              ;; Emacs just hadn't run the sentinel yet) then the
+              ;; overlay won't exist anymore.
+              (when-let* ((buffer (overlay-buffer overlay)))
+                (with-current-buffer buffer
+                  (save-excursion
+                    (let ((inhibit-read-only t)
+                          (start (overlay-start overlay)))
+                      (delete-region start (overlay-end overlay))
+                      (goto-char start)
+                      (insert text)
+                      (move-overlay overlay start (point))))))))
     (set-overlay-text (propertize "[counting ...]"
                                   'face 'vc-dir-header-value))
     ;; `vc-incoming-outgoing-internal' invokes external processes
