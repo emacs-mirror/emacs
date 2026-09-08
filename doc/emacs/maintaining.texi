@@ -2810,9 +2810,10 @@ prompts for it if none found or the command was invoked with a prefix
 argument.  (If you want it to always prompt, customize
 @code{xref-prompt-for-identifier}.)  The list of supported kinds depends
 on the backend, which are advised to use mnemonic keys and common sense.
-For example, the Emacs Lisp mode has ``variable'', ``function alias''
-and ``face'' among its kinds, whereas Eglot (our built-in LSP Client)
-uses ``declaration'', ``implementation'' and ``type definition''.
+For example, the Emacs Lisp mode has ``variable'', ``function alias'',
+``face'', and ``feature'' (a symbol that is @code{provide}d by some
+package) among its kinds, whereas Eglot (our built-in LSP Client) uses
+``declaration'', ``implementation'' and ``type definition''.
 
 @kindex C-M-.
 @findex xref-find-apropos
