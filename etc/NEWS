@@ -284,7 +284,7 @@ Otherwise, a pattern is built from 'comment-start' and the new option
 *** New command 'outline-find-headings'.
 It finds all outline headings in the current buffer and displays them in
 an Xref buffer.  Users can use that Xref buffer to navigate and edit the
-outline.  It is bound to 'M-o'.
+outline.  It is bound to 'C-c @ M-o'.
 
 ** Xref
 
