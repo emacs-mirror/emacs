@@ -170,7 +170,8 @@ LEVEL is only used internally and indicates the nesting level:
             (error "Multiple args to ,@ are not supported: %S" s)
           (cons 2 (nth 1 s)))
       (backquote-delay-process s (1- level))))
-   ((eq (car s) backquote-backquote-symbol)
+   ((or (eq (car s) backquote-backquote-symbol)
+	(eq (car s) 'backquote))
       (backquote-delay-process s (1+ level)))
    (t
     (let ((rest s)
