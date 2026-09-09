@@ -271,10 +271,12 @@ to a package-local <package>-loaddefs.el file.")
             limit t)
       ;; FIXME: Doesn't properly un-escape \ in the symbol name.
       (let ((sym (shorthands-intern-soft (match-string 1))))
-	(when (and (or (special-form-p sym) (macrop sym))
+        (when (and (or (special-form-p sym)
+                       (macrop sym)
+                       (get sym 'font-lock-keyword))
                    (not (get sym 'no-font-lock-keyword))
                    (lisp--el-funcall-position-p (match-beginning 0)))
-	  (throw 'found t))))))
+          (throw 'found t))))))
 
 (defmacro let-when-compile (bindings &rest body)
   "Like `let*', but allow for compile time optimization.
