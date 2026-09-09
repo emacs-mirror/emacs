@@ -5460,6 +5460,13 @@ With a prefix argument, it can also install optional parsers"
                    "Emacs was built without Tree-sitter support, or could not load Tree-sitter"))
            (text-mode)))))
 
+(defvar markdown-ts-mode-syntax-table
+  (let ((table (make-syntax-table text-mode-syntax-table)))
+    ;; Code span delimiter.
+    (modify-syntax-entry ?\` "\"" table)
+    table)
+  "Syntax table for `markdown-ts-mode'.")
+
 ;;;###autoload
 (define-derived-mode markdown-ts-mode text-mode "Markdown"
   "Major mode for editing Markdown using tree-sitter grammar.
