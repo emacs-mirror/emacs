@@ -1272,8 +1272,10 @@ unconditionally."
          ((and (stringp attr) (not (file-exists-p file)))
           (push file excluded))
          ;; Directories.
-         ((and (eq attr t)
-               (not (string-match-p ignored (file-name-nondirectory file))))
+         ((and (not (string-match-p ignored
+                                    (file-name-nondirectory file)))
+               (or (eq attr t)
+                   (and (stringp attr) (file-directory-p file))))
           (add-to-list 'load-path (directory-file-name file))
           (push file dirs))
          ;; Everything else.
