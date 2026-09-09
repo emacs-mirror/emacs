@@ -912,8 +912,7 @@ This basically creates a sparse keymap, and makes its parent be
 	     ["Quit" delete-frame t]))
 	  ((eq type 'window)
 	   '(["Customize..." speedbar-customize t]
-	     ["Close"
-	      (lambda () (interactive) (speedbar-window--close))
+	     ["Close" speedbar-window-close
 	      :keys "q" :active t])))))
 
 (defvar speedbar-desired-buffer nil
@@ -980,7 +979,7 @@ be displayed.  Currently, only one speedbar is supported at a time.
 `speedbar-before-delete-hook' is called before the frame is deleted."
   (interactive "P")
   (when (eq (speedbar-frame-or-window) 'window)
-    (speedbar-window--close))
+    (speedbar-window-close))
   ;; Get the buffer to play with
   (if (not (buffer-live-p speedbar-buffer))
       (with-current-buffer
@@ -1072,7 +1071,7 @@ supported at a time.
 
   (if (or (and (not arg) (speedbar-window--live-p))
 	  (and (numberp arg) (< arg 0)))
-      (speedbar-window--close)
+      (speedbar-window-close)
     (let ((current-window (selected-window)))
       (unless (speedbar-window--buffer-live-p)
 	(setq speedbar-buffer (get-buffer-create speedbar--buffer-name)))
@@ -1103,7 +1102,7 @@ supported at a time.
       (speedbar-set-timer dframe-update-speed)
 
       ;; handle kill-buffer
-      (add-hook 'kill-buffer-hook (lambda () (speedbar-window--close t)) nil t)
+      (add-hook 'kill-buffer-hook (lambda () (speedbar-window-close t)) nil t)
 
       ;; hscroll
       (setq-local auto-hscroll-mode nil)
@@ -1111,10 +1110,11 @@ supported at a time.
       (setq speedbar-last-selected-file nil)
       (select-window current-window))))
 
-(defun speedbar-window--close (&optional no-kill-buffer)
+(defun speedbar-window-close (&optional no-kill-buffer)
   "Close `speedbar-window'.
 If optional argument NO-KILL-BUFFER is not nil, close window without
 killing `speedbar-buffer', which is useful for `kill-buffer-hook'."
+  (interactive)
   (when (speedbar-window--live-p)
     (let ((current-window (selected-window)))
       ;; store the current window width
@@ -1318,31 +1318,31 @@ and the existence of packages."
 		 (speedbar-initial-menu)
 	       (save-excursion
 		 (dframe-select-attached-frame speedbar-frame)
-		  (eval (nth 1 (assoc speedbar-initial-expansion-list-name
-				speedbar-initial-expansion-mode-alist)))))
+		 (eval (nth 1 (assoc speedbar-initial-expansion-list-name
+				     speedbar-initial-expansion-mode-alist)))))
 	     ;; Dynamic menu stuff
 	     '("-")
-	    (list (cons "Displays"
-			(let ((displays nil)
-			      (alist speedbar-initial-expansion-mode-alist))
-			  (while alist
-			    (setq displays
-				  (cons
-				   (vector
-				    (capitalize (car (car alist)))
-				    (list
-				     'speedbar-change-initial-expansion-list
-				     (car (car alist)))
-				    :style 'radio
-				    :selected
-				    `(string= ,(car (car alist))
-					 speedbar-initial-expansion-list-name)
-				    )
-				   displays))
-			    (setq alist (cdr alist)))
-			  displays)))
-	    ;; The trailer
-	    (speedbar-easymenu-definition-trailer)))
+	     (list (cons "Displays"
+			 (let ((displays nil)
+			       (alist speedbar-initial-expansion-mode-alist))
+			   (while alist
+			     (setq displays
+				   (cons
+				    (vector
+				     (capitalize (car (car alist)))
+				     (list
+				      'speedbar-change-initial-expansion-list
+				      (car (car alist)))
+				     :style 'radio
+				     :selected
+				     `(string= ,(car (car alist))
+					       speedbar-initial-expansion-list-name)
+				     )
+				    displays))
+			     (setq alist (cdr alist)))
+			   displays)))
+	     ;; The trailer
+	     (speedbar-easymenu-definition-trailer)))
 	(localmap (save-excursion
 		    (let ((cf (selected-frame)))
 		      (prog2
@@ -1353,14 +1353,21 @@ and the existence of packages."
 			      speedbar-special-mode-key-map)
 			(select-frame cf))))))
     (with-current-buffer speedbar-buffer
-      (use-local-map (or localmap
-			 (speedbar-initial-keymap)
-			 ;; This creates a small keymap we can glom the
-			 ;; menu adjustments into.
-                         (speedbar-make-specialized-keymap)))
-      ;; Now add the new menu
-      (easy-menu-define speedbar-menu-map (current-local-map)
-        "Speedbar menu" md))
+      (let ((local-keymap (or localmap
+                              (speedbar-initial-keymap)
+                              ;; This creates a small keymap we can glom the
+                              ;; menu adjustments into.
+                              (speedbar-make-specialized-keymap))))
+        (if speedbar-prefer-window
+            (progn
+              (keymap-set local-keymap "q" 'speedbar-window-close)
+              (keymap-set local-keymap "Q" 'speedbar-window-close))
+          (dframe-update-keymap local-keymap))
+
+        (use-local-map local-keymap)
+        ;; Now add the new menu
+        (easy-menu-define speedbar-menu-map (current-local-map)
+          "Speedbar menu" md)))
 
     (run-hooks 'speedbar-reconfigure-keymaps-hook)))
 
