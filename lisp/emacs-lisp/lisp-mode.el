@@ -146,7 +146,7 @@
                  (regexp-opt
                   '(;; Elisp
                     "defgroup" "deftheme"
-                    "define-widget" "define-error"
+                    "define-widget" "define-button-type" "define-error"
                     "defface" "cl-deftype" "cl-defstruct" "oclosure-define"
                     ;; CL
                     "deftype" "defstruct"
@@ -356,7 +356,7 @@ This will generate compile-time constants from BINDINGS."
                  "define-derived-mode" "define-minor-mode"
                  "define-generic-mode"
                  "define-globalized-minor-mode" "define-skeleton"
-                 "define-widget" "ert-deftest"))
+                 "define-widget" "define-button-type" "ert-deftest"))
      (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
                  "defface" "define-error"))
      (el-tdefs '("defgroup" "deftheme"))
