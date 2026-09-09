@@ -414,6 +414,22 @@ about using Emacs as a daemon.  A ``background'' daemon disconnects
 from the terminal and runs in the background (@samp{--daemon} is an
 alias for @samp{--bg-daemon}).
 
+@vindex server-after-make-frame-hook
+@cindex customizations don't work in daemon sessions
+If you have in your init file (@pxref{Init File}) customizations that
+need various capabilities available only on graphic displays, or
+activate there optional features which need such capabilities, like
+colors, mouse, fonts, etc., such customizations might not work when you
+start Emacs as a daemon, because the daemon lacks access to a capable
+display.  Instead, define a Lisp function which performs all those
+customizations, and then use @code{add-to-list} to add that function to
+the list that is the value of the hook variable
+@code{server-after-make-frame-hook} (@pxref{Init Examples}).  Then these
+customizations will be run by Emacs after it creates a frame when you
+invoke @command{emacsclient}.  (You will probably need to arrange for
+these customizations to run only once, the first time a client frame is
+created.)
+
 @item --no-desktop
 @opindex --no-desktop
 Do not reload any saved desktop.  @xref{Saving Emacs Sessions}.
