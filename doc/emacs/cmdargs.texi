@@ -422,9 +422,8 @@ activate there optional features which need such capabilities, like
 colors, mouse, fonts, etc., such customizations might not work when you
 start Emacs as a daemon, because the daemon lacks access to a capable
 display.  Instead, define a Lisp function which performs all those
-customizations, and then use @code{add-to-list} to add that function to
-the list that is the value of the hook variable
-@code{server-after-make-frame-hook} (@pxref{Init Examples}).  Then these
+customizations, and then use @code{add-hook} to add that function to the
+hook @code{server-after-make-frame-hook} (@pxref{Init Examples}).  Then these
 customizations will be run by Emacs after it creates a frame when you
 invoke @command{emacsclient}.  (You will probably need to arrange for
 these customizations to run only once, the first time a client frame is
