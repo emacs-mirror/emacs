@@ -2899,13 +2899,6 @@ page for the meanings of these attributes."
                (equal subcommand "status"))
            '("GIT_OPTIONAL_LOCKS=0"))))
 
-;; This is for the same purpose as `vc-git--env-vars' except that it
-;; covers older Git, which doesn't recognise the environment variable.
-(defun vc-git--no-optional-locks (subcommand)
-  (and (or revert-buffer-in-progress
-           (equal subcommand "status"))
-       '("--no-optional-locks")))
-
 (defun vc-git-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-git.el.
 The difference to `vc-do-command' is that this function always invokes
@@ -2951,9 +2944,7 @@ The difference to `vc-do-command' is that this function always invokes
                   ".")
                  ((not file-list-is-rootdir)
                   file-or-list))
-           (cons "--no-pager"
-                 (append (vc-git--no-optional-locks (car flags))
-                         flags)))))
+           (cons "--no-pager" flags))))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
@@ -2973,9 +2964,7 @@ The difference to `vc-do-command' is that this function always invokes
 	(process-environment (append (vc-git--env-vars command)
                                      process-environment)))
     (apply #'process-file vc-git-program infile buffer nil
-           (cons "--no-pager"
-                 (append (vc-git--no-optional-locks command)
-                         (cons command args))))))
+           "--no-pager" command args)))
 
 (defun vc-git--out-ok (command &rest args)
   "Run `git COMMAND ARGS...' and insert standard output in current buffer.
