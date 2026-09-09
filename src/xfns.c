@@ -6097,16 +6097,19 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
     free (error), rc = false;
   else
     {
+      size_t value_count = xcb_get_property_value_length (reply)
+	/ sizeof (uint32_t);
+
       if (rc && reply->type == XA_CARDINAL && reply->format == 32
-	  && (xcb_get_property_value_length (reply) / sizeof (uint32_t)
-	      >= current_workspace + 4))
+	  && current_workspace < value_count / 4)
 	{
+	  size_t offset = 4 * (size_t) current_workspace;
 	  values = xcb_get_property_value (reply);
 
-	  rect->x = values[current_workspace];
-	  rect->y = values[current_workspace + 1];
-	  rect->width = values[current_workspace + 2];
-	  rect->height = values[current_workspace + 3];
+	  rect->x = values[offset];
+	  rect->y = values[offset + 1];
+	  rect->width = values[offset + 2];
+	  rect->height = values[offset + 3];
 	}
       else
 	rc = false;
