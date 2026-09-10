@@ -187,6 +187,9 @@ SEVERITY-PREDICATE is used to setup
   "Test Flymake in one file impacts another"
   (skip-unless (and (executable-find "gcc")
                     (not (ert-gcc-is-clang-p))
+                    (version<=
+                     "9" (string-trim
+                          (shell-command-to-string "gcc -dumpversion")))
                     (executable-find "make")))
   (flymake-tests--with-flymake
       ("another-problematic-file.c")
