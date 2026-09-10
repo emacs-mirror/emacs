@@ -1192,8 +1192,6 @@ connect_with_timeout (HSOCKET sockfd, const struct sockaddr *addr,
       exit (EXIT_FAILURE);
     }
   errno = xerrno;
-  /* FIXME: Subtract time used up in this function from TIMEOUT?  */
-  return res;
 #else /* WINDOWSNT */
   const intmax_t limit = timeout < 0 ? DEFAULT_TIMEOUT : timeout;
   DWORD tid, exit_code;
@@ -1217,8 +1215,9 @@ connect_with_timeout (HSOCKET sockfd, const struct sockaddr *addr,
   CloseHandle (htimer);
   if (timed_out)
     goto timeout;
-  return res;
 #endif /* WINDOWSNT */
+  /* FIXME: Subtract time used up in this function from TIMEOUT?  */
+  return res;
 
  timeout:
   /* Timeout, but in the -a '' case we don't want to respond by starting
