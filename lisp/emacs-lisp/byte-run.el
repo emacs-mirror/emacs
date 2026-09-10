@@ -252,6 +252,11 @@ declaration" f2 f))
           (let ((code (apply fn args)))
             (list 'progn ':autoload-end code)))))
 
+(defalias 'byte-run--set-font-lock-keyword
+  #'(lambda (name _args val)
+      (list 'function-put (list 'quote name)
+	    ''font-lock-keyword (list 'quote val))))
+
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
@@ -276,7 +281,8 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'completion #'byte-run--set-completion)
    (list 'modes #'byte-run--set-modes)
    (list 'interactive-args #'byte-run--set-interactive-args)
-   (list 'ftype #'byte-run--set-function-type))
+   (list 'ftype #'byte-run--set-function-type)
+   (list 'font-lock-keyword #'byte-run--set-font-lock-keyword))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,
@@ -707,7 +713,7 @@ enabled."
 
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."
-  (declare (indent 0))
+  (declare (indent 0) (font-lock-keyword t))
   ;; The implementation for the interpreter is basically trivial.
   (car (last body)))
 

@@ -467,6 +467,7 @@ Emacs 30.  It allows Lisp programs that present completion candidates
 ("completion frontends") to provide additional information which can be
 used to adjust or optimize completion candidates computation.
 
++++
 ** D-Bus
 
 +++
@@ -507,6 +508,13 @@ the actual and expected output.
 ** 'math-tzone-names' and 'timezone-world-timezones' are now marked obsolete.
 Strings should use numeric abbreviations like "-0600" instead of
 alphabetic abbreviations like "CST", which are too often ambiguous.
+
+** Function 'declare' forms
+
++++
+*** New 'font-lock-keyword' function declaration
+The declaration '(font-lock-keyword t)' specifies that a normal
+functions is to be highlighted by font-lock a macros.
 
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
