@@ -1584,15 +1584,17 @@ after point, or those before it when replacing backward
 that the buffer has more of them.  When the region is active, the
 preview covers all of it, as the replacement does.
 
-  The value can be @code{replacement-only}, to display the replacement
-alone, @code{both}, to display the match next to its replacement,
-separated by an arrow, or a function of your own, written by copying
-@code{replace-preview-replacement-only} or @code{replace-preview-both},
-which are the functions those two symbols stand for.  Such a function
-takes the match and the replacement and returns the string to display in
-place of the match, or @code{nil} to leave that match alone.  If the
-replacement is empty, @code{replacement-only} would display nothing at
-all, so it displays a thin bar to mark the place of the match.
+  Possible values for @code{query-replace-show-preview} are
+@code{replacement-only} to display the replacement alone and @code{both}
+to display the match next to its replacement separated by an arrow.  In
+the case of @code{replacement-only}, then if the replacement is empty,
+instead of showing nothing at all, displays a thin bar to mark the place
+of the match.  You can also use a custom function that takes the match
+and the replacement and should return a string to display in place of
+the match, or @code{nil} to leave that match alone.  It may be helpful
+to reference the functions @code{replace-preview-replacement-only} and
+@code{replace-preview-both} when writing a custom function value for
+this option.
 
 @vindex query-replace-preview@r{ face}
 @vindex query-replace-preview-match@r{ face}

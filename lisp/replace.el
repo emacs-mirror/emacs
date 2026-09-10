@@ -401,8 +401,10 @@ overlay string they would show something other than the preview."
 (defun replace-preview-both (match replacement)
   "Return MATCH and REPLACEMENT side by side, separated by an arrow.
 MATCH and REPLACEMENT are strings, shown in the faces
-`query-replace-preview-match' and `query-replace-preview'.  This is what
-`query-replace-show-preview' does when it is `both'."
+`query-replace-preview-match' and `query-replace-preview'.
+
+This function is what `query-replace-show-preview' uses when it is
+`both'."
   (let ((sep (if (char-displayable-p ?→) "→" "->")))
     (concat (replace-preview-propertize (concat match sep)
                                         'query-replace-preview-match)
@@ -411,9 +413,10 @@ MATCH and REPLACEMENT are strings, shown in the faces
 
 (defun replace-preview-replacement-only (_match replacement)
   "Return REPLACEMENT in the face `query-replace-preview'.
-REPLACEMENT is a string.  If it is empty, previewing it would show
-nothing at all, so return a thin bar to mark the place of the match.
-This is what `query-replace-show-preview' does when it is
+REPLACEMENT is a string.  If it is empty, instead of showing nothing at
+all, return a thin bar to mark the place of the match.
+
+This function is what `query-replace-show-preview' uses when it is
 `replacement-only'."
   (let ((text (replace-preview-propertize replacement
                                           'query-replace-preview)))
