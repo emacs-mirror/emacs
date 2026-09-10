@@ -92,6 +92,15 @@ RUN ./autogen.sh autoconf
 RUN ./configure
 RUN make -j `nproc` bootstrap
 
+# Install company and yasnippet.
+RUN mkdir /root/.emacs.d
+RUN src/emacs --batch \
+    --eval "(require 'package)" \
+    --eval "(package-initialize)" \
+    --eval "(package-refresh-contents)" \
+    --eval "(package-install 'company)" \
+    --eval "(package-install 'yasnippet)"
+
 FROM emacs-base AS emacs-tree-sitter
 
 # Install tree-sitter library.
