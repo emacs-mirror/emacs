@@ -119,7 +119,8 @@ enum no_color_bit
   NC_DIM		 = 1 << 4,
   NC_BOLD		 = 1 << 5,
   NC_STRIKE_THROUGH	 = 1 << 6,
-  NC_PROTECT		 = 1 << 7
+  NC_PROTECT		 = 1 << 7,
+  NC_OVERLINE		 = 1 << 8
 };
 
 /* internal state */
@@ -2154,6 +2155,10 @@ turn_on_face (struct frame *f, struct face *face)
       && MAY_USE_WITH_COLORS_P (tty, NC_STRIKE_THROUGH))
     OUTPUT1_IF (tty, tty->TS_enter_strike_through_mode);
 
+  if (face->tty_overline_p
+      && MAY_USE_WITH_COLORS_P (tty, NC_OVERLINE))
+    OUTPUT1_IF (tty, tty->TS_enter_overline_mode);
+
   if (tty->TN_max_colors > 0)
     {
       const char *ts;
@@ -2208,7 +2213,8 @@ turn_off_face (struct frame *f, struct face *face)
 	  || face->tty_italic_p
 	  || face->tty_reverse_p
 	  || face->underline
-	  || face->tty_strike_through_p)
+	  || face->tty_strike_through_p
+	  || face->tty_overline_p)
 	{
 	  OUTPUT1_IF (tty, tty->TS_exit_attribute_mode);
 	  if (strcmp (tty->TS_exit_attribute_mode, tty->TS_end_standout_mode) == 0)
@@ -2262,6 +2268,9 @@ tty_capable_p (struct tty_display_info *tty, unsigned int caps)
   TTY_CAPABLE_P_TRY (tty,
 		     TTY_CAP_STRIKE_THROUGH, tty->TS_enter_strike_through_mode,
 		     NC_STRIKE_THROUGH);
+  TTY_CAPABLE_P_TRY (tty,
+		     TTY_CAP_OVERLINE,    tty->TS_enter_overline_mode,
+		     NC_OVERLINE);
 
   /* We can do it!  */
   return 1;
@@ -2481,6 +2490,27 @@ TERMINAL does not refer to a text terminal.  */)
 
   if (t->type == output_termcap)
     t->display_info.tty->TS_enter_underline_mode = 0;
+  return Qnil;
+}
+
+DEFUN ("tty-enable-overline", Ftty_enable_overline, Stty_enable_overline, 1, 2, 0,
+       doc: /* Enable or disable overline support in TERMINAL.
+This is used to override terminfo data for terminals that do not
+accurately state the Smol (overline) string capability.
+
+When FLAG is non-nil enable overline support, when FLAG is nil disable
+overline support.  When this function enables overline support, Emacs
+will always use the SGR 53 escape sequence regardless of what is in the
+terminfo database.  This function has no effect if used on a non-tty
+terminal.  */)
+  (Lisp_Object flag, Lisp_Object terminal)
+{
+  struct terminal *t = decode_live_terminal (terminal);
+  if (t->type == output_termcap)
+    {
+      t->display_info.tty->TS_enter_overline_mode =
+	(NILP (flag) ? NULL : "\e[53m");
+    }
   return Qnil;
 }
 
@@ -4651,10 +4681,14 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   tty->TS_enter_strike_through_mode = tigetstr ("smxx");
   if (tty->TS_enter_strike_through_mode == (char *) (intptr_t) {-1})
     tty->TS_enter_strike_through_mode = NULL;
+  tty->TS_enter_overline_mode = tigetstr ("Smol");
+  if (tty->TS_enter_overline_mode == (char *) (intptr_t) -1)
+    tty->TS_enter_overline_mode = NULL;
 #else
   /* FIXME: Is calling tgetstr here for non-terminfo case correct,
      even though "smxx" is more than 2 characters?  */
   tty->TS_enter_strike_through_mode = tgetstr ("smxx", address);
+  tty->TS_enter_overline_mode = tgetstr ("Smol", address);
 #endif
 
   MultiUp (tty) = tgetstr ("UP", address);
@@ -5382,6 +5416,7 @@ terminal emulators.  */);
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
   defsubr (&Stty_no_underline);
+  defsubr (&Stty_enable_overline);
   defsubr (&Stty_type);
   defsubr (&Scontrolling_tty_p);
   defsubr (&Stty_top_frame);

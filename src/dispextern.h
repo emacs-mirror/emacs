@@ -1892,6 +1892,7 @@ struct face
   bool_bf tty_italic_p : 1;
   bool_bf tty_reverse_p : 1;
   bool_bf tty_strike_through_p : 1;
+  bool_bf tty_overline_p : 1;
 
   /* True means that colors of this face may not be freed because they
      have been copied bitwise from a base face (see
@@ -3535,7 +3536,8 @@ enum
   TTY_CAP_DIM = 1 << 4,
   TTY_CAP_ITALIC = 1 << 5,
   TTY_CAP_STRIKE_THROUGH = 1 << 6,
-  TTY_CAP_UNDERLINE_STYLED = 1 << 7
+  TTY_CAP_UNDERLINE_STYLED = 1 << 7,
+  TTY_CAP_OVERLINE = 1 << 8
 };
 
 

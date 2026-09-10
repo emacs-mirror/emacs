@@ -131,6 +131,14 @@ of the terminal emulator:
   first code point in the sequence.  In this case, it might help to set
   'tty-display-emoji-force-wide' to nil.
 
+---
+** Support for overline face attributes on text-only terminals.
+Emacs now displays overlines on text-only terminals.  Terminal support
+for overline is determined based on the 'Smol' capability in the
+terminfo database.  For terminals where the terminfo database does not
+correctly declare the 'Smol' capability, the new function
+'tty-enable-overline' allows manually enabling or disabling support.
+
 
 * Editing Changes in Emacs 32.1
 
