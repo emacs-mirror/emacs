@@ -1450,6 +1450,9 @@ BEG and END are described in `treesit-range-rules'."
   (setq-local electric-indent-chars
               (append "{}():;,#" electric-indent-chars))
 
+  ;; Flymake
+  (add-hook 'flymake-diagnostic-functions #'flymake-cc nil t)
+
   ;; Imenu.
   (setq-local treesit-simple-imenu-settings
               (let ((pred #'c-ts-mode--defun-valid-p))
