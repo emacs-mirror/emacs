@@ -441,8 +441,9 @@ replace it.  They are combined as `query-replace-show-preview' says."
 FROM is the string to search for and CONTENTS is the minibuffer input,
 which is then the replacement text.  FROM nil means that CONTENTS holds
 both halves, as at the prompt of `query-replace-read-from', which splits
-them on the `separator' text property; until the input has both of them
-there is nothing to preview, and nil is returned."
+them on the `separator' text property; until the input has both of them,
+there is nothing to preview, and this function returns nil.
+Value is either a cons cell of the two strings to show in preview, or nil."
   (if from
       (cons from (substring-no-properties contents))
     (let ((split (query-replace--split-string contents)))
@@ -453,14 +454,15 @@ there is nothing to preview, and nil is returned."
 				    &optional start end)
   "Preview the result of replacing FROM with TO in the current buffer.
 Each match of FROM visible in the selected window gets an overlay
-showing the text that `replace-preview--format' returns for it, which
-depends on `query-replace-show-preview'.  Matches for which it returns
-nil are left alone.
+showing the text that `replace-preview--format' returns for it,
+which depends on `query-replace-show-preview'.  Matches for
+which `replace-preview--format' returns nil are left alone.
 
-START and END limit the previewed portion of the buffer, as in
-`perform-replace': a visible match outside of them will not be replaced,
-so previewing it would be misleading.  Matches to leave alone for other
-reasons are still expected to be rejected by `isearch-filter-predicate'.
+START and END limit the portion of the buffer where preview is shown,
+as in `perform-replace': a visible match outside of the region START..END
+will not be replaced, so previewing it would be misleading.  Matches
+to leave alone for other reasons are still expected to be rejected
+by `isearch-filter-predicate'.
 
 REGEXP-FLAG, DELIMITED-FLAG and CASE-FOLD say how to search for FROM, as
 in `replace-search'."
