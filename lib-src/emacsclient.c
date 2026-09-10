@@ -971,6 +971,18 @@ initialize_sockets (void)
 
   atexit (close_winsock);
 }
+
+static intmax_t w32_timeout;
+/* Thread function to prevent 'connect' from hanging forever.  */
+static DWORD WINAPI
+w32_connect_timer (LPVOID param)
+{
+  HSOCKET sockfd = *(HSOCKET *)param;
+  Sleep (w32_timeout * 1000);
+  /* Closing the socket will cause 'connect' to error out.  */
+  CLOSE_SOCKET (sockfd);
+  return 0;
+}
 #endif /* WINDOWSNT */
 
 
@@ -1091,10 +1103,10 @@ static int
 connect_with_timeout (HSOCKET sockfd, const struct sockaddr *addr,
 		      int addr_len)
 {
-#ifndef WINDOWSNT
   if (timeout == 0)
     return connect (sockfd, addr, addr_len);
 
+#ifndef WINDOWSNT
   int flags = fcntl (sockfd, F_GETFL);
   if (flags == -1 || fcntl (sockfd, F_SETFL, flags | O_NONBLOCK) == -1)
     return -1;
@@ -1182,6 +1194,31 @@ connect_with_timeout (HSOCKET sockfd, const struct sockaddr *addr,
   errno = xerrno;
   /* FIXME: Subtract time used up in this function from TIMEOUT?  */
   return res;
+#else /* WINDOWSNT */
+  const intmax_t limit = timeout < 0 ? DEFAULT_TIMEOUT : timeout;
+  DWORD tid, exit_code;
+  int res = 0;
+
+  w32_timeout = limit;
+  /* This thread will interrupt 'connect' after timeout.  */
+  HANDLE htimer = CreateThread (NULL, 64 * 1024, w32_connect_timer,
+				(void *)&sockfd, 0x00010000, &tid);
+  bool timed_out = false;
+
+  if (connect (sockfd, addr, addr_len) != 0)
+    res = -1;
+  Sleep (10);	/* give the timer thread time to exit */
+  if (htimer
+      && GetExitCodeThread (htimer, &exit_code)
+      && exit_code == STILL_ACTIVE)
+    TerminateThread (htimer, 1);
+  else
+    timed_out = true;
+  CloseHandle (htimer);
+  if (timed_out)
+    goto timeout;
+  return res;
+#endif /* WINDOWSNT */
 
  timeout:
   /* Timeout, but in the -a '' case we don't want to respond by starting
@@ -1189,10 +1226,6 @@ connect_with_timeout (HSOCKET sockfd, const struct sockaddr *addr,
   message (true, "%s: Connection timed out after %jd %s\n",
 	   progname, limit, limit == 1 ? "second" : "seconds");
   exit (EXIT_FAILURE);
-#else /* WINDOWSNT */
-  /* FIXME: Implement connect_with_timeout for MS-Windows.  */
-  return connect (sockfd, addr, addr_len);
-#endif /* WINDOWSNT */
 }
 
 static HSOCKET
