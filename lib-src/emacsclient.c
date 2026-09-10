@@ -1111,12 +1111,8 @@ connect_with_timeout (HSOCKET sockfd, const struct sockaddr *addr,
     {
       if (connect (sockfd, addr, addr_len) == 0)
 	goto done;
-#ifdef EWOULDBLOCK
       else if (errno == EAGAIN
 	       || (EWOULDBLOCK != EAGAIN && errno == EWOULDBLOCK))
-#else
-      else if (errno == EAGAIN)
-#endif
 	{
 	  /* For connections to Unix domain sockets under the Linux
 	     kernel, we get EAGAIN if the listen queue is full.  */
@@ -2114,11 +2110,8 @@ check_socket_timeout (ssize_t rl)
 #ifndef WINDOWSNT
   if (rl != -1)
     return false;
-#ifdef EWOULDBLOCK
-  if (EWOULDBLOCK != EAGAIN && errno == EWOULDBLOCK)
-    return true;
-#endif
-  return errno == EAGAIN;
+  return errno == EAGAIN
+    || (EWOULDBLOCK != EAGAIN && errno == EWOULDBLOCK);
 #else /* WINDOWSNT */
   return (rl == SOCKET_ERROR)
     && (WSAGetLastError() == WSAETIMEDOUT);

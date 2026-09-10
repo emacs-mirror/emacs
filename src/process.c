@@ -185,11 +185,8 @@ union u_sockaddr
 static bool
 would_block (int errnum)
 {
-#ifdef EWOULDBLOCK
-  if (EWOULDBLOCK != EAGAIN && errnum == EWOULDBLOCK)
-    return true;
-#endif
-  return errnum == EAGAIN;
+  return errnum == EAGAIN
+    || (EWOULDBLOCK != EAGAIN && errnum == EWOULDBLOCK);
 }
 
 #ifndef HAVE_ACCEPT4
