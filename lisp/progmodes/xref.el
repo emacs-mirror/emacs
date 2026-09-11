@@ -740,6 +740,9 @@ If SELECT is non-nil, select the target window."
 (defvar-local xref--fetcher nil
   "The original function to call to fetch the list of xrefs.")
 
+(defvar-local xref-edit--prepare-buffer-done nil
+  "Whether the `xref-edit--prepare-buffer' function has been called.")
+
 (defun xref--show-pos-in-buf (pos buf)
   "Goto and display position POS of buffer BUF in a window.
 Honor `xref--original-window-intent', run `xref-after-jump-hook'
@@ -1356,6 +1359,7 @@ Return an alist of the form ((GROUP . (XREF ...)) ...)."
   (let ((inhibit-read-only t)
         (buffer-undo-list t))
     (save-excursion
+      (setq xref-edit--prepare-buffer-done nil)
       (condition-case err
           (let ((alist (xref--analyze (funcall xref--fetcher)))
                 (inhibit-modification-hooks t))
@@ -1535,23 +1539,24 @@ between them by typing in the minibuffer with completion."
 
 
 (defun xref-edit--prepare-buffer ()
-  "Mark relevant regions read-only, and add relevant occur text-properties."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((inhibit-read-only t)
-          match)
-      (while (setq match (text-property-search-forward 'xref-group))
-        (add-text-properties (prop-match-beginning match) (prop-match-end match)
-                             '( read-only t
-                                front-sticky t)))
-      (goto-char (point-min))
-      (while (setq match (text-property-search-forward 'xref-item))
-        (let ((line-number-end (save-excursion
-                                 (forward-line 0)
-                                 (and (looking-at " *[0-9]+:")
-                                      (match-end 0)))))
-          (when line-number-end
-            (add-text-properties (prop-match-beginning match) line-number-end
+  "Mark relevant regions read-only, and add the `occur-prefix' text property."
+  (unless xref-edit--prepare-buffer-done
+    (setq xref-edit--prepare-buffer-done t)
+    (save-excursion
+      (let ((inhibit-read-only t)
+            match line-number-end)
+        (goto-char (point-min))
+        (while (setq match (text-property-search-forward 'xref-group))
+          (add-text-properties (prop-match-beginning match) (prop-match-end match)
+                               '( read-only t
+                                  front-sticky t)))
+        (goto-char (point-min))
+        (while (text-property-search-forward 'xref-item)
+          (when (setq line-number-end (save-excursion
+                                        (forward-line 0)
+                                        (and (looking-at " *[0-9]+:")
+                                             (match-end 0))))
+            (add-text-properties (pos-bol) line-number-end
                                  '( read-only t
                                     occur-prefix t
                                     ;; Allow insertion of text right
@@ -1617,21 +1622,29 @@ The only editable texts in an Xref-Edit buffer are the match results."
   (force-mode-line-update)
   (buffer-disable-undo)
   (setq buffer-undo-list t)
-  (let ((inhibit-read-only t))
-    (remove-text-properties (point-min) (point-max)
-                            '(occur-target nil occur-prefix nil)))
   (message "Switching to Xref mode"))
 
 (defun xref-edit--before-change-function (_beg _end)
-  (when (and (not (get-text-property (pos-bol) 'occur-target))
-             (get-text-property (pos-bol) 'occur-prefix))
-    (let ((m (xref-location-marker (xref-item-location
-                                    (get-text-property (pos-bol) 'xref-item))))
-          (inhibit-read-only t)
-          (inhibit-modification-hooks t)
-          (buffer-undo-list t))
-      (add-text-properties (pos-bol) (pos-eol)
-                           `(occur-target ((,m . ,m)))))))
+  "Lazily set the `occur-target' text property per buffer."
+  (save-excursion
+    (let ((inhibit-read-only t)
+          (buffer-undo-list t)
+          match)
+      (when (and (setq match (text-property-search-backward 'xref-group))
+                 (not (get-text-property (prop-match-beginning match) 'xref-edit-ready)))
+        (add-text-properties (prop-match-beginning match) (prop-match-end match)
+                             '(xref-edit-ready t))
+        (let ((items-end (save-excursion
+                           (or (and (setq match (text-property-search-forward 'xref-group nil nil t))
+                                    (prop-match-beginning match))
+                               (point-max)))))
+          (while (and (setq match (text-property-search-forward 'xref-item))
+                      (< (point) items-end))
+            (when (and (not (get-text-property (pos-bol) 'occur-target))
+                       (get-text-property (pos-bol) 'occur-prefix))
+              (let ((m (xref-location-marker (xref-item-location (prop-match-value match)))))
+                (add-text-properties (pos-bol) (pos-eol)
+                                     `(occur-target ((,m . ,m))))))))))))
 
 
 (defcustom xref-show-xrefs-function 'xref--show-xref-buffer
