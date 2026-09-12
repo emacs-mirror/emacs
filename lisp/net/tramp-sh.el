@@ -4626,6 +4626,15 @@ process to set up.  VEC specifies the connection."
       ;; with the process.
       (let ((cs (or (and (memq 'utf-8-hfs (coding-system-list))
 			 (string-prefix-p "Darwin" uname)
+			 ;; Starting from macOS High Sierra the default
+			 ;; file system is APFS (see
+			 ;; https://developer.apple.com/documentation/foundation/about-apple-file-system),
+			 ;; and it is a non-normalizing file system.
+			 (let ((ver (string-trim
+				     (string-remove-prefix "Darwin" uname))))
+			   (condition-case nil
+			       (version< ver "17")
+                             (error t)))
 			 (cons 'utf-8-hfs 'utf-8-hfs))
 		    (and (memq 'utf-8 (coding-system-list))
 			 (string-match-p
