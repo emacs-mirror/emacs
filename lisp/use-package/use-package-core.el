@@ -145,9 +145,9 @@ in the `use-package' expansion."
   :version "29.1")
 
 (defcustom use-package-use-theme t
-  "If non-nil, use a custom theme to avoid saving :custom
-variables twice (once in the Custom file, once in the use-package
-call)."
+  "If non-nil, use our own Custom theme.
+Using our own Custom theme avoids saving :custom
+variables twice (once in the Custom file, once in the `use-package' call)."
   :type 'boolean
   :group 'use-package
   :version "29.1")
@@ -187,25 +187,25 @@ See also `use-package-defaults', which uses this value."
   :version "29.1")
 
 (defcustom use-package-defaults
-  '(;; this '(t) has special meaning; see `use-package-handler/:config'
+  `(;; this '(t) has special meaning; see `use-package-handler/:config'
     (:config '(t) t)
     (:init nil t)
-    (:catch t (lambda (name args)
-                (not use-package-expand-minimally)))
+    (:catch t ,(lambda (_name _args)
+                 (not use-package-expand-minimally)))
     (:defer use-package-always-defer
-            (lambda (name args)
-              (and use-package-always-defer
-                   (not (plist-member args :defer))
-                   (not (plist-member args :demand)))))
-    (:demand use-package-always-demand
-             (lambda (name args)
-               (and use-package-always-demand
+            ,(lambda (_name args)
+               (and use-package-always-defer
                     (not (plist-member args :defer))
                     (not (plist-member args :demand)))))
+    (:demand use-package-always-demand
+             ,(lambda (_name args)
+                (and use-package-always-demand
+                     (not (plist-member args :defer))
+                     (not (plist-member args :demand)))))
     (:ensure (list use-package-always-ensure)
-             (lambda (name args)
-               (and use-package-always-ensure
-                    (not (plist-member args :load-path)))))
+             ,(lambda (_name args)
+                (and use-package-always-ensure
+                     (not (plist-member args :load-path)))))
     (:pin use-package-always-pin use-package-always-pin))
   "Default values for specified `use-package' keywords.
 Each entry in the alist is a list of three elements:
@@ -235,10 +235,10 @@ attempted."
   :version "31.1")
 
 (defcustom use-package-merge-key-alist
-  '((:if    . (lambda (new old) `(and ,new ,old)))
-    (:after . (lambda (new old) `(:all ,new ,old)))
-    (:defer . (lambda (new old) old))
-    (:bind  . (lambda (new old) (append new (list :break) old))))
+  `((:if    . ,(lambda (new old) `(and ,new ,old)))
+    (:after . ,(lambda (new old) `(:all ,new ,old)))
+    (:defer . ,(lambda (_new old) old))
+    (:bind  . ,(lambda (new old) (append new (list :break) old))))
   "Alist of keys and the functions used to merge multiple values.
 For example, if the following form is provided:
 
@@ -454,9 +454,9 @@ Otherwise convert it to a string and return that."
 (defun use-package-normalize-regex (re)
   "Given some regexp-like thing in RE, resolve to a regular expression."
   (cond
-   ((and (listp re) (eq (car re) 'rx)) (eval re))
+   ((and (listp re) (eq (car re) 'rx)) (eval re t))
    ((stringp re) re)
-   (t (error "Not recognized as regular expression: %s" re))))
+   (t (error "Not recognized as regular expression: %S" re))))
 
 (defsubst use-package-is-pair (x car-pred cdr-pred)
   "Return non-nil if X is a cons satisfying the given predicates.
@@ -467,9 +467,8 @@ respectively."
        (funcall cdr-pred (cdr x))))
 
 (defun use-package-as-mode (string-or-symbol)
-  "If STRING-OR-SYMBOL ends in `-mode' (or its name does), return
-it as a symbol.  Otherwise, return it as a symbol with `-mode'
-appended."
+  "Return STRING-OR-SYMBOL as a symbol that ends in `-mode'.
+Appends `-mode' only if needed."
   (let ((string (use-package-as-string string-or-symbol)))
     (intern (if (string-match "-mode\\'" string)
                 string
@@ -684,6 +683,11 @@ extending any keys already present."
         (setq result (cons (car x) (cons (cdr x) result))))
       result)))
 
+(defun use-package--macroexp-compiling-p ()
+  (if (fboundp 'macroexp-compiling-p)
+      (macroexp-compiling-p)
+    (bound-and-true-p byte-compile-current-file)))
+
 (defun use-package-normalize-keywords (name args)
   (let* ((name-symbol (if (stringp name) (intern name) name))
          (name-string (symbol-name name-symbol)))
@@ -709,13 +713,13 @@ extending any keys already present."
       (when (let ((func (nth 2 spec)))
               (if (and func (functionp func))
                   (funcall func name args)
-                (eval func)))
+                (eval func t)))
         (setq args (use-package-plist-maybe-put
                     args (nth 0 spec)
                     (let ((func (nth 1 spec)))
                       (if (and func (functionp func))
                           (funcall func name args)
-                        (eval func)))))))
+                        (eval func t)))))))
 
     ;; Determine any autoloads implied by the keywords used.
     (let ((iargs args)
@@ -745,7 +749,7 @@ extending any keys already present."
 
     ;; If byte-compiling, pre-load the package so all its symbols are in
     ;; scope. This is done by prepending statements to the :preface.
-    (when (bound-and-true-p byte-compile-current-file)
+    (when (use-package--macroexp-compiling-p)
       (setq args
             (use-package-plist-append
              args :preface
@@ -935,7 +939,7 @@ The argument LABEL is ignored."
   (cond
    ((and arg (or (use-package-non-nil-symbolp arg) (functionp arg)))
     (let ((value (use-package-normalize-value label arg)))
-      (use-package-normalize-paths label (eval value))))
+      (use-package-normalize-paths label (eval value t))))
    ((stringp arg)
     (let ((path (if (file-name-absolute-p arg)
                     arg
@@ -943,7 +947,8 @@ The argument LABEL is ignored."
       (list path)))
    ((and (not recursed) (listp arg) (listp (cdr arg)))
     (mapcar #'(lambda (x)
-                (car (use-package-normalize-paths label x t))) arg))
+                (car (use-package-normalize-paths label x t)))
+            arg))
    (t
     (use-package-error
      (concat label " wants a directory path, or list of paths")))))
@@ -1022,16 +1027,13 @@ If RECURSED is non-nil, recurse into sublists."
   sym
   #\\='(lambda () ...)"
   (cond ((symbolp v) v)
-        ((and (listp v)
-              (memq (car v) '(quote function))
-              (use-package-non-nil-symbolp (cadr v)))
-         (cadr v))
         ((and (consp v)
               (eq 'lambda (car v)))
          v)
-        ((and (listp v)
+        ((and (consp v)
               (memq (car v) '(quote function))
-              (eq 'lambda (car (cadr v))))
+              (or (use-package-non-nil-symbolp (cadr v))
+                  (eq 'lambda (car (cadr v)))))
          (cadr v))
         (t v)))
 
@@ -1127,7 +1129,7 @@ meaning:
   Configured        :config has been processed (the package is loaded!)
   Initialized       :init has been processed (load status unknown)
   Prefaced          :preface has been processed
-  Declared          the use-package declaration was seen
+  Declared          the `use-package' declaration was seen
 
 Customize the user option `use-package-compute-statistics' to
 enable gathering statistics."
@@ -1216,17 +1218,17 @@ enable gathering statistics."
   (use-package-only-one (symbol-name keyword) args
     #'use-package-normalize-value))
 
-(defalias 'use-package-normalize/:if 'use-package-normalize-test)
+(defalias 'use-package-normalize/:if #'use-package-normalize-test)
 
 (defun use-package-handler/:if (name _keyword pred rest state)
   (let ((body (use-package-process-keywords name rest state)))
     `((when ,pred ,@body))))
 
-(defalias 'use-package-normalize/:when 'use-package-normalize-test)
+(defalias 'use-package-normalize/:when #'use-package-normalize-test)
 
-(defalias 'use-package-handler/:when 'use-package-handler/:if)
+(defalias 'use-package-handler/:when #'use-package-handler/:if)
 
-(defalias 'use-package-normalize/:unless 'use-package-normalize-test)
+(defalias 'use-package-normalize/:unless #'use-package-normalize-test)
 
 (defun use-package-handler/:unless (name _keyword pred rest state)
   (let ((body (use-package-process-keywords name rest state)))
@@ -1234,7 +1236,7 @@ enable gathering statistics."
 
 ;;;; :requires
 
-(defalias 'use-package-normalize/:requires 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:requires #'use-package-normalize-symlist)
 
 (defun use-package-handler/:requires (name _keyword requires rest state)
   (let ((body (use-package-process-keywords name rest state)))
@@ -1262,28 +1264,28 @@ enable gathering statistics."
 
 ;;;; :no-require
 
-(defalias 'use-package-normalize/:no-require 'use-package-normalize-predicate)
+(defalias 'use-package-normalize/:no-require #'use-package-normalize-predicate)
 
 (defun use-package-handler/:no-require (name _keyword _arg rest state)
   (use-package-process-keywords name rest state))
 
 ;;;; :defines
 
-(defalias 'use-package-normalize/:defines 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:defines #'use-package-normalize-symlist)
 
 (defun use-package-handler/:defines (name _keyword _arg rest state)
   (use-package-process-keywords name rest state))
 
 ;;;; :functions
 
-(defalias 'use-package-normalize/:functions 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:functions #'use-package-normalize-symlist)
 
 (defun use-package-handler/:functions (name _keyword _arg rest state)
   (use-package-process-keywords name rest state))
 
 ;;;; :preface
 
-(defalias 'use-package-normalize/:preface 'use-package-normalize-forms)
+(defalias 'use-package-normalize/:preface #'use-package-normalize-forms)
 
 (defun use-package-handler/:preface (name _keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state)))
@@ -1347,32 +1349,32 @@ enable gathering statistics."
 
 ;;;; :interpreter
 
-(defalias 'use-package-normalize/:interpreter 'use-package-normalize-mode)
-(defalias 'use-package-autoloads/:interpreter 'use-package-autoloads-mode)
+(defalias 'use-package-normalize/:interpreter #'use-package-normalize-mode)
+(defalias 'use-package-autoloads/:interpreter #'use-package-autoloads-mode)
 
 (defun use-package-handler/:interpreter (name _keyword arg rest state)
   (use-package-handle-mode name 'interpreter-mode-alist arg rest state))
 
 ;;;; :mode
 
-(defalias 'use-package-normalize/:mode 'use-package-normalize-mode)
-(defalias 'use-package-autoloads/:mode 'use-package-autoloads-mode)
+(defalias 'use-package-normalize/:mode #'use-package-normalize-mode)
+(defalias 'use-package-autoloads/:mode #'use-package-autoloads-mode)
 
 (defun use-package-handler/:mode (name _keyword arg rest state)
   (use-package-handle-mode name 'auto-mode-alist arg rest state))
 
 ;;;; :magic
 
-(defalias 'use-package-normalize/:magic 'use-package-normalize-mode)
-(defalias 'use-package-autoloads/:magic 'use-package-autoloads-mode)
+(defalias 'use-package-normalize/:magic #'use-package-normalize-mode)
+(defalias 'use-package-autoloads/:magic #'use-package-autoloads-mode)
 
 (defun use-package-handler/:magic (name _keyword arg rest state)
   (use-package-handle-mode name 'magic-mode-alist arg rest state))
 
 ;;;; :magic-fallback
 
-(defalias 'use-package-normalize/:magic-fallback 'use-package-normalize-mode)
-(defalias 'use-package-autoloads/:magic-fallback 'use-package-autoloads-mode)
+(defalias 'use-package-normalize/:magic-fallback #'use-package-normalize-mode)
+(defalias 'use-package-autoloads/:magic-fallback #'use-package-autoloads-mode)
 
 (defun use-package-handler/:magic-fallback (name _keyword arg rest state)
   (use-package-handle-mode name 'magic-fallback-mode-alist arg rest state))
@@ -1402,7 +1404,7 @@ enable gathering statistics."
            (intern (concat (symbol-name name) "-mode")))
          label arg))))
 
-(defalias 'use-package-autoloads/:hook 'use-package-autoloads-mode)
+(defalias 'use-package-autoloads/:hook #'use-package-autoloads-mode)
 
 (defun use-package-handler/:hook (name _keyword args rest state)
   "Generate use-package custom keyword code."
@@ -1434,7 +1436,7 @@ enable gathering statistics."
 
 ;;;; :commands
 
-(defalias 'use-package-normalize/:commands 'use-package-normalize-symlist)
+(defalias 'use-package-normalize/:commands #'use-package-normalize-symlist)
 
 (defun use-package-handler/:commands (name _keyword arg rest state)
   (use-package-concat
@@ -1448,7 +1450,7 @@ enable gathering statistics."
              (unless (plist-get state :demand)
                `((unless (fboundp ',command)
                    (autoload #',command ,name-string nil t))))
-             (when (bound-and-true-p byte-compile-current-file)
+             (when (use-package--macroexp-compiling-p)
                `((eval-when-compile
                    (declare-function ,command ,name-string)))))))
       (delete-dups arg)))
@@ -1456,7 +1458,7 @@ enable gathering statistics."
 
 ;;;; :autoload
 
-(defalias 'use-package-normalize/:autoload 'use-package-normalize/:commands)
+(defalias 'use-package-normalize/:autoload #'use-package-normalize/:commands)
 
 (defun use-package-handler/:autoload (name _keyword arg rest state)
   (use-package-concat
@@ -1470,7 +1472,7 @@ enable gathering statistics."
              (unless (plist-get state :demand)
                `((unless (fboundp ',command)
                    (autoload #',command ,name-string))))
-             (when (bound-and-true-p byte-compile-current-file)
+             (when (use-package--macroexp-compiling-p)
                `((eval-when-compile
                    (declare-function ,command ,name-string)))))))
       (delete-dups arg)))
@@ -1478,7 +1480,7 @@ enable gathering statistics."
 
 ;;;; :defer
 
-(defalias 'use-package-normalize/:defer 'use-package-normalize-predicate)
+(defalias 'use-package-normalize/:defer #'use-package-normalize-predicate)
 
 (defun use-package-handler/:defer (name _keyword arg rest state)
   (let ((body (use-package-process-keywords name rest state)))
@@ -1549,7 +1551,7 @@ no keyword implies `:all'."
 
 ;;;; :demand
 
-(defalias 'use-package-normalize/:demand 'use-package-normalize-predicate)
+(defalias 'use-package-normalize/:demand #'use-package-normalize-predicate)
 
 (defun use-package-handler/:demand (name _keyword _arg rest state)
   (use-package-process-keywords name rest state))
@@ -1632,7 +1634,7 @@ no keyword implies `:all'."
 
 ;;;; :init
 
-(defalias 'use-package-normalize/:init 'use-package-normalize-forms)
+(defalias 'use-package-normalize/:init #'use-package-normalize-forms)
 
 (defun use-package-handler/:init (name _keyword arg rest state)
   (use-package-concat
@@ -1667,7 +1669,7 @@ no keyword implies `:all'."
 
 ;;;; :config
 
-(defalias 'use-package-normalize/:config 'use-package-normalize-forms)
+(defalias 'use-package-normalize/:config #'use-package-normalize-forms)
 
 (defun use-package-handler/:config (name _keyword arg rest state)
   (let* ((body (use-package-process-keywords name rest state))
@@ -1729,7 +1731,7 @@ Also see the Info node `(use-package) Creating an extension'."
   (let ((body (use-package-process-keywords name rest state))
         (local-path (car (plist-get state :load-path))))
     ;; See `use-package-handler/:ensure' for an explanation.
-    (if (bound-and-true-p byte-compile-current-file)
+    (if nil ;;(use-package--macroexp-compiling-p)
         (funcall #'use-package-vc-install arg local-path)        ; compile time
       (push `(use-package-vc-install ',arg ,local-path) body))   ; runtime
     body))
