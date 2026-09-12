@@ -2813,7 +2813,8 @@ on the backend, which are advised to use mnemonic keys and common sense.
 For example, the Emacs Lisp mode has ``variable'', ``function alias'',
 ``face'', and ``feature'' (a symbol that is @code{provide}d by some
 package) among its kinds, whereas Eglot (our built-in LSP Client) uses
-``declaration'', ``implementation'' and ``type definition''.
+``declaration'', ``implementation'' and ``type definition''.  Etags does
+not support this feature yet.
 
 @kindex C-M-.
 @findex xref-find-apropos
