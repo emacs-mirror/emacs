@@ -2770,14 +2770,6 @@ variables `invocation-name' and `invocation-directory'."
   "A Flymake backend for elisp byte compilation.
 Spawn an Emacs process that byte-compiles a file representing the
 current buffer state and calls REPORT-FN when done."
-  (unless (trusted-content-p)
-    ;; FIXME: Use `bwrap' and friends to compile untrusted content.
-    ;; FIXME: We emit a message *and* signal an error, because by default
-    ;; Flymake doesn't display the warning it puts into "*flymake log*".
-    (message "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
-             (buffer-name))
-    (user-error "Disabling elisp-flymake-byte-compile in %s (untrusted content)"
-                (buffer-name)))
   (when elisp-flymake--byte-compile-process
     (when (process-live-p elisp-flymake--byte-compile-process)
       (kill-process elisp-flymake--byte-compile-process)))

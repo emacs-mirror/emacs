@@ -3486,6 +3486,10 @@ pertaining to DIAG-SPEC."
                              collect it)))
          `((face . ,faces)))))))
 
+;; We mark `eglot-flymake-backend' as being a safe backend, because
+;; AFAIK the Flymake backend does not incur any significant risk beyond
+;; those incurred by Eglot itself.
+(put 'eglot-flymake-backend 'flymake-always-safe t)
 (defun eglot-flymake-backend (report-fn &rest _more)
   "A Flymake backend for Eglot.
 Calls REPORT-FN (or arranges for it to be called) when the server

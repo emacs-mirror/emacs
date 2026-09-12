@@ -1325,8 +1325,16 @@ with a report function."
             (flymake--state-disabled state) nil
             (flymake--state-reported-p state) nil))
     (condition-case-unless-debug err
-        (apply backend (flymake-make-report-fn backend run-token)
-               args)
+        (if (or (trusted-content-p) (function-get backend 'flymake-always-safe))
+            (apply backend (flymake-make-report-fn backend run-token)
+                   args)
+          ;; FIXME: Use `bwrap' for untrusted content.
+          ;; FIXME: We emit a message *and* signal an error, because by default
+          ;; Flymake doesn't display the warning it puts into "*flymake log*".
+          (message "Disabling %S in %s (untrusted content)"
+                   backend (buffer-name))
+          (user-error "Disabling %S in %s (untrusted content)"
+                      backend (buffer-name)))
       (error
        (flymake--disable-backend backend err)))))
 
