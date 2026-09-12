@@ -217,8 +217,7 @@ expand)' among their `declare' forms."
             (condition-case e
                 ;; Don't load the `.elc' file, in case the file wraps
                 ;; the macro-definition in `eval-when-compile' (bug#80180).
-                (let ((load-suffixes '(".el")))
-                  (load file))
+                (load (concat file ".el"))
               (error
                (push file loaddefs--load-error-files) ; do not attempt again
                (warn "loaddefs-gen: load error\n\t%S" e)))))
