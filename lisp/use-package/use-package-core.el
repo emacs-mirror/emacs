@@ -186,6 +186,28 @@ See also `use-package-defaults', which uses this value."
   :group 'use-package
   :version "29.1")
 
+(defcustom use-package-expand-minimally nil
+  "If non-nil, make the expanded code as minimal as possible.
+This disables:
+
+  - Printing to the *Messages* buffer of slowly-evaluating forms
+  - Capturing of load errors (normally redisplayed as warnings)
+  - Conditional loading of packages (load failures become errors)
+
+The main advantage to this variable is that, if you know your
+configuration works, it will make the byte-compiled file as
+minimal as possible.  It can also help with reading macro-expanded
+definitions, to understand the main intent of what's happening."
+  :type 'boolean
+  :group 'use-package
+  :version "29.1")
+
+(defcustom use-package-always-ensure nil
+  "Treat every package as though it had specified using `:ensure SEXP'.
+See also `use-package-defaults', which uses this value."
+  :type 'sexp
+  :version "29.1")
+
 (defcustom use-package-defaults
   `(;; this '(t) has special meaning; see `use-package-handler/:config'
     (:config '(t) t)
@@ -302,22 +324,6 @@ specified."
   :group 'use-package
   :version "29.1")
 
-(defcustom use-package-expand-minimally nil
-  "If non-nil, make the expanded code as minimal as possible.
-This disables:
-
-  - Printing to the *Messages* buffer of slowly-evaluating forms
-  - Capturing of load errors (normally redisplayed as warnings)
-  - Conditional loading of packages (load failures become errors)
-
-The main advantage to this variable is that, if you know your
-configuration works, it will make the byte-compiled file as
-minimal as possible.  It can also help with reading macro-expanded
-definitions, to understand the main intent of what's happening."
-  :type 'boolean
-  :group 'use-package
-  :version "29.1")
-
 (defcustom use-package-form-regexp-eval
   `(concat ,(eval-when-compile
               (concat "^\\s-*("
@@ -385,12 +391,6 @@ stability issues."
   :type 'boolean
   :version "30.1"
   :group 'use-package)
-
-(defcustom use-package-always-ensure nil
-  "Treat every package as though it had specified using `:ensure SEXP'.
-See also `use-package-defaults', which uses this value."
-  :type 'sexp
-  :version "29.1")
 
 (defcustom use-package-always-pin nil
   "Treat every package as though it had specified using `:pin SYM'.
