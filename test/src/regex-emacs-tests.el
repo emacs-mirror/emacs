@@ -253,7 +253,8 @@ on success"
 
 
 
-(defun regex-tests-match (pattern string bounds-ref &optional substring-ref)
+(defun regex-tests-match ( pattern string bounds-ref
+                           &optional substring-ref posix)
   "I match the given STRING against PATTERN.  I compare the
 beginning/end of each group with their expected values.
 BOUNDS-REF is a sequence [start-ref0 end-ref0 start-ref1 end-ref1
@@ -273,7 +274,9 @@ on success"
     (regex-tests-compare
      string
      (condition-case nil
-         (if (string-match pattern string) nil 'search-failed)
+         (or (if posix (posix-string-match pattern string)
+               (string-match pattern string))
+             'search-failed)
        (invalid-regexp 'compilation-failed))
      bounds-ref substring-ref)))
 
@@ -634,7 +637,7 @@ known/benign differences in behavior.")
 ;;   | 0 | successful match      |
 ;;   | 1 | failed match          |
 ;;   | 2 | regcomp() should fail |
-(defun regex-tests-TESTS ()
+(defun regex-tests-TESTS (&optional posix)
   (let (failures)
     (regex-tests-generic-line
      ?# "TESTS" regex-tests-TESTS-whitelist
@@ -648,7 +651,8 @@ known/benign differences in behavior.")
                 (string  (match-string 3))
                 (pattern (regex-tests-unextend (match-string 2))))
 
-           (let ((msg (regex-tests-match pattern string nil (list what-failed))))
+           (let ((msg (regex-tests-match pattern string nil
+                                         (list what-failed) posix)))
              (when msg
                (setq failures
                      (cons (format "line number %d: Regex '%s': %s"
@@ -677,6 +681,11 @@ This evaluates the PTESTS test cases from glibc."
   "Tests of the regular expression engine.
 This evaluates the TESTS test cases from glibc."
   (should-not (regex-tests-TESTS)))
+
+(ert-deftest regex-tests-posix ()
+  "Tests of the posix option of the regular expression engine.
+This evaluates the TESTS test cases from glibc using posix matching."
+  (should-not (regex-tests-TESTS 'posix)))
 
 (ert-deftest regex-repeat-limit ()
   "Test the #xFFFF repeat limit."

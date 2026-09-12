@@ -2836,6 +2836,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 {
   eassert (p >= loop_beg);
   eassert (p <= loop_end);
+  eassert (pend);
 
   while (true)
     {
@@ -2844,6 +2845,11 @@ forall_firstchar_1 (re_char *p, re_char *pend,
       int offset;
 
       if (p == pend)
+        /* When the regexp is under construction, this can happen and
+           means we're jumping past the end of what we've alreay constructed.
+           After that, this should happen only for POSIX matches.
+           FIXME: We should probably introduce a 'posix_succeed'
+           sentinel like we have for non-POSIX matches.  */
         return false;
       else if (p == loop_end)
         return true;
@@ -3013,6 +3019,11 @@ forall_firstchar_1 (re_char *p, re_char *pend,
             continue;
 
           default:
+#if ENABLE_CHECKING
+	    fprintf (stderr,
+		     "FORALL_FIRSTCHAR: Impossible case %d at position %p <= %p!!\n",
+		     *p, p, pend);
+#endif
             abort (); /* We have listed all the cases.  */
           }
       }
@@ -4025,7 +4036,9 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 		      re_char *p2)
 {
   struct mutexcl_data data = { bufp, p1, true };
-  return forall_firstchar (bufp, p2, NULL, mutually_exclusive_one, &data);
+  eassert (bufp->used);
+  return forall_firstchar (bufp, p2, bufp->buffer + bufp->used,
+			   mutually_exclusive_one, &data);
 }
 
 /* Matching routines.  */
