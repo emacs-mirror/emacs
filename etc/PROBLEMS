@@ -515,6 +515,19 @@ restrictions.
 Yet another solution is to use the PGTK build of Emacs, which works
 better on Wayland.
 
+*** GTK+ frames are tiny on Wayland.
+
+The initial frame and/or subsequently created frames can be tiny on
+Wayland running on X11 (aka "XWayland").  One direct consequence is that
+GTK will react with a message like this when cropping the menu bar:
+
+  Gtk-CRITICAL **: gtk_distribute_natural_allocation: assertion 'extra_space >= 0' failed
+
+This behavior has been observed with the mutter window manager (GNOME
+desktop) and the labwc compositor.  Using the PGTK build of Emacs should
+work around this issue.
+
+
 ** Lisp problems
 
 *** Changes made to .el files do not take effect.

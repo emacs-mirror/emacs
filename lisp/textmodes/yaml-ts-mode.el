@@ -249,8 +249,8 @@ Calls REPORT-FN directly."
                                                 :error)))
                                    (push (flymake-make-diagnostic
                                           source beg end type msg)
-                                         diags))
-                                 (funcall report-fn diags))))
+                                         diags)))
+                               (funcall report-fn diags)))
                          (flymake-log :warning "Canceling obsolete check %s" proc))
                      (kill-buffer (process-buffer proc)))))))
         (process-send-region yaml-ts-mode--flymake-process (point-min) (point-max))
