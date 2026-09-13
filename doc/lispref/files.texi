@@ -1219,6 +1219,8 @@ If the target of a symbolic links has remote file name syntax,
 Functions that Expand Filenames}.
 @end defun
 
+@cindex file names, following symbolic links
+@cindex symlink chain, following
 @defun file-chase-links filename &optional limit
 This function follows symbolic links, starting with @var{filename},
 until it finds a file name which is not the name of a symbolic link.
@@ -1245,6 +1247,8 @@ we would have:
      @result{} "/home/foo/hello"
 @end example
 
+@cindex equality of file names
+@cindex file-name equality
 @defun file-equal-p file1 file2
 This function returns @code{t} if the files @var{file1} and
 @var{file2} name the same file.  This is similar to comparing their
@@ -1253,6 +1257,8 @@ appropriate manner.  If @var{file1} or @var{file2} does not exist, the
 return value is unspecified.
 @end defun
 
+@cindex case-sensitivity of file names
+@cindex file-name, case-sensitivity
 @defun file-name-case-insensitive-p filename
 Sometimes file names or their parts need to be compared as strings, in
 which case it's important to know whether the underlying filesystem is
