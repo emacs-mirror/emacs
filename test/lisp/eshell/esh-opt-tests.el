@@ -20,7 +20,19 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'esh-opt)
+
+(require 'eshell-tests-helpers
+         (ert-resource-file "eshell-tests-helpers"))
+
+(defun eshell/esh-opt-test-cmd (args)
+  (eshell-eval-using-options
+   "esh-opt-test-cmd" args
+   '((?a "all" nil _show-all
+         "do not ignore entries starting with ."))))
+
+;;; Tests:
 
 (ert-deftest esh-opt-test/process-args ()
   "Test behavior of `eshell--process-args'."
@@ -268,7 +280,10 @@
    (eshell-eval-using-options
     "ls" '("--unrecognized" "/some/path")
     '((?a "all" nil _show-all
-          "do not ignore entries starting with .")))))
+          "do not ignore entries starting with ."))))
+  (eshell-command-result-equal          ; Test bug#81856.
+   "esh-opt-test-cmd -u"
+   "esh-opt-test-cmd: unrecognized option -u"))
 
 (ert-deftest esh-opt-test/eval-using-options-external ()
   "Test :external in `eshell-eval-using-options'."

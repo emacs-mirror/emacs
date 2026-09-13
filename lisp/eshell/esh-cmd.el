@@ -1504,10 +1504,9 @@ case."
        (unless form-p
          (let ((prog-name (string-trim-left (symbol-name func-or-form)
                                             "eshell/")))
-           (if (eq (car err) 'wrong-number-of-arguments)
-               (setq msg (format "%s usage: %s" prog-name
-                                 (elisp-get-fnsym-args-string func-or-form)))
-             (setq msg (format "%s: %s" prog-name msg)))))
+           (when (eq (car err) 'wrong-number-of-arguments)
+             (setq msg (format "%s usage: %s" prog-name
+                               (elisp-get-fnsym-args-string func-or-form))))))
        (funcall errprint msg))
      nil)))
 
