@@ -2846,7 +2846,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 
       if (p == pend)
         /* When the regexp is under construction, this can happen and
-           means we're jumping past the end of what we've alreay constructed.
+           means we're jumping past the end of what we've already constructed.
            After that, this should happen only for POSIX matches.
            FIXME: We should probably introduce a 'posix_succeed'
            sentinel like we have for non-POSIX matches.  */
