@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2026-08-13.21}
+\def\texinfoversion{2026-09-06.15}
 %
 % Copyright 1985, 1986, 1988, 1990-2026 Free Software Foundation, Inc.
 %
@@ -184,6 +184,10 @@
   spell-ing spell-ings
   stand-alone strong-est time-stamp time-stamps which-ever white-space
   wide-spread wrap-around
+}
+
+\def\txiwarning#1{%
+  \message{^^J\linenumber Warning: #1^^J}%
 }
 
 % Sometimes it is convenient to have everything in the transcript file
@@ -8352,11 +8356,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % these should not use \errmessage; the glibc manual, at least, actually
 % has such constructs (when documenting function pointers).
 \def\badparencount{%
-  \message{Warning: unbalanced parentheses in @def...}%
+  \txiwarning{unbalanced parentheses in @def...}%
   \global\parencount=0
 }
 \def\badbrackcount{%
-  \message{Warning: unbalanced square brackets in @def...}%
+  \txiwarning{unbalanced square brackets in @def...}%
   \global\brackcount=0
 }
 
@@ -8528,7 +8532,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
      \fi
   \fi
   \if1\csname ismacro.\the\macname\endcsname
-     \message{Warning: redefining \the\macname}%
+     \txiwarning{redefining \the\macname}%
   \else
      \expandafter\ifx\csname \the\macname\endcsname \relax
      \else \errmessage{Macro name \the\macname\space already defined}\fi
@@ -10258,7 +10262,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \expandafter\ifx\csname floatlist\safefloattype\endcsname \relax
     \ifhavexrefs
       % if the user said @listoffloats foo but never @float foo.
-      \message{\linenumber No `\safefloattype' floats to list.}%
+      \txiwarning{\No `\safefloattype' floats to list.}%
     \fi
   \else
     \begingroup
@@ -10535,7 +10539,7 @@ directory should work if nowhere else does.}
     \else
       \ifx \declaredencoding \ascii
       \else
-        \message{Warning: XeTeX with non-UTF-8 encodings cannot handle %
+        \txiwarning{XeTeX with non-UTF-8 encodings cannot handle %
         non-ASCII characters in auxiliary files.}%
       \fi
     \fi
@@ -10814,7 +10818,7 @@ directory should work if nowhere else does.}
 \gdef\UTFviiiDefined#1{%
   \ifx #1\relax
     \ifutfviiidefinedwarning
-      \message{\linenumber Unicode char \string #1 not defined for Texinfo}%
+      \txiwarning{Unicode char \string #1 not defined for Texinfo}%
     \fi
   \else
     \expandafter #1%

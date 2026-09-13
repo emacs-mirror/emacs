@@ -1,5 +1,5 @@
 # gnulib-common.m4
-# serial 122
+# serial 123
 dnl Copyright (C) 2007-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -442,9 +442,8 @@ AC_DEFUN([gl_COMMON_BODY], [
 #ifndef _GL_ATTRIBUTE_COUNTED_BY
 /* This attributes is supported
      - for fields of array type: by gcc >= 16, clang >= 18,
-     - for fields of pointer type: by gcc when <https://gcc.gnu.org/PR125072>
-       will be fixed, clang >= 19.  */
-# if defined __clang__ && __clang_major__ >= 19
+     - for fields of pointer type: by gcc >= 16.2, clang >= 19.  */
+# if _GL_GNUC_PREREQ (16, 2) || (defined __clang__ && __clang_major__ >= 19)
 #  define _GL_ATTRIBUTE_COUNTED_BY(c) __attribute__ ((__counted_by__ (c)))
 # else
 #  define _GL_ATTRIBUTE_COUNTED_BY(c)
