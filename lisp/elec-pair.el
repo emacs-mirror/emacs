@@ -608,7 +608,7 @@ accessible portion of the buffer in that direction.")
   "Do main work for `electric-pair-mode'.
 This function is added to `post-self-insert-hook' when
 `electric-pair-mode' is enabled."
-  ;; First, figure out whether to restrit the buffer (bug#50236)
+  ;; First, figure out whether to restrict the buffer (bug#50236)
   (if (or (null electric-pair-field-search-size)
           (use-region-p))
       (electric--pair-psif-1)
