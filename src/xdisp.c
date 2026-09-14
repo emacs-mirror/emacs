@@ -34003,15 +34003,17 @@ gui_produce_glyphs (struct it *it)
 	  int leftmost, rightmost, lowest, highest;
 	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
-	  int c;
+	  int c = '\t';	/* See Bug#8512.  */
 	  unsigned char2b;
 	  struct font_metrics *pcm;
 	  ptrdiff_t pos;
 
-	  eassume (0 < glyph_len); /* See Bug#8512.  */
-	  do
-	    c = COMPOSITION_GLYPH (cmp, glyph_len - 1);
-	  while (c == '\t' && 0 < --glyph_len);
+	  if (glyph_len > 0)
+	    {
+	      do
+		c = COMPOSITION_GLYPH (cmp, glyph_len - 1);
+	      while (c == '\t' && 0 < --glyph_len);
+	    }
 
 	  bool right_padded = glyph_len < cmp->glyph_len;
 	  for (i = 0; i < glyph_len; i++)
@@ -34277,6 +34279,9 @@ gui_produce_glyphs (struct it *it)
       if (it->descent < 0)
 	it->descent = 0;
 
+      /* If the composition yields zero glyphs, produce the same effect
+         as an empty 'display' string: hide the buffer positions and
+         show nothing in their stead.  */
       if (it->glyph_row && cmp->glyph_len > 0)
 	append_composite_glyph (it);
     }
