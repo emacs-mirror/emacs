@@ -85,8 +85,8 @@ manually updated package."
                                                 ,archive-name))))
     ;; Pinning should occur just before ensuring
     ;; See `use-package-handler/:ensure'.
-    (if (bound-and-true-p byte-compile-current-file)
-        (eval pin-form)              ; Eval when byte-compiling,
+    (if (use-package--macroexp-compiling-p)
+        (eval pin-form t)              ; Eval when byte-compiling,
       (push pin-form body))          ; or else wait until runtime.
     body))
 
@@ -152,7 +152,7 @@ manually updated package."
     ;; being macro-expanded by elisp completion (see `lisp--local-variables'),
     ;; but still install packages when byte-compiling, to avoid requiring
     ;; `package' at runtime.
-    (if (bound-and-true-p byte-compile-current-file)
+    (if (use-package--macroexp-compiling-p)
         ;; Eval when byte-compiling,
         (funcall use-package-ensure-function name ensure state)
       ;;  or else wait until runtime.

@@ -398,7 +398,10 @@ See also `use-package-defaults', which uses this value."
   :type 'symbol
   :version "29.1")
 
-(defcustom use-package-ensure-function 'use-package-ensure-elpa
+(defcustom use-package-ensure-function
+  ;; FIXME: This var belongs in `use-package-ensure.el'.
+  ;; Its default value can't be called before that file is loaded anyway.
+  'use-package-ensure-elpa
   "Function that ensures a package is installed.
 This function is called with three arguments: the name of the
 package declared in the `use-package' form; the arguments passed
@@ -1731,7 +1734,7 @@ Also see the Info node `(use-package) Creating an extension'."
   (let ((body (use-package-process-keywords name rest state))
         (local-path (car (plist-get state :load-path))))
     ;; See `use-package-handler/:ensure' for an explanation.
-    (if nil ;;(use-package--macroexp-compiling-p)
+    (if (use-package--macroexp-compiling-p)
         (funcall #'use-package-vc-install arg local-path)        ; compile time
       (push `(use-package-vc-install ',arg ,local-path) body))   ; runtime
     body))
