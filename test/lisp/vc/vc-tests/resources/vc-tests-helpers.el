@@ -81,20 +81,24 @@ For backends which don't support it, it is emulated."
   (declare (indent 1) (debug t))
   `(let ((process-environment process-environment)
          (vc-hg-global-switches (bound-and-true-p vc-hg-global-switches)))
-     ;; git tries various approaches to guess a user name and email,
-     ;; which can fail depending on how the system is configured.
-     ;; Eg if the user account has no GECOS, git commit can fail with
-     ;; status 128 "fatal: empty ident name".
-     (when (memq ,backend '(Bzr Git))
-       (push "EMAIL=joh.doe@example.com" process-environment))
-     (when (eq ,backend 'Git)
-       (setq process-environment (append '("GIT_AUTHOR_NAME=A"
-                                           "GIT_COMMITTER_NAME=C")
-                                         process-environment)))
-
-     ;; Mercurial fails to autodetect an identity on MS-Windows.
-     (when (eq ,backend 'Hg)
-       (push "--config=ui.username=john@doe.ee" vc-hg-global-switches))
+     (pcase ,backend
+       ('Bzr (push "EMAIL=joh.doe@example.com" process-environment))
+       ;; Git tries various approaches to guess a user name and email,
+       ;; which can fail depending on how the system is configured.
+       ;; Eg if the user account has no GECOS, Git commit can fail with
+       ;; status 128 "fatal: empty ident name".
+       ;; Use GIT_*_EMAIL instead of EMAIL in case the Git config
+       ;; contains user.useConfigOnly=true, which disables EMAIL.
+       ('Git (setq process-environment
+                   (append '("GIT_AUTHOR_NAME=A"
+                             "GIT_COMMITTER_NAME=C"
+                             "GIT_AUTHOR_EMAIL=a@example.com"
+                             "GIT_COMMITTER_EMAIL=c@example.com")
+                           process-environment)))
+       ;; Mercurial fails to autodetect an identity on MS-Windows.
+       ('Hg
+        (push "--config=ui.username=john@doe.ee"
+              vc-hg-global-switches)))
      ,@body))
 
 (provide 'vc-tests-helpers)
