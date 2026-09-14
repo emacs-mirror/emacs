@@ -531,6 +531,12 @@ order to establish network connections to hosts on local networks.
 *** Emacs on MS-Windows now supports IME compositions on text-only frames.
 This support is only available on Windows versions of the NT family.
 
+---
+*** 'process-attributes' now returns 'pcpu' and 'pmem' on macOS.
+As a result, 'M-x proced' shows populated %CPU and %Mem columns there.
+In addition, the 'utime', 'stime' and 'time' attributes, which were off
+by the Mach timebase factor on Apple Silicon, are now correct.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
