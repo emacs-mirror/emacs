@@ -181,6 +181,7 @@ Line numbers start from 1 and columns from 0."
 
 (cl-defstruct (xref-buffer-location
                (:constructor xref-make-buffer-location (buffer position)))
+  "A buffer location is a pair of BUFFER and POSITION inside it."
   buffer position)
 
 (cl-defmethod xref-location-marker ((l xref-buffer-location))
@@ -326,15 +327,22 @@ recognize and then delegate the work to an external process."
     (and thing (substring-no-properties thing))))
 
 (cl-defgeneric xref-backend-identifier-completion-table (_backend)
-  "Return the completion table for identifiers."
+  "Return the completion table for identifiers.
+
+The returned value will be used as the COLLECTION argument for
+`completing-read' when an identifier is read with completion."
   nil)
 
 (cl-defgeneric xref-backend-identifier-completion-predicate (_backend
                                                              &optional _kind)
   "Return the predicate for identifier completion.
-The argument KIND will be provided when the caller intends to narrow
-down the search.  The backend can use it to narrow down to only
-identifiers that have xrefs belonging to KIND."
+
+The returned value will be used as the PREDICATE argument for
+`completing-read' when an identifier is read with completion.
+
+The argument KIND will be provided when the caller intends to use the
+completion's result in a search for that KIND of definitions.  In such
+case this predicate can apply appropriate filtering to identifiers."
   nil)
 
 (cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
@@ -345,9 +353,11 @@ identifiers that have xrefs belonging to KIND."
   "Return list of descriptors for xref kinds supported by BACKEND.
 
 Each descriptor is a plist with properties `:kind', `:name' and `:key'
-where the kind is a symbol value, name is a string and the key is a
-unique character that can be used to choose among them.  Optionally, it
-can also include `:prompt-format' which defaults to \"Find %s\".
+where the kind is a symbol value the backend will be able to recognize
+later, the name is a string suitable for prompts and errors shown to the
+user, and the key is a unique character to be used to select that kind.
+Optionally, it can also include `:prompt-format' which decides how the
+prompt will look, defaulting to \"Find %s\".
 
 Having a kind in this list means that the backend can try to find such
 xrefs in the current and related buffers, with no guarantee of success.
