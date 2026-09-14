@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(require 'ert-x)
+
 (ert-deftest startup-tests/command-switch-alist ()
   (let* ((foo-args ()) (bar-args ())
          (command-switch-alist
@@ -43,5 +45,20 @@
     (command-line-1 '("--foo" "value" "--bar=value"))
     (should (equal foo-args '("--foo")))
     (should (equal bar-args '("--bar=value")))))
+
+(ert-deftest startup-tests/load-path-filter-cache-directory-files ()
+  (ert-with-temp-directory dir
+    (let ((default-directory dir))
+      (let (load-path-filter--cache)
+        (should-not (memq nil (load-path-filter-cache-directory-files
+                               '(nil) "foo" '(".el" ".elc")))))
+      (make-empty-file "foo.txt")
+      (let (load-path-filter--cache)
+        (should-not (memq nil (load-path-filter-cache-directory-files
+                               '(nil) "foo" '(".el" ".elc")))))
+      (make-empty-file "foo.el")
+      (let (load-path-filter--cache)
+        (should (memq nil (load-path-filter-cache-directory-files
+                           '(nil) "foo" '(".el" ".elc"))))))))
 
 ;;; startup-tests.el ends here

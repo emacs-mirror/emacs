@@ -1180,7 +1180,8 @@ This function is called from `load' via `load-path-filter-function'."
         (let ((completion-regexp-list nil))
           (seq-filter
            (lambda (dir)
-             (when (file-directory-p dir)
+             (when (file-directory-p (or dir
+					 (setq dir default-directory)))
                (try-completion
                 file
                 (with-memoization (gethash dir ht)
