@@ -890,7 +890,7 @@ OVERRIDE, START, and END are passed through to
 
 (defun markdown-ts--unbracket-destination (url)
   "Return URL without CommonMark's optional `<...>' wrapper."
-  ;; Only when both delimiters are there, so `[a](foo>)' is left alone."
+  ;; Only when both delimiters are there, so `[a](foo>)' is left alone.
   (if (and (string-prefix-p "<" url) (string-suffix-p ">" url))
       (substring url 1 -1)
     url))
