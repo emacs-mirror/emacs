@@ -349,7 +349,7 @@ case this predicate can apply appropriate filtering to identifiers."
   "Return t if case is not significant in identifier completion."
   completion-ignore-case)
 
-(cl-defgeneric xref-backend-xref-kinds (_backend)
+(cl-defgeneric xref-backend-xref-kinds (backend)
   "Return list of descriptors for xref kinds supported by BACKEND.
 
 Each descriptor is a plist with properties `:kind', `:name' and `:key'
@@ -363,7 +363,9 @@ Having a kind in this list means that the backend can try to find such
 xrefs in the current and related buffers, with no guarantee of success.
 These locations might or might not be included in the results of
 `xref-backend-definitions' or `xref-backend-references'."
-  (user-error "Xref kinds not supported by the backend"))
+  (if backend
+      (user-error "Xref kinds not supported by the backend")
+    (xref--no-backend-available)))
 
 (cl-defgeneric xref-backend-xrefs-by-kind (_backend _identifier _kind)
   "Find xrefs of KIND for IDENTIFIER.
