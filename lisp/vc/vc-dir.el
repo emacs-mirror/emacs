@@ -708,6 +708,7 @@ information."
   (when (buffer-live-p vc-dir-process-buffer)
     (let ((proc (get-buffer-process vc-dir-process-buffer)))
       (when proc (delete-process proc))
+      (kill-buffer vc-dir-process-buffer)
       (setq vc-dir-process-buffer nil)
       (setq mode-line-process nil))))
 
@@ -715,9 +716,10 @@ information."
   ;; Make sure that when the status buffer is killed the update
   ;; process running in background is also killed.
   (if (vc-dir-busy)
-    (when (y-or-n-p "Status update process running, really kill status buffer? ")
-      (vc-dir-kill-dir-status-process)
-      t)
+      (and (y-or-n-p "\
+Status update process running, really kill status buffer? ")
+           (vc-dir-kill-dir-status-process)
+           t)
     t))
 
 ;; By design the vc-dir-next-* commands move point from the current
@@ -1496,7 +1498,9 @@ the *vc-dir* buffer.
     (add-to-list 'vc-dir-buffers (current-buffer))
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
-    (add-hook 'kill-buffer-query-functions #'vc-dir-kill-query nil t)
+    (if noninteractive
+        (add-hook 'kill-buffer-hook #'vc-dir-kill-dir-status-process nil t)
+      (add-hook 'kill-buffer-query-functions #'vc-dir-kill-query nil t))
     (hack-dir-local-variables-non-file-buffer)))
 
 (defvar-keymap vc-dir-outgoing-revisions-map
