@@ -71,6 +71,7 @@ SEVERITY-PREDICATE is used to setup
          (warning-minimum-log-level :error))
     (unwind-protect
         (with-current-buffer buffer
+          (setq-local trusted-content :all)
           (save-excursion
             (when sev-pred-supplied-p
               (setq-local flymake-proc-diagnostic-type-pred severity-predicate))
@@ -239,6 +240,7 @@ SEVERITY-PREDICATE is used to setup
   "Test many different kinds of backends."
   (let ((debug-on-error nil))
   (with-temp-buffer
+    (setq-local trusted-content :all)
     (cl-letf
         (((symbol-function 'error-backend)
           (lambda (report-fn)
@@ -321,6 +323,7 @@ SEVERITY-PREDICATE is used to setup
 (ert-deftest recurrent-backend ()
   "Test a backend that calls REPORT-FN multiple times."
   (with-temp-buffer
+    (setq-local trusted-content :all)
     (let (tick)
       (cl-letf
           (((symbol-function 'eager-backend)
