@@ -251,6 +251,11 @@ The default definition of 'log-edit-headers-separator' now inherits its
 attributes from the face 'separator-line'.  That changes the default
 color and makes it work better in the terminal.
 
+** Diff
+
+---
+*** 'diff-switches' now includes '-r' by default.
+
 ** Outline mode
 
 *** New command 'outline-show-entry-and-parents'.

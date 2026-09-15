@@ -38,7 +38,7 @@
   :group 'tools)
 
 ;;;###autoload
-(defcustom diff-switches "-u"
+(defcustom diff-switches '("-u" "-r")
   "A string or list of strings specifying switches to be passed to diff.
 
 This variable is also used in the `vc-diff' command (and related
