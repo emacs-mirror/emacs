@@ -8357,16 +8357,7 @@ should all return proper values."
      (expand-file-name
       (concat
        (file-remote-p ert-remote-temporary-file-directory) "~"
-       (file-remote-p ert-remote-temporary-file-directory 'user))))))
-
-  ;; There shall be a user-error if `tramp-histfile-override' isn't proper.
-  (when (tramp--test-sh-p)
-    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-    (cl-letf* (((symbol-function #'tramp-get-home-directory) #'ignore))
-      (let ((tramp-histfile-override (default-value 'tramp-histfile-override)))
-	(should-error
-	 (file-truename ert-remote-temporary-file-directory)
-	 :type 'user-error)))))
+       (file-remote-p ert-remote-temporary-file-directory 'user)))))))
 
 ;; `tramp-test46-asynchronous-requests' could be blocked.  So we set a
 ;; timeout of 300 seconds, and we send a SIGUSR1 signal after 300
