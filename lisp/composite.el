@@ -871,13 +871,46 @@ and the second is a glyph for a variation selector."
 	      (lgstring-set-glyph gstring 1 nil)
 	      (throw 'tag gstring)))))))
 
-;; We explicitly don't handle #xFE0F (VS-16) here, because that's
-;; taken care of by font_range in font.c, which will check for an
-;; emoji font for codepoints used in compositions even if they're not
-;; emoji themselves, and thus choose the Emoji presentation for them
-;; when followed by VS-16.  VS-15 *is* handled here, because if it's
-;; handled in font_range, we end up choosing the Emoji presentation
-;; rather than the Text presentation.
+(defun compose-gstring-and-emoji-for-terminal (gstring _direction)
+  "Compose Emoji sequences for TTY frames.
+
+The width of the composition is adjusted to 2."
+  (let ((nglyphs (lgstring-char-len gstring)))
+    (dotimes (i nglyphs)
+      (let ((glyph (lgstring-glyph gstring i)))
+        (when glyph
+          (lglyph-set-from-to glyph 0 (1- nglyphs))
+          (lglyph-set-width glyph (if (= i 0) 2 0))))))
+  gstring)
+
+(defun compose-gstring-and-emoji (gstring _direction)
+  "Compose Emoji sequences into a grapheme cluster.
+
+This function always returns nil, but acts as a placeholder symbol in
+'composition-function-table'.  Either call 'compose-gstring-for-graphic'
+or 'compose-gstring-and-emoji-for-terminal', depending on the type of
+the display.")
+
+;; We handle #xFE0F (VS-16) specially by using a special symbol
+;; compose-gstring-and-emoji, which is eventually dispatched to either
+;; compose-gstring-for-graphic or compose-gstring-and-emoji-for-terminal
+;; based on the type of the display in auto-compose-chars, which see.
+;;
+;; On graphical frames, VS-16 is taken care of by font_range in font.c
+;; (via compose-gstring-for-graphic), which will check for an emoji font
+;; for codepoints used in compositions even if they're not emoji
+;; themselves, and thus choose the Emoji presentation for them when
+;; followed by VS-16.  VS-15 *is* handled here, because if it's handled
+;; in font_range, we end up choosing the Emoji presentation rather than
+;; the Text presentation.
+;;
+;; On terminal frames, compose-gstring-and-emoji-for-terminal will
+;; simply compose Emoji sequences and directly write them to the
+;; terminal, assuming that the terminal is capable of rendering them
+;; correctly.
+(set-char-table-range composition-function-table #xFE0F
+                      '(["\\c.\\c^+" 1 compose-gstring-and-emoji]
+                        [nil 0 compose-gstring-and-emoji]))
 (let ((elt '([".." 1 compose-gstring-for-variation-glyph])))
   (set-char-table-range composition-function-table '(#xFE00 . #xFE0D) elt)
   (set-char-table-range composition-function-table '(#xE0100 . #xE01EF) elt))
@@ -910,7 +943,7 @@ This function is the default value of `auto-composition-function' (which see)."
            (fontp font-object 'font-object))
       (compose-gstring-for-graphic gstring direction))
      ((eq func #'compose-gstring-and-emoji)
-      (compose-gstring-and-emoji gstring direction))
+      (compose-gstring-and-emoji-for-terminal gstring direction))
      ((fontp font-object 'font-object)
       (funcall func gstring direction))
      (t
@@ -946,20 +979,6 @@ For more information on Auto Composition mode, see
   :variable (default-value 'auto-composition-mode))
 
 (defalias 'toggle-auto-composition 'auto-composition-mode)
-
-(defun compose-gstring-and-emoji (gstring _direction)
-  "Compose Emoji sequences into a grapheme cluster.
-This function is only called on TTY frames.  On graphical displays,
-`auto-compose-chars' will call `compose-gstring-for-graphic' instead."
-  ;; Emoji sequences are matched exactly.
-  (let ((nglyphs (lgstring-char-len gstring)))
-    (dotimes (i nglyphs)
-      (let ((glyph (lgstring-glyph gstring i)))
-        (when glyph
-          (lglyph-set-from-to glyph 0 (1- nglyphs))
-          ;; Adjust the total width of the gstring to 2.
-          (lglyph-set-width glyph (if (= i 0) 2 0))))))
-  gstring)
 
 (provide 'composite)
 
