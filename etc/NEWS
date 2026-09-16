@@ -259,8 +259,8 @@ color and makes it work better in the terminal.
 ** Outline mode
 
 *** New command 'outline-show-entry-and-parents'.
-It is bound to 'C-e' and reveals the current entry
-with its parent hierarchy.
+It is bound to 'C-e' in the Outline keymaps and reveals the current
+entry with its parent hierarchy.
 
 ---
 *** New function 'outline-search-from-regexp'.
@@ -294,7 +294,7 @@ Otherwise, a pattern is built from 'comment-start' and the new option
 *** New command 'outline-find-headings'.
 It finds all outline headings in the current buffer and displays them in
 an Xref buffer.  Users can use that Xref buffer to navigate and edit the
-outline.  It is bound to 'C-c @ M-o'.
+outline.  It is bound to 'M-o' in the Outline keymaps.
 
 ** Xref
 
