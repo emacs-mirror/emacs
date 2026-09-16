@@ -25,6 +25,7 @@
 
 (require 'comint)
 (require 'ert)
+(require 'ert-x)
 
 (defvar comint-testsuite-password-strings
   '("foo@example.net's password: " ; ssh
@@ -115,5 +116,17 @@ flow.  Hook function returns alternative password."
   "Test that `comint-password-function' does not alter the normal
 password flow if it returns a nil value."
   (comint-tests/test-password-function #'ignore))
+
+(ert-deftest comint-test-file-name-bug80251 ()
+  (with-temp-buffer
+    (setq default-directory (ert-resource-directory))
+    (insert "cat dt1")
+    (let ((completion-styles '(partial-completion)))
+      (dotimes (_ 2)
+        (pcase-let ((`(,beg ,end ,table . ,_)
+                     (comint--complete-file-name-data)))
+          (completion-in-region beg end table))))
+    (should (equal (buffer-string) "cat dt1_Q.dat"))
+    (should (= (point) 10))))
 
 ;;; comint-tests.el ends here
