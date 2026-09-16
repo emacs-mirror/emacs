@@ -697,47 +697,17 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 (defun tramp-smb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
-  ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
-  (setq dir (or dir default-directory "/"))
-  ;; Handle empty NAME.
-  (when (string-empty-p name)
-    (setq name "."))
-  ;; Unless NAME is absolute, concat DIR and NAME.
-  (unless (file-name-absolute-p name)
-    (setq name (file-name-concat dir name)))
-  ;; If NAME is not a Tramp file, run the real handler.
-  (if (not (tramp-tramp-file-p name))
-      (tramp-run-real-handler #'expand-file-name (list name))
-    ;; Dissect NAME.
-    (with-parsed-tramp-file-name name nil
-      ;; Tilde expansion shall be possible also for quoted localname.
-      (when (string-prefix-p "~" (file-name-unquote localname))
-	(setq localname (file-name-unquote localname)))
-      ;; Tilde expansion if necessary.
-      (when (string-match
-	     (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
-	(let ((uname (match-string 1 localname))
-	      (fname (match-string 2 localname))
-	      hname)
-	  (when (tramp-string-empty-or-nil-p uname)
-	    (setq uname user))
-	  (when (setq hname (tramp-get-home-directory v uname))
-	    (setq localname (concat hname fname)))))
-      ;; Tilde expansion is not possible.
-      (when (and (not tramp-tolerate-tilde)
-		 (string-prefix-p "~" localname))
-	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
-      (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
-	(setq localname (concat "/" localname)))
-      ;; Do not keep "/..".
-      (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
-	(setq localname "/"))
-      ;; Do normal `expand-file-name' (this does "/./" and "/../"),
-      ;; unless there are tilde characters in file name.
-      (tramp-make-tramp-file-name
-       v (if (string-prefix-p "~" localname)
-	     localname
-	   (tramp-run-real-handler #'expand-file-name (list localname)))))))
+  (tramp-skeleton-expand-file-name name dir
+    ;; Tilde expansion if necessary.
+    (when (string-match
+	   (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
+      (let ((uname (match-string 1 localname))
+	    (fname (match-string 2 localname))
+	    hname)
+	(when (tramp-string-empty-or-nil-p uname)
+	  (setq uname user))
+	(when (setq hname (tramp-get-home-directory v uname))
+	  (setq localname (concat hname fname)))))))
 
 (defun tramp-smb-remote-acl-p (_vec)
   "Check, whether ACL is enabled on the remote host."

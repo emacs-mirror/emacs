@@ -2959,77 +2959,31 @@ The method used must be an out-of-band method."
   "Like `expand-file-name' for Tramp files.
 If the localname part of the given file name starts with \"/../\" then
 the result will be a local, non-Tramp, file name."
-  ;; If DIR is not given, use `default-directory' or "/".
-  (setq dir (or dir default-directory "/"))
-  ;; Handle empty NAME.
-  (when (string-empty-p name)
-    (setq name "."))
-  ;; On MS Windows, some special file names are not returned properly
-  ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
-  ;; there could be the false positive "/:".
-  (if (or (and (eq system-type 'windows-nt)
-	       (string-match-p
-		(rx bol (| (: alpha ":") (: (literal (or null-device "")) eol)))
-		name))
-	  (and (not (tramp-tramp-file-p name))
-	       (not (tramp-tramp-file-p dir))))
-      (tramp-run-real-handler #'expand-file-name (list name dir))
-    ;; Unless NAME is absolute, concat DIR and NAME.
-    (unless (file-name-absolute-p name)
-      (setq name (file-name-concat dir name)))
-    ;; Dissect NAME.
-    (with-parsed-tramp-file-name name nil
-      ;; If connection is not established yet, run the real handler.
-      (if (not (tramp-connectable-p v))
-	  (tramp-drop-volume-letter
-	   (tramp-run-real-handler #'expand-file-name (list name)))
-	(unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
-	  (setq localname (concat "~/" localname)))
-        ;; Tilde expansion shall be possible also for quoted localname.
-	(when (string-prefix-p "~" (file-name-unquote localname))
-	  (setq localname (file-name-unquote localname)))
-	;; Tilde expansion if necessary.  This needs a shell which
-	;; groks tilde expansion!  The function `tramp-find-shell' is
-	;; supposed to find such a shell on the remote host.  Please
-	;; tell me about it when this doesn't work on your system.
-	(when (string-match
-	       (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
-	  (let ((uname (match-string 1 localname))
-		(fname (match-string 2 localname))
-		hname)
-	    ;; We cannot simply apply "~/", because under sudo "~/" is
-	    ;; expanded to the local user home directory but to the
-	    ;; root home directory.  On the other hand, using always
-	    ;; the default user name for tilde expansion is not
-	    ;; appropriate either, because ssh and companions might
-	    ;; use a user name from the config file.
-	    (when (and (tramp-string-empty-or-nil-p uname)
-		       (string-match-p
-			(rx bos
-			    (| "su" "surs" "sudo" "sudors" "doas" "run0" "ksu")
-			    eos)
-			method))
-	      (setq uname user))
-	    (when (setq hname (tramp-get-home-directory v uname))
-	      (setq localname (concat hname fname)))))
-	;; There might be a double slash, for example when "~/"
-	;; expands to "/".  Remove this.
-	(while (string-match "//" localname)
-	  (setq localname (replace-match "/" t t localname)))
-	;; Do not keep "/..".
-	(when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
-	  (setq localname "/"))
-	;; Do normal `expand-file-name' (this does "/./" and "/../"),
-	;; unless there are tilde characters in file name.
-	;; `default-directory' is bound, because on Windows there
-	;; would be problems with UNC shares or Cygwin mounts.
-	(let ((default-directory tramp-compat-temporary-file-directory))
-	  (tramp-make-tramp-file-name
-	   v (tramp-drop-volume-letter
-	      (if (string-prefix-p "~" localname)
-		  localname
-		(tramp-run-real-handler
-		 #'expand-file-name (list localname))))))))))
+  (tramp-skeleton-expand-file-name name dir
+    ;; Tilde expansion if necessary.  This needs a shell which
+    ;; groks tilde expansion!  The function `tramp-find-shell' is
+    ;; supposed to find such a shell on the remote host.  Please
+    ;; tell me about it when this doesn't work on your system.
+    (when (string-match
+	   (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
+      (let ((uname (match-string 1 localname))
+	    (fname (match-string 2 localname))
+	    hname)
+	;; We cannot simply apply "~/", because under sudo "~/" is
+	;; expanded to the local user home directory but to the
+	;; root home directory.  On the other hand, using always
+	;; the default user name for tilde expansion is not
+	;; appropriate either, because ssh and companions might
+	;; use a user name from the config file.
+	(when (and (tramp-string-empty-or-nil-p uname)
+		   (string-match-p
+		    (rx bos
+			(| "su" "surs" "sudo" "sudors" "doas" "run0" "ksu")
+			eos)
+		    method))
+	  (setq uname user))
+	(when (setq hname (tramp-get-home-directory v uname))
+	  (setq localname (concat hname fname)))))))
 
 ;;; Remote processes:
 

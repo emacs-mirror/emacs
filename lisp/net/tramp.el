@@ -3846,6 +3846,79 @@ BODY is the backend specific code."
 	       (tramp-handle-directory-files-and-attributes
 		,directory ,full ,match ,nosort ,id-format ,count)))))))
 
+(defmacro tramp-skeleton-expand-file-name (name &optional dir &rest body)
+  "Skeleton for `tramp-*-handle-expand-file-name'.
+BODY is the backend specific code."
+  (declare (indent 2) (debug t))
+  `(let ((dir ,dir)
+	 (name ,name))
+     ;; If DIR is not given, use `default-directory' or "/".
+     (setq dir (or dir default-directory "/"))
+     ;; Handle empty NAME.
+     (when (string-empty-p name)
+       (setq name "."))
+     ;; On MS Windows, some special file names are not returned properly
+     ;; by `file-name-absolute-p'.  If `tramp-syntax' is `simplified',
+     ;; there could be the false positive "/:".
+     (if (or (and (eq system-type 'windows-nt)
+		  (string-match-p
+		   (rx bol (| (: alpha ":") (: (literal (or null-device "")) eol)))
+		   name))
+	     (and (not (tramp-tramp-file-p name))
+		  (not (tramp-tramp-file-p dir))))
+	 (tramp-run-real-handler #'expand-file-name (list name dir))
+       ;; Unless NAME is absolute, concat DIR and NAME.
+       (unless (file-name-absolute-p name)
+	 (setq name (file-name-concat dir name)))
+       ;; Dissect NAME.
+       (with-parsed-tramp-file-name name nil
+	 ;; If connection is not established yet, run the real handler.
+	 (if (not (tramp-connectable-p v))
+	     (tramp-drop-volume-letter
+	      (tramp-run-real-handler #'expand-file-name (list name)))
+           ;; Tilde expansion shall be possible also for quoted localname.
+	   (when (string-prefix-p "~" (file-name-unquote localname))
+	     (setq localname (file-name-unquote localname)))
+	   ;; Use tilde for relative localname.  A simple check of
+	   ;; `file-name-absolute-p' for localname isn't sufficient;
+	   ;; localname could be "~user/..." with a (remote) user which
+	   ;; doesn't exist locally.
+	   (when (tramp-sh-file-name-handler-p v)
+	     (unless (or (string-prefix-p "~" localname)
+			 (tramp-run-real-handler
+			  #'file-name-absolute-p (list localname)))
+	       (setq localname (concat "~/" localname))))
+
+	   ;; This does tilde expansion.
+	   ,@body
+
+	   ;; Tilde expansion is not possible.
+	   (when (and (not tramp-tolerate-tilde)
+		      (string-prefix-p "~" localname))
+	     (tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
+	   ;; Make it absolute.
+	   (unless
+	       (tramp-run-real-handler #'file-name-absolute-p (list localname))
+	     (setq localname (concat "/" localname)))
+	   ;; There might be a double slash, for example when "~/"
+	   ;; expands to "/".  Remove this.
+	   (while (string-match "//" localname)
+	     (setq localname (replace-match "/" t t localname)))
+	   ;; Do not keep "/..".
+	   (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
+	     (setq localname "/"))
+	   ;; Do normal `expand-file-name' (this does "/./" and "/../"),
+	   ;; unless there are tilde characters in file name.
+	   ;; `default-directory' is bound, because on Windows there
+	   ;; would be problems with UNC shares or Cygwin mounts.
+	   (let ((default-directory tramp-compat-temporary-file-directory))
+	     (tramp-make-tramp-file-name
+	      v (tramp-drop-volume-letter
+		 (if (string-prefix-p "~" localname)
+		     localname
+		   (tramp-run-real-handler
+		    #'expand-file-name (list localname)))))))))))
+
 (defcustom tramp-use-file-attributes t
   "Whether to use \"file-attributes\" connection property for check.
 This is relevant for read, write, and execute permissions.  On some file
@@ -4445,52 +4518,19 @@ Let-bind it when necessary.")
 
 (defun tramp-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
-  ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
-  (setq dir (or dir default-directory "/"))
-  ;; Handle empty NAME.
-  (when (string-empty-p name)
-    (setq name "."))
-  ;; Unless NAME is absolute, concat DIR and NAME.
-  (unless (file-name-absolute-p name)
-    (setq name (file-name-concat dir name)))
-  ;; If NAME is not a Tramp file, run the real handler.
-  (if (not (tramp-tramp-file-p name))
-      (tramp-run-real-handler #'expand-file-name (list name))
-    ;; Dissect NAME.
-    (with-parsed-tramp-file-name name nil
-      (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
-	(setq localname (concat "/" localname)))
-      ;; Tilde expansion shall be possible also for quoted localname.
-      (when (string-prefix-p "~" (file-name-unquote localname))
-	(setq localname (file-name-unquote localname)))
-      ;; Expand tilde.  Usually, the methods applying this handler do
-      ;; not support tilde expansion.  But users could declare a
-      ;; respective connection property.  (Bug#53847)
-      (when (string-match
-	     (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
-	(let ((uname (match-string 1 localname))
-	      (fname (match-string 2 localname))
-	      hname)
-	  (when (tramp-string-empty-or-nil-p uname)
-	    (setq uname user))
-	  (when (setq hname (tramp-get-home-directory v uname))
-	    (setq localname (concat hname fname)))))
-      ;; Tilde expansion is not possible.
-      (when (and (not tramp-tolerate-tilde)
-		 (string-prefix-p "~" localname))
-	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
-      ;; Do not keep "/..".
-      (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
-	(setq localname "/"))
-      ;; Do normal `expand-file-name' (this does "/./" and "/../").
-      ;; `default-directory' is bound, because on Windows there would
-      ;; be problems with UNC shares or Cygwin mounts.
-      (let ((default-directory tramp-compat-temporary-file-directory))
-	(tramp-make-tramp-file-name
-	 v (tramp-drop-volume-letter
-	    (if (string-prefix-p "~" localname)
-		localname
-	      (tramp-run-real-handler #'expand-file-name (list localname)))))))))
+  (tramp-skeleton-expand-file-name name dir
+    ;; Expand tilde.  Usually, the methods applying this handler do
+    ;; not support tilde expansion.  But users could declare a
+    ;; respective connection property.  (Bug#53847)
+    (when (string-match
+	   (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
+      (let ((uname (match-string 1 localname))
+	    (fname (match-string 2 localname))
+	    hname)
+	(when (tramp-string-empty-or-nil-p uname)
+	  (setq uname user))
+	(when (setq hname (tramp-get-home-directory v uname))
+	  (setq localname (concat hname fname)))))))
 
 (defun tramp-handle-file-accessible-directory-p (filename)
   "Like `file-accessible-directory-p' for Tramp files."
