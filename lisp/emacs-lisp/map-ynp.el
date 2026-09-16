@@ -99,7 +99,7 @@ are meaningful here, as described above.
 
 By default, this function uses the minibuffer to read the key
 non-modally (see `read-from-minibuffer').  However, if
-`y-or-n-p-use-read-key' is non-nil, the modal `read-key'
+`y-or-n-p-use-read-key' is non-nil, the modal `read-key-sequence-vector'
 function is used instead.
 
 The function's value is the number of actions taken."
@@ -173,7 +173,7 @@ The function's value is the number of actions taken."
 						   (cons prompt map))
 				   'quit)))
 		    (y-or-n-p-use-read-key
-		     ;; Prompt in the echo area using `read-key'.
+		     ;; Prompt in the echo area using `read-key-sequence-vector'.
 		     (let ((cursor-in-echo-area (not no-cursor-in-echo-area))
                            (full-prompt
                             (substitute-command-keys
@@ -197,7 +197,27 @@ The function's value is the number of actions taken."
                              ;; Do NOT use read-event here.  That
                              ;; function does not consult
                              ;; input-decode-map (bug#75886).
-		             (setq chars (read-key-sequence-vector full-prompt))
+                             ;; Despite the name 'y-or-n-p-use-read-key',
+                             ;; this uses 'read-key-sequence-vector'
+                             ;; instead of 'read-key' for several reasons.
+                             ;; 'read-key' returns a single key while on TTY
+                             ;; we need also to read escape sequences.
+                             ;; Additionally we need to bind 'ESC ESC ESC'
+                             ;; to allow using 'keyboard-escape-quit'.
+                             ;; This also creates the 'ESC' keymap required to
+                             ;; support escape sequences on TTY such as 'ESC ~'.
+                             (let ((overriding-terminal-local-map nil)
+                                   (overriding-local-map read-key-empty-map)
+                                   (echo-keystrokes 0)
+                                   (old-global-map (current-global-map)))
+                               (unwind-protect
+                                   (progn
+                                     (use-global-map
+                                      (let ((map (make-sparse-keymap)))
+                                        (define-key map [?\e ?\e ?\e] #'keyboard-escape-quit)
+                                        map))
+                                     (setq chars (read-key-sequence-vector full-prompt)))
+                                 (use-global-map old-global-map)))
                              (when (member chars '([?\C-g] [?\C-\[ ?\C-\[ ?\C-\[]))
                                (signal 'quit nil)))
                          (when (fboundp 'set-text-conversion-style)

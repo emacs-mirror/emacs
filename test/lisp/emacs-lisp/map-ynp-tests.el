@@ -52,7 +52,9 @@
 (defvar map-ynp-tests-result nil)
 
 (defvar-keymap map-ynp-tests-map
-  "C-x s" 'map-ynp-tests-command)
+  "C-x s" #'map-ynp-tests-command
+  ;; Test that no bindings prevent typing an answer key (bug#81804).
+  "y y" #'ignore)
 
 (defun map-ynp-tests-command-symbol (obj)
   (interactive)
@@ -95,9 +97,11 @@
       (map-ynp-tests-run "x q" nil) ;; x - random char
 
       (kill-buffer (help-buffer))
-      (if y-or-n-p-use-read-key
-          (map-ynp-tests-run "? q" nil)
-        (map-ynp-tests-run "C-h q" nil))
+      (map-ynp-tests-run "? q" nil)
+      (should (get-buffer (help-buffer)))
+
+      (kill-buffer (help-buffer))
+      (map-ynp-tests-run "C-h q" nil)
       (should (get-buffer (help-buffer)))
 
       (should (equal 'quit
