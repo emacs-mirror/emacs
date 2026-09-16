@@ -8063,7 +8063,7 @@ predicate conditions in CONDITION."
     bufs))
 
 (defmacro handler-bind (handlers &rest body)
-  "Setup error HANDLERS around execution of BODY.
+  "Set up error HANDLERS around execution of BODY.
 HANDLERS is a list of (CONDITIONS HANDLER) where
 CONDITIONS should be a list of condition names (symbols) or
 a single condition name, and HANDLER is a form whose evaluation
