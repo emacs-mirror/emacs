@@ -4121,6 +4121,18 @@ Disable @code{tramp-histfile-override}, @ref{Managing remote shell history}:
 @end lisp
 @end itemize
 
+@vindex tramp-tolerate-tilde
+In case you want use @file{~} in a file name although it cannot be
+expanded (like in artificial file names in test functions), let-bind
+@code{tramp-tolerate-tilde} to a non-nil value:
+
+@lisp
+@group
+(let ((tramp-tolerate-tilde nil))
+  (expand-file-name "@trampfn{ssh,host,~user/file.txt}"))
+@end group
+@end lisp
+
 
 @node Remote processes
 @section Integration with other Emacs packages

@@ -216,7 +216,8 @@
 (ert-deftest esh-util-test/split-filename/remote-user ()
   "Test splitting a remote user filename."
   (skip-unless (eshell-tests-remote-accessible-p))
-  (let ((remote (file-remote-p ert-remote-temporary-file-directory)))
+  (let ((remote (file-remote-p ert-remote-temporary-file-directory))
+        (tramp-tolerate-tilde t))
     (should (equal (eshell-split-filename (format "%s~/file.txt" remote))
                    `(,remote "~/" "file.txt")))
     (should (equal (eshell-split-filename (format "%s~user/file.txt" remote))
