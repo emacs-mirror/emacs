@@ -10786,7 +10786,14 @@ DEFUN ("w32-get-ime-open-status",
        doc: /* Return non-nil if IME is active, otherwise return nil.
 
 IME, the MS-Windows Input Method Editor, can be active or inactive.
-This function returns non-nil if the IME is active, otherwise nil.  */)
+This function returns non-nil if the IME is active, otherwise nil.
+
+Caveat: on Windows 11 and later, this function might return non-nil
+even when IME is not active, or nil when it's active.  This is due to
+"new" TSF-based IME which have known compatibility issues with
+IME-related APIs which Emacs uses.  A workaround is to switch to the
+legacy IME mode, a.k.a. the "previous version of Microsoft IME", in
+the IME Compatibility settings.  */)
   (void)
 {
   struct frame *sf =
