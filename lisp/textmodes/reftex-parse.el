@@ -207,7 +207,13 @@ of master file."
         file-found tmp include-file
         (level 1)
         (highest-level 100)
-        toc-entry index-entry next-buf buf)
+        toc-entry index-entry next-buf buf
+        (verbatim-p (lambda () (let (syntax)
+                                 (or
+                                  ;; This is for AUCTeX `LaTeX-mode':
+                                  (nth 3 (setq syntax (syntax-ppss)))
+                                  ;; This is for built-in `latex-mode':
+                                  (nth 4 syntax))))))
 
     (catch 'exit
       (setq file-found (reftex-locate-file file "tex" master-dir))
@@ -239,15 +245,14 @@ of master file."
              (goto-char 1)
 
              (while (re-search-forward regexp nil t)
-
                (cond
-
+                ;; It is a label
                 ((match-end 1)
-                 ;; It is a label
-		 (when (or (null reftex-label-ignored-macros-and-environments)
-			   ;; \label{} defs should always be honored,
-			   ;; just no keyval style [label=foo] defs.
-			   (string-equal "\\label{" (substring (reftex-match-string 0) 0 7))
+                 (when (or (null reftex-label-ignored-macros-and-environments)
+                           ;; \label{} defs should always be honored,
+                           ;; even if inside a verbatim enviroment,
+                           ;; just no keyval style [label=foo] defs.
+                           (string-equal "\\label{" (substring (reftex-match-string 0) 0 7))
                            (if (and (fboundp 'TeX-current-macro)
                                     (fboundp 'LaTeX-current-environment))
                                (not (or (member (save-match-data (TeX-current-macro))
@@ -255,69 +260,72 @@ of master file."
                                         (member (save-match-data (LaTeX-current-environment))
                                                 reftex-label-ignored-macros-and-environments)))
                              t))
-		   (push (reftex-label-info (reftex-match-string 1) file bound)
-			 docstruct)))
+                   (push (reftex-label-info (reftex-match-string 1) file bound)
+                         docstruct)))
 
+                ;; It is a section
                 ((match-end 3)
-                 ;; It is a section
+                 ;; Use the beginning as bound and not the end
+                 ;; (i.e. (point)) because the section command might
+                 ;; be the start of the current environment to be
+                 ;; found by `reftex-label-info'.
+                 (unless (funcall verbatim-p)
+                   (setq bound (match-beginning 0))
+                   ;; The section regexp matches a character at the end
+                   ;; we are not interested in.  Especially if it is the
+                   ;; backslash of a following macro we want to find in
+                   ;; the next parsing iteration.
+                   (when (eq (char-before) ?\\) (backward-char))
+                   ;; Insert in List
+                   (setq toc-entry (funcall reftex-section-info-function file))
+                   (when (and toc-entry
+                              (eq ;; Either both are t or both are nil.
+                               (= (char-after bound) ?%)
+                               (and (stringp file)
+                                    (string-suffix-p ".dtx" file))))
+                     ;; It can happen that section info returns nil
+                     (setq level (nth 5 toc-entry))
+                     (setq highest-level (min highest-level level))
+                     (if (= level highest-level)
+                         (message
+                          "Scanning %s %s ..."
+                          (car (rassoc level reftex-section-levels-all))
+                          (nth 6 toc-entry)))
 
-		 ;; Use the beginning as bound and not the end
-		 ;; (i.e. (point)) because the section command might
-		 ;; be the start of the current environment to be
-		 ;; found by `reftex-label-info'.
-                 (setq bound (match-beginning 0))
-		 ;; The section regexp matches a character at the end
-		 ;; we are not interested in.  Especially if it is the
-		 ;; backslash of a following macro we want to find in
-		 ;; the next parsing iteration.
-		 (when (eq (char-before) ?\\) (backward-char))
-                 ;; Insert in List
-                 (setq toc-entry (funcall reftex-section-info-function file))
-                 (when (and toc-entry
-                            (eq ;; Either both are t or both are nil.
-                             (= (char-after bound) ?%)
-                             (and (stringp file)
-                                  (string-suffix-p ".dtx" file))))
-                   ;; It can happen that section info returns nil
-                   (setq level (nth 5 toc-entry))
-                   (setq highest-level (min highest-level level))
-                   (if (= level highest-level)
-                       (message
-                        "Scanning %s %s ..."
-                        (car (rassoc level reftex-section-levels-all))
-                        (nth 6 toc-entry)))
+                     (push toc-entry docstruct)
+                     (setq reftex-active-toc toc-entry))))
 
-                   (push toc-entry docstruct)
-                   (setq reftex-active-toc toc-entry)))
-
+                ;; It's an include or input
                 ((match-end 7)
-                 ;; It's an include or input
-                 (setq include-file (reftex-match-string 7))
-                 ;; Test if this file should be ignored
-                 (unless (delq nil (mapcar
-                                    (lambda (x) (string-match x include-file))
-                                    reftex-no-include-regexps))
-                   ;; Parse it
-                   (setq docstruct
-                         (reftex-parse-from-file
-                          include-file
-                          docstruct master-dir))))
+                 (unless (funcall verbatim-p)
+                   (setq include-file (reftex-match-string 7))
+                   ;; Test if this file should be ignored
+                   (unless (delq nil (mapcar
+                                      (lambda (x) (string-match x include-file))
+                                      reftex-no-include-regexps))
+                     ;; Parse it
+                     (setq docstruct
+                           (reftex-parse-from-file
+                            include-file
+                            docstruct master-dir)))))
 
+                ;; Appendix starts here
                 ((match-end 9)
-                 ;; Appendix starts here
-                 (reftex-init-section-numbers nil t)
-                 (push (cons 'appendix t) docstruct))
+                 (unless (funcall verbatim-p)
+                   (reftex-init-section-numbers nil t)
+                   (push (cons 'appendix t) docstruct)))
 
+                ;; Index entry
                 ((match-end 10)
-                 ;; Index entry
-                 (when reftex-support-index
+                 (when (and reftex-support-index
+                            (not (funcall verbatim-p)))
                    (setq index-entry (reftex-index-info file))
                    (when index-entry
                      (cl-pushnew (nth 1 index-entry) reftex--index-tags :test #'equal)
                      (push index-entry docstruct))))
 
+                ;; A macro with label
                 ((match-end 11)
-                 ;; A macro with label
                  (save-excursion
                    (let* ((mac (reftex-match-string 11))
                           (label (progn (goto-char (match-end 11))
@@ -335,16 +343,16 @@ of master file."
                                         (reftex-label-info
                                          label file bound nil nil))))
                      (push entry docstruct))))
-                (t (error "This should not happen (reftex-parse-from-file)")))
-               )
+                (t (error "This should not happen (reftex-parse-from-file)"))))
 
              ;; Find bibliography statement
              (when (setq tmp (reftex-locate-bibliography-files master-dir))
                (push (cons 'bib tmp) docstruct))
 
              (goto-char 1)
-             (when (re-search-forward
-                    "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
+             (when (and (re-search-forward
+                         "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
+                        (not (funcall verbatim-p)))
                (push (cons 'thebib file) docstruct))
 
              ;; Find external document specifications
@@ -360,9 +368,10 @@ of master file."
                              ;; Mandatory file argument
                              "{\\([^}]+\\)}")
                      nil t)
-               (push (list 'xr-doc (reftex-match-string 2)
-                           (reftex-match-string 3))
-                     docstruct))
+               (unless (funcall verbatim-p)
+                 (push (list 'xr-doc (reftex-match-string 2)
+                             (reftex-match-string 3))
+                       docstruct)))
 
              ;; End of file mark
              (push (list 'eof file) docstruct)))))
