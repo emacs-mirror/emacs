@@ -2,6 +2,9 @@
 #
 # History:
 #
+# 2026-08-03 Registration of additional sequences in the Moji_Joho
+#            collection.
+#
 # 2025-07-14 Combined registration of the CAAPH collection and of
 #            sequences in that collection.
 #
@@ -38,7 +41,7 @@
 # For more details on the IVD, see UTS #37:
 # https://www.unicode.org/reports/tr37/
 #
-# Copyright 2006–2025 Unicode, Inc.
+# Copyright 2006–2026 Unicode, Inc.
 # For terms of use, see: https://www.unicode.org/copyright.html
 #
 3402 E0100; Adobe-Japan1; CID+13698
@@ -20201,6 +20204,7 @@
 7CA4 E0101; Moji_Joho; MJ019849
 7CA4 E0102; Hanyo-Denshi; KS301250
 7CA4 E0102; Moji_Joho; MJ058289
+7CA4 E0103; Moji_Joho; MJ058288
 7CA5 E0100; Adobe-Japan1; CID+1501
 7CA6 E0100; Adobe-Japan1; CID+18321
 7CA6 E0101; Hanyo-Denshi; JB5118
@@ -21670,7 +21674,9 @@
 805A E0100; Adobe-Japan1; CID+6217
 805A E0101; Adobe-Japan1; CID+13580
 805A E0102; Hanyo-Denshi; JA7060
+805A E0102; Moji_Joho; MJ020851
 805A E0103; Hanyo-Denshi; TK01074840
+805A E0104; Moji_Joho; MJ058367
 805E E0100; Adobe-Japan1; CID+3593
 805F E0100; Adobe-Japan1; CID+6218
 805F E0101; Adobe-Japan1; CID+13581
@@ -36066,6 +36072,7 @@ FA29 E0100; Adobe-Japan1; CID+8687
 20509 E0101; Moji_Joho; MJ030984
 20509 E0102; Hanyo-Denshi; KS016680
 20509 E0102; Moji_Joho; MJ030983
+20509 E0103; Moji_Joho; MJ057273
 20523 E0100; Hanyo-Denshi; KS098910
 20523 E0101; Hanyo-Denshi; TK01026490
 20525 E0100; Hanyo-Denshi; IB0614
@@ -37013,6 +37020,8 @@ FA29 E0100; Adobe-Japan1; CID+8687
 23A8D E0101; Hanyo-Denshi; KS188810
 23A8D E0101; Moji_Joho; MJ038909
 23A98 E0100; Adobe-Japan1; CID+17897
+23AA3 E0100; Moji_Joho; MJ038918
+23AA3 E0101; Moji_Joho; MJ057925
 23AFA E0100; Hanyo-Denshi; KS189750
 23AFA E0101; Hanyo-Denshi; TK01048070
 23BAC E0100; Hanyo-Denshi; KS191200
@@ -37781,6 +37790,8 @@ FA29 E0100; Adobe-Japan1; CID+8687
 26BD5 E0101; Hanyo-Denshi; TK01077930
 26BDC E0100; Hanyo-Denshi; KS349140
 26BDC E0101; Hanyo-Denshi; TK01077860
+26BE7 E0100; Moji_Joho; MJ046446
+26BE7 E0101; Moji_Joho; MJ046463
 26C29 E0100; Adobe-Japan1; CID+17478
 26C29 E0101; Hanyo-Denshi; JD0536
 26C29 E0101; Moji_Joho; MJ046464

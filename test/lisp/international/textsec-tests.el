@@ -96,8 +96,8 @@
   (should (equal (textsec-unconfuse-string "ǉeto") "ljeto"))
   (should (textsec-ascii-confusable-p "ǉeto"))
   (should-not (textsec-ascii-confusable-p "ljeto"))
-  (should (equal (textsec-unconfuse-string "～") "〜"))
-  (should-not (textsec-ascii-confusable-p "～"))
+  (should (equal (textsec-unconfuse-string "～") "~"))
+  (should (textsec-ascii-confusable-p "～"))
 
   (should (textsec-single-script-confusable-p "ǉeto" "ljeto"))
   (should-not (textsec-single-script-confusable-p "paypal" "pаypаl"))

@@ -34,6 +34,8 @@ systems.
 
 * Changes in Emacs 32.1
 
+** Emacs now supports Unicode Standard version 18.0.
+
 ---
 ** Emacs no longer kills child processes after EPIPE.
 Previously, Emacs would immediately kill a child process and set its

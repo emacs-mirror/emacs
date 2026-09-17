@@ -123,6 +123,7 @@ function name2alias(name   , w, w2) {
     else if (name ~ /sutton signwriting/) return "sutton-sign-writing"
     else if (name ~ /sinhala archaic number/) return "sinhala"
     else if (name ~ /tangut components/) return "tangut"
+    else if (name ~ /jurchen radicals/) return "jurchen"
 
     sub(/^small /, "", name)
     sub(/ (extended|extensions*|supplement).*/, "", name)
@@ -281,7 +282,7 @@ END {
     {
         printf("    (#x%s #x%s %s)", start[j], end[j], alt[j])
         ## Fuzz to decide whether worth printing original name as a comment.
-        if (name[j] && alt[j] != tolower(name[j]) && alt[j] !~ /-/)
+        if (name[j] && alt[j] != tolower(name[j]) && (alt[j] !~ /-/ || tolower(name[j]) ~ /supplement/))
             printf(" ; %s", name[j])
         printf("\n")
     }

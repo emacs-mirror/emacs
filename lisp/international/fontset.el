@@ -322,6 +322,7 @@
         (miao #x16F00 #x16F54)
 	(tangut #x17000)
 	(khitan-small-script #x18B00)
+        (jurchen #x18E00)
 	(nushu #x1B170)
 	(duployan-shorthand #x1BC20)
 	(znamenny-musical-notation #x1CF00 #x1CF42 #x1CF50)
@@ -347,7 +348,8 @@
 	(domino-tile #x1F030)
         (playing-cards #x1F0A0)
         (emoji #x1F300 #x1F600)
-        (chess-symbol . [#x1FA00 #x1FA67])))
+        (chess-symbol . [#x1FA00 #x1FA67])
+        (seal #x3D000)))
 
 (defvar otf-script-alist)
 
@@ -996,9 +998,11 @@
                     miao
                     tangut
                     khitan-small-script
+                    jurchen
                     nushu
                     duployan-shorthand
-                    tai-yo))
+                    tai-yo
+                    seal))
     (set-fontset-font "fontset-default"
 		      script (font-spec :registry "iso10646-1" :script script)
 		      nil 'append))

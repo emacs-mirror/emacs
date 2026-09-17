@@ -3109,12 +3109,15 @@ on encoding."
                ;; (#x17000 . #x187FF) Tangut Ideographs
                ;; (#x18800 . #x18AFF) Tangut Components
                ;; (#x18B00 . #x18CFF) Khitan Small Script
-               ;; (#x18D00 . #x18D1E) Tangut Ideograph Supplement
-               ;; (#x18D1F . #x18D7F) unused
+               ;; (#x18D00 . #x18D20) Tangut Ideograph Supplement
+               ;; (#x18D21 . #x18D7F) unused
 	       ;; (#x18D80 . #x18DF2) Tangut Components
                ;; (#x18DF3 . #x18DFF) unused
-	       (#x1AFF0 . #x1B122)
-               ;; (#x1B123 . #x1B131) unused
+               ;; (#x18E00 . #x19191) Jurchen
+               ;; (#x19192 . #x1919F) unused
+               (#x191A0 . #x191D2)
+	       (#x1AFF0 . #x1B128)
+               ;; (#x1B129 . #x1B131) unused
                (#x1B132 . #x1B132)
                ;; (#x1B133 . #x1B14F) unused
                (#x1B150 . #x1B16F)
@@ -3123,7 +3126,7 @@ on encoding."
                (#x1BC00 . #x1BCAF)
 	       ;; (#x1BCB0 . #x1CBFF) unused
                (#x1CC00 . #x1FFFF)
-	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
+	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension B-J, Seal, unused
 	       (#xE0000 . #xE01FF)))
             (gc-cons-threshold (max gc-cons-threshold 10000000))
 	    (names (make-hash-table :size 42943 :test #'equal)))
