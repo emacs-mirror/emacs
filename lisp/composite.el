@@ -883,7 +883,7 @@ The width of the composition is adjusted to 2."
           (lglyph-set-width glyph (if (= i 0) 2 0))))))
   gstring)
 
-(defun compose-gstring-and-emoji (gstring _direction)
+(defun compose-gstring-and-emoji (_gstring _direction)
   "Compose Emoji sequences into a grapheme cluster.
 
 This function always returns nil, but acts as a placeholder symbol in
