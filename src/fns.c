@@ -76,11 +76,13 @@ get_random_fixnum (EMACS_INT lim)
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
        doc: /* Return a pseudo-random integer.
-By default, return a fixnum; all fixnums are equally likely.
-With positive integer LIMIT, return random integer in interval [0,LIMIT).
-With argument t, set the random number seed from the system's entropy
+By default, return a random fixnum value with all fixnums equally likely.
+With positive integer value of the optional argument LIMIT, return random
+integer in interval [0,LIMIT); it is an error to pass a negative LIMIT.
+If LIMIT is t, set the random number seed from the system's entropy
 pool if available, otherwise from less-random volatile data such as the time.
-With a string argument, set the seed based on the string's contents.
+If LIMIT is a string, set the seed based on the string's contents.
+Any other value of LIMIT is interpreted as nil.
 
 See Info node `(elisp)Random Numbers' for more details.  */)
   (Lisp_Object limit)
