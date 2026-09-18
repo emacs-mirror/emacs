@@ -1531,11 +1531,12 @@ under the directory @file{narrow-files} will use the value @code{20}
 even if they use @code{c-mode} because directory entries have priority
 over mode entries.
 
-You can specify the variables @code{mode}, @code{eval}, and
-@code{unibyte} in your @file{.dir-locals.el}, and they have the same
-meanings as they would have in file local variables.  @code{coding}
-cannot be specified as a directory local variable.  @xref{File
-Variables}.
+You can specify the variables @code{eval} and @code{unibyte} in your
+@file{.dir-locals.el}, and they have the same meanings as they would
+have in file local variables.  @code{coding} cannot be specified as a
+directory local variable, and @code{mode} specifies the minor mode to be
+enabled, unlike in file local variables, where it specifies the major
+mode.  @xref{File Variables}.
 
 The special key @code{auto-mode-alist} in a @file{.dir-locals.el} lets
 you set a file's major mode.  It works much like the variable
