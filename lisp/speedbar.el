@@ -1086,14 +1086,20 @@ supported at a time.
 
       ;; let's create the window
       (setq speedbar--window
-	    (display-buffer-in-side-window speedbar-buffer
-					   `((side ,@speedbar-window-side)
-					     (slot . 0)
-					     (dedicated ,@speedbar-window-dedicated-window)
-					     (window-width ,@speedbar--window-width))))
+            (display-buffer-in-side-window speedbar-buffer
+                                           `((side ,@speedbar-window-side)
+                                             (slot . 0)
+                                             (dedicated ,@speedbar-window-dedicated-window)
+                                             (window-width ,@speedbar--window-width))))
+
       ;; additional window parameters
       (set-window-parameter speedbar--window 'no-other-window t)
       (set-window-parameter speedbar--window 'no-delete-other-windows t)
+
+      ;; persist these settings so that `window-toggle-side-windows'
+      ;; will retain them when it recreates this side window.
+      (add-to-list 'window-persistent-parameters '(no-other-window . t))
+      (add-to-list 'window-persistent-parameters '(no-delete-other-windows . t))
 
       ;; `speedbar-reconfigure-keymaps' checks if the `speedbar-window' is open, so
       ;; should stay after the buffer and window definition.
@@ -1103,6 +1109,9 @@ supported at a time.
 
       ;; handle kill-buffer
       (add-hook 'kill-buffer-hook (lambda () (speedbar-window-close t)) nil t)
+      ;; handle the change of the window that display the `speedbar-buffer'
+      (add-hook 'window-buffer-change-functions
+                #'speedbar-window--handle-window-buffer-change nil t)
 
       ;; hscroll
       (setq-local auto-hscroll-mode nil)
@@ -1124,6 +1133,7 @@ killing `speedbar-buffer', which is useful for `kill-buffer-hook'."
 		  speedbar-window-max-width
 		current-width)))
 
+      (remove-hook 'window-buffer-change-functions #'speedbar-window--handle-window-buffer-change)
       (delete-window speedbar--window)
       (setq speedbar--window nil
 	    speedbar-frame nil
@@ -1152,6 +1162,14 @@ killing `speedbar-buffer', which is useful for `kill-buffer-hook'."
 	 (dframe-reposition-frame speedbar-frame
 				  (dframe-attached-frame speedbar-frame)
 				  speedbar-default-position))))
+
+(defun speedbar-window--handle-window-buffer-change (w)
+  "Handle the change of the window that displays the ‘speedbar-buffer’.
+If W displays the `speedbar-buffer' buffer, update `speedbar--window' if necessary."
+  (when (and
+         (eq (window-buffer w) speedbar-buffer)
+         (not (eq speedbar--window w)))
+    (setq speedbar--window w)))
 
 (defun speedbar-handle-delete-frame (e)
   "Handle a delete-frame event E.
