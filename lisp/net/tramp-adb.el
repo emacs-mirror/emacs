@@ -36,8 +36,6 @@
 
 (require 'tramp)
 
-(defvar process-file-return-signal-string)
-
 ;;;###tramp-autoload
 (defcustom tramp-adb-program "adb"
   "Name of the Android Debug Bridge program."
@@ -124,7 +122,6 @@ It is used for TCP/IP devices."
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-adb-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . tramp-adb-handle-exec-path)
     (expand-file-name . tramp-handle-expand-file-name)
@@ -170,7 +167,6 @@ It is used for TCP/IP devices."
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-adb-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-adb-handle-make-process)
@@ -227,7 +223,7 @@ arguments to pass to the OPERATION."
 ;;;###tramp-autoload
 (defun tramp-adb-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
-  (tramp-compat-seq-keep
+  (seq-keep
    (lambda (line)
      (when (string-match
 	    (rx bol (group (+ (not blank))) (+ blank) "device" eol) line)
@@ -287,10 +283,10 @@ arguments to pass to the OPERATION."
 	       (name (match-string 6))
 	       (symlink-target
 		(and is-symlink
-		     (cadr (split-string name (rx (| " -> " "\n")))))))
+		     (cadr (string-split name (rx (| " -> " "\n")))))))
 	  (push (list
 		 (if is-symlink
-		     (car (split-string name (rx (| " -> " "\n"))))
+		     (car (string-split name (rx (| " -> " "\n"))))
 		   name)
 		 (or is-dir symlink-target)
 		 1     ;link-count
@@ -393,7 +389,7 @@ Emacs dired can't find files."
 	(end-of-line)
 	(insert "/")))
     ;; Sort entries.
-    (let* ((lines (split-string (buffer-string) "\n" t))
+    (let* ((lines (string-lines (buffer-string) 'omit))
 	   (sorted-lines
 	    (sort
 	     lines
@@ -454,10 +450,7 @@ Emacs dired can't find files."
     (with-parsed-tramp-file-name (expand-file-name directory) nil
       (when (tramp-adb-do-ls v "-a" localname)
 	(with-current-buffer (tramp-get-buffer v)
-	  (mapcar
-	   (lambda (l)
-	     (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-	   (split-string (buffer-string) "\n" 'omit)))))))
+	  (seq-remove #'string-blank-p (string-lines (buffer-string) 'omit)))))))
 
 (defun tramp-adb-handle-file-local-copy (filename)
   "Like `file-local-copy' for Tramp files."
@@ -711,8 +704,8 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  process-file-return-signal-string signals result)
       (dotimes (i 128) (push (format "Signal %d" i) result))
       (setq result (reverse result)
-	    signals (split-string
-		     (shell-command-to-string "COLUMNS=40 kill -l") "\n" 'omit))
+	    signals
+	    (string-lines (shell-command-to-string "COLUMNS=40 kill -l") 'omit))
       (setcar result 0)
       (dolist (line signals)
 	(when (string-match
@@ -904,7 +897,7 @@ will be used."
    (with-parsed-tramp-file-name default-directory nil
      (with-tramp-connection-property (tramp-get-process v) "remote-path"
        (tramp-adb-send-command v "echo \\\"$PATH\\\"")
-       (split-string
+       (string-split
 	(with-current-buffer (tramp-get-connection-buffer v)
 	  ;; Read the expression.
 	  (goto-char (point-min))

@@ -175,7 +175,6 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (directory-files . tramp-crypt-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
     ;; `expand-file-name' performed by default handler.
@@ -221,7 +220,6 @@ If NAME doesn't belong to an encrypted remote directory, return nil."
     (lock-file . tramp-crypt-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-crypt-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
@@ -401,10 +399,6 @@ ARGS are the arguments.  It returns t if ran successful, and nil otherwise."
     (let* (;; Don't check for a proper method.
 	   (non-essential t)
 	   (default-directory tramp-compat-temporary-file-directory)
-	   ;; We cannot add it to `process-environment', because
-	   ;; `tramp-call-process-region' doesn't use it.
-	   (encfs-config
-	    (format "ENCFS6_CONFIG=%s" (tramp-crypt-config-file-name vec)))
 	   (args (delq nil args)))
       ;; Enable `auth-source', unless "emacs -Q" has been called.
       (tramp-set-connection-property
@@ -413,17 +407,19 @@ ARGS are the arguments.  It returns t if ran successful, and nil otherwise."
        (tramp-read-passwd
 	(tramp-get-connection-process vec)
 	(format "EncFS Password for %s " (tramp-crypt-get-remote-dir vec))))
-      (when (zerop
-	     (apply
-	      #'tramp-call-process-region vec (point-min) (point-max)
-	      "env" nil (tramp-get-connection-buffer vec)
-	      nil encfs-config tramp-crypt-encfsctl-program
-	      (car args) "--extpass=cat" (cdr args)))
-	;; Save the password.
-	(ignore-errors
-	  (and (functionp tramp-password-save-function)
-	       (funcall tramp-password-save-function)))
-	t))))
+      (with-environment-variables
+	  (("ENCFS6_CONFIG" (tramp-crypt-config-file-name vec)))
+	(when (zerop
+	       (apply
+		#'tramp-call-process-region vec (point-min) (point-max)
+		tramp-crypt-encfsctl-program nil
+		(tramp-get-connection-buffer vec) nil
+		(car args) "--extpass=cat" (cdr args)))
+	  ;; Save the password.
+	  (ignore-errors
+	    (and (functionp tramp-password-save-function)
+		 (funcall tramp-password-save-function)))
+	  t)))))
 
 (defun tramp-crypt-do-encrypt-or-decrypt-file-name (op name)
   "Return encrypted / decrypted NAME if NAME belongs to an encrypted directory.

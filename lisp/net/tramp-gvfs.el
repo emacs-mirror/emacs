@@ -802,7 +802,6 @@ It has been changed in GVFS 1.14.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
     (expand-file-name . tramp-gvfs-handle-expand-file-name)
@@ -848,7 +847,6 @@ It has been changed in GVFS 1.14.")
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-gvfs-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
@@ -912,21 +910,13 @@ arguments to pass to the OPERATION."
    (tramp-register-foreign-file-name-handler
     #'tramp-gvfs-file-name-p #'tramp-gvfs-file-name-handler)))
 
-;; Event type `dbus-event' is added to `while-no-input-ignore-events'
-;; in Emacs 29.1.  If it is missing, some packages like Helm report
-;; problems.  So we add it here.
-(when (and (featurep 'dbusbind)
-	   (not (memq 'dbus-event while-no-input-ignore-events)))
-  (setq while-no-input-ignore-events
-	(cons 'dbus-event while-no-input-ignore-events)))
-
 
 ;; D-Bus helper function.
 
 (defun tramp-gvfs-dbus-string-to-byte-array (string)
   "Like `dbus-string-to-byte-array' but add trailing \\0 if needed."
   (dbus-string-to-byte-array
-   (if (string-match-p (rx bol "(aya{sv})") tramp-gvfs-mountlocation-signature)
+   (if (string-prefix-p "(aya{sv})" tramp-gvfs-mountlocation-signature)
        (concat string (string 0)) string)))
 
 (defun tramp-gvfs-dbus-byte-array-to-string (byte-array)
@@ -1927,7 +1917,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	     v 6 "%s %s"
 	     signal-name (tramp-gvfs-stringify-dbus-message mount-info))
 	    (tramp-flush-file-property v "/" "list-mounts")
-	    (if (tramp-compat-string-equal-ignore-case signal-name "unmounted")
+	    (if (string-equal-ignore-case signal-name "unmounted")
 		(tramp-flush-file-properties v "/")
 	      ;; Set mountpoint and location.
 	      (tramp-set-file-property v "/" "fuse-mountpoint" fuse-mountpoint)
@@ -2052,7 +2042,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 (defun tramp-gvfs-mount-spec-entry (key value)
   "Construct a mount-spec entry to be used in a mount_spec.
 It was \"a(say)\", but has changed to \"a{sv})\"."
-  (if (string-match-p (rx bos "(aya{sv})") tramp-gvfs-mountlocation-signature)
+  (if (string-prefix-p "(aya{sv})" tramp-gvfs-mountlocation-signature)
       (list :dict-entry key
 	    (list :variant (tramp-gvfs-dbus-string-to-byte-array value)))
     (list :struct key (tramp-gvfs-dbus-string-to-byte-array value))))
@@ -2096,7 +2086,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                ((string-equal "nextcloud" method)
                 (list (tramp-gvfs-mount-spec-entry "type" "owncloud")
                       (tramp-gvfs-mount-spec-entry "host" host)))
-               ((string-match-p (rx bos "http") method)
+               ((string-prefix-p  "http" method)
                 (list (tramp-gvfs-mount-spec-entry "type" "http")
                       (tramp-gvfs-mount-spec-entry
 		       "uri"
@@ -2113,7 +2103,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
             ,@(when port
                 (list (tramp-gvfs-mount-spec-entry "port" port)))))
 	 (mount-pref
-          (if (and (string-match-p (rx bos "dav") method)
+          (if (and (string-prefix-p "dav" method)
                    (string-match (rx bos (? "/") (+ (not "/"))) localname))
               (match-string 0 localname)
 	    (tramp-gvfs-get-remote-prefix vec))))
@@ -2215,7 +2205,7 @@ connection if a previous connection has died for some reason."
 		   (string-equal localname "/"))
 	  (tramp-user-error vec "Filename must contain an AFP volume"))
 
-	(when (and (string-match-p (rx "dav" (? "s")) method)
+	(when (and (string-prefix-p "dav" method)
 		   (string-equal localname "/"))
 	  (tramp-user-error vec "Filename must contain a WebDAV share"))
 
@@ -2265,7 +2255,7 @@ connection if a previous connection has died for some reason."
 
 	  ;; The call must be asynchronously, because of the
 	  ;; "askPassword" or "askQuestion" callbacks.
-	  (if (string-match-p (rx "(so)" eol) tramp-gvfs-mountlocation-signature)
+	  (if (string-suffix-p "(so)" tramp-gvfs-mountlocation-signature)
 	      (with-tramp-dbus-call-method vec nil
 		:session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 		tramp-gvfs-interface-mounttracker tramp-gvfs-mountlocation
@@ -2330,16 +2320,11 @@ is applied, and it returns t if the return code is zero."
     (with-current-buffer (tramp-get-connection-buffer vec)
       (tramp-gvfs-maybe-open-connection vec)
       (erase-buffer)
-      (or (zerop
-	   (apply
-	    #'tramp-call-process vec "env" nil t nil
-	    (append `(,(format "LANG=%s" locale)
-		      ,(format "LANGUAGE=%s" locale)
-		      ,(format "LC_ALL=%s" locale)
-		      ,command)
-		    args)))
-	  ;; Remove information about mounted connection.
-	  (and (tramp-flush-file-properties vec "/") nil)))))
+      (with-environment-variables
+	  (("LANG" `,locale) ("LANGUAGE" `,locale) ("LC_ALL" `,locale))
+	(or (zerop (apply #'tramp-call-process vec command nil t nil args))
+	    ;; Remove information about mounted connection.
+	    (and (tramp-flush-file-properties vec "/") nil))))))
 
 
 ;; GNOME Online Accounts functions.
@@ -2510,16 +2495,16 @@ It checks for mounted media devices."
 This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
   (let ((result
 	 (ignore-errors
-	   (split-string
+	   (string-split
 	    (shell-command-to-string (format "avahi-browse -trkp %s" service))
 	    (rx (+ (any "\r\n"))) 'omit (rx bol "+;" (* nonl) eol)))))
     (seq-uniq
-     (tramp-compat-seq-keep
+     (seq-keep
       (lambda (x)
 	(ignore-errors
-	  (let* ((list (split-string x ";"))
+	  (let* ((list (string-split x ";"))
 		 (host (nth 6 list))
-		 (text (split-string (nth 9 list) "\" \"" 'omit "\""))
+		 (text (string-split (nth 9 list) "\" \"" 'omit "\""))
 		 user)
 	    ;; A user is marked in a TXT field like "u=guest".
 	    (while text

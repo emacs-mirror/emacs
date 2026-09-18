@@ -237,7 +237,6 @@ See `tramp-actions-before-shell' for more info.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     ;; TODO: Add implementation.
     (exec-path . ignore)
@@ -284,7 +283,6 @@ See `tramp-actions-before-shell' for more info.")
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-smb-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-smb-handle-make-process)
@@ -983,7 +981,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Read output from \"notify\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'tramp-events)))
     (tramp-message proc 6 "%S\n%s" proc string)
-    (dolist (line (split-string string (rx (+ (any "\r\n"))) 'omit))
+    (dolist (line (string-split string (rx (+ (any "\r\n"))) 'omit))
       (catch 'next
 	;; Watched directory is removed.
 	(when (string-match-p "NT_STATUS_DELETE_PENDING" line)
@@ -1120,10 +1118,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (setq entries
 		 (if (or wildcard (string-empty-p base))
 		     ;; Check for matching entries.
-		     (tramp-compat-seq-keep
+		     (seq-keep
 		      (lambda (x)
-			(when (string-match-p (rx bol (literal base)) (nth 0 x))
-			  x))
+			(when (string-prefix-p base (nth 0 x)) x))
 		      entries)
 		   ;; We just need the only and only entry FILENAME.
 		   (list (assoc base entries))))
@@ -1154,9 +1151,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  ;; Insert size information.
 	  (when full-directory-p
 	    (insert
-	     (if (and avail
-		      ;; Emacs 29.1 or later.
-		      (not (fboundp 'dired--insert-disk-space)))
+	     (if avail
 		 (format "total used in directory %s available %s\n" used avail)
 	       (format "total %s\n" used))))
 
@@ -1886,7 +1881,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 		     "Server supports CIFS capabilities" nil t)
 		(member
 		 "pathnames"
-		 (split-string
+		 (string-split
 		  (buffer-substring (point) (line-end-position))
 		  nil 'omit)))))))))
 

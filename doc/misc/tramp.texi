@@ -681,7 +681,7 @@ installed and loaded:
 @lisp
 @group
 (require 'tramp)
-(customize-set-variable 'tramp-verbose 6 "Enable remote command traces")
+(setopt tramp-verbose 6)
 @end group
 @end lisp
 
@@ -1545,7 +1545,7 @@ respectively:
 @lisp
 @group
 (add-to-list 'tramp-gvfs-methods "ftp")
-(customize-set-variable 'tramp-ftp-method nil)
+(setopt tramp-ftp-method nil)
 @end group
 @end lisp
 @end defopt
@@ -1639,7 +1639,7 @@ option to determine the default method for remote file names that do
 not have one specified.
 
 @lisp
-(customize-set-variable 'tramp-default-method "ssh")
+(setopt tramp-default-method "ssh")
 @end lisp
 @end defopt
 
@@ -1732,7 +1732,7 @@ this substitution can be overridden with @code{tramp-default-user}.
 For example:
 
 @lisp
-(customize-set-variable 'tramp-default-user "root")
+(setopt tramp-default-user "root")
 @end lisp
 @end defopt
 
@@ -1787,10 +1787,10 @@ follows:
 
 @lisp
 @group
-(custom-set-variables
- '(tramp-default-method "ssh")
- '(tramp-default-user "john")
- '(tramp-default-host "target"))
+(setopt
+ tramp-default-method "ssh"
+ tramp-default-user "john"
+ tramp-default-host "target")
 @end group
 @end lisp
 
@@ -2250,7 +2250,7 @@ you want, for example, use your @file{~/.authinfo.gpg} authentication
 file, you must customize @code{ange-ftp-netrc-filename}:
 
 @lisp
-(customize-set-variable 'ange-ftp-netrc-filename "~/.authinfo.gpg")
+(setopt ange-ftp-netrc-filename "~/.authinfo.gpg")
 @end lisp
 
 In case you do not want to use an authentication file for
@@ -2586,7 +2586,7 @@ overwrite this, you might apply
 
 @vindex tramp-encoding-shell
 @lisp
-(customize-set-variable 'tramp-encoding-shell "/usr/bin/zsh")
+(setopt tramp-encoding-shell "/usr/bin/zsh")
 @end lisp
 
 This uses also the settings in @code{tramp-sh-extra-args}.
@@ -2651,8 +2651,8 @@ example below:
 
 @lisp
 @group
-(customize-set-variable
- 'tramp-password-prompt-regexp
+(setopt
+ tramp-password-prompt-regexp
  (concat
   "^.*"
   (regexp-opt
@@ -2969,8 +2969,8 @@ allows you to set the @option{ControlPath} provided the variable
 
 @lisp
 @group
-(customize-set-variable
- 'tramp-ssh-controlmaster-options
+(setopt
+ tramp-ssh-controlmaster-options
  (concat
   "-o ControlPath=/tmp/ssh-ControlPath-%%r@@%%h:%%p "
   "-o ControlMaster=auto -o ControlPersist=yes"))
@@ -2989,7 +2989,7 @@ behavior, then any changes to @command{ssh} can be suppressed with
 this @code{nil} setting:
 
 @lisp
-(customize-set-variable 'tramp-use-connection-share nil)
+(setopt tramp-use-connection-share nil)
 @end lisp
 
 Sometimes, it is not possible to use OpenSSH's @option{ControlMaster}
@@ -3435,8 +3435,7 @@ Example:
 @group
 (add-to-list 'backup-directory-alist
              (cons "." "~/.emacs.d/backups/"))
-(customize-set-variable
- 'tramp-backup-directory-alist backup-directory-alist)
+(setopt tramp-backup-directory-alist backup-directory-alist)
 @end group
 @end lisp
 
@@ -3472,7 +3471,6 @@ to direct all auto saves to that location.
 If you want to suppress auto-saving of remote files at all, set user
 option @code{remote-file-name-inhibit-auto-save} to non-@code{nil}.
 
-@c Since Emacs 29.
 @vindex remote-file-name-inhibit-auto-save-visited
 An alternative to @code{auto-save-mode} is
 @code{auto-save-visited-mode}.  In this mode, auto-saving is identical
@@ -3931,7 +3929,7 @@ A non-@code{nil} setting of this option has effect only if set before
 the connection is established.
 
 @lisp
-(customize-set-variable 'tramp-show-ad-hoc-proxies t)
+(setopt tramp-show-ad-hoc-proxies t)
 @end lisp
 @end defopt
 
@@ -3953,7 +3951,7 @@ definitions on another host, for example by distribution of the
 as well.
 
 @lisp
-(customize-set-variable 'tramp-save-ad-hoc-proxies t)
+(setopt tramp-save-ad-hoc-proxies t)
 @end lisp
 @end defopt
 
@@ -3975,7 +3973,8 @@ can, for example, provide a list of running docker or podman
 containers on the remote host.
 
 @lisp
-(customize-set-variable 'tramp-completion-multi-hop-methods
+(setopt
+ tramp-completion-multi-hop-methods
  `(,tramp-docker-method ,tramp-podman-method))
 @end lisp
 @end defopt
@@ -5331,7 +5330,7 @@ In order to disable file archives, you can add the following form to
 your init file:
 
 @lisp
-(customize-set-variable 'tramp-archive-enabled nil)
+(setopt tramp-archive-enabled nil)
 @end lisp
 
 
@@ -5469,8 +5468,8 @@ Where is the latest @value{tramp}?
 @item
 Which systems does it work on?
 
-The package works successfully on @w{Emacs 28}, @w{Emacs 29}, @w{Emacs
-30}, and @w{Emacs 31}.
+The package works successfully on @w{Emacs 29}, @w{Emacs 30}, @w{Emacs
+31}, and @w{Emacs 32}.
 
 While Unix and Unix-like systems are the primary remote targets,
 @value{tramp} has equal success connecting to other platforms, such as
@@ -6026,7 +6025,7 @@ syntax}):
 
 @lisp
 @group
-(customize-set-variable 'tramp-default-method "ssh")
+(setopt tramp-default-method "ssh")
 (tramp-change-syntax 'simplified)
 @end group
 @end lisp
@@ -6043,9 +6042,9 @@ You can define default methods and user names for hosts,
 
 @lisp
 @group
-(custom-set-variables
- '(tramp-default-method "ssh")
- '(tramp-default-user "news"))
+(setopt
+ tramp-default-method "ssh"
+ tramp-default-user "news")
 @end group
 @end lisp
 
@@ -6464,8 +6463,8 @@ You can change this directory by setting the user option
 @lisp
 @group
 (unless small-temporary-file-directory
-  (customize-set-variable
-   'small-temporary-file-directory
+  (setopt
+   small-temporary-file-directory
    (format "/run/user/%d/emacs/" (user-uid)))
   (make-directory small-temporary-file-directory t))
 @end group
@@ -6510,17 +6509,7 @@ disable such features.
 Disable @value{tramp} file name completion:
 
 @lisp
-(customize-set-variable 'ido-enable-tramp-completion nil)
-@end lisp
-
-@c Obsolete since Emacs 29.1.
-@item
-@file{rlogin.el}
-
-Disable remote directory tracking mode:
-
-@lisp
-(rlogin-directory-tracking-mode -1)
+(setopt ido-enable-tramp-completion nil)
 @end lisp
 @end itemize
 
@@ -6534,7 +6523,7 @@ To keep Ange FTP as default the remote files access package, set this
 in @file{.emacs}:
 
 @lisp
-(customize-set-variable 'tramp-default-method "ftp")
+(setopt tramp-default-method "ftp")
 @end lisp
 
 If you want to enable Ange FTP's syntax, add the following form:
@@ -6547,9 +6536,8 @@ If you want to enable Ange FTP's syntax, add the following form:
 @item
 To deactivate @value{tramp} for some look-alike remote file names, set
 @code{tramp-ignored-file-name-regexp} to a proper regexp in
-@file{.emacs}.  @strong{Note}, that we don't use
-@code{customize-set-variable}, in order to avoid loading
-@value{tramp}.
+@file{.emacs}.  @strong{Note}, that we don't use @code{setopt}, in
+order to avoid loading @value{tramp}.
 
 @lisp
 (setq tramp-ignored-file-name-regexp "\\`/ssh:example\\.com:")
@@ -7197,7 +7185,7 @@ case, you can instruct @value{tramp} to mirror the debug buffer to
 a file:
 
 @lisp
-(customize-set-variable 'tramp-debug-to-file t)
+(setopt tramp-debug-to-file t)
 @end lisp
 
 The debug buffer is written as a file in your @ref{Temporary
@@ -7255,5 +7243,3 @@ means that there is no limit (no warning).
 @c   host and then send commands to it.
 @c
 @c * Consistent small or capitalized words especially in menus.
-@c
-@c * Starting with Emacs 29, use 'setopt' in the examples.

@@ -291,9 +291,9 @@ see its function help for a description of the format."
     (when-let* ((raw-list
 		 (shell-command-to-string
 		  (concat program " ps --format '{{.ID}}<>{{.Names}}'")))
-		(lines (split-string raw-list "\n" 'omit))
+		(lines (string-lines raw-list 'omit))
 		(names
-		 (tramp-compat-seq-keep
+		 (seq-keep
 		  (lambda (line)
 		    (when (string-match
 			   (rx bol (group (1+ nonl))
@@ -322,14 +322,14 @@ see its function help for a description of the format."
 		   " -o jsonpath='{range .items[*]}{\"|\"}{.metadata.name}"
 		   "{\":\"}{range .spec.containers[*]}{.name}{\",\"}"
 		   "{end}{end}'")))
-		(lines (split-string raw-list "|" 'omit)))
+		(lines (string-split raw-list "|" 'omit)))
       (let (names)
 	(dolist (line lines)
-	  (setq line (split-string line ":" 'omit))
+	  (setq line (string-split line ":" 'omit))
 	  ;; Pod name.
 	  (push (car line) names)
 	  ;; Container names.
-	  (dolist (elt (split-string (cadr line) "," 'omit))
+	  (dolist (elt (string-split (cadr line) "," 'omit))
 	    (push (concat elt "." (car line)) names)))
 	(mapcar (lambda (name) (list nil name)) (delq nil names))))))
 
@@ -444,9 +444,9 @@ see its function help for a description of the format."
   (tramp-skeleton-completion-function method
     (when-let* ((raw-list (shell-command-to-string (concat program " list -c")))
 		;; Ignore header line.
-		(lines (cdr (split-string raw-list "\n" 'omit)))
+		(lines (cdr (string-lines raw-list 'omit)))
 		;; We do not show container IDs.
-		(names (tramp-compat-seq-keep
+		(names (seq-keep
 			(lambda (line)
 			  (when (string-match
 				 (rx bol (1+ (not space))
@@ -465,9 +465,9 @@ see its function help for a description of the format."
   (tramp-skeleton-completion-function method
     (when-let* ((raw-list (shell-command-to-string (concat program " list")))
 		;; Ignore header line.
-		(lines (cdr (split-string raw-list "\n" 'omit)))
+		(lines (cdr (string-lines raw-list 'omit)))
 		;; We do not show container IDs.
-		(names (tramp-compat-seq-keep
+		(names (seq-keep
 			(lambda (line)
 			  (when (string-match
 				 (rx bol (1+ (not space))
@@ -491,8 +491,8 @@ see its function help for a description of the format."
 		 (shell-command-to-string
 		  ;; Ignore header line.
 		  (concat program " ps --columns=instance,application | cat -")))
-		(lines (split-string raw-list "\n" 'omit))
-		(names (tramp-compat-seq-keep
+		(lines (string-lines raw-list 'omit))
+		(names (seq-keep
 			(lambda (line)
 			  (when (string-match
 				 (rx bol (* space) (group (+ (not space)))
@@ -512,8 +512,8 @@ see its function help for a description of the format."
     (when-let* ((raw-list
 		 (shell-command-to-string (concat program " instance list")))
 		;; Ignore header line.
-		(lines (cdr (split-string raw-list "\n" 'omit)))
-		(names (tramp-compat-seq-keep
+		(lines (cdr (string-lines raw-list 'omit)))
+		(names (seq-keep
 			(lambda (line)
 			  (when (string-match
 				 (rx bol (group (1+ (not space)))
@@ -533,9 +533,9 @@ see its function help for a description of the format."
     (when-let* ((raw-list
 		 (shell-command-to-string (concat program " list --all -q")))
 		;; Ignore header line.
-		(lines (cdr (split-string raw-list "\n")))
+		(lines (cdr (string-lines raw-list)))
 		(first-words
-		 (mapcar (lambda (line) (car (split-string line))) lines))
+		 (mapcar (lambda (line) (car (string-split line))) lines))
 		(machines (seq-take-while (lambda (name) name) first-words)))
       (mapcar (lambda (m) (list nil m)) machines))))
 

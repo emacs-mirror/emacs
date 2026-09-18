@@ -66,7 +66,6 @@
 ;; Pacify byte-compiler.
 (require 'cl-lib)
 (declare-function file-notify-rm-watch "filenotify")
-(declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
 (defvar tramp-prefix-format)
 (defvar tramp-prefix-regexp)
@@ -571,9 +570,8 @@ interpreted as a regular expression which always matches."
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
   (when (and (eq system-type 'windows-nt)
-             (not (string-match-p
-		   (rx "sh" eol)
-		   (file-name-sans-extension tramp-encoding-shell))))
+             (not (string-suffix-p
+		   "sh" (file-name-sans-extension tramp-encoding-shell))))
     (list (rx
 	   bos (| (literal (downcase tramp-system-name))
 		  (literal (upcase tramp-system-name)))
@@ -1956,45 +1954,36 @@ See `tramp-dissect-file-name' for details."
       (format "*tramp/%s %s@%s*" method user-domain host-port))))
 
 ;;;###tramp-autoload
-(defun tramp-make-tramp-file-name (&rest args)
-  "Construct a Tramp file name from ARGS.
+(defun tramp-make-tramp-file-name (vec &optional localname)
+  "Construct a Tramp file name from VEC.
 If LOCALNAME is nil, the value in VEC is used.  If it is a
 symbol, a null localname will be used.  Otherwise, LOCALNAME is
 expected to be a string, which will be used."
-  (declare (advertised-calling-convention (vec &optional localname) "29.1"))
-  (let (method user domain host port localname hop)
-    (cond
-     ((tramp-file-name-p (car args))
-      (setq method (tramp-file-name-method (car args))
-	    user (tramp-file-name-user (car args))
-	    domain (tramp-file-name-domain (car args))
-	    host (tramp-file-name-host (car args))
-	    port (tramp-file-name-port (car args))
-	    localname (tramp-file-name-localname (car args))
-	    hop (tramp-file-name-hop (car args)))
-      (when (cadr args)
-	(setq localname (and (stringp (cadr args)) (cadr args))))
-      (when hop
-	;; Do not keep the hop for the "archive" method.
-	(when (string-equal method tramp-archive-method)
-	  (setq hop nil))
-	;; Keep hop in file name for completion or when indicated.
-	(unless (or minibuffer-completing-file-name tramp-show-ad-hoc-proxies)
-	  (setq hop nil))
-	;; Assure that the hops are in `tramp-default-proxies-alist'.
-	;; In tramp-archive.el, the slot `hop' is used for the archive
-	;; file name.
-	(unless (or minibuffer-completing-file-name
-		    (string-equal method tramp-archive-method))
-	  (tramp-add-hops (car args)))))
-
-     (t (setq method (nth 0 args)
-	      user (nth 1 args)
-	      domain (nth 2 args)
-	      host (nth 3 args)
-	      port (nth 4 args)
-	      localname (nth 5 args)
-	      hop (nth 6 args))))
+  (let (method user domain host port hop)
+    (setq method (tramp-file-name-method vec)
+	  user (tramp-file-name-user vec)
+	  domain (tramp-file-name-domain vec)
+	  host (tramp-file-name-host vec)
+	  port (tramp-file-name-port vec)
+	  hop (tramp-file-name-hop vec)
+	  localname
+	  (cond
+	   ((null localname) (tramp-file-name-localname vec))
+	   ((stringp localname) localname)
+	   (t nil)))
+    (when hop
+      ;; Do not keep the hop for the "archive" method.
+      (when (string-equal method tramp-archive-method)
+	(setq hop nil))
+      ;; Keep hop in file name for completion or when indicated.
+      (unless (or minibuffer-completing-file-name tramp-show-ad-hoc-proxies)
+	(setq hop nil))
+      ;; Assure that the hops are in `tramp-default-proxies-alist'.
+      ;; In tramp-archive.el, the slot `hop' is used for the archive
+      ;; file name.
+      (unless (or minibuffer-completing-file-name
+		  (string-equal method tramp-archive-method))
+	(tramp-add-hops vec)))
 
     ;; Unless `tramp-syntax' is `simplified', we need a method.
     (when (and (not (string-empty-p tramp-postfix-method-format))
@@ -2491,9 +2480,9 @@ Must be handled by the callers."
    ;; FILE resp DIRECTORY.
    ((or
      (memq operation
-	   '(access-file byte-compiler-base-file-name delete-directory
-	     delete-file diff-latest-backup-file directory-file-name
-	     directory-files directory-files-and-attributes dired-compress-file
+	   '(abbreviate-file-name access-file byte-compiler-base-file-name
+	     delete-directory delete-file diff-latest-backup-file
+	     directory-file-name directory-files directory-files-and-attributes
 	     dired-uncache file-acl file-accessible-directory-p file-attributes
 	     file-directory-p file-executable-p file-exists-p file-local-copy
 	     file-locked-p file-modes file-name-as-directory
@@ -2507,10 +2496,6 @@ Must be handled by the callers."
 	     make-lock-file-name set-file-acl set-file-modes
 	     set-file-selinux-context set-file-times substitute-in-file-name
 	     unhandled-file-name-directory unlock-file vc-registered
-	     ;; Emacs 28- only.
-	     make-directory-internal
-	     ;; Emacs 29+ only.
-	     abbreviate-file-name
 	     ;; Tramp internal magic file name function.
 	     tramp-set-file-uid-gid))
      (eq (alist-get operation tramp-file-name-for-operation-external) 'file))
@@ -2555,10 +2540,9 @@ Must be handled by the callers."
    ;; COMMAND.
    ((or
      (memq operation
-	   '(exec-path make-nearby-temp-file make-process process-file
-	     shell-command start-file-process temporary-file-directory
-	     ;; Emacs 29+ only.
-             list-system-processes memory-info process-attributes
+	   '(exec-path list-system-processes make-nearby-temp-file make-process
+	     memory-info process-attributes process-file shell-command
+	     start-file-process temporary-file-directory
              ;; Emacs 30+ only.
 	     file-group-gid file-user-uid))
      (eq (alist-get operation tramp-file-name-for-operation-external)
@@ -3030,7 +3014,7 @@ not in completion mode."
        ;; FILENAME could be like "~/".  We must expand this.
        (tramp-run-real-handler #'expand-file-name (list filename directory)))
       ((and (eq tramp-syntax 'simplified)
-            (string-match-p (rx (regexp tramp-postfix-host-regexp) eos) dir))
+            (string-suffix-p tramp-postfix-host-format dir))
        (concat dir filename))
       ((string-match-p
 	(rx (regexp tramp-prefix-regexp)
@@ -3380,7 +3364,7 @@ They are collected by `tramp-completion-dissect-file-name1'."
 		  (? (regexp tramp-port-regexp)))
 	   eol)
 	  1 2 3 nil)))
-    (tramp-compat-seq-keep
+    (seq-keep
      (lambda (structure)
        (tramp-completion-dissect-file-name1 structure internal-name))
      (list
@@ -3414,7 +3398,7 @@ remote host and localname (filename on remote host)."
 (defun tramp-get-completion-methods (partial-method &optional multi-hop)
   "Return all method completions for PARTIAL-METHOD.
 If MULTI-HOP is non-nil, return only multi-hop capable methods."
-  (tramp-compat-seq-keep
+  (seq-keep
    (lambda (method)
      (and method (string-prefix-p (or partial-method "") method)
 	  (or (not multi-hop)
@@ -3521,7 +3505,7 @@ This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from default settings."
   (and tramp-completion-use-auth-sources
        (seq-uniq
-	(tramp-compat-seq-keep
+	(seq-keep
 	 (lambda (x) `(,(plist-get x :user) ,(plist-get x :host)))
 	 (auth-source-search
 	  :port method :require '(:port) :max most-positive-fixnum)))))
@@ -3677,8 +3661,8 @@ Host is always \"localhost\"."
 Host is always \"localhost\"."
    (let (result
 	 (split
-	  (split-string (buffer-substring (point) (line-end-position)) ":")))
-     (when (member (user-login-name) (split-string (nth 3 split) "," 'omit))
+	  (string-split (buffer-substring (point) (line-end-position)) ":")))
+     (when (member (user-login-name) (string-split (nth 3 split) "," 'omit))
        (setq result (list (nth 0 split) "localhost")))
      (forward-line 1)
      result))
@@ -3687,11 +3671,11 @@ Host is always \"localhost\"."
   "Return a list of (user host) tuples allowed to access.
 User may be nil."
   (seq-uniq
-   (tramp-compat-seq-keep
+   (seq-keep
     (lambda (item)
       (and (assoc "machine" item)
 	   `(,(cdr (assoc "login" item)) ,(cdr (assoc "machine" item)))))
-    (tramp-compat-auth-source-netrc-parse-all filename))))
+    (auth-source-netrc-parse-all filename))))
 
 (defun tramp-parse-putty (registry-or-dirname)
   "Return a list of (user host) tuples allowed to access.
@@ -3800,7 +3784,7 @@ BODY is the backend specific code."
 	   (unless ,nosort
              (setq result (sort result #'string<)))
 	   (when (and (natnump ,count) (> ,count 0))
-	     (setq result (tramp-compat-ntake ,count result)))
+	     (setq result (ntake ,count result)))
 	   result)))))
 
 (defmacro tramp-skeleton-directory-files-and-attributes
@@ -3839,7 +3823,7 @@ BODY is the backend specific code."
 		   (sort result (lambda (x y) (string< (car x) (car y))))))
 
 	   (when (and (natnump ,count) (> ,count 0))
-	     (setq result (tramp-compat-ntake ,count result)))
+	     (setq result (ntake ,count result)))
 
 	   (or result
 	       ;; The scripts could fail, for example with huge file size.
@@ -4013,8 +3997,6 @@ BODY is the backend specific code."
 (defmacro tramp-skeleton-make-directory (dir &optional parents &rest body)
   "Skeleton for `tramp-*-handle-make-directory'.
 BODY is the backend specific code."
-  ;; Since Emacs 29.1, PARENTS isn't propagated to the handlers
-  ;; anymore.  And the return values are specified since then as well.
   (declare (indent 2) (debug t))
   `(let* ((dir (directory-file-name (expand-file-name ,dir)))
 	  (par (file-name-directory dir)))
@@ -4368,9 +4350,6 @@ BODY is the backend specific code."
   "Indicator, that not expandable tilde shall be tolerated.
 Let-bind it when necessary.")
 
-;; `directory-abbrev-apply' and `directory-abbrev-make-regexp' exists
-;; since Emacs 29.1.  Since this handler isn't called for older
-;; Emacs, it is save to invoke them via `tramp-compat-funcall'.
 (defun tramp-handle-abbreviate-file-name (filename)
   "Like `abbreviate-file-name' for Tramp files."
   (let* ((case-fold-search (file-name-case-insensitive-p filename))
@@ -4385,16 +4364,13 @@ Let-bind it when necessary.")
             (tramp-get-connection-property vec "~"))))
     (when home-dir
       (setq home-dir
-	    (tramp-compat-funcall 'directory-abbrev-apply
-	      (tramp-make-tramp-file-name vec home-dir))))
+	    (directory-abbrev-apply (tramp-make-tramp-file-name vec home-dir))))
     ;; If any elt of `directory-abbrev-alist' matches this name,
     ;; abbreviate accordingly.
-    (setq filename (tramp-compat-funcall 'directory-abbrev-apply filename))
+    (setq filename (directory-abbrev-apply filename))
     ;; Abbreviate home directory.
     (if (and home-dir
-             (string-match
-	      (tramp-compat-funcall 'directory-abbrev-make-regexp home-dir)
-              filename))
+             (string-match (directory-abbrev-make-regexp home-dir) filename))
         (tramp-make-tramp-file-name
 	 vec (concat "~" (substring filename (match-beginning 1))))
       (tramp-make-tramp-file-name (tramp-dissect-file-name filename)))))
@@ -4436,13 +4412,13 @@ Let-bind it when necessary.")
 	   "%s: Timeout %s second(s) accessing %s" string timeout filename)))
       (setq filename (file-truename filename))
       (if (file-exists-p filename)
-	  (unless
-	      (funcall
-	       (if (file-directory-p filename)
-		   #'file-accessible-directory-p #'file-readable-p)
-	       filename)
-	    (tramp-compat-permission-denied
-	     v (format "%s: Permission denied, %s" string filename)))
+	  (unless (funcall
+		   (if (file-directory-p filename)
+		       #'file-accessible-directory-p #'file-readable-p)
+		   filename)
+	    (tramp-error
+	     v 'permission-denied
+	     (format "%s: Permission denied, %s" string filename)))
 	(tramp-error
 	 v 'file-missing
 	 (format "%s: No such file or directory, %s" string filename))))))
@@ -4676,7 +4652,7 @@ Let-bind it when necessary.")
 	   (and
 	    completion-ignored-extensions
 	    (string-match-p
-	     (rx (regexp (regexp-opt completion-ignored-extensions)) eos) x)
+	     (rx-to-string `(: (| ,@completion-ignored-extensions) eos)) x)
 	    ;; We remember the hit.
 	    (push x hits-ignored-extensions))))))
      ;; No match.  So we try again for ignored files.
@@ -5350,7 +5326,7 @@ multi-hop capable.")
 	      (item vec))
     (let (signal-hook-function changed)
       (dolist
-	  (proxy (reverse (split-string hops tramp-postfix-hop-regexp 'omit)))
+	  (proxy (reverse (string-split hops tramp-postfix-hop-format 'omit)))
 	(let* ((host-port (tramp-file-name-host-port item))
 	       (host-port (and (stringp host-port)
 			       (rx bol (literal host-port) eol)))
@@ -5488,8 +5464,7 @@ a connection-local variable."
     ;; Merge both spec lists.  Remove duplicate entries.
     (while spec-list
       (unless (member (car spec-list) extra-spec-list)
-	(setq extra-spec-list
-	      (append (tramp-compat-take 2 spec-list) extra-spec-list)))
+	(setq extra-spec-list (append (take 2 spec-list) extra-spec-list)))
       (setq spec-list (cddr spec-list)))
     (setq spec (apply #'format-spec-make extra-spec-list))
     ;; Expand format spec.
@@ -5673,7 +5648,7 @@ processes."
 	(flatten-tree (tramp-get-method-parameter v 'tramp-async-args))
 	(flatten-tree
 	 (mapcar
-	  (lambda (x) (split-string x " "))
+	  (lambda (x) (string-split x " "))
 	  (tramp-expand-args
 	   v 'tramp-login-args nil
 	   ?h (or host "") ?u (or user "") ?p (or port "")
@@ -5685,12 +5660,8 @@ processes."
 	  :name name :buffer buffer
 	  :command (append `(,login-program) login-args command)
 	  :coding coding :noquery noquery :connection-type connection-type
+	  :filter filter
 	  :sentinel (or sentinel #'ignore) :stderr stderr))
-      ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably to
-      ;; provide it as `make-process' argument when filter is t.  See
-      ;; Bug#51177.
-      (when filter
-	(set-process-filter p filter))
       (tramp-post-process-creation p v)
       ;; Query flag is overwritten in `tramp-post-process-creation',
       ;; so we reset it.
@@ -6505,12 +6476,11 @@ Mostly useful to protect BODY from being interrupted by timers."
 	     ,@body)
 	 (tramp-flush-connection-property ,proc "locked")))))
 
-(defun tramp-accept-process-output (proc &optional _timeout)
+(defun tramp-accept-process-output (proc)
   "Like `accept-process-output' for Tramp processes.
 This is needed in order to hide `last-coding-system-used', which is set
 for process communication also.
 If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
-  (declare (advertised-calling-convention (proc) "29.2"))
   ;; There could be other processes which use the same socket for
   ;; communication.  This could block the output for the current
   ;; process.  Read such output first.  (Bug#61350)
@@ -6643,8 +6613,7 @@ the remote host use line-endings as defined in the variable
       ;; narrowing might be in effect.
       (let ((inhibit-read-only t)) (delete-region (point-min) (point-max)))
       ;; Replace "\n" by `tramp-rsh-end-of-line'.
-      (setq string
-	    (string-join (split-string string "\n") tramp-rsh-end-of-line))
+      (setq string (string-replace "\n" tramp-rsh-end-of-line string))
       (unless (or (string-empty-p string)
 		  (string-equal (substring string -1) tramp-rsh-end-of-line))
 	(setq string (concat string tramp-rsh-end-of-line)))
@@ -7039,13 +7008,13 @@ to cache the result.  Return the modified ATTR."
 	       (when (stringp (nth 12 attr))
 		 (tramp-set-file-property
 		  ,vec ,localname  "file-selinux-context"
-		  (split-string (nth 12 attr) ":" 'omit)))
+		  (string-split (nth 12 attr) ":" 'omit)))
 	       ;; Remove optional entries.
 	       (setcdr (nthcdr 11 attr) nil)
 	       attr)))))
 
      ;; Return normalized result.
-     (append (tramp-compat-take 2 result)
+     (append (take 2 result)
 	     (if (eq ,id-format 'string)
 		 (list (car (nth 2 result)) (car (nth 3 result)))
 	       (list (cdr (nth 2 result)) (cdr (nth 3 result))))
@@ -7288,13 +7257,11 @@ might have improper values."
 	  (mapcar #'car tramp-connection-local-default-system-variables))))
     `(let* ((default-directory tramp-compat-temporary-file-directory)
 	    (temporary-file-directory tramp-compat-temporary-file-directory)
-	    (process-environment (copy-sequence process-environment))
             ,@bindings)
-       (setenv "TERM" tramp-terminal-type)
-       (setenv "PROMPT_COMMAND")
-       (setenv "PS1" tramp-initial-end-of-output)
-       (setenv "INSIDE_EMACS" (tramp-inside-emacs))
-       ,@body)))
+       (with-environment-variables
+	   (("TERM" tramp-terminal-type) ("PROMPT_COMMAND")
+	    ("PS1" tramp-initial-end-of-output) ("INSIDE_EMACS" (tramp-inside-emacs)))
+	 ,@body))))
 
 (defun tramp-start-process (vec name buffer program &rest args)
   "Call `start-process' on the local host.
@@ -7624,13 +7591,11 @@ SIGCODE may be an integer, or a symbol whose name is a signal name."
             vec (format "\\kill -%s %d" sigcode pid))
           0 -1))))
 
-;; `signal-process-functions' exists since Emacs 29.1.
-(when (boundp 'signal-process-functions)
-  (add-hook 'signal-process-functions #'tramp-signal-process)
-  (add-hook
-   'tramp-unload-hook
-   (lambda ()
-     (remove-hook 'signal-process-functions #'tramp-signal-process))))
+(add-hook 'signal-process-functions #'tramp-signal-process)
+(add-hook
+ 'tramp-unload-hook
+ (lambda ()
+   (remove-hook 'signal-process-functions #'tramp-signal-process)))
 
 (defun tramp-get-remote-null-device (vec)
   "Return null device on the remote host identified by VEC.

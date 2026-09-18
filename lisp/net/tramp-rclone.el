@@ -85,7 +85,6 @@
     (directory-files . tramp-fuse-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
     (expand-file-name . tramp-handle-expand-file-name)
@@ -131,7 +130,6 @@
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-fuse-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
@@ -190,7 +188,7 @@ arguments to pass to the OPERATION."
 (defun tramp-rclone-parse-device-names (_ignore)
   "Return a list of (nil host) tuples allowed to access."
   (with-tramp-connection-property nil "rclone-device-names"
-    (tramp-compat-seq-keep
+    (seq-keep
      (lambda (line)
        (when (string-match (rx bos (group (+ (not blank))) ":" eos) line)
 	 `(nil ,(match-string 1 line))))

@@ -90,7 +90,6 @@
     (directory-files . tramp-fuse-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . tramp-sshfs-handle-exec-path)
     (expand-file-name . tramp-handle-expand-file-name)
@@ -136,7 +135,6 @@
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-fuse-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-handle-make-process)
@@ -221,7 +219,7 @@ arguments to pass to the OPERATION."
        (with-temp-buffer
          (let (process-file-side-effects)
 	   (process-file "getconf" nil t nil "PATH"))
-	 (split-string
+	 (string-split
 	  (progn
 	    ;; Read the expression.
 	    (goto-char (point-min))

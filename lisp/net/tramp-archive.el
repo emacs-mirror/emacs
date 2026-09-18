@@ -231,7 +231,6 @@ It must be supported by libarchive(3).")
     (directory-files . tramp-archive-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . tramp-archive-handle-not-implemented)
     (dired-uncache . tramp-archive-handle-dired-uncache)
     (exec-path . ignore)
     ;; `expand-file-name' performed by default handler.
@@ -277,7 +276,6 @@ It must be supported by libarchive(3).")
     (lock-file . ignore)
     (make-auto-save-file-name . ignore)
     (make-directory . tramp-archive-handle-not-implemented)
-    (make-directory-internal . ignore)
     (make-lock-file-name . ignore)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
@@ -484,8 +482,8 @@ name is kept in slot `hop'"
        ;; http://...
        ((and url-handler-mode
              (string-match-p url-handler-regexp archive)
-	     (string-match-p
-	      "https?" (url-type (url-generic-parse-url archive))))
+	     (string-prefix-p
+	      "http" (url-type (url-generic-parse-url archive))))
 	(let* ((url-tramp-protocols
 		(cons
 		 (url-type (url-generic-parse-url archive))
@@ -599,8 +597,9 @@ offered."
    preserve-uid-gid preserve-extended-attributes)
   "Like `copy-file' for file archives."
   (when (tramp-archive-file-name-p newname)
-    (tramp-compat-permission-denied
-     (tramp-archive-dissect-file-name newname) newname))
+    (tramp-error
+     (tramp-archive-dissect-file-name newname) 'permission-denied
+     "Permission denied: %s" newname))
   (copy-file
    (tramp-archive-gvfs-file-name filename) newname ok-if-already-exists
    keep-date preserve-uid-gid preserve-extended-attributes))
@@ -634,7 +633,7 @@ offered."
 	(unless nosort
           (setq result (sort result #'string<)))
 	(when (and (natnump count) (> count 0))
-	  (setq result (tramp-compat-ntake count result)))
+	  (setq result (ntake count result)))
 	result))))
 
 (defun tramp-archive-handle-dired-uncache (dir)

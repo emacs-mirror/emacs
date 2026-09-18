@@ -360,13 +360,9 @@ FUNCTION."
 	    :coding coding
             :noquery noquery
             :connection-type connection-type
+	    :filter filter
 	    :sentinel (or sentinel #'ignore)
             :stderr stderr)))
-      ;; Set filter.  Prior Emacs 29.1, it doesn't work reliably to
-      ;; provide it as `make-process' argument when filter is t.  See
-      ;; Bug#51177.
-      (when filter
-	(set-process-filter p filter))
       (tramp-post-process-creation p v)
       ;; Query flag is overwritten in `tramp-post-process-creation',
       ;; so we reset it.
@@ -416,7 +412,6 @@ FUNCTION."
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-androidsu-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . tramp-androidsu-handle-exec-path)
     (expand-file-name . tramp-handle-expand-file-name)
@@ -463,7 +458,6 @@ FUNCTION."
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-androidsu-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-androidsu-handle-make-process)

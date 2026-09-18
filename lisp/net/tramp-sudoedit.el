@@ -83,7 +83,6 @@ See `tramp-actions-before-shell' for more info.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
     (expand-file-name . tramp-sudoedit-handle-expand-file-name)
@@ -130,7 +129,6 @@ See `tramp-actions-before-shell' for more info.")
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-sudoedit-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
@@ -480,11 +478,10 @@ the result will be a local, non-Tramp, file name."
        v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
        (if (tramp-string-empty-or-nil-p localname)
 	   "" (file-name-unquote localname)))
-      (mapcar
-       (lambda (l) (and (not (string-match-p (rx bol (* blank) eol) l)) l))
-       (split-string
-	(tramp-get-buffer-string (tramp-get-connection-buffer v))
-	"\n" 'omit)))))
+      (seq-remove
+       #'string-blank-p
+       (string-lines
+	(tramp-get-buffer-string (tramp-get-connection-buffer v)) 'omit)))))
 
 (defun tramp-sudoedit-handle-file-readable-p (filename)
   "Like `file-readable-p' for Tramp files."
@@ -620,7 +617,7 @@ the result will be a local, non-Tramp, file name."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (when (and (stringp acl-string) (tramp-sudoedit-remote-acl-p v))
       ;; Massage `acl-string'.
-      (setq acl-string (string-join (split-string acl-string "\n" 'omit) ","))
+      (setq acl-string (string-join (string-lines acl-string 'omit) ","))
       (prog1
 	  (tramp-sudoedit-send-command
 	   v "setfacl" "-m" acl-string (file-name-unquote localname))
