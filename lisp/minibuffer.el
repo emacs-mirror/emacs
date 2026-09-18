@@ -2939,6 +2939,54 @@ has been requested by the completion table."
              ;; minibuffer-hide-completions will know whether to
              ;; delete the window or not.
              (display-buffer-mark-dedicated 'soft))
+
+        ;; Remove the base-size tail because `sort' requires a properly
+        ;; nil-terminated list.
+        (when last (setcdr last nil))
+
+        ;; Sort first using the `display-sort-function'.
+        ;; FIXME: This function is for the output of
+        ;; all-completions, not
+        ;; completion-all-completions.  Often it's the
+        ;; same, but not always.
+        (setq completions
+              (if sort-fun
+                  (funcall sort-fun completions)
+                (pcase completions-sort
+                  ('nil completions)
+                  ('alphabetical
+                   (minibuffer-sort-alphabetically completions))
+                  ('historical
+                   (minibuffer-sort-by-history completions))
+                  (_ (funcall completions-sort completions)))))
+
+        ;; After sorting, group the candidates using the
+        ;; `group-function'.
+        (when group-fun
+          (setq completions
+                (minibuffer--group-by
+                 group-fun
+                 (pcase completions-group-sort
+                   ('nil #'identity)
+                   ('alphabetical
+                    (lambda (groups)
+                      (sort groups
+                            (lambda (x y)
+                              (string< (car x) (car y))))))
+                   (_ completions-group-sort))
+                 completions)))
+
+        (cond
+         (aff-fun
+          (setq completions
+                (funcall aff-fun completions)))
+         (ann-fun
+          (setq completions
+                (mapcar (lambda (s)
+                          (let ((ann (funcall ann-fun s)))
+                            (if ann (list s ann) s)))
+                        completions))))
+
         (with-current-buffer-window
           "*Completions*"
           ;; This is a copy of `display-buffer-fallback-action'
@@ -2959,50 +3007,6 @@ has been requested by the completion table."
             (body-function
              . ,#'(lambda (window)
                     (with-current-buffer mainbuf
-                      ;; Remove the base-size tail because `sort' requires a properly
-                      ;; nil-terminated list.
-                      (when last (setcdr last nil))
-
-                      ;; Sort first using the `display-sort-function'.
-                      ;; FIXME: This function is for the output of
-                      ;; all-completions, not
-                      ;; completion-all-completions.  Often it's the
-                      ;; same, but not always.
-                      (setq completions (if sort-fun
-                                            (funcall sort-fun completions)
-                                          (pcase completions-sort
-                                            ('nil completions)
-                                            ('alphabetical (minibuffer-sort-alphabetically completions))
-                                            ('historical (minibuffer-sort-by-history completions))
-                                            (_ (funcall completions-sort completions)))))
-
-                      ;; After sorting, group the candidates using the
-                      ;; `group-function'.
-                      (when group-fun
-                        (setq completions
-                              (minibuffer--group-by
-                               group-fun
-                               (pcase completions-group-sort
-                                 ('nil #'identity)
-                                 ('alphabetical
-                                  (lambda (groups)
-                                    (sort groups
-                                          (lambda (x y)
-                                            (string< (car x) (car y))))))
-                                 (_ completions-group-sort))
-                               completions)))
-
-                      (cond
-                       (aff-fun
-                        (setq completions
-                              (funcall aff-fun completions)))
-                       (ann-fun
-                        (setq completions
-                              (mapcar (lambda (s)
-                                        (let ((ann (funcall ann-fun s)))
-                                          (if ann (list s ann) s)))
-                                      completions))))
-
                       (with-current-buffer standard-output
                         (setq-local completion-base-position base-position)
                         (setq-local completion-list-insert-choice-function
