@@ -83,6 +83,7 @@ END {
      trigger_codepoints[12] = "1F575"
      trigger_codepoints[13] = "1F590"
      trigger_codepoints[14] = "20E3"
+     trigger_codepoints[15] = "26D3"
 
      print "(setq auto-composition-emoji-eligible-codepoints"
      print "'("
