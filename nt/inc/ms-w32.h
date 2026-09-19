@@ -121,10 +121,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef __GNUC__
 # ifndef __cplusplus
-#  undef inline
-/* config.h may have defined already.  */
-#  ifndef restrict
-#   define restrict __restrict__
+#  ifdef inline
+#   undef inline
 #  endif
 # endif
 #endif
