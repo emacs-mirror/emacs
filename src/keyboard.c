@@ -3873,8 +3873,8 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
 
 /* Limit help event positions to this range, to avoid overflow problems.  */
 #define INPUT_EVENT_POS_MAX \
-  ((ptrdiff_t) min (PTRDIFF_MAX, min (TYPE_MAXIMUM (Time) / 2, \
-				      MOST_POSITIVE_FIXNUM)))
+  ((ptrdiff_t) {min (PTRDIFF_MAX, min (TYPE_MAXIMUM (Time) / 2, \
+				       MOST_POSITIVE_FIXNUM))})
 #define INPUT_EVENT_POS_MIN (PTRDIFF_MIN < -INPUT_EVENT_POS_MAX \
 			     ? -1 - INPUT_EVENT_POS_MAX : PTRDIFF_MIN)
 
