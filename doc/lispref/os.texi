@@ -2332,7 +2332,10 @@ and @samp{@var{xx}am}, @samp{@var{xx}AM}, @samp{@var{xx}pm},
 @samp{@var{xx}PM}, @samp{@var{xx}:@var{xx}am},
 @samp{@var{xx}:@var{xx}AM}, @samp{@var{xx}:@var{xx}pm}, or
 @samp{@var{xx}:@var{xx}PM}.  A period can be used instead of a colon
-to separate the hour and minute parts.
+to separate the hour and minute parts, but only if the @samp{am} or
+@samp{pm} suffix (in either letter-case) is specified, because otherwise
+the string will be indistinguishable from a number of seconds without
+units, and will be interpreted as a relative time, see below.
 
 To specify a relative time as a string, use numbers followed by units.
 For example:
@@ -2345,6 +2348,9 @@ denotes 65 seconds from now.
 @item 1 min 2 sec 3 hour 4 day 5 week 6 fortnight 7 month 8 year
 denotes exactly 103 months, 123 days, and 10862 seconds from now.
 @end table
+
+A string that specifies a number without units, such as @samp{12.34}, is
+taken as a relative time given as seconds.
 
 For relative time values, Emacs considers a month to be exactly thirty
 days, and a year to be exactly 365.25 days.
