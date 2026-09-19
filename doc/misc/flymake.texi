@@ -230,12 +230,14 @@ can use the variables @code{flymake-mode-line-format} and
 
 @cindex disabled backends
 @cindex backends, disabled
-As Flymake supports multiple simultaneously active external backends,
-it becomes useful to monitor their status.  For example, some backends
-may take longer than others to respond or complete, and some may
-decide to @emph{disable} themselves if they are not suitable for the
-current buffer or encounter some unavoidable problem.  A disabled
-backend is not tried again for future checks of the current buffer.
+As Flymake supports multiple simultaneously active external backends, it
+becomes useful to monitor their status.  For example, some backends may
+take longer than others to respond or complete, and some may decide to
+@emph{disable} themselves if they are not suitable for the current
+buffer or encounter some unavoidable problem.  In addition, most
+backends are disabled by default in buffers with untrusted content
+(@pxref{Backend functions}).  A disabled backend is not tried again for
+future checks of the current buffer.
 
 @findex flymake-reporting-backends
 @findex flymake-running-backends
@@ -683,6 +685,17 @@ unexpected.
 indicating that the report applies to that region and that previous
 reports targeting other parts of the buffer remain valid.
 @end itemize
+
+@cindex flymake-always-safe
+By default, Flymake backends aren't enabled in buffers with untrusted
+content (@pxref{Host Security,,, emacs, The Emacs Editor}).  But if a
+backend takes its own measures to ensure that the user's security won't
+be compromised by the contents of an untrusted file, it can be marked as
+safe, like this:
+
+@example
+(put 'foo-flymake 'flymake-always-safe t)
+@end example
 
 @menu
 * Flymake utility functions::

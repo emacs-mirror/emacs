@@ -408,13 +408,13 @@ in the order given by `git status'."
   ;; upstream.  We'd need to check against the upstream tracking
   ;; branch for that (an extra process call or two).
   (let* ((args
-          `("status" "--porcelain" "-z"
-            ;; Just to be explicit, it's the default anyway.
-            "--untracked-files"
-            ,@(when (version<= "1.7.6.3" (vc-git--program-version))
-                '("--ignored"))
+          `("status" "--porcelain" "-z" "--untracked-files"
+            ,@(and (version<= "1.7.6.3" (vc-git--program-version))
+                   '("--ignored"))
             "--"))
-        (status (apply #'vc-git--run-command-string file args)))
+         (status (apply #'vc-git--run-command-string file args))
+         (root (vc-git-root default-directory))
+         (file-rel (file-relative-name file root)))
     (if (null status)
         ;; If status is nil, there was an error calling git, likely because
         ;; the file is not in a git repo.
@@ -423,9 +423,13 @@ in the order given by `git status'."
       ;; note that a renamed file takes up two null values and needs to be
       ;; treated slightly more carefully.
       (vc-git--git-status-to-vc-state
-       (mapcar (lambda (s)
-                 (substring s 0 2))
-               (split-string status "\0" t))))))
+       ;; Work around Git bug demonstrated in Emacs bug#81625: this 'git
+       ;; status' call can return results for files other than FILE.
+       ;; Match on FILE-REL because --porcelain means results are always
+       ;; relative to the repository root.
+       (cl-loop for line in (split-string status "\0" t)
+                when (equal (substring line 3) file-rel)
+                collect (substring line 0 2))))))
 
 (defun vc-git-working-revision (_file)
   "Git-specific version of `vc-working-revision'."

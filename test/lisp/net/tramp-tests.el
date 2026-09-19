@@ -7594,6 +7594,24 @@ If optional METHOD is given, it is checked first."
   (or (member method tramp-gvfs-methods)
       (tramp-gvfs-file-name-p ert-remote-temporary-file-directory)))
 
+(defun tramp--test-hfs-p ()
+  "Check, whether the local or remote file system is HFS encoded."
+  (ignore-errors
+    ;; We need a connection process.  `file-truename' does it.
+    (file-truename ert-remote-temporary-file-directory)
+    (or (when-let* ((proc (tramp-start-process
+			   tramp-test-vec "test-hfs" nil "sleep" "inf")))
+	  (prog1 (or (string-match-p
+		      "hfs" (symbol-name (car (process-coding-system proc))))
+		     (string-match-p
+		      "hfs" (symbol-name (cdr (process-coding-system proc)))))
+	    (delete-process proc)))
+	(when-let* ((proc (tramp-get-connection-process tramp-test-vec)))
+	  (or (string-match-p
+	       "hfs" (symbol-name (car (process-coding-system proc))))
+	      (string-match-p
+	       "hfs" (symbol-name (cdr (process-coding-system proc)))))))))
+
 (defun tramp--test-hpux-p ()
   "Check, whether the remote host runs HP-UX.
 Several special characters do not work properly there."
@@ -7894,10 +7912,11 @@ This requires restrictions of file name syntax."
 		;; Check symlink in `directory-files-and-attributes'.
 		;; It does not work in the "smb" case, only relative
 		;; symlinks to existing files are shown there.  On
-		;; NetBSD, there are problems with loooong file names,
-		;; see Bug#65324.
+		;; macOS and NetBSD, there are problems with loooong
+		;; file names, see Bug#65324 and Bug#81843.
 		(tramp--test-ignore-make-symbolic-link-error
-		  (unless (or (tramp--test-netbsd-p) (tramp--test-smb-p))
+		  (unless (or (tramp--test-macos-p) (tramp--test-netbsd-p)
+			      (tramp--test-smb-p))
 		    (make-symbolic-link file2 file3)
 		    (should (file-symlink-p file3))
 		    (should
@@ -7931,6 +7950,8 @@ This requires restrictions of file name syntax."
 			      '(shell-command)
 			      ;; Asynchronously.
 			      (and (tramp--test-asynchronous-processes-p)
+				   (not (and (tramp--test-macos-p) ; Bug#81843.
+					     (tramp-direct-async-process-p)))
 				   '(tramp--test-async-shell-command))))
 		      (with-temp-buffer
 			(funcall this-shell-command "cat -- *" (current-buffer))
@@ -7944,11 +7965,8 @@ This requires restrictions of file name syntax."
 		(should-not (file-exists-p file1))))
 
 	    ;; Check, that environment variables are set correctly.
-            ;; We do not run on macOS due to encoding problems.  See
-            ;; Bug#36940.
 	    (when (and (tramp--test-expensive-test-p) (tramp--test-sh-p)
-		       (not (tramp--test-crypt-p))
-		       (not (eq system-type 'darwin)))
+		       (not (tramp--test-crypt-p)))
 	      (dolist (elt files)
 		(let ((envvar (concat "VAR_" (upcase (md5 elt))))
 		      (elt (encode-coding-string elt coding-system-for-read))
@@ -7978,7 +7996,8 @@ This requires restrictions of file name syntax."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-rclone-p)))
-  (skip-unless (not (or (eq system-type 'darwin) (tramp--test-macos-p))))
+  ;; We do not run on macOS due to encoding problems.  See Bug#36940.
+  (skip-unless (not (tramp--test-hfs-p)))
 
   ;; Newlines, slashes and backslashes in file names are not
   ;; supported.  So we don't test.  And we don't test the tab
@@ -8063,7 +8082,8 @@ This requires restrictions of file name syntax."
   (skip-unless (not (tramp--test-gdrive-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-rclone-p)))
-  (skip-unless (not (or (eq system-type 'darwin) (tramp--test-macos-p))))
+  ;; We do not run on macOS due to encoding problems.  See Bug#36940.
+  (skip-unless (not (tramp--test-hfs-p)))
 
   (let ((coding-system-for-read 'utf-8)
 	(coding-system-for-write 'utf-8)
@@ -8188,16 +8208,7 @@ should all return proper values."
      (expand-file-name
       (concat
        (file-remote-p ert-remote-temporary-file-directory) "~"
-       (file-remote-p ert-remote-temporary-file-directory 'user))))))
-
-  ;; There shall be a user-error if `tramp-histfile-override' isn't proper.
-  (when (tramp--test-sh-p)
-    (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
-    (cl-letf* (((symbol-function #'tramp-get-home-directory) #'ignore))
-      (let ((tramp-histfile-override (default-value 'tramp-histfile-override)))
-	(should-error
-	 (file-truename ert-remote-temporary-file-directory)
-	 :type 'user-error)))))
+       (file-remote-p ert-remote-temporary-file-directory 'user)))))))
 
 ;; `tramp-test46-asynchronous-requests' could be blocked.  So we set a
 ;; timeout of 300 seconds, and we send a SIGUSR1 signal after 300

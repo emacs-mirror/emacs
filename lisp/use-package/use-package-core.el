@@ -1695,6 +1695,7 @@ no keyword implies `:all'."
 
 ;;;; :vc
 
+;;;###autoload
 (defun use-package-vc-install (arg &optional local-path)
   "Install a package with `package-vc.el'.
 ARG is a list of the form (NAME OPTIONS REVISION), as returned by

@@ -4331,8 +4331,7 @@ file exists and nonzero exit status otherwise."
     ;; Check proper HISTFILE setting.  We give up when not working.
     (when (stringp tramp-histfile-override)
       (when (and (string-match-p "~" tramp-histfile-override)
-		 (or (not (tramp-get-home-directory vec))
-		     (not (tramp-send-command-and-check vec "(cd)"))))
+		 (not (tramp-send-command-and-check vec "(cd)")))
 	(tramp-user-error
 	 vec "No home directory, change `tramp-histfile-override'"))
       (when (file-name-directory tramp-histfile-override)
