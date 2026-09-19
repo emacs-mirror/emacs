@@ -1705,7 +1705,7 @@ rather than line counts."
 The line number is relative to the accessible portion of the narrowed
 buffer.  The arguments BUFFER and INTERACTIVE are the same as in the
 function `goto-line'."
-  (interactive (append (goto-line-read-args t) t))
+  (interactive (append (goto-line-read-args t) '(t)))
   (goto-line line buffer t interactive))
 
 (defun count-words-region (start end &optional arg)

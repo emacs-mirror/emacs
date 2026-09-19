@@ -3299,25 +3299,40 @@ Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters."
   ;; FIXME: Need to handle "..." and '...' quoting in shell.el!
   ;; This should be combined with completion parsing somehow.
-  (save-excursion
-    (let ((here (point))
-	  giveup)
-      (while (not giveup)
-	(let ((startpoint (point)))
-	  (skip-chars-backward (concat "\\\\" word-chars))
-	  (if (and (eq (char-before (1- (point))) ?\\)
-                   (memq (char-before) comint-file-name-quote-list))
-	      (forward-char -2))
-	  ;; FIXME: This isn't consistent with Bash, at least -- not
-	  ;; all non-ASCII chars should be word constituents.
-	  (if (and (not (bobp)) (>= (char-before) 128))
-	      (forward-char -1))
-	  (if (= (point) startpoint)
-	      (setq giveup t))))
-      ;; Set match-data to match the entire string.
-      (when (< (point) here)
-	(set-match-data (list (point) here))
-	(match-string 0)))))
+  (let ((beg
+         (save-excursion
+           (let (giveup)
+             (while (not giveup)
+	       (let ((startpoint (point)))
+	         (skip-chars-backward (concat "\\\\" word-chars))
+	         (if (and (eq (char-before (1- (point))) ?\\)
+                          (memq (char-before) comint-file-name-quote-list))
+	             (forward-char -2))
+	         ;; FIXME: This isn't consistent with Bash, at least -- not
+	         ;; all non-ASCII chars should be word constituents.
+	         (if (and (not (bobp)) (>= (char-before) 128))
+	             (forward-char -1))
+	         (if (= (point) startpoint)
+	             (setq giveup t)))))
+           (point))))
+    (when (< beg (point))
+      (let ((end
+             (save-excursion
+               (let (giveup)
+                 (while (not giveup)
+                   (let ((startpoint (point)))
+                     (skip-chars-forward (concat "\\\\" word-chars))
+                     (if (and (eq (char-before) ?\\)
+                              (memq (char-after) comint-file-name-quote-list))
+                         (forward-char 1))
+                     (if (and (not (eobp)) (>= (char-after) 128))
+                         (forward-char 1))
+                     (if (= (point) startpoint)
+                         (setq giveup t))))
+                 (point)))))
+        ;; Set match-data to match the entire string.
+        (set-match-data (list beg end))
+        (match-string 0)))))
 
 (defun comint-substitute-in-file-name (filename)
   "Return FILENAME with environment variables substituted.
