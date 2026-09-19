@@ -1884,6 +1884,7 @@ default values are used."
 		     :port port :localname localname :hop hop))
 	  ;; The method must be known.
 	  (unless (or nodefault non-essential
+		      (string-equal method tramp-archive-method)
 		      (assoc method tramp-methods))
 	    (tramp-user-error
 	     v "Method `%s' is not known" method))
