@@ -2381,7 +2381,7 @@ HCURSOR
 w32_load_cursor (LPCTSTR name)
 {
   /* Try first to load cursor from application resource.  */
-  HCURSOR cursor = LoadImage ((HINSTANCE) GetModuleHandle (NULL),
+  HCURSOR cursor = LoadImage (GetModuleHandle (NULL),
                               name, IMAGE_CURSOR, 0, 0,
                               LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED);
   if (!cursor)
@@ -2397,7 +2397,7 @@ static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
 #define INIT_WINDOW_CLASS(WC)			  \
   (WC).style = CS_HREDRAW | CS_VREDRAW;		  \
-  (WC).lpfnWndProc = (WNDPROC) w32_wnd_proc;      \
+  (WC).lpfnWndProc = w32_wnd_proc;      	  \
   (WC).cbClsExtra = 0;                            \
   (WC).cbWndExtra = WND_EXTRA_BYTES;              \
   (WC).hInstance = hinst;                         \
@@ -2541,7 +2541,7 @@ Lisp_Object
 w32_process_dnd_data (int format, void *hGlobal)
 {
   Lisp_Object result = Qnil;
-  HGLOBAL hg = (HGLOBAL) hGlobal;
+  HGLOBAL hg = hGlobal;
 
   switch (format)
     {
@@ -12135,9 +12135,9 @@ typedef USHORT (WINAPI * CaptureStackBackTrace_proc) (ULONG, ULONG, PVOID *,
    -Wl,-image-base switch we use in LD_SWITCH_SYSTEM_TEMACS, see
    configure.ac.  */
 #if defined MINGW_W64 && EMACS_INT_MAX > LONG_MAX
-# define DEFAULT_IMAGE_BASE (ptrdiff_t)0x400000000
+# define DEFAULT_IMAGE_BASE 0x400000000
 #elif !defined CYGWIN	/* 32-bit MinGW build */
-# define DEFAULT_IMAGE_BASE (ptrdiff_t)0x01000000
+# define DEFAULT_IMAGE_BASE 0x01000000
 #endif
 
 static int

@@ -1476,7 +1476,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  strcpy (p, wv->key);
 	}
       else
-	out_string = (char *)wv->name;
+	out_string = wv->name;
 
       /* Quote any special characters within the menu item's text and
 	 key binding.  */
