@@ -137,8 +137,9 @@ You can use \\[copy-theme-options] to do this."
  '(view-read-only t)
  '(column-number-mode t)
  '(kill-do-not-save-duplicates t)
+ '(scroll-error-top-bottom t)
 
-;;;; Directory managment-related options
+;;;; Directory management-related options
  '(dired-auto-revert-buffer t)
  '(dired-mouse-drag-files t)
  '(shell-command-prompt-show-cwd t)
