@@ -2458,7 +2458,9 @@ being the result.")
   (let ((dir (file-remote-p ert-remote-temporary-file-directory))
 	(tramp-tolerate-tilde t))
     (should (string-equal (expand-file-name (concat dir "~"))
-			  (expand-file-name (concat dir "/:~"))))))
+			  (expand-file-name (concat dir "/:~"))))
+    (should (string-equal (expand-file-name (concat dir "~does-not-exist"))
+			  (expand-file-name (concat dir "/:~does-not-exist"))))))
 
 (ert-deftest tramp-test06-directory-file-name ()
   "Check `directory-file-name'.

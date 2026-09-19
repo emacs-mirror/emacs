@@ -383,6 +383,10 @@ functions, which use example file names like "/ssh:host:~user/file.txt".
 In order to suppress such errors, let-bind 'tramp-tolerate-tilde' to a
 non-nil value.
 
++++
+*** 'tramp-recompile-elpa' is marked obsolete.
+Use 'package-recompile' instead.
+
 
 * New Modes and Packages in Emacs 32.1
 

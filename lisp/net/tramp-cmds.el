@@ -766,23 +766,13 @@ Interactively, with a prefix argument, prompt for a different method."
 
 ;;; Recompile on ELPA
 
-;; This function takes action, when `read-extended-command-predicate'
-;; is set to `command-completion-default-include-p'.
-;;;###tramp-autoload
-(defun tramp-recompile-elpa-command-completion-p (_symbol _buffer)
-  "A predicate for `tramp-recompile-elpa'.
-It is completed by `M-x TAB' only if package.el is loaded, and
-Tramp is an installed ELPA package."
-  ;; We cannot apply `package-installed-p', this would also return the
-  ;; builtin package.
-  (and (assq 'tramp (bound-and-true-p package-alist))
-       (tramp-compat-funcall 'package--user-installed-p 'tramp)))
-
 ;;;###tramp-autoload
 (defun tramp-recompile-elpa ()
   "Recompile the installed Tramp ELPA package.
 This is needed if there are compatibility problems."
-  (declare (completion tramp-recompile-elpa-command-completion-p))
+  ;; This command isn't offered when `read-extended-command-predicate'
+  ;; is set to `command-completion-default-include-p'.
+  (declare (completion ignore))
   (interactive)
   ;; We expect just one Tramp package is installed.
   (when-let*
@@ -800,6 +790,8 @@ This is needed if there are compatibility problems."
 	 "-Q" "-batch" "-L" dir
 	 "--eval" (format "(byte-recompile-directory %S 0 t)" dir))
 	(message "Package `tramp' recompiled.")))))
+
+(make-obsolete 'tramp-recompile-elpa 'package-recompile "32.1")
 
 ;; Tramp version is useful in a number of situations.
 
