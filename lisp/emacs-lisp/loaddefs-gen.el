@@ -144,12 +144,13 @@ scanning for autoloads and will be in the `load-path'."
         form))
 
 (defvar loaddefs--load-error-files nil)
-(defun loaddefs-generate--make-autoload (form file &optional expansion)
+(defun loaddefs-generate--make-autoload (form load-name file
+                                              &optional expansion)
   "Turn FORM into an autoload or defvar for source file FILE.
 Returns nil if FORM is not a special autoload form (i.e. a function definition
 or macro definition or a defcustom).
 If EXPANSION is non-nil, we're processing the macro expansion of an
-expression, in which case we want to handle forms differently.
+expression, in which case we want to handle some forms differently.
 
 Note that macros can request expansion by including `(autoload-macro
 expand)' among their `declare' forms."
@@ -187,7 +188,7 @@ expand)' among their `declare' forms."
         ;; can recover it.
         (when (consp args) (setq doc (help-add-fundoc-usage doc args)))
         (loaddefs-generate--shorten-autoload
-         `(autoload ,(nth 1 form) ,file ,doc ,interactive ,type))))
+         `(autoload ,(nth 1 form) ,load-name ,doc ,interactive ,type))))
 
      ;; Look inside `progn', and `eval-and-compile', since these
      ;; are often used in the expansion of things like `pcase-defmacro'.
@@ -199,7 +200,7 @@ expand)' among their `declare' forms."
         (let ((exps (delq nil (mapcar (lambda (form)
                                         (unless (eq form :autoload-end)
                                           (loaddefs-generate--make-autoload
-                                           form file expansion)))
+                                           form load-name file expansion)))
                                       (cdr form)))))
           (when exps (cons 'progn exps)))))
 
@@ -213,14 +214,14 @@ expand)' among their `declare' forms."
                     (assoc file load-history)
                     (member file loaddefs--load-error-files))
           (let ((load-path (cons (file-name-directory file) load-path)))
-            (message "loaddefs-gen: loading file %s (for %s)" file car)
-            (condition-case e
+            (message "loaddefs-gen: loading file %s (for %s)" load-name car)
+            (condition-case err
                 ;; Don't load the `.elc' file, in case the file wraps
                 ;; the macro-definition in `eval-when-compile' (bug#80180).
-                (load (concat file ".el"))
+                (load file nil nil 'nosuffix)
               (error
                (push file loaddefs--load-error-files) ; do not attempt again
-               (warn "loaddefs-gen: load error\n\t%S" e)))))
+               (warn "loaddefs-gen: load error for %s:\n\t%S" load-name err)))))
         (and (macrop car)
 	     (eq 'expand (function-get car 'autoload-macro 'macro))
 	     (setq expand (let ((load-true-file-name file)
@@ -228,7 +229,7 @@ expand)' among their `declare' forms."
 			    (macroexpand-1 form)))
 	     (not (eq car (car expand)))))
       ;; Recurse on the expansion.
-      (loaddefs-generate--make-autoload expand file 'expansion))
+      (loaddefs-generate--make-autoload expand load-name file 'expansion))
 
      ;; For defclass forms, use `eieio-defclass-autoload'.
      ((eq car 'defclass)
@@ -236,7 +237,7 @@ expand)' among their `declare' forms."
 	    (superclasses (nth 2 form))
 	    (doc (nth 4 form)))
 	(list 'eieio-defclass-autoload (list 'quote name)
-	      (list 'quote superclasses) file doc)))
+	      (list 'quote superclasses) load-name doc)))
 
      ;; Convert defcustom to less space-consuming data.
      ((eq car 'defcustom)
@@ -258,7 +259,7 @@ expand)' among their `declare' forms."
            ;; is not indispensable, but it still helps in case the `defcustom'
            ;; doesn't specify its group explicitly, and probably in a few other
            ;; corner cases.
-	   (custom-autoload ',varname ,file
+	   (custom-autoload ',varname ,load-name
                             ,(condition-case nil
                                  (null (plist-get props :set))
                                (error nil)))
@@ -279,8 +280,8 @@ expand)' among their `declare' forms."
       (let ((groupname (nth 1 form))
             (parent (eval (plist-get form :group) t)))
         `(let ((loads (get ',groupname 'custom-loads)))
-           (if (member ',file loads) nil
-             (put ',groupname 'custom-loads (cons ',file loads))
+           (if (member ',load-name loads) nil
+             (put ',groupname 'custom-loads (cons ',load-name loads))
              ,@(when parent
                `((put ',parent 'custom-loads
                       (cons ',groupname (get ',parent 'custom-loads)))))))))
@@ -441,7 +442,7 @@ don't include."
                                  (unless (bolp)
                                    (forward-line 1))))
                          (autoload (or (loaddefs-generate--make-autoload
-                                        form load-name)
+                                        form load-name file nil)
                                        form)))
                     ;; We get back either an autoload form, or a tree
                     ;; structure of `(progn ...)' things, so unravel that.
