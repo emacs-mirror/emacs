@@ -32,9 +32,14 @@
 (require 'cl-lib)
 (require 'use-package-core)
 
-(eval-when-compile
-  (declare-function package-installed-p "package")
-  (declare-function package-read-all-archive-contents "package" ()))
+(declare-function package-installed-p "package")
+(declare-function package-read-all-archive-contents "package" ())
+
+(defvar use-package-ensure-install-during-compile nil
+  "If non-nil, `:ensure' causes installation during compilation (deprecated).
+If nil, package installation happens only at run-time, which is much more
+sane since compilation is usually presumed to be a \"pure function\"
+with no other side-effects than saving the resulting `.elc' file.")
 
 ;;;; :pin
 
@@ -74,21 +79,32 @@ manually updated package."
     (if (use-package-archive-exists-p archive-symbol)
         (add-to-list 'package-pinned-packages (cons package archive-name))
       (error "Archive '%s' requested for package '%s' is not available"
-             archive-name package))
-    (unless (bound-and-true-p package--initialized)
-      (package-initialize t))))
+             archive-name package))))
 
 (defun use-package-handler/:pin (name _keyword archive-name rest state)
-  (let ((body (use-package-process-keywords name rest state))
-        (pin-form (if archive-name
-                      `(use-package-pin-package ',(use-package-as-symbol name)
-                                                ,archive-name))))
-    ;; Pinning should occur just before ensuring
-    ;; See `use-package-handler/:ensure'.
-    (if (use-package--macroexp-compiling-p)
-        (eval pin-form t)              ; Eval when byte-compiling,
-      (push pin-form body))          ; or else wait until runtime.
-    body))
+  (let* ((body (use-package-process-keywords name rest state))
+         (archive (eval archive-name t)))
+    (if (not archive)
+        body
+      (let* ((package (use-package-as-symbol name))
+             (archive-symbol (if (symbolp archive) archive (intern archive)))
+             (archive-name (if (stringp archive) archive (symbol-name archive)))
+             (pin-form
+              (if (not (use-package-archive-exists-p archive-symbol))
+                  (error "Archive '%s' requested for package '%s' is not available"
+                         archive-name package)
+                `(progn
+                   (unless (boundp 'package-pinned-packages)
+                     (setq package-pinned-packages ()))
+                   (add-to-list 'package-pinned-packages
+                                ',(cons package archive-name))))))
+        ;; Pinning should occur just before ensuring
+        ;; See `use-package-handler/:ensure'.
+        (if (and use-package-ensure-install-during-compile
+                 (use-package--macroexp-compiling-p))
+            (eval pin-form t)           ; Eval when byte-compiling,
+          (push pin-form body))         ; or else wait until runtime.
+        body))))
 
 ;;;; :ensure
 
@@ -114,17 +130,18 @@ manually updated package."
              (concat ":ensure wants an optional package name "
                      "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
+;;;###autoload
 (defun use-package-ensure-elpa (name args _state &optional _no-refresh)
   (dolist (ensure args)
     (let ((package
            (or (and (eq ensure t) (use-package-as-symbol name))
                ensure)))
       (when package
-        (require 'package)
         (when (consp package)
           (use-package-pin-package (car package) (cdr package))
           (setq package (car package)))
         (unless (package-installed-p package)
+          (require 'package)
           (condition-case-unless-debug err
               (progn
                 (when (assoc package (bound-and-true-p
@@ -152,11 +169,17 @@ manually updated package."
     ;; being macro-expanded by elisp completion (see `lisp--local-variables'),
     ;; but still install packages when byte-compiling, to avoid requiring
     ;; `package' at runtime.
-    (if (use-package--macroexp-compiling-p)
+    (if (and use-package-ensure-install-during-compile
+             (use-package--macroexp-compiling-p))
         ;; Eval when byte-compiling,
         (funcall use-package-ensure-function name ensure state)
       ;;  or else wait until runtime.
-      (push `(,use-package-ensure-function ',name ',ensure ',state)
+      (push (if (eq use-package-ensure-function #'use-package-ensure-elpa)
+                ;; Test `package-installed-p' to avoid loading
+                ;; `use-ackage-ensure' in the common case.
+                `(unless (package-installed-p ',name)
+                   (,use-package-ensure-function ',name ',ensure ',state))
+              `(,use-package-ensure-function ',name ',ensure ',state))
             body))
     body))
 

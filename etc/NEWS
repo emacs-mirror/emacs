@@ -162,6 +162,15 @@ for nearby fields.
 
 * Changes in Specialized Modes and Packages in Emacs 32.1
 
+** Use-Package
+---
+*** ':ensure t' installs the package only at run-time.
+In previous versions, it tried to install it more eagerly during
+compilation, but such side-effects are not welcome during compilation.
+In a pinch, to recover the previous behavior you can
+set 'use-package-ensure-install-during-compile' to a non-nil value,
+but it is a temporary backward compatibility hack that will disappear.
+
 ** Package
 
 ---

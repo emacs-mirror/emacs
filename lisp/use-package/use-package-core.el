@@ -1735,9 +1735,12 @@ Also see the Info node `(use-package) Creating an extension'."
   (let ((body (use-package-process-keywords name rest state))
         (local-path (car (plist-get state :load-path))))
     ;; See `use-package-handler/:ensure' for an explanation.
-    (if (use-package--macroexp-compiling-p)
+    (if (and (bound-and-true-p use-package-ensure-install-during-compile)
+             (use-package--macroexp-compiling-p))
         (funcall #'use-package-vc-install arg local-path)        ; compile time
-      (push `(use-package-vc-install ',arg ,local-path) body))   ; runtime
+      (push `(unless (package-installed-p ',(car-safe arg))
+               (use-package-vc-install ',arg ,local-path))
+            body))   ; runtime
     body))
 
 (defconst use-package-vc-valid-keywords
