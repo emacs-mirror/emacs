@@ -610,6 +610,9 @@ BODY is the test body."
 (defun treesit--ert-pred-last-sibling (node)
   (null (treesit-node-next-sibling node t)))
 
+(defun treesit--ert-pred-error (_node)
+  (error "Error from tree-sitter predicate"))
+
 (ert-deftest treesit-query-api ()
   "Tests for query API."
   (skip-unless (treesit-language-available-p 'json))
@@ -672,6 +675,27 @@ BODY is the test body."
       (should (equal
                (treesit-pattern-expand "a\nb\rc\td\0e\"f\1g\\h\fi")
                "\"a\\nb\\rc\\td\\0e\\\"f\1g\\\\h\fi\"")))))
+
+(ert-deftest treesit-query-predicate-nonlocal-exit ()
+  "Test cleanup after a query predicate exits nonlocally."
+  (skip-unless (treesit-language-available-p 'json))
+  (let ((source-buffer (generate-new-buffer " *treesit-query-source*")))
+    (unwind-protect
+        (let (root-node)
+          (with-current-buffer source-buffer
+            (insert "[1]")
+            (setq root-node
+                  (treesit-parser-root-node
+                   (treesit-parser-create 'json))))
+          (with-temp-buffer
+            (let ((caller-buffer (current-buffer)))
+              (should-error
+               (treesit-query-capture
+                root-node
+                "((number) @number
+                  (#pred? treesit--ert-pred-error @number))"))
+              (should (eq (current-buffer) caller-buffer)))))
+      (kill-buffer source-buffer))))
 
 (ert-deftest treesit-query-node-only-and-grouped ()
   "Tests for query API."
