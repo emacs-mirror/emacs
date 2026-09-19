@@ -1199,14 +1199,15 @@ with output going to the buffer `*compilation*'.
 You can then use the command \\[next-error] to find the next error message
 and move to the line in the SGML document that caused it."
   (interactive
-   (list (read-shell-command "Validate command: "
-		             (or sgml-saved-validate-command
-                                 sgml-validate-command
-			         (concat sgml-validate-command
-				         " "
-                                         (when-let* ((name (buffer-file-name)))
-				           (shell-quote-argument
-				            (file-name-nondirectory name))))))))
+   (list (read-shell-command
+          "Validate command: "
+	  (or sgml-saved-validate-command
+	      (and sgml-validate-command
+                   (concat sgml-validate-command
+			   " "
+                           (when-let* ((name (buffer-file-name)))
+			     (shell-quote-argument
+			      (file-name-nondirectory name)))))))))
   (setq sgml-saved-validate-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compilation-start command))
