@@ -882,6 +882,8 @@ turn_on_face (struct frame *f, int face_id)
     SSPRINTF (seq, &n, sz, tty->TS_enter_strike_through_mode, NULL);
   if (face->underline != 0)
     SSPRINTF (seq, &n, sz, tty->TS_enter_underline_mode, NULL);
+  if (face->tty_overline_p != 0)
+    SSPRINTF (seq, &n, sz, tty->TS_enter_overline_mode, NULL);
   /* Note: when face->tty_reverse_p != 0 and fg and bg are specified,
      their values are already swapped and reversing them here would swap
      them back, but we need to handle the reversal when unspecified.  */

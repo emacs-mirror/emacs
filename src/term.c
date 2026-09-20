@@ -4826,6 +4826,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
     tty->TS_enter_italic_mode = "\x1b[3m";
     tty->TS_enter_strike_through_mode = "\x1b[9m";
     tty->TS_enter_underline_mode = "\x1b[4m";
+    tty->TS_enter_overline_mode = "\x1b[53m";
     tty->TS_enter_reverse_mode = "\x1b[7m";
     tty->TS_exit_attribute_mode = "\x1b[0m";
 
