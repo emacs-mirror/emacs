@@ -566,6 +566,9 @@ order to establish network connections to hosts on local networks.
 This support is only available on Windows versions of the NT family.
 
 ---
+*** Emacs running on Windows Terminal now supports underline styles and colors.
+
+---
 *** 'process-attributes' now returns 'pcpu' and 'pmem' on macOS.
 As a result, 'M-x proced' shows populated %CPU and %Mem columns there.
 In addition, the 'utime', 'stime' and 'time' attributes, which were off
