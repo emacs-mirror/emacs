@@ -1,5 +1,5 @@
 # stdckdint_h.m4
-# serial 2
+# serial 3
 dnl Copyright 2025-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -60,7 +60,7 @@ AC_DEFUN_ONCE([gl_STDCKDINT_H],
          cat > conftest.cpp <<\EOF
 #include <stdckdint.h>
 EOF
-         gl_command="$CXX $CXXFLAGS $CPPFLAGS -c conftest.cpp"
+         gl_command="$CXX $CXXFLAGS $CPPFLAGS -c conftest.cpp > /dev/null"
          if AC_TRY_EVAL([gl_command]); then
            gl_cv_header_cxx_stdckdint_h=yes
          else
@@ -85,7 +85,7 @@ main (void)
   return !!(ckd_add (&r, a, b) || ckd_sub (&r, a, b) || ckd_mul (&r, a, b));
 }
 EOF
-           gl_command="$CXX $CXXFLAGS $CPPFLAGS -c conftest.cpp"
+           gl_command="$CXX $CXXFLAGS $CPPFLAGS -c conftest.cpp > /dev/null"
            if AC_TRY_EVAL([gl_command]); then
              gl_cv_header_cxx_stdckdint_h_works=yes
            else

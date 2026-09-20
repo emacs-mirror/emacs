@@ -36,6 +36,7 @@ AC_DEFUN([gl_REGEX],
         [AC_LANG_PROGRAM(
           [[#include <regex.h>
 
+            #include <ctype.h>
             #include <locale.h>
             #include <limits.h>
             #include <string.h>
@@ -349,6 +350,43 @@ AC_DEFUN([gl_REGEX],
                     result |= 64;
                   regfree (&re68725);
                 }
+            }
+
+            /* Test for glibc bug 20381
+               <https://sourceware.org/bugzilla/show_bug.cgi?id=20381>.  */
+            if (setlocale (LC_ALL, "el_GR.iso88597")
+                || setlocale (LC_ALL, "el_GR.ISO8859-7")
+                || setlocale (LC_ALL, "el_GR.iso8859-7"))
+              {
+                /* Check this only in Greek locales that seem to be working.
+                    In macOS 26, for example, setlocale (LC_ALL, "el_GR.ISO8859-7")
+                    succeed but acts like the C locale.  */
+                if (toupper (0xf2) == 0xd3 && toupper (0xf3) == 0xd3)
+                  for (int i = 0; i < 3; i++)
+                    for (int j = 0; j < 3; j++)
+                      {
+                        static char const str[3][2] = { "\xd3", "\xf2", "\xf3" };
+                        regex_t re;
+                        int err = regcomp (&re, str[i], REG_ICASE | REG_NOSUB);
+                        if (err)
+                          {
+                            result |= 64;
+                            continue;
+                          }
+
+                        int with = regexec (&re, str[j], 0, NULL, 0);
+                        free (re.fastmap);
+                        re.fastmap = NULL;
+                        re.fastmap_accurate = 0;
+                        int without = regexec (&re, str[j], 0, NULL, 0);
+                        if (with != without)
+                          result |= 64;
+
+                        regfree (&re);
+                      }
+
+                if (! setlocale (LC_ALL, "C"))
+                  return 64;
             }
 
 #if 0

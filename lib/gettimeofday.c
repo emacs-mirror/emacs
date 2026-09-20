@@ -61,6 +61,9 @@ initialize (void)
 # else
 
 #  define GetSystemTimePreciseAsFileTimeFunc GetSystemTimePreciseAsFileTime
+#  if _GL_GNUC_PREREQ (4, 2)
+#   pragma GCC diagnostic ignored "-Waddress"
+#  endif
 
 # endif
 

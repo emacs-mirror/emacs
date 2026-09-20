@@ -83,6 +83,9 @@ initialize (void)
 # else
 
 #  define BCryptGenRandomFunc BCryptGenRandom
+#  if _GL_GNUC_PREREQ (4, 2)
+#   pragma GCC diagnostic ignored "-Waddress"
+#  endif
 
 # endif
 
