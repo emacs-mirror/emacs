@@ -2837,7 +2837,10 @@ Don't underline.
 Underline with the foreground color of the face.
 
 @item @var{color}
-Underline in color @var{color}, a string specifying a color.
+Underline in color @var{color}, a string specifying a color.  This works
+also on text terminals, if the terminal is capable of setting the color
+of the underline (the @code{Smulx} and @code{Su} terminfo capabilities
+must be available).
 
 @item @code{(:color @var{color} :style @var{style} :position @var{position})}
 @var{color} is either a string, or the symbol @code{foreground-color},
@@ -2858,9 +2861,11 @@ display the underline.
 
 @cindex overlined text
 @item :overline
-Whether or not characters should be overlined, and in what color.
-If the value is @code{t}, overlining uses the foreground color of the
-face.  If the value is a string, overlining uses that color.  The
+Whether or not characters should be overlined, and in what color.  If
+the value is @code{t}, overlining uses the foreground color of the face.
+On text terminals, support for this depends on the availability of the
+@code{Smol} terminfo capability.  If the value is a string, overlining
+uses that color (this currently doesn't work on text terminals).  The
 value @code{nil} means do not overline.
 
 @cindex strike-through text
