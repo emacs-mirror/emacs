@@ -321,14 +321,13 @@
         (require 'foo nil nil)))))
 
 (ert-deftest use-package-test/:ensure-11 ()
-  (let (tried-to-install)
-    (cl-letf (((symbol-function #'use-package-ensure-elpa)
-               (lambda (name ensure state &optional no-refresh)
-                 (when ensure
-                   (setq tried-to-install name))))
-              ((symbol-function #'require) #'ignore))
-      (use-package foo :ensure t)
-      (should (eq tried-to-install 'foo)))))
+  (let ((tried-to-install
+         (catch 'tried-to-install
+          (cl-letf (((symbol-function 'use-package-ensure-installed)
+                     (lambda (name &rest _)
+                      (throw 'tried-to-install name))))
+            (use-package foo11 :ensure t)))))
+    (should (eq tried-to-install 'foo11))))
 
 (ert-deftest use-package-test/:ensure-12 ()
   (let ((use-package-always-ensure t))
@@ -1832,7 +1831,7 @@
    `(bind-key "C-c C-r" #'org-ref-helm-insert-cite-link override-global-map nil)))
 
 (ert-deftest use-package-test/560 ()
-  (cl-letf (((symbol-function #'executable-find) #'ignore))
+  (cl-letf (((symbol-function 'executable-find) #'ignore))
     (let (notmuch-command)
       (match-expansion
        (use-package notmuch
@@ -1943,14 +1942,15 @@
         (use-package-expand-minimally t)
         debug-on-error
         warnings)
-    (cl-letf (((symbol-function #'display-warning)
+    (cl-letf (((symbol-function 'display-warning)
                (lambda (_ msg _) (push msg warnings))))
       (progn
         (macroexpand-1
          '(use-package ediff :defer t (setq my-var t)))
         (should (= (and (> (length warnings) 0)
                         (string-match ":defer wants exactly one argument"
-                                      (car warnings))) 44))))))
+                         (car warnings)))
+                   44))))))
 
 (ert-deftest use-package-test/591 ()
   (let ((use-package-defaults
@@ -2027,8 +2027,10 @@
 
 (ert-deftest use-package-test-handler/:vc-6 ()
   (use-package-test--with-compiling-p
-    (let (tried-to-install)
-      (cl-letf (((symbol-function #'use-package-vc-install)
+   (defvar use-package-ensure-install-during-compile)
+    (let (tried-to-install
+          (use-package-ensure-install-during-compile t))
+      (cl-letf (((symbol-function 'use-package-vc-install)
                  (lambda (arg &optional local-path)
                    (setq tried-to-install arg))))
         (should (equal

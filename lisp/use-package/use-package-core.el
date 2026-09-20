@@ -1695,22 +1695,28 @@ no keyword implies `:all'."
 
 ;;;; :vc
 
-;;;###autoload
-(defun use-package-vc-install (arg &optional local-path)
+(define-inline use-package-vc-install (arg &optional local-path)
   "Install a package with `package-vc.el'.
 ARG is a list of the form (NAME OPTIONS REVISION), as returned by
 `use-package-normalize--vc-arg'.  If LOCAL-PATH is non-nil, call
 `package-vc-install-from-checkout'; otherwise, indicating a
 remote host, call `package-vc-install' instead."
-  (pcase-let* ((`(,name ,opts ,rev) arg)
+  (pcase-let* ((`(,name ,opts ,rev) (inline-const-val arg))
+               (local-path (inline-const-val local-path))
                (spec (if opts (cons name opts) name)))
-    (unless (package-installed-p name)
-      (if local-path
-          (with-suppressed-warnings ((obsolete package-vc-install-from-checkout))
-            (warn "Support for :vc with :load-path is obsolete.  \
+    (inline-quote
+     (unless (package-installed-p ',name)
+       ,(if local-path
+            (progn
+              (warn "Support for :vc with :load-path is obsolete.  \
 Use the User Lisp directory instead.")
-            (package-vc-install-from-checkout local-path (symbol-name name)))
-        (package-vc-install spec rev)))))
+              (inline-quote
+               (with-suppressed-warnings
+                   ((obsolete package-vc-install-from-checkout))
+                 (package-vc-install-from-checkout ',local-path
+                                                   ',(symbol-name name)))))
+          (inline-quote
+           (package-vc-install ',spec ',rev)))))))
 
 (defun use-package-handler/:vc (name _keyword arg rest state)
   "Generate code to install package NAME, or do so directly.
@@ -1738,8 +1744,7 @@ Also see the Info node `(use-package) Creating an extension'."
     (if (and (bound-and-true-p use-package-ensure-install-during-compile)
              (use-package--macroexp-compiling-p))
         (funcall #'use-package-vc-install arg local-path)        ; compile time
-      (push `(unless (package-installed-p ',(car-safe arg))
-               (use-package-vc-install ',arg ,local-path))
+      (push `(use-package-vc-install ',arg ,local-path)
             body))   ; runtime
     body))
 

@@ -53,10 +53,6 @@ with no other side-effects than saving the resulting `.elc' file.")
           (use-package-error
            ":pin wants an archive name (a string)"))))))
 
-(eval-when-compile
-  (defvar package-pinned-packages)
-  (defvar package-archives))
-
 (defun use-package-archive-exists-p (archive)
   "Check if a given ARCHIVE is enabled.
 
@@ -64,51 +60,47 @@ ARCHIVE can be a string or a symbol or `manual' to indicate a
 manually updated package."
   (if (member archive '(manual "manual"))
       't
+    (require 'package)
+    (defvar package-archives)
     (let ((valid nil))
       (dolist (pa package-archives)
         (when (member archive (list (car pa) (intern (car pa))))
           (setq valid 't)))
       valid)))
 
-(defun use-package-pin-package (package archive)
+(define-inline use-package-pin-package (package archive)
   "Pin PACKAGE to ARCHIVE."
-  (unless (boundp 'package-pinned-packages)
-    (setq package-pinned-packages ()))
-  (let ((archive-symbol (if (symbolp archive) archive (intern archive)))
-        (archive-name   (if (stringp archive) archive (symbol-name archive))))
-    (if (use-package-archive-exists-p archive-symbol)
-        (add-to-list 'package-pinned-packages (cons package archive-name))
-      (error "Archive '%s' requested for package '%s' is not available"
-             archive-name package))))
+  (let* ((package (inline-const-val package))
+         (archive (inline-const-val archive))
+         (archive-symbol (if (symbolp archive) archive (intern archive)))
+         (archive-name   (if (stringp archive) archive (symbol-name archive))))
+    (unless (use-package-archive-exists-p archive-symbol)
+      (warn "Archive '%s' requested for package '%s' is not available"
+            archive-name package))
+    (inline-quote
+     (progn
+       ;; FIXME: After N compiler-macro expansions, we end up with N copies of
+       ;; this `(setq package-pinned-packages nil)' business.
+       (defvar package-pinned-packages)
+       (unless (boundp 'package-pinned-packages)
+         (setq package-pinned-packages ()))
+       (add-to-list 'package-pinned-packages
+                    ',(cons package archive-name))))))
 
 (defun use-package-handler/:pin (name _keyword archive-name rest state)
-  (let* ((body (use-package-process-keywords name rest state))
-         (archive (eval archive-name t)))
-    (if (not archive)
-        body
-      (let* ((package (use-package-as-symbol name))
-             (archive-symbol (if (symbolp archive) archive (intern archive)))
-             (archive-name (if (stringp archive) archive (symbol-name archive)))
-             (pin-form
-              (if (not (use-package-archive-exists-p archive-symbol))
-                  (error "Archive '%s' requested for package '%s' is not available"
-                         archive-name package)
-                `(progn
-                   (unless (boundp 'package-pinned-packages)
-                     (setq package-pinned-packages ()))
-                   (add-to-list 'package-pinned-packages
-                                ',(cons package archive-name))))))
-        ;; Pinning should occur just before ensuring
-        ;; See `use-package-handler/:ensure'.
-        (if (and use-package-ensure-install-during-compile
-                 (use-package--macroexp-compiling-p))
-            (eval pin-form t)           ; Eval when byte-compiling,
-          (push pin-form body))         ; or else wait until runtime.
-        body))))
+  (let ((body (use-package-process-keywords name rest state))
+        (pin-form (if archive-name
+                      `(use-package-pin-package ',(use-package-as-symbol name)
+                                                ,archive-name))))
+    ;; Pinning should occur just before ensuring
+    ;; See `use-package-handler/:ensure'.
+    (if (and use-package-ensure-install-during-compile
+             (use-package--macroexp-compiling-p))
+        (eval pin-form t)               ; Eval when byte-compiling,
+      (push pin-form body))             ; or else wait until runtime.
+    body))
 
 ;;;; :ensure
-
-(defvar package-archive-contents)
 
 ;;;###autoload
 (defun use-package-normalize/:ensure (_name keyword args)
@@ -130,36 +122,47 @@ manually updated package."
              (concat ":ensure wants an optional package name "
                      "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
+(define-inline use-package-ensure-elpa (name args state &optional _no-refresh)
+  (let* ((name (inline-const-val name))
+         (args (inline-const-val args)))
+    (when args
+      (let* ((ensure (pop args))
+             (package (or (and (eq ensure t)
+                               (use-package-as-symbol name))
+                          ensure))
+             (pin (if (consp package)
+                      (prog1 package (setq package (car package))))))
+        (inline-quote
+         (progn
+           ,(if pin (inline-quote
+                     (use-package-pin-package ',(car pin) ',(cdr pin))))
+           ,(if package
+                (inline-quote
+                 (unless (package-installed-p ',package)
+                   (use-package-ensure-installed ',package))))
+           (use-package-ensure-elpa ',name ',args ',state)))))))
+
 ;;;###autoload
-(defun use-package-ensure-elpa (name args _state &optional _no-refresh)
-  (dolist (ensure args)
-    (let ((package
-           (or (and (eq ensure t) (use-package-as-symbol name))
-               ensure)))
-      (when package
-        (when (consp package)
-          (use-package-pin-package (car package) (cdr package))
-          (setq package (car package)))
-        (unless (package-installed-p package)
-          (require 'package)
-          (condition-case-unless-debug err
-              (progn
-                (when (assoc package (bound-and-true-p
-                                      package-pinned-packages))
-                  (package-read-all-archive-contents))
-                (if (assoc package package-archive-contents)
-                    (package-install package)
-                  (package-refresh-contents)
-                  (when (assoc package (bound-and-true-p
-                                        package-pinned-packages))
-                    (package-read-all-archive-contents))
-                  (package-install package))
-                t)
-            (error
-             (display-warning 'use-package
-                              (format "Failed to install %s: %s"
-                                      name (error-message-string err))
-                              :error))))))))
+(defun use-package-ensure-installed (package)
+  (require 'package)
+  (defvar package-archive-contents)
+  (defvar package-pinned-packages)
+  (condition-case-unless-debug err
+      (progn
+        (when (assoc package package-pinned-packages)
+          (package-read-all-archive-contents))
+        (if (assoc package package-archive-contents)
+            (package-install package)
+          (package-refresh-contents)
+          (when (assoc package package-pinned-packages)
+            (package-read-all-archive-contents))
+          (package-install package))
+        t)
+    (error
+     (display-warning 'use-package
+                      (format "Failed to install %s: %s"
+                              package (error-message-string err))
+                      :error))))
 
 ;;;###autoload
 (defun use-package-handler/:ensure (name _keyword ensure rest state)
@@ -174,12 +177,7 @@ manually updated package."
         ;; Eval when byte-compiling,
         (funcall use-package-ensure-function name ensure state)
       ;;  or else wait until runtime.
-      (push (if (eq use-package-ensure-function #'use-package-ensure-elpa)
-                ;; Test `package-installed-p' to avoid loading
-                ;; `use-ackage-ensure' in the common case.
-                `(unless (package-installed-p ',name)
-                   (,use-package-ensure-function ',name ',ensure ',state))
-              `(,use-package-ensure-function ',name ',ensure ',state))
+      (push `(,use-package-ensure-function ',name ',ensure ',state)
             body))
     body))
 
