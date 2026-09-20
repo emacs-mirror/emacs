@@ -2207,8 +2207,8 @@ turn_off_face (struct frame *f, struct face *face)
   if (tty->TS_exit_attribute_mode)
     {
       /* Capability "me" will turn off appearance modes double-bright,
-	 half-bright, reverse-video, standout, underline.  It may or
-	 may not turn off alt-char-mode.  */
+	 half-bright, reverse-video, standout, underline, overline,
+	 strike-through.  It may or may not turn off alt-char-mode.  */
       if (face->tty_bold_p
 	  || face->tty_italic_p
 	  || face->tty_reverse_p
@@ -4826,6 +4826,8 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
     tty->TS_enter_italic_mode = "\x1b[3m";
     tty->TS_enter_strike_through_mode = "\x1b[9m";
     tty->TS_enter_underline_mode = "\x1b[4m";
+    tty->TF_set_underline_style = "\x1b[4:%um";
+    tty->TF_set_underline_color = "\x1b[58:2::%lu:%lu:%lum";
     tty->TS_enter_overline_mode = "\x1b[53m";
     tty->TS_enter_reverse_mode = "\x1b[7m";
     tty->TS_exit_attribute_mode = "\x1b[0m";

@@ -2871,7 +2871,9 @@ value @code{nil} means do not overline.
 @cindex strike-through text
 @item :strike-through
 Whether or not characters should be strike-through, and in what
-color.  The value is used like that of @code{:overline}.
+color.  The value is used like that of @code{:overline}.  Whether this
+is supported on text terminals depends on the availability of the
+@code{smxx} terminfo capability.
 
 @cindex 2D box
 @cindex 3D box
