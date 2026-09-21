@@ -25,6 +25,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <windows.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
