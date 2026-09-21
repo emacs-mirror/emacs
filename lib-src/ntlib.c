@@ -48,7 +48,7 @@ int sys_mkdir (const char *, mode_t);
 int sys_chdir (const char *);
 int mkostemp (char *, int);
 int sys_rename (const char *, const char *);
-int sys_open (const char *, int, int);
+int sys_open (const char *, int, ...);
 
 /* MinGW64 defines _TIMEZONE_DEFINED and defines 'struct timespec' in
    its system headers.  */
@@ -526,9 +526,14 @@ sys_rename (const char *from, const char *to)
 }
 
 int
-sys_open (const char * path, int oflag, int mode)
+sys_open (const char * path, int oflag, ...)
 {
-  return _open (path, oflag, mode);
+  va_list ap;
+  va_start (ap, oflag);
+  int mode = va_arg (ap, int);
+  int retval = _open (path, oflag, mode);
+  va_end (ap);
+  return retval;
 }
 
 /* Emulation of nl_langinfo that supports only CODESET.

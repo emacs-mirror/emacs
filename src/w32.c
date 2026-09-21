@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <mingw_time.h>
 #include <stddef.h> /* for offsetof */
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <float.h>	/* for DBL_EPSILON */
 #include <io.h>
@@ -77,7 +78,7 @@ char *sys_ctime (const time_t *);
 int sys_chdir (const char *);
 int sys_creat (const char *, int);
 FILE *sys_fopen (const char *, const char *);
-int sys_open (const char *, int, int);
+int sys_open (const char *, int, ...);
 int sys_rename (char const *, char const *);
 int sys_rmdir (const char *);
 int sys_close (int);
@@ -4672,10 +4673,15 @@ sys_mkdir (const char * path, mode_t mode)
 }
 
 int
-sys_open (const char * path, int oflag, int mode)
+sys_open (const char * path, int oflag, ...)
 {
   const char* mpath = map_w32_filename (path, NULL);
   int res = -1;
+  va_list ap;
+  int mode;
+
+  va_start (ap, oflag);
+  mode = va_arg (ap, int);
 
   if (w32_unicode_filenames)
     {
@@ -4716,6 +4722,8 @@ sys_open (const char * path, int oflag, int mode)
 	    errno = EISDIR;
 	}
     }
+
+  va_end (ap);
 
   return res;
 }
