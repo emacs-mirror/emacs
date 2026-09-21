@@ -804,7 +804,15 @@ status_message (struct Lisp_Process *p)
 	  c1 = STRING_CHAR (SDATA (string));
 	  c2 = downcase (c1);
 	  if (c1 != c2)
-	    Faset (string, make_fixnum (0), make_fixnum (c2));
+	    {
+	      if (ASCII_CHAR_P (c1) && ASCII_CHAR_P (c2))
+		Faset (string, make_fixnum (0), make_fixnum (c2));
+	      else
+		string = concat2 (Fdowncase (Fsubstring (string,
+							 make_fixnum (0),
+							 make_fixnum (1))),
+				  Fsubstring (string, make_fixnum (1), Qnil));
+	    }
 	}
       AUTO_STRING (suffix, coredump ? " (core dumped)\n" : "\n");
       return concat2 (string, suffix);
