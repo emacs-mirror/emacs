@@ -1861,9 +1861,6 @@ progress, kill it and start a new one."
       ;; Bzr has serious locking problems, so setup the headers first (this is
       ;; mostly synchronous) rather than doing it while dir-status is running.
       (vc-dir--set-header def-dir 'reset-footer)
-      (unless revert-buffer-in-progress
-        (when vc-dir-show-key-binding-hints
-          (goto-char (1+ (length vc-dir--key-binding-hints)))))
       (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)
@@ -2074,6 +2071,8 @@ These are the commands available for use in the file status buffer:
     ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
     (let ((use-vc-backend backend))
       (vc-dir-mode)
+      (when vc-dir-show-key-binding-hints
+        (goto-char (1+ (length vc-dir--key-binding-hints))))
       ;; Activate the backend-specific minor mode, if any.
       (when-let* ((minor-mode
                    (intern-soft (format "vc-dir-%s-mode"
