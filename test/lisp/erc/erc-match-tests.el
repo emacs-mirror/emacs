@@ -268,7 +268,7 @@
 
   (erc-match-tests--perform
    (lambda ()
-     (erc-tests-common-add-cmem "bob")
+     (erc-tests-common-add-cmem "bob" "gnu.org")
      (erc-tests-common-add-cmem "alice")
      ;; Change highlight type for match categories `keyword' and
      ;; `current-nick' to `nick'.
@@ -344,7 +344,7 @@
 
 (ert-deftest erc-match-message/dangerous-host/nick ()
   (should (eq erc-dangerous-host-highlight-type 'nick))
-  (let ((erc-dangerous-hosts (list "bob")))
+  (let ((erc-dangerous-hosts (list "gnu\\.org")))
     (erc-match-tests--hl-type-nick 'erc-dangerous-host-face)))
 
 (ert-deftest erc-match-message/pal/nick/legacy ()
@@ -365,7 +365,7 @@
   (should (eq erc-dangerous-host-highlight-type 'nick))
   (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
     (let ((erc-match-use-legacy-logic-p t)
-          (erc-dangerous-hosts (list "bob")))
+          (erc-dangerous-hosts (list "gnu\\.org")))
       (erc-match-tests--hl-type-nick 'erc-dangerous-host-face))))
 
 ;; Mentions are treated as keywords, even in the speaker portion.
@@ -412,19 +412,13 @@
         (erc-fools (list "bob")))
     (erc-match-tests--hl-type-nick-or-mention 'erc-fool-face)))
 
-(ert-deftest erc-match-message/dangerous-host/nick-or-mention ()
-  (should (eq erc-dangerous-host-highlight-type 'nick))
-  (let ((erc-dangerous-host-highlight-type 'nick-or-mention)
-        (erc-dangerous-hosts (list "bob")))
-    (erc-match-tests--hl-type-nick-or-mention 'erc-dangerous-host-face)))
-
 (defun erc-match-tests--hl-type-message (face)
   (should (eq erc-current-nick-highlight-type 'keyword))
   (should (eq erc-keyword-highlight-type 'keyword))
 
   (erc-match-tests--perform
    (lambda ()
-     (erc-tests-common-add-cmem "bob")
+     (erc-tests-common-add-cmem "bob" "gnu.org")
      (erc-tests-common-add-cmem "alice")
      ;; Change highlight type for categories `keyword' and
      ;; `current-nick' to `message'.
@@ -479,7 +473,7 @@
 
 (ert-deftest erc-match-message/dangerous-host/message ()
   (should (eq erc-dangerous-host-highlight-type 'nick))
-  (let ((erc-dangerous-hosts (list "bob"))
+  (let ((erc-dangerous-hosts (list "gnu\\.org"))
         (erc-dangerous-host-highlight-type 'message))
     (erc-match-tests--hl-type-message 'erc-dangerous-host-face)))
 
@@ -503,7 +497,7 @@
   (should (eq erc-dangerous-host-highlight-type 'nick))
   (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
     (let ((erc-match-use-legacy-logic-p t)
-          (erc-dangerous-hosts (list "bob"))
+          (erc-dangerous-hosts (list "gnu\\.org"))
           (erc-dangerous-host-highlight-type 'message))
       (erc-match-tests--hl-type-message 'erc-dangerous-host-face))))
 
@@ -513,7 +507,7 @@
 
   (erc-match-tests--perform
    (lambda ()
-     (erc-tests-common-add-cmem "bob")
+     (erc-tests-common-add-cmem "bob" "gnu.org")
      (erc-tests-common-add-cmem "alice")
      ;; Change highlight type for categories `current-nick' and
      ;; `keyword' to `all'.
@@ -568,7 +562,7 @@
 
 (ert-deftest erc-match-message/dangerous-host/all ()
   (should (eq erc-dangerous-host-highlight-type 'nick))
-  (let ((erc-dangerous-hosts (list "bob"))
+  (let ((erc-dangerous-hosts (list "gnu\\.org"))
         (erc-dangerous-host-highlight-type 'all))
     (erc-match-tests--hl-type-all 'erc-dangerous-host-face)))
 
@@ -592,7 +586,7 @@
   (should (eq erc-dangerous-host-highlight-type 'nick))
   (with-suppressed-warnings ((erc-match-use-legacy-logic-p obsolete))
     (let ((erc-match-use-legacy-logic-p t)
-          (erc-dangerous-hosts (list "bob"))
+          (erc-dangerous-hosts (list "gnu\\.org"))
           (erc-dangerous-host-highlight-type 'all))
       (erc-match-tests--hl-type-all 'erc-dangerous-host-face))))
 
@@ -601,7 +595,7 @@
 
   (erc-match-tests--perform
    (lambda ()
-     (erc-tests-common-add-cmem "bob")
+     (erc-tests-common-add-cmem "bob" "gnu.org")
      (erc-tests-common-add-cmem "alice")
      ;; Change highlight type for category `current-nick' from the
      ;; default to `nick-or-keyword'.
@@ -650,7 +644,7 @@
 
   (erc-match-tests--perform
    (lambda ()
-     (erc-tests-common-add-cmem "bob")
+     (erc-tests-common-add-cmem "bob" "gnu.org")
      (erc-tests-common-add-cmem "imamodel")
      (erc-tests-common-add-cmem "ModerNerd")
 
@@ -735,10 +729,12 @@
 
 (ert-deftest erc-match--opt-pat-cache ()
   (let ((erc-match--opt-pat-cache ()))
-    (let ((erc-keywords '("foo")))
+    (let ((erc-keywords (list "foo")))
       (erc-match--keyword-p (erc-match-opt-keyword :body-beg 1
                                                    :sender ""
-                                                   :command 'fake)))
+                                                   :command 'fake))
+      ;; Mutating a cached input does not change the saved key.
+      (setcar erc-keywords "fail"))
     (let ((erc-keywords '("bar")))
       (erc-match--keyword-p (erc-match-opt-keyword :body-beg 1
                                                    :sender ""
@@ -748,14 +744,15 @@
                                                             :sender ""
                                                             :command 'fake)))
     (should (equal erc-match--opt-pat-cache
-                   '((erc-match--opt-pat-make-addr-end
-                      (("baz") . "\\s. \\(baz\\)\\s."))
+                   `((erc-match--opt-pat-make-addr-any
+                      (,(sxhash-equal '("baz")) . "\\s. \\(baz\\)\\s."))
                      (erc-match--opt-pat-make-addr-beg
-                      (("baz") . "\\<\\(baz\\)[:,] "))
+                      (,(sxhash-equal '("baz")) . "\\<\\(baz\\)[,:] "))
                      (erc-match--opt-pat-make
-                      (("baz") . "baz"))
+                      (,(sxhash-equal '("baz")) . "baz"))
                      (erc-match--opt-pat-make-kw
-                      (("bar") . "bar") (("foo") . "foo")))))))
+                      (,(sxhash-equal '("bar")) . "bar")
+                      (,(sxhash-equal '("foo")) . "foo")))))))
 
 ;; This demos bare-bones usage of the `erc-match' API that implicitly
 ;; opts out of the traditional options and "parts"-based mechanism.  The

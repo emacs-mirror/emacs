@@ -881,7 +881,14 @@ turn_on_face (struct frame *f, int face_id)
   if (face->tty_strike_through_p)
     SSPRINTF (seq, &n, sz, tty->TS_enter_strike_through_mode, NULL);
   if (face->underline != 0)
-    SSPRINTF (seq, &n, sz, tty->TS_enter_underline_mode, NULL);
+    {
+      if (face->underline == FACE_UNDERLINE_SINGLE)
+	SSPRINTF (seq, &n, sz, tty->TS_enter_underline_mode, NULL);
+      else
+	SSPRINTF (seq, &n, sz, tty->TF_set_underline_style, face->underline);
+    }
+  if (face->tty_overline_p != 0)
+    SSPRINTF (seq, &n, sz, tty->TS_enter_overline_mode, NULL);
   /* Note: when face->tty_reverse_p != 0 and fg and bg are specified,
      their values are already swapped and reversing them here would swap
      them back, but we need to handle the reversal when unspecified.  */
@@ -930,6 +937,14 @@ turn_on_face (struct frame *f, int face_id)
       unsigned long rb = bg/65536, gb = (bg/256)&255, bb = bg&255;
       SSPRINTF (seq, &n, sz, set_fg, rf, gf, bf);
       SSPRINTF (seq, &n, sz, set_bg, rb, gb, bb);
+    }
+  /* Non-default underline color supported only in TrueColor mode.  */
+  if (face->underline_color != 0 && tty->TN_max_colors == 16777216)
+    {
+      unsigned long ur = face->underline_color / 65536;
+      unsigned long ug = (face->underline_color / 256) & 255;
+      unsigned long ub = face->underline_color & 255;
+      SSPRINTF (seq, &n, sz, tty->TF_set_underline_color, ur, ug, ub);
     }
   w32con_write_vt_seq ((const char *) seq);
 }

@@ -909,7 +909,7 @@ references and parameter-entity references."
 		    (error "XML: (Validity) Undefined parameter entity `%s'" ref))
 	       (push (or (cdr val) xml-undefined-entity) children)))
 	(setq string remainder)))
-    (mapconcat 'identity (nreverse (cons string children)) "")))
+    (mapconcat #'identity (nreverse (cons string children)))))
 
 (defun xml-parse-elem-type (string)
   "Convert element type STRING into a Lisp structure."
@@ -980,7 +980,7 @@ STRING is assumed to occur in an XML attribute value."
 	       (> (length string) (+ strlen xml-entity-expansion-limit))
 	       (error "XML: Passed `xml-entity-expansion-limit' while expanding `&%s;'"
 		      ref)))))
-    (mapconcat 'identity (nreverse (cons string children)) "")))
+    (mapconcat #'identity (nreverse (cons string children)))))
 
 (defun xml-substitute-numeric-entities (string)
   "Substitute SGML numeric entities by their respective utf characters.

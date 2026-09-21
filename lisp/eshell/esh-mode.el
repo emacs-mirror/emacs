@@ -92,7 +92,8 @@ That is to say, the first time during an Emacs session."
 
 (defcustom eshell-after-initialize-hook nil
   "A hook that gets run after an Eshell session has been fully initialized."
-  :type 'hook)
+  :type 'hook
+  :version "31.1")
 
 (defcustom eshell-exit-hook nil
   "A hook that is run whenever `eshell' is exited.
@@ -618,7 +619,7 @@ newline."
   (let* ((proc-running-p (eshell-head-process))
          (send-to-process-p (and proc-running-p (not queue-p))))
     (unless (and send-to-process-p
-		 (not (eq (process-status
+		 (not (eq (eshell-task-status
 			   (eshell-head-process))
                           'run)))
       (if (or send-to-process-p
@@ -645,10 +646,10 @@ newline."
 	    (if (or eshell-send-direct-to-subprocesses
 		    (= eshell-last-input-start eshell-last-input-end))
 		(unless no-newline
-		  (process-send-string (eshell-head-process) "\n"))
-	      (process-send-region (eshell-head-process)
-				   eshell-last-input-start
-				   eshell-last-input-end)))
+		  (eshell-output-object-to-target "\n" (eshell-head-process)))
+	      (eshell-output-region-to-target eshell-last-input-start
+				              eshell-last-input-end
+                                              (eshell-head-process))))
 	(if (= eshell-last-output-end (point))
 	    (run-hooks 'eshell-post-command-hook)
 	  (let (input)
@@ -685,7 +686,7 @@ newline."
   (interactive)
   (eshell-send-input nil nil t)
   (when (eshell-head-process)
-    (process-send-eof (eshell-head-process))))
+    (eshell-send-eof-to-target (eshell-head-process))))
 
 (defsubst eshell-kill-new ()
   "Add the last input text to the kill ring."

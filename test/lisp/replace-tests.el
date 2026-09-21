@@ -705,6 +705,104 @@ bound to HIGHLIGHT-LOCUS."
            (if (match-string 2) "R" "L"))))
       (should (equal (buffer-string) after)))))
 
+(defun replace-tests--preview (text from to regexp-flag &optional case-fold
+                                    start end)
+  "Return the previews of replacing FROM with TO in a buffer holding TEXT.
+Each preview is a list (BEG END STRING).  START and END limit the
+previewed portion of the buffer.
+Unless the caller binds `query-replace-show-preview' to something else,
+the previews are those of `replacement-only'."
+  (let ((query-replace-show-preview
+         (or query-replace-show-preview 'replacement-only)))
+    (with-temp-buffer
+      (insert text)
+      (set-window-buffer (selected-window) (current-buffer))
+      (unwind-protect
+          (progn
+            (replace-preview-update from to regexp-flag nil case-fold
+                                    start end)
+            (mapcar (lambda (ov)
+                      (list (overlay-start ov)
+                            (overlay-end ov)
+                            (substring-no-properties
+                             (or (overlay-get ov 'display)
+                                 (overlay-get ov 'before-string)))))
+                    (reverse replace-preview-overlays)))
+        (replace-preview-cleanup)))))
+
+(ert-deftest replace-tests-preview-update ()
+  ;; Back-references are expanded in the preview.
+  (should (equal (replace-tests--preview "foo1 foo2\n" "foo\\([0-9]\\)"
+                                         "bar-\\1" t)
+                 '((1 5 "bar-1") (6 10 "bar-2"))))
+  ;; So is the whole match.
+  (should (equal (replace-tests--preview "abc\n" "b" "[\\&]" t)
+                 '((2 3 "[b]"))))
+  ;; The preview adapts the case like the replacement itself does.
+  (should (equal (replace-tests--preview "Foo foo\n" "foo" "bar" nil t)
+                 '((1 4 "Bar") (5 8 "bar"))))
+  ;; An empty match is previewed with a zero-length overlay.
+  (should (equal (replace-tests--preview "ab\n" "x*" "Z" t)
+                 '((1 1 "Z") (2 2 "Z") (3 3 "Z")))))
+
+(ert-deftest replace-tests-preview-invisible-match ()
+  ;; An empty match with an empty replacement is marked with a bar.
+  (should (equal (replace-tests--preview "ab\n" "x*" "" t)
+                 '((1 1 " ") (2 2 " ") (3 3 " "))))
+  ;; So is a match that an empty replacement deletes.
+  (should (equal (replace-tests--preview "foo\n" "foo" "" nil)
+                 '((1 4 " ")))))
+
+(ert-deftest replace-tests-preview-bounds ()
+  ;; Only the matches that would be replaced are previewed.
+  (should (equal (replace-tests--preview "foo foo foo\n" "foo" "bar" nil nil 5)
+                 '((5 8 "bar") (9 12 "bar"))))
+  ;; When the replacement goes backward, the other side is the valid one.
+  (should (equal (replace-tests--preview "foo foo foo\n" "foo" "bar" nil nil
+                                         nil 8)
+                 '((1 4 "bar") (5 8 "bar")))))
+
+(ert-deftest replace-tests-preview-input ()
+  (let ((from-to (concat "foo" (propertize " \N{RIGHTWARDS ARROW} "
+                                           'separator t)
+                         "bar")))
+    ;; While only the replacement is read, FROM is fixed.
+    (should (equal (replace-preview--input "foo" "bar") '("foo" . "bar")))
+    ;; While both halves are read, they are split apart.
+    (should (equal (replace-preview--input nil from-to) '("foo" . "bar")))
+    ;; There is nothing to preview until the input has both of them.
+    (should-not (replace-preview--input nil "foo"))))
+
+(ert-deftest replace-tests-preview-both ()
+  (let ((query-replace-show-preview 'both)
+        (arrow (if (char-displayable-p ?→) "→" "->")))
+    (should (equal (replace-tests--preview "foo\n" "foo" "bar" nil)
+                   `((1 4 ,(concat "foo" arrow "bar")))))))
+
+(ert-deftest replace-tests-preview-function ()
+  (let ((query-replace-show-preview
+         (lambda (match replacement)
+           (and (equal match "foo") (concat "<" replacement ">")))))
+    (should (equal (replace-tests--preview "foo bar\n" "[a-z]+" "X" t)
+                   '((1 4 "<X>"))))))
+
+(ert-deftest replace-tests-preview-cleanup ()
+  (with-temp-buffer
+    (insert "foo foo\n")
+    (set-window-buffer (selected-window) (current-buffer))
+    (let ((query-replace-show-preview 'replacement-only))
+      (replace-preview-update "foo" "bar" nil nil nil))
+    (should replace-preview-overlays)
+    (replace-preview-cleanup)
+    (should-not replace-preview-overlays)
+    (should-not (overlays-in (point-min) (point-max)))))
+
+(ert-deftest replace-tests-preview-disabled ()
+  (let ((query-replace-show-preview nil))
+    (should (eq (replace-preview-setup "foo" nil nil) #'ignore)))
+  (let ((query-replace-show-preview 'replacement-only))
+    (should-not (eq (replace-preview-setup "foo" nil nil) #'ignore))))
+
 (ert-deftest test-count-matches ()
   (with-temp-buffer
     (insert "oooooooooo")

@@ -1,5 +1,5 @@
 # malloc.m4
-# serial 46
+# serial 47
 dnl Copyright (C) 2007, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -104,6 +104,7 @@ AC_DEFUN([gl_FUNC_MALLOC_PTRDIFF],
 # Set gl_cv_func_malloc_gnu.
 AC_DEFUN([gl_CHECK_MALLOC_PTRDIFF],
 [
+  gl_MUSL_LIBC
   AC_CACHE_CHECK([whether malloc is ptrdiff_t safe],
     [gl_cv_malloc_ptrdiff],
     [AC_COMPILE_IFELSE(
@@ -118,10 +119,30 @@ AC_DEFUN([gl_CHECK_MALLOC_PTRDIFF],
                is no problem.  */
             #define NARROW_SIZE (SIZE_MAX <= PTRDIFF_MAX)
 
-            /* glibc 2.30 and later malloc refuses to exceed ptrdiff_t
-               bounds even on 32-bit platforms.  We don't know which
-               non-glibc systems are safe.  */
-            #define KNOWN_SAFE (2 < __GLIBC__ + (30 <= __GLIBC_MINOR__))
+            /* Whether address sanitization is in use.
+               clang 4 through 21 signal this only with __has_feature.  */
+            #if !defined __SANITIZE_ADDRESS__ && defined __has_feature
+            # if __has_feature (address_sanitizer)
+            #  define __SANITIZE_ADDRESS__ 1
+            # endif
+            #endif
+
+            #if __OpenBSD__ || __NetBSD__
+             #include <sys/param.h>
+            #endif
+
+            /* Many platforms are safe: malloc stays in ptrdiff_t bounds.
+               However, with address sanitization, gcc (up to at least
+               gcc 16.1) and clang (up to at least clang 22) interpose
+               a malloc that can go over a 32-bit ptrdiff_t limit.  See:
+               https://gcc.gnu.org/bugzilla/show_bug.cgi?id=126436
+               https://github.com/llvm/llvm-project/issues/212288
+               If we don't know a platform is safe, assume it's unsafe.  */
+            #define KNOWN_SAFE \
+              (((2 < __GLIBC__ + (30 <= __GLIBC_MINOR__)) || MUSL_LIBC \
+                || 11 <= __FreeBSD__ || 800000000 <= __NetBSD_Version__ \
+                || 201411 <= OpenBSD || defined _WIN32) \
+               && !__SANITIZE_ADDRESS__)
 
             #if WIDE_PTRDIFF || NARROW_SIZE || KNOWN_SAFE
               return 0;

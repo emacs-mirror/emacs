@@ -1474,10 +1474,20 @@ This is measured in the integer number of days from December 31,
     ( "PGT" 8 "PST" "PDT" ) ( "PST" 8 0 ) ( "PDT" 8 -1 )  ; Pacific
     ( "YGT" 9 "YST" "YDT" ) ( "YST" 9 0 ) ( "YDT" 9 -1 )  ; Yukon
     )
-  "No doc yet.  See calc manual for now.
-This variable is obsolete and new software should not rely on its
-contents.  Its abbreviations like \"PST\" have their circa 1970 meanings
-even if timekeeping has changed since then.")
+  "List of lists describing the different time zone names.
+For example, the sublists for circa-1970 time in New York look like this:
+
+ (\"EST\" 5  0)  ; Abbreviation, then standard adjustment,
+ (\"EDT\" 5 -1)  ; then daylight saving adjustment.
+ (\"EGT\" 5 \"EST\" \"EDT\"))  ; Generalized time zone.
+
+This variable's default value contains abbreviations like \"PST\" that
+have their circa 1970 meanings even if timekeeping has changed since then.")
+(make-obsolete-variable
+ 'math-tzone-names
+ "new software should use numeric abbreviations like \"-0500\"
+instead of relying on this variable's contents."
+ "32.1")
 
 (defvar var-TimeZone nil)
 

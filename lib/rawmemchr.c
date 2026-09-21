@@ -25,6 +25,10 @@
 # include <limits.h>
 # include <stdint.h>
 
+# ifndef __has_feature
+#  define __has_feature(a) 0
+# endif
+
 
 /* Find the first occurrence of C in S.  */
 void *
@@ -41,12 +45,20 @@ rawmemchr (const void *s, int c_in)
                            - __builtin_cheri_offset_get (s)));
 # else
 
+  unsigned char c = c_in;
+
+  /* Examine the memory an aligned longword at a time, when possible.
+     Doing so can go past the end of a lesser-aligned object,
+     which is harmless on most platforms but violates the rules of C,
+     so suppress this optimization on platforms where it is known to be
+     dangerous, namely, those using address sanitization.  */
+
+#  if ! (defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer))
+
   /* You can change this typedef to experiment with performance.  */
-  typedef uintptr_t longword;
+  typedef uintptr_t longword _GL_ATTRIBUTE_MAY_ALIAS;
   /* Verify that the longword type lacks padding bits.  */
   static_assert (UINTPTR_WIDTH == UCHAR_WIDTH * sizeof (uintptr_t));
-
-  unsigned char c = c_in;
 
   {
     const unsigned char *char_ptr;
@@ -123,12 +135,6 @@ rawmemchr (const void *s, int c_in)
         longword_ptr++;
       }
 
-    s = longword_ptr;
-  }
-
-  {
-    const unsigned char *char_ptr = s;
-
     /* At this point, we know that one of the sizeof (longword) bytes
        starting at char_ptr is == c.  If we knew endianness, we
        could determine the first such byte without any further memory
@@ -136,6 +142,12 @@ rawmemchr (const void *s, int c_in)
        iteration.  However, the following simple and portable code does
        not attempt this potential optimization.  */
 
+    s = longword_ptr;
+  }
+#  endif
+
+  {
+    const unsigned char *char_ptr = s;
     while (*char_ptr != c)
       char_ptr++;
     return (void *) char_ptr;

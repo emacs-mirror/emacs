@@ -230,7 +230,7 @@ Wrapping around the alphabet implies successive repetitions of letters."
   "List of roman numerals with their values.")
 
 (defconst footnote-roman-lower-regexp
-  (concat "[" (mapconcat #'cdr footnote-roman-lower-list "") "]+")
+  (concat "[" (mapconcat #'cdr footnote-roman-lower-list) "]+")
   "Regexp of roman numerals.")
 
 (defun footnote--roman-lower (n)

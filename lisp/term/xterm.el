@@ -106,6 +106,7 @@ If set to `color' only the cursor color is updated.  This uses the OSC
 (defconst xterm--auto-xt-mouse-allowed-names
   (rx string-start
       (or "Konsole"
+          "VTE"
           "WezTerm"
           ;; "XTerm"   ;Disabled because OSC52 support is opt-in only.
           "iTerm2"     ;OSC52 support has opt-in/out UI on first usage

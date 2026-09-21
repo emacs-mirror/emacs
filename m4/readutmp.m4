@@ -1,5 +1,5 @@
 # readutmp.m4
-# serial 32
+# serial 33
 dnl Copyright (C) 2002-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -9,11 +9,13 @@ dnl This file is offered as-is, without any warranty.
 AC_DEFUN([gl_READUTMP],
 [
   AC_REQUIRE([gl_SYSTEMD_CHOICE])
+  AC_REQUIRE([gl_WTMPDB_CHOICE])
 
-  dnl Set READUTMP_LIB to '-lsystemd' or '', depending on whether use of
-  dnl systemd APIs is possible and desired (only the systemd login API, here).
+  dnl Set READUTMP_LIB to '-lsystemd' or '-lwtmpdb' or '', depending on whether
+  dnl use of systemd APIs is possible and desired (only the systemd login API,
+  dnl here) and whether use of wtmpdb APIs is possible and desired.
   dnl AC_LIB_LINKFLAGS_BODY would be overkill here, since few people install
-  dnl libsystemd in non-system directories.
+  dnl libsystemd or libwtmpdb in non-system directories.
   READUTMP_LIB=
   if test "$SYSTEMD_CHOICE" = yes; then
     AC_CHECK_HEADER([systemd/sd-login.h])
@@ -40,6 +42,14 @@ AC_DEFUN([gl_READUTMP],
           [Define if the readutmp module should use the systemd login API.])
         READUTMP_LIB='-lsystemd'
       fi
+    fi
+  fi
+  if test "$WTMPDB_CHOICE" = yes; then
+    AC_CHECK_HEADER([wtmpdb.h])
+    if test $ac_cv_header_wtmpdb_h = yes; then
+      AC_DEFINE([READUTMP_USE_WTMPDB], [1],
+        [Define if the readutmp module should use the wtmpdb API.])
+      READUTMP_LIB=$READUTMP_LIB${READUTMP_LIB:+ }'-lwtmpdb'
     fi
   fi
   AC_SUBST([READUTMP_LIB])

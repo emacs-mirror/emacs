@@ -802,7 +802,6 @@ It has been changed in GVFS 1.14.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     (exec-path . ignore)
     (expand-file-name . tramp-gvfs-handle-expand-file-name)
@@ -848,7 +847,6 @@ It has been changed in GVFS 1.14.")
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-gvfs-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . ignore)
@@ -912,21 +910,13 @@ arguments to pass to the OPERATION."
    (tramp-register-foreign-file-name-handler
     #'tramp-gvfs-file-name-p #'tramp-gvfs-file-name-handler)))
 
-;; Event type `dbus-event' is added to `while-no-input-ignore-events'
-;; in Emacs 29.1.  If it is missing, some packages like Helm report
-;; problems.  So we add it here.
-(when (and (featurep 'dbusbind)
-	   (not (memq 'dbus-event while-no-input-ignore-events)))
-  (setq while-no-input-ignore-events
-	(cons 'dbus-event while-no-input-ignore-events)))
-
 
 ;; D-Bus helper function.
 
 (defun tramp-gvfs-dbus-string-to-byte-array (string)
   "Like `dbus-string-to-byte-array' but add trailing \\0 if needed."
   (dbus-string-to-byte-array
-   (if (string-match-p (rx bol "(aya{sv})") tramp-gvfs-mountlocation-signature)
+   (if (string-prefix-p "(aya{sv})" tramp-gvfs-mountlocation-signature)
        (concat string (string 0)) string)))
 
 (defun tramp-gvfs-dbus-byte-array-to-string (byte-array)
@@ -1209,57 +1199,17 @@ file names."
 
 (defun tramp-gvfs-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
-  ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
-  (setq dir (or dir default-directory "/"))
-  ;; Handle empty NAME.
-  (when (string-empty-p name)
-    (setq name "."))
-  ;; Unless NAME is absolute, concat DIR and NAME.
-  (unless (file-name-absolute-p name)
-    (setq name (file-name-concat dir name)))
-  ;; If NAME is not a Tramp file, run the real handler.
-  (if (not (tramp-tramp-file-p name))
-      (tramp-run-real-handler #'expand-file-name (list name))
-    ;; Dissect NAME.
-    (with-parsed-tramp-file-name name nil
-      ;; Tilde expansion shall be possible also for quoted localname.
-      (when (string-prefix-p "~" (file-name-unquote localname))
-	(setq localname (file-name-unquote localname)))
-      ;; If there is a default location, expand tilde.
-      (when (string-match
-	     (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
-	(let ((uname (match-string 1 localname))
-	      (fname (match-string 2 localname))
-	      hname)
-	  (when (tramp-string-empty-or-nil-p uname)
-	    (setq uname user))
-	  (when (setq hname (tramp-get-home-directory v uname))
-	    (setq localname (concat hname fname)))))
-      ;; Tilde expansion is not possible.
-      (when (and (not tramp-tolerate-tilde)
-		 (string-prefix-p "~" localname))
-	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
-      (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
-	(setq localname (concat "/" localname)))
-      ;; We do not pass "/..".
-      (if (string-match-p (rx bos (| "afp" (: "dav" (? "s")) "smb") eos) method)
-	  (when (string-match
-		 (rx bos "/" (+ (not "/")) (group "/.." (? "/"))) localname)
-	    (setq localname (replace-match "/" t t localname 1)))
-	(when (string-match (rx bol "/.." (? "/")) localname)
-	  (setq localname (replace-match "/" t t localname))))
-      ;; There might be a double slash.  Remove this.
-      (while (string-match "//" localname)
-	(setq localname (replace-match "/" t t localname)))
-      ;; Do not keep "/..".
-      (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
-	(setq localname "/"))
-      ;; Do normal `expand-file-name' (this does "/./" and "/../"),
-      ;; unless there are tilde characters in file name.
-      (tramp-make-tramp-file-name
-       v (if (string-prefix-p "~" localname)
-	     localname
-	   (tramp-run-real-handler #'expand-file-name (list localname)))))))
+  (tramp-skeleton-expand-file-name name dir
+    ;; If there is a default location, expand tilde.
+    (when (string-match
+	   (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
+      (let ((uname (match-string 1 localname))
+	    (fname (match-string 2 localname))
+	    hname)
+	(when (tramp-string-empty-or-nil-p uname)
+	  (setq uname user))
+	(when (setq hname (tramp-get-home-directory v uname))
+	  (setq localname (concat hname fname)))))))
 
 (defun tramp-gvfs-get-directory-attributes (directory)
   "Return GVFS attributes association list of all files in DIRECTORY."
@@ -1340,8 +1290,8 @@ If FILE-SYSTEM is non-nil, return file system attributes."
   (with-parsed-tramp-file-name filename nil
     (setq localname (file-name-unquote localname))
     (if (or (and (string-match-p
-		  (rx bol (| "afp" (: "dav" (? "s")) "smb") eol) method)
-		 (string-match-p (rx bol (? "/") (+ (not "/")) eol) localname))
+		  (rx bos (| "afp" (: "dav" (? "s")) "smb") eos) method)
+		 (string-match-p (rx bos (? "/") (+ (not "/")) eos) localname))
 	    (string-equal localname "/"))
 	(tramp-gvfs-get-root-attributes filename)
       (assoc
@@ -1375,7 +1325,11 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 		(lambda (x)
 		  (unibyte-string (string-to-number (match-string 1 x) 16)))
 		res-symlink-target)
-	       'utf-8)))
+	       'utf-8))
+	;; If the resulting localname looks remote, we must quote it
+	;; for security reasons.
+	(when (tramp-tramp-file-p res-symlink-target)
+	  (setq res-symlink-target (file-name-quote res-symlink-target 'top))))
       ;; ... number links
       (setq res-numlinks
 	    (string-to-number
@@ -1768,14 +1722,14 @@ ID-FORMAT valid values are `string' and `integer'."
   "Retrieve file name from D-Bus OBJECT-PATH."
   (dbus-unescape-from-identifier
    (replace-regexp-in-string
-    (rx bol (* nonl) "/" (group (+ (not "/"))) eol) "\\1" object-path)))
+    (rx bos (* nonl) "/" (group (+ (not "/"))) eos) "\\1" object-path)))
 
 (defun tramp-gvfs-url-host (url)
   "Return the host name part of URL, a string.
 We cannot use `url-host', because `url-generic-parse-url' returns
 a downcased host name only."
   (and (stringp url)
-       (string-match (rx bol (+ alnum) "://" (group (+ (not (any "/:"))))) url)
+       (string-match (rx bos (+ alnum) "://" (group (+ (not (any "/:"))))) url)
        (match-string 1 url)))
 
 ;; This is used in GNU ELPA package tramp-locproc.el.
@@ -1929,7 +1883,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 		   (cadr (assoc "ssl" (cadr mount-spec)))))
 	     (uri (tramp-gvfs-dbus-byte-array-to-string
 		   (cadr (assoc "uri" (cadr mount-spec))))))
-	(when (string-match (rx bol (group (| "afp" "smb"))) method)
+	(when (string-match (rx bos (group (| "afp" "smb"))) method)
 	  (setq method (match-string 1 method)))
 	(when (and (string-equal "dav" method) (string-equal "true" ssl))
 	  (setq method "davs"))
@@ -1963,7 +1917,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 	     v 6 "%s %s"
 	     signal-name (tramp-gvfs-stringify-dbus-message mount-info))
 	    (tramp-flush-file-property v "/" "list-mounts")
-	    (if (tramp-compat-string-equal-ignore-case signal-name "unmounted")
+	    (if (string-equal-ignore-case signal-name "unmounted")
 		(tramp-flush-file-properties v "/")
 	      ;; Set mountpoint and location.
 	      (tramp-set-file-property v "/" "fuse-mountpoint" fuse-mountpoint)
@@ -2029,7 +1983,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 		      (or
 		       (cadr (assoc "share" (cadr mount-spec)))
 		       (cadr (assoc "volume" (cadr mount-spec)))))))
-	 (when (string-match (rx bol (group (| "afp" "smb"))) method)
+	 (when (string-match (rx bos (group (| "afp" "smb"))) method)
 	   (setq method (match-string 1 method)))
 	 (when (and (string-equal "dav" method) (string-equal "true" ssl))
 	   (setq method "davs"))
@@ -2062,7 +2016,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 		(string-equal host (tramp-file-name-host vec))
 		(string-equal port (tramp-file-name-port vec))
 		(string-match-p
-		 (rx bol "/" (literal (or share "")))
+		 (rx bos "/" (literal (or share "")))
 		 (tramp-file-name-unquote-localname vec)))
 	   ;; Set mountpoint and location.
 	   (tramp-set-file-property vec "/" "fuse-mountpoint" fuse-mountpoint)
@@ -2088,7 +2042,7 @@ Their full names are \"org.gtk.vfs.MountTracker.mounted\" and
 (defun tramp-gvfs-mount-spec-entry (key value)
   "Construct a mount-spec entry to be used in a mount_spec.
 It was \"a(say)\", but has changed to \"a{sv})\"."
-  (if (string-match-p (rx bol "(aya{sv})") tramp-gvfs-mountlocation-signature)
+  (if (string-prefix-p "(aya{sv})" tramp-gvfs-mountlocation-signature)
       (list :dict-entry key
 	    (list :variant (tramp-gvfs-dbus-string-to-byte-array value)))
     (list :struct key (tramp-gvfs-dbus-string-to-byte-array value))))
@@ -2107,9 +2061,9 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
 		   (tramp-media-device-port media) (tramp-file-name-port vec)))
 	 (localname (tramp-file-name-unquote-localname vec))
 	 (share (when (string-match
-		       (rx bol (? "/") (group (+ (not "/")))) localname)
+		       (rx bos (? "/") (group (+ (not "/")))) localname)
 		  (match-string 1 localname)))
-	 (ssl (if (string-match-p (rx bol (| "davs" "nextcloud")) method)
+	 (ssl (if (string-match-p (rx bos (| "davs" "nextcloud")) method)
 		  "true" "false"))
 	 (mount-spec
           `(:array
@@ -2118,7 +2072,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                 (list (tramp-gvfs-mount-spec-entry "type" "smb-share")
                       (tramp-gvfs-mount-spec-entry "server" host)
                       (tramp-gvfs-mount-spec-entry "share" share)))
-               ((string-match-p (rx bol (| "davs" "nextcloud")) method)
+               ((string-match-p (rx bos (| "davs" "nextcloud")) method)
                 (list (tramp-gvfs-mount-spec-entry "type" "dav")
                       (tramp-gvfs-mount-spec-entry "host" host)
                       (tramp-gvfs-mount-spec-entry "ssl" ssl)))
@@ -2132,7 +2086,7 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
                ((string-equal "nextcloud" method)
                 (list (tramp-gvfs-mount-spec-entry "type" "owncloud")
                       (tramp-gvfs-mount-spec-entry "host" host)))
-               ((string-match-p (rx bol "http") method)
+               ((string-prefix-p  "http" method)
                 (list (tramp-gvfs-mount-spec-entry "type" "http")
                       (tramp-gvfs-mount-spec-entry
 		       "uri"
@@ -2149,8 +2103,8 @@ It was \"a(say)\", but has changed to \"a{sv})\"."
             ,@(when port
                 (list (tramp-gvfs-mount-spec-entry "port" port)))))
 	 (mount-pref
-          (if (and (string-match-p (rx bol "dav") method)
-                   (string-match (rx bol (? "/") (+ (not "/"))) localname))
+          (if (and (string-prefix-p "dav" method)
+                   (string-match (rx bos (? "/") (+ (not "/"))) localname))
               (match-string 0 localname)
 	    (tramp-gvfs-get-remote-prefix vec))))
 
@@ -2251,7 +2205,7 @@ connection if a previous connection has died for some reason."
 		   (string-equal localname "/"))
 	  (tramp-user-error vec "Filename must contain an AFP volume"))
 
-	(when (and (string-match-p (rx "dav" (? "s")) method)
+	(when (and (string-prefix-p "dav" method)
 		   (string-equal localname "/"))
 	  (tramp-user-error vec "Filename must contain a WebDAV share"))
 
@@ -2301,7 +2255,7 @@ connection if a previous connection has died for some reason."
 
 	  ;; The call must be asynchronously, because of the
 	  ;; "askPassword" or "askQuestion" callbacks.
-	  (if (string-match-p (rx "(so)" eol) tramp-gvfs-mountlocation-signature)
+	  (if (string-suffix-p "(so)" tramp-gvfs-mountlocation-signature)
 	      (with-tramp-dbus-call-method vec nil
 		:session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 		tramp-gvfs-interface-mounttracker tramp-gvfs-mountlocation
@@ -2366,16 +2320,11 @@ is applied, and it returns t if the return code is zero."
     (with-current-buffer (tramp-get-connection-buffer vec)
       (tramp-gvfs-maybe-open-connection vec)
       (erase-buffer)
-      (or (zerop
-	   (apply
-	    #'tramp-call-process vec "env" nil t nil
-	    (append `(,(format "LANG=%s" locale)
-		      ,(format "LANGUAGE=%s" locale)
-		      ,(format "LC_ALL=%s" locale)
-		      ,command)
-		    args)))
-	  ;; Remove information about mounted connection.
-	  (and (tramp-flush-file-properties vec "/") nil)))))
+      (with-environment-variables
+	  (("LANG" `,locale) ("LANGUAGE" `,locale) ("LC_ALL" `,locale))
+	(or (zerop (apply #'tramp-call-process vec command nil t nil args))
+	    ;; Remove information about mounted connection.
+	    (and (tramp-flush-file-properties vec "/") nil))))))
 
 
 ;; GNOME Online Accounts functions.
@@ -2546,16 +2495,16 @@ It checks for mounted media devices."
 This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
   (let ((result
 	 (ignore-errors
-	   (split-string
+	   (string-split
 	    (shell-command-to-string (format "avahi-browse -trkp %s" service))
 	    (rx (+ (any "\r\n"))) 'omit (rx bol "+;" (* nonl) eol)))))
     (seq-uniq
-     (tramp-compat-seq-keep
+     (seq-keep
       (lambda (x)
 	(ignore-errors
-	  (let* ((list (split-string x ";"))
+	  (let* ((list (string-split x ";"))
 		 (host (nth 6 list))
-		 (text (split-string (nth 9 list) "\" \"" 'omit "\""))
+		 (text (string-split (nth 9 list) "\" \"" 'omit "\""))
 		 user)
 	    ;; A user is marked in a TXT field like "u=guest".
 	    (while text

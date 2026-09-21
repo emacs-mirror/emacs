@@ -612,6 +612,7 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
   struct Lisp_Char_Table *dp = buffer_display_table ();
   bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   struct composition_it cmp_it;
+  struct it dummy_it;
   Lisp_Object window;
   struct window *w;
 
@@ -673,6 +674,9 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
   prev_bpos = scan_byte;
 
   memset (&cmp_it, 0, sizeof cmp_it);
+  dummy_it.w = w;
+  dummy_it.f = w ? XFRAME (w->frame) : NULL;
+  cmp_it.parent_it = &dummy_it;
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil, true);
 

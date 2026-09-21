@@ -1037,10 +1037,10 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 			       (cdr (assq elt word-list))))
 		  (setcar tail (string code))
 		  (setq tail (cdr tail)))
-		(aset vec i (mapconcat #'identity (aref vec i) "")))))
+		(aset vec i (mapconcat #'identity (aref vec i))))))
 	  (set-char-table-range
 	   table (cons idx (+ idx 127))
-	   (mapconcat #'identity vec "")))))
+	   (mapconcat #'identity vec)))))
 
     (setq block-word-table (make-vector (length block-list) nil))
     (setq idx 0)

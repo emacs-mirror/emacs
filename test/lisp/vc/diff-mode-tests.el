@@ -351,7 +351,7 @@ baz"))))
                                        (ert-resource-directory))
                        :failed :passed)
   (skip-unless (executable-find shell-file-name))
-  (skip-unless (executable-find diff-command))
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (let ((default-directory (ert-resource-directory))
         (old "hello_world.c")
         (new "hello_emacs.c")
@@ -416,7 +416,7 @@ baz"))))
                                        (ert-resource-directory))
                        :failed :passed)
   (skip-unless (executable-find shell-file-name))
-  (skip-unless (executable-find diff-command))
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (let ((default-directory (ert-resource-directory))
         (old "hello_world_1.c")
         (new "hello_emacs_1.c")
@@ -612,6 +612,7 @@ index 9f6c5fe43e47eab441232e54456c5c2b06297b65..7b3f91a8b4ed923c8f43183276e3ab36
 ")
 
 (ert-deftest diff-mode-test-git-patch ()
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (with-temp-buffer
     (insert diff-mode-tests--git-patch)
     (diff-mode)
@@ -625,6 +626,7 @@ index 9f6c5fe43e47eab441232e54456c5c2b06297b65..7b3f91a8b4ed923c8f43183276e3ab36
                 'diff-added))))
 
 (ert-deftest diff-mode-test-git-patch/before-first-hunk ()
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (with-temp-buffer
     (insert diff-mode-tests--git-patch)
     (diff-mode)
@@ -639,6 +641,7 @@ index 9f6c5fe43e47eab441232e54456c5c2b06297b65..7b3f91a8b4ed923c8f43183276e3ab36
                 'diff-context))))
 
 (ert-deftest diff-mode-test-git-patch/signature ()
+  (skip-unless (zerop (call-process diff-command nil nil nil "-a" "-" "-")))
   (with-temp-buffer
     (insert diff-mode-tests--git-patch)
     (diff-mode)
@@ -847,19 +850,110 @@ index 0000000..3456789
 
 (ert-deftest diff-mode-tests-undo-unified->context ()
   (let* ((unified diff-mode-tests--unified-patch)
+         (context diff-mode-tests--context-patch))
+    (pcase-dolist (`(,convert ,v1 ,v2)
+                   `((,#'diff-unified->context ,unified ,context)
+                     (,#'diff-context->unified ,context ,unified)))
+      (let ((b (generate-new-buffer "test.diff")))
+        (unwind-protect
+	    (with-current-buffer b
+	      (insert v1)
+	      (diff-mode)
+	      (undo-boundary)
+	      (funcall convert (point-min) (point-max))
+              (should (equal (buffer-string) v2))
+	      (undo-boundary)
+	      (undo)
+	      (should (equal (buffer-string) v1)))
+          (kill-buffer b))))))
+
+(defvar diff-mode-tests--selective-undo-patch-1
+  "--- /tmp/a.el	2026-07-14 08:27:52.751202012 +0200
++++ /tmp/b.el	2026-07-14 08:28:01.087191220 +0200
+@@ -2,7 +2,7 @@ (defun foo ()
+   x
+   y
+   z
+-  a)
++  b)
+ ;;
+ ;;
+ ;;
+*************** (defun bar ()
+*** 19,22 ****
+    x
+    y
+    z
+!   aa)
+--- 19,22 ----
+    x
+    y
+    z
+!   bb)
+")
+
+(defvar diff-mode-tests--selective-undo-patch-2
+  "*** /tmp/a.el	2026-07-14 08:27:52.751202012 +0200
+--- /tmp/b.el	2026-07-14 08:28:01.087191220 +0200
+*************** (defun foo ()
+*** 2,8 ****
+    x
+    y
+    z
+!   a)
+  ;;
+  ;;
+  ;;
+--- 2,8 ----
+    x
+    y
+    z
+!   b)
+  ;;
+  ;;
+  ;;
+@@ -19,4 +19,4 @@ (defun bar ()
+   x
+   y
+   z
+-  aa)
++  bb)
+")
+
+(defun diff-mode-tests--mark-region (beg end)
+  (transient-mark-mode 1)
+  (goto-char beg)
+  (push-mark (point) t t)
+  (setq mark-active t)
+  (goto-char end))
+
+(ert-deftest diff-mode-tests-selective-undo ()
+  (let* ((unified diff-mode-tests--unified-patch)
          (context diff-mode-tests--context-patch)
-	 (b (generate-new-buffer "test.diff")))
-    (unwind-protect
-	(with-current-buffer b
-	  (insert unified)
-	  (diff-mode)
-	  (undo-boundary)
-	  (diff-unified->context (point-min) (point-max))
-          (should (equal (buffer-string) context))
-	  (undo-boundary)
-	  (undo)
-	  (should (equal (buffer-string) unified)))
-      (kill-buffer b))))
+         (mixed-1 diff-mode-tests--selective-undo-patch-1)
+         (mixed-2 diff-mode-tests--selective-undo-patch-2))
+    (pcase-dolist (`(,convert ,v1 ,v2 ,v3)
+                   `((,#'diff-unified->context ,unified ,context ,mixed-1)
+                     (,#'diff-context->unified ,context ,unified ,mixed-2)))
+      (let ((b (generate-new-buffer "test.diff")))
+        (unwind-protect
+	    (with-current-buffer b
+	      (insert v1)
+	      (diff-mode)
+	      (undo-boundary)
+	      (funcall convert (point-min) (point-max))
+              (should (equal (buffer-string) v2))
+              (goto-char (point-min))
+              (re-search-forward "(defun foo ()")
+              (replace-match "(defun baz ()")
+              (goto-char (point-min))
+              (should (not (re-search-forward "(defun foo ()" nil t)))
+              (re-search-forward (regexp-quote "(defun bar ()"))
+              (diff-mode-tests--mark-region (point-min) (point))
+	      (undo-boundary)
+	      (undo)
+              (should (equal (buffer-string) v3)))
+          (kill-buffer b))))))
 
 (provide 'diff-mode-tests)
 ;;; diff-mode-tests.el ends here

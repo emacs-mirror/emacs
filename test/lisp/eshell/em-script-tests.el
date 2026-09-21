@@ -138,7 +138,7 @@
       (with-temp-eshell-settings
        (call-process (expand-file-name invocation-name invocation-directory)
                      nil '(t nil) nil
-                     "--batch" "-f" "eshell-batch-file" temp-file))
+                     "--batch" "-Q" "-f" "eshell-batch-file" temp-file))
       (should (equal (buffer-string) "hi\n")))))
 
 (ert-deftest em-script-test/batch-file/shebang ()
@@ -149,7 +149,7 @@
                       (string-match-p "openbsd" system-configuration))))
   (ert-with-temp-file temp-file
     :text (format
-           "#!/usr/bin/env -S %s --batch -f eshell-batch-file\necho hi"
+           "#!/usr/bin/env -S %s --batch -Q -f eshell-batch-file\necho hi"
            (expand-file-name invocation-name invocation-directory))
     (set-file-modes temp-file #o744)
     (with-temp-buffer

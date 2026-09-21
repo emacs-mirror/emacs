@@ -5512,8 +5512,7 @@ string across LaTeX processing."
                       (concat "\\char" (number-to-string char) "{}"))
                      ((= char ?\n) "\\\\")
                      (t (char-to-string char))))
-	     string
-	     ""))
+	     string))
 ;;;_   > allout-latex-verbatim-quote-curr-line ()
 (defun allout-latex-verbatim-quote-curr-line ()
   "Express line for exact (literal) representation across LaTeX processing.

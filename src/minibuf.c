@@ -590,6 +590,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   specbind (Qminibuffer_default, defalt);
   specbind (Qinhibit_read_only, Qnil);
+  /* Bound recursively so that code can check the current command from
+     code running from minibuffer hooks (and the like), without being
+     overwritten by subsequent minibuffer calls.  */
+  specbind (Qcurrent_minibuffer_command, Vthis_command);
 
   /* If Vminibuffer_completing_file_name is `lambda' on entry, it was t
      in previous recursive minibuffer, but was not set explicitly
@@ -666,8 +670,9 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   /* Choose the minibuffer window and frame, and take action on them.  */
 
   /* Prepare for restoring the current buffer since choose_minibuf_frame
-     calling Fset_frame_selected_window may change it (Bug#12766).  */
-  record_unwind_protect (restore_buffer, Fcurrent_buffer ());
+     calling Fset_frame_selected_window may change it (Bug#12766).  Make
+     sure the current buffer is still live at that time (Bug#81828).  */
+  record_unwind_current_buffer ();
 
   choose_minibuf_frame ();
   mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));

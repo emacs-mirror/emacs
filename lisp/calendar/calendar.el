@@ -2743,7 +2743,7 @@ ATTRLIST is a list with elements of the form :face face :foreground color."
                                    ((symbolp sym) (symbol-name sym))
                                    ((numberp sym) (number-to-string sym))
                                    (t sym)))
-                                attrlist ""))))
+                                attrlist))))
       ;; Create this new face if it does not already exist.
       (unless (member temp-face (face-list))
         (make-face temp-face)
@@ -2828,7 +2828,7 @@ name of the day of the week."
          (day (number-to-string (calendar-extract-day date)))
          (month (number-to-string month))
          (year (number-to-string (calendar-extract-year date))))
-      (mapconcat #'eval calendar-date-display-form ""))))
+      (mapconcat #'eval calendar-date-display-form))))
 
 (defun calendar-dayname-on-or-before (dayname date)
   "Return the absolute date of the DAYNAME on or before absolute DATE.

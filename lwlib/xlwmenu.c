@@ -2033,7 +2033,8 @@ getDefaultXftFont (XlwMenuWidget mw)
 static int
 openXftFont (XlwMenuWidget mw)
 {
-  char *fname = mw->menu.fontName;
+  char const *fname = mw->menu.fontName;
+  char *fname_minus = NULL;
 
   mw->menu.xft_font = 0;
   mw->menu.default_face = fname && strcmp (fname, DEFAULT_FONTNAME) == 0;
@@ -2047,8 +2048,8 @@ openXftFont (XlwMenuWidget mw)
         --i;
       if (fname[i] == ' ')
         {
-          fname = xstrdup (mw->menu.fontName);
-          fname[i] = '-';
+	  fname = fname_minus = xstrdup (mw->menu.fontName);
+	  fname_minus[i] = '-';
         }
 
       mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
@@ -2056,7 +2057,7 @@ openXftFont (XlwMenuWidget mw)
 	mw->menu.xft_font = getDefaultXftFont (mw);
     }
 
-  if (fname != mw->menu.fontName) xfree (fname);
+  xfree (fname_minus);
 
   return mw->menu.xft_font != 0;
 }

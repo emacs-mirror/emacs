@@ -122,7 +122,7 @@ Defaults to today's date if DATE is not given."
            (dayname nil)
            (month (number-to-string m))
            (year (number-to-string y)))
-        (mapconcat #'eval calendar-date-display-form "")))))
+        (mapconcat #'eval calendar-date-display-form)))))
 
 ;;;###cal-autoload
 (defun calendar-coptic-print-date ()

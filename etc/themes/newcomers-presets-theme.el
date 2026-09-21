@@ -91,7 +91,12 @@ This minor mode will enable and disable the theme on startup."
 
 ;;;###theme-autoload
 (deftheme newcomers-presets
-  "Theme of user options settings interesting for newcomers."
+  "Theme of user options settings interesting for newcomers.
+
+The functionality enabled by this theme will change between releases of
+Emacs.  Therefore, if you get used to these presets, **you should copy
+them into your own configuration and then disable this theme again.**
+You can use \\[copy-theme-options] to do this."
   :kind 'user-options)
 
 (custom-theme-set-variables
@@ -124,14 +129,17 @@ This minor mode will enable and disable the theme on startup."
 ;;;; Editing-related options
  '(electric-pair-mode t)
  '(repeat-mode t)
+ '(set-mark-command-repeat-pop t)       ; Given `repeat-mode'.
  '(delete-selection-mode t)
  '(editorconfig-mode t)
  '(indent-tabs-mode nil)
  '(imenu-auto-rescan t)
  '(view-read-only t)
  '(column-number-mode t)
+ '(kill-do-not-save-duplicates t)
+ '(scroll-error-top-bottom t)
 
-;;;; Directory managment-related options
+;;;; Directory management-related options
  '(dired-auto-revert-buffer t)
  '(dired-mouse-drag-files t)
  '(shell-command-prompt-show-cwd t)
@@ -162,10 +170,12 @@ This minor mode will enable and disable the theme on startup."
 
 ;;;; Frame- and window-related options
  '(frame-inhibit-implied-resize t)
+ '(help-window-select t)
  '(tab-bar-history-mode t)
  ;; FIXME: If you toggle off the theme, without having run any
  ;; tab-related commands, the tab bar remains visible.
  '(tab-bar-show 0)
+ '(window-combination-resize t)
 
 ;;;; Programming-related options
  '(compilation-scroll-output 'first-error))

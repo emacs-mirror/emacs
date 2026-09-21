@@ -112,6 +112,7 @@ The executable can be configured via `org-ditaa-exec'."
 (defcustom org-ditaa-java-exec "java"
   "Java executable to use when evaluating ditaa blocks using a JAR."
   :group 'org-babel
+  :package-version '(Org . "9.8")
   :type 'string
   :risky t)
 

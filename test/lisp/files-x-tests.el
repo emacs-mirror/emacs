@@ -638,5 +638,194 @@ or `executable-find', their default value must be used nonetheless."
        `(connection-local-profile-alist ',clpa now)
        `(connection-local-criteria-alist ',clca now)))))
 
+(ert-deftest files-x-test-add-file-local-variable ()
+  "Test adding and replacing file local variables."
+  ;; Simple adding
+  (with-temp-buffer
+    (add-file-local-variable 'foo 1)
+    (add-file-local-variable 'bar 2)
+    (should (equal (buffer-string)
+                   "\n;; Local Variables:\n;; foo: 1\n;; bar: 2\n;; End:\n")))
+  ;; Adding in c-mode
+  (with-temp-buffer
+    (c-mode)
+    (setq-local comment-start "/* " comment-end " */")
+    (add-file-local-variable 'foo 1)
+    (add-file-local-variable 'bar 2)
+    (should (equal (buffer-string)
+                   (concat "\n/* Local Variables: */\n"
+                           "/* foo: 1 */\n"
+                           "/* bar: 2 */\n"
+                           "/* End: */\n"))))
+  ;; Replacing
+  (with-temp-buffer
+    (add-file-local-variable 'foo 1)
+    (add-file-local-variable 'bar 2)
+    (add-file-local-variable 'foo t)
+    (add-file-local-variable 'bar nil)
+    (should (equal (buffer-string)
+                   "\n;; Local Variables:\n;; foo: t\n;; bar: nil\n;; End:\n")))
+  ;; Replacing with prefix/suffix
+  (with-temp-buffer
+    (insert ";; PRE Local Variables: SUF\n"
+            ";; PRE foo: t SUF\n"
+            ";; PRE bar: nil SUF\n"
+            ";; PRE End: SUF\n")
+    (add-file-local-variable 'foo t)
+    (add-file-local-variable 'bar nil)
+    (should (equal (buffer-string)
+                   (concat ";; PRE Local Variables: SUF\n"
+                           ";; PRE foo: t SUF\n"
+                           ";; PRE bar: nil SUF\n"
+                           ";; PRE End: SUF\n")))))
+
+(ert-deftest files-x-test-delete-file-local-variable ()
+  "Test deleting file local variables."
+  ;; Simple deleting
+  (with-temp-buffer
+    (setq-local comment-start ";;" comment-end "")
+    (insert "BEFORE\n"
+            ";; Local Variables:\n"
+            ";; foo: t\n"
+            ";; bar: nil\n"
+            ";; End:\n"
+            "AFTER")
+    (delete-file-local-variable 'foo)
+    (should (equal (buffer-string)
+                   (concat "BEFORE\n"
+                           ";; Local Variables:\n"
+                           ";; bar: nil\n"
+                           ";; End:\n"
+                           "AFTER")))
+    (delete-file-local-variable 'bar)
+    (should (equal (buffer-string) "BEFORE\nAFTER")))
+  ;; Deleting in c-mode
+  (with-temp-buffer
+    (c-mode)
+    (setq-local comment-start "/* " comment-end " */")
+    (insert "BEFORE\n"
+            "/* Local Variables: */\n"
+            "/* foo: t */\n"
+            "/* bar: nil */\n"
+            "/* End: */\n"
+            "AFTER")
+    (delete-file-local-variable 'foo)
+    (should (equal (buffer-string)
+                   (concat "BEFORE\n"
+                           "/* Local Variables: */\n"
+                           "/* bar: nil */\n"
+                           "/* End: */\n"
+                           "AFTER")))
+    (delete-file-local-variable 'bar)
+    (should (equal (buffer-string) "BEFORE\nAFTER")))
+  ;; Ensure that other blocks are untouched
+  (with-temp-buffer
+    (setq-local comment-start ";;" comment-end "")
+    (insert ";; Local Variables:\n"
+            ";; foo: t\n"
+            ";; End:\n"
+            ";; Local Variables:\n"
+            ";; PRESERVE\n"
+            ";; End:\n")
+    (delete-file-local-variable 'foo)
+    (should (equal (buffer-string)
+                   ";; Local Variables:\n;; PRESERVE\n;; End:\n")))
+  ;; Deleting with prefix/suffix
+  (with-temp-buffer
+    (setq-local comment-start ";;" comment-end "")
+    (insert "BEFORE\n"
+            ";; PRE Local Variables: SUF\n"
+            ";; PRE foo: t SUF\n"
+            ";; PRE bar: nil SUF\n"
+            ";; PRE End: SUF\n"
+            "AFTER")
+    (delete-file-local-variable 'foo)
+    (should (equal (buffer-string)
+                   (concat "BEFORE\n"
+                           ";; PRE Local Variables: SUF\n"
+                           ";; PRE bar: nil SUF\n"
+                           ";; PRE End: SUF\n"
+                           "AFTER")))
+    (delete-file-local-variable 'bar)
+    (should (equal (buffer-string) "BEFORE\nAFTER"))))
+
+(ert-deftest files-x-test-add-file-local-variable-prop-line ()
+  "Test adding and replacing file local variables in the prop-line."
+  ;; Simple adding
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (add-file-local-variable-prop-line 'foo 1)
+    (add-file-local-variable-prop-line 'bar 2)
+    (should (equal (buffer-string) ";; -*- foo: 1; bar: 2; -*-\n")))
+  ;; Adding in c-mode
+  (with-temp-buffer
+    (c-mode)
+    (setq-local comment-start "/* " comment-end " */")
+    (add-file-local-variable-prop-line 'foo 1)
+    (add-file-local-variable-prop-line 'bar 2)
+    (should (equal (buffer-string) "/* -*- foo: 1; bar: 2; -*- */\n")))
+  ;; Adding to mode variable
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert ";; -*- org-mode -*-\n")
+    (add-file-local-variable-prop-line 'foo 1)
+    (should (equal (buffer-string) ";; -*-  mode: org-mode; foo: 1;  -*-\n")))
+  ;; Simple replacing
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (add-file-local-variable-prop-line 'foo 1)
+    (add-file-local-variable-prop-line 'bar 2)
+    (add-file-local-variable-prop-line 'foo t)
+    (add-file-local-variable-prop-line 'bar nil)
+    (should (equal (buffer-string) ";; -*- foo: t; bar: nil; -*-\n")))
+  ;; Replacing with prefix/suffix
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert ";; PRE -*- foo: 1; bar: 2; -*- SUF\n")
+    (add-file-local-variable-prop-line 'foo t)
+    (add-file-local-variable-prop-line 'bar nil)
+    (should (equal (buffer-string)
+                   ";; PRE -*- foo: t; bar: nil; -*- SUF\n"))))
+
+(ert-deftest files-x-test-delete-file-local-variable-prop-line ()
+  "Test deleting file local variables in prop-line."
+  ;; Simple deleting
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert ";; -*- foo: t; bar: nil -*-\n")
+    (delete-file-local-variable-prop-line 'foo)
+    (should (equal (buffer-string) ";; -*- bar: nil -*-\n"))
+    (delete-file-local-variable-prop-line 'bar)
+    (should (equal (buffer-string) "")))
+  ;; Deleting mode variable
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert ";; -*- org-mode -*-\n")
+    (delete-file-local-variable-prop-line 'mode)
+    (should (equal (buffer-string) "")))
+  ;; Deleting in c-mode
+  (with-temp-buffer
+    (c-mode)
+    (setq-local comment-start "/* " comment-end " */")
+    (insert "/* -*- foo: t; bar: nil -*- */\n")
+    (delete-file-local-variable-prop-line 'foo)
+    (should (equal (buffer-string) "/* -*- bar: nil -*- */\n"))
+    (delete-file-local-variable-prop-line 'bar)
+    (should (equal (buffer-string) "")))
+  ;; Ensure that other prop lines are untouched
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert ";; -*- foo: t -*-\n;; -*- -*-")
+    (delete-file-local-variable-prop-line 'foo)
+    (should (equal (buffer-string) ";; -*- -*-")))
+  ;; Deleting with prefix/suffix
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert ";; PRE -*- foo: t; bar: nil -*- SUF\n")
+    (delete-file-local-variable-prop-line 'foo)
+    (should (equal (buffer-string) ";; PRE -*- bar: nil -*- SUF\n"))
+    (delete-file-local-variable-prop-line 'bar)
+    (should (equal (buffer-string) ";; PRE  SUF\n"))))
+
 (provide 'files-x-tests)
 ;;; files-x-tests.el ends here

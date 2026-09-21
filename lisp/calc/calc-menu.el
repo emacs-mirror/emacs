@@ -1512,7 +1512,7 @@
               ["Scalar mode"
                (progn
                  (require 'calc-mode)
-                 (calc-matrix-mode 0))
+                 (calc-matrix-mode -1))
                :style radio
                :selected (eq calc-matrix-mode 'scalar)
                :help "Variables are assumed to be scalars"])

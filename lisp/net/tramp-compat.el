@@ -23,9 +23,9 @@
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is Emacs 30.  This
-;; package provides compatibility functions for Emacs 28, Emacs 29 and
-;; Emacs 30.
+;; Tramp's main Emacs version for development is Emacs 32.  This
+;; package provides compatibility functions for Emacs 29, Emacs 30 and
+;; Emacs 31.
 
 ;;; Code:
 
@@ -33,7 +33,6 @@
 (require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
-(require 'parse-time)
 (require 'shell)
 (require 'xdg)
 
@@ -107,19 +106,6 @@ Add the extension of F, if existing."
       #'error-type-p
     (lambda (symbol) (get symbol 'error-conditions))))
 
-;; `permission-denied' is introduced in Emacs 29.1.
-(defconst tramp-permission-denied
-  (if (tramp-compat-error-type-p 'permission-denied)
-      'permission-denied 'file-error)
-  "The error symbol for the `permission-denied' error.")
-
-(defsubst tramp-compat-permission-denied (vec file)
-  "Emit the `permission-denied' error."
-  (if (tramp-compat-error-type-p 'permission-denied)
-      (tramp-error vec tramp-permission-denied file)
-    (tramp-error vec tramp-permission-denied "Permission denied: %s" file)))
-
-;; Function `auth-info-password' is new in Emacs 29.1.  Finally,
 ;; Bug#49289 is fixed in Emacs 30.1 for the `secrets' and `plstore'
 ;; auth-sources backends.
 (defalias 'tramp-compat-auth-info-password
@@ -130,54 +116,6 @@ Add the extension of F, if existing."
 	(while (functionp secret)
           (setq secret (funcall secret)))
 	secret))))
-
-;; Function `take' is new in Emacs 29.1.
-(defalias 'tramp-compat-take
-  (if (fboundp 'take)
-      #'take
-    (lambda (n list)
-      (when (and (natnump n) (> n 0))
-	(if (length< list n)
-	    list (butlast list (- (length list) n)))))))
-
-;; Function `ntake' is new in Emacs 29.1.
-(defalias 'tramp-compat-ntake
-  (if (fboundp 'ntake)
-      #'ntake
-    (lambda (n list)
-      (when (and (natnump n) (> n 0))
-	(if (length< list n)
-	    list (nbutlast list (- (length list) n)))))))
-
-;; Function `string-equal-ignore-case' is new in Emacs 29.1.
-(defalias 'tramp-compat-string-equal-ignore-case
-  (if (fboundp 'string-equal-ignore-case)
-      #'string-equal-ignore-case
-    (lambda (string1 string2)
-      (eq t (compare-strings string1 nil nil string2 nil nil t)))))
-
-;; Function `auth-source-netrc-parse-all' is new in Emacs 29.1.
-;; `netrc-parse' has been obsoleted in parallel.
-(defalias 'tramp-compat-auth-source-netrc-parse-all
-  (if (fboundp 'auth-source-netrc-parse-all)
-      #'auth-source-netrc-parse-all
-    (lambda (&optional file)
-      (declare-function netrc-parse "netrc")
-      (autoload 'netrc-parse "netrc")
-      (netrc-parse file))))
-
-;; Function `seq-keep' is new in Emacs 29.1.
-(defalias 'tramp-compat-seq-keep
-  (if (fboundp 'seq-keep)
-      #'seq-keep
-    (lambda (function sequence)
-      (delq nil (seq-map function sequence)))))
-
-;; User option `connection-local-default-application' is new in Emacs 29.1.
-(unless (boundp 'connection-local-default-application)
-  (defvar connection-local-default-application 'tramp
-    "Default application in connection-local functions, a symbol.
-This variable must not be changed globally."))
 
 ;; User option `password-colon-equivalents' is new in Emacs 30.1.
 (if (boundp 'password-colon-equivalents)
@@ -252,12 +190,6 @@ value is the default binding of the variable."
 ;;   `outline-minor-mode' has still problems with this.  Since there
 ;;   are developers using `outline-minor-mode' in Lisp files, we still
 ;;   keep this quoting.
-;;
-;; * Use `with-environment-variables'.
-;;
-;; * Starting with Emacs 29.1, use `buffer-match-p' and `match-buffers'.
-;;
-;; * Starting with Emacs 29.1, use `string-split'.
 ;;
 ;; * Starting with Emacs 30.1, there is `handler-bind'.  Use it
 ;;   instead of `condition-case' when the origin of an error shall be

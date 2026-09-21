@@ -3941,8 +3941,6 @@ or nil if the block fails.  */)
     activity_id = [[NSProcessInfo processInfo]
 			     beginActivityWithOptions: activity_options
 					       reason: reason];
-  unblock_input ();
-
   if (!sleep_block_map)
     sleep_block_map = [[NSMutableDictionary alloc] initWithCapacity: 25];
 
@@ -3950,10 +3948,14 @@ or nil if the block fails.  */)
     {
       [sleep_block_map setObject: activity_id
 			  forKey: [NSNumber numberWithInt: ++sleep_block_id]];
+      unblock_input ();
       return make_fixnum (sleep_block_id);
     }
   else
-    return Qnil;
+    {
+      unblock_input ();
+      return Qnil;
+    }
 }
 
 DEFUN ("ns-unblock-system-sleep",

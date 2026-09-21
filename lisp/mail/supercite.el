@@ -971,7 +971,7 @@ example: (sc-attribs-chop-namestring \"John Xavier Doe\")
    (lambda (name)
      (if (< 0 (length name))
 	 (substring name 0 1)))
-   namelist ""))
+   namelist))
 
 (defun sc-guess-attribution (&optional string)
   "Guess attribution string on current line.

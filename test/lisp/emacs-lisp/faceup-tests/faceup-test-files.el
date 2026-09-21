@@ -48,6 +48,7 @@
 
 FILE is interpreted as relative to this source directory."
   (let ((faceup-properties '(face syntax-table help-echo)))
+    (prefer-coding-system 'utf-8)
     (faceup-test-font-lock-file 'faceup-test-mode
                                 (concat
                                  faceup-test-files-dir

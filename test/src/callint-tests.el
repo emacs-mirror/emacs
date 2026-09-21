@@ -65,4 +65,13 @@
     (should (= (call-interactively 'callint-test-int-args t) 3))
     (should (equal command-history '((callint-test-int-args 1 10 11))))))
 
+(ert-deftest test-many-interactive-args ()
+  "Test that `'call-interactively' does not crash due to bug#81110"
+  (dotimes (_ 10)
+    (let ((str (apply #'concat (make-list 4096 "pp\n"))))
+      (call-interactively (eval `(lambda (&rest args)
+                                   (interactive ,str)
+                                   (length args))
+                                t)))))
+
 ;;; callint-tests.el ends here

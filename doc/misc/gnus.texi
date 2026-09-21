@@ -18335,12 +18335,12 @@ As a special case, a star in either @code{Dom} or @code{Dow} doesn't
 mean ``all possible values'', but ``use only the other field''.  Note
 that if both are star'ed, the use of either one gives the same result.
 @item
-The @code{Time-Zone} header is special in that it can only have one
+The @code{Time-Zone} header is special in that it can have only one
 value (@code{GMT}, for instance).  A star doesn't mean ``all possible
 values'' (because it makes no sense), but ``the current local time
 zone''.  Most of the time, you'll be using a star here.  However, for a
-list of available time zone values, see the variable
-@code{nndiary-headers}.
+Universal Time entry, you can use @code{GMT}, @code{UT}, @code{UTC} or
+@code{Z}.
 @end itemize
 
 As a concrete example, here are the diary headers to add to your message

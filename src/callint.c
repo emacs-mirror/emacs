@@ -272,21 +272,16 @@ invoke it (via an `interactive' spec that contains, for instance, an
 `this-command-keys-vector' is used.  */)
   (Lisp_Object function, Lisp_Object record_flag, Lisp_Object keys)
 {
-  specpdl_ref speccount = SPECPDL_INDEX ();
-
   bool arg_from_tty = false;
   ptrdiff_t key_count;
   bool record_then_fail = false;
 
+  /* FIXME: We should probably specbind these vars in recursive
+     _edit instead so they're automatically saved&restored as needed.  */
   Lisp_Object save_this_command = Vthis_command;
   Lisp_Object save_this_original_command = Vthis_original_command;
   Lisp_Object save_real_this_command = Vreal_this_command;
   Lisp_Object save_last_command = KVAR (current_kboard, Vlast_command);
-
-  /* Bound recursively so that code can check the current command from
-     code running from minibuffer hooks (and the like), without being
-     overwritten by subsequent minibuffer calls.  */
-  specbind (Qcurrent_minibuffer_command, Vthis_command);
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
@@ -342,8 +337,7 @@ invoke it (via an `interactive' spec that contains, for instance, an
       Vreal_this_command = save_real_this_command;
       kset_last_command (current_kboard, save_last_command);
 
-      return unbind_to (speccount, CALLN (Fapply, Qfuncall_interactively,
-					  function, specs));
+      return CALLN (Fapply, Qfuncall_interactively, function, specs);
     }
 
   /* SPECS is set to a string; use it as an interactive prompt.
@@ -447,6 +441,8 @@ invoke it (via an `interactive' spec that contains, for instance, an
   signed char *varies = (signed char *) (visargs + nargs);
 
   memclear (args, nargs * (2 * word_size + 1));
+
+  specpdl_ref speccount = SPECPDL_INDEX ();
 
   if (!NILP (enable))
     specbind (Qenable_recursive_minibuffers, Qt);
@@ -801,7 +797,9 @@ invoke it (via an `interactive' spec that contains, for instance, an
   specbind (Qcommand_debug_status, Qnil);
 
   Lisp_Object val = Ffuncall (nargs, args);
-  return SAFE_FREE_UNBIND_TO (speccount, val);
+  unbind_to (speccount, Qnil);
+  SAFE_FREE ();
+  return val;
 }
 
 DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,

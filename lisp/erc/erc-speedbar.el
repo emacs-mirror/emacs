@@ -540,7 +540,8 @@ associated with an ERC session."
       (with-selected-frame speedbar-frame
         (erc-speedbar--emulate-sidebar-set-window-preserve-size)
         (erc-speedbar-toggle-nicknames-window-lock -1))
-      (cl-assert (null (cdr (erc-speedbar--get-timers))))
+      ;; The following assumes any idle timers for `dframe-timer-fn'
+      ;; from previous module sessions have been canceled.
       (with-current-buffer speedbar-buffer
         (setq speedbar-update-flag t)
         (speedbar-set-mode-line-format)))))
@@ -620,11 +621,6 @@ For controlling whether the speedbar window is selectable with
        (unless (eq erc--module-toggle-prefix-arg most-negative-fixnum)
          (dframe-close-frame))))))
 
-(defun erc-speedbar--get-timers ()
-  (cl-remove #'dframe-timer-fn timer-idle-list
-             :key #'timer--function
-             :test-not #'eq))
-
 (defun erc-speedbar--dframe-controlled (arg)
   (when speedbar-buffer
     (cl-assert (eq speedbar-buffer (current-buffer))))
@@ -635,7 +631,7 @@ For controlling whether the speedbar window is selectable with
           erc-speedbar--hidden-speedbar-frame nil)
     (speedbar-frame-mode arg) ; -1
     ;; As of Emacs 29, `dframe-set-timer' can't remove `dframe-timer'.
-    (cl-assert (= 1 (length (erc-speedbar--get-timers))) t)
+    ;; However, this may have been addressed in Emacs 31 by bug#81561.
     (cancel-function-timers #'dframe-timer-fn)
     ;; `dframe-close-frame' kills the buffer but no function in
     ;; erc-speedbar.el resets this to nil.

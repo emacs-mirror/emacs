@@ -41,8 +41,8 @@
 ;;   :group 'gnus-dbus
 ;;   :type 'boolean)
 
-;; It is suggested in the elisp documention that we create variable
-;; alias's before executing the `defcustom'.  To reliably accomplish
+;; It is suggested in the elisp documentation that we create variable
+;; aliases before executing the `defcustom'.  To reliably accomplish
 ;; that in this case we would have to edit gnus-start.el which I don't
 ;; want to do.  So I've done this instead.
 (require 'gnus-start) ;; Run defcustom for `gnus-close-on-sleep'

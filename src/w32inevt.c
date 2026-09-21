@@ -164,8 +164,10 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
       return 0;
     }
 
-  /* Ignore keystrokes we fake ourself; see below.  */
-  if (faked_key == event->wVirtualKeyCode)
+  /* Ignore keystrokes we fake ourself; see below.
+     When Windows IME messages are sent, wVirtualKeyCode is 0.
+     So check and make sure they aren't ignored.  */
+  if (event->wVirtualKeyCode != 0 && faked_key == event->wVirtualKeyCode)
     {
       faked_key = 0;
       return 0;
@@ -323,12 +325,14 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 	    w32_kbd_patch_key (event, -1);
 	}
 
-      if (event->uChar.AsciiChar == 0)
+      if ((w32_console_unicode_input && event->uChar.UnicodeChar == 0)
+	  || (!w32_console_unicode_input && event->uChar.UnicodeChar == 0))
 	{
 	  emacs_ev->kind = NO_EVENT;
 	  return 0;
 	}
-      else if (event->uChar.AsciiChar > 0)
+      else if ((w32_console_unicode_input && event->uChar.UnicodeChar < 128)
+	       || (!w32_console_unicode_input && event->uChar.AsciiChar > 0))
 	{
 	  /* Pure ASCII characters < 128.  */
 	  emacs_ev->kind = ASCII_KEYSTROKE_EVENT;

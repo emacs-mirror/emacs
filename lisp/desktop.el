@@ -193,7 +193,7 @@ For further details, see info node `(emacs)Saving Emacs Sessions'."
 
 (defun desktop-save-mode-off ()
   "Disable `desktop-save-mode'.  Provided for use in hooks."
-  (desktop-save-mode 0))
+  (desktop-save-mode -1))
 
 (defcustom desktop-save 'ask-if-new
   "Specifies whether the desktop should be saved when it is killed.
@@ -1615,7 +1615,7 @@ and try to load that."
 	  (cond ((equal '(t) desktop-buffer-minor-modes) ; backwards compatible
 		 (auto-fill-mode 1))
 		((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
-		 (auto-fill-mode 0))
+		 (auto-fill-mode -1))
 		(t
 		 (dolist (minor-mode desktop-buffer-minor-modes)
 		   ;; Give minor mode module a chance to add a handler.
@@ -1772,7 +1772,7 @@ If there are no buffers left to create, kill the timer."
     (let ((key "--no-desktop"))
       (when (member key command-line-args)
         (setq command-line-args (delete key command-line-args))
-        (desktop-save-mode 0)))
+        (desktop-save-mode -1)))
     (when desktop-save-mode
       (desktop-read)
       (setq inhibit-startup-screen t))))

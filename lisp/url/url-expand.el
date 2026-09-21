@@ -71,7 +71,7 @@ path components followed by `..' are removed, along with the `..' itself."
                              (if (memq x '(?\s ?\n ?\r))
                                  ""
                                (char-to-string x)))
-			   url "")))
+			   url)))
 
   ;; Need to figure out how/where to expand the fragment relative to
   (setq default (cond

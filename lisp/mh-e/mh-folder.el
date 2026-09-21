@@ -1672,7 +1672,7 @@ after the commands are processed."
   "Display the scan listing buffer, but do not show a message."
   (if (get-buffer mh-show-buffer)
       (delete-windows-on mh-show-buffer))
-  (mh-showing-mode 0)
+  (mh-showing-mode -1)
   (force-mode-line-update)
   (if mh-recenter-summary-flag
       (mh-recenter nil)))

@@ -1098,10 +1098,12 @@ even if it doesn't match the type.)
 (defun setopt--set (variable value)
   (custom-load-symbol variable)
   ;; Check that the type is correct.
-  (when-let* ((type (get variable 'custom-type)))
-    (unless (widget-apply (widget-convert type) :match value)
-      (warn "Value does not match %S's type `%S': %S" variable type value)))
-  (put variable 'custom-check-value (list value))
+  (let* ((type (get variable 'custom-type)))
+    (if (not (or type (get variable 'standard-value)))
+        ;; `custom-declare-variable' has not run yet.  Postpone the check.
+        (push value (get variable 'custom-check-values))
+      (unless (widget-apply (widget-convert type) :match value)
+        (warn "Value does not match %S's type `%S': %S" variable type value))))
   (funcall (or (get variable 'custom-set) #'set-default) variable value))
 
 ;;;###autoload
@@ -1157,24 +1159,28 @@ Consult `setopt-local-type-mismatch'."
   (let ((accept t))
     ;; Check that the type is correct.
     (when-let* ((type (get variable 'custom-type)))
+      ;; FIXME: If the var hasn't been initialized yet, `type' is nil and we
+      ;; skip the type check altogether.  Use `custom-check-values'?
       (unless (widget-apply (widget-convert type) :match value)
         (let ((msg (format-message
                     "Value does not match %S's type `%S': %S"
                     variable type value)))
-        (cond
-         ;; Fall through and try anyway.
-         ((eq setopt-local-type-mismatch 'accept))
-         ;; Silently discard the mismatched value.
-         ((eq setopt-local-type-mismatch 'discard)
-          (setq accept nil))
-         ;; Prompt to accept or discard the value.
-         (setopt-local-type-mismatch
-          (setq accept (eq ?a (car
-                               (read-multiple-choice msg
-                                '((?a "accept" "Accept")
-                                  (?d "discard" "Discard")))))))
-         (t
-          (warn msg))))))
+          ;; FIXME: It's weird to do this `setopt-local-type-mismatch`
+          ;; control  for `setopt-local' and not for `setopt'.
+          (cond
+           ;; Fall through and try anyway.
+           ((eq setopt-local-type-mismatch 'accept))
+           ;; Silently discard the mismatched value.
+           ((eq setopt-local-type-mismatch 'discard)
+            (setq accept nil))
+           ;; Prompt to accept or discard the value.
+           (setopt-local-type-mismatch
+            (setq accept (eq ?a (car (read-multiple-choice
+                                      msg
+                                      '((?a "accept" "Accept")
+                                        (?d "discard" "Discard")))))))
+           (t
+            (warn msg))))))
     (when accept
       (condition-case _
           (funcall (or (get variable 'custom-set)

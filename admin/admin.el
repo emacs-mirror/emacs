@@ -35,6 +35,7 @@
 (defun admin--read-version ()
   (read-string "Version number: " emacs-version))
 
+;;;###autoload
 (defun add-release-logs (root version &optional date)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Also update the etc/HISTORY file.
@@ -102,6 +103,7 @@ Optional argument DATE is the release date, default today."
   "\\bAuto-incrementing version code\\(?:.\\|\n\\)*\\([[:digit:]]\\{9\\}\\)$"
   "Regexp with which to detect the version code in AndroidManifest.xml.")
 
+;;;###autoload
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -246,6 +248,7 @@ Non-Free Operating Systems\n" newshort)))
   (message "Setting version numbers...done"))
 
 ;; Note this makes some assumptions about form of short copyright.
+;;;###autoload
 (defun set-copyright (root copyright)
   "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
@@ -300,6 +303,7 @@ ROOT should be the root of an Emacs source tree."
 	      '("efaq-w32")))))
 
 ;; TODO report the progress
+;;;###autoload
 (defun make-manuals (root &optional type)
   "Generate the web manuals for the Emacs webpage.
 ROOT should be the root of an Emacs source tree.
@@ -322,8 +326,8 @@ Optional argument TYPE is type of output (nil means all)."
 				   (push (concat i j) res))))
 			     (manual-misc-manuals root)))))))
   (let* ((dest (expand-file-name "manual" root))
-	 (html-node-dir (expand-file-name "html_node" dest))
-	 (html-mono-dir (expand-file-name "html_mono" dest))
+	 (html-node-dir (expand-file-name "html_node/" dest))
+	 (html-mono-dir (expand-file-name "html_mono/" dest))
 	 (ps-dir (expand-file-name "ps" dest))
 	 (pdf-dir (expand-file-name "pdf" dest))
 	 (emacs (expand-file-name "doc/emacs/emacs.texi" root))
@@ -369,6 +373,13 @@ Optional argument TYPE is type of output (nil means all)."
     (dolist (manual misc)
       (if (member type `(nil ,manual "misc"))
 	  (manual-misc-html manual root html-node-dir html-mono-dir)))
+    ;; Auxiliary files
+    (when (member type '(nil "elisp" "elisp-mono" "elisp-node"))
+      (dolist (file '("doc/lispref/elisp_type_hierarchy.txt"
+                      "doc/lispref/elisp_type_hierarchy.jpg"))
+        (let ((file (expand-file-name file root)))
+          (copy-file file html-mono-dir t)
+          (copy-file file (expand-file-name "elisp/" html-node-dir) t))))
     (message "Manuals created in %s" dest)))
 
 (defconst manual-doctype-string
@@ -761,6 +772,9 @@ style=\"text-align:left\">")
 	      (and (equal type "lispintro")
 		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
 	  (copy-file file stem)))
+    (when (equal type "lispref")
+      (copy-file "../doc/lispref/elisp_type_hierarchy.txt" stem)
+      (copy-file "../doc/lispref/elisp_type_hierarchy.jpg" stem))
     (with-temp-buffer
       (let ((outvars make-manuals-dist-output-variables)
             (case-fold-search nil))
@@ -782,6 +796,7 @@ style=\"text-align:left\">")
     (message "...created %s" tarfile)))
 
 ;; Does anyone actually use these tarfiles?
+;;;###autoload
 (defun make-manuals-dist (root &optional type)
   "Make the standalone manual source tarfiles for the Emacs webpage.
 ROOT should be the root of an Emacs source tree.
@@ -873,6 +888,7 @@ $Date: %s $
 (defvar org-html-mathjax-template)
 (defvar htmlize-output-type)
 
+;;;###autoload
 (defun make-news-html-file (root version)
   "Convert the NEWS file into an HTML file."
   (interactive (let ((root
@@ -886,7 +902,10 @@ $Date: %s $
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (user-error "%s doesn't seem to be the root of an Emacs source tree" root))
   (admin--require-external-package 'htmlize)
-  (let* ((newsfile (expand-file-name "etc/NEWS" root))
+  (let* ((oldnewsfile (expand-file-name (format "etc/NEWS.%s" version) root))
+         (newsfile (if (file-exists-p oldnewsfile)
+                       oldnewsfile
+                     (expand-file-name "etc/NEWS" root)))
          (orgfile (expand-file-name (format "etc/NEWS.%s.org" version) root))
          (html (format "%s.html" (file-name-base orgfile)))
          (copyright-years (format-time-string "%Y")))
@@ -896,7 +915,7 @@ $Date: %s $
 
     ;; Find the copyright range.
     (goto-char (point-min))
-    (re-search-forward "^Copyright (C) \\([0-9-]+\\) Free Software Foundation, Inc.")
+    (re-search-forward "^Copyright (C) \\([0-9, -]+\\) Free Software Foundation, Inc.")
     (setq copyright-years (match-string 1))
 
     ;; Delete some unnecessary stuff.
@@ -915,6 +934,7 @@ $Date: %s $
 
     ;; Escape some characters.
     (replace-regexp-in-region (rx "$") "@@html:&dollar;@@" (point-min) (point-max))
+    (replace-regexp-in-region (rx "[[") "[\u200B[" (point-min) (point-max))
 
     ;; Use Org-mode markers for 'symbols', 'C-x k', etc.
     (replace-regexp-in-region
@@ -933,18 +953,22 @@ $Date: %s $
     ;; Format code blocks.
     (while (re-search-forward "^    " nil t)
       (let ((elisp-block (looking-at "(")))
-        (backward-paragraph)
+        (let ((paragraph-start "^    "))
+          (backward-paragraph))
+        (unless (looking-at paragraph-separate)
+          (save-excursion (insert "\n")))
         (insert (if elisp-block
                     "\n#+BEGIN_SRC emacs-lisp"
                   "\n#+BEGIN_EXAMPLE"))
-        (forward-paragraph)
+        (let ((paragraph-start "^[^ ]"))
+          (forward-paragraph))
         (insert (if elisp-block
                     "#+END_SRC\n"
                   "#+END_EXAMPLE\n"))))
 
     ;; Delete buffer local variables.
     (goto-char (point-max))
-    (when (re-search-backward "Local variables:")
+    (when (re-search-backward "Local variables:" nil t)
       (forward-line -1)
       (delete-region (point) (point-max)))
 
@@ -1099,6 +1123,7 @@ If optional argument OLD is non-nil, also scan for `defvar's."
 ;; to check the results of this look sensible.
 ;; TODO Check cus-start if something moved from C to Lisp.
 ;; TODO Handle renamed things with aliases to the old names.
+;;;###autoload
 (defun cusver-check (newdir olddir version)
   "Check that `defcustom's have :version tags where needed.
 NEWDIR is the current lisp/ directory, OLDDIR is that from the
@@ -1172,6 +1197,7 @@ changes (in a non-trivial way).  This function does not check for that."
 ;; Reminder message for open release-blocking bugs.  This requires the
 ;; GNU ELPA package `debbugs'.
 
+;;;###autoload
 (defun reminder-for-release-blocking-bugs (version)
   "Submit a reminder message for release-blocking bugs of Emacs VERSION."
   (interactive

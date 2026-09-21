@@ -125,7 +125,7 @@ Buginese language and its script Lontara are supported in this language environm
       (independent-vowel    "[\xA984-\xA98E]")
       (telu                 "\xA9B3")
       (vowel                "[\xA9B4-\xA9BC]")
-      (dependant-consonant  "[\xA9BD-\xA9BF]")
+      (dependent-consonant  "[\xA9BD-\xA9BF]")
       (modifier-above       "[\xA980-\xA983]")
       (pangkon              "\xA9C0"))
   (set-char-table-range composition-function-table
@@ -134,19 +134,19 @@ Buginese language and its script Lontara are supported in this language environm
                                ;; Consonant based syllables
                                (concat consonant telu "?\\(?:" pangkon consonant
                                        telu "?\\)*\\(?:" pangkon "\\|" vowel "*" telu
-                                       "?" modifier-above "?" dependant-consonant "?\\)")
+                                       "?" modifier-above "?" dependent-consonant "?\\)")
                                1 'font-shape-gstring)
                               (vector
                                ;; Vowels based syllables
                                (concat independent-vowel telu "?" pangkon "?"
-                                       vowel "?" modifier-above "?" dependant-consonant "?")
+                                       vowel "?" modifier-above "?" dependent-consonant "?")
                                1 'font-shape-gstring))))
 
 ;; Sundanese composition rules
 (let ((consonant            "[\x1B8A-\x1BA0\x1BAE\x1BAF\x1BBB-\x1BBF]")
       (independent-vowel    "[\x1B83-\x1B89]")
       (vowel                "[\x1BA4-\x1BA9]")
-      (dependant-consonant  "[\x1BA1-\x1BA3\x1BAC-\x1BAD]")
+      (dependent-consonant  "[\x1BA1-\x1BA3\x1BAC-\x1BAD]")
       (modifier-above       "[\x1B80-\x1B82]")
       (virama               "[\x1BAA\x1BAB]"))
   (set-char-table-range composition-function-table
@@ -155,18 +155,18 @@ Buginese language and its script Lontara are supported in this language environm
                                ;; Consonant based syllables
                                (concat consonant "\\(?:" virama consonant
                                        "\\)*\\(?:" virama "\\|" vowel "*"
-                                       modifier-above "?" dependant-consonant "?\\)")
+                                       modifier-above "?" dependent-consonant "?\\)")
                                1 'font-shape-gstring)
                               (vector
                                ;; Vowels based syllables
                                (concat independent-vowel virama "?"
-                                       vowel "?" modifier-above "?" dependant-consonant "?")
+                                       vowel "?" modifier-above "?" dependent-consonant "?")
                                1 'font-shape-gstring))))
 
 ;; Batak composition rules
 (let ((akshara              "[\x1BC0-\x1BE5]")
       (vowel                "[\x1BE7-\x1BEF]")
-      (dependant-consonant  "[\x1BF0\x1BF1]")
+      (dependent-consonant  "[\x1BF0\x1BF1]")
       (modifier-above       "\x1BE6")
       (virama               "[\x1BF2\x1BF3]"))
   (set-char-table-range composition-function-table
@@ -174,20 +174,20 @@ Buginese language and its script Lontara are supported in this language environm
                         (list (vector
                                ;; Akshara based syllables
                                (concat akshara virama "?" vowel "*" modifier-above
-                                       "?" dependant-consonant "?")
+                                       "?" dependent-consonant "?")
                                1 'font-shape-gstring))))
 
 ;; Rejang composition rules
 (let ((akshara              "[\xA930-\xA946]")
       (vowel                "[\xA947-\xA94E]")
-      (dependant-consonant  "[\xA94F\xA952]")
+      (dependent-consonant  "[\xA94F\xA952]")
       (virama               "\xA953"))
   (set-char-table-range composition-function-table
                         '(#xA947 . #xA953)
                         (list (vector
                                ;; Akshara based syllables
                                (concat akshara virama "?" vowel "*"
-                                       dependant-consonant "?")
+                                       dependent-consonant "?")
                                1 'font-shape-gstring))))
 
 ;; Makasar composition rules

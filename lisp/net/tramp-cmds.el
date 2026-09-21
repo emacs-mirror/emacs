@@ -64,7 +64,7 @@ SYNTAX can be one of the symbols `default' (default),
    (list
     (completing-read
      "Method: "
-     (tramp-compat-seq-keep
+     (seq-keep
       (lambda (x)
 	(when-let* ((name (symbol-name x))
 		    ;; It must match `tramp-enable-METHOD-method'.
@@ -86,31 +86,22 @@ SYNTAX can be one of the symbols `default' (default),
     (funcall fn)
     (message "Tramp method \"%s\" enabled" method)))
 
-;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
-  (append
-   (all-completions
-    "*tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))
-   (all-completions
-    "*debug tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))
-   (all-completions
-    "*trace tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
+  (match-buffers (rx bos (| "*tramp/" "*debug tramp/" "*trace tramp/"))))
 
-;; Use `match-buffers' starting with Emacs 29.1.
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
   "Return a list of remote buffers, excluding internal Tramp buffers.
 A buffer is considered remote if either its `default-directory' or
 `buffer-file-name' is a remote file name."
-  (tramp-compat-seq-keep
+  (match-buffers
    (lambda (buffer)
      (when (tramp-tramp-file-p
             (or (buffer-file-name buffer)
                 (tramp-get-default-directory buffer)))
-       buffer))
-   (buffer-list)))
+       buffer))))
 
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffer-connections ()
@@ -549,8 +540,7 @@ ESC or `q' to quit without changing further buffers,
 		 (new-bfn (and (stringp bfn) (string-replace source target bfn)))
 		 (prompt (format-message
 			  "Set visited file name to `%s' [Type yn!eq or %s] "
-                          new-bfn (if (fboundp 'help-key) (help-key) ; 29.1
-                                    (key-description (vector help-char))))))
+                          new-bfn (help-key))))
 	    (when (and (buffer-live-p buffer) (stringp bfn)
 		       (string-prefix-p source bfn)
 		       ;; Skip, and don't ask again.
@@ -678,33 +668,35 @@ Run BODY."
   "Convert FILENAME into a multi-hop file name with \"sudo\".
 An alternative method could be chosen with `tramp-file-name-with-method'."
   (setq filename (expand-file-name filename))
-  (let ((default-method (tramp-get-file-name-with-method)))
-    (if (tramp-tramp-file-p filename)
-	(with-parsed-tramp-file-name filename nil
-	  (cond
-	   ;; Remote file with proper method.
-	   ((string-equal method default-method)
-	    filename)
-	   ;; Remote file on the local host.
-	   ((and
-	     (stringp tramp-local-host-regexp) (stringp host)
-	     (string-match-p tramp-local-host-regexp host))
-	    (tramp-make-tramp-file-name
-	     (make-tramp-file-name
-	      :method default-method :localname localname)))
-	   ;; Remote file with multi-hop capable method.
-	   ((tramp-multi-hop-p v)
-	    (tramp-make-tramp-file-name
-	     (make-tramp-file-name
-	      :method (tramp-find-method default-method nil host)
-	      :user (tramp-find-user default-method nil host)
-	      :host (tramp-find-host default-method nil host)
-	      :localname localname :hop (tramp-make-tramp-hop-name v))))
-	   ;; Other remote file.
-	   (t (tramp-user-error v "Multi-hop with `%s' not applicable" method))))
-      ;; Local file.
-      (tramp-make-tramp-file-name
-       (make-tramp-file-name :method default-method :localname filename)))))
+  (expand-file-name
+   (let ((default-method (tramp-get-file-name-with-method)))
+     (if (tramp-tramp-file-p filename)
+	 (with-parsed-tramp-file-name filename nil
+	   (cond
+	    ;; Remote file with proper method.
+	    ((string-equal method default-method)
+	     filename)
+	    ;; Remote file on the local host.
+	    ((and
+	      (stringp tramp-local-host-regexp) (stringp host)
+	      (string-match-p tramp-local-host-regexp host))
+	     (tramp-make-tramp-file-name
+	      (make-tramp-file-name
+	       :method default-method :localname localname)))
+	    ;; Remote file with multi-hop capable method.
+	    ((tramp-multi-hop-p v)
+	     (tramp-make-tramp-file-name
+	      (make-tramp-file-name
+	       :method (tramp-find-method default-method nil host)
+	       :user (tramp-find-user default-method nil host)
+	       :host (tramp-find-host default-method nil host)
+	       :localname localname :hop (tramp-make-tramp-hop-name v))))
+	    ;; Other remote file.
+	    (t
+             (tramp-user-error v "Multi-hop with `%s' not applicable" method))))
+       ;; Local file.
+       (tramp-make-tramp-file-name
+        (make-tramp-file-name :method default-method :localname filename))))))
 
 ;; FIXME: We would like to rename this for Emacs 31.1 to a name that
 ;; does not encode the default method.  It is intended as a generic
@@ -774,23 +766,13 @@ Interactively, with a prefix argument, prompt for a different method."
 
 ;;; Recompile on ELPA
 
-;; This function takes action, when `read-extended-command-predicate'
-;; is set to `command-completion-default-include-p'.
-;;;###tramp-autoload
-(defun tramp-recompile-elpa-command-completion-p (_symbol _buffer)
-  "A predicate for `tramp-recompile-elpa'.
-It is completed by `M-x TAB' only if package.el is loaded, and
-Tramp is an installed ELPA package."
-  ;; We cannot apply `package-installed-p', this would also return the
-  ;; builtin package.
-  (and (assq 'tramp (bound-and-true-p package-alist))
-       (tramp-compat-funcall 'package--user-installed-p 'tramp)))
-
 ;;;###tramp-autoload
 (defun tramp-recompile-elpa ()
   "Recompile the installed Tramp ELPA package.
 This is needed if there are compatibility problems."
-  (declare (completion tramp-recompile-elpa-command-completion-p))
+  ;; This command isn't offered when `read-extended-command-predicate'
+  ;; is set to `command-completion-default-include-p'.
+  (declare (completion ignore))
   (interactive)
   ;; We expect just one Tramp package is installed.
   (when-let*
@@ -808,6 +790,8 @@ This is needed if there are compatibility problems."
 	 "-Q" "-batch" "-L" dir
 	 "--eval" (format "(byte-recompile-directory %S 0 t)" dir))
 	(message "Package `tramp' recompiled.")))))
+
+(make-obsolete 'tramp-recompile-elpa 'package-recompile "32.1")
 
 ;; Tramp version is useful in a number of situations.
 
@@ -832,7 +816,7 @@ This is needed if there are compatibility problems."
      (format "tramp (%s %s/%s)" ; package name and version
 	     tramp-version tramp-repository-branch tramp-repository-version)
      (sort
-      (tramp-compat-seq-keep
+      (seq-keep
        (lambda (x)
 	 (and x (boundp x) (not (get x 'tramp-suppress-trace))
 	      (cons x 'tramp-reporter-dump-variable)))
@@ -933,10 +917,7 @@ buffer in your bug report.
 
   ;; Dump buffer local variables.
   (insert "\nlocal variables:\n================")
-  (dolist (buffer (tramp-compat-seq-keep
-		   (lambda (b)
-		     (when (string-match-p "\\*tramp/" (buffer-name b)) b))
-		   (buffer-list)))
+  (dolist (buffer (match-buffers (rx bos "*tramp/")))
     (let ((reporter-eval-buffer buffer)
 	  (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
       (with-current-buffer elbuf
@@ -969,8 +950,8 @@ buffer in your bug report.
   (insert "\nload-path shadows:\n==================\n")
   (ignore-errors
     (mapc
-     (lambda (x) (when (string-search "tramp" x) (insert x "\n")))
-     (split-string (list-load-path-shadows t) "\n")))
+     (lambda (x) (when (string-match-p "tramp" x) (insert x "\n")))
+     (string-lines (list-load-path-shadows t))))
 
   ;; Append buffers only when we are in message mode.
   (when (and

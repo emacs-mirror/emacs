@@ -1,4 +1,4 @@
-;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
+;;; cperl-mode.el --- Perl code editing commands -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-2026 Free Software Foundation, Inc.
 
@@ -6,8 +6,13 @@
 ;;	Bob Olson
 ;;	Jonathan Rockway <jon@jrock.us>
 ;; Maintainer: emacs-devel@gnu.org
-;; Keywords: languages, Perl
+;; Version: 33.0.0
+;; Keywords: languages
 ;; Package-Requires: ((emacs "26.1"))
+;; URL: https://elpa.gnu.org/packages/cperl-mode.html
+
+;; This is a GNU ELPA :core package.  Avoid functionality that is not
+;; compatible with the version of Emacs recorded above.
 
 ;; This file is part of GNU Emacs.
 
@@ -26,14 +31,11 @@
 
 ;;; Commentary:
 
-;; You can either fine-tune the bells and whistles of this mode or
-;; bulk enable them by putting this in your Init file:
-
-;;     (setq cperl-hairy t)
+;; This package supports editing of Perl sources and handles the syntax
+;; up to Perl version 5.44.
 
 ;; DO NOT FORGET to read micro-docs (available from `Perl' menu)   <<<<<<
-;; or as help on variables `cperl-tips', `cperl-praise',           <<<<<<
-;; `cperl-speed'.                                                  <<<<<<
+;; or as help on variables `cperl-tips', `cperl-praise'.
 ;;
 ;; Or search for "Short extra-docs" further down in this file for
 ;; details on how to use `cperl-mode' instead of `perl-mode' and lots
@@ -41,18 +43,10 @@
 
 ;; The mode information (on C-h m) provides some customization help.
 
-;; Faces used: three faces for first-class and second-class keywords
-;; and control flow words, one for each: comments, string, labels,
-;; functions definitions and packages, arrays, hashes, and variable
-;; definitions.
-
 ;; This mode supports imenu.  You can use imenu from the keyboard
 ;; (M-g i), but you might prefer binding it like this:
 ;;
 ;;     (define-key global-map [M-S-down-mouse-3] #'imenu)
-
-;; This version supports the syntax added by the MooseX::Declare CPAN
-;; module, as well as Perl 5.10 keywords.
 
 ;;; Code:
 
@@ -64,7 +58,7 @@
 ;; above), please eliminate the corresponding compatibility-helpers.
 ;; Whenever you create a new compatibility-helper, please add it here.
 
-;; Available in Emacs 27.1: time-convert
+;; Available in Emacs 27.1: time-convert (not provided by Compat)
 (defalias 'cperl--time-convert
   (if (fboundp 'time-convert) 'time-convert
     'encode-time))
@@ -605,6 +599,7 @@ entries, and do not change indentation."
 			     (cons (choice (const nil) string)
 				   (repeat symbol)))))
   :group 'cperl-faces)
+(make-obsolete-variable 'cperl-ps-print-face-properties "not used." "32.1")
 
 (defvar cperl-dark-background
   (cperl-choose-color "navy" "os2blue" "darkgreen"))
@@ -661,6 +656,12 @@ If your Emacs does not default to `cperl-mode' on Perl files, and you
 want it to: put the following into your .emacs file:
 
   (add-to-list \\='major-mode-remap-alist \\='(perl-mode . cperl-mode))
+
+You can either fine-tune the bells and whistles of this mode in the
+\"Cperl\" customization group or bulk enable them by putting this in
+your Init file:
+
+  (setq cperl-hairy t)
 
 To read Perl documentation in info format you can convert POD to
 texinfo with the converter `pod2texi' from the texinfo project:
@@ -1112,8 +1113,6 @@ Unless KEEP, removes the old indentation."
               (get-text-property (point) 'syntax-type))
             '(here-doc pod))]
      "----"
-     ["CPerl pretty print (experimental)" cperl-ps-print]
-     "----"
      ["Syntaxify region" cperl-find-pods-heres-region
       (use-region-p)]
      ["Profile syntaxification" cperl-time-fontification t]
@@ -1373,13 +1372,16 @@ prototypes from signatures.")
                (optional
                 (sequence
                  (0+ (sequence ,cperl--ws*-rx
-                               (or ,cperl--basic-scalar-rx "$")
+                               (or (sequence (optional ":")
+                                             ,cperl--basic-scalar-rx)
+                                   "$")
                                ,cperl--ws*-rx
                                ","))
                  ,cperl--ws*-rx
-                 (or ,cperl--basic-scalar-rx
-                     ,cperl--basic-array-rx
-                     ,cperl--basic-hash-rx
+                 (or (sequence (optional ":")
+                               (or ,cperl--basic-scalar-rx
+                                   ,cperl--basic-array-rx
+                                   ,cperl--basic-hash-rx))
                      "$" "%" "@")))
                (optional (sequence ,cperl--ws*-rx) "," )
                ,cperl--ws*-rx
@@ -1392,9 +1394,10 @@ place.")
   (defconst cperl--sloppy-signature-rx
     `(sequence "("
                ,cperl--ws*-rx
-               (or ,cperl--basic-scalar-rx
-                   ,cperl--basic-array-rx
-                   ,cperl--basic-hash-rx)
+               (sequence (optional ":")
+                         (or ,cperl--basic-scalar-rx
+                             ,cperl--basic-array-rx
+                             ,cperl--basic-hash-rx))
                ,cperl--ws*-rx
                (or "," "=" "||=" "//=" ")"))
     "A rx sequence for the begin of a signature with initializers.
@@ -1490,8 +1493,7 @@ does not need a semicolon to terminate the statement.")
     "field"
     (1+ ,cperl--ws-or-comment-rx)
     ,cperl--basic-variable-rx
-    (optional (sequence ,cperl--ws+-rx ,cperl--attribute-list-rx))
-    )
+    (optional (sequence ,cperl--ws+-rx ,cperl--attribute-list-rx)))
   "A regular expression to find a declaration for a field.
 Fields can have attributes for fontification, and even for imenu because
 for example \":reader\" implicitly declares a method.")
@@ -2261,8 +2263,7 @@ Argument ARG is the closing parenthesis."
     (if (and other-end
 	     (cperl-val 'cperl-electric-parens)
 	     (memq last-command-event '( ?\) ?\] ?\} ?\> ))
-	     (>= (save-excursion (cperl-to-comment-or-eol) (point)) (point))
-	     )
+	     (>= (save-excursion (cperl-to-comment-or-eol) (point)) (point)))
 	(progn
 	  (self-insert-command (prefix-numeric-value arg))
 	  (setq p (point))
@@ -4057,8 +4058,7 @@ an attribute.  ST-L and POS are a cached from a previous call."
       ;; be included into the area marked as sub-decl.
       nil)
      ;; Else, we are in no mans land.  Just keep trying.
-     (t
-      ))
+     (t))
     (when (looking-at (rx (in ";{")))
       ;; A semicolon ends the declaration, an opening brace begins the
       ;; BLOCK.  Neither is part of the declaration.
@@ -4117,8 +4117,7 @@ and character escapes, respectively."
 	  "\\|"
 	  "\\("				; 7: other escapes
 	    "\\\\[pP]" "\\([^{]\\|{[^{}]*}\\)"
-	    "\\|" "\\\\[^pP]" "\\)"
-	  )
+	    "\\|" "\\\\[^pP]" "\\)")
 	 endbracket 'toend)
       (if (match-beginning 4)
 	  (cperl-postpone-fontification
@@ -4248,8 +4247,7 @@ This is part of `cperl-find-pods-heres' (below)."
                                    'syntax-type 'here-doc)
                 (put-text-property (1- defs-eol) defs-eol
                                    'syntax-table
-                                   (string-to-syntax "< c"))
-                )
+                                   (string-to-syntax "< c")))
             ;; line ends with a "regular" comment: make
             ;; the last character of the comment closing
             ;; it so that we can use the line feed to
@@ -6279,22 +6277,6 @@ In POD, returns the level of the current heading."
 	(t 5)))				; should not happen
 
 
-(defun cperl-windowed-init ()
-  "Initialization under windowed version."
-  (cond ((featurep 'ps-print)
-	 (or cperl-faces-init
-	     (progn
-	       (cperl-init-faces))))
-	((not cperl-faces-init)
-	 (add-hook 'font-lock-mode-hook
-                   (lambda ()
-                     (if (memq major-mode '(perl-mode cperl-mode))
-                         (progn
-                           (or cperl-faces-init (cperl-init-faces))))))
-	 (eval-after-load
-	     "ps-print"
-	   '(or cperl-faces-init (cperl-init-faces))))))
-
 (defvar cperl-font-lock-keywords-1 nil
   "Additional expressions to highlight in Perl mode.  Minimal set.")
 (defvar cperl-font-lock-keywords nil
@@ -6385,6 +6367,7 @@ functions (which they are not).  Inherits from `default'.")
                   ;; -------- anchored: Signature
                   `(,(rx (sequence (in "(,")
                                    (eval cperl--ws*-rx)
+                                   (optional ":")
                                    (group (eval cperl--basic-variable-rx))))
                     (progn
                       (goto-char (match-beginning 2)) ; pre-match: Back to sig
@@ -6560,9 +6543,7 @@ functions (which they are not).  Inherits from `default'.")
                     (in "$@%*")
                     (or
                      (eval cperl--normal-identifier-rx)
-                     (eval cperl--special-identifier-rx))
-                    )
-                   )
+                     (eval cperl--special-identifier-rx))))
               ;; (concat "\\<\\(state\\|my\\|local\\|our\\)"
 	      ;;          cperl-maybe-white-and-comment-rex
 	      ;;          "\\(("
@@ -6578,10 +6559,7 @@ functions (which they are not).  Inherits from `default'.")
                                (in "$@%*")
                                (or
                                 (eval cperl--normal-identifier-rx)
-                                (eval cperl--special-identifier-rx))
-                               )
-                              )
-                    )
+                                (eval cperl--special-identifier-rx)))))
                ;; ,(concat "\\="
 	       ;;  	cperl-maybe-white-and-comment-rex
 	       ;;  	","
@@ -6765,30 +6743,17 @@ functions (which they are not).  Inherits from `default'.")
 (defvar ps-underlined-faces)
 
 (defun cperl-ps-print-init ()
-  "Initialization of `ps-print' components for faces used in CPerl."
-  (eval-after-load "ps-print"
-    '(setq ps-bold-faces
-	   ;; 			font-lock-variable-name-face
-	   ;;			font-lock-constant-face
-	   (append '(cperl-array-face cperl-hash-face)
-		   ps-bold-faces)
-	   ps-italic-faces
-	   ;;			font-lock-constant-face
-	   (append '(cperl-nonoverridable-face cperl-hash-face)
-		   ps-italic-faces)
-	   ps-underlined-faces
-	   ;;	     font-lock-type-face
-	   (append '(cperl-array-face cperl-hash-face underline cperl-nonoverridable-face)
-		   ps-underlined-faces))))
-
-(defvar ps-print-face-extension-alist)
+  "This function is no longer available.  Use `customize` to set
+preferences for the \"ps-print\" group instead.
+Initialization of `ps-print' components for faces used in CPerl."
+  (declare (obsolete nil "32.1")))
 
 (defun cperl-ps-print (&optional file)
-  "Pretty-print in CPerl style.
+  "Print the current buffer to FILE.
 If optional argument FILE is an empty string, prints to printer, otherwise
 to the file FILE.  If FILE is nil, prompts for a file name.
-
-Style of printout regulated by the variable `cperl-ps-print-face-properties'."
+The printout style can be customized in the \"ps-print\" group."
+  (declare (obsolete 'ps-print-buffer "32.1"))
   (interactive)
   (or file
       (setq file (read-from-minibuffer
@@ -6797,13 +6762,7 @@ Style of printout regulated by the variable `cperl-ps-print-face-properties'."
 		  nil nil 'file-name-history)))
   (or (> (length file) 0)
       (setq file nil))
-  (require 'ps-print)			; To get ps-print-face-extension-alist
-  (let ((ps-print-color-p t)
-	(ps-print-face-extension-alist ps-print-face-extension-alist))
-    (ps-extend-face-list cperl-ps-print-face-properties)
-    (ps-print-buffer-with-faces file)))
-
-(cperl-windowed-init)
+  (ps-print-buffer file))
 
 (defconst cperl-styles-entries
   '(cperl-indent-level cperl-brace-offset cperl-continued-brace-offset
@@ -7409,7 +7368,7 @@ by CPerl."
   (set-buffer (get-buffer-create cperl-tmp-buffer))
   (set-syntax-table cperl-mode-syntax-table)
   (buffer-disable-undo)
-  (auto-fill-mode 0)
+  (auto-fill-mode -1)
   (if cperl-use-syntax-table-text-property-for-tags
       (progn
 	;; Do not introduce variable if not needed, we check it!

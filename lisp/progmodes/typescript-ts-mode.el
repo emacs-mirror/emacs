@@ -824,7 +824,8 @@ at least 3 (which is the default value)."
                            '(((regex pattern: (regex_pattern) @regexp))
                              ((jsx_text) @jsx)
                              ((jsx_opening_element) @jsx)
-                             ((jsx_closing_element) @jsx)))))
+                             ((jsx_closing_element) @jsx)
+                             ((jsx_self_closing_element) @jsx)))))
 
 (defun typescript-ts--syntax-propertize (beg end)
   (let ((captures (treesit-query-capture 'typescript typescript-ts--s-p-query beg end)))
@@ -845,24 +846,35 @@ at least 3 (which is the default value)."
            (incf ne)
            (put-text-property ns (1+ ns) 'syntax-table syntax)
            (put-text-property (1- ne) ne 'syntax-table syntax)))
-        ;; We put punctuation syntax on all the balanced pair
-        ;; characters so they don't mess up syntax-ppss.  We can't put
-        ;; string syntax on the whole thing because a) it doesn't work
-        ;; if the text is one character long, and b) it interferes
-        ;; forward/backward-sexp.
+
         ('jsx
-         (save-excursion
-           (goto-char ns)
-           (while (re-search-forward (rx (or "{" "}" "[" "]"
-                                             "(" ")" "<" ">"))
-                                     ne t)
-             (put-text-property
-              (match-beginning 0) (match-end 0)
-              'syntax-table (string-to-syntax
-                             (cond
-                              ((equal (match-string 0) "<") "(>")
-                              ((equal (match-string 0) ">") ")<")
-                              (t ".")))))))))))
+         (if (member (treesit-node-type node)
+                     '("jsx_opening_element"
+                       "jsx_closing_element"
+                       "jsx_self_closing_element"))
+             ;; A JSX tag's only real delimiters are its own outermost
+             ;; '<' and '>'.  Mark just those two as a matching pair and
+             ;; leave the interior alone: attribute values are '{...}'
+             ;; expressions of ordinary code (possibly with nested JSX)
+             ;; whose brackets must keep their normal syntax so they
+             ;; nest, match and highlight correctly.
+             (progn
+               (put-text-property ns (1+ ns)
+                                  'syntax-table (string-to-syntax "(>"))
+               (put-text-property (1- ne) ne
+                                  'syntax-table (string-to-syntax ")<")))
+           ;; jsx_text is raw text with no nesting to preserve, so
+           ;; neutralize its balanced-pair characters to punctuation;
+           ;; otherwise stray or unbalanced brackets in the text would
+           ;; confuse syntax-ppss.
+           (save-excursion
+             (goto-char ns)
+             (while (re-search-forward (rx (or "{" "}" "[" "]"
+                                               "(" ")" "<" ">"))
+                                       ne t)
+               (put-text-property
+                (match-beginning 0) (match-end 0)
+                'syntax-table (string-to-syntax "."))))))))))
 
 ;;;###autoload
 (defun tsx-ts-mode-maybe ()

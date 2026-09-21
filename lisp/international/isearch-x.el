@@ -146,7 +146,7 @@
 	(if (and str (> (length str) 0))
 	    (let ((unread-command-events nil))
 	      (if (and (integerp count) (> count 1))
-		  (let ((strs (mapconcat 'identity (make-list count str) "")))
+		  (let ((strs (mapconcat 'identity (make-list count str))))
 		    (isearch-process-search-string strs strs))
 		(isearch-process-search-string str str)))
 	  (isearch-update)))

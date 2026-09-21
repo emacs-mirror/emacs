@@ -1,5 +1,5 @@
 # acl.m4
-# serial 40
+# serial 41
 dnl Copyright (C) 2002, 2004-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -198,9 +198,9 @@ AC_DEFUN([gl_FILE_HAS_ACL],
   FILE_HAS_ACL_LIB=
 
   gl_file_has_acl_uses_smack=no
-  AS_CASE([$enable_acl,$with_libsmack,$ac_cv_header_linux_xattr_h,$ac_cv_func_listxattr],
-    [no,* | *,no,*], [],
-    [*,*,yes,yes],
+  AS_CASE([$with_libsmack,$ac_cv_header_linux_xattr_h,$ac_cv_func_listxattr],
+    [no,*], [],
+    [*,yes,yes],
       [AC_CHECK_HEADER([sys/smack.h],
          [gl_saved_LIBS=$LIBS
           AC_SEARCH_LIBS([smack_new_label_from_path], [smack],
@@ -215,16 +215,16 @@ AC_DEFUN([gl_FILE_HAS_ACL],
           LIBS=$gl_saved_LIBS])])
 
   gl_file_has_acl_uses_selinux=no
-  AS_CASE([$enable_acl,$with_selinux,$ac_cv_header_linux_xattr_h,$ac_cv_func_listxattr],
-    [no,* | *,no,*], [],
-    [*,*,yes,yes],
+  AS_CASE([$with_selinux,$ac_cv_header_linux_xattr_h,$ac_cv_func_listxattr],
+    [no,*], [],
+    [*,yes,yes],
       [AC_REQUIRE([gl_CHECK_HEADER_SELINUX_SELINUX_H])
        AS_IF([test $USE_SELINUX_SELINUX_H = 1],
          [FILE_HAS_ACL_LIB="$FILE_HAS_ACL_LIB $LIB_SELINUX"
           gl_file_has_acl_uses_selinux=yes])])
 
-  AS_CASE([$enable_acl,$gl_file_has_acl_uses_selinux,$gl_file_has_acl_uses_smack],
-    [no,* | *,yes,* | *,yes], [],
+  AS_CASE([$gl_file_has_acl_uses_selinux,$gl_file_has_acl_uses_smack],
+    [yes,* | *,yes], [],
     [*],
       [FILE_HAS_ACL_LIB=$LIB_ACL])
   AC_SUBST([FILE_HAS_ACL_LIB])

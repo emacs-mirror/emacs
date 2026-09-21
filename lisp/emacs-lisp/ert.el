@@ -683,7 +683,32 @@ A and B are the time values to compare."
 
 ;;; Facilities for recording the execution of tests from erts files.
 
-(defvar ert--erts-file-test-execution-observer nil)
+(cl-defstruct (ert--erts-file-test-description
+               (:constructor ert--make-erts-file-test-description))
+  "The recorded execution of an erts-file test.
+If the test failed because the actual and expected output do not match,
+the MISMATCH field is non-nil and contains the contents and points of
+the actual and expected buffers."
+  name
+  code
+  file
+  position
+  mismatch)
+
+(cl-defstruct (ert--erts-file-test-mismatch
+               (:constructor ert--make-erts-file-test-mismatch))
+  "The contents and points of the actual and expected buffers.
+This structure is used when the actual and expected output of an
+erts-file test do not match."
+  actual-string
+  expected-string
+  point-char
+  actual-point
+  expected-point)
+
+(defvar ert--erts-file-test-execution-observer nil
+  "Function called to record an erts-file test execution.
+This function is called via `ert--signal-erts-file-test-execution'.")
 
 (defun ert--signal-erts-file-test-execution (test-description)
   "Tell the current erts-file test observer (if any) about TEST-DESCRIPTION."
@@ -2431,6 +2456,10 @@ SELECTOR; the default t means run all the defined tests."
   'action #'ert--erts-file-test-name-button-action
   'help-echo "mouse-2, RET: Find test definition in erts file")
 
+(define-button-type 'ert--erts-file-test-diff-button
+  'action #'ert--erts-file-test-diff-button-action
+  'help-echo "mouse-2, RET: Diff actual and expected output")
+
 (defun ert--results-test-node-or-null-at-point ()
   "If point is on a valid ewoc node, return it; return nil otherwise.
 
@@ -2521,6 +2550,34 @@ It creates a new window or reuses an existing one."
         (position (button-get button 'position)))
     (find-file-other-window file)
     (goto-char position)))
+
+(defun ert--erts-file-test-diff-button-action (button)
+  "Diff actual and expected output for BUTTON's erts-file test.
+It creates a new window or reuses an existing one."
+  (pcase-let (((cl-struct ert--erts-file-test-mismatch
+                          actual-string
+                          expected-string
+                          point-char
+                          actual-point
+                          expected-point)
+               (button-get button 'mismatch))
+              (buf-actual (generate-new-buffer "*Diff-erts-actual*"))
+              (buf-expected (generate-new-buffer "*Diff-erts-expected*")))
+    (unwind-protect
+        (progn
+          (with-current-buffer buf-actual
+            (insert actual-string)
+            (when expected-point
+              (goto-char actual-point)
+              (insert point-char)))
+          (with-current-buffer buf-expected
+            (insert expected-string)
+            (when expected-point
+              (goto-char expected-point)
+              (insert point-char)))
+          (diff-buffers buf-expected buf-actual))
+      (kill-buffer buf-actual)
+      (kill-buffer buf-expected))))
 
 (defun ert--ewoc-position (ewoc node)
   ;; checkdoc-order: nil
@@ -2812,7 +2869,9 @@ failing test.
 
 Each entry consists of the name of the test followed by the code that
 performs the transform being tested.  The buffer also contains buttons
-that allow jumping to the test definitions.
+that allow jumping to the test definitions.  If a test fails, the diff
+button displays a Diff Mode buffer comparing the actual and expected
+output.
 
 To be used in the ERT results buffer.  See Info node `(ert) Running
 Tests Interactively' for more information about how to use this feature."
@@ -2832,19 +2891,28 @@ Tests Interactively' for more information about how to use this feature."
           (cl-loop for test-description
                    in (ert-test-result-erts-file-tests result)
                    for i from 1 do
-                   (insert (format "\n%d: " i))
-                   (insert-text-button (cdr (assq 'name test-description))
-                                       :type 'ert--erts-file-test-name-button
-                                       'file (cdr (assq 'file test-description))
-                                       'position (cdr (assq 'position test-description)))
-                   (insert "\n\t")
-                   (let* ((begin (point))
-                          (desc-code (cdr (assq 'code test-description)))
-                          (code (if (interpreted-function-p desc-code)
-                                    (macroexp-progn (aref desc-code 1))
-                                  desc-code)))
-                     (ert--pp-with-indentation-and-newline code)
-                     (ert--make-xrefs-region begin (point)))))
+                   (pcase-let (((cl-struct ert--erts-file-test-description
+                                           name code file position mismatch)
+                                test-description))
+                     (insert (format "\n%d: " i))
+                     (insert-text-button
+                      name
+                      :type 'ert--erts-file-test-name-button
+                      'file file
+                      'position position)
+                     (insert "\n\t")
+                     (let ((begin (point))
+                           (exp-code (if (interpreted-function-p code)
+                                         (macroexp-progn (aref code 1))
+                                       code)))
+                       (ert--pp-with-indentation-and-newline exp-code)
+                       (ert--make-xrefs-region begin (point)))
+                     (when mismatch
+                       (insert "\tTest failed: Output mismatch (")
+                       (insert-text-button "diff"
+                                           :type 'ert--erts-file-test-diff-button
+                                           'mismatch mismatch)
+                       (insert ").")))))
         (goto-char (point-min))
         (insert (substitute-command-keys
                  "tests from erts files executed during test `"))
@@ -3058,12 +3126,22 @@ write erts files."
         (let ((code (cdr (assq 'code gen-specs))))
           (unless code
             (error "No code to run the transform"))
+          (funcall code)
           ;; Record execution of test from erts file.
-          (ert--signal-erts-file-test-execution `((name . ,name)
-                                                  (code . ,code)
-                                                  (file . ,file)
-                                                  (position . ,start-before)))
-          (funcall code))
+          (ert--signal-erts-file-test-execution
+           (ert--make-erts-file-test-description
+            :name name
+            :code code
+            :file file
+            :position start-before
+            :mismatch (and (or (not (equal (buffer-string) after))
+                               (and after-point (not (= (point) after-point))))
+                           (ert--make-erts-file-test-mismatch
+                            :actual-string (buffer-string)
+                            :expected-string after
+                            :point-char (cdr (assq 'point-char gen-specs))
+                            :actual-point (point)
+                            :expected-point after-point)))))
         (unless (equal (buffer-string) after)
           (ert-fail (list (format "Mismatch in test \"%s\", file %s"
                                   name file)

@@ -1344,7 +1344,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/dtotimespec.c
   lib/dup2.c
   lib/dynarray.h
-  lib/eloop-threshold.h
   lib/endian.c
   lib/endian.in.h
   lib/errno.in.h
@@ -1430,6 +1429,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mempcpy.c
   lib/memrchr.c
   lib/memset_explicit.c
+  lib/min-eloop-threshold.h
   lib/mini-gmp-gnulib.c
   lib/mini-gmp.c
   lib/mini-gmp.h

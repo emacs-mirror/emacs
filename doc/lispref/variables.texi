@@ -1311,6 +1311,7 @@ other such variables, this one must be set in the first line of a
 file.
 @end defvar
 
+@cindex lexical-binding cookie
 @noindent
 In practice, dialect selection means that the first line in an Emacs
 Lisp file looks like:
@@ -1327,9 +1328,10 @@ for the modern lexical-binding dialect, and
 @end example
 
 @noindent
-for the old dynamic-only dialect.  When no declaration is present the
-old dialect is used, but this may change in a future release.
-The compiler will warn if no declaration is present.
+for the old dynamic-only dialect.  (This is known as the
+@dfn{lexical-binding cookie}.)  When no declaration is present the old
+dialect is used, but this may change in a future release.  The compiler
+will warn if no declaration is present.
 
 When evaluating Emacs Lisp code directly using an @code{eval} call,
 lexical binding is enabled if the @var{lexical} argument to

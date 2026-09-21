@@ -725,6 +725,7 @@ what the parent of the node would be if it were a node."
     (setq-local comment-start "// ")
     (setq-local comment-end "")
     (setq-local comment-start-skip (rx "//" (* (syntax whitespace))))
+    (setq-local comment-start-line-regexp comment-start-skip)
 
     ;; Indent.
     (setq-local indent-tabs-mode t

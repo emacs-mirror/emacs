@@ -110,7 +110,8 @@ external browser like IceCat."
      [simple-query "https://duckduckgo.com"
 		   "https://duckduckgo.com/?q=" ""])
     ("Wikipedia" .
-     [simple-query "https://wikipedia.org" "https://wikipedia.org/wiki/" ""])
+     [simple-query "https://wikipedia.org"
+                   "https://wikipedia.org/w/?search=" ""])
 
     ;; Computer social issues, privacy, professionalism.
     ("Association for Computing Machinery" . "https://www.acm.org")
@@ -341,8 +342,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
                  (cond ((string= s " ") "+")
 		       ((string-match "[a-zA-Z_./~-]" s) s)
                        (t (upcase (format "%%%02x" c))))))
-             (encode-coding-string str 'utf-8)
-             ""))
+             (encode-coding-string str 'utf-8)))
 
 (defun webjump-url-fix (url)
   (if (webjump-null-or-blank-string-p url)

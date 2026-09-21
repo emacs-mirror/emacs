@@ -6,7 +6,7 @@
 ;; Maintainer: John Wiegley <johnw@newartisans.com>
 ;; Created: 17 Jun 2012
 ;; Version: 2.4.6
-;; Package-Requires: ((emacs "24.3") (bind-key "2.4"))
+;; Package-Requires: ((emacs "25") (bind-key "2.4"))
 ;; Keywords: dotemacs startup speed config package extensions
 ;; URL: https://github.com/jwiegley/use-package
 

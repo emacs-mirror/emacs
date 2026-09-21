@@ -171,7 +171,8 @@ message with the same \"Subject\" as B.  First element is ignored.")
 (defcustom rmail-summary-starting-message 1
   "Message number to start summarizing at."
   :type 'integer
-  :group 'rmail-summary)
+  :group 'rmail-summary
+  :version "31.1")
 
 (defvar rmail-summary-message-descendants-vector nil
   "Vector that holds the direct descendants of each message.

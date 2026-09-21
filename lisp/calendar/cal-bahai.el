@@ -343,7 +343,7 @@ Defaults to today's date if DATE is not given."
              (month (number-to-string m))
              dayname)
           ;; Can't call calendar-date-string because of monthname oddity.
-          (mapconcat #'eval calendar-date-display-form ""))))))
+          (mapconcat #'eval calendar-date-display-form))))))
 
 ;;;###cal-autoload
 (defun calendar-bahai-print-date ()

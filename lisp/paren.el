@@ -249,6 +249,18 @@ if there's no opener/closer near point, or a list of the form
 \(HERE-BEG HERE-END THERE-BEG THERE-END MISMATCH)
 Where HERE-BEG..HERE-END is expected to be near point.")
 
+(defun show-paren--snap (pos)
+  "Return the first position at or after POS that is not mid-string/comment."
+  (save-excursion
+    (let ((ppss (syntax-ppss pos)))
+      (if (not (or (nth 3 ppss) (nth 4 ppss)))
+          pos
+        (condition-case nil
+            (progn (parse-partial-sexp pos (point-max) nil nil
+                                       ppss 'syntax-table)
+                   (point))
+          (error pos))))))
+
 (defun show-paren--default ()
   "Find the opener/closer near point and its match.
 
@@ -272,8 +284,11 @@ It is the default value of `show-paren-data-function'."
       (save-restriction
 	;; Determine the range within which to look for a match.
 	(when blink-matching-paren-distance
-	  (let ((beg (max (point-min)
-	                  (- (point) blink-matching-paren-distance))))
+	  (let ((beg
+                 (min (point)
+                      (show-paren--snap
+                       (max (point-min)
+	                    (- (point) blink-matching-paren-distance))))))
 	    ;; `syntax-propertize' can't widen so make sure it won't
 	    ;; need to (bug#81035).
 	    (syntax-propertize beg)

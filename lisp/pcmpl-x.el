@@ -223,7 +223,7 @@
         (goto-char (point-min))
         (while (re-search-forward "^  -\\([^-]\\)" nil t)
           (push (match-string 1) options))
-        (mapconcat 'identity (nreverse options) "")))))
+        (mapconcat #'identity (nreverse options))))))
 
 (defun pcmpl-x-ack-long-options (&optional arg)
   "Long options for the `ack' command."

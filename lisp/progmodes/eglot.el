@@ -187,7 +187,8 @@
                      ("1.12" . "29.2")
                      ("1.12" . "29.3")
                      ("1.12.29" . "29.4")
-                     ("1.17.30" . "30.1")))
+                     ("1.17.30" . "30.1")
+                     ("1.24.31" . "31.1")))
 
 (defun eglot-alternatives (alternatives)
   "Compute server-choosing function for `eglot-server-programs'.
@@ -248,6 +249,7 @@ automatically)."
     ((cmake-mode cmake-ts-mode)
      . ,(eglot-alternatives '(("neocmakelsp" "stdio") "cmake-language-server")))
     (vimrc-mode . ("vim-language-server" "--stdio"))
+    (vala-mode . ("vala-language-server"))
     ((python-mode python-ts-mode)
      . ,(eglot-alternatives
          '(("rass" "python")
@@ -600,7 +602,8 @@ This is done by sending an additional '$/cancelRequest' notification
 every time Eglot decides to forget a request.  The effect of this
 notification is implementation defined, and is only useful for some
 servers."
-  :type 'boolean)
+  :type 'boolean
+  :package-version '(Eglot . "1.22"))
 
 (defface eglot-code-action-indicator-face
   '((t (:inherit warning :weight bold)))
@@ -1491,6 +1494,11 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
          (lambda (x) (eq server
                          (get-text-property 0 'eglot--server (car x))))
          flymake-list-only-diagnostics))
+  ;; Cleanup progress reporters
+  (maphash (lambda (_ r)
+             (unless (eq (car r) 'eglot--mode-line-reporter )
+               (progress-reporter-done r)))
+           (eglot--progress-reporters server))
   (cond ((eglot--shutdown-requested server)
          t)
         ((not (eglot--inhibit-autoreconnect server))
@@ -2057,7 +2065,7 @@ Unless IMMEDIATE, send pending changes before making request."
 
 (defvar-local eglot--inflight-async-requests nil
   "An plist of symbols to lists of JSONRPC ids.
-The ids designate in-flight asynchronous requests that may be cancelled
+The ids designate in-flight asynchronous requests that may be canceled
 according to `eglot-advertise-cancellation'.")
 
 (cl-defun eglot--cancel-inflight-async-requests
@@ -2472,21 +2480,24 @@ the previous reports for TOKEN.")
                  #'eglot--after-set-visited-file-name-hook t)
     (remove-hook 'before-save-hook #'eglot--signal-textDocument/willSave t)
     (remove-hook 'after-save-hook #'eglot--signal-textDocument/didSave t)
-    (remove-hook 'xref-backend-functions #'eglot-xref-backend t)
+    (unless (eglot--stay-out-of-p 'xref)
+      (remove-hook 'xref-backend-functions #'eglot-xref-backend t))
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush t)
     (remove-hook 'company-after-completion-hook #'eglot--capf-session-flush t)
     (remove-hook 'change-major-mode-hook #'eglot--managed-mode-off t)
     (remove-hook 'post-self-insert-hook #'eglot--post-self-insert-hook t)
     (remove-hook 'pre-command-hook #'eglot--pre-command-hook t)
-    (dolist (f (list #'eglot-hover-eldoc-function
-                     #'eglot-signature-eldoc-function
-                     #'eglot-highlight-eldoc-function
-                     #'eglot-code-action-suggestion))
-        (remove-hook 'eldoc-documentation-functions f t))
+    (unless (eglot--stay-out-of-p 'eldoc)
+      (dolist (f (list #'eglot-hover-eldoc-function
+                       #'eglot-signature-eldoc-function
+                       #'eglot-highlight-eldoc-function
+                       #'eglot-code-action-suggestion))
+        (remove-hook 'eldoc-documentation-functions f t)))
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
-    (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
+    (unless (eglot--stay-out-of-p 'imenu)
+      (remove-function (local 'imenu-create-index-function) #'eglot-imenu))
     (eglot--flymake-reset)
     (setq eglot--flymake-report-fn nil)
     (run-hooks 'eglot-managed-mode-hook)
@@ -2872,7 +2883,8 @@ return it back to the server.  :null is returned if the list was empty."
                 (if (eq eglot-report-progress 'messages)
                     (make-progress-reporter
                      (format "[eglot] %s %s: %s"
-                             (eglot-project-nickname server) token title))
+                             (eglot-project-nickname server) token title)
+                     0 100)
                   (list 'eglot--mode-line-reporter token title)))
               (upd (pcnt msg &optional
                          (pr (gethash token (eglot--progress-reporters server))))
@@ -2880,14 +2892,17 @@ return it back to the server.  :null is returned if the list was empty."
                   ((eq (car pr) 'eglot--mode-line-reporter)
                    (setcdr (cddr pr) (list msg pcnt))
                    (force-mode-line-update t))
-                  (pr (eglot--reporter-update pr pcnt msg)))))
+                  (pr
+                   (if (eql pcnt 100)
+                       (progress-reporter-done pr)
+                     (eglot--reporter-update pr pcnt msg))))))
       (eglot--dbind ((WorkDoneProgress) kind title percentage message) value
         (pcase kind
           ("begin"
-           (upd percentage (fmt title message)
+           (upd (or percentage 0) (fmt title message)
                 (puthash token (mkpr title)
                          (eglot--progress-reporters server))))
-          ("report" (upd percentage message))
+          ("report" (upd (or percentage 0) message))
           ("end" (upd (or percentage 100) message)
            (run-at-time 2 nil
                         (lambda ()
@@ -2952,19 +2967,22 @@ THINGS are either registrations or unregisterations (sic)."
     (cond
      ((eq external t) (browse-url uri))
      ((file-readable-p (setq filename (eglot-uri-to-path uri)))
-      ;; Use run-with-timer to avoid nested client requests like the
-      ;; "synchronous imenu" floated in bug#62116 presumably caused by
-      ;; which-func-mode.
-      (run-with-timer
-       0 nil
-       (lambda ()
-         (with-current-buffer (find-file-noselect filename)
-           (cond (takeFocus
-                  (pop-to-buffer (current-buffer))
-                  (select-frame-set-input-focus (selected-frame)))
-                 ((display-buffer (current-buffer))))
-           (when selection
-             (eglot--goto selection))))))
+      ;; Really ensure this runs when it is safe to run it.
+      ;; run-with-timer avoid nested client requests like the
+      ;; "synchronous imenu" floated in bug#62116, while the
+      ;; "post-command once" trick is for bug#81538.
+      (cl-labels ((findit ()
+                  (remove-hook 'post-command-hook #'findit)
+                  (with-current-buffer (find-file-noselect filename)
+                    (cond (takeFocus
+                           (pop-to-buffer (current-buffer))
+                           (select-frame-set-input-focus (selected-frame)))
+                          ((display-buffer (current-buffer))))
+                    (when selection
+                      (eglot--goto selection)))))
+                (if this-command
+                    (add-hook 'post-command-hook #'findit)
+                  (run-at-time 0 nil #'findit))))
      (t (setq success :json-false)))
     `(:success ,success)))
 
@@ -3468,6 +3486,9 @@ pertaining to DIAG-SPEC."
                              collect it)))
          `((face . ,faces)))))))
 
+;; The Flymake backend does not incur any significant risk beyond those
+;; incurred by Eglot itself.
+(put 'eglot-flymake-backend 'flymake-always-safe t)
 (defun eglot-flymake-backend (report-fn &rest _more)
   "A Flymake backend for Eglot.
 Calls REPORT-FN (or arranges for it to be called) when the server
@@ -3730,81 +3751,85 @@ If BUFFER, switch to it before."
              eglot--workspace-symbols-cache)))
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql eglot)))
-  (let ((attempt
-         (and (xref--prompt-p this-command)
-              (puthash :default
-                       (ignore-errors
-                         (eglot--workspace-symbols (symbol-name (symbol-at-point))))
-                       eglot--workspace-symbols-cache))))
-    (if attempt (car attempt) "LSP identifier at point")))
+  (let* ((sap (symbol-at-point))
+         (attempt
+          (and (xref--prompt-p this-command)
+               (puthash :default
+                        (ignore-errors
+                          (eglot--workspace-symbols
+                           (if sap (symbol-name sap) "")))
+                        eglot--workspace-symbols-cache))))
+    (if attempt (car attempt) sap)))
 
-(defvar eglot--lsp-xref-refs nil
-  "`xref' objects for overriding `xref-backend-references''s.")
-
-(cl-defun eglot--lsp-xrefs-for-method (method &key extra-params capability)
-  "Make `xref''s for METHOD, EXTRA-PARAMS, check CAPABILITY."
-  (eglot-server-capable-or-lose
-   (or capability
-       (intern
-        (format ":%sProvider"
-                (cadr (split-string (symbol-name method)
-                                    "/"))))))
-  (let ((response
-         (eglot--request
-          (eglot--current-server-or-lose)
-          method (append (eglot--TextDocumentPositionParams) extra-params))))
-    (eglot--collecting-xrefs (collect)
-      (mapc
-       (lambda (loc-or-loc-link)
-         (let ((sym-name (symbol-name (symbol-at-point))))
-           (eglot--dcase loc-or-loc-link
-             (((LocationLink) targetUri targetSelectionRange)
-              (collect (eglot--xref-make-match sym-name
-                                               targetUri targetSelectionRange)))
-             (((Location) uri range)
-              (collect (eglot--xref-make-match sym-name
-                                               uri range))))))
-       (if (vectorp response) response (and response (list response)))))))
-
-(cl-defun eglot--lsp-xref-helper (method &key extra-params capability)
-  "Helper for `eglot-find-declaration' & friends."
-  (let ((eglot--lsp-xref-refs (eglot--lsp-xrefs-for-method
-                               method
-                               :extra-params extra-params
-                               :capability capability)))
-    (if eglot--lsp-xref-refs
-        (xref-find-references "LSP identifier at point.")
-      (eglot--message "%s returned no references" method))))
-
-(defun eglot-find-declaration ()
-  "Find declaration for SYM, the identifier at point."
-  (interactive)
-  (eglot--lsp-xref-helper :textDocument/declaration))
-
-(defun eglot-find-implementation ()
-  "Find implementation for SYM, the identifier at point."
-  (interactive)
-  (eglot--lsp-xref-helper :textDocument/implementation))
-
-(defun eglot-find-typeDefinition ()
-  "Find type definition for SYM, the identifier at point."
-  (interactive)
-  (eglot--lsp-xref-helper :textDocument/typeDefinition))
-
-(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) id)
-  (let ((probe (eglot--recover-workspace-symbol-meta id)))
-    (if probe
+(cl-defun eglot--lsp-xrefs-for-id (id method &key just-def extra-args)
+  "Make `xref''s for ID and METHOD.
+Check first if ID is enriched from a previous `workspace/symbol' request
+. If so we can craft the LSP request to collect xrefs from that
+location's URI and RANGE or, if JUST-DEF is non-nil, immediately return
+a list of a single xref that is that location without bothering the
+server at all.  Otherwise, make the request for the thing at point.
+EXTRA-ARGS are added to the request."
+  (cl-flet ((make-xrefs (position-params name)
+              (eglot-server-capable-or-lose
+               (intern
+                (format ":%sProvider"
+                        (cadr (split-string (symbol-name method)
+                                            "/")))))
+              (let ((response
+                     (eglot--request
+                      (eglot--current-server-or-lose)
+                      method (append position-params extra-args))))
+                (eglot--collecting-xrefs (collect)
+                  (mapc
+                   (lambda (loc-or-loc-link)
+                     (eglot--dcase loc-or-loc-link
+                       (((LocationLink) targetUri targetSelectionRange)
+                        (collect (eglot--xref-make-match name
+                                                         targetUri targetSelectionRange)))
+                       (((Location) uri range)
+                        (collect (eglot--xref-make-match name
+                                                         uri range)))))
+                   (if (vectorp response) response
+                     (and response (list response))))))))
+    (if-let* ((probe (eglot--recover-workspace-symbol-meta id)))
         (eglot--dbind ((WorkspaceSymbol) name location)
             (get-text-property 0 'eglot--lsp-workspaceSymbol probe)
           (eglot--dbind ((Location) uri range) location
-            (list (eglot--xref-make-match name uri range))))
-      (eglot--lsp-xrefs-for-method :textDocument/definition))))
+            (if just-def
+                (list (eglot--xref-make-match name uri range))
+              ;; JT@2026-09-05: clangd will fail the uri isn't already
+              ;; managed.  This is a server bug.  See commit message.
+              (make-xrefs
+               (list :textDocument (list :uri uri)
+                     :position (cl-getf range :start))
+               name))))
+      (make-xrefs (eglot--TextDocumentPositionParams)
+                  (symbol-name (symbol-at-point))))))
 
-(cl-defmethod xref-backend-references ((_backend (eql eglot)) _identifier)
-  (or
-   eglot--lsp-xref-refs
-   (eglot--lsp-xrefs-for-method
-    :textDocument/references :extra-params `(:context (:includeDeclaration t)))))
+(defmacro eglot--deffinder (name kind blurb)
+  `(defun ,name ()
+     ,(format "Find LSP %s of symbol at point.  With prefix arg, prompt." blurb)
+     (interactive)
+     (xref-find-by-kind
+      (xref-read-identifier ,(format "Find %s of" blurb) ',kind) ',kind)))
+
+(eglot--deffinder eglot-find-declaration declaration "declaration")
+(eglot--deffinder eglot-find-implementation implementation "implementation")
+(eglot--deffinder eglot-find-type-definition type-definition "type definition")
+
+(cl-defmethod xref-backend-definitions ((_backend (eql eglot)) id)
+  (eglot--lsp-xrefs-for-id id :textDocument/definition :just-def t))
+
+(cl-defmethod xref-backend-references ((_backend (eql eglot)) id)
+  (eglot--lsp-xrefs-for-id
+   id :textDocument/references :extra-args `(:context (:includeDeclaration t))))
+
+(cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql eglot)) id kind)
+  (eglot--lsp-xrefs-for-id
+   id (cl-ecase kind
+        (declaration :textDocument/declaration)
+        (implementation :textDocument/implementation)
+        (type-definition :textDocument/typeDefinition))))
 
 (cl-defmethod xref-backend-apropos ((_backend (eql eglot)) pattern)
   (when (eglot-server-capable :workspaceSymbolProvider)
@@ -3816,6 +3841,15 @@ If BUFFER, switch to it before."
        (eglot--request (eglot--current-server-or-lose)
                        :workspace/symbol
                        `(:query ,pattern))))))
+
+(cl-defmethod xref-backend-xref-kinds ((_backend (eql eglot)))
+  (cl-loop for (cap kind name key)
+           in '((:declarationProvider declaration "declaration" ?d)
+                (:implementationProvider implementation "implementation" ?i)
+                (:typeDefinitionProvider type-definition "type definition" ?t))
+           when (eglot-server-capable cap)
+           collect
+           `(:kind ,kind :name ,name :key ,key :prompt-format "Find %s of")))
 
 
 ;;; Eglot interactive commands and helpers
@@ -4951,8 +4985,8 @@ not watching some directories" eglot-max-file-watches)
                       (:*       "\\*"                   eglot--glob-emit-*)
                       (:?       "\\?"                   eglot--glob-emit-?)
                       (:{}      "{[^{}]+}"              eglot--glob-emit-{})
-                      (:range   "\\[\\^?[^][/,*{}]+\\]" eglot--glob-emit-range)
-                      (:literal "[^][,*?{}]+"           eglot--glob-emit-self))
+                      (:range   "\\[\\^?[^][/*{}]+\\]"  eglot--glob-emit-range)
+                      (:literal "[^][*?{}]+"            eglot--glob-emit-self))
      until (eobp)
      collect (cl-loop
               for (_token regexp emitter) in grammar
@@ -5393,11 +5427,13 @@ initial delay and repeat rate, and may not be 100% accurate."
          (defcustom eglot-semantic-token-types
            ',types "LSP-supplied semantic types Eglot should consider."
            :type '(set ,@(mapcar (lambda (o) `(const ,o)) types))
-           :group 'eglot-semantic-fontification)
+           :group 'eglot-semantic-fontification
+           :package-version '(Eglot . "1.20"))
          (defcustom eglot-semantic-token-modifiers
            ',modifiers "LSP-supplied semantic modifiers Eglot should consider."
            :type '(set ,@(mapcar (lambda (o) `(const ,o)) modifiers))
-           :group 'eglot-semantic-fontification)))))
+           :group 'eglot-semantic-fontification
+           :package-version '(Eglot . "1.20"))))))
 
 (eglot--semtok-define-things)
 

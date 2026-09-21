@@ -237,7 +237,7 @@ To view this manual in other formats, click
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 29.
+* Antinews::                Info for users downgrading to Emacs 30.
 * GNU Free Documentation License:: The license for this documentation.
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -1577,6 +1577,7 @@ Images
 * Showing Images::          Convenient ways to display an image once
                               it is defined.
 * Multi-Frame Images::      Some images contain more than one frame.
+* Canvas Images::           Easily modifiable image with a pixel buffer.
 * Image Cache::             Internal mechanisms of image display.
 
 Buttons

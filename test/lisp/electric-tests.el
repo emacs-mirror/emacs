@@ -703,7 +703,31 @@ baz\"\""
                 (goto-char (point-max))
                 (skip-chars-backward "\"")
                 (mark-sexp -1)))
+
+(define-electric-pair-test preserve-balance
+ "\"\n\n" "---\""
+ :expected-string "\"\n\n\""
+ :expected-point 5
+ :modes '(fundamental-mode)
+ :test-in-comments nil
+ :test-in-strings nil
+ :bindings '((electric-pair-preserve-balance . t))
+ :fixture-fn (lambda ()
+               (electric-pair-mode 1)))
 
+(define-electric-pair-test preserve-balance-not-across-fields
+ "\"\n\n" "---\""
+ :expected-string "\"\n\n\"\""
+ :expected-point 5
+ :modes '(fundamental-mode)
+ :test-in-comments nil
+ :test-in-strings nil
+ :bindings '((electric-pair-preserve-balance . t)
+             (electric-pair-field-search-size . 100))
+ :fixture-fn (lambda ()
+               (electric-pair-mode 1)
+               (add-text-properties (point-min) (+ (point-min) 2)
+                                    '(field t))))
 
 ;;; Electric quotes
 (define-electric-pair-test electric-quote-string

@@ -243,7 +243,7 @@ For true \"word wrap\" behavior, use `visual-line-mode' instead."
 		     '(refill-adjust-ignorable-overlay))
 	(overlay-put refill-ignorable-overlay 'insert-behind-hooks
 		     '(refill-adjust-ignorable-overlay))
-	(auto-fill-mode 0))
+	(auto-fill-mode -1))
     (remove-hook 'after-change-functions #'refill-after-change-function t)
     (remove-hook 'post-command-hook #'refill-post-command-function t)
     (kill-local-variable 'backward-delete-char-untabify-method)))

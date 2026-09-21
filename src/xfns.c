@@ -4235,10 +4235,10 @@ x_window (struct frame *f, long window_prompting)
 
   ac = 0;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
-  XtSetArg (al[ac], (char *) XtNshowGrip, 0); ac++;
-  XtSetArg (al[ac], (char *) XtNallowResize, 1); ac++;
-  XtSetArg (al[ac], (char *) XtNresizeToPreferred, 1); ac++;
-  XtSetArg (al[ac], (char *) XtNemacsFrame, framep); ac++;
+  XtSetArg (al[ac], XtNshowGrip, 0); ac++;
+  XtSetArg (al[ac], XtNallowResize, 1); ac++;
+  XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
+  XtSetArg (al[ac], XtNemacsFrame, framep); ac++;
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
@@ -6109,16 +6109,19 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
     free (error), rc = false;
   else
     {
+      size_t value_count = xcb_get_property_value_length (reply)
+	/ sizeof (uint32_t);
+
       if (rc && reply->type == XA_CARDINAL && reply->format == 32
-	  && (xcb_get_property_value_length (reply) / sizeof (uint32_t)
-	      >= current_workspace + 4))
+	  && current_workspace < value_count / 4)
 	{
+	  size_t offset = 4 * (size_t) current_workspace;
 	  values = xcb_get_property_value (reply);
 
-	  rect->x = values[current_workspace];
-	  rect->y = values[current_workspace + 1];
-	  rect->width = values[current_workspace + 2];
-	  rect->height = values[current_workspace + 3];
+	  rect->x = values[offset];
+	  rect->y = values[offset + 1];
+	  rect->width = values[offset + 2];
+	  rect->height = values[offset + 3];
 	}
       else
 	rc = false;
@@ -9647,7 +9650,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
   if (result == XmCR_OK)
     {
       XmString text_string;
-      String data;
+      char *data;
 
       XtVaGetValues (dialog, XmNtextString, &text_string, NULL);
       XmStringGetLtoR (text_string, XmFONTLIST_DEFAULT_TAG, &data);

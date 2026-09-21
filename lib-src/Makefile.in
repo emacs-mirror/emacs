@@ -438,7 +438,7 @@ pop.o: ${srcdir}/pop.c ${srcdir}/pop.h ${srcdir}/../lib/min-max.h $(config_h)
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c $(NTLIB) $(config_h)
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} $< \
 	   $(NTLIB) $(LOADLIBES) \
-	   $(LIB_WSOCK32) $(EUIDACCESS_LIBGEN) \
+	   $(LIB_WSOCK32) $(CLOCK_TIME_LIB) $(EUIDACCESS_LIBGEN) \
 	   $(FILE_HAS_ACL_LIB) $(LIBS_ECLIENT) \
 	   -o $@
 

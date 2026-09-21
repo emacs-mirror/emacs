@@ -437,7 +437,7 @@ if ARG is omitted or nil.
 (defmacro erc-with-initialized-session (&rest body)
   "Run BODY in all ERC buffers if outside `erc-open' and soon otherwise.
 When inside `erc-open', run BODY after session variables have been
-initialzied and after all `erc-mode-hook' members but before any
+initialized and after all `erc-mode-hook' members but before any
 `after-change-major-mode-hook' members.  Expect caller to know this is
 only useful in global-module setup and that they're still responsible
 for teardown, which is often done with `erc-buffer-do' or similar."

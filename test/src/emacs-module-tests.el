@@ -69,7 +69,8 @@
                  (concat "#<module function "
                          "\\(at \\(0x\\)?[[:xdigit:]]+ "
                          "with data 0x1234\\( from .*\\)?"
-                         "\\|Fmod_test_sum with data 0x1234 from .*\\)>")
+                         "\\|\\(Fmod_test_sum\\|_DYNAMIC\\) "
+                         "with data 0x1234 from .*\\)>")
                  (prin1-to-string (nth 1 descr)))))
     (should (= (nth 2 descr) 3)))
   (should-error (mod-test-sum "1" 2) :type 'wrong-type-argument)
@@ -104,6 +105,7 @@ changes."
     (should (string-match-p
              (rx bos "#<module function "
                  (or "Fmod_test_sum"
+                     "_DYNAMIC"
                      (and "at 0x" (+ hex-digit)))
                  " with data 0x1234"
                  (? " from " (* nonl) "mod-test" (* nonl) )
@@ -616,5 +618,129 @@ See Bug#36226."
         (should (eq (multibyte-string-p first) multibyte))
         (should (string-equal first second))
         (should-not (eq first second))))))
+
+;;; Canvas tests
+
+(defun test-canvas-gen-file (width height pixel)
+  (let* ((bytes (unibyte-string (logand pixel #xff)
+                                (logand (ash pixel -8) #xff)
+                                (logand (ash pixel -16) #xff)
+                                (logand (ash pixel -24) #xff)))
+         (coding-system-for-write 'no-conversion))
+    (with-temp-file "data/image/canvas-argb"
+      (set-buffer-multibyte nil)
+      (dotimes (_ (* width height))
+        (insert bytes)))
+    t))
+
+(ert-deftest mod-test-canvas/valid ()
+  (skip-unless (image-type-available-p 'canvas))
+  (let* ((width 128) (height 215)
+         (canvas `(image :type canvas :id test-canvas
+                         :data-width ,width :data-height ,height))
+         (hash-before (mod-test-canvas-read canvas width height)))
+    (should (integerp hash-before))
+    (should (mod-test-canvas-write canvas width height))
+    (let ((hash-after (mod-test-canvas-read canvas width height)))
+      (should (integerp hash-after))
+      (should (not (eql hash-before hash-after))))))
+
+(ert-deftest mod-test-canvas/invalid ()
+  (skip-unless (image-type-available-p 'canvas))
+  (should-error (mod-test-canvas-read nil nil nil))
+  (should-error (mod-test-canvas-write nil nil nil))
+  (should (mod-test-canvas-invalid nil))
+  (should (mod-test-canvas-invalid '(image :type xbm :data "")))
+  (should-error (mod-test-canvas-read '(image :type canvas) 256 527))
+  (should-error (mod-test-canvas-write '(image :type canvas) 256 527)))
+
+(ert-deftest mod-test-canvas/vector ()
+  (skip-unless (image-type-available-p 'canvas))
+  (let* ((width 327) (height 98)
+         (canvas `(image :type canvas :id test-canvas
+                         :data-width ,width :data-height ,height
+                         :data ,(make-vector (* width height) #xFFFF0000)))
+         (hash-before (mod-test-canvas-read canvas width height)))
+    (should (integerp hash-before))
+    (should (mod-test-canvas-write canvas width height))
+    (should (not (eql (mod-test-canvas-read canvas width height) hash-before))))
+  ;; Mismatched sizes: passing wrong width/height should error.
+  (let* ((width 327) (height 98)
+        (canvas `(image :type canvas :id test-canvas
+                        :data-width ,width :data-height ,height
+                        :data ,(make-vector (* width height) #xFFFF0000))))
+    (should-error (mod-test-canvas-read canvas 501 72))
+    (should-error (mod-test-canvas-write canvas 187 210))))
+
+(ert-deftest mod-test-canvas/vector-reload ()
+  (skip-unless (image-type-available-p 'canvas))
+  (let* ((width 198) (height 720)
+         (test-vector (make-vector (* width height) #xFFFF0000))
+         (canvas `(image :type canvas :id test-canvas
+                         :data-width ,width :data-height ,height
+                         :data ,test-vector))
+         (hash-initial (mod-test-canvas-read canvas width height)))
+    (should (integerp hash-initial))
+    (dotimes (i 50)
+      (aset test-vector i #xFFFFFFFF))
+    (canvas-refresh canvas t)
+    (let ((hash-mutated (mod-test-canvas-read canvas width height)))
+      (should (integerp hash-mutated))
+      (should (not (eql hash-initial hash-mutated))))))
+
+(ert-deftest mod-test-canvas/unibyte ()
+  (skip-unless (image-type-available-p 'canvas))
+  (let* ((width 458) (height 278)
+         (pixel (unibyte-string #xFF #x80 #x40 #x80))
+         (string-data (apply #'concat (make-list (* width height) pixel)))
+         (canvas `(image :type canvas :id test-canvas
+                         :data-width ,width :data-height ,height
+                         :data ,string-data))
+         (hash-before (mod-test-canvas-read canvas width height)))
+    (should (integerp hash-before))
+    (should (mod-test-canvas-write canvas width height))
+    (should (not (eql (mod-test-canvas-read canvas width height) hash-before))))
+  ;; Mismatched sizes: passing wrong width/height should error.
+  (let* ((width 458) (height 278)
+         (pixel (unibyte-string #xFF #x80 #x40 #x80))
+         (string-data (apply #'concat (make-list (* width height) pixel)))
+         (canvas `(image :type canvas :id test-canvas
+                         :data-width ,width :data-height ,height
+                         :data ,string-data)))
+    (should-error (mod-test-canvas-read canvas 76 38))
+    (should-error (mod-test-canvas-write canvas 378 453))))
+
+(ert-deftest mod-test-canvas/file ()
+  (skip-unless (image-type-available-p 'canvas))
+  ;; Generate the canvas data file
+  (test-canvas-gen-file 128 98 #x80800000)
+  (let* ((width 128) (height 98)
+         (canvas (create-image "../data/image/canvas-argb"
+                               'canvas nil
+                               :data-width width :data-height height))
+         (hash-before (mod-test-canvas-read canvas width height)))
+    (should (integerp hash-before))
+    (should (mod-test-canvas-write canvas width height))
+    (should (not (eql (mod-test-canvas-read canvas width height) hash-before))))
+  ;; Mismatched sizes: passing wrong width/height should error.
+  (let ((canvas (create-image "../data/image/canvas-argb"
+                              'canvas nil
+                              :data-width 128 :data-height 98)))
+    (should-error (mod-test-canvas-read canvas 28 76))
+    (should-error (mod-test-canvas-write canvas 398 712))))
+
+(ert-deftest mod-test-canvas/gc-stress ()
+  "Allocate canvases in batches with GC between batches.
+Verifies that canvas pixel buffers are freed correctly and do not
+cause use-after-free crashes or GC assertion failures."
+  (skip-unless (image-type-available-p 'canvas))
+  (dotimes (_ 10)
+    (dotimes (x 20)
+      (let* ((canvas `(image :type canvas :id test-canvas
+                             :data-width ,(+ x 10)
+                             :data-height ,(+ x 20)))
+             (hash (mod-test-canvas-read canvas (+ x 10) (+ x 20))))
+        (should (integerp hash))))
+    (garbage-collect)))
 
 ;;; emacs-module-tests.el ends here

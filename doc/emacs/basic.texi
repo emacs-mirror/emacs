@@ -424,13 +424,37 @@ Kill back to the beginning of the previous word
 (@code{backward-kill-word}).
 @end table
 
-  The @kbd{@key{DEL}} (@code{delete-backward-char}) command removes
-the character before point, moving the cursor and the characters after
-it backwards.  If point was at the beginning of a line, this deletes
-the preceding newline, joining this line to the previous one.
+@cindex grapheme cluster
+@cindex delete part of composed sequence of characters
+  The @kbd{@key{DEL}} (@code{delete-backward-char}) command removes the
+character before point, moving the cursor and the characters after it
+backwards.  If point was at the beginning of a line, this deletes the
+preceding newline, joining this line to the previous one.  If the
+character before point is composed with one or more of the preceding
+characters, and is displayed together with them as a single display
+unit, a so-called @dfn{grapheme cluster} representing the entire
+sequence, @kbd{@key{DEL}} deletes only a single character from the
+composed sequence, which in some cases can significantly change the
+appearance of the text on display.  (The command
+@code{backward-delete-char-untabify}, usually bound to @key{DEL} in
+programming modes, does the same, @pxref{Program Modes}.)  This is in
+contrast with commands like @code{delete-char-forward}, which delete the
+entire composed sequence of characters after point, see below.
 
-  If, however, the region is active, @kbd{@key{DEL}} instead deletes
-the text in the region.  @xref{Mark}, for a description of the region.
+@vindex composition-break-at-point
+  For long enough sequences of composed characters, using
+@kbd{@key{DEL}} to delete them one by one might be inconvenient.  In
+those cases, you can customize the option
+@code{composition-break-at-point} to a non-@code{nil} value, to have
+Emacs show characters around point separately, instead of showing the
+result of their composition.  This allows editing the composed sequence
+of characters more conveniently, because you can move point inside the
+composed sequence and delete characters there without having to delete
+(and later re-insert) the following ones.
+
+  If the region is active, @kbd{@key{DEL}} deletes the text in the
+region instead of deleting a single character.  @xref{Mark}, for a
+description of the region.
 
   On most keyboards, @key{DEL} is labeled @key{BACKSPACE}, but we
 refer to it as @key{DEL} in this manual.  (Do not confuse @key{DEL}
@@ -438,18 +462,20 @@ with the @key{Delete} key; we will discuss @key{Delete} momentarily.)
 On some text terminals, Emacs may not recognize the @key{DEL} key
 properly.  @xref{DEL Does Not Delete}, if you encounter this problem.
 
-@cindex grapheme cluster, deletion
+@cindex composed sequence of characters, deletion
 @cindex delete entire grapheme cluster
   The @key{Delete} (@code{delete-forward-char}) command deletes in the
 opposite direction: it deletes the character after point, i.e., the
 character under the cursor.  If point was at the end of a line, this
 joins the following line onto this one.  Like @kbd{@key{DEL}}, it
 deletes the text in the region if the region is active (@pxref{Mark}).
-If the character after point is composed with following characters and
-displayed as a single display unit, a so-called @dfn{grapheme cluster}
-representing the entire sequence, @key{Delete} deletes the entire
-sequence in one go.  This is in contrast to @key{DEL} which always
-deletes a single character, even if the character is composed.
+If the character after point is composed with following characters,
+@key{Delete} deletes the entire composed sequence in one go.  This is in
+contrast to @key{DEL} which always deletes a single character, even if
+the character is composed.  If @code{composition-break-at-point} is
+non-@code{nil}, @key{Delete} deletes all of the composed characters from
+point to the end of the composed sequence, which could be only a part of
+the sequence if you moved point into the sequence.
 
   @kbd{C-d} (@code{delete-char}) deletes the character after point,
 similar to @key{Delete}, but regardless of whether the region is

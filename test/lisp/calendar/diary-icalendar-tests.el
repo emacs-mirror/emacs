@@ -1153,7 +1153,7 @@ SOURCE, if given, should be a symbol; it is used to name the test."
  (unwind-protect
      (ical:with-component (car parsed)
        ((ical:dtstart :first start-node :value start))
-       (should (= 0 (decoded-time-zone start)))
+       (should (ical:date-time-is-utc-p start))
        (should (= (- 16 2) (decoded-time-hour start)))
        (should-not (ical:with-param-of start-node 'ical:tzidparam)))
    ;; restore time zone

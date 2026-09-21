@@ -23,6 +23,8 @@
 
 /* Define _GL_HAVE__STATIC_ASSERT to 1 if _Static_assert (R, DIAGNOSTIC)
    works as per C11.  This is supported by GCC 4.6.0+ and by clang 4+.
+   Check for __clang_major__ >= 5 instead of >= 4 because clang on Mac OS 10.7.5
+   sets __clang_major__ to 4 even though it was derived from clang 3.2.
 
    Define _GL_HAVE__STATIC_ASSERT1 to 1 if _Static_assert (R) works as
    per C23.  This is supported by GCC 9.1+.
@@ -44,10 +46,22 @@
 # endif
 #endif
 
+/* <sys/cdefs.h> in glibc may define _Static_assert with two arguments if the
+   compiler is in C89 or C99 mode.  This matters especially with Clang:
+   (1) glibc < 2.34, before the commit c8ba52ab3350 ("misc: Sync cdefs.h
+       with gnulib"), doesn't check for __clang_major__ >= 4.
+   (2) The above condition for _GL_HAVE__STATIC_ASSERT checks for
+       __clang_major__ >= 5, so it's not in sync with glibc.  */
+#if defined __GLIBC__ \
+    && !defined __cplusplus && __STDC_VERSION__ < 201112
+# undef _Static_assert
+#endif
+
 /* FreeBSD 9.1 <sys/cdefs.h>, included by <stddef.h> and lots of other
    system headers, defines a conflicting _Static_assert that is no
-   better than ours; override it.  */
-#ifndef _GL_HAVE__STATIC_ASSERT
+   better than ours; override it unless Gnulib's replacement <assert.h>
+   (included from config.h) already overrode it.  */
+#if ! (defined _GL_HAVE__STATIC_ASSERT || defined _GL_STATIC_ASSERT)
 # include <stddef.h>
 # undef _Static_assert
 #endif

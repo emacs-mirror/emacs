@@ -17371,7 +17371,7 @@ For example @samp{tzone(JST) = tzone(-9)} and @samp{tzone(gmt) = tzone(0)}
 (for Japan standard and Greenwich mean time, respectively).
 
 North American and European time zone names are defined as follows.
-These names are obsolescent and new code should not rely on them:
+These names are obsolete and new code should not rely on them:
 the @samp{YST}-related names have disagreed with time in Yukon since 1973,
 the @samp{PST}- and @samp{MST-}related names have disagreed with
 time in western Canada since 2026,
@@ -17391,21 +17391,6 @@ YDT  PDT  MDT  CDT  EDT  ADT    NDT    BST  WETDST  METDST  MESZ
 
 YGT  PGT  MGT  CGT  EGT  AGT    NGT    BGT   WEGT    MEGT   MEGZ
 9/8  8/7  7/6  6/5  5/4  4/3  3.5/2.5  0/-1 -1/-2   -2/-3  -2/-3
-@end group
-@end smallexample
-
-@vindex math-tzone-names
-To define time zone names that do not appear in the above table,
-you must modify the Lisp variable @code{math-tzone-names}.  This
-is a list of lists describing the different time zone names; its
-structure is best explained by an example.  The three entries for
-circa-2026 time in Sydney, Australia might look like this:
-
-@smallexample
-@group
-(("AEST" -10  0)  ; Name as an upper-case string, then standard
- ("AEDT" -10 -1)  ; adjustment, then daylight saving adjustment.
- ("AEGT" -10 "AEST" "AEDT"))  ; Generalized time zone.
 @end group
 @end smallexample
 

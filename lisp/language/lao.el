@@ -64,7 +64,7 @@
                                       ((eq c ?t) tone)
                                       ((eq c ?v) vowel-upper-lower)
                                       (t (string c))))
-			      (cdr l) ""))
+			      (cdr l)))
 	   ;; Element of composition-function-table.
 	   (elt (list (vector regexp 1 #'lao-composition-function)
 		      fallback-rule))

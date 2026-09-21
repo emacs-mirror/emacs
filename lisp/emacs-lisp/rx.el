@@ -295,7 +295,7 @@ Left-fold the list L, starting with X, by the binary function F."
 ;;  (or "a" (seq "ab" (seq "c" "d") "")) -> (or "a" "abcd")
 
 ;; FIXME: Since `rx--normalize-char-pattern' recurses through `or', `not' and
-;; `intersection', we may end up normalising subtrees multiple times
+;; `intersection', we may end up normalizing subtrees multiple times
 ;; which wastes time (but should be idempotent).
 ;; One way to avoid this is to aggressively normalize the entire tree
 ;; before translating anything at all, but we must then recurse through

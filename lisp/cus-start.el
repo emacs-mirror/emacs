@@ -443,6 +443,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     "24.5")	; 30 -> 100
 	     (history-delete-duplicates minibuffer boolean "22.1")
 	     (read-buffer-completion-ignore-case minibuffer boolean "23.1")
+             (completion-ignore-case minibuffer boolean)
 
 	     (minibuffer-prompt-properties
 	      minibuffer

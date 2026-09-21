@@ -136,7 +136,7 @@ at this)."
   :version "25.1"
   :set (lambda (symbol value)
 	 (let ((enable url-handler-mode))
-	   (url-handler-mode 0)
+	   (url-handler-mode -1)
 	   (set-default symbol value)
 	   (if enable
 	       (url-handler-mode)))))
@@ -419,7 +419,7 @@ if it had been inserted from a file named URL."
   "Set correct modes for the current buffer if visiting a remote file."
   (and buffer-file-name
        (string-match-p url-handler-regexp buffer-file-name)
-       (auto-save-mode 0)))
+       (auto-save-mode -1)))
 
 (provide 'url-handlers)
 

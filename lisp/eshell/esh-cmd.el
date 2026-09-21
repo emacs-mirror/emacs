@@ -105,6 +105,7 @@
 (require 'esh-proc)
 (require 'esh-module)
 (require 'esh-ext)
+(require 'esh-worker)
 
 (require 'eldoc)
 (require 'generator)
@@ -123,6 +124,10 @@ There are several different kinds of commands, however."
 
 (defcustom eshell-prefer-lisp-functions nil
   "If non-nil, prefer Lisp functions to external commands."
+  :type 'boolean)
+
+(defcustom eshell-lexical-binding (eval-when-compile (default-toplevel-value 'lexical-binding))
+  "If non-nil, use lexical binding when evaluating Eshell forms."
   :type 'boolean)
 
 (defcustom eshell-lisp-regexp "\\([(`]\\|#'\\)"
@@ -1083,7 +1088,7 @@ STATUS is its status."
     ;; element is a list of the form (BACKGROUND FORM PROCESSES) (see
     ;; `eshell-add-command').
     (dolist (command (eshell-commands-for-process proc))
-      (unless (seq-some #'eshell-process-active-p (nth 2 command))
+      (unless (seq-some #'eshell-task-active-p (nth 2 command))
         (setf (nth 2 command) nil) ; Clear processes from command.
         (if (and ;; Check STATUS to determine whether we want to resume or
                  ;; abort the command.
@@ -1140,6 +1145,10 @@ the form (:eshell-background . PROCESSES)."
            (eshell-always-debug-command 'form
              "done %s\n\n%s" ,tag-symbol (eshell-stringify ,form)))))))
 
+(defsubst eshell--eval (form)
+  "Evaluate FORM, respecting `eshell-lexical-binding'."
+  (eval form eshell-lexical-binding))
+
 (defun eshell-do-eval (form &optional synchronous-p)
   "Evaluate FORM, simplifying it as we go.
 Unless SYNCHRONOUS-P is non-nil, throws `eshell-defer' if it needs to
@@ -1154,7 +1163,7 @@ again.  Any forms preceding one that throw `eshell-defer' will
 have been replaced by constants."
   (cond
    ((not (listp form))
-    (list 'quote (eval form)))
+    (list 'quote (eshell--eval form)))
    ((memq (car form) '(quote function))
     form)
    (t
@@ -1231,10 +1240,10 @@ have been replaced by constants."
               (eshell-do-eval form synchronous-p)))))
        ((eq (car form) 'setcar)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
-	(eval form))
+	(eshell--eval form))
        ((eq (car form) 'setcdr)
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
-	(eval form))
+	(eshell--eval form))
        ((eq (car form) 'let)
         (unless (eq (car-safe (cadr args)) 'eshell-do-eval)
           (eshell-manipulate form "evaluating let args"
@@ -1250,7 +1259,7 @@ have been replaced by constants."
                     (car args))
             ;; These expressions should all be constants now.
             (mapcar (lambda (binding)
-                      (when (consp binding) (eval (cadr binding))))
+                      (when (consp binding) (eshell--eval (cadr binding))))
                     (car args))
           (let (deferred result)
             ;; Evaluate the `let' body, catching `eshell-defer' so we
@@ -1290,7 +1299,7 @@ have been replaced by constants."
 	(unless (eq (caar args) 'eshell-do-eval)
           (eshell-manipulate form "handling special form"
 	    (setcar args `(eshell-do-eval ',(car args) ,synchronous-p))))
-	(eval form))
+	(eshell--eval form))
        ((eq (car form) 'unwind-protect)
         ;; `unwind-protect' has to be handled specially, because we
         ;; only want to call `eshell-do-eval' on its first form, and
@@ -1316,7 +1325,7 @@ have been replaced by constants."
 	(if (cddr args) (error "Unsupported form (setq X1 E1 X2 E2..)"))
         (eshell-manipulate form "evaluating arguments to setq"
           (setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p)))
-	(list 'quote (eval form)))
+	(list 'quote (eshell--eval form)))
        (t
 	(if (and args (not (memq (car form) '(run-hooks))))
             (eshell-manipulate form
@@ -1357,7 +1366,7 @@ have been replaced by constants."
                  (new-form
                   (catch 'eshell-replace-command
                     (ignore
-                     (setq result (eval form))))))
+                     (setq result (eshell--eval form))))))
 	    (if new-form
 		(progn
                   (eshell-manipulate form "substituting replacement form"
@@ -1365,13 +1374,13 @@ have been replaced by constants."
 		    (setcdr form (cdr new-form)))
 		  (eshell-do-eval form synchronous-p))
               (if-let* (((memq (car form) eshell-deferrable-commands))
-                        (procs (eshell-make-process-list result)))
+                        (procs (eshell-make-task-list result)))
                   (if synchronous-p
 		      (funcall #'eshell-wait-for-processes procs)
 		    (eshell-manipulate form "inserting ignore form"
 		      (setcar form 'ignore)
 		      (setcdr form nil))
-                    (when (seq-some #'eshell-process-active-p procs)
+                    (when (seq-some #'eshell-task-active-p procs)
                       (throw 'eshell-defer procs)))
                 (list 'quote result))))))))))))
 
@@ -1483,7 +1492,7 @@ case."
       (let ((result
              (save-current-buffer
                (if form-p
-                   (eval func-or-form)
+                   (eshell--eval func-or-form)
                  (apply func-or-form args)))))
         (and result (funcall printer result))
         result)
@@ -1582,32 +1591,31 @@ a string naming a Lisp function."
   (catch 'eshell-external               ; deferred to an external command
     (when (memq eshell-in-pipeline-p '(nil last))
       (eshell-set-exit-info 0))
-    (setq eshell-last-arguments args)
     (let* ((eshell-ensure-newline-p t)
-           (command-form-p (functionp object))
-           result)
+           (command-form-p (and (functionp object)
+                                (symbolp object)))
+           (literal-result (when command-form-p
+                             (get object 'eshell-literal-result)))
+           result worker-result
+           (printer
+            (lambda (object)
+              (setq worker-result
+                    (cond
+                     ((and (not literal-result) (eshell-worker-p object))
+                      object)
+                     ((and (not literal-result)
+                           (memq eshell-in-pipeline-p '(t last))
+                           (eshell-get-pipe object)))
+                     (t
+                      (ignore (eshell-print-maybe-n object))))))))
       (if command-form-p
-          (let ((numeric (not (get object 'eshell-no-numeric-conversions)))
-                (fname-args (get object 'eshell-filename-arguments)))
-            (when (or numeric fname-args)
-              (while args
-                (let ((arg (car args)))
-                  (cond
-                   ((and numeric (eshell--numeric-string-p arg))
-                    ;; If any of the arguments are flagged as numbers
-                    ;; waiting for conversion, convert them now.
-                    (setcar args (string-to-number arg)))
-                   ((and fname-args (stringp arg)
-                         (string-equal arg "~"))
-                    ;; If any of the arguments match "~", prepend "./"
-                    ;; to treat it as a regular file name.
-                    (setcar args (concat "./" arg)))))
-                (setq args (cdr args))))
-            (setq eshell-last-command-name
-                  (concat "#<function " (symbol-name object) ">")))
-        (setq eshell-last-command-name "#<Lisp object>"))
+          (setq eshell-last-arguments (eshell-convert-args args object)
+                eshell-last-command-name (format "#<function %s>"
+                                                 (symbol-name object)))
+        (setq eshell-last-arguments args
+              eshell-last-command-name "#<Lisp object>"))
       (setq result (eshell-exec-lisp
-                    #'eshell-print-maybe-n #'eshell-error-maybe-n
+                    printer #'eshell-error-maybe-n
                     object eshell-last-arguments (not command-form-p)))
       (when (memq eshell-in-pipeline-p '(nil last))
         (eshell-set-exit-info
@@ -1620,7 +1628,7 @@ a string naming a Lisp function."
                     (not result))
            2)
          result))
-      nil)))
+      worker-result)))
 
 (define-obsolete-function-alias 'eshell-lisp-command* #'eshell-lisp-command
   "31.1")

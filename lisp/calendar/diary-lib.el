@@ -5,6 +5,7 @@
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: calendar
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 
@@ -2019,7 +2020,7 @@ calendar."
           ;; Discard any mark portion from diary-anniversary, etc.
           (if (consp diary-entry) (setq diary-entry (cdr diary-entry)))
           (calendar-dlet ((days days))
-            (mapconcat #'eval diary-remind-message "")))))
+            (mapconcat #'eval diary-remind-message)))))
      ;; Diary entry may apply to one of a list of days before date.
      ((and (listp days) days)
       (or (diary-remind sexp (car days) marking)
@@ -2240,8 +2241,7 @@ full month names."
                                   ;; and last item (not part of date).
                                   (if (equal (car x) 'backup)
                                       (nreverse (cdr (reverse (cdr x))))
-                                    x)
-                                  "")
+                                    x))
                        ;; With backup, last item is not part of date.
                        (if (equal (car x) 'backup)
                            (concat "\\)" (eval (car (reverse x)) t))
@@ -2375,7 +2375,7 @@ This depends on the calendar date style."
      ;; Therefore we cannot eg just let day = "[0-9]+".  (Bug#8583).
      ;; Assumes no integers in c-day/month-name-array.
      (replace-regexp-in-string "[0-9]+" "[0-9]+"
-                               (mapconcat #'eval calendar-date-display-form "")
+                               (mapconcat #'eval calendar-date-display-form)
                                nil t))
    ;; Optional ": holiday name" after the date.
    "\\(: .*\\)?"))

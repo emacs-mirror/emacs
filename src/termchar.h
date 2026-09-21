@@ -143,6 +143,7 @@ struct tty_display_info
   const char *TS_enter_underline_mode; /* "ue" -- end underlining.  */
   const char *TS_enter_strike_through_mode; /* "smxx" -- turn on strike-through
 					       mode.  */
+  const char *TS_enter_overline_mode; /* "Smol" -- turn on overline mode.  */
 
   /* "as"/"ae" -- start/end alternate character set.  Not really
      supported, yet.  */

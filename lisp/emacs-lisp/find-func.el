@@ -403,6 +403,20 @@ See `find-library' for more details."
                                      (find-library-name library)))
     (run-hooks 'find-function-after-hook)))
 
+(defun find-func--regexp-of-symbol-name (name)
+  (let ((names (cons (if (stringp name) name
+                       (symbol-name name))
+                     (shorthands-of-symbol name))))
+    (regexp-opt
+     (mapcar (lambda (name)
+               ;; Definitions like the ` (backquote) need to backslash
+               ;; quote their name in the file, but (symbol-name symbol)
+               ;; doesn't.  Add a \ to catch this.
+               (replace-regexp-in-string "[][\\()\"`' ,]"
+                                         "\\\\\\&" name))
+             names))))
+
+
 ;;;###autoload
 (defun find-function-search-for-symbol (symbol type library)
   "Search for SYMBOL's definition of type TYPE in LIBRARY.
@@ -442,35 +456,33 @@ The search is done in the source for library LIBRARY."
                               (car regexp-symbol)
                             regexp-symbol)))
       (with-current-buffer (find-file-noselect filename)
-	(let ((regexp (if (functionp regexp-symbol) regexp-symbol
-                        (format (symbol-value regexp-symbol)
-                                ;; Entry for ` (backquote) macro in loaddefs.el,
-                                ;; (defalias (quote \`)..., has a \ but
-                                ;; (symbol-name symbol) doesn't.  Add an
-                                ;; optional \ to catch this.
-                                (concat "\\\\?"
-                                        (regexp-quote (symbol-name symbol))))))
-	      (case-fold-search))
+        (let ((case-fold-search))
           (save-restriction
             (widen)
             (with-syntax-table emacs-lisp-mode-syntax-table
               (goto-char (point-min))
-              (if (if (functionp regexp)
-                      (funcall regexp symbol)
-                    (or (re-search-forward regexp nil t)
-                        ;; `regexp' matches definitions using known forms like
-                        ;; `defun', or `defvar'.  But some functions/variables
-                        ;; are defined using special macros (or functions), so
-                        ;; if `regexp' can't find the definition, we look for
-                        ;; something of the form "(SOMETHING <symbol> ...)".
-                        ;; This fails to distinguish function definitions from
-                        ;; variable declarations (or even uses thereof), but is
-                        ;; a good pragmatic fallback.
-                        (re-search-forward
-                         (concat "^([^ ]+" find-function-space-re "['(]?"
-                                 (regexp-quote (symbol-name symbol))
-                                 "\\_>")
-                         nil t)))
+              (if (if (functionp regexp-symbol)
+                      (funcall regexp-symbol symbol)
+	            (let ((regexp-of-symbol
+                           (find-func--regexp-of-symbol-name symbol)))
+                      (or (re-search-forward
+                           (format (symbol-value regexp-symbol)
+                                   regexp-of-symbol)
+                           nil t)
+                          ;; `regexp' matches definitions using known forms
+                          ;; like `defun', or `defvar'.
+                          ;; But some functions/variables are defined using
+                          ;; special macros (or functions), so if `regexp'
+                          ;; can't find the definition, we look for
+                          ;; something of the form "(SOMETHING <symbol> ...)".
+                          ;; This doesn't pay attention to TYPE (or even
+                          ;; distinguish definitions from uses),
+                          ;; but is a good pragmatic fallback.
+                          (re-search-forward
+                           (concat "^([^ ]+" find-function-space-re "['(]?"
+                                   regexp-of-symbol
+                                   "\\_>")
+                           nil t))))
                   (progn
                     (beginning-of-line)
                     (cons (current-buffer) (point)))
@@ -682,7 +694,7 @@ See also `find-function-recenter-line' and `find-function-after-hook'.
 Use \\[xref-find-definitions] to find definitions of functions and variables
 that are not part of Emacs."
   (interactive (find-function-read))
-  (find-function-do-it function nil 'switch-to-buffer))
+  (find-function-do-it function nil #'switch-to-buffer))
 
 ;;;###autoload
 (defun find-function-other-window (function)
@@ -690,7 +702,7 @@ that are not part of Emacs."
 
 See `find-function' for more details."
   (interactive (find-function-read))
-  (find-function-do-it function nil 'switch-to-buffer-other-window))
+  (find-function-do-it function nil #'switch-to-buffer-other-window))
 
 ;;;###autoload
 (defun find-function-other-frame (function)
@@ -698,7 +710,7 @@ See `find-function' for more details."
 
 See `find-function' for more details."
   (interactive (find-function-read))
-  (find-function-do-it function nil 'switch-to-buffer-other-frame))
+  (find-function-do-it function nil #'switch-to-buffer-other-frame))
 
 ;;;###autoload
 (defun find-variable-noselect (variable &optional file)
@@ -726,7 +738,7 @@ Set mark before moving, if the buffer already existed.
 
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'defvar))
-  (find-function-do-it variable 'defvar 'switch-to-buffer))
+  (find-function-do-it variable 'defvar #'switch-to-buffer))
 
 ;;;###autoload
 (defun find-variable-other-window (variable)
@@ -734,7 +746,7 @@ See also `find-function-recenter-line' and `find-function-after-hook'."
 
 See `find-variable' for more details."
   (interactive (find-function-read 'defvar))
-  (find-function-do-it variable 'defvar 'switch-to-buffer-other-window))
+  (find-function-do-it variable 'defvar #'switch-to-buffer-other-window))
 
 ;;;###autoload
 (defun find-variable-other-frame (variable)
@@ -742,7 +754,7 @@ See `find-variable' for more details."
 
 See `find-variable' for more details."
   (interactive (find-function-read 'defvar))
-  (find-function-do-it variable 'defvar 'switch-to-buffer-other-frame))
+  (find-function-do-it variable 'defvar #'switch-to-buffer-other-frame))
 
 ;;;###autoload
 (defun find-definition-noselect (symbol type &optional file)
@@ -776,7 +788,7 @@ Set mark before moving, if the buffer already existed.
 
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'defface))
-  (find-function-do-it face 'defface 'switch-to-buffer))
+  (find-function-do-it face 'defface #'switch-to-buffer))
 
 (defun find-function-on-key-do-it (key find-fn)
   "Find the function that KEY invokes.  KEY is a string.

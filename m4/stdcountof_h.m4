@@ -1,5 +1,5 @@
 # stdcountof_h.m4
-# serial 3
+# serial 4
 dnl Copyright 2025-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -31,7 +31,7 @@ AC_DEFUN_ONCE([gl_STDCOUNTOF_H],
 int a[] = { 86, 47 };
 unsigned int a_n = countof (a);
 EOF
-       gl_command="$CXX $CXXFLAGS $CPPFLAGS -c conftest.cpp"
+       gl_command="$CXX $CXXFLAGS $CPPFLAGS -c conftest.cpp > /dev/null"
        if AC_TRY_EVAL([gl_command]); then
          gl_cv_cxx_have_stdcountof_h=yes
        else

@@ -2004,7 +2004,7 @@ ifeq (,$(OMIT_GNULIB_MODULE_eloop-threshold))
 ifneq (,$(gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c_CONDITION))
 
 endif
-EXTRA_DIST += eloop-threshold.h
+EXTRA_DIST += min-eloop-threshold.h
 
 endif
 ## end   gnulib module eloop-threshold

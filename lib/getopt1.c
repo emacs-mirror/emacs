@@ -25,7 +25,7 @@
 #include "getopt_int.h"
 
 /* Convert char *__getopt_argv_const * to char ** without provoking
-   gcc -Wuseless-cast when __getopt_argv_gconst is empty.  */
+   gcc -Wuseless-cast when __getopt_argv_const is empty.  */
 #ifdef __getopt_argv_const_is_empty
 # define ARGV_CAST(argv) (argv)
 #else

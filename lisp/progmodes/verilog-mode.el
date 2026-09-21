@@ -3552,7 +3552,7 @@ For insignificant changes, see instead `verilog-save-buffer-state'."
     (let* ((verilog-save-font-mod-hooked (- (point-max) (point-min)))
            ;; Significant speed savings with no font-lock properties
            (fontlocked (when font-lock-mode
-                         (font-lock-mode 0)
+                         (font-lock-mode -1)
                          t)))
       (run-hook-with-args 'before-change-functions (point-min) (point-max))
       (unwind-protect
@@ -3668,7 +3668,7 @@ either is ok to parse as a non-comment, or `verilog-insert' was used."
 
 (defun verilog-scan-debug ()
   "For debugging, show with display face results of `verilog-scan'."
-  (font-lock-mode 0)
+  (font-lock-mode -1)
   ;;(if dbg (setq dbg (concat dbg "verilog-scan-debug\n")))
   (save-excursion
     (goto-char (point-min))

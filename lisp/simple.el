@@ -510,10 +510,11 @@ select the source buffer."
 (defvar next-error-follow-last-line nil)
 
 (define-minor-mode next-error-follow-minor-mode
-  "Minor mode for compilation, occur and diff modes.
+  "Minor mode for Compilation, Grep, Occur and Diff modes.
 
-When turned on, cursor motion in the compilation, grep, occur or diff
-buffer causes automatic display of the corresponding source code location."
+When turned on, cursor motion in Compilation, Grep, Occur and Diff mode
+buffers causes automatic display of the corresponding source code
+location."
   :group 'next-error :init-value nil :lighter " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
@@ -748,6 +749,8 @@ When called from Lisp code, ARG may be a prefix string to copy."
      :height 0.1 :background "#505050")
     (((type graphic) (background light))
      :height 0.1 :background "#a0a0a0")
+    (((supports :strike-through t))
+     :foreground "ForestGreen" :strike-through t)
     (t
      :foreground "ForestGreen" :underline t))
   "Face for separator lines."
@@ -760,12 +763,14 @@ This uses the `separator-line' face.
 
 If LENGTH is nil, use the window width."
   (if (or (display-graphic-p)
+          (display-supports-face-attributes-p '(:strike-through t))
           (display-supports-face-attributes-p '(:underline t)))
       (if length
           (concat (propertize (make-string length ?\s) 'face 'separator-line)
                   "\n")
         (propertize "\n" 'face '(:inherit separator-line :extend t)))
-    ;; In terminals (that don't support underline), use a line of dashes.
+    ;; In terminals that don't support underline or strike-through, use
+    ;; a line of dashes.
     (concat (propertize (make-string (or length (1- (window-width))) ?-)
                         'face 'separator-line)
             "\n")))
@@ -1700,7 +1705,7 @@ rather than line counts."
 The line number is relative to the accessible portion of the narrowed
 buffer.  The arguments BUFFER and INTERACTIVE are the same as in the
 function `goto-line'."
-  (interactive (append (goto-line-read-args t) t))
+  (interactive (append (goto-line-read-args t) '(t)))
   (goto-line line buffer t interactive))
 
 (defun count-words-region (start end &optional arg)
@@ -3703,23 +3708,39 @@ Return what remains of the list."
            (delete-region beg end))
           ;; Element (apply FUN . ARGS) means call FUN to undo.
           (`(apply . ,fun-args)
-           (let ((currbuff (current-buffer)))
-             (if (integerp (car fun-args))
-                 ;; Long format: (apply DELTA START END FUN . ARGS).
-                 (pcase-let* ((`(,delta ,start ,end ,fun . ,args) fun-args)
-                              (start-mark (copy-marker start nil))
-                              (end-mark (copy-marker end t)))
-                   (when (or (> (point-min) start) (< (point-max) end))
-                     (error "Changes to be undone are outside visible portion of buffer"))
-                   (apply fun args) ;; Use `save-current-buffer'?
-                   ;; Check that the function did what the entry
-                   ;; said it would do.
-                   (unless (and (= start start-mark)
-                                (= (+ delta end) end-mark))
-                     (error "Changes undone by function are different from the announced ones"))
-                   (set-marker start-mark nil)
-                   (set-marker end-mark nil))
-               (apply fun-args))
+           (pcase-let* ((`(,delta ,start ,end ,fun . ,args)
+                         (pcase-exhaustive fun-args
+                           ((and `(,delta (,start . ,end) ,fun . ,args)
+                                 (guard (and (integerp delta)
+                                             (natnump start)
+                                             (natnump end)
+                                             (symbolp fun))
+                                        (guard (symbolp fun))))
+                            (cl-list* delta start end fun start end args))
+                           ((and `(,delta ,start ,end ,fun . ,_args)
+                                 (guard (and (integerp delta)
+                                             (natnump start)
+                                             (natnump end)
+                                             (symbolp fun))))
+                            fun-args)
+                           ((and `(,fun . ,args)
+                                 (guard (symbolp fun)))
+                            (cl-list* nil 1 (buffer-size) fun args))))
+                        (currbuff (current-buffer))
+                        (start-mark (copy-marker start nil))
+                        (end-mark (copy-marker end t)))
+             (when (and delta
+                        (or (< start (point-min)) (< (point-max) end)))
+               (error "Changes to be undone are outside visible\
+ portion of buffer"))
+             (apply fun args)
+             (when (and delta
+                        (or (/= start start-mark)
+                            (/= (+ delta end) end-mark)))
+               (error "Changes undone by function are different\
+ from the announced ones"))
+             (set-marker start-mark nil)
+             (set-marker end-mark nil)
              (unless (eq currbuff (current-buffer))
                (error "Undo function switched buffer"))
              (setq did-apply t)))
@@ -3940,7 +3961,16 @@ marker adjustment's corresponding (TEXT . POS) element."
 	((integerp (car undo-elt))
 	 ;; (BEGIN . END)
 	 (and (>= (car undo-elt) start)
-	      (<= (cdr undo-elt) end)))))
+	      (<= (cdr undo-elt) end)))
+        ((and (eq (nth 0 undo-elt) 'apply)
+              (integerp (nth 1 undo-elt))
+              (consp (nth 2 undo-elt))
+              (natnump (car (nth 2 undo-elt)))
+              (natnump (cdr (nth 2 undo-elt)))
+              (symbolp (nth 3 undo-elt)))
+         ;; (apply DELTA (BEG . END) FUN . ARGS)
+         (and (>= (car (nth 2 undo-elt)) start)
+	      (<= (cdr (nth 2 undo-elt)) end)))))
 
 (defun undo-elt-crosses-region (undo-elt start end)
   "Test whether UNDO-ELT crosses one edge of that region START ... END.
@@ -3974,7 +4004,13 @@ is not *inside* the region START...END."
     ;; (nil PROPERTY VALUE BEG . END)
     (`(nil . ,(or `(,prop ,val ,beg . ,end) pcase--dontcare))
      `(nil ,prop ,val . ,(undo-adjust-beg-end beg end deltas)))
-    ;; (apply DELTA START END FUN . ARGS)
+    ((and `(apply ,delta (,beg  . ,end) ,fun-name . ,args)
+          (guard (and (integerp delta) (natnump beg) (natnump end)
+                      (symbolp fun-name))))
+     (let* ((r2 (undo-adjust-beg-end beg end deltas))
+            (beg2 (car r2))
+            (end2 (cdr r2)))
+       `(apply ,delta (,beg2 . ,end2) ,fun-name . ,args)))
     ;; FIXME
     ;; All others return same elt
     (_ elt)))
@@ -4034,8 +4070,16 @@ with < or <= based on USE-<."
 	     ;; (BEGIN . END)
 	     (cons (car undo-elt) (- (car undo-elt) (cdr undo-elt))))
 	    ;; (apply DELTA BEG END FUNC . ARGS)
-	    ((and (eq (car undo-elt) 'apply) (integerp (nth 1 undo-elt)))
+	    ((and (eq (car undo-elt) 'apply)
+                  (integerp (nth 1 undo-elt))
+                  (natnump (nth 2 undo-elt)))
 	     (cons (nth 2 undo-elt) (nth 1 undo-elt)))
+	    ;; (apply DELTA (BEG . END) FUNC . ARGS)
+	    ((and (eq (car undo-elt) 'apply)
+                  (integerp (nth 1 undo-elt))
+                  (consp (nth 2 undo-elt))
+                  (natnump (car (nth 2 undo-elt))))
+	     (cons (car (nth 2 undo-elt)) (nth 1 undo-elt)))
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
@@ -6684,8 +6728,10 @@ and KILLP is t if a prefix arg was specified."
 
 (defun char-uppercase-p (char)
   "Return non-nil if CHAR is an upper-case character.
+A character is considered upper-case if there's a corresponding
+lower-case character.
 If the Unicode tables are not yet available, e.g. during bootstrap,
-then gives correct answers only for ASCII characters."
+this function gives correct return values only for ASCII characters."
   (cond ((unicode-property-table-internal 'lowercase)
          (characterp (get-char-code-property char 'lowercase)))
         ((<= ?A char ?Z))))
@@ -10176,8 +10222,11 @@ the completions is popped up and down."
           (last-col (progn
                       (first-completion)
                       (goto-char (pos-eol))
-                      (goto-char (previous-single-property-change
-                                  (point) 'mouse-face))
+                      ;; Go to the beginning of the candidate.  We loop
+                      ;; to move past any completion annotations.
+                      (while (not (get-text-property (point) 'mouse-face))
+                        (goto-char
+                         (previous-single-property-change (point) 'mouse-face)))
                       (current-column))))
       (if (zerop last-col)
           ;; If there is only one column of completions, the last
@@ -10269,7 +10318,9 @@ Also see the `completion-auto-wrap' variable."
                          (not (eq completions-format 'vertical))))
             (if (and (eq completion-auto-select t) tabcommand
                      (minibufferp completion-reference-buffer))
-                (throw 'bound nil)
+                (progn
+                  (completions--clear-selection)
+                  (throw 'bound nil))
               (first-completion))))
         (when (and (eq completions-format 'vertical)
                    (or last
@@ -10321,8 +10372,8 @@ Also see the `completion-auto-wrap' variable."
                    (completion--move-to-candidate-start))
                   ((and (eq completion-auto-select t) tabcommand
                         (minibufferp completion-reference-buffer))
-                   (progn
-                     (throw 'bound nil)))
+                   (completions--clear-selection)
+                   (throw 'bound nil))
                   (t
                    (last-completion)))))
         (setq n (1+ n))))
@@ -10352,29 +10403,31 @@ of completions.
 
 Also see the `completion-auto-wrap' variable."
   (interactive "p")
-  (let (line column pos found last first)
-    (when (and (bobp)
-               (> n 0)
-               (get-text-property (point) 'mouse-face)
-               (not (get-text-property (point) 'first-completion)))
-      (let ((inhibit-read-only t))
-        (add-text-properties (point) (1+ (point)) '(first-completion t)))
-      (setq n (1- n)))
+  (let ((tabcommand (member (this-command-keys) '("\t" [backtab])))
+        line column pos found last first)
+    (catch 'bound
+      (when (and (bobp)
+                 (> n 0)
+                 (get-text-property (point) 'mouse-face)
+                 (not (get-text-property (point) 'first-completion)))
+        (let ((inhibit-read-only t))
+          (add-text-properties (point) (1+ (point)) '(first-completion t)))
+        (setq n (1- n)))
 
-    (if (get-text-property (point) 'mouse-face)
-        ;; If in a completion, move to the start of it.
-        (completion--move-to-candidate-start)
-      ;; Try to move to the previous completion.
-      (setq pos (previous-single-property-change (point) 'mouse-face))
-      (if pos
-          ;; Move to the start of the previous completion.
-          (progn
-            (goto-char pos)
-            (unless (get-text-property (point) 'mouse-face)
-              (goto-char (previous-single-property-change
-                          (point) 'mouse-face nil (point-min)))))
-        (cond ((> n 0) (setq n (1- n)) (first-completion))
-              ((< n 0) (first-completion)))))
+      (if (get-text-property (point) 'mouse-face)
+          ;; If in a completion, move to the start of it.
+          (completion--move-to-candidate-start)
+        ;; Try to move to the previous completion.
+        (setq pos (previous-single-property-change (point) 'mouse-face))
+        (if pos
+            ;; Move to the start of the previous completion.
+            (progn
+              (goto-char pos)
+              (unless (get-text-property (point) 'mouse-face)
+                (goto-char (previous-single-property-change
+                            (point) 'mouse-face nil (point-min)))))
+          (cond ((> n 0) (setq n (1- n)) (first-completion))
+                ((< n 0) (first-completion)))))
 
     (while (> n 0)
       (setq found nil pos (point) column (current-column)
@@ -10382,7 +10435,12 @@ Also see the `completion-auto-wrap' variable."
             last (= (point) (save-excursion (last-completion) (point))))
       (if (and (eq completions-format 'vertical)
                completion-auto-wrap last)
-          (first-completion)            ; Wrap from last to first item.
+          (if (and (eq completion-auto-select t) tabcommand
+                   (minibufferp completion-reference-buffer))
+              (progn
+                (completions--clear-selection)
+                (throw 'bound nil))     ; Skip to minibuffer.
+            (first-completion))         ; Wrap from last to first item.
         (completion--move-to-candidate-end)
         (while (and (not found)
                     (eq (forward-line 1) 0)
@@ -10419,7 +10477,12 @@ Also see the `completion-auto-wrap' variable."
             first (= (point) (save-excursion (first-completion) (point))))
       (if (and (eq completions-format 'vertical)
                completion-auto-wrap first)
-          (last-completion)             ; Wrap from first to last item.
+          (if (and (eq completion-auto-select t) tabcommand
+                   (minibufferp completion-reference-buffer))
+              (progn
+                (completions--clear-selection)
+                (throw 'bound nil))     ; Skip to minibuffer.
+            (last-completion))          ; Wrap from first to last item.
         (completion--move-to-candidate-start)
         (while (and (not found)
                     (eq (forward-line -1) 0)
@@ -10456,7 +10519,10 @@ Also see the `completion-auto-wrap' variable."
                 (setq pos (point))
                 (forward-line))
               (goto-char pos)))))
-      (setq n (1+ n)))))
+      (setq n (1+ n))))
+
+    (when (/= 0 n)
+      (switch-to-minibuffer))))
 
 (defun next-completion (&optional n)
   "Move according to `completions-format' to next completion item.

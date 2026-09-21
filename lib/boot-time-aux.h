@@ -375,6 +375,9 @@ initialize (void)
 #  else
 
 #   define GetTickCount64Func GetTickCount64
+#   if _GL_GNUC_PREREQ (4, 2)
+#    pragma GCC diagnostic ignored "-Waddress"
+#   endif
 
 #  endif
 

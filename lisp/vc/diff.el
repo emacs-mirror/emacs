@@ -38,14 +38,15 @@
   :group 'tools)
 
 ;;;###autoload
-(defcustom diff-switches "-u"
+(defcustom diff-switches '("-u" "-r")
   "A string or list of strings specifying switches to be passed to diff.
 
 This variable is also used in the `vc-diff' command (and related
 commands) if the backend-specific diff switch variable isn't
 set (`vc-git-diff-switches' for git, for instance), and
 `vc-diff-switches' isn't set."
-  :type '(choice string (repeat string)))
+  :type '(choice string (repeat string))
+  :version "32.1")
 
 ;;;###autoload
 (defcustom diff-command "diff"

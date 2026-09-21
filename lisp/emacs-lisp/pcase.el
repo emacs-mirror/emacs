@@ -313,14 +313,10 @@ undetected, binding variables to arbitrary values, such as nil."
 
 ;;;###autoload
 (defmacro pcase-let*-strict (bindings &rest body)
-  "Like `pcase-let*', but signal an error when a pattern does not match.
-As with `pcase-let*', BINDINGS are of the form (PATTERN EXP), but the
+  "Like `pcase-let*', but always signal an error when a pattern does not match.
+As with `pcase-let*', BINDINGS are of the form (PATTERN EXP), and the
 EXP in each binding in BINDINGS can use the results of the destructuring
-bindings that precede it in BINDINGS' order.
-
-Each EXP should match its respective PATTERN (i.e. be of structure
-compatible to PATTERN); a mismatch may signal an error or may go
-undetected, binding variables to arbitrary values, such as nil."
+bindings that precede it in BINDINGS' order."
   (declare (indent 1)
            (debug ((&rest (pcase-PAT &optional form)) body)))
   (let ((cached (gethash bindings pcase--memoize)))

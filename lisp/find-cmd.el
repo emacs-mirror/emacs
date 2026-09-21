@@ -153,7 +153,7 @@ result is a string that should be ready for the command line."
           (shell-quote-argument (expand-file-name default-directory)) " "
           (cond
            ((cdr subfinds)
-            (mapconcat #'find-to-string subfinds ""))
+            (mapconcat #'find-to-string subfinds))
            (t
             (find-to-string (car subfinds))))))
 

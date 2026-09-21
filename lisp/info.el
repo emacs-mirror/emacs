@@ -1970,7 +1970,7 @@ established by `Info-url-alist', which see."
                                  (<= 123 ch 127)) ; {|}~ DEL
                              (format "_00%x" ch)
                              (char-to-string ch)))
-                         node "")))
+                         node)))
                    ".html"))))
     (cond
       ((stringp url-spec)

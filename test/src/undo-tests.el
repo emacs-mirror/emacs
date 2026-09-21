@@ -511,6 +511,28 @@ Case 3: a file-visiting buffer with `buffer-undo-list' nil and
         (replace-match "Z "))
       (should (= (length buffer-undo-list) 1)))))
 
+(ert-deftest undo-test-combine-change-calls-4 ()
+  "Test `combine-change-calls' in combination with undo-in-region."
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (dolist (s '("A" "B" "C" "D"))
+      (insert s)
+      (undo-boundary))
+    (combine-change-calls (point-min) (point-max)
+      (goto-char (point-min))
+      (while (re-search-forward "[BD]" nil t)
+        (delete-char -1)
+        (insert "xy")))
+    (goto-char (point-min))
+    (insert "<")
+    (goto-char (point-max))
+    (insert ">")
+    (undo-boundary)
+    (should (equal (buffer-string) "<AxyCxy>"))
+    (undo-tests--mark-region 2 8)
+    (undo)
+    (should (equal (buffer-string) "<ABCD>"))))
+
 (defun undo-test-all (&optional interactive)
   "Run all tests for \\[undo]."
   (interactive "p")
@@ -538,6 +560,90 @@ Demonstrates bug 25599."
     (kill-region (point-min) (pos-bol 2))
     (undo-boundary)
     (undo)))
+
+(defun undo-tests--mark-region (beg end)
+  (transient-mark-mode 1)
+  (goto-char beg)
+  (push-mark (point) t t)
+  (setq mark-active t)
+  (goto-char end))
+
+(defun undo-tests--selective-apply (fun)
+  (with-temp-buffer
+    (buffer-enable-undo)
+    (insert "1234567")
+    (undo-boundary)
+    (goto-char 4)
+    (let ((m1 (point-marker))
+          (m2 (point-marker))
+          (l buffer-undo-list))
+      (goto-char 1)
+      (insert "X")
+      (set-marker-insertion-type m2 t)
+      (delete-region 4 7)
+      (goto-char 4)
+      (insert "ABC")
+      (funcall fun l m1 m2)
+      (should (= m1 4))
+      (should (= m2 7))
+
+      (goto-char 3)
+      (insert "abcdef")
+      (should (equal (buffer-string) "X1abcdef2ABC67"))
+      (should (= m1 10))
+      (should (= m2 13))
+      (delete-region 3 4)
+      (should (equal (buffer-string) "X1bcdef2ABC67"))
+      (should (= m1 9))
+      (should (= m2 12))
+
+      (undo-boundary)
+      (undo-tests--mark-region 9 12)
+      (undo)
+
+      (should (equal (buffer-string) "X1bcdef234567"))
+      (should (= (point) 9))
+      (should (= m1 10))
+      (should (= m2 10)))))
+
+(ert-deftest undo-tests-selective-apply-1 ()
+  "Test selective undo without 'apply entries."
+  (undo-tests--selective-apply #'ignore))
+
+(defun undo-tests--undo-delete (beg _end text)
+  (goto-char beg)
+  (insert text)
+  (goto-char beg))
+
+(defun undo-tests--undo-insert (beg end)
+  (delete-region beg end))
+
+(defun undo-tests--adjust-markers (beg end &rest args)
+  (while args
+    (let* ((pair (pop args))
+           (m (car pair))
+           (offset (cdr pair))
+           (insertion-type (< offset 0))
+           (pos (if insertion-type end beg)))
+      (cond ((and (eq (marker-buffer m) (current-buffer))
+                  (eq (marker-insertion-type m) insertion-type)
+                  (= pos m))
+             (set-marker m (+ pos offset)))
+            (t
+             (message "ignoring adjustment: %s %s %s"
+                      beg end pair))))))
+
+(ert-deftest undo-tests-selective-apply-2 ()
+  "Test 'apply entries that emulate delete and insert entries."
+  (undo-tests--selective-apply
+   (lambda (l m1 m2)
+     (setq buffer-undo-list
+           `((apply -3 (4 . 7) undo-tests--undo-insert)
+             (apply 3 (4 . 4) undo-tests--undo-delete "345")
+             (apply 0 (4 . 7) undo-tests--adjust-markers
+                    (,m2 . -2) (,m1 . 1))
+             (apply -1 (1 . 1) undo-tests--undo-insert)
+             . ,l)))))
 
 (provide 'undo-tests)
 ;;; undo-tests.el ends here

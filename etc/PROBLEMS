@@ -498,6 +498,36 @@ support for those formats by default, so you might need to install
 additional support packages.  E.g., on Fedora you need to install the
 'gdk-pixbuf2-modules-extra' package.
 
+*** Resizing frames of GTK Emacs does not work on Wayland running on X11.
+
+This was reported with KDE Plasma, which recently is based on Wayland
+exclusively (as is GNOME).  The default character-wise resizing of the
+frame depends on whether the window manager is willing to process the
+hints provided by Emacs; evidently, Wayland-based window managers no
+longer do.
+
+One workaround is to customize frame-resize-pixelwise to a non-nil
+value.  Another workaround is to add a window rule in KDE Plasma's
+System Settings (under "Window Management->Application settings for
+Emacs->Size and Position") that forces KDE Plasma to obey geometry
+restrictions.
+
+Yet another solution is to use the PGTK build of Emacs, which works
+better on Wayland.
+
+*** GTK+ frames are tiny on Wayland.
+
+The initial frame and/or subsequently created frames can be tiny on
+Wayland running on X11 (aka "XWayland").  One direct consequence is that
+GTK will react with a message like this when cropping the menu bar:
+
+  Gtk-CRITICAL **: gtk_distribute_natural_allocation: assertion 'extra_space >= 0' failed
+
+This behavior has been observed with the mutter window manager (GNOME
+desktop) and the labwc compositor.  Using the PGTK build of Emacs should
+work around this issue.
+
+
 ** Lisp problems
 
 *** Changes made to .el files do not take effect.
@@ -3746,6 +3776,13 @@ This is because the SECONDARY selection is not implemented by the
 Wayland compositor being used.  A workaround is to use other kinds of
 selections.
 
+** Pasting non-ASCII text from Emacs into Chromium or Brave inserts mojibake.
+
+These are bugs in these browsers: they chose incorrect format of the
+copied text amongst those which Emacs provides.  Emacs provides UTF-8 as
+one of the formats, but these browsers use Latin-1 instead.  So please
+report these bugs to the developers of the respective browsers.
+
 ** Giant tool bar icons are displayed in some cases
 
 This is because some icon themes (such as the KDE Breeze icon theme)
@@ -4029,6 +4066,12 @@ this form.
 The solution is to tell configure to use the correct C preprocessor
 for your C compiler (CPP="/opt/developerstudio12.6/bin/cc -E" in the
 above example).
+
+*** The Android build works with only older versions of Java.
+
+Only Java 19 and older work, because Java 19 was the last version to
+support "-source 7".  See <URL:https://debbugs.gnu.org/81211> for more
+details.
 
 ** Compilation
 

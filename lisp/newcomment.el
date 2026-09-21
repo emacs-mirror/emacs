@@ -129,6 +129,19 @@ by the close of the first pair.")
 (put 'comment-start-skip 'safe-local-variable 'stringp)
 
 ;;;###autoload
+(defvar comment-start-line-regexp nil
+  "Regexp matching the start of a line comment.
+
+Unlike `comment-start-skip', which matches the start of any comment,
+this regexp matches only the start of line comments (as opposed to block
+comments), so it can be used to distinguish between the two.
+
+Modes that support both line and block comments should set this
+variable.")
+;;;###autoload
+(put 'comment-start-line-regexp 'safe-local-variable 'stringp)
+
+;;;###autoload
 (defvar comment-end-skip nil
   "Regexp to match the end of a comment plus everything back to its body.")
 ;;;###autoload
@@ -865,11 +878,11 @@ Ensure that `comment-normalize-vars' has been called before you use this."
 	;; construct a regexp that would match anything from just S
 	;; to any possible output of this function for any N.
 	(concat (mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
-			   lpad "")	;padding is not required
+			   lpad)	;padding is not required
 		(regexp-quote s)
 		(when multi "+") ;the last char of S might be repeated
 		(mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
-			   rpad "")))))) ;padding is not required
+			   rpad)))))) ;padding is not required
 
 (defun comment-padleft (str &optional n)
   "Construct a string composed of `comment-padding' plus STR.

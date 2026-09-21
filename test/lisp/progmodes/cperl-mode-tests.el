@@ -633,7 +633,8 @@ Also includes valid cases with whitespace in strange places."
    "Test subroutine signatures."
    (skip-unless (eq cperl-test-mode #'cperl-mode))
    (let ((valid
-          '("()" "( )" "($self, %params)" "(@params)" "($first,$)"))
+          '("()" "( )" "($self, %params)" "(@params)" "($first,$)"
+            "($pos,:$named)"))
         (invalid
          '("$self"               ; missing paren
            "($!)"                ; globals not permitted in a signature

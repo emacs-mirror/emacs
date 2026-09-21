@@ -421,19 +421,19 @@ init_treesit_functions (void)
    :-)
 
    Parsers in indirect buffers: We make indirect buffers share the
-   parser of their base buffer.  Indirect buffers and their base buffer
-   share the same buffer content but not other buffer attributes.  If
-   they have separate parser lists, changes made in an indirect buffer
-   will only update parsers of that indirect buffer, and not parsers in
-   the base buffer or other indirect buffers, and vice versa.  For that
-   reason, the base buffer and all ot its indirect buffers share a
-   single parser list.  But each parser in this shared parser list still
-   points to their own buffer.  On top of that, treesit-parser-list only
-   return parsers that belongs to the calling buffer.  So ultimately,
-   from the user's POV, each buffer, regardless of indirect or not,
-   appears to have their own parser list.  A discussion can be found in
-   bug#59693.  Note that that discussion led to an earlier design, which
-   is different from the current one.
+   parser list of their base buffer.  Indirect buffers and their base
+   buffer share the same buffer content but not other buffer attributes.
+   If they had separate parser lists, changes made in an indirect
+   buffer would only update parsers of that indirect buffer, and not
+   parsers in the base buffer or other indirect buffers, and vice versa.
+   For that reason, the base buffer and all of its indirect buffers
+   share a single parser list.  But each parser in this shared parser
+   list still points to their own buffer.  On top of that,
+   treesit-parser-list only returns parsers that belong to the calling
+   buffer.  So ultimately, from the user's POV, each buffer, regardless
+   of whether indirect or not, appears to have its own parser list.  A
+   discussion can be found in bug#59693.  Note that the discussion led
+   to an earlier design, which is different from the current one.
 
    Line and column reporting to tree-sitter: technically we had to send
    tree-sitter the line and column position of each edit.  But in
@@ -632,6 +632,56 @@ struct treesit_loaded_lang
   const char *filename;
 };
 
+/* Cache of loaded languages, keyed by language symbols.  Resolving a
+   language does dlopen + dlsym plus an ABI-version check that creates a
+   throwaway TSParser; repeating that for every parser created is
+   expensive when a mode creates many embedded parsers (e.g. one
+   markdown-inline parser per block).  We don't support
+   unloading/reloading languages so we can cache loaded languages for
+   the entire session; in fact, we _want_ to cache the language object
+   so it stays stable for the whole session.  */
+struct treesit_lang_cache_entry
+{
+  /* Symbol for the cached language, never gc'ed.  */
+  Lisp_Object symbol;
+  /* The cached language object.  */
+  struct treesit_loaded_lang lang;
+};
+
+/* The cache, a monotonically growing array on the heap.  */
+static struct treesit_lang_cache_entry *treesit_lang_cache = NULL;
+/* Number of available slots in the allocated space.  */
+static ptrdiff_t treesit_lang_cache_size = 0;
+/* Number of existing cache entry in the array.  */
+static ptrdiff_t treesit_lang_cache_used = 0;
+
+/* Return the cached language object for LANGUAGE_SYMBOL, or {NULL,
+   NULL} if there is none.  */
+static struct treesit_loaded_lang
+treesit_lang_cache_get (Lisp_Object language_symbol)
+{
+  for (ptrdiff_t i = 0; i < treesit_lang_cache_used; i++)
+    if (EQ (treesit_lang_cache[i].symbol, language_symbol))
+      return treesit_lang_cache[i].lang;
+  return (struct treesit_loaded_lang) { NULL, NULL };
+}
+
+/* Cache LOADED_LANG keyed by LANGUAGE_SYMBOL.  */
+static void
+treesit_lang_cache_put (Lisp_Object language_symbol,
+			struct treesit_loaded_lang loaded_lang)
+{
+  if (treesit_lang_cache_used == treesit_lang_cache_size)
+    {
+      treesit_lang_cache
+	= xpalloc (treesit_lang_cache, &treesit_lang_cache_size, 1, -1,
+		   sizeof *treesit_lang_cache);
+    }
+  treesit_lang_cache[treesit_lang_cache_used].symbol = language_symbol;
+  treesit_lang_cache[treesit_lang_cache_used].lang = loaded_lang;
+  treesit_lang_cache_used++;
+}
+
 /* Translate a symbol treesit-<lang> to a C name treesit_<lang>.  */
 static void
 treesit_symbol_to_c_name (char *symbol_name)
@@ -762,6 +812,11 @@ static struct treesit_loaded_lang
 treesit_load_language (Lisp_Object language_symbol,
 		       Lisp_Object *signal_symbol, Lisp_Object *signal_data)
 {
+  struct treesit_loaded_lang cached
+    = treesit_lang_cache_get (language_symbol);
+  if (cached.lang != NULL)
+    return cached;
+
   Lisp_Object symbol_name = Fsymbol_name (language_symbol);
 
   CHECK_LIST (Vtreesit_extra_load_path);
@@ -886,6 +941,7 @@ treesit_load_language (Lisp_Object language_symbol,
   dynlib_addr ((void (*)) langfn, &loaded_lang.filename, &sym);
 
   loaded_lang.lang = lang;
+  treesit_lang_cache_put (language_symbol, loaded_lang);
   return loaded_lang;
 }
 
@@ -2342,12 +2398,7 @@ already has a parser for LANGUAGE with TAG, return that parser, but if
 NO-REUSE is non-nil, always create a new parser.
 
 TAG can be any symbol except t, and defaults to nil.  Different
-parsers can have the same tag.
-
-If that buffer is an indirect buffer, its base buffer is used instead.
-That is, indirect buffers use their base buffer's parsers.  Lisp
-programs should widen as necessary should they want to use a parser in
-an indirect buffer.  */)
+parsers can have the same tag.  */)
   (Lisp_Object language, Lisp_Object buffer, Lisp_Object no_reuse,
    Lisp_Object tag)
 {
@@ -2461,9 +2512,7 @@ DEFUN ("treesit-parser-list",
        0, 3, 0,
        doc: /* Return BUFFER's parser list, filtered by LANGUAGE and TAG.
 
-BUFFER defaults to the current buffer.  If that buffer is an indirect
-buffer, its base buffer is used instead.  That is, indirect buffers
-use their base buffer's parsers.
+BUFFER defaults to the current buffer.
 
 If LANGUAGE is non-nil, only return parsers for that language.
 
@@ -4259,12 +4308,12 @@ treesit_cursor_helper_1 (TSTreeCursor *cursor, TSNode *target,
   /* ts_tree_cursor_goto_first_child_for_byte is significantly faster,
      so despite it having problems (see bug#60127), we try it first.
      Also, ts_tree_cursor_goto_first_child_for_byte can't find
-     zero-width nodes (which exists and are legit, e.g., markdown's
+     zero-width nodes (which exist and are legit, e.g., markdown's
      block_continuation), because a zero-width node can't contain a pos
-     (end > pos).  */
-  if (start_pos != end_pos
-      && ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) == -1
-      && !ts_tree_cursor_goto_first_child (cursor))
+     (end > pos); instead, it'll falsely return the next child.  */
+  if (!((start_pos != end_pos
+	 && ts_tree_cursor_goto_first_child_for_byte (cursor, start_pos) != -1)
+	|| ts_tree_cursor_goto_first_child (cursor)))
     return false;
 
   /* Go through each sibling that could contain TARGET.  Because of

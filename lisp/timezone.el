@@ -51,9 +51,12 @@
     ("GMT-7"  .  -700) ("GMT-8"  .  -800) ("GMT-9"  .  -900)
     ("GMT-10" . -1000) ("GMT-11" . -1100) ("GMT-12" . -1200))
   "Time differentials of timezone from GMT in +-HHMM form.
-This list is obsolescent, and is present only for backwards compatibility,
+This list is obsolete, and is present only for backwards compatibility,
 because time zone names are ambiguous in practice; for example, abbreviations
-like \"PST\" can change meaning with time.  Use `current-time-zone' instead.")
+like \"PST\" can change meaning with time.")
+(make-obsolete-variable
+ 'timezone-world-timezones
+ "use numeric time zone abbreviations or `current-time-zone' instead." "32.1")
 
 (defvar timezone-months-assoc
   '(("JAN" .  1)("FEB" .  2)("MAR" .  3)

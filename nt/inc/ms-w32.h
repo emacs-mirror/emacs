@@ -121,10 +121,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifdef __GNUC__
 # ifndef __cplusplus
-#  undef inline
-/* config.h may have defined already.  */
-#  ifndef restrict
-#   define restrict __restrict__
+#  ifdef inline
+#   undef inline
 #  endif
 # endif
 #endif
@@ -276,10 +274,6 @@ char *sys_strerror (int);
 
 #endif /* emacs */
 
-/* Used both in Emacs, in lib-src, and in Gnulib.  */
-#undef open
-#define open    sys_open
-
 /* Map to MSVC names.  */
 #define tcdrain _commit
 #define fdopen	  _fdopen
@@ -318,6 +312,12 @@ extern struct tm *localtime_r (time_t const * restrict, struct tm * restrict);
 #undef read
 #define read    sys_read
 int sys_read (int, char *, unsigned int);
+
+/* The same with 'open', see bug#81862.  */
+/* Used both in Emacs, in lib-src, and in Gnulib.  */
+#undef open
+#define open    sys_open
+int sys_open (const char *, int, ...);
 
 /* Defines that we need that aren't in the standard signal.h.  */
 #define SIGHUP  1               /* Hang up */

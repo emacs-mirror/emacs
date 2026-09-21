@@ -59,6 +59,7 @@
 (require 'font-lock)
 (require 'seq)
 (require 'prog-mode) ; For `prog--text-at-point-or-region-p'.
+(require 'newcomment) ; For `comment-start-line-regexp'.
 
 ;;; Function declarations
 
@@ -2403,10 +2404,13 @@ This variable should take the same form as
 over `treesit-simple-indent-rules'.")
 
 (defun treesit--indent-prev-line-node (pos)
-  "Return the largest node on the previous line of POS."
+  "Return the largest node on the previous (non-empty) line of POS."
   (save-excursion
     (goto-char pos)
     (when (eq (forward-line -1) 0)
+      ;; Skip blank lines.
+      (while (and (looking-at-p (rx (* (syntax whitespace)) eol))
+                  (eq (forward-line -1) 0)))
       (back-to-indentation)
       (treesit--indent-largest-node-at (point)))))
 
@@ -2559,9 +2563,11 @@ as the anchor.")
                          ;; has a prefix, indent to the beginning of
                          ;; prev line's prefix rather than the end of
                          ;; prev line's prefix. (Bug#61314).
-                         (or (and this-line-has-prefix
-                                  (match-beginning 1))
-                             (match-end 0)))))))
+                         (if this-line-has-prefix
+                             (progn
+                               (skip-syntax-forward "-")
+                               (point))
+                           (match-end 0)))))))
         (cons 'grand-parent
               (lambda (_n parent &rest _)
                 (treesit-node-start (treesit-node-parent parent))))
@@ -3764,7 +3770,20 @@ by `text' and `sentence' in `treesit-thing-settings'."
                      (max (point-min) (previous-single-char-property-change
                                        (point) 'treesit-parser)))))))
 
-(defun treesit-forward-comment (&optional count)
+(defun treesit--likely-line-comment-p (node)
+  "Return non-nil if NODE is likely a line comment."
+  (save-excursion
+    (goto-char (treesit-node-start node))
+    (if comment-start-line-regexp
+        (looking-at-p comment-start-line-regexp)
+      ;; Without `comment-start-line-regexp', it's kind of best-effort.
+      (and comment-start
+           ;; If `comment-end' is non-empty, `comment-start' must be
+           ;; paired with it.
+           (string-empty-p (string-trim (or comment-end "")))
+           (looking-at-p (regexp-quote (string-trim-right comment-start)))))))
+
+(defun treesit-forward-comment (count)
   "Tree-sitter `forward-comment-function' implementation.
 
 COUNT is the same as in `forward-comment'."
@@ -3774,7 +3793,15 @@ COUNT is the same as in `forward-comment'."
       (setq thing (treesit-thing-at (point) 'comment))
       (if (and thing (eq (point) (treesit-node-start thing)))
           (progn
-            (goto-char (min (1+ (treesit-node-end thing)) (point-max)))
+            (goto-char (treesit-node-end thing))
+            ;; For line comments, go to the next line.  This is
+            ;; important because a) for navigation convenience, and b)
+            ;; many functions expect `forward-comment' to behave this
+            ;; way (bug#80837).
+            (when (treesit--likely-line-comment-p thing)
+              (skip-chars-forward " \t")
+              (when (looking-at-p "\n")
+                (forward-char)))
             (setq count (1- count)))
         (setq count 0 res nil)))
     (while (< count 0)

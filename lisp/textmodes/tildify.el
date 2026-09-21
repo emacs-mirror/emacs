@@ -334,8 +334,7 @@ no environment was found."
                (if (stringp expr)
                    expr
                  (regexp-quote (match-string expr match))))
-             expression
-             "")))))))
+             expression)))))))
 
 (defun tildify-tildify (beg end ask)
   "Add tilde characters in the region between BEG and END.

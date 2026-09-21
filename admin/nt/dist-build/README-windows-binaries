@@ -79,8 +79,8 @@ people who want to report bugs against the current master, to help in
 "pretesting" new release versions, and so on.
 
 The files follow the same naming convention, but also include a date
-(and sometimes information about their branch) or they may releate to a
-sepecific pretest or release candidate for an "uncut" Emacs.  Emacs
+(and sometimes information about their branch) or they may relate to a
+specific pretest or release candidate for an "uncut" Emacs.  Emacs
 sources are distributed along with each dated snapshot.  Sources are
 provided for the pretest and release candidate Emacs versions here, as
 for release builds, are found in the directory (or directories) above.

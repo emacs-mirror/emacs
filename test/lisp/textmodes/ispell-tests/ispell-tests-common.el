@@ -26,6 +26,7 @@
 
 (require 'ert)
 (require 'ert-x)
+(require 'ispell)
 
 (defvar ispell-tests--data-directory
   (let ((ert-resource-directory-trim-right-regexp "-tests/.*-tests-common\\.el"))
@@ -36,6 +37,49 @@
   (expand-file-name "fake-aspell-new.bash" ispell-tests--data-directory)
   "Path to the mock backend.")
 
+(defun ispell-tests--parse-v (path)
+  "Parse a spellchecking backend's at PATH -v.
+Return proto version, engine type, and version
+ (i.e., aspell, hunspell, enchant)."
+  (or (executable-find path)
+     (error "ispell command (%s) is not runnable" path))
+  (with-temp-buffer
+    (call-process path nil t nil "-v")
+    (goto-char (point-min))
+    (forward-line 1)
+    (when (not (eobp))
+      (delete-region (point) (point-max)))
+    (goto-char (point-min))
+    (search-forward "International Ispell Version ") ; last space is important!
+    (let* ((proto-version (let* ((s (point))
+                                 (e (progn (search-forward " ")
+                                           (backward-char)
+                                           (point))))
+                            (buffer-substring s e)))
+           (engine (condition-case nil
+                       (let ((s (progn (search-forward "but really ")
+                                       (point)))
+                             (e (progn (search-forward " ")
+                                       (backward-char)
+                                       (point))))
+                         (buffer-substring s e))
+                     (error "International Ispell")))
+           (engine-version (if (string-equal engine "International Ispell")
+                               proto-version
+                             (let ((s (progn (forward-char)
+                                             (point)))
+                                   (e (progn (search-forward ")")
+                                             (backward-char)
+                                             (point))))
+                               (buffer-substring s e)))))
+      (list proto-version engine engine-version))))
+
+(defun ispell-tests--valid-version-triple? (triple)
+  "Check if spellchecker version TRIPLE is valid."
+  (let ((engine (nth 1 triple))
+        (engine-version (nth 2 triple)))
+    (version<= (car (alist-get (intern engine) ispell--minversion-alist))
+               engine-version)))
 
 (let* ((backend-binaries (list "ispell" "aspell"  "hunspell"  "enchant-2" fake-aspell-path))
        (filter-binaries (seq-filter
@@ -44,7 +88,9 @@
                             (executable-find b)
                             (equal 0
                                    (with-temp-buffer
-                                     (call-process b nil t nil "-a")))))
+                                     (call-process b nil t nil "-a")))
+                            (ispell-tests--valid-version-triple?
+                             (ispell-tests--parse-v b))))
                          backend-binaries)))
 
   (defun ispell-tests--some-backend-available-p ()
@@ -55,8 +101,19 @@
   (defun ispell-tests--some-backend ()
     "Return the string of some available backend."
     (let ((retval (car filter-binaries)))
-      (message "available backend is:%s" retval)
       retval)))
+
+(defun ispell-tests--broken-system? ()
+  "On some systems Emacs works, but ispell does not.
+Such systems are usually so old that their users are expected to
+do debugging anyway.  This function returns true if such a system
+is detected.
+1. Solaris has broken grep, which ispell.el relies upon."
+  (or (with-temp-buffer
+      (call-process "uname" nil t nil "-s")
+      (search-backward "SunOS"))
+     ;; add other broken stuff here
+     ))
 
 (defun ispell-tests--some-valid-dictionary (backend)
   "Return some dictionary name working for BACKEND."

@@ -237,7 +237,6 @@ See `tramp-actions-before-shell' for more info.")
     (directory-files . tramp-handle-directory-files)
     (directory-files-and-attributes
      . tramp-handle-directory-files-and-attributes)
-    (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
     ;; TODO: Add implementation.
     (exec-path . ignore)
@@ -284,7 +283,6 @@ See `tramp-actions-before-shell' for more info.")
     (lock-file . tramp-handle-lock-file)
     (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (make-directory . tramp-smb-handle-make-directory)
-    (make-directory-internal . ignore)
     (make-lock-file-name . tramp-handle-make-lock-file-name)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
     (make-process . tramp-smb-handle-make-process)
@@ -697,47 +695,17 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 
 (defun tramp-smb-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files."
-  ;; If DIR is not given, use DEFAULT-DIRECTORY or "/".
-  (setq dir (or dir default-directory "/"))
-  ;; Handle empty NAME.
-  (when (string-empty-p name)
-    (setq name "."))
-  ;; Unless NAME is absolute, concat DIR and NAME.
-  (unless (file-name-absolute-p name)
-    (setq name (file-name-concat dir name)))
-  ;; If NAME is not a Tramp file, run the real handler.
-  (if (not (tramp-tramp-file-p name))
-      (tramp-run-real-handler #'expand-file-name (list name))
-    ;; Dissect NAME.
-    (with-parsed-tramp-file-name name nil
-      ;; Tilde expansion shall be possible also for quoted localname.
-      (when (string-prefix-p "~" (file-name-unquote localname))
-	(setq localname (file-name-unquote localname)))
-      ;; Tilde expansion if necessary.
-      (when (string-match
-	     (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
-	(let ((uname (match-string 1 localname))
-	      (fname (match-string 2 localname))
-	      hname)
-	  (when (tramp-string-empty-or-nil-p uname)
-	    (setq uname user))
-	  (when (setq hname (tramp-get-home-directory v uname))
-	    (setq localname (concat hname fname)))))
-      ;; Tilde expansion is not possible.
-      (when (and (not tramp-tolerate-tilde)
-		 (string-prefix-p "~" localname))
-	(tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
-      (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
-	(setq localname (concat "/" localname)))
-      ;; Do not keep "/..".
-      (when (string-match-p (rx bos "/" (** 1 2 ".") eos) localname)
-	(setq localname "/"))
-      ;; Do normal `expand-file-name' (this does "/./" and "/../"),
-      ;; unless there are tilde characters in file name.
-      (tramp-make-tramp-file-name
-       v (if (string-prefix-p "~" localname)
-	     localname
-	   (tramp-run-real-handler #'expand-file-name (list localname)))))))
+  (tramp-skeleton-expand-file-name name dir
+    ;; Tilde expansion if necessary.
+    (when (string-match
+	   (rx bos "~" (group (* (not "/"))) (group (* nonl)) eos) localname)
+      (let ((uname (match-string 1 localname))
+	    (fname (match-string 2 localname))
+	    hname)
+	(when (tramp-string-empty-or-nil-p uname)
+	  (setq uname user))
+	(when (setq hname (tramp-get-home-directory v uname))
+	  (setq localname (concat hname fname)))))))
 
 (defun tramp-smb-remote-acl-p (_vec)
   "Check, whether ACL is enabled on the remote host."
@@ -1013,7 +981,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Read output from \"notify\" and add corresponding `file-notify' events."
   (let ((events (process-get proc 'tramp-events)))
     (tramp-message proc 6 "%S\n%s" proc string)
-    (dolist (line (split-string string (rx (+ (any "\r\n"))) 'omit))
+    (dolist (line (string-split string (rx (+ (any "\r\n"))) 'omit))
       (catch 'next
 	;; Watched directory is removed.
 	(when (string-match-p "NT_STATUS_DELETE_PENDING" line)
@@ -1150,10 +1118,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  (setq entries
 		 (if (or wildcard (string-empty-p base))
 		     ;; Check for matching entries.
-		     (tramp-compat-seq-keep
+		     (seq-keep
 		      (lambda (x)
-			(when (string-match-p (rx bol (literal base)) (nth 0 x))
-			  x))
+			(when (string-prefix-p base (nth 0 x)) x))
 		      entries)
 		   ;; We just need the only and only entry FILENAME.
 		   (list (assoc base entries))))
@@ -1184,9 +1151,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	  ;; Insert size information.
 	  (when full-directory-p
 	    (insert
-	     (if (and avail
-		      ;; Emacs 29.1 or later.
-		      (not (fboundp 'dired--insert-disk-space)))
+	     (if avail
 		 (format "total used in directory %s available %s\n" used avail)
 	       (format "total %s\n" used))))
 
@@ -1657,7 +1622,7 @@ VEC or USER, or if there is no home directory, return nil."
   "Return the share name of LOCALNAME."
   (save-match-data
     (let ((localname (tramp-file-name-unquote-localname vec)))
-      (when (string-match (rx bol (? "/") (group (+ (not "/"))) "/") localname)
+      (when (string-match (rx bos (? "/") (group (+ (not "/"))) "/") localname)
 	(match-string 1 localname)))))
 
 (defun tramp-smb-get-localname (vec &optional share)
@@ -1670,7 +1635,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	(setq
 	 localname
 	 (if (string-match
-	      (rx bol (? "/") (+ (not "/")) (group "/" (* nonl))) localname)
+	      (rx bos (? "/") (+ (not "/")) (group "/" (* nonl))) localname)
 	     ;; There is a share, separated by "/".
 	     (if (not (tramp-smb-get-cifs-capabilities vec))
 		 (mapconcat
@@ -1679,7 +1644,7 @@ If VEC has no cifs capabilities, exchange \"/\" by \"\\\\\"."
 	       (match-string 1 localname))
 	   ;; There is just a share.
 	   (if (string-match
-		(rx bol (? "/") (group (+ (not "/"))) eol) localname)
+		(rx bos (? "/") (group (+ (not "/"))) eos) localname)
 	       (match-string 1 localname)
 	     ""))))
 
@@ -1916,7 +1881,7 @@ are listed.  Result is the list (LOCALNAME MODE SIZE MTIME)."
 		     "Server supports CIFS capabilities" nil t)
 		(member
 		 "pathnames"
-		 (split-string
+		 (string-split
 		  (buffer-substring (point) (line-end-position))
 		  nil 'omit)))))))))
 

@@ -146,7 +146,7 @@
                  (regexp-opt
                   '(;; Elisp
                     "defgroup" "deftheme"
-                    "define-widget" "define-error"
+                    "define-widget" "define-button-type" "define-error"
                     "defface" "cl-deftype" "cl-defstruct" "oclosure-define"
                     ;; CL
                     "deftype" "defstruct"
@@ -269,11 +269,14 @@ to a package-local <package>-loaddefs.el file.")
     (while (re-search-forward
             (concat "(\\(" (rx lisp-mode-symbol) "\\)\\_>")
             limit t)
-      (let ((sym (intern-soft (match-string 1))))
-	(when (and (or (special-form-p sym) (macrop sym))
+      ;; FIXME: Doesn't properly un-escape \ in the symbol name.
+      (let ((sym (shorthands-intern-soft (match-string 1))))
+        (when (and (or (special-form-p sym)
+                       (macrop sym)
+                       (get sym 'font-lock-keyword))
                    (not (get sym 'no-font-lock-keyword))
                    (lisp--el-funcall-position-p (match-beginning 0)))
-	  (throw 'found t))))))
+          (throw 'found t))))))
 
 (defmacro let-when-compile (bindings &rest body)
   "Like `let*', but allow for compile time optimization.
@@ -353,7 +356,7 @@ This will generate compile-time constants from BINDINGS."
                  "define-derived-mode" "define-minor-mode"
                  "define-generic-mode"
                  "define-globalized-minor-mode" "define-skeleton"
-                 "define-widget" "ert-deftest"))
+                 "define-widget" "define-button-type" "ert-deftest"))
      (el-vdefs '("defconst" "defcustom" "defvaralias" "defvar-local"
                  "defface" "define-error"))
      (el-tdefs '("defgroup" "deftheme"))
@@ -454,6 +457,7 @@ This will generate compile-time constants from BINDINGS."
 
     (defconst lisp-cl-font-lock-keywords-1
       `( ;; Definitions.
+        ;; FIXME: Copy&paste from `lisp-el-font-lock-keywords-1'.
         (,(concat "(" cl-defs-re "\\_>"
                   ;; Any whitespace and defined object.
                   "[ \t']*"
@@ -617,7 +621,8 @@ containing STARTPOS."
                                         (rx lisp-mode-symbol) "\\)"))
                                (match-string 1)))))
          (docelt (and firstsym
-                      (function-get (intern-soft firstsym)
+                      ;; FIXME: Doesn't properly un-escape \ in the symbol name.
+                      (function-get (shorthands-intern-soft firstsym)
                                     lisp-doc-string-elt-property))))
     (and docelt
          ;; It's a string in a form that can have a docstring.
@@ -700,6 +705,7 @@ font-lock keywords will not be case sensitive."
                                      lisp-mode-autoload-regexp
                                      "\\)"))
   (setq-local outline-level 'lisp-outline-level)
+  (setq-local outline-comment-regexp ";;; \\([*]+\\)")
   (setq-local add-log-current-defun-function #'lisp-current-defun-name)
   (setq-local comment-start ";")
   (setq-local comment-start-skip ";+ *")
@@ -1276,7 +1282,8 @@ Lisp function does not specify a special indentation."
           ;; inside the innermost containing sexp.
           (backward-prefix-chars)
           (current-column))
-      (let* ((function (intern-soft
+      ;; FIXME: Using `shorthands-intern-soft' is wrong for non-Emacs Lisp.
+      (let* ((function (shorthands-intern-soft
                         (buffer-substring (point)
                                           (progn (forward-sexp 1) (point)))))
              (local (assq function lisp-indent-local-overrides))

@@ -1,5 +1,5 @@
 # getopt.m4
-# serial 52
+# serial 53
 dnl Copyright (C) 2002-2006, 2008-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -72,7 +72,8 @@ AC_DEFUN([gl_GETOPT_CHECK_HEADERS],
     AC_CHECK_HEADERS([getopt.h], [], [gl_replace_getopt=yes])
   fi
 
-  dnl Test whether the function getopt_long is available.
+  dnl Test whether the functions getopt_long and getopt_long_only are both
+  dnl available.
   if test -z "$gl_replace_getopt" && test $gl_getopt_required = GNU; then
     AC_CHECK_FUNCS([getopt_long_only], [], [gl_replace_getopt=yes])
   fi
@@ -238,7 +239,8 @@ dnl is ambiguous with environment values that contain newlines.
              nocrash_init();
 
              /* This code succeeds on glibc 2.8, OpenBSD 4.0, Cygwin, mingw,
-                and fails on Mac OS X 10.5, AIX 5.2, HP-UX 11, Solaris 10.  */
+                and fails on Mac OS X 10.5, NetBSD 10.0, AIX 5.2, HP-UX 11,
+                Solaris 10.  */
              {
                static char conftest[] = "conftest";
                static char plus[] = "-+";
@@ -267,7 +269,8 @@ dnl is ambiguous with environment values that contain newlines.
                else if (optind != 2)
                  result |= 8;
              }
-             /* This code succeeds on glibc 2.8 and fails on Cygwin 1.7.0.  */
+             /* This code succeeds on glibc 2.8
+                and fails on NetBSD 10.0, Cygwin 1.7.0.  */
              {
                static char program[] = "program";
                static char foo[] = "foo";
@@ -279,7 +282,7 @@ dnl is ambiguous with environment values that contain newlines.
                else if (getopt (3, argv, "-p") != 'p')
                  result |= 16;
              }
-             /* This code fails on glibc 2.11.  */
+             /* This code fails on glibc 2.11, NetBSD 10.0.  */
              {
                static char program[] = "program";
                static char b[] = "-b";

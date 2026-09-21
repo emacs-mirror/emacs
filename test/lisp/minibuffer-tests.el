@@ -312,11 +312,12 @@
             '("lisp/minibuffer.el" "src/minibuf.c")
             nil 9)
            '("*/minibuf" . 9)))
-  ;; A series of wildcards is preserved (for now), along with point's position.
+  ;; A series of `star's is collapsed into a single one, but point's
+  ;; position is preserved in the middle. (bug#81394)
   (should (equal
            (completion-pcm--merge-try
             '(star star point star "foo") '("xxfoo" "xyfoo") "" "")
-           '("x***foo" . 3)))
+           '("x**foo" . 2)))
   ;; The series of wildcards is considered together; if any of them wants the common suffix, it's generated.
   (should (equal
            (completion-pcm--merge-try
@@ -370,7 +371,7 @@
   ;; sequence of delimiters.
   (should (equal (completion-pcm-try-completion
                   "-x" '("-_.x" "-__x") nil 2)
-                 '("-_x" . 3))))
+                 '("-_x" . 2))))
 
 (ert-deftest completion-pcm-test-pattern->regex ()
   (should (equal (completion-pcm--pattern->regex
@@ -473,7 +474,7 @@
   ;; prefix is also a common suffix, it should be included.
   (should (equal
            (completion-pcm--merge-try '(prefix "b") '("ab" "sab") "" "")
-           '("ab" . 2)))
+           '("ab" . 0)))
   (should (equal
            (completion-pcm--merge-try '(prefix "b") '("ab" "ab") "" "")
            '("ab" . 2)))
@@ -481,16 +482,16 @@
   ;; should always be included.
   (should (equal
            (completion-pcm--merge-try '("a" prefix "b") '("axb" "ayb") "" "")
-           '("ab" . 2)))
+           '("ab" . 1)))
   ;; Letter-casing from the completions on the common prefix is still applied.
   (should (equal
            (let ((completion-ignore-case t))
              (completion-pcm--merge-try '("a" prefix "b") '("Axb" "Ayb") "" ""))
-           '("Ab" . 2)))
+           '("Ab" . 1)))
   (should (equal
            (let ((completion-ignore-case t))
              (completion-pcm--merge-try '("a" prefix "b") '("AAxb" "AAyb") "" ""))
-           '("Ab" . 2)))
+           '("Ab" . 1)))
   ;; substring completion should successfully complete the entire string
   (should (equal
            (completion-substring-try-completion "b" '("ab" "ab") nil 0)
@@ -616,6 +617,26 @@
          (execute-kbd-macro (kbd "ch TAB"))
          (should (equal (car messages) "Sole completion")))))))
 
+(ert-deftest completion-tab-with-completions-visible-bug81578 ()
+  "TAB doesn't scroll *Completions* if it completes or cycles completions."
+  ;; The scrolling behavior can only be triggered when *Completions* is
+  ;; displayed.
+  (let ((completion-auto-help 'always))
+    ;; If TAB does completion, it doesn't scroll.
+    (with-minibuffer-setup
+        (read-file-name "Prompt: "
+                        (expand-file-name "lisp/" (ert-resource-directory)))
+      ;; Use a single keyboard macro so the scrolling *could* trigger.
+      (execute-kbd-macro (kbd "TAB TAB"))
+      (should (string-suffix-p "lisp/cedet/semantic-utest" (minibuffer-contents))))
+    ;; If TAB cycles through completions, it doesn't scroll.
+    (let ((completion-cycle-threshold t))
+      (completing-read-with-minibuffer-setup
+          '("aa" "ab")
+        ;; The final C-a deactivates the transient keymap.
+        (execute-kbd-macro (kbd "TAB TAB TAB C-a"))
+        (should (equal (minibuffer-contents) "ab"))))))
+
 (ert-deftest completion-auto-select-test ()
   (let ((completion-auto-select t))
     (completing-read-with-minibuffer-setup
@@ -637,6 +658,41 @@
                    (not (eq (current-buffer) (get-buffer "*Completions*")))))
       (execute-kbd-macro (kbd "TAB TAB"))
       (should (eq (current-buffer) (get-buffer "*Completions*"))))))
+
+(ert-deftest completion-auto-select-test-bug81635 ()
+  (dolist (format '(horizontal vertical one-column))
+    (let ((completion-auto-select t)
+          (completion-auto-wrap t)
+          (completions-format format))
+      (completing-read-with-minibuffer-setup
+          '("aa" "ab" "ac")
+        (cl-flet ((selected ()
+                    (and (eq (current-buffer) (get-buffer "*Completions*"))
+                         (get-text-property (point) 'completion--string))))
+          ;; TAB cycles forward through all candidates, then to the
+          ;; minibuffer, then back to the first candidate.
+          (execute-kbd-macro (kbd "a TAB"))
+          (should (equal (selected) "aa"))
+          (execute-kbd-macro (kbd "TAB"))
+          (should (equal (selected) "ab"))
+          (execute-kbd-macro (kbd "TAB"))
+          (should (equal (selected) "ac"))
+          (execute-kbd-macro (kbd "TAB"))
+          (should (minibufferp))
+          (execute-kbd-macro (kbd "TAB"))
+          (should (equal (selected) "aa"))
+          (execute-kbd-macro (kbd "TAB"))
+          (should (equal (selected) "ab"))
+          ;; S-TAB cycles backward, then to the minibuffer, then to the
+          ;; last candidate.
+          (execute-kbd-macro (kbd "<backtab>"))
+          (should (equal (selected) "aa"))
+          (execute-kbd-macro (kbd "<backtab>"))
+          (should (minibufferp))
+          (execute-kbd-macro (kbd "<backtab>"))
+          (should (equal (selected) "ac"))
+          (execute-kbd-macro (kbd "<backtab>"))
+          (should (equal (selected) "ab")))))))
 
 (ert-deftest completion-auto-wrap-test ()
   (let ((completion-auto-wrap nil))

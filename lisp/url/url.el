@@ -100,7 +100,8 @@ Emacs."
 					((= x ?*) ".*")
 					((= x ??) ".")
 					(t (char-to-string x))))
-				     noproxy "") "\\)"))
+				     noproxy)
+				    "\\)"))
 		      url-proxy-services))))
 
     (url-setup-privacy-info)

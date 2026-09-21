@@ -597,6 +597,11 @@ Arne J@o{}rgensen wrote @file{latexenc.el}, a package to
 automatically guess the correct coding system in @LaTeX{} files.
 
 @item
+Rahul Martim Juliato and St@'ephane Marks wrote
+@file{markdown-ts-mode.el} and @file{markdown-ts-mode-x.el}, a major
+mode for editing Markdown files.
+
+@item
 Alexandre Julliard wrote @file{vc-git.el}, support for the Git version
 control system.
 
@@ -710,6 +715,10 @@ a package for pretty-printing Emacs buffers to PostScript printers;
 chart that can be printed to a PostScript printer; and
 @file{whitespace.el}, a package that detects and cleans up excess
 whitespace in a file (building on an earlier version by Rajesh Vaidheeswarran).
+
+@item
+Richard Lawrence wrote @file{diary-icalendar.el}, a library to handle
+iCalendar (RFC 5545) data.
 
 @item
 Frederic Lepied wrote @file{expand.el}, which uses the abbrev
@@ -827,6 +836,11 @@ Brian Marick and Daniel LaLiberte wrote @file{hideif.el}, support for
 hiding selected code within C @code{#ifdef} clauses.
 
 @item
+St@'ephane Marks wrote @file{system-sleep.el} and
+@file{system-taskbar.el}, libraries to interface with operating system
+sleep/wake and taskbar facilities.
+
+@item
 Simon Marshall wrote @file{regexp-opt.el}, which generates a regular
 expression from a list of strings; and the fast-lock and lazy-lock
 font-lock support modes.  He also extended @file{comint.el} and
@@ -871,6 +885,10 @@ Common Lisp code; @file{ebuff-menu.el}, an electric browser for
 buffer listings; @file{ehelp.el}, bindings for browsing help screens;
 and @file{rfc822.el}, a parser for E-mail addresses in the format
 used in mail messages and news articles (Internet RFC 822 and its successors).
+
+@item
+Bret Mogilefsky, Christian Vogler, Juergen Hoetzel, Reuben Thomas and
+wrote @file{lua-mode.el}, an Emacs mode for editing Lua programs.
 
 @item
 Gerd M@"ollmann was the Emacs maintainer from the beginning of Emacs 21
@@ -1059,8 +1077,9 @@ Michael D. Prange and Steven A. Wood wrote @file{fortran.el}, a mode
 for editing Fortran code.
 
 @item
-Vincenzo Pupillo wrote @code{php-ts-mode.el}, a major mode for editing
-PHP programs.
+Vincenzo Pupillo wrote @file{mhtml-ts-mode.el}, a major mode for editing
+HTML files, and @file{php-ts-mode.el}, a major mode for editing PHP
+programs.
 
 @item
 Ashwin Ram wrote @file{refer.el}, commands to look up references in
@@ -1471,6 +1490,10 @@ extended drag-n-drop support.
 Masatake Yamato wrote @file{ld-script.el}, an editing mode for GNU
 linker scripts, and contributed subword handling and style
 guessing in CC mode.
+
+@item
+Eshel Yaron wrote @file{elisp-scope.el}, an implementation of semantic
+analysis for Emacs Lisp symbols.
 
 @item
 Jonathan Yavner wrote @file{testcover.el}, a package for keeping track

@@ -127,10 +127,13 @@ is not useful to the user.")
 
 (defcustom dframe-update-speed 1
   "Idle time in seconds needed before dframe will update itself.
-Updates occur to allow dframe to display directory information
-relevant to the buffer you are currently editing."
+Updates occur to allow dframe to display directory information relevant
+to the buffer you are currently editing.  The value will be passed
+to `run-with-idle-timer', and can be an integer or a float.
+However, `setopt' will not accept a list of the kind returned
+by `current-idle-time' as valid."
   :group 'dframe
-  :type 'integer)
+  :type 'number)
 
 (defcustom dframe-activity-change-focus-flag nil
   "Non-nil means the selected frame will change based on activity.
@@ -652,7 +655,7 @@ who requested the timer.  NULL-ON-ERROR is ignored."
        timeout
        ;; We have a timer, an off is requested, and no client
        ;; functions are left, shut er down.
-       (and dframe-timer (not timeout) dframe-client-functions))
+       (and dframe-timer (not timeout) (not dframe-client-functions)))
       ;; Only call the low level function if we are changing the state.
       (dframe-set-timer-internal timeout)))
 

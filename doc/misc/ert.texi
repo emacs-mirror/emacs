@@ -336,7 +336,9 @@ failing test.
 
 Each entry consists of the name of the test followed by the code that
 performs the transform being tested.  The buffer also contains buttons
-that allow jumping to the test definitions.
+that allow jumping to the test definitions.  If a test fails, the diff
+button displays a Diff Mode buffer comparing the actual and expected
+output.
 
 @xref{erts files} for more information.
 

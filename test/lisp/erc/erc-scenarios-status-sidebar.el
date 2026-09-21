@@ -93,7 +93,7 @@
 ;; terminal, and we lack a fixture for that.  Please try running this
 ;; test interactively with both graphical Emacs and non.
 (declare-function erc-nickbar-mode "erc-speedbar" (arg))
-(declare-function erc-speedbar--get-timers "erc-speedbar" nil)
+(declare-function dframe-timer-fn "dframe" ())
 (declare-function speedbar-timer-fn "speedbar" nil)
 (defvar erc-nickbar-mode)
 (defvar speedbar-buffer)
@@ -171,6 +171,9 @@
         (should-not erc-nickbar-mode)
         (should-not (cdr (frame-list)))))
 
-    (should-not (erc-speedbar--get-timers))))
+    ;; No stray dframe timers.
+    (should-not (any (lambda (timer)
+                       (eq #'dframe-timer-fn (timer--function timer)))
+                     timer-idle-list))))
 
 ;;; erc-scenarios-status-sidebar.el ends here

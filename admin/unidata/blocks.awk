@@ -64,6 +64,8 @@ BEGIN {
     alias["halfwidth and fullwidth forms"] = "cjk-misc"
     alias["yijing hexagram symbols"] = "cjk-misc"
     alias["common indic number forms"] = "north-indic-number"
+    alias["kanbun"] = "han"
+    alias["vertical forms"] = "cjk-misc"
 
     tohex["a"] = 10
     tohex["b"] = 11
@@ -121,6 +123,7 @@ function name2alias(name   , w, w2) {
     else if (name ~ /sutton signwriting/) return "sutton-sign-writing"
     else if (name ~ /sinhala archaic number/) return "sinhala"
     else if (name ~ /tangut components/) return "tangut"
+    else if (name ~ /jurchen radicals/) return "jurchen"
 
     sub(/^small /, "", name)
     sub(/ (extended|extensions*|supplement).*/, "", name)
@@ -159,6 +162,17 @@ FILENAME ~ "Blocks.txt" && /^[0-9A-F]/ {
 	start[i] = "3358"
 	end[i] = "33FF"
 	name[i] = "CJK Compatibility"
+    }
+    else if (start[i] == "FFF0")
+    {
+	start[i] = "FFFC"
+	end[i] = "FFFD"
+	name[i] = "Replacement Symbols"
+	alt[i] = "symbol"
+	i++
+	start[i] = "FFFE"
+	end[i] = "FFFF"
+	name[i] = "Specials"
     }
 
     alt[i] = name2alias(name[i])
@@ -268,7 +282,7 @@ END {
     {
         printf("    (#x%s #x%s %s)", start[j], end[j], alt[j])
         ## Fuzz to decide whether worth printing original name as a comment.
-        if (name[j] && alt[j] != tolower(name[j]) && alt[j] !~ /-/)
+        if (name[j] && alt[j] != tolower(name[j]) && (alt[j] !~ /-/ || tolower(name[j]) ~ /supplement/))
             printf(" ; %s", name[j])
         printf("\n")
     }

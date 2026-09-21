@@ -597,6 +597,7 @@ Branch FROM will be prepended to the list."
   (setq-local truncate-lines t)
   (setq-local font-lock-defaults '(gitmerge-mode-font-lock-keywords)))
 
+;;;###autoload
 (defun gitmerge (from)
   "Merge from branch FROM into `default-directory'."
   (interactive

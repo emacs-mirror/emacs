@@ -34,7 +34,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <eloop-threshold.h>
+#include <min-eloop-threshold.h>
 #include <filename.h>
 #include <idx.h>
 #include <intprops.h>
@@ -42,6 +42,7 @@
 
 #ifdef _LIBC
 # include <shlib-compat.h>
+# include <stdbool.h>
 # define GCC_LINT 1
 # define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
 #else
@@ -72,7 +73,6 @@
 # endif
 # define __mempcpy mempcpy
 # define __pathconf pathconf
-# define __rawmemchr rawmemchr
 # define __readlink readlink
 # if IN_RELOCWRAPPER
     /* When building the relocatable program wrapper, use the system's memmove
@@ -233,7 +233,7 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
             return NULL;
           rname = bufs->rname.data;
         }
-      dest = __rawmemchr (rname, '\0');
+      dest = strchr (rname, '\0');
       start = name;
       prefix_len = FILE_SYSTEM_PREFIX_LEN (rname);
     }
@@ -317,7 +317,7 @@ realpath_stk (const char *name, char *resolved, struct realpath_bufs *bufs)
             }
           if (0 <= n)
             {
-              if (++num_links > __eloop_threshold ())
+              if (++num_links > MIN_ELOOP_THRESHOLD)
                 {
                   __set_errno (ELOOP);
                   goto error;

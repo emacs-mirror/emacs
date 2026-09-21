@@ -212,7 +212,7 @@ calling FUNC with FILE as an argument."
 	    (not (eq (aref modes (+ ,index 3)) ?-)))
 	   (t
 	    ;; Otherwise call FUNC.
-	    (,(eval func) ,file)))))
+	    (,(eval func t) ,file)))))
 
 (defcustom eshell-ls-highlight-alist nil
   "This alist correlates test functions to color.

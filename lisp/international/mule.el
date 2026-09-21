@@ -291,6 +291,8 @@ attribute."
 (defvar hack-read-symbol-shorthands-function nil
   "Holds function to compute `read-symbol-shorthands'.")
 
+(defvar files--name-of-loading-file)
+
 (defun load-with-code-conversion (fullname file &optional noerror nomessage
                                            eval-function)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
@@ -350,7 +352,11 @@ Return t if file exists."
 			       'raw-text)))
 		  (set-buffer-multibyte nil))
 	      ;; Make `kill-buffer' quiet.
-	      (set-buffer-modified-p nil))
+	      (set-buffer-modified-p nil)
+              ;; Record the name of the file in a buffer-local variable
+              ;; that 'internal--get-default-lexical-binding' can use if
+              ;; it needs to show a lexical-binding cookie warning.
+              (setq files--name-of-loading-file fullname))
 	    ;; Have the original buffer current while we eval,
             ;; but consider shorthands of the eval'ed one.
 	    (let ((read-symbol-shorthands shorthands))

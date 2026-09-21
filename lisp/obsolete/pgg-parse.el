@@ -104,7 +104,7 @@
 
 (defmacro pgg-format-key-identifier (string)
   `(mapconcat (lambda (c) (format "%02X" (pgg-char-int c)))
-	      ,string "")
+	      ,string)
   ;; `(upcase (apply #'format "%02x%02x%02x%02x%02x%02x%02x%02x"
   ;;                 (string-to-number-list ,string)))
   )

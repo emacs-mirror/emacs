@@ -561,9 +561,9 @@ static float config_gamma = -1.0f;
 static void
 release_com (IUnknown **i)
 {
-  if ( *i )
+  if (*i)
     {
-      ((IUnknown *) (*i))->lpVtbl->Release (*i);
+      (*i)->lpVtbl->Release (*i);
       *i = NULL;
     }
 }

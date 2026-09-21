@@ -5360,7 +5360,9 @@ The net effect of making this non-nil is that if `quit-restore-window'
 doesn't find a suitable buffer previously shown in the window, it will
 rather try to delete the window (and maybe its frame) than show a buffer
 the window has never shown before."
-  :type 'boolean
+  :type '(choice (const :tag "Switch to previous buffer" nil)
+                 (const :tag "Skip previous buffer" skip-first)
+                 (const :tag "Try to delete window" t))
   :version "31.1"
   :group 'windows)
 
@@ -5437,7 +5439,7 @@ elsewhere.  This value is used by `quit-windows-on'."
                             (throw 'prev-buffer (car buf))))))
          (dedicated (window-dedicated-p window))
 	 (frame (window-frame window))
-	 quad entry reset-prev)
+	 quint entry reset-prev)
     (cond
      ;; First try to delete dedicated windows that are not side windows.
      ((and dedicated (not (eq dedicated 'side))
@@ -5467,27 +5469,34 @@ elsewhere.  This value is used by `quit-windows-on'."
 	    window nil (memq bury-or-kill '(kill killing))))
       ;; If the previously selected window is still alive, select it.
       (window--quit-restore-select-window quit-restore-2 frame))
-     ((or (and (listp (setq quad (nth 1 quit-restore-prev)))
-	       (buffer-live-p (car quad))
+     ((or (and (listp (setq quint (nth 1 quit-restore-prev)))
+	       (buffer-live-p (car quint))
 	       (eq (nth 3 quit-restore-prev) buffer)
 	       ;; Use selected window from quit-restore-prev.
 	       (setq quit-restore-2 quit-restore-prev-2)
 	       ;; We want to reset quit-restore-prev only.
 	       (setq reset-prev t))
-	  (and (listp (setq quad (nth 1 quit-restore)))
-	       (buffer-live-p (car quad))
+	  (and (listp (setq quint (nth 1 quit-restore)))
+	       (buffer-live-p (car quint))
 	       (eq (nth 3 quit-restore) buffer)))
       ;; Show another buffer stored in quit-restore(-prev) parameter.
-      (when (and (integerp (nth 3 quad))
+      (when (and (integerp (nth 3 quint))
+                 ;; Make sure the actual combination type of WINDOW
+                 ;; matches the one stored in the new fifth subslot of
+                 ;; the second slot of the 'quit-restore-prev' or
+                 ;; 'quit-restore' parameter.  Otherwise we might end up
+                 ;; with a window unexpectedly resizing in the wrong
+                 ;; direction (Rahguzar's scenario for Bug#81614).
+                 (eq (nth 4 quint) (window-combined-p window))
 		 (if (window-combined-p window)
-                     (/= (nth 3 quad) (window-total-height window))
-                   (/= (nth 3 quad) (window-total-width window))))
+                     (/= (nth 3 quint) (window-total-height window))
+                   (/= (nth 3 quint) (window-total-width window))))
 	;; Try to resize WINDOW to its old height but don't signal an
 	;; error.
 	(condition-case nil
 	    (window-resize
              window
-             (- (nth 3 quad) (if (window-combined-p window)
+             (- (nth 3 quint) (if (window-combined-p window)
                                  (window-total-height window)
                                (window-total-width window)))
              (window-combined-p window t))
@@ -5495,7 +5504,7 @@ elsewhere.  This value is used by `quit-windows-on'."
       (set-window-dedicated-p window nil)
       ;; Restore WINDOW's previous buffer, start and point position.
       (set-window-buffer-start-and-point
-       window (nth 0 quad) (nth 1 quad) (nth 2 quad))
+       window (nth 0 quint) (nth 1 quint) (nth 2 quint))
       ;; Restore the 'side' dedicated flag as well.
       (when (eq dedicated 'side)
         (set-window-dedicated-p window 'side))
@@ -5937,16 +5946,6 @@ changed by this function."
 	   window (- (if new-parent 1.0 (window-normal-size window horizontal))
 		     new-normal)))
 
-	(unless horizontal
-	  (let ((quit-restore (window-parameter window 'quit-restore)))
-	    (when quit-restore
-	      (let ((quad (nth 1 quit-restore)))
-		(when (and (listp quad) (integerp (nth 3 quad)))
-		  ;; When WINDOW has a 'quit-restore' parameter that
-		  ;; specifies a previous height to restore, remove that
-		  ;; - it does more harm than good now (Bug#78835).
-		  (setf (nth 3 quad) nil))))))
-
 	(let ((new (split-window-internal
 		    window new-pixel-size side new-normal refer)))
           (window--pixel-to-total frame horizontal)
@@ -6063,10 +6062,7 @@ amount of redisplay; this is convenient on slow terminals."
 	     (<= (window-start new-window) old-point)
 	     (set-window-point new-window old-point)
 	     (select-window new-window))))
-    ;; Always copy quit-restore parameter in interactive use.
-    (let ((quit-restore (window-parameter window-to-split 'quit-restore)))
-      (when quit-restore
-	(set-window-parameter new-window 'quit-restore quit-restore)))
+
     new-window))
 
 (defalias 'split-window-vertically 'split-window-below)
@@ -6104,10 +6100,6 @@ right, if any.  Interactively, SIZE is the prefix numeric argument."
       ;; `split-window' would not signal an error here.
       (error "Size of new window too small"))
     (setq new-window (split-window window-to-split size t))
-    ;; Always copy quit-restore parameter in interactive use.
-    (let ((quit-restore (window-parameter window-to-split 'quit-restore)))
-      (when quit-restore
-	(set-window-parameter new-window 'quit-restore quit-restore)))
     new-window))
 
 (defalias 'split-window-horizontally 'split-window-right)
@@ -7040,14 +7032,16 @@ if that parameter's fourth element equals WINDOW's buffer."
 	  (set-window-parameter
 	   window (if quit-restore 'quit-restore-prev 'quit-restore)
 	   (list 'other
-		 ;; A quadruple of WINDOW's buffer, start, point and height.
+		 ;; A quintuple of WINDOW's buffer, start, point, height
+                 ;; and combination direction.
 		 (list (current-buffer) (window-start window)
 		       ;; Preserve window-point-insertion-type (Bug#12855).
 		       (copy-marker
 			(window-point window) window-point-insertion-type)
 		       (if (window-combined-p window)
                            (window-total-height window)
-			 (window-total-width window)))
+			 (window-total-width window))
+                       (window-combined-p window))
 		 (selected-window) buffer))))))
    ((eq type 'window)
     ;; WINDOW has been created on an existing frame.
@@ -8084,9 +8078,9 @@ See `other-frame-prefix' for an example of use.")
 
 (defcustom display-buffer-alist nil
   "Alist of user-defined conditional actions for `display-buffer'.
-Its value takes effect before processing the ACTION argument of
-`display-buffer' and before `display-buffer-base-action' and
-`display-buffer-fallback-action', but after
+Its value takes effect before processing `display-buffer-default-alist',
+the ACTION argument of `display-buffer', `display-buffer-base-action'
+and `display-buffer-fallback-action', but after
 `display-buffer-overriding-action', which see.
 
 If non-nil, this is an alist of elements (CONDITION . ACTION),
@@ -8109,6 +8103,21 @@ and adds the associated ACTION to the list of actions it will try."
   :risky t
   :version "24.1"
   :group 'windows)
+
+(defvar display-buffer-default-alist nil
+  "Alist of conditional default actions for `display-buffer'.
+If non-nil, this is an alist of elements (CONDITION . ACTION) like
+`display-buffer-alist'.  Its value takes effect before processing the
+ACTION argument of `display-buffer' and before
+`display-buffer-base-action' and `display-buffer-fallback-action', but
+after `display-buffer-overriding-action' and `display-buffer-alist',
+which see.
+
+Lisp programs may let-bind this variable to specify conditional actions
+for wrapped `display-buffer' calls.  Users are not supposed to set this
+variable.  They should customize `display-buffer-alist' instead which
+has higher priority and, as a rule, is left alone by Lisp programs.")
+(put 'display-buffer-default-alist 'risky-local-variable t)
 
 (defcustom display-buffer-base-action '(nil . nil)
   "User-specified default action for `display-buffer'.
@@ -8227,14 +8236,15 @@ window.  An action alist is an association list mapping symbols
 to values.  Action functions use the action alist passed to them
 to fine-tune their behaviors.
 
-`display-buffer' builds a list of action functions and an action
-alist by combining any action functions and alists specified by
-`display-buffer-overriding-action', `display-buffer-alist', the
-ACTION argument, `display-buffer-base-action', and
-`display-buffer-fallback-action' (in order).  Then it calls each
-function in the combined function list in turn, passing the
-buffer as the first argument and the combined action alist as the
-second argument, until one of the functions returns non-nil.
+`display-buffer' builds a list of action functions and an action alist
+by combining any action functions and alists specified by
+`display-buffer-overriding-action', `display-buffer-alist',
+`display-buffer-default-alist', the ACTION argument,
+`display-buffer-base-action', and `display-buffer-fallback-action' (in
+order).  Then it calls each function in the combined function list in
+turn, passing the buffer as the first argument and the combined action
+alist as the second argument, until one of the functions returns
+non-nil.
 
 See above for the action functions and the action they try to
 perform.
@@ -8359,9 +8369,9 @@ Action alist entries are:
     selected regardless of which windows were selected afterwards within
     this command.
  `category' -- If the caller of `display-buffer' passes an alist entry
-    `(category . symbol)' in its action argument, then you can match
-    the displayed buffer by using the same category in the condition
-    part of `display-buffer-alist' entries.
+    `(category . symbol)' in its action argument, then you can match the
+    displayed buffer by using the same category in the condition part of
+    `display-buffer-alist' and `display-buffer-default-alist' entries.
  `tab-name' -- If non-nil, specifies the name of the tab in which to
     display the buffer; see `display-buffer-in-new-tab'.
  \\+`tab-group' -- If non-nil, specifies the tab group to use when creating
@@ -8398,6 +8408,9 @@ specified by the ACTION argument."
             (display-buffer-assq-regexp
              buf-name display-buffer-alist action))
            (special-action (display-buffer--special-action buffer))
+           (default-action
+            (display-buffer-assq-regexp
+             buf-name display-buffer-default-alist action))
            ;; Extra actions from the arguments to this function:
            (extra-action
             (cons nil (append (if inhibit-same-window
@@ -8405,9 +8418,9 @@ specified by the ACTION argument."
                               (if frame
                                   `((reusable-frames . ,frame))))))
            ;; Construct action function list and action alist.
-           (actions (list display-buffer-overriding-action
-                          user-action special-action action extra-action
-                          display-buffer-base-action
+           (actions (list display-buffer-overriding-action user-action
+                          special-action default-action action
+                          extra-action display-buffer-base-action
                           display-buffer-fallback-action))
            (functions (apply #'append
                              (mapcar (lambda (x)
@@ -9301,15 +9314,16 @@ indirectly called by the latter."
 	      (get-largest-window 0 nil not-this-window)))
 	 (quit-restore (and (window-live-p window)
 			    (window-parameter window 'quit-restore)))
-	 (quad (nth 1 quit-restore)))
+	 (quint (nth 1 quit-restore)))
     (when (window-live-p window)
       ;; If the window was used by `display-buffer' before, try to
       ;; resize it to its old height but don't signal an error.
-      (when (and (listp quad)
-		 (integerp (nth 3 quad))
-		 (> (nth 3 quad) (window-total-height window)))
+      (when (and (listp quint)
+		 (integerp (nth 3 quint))
+                 (eq (nth 4 quint) (window-combined-p window))
+		 (> (nth 3 quint) (window-total-height window)))
 	(condition-case nil
-	    (window-resize window (- (nth 3 quad) (window-total-height window)))
+	    (window-resize window (- (nth 3 quint) (window-total-height window)))
 	  (error nil)))
 
       (prog1
@@ -9367,15 +9381,16 @@ window for another buffer."
               (let ((window (display-buffer--lru-window alist)))
                 (when (window-live-p window)
                   (let* ((quit-restore (window-parameter window 'quit-restore))
-	                 (quad (nth 1 quit-restore)))
+	                 (quint (nth 1 quit-restore)))
                     ;; If the window was used by `display-buffer' before, try to
                     ;; resize it to its old height but don't signal an error.
-                    (when (and (listp quad)
-		               (integerp (nth 3 quad))
-		               (> (nth 3 quad) (window-total-height window)))
+                    (when (and (listp quint)
+		               (integerp (nth 3 quint))
+                               (eq (nth 4 quint) (window-combined-p window))
+		               (> (nth 3 quint) (window-total-height window)))
 	              (condition-case nil
 	                  (window-resize
-                           window (- (nth 3 quad) (window-total-height window)))
+                           window (- (nth 3 quint) (window-total-height window)))
 	                (error nil)))
                     (prog1
 	                (window--display-buffer buffer window 'reuse alist)

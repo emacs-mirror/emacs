@@ -281,9 +281,10 @@ non-nil value.
                 next2 (or next (with-current-buffer what
                                  (point-max))))
           (funcall func (prog1 (marker-position mark)
-                          (set-marker mark next2))
+                          (set-marker mark next2 what))
                    (if mark2 (min next2 mark2) next2)))
-        (set-marker mark nil) (if mark2 (set-marker mark2 nil)))
+        (set-marker mark nil what)
+        (if mark2 (set-marker mark2 nil what)))
     (or start (setq start 0))
     (or end (setq end (length what)))
     (while (< start end)

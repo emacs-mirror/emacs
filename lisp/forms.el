@@ -1560,7 +1560,7 @@ As a side effect: sets `forms--the-record-list'."
 	  (mapconcat #'identity forms--the-record-list forms-field-sep))
 
     (if (string-match-p (regexp-quote forms-field-sep)
-			(mapconcat #'identity forms--the-record-list ""))
+			(mapconcat #'identity forms--the-record-list))
 	(error "Field separator occurs in record - update refused"))
 
     ;; Handle multi-line fields, if allowed.
@@ -2032,7 +2032,7 @@ Usage: (setq forms-number-of-fields
 		          (if (fboundp el)
 		              (concat (prin1-to-string (symbol-function el))
 				      "\n")))))
-	      args "")))
+	      args)))
 	(with-current-buffer (get-buffer-create "*forms-mode debug*")
 	  (if (zerop (buffer-size))
 	      (emacs-lisp-mode))

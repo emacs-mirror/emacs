@@ -896,8 +896,8 @@ normal hook `proced-post-display-hook'.
 
 \\{proced-mode-map}"
   :interactive nil
-  (abbrev-mode 0)
-  (auto-fill-mode 0)
+  (abbrev-mode -1)
+  (auto-fill-mode -1)
   (setq buffer-read-only t
         truncate-lines t
         header-line-format '(:eval (proced-header-line)))
@@ -1809,7 +1809,7 @@ Replace newline characters by \"^J\" (two characters)."
                                                      (nth 1 grammar)
                                                      (mapconcat (lambda (s)
                                                                   (if s "+" "-"))
-                                                                refiner ""))))))
+                                                                refiner))))))
              value)
 
         ;; highlight the header of the sort column

@@ -151,7 +151,7 @@ must never cause a Lisp error."
 						    (1- (point)))))
 		    (when encoded
 		      (setq value (mapconcat (lambda (c) (format "%%%02x" c))
-					     value ""))))
+					     value))))
 		   ((and (or (memq c ttoken)
 			     ;; EXTENSION: Support non-ascii chars.
 			     (> c ?\177))

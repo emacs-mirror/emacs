@@ -1951,8 +1951,16 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 			if (platform_fd.asset
 			    && platform_fd.asset != (void *) -1)
 			  {
-			    *storeptr = string;
-			    goto handle_platform_fd;
+			    /* Here, openp found a platform specific
+			       file descriptor.  It can't be a directory
+			       under Android, so return it in *PLATFORM
+			       and then indicate this by returning -3
+			       for the file descriptor.  */
+			    if (storeptr)
+			      *storeptr = string;
+			    *platform = platform_fd.asset;
+			    SAFE_FREE ();
+			    return -3;
 			  }
 
 			if (platform_fd.asset == (void *) -1)
@@ -2031,16 +2039,6 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
   SAFE_FREE ();
   errno = last_errno;
   return -1;
-
-#ifdef USE_ANDROID_ASSETS
- handle_platform_fd:
-
-  /* Here, openp found a platform specific file descriptor.  It can't
-     be a directory under Android, so return it in *PLATFORM and then
-     -3 as the file descriptor.  */
-  *platform = platform_fd.asset;
-  return -3;
-#endif
 }
 
 
@@ -4744,27 +4742,10 @@ it defaults to the value of `obarray'.  */)
   obarray = check_obarray (NILP (obarray) ? Vobarray : obarray);
   CHECK_STRING (string);
 
-
-  char* longhand = NULL;
-  ptrdiff_t longhand_chars = 0;
-  ptrdiff_t longhand_bytes = 0;
-  tem = oblookup_considering_shorthand (obarray, SSDATA (string),
-					SCHARS (string), SBYTES (string),
-					&longhand, &longhand_chars,
-					&longhand_bytes);
+  tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
 
   if (!BARE_SYMBOL_P (tem))
-    {
-      if (longhand)
-	{
-	  tem = intern_driver (make_multibyte_string (longhand, longhand_chars,
-						      longhand_bytes),
-			       obarray, tem);
-	  xfree (longhand);
-	}
-      else
-	tem = intern_driver (string, obarray, tem);
-    }
+    tem = intern_driver (string, obarray, tem);
   return tem;
 }
 
@@ -4783,24 +4764,13 @@ it defaults to the value of `obarray'.  */)
 
   if (!SYMBOLP (name))
     {
-      char *longhand = NULL;
-      ptrdiff_t longhand_chars = 0;
-      ptrdiff_t longhand_bytes = 0;
-
       CHECK_STRING (name);
       string = name;
-      tem = oblookup_considering_shorthand (obarray, SSDATA (string),
-					    SCHARS (string), SBYTES (string),
-					    &longhand, &longhand_chars,
-					    &longhand_bytes);
-      if (longhand)
-	xfree (longhand);
+      tem = oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
       return FIXNUMP (tem) ? Qnil : tem;
     }
   else
     {
-      /* If already a symbol, we don't do shorthand-longhand translation,
-	 as promised in the docstring.  */
       Lisp_Object sym = maybe_remove_pos_from_symbol (name);
       string = XSYMBOL (name)->u.s.name;
       tem
@@ -4834,14 +4804,7 @@ OBARRAY, if nil, defaults to the value of the variable `obarray'.  */)
   else
     {
       CHECK_STRING (name);
-      char *longhand = NULL;
-      ptrdiff_t longhand_chars = 0;
-      ptrdiff_t longhand_bytes = 0;
-      sym = oblookup_considering_shorthand (obarray, SSDATA (name),
-					    SCHARS (name), SBYTES (name),
-					    &longhand, &longhand_chars,
-					    &longhand_bytes);
-      xfree(longhand);
+      sym = oblookup (obarray, SSDATA (name), SCHARS (name), SBYTES (name));
       if (FIXNUMP (sym))
 	return Qnil;
     }

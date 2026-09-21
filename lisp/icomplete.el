@@ -154,16 +154,11 @@ See `icomplete-delay-completions-threshold'."
 (defcustom icomplete-in-buffer nil
   "If non-nil, use Icomplete when completing in buffers other than minibuffer.
 This affects commands like `completion-in-region', but not commands
-that use their own completions setup.
-
-If you would prefer to see only Icomplete's in-buffer display, but do
-not want the \"*Completions*\" buffer to pop up in those cases, add
-this advice to your init file:
-
-  (advice-add \\='completion-at-point
-              :after #\\='minibuffer-hide-completions)
-"
-  :type 'boolean)
+that use their own completions setup.  If the value is `with-completions-popup',
+display both in-buffer completions and the *Completions* buffer."
+  :type '(choice (const :tag "Disable" nil)
+                 (const :tag "Enable" t)
+                 (const :tag "Enable with popup window" with-completions-popup)))
 
 (defcustom icomplete-minibuffer-setup-hook nil
   "Icomplete-specific customization of minibuffer setup.
@@ -392,6 +387,32 @@ Return non-nil if something was stepped."
 
 ;;;_* Helpers for `fido-mode' (or `ido-mode' emulation)
 
+(cl-defgeneric icomplete-kill-candidate (category _candidate)
+  "\"Kill\" CANDIDATE, assuming it is of kind CATEGORY.
+CANDIDATE is a string denoting a completion candidate,
+CATEGORY should be a completion category, as specified
+in `completion-metadata'.
+\"Kill\" here means to actually delete the underlying object, such
+as a file, buffer, ...
+Return non-nil if the operation was successful."
+  (error "Don't know how to kill things for category `%s'" category))
+
+(cl-defmethod icomplete-kill-candidate ((_ (eql 'buffer)) thing)
+  (kill-buffer thing))
+
+(cl-defmethod icomplete-kill-candidate ((_ (eql 'file)) thing)
+  ;; FIXME: This makes assumptions about completion style: e.g. with
+  ;; partial-completion, `/usr/s/d/ema' can result in DIR being
+  ;; `/usr/s/d/' and THING being `share/doc/emacs', in which case DIR
+  ;; isn't the right base directory to pass to `expand-file-name'!
+  (let* ((dir (file-name-directory (icomplete--field-string)))
+         (file (expand-file-name thing dir)))
+    (delete-file file)
+    t))
+
+(cl-defmethod icomplete-kill-candidate ((_ (eql 'project-file)) thing)
+  (icomplete-kill-candidate 'file thing))
+
 (defun icomplete-fido-kill ()
   "Kill line or current completion, like `ido-mode'.
 If killing to the end of line make sense, call `kill-line',
@@ -406,26 +427,15 @@ require user confirmation."
         (call-interactively 'kill-line)
       (let* ((all (completion-all-sorted-completions))
              (thing (car all))
-             (cat (icomplete--category))
-             (action
-              (cl-case cat
-                (buffer
-                 (lambda ()
-                   (when (yes-or-no-p (concat "Kill buffer " thing "? "))
-                     (kill-buffer thing))))
-                ((project-file file)
-                 (lambda ()
-                   (let* ((dir (file-name-directory (icomplete--field-string)))
-                          (path (expand-file-name thing dir)))
-                     (when (yes-or-no-p (concat "Delete file " path "? "))
-                       (delete-file path) t))))
-                (t
-                 (error "Sorry, don't know how to kill things for `%s'" cat)))))
+             (cat (icomplete--category)))
         (when (let (;; Allow `yes-or-no-p' to work and don't let it
                     ;; `icomplete-exhibit' anything.
                     (enable-recursive-minibuffers t)
                     (icomplete-mode nil))
-                (funcall action))
+                ;; FIXME: For some categories (like `multi-category'), this
+                ;; results in a poor prompt.
+                (when (yes-or-no-p (format "Kill %s %s? " cat thing))
+                  (icomplete-kill-candidate cat thing)))
           (completion--cache-all-sorted-completions
            (icomplete--field-beg)
            (icomplete--field-end)
@@ -448,6 +458,8 @@ require user confirmation."
                    (file-name-directory (icomplete--field-string))))
          (current (car completion-all-sorted-completions))
          (probe (and dir current
+                     ;; FIXME: Same problem as in
+                     ;; `icomplete-kill-candidate<file>' above.
                      (expand-file-name (directory-file-name current)
                                        (substitute-env-vars dir)))))
     (cond ((and probe (file-directory-p probe) (not (string= current "./")))
@@ -629,6 +641,11 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 
 (defvar icomplete--in-region-buffer nil)
 
+(defun icomplete-list-inhibit ()
+  "Decide whether to inhibit the display of the *Completions* buffer."
+  (and (not (eq icomplete-in-buffer 'with-completions-popup))
+       (eq icomplete--in-region-buffer (current-buffer))))
+
 (defun icomplete--in-region-setup ()
   (when (or (not completion-in-region-mode)
 	    (and icomplete--in-region-buffer
@@ -637,6 +654,8 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (setq icomplete--in-region-buffer nil)
       (delete-overlay icomplete-overlay)
       (kill-local-variable 'completion-show-inline-help)
+      (remove-hook 'completion-list-inhibit-functions
+                   #'icomplete-list-inhibit t)
       (remove-hook 'post-command-hook #'icomplete-post-command-hook t)
       (message nil)))
   (when (and completion-in-region-mode
@@ -648,7 +667,9 @@ Usually run by inclusion in `minibuffer-setup-hook'."
       (unless (memq icomplete-minibuffer-map (cdr tem))
 	(setcdr tem (make-composed-keymap icomplete-minibuffer-map
 					  (cdr tem)))))
-    (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)))
+    (add-hook 'post-command-hook #'icomplete-post-command-hook nil t)
+    (add-hook 'completion-list-inhibit-functions
+              #'icomplete-list-inhibit nil t)))
 
 (defun icomplete--sorted-completions ()
   (or completion-all-sorted-completions

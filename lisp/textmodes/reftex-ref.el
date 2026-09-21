@@ -304,7 +304,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
              ((and (> c 2175) (< c 2304))               ; Mule Latin-1
               (char-to-string (aref tab (- c 2176))))
              (t (char-to-string c))))
-     string "")))
+     string)))
 
 (defun reftex-replace-prefix-escapes (prefix)
   ;; Replace %escapes in a label prefix

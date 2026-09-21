@@ -44,10 +44,11 @@
     (should (eq t (nsm-should-check "google.com")))
     (should (eq t (nsm-should-check "127.0.0.1")))
     (should (eq t (nsm-should-check "localhost")))
-    (let ((nsm-trust-local-network t))
-      (should (eq t (nsm-should-check "google.com")))
-      (should (eq nil (nsm-should-check "127.0.0.1")))
-      (should (eq nil (nsm-should-check "localhost"))))))
+    (when (network-interface-list)
+      (let ((nsm-trust-local-network t))
+        (should (eq t (nsm-should-check "google.com")))
+        (should (eq nil (nsm-should-check "127.0.0.1")))
+        (should (eq nil (nsm-should-check "localhost")))))))
 
 ;; This will need updating when IANA assign more IPv6 global ranges.
 (defun ipv6-is-available ()

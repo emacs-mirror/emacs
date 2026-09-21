@@ -113,7 +113,8 @@ specify nil for this variable."
 When non-nil, the first menu-entry's character that acts as a shortcut
 is displayed with the `highlight' face to help identify it.  The
 `tmm-mid-prompt' string is not used then."
-  :type 'boolean)
+  :type 'boolean
+  :version "31.1")
 
 (defface tmm-inactive
   '((t :inherit shadow))

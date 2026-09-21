@@ -2256,14 +2256,19 @@ fill_in_logfont (struct frame *f, LOGFONT *logfont, Lisp_Object font_spec)
                 logfont->lfCharSet = GREEK_CHARSET;
               else if (EQ (val, Qhangul))
                 logfont->lfCharSet = HANGUL_CHARSET;
-              else if (EQ (val, Qkana) || EQ (val, Qkanbun))
+              else if (EQ (val, Qkana))
                 logfont->lfCharSet = SHIFTJIS_CHARSET;
               else if (EQ (val, Qbopomofo))
                 logfont->lfCharSet = CHINESEBIG5_CHARSET;
               /* GB 18030 supports tibetan, yi, mongolian,
                  fonts that support it should show up if we ask for
                  GB2312 fonts. */
-              else if (EQ (val, Qtibetan) || EQ (val, Qyi)
+              else if (EQ (val, Qtibetan)
+		       /* Font supporting Yi in Windows 10/11 doesn't
+			  get listed if we ask for GB2312 fonts.
+			  FIXME: Is this true also for Windows 7 and
+			  later?  */
+		       || (EQ (val, Qyi) && w32_major_version < 10)
                        || EQ (val, Qmongolian))
                 logfont->lfCharSet = GB2312_CHARSET;
               else if (EQ (val, Qhebrew))
@@ -2454,7 +2459,6 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (58, Qphoenician);
   SUBRANGE (59, Qhan); /* There are others, but this is the main one.  */
   SUBRANGE (59, Qideographic_description); /* Windows lumps this in.  */
-  SUBRANGE (59, Qkanbun); /* And this.  */
   /* These are covered well either by the default Courier New or by
      CJK fonts that are set up specially in the default fontset.  So
      marking them here wouldn't be useful.  */
@@ -2502,7 +2506,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   /* 90: Private use, 91: Variation selectors, 92: Tags.  */
   SUBRANGE (93, Qlimbu);
   SUBRANGE (94, Qtai_le);
-  SUBRANGE (95, Qtai_le);
+  SUBRANGE (95, Qtai_lue);
   SUBRANGE (96, Qbuginese);
   SUBRANGE (97, Qglagolitic);
   SUBRANGE (98, Qtifinagh);
@@ -2516,7 +2520,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
   SUBRANGE (104, Qold_persian);
   SUBRANGE (105, Qshavian);
   SUBRANGE (106, Qosmanya);
-  SUBRANGE (107, Qcypriot);
+  SUBRANGE (107, Qcypriot_syllabary);
   SUBRANGE (108, Qkharoshthi);
   SUBRANGE (109, Qtai_xuan_jing_symbol);
   SUBRANGE (110, Qcuneiform);
@@ -2539,7 +2543,7 @@ font_supported_scripts (FONTSIGNATURE * sig)
 
   /* There isn't really a main symbol range, so include symbol if any
      relevant range is set.  */
-  MASK_ANY (0x80000000, 0x0000FFFF, 0, 0, Qsymbol);
+  MASK_ANY (0x80000000, 0x0000FFFF, 0x00000004, 0, Qsymbol);
 
   /* Missing:
        Tai Viet
@@ -2945,7 +2949,6 @@ syms_of_w32font (void)
   DEFSYM (Qcjk_misc, "cjk-misc");
   DEFSYM (Qkana, "kana");
   DEFSYM (Qbopomofo, "bopomofo");
-  DEFSYM (Qkanbun, "kanbun");
   DEFSYM (Qyi, "yi");
   DEFSYM (Qbyzantine_musical_symbol, "byzantine-musical-symbol");
   DEFSYM (Qmusical_symbol, "musical-symbol");
@@ -2968,7 +2971,7 @@ syms_of_w32font (void)
   DEFSYM (Qbuginese, "buginese");
   DEFSYM (Qbuhid, "buhid");
   DEFSYM (Qcuneiform, "cuneiform");
-  DEFSYM (Qcypriot, "cypriot");
+  DEFSYM (Qcypriot_syllabary, "cypriot-syllabary");
   DEFSYM (Qdeseret, "deseret");
   DEFSYM (Qglagolitic, "glagolitic");
   DEFSYM (Qgothic, "gothic");
@@ -2987,6 +2990,7 @@ syms_of_w32font (void)
   DEFSYM (Qtagalog, "tagalog");
   DEFSYM (Qtagbanwa, "tagbanwa");
   DEFSYM (Qtai_le, "tai-le");
+  DEFSYM (Qtai_lue, "tai-lue");
   DEFSYM (Qtifinagh, "tifinagh");
   DEFSYM (Qugaritic, "ugaritic");
   DEFSYM (Qlycian, "lycian");

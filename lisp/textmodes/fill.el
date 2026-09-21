@@ -95,7 +95,7 @@ With a prefix argument, cancel the fill prefix."
         (setq fill-prefix nil))))
   (if fill-prefix
       (message "fill-prefix: \"%s\"" fill-prefix)
-    (message "fill-prefix cancelled")))
+    (message "fill-prefix canceled")))
 
 (defcustom adaptive-fill-mode t
   "Non-nil means determine a paragraph's fill prefix from its text."

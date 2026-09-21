@@ -660,10 +660,9 @@ The current directory at call time should not affect the result (Bug#50630)."
 
 (ert-deftest dired-test-filename-with-newline-1 () ; bug#79528, bug#80499
   "Test handling of file name with literal embedded newline."
-  ;; File names with embedded newlines are not allowed on MS-Windows and
-  ;; MS-DOS.
-  (skip-when (memq system-type '(windows-nt ms-dos)))
-  (skip-unless (dired--ls-accept-b-switch-p))
+  ;; The handling of file names with embedded newlines requires an `ls'
+  ;; that supports the "--dired" switch.
+  (skip-unless (dired--check-use-ls-dired))
   (with-current-buffer "*Messages*"
     (let ((inhibit-read-only t))
       (erase-buffer)))
@@ -696,10 +695,9 @@ The current directory at call time should not affect the result (Bug#50630)."
 
 (ert-deftest dired-test-filename-with-newline-2 () ; bug#79528, bug#80499
   "Test handling of file name with embedded newline using `b' switch."
-  ;; File names with embedded newlines are not allowed on MS-Windows and
-  ;; MS-DOS.
-  (skip-when (memq system-type '(windows-nt ms-dos)))
-  (skip-unless (dired--ls-accept-b-switch-p))
+  ;; The handling of file names with embedded newlines requires an `ls'
+  ;; that supports the "--dired" switch.
+  (skip-unless (dired--check-use-ls-dired))
   (with-current-buffer "*Messages*"
     (let ((inhibit-read-only t))
       (erase-buffer)))

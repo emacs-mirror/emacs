@@ -771,6 +771,16 @@ The value depends on `grep-command', `grep-template',
 	   (cadr (or (assq setting host-defaults)
 		     (assq setting defaults)))))
 
+    ;; Solaris /usr/bin/grep lacks -E, standardized in POSIX.2-1992!
+    ;; If "grep" lacks -E, try one of the other standard Solaris greps.
+    ;; Only Solaris still has this problem, so do slow checks only there.
+    (when (and (equal grep-program "grep")
+	       (string-match-p "-solaris" system-configuration)
+	       (/= 1 (call-process "grep" nil nil nil "-E x")))
+      (let ((exec-path '("/usr/sfw/bin" "/usr/xpg4/bin")))
+	(when-let* ((g (executable-find "grep")))
+	  (setq grep-program g))))
+
     (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
       (setq grep-use-null-device
 	    (with-temp-buffer

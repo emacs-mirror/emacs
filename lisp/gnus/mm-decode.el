@@ -1142,7 +1142,7 @@ external if displayed external."
       (push (shell-quote-argument
 	     (gnus-map-function mm-path-name-rewrite-functions file))
 	    out))
-    (mapconcat #'identity (nreverse out) "")))
+    (mapconcat #'identity (nreverse out))))
 
 (defun mm-remove-parts (handles)
   "Remove the displayed MIME parts represented by HANDLES."

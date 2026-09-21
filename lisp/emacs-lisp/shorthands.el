@@ -29,6 +29,48 @@
 (require 'files)
 (require 'mule)
 
+(defun shorthands-of-symbol (s)
+  "Return a list of shorthand alternative spellings of S.
+S can be either a string or a symbol.  The returned shorthands are strings,
+in the order they are found in `read-symbol-shorthands'."
+  (let ((retval ())
+        (full-name (if (symbolp s) (symbol-name s) s)))
+    (dolist (mapping read-symbol-shorthands)
+      (let ((shorthand (car mapping))
+            (longhand (cdr mapping)))
+        (when (string-prefix-p longhand full-name)
+          (push (concat shorthand
+                        (substring full-name (length longhand)))
+                retval))))
+    (nreverse retval)))
+
+(defun shorthands-to-longhand (string)
+  "Return the longhand form of STRING according to `read-symbol-shorthands'.
+Returns a string.  If no shorthand applies, returns STRING."
+  (let ((mappings read-symbol-shorthands))
+    (while (and mappings (not (string-prefix-p (caar mappings) string)))
+      (setq mappings (cdr mappings)))
+    (if mappings
+        (concat (cdar mappings) (substring string (length (caar mappings))))
+      string)))
+
+(defun shorthands-intern (string &optional ob)
+  "`intern' STRING into the obarray OB, obeying `read-symbol-shorthands'."
+  (intern (shorthands-to-longhand string) ob))
+
+(defun shorthands-intern-soft (string &optional ob)
+  "Return the interned symbol of name STRING in the obarray OB, if any.
+If not found, return nil.
+Contrary to `intern-soft', this obeys `read-symbol-shorthands'."
+  (intern-soft (shorthands-to-longhand string) ob))
+
+(defun shorthands-unintern (string ob)
+  "`unintern's the symbol of shorthand name STRING in obarray OB.
+Obeys `read-symbol-shorthands'."
+  (unless (obarrayp ob)
+    (signal 'wrong-type-argument (list #'obarrayp ob)))
+  (unintern (shorthands-to-longhand string) ob))
+
 (defun hack-read-symbol-shorthands ()
   "Compute `read-symbol-shorthands' from Local Variables section."
   ;; FIXME: relies on the `hack-local-variables--find-variables'
@@ -65,7 +107,7 @@
              (print-name (match-string 1))
              (probe (and (not (memq existing '(font-lock-comment-face
                                                font-lock-string-face)))
-                         (intern-soft print-name)))
+                         (shorthands-intern-soft print-name)))
              (symbol-name (and probe (symbol-name probe)))
              (prefix (and symbol-name
                           (not (string-equal print-name symbol-name))

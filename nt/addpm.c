@@ -258,7 +258,7 @@ main (int argc, char *argv[])
 	  if (CreateDirectory (start_folder, NULL)
 	      || GetLastError () == ERROR_ALREADY_EXISTS)
 	    {
-	      char full_emacs_path[MAX_PATH + 1];
+	      char full_emacs_path[MAX_PATH + 1 + 5 + 12];
 	      IPersistFile *lnk;
 	      strcat (start_folder, "\\Emacs.lnk");
 	      sprintf (full_emacs_path, "%s\\bin\\%s", emacs_path, prog_name);
@@ -289,7 +289,7 @@ main (int argc, char *argv[])
 	  if (CreateDirectory (start_folder, NULL)
 	      || GetLastError () == ERROR_ALREADY_EXISTS)
 	    {
-	      char full_emacs_path[MAX_PATH + 1];
+	      char full_emacs_path[MAX_PATH + 1 + 5 + 12];
 	      IPersistFile *lnk;
 	      strcat (start_folder, "\\Emacs.lnk");
 	      sprintf (full_emacs_path, "%s\\bin\\%s", emacs_path, prog_name);

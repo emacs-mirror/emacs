@@ -2329,7 +2329,7 @@ The return value is a list of elements (BUFFER WINDOW-START POS),
 where BUFFER is a buffer, WINDOW-START is the start position of the
 window for that buffer, and POS is a window-specific point value.
 
-In rare ocasions BUFFER may have been already killed.  It's therefore
+In rare occasions BUFFER may have been already killed.  It's therefore
 advisable to always check the return value for the occurrence of dead
 buffers before using it.  */)
   (Lisp_Object window)
@@ -3423,16 +3423,16 @@ window_discard_buffer_from_window (Lisp_Object buffer, Lisp_Object window, bool 
     {
       Lisp_Object quit_restore = window_parameter (w, Qquit_restore);
       Lisp_Object quit_restore_prev = window_parameter (w, Qquit_restore_prev);
-      Lisp_Object quad;
+      Lisp_Object quint;
 
       if (EQ (buffer, Fnth (make_fixnum (3), quit_restore_prev))
-	  || (CONSP (quad = Fcar (Fcdr (quit_restore_prev)))
-	      && EQ (Fcar (quad), buffer)))
+	  || (CONSP (quint = Fcar (Fcdr (quit_restore_prev)))
+	      && EQ (Fcar (quint), buffer)))
 	Fset_window_parameter (window, Qquit_restore_prev, Qnil);
 
       if (EQ (buffer, Fnth (make_fixnum (3), quit_restore))
-	  || (CONSP (quad = Fcar (Fcdr (quit_restore)))
-	      && EQ (Fcar (quad), buffer)))
+	  || (CONSP (quint = Fcar (Fcdr (quit_restore)))
+	      && EQ (Fcar (quint), buffer)))
 	{
 	  Fset_window_parameter (window, Qquit_restore,
 				 window_parameter (w, Qquit_restore_prev));
@@ -7617,7 +7617,8 @@ struct save_window_data
 
     /* All fields above are traced by the GC.
        After saved_windows, the fields are ignored by the GC.  */
-
+    /* The change stamp of the frame at the time of saving.  */
+    int change_stamp;
     /* We should be able to do without the following two.  */
     int frame_cols, frame_lines;
     /* These three should get eventually replaced by their pixel
@@ -7858,7 +7859,25 @@ the return value is nil.  Otherwise the value is t.  */)
 	  /* If we squirreled away the buffer, restore it now.  */
 	  if (BUFFERP (w->combination_limit))
 	    wset_buffer (w, w->combination_limit);
-	  wset_old_buffer (w, p->old_buffer);
+
+	  if (data->change_stamp == f->change_stamp)
+	    /* Restore W's old_buffer slot but only if the configuration
+	       was saved and restored in between two redisplay cycles,
+	       that is, if F's saved change stamp and its current change
+	       stamp are equal.  In that case we should run W's buffer
+	       change functions provided the saved old_buffer and the
+	       restored buffer differ.  If the saved old_buffer and the
+	       restored buffer are one and the same, the window
+	       excursion was only temporary and it would be distracting
+	       to run the buffer change functions for it.
+
+	       If the change stamps are not equal, run the buffer change
+	       functions provided W's current buffer (which was stored
+	       by delete_all_child_windows above in W's old_buffer slot)
+	       and the buffer that will be restored differ (Bug#81079
+	       and Bug#81589).  */
+	    w->old_buffer = p->old_buffer;
+
 	  w->pixel_left = XFIXNAT (p->pixel_left);
 	  w->pixel_top = XFIXNAT (p->pixel_top);
 	  w->pixel_width = XFIXNAT (p->pixel_width);
@@ -8428,6 +8447,7 @@ saved by this function.  */)
   data->minibuf_selected_window = minibuf_level > 0 ? minibuf_selected_window : Qnil;
   data->root_window = FRAME_ROOT_WINDOW (f);
   data->focus_frame = FRAME_FOCUS_FRAME (f);
+  data->change_stamp = f->change_stamp;
   Lisp_Object tem = make_nil_vector (n_windows);
   data->saved_windows = tem;
   for (ptrdiff_t i = 0; i < n_windows; i++)

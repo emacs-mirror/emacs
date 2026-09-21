@@ -140,7 +140,7 @@ See `fringe-mode' for possible values and their effect."
 	  (if (equal fringe-mode '(nil . nil))
 	      (setq fringe-mode nil))
 	  (if (equal fringe-mode '(0 . 0))
-	      (setq fringe-mode 0)))
+	      (setq fringe-mode -1)))
       ;; Otherwise impose the user-specified value of fringe-mode.
       (custom-initialize-reset symbol value))))
 

@@ -105,8 +105,7 @@ with defcustoms that use :package-version have the appropriate
 add-to-list that determines the correspondence between package versions
 and Emacs versions.  Any changes you make in :version etc. should be
 tested by running "M-x customize-changed" after regenerating cus-load.el
-(run "make custom-deps" in the lisp/ directory) and loaddefs.el (run
-"make autoloads-force").
+and loaddefs.el (run "make -C lisp custom-deps autoloads-force").
 
 ** Manuals
 Check for node names using problematic characters:
@@ -118,7 +117,7 @@ Lisp files), and add the relevant authors to the Acknowledgments in
 doc/emacs/ack.texi and emacs.texi.  To find new files, you could run a
 command such as this:
 
-  $ git diff --name-status emacs-NN emacs-XX | grep -E "^A"
+  $ git diff --name-status --diff-filter=A emacs-NN emacs-XX
 
 where emacs-NN is the previous Emacs release branch, and emacs-XX is the
 new one.

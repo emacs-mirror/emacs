@@ -446,12 +446,13 @@ ev_modifiers_helper (unsigned int flags, unsigned int left_mask,
 
 /* This is a piece of code which is common to all the event handling
    methods.  Maybe it should even be a function.  */
-#define EV_TRAILER(e, fr)				\
-  {							\
-    struct frame *f = fr;				\
-    XSETFRAME (emacs_event->frame_or_window, f);	\
-    EV_TRAILER2 (e);					\
-  }
+#define EV_TRAILER(e, fr)					\
+  if (emacs_event->kind != NO_EVENT)				\
+    {								\
+      struct frame *f = fr;				        \
+      XSETFRAME (emacs_event->frame_or_window, f);      	\
+      EV_TRAILER2 (e);						\
+    }
 
 #define EV_TRAILER2(e)                                                  \
   {                                                                     \
@@ -2862,7 +2863,6 @@ ns_scroll_run (struct window *w, struct run *run)
 
   NSTRACE ("ns_scroll_run");
 
-  /* begin copy from other terms */
   /* Get frame-relative bounding box of the text display area of W,
      without mode lines.  Include in this box the left and right
      fringe of W.  */
@@ -2880,6 +2880,15 @@ ns_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - from_y;
       else
 	height = run->height;
+
+      /* If the destination is off the top of the current window, don't
+	 draw over the window above.  */
+      if (to_y < y) {
+	int d = y - to_y;
+	height -= d;
+	to_y += d;
+	from_y += d;
+      }
     }
   else
     {
@@ -2890,7 +2899,6 @@ ns_scroll_run (struct window *w, struct run *run)
       else
 	height = run->height;
     }
-  /* end copy from other terms */
 
   if (height == 0)
       return;
@@ -5034,6 +5042,7 @@ ns_send_appdefined (int value)
   if (send_appdefined)
     {
       NSEvent *nxev;
+      NSWindow *dest;
 
       /* We only need one NX_APPDEFINED event to stop NXApp from running.  */
       send_appdefined = NO;
@@ -5046,11 +5055,28 @@ ns_send_appdefined (int value)
           timed_entry = nil;
         }
 
+      /* Address the event to a window that actually exists.  With no main
+         window -- miniaturized, or mid handover of key/main status -- the
+         window number would be 0 and AppKit would silently discard the
+         event.  That is fatal here: send_appdefined has just been cleared
+         and timed_entry invalidated, so nothing would ever end [NSApp run]
+         again, and Emacs would hang forever with its UI unresponsive.  */
+      dest = [NSApp mainWindow];
+      if (dest == nil)
+        dest = [NSApp keyWindow];
+      if (dest == nil)
+        for (NSWindow *cand in [NSApp windows])
+          if ([cand windowNumber] > 0)
+            {
+              dest = cand;
+              break;
+            }
+
       nxev = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
                                 location: NSMakePoint (0, 0)
                            modifierFlags: 0
                                timestamp: 0
-                            windowNumber: [[NSApp mainWindow] windowNumber]
+                            windowNumber: [dest windowNumber]
                                  context: [NSApp context]
                                  subtype: 0
                                    data1: value
@@ -6143,13 +6169,15 @@ ns_term_init (Lisp_Object display_name)
 #endif
                             NSPasteboardTypeURL, nil] retain];
 
-  /* If fullscreen is in init/default-frame-alist, focus isn't set
-     right for fullscreen windows, so set this.  */
-  [NSApp activateIgnoringOtherApps:YES];
-
   NSTRACE_MSG ("Call NSApp run");
-
   [NSApp run];
+
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= 140000
+  [NSApp activate];
+#else
+  [NSApp activateIgnoringOtherApps:YES];
+#endif
+
   ns_do_open_file = YES;
 
 #ifdef NS_IMPL_GNUSTEP
@@ -8281,7 +8309,10 @@ ns_in_echo_area (void)
             old_title = 0;
           }
       }
-    else if (fs_state == FULLSCREEN_NONE && ! maximizing_resize
+    /* Redraw the window title with new dimensions only when actively
+       being resized by a user.  */
+    else if ([[self window] inLiveResize]
+	     && fs_state == FULLSCREEN_NONE && ! maximizing_resize
              && [[self window] title] != NULL)
       {
         char *size_title;
@@ -9332,6 +9363,16 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
   NSTRACE ("[EmacsView copyRect:To:]");
   NSTRACE_RECT ("Source", srcRect);
   NSTRACE_POINT ("Destination", dest);
+
+  /* If the destination is off the top of the pixel buffer, fix the
+     source and destination to copy only to y = 0.  */
+  if (dest.y < 0)
+    {
+      int d = dest.y;
+      dest.y = 0;
+      srcRect.origin.y -= d;
+      srcRect.size.height += d;
+    }
 
   NSRect dstRect = NSMakeRect (dest.x, dest.y, NSWidth (srcRect),
                                NSHeight (srcRect));

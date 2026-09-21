@@ -4118,7 +4118,7 @@ Otherwise, just expand the file name."
   (if idlwave-shell-electric-debug-mode
       (progn ;; Turn it off, and make sure it stays off.
 	(setq idlwave-shell-suppress-electric-debug t)
-	(idlwave-shell-electric-debug-mode 0))
+	(idlwave-shell-electric-debug-mode -1))
     (setq idlwave-shell-suppress-electric-debug nil)
     (idlwave-shell-electric-debug-mode t)))
 
@@ -4170,7 +4170,7 @@ Shell debugging commands are available as single key sequences."
 	  (when (and (derived-mode-p 'idlwave-mode)
 		     buffer-file-name
 		     idlwave-shell-electric-debug-mode)
-	    (idlwave-shell-electric-debug-mode 0))))))
+	    (idlwave-shell-electric-debug-mode -1))))))
   (setq idlwave-shell-electric-debug-buffers nil))
 
 ;; Show the help text

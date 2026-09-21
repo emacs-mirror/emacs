@@ -661,12 +661,21 @@ before speedbar has been loaded."
 	       (speedbar-extension-list-to-regex val))))
 
 (defcustom speedbar-directory-unshown-regexp "^\\(\\..*\\)\\'"
-  "Regular expression matching directories not to show in speedbar.
-They should include commonly existing directories which are not
-useful.  It is no longer necessary to include version-control
-directories here; see `vc-directory-exclusion-list'."
+  "How to hide matching directories.
+The value can either be nil or a regular expression:
+
+- nil means to not hide any directory.
+
+- A regular expression means to hide matching directories.
+  It is no longer necessary to include version-control directories here;
+  see `vc-directory-exclusion-list'.
+
+The default value is a regular expression that hides all directories
+whose name starts with a dot."
   :group 'speedbar
-  :type 'regexp)
+  :type '(choice (regexp :tag "Hide matches of regular expression")
+                 (const :tag "Do not hide anything" nil))
+  :version "32.1")
 
 (defcustom speedbar-file-unshown-regexp
   (let ((nstr "") (noext completion-ignored-extensions))
@@ -676,10 +685,20 @@ directories here; see `vc-directory-exclusion-list'."
 	    noext (cdr noext)))
     ;;               backup      refdir      lockfile
     (concat nstr "\\|#[^#]+#$\\|\\.\\.?\\'\\|\\.#"))
-  "Regexp matching files we don't want displayed in a speedbar buffer.
-It is generated from the variable `completion-ignored-extensions'."
+  "Hide matching files.
+The value can either be nil or a regular expression:
+
+- The nil value means to not hide any file.
+
+- The regular expression means to hide the matching files.
+
+The default value is a regular expression.  It is generated from the
+variable `completion-ignored-extensions'."
   :group 'speedbar
-  :type 'regexp)
+  :type '(choice
+          (regexp :tag "Hide matches of regular expression")
+          (const :tag "Do not hide anything" nil))
+  :version "32.1")
 
 (defvar speedbar-file-regexp nil
   "Regular expression matching files we know how to expand.
@@ -912,8 +931,7 @@ This basically creates a sparse keymap, and makes its parent be
 	     ["Quit" delete-frame t]))
 	  ((eq type 'window)
 	   '(["Customize..." speedbar-customize t]
-	     ["Close"
-	      (lambda () (interactive) (speedbar-window--close))
+	     ["Close" speedbar-window-close
 	      :keys "q" :active t])))))
 
 (defvar speedbar-desired-buffer nil
@@ -980,7 +998,7 @@ be displayed.  Currently, only one speedbar is supported at a time.
 `speedbar-before-delete-hook' is called before the frame is deleted."
   (interactive "P")
   (when (eq (speedbar-frame-or-window) 'window)
-    (speedbar-window--close))
+    (speedbar-window-close))
   ;; Get the buffer to play with
   (if (not (buffer-live-p speedbar-buffer))
       (with-current-buffer
@@ -1064,15 +1082,15 @@ Positive ARG means turn on, negative turn off.
 A nil ARG means toggle.  Once the speedbar window is activated, a buffer in
 `speedbar-mode' will be displayed.  Currently, only one speedbar is
 supported at a time.
-`speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted."
   (interactive "P")
   (when (eq (speedbar-frame-or-window) 'frame)
+    (run-hooks 'speedbar-before-delete-hook)
     (delete-frame (speedbar-current-frame)))
 
   (if (or (and (not arg) (speedbar-window--live-p))
 	  (and (numberp arg) (< arg 0)))
-      (speedbar-window--close)
+      (speedbar-window-close)
     (let ((current-window (selected-window)))
       (unless (speedbar-window--buffer-live-p)
 	(setq speedbar-buffer (get-buffer-create speedbar--buffer-name)))
@@ -1102,14 +1120,20 @@ supported at a time.
       (speedbar-update-contents)
       (speedbar-set-timer dframe-update-speed)
 
+      ;; handle kill-buffer
+      (add-hook 'kill-buffer-hook (lambda () (speedbar-window-close t)) nil t)
+
       ;; hscroll
       (setq-local auto-hscroll-mode nil)
       ;; reset the selection variable
       (setq speedbar-last-selected-file nil)
       (select-window current-window))))
 
-(defun speedbar-window--close ()
-  "Close `speedbar-window'."
+(defun speedbar-window-close (&optional no-kill-buffer)
+  "Close `speedbar-window'.
+If optional argument NO-KILL-BUFFER is not nil, close window without
+killing `speedbar-buffer', which is useful for `kill-buffer-hook'."
+  (interactive)
   (when (speedbar-window--live-p)
     (let ((current-window (selected-window)))
       ;; store the current window width
@@ -1123,9 +1147,11 @@ supported at a time.
       (setq speedbar--window nil
 	    speedbar-frame nil
 	    dframe-attached-frame nil)
+
       (speedbar-set-timer nil)
-      (kill-buffer speedbar-buffer)
-      (setq speedbar-buffer nil)
+      (unless no-kill-buffer
+        (kill-buffer speedbar-buffer)
+        (setq speedbar-buffer nil))
       (when (and current-window (window-live-p current-window))
 	(select-window current-window)))))
 
@@ -1311,31 +1337,31 @@ and the existence of packages."
 		 (speedbar-initial-menu)
 	       (save-excursion
 		 (dframe-select-attached-frame speedbar-frame)
-		  (eval (nth 1 (assoc speedbar-initial-expansion-list-name
-				speedbar-initial-expansion-mode-alist)))))
+		 (eval (nth 1 (assoc speedbar-initial-expansion-list-name
+				     speedbar-initial-expansion-mode-alist)))))
 	     ;; Dynamic menu stuff
 	     '("-")
-	    (list (cons "Displays"
-			(let ((displays nil)
-			      (alist speedbar-initial-expansion-mode-alist))
-			  (while alist
-			    (setq displays
-				  (cons
-				   (vector
-				    (capitalize (car (car alist)))
-				    (list
-				     'speedbar-change-initial-expansion-list
-				     (car (car alist)))
-				    :style 'radio
-				    :selected
-				    `(string= ,(car (car alist))
-					 speedbar-initial-expansion-list-name)
-				    )
-				   displays))
-			    (setq alist (cdr alist)))
-			  displays)))
-	    ;; The trailer
-	    (speedbar-easymenu-definition-trailer)))
+	     (list (cons "Displays"
+			 (let ((displays nil)
+			       (alist speedbar-initial-expansion-mode-alist))
+			   (while alist
+			     (setq displays
+				   (cons
+				    (vector
+				     (capitalize (car (car alist)))
+				     (list
+				      'speedbar-change-initial-expansion-list
+				      (car (car alist)))
+				     :style 'radio
+				     :selected
+				     `(string= ,(car (car alist))
+					       speedbar-initial-expansion-list-name)
+				     )
+				    displays))
+			     (setq alist (cdr alist)))
+			   displays)))
+	     ;; The trailer
+	     (speedbar-easymenu-definition-trailer)))
 	(localmap (save-excursion
 		    (let ((cf (selected-frame)))
 		      (prog2
@@ -1346,14 +1372,21 @@ and the existence of packages."
 			      speedbar-special-mode-key-map)
 			(select-frame cf))))))
     (with-current-buffer speedbar-buffer
-      (use-local-map (or localmap
-			 (speedbar-initial-keymap)
-			 ;; This creates a small keymap we can glom the
-			 ;; menu adjustments into.
-                         (speedbar-make-specialized-keymap)))
-      ;; Now add the new menu
-      (easy-menu-define speedbar-menu-map (current-local-map)
-        "Speedbar menu" md))
+      (let ((local-keymap (or localmap
+                              (speedbar-initial-keymap)
+                              ;; This creates a small keymap we can glom the
+                              ;; menu adjustments into.
+                              (speedbar-make-specialized-keymap))))
+        (if speedbar-prefer-window
+            (progn
+              (keymap-set local-keymap "q" 'speedbar-window-close)
+              (keymap-set local-keymap "Q" 'speedbar-window-close))
+          (dframe-update-keymap local-keymap))
+
+        (use-local-map local-keymap)
+        ;; Now add the new menu
+        (easy-menu-define speedbar-menu-map (current-local-map)
+          "Speedbar menu" md)))
 
     (run-hooks 'speedbar-reconfigure-keymaps-hook)))
 
@@ -1999,12 +2032,20 @@ the file-system."
       (let ((default-directory directory)
 	    (dir (directory-files directory nil))
 	    (dirs nil)
-	    (files nil))
+	    (files nil)
+            (hide-p (lambda (name user-option)
+                      (and-let* ((value (symbol-value user-option)))
+                        (if (stringp value)
+                            (string-match value name)
+                          (user-error "`%s' must either be a string or nil"
+                                      user-option))))))
 	(while dir
 	  (if (not
-	       (or (string-match speedbar-file-unshown-regexp (car dir))
+	       (or (funcall hide-p (car dir)
+                            'speedbar-file-unshown-regexp)
 		   (member (car dir) vc-directory-exclusion-list)
-		   (string-match speedbar-directory-unshown-regexp (car dir))))
+                   (funcall hide-p (car dir)
+                            'speedbar-directory-unshown-regexp)))
 	      (if (file-directory-p (car dir))
 		  (setq dirs (cons (car dir) dirs))
 		(setq files (cons (car dir) files))))
@@ -2723,13 +2764,15 @@ This should only be used by modes classified as special."
   "Set up the speedbar timer with TIMEOUT.
 Uses `dframe-set-timer'.
 Also resets scanner functions."
-  (dframe-set-timer timeout 'speedbar-timer-fn 'speedbar-update-flag)
-  ;; Apply a revert hook that will reset the scanners.  We attach to revert
-  ;; because most reverts occur during VC state change, and this lets our
-  ;; VC scanner fix itself.
-  (if timeout
-      (add-hook 'after-revert-hook 'speedbar-reset-scanners)
-    (remove-hook 'after-revert-hook 'speedbar-reset-scanners))
+  ;; `dframe-set-timer' must be called from `speedbar-buffer'.
+  (with-current-buffer speedbar-buffer
+    (dframe-set-timer timeout 'speedbar-timer-fn 'speedbar-update-flag)
+    ;; Apply a revert hook that will reset the scanners.  We attach to revert
+    ;; because most reverts occur during VC state change, and this lets our
+    ;; VC scanner fix itself.
+    (if timeout
+        (add-hook 'after-revert-hook 'speedbar-reset-scanners)
+      (remove-hook 'after-revert-hook 'speedbar-reset-scanners)))
   ;; change this if it changed for some reason
   (speedbar-set-mode-line-format))
 
@@ -2739,7 +2782,7 @@ Also resets scanner functions."
    ((and (speedbar-current-frame)
 	 (frame-live-p (speedbar-current-frame)))
     t)
-   ((speedbar-window--window-live-p) t)
+   ((speedbar-window--live-p) t)
    (t nil)))
 
 (defun speedbar-timer-fn ()
@@ -2787,8 +2830,7 @@ Also resets scanner functions."
 		(unless (and (or (member major-mode speedbar-ignored-modes)
 				 (and
 				  (eq af (speedbar-current-frame))
-				  (speedbar-window-current-window))
-				 (not (buffer-file-name)))
+				  (speedbar-window-current-window)))
 			     ;; Always update for GUD.
 			     (not (string-equal "GUD"
 						speedbar-initial-expansion-list-name)))

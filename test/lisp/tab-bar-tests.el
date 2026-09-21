@@ -52,24 +52,32 @@
   (tab-bar-tabs-set nil))
 
 (ert-deftest tab-bar-tests-quit-restore-window ()
+  :tags '(:unstable)                    ; Can hang.
   (skip-when (pcase system-type
-               ;; Skip test on MS-Windows in batch mode, since terminal
-               ;; frames cannot be created in that case.
-               ('windows-nt noninteractive)
-               ;; This test is unreliable on macOS when run in batch mode
-               ;; from Emacs (M-x compile).
-               ('darwin (equal (getenv "TERM") "dumb"))
                ;; Emba runs the container without "--tty"
                ;; (the environment variable "TERM" is nil), and this
                ;; test fails with '(error "Could not open file: /dev/tty")'.
                ;; Therefore skip it unless it can use '(tty-type . "linux")'.
-               ('gnu/linux (null (getenv "TERM")))))
+               ('gnu/linux (null (getenv "TERM")))
+               ;; Skip in batch mode, since the tty-type "linux"
+               ;; might not work on other platforms, and on MS-Windows
+               ;; terminal frames cannot be created in batch mode anyway.
+               (_ noninteractive)))
 
   (let* ((frame-params (when noninteractive
                          '((window-system . nil)
                            (tty-type . "linux"))))
          (pop-up-frame-alist frame-params)
          (frame-auto-hide-function 'delete-frame))
+
+    ;; After commit 293eaf323a0 (bug#81575) 'frame-deletable-p'
+    ;; checks if frames are on the same terminal.  But in this test
+    ;; the first frame F1 is on initial_terminal, but other created
+    ;; frames are on #<terminal 1 on /dev/tty>.  So create a new frame
+    ;; on the same terminal as other created frames, and delete
+    ;; the initial frame that is on another terminal.
+    (make-frame pop-up-frame-alist)
+    (delete-frame (car (last (frame-list))) nil)
 
     ;; 1.1. 'quit-restore-window' should delete the frame
     ;; from initial window (bug#59862)

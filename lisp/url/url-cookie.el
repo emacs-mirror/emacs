@@ -27,6 +27,7 @@
 (require 'url-parse)
 (require 'url-domsuf)
 (require 'generate-lisp-file)
+(require 'subr-x)
 
 (eval-when-compile (require 'cl-lib))
 
@@ -38,6 +39,7 @@
 
 ;; A cookie is stored internally as a vector of 7 slots
 ;; [ url-cookie NAME VALUE EXPIRES LOCALPART DOMAIN SECURE ]
+;; LOCALPART corresponds to the Path attribute.
 
 (cl-defstruct (url-cookie
             (:constructor url-cookie-create)
@@ -113,9 +115,11 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 		    (key (nth 5 fields))
 		    (val (nth 6 fields)))
                 (incf n)
-		;;(message "adding <%s>=<%s> exp=<%s> dom=<%s> path=<%s> sec=%S" key val expires dom path secure)
-		(url-cookie-store key val expires dom path secure)
-		))
+                (if (string-empty-p dom)
+                    (error "Invalid cookie: empty host/domain")
+                  ;;(message "adding <%s>=<%s> exp=<%s> dom=<%s> path=<%s> sec=%S" key val expires dom path secure)
+                  (let ((inhibit-message t))
+                    (url-cookie-store key val expires dom path secure)))))
 	     (t
 	      (message "ignoring malformed cookie line <%s>" line)))))
 	(forward-line))
@@ -168,12 +172,19 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
   "Store a cookie."
   (when (> (length name) 0)
     (let ((storage (if secure url-cookie-secure-storage url-cookie-storage))
-          tmp found-domain)
-      ;; First, look for a matching domain.
-      (if (setq found-domain (assoc domain storage))
-          ;; Need to either stick the new cookie in existing domain storage
+          (host
+           (condition-case nil
+               (url-host url-current-object)
+             (wrong-type-argument
+              (url-lazy-message "url-cookie-store: failed to get host \
+from url-current-object; falling back to domain: %s" domain)
+              domain)))
+          tmp found-host)
+      ;; First, look for a matching host.
+      (if (setq found-host (assoc host storage))
+          ;; Need to either stick the new cookie in existing host storage
           ;; or possibly replace an existing cookie if the names match.
-          (unless (dolist (cur (setq storage (cdr found-domain)) tmp)
+          (unless (dolist (cur (setq storage (cdr found-host)) tmp)
                     (and (equal localpart (url-cookie-localpart cur))
                          (equal name (url-cookie-name cur))
                          (progn
@@ -181,15 +192,15 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
                            (setf (url-cookie-value cur) value)
                            (setq tmp t))))
             ;; New cookie.
-            (setcdr found-domain (cons
-                                  (url-cookie-create :name name
-                                                     :value value
-                                                     :expires expires
-                                                     :domain domain
-                                                     :localpart localpart
-                                                     :secure secure)
-                                  (cdr found-domain))))
-        ;; Need to add a new top-level domain.
+            (setcdr found-host (cons
+                                (url-cookie-create :name name
+                                                   :value value
+                                                   :expires expires
+                                                   :domain domain
+                                                   :localpart localpart
+                                                   :secure secure)
+                                  (cdr found-host))))
+        ;; Need to add a new top-level host.
         (setq tmp (url-cookie-create :name name
                                      :value value
                                      :expires expires
@@ -197,11 +208,11 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
                                      :localpart localpart
                                      :secure secure))
         (cond (storage
-               (setcdr storage (cons (list domain tmp) (cdr storage))))
+               (setcdr storage (cons (list host tmp) (cdr storage))))
               (secure
-               (setq url-cookie-secure-storage (list (list domain tmp))))
+               (setq url-cookie-secure-storage (list (list host tmp))))
               (t
-               (setq url-cookie-storage (list (list domain tmp)))))))))
+               (setq url-cookie-storage (list (list host tmp)))))))))
 
 (defun url-cookie-expired-p (cookie)
   "Return non-nil if COOKIE is expired."
@@ -217,29 +228,27 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 		     (append url-cookie-secure-storage url-cookie-storage)
 		   url-cookie-storage))
 	(case-fold-search t)
-	cookies retval localpart-match)
+        retval localpart-match)
     (dolist (cur storage)
-      (setq cookies (cdr cur))
-      (if (and (car cur)
-	       (string-match
-                (concat "^.*"
-                        (regexp-quote
-                         ;; Remove the dot from wildcard domains
-                         ;; before matching.
-			 (if (eq ?. (aref (car cur) 0))
-                             (substring (car cur) 1)
-                           (car cur)))
-                        "$") host))
-	  ;; The domains match - a possible hit!
-	  (dolist (cur cookies)
-	    (and (if (and (stringp
-			   (setq localpart-match (url-cookie-localpart cur)))
-			  (stringp localpart))
-		     (string-match (concat "^" (regexp-quote localpart-match))
-				   localpart)
-		   (equal localpart localpart-match))
-		 (not (url-cookie-expired-p cur))
-		 (setq retval (cons cur retval))))))
+      (and-let* ((cookies (cdr cur))
+                 ;; Remove the dot from wildcard hosts before matching.
+                 (found-host (string-remove-prefix "." (car cur))))
+        (if (string-match
+             (concat "^.*" (regexp-quote found-host) "$")
+             host)
+            ;; The hosts match - a possible hit!
+            (dolist (cur cookies)
+              (and (if (and (stringp
+                             (setq localpart-match (url-cookie-localpart cur)))
+                            (stringp localpart))
+                       (string-match (concat "^" (regexp-quote localpart-match))
+                                     localpart)
+                     (equal localpart localpart-match))
+                   (not (url-cookie-expired-p cur))
+                   ;; Host-only cookies require exact match for host.
+                   (or (not (string-empty-p (url-cookie-domain cur)))
+                       (string= host found-host))
+                   (setq retval (cons cur retval)))))))
     retval))
 
 (defun url-cookie-generate-header-lines (host localpart secure)
@@ -272,17 +281,11 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
   :type '(repeat regexp))
 
 (defun url-cookie-host-can-set-p (host domain)
-  (cond
-   ((string= host domain)	; Apparently netscape lets you do this
-    t)
-   ((zerop (length domain))
-    nil)
-   (t
-    ;; Remove the dot from wildcard domains before matching.
-    (when (eq ?. (aref domain 0))
-      (setq domain (substring domain 1)))
-    (and (url-domsuf-cookie-allowed-p domain)
-         (string-suffix-p domain host 'ignore-case)))))
+  (or (string= host domain)      ; Apparently netscape lets you do this
+      (let       ; Remove the dot from wildcard domains before matching
+          ((dom (string-remove-prefix "." domain)))
+        (and (url-domsuf-cookie-allowed-p dom)
+             (string-suffix-p dom host 'ignore-case)))))
 
 (defun url-cookie-handle-set-cookie (str)
   (setq url-cookies-changed-since-last-save t)

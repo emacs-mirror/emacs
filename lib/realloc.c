@@ -28,10 +28,6 @@
 #include <errno.h>
 #include <stdckdint.h>
 
-#ifdef __CHERI_PURE_CAPABILITY__
-# include <cheri.h>
-#endif
-
 #ifndef _GL_INLINE_RPL_REALLOC
 
 /* Change the size of an allocated block of memory P to N bytes,
@@ -97,11 +93,6 @@ rpl_realloc (void *p, size_t n)
 # if !HAVE_REALLOC_POSIX
   if (result == NULL)
     errno = ENOMEM;
-# endif
-
-# ifdef __CHERI_PURE_CAPABILITY__
-  if (result != NULL)
-    result = cheri_bounds_set (result, n);
 # endif
 
   return result;

@@ -685,7 +685,8 @@ update_one_menu_entry (widget_instance* instance,
 	    emacs_abort ();
 	  if (XmIsCascadeButton (widget_list[i]))
 	    {
-	      menu = XmCreatePulldownMenu (parent, XtName(widget), NULL, 0);
+	      menu = XmCreatePulldownMenu (parent, (char *) XtName(widget),
+					   NULL, 0);
 	      make_menu_in_widget (instance, menu, contents, 0);
 	      ac = 0;
 	      XtSetArg (al [ac], XmNsubMenuId, menu); ac++;

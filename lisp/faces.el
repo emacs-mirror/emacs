@@ -48,7 +48,8 @@ the terminal-initialization file to be loaded."
     ("vt420" . "vt200")
     ("alacritty" . "xterm")
     ("foot" . "xterm")
-    ("contour" . "xterm"))
+    ("contour" . "xterm")
+    ("xterm-ghostty" . "ghostty"))
   "Alist of terminal type aliases.
 Entries are of the form (TYPE . ALIAS), where both elements are strings.
 This means to treat a terminal of type TYPE as if it were of type ALIAS."

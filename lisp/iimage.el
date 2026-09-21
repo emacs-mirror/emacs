@@ -96,7 +96,7 @@ Examples of image filename patterns to match:
 (defun turn-off-iimage-mode ()
   "Unconditionally turn off iimage mode."
   (interactive)
-  (iimage-mode 0))
+  (iimage-mode -1))
 
 (defun iimage-modification-hook (beg end)
   "Remove display property if a display region BEG..END is modified."

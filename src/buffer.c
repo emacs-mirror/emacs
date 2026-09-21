@@ -941,7 +941,7 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
     }
   else
     {
-      struct buffer *old_b = current_buffer;
+      specpdl_ref count = SPECPDL_INDEX ();
 
       clone_per_buffer_values (b->base_buffer, b);
       bset_filename (b, Qnil);
@@ -950,6 +950,7 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
       bset_backed_up (b, Qnil);
       bset_local_minor_modes (b, Qnil);
       bset_auto_save_file_name (b, Qnil);
+      record_unwind_current_buffer ();
       set_buffer_internal_1 (b);
       Fset (Qbuffer_save_without_query, Qnil);
       Fset (Qbuffer_file_number, Qnil);
@@ -959,7 +960,7 @@ Interactively, CLONE and INHIBIT-BUFFER-HOOKS are nil.  */)
 	 variable copies for list variables that might be mangled due
 	 to destructive operations in the indirect buffer. */
       run_hook (Qclone_indirect_buffer_hook);
-      set_buffer_internal_1 (old_b);
+      unbind_to (count, Qnil);
     }
 
   run_buffer_list_update_hook (b);
@@ -5829,6 +5830,12 @@ An entry (apply DELTA BEG END FUN-NAME . ARGS) supports selective undo
 in the active region.  BEG and END is the range affected by this entry
 and DELTA is the number of characters added or deleted in that range by
 this change.
+
+An entry (apply DELTA (BEG . END) FUN-NAME . ARGS) is similar to the
+previous kind.  The difference is that Emacs invokes FUN-NAME with
+\(apply FUN-NAME BEG2 END2 ARGS), where BEG2 and END2 are the adjusted
+values of BEG and END.  The function can use those arguments to compute
+positions relative to the adjusted region.
 
 An entry (MARKER . DISTANCE) indicates that the marker MARKER
 was adjusted in position by the offset DISTANCE (an integer).

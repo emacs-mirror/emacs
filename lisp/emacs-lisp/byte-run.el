@@ -252,6 +252,11 @@ declaration" f2 f))
           (let ((code (apply fn args)))
             (list 'progn ':autoload-end code)))))
 
+(defalias 'byte-run--set-font-lock-keyword
+  #'(lambda (name _args val)
+      (list 'function-put (list 'quote name)
+	    ''font-lock-keyword (list 'quote val))))
+
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
@@ -276,7 +281,8 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'completion #'byte-run--set-completion)
    (list 'modes #'byte-run--set-modes)
    (list 'interactive-args #'byte-run--set-interactive-args)
-   (list 'ftype #'byte-run--set-function-type))
+   (list 'ftype #'byte-run--set-function-type)
+   (list 'font-lock-keyword #'byte-run--set-font-lock-keyword))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,
@@ -561,7 +567,13 @@ The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).
 WHEN should be a string indicating when the function
-was first made obsolete, for example a date or a release number."
+was first made obsolete, for example a date or a release number.
+
+If OBSOLETE-NAME is a command, and WHEN is a release number, then it
+also determines whether Emacs offers the command as a completion
+candidate in `execute-extended-command' and similar commands: Emacs
+includes only obsolete commands that were first obsoleted in the running
+version of Emacs."
   (byte-run--constant-obsolete-warning obsolete-name)
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
@@ -581,8 +593,13 @@ is equivalent to the following two lines of code:
 \(defalias \\='old-fun \\='new-fun \"old-fun's doc.\")
 \(make-obsolete \\='old-fun \\='new-fun \"28.1\")
 
-WHEN should be a string indicating when the function was first
-made obsolete, for example a date or a release number.
+WHEN should be a string indicating when the function was first made
+obsolete, for example a date or a release number.
+If OBSOLETE-NAME is a command, and WHEN is a release number, then it
+also determines whether Emacs offers the command as a completion
+candidate in `execute-extended-command' and similar commands: Emacs
+includes only obsolete commands that were first obsoleted in the running
+version of Emacs.
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
   (declare (doc-string 4) (indent defun))
@@ -696,7 +713,7 @@ enabled."
 
 (defun with-no-warnings (&rest body)
   "Like `progn', but prevents compiler warnings in the body."
-  (declare (indent 0))
+  (declare (indent 0) (font-lock-keyword t))
   ;; The implementation for the interpreter is basically trivial.
   (car (last body)))
 

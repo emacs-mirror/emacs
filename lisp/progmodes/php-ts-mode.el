@@ -607,9 +607,11 @@ the current line."
 	  ;; of the "text" node
 	  (backward-word)
 	  (back-to-indentation)
-	  (if php-ts-mode-html-relative-indent
-	      (+ (point) php-ts-html-indent-offset)
-	    (point)))))))
+          (cond
+           ;; shebang or comment before <?php
+           ((string-equal (treesit-node-type (treesit-node-at (point) 'html)) "text") (point))
+           (php-ts-mode-html-relative-indent (+ (point) php-ts-html-indent-offset))
+           (t (point))))))))
 
 (defun php-ts-mode--array-element-heuristic (_node parent _bol &rest _)
   "Return of the position of the first element of the array.
@@ -1405,6 +1407,9 @@ If FORCE is t setup comment for PHP.  Depends on
 						 (seq "/" (+ "/"))
 						 (seq "/" (+ "*")))
 					     (* (syntax whitespace)))
+		      comment-start-line-regexp
+		      (rx (or (seq "#" (or eol (not (any "["))))
+			      (seq "/" (+ "/"))))
 		      ;; reset the state of mhtml-ts-mode--comment-setup
 		      mhtml-ts-mode--comment-current-lang nil))
       ;; otherwise set comment style for other languages.

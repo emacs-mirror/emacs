@@ -159,11 +159,11 @@ acl_default_nontrivial (acl_t acl)
    Return 1 if the given ACL, consisting of COUNT entries, is non-trivial.
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.  */
 int
-acl_nontrivial (int count, aclent_t *entries)
+acl_nontrivial (int count, aclent_t const *entries)
 {
   for (int i = 0; i < count; i++)
     {
-      aclent_t *ace = &entries[i];
+      aclent_t const *ace = &entries[i];
 
       /* Note: If ace->a_type = USER_OBJ, ace->a_id is the st_uid from stat().
          If ace->a_type = GROUP_OBJ, ace->a_id is the st_gid from stat().
@@ -188,7 +188,7 @@ acl_nontrivial (int count, aclent_t *entries)
    Return 1 if the given ACL, consisting of COUNT entries, is non-trivial.
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.  */
 int
-acl_ace_nontrivial (int count, ace_t *entries)
+acl_ace_nontrivial (int count, ace_t const *entries)
 {
   /* The flags in the ace_t structure changed in a binary incompatible way
      when ACL_NO_TRIVIAL etc. were introduced in <sys/acl.h> version 1.15.
@@ -209,7 +209,7 @@ acl_ace_nontrivial (int count, ace_t *entries)
     /* Running on Solaris 10.  */
     for (int i = 0; i < count; i++)
       {
-        ace_t *ace = &entries[i];
+        ace_t const *ace = &entries[i];
 
         /* Note:
            If ace->a_flags = ACE_OWNER, ace->a_who is the st_uid from stat().
@@ -236,7 +236,7 @@ acl_ace_nontrivial (int count, ace_t *entries)
 
       for (int i = 0; i < count; i++)
         {
-          ace_t *ace = &entries[i];
+          ace_t const *ace = &entries[i];
 
           unsigned int index1;
           if (ace->a_type == NEW_ACE_ACCESS_ALLOWED_ACE_TYPE)
@@ -368,14 +368,14 @@ acl_ace_nontrivial (int count, ace_t *entries)
 /* Return 1 if the given ACL is non-trivial.
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.  */
 int
-acl_nontrivial (int count, struct acl_entry *entries)
+acl_nontrivial (int count, struct acl_entry const *entries)
 {
   if (count > 3)
     return 1;
 
   for (int i = 0; i < count; i++)
     {
-      struct acl_entry *ace = &entries[i];
+      struct acl_entry const *ace = &entries[i];
 
       if (ace->uid != ACL_NSUSER && ace->gid != ACL_NSGROUP)
         return 1;
@@ -388,11 +388,11 @@ acl_nontrivial (int count, struct acl_entry *entries)
 /* Return 1 if the given ACL is non-trivial.
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.  */
 int
-aclv_nontrivial (int count, struct acl *entries)
+aclv_nontrivial (int count, struct acl const *entries)
 {
   for (int i = 0; i < count; i++)
     {
-      struct acl *ace = &entries[i];
+      struct acl const *ace = &entries[i];
 
       /* Note: If ace->a_type = USER_OBJ, ace->a_id is the st_uid from stat().
          If ace->a_type = GROUP_OBJ, ace->a_id is the st_gid from stat().
@@ -471,11 +471,11 @@ acl_nfs4_nontrivial (nfs4_acl_int_t *a)
    Return 1 if the given ACL, consisting of COUNT entries, is non-trivial.
    Return 0 if it is trivial, i.e. equivalent to a simple stat() mode.  */
 int
-acl_nontrivial (int count, struct acl *entries)
+acl_nontrivial (int count, struct acl const *entries)
 {
   for (int i = 0; i < count; i++)
     {
-      struct acl *ace = &entries[i];
+      struct acl const *ace = &entries[i];
 
       /* Note: If ace->a_type = USER_OBJ, ace->a_id is the st_uid from stat().
          If ace->a_type = GROUP_OBJ, ace->a_id is the st_gid from stat().

@@ -568,6 +568,10 @@ appropriate."
   "<mouse-2>"       #'tab-bar-mouse-close-tab
   "<down-mouse-3>"  #'tab-bar-mouse-context-menu
 
+  ;; ;; BEWARE: `mouse-wheel-UP-event' corresponds to `wheel-DOWN' events
+  ;; ;; and vice versa!!
+  ;; (key-description (vector mouse-wheel-down-event))     #'tab-previous
+  ;; (key-description (vector mouse-wheel-up-event))       #'tab-next
   "<mouse-4>"       #'tab-previous
   "<mouse-5>"       #'tab-next
   "<wheel-up>"      #'tab-previous
@@ -575,6 +579,10 @@ appropriate."
   "<wheel-left>"    #'tab-previous
   "<wheel-right>"   #'tab-next
 
+  ;; (key-description (vector (intern (format "S-%s" mouse-wheel-down-event))))
+  ;; #'tab-bar-move-tab-backward
+  ;; (key-description (vector (intern (format "S-%s" mouse-wheel-up-event))))
+  ;; #'tab-bar-move-tab
   "S-<mouse-4>"     #'tab-bar-move-tab-backward
   "S-<mouse-5>"     #'tab-bar-move-tab
   "S-<wheel-up>"    #'tab-bar-move-tab-backward
@@ -1216,7 +1224,7 @@ This prevents calling other non-idempotent items like
   (let* ((rest (or rest (tab-bar-format-list
                          (cdr (memq 'tab-bar-format-align-right
                                     tab-bar-format)))))
-         (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
+         (rest (mapconcat (lambda (item) (nth 2 item)) rest))
          (hpos (progn
                  (add-face-text-property 0 (length rest) 'tab-bar t rest)
                  (string-pixel-width rest)))

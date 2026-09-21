@@ -1977,7 +1977,7 @@ It can be the symbol `unavailable' to indicate that outline is
 unavailable for the document.")
 
 (defvar doc-view--mutool-pdf-outline-script
-  "var document = new Document.openDocument(\"%s\", \"application/pdf\");
+  "var document = new mupdf.Document.openDocument(\"%s\");
 var outline = document.loadOutline();
 if(!outline) quit();
 function pp(outl, level){print(\"((level . \" + level + \")\");\

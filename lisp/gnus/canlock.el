@@ -73,10 +73,10 @@ buffer does not look like a news message."
   (setq password (concat password (make-string (- 64 (length password)) 0)))
   (let ((ipad (mapconcat (lambda (byte)
 			   (char-to-string (logxor 54 byte)))
-			 password ""))
+			 password))
 	(opad (mapconcat (lambda (byte)
 			   (char-to-string (logxor 92 byte)))
-			 password "")))
+			 password)))
     (base64-encode-string
      (canlock-sha1 (concat opad (canlock-sha1 (concat ipad message-id)))))))
 

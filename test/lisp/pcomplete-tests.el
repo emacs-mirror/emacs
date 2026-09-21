@@ -96,5 +96,53 @@ usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]
         #("--super-prefix=" 0 1 (pcomplete-annotation "<path>"))
         #("--config-env=" 0 1 (pcomplete-annotation "<name>")))))))
 
+(defmacro pcomplete-shell-completion (input &rest body)
+  "Insert INPUT into shell mode, run completion, and return the result.
+BODY is a list of extra forms to call after completion (e.g. to choose a
+completion from the minibuffer)."
+  (declare (indent 1))
+  `(with-temp-buffer
+     (shell (current-buffer))
+     (unwind-protect
+         (let ((start (point)))
+           (insert ,input)
+           (completion-at-point)
+           ,@body
+           (buffer-substring start (point)))
+       (let (kill-buffer-query-functions)
+         (kill-buffer (current-buffer))))))
+
+(defun pcomplete/pcmpl-option-test ()
+  "Completion for a test command taking long options."
+  (while (pcomplete-match "^--" 0)
+    (pcomplete-here* (pcomplete-long-option-completion-table
+                      '("--version" "--owner=")))))
+
+(ert-deftest pcomplete-test-long-options/with-value ()
+  "Test that completing long options taking values doesn't insert a space."
+  (should (string= (pcomplete-shell-completion "pcmpl-option-test --own")
+                   "pcmpl-option-test --owner=")))
+
+(ert-deftest pcomplete-test-long-options/without-value ()
+  "Test that completing long options without values inserts a space."
+  (should (string= (pcomplete-shell-completion "pcmpl-option-test --ver")
+                   "pcmpl-option-test --version ")))
+
+(ert-deftest pcomplete-test-long-options/with-value/multiple ()
+  "Test that completing long options taking values doesn't insert a space.
+This tests completing when there are multiple possibilities."
+  (should (string= (pcomplete-shell-completion "pcmpl-option-test --"
+                     (minibuffer-next-completion 1)
+                     (minibuffer-choose-completion))
+                   "pcmpl-option-test --owner=")))
+
+(ert-deftest pcomplete-test-long-options/without-value/multiple ()
+  "Test that completing long options without values inserts a space.
+This tests completing when there are multiple possibilities."
+  (should (string= (pcomplete-shell-completion "pcmpl-option-test --"
+                     (minibuffer-next-completion 2)
+                     (minibuffer-choose-completion))
+                   "pcmpl-option-test --version ")))
+
 (provide 'pcomplete-tests)
 ;;; pcomplete-tests.el ends here

@@ -1,6 +1,6 @@
-# BidiBrackets-17.0.0.txt
-# Date: 2025-08-01
-# © 2025 Unicode®, Inc.
+# BidiBrackets-18.0.0.txt
+# Date: 2026-02-03
+# © 2026 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
 # For terms of use and license, see https://www.unicode.org/terms_of_use.html
 #
@@ -155,6 +155,8 @@
 2E5A; 2E59; c # TOP HALF RIGHT PARENTHESIS
 2E5B; 2E5C; o # BOTTOM HALF LEFT PARENTHESIS
 2E5C; 2E5B; c # BOTTOM HALF RIGHT PARENTHESIS
+2E62; 2E63; o # LEFT PARENTHESIS WITH MIDDLE RING
+2E63; 2E62; c # RIGHT PARENTHESIS WITH MIDDLE RING
 3008; 3009; o # LEFT ANGLE BRACKET
 3009; 3008; c # RIGHT ANGLE BRACKET
 300A; 300B; o # LEFT DOUBLE ANGLE BRACKET

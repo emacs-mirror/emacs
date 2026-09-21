@@ -2218,7 +2218,10 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
    tags-apropos-additional-actions))
 
 (cl-defstruct (xref-etags-location
-               (:constructor xref-make-etags-location (tag-info file)))
+               ( :constructor xref-make-etags-location (tag-info file)
+                 "Create an Etags Xref location.
+TAG-INFO is a info object accepted by `etags-goto-tag-location'.
+FILE is an absolute file name."))
   "Location of an etags tag."
   tag-info file)
 

@@ -482,11 +482,26 @@ collection clause."
                               return (overlay-get o 'prop)))
                  "test")))
 
+(ert-deftest cl-macs-loop-being-intervals/current-buffer ()
+  (should (equal (with-temp-buffer
+                   (insert "foo" (propertize "bar" 'prop t))
+                   (cl-loop for i being the intervals collect i))
+                 '((1 . 4) (4 . 7)))))
+
+(ert-deftest cl-macs-loop-being-intervals/new-buffer ()
+  (should (equal (with-temp-buffer
+                   (insert "foo" (propertize "bar" 'prop t))
+                   (let ((buffer (current-buffer)))
+                     (with-temp-buffer
+                       (cl-loop for i being the intervals of buffer
+                                collect i))))
+                 '((1 . 4) (4 . 7)))))
+
 (ert-deftest cl-macs-loop-being-frames ()
   (should (eq (cl-loop with selected = (selected-frame)
                        for frame being the frames
                        when (eq frame selected)
-                         return frame)
+                       return frame)
               (selected-frame))))
 
 (ert-deftest cl-macs-loop-being-windows ()

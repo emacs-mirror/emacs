@@ -364,7 +364,7 @@ TIME should be one of:
   (the acceptable formats are HHMM, H:MM, HH:MM, HHam, HHAM,
   HHpm, HHPM, HH:MMam, HH:MMAM, HH:MMpm, or HH:MMPM;
   a period `.' can be used instead of a colon `:' to separate
-  the hour and minute parts);
+  the hour and minute parts, but only if am/pm suffix is included);
 
 - a string giving a relative time like \"90\" or \"2 hours 35 minutes\"
   (the acceptable forms are a number of seconds without units

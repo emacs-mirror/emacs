@@ -212,7 +212,7 @@ This class will cache data derived during various searches.")
   "Synchronize the search index IDX with some NEW-TAGS."
   ;; Reset our parts.
   (semantic-reset idx)
-  ;; Notify dependants by clearing their indices.
+  ;; Notify dependents by clearing their indices.
   (semanticdb-notify-references
    (oref idx table)
    (lambda (tab _me)
@@ -226,7 +226,7 @@ This class will cache data derived during various searches.")
   (if (semantic-find-tags-by-class 'include new-tags)
       (progn
 	(semantic-reset idx)
-	;; Notify dependants by clearing their indices.
+	;; Notify dependents by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
 	 (lambda (tab _me)
@@ -236,7 +236,7 @@ This class will cache data derived during various searches.")
     (when (oref idx type-cache)
       (when (semanticdb-partial-synchronize (oref idx type-cache) new-tags)
 	;; If the synchronize returns true, we need to notify.
-	;; Notify dependants by clearing their indices.
+	;; Notify dependents by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
 	 (lambda (tab _me)

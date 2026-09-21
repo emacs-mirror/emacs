@@ -342,11 +342,11 @@ Name: Multiline Block Comments 1 (bug#60270)
  */
 =-=-=
 
-Name: Multiline Block Comments 2 (bug#60270)
+Name: Multiline Block Comments 2 (bug#60270, bug#81533)
 
 =-=
 /*
-  some comment
+   some comment
  */
 =-=-=
 
@@ -365,7 +365,7 @@ Name: Multiline Block Comments 4 (bug#60270)
  */
 =-=-=
 
-Name: Multiline Block Comments 5 (bug#60270)
+Name: Multiline Block Comments 5 (bug#60270, bug#81533)
 
 =-=
 /*
@@ -374,12 +374,24 @@ line 2
  */
 =-=
 /*
-  line one
-  line 2
+   line one
+   line 2
  */
 =-=-=
 
-Name: Block Comment prefixes (Bug#61314)
+Name: Dangler (bug#81533)
+
+=-=
+int put; /* line one
+
+line 2 */
+=-=
+int put; /* line one
+
+            line 2 */
+=-=-=
+
+Name: Block Comment prefixes (Bug#61314, bug#81533)
 
 =-=-=
 /*
@@ -389,9 +401,9 @@ Name: Block Comment prefixes (Bug#61314)
 */
 =-=-=
 /*
-  - item1
-  - item2
-  - item3
+   - item1
+   - item2
+   - item3
  */
 =-=-=
 

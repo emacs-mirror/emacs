@@ -624,7 +624,7 @@ filing messages."
                  (if (or (string-match regexp (car elem))
                          (string-match regexp (cadr elem)))
                      (format "%s: %s\n" (car elem) (cadr elem))))
-               mh-alias-passwd-alist ""))
+               mh-alias-passwd-alist))
         (message "Making passwd aliases...done")))
     (if (and (string-equal "" matches)
              (string-equal "" group-matches)

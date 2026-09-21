@@ -1819,7 +1819,7 @@ Treats the logical `and' for index phrases."
      (mapconcat (lambda (x)
                   (format macro-fmt
                           (format (if mathp reftex-index-math-format "%s") x)))
-                index-keys "")
+                index-keys)
    (if repeat (reftex-index-simplify-phrase match) ""))))
 
 (defun reftex-query-index-phrase-globally (files &rest args)
@@ -2068,7 +2068,7 @@ Does not do a `save-excursion'."
   "Offer a list of possible index macros and have the user select one."
   (let* ((prompt (concat "Select macro: ["
                          (mapconcat (lambda (x) (char-to-string (car x)))
-                                    reftex-index-phrases-macro-data "")
+                                    reftex-index-phrases-macro-data)
                          "] "))
          (help (concat "Select an indexing macro\n========================\n"
                        (mapconcat (lambda (x)

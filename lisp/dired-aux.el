@@ -2276,7 +2276,7 @@ that suppresses the confirmation, and backup files are always created."
 (declare-function make-symbolic-link "fileio.c")
 
 (defcustom dired-create-destination-dirs nil
-  "Whether Dired should create destination dirs when copying/removing files.
+  "Whether Dired should create destination dirs when copying/moving files.
 If nil, don't create non-existent destination directories.
 If `ask', ask the user whether to create them.
 If `always', create them without asking.
@@ -3356,7 +3356,26 @@ This function takes some pains to conform to `ls -lR' output."
 	(modflag (buffer-modified-p))
 	(old-switches switches)
 	switches-have-R mark-alist case-fold-search buffer-read-only)
-    (and (not switches) cons (setq switches (cdr cons)))
+    (and (not switches)
+         ;; FIXME: This line fixes a bug when entering `C-u i' with
+         ;; `dired-auto-toggle-b-switch' non-nil, but the fix is
+         ;; controversial so currently not used; see
+         ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=81295#20> and
+         ;; the following messages and also bug#81522 for discussion.
+         ;; (not (dired-switches-escape-p dired-actual-switches))
+         cons (setq switches (cdr cons)))
+    ;; FIXME: Since the bug results is a bad Dired display, we warn the
+    ;; user; remove this warning when an acceptable fix is installed.
+    (when (and dired-auto-toggle-b-switch dired-switches-alist
+               (directory-files (caar dired-switches-alist) nil "\n")
+               (dired-switches-escape-p dired-actual-switches)
+               (not (dired-switches-escape-p (cdar dired-switches-alist))))
+      (display-warning 'dired
+                       "
+You have encountered a known Emacs bug
+for which there is currently no acceptable solution;
+see <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=81295#56>
+and the related messages for details."))
     (dired-insert-subdir-validate dirname switches)
     ;; case-fold-search is nil now, so we can test for capital `R':
     (if (setq switches-have-R (and switches (string-match-p "R" switches)))
@@ -3382,6 +3401,16 @@ This function takes some pains to conform to `ls -lR' output."
 		 (if cur-cons
 		     (setcdr cur-cons switches)
 		   (push (cons cur-dir switches) dired-switches-alist)))))))
+    ;; Since we insert subdirs without calling `dired-internal-noselect'
+    ;; we also have to test here whether the subdir contains a file name
+    ;; with a newline, and if so, pop up a warning.  FIXME: Is there a
+    ;; cleaner way to do this?  See bug#81295 and bug#81522.
+    (unless (or dired-auto-toggle-b-switch
+                (dired-switches-escape-p dired-listing-switches)
+                (dired-switches-escape-p dired-actual-switches))
+      (when (and (dired--filename-with-newline-p)
+                 (dired--check-use-ls-dired))
+        (dired--display-filename-with-newline-warning (current-buffer))))
     (dired-initial-position dirname)
     (save-excursion (dired-mark-remembered mark-alist))
     (restore-buffer-modified-p modflag)))

@@ -953,12 +953,12 @@ component, `default-directory' is used as the basis for completion."
                       (or (eq action t)
                           (eq (car-safe action) 'boundaries))))
             (let ((newstring
-                   (mapconcat #'identity (nreverse (cons string strings)) "")))
+                   (mapconcat #'identity (nreverse (cons string strings)))))
               ;; FIXME: We could also try to return unexpanded envvars.
               (complete-with-action action table newstring pred))
           (let* ((envpos (apply #'+ (mapcar #' length strings)))
                  (newstring
-                  (mapconcat #'identity (nreverse (cons string strings)) ""))
+                  (mapconcat #'identity (nreverse (cons string strings))))
                  (bounds (completion-boundaries newstring table pred
                                                 (or (cdr-safe action) ""))))
             (if (>= (car bounds) envpos)
@@ -1370,6 +1370,38 @@ Sequence should be a vector or list of strings."
       (pcomplete-read-hosts pcomplete-hosts-file 'pcomplete--host-name-cache
                    'pcomplete--host-name-cache-timestamp)))
 
+(defun pcomplete-long-option-completion-table (options)
+  "Make a completion table for a list of OPTIONS.
+OPTIONS should be a list of option strings; if a string ends in
+\"=\", it's an option that accepts a value."
+  (lambda (string pred action)
+    (pcase action
+      ('nil                             ; try-completion
+       (let ((result (try-completion string options pred)))
+         ;; If the completion ends in "=", then it's not really
+         ;; complete yet: we expect a value after the "=".  Return the
+         ;; original STRING in this case instead of t to indicate
+         ;; that.
+         (if (and (eq result t) (string-suffix-p "=" string))
+             string
+           result)))
+      ('t                               ; all-completions
+       ;; Don't list completions when the boundary starts after an "=".
+       (unless (and (string-suffix-p "=" string)
+                    (member string options))
+         (all-completions string options pred)))
+      ('lambda                          ; test-completion
+       (test-completion string options pred))
+      (`(boundaries . ,suffix)          ; completion-boundaries
+       ;; As above, if the completion ends in "=", then it's not
+       ;; complete yet.  The completion's boundary should start after
+       ;; the "=" to indicate that that's where subsequent completions
+       ;; will occur.
+       (if (and (string-suffix-p "=" string)
+                (member string options))
+           `(boundaries ,(length string) . ,(length suffix))
+         (completion-boundaries string options pred suffix))))))
+
 ;;; Parsing help messages
 
 (defvar pcomplete-from-help (make-hash-table :test #'equal)
@@ -1494,7 +1526,8 @@ COMMAND and ARGS as arguments."
            (pcomplete-here (pcomplete-entries)
                            (pcomplete-match-string 1 0)))
           ((string-prefix-p "-" (pcomplete-arg 0))
-           (pcomplete-here (apply #'pcomplete-from-help command args)))
+           (pcomplete-here (pcomplete-long-option-completion-table
+                            (apply #'pcomplete-from-help command args))))
           (t (pcomplete-here* (pcomplete-entries))))))
 
 (provide 'pcomplete)

@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2026-07-04.10}
+\def\texinfoversion{2026-09-06.15}
 %
 % Copyright 1985, 1986, 1988, 1990-2026 Free Software Foundation, Inc.
 %
@@ -153,6 +153,9 @@
 \ifx\putwordDefopt\undefined    \gdef\putwordDefopt{User Option}\fi
 \ifx\putwordDeffunc\undefined   \gdef\putwordDeffunc{Function}\fi
 
+% scratch count register
+\newcount\countA
+
 % Give the space character the catcode for a space.
 \def\spaceisspace{\catcode`\ =10\relax}
 
@@ -181,6 +184,10 @@
   spell-ing spell-ings
   stand-alone strong-est time-stamp time-stamps which-ever white-space
   wide-spread wrap-around
+}
+
+\def\txiwarning#1{%
+  \message{^^J\linenumber Warning: #1^^J}%
 }
 
 % Sometimes it is convenient to have everything in the transcript file
@@ -765,7 +772,7 @@ where each line of input produces a line of output.}
 
 % @include FILE -- \input text of FILE.
 %
-\def\include{\tracingmacros=1\parseargusing\filenamecatcodes\includezzz}
+\def\include{\parseargusing\filenamecatcodes\includezzz}
 \def\includezzz#1{%
   \pushthisfilestack
   \def\thisfile{#1}%
@@ -997,7 +1004,6 @@ where each line of input produces a line of output.}
 \newtoks\toksD
 \newbox\boxA
 \newbox\boxB
-\newcount\countA
 \newif\ifpdf
 \newif\ifpdfmakepagedest
 
@@ -8350,11 +8356,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % these should not use \errmessage; the glibc manual, at least, actually
 % has such constructs (when documenting function pointers).
 \def\badparencount{%
-  \message{Warning: unbalanced parentheses in @def...}%
+  \txiwarning{unbalanced parentheses in @def...}%
   \global\parencount=0
 }
 \def\badbrackcount{%
-  \message{Warning: unbalanced square brackets in @def...}%
+  \txiwarning{unbalanced square brackets in @def...}%
   \global\brackcount=0
 }
 
@@ -8526,7 +8532,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
      \fi
   \fi
   \if1\csname ismacro.\the\macname\endcsname
-     \message{Warning: redefining \the\macname}%
+     \txiwarning{redefining \the\macname}%
   \else
      \expandafter\ifx\csname \the\macname\endcsname \relax
      \else \errmessage{Macro name \the\macname\space already defined}\fi
@@ -9162,7 +9168,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % type (Ynumbered, Yappendix, Ynothing).  #2 is the section title.
 %
 \def\donoderef#1#2{%
-  \ifx\lastnode\empty\else
+  \ifx\lastnode\empty
+    \setrefshadow{#1}{#2}%
+  \else
     \setref{\lastnode}{#1}{#2}%
     \global\let\lastnode=\empty
     \setnodeseenonce
@@ -9207,6 +9215,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 %
 \def\setref#1#2#3{%
   \pdfmkdest{#1}%
+  \dosetref{#1}{#2}{#3}{xrdef}%
+}
+\def\dosetref#1#2#3#4{%
   \iflinks
     {%
       \requireauxfile
@@ -9214,16 +9225,27 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       % match definition in \xrdef, \refx, \xrefX.
       \def\value##1{##1}%
       \edef\writexrdef##1##2{%
-	\write\auxfile{@xrdef{#1-% #1 of \setref, expanded by the \edef
+	\write\auxfile{@#4{#1-% #1 of \setref, expanded by the \edef
 	  ##1}{##2}}% these are parameters of \writexrdef
       }%
       \toks0 = {#3}%
       \immediate \writexrdef{title}{\the\toks0 }%
-      \immediate \writexrdef{snt}{\csname #2\endcsname}% \Ynumbered etc.
-      \safewhatsit{\writexrdef{pg}{\folio}}% will be written later, at \shipout
+      \immediate \writexrdef{snt}{\csname #2\endcsname}%
+      \safewhatsit{\writexrdef{pg}{\folio}}%
     }%
   \fi
 }
+
+% Similar to \setref, but used for targets created by sectioning commands.
+% Write information about this target using @xrshad instead of @xrdef.
+\def\setrefshadow#1#2{%
+  % For PDF, output the target with \pdfdest.  Note pdfTeX issues a warning
+  % if we output two targets with the same name.
+  \pdfmkdest{\pdfshadowprefix#2}%
+  \dosetref{#2}{#1}{#2}{xrshad}%
+}
+
+\def\pdfshadowprefix{XXSHADOW-}
 
 % @xrefautosectiontitle on|off says whether @section(ing) names are used
 % automatically in xrefs, if the third arg is not explicitly specified.
@@ -9270,7 +9292,17 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \def\infofilename{\ignorespaces #4}%
   \setbox\infofilenamebox = \hbox{\infofilename\unskip}%
   %
-  \startxreflink{#1}{#4}%
+  \ifdim \wd\printedmanualbox = 0pt
+    \checkshadowactive{#1}\countA
+    \expandafter\ifnum\countA = 1
+      \startxreflink{\pdfshadowprefix#1}{}%
+    \else
+      \startxreflink{#1}{}%
+    \fi
+  \else
+    \startxreflink{#1}{#4}%
+  \fi
+  %
   \getrefx{#1-title}\Xthisreftitle
   %
   % Float references are printed completely differently: "Figure 1.2"
@@ -9536,16 +9568,54 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \fi
 }
 
+\def\xrdefctxt{%
+  % Context for expanding the node or anchor name to remove control sequences.
+  % \turnoffactive stops 8-bit characters being changed to commands
+  % like @'e.
+  \indexnofonts
+  \turnoffactive
+  \def\value##1{##1}%
+}
+
 % Set #2 to xref string #1
 \def\getrefx#1#2{%
   \requireauxfile
   {%
-    \indexnofonts
-    \turnoffactive
-    \def\value##1{##1}%
+    \xrdefctxt
     \expandafter\global\expandafter\let\expandafter#2\csname XR#1\endcsname
+    \ifx#2\relax
+      % try a shadow definition
+      \expandafter\global\expandafter\let\expandafter#2\csname SXR#1\endcsname
+      \ifx#2\empty
+        \let#2\relax
+      \fi
+    \fi
   }%
 }
+
+% Check if shadow definitions are active for target name #1, setting the
+% count register sequence in #2 to 1 if so.
+\def\checkshadowactive#1#2{%
+  \requireauxfile
+  {%
+    \xrdefctxt
+    \expandafter\global\expandafter\let\expandafter\tmp\csname SXR#1-title\endcsname
+  }%
+  \ifx\tmp\relax
+    #2=0 % no definitions made
+  \else
+    \ifx\tmp\empty
+      #2=0 % shadow definitions were disabled
+    \else
+      \expandafter\let\expandafter\tmp\csname XR#1-title\endcsname
+      \ifx\tmp\relax
+        #2=1 % yes, shadow definitions are active
+      \else
+        #2=0 % no, a real definition was made.
+      \fi
+    \fi
+  \fi
+}%
 
 % This is the macro invoked by entries in the aux file.  Define a control
 % sequence for a cross-reference target (we prepend XR to the control sequence
@@ -9553,14 +9623,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % type, we have more work to do.
 %
 \def\xrdef#1#2{%
-  {% Expand the node or anchor name to remove control sequences.
-   % \turnoffactive stops 8-bit characters being changed to commands
-   % like @'e.  \refx does the same to retrieve the value in the definition.
-    \indexnofonts
-    \turnoffactive
-    \def\value##1{##1}%
-    \xdef\safexrefname{#1}%
-  }%
+  {\xrdefctxt \xdef\safexrefname{#1}}%
   %
   \bgroup
     \expandafter\gdef\csname XR\safexrefname\endcsname{#2}%
@@ -9590,6 +9653,24 @@ might help (with 'rm \jobname.?? \jobname.??s')%
       {\safexrefname}}%
   \fi
   \ignorespaces % ignore ends of line in aux file
+}
+
+% Like \xrdef, but used for "shadow" definitions.
+\def\xrshad#1#2{%
+  {\xrdefctxt \xdef\safexrefname{#1}}%
+  \bgroup
+    \expandafter\ifx\csname XR\safexrefname\endcsname\relax
+      \expandafter\ifx\csname SXR\safexrefname\endcsname\relax
+        % safe to make shadow definition.
+        \expandafter\gdef\csname SXR\safexrefname\endcsname{#2}%
+      \else
+        % earlier shadow definition.  disable.
+        \expandafter\gdef\csname SXR\safexrefname\endcsname{}%
+      \fi
+    \else
+      % blocked by node or anchor definition
+    \fi
+  \egroup
 }
 
 % If working on a large document in chapters, it is convenient to
@@ -9988,6 +10069,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   % We can't be used inside a paragraph.
   \par
   %
+  % Allow a page break with a ragged page bottom.  This could help to reduce
+  % interparagraph spacing if a large float doesn't fit on the current page.
+  %
+  \penalty 0
+  \vskip 0pt plus 5\baselineskip
+  \penalty 1000
+  \vskip 0pt plus -5\baselineskip
+  %
   \vtop\bgroup
     \def\floattype{#1}%
     \def\floatlabel{#2}%
@@ -10173,7 +10262,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \expandafter\ifx\csname floatlist\safefloattype\endcsname \relax
     \ifhavexrefs
       % if the user said @listoffloats foo but never @float foo.
-      \message{\linenumber No `\safefloattype' floats to list.}%
+      \txiwarning{\No `\safefloattype' floats to list.}%
     \fi
   \else
     \begingroup
@@ -10450,7 +10539,7 @@ directory should work if nowhere else does.}
     \else
       \ifx \declaredencoding \ascii
       \else
-        \message{Warning: XeTeX with non-UTF-8 encodings cannot handle %
+        \txiwarning{XeTeX with non-UTF-8 encodings cannot handle %
         non-ASCII characters in auxiliary files.}%
       \fi
     \fi
@@ -10729,7 +10818,7 @@ directory should work if nowhere else does.}
 \gdef\UTFviiiDefined#1{%
   \ifx #1\relax
     \ifutfviiidefinedwarning
-      \message{\linenumber Unicode char \string #1 not defined for Texinfo}%
+      \txiwarning{Unicode char \string #1 not defined for Texinfo}%
     \fi
   \else
     \expandafter #1%

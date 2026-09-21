@@ -34,7 +34,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #define KEYMAPP(m) (!NILP (get_keymap (m, false, false)))
 extern Lisp_Object current_global_map;
 extern char *push_key_description (EMACS_INT, char *);
-extern Lisp_Object access_keymap (Lisp_Object, Lisp_Object, bool, bool, bool);
+extern Lisp_Object access_keymap (Lisp_Object, Lisp_Object, bool, bool);
 extern Lisp_Object get_keymap (Lisp_Object, bool, bool);
 extern ptrdiff_t current_minor_maps (Lisp_Object **, Lisp_Object **);
 extern void initial_define_lispy_key (Lisp_Object, const char *, const char *);

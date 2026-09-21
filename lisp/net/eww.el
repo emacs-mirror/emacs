@@ -3131,7 +3131,7 @@ with completion.  If there are none, return nil."
           alts `((affixation-function . eww--alternate-urls-affixation)))
          nil t)
       ;; Just one alternate link, return it without prompting.
-      (caar alts))))
+      (car alts))))
 
 (defun eww-copy-alternate-url ()
   "Copy the alternate URL of the current page into the kill ring.

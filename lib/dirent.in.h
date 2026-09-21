@@ -367,7 +367,7 @@ _GL_WARN_ON_USE (scandir, "scandir is unportable - "
 /* Compare two 'struct dirent' entries alphabetically.  */
 # if !@HAVE_ALPHASORT@
 _GL_FUNCDECL_SYS (alphasort, int,
-                  (const struct dirent **, const struct dirent **),
+                  (const struct dirent * /*const*/ *, const struct dirent * /*const*/ *),
                   _GL_ATTRIBUTE_PURE
                   _GL_ARG_NONNULL ((1, 2)));
 # endif

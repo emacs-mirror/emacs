@@ -533,7 +533,7 @@ the `Version:' header."
 
 ;;;; Package suggestions system
 
-;; Note that only the definitions necessary to recognise package
+;; Note that only the definitions necessary to recognize package
 ;; suggestions are defined here.  The user interface to select and act
 ;; on package suggestions is to be found in package.el.
 

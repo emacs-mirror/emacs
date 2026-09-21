@@ -437,12 +437,14 @@ get_cgroup2_cpu_quota (void)
          is not enabled for that part of the hierarchy.  */
 
       char cpu_max_file[PATH_MAX];
-      snprintf (cpu_max_file, sizeof (cpu_max_file),
-                "%s%s/cpu.max", mount, cgroup);
+      int n = snprintf (cpu_max_file, sizeof (cpu_max_file),
+                        "%s%s/cpu.max", mount, cgroup);
 
-      if ((fp = fopen (cpu_max_file, "r"))
-          && getline (&quota_str, &quota_size, fp) != -1
-          && strncmp (quota_str, "max", 3) != 0)
+      if (n < 0 || sizeof cpu_max_file <= n)
+        fp = NULL;
+      else if ((fp = fopen (cpu_max_file, "r"))
+               && getline (&quota_str, &quota_size, fp) != -1
+               && strncmp (quota_str, "max", 3) != 0)
         {
           long quota, period;
           if (sscanf (quota_str, "%ld %ld", &quota, &period) == 2 && period)

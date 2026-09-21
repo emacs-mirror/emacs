@@ -397,9 +397,10 @@ like <img alt=\"Some thing.\">."
 (defcustom flyspell-prog-text-faces
   '(font-lock-string-face font-lock-comment-face font-lock-doc-face)
   "Faces corresponding to text in programming-mode buffers."
-  :type '(set (const font-lock-string-face)
-              (const font-lock-comment-face)
-              (const font-lock-doc-face))
+  :type '(repeat (choice (const font-lock-string-face)
+                         (const font-lock-comment-face)
+                         (const font-lock-doc-face)
+                         symbol))
   :version "28.1")
 
 (defun flyspell-generic-progmode-verify ()

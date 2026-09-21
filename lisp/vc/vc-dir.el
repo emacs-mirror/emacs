@@ -708,6 +708,7 @@ information."
   (when (buffer-live-p vc-dir-process-buffer)
     (let ((proc (get-buffer-process vc-dir-process-buffer)))
       (when proc (delete-process proc))
+      (kill-buffer vc-dir-process-buffer)
       (setq vc-dir-process-buffer nil)
       (setq mode-line-process nil))))
 
@@ -715,9 +716,10 @@ information."
   ;; Make sure that when the status buffer is killed the update
   ;; process running in background is also killed.
   (if (vc-dir-busy)
-    (when (y-or-n-p "Status update process running, really kill status buffer? ")
-      (vc-dir-kill-dir-status-process)
-      t)
+      (and (y-or-n-p "\
+Status update process running, really kill status buffer? ")
+           (vc-dir-kill-dir-status-process)
+           t)
     t))
 
 ;; By design the vc-dir-next-* commands move point from the current
@@ -730,8 +732,10 @@ information."
 ;; entry, as determined by the following function.  See bug#81248 for
 ;; further details.
 (defun vc-dir--before-dotname-p ()
-  "Return non-nil if point is before the \"./\" entry."
-  (< (point) (ewoc-location (ewoc-nth vc-ewoc 0))))
+  "Return non-nil if point is before the \"./\" entry.
+If that entry hasn't appeared yet, return nil."
+  (and-let* ((zeroth (ewoc-nth vc-ewoc 0)))
+    (< (point) (ewoc-location zeroth))))
 
 (defun vc-dir-next-line (arg)
   "Go to the next line.
@@ -1132,18 +1136,16 @@ This command ignores VC-Dir marks and the position of point.
 When the VC-Dir's root directory is the repository root (as it usually
 is), this command is useful to check in all local changes at once."
   (interactive)
-  (let* ((only-files-list
-          (cl-loop for crt = (ewoc-nth vc-ewoc 0)
-                   then (ewoc-next vc-ewoc crt)
-                   while crt
-                   for data = (ewoc-data crt)
-                   unless (vc-dir-fileinfo->directory data) collect
-                   (cons (expand-file-name (vc-dir-fileinfo->name data))
-                         (vc-dir-fileinfo->state data))))
-         (vc-buffer-overriding-fileset
-          `(,vc-dir-backend
-            (,default-directory)
-            . ,(vc-dir--only-files-state-and-model only-files-list))))
+  (let ((vc-buffer-overriding-fileset
+         (vc-dir--fileset (list default-directory)
+                          (cl-loop
+                           for crt = (ewoc-nth vc-ewoc 0)
+                           then (ewoc-next vc-ewoc crt)
+                           while crt
+                           for data = (ewoc-data crt)
+                           unless (vc-dir-fileinfo->directory data) collect
+                           (cons (expand-file-name (vc-dir-fileinfo->name data))
+                                 (vc-dir-fileinfo->state data))))))
     (vc-next-action nil)))
 
 (defun vc-dir-clean-files ()
@@ -1436,7 +1438,7 @@ Also removes any out-of-date entries in `vc-dir-buffers'."
               (vc-dir-update (list complete-state)
                              status-buf
                              (or (not state)
-				 (eq state 'up-to-date))))))))))
+                                 (memq state vc-dir--up-to-date-states))))))))))
 
 (defvar use-vc-backend)  ;; dynamically bound
 
@@ -1496,7 +1498,9 @@ the *vc-dir* buffer.
     (add-to-list 'vc-dir-buffers (current-buffer))
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
-    (add-hook 'kill-buffer-query-functions #'vc-dir-kill-query nil t)
+    (if noninteractive
+        (add-hook 'kill-buffer-hook #'vc-dir-kill-dir-status-process nil t)
+      (add-hook 'kill-buffer-query-functions #'vc-dir-kill-query nil t))
     (hack-dir-local-variables-non-file-buffer)))
 
 (defvar-keymap vc-dir-outgoing-revisions-map
@@ -1520,59 +1524,72 @@ longer needed."
   "Populate OVERLAY with count of outgoing revisions for backend BACKEND.
 See `vc-dir-async-header-values' for an explanation of how this function
 uses OVERLAY."
-  (overlay-put overlay 'after-string
-               (propertize "[counting ...]" 'face 'vc-dir-header-value))
-  ;; `vc-incoming-outgoing-internal' invokes external processes
-  ;; synchronously before we can get to the `vc-run-delayed', so
-  ;; postpone running it a little.
-  (overlay-put
-   overlay 'timer
-   (run-with-idle-timer
-    0.2 nil
-    (lambda ()
-      (let* ((default-directory
-	      (buffer-local-value 'default-directory
-				  (overlay-buffer overlay)))
-	     (display-buffer-overriding-action
-              '(display-buffer-no-window (allow-no-window . t)))
-             (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
-             (buf (generate-new-buffer " *temp*" t))
-             proc)
-        (without-local-variable-queries
-          (with-current-buffer buf
-            (condition-case _
-                (progn
-                  (vc-incoming-outgoing-internal backend nil
-                                                 (current-buffer)
-                                                 '(log-outgoing short))
-                  (setq proc (get-buffer-process (current-buffer)))
-                  (set-process-query-on-exit-flag proc nil)
-                  (overlay-put overlay 'proc proc)
-                  (vc-run-delayed
-                    (unwind-protect
-                        (overlay-put
-                         overlay 'after-string
-                         (if (or (not (eq (process-status proc) 'exit))
-                                 (plusp (process-exit-status proc)))
-                             unknown
-                           (goto-char (point-min))
-                           (let ((count (how-many log-view-message-re)))
-                             (if (zerop count)
-                                 (propertize "No unpushed revisions"
-                                             'face 'vc-dir-header-value)
-                               (propertize
-                                (format (ngettext "%d unpushed revision"
-                                                  "%d unpushed revisions"
-                                                  count)
-                                        count)
-                                'face 'vc-dir-header-urgent-value
-                                'mouse-face 'highlight
-                                'keymap vc-dir-outgoing-revisions-map
-                                'help-echo "\\<vc-dir-outgoing-revisions-map>\
+  (cl-flet ((set-overlay-text (text)
+              ;; If `vc-dir--set-header' was called again before our
+              ;; sentinel ran (either because we were still counting or
+              ;; Emacs just hadn't run the sentinel yet) then the
+              ;; overlay won't exist anymore.
+              (when-let* ((buffer (overlay-buffer overlay)))
+                (with-current-buffer buffer
+                  (save-excursion
+                    (let ((inhibit-read-only t)
+                          (start (overlay-start overlay)))
+                      (delete-region start (overlay-end overlay))
+                      (goto-char start)
+                      (insert text)
+                      (move-overlay overlay start (point))))))))
+    (set-overlay-text (propertize "[counting ...]"
+                                  'face 'vc-dir-header-value))
+    ;; `vc-incoming-outgoing-internal' invokes external processes
+    ;; synchronously before we can get to the `vc-run-delayed', so
+    ;; postpone running it a little.
+    (overlay-put
+     overlay 'timer
+     (run-with-idle-timer
+      0.2 nil
+      (lambda ()
+        (let* ((default-directory
+	        (buffer-local-value 'default-directory
+				    (overlay-buffer overlay)))
+	       (display-buffer-overriding-action
+                '(display-buffer-no-window (allow-no-window . t)))
+               (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
+               (buf (generate-new-buffer " *temp*" t))
+               proc)
+          (without-local-variable-queries
+            (with-current-buffer buf
+              (condition-case _
+                  (progn
+                    (vc-incoming-outgoing-internal backend nil
+                                                   (current-buffer)
+                                                   '(log-outgoing short))
+                    (setq proc (get-buffer-process (current-buffer)))
+                    (set-process-query-on-exit-flag proc nil)
+                    (overlay-put overlay 'proc proc)
+                    (vc-run-delayed
+                      (unwind-protect
+                          (set-overlay-text
+                           (if (or (not (eq (process-status proc) 'exit))
+                                   (plusp (process-exit-status proc)))
+                               unknown
+                             (goto-char (point-min))
+                             (let ((count (how-many log-view-message-re)))
+                               (if (zerop count)
+                                   (propertize "No unpushed revisions"
+                                               'face 'vc-dir-header-value)
+                                 (propertize
+                                  (format (ngettext "%d unpushed revision"
+                                                    "%d unpushed revisions"
+                                                    count)
+                                          count)
+                                  'face 'vc-dir-header-urgent-value
+                                  'mouse-face 'highlight
+                                  'keymap vc-dir-outgoing-revisions-map
+                                  'help-echo "\\<vc-dir-outgoing-revisions-map>\
 \\[vc-root-log-outgoing]: List outgoing revisions")))))
-                      (kill-buffer))))
-              (error (overlay-put overlay 'after-string unknown)
-                     (kill-buffer buf))))))))))
+                        (kill-buffer))))
+                (error (kill-buffer buf)
+                       (set-overlay-text unknown)))))))))))
 
 (defvar-local vc-dir-async-header-values
   '(("Outgoing" . vc-dir--count-outgoing))
@@ -1583,14 +1600,14 @@ Each element is a pair (HEADER . FUN) where
   asynchronous computation of the header's value.  BACKEND is the VC
   backend.  OVERLAY is an overlay in the target VC-Dir buffer.
   FUN should set
-  - the `after-string' property of the overlay to a temporary value
-    indicating that an async computation is in progress, conventionally
-    of the form \"[%s ...]\";
+  - the text and bounds of the overlay to a temporary value indicating
+    that an async computation is in progress, conventionally of the form
+    \"[%s ...]\";
   - the `timer' property of the overlay to any idle timer it schedules
   - the `proc' property of the overlay to the asynchronous process it starts;
-  - the `after-string' property of the overlay to the computed header
-    value after the asychronous computation completes, \"<<unknown>>\"
-    if the information was not obtainable.
+  - the text and bounds of the overlay to the computed header value
+    after the asychronous computation completes, \"<<unknown>>\" if the
+    information was not obtainable.
   See `vc-dir--count-outgoing' for an example.
 
 VC backend `dir-extra-headers' implementations may push additional
@@ -1659,7 +1676,7 @@ backend-specific headers."
      "(\\[vc-dir-hide-up-to-date]) Hide up-to-date"
      "\n"
      (vc-call-backend backend 'dir-extra-hints)
-     "\n" (make-separator-line) "\n")))
+     (make-separator-line))))
   (concat
    (and vc-dir-show-key-binding-hints vc-dir--key-binding-hints)
    (propertize "VC backend : " 'face 'vc-dir-header)
@@ -1793,7 +1810,10 @@ to process exceeds a non-nil `vc-dir-process-output-limit'."
 TEXT is passed on to `vc-dir-show-more-button'.
 Called by VC backend `dir-status-files' implementations."
   (when (and (natnump vc-dir-process-output-limit)
-             (> (buffer-size) vc-dir-process-output-limit))
+             (> (buffer-size) vc-dir-process-output-limit)
+             vc-parent-buffer
+             (with-current-buffer vc-parent-buffer
+               (derived-mode-p 'vc-dir-mode)))
     (narrow-to-region (point-min)
                       (save-excursion
                         (goto-char (+ (point-min)
@@ -1802,12 +1822,26 @@ Called by VC backend `dir-status-files' implementations."
     (with-current-buffer vc-parent-buffer
       (vc-dir-show-more-button text))))
 
-(defun vc-dir-refresh ()
+(defun vc-dir-refresh (&optional ok-if-already-running)
   "Refresh the contents of the *VC-Dir* buffer.
-Throw an error if another update process is in progress."
+
+Signal an error if another update process is in progress, unless
+OK-IF-ALREADY-RUNNING is non-nil.
+
+If OK-IF-ALREADY-RUNNING is `restart' and another update process is in
+progress, kill it and start a new one."
   (interactive)
-  (if (vc-dir-busy)
-      (error "Another update process is in progress, cannot run two at a time")
+  (cond*
+   ((bind* (proc (and (buffer-live-p vc-dir-process-buffer)
+                      (get-buffer-process vc-dir-process-buffer)))))
+   ((and proc (not ok-if-already-running))
+    (error "Another update process is in progress, cannot run two at a time"))
+   ((and proc (not (eq ok-if-already-running 'restart)))) ;do nothing
+   (proc
+    ;; OK-IF-ALREADY-RUNNING is `restart'.
+    (delete-process proc)
+    :non-exit)
+   (t
     (let ((def-dir default-directory)
 	  (backend vc-dir-backend))
       (when (and vc-dir-save-some-buffers-on-revert (not non-essential))
@@ -1827,6 +1861,9 @@ Throw an error if another update process is in progress."
       ;; Bzr has serious locking problems, so setup the headers first (this is
       ;; mostly synchronous) rather than doing it while dir-status is running.
       (vc-dir--set-header def-dir 'reset-footer)
+      (unless revert-buffer-in-progress
+        (when vc-dir-show-key-binding-hints
+          (goto-char (1+ (length vc-dir--key-binding-hints)))))
       (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)
@@ -1846,7 +1883,7 @@ Throw an error if another update process is in progress."
                      (vc-dir-refresh-files (mapcar #'vc-dir-fileinfo->name
                                                    remaining))
                    (setq mode-line-process nil)
-                   (run-hooks 'vc-dir-refresh-hook)))))))))))
+                   (run-hooks 'vc-dir-refresh-hook))))))))))))
 
 (defun vc-dir--refresh-headers (directory)
   "Refresh the headers for any VC-Dir buffers within DIRECTORY."
@@ -1923,11 +1960,14 @@ state of item at point, if any."
 
 (declare-function vc-only-files-state-and-model "vc")
 
-(defun vc-dir--only-files-state-and-model (only-files-list)
+(defun vc-dir--fileset (files only-files-list)
   "Call `vc-only-files-state-and-model' as appropriate for VC-Dir buffers.
 Offer to call `vc-dir-hide-up-to-date' if that might be useful.
-If we did, remove up-to-date items from ONLY-FILES-LIST before passing
-to `vc-only-files-state-and-model'.
+If we did, remove up-to-date items from FILES and ONLY-FILES-LIST before
+passing the latter to `vc-only-files-state-and-model'.  From FILES, only
+remove items appearing literally: a directory named in FILES containing
+up-to-date items won't be removed.
+Return a list of the form returned by `vc-deduce-fileset'.
 
 There's usually no action to be taken on `up-to-date' or `ignored'
 files, but a new user may include these in their VC-Dir fileset without
@@ -1938,17 +1978,26 @@ for them, and also filter ONLY-FILES-LIST so as not to include entries
 in those states.  Only do this if there are both up-to-date and
 non-up-to-date files in ONLY-FILES-LIST (in case we add a VC next action
 for `up-to-date' and/or `ignored' files at some point)."
+  ;; We want to remove items explicitly named in FILES because some VCS
+  ;; commands override files being ignored if they are named explicitly.
+  ;; For example, 'hg commit -A foo' will commit foo even if foo is
+  ;; ignored!  By contrast, 'hg commit -A dir-containing-foo' won't, so
+  ;; we don't need to worry about somehow removing dir-containing-foo
+  ;; from FILES without otherwise changing the meaning of FILES.
   (let (up-to-date other)
     (dolist (entry only-files-list)
       (push entry (if (memq (cdr entry) vc-dir--up-to-date-states)
                       up-to-date other)))
-    (vc-only-files-state-and-model
-     (if (or (null up-to-date) (null other)
-             (not (y-or-n-p "Clear up-to-date items before proceeding?")))
-         only-files-list
-       (vc-dir-hide-up-to-date)
-       other)
-     vc-dir-backend)))
+    (cons vc-dir-backend
+          (if (or (null up-to-date) (null other)
+                  (not (y-or-n-p "Clear up-to-date items before proceeding?")))
+              (cons files
+                    (vc-only-files-state-and-model only-files-list
+                                                   vc-dir-backend))
+            (vc-dir-hide-up-to-date)
+            (cons (cl-set-difference files (mapcar #'car up-to-date)
+                                     :test #'equal)
+                  (vc-only-files-state-and-model other vc-dir-backend))))))
 
 (defun vc-dir-deduce-fileset (&optional state-model-only-files)
   (let (files only-files-list)
@@ -1961,8 +2010,7 @@ for `up-to-date' and/or `ignored' files at some point)."
       (when state-model-only-files
 	(setq only-files-list (vc-dir-child-files-and-states))))
     (if state-model-only-files
-        (cl-list* vc-dir-backend files
-                  (vc-dir--only-files-state-and-model only-files-list))
+        (vc-dir--fileset files only-files-list)
       (list vc-dir-backend files))))
 
 ;;;###autoload
@@ -2022,7 +2070,7 @@ These are the commands available for use in the file status buffer:
   (let (pop-up-windows)		      ; based on cvs-examine; bug#6204
     (pop-to-buffer (vc-dir-prepare-status-buffer "*vc-dir*" dir backend)))
   (if (derived-mode-p 'vc-dir-mode)
-      (vc-dir-refresh)
+      (vc-dir-refresh t)
     ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
     (let ((use-vc-backend backend))
       (vc-dir-mode)

@@ -86,7 +86,7 @@ interface, update `file-name-handler-alist'."
   (if (and buffer-file-name
 	   (string-match epa-file-name-regexp buffer-file-name)
 	   epa-file-inhibit-auto-save)
-      (auto-save-mode 0)))
+      (auto-save-mode -1)))
 
 (defun epa-file-name-p (file)
   "Say whether FILE is handled by `epa-file'."

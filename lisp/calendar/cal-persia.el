@@ -146,7 +146,7 @@ Gregorian date Sunday, December 31, 1 BC."
          (year (number-to-string y))
          (month (number-to-string m))
          dayname)
-      (mapconcat #'eval calendar-date-display-form ""))))
+      (mapconcat #'eval calendar-date-display-form))))
 
 ;;;###cal-autoload
 (defun calendar-persian-print-date ()

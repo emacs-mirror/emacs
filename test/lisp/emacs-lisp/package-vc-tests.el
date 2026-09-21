@@ -776,6 +776,7 @@ contains key `:tags' use its value as tests tags."
     `(cl-macrolet ((skip-when (form) `(ert--skip-when ,form))
                    (skip-unless (form) `(ert--skip-unless ,form)))
        (let ((,fn (lambda (,pkg-arg)
+                    (skip-unless (executable-find vc-git-program))
                     ,@skip-forms
                     (package-vc-tests-with-installed ,pkg-arg
                                                      (lambda () ,@body)))))

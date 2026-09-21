@@ -1,11 +1,11 @@
 # emoji-test.txt
-# Date: 2025-08-04, 20:55:31 GMT
-# © 2025 Unicode®, Inc.
+# Date: 2026-04-30, 22:40:18 GMT
+# © 2026 Unicode®, Inc.
 # Unicode and the Unicode Logo are registered trademarks of Unicode, Inc. in the U.S. and other countries.
 # For terms of use and license, see https://www.unicode.org/terms_of_use.html
 #
 # Emoji Keyboard/Display Test Data for UTS #51
-# Version: 17.0
+# Version: 18.0
 #
 # For documentation and usage, see https://www.unicode.org/reports/tr51
 #
@@ -48,6 +48,7 @@
 1F642                                                  ; fully-qualified     # 🙂 E1.0 slightly smiling face
 1F643                                                  ; fully-qualified     # 🙃 E1.0 upside-down face
 1FAE0                                                  ; fully-qualified     # 🫠 E14.0 melting face
+1FAEB                                                  ; fully-qualified     # 🫫 E18.0 cracking face
 1F609                                                  ; fully-qualified     # 😉 E0.6 winking face
 1F60A                                                  ; fully-qualified     # 😊 E0.6 smiling face with smiling eyes
 1F607                                                  ; fully-qualified     # 😇 E1.0 smiling face with halo
@@ -255,8 +256,8 @@
 1F4AD                                                  ; fully-qualified     # 💭 E1.0 thought balloon
 1F4A4                                                  ; fully-qualified     # 💤 E0.6 ZZZ
 
-# Smileys & Emotion subtotal:		187
-# Smileys & Emotion subtotal:		187	w/o modifiers
+# Smileys & Emotion subtotal:		188
+# Smileys & Emotion subtotal:		188	w/o modifiers
 
 # group: People & Body
 
@@ -444,6 +445,18 @@
 1F44E 1F3FD                                            ; fully-qualified     # 👎🏽 E1.0 thumbs down: medium skin tone
 1F44E 1F3FE                                            ; fully-qualified     # 👎🏾 E1.0 thumbs down: medium-dark skin tone
 1F44E 1F3FF                                            ; fully-qualified     # 👎🏿 E1.0 thumbs down: dark skin tone
+1FAF9                                                  ; fully-qualified     # 🫹 E18.0 leftwards thumb sign
+1FAF9 1F3FB                                            ; fully-qualified     # 🫹🏻 E18.0 leftwards thumb sign: light skin tone
+1FAF9 1F3FC                                            ; fully-qualified     # 🫹🏼 E18.0 leftwards thumb sign: medium-light skin tone
+1FAF9 1F3FD                                            ; fully-qualified     # 🫹🏽 E18.0 leftwards thumb sign: medium skin tone
+1FAF9 1F3FE                                            ; fully-qualified     # 🫹🏾 E18.0 leftwards thumb sign: medium-dark skin tone
+1FAF9 1F3FF                                            ; fully-qualified     # 🫹🏿 E18.0 leftwards thumb sign: dark skin tone
+1FAFA                                                  ; fully-qualified     # 🫺 E18.0 rightwards thumb sign
+1FAFA 1F3FB                                            ; fully-qualified     # 🫺🏻 E18.0 rightwards thumb sign: light skin tone
+1FAFA 1F3FC                                            ; fully-qualified     # 🫺🏼 E18.0 rightwards thumb sign: medium-light skin tone
+1FAFA 1F3FD                                            ; fully-qualified     # 🫺🏽 E18.0 rightwards thumb sign: medium skin tone
+1FAFA 1F3FE                                            ; fully-qualified     # 🫺🏾 E18.0 rightwards thumb sign: medium-dark skin tone
+1FAFA 1F3FF                                            ; fully-qualified     # 🫺🏿 E18.0 rightwards thumb sign: dark skin tone
 270A                                                   ; fully-qualified     # ✊ E0.6 raised fist
 270A 1F3FB                                             ; fully-qualified     # ✊🏻 E1.0 raised fist: light skin tone
 270A 1F3FC                                             ; fully-qualified     # ✊🏼 E1.0 raised fist: medium-light skin tone
@@ -3760,8 +3773,8 @@
 1F463                                                  ; fully-qualified     # 👣 E0.6 footprints
 1FAC6                                                  ; fully-qualified     # 🫆 E16.0 fingerprint
 
-# People & Body subtotal:		3468
-# People & Body subtotal:		563	w/o modifiers
+# People & Body subtotal:		3480
+# People & Body subtotal:		565	w/o modifiers
 
 # group: Component
 
@@ -3914,6 +3927,7 @@
 # subgroup: animal-bug
 1F40C                                                  ; fully-qualified     # 🐌 E0.6 snail
 1F98B                                                  ; fully-qualified     # 🦋 E3.0 butterfly
+1FACC                                                  ; fully-qualified     # 🫌 E18.0 monarch butterfly
 1F41B                                                  ; fully-qualified     # 🐛 E0.6 bug
 1F41C                                                  ; fully-qualified     # 🐜 E0.6 ant
 1F41D                                                  ; fully-qualified     # 🐝 E0.6 honeybee
@@ -3966,8 +3980,8 @@
 1F344                                                  ; fully-qualified     # 🍄 E0.6 mushroom
 1FABE                                                  ; fully-qualified     # 🪾 E16.0 leafless tree
 
-# Animals & Nature subtotal:		167
-# Animals & Nature subtotal:		167	w/o modifiers
+# Animals & Nature subtotal:		168
+# Animals & Nature subtotal:		168	w/o modifiers
 
 # group: Food & Drink
 
@@ -4003,6 +4017,7 @@
 1F336                                                  ; unqualified         # 🌶 E0.7 hot pepper
 1FAD1                                                  ; fully-qualified     # 🫑 E13.0 bell pepper
 1F952                                                  ; fully-qualified     # 🥒 E3.0 cucumber
+1FADD                                                  ; fully-qualified     # 🫝 E18.0 pickle
 1F96C                                                  ; fully-qualified     # 🥬 E11.0 leafy green
 1F966                                                  ; fully-qualified     # 🥦 E5.0 broccoli
 1F9C4                                                  ; fully-qualified     # 🧄 E12.0 garlic
@@ -4118,8 +4133,8 @@
 1FAD9                                                  ; fully-qualified     # 🫙 E14.0 jar
 1F3FA                                                  ; fully-qualified     # 🏺 E1.0 amphora
 
-# Food & Drink subtotal:		133
-# Food & Drink subtotal:		133	w/o modifiers
+# Food & Drink subtotal:		134
+# Food & Drink subtotal:		134	w/o modifiers
 
 # group: Travel & Places
 
@@ -4274,6 +4289,7 @@
 1F6A7                                                  ; fully-qualified     # 🚧 E0.6 construction
 
 # subgroup: transport-water
+1F6D9                                                  ; fully-qualified     # 🛙 E18.0 lighthouse
 2693                                                   ; fully-qualified     # ⚓ E0.6 anchor
 1F6DF                                                  ; fully-qualified     # 🛟 E14.0 ring buoy
 26F5                                                   ; fully-qualified     # ⛵ E0.6 sailboat
@@ -4409,12 +4425,13 @@
 26C4                                                   ; fully-qualified     # ⛄ E0.6 snowman without snow
 2604 FE0F                                              ; fully-qualified     # ☄️ E1.0 comet
 2604                                                   ; unqualified         # ☄ E1.0 comet
+1FA8B                                                  ; fully-qualified     # 🪋 E18.0 meteor
 1F525                                                  ; fully-qualified     # 🔥 E0.6 fire
 1F4A7                                                  ; fully-qualified     # 💧 E0.6 droplet
 1F30A                                                  ; fully-qualified     # 🌊 E0.6 water wave
 
-# Travel & Places subtotal:		268
-# Travel & Places subtotal:		268	w/o modifiers
+# Travel & Places subtotal:		270
+# Travel & Places subtotal:		270	w/o modifiers
 
 # group: Activities
 
@@ -4737,6 +4754,7 @@
 1F58D FE0F                                             ; fully-qualified     # 🖍️ E0.7 crayon
 1F58D                                                  ; unqualified         # 🖍 E0.7 crayon
 1F4DD                                                  ; fully-qualified     # 📝 E0.6 memo
+1FA8C                                                  ; fully-qualified     # 🪌 E18.0 eraser
 
 # subgroup: office
 1F4BC                                                  ; fully-qualified     # 💼 E0.6 briefcase
@@ -4781,6 +4799,7 @@
 1F5DD                                                  ; unqualified         # 🗝 E0.7 old key
 
 # subgroup: tool
+1FA8D                                                  ; fully-qualified     # 🪍 E18.0 net with handle
 1F528                                                  ; fully-qualified     # 🔨 E0.6 hammer
 1FA93                                                  ; fully-qualified     # 🪓 E12.0 axe
 26CF FE0F                                              ; fully-qualified     # ⛏️ E0.7 pick
@@ -4881,8 +4900,8 @@
 1FAA7                                                  ; fully-qualified     # 🪧 E13.0 placard
 1FAAA                                                  ; fully-qualified     # 🪪 E14.0 identification card
 
-# Objects subtotal:		316
-# Objects subtotal:		316	w/o modifiers
+# Objects subtotal:		318
+# Objects subtotal:		318	w/o modifiers
 
 # group: Symbols
 
@@ -5342,7 +5361,7 @@
 1F1EC 1F1FC                                            ; fully-qualified     # 🇬🇼 E2.0 flag: Guinea-Bissau
 1F1EC 1F1FE                                            ; fully-qualified     # 🇬🇾 E2.0 flag: Guyana
 1F1ED 1F1F0                                            ; fully-qualified     # 🇭🇰 E2.0 flag: Hong Kong SAR China
-1F1ED 1F1F2                                            ; fully-qualified     # 🇭🇲 E2.0 flag: Heard & McDonald Islands
+1F1ED 1F1F2                                            ; fully-qualified     # 🇭🇲 E2.0 flag: Heard Island & McDonald Islands
 1F1ED 1F1F3                                            ; fully-qualified     # 🇭🇳 E2.0 flag: Honduras
 1F1ED 1F1F7                                            ; fully-qualified     # 🇭🇷 E2.0 flag: Croatia
 1F1ED 1F1F9                                            ; fully-qualified     # 🇭🇹 E2.0 flag: Haiti
@@ -5446,7 +5465,7 @@
 1F1F8 1F1E9                                            ; fully-qualified     # 🇸🇩 E2.0 flag: Sudan
 1F1F8 1F1EA                                            ; fully-qualified     # 🇸🇪 E2.0 flag: Sweden
 1F1F8 1F1EC                                            ; fully-qualified     # 🇸🇬 E2.0 flag: Singapore
-1F1F8 1F1ED                                            ; fully-qualified     # 🇸🇭 E2.0 flag: St. Helena
+1F1F8 1F1ED                                            ; fully-qualified     # 🇸🇭 E2.0 flag: St. Helena, Ascension & Tristan da Cunha
 1F1F8 1F1EE                                            ; fully-qualified     # 🇸🇮 E2.0 flag: Slovenia
 1F1F8 1F1EF                                            ; fully-qualified     # 🇸🇯 E2.0 flag: Svalbard & Jan Mayen
 1F1F8 1F1F0                                            ; fully-qualified     # 🇸🇰 E2.0 flag: Slovakia
@@ -5464,7 +5483,7 @@
 1F1F9 1F1E6                                            ; fully-qualified     # 🇹🇦 E2.0 flag: Tristan da Cunha
 1F1F9 1F1E8                                            ; fully-qualified     # 🇹🇨 E2.0 flag: Turks & Caicos Islands
 1F1F9 1F1E9                                            ; fully-qualified     # 🇹🇩 E2.0 flag: Chad
-1F1F9 1F1EB                                            ; fully-qualified     # 🇹🇫 E2.0 flag: French Southern Territories
+1F1F9 1F1EB                                            ; fully-qualified     # 🇹🇫 E2.0 flag: French Southern and Antarctic Lands
 1F1F9 1F1EC                                            ; fully-qualified     # 🇹🇬 E2.0 flag: Togo
 1F1F9 1F1ED                                            ; fully-qualified     # 🇹🇭 E2.0 flag: Thailand
 1F1F9 1F1EF                                            ; fully-qualified     # 🇹🇯 E2.0 flag: Tajikistan
@@ -5510,7 +5529,7 @@
 # Flags subtotal:		276	w/o modifiers
 
 # Status Counts
-# fully-qualified : 3944
+# fully-qualified : 3963
 # minimally-qualified : 1029
 # unqualified : 243
 # component : 9

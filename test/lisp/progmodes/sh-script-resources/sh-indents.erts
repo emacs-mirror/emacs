@@ -49,3 +49,16 @@ Name: sh-indents5
 for i do echo 1; done
 for i; do echo 1; done
 =-=-=
+
+Name: sh-indents-case-pattern-bug#81192
+
+=-=
+case "$1" in
+    a:b)
+	echo "a b"
+	;;
+    *,*)
+	echo "other"
+	;;
+esac
+=-=-=

@@ -2570,45 +2570,42 @@ If stopped, start playback."
      (t (mpc-proc-cmd "previous")))
     (mpc-status-refresh)))
 
-;; FIXME - mpc-last-seek-time and mpc--faster are no longer used;
-;; remove them?
+;; (defvar mpc-last-seek-time '(0 . 0))
 
-(defvar mpc-last-seek-time '(0 . 0))
-
-(defun mpc--faster (event speedup step)
-  "Fast forward."
-  (interactive (list last-nonmenu-event))
-  (let ((repeat-delay (/ (abs (float step)) speedup)))
-    (if (not (memq 'down (event-modifiers event)))
-        (let* ((currenttime (float-time))
-               (last-time (- currenttime (car mpc-last-seek-time))))
-          (if (< last-time (* 0.9 repeat-delay))
-              nil ;; Throttle
-            (let* ((status (if (< last-time 1.0)
-                               mpc-status (mpc-cmd-status)))
-                   (songid (cdr (assq 'songid status)))
-                   (time (if songid
-                             (if (< last-time 1.0)
-                                 (cdr mpc-last-seek-time)
-                               (string-to-number
-                                (cdr (assq 'time status)))))))
-              (setq mpc-last-seek-time
-                    (cons currenttime (setq time (+ time step))))
-              (mpc-proc-cmd (list "seekid" songid time)
-                            #'mpc-status-refresh))))
-      (let ((status (mpc-cmd-status)))
-        (let* ((songid (cdr (assq 'songid status)))
-                       (time (if songid (string-to-number
-                                         (cdr (assq 'time status))))))
-          (let ((timer (run-with-timer
-                        t repeat-delay
-                        (lambda ()
-                          (mpc-proc-cmd (list "seekid" songid
-                                              (setq time (+ time step)))
-                                        #'mpc-status-refresh)))))
-            (while (mouse-movement-p
-                    (event-basic-type (setq event (read-event)))))
-            (cancel-timer timer)))))))
+;; (defun mpc--faster (event speedup step)
+;;   "Fast forward."
+;;   (interactive (list last-nonmenu-event))
+;;   (let ((repeat-delay (/ (abs (float step)) speedup)))
+;;     (if (not (memq 'down (event-modifiers event)))
+;;         (let* ((currenttime (float-time))
+;;                (last-time (- currenttime (car mpc-last-seek-time))))
+;;           (if (< last-time (* 0.9 repeat-delay))
+;;               nil ;; Throttle
+;;             (let* ((status (if (< last-time 1.0)
+;;                                mpc-status (mpc-cmd-status)))
+;;                    (songid (cdr (assq 'songid status)))
+;;                    (time (if songid
+;;                              (if (< last-time 1.0)
+;;                                  (cdr mpc-last-seek-time)
+;;                                (string-to-number
+;;                                 (cdr (assq 'time status)))))))
+;;               (setq mpc-last-seek-time
+;;                     (cons currenttime (setq time (+ time step))))
+;;               (mpc-proc-cmd (list "seekid" songid time)
+;;                             #'mpc-status-refresh))))
+;;       (let ((status (mpc-cmd-status)))
+;;         (let* ((songid (cdr (assq 'songid status)))
+;;                        (time (if songid (string-to-number
+;;                                          (cdr (assq 'time status))))))
+;;           (let ((timer (run-with-timer
+;;                         t repeat-delay
+;;                         (lambda ()
+;;                           (mpc-proc-cmd (list "seekid" songid
+;;                                               (setq time (+ time step)))
+;;                                         #'mpc-status-refresh)))))
+;;             (while (mouse-movement-p
+;;                     (event-basic-type (setq event (read-event)))))
+;;             (cancel-timer timer)))))))
 
 (defvar mpc--faster-toggle-timer nil)
 (defun mpc--faster-stop ()

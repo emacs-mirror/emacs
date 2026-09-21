@@ -38,6 +38,12 @@ of languages.  ./configure --help for values supported.  For instance:
 to make all manuals from the misc subdirectory into the info format and
 for language French only.
 
+Note that the Emacs manual, the Emacs Lisp Reference manual and the
+Introduction to Emacs Lisp Programming are always built in the default
+language, whatever DOCLANGS says: the first two are referenced from doc
+strings, and all three are expected to be part of any Emacs build.
+Their translations, if any, are selected by DOCLANGS as usual.
+
 Alternatively, you can use:
 
    make -C doc/DIR FORMAT

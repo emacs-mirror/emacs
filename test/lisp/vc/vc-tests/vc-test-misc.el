@@ -298,6 +298,8 @@ See bug#80803 and bug#80967."
                 (should (equal (vc-dir-fileinfo->state data)
                                'edited))))))))))
 
+;; FIXME: This test only passes once.  Then there is some state left
+;; behind such that it doesn't pass if run again.
 (ert-deftest vc-test-vc-dir-next/previous () ; bug#81248
   "Test navigating with `vc-dir-{next,previous}-{line,directory}'."
   (skip-unless (executable-find vc-git-program))
@@ -313,7 +315,7 @@ See bug#80803 and bug#80967."
           (vc-dir default-directory 'Git)
           (while (vc-dir-busy) (sit-for 0.05))
           (setq vc-dir-buf (current-buffer))
-          (should (bobp))
+          (should (looking-at "VC backend :"))
           (while (vc-dir--before-dotname-p)
             (vc-dir-next-line 1)
             (should (and (looking-at "\\./$") (looking-back "^ +" (pos-bol))))
@@ -356,6 +358,11 @@ See bug#80803 and bug#80967."
           (should (and (looking-at "\\./$") (looking-back "^ +" (pos-bol))))
           (vc-dir-previous-directory)
           (should (and (looking-at "\\./$") (looking-back "^ +" (pos-bol))))
+          ;; Simulate the case in which the status lines haven't come
+          ;; back yet.  This used to give a cryptic non-`user-error'.
+          (goto-char (point-min))
+          (ewoc-filter vc-ewoc #'ignore)
+          (should-error (vc-dir-next-line 1) :type 'user-error)
           (kill-buffer vc-dir-buf))))))
 
 (ert-deftest vc-test-vc-dir-mark/unmark-all-dir-entry () ; bug#81249
@@ -521,6 +528,8 @@ See bug#80803 and bug#80967."
               (goto-char (point-min))))
           (should-not (seq-intersection directories (vc-dir-marked-files)))
           (kill-buffer vc-dir-buf))))))
+
+(declare-function diff-add-change-log-entries-other-window "diff-mode")
 
 (ert-deftest vc-test-log-message-from-changelog () ; bug#80928
   "Test automatic insertion of log message from ChangeLog."

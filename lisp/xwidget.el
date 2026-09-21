@@ -1109,7 +1109,7 @@ With argument, add COUNT copies of CHAR."
 (defun xwidget-webkit-isearch-exit ()
   "Exit incremental search of a WebKit buffer."
   (interactive)
-  (xwidget-webkit-isearch-mode 0))
+  (xwidget-webkit-isearch-mode -1))
 
 (defvar-keymap xwidget-webkit-isearch-mode-map
   :doc "The keymap used inside `xwidget-webkit-isearch-mode'."

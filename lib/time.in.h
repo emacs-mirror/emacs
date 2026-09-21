@@ -45,9 +45,11 @@
 # define _@GUARD_PREFIX@_TIME_H
 
 /* mingw's <time.h> provides the functions asctime_r, ctime_r, gmtime_r,
-   localtime_r only if <unistd.h> or <pthread.h> has been included before.  */
+   localtime_r only if <unistd.h> or <pthread.h> has been included before
+   or if _POSIX_THREAD_SAFE_FUNCTIONS is defined.  */
 # if defined __MINGW32__
-#  include <unistd.h>
+#  undef _POSIX_THREAD_SAFE_FUNCTIONS
+#  define _POSIX_THREAD_SAFE_FUNCTIONS 200112L
 # endif
 
 # @INCLUDE_NEXT@ @NEXT_TIME_H@

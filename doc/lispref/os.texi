@@ -1023,6 +1023,18 @@ in the environment, @code{getenv} returns @code{nil}.  It returns
 @samp{""} if @var{var} is set but null.  Within Emacs, a list of environment
 variables and their values is kept in the variable @code{process-environment}.
 
+Optional argument @var{frame}, if non-@code{nil}, specifies a frame, in
+which case the function searches @var{frame}'s parameter
+@code{environment} (@pxref{Basic Parameters}) for @var{var} instead of
+looking for it in @code{process-environment}.
+
+@cindex DISPLAY environment variable search
+The @samp{DISPLAY} environment variable is treated specially when
+@var{frame} is omitted or @code{nil}: if that variable is not found in
+@code{process-environment}, the function looks at the selected-frame's
+@code{display} parameter, and if that is @code{nil}, it also looks in
+@code{initial-environment}.
+
 @example
 @group
 (getenv "USER")
@@ -1529,12 +1541,18 @@ MS-Windows.
 This function returns a list describing the time zone that the user is
 in.
 
+@cindex Univeral Time
 The value has the form @code{(@var{offset} @var{abbr})}.  Here
-@var{offset} is an integer giving the number of seconds ahead of Universal Time
-(east of Greenwich).  A negative value means west of Greenwich.  The
+@var{offset} is an integer number of seconds of time ahead of
+Universal Time, the time scale originally based on Greenwich Mean Time (GMT),
+the local mean time at the Royal Observatory, Greenwich.
+A positive value is suitable for time zones east of Greenwich,
+and negative for west of Greenwich.  The
 second element, @var{abbr}, is a string giving a possibly-ambiguous
 abbreviation for the time zone, e.g., @samp{"IST"} for India Standard
 Time, Irish Standard Time, or Israel Standard Time.
+POSIX-compatible time zone abbreviations are three to six characters
+that are each an ASCII alphanumeric, @samp{+}, or @samp{-}.
 Both elements can change when daylight
 saving time begins or ends; if the user has specified a time zone that
 does not use a seasonal time adjustment, then the value is constant
@@ -2314,7 +2332,10 @@ and @samp{@var{xx}am}, @samp{@var{xx}AM}, @samp{@var{xx}pm},
 @samp{@var{xx}PM}, @samp{@var{xx}:@var{xx}am},
 @samp{@var{xx}:@var{xx}AM}, @samp{@var{xx}:@var{xx}pm}, or
 @samp{@var{xx}:@var{xx}PM}.  A period can be used instead of a colon
-to separate the hour and minute parts.
+to separate the hour and minute parts, but only if the @samp{am} or
+@samp{pm} suffix (in either letter-case) is specified, because otherwise
+the string will be indistinguishable from a number of seconds without
+units, and will be interpreted as a relative time, see below.
 
 To specify a relative time as a string, use numbers followed by units.
 For example:
@@ -2327,6 +2348,9 @@ denotes 65 seconds from now.
 @item 1 min 2 sec 3 hour 4 day 5 week 6 fortnight 7 month 8 year
 denotes exactly 103 months, 123 days, and 10862 seconds from now.
 @end table
+
+A string that specifies a number without units, such as @samp{12.34}, is
+taken as a relative time given as seconds.
 
 For relative time values, Emacs considers a month to be exactly thirty
 days, and a year to be exactly 365.25 days.

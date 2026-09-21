@@ -979,22 +979,22 @@ Otherwise return the normal value."
 	  ((viper-event-vector-p event-seq)
 	    (setq temp (mapcar #'viper-event-key event-seq))
 	    (cond ((viper-char-symbol-sequence-p temp)
-		   (mapconcat #'symbol-name temp ""))
+		   (mapconcat #'symbol-name temp))
 		  ((and (viper-char-array-p
 			 (setq temp2 (mapcar #'viper-key-to-character temp))))
-		   (mapconcat #'char-to-string temp2 ""))
+		   (mapconcat #'char-to-string temp2))
 		  (t (prin1-to-string (vconcat temp)))))
 	  ((viper-char-symbol-sequence-p event-seq)
-	   (mapconcat #'symbol-name event-seq ""))
+	   (mapconcat #'symbol-name event-seq))
 	  ((and (vectorp event-seq)
 		(viper-char-array-p
 		 (setq temp (mapcar #'viper-key-to-character event-seq))))
-	   (mapconcat #'char-to-string temp ""))
+	   (mapconcat #'char-to-string temp))
 	  (t (prin1-to-string event-seq)))))
 
 (defun viper-key-press-events-to-chars (events)
   (declare (obsolete nil "29.1"))
-  (mapconcat #'char-to-string events ""))
+  (mapconcat #'char-to-string events))
 
 
 (defun viper-read-char-exclusive ()

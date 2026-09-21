@@ -2924,6 +2924,11 @@ original signature to avoid these issues.
 This is valid for macros only.  Macros with this declaration are
 highlighted by font-lock (@pxref{Font Lock Mode}) as normal functions,
 not specially as macros.
+
+@item font-lock-keyword
+Normal functions with this declaration are highlighted by font-lock
+(@pxref{Font Lock Mode}) like macros.
+
 @end table
 
 @end defmac

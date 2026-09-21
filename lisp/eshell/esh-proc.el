@@ -176,15 +176,20 @@ PROC and STATUS to functions on the latter."
 (define-obsolete-function-alias 'eshell-reset-after-proc
   'eshell--reset-after-signal "30.1")
 
-(defun eshell-process-active-p (process)
-  "Return non-nil if PROCESS is active.
+(cl-defmethod eshell-task-p ((_proc process)) t)
+(cl-defmethod eshell-task-status ((proc process))
+  "Return the status of PROC, as with `process-status'."
+  (process-status proc))
+
+(cl-defmethod eshell-task-active-p ((proc process))
+  "Return non-nil if PROC is active.
 This is like `process-live-p', but additionally checks whether
 `eshell-sentinel' has finished all of its work yet."
-  (or (process-live-p process)
+  (or (process-live-p proc)
       ;; If we have handles, this is an Eshell-managed
       ;; process.  Wait until we're 100% done and have
       ;; cleared out the handles (see `eshell-sentinel').
-      (process-get process :eshell-handles)))
+      (process-get proc :eshell-handles)))
 
 (defun eshell-wait-for-processes (&optional procs timeout)
   "Wait until PROCS have completed execution.
@@ -193,8 +198,8 @@ if all the processes finished executing before the timeout expired."
   (let ((expiration (when timeout (time-add (current-time) timeout))))
     (catch 'timeout
       (dolist (proc procs)
-        (while (if (processp proc)
-                   (eshell-process-active-p proc)
+        (while (if (eshell-task-p proc)
+                   (eshell-task-active-p proc)
                  (process-attributes proc))
           (when (input-pending-p)
             (discard-input))
@@ -222,7 +227,7 @@ Wait until PROCESS(es) have completed execution.")
    (when (stringp timeout)
      (setq timeout (string-to-number timeout)))
    (dolist (arg args)
-     (unless (or (processp arg) (natnump arg))
+     (unless (or (eshell-task-p arg) (natnump arg))
        (error "wait: invalid argument type: %s" (type-of arg))))
    (unless (eshell-wait-for-processes args timeout)
      (error "wait: timed out after %s seconds" timeout))))

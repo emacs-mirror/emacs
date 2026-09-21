@@ -167,9 +167,9 @@ DESCRIPTION
                      "\"basename\""
                      "basename")))
   (should (equal (Man-translate-references "basename(3)")
-                 "3 basename"))
+                 (concat Man-specified-section-option "3 basename")))
   (should (equal (Man-translate-references "basename(3v)")
-                 "3v basename"))
+                 (concat Man-specified-section-option "3v basename")))
   (should (equal (Man-translate-references ";id")
                  (if (memq system-type '(ms-dos windows-nt))
                      "\";id\""
