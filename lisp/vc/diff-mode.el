@@ -252,7 +252,9 @@ buffers."
   "u" #'diff-revert-and-kill-hunk
   ;; `diff-revert-and-kill-hunk' is the `diff-mode' analogue of what '@'
   ;; does in VC-Dir, so give it the same short binding.
-  "@" #'diff-revert-and-kill-hunk)
+  "@" #'diff-revert-and-kill-hunk
+  ;; Doesn't ask for confirmation but should be harmless.
+  "f" #'diff-goto-old-source)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
@@ -2535,6 +2537,21 @@ as above."
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
       (when buffer (next-error-found buffer (current-buffer))))))
+
+(defun diff-goto-old-source ()
+  "Like `diff-goto-source' with `diff-jump-to-old-file' always non-nil.
+Jump to corresponding line of the old source file.
+Under version control (usually: in a *vc-diff* buffer), jump to source
+code corresponding to one of the diff's old or new revisions as follows:
+- if point is on an old changed line (i.e. a removed line),
+  jump to the old source file in the manner of \\[vc-revision-other-window]
+- otherwise, jump to the new source file,
+  either by visiting the version of the file in the working tree
+  (when the new source file is the working tree's),
+  or in the manner of \\[vc-revision-other-window]."
+  (interactive)
+  (let ((diff-jump-to-old-file t))
+    (diff-goto-source nil nil)))
 
 (defun diff-kill-ring-save (beg end &optional reverse)
   "Save to `kill-ring' the result of applying diffs in region between BEG and END.

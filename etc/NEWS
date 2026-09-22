@@ -275,6 +275,17 @@ color and makes it work better in the terminal.
 ---
 *** 'diff-switches' now includes '-r' by default.
 
+** Diff mode
+
++++
+*** New command 'f' jumps to the corresponding line of the old source.
+This is primarily intended for use in "*vc-diff*" buffers, where it
+mirrors the existing 'f' binding in Log View mode buffers.
+In such buffers, 'f' when point is on an old changed line (i.e. a
+removed line) jumps to the file at the diff's old revision, and 'f' when
+point is on a new changed line (i.e. an added line) or an unchanged line
+jumps to the file at the diff's new revision.
+
 ** Outline mode
 
 *** New command 'outline-show-entry-and-parents'.
