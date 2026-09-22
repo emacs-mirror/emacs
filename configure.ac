@@ -5587,15 +5587,16 @@ if test "${with_mps}" != "no"; then
 fi
 
 AC_ARG_ENABLE([igc-ephemeron-pool],
-  [AS_HELP_STRING([--enable-igc-ephemeron-pool],
-     [use the AEPH pool])],
-  [ac_enable_igc_ephemeron_pool="$enableval"],
-  [ac_enable_igc_ephemeron_pool=no])
+  [AS_HELP_STRING([--disable-igc-ephemeron-pool],
+   [disable the AEPH pool])],
+  [if test "$HAVE_MPS" = no; then
+     AC_MSG_ERROR([--disable-igc-ephemeron-pool requires --with-mps]).
+   fi
+   ac_enable_igc_ephemeron_pool="$enableval"],
+  [ac_enable_igc_ephemeron_pool=yes])
 
-if test "$ac_enable_igc_ephemeron_pool" = yes; then
-  if test "$HAVE_MPS" = no; then
-    AC_MSG_ERROR([--enable-igc-ephemeron-pool requires --with-mps]).
-  fi
+if test "$ac_enable_igc_ephemeron_pool" = yes &&
+   test "$HAVE_MPS" != no; then
   AC_DEFINE([USE_EPHEMERON_POOL], [1], [Define to use the AEPH pool.])
 fi
 
