@@ -2983,11 +2983,12 @@ the result will be a local, non-Tramp, file name."
       (if (not (tramp-connectable-p v))
 	  (tramp-drop-volume-letter
 	   (tramp-run-real-handler #'expand-file-name (list name)))
-	(unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
-	  (setq localname (concat "~/" localname)))
         ;; Tilde expansion shall be possible also for quoted localname.
 	(when (string-prefix-p "~" (file-name-unquote localname))
 	  (setq localname (file-name-unquote localname)))
+	;; Use tilde for relative localname.
+	(unless (string-match-p (rx bos (any "/~")) localname)
+	  (setq localname (concat "~/" localname)))
 	;; Tilde expansion if necessary.  This needs a shell which
 	;; groks tilde expansion!  The function `tramp-find-shell' is
 	;; supposed to find such a shell on the remote host.  Please
