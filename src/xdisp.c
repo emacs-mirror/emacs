@@ -12155,7 +12155,7 @@ screen line that includes TO to the returned height of the text.  */)
   return value;
 }
 
-DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 4, 0,
+DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 6, 0,
        doc: /* Return the dimensions of whole text of BUFFER-OR-NAME in WINDOW.
 BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
 and defaults to the current buffer.  WINDOW must be a live window and
@@ -12163,15 +12163,15 @@ defaults to the selected one.  The return value is a cons of the maximum
 pixel-width of any text line and the pixel-height of all the text lines
 of the buffer specified by BUFFER-OR-NAME.
 
-The optional arguments X-LIMIT and Y-LIMIT have the same meaning as with
-`window-text-pixel-size'.
+The optional arguments X-LIMIT, Y-LIMIT, FROM and TO, have the same
+meaning as with `window-text-pixel-size'.
 
 Do not use this function if the buffer specified by BUFFER-OR-NAME is
 already displayed in WINDOW.  `window-text-pixel-size' is cheaper in
 that case because it does not have to temporarily show that buffer in
 WINDOW.  */)
   (Lisp_Object buffer_or_name, Lisp_Object window, Lisp_Object x_limit,
-   Lisp_Object y_limit)
+   Lisp_Object y_limit, Lisp_Object from, Lisp_Object to)
 {
   struct window *w = decode_live_window (window);
   struct buffer *b = (NILP (buffer_or_name)
@@ -12199,7 +12199,7 @@ WINDOW.  */)
       set_marker_both (w->old_pointm, buffer, BEG, BEG_BYTE);
     }
 
-  value = window_text_pixel_size (window, Qnil, Qnil, x_limit, y_limit, Qnil,
+  value = window_text_pixel_size (window, from, to, x_limit, y_limit, Qnil,
 				  Qnil);
 
   unbind_to (count, Qnil);
