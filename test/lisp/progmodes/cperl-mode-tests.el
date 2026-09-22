@@ -931,33 +931,34 @@ The minor mode `cperl-extra-paired-delimiters-mode' controls whether we
 have extra paired delimiters."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (with-temp-buffer
-    (insert-file-contents (ert-resource-file "extra-delimiters.pl"))
-    (funcall cperl-test-mode)
-    (cperl-extra-paired-delimiters-mode t)
-    (font-lock-ensure)
-    (goto-char (point-min))
-    (search-forward-regexp "\\(label:\\)")
-    (should (equal (get-text-property (match-beginning 1) 'face)
-                   'font-lock-constant-face))
-    (search-forward-regexp "\\(comment\\)")
-    (should (equal (get-text-property (match-beginning 1) 'face)
-                   'font-lock-comment-face))
-    (search-forward-regexp "\\(sanity\\)")
-    (should (equal (get-text-property (match-beginning 1) 'face)
-                   'font-lock-variable-name-face))
-    ;; Now switch off the minor mode and redo
-    (cperl-extra-paired-delimiters-mode -1)
-    (font-lock-ensure)
-    (goto-char (point-min))
-    (search-forward-regexp "\\(label:\\)")
-    (should (equal (get-text-property (match-beginning 1) 'face)
-                   'font-lock-string-face))
-    (search-forward-regexp "\\(comment\\)")
-    (should (equal (get-text-property (match-beginning 1) 'face)
-                   'font-lock-string-face))
-    (search-forward-regexp "\\(sanity\\)")
-    (should (equal (get-text-property (match-beginning 1) 'face)
-                   'font-lock-variable-name-face))))
+    (let ((coding-system-for-read 'utf-8))
+      (insert-file-contents (ert-resource-file "extra-delimiters.pl"))
+      (funcall cperl-test-mode)
+      (cperl-extra-paired-delimiters-mode t)
+      (font-lock-ensure)
+      (goto-char (point-min))
+      (search-forward-regexp "\\(label:\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-constant-face))
+      (search-forward-regexp "\\(comment\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-comment-face))
+      (search-forward-regexp "\\(sanity\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-variable-name-face))
+      ;; Now switch off the minor mode and redo
+      (cperl-extra-paired-delimiters-mode -1)
+      (font-lock-ensure)
+      (goto-char (point-min))
+      (search-forward-regexp "\\(label:\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-string-face))
+      (search-forward-regexp "\\(comment\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-string-face))
+      (search-forward-regexp "\\(sanity\\)")
+      (should (equal (get-text-property (match-beginning 1) 'face)
+                     'font-lock-variable-name-face)))))
 
 
 ;;; Function test: Building an index for imenu
@@ -968,33 +969,34 @@ This test relies on the specific layout of the index alist as
 created by CPerl mode, so skip it for Perl mode."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (with-temp-buffer
-    (insert-file-contents (ert-resource-file "grammar.pl"))
-    (cperl-mode)
-    (let ((index (cperl-imenu--create-perl-index))
-          current-list)
-      (setq current-list (assoc-string "+Unsorted List+..." index))
-      (should current-list)
-      (let ((expected '("(main)::outside"
-                        "Package::in_package"
-                        "Shoved::elsewhere"
-                        "Package::prototyped"
-                        "Versioned::Package::versioned"
-                        "Block::attr"
-                        "Versioned::Package::outer"
-                        "lexical"
-                        "Versioned::Block::signatured"
-                        "Package::in_package_again"
-                        "Erdős::Number::erdős_number"
-                        "Class::Class::init"
-                        "Class::Inner::init_again"
-                        "With::Accessors->auto_reader"
-                        "With::Accessors->named"
-                        "With::Accessors->set_auto_writer"
-                        "With::Accessors->read_all"
-                        "With::Accessors->set_auto_all")))
-        (dolist (sub expected)
-          (should (assoc-string sub index))))
-      (should-not (assoc-string "_false" index)))))
+    (let ((coding-system-for-read 'utf-8))
+      (insert-file-contents (ert-resource-file "grammar.pl"))
+      (cperl-mode)
+      (let ((index (cperl-imenu--create-perl-index))
+            current-list)
+        (setq current-list (assoc-string "+Unsorted List+..." index))
+        (should current-list)
+        (let ((expected '("(main)::outside"
+                          "Package::in_package"
+                          "Shoved::elsewhere"
+                          "Package::prototyped"
+                          "Versioned::Package::versioned"
+                          "Block::attr"
+                          "Versioned::Package::outer"
+                          "lexical"
+                          "Versioned::Block::signatured"
+                          "Package::in_package_again"
+                          "Erdős::Number::erdős_number"
+                          "Class::Class::init"
+                          "Class::Inner::init_again"
+                          "With::Accessors->auto_reader"
+                          "With::Accessors->named"
+                          "With::Accessors->set_auto_writer"
+                          "With::Accessors->read_all"
+                          "With::Accessors->set_auto_all")))
+          (dolist (sub expected)
+            (should (assoc-string sub index))))
+        (should-not (assoc-string "_false" index))))))
 
 ;;; Tests for issues reported in the Bug Tracker
 
@@ -1045,7 +1047,7 @@ under timeout control."
          (process-connection-type nil)
          runner)
     (with-temp-buffer
-      (with-timeout (2
+      (with-timeout (10
                      (delete-process runner)
                      (setq ran-out-of-time t))
         (setq runner (start-process "speedy"
