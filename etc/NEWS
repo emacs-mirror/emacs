@@ -1601,6 +1601,11 @@ are browsed from a PGTK frame.  For other frames, we fall back to the
 default URL launch function.  This change allows us to properly raise
 browser windows under Wayland using the xdg_activation_v1 protocol.
 
+To get the old behavior, customize 'browse-url-browser-function' to
+force Emacs to use whatever browser you used by default before.  For
+example, for Firefox, select "Firefox" from the customization menu, or
+set 'browse-url-browser-function' to 'browse-url-firefox'.
+
 *** 'RET' can visit URLs in read-only buffers.
 In some keymaps such as 'ansi-osc-hyperlink-map',
 'browse-url-button-map', 'goto-address-highlight-keymap', and
