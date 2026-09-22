@@ -1941,10 +1941,10 @@ or in the manner of @kbd{C-x v ~}.
 
 @findex diff-goto-old-source
 @item f @r{(in read-only Diff mode buffers)}
-Like @kbd{C-c C-c}, but with @code{diff-jump-to-old-file} always false:
-jump to the corresponding line of the old source file.  If the source
-file is under version control, jump to the source code corresponding to
-one of the diff's old or new revisions as above.
+Like @kbd{C-c C-c}, but with @code{diff-jump-to-old-file} always
+non-@code{nil}: jump to the corresponding line of the old source file.
+If the source file is under version control, jump to the source code
+corresponding to one of the diff's old or new revisions as above.
 
 @findex diff-ediff-patch
 @item C-c C-e
