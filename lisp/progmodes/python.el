@@ -5745,19 +5745,21 @@ def __FFAP_get_module_path(objstr):
 ;;; Code check
 
 (defcustom python-check-command
-  (cond ((executable-find "pyflakes") "pyflakes")
-        ((and-let* ((_ (executable-find "ruff"))
-                    (output
-                     (car (ignore-errors (process-lines "ruff" "--version"))))
-                    (_ (string-match "^ruff \\([0-9]+\\.[0-9]+\\.[0-9]+\\)"
-                                     output))
-                    (version (match-string 1 output)))
-           (version<= "0.3.0" version))
-         "ruff check")
-        ((executable-find "ruff") "ruff")
-        ((executable-find "flake8") "flake8")
-        ((executable-find "epylint") "epylint")
-        (t "pyflakes"))
+  (cond*
+   ((executable-find "pyflakes") "pyflakes")
+   ((bind* (have-ruff (executable-find "ruff"))))
+   ((bind-and* (_ have-ruff)
+               (output (car (ignore-errors
+                              (process-lines "ruff" "--version"))))
+               (_ (string-match "^ruff \\([0-9]+\\.[0-9]+\\.[0-9]+\\)"
+                                output))
+               (version (match-string 1 output))
+               (_ (version<= "0.3.0" version)))
+    "ruff check")
+   (have-ruff "ruff")
+   ((executable-find "flake8") "flake8")
+   ((executable-find "epylint") "epylint")
+   (t "pyflakes"))
   "Command used to check a Python file."
   :type 'string
   :version "31.2")
