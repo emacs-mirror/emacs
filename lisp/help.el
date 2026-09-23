@@ -797,7 +797,10 @@ To record all your input, use `open-dribble-file'."
     ;; `help-make-xrefs' adds a newline at the end of the buffer, which
     ;; makes impossible to reposition point in `with-help-window'.
     (when view-lossage-auto-refresh
-      (set-window-point (get-buffer-window (help-buffer)) (point-max)))))
+      (if-let* ((window (get-buffer-window (help-buffer))))
+          (set-window-point window (point-max))
+        (with-current-buffer (help-buffer)
+          (goto-char (point-max)))))))
 
 
 ;; Key bindings
