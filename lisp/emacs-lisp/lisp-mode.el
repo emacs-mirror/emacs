@@ -84,6 +84,30 @@
     table)
   "Syntax table used in `lisp-mode'.")
 
+(eval-and-compile
+  (defconst lisp-mode-syntax-propertize-rules
+    (syntax-propertize-precompile-rules
+     ;; Give entire |multiple escape| sections symbol syntax.
+     ((rx "|" (+ (or (seq (syntax escape) "|") (not "|"))) "|")
+      (0 (and (not (ppss-comment-or-string-start (syntax-ppss)))
+              (string-to-syntax "_"))))
+     ;; Give numeric args and the sub character in dispatch macros prefix
+     ;; syntax.
+     ((rx (or (seq "#" (group-n 1 (* (any "0-9")) (any "AaCcPpSs:*.=+-")))
+              (seq "#" (group-n 1 (+ (any "0-9"))) "(")
+              (seq "," (group-n 1 (any ".@")))))
+      (1 (and (not (ppss-comment-or-string-start (syntax-ppss)))
+              (string-to-syntax "'")))))
+    "`syntax-propertize' rules for Common Lisp code."))
+
+(defun lisp-mode-syntax-propertize (start end)
+  "Add syntax-table properties to Common Lisp code between START and END.
+Used as the value of `syntax-propertize-function' in `lisp-mode'.
+Apply text properties to multiple escapes and dispatch reader macros
+so they are parsed correctly."
+  (funcall (syntax-propertize-rules lisp-mode-syntax-propertize-rules)
+           start end))
+
 (rx-define lisp-mode-symbol (+ (| (syntax word)
                                   (syntax symbol)
                                   (: "\\" nonl))))
@@ -838,6 +862,7 @@ or to switch back to an existing one."
 	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq-local comment-end-skip "[ \t]*\\(\\s>\\||#\\)")
   (setq-local font-lock-comment-end-skip "|#")
+  (setq-local syntax-propertize-function #'lisp-mode-syntax-propertize)
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()

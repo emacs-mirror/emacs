@@ -354,6 +354,15 @@ Perl 5.44 allows to declare a signature like "sub subname (:$par)", see
 <https://perldoc.perl.org/5.44.0/perldelta#Named-Parameters-in-Signatures>.
 CPerl mode now recognizes this as a variable declaration.
 
+** Lisp mode
+
+---
+*** Improved accuracy of Common Lisp code parsing.
+Lisp mode will now correctly parse multiple escapes as part of symbols
+and will parse dispatch reader macros as expression prefixes.  Uses a
+new function 'lisp-mode-syntax-propertize' as the value of
+'syntax-propertize-function' in Lisp mode.
+
 ** Newsticker
 
 ---
