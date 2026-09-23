@@ -2539,7 +2539,7 @@ as above."
       (when buffer (next-error-found buffer (current-buffer))))))
 
 (defun diff-goto-old-source ()
-  "Like `diff-goto-source' with `diff-jump-to-old-file' always non-nil.
+  "Like `diff-goto-source', but with `diff-jump-to-old-file' always non-nil.
 Jump to corresponding line of the old source file.
 Under version control (usually: in a *vc-diff* buffer), jump to source
 code corresponding to one of the diff's old or new revisions as follows:
