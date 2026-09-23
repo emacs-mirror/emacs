@@ -5748,7 +5748,7 @@ def __FFAP_get_module_path(objstr):
   (cond*
    ((executable-find "pyflakes") "pyflakes")
    ((bind* (have-ruff (executable-find "ruff"))))
-   ((bind-and* (_ have-ruff)
+   ((bind-and* have-ruff
                (output (car (ignore-errors
                               (process-lines "ruff" "--version"))))
                (_ (string-match "^ruff \\([0-9]+\\.[0-9]+\\.[0-9]+\\)"
