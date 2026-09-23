@@ -2479,23 +2479,23 @@ image_size_in_bytes (struct image *img)
 #if defined USE_CAIRO
   Emacs_Pixmap pm = img->pixmap;
   if (pm)
-    size += pm->height * pm->bytes_per_line;
+    size += pm->height * (ptrdiff_t) {pm->bytes_per_line};
   Emacs_Pixmap msk = img->mask;
   if (msk)
-    size += msk->height * msk->bytes_per_line;
+    size += msk->height * (ptrdiff_t) {msk->bytes_per_line};
 
 #elif defined HAVE_X_WINDOWS || defined HAVE_ANDROID
   /* Use a nominal depth of 24 and a bpp of 32 for pixmap and 1 bpp
      for mask, to avoid having to query the server. */
   if (img->pixmap != NO_PIXMAP)
-    size += img->width * img->height * 4;
+    size += img->width * (ptrdiff_t) {img->height} * 4;
   if (img->mask != NO_PIXMAP)
-    size += img->width * img->height / 8;
+    size += img->width * (ptrdiff_t) {img->height} / 8;
 
   if (img->ximg && img->ximg->data)
-    size += img->ximg->bytes_per_line * img->ximg->height;
+    size += img->ximg->bytes_per_line * (ptrdiff_t) {img->ximg->height};
   if (img->mask_img && img->mask_img->data)
-    size += img->mask_img->bytes_per_line * img->mask_img->height;
+    size += img->mask_img->bytes_per_line * (ptrdiff_t) {img->mask_img->height};
 
 #elif defined HAVE_NS
   if (img->pixmap)
