@@ -335,10 +335,13 @@ This is used for conditional exit clauses."
           ((eq pat-type 'bind-and*)
            (let ((checks '()) (last t))
              (dolist (bind (cdr condition))
-               (push (list (car bind) (list 'and last (cadr bind)))
-                     checks)
-               (when (eq (caar checks) '_)
-                 (setcar (car checks) (make-symbol "s")))
+               (if (symbolp bind)
+                   (push (list (make-symbol "s") (list 'and last bind))
+                         checks)
+                 (push (list (car bind) (list 'and last (cadr bind)))
+                       checks)
+                 (when (eq (caar checks) '_)
+                   (setcar (car checks) (make-symbol "s"))))
                (setq last (caar checks)))
              (cond
               ;; For explanations on these cases, see "Ordinary

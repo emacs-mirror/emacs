@@ -594,7 +594,15 @@ the current line."
   (save-excursion
     (cond
      ((eq php-ts-mode-html-relative-indent 'ignore) (line-beginning-position))
-     ((search-backward "</html>" (treesit-node-start parent) t 1) (line-beginning-position))
+     ((let ((node-start (treesit-node-start parent)))
+        (and node-start
+             ;; Prevent "Invalid search bound (wrong side of point)"
+             ;; errors when `point' is positioned before the start of
+             ;; the tree-sitter parent node (e.g., during indentation
+             ;; with `indent-for-tab-command' after `open-line').
+             (>= (point) node-start)
+             (search-backward "</html>" node-start t 1)))
+      (line-beginning-position))
      ((null node) (apply (alist-get 'prev-sibling treesit-simple-indent-presets) node parent bol nil))
      (t (when-let* ((html-node (treesit-search-forward
 				node
