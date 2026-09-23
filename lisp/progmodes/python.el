@@ -5746,13 +5746,21 @@ def __FFAP_get_module_path(objstr):
 
 (defcustom python-check-command
   (cond ((executable-find "pyflakes") "pyflakes")
+        ((and-let* ((_ (executable-find "ruff"))
+                    (output
+                     (car (ignore-errors (process-lines "ruff" "--version"))))
+                    (_ (string-match "^ruff \\([0-9]+\\.[0-9]+\\.[0-9]+\\)"
+                                     output))
+                    (version (match-string 1 output)))
+           (version<= "0.3.0" version))
+         "ruff check")
         ((executable-find "ruff") "ruff")
         ((executable-find "flake8") "flake8")
         ((executable-find "epylint") "epylint")
         (t "pyflakes"))
   "Command used to check a Python file."
   :type 'string
-  :version "30.1")
+  :version "31.2")
 
 (defcustom python-check-buffer-name
   "*Python check: %s*"
