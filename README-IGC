@@ -1,6 +1,6 @@
 This directory tree contains a version of Emacs master branch that
 implements a new garbage collector (GC) for Emacs that is based on
-Ravenbrook's Memory Pool System (MPS) library.  The new GC is
+Ravenbrook's Memory Pool System (MPS) library (libmps).  The new GC is
 incremental and generational.
 
 We ask users to help us stabilize this branch, so that we can merge it
@@ -12,15 +12,12 @@ bug-gnu-emacs@gnu.org.  See the BUGS file for more information.
 Building this branch
 ====================
 
-This branch can be built with and without the new GC (igc).  If you want
-to build with igc, you will need to install the MPS library 'libmps'.
-How to install the library differs from system to system, see
-'Installing libmps' below.
+This branch can be built with and without the new GC (igc).
 
 How to build Emacs from a Git checkout is described in the file
 INSTALL.REPO.  Everything said there applies to this branch as well.
-When you have 'libmps' installed, you can configure Emacs to use it with
-the new configure option '--with-mps'.
+You can configure Emacs to use it with the new configure option
+'--with-mps'.
 
 Use the following configure flags:
 
@@ -33,107 +30,6 @@ In addition, you can run configure with
   --enable-checking=igc_debug
 
 to enable igc-specific assertions.
-
-
-Installing 'libmps'
-===================
-
-GNU/Linux and *BSD
-------------------
-
-See "Building MPS yourself" below.
-
-macOS with Homebrew
--------------------
-
-With macOS 13 or later, you can install 'libmps' from Homebrew with:
-
-  brew install libmps
-
-Then add something like this to your environment (e.g., to ~/.zprofile):
-
-  export CFLAGS="$CFLAGS -I$(brew --prefix libmps)/include"
-  export LDFLAGS="$LDFLAGS -L$(brew --prefix libmps)/lib"
-
-If you are using macOS 12 or earlier, see "Building MPS yourself" below.
-
-Note that --with-mps=debug won't work with the Homebrew recipe, see:
-https://lists.gnu.org/r/emacs-devel/2025-01/msg00886.html
-Alternatively, see "Building MPS yourself" below.
-
-MS-Windows
-----------
-
-TBD
-
-Building MPS yourself
----------------------
-
-See the file mps/INSTALL for instructions on how to build MPS.  But in
-short:
-
-$ # Change this to an empty directory of your choosing:
-$ MPS_ARTIFACTS=/path/to/mps_artifacts
-$ git clone https://github.com/Ravenbrook/mps.git
-$ cd mps
-$ autoconf
-$ ./configure --prefix="$MPS_ARTIFACTS"
-$ make CFLAGSCOMPILERSTRICT="-Wno-error"
-$ make install
-
-Building MPS yourself (manually)
---------------------------------
-
-If you have problems with the above, you can try this more manual
-installation procedure:
-
-$ git clone https://github.com/Ravenbrook/mps.git
-$ cd mps/code
-
-$ gcc -O2 -c mps.c
-$ ar rvs libmps.a mps.o
-
-Create a new empty directory of your choosing:
-
-$ # Change this to any new empty directory:
-$ MPS_ARTIFACTS="/path/to/mps-artifacts"
-$ mkdir $MPS_ARTIFACTS
-
-Now copy the header files and libmps.a there:
-
-$ cp mps*.h libmps.a $MPS_ARTIFACTS
-
-To copy a smaller set of headers (at the risk of needing to redo this in
-the future), you could do this instead:
-
-$ cp mps.h mpsavm.h mpscamc.h mpscams.h mpscawl.h \
-     mpslib.h libmps.a $MPS_ARTIFACTS
-
-Then you can proceed with building Emacs, telling the `configure` script
-where the mps header files and libmps.a are:
-
-$ ./configure CPPFLAGS=-I$MPS_ARTIFACTS \
-              LDFLAGS=-L$MPS_ARTIFACTS \
-              --with-mps=yes <... rest of options ...>
-
-To build the debug version of MPS:
-
-$ gcc -O0 -g -DCONFIG_VAR_COOL -c mps.c -o mps-debug.o
-$ ar rvs libmps-debug.a mps-debug.o
-$ cp libmps-debug.a ~/mps-artifacts
-
-Then pass --with-mps=debug instead --with-mps=yes to the Emacs configure
-script (it is recommended that you build Emacs in debug mode while
-debugging MPS problems, see the INSTALL in the root directory of the
-Emacs source tree.)
-
-To make it easier to rebuild in the future, you could add this to your
-~/.bashrc (or equivalent for other shells):
-
-    export EMACS_MPS_ARTIFACTS="$HOME/mps-artifacts"
-
-And then build by switching in that variable (with the "EMACS_" prefix)
-into the commands you find above.
 
 
 Debugging the MPS build
