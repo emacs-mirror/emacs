@@ -1744,7 +1744,7 @@ immediate descendents (i.e., children) of that directory
 (@code{vc-dir-unmark-all-files}).  With a prefix argument, unmark all
 listed files and directories.
 
-@vindex vc-dir-unmark-all-files
+@vindex vc-dir-simple-unmark-all-files
 You can customize the variable @code{vc-dir-simple-unmark-all-files} to
 a non-nil value to invert the meaning of a prefix argument to this
 command.  Then, @kbd{U} without any prefix argument unmarks all files,
