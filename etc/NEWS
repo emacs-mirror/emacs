@@ -256,6 +256,12 @@ have a backend, and 'vc-follow-symlinks' is non-nil, the truename is
 used instead.  Previously, the truename was used unconditionally.
 
 +++
+*** New option 'vc-dir-simple-unmark-all-files'.
+This inverts the meaning of a prefix argument to the existing 'U'
+('vc-dir-unmark-all-files') command, which some users may find more
+intuitive.
+
++++
 *** Improved creation of commit log entry from ChangeLog.
 When VC detects that all log entries for the current changeset come from
 the same ChangeLog file or buffer, it now inserts the entire body of the

@@ -1083,16 +1083,28 @@ line."
     (ewoc-invalidate vc-ewoc prev)
     (vc-dir-move-to-goal-column)))
 
+(defcustom vc-dir-simple-unmark-all-files nil
+  "If non-nil, invert prefix argument for `vc-dir-unmark-all-files'.
+That is, `vc-dir-unmark-all-files' without any prefix argument unmarks
+all files, and applying a prefix argument makes
+`vc-dir-unmark-all-files' unmark only all files with the same state as
+the current one or all children of a directory."
+  :type 'boolean
+  :group 'vc
+  :version "32.1")
+
 (defun vc-dir-unmark-all-files (arg)
   "Unmark all files with the same state as the current one.
-With prefix argument ARG, unmark all files.
 If the current entry is a directory, unmark all the child files.
+With prefix argument ARG, unmark all files.
 
 The commands operate on files that are on the same state.
 This command is intended to make it easy to deselect all files
-that share the same state."
+that share the same state.
+
+See also `vc-dir-simple-unmark-all-files'."
   (interactive "P")
-  (if arg
+  (if (if vc-dir-simple-unmark-all-files (not arg) arg)
       (ewoc-map
        (lambda (filearg)
 	 (when (vc-dir-fileinfo->marked filearg)
