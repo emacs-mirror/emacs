@@ -6101,14 +6101,17 @@ MOVE non-nil means to move instead of copy."
              ;; An empty files list makes `vc-diff-internal' diff the
              ;; whole of `default-directory'.
              ((cadr diff-fileset)
-              (cl-letf ((display-buffer-overriding-action
-                         '(display-buffer-no-window (allow-no-window . t)))
-                        ;; Try to disable, e.g., Git's rename detection.
-                        ((symbol-value (vc-make-backend-sym backend
-                                                            'diff-switches))
-                         t))
-                (vc-diff-internal nil diff-fileset nil nil nil
-                                  (current-buffer))))
+              (let ((display-buffer-overriding-action
+                     '(display-buffer-no-window (allow-no-window . t)))
+                    (backend-sym (vc-make-backend-sym backend
+                                                      'diff-switches)))
+                ;; Try to disable, e.g., Git's rename detection.
+                (if (boundp backend-sym)
+                    (cl-letf (((symbol-value backend-sym) t))
+                      (vc-diff-internal nil diff-fileset nil nil nil
+                                        (current-buffer)))
+                  (vc-diff-internal nil diff-fileset nil nil nil
+                                    (current-buffer)))))
              (t (require 'diff-mode)))
       ;; We'll handle any `added', `removed', `missing' and
       ;; `unregistered' files in FILESET by copying or moving whole
