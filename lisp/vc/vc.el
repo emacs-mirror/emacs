@@ -5781,43 +5781,65 @@ When called from Lisp, BACKEND is the VC backend."
 (defvar project-prompter)
 (declare-function project-root "project")
 
-(defun vc--prompt-other-working-tree (backend prompt &optional allow-current)
+(defcustom vc-quick-select-current-working-tree nil
+  "If non-nil, skip prompt when current working tree is the only choice.
+
+By default, commands that may operate on any working tree still prompt
+you to choose a working tree even when there are no other working trees,
+i.e., when the current working tree is the only choice.  This is so that
+the sequence of keys you must type to apply the command to the current
+working tree doesn't vary depending on whether or not there happen to be
+any other working trees, so you don't have to think about whether there
+are any other working trees while typing.
+
+Customize this option to non-nil to change this so that when the only
+choice is the current working tree, Emacs skips prompting you.
+This doesn't apply to commands that can operate on only other working
+trees (i.e., not the current working tree) even if there is only one
+other working tree: such commands always prompt."
+  :type 'boolean
+  :version "32.1")
+
+(defun vc--prompt-other-working-tree
+    (backend prompt &optional allow-current)
   "Invoke `project-prompter' to choose another working tree.
 BACKEND is the VC backend.
 PROMPT is the prompt string for `project-prompter'.
-If ALLOW-CURRENT is non-nil, allow selecting the current working tree."
-  ;; If there are no other working trees and ALLOW-CURRENT is non-nil we
-  ;; still invoke the `project-prompter' and require the user to type
-  ;; \\`RET', even though it's redundant.  Doing it this way means that
-  ;; invoking the command on the current working tree works the same
-  ;; whether or not there exist any other working trees.  In particular,
-  ;; the number of keys you have to type is always the same.  It's more
-  ;; ergonomic not to require the user to think about whether there are
-  ;; other working trees when what they care about is doing something
-  ;; with the current working tree: they can just type \\`RET' without
-  ;; stopping to look at the echo area.
-  (let ((trees (vc-call-backend backend 'known-other-working-trees))
-        res)
-    (require 'project)
-    (cond* ((bind-and* (_ allow-current)
-                       (p (project-current)))
-            (push (project-root p) trees))
-           ((null trees)
-            (user-error
-             (substitute-command-keys
-              "No other working trees.  Use \\[vc-add-working-tree] to add one"))))
+If ALLOW-CURRENT is non-nil, allow selecting the current working tree.
+Respects `vc-quick-select-current-working-tree', which see."
+  (require 'project)
+  (let* ((trees (vc-call-backend backend 'known-other-working-trees))
+         (cur (or (project-current nil (vc-root-dir backend))
+                  (error "No current project")))
+         (root (project-root cur)))
     (dolist (tree trees)
       (when-let* ((p (project-current nil tree)))
         (project-remember-project p nil t)))
-    (setq res
-          (funcall project-prompter
-                   (if allow-current
-                       (concat prompt " (default current working tree)")
-                     prompt)
-                   (lambda (k &optional _v)
-                     (member (or (car-safe k) k) trees))
-                   'require-known))
-    (if (string-empty-p res) (vc-root-dir) res)))
+    (cond* (allow-current
+            (project-remember-project cur nil t)
+            (push root trees)
+            :non-exit)
+           ((null trees)
+            (user-error
+             (substitute-command-keys "\
+No other working trees.  Use \\[vc-add-working-tree] to add one")))
+           ((and allow-current
+                 vc-quick-select-current-working-tree
+                 (null (cdr trees)))
+            root)
+           ((bind* (prompt
+                    (if allow-current
+                        (concat prompt
+                                " (default current working tree)")
+                      prompt))
+                   (res (funcall project-prompter prompt
+                                 (lambda (k &optional _v)
+                                   (member (or (car-safe k) k) trees))
+                                 'require-known))))
+           ((and allow-current (string-empty-p res)) root)
+           ((or (string-empty-p res) (not (stringp res)))
+            (user-error "Invalid response"))
+           (t res))))
 
 (defvar project-find-matching-buffer-function)
 
