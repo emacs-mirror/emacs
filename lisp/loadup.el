@@ -596,10 +596,13 @@ directory got moved.  This is set to be a pair in the form of:
                   nil)
               (error nil))))))
   (if dump-mode
-      (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")
+      (let ((output (cond ((equal dump-mode "pdump")
+                           (if (eq system-type 'ms-dos)
+                               "emacs.dmp"
+                             "emacs.pdmp"))
                           ((equal dump-mode "pbootstrap")
                            (if (eq system-type 'ms-dos)
-                               "b-emacs.pdmp"
+                               "b-emacs.dmp"
                              "bootstrap-emacs.pdmp"))
                           (t (error "Unrecognized dump mode %s" dump-mode)))))
         (when (and (featurep 'native-compile)
