@@ -1678,8 +1678,12 @@ backend-specific headers."
      "  "
      "(\\[vc-dir-mark]) Mark, "
      "(\\[vc-dir-unmark]) Unmark, "
-     "(\\[vc-dir-unmark-all-files]) Unmark same state/dir, "
-     "(\\[universal-argument] \\[vc-dir-unmark-all-files]) Unmark all"
+     "(\\[vc-dir-unmark-all-files]) "
+     (if vc-dir-simple-unmark-all-files
+         "Unmark all, " "Unmark same state/dir, ")
+     "(\\[universal-argument] \\[vc-dir-unmark-all-files]) "
+     (if vc-dir-simple-unmark-all-files
+         "Unmark same state/dir" "Unmark all")
      "\n"
      (propertize "View " 'font-lock-face 'vc-dir-key-binding-hint-label)
      "              "
