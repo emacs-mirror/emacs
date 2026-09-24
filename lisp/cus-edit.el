@@ -804,7 +804,7 @@ when the action is chosen.")
                                            'modified))
                                     custom-options)))
     (define-key-after map [Custom-reset-saved]
-      `(menu-item "Revert This Session's Customizations" Custom-reset-saved
+      `(menu-item "Revert Customizations of This Session" Custom-reset-saved
                   :enable (seq-some ,(lambda (option)
                                        (memq (widget-get option :custom-state)
                                              '(modified set changed rogue)))
