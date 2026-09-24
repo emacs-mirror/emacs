@@ -69,6 +69,8 @@ manually updated package."
       valid)))
 
 (define-inline use-package-pin-package (package archive)
+  ;; Make sure the expansion of calls to `use-package' doesn't need to
+  ;; load us at run-time.
   "Pin PACKAGE to ARCHIVE."
   (let* ((package (inline-const-val package))
          (archive (inline-const-val archive))
@@ -123,6 +125,8 @@ manually updated package."
                      "(an unquoted symbol name), or (<symbol> :pin <string>)"))))))))
 
 (define-inline use-package-ensure-elpa (name args state &optional _no-refresh)
+  ;; Make sure the expansion of calls to `use-package' doesn't need to
+  ;; load us at run-time in the common case.
   (let* ((name (inline-const-val name))
          (args (inline-const-val args)))
     (when args
@@ -139,6 +143,7 @@ manually updated package."
            ,(if package
                 (inline-quote
                  (unless (package-installed-p ',package)
+                   ;; This is assumed to be an uncommon case.
                    (use-package-ensure-installed ',package))))
            (use-package-ensure-elpa ',name ',args ',state)))))))
 
@@ -149,14 +154,16 @@ manually updated package."
   (defvar package-pinned-packages)
   (condition-case-unless-debug err
       (progn
+        ;; FIXME: Fold these `package-read-all-archive-contents' and
+        ;; `package-refresh-contents' calls into `package-install'?
         (when (assoc package package-pinned-packages)
           (package-read-all-archive-contents))
         (if (assoc package package-archive-contents)
-            (package-install package)
+            nil
           (package-refresh-contents)
           (when (assoc package package-pinned-packages)
-            (package-read-all-archive-contents))
-          (package-install package))
+            (package-read-all-archive-contents)))
+        (package-install package)
         t)
     (error
      (display-warning 'use-package
@@ -168,10 +175,6 @@ manually updated package."
 (defun use-package-handler/:ensure (name _keyword ensure rest state)
   (let* ((body (use-package-process-keywords name rest state))
          (ensure (and (not (plist-member rest :vc)) ensure)))
-    ;; We want to avoid installing packages when the `use-package' macro is
-    ;; being macro-expanded by elisp completion (see `lisp--local-variables'),
-    ;; but still install packages when byte-compiling, to avoid requiring
-    ;; `package' at runtime.
     (if (and use-package-ensure-install-during-compile
              (use-package--macroexp-compiling-p))
         ;; Eval when byte-compiling,
