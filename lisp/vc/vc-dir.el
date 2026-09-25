@@ -1572,9 +1572,12 @@ uses OVERLAY."
             (with-current-buffer buf
               (condition-case _
                   (progn
-                    (vc-incoming-outgoing-internal backend nil
-                                                   (current-buffer)
-                                                   '(log-outgoing short))
+                    ;; `non-essential' here affects TRAMP if this repo
+                    ;; is remote, and also `vc--incoming-revision'.
+                    (let ((non-essential t))
+                      (vc-incoming-outgoing-internal backend nil
+                                                     (current-buffer)
+                                                     '(log-outgoing short)))
                     (setq proc (get-buffer-process (current-buffer)))
                     (set-process-query-on-exit-flag proc nil)
                     (overlay-put overlay 'proc proc)
