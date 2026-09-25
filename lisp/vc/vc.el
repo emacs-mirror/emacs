@@ -4672,16 +4672,12 @@ BACKEND is the VC backend."
                                                  'vc-incoming-revision))))
           (cdr record)
         (let ((res (vc-call-backend backend 'incoming-revision
-                                    upstream-location refresh)))
-          (if-let* ((alist (vc--repo-getprop backend
-                                             'vc-incoming-revision)))
-              (setf (alist-get upstream-location alist
-                               nil nil #'equal)
+                                    upstream-location refresh))
+              (alist (vc--repo-getprop backend 'vc-incoming-revision)))
+          (prog1
+              (setf (alist-get upstream-location alist nil nil #'equal)
                     res)
-            (vc--repo-setprop backend
-                              'vc-incoming-revision
-                              `((,upstream-location . ,res))))
-          res))
+            (vc--repo-setprop backend 'vc-incoming-revision alist))))
       (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload
@@ -6154,14 +6150,17 @@ MOVE non-nil means to move instead of copy."
              ;; An empty files list makes `vc-diff-internal' diff the
              ;; whole of `default-directory'.
              ((cadr diff-fileset)
-              (cl-letf ((display-buffer-overriding-action
-                         '(display-buffer-no-window (allow-no-window . t)))
-                        ;; Try to disable, e.g., Git's rename detection.
-                        ((symbol-value (vc-make-backend-sym backend
-                                                            'diff-switches))
-                         t))
-                (vc-diff-internal nil diff-fileset nil nil nil
-                                  (current-buffer))))
+              (let ((display-buffer-overriding-action
+                     '(display-buffer-no-window (allow-no-window . t)))
+                    (backend-sym (vc-make-backend-sym backend
+                                                      'diff-switches)))
+                ;; Try to disable, e.g., Git's rename detection.
+                (if (boundp backend-sym)
+                    (cl-letf (((symbol-value backend-sym) t))
+                      (vc-diff-internal nil diff-fileset nil nil nil
+                                        (current-buffer)))
+                  (vc-diff-internal nil diff-fileset nil nil nil
+                                    (current-buffer)))))
              (t (require 'diff-mode)))
       ;; We'll handle any `added', `removed', `missing' and
       ;; `unregistered' files in FILESET by copying or moving whole

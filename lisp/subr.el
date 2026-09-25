@@ -7684,7 +7684,9 @@ Note that it does not imply that all definitions starting with PREFIX can
 be found in those files.  E.g. if prefix is \"gnus-article-\" there might
 still be definitions of the form \"gnus-article-toto-titi\" in other files,
 which would presumably appear in this table under another prefix such as
-\"gnus-\" or \"gnus-article-toto-\".")
+\"gnus-\" or \"gnus-article-toto-\".
+
+See also `help-definition-prefixes'.")
 
 (defun register-definition-prefixes (file prefixes)
   "Register that FILE uses PREFIXES."

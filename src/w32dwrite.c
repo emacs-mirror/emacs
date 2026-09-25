@@ -220,7 +220,7 @@ typedef struct IDWriteFontFaceVtbl {
   void (STDMETHODCALLTYPE *GetMetrics)
     (IDWriteFontFace *This, DWRITE_FONT_METRICS *metrics);
 
-  EMACS_DWRITE_UNUSED (GetGlyphCount);
+  UINT16 (STDMETHODCALLTYPE *GetGlyphCount) (IDWriteFontFace *This);
   EMACS_DWRITE_UNUSED (GetDesignGlyphMetrics);
 
   HRESULT (STDMETHODCALLTYPE *GetGlyphIndices)
@@ -392,7 +392,8 @@ typedef struct IDWriteGdiInteropVtbl {
 
   EMACS_DWRITE_UNUSED (ConvertFontToLOGFONT);
   EMACS_DWRITE_UNUSED (ConvertFontFaceToLOGFONT);
-  EMACS_DWRITE_UNUSED (CreateFontFaceFromHdc);
+  HRESULT (STDMETHODCALLTYPE *CreateFontFaceFromHdc)
+    (IDWriteGdiInterop *This, HDC hdc, IDWriteFontFace **font_face);
 
   HRESULT (STDMETHODCALLTYPE *CreateBitmapRenderTarget)
     (IDWriteGdiInterop *This, HDC hdc, UINT32 width, UINT32 height,
@@ -708,6 +709,15 @@ verify_hr (HRESULT hr, const char *msg)
    font size in points.  It may fail to get a DirectWrite font, and face
    will be NULL on return.  This happens for some fonts like Courier.
 
+   We ask DirectWrite for the face of the font that GDI realized in a
+   device context, instead of matching the LOGFONT against DirectWrite's
+   font collection.  Only the former is documented to reference the same
+   physical font that GDI would use, and that is the font whose tables
+   HarfBuzz read to produce the glyph indices we are going to draw.  If
+   the two resolve to different files, as can happen when two versions
+   of a font are installed, the glyph indices are meaningless for the
+   font we draw with, and we display garbage.
+
    Never call Release on the result, as it is cached for reuse on the
    struct font.  */
 static float
@@ -715,7 +725,6 @@ get_font_face (struct font *infont, IDWriteFontFace **face)
 {
   HRESULT hr;
   LOGFONTW logfont;
-  IDWriteFont *font;
 
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) infont;
@@ -727,24 +736,49 @@ get_font_face (struct font *infont, IDWriteFontFace **face)
 
   GetObjectW (FONT_HANDLE (infont), sizeof (LOGFONTW), &logfont);
 
-  hr = gdi_interop->lpVtbl->CreateFontFromLOGFONT (gdi_interop,
-						   (const LOGFONTW *) &logfont,
-						   &font);
+  /* Select the font into a DC, so that DirectWrite can give us the face
+     for the font GDI realizes for it.  */
+  struct frame *f = SELECTED_FRAME ();
+  HDC hdc = get_frame_dc (f);
+  HFONT old_font = SelectObject (hdc, FONT_HANDLE (infont));
 
-  if (!verify_hr (hr, "Failed to CreateFontFromLOGFONT"))
+  hr = gdi_interop->lpVtbl->CreateFontFaceFromHdc (gdi_interop, hdc, face);
+
+  /* The number of glyphs of the font GDI selected, from its 'maxp'
+     table.  The tag is pushed into a DWORD backwards, to cope with
+     endianness, as GetFontData expects it.  */
+  BYTE num_glyphs[2];
+  DWORD nbytes = GetFontData (hdc, ('p' << 24) | ('x' << 16) | ('a' << 8) | 'm',
+			      4, num_glyphs, 2);
+
+  SelectObject (hdc, old_font);
+  release_frame_dc (f, hdc);
+
+  if (!verify_hr (hr, "Failed to CreateFontFaceFromHdc"))
     {
       uniscribe_font->dwrite_skip_font = true;
       *face = NULL;
       return 0.0;
     }
 
-  hr = font->lpVtbl->CreateFontFace (font, face);
-  RELEASE_COM (font);
-  if (!verify_hr (hr, "Failed to create DWriteFontFace"))
+  /* CreateFontFaceFromHdc is documented to return the face of the font
+     that GDI uses, but if that ever fails to hold, we would be drawing
+     glyph indices produced from the GDI font with a different font,
+     and display garbage.  Verify it, and let GDI do the drawing for
+     this font if the two disagree.  If 'maxp' could not be read,
+     skip the check rather than lose DirectWrite for this font.  */
+  if (nbytes == 2)
     {
-      uniscribe_font->dwrite_skip_font = true;
-      *face = NULL;
-      return 0.0;
+      unsigned gdi_glyph_count = (num_glyphs[0] << 8) + num_glyphs[1];
+
+      if (gdi_glyph_count != (*face)->lpVtbl->GetGlyphCount (*face))
+	{
+	  DebPrint (("DirectWrite and GDI disagree about the font\n"));
+	  RELEASE_COM (*face);
+	  uniscribe_font->dwrite_skip_font = true;
+	  *face = NULL;
+	  return 0.0;
+	}
     }
 
   /* Cache this FontFace.  */
