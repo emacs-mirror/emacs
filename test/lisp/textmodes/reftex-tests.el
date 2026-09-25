@@ -139,6 +139,41 @@
               (should (null parsed)))
              (t (should-not t)))))))))
 
+(ert-deftest reftex-parse-ignore-verbatim-context-bug81805 ()
+  "Test for parsing elements in verbatim context."
+  (ert-with-temp-directory temp-dir
+    (let ((tex-file (expand-file-name "verbatim.tex" temp-dir))
+          toc docstruct)
+      (with-temp-buffer
+        (insert "\
+\\documentclass{article}
+
+\\begin{document}
+
+\\section{Introduction}
+\\label{sec:intro}
+
+\\begin{verbatim}
+\\section{Ignore}
+\\label{sec:ignore}
+\\end{verbatim}
+
+\\section{Conclusion}
+\\label{sec:conclu}
+
+\\end{document}")
+        (write-region (point-min) (point-max) tex-file))
+      (find-file tex-file)
+      (reftex-parse-all)
+      (setq docstruct (symbol-value reftex-docstruct-symbol))
+      ;; \label is never ignored:
+      (should (assoc "sec:ignore" docstruct))
+      (setq toc (reftex-all-assq 'toc docstruct))
+      ;; \section is ignored:
+      (dolist (elt toc)
+        (should-not (string-search "Ignore" (nth 2 elt))))
+      (kill-buffer (file-name-nondirectory tex-file)))))
+
 ;;; reftex-cite
 (require 'reftex-cite)
 

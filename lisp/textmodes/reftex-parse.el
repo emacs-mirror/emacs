@@ -211,7 +211,8 @@ of master file."
         (verbatim-p (lambda () (let (syntax)
                                  (or
                                   ;; This is for AUCTeX `LaTeX-mode':
-                                  (nth 3 (setq syntax (syntax-ppss)))
+                                  (nth 3 (save-match-data
+                                           (setq syntax (syntax-ppss))))
                                   ;; This is for built-in `latex-mode':
                                   (nth 4 syntax))))))
 
