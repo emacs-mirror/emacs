@@ -4660,16 +4660,12 @@ BACKEND is the VC backend."
                                                  'vc-incoming-revision))))
           (cdr record)
         (let ((res (vc-call-backend backend 'incoming-revision
-                                    upstream-location refresh)))
-          (if-let* ((alist (vc--repo-getprop backend
-                                             'vc-incoming-revision)))
-              (setf (alist-get upstream-location alist
-                               nil nil #'equal)
+                                    upstream-location refresh))
+              (alist (vc--repo-getprop backend 'vc-incoming-revision)))
+          (prog1
+              (setf (alist-get upstream-location alist nil nil #'equal)
                     res)
-            (vc--repo-setprop backend
-                              'vc-incoming-revision
-                              `((,upstream-location . ,res))))
-          res))
+            (vc--repo-setprop backend 'vc-incoming-revision alist))))
       (user-error "No incoming revision -- local-only branch?")))
 
 ;;;###autoload
