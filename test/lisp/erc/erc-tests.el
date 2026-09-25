@@ -3202,8 +3202,8 @@
              (should
               (pcase-exhaustive buffer-undo-list
                 (`(nil ("c" . -47)
-                       (apply 0 47 48 undo--adjust-weak-markers
-                              47 (,id . 1))
+                       (apply 0 (47 . 48) undo--adjust-weak-markers
+                              nil (,id . 1))
                        (nil face nil 46 . 47) 48 nil (45 . 48))
                  (eq (undo--lookup-marker id) marker))
                 (`_ nil))))
@@ -3230,8 +3230,8 @@
              (should
               (pcase-exhaustive buffer-undo-list
                 (`(nil ("c" . -58)
-                       (apply 0 47 48 undo--adjust-weak-markers
-                              47 (,id . 1))
+                       (apply 0 (47 . 48) undo--adjust-weak-markers
+                              nil (,id . 1))
                        (nil face nil 57 . 58) 59 nil (56 . 59))
                  (eq (undo--lookup-marker id) marker))
                 (`_ nil))))

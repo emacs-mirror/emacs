@@ -150,7 +150,7 @@ scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
   Lisp_Object tail = list, *prev = &list;
   while (CONSP (tail))
     {
-      eassert (XFIXNUM (XCAR (tail)));
+      eassert (NILP (XCAR (tail)) || EQ (XCAR (tail), Qt));
       Lisp_Object *prev2 = prev;
       prev = xcdr_addr (tail);
       tail = XCDR (tail);
@@ -163,7 +163,9 @@ scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
 	    prev = xcdr_addr (tail);
 	  tail = XCDR (tail);
 	}
-      if (NILP (XCDR (*prev2)) || FIXNUMP (XCAR (XCDR (*prev2))))
+      if (NILP (XCDR (*prev2))
+	  || NILP (XCAR (XCDR (*prev2)))
+	  || EQ (XCAR (XCDR (*prev2)), Qt))
 	{
 	  prev = prev2;
 	  *prev = tail;
@@ -172,9 +174,10 @@ scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
   return list;
 }
 
-/* In (apply 0 BEG END undo--adjust-weak-markers . ARGS) entries, remove
-   weak references to markers that are no longer in weak_marker_table.
-   If no weak references remain, remove the entire entry.  */
+/* In (apply 0 (BEG . END) undo--adjust-weak-markers . ARGS) entries,
+   remove weak references to markers that are no longer in
+   weak_marker_table.  If no weak references remain, remove the entire
+   entry.  */
 static Lisp_Object
 scrub_undo_list (Lisp_Object list)
 {
@@ -186,11 +189,12 @@ scrub_undo_list (Lisp_Object list)
       Lisp_Object entry = XCAR (tail);
       if (CONSP (entry) && EQ (Qapply, XCAR (entry))
 	  && FIXNUMP (Fnth (make_fixnum (1), entry))
-	  && EQ (Fnth (make_fixnum (4), entry),
+	  && CONSP (Fnth (make_fixnum (2), entry))
+	  && EQ (Fnth (make_fixnum (3), entry),
 		 Qundo__adjust_weak_markers))
 	{
 	  Lisp_Object htab = weak_marker_table.id_to_marker;
-	  Lisp_Object head = Fnthcdr (make_fixnum (4), entry);
+	  Lisp_Object head = Fnthcdr (make_fixnum (3), entry);
 	  Lisp_Object pairs
 	    = scrub_id_offset_pairs (htab, XCDR (head));
 	  if (!BASE_EQ (pairs, XCDR (head)))
@@ -306,13 +310,14 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
   if (!NILP (right) || !NILP (left))
     {
       Lisp_Object l
-	= list5 (Qapply, make_fixnum (0), make_fixnum (from),
-		 make_fixnum (to), Qundo__adjust_weak_markers);
+	= list4 (Qapply, make_fixnum (0),
+		 Fcons (make_fixnum (from), make_fixnum (to)),
+		 Qundo__adjust_weak_markers);
       Lisp_Object args = Qnil;
       if (!NILP (right))
-	args = Fcons (make_fixnum (from), right);
+	args = Fcons (Qnil, right);
       if (!NILP (left))
-	args = Fcons (make_fixnum (-to), nconc2 (left, args));
+	args = Fcons (Qt, nconc2 (left, args));
       Lisp_Object entry = nconc2 (l, args);
       bset_undo_list (current_buffer,
 		      Fcons (entry,

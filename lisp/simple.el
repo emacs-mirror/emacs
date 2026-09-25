@@ -3800,22 +3800,19 @@ Return what remains of the list."
               (cons (list 'apply 'cdr nil) buffer-undo-list))))
   list)
 
-;; ARGS has the format: ({TPOS {(ID . OFFSET)}* }* )
+;; ARGS has the format: ({TYPE {(ID . OFFSET)}* }* )
 ;;
 ;; ID is the id for a marker.  The marker can be obtained with
 ;; undo--lookup-marker.
 ;;
 ;; OFFSET should be added to the marker's current position.
 ;;
-;; TPOS is an integer that encodes the expected position and the
-;; insertion type of the marker.  The expected position is (abs TPOS)
-;; and the insertion type is t if TPOS is negative.  Markers that don't
-;; match the expected position and insertion type are ignored.
-(defun undo--adjust-weak-markers (&rest args)
+;; TYPE is the expected insertion type of the marker.  Markers that
+;; don't match the expected position and insertion type are ignored.
+(defun undo--adjust-weak-markers (beg end &rest args)
   (while args
-    (let* ((tpos (pop args))
-           (insertion-type (< tpos 0))
-           (pos (abs tpos)))
+    (let* ((insertion-type (pop args))
+           (pos (if insertion-type end beg)))
       (while (consp (car args))
         (let* ((pair (pop args))
                (id (car pair))
