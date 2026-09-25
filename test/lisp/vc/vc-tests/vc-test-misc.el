@@ -536,7 +536,7 @@ See bug#80803 and bug#80967."
   (skip-unless (executable-find vc-git-program))
   (vc-test--with-author-identity 'Git
     (let ((vc-handled-backends '(Git))
-          file-buf vc-dir-buf vc-diff-buf changelog-buf log-edit-buf
+          vc-dir-buf vc-diff-buf changelog-buf log-edit-buf
           changelog-entry log-edit-entry)
       (unwind-protect
           (ert-with-temp-directory tempdir
@@ -545,13 +545,12 @@ See bug#80803 and bug#80967."
                    vc-async-checkin)
               (vc-test--create-repo-function 'Git)
               (write-region "hello\n" nil file)
-              (with-current-buffer (setq file-buf (find-file-noselect file))
-                (vc-register `(Git (,file)))
-                (vc-checkin (list file) 'Git)
-                (insert "Initial commit")
-                (let (vc-async-checkin)
-                  (log-edit-done))
-                (write-region "Hello\n" nil "README" nil t))
+              (vc-register `(Git (,file)))
+              (vc-checkin (list file) 'Git) ; Makes *vc-log* current buffer.
+              (insert "Initial commit")
+              (let (vc-async-checkin)
+                (log-edit-done))
+              (write-region "Hello\n" nil "README" nil t)
               (vc-dir default-directory 'Git)
               (while (vc-dir-busy) (sit-for 0.05))
               (setq vc-dir-buf (current-buffer))
@@ -581,8 +580,77 @@ See bug#80803 and bug#80967."
               (setq log-edit-entry
                     (buffer-substring-no-properties (point) (point-max)))
               (should (equal changelog-entry log-edit-entry))))
-        (dolist (buf (list file-buf vc-dir-buf vc-diff-buf changelog-buf
+        (dolist (buf (list vc-dir-buf vc-diff-buf changelog-buf
                            log-edit-buf "*log-edit-files*" "*vc*"))
+          (kill-buffer buf))))))
+
+(ert-deftest vc-test-log-message-from-changelog-with-warning () ; bug#81909
+  "Test (not) displaying warning on insertion of log message."
+  (skip-unless (executable-find vc-git-program))
+  (vc-test--with-author-identity 'Git
+    (let ((vc-handled-backends '(Git))
+          (def-dir default-directory)
+          buffers)
+      (unwind-protect
+          (ert-with-temp-directory tempdir
+            (let* ((default-directory tempdir)
+                   (data
+                    (list
+                     (list
+                      (expand-file-name "foo.el" default-directory)
+                      "(defun foo-do()\n  (quux 'do))"
+                      "(defun foo-do(&optional arg)\n  (quux (or arg 'do)))")
+                     (list
+                      (expand-file-name "bar.el" default-directory)
+                      "(defun bar-do()\n  (foo))"
+                      "(defun bar-do()\n  (foo quux-do))")))
+                   (files (mapcar #'car data))
+                   vc-async-checkin)
+              (make-empty-file "quux.el")
+              (push (expand-file-name "quux.el" default-directory) files)
+              (vc-test--create-repo-function 'Git)
+              (dolist (d data)
+                (write-region (nth 1 d) nil (nth 0 d)))
+              (vc-register `(Git ,files))
+              (vc-checkin files 'Git)   ; *vc-log* now current buffer.
+              (insert "Initial commit")
+              (let (vc-async-checkin)
+                (log-edit-done))        ; *vc-log* now killed.
+              (dolist (d data)
+                (write-region (nth 2 d) nil (nth 0 d)))
+              (vc-dir default-directory 'Git) ; *vc-dir* now current buffer.
+              (while (vc-dir-busy) (sit-for 0.05))
+              (push (current-buffer) buffers)
+              (save-window-excursion
+                (vc-diff)               ; *vc-diff* now current buffer.
+                (push (current-buffer) buffers)
+                (diff-add-change-log-entries-other-window)
+                (push (get-buffer "foo.el") buffers)
+                (push (get-buffer "bar.el") buffers)
+                (push (get-buffer (concat "*changes to " tempdir "*"))
+                      buffers))
+              (vc-next-action nil)      ; *vc-log* now current buffer.
+              (should-not (get-buffer "*Warnings*"))
+              (kill-buffer (get-buffer "*vc-log*"))
+              (switch-to-buffer (concat "*changes to " tempdir "*"))
+              (goto-char (point-max))
+              (re-search-backward "^\t\\*")
+              ;; Remove last entry from log buffer.
+              (delete-region (pos-bol) (+ (pos-eol) 2))
+              (switch-to-buffer (car (last buffers))) ; *vc-dir*
+              (vc-next-action nil)      ; *vc-log* now current buffer.
+              (should-not (get-buffer "*Warnings*"))
+              (kill-buffer (get-buffer "*vc-log*"))
+              (switch-to-buffer (concat "*changes to " tempdir "*"))
+              (goto-char (point-max))
+              ;; Add entry that's not in changeset.
+              (insert "\t* quux.el: \n\n")
+              (switch-to-buffer (car (last buffers))) ; *vc-dir*
+              (vc-next-action nil)      ; *vc-log* now current buffer.
+              (push (current-buffer) buffers)
+              (should (get-buffer "*Warnings*"))
+              (push (get-buffer "*Warnings*") buffers)))
+        (dolist (buf buffers)
           (kill-buffer buf))))))
 
 (provide 'vc-test-misc)

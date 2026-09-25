@@ -833,10 +833,9 @@ or buffer, then the command simply inserts the entire body of the entry
 into the @file{*vc-log*} buffer.  In addition, if the first line of the
 entry does not begin with @samp{* } (an asterisk followed by a space),
 VC considers it to be a summary line and moves it to the @samp{Summary}
-header.  Finally, if VC detects that the set of changed files listed in
-the ChangeLog entry differs from the current VC fileset, it displays a
-warning urging you to fix this discrepancy before committing the
-changes.
+header.  Finally, if one or more files listed in the ChangeLog entry are
+not in the current VC fileset, VC displays a warning urging you to fix
+this discrepancy before committing the changes.
 
 @ifnottex
   If you are using CVS or RCS, see @ref{Change Logs and VC}, for the
