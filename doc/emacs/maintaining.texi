@@ -1700,7 +1700,7 @@ cannot be marked with this command if any file in its tree is marked.
 @item M
 If point is on a file entry, mark all files with the same status; if
 point is on a directory entry, mark all and only the files that are
-immediate descendents (i.e., children) of that directory
+immediate descendants (i.e., children) of that directory
 (@code{vc-dir-mark-all-files}).  With a prefix argument, mark all listed
 files.
 
@@ -1740,16 +1740,16 @@ active, unmark all the files in the region (@code{vc-dir-unmark}).
 @item U
 If point is on a file entry, unmark all files with the same status; if
 point is on a directory entry, unmark all and only the files that are
-immediate descendents (i.e., children) of that directory
+immediate descendants (i.e., children) of that directory
 (@code{vc-dir-unmark-all-files}).  With a prefix argument, unmark all
 listed files and directories.
 
 @vindex vc-dir-simple-unmark-all-files
 You can customize the variable @code{vc-dir-simple-unmark-all-files} to
-a non-nil value to invert the meaning of a prefix argument to this
+a non-@code{nil} value to invert the meaning of a prefix argument to this
 command.  Then, @kbd{U} without any prefix argument unmarks all files,
-and @kbd{C-u U} unmarks only files with the same status or all and only
-a directory's immediate descendents.
+and @kbd{C-u U} unmarks only the files with the same status as the
+current file or all and only the immediate descendants of a directory.
 
 @item x
 Hide files with @samp{up-to-date} or @samp{ignored} status
