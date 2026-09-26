@@ -413,7 +413,7 @@ sys_cond_destroy (sys_cond_t *cond)
 sys_thread_t
 sys_thread_self (void)
 {
-  return (sys_thread_t) GetCurrentThreadId ();
+  return GetCurrentThreadId ();
 }
 
 bool
