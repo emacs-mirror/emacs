@@ -1610,10 +1610,7 @@ option @code{tramp-sshfs-program}.
 All remote files are available via the local mount point.
 @value{tramp} aids in mounting the file system if it isn't mounted
 yet.  The remote file name syntax is
-
-@example
-@trampfn{sshfs,user@@host#port,/path/to/file}
-@end example
+@trampfn{sshfs,user@@host#port,/path/to/file}.
 
 User name and port number are optional.  This method does not support
 password handling, the file system must either be mounted already, or
@@ -3662,8 +3659,9 @@ is a feature of Emacs that may cause missed prompts when using
 @cindex file name syntax
 @cindex file name examples
 
-@file{@trampfn{method,host,/path/to/file}} opens file @var{/path/to/file}
-on the remote host @var{host}, using the method @var{method}.
+@file{@trampfn{method,user@@host,/path/to/file}} opens the file
+@var{/path/to/file} on the remote host @var{host} for the user
+@var{user}, using the method @var{method}.
 
 @c We cannot use @trampfn{} in @item.
 @table @file
@@ -3676,7 +3674,8 @@ For the file @file{.emacs} specified using the fully qualified domain name of
 the host.
 
 @item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~/.emacs
-For the file @file{.emacs} specified using the @file{~}, which is expanded.
+For the file @file{.emacs} specified using the tilde @file{~}, which
+is expanded.
 
 @item @value{prefix}ssh@value{postfixhop}melancholia@value{postfix}~daniel/.emacs
 For the file @file{.emacs} located in @samp{daniel}'s home directory
@@ -3718,6 +3717,19 @@ optional, @xref{Default Method}, @xref{Default User}, @xref{Default Host}.
 For syntactical reasons, the default method must be indicated by the
 pseudo method @file{-}.
 @end ifset
+
+@defvar tramp-method-regexp
+@defvarx tramp-user-regexp
+@defvarx tramp-host-regexp
+@defvarx tramp-port-regexp
+@defvarx tramp-localname-regexp
+
+These regular expressions define the syntax of remote file name
+components.
+
+A method name must be defined in the association list
+@code{tramp-methods}.
+@end defvar
 
 
 @ifset unified

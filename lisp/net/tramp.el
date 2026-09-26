@@ -1043,7 +1043,7 @@ Should always start with \"\\\\=`\".  Derived from `tramp-prefix-format'.")
 
 (defvar tramp-method-regexp nil ; Initialized when defining `tramp-syntax'!
   "Regexp matching method identifiers.
-The `ftp' syntax does not support methods.")
+The `simplified' syntax does not support methods.")
 
 (defconst tramp-postfix-method-format-alist
   '((default    . ":")
@@ -2146,7 +2146,7 @@ version, the function does nothing."
 
 (defsubst tramp-get-default-directory (buffer)
   "Return `default-directory' of BUFFER."
-  (buffer-local-value 'default-directory buffer))
+  (and (bufferp buffer) (buffer-local-value 'default-directory buffer)))
 
 ;;;###tramp-autoload
 (defsubst tramp-get-buffer-string (&optional buffer)
@@ -3181,7 +3181,7 @@ BODY is the backend specific code."
 		(tramp-make-tramp-file-name (tramp-dissect-hop-name hop))))
 
 	(let (tramp-default-user tramp-default-user-alist
-				 tramp-default-host tramp-default-host-alist)
+	      tramp-default-host tramp-default-host-alist)
 
 	  ;; Possible completion structures.
 	  (dolist (elt (tramp-completion-dissect-file-name fullname))
