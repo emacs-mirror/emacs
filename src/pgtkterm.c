@@ -2089,9 +2089,9 @@ pgtk_draw_horizontal_wave (struct frame *f, unsigned long color, int x, int y,
 }
 
 static void
-pgtk_draw_underwave (struct glyph_string *s, unsigned long color)
+pgtk_draw_underwave (struct glyph_string *s, unsigned long color, int thickness)
 {
-  int wave_height = 3, wave_length = 2;
+  int wave_height = 3 * thickness, wave_length = 2 * thickness;
 
   pgtk_draw_horizontal_wave (s->f, color, s->x, s->ybase - wave_height + 3,
 			     s->width, wave_height, wave_length);
@@ -2626,6 +2626,15 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 
   if (!s->for_overlaps)
     {
+      struct font *font = font_for_underline_metrics (s);
+      unsigned long scaled_thickness;
+
+      /* Get the underline thickness.  Default is 1 pixel.  */
+      if (font && font->underline_thickness > 0)
+	scaled_thickness = font->underline_thickness;
+      else
+	scaled_thickness = 1;
+
       /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
 	pgtk_draw_glyph_string_box (s);
@@ -2633,16 +2642,18 @@ pgtk_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
 	{
+	  unsigned long thickness = (underline_text_scaling_p
+				     ? scaled_thickness : 1);
 	  if (s->face->underline == FACE_UNDERLINE_WAVE)
 	    {
 	      if (s->face->underline_defaulted_p)
-		pgtk_draw_underwave (s, s->xgcv.foreground);
+		pgtk_draw_underwave (s, s->xgcv.foreground, thickness);
 	      else
-		pgtk_draw_underwave (s, s->face->underline_color);
+		pgtk_draw_underwave (s, s->face->underline_color, thickness);
 	    }
 	  else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
 	    {
-	      unsigned long thickness, position;
+	      unsigned long position;
 	      unsigned long foreground;
 
 	      if (s->prev
@@ -2659,13 +2670,6 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 		}
 	      else
 		{
-		  struct font *font = font_for_underline_metrics (s);
-
-		  /* Get the underline thickness.  Default is 1 pixel.  */
-		  if (font && font->underline_thickness > 0)
-		    thickness = font->underline_thickness;
-		  else
-		    thickness = 1;
 		  if ((x_underline_at_descent_line
 		       || s->face->underline_at_descent_line_p))
 		    position = ((s->height - thickness)
@@ -2727,7 +2731,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
       /* Draw overline.  */
       if (s->face->overline_p)
 	{
-	  unsigned long dy = 0, h = 1;
+	  unsigned long dy = 0, h = overline_text_scaling_p ? scaled_thickness : 1;
 
 	  if (s->face->overline_color_defaulted_p)
 	    pgtk_fill_rectangle (s->f, s->xgcv.foreground, s->x, s->y + dy,
@@ -2749,7 +2753,7 @@ pgtk_draw_glyph_string (struct glyph_string *s)
 	  int glyph_height = s->first_glyph->ascent + s->first_glyph->descent;
 	  /* Strike-through width and offset from the glyph string's
 	     top edge.  */
-          unsigned long h = 1;
+          unsigned long h = strike_through_text_scaling_p ? scaled_thickness : 1;
           unsigned long dy = (glyph_height - h) / 2;
 
 	  if (s->face->strike_through_color_defaulted_p)

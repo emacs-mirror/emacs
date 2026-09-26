@@ -10771,7 +10771,7 @@ x_get_scale_factor (struct x_display_info *dpyinfo,
 
 */
 static void
-x_draw_underwave (struct glyph_string *s, int decoration_width)
+x_draw_underwave (struct glyph_string *s, int decoration_width, int thickness)
 {
   struct x_display_info *dpyinfo;
   /* Adjust for scale/HiDPI.  */
@@ -10780,14 +10780,14 @@ x_draw_underwave (struct glyph_string *s, int decoration_width)
   dpyinfo = FRAME_DISPLAY_INFO (s->f);
   x_get_scale_factor (dpyinfo, &scale_x, &scale_y);
 
-  int wave_height = 3 * scale_y, wave_length = 2 * scale_x;
+  int wave_height = 3 * scale_y * thickness, wave_length = 2 * scale_x * thickness;
 
 #ifdef USE_CAIRO
   x_draw_horizontal_wave (s->f, s->gc, s->x, s->ybase - wave_height + 3,
 			  decoration_width, wave_height, wave_length);
 #else  /* not USE_CAIRO */
   Display *display;
-  int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax, thickness = scale_y;;
+  int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax;
   bool odd;
   XRectangle wave_clip, string_clip, final_clip;
 
@@ -11037,6 +11037,15 @@ x_draw_glyph_string (struct glyph_string *s)
 
   if (!s->for_overlaps)
     {
+      struct font *font = font_for_underline_metrics (s);
+      unsigned long scaled_thickness;
+
+      /* Get the underline thickness.  Default is 1 pixel.  */
+      if (font && font->underline_thickness > 0)
+	scaled_thickness = font->underline_thickness;
+      else
+	scaled_thickness = 1;
+
       int area_x, area_y, area_width, area_height;
       int area_max_x, decoration_width;
 
@@ -11059,23 +11068,25 @@ x_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
         {
+	  unsigned long thickness = (underline_text_scaling_p
+				     ? scaled_thickness : 1);
           if (s->face->underline == FACE_UNDERLINE_WAVE)
             {
               if (s->face->underline_defaulted_p)
-                x_draw_underwave (s, decoration_width);
+                x_draw_underwave (s, decoration_width, thickness);
               else
                 {
                   Display *display = FRAME_X_DISPLAY (s->f);
                   XGCValues xgcv;
                   XGetGCValues (display, s->gc, GCForeground, &xgcv);
                   XSetForeground (display, s->gc, s->face->underline_color);
-                  x_draw_underwave (s, decoration_width);
+                  x_draw_underwave (s, decoration_width, thickness);
                   XSetForeground (display, s->gc, xgcv.foreground);
                 }
             }
           else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
-              unsigned long thickness, position;
+              unsigned long position;
 
               if (s->prev
 		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
@@ -11091,7 +11102,6 @@ x_draw_glyph_string (struct glyph_string *s)
                 }
               else
                 {
-		  struct font *font = font_for_underline_metrics (s);
 		  unsigned long minimum_offset;
 		  bool underline_at_descent_line;
 		  bool use_underline_position_properties;
@@ -11114,11 +11124,6 @@ x_draw_glyph_string (struct glyph_string *s)
 		  use_underline_position_properties
 		    = !(NILP (val) || BASE_EQ (val, Qunbound));
 
-                  /* Get the underline thickness.  Default is 1 pixel.  */
-                  if (font && font->underline_thickness > 0)
-                    thickness = font->underline_thickness;
-                  else
-                    thickness = 1;
                   if (underline_at_descent_line)
 		    position = ((s->height - thickness)
 				- (s->ybase - s->y)
@@ -11191,7 +11196,7 @@ x_draw_glyph_string (struct glyph_string *s)
       /* Draw overline.  */
       if (s->face->overline_p)
 	{
-	  unsigned long dy = 0, h = 1;
+	  unsigned long dy = 0, h = overline_text_scaling_p ? scaled_thickness : 1;
 
 	  if (s->face->overline_color_defaulted_p)
 	    x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
@@ -11220,7 +11225,7 @@ x_draw_glyph_string (struct glyph_string *s)
 	  int glyph_height = s->first_glyph->ascent + s->first_glyph->descent;
 	  /* Strike-through width and offset from the glyph string's
 	     top edge.  */
-          unsigned long h = 1;
+          unsigned long h = strike_through_text_scaling_p ? scaled_thickness : 1;
           unsigned long dy = (glyph_height - h) / 2;
 
 	  if (s->face->strike_through_color_defaulted_p)

@@ -448,14 +448,14 @@ w32_get_scale_factor(struct w32_display_info *dpyinfo, int *scale_x, int *scale_
 */
 
 static void
-w32_draw_underwave (struct glyph_string *s, COLORREF color)
+w32_draw_underwave (struct glyph_string *s, COLORREF color, int thickness)
 {
   struct w32_display_info *dpyinfo = FRAME_DISPLAY_INFO (s->f);
 
   int scale_x, scale_y;
   w32_get_scale_factor (dpyinfo, &scale_x, &scale_y);
 
-  int wave_height = 3 * scale_y, wave_length = 2 * scale_x, thickness = scale_y;
+  int wave_height = 2 * scale_y * thickness, wave_length = 3 * scale_x * thickness;
   int dx, dy, x0, y0, width, x1, y1, x2, y2, odd, xmax;
   Emacs_Rectangle wave_clip, string_clip, final_clip;
   RECT w32_final_clip, w32_string_clip;
@@ -2812,6 +2812,15 @@ w32_draw_glyph_string (struct glyph_string *s)
 
   if (!s->for_overlaps)
     {
+      struct font *font = font_for_underline_metrics (s);
+      unsigned long scaled_thickness;
+
+      /* Get the underline thickness.  Default is 1 pixel.  */
+      if (font && font->underline_thickness > 0)
+	scaled_thickness = font->underline_thickness;
+      else
+	scaled_thickness = 1;
+
       /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
         w32_draw_glyph_string_box (s);
@@ -2819,6 +2828,8 @@ w32_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
         {
+	  unsigned long thickness = (underline_text_scaling_p
+				     ? scaled_thickness : 1);
           if (s->face->underline == FACE_UNDERLINE_WAVE)
             {
               COLORREF color;
@@ -2828,11 +2839,11 @@ w32_draw_glyph_string (struct glyph_string *s)
               else
                 color = s->face->underline_color;
 
-              w32_draw_underwave (s, color);
+              w32_draw_underwave (s, color, thickness);
             }
           else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
-              unsigned long thickness, position;
+              unsigned long position;
 	      COLORREF foreground;
 
               if (s->prev
@@ -2849,7 +2860,6 @@ w32_draw_glyph_string (struct glyph_string *s)
                 }
               else
                 {
-		  struct font *font = font_for_underline_metrics (s);
 		  unsigned long minimum_offset;
 		  BOOL underline_at_descent_line;
 		  BOOL use_underline_position_properties;
@@ -2872,11 +2882,6 @@ w32_draw_glyph_string (struct glyph_string *s)
 		  use_underline_position_properties
 		    = !(NILP (val) || BASE_EQ (val, Qunbound));
 
-                  /* Get the underline thickness.  Default is 1 pixel.  */
-                  if (font && font->underline_thickness > 0)
-                    thickness = font->underline_thickness;
-                  else
-                    thickness = 1;
                   if (underline_at_descent_line
                       || !font)
 		    position = ((s->height - thickness)
@@ -2938,7 +2943,7 @@ w32_draw_glyph_string (struct glyph_string *s)
       /* Draw overline.  */
       if (s->face->overline_p)
         {
-          unsigned long dy = 0, h = 1;
+          unsigned long dy = 0, h = overline_text_scaling_p ? scaled_thickness : 1;
 
           if (s->face->overline_color_defaulted_p)
             {
@@ -2965,7 +2970,7 @@ w32_draw_glyph_string (struct glyph_string *s)
 	  int glyph_height = s->first_glyph->ascent + s->first_glyph->descent;
 	  /* Strike-through width and offset from the glyph string's
 	     top edge.  */
-          unsigned long h = 1;
+          unsigned long h = strike_through_text_scaling_p ? scaled_thickness : 1;
           unsigned long dy = (glyph_height - h) / 2;
 
           if (s->face->strike_through_color_defaulted_p)
