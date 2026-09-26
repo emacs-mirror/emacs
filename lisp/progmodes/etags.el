@@ -1278,7 +1278,7 @@ buffer-local values of tags table format variables."
                 (buffer-substring (match-beginning 1) (match-end 1)))))
       (if relative
 	  str
-	(expand-file-name str (file-truename default-directory))))))
+	(expand-file-name str default-directory)))))
 
 
 (defun etags-tags-completion-table () ; Doc string?
