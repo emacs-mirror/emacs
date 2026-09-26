@@ -322,12 +322,19 @@ gnustmp*
 /info/
 
 # Version control and locks.
+*.bdl
+*.bundle
+*.diff
 *.orig
+*.patch
 *.swp
 *~
 \#*\#
 ChangeLog
 [0-9]*.txt
+/*.tar.gz
+/*.tgz
+/*.zip
 /vc-dwim-log-*
 
 # Built by 'make install'.
