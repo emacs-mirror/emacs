@@ -1164,8 +1164,9 @@ killing `speedbar-buffer', which is useful for `kill-buffer-hook'."
 				  speedbar-default-position))))
 
 (defun speedbar-window--handle-window-buffer-change (w)
-  "Handle the change of the window that displays the ‘speedbar-buffer’.
-If W displays the `speedbar-buffer' buffer, update `speedbar--window' if necessary."
+  "Handle the change of the window that displays the `speedbar-buffer'.
+If W displays the `speedbar-buffer' buffer, update `speedbar--window'
+if necessary."
   (when (and
          (eq (window-buffer w) speedbar-buffer)
          (not (eq speedbar--window w)))
