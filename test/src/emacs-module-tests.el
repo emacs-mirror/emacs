@@ -598,10 +598,10 @@ See Bug#36226."
     (with-temp-file file
       (set-buffer-multibyte nil)
       (dotimes (_ (* width height))
-        (insert  (logand pixel #xff)
-                 (logand (ash pixel -8) #xff)
-                 (logand (ash pixel -16) #xff)
-                 (logand (ash pixel -24) #xff))))))
+        (insert (logand pixel #xff)
+                (logand (ash pixel -8) #xff)
+                (logand (ash pixel -16) #xff)
+                (logand (ash pixel -24) #xff))))))
 
 (ert-deftest mod-test-canvas/valid ()
   (skip-unless (image-type-available-p 'canvas))
