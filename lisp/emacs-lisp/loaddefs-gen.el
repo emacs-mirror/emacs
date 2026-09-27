@@ -205,22 +205,28 @@ expand)' among their `declare' forms."
           (when exps (cons 'progn exps)))))
 
      ;; For macros which request it, try again on their expansion.
-     ((progn
+     ((let ((file-name (or file load-name)))
         ;; If the car is an unknown symbol, we load the file first to
         ;; give packages a chance to define their macros.
         (unless (or (not (symbolp car)) (fboundp car)
                     ;; Special cases handled below
                     (memq car '(defclass defcustom deftheme defgroup nil))
-                    (assoc file load-history)
-                    (member file loaddefs--load-error-files))
-          (let ((load-path (cons (file-name-directory file) load-path)))
+                    (assoc file-name load-history)
+                    (member file-name loaddefs--load-error-files))
+          ;; FIXME: We used to tweak `load-path' because we passed
+          ;; LOAD-NAME to `load', but now that we have the full FILE,
+          ;; we probably should refrain from doing it, since it can have
+          ;; undesirable consequences.
+          (let ((load-path (if file (cons (file-name-directory file) load-path)
+                             load-path)))
             (message "loaddefs-gen: loading file %s (for %s)" load-name car)
             (condition-case err
                 ;; Don't load the `.elc' file, in case the file wraps
                 ;; the macro-definition in `eval-when-compile' (bug#80180).
-                (load file nil nil 'nosuffix)
+                (if file (load file nil nil 'nosuffix)
+                  (eval-buffer))
               (error
-               (push file loaddefs--load-error-files) ; do not attempt again
+               (push file-name loaddefs--load-error-files) ;Do not try again,
                (warn "loaddefs-gen: load error for %s:\n\t%S" load-name err)))))
         (and (macrop car)
 	     (eq 'expand (function-get car 'autoload-macro 'macro))

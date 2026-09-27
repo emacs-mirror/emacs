@@ -95,7 +95,8 @@ then we use the timestamp of the output file instead.  As a result:
 
 (defvar autoload-modified-buffers)      ;Dynamically scoped var.
 
-(defalias 'make-autoload #'loaddefs-generate--make-autoload)
+(defun make-autoload (form load-name &optional expansion)
+  (loaddefs-generate--make-autoload form load-name nil expansion))
 
 ;; Forms which have doc-strings which should be printed specially.
 ;; A doc-string-elt property of ELT says that (nth ELT FORM) is
