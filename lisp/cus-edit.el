@@ -804,6 +804,9 @@ when the action is chosen.")
                                            'modified))
                                     custom-options)))
     (define-key-after map [Custom-reset-saved]
+      ;; FIXME: This should be "Revert This Session's Customizations"
+      ;; but the apostrophe causes problems:
+      ;; <https://lists.gnu.org/archive/html/emacs-devel/2026-09/msg00467.html>
       `(menu-item "Revert Customizations of This Session" Custom-reset-saved
                   :enable (seq-some ,(lambda (option)
                                        (memq (widget-get option :custom-state)
