@@ -19502,6 +19502,11 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
 	  if (dy > 0)
 	    scroll_down_p = true;
 	}
+      else if (scroll_margin_y < 0)
+	{
+	  /* A tall row (like tall image?) at window's bottom.  */
+	  scroll_down_p = true;
+	}
     }
 
   if (scroll_down_p)
