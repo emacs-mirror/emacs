@@ -592,17 +592,16 @@ See Bug#36226."
 
 ;;; Canvas tests
 
-(defun test-canvas-gen-file (width height pixel)
-  (let* ((bytes (unibyte-string (logand pixel #xff)
-                                (logand (ash pixel -8) #xff)
-                                (logand (ash pixel -16) #xff)
-                                (logand (ash pixel -24) #xff)))
-         (coding-system-for-write 'no-conversion))
-    (with-temp-file "data/image/canvas-argb"
+(defun emacs-module-tests--gen-canvas-file (file width height pixel)
+  "Fill FILE with WIDTH x HEIGHT canvas of PIXEL."
+  (let ((coding-system-for-write 'no-conversion))
+    (with-temp-file file
       (set-buffer-multibyte nil)
       (dotimes (_ (* width height))
-        (insert bytes)))
-    t))
+        (insert  (logand pixel #xff)
+                 (logand (ash pixel -8) #xff)
+                 (logand (ash pixel -16) #xff)
+                 (logand (ash pixel -24) #xff))))))
 
 (ert-deftest mod-test-canvas/valid ()
   (skip-unless (image-type-available-p 'canvas))
@@ -683,22 +682,22 @@ See Bug#36226."
 
 (ert-deftest mod-test-canvas/file ()
   (skip-unless (image-type-available-p 'canvas))
-  ;; Generate the canvas data file
-  (test-canvas-gen-file 128 98 #x80800000)
-  (let* ((width 128) (height 98)
-         (canvas (create-image "../data/image/canvas-argb"
-                               'canvas nil
-                               :data-width width :data-height height))
-         (hash-before (mod-test-canvas-read canvas width height)))
-    (should (integerp hash-before))
-    (should (mod-test-canvas-write canvas width height))
-    (should (not (eql (mod-test-canvas-read canvas width height) hash-before))))
-  ;; Mismatched sizes: passing wrong width/height should error.
-  (let ((canvas (create-image "../data/image/canvas-argb"
-                              'canvas nil
-                              :data-width 128 :data-height 98)))
-    (should-error (mod-test-canvas-read canvas 28 76))
-    (should-error (mod-test-canvas-write canvas 398 712))))
+  (ert-with-temp-file file
+    (let ((width 128) (height 98))
+      ;; Generate the canvas data file.
+      (emacs-module-tests--gen-canvas-file file width height #x80800000)
+      (let* ((canvas (create-image file 'canvas nil
+                                   :data-width width :data-height height))
+             (hash-before (mod-test-canvas-read canvas width height)))
+        (should (integerp hash-before))
+        (should (mod-test-canvas-write canvas width height))
+        (should-not (eql (mod-test-canvas-read canvas width height)
+                         hash-before)))
+      ;; Mismatched sizes: passing wrong width/height should error.
+      (let ((canvas (create-image file 'canvas nil
+                                  :data-width width :data-height height)))
+        (should-error (mod-test-canvas-read canvas 28 76))
+        (should-error (mod-test-canvas-write canvas 398 712))))))
 
 (ert-deftest mod-test-canvas/gc-stress ()
   "Allocate canvases in batches with GC between batches.
