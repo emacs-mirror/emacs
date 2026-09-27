@@ -127,7 +127,8 @@
   "Register FORMS as something to be performed to undo a change."
   (when gnus-undo-mode
     (gnus-undo-register-1
-     `(lambda () ,form))))
+     (if (functionp form) form
+       (eval `(lambda () ,form))))))
 
 (defun gnus-undo-register-1 (function)
   "Register FUNCTION as something to be performed to undo a change."

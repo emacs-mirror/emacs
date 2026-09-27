@@ -866,9 +866,9 @@ VALUE should have the form `(FOO nil)' or `(FOO t)', where FOO is an atom.
 
 (define-widget 'gnus-widget-reversible 'group
   "A `group' that convert values."
-  :match 'gnus-widget-reversible-match
-  :value-to-internal 'gnus-widget-reversible-to-internal
-  :value-to-external 'gnus-widget-reversible-to-external)
+  :match #'gnus-widget-reversible-match
+  :value-to-internal #'gnus-widget-reversible-to-internal
+  :value-to-external #'gnus-widget-reversible-to-external)
 
 (defcustom gnus-article-sort-functions '(gnus-article-sort-by-number)
   "List of functions used for sorting articles in the summary buffer.
@@ -6337,15 +6337,21 @@ The resulting hash table is returned, or nil if no Xrefs were found."
       (setq range (gnus-compute-read-articles group articles))
       (with-current-buffer gnus-group-buffer
 	(gnus-undo-register
-	  `(progn
-	     (gnus-info-set-marks ',info ',(gnus-info-marks info) t)
-	     (setf (gnus-info-read ',info) ',(gnus-info-read info))
-	     (gnus-get-unread-articles-in-group ',info (gnus-active ,group))
-	     (when ,set-marks
+	 ;; FIXME: In `gnus-info-clear-data' we do almost the same,
+         ;; but we call (gnus-active group) when build the closure rather
+         ;; than when calling it!
+	 (let ((gim (gnus-info-marks info))
+	       (gir (gnus-info-read info))
+	       (range range))
+	   (lambda ()
+	     (gnus-info-set-marks info gim t)
+	     (setf (gnus-info-read info) gir)
+	     (gnus-get-unread-articles-in-group info (gnus-active group))
+	     (when set-marks
 	       (gnus-request-set-mark
-		,group (list (list ',range 'del '(read)))))
-	     (gnus-group-jump-to-group ,group)
-	     (gnus-group-update-group ,group t))))
+		group (list (list range 'del '(read)))))
+	     (gnus-group-jump-to-group group)
+	     (gnus-group-update-group group t)))))
       ;; Add the read articles to the range.
       (setf (gnus-info-read info) range)
       (when set-marks
@@ -6361,9 +6367,9 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 				       (car range)))))
 	 (t
 	  (while range
-	    (if (numberp (car range))
-		(setq num (1+ num))
-	      (setq num (+ num (- (1+ (cdar range)) (caar range)))))
+	    (setq num (if (numberp (car range))
+		          (1+ num)
+		        (+ num (- (1+ (cdar range)) (caar range)))))
 	    (setq range (cdr range)))
 	  (setq num (- (cdr active) num))))
 	;; Update the number of unread articles.
@@ -8507,10 +8513,11 @@ Returns how many articles were removed."
     (completing-read "Marks: "
 		     (let ((mark-list '()))
 		       (mapc (lambda (datum)
-			       (cl-pushnew   (gnus-data-mark datum) mark-list))
+			       (cl-pushnew (gnus-data-mark datum) mark-list))
 			     gnus-newsgroup-data)
-		       (mapcar 'char-to-string  mark-list)))
-    current-prefix-arg) gnus-summary-mode)
+		       (mapcar #'char-to-string mark-list)))
+    current-prefix-arg)
+   gnus-summary-mode)
   (gnus-summary-limit-to-marks marks t))
 
 (defun gnus-summary-limit-to-marks (marks &optional reverse)
@@ -8524,10 +8531,11 @@ Returns how many articles were removed."
     (completing-read "Marks: "
 		     (let ((mark-list '()))
 		       (mapc (lambda (datum)
-			       (cl-pushnew   (gnus-data-mark datum) mark-list))
+			       (cl-pushnew (gnus-data-mark datum) mark-list))
 			     gnus-newsgroup-data)
-		       (mapcar 'char-to-string  mark-list)))
-    current-prefix-arg) gnus-summary-mode)
+		       (mapcar #'char-to-string mark-list)))
+    current-prefix-arg)
+   gnus-summary-mode)
   (prog1
       (let ((data gnus-newsgroup-data)
 	    (marks (if (listp marks) marks
@@ -8655,7 +8663,7 @@ fetched for this group."
 	  (cl-merge
 	   'list gnus-newsgroup-headers
 	   (gnus-fetch-headers articles nil t)
-	   'gnus-article-sort-by-number))
+	   #'gnus-article-sort-by-number))
     (setq gnus-newsgroup-articles
 	  (gnus-sorted-nunion gnus-newsgroup-articles articles))
     (gnus-summary-limit (append articles gnus-newsgroup-limit))))
@@ -9075,7 +9083,7 @@ is non-numeric or nil fetch the number specified by the
       (setq gnus-newsgroup-headers
             (gnus-delete-duplicate-headers
              (cl-merge 'list gnus-newsgroup-headers new-headers
-                       'gnus-article-sort-by-number)))
+                       #'gnus-article-sort-by-number)))
       (setq gnus-newsgroup-articles
             (gnus-sorted-nunion gnus-newsgroup-articles article-ids)))
     (gnus-summary-limit-include-thread id gnus-refer-thread-limit-to-thread))
@@ -12832,21 +12840,26 @@ UNREAD is a sorted list."
 		   group (delq nil (list (if add (list add 'add '(read)))
 					 (if del (list del 'del '(read))))))
 		  (setq setmarkundo
-			`(gnus-request-set-mark
-			  ,group
-			  ',(delq nil (list
-				       (if del (list del 'add '(read)))
-				       (if add (list add 'del '(read))))))))))
+			(delq nil (list
+				   (if del (list del 'add '(read)))
+				   (if add (list add 'del '(read)))))))))
 	    (set-buffer gnus-group-buffer)
 	    (gnus-undo-register
-	      `(progn
-		 (gnus-info-set-marks ',info ',(gnus-info-marks info) t)
-		 (setf (gnus-info-read ',info) ',(gnus-info-read info))
-		 (gnus-group-jump-to-group ,group)
-		 (gnus-get-unread-articles-in-group ',info
-						    (gnus-active ,group))
-		 (gnus-group-update-group ,group t)
-		 ,setmarkundo))))
+	     ;; FIXME: In `gnus-info-clear-data' we do almost the same,
+             ;; but we call (gnus-active group) when build the closure rather
+             ;; than when calling it!
+	     (let ((gim (gnus-info-marks info))
+	           (gir (gnus-info-read info)))
+	       (lambda ()
+		 (gnus-info-set-marks info gim t)
+		 (setf (gnus-info-read info) gir)
+		 (gnus-group-jump-to-group group)
+		 (gnus-get-unread-articles-in-group info
+						    (gnus-active group))
+		 (gnus-group-update-group group t)
+		 (when setmarkundo
+		   (gnus-request-set-mark
+		    group setmarkundo)))))))
 	;; Enter this list into the group info.
 	(setf (gnus-info-read info) read)
 	;; Set the number of unread articles in gnus-newsrc-hashtb.
@@ -13030,7 +13043,7 @@ returned."
 	  (cl-merge 'list
 		    gnus-newsgroup-headers
 		    (gnus-fetch-headers articles nil t)
-		    'gnus-article-sort-by-number))
+		    #'gnus-article-sort-by-number))
     (setq gnus-newsgroup-articles
 	  (gnus-sorted-nunion gnus-newsgroup-articles articles))
     ;; Suppress duplicates?
