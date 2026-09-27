@@ -32,6 +32,22 @@
 ;;; reftex-parse
 (require 'reftex-parse)
 
+(defvar reftex-tests--key-val-label-regexp
+  (concat
+   ;; Match the opening [ and the following chars
+   "\\[[^][]*"
+   ;; Allow nested levels of chars enclosed in braces
+   "\\(?:{[^}{]*"
+   "\\(?:{[^}{]*"
+   "\\(?:{[^}{]*}[^}{]*\\)*"
+   "}[^}{]*\\)*"
+   "}[^][]*\\)*"
+   ;; Match the value to label key
+   "\\<\\(?:ref\\)?label[[:space:]]*=[[:space:]]*"
+   "{?\\(?1:[^] ,}\r\n\t%]+\\)}?")
+  "Helper regexp for matching the value of label key.
+The value should correspond to last part of `reftex-label-regexps'.")
+
 (ert-deftest reftex-locate-bibliography-files ()
   "Test `reftex-locate-bibliography-files'."
   (ert-with-temp-directory temp-dir
@@ -351,7 +367,6 @@ Qualified Citation Lists:
 [pre][post]{smartcites:2}
 % And this should be ignored \\smartcites{smartcites:3}{smartcites:4}
 
-
 Test for bug#56655:
 There was a few \\% of increase in budget \\Citep*{bug:56655}.
 
@@ -362,51 +377,51 @@ And this should be % \\cite{ignored}.
       (setq keys (reftex-all-used-citation-keys))
       (should (equal (sort keys #'string<)
                      (sort (list
-                             ;; Standard commands:
-                             "cite:2022"      "Cite:2022"
-                             "parencite:2022" "Parencite:2022"
-                             "footcite:2022"  "footcitetext:2022"
-                             ;; Style specific commands:
-                             "textcite:2022"  "Textcite:2022"
-                             "smartcite:2022" "Smartcite:2022"
-                             "cite*:2022" "parencite*:2022"
-                             ;; Style independent commands:
-                             "autocite:2022"  "autocite*:2022"
-                             "Autocite:2022"  "Autocite*:2022"
-                             ;; Text commands
-                             "citeauthor:2022" "citeauthor*:2022"
-                             "Citeauthor:2022" "Citeauthor*:2022"
-                             "citetitle:2022"  "citetitle*:2022"
-                             "citeyear:2022"   "citeyear*:2022"
-                             "citedate:2022"   "citedate*:2022"
-                             "citeurl:2022"
-                             ;; Special commands:
-                             "nocite:2022"     "fullcite:2022"
-                             "fullfootcite:2022"
-                             "volcite:2022"   "Volcite:2022"
-                             "pvolcite:2022"  "Pvolcite:2022"
-                             "fvolcite:2022"  "ftvolcite:2022"
-                             "svolcite:2022"  "Svolcite:2022"
-                             "tvolcite:2022"  "Tvolcite:2022"
-                             "avolcite:2022"  "Avolcite:2022"
-                             "Notecite:2022"  "pnotecite:2022"
-                             "Pnotecite:2022" "fnotecite:2022"
-                             ;; Natbib compatibility commands:
-                             "citet:2022"   "citet*:2022"
-                             "citep:2022"   "citep*:2022"
-                             "citealt:2022" "citealt*:2022"
-                             "citealp:2022" "citealp*:2022"
-                             "Citet:2022"   "Citet*:2022"
-                             "Citep:2022"   "Citep*:2022"
-                             ;; Qualified Citation Lists
-                             "cites:1"         "cites:2"
-                             "Cites:1"         "Cites:2"
-                             "parencites:1"    "parencites:2"
-                             "Parencites:1"    "Parencites:2"
-                             "footcites:1"     "footcites:2"
-                             "footcitetexts:1" "footcitetexts:2"
-                             "smartcites:1"    "smartcites:2"
-                             "bug:56655")
+                            ;; Standard commands:
+                            "cite:2022"      "Cite:2022"
+                            "parencite:2022" "Parencite:2022"
+                            "footcite:2022"  "footcitetext:2022"
+                            ;; Style specific commands:
+                            "textcite:2022"  "Textcite:2022"
+                            "smartcite:2022" "Smartcite:2022"
+                            "cite*:2022" "parencite*:2022"
+                            ;; Style independent commands:
+                            "autocite:2022"  "autocite*:2022"
+                            "Autocite:2022"  "Autocite*:2022"
+                            ;; Text commands
+                            "citeauthor:2022" "citeauthor*:2022"
+                            "Citeauthor:2022" "Citeauthor*:2022"
+                            "citetitle:2022"  "citetitle*:2022"
+                            "citeyear:2022"   "citeyear*:2022"
+                            "citedate:2022"   "citedate*:2022"
+                            "citeurl:2022"
+                            ;; Special commands:
+                            "nocite:2022"     "fullcite:2022"
+                            "fullfootcite:2022"
+                            "volcite:2022"   "Volcite:2022"
+                            "pvolcite:2022"  "Pvolcite:2022"
+                            "fvolcite:2022"  "ftvolcite:2022"
+                            "svolcite:2022"  "Svolcite:2022"
+                            "tvolcite:2022"  "Tvolcite:2022"
+                            "avolcite:2022"  "Avolcite:2022"
+                            "Notecite:2022"  "pnotecite:2022"
+                            "Pnotecite:2022" "fnotecite:2022"
+                            ;; Natbib compatibility commands:
+                            "citet:2022"   "citet*:2022"
+                            "citep:2022"   "citep*:2022"
+                            "citealt:2022" "citealt*:2022"
+                            "citealp:2022" "citealp*:2022"
+                            "Citet:2022"   "Citet*:2022"
+                            "Citep:2022"   "Citep*:2022"
+                            ;; Qualified Citation Lists
+                            "cites:1"         "cites:2"
+                            "Cites:1"         "Cites:2"
+                            "parencites:1"    "parencites:2"
+                            "Parencites:1"    "Parencites:2"
+                            "footcites:1"     "footcites:2"
+                            "footcitetexts:1" "footcitetexts:2"
+                            "smartcites:1"    "smartcites:2"
+                            "bug:56655")
                            #'string<)))
       (kill-buffer (file-name-nondirectory tex-file)))))
 
@@ -498,15 +513,7 @@ This is with listings package:
       ;; aren't parsed correctly:
       (add-to-list 'reftex-label-regexps
                    (concat "\\\\begin{\\(?:problem\\|Verbatim\\)}"
-                           "\\[[^][]*"
-                           "\\(?:{[^}{]*"
-                           "\\(?:{[^}{]*"
-                           "\\(?:{[^}{]*}[^}{]*\\)*"
-                           "}[^}{]*\\)*"
-                           "}[^][]*\\)*"
-                           "\\<\\(?:ref\\)?label[[:space:]]*=[[:space:]]*"
-                           "{?\\(?1:[^] ,}\r\n\t%]+\\)"
-                           "[^]]*\\]")
+                           reftex-tests--key-val-label-regexp)
                    t)
       ;; Always run this after changing `reftex-label-regexps':
       (reftex-compile-variables)
@@ -581,6 +588,65 @@ This is with listings package:
 \\ref{lst:2}
 
 \\end{document}"))
+      (kill-buffer (file-name-nondirectory tex-file)))))
+
+(ert-deftest reftex-key-val-label-in-macro-argument ()
+  "Test for key-val label in macro argument."
+  (ert-with-temp-directory temp-dir
+    (let ((tex-file (expand-file-name "labelkeyval.tex" temp-dir))
+          docstruct)
+      (with-temp-buffer
+        (insert "\
+\\documentclass{article}
+\\usepackage{listings}
+
+\\begin{document}
+
+\\ctable[%
+  mincapwidth = 40mm,
+  footerwidth,
+  caption     = A lengthy caption,
+  label       = {tab:lengthycap}
+]{c}{%
+  \\tnote{footnote}%
+}{%
+  \\FL row1\\tmark\\LL
+}
+
+\\lstinputlisting[
+  float   = tbp,
+  caption = This is some caption,
+  label   = {lst:1}
+]{file.el}
+
+\\begin{lstlisting}[
+  caption = This is some caption,
+  label={lst:2}
+]
+Some listing
+\\end{lstlisting}
+
+\\section{Conclusion}
+\\label{sec:conclu}
+
+\\end{document}")
+        (write-region (point-min) (point-max) tex-file))
+      (add-to-list 'reftex-label-alist
+                   '("\\lstinputlisting[]{}" ?l "lst:" "~\\ref{%s}"
+                     nil nil nil)
+                   t)
+      (add-to-list 'reftex-label-regexps
+                   (concat "\\\\lstinputlisting"
+                           reftex-tests--key-val-label-regexp)
+                   t)
+      (reftex-compile-variables)
+      (find-file tex-file)
+      (reftex-parse-all)
+      (setq docstruct (symbol-value reftex-docstruct-symbol))
+      (should (string= (nth 1 (assoc "tab:lengthycap" docstruct)) "t"))
+      (should (string= (nth 1 (assoc "lst:1" docstruct)) "l"))
+      (should (string= (nth 1 (assoc "lst:2" docstruct)) "l"))
+      (should (string= (nth 1 (assoc "sec:conclu" docstruct)) "s"))
       (kill-buffer (file-name-nondirectory tex-file)))))
 
 ;;; non-file buffers
@@ -687,52 +753,52 @@ And this should be % \\cite{ignored}.
     (let ((keys (reftex-all-used-citation-keys)))
       (should (equal (sort keys #'string<)
                      (sort (list
-                           ;; Standard commands:
-                           "cite:2022"      "Cite:2022"
-                           "parencite:2022" "Parencite:2022"
-                           "footcite:2022"  "footcitetext:2022"
-                           ;; Style specific commands:
-                           "textcite:2022"  "Textcite:2022"
-                           "smartcite:2022" "Smartcite:2022"
-                           "cite*:2022" "parencite*:2022"
-                           ;; Style independent commands:
-                           "autocite:2022"  "autocite*:2022"
-                           "Autocite:2022"  "Autocite*:2022"
-                           ;; Text commands
-                           "citeauthor:2022" "citeauthor*:2022"
-                           "Citeauthor:2022" "Citeauthor*:2022"
-                           "citetitle:2022"  "citetitle*:2022"
-                           "citeyear:2022"   "citeyear*:2022"
-                           "citedate:2022"   "citedate*:2022"
-                           "citeurl:2022"
-                           ;; Special commands:
-                           "nocite:2022"     "fullcite:2022"
-                           "fullfootcite:2022"
-                           "volcite:2022"   "Volcite:2022"
-                           "pvolcite:2022"  "Pvolcite:2022"
-                           "fvolcite:2022"  "ftvolcite:2022"
-                           "svolcite:2022"  "Svolcite:2022"
-                           "tvolcite:2022"  "Tvolcite:2022"
-                           "avolcite:2022"  "Avolcite:2022"
-                           "Notecite:2022"  "pnotecite:2022"
-                           "Pnotecite:2022" "fnotecite:2022"
-                           ;; Natbib compatibility commands:
-                           "citet:2022"   "citet*:2022"
-                           "citep:2022"   "citep*:2022"
-                           "citealt:2022" "citealt*:2022"
-                           "citealp:2022" "citealp*:2022"
-                           "Citet:2022"   "Citet*:2022"
-                           "Citep:2022"   "Citep*:2022"
-                           ;; Qualified Citation Lists
-                           "cites:1"         "cites:2"
-                           "Cites:1"         "Cites:2"
-                           "parencites:1"    "parencites:2"
-                           "Parencites:1"    "Parencites:2"
-                           "footcites:1"     "footcites:2"
-                           "footcitetexts:1" "footcitetexts:2"
-                           "smartcites:1"    "smartcites:2"
-                           "bug:56655")
-                         #'string<))))))
+                            ;; Standard commands:
+                            "cite:2022"      "Cite:2022"
+                            "parencite:2022" "Parencite:2022"
+                            "footcite:2022"  "footcitetext:2022"
+                            ;; Style specific commands:
+                            "textcite:2022"  "Textcite:2022"
+                            "smartcite:2022" "Smartcite:2022"
+                            "cite*:2022" "parencite*:2022"
+                            ;; Style independent commands:
+                            "autocite:2022"  "autocite*:2022"
+                            "Autocite:2022"  "Autocite*:2022"
+                            ;; Text commands
+                            "citeauthor:2022" "citeauthor*:2022"
+                            "Citeauthor:2022" "Citeauthor*:2022"
+                            "citetitle:2022"  "citetitle*:2022"
+                            "citeyear:2022"   "citeyear*:2022"
+                            "citedate:2022"   "citedate*:2022"
+                            "citeurl:2022"
+                            ;; Special commands:
+                            "nocite:2022"     "fullcite:2022"
+                            "fullfootcite:2022"
+                            "volcite:2022"   "Volcite:2022"
+                            "pvolcite:2022"  "Pvolcite:2022"
+                            "fvolcite:2022"  "ftvolcite:2022"
+                            "svolcite:2022"  "Svolcite:2022"
+                            "tvolcite:2022"  "Tvolcite:2022"
+                            "avolcite:2022"  "Avolcite:2022"
+                            "Notecite:2022"  "pnotecite:2022"
+                            "Pnotecite:2022" "fnotecite:2022"
+                            ;; Natbib compatibility commands:
+                            "citet:2022"   "citet*:2022"
+                            "citep:2022"   "citep*:2022"
+                            "citealt:2022" "citealt*:2022"
+                            "citealp:2022" "citealp*:2022"
+                            "Citet:2022"   "Citet*:2022"
+                            "Citep:2022"   "Citep*:2022"
+                            ;; Qualified Citation Lists
+                            "cites:1"         "cites:2"
+                            "Cites:1"         "Cites:2"
+                            "parencites:1"    "parencites:2"
+                            "Parencites:1"    "Parencites:2"
+                            "footcites:1"     "footcites:2"
+                            "footcitetexts:1" "footcitetexts:2"
+                            "smartcites:1"    "smartcites:2"
+                            "bug:56655")
+                           #'string<))))))
 
 (ert-deftest reftex-renumber-simple-labels-buffer ()
   "Test `reftex-renumber-simple-labels' on a buffer without a file."
@@ -819,15 +885,7 @@ This is with listings package:
           ;; aren't parsed correctly:
           (add-to-list 'reftex-label-regexps
                        (concat "\\\\begin{\\(?:problem\\|Verbatim\\)}"
-                               "\\[[^][]*"
-                               "\\(?:{[^}{]*"
-                               "\\(?:{[^}{]*"
-                               "\\(?:{[^}{]*}[^}{]*\\)*"
-                               "}[^}{]*\\)*"
-                               "}[^][]*\\)*"
-                               "\\<\\(?:ref\\)?label[[:space:]]*=[[:space:]]*"
-                               "{?\\(?1:[^] ,}\r\n\t%]+\\)"
-                               "[^]]*\\]")
+                               reftex-tests--key-val-label-regexp)
                        t)
           ;; Always run this after changing `reftex-label-regexps':
           (reftex-compile-variables)
@@ -905,7 +963,6 @@ This is with listings package:
 \\end{document}")))
       (kill-buffer temp-buffer))))
 
-
 ;;; Autoload tests
 
 ;; Test to check whether reftex autoloading mechanisms are working
@@ -918,7 +975,6 @@ This is with listings package:
    (autoloadp
     (symbol-function
      'reftex-arg-label))))
-
 
 (provide 'reftex-tests)
 ;;; reftex-tests.el ends here.
