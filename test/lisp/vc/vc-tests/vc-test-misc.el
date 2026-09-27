@@ -589,7 +589,6 @@ See bug#80803 and bug#80967."
   (skip-unless (executable-find vc-git-program))
   (vc-test--with-author-identity 'Git
     (let ((vc-handled-backends '(Git))
-          (def-dir default-directory)
           buffers)
       (unwind-protect
           (ert-with-temp-directory tempdir

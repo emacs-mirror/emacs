@@ -1275,8 +1275,10 @@ final or penultimate step during initialization."))
   (should (equal (kbd "C-x ( C-d C-x )") "\^D"))
   (should (equal (kbd "C-x ( C-x )") "")))
 
-(defvar subr-test--global)
 (ert-deftest test-local-set-state ()
+  (defvar subr-test--global)
+  (defvar subr-test--local)
+  (defvar subr-test--unexist)
   (setq subr-test--global 1)
   (with-temp-buffer
     (setq-local subr-test--local 2)

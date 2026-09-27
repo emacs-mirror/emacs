@@ -2520,7 +2520,7 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
 (ert-deftest files-tests--make-empty-file--tocttou ()
   (ert-with-temp-directory base
     (let ((file (file-name-concat base "one" "two" "file.txt")))
-      (cl-flet ((advice (&rest args)
+      (cl-flet ((advice (&rest _)
                   (write-region "" nil file nil nil nil 'excl)))
         (unwind-protect
             (progn
