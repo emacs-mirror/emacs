@@ -212,3 +212,7 @@ class With::Accessors {
     field $auto_all :param :reader(read_all) :writer;
 }
 1;
+
+# Local Variables:
+# coding: utf-8
+# End:
