@@ -133,14 +133,12 @@ make_dom (xmlNode *node)
       property = node->properties;
       while (property != NULL)
 	{
-	  if (property->children &&
-	      property->children->content)
-	    {
-	      char *content = (char *) property->children->content;
-	      plist = Fcons (Fcons (intern ((char *) property->name),
-				    build_string (content)),
-			     plist);
-	    }
+	  const char *content = "";
+	  if (property->children && property->children->content)
+	    content = (char *) property->children->content;
+	  plist = Fcons (Fcons (intern ((char *) property->name),
+				build_string (content)),
+			 plist);
 	  property = property->next;
 	}
       result = Fcons (Fnreverse (plist), result);
