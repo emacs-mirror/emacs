@@ -1193,6 +1193,8 @@ subshell is initiated, `tex-shell-hook' is run."
   (setq-local tex-face-alist tex-latex-face-alist)
   (add-hook 'fill-nobreak-predicate #'latex-fill-nobreak-predicate nil t)
   (setq-local indent-line-function #'latex-indent)
+  (setq-local editorconfig-indent-size-vars #'latex--indent-size-vars)
+
   (setq-local fill-indent-according-to-mode t)
   (add-hook 'completion-at-point-functions
             #'latex-complete-data nil 'local)
@@ -3042,6 +3044,13 @@ There might be text before point."
 		   (min (current-column) (+ tex-indent-arg col))
 		 (skip-syntax-forward " ")
 		 (current-column)))))))))))
+
+(defun latex--indent-size-vars (size)
+  "Vars to set `latex-mode' indent size to SIZE."
+  `((tex-indent-basic . ,size)
+    (tex-indent-item . ,size)
+    (tex-indent-arg . ,(* 2 size))))
+
 ;;; DocTeX support
 
 (defun doctex-font-lock-^^A ()

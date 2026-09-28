@@ -276,6 +276,9 @@ Calls REPORT-FN directly."
     ;; Indentation.
     (setq-local indent-tabs-mode nil)
     (setq-local tab-width 2)
+    ;; FIXME: This is what used to be in `editorconfig-indentation-alist',
+    ;; but AFAICT we don't use `yaml-indent-offset' at all.
+    (setq-local editorconfig-indent-size-vars '(yaml-indent-offset))
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings yaml-ts-mode--font-lock-settings)

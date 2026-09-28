@@ -7367,6 +7367,7 @@ concrete implementations.  Currently there are two concrete
 implementations: `python-mode' and `python-ts-mode'."
   (setq-local tab-width 8)
   (setq-local indent-tabs-mode nil)
+  (setq-local editorconfig-indent-size-vars '(python-indent-offset))
 
   (setq-local comment-start "# ")
   (setq-local comment-start-skip "#+\\s-*")

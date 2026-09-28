@@ -577,6 +577,7 @@ Key bindings:
               :forward-token  #'octave-smie-forward-token
               :backward-token #'octave-smie-backward-token)
   (setq-local smie-indent-basic 'octave-block-offset)
+  (setq-local editorconfig-indent-size-vars '(octave-block-offset))
   (add-hook 'smie-indent-functions #'octave-indent-comment nil t)
 
   (setq-local smie-blink-matching-triggers

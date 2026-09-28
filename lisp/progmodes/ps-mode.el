@@ -500,6 +500,7 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
                  ps-mode-font-lock-keywords-3)
                 nil))
   (smie-setup nil #'ps-mode-smie-rules)
+  (setq-local editorconfig-indent-size-vars '(ps-mode-tab))
   (setq-local electric-indent-chars
               (append '(?> ?\] ?\}) electric-indent-chars))
   (setq-local comment-start "%")

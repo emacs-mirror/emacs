@@ -446,6 +446,11 @@ reference.")
 (defvar tildify-space-string)
 (defvar tildify-foreach-region-function)
 
+(defun nxml--indent-size-vars (size)
+  "Vars to set `nxml-mode' indent size to SIZE."
+  `((nxml-child-indent . ,size)
+    (nxml-attribute-indent . ,(* 2 size))))
+
 ;;;###autoload
 (define-derived-mode nxml-mode text-mode "nXML"
   ;; We use C-c C-i instead of \\[nxml-balanced-close-start-tag-inline]
@@ -520,6 +525,7 @@ Many aspects this mode can be customized using
   (setq-local adaptive-fill-mode nil)
   (setq-local forward-sexp-function #'nxml-forward-balanced-item)
   (setq-local indent-line-function #'nxml-indent-line)
+  (setq-local editorconfig-indent-size-vars #'nxml--indent-size-vars)
   (setq-local fill-paragraph-function #'nxml-do-fill-paragraph)
   ;; Comment support
   ;; This doesn't seem to work too well;

@@ -691,15 +691,16 @@ font-lock keywords will not be case sensitive."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq-local paragraph-ignore-fill-prefix t)
-  (setq-local fill-paragraph-function 'lisp-fill-paragraph)
+  (setq-local fill-paragraph-function #'lisp-fill-paragraph)
   (setq-local adaptive-fill-function #'lisp-adaptive-fill)
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
   ;;  I believe that newcomment's auto-fill code properly deals with it  -stef
   ;;(setq-local adaptive-fill-mode nil)
-  (setq-local indent-line-function 'lisp-indent-line)
-  (setq-local indent-region-function 'lisp-indent-region)
+  (setq-local indent-line-function #'lisp-indent-line)
+  (setq-local indent-region-function #'lisp-indent-region)
+  (setq-local editorconfig-indent-size-vars #'lisp--indent-size-vars)
   (setq-local comment-indent-function #'lisp-comment-indent)
   (setq-local outline-regexp (concat ";;;;* [^ \t\n]\\|(\\|\\("
                                      lisp-mode-autoload-regexp
@@ -714,7 +715,7 @@ font-lock keywords will not be case sensitive."
   (setq-local comment-use-syntax t)
   (setq-local imenu-generic-expression lisp-imenu-generic-expression)
   (setq-local multibyte-syntax-as-symbol t)
-  ;; (setq-local syntax-begin-function 'beginning-of-defun)  ;;Bug#16247.
+  ;; (setq-local syntax-begin-function #'beginning-of-defun)  ;;Bug#16247.
   (setq font-lock-defaults
 	`(,(if elisp '(lisp-el-font-lock-keywords
                        lisp-el-font-lock-keywords-1
@@ -831,8 +832,8 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{lisp-mode-map}
 Note that `run-lisp' may be used either to start an inferior Lisp job
 or to switch back to an existing one."
-  (setq-local lisp-indent-function 'common-lisp-indent-function)
-  (setq-local find-tag-default-function 'lisp-find-tag-default)
+  (setq-local lisp-indent-function #'common-lisp-indent-function)
+  (setq-local find-tag-default-function #'lisp-find-tag-default)
   (setq-local comment-start-skip
 	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
   (setq-local comment-end-skip "[ \t]*\\(\\s>\\||#\\)")
@@ -847,7 +848,7 @@ or to switch back to an existing one."
 	default))))
 
 ;; Used in old LispM code.
-(defalias 'common-lisp-mode 'lisp-mode)
+(defalias 'common-lisp-mode #'lisp-mode)
 
 (autoload 'lisp-eval-defun "inf-lisp" nil t)
 
@@ -876,6 +877,30 @@ should accept two arguments: the indent-point, and the
 function is `common-lisp-indent-function'."
   :type 'function
   :group 'lisp)
+
+(define-obsolete-variable-alias 'editorconfig-lisp-use-default-indent
+  'lisp-override-editorconfig-indent "32.1")
+(defvar lisp--override-editorconfig-indent nil
+  "Selectively ignore the value of EditorConfig's indent_size for Lisp files.
+Prevents selectively `lisp-indent-offset' from being set.
+
+nil - `lisp-indent-offset' is always set from indent_size.
+t   - `lisp-indent-offset' is never set from indent_size.
+       (always use default indent for lisps).
+number - `lisp-indent-offset' is set from indent_size unless indent_size
+       is equal to this number.")
+
+(defun lisp--indent-size-vars (size)
+  "Set indent size to SIZE for Lisp mode(s)."
+  ;; FIXME: This doesn't work if we want to use this indent-size-vars settings
+  ;; for other purposes than EditorConfig, such as for `indent-bars-mode'.
+  ;; Maybe we should just get rid of lisp--override-editorconfig-indent?
+  (when (cond ((null lisp--override-editorconfig-indent)  t)
+              ((eql t lisp--override-editorconfig-indent) nil)
+              ((numberp lisp--override-editorconfig-indent)
+               (not (eql size lisp--override-editorconfig-indent)))
+              (t t))
+    `((lisp-indent-offset . ,size))))
 
 (defun lisp-ppss (&optional pos)
   "Return Parse-Partial-Sexp State at POS, defaulting to point.
