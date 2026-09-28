@@ -5783,7 +5783,7 @@ DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
 The value is a list of three integers specifying the version of the GUI
 software in use.
 
-For GNU and Unix system, the first 2 numbers are the version of the X
+For GNU and Unix systems, the first 2 numbers are the version of the X
 Protocol used on TERMINAL and the 3rd number is the distributor-specific
 release number.  For MS Windows, the 3 numbers report the OS major and
 minor version and build number.  For Nextstep, the first 2 numbers are
