@@ -257,10 +257,23 @@
   :group 'editing
   :version "31.1")
 
+(defun markdown-ts--custom-set (symbol value &optional buffer-local)
+  "Set SYMBOL to VALUE, as the `:set' function of display options.
+If BUFFER-LOCAL is non-nil, set it in the current buffer and update the
+display there."
+  (if (not buffer-local)
+      (set-default symbol value)
+    (set-local symbol value)
+    (when (derived-mode-p 'markdown-ts-mode)
+      (pcase symbol
+        ('markdown-ts-hide-markup (markdown-ts--set-hide-markup value))
+        ('markdown-ts-inline-images (markdown-ts--set-inline-images value))))))
+
 (defcustom markdown-ts-hide-markup nil
   "Non-nil means hide Markdown markup delimiters in this buffer."
   :type 'boolean
   :local t
+  :set #'markdown-ts--custom-set
   :safe #'booleanp
   :version "31.1"
   :package-version "1.0")
@@ -293,6 +306,7 @@ use that string instead."
   "Non-nil means display inline images below image links."
   :type 'boolean
   :local t
+  :set #'markdown-ts--custom-set
   :safe #'booleanp
   :version "31.1"
   :package-version "1.0")
@@ -5379,21 +5393,27 @@ NOTE: Call this function only when the treesit `markdown' and
   ;; Do not enable `jit-lock-mode' in indirect buffers such as the one
   ;; we use for code block commands.
   (unless (buffer-base-buffer)
-    (jit-lock-register #'markdown-ts--fontify-bare-uri))
+    (jit-lock-register #'markdown-ts--fontify-bare-uri)))
 
-  (unless markdown-ts--set-up-inline
-    ;; Order matters: `markdown-ts--set-hide-markup' calls `font-lock-flush'
-    ;; (only meaningful once `treesit-major-mode-setup' has wired up
-    ;; font-lock), and `markdown-ts-default-folding' calls outline
-    ;; commands that rely on `outline-search-function', which
-    ;; `treesit-major-mode-setup' installs from `treesit-outline-predicate'.
+(defun markdown-ts--apply-settings ()
+  "Apply settings that file-local or directory-local variables may set.
+Called from the mode's `:after-hook', which runs after local variables
+are applied, so their values take effect."
+  (when (and (derived-mode-p 'markdown-ts-mode)
+             (not markdown-ts--set-up-inline))
+    ;; These rely on font-lock and `outline-search-function', which
+    ;; `treesit-major-mode-setup' has already set up.
     (markdown-ts--set-hide-markup markdown-ts-hide-markup)
+    (markdown-ts--set-inline-images markdown-ts-inline-images)
     ;; Respect the user's default outline folding.
     (pcase markdown-ts-default-folding
       ('show-all (ignore))
       ('fold-all (outline-hide-sublevels 1))
       ('fold-headings (outline-show-all)
-                      (outline-hide-region-body (point-min) (point-max))))))
+                      (outline-hide-region-body (point-min) (point-max))))
+    ;; `outline-minor-mode' applied this before local variables were set.
+    (when outline-default-state
+      (outline-apply-default-state))))
 
 (defun markdown-ts-mode-install-parsers (arg)
   "Install `markdown-ts-mode' tree-sitter language parsers.
@@ -5444,6 +5464,7 @@ This is an experimental mode that has a number of unresolved issues,
 therefore Emacs does not yet enable it by default.
 
 See also `markdown-ts--set-up-inline'."
+  :after-hook (markdown-ts--apply-settings)
   (markdown-ts-mode--initialize))
 
 (derived-mode-add-parents 'markdown-ts-mode '(markdown-mode))
@@ -5456,6 +5477,7 @@ See also `markdown-ts--set-up-inline'."
   "Major mode for read-only viewing Markdown using tree-sitter grammar.
 This is an experimental mode that has a number of unresolved issues,
 therefore Emacs does not yet enable it by default."
+  :after-hook (markdown-ts--apply-settings)
   ;; `markdown-ts-mode' is manually added as a parent to avoid invoking
   ;; its initialization before we set override variables.
   (setq-local markdown-ts-menu-bar-show nil)
