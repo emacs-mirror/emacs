@@ -30,11 +30,32 @@ with a prefix argument or by typing 'C-u C-h C-n'.
 
 * Changes in Specialized Modes and Packages in Emacs 31.2
 
+** Loaddefs-gen
+*** 'autoload-macro' declaration controls interaction with autoload cookies.
+[ This change was actually introduced in Emacs-31.1.  ]
+Previously, ';;;###autoload' cookies would cause the whole form to be
+copied as-is to the loaddefs file except for a small hardcoded set of macros,
+like 'define-minor-mode', which were turned into (autoload ...) stanzas.
+Now, macros can use (declare (autoload-macro expand)) to indicate that
+if a use of this macro is marked with an autoload cookie, Loaddefs-gen
+should process the macro's expansion instead, which will presumably
+use other forms like 'defun', 'defalias', or 'define-derived-mode' which
+will in turn get replaced by (autoload ...) stanzas.
+
 
 * New Modes and Packages in Emacs 31.2
 
 
 * Incompatible Lisp Changes in Emacs 31.2
+
+** Scraping for autoloads will now sometimes load/evaluate the scraped file.
+[ This change was actually introduced in Emacs-31.1.  ]
+In order to support the new 'autoload-macro' declaration, when
+'loaddefs-gen.el' (and hence the old 'autoload.el' as well) finds
+autoloaded form calling a macro that is not yet defined, it will
+load the file that's being scraped.  Errors are caught to avoid most
+regressions, but it can lead to surprising error messages and can
+introduce security risks in case you're scraping a file you do not trust.
 
 
 * Lisp Changes in Emacs 31.2
