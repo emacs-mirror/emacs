@@ -158,12 +158,6 @@ This hook will be run even when there are no matching sections in
     (rjsx-mode js-indent-level sgml-basic-offset)
     (scala-mode scala-indent:step)
     (swift-mode swift-mode:basic-offset)
-    (verilog-mode verilog-indent-level
-                  verilog-indent-level-behavioral
-                  verilog-indent-level-declaration
-                  verilog-indent-level-module
-                  verilog-cexp-indent
-                  verilog-case-indent)
     (web-mode . editorconfig--get-indentation-web-mode)
     )
   "Alist of indentation setting methods by modes.
