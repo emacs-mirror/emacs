@@ -3609,8 +3609,7 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                       (vc--outgoing-base-mergebase backend
                                                    upstream-location
                                                    'refresh 'force-topic)
-                      ;; REFRESH nil here because we just refreshed.
-                      (vc--incoming-revision backend)
+                      (vc--incoming-revision backend nil 'refresh)
                       (called-interactively-p 'interactive))))
 
 ;;;###autoload
@@ -3640,10 +3639,10 @@ When called from Lisp, optional argument FILESET overrides the fileset."
     (vc-print-log-internal backend (cadr fileset)
                            (vc--incoming-revision backend nil 'refresh)
                            'is-start-revision
-                           ;; REFRESH nil here because we just refreshed.
                            (vc--outgoing-base-mergebase backend
                                                         upstream-location
-                                                        nil 'force-topic)
+                                                        'refresh
+                                                        'force-topic)
                            'log-unintegrated)))
 
 ;;;###autoload
