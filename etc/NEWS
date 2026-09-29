@@ -452,6 +452,19 @@ new function 'lisp-mode-syntax-propertize' as the value of
 The new command 'newsticker-treeview-copy-url', bound to 'w', adds the
 URL of the currently selected item in the list view to the kill ring.
 
+** Imap
+
+---
+*** New user option 'imap-use-auth-source'.
+Default nil.  Controls whether 'imap-authenticate' will attempt to
+lookup credentials via 'auth-source'.
+
+---
+*** 'imap-authenticate' can now retrieve credentials via 'auth-source'.
+When 'imap-use-auth-source' is non-nil, 'imap-authenticate' now performs
+an 'auth-source' search in order to obtain the username and the
+password.
+
 ** Rmail
 
 +++
