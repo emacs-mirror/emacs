@@ -2857,7 +2857,7 @@ easier access.
 
 @c FIXME: Do we need bindings for the Index macros here as well?
 @c C-c i   C-c I or so????
-@c How about key bindings for reftex-reset-mode and reftex-parse-document?
+@c How about key bindings for reftex-reset-mode and reftex-parse-all?
 @kindex C-c t
 @kindex C-c l
 @kindex C-c r
@@ -3855,7 +3855,7 @@ Show the commentary section from @file{reftex.el}.
 @deffn Command reftex-info
 Run info on the top @RefTeX{} node.
 @end deffn
-@deffn Command reftex-parse-document
+@deffn Command reftex-parse-all
 Parse the entire document in order to update the parsing information.
 @end deffn
 @deffn Command reftex-reset-mode
