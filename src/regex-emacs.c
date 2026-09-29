@@ -3193,7 +3193,7 @@ analyze_first_fastmap (const re_char *p, void *arg)
       not = (re_opcode_t)p[0] == notcategoryspec;
       p++;
       k = *p++;
-      for (j = (1 << BYTEWIDTH); j >= 0; j--)
+      for (j = (1 << BYTEWIDTH) - 1; j >= 0; j--)
 	if ((CHAR_HAS_CATEGORY (j, k)) ^ not)
 	  data->fastmap[j] = 1;
 
