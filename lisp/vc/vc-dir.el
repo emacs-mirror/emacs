@@ -1567,17 +1567,20 @@ uses OVERLAY."
                 '(display-buffer-no-window (allow-no-window . t)))
                (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
                (buf (generate-new-buffer " *temp*" t))
+               ;; The user didn't explicitly request an outgoing count
+               ;; so we shouldn't prompt them.
+               ;; It is okay to use an outdated value.
+               ;; Also, this makes `vc--incoming-revision' (which see)
+               ;; not retry endlessly.
+               (non-essential t)
                proc)
           (without-local-variable-queries
             (with-current-buffer buf
               (condition-case _
                   (progn
-                    ;; `non-essential' here affects TRAMP if this repo
-                    ;; is remote, and also `vc--incoming-revision'.
-                    (let ((non-essential t))
-                      (vc-incoming-outgoing-internal backend nil
-                                                     (current-buffer)
-                                                     '(log-outgoing short)))
+                    (vc-incoming-outgoing-internal backend nil
+                                                   (current-buffer)
+                                                   '(log-outgoing short))
                     (setq proc (get-buffer-process (current-buffer)))
                     (set-process-query-on-exit-flag proc nil)
                     (overlay-put overlay 'proc proc)
