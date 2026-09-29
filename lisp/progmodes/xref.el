@@ -224,17 +224,22 @@ is not known."
 (xref--defstruct (xref-item
                   (:constructor xref-make (summary location))
                   (:noinline t))
-  "An xref item describes a reference to a location somewhere."
-  (summary nil :documentation "String which describes the location.
+  "An xref item describes a reference to an identifier somewhere.
+The reference uses SUMMARY and LOCATION.
+SUMMARY is a string that describes the referenced identifier.
+LOCATION is its location where the referenced identifier can be found.
+There are several types of LOCATION; one widely used one is a file name
+and a line number in that file."
+  (summary nil :documentation "String which describes the identifier.
 
 When `xref-location-line' returns non-nil (a number), the summary
 is implied to be the contents of a file or buffer line containing
-the location.  When multiple locations in a row report the same
+the identifier.  When multiple identifiers in a row report the same
 line, in the same group (corresponding to the case of multiple
-locations on one line), the summaries are concatenated in the
+identifiers on thesame line), the summaries are concatenated in the
 Xref output buffer.  Consequently, any code that creates xref
 values should take care to slice the summary values when several
-locations point to the same line.
+identifiers reside on the same line.
 
 This behavior is new in Emacs 28.")
   location)
@@ -335,14 +340,15 @@ The returned value will be used as the COLLECTION argument for
 
 (cl-defgeneric xref-backend-identifier-completion-predicate (_backend
                                                              &optional _kind)
-  "Return the predicate for identifier completion.
+  "Return the predicate for filtering candidates in identifier completion.
 
-The returned value will be used as the PREDICATE argument for
-`completing-read' when an identifier is read with completion.
+The returned value should be a function that will be used as the PREDICATE
+argument for `completing-read' when an identifier is read with completion.
 
-The argument KIND will be provided when the caller intends to use the
-completion's result in a search for that KIND of definitions.  In such
-case this predicate can apply appropriate filtering to identifiers."
+The argument KIND will be provided to the method when the caller intends to
+use the completion's result in a search for that KIND of definitions.  In
+such case this predicate can filter the candidate identifiers as appropriate
+for KIND."
   nil)
 
 (cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
@@ -354,10 +360,13 @@ case this predicate can apply appropriate filtering to identifiers."
 
 Each descriptor is a plist with properties `:kind', `:name' and `:key'
 where the kind is a symbol value the backend will be able to recognize
-later, the name is a string suitable for prompts and errors shown to the
-user, and the key is a unique character to be used to select that kind.
+as specifying one of the xref types that the backend supports, the name
+is a string suitable for prompts (e.g., in `xref-read-identifier') and
+errors shown to the user, and the key is a unique character to be used
+to select one of the kinds when prompted to select a kind.
 Optionally, it can also include `:prompt-format' which decides how the
-prompt will look, defaulting to \"Find %s\".
+prompt will look, defaulting to \"Find %s\".  The %s specifier gets
+replaced with the kind's name.
 
 Having a kind in this list means that the backend can try to find such
 xrefs in the current and related buffers, with no guarantee of success.
@@ -368,10 +377,10 @@ These locations might or might not be included in the results of
     (xref--no-backend-available)))
 
 (cl-defgeneric xref-backend-xrefs-by-kind (_backend _identifier _kind)
-  "Find xrefs of KIND for IDENTIFIER.
+  "Return xrefs of KIND for IDENTIFIER.
 
 KIND must be one of the values of `:kind' from `xref-backend-xref-kinds'
-The result must be a list of xref values, like in
+The return value must be a list of xref values, like in
 `xref-backend-definitions'."
   nil)
 
