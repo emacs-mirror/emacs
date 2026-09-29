@@ -1839,8 +1839,6 @@ unique numeric suffixes \"<2>\", \"<3>\", etc."
 ;;; Code supporting the dired-like bookmark list.
 ;; Prefix is "bookmark-bmenu" for "buffer-menu":
 
-(defvar bookmark-bmenu-hidden-bookmarks ())
-
 (defvar-keymap bookmark-bmenu-mode-map
   :doc "Keymap for `bookmark-bmenu-mode'."
   :parent tabulated-list-mode-map
