@@ -25,10 +25,6 @@
 # include <limits.h>
 # include <stdint.h>
 
-# ifndef __has_feature
-#  define __has_feature(a) 0
-# endif
-
 
 /* Find the first occurrence of C in S.  */
 void *
@@ -53,7 +49,8 @@ rawmemchr (const void *s, int c_in)
      so suppress this optimization on platforms where it is known to be
      dangerous, namely, those using address sanitization.  */
 
-#  if ! (defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer))
+#  if ! (defined __SANITIZE_ADDRESS__ || defined __SANITIZE_HWADDRESS__ \
+         || defined __SANITIZE_MEMORY__)
 
   /* You can change this typedef to experiment with performance.  */
   typedef uintptr_t longword _GL_ATTRIBUTE_MAY_ALIAS;

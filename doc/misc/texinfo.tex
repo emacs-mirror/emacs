@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2026-09-06.15}
+\def\texinfoversion{2026-09-26.20}
 %
 % Copyright 1985, 1986, 1988, 1990-2026 Free Software Foundation, Inc.
 %
@@ -6430,7 +6430,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % (e.g., figures), q.v.  By default (before any chapter), that is empty.
 \let\chaplevelprefix = \empty
 %
-\outer\parseargdef\chapter{\numhead0{#1}} % normally numhead0 calls chapterzzz
+\parseargdef\chapter{\numhead0{#1}} % normally numhead0 calls chapterzzz
 \def\chapterzzz#1{%
   % section resetting is \global in case the chapter is in a group, such
   % as an @include file.
@@ -6454,7 +6454,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \global\let\subsubsection = \numberedsubsubsec
 }
 
-\outer\parseargdef\appendix{\apphead0{#1}} % normally calls appendixzzz
+\parseargdef\appendix{\apphead0{#1}} % normally calls appendixzzz
 %
 \def\appendixzzz#1{%
   \global\secno=0 \global\subsecno=0 \global\subsubsecno=0
@@ -6474,7 +6474,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 
 % normally unnmhead0 calls unnumberedzzz:
-\outer\parseargdef\unnumbered{\unnmhead0{#1}}
+\parseargdef\unnumbered{\unnmhead0{#1}}
 \def\unnumberedzzz#1{%
   \global\advance\unnumberedno by 1
   %
@@ -6504,7 +6504,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 
 % @centerchap is like @unnumbered, but the heading is centered.
-\outer\parseargdef\centerchap{%
+\parseargdef\centerchap{%
   \let\centerparametersmaybe = \centerparameters
   \unnmhead0{#1}%
   \let\centerparametersmaybe = \relax
@@ -9149,12 +9149,19 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 \def\wordTop{Top}
 
-% Until the next @node, @part or @bye command, divert output to a box that
-% is not output.
+% Until the next @node, top-level section command, @part or @bye command,
+% divert output to a box that is not output.
 \def\ignorenode{\setbox\dummybox\vbox\bgroup
-\def\part{\egroup\part}%
-\def\node{\egroup\node}%
-\ignorenodebye
+  % redefine top-level commands to close the dummy
+  % box and restart processing.
+  \def\restartat##1{\def##1{\egroup##1}}%
+  \restartat\part
+  \restartat\node
+  \restartat\chapter
+  \restartat\centerchap
+  \restartat\unnumbered
+  \restartat\appendix
+  \ignorenodebye
 }
 
 {\let\bye\relax
@@ -9239,11 +9246,20 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 % Similar to \setref, but used for targets created by sectioning commands.
 % Write information about this target using @xrshad instead of @xrdef.
 \def\setrefshadow#1#2{%
-  % For PDF, output the target with \pdfdest.  Note pdfTeX issues a warning
-  % if we output two targets with the same name.
+  % For PDF, output the target with \pdfdest.
+  % Temporarily suppress pdfTeX warning for trying to output two targets
+  % with the same name.
+  \pdfsuppresswarningdupdest1
   \pdfmkdest{\pdfshadowprefix#2}%
+  \pdfsuppresswarningdupdest0
   \dosetref{#2}{#1}{#2}{xrshad}%
 }
+
+% Primitive introduced in pdfTeX 1.40.13.  Supply dummy definition for
+% older versions or when not running with pdfTeX.
+\ifx\pdfsuppresswarningdupdest\thisisundefined
+  \def\pdfsuppresswarningdupdest#1{}%
+\fi
 
 \def\pdfshadowprefix{XXSHADOW-}
 
@@ -9296,9 +9312,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \checkshadowactive{#1}\countA
     \expandafter\ifnum\countA = 1
       \startxreflink{\pdfshadowprefix#1}{}%
+    \else\expandafter\ifnum\countA = 2
+      \txiwarning{ambiguous xref to #1}%
+      \startxreflink{}{}%
     \else
       \startxreflink{#1}{}%
-    \fi
+    \fi\fi
   \else
     \startxreflink{#1}{#4}%
   \fi
@@ -9594,26 +9613,31 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 
 % Check if shadow definitions are active for target name #1, setting the
-% count register sequence in #2 to 1 if so.
+% count register sequence in #2 to:
+%  1 if they are active
+%  0 if they are not
+%  2 if multiple definitions were made
 \def\checkshadowactive#1#2{%
   \requireauxfile
   {%
     \xrdefctxt
-    \expandafter\global\expandafter\let\expandafter\tmp\csname SXR#1-title\endcsname
+    \expandafter\global\expandafter\let\expandafter\tmp\csname XR#1-title\endcsname
   }%
   \ifx\tmp\relax
-    #2=0 % no definitions made
-  \else
-    \ifx\tmp\empty
-      #2=0 % shadow definitions were disabled
+    % a real definition was not made
+    {%
+      \xrdefctxt
+      \expandafter\global\expandafter\let\expandafter\tmp\csname SXR#1-title\endcsname
+    }%
+    \ifx\tmp\relax
+      #2=0 % no definitions made
+    \else\ifx\tmp\empty
+      #2=2 % shadow definitions were disabled
     \else
-      \expandafter\let\expandafter\tmp\csname XR#1-title\endcsname
-      \ifx\tmp\relax
-        #2=1 % yes, shadow definitions are active
-      \else
-        #2=0 % no, a real definition was made.
-      \fi
-    \fi
+      #2=1 % yes, shadow definitions are active
+    \fi\fi
+  \else
+    #2=0 % no, a real definition was made.
   \fi
 }%
 
