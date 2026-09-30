@@ -3134,6 +3134,16 @@ pgtk_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - from_y;
       else
 	height = run->height;
+
+      /* Don't draw over the display parts above if destination is off
+         the top of the current window.  */
+      if (to_y < y)
+	{
+	  int d = y - to_y;
+	  height -= d;
+	  to_y += d;
+	  from_y += d;
+	}
     }
   else
     {
