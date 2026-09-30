@@ -562,7 +562,8 @@ MODE is one of the symbols `c', `cpp'."
              `(((match "compound_statement" "compound_statement")
                 standalone-parent c-ts-indent-offset)
                ((node-is "compound_statement") standalone-parent 0)
-               ,@rules))))
+               ,@rules))
+            (_ rules)))
     (setq-local treesit-simple-indent-rules
                 (pcase mode
                   ('c `((c . ,rules)))
