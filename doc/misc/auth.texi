@@ -493,8 +493,8 @@ then fall back to @file{~/.authinfo.gpg}.
                        "~/.authinfo.gpg"))
 @end example
 
-Attribute values in the auth-source spec, which are not strings (like
-port numbers), are stringified prior calling the @file{secrets.el}
+Attribute values in the @code{auth-sources} spec, which are not strings
+(like port numbers), are stringified prior calling the @file{secrets.el}
 functions.
 
 @node The Unix password store
@@ -601,9 +601,9 @@ expecting to query multiple backends uniformly, try flipping it to
 @node The macOS keychain store
 @chapter The macOS keychain store
 
-The MacOS operating system includes a password store called
+The macOS operating system includes a password store called
 ``Keychain''.  To use the keychain as a backend for auth-source, add
-@code{macos-keychain-internet} to the @var{auth-sources} user option.
+@code{macos-keychain-internet} to the @code{auth-sources} user option.
 
 Currently, the backend only supports reading from the keychain, so
 passwords must be stored via the @code{security} command-line utility
