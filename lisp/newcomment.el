@@ -975,7 +975,8 @@ This function is the default value of `uncomment-region-function'."
 	  ;; Find the end-of-content before we mess with the rest of
           ;; the comment (which flushes the syntax-propertization,
           ;; thus impacting the work of `comment-enter-backward').
-	  (let ((end-of-content (copy-marker (comment-enter-backward))))
+          (comment-enter-backward)
+	  (let ((end-of-content (copy-marker (point-max))))
 
 	    ;; Remove the comment-start.
 	    (goto-char ipt)
