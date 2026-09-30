@@ -1601,7 +1601,8 @@ bidi_find_paragraph_start (ptrdiff_t pos, ptrdiff_t pos_byte)
       if (bpc && region_cache_backward (cache_buffer, bpc, pos, &next))
 	{
 	  pos = next, pos_byte = CHAR_TO_BYTE (pos);
-	  break;
+	  if (fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) >= 0)
+	    break;
 	}
       else
 	pos = find_newline_no_quit (pos, pos_byte, -1, &pos_byte);
