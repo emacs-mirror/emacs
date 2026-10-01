@@ -4666,19 +4666,29 @@ BACKEND is the VC backend."
   ;; Do store `nil', before signaling an error, if there is no incoming
   ;; revision, because that's also something that can be slow to
   ;; determine and so should be remembered.
-  (or (if-let* ((_ (not refresh))
-                (record (assoc upstream-location
-                               (vc--repo-getprop backend
-                                                 'vc-incoming-revision))))
-          (cdr record)
-        (let ((res (vc-call-backend backend 'incoming-revision
-                                    upstream-location refresh))
-              (alist (vc--repo-getprop backend 'vc-incoming-revision)))
-          (prog1
-              (setf (alist-get upstream-location alist nil nil #'equal)
-                    res)
-            (vc--repo-setprop backend 'vc-incoming-revision alist))))
-      (user-error "No incoming revision -- local-only branch?")))
+  ;;
+  ;; Try to use the current branch name instead of `nil' as a key into
+  ;; the cache, because otherwise we would need to clear the cache when
+  ;; the user switches branches, but we don't have a good way of knowing
+  ;; when that happens.  Use a cons cell for a separate namespace.
+  (let ((key
+         (if-let* ((_ (null upstream-location))
+                   (branch (vc-call-backend backend 'working-branch)))
+             (cons 'branch branch)
+           upstream-location)))
+    (or (if-let* ((_ (not refresh))
+                  (record
+                   (assoc key
+                          (vc--repo-getprop backend
+                                            'vc-incoming-revision))))
+            (cdr record)
+          (let ((res (vc-call-backend backend 'incoming-revision
+                                      upstream-location refresh))
+                (alist (vc--repo-getprop backend
+                                         'vc-incoming-revision)))
+            (prog1 (setf (alist-get key alist nil nil #'equal) res)
+              (vc--repo-setprop backend 'vc-incoming-revision alist))))
+        (user-error "No incoming revision -- local-only branch?"))))
 
 ;;;###autoload
 (defun vc-root-log-incoming (&optional upstream-location)
