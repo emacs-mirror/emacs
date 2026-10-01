@@ -3399,8 +3399,9 @@ function."
        (vc-call-backend backend 'topic-outgoing-base)))
 
 (defun vc--outgoing-base-mergebase
-    (backend &optional upstream-location incoming refresh force-topic)
+    (backend upstream-location &optional and-incoming-revision)
   "Return, under VC backend BACKEND, the merge base with UPSTREAM-LOCATION.
+
 Normally UPSTREAM-LOCATION, if non-nil, is a string.
 If UPSTREAM-LOCATION is nil, it means to call `vc--outgoing-base' and
 use its return value as UPSTREAM-LOCATION.  If `vc--outgoing-base'
@@ -3409,25 +3410,37 @@ If UPSTREAM-LOCATION is the special value t, it means to use the place
 to which `vc-push' would push as UPSTREAM-LOCATION, unconditionally.
 (This is passed when the user invokes an outgoing base command with a
  \\`C-u C-u' prefix argument; see `vc--maybe-read-outgoing-base'.)
-If optional argument INCOMING is non-nil, return the merge base between
-UPSTREAM-LOCATION and INCOMING (instead of between UPSTREAM-LOCATION and
-the working revision).
-REFRESH is passed on to `vc--incoming-revision'.
-FORCE-TOPIC is passed on to `vc--outgoing-base'."
-  (let ((upstream-location
-         (pcase upstream-location
-           ('t nil)
-           ('nil (vc--outgoing-base backend force-topic))
-           (_ upstream-location))))
-    ;; UPSTREAM-LOCATION nil with INCOMING non-nil means comparing the
-    ;; incoming revision with itself, which means an empty diff/log.
-    (if (and (null upstream-location) incoming)
-        (user-error (substitute-command-keys "\
-No meaningful outgoing base -- supply one with \\[universal-argument]"))
-      (vc-call-backend backend 'mergebase
-                       (vc--incoming-revision backend upstream-location
-                                              refresh)
-                       incoming))))
+
+If optional argument AND-INCOMING-REVISION is non-nil,
+- return a list of the merge base between UPSTREAM-LOCATION and the
+  incoming revision for the place to which `vc-push' would push, and
+  that incoming revision;
+- pass REFRESH non-nil to `vc--incoming-revision';
+- pass FORCE-TOPIC non-nil to `vc--outgoing-base'."
+  (cond*
+   ((bind* (upstream-location
+            (pcase upstream-location
+              ('t nil)
+              ('nil (vc--outgoing-base backend and-incoming-revision))
+              (_ upstream-location)))))
+   ((and (null upstream-location) and-incoming-revision)
+    ;; This implies finding the merge base between the place to which
+    ;; `vc-push' would push and the incoming revision for that same
+    ;; place, which are the same revision, meaning an empty diff/log.
+    (user-error (substitute-command-keys "\
+No meaningful outgoing base -- supply one with \\[universal-argument]")))
+   (and-incoming-revision
+    (let ((incoming (vc--incoming-revision backend nil 'refresh)))
+      (list
+       (vc-call-backend backend 'mergebase
+                        (vc--incoming-revision backend upstream-location
+                                               'refresh)
+                        incoming)
+       incoming)))
+   (t
+    (vc-call-backend backend 'mergebase
+                     (vc--incoming-revision backend
+                                            upstream-location)))))
 
 ;;;###autoload
 (defun vc-root-diff-unintegrated (&optional upstream-location)
@@ -3630,15 +3643,13 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                  (list (vc--maybe-read-outgoing-base (car fileset)
                                                      'no-double)
                        fileset)))
-  (let* ((fileset (or fileset (vc-deduce-fileset t)))
-         (backend (car fileset))
-         (incoming (vc--incoming-revision backend nil 'refresh)))
+  (pcase-let* ((fileset (or fileset (vc-deduce-fileset t)))
+               (backend (car fileset))
+               (`(,merge-base ,incoming-revision)
+                (vc--outgoing-base-mergebase backend upstream-location
+                                             'and-incoming-revision)))
     (vc-diff-internal vc-allow-async-diff fileset
-                      (vc--outgoing-base-mergebase backend
-                                                   upstream-location
-                                                   incoming
-                                                   'refresh 'force-topic)
-                      incoming
+                      merge-base incoming-revision
                       (called-interactively-p 'interactive))))
 
 ;;;###autoload
@@ -3664,17 +3675,14 @@ When called from Lisp, optional argument FILESET overrides the fileset."
                  (list (vc--maybe-read-outgoing-base (car fileset)
                                                      'no-double)
                        fileset)))
-  (let* ((fileset (or fileset (vc-deduce-fileset t)))
-         (backend (car fileset))
-         (incoming (vc--incoming-revision backend nil 'refresh)))
+  (pcase-let* ((fileset (or fileset (vc-deduce-fileset t)))
+               (backend (car fileset))
+               (`(,merge-base ,incoming-revision)
+                (vc--outgoing-base-mergebase backend upstream-location
+                                             'and-incoming-revision)))
     (vc-print-log-internal backend (cadr fileset)
-                           incoming
-                           'is-start-revision
-                           (vc--outgoing-base-mergebase backend
-                                                        upstream-location
-                                                        incoming
-                                                        'refresh
-                                                        'force-topic)
+                           incoming-revision
+                           'is-start-revision merge-base
                            '(log-unintegrated))))
 
 ;;;###autoload
