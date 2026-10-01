@@ -4693,10 +4693,19 @@ BACKEND is the VC backend."
   ;; trying again, synchronously and probably fruitlessly, when VC-Dir
   ;; is refreshed.  Ignore cached failures when `non-essential' is nil
   ;; so that interactive callers always retry the failure.
+  ;;
+  ;; Try to use the current branch name instead of `nil' as a key into
+  ;; the cache, because otherwise we would need to clear the cache when
+  ;; the user switches branches, but we don't have a good way of knowing
+  ;; when that happens.  Use a cons cell for a separate namespace.
   (cond*
    ((bind*
+     (key (if-let* ((_ (null upstream-location))
+                    (branch (vc-call-backend backend 'working-branch)))
+              (cons 'branch branch)
+            upstream-location))
      (rec (and (not refresh)
-               (assoc upstream-location
+               (assoc key
                       (vc--repo-getprop backend
                                         'vc-incoming-revision))))))
    ((and rec (null (cdr rec)))
@@ -4718,10 +4727,10 @@ Finding incoming revision ... (\\[keyboard-quit] to skip)"))
                                    upstream-location refresh)))
             ((error quit) err)))
      (alist (vc--repo-getprop backend 'vc-incoming-revision))
-     (rec (assoc upstream-location alist))))
+     (rec (assoc key alist))))
    ;; Don't overwrite a useful cached value with an error.
    ((not (and rec (atom (cdr rec)) (consp res)))
-    (setf (alist-get upstream-location alist nil nil #'equal) res)
+    (setf (alist-get key alist nil nil #'equal) res)
     (vc--repo-setprop backend 'vc-incoming-revision alist)
     :non-exit)
    ((consp res)
