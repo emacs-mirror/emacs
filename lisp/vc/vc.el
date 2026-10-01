@@ -3395,16 +3395,20 @@ UPSTREAM-LOCATION and INCOMING (instead of between UPSTREAM-LOCATION and
 the working revision).
 REFRESH is passed on to `vc--incoming-revision'.
 FORCE-TOPIC is passed on to `vc--outgoing-base'."
-  (vc-call-backend backend 'mergebase
-                   (vc--incoming-revision backend
-                                          (pcase upstream-location
-                                            ('t nil)
-                                            ('nil
-                                             (vc--outgoing-base backend
-                                                                force-topic))
-                                            (_ upstream-location))
-                                          refresh)
-                   incoming))
+  (let ((upstream-location
+         (pcase upstream-location
+           ('t nil)
+           ('nil (vc--outgoing-base backend force-topic))
+           (_ upstream-location))))
+    ;; UPSTREAM-LOCATION nil with INCOMING non-nil means comparing the
+    ;; incoming revision with itself, which means an empty diff/log.
+    (if (and (null upstream-location) incoming)
+        (user-error (substitute-command-keys "\
+No meaningful outgoing base -- supply one with \\[universal-argument]"))
+      (vc-call-backend backend 'mergebase
+                       (vc--incoming-revision backend upstream-location
+                                              refresh)
+                       incoming))))
 
 ;;;###autoload
 (defun vc-root-diff-unintegrated (&optional upstream-location)
