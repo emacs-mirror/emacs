@@ -4275,6 +4275,9 @@ memo_free (void *ptr)
   xfree (memo);
 }
 
+/* Every on_failure_jump operation occupies at least 3 bytes.  */
+#define MEMO_BYTES_PER_COUNTER 3
+
 static void
 memo_record_failure (struct memo *memo, struct re_pattern_buffer *bufp,
 		     re_char *pat, ptrdiff_t strpos)
@@ -4289,7 +4292,7 @@ memo_record_failure (struct memo *memo, struct re_pattern_buffer *bufp,
 	 before deciding memoization might be worthwhile.  */
       if ((memo->total_failures >> 1) > memo->max_offset)
 	{
-	  memo->nb_counters = bufp->used;
+	  memo->nb_counters = bufp->used / MEMO_BYTES_PER_COUNTER;
 	  ptrdiff_t nbytes = sizeof (struct memo_bits) * memo->nb_counters;
 	  memo->state_failures = xmalloc (nbytes);
 	  memset (memo->state_failures, 0, nbytes);
@@ -4305,7 +4308,7 @@ memo_record_failure (struct memo *memo, struct re_pattern_buffer *bufp,
     {
       if (memo->backrefs)
 	return;
-      ptrdiff_t bytecodepos = pat - bufp->buffer;
+      ptrdiff_t bytecodepos = (pat - bufp->buffer) / MEMO_BYTES_PER_COUNTER;
       eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
       struct memo_bits *failures = &memo->state_failures[bytecodepos];
       if (!failures->bytes)
@@ -4317,7 +4320,7 @@ memo_record_failure (struct memo *memo, struct re_pattern_buffer *bufp,
 		 pattern more times than we have visited chars, so
 		 there is room for memoization to to payoff!  */
 	      DEBUG_PRINT ("SETTING up memoization for %d!\n",
-			   bytecodepos);
+			   pat - bufp->buffer);
 	      *failures = memo_bits (strpos);
 	      eassert (failures->bytes);
 	      /* FIXME: The other counters may have been inflated by the
@@ -4338,7 +4341,7 @@ memo_has_failed_p (struct memo *memo, struct re_pattern_buffer *bufp,
   eassert (str >= 0);
   if (memo->state_failures)
     {
-      ptrdiff_t bytecodepos = pat - bufp->buffer;
+      ptrdiff_t bytecodepos = (pat - bufp->buffer) / MEMO_BYTES_PER_COUNTER;
       eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
       struct memo_bits *failures = &memo->state_failures[bytecodepos];
       if (failures->bytes)
