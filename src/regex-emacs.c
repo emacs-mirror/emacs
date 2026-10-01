@@ -267,6 +267,9 @@ typedef enum
 	   in case of failure.  */
   on_failure_jump,
 
+	/* Like on_failure_jump but without memoization.  */
+  on_failure_jump_nomemo,
+
 	/* Like on_failure_jump, but pushes a placeholder instead of the
 	   current string position when executed.  Upon failure,
 	   the current string position is thus not restored.
@@ -616,6 +619,11 @@ print_partial_compiled_pattern (FILE *dest, re_char *start, re_char *end)
 	case on_failure_jump:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  fprintf (dest, "/on_failure_jump to %td", p + mcnt - start);
+	  break;
+
+	case on_failure_jump_nomemo:
+	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
+	  fprintf (dest, "/on_failure_jump_nomemo to %td", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
@@ -2340,7 +2348,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 	      /* Insert before the previous alternative a jump which
 		 jumps to this alternative if the former fails.  */
 	      GET_BUFFER_SPACE (3);
-	      INSERT_JUMP (on_failure_jump, begalt, b + 6);
+	      INSERT_JUMP (on_failure_jump_nomemo, begalt, b + 6);
 	      pending_exact = 0;
 	      b += 3;
 
@@ -2908,6 +2916,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	    switch (*newp1)
 	      {
 	      case on_failure_jump:
+	      case on_failure_jump_nomemo:
 	      case on_failure_keep_string_jump:
 	      case on_failure_jump_nastyloop:
 	      case on_failure_jump_loop:
@@ -2921,6 +2930,7 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	      }
 
 	  case on_failure_jump:
+	  case on_failure_jump_nomemo:
 	  case on_failure_keep_string_jump:
 	  case on_failure_jump_nastyloop:
 	  case on_failure_jump_loop:
@@ -4136,7 +4146,7 @@ unwind_re_match (void *ptr)
        We want to memoize those since they're part of loops by definition.  */
 
 #ifndef MEMOIZE_FAILURES
-# define MEMOIZE_FAILURES 0
+# define MEMOIZE_FAILURES 1
 #endif
 
 #if MEMOIZE_FAILURES
@@ -4228,6 +4238,7 @@ memo_free (void *ptr)
 	memo_bits_free (&memo->fail_counters[i]);
       xfree (memo->fail_counters);
     }
+  xfree (memo);
 }
 
 static void
@@ -4235,29 +4246,31 @@ memo_fail (struct memo *memo,
 	   struct re_pattern_buffer *bufp, re_char *pat, ptrdiff_t fail_offset)
 {
   eassert (fail_offset >= 0);
-  if (memo->backrefs)
-    return;
   if (memo->max_offset <= fail_offset)
     memo->max_offset = fail_offset + 1;
   if (!memo->fail_counters)
     {
       memo->past_failures++;
-      /* We use an "arbitrary" threshold of 2 failures per byte
-	 before deciding memoization might be worthwhile.
-	 Arguably we could divide by something proportional
-	 to bufp->used.  */
+      /* Tests suggest an "arbitrary" threshold of 2 failures per byte
+	 before deciding memoization might be worthwhile.  */
       if ((memo->past_failures >> 1) > memo->max_offset)
 	{
-	  /* fprintf (stderr, "SETTING up counters because %ld > %ld (%ld)!\n",
-	   * 	   memo->past_failures, memo->max_offset, fail_offset); */
 	  memo->nb_counters = bufp->used;
 	  ptrdiff_t nbytes = sizeof (struct memo_bits) * memo->nb_counters;
 	  memo->fail_counters = xmalloc (nbytes);
 	  memset (memo->fail_counters, 0, nbytes);
+	  /* Setup an unwind_protect to free the memoization table.
+	     Use a copy of 'memo' so that the compiler can keep (parts
+	     of) it in registers.  */
+	  struct memo *memo_copy = xmalloc (sizeof (struct memo));
+	  *memo_copy = *memo;
+	  record_unwind_protect_ptr (memo_free, memo_copy);
 	}
     }
   else
     {
+      if (memo->backrefs)
+	return;
       ptrdiff_t bytecodepos = pat - bufp->buffer;
       eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
       struct memo_bits *counter = &memo->fail_counters[bytecodepos];
@@ -4271,9 +4284,6 @@ memo_fail (struct memo *memo,
 		 there is room for memoization to to payoff!  */
 	      DEBUG_PRINT ("SETTING up memoization for %d!\n",
 			   bytecodepos);
-	      /* fprintf (stderr, "SETTING up memoization for %ld because %ld > %ld (%ld)!\n",
-	       * 	       bytecodepos,
-	       * 	       counter->max, memo->max_offset, fail_offset); */
 	      *counter = memo_bits (fail_offset);
 	      eassert (counter->bytes);
 	      /* FIXME: The other counters may have been inflated by the
@@ -4425,7 +4435,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 #if MEMOIZE_FAILURES
   struct memo memo = { 0, 0 , NULL , 0, 0};
-  record_unwind_protect_ptr (memo_free, &memo);
+  /* record_unwind_protect_ptr (memo_free, &memo); */
 #endif
 
   /* Do not bother to initialize all the register variables if there are
@@ -5125,7 +5135,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      DEBUG_STATEMENT (regex_emacs_debug -= 2);
 	      goto fail;
 	    }
+	  FALLTHROUGH;
 #endif
+	case on_failure_jump_nomemo:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT ("EXECUTING on_failure_jump %d (to %p):\n",
 		       mcnt, p + mcnt);
@@ -5549,6 +5561,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 #if MEMOIZE_FAILURES
 	      memo_fail (&memo, bufp, pat - 1, POINTER_TO_OFFSET (str) - pos);
 #endif
+	      FALLTHROUGH;
+	    case on_failure_jump_nomemo:
 	      d = str;
 	    continue_failure_jump:
 	      p = extract_address (pat);
