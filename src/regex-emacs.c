@@ -4241,6 +4241,9 @@ memo_free (void *ptr)
   xfree (memo);
 }
 
+/* Every on_failure_jump operation occupies at least 3 bytes.  */
+#define MEMO_BYTES_PER_COUNTER 3
+
 static void
 memo_fail (struct memo *memo,
 	   struct re_pattern_buffer *bufp, re_char *pat, ptrdiff_t fail_offset)
@@ -4255,7 +4258,7 @@ memo_fail (struct memo *memo,
 	 before deciding memoization might be worthwhile.  */
       if ((memo->past_failures >> 1) > memo->max_offset)
 	{
-	  memo->nb_counters = bufp->used;
+	  memo->nb_counters = bufp->used / MEMO_BYTES_PER_COUNTER;
 	  ptrdiff_t nbytes = sizeof (struct memo_bits) * memo->nb_counters;
 	  memo->fail_counters = xmalloc (nbytes);
 	  memset (memo->fail_counters, 0, nbytes);
@@ -4271,7 +4274,7 @@ memo_fail (struct memo *memo,
     {
       if (memo->backrefs)
 	return;
-      ptrdiff_t bytecodepos = pat - bufp->buffer;
+      ptrdiff_t bytecodepos = (pat - bufp->buffer) / MEMO_BYTES_PER_COUNTER;
       eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
       struct memo_bits *counter = &memo->fail_counters[bytecodepos];
       if (!counter->bytes)
@@ -4304,7 +4307,7 @@ memo_element (struct memo *memo, struct re_pattern_buffer *bufp,
   eassert (str >= 0);
   if (memo->fail_counters)
     {
-      ptrdiff_t bytecodepos = pat - bufp->buffer;
+      ptrdiff_t bytecodepos = (pat - bufp->buffer) / MEMO_BYTES_PER_COUNTER;
       eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
       struct memo_bits *counter = &memo->fail_counters[bytecodepos];
       if (counter->bytes)
@@ -4435,7 +4438,6 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 #if MEMOIZE_FAILURES
   struct memo memo = { 0, 0 , NULL , 0, 0};
-  /* record_unwind_protect_ptr (memo_free, &memo); */
 #endif
 
   /* Do not bother to initialize all the register variables if there are
