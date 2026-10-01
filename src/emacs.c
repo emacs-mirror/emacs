@@ -1936,8 +1936,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 	daemon_name = xstrdup (dname_arg);
     }
 
-#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC \
-  && !defined DOUG_LEA_MALLOC
+#if defined HAVE_PTHREAD && !defined SYSTEM_MALLOC
   /* Do not make gmalloc thread-safe when creating bootstrap-emacs, as
      that causes an infinite recursive loop with FreeBSD.  See
      Bug#14569.  */

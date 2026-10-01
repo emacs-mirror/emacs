@@ -2119,21 +2119,6 @@ else
     ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
-AC_CACHE_CHECK([whether addresses are sanitized],
-  [emacs_cv_sanitize_address],
-  [AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM(
-	[[#ifndef __has_feature
-	  #define __has_feature(f) 0
-	  #endif
-	  #if defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer)
-	  #else
-	   error "Addresses are not sanitized.";
-	  #endif
-	]])],
-     [emacs_cv_sanitize_address=yes],
-     [emacs_cv_sanitize_address=no])])
-
 LD_SWITCH_SYSTEM=
 case "$opsys" in
   freebsd|dragonfly)
@@ -3209,22 +3194,6 @@ fi
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
 
-AC_CACHE_CHECK(
-  [whether malloc is Doug Lea style],
-  [emacs_cv_var_doug_lea_malloc],
-  [emacs_cv_var_doug_lea_malloc=no
-   dnl Hooks do not work with address sanitization.
-   if test "$emacs_cv_sanitize_address" != yes; then
-     AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	  [[#include <malloc.h>
-	    static void hook (void) {}]],
-          [[__after_morecore_hook = hook;
-	    __malloc_initialize_hook = hook;]])],
-       [emacs_cv_var_doug_lea_malloc=yes])
-   fi])
-doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
-
 AC_CHECK_ALIGNOF([EMACS_INT],
   [[#include <limits.h>
     #include <stddef.h>
@@ -3314,7 +3283,7 @@ if test "${system_malloc}" = "yes"; then
     (The GNU allocators don't work with this system configuration.)"
   VMLIMIT_OBJ=
 else
-  test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
+  GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
 
   AC_CHECK_HEADERS([sys/vlimit.h])
@@ -3333,24 +3302,6 @@ else
 fi
 AC_SUBST([GMALLOC_OBJ])
 AC_SUBST([VMLIMIT_OBJ])
-
-if test "$doug_lea_malloc" = "yes"; then
-  if test "$GNU_MALLOC" = yes ; then
-    GNU_MALLOC_reason="
-      (Using Doug Lea's new malloc from the GNU C Library.)"
-  fi
-  AC_DEFINE([DOUG_LEA_MALLOC], [1],
-    [Define to 1 if the system memory allocator is Doug Lea style,
-     with malloc hooks.])
-
-  ## Use mmap directly for allocating larger buffers.
-  ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
-  ## #ifdef DOUG_LEA_MALLOC; #undef REL_ALLOC; #endif
-  ## Does the AC_FUNC_MMAP test below make this check unnecessary?
-  case "$opsys" in
-    mingw32|gnu*) REL_ALLOC=no ;;
-  esac
-fi
 
 if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
@@ -3396,7 +3347,7 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
 	      status += pthread_create (&th, 0, 0, 0);
 	      status += pthread_sigmask (SIG_BLOCK, &new_mask, &old_mask);
 	      status += pthread_kill (th, 0);
-	      #if ! (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC)
+	      #ifndef SYSTEM_MALLOC
 	      /* Test for pthread_atfork only if gmalloc uses it,
 		 as older-style hosts like MirBSD 10 lack it.  */
 	      status += pthread_atfork (noop, noop, noop);

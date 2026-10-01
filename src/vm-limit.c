@@ -54,10 +54,9 @@ char data_start[1] = { 1 };
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
 #endif
-#ifndef DOUG_LEA_MALLOC
-# ifndef __MALLOC_HOOK_VOLATILE
-#  define __MALLOC_HOOK_VOLATILE volatile
-# endif
+#ifndef __MALLOC_HOOK_VOLATILE
+# define __MALLOC_HOOK_VOLATILE volatile
+#endif
 extern void *(*__morecore) (ptrdiff_t);
 extern void (*__MALLOC_HOOK_VOLATILE __after_morecore_hook) (void);
 #endif

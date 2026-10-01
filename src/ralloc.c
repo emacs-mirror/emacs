@@ -80,9 +80,7 @@ static int extra_bytes;
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
 #endif
-#ifndef DOUG_LEA_MALLOC
 extern void *(*__morecore) (ptrdiff_t);
-#endif
 
 
 
@@ -992,24 +990,6 @@ r_re_alloc (void **ptr, size_t size)
 }
 
 
-#ifdef DOUG_LEA_MALLOC
-
-/* Reinitialize the morecore hook variables after restarting a dumped
-   Emacs.  This is needed when using Doug Lea's malloc from GNU libc.  */
-void
-r_alloc_reinit (void)
-{
-  /* Only do this if the hook has been reset, so that we don't get an
-     infinite loop, in case Emacs was linked statically.  */
-  if (__morecore != r_alloc_sbrk)
-    {
-      real_morecore = __morecore;
-      __morecore = r_alloc_sbrk;
-    }
-}
-
-#endif /* emacs && DOUG_LEA_MALLOC */
-
 #ifdef DEBUG
 
 #include <assert.h>
@@ -1172,22 +1152,12 @@ r_alloc_init (void)
   extra_bytes = PAGE_ROUNDUP (50000);
 #endif
 
-#ifdef DOUG_LEA_MALLOC
-  block_input ();
-  mallopt (M_TOP_PAD, 64 * 4096);
-  unblock_input ();
-#else
 #if !defined SYSTEM_MALLOC
   /* Give GNU malloc's morecore some hysteresis so that we move all
      the relocatable blocks much less often.  The number used to be
      64, but alloc.c would override that with 32 in code that was
-     removed when SYNC_INPUT became the only input handling mode.
-     That code was conditioned on !DOUG_LEA_MALLOC, so the call to
-     mallopt above is left unchanged.  (Actually, I think there's no
-     system nowadays that uses DOUG_LEA_MALLOC and also uses
-     REL_ALLOC.)  */
+     removed when SYNC_INPUT became the only input handling mode.  */
   __malloc_extra_blocks = 32;
-#endif
 #endif
 
 #if !defined SYSTEM_MALLOC
