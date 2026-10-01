@@ -1050,6 +1050,15 @@ When `shr-fill-text' is nil, only indent."
        (t
 	(insert "\n\n"))))))
 
+(defun shr--width-spec (pixel-width)
+  "Return a pixel specification for PIXEL-WIDTH in relative units.
+This converts a PIXEL-WIDTH in pixels to units of the average-width of
+the current face before point, like (N . width).  That way, the
+indentation is calculated correctly when using `text-scale-adjust'."
+  (let ((avg-space (propertize (buffer-substring (1- (point)) (point))
+                               'display '(space :width (1 . width)))))
+    (cons (/ (float pixel-width) (string-pixel-width avg-space)) 'width)))
+
 (defun shr-indent ()
   (when (> shr-indentation 0)
     (let ((start (point))
@@ -1057,17 +1066,9 @@ When `shr-fill-text' is nil, only indent."
       (if (not shr-use-fonts)
           (insert-char ?\s shr-indentation)
         (insert ?\s)
-        ;; Set the specified space width in units of the average-width
-        ;; of the current face, like (N . width).  That way, the
-        ;; indentation is calculated correctly when using
-        ;; `text-scale-adjust'.
-        (let ((avg-space (propertize (buffer-substring (1- (point)) (point))
-                                     'display '(space :width (1 . width)))))
-          (put-text-property
-           (1- (point)) (point) 'display
-           `(space :width (,(/ (float shr-indentation)
-                               (string-pixel-width avg-space))
-                           . width)))))
+        (put-text-property
+         (1- (point)) (point) 'display
+         `(space :width ,(shr--width-spec shr-indentation))))
       (put-text-property start (+ (point) prefix)
                          'shr-prefix-length (+ prefix (- (point) start))))))
 
@@ -2208,9 +2209,13 @@ BASE is the URL of the HTML being rendered."
 		      (max (shr-string-pixel-width bullet)
                            shr-block-indentation-pixel-width)
 		    (cdr shr-internal-bullet))))
-      (when (not shr-use-fonts)
-        (setq bullet (string-pad bullet shr-block-indentation-width)))
-      (insert (propertize bullet 'display `(min-width ((, width)))))
+      (if shr-use-fonts
+          (let ((start (point)))
+            (insert bullet)
+            (put-text-property
+             start (point) 'display
+             `(min-width (,(shr--width-spec width)))))
+        (insert (string-pad bullet shr-block-indentation-width)))
       (shr-mark-fill start)
       (let ((shr-indentation (+ shr-indentation width)))
 	(put-text-property start (1+ start)
