@@ -3652,7 +3652,8 @@ UPSTREAM-LOCATION, which should be a remote branch name.
 
 When called from Lisp, optional argument FILESET overrides the fileset."
   (interactive (let ((fileset (vc-deduce-fileset t)))
-                 (list (vc--maybe-read-outgoing-base (car fileset))
+                 (list (vc--maybe-read-outgoing-base (car fileset)
+                                                     'no-double)
                        fileset)))
   (let* ((fileset (or fileset (vc-deduce-fileset t)))
          (backend (car fileset)))

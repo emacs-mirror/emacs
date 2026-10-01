@@ -106,6 +106,24 @@
 
 ;; TODO: properties, components too
 
+
+;; Regression tests
+
+(defun iat:bug81956-get-component ()
+  (ical:make-vjournal
+   (ical:summary "I should always have a unique UID")))
+
+(ert-deftest iat:bug81956-repeated-uids ()
+  "Ensure that `icalendar-make-component' assigns unique UIDs"
+  ;; See Bug#81956.  Two different calls to the `get-component'
+  ;; function should return components with different UIDs:
+  (let* ((vj1 (iat:bug81956-get-component))
+         (vj2 (iat:bug81956-get-component)))
+    (ical:with-component vj1 ((ical:uid :value uid1))
+      (ical:with-component vj2 ((ical:uid :value uid2))
+        (should-not (equal uid1 uid2))))))
+
+
 ;; Local Variables:
 ;; read-symbol-shorthands: (("iat:" . "icalendar-ast-test-") ("ical:" . "icalendar-"))
 ;; End:
