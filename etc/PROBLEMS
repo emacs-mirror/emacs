@@ -3783,6 +3783,21 @@ copied text amongst those which Emacs provides.  Emacs provides UTF-8 as
 one of the formats, but these browsers use Latin-1 instead.  So please
 report these bugs to the developers of the respective browsers.
 
+Until the affected browsers fix these bugs, you can work around the
+problem by instructing Emacs not to offer plain-text and compound-text
+as formats of the clipboard selections.  To this end, add the following
+to your '~/.emacs' init file:
+
+  (with-eval-after-load 'select
+    (dolist (target '(TEXT STRING text/plain COMPOUND_TEXT))
+      (setq selection-converter-alist
+	    (assq-delete-all target selection-converter-alist))))
+
+Please note that this will affect all the other programs which can paste
+clipboard text, not just the problematic browsers.  For example, if some
+of those other programs cannot paste UTF-8 encoded text, they might be
+unable to paste at all as result of the above customization.
+
 ** Giant tool bar icons are displayed in some cases
 
 This is because some icon themes (such as the KDE Breeze icon theme)
