@@ -156,6 +156,12 @@ Alternative suggestions are:
   :version "24.4"
   :type 'string)
 
+(defcustom shr-ol-marker-format "%s. "
+  "Format string used for ordered list item markers.
+This should have a single string placeholder for the marker value."
+  :version "32.1"
+  :type 'string)
+
 (defcustom shr-cookie-policy 'same-origin
   "When to use cookies when fetching dependent data like images.
 If t, always use cookies.  If nil, never use cookies.  If
@@ -319,6 +325,11 @@ temporarily blinks with this face."
   '((t :background "yellow" :foreground "black"))
   "Face used for <mark> elements."
   :version "29.1")
+
+(defface shr-li-marker
+  '((t))
+  "Face used for rendering <li> bullets or numbers."
+  :version "32.1")
 
 (defface shr-sliced-image
   '((t :underline nil :overline nil))
@@ -2202,7 +2213,7 @@ BASE is the URL of the HTML being rendered."
     (let* ((bullet
 	    (if (numberp shr-list-mode)
 		(prog1
-		    (format "%d " shr-list-mode)
+		    (format shr-ol-marker-format shr-list-mode)
 		  (setq shr-list-mode (1+ shr-list-mode)))
 	      (car shr-internal-bullet)))
 	   (width (if (numberp shr-list-mode)
@@ -2212,8 +2223,10 @@ BASE is the URL of the HTML being rendered."
       (if (not shr-use-fonts)
           (insert (string-pad bullet shr-block-indentation-width))
         (insert bullet)
-        (put-text-property start (point) 'display
-                           `(min-width (,(shr--width-spec width)))))
+        (add-text-properties
+         start (point)
+         `( face (shr-li-marker ,(or shr-current-font 'shr-text))
+            display (min-width (,(shr--width-spec width))))))
       (shr-mark-fill start)
       (let ((shr-indentation (+ shr-indentation width)))
 	(put-text-property start (1+ start)
