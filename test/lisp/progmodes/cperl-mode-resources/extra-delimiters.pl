@@ -21,3 +21,7 @@ $printed = 1;
 $printed  or print $string_with_strange_delimiters;
 
 my $sanity = "eventually recovered.";
+
+# Local Variables:
+# coding: utf-8
+# End:
