@@ -490,6 +490,16 @@ older '(HIGH LOW USEC PSEC)' form.
 
 * Lisp Changes in Emacs 32.1
 
+---
+** The regexp engine now matches in linear time.
+It used to be usually linear time but with nasty so-called "pathological"
+cases where the backtracking algorithm could degenerate to polynomial
+or even exponential time, typically leading to the impression that
+Emacs froze.  The complexity can still be exponential in the presence of
+backreferences, of course, and it is admittedly still O(N^2) for a few
+special cases (but with a small constant factor), but in practice
+the "pathological" freezes due to regexp matching should be gone.
+
 +++
 ** Support for canvas image objects.
 Canvas images support efficient updating and refreshing.  An image
