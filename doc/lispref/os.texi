@@ -1541,7 +1541,7 @@ MS-Windows.
 This function returns a list describing the time zone that the user is
 in.
 
-@cindex Univeral Time
+@cindex Universal Time
 The value has the form @code{(@var{offset} @var{abbr})}.  Here
 @var{offset} is an integer number of seconds of time ahead of
 Universal Time, the time scale originally based on Greenwich Mean Time (GMT),
