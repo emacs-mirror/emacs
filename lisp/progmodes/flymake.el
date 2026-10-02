@@ -1206,9 +1206,10 @@ and other buffers."
     ;; their overlays from buffers.
     ;;
     (cond
-     (;; If there is a `region' arg, only affect the diagnostics whose
-      ;; overlays are in a certain region.  Ignore "foreign"
-      ;; diagnostics.
+     (;; a zero length `region' shouldn't delete anything
+      (and region (= (car region) (cdr region))))
+     (;; Else, affect the diagnostics whose overlays intersect it.
+      ;; Ignore "foreign" diagnostics.
       region
       (cl-loop for diag in (flymake--state-diags state)
                for ov = (flymake--diag-overlay diag)
