@@ -2209,18 +2209,17 @@ BASE is the URL of the HTML being rendered."
 		      (max (shr-string-pixel-width bullet)
                            shr-block-indentation-pixel-width)
 		    (cdr shr-internal-bullet))))
-      (if shr-use-fonts
-          (let ((start (point)))
-            (insert bullet)
-            (put-text-property
-             start (point) 'display
-             `(min-width (,(shr--width-spec width)))))
-        (insert (string-pad bullet shr-block-indentation-width)))
+      (if (not shr-use-fonts)
+          (insert (string-pad bullet shr-block-indentation-width))
+        (insert bullet)
+        (put-text-property start (point) 'display
+                           `(min-width (,(shr--width-spec width)))))
       (shr-mark-fill start)
       (let ((shr-indentation (+ shr-indentation width)))
 	(put-text-property start (1+ start)
 			   'shr-continuation-indentation shr-indentation)
-	(put-text-property start (1+ start) 'shr-prefix-length (length bullet))
+	(put-text-property start (1+ start) 'shr-prefix-length
+                           (- (point) start))
 	(shr-generic dom))))
   (unless (bolp)
     (insert "\n")))
