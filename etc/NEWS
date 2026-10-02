@@ -80,6 +80,14 @@ variable sections and directory-locals via ".dir-locals.el" are now
 set similarly to 'setopt-local'; i.e., if a user option has a defcustom
 ':set' function, that function will be invoked.
 
+** Emacs can now set the input purpose on PGTK.
+By default Emacs now uses the 'terminal' value for the GTK input
+purpose, which helps on-screen keyboards decide whether to allow
+entering of key sequences using modifiers.  This only affects PGTK
+builds using GTK versions >= 3.6.0.  Set the new variable
+'pgtk-input-purpose' to 'free-form' to restore GTK's default behavior
+(which was also Emacs' previous behavior).
+
 ---
 ** New user option 'setopt-local-type-mismatch'.
 This option controls what 'setopt-local' does when it detects a type
