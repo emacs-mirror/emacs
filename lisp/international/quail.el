@@ -3146,7 +3146,7 @@ of each directory."
 
     ;; At last, write out LEIM list file.
     (with-current-buffer list-buf
-      (let ((coding-system-for-write 'utf-8))
+      (let ((coding-system-for-write 'utf-8-unix))
 	(save-buffer 0)))
     (kill-buffer list-buf)
     (or noninteractive (message "Updating %s ... done" leim-list))))
