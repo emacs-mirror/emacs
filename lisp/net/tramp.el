@@ -1655,6 +1655,17 @@ If nil, return `tramp-default-port'."
   (or (tramp-file-name-port vec)
       (tramp-get-method-parameter vec 'tramp-default-port)))
 
+(defsubst tramp-get-connection-local-criteria (vec)
+  "Get connection-local criteria for VEC."
+  (append
+   '(:application tramp)
+   (and-let* ((method (tramp-file-name-method vec)))
+     `(:protocol ,(substring-no-properties method)))
+   (and-let* ((user-domain (tramp-file-name-user-domain vec)))
+     `(:user ,(substring-no-properties user-domain)))
+   (and-let* ((host-port (tramp-file-name-host-port vec)))
+     `(:machine ,(substring-no-properties host-port)))))
+
 ;;;###tramp-autoload
 (defun tramp-file-name-unify (vec &optional localname)
   "Unify VEC by removing localname and hop from `tramp-file-name' structure.
@@ -1849,7 +1860,7 @@ default values are used."
 	    domain port v)
 	(when user
 	  (while (string-match (rx bos "$" (group (+ (any "_" alnum))) eos) user)
-	    (setq user (getenv (match-string 1 user))))
+	    (setq user (or (getenv (match-string 1 user)) "")))
 	  (when (string-match tramp-user-with-domain-regexp user)
 	    (setq domain (match-string 2 user)
 		  user (match-string 1 user))))
@@ -1879,11 +1890,10 @@ default values are used."
 	      (setq
 	       hop (tramp-format-spec hop (format-spec-make ?h host ?u user))))))
 
-	;; Return result.
-	(prog1
-	    (setq v (make-tramp-file-name
-		     :method method :user user :domain domain :host host
-		     :port port :localname localname :hop hop))
+	;; Return result.  Apply sanity checks.
+	(prog1 (setq v (make-tramp-file-name
+			:method method :user user :domain domain :host host
+			:port port :localname localname :hop hop))
 	  ;; The method must be known.
 	  (unless (or nodefault non-essential
 		      (string-equal method tramp-archive-method)
@@ -2116,17 +2126,6 @@ Return `tramp-cache-undefined' in case it doesn't exist."
 In case a second asynchronous communication has been started, it is different
 from the default one."
   (and (tramp-file-name-p vec) (get-process (tramp-get-connection-name vec))))
-
-(defsubst tramp-get-connection-local-criteria (vec)
-  "Get connection-local criteria for VEC."
-  (append
-   '(:application tramp)
-   (when (tramp-file-name-method vec)
-     `(:protocol ,(substring-no-properties (tramp-file-name-method vec))))
-   (when (tramp-file-name-user-domain vec)
-     `(:user ,(substring-no-properties (tramp-file-name-user-domain vec))))
-   (when (tramp-file-name-host-port vec)
-     `(:machine ,(substring-no-properties (tramp-file-name-host-port vec))))))
 
 (defun tramp-set-connection-local-variables (vec)
   "Set connection-local variables in the connection buffer used for VEC.
