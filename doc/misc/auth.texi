@@ -601,15 +601,27 @@ expecting to query multiple backends uniformly, try flipping it to
 @node The macOS keychain store
 @chapter The macOS keychain store
 
-The macOS operating system includes a password store called
-``Keychain''.  To use the keychain as a backend for auth-source, add
-@code{macos-keychain-internet} to the @code{auth-sources} user option.
+The macOS operating system includes a password store called ``Keychain''
+that can store both internet and application (generic) passwords.  The
+keychain can be accessed via the @code{security} command-line utility
+(part of the operating system).
 
-Currently, the backend only supports reading from the keychain, so
-passwords must be stored via the @code{security} command-line utility
-(part of the operating system).  For example, to replace an
-@file{.authinfo} entry such as: @code{host mail.example.com login
-user@@example.com port 587 password s3kr3t!}, use the following command:
+To use the keychain as a backend for auth-source, add one or both of
+@code{macos-keychain-internet} and @code{macos-keychain-generic} to the
+@code{auth-sources} user option.  Here is an example configuration that
+searches both keychains and then falls back to @file{~/.authinfo.gpg}.
+
+@lisp
+(setopt auth-sources '(macos-keychain-internet
+                       macos-keychain-generic
+                       "~/.authinfo.gpg"))
+@end lisp
+
+Currently, the backend does not support adding passwords to the
+keychain, so passwords must be added via the @code{security} command.
+For example, to replace an @file{.authinfo} entry such as: @code{host
+mail.example.com login user@@example.com port 587 password s3kr3t!}
+using the internet keychain, use the following command:
 
 @example
 security add-internet-password -s mail.example.com \
@@ -627,31 +639,54 @@ entered:
                                      :port 587))
 @end lisp
 
+If you want to store a password in the generic keychain, use the
+following command:
+
+@example
+security add-generic-password -l mail.example.com \
+  -a user@@example.com -w
+@end example
+
+Evaluating the following form will retrieve the password:
+
+@lisp
+(let ((auth-sources '(macos-keychain-generic))
+       (auth-source-do-cache nil))
+    (auth-source-pick-first-password :label "mail.example.com"
+                                     :user "user@@example.com"))
+@end lisp
+
+
 The following table lists the auth-source query parameters and the
 corresponding options for the underlying @code{security
-find-internet-password} call.  The same parameters are used to create a
-password entry.
+find-internet-password} and @code{security find-generic-password} calls.
+The same parameters are used to create a password entry.
 
 @table @code
 
 @item :user
-@code{-a}
+For both backends: @code{-a}
 
 @item :host
-@code{-s}
+For the internet backend: @code{-s}
+
+For the generic backend: @code{-c} (restricted to four characters)
 
 @item :port
-When given an integer: @code{-P}
+For the internet backend, when given an integer: @code{-P}
 
-Otherwise: @code{-r}; note that the argument is shortened to four
-characters as required by the @code{security} tool.
+For the internet backend, when given a string: @code{-r} (restricted to
+four characters)
+
+For the generic backend: @code{-s}
 
 @item :label
-@code{-l}
+For both backends: @code{-l}
 
 Note: when creating a password entry without specifying a label, the
 @code{security} tool will set the label value to be the same as the host
-(@code{-s}) parameter.
+(@code{-s}) parameter for internet passwords, and to the value of the
+service name (@code{-s}) parameter for generic passwords.
 
 @end table
 
