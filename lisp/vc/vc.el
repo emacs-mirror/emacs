@@ -3395,16 +3395,20 @@ UPSTREAM-LOCATION and INCOMING (instead of between UPSTREAM-LOCATION and
 the working revision).
 REFRESH is passed on to `vc--incoming-revision'.
 FORCE-TOPIC is passed on to `vc--outgoing-base'."
-  (vc-call-backend backend 'mergebase
-                   (vc--incoming-revision backend
-                                          (pcase upstream-location
-                                            ('t nil)
-                                            ('nil
-                                             (vc--outgoing-base backend
-                                                                force-topic))
-                                            (_ upstream-location))
-                                          refresh)
-                   incoming))
+  (let ((upstream-location
+         (pcase upstream-location
+           ('t nil)
+           ('nil (vc--outgoing-base backend force-topic))
+           (_ upstream-location))))
+    ;; UPSTREAM-LOCATION nil with INCOMING non-nil means comparing the
+    ;; incoming revision with itself, which means an empty diff/log.
+    (if (and (null upstream-location) incoming)
+        (user-error (substitute-command-keys "\
+No meaningful outgoing base -- supply one with \\[universal-argument]"))
+      (vc-call-backend backend 'mergebase
+                       (vc--incoming-revision backend upstream-location
+                                              refresh)
+                       incoming))))
 
 ;;;###autoload
 (defun vc-root-diff-unintegrated (&optional upstream-location)
@@ -3638,7 +3642,8 @@ UPSTREAM-LOCATION, which should be a remote branch name.
 
 When called from Lisp, optional argument FILESET overrides the fileset."
   (interactive (let ((fileset (vc-deduce-fileset t)))
-                 (list (vc--maybe-read-outgoing-base (car fileset))
+                 (list (vc--maybe-read-outgoing-base (car fileset)
+                                                     'no-double)
                        fileset)))
   (let* ((fileset (or fileset (vc-deduce-fileset t)))
          (backend (car fileset))
@@ -4661,19 +4666,29 @@ BACKEND is the VC backend."
   ;; Do store `nil', before signaling an error, if there is no incoming
   ;; revision, because that's also something that can be slow to
   ;; determine and so should be remembered.
-  (or (if-let* ((_ (not refresh))
-                (record (assoc upstream-location
-                               (vc--repo-getprop backend
-                                                 'vc-incoming-revision))))
-          (cdr record)
-        (let ((res (vc-call-backend backend 'incoming-revision
-                                    upstream-location refresh))
-              (alist (vc--repo-getprop backend 'vc-incoming-revision)))
-          (prog1
-              (setf (alist-get upstream-location alist nil nil #'equal)
-                    res)
-            (vc--repo-setprop backend 'vc-incoming-revision alist))))
-      (user-error "No incoming revision -- local-only branch?")))
+  ;;
+  ;; Try to use the current branch name instead of `nil' as a key into
+  ;; the cache, because otherwise we would need to clear the cache when
+  ;; the user switches branches, but we don't have a good way of knowing
+  ;; when that happens.  Use a cons cell for a separate namespace.
+  (let ((key
+         (if-let* ((_ (null upstream-location))
+                   (branch (vc-call-backend backend 'working-branch)))
+             (cons 'branch branch)
+           upstream-location)))
+    (or (if-let* ((_ (not refresh))
+                  (record
+                   (assoc key
+                          (vc--repo-getprop backend
+                                            'vc-incoming-revision))))
+            (cdr record)
+          (let ((res (vc-call-backend backend 'incoming-revision
+                                      upstream-location refresh))
+                (alist (vc--repo-getprop backend
+                                         'vc-incoming-revision)))
+            (prog1 (setf (alist-get key alist nil nil #'equal) res)
+              (vc--repo-setprop backend 'vc-incoming-revision alist))))
+        (user-error "No incoming revision -- local-only branch?"))))
 
 ;;;###autoload
 (defun vc-root-log-incoming (&optional upstream-location)
