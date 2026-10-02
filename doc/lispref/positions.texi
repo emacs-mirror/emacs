@@ -58,17 +58,26 @@ point is constrained to fall within the accessible portion of the buffer
 (possibly at one end of it).
 
 @cindex buffer point
-  Each buffer has its own value of point, which is independent of the
-value of point in other buffers.  Each window also has a value of point,
-which is independent of the value of point in other windows showing the
-same buffer.  This is why the cursor may appear at different positions
-in various windows that display the same buffer.  Wherever necessary, we
-use the terms @dfn{buffer point} for the unique position of point of a
-specific buffer and the term @dfn{window point} for the position of
-point in a specific window showing that buffer.  When a buffer appears
-in only one window, its buffer's point and that window's point normally
-have the same value, so the distinction is rarely important.
-@xref{Window Point}, for more details.
+  There is only ever one point in a running Emacs.@footnote{This is not
+strictly true anymore because each thread has its own current buffer.
+@xref{Threads}.  For some historical background, see
+@url{https://lists.gnu.org/archive/html/emacs-devel/2026-01/msg00229.html}.}
+We distinguish it by saying just ``point'' and never ``the point''.  At
+the same time, each buffer has its own value @emph{for} point, which is
+independent of the value of point for other buffers: the @dfn{buffer
+point}.  The relationship between point and buffer points is that when a
+buffer becomes current (@pxref{Current Buffer}), point (the unique one)
+is set to that buffer's point.  Conceptually, when a buffer ceases to be
+current its buffer point is first set to point for later restoration
+(the actual implementation is more complicated).
+
+  Each window also has a value for point, the @dfn{window point}, which
+is independent of the value of point for other windows showing the same
+buffer.  This is why the cursor may appear at different positions in
+various windows that display the same buffer.  When a buffer appears in
+only one window, its buffer's point and that window's point normally
+have the same value, so the distinction between buffer points and window
+points is rarely important.  @xref{Window Point}, for more details.
 
 @defun point
 @cindex current buffer position
@@ -1167,9 +1176,9 @@ current buffer.
 @code{save-restriction} does @emph{not} restore point; use
 @code{save-excursion} for that.  If you use both @code{save-restriction}
 and @code{save-excursion} together, @code{save-excursion} should come
-first (on the outside).  Otherwise, the old point value would be
-restored with temporary narrowing still in effect.  If the old point
-value were outside the limits of the temporary narrowing, this would
+first (i.e., on the outside).  Otherwise, the value for point would be
+restored with temporary narrowing still in effect.  If the old value for
+point were outside the limits of the temporary narrowing, this would
 fail to restore it accurately.
 
 Here is a simple example of correct use of @code{save-restriction}:
