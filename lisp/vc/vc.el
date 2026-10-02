@@ -5618,8 +5618,9 @@ to provide the `find-revision' operation instead."
 (defun vc-default-log-view-mode (_backend) (log-view-mode))
 
 (defun vc-default-show-log-entry (_backend rev)
-  (with-no-warnings
-   (log-view-goto-rev rev)))
+  (with-no-warnings (log-view-goto-rev rev))
+  (when (memq 'long vc-log-view-types)
+    (recenter-top-bottom 0)))
 
 (defun vc-default-comment-history (backend file)
   "Return a string with all log entries stored in BACKEND for FILE."
