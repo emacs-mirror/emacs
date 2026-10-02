@@ -24,6 +24,16 @@ https://github.com/joaotavora/eglot/issues/1234.
 
 - new 'vala-language-server' for 'vala-mode'  (bug#81543)
 
+** New variable 'eglot-completion-replace-semantics' (bug#81912)
+
+Some LSP servers send 'InsertReplaceEdit' completions which can both
+insert and replace text at point, depending on user preference.  Eglot
+replaces by default (as it has done historically), but now can be
+configured to insert instead.  The LSP server clangd 23, for example,
+now sends such completions, so set the variable to nil to keep the
+behavior of earlier clangd versions (which used a inserting
+'TextEdit').  See docstring for an example.
+
 ** Miscellaneous bugs fixed (bug#81593, bug#81538, bug#81514, bug#81425)
 
 

@@ -295,6 +295,12 @@ directory hierarchy."
   (define-derived-mode typescript-mode prog-mode "TypeScript")
   (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode)))
 
+;; `zig-ts-mode' is not a part of Emacs, so we define these two
+;; shims which should be more than enough for testing.
+(unless (functionp 'zig-ts-mode)
+  (define-derived-mode zig-ts-mode prog-mode "ZigTS")
+  (add-to-list 'auto-mode-alist '("\\.zig\\'" . zig-ts-mode)))
+
 (cl-defun eglot--tests-connect (&key timeout server)
   (let* ((timeout (or timeout 10))
          (eglot-sync-connect t)
@@ -766,6 +772,10 @@ directory hierarchy."
         (eglot--find-file-noselect "project/coiso.c")
       (eglot--wait-for-clangd)
       (goto-char (- (point-max) 3))
+      ;; clangd >= 23 sends InsertReplaceEdit, whose replace range would
+      ;; delete the "123" suffix.  This test was originally for clang22,
+      ;; which has insert semantics (bug#81912).
+      (setq-local eglot-completion-replace-semantics nil)
       (completion-at-point)
       (should (looking-back "foobar"))
       (should (looking-at "123")))))
@@ -785,6 +795,9 @@ directory hierarchy."
       (should (zerop (shell-command "cargo init")))
       (search-forward "v.count_on")
       (eglot--wait-for-rust-analyzer)
+      ;; Apply the replace range of rust-analyzer's InsertReplaceEdit,
+      ;; which deletes the "1234" suffix (bug#81912).
+      (setq-local eglot-completion-replace-semantics t)
       (completion-at-point)
       (should
        (equal
@@ -795,7 +808,7 @@ directory hierarchy."
 
 (ert-deftest eglot-test-zig-insert-replace-completion ()
   "Test zls's use of 'InsertReplaceEdit'."
-  (skip-unless (functionp 'zig-ts-mode))
+  (skip-unless (executable-find "zls"))
   (eglot--with-fixture
       `(("project" .
          (("main.zig" .
@@ -805,8 +818,12 @@ directory hierarchy."
         (eglot--find-file-noselect "project/main.zig")
       (should (eglot--tests-connect))
       (search-forward "foo.correc")
+      ;; Apply the replace range, which deletes the "_name" suffix
+      ;; (bug#81912).
+      (setq-local eglot-completion-replace-semantics t)
       (completion-at-point)
-      (should (looking-back "correct_name")))))
+      (should (looking-back "correct_name"))
+      (should (looking-at "; ")))))
 
 (ert-deftest eglot-test-basic-xref ()
   "Test basic xref functionality in a clangd LSP."
