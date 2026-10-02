@@ -726,11 +726,11 @@ source code buffer, you must use @kbd{C-x X W} from the global keymap.
 @end table
 
   You can view the outside window configuration with @kbd{v} or just
-bounce to the point in the current buffer with @kbd{p}, even if
-it is not normally displayed.
+bounce to point in the current buffer with @kbd{p}, even if it is not
+normally displayed.
 
-  You can also bounce to buffer positions other than the current point.
-Suppose you are debugging the form
+  You can also bounce to buffer positions other than point.  Suppose you
+are debugging the form
 
 @example
 (make-overlay beg end)
@@ -1809,9 +1809,10 @@ If this is non-@code{nil}, Edebug saves and restores point in all
 displayed buffers.
 
 Saving and restoring point in other buffers is necessary if you are
-debugging code that changes the point of a buffer that is displayed in
-a non-selected window.  If Edebug or the user then selects the window,
-point in that buffer will move to the window's value of point.
+debugging code that changes the buffer point (@pxref{Point}) of a buffer
+that is displayed in a non-selected window.  If Edebug or the user then
+selects the window, point in that buffer will move to the window's value
+of point.
 
 Saving and restoring point in all buffers is expensive, since it
 requires selecting each window twice, so enable this only if you need
