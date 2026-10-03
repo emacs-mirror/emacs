@@ -5573,18 +5573,31 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      eassert (str == NULL);
 	      goto continue_failure_jump;
 
+	    case on_failure_jump_prememo:
+	      /* This is the most common case, so it deserves a special
+		 fastpath.  On x86 CPUs the impact is minor, but on
+		 my ARM Cortex A55 it brings the max overhead down from
+		 about 18% to 5%.  */
+#if MEMOIZE_FAILURES
+	      if (!(memo.past_failures & 7))
+		memo_fail (&memo, bufp, pat - 1, POINTER_TO_OFFSET (str) - pos);
+	      else
+		memo.past_failures++;
+	      d = str;
+	      goto continue_failure_jump;
+#endif
+
 	    case on_failure_jump_nastyloop:
 	      eassert ((re_opcode_t)pat[-2] == no_op);
 	      PUSH_FAILURE_POINT (pat - 2, str);
 	      FALLTHROUGH;
 	    case on_failure_jump_loop:
 	    case on_failure_jump_memo:
-	    case on_failure_jump_prememo:
 	    case succeed_n:
 #if MEMOIZE_FAILURES
 	      memo_fail (&memo, bufp, pat - 1, POINTER_TO_OFFSET (str) - pos);
-#endif
 	      FALLTHROUGH;
+#endif
 	    case on_failure_jump_nomemo:
 	      d = str;
 	    continue_failure_jump:
