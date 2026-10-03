@@ -264,11 +264,16 @@ typedef enum
   jump,
 
 	/* Followed by two-byte relative address of place to resume at
-	   in case of failure.  */
-  on_failure_jump,
+	   in case of failure.  Fully memoized.  */
+  on_failure_jump_memo,
 
 	/* Like on_failure_jump but without memoization.  */
   on_failure_jump_nomemo,
+
+        /* Halfway between on_failure_jump and on_failure_jump_nomemo:
+           it's not memoized but counts failures to see whether memoization
+	   should be enabled.  */
+  on_failure_jump_prememo,
 
 	/* Like on_failure_jump, but pushes a placeholder instead of the
 	   current string position when executed.  Upon failure,
@@ -616,14 +621,19 @@ print_partial_compiled_pattern (FILE *dest, re_char *start, re_char *end)
 	  fputs ("/endline", dest);
 	  break;
 
-	case on_failure_jump:
+	case on_failure_jump_memo:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (dest, "/on_failure_jump to %td", p + mcnt - start);
+	  fprintf (dest, "/on_failure_jump_memo to %td", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_nomemo:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  fprintf (dest, "/on_failure_jump_nomemo to %td", p + mcnt - start);
+	  break;
+
+	case on_failure_jump_prememo:
+	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
+	  fprintf (dest, "/on_failure_jump_prememo to %td", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
@@ -1941,7 +1951,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
 		      (simple || !analyze_first (bufp, laststart, b, NULL))
-		      ? on_failure_jump : on_failure_jump_loop;
+		      ? on_failure_jump_prememo : on_failure_jump_loop;
 		    eassert (skip_one_char (laststart) <= b);
 
 		    if (!zero_times_ok && simple)
@@ -1987,7 +1997,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    /* A simple ? pattern.  */
 		    eassert (zero_times_ok);
 		    GET_BUFFER_SPACE (3);
-		    INSERT_JUMP (on_failure_jump, laststart, b + 3);
+		    INSERT_JUMP (on_failure_jump_nomemo, laststart, b + 3);
 		    b += 3;
 		  }
 	      }
@@ -2004,7 +2014,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		       at the end of the loop.  */
 		    if (emptyp) BUF_PUSH (no_op);
 		    STORE_JUMP (emptyp ? on_failure_jump_nastyloop
-				: on_failure_jump, b, laststart);
+				: on_failure_jump_prememo, b, laststart);
 		    b += 3;
 		    if (zero_times_ok)
 		      {
@@ -2020,7 +2030,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    /* non-greedy a?? */
 		    INSERT_JUMP (jump, laststart, b + 3);
 		    b += 3;
-		    INSERT_JUMP (on_failure_jump, laststart, laststart + 6);
+		    INSERT_JUMP (on_failure_jump_nomemo, laststart, laststart + 6);
 		    b += 3;
 		  }
 	      }
@@ -2915,8 +2925,9 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	      }
 	    switch (*newp1)
 	      {
-	      case on_failure_jump:
+	      case on_failure_jump_memo:
 	      case on_failure_jump_nomemo:
+	      case on_failure_jump_prememo:
 	      case on_failure_keep_string_jump:
 	      case on_failure_jump_nastyloop:
 	      case on_failure_jump_loop:
@@ -2929,8 +2940,9 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	        goto do_jump;
 	      }
 
-	  case on_failure_jump:
+	  case on_failure_jump_memo:
 	  case on_failure_jump_nomemo:
+	  case on_failure_jump_prememo:
 	  case on_failure_keep_string_jump:
 	  case on_failure_jump_nastyloop:
 	  case on_failure_jump_loop:
@@ -4138,8 +4150,12 @@ unwind_re_match (void *ptr)
        because we want it to be as fast as possible.  Sadly, this means
        that we can still be O(n^2) in some cases where memoization would
        reduce it to O(n), e.g. for "a*a*b".
-   on_failure_jump: currently this is used both for loops and non-loops,
-       whereas we'd ideally want to memoize only the loop ones.
+   on_failure_jump_nomemo: Used for non-loops, where memoization is not
+       algorithmically indispensable.
+   on_failure_jump_memo: Used for normal loops where memoization is needed.
+   on_failure_jump_prememo: Used for fast loops where memoization might
+       not be needed, so we count the failures but don't record them,
+       and we switch to the _memo version if the count is high enough.
    on_failure_jump_loop:
    on_failure_jump_nastyloop:
    succeed_n:
@@ -4287,6 +4303,9 @@ memo_fail (struct memo *memo,
 		 there is room for memoization to to payoff!  */
 	      DEBUG_PRINT ("SETTING up memoization for %d!\n",
 			   bytecodepos);
+	      if (*pat == on_failure_jump_prememo)
+		/* Discard 'const', making re_search non-reentrant?  */
+		*(unsigned char*)pat = on_failure_jump_memo;
 	      *counter = memo_bits (fail_offset);
 	      eassert (counter->bytes);
 	      /* FIXME: The other counters may have been inflated by the
@@ -5126,7 +5145,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	   Repeats start with an on_failure_jump that points past both
 	   the repetition text and either the following jump or
 	   pop_failure_jump back to this on_failure_jump.  */
-	case on_failure_jump:
+	case on_failure_jump_memo:
 #if MEMOIZE_FAILURES
 	  if (memo_element (&memo, bufp, p - 1, POINTER_TO_OFFSET (d) - pos))
 	    /* NOT_EMPTY_LOOP (??) */
@@ -5139,6 +5158,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    }
 	  FALLTHROUGH;
 #endif
+	case on_failure_jump_prememo:
 	case on_failure_jump_nomemo:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT ("EXECUTING on_failure_jump %d (to %p):\n",
@@ -5185,7 +5205,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      {
 		/* Default to a safe 'on_failure_jump' loop.  */
 		DEBUG_PRINT ("  smart default => slow loop.\n");
-		*p3 = (unsigned char) on_failure_jump;
+		*p3 = (unsigned char) on_failure_jump_prememo;
 	      }
 	    DEBUG_STATEMENT (regex_emacs_debug -= 2);
 	  }
@@ -5558,7 +5578,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      PUSH_FAILURE_POINT (pat - 2, str);
 	      FALLTHROUGH;
 	    case on_failure_jump_loop:
-	    case on_failure_jump:
+	    case on_failure_jump_memo:
+	    case on_failure_jump_prememo:
 	    case succeed_n:
 #if MEMOIZE_FAILURES
 	      memo_fail (&memo, bufp, pat - 1, POINTER_TO_OFFSET (str) - pos);
