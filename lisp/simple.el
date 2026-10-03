@@ -9254,9 +9254,10 @@ for `auto-fill-function' when turning Auto Fill mode on."
 (custom-add-option 'text-mode-hook 'turn-on-auto-fill)
 
 (defun set-fill-column (arg)
-  "Set `fill-column' to specified argument.
-Use \\[universal-argument] followed by a number to specify a column.
-Just \\[universal-argument] as argument means to use the current column."
+  "Set `fill-column' to specified argument ARG, which should be an integer number.
+Interactively, use \\[universal-argument] followed by a number to specify a column.
+Just \\[universal-argument] in interactive invocation means to use the current column
+as the `fill-column'."
   (interactive
    (list (or current-prefix-arg
              ;; We used to use current-column silently, but C-x f is too easily
