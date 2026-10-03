@@ -5936,8 +5936,8 @@ point and the buffer's point always move together; they remain equal.
 
 @item
 Many Emacs functions temporarily select a window in order to operate on
-its contents.  This will move point (@pxref{Point}) of that window's
-buffer to the position of the window point of that window but not
+its contents.  This will move the buffer point (@pxref{Point}) of that
+window's buffer to the position of the window point of that window but not
 restore the buffer's point to its previous position upon terminating the
 temporary selection.  This means that when one and the same buffer is
 simultaneously displayed in more than one window, its buffer point may
