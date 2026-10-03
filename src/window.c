@@ -7632,7 +7632,7 @@ struct saved_window
   Lisp_Object scroll_bar_height, horizontal_scroll_bar_type;
   Lisp_Object scroll_bars_persistent, dedicated;
   Lisp_Object combination_limit, window_parameters;
-};
+} GCALIGNED_STRUCT;
 
 #define SAVED_WINDOW_N(swv,n) \
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))

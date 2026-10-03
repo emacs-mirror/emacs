@@ -274,7 +274,7 @@ struct scroll_bar
   /* The amount of units taken up by the thumb, which represents the
      portion of the buffer currently on screen.  */
   int page_size;
-};
+} GCALIGNED_STRUCT;
 
 #define XSCROLL_BAR(vec) ((struct scroll_bar *) XVECTOR (vec))
 

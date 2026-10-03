@@ -743,7 +743,7 @@ struct buffer
      struct buffer_text because local variables have to be right in
      the struct buffer. So we copy it around in set_buffer_internal.  */
   Lisp_Object undo_list_;
-};
+} GCALIGNED_STRUCT;
 
 struct sortvec
 {

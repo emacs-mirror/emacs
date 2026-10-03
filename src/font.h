@@ -252,7 +252,7 @@ struct font_spec
 {
   union vectorlike_header header;
   Lisp_Object props[FONT_SPEC_MAX];
-};
+} GCALIGNED_STRUCT;
 
 /* Structure for a font-entity.  */
 
@@ -265,7 +265,7 @@ struct font_entity
   /* Whether or not this is an Android font entity.  */
   bool is_android;
 #endif
-};
+} GCALIGNED_STRUCT;
 
 /* A value which may appear in the member `encoding' of struct font
    indicating that a font itself doesn't tell which encoding to be
@@ -401,7 +401,7 @@ struct font
 
   /* There are more members in this structure, but they are private
      to the font-driver.  */
-};
+} GCALIGNED_STRUCT;
 
 enum font_spacing
   {

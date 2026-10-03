@@ -394,7 +394,7 @@ struct module_global_reference {
 
   /* Reference count, always positive.  */
   ptrdiff_t refcount;
-};
+} GCALIGNED_STRUCT;
 
 static struct module_global_reference *
 XMODULE_GLOBAL_REFERENCE (Lisp_Object o)
