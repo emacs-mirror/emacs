@@ -5911,23 +5911,24 @@ atomic window will make that new window fill the frame.
 @cindex position in window
 @cindex point in window
 
-  Each window has its own value of point (@pxref{Point}), independent of
-the value of point in other windows displaying the same buffer.  This
-makes it useful to have multiple windows showing one buffer.
+  Each window has its own value for point (@pxref{Point}), the
+@dfn{window point}, independent of the values for point of other windows
+displaying the same buffer.  This is useful when there are multiple
+windows showing one buffer.
 
 @itemize @bullet
 @item
-Window point is established when a window is first created; it is
-initialized from the buffer's point, or from window point of another
-window opened on the buffer if such a window exists.
+A window's point is established when a window is first created; it is
+initialized from the buffer's point (again, @pxref{Point}), or from the
+window point of another window showing the same buffer, if one exists.
 
 @item
-Selecting a window sets the value of point in its buffer from the
-window's value of point.  Conversely, deselecting a window sets the
-window's value of point from that of the buffer.  Thus, when you switch
-between windows that display a given buffer, the point value for the
-selected window is in effect in the buffer, while the point values for
-the other windows are stored in those windows.
+Selecting a window sets point from the value of the window's point.
+Deselecting a window sets the window's point to the buffer point of the
+buffer displayed in it.  Thus, when you switch between windows that
+display a given buffer, the window point value for the selected window
+is in effect in the buffer, while the window point values for the other
+windows are stored for those windows.
 
 @item
 As long as the selected window displays the current buffer, the window's
@@ -5935,13 +5936,13 @@ point and the buffer's point always move together; they remain equal.
 
 @item
 Many Emacs functions temporarily select a window in order to operate on
-its contents.  This will move point (@pxref{Point}) of that
-window's buffer to the position of window point of that window and
-not restore buffer point to its previous position when terminating
-the temporary selection.  This means that when one and the same buffer
-is simultaneously displayed in more than one window, its buffer point
-may change in unpredictable ways to the position of window point of any
-of these windows as a side-effect of things like redisplay, calling
+its contents.  This will move point (@pxref{Point}) of that window's
+buffer to the position of the window point of that window but not
+restore the buffer's point to its previous position upon terminating the
+temporary selection.  This means that when one and the same buffer is
+simultaneously displayed in more than one window, its buffer point may
+change in unpredictable ways, to the window points of any of these
+windows, as a side-effect of things like redisplay, calling
 @code{with-selected-window} (@pxref{Selecting Windows}) or running
 @code{window-configuration-change-hook} (@pxref{Window Hooks}).
 @end itemize
@@ -5956,7 +5957,7 @@ or an image, Emacs displays the cursor immediately before or after
 that display element.
 
 @defun window-point &optional window
-This function returns the current position of point in @var{window}.
+This function returns the window point for @var{window}.
 For a nonselected window, this is the value point would have (in that
 window's buffer) if that window were selected.  The default for
 @var{window} is the selected window.

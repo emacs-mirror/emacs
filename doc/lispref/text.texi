@@ -501,11 +501,11 @@ copy any text properties.
 
 @defun insert-into-buffer to-buffer &optional start end
 This is like @code{insert-buffer-substring}, but works in the opposite
-direction: The text is copied from the current buffer into
-@var{to-buffer}.  The block of text is copied to the current point in
-@var{to-buffer}, and point (in that buffer) is advanced to after the
-end of the copied text.  Is @code{start}/@code{end} is @code{nil}, the
-entire text in the current buffer is copied over.
+direction: the text is copied from the current buffer into
+@var{to-buffer}.  The block of text is copied to the buffer point in
+@var{to-buffer} (@pxref{Point}), and the buffer point is advanced to
+after the end of the copied text.  If @code{start}/@code{end} is
+@code{nil}, the entire text in the current buffer is copied over.
 @end defun
 
   @xref{Sticky Properties}, for other insertion functions that inherit
