@@ -715,8 +715,8 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
 	 in.  For an Emacs process socket, infd and outfd are the
 	 same but we use this two-argument version for clarity.  */
       gnutls_transport_set_ptr2 (state,
-				 (void *) (intptr_t) proc->infd,
-				 (void *) (intptr_t) proc->outfd);
+				 (void *) (intptr_t) {proc->infd},
+				 (void *) (intptr_t) {proc->outfd});
       if (proc->is_non_blocking_client)
 	gnutls_transport_set_errno_function (state,
 					     emacs_gnutls_nonblock_errno);

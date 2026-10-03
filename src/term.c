@@ -4682,7 +4682,7 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
   if (tty->TS_enter_strike_through_mode == (char *) (intptr_t) {-1})
     tty->TS_enter_strike_through_mode = NULL;
   tty->TS_enter_overline_mode = tigetstr ("Smol");
-  if (tty->TS_enter_overline_mode == (char *) (intptr_t) -1)
+  if (tty->TS_enter_overline_mode == (char *) (intptr_t) {-1})
     tty->TS_enter_overline_mode = NULL;
 #else
   /* FIXME: Is calling tgetstr here for non-terminfo case correct,
