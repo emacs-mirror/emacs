@@ -58,9 +58,8 @@ point is constrained to fall within the accessible portion of the buffer
 (possibly at one end of it).
 
 @cindex buffer point
-  There is only ever one point in a running Emacs.@footnote{This is not
-strictly true anymore because each thread has its own current buffer.
-@xref{Threads}.  For some historical background, see
+  A running Emacs session has a single instance of point.@footnote{For
+some historical background, see
 @url{https://lists.gnu.org/archive/html/emacs-devel/2026-01/msg00229.html}.}
 We distinguish it by saying just ``point'' and never ``the point''.  At
 the same time, each buffer has its own value @emph{for} point, which is
