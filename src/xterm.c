@@ -18014,6 +18014,10 @@ x_net_wm_state (struct frame *f, Window window)
   Lisp_Object lval = Qnil;
   bool sticky = false, shaded = false;
 
+  /* Child frame could be hidden, but not any of the states below.  */
+  if (FRAME_PARENT_FRAME (f))
+    return;
+
   x_get_current_wm_state (f, window, &value, &sticky, &shaded);
 
   switch (value)
@@ -28009,6 +28013,9 @@ x_get_current_wm_state (struct frame *f,
   *sticky = false;
   *size_state = FULLSCREEN_NONE;
   *shaded = false;
+
+  if (FRAME_PARENT_FRAME (f))
+    return !FRAME_ICONIFIED_P (f);
 
   block_input ();
 
