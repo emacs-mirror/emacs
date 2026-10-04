@@ -271,14 +271,14 @@ the choices can get pretty complex."
                                  :tag "Mac OS internet Keychain"
                                  (const :format ""
                                         :value :macos-keychain-internet)
-                                 (choice :tag "Collection to use"
+                                 (choice :tag "Keychain to use"
                                          (string :tag "internet Keychain path")
                                          (const :tag "default" default)))
                                 (list
                                  :tag "Mac OS generic Keychain"
                                  (const :format ""
                                         :value :macos-keychain-generic)
-                                 (choice :tag "Collection to use"
+                                 (choice :tag "Keychain to use"
                                          (string :tag "generic Keychain path")
                                          (const :tag "default" default))))
                         (repeat :tag "Extra Parameters" :inline t
