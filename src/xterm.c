@@ -1178,7 +1178,7 @@ static void x_horizontal_scroll_bar_report_motion (struct frame **, Lisp_Object 
 						   enum scroll_bar_part *,
 						   Lisp_Object *, Lisp_Object *,
 						   Time *);
-static bool x_handle_net_wm_state (struct frame *, const XPropertyEvent *);
+static bool x_handle_net_wm_state (struct frame *, Window);
 static void x_check_fullscreen (struct frame *);
 static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, bool);
@@ -18007,40 +18007,6 @@ static void xembed_send_message (struct frame *f, Time,
                                  enum xembed_message,
                                  long detail, long data1, long data2);
 
-static void
-x_net_wm_state (struct frame *f, Window window)
-{
-  int value = FULLSCREEN_NONE;
-  Lisp_Object lval = Qnil;
-  bool sticky = false, shaded = false;
-
-  /* Child frame could be hidden, but not any of the states below.  */
-  if (FRAME_PARENT_FRAME (f))
-    return;
-
-  x_get_current_wm_state (f, window, &value, &sticky, &shaded);
-
-  switch (value)
-    {
-    case FULLSCREEN_WIDTH:
-      lval = Qfullwidth;
-      break;
-    case FULLSCREEN_HEIGHT:
-      lval = Qfullheight;
-      break;
-    case FULLSCREEN_BOTH:
-      lval = Qfullboth;
-      break;
-    case FULLSCREEN_MAXIMIZED:
-      lval = Qmaximized;
-      break;
-    }
-
-  store_frame_param (f, Qfullscreen, lval);
-  store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
-  store_frame_param (f, Qshaded, shaded ? Qt : Qnil);
-}
-
 /* Flip back buffers on F if it has undrawn content.  */
 
 static void
@@ -19627,7 +19593,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  /* This should never happen with embedded windows.  */
 	  && !FRAME_X_EMBEDDED_P (f))
 	{
-          bool not_hidden = x_handle_net_wm_state (f, &event->xproperty);
+          bool not_hidden = x_handle_net_wm_state (f, event->xproperty.window);
 
 	  if (not_hidden && FRAME_ICONIFIED_P (f))
 	    {
@@ -21603,11 +21569,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     && configureEvent.xconfigure.height <= 1)))
 	{
 #ifdef USE_GTK
-	  /* For GTK+ don't call x_net_wm_state for the scroll bar
+	  /* For GTK+ don't call x_handle_net_wm_state for the scroll bar
 	     window.  (Bug#24963, Bug#25887) */
 	  if (configureEvent.xconfigure.window == FRAME_X_WINDOW (f))
 #endif
-	    x_net_wm_state (f, configureEvent.xconfigure.window);
+	    x_handle_net_wm_state (f, configureEvent.xconfigure.window);
 
 #if defined USE_X_TOOLKIT || defined USE_GTK
           /* Tip frames are pure X window, set size for them.  */
@@ -28238,14 +28204,18 @@ XTfullscreen_hook (struct frame *f)
 
 
 static bool
-x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
+x_handle_net_wm_state (struct frame *f, Window window)
 {
   int value = FULLSCREEN_NONE;
   Lisp_Object lval;
   bool sticky = false, shaded = false;
-  bool not_hidden = x_get_current_wm_state (f, event->window,
+  bool not_hidden = x_get_current_wm_state (f, window,
 					    &value, &sticky,
 					    &shaded);
+
+  /* Child frame could be hidden, but not any of the states below.  */
+  if (FRAME_PARENT_FRAME (f))
+    return not_hidden;
 
   lval = Qnil;
   switch (value)
@@ -28330,8 +28300,8 @@ x_check_fullscreen (struct frame *f)
 	change_frame_size (f, width, height, false, true, false);
     }
 
-  /* `x_net_wm_state' might have reset the fullscreen frame parameter,
-     restore it. */
+  /* `x_handle_net_wm_state' might have reset the fullscreen frame
+     parameter, restore it. */
   store_frame_param (f, Qfullscreen, lval);
 }
 
