@@ -5583,9 +5583,9 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 		memo_fail (&memo, bufp, pat - 1, POINTER_TO_OFFSET (str) - pos);
 	      else
 		memo.past_failures++;
+#endif
 	      d = str;
 	      goto continue_failure_jump;
-#endif
 
 	    case on_failure_jump_nastyloop:
 	      eassert ((re_opcode_t)pat[-2] == no_op);
