@@ -59,7 +59,6 @@ char data_start[1] = { 1 };
 #endif
 extern void *(*__morecore) (ptrdiff_t);
 extern void (*__MALLOC_HOOK_VOLATILE __after_morecore_hook) (void);
-#endif
 
 /* From ralloc.c.  */
 #ifdef REL_ALLOC
