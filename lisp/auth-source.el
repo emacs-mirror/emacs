@@ -271,14 +271,14 @@ the choices can get pretty complex."
                                  :tag "Mac OS internet Keychain"
                                  (const :format ""
                                         :value :macos-keychain-internet)
-                                 (choice :tag "Collection to use"
+                                 (choice :tag "Keychain to use"
                                          (string :tag "internet Keychain path")
                                          (const :tag "default" default)))
                                 (list
                                  :tag "Mac OS generic Keychain"
                                  (const :format ""
                                         :value :macos-keychain-generic)
-                                 (choice :tag "Collection to use"
+                                 (choice :tag "Keychain to use"
                                          (string :tag "generic Keychain path")
                                          (const :tag "default" default))))
                         (repeat :tag "Extra Parameters" :inline t
@@ -2080,13 +2080,13 @@ Here's an example that looks for the first item in the default
 generic macOS Keychain:
 
  (let ((auth-sources \\='(macos-keychain-generic)))
-    (auth-source-search :max 1)
+    (auth-source-search :max 1))
 
 Here's another that looks for the first item in the internet
 macOS Keychain collection whose label is `gnus':
 
  (let ((auth-sources \\='(macos-keychain-internet)))
-    (auth-source-search :max 1 :label \"gnus\")
+    (auth-source-search :max 1 :label \"gnus\"))
 
 And this one looks for the first item in the internet keychain
 entries for git.gnus.org:
@@ -2160,9 +2160,9 @@ entries for git.gnus.org:
                      collect var))
      'utf-8)))
 
-(cl-defun auth-source-macos-keychain-search-items (coll _type _max
+(cl-defun auth-source-macos-keychain-search-items (coll type _max
                                                         host port user
-                                                   &key label type
+                                                   &key label
                                                    &allow-other-keys)
   (let* ((keychain-generic (eq type 'macos-keychain-generic))
          (args `(,(if keychain-generic
