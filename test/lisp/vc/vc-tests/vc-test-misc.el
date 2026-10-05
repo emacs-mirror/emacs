@@ -26,8 +26,10 @@
 (require 'ert-x)
 (require 'vc)
 (require 'vc-git)
+(require 'vc-hg)
 (require 'vc-dir)
 (require 'log-edit)
+(require 'dired-aux)
 
 (require 'vc-tests-helpers
          (ert-resource-file "vc-tests-helpers"))
@@ -651,6 +653,104 @@ See bug#80803 and bug#80967."
               (push (get-buffer "*Warnings*") buffers)))
         (dolist (buf buffers)
           (kill-buffer buf))))))
+
+(ert-deftest vc-test-dired-rename-file-between-repos ()
+  "Test `dired-rename-file' facility for moving files between repositories."
+  (skip-unless (executable-find vc-git-program))
+  (skip-unless (executable-find vc-hg-program))
+  (ert-with-temp-directory tempdir
+    (let ((default-directory tempdir)
+          (vc-handled-backends '(Git Hg))
+          (dired-vc-rename-file t)
+          (vc-async-checkin nil)
+          (git1 (expand-file-name "git1/" tempdir))
+          (git2 (expand-file-name "git2/" tempdir))
+          (hg (expand-file-name "hg/" tempdir)))
+      (vc-test--with-author-identity 'Git
+        (vc-test--with-author-identity 'Hg
+          (cl-flet ((create-repo (backend loc file)
+                      (make-directory loc)
+                      (let ((default-directory loc))
+                        (write-region (format "%s\n%s\n" loc file)
+                                      nil file nil 0 nil 'excl)
+                        (vc-test--create-repo-function backend)
+                        (vc-register `(,backend (,file)))
+                        (vc-checkin (list file) backend)
+                        (insert "Creation")
+                        (log-edit-done)))
+                    (do-rename (repo from to ok-if-already-exists)
+                      (dired repo)
+                      (unwind-protect
+                          (dired-rename-file (expand-file-name from) to
+                                             ok-if-already-exists)
+                        (quit-window 'kill)))
+                    (reset ()
+                      (dolist (repo (list git1 git2 hg))
+                        (when (file-exists-p repo)
+                          (mapc #'vc-file-clearprops
+                                (directory-files repo 'full))
+                          (delete-directory repo 'recursive)))))
+            ;; Base case: moving within a repository.
+            (create-repo 'Git git1 "foo.txt")
+            (do-rename "git1/" "foo.txt" "bar.txt" nil)
+            (let ((default-directory git1))
+              (should (file-exists-p "bar.txt"))
+              (should (eq (vc-state "bar.txt" 'Git) 'added))
+              (should-not (file-exists-p "foo.txt"))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed)))
+            (reset)
+
+            ;; Test moving between repos with the same backend.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Git git2 "bar.txt")
+            (do-rename "git1/" "foo.txt" "../git2/baz.txt" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "baz.txt"))
+              (should (eq (vc-state "baz.txt" 'Git) 'added)))
+            (reset)
+
+            ;; Test moving between repos with different backends, and
+            ;; passing a directory as second arg to `dired-rename-file'.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Hg hg "bar.txt")
+            (do-rename "git1/" "foo.txt" "../hg/" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory hg))
+              (should (file-exists-p "foo.txt"))
+              (should (eq (vc-state "foo.txt" 'Hg) 'added)))
+            (reset)
+
+            ;; Already exists.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Hg hg "foo.txt")
+            (should-error (do-rename "git1/" "foo.txt" "../hg/" nil)
+                          :type 'file-already-exists)
+            (do-rename "git1/" "foo.txt" "../hg/" 'ok-if-already-exists)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory hg))
+              (should (file-exists-p "foo.txt"))
+              (should (eq (vc-state "foo.txt" 'Hg) 'edited)))
+            (reset)
+
+            ;; Moving into a non-repo.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Git git2 "bar.txt")
+            (delete-directory (expand-file-name ".git/" git2)
+                              'recursive)
+            (do-rename "git1/" "foo.txt" "../git2/" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "foo.txt"))
+              (should (null (vc-state "foo.txt" 'Hg))))))))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here
