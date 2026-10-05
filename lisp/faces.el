@@ -2828,6 +2828,12 @@ Use the face `mode-line-highlight' for features that can be selected."
   :version "28.1"
   :group 'basic-faces)
 
+(defface header-line-emphasis '((t :inherit mode-line-emphasis))
+  "Face used to emphasize certain header line features.
+Use the face `header-line-highlight' for features that can be selected."
+  :version "32.1"
+  :group 'basic-faces)
+
 (defface header-line-active
   '((t :inherit header-line))
   "Face for the selected header line.

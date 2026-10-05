@@ -95,6 +95,12 @@ commands invoked from the menu will operate on the right buffer.
 You can restore the previous behavior by removing
 'mode-line-window-select' from 'x-pre-popup-menu-hook'.
 
+** Header line
+
+*** New face 'header-line-emphasis'.
+This corresponds to the face 'header-line-highlight' as
+'mode-line-emphasis' corresponds to 'mode-line-highlight'.
+
 ** Minibuffer
 
 ---
