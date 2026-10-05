@@ -2723,7 +2723,7 @@ dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
 static dump_off
 dump_obarray (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_D2757E61AD
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_F6375D820A
 # error "Lisp_Obarray changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Obarray *in_oa = XOBARRAY (object);
@@ -2745,7 +2745,7 @@ dump_obarray (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_418DFE6359
+#if CHECK_STRUCTS && !defined HASH_buffer_DBEF8CFB58
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct buffer munged_buffer = *in_buffer;
