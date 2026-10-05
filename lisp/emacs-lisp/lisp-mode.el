@@ -87,7 +87,10 @@
 (eval-and-compile
   (defconst lisp-mode-syntax-propertize-rules
     (syntax-propertize-precompile-rules
-     ;; Give entire |multiple escape| sections symbol syntax.
+     ;; Give entire multiple escape sections symbol syntax.  Without
+     ;; this, `forward-sexp' and co. treat `symbols| like |this' as
+     ;; three expressions, and `lisp-mode-symbol-regexp' won't capture
+     ;; escape sections at all.
      ((rx "|" (+ (or (seq (syntax escape) "|") (not "|"))) "|")
       (0 (and (not (ppss-comment-or-string-start (syntax-ppss)))
               (string-to-syntax "_"))))
