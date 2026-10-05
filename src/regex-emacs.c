@@ -4104,7 +4104,7 @@ unwind_re_match (void *ptr)
 }
 
 /* **************** Memoization **********************************************
-   As we "all" known from our computation theory classes, regexps are wonderful
+   As we "all" know from our computation theory classes, regexps are wonderful
    because we can convert them to NFA and then DFA to match them in O(n) using
    a constant amount of space.  [ Where n is the size of the string.  ]
 
@@ -4136,9 +4136,12 @@ unwind_re_match (void *ptr)
    rely on backtracking, which tends to be fast when the first match is
    the one we want and is easy to find, and accomodates all those regexp
    extensions more easily.  Sadly, it's algorithmically horrible, like
-   O(2^n) in time and O(n) in space.  So here we try to recover Thompson's
-   NFA algorithmic behavior by memoization, following the same approach
-   as described in
+   O(2^n) in time and O(n) in space.
+   So here we try to recover Thompson's NFA algorithmic behavior by
+   keeping track of the pairs "NFA-state x string-position" where
+   we have already discovered that the match fails, i.e. by
+   [Memoization](https://en.wikipedia.org/wiki/Memoization),
+   following the same approach as described in
 
        Using Selective Memoization to Defeat Regular Expression
        Denial of Service (ReDoS)
@@ -4146,46 +4149,65 @@ unwind_re_match (void *ptr)
        doi:10.1109/SP40001.2021.00032
 
    To reduce the cost of memoization we use a kind of "competitive analysis":
-   We count the number of failures to see if memoization could have been
-   beneficial.  We do it in two steps: first we count the total number of
+   We count the number of failures to decide when and where we perform
+   memoization, so we do it only where it's beneficial.
+   We do it in two steps: at first we count only the total number of
    failures without distinguishing specific NFA states.  Once that count
    reaches a certain threshold (compared to the size of the string we have
-   matched so far), we switch to a second competitive analysis where we count
-   separately the number of failures for each NFA state.  Finally,
-   if an NFA state has seen more failures than the size of the string we
-   visited (which proves that memoization would have been beneficial),
-   we allocate a bitvector for that NFA state to memoize the string
-   positions where that NFA state already failed.  This way, regexps that
-   do not benefit from memoization do not pay the full cost of memoization
-   (only the cost of counting failures).  And even for regexps that do benefit
-   from memoization, we memoize only those NFA states that can benefit from it.
-   The competitive analysis means we sometimes "waste" time because we do
-   not memoize right from the beginning, but this does not affect the
-   algorithmic complexity.
+   matched so far), we start counting separately the number of failures
+   for each NFA state.
+   Finally, if an NFA state has seen more failures than the size of the string
+   we visited (which proves that memoization would have been beneficial),
+   we allocate a bitvector for that NFA state to memoize (a.k.a remember)
+   the string positions where that NFA state already failed.
+   This way, regexps that do not benefit from memoization do not pay the
+   full cost of memoization (only the cost of counting failures).
+   And even for regexps that do benefit from memoization, we memoize only
+   those NFA states that can benefit from it.  The competitive analysis
+   means we sometimes "waste" time because we do not memoize right from
+   the beginning, but this does not affect the algorithmic complexity.
 
-   on_failure_jump_smart: this one should disappear before we have to
+   We memoize only the NFA states (i.e. bytecode positions) corresponding
+   to backtracking points.  Here are the relevant opcodes:
+
+   - on_failure_jump_smart: This opcode should disappear before we have to
        worry about memoization.
-   on_failure_keep_string_jump: we don't want to memoize this one,
+   - on_failure_keep_string_jump: We don't want to memoize this one,
        because we want it to be as fast as possible.  Sadly, this means
        that we can still be O(n^2) in some cases where memoization would
        reduce it to O(n), e.g. for "a*a*b".
-   on_failure_jump_nomemo: Used for non-loops, where memoization is not
+   - on_failure_jump_nomemo: Used for non-loops, where memoization is not
        algorithmically indispensable.
-   on_failure_jump_memo: Used for normal loops where memoization is needed.
-   on_failure_jump_prememo: Used for loops where memoization might
+   - on_failure_jump_memo: Used for normal loops where memoization is needed.
+   - on_failure_jump_prememo: Used for loops where memoization might
        not be needed, so we count the failures but don't record them,
-       and we switch to the _memo version if the count is high enough.
-   on_failure_jump_loop:
-   on_failure_jump_nastyloop:
-   succeed_n:
+       and we switch to the 'memo' version if the count is high enough.
+   - on_failure_jump_loop:
+     on_failure_jump_nastyloop:
+     succeed_n:
        We want to memoize those since they're part of loops by definition.
-       We could have `prememo` versions of those, but since these
-       operations are inhenrently more costly than just 'on_failure_jump'
+       We could have 'prememo' versions of those, but since these
+       operations are inherently more costly than just 'on_failure_jump'
        the benefit is not as high.
 
-   Future work: I think it would be safe to use the '_nomemo' variant for
+   Future work: I think it would be safe to use the 'nomemo' variant for
    the *first* loop (or more specifically for those loops which can
-   be reached only via a path that does not go through another loop).  */
+   be reached only via a path that does not go through another loop).
+
+   Side note: Our memoization is a bit more subtle than that of Davis above.
+   For a given 'on_failure_jump*' operation we remember when the "fallthrough"
+   branch (a.k.a the first branch of the alternative) fails but not when the
+   other branch fails.  Yet when we come back to the same state&pos and the
+   memo table says the first branch failed, we don't just skip the first
+   branch (knowing it would fail): we fail!
+   IOW we make the second branch fail as well!
+   This is OK because there are only two ways we can come back to the
+   same state at the same string position: either it's because the second
+   branch indeed failed (so we backtracked to a previous position and came
+   back to the same state&pos via some other path), or it's because we're
+   still in the second branch and we returned to the same state&pos via
+   a zero-length loop (i.e. an inf-loop we need to break anyway).
+   In either case we can make the second branch fail!  */
 
 #ifndef MEMOIZE_FAILURES
 # define MEMOIZE_FAILURES 1

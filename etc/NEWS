@@ -492,13 +492,22 @@ older '(HIGH LOW USEC PSEC)' form.
 
 ---
 ** The regexp engine now matches in linear time.
-It used to be usually linear time but with nasty so-called "pathological"
-cases where the backtracking algorithm could degenerate to polynomial
-or even exponential time, typically leading to the impression that
-Emacs froze.  The complexity can still be exponential in the presence of
-backreferences, of course, and it is admittedly still O(N^2) for a few
-special cases (but with a small constant factor), but in practice
-the "pathological" freezes due to regexp matching should be gone.
+In practice, matching a regexp against a string of length N /usually/
+took a time proportional to N (i.e. linear), but with important and
+annoying exceptions, typically described as "pathological" cases,
+where the backtracking algorithm could degenerate to polynomial
+or even exponential time, typically leading to situations where Emacs
+appears frozen.
+With the new code, such "pathological" freezes due to regexp matching
+should be gone, because the time is /always/ (rather than "usually")
+linear.
+Admittedly, this is not quite true.  We know of two exceptions:
+- The time can still be exponential in the presence of backreferences,
+  of course (theory says it can't be avoided).
+- The time can still be O(N^2) for a few corner cases, tho with a small
+  constant factor.  [ This is because of a conflict between two
+  optimizations: one brings the constant factor down significantly,
+  the other makes the matching algorithm linear-time.  ]
 
 +++
 ** Support for canvas image objects.
