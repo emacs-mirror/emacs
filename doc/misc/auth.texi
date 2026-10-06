@@ -601,34 +601,44 @@ expecting to query multiple backends uniformly, try flipping it to
 @node The macOS keychain store
 @chapter The macOS keychain store
 
-The macOS operating system includes a password store called ``Keychain''
-that can store both internet and application (generic) passwords.  The
-keychain can be accessed via the @code{security} command-line utility
-(part of the operating system).
+The macOS operating system includes a password store that can store both
+internet and application (generic) passwords.  Both generic and internet
+passwords are stored in @emph{keychains}, with a keychain called
+@code{login} used by default.  MacOS includes the @code{security}
+command-line utility and @code{Keychain Access.app} graphical
+application to manage keychains.
 
-To use the keychain as a backend for auth-source, add one or both of
-@code{macos-keychain-internet} and @code{macos-keychain-generic} to the
-@code{auth-sources} user option.  Here is an example configuration that
-searches both keychains and then falls back to @file{~/.authinfo.gpg}.
+To use the default keychain as a backend for auth-source, add one or
+both of the symbols @code{macos-keychain-internet} and
+@code{macos-keychain-generic} to the @code{auth-sources} user option.
+To use a different keychain, add a string that names the backend and the
+keychain, separated by a colon (@code{:}).  (A string naming the backend
+without the colon and keychain will use the default login keychain.)
+
+For example, a configuration that searches the login keychain for both
+internet and generic passwords, followed by a keychain called
+@code{emacs.keychain} for internet passwords, and finally falls back to
+@file{~/.authinfo.gpg} looks like the following:
 
 @lisp
 (setopt auth-sources '(macos-keychain-internet
                        macos-keychain-generic
+                       "macos-keychain-internet:emacs.keychain"
                        "~/.authinfo.gpg"))
 @end lisp
 
 Currently, the backend does not support adding passwords to the
 keychain, so passwords must be added via the @code{security} command.
-For example, to replace an @file{.authinfo} entry such as: @code{host
-mail.example.com login user@@example.com port 587 password s3kr3t!}
-using the internet keychain, use the following command:
+For example, to replace a plain-text @file{.authinfo} entry such as:
+@code{host mail.example.com login user@@example.com port 587 password
+s3kr3t!}  with an internet password on the default keychain, use the
+following command:
 
 @example
 security add-internet-password -s mail.example.com \
-  -a user@@example.com -P 587 -w
+  -a user@@example.com -P 587 -w "s3kr3t!"
 @end example
 
-The utility will then prompt to enter the password at the command line.
 Afterwards, evaluating the following form will return the password just
 entered:
 
@@ -639,12 +649,12 @@ entered:
                                      :port 587))
 @end lisp
 
-If you want to store a password in the generic keychain, use the
-following command:
+To store a generic password in the default keychain, use the following
+command:
 
 @example
 security add-generic-password -l mail.example.com \
-  -a user@@example.com -w
+  -a user@@example.com -w "s3kr3t!"
 @end example
 
 Evaluating the following form will retrieve the password:
@@ -656,11 +666,31 @@ Evaluating the following form will retrieve the password:
                                      :user "user@@example.com"))
 @end lisp
 
+To create and use a keychain @code{emacs.keychain} instead of the
+default @code{login} one, use the following commands:
+
+@example
+security create-keychain emacs.keychain
+security unlock-keychain emacs.keychain
+security add-internet-password -a "example@@example.com" \
+  -s "example.com" -l "my-server" -w "s3kr1t" emacs.keychain
+@end example
+
+Then add @code{"macos-keychain-internet:emacs.keychain"} to
+@code{auth-sources} to retrieve internet passwords stored in the new keychain:
+
+@lisp
+(let ((auth-sources '("macos-keychain-internet:emacs.keychain"))
+       (auth-source-do-cache nil))
+    (auth-source-pick-first-password :label "my-server"))
+@end lisp
+
 
 The following table lists the auth-source query parameters and the
 corresponding options for the underlying @code{security
 find-internet-password} and @code{security find-generic-password} calls.
-The same parameters are used to create a password entry.
+The same parameters are used to create a password entry of the
+respective type.
 
 @table @code
 
