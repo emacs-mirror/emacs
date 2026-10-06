@@ -828,6 +828,12 @@ As a result, 'M-x proced' shows populated %CPU and %Mem columns there.
 In addition, the 'utime', 'stime' and 'time' attributes, which were off
 by the Mach timebase factor on Apple Silicon, are now correct.
 
+---
+*** Emacs on MS-Windows now supports UDP sockets.
+The mechanism used to read data from network sockets has been changed to
+allow the use of UDP sockets.  If needed, setting the user option
+'w32-one-byte-readahead' to t will restore the old behavior.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

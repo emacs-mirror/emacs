@@ -89,10 +89,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    Look in <sys/time.h> for a timeval structure.  */
 #define HAVE_TIMEVAL 1
 
-/* Our select emulation does 1-byte read-ahead waiting for received
-   packets, so datagrams are broken.  */
-#define BROKEN_DATAGRAM_SOCKETS 1
-
 #define MAIL_USE_SYSTEM_LOCK 1
 
 /* Define to 1 if GCC-style __attribute__ ((__aligned__ (expr))) works. */
