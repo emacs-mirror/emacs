@@ -1931,6 +1931,10 @@ syntax node representing the parameter."
     (when (match-string 3)
       (ical:signal-parse-error
        (format "Invalid value for `%s' parameter: %s" type (match-string 3))))
+    (unless (looking-at-p (rx (or ?\; ?:)))
+      (ical:signal-parse-error
+       (format "Garbage in `%s' value starting at: `%s'"
+               type (buffer-substring-no-properties (point) (1+ (point))))))
 
     (let ((value-begin (match-beginning 2))
           (value-end (match-end 2))
