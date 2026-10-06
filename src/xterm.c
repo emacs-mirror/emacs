@@ -21638,12 +21638,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		x_real_positions (f, &f->left_pos, &f->top_pos);
 	      else
 		{
-		  Window root;
-		  unsigned int dummy_uint;
-
-		  XGetGeometry (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-				&root, &f->left_pos, &f->top_pos,
-				&dummy_uint, &dummy_uint, &dummy_uint, &dummy_uint);
+		  f->left_pos = configureEvent.xconfigure.x;
+		  f->top_pos = configureEvent.xconfigure.y;
 		}
 
 	      if (!FRAME_TOOLTIP_P (f)
