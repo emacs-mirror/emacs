@@ -4264,11 +4264,12 @@ memo_bits_set (struct memo_bits *bs, ptrdiff_t bit)
   if (byte_nb >= bs->count)
     {
       ptrdiff_t oldsize = bs->count;
-      ptrdiff_t added = max (oldsize, bs->count - byte_nb + 1);
-      bs->bytes = xrealloc (bs->bytes,
-			    oldsize + ROUNDUP (added, MEMO_BITS_STEP));
+      ptrdiff_t minadd = max (oldsize, byte_nb + 1 - oldsize);
+      ptrdiff_t added = ROUNDUP (minadd, MEMO_BITS_STEP);
+      bs->bytes = xrealloc (bs->bytes, oldsize + added);
       memset (bs->bytes + oldsize, 0, added);
       bs->count += added;
+      eassert (bs->count > byte_nb);
     }
   memo_bits_set_noalloc (bs, bit);
 }
@@ -4276,8 +4277,9 @@ memo_bits_set (struct memo_bits *bs, ptrdiff_t bit)
 static struct memo_bits
 memo_bits (ptrdiff_t first)
 {
-  int initial_size = 1 + first / CHAR_BIT;
-  unsigned char *bytes = xmalloc (ROUNDUP (initial_size, MEMO_BITS_STEP));
+  ptrdiff_t byte_nb = first / CHAR_BIT;
+  ptrdiff_t initial_size = ROUNDUP (1 + byte_nb, MEMO_BITS_STEP);
+  unsigned char *bytes = xmalloc (initial_size);
   memset (bytes, 0, initial_size);
   struct memo_bits bs = { bytes, initial_size };
   memo_bits_set_noalloc (&bs, first);
