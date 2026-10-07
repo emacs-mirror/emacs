@@ -493,9 +493,11 @@ Supported backend types are `netrc', `plstore' and `json'."
                            ,(match-string 1 entry)))))
   ;; take 'macos-keychain-internet or generic and use it as a Mac OS
   ;; Keychain collection matching any user, host, and protocol
-  (when (or (eq entry 'macos-keychain-internet) (string= entry "macos-keychain-internet"))
+  (when (or (eq entry 'macos-keychain-internet)
+            (and (stringp entry) (string= entry "macos-keychain-internet")))
     (setq entry '(:source (:macos-keychain-internet default))))
-  (when (or (eq entry 'macos-keychain-generic) (string= entry "macos-keychain-generic"))
+  (when (or (eq entry 'macos-keychain-generic)
+            (and (stringp entry) (string= entry "macos-keychain-generic")))
     (setq entry '(:source (:macos-keychain-generic default))))
   (cond
    ;; the macOS Keychain
