@@ -181,13 +181,13 @@ size permits.  If this variable is t, ask the user whether to increase
 the specpdl size.  If nil, just give up."
   :version "28.1"
   :type 'boolean)
+(make-obsolete-variable 'shr-offer-extend-specpdl nil "29.1")
 
 (defcustom shr-fill-text t
   "Non-nil means to fill the text according to the width of the window.
 If nil, text is not filled, and `visual-line-mode' can be used to reflow text."
   :version "30.1"
   :type 'boolean)
-
 
 (defcustom shr-sup-raise-factor 0.2
   "The value of raise property for superscripts.
