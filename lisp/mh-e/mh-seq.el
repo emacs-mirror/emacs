@@ -696,7 +696,7 @@ completion is over."
                          (aref string (1- (length string)))))
          (last-word (cond ((null last-char) "")
                           ((memq last-char '(?  ?- ?:)) "")
-                          (t (car (last (split-string string "[ -:]+"))))))
+                          (t (car (last (split-string string "[ :-]+"))))))
          (prefix (substring string 0 (- (length string) (length last-word)))))
     (cond ((eq flag nil)
            (let ((res (try-completion last-word candidates predicate)))
