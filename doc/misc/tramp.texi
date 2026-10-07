@@ -1028,6 +1028,20 @@ If the @command{podman} program isn't found in your @env{PATH}
 environment variable, you can tell @value{tramp} its absolute path via
 the user option @code{tramp-podman-program}.
 
+@cindex method @option{wslc}
+@cindex @option{wslc} method
+@item @option{wslc}
+
+WSL container is the implementation on MS Windows.  @value{tramp} uses
+the method @option{wslc}.
+
+@vindex tramp-wslc-program
+If the @command{wslc} program isn't found in your @env{PATH}
+environment variable, you can tell @value{tramp} its absolute path via
+the user option @code{tramp-wslc-program}.
+
+This is an optional method, @pxref{Optional methods}.
+
 @cindex method @option{kubernetes}
 @cindex @option{kubernetes} method
 @item @option{kubernetes}
@@ -1229,10 +1243,16 @@ These methods support the @samp{-P} argument.
 @cindex method @option{podmancp}
 @cindex @option{podmancp} method
 @item @option{podmancp}
+@c @cindex method @option{wslccp}
+@c @cindex @option{wslccp} method
+@c @item @option{wslccp}
 
 These methods are similar to @option{docker} or @option{podman}, but
 they use the command @command{docker cp} or @command{podman cp} for
 transferring large files.
+
+@c @option{wslccp} uses the command @command{wslc container cp}.  It is
+@c an optional method, @pxref{Optional methods}.
 
 These copy commands do not support file globs, and they ignore a user
 name.

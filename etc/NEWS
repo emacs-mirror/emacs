@@ -177,6 +177,7 @@ for nearby fields.
 * Changes in Specialized Modes and Packages in Emacs 32.1
 
 ** Use-Package
+
 ---
 *** ':ensure t' installs the package only at run-time.
 In previous versions, it tried to install it more eagerly during
@@ -262,7 +263,7 @@ have a backend, and 'vc-follow-symlinks' is non-nil, the truename is
 used instead.  Previously, the truename was used unconditionally.
 
 +++
-*** New option 'vc-dir-simple-unmark-all-files'.
+*** New user option 'vc-dir-simple-unmark-all-files'.
 This inverts the meaning of a prefix argument to the existing 'U'
 ('vc-dir-unmark-all-files') command, which some users may find more
 intuitive.
@@ -365,7 +366,7 @@ CPerl mode now recognizes this as a variable declaration.
 ---
 *** Improved accuracy of Common Lisp code parsing.
 Lisp mode will now correctly parse multiple escapes as part of symbols
-and will parse dispatch reader macros as expression prefixes.  Uses a
+and will parse dispatch reader macros as expression prefixes.  It uses a
 new function 'lisp-mode-syntax-propertize' as the value of
 'syntax-propertize-function' in Lisp mode.
 
@@ -437,6 +438,10 @@ Ex can now print lines using the 'z' command which allows scrolling the
 output of the lines.
 
 ** Tramp
+
++++
+*** New optional connection method "wslc".
+This connection method accesses WSL containers on MS-Windows.
 
 +++
 *** Tramp is more strict now in expanding the tilde "~USER".

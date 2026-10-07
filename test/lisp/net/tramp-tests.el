@@ -7551,14 +7551,14 @@ This does not support `tramp-test46-asynchronous-requests'."
   "Check, whether a container method is used.
 This does not support some special file names."
   (string-match-p
-   (rx bol (| "docker" "podman" "kubernetes" "apptainer" "run0" "nspawn"))
+   (rx bol (| "docker" "podman" "wslc" "kubernetes" "apptainer" "run0" "nspawn"))
    (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-container-oob-p ()
-  "Check, whether the dockercp or podmancp method is used.
+  "Check, whether the dockercp, podmancp or wslccp method is used.
 They does not support wildcard copy."
   (string-match-p
-   (rx bol (| "dockercp" "podmancp") eol)
+   (rx bol (| "dockercp" "podmancp" "wslccp") eol)
    (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-crypt-p ()

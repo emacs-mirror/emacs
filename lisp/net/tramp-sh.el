@@ -5636,7 +5636,8 @@ raises an error."
     ;; This does not work for MS Windows scp, if there are characters
     ;; to be quoted.  OpenSSH 8 supports disabling of strict file name
     ;; checking in scp, we use it when available.
-    (unless (string-match-p (rx (| "dockercp" "podmancp" "ftp") eos) method)
+    (unless
+	(string-match-p (rx (| "dockercp" "podmancp" "wslccp" "ftp") eos) method)
       (setq localname (tramp-unquote-shell-quote-argument localname)))
     (string-join
      (apply #'tramp-expand-args vec
