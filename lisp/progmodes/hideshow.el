@@ -1420,20 +1420,24 @@ Argument E should be the event that triggered this action."
 (defun hs-indicator-mouse-toggle-hiding (event)
   "Toggle block hiding with indicators."
   (interactive "e")
-  (hs-life-goes-on
-   (when hs-show-indicators
-     (when (mouse-event-p event)
-       (mouse-set-point event))
-     (let* ((overlays (save-excursion
-                        (goto-char (posn-point (event-end event)))
-                        (overlays-in (pos-bol) (pos-eol))))
-            (pos (catch 'hs--indicator-ov
-                   (dolist (ov overlays)
-                     (when-let* ((ov (overlay-get ov 'hs-indicator-block-start)))
-                       (throw 'hs--indicator-ov ov))))))
-       (when pos
-         (goto-char pos)
-         (hs-toggle-hiding))))))
+  ;; bug#82007 `hs-life-goes-on' is not useful here because it cannot
+  ;; toggle the block visibility when the point is in another buffer,
+  ;; also it is redundant because hs-toggle-hiding already uses it and
+  ;; the indicators are removed after hs-minor-mode is disabled.
+  (save-excursion
+    (when hs-show-indicators
+      (when (mouse-event-p event)
+        (mouse-set-point event))
+      (let* ((overlays (save-excursion
+                         (goto-char (posn-point (event-end event)))
+                         (overlays-in (pos-bol) (pos-eol))))
+             (pos (catch 'hs--indicator-ov
+                    (dolist (ov overlays)
+                      (when-let* ((ov (overlay-get ov 'hs-indicator-block-start)))
+                        (throw 'hs--indicator-ov ov))))))
+        (when pos
+          (goto-char pos)
+          (hs-toggle-hiding))))))
 
 (defun hs-hide-initial-comment-block ()
   "Hide the first block of comments in a file.
