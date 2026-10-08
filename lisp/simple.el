@@ -3800,29 +3800,28 @@ Return what remains of the list."
               (cons (list 'apply 'cdr nil) buffer-undo-list))))
   list)
 
-;; ARGS has the format: ({TYPE {(ID . OFFSET)}* }* )
+;; LIST has the format: ({(ID . OFFSET)}*)
 ;;
 ;; ID is the id for a marker.  The marker can be obtained with
 ;; undo--lookup-marker.
 ;;
 ;; OFFSET should be added to the marker's current position.
 ;;
-;; TYPE is the expected insertion type of the marker.  Markers that
-;; don't match the expected position and insertion type are ignored.
-(defun undo--adjust-weak-markers (beg end &rest args)
-  (while args
-    (let* ((insertion-type (pop args))
-           (pos (if insertion-type end beg)))
-      (while (consp (car args))
-        (let* ((pair (pop args))
-               (id (car pair))
-               (offset (cdr pair))
-               (m (undo--lookup-marker id)))
-          (when (and m
-                     (eq (marker-buffer m) (current-buffer))
-                     (eq (marker-insertion-type m) insertion-type)
-                     (= pos m))
-            (set-marker m (+ pos offset))))))))
+;; INSERTION-TYPE is the expected insertion type of the marker.  Markers
+;; that don't match the expected position and insertion type are
+;; ignored.
+(defun undo--adjust-weak-markers-1 (insertion-type pos list)
+  (pcase-dolist (`(,id . ,offset) list)
+    (let ((m (undo--lookup-marker id)))
+      (when (and m
+                 (eq (marker-buffer m) (current-buffer))
+                 (eq (marker-insertion-type m) insertion-type)
+                 (= m pos))
+        (set-marker m (+ pos offset))))))
+
+(defun undo--adjust-weak-markers (beg end list1 &optional list2)
+  (undo--adjust-weak-markers-1 nil beg list1)
+  (undo--adjust-weak-markers-1 t end list2))
 
 ;; Deep copy of a list
 (defun undo-copy-list (list)

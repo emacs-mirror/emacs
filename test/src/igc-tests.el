@@ -102,4 +102,39 @@
     (igc-tests--binary-search 0 (1+ most-positive-fixnum)
                               #'igc-tests--try-vector-size)))
 
+(ert-deftest igc-tests-collect-undo-list ()
+  "Test that adjust-weak-markers entries are removed."
+  (skip-unless (fboundp 'make-thread))
+  (with-temp-buffer
+    (insert "123456789")
+    (setq buffer-undo-list nil)
+    (insert "0")
+    (thread-join (make-thread
+                  (lambda ()
+                    (goto-char 5)
+                    (let ((m (point-marker)))
+                      (delete-region 3 7)
+                      (should (= m 3))))))
+    (should (pcase-exhaustive (list (featurep 'mps) buffer-undo-list)
+              (`(t (("3456" . 3)
+                    (apply 0 (3 . 7) undo--adjust-weak-markers ((,id . 2)))
+                    (10 . 11)))
+               (fixnump id))
+              (`(nil (("3456" . 3) (,m . -2) (10 . 11)))
+               (and (markerp m)
+                    (eq (marker-buffer m) (current-buffer))))
+              (`,_ nil)))
+    ;; test that we can delete the first element of buffer-undo-list
+    (pop buffer-undo-list)
+    (cond ((featurep 'mps)
+           (igc--collect)
+           (igc--process-messages))
+          (t
+           (garbage-collect)))
+    (pcase-exhaustive (list (featurep 'mps)  buffer-undo-list)
+      (`(t ((10 . 11)))
+       t)
+      (`(nil ((,m . -2) (10 . 11)))
+       (not (marker-buffer m))))))
+
 ;;; igc-tests.el ends here.

@@ -147,29 +147,18 @@ static struct weak_marker_table weak_marker_table;
 static Lisp_Object
 scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
 {
-  Lisp_Object tail = list, *prev = &list;
-  while (CONSP (tail))
+  Lisp_Object prev = Qnil;
+  for (Lisp_Object tail = list; !NILP (tail); tail = XCDR (tail))
     {
-      eassert (NILP (XCAR (tail)) || EQ (XCAR (tail), Qt));
-      Lisp_Object *prev2 = prev;
-      prev = xcdr_addr (tail);
-      tail = XCDR (tail);
-      while (CONSP (tail) && CONSP (XCAR (tail)))
-	{
-	  Lisp_Object id = XCAR (XCAR (tail));
-	  if (NILP (Fgethash (id, id_to_marker, Qnil)))
-	    *prev = XCDR (tail);
-	  else
-	    prev = xcdr_addr (tail);
-	  tail = XCDR (tail);
-	}
-      if (NILP (XCDR (*prev2))
-	  || NILP (XCAR (XCDR (*prev2)))
-	  || EQ (XCAR (XCDR (*prev2)), Qt))
-	{
-	  prev = prev2;
-	  *prev = tail;
-	}
+      Lisp_Object id = XCAR (XCAR (tail));
+      eassert (FIXNUMP (id));
+      if (NILP (Fgethash (id, id_to_marker, Qnil)))
+	if (NILP (prev))
+	  list = XCDR (tail);
+	else
+	  XSETCDR (prev, XCDR (tail));
+      else
+	prev = tail;
     }
   return list;
 }
@@ -181,9 +170,8 @@ scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
 static Lisp_Object
 scrub_undo_list (Lisp_Object list)
 {
-  Lisp_Object tail, *prev = &list;
-
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
+  Lisp_Object prev = Qnil;
+  for (Lisp_Object tail = list; !NILP (tail); tail = XCDR (tail))
     {
       bool drop = false;
       Lisp_Object entry = XCAR (tail);
@@ -193,18 +181,29 @@ scrub_undo_list (Lisp_Object list)
 	  && EQ (Fnth (make_fixnum (3), entry),
 		 Qundo__adjust_weak_markers))
 	{
+	  Lisp_Object p1 = Fnthcdr (make_fixnum (4), entry);
+	  Lisp_Object p2 = XCDR (p1);
+	  Lisp_Object list1 = XCAR (p1);
+	  Lisp_Object list2 = CAR (p2);
 	  Lisp_Object htab = weak_marker_table.id_to_marker;
-	  Lisp_Object head = Fnthcdr (make_fixnum (3), entry);
-	  Lisp_Object pairs
-	    = scrub_id_offset_pairs (htab, XCDR (head));
-	  if (!BASE_EQ (pairs, XCDR (head)))
-	    XSETCDR (head, pairs);
-	  drop = NILP (pairs);
+	  Lisp_Object l1 = scrub_id_offset_pairs (htab, list1);
+	  Lisp_Object l2 = scrub_id_offset_pairs (htab, list2);
+	  if (!BASE_EQ (l1, list1))
+	    XSETCAR (p1, l1);
+	  if (NILP (l2) && !NILP (p2))
+	    XSETCDR (p1, Qnil);
+	  else if (!BASE_EQ (l2, list2))
+	    XSETCAR (p2, l2);
+	  eassert (!NILP (l2) || NILP (XCDR (p1)));
+	  drop = NILP (l1) && NILP (l2);
 	}
       if (drop)
-	*prev = XCDR (tail);
+	if (NILP (prev))
+	  list = XCDR (tail);
+	else
+	  XSETCDR (prev, XCDR (tail));
       else
-	prev = xcdr_addr (tail);
+	prev = tail;
     }
   return list;
 }
@@ -283,8 +282,8 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
   prepare_record ();
 
 #ifdef HAVE_MPS
-  Lisp_Object left = Qnil;
-  Lisp_Object right = Qnil;
+  Lisp_Object list1 = Qnil;
+  Lisp_Object list2 = Qnil;	/* list for insertion-type = t */
 
   DO_MARKERS (current_buffer, m)
     {
@@ -301,24 +300,23 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
       Lisp_Object offset = make_fixnum (delta);
       Lisp_Object pair = Fcons (id, offset);
       if (m->insertion_type)
-	left = Fcons (pair, left);
+	list2 = Fcons (pair, list2);
       else
-	right = Fcons (pair, right);
+	list1 = Fcons (pair, list1);
     }
   END_DO_MARKERS;
 
-  if (!NILP (right) || !NILP (left))
+  if (!NILP (list1) || !NILP (list2))
     {
-      Lisp_Object l
-	= list4 (Qapply, make_fixnum (0),
-		 Fcons (make_fixnum (from), make_fixnum (to)),
-		 Qundo__adjust_weak_markers);
-      Lisp_Object args = Qnil;
-      if (!NILP (right))
-	args = Fcons (Qnil, right);
-      if (!NILP (left))
-	args = Fcons (Qt, nconc2 (left, args));
-      Lisp_Object entry = nconc2 (l, args);
+      Lisp_Object a[]
+	= { Qapply,
+	    make_fixnum (0),
+	    Fcons (make_fixnum (from), make_fixnum (to)),
+	    Qundo__adjust_weak_markers,
+	    list1,
+	    list2 };
+      Lisp_Object entry
+	= Flist (countof (a) - (NILP (list2) ? 1 : 0), a);
       bset_undo_list (current_buffer,
 		      Fcons (entry,
 			     BVAR (current_buffer, undo_list)));
