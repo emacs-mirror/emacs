@@ -2121,7 +2121,8 @@ This function doesn't move point."
                            (save-excursion
                              (goto-char event-point)
                              (setq event-lbp (line-beginning-position)
-                                   event-lep (line-end-position)))
+                                   event-lep (min (1+ (line-end-position))
+                                                  (point-max))))
                            (setq event-diags
                                  (flymake-diagnostics event-lbp
                                                       event-lep))
