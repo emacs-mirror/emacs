@@ -287,7 +287,7 @@ get_current_dir_name_or_unreachable (void)
   bufsize_max = min (bufsize_max, PATH_MAX);
 #endif
 
-# if HAVE_GET_CURRENT_DIR_NAME && !BROKEN_GET_CURRENT_DIR_NAME
+# if HAVE_GET_CURRENT_DIR_NAME
   bool use_libc = true;
   if (use_libc)
     {
