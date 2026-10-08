@@ -223,13 +223,13 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_itree_tree_A8CE87B78A
 #  error "struct itree_tree changed"
 # endif
-# ifndef HASH_image_5576A094B1
+# ifndef HASH_image_3C8DF4B60F
 #  error "struct image changed"
 # endif
 # ifndef HASH_image_cache_3EC6F9D296
 #  error "struct image_cache changed"
 # endif
-# ifndef HASH_face_97AE235079
+# ifndef HASH_face_998B967A9E
 #  error "struct face changed"
 # endif
 # ifndef HASH_face_cache_C289FB8D72
