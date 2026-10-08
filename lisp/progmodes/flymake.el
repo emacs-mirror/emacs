@@ -2107,7 +2107,7 @@ margins and fringes, use the first diagnostic in the corresponding line,
 else look in the click position.  For non-mouse events, look for
 diagnostics at point.
 
-This function doesn't move point"
+This function doesn't move point."
   (interactive
    (let* ((diags
            (if (mouse-event-p last-command-event)
@@ -2117,17 +2117,21 @@ This function doesn't move point"
                    (let ((event-point (posn-point
                                        (event-end last-command-event))))
                      (or (flymake-diagnostics event-point)
-                         (let (event-lbp event-lep)
+                         (let (event-lbp event-lep event-diags)
                            (save-excursion
                              (goto-char event-point)
                              (setq event-lbp (line-beginning-position)
                                    event-lep (line-end-position)))
-                           (flymake-diagnostics event-lbp
-                                                event-lep))))))
+                           (setq event-diags
+                                 (flymake-diagnostics event-lbp
+                                                      event-lep))
+                           (unless event-diags
+                             (error "No diagnostics here"))
+                           event-diags)))))
              (flymake-diagnostics (point))))
           (diag (car diags)))
-     (unless diag
-       (error "No diagnostics here"))
+     (unless (flymake-diagnostics)
+       (user-error "No diagnostics in the current buffer"))
      (list diag)))
   (unless flymake-mode
     (user-error "Flymake mode is not enabled in the current buffer"))
