@@ -2828,7 +2828,7 @@ w32_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
         {
-	  unsigned long thickness = (underline_text_scaling_p
+	  unsigned long thickness = (underline_line_scaling_flag
 				     ? scaled_thickness : 1);
           if (s->face->underline == FACE_UNDERLINE_WAVE)
             {
@@ -2943,7 +2943,7 @@ w32_draw_glyph_string (struct glyph_string *s)
       /* Draw overline.  */
       if (s->face->overline_p)
         {
-          unsigned long dy = 0, h = overline_text_scaling_p ? scaled_thickness : 1;
+          unsigned long dy = 0, h = overline_line_scaling_flag ? scaled_thickness : 1;
 
           if (s->face->overline_color_defaulted_p)
             {
@@ -2970,7 +2970,7 @@ w32_draw_glyph_string (struct glyph_string *s)
 	  int glyph_height = s->first_glyph->ascent + s->first_glyph->descent;
 	  /* Strike-through width and offset from the glyph string's
 	     top edge.  */
-          unsigned long h = strike_through_text_scaling_p ? scaled_thickness : 1;
+          unsigned long h = strike_through_line_scaling_flag ? scaled_thickness : 1;
           unsigned long dy = (glyph_height - h) / 2;
 
           if (s->face->strike_through_color_defaulted_p)

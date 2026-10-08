@@ -95,12 +95,6 @@ commands invoked from the menu will operate on the right buffer.
 You can restore the previous behavior by removing
 'mode-line-window-select' from 'x-pre-popup-menu-hook'.
 
-** Header line
-
-*** New face 'header-line-emphasis'.
-This corresponds to the face 'header-line-highlight' as
-'mode-line-emphasis' corresponds to 'mode-line-highlight'.
-
 ** Minibuffer
 
 ---
@@ -137,8 +131,21 @@ of the terminal emulator:
   first code point in the sequence.  In this case, it might help to set
   'tty-display-emoji-force-wide' to nil.
 
+** Faces
+
+*** New face 'header-line-emphasis'.
+This corresponds to the face 'header-line-highlight' as
+'mode-line-emphasis' corresponds to 'mode-line-highlight'.
+
+*** Underline, overline, and strike-through can now be scaled with text.
+The thickness of the line of these face attributes can now optionally
+be scaled when the text is scaled.  This is by default off; you can use
+the new variables 'underline-line-scaling-flag',
+'overline-line-scaling-flag' and 'strike-through-line-scaling-flag' to
+control the scaling for each attribute.
+
 ---
-** Support for overline face attributes on text-only terminals.
+*** Support for overline face attributes on text-only terminals.
 Emacs now displays overlines on text-only terminals.  Terminal support
 for overline is determined based on the 'Smol' capability in the
 terminfo database.  For terminals where the terminfo database does not

@@ -39314,26 +39314,23 @@ baseline.  The default value is 1.  */);
   underline_minimum_offset = 1;
   DEFSYM (Qunderline_minimum_offset, "underline-minimum-offset");
 
-  DEFVAR_BOOL ("underline-text-scaling-p",
-	       underline_text_scaling_p,
-     doc: /* Non-nil means scale underline with text scaling when drawn.
-This can make underline more prominent.
-This option is off by default.  */);
-  underline_text_scaling_p = false;
+  DEFVAR_BOOL ("underline-line-scaling-flag",
+	       underline_line_scaling_flag,
+     doc: /* Non-nil means scale the underline line with text scaling.
+This can make underline more prominent with large scaling.  */);
+  underline_line_scaling_flag = false;
 
-  DEFVAR_BOOL ("overline-text-scaling-p",
-	       overline_text_scaling_p,
-     doc: /* Non-nil means scale overline with text scaling when drawn.
-This can make overline more prominent.
-This option is off by default.  */);
-  overline_text_scaling_p = false;
+  DEFVAR_BOOL ("overline-line-scaling-flag",
+	       overline_line_scaling_flag,
+     doc: /* Non-nil means scale the overline line with text scaling.
+This can make overline more prominent with large scaling.  */);
+  overline_line_scaling_flag = false;
 
-  DEFVAR_BOOL ("strike-through-text-scaling-p",
-	       strike_through_text_scaling_p,
-     doc: /* Non-nil means scale strike-through with text scaling when drawn.
-This can make strike-through more prominent.
-This option is off by default.  */);
-  strike_through_text_scaling_p = false;
+  DEFVAR_BOOL ("strike-through-line-scaling-flag",
+	       strike_through_line_scaling_flag,
+     doc: /* Non-nil means scale the strike-through line with text scaling.
+This can make strike-through more prominent with large scaling.  */);
+  strike_through_line_scaling_flag = false;
 
   DEFVAR_BOOL ("display-hourglass", display_hourglass_p,
 	       doc: /* Non-nil means show an hourglass pointer, when Emacs is busy.
