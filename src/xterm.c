@@ -19818,12 +19818,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	  else
 	    {
-	      Window root;
-	      unsigned int dummy_uint;
-
-	      XGetGeometry (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			    &root, &f->left_pos, &f->top_pos,
-			    &dummy_uint, &dummy_uint, &dummy_uint, &dummy_uint);
+	      f->left_pos = event->xreparent.x;
+	      f->top_pos = event->xreparent.y;
 	    }
 
           x_set_frame_alpha (f);
