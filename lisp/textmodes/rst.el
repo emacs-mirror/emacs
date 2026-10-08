@@ -2234,63 +2234,9 @@ in order to adapt it to our preferred style."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Insert list items
 
-;; Borrowed from a2r.el (version 1.3), by Lawrence Mitchell <wence@gmx.li>.  I
-;; needed to make some tiny changes to the functions, so I put it here.
-;; -- Wei-Wei Guo
-
-(defconst rst-arabic-to-roman
-  '((1000 .   "M") (900  .  "CM") (500  .   "D") (400  .  "CD")
-    (100  .   "C") (90   .  "XC") (50   .   "L") (40   .  "XL")
-    (10   .   "X") (9    .  "IX") (5    .   "V") (4    .  "IV")
-    (1    .   "I"))
-  "List of maps between Arabic numbers and their Roman numeral equivalents.")
-
-(defun rst-arabic-to-roman (num)
-  ;; testcover: ok.
-  "Convert Arabic number NUM to its Roman numeral representation.
-
-Obviously, NUM must be greater than zero.  Don't blame me, blame the
-Romans, I mean \"what have the Romans ever _done_ for /us/?\" (with
-apologies to Monty Python)."
-  (cl-check-type num (integer 1 *))
-  (let ((map rst-arabic-to-roman)
-        (r ""))
-    (while (and map (> num 0))
-      (cl-destructuring-bind ((val &rest sym) &rest next) map
-	(if (>= num val)
-	    (setq r (concat r sym)
-		  num (- num val))
-	  (setq map next))))
-    r))
-
-(defun rst-roman-to-arabic (string)
-  ;; testcover: ok.
-  "Convert STRING of Roman numerals to an Arabic number.
-If STRING contains a letter which isn't a valid Roman numeral,
-the rest of the string from that point onwards is ignored.
-Hence:
-MMD == 2500
-and
-MMDFLXXVI == 2500."
-  (cl-check-type string string)
-  (cl-check-type string (satisfies (lambda (s)
-				     (not (equal s ""))))
-		 "Roman number may not be an empty string.")
-  (let ((res 0)
-        (map rst-arabic-to-roman))
-    (save-match-data
-      (while map
-	(cl-destructuring-bind ((val &rest sym) &rest next) map
-	  (if (string-match (concat "^" sym) string)
-	      (setq res (+ res val)
-		    string (replace-match "" nil t string))
-	    (setq map next))))
-      (cl-check-type string (satisfies (lambda (s)
-					 (equal s "")))
-		     "Invalid characters in roman number")
-      res)))
-
-;; End of borrow.
+(define-obsolete-variable-alias 'rst-arabic-to-roman 'number-to-roman "31.1")
+(define-obsolete-function-alias 'rst-arabic-to-roman 'number-to-roman "31.1")
+(define-obsolete-function-alias 'rst-roman-to-arabic 'roman-to-number "31.1")
 
 ;; FIXME: All the following code should not consider single lines as items but
 ;;        paragraphs as reST does.
@@ -2369,10 +2315,10 @@ also arranged by `rst-insert-list-new-tag'."
 		(upcase (substring itemno 0 1))))
 	     ((equal cnt "I")
 	      (let ((itemno (read-number "Give starting value: " 1)))
-		(rst-arabic-to-roman itemno)))
+		(number-to-roman itemno)))
 	     ((equal cnt "i")
 	      (let ((itemno (read-number "Give starting value: " 1)))
-		(downcase (rst-arabic-to-roman itemno))))
+		(downcase (number-to-roman itemno))))
 	     ((equal cnt "1")
 	      (let ((itemno (read-number "Give starting value: " 1)))
 		(number-to-string itemno)))))))
@@ -2429,8 +2375,8 @@ PREFER-ROMAN roman numbering is preferred over using letters."
 		       prefer-roman)) ; Don't know - use flag.
 		 t))) ; Not a letter tag.
 	    (let* ((old (match-string 0 cnt))
-		   (new (rst-arabic-to-roman
-			 (1+ (rst-roman-to-arabic (upcase old))))))
+		   (new (number-to-roman
+			 (1+ (roman-to-number (upcase old))))))
 	      (if (equal old (upcase old))
 		  (upcase new)
 		(downcase new))))

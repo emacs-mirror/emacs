@@ -748,6 +748,12 @@ The argument can also be a function of two parameters suitable as the
 ':lessp' argument of 'sort'.  For example, 'string-collate-lessp' would
 result in the locale-specific collation order one might see in Dired.
 
+---
+** New functions 'number-to-roman' and 'roman-to-number'.
+These functions convert between numbers and their Roman numeral forms.
+They were previously part of 'rst-mode' (as 'rst-arabic-to-roman' and
+'rst-roman-to-arabic'), but are now available as autoloaded functions.
+
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems
 

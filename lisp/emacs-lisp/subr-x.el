@@ -500,6 +500,64 @@ and the current buffer must be displayed in some window."
         (setq start (1+ start))))
     (nreverse result)))
 
+;; Borrowed from a2r.el (version 1.3), by Lawrence Mitchell <wence@gmx.li>.  I
+;; needed to make some tiny changes to the functions, so I put it here.
+;; -- Wei-Wei Guo
+
+(defconst number-to-roman
+  '((1000 .   "M") (900  .  "CM") (500  .   "D") (400  .  "CD")
+    (100  .   "C") (90   .  "XC") (50   .   "L") (40   .  "XL")
+    (10   .   "X") (9    .  "IX") (5    .   "V") (4    .  "IV")
+    (1    .   "I"))
+  "List of maps between numbers and their Roman numeral equivalents.")
+
+;;;###autoload
+(defun number-to-roman (num)
+  "Convert number NUM to its Roman numeral representation.
+
+Obviously, NUM must be greater than zero.  Don't blame me, blame the
+Romans, I mean \"what have the Romans ever _done_ for /us/?\" (with
+apologies to Monty Python)."
+  (cl-check-type num (integer 1 *))
+  (let ((map number-to-roman)
+        (r ""))
+    (while (and map (> num 0))
+      (cl-destructuring-bind ((val &rest sym) &rest next) map
+	(if (>= num val)
+	    (setq r (concat r sym)
+		  num (- num val))
+	  (setq map next))))
+    r))
+
+;;;###autoload
+(defun roman-to-number (string)
+  "Convert STRING of Roman numerals to an number.
+If STRING contains a letter which isn't a valid Roman numeral,
+the rest of the string from that point onwards is ignored.
+Hence:
+MMD == 2500
+and
+MMDFLXXVI == 2500."
+  (cl-check-type string string)
+  (cl-check-type string (satisfies (lambda (s)
+				     (not (equal s ""))))
+		 "Roman number may not be an empty string.")
+  (let ((res 0)
+        (map number-to-roman))
+    (save-match-data
+      (while map
+	(cl-destructuring-bind ((val &rest sym) &rest next) map
+	  (if (string-match (concat "^" sym) string)
+	      (setq res (+ res val)
+		    string (replace-match "" nil t string))
+	    (setq map next))))
+      (cl-check-type string (satisfies (lambda (s)
+					 (equal s "")))
+		     "Invalid characters in roman number")
+      res)))
+
+;; End of borrow.
+
 (defun add-remove--display-text-property (start end spec value
                                                 &optional object remove)
   (let ((sub-start start)
