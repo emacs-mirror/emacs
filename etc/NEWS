@@ -484,6 +484,12 @@ using lexical binding.
 Previously, HTML list items (<li>) were indented with a narrower width
 than <blockquote> elements.  Now, they all have the same indent width.
 
+---
+*** Ordered lists now support attributes modifying their appearance.
+Now, HTML ordered lists (<ol>) support changing the type (e.g. to use
+letters instead of numbers), the order (ascending or descending), and
+the starting value.
+
 ** Dired
 
 *** The 'repeat-mode' key 'j' has been removed from 'dired-jump-repeat-map'.
