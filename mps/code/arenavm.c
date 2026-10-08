@@ -907,6 +907,12 @@ static void spareRangeRelease(VMChunk vmChunk, Index piBase, Index piLimit)
     Index extendBasePI = INDEX_OF_ADDR(chunk, extendBase);
     Addr extendLimit = AddrAdd(extendBase, ArenaGrainSize(arena));
     RangeStruct extendRange;
+    AVER(res != ResRESOURCE);
+    AVER(res != ResMEMORY);
+    AVER(res != ResUNIMPL);
+    AVER(res != ResIO);
+    AVER(res != ResCOMMIT_LIMIT);
+    AVER(res != ResPARAM);
     AVER(res == ResLIMIT);
     RangeInit(&extendRange, extendBase, extendLimit);
     AVER(!RangesOverlap(&extendRange, &range));
