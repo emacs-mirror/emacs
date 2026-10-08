@@ -29545,16 +29545,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	}
 
     case 'e':
-#if !defined SYSTEM_MALLOC
-      {
-	if (NILP (Vmemory_full))
-	  return "";
-	else
-	  return "!MEM FULL! ";
-      }
-#else
-      return "";
-#endif
+      return !NILP (Vmemory_full) ? "!MEM FULL! " : "";
 
     case 'F':
       /* %F displays the frame name.  */

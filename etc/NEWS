@@ -95,6 +95,10 @@ commands invoked from the menu will operate on the right buffer.
 You can restore the previous behavior by removing
 'mode-line-window-select' from 'x-pre-popup-menu-hook'.
 
+---
+*** %e in the mode line now expands to a warning when memory is low.
+Previously this behavior had been inadvertently limited to MS-DOS.
+
 ** Minibuffer
 
 ---
