@@ -182,20 +182,12 @@ scrub_undo_list (Lisp_Object list)
 		 Qundo__adjust_weak_markers))
 	{
 	  Lisp_Object p1 = Fnthcdr (make_fixnum (4), entry);
-	  Lisp_Object p2 = XCDR (p1);
 	  Lisp_Object list1 = XCAR (p1);
-	  Lisp_Object list2 = CAR (p2);
 	  Lisp_Object htab = weak_marker_table.id_to_marker;
-	  Lisp_Object l1 = scrub_id_offset_pairs (htab, list1);
-	  Lisp_Object l2 = scrub_id_offset_pairs (htab, list2);
-	  if (!BASE_EQ (l1, list1))
-	    XSETCAR (p1, l1);
-	  if (NILP (l2) && !NILP (p2))
-	    XSETCDR (p1, Qnil);
-	  else if (!BASE_EQ (l2, list2))
-	    XSETCAR (p2, l2);
-	  eassert (!NILP (l2) || NILP (XCDR (p1)));
-	  drop = NILP (l1) && NILP (l2);
+	  Lisp_Object list2 = scrub_id_offset_pairs (htab, list1);
+	  if (!BASE_EQ (list2, list1))
+	    XSETCAR (p1, list2);
+	  drop = NILP (list2);
 	}
       if (drop)
 	if (NILP (prev))
@@ -225,9 +217,12 @@ scrub_undo_lists (void)
   FOR_EACH_LIVE_BUFFER (tail, buffer)
     {
       struct buffer *b = XBUFFER (buffer);
-      if (EQ (BVAR (b, undo_list), Qt))
+      Lisp_Object undo_list1 = BVAR (b, undo_list);
+      if (EQ (undo_list1, Qt))
 	continue;
-      bset_undo_list (b, scrub_undo_list (BVAR (b, undo_list)));
+      Lisp_Object undo_list2 = scrub_undo_list (undo_list1);
+      if (!BASE_EQ (undo_list1, undo_list2))
+	bset_undo_list (b, undo_list2);
     }
 }
 
@@ -282,9 +277,7 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
   prepare_record ();
 
 #ifdef HAVE_MPS
-  Lisp_Object list1 = Qnil;
-  Lisp_Object list2 = Qnil;	/* list for insertion-type = t */
-
+  Lisp_Object list = Qnil;
   DO_MARKERS (current_buffer, m)
     {
       ptrdiff_t charpos = m->charpos;
@@ -298,25 +291,16 @@ record_marker_adjustments (ptrdiff_t from, ptrdiff_t to)
       Lisp_Object id
 	= alloc_weak_marker_id (&weak_marker_table, marker);
       Lisp_Object offset = make_fixnum (delta);
-      Lisp_Object pair = Fcons (id, offset);
-      if (m->insertion_type)
-	list2 = Fcons (pair, list2);
-      else
-	list1 = Fcons (pair, list1);
+      list =  Fcons (Fcons (id, offset), list);
     }
   END_DO_MARKERS;
 
-  if (!NILP (list1) || !NILP (list2))
+  if (!NILP (list))
     {
-      Lisp_Object a[]
-	= { Qapply,
-	    make_fixnum (0),
-	    Fcons (make_fixnum (from), make_fixnum (to)),
-	    Qundo__adjust_weak_markers,
-	    list1,
-	    list2 };
       Lisp_Object entry
-	= Flist (countof (a) - (NILP (list2) ? 1 : 0), a);
+	= list (Qapply, make_fixnum (0),
+		Fcons (make_fixnum (from), make_fixnum (to)),
+		Qundo__adjust_weak_markers, list);
       bset_undo_list (current_buffer,
 		      Fcons (entry,
 			     BVAR (current_buffer, undo_list)));

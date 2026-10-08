@@ -680,7 +680,7 @@ sufficiently large to avoid truncation."
     (cond ((featurep 'mps)
            (should (pcase-exhaustive (nth 1 buffer-undo-list)
                      (`(apply 0 (1 . 6) undo--adjust-weak-markers
-                              ((,_ . 1)) ((,_ . -1)))
+                              ((,_ . 1) (,_ . -1)))
                       t)
                      (`,_ nil))))
           (t
