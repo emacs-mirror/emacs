@@ -42,7 +42,8 @@
   "Open a \"doi\" type link.
 PATH is a the path to search for, as a string.
 ARG is passed to `browse-url'."
-  (browse-url (url-encode-url (concat org-link-doi-server-url path)) arg))
+  (browse-url (url-encode-url (concat org-link-doi-server-url path))
+              (xor (bound-and-true-p browse-url-new-window-flag) arg)))
 
 (defun org-link-doi-export (path desc backend info)
   "Export a \"doi\" type link.

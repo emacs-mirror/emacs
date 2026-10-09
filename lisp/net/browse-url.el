@@ -725,14 +725,6 @@ instead."
 				(browse-url-url-at-point)))
 	(xor browse-url-new-window-flag current-prefix-arg)))
 
-;; called-interactive-p needs to be called at a function's top-level, hence
-;; this macro.  We use that rather than interactive-p because
-;; use in a keyboard macro should not change this behavior.
-(defmacro browse-url-maybe-new-window (arg)
-  `(if (or noninteractive (not (called-interactively-p 'any)))
-       ,arg
-     browse-url-new-window-flag))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browse current buffer
 
@@ -901,12 +893,20 @@ URL at or before point.
 The additional ARGS are passed to the browser function.  See the
 doc strings of the actual functions, starting with
 `browse-url-browser-function', for information about the
-significance of ARGS (most of the functions ignore it).
+significance of ARGS (many of the functions ignore it).
 
 If ARGS are omitted, the default is to pass
 `browse-url-new-window-flag' as ARGS.  Interactively, pass the
 prefix arg as ARGS; if `browse-url-new-window-flag' is non-nil,
-invert the prefix arg instead."
+invert the prefix arg instead.
+
+In the case of a command that calls this function where a prefix
+argument should mean to open a new window, the command should call this
+function like this so that it works the same as the various
+`browse-url-browser-function' values directly called interactively:
+    (browse-url ...
+                (xor (bound-and-true-p browse-url-new-window-flag)
+                     current-prefix-arg))"
   (interactive (browse-url-interactive-arg "URL: "))
   (unless (called-interactively-p 'interactive)
     (setq args (or args (list browse-url-new-window-flag))))
@@ -1187,8 +1187,7 @@ used instead of `browse-url-new-window-flag'."
 		  (list "-remote"
 			(concat "openURL("
 				url
-				(if (browse-url-maybe-new-window
-				     new-window)
+				(if new-window
 				    (if browse-url-mozilla-new-window-is-tab
 					",new-tab"
 				      ",new-window"))
@@ -1235,7 +1234,7 @@ instead of `browse-url-new-window-flag'."
            browse-url-firefox-program
            (append
             browse-url-firefox-arguments
-            (if (browse-url-maybe-new-window new-window)
+            (if new-window
 		(if browse-url-firefox-new-window-is-tab
 		    '("-new-tab")
 		  '("-new-window")))
@@ -1263,8 +1262,7 @@ instead of `browse-url-new-window-flag'."
 	   (concat "chromium " url) nil
 	   browse-url-chromium-program
 	   (append browse-url-chromium-arguments
-                   (and (browse-url-maybe-new-window new-window)
-                        '("--new-window"))
+                   (and new-window '("--new-window"))
 	           (list url)))))
 
 (function-put 'browse-url-chromium 'browse-url-browser-kind 'external)
@@ -1288,8 +1286,7 @@ instead of `browse-url-new-window-flag'."
 	   (concat "google-chrome " url) nil
 	   browse-url-chrome-program
 	   (append browse-url-chrome-arguments
-                   (and (browse-url-maybe-new-window new-window)
-                        '("--new-window"))
+                   (and new-window '("--new-window"))
 	           (list url)))))
 
 (function-put 'browse-url-chrome 'browse-url-browser-kind 'external)
@@ -1320,7 +1317,7 @@ used instead of `browse-url-new-window-flag'."
 			 browse-url-epiphany-program
 			 (append
 			  browse-url-epiphany-arguments
-                          (if (browse-url-maybe-new-window new-window)
+                          (if new-window
 			      (if browse-url-epiphany-new-window-is-tab
 				  '("--new-tab")
 				'("--new-window" "--noraise"))
@@ -1385,7 +1382,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (let ((cmd (concat ":open "
-                     (and (browse-url-maybe-new-window new-window)
+                     (and new-window
                           (if browse-url-qutebrowser-new-window-is-tab
                               "-t " "-w "))
                      (browse-url-encode-url url))))
@@ -1523,9 +1520,7 @@ used instead of `browse-url-new-window-flag'."
   (declare (obsolete nil "29.1"))
   (interactive (browse-url-interactive-arg "W3 URL: "))
   (require 'w3)			; w3-fetch-other-window not autoloaded
-  (if (browse-url-maybe-new-window new-window)
-      (w3-fetch-other-window url)
-    (w3-fetch url)))
+  (if new-window (w3-fetch-other-window url) (w3-fetch url)))
 
 (function-put 'browse-url-w3 'browse-url-browser-kind 'internal)
 
@@ -1575,13 +1570,13 @@ used instead of `browse-url-new-window-flag'."
 	 (proc (and buf (get-buffer-process buf)))
 	 (n browse-url-text-input-attempts))
     (require 'term)
-    (if (and (browse-url-maybe-new-window new-buffer) buf)
+    (if (and new-buffer buf)
 	;; Rename away the OLD buffer.  This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
 	;; choke on *lynx*<1>
 	(progn (set-buffer buf)
 	       (rename-uniquely)))
-    (if (or (browse-url-maybe-new-window new-buffer)
+    (if (or new-buffer
 	    (not buf)
 	    (not proc)
 	    (not (memq (process-status proc) '(run stop))))
@@ -1664,7 +1659,7 @@ used instead of `browse-url-new-window-flag'."
 	   (subject (cdr subject))
 	   (body (cdr body))
 	   (mail-citation-hook (unless body mail-citation-hook)))
-      (if (browse-url-maybe-new-window new-window)
+      (if new-window
 	  (compose-mail-other-window to subject rest nil
 				     (list 'insert-buffer (current-buffer)))
 	(compose-mail to subject rest nil nil

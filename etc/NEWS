@@ -465,10 +465,27 @@ non-nil value.
 *** 'tramp-recompile-elpa' is marked obsolete.
 Use 'package-recompile' instead.
 
+** Browse URL
+
 ---
 *** 'browse-url-chromium' and 'browse-url-chrome' can open new windows.
 These functions no longer ignore the browse-url-new-window-flag user
 option and the NEW-WINDOW optional argument.
+
+---
+*** Prefix arguments to several 'browse-url-browser-function' values fixed.
+Now, like with 'browse-url', a prefix argument to these commands inverts
+the meaning of 'browse-url-new-window-flag' instead of always meaning to
+use a new window.  (This was always how it was intended to work, there
+was a bug.)
+
+** Rcirc
+
+---
+*** Prefix argument to 'rcirc-browse-url' enhanced.
+Now, like with 'browse-url', a prefix argument to this command inverts
+the meaning of 'browse-url-new-window-flag' instead of always meaning to
+use a new window.
 
 
 * New Modes and Packages in Emacs 32.1

@@ -2423,10 +2423,12 @@ string\"."
 
 ;;;; "http", "https", "mailto", "ftp", and "news" link types
 (dolist (scheme '("ftp" "http" "https" "mailto" "news"))
-  (org-link-set-parameters scheme
-			   :follow
-			   (lambda (url arg)
-			     (browse-url (concat scheme ":" url) arg))))
+  (org-link-set-parameters
+   scheme :follow
+   (lambda (url arg)
+     (browse-url (concat scheme ":" url)
+                 (xor (bound-and-true-p browse-url-new-window-flag)
+                      arg)))))
 
 ;;;; "shell" link type
 (defun org-link--open-shell (path _)
