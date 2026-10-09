@@ -34,6 +34,13 @@ now sends such completions, so set the variable to nil to keep the
 behavior of earlier clangd versions (which used a inserting
 'TextEdit').  See docstring for an example.
 
+** Code actions and renaming now use the new Refactor library
+
+Eglot's code actions machinery has moved to the new Refactor package,
+for which Eglot is now a backend.  The old commands are obsolete aliases
+for Refactor's: for example, 'eglot-code-actions' is now 'M-x refactor'
+and 'eglot-rename' is now 'M-x refactor-rename'.
+
 ** Miscellaneous bugs fixed (bug#81593, bug#81538, bug#81514, bug#81425)
 
 
