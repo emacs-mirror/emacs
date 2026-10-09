@@ -20115,8 +20115,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              first time, i.e. from the command line.  */
           if (!f->output_data.x->has_been_visible)
 	    {
-
-	      x_check_fullscreen (f);
+	      if (!FRAME_PARENT_FRAME (f))
+		x_check_fullscreen (f);
 #ifndef USE_GTK
 	      /* For systems that cannot synthesize `skip_taskbar' for
 		 unmapped windows do the following.  */
