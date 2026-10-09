@@ -2097,7 +2097,7 @@ moving."
 (defun flymake--fit-diagnostics-window (window)
   (fit-window-to-buffer window 15 8))
 
-(defun flymake-show-buffer-diagnostics (&optional diagnostic)
+(defun flymake-show-buffer-diagnostics (&optional diagnostic event)
   "Show listing of Flymake diagnostics for current buffer.
 With optional DIAGNOSTIC, find and highlight this diagnostic in the
 listing.
@@ -2131,11 +2131,16 @@ This function doesn't move point."
                            event-diags)))))
              (flymake-diagnostics (point))))
           (diag (car diags)))
-     (unless (flymake-diagnostics)
-       (user-error "No diagnostics in the current buffer"))
-     (list diag)))
+     (list diag last-input-event)))
+  (when-let* ((_ (mouse-event-p event))
+              (window (posn-window (event-start event)))
+              (_ (windowp window))
+              (_ (not (eq (selected-window) window))))
+    (mouse-select-window event))
   (unless flymake-mode
     (user-error "Flymake mode is not enabled in the current buffer"))
+  (unless (flymake-diagnostics)
+    (user-error "No diagnostics in the current buffer"))
   (let* ((name (flymake--diagnostics-buffer-name))
          (source (current-buffer))
          (target (or (get-buffer name)
