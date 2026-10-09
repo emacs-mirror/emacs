@@ -533,6 +533,16 @@ Identifiers (UUIDs).  It provides methods for generating UUIDs, parsing
 them, and outputting them as a string, a unibyte binary string, or as a
 number.
 
++++
+** New library 'refactor'.
+This library provides a language-agnostic interface for performing
+refactoring actions such as renaming identifiers, extracting and
+inlining functions, and fixing diagnostics.  Its commands include
+'M-x refactor' and 'M-x refactor-rename'.  The actual actions are
+supplied by Refactor backends defined by major modes and packages.
+Refactor was extracted from Eglot, which is its main user and backend.
+The library is also available as a GNU ELPA package.
+
 
 * Incompatible Lisp Changes in Emacs 32.1
 

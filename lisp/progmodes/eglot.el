@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (eldoc "1.16.0") (external-completion "0.1") (flymake "1.4.5") (jsonrpc "1.0.29") (project "0.11.2") (seq "2.23") (xref "1.7.0"))
+;; Package-Requires: ((emacs "26.3") (eldoc "1.16.0") (external-completion "0.1") (flymake "1.4.5") (jsonrpc "1.0.29") (project "0.11.2") (refactor "0.1") (seq "2.23") (xref "1.7.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -45,12 +45,14 @@
 ;; * Eglot's main job is to hook up the information that language
 ;;   servers offer via LSP to Emacs's UI facilities: Xref for
 ;;   definition-chasing, Flymake for diagnostics, Eldoc for at-point
-;;   documentation, etc.  Eglot's job is generally *not* to provide
-;;   such a UI itself, though a small number of simple
-;;   counter-examples do exist, e.g. in the `eglot-rename' command or
-;;   the `eglot-inlay-hints-mode' minor mode.  When a new UI is
-;;   evidently needed, consider adding a new package to Emacs, or
-;;   extending an existing one.
+;;   documentation, Refactor for code action collection and execution,
+;;   etc.  Eglot's job is generally *not* to provide such a UI itself,
+;;   though a fair number of simple counter-examples do exist, e.g. in
+;;   the `eglot-inlay-hints-mode' and `eglot-semantic-tokens-mode' minor
+;;   modes, and the `eglot-show-call-hierarchy' and
+;;   `eglot-show-type-hierarchy' commands.  When a new UI is evidently
+;;   needed, consider adding a new package to Emacs, or extending an
+;;   existing one.
 ;;
 ;; * Eglot was designed to function with just the UI facilities found
 ;;   in the latest Emacs core, as long as those facilities are also
@@ -129,7 +131,7 @@
     (funcall reload 'seq nil 'reload)
     ;; For those packages which are not preloaded OTOH, signal an error if
     ;; the loaded file is not the one that should have been loaded.
-    (mapc reload '(project flymake xref jsonrpc external-completion))))
+    (mapc reload '(project flymake xref jsonrpc external-completion refactor))))
 
 ;; Keep the eval-when-compile requires at the end, in case it's already been
 ;; required unconditionally by some earlier `require'.
@@ -501,40 +503,6 @@ the LSP connection.  That can be done by `eglot-reconnect'."
                             (const :tag "Pretty-printed lisp" lisp)))))
   :package-version '(Eglot . "1.17.30"))
 
-(defcustom eglot-confirm-server-edits '((t . maybe-summary))
-  "Control if changes proposed by LSP should be confirmed with user.
-
-If this variable's value is the symbol `diff', a diff buffer pops
-up, allowing the user to apply each change individually.  If the
-symbol `summary' or any other non-nil value, the user is prompted
-in the minibuffer with a short summary of changes.  The symbols
-`maybe-diff' and `maybe-summary' mean that the confirmation is
-offered to the user only if the changes target files not visited
-in buffers.  Finally, a nil value means all changes are applied
-directly without any confirmation.
-
-This variable's value can also be an alist ((KEY . ACTION) ...)
-where KEY is either a symbol designating the invoked Emacs command
-(such as `eglot-rename', `eglot-code-actions',
-`eglot-code-action-quickfix', etc.), or a list of file operation
-kinds (`create', `rename', `delete') contained in the edit.
-ACTION is one of the symbols described above.  The value t for
-KEY is accepted and its ACTION is the default value for commands
-or file operation kinds not in the alist."
-  :type (let ((basic-choices
-               '((const :tag "Use diff" diff)
-                 (const :tag "Summarize and prompt" summary)
-                 (const :tag "Maybe use diff" maybe-diff)
-                 (const :tag "Maybe summarize and prompt" maybe-summary)
-                 (const :tag "Don't confirm" nil))))
-          `(choice ,@basic-choices
-                   (alist :tag "Per-command or per-kind alist"
-                          :key-type (choice (function :tag "Command")
-                                            (repeat :tag "File operation kinds" symbol)
-                                            (const :tag "Default" t))
-                          :value-type (choice . ,basic-choices))))
-  :package-version '(Eglot . "1.17.30"))
-
 (defcustom eglot-extend-to-xref nil
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
@@ -612,55 +580,6 @@ notification is implementation defined, and is only useful for some
 servers."
   :type 'boolean
   :package-version '(Eglot . "1.22"))
-
-(defface eglot-code-action-indicator-face
-  '((t (:inherit warning :weight bold)))
-  "Face used for code action suggestions.")
-
-(defcustom eglot-code-action-indications
-  '(eldoc-hint left-fringe margin)
-  "How Eglot indicates there's are code actions available at point.
-Value is a list of symbols, more than one can be specified:
-
-- `eldoc-hint': ElDoc is used to hint about at-point actions;
-- `left-fringe': A special indicator appears on the left fringe;
-- `margin': A special indicator appears in the margin;
-- `nearby': A special indicator appears near point;
-- `mode-line': A special indicator appears in the mode-line.
-
-If the list is empty, Eglot will not hint about code actions at point.
-
-Note additionally:
-
-- Some values are incompatible; if one or more of `nearby',
-  `left-fringe' and `margin' are specified, earlier values take
-  precedence.
-- The indicators for many of these are customizable via
- `eglot-code-action-indicator' (which see), except for `left-fringe'.
-- `mode-line' only works if `eglot-mode-line-action-suggestion' exists
-  in `eglot-mode-line-format' (which see)."
-  :type '(set
-          :tag "Tick the ones you're interested in"
-          (const :tag "ElDoc textual hint" eldoc-hint)
-          (const :tag "Right besides point" nearby)
-          (const :tag "In mode line" mode-line)
-          (const :tag "In left fringe" left-fringe)
-          (const :tag "In margin" margin))
-  :package-version '(Eglot . "1.19"))
-
-(defcustom eglot-code-action-indicator
-  (cl-loop for c in '(?↯ ?⭍ ?✓ ?α ??)
-           when (char-displayable-p c)
-           return (make-string 1 c))
-  "Indicator string for code action suggestions."
-  :type (let ((basic-choices
-               (cl-loop for c in '(?↯ ?⭍ ?✓ ?α ??)
-                        when (char-displayable-p c)
-                        collect `(const :tag ,(format "Use `%c'" c)
-                                        ,(make-string 1 c)))))
-          `(choice ,@basic-choices
-                   (string :tag "Specify your own")))
-  :package-version '(Eglot . "1.19"))
 
 (defvar eglot-withhold-process-id nil
   "If non-nil, Eglot will not send the Emacs process id to the language server.
@@ -2421,9 +2340,6 @@ source of a partial report.  VERSION is the LSP Document version
 reported for diagnostics in MAP.  PREV-MAP contains the diagnostics of
 the previous reports for TOKEN.")
 
-(defvar-local eglot--suggestion-overlay (make-overlay 0 0)
-  "Overlay for `eglot-code-action-suggestion'.")
-
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some Eglot project."
   :init-value nil :lighter nil :keymap eglot-mode-map :interactive nil
@@ -2450,6 +2366,9 @@ the previous reports for TOKEN.")
     (add-hook 'after-save-hook #'eglot--signal-textDocument/didSave nil t)
     (unless (eglot--stay-out-of-p 'xref)
       (add-hook 'xref-backend-functions #'eglot-xref-backend nil t))
+    (unless (eglot--stay-out-of-p 'refactor)
+      (add-hook 'refactor-backend-functions #'eglot-refactor-backend nil t)
+      (refactor-suggestion-mode 1))
     (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)
     (add-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush nil t)
     (add-hook 'company-after-completion-hook #'eglot--capf-session-flush nil t)
@@ -2470,8 +2389,7 @@ the previous reports for TOKEN.")
     (unless (eglot--stay-out-of-p 'eldoc)
       (dolist (f (list #'eglot-signature-eldoc-function
                        #'eglot-hover-eldoc-function
-                       #'eglot-highlight-eldoc-function
-                       #'eglot-code-action-suggestion))
+                       #'eglot-highlight-eldoc-function))
         (add-hook 'eldoc-documentation-functions f t t))
       (eldoc-mode 1))
     (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
@@ -2492,6 +2410,8 @@ the previous reports for TOKEN.")
     (remove-hook 'after-save-hook #'eglot--signal-textDocument/didSave t)
     (unless (eglot--stay-out-of-p 'xref)
       (remove-hook 'xref-backend-functions #'eglot-xref-backend t))
+    (unless (eglot--stay-out-of-p 'refactor)
+      (remove-hook 'refactor-backend-functions #'eglot-refactor-backend t))
     (remove-hook 'completion-at-point-functions #'eglot-completion-at-point t)
     (remove-hook 'completion-in-region-mode-hook #'eglot--capf-session-flush t)
     (remove-hook 'company-after-completion-hook #'eglot--capf-session-flush t)
@@ -2501,8 +2421,7 @@ the previous reports for TOKEN.")
     (unless (eglot--stay-out-of-p 'eldoc)
       (dolist (f (list #'eglot-hover-eldoc-function
                        #'eglot-signature-eldoc-function
-                       #'eglot-highlight-eldoc-function
-                       #'eglot-code-action-suggestion))
+                       #'eglot-highlight-eldoc-function))
         (remove-hook 'eldoc-documentation-functions f t)))
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
@@ -2687,8 +2606,7 @@ If it is activated, also signal textDocument/didOpen."
     eglot-mode-line-session
     eglot-mode-line-error
     eglot-mode-line-pending-requests
-    eglot-mode-line-progress
-    eglot-mode-line-action-suggestion)
+    eglot-mode-line-progress)
   "Mode line construct for customizing Eglot information.
 Meaningful symbols in this construct include:
 
@@ -2703,8 +2621,6 @@ Meaningful symbols in this construct include:
 - `eglot-mode-line-pending-requests': number of pending LSP requests;
 
 - `eglot-mode-line-progress': progress reporter widgets;
-
-- `eglot-mode-line-action-suggestion': LSP code action at point.
 "
   :type '(repeat (choice string symbol))
   :package-version '(Eglot . "1.19"))
@@ -2715,7 +2631,6 @@ Meaningful symbols in this construct include:
 (put 'eglot-mode-line-error 'risky-local-variable t)
 (put 'eglot-mode-line-pending-requests 'risky-local-variable t)
 (put 'eglot-mode-line-progress 'risky-local-variable t)
-(put 'eglot-mode-line-action-suggestion 'risky-local-variable t)
 
 (defun eglot--mode-line-props (thing face defs &optional prepend)
   "Helper for function `eglot--mode-line-format'.
@@ -2809,16 +2724,9 @@ still unanswered LSP requests to the server\n"))))
           (mapconcat #'identity blurbs "\n"))))))
   "Eglot mode line construct for LSP progress reports.")
 
-(defconst eglot-mode-line-action-suggestion
-  '(:eval
-    (when (and (memq 'mode-line eglot-code-action-indications)
-               (overlay-buffer eglot--suggestion-overlay))
-      (eglot--mode-line-props
-       eglot-code-action-indicator 'eglot-code-action-indicator-face
-       `((mouse-1
-          eglot-code-actions-at-mouse
-          "execute code actions at point")))))
-  "Eglot mode line construct for at-point code actions.")
+(defconst eglot-mode-line-action-suggestion nil)
+(make-obsolete 'eglot-mode-line-action-suggestion
+               "Use `refactor-suggestion-mode' instead." 32.1)
 
 (add-to-list
  'mode-line-misc-info
@@ -3341,24 +3249,6 @@ uses it; didOpen then clears it and recomputes from the new
 
 ;;; Flymake integration
 
-(put 'eglot-note 'flymake-category 'flymake-note)
-(put 'eglot-warning 'flymake-category 'flymake-warning)
-(put 'eglot-error 'flymake-category 'flymake-error)
-
-(defvar eglot-diagnostics-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'eglot-code-actions-at-mouse)
-    (define-key map [left-margin mouse-1] #'eglot-code-actions-at-mouse)
-    map)
-  "Keymap active in Eglot-backed Flymake diagnostic overlays.")
-
-(cl-loop for i from 1
-         for type in '(eglot-note eglot-warning eglot-error)
-         do (put type 'flymake-overlay-control
-                 `((mouse-face . highlight)
-                   (priority . ,(+ 50 i))
-                   (keymap . ,eglot-diagnostics-map))))
-
 (defun eglot--flymake-sniff-diagnostics (beg &optional end)
   "Like `flymake-diagnostics', but for Eglot-specific diagnostics."
   (cl-loop for diag in (flymake-diagnostics beg end)
@@ -3454,11 +3344,11 @@ version the diagnostics pertain to."
                     (report (cdr entry) :stay))))))))))
 
 (defun eglot--flymake-diag-type (severity)
-  "Convert LSP diagnostic SEVERITY to Eglot/Flymake diagnostic type."
-  (cond ((null severity) 'eglot-error)
-        ((<= severity 1) 'eglot-error)
-        ((= severity 2)  'eglot-warning)
-        (t               'eglot-note)))
+  "Convert LSP diagnostic SEVERITY to a refactor/Flymake diagnostic type."
+  (cond ((null severity) 'refactor-error)
+        ((<= severity 1) 'refactor-error)
+        ((= severity 2)  'refactor-warning)
+        (t               'refactor-note)))
 
 (defun eglot--flymake-make-diag (diag-spec version region)
   "Convert LSP diagnostic DIAG-SPEC to Flymake diagnostic.
@@ -3652,6 +3542,9 @@ If KEEP, knowingly push a dummy do-nothing update."
 
 ;;; Xref integration
 (defun eglot-xref-backend () "Eglot xref backend." 'eglot)
+
+;;; Refactor integration
+(defun eglot-refactor-backend () "Eglot refactor backend." 'eglot)
 
 (defvar eglot--temp-location-buffers (make-hash-table :test #'equal)
   "Helper variable for `eglot--collecting-xrefs'.")
@@ -4385,305 +4278,88 @@ Returns a list as described in docstring of `imenu--index-alist'."
 
 ;;; Code actions and rename
 (cl-defun eglot--apply-text-edits (edits &optional version silent)
-  "Apply EDITS for current buffer if at VERSION, or if it's nil.
-If SILENT, don't echo progress in mode-line."
+  "Apply LSP EDITS for current buffer using `refactor-apply-text-edits'.
+Error if VERSION non-nil and doesn't match the documents'.  Pass
+SILENT to `refactor-apply-text-edits'."
   (unless edits (cl-return-from eglot--apply-text-edits))
-  (unless (or (not version) (equal version eglot--docver))
+  (when (and version (not (equal version eglot--docver)))
     (jsonrpc-error "Edits on `%s' require version %d, have %d"
                    (current-buffer) version eglot--docver))
-  (atomic-change-group
-    (let* ((change-group (prepare-change-group))
-           (howmany (length edits))
-           (reporter (unless silent
-                       (make-progress-reporter
-                        (eglot--format "[eglot] applying %s edits to `%s'..."
-                                howmany (current-buffer))
-                        0 howmany)))
-           (done 0))
-      (mapc (pcase-lambda (`(,newText ,beg . ,end))
-              (if (> emacs-major-version 30)
-                  (replace-region-contents beg end newText)
-                (let ((source (current-buffer)))
-                  (with-temp-buffer
-                    (insert newText)
-                    (let ((temp (current-buffer)))
-                      (with-current-buffer source
-                        (save-excursion
-                          (save-restriction
-                            (narrow-to-region beg end)
-                            (with-no-warnings
-                              (replace-buffer-contents temp)))))))))
-              (when reporter
-                (eglot--reporter-update reporter (cl-incf done))))
-            (mapcar (lambda (edit)
-                      (eglot--dcase edit
-                        (((TextEdit) range newText)
-                         (cons newText (eglot-range-region range 'markers)))
-                        (((InsertReplaceEdit) newText replace)
-                         (cons newText (eglot-range-region replace 'markers)))))
-                    (reverse edits)))
-      (undo-amalgamate-change-group change-group)
-      (when reporter
-        (progress-reporter-done reporter)))))
+  (refactor-apply-text-edits
+   (mapcar (lambda (edit)
+             (eglot--dcase edit
+               (((TextEdit) range newText)
+                (cl-destructuring-bind (beg . end) (eglot-range-region range)
+                  (list beg end newText)))
+               (((InsertReplaceEdit) newText replace)
+                (cl-destructuring-bind (beg . end) (eglot-range-region replace)
+                  (list beg end newText)))))
+           edits)
+   :silent silent))
 
-(defun eglot--confirm-server-edits (origin prepared)
-  "Helper for `eglot--apply-workspace-edit.
-ORIGIN is a symbol designating a command.  PREPARED is a list of
-operations to apply.  Reads the `eglot-confirm-server-edits' user
-option and returns a symbol like `diff', `summary' or nil."
-  (let (v op-kinds)
-    (cond ((symbolp eglot-confirm-server-edits) eglot-confirm-server-edits)
-          ;; Check for command-based entry
-          ((setq v (assoc origin eglot-confirm-server-edits)) (cdr v))
-          ;; Check for operation-kind-based entry
-          ((and (setq op-kinds (mapcar #'car prepared))
-                (setq v (cl-find-if (lambda (entry)
-                                      (and (listp (car entry))
-                                           (cl-some (lambda (kind)
-                                                      (memq kind (car entry)))
-                                                    op-kinds)))
-                                    eglot-confirm-server-edits)))
-           (cdr v))
-          ;; Default entry
-          ((setq v (assoc t eglot-confirm-server-edits)) (cdr v)))))
+(cl-defun eglot--translate-workspace-edit (wedit)
+  "Compute list of `refactor-operation' from LSP workspace edit WEDIT."
+  (let ((pathify (symbol-function 'eglot-uri-to-path))
+        (text-edit-op
+         (lambda (path edits version)
+           (make-instance
+            'refactor-file-edit
+            :file path
+            :edits
+            (lambda ()
+              (eglot--apply-text-edits edits version t))))))
+    (eglot--dbind ((WorkspaceEdit) changes documentChanges) wedit
+      (append
+       (mapcar
+        (lambda (ch)
+          (pcase (plist-get ch :kind)
+            ("create"
+             (eglot--dbind ((CreateFile) uri ((:options o))) ch
+               (make-instance
+                'refactor-file-creation
+                :file (funcall pathify uri)
+                :if-exists (cond ((plist-get o :ignoreIfExists) 'skip)
+                                 ((plist-get o :overwrite) 'overwrite)
+                                 (t 'error)))))
+            ("rename"
+             (eglot--dbind ((RenameFile) oldUri newUri ((:options o))) ch
+               (make-instance
+                'refactor-file-renaming
+                :from (funcall pathify oldUri)
+                :to (funcall pathify newUri)
+                :if-exists (cond ((plist-get o :ignoreIfExists) 'skip)
+                                 ((plist-get o :overwrite) 'overwrite)
+                                 (t 'error)))))
+            ("delete"
+             (eglot--dbind ((DeleteFile) uri ((:options o))) ch
+               (make-instance
+                'refactor-file-deletion
+                :file (funcall pathify uri)
+                :recursive (plist-get o :recursive)
+                :if-missing (if (plist-get o :ignoreIfNotExists)
+                                'skip 'error))))
+            (_
+             ;; It's a TextDocumentEdit (no kind field)
+             (eglot--dbind ((TextDocumentEdit) textDocument edits) ch
+               (eglot--dbind ((VersionedTextDocumentIdentifier) uri version)
+                   textDocument
+                 (funcall text-edit-op (funcall pathify uri)
+                          edits version))))))
+        documentChanges)
+       (unless (and changes documentChanges)
+         ;; Prefer `documentChanges' over sort-of-deprecated `changes'.
+         (cl-loop for (uri edits) on changes by #'cddr
+                  collect (funcall text-edit-op (funcall pathify uri)
+                                   edits nil)))))))
 
-(defun eglot--propose-changes-as-diff (server prepared)
-  "Helper for `eglot--apply-workspace-edit'.
-Goal is to popup a `diff-mode' buffer containing all the changes
-of PREPARED, ready to apply with C-c C-a.  PREPARED is a
-list ((FILENAME EDITS VERSION)...)."
-  (with-current-buffer (get-buffer-create (eglot--server-buffer-name
-                                           server "proposed changes"))
-    (buffer-disable-undo (current-buffer))
-    (let ((inhibit-read-only t)
-          (target (current-buffer)))
-      (diff-mode)
-      (erase-buffer)
-      (pcase-dolist (`(_ _ _ ,path ,edits ,_) prepared)
-        (with-temp-buffer
-          (let* ((diff (current-buffer))
-                 (existing-buf (find-buffer-visiting path))
-                 (existing-buf-label (prin1-to-string existing-buf)))
-            (with-temp-buffer
-              (if existing-buf
-                  (insert-buffer-substring existing-buf)
-                (insert-file-contents path))
-              (eglot--apply-text-edits edits nil t)
-              (diff-no-select (or existing-buf path) (current-buffer) nil t diff)
-              (when existing-buf
-                ;; Here we have to pretend the label of the unsaved
-                ;; buffer is the actual file, just so that we can
-                ;; diff-apply without troubles.  If there's a better
-                ;; way, it probably involves changes to `diff.el'.
-                (with-current-buffer diff
-                  (goto-char (point-min))
-                  (while (search-forward existing-buf-label nil t)
-                    (replace-match (buffer-file-name existing-buf))))))
-            (with-current-buffer target
-              (insert-buffer-substring diff))))))
-    (setq-local buffer-read-only t)
-    (buffer-enable-undo (current-buffer))
-    (goto-char (point-min))
-    (pop-to-buffer (current-buffer))
-    (font-lock-ensure)
-    (current-buffer)))
-
-(cl-defun eglot--apply-workspace-edit (server wedit origin &aux prepared)
+(cl-defun eglot--apply-workspace-edit (server wedit origin)
   "Apply (or offer to apply) the workspace edit WEDIT.
 ORIGIN is a symbol designating the command that originated this edit
-proposed by the server.  Returns a list (APPLIED REASON) indicating if
-the edit was attempted and optionally why not."
-  ;; JT@2026-01-11: Note to future (self?).  Most if this big function
-  ;; is preparing with the `prepared' (OP ...) list , where each OP is
-  ;; (KIND DESC APPLY-FN . MORE).  KIND is a symbol, DESC is a string.
-  ;; APPLY-FN is a unary function of OP that applies the change.
-  ;; Sometimes there is MORE data, such as when KIND is eg. 'text-edit'
-  ;; and needs extra info for the diff rendering.
-  (cl-labels
-      ((pathify (x) (eglot-uri-to-path x))
-       (do-create (path &key overwrite ignoreIfExists
-                     &allow-other-keys)
-         (let ((exists (file-exists-p path)))
-           (when (and exists (not ignoreIfExists) (not overwrite))
-             (eglot--error "File %s already exists" path))
-           (when (or (not exists) overwrite)
-             (let ((dir (file-name-directory path)))
-               (unless (file-directory-p dir)
-                 (make-directory dir t)))
-             (write-region "" nil path nil 'nomessage))))
-       (do-rename (old-path new-path &key overwrite ignoreIfExists
-                            &allow-other-keys)
-         (let ((new-exists (file-exists-p new-path)))
-           (when (and new-exists (not ignoreIfExists) (not overwrite))
-             (eglot--error "File %s already exists" new-path))
-           (let ((dir (file-name-directory new-path)))
-             (unless (file-directory-p dir)
-               (make-directory dir t)))
-           ;; If the old file is visited, rename the buffer too
-           (let ((buf (find-buffer-visiting old-path)))
-             (when buf
-               (with-current-buffer buf
-                 (set-visited-file-name new-path t t))))
-           (rename-file old-path new-path overwrite)))
-       (do-delete (path &key recursive ignoreIfNotExists &allow-other-keys)
-         (let ((exists (file-exists-p path)))
-           (when (and (not exists) (not ignoreIfNotExists))
-             (eglot--error "File %s does not exist" path))
-           (when exists
-             ;; Kill buffer if the file is visited
-             (let ((buf (find-buffer-visiting path)))
-               (when buf (kill-buffer buf)))
-             (delete-file path recursive))))
-       (text-edit-op (path edits version)
-         `(text-edit
-           ,(format "Change %s (%d change%s)" path (length edits)
-                    (if (> (length edits) 1) "s" ""))
-           ,(lambda (_op)
-              (with-current-buffer (find-file-noselect path)
-                (eglot--apply-text-edits edits version)))
-           ,path ,edits ,version))
-       (mkfn (doit-fn &rest things)
-         (lambda (op)
-           (apply doit-fn things)
-           (eglot--message
-            "%s" (replace-regexp-in-string "^\\([^ ]+\\) " "\\1d " (cadr op)))))
-       (prepare (ch)
-         (pcase (plist-get ch :kind)
-           ("create"
-            (eglot--dbind ((CreateFile) uri ((:options o))) ch
-              (let ((p (pathify uri)))
-                `(create ,(format "Create `%s'" p) ,(mkfn #'do-create p o)))))
-           ("rename"
-            (eglot--dbind ((RenameFile) oldUri newUri ((:options o))) ch
-              (let ((ol (pathify oldUri)) (nw (pathify newUri)))
-                `(rename ,(format "Rename `%s' to `%s'" ol nw)
-                         ,(mkfn #'do-rename ol nw o)))))
-           ("delete"
-            (eglot--dbind ((DeleteFile) uri ((:options o))) ch
-              (let ((p (pathify uri)))
-                `(delete ,(format "Delete `%s'" p) ,(mkfn #'do-delete p o)))))
-           (_
-            ;; It's a TextDocumentEdit (no kind field)
-            (eglot--dbind ((TextDocumentEdit) textDocument edits) ch
-              (eglot--dbind ((VersionedTextDocumentIdentifier) uri version)
-                  textDocument (text-edit-op (pathify uri) edits version))))))
-       (user-accepts-p ()
-         (y-or-n-p
-          (format "[eglot] Server wants to:\n%s\nProceed? "
-                  (mapconcat (lambda (op) (concat "  " (cadr op)))
-                             prepared "\n"))))
-       (apply-all ()
-         (cl-loop
-          for op in prepared
-          for (_kind _desc fn) = op
-          do (funcall fn op)
-          finally (eldoc) (eglot--message "Workspace edit successful"))
-         `(t nil)))
-    (eglot--dbind ((WorkspaceEdit) changes documentChanges) wedit
-      (setq prepared (mapcar #'prepare documentChanges))
-      (unless (and changes documentChanges)
-        ;; Prefer `documentChanges' over sort-of-deprecated `changes'.
-        (cl-loop for (uri edits) on changes by #'cddr
-                 do (push (text-edit-op (pathify uri) edits nil) prepared)))
-      (let* ((decision (eglot--confirm-server-edits origin prepared))
-             (all-text-edits (cl-loop for (kind . _) in prepared
-                                      always (eq kind 'text-edit)))
-             (peaceful
-              (and
-               all-text-edits
-               (cl-loop for op in prepared
-                        always (find-buffer-visiting (cadddr op))))))
-        (cond
-         ((and (and (memq decision '(maybe-diff maybe-summary)) peaceful))
-          (apply-all))
-         ((memq decision '(diff maybe-diff))
-          (cond (all-text-edits
-                 (pop-to-buffer
-                  (eglot--propose-changes-as-diff server prepared))
-                 `(nil "decision to apply manually"))
-                (t
-                 ;; `map-y-or-n-p' heroics.  Iterate over prepared
-                 ;; operations with individual prompts, showing diffs
-                 ;; for text-edit operations.
-                 (let* ((wconf (current-window-configuration))
-                        (applied 0)
-                        (total (length prepared)))
-                   (unwind-protect
-                       (progn
-                         (map-y-or-n-p
-                          (lambda (op)
-                            (when (eq (car op) 'text-edit)
-                              (display-buffer
-                               (eglot--propose-changes-as-diff server (list op))))
-                            (format "[eglot] %s? " (cadr op)))
-                          (lambda (op)
-                            (set-window-configuration wconf)
-                            (funcall (caddr op) op)
-                            (cl-incf applied))
-                          (lambda ()
-                            ;; Skip text-edits for files that don't exist
-                            ;; (e.g. user skipped the create operation).
-                            (cl-loop for op = (pop prepared) while op
-                                     when (or (not (eq (car op) 'text-edit))
-                                              (file-exists-p (cadddr op)))
-                                     return op))
-                          '("change" "changes" "apply"))
-                         (if (= applied total)
-                             (progn
-                               (eldoc)
-                               (eglot--message "Workspace edit successful")
-                               `(t nil))
-                           `(nil "decision to abort")))
-                     (set-window-configuration wconf))))))
-         ((memq decision '(t summary maybe-summary))
-          (if (user-accepts-p) (apply-all) `(nil "decision to decline")))
-         ((apply-all)))))))
-
-(cl-defun eglot--rename-interactive
-    (&aux
-     def region
-     (rename-support (eglot-server-capable-or-lose :renameProvider))
-     (prepare-support (and (listp rename-support)
-                           (plist-get rename-support :prepareProvider))))
-  (setq
-   def
-   (cond (prepare-support
-          (let ((x (eglot--request (eglot--current-server-or-lose)
-                                   :textDocument/prepareRename
-                                   (eglot--TextDocumentPositionParams))))
-            (cond ((null x) (user-error "[eglot] Can't rename here"))
-                  ((plist-get x :placeholder))
-                  ((plist-get x :defaultBehavior) (thing-at-point 'symbol t))
-                  ((setq region (eglot-range-region x))
-                   (buffer-substring-no-properties (car region) (cdr region))))))
-         (t (thing-at-point 'symbol t))))
-  (list (read-from-minibuffer
-         (format "Rename `%s' to: " (or def "unknown symbol"))
-         nil nil nil nil def)))
-
-(defun eglot-rename (newname)
-  "Rename the current symbol to NEWNAME."
-  (interactive (eglot--rename-interactive))
-  (let ((server (eglot--current-server-or-lose)))
-    (eglot--apply-workspace-edit
-     server
-     (eglot--request server :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
-                                                   :newName ,newname))
-     this-command)))
-
-(defun eglot--code-action-bounds ()
-  "Calculate appropriate bounds depending on region and point."
-  (let (diags boftap)
-    (cond ((use-region-p) `(,(region-beginning) ,(region-end)))
-          ((setq diags (eglot--flymake-sniff-diagnostics (point)))
-           (cl-loop for d in diags
-                    minimizing (flymake-diagnostic-beg d) into beg
-                    maximizing (flymake-diagnostic-end d) into end
-                    finally (cl-return (list beg end))))
-          ((setq boftap (bounds-of-thing-at-point 'sexp))
-           (list (car boftap) (cdr boftap)))
-          (t
-           (list (point) (point))))))
+proposed by SERVER.  Returns a list (APPLIED REASON) indicating if the
+edit was attempted and optionally why not."
+  (ignore server)
+  (refactor-apply-changeset (eglot--translate-workspace-edit wedit)
+                            :origin origin))
 
 (cl-defun eglot--code-action-params (&key (beg (point)) (end beg)
                                           only triggerKind)
@@ -4697,159 +4373,104 @@ the edit was attempted and optionally why not."
           ,@(when only `(:only [,only]))
           ,@(when triggerKind `(:triggerKind ,triggerKind)))))
 
-(defun eglot-code-actions (beg &optional end action-kind interactive)
-  "Find LSP code actions of type ACTION-KIND between BEG and END.
-Interactively, offer to execute them.
-If ACTION-KIND is nil, consider all kinds of actions.
-Interactively, default BEG and END to region's bounds else BEG is
-point and END is nil, which results in a request for code actions
-at point.  With prefix argument, prompt for ACTION-KIND."
-  (interactive
-   `(,@(eglot--code-action-bounds)
-     ,(and current-prefix-arg
-           (completing-read "[eglot] Action kind: "
-                            '("quickfix" "refactor.extract" "refactor.inline"
-                              "refactor.rewrite" "source.organizeImports")))
-     t))
+(cl-defmethod refactor-backend-name ((_backend (eql eglot)))
+  "Eglot")
+
+(defvar eglot--refactor-kinds
+  '((quickfix . "quickfix") (refactor . "refactor")
+    (extract . "refactor.extract") (inline . "refactor.inline")
+    (rewrite . "refactor.rewrite") (move . "refactor.move")
+    (source . "source") (organize-imports . "source.organizeImports")
+    (fix-all . "source.fixAll"))
+  "Alist mapping `refactor' kind symbols to LSP code action kinds.")
+
+(cl-defmethod refactor-backend-actions
+    ((_backend (eql eglot)) beg end &key rkind callback trigger-kind)
   (eglot-server-capable-or-lose :codeActionProvider)
-  (let* ((server (eglot--current-server-or-lose))
-         (shortcut (and interactive
-                        (not (listp last-nonmenu-event)) ;; not run by mouse
-                        (overlayp eglot--suggestion-overlay)
-                        (overlay-buffer eglot--suggestion-overlay)
-                        (= beg (overlay-start eglot--suggestion-overlay))
-                        (= end (overlay-end eglot--suggestion-overlay))))
-         (actions
-          (if shortcut
-              (overlay-get eglot--suggestion-overlay 'eglot--actions)
-            (eglot--request
-             server
-             :textDocument/codeAction
-             (eglot--code-action-params :beg beg :end end :only action-kind))))
-         ;; Redo filtering, in case the `:only' didn't go through.
-         (actions (cl-loop for a across actions
-                           when (or (not action-kind)
-                                    ;; github#847
-                                    (string-prefix-p action-kind (plist-get a :kind)))
-                           collect a)))
-    (cond
-     ((and shortcut actions (null (cdr actions)))
-      (eglot-execute server (car actions)))
-     (interactive
-      (eglot--read-execute-code-action actions server action-kind))
-     (t actions))))
+  (cl-labels
+      ((kind (lsp-kind)
+         (when lsp-kind
+           (or (car (rassoc lsp-kind eglot--refactor-kinds))
+               (let ((dot (string-match-p "\\." lsp-kind)))
+                 (intern (replace-regexp-in-string
+                          "\\." "-" (substring lsp-kind (if dot (1+ dot) 0))))))))
+       (convert (actions)
+         (cl-loop for a across actions
+                  for ra = (make-instance
+                            'refactor-action
+                            :title (plist-get a :title)
+                            :kind (kind (plist-get a :kind))
+                            :preferred (plist-get a :isPreferred)
+                            :backend 'eglot
+                            :data a)
+                  collect ra)))
+    (let* ((server (eglot--current-server-or-lose))
+           (lsp-rkind (and rkind (cdr (assq rkind eglot--refactor-kinds))))
+           (params
+            (eglot--code-action-params :beg beg :end end :only lsp-rkind
+                                       :triggerKind trigger-kind)))
+      (cond
+       (callback
+        (eglot--async-request
+         server
+         :textDocument/codeAction
+         params
+         :success-fn (lambda (actions) (funcall callback (convert actions)))
+         :hint :textDocument/codeAction)
+        :async)
+       (t
+        (convert (eglot--request server :textDocument/codeAction params)))))))
 
-(defalias 'eglot-code-actions-at-mouse (eglot--mouse-call 'eglot-code-actions)
-  "Like `eglot-code-actions', but intended for mouse events.")
+(cl-defmethod refactor-backend-execute
+    ((_backend (eql eglot)) action)
+  (eglot-execute (eglot--current-server-or-lose) (oref action data)))
 
-(defun eglot--read-execute-code-action (actions server &optional action-kind)
-  "Helper for interactive calls to `eglot-code-actions'."
-  (let* ((menu-items
-          (or (cl-loop for a in actions
-                       collect (cons (plist-get a :title) a))
-              (apply #'eglot--error
-                     (if action-kind `("No \"%s\" code actions here" ,action-kind)
-                       `("No code actions here")))))
-         (preferred-action (cl-find-if
-                            (lambda (menu-item)
-                              (plist-get (cdr menu-item) :isPreferred))
-                            menu-items))
-         (default-action (car (or preferred-action (car menu-items))))
-         (chosen (if (and action-kind (null (cadr menu-items)))
-                     (cdr (car menu-items))
-                   (if (listp last-nonmenu-event)
-                       (x-popup-menu last-nonmenu-event `("Eglot code actions:"
-                                                          ("dummy" ,@menu-items)))
-                     (cdr (assoc (completing-read
-                                  (format "[eglot] Pick an action (default %s): "
-                                          default-action)
-                                  menu-items nil t nil nil default-action)
-                                 menu-items))))))
-    (when chosen
-      (eglot-execute server chosen))))
+(cl-defmethod refactor-backend-rename-bounds
+  ((_backend (eql eglot)))
+  (let* ((rename-support (eglot-server-capable-or-lose :renameProvider))
+         (prepare-support (and (listp rename-support)
+                               (plist-get rename-support :prepareProvider))))
+    (cond (prepare-support
+           (let ((x (eglot--request (eglot--current-server-or-lose)
+                                    :textDocument/prepareRename
+                                    (eglot--TextDocumentPositionParams))))
+             (cond ((null x) nil)
+                   ((plist-get x :range) (eglot-range-region (plist-get x :range)))
+                   ((plist-get x :defaultBehavior) (bounds-of-thing-at-point 'symbol))
+                   (t (eglot-range-region x)))))
+          (t (bounds-of-thing-at-point 'symbol)))))
 
-(defmacro eglot--code-action (name kind)
-  "Define NAME to execute KIND code action."
-  `(defun ,name (beg &optional end)
-     ,(format "Execute `%s' code actions between BEG and END." kind)
-     (interactive (eglot--code-action-bounds))
-     (eglot-code-actions beg end ,kind t)))
+(cl-defmethod refactor-backend-rename ((_backend (eql eglot)) newname)
+  (let ((server (eglot--current-server-or-lose)))
+    (eglot--translate-workspace-edit
+     (eglot--request server :textDocument/rename
+                     `(,@(eglot--TextDocumentPositionParams)
+                       :newName ,newname)))))
 
-(eglot--code-action eglot-code-action-organize-imports "source.organizeImports")
-(eglot--code-action eglot-code-action-extract "refactor.extract")
-(eglot--code-action eglot-code-action-inline "refactor.inline")
-(eglot--code-action eglot-code-action-rewrite "refactor.rewrite")
-(eglot--code-action eglot-code-action-quickfix "quickfix")
-
-(define-fringe-bitmap 'eglot--fringe-action
-  [#b00000111
-   #b00001110
-   #b00011100
-   #b00111000
-   #b01111111
-   #b00001110
-   #b01011100
-   #b01111000
-   #b01110000
-   #b01111000]
-  nil nil 'center)
-
-(defun eglot-code-action-suggestion (cb &rest _ignored)
-  "A member of `eldoc-documentation-functions', for suggesting actions."
-  (when (and (eglot-server-capable :codeActionProvider)
-             eglot-code-action-indications)
-    (let ((buf (current-buffer))
-          (bounds (eglot--code-action-bounds))
-          (use-text-p (memq 'eldoc-hint eglot-code-action-indications))
-          tooltip blurb)
-      (eglot--async-request
-       (eglot--current-server-or-lose)
-       :textDocument/codeAction
-       (eglot--code-action-params :beg (car bounds) :end (cadr bounds)
-                                  :triggerKind 2)
-       :success-fn
-       (lambda (actions)
-         (eglot--when-buffer-window buf
-           (delete-overlay eglot--suggestion-overlay)
-           (when (cl-plusp (length actions))
-             (setq blurb
-                   (substitute-command-keys
-                    (eglot--format "\\[eglot-code-actions]: %s"
-                                   (plist-get (aref actions 0) :title))))
-             (if (>= (length actions) 2)
-                 (setq blurb (concat blurb (format " (and %s more actions)"
-                                                   (1- (length actions))))))
-             (setq tooltip
-                   (propertize eglot-code-action-indicator
-                               'face 'eglot-code-action-indicator-face
-                               'help-echo "mouse-1: execute code actions at point"
-                               'mouse-face 'highlight
-                               'keymap eglot-diagnostics-map))
-             (save-excursion
-               (goto-char (car bounds))
-               (let ((ov (make-overlay (car bounds) (cadr bounds))))
-                 (overlay-put ov 'eglot--actions actions)
-                 (overlay-put ov 'eglot--overlay t)
-                 (overlay-put
-                  ov
-                  'before-string
-                  (cond
-                   ((memq 'nearby eglot-code-action-indications)
-                    tooltip)
-                   ((and
-                     (memq 'left-fringe eglot-code-action-indications)
-                     (< 0 (nth 0 (window-fringes))))
-                    (propertize
-                     "⚡" 'display `(left-fringe
-                                     eglot--fringe-action
-                                     eglot-code-action-indicator-face)))
-                   ((memq 'margin eglot-code-action-indications)
-                    (propertize
-                     "⚡" 'display `((margin left-margin) ,tooltip)))))
-                 (setq eglot--suggestion-overlay ov))))
-           (when use-text-p (funcall cb blurb))))
-       :hint :textDocument/codeAction)
-      (and use-text-p t))))
+(define-obsolete-function-alias 'eglot-code-actions 'refactor "32.1")
+(define-obsolete-function-alias 'eglot-rename 'refactor-rename "32.1")
+(define-obsolete-function-alias 'eglot-code-action-organize-imports
+  'refactor-organize-imports "32.1")
+(define-obsolete-function-alias 'eglot-code-action-extract
+  'refactor-extract "32.1")
+(define-obsolete-function-alias 'eglot-code-action-inline
+  'refactor-inline "32.1")
+(define-obsolete-function-alias 'eglot-code-action-rewrite
+  'refactor-rewrite "32.1")
+(define-obsolete-function-alias 'eglot-code-action-quickfix
+  'refactor-quickfix "32.1")
+(define-obsolete-function-alias 'eglot-code-actions-at-mouse
+  'refactor-at-mouse "32.1")
+(define-obsolete-variable-alias 'eglot-code-action-indications
+  'refactor-indications "32.1")
+(define-obsolete-variable-alias 'eglot-code-action-indicator
+  'refactor-indicator "32.1")
+(define-obsolete-face-alias 'eglot-code-action-indicator-face
+  'refactor-indicator-face "32.1")
+(define-obsolete-variable-alias 'eglot-diagnostics-map
+  'refactor-mouse-map "32.1")
+(define-obsolete-variable-alias 'eglot-confirm-server-edits
+  'refactor-confirmation "32.1")
 
 
 ;;; File watchers (aka didChangeWatchedFiles)
