@@ -7474,17 +7474,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-
-/* No code in Emacs #includes config.h twice, but some bits of code
-   intended to work with other packages as well (like gmalloc.c)
-   think they can include it as many times as they like.  */
-#ifndef EMACS_CONFIG_H
+/* This is for nt/inc/sys/socket.h, which behaves one way when 'configure'
+   is running tests and another way when Emacs is being built.  */
 #define EMACS_CONFIG_H
 ])dnl
 
 AH_BOTTOM([#include <conf_post.h>
-
-#endif /* EMACS_CONFIG_H */
 
 /*
 Local Variables:
