@@ -774,6 +774,8 @@ extern void android_get_gc_values (struct android_gc *,
 				   struct android_gc_values *);
 extern void android_set_foreground (struct android_gc *,
 				    unsigned long);
+extern void android_set_line_attributes (struct android_gc *, unsigned int,
+					 enum android_line_style);
 extern void android_fill_rectangle (android_drawable, struct android_gc *,
 				    int, int, unsigned int, unsigned int);
 extern android_pixmap android_create_pixmap_from_bitmap_data (char *,

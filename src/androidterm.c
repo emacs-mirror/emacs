@@ -3926,14 +3926,14 @@ android_get_scale_factor (int *scale_x, int *scale_y)
 }
 
 static void
-android_draw_underwave (struct glyph_string *s, int decoration_width)
+android_draw_underwave (struct glyph_string *s, int decoration_width,
+			int thickness)
 {
   int scale_x, scale_y;
 
   android_get_scale_factor (&scale_x, &scale_y);
 
-  int wave_height = 3 * scale_y, wave_length = 2 * scale_x;
-
+  int wave_height = 2 * scale_y * thickness, wave_length = 3 * scale_x * thickness;
   int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax;
   bool odd;
   struct android_rectangle wave_clip, string_clip, final_clip;
@@ -3975,6 +3975,7 @@ android_draw_underwave (struct glyph_string *s, int decoration_width)
 
   while (x1 <= xmax)
     {
+      android_set_line_attributes (s->gc, thickness, ANDROID_LINE_SOLID);
       android_draw_line (FRAME_ANDROID_DRAWABLE (s->f), s->gc,
 			 x1, y1, x2, y2);
       x1  = x2, y1 = y2;
@@ -4380,6 +4381,15 @@ android_draw_glyph_string (struct glyph_string *s)
 
   if (!s->for_overlaps)
     {
+      struct font *font = font_for_underline_metrics (s);
+      unsigned long scaled_thickness;
+
+      /* Get the underline thickness.  Default is 1 pixel.  */
+      if (font && font->underline_thickness > 0)
+	scaled_thickness = font->underline_thickness;
+      else
+	scaled_thickness = 1;
+
       int area_x, area_y, area_width, area_height;
       int area_max_x, decoration_width;
 
@@ -4402,22 +4412,25 @@ android_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
         {
+	  unsigned long thickness = (underline_line_scaling_flag
+				     ? scaled_thickness : 1);
+
           if (s->face->underline == FACE_UNDERLINE_WAVE)
             {
               if (s->face->underline_defaulted_p)
-                android_draw_underwave (s, decoration_width);
+                android_draw_underwave (s, decoration_width, thickness);
               else
                 {
                   struct android_gc_values xgcv;
                   android_get_gc_values (s->gc, ANDROID_GC_FOREGROUND, &xgcv);
                   android_set_foreground (s->gc, s->face->underline_color);
-                  android_draw_underwave (s, decoration_width);
+                  android_draw_underwave (s, decoration_width, thickness);
                   android_set_foreground (s->gc, xgcv.foreground);
                 }
             }
           else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
-              unsigned long thickness, position;
+              unsigned long position;
 
               if (s->prev
 		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
@@ -4433,7 +4446,6 @@ android_draw_glyph_string (struct glyph_string *s)
                 }
               else
                 {
-		  struct font *font = font_for_underline_metrics (s);
 		  unsigned long minimum_offset;
 		  bool underline_at_descent_line;
 		  bool use_underline_position_properties;
@@ -4456,11 +4468,6 @@ android_draw_glyph_string (struct glyph_string *s)
 		  use_underline_position_properties
 		    = !(NILP (val) || BASE_EQ (val, Qunbound));
 
-                  /* Get the underline thickness.  Default is 1 pixel.  */
-                  if (font && font->underline_thickness > 0)
-                    thickness = font->underline_thickness;
-                  else
-                    thickness = 1;
                   if (underline_at_descent_line)
 		    position = ((s->height - thickness)
 				- (s->ybase - s->y)
@@ -4532,7 +4539,8 @@ android_draw_glyph_string (struct glyph_string *s)
       /* Draw overline.  */
       if (s->face->overline_p)
 	{
-	  unsigned long dy = 0, h = 1;
+	  unsigned long dy = 0, h
+	    = overline_line_scaling_flag ? scaled_thickness : 1;
 
 	  if (s->face->overline_color_defaulted_p)
 	    android_fill_rectangle (FRAME_ANDROID_DRAWABLE (s->f),
@@ -4561,7 +4569,8 @@ android_draw_glyph_string (struct glyph_string *s)
 	  int glyph_height = s->first_glyph->ascent + s->first_glyph->descent;
 	  /* Strike-through width and offset from the glyph string's
 	     top edge.  */
-          unsigned long h = 1;
+	  unsigned long h
+	    = strike_through_line_scaling_flag ? scaled_thickness : 1;
           unsigned long dy = (glyph_height - h) / 2;
 
 	  if (s->face->strike_through_color_defaulted_p)
