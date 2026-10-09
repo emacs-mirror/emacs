@@ -129,11 +129,6 @@ Also see `shr-max-width'."
   :type '(choice (integer :tag "Fixed width in characters")
 		 (const   :tag "Use the width of the window" nil)))
 
-(defcustom shr-block-indentation-width 4
-  "Width in characters to indent blocks."
-  :version "32.1"
-  :type 'integer)
-
 (defcustom shr-max-width 120
   "Maximum text width to use for HTML rendering.
 May either be an integer specifying a fixed width in characters,
@@ -147,6 +142,11 @@ If `shr-width' is non-nil, it overrides this variable."
   :version "28.1"
   :type '(choice (integer :tag "Fixed width in characters")
 		 (const :tag "No width limit" nil)))
+
+(defcustom shr-block-indentation-width 4
+  "Width in characters to indent blocks."
+  :version "32.1"
+  :type 'integer)
 
 (defcustom shr-bullet "* "
   "Bullet used for unordered lists.
