@@ -1112,23 +1112,23 @@ instead of `browse-url-new-window-flag'."
   (apply
    (cond
     ((memq system-type '(windows-nt ms-dos cygwin))
-     'browse-url-default-windows-browser)
+     #'browse-url-default-windows-browser)
     ((memq system-type '(darwin))
-     'browse-url-default-macosx-browser)
+     #'browse-url-default-macosx-browser)
     ((featurep 'haiku)
-     'browse-url-default-haiku-browser)
+     #'browse-url-default-haiku-browser)
     ((eq system-type 'android)
-     'browse-url-default-android-browser)
+     #'browse-url-default-android-browser)
     ((and (eq (frame-parameter nil 'window-system) 'pgtk)
           (not browse-url--inhibit-pgtk))
-     'browse-url-default-gtk-browser)
-    ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
-    ((executable-find browse-url-firefox-program) 'browse-url-firefox)
-    ((executable-find browse-url-chromium-program) 'browse-url-chromium)
-    ((executable-find browse-url-kde-program) 'browse-url-kde)
-    ((executable-find browse-url-chrome-program) 'browse-url-chrome)
-    ((executable-find browse-url-webpositive-program) 'browse-url-webpositive)
-    ((executable-find browse-url-xterm-program) 'browse-url-text-xterm)
+     #'browse-url-default-gtk-browser)
+    ((browse-url-can-use-xdg-open) #'browse-url-xdg-open)
+    ((executable-find browse-url-firefox-program) #'browse-url-firefox)
+    ((executable-find browse-url-chromium-program) #'browse-url-chromium)
+    ((executable-find browse-url-kde-program) #'browse-url-kde)
+    ((executable-find browse-url-chrome-program) #'browse-url-chrome)
+    ((executable-find browse-url-webpositive-program) #'browse-url-webpositive)
+    ((executable-find browse-url-xterm-program) #'browse-url-text-xterm)
     (t #'eww-browse-url))
    url args))
 
@@ -1244,39 +1244,53 @@ instead of `browse-url-new-window-flag'."
 (function-put 'browse-url-firefox 'browse-url-browser-kind 'external)
 
 ;;;###autoload
-(defun browse-url-chromium (url &optional _new-window)
+(defun browse-url-chromium (url &optional new-window)
   "Ask the Chromium WWW browser to load URL.
 Default to the URL around or before point.  Invokes the program
 specified by `browse-url-chromium-program'.  Passes the strings in
 variable `browse-url-chromium-arguments' to that program.
-The optional argument NEW-WINDOW is not used."
+
+Interactively, if the variable `browse-url-new-window-flag' is non-nil,
+loads the document in a new Chromium window.  A non-nil prefix argument
+reverses the effect of `browse-url-new-window-flag'.
+
+Non-interactively, this uses the optional second argument NEW-WINDOW
+instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
     (apply #'start-process
 	   (concat "chromium " url) nil
 	   browse-url-chromium-program
-	   (append
-	    browse-url-chromium-arguments
-	    (list url)))))
+	   (append browse-url-chromium-arguments
+                   (and (browse-url-maybe-new-window new-window)
+                        '("--new-window"))
+	           (list url)))))
 
 (function-put 'browse-url-chromium 'browse-url-browser-kind 'external)
 
-(defun browse-url-chrome (url &optional _new-window)
+(defun browse-url-chrome (url &optional new-window)
   "Ask the Google Chrome WWW browser to load URL.
 Default to the URL around or before point.  Invokes the program
 specified by `browse-url-chrome-program'.  Passes to that program
 the strings in variable `browse-url-chrome-arguments'.
-The optional argument NEW-WINDOW is not used."
+
+Interactively, if the variable `browse-url-new-window-flag' is non-nil,
+loads the document in a new Chrome window.  A non-nil prefix argument
+reverses the effect of `browse-url-new-window-flag'.
+
+Non-interactively, this uses the optional second argument NEW-WINDOW
+instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
     (apply #'start-process
 	   (concat "google-chrome " url) nil
 	   browse-url-chrome-program
-	   (append
-	    browse-url-chrome-arguments
-	    (list url)))))
+	   (append browse-url-chrome-arguments
+                   (and (browse-url-maybe-new-window new-window)
+                        '("--new-window"))
+	           (list url)))))
 
 (function-put 'browse-url-chrome 'browse-url-browser-kind 'external)
 
