@@ -46,14 +46,13 @@
 ;; or WSL container (on MS-Windows only):
 ;;
 ;;     C-x C-f /wslc:USER@CONTAINER:/path/to/file
-;;     C-x C-f /wslccp:USER@CONTAINER:/path/to/file
 ;;
 ;; Where:
 ;;     USER          is the user on the container to connect as (optional).
 ;;     CONTAINER     is the container to connect to.
 ;;
-;; "docker", "podman" and "wslc" are inline methods, "dockercp",
-;; "podmancp" and "wslccp" are out-of-band methods.
+;; "docker", "podman" and "wslc" are inline methods, "dockercp" and
+;; "podmancp" are out-of-band methods.
 ;;
 ;;
 ;;
@@ -142,7 +141,6 @@
                  (string))
   :link '(tramp-info-link :tag "Tramp manual" tramp-podman-program))
 
-;; Command "wslc" exists since WSL 2.9.3.
 ;;;###tramp-autoload
 (defcustom tramp-wslc-program "wslc"
   "Name of the WSL container client program."
@@ -247,11 +245,6 @@ This is for out-of-band connections.")
   "Tramp method name to connect to WSL containers.")
 
 ;;;###tramp-autoload
-(defconst tramp-wslccp-method "wslccp"
-  "Tramp method name to connect to WSL containers.
-This is for out-of-band connections.")
-
-;;;###tramp-autoload
 (defconst tramp-kubernetes-method "kubernetes"
   "Tramp method name to connect to Kubernetes containers.")
 
@@ -332,10 +325,8 @@ see its function help for a description of the format."
       (mapcar (lambda (name) (list nil name)) names))))
 
 ;;;###tramp-autoload
-(defun tramp-wslc--completion-function (method)
-  "List running containers available for connection.
-METHOD is the Tramp method to be used for \"ps\", either
-`tramp-wslc-method', or `tramp-wslccp-method'.
+(defun tramp-wslc-completion-function (method)
+  "List running WSL containers available for connection.
 
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
@@ -735,38 +726,13 @@ see its function help for a description of the format."
                 (tramp-remote-shell-args ("-i" "-c"))
 		(tramp-completion-use-cache nil)))
 
- ;; TODO: Make it work.
- ;; (add-to-list 'tramp-methods
- ;;              `(,tramp-wslccp-method
- ;;                (tramp-login-program ,tramp-wslc-program)
- ;;                (tramp-login-args (("exec")
- ;;                                   ("-it")
- ;;                                   ("-u" "%u")
- ;; 				   ("-e" ,(format "TERM=%s" tramp-terminal-type))
- ;;                                   ("%h")
- ;; 			           ("%l")))
- ;; 		(tramp-direct-async (,tramp-default-remote-shell "-c"))
- ;;                (tramp-remote-shell ,tramp-default-remote-shell)
- ;;                (tramp-remote-shell-login ("-l"))
- ;;                (tramp-remote-shell-args ("-i" "-c"))
- ;; 		(tramp-copy-program ,tramp-wslc-program)
- ;; 		(tramp-copy-args (("container") ("cp")))
- ;; 		(tramp-copy-file-name (("%h" ":") ("%f")))
- ;;                (tramp-copy-recursive t)
- ;; 		(tramp-completion-use-cache nil)))
-
  (tramp-set-completion-function
   tramp-wslc-method
-  `((tramp-wslc--completion-function ,tramp-wslc-method)))
-
- (tramp-set-completion-function
-  tramp-wslccp-method
-  `((tramp-wslc--completion-function ,tramp-wslccp-method))))
+  `((tramp-wslc-completion-function ,tramp-wslc-method))))
 
 ;;;###tramp-autoload
 (when (eq system-type 'windows-nt)
-  (defalias 'tramp-enable-wslc-method #'tramp--enable-wslc-method)
-  (defalias 'tramp-enable-wslccp-method #'tramp--enable-wslc-method))
+  (defalias 'tramp-enable-wslc-method #'tramp--enable-wslc-method))
 
 ;;;###tramp-autoload
 (defun tramp-enable-toolbox-method ()
