@@ -20,8 +20,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #ifndef EMACS_TREESIT_H
 #define EMACS_TREESIT_H
 
-#include <config.h>
-
 #ifdef HAVE_TREE_SITTER
 
 #include <tree_sitter/api.h>
