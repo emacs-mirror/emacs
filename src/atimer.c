@@ -528,47 +528,47 @@ DEFUN ("debug-timer-check", Fdebug_timer_check, Sdebug_timer_check, 0, 0, 0,
 Return t if all self-tests are passed, nil otherwise.  */)
   (void)
 {
-  int i, ok;
-  struct atimer *timer;
-  struct atimer_result *results[MAXTIMERS];
+  struct atimer_result results[MAXTIMERS];
   struct timespec t = make_timespec (0, 0);
+  int billion = 1000000000, interval_ns = billion / 10;
 
-  /* Arm MAXTIMERS relative timers to trigger with 0.1s intervals.  */
-  for (i = 0; i < MAXTIMERS; i++)
+  /* Arm MAXTIMERS relative timers to trigger with 0.1 s intervals.  */
+  for (int i = 0; i < MAXTIMERS; i++)
     {
-      results[i] = xmalloc (sizeof (struct atimer_result));
-      t = timespec_add (t, make_timespec (0, 100000000));
-      results[i]->expected = timespec_add (current_timespec (), t);
-      results[i]->intime = -1;
-      timer = start_atimer (ATIMER_RELATIVE, t,
-			    debug_timer_callback, results[i]);
+      t = timespec_add (t, make_timespec (0, interval_ns));
+      results[i].expected = timespec_add (current_timespec (), t);
+      results[i].intime = -1;
+      start_atimer (ATIMER_RELATIVE, t,
+		    debug_timer_callback, &results[i]);
     }
 
+  long long int wait_ns = interval_ns * (long long int) {MAXTIMERS + 2};
+  struct timespec wait_ts = make_timespec (wait_ns / billion,
+					   wait_ns % billion);
 #ifdef HAVE_TIMERFD
   /* Wait 1.2 s but process timers.  */
-  wait_reading_process_output (1, 200000000, 0, false, Qnil, NULL, 0);
+  wait_reading_process_output (wait_ts.tv_sec, wait_ts.tv_nsec,
+			       0, false, Qnil, NULL, 0);
 #else
   /* If timerfd is not supported, wait_reading_process_output won't
      pay attention to timers that expired, and the callbacks won't be
      called.  So we need to run the expired timers' callbacks by
      hand.  */
-  /* Wait 1.2 sec for the timers to expire.  */
-  struct timespec tend =
-    timespec_add (current_timespec (), make_timespec (1, 200000000));
+  /* Wait 1.2 s for timers to expire.  */
+  struct timespec tend = timespec_add (current_timespec (), wait_ts);
 
   while (timespec_cmp (current_timespec (), tend) < 0)
     {
-      /* Wait for 5 msec between iterations.  */
+      /* Wait 5 ms between iterations.  */
       wait_reading_process_output (0, 5000000, 0, false, Qnil, NULL, 0);
       if (pending_signals)
 	do_pending_atimers ();
     }
 #endif
-  /* Shut up the compiler by "using" this variable.  */
-  (void) timer;
 
-  for (i = 0, ok = 0; i < MAXTIMERS; i++)
-    ok += results[i]->intime, xfree (results[i]);
+  int ok = 0;
+  for (int i = 0; i < MAXTIMERS; i++)
+    ok += results[i].intime;
 
   return ok == MAXTIMERS ? Qt : Qnil;
 }
