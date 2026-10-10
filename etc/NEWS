@@ -24,6 +24,11 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 32.1
 
+** Changed startup options for emacsclient in emacsclient.desktop
+The --display=$DISPLAY command line option is replaced with
+--reuse-frame in the emacsclient command line options, to make
+it compatible with both X11 and Wayland.
+
 
 * Startup Changes in Emacs 32.1
 
