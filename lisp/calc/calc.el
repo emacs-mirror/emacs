@@ -67,7 +67,6 @@
 ;;   May as well make continued-fractions stuff available to the user.
 ;;
 ;;   How about matrix eigenvalues, SVD, pseudo-inverse, etc.?
-;;   Should cache matrix inverses as well as decompositions.
 ;;   If dividing by a non-square matrix, use least-squares automatically.
 ;;   Consider supporting matrix exponentials.
 ;;

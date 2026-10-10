@@ -98,7 +98,22 @@
 
 
 ;;; Matrix inverse and determinant.
-(defun math-matrix-inv-raw (m)
+
+(defvar math-inv-cache nil)
+(defun math-matrix-inv-raw (m) ;  [V V]
+  "Compute the inverse of matrix M."
+  (let ((old (assoc m math-inv-cache))
+        (context (list calc-internal-prec calc-prefer-frac)))
+    (if (and old (equal (nth 1 old) context))
+        (cdr (cdr old))
+      (let* ((inv (math-do-matrix-inv-raw m))
+             (entry (cons context inv)))
+        (if old
+            (setcdr old entry)
+          (setq math-inv-cache (cons (cons m entry) math-inv-cache)))
+        inv))))
+
+(defun math-do-matrix-inv-raw (m)
   (let ((n (1- (length m))))
     (if (<= n 3)
 	(let ((det (math-det-raw m)))
