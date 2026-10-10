@@ -25,11 +25,19 @@
 (declare-function igc--set-pause-time "igc.c")
 (declare-function igc-info "igc.c")
 
-(ert-deftest set-commit-limit-test ()
+(defun igc-tests--commit-limit ()
+  (pcase-exhaustive (assoc-string "commit-limit" (igc-info))
+    (`("commit-limit" nil ,val nil) val)))
+
+(defun igc-tests--committed ()
+  (pcase-exhaustive (assoc-string "committed" (igc-info))
+    (`("committed" nil ,val nil) val)))
+
+(ert-deftest igc-tests-set-commit-limit ()
   :tags '(:igc)
-  (should (equal (igc--set-commit-limit (ash 1 30)) nil))
-  (should (equal (assoc-string "commit-limit" (igc-info))
-                 '("commit-limit" nil #x40000000 nil)))
+  (let ((limit (max (ash 1 30) (igc-tests--committed))))
+    (should (equal (igc--set-commit-limit limit) nil))
+    (should (equal (igc-tests--commit-limit) limit)))
   (should-error (igc--set-commit-limit -1)
                 :type 'args-out-of-range)
   (should-error (igc--set-commit-limit
@@ -38,9 +46,8 @@
                    (- (ash 1 32) 1))
                 :type 'args-out-of-range))
   (should (equal (igc--set-commit-limit nil) nil))
-  (should (member (assoc-string "commit-limit" (igc-info))
-                  '(("commit-limit" nil #xffffffff nil)
-                    ("commit-limit" nil #xffffffffffffffff nil)))))
+  (should (member (igc-tests--commit-limit)
+                  '(#xffffffff #xffffffffffffffff))))
 
 (ert-deftest set-pause-time-test ()
   :tags '(:igc)
