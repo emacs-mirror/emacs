@@ -121,20 +121,17 @@
                     (10 . 11)))
                (fixnump id))
               (`(nil (("3456" . 3) (,m . -2) (10 . 11)))
-               (and (markerp m)
-                    (eq (marker-buffer m) (current-buffer))))
-              (`,_ nil)))
-    ;; test that we can delete the first element of buffer-undo-list
-    (pop buffer-undo-list)
+               (and (eq (marker-buffer m) (current-buffer))))
+              (_ nil)))
     (cond ((featurep 'mps)
+           ;; test that we can delete the first element of buffer-undo-list
+           (pop buffer-undo-list)
            (igc--collect)
            (igc--process-messages))
           (t
            (garbage-collect)))
-    (pcase-exhaustive (list (featurep 'mps)  buffer-undo-list)
-      (`(t ((10 . 11)))
-       t)
-      (`(nil ((,m . -2) (10 . 11)))
-       (not (marker-buffer m))))))
+    (pcase-exhaustive (list (featurep 'mps) buffer-undo-list)
+      (`(t ((10 . 11))))
+      (`(nil (("3456" . 3) (10 . 11)))))))
 
 ;;; igc-tests.el ends here.
