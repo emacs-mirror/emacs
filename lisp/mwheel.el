@@ -288,7 +288,7 @@ value of ARG, and the command uses it in subsequent scrolls."
 	       (eq (car-safe transient-mark-mode) 'only)
 	       (window-point)))
          (mods
-	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
+	  (remq 'click (remq 'double (remq 'triple (event-modifiers event)))))
          (amt (assoc mods mouse-wheel-scroll-amount))
          saw-error)
     (unless (eq scroll-window selected-window)
