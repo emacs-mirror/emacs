@@ -773,7 +773,8 @@ get_font_face (struct font *infont, IDWriteFontFace **face)
 
       if (gdi_glyph_count != (*face)->lpVtbl->GetGlyphCount (*face))
 	{
-	  DebPrint (("DirectWrite and GDI disagree about the font\n"));
+	  DebPrint (("DirectWrite and GDI disagree about the font %ls\n",
+		     logfont.lfFaceName));
 	  RELEASE_COM (*face);
 	  uniscribe_font->dwrite_skip_font = true;
 	  *face = NULL;

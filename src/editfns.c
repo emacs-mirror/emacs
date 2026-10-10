@@ -3015,13 +3015,13 @@ This is an internal function used by `with-restriction'.  */)
   Lisp_Object buf = Fcurrent_buffer ();
   Lisp_Object outermost_restriction = list3 (Qoutermost_restriction,
 					     Fpoint_min_marker (),
-					     Fpoint_max_marker ());
+					     Fcopy_marker (Fpoint_max (), Qt));
   Fnarrow_to_region (start, end);
   if (NILP (labeled_restrictions_peek_label (buf)))
     labeled_restrictions_push (buf, outermost_restriction);
   labeled_restrictions_push (buf, list3 (label,
 					 Fpoint_min_marker (),
-					 Fpoint_max_marker ()));
+					 Fcopy_marker (Fpoint_max (), Qt)));
   return Qnil;
 }
 

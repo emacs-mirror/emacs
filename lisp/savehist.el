@@ -311,7 +311,11 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
     (let ((print-length nil)
           (print-level nil)
           (print-quoted t)
-          (print-circle t))
+          (print-circle t)
+          ;; Deduplicate the list of variables by alias (bug#81988).
+          (vars (delete-dups
+                 (mapcar #'indirect-variable
+                         savehist-minibuffer-history-variables))))
       ;; Save the minibuffer histories, along with the value of
       ;; savehist-minibuffer-history-variables itself.
       (when savehist-save-minibuffer-history
@@ -319,7 +323,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 		      ',savehist-minibuffer-history-variables)
 	       (current-buffer))
 	(insert ?\n)
-	(dolist (symbol savehist-minibuffer-history-variables)
+	(dolist (symbol vars)
 	  (when (and (boundp symbol)
 		     (not (memq symbol savehist-ignored-variables)))
 	    (let ((value (symbol-value symbol))
@@ -359,7 +363,7 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 		(insert "))\n"))))))
       ;; Save the additional variables.
       (dolist (elem savehist-additional-variables)
-        (when (not (memq elem savehist-minibuffer-history-variables))
+        (when (not (memq elem vars))
           (let ((symbol (if (consp elem)
                             (car elem)
                           elem)))

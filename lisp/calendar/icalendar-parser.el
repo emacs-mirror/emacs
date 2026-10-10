@@ -1931,6 +1931,10 @@ syntax node representing the parameter."
     (when (match-string 3)
       (ical:signal-parse-error
        (format "Invalid value for `%s' parameter: %s" type (match-string 3))))
+    (unless (looking-at-p (rx (or ?\; ?:)))
+      (ical:signal-parse-error
+       (format "Garbage in `%s' value starting at: `%s'"
+               type (buffer-substring-no-properties (point) (1+ (point))))))
 
     (let ((value-begin (match-beginning 2))
           (value-end (match-end 2))
@@ -4453,7 +4457,8 @@ operation on the entire current buffer."
   :type '(hook)
   :options '(ical:fix-blank-lines
              ical:fix-hyphenated-dates
-             ical:fix-missing-mailtos))
+             ical:fix-missing-mailtos
+             ical:fix-ms-tzids))
 
 (defun ical:fix-blank-lines ()
   "Remove blank lines.
@@ -4540,6 +4545,58 @@ which see."
                               (substring (downcase (match-string 1)) 0 7))))
           (replace-match "mailto:\\1" nil nil nil 1))
         (goto-char (match-end 0))))))
+
+(defun ical:fix-ms-tzids ()
+  "Replace certain non-standard TZIDs with acceptable values.
+
+Some implementations (particularly on Microsoft platforms) are known to
+produce TZID strings which are not compliant with RFC5545, like:
+
+  TZID:Amsterdam, Belgrade, Berlin
+  ...;TZID=\"Amsterdam, Belgrade, Berlin\"...
+
+This function replaces such TZIDs with an RFC-compliant version like:
+
+  TZID:AmsterdamEtc
+  ...;TZID=AmsterdamEtc...
+
+This does not affect the interpretation of the time data, and allows the
+TZIDs to be parsed correctly.  This function is intended to be used from
+`icalendar-pre-parsing-hook', which see."
+  (goto-char (point-min))
+  (let (tzids)
+    ;; Collect and replace MS-style TZID property values:
+    (while (re-search-forward
+            (rx line-start "TZID"
+                (zero-or-more ical:other-param-safe) ":"
+                (group-n 1 ; everything until EOL, including unescaped commas
+                  (group-n 2 (one-or-more ical:safe-char)) ; for new TZID
+                  (zero-or-more (not "\n"))))
+            nil t)
+      (let ((old (match-string 1))
+            (new (concat (match-string 2) "Etc")))
+        (while (rassoc new tzids)
+          (setq new (symbol-name (gensym new))))
+        (when (string-match-p (rx (not ical:safe-char)) old)
+          (replace-match new nil nil nil 1)
+          (push (cons old new)
+                tzids))))
+
+    (goto-char (point-min))
+    ;; Replace TZID param values:
+    ;; In all the examples I've seen, when these TZIDs appear in param
+    ;; values, they're surrounded by double quotes, which are invalid.
+    ;; Remove them if present.
+    (while (re-search-forward (rx ";TZID="
+                                  (group-n 1
+                                    (? ?\")
+                                    (group-n 2
+                                      (one-or-more (not (any ?\" ?\; ?\: "\n"))))
+                                    (? ?\")))
+                              nil t)
+      (when-let* ((pair (assoc (match-string 2) tzids))
+                  (new (cdr pair)))
+        (replace-match new nil nil nil 1)))))
 
 
 ;;; Caching and indexing parse trees

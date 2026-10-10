@@ -2912,7 +2912,7 @@ optimized; for heavy workload, use a temporary buffer instead.  */)
 
   Lisp_Object name_str = build_string (" *treesit-parse-string*");
   Lisp_Object buffer_name = Fgenerate_new_buffer_name (name_str, Qnil);
-  Lisp_Object buffer = Fget_buffer_create (buffer_name, Qnil);
+  Lisp_Object buffer = Fget_buffer_create (buffer_name, Qt);
 
   struct buffer *old_buffer = current_buffer;
   set_buffer_internal (XBUFFER (buffer));

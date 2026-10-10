@@ -2,24 +2,20 @@ NOTES ON COMMITTING TO EMACS'S REPOSITORY    -*- outline -*-
 
 * Install changes only on one branch, let them get merged elsewhere if needed.
 
-In particular, install bug-fixes only on the release branch (if there
-is one) and let them get synced to the master; do not install them by
-hand on the master as well.  E.g. if there is an active "emacs-24" branch
-and you have a bug-fix appropriate for the next emacs-24.x release,
-install it only on the emacs-24 branch, not on the master as well.
+When there is an active release branch, install bug fixes only there,
+and let them get synced to master; do not install them by hand on the
+master as well.  This is because installing things manually into more
+than one branch makes merges more difficult.
 
-Installing things manually into more than one branch makes merges more
-difficult.
+See admin/release-process regarding whether a given release branch is
+active or inactive, and *ask if unsure.*
 
-https://lists.gnu.org/r/emacs-devel/2010-03/msg01124.html
-
-The exception is, if you know that the change will be difficult to
-merge to the master (eg because the master code has changed a lot).
+Assuming there is an active release branch, the exception to installing
+on only one branch is if you know that the change will be difficult to
+merge to the master (e.g. because the master code has changed a lot).
 In that case, it's helpful if you can apply the change to both master
-and branch yourself (when committing the branch change, indicate
-in the commit log that it should not be merged to the master, by
-including the phrase "Not to be merged to master", or any other phrase
-that matches "merge").
+and branch yourself.  When installing to the release branch be sure to
+append "Do not merge to master." to your commit message.
 
 * Installing changes from your personal branches.
 
@@ -101,10 +97,10 @@ If you have not pushed the commit, you may be able to use 'git reset
 --hard' with a hash argument to revert the your local repo copy to the
 pre-commit state.
 
-If you have pushed  commit, resetting will be ineffective because it
+If you have pushed the commit, resetting will be ineffective because it
 will only vanish the commit in your local copy.  Instead, use 'git
-revert', giving it the commit ID as argument.  This will create a
-new commit that backs out the change.  Then push that.
+revert', giving it the commit ID as argument.  This will create a new
+commit that backs out the change.  Then push that.
 
 Note that git will generate a log message for the revert that includes
 a git hash.  Please edit this to refer to the commit by the first line
@@ -175,6 +171,8 @@ and/or 'make change-history' will no longer copy the entries.
 To alter ChangeLog history, run 'make change-history' and commit the
 changes made by that command.  Then edit the ChangeLog history files
 manually and commit those changes in a second, distinct commit.
+Currently this is only known to be safe to do on a release branch, not
+on master.  Merge the changes back to master in the usual way.
 Altering ChangeLog history like this can make things harder for those
 who handle merging branches and Emacs releases, so reserve it for
 correcting more serious mistakes.

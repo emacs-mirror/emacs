@@ -3,6 +3,9 @@
 Copyright (C) 2013-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+### Note spwhitton 2026/10: These builds seem no longer kept up-to-date.     ###
+###                         This information is of historical interest only. ###
+
 NOTES FOR EMACS CONTINUOUS BUILD ON HYDRA
 
 A continuous build for Emacs can be found at

@@ -9,14 +9,12 @@ Emacs version numbers have the form
 "build" increments each time Emacs is built in the same location
 (without cleaning) and isn't really part of the version.
 
-Bugfix releases increase "minor" by 1.
-Non-bugfix releases increase "major" by 1, and reset "minor" to 1.
-(The division between bugfix and non-bugfix has not always been clear
-historically.)
+Bugfix-only or otherwise minor releases increase "minor" by 1.
+Feature releases increase "major" by 1, and reset "minor" to 1.
 
 Unreleased (development) versions have an extra "devel" component.
 This is a fairly meaningless number that may be unchanged for a long time.
-It is normally 50.
+It is normally 50, then 60 when the release branch is cut.
 
 After we cut the release branch, we’ll make pretest and release
 candidate (RC) releases.  For pretest releases, the "devel" component
