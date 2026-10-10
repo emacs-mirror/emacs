@@ -545,8 +545,8 @@ Return t if all self-tests are passed, nil otherwise.  */)
     }
 
 #ifdef HAVE_TIMERFD
-  /* Wait for 1s but process timers.  */
-  wait_reading_process_output (1, 0, 0, false, Qnil, NULL, 0);
+  /* Wait 1.2 s but process timers.  */
+  wait_reading_process_output (1, 200000000, 0, false, Qnil, NULL, 0);
 #else
   /* If timerfd is not supported, wait_reading_process_output won't
      pay attention to timers that expired, and the callbacks won't be
