@@ -4834,11 +4834,13 @@ init_buffer_once (void)
 
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
+  BUFFER_PVEC_INIT (&buffer_defaults);
   reset_buffer (&buffer_defaults);
   eassert (NILP (BVAR (&buffer_defaults, name)));
   reset_buffer_local_variables (&buffer_defaults, 1);
-  eassert (NILP (BVAR (&buffer_local_symbols, name)));
+  BUFFER_PVEC_INIT (&buffer_local_symbols);
   reset_buffer (&buffer_local_symbols);
+  eassert (NILP (BVAR (&buffer_local_symbols, name)));
   reset_buffer_local_variables (&buffer_local_symbols, 1);
   /* Prevent GC from getting confused.  */
   buffer_defaults.text = &buffer_defaults.own_text;
@@ -4854,8 +4856,6 @@ init_buffer_once (void)
   /* This is not strictly necessary, but let's make them initialized.  */
   bset_name (&buffer_defaults, build_string (" *buffer-defaults*"));
   bset_name (&buffer_local_symbols, build_string (" *buffer-local-symbols*"));
-  BUFFER_PVEC_INIT (&buffer_defaults);
-  BUFFER_PVEC_INIT (&buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
   /* Must do these before making the first buffer! */
