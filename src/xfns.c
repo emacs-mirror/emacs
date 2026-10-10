@@ -10240,6 +10240,18 @@ frame_parm_handler x_frame_parm_handlers[] =
   gui_set_borders_respect_alpha_background,
   x_set_use_frame_synchronization,
   x_set_shaded,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
 };
 
 /* Some versions of libX11 don't have symbols for a few functions we

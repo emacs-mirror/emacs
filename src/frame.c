@@ -4080,7 +4080,479 @@ frame_unspecified_color (struct frame *f, Lisp_Object unspec)
 	     ? tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)) : Qnil));
 }
 
+/* Connect the frame-parameter names for frames to the ways of passing
+   the parameter values to the window system.
+
+   The name of a parameter, a Lisp symbol, has an `x-frame-parameter'
+   property which is its index in this table.  This is initialized in
+   syms_of_frame.  */
+struct frame_parm_table
+{
+  const char *name;
+  int sym;
+};
+
+/* If you're adding a new frame parameter here, consider if it makes sense
+   for the user to customize it via `initial-frame-alist' and the like.
+   If it does, add it to `frame--special-parameters' in frame.el, in order
+   to provide completion in the Customize UI for the new parameter.  */
+
+/* This list provides the order of x_frame_parm_handlers in xfns.c,
+   and both lists must have the same number of elements.  */
+static const struct frame_parm_table frame_parms[] =
+{
+  {"auto-raise",		SYMBOL_INDEX (Qauto_raise)},
+  {"auto-lower",		SYMBOL_INDEX (Qauto_lower)},
+  {"background-color",		SYMBOL_INDEX (Qbackground_color)},
+  {"border-color",		SYMBOL_INDEX (Qborder_color)},
+  {"border-width",		SYMBOL_INDEX (Qborder_width)},
+  {"cursor-color",		SYMBOL_INDEX (Qcursor_color)},
+  {"cursor-type",		SYMBOL_INDEX (Qcursor_type)},
+  {"font",			SYMBOL_INDEX (Qfont)},
+  {"foreground-color",		SYMBOL_INDEX (Qforeground_color)},
+  {"icon-name",			SYMBOL_INDEX (Qicon_name)},
+  {"icon-type",			SYMBOL_INDEX (Qicon_type)},
+  {"child-frame-border-width",	SYMBOL_INDEX (Qchild_frame_border_width)},
+  {"internal-border-width",	SYMBOL_INDEX (Qinternal_border_width)},
+  {"right-divider-width",	SYMBOL_INDEX (Qright_divider_width)},
+  {"bottom-divider-width",	SYMBOL_INDEX (Qbottom_divider_width)},
+  {"menu-bar-lines",		SYMBOL_INDEX (Qmenu_bar_lines)},
+  {"mouse-color",		SYMBOL_INDEX (Qmouse_color)},
+  {"name",			SYMBOL_INDEX (Qname)},
+  {"scroll-bar-width",		SYMBOL_INDEX (Qscroll_bar_width)},
+  {"scroll-bar-height",		SYMBOL_INDEX (Qscroll_bar_height)},
+  {"title",			SYMBOL_INDEX (Qtitle)},
+  {"unsplittable",		SYMBOL_INDEX (Qunsplittable)},
+  {"vertical-scroll-bars",	SYMBOL_INDEX (Qvertical_scroll_bars)},
+  {"horizontal-scroll-bars",	SYMBOL_INDEX (Qhorizontal_scroll_bars)},
+  {"visibility",		SYMBOL_INDEX (Qvisibility)},
+  {"tab-bar-lines",		SYMBOL_INDEX (Qtab_bar_lines)},
+  {"tool-bar-lines",		SYMBOL_INDEX (Qtool_bar_lines)},
+  {"scroll-bar-foreground",	SYMBOL_INDEX (Qscroll_bar_foreground)},
+  {"scroll-bar-background",	SYMBOL_INDEX (Qscroll_bar_background)},
+  {"screen-gamma",		SYMBOL_INDEX (Qscreen_gamma)},
+  {"line-spacing",		SYMBOL_INDEX (Qline_spacing)},
+  {"left-fringe",		SYMBOL_INDEX (Qleft_fringe)},
+  {"right-fringe",		SYMBOL_INDEX (Qright_fringe)},
+  {"wait-for-wm",		SYMBOL_INDEX (Qwait_for_wm)},
+  {"fullscreen",                SYMBOL_INDEX (Qfullscreen)},
+  {"font-backend",		SYMBOL_INDEX (Qfont_backend)},
+  {"alpha",			SYMBOL_INDEX (Qalpha)},
+  {"sticky",			SYMBOL_INDEX (Qsticky)},
+  {"tool-bar-position",		SYMBOL_INDEX (Qtool_bar_position)},
+  {"inhibit-double-buffering",  SYMBOL_INDEX (Qinhibit_double_buffering)},
+  {"undecorated",		SYMBOL_INDEX (Qundecorated)},
+  {"parent-frame",		SYMBOL_INDEX (Qparent_frame)},
+  {"skip-taskbar",		SYMBOL_INDEX (Qskip_taskbar)},
+  {"no-focus-on-map",		SYMBOL_INDEX (Qno_focus_on_map)},
+  {"no-accept-focus",		SYMBOL_INDEX (Qno_accept_focus)},
+  {"z-group",			SYMBOL_INDEX (Qz_group)},
+  {"override-redirect",		SYMBOL_INDEX (Qoverride_redirect)},
+  {"no-special-glyphs",		SYMBOL_INDEX (Qno_special_glyphs)},
+  {"alpha-background",		SYMBOL_INDEX (Qalpha_background)},
+  {"borders-respect-alpha-background",
+				SYMBOL_INDEX (Qborders_respect_alpha_background)},
+  {"use-frame-synchronization",	SYMBOL_INDEX (Quse_frame_synchronization)},
+#ifdef HAVE_X_WINDOWS
+  {"shaded",			SYMBOL_INDEX (Qshaded)},
+#endif
+#ifdef NS_IMPL_COCOA
+  {"ns-appearance",		SYMBOL_INDEX (Qns_appearance)},
+  {"ns-transparent-titlebar",	SYMBOL_INDEX (Qns_transparent_titlebar)},
+#endif
+
+  {"display",			SYMBOL_INDEX (Qdisplay)},
+  {"left",			SYMBOL_INDEX (Qleft)},
+  {"top",			SYMBOL_INDEX (Qtop)},
+  {"width",			SYMBOL_INDEX (Qwidth)},
+  {"height",			SYMBOL_INDEX (Qheight)},
+  {"parent-id",			SYMBOL_INDEX (Qparent_id)},
+  {"window-id",			SYMBOL_INDEX (Qwindow_id)},
+  {"outer-window-id",		SYMBOL_INDEX (Qouter_window_id)},
+  {"explicit-name",		SYMBOL_INDEX (Qexplicit_name)},
+  {"modeline",			SYMBOL_INDEX (Qmodeline)},
+  {"buffer-list",		SYMBOL_INDEX (Qbuffer_list)},
+  {"buried-buffer-list",	SYMBOL_INDEX (Qburied_buffer_list)},
+};
+
+/* This list must be in the same order as frame_parm_table above, and
+   both lists must have the same number of elements.  */
+enum x_frame_parameter
+{
+  AUTO_RAISE,
+  AUTO_LOWER,
+  BACKGROUND_COLOR,
+  BORDER_COLOR,
+  BORDER_WIDTH,
+  CURSOR_COLOR,
+  CURSOR_TYPE,
+  FONT,
+  FOREGROUND_COLOR,
+  ICON_NAME,
+  ICON_TYPE,
+  CHILD_FRAME_BORDER_WIDTH,
+  INTERNAL_BORDER_WIDTH,
+  RIGHT_DIVIDER_WIDTH,
+  BOTTOM_DIVIDER_WIDTH,
+  MENU_BAR_LINES,
+  MOUSE_COLOR,
+  NAME,
+  SCROLL_BAR_WIDTH,
+  SCROLL_BAR_HEIGHT,
+  TITLE,
+  UNSPLITTABLE,
+  VERTICAL_SCROLL_BARS,
+  HORIZONTAL_SCROLL_BARS,
+  VISIBILITY,
+  TAB_BAR_LINES,
+  TOOL_BAR_LINES,
+  SCROLL_BAR_FOREGROUND,
+  SCROLL_BAR_BACKGROUND,
+  SCREEN_GAMMA,
+  LINE_SPACING,
+  LEFT_FRINGE,
+  RIGHT_FRINGE,
+  WAIT_FOR_WM,
+  FULLSCREEN,
+  FONT_BACKEND,
+  ALPHA,
+  STICKY,
+  TOOL_BAR_POSITION,
+  INHIBIT_DOUBLE_BUFFERING,
+  UNDECORATED,
+  PARENT_FRAME,
+  SKIP_TASKBAR,
+  NO_FOCUS_ON_MAP,
+  NO_ACCEPT_FOCUS,
+  Z_GROUP,
+  OVERRIDE_REDIRECT,
+  NO_SPECIAL_GLYPHS,
+  ALPHA_BACKGROUND,
+  BORDERS_RESPECT_ALPHA_BACKGROUND,
+  USE_FRAME_SYNCHRONIZATION,
+#ifdef HAVE_X_WINDOWS
+  SHADED,
+#endif
+#ifdef NS_IMPL_COCOA
+  NS_APPEARANCE,
+  NS_TRANSPARENT_TITLEBAR,
+#endif
+  DISPLAY,
+  LEFT,
+  TOP,
+  WIDTH,
+  HEIGHT,
+  PARENT_ID,
+  WINDOW_ID,
+  OUTER_WINDOW_ID,
+  EXPLICIT_NAME,
+  MODELINE,
+  BUFFER_LIST,
+  BURIED_BUFFER_LIST,
+};
+
+/* Convert to a Lisp object the value of a frame parameter recorded in
+   the various fields of the frame object, and not ready in frame's
+   param_alist.  Return Qunbound, if parameter has no value to convert.
+   F is the frame.  PARAMETER is the name of the frame parameter.  */
+
+static Lisp_Object
+frame_get_param_value (struct frame *f, Lisp_Object parameter)
+{
+  Lisp_Object param_index = Fget (parameter, Qx_frame_parameter);
+
+  if (FIXNATP (param_index) && XFIXNAT (param_index) < countof (frame_parms))
+    {
+      switch (XFIXNAT (param_index))
+	{
+	  /* Convert common frame parameters.  */
+	case (NAME):
+	  return f->name;
+	case (WIDTH):
+	  /* It's questionable whether here we should report the value
+	     of f->new_width (and f->new_height below) but we've done
+	     that in the past, so let's keep it.  Note that a value of
+	     -1 for either of these means that no new size was
+	     requested.  But check f->new_size before to make sure that
+	     f->new_width and f->new_height are not ones requested by
+	     adjust_frame_size.  */
+	  {
+	    int width = ((f->new_size_p && f->new_width >= 0)
+			 ? f->new_width / FRAME_COLUMN_WIDTH (f)
+			 : FRAME_COLS(f));
+	    return make_fixnum (width);
+	  }
+	case (HEIGHT):
+	  {
+	    int height = ((f->new_size_p && f->new_height >= 0)
+			  ? f->new_height / FRAME_LINE_HEIGHT (f)
+			  : FRAME_LINES (f));
+	    return make_fixnum (height);
+	  }
+	case (MODELINE):
+	  return (FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil);
+	case (UNSPLITTABLE):
+	  return (FRAME_NO_SPLIT_P (f) ? Qt : Qnil);
+	case (BUFFER_LIST):
+	  return f->buffer_list;
+	case (BURIED_BUFFER_LIST):
+	  return f->buried_buffer_list;
+	case (VISIBILITY):
+	  if (FRAME_WINDOW_P (f))
+	    return (FRAME_VISIBLE_P (f)
+		    ? Qt
+		    : (FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
+	  else
+	    return (FRAME_VISIBLE_P (f) ? Qt : Qnil);
+
+	  /* Convert graphic frame parameters.  */
+#ifdef HAVE_WINDOW_SYSTEM
+	case (LINE_SPACING):
+	  if (f->extra_line_spacing == 0)
+	    /* If this is non-zero, we can't determine whether the
+	       user specified an integer or float value without
+	       looking through 'param_alist'.  */
+	    return make_fixnum (0);
+	  break;
+
+	  /* >>> From gui_report_frame_params  */
+	  /* I think this should be done with a hook.  */
+	case (LEFT):
+	  if (FRAME_WINDOW_P (f))
+	    {
+	      Lisp_Object tem;
+	      XSETINT (tem, f->left_pos);
+	      return ((f->left_pos >= 0) ? tem : list2 (Qplus, tem));
+	    }
+	  break;
+	case (TOP):
+	  if (FRAME_WINDOW_P (f))
+	    {
+	      Lisp_Object tem;
+	      XSETINT (tem, f->top_pos);
+	      return ((f->top_pos >= 0) ? tem : list2 (Qplus, tem));
+	    }
+	  break;
+	case (BORDER_WIDTH):
+	  if (FRAME_WINDOW_P (f))
+	    return make_fixnum (f->border_width);
+	  break;
+	case (CHILD_FRAME_BORDER_WIDTH):
+	  if (FRAME_WINDOW_P (f))
+	    return (FRAME_CHILD_FRAME_BORDER_WIDTH (f) >= 0
+		    ? make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (f))
+		    : Qnil);
+	  break;
+	case (INTERNAL_BORDER_WIDTH):
+	  if (FRAME_WINDOW_P (f))
+	    return make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (f));
+	  break;
+	case (RIGHT_DIVIDER_WIDTH):
+	  if (FRAME_WINDOW_P (f))
+	    return make_fixnum (FRAME_RIGHT_DIVIDER_WIDTH (f));
+	  break;
+	case (BOTTOM_DIVIDER_WIDTH):
+	  if (FRAME_WINDOW_P (f))
+	    return make_fixnum (FRAME_BOTTOM_DIVIDER_WIDTH (f));
+	  break;
+	case (LEFT_FRINGE):
+	  if (FRAME_WINDOW_P (f))
+	    return make_fixnum (FRAME_LEFT_FRINGE_WIDTH (f));
+	  break;
+	case (RIGHT_FRINGE):
+	  if (FRAME_WINDOW_P (f))
+	      return make_fixnum (FRAME_RIGHT_FRINGE_WIDTH (f));
+	  break;
+	case (SCROLL_BAR_WIDTH):
+	  if (FRAME_WINDOW_P (f))
+	    /* nil means "use default width" for non-toolkit scroll
+	       bar.  ruler-mode.el depends on this.  */
+	    return (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0
+		    ? make_fixnum (FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
+		    : Qnil);
+	  break;
+	case (SCROLL_BAR_HEIGHT):
+	  if (FRAME_WINDOW_P (f))
+	    /* nil means "use default height" for non-toolkit scroll
+	       bar.  */
+	    return (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) > 0
+		    ? make_fixnum (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f))
+		    : Qnil);
+	  break;
+	case (WINDOW_ID):
+	  if (FRAME_WINDOW_P (f))
+	    {
+	      /* FRAME_NATIVE_WINDOW is not guaranteed to return an
+		 integer.  E.g., on MS-Windows it returns a value whose
+		 type is HANDLE, which is actually a pointer.  Explicit
+		 casting avoids compiler warnings.  */
+	      uintmax_t w = WINDOW_HANDLE_UINTPTR (FRAME_NATIVE_WINDOW (f));
+	      return make_formatted_string ("%"PRIuMAX, w);
+	    }
+	  break;
+#ifdef HAVE_X_WINDOWS
+	case (OUTER_WINDOW_ID):
+	  if (FRAME_WINDOW_P (f))
+	    {
+	     uintmax_t w;
+#ifdef USE_X_TOOLKIT
+	     /* Tooltip frame may not have this widget.  */
+	     if (FRAME_X_OUTPUT (f)->widget)
+#endif /* USE_X_TOOLKIT */
+	     w = WINDOW_HANDLE_UINTPTR (FRAME_OUTER_WINDOW (f));
+	     return make_formatted_string ("%"PRIuMAX, w);
+	    }
+	  break;
+#endif /* HAVE_X_WINDOWS */
+	case (ICON_NAME):
+	  if (FRAME_WINDOW_P (f))
+	    return Qicon_name, f->icon_name;
+	  break;
+	case (DISPLAY):
+	  if (FRAME_WINDOW_P (f))
+	    return XCAR (FRAME_DISPLAY_INFO (f)->name_list_element);
+	  break;
+	case (PARENT_ID):
+	  if (FRAME_WINDOW_P (f))
+	    return ((FRAME_OUTPUT_DATA (f)->parent_desc
+		     == FRAME_DISPLAY_INFO (f)->root_window)
+		    ? Qnil
+		    : make_fixed_natnum (WINDOW_HANDLE_UINTPTR
+					 (FRAME_OUTPUT_DATA (f)->parent_desc)));
+	  break;
+	case (EXPLICIT_NAME):
+	  if (FRAME_WINDOW_P (f))
+	    return (f->explicit_name ? Qt : Qnil);
+	  break;
+	case (TOOL_BAR_POSITION):
+	  if (FRAME_WINDOW_P (f))
+	    return FRAME_TOOL_BAR_POSITION (f);
+	  break;
+	  /* <<< End gui_report_frame_params  */
+#endif /* HAVE_WINDOW_SYSTEM */
+
+	  /* Convert non-graphic frame parameters.  */
+	case (BACKGROUND_COLOR):
+	  if (!FRAME_WINDOW_P (f))
+	    {
+	      /* If the frame's parameter alist says the colors are
+		 unspecified and reversed, take the frame's background
+		 pixel for foreground and vice versa.  */
+	      Lisp_Object elt = Fassq (Qbackground_color, f->param_alist);
+	      return ((CONSP (elt) && STRINGP (XCDR (elt)))
+		      ? frame_unspecified_color (f, XCDR (elt))
+		      : tty_color_name (f, FRAME_BACKGROUND_PIXEL (f)));
+	    }
+	  break;
+	case (FOREGROUND_COLOR):
+	  if (!FRAME_WINDOW_P (f))
+	    {
+	      /* If the frame's parameter alist says the colors are
+		 unspecified and reversed, take the frame's background
+		 pixel for foreground and vice versa.  */
+	      Lisp_Object elt = Fassq (Qforeground_color, f->param_alist);
+	      return ((CONSP (elt) && STRINGP (XCDR (elt)))
+		      ? frame_unspecified_color (f, XCDR (elt))
+		      : tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)));
+	    }
+	  break;
+	case (FONT):
+	  if (!FRAME_WINDOW_P (f))
+	    return build_string (FRAME_MSDOS_P (f)
+				 ? "ms-dos"
+				 : FRAME_W32_P (f) ? "w32term"
+				 : "tty");
+	  break;
+	case (MENU_BAR_LINES):
+	  if (!FRAME_WINDOW_P (f))
+	    return make_fixnum (FRAME_MENU_BAR_LINES (f));
+	  break;
+	case (TAB_BAR_LINES):
+	  if (!FRAME_WINDOW_P (f))
+	    return make_fixnum (FRAME_TAB_BAR_LINES (f));
+	  break;
+	case (NO_ACCEPT_FOCUS):
+	  if (!FRAME_WINDOW_P (f))
+	    return (FRAME_NO_ACCEPT_FOCUS (f) ? Qt : Qnil);
+	  break;
+	}
+    }
+
+  return Qunbound;
+}
+
 DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
+       doc: /* Return the parameters-alist of frame FRAME.
+It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
+The meaningful PARMs depend on the kind of frame.
+If FRAME is nil or omitted, it defaults to the selected frame.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f = decode_any_frame (frame);
+
+  XSETFRAME (frame, f);
+
+  Lisp_Object alist = Fcopy_alist (f->param_alist);
+
+  if (FRAME_LIVE_P (f))
+    for (int i = 0; i < countof (frame_parms); i++)
+      {
+	int sym = frame_parms[i].sym;
+
+	eassert (sym >= 0 && sym < countof (lispsym));
+
+	Lisp_Object parameter = builtin_lisp_symbol (sym);
+	Lisp_Object value = frame_get_param_value (f, parameter);
+
+	/* Update alist for parameters whose value is not already in
+	   FRAME->param_alist.  Other parameters are already in alist
+	   copied from FRAME->param_alist.  */
+	if (!EQ (value, Qunbound))
+	  store_in_alist (&alist, parameter, value);
+      }
+
+  return alist;
+}
+
+DEFUN ("frame-parameter", Fframe_parameter, Sframe_parameter, 2, 2, 0,
+       doc: /* Return FRAME's value for parameter PARAMETER.
+If FRAME is nil or omitted, it defaults to the selected frame.  */)
+  (Lisp_Object frame, Lisp_Object parameter)
+{
+  struct frame *f = decode_any_frame (frame);
+
+  CHECK_SYMBOL (parameter);
+
+  XSETFRAME (frame, f);
+
+  if (!FRAME_LIVE_P (f))
+    return Qnil;
+
+  /* Try first to convert PARAMETER's value from values recorded in the
+     various fields of the frame object.  If no such value, search in
+     FRAME->param_alist.  */
+  Lisp_Object value = frame_get_param_value (f, parameter);
+  if (EQ (value, Qunbound))
+    value = Fcdr (Fassq (parameter, f->param_alist));
+
+  return value;
+}
+
+#if 1 /* FOR TESTING, TO BE REMOVED LATER */
+DEFUN ("frame-parameters-internal", Fframe_parameters_internal, Sframe_parameters_internal, 0, 1, 0,
+       doc: /* Return a copy of the internal FRAME->param_alist.
+If FRAME is nil or omitted, it defaults to the selected frame.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f = decode_any_frame (frame);
+
+  if (!FRAME_LIVE_P (f))
+    return Qnil;
+
+  return Fcopy_alist (f->param_alist);
+}
+
+DEFUN ("old-frame-parameters", Fold_frame_parameters, Sold_frame_parameters, 0, 1, 0,
        doc: /* Return the parameters-alist of frame FRAME.
 It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
 The meaningful PARMs depend on the kind of frame.
@@ -4168,8 +4640,7 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
   return alist;
 }
 
-
-DEFUN ("frame-parameter", Fframe_parameter, Sframe_parameter, 2, 2, 0,
+DEFUN ("old-frame-parameter", Fold_frame_parameter, Sold_frame_parameter, 2, 2, 0,
        doc: /* Return FRAME's value for parameter PARAMETER.
 If FRAME is nil, describe the currently selected frame.  */)
   (Lisp_Object frame, Lisp_Object parameter)
@@ -4239,6 +4710,8 @@ If FRAME is nil, describe the currently selected frame.  */)
 
   return value;
 }
+#endif /* FOR TESTING, TO BE REMOVED LATER */
+
 
 DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
        Smodify_frame_parameters, 2, 2, 0,
@@ -4806,85 +5279,6 @@ multiplied to find the real number of pixels.  */)
 /***********************************************************************
 				Frame Parameters
  ***********************************************************************/
-
-/* Connect the frame-parameter names for frames to the ways of passing
-   the parameter values to the window system.
-
-   The name of a parameter, a Lisp symbol, has an `x-frame-parameter'
-   property which is its index in this table.  This is initialized in
-   syms_of_frame.  */
-
-struct frame_parm_table {
-  const char *name;
-  int sym;
-};
-
-/* If you're adding a new frame parameter here, consider if it makes sense
-   for the user to customize it via `initial-frame-alist' and the like.
-   If it does, add it to `frame--special-parameters' in frame.el, in order
-   to provide completion in the Customize UI for the new parameter.  */
-static const struct frame_parm_table frame_parms[] =
-{
-  {"auto-raise",		SYMBOL_INDEX (Qauto_raise)},
-  {"auto-lower",		SYMBOL_INDEX (Qauto_lower)},
-  {"background-color",		SYMBOL_INDEX (Qbackground_color)},
-  {"border-color",		SYMBOL_INDEX (Qborder_color)},
-  {"border-width",		SYMBOL_INDEX (Qborder_width)},
-  {"cursor-color",		SYMBOL_INDEX (Qcursor_color)},
-  {"cursor-type",		SYMBOL_INDEX (Qcursor_type)},
-  {"font",			SYMBOL_INDEX (Qfont)},
-  {"foreground-color",		SYMBOL_INDEX (Qforeground_color)},
-  {"icon-name",			SYMBOL_INDEX (Qicon_name)},
-  {"icon-type",			SYMBOL_INDEX (Qicon_type)},
-  {"child-frame-border-width",	SYMBOL_INDEX (Qchild_frame_border_width)},
-  {"internal-border-width",	SYMBOL_INDEX (Qinternal_border_width)},
-  {"right-divider-width",	SYMBOL_INDEX (Qright_divider_width)},
-  {"bottom-divider-width",	SYMBOL_INDEX (Qbottom_divider_width)},
-  {"menu-bar-lines",		SYMBOL_INDEX (Qmenu_bar_lines)},
-  {"mouse-color",		SYMBOL_INDEX (Qmouse_color)},
-  {"name",			SYMBOL_INDEX (Qname)},
-  {"scroll-bar-width",		SYMBOL_INDEX (Qscroll_bar_width)},
-  {"scroll-bar-height",		SYMBOL_INDEX (Qscroll_bar_height)},
-  {"title",			SYMBOL_INDEX (Qtitle)},
-  {"unsplittable",		SYMBOL_INDEX (Qunsplittable)},
-  {"vertical-scroll-bars",	SYMBOL_INDEX (Qvertical_scroll_bars)},
-  {"horizontal-scroll-bars",	SYMBOL_INDEX (Qhorizontal_scroll_bars)},
-  {"visibility",		SYMBOL_INDEX (Qvisibility)},
-  {"tab-bar-lines",		SYMBOL_INDEX (Qtab_bar_lines)},
-  {"tool-bar-lines",		SYMBOL_INDEX (Qtool_bar_lines)},
-  {"scroll-bar-foreground",	SYMBOL_INDEX (Qscroll_bar_foreground)},
-  {"scroll-bar-background",	SYMBOL_INDEX (Qscroll_bar_background)},
-  {"screen-gamma",		SYMBOL_INDEX (Qscreen_gamma)},
-  {"line-spacing",		SYMBOL_INDEX (Qline_spacing)},
-  {"left-fringe",		SYMBOL_INDEX (Qleft_fringe)},
-  {"right-fringe",		SYMBOL_INDEX (Qright_fringe)},
-  {"wait-for-wm",		SYMBOL_INDEX (Qwait_for_wm)},
-  {"fullscreen",                SYMBOL_INDEX (Qfullscreen)},
-  {"font-backend",		SYMBOL_INDEX (Qfont_backend)},
-  {"alpha",			SYMBOL_INDEX (Qalpha)},
-  {"sticky",			SYMBOL_INDEX (Qsticky)},
-  {"tool-bar-position",		SYMBOL_INDEX (Qtool_bar_position)},
-  {"inhibit-double-buffering",  SYMBOL_INDEX (Qinhibit_double_buffering)},
-  {"undecorated",		SYMBOL_INDEX (Qundecorated)},
-  {"parent-frame",		SYMBOL_INDEX (Qparent_frame)},
-  {"skip-taskbar",		SYMBOL_INDEX (Qskip_taskbar)},
-  {"no-focus-on-map",		SYMBOL_INDEX (Qno_focus_on_map)},
-  {"no-accept-focus",		SYMBOL_INDEX (Qno_accept_focus)},
-  {"z-group",			SYMBOL_INDEX (Qz_group)},
-  {"override-redirect",		SYMBOL_INDEX (Qoverride_redirect)},
-  {"no-special-glyphs",		SYMBOL_INDEX (Qno_special_glyphs)},
-  {"alpha-background",		SYMBOL_INDEX (Qalpha_background)},
-  {"borders-respect-alpha-background",
-				SYMBOL_INDEX (Qborders_respect_alpha_background)},
-  {"use-frame-synchronization",	SYMBOL_INDEX (Quse_frame_synchronization)},
-#ifdef HAVE_X_WINDOWS
-  {"shaded",			SYMBOL_INDEX (Qshaded)},
-#endif
-#ifdef NS_IMPL_COCOA
-  {"ns-appearance",		SYMBOL_INDEX (Qns_appearance)},
-  {"ns-transparent-titlebar",	SYMBOL_INDEX (Qns_transparent_titlebar)},
-#endif
-};
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -7840,8 +8234,11 @@ the same terminal.  */);
   defsubr (&Sframe_after_make_frame);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
+  defsubr (&Sframe_parameters_internal);
   defsubr (&Sframe_parameters);
   defsubr (&Sframe_parameter);
+  defsubr (&Sold_frame_parameter);
+  defsubr (&Sold_frame_parameters);
   defsubr (&Smodify_frame_parameters);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);

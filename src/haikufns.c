@@ -3199,6 +3199,19 @@ frame_parm_handler haiku_frame_parm_handlers[] =
     gui_set_alpha_background,
     gui_set_borders_respect_alpha_background,
     haiku_set_use_frame_synchronization,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
   };
 
 void
