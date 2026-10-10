@@ -46,6 +46,7 @@
 #include <limits.h>
 #include <signal.h> /* sig_atomic_t */
 #include <stddef.h>
+#include <stdint.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 
@@ -73,7 +74,7 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
   AVER(sizeof(size_t) == sizeof(Addr));
   AVER(base < limit);
   AVER(base != 0);
-  AVER(AddrOffset(base, limit) <= INT_MAX);     /* should be redundant */
+  AVER(AddrOffset(base, limit) <= PTRDIFF_MAX);     /* should be redundant */
   AVERT(AccessSet, mode);
 
   /* .convert.access: Convert between MPS AccessSet and UNIX PROT thingies.
