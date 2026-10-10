@@ -653,6 +653,42 @@ comparing the subr with a much slower Lisp implementation."
                        (bound-and-true-p data-tests-foo2)
                        (bound-and-true-p data-tests-foo3)))))))
 
+(ert-deftest data-tests-kill-all-local-variables-reset ()
+  ;; bug#81111
+  (unwind-protect
+      (with-temp-buffer
+        (make-local-variable 'foo)
+        (put 'foo 'permanent-local t)
+        (setq foo 'bar)
+        (setq buffer-file-name "/dummy")
+        (kill-all-local-variables 'reset)
+        (should-not (local-variable-p 'foo))
+        (should-not buffer-file-name))
+    (makunbound 'foo)))
+
+(ert-deftest data-tests-kill-all-local-variables-permanent-local ()
+  ;; bug#81254 bug#81111 bug#74091
+  (unwind-protect
+      (with-temp-buffer
+        (should (equal
+                 (list (setq-default foo 123)
+                       (setq-local foo t)
+                       (kill-all-local-variables 'permanent-local)
+                       (local-variable-p 'foo)
+                       foo
+                       (default-value 'foo)
+                       (with-temp-buffer foo)
+                       foo)
+                 (list 123
+                       t
+                       nil
+                       nil
+                       123
+                       123
+                       123
+                       123))))
+    (makunbound 'foo)))
+
 (ert-deftest data-tests-bignum ()
   (should (bignump (+ most-positive-fixnum 1)))
   (let ((f0 (+ (float most-positive-fixnum) 1))

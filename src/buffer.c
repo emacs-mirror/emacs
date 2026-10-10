@@ -1137,6 +1137,9 @@ static void
 reset_buffer_local_variables (struct buffer *b, int permanent_too)
 {
   int offset, i;
+  Lisp_Object tmp = Qnil;
+  Lisp_Object buffer;
+  XSETBUFFER (buffer, b);
 
   /* Reset the major mode to Fundamental, together with all the
      things that depend on the major mode.
@@ -1161,13 +1164,22 @@ reset_buffer_local_variables (struct buffer *b, int permanent_too)
 
   /* Reset all (or most) per-buffer variables to their defaults.  */
   if (permanent_too == 1)
-    bset_local_var_alist (b, Qnil);
+    {
+      for (tmp = BVAR (b, local_var_alist); CONSP (tmp); tmp = XCDR (tmp))
+        {
+          Lisp_Object sym = XCAR (XCAR (tmp));
+          if (BASE_EQ (SYMBOL_BLV (XSYMBOL (sym))->where, buffer))
+            {
+              /* Symbol is set up for this buffer's old local value:
+                 swap it out!  */
+              swap_in_global_binding (XSYMBOL (sym));
+            }
+        }
+      bset_local_var_alist (b, Qnil);
+    }
   else
     {
-      Lisp_Object tmp, last = Qnil;
-      Lisp_Object buffer;
-      XSETBUFFER (buffer, b);
-
+      Lisp_Object last = Qnil;
       for (tmp = BVAR (b, local_var_alist); CONSP (tmp); tmp = XCDR (tmp))
         {
           Lisp_Object local_var = XCAR (XCAR (tmp));
