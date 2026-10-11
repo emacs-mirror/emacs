@@ -1180,6 +1180,8 @@ static void pint2str (register char *, register int, register ptrdiff_t);
 static int display_string (const char *, Lisp_Object, Lisp_Object,
                            ptrdiff_t, ptrdiff_t, struct it *, int, int, int,
 			   int);
+static int margin_indicator_column (Lisp_Object, Lisp_Object, ptrdiff_t,
+				    enum glyph_row_area);
 static void compute_line_metrics (struct it *);
 static bool get_overlay_strings (struct it *, ptrdiff_t);
 static bool get_overlay_strings_1 (struct it *, ptrdiff_t, bool);
@@ -6552,6 +6554,21 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	    it->area = LEFT_MARGIN_AREA;
 	  else
 	    it->area = RIGHT_MARGIN_AREA;
+
+	  /* Set 'margin_column' for the overlay or text property
+	     that produces the margin glyphs, so display_line
+	     could rearrange margin indicators at the end.  */
+	  {
+	    Lisp_Object from_overlay = overlay;
+	    if (NILP (from_overlay) && it->current.overlay_string_index >= 0)
+	      from_overlay =
+		it->string_overlays[it->current.overlay_string_index
+		  % OVERLAY_STRING_CHUNK_SIZE];
+	    it->margin_column =
+	      margin_indicator_column (from_overlay, object,
+				       CHARPOS (start_pos), it->area);
+	  }
+
 	  /* Use the 'margin' face for displaying text and images
 	     in the margins.  */
 	  it->face_id =
@@ -7378,6 +7395,7 @@ push_it (struct it *it, struct text_pos *position)
   p->bidi_p = it->bidi_p;
   p->paragraph_embedding = it->paragraph_embedding;
   p->from_disp_prop_p = it->from_disp_prop_p;
+  p->margin_column = it->margin_column;
   ++it->sp;
 
   /* Save the state of the bidi iterator as well. */
@@ -7525,6 +7543,7 @@ pop_it (struct it *it)
   it->paragraph_embedding = p->paragraph_embedding;
   it->from_disp_prop_p = p->from_disp_prop_p;
   it->align_visually_p = false;
+  it->margin_column = p->margin_column;
   if (it->bidi_p)
     {
       bidi_pop_it (&it->bidi_it);
@@ -23886,6 +23905,184 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string,
 }
 
 
+/* The maximum number of indicators that can be rearranged
+   in the left or right margin area.  Remaining indicators that
+   don't fit into this limit are still displayed at the margin end.  */
+
+#define MAX_MARGIN_INDICATORS 32
+
+/* Return the column number in the margin AREA corresponding
+   to the position of the symbol in 'left-margin-columns' or
+   'right-margin-columns'.  The symbol should be either a property
+   of OVERLAY, or a text property at CHARPOS of OBJECT that can be
+   either the buffer of the string that has the 'display' property
+   that produces the margin indicator.  Return -1 when not found.  */
+
+static int
+margin_indicator_column (Lisp_Object overlay, Lisp_Object object,
+			 ptrdiff_t charpos, enum glyph_row_area area)
+{
+  Lisp_Object pos = make_fixnum (charpos);
+  Lisp_Object tail;
+  int col;
+
+  /* Iterate over symbols in the list and try matching them
+     to the property of the overlay or text property.  */
+  for (tail = (area == LEFT_MARGIN_AREA
+	       ? Vleft_margin_columns
+	       : Vright_margin_columns), col = 0;
+       CONSP (tail);
+       tail = XCDR (tail), col++)
+    {
+      Lisp_Object sym = XCAR (tail);
+
+      /* Handle the format (SYMBOL WIDTH).  */
+      if (CONSP (sym))
+	sym = XCAR (sym);
+
+      if (!SYMBOLP (sym))
+	continue;
+      if (OVERLAYP (overlay) && !NILP (Foverlay_get (overlay, sym)))
+	return col;
+      if ((BUFFERP (object) || STRINGP (object))
+	  && !NILP (Fget_text_property (pos, sym, object)))
+	return col;
+    }
+
+  return -1;
+}
+
+/* Copy margin glyphs into SCRATCH using SCRATCH_MAX as the limit.
+   SCRATCH already contains NGLYPHS glyphs.
+   The source for copying is FROM that has LEN produced glyphs
+   whereas the required width is WIDTH.  */
+
+static int
+copy_margin_glyphs (struct frame *f, struct glyph *scratch, int nglyphs,
+		    int scratch_max, struct glyph *from, int len, int width)
+{
+  int i;
+
+  for (i = 0; i < len && width > 0 && nglyphs < scratch_max; i++)
+    {
+      scratch[nglyphs] = from[i];
+      /* Truncate a wide char to the remaining width.  */
+      if (scratch[nglyphs].pixel_width > width)
+	scratch[nglyphs].pixel_width = width;
+      width -= scratch[nglyphs].pixel_width;
+      nglyphs++;
+    }
+
+  /* Don't copy glyphs of a truncated char on a text terminal
+     that doesn't support displaying half of the wide char.  */
+  if (!FRAME_WINDOW_P (f))
+    while (nglyphs > 0 && i < len && CHAR_GLYPH_PADDING_P (from[i]))
+      i--, nglyphs--;
+
+  return nglyphs;
+}
+
+/* Rearrange the margin indicators of the glyph ROW in the margin AREA
+   according to column specification in 'left-margin-columns' and
+   'right-margin-columns'.  N is the number of indicators found by
+   display_line.  STARTS are their beginning positions.  END is
+   where the last glyphs end before the padding glyphs were added
+   by extend_face_to_end_of_line.  COLUMNS are indexes of indicators
+   in 'left-margin-columns' and 'right-margin-columns'.  They come
+   in the order in which display_line found them on the line,
+   and should be rearranged sequentially in the defined order.  */
+
+static void
+rearrange_margin_indicators (struct it *it, struct glyph_row *row,
+			     int n, int *starts, int end, int *columns,
+			     enum glyph_row_area area)
+{
+  struct glyph *glyphs = row->glyphs[area];
+  struct glyph *scratch = scratch_glyph_row.glyphs[TEXT_AREA];
+  int scratch_max = min (row->glyphs[area + 1] - glyphs, MAX_SCRATCH_GLYPHS);
+  int used = row->used[area];
+  int len[MAX_MARGIN_INDICATORS];
+  int nglyphs = 0;
+  int col, i, width;
+  Lisp_Object margin_columns = (area == LEFT_MARGIN_AREA
+				? Vleft_margin_columns
+				: Vright_margin_columns);
+
+  /* When no columns are defined, keep the original order.  */
+  if (!CONSP (margin_columns))
+    return;
+
+  /* Count the number of produced glyphs for each indicator.  */
+  end = min (end, used);
+  for (i = 0; i < n; i++)
+    len[i] = max (0, min (i + 1 < n ? starts[i + 1] : end, end) - starts[i]);
+
+  /* Produce the glyph for filling empty space in columns.  */
+  struct glyph space;
+  struct it tem_it;
+  struct buffer *old = current_buffer;
+  set_buffer_temp (XBUFFER (it->w->contents));
+  init_iterator (&tem_it, it->w, -1, -1, &scratch_glyph_row, MARGIN_FACE_ID);
+  scratch_glyph_row.reversed_p = false;
+  scratch_glyph_row.used[TEXT_AREA] = 0;
+  display_string (" ", Qnil, Qnil, 0, 0, &tem_it, 0, -1, 0, -1);
+  set_buffer_temp (old);
+
+  if (scratch_glyph_row.used[TEXT_AREA] == 0)
+    return;
+  /* Copy the space glyph, making the scratch row available
+     for reusing below.  */
+  space = scratch[0];
+
+  /* Iterate over column symbols and copy margin glyphs into scratch.  */
+  Lisp_Object tail;
+  for (tail = margin_columns, col = 0;
+       CONSP (tail);
+       tail = XCDR (tail), col++)
+    {
+      int start = nglyphs;
+      Lisp_Object elt = XCAR (tail);
+      /* Handle the format (SYMBOL WIDTH) defaulting to 1.  */
+      int col_width = FRAME_COLUMN_WIDTH (it->f)
+	* (CONSP (elt) && CONSP (XCDR (elt)) && FIXNATP (XCAR (XCDR (elt)))
+	   ? min (XFIXNAT (XCAR (XCDR (elt))), MAX_SCRATCH_GLYPHS) : 1);
+
+      /* Copy the glyphs corresponding to the current column.  */
+      for (i = 0; i < n; i++)
+	if (columns[i] == col)
+	  nglyphs = copy_margin_glyphs (it->f, scratch, start, scratch_max,
+					glyphs + starts[i], len[i], col_width);
+
+      /* Fill the rest of the column with spaces.  */
+      for (width = 0, i = start; i < nglyphs; i++)
+	width += scratch[i].pixel_width;
+      while (width < col_width && nglyphs < scratch_max)
+	{
+	  scratch[nglyphs] = space;
+	  if (scratch[nglyphs].pixel_width > col_width - width)
+	    scratch[nglyphs].pixel_width = col_width - width;
+	  width += scratch[nglyphs].pixel_width;
+	  nglyphs++;
+	}
+    }
+
+  /* The remaining undefined indicators come after all columns,
+     keeping their original order.  */
+  for (i = 0; i < n; i++)
+    if (columns[i] < 0)
+      nglyphs = copy_margin_glyphs (it->f, scratch, nglyphs, scratch_max,
+				    glyphs + starts[i], len[i], INT_MAX);
+
+  /* Copy from scratch back into the margin,
+     and fill with spaces until end.  */
+  scratch_glyph_row.used[TEXT_AREA] = nglyphs;
+  memcpy (glyphs, scratch, nglyphs * sizeof *glyphs);
+  for (i = nglyphs; i < end; i++)
+    glyphs[i] = space;
+  row->used[area] = max (used, nglyphs);
+}
+
+
 /* Insert truncation glyphs at the start of IT->glyph_row.  Which
    glyphs to insert is determined by produce_special_glyphs.  */
 
@@ -25881,6 +26078,13 @@ display_line (struct it *it, int cursor_vpos)
   ptrdiff_t min_pos = ZV + 1, max_pos = 0;
   ptrdiff_t min_bpos UNINIT, max_bpos UNINIT;
   bool pending_handle_line_prefix = false;
+  int left_margin_indicators[MAX_MARGIN_INDICATORS];
+  int right_margin_indicators[MAX_MARGIN_INDICATORS];
+  int left_margin_columns[MAX_MARGIN_INDICATORS];
+  int right_margin_columns[MAX_MARGIN_INDICATORS];
+  int n_left_margin_indicators = 0, n_right_margin_indicators = 0;
+  int left_margin_indicators_end = 0, right_margin_indicators_end = 0;
+  int last_margin_column = -2;
   int tab_line = window_wants_tab_line (it->w);
   int header_line = window_wants_header_line (it->w);
   bool hscroll_this_line = (cursor_vpos >= 0
@@ -26159,6 +26363,32 @@ display_line (struct it *it, int cursor_vpos)
 	    }
 	}
 
+      /* Remember where the glyphs of the next margin indicator begin.
+	 This allows rearranging them after the current line is done.  */
+      if (it->area == TEXT_AREA)
+	last_margin_column = -2;
+      else if (it->margin_column != last_margin_column)
+	{
+	  last_margin_column = it->margin_column;
+
+	  if (it->area == LEFT_MARGIN_AREA
+	      && n_left_margin_indicators < MAX_MARGIN_INDICATORS)
+	    {
+	      int mi = n_left_margin_indicators++;
+
+	      left_margin_indicators[mi] = n_glyphs_before;
+	      left_margin_columns[mi] = it->margin_column;
+	    }
+	  else if (it->area == RIGHT_MARGIN_AREA
+		   && n_right_margin_indicators < MAX_MARGIN_INDICATORS)
+	    {
+	      int mi = n_right_margin_indicators++;
+
+	      right_margin_indicators[mi] = n_glyphs_before;
+	      right_margin_columns[mi] = it->margin_column;
+	    }
+	}
+
       PRODUCE_GLYPHS (it);
 
       /* If this display element was in marginal areas, continue with
@@ -26185,6 +26415,13 @@ display_line (struct it *it, int cursor_vpos)
 	      && row->used[area] < n_glyphs_before + it->nglyphs)
 	      /* ...then reset back to the previous character.	*/
 	    row->used[area] = n_glyphs_before;
+	  /* Remember where the glyphs of the margin indicators end,
+	     to not take into account the padding glyphs added by
+	     extend_face_to_end_of_line.  */
+	  if (area == LEFT_MARGIN_AREA)
+	    left_margin_indicators_end = row->used[LEFT_MARGIN_AREA];
+	  else
+	    right_margin_indicators_end = row->used[RIGHT_MARGIN_AREA];
 	  /* If we didn't handle the line/wrap prefix above, and the
 	     call to set_iterator_to_next just switched to TEXT_AREA,
 	     process the prefix now.  */
@@ -26745,6 +26982,18 @@ display_line (struct it *it, int cursor_vpos)
     bidi_unshelve_cache (wrap_data, true);
   if (prev_data)
     bidi_unshelve_cache (prev_data, true);
+
+  /* After the line is done, rearrange the found margin indicators.  */
+  if (n_left_margin_indicators > 0)
+    rearrange_margin_indicators (it, row, n_left_margin_indicators,
+				 left_margin_indicators,
+				 left_margin_indicators_end,
+				 left_margin_columns, LEFT_MARGIN_AREA);
+  if (n_right_margin_indicators > 0)
+    rearrange_margin_indicators (it, row, n_right_margin_indicators,
+				 right_margin_indicators,
+				 right_margin_indicators_end,
+				 right_margin_columns, RIGHT_MARGIN_AREA);
 
   /* If line is not empty and hscrolled, maybe insert truncation glyphs
      at the left window margin.  */
@@ -39531,6 +39780,45 @@ The default value is zero, which disables this feature.
 The recommended non-zero value is between 100000 and 1000000,
 depending on your patience and the speed of your system.  */);
   max_redisplay_ticks = 0;
+
+  DEFVAR_LISP ("left-margin-columns", Vleft_margin_columns,
+    doc: /* List that defines the columns of the left margin.
+Each of list elements specifies one column, as either SYMBOL
+or a list (SYMBOL WIDTH).
+
+Each symbol represents a package that displays indicators in the margin.
+The position of a symbol in this list determines the order in which the
+corresponding indicators are shown in the margin, left-to-right.
+The overlay or text property with `display' property from buffer text
+should have that symbol as a property.
+
+For example, if this variable is set to (outline (flymake 2)),
+then indicators from overlays with the overlay property \"outline\"
+appear in the first column, indicators with the property \"flymake\"
+in the second and third column, and remaining indicators
+in the fourth and other columns.
+
+See `right-margin-columns' for the right margin columns.  */);
+  Vleft_margin_columns = Qnil;
+  DEFSYM (Qleft_margin_columns, "left-margin-columns");
+  Fmake_variable_buffer_local (Qleft_margin_columns);
+
+  DEFVAR_LISP ("right-margin-columns", Vright_margin_columns,
+    doc: /* List that defines the columns of the right margin.
+Each of list elements specifies one column, as either SYMBOL
+or a list (SYMBOL WIDTH).
+
+Each symbol represents a package that displays indicators in the margin.
+The position of a symbol in this list determines the order in which the
+corresponding indicators are shown in the margin, left-to-right.
+The overlay or text property with `display' property from buffer text
+should have that symbol as a property.
+
+This is like `left-margin-columns', but for the indicators
+that are displayed in the right margin.  */);
+  Vright_margin_columns = Qnil;
+  DEFSYM (Qright_margin_columns, "right-margin-columns");
+  Fmake_variable_buffer_local (Qright_margin_columns);
 
   /* Called by decode_mode_spec.  */
   DEFSYM (Qfile_remote_p, "file-remote-p");

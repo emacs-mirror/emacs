@@ -2639,6 +2639,7 @@ struct it
     short voffset;
     Lisp_Object space_width;
     Lisp_Object font_height;
+    int margin_column;
   }
   stack[IT_STACK_SIZE];
 
@@ -2932,6 +2933,13 @@ struct it
      is the x position of the start of the run of glyphs. */
   Lisp_Object min_width_property;
   int min_width_start;
+
+  /* Column position for margin indicators according
+     to `left-margin-columns' or `right-margin-columns'.
+     -1 means no specific column requested (use sequential filling).
+     >= 0 specifies the column (0-based) where the margin indicator
+     should be placed, with spaces padding unused columns.  */
+  int margin_column;
 };
 
 

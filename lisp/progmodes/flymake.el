@@ -2581,8 +2581,15 @@ symbol `fringes' or the symbol `margins'."
       'left-margin-width 'right-margin-width))
 
 (defun flymake--restore-margins ()
-  (when flymake--original-margin-width
-    (set (flymake--appropriate-margin) flymake--original-margin-width))
+  (if (boundp 'left-margin-columns)
+      (let ((sym (flymake--appropriate-margin))
+            (sym-col (if (eq flymake-margin-indicator-position 'left-margin)
+                         'left-margin-columns 'right-margin-columns)))
+        (set sym (max 0 (- (symbol-value sym) flymake--original-margin-width)))
+        (set-local sym-col (assq-delete-all 'flymake-overlay
+                                            (symbol-value sym-col))))
+    (when flymake--original-margin-width
+      (set (flymake--appropriate-margin) flymake--original-margin-width)))
   (flymake--apply-margins))
 
 (defun flymake--suitable-margin-width ()
@@ -2601,10 +2608,18 @@ symbol `fringes' or the symbol `margins'."
   (let* ((sym (flymake--appropriate-margin))
          (width (flymake--suitable-margin-width))
          (curr (symbol-value sym)))
-    (unless (eq curr width)
-      (setq flymake--original-margin-width (symbol-value sym))
-      (set sym width)
-      (flymake--apply-margins))))
+    (if (boundp 'left-margin-columns)
+        (let ((sym-col (if (eq flymake-margin-indicator-position 'left-margin)
+                           'left-margin-columns 'right-margin-columns)))
+          (setq flymake--original-margin-width width)
+          (set sym (+ curr width))
+          (set-local sym-col (append (symbol-value sym-col)
+                                     `((flymake-overlay ,width))))
+          (flymake--apply-margins))
+      (unless (eq curr width)
+        (setq flymake--original-margin-width curr)
+        (set sym width)
+        (flymake--apply-margins)))))
 
 (defun flymake--apply-margins ()
   ;; FIXME: this destroys any scroll an inactive window showing

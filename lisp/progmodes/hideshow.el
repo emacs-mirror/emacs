@@ -1604,6 +1604,8 @@ Key bindings:
         (setq-local hs-indicator-type 'margin))
       (when (eq hs-indicator-type 'margin)
         (setq-local left-margin-width (1+ left-margin-width))
+        (setq-local left-margin-columns
+                    (append left-margin-columns '(hs-indicator)))
         (setq-local fringes-outside-margins t)
         ;; Force display of margins
         (when (eq (current-buffer) (window-buffer))
@@ -1619,6 +1621,8 @@ Key bindings:
       (when (and (eq hs-indicator-type 'margin)
                  (< 0 left-margin-width))
         (setq-local left-margin-width (1- left-margin-width))
+        (setq-local left-margin-columns
+                    (delq 'hs-indicator left-margin-columns))
         (kill-local-variable 'fringes-outside-margins)
         ;; Force removal of margins
         (when (eq (current-buffer) (window-buffer))
