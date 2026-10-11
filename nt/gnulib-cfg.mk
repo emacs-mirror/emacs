@@ -60,6 +60,7 @@ OMIT_GNULIB_MODULE_inttypes-h-incomplete = true
 OMIT_GNULIB_MODULE_issymlink = true
 OMIT_GNULIB_MODULE_issymlinkat = true
 OMIT_GNULIB_MODULE_lchmod = true
+OMIT_GNULIB_MODULE_localtime = true
 OMIT_GNULIB_MODULE_malloc-gnu = true
 OMIT_GNULIB_MODULE_malloc-posix = true
 OMIT_GNULIB_MODULE_nanosleep = true

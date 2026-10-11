@@ -37,6 +37,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <sys/types.h>	/* must be before <time.h>, for MinGW64 */
 #include <time.h>	/* must be before nt/inc/sys/time.h, for MinGW64 */
+#ifdef localtime	/* Gnulib's time.h redirects to rpl_localtime */
+# undef localtime
+#endif
 #include <sys/time.h>
 #include <sys/utime.h>
 #include <math.h>
@@ -265,6 +268,8 @@ typedef struct _REPARSE_DATA_BUFFER {
 #include <c-ctype.h>
 #include <c-strcase.h>
 #include <utimens.h>	/* for fdutimens */
+
+#include <tzsanitize.h>
 
 #include "w32.h"
 #include <dirent.h>
@@ -10342,9 +10347,16 @@ w32_fix_tzset (void)
 struct tm *
 sys_localtime (const time_t *t)
 {
+  tzsanitize ();
   tzset ();
   w32_fix_tzset ();
   return localtime (t);
+}
+
+struct tm *
+rpl_localtime (const time_t *t)
+{
+  return sys_localtime (t);
 }
 
 /* The Windows CRT implementation of 'clock' doesn't really return CPU

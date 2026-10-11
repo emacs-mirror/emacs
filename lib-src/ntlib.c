@@ -40,6 +40,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <nl_types.h>
 #include <langinfo.h>
+#include <tzsanitize.h>
+#ifdef localtime
+# undef localtime
+#endif
 
 #include "ntlib.h"
 
@@ -598,4 +602,12 @@ nl_langinfo (nl_item item)
       default:
 	return (char *) "";
     }
+}
+
+/* Gnulib forcibly redirects 'localtime' to this.  */
+struct tm *
+rpl_localtime (const time_t *tp)
+{
+  tzsanitize ();
+  return localtime (tp);
 }
