@@ -2265,7 +2265,9 @@ the X resource \"reverseVideo\" is present, handle that."
 
           (if (null visibility-spec)
 	      (make-frame-visible frame)
-	    (modify-frame-parameters frame (list visibility-spec)))
+            (if (or (cdr visibility-spec)
+                    (not (assoc-default 'parent-frame params)))
+	        (modify-frame-parameters frame (list visibility-spec))))
 	  (setq success t))
       (unless success
 	(delete-frame frame)))
