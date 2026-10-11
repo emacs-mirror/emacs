@@ -70,17 +70,17 @@ template <int w>
 #  if 1
   /* Use decltype.  */
 /* Default case.  */
-template <typename T>
+template <typename _T_>
   struct _gl_array_type_test { static const int is_array = -1; };
 /* Unbounded arrays.  */
-template <typename T>
-  struct _gl_array_type_test<T[]> { static const int is_array = 1; };
+template <typename _T_>
+  struct _gl_array_type_test<_T_[]> { static const int is_array = 1; };
 /* Bounded arrays.  */
-template <typename T, size_t N>
-  struct _gl_array_type_test<T[N]> { static const int is_array = 1; };
+template <typename _T_, size_t _N_>
+  struct _gl_array_type_test<_T_[_N_]> { static const int is_array = 1; };
 /* String literals.  */
-template <typename T, size_t N>
-  struct _gl_array_type_test<T const (&)[N]> { static const int is_array = 1; };
+template <typename _T_, size_t _N_>
+  struct _gl_array_type_test<_T_ const (&)[_N_]> { static const int is_array = 1; };
 #   define _gl_verify_is_array(...) \
      sizeof (_gl_verify_type<_gl_array_type_test<decltype(__VA_ARGS__)>::is_array>)
 #  else
@@ -88,17 +88,17 @@ template <typename T, size_t N>
      Use sizeof to get a constant expression from an unknown type.
      Note: This approach does not work for countof (((int[]) { a, b, c })).  */
 /* Default case.  */
-template <typename T>
+template <typename _T_>
   struct _gl_array_type_test { double large; };
 /* Unbounded arrays.  */
-template <typename T>
-  struct _gl_array_type_test<T[]> { char small; };
+template <typename _T_>
+  struct _gl_array_type_test<_T_[]> { char small; };
 /* Bounded arrays.  */
-template <typename T, size_t N>
-  struct _gl_array_type_test<T[N]> { char small; };
-/* The T& parameter is essential here: it prevents decay (array-to-pointer
+template <typename _T_, size_t _N_>
+  struct _gl_array_type_test<_T_[_N_]> { char small; };
+/* The _T_& parameter is essential here: it prevents decay (array-to-pointer
    conversion).  */
-template <typename T> _gl_array_type_test<T> _gl_array_type_test_helper(T&);
+template <typename _T_> _gl_array_type_test<_T_> _gl_array_type_test_helper(_T_&);
 #   define _gl_verify_is_array(...) \
      sizeof (_gl_verify_type<(sizeof (_gl_array_type_test_helper(__VA_ARGS__)) < sizeof (double) ? 1 : -1)>)
 #  endif

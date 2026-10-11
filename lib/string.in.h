@@ -1280,7 +1280,7 @@ _GL_STRNUL_INLINE const char *_gl_strnul (const char *string)
 #  ifdef __cplusplus
 extern "C++" { /* needed for AIX and Solaris 10 */
 _GL_BEGIN_NAMESPACE
-template <typename T> T strnul (T);
+template <typename _T_> _T_ strnul (_T_);
 template <> inline const char *strnul<const char *> (const char *s)
 { return _gl_strnul (s); }
 template <> inline       char *strnul<      char *> (      char *s)
@@ -1418,8 +1418,8 @@ _GL_EXTERN_C char * mbsstr (const char *haystack, const char *needle)
    compiler warnings for 'const' related mistakes.  */
 #  ifdef __cplusplus
 extern "C++" { /* needed for AIX and Solaris 10 */
-template <typename T>
-  T * mbsstr_template (T* haystack, const char *needle);
+template <typename _T_>
+  _T_ * mbsstr_template (_T_* haystack, const char *needle);
 template <>
   inline char * mbsstr_template (char *haystack, const char *needle)
   { return mbsstr (haystack, needle); }
@@ -1487,8 +1487,8 @@ _GL_EXTERN_C char * mbspcasecmp (const char *string, const char *prefix)
    compiler warnings for 'const' related mistakes.  */
 #  ifdef __cplusplus
 extern "C++" { /* needed for AIX and Solaris 10 */
-template <typename T>
-  T * mbspcasecmp_template (T* string, const char *prefix);
+template <typename _T_>
+  _T_ * mbspcasecmp_template (_T_* string, const char *prefix);
 template <>
   inline char * mbspcasecmp_template (char *string, const char *prefix)
   { return mbspcasecmp (string, prefix); }
@@ -1525,8 +1525,8 @@ _GL_EXTERN_C char * mbscasestr (const char *haystack, const char *needle)
    compiler warnings for 'const' related mistakes.  */
 #  ifdef __cplusplus
 extern "C++" { /* needed for AIX and Solaris 10 */
-template <typename T>
-  T * mbscasestr_template (T* haystack, const char *needle);
+template <typename _T_>
+  _T_ * mbscasestr_template (_T_* haystack, const char *needle);
 template <>
   inline char * mbscasestr_template (char *haystack, const char *needle)
   { return mbscasestr (haystack, needle); }
