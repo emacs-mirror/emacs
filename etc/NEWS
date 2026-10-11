@@ -31,16 +31,30 @@ with a prefix argument or by typing 'C-u C-h C-n'.
 * Changes in Specialized Modes and Packages in Emacs 31.2
 
 ** Loaddefs-gen
+
 *** 'autoload-macro' declaration controls interaction with autoload cookies.
 [ This change was actually introduced in Emacs-31.1.  ]
 Previously, ';;;###autoload' cookies would cause the whole form to be
 copied as-is to the loaddefs file except for a small hardcoded set of macros,
-like 'define-minor-mode', which were turned into (autoload ...) stanzas.
-Now, macros can use (declare (autoload-macro expand)) to indicate that
+like 'define-minor-mode', which were turned into '(autoload ...)' stanzas.
+Now, macros can use '(declare (autoload-macro expand))' to indicate that
 if a use of this macro is marked with an autoload cookie, Loaddefs-gen
 should process the macro's expansion instead, which will presumably
 use other forms like 'defun', 'defalias', or 'define-derived-mode' which
-will in turn get replaced by (autoload ...) stanzas.
+will in turn get replaced by '(autoload ...)' stanzas.
+
+** Tramp
+
+*** Stricter limitations for Tramp user and host names (CVE-2026-79992).
+Several shell meta characters are excluded from Tramp user names for
+security reasons, see 'tramp-user-regexp'.  On MS-Windows systems, an
+environment-like pattern "%NAME%" is also excluded from Tramp user and
+host names.
+
+If a Tramp backend uses the percent sign "%" as field separator in Tramp
+user or host names, it can bind the new variable
+'tramp-allow-double-percent' to a non-nil value.  See the Tramp manual
+entry "(tramp) File name syntax" for more details.
 
 
 * New Modes and Packages in Emacs 31.2
@@ -3345,7 +3359,7 @@ or obsolete.
 *** Syntax of Perl up to version 5.42 is supported.
 CPerl mode creates Imenu entries for ":writer" generated accessors and
 recognizes the new builtin functions "all" and "any".
-See https://perldoc.perl.org/5.42.0/perldelta for details.
+See <https://perldoc.perl.org/5.42.0/perldelta> for details.
 
 ** Zone
 
