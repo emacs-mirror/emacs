@@ -4970,8 +4970,8 @@ and are used only if a pop-up buffer is displayed."
   (when (memq (process-status process) '(exit signal))
     (shell-command-set-point-after-cmd (process-buffer process))
     (message "%s: %s."
-             (car (cdr (cdr (or (process-get process 'remote-command)
-                                (process-command process)))))
+             (car (last (or (process-get process 'remote-command)
+                            (process-command process))))
              (substring signal 0 -1))))
 
 (defun shell-command-on-region (start end command
