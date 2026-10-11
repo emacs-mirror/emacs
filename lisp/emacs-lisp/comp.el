@@ -36,6 +36,7 @@
 (require 'warnings)
 (require 'comp-common)
 (require 'comp-cstr)
+(require 'files)
 
 ;; These variables and functions are defined in comp.c
 (defvar comp-native-version-dir)
@@ -3564,46 +3565,48 @@ the deferred compilation mechanism."
               (stringp function-or-file))
     (signal 'native-compiler-error
             (list "Not a function symbol or file" function-or-file)))
-  (when (or (null comp-no-spawn) comp-async-compilation)
-    (catch 'no-native-compile
-      (let* ((print-symbols-bare t)
-             (data function-or-file)
-             (comp-native-compiling t)
-             (byte-native-qualities nil)
-             (symbols-with-pos-enabled t)
-             ;; Have byte compiler signal an error when compilation fails.
-             (byte-compile-debug t)
-             (comp-ctxt (make-comp-ctxt :output (when output
+  (unless (and (stringp function-or-file)
+               (dir-locals-file-p function-or-file))
+    (when (or (null comp-no-spawn) comp-async-compilation)
+      (catch 'no-native-compile
+        (let* ((print-symbols-bare t)
+               (data function-or-file)
+               (comp-native-compiling t)
+               (byte-native-qualities nil)
+               (symbols-with-pos-enabled t)
+               ;; Have byte compiler signal an error when compilation fails.
+               (byte-compile-debug t)
+               (comp-ctxt (make-comp-ctxt :output (when output
                                                   (expand-file-name output))
                                         :with-late-load with-late-load)))
-        (comp-log "\n\n" 1)
-        (unwind-protect
-            (progn
-              (condition-case-unless-debug err
-                  (cl-loop
-                   with report = nil
-                   for t0 = (current-time)
-                   for pass in comp-passes
-                   unless (memq pass comp-disabled-passes)
-                   do
-                   (comp-log (format "\n(%S) Running pass %s:\n"
+          (comp-log "\n\n" 1)
+          (unwind-protect
+              (progn
+                (condition-case-unless-debug err
+                    (cl-loop
+                     with report = nil
+                     for t0 = (current-time)
+                     for pass in comp-passes
+                     unless (memq pass comp-disabled-passes)
+                     do
+                     (comp-log (format "\n(%S) Running pass %s:\n"
                                      function-or-file pass)
                              2)
-                   (setf data (funcall pass data))
-                   (push (cons pass (float-time (time-since t0))) report)
-                   (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                     (setf data (funcall pass data))
+                     (push (cons pass (float-time (time-since t0))) report)
+                     (cl-loop for f in (alist-get pass comp-post-pass-hooks)
                             do (funcall f data))
-                   finally
-                   (when comp-log-time-report
+                     finally
+                     (when comp-log-time-report
                      (comp-log (format "Done compiling %S" data) 0)
                      (cl-loop for (pass . time) in (reverse report)
                               do (comp-log (format "Pass %s took: %fs."
                                                    pass time)
                                            0))))
-                (t
-                 ;; If we are doing an async native compilation print the
-                 ;; error in the correct format so is parsable and abort.
-                 (if (and comp-async-compilation
+                  (t
+                   ;; If we are doing an async native compilation print the
+                   ;; error in the correct format so is parsable and abort.
+                   (if (and comp-async-compilation
                           (not (error-has-type-p err 'native-compiler-error)))
                      (progn
                        (message "%S: Error %s"
@@ -3613,20 +3616,20 @@ the deferred compilation mechanism."
                    ;; Otherwise re-signal it adding the compilation input.
                    (comp--error-add-context err function-or-file)
 	           (signal err))))
-              (if (stringp function-or-file)
-                  data
-                ;; So we return the compiled function.
-                (native-elisp-load data)))
-          (when (and (not (stringp function-or-file))
-                     (not output)
-                     comp-ctxt
-                     (comp-ctxt-output comp-ctxt)
-                     (file-exists-p (comp-ctxt-output comp-ctxt)))
-            ;; NOTE: Not sure if we want to remove this or being cautious.
-            (cond ((eq 'windows-nt system-type)
-                   ;; We may still be using the temporary .eln file.
-                   (ignore-errors (delete-file (comp-ctxt-output comp-ctxt))))
-                  (t (delete-file (comp-ctxt-output comp-ctxt))))))))))
+                (if (stringp function-or-file)
+                    data
+                  ;; So we return the compiled function.
+                  (native-elisp-load data)))
+            (when (and (not (stringp function-or-file))
+                       (not output)
+                       comp-ctxt
+                       (comp-ctxt-output comp-ctxt)
+                       (file-exists-p (comp-ctxt-output comp-ctxt)))
+              ;; NOTE: Not sure if we want to remove this or being cautious.
+              (cond ((eq 'windows-nt system-type)
+                     ;; We may still be using the temporary .eln file.
+                     (ignore-errors (delete-file (comp-ctxt-output comp-ctxt))))
+                    (t (delete-file (comp-ctxt-output comp-ctxt)))))))))))
 
 
 ;;; Compiler entry points.

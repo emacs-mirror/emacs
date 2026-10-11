@@ -735,6 +735,14 @@ how to analyze the arguments of a function by declaring the
 specification of each argument, rather than implementing an analyzer
 function as you would with 'elisp-scope-define-function-analyzer'.
 
+*** 'byte-compile-file' ignores .dir-locals.el / .dir-locals-2.el files
+Placing a '.dir-locals.el' in the 'user-lisp' directory caused
+warnings during byte compilation upon startup.  Now, the
+'byte-compile-file' routine treats these files as if they held a
+'no-byte-compile' file variable set to true.  This also affects
+native-compilation such that any .dir-locals* files are no longer
+processed.
+
 +++
 ** New variable 'display-buffer-default-alist'.
 Lisp programs may let-bind this variable to specify conditional actions
