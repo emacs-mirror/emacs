@@ -501,9 +501,12 @@ appears frozen.
 With the new code, such "pathological" freezes due to regexp matching
 should be gone, because the time is /always/ (rather than "usually")
 linear.
-Admittedly, this is not quite true.  We know of two exceptions:
+Admittedly, this is not quite true.  We know of the following exceptions:
 - The time can still be exponential in the presence of backreferences,
   of course (theory says it can't be avoided).
+- The time can still be exponential in the presence of counted repetitions
+  (i.e. \{N,M\}) because we do not currently apply memoization for
+  regexps that use that.
 - The time can still be O(N^2) for a few corner cases, tho with a small
   constant factor.  [ This is because of a conflict between two
   optimizations: one brings the constant factor down significantly,

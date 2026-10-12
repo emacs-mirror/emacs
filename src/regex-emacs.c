@@ -1041,29 +1041,27 @@ do {									\
 } while (false)
 
 /* Pop a saved register off the stack.  */
-#define POP_FAILURE_REG_OR_COUNT()				      \
-do {								      \
-  intptr_t pfreg = POP_FAILURE_INT ();				      \
-  if (pfreg == -1)						      \
-    {								      \
-      /* It's a counter.  */					      \
-      /* Discard 'const', making re_search non-reentrant.  */	      \
-      unsigned char *ptr = (unsigned char *) POP_FAILURE_POINTER ();  \
-      pfreg = POP_FAILURE_INT ();				      \
-      STORE_NUMBER (ptr, pfreg);				      \
-      DEBUG_PRINT ("     Pop counter %p = %"PRIdPTR"\n", ptr, pfreg); \
-    }								      \
-  else								      \
-    {								      \
-      eassert (0 < pfreg && pfreg < num_regs);			      \
-      /* Ideally, we'd do that for the stop_memory.  */ 	      \
-      /* memo.backrefs &= ~(1 << pfreg); */			      \
-      regend[pfreg] = POP_FAILURE_POINTER ();			      \
-      regstart[pfreg] = POP_FAILURE_POINTER ();			      \
+#define POP_FAILURE_REG_OR_COUNT()					\
+do {									\
+  intptr_t pfreg = POP_FAILURE_INT ();					\
+  if (pfreg == -1)							\
+    {									\
+      /* It's a counter.  */						\
+      /* Discard 'const', making re_search non-reentrant.  */		\
+      unsigned char *ptr = (unsigned char *) POP_FAILURE_POINTER ();	\
+      pfreg = POP_FAILURE_INT ();					\
+      STORE_NUMBER (ptr, pfreg);					\
+      DEBUG_PRINT ("     Pop counter %p = %"PRIdPTR"\n", ptr, pfreg);	\
+    }									\
+  else									\
+    {									\
+      eassert (0 < pfreg && pfreg < num_regs);				\
+      regend[pfreg] = POP_FAILURE_POINTER ();				\
+      regstart[pfreg] = POP_FAILURE_POINTER ();				\
       eassert (REG_UNSET (regstart[pfreg]) <= REG_UNSET (regend[pfreg])); \
-      DEBUG_PRINT ("     Pop reg %ld (spanning %p -> %p)\n",	      \
-		   pfreg, regstart[pfreg], regend[pfreg]);	      \
-    }								      \
+      DEBUG_PRINT ("     Pop reg %ld (spanning %p -> %p)\n",		\
+		   pfreg, regstart[pfreg], regend[pfreg]);		\
+    }									\
 } while (false)
 
 /* Check that we are not stuck in an infinite loop.  */
@@ -1707,6 +1705,20 @@ do {									\
     return value;					\
   } while (false)
 
+#ifndef MEMOIZE_FAILURES
+/* If 1, memoization is enabled selectively only at those places
+   where counters indicate that it might be beneficial.
+   For testing purposes it can be useful to set it to 2 to force
+   applying memoization to all the places where we may apply it.  */
+# define MEMOIZE_FAILURES 1
+#endif
+
+#if MEMOIZE_FAILURES == 2
+# define ON_FAILURE_JUMP_PREMEMO on_failure_jump_memo
+#else
+# define ON_FAILURE_JUMP_PREMEMO on_failure_jump_prememo
+#endif
+
 /* Compile PATTERN (of length SIZE) according to SYNTAX.
    Return a nonzero error code on failure, or zero for success.
 
@@ -1951,7 +1963,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
 		      (simple || !analyze_first (bufp, laststart, b, NULL))
-		      ? on_failure_jump_prememo : on_failure_jump_loop;
+		      ? ON_FAILURE_JUMP_PREMEMO : on_failure_jump_loop;
 		    eassert (skip_one_char (laststart) <= b);
 
 		    if (!zero_times_ok && simple)
@@ -2014,7 +2026,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		       at the end of the loop.  */
 		    if (emptyp) BUF_PUSH (no_op);
 		    STORE_JUMP (emptyp ? on_failure_jump_nastyloop
-				: on_failure_jump_prememo, b, laststart);
+				: ON_FAILURE_JUMP_PREMEMO, b, laststart);
 		    b += 3;
 		    if (zero_times_ok)
 		      {
@@ -4209,10 +4221,6 @@ unwind_re_match (void *ptr)
    a zero-length loop (i.e. an inf-loop we need to break anyway).
    In either case we can make the second branch fail!  */
 
-#ifndef MEMOIZE_FAILURES
-# define MEMOIZE_FAILURES 1
-#endif
-
 #if MEMOIZE_FAILURES
 
 /* A simple type to keep a set of small integers in the form of a bitset.
@@ -4306,7 +4314,7 @@ struct memo {
      backtracking (until we backtrack over the corresponding stop_memory)
      can't be memoized because they depended on the state of the register,
      which we don't use as key to lookup the memo table.  */
-  unsigned backrefs;
+  bool inhibit;
 };
 
 static void
@@ -4326,6 +4334,36 @@ memo_free (void *ptr)
 #define MEMO_BYTES_PER_COUNTER 3
 
 static void
+memo_init_failures (struct memo *memo, struct re_pattern_buffer *bufp)
+{
+  memo->nb_counters = bufp->used / MEMO_BYTES_PER_COUNTER;
+  ptrdiff_t nbytes = sizeof (struct memo_bits) * memo->nb_counters;
+  memo->state_failures = xmalloc (nbytes);
+  memset (memo->state_failures, 0, nbytes);
+  /* Setup an unwind_protect to free the memoization table.
+	     Use a copy of 'memo' so that '&memo' does not prevent the
+	     compiler from keeping (parts of) it in registers.  */
+  struct memo *memo_copy = xmalloc (sizeof (struct memo));
+  *memo_copy = *memo;
+  record_unwind_protect_ptr (memo_free, memo_copy);
+}
+
+static void
+memo_init (struct memo *memo, struct re_pattern_buffer *bufp)
+{
+  struct memo empty = { 0, 0 , NULL , 0, 0};
+  *memo = empty;
+#if MEMOIZE_FAILURES == 2
+  memo_init_failures (memo, bufp);
+  for (ptrdiff_t i = 0; i < memo->nb_counters; i++)
+    /* Put a dummy empty bitset.  Technically xmalloc(0) should work
+       as well, but GCC emit a warning and historically 0-sized
+       heap allocations have been poorly supported.  */
+    memo->state_failures[i].bytes = xmalloc (1);
+#endif
+}
+
+static void
 memo_record_failure (struct memo *memo, struct re_pattern_buffer *bufp,
 		     re_char *pat, ptrdiff_t strpos)
 {
@@ -4338,22 +4376,11 @@ memo_record_failure (struct memo *memo, struct re_pattern_buffer *bufp,
       /* Tests suggest an "arbitrary" threshold of 2 failures per byte
 	 before deciding memoization might be worthwhile.  */
       if ((memo->total_failures >> 1) > memo->max_offset)
-	{
-	  memo->nb_counters = bufp->used / MEMO_BYTES_PER_COUNTER;
-	  ptrdiff_t nbytes = sizeof (struct memo_bits) * memo->nb_counters;
-	  memo->state_failures = xmalloc (nbytes);
-	  memset (memo->state_failures, 0, nbytes);
-	  /* Setup an unwind_protect to free the memoization table.
-	     Use a copy of 'memo' so that '&memo' does not prevent the
-	     compiler from keeping (parts of) it in registers.  */
-	  struct memo *memo_copy = xmalloc (sizeof (struct memo));
-	  *memo_copy = *memo;
-	  record_unwind_protect_ptr (memo_free, memo_copy);
-	}
+	memo_init_failures (memo, bufp);
     }
   else
     {
-      if (memo->backrefs)
+      if (memo->inhibit)
 	return;
       ptrdiff_t bytecodepos = (pat - bufp->buffer) / MEMO_BYTES_PER_COUNTER;
       eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
@@ -4521,7 +4548,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
     }
 
 #if MEMOIZE_FAILURES
-  struct memo memo = { 0, 0 , NULL , 0, 0};
+  struct memo memo;
+  memo_init (&memo, bufp);
 #endif
 
   /* Do not bother to initialize all the register variables if there are
@@ -4983,9 +5011,11 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 
 #if MEMOIZE_FAILURES
 	    /* Ideally, we'd mark the failure points on the stack
-	       (until the last modification of REGNO) as "non-memoizing",
+	       (until the last modification of REGNO) as "non-memoizing"
+	       (or we'd add the REGNO's position to the state we use when
+	       indexing the memoization table),
 	       but instead we just disable memoization altogether.  */
-	    memo.backrefs |= (1 << regno);
+	    memo.inhibit = true;
 #endif
 	    /* Can't back reference a group which we've never matched.  */
 	    eassert (0 < regno && regno < num_regs);
@@ -5335,6 +5365,13 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    unsigned char *p2;	/* Location of the counter.  */
 	    DEBUG_PRINT ("EXECUTING set_number_at.\n");
 
+#if MEMOIZE_FAILURES
+	    /* Just as for backrefs, for counted repetitions, the counters
+	       should be included in the state we use to index the memoization
+	       table, but until we implement that, instead, we just disable
+	       memoization altogether.  */
+	    memo.inhibit = true;
+#endif
 	    EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	    /* Discard 'const', making re_search non-reentrant.  */
 	    p2 = (unsigned char *) p + mcnt;
