@@ -4196,11 +4196,14 @@ unwind_re_match (void *ptr)
        and we switch to the 'memo' version if the count is high enough.
    - on_failure_jump_loop:
      on_failure_jump_nastyloop:
-     succeed_n:
        We want to memoize those since they're part of loops by definition.
        We could have 'prememo' versions of those, but since these
        operations are inherently more costly than just 'on_failure_jump'
        the benefit is not as high.
+   - succeed_n (and jump_n): Just like backrefs, these break our assumptions
+       about "patpos + stringpos" being the only relevant info to index our
+       memoization table, so not only we don't memoize them but they stop
+       memoization of everything else as well.
 
    Future work: I think it would be safe to use the 'nomemo' variant for
    the *first* loop (or more specifically for those loops which can
@@ -4422,7 +4425,7 @@ memo_has_failed_p (struct memo *memo, struct re_pattern_buffer *bufp,
       eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
       struct memo_bits *failures = &memo->state_failures[bytecodepos];
       if (failures->bytes)
-	return memo_bits_get (failures, str);
+	return memo_bits_get (failures, str) && !memo->inhibit;
     }
   return false;
 }
@@ -5294,7 +5297,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      {
 		/* Default to a safe 'on_failure_jump' loop.  */
 		DEBUG_PRINT ("  smart default => slow loop.\n");
-		*p3 = (unsigned char) on_failure_jump_prememo;
+		*p3 = (unsigned char) ON_FAILURE_JUMP_PREMEMO;
 	      }
 	    DEBUG_STATEMENT (regex_emacs_debug -= 2);
 	  }
@@ -5314,15 +5317,6 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	/* Have to succeed matching what follows at least n times.
 	   After that, handle like 'on_failure_jump_loop'.  */
 	case succeed_n:
-#if MEMOIZE_FAILURES
-	  if (memo_has_failed_p (&memo, bufp,
-				 p - 1, POINTER_TO_OFFSET (d) - pos))
-	    {
-	      DEBUG_PRINT ("EARLYFAIL succeed_n at (%ld, %ld)\n",
-		           p - 1 - bufp->buffer, d - string2);
-	      goto fail;
-	    }
-#endif
 	  /* Signedness doesn't matter since we only compare MCNT to 0.  */
 	  EXTRACT_NUMBER (mcnt, p + 2);
 	  DEBUG_PRINT ("EXECUTING succeed_n %d.\n", mcnt);
