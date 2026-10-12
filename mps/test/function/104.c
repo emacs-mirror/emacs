@@ -120,7 +120,7 @@ static mps_res_t area_scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit, void 
   {
    mycell *obj = base;
    mps_res_t res;
-   mps_addr_t p, q;
+   mps_addr_t p;
 
    switch (obj->tag & 0x3)
    {
