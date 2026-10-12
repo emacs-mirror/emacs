@@ -10350,12 +10350,6 @@ sys_localtime (const time_t *t)
   return localtime (t);
 }
 
-struct tm *
-rpl_localtime (const time_t *t)
-{
-  return sys_localtime (t);
-}
-
 /* The Windows CRT implementation of 'clock' doesn't really return CPU
    time of the process (it returns the elapsed time since the process
    started), so we provide a better emulation here, if possible.  */

@@ -53,6 +53,7 @@
 #  --avoid=localcharset \
 #  --avoid=localeinfo \
 #  --avoid=localename-unsafe-limited \
+#  --avoid=localtime \
 #  --avoid=lock \
 #  --avoid=mbrtoc32-regular \
 #  --avoid=mbsinit \
@@ -329,7 +330,6 @@ GL_COND_OBJ_GETRANDOM_CONDITION = @GL_COND_OBJ_GETRANDOM_CONDITION@
 GL_COND_OBJ_GETTIMEOFDAY_CONDITION = @GL_COND_OBJ_GETTIMEOFDAY_CONDITION@
 GL_COND_OBJ_GROUP_MEMBER_CONDITION = @GL_COND_OBJ_GROUP_MEMBER_CONDITION@
 GL_COND_OBJ_LCHMOD_CONDITION = @GL_COND_OBJ_LCHMOD_CONDITION@
-GL_COND_OBJ_LOCALTIME_CONDITION = @GL_COND_OBJ_LOCALTIME_CONDITION@
 GL_COND_OBJ_LSTAT_CONDITION = @GL_COND_OBJ_LSTAT_CONDITION@
 GL_COND_OBJ_MEMPCPY_CONDITION = @GL_COND_OBJ_MEMPCPY_CONDITION@
 GL_COND_OBJ_MEMRCHR_CONDITION = @GL_COND_OBJ_MEMRCHR_CONDITION@
@@ -1534,7 +1534,6 @@ gl_GNULIB_ENABLED_getgroups_CONDITION = @gl_GNULIB_ENABLED_getgroups_CONDITION@
 gl_GNULIB_ENABLED_issymlink_CONDITION = @gl_GNULIB_ENABLED_issymlink_CONDITION@
 gl_GNULIB_ENABLED_issymlinkat_CONDITION = @gl_GNULIB_ENABLED_issymlinkat_CONDITION@
 gl_GNULIB_ENABLED_lchmod_CONDITION = @gl_GNULIB_ENABLED_lchmod_CONDITION@
-gl_GNULIB_ENABLED_localtime_CONDITION = @gl_GNULIB_ENABLED_localtime_CONDITION@
 gl_GNULIB_ENABLED_open_CONDITION = @gl_GNULIB_ENABLED_open_CONDITION@
 gl_GNULIB_ENABLED_rawmemchr_CONDITION = @gl_GNULIB_ENABLED_rawmemchr_CONDITION@
 gl_GNULIB_ENABLED_stdc_memreverse8u_CONDITION = @gl_GNULIB_ENABLED_stdc_memreverse8u_CONDITION@
@@ -2782,18 +2781,6 @@ EXTRA_DIST += limits.in.h
 
 endif
 ## end   gnulib module limits-h
-
-## begin gnulib module localtime
-ifeq (,$(OMIT_GNULIB_MODULE_localtime))
-
-ifneq (,$(gl_GNULIB_ENABLED_localtime_CONDITION))
-ifneq (,$(GL_COND_OBJ_LOCALTIME_CONDITION))
-libgnu_a_SOURCES += localtime.c
-endif
-
-endif
-endif
-## end   gnulib module localtime
 
 ## begin gnulib module lstat
 ifeq (,$(OMIT_GNULIB_MODULE_lstat))
