@@ -115,6 +115,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
 
+#ifdef HAVE_TREE_SITTER
+#include "treesit.h"
+#endif
+
 /* Type describing a file descriptor used by functions such as
    `insert-file-contents'.  */
 
@@ -3871,6 +3875,15 @@ decide_coding_unwind (Lisp_Object unwind_data)
   set_buffer_intervals (current_buffer, NULL);
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
+#ifdef HAVE_TREE_SITTER
+  struct ts_linecol start_linecol
+    = treesit_linecol_maybe (BEG, BEG_BYTE,
+			     BUF_TS_LINECOL_POINT (current_buffer));
+  struct ts_linecol old_end_linecol
+    = treesit_linecol_maybe (Z, Z_BYTE,
+			     BUF_TS_LINECOL_POINT (current_buffer));
+#endif
+
   /* In case of a non-local exit from set_auto_coding_function, in order not
      to end up with potentially invalid byte sequences in a multibyte buffer,
      we have the following options:
@@ -3890,6 +3903,11 @@ decide_coding_unwind (Lisp_Object unwind_data)
   GAP_SIZE += inserted;
   ZV = Z = GPT = BEG;
   ZV_BYTE = Z_BYTE = GPT_BYTE = BEG_BYTE;
+
+#ifdef HAVE_TREE_SITTER
+  treesit_record_change (BEG_BYTE, BEG_BYTE + inserted, BEG_BYTE,
+			 start_linecol, old_end_linecol, BEG);
+#endif
 
   /* Pass the new `inserted` back.  */
   XSETCAR (unwind_data, make_fixnum (inserted));
