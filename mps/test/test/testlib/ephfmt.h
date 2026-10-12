@@ -27,10 +27,9 @@ union header
 {
   struct
   {
-    enum type type : CHAR_BIT;
-    size_t size : sizeof(size_t) * CHAR_BIT - CHAR_BIT;
+    enum type type;
+    size_t size;
   } s;
-  size_t padding;
 };
 
 #pragma GCC diagnostic pop
@@ -100,6 +99,7 @@ oop make_weak_and_pair(mps_ap_t ap, oop key, oop value);
 oop make_string(mps_ap_t ap, size_t length, const char string[]);
 oop string_from_cstr(mps_ap_t ap, const char* cstr);
 void check_string(oop s, const char* data);
+oop alloc_bytes(mps_ap_t ap, size_t length);
 
 typedef void (*eph_test_fun)(mmp, void* closure);
 void run_eph_test(eph_test_fun, void* closure);

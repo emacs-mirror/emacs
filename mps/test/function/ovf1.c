@@ -28,30 +28,6 @@ END_HEADER
 #include <stdio.h>
 #include <string.h>
 
-static size_t aligned(size_t n)
-{
-  size_t alignment = sizeof(void*);
-  return (n + alignment - 1) & ~(alignment - 1);
-}
-
-static oop alloc_bytes(mps_ap_t ap, size_t length)
-{
-  oop obj;
-  mps_addr_t addr;
-  size_t nbytes = offsetof(struct string, data) + length;
-  size_t size = aligned(nbytes);
-  do {
-    mps_res_t res = mps_reserve(&addr, ap, size);
-    if (res != MPS_RES_OK)
-      return NULL;
-    obj = addr;
-    obj->string.header.s.type = TYPE_STRING;
-    obj->string.header.s.size = size;
-    obj->string.length = length;
-  } while (!mps_commit(ap, addr, size));
-  return obj;
-}
-
 static void test(mmp mm, void* closure)
 {
   unsigned i = 0;

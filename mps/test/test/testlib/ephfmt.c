@@ -69,24 +69,34 @@ oop make_weak_and_pair(mps_ap_t ap, oop key, oop value)
   return make_weak_pair_2(ap, key, value, TYPE_WEAK_AND_PAIR);
 }
 
-oop make_string(mps_ap_t ap, size_t length, const char string[])
+oop alloc_bytes(mps_ap_t ap, size_t length)
 {
   oop obj;
   mps_addr_t addr;
-  size_t nbytes = offsetof(struct string, data) + length + 1;
+  size_t nbytes = offsetof(struct string, data) + length;
   size_t size = aligned(nbytes);
   do {
     mps_res_t res = mps_reserve(&addr, ap, size);
     if (res != MPS_RES_OK)
-      error("out of memory in make_string");
+      return NULL;
     obj = addr;
     obj->string.header.s.type = TYPE_STRING;
     obj->string.header.s.size = size;
-    obj->string.length = length;
-    if (string)
-      memcpy(obj->string.data, string, length);
-    obj->string.data[length] = '\0';
+    asserts(obj->string.header.s.size == size,
+            "size not stored correctly");
   } while (!mps_commit(ap, addr, size));
+  return obj;
+}
+
+oop make_string(mps_ap_t ap, size_t length, const char string[])
+{
+  oop obj = alloc_bytes(ap, length + 1);
+  if (obj == NULL)
+    error("out of memory in make_string");
+  if (string)
+    memcpy(obj->string.data, string, length);
+  obj->string.length = length;
+  obj->string.data[length] = '\0';
   return obj;
 }
 
