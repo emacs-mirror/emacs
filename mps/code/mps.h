@@ -630,7 +630,7 @@ extern void mps_sac_empty(mps_sac_t, mps_addr_t, size_t);
 /* .reserve: Keep in sync with <code/buffer.c#reserve>. */
 
 #define mps_reserve(_p_o, _mps_ap, _size) \
-  ((char *)(_mps_ap)->alloc + (_size) > (char *)(_mps_ap)->alloc && \
+  ((mps_word_t)(_mps_ap)->alloc + (_size) > (mps_word_t)(_mps_ap)->alloc && \
    (char *)(_mps_ap)->alloc + (_size) <= (char *)(_mps_ap)->limit ? \
      ((_mps_ap)->alloc = \
        (mps_addr_t)((char *)(_mps_ap)->alloc + (_size)), \

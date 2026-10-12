@@ -86,6 +86,7 @@ extern Word (WordAlignDown)(Word word, Align align);
 
 #define AddrAdd(p, s) ((Addr)PointerAdd((void *)(p), s))
 #define AddrSub(p, s) ((Addr)PointerSub((void *)(p), s))
+#define AddrAddOverflow(p, s) ((Word)(p) + (Size)(s) < (Word)(p))
 
 #define AddrOffset(b, l) \
   ((Size)(PointerOffset((void *)(b), (void *)(l))))

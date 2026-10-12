@@ -605,7 +605,7 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 
   /* There really isn't enough room for the allocation now. */
   AVER(AddrAdd(buffer->ap_s.alloc, size) > buffer->poolLimit ||
-       AddrAdd(buffer->ap_s.alloc, size) < (Addr)buffer->ap_s.alloc);
+       AddrAddOverflow(buffer->ap_s.alloc, size));
 
   BufferDetach(buffer, pool);
 
