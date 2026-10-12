@@ -218,6 +218,10 @@ extern void w32_reset_stack_overflow_guard (void);
 #define dup2    sys_dup2
 #define fopen   sys_fopen
 #define link    sys_link
+/* Gnulib might redirect 'localtime' ahead of us.  */
+#ifdef localtime
+# undef localtime
+#endif
 #define localtime sys_localtime
 /* We redirect 'read' below, after including io.h, see bug#73444.  */
 #define rename  sys_rename

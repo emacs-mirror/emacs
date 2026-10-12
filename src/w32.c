@@ -37,9 +37,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <sys/types.h>	/* must be before <time.h>, for MinGW64 */
 #include <time.h>	/* must be before nt/inc/sys/time.h, for MinGW64 */
-#ifdef localtime	/* Gnulib's time.h redirects to rpl_localtime */
-# undef localtime
-#endif
 #include <sys/time.h>
 #include <sys/utime.h>
 #include <math.h>
