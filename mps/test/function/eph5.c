@@ -48,7 +48,7 @@ static void test(mmp mm, void* closure)
   /* Touch all objects in the chain. */
   {
     oop chain = s[2]->weak_pair.value;
-    while (chain && chain->pair.header.s.type == TYPE_PAIR)
+    while (chain && obj_type (chain) == TYPE_PAIR)
       chain = chain->pair.cdr;
     asserts(mm->arena->busyTraces != TraceSetEMPTY, "trace busy");
     asserts(mm->arena->trace[0].band == RankEPHEMERON,

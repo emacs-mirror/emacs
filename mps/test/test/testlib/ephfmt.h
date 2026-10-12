@@ -9,6 +9,14 @@ ephfmt.h
 
 #include "testlib.h"
 
+enum tag
+{
+  TAG_TUPLE,
+  TAG_STRING,
+  TAG_PAD,
+  TAG_FWD
+};
+
 enum type
 {
   TYPE_PAIR,
@@ -27,9 +35,15 @@ union header
 {
   struct
   {
-    enum type type;
-    size_t size;
-  } s;
+    enum tag tag: 2;
+    enum type type: CHAR_BIT - 2;
+    size_t nwords : sizeof (size_t) * CHAR_BIT - CHAR_BIT;
+  } s1;
+  struct
+  {
+    enum tag tag: 2;
+    size_t nwords : sizeof (size_t) * CHAR_BIT - 2;
+  } s2;
 };
 
 #pragma GCC diagnostic pop
@@ -100,6 +114,7 @@ oop make_string(mps_ap_t ap, size_t length, const char string[]);
 oop string_from_cstr(mps_ap_t ap, const char* cstr);
 void check_string(oop s, const char* data);
 oop alloc_bytes(mps_ap_t ap, size_t length);
+enum type obj_type(oop obj);
 
 typedef void (*eph_test_fun)(mmp, void* closure);
 void run_eph_test(eph_test_fun, void* closure);

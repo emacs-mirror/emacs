@@ -15,6 +15,38 @@ static size_t aligned(size_t n)
   return (n + alignment - 1) & ~(alignment - 1);
 }
 
+static size_t bytes_to_words(size_t nbytes)
+{
+  return nbytes / sizeof(void*);
+}
+
+static size_t words_to_bytes(size_t nwords)
+{
+  return nwords * sizeof(void*);
+}
+
+static size_t obj_size(oop obj)
+{
+  union header h = obj->header;
+  size_t nwords = (h.s1.tag == TAG_TUPLE) ? h.s1.nwords : h.s2.nwords;
+  return words_to_bytes(nwords);
+}
+
+enum type obj_type(oop obj)
+{
+  switch (obj->header.s1.tag) {
+    case TAG_TUPLE:
+      return obj->header.s1.type;
+    case TAG_STRING:
+      return TYPE_STRING;
+    case TAG_PAD:
+      return TYPE_PAD;
+    case TAG_FWD:
+      return TYPE_FWD;
+  }
+  asserts(0, "unreachable");
+}
+
 oop make_pair(mps_ap_t ap, oop car, oop cdr)
 {
   oop obj;
@@ -25,8 +57,9 @@ oop make_pair(mps_ap_t ap, oop car, oop cdr)
     if (res != MPS_RES_OK)
       error("out of memory in make_pair");
     obj = addr;
-    obj->pair.header.s.type = TYPE_PAIR;
-    obj->pair.header.s.size = size;
+    obj->pair.header.s1.tag = TAG_TUPLE;
+    obj->pair.header.s1.type = TYPE_PAIR;
+    obj->pair.header.s1.nwords = bytes_to_words(size);
     obj->pair.car = car;
     obj->pair.cdr = cdr;
   } while (!mps_commit(ap, addr, size));
@@ -46,8 +79,9 @@ static oop make_weak_pair_2(mps_ap_t ap,
     if (res != MPS_RES_OK)
       error("out of memory in make_weak_pair");
     obj = addr;
-    obj->weak_pair.header.s.type = type;
-    obj->weak_pair.header.s.size = size;
+    obj->weak_pair.header.s1.tag = TAG_TUPLE;
+    obj->weak_pair.header.s1.type = type;
+    obj->weak_pair.header.s1.nwords = bytes_to_words(size);
     obj->weak_pair.key = key;
     obj->weak_pair.value = value;
   } while (!mps_commit(ap, addr, size));
@@ -80,10 +114,9 @@ oop alloc_bytes(mps_ap_t ap, size_t length)
     if (res != MPS_RES_OK)
       return NULL;
     obj = addr;
-    obj->string.header.s.type = TYPE_STRING;
-    obj->string.header.s.size = size;
-    asserts(obj->string.header.s.size == size,
-            "size not stored correctly");
+    obj->string.header.s2.tag = TAG_STRING;
+    obj->string.header.s2.nwords = bytes_to_words(size);
+    asserts(obj_size(obj) == size, "size not stored correctly");
   } while (!mps_commit(ap, addr, size));
   return obj;
 }
@@ -122,7 +155,7 @@ static mps_res_t eph_scan(mps_ss_t ss,
   {
     while (base < limit) {
       oop obj = base;
-      switch (obj->header.s.type) {
+      switch (obj_type(obj)) {
         case TYPE_PAIR:
           FIX(obj->pair.car);
           FIX(obj->pair.cdr);
@@ -165,7 +198,7 @@ static mps_res_t eph_scan(mps_ss_t ss,
           error("Unexpected object on the heap\n");
           return MPS_RES_FAIL;
       }
-      base = (char*)base + obj->header.s.size;
+      base = (char*)base + obj_size(obj);
     }
   }
   MPS_SCAN_END(ss);
@@ -175,13 +208,13 @@ static mps_res_t eph_scan(mps_ss_t ss,
 static mps_addr_t eph_skip(mps_addr_t base)
 {
   oop obj = base;
-  return (char*)base + obj->header.s.size;
+  return (char*)base + obj_size(obj);
 }
 
 static mps_addr_t eph_isfwd(mps_addr_t addr)
 {
   oop obj = addr;
-  switch (obj->header.s.type) {
+  switch (obj_type(obj)) {
     case TYPE_FWD:
       return obj->fwd.fwd;
     default:
@@ -196,8 +229,8 @@ static void eph_fwd(mps_addr_t old, mps_addr_t new)
   size_t size = (size_t)((char*)limit - (char*)old);
   asserts(size >= aligned(sizeof(struct fwd)),
           "size >= sizeof(struct fwd)");
-  obj->fwd.header.s.type = TYPE_FWD;
-  obj->fwd.header.s.size = size;
+  obj->fwd.header.s2.tag = TAG_FWD;
+  obj->fwd.header.s2.nwords = bytes_to_words(size);
   obj->fwd.fwd = new;
 }
 
@@ -205,9 +238,9 @@ static void eph_pad(mps_addr_t addr, size_t size)
 {
   oop obj = addr;
   asserts(size >= aligned(sizeof(struct pad)),
-          "size >= sizeof(struct pad)");
-  obj->pad.header.s.type = TYPE_PAD;
-  obj->pad.header.s.size = size;
+          "size < sizeof(struct pad)");
+  obj->pad.header.s2.tag = TAG_PAD;
+  obj->pad.header.s2.nwords = bytes_to_words(size);
 }
 
 mps_fmt_t eph_fmt(mps_arena_t arena)
@@ -233,8 +266,7 @@ mps_fmt_t eph_fmt(mps_arena_t arena)
 void check_string(oop s, const char* data)
 {
   asserts(s != NULL, "s != NULL");
-  asserts(s->header.s.type == TYPE_STRING,
-          "s->header.type = TYPE_STRING");
+  asserts(obj_type(s) == TYPE_STRING, "obj_type (s) = TYPE_STRING");
   asserts(s->string.length == strlen(data),
           "s->string.length == strlen(data");
   asserts(strncmp(s->string.data, data, s->string.length) == 0,
