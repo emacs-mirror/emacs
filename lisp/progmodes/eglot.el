@@ -2298,6 +2298,8 @@ If MODE, force MODE to be used for fontifying MARKUP."
                               ("markdown" nil)
                               ("plaintext" 'text-mode)
                               (_ major-mode))))))
+    (when (string-empty-p string)
+      (cl-return-from eglot--format-markup ""))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
