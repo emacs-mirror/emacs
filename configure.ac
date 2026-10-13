@@ -3189,10 +3189,6 @@ to configure.])
    fi
 fi
 
-# Do not use GNU malloc, as it is used only in the MS-DOS port,
-# which is configured via config.bat, not via this file.
-GNU_MALLOC=no
-
 AC_CHECK_ALIGNOF([EMACS_INT],
   [[#include <limits.h>
     #include <stddef.h>
@@ -7193,11 +7189,6 @@ AC_CACHE_CHECK([for statement expressions],
 if test "$emacs_cv_statement_expressions" = yes; then
   AC_DEFINE([HAVE_STATEMENT_EXPRESSIONS], [1],
     [Define to 1 if statement expressions work.])
-fi
-
-if test "${GNU_MALLOC}" = "yes" ; then
-  AC_DEFINE([GNU_MALLOC], [1],
-	    [Define to 1 if you want to use the GNU memory allocator.])
 fi
 
 RALLOC_OBJ=
