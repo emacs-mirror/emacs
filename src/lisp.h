@@ -4676,8 +4676,8 @@ void *hash_table_alloc_bytes (ptrdiff_t nbytes)
 extern size_t __malloc_extra_blocks;
 extern void *aligned_alloc (size_t, size_t)
   ATTRIBUTE_MALLOC_SIZE ((2)) ATTRIBUTE_DEALLOC_FREE;
-#endif
 extern void malloc_enable_thread (void);
+#endif
 
 #ifdef REL_ALLOC
 /* Defined in ralloc.c.  */
