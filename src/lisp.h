@@ -4433,6 +4433,9 @@ extern void parse_str_as_multibyte (const unsigned char *, ptrdiff_t,
 				    ptrdiff_t *, ptrdiff_t *);
 
 /* Defined in alloc.c.  */
+#ifndef SYSTEM_MALLOC
+# define SYSTEM_MALLOC 1 /* Typically 1, but might be 0 if MSDOS.  */
+#endif
 extern intptr_t garbage_collection_inhibited;
 extern void malloc_warning (const char *);
 extern AVOID memory_full (size_t);

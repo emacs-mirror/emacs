@@ -97,8 +97,12 @@
 /^#undef my_strftime/s/^.*$/#define my_strftime nstrftime/
 /^#undef restrict/s/^.*$/#define restrict __restrict/
 
-/^#undef GNU_MALLOC *$/s/^.*$/#define GNU_MALLOC 1/
-/^#undef REL_ALLOC *$/s/^.*$/#define REL_ALLOC 1/
+/^#include <conf_post.h>/i\
+/* Define to 0 to not use the system malloc, and to use gmalloc.c instead. */
+#define SYSTEM_MALLOC 0\
+\
+/* Define to 1 to use the relocating allocator for buffer space. */\
+#define REL_ALLOC 1
 
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/

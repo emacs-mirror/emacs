@@ -3228,16 +3228,6 @@ m4_divert_push([KILL])
 m4_ifdef([gl_STDALIGN_H], [], [m4_include([m4/stdalign.m4])])
 m4_divert_pop([KILL])
 
-system_malloc=yes
-
-if test "${system_malloc}" = "yes"; then
-  AC_DEFINE([SYSTEM_MALLOC], [1],
-    [Define to 1 to use the system memory allocator, even if it is not
-     Doug Lea style.])
-fi
-
-REL_ALLOC=no
-
 use_mmap_for_buffers=no
 case "$opsys" in
   mingw32) use_mmap_for_buffers=yes ;;
@@ -7160,12 +7150,6 @@ AC_CACHE_CHECK([for statement expressions],
 if test "$emacs_cv_statement_expressions" = yes; then
   AC_DEFINE([HAVE_STATEMENT_EXPRESSIONS], [1],
     [Define to 1 if statement expressions work.])
-fi
-
-if test "${REL_ALLOC}" = "yes" ; then
-  AC_DEFINE([REL_ALLOC], [1],
-	    [Define REL_ALLOC if you want to use the relocating allocator for
-	     buffer space.])
 fi
 
 if test "$opsys" = "cygwin"; then

@@ -108,8 +108,6 @@ extern int spawnve (int, const char *, char *const [], char *const []);
 
 #if !SYSTEM_MALLOC
 
-#ifdef GNU_MALLOC
-
 /* If other `malloc' than ours is used, force our `sbrk' behave like
    Unix programs expect (resize memory blocks to keep them contiguous).
    If `sbrk' from `ralloc.c' is NOT used, also zero-out sbrk'ed memory,
@@ -121,7 +119,6 @@ int _crt0_startup_flags = _CRT0_FLAG_UNIX_SBRK;
 #else  /* not REL_ALLOC */
 int _crt0_startup_flags = (_CRT0_FLAG_UNIX_SBRK | _CRT0_FLAG_FILL_SBRK_MEMORY);
 #endif /* not REL_ALLOC */
-#endif /* GNU_MALLOC */
 
 #endif /* not SYSTEM_MALLOC */
 
