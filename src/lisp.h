@@ -4674,8 +4674,6 @@ void *hash_table_alloc_bytes (ptrdiff_t nbytes)
 /* Defined in gmalloc.c.  */
 #ifndef SYSTEM_MALLOC
 extern size_t __malloc_extra_blocks;
-#endif
-#if !HAVE_DECL_ALIGNED_ALLOC
 extern void *aligned_alloc (size_t, size_t)
   ATTRIBUTE_MALLOC_SIZE ((2)) ATTRIBUTE_DEALLOC_FREE;
 #endif
