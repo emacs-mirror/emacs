@@ -1474,11 +1474,9 @@ extern void *__sbrk (ptrdiff_t increment);
 static void *
 gdefault_morecore (ptrdiff_t increment)
 {
-#ifdef HAVE_SBRK
   void *result = (void *) __sbrk (increment);
   if (result != (void *) -1)
     return result;
-#endif
   return NULL;
 }
 

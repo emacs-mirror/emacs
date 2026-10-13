@@ -3230,9 +3230,6 @@ m4_divert_pop([KILL])
 
 system_malloc=yes
 
-dnl This must be before the test of $ac_cv_func_sbrk below.
-AC_CHECK_FUNCS_ONCE([sbrk])
-
 if test "${system_malloc}" = "yes"; then
   AC_DEFINE([SYSTEM_MALLOC], [1],
     [Define to 1 to use the system memory allocator, even if it is not
