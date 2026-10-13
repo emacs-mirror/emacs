@@ -152,9 +152,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 /* End of stuff related to MS-DOS and Gnulib.  */
 
 # define emacs_raise(sig) msdos_fatal_signal (sig)
-
-/* DATA_START is needed by vm-limit.c. */
-# define DATA_START (&etext + 1)
 #endif  /* MSDOS */
 
 #if defined HAVE_NTGUI && !defined DebPrint

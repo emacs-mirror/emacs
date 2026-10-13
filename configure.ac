@@ -3242,19 +3242,6 @@ if test "${system_malloc}" = "yes"; then
 else
   GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
-
-  AC_CACHE_CHECK([for data_start], [emacs_cv_data_start],
-    [AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	 [[extern char data_start[]; char ch;]],
-	 [[return data_start < &ch;]])],
-       [emacs_cv_data_start=yes],
-       [emacs_cv_data_start=no])])
-  if test $emacs_cv_data_start = yes; then
-    AC_DEFINE([HAVE_DATA_START], [1],
-      [Define to 1 if data_start is the address of the start
-       of the main data segment.])
-  fi
 fi
 AC_SUBST([GMALLOC_OBJ])
 AC_SUBST([VMLIMIT_OBJ])

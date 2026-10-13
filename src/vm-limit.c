@@ -35,17 +35,7 @@ extern int etext;
 
 /* Start of data.  It is OK if this is approximate; it's used only as
    a heuristic.  */
-#ifdef DATA_START
-# define data_start ((char *) DATA_START)
-#else
-extern char data_start[];
-# ifndef HAVE_DATA_START
-/* Initialize to nonzero, so that it's put into data and not bss.
-   Link this file's object code first, so that this symbol is near the
-   start of data.  */
-char data_start[1] = { 1 };
-# endif
-#endif
+#define data_start ((char *) (&etext + 1))
 
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
