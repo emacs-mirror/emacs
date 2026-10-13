@@ -1,27 +1,15 @@
 /*
 TEST_HEADER
  id = $Id$
- summary = tests allocating objects larger than INT_MAX
+ summary = tests allocating large objects
  language = c
  link = testlib.o ephfmt.o
 END_HEADER
 */
 
 /*
-  The function ProtSet in code/protix.c contained this assertion:
-
-    AVER(AddrOffset(base, limit) <= INT_MAX).
-
-  I changed that to:
-
-     AVER(AddrOffset(base, limit) <= PTRDIFF_MAX)
-
-  which makes more sense on typical 64bit systems.  This test exercises
-  that code path.
-
-  (Unfortunately, this test can trigger the AVER(error != ENOMEM)
-   assertion in that function if the machine has not enough RAM.
-   Strictly speaking, that is a separate bug/problem.)
+  This test tries to find the largest possible size for a string.  This
+  exposed a problem with pointer arithmetic overflow in mps_reserve.
 */
 
 #include "ephfmt.h"
