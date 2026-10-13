@@ -47,9 +47,7 @@ extern void *(*__morecore) (ptrdiff_t);
 extern void (*__MALLOC_HOOK_VOLATILE __after_morecore_hook) (void);
 
 /* From ralloc.c.  */
-#ifdef REL_ALLOC
 extern void *(*real_morecore) (ptrdiff_t);
-#endif
 
 /*
   Level number of warnings already issued.
@@ -130,10 +128,6 @@ ret_lim_data (void)
 static void
 check_memory_limits (void)
 {
-#ifndef REL_ALLOC
-  void *(*real_morecore) (ptrdiff_t) = 0;
-#endif
-
   char *cp;
   size_t five_percent;
   size_t data_size;
