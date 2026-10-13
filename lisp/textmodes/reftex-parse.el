@@ -208,13 +208,13 @@ of master file."
         (level 1)
         (highest-level 100)
         toc-entry index-entry next-buf buf
-        (verbatim-p (lambda () (let (syntax)
-                                 (or
-                                  ;; This is for AUCTeX `LaTeX-mode':
-                                  (nth 3 (save-match-data
-                                           (setq syntax (syntax-ppss))))
-                                  ;; This is for built-in `latex-mode':
-                                  (nth 4 syntax))))))
+        (verbatim-p (lambda ()
+                      (let ((syntax (save-match-data (syntax-ppss))))
+                        (or
+                         ;; This is for AUCTeX `LaTeX-mode':
+                         (nth 3 syntax)
+                         ;; This is for built-in `latex-mode':
+                         (nth 4 syntax))))))
 
     (catch 'exit
       (setq file-found (reftex-locate-file file "tex" master-dir))
@@ -266,11 +266,11 @@ of master file."
 
                 ;; It is a section
                 ((match-end 3)
-                 ;; Use the beginning as bound and not the end
-                 ;; (i.e. (point)) because the section command might
-                 ;; be the start of the current environment to be
-                 ;; found by `reftex-label-info'.
                  (unless (funcall verbatim-p)
+                   ;; Use the beginning as bound and not the end
+                   ;; (i.e. (point)) because the section command might
+                   ;; be the start of the current environment to be
+                   ;; found by `reftex-label-info'.
                    (setq bound (match-beginning 0))
                    ;; The section regexp matches a character at the end
                    ;; we are not interested in.  Especially if it is the
