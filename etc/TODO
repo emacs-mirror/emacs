@@ -1802,13 +1802,6 @@ as long as we stick to the features provided in sendmail.el.
 (Probably obsolete, as Emacs 24 switched to message.el as the
 default mail composer.)
 
-** Replace gmalloc.c
-Replace it with the modified Doug Lea code from the current GNU libc
-so that the special mmapping of buffers can be removed -- that
-apparently loses under Solaris, at least. [fx has mostly done this.]
-
-(Obsolete, since gmalloc.c is nowadays only used on MS-DOS.)
-
 ** Eliminate the etc/DOC file altogether
 We could try and eliminate the DOC file altogether.  See
 https://lists.gnu.org/r/emacs-devel/2021-05/msg00237.html
