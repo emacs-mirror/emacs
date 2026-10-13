@@ -106,7 +106,7 @@ extern int spawnve (int, const char *, char *const [], char *const []);
 #include "careadlinkat.h"
 #include "allocator.h"
 
-#ifndef SYSTEM_MALLOC
+#if !SYSTEM_MALLOC
 
 #ifdef GNU_MALLOC
 

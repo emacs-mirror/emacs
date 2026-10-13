@@ -332,7 +332,7 @@ static void mark_terminals (void);
 static void gc_sweep (void);
 static void mark_buffer (struct buffer *);
 
-#if !defined REL_ALLOC || defined SYSTEM_MALLOC
+#if !defined REL_ALLOC || SYSTEM_MALLOC
 static void refill_memory_reserve (void);
 #endif
 static void compact_small_strings (void);
@@ -483,7 +483,7 @@ struct Lisp_Finalizer doomed_finalizers;
 				Malloc
  ************************************************************************/
 
-#if defined SIGDANGER || (!defined SYSTEM_MALLOC)
+#if defined SIGDANGER || !SYSTEM_MALLOC
 
 /* Function malloc calls this if it finds we are near exhausting storage.  */
 
@@ -876,7 +876,7 @@ static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available. */
 
-#if defined HAVE_ALIGNED_ALLOC || !defined SYSTEM_MALLOC
+#if defined HAVE_ALIGNED_ALLOC || !SYSTEM_MALLOC
 # define USE_ALIGNED_ALLOC 1
 #elif defined HAVE_POSIX_MEMALIGN
 # define USE_ALIGNED_ALLOC 1
@@ -4051,7 +4051,7 @@ memory_full_up (void)
 void
 refill_memory_reserve (void)
 {
-#if !defined SYSTEM_MALLOC
+#if !SYSTEM_MALLOC
   if (spare_memory[0] == 0)
     spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
