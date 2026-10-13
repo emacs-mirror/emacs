@@ -124,14 +124,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # define GC_CHECK_MARKED_OBJECTS 0
 #endif
 
-/* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
-   memory.  Can do this only if using gmalloc.c and if not checking
-   marked objects.  */
-
-#if defined SYSTEM_MALLOC || GC_CHECK_MARKED_OBJECTS
-#undef GC_MALLOC_CHECK
-#endif
-
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -379,12 +371,6 @@ deadp (Lisp_Object x)
 {
   return BASE_EQ (x, dead_object ());
 }
-
-#ifdef GC_MALLOC_CHECK
-
-enum mem_type allocated_mem_type;
-
-#endif /* GC_MALLOC_CHECK */
 
 /* A node in the red-black tree describing allocated memory containing
    Lisp data.  Each such block is recorded with its start and end
@@ -838,10 +824,6 @@ lisp_malloc (ptrdiff_t nbytes, bool clearit, enum mem_type type)
 {
   register void *val;
 
-#ifdef GC_MALLOC_CHECK
-  allocated_mem_type = type;
-#endif
-
   val = clearit ? calloc (1, nbytes) : malloc (nbytes);
 
 #if ! USE_LSB_TAG
@@ -861,11 +843,8 @@ lisp_malloc (ptrdiff_t nbytes, bool clearit, enum mem_type type)
     }
 #endif
 
-#ifndef GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
     mem_insert (val, (char *) val + nbytes, type);
-#endif
-
   if (!val)
     memory_full (nbytes);
   MALLOC_PROBE (nbytes);
@@ -881,13 +860,9 @@ lisp_free (void *block)
   if (pdumper_object_p (block))
     return;
 
-#ifndef GC_MALLOC_CHECK
   struct mem_node *m = mem_find (block);
-#endif
   free (block);
-#ifndef GC_MALLOC_CHECK
   mem_delete (m);
-#endif
 }
 
 /*****  Allocation of aligned blocks of memory to store Lisp data.  *****/
@@ -1024,10 +999,6 @@ lisp_align_malloc (ptrdiff_t nbytes, enum mem_type type)
 
   eassert (nbytes <= BLOCK_BYTES);
 
-#ifdef GC_MALLOC_CHECK
-  allocated_mem_type = type;
-#endif
-
   if (!free_ablock)
     {
       int i;
@@ -1091,12 +1062,8 @@ lisp_align_malloc (ptrdiff_t nbytes, enum mem_type type)
     = (struct ablocks *) (2 + (intptr_t) ABLOCKS_BUSY (abase));
   val = free_ablock;
   free_ablock = free_ablock->x.next_free;
-
-#ifndef GC_MALLOC_CHECK
   if (type != MEM_TYPE_NON_LISP)
     mem_insert (val, (char *) val + nbytes, type);
-#endif
-
   MALLOC_PROBE (nbytes);
 
   eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
@@ -1109,9 +1076,7 @@ lisp_align_free (void *block)
   struct ablock *ablock = block;
   struct ablocks *abase = ABLOCK_ABASE (ablock);
 
-#ifndef GC_MALLOC_CHECK
   mem_delete (mem_find (block));
-#endif
   /* Put on free list.  */
   ablock->x.next_free = free_ablock;
   ASAN_POISON_ABLOCK (ablock);
@@ -2853,12 +2818,8 @@ static struct vector_block *
 allocate_vector_block (void)
 {
   struct vector_block *block = xmalloc (sizeof *block);
-
-#ifndef GC_MALLOC_CHECK
   mem_insert (block->data, block->data + VECTOR_BLOCK_BYTES,
 	      MEM_TYPE_VECTOR_BLOCK);
-#endif
-
   block->next = vector_blocks;
   vector_blocks = block;
   return block;
@@ -3242,9 +3203,7 @@ sweep_vectors (void)
       if (free_this_block)
 	{
 	  *bprev = block->next;
-#ifndef GC_MALLOC_CHECK
 	  mem_delete (mem_find (block->data));
-#endif
 	  xfree (block);
 	}
       else
@@ -4195,13 +4154,7 @@ mem_insert (void *start, void *end, enum mem_type type)
     }
 
   /* Create a new node.  */
-#ifdef GC_MALLOC_CHECK
-  x = malloc (sizeof *x);
-  if (x == NULL)
-    emacs_abort ();
-#else
   x = xmalloc (sizeof *x);
-#endif
   x->start = start;
   x->end = end;
   x->type = type;
@@ -4418,12 +4371,7 @@ mem_delete (struct mem_node *z)
 
   if (y->color == MEM_BLACK)
     mem_delete_fixup (x);
-
-#ifdef GC_MALLOC_CHECK
-  free (y);
-#else
   xfree (y);
-#endif
 }
 
 
