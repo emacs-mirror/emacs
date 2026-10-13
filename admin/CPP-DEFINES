@@ -89,7 +89,7 @@ HAVE_PROCFS     The /proc filesystem is supported.
 
 ** Compile-time options **
 
-REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
+GMALLOC_REL_ALLOC Compile in the relocatable memory allocator ralloc.c.
 		Also compile gmalloc.c, which is an old copy of GNU malloc etc.
 		This is used only on MS-DOS.
 subprocesses    System can use subprocesses (for M-x shell for example).

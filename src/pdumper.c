@@ -508,7 +508,7 @@ struct dump_context
   Lisp_Object old_post_gc_hook;
   Lisp_Object old_process_environment;
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   bool blocked_ralloc;
 #endif
 
@@ -3677,7 +3677,7 @@ dump_unwind_cleanup (void *data)
   struct dump_context *ctx = data;
   if (ctx->fd >= 0)
     emacs_close (ctx->fd);
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   if (ctx->blocked_ralloc)
     r_alloc_inhibit_buffer_relocation (0);
 #endif
@@ -4160,7 +4160,7 @@ types.  */)
   record_unwind_protect_ptr (dump_unwind_cleanup, ctx);
   block_input ();
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   r_alloc_inhibit_buffer_relocation (1);
   ctx->blocked_ralloc = true;
 #endif

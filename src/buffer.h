@@ -239,7 +239,7 @@ struct ts_linecol
 
 struct buffer_text
   {
-    /* Actual address of buffer contents.  If REL_ALLOC is defined,
+    /* Actual address of buffer contents.  If GMALLOC_REL_ALLOC is defined,
        this address might change when blocks are relocated which can
        e.g. happen when malloc is called.  So, don't pass a pointer
        into a buffer's text to functions that malloc.  */

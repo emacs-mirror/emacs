@@ -106,7 +106,7 @@ extern int spawnve (int, const char *, char *const [], char *const []);
 #include "careadlinkat.h"
 #include "allocator.h"
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
 
 /* If other `malloc' than ours is used, force our `sbrk' behave like
    Unix programs expect (resize memory blocks to keep them contiguous).
@@ -116,7 +116,7 @@ extern int spawnve (int, const char *, char *const [], char *const []);
 
 int _crt0_startup_flags = _CRT0_FLAG_UNIX_SBRK;
 
-#endif /* not REL_ALLOC */
+#endif
 
 /* Return the current timestamp in milliseconds since midnight.  */
 static unsigned long

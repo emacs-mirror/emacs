@@ -2618,12 +2618,12 @@ results, see Info node `(elisp)Swapping Text'.  */)
   swapfield (own_text, struct buffer_text);
   eassert (current_buffer->text == &current_buffer->own_text);
   eassert (other_buffer->text == &other_buffer->own_text);
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   r_alloc_reset_variable ((void **) &current_buffer->own_text.beg,
 			  (void **) &other_buffer->own_text.beg);
   r_alloc_reset_variable ((void **) &other_buffer->own_text.beg,
 			  (void **) &current_buffer->own_text.beg);
-#endif /* REL_ALLOC */
+#endif
 
   swapfield (pt, ptrdiff_t);
   swapfield (pt_byte, ptrdiff_t);
@@ -4636,7 +4636,7 @@ alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
   block_input ();
 #if defined USE_MMAP_FOR_BUFFERS
   p = mmap_alloc ((void **) &b->text->beg, nbytes);
-#elif defined REL_ALLOC
+#elif defined GMALLOC_REL_ALLOC
   p = r_alloc ((void **) &b->text->beg, nbytes);
 #else
   p = xmalloc (nbytes);
@@ -4672,7 +4672,7 @@ enlarge_buffer_text (struct buffer *b, ptrdiff_t delta)
 
 #if defined USE_MMAP_FOR_BUFFERS
   p = mmap_realloc ((void **) &b->text->beg, new_nbytes);
-#elif defined REL_ALLOC
+#elif defined GMALLOC_REL_ALLOC
   p = r_re_alloc ((void **) &b->text->beg, new_nbytes);
 #else
   p = xrealloc (b->text->beg, new_nbytes);
@@ -4706,7 +4706,7 @@ free_buffer_text (struct buffer *b)
     {
 #if defined USE_MMAP_FOR_BUFFERS
       mmap_free ((void **) &b->text->beg);
-#elif defined REL_ALLOC
+#elif defined GMALLOC_REL_ALLOC
       r_alloc_free ((void **) &b->text->beg);
 #else
       xfree (b->text->beg);

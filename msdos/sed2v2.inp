@@ -100,7 +100,7 @@
 /^#include <conf_post.h>/i\
 /* Define to 1 to use the relocating allocator for buffer space,\
    along with gmalloc.c. */\
-#define REL_ALLOC 1
+#define GMALLOC_REL_ALLOC 1
 
 s/^#undef STACK_DIRECTION *$/#define STACK_DIRECTION -1/
 s/^#undef EMACS_CONFIGURATION *$/#define EMACS_CONFIGURATION "i386-pc-msdosdjgpp"/

@@ -269,7 +269,7 @@ static struct gcstat
    objects, both dead and alive.  This number is always kept up-to-date.  */
 static ptrdiff_t hash_table_allocated_bytes = 0;
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
    two string blocks.  */
@@ -482,7 +482,7 @@ struct Lisp_Finalizer doomed_finalizers;
 				Malloc
  ************************************************************************/
 
-#if defined SIGDANGER || defined REL_ALLOC
+#if defined SIGDANGER || defined GMALLOC_REL_ALLOC
 
 /* Function malloc calls this if it finds we are near exhausting storage.  */
 
@@ -518,7 +518,7 @@ buffer_memory_full (ptrdiff_t nbytes)
      relocating allocator, treat this like any other failing
      malloc.  */
 
-#ifndef REL_ALLOC
+#ifndef GMALLOC_REL_ALLOC
   memory_full (nbytes);
 #else
   /* This used to call error, but if we've run out of memory, we could
@@ -875,7 +875,7 @@ static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available. */
 
-#if defined HAVE_ALIGNED_ALLOC || defined REL_ALLOC
+#if defined HAVE_ALIGNED_ALLOC || defined GMALLOC_REL_ALLOC
 # define USE_ALIGNED_ALLOC 1
 #elif defined HAVE_POSIX_MEMALIGN
 # define USE_ALIGNED_ALLOC 1
@@ -4011,7 +4011,7 @@ memory_full (size_t nbytes)
       Vmemory_full = Qt;
       consing_until_gc = min (consing_until_gc, memory_full_cons_threshold);
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
       /* The first time we get here, free the spare memory.  */
       for (int i = 0; i < countof (spare_memory); i++)
 	if (spare_memory[i])
@@ -4042,7 +4042,7 @@ memory_full_up (void)
   memory_full (SIZE_MAX);
 }
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
 
 /* If we released our reserve (due to running out of memory),
    and we have a fair amount free once again,
@@ -7256,7 +7256,7 @@ init_alloc_once_for_pdumper (void)
   mem_init ();
   init_finalizer_list (&finalizers);
   init_finalizer_list (&doomed_finalizers);
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   refill_memory_reserve ();
 #endif
 }

@@ -272,7 +272,7 @@ init_dosfns (void)
   _go32_dpmi_registers dpmiregs;
   unsigned long xbuf = _go32_info_block.linear_address_of_transfer_buffer;
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   extern void get_lim_data (void);
 
   get_lim_data (); /* why the hell isn't this called elsewhere? */
@@ -534,7 +534,7 @@ system_process_attributes (Lisp_Object pid)
       int i;
       Lisp_Object cmd_str, decoded_cmd, tem;
       double pmem;
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
       extern unsigned long ret_lim_data ();
 #endif
 
@@ -569,9 +569,9 @@ system_process_attributes (Lisp_Object pid)
 			    INT_TO_INTEGER ((unsigned long) sbrk (0) / 1024)),
 		     attrs);
       attrs = Fcons (Fcons (Qetime, tem), attrs);
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
       /* ret_lim_data is in vm-limit.c, which is compiled only if
-	 REL_ALLOC.  */
+	 GMALLOC_REL_ALLOC.  */
       pmem = (double)((unsigned long) sbrk (0)) / ret_lim_data () * 100.0;
       if (pmem > 100)
 #endif

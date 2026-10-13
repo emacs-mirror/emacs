@@ -1622,7 +1622,7 @@ android_emacs_init (int argc, char **argv, char *dump_file)
 
   emacs_backtrace (-1);
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   /* Arrange to get warning messages as memory fills up.  */
   memory_warnings (0, malloc_warning);
 

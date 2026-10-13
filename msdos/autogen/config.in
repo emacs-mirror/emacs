@@ -1376,9 +1376,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Define to 1 if readlink fails to recognize a trailing slash. */
 #undef READLINK_TRAILING_SLASH_BUG
 
-/* Define REL_ALLOC if you want to use the relocating allocator for buffer
-   space. */
-#undef REL_ALLOC
+/* Define GMALLOC_REL_ALLOC if you want to use the relocating allocator
+   for buffer space. */
+#undef GMALLOC_REL_ALLOC
 
 /* Define to 1 if stat needs help when passed a directory name with a trailing
    slash */
