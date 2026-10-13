@@ -909,6 +909,58 @@ OVERRIDE, START, and END are passed through to
       (substring url 1 -1)
     url))
 
+(defun markdown-ts--decode-destination (destination)
+  "Return the URL or file name denoted by DESTINATION.
+Strip the \"<...>\" wrapper, process backslash escapes and entity and
+numeric character references in a single pass.  \"\\&amp;\" stays a
+literal \"&amp;\"."
+  ;; Escapes account for ASCII punctuation, as defined here
+  ;; <https://spec.commonmark.org/current/#backslash-escapes>.
+  (replace-regexp-in-string
+   (rx (or (seq "\\" (any "!-/" ":-@" "[-`" "{-~"))
+           (seq "&" (? "#") (+ alnum) ";")))
+   (lambda (match)
+     (if (eq (aref match 0) ?\\)
+         (substring match 1)
+       (or (save-match-data
+             (markdown-ts--decode-entity match))
+           match)))
+   (markdown-ts--unbracket-destination destination)
+   t t))
+
+(defun markdown-ts--goto-fragment (fragment)
+  "Go to FRAGMENT (without leading \"#\") in the current buffer.
+Go to line n following the forge line-link convention; e.g., \"L<n>\",
+\"L<n>-L<m>\" or \"L<n>-<m>\", taking precedence over a heading of that
+same name.  Otherwise, if in a `markdown-ts-mode' buffer, go to the
+heading with the slug FRAGMENT."
+  (cond
+   ((let ((case-fold-search nil))
+      ;; Upper-case only: "#l3" remains the slug of heading "L3".
+      (string-match (rx bos "L" (group (+ digit))
+                        (? "-" (? "L") (+ digit))
+                        eos)
+                    fragment))
+    (push-mark)
+    (goto-char (point-min))
+    (forward-line (1- (string-to-number (match-string 1 fragment)))))
+   ((derived-mode-p 'markdown-ts-mode)
+    (markdown-ts--follow-fragment fragment))))
+
+(defun markdown-ts--url-to-file (url)
+  "Return the local file name for relative URL, percent-decoded."
+  (decode-coding-string (url-unhex-string url) 'utf-8))
+
+(defun markdown-ts--follow-file-link (url)
+  "Visit the file named by URL, honoring a \"#fragment\", if any.
+See `markdown-ts--goto-fragment'."
+  (let* ((octothorp (string-search "#" url))
+         (file (if octothorp (substring url 0 octothorp) url))
+         (fragment (and octothorp (substring url (1+ octothorp)))))
+    (find-file (markdown-ts--url-to-file file))
+    (when (and fragment (not (string-empty-p fragment)))
+      (markdown-ts--goto-fragment fragment))))
+
 (defun markdown-ts--make-link-button (beg end url)
   "Make the region from BEG to END a clickable button for URL.
 For mailto: URIs, use `url-mail-command'.  For other schemes
@@ -921,24 +973,27 @@ applied by `markdown-ts--fontify-link-node' via
 `add-text-properties' would otherwise replace the appended face
 list with a single `markdown-ts-link', clobbering an enclosing
 heading face."
-  ;; NOTE: URI scheme and host name are case-insensitive per RFC 3986
-  ;; and RFC 7230.
-  (let ((url (markdown-ts--unbracket-destination url))
-        (case-fold-search nil))
-    (make-text-button beg end
-                      'action (lambda (_button)
-                                (cond
-                                 ((string-prefix-p "#" url)
-                                  (markdown-ts--follow-fragment
-                                   (substring url 1)))
-                                 ((string-match-p "\\`mailto:" url)
-                                  (funcall url-mail-command
-                                           (replace-regexp-in-string
-                                            "\\`mailto:" "" url)))
-                                 ((string-match-p "\\`[a-z]+:" url)
-                                  (browse-url url))
-                                 (t (find-file url))))
-                      'help-echo url)))
+  (make-text-button
+   beg end
+   'action (lambda (_button)
+             ;; URI schemes are case-insensitive (RFC 3986).
+             (let ((case-fold-search t))
+               (cond
+                ((string-prefix-p "#" url)
+                 (markdown-ts--goto-fragment (substring url 1)))
+                ((string-match-p "\\`mailto:" url)
+                 (funcall url-mail-command
+                          (replace-regexp-in-string "\\`mailto:" "" url)))
+                ;; A Markdown link URI scheme is composed of 2 to 32
+                ;; characters, so a drive letter such as "C:" is a file
+                ;; name.  See
+                ;; <https://spec.commonmark.org/current/#scheme>.
+                ((string-match-p
+                  (rx bos (any "a-z") (** 1 31 (any "a-z0-9+.-")) ":")
+                  url)
+                 (browse-url url))
+                (t (markdown-ts--follow-file-link url)))))
+   'help-echo url))
 
 (defun markdown-ts--fontify-link-destination (node override start end &rest _)
   "Fontify link destination NODE and hide it when markup is hidden.
@@ -978,7 +1033,8 @@ cached and rebuilt only when the buffer changes."
                  (lbl-text (string-trim (treesit-node-text (cdr label-pair) t)
                                         "\\[" "\\]")))
             (push (cons (downcase lbl-text)
-                        (treesit-node-text (cdr dest-pair) t))
+                        (markdown-ts--decode-destination
+                         (treesit-node-text (cdr dest-pair) t)))
                   defs)))
         (setq markdown-ts--link-ref-cache (nreverse defs)
               markdown-ts--link-ref-cache-tick tick)))
@@ -1228,7 +1284,8 @@ fallback.  OVERRIDE, START, and END are passed through to
        'markdown-ts-link override start end)
       (let* ((dest (treesit-search-subtree parent "\\`link_destination\\'"))
              (url (if dest
-                      (treesit-node-text dest t)
+                      (markdown-ts--decode-destination
+                       (treesit-node-text dest t))
                     ;; Reference links: resolve via link_label or link_text.
                     (let* ((label-node (treesit-search-subtree
                                         parent "\\`link_label\\'"))
@@ -1273,7 +1330,8 @@ OVERRIDE, START, and END are passed through to
          (node-end (treesit-node-end node))
          (parent (treesit-node-parent node))
          (dest-node (treesit-search-subtree parent "\\`link_destination\\'"))
-         (url (when dest-node (treesit-node-text dest-node t))))
+         (url (when dest-node (markdown-ts--decode-destination
+                               (treesit-node-text dest-node t)))))
     ;; Fontify the label text (inside brackets).
     (treesit-fontify-with-override
      (1+ node-start) (1- node-end)
@@ -1355,21 +1413,31 @@ OVERRIDE, START, and END are passed through to
                          'invisible 'markdown-ts--markup))))
 
 (defun markdown-ts--decode-entity (text)
-  "Decode HTML entity TEXT (e.g., \"&amp;\") to its character string.
-Return the decoded string, or nil if the entity is unknown."
+  "Return HTML entity TEXT (e.g., \"&amp;\") as its character string.
+Return nil if the entity is unknown."
   (cond
-   ;; Numeric hex &#x1F4A9;
-   ((string-match "\\`&#x\\([[:xdigit:]]+\\);\\'" text)
-    (char-to-string (string-to-number (match-string 1 text) 16)))
-   ;; Numeric decimal &#123;
-   ((string-match "\\`&#\\([[:digit:]]+\\);\\'" text)
-    (char-to-string (string-to-number (match-string 1 text))))
-   ;; Named &amp; &copy; via org-entities, fall back to sgml-char-names
-   ((string-match "\\`&\\([[:alnum:]]+\\);\\'" text)
+   ;; Numeric &#123; or &#x1F4A9;, invalid code points become U+FFFD.
+   ((string-match (rx bos "&#" (or (seq (any "xX") (group (** 1 6 xdigit)))
+                                   (group (** 1 7 digit)))
+                      ";" eos)
+                  text)
+    (let ((code (if (match-beginning 1)
+                    (string-to-number (match-string 1 text) 16)
+                  (string-to-number (match-string 2 text)))))
+      (char-to-string (if (and (< 0 code #x110000)
+                               (not (<= #xD800 code #xDFFF)))
+                          code
+                        #xFFFD))))
+   ;; For named HTML entities (e.g., &amp; &copy;), use `org-entities'
+   ;; or fall back to `sgml-char-names'.  `org-entities' also has names
+   ;; that are not HTML entities, such as "smiley" for "☺", so take an
+   ;; entry only if its HTML form is TEXT itself: "&smiley;" stays
+   ;; literal text.
+   ((string-match (rx bos "&" (group (+ alnum)) ";" eos) text)
     (let ((name (match-string 1 text)))
       (if-let* ((entry (org-entity-get name))
-                (utf8 (nth 6 entry)))
-          utf8
+                ((equal (nth 3 entry) text)))
+          (nth 6 entry)
         (when-let* ((code (seq-position sgml-char-names name #'equal)))
           (char-to-string code)))))))
 
@@ -1734,7 +1802,7 @@ Remote images are controlled by
                ;; with the folded display.
                (not (markdown-ts--outline-invisible-p node-start)))
       (let* ((dest (treesit-search-subtree node "\\`link_destination\\'"))
-             (url (and dest (markdown-ts--unbracket-destination
+             (url (and dest (markdown-ts--decode-destination
                              (treesit-node-text dest t))))
              (remotep (and url (string-match-p "\\`https?://" url)))
              (displayable
@@ -1748,7 +1816,8 @@ Remote images are controlled by
                           (set-buffer-multibyte nil)
                           (url-insert-file-contents url)
                           (buffer-string))))
-                  (let ((file (expand-file-name url)))
+                  (let ((file (expand-file-name
+                               (markdown-ts--url-to-file url))))
                     (and (not (file-remote-p file))
                          (file-exists-p file)
                          (image-supported-file-p file)
