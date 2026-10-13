@@ -3285,7 +3285,6 @@ else
   GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
 
-  AC_CHECK_HEADERS([sys/vlimit.h])
   AC_CACHE_CHECK([for data_start], [emacs_cv_data_start],
     [AC_LINK_IFELSE(
        [AC_LANG_PROGRAM(

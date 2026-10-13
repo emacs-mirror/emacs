@@ -31,10 +31,6 @@ extern int etext;
 #ifdef HAVE_SYS_RESOURCE_H
 # include <sys/time.h>
 # include <sys/resource.h>
-#else
-# if HAVE_SYS_VLIMIT_H
-#  include <sys/vlimit.h>	/* Obsolete, says glibc */
-# endif
 #endif
 
 /* Start of data.  It is OK if this is approximate; it's used only as
