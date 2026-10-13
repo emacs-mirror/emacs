@@ -269,11 +269,13 @@ static struct gcstat
    objects, both dead and alive.  This number is always kept up-to-date.  */
 static ptrdiff_t hash_table_allocated_bytes = 0;
 
+#if !SYSTEM_MALLOC
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
    two string blocks.  */
 
 static char *spare_memory[7];
+#endif
 
 /* Amount of spare memory to keep in large reserve block, or to see
    whether this much is available when malloc fails on a larger request.  */
@@ -4012,6 +4014,7 @@ memory_full (size_t nbytes)
       Vmemory_full = Qt;
       consing_until_gc = min (consing_until_gc, memory_full_cons_threshold);
 
+#if !SYSTEM_MALLOC
       /* The first time we get here, free the spare memory.  */
       for (int i = 0; i < countof (spare_memory); i++)
 	if (spare_memory[i])
@@ -4024,6 +4027,7 @@ memory_full (size_t nbytes)
 	      lisp_free (spare_memory[i]);
 	    spare_memory[i] = 0;
 	  }
+#endif
     }
 
   /* This used to call error, but if we've run out of memory, we could
