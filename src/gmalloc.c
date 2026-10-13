@@ -1,4 +1,4 @@
-/* Declarations for `malloc' and friends.
+/* Declarations for malloc and friends, used only on MS-DOS.
    Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2026 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.

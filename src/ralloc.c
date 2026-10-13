@@ -1,4 +1,4 @@
-/* Block-relocating memory allocator.
+/* Block-relocating memory allocator, used only on MS-DOS.
    Copyright (C) 1993, 1995, 2000-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

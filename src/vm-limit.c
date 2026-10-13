@@ -1,4 +1,4 @@
-/* Functions for memory limit warnings.
+/* Functions for memory limit warnings, used only on MS-DOS.
    Copyright (C) 1990, 1992, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
