@@ -308,5 +308,92 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
         (setq conn nil)))
     (should-not warned)))
 
+(ert-deftest bug-82046-failed-send-cleans-up ()
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    (delete-process (jsonrpc--process conn))
+    (should-error (jsonrpc-async-request conn '+ [1 2] :timeout 2))
+    (should-error (jsonrpc-request conn '+ [1 2] :timeout 2))
+    (should-not (jsonrpc--continuations conn))
+    (should-not (jsonrpc--scontrol conn))))
+
+;; The following tests make the write of a big request block, so that
+;; Emacs runs timers and reads process output while waiting for the pipe
+;; to drain (bug#82046).  FIXME: They also access some jsonrpc.el
+;; internals, but that's acceptable here.
+(defconst jsonrpc--test-big-blob (vector (make-string (* 1024 1024) ?x))
+  "Params big enough to fill a pipe's buffer.")
+
+(ert-deftest bug-82046-reply-during-send ()
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    (let (result)
+      ;; The lambda will run as soon as it gets a chance _inside_ the
+      ;; big blob request's send.
+      (run-at-time 0 nil
+                   (lambda ()
+                     (setq result (jsonrpc-request conn '+ [1 2] :timeout 2))))
+      ;; We want this to return normally (2 seconds should be enough,
+      ;; ignore returns nil)
+      (should-not (jsonrpc-request conn 'ignore jsonrpc--test-big-blob
+                                   :timeout 2))
+      ;; Check the 1 + 2 was calculated remotely and everything is clean
+      (should (= 3 result))
+      (should-not (jsonrpc--continuations conn))
+      (should-not (jsonrpc--scontrol conn)))))
+
+(ert-deftest bug-82046-reply-parked-during-aborted-send ()
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    (let (result)
+      ;; The async `+' reply will arrive during the send of the big sync
+      ;; request below, so it'll wait on the latter's sync-control
+      ;; "scontrol" entry.
+      (jsonrpc-async-request conn '+ [1 2]
+                             :success-fn (lambda (r) (setq result r))
+                             :timeout 3)
+      (jsonrpc-async-request conn 'sit-for [1] :timeout 3)
+      ;; The above sit-for will make the server stop reading for a
+      ;; while, and now we arrange for the big blob write, which will
+      ;; block, to be aborted.
+      (run-at-time 0.3 nil (lambda () (throw 'abort 'aborted)))
+      (should (eq 'aborted
+                  (catch 'abort
+                    (jsonrpc-request conn 'ignore jsonrpc--test-big-blob
+                                     :timeout 3))))
+      ;; Now there should be no outstanding synchronous request holding
+      ;; up other requests.
+      (should-not (jsonrpc--scontrol conn))
+      ;; Eventually our response should arrive (the fixture times
+      ;; out if it never does).
+      (while (not result) (accept-process-output nil 0.1))
+      (should (= 3 result)))))
+
+(ert-deftest bug-82046-aborted-send-spares-outer-request ()
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-emacsrpc.py" conn)
+    (let (result)
+      ;; The async `+' reply will arrive while the outer `sit-for'
+      ;; request a few lines below waits, so it'll wait on that
+      ;; request's "scontrol" entry.
+      (jsonrpc-async-request conn '+ [1 2]
+                             :success-fn (lambda (r) (setq result r))
+                             :timeout 3)
+      ;; Meanwhile, an inner sync request's blocked send is aborted.
+      ;; That mustn't disturb the outer request's scontrol entry.
+      (run-at-time 0.1 nil
+                   (lambda ()
+                     (run-at-time 0.2 nil (lambda () (throw 'abort 'aborted)))
+                     (catch 'abort
+                       (jsonrpc-request conn 'ignore jsonrpc--test-big-blob
+                                        :timeout 3))))
+      (should-not (jsonrpc-request conn 'sit-for [1] :timeout 3))
+      (while (not result) (accept-process-output nil 0.1))
+      (should (= 3 result)))))
+
 (provide 'jsonrpc-tests)
 ;;; jsonrpc-tests.el ends here

@@ -509,22 +509,24 @@ to the original request (normal or error) are ignored."
                      (while t (accept-process-output nil 30))))))
       ;; In normal operation, continuations for error/success is
       ;; handled by `jsonrpc--continue'.  Timeouts also remove
-      ;; the continuation...
+      ;; the continuation...  If `jsonrpc--async-request-1' itself
+      ;; exited non-locally, it cleaned up after itself.
       (pcase-let* ((`(,id ,_) id-and-timer))
-        ;; ...but we still have to guard against exist explicit
-        ;; user-quit (C-g) or the `cancel-on-input' case, so
-        ;; discard the continuation.
-        (jsonrpc--remove connection id (list deferred (current-buffer)))
-        ;; Furthermore, assume a nil `retval' is a quit from
-        ;; `accept-process-output' (either "soft" or "hard," like a
-        ;; double C-g C-g on TTY terminals)
-        (unless retval
-          (when cancel-on-quit (funcall cancel-on-quit id)))
-        ;; ...finally, whatever may have happened to this sync
-        ;; request, it might have been holding up any outer
-        ;; "anxious" continuations.  The following ensures we
-        ;; call them.
-        (jsonrpc--continue connection `(:local ,id))))
+        (when id
+          ;; ...but we still have to guard against exist explicit
+          ;; user-quit (C-g) or the `cancel-on-input' case, so
+          ;; discard the continuation.
+          (jsonrpc--remove connection id (list deferred (current-buffer)))
+          ;; Furthermore, assume a nil `retval' is a quit from
+          ;; `accept-process-output' (either "soft" or "hard," like a
+          ;; double C-g C-g on TTY terminals)
+          (unless retval
+            (when cancel-on-quit (funcall cancel-on-quit id)))
+          ;; ...finally, whatever may have happened to this sync
+          ;; request, it might have been holding up any outer
+          ;; "anxious" continuations.  The following ensures we
+          ;; call them.
+          (jsonrpc--continue connection `(:local ,id)))))
     (cond ((eq 'error (car retval))
            (signal 'jsonrpc-error
                    (cons
@@ -1002,13 +1004,10 @@ TIMEOUT is nil)."
                        (funcall maybe-timer) id)
                  (jsonrpc--deferred-actions connection))
         (cl-return-from jsonrpc--async-request-1 (list id timer))))
-    ;; Really send it thru the wire
-    ;;
-    (apply #'jsonrpc-connection-send connection
-           :id id
-           :method method
-           (unless (eq params :jsonrpc-omit) `(:params ,params)))
-    ;; Setup some control structures
+    ;; Setup some control structures.  Do it before sending, since
+    ;; sending may yield to process output and timers (via
+    ;; `process-send-string' or `jsonrpc-event-hook') and the reply
+    ;; could be read before the continuation exists (bug#82046).
     ;;
     (when sync-request
       (push `((:local ,id)) (jsonrpc--scontrol connection)))
@@ -1029,6 +1028,25 @@ TIMEOUT is nil)."
                               code message)
             :id id)))
      (funcall maybe-timer))
+    ;; Really send it thru the wire.  If that exits non-locally, undo
+    ;; the above.  Careful: a sync request's reply may already have
+    ;; been processed, its continuation throwing through here, and
+    ;; `jsonrpc--continue' may already have popped our scontrol entry.
+    ;;
+    (let (sent)
+      (unwind-protect
+          (progn
+            (apply #'jsonrpc-connection-send connection
+                   :id id
+                   :method method
+                   (unless (eq params :jsonrpc-omit) `(:params ,params)))
+            (setq sent t))
+        (unless sent
+          (jsonrpc--remove connection id)
+          (when (and sync-request
+                     (equal (caar (jsonrpc--scontrol connection))
+                            `(:local ,id)))
+            (jsonrpc--continue connection `(:local ,id))))))
     (list id timer)))
 
 (defun jsonrpc--message (format &rest args)
