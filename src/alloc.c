@@ -5303,20 +5303,18 @@ valid_lisp_object_p (Lisp_Object obj)
   return 0;
 }
 
-/* Like xmalloc, but makes allocation count toward the total consing
-   and hash table or obarray usage.
-   Return NULL for a zero-sized allocation.  */
+/* Like xmalloc (NBYTES), but count consing and hash table usage.
+   NBYTES must be positive.  */
 void *
 hash_table_alloc_bytes (ptrdiff_t nbytes)
 {
-  if (nbytes == 0)
-    return NULL;
   tally_consing (nbytes);
   hash_table_allocated_bytes += nbytes;
   return xmalloc (nbytes);
 }
 
-/* Like xfree, but makes allocation count toward the total consing.  */
+/* Like xfree, but count consing and hash table usage.
+   NBYTES must be nonnegative.  */
 void
 hash_table_free_bytes (void *p, ptrdiff_t nbytes)
 {

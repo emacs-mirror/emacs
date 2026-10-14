@@ -2589,13 +2589,14 @@ dump_vectorlike_generic (struct dump_context *ctx,
 }
 
 /* Return a vector of KEY, VALUE pairs in the given hash table H.
-   No room for growth is included.  */
+   Do not leave room for growth.
+   If there are no pairs, return a null pointer.  */
 static Lisp_Object *
 hash_table_contents (struct Lisp_Hash_Table *h)
 {
   ptrdiff_t size = h->count;
-  Lisp_Object *key_and_value = hash_table_alloc_bytes (2 * size
-						       * sizeof *key_and_value);
+  Lisp_Object *key_and_value
+    = size ? hash_table_alloc_bytes (2 * size * sizeof *key_and_value) : NULL;
   ptrdiff_t n = 0;
 
   DOHASH (h, k, v)
