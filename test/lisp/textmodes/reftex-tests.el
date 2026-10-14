@@ -649,6 +649,53 @@ Some listing
       (should (string= (nth 1 (assoc "sec:conclu" docstruct)) "s"))
       (kill-buffer (file-name-nondirectory tex-file)))))
 
+(ert-deftest reftex-label-info-with-doctex ()
+  "Test how `reftex-label-info' finds \\label in `doctex-mode'."
+  (ert-with-temp-directory temp-dir
+    (let ((tex-file (expand-file-name "source.tex" temp-dir))
+          docstruct)
+      (with-temp-buffer
+        ;; The text below is taken from https://www.ctan.org/pkg/dtxtut
+        (insert "\
+% \\section{Introduction}
+% \\label{sec:intro}
+%
+% Put text here.
+%
+% \\section{Implementation}
+%
+% \\begin{macro}{\\YOURMACRO}
+%   Put explanation of |YOURMACRO|'s implementation here\\footnote{Put
+%   footnote here\\label{fn:1}}.
+%    \\begin{macrocode}
+\\newcommand{\\YOURMACRO}{}
+%    \\end{macrocode}
+% \\end{macro}")
+        (write-region (point-min) (point-max) tex-file))
+      (find-file tex-file)
+      (doctex-mode)
+      (reftex-parse-all)
+      (setq docstruct (symbol-value reftex-docstruct-symbol))
+      ;; `reftex-label-info' returns a list like this:
+      ;;   (label typekey text file in-comment)
+      ;; `in-comment' should be nil in `doctex-mode':
+      (should (string= (nth 1 (assoc "sec:intro" docstruct)) "s"))
+      (should-not (nth 4 (assoc "sec:intro" docstruct)))
+      (should (string= (nth 1 (assoc "fn:1" docstruct)) "n"))
+      (should-not (nth 4 (assoc "fn:1" docstruct)))
+      (kill-buffer (file-name-nondirectory tex-file))
+
+      ;; Do the same exercise for regular `latex-mode' where
+      ;; `in-comment' is non-nil:
+      (find-file tex-file)
+      (reftex-parse-all)
+      (setq docstruct (symbol-value reftex-docstruct-symbol))
+      (should (string= (nth 1 (assoc "sec:intro" docstruct)) "s"))
+      (should (nth 4 (assoc "sec:intro" docstruct)))
+      (should (string= (nth 1 (assoc "fn:1" docstruct)) "n"))
+      (should (nth 4 (assoc "fn:1" docstruct)))
+      (kill-buffer (file-name-nondirectory tex-file)))))
+
 ;;; non-file buffers
 
 (ert-deftest reftex-all-used-citation-keys-buffer ()
@@ -962,6 +1009,37 @@ This is with listings package:
 
 \\end{document}")))
       (kill-buffer temp-buffer))))
+
+(ert-deftest reftex-label-info-with-doctex-buffer ()
+  "Test how `reftex-label-info' finds \\label in a buffer in `doctex-mode'."
+  (let (docstruct)
+    (with-temp-buffer
+      ;; The text below is taken from https://www.ctan.org/pkg/dtxtut
+      (insert "\
+% \\section{Introduction}
+% \\label{sec:intro}
+%
+% Put text here.
+%
+% \\section{Implementation}
+%
+% \\begin{macro}{\\YOURMACRO}
+%   Put explanation of |YOURMACRO|'s implementation here\\footnote{Put
+%   footnote here\\label{fn:1}}.
+%    \\begin{macrocode}
+\\newcommand{\\YOURMACRO}{}
+%    \\end{macrocode}
+% \\end{macro}")
+      (doctex-mode)
+      (reftex-parse-all)
+      (setq docstruct (symbol-value reftex-docstruct-symbol))
+      ;; `reftex-label-info' returns a list like this:
+      ;;   (label typekey text file in-comment)
+      ;; `in-comment' should be nil in `doctex-mode':
+      (should (string= (nth 1 (assoc "sec:intro" docstruct)) "s"))
+      (should-not (nth 4 (assoc "sec:intro" docstruct)))
+      (should (string= (nth 1 (assoc "fn:1" docstruct)) "n"))
+      (should-not (nth 4 (assoc "fn:1" docstruct))))))
 
 ;;; Autoload tests
 
