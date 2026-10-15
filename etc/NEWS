@@ -429,7 +429,8 @@ than <blockquote> elements.  Now, they all have the same indent width.
 
 ** Dired
 
-*** The 'repeat-mode' key 'j' has been removed from 'dired-jump-map'.
+*** The 'repeat-mode' key 'j' has been removed from 'dired-jump-repeat-map'.
+'dired-jump-repeat-map' has been renamed from 'dired-jump-map'.
 
 ** Viper
 

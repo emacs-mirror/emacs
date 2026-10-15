@@ -5520,7 +5520,10 @@ when it decides whether to split the window horizontally or vertically."
 	      (read-file-name "Jump to Dired file: "))))
   (dired-jump t file-name))
 
-(defvar-keymap dired-jump-map
+(define-obsolete-variable-alias
+  'dired-jump-map
+  'dired-jump-repeat-map "32.1")
+(defvar-keymap dired-jump-repeat-map
   :doc "Keymap to repeat `dired-jump'.  Used in `repeat-mode'."
   :repeat t
   "C-j" #'dired-jump)
