@@ -432,8 +432,7 @@ If there is only one, execute it without asking."
                                  menu-items))))))
     (when chosen (refactor-backend-execute (oref chosen backend) chosen))))
 
-;;;###autoload
-(defun refactor (beg &optional end rkind interactive)
+(defun refactor--1 (beg &optional end rkind interactive)
   "Find refactoring actions between BEG and END, and offer to run them.
 
 If RKIND, a symbol, is non-nil, restrict search to actions of that kind
@@ -484,23 +483,35 @@ When INTERACTIVE is nil, return the list of `refactor-action' objects."
   `(defun ,name (beg &optional end)
      ,(format "Execute `%s' refactorings between BEG and END." kind)
      (interactive (refactor--bounds))
-     (refactor beg end ',kind t)))
+     (refactor--1 beg end ',kind t)))
 
-(defun refactor--mouse-call (what &optional update-mode-line)
-  "Make an interactive lambda for calling WHAT with the mouse."
-  (lambda (event)
-    (interactive "e")
-    (let ((start (event-start event)))
-      (with-selected-window (posn-window start)
-        (save-excursion
-          (unless (posn-area start)
-            (goto-char (posn-point start)))
-          (call-interactively what)
-          (when update-mode-line
-            (force-mode-line-update t)))))))
+(defun refactor--call-at-event (event what)
+  "Call WHAT interactively where mouse EVENT happened."
+  (let ((start (event-start event)))
+    ;; Don't `posn-set-point', don't actually set it with this click...
+    (with-selected-window (posn-window start)
+      (save-excursion
+        ;; ... also, only momentarily go to it if the click was actually
+        ;; in the text area, meaning probably user clicked a Flymake
+        ;; overlay.  If the click was on the margin or fringe, WHAT's
+        ;; interactive spec will know to find actions where point was
+        ;; before, because that's what prompted the indicator to appear
+        ;; in the first place.
+        (unless (posn-area start)
+          (goto-char (posn-point start)))
+        (call-interactively what)))))
 
-(defalias 'refactor-at-mouse (refactor--mouse-call 'refactor)
-  "Like `refactor', but intended for mouse events.")
+;;;###autoload
+(defun refactor (&optional event)
+  "Find refactoring actions here, and offer to run them.
+Here is the active region or, if there is none, the Flymake diagnostics
+or the expression at point.  If EVENT is a mouse event, consider where
+it happened instead of point.  With a prefix argument, prompt for a kind
+of refactoring from `refactor-kinds'."
+  (interactive (list last-nonmenu-event))
+  (if (mouse-event-p event)
+      (refactor--call-at-event event #'refactor--1)
+    (call-interactively #'refactor--1)))
 
 (refactor--define-kind-command refactor-organize-imports organize-imports)
 (refactor--define-kind-command refactor-extract extract)
@@ -609,8 +620,8 @@ Note additionally:
 
 (defvar refactor-mouse-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] #'refactor-at-mouse)
-    (define-key map [left-margin mouse-1] #'refactor-at-mouse)
+    (define-key map [mouse-2] #'refactor)
+    (define-key map [left-margin mouse-1] #'refactor)
     map)
   "Keymap active on action indicators and clickable diagnostics.")
 
@@ -642,7 +653,7 @@ Note additionally:
             (setq indicator
                   (propertize refactor-indicator
                               'face 'refactor-indicator-face
-                              'help-echo "mouse-1: execute actions at point"
+                              'help-echo "mouse-2: execute actions at point"
                               'mouse-face 'highlight
                               'keymap refactor-mouse-map))
             (save-excursion
@@ -664,7 +675,10 @@ Note additionally:
                                     refactor-indicator-face)))
                   ((memq 'margin refactor-indications)
                    (propertize
-                    "⚡" 'display `((margin left-margin) ,indicator)))))
+                    "⚡" 'display `((margin left-margin)
+                                    ,(propertize
+                                      indicator 'help-echo
+                                      "mouse-1: execute actions at point"))))))
                 (setq refactor--suggestion-overlay ov)))))
          ;; Answer the ElDoc strategy even if BUF isn't showing, else it
          ;; could wait for us forever (like in non-interactive tests).
@@ -686,8 +700,7 @@ show `refactor-mode-line-indicator' while actions are available."
 
 (defvar refactor--mode-line-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-1]
-                (refactor--mouse-call 'refactor-at-mouse t))
+    (define-key map [mode-line mouse-1] #'refactor)
     map)
   "Keymap active on `refactor-mode-line-indicator'.")
 
@@ -710,7 +723,7 @@ show `refactor-mode-line-indicator' while actions are available."
 
 ;; Flymake backends may use these categories if they want their
 ;; diagnostics to be clickable.  `refactor-mouse-map' contains
-;; a binding for `refactor-at-mouse'.
+;; a mouse binding for `refactor'.
 (cl-loop
  for i from 1
  for type in '(refactor-note refactor-warning refactor-error)

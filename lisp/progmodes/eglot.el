@@ -4447,7 +4447,8 @@ edit was attempted and optionally why not."
                      `(,@(eglot--TextDocumentPositionParams)
                        :newName ,newname)))))
 
-(define-obsolete-function-alias 'eglot-code-actions 'refactor "32.1")
+(defalias 'eglot-code-actions #'refactor--1)
+(make-obsolete 'eglot-code-actions 'refactor "32.1")
 (define-obsolete-function-alias 'eglot-rename 'refactor-rename "32.1")
 (define-obsolete-function-alias 'eglot-code-action-organize-imports
   'refactor-organize-imports "32.1")
@@ -4460,7 +4461,7 @@ edit was attempted and optionally why not."
 (define-obsolete-function-alias 'eglot-code-action-quickfix
   'refactor-quickfix "32.1")
 (define-obsolete-function-alias 'eglot-code-actions-at-mouse
-  'refactor-at-mouse "32.1")
+  'refactor "32.1")
 (define-obsolete-variable-alias 'eglot-code-action-indications
   'refactor-indications "32.1")
 (define-obsolete-variable-alias 'eglot-code-action-indicator
