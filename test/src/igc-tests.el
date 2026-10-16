@@ -91,23 +91,45 @@
                (< (search start mid))
                (> (search (1+ mid) end))))))))
 
-(defun igc-tests--try-vector-size (len)
-  (message "testing: %d (0x%x) (logb: %d)" len len (logb len))
-  (igc--process-messages)
-  (cond ((ignore-errors (length (make-vector len nil)))
-         (cond ((ignore-errors (length (make-vector (1+ len) nil)))
+(defun igc-tests--try-vector-size (len alloc-fun)
+  ;;(message "testing: %d (0x%x) (logb: %d)" len len (logb len))
+  (when (featurep 'mps)
+    (igc--process-messages))
+  (cond ((ignore-errors (funcall alloc-fun len))
+         (cond ((ignore-errors (funcall alloc-fun (1+ len)))
                 '>)
-               (t
-                '=)))
+               (t '=)))
         (t '<)))
 
-;; FIXME: this crashes with 32-bit configurations
+(defun igc-tests--find-largest-vector-size (alloc-fun)
+  (let ((garbage-collection-messages t)
+        (cmp-fun (lambda (len)
+                   (igc-tests--try-vector-size len alloc-fun))))
+    (igc-tests--binary-search 0 (1+ most-positive-fixnum) cmp-fun)))
+
 (ert-deftest igc-tests-find-largest-vector-size ()
-  "Find the largest size which we can allocate a vector."
+  "Find the largest size a vector."
   :tags '(:igc :expensive-test)
-  (let ((garbage-collection-messages t))
-    (igc-tests--binary-search 0 (1+ most-positive-fixnum)
-                              #'igc-tests--try-vector-size)))
+  (igc-tests--find-largest-vector-size (lambda (len)
+                                         (length (make-vector len nil)))))
+
+(ert-deftest igc-tests-find-largest-string-size ()
+  "Find the largest size for which we can allocate a string."
+  :tags '(:expensive-test)
+  (igc-tests--find-largest-vector-size (lambda (len)
+                                         (length (make-string len ?a)))))
+
+(ert-deftest igc-tests-find-largest-hash-table-size ()
+  "Find the largest size for which we can allocate a hash table."
+  :tags '(:expensive-test)
+  (igc-tests--find-largest-vector-size
+   (lambda (size) (hash-table-size (make-hash-table :size size)))))
+
+(ert-deftest igc-tests-find-largest-bool-vector-size ()
+  "Find the largest size for which we can allocate a bool vector."
+  :tags '(:expensive-test)
+  (igc-tests--find-largest-vector-size
+   (lambda (size) (length (make-bool-vector size nil)))))
 
 (ert-deftest igc-tests-collect-undo-list ()
   "Test that adjust-weak-markers entries are removed."

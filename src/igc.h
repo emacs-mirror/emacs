@@ -112,11 +112,12 @@ void *igc_make_bytes (size_t nbytes);
 struct image_cache *igc_make_image_cache (void);
 struct interval *igc_make_interval (void);
 
-Lisp_Object igc_make_string (size_t nchars, size_t nbytes, bool unibyte,
-			     bool clear);
-Lisp_Object igc_make_multibyte_string (size_t nchars, size_t nbytes,
-				       bool clear);
-Lisp_Object igc_make_unibyte_string (size_t nchars, size_t nbytes, bool clear);
+Lisp_Object igc_make_string (EMACS_INT nchars, EMACS_INT nbytes,
+			     bool unibyte, bool clear);
+Lisp_Object igc_make_multibyte_string (EMACS_INT nchars,
+				       EMACS_INT nbytes, bool clear);
+Lisp_Object igc_make_unibyte_string (EMACS_INT nchars,
+				     EMACS_INT nbytes, bool clear);
 Lisp_Object igc_make_float (double val);
 int igc_valid_lisp_object_p (Lisp_Object obj);
 size_t igc_hash (Lisp_Object key);

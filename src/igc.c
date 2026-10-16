@@ -761,6 +761,14 @@ igc_header_nwords_max (void)
   return ~(~(uint64_t) 0 << IGC_HEADER_NWORDS_BITS);
 }
 
+static size_t
+igc_obj_size_max (void)
+{
+  /* The PTRDIFF_MAX comes from memclear, which only allows
+     ptrdiff_t.  */
+  return min (to_bytes (igc_header_nwords_max ()), PTRDIFF_MAX);
+}
+
 /* Set the fields of header H to the given values.  Use this instead of
    setting the fields directly to make it easy to add assertions.  */
 
@@ -5214,9 +5222,18 @@ igc_make_float (double val)
   return make_lisp_ptr (f, Lisp_Float);
 }
 
-static unsigned char *
-alloc_string_data (size_t nbytes, bool clear)
+static size_t
+igc_string_bytes_max (void)
 {
+  return (min (igc_obj_size_max (), STRING_BYTES_BOUND)
+	  - offsetof (struct Lisp_String_Data, data));
+}
+
+static unsigned char *
+alloc_string_data (EMACS_INT nbytes, bool clear)
+{
+  if (igc_string_bytes_max () < nbytes + 1)
+    string_overflow ();
   struct Lisp_String_Data *data =
     alloc (sizeof (*data) + nbytes + 1, IGC_OBJ_STRING_DATA);
   data->data[nbytes] = 0;
@@ -5232,7 +5249,8 @@ igc_make_bytes (size_t nbytes)
 }
 
 Lisp_Object
-igc_make_string (size_t nchars, size_t nbytes, bool unibyte, bool clear)
+igc_make_string (EMACS_INT nchars, EMACS_INT nbytes,
+		 bool unibyte, bool clear)
 {
   struct Lisp_String *s = alloc (sizeof *s, IGC_OBJ_STRING);
   s->u.s.size = nchars;
@@ -5242,13 +5260,13 @@ igc_make_string (size_t nchars, size_t nbytes, bool unibyte, bool clear)
 }
 
 Lisp_Object
-igc_make_multibyte_string (size_t nchars, size_t nbytes, bool clear)
+igc_make_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes, bool clear)
 {
   return igc_make_string (nchars, nbytes, false, clear);
 }
 
 Lisp_Object
-igc_make_unibyte_string (size_t nchars, size_t nbytes, bool clear)
+igc_make_unibyte_string (EMACS_INT nchars, EMACS_INT nbytes, bool clear)
 {
   return igc_make_string (nchars, nbytes, true, clear);
 }
@@ -5281,17 +5299,10 @@ igc_make_pseudovector (size_t nwords_mem, size_t nwords_lisp,
   return v;
 }
 
-/* FIXME/igc: The INT_MAX bound is there for the assertion
-   AVER(AddrOffset(base, limit) <= INT_MAX) in ProtSet
-   (mps/code/protix.c:76).  That assertion looks like a bug and could
-   probably be removed.  */
 static size_t
 igc_vector_elts_max (void)
 {
-  size_t nwords_max
-    = min (igc_header_nwords_max (), INT_MAX / sizeof (mps_word_t));
-  return min (((nwords_max - to_words (header_size))
-	       / to_words (word_size)),
+  return min ((igc_obj_size_max () - header_size) / word_size,
 	      PSEUDOVECTOR_FLAG - 1);
 }
 
@@ -5436,9 +5447,20 @@ igc_make_weak_hash_table_weak_part (hash_table_weakness_t weak,
 #endif
 
 #ifdef USE_EPHEMERON_POOL
+static size_t
+igc_pair_vector_length_max (void)
+{
+  size_t bytes_per_pair
+    = sizeof ((struct pair_vector *) NULL)->pairs[0];
+  return ((igc_obj_size_max () - offsetof (struct pair_vector, pairs))
+	  / bytes_per_pair);
+}
+
 struct pair_vector *
 igc_make_pair_vector (size_t len, hash_table_weakness_t w)
 {
+  if (len > igc_pair_vector_length_max ())
+    xsignal1 (Qargs_out_of_range, make_int (len));
   struct pair_vector *r;
   size_t header_size = offsetof (struct pair_vector, pairs);
   size_t nbytes = header_size + len * sizeof r->pairs[0];
