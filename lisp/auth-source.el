@@ -2107,6 +2107,8 @@ entries for git.gnus.org:
          (max (or max 5000))     ; sanity check: default to stop at 5K
          (auth-source-ignored-keys
           (seq-union auth-source-ignored-keys '(:host :port)))
+         (auth-source-ignored-keys
+          (seq-difference auth-source-ignored-keys '(:label)))
          ;; Extract host, port and user from spec
          (hosts (plist-get spec :host))
          (hosts (if (consp hosts) hosts `(,hosts)))
@@ -2173,7 +2175,7 @@ entries for git.gnus.org:
                  "-g"))
          (ret (list :type type)))
     (when label
-      (setq args (append args (list "-l" label))))
+      (setq args (append args (cons "-l" label))))
     (when host
       (setq args (append args (list (if keychain-generic "-c" "-s") host))))
     (when user
