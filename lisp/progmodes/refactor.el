@@ -618,6 +618,7 @@ Note additionally:
   "A member of `eldoc-documentation-functions', for suggesting actions."
   (when (and refactor-indications (refactor-find-backends))
     (let ((buf (current-buffer))
+          (win (selected-window))
           (bounds (refactor--bounds))
           (use-text-p (memq 'eldoc-hint refactor-indications))
           indicator blurb)
@@ -648,6 +649,8 @@ Note additionally:
               (goto-char (car bounds))
               (let ((ov (make-overlay (car bounds) (cadr bounds))))
                 (overlay-put ov 'refactor--actions actions)
+                ;; Elsewhere, the indicator could be far from point.
+                (overlay-put ov 'window win)
                 (overlay-put
                  ov 'before-string
                  (cond
@@ -690,7 +693,9 @@ show `refactor-mode-line-indicator' while actions are available."
 
 (defconst refactor-mode-line-indicator
   '(:eval
-    (when (overlay-buffer refactor--suggestion-overlay)
+    (when (and (overlay-buffer refactor--suggestion-overlay)
+               (eq (overlay-get refactor--suggestion-overlay 'window)
+                   (selected-window)))
       `(" " (:propertize
              ,refactor-indicator
              face refactor-indicator-face
