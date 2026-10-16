@@ -3192,6 +3192,19 @@ frame_parm_handler android_frame_parm_handlers[] =
   NULL,
   gui_set_borders_respect_alpha_background,
   NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
 };
 
 

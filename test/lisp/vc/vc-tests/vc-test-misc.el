@@ -26,8 +26,10 @@
 (require 'ert-x)
 (require 'vc)
 (require 'vc-git)
+(require 'vc-hg)
 (require 'vc-dir)
 (require 'log-edit)
+(require 'dired-aux)
 
 (require 'vc-tests-helpers
          (ert-resource-file "vc-tests-helpers"))
@@ -536,7 +538,7 @@ See bug#80803 and bug#80967."
   (skip-unless (executable-find vc-git-program))
   (vc-test--with-author-identity 'Git
     (let ((vc-handled-backends '(Git))
-          file-buf vc-dir-buf vc-diff-buf changelog-buf log-edit-buf
+          vc-dir-buf vc-diff-buf changelog-buf log-edit-buf
           changelog-entry log-edit-entry)
       (unwind-protect
           (ert-with-temp-directory tempdir
@@ -545,13 +547,12 @@ See bug#80803 and bug#80967."
                    vc-async-checkin)
               (vc-test--create-repo-function 'Git)
               (write-region "hello\n" nil file)
-              (with-current-buffer (setq file-buf (find-file-noselect file))
-                (vc-register `(Git (,file)))
-                (vc-checkin (list file) 'Git)
-                (insert "Initial commit")
-                (let (vc-async-checkin)
-                  (log-edit-done))
-                (write-region "Hello\n" nil "README" nil t))
+              (vc-register `(Git (,file)))
+              (vc-checkin (list file) 'Git) ; Makes *vc-log* current buffer.
+              (insert "Initial commit")
+              (let (vc-async-checkin)
+                (log-edit-done))
+              (write-region "Hello\n" nil "README" nil t)
               (vc-dir default-directory 'Git)
               (while (vc-dir-busy) (sit-for 0.05))
               (setq vc-dir-buf (current-buffer))
@@ -581,9 +582,175 @@ See bug#80803 and bug#80967."
               (setq log-edit-entry
                     (buffer-substring-no-properties (point) (point-max)))
               (should (equal changelog-entry log-edit-entry))))
-        (dolist (buf (list file-buf vc-dir-buf vc-diff-buf changelog-buf
+        (dolist (buf (list vc-dir-buf vc-diff-buf changelog-buf
                            log-edit-buf "*log-edit-files*" "*vc*"))
           (kill-buffer buf))))))
+
+(ert-deftest vc-test-log-message-from-changelog-with-warning () ; bug#81909
+  "Test (not) displaying warning on insertion of log message."
+  (skip-unless (executable-find vc-git-program))
+  (vc-test--with-author-identity 'Git
+    (let ((vc-handled-backends '(Git))
+          buffers)
+      (unwind-protect
+          (ert-with-temp-directory tempdir
+            (let* ((default-directory tempdir)
+                   (data
+                    (list
+                     (list
+                      (expand-file-name "foo.el" default-directory)
+                      "(defun foo-do()\n  (quux 'do))"
+                      "(defun foo-do(&optional arg)\n  (quux (or arg 'do)))")
+                     (list
+                      (expand-file-name "bar.el" default-directory)
+                      "(defun bar-do()\n  (foo))"
+                      "(defun bar-do()\n  (foo quux-do))")))
+                   (files (mapcar #'car data))
+                   vc-async-checkin)
+              (make-empty-file "quux.el")
+              (push (expand-file-name "quux.el" default-directory) files)
+              (vc-test--create-repo-function 'Git)
+              (dolist (d data)
+                (write-region (nth 1 d) nil (nth 0 d)))
+              (vc-register `(Git ,files))
+              (vc-checkin files 'Git)   ; *vc-log* now current buffer.
+              (insert "Initial commit")
+              (let (vc-async-checkin)
+                (log-edit-done))        ; *vc-log* now killed.
+              (dolist (d data)
+                (write-region (nth 2 d) nil (nth 0 d)))
+              (vc-dir default-directory 'Git) ; *vc-dir* now current buffer.
+              (while (vc-dir-busy) (sit-for 0.05))
+              (push (current-buffer) buffers)
+              (save-window-excursion
+                (vc-diff)               ; *vc-diff* now current buffer.
+                (push (current-buffer) buffers)
+                (diff-add-change-log-entries-other-window)
+                (push (get-buffer "foo.el") buffers)
+                (push (get-buffer "bar.el") buffers)
+                (push (get-buffer (concat "*changes to " tempdir "*"))
+                      buffers))
+              (vc-next-action nil)      ; *vc-log* now current buffer.
+              (should-not (get-buffer "*Warnings*"))
+              (kill-buffer (get-buffer "*vc-log*"))
+              (switch-to-buffer (concat "*changes to " tempdir "*"))
+              (goto-char (point-max))
+              (re-search-backward "^\t\\*")
+              ;; Remove last entry from log buffer.
+              (delete-region (pos-bol) (+ (pos-eol) 2))
+              (switch-to-buffer (car (last buffers))) ; *vc-dir*
+              (vc-next-action nil)      ; *vc-log* now current buffer.
+              (should-not (get-buffer "*Warnings*"))
+              (kill-buffer (get-buffer "*vc-log*"))
+              (switch-to-buffer (concat "*changes to " tempdir "*"))
+              (goto-char (point-max))
+              ;; Add entry that's not in changeset.
+              (insert "\t* quux.el: \n\n")
+              (switch-to-buffer (car (last buffers))) ; *vc-dir*
+              (vc-next-action nil)      ; *vc-log* now current buffer.
+              (push (current-buffer) buffers)
+              (should (get-buffer "*Warnings*"))
+              (push (get-buffer "*Warnings*") buffers)))
+        (dolist (buf buffers)
+          (kill-buffer buf))))))
+
+(ert-deftest vc-test-dired-rename-file-between-repos ()
+  "Test `dired-rename-file' facility for moving files between repositories."
+  (skip-unless (executable-find vc-git-program))
+  (skip-unless (executable-find vc-hg-program))
+  (ert-with-temp-directory tempdir
+    (let ((default-directory tempdir)
+          (vc-handled-backends '(Git Hg))
+          (dired-vc-rename-file t)
+          (vc-async-checkin nil)
+          (git1 (expand-file-name "git1/" tempdir))
+          (git2 (expand-file-name "git2/" tempdir))
+          (hg (expand-file-name "hg/" tempdir)))
+      (vc-test--with-author-identity 'Git
+        (vc-test--with-author-identity 'Hg
+          (cl-flet ((create-repo (backend loc file)
+                      (make-directory loc)
+                      (let ((default-directory loc))
+                        (write-region (format "%s\n%s\n" loc file)
+                                      nil file nil 0 nil 'excl)
+                        (vc-test--create-repo-function backend)
+                        (vc-register `(,backend (,file)))
+                        (vc-checkin (list file) backend)
+                        (insert "Creation")
+                        (log-edit-done)))
+                    (do-rename (repo from to ok-if-already-exists)
+                      (dired repo)
+                      (unwind-protect
+                          (dired-rename-file (expand-file-name from) to
+                                             ok-if-already-exists)
+                        (quit-window 'kill)))
+                    (reset ()
+                      (dolist (repo (list git1 git2 hg))
+                        (when (file-exists-p repo)
+                          (mapc #'vc-file-clearprops
+                                (directory-files repo 'full))
+                          (delete-directory repo 'recursive)))))
+            ;; Base case: moving within a repository.
+            (create-repo 'Git git1 "foo.txt")
+            (do-rename "git1/" "foo.txt" "bar.txt" nil)
+            (let ((default-directory git1))
+              (should (file-exists-p "bar.txt"))
+              (should (eq (vc-state "bar.txt" 'Git) 'added))
+              (should-not (file-exists-p "foo.txt"))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed)))
+            (reset)
+
+            ;; Test moving between repos with the same backend.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Git git2 "bar.txt")
+            (do-rename "git1/" "foo.txt" "../git2/baz.txt" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "baz.txt"))
+              (should (eq (vc-state "baz.txt" 'Git) 'added)))
+            (reset)
+
+            ;; Test moving between repos with different backends, and
+            ;; passing a directory as second arg to `dired-rename-file'.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Hg hg "bar.txt")
+            (do-rename "git1/" "foo.txt" "../hg/" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory hg))
+              (should (file-exists-p "foo.txt"))
+              (should (eq (vc-state "foo.txt" 'Hg) 'added)))
+            (reset)
+
+            ;; Already exists.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Hg hg "foo.txt")
+            (should-error (do-rename "git1/" "foo.txt" "../hg/" nil)
+                          :type 'file-already-exists)
+            (do-rename "git1/" "foo.txt" "../hg/" 'ok-if-already-exists)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory hg))
+              (should (file-exists-p "foo.txt"))
+              (should (eq (vc-state "foo.txt" 'Hg) 'edited)))
+            (reset)
+
+            ;; Moving into a non-repo.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Git git2 "bar.txt")
+            (delete-directory (expand-file-name ".git/" git2)
+                              'recursive)
+            (do-rename "git1/" "foo.txt" "../git2/" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "foo.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "foo.txt"))
+              (should (null (vc-state "foo.txt" 'Hg))))))))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

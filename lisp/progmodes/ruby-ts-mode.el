@@ -1262,6 +1262,7 @@ leading double colon is not added."
   (kill-local-variable 'outline-level)
 
   (setq-local treesit-simple-indent-rules (ruby-ts--indent-rules))
+  (setq-local editorconfig-indent-size-vars '(ruby-indent-level))
 
   ;; Font-lock.
   (setq-local treesit-font-lock-settings (ruby-ts--font-lock-settings 'ruby))

@@ -47,7 +47,7 @@
 
 (ert-deftest uuid-v4-generator-custom-rnd ()
   "Verifies that a UUID-V4 uses the RND function provided to it."
-  (let ((id (uuid-v4 :rng (lambda (n) 23))))
+  (let ((id (uuid-v4 :rng (lambda (_) 23))))
     (should (cl-typep id '(uuid-v 4)))
     (should (equal (uuid--var id) 2))
     (should (equal (uuid--ver id) 4))
@@ -105,7 +105,7 @@
   "Verifies that a UUIDv7 uses random, timestamps correctly."
   (cl-letf (((symbol-function 'float-time)
              (lambda (&optional _) 0.123)))
-    (let ((id (uuid-v7 :rng (lambda (n) 789))))
+    (let ((id (uuid-v7 :rng (lambda (_) 789))))
       (should (cl-typep id '(uuid-v 7)))
       (should (equal (uuid--var id) 2))
       (should (equal (uuid--ver id) 7))

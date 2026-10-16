@@ -9003,9 +9003,14 @@ used to take the screenshot."
 	    pairs (cdr pairs))
       (if (not (string-match "=" cur))
 	  nil                           ; Grace
-	(setq key (downcase (gnus-url-unhex-string
-			     (substring cur 0 (match-beginning 0))))
-	      val (gnus-url-unhex-string (substring cur (match-end 0) nil) t))
+        ;; RFC 6068 mandates that mailto: URLs must be UTF-8 encoded.
+	(setq key (downcase
+                   (decode-coding-string
+                    (url-unhex-string (substring cur 0 (match-beginning 0)))
+                    'utf-8-unix))
+	      val (decode-coding-string
+                   (url-unhex-string (substring cur (match-end 0) nil) t)
+                   'utf-8))
 	(setq cur (assoc key retval))
 	(if cur
 	    (setcdr cur (cons val (cdr cur)))

@@ -94,9 +94,18 @@
                                    . auth-source-macos-keychain-create))))
 
 (ert-deftest auth-source-backend-parse-macos-keychain-internet-default-string ()
-  (auth-source-validate-backend 'macos-keychain-internet
+  (auth-source-validate-backend "macos-keychain-internet"
                                 '((source . "default")
                                   (type . macos-keychain-internet)
+                                  (search-function
+                                   . auth-source-macos-keychain-search)
+                                  (create-function
+                                   . auth-source-macos-keychain-create))))
+
+(ert-deftest auth-source-backend-parse-macos-keychain-generic-default-string ()
+  (auth-source-validate-backend "macos-keychain-generic"
+                                '((source . "default")
+                                  (type . macos-keychain-generic)
                                   (search-function
                                    . auth-source-macos-keychain-search)
                                   (create-function

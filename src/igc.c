@@ -235,17 +235,20 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_face_cache_C289FB8D72
 #  error "struct face_cache changed"
 # endif
-# ifndef HASH_Lisp_Obarray_381CF3389E
+# ifndef HASH_Lisp_Obarray_E27FFF73AC
 #  error "struct Lisp_Obarray changed"
 # endif
-# ifndef HASH_module_global_reference_DC69127EC6
+# ifndef HASH_module_global_reference_6429591EC9
 #  error "struct module_global_reference changed"
 # endif
-# ifndef HASH_Lisp_TS_Parser_96CBB02569
+# ifndef HASH_Lisp_TS_Parser_D8EB60819A
 #  error "struct Lisp_TS_Parser changed"
 # endif
-# ifndef HASH_Lisp_TS_Query_31B815035A
-#  error "struct Lisp_TS_Parser changed"
+# ifndef HASH_Lisp_TS_Query_7AA48BB979
+#  error "struct Lisp_TS_Query changed"
+# endif
+# ifndef HASH_Lisp_TS_Node_89160EC465
+#  error "struct Lisp_TS_Node changed"
 # endif
 # ifndef HASH_xwidget_E5EDCB4855
 #  error "struct xwidget changed"

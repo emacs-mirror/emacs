@@ -1165,6 +1165,14 @@ with no args, if that value is non-nil."
   :group 'f90
   :abbrev-table f90-mode-abbrev-table
   (setq-local indent-line-function #'f90-indent-line)
+  (setq-local editorconfig-indent-size-vars
+              '(f90-associate-indent
+                f90-continuation-indent
+                f90-critical-indent
+                f90-do-indent
+                f90-if-indent
+                f90-program-indent
+                f90-type-indent))
   (setq-local indent-region-function #'f90-indent-region)
   (setq-local comment-start "!")
   (setq-local comment-start-skip "!+ *")

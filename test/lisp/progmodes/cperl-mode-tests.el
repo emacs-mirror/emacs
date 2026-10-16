@@ -931,7 +931,8 @@ The minor mode `cperl-extra-paired-delimiters-mode' controls whether we
 have extra paired delimiters."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (with-temp-buffer
-    (insert-file-contents (ert-resource-file "extra-delimiters.pl"))
+    (let ((coding-system-for-read 'utf-8))
+      (insert-file-contents (ert-resource-file "extra-delimiters.pl")))
     (funcall cperl-test-mode)
     (cperl-extra-paired-delimiters-mode t)
     (font-lock-ensure)
@@ -968,7 +969,8 @@ This test relies on the specific layout of the index alist as
 created by CPerl mode, so skip it for Perl mode."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (with-temp-buffer
-    (insert-file-contents (ert-resource-file "grammar.pl"))
+    (let ((coding-system-for-read 'utf-8))
+      (insert-file-contents (ert-resource-file "grammar.pl")))
     (cperl-mode)
     (let ((index (cperl-imenu--create-perl-index))
           current-list)
@@ -1045,7 +1047,7 @@ under timeout control."
          (process-connection-type nil)
          runner)
     (with-temp-buffer
-      (with-timeout (2
+      (with-timeout (10
                      (delete-process runner)
                      (setq ran-out-of-time t))
         (setq runner (start-process "speedy"

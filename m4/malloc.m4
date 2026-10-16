@@ -1,5 +1,5 @@
 # malloc.m4
-# serial 47
+# serial 48
 dnl Copyright (C) 2007, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -119,20 +119,16 @@ AC_DEFUN([gl_CHECK_MALLOC_PTRDIFF],
                is no problem.  */
             #define NARROW_SIZE (SIZE_MAX <= PTRDIFF_MAX)
 
-            /* Whether address sanitization is in use.
-               clang 4 through 21 signal this only with __has_feature.  */
-            #if !defined __SANITIZE_ADDRESS__ && defined __has_feature
-            # if __has_feature (address_sanitizer)
-            #  define __SANITIZE_ADDRESS__ 1
-            # endif
-            #endif
-
             #if __OpenBSD__ || __NetBSD__
              #include <sys/param.h>
             #endif
 
+            #ifndef __has_feature
+             #define __has_feature(feature) 0
+            #endif
+
             /* Many platforms are safe: malloc stays in ptrdiff_t bounds.
-               However, with address sanitization, gcc (up to at least
+               However, with some sanitizations, gcc (up to at least
                gcc 16.1) and clang (up to at least clang 22) interpose
                a malloc that can go over a 32-bit ptrdiff_t limit.  See:
                https://gcc.gnu.org/bugzilla/show_bug.cgi?id=126436
@@ -142,7 +138,13 @@ AC_DEFUN([gl_CHECK_MALLOC_PTRDIFF],
               (((2 < __GLIBC__ + (30 <= __GLIBC_MINOR__)) || MUSL_LIBC \
                 || 11 <= __FreeBSD__ || 800000000 <= __NetBSD_Version__ \
                 || 201411 <= OpenBSD || defined _WIN32) \
-               && !__SANITIZE_ADDRESS__)
+               && !(__SANITIZE_ADDRESS__ || __has_feature (address_sanitizer) \
+                    || __SANITIZE_HWADDRESS__ \
+                    || __has_feature (hwaddress_sanitizer) \
+                    || __SANITIZE_LEAK__ || __has_feature (leak_sanitizer) \
+                    || __has_feature (memory_sanitizer) \
+                    || __has_feature (scudo_sanitizer) \
+                    || __SANITIZE_THREAD__ || __has_feature (thread_sanitizer)))
 
             #if WIDE_PTRDIFF || NARROW_SIZE || KNOWN_SAFE
               return 0;

@@ -133,6 +133,7 @@ files.")
     ("Ian Dunn" "^Ian D\\>")
     ;; lisp/org/ChangeLog.1 2010-11-11.
     ("Ignacio Casso" "ignacio\\.decasso@imdea\\.org" "ignaciocasso@hotmail\\.com")
+    ("Iris Kroft" "coldsideofyourpillow@disroot\\.org")
     (nil "immerrr")
     (nil "aaa bbb")
     (nil "Code Extracted") ; lisp/newcomment.el's "Author:" header

@@ -85,7 +85,10 @@ Windows Vista and later has several bugs in its DPMI server related to
 memory allocation: it fails DPMI resize memory block function, and it
 arbitrarily limits the default amount of DPMI memory to 32MB.  To work
 around these bugs, first configure Emacs to use the `malloc' function
-from the DJGPP library.  To this end, run CONFIG.BAT with the
+from the DJGPP library.  Although this malloc fragments memory so
+badly that it is better to configure Emacs on Windows XP or earlier,
+on Windows Vista and later if you don't use Emacs heavily you should
+get by with this workaround.  To this end, run CONFIG.BAT with the
 "--with-system-malloc" option:
 
     config --with-system-malloc msdos

@@ -130,8 +130,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    memory.  Can do this only if using gmalloc.c and if not checking
    marked objects.  */
 
-#if (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC \
-     || GC_CHECK_MARKED_OBJECTS)
+#if defined SYSTEM_MALLOC || GC_CHECK_MARKED_OBJECTS
 #undef GC_MALLOC_CHECK
 #endif
 
@@ -149,7 +148,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* A type with alignment at least as large as any object that Emacs
    allocates.  This is not max_align_t because some platforms (e.g.,
    mingw) have buggy malloc implementations that do not align for
-   max_align_t.  This union contains types of all GCALIGNED_STRUCT
+   max_align_t.  This union contains types of all GCALIGNED struct
    components visible here.  */
 union emacs_align_type
 {
@@ -162,9 +161,11 @@ union emacs_align_type
   struct Lisp_Marker Lisp_Marker;
   struct Lisp_Misc_Ptr Lisp_Misc_Ptr;
   struct Lisp_Mutex Lisp_Mutex;
+  struct Lisp_Native_Comp_Unit Lisp_Native_Comp_Unit;
   struct Lisp_Overlay Lisp_Overlay;
-  struct Lisp_Subr Lisp_Subr;
   struct Lisp_Sqlite Lisp_Sqlite;
+  struct Lisp_Subr Lisp_Subr;
+  struct Lisp_Symbol_With_Pos Lisp_Symbol_With_Pos;
   struct Lisp_User_Ptr Lisp_User_Ptr;
   struct terminal terminal;
   struct thread_state thread_state;
@@ -176,11 +177,14 @@ union emacs_align_type
      appears in an `alignof' expression.  In practice their alignments
      never exceed that of the structs already listed.  */
 #if 0
+  struct font_entity font_entity;
+  struct font font;
+  struct font_spec font_spec;
   struct Lisp_Bool_Vector Lisp_Bool_Vector;
   struct Lisp_Char_Table Lisp_Char_Table;
-  struct Lisp_Sub_Char_Table Lisp_Sub_Char_Table;
   struct Lisp_Module_Function Lisp_Module_Function;
   struct Lisp_Process Lisp_Process;
+  struct Lisp_Sub_Char_Table Lisp_Sub_Char_Table;
   struct Lisp_Vector Lisp_Vector;
   struct save_window_data save_window_data;
   struct scroll_bar scroll_bar;
@@ -212,58 +216,6 @@ union emacs_align_type
 enum { MALLOC_ALIGNMENT = 16 };
 #else
 enum { MALLOC_ALIGNMENT = max (2 * sizeof (size_t), alignof (long double)) };
-#endif
-
-#ifdef DOUG_LEA_MALLOC
-
-/* Specify maximum number of areas to mmap.  It would be nice to use a
-   value that explicitly means "no limit".  */
-
-# define MMAP_MAX_AREAS 100000000
-
-/* Restore the dumped malloc state.  Because malloc can be invoked
-   even before main (e.g. by the dynamic linker), the dumped malloc
-   state must be restored as early as possible using this special hook.  */
-static void
-malloc_initialize_hook (void)
-{
-  static bool malloc_using_checking;
-
-  if (! initialized)
-    {
-      malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
-    }
-  else
-    {
-      if (!malloc_using_checking)
-	{
-	  /* Work around a bug in glibc's malloc.  MALLOC_CHECK_ must be
-	     ignored if the heap to be restored was constructed without
-	     malloc checking.  Can't use unsetenv, since that calls malloc.  */
-	  char **p = environ;
-	  if (p)
-	    for (; *p; p++)
-	      if (strncmp (*p, "MALLOC_CHECK_=", 14) == 0)
-		{
-		  do
-		    *p = p[1];
-		  while (*++p);
-
-		  break;
-		}
-	}
-    }
-}
-
-/* Declare the malloc initialization hook, which runs before 'main' starts.
-   EXTERNALLY_VISIBLE works around Bug#22522.  */
-typedef void (*voidfuncptr) (void);
-# ifndef __MALLOC_HOOK_VOLATILE
-#  define __MALLOC_HOOK_VOLATILE
-# endif
-voidfuncptr __MALLOC_HOOK_VOLATILE __malloc_initialize_hook EXTERNALLY_VISIBLE
-  = malloc_initialize_hook;
-
 #endif
 
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
@@ -546,23 +498,6 @@ tally_consing (ptrdiff_t nbytes)
 {
   consing_until_gc -= nbytes;
 }
-
-#ifdef DOUG_LEA_MALLOC
-static bool
-pointers_fit_in_lispobj_p (void)
-{
-  return (UINTPTR_MAX <= VAL_MAX) || USE_LSB_TAG;
-}
-
-static bool
-mmap_lisp_allowed_p (void)
-{
-  /* If we can't store all memory addresses in our lisp objects, it's
-     risky to let the heap use mmap and give us addresses from all
-     over our address space.  */
-  return pointers_fit_in_lispobj_p ();
-}
-#endif
 
 /* Head of a circularly-linked list of extant finalizers. */
 struct Lisp_Finalizer finalizers;
@@ -1020,8 +955,7 @@ static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available. */
 
-#if (defined HAVE_ALIGNED_ALLOC					\
-     || (!defined SYSTEM_MALLOC && !defined DOUG_LEA_MALLOC))
+#if defined HAVE_ALIGNED_ALLOC || !defined SYSTEM_MALLOC
 # define USE_ALIGNED_ALLOC 1
 #elif defined HAVE_POSIX_MEMALIGN
 # define USE_ALIGNED_ALLOC 1
@@ -1154,11 +1088,6 @@ lisp_align_malloc (ptrdiff_t nbytes, enum mem_type type)
       int i;
       bool aligned;
 
-#ifdef DOUG_LEA_MALLOC
-      if (!mmap_lisp_allowed_p ())
-        mallopt (M_MMAP_MAX, 0);
-#endif
-
 #ifdef USE_ALIGNED_ALLOC
       static_assert (ABLOCKS_BYTES % BLOCK_ALIGN == 0);
       abase = base = aligned_alloc (BLOCK_ALIGN, ABLOCKS_BYTES);
@@ -1173,11 +1102,6 @@ lisp_align_malloc (ptrdiff_t nbytes, enum mem_type type)
       aligned = (base == abase);
       if (!aligned)
 	((void **) abase)[-1] = base;
-
-#ifdef DOUG_LEA_MALLOC
-      if (!mmap_lisp_allowed_p ())
-          mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
-#endif
 
 #if ! USE_LSB_TAG
       /* If the memory just allocated cannot be addressed thru a Lisp
@@ -1847,18 +1771,8 @@ allocate_string_data (struct Lisp_String *s,
     {
       ptrdiff_t size = FLEXSIZEOF (struct sblock, data, needed);
 
-#ifdef DOUG_LEA_MALLOC
-      if (!mmap_lisp_allowed_p ())
-        mallopt (M_MMAP_MAX, 0);
-#endif
-
       b = lisp_malloc (size + GC_STRING_EXTRA, clearit, MEM_TYPE_NON_LISP);
       ASAN_POISON_SBLOCK_DATA (b, size);
-
-#ifdef DOUG_LEA_MALLOC
-      if (!mmap_lisp_allowed_p ())
-        mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
-#endif
 
       data = b->data;
       b->next = large_sblocks;
@@ -3528,11 +3442,6 @@ allocate_vectorlike (ptrdiff_t len, bool clearit)
   ptrdiff_t nbytes = header_size + len * word_size;
   struct Lisp_Vector *p;
 
-#ifdef DOUG_LEA_MALLOC
-  if (!mmap_lisp_allowed_p ())
-    mallopt (M_MMAP_MAX, 0);
-#endif
-
   if (nbytes <= VBLOCK_BYTES_MAX)
     {
       p = allocate_vector_from_block (vroundup (nbytes));
@@ -3541,18 +3450,12 @@ allocate_vectorlike (ptrdiff_t len, bool clearit)
     }
   else
     {
-      struct large_vector *lv
-	= lisp_malloc (large_vector_offset + nbytes, clearit,
-		       MEM_TYPE_VECTORLIKE);
+      struct large_vector *lv = lisp_malloc (large_vector_offset + nbytes,
+					     clearit, MEM_TYPE_VECTORLIKE);
       lv->next = large_vectors;
       large_vectors = lv;
       p = large_vector_vec (lv);
     }
-
-#ifdef DOUG_LEA_MALLOC
-  if (!mmap_lisp_allowed_p ())
-    mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
-# endif
 
   tally_consing (nbytes);
   vector_cells_consed += len;
@@ -5625,14 +5528,11 @@ valid_lisp_object_p (Lisp_Object obj)
 #endif
 }
 
-/* Like xmalloc, but makes allocation count toward the total consing
-   and hash table or obarray usage.
-   Return NULL for a zero-sized allocation.  */
+/* Like xmalloc (NBYTES), but count consing and hash table usage.
+   NBYTES must be positive.  */
 void *
 hash_table_alloc_bytes (ptrdiff_t nbytes)
 {
-  if (nbytes == 0)
-    return NULL;
   tally_consing (nbytes);
   hash_table_allocated_bytes += nbytes;
 #ifdef HAVE_MPS
@@ -5643,7 +5543,8 @@ hash_table_alloc_bytes (ptrdiff_t nbytes)
   return p;
 }
 
-/* Like xfree, but makes allocation count toward the total consing.  */
+/* Like xfree, but count consing and hash table usage.
+   NBYTES must be nonnegative.  */
 void
 hash_table_free_bytes (void *p, ptrdiff_t nbytes)
 {
@@ -6387,12 +6288,6 @@ Each entry has the form (NAME SIZE USED FREE), where:
 	   make_int (gcst.total_free_intervals)),
     list3 (Qbuffers, make_fixnum (sizeof (struct buffer)),
 	   make_int (gcst.total_buffers)),
-
-#ifdef DOUG_LEA_MALLOC
-    list4 (Qheap, make_fixnum (1024),
-	   make_int ((mallinfo ().uordblks + 1023) >> 10),
-	   make_int ((mallinfo ().fordblks + 1023) >> 10)),
-#endif
   };
   return CALLMANY (Flist, total);
 }
@@ -7725,12 +7620,6 @@ init_alloc_once_for_pdumper (void)
 #ifndef HAVE_MPS
   mem_init ();
 #endif
-#ifdef DOUG_LEA_MALLOC
-  mallopt (M_TRIM_THRESHOLD, 128 * 1024); /* Trim threshold.  */
-  mallopt (M_MMAP_THRESHOLD, 64 * 1024);  /* Mmap threshold.  */
-  mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);   /* Max. number of mmap'ed areas.  */
-#endif
-
   init_finalizer_list (&finalizers);
   init_finalizer_list (&doomed_finalizers);
 #ifdef HAVE_MPS

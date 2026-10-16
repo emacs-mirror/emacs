@@ -152,6 +152,7 @@ You can use \\[copy-theme-options] to do this."
  '(vc-find-revision-no-save t)
  '(vc-follow-symlinks t)
  '(vc-use-incoming-outgoing-prefixes t)
+ '(vc-dir-simple-unmark-all-files t)
 
 ;;;; Completion-related options
  '(minibuffer-visible-completions t)

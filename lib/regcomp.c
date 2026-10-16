@@ -338,14 +338,23 @@ re_compile_fastmap_iter (regex_t *bufp, const re_dfastate_t *init_state,
 	}
       else if (type == SIMPLE_BRACKET)
 	{
-	  int i, ch;
-	  for (i = 0, ch = 0; i < BITSET_WORDS; ++i)
+	  unsigned char ch = 0;
+	  for (int i = 0; i < BITSET_WORDS; i++)
 	    {
 	      int j;
 	      bitset_word_t w = dfa->nodes[node].opr.sbcset[i];
 	      for (j = 0; j < BITSET_WORD_BITS; ++j, ++ch)
 		if (w & ((bitset_word_t) 1 << j))
-		  re_set_fastmap (fastmap, ch);
+		  {
+		    re_set_fastmap (fastmap, ch);
+		    if (bufp->syntax & RE_ICASE)
+		      {
+			wchar_t wc;
+			mbstate_t state = {0};
+			if (__mbrtowc (&wc, (char *) &ch, 1, &state) == 1)
+			  re_set_fastmap_icase (fastmap, wc, &state);
+		      }
+		  }
 	    }
 	}
       else if (type == COMPLEX_BRACKET)

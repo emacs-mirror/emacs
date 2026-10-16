@@ -1182,7 +1182,7 @@ static void x_horizontal_scroll_bar_report_motion (struct frame **, Lisp_Object 
 						   enum scroll_bar_part *,
 						   Lisp_Object *, Lisp_Object *,
 						   Time *);
-static bool x_handle_net_wm_state (struct frame *, const XPropertyEvent *);
+static bool x_handle_net_wm_state (struct frame *, Window);
 static void x_check_fullscreen (struct frame *);
 static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, bool);
@@ -10804,7 +10804,7 @@ x_get_scale_factor (struct x_display_info *dpyinfo,
 
 */
 static void
-x_draw_underwave (struct glyph_string *s, int decoration_width)
+x_draw_underwave (struct glyph_string *s, int decoration_width, int thickness)
 {
   struct x_display_info *dpyinfo;
   /* Adjust for scale/HiDPI.  */
@@ -10813,14 +10813,14 @@ x_draw_underwave (struct glyph_string *s, int decoration_width)
   dpyinfo = FRAME_DISPLAY_INFO (s->f);
   x_get_scale_factor (dpyinfo, &scale_x, &scale_y);
 
-  int wave_height = 3 * scale_y, wave_length = 2 * scale_x;
+  int wave_height = 3 * scale_y * thickness, wave_length = 2 * scale_x * thickness;
 
 #ifdef USE_CAIRO
   x_draw_horizontal_wave (s->f, s->gc, s->x, s->ybase - wave_height + 3,
 			  decoration_width, wave_height, wave_length);
 #else  /* not USE_CAIRO */
   Display *display;
-  int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax, thickness = scale_y;;
+  int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax;
   bool odd;
   XRectangle wave_clip, string_clip, final_clip;
 
@@ -11070,6 +11070,15 @@ x_draw_glyph_string (struct glyph_string *s)
 
   if (!s->for_overlaps)
     {
+      struct font *font = font_for_underline_metrics (s);
+      unsigned long scaled_thickness;
+
+      /* Get the underline thickness.  Default is 1 pixel.  */
+      if (font && font->underline_thickness > 0)
+	scaled_thickness = font->underline_thickness;
+      else
+	scaled_thickness = 1;
+
       int area_x, area_y, area_width, area_height;
       int area_max_x, decoration_width;
 
@@ -11092,23 +11101,25 @@ x_draw_glyph_string (struct glyph_string *s)
       /* Draw underline.  */
       if (s->face->underline)
         {
+	  unsigned long thickness = (underline_line_scaling_flag
+				     ? scaled_thickness : 1);
           if (s->face->underline == FACE_UNDERLINE_WAVE)
             {
               if (s->face->underline_defaulted_p)
-                x_draw_underwave (s, decoration_width);
+                x_draw_underwave (s, decoration_width, thickness);
               else
                 {
                   Display *display = FRAME_X_DISPLAY (s->f);
                   XGCValues xgcv;
                   XGetGCValues (display, s->gc, GCForeground, &xgcv);
                   XSetForeground (display, s->gc, s->face->underline_color);
-                  x_draw_underwave (s, decoration_width);
+                  x_draw_underwave (s, decoration_width, thickness);
                   XSetForeground (display, s->gc, xgcv.foreground);
                 }
             }
           else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
-              unsigned long thickness, position;
+              unsigned long position;
 
               if (s->prev
 		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
@@ -11124,7 +11135,6 @@ x_draw_glyph_string (struct glyph_string *s)
                 }
               else
                 {
-		  struct font *font = font_for_underline_metrics (s);
 		  unsigned long minimum_offset;
 		  bool underline_at_descent_line;
 		  bool use_underline_position_properties;
@@ -11147,11 +11157,6 @@ x_draw_glyph_string (struct glyph_string *s)
 		  use_underline_position_properties
 		    = !(NILP (val) || BASE_EQ (val, Qunbound));
 
-                  /* Get the underline thickness.  Default is 1 pixel.  */
-                  if (font && font->underline_thickness > 0)
-                    thickness = font->underline_thickness;
-                  else
-                    thickness = 1;
                   if (underline_at_descent_line)
 		    position = ((s->height - thickness)
 				- (s->ybase - s->y)
@@ -11224,7 +11229,7 @@ x_draw_glyph_string (struct glyph_string *s)
       /* Draw overline.  */
       if (s->face->overline_p)
 	{
-	  unsigned long dy = 0, h = 1;
+	  unsigned long dy = 0, h = overline_line_scaling_flag ? scaled_thickness : 1;
 
 	  if (s->face->overline_color_defaulted_p)
 	    x_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
@@ -11253,7 +11258,7 @@ x_draw_glyph_string (struct glyph_string *s)
 	  int glyph_height = s->first_glyph->ascent + s->first_glyph->descent;
 	  /* Strike-through width and offset from the glyph string's
 	     top edge.  */
-          unsigned long h = 1;
+          unsigned long h = strike_through_line_scaling_flag ? scaled_thickness : 1;
           unsigned long dy = (glyph_height - h) / 2;
 
 	  if (s->face->strike_through_color_defaulted_p)
@@ -11757,6 +11762,16 @@ x_scroll_run (struct window *w, struct run *run)
 	height = bottom_y - from_y;
       else
 	height = run->height;
+
+      /* Don't draw over the display parts above if destination is off
+         the top of the current window.  */
+      if (to_y < y)
+	{
+	  int d = y - to_y;
+	  height -= d;
+	  to_y += d;
+	  from_y += d;
+	}
     }
   else
     {
@@ -18060,36 +18075,6 @@ static void xembed_send_message (struct frame *f, Time,
                                  enum xembed_message,
                                  long detail, long data1, long data2);
 
-static void
-x_net_wm_state (struct frame *f, Window window)
-{
-  int value = FULLSCREEN_NONE;
-  Lisp_Object lval = Qnil;
-  bool sticky = false, shaded = false;
-
-  x_get_current_wm_state (f, window, &value, &sticky, &shaded);
-
-  switch (value)
-    {
-    case FULLSCREEN_WIDTH:
-      lval = Qfullwidth;
-      break;
-    case FULLSCREEN_HEIGHT:
-      lval = Qfullheight;
-      break;
-    case FULLSCREEN_BOTH:
-      lval = Qfullboth;
-      break;
-    case FULLSCREEN_MAXIMIZED:
-      lval = Qmaximized;
-      break;
-    }
-
-  store_frame_param (f, Qfullscreen, lval);
-  store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
-  store_frame_param (f, Qshaded, shaded ? Qt : Qnil);
-}
-
 /* Flip back buffers on F if it has undrawn content.  */
 
 static void
@@ -19676,7 +19661,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	  /* This should never happen with embedded windows.  */
 	  && !FRAME_X_EMBEDDED_P (f))
 	{
-          bool not_hidden = x_handle_net_wm_state (f, &event->xproperty);
+          bool not_hidden = x_handle_net_wm_state (f, event->xproperty.window);
 
 	  if (not_hidden && FRAME_ICONIFIED_P (f))
 	    {
@@ -19901,12 +19886,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	    }
 	  else
 	    {
-	      Window root;
-	      unsigned int dummy_uint;
-
-	      XGetGeometry (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-			    &root, &f->left_pos, &f->top_pos,
-			    &dummy_uint, &dummy_uint, &dummy_uint, &dummy_uint);
+	      f->left_pos = event->xreparent.x;
+	      f->top_pos = event->xreparent.y;
 	    }
 
           x_set_frame_alpha (f);
@@ -20197,8 +20178,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              first time, i.e. from the command line.  */
           if (!f->output_data.x->has_been_visible)
 	    {
-
-	      x_check_fullscreen (f);
+	      if (!FRAME_PARENT_FRAME (f))
+		x_check_fullscreen (f);
 #ifndef USE_GTK
 	      /* For systems that cannot synthesize `skip_taskbar' for
 		 unmapped windows do the following.  */
@@ -21652,11 +21633,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		     && configureEvent.xconfigure.height <= 1)))
 	{
 #ifdef USE_GTK
-	  /* For GTK+ don't call x_net_wm_state for the scroll bar
+	  /* For GTK+ don't call x_handle_net_wm_state for the scroll bar
 	     window.  (Bug#24963, Bug#25887) */
 	  if (configureEvent.xconfigure.window == FRAME_X_WINDOW (f))
 #endif
-	    x_net_wm_state (f, configureEvent.xconfigure.window);
+	    x_handle_net_wm_state (f, configureEvent.xconfigure.window);
 
 #if defined USE_X_TOOLKIT || defined USE_GTK
           /* Tip frames are pure X window, set size for them.  */
@@ -21721,12 +21702,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 		x_real_positions (f, &f->left_pos, &f->top_pos);
 	      else
 		{
-		  Window root;
-		  unsigned int dummy_uint;
-
-		  XGetGeometry (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-				&root, &f->left_pos, &f->top_pos,
-				&dummy_uint, &dummy_uint, &dummy_uint, &dummy_uint);
+		  f->left_pos = configureEvent.xconfigure.x;
+		  f->top_pos = configureEvent.xconfigure.y;
 		}
 
 	      if (!FRAME_TOOLTIP_P (f)
@@ -28068,6 +28045,9 @@ x_get_current_wm_state (struct frame *f,
   *size_state = FULLSCREEN_NONE;
   *shaded = false;
 
+  if (FRAME_PARENT_FRAME (f))
+    return !FRAME_ICONIFIED_P (f);
+
   block_input ();
 
 #ifdef USE_XCB
@@ -28289,14 +28269,18 @@ XTfullscreen_hook (struct frame *f)
 
 
 static bool
-x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
+x_handle_net_wm_state (struct frame *f, Window window)
 {
   int value = FULLSCREEN_NONE;
   Lisp_Object lval;
   bool sticky = false, shaded = false;
-  bool not_hidden = x_get_current_wm_state (f, event->window,
+  bool not_hidden = x_get_current_wm_state (f, window,
 					    &value, &sticky,
 					    &shaded);
+
+  /* Child frame could be hidden, but not any of the states below.  */
+  if (FRAME_PARENT_FRAME (f))
+    return not_hidden;
 
   lval = Qnil;
   switch (value)
@@ -28381,8 +28365,8 @@ x_check_fullscreen (struct frame *f)
 	change_frame_size (f, width, height, false, true, false);
     }
 
-  /* `x_net_wm_state' might have reset the fullscreen frame parameter,
-     restore it. */
+  /* `x_handle_net_wm_state' might have reset the fullscreen frame
+     parameter, restore it. */
   store_frame_param (f, Qfullscreen, lval);
 }
 

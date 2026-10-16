@@ -45,13 +45,11 @@ MESSAGE is an optional message to use if this times out."
         (error message))
       (sit-for 0.1))))
 
-(defun shr-test--rendering-check (name &optional context)
-  "Render NAME.html and compare it to NAME.txt.
-Raise a test failure if the rendered buffer does not match NAME.txt.
+(defun shr-test--rendering-check (html-file txt-file &optional context)
+  "Render HTML-FILE and compare it to TXT-FILE.
+Raise a test failure if the rendered buffer does not match TXT-FILE.
 Append CONTEXT to the failure data, if non-nil."
-  (let ((text-file (file-name-concat (ert-resource-directory) (concat name ".txt")))
-        (html-file (file-name-concat (ert-resource-directory) (concat name ".html")))
-        (description (if context (format "%s (%s)" name context) name))
+  (let ((description (or context "(default)"))
         (coding-system-for-read 'utf-8))
     (with-temp-buffer
       (insert-file-contents html-file)
@@ -63,7 +61,7 @@ Append CONTEXT to the failure data, if non-nil."
         (let ((result (buffer-substring-no-properties (point-min) (point-max)))
               (expected
                (with-temp-buffer
-                 (insert-file-contents text-file)
+                 (insert-file-contents txt-file)
                  (while (re-search-forward "%\\([0-9A-F][0-9A-F]\\)" nil t)
                    (replace-match (string (string-to-number (match-string 1) 16))
                                   t t))
@@ -82,28 +80,41 @@ set of txt/html files under shr-resources/, as passed to `shr-test'.
 SETTINGS is a list of (OPTION . VALUE) pairs that are interesting to
 validate for the NAME testcase.
 
-The `rendering' testcase will test NAME once without altering any
+The `shr-rendering' testcases will test NAME once without altering any
 settings, then once more for each (OPTION . VALUE) pair.")
 
 ;;; Tests:
 
-(ert-deftest rendering ()
-  (skip-unless (fboundp 'libxml-parse-html-region))
-  (dolist (file (directory-files (ert-resource-directory) nil "\\.html\\'"))
-    (let* ((name (string-remove-suffix ".html" file))
-           (extra-options (alist-get name shr-test--rendering-extra-configs
-                                     nil nil 'string=)))
-      ;; Test once with default settings.
-      (shr-test--rendering-check name)
-      ;; Test once more for every extra option for this specific NAME.
-      (pcase-dolist (`(,option-sym ,option-val)
+(defmacro shr-test-with-files (prefix files &rest body)
+  "Produce a series of ERT tests for all FILES, each running BODY.
+PREFIX is a symbol to be prepended to the test names."
+  (declare (indent 2))
+  `(progn
+     ,@(mapcar
+        (lambda (file)
+          (let ((name (file-name-base file)))
+            `(ert-deftest ,(intern (concat (symbol-name prefix) "/" name)) ()
+               (let ((test-file ,file))
+                 ,@body))))
+        (eval files t))))
+
+(shr-test-with-files shr-rendering
+    (directory-files (ert-resource-directory) t "\\.html\\'")
+  (let ((txt-file (file-name-with-extension test-file ".txt"))
+        (extra-options (alist-get (file-name-base test-file)
+                                  shr-test--rendering-extra-configs
+                                  nil nil 'string=)))
+    ;; Test once with default settings.
+    (shr-test--rendering-check test-file txt-file)
+    ;; Test once more for every extra option for this specific NAME.
+    (pcase-dolist (`(,option-sym ,option-val)
                      extra-options)
         (let ((option-old (symbol-value option-sym)))
           (set option-sym option-val)
           (unwind-protect
               (shr-test--rendering-check
-               name (format "with %s %s" option-sym option-val))
-            (set option-sym option-old)))))))
+               test-file txt-file (format "with %s %s" option-sym option-val))
+            (set option-sym option-old))))))
 
 (ert-deftest use-cookies ()
   (let ((shr-cookie-policy 'same-origin))

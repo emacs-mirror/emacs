@@ -1395,10 +1395,9 @@ does not begin with \"* \", move it to the Summary header in the
 \"*vc-log*\" buffer, thus making is the summary line of the commit
 message.
 
-If the set of files listed in the ChangeLog entry differs from the set
-of files with changes to commit according to VC, display a warning
-urging the user to correct this discrepancy before committing the
-changes."
+If any of the files listed in the ChangeLog entry are not in the VC
+fileset to commit, display a warning urging the user to correct this
+discrepancy before committing the changes."
   (let (summary beg end files-in-changelog)
     (with-current-buffer buffer
       (save-restriction
@@ -1429,13 +1428,14 @@ changes."
                   (push fn files-in-changelog))))))))
     (log-edit-changelog-insert-entries buffer beg end)
     (when summary (log-edit-set-header "Summary" summary))
-    (unless (seq-set-equal-p
+    (unless (cl-subsetp
+             files-in-changelog
              (save-current-buffer
                (nth 2 (vc-deduce-fileset nil nil 'state-model-only-files)))
-             files-in-changelog)
+             :test 'equal)
       (display-warning
        'log-edit
-       "Files in ChangeLog entry differ from files with changes to commit!
+       "A file in the ChangeLog entry is not in the changeset to commit!
 Remove this discrepancy before committing the changes by adjusting as
 appropriate either the ChangeLog entry or the selection of files to commit."))))
 

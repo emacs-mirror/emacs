@@ -63,7 +63,7 @@ AVOIDED_MODULES='
   c32isalnum c32rtomb c32tolower c32toupper
   chmod close dup fchdir fstat gnulib-i18n
   langinfo-h libgmp-mpq
-  localcharset localeinfo localename-unsafe-limited lock
+  localcharset localeinfo localename-unsafe-limited localtime lock
   mbrtoc32-regular mbsinit memchr mkdir
   msvc-inval msvc-nothrow nl_langinfo
   openat-die opendir pthread-h

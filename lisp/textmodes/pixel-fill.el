@@ -195,7 +195,8 @@ backward in the current buffer from the current position."
         ;; Don't overflow the window edge, even if `pixel-fill-respect-kinsoku'
         ;; is t.
 	((not pixel-fill-respect-kinsoku)
-	 (while (and (not (eq (preceding-char) ?\s))
+	 (while (and (> (point) start)
+                     (not (eq (preceding-char) ?\s))
 		     (or (pixel-fill--char-kinsoku-eol-p (preceding-char))
                          (pixel-fill--char-kinsoku-bol-p (following-char))))
 	   (backward-char 1))

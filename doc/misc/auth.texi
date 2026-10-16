@@ -61,6 +61,7 @@ It is a way for multiple applications to share a single configuration
 * Multiple GMail accounts with Gnus::
 * Secret Service API::
 * The Unix password store::
+* The macOS keychain store::
 * Help for developers::
 * GnuPG and EasyPG Assistant Configuration::
 * GNU Free Documentation License::  The license for this documentation.
@@ -193,6 +194,9 @@ get fancy, the default and simplest configuration is:
 ;;; use pass (@file{~/.password-store})
 ;;; (@pxref{The Unix password store})
 (auth-source-pass-enable)
+;;; use the macOS keychain
+;;; (@pxref{The macOS keychain store})
+(setopt auth-sources '(macos-keychain-internet))
 ;;; JSON data in format [@{ "machine": "SERVER",
 ;;; "login": "USER", "password": "PASSWORD" @}...]
 (setopt auth-sources '("~/.authinfo.json.gpg"))
@@ -489,8 +493,8 @@ then fall back to @file{~/.authinfo.gpg}.
                        "~/.authinfo.gpg"))
 @end example
 
-Attribute values in the auth-source spec, which are not strings (like
-port numbers), are stringified prior calling the @file{secrets.el}
+Attribute values in the @code{auth-sources} spec, which are not strings
+(like port numbers), are stringified prior calling the @file{secrets.el}
 functions.
 
 @node The Unix password store
@@ -593,6 +597,129 @@ of searches relative to other auth-source backends or encounter code
 expecting to query multiple backends uniformly, try flipping it to
 @code{t}.
 @end defopt
+
+@node The macOS keychain store
+@chapter The macOS keychain store
+
+The macOS operating system includes a password store that can store both
+internet and application (generic) passwords.  Both generic and internet
+passwords are stored in @emph{keychains}, with a keychain called
+@code{login} used by default.  MacOS includes the @code{security}
+command-line utility and @code{Keychain Access.app} graphical
+application to manage keychains.
+
+To use the default keychain as a backend for auth-source, add one or
+both of the symbols @code{macos-keychain-internet} and
+@code{macos-keychain-generic} to the @code{auth-sources} user option.
+To use a different keychain, add a string that names the backend and the
+keychain, separated by a colon (@code{:}).  (A string naming the backend
+without the colon and keychain will use the default login keychain.)
+
+For example, a configuration that searches the login keychain for both
+internet and generic passwords, followed by a keychain called
+@code{emacs.keychain} for internet passwords, and finally falls back to
+@file{~/.authinfo.gpg} looks like the following:
+
+@lisp
+(setopt auth-sources '(macos-keychain-internet
+                       macos-keychain-generic
+                       "macos-keychain-internet:emacs.keychain"
+                       "~/.authinfo.gpg"))
+@end lisp
+
+Currently, the backend does not support adding passwords to the
+keychain, so passwords must be added via the @code{security} command.
+For example, to replace a plain-text @file{.authinfo} entry such as:
+@code{host mail.example.com login user@@example.com port 587 password
+s3kr3t!}  with an internet password on the default keychain, use the
+following command:
+
+@example
+security add-internet-password -s mail.example.com \
+  -a user@@example.com -P 587 -w "s3kr3t!"
+@end example
+
+Afterwards, evaluating the following form will return the password just
+entered:
+
+@lisp
+(let ((auth-sources '(macos-keychain-internet))
+       (auth-source-do-cache nil))
+    (auth-source-pick-first-password :host "mail.example.com"
+                                     :port 587))
+@end lisp
+
+To store a generic password in the default keychain, use the following
+command:
+
+@example
+security add-generic-password -l mail.example.com \
+  -a user@@example.com -w "s3kr3t!"
+@end example
+
+Evaluating the following form will retrieve the password:
+
+@lisp
+(let ((auth-sources '(macos-keychain-generic))
+       (auth-source-do-cache nil))
+    (auth-source-pick-first-password :label "mail.example.com"
+                                     :user "user@@example.com"))
+@end lisp
+
+To create and use a keychain @code{emacs.keychain} instead of the
+default @code{login} one, use the following commands:
+
+@example
+security create-keychain emacs.keychain
+security unlock-keychain emacs.keychain
+security add-internet-password -a "example@@example.com" \
+  -s "example.com" -l "my-server" -w "s3kr1t" emacs.keychain
+@end example
+
+Then add @code{"macos-keychain-internet:emacs.keychain"} to
+@code{auth-sources} to retrieve internet passwords stored in the new keychain:
+
+@lisp
+(let ((auth-sources '("macos-keychain-internet:emacs.keychain"))
+       (auth-source-do-cache nil))
+    (auth-source-pick-first-password :label "my-server"))
+@end lisp
+
+
+The following table lists the auth-source query parameters and the
+corresponding options for the underlying @code{security
+find-internet-password} and @code{security find-generic-password} calls.
+The same parameters are used to create a password entry of the
+respective type.
+
+@table @code
+
+@item :user
+For both backends: @code{-a}
+
+@item :host
+For the internet backend: @code{-s}
+
+For the generic backend: @code{-c} (restricted to four characters)
+
+@item :port
+For the internet backend, when given an integer: @code{-P}
+
+For the internet backend, when given a string: @code{-r} (restricted to
+four characters)
+
+For the generic backend: @code{-s}
+
+@item :label
+For both backends: @code{-l}
+
+Note: when creating a password entry without specifying a label, the
+@code{security} tool will set the label value to be the same as the host
+(@code{-s}) parameter for internet passwords, and to the value of the
+service name (@code{-s}) parameter for generic passwords.
+
+@end table
+
 
 @node Help for developers
 @chapter Help for developers

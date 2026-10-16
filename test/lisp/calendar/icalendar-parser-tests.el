@@ -2021,7 +2021,83 @@ END:VCALENDAR
               (should (equal organizer expected-organizer))
               (ical:with-property organizer
                   ((ical:sentbyparam :value sent-by))
-                  (should (equal sent-by expected-sender))))))))))
+                (should (equal sent-by expected-sender))))))))))
+
+(ert-deftest ipt:bad-tzids ()
+  "Real example: bad TZIDs, fixed by `icalendar-fix-ms-tzids'."
+  ;; See Bug#81958.
+  (let ((bad "BEGIN:VCALENDAR
+PRODID:-//Kerio Technologies//Outlook Connector//EN
+METHOD:REQUEST
+VERSION:2.0
+X-VERSION-KMS:6.2.0
+BEGIN:VTIMEZONE
+TZID:Amsterdam, Belgrade, Berlin, Brussels, Budapest, Madrid,
+  Paris, Prague, Stockholm
+BEGIN:STANDARD
+DTSTART:19961027T030000
+TZOFFSETTO:+0100
+TZOFFSETFROM:+0200
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:19810329T020000
+TZOFFSETTO:+0200
+TZOFFSETFROM:+0100
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTAMP:20260929T130744Z
+UID:291960532774007431
+PRIORITY:5
+SUMMARY:Contains MS-Style TZIDs
+LOCATION:Sample Street 1\, 12345 City
+TRANSP:OPAQUE
+X-MICROSOFT-CDO-BUSYSTATUS:TENTATIVE
+X-MICROSOFT-CDO-INTENDEDSTATUS:BUSY
+CLASS:PUBLIC
+X-LABEL:0
+SEQUENCE:2
+ORGANIZER;CN=\"Hans Muster\":mailto:hm@example.com
+ATTENDEE;RSVP=TRUE;X-SENT=TRUE;CN=\"Karl Klammer\";CUTYPE=INDIVIDUAL:mailto:kk@example.com
+ATTENDEE;RSVP=TRUE;X-SENT=TRUE;CN=\"Hinz Dosenkohl (hd@example.com\";CUTYPE=INDIVIDUAL:mailto:hd@example.com
+ATTENDEE;CN=\"Hans Muster \";CUTYPE=INDIVIDUAL:mailto:hmuster@outlook.com
+X-ALARM-TRIGGER:-PT15M
+DTSTART;TZID=\"Amsterdam, Belgrade, Berlin, Brussels, Budapest, Madrid, Paris, Prague, Stockholm\":20261005T143000
+DTEND;TZID=\"Amsterdam, Belgrade, Berlin, Brussels, Budapest, Madrid, Paris, Prague, Stockholm\":20261005T163000
+END:VEVENT
+END:VCALENDAR
+"))
+    (let ((ical:pre-parsing-hook nil))
+      (with-temp-buffer
+        (ical:init-error-buffer)
+        (insert bad)
+        (goto-char (point-min))
+        (ical:parse)
+        ;; Parsing should produce errors as bad properties and params
+        ;; are skipped:
+        (should (ical:errors-p))))
+    ;; cleaning up the addresses before parsing should correct
+    ;; these problems:
+    (let ((ical:pre-parsing-hook '(ical:fix-ms-tzids)))
+      (with-temp-buffer
+        (ical:init-error-buffer)
+        (insert bad)
+        (goto-char (point-min))
+        (let ((vcal (ical:parse))
+              (expected-tzid "AmsterdamEtc"))
+          (should (not (ical:errors-p)))
+          (ical:with-component vcal
+              ((ical:vtimezone tz)
+               (ical:vevent vevent))
+            (ical:with-component tz
+                ((ical:tzid :value tzid))
+              (should (equal tzid expected-tzid)))
+            (ical:with-component vevent
+                ((ical:dtstart :first dtstart-node))
+              (ical:with-param-of dtstart-node 'ical:tzidparam
+                (should (equal value expected-tzid))))))))))
 
 
 ;; Tests for bugfixes:

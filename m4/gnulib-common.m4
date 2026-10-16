@@ -1,5 +1,5 @@
 # gnulib-common.m4
-# serial 123
+# serial 124
 dnl Copyright (C) 2007-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -932,6 +932,31 @@ AC_DEFUN([gl_COMMON_BODY], [
      __attribute__ ((__release_capability__ (resource)))
 # else
 #  define _GL_ATTRIBUTE_RELEASE_CAPABILITY(resource)
+# endif
+#endif
+])
+  AH_VERBATIM([sanitizer_features],
+[/* Sanitizer features.  */
+#ifdef __has_feature
+# if !defined __SANITIZE_ADDRESS__ && __has_feature (address_sanitizer)
+#  define __SANITIZE_ADDRESS__ 1
+# endif
+# if !defined __SANITIZE_HWADDRESS__ && __has_feature (hwaddress_sanitizer)
+#  define __SANITIZE_HWADDRESS__ 1
+# endif
+# if !defined __SANITIZE_LEAK__ && __has_feature (leak_sanitizer)
+#  define __SANITIZE_LEAK__ 1
+# endif
+# if !defined __SANITIZE_THREAD__ && __has_feature (thread_sanitizer)
+#  define __SANITIZE_THREAD__ 1
+# endif
+  /* Although the following sanitizers are in Clang not GCC,
+     define GCC-like macro names for consistency and convenience.  */
+# if !defined __SANITIZE_MEMORY__ && __has_feature (memory_sanitizer)
+#  define __SANITIZE_MEMORY__ 1
+# endif
+# if !defined __SANITIZE_SCUDO__ && __has_feature (scudo_sanitizer)
+#  define __SANITIZE_SCUDO__ 1
 # endif
 #endif
 ])

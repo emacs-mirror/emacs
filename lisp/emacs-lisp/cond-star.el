@@ -335,10 +335,13 @@ This is used for conditional exit clauses."
           ((eq pat-type 'bind-and*)
            (let ((checks '()) (last t))
              (dolist (bind (cdr condition))
-               (push (list (car bind) (list 'and last (cadr bind)))
-                     checks)
-               (when (eq (caar checks) '_)
-                 (setcar (car checks) (make-symbol "s")))
+               (if (symbolp bind)
+                   (push (list (make-symbol "s") (list 'and last bind))
+                         checks)
+                 (push (list (car bind) (list 'and last (cadr bind)))
+                       checks)
+                 (when (eq (caar checks) '_)
+                   (setcar (car checks) (make-symbol "s"))))
                (setq last (caar checks)))
              (cond
               ;; For explanations on these cases, see "Ordinary
@@ -664,7 +667,7 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
            (dolist (elt elts)
              (let* ((result
                      (cond*-subpat elt cdr-ignore bindings inside-or
-                                   backtrack-aliases `(aref ,i ,data))))
+                                   backtrack-aliases `(aref ,data ,i))))
                (setq i (1+ i))
                (setq bindings (car result))
                (push (cdr result) expressions)))

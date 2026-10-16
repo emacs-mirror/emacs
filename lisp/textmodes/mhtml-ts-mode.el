@@ -164,6 +164,38 @@ Works like `css--fontify-region'."
 (defvar mhtml-ts-mode-saved-pretty-print-command nil
   "The command last used to pretty print in this buffer.")
 
+;; mhtml-ts-mode inherits from html-mode and already uses sgml-mode's
+;; syntax table.
+(defun mhtml-ts-mode--syntax-propertize (beg end)
+  "Apply syntax text property to text between BEG and END."
+  ;; HTML.
+  (pcase-dolist (`(,name . ,node)
+                 (treesit-query-capture
+                  'html '((text) @text
+                          (comment) @comment
+                          (script_element (raw_text) @js)
+                          (style_element (raw_text) @css))
+                  beg end))
+    (let ((start (treesit-node-start node))
+          (finish (treesit-node-end node)))
+      (pcase name
+        ('text (put-text-property
+                start finish 'syntax-table text-mode-syntax-table))
+        ('comment (put-text-property start (1+ start) 'syntax-table '(11))
+                  (put-text-property (1- finish) finish 'syntax-table '(12)))
+        ('js (put-text-property
+              start finish 'syntax-table js-mode-syntax-table))
+        ('css (put-text-property
+               start finish 'syntax-table css-mode-syntax-table)))))
+  ;; Javascript.
+  (pcase-dolist (`(,name . ,node)
+                 (treesit-query-capture
+                  'javascript '((regex) @re) beg end))
+    (let ((start (treesit-node-start node))
+          (finish (treesit-node-end node)))
+      (pcase name
+        ('re (put-text-property start finish 'syntax-table '(1)))))))
+
 (defun mhtml-ts-mode-pretty-print (command)
   "Prettify the current buffer.
 Argument COMMAND The command to use."
@@ -483,6 +515,9 @@ Powered by tree-sitter."
 
     ;; When an language is embedded, you should initialize some variable
     ;; just like it's done in the original mode.
+
+    ;; Syntax
+    (setq-local syntax-propertize-function #'mhtml-ts-mode--syntax-propertize)
 
     ;; Comment.
     (setq-local comment-multi-line t)

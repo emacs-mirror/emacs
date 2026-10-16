@@ -33,6 +33,7 @@
 (require 'ansi-color)
 (require 'auth-source)
 (require 'format-spec)
+(require 'parse-time) ; for `parse-time-months'.
 (require 'shell)
 (require 'xdg)
 

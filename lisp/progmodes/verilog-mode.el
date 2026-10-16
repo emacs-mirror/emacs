@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2026.04.14.010117132
+;; Version: 2026.08.31.185049335
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2026-04-14-09a600c-vpo-GNU"
+(defconst verilog-mode-version "2026-08-31-b07a0f7-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -4306,6 +4306,13 @@ Key bindings specific to `verilog-mode-map' are:
   (set-syntax-table verilog-mode-syntax-table)
   (set (make-local-variable 'indent-line-function)
        #'verilog-indent-line-relative)
+  (set (make-local-variable 'editorconfig-indent-size-vars)
+       '(verilog-indent-level
+         verilog-indent-level-behavioral
+         verilog-indent-level-declaration
+         verilog-indent-level-module
+         verilog-cexp-indent
+         verilog-case-indent))
   (set (make-local-variable 'comment-indent-function) #'verilog-comment-indent)
   (set (make-local-variable 'parse-sexp-ignore-comments) nil)
   (set (make-local-variable 'comment-start) "// ")
@@ -9005,10 +9012,11 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
   (let (combo
         buswarn
 	out-list
-	sig highbit lowbit		; Temp information about current signal
+        sig highbit lowbit mem  ; Temp information about current signal
 	sv-name sv-highbit sv-lowbit	; Details about signal we are forming
 	sv-comment sv-memory sv-enum sv-signed sv-type sv-multidim sv-busstring
 	sv-modport
+        sv-mem-low sv-mem-high  ; Bounds of mergeable unpacked numeric ranges
 	bus)
     ;; Shove signals so duplicated signals will be adjacent
     (setq in-list (sort in-list #'verilog-signals-sort-compare))
@@ -9020,7 +9028,9 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
 	      sv-highbit nil
 	      sv-busstring nil
 	      sv-comment (verilog-sig-comment sig)
-	      sv-memory  (verilog-sig-memory sig)
+              sv-memory nil
+              sv-mem-low nil
+              sv-mem-high nil
 	      sv-enum    (verilog-sig-enum sig)
 	      sv-signed  (verilog-sig-signed sig)
 	      sv-type    (verilog-sig-type sig)
@@ -9048,6 +9058,27 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
 	    (bus
 	     ;; String, probably something like `preproc:0
 	     (setq sv-busstring bus)))
+      ;; Extract unpacked-array details
+      (setq mem (verilog-sig-memory sig))
+      (cond ((and mem
+                  (string-match "^\\[\\([+-]?[0-9]+\\):\\([+-]?[0-9]+\\)\\]$" mem)
+                  (<= (string-to-number (match-string 1 mem))
+                      (string-to-number (match-string 2 mem))))
+             ;; Merge ascending numeric ranges without expanding every
+             ;; index.  Overlapping or duplicate ranges merge silently,
+             ;; matching the packed-bit merge above.
+             ;; Descending ranges are left alone so existing declarations
+             ;; keep their direction.
+             (let ((lo (string-to-number (match-string 1 mem)))
+                   (hi (string-to-number (match-string 2 mem))))
+               (when sv-memory  ; Mixed with an unmergeable form
+                 (setq buswarn ", Couldn't Merge"))
+               (setq sv-mem-low (if sv-mem-low (min lo sv-mem-low) lo)
+                     sv-mem-high (if sv-mem-high (max hi sv-mem-high) hi))))
+            (mem
+             (when sv-mem-low  ; Mixed with a mergeable numeric range
+               (setq buswarn ", Couldn't Merge"))
+             (setq sv-memory (or sv-memory mem))))
       ;; Peek ahead to next signal
       (setq in-list (cdr in-list))
       (setq sig (car in-list))
@@ -9061,8 +9092,7 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
 			  sv-name bus))
 	       (setq buswarn ", Couldn't Merge"))
 	     (if (verilog-sig-comment sig) (setq combo ", ..."))
-	     (setq sv-memory (or sv-memory (verilog-sig-memory sig))
-		   sv-enum   (or sv-enum   (verilog-sig-enum sig))
+             (setq sv-enum   (or sv-enum   (verilog-sig-enum sig))
 		   sv-signed (or sv-signed (verilog-sig-signed sig))
                    sv-type   (or sv-type   (verilog-sig-type sig))
                    sv-multidim (or sv-multidim (verilog-sig-multidim sig))
@@ -9078,7 +9108,18 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
 				  (concat "[" (int-to-string sv-highbit) ":"
 					  (int-to-string sv-lowbit) "]")))
 			  (concat sv-comment combo buswarn)
-			  sv-memory sv-enum sv-signed sv-type sv-multidim sv-modport)
+                          (cond
+                           ;; If any range was not safely mergeable, retain that
+                           ;; original unpacked declaration
+                           (sv-memory sv-memory)
+                           (sv-mem-low
+                            ;; Combined unpacked index span, ascending.
+                            (concat "["
+                                    (int-to-string sv-mem-low)
+                                    ":"
+                                    (int-to-string sv-mem-high)
+                                    "]")))
+                          sv-enum sv-signed sv-type sv-multidim sv-modport)
 			 out-list)
 		   sv-name nil))))
     ;;
@@ -9683,6 +9724,20 @@ Return an array of [outputs inouts inputs wire reg assign const gparam intf]."
 (defun verilog-read-sub-decls-expr (submoddecls par-values comment port expr)
   "For `verilog-read-sub-decls-line', parse a subexpression and add signals."
   ;;(message "vrsde: `%s'" expr)
+  ;; "sig[2]/*[6:0].[2]*/" is a connection of one unpacked-array element
+  ;; made by an AUTO_TEMPLATE "[].[index]", see `verilog-auto-inst-port'.
+  ;; Canonicalize it to "sig[6:0].[2:2]" so the executable index is parsed
+  ;; as an unpacked range below (single-element, mergeable by
+  ;; `verilog-signals-combine-bus'); non-numeric indexes keep ".[index]".
+  (when (string-match
+         "^\\s-*\\(\\(?:[a-zA-Z_][a-zA-Z_0-9]*\\|\\\\[^ \t\n\f]+\\s-\\)\\)\\s-*\\[\\([^][]+\\)\\]\\s-*/\\*\\(\\(?:\\[[^][]+\\]\\)*\\)\\.\\[[^][]+\\]\\*/\\s-*$"
+         expr)
+    (let ((idx (match-string 2 expr)))
+      (setq expr (concat (match-string 1 expr)
+                         (match-string 3 expr)
+                         ".[" idx
+                         (if (string-match "^[+-]?[0-9]+$" idx) (concat ":" idx) "")
+                         "]"))))
   ;; Replace special /*[....]*/ comments inserted by verilog-auto-inst-port
   (setq expr (verilog-string-replace-matches
               "/\\*\\(\\.?\\[\\([^*]+\\|[*][^/]\\)+\\]\\)\\*/" "\\1" nil nil expr))
@@ -11505,23 +11560,36 @@ This repairs those mis-inserted by an AUTOARG."
                   (op (match-string 3 out))
                   (rhs (string-to-number (match-string 4 out)))
                   (post (match-string 5 out))
-                  val)
+                  val prefix)
               (when (equal pre "-")
                 (setq lhs (- lhs)))
               (setq val (if (equal op "-")
                             (- lhs rhs)
-                          (+ lhs rhs))
-                    out (replace-match
-                         (concat (cond ((and (equal pre "-")
-                                             (< val 0))
-                                        "")  ; Not "--20" but just "-20"
-                                       ((and (equal pre "-")
-                                             (> val 0))
-                                        "+")  ; Not "-+20" but just "+20"
-                                       (t pre))
-                                 (int-to-string val)
-                                 post)
-                         nil nil out)) ))
+                          (+ lhs rhs)))
+              ;; Pick the printed prefix so two sign characters never adjoin
+              ;; (no "++", "+-", "--", "-+").  A sign in PRE was already
+              ;; absorbed into LHS above, so VAL carries the whole sum: for a
+              ;; negative result drop a sign PRE (int-to-string supplies the
+              ;; "-"), and for a positive result a PRE of "-" must flip to
+              ;; "+" (FOO-1+2 is FOO+1).  A non-sign PRE (such as "(", "[",
+              ;; ":") is kept verbatim.  For a zero result we keep PRE
+              ;; unchanged to preserve the long-standing "+0"/"-0" residual
+              ;; behaviour documented in the test cases below.
+              (setq prefix
+                    (cond
+                     ((< val 0)
+                      (if (or (equal pre "+") (equal pre "-"))
+                          ""                          ; val carries "-"
+                        pre))
+                     ((> val 0)
+                      (if (equal pre "-")
+                          "+"                       ; FOO-1+2 is FOO+1
+                        pre))
+                     (t                            ; val == 0: keep old "+0"/"-0"
+                      pre)))
+              (setq out (replace-match
+                         (concat prefix (int-to-string val) post)
+                         nil nil out))))
           ;; Next precedence is >>,<<
           (while (string-match
                   (concat "\\([[({:]\\)"  ;; No << as not transitive
@@ -11554,7 +11622,8 @@ This repairs those mis-inserted by an AUTOARG."
 ;;(verilog-simplify-range-expression "[(FOO*4+1-1)]")  ; "[FOO*4+0]"
 ;;(verilog-simplify-range-expression "[(func(BAR))]")  ; "[func(BAR)]"
 ;;(verilog-simplify-range-expression "[FOO-1+1-1+1]")  ; "[FOO-0]"
-;;(verilog-simplify-range-expression "[FOO-1+2:LSB-3+1]")  ; "[FOO+1:LSB-1]"
+;;(verilog-simplify-range-expression "[FOO-1+2:LSB-3+1]")  ; "[FOO+1:LSB-2]"
+;;(verilog-simplify-range-expression "[FOO+1-2:0]")  ; "[FOO-1:0]"
 ;;(verilog-simplify-range-expression "[$clog2(2)]")  ; "[1]"
 ;;(verilog-simplify-range-expression "[$clog2(7)]")  ; "[3]"
 ;;(verilog-simplify-range-expression "[(TEST[1])-1:0]")  ; "[(TEST[1])-1:0]"
@@ -12377,6 +12446,21 @@ If PAR-VALUES replace final strings with these parameter values."
               ""))
       ;; Replace @ and [] magic variables in final output
       (setq tpl-net (verilog-string-replace-matches "@" tpl-num nil nil tpl-net))
+      ;; "sig[].[idx]" connects one element of an unpacked array; keep only
+      ;; the unpacked index executable and put the ranges into a comment,
+      ;; e.g. "sig[].[2]" becomes "sig[2]/*[6:0].[2]*/".  AUTOWIRE etc
+      ;; parse the comment back, see `verilog-read-sub-decls-expr'.
+      (while (string-match "\\[\\]\\.\\(\\[[^][]+\\]\\)" tpl-net)
+        (setq tpl-net (replace-match
+                       (concat (match-string 1 tpl-net)
+                               "/*" vl-mbits vl-bits
+                               "." (match-string 1 tpl-net) "*/")
+                       t t tpl-net)))
+      ;; "[].[]" is left when "[].[@]" is used on an instance whose name
+      ;; gives no @ value; catch it rather than emit a nonsense connection.
+      (when (string-match "\\[\\]\\.\\[\\]" tpl-net)
+        (verilog-warn-error "%s: AUTO_TEMPLATE `%s' expanded to an empty [].[] index; instance name has no value for @"
+                            (verilog-point-text) tpl-net))
       (setq tpl-net (verilog-string-replace-matches "\\[\\]\\[\\]" dflt-bits nil nil tpl-net))
       (setq tpl-net (verilog-string-replace-matches "\\[\\]" auto-inst-vector-tpl nil nil tpl-net)))
     ;; Insert it
@@ -12688,9 +12772,9 @@ Multiple Module Templates:
   For example:
 
         /* InstModule AUTO_TEMPLATE (
-                .ptl_mapvalidx          (ptl_mapvalid[@]),
-                .ptl_mapvalidp1x        (ptl_mapvalid[@\"(% (+ 1 @) 4)\"]),
-                );
+            .ptl_mapvalidx      (ptl_mapvalid[@]),
+            .ptl_mapvalidp1x    (ptl_mapvalid[@\"(% (+ 1 @) 4)\"]),
+            );
         */
         InstModule ms2m (/*AUTOINST*/);
 
@@ -12698,17 +12782,42 @@ Multiple Module Templates:
 
         InstModule ms2m (/*AUTOINST*/
             // Outputs
-            .ptl_mapvalidx              (ptl_mapvalid[2]),
-            .ptl_mapvalidp1x            (ptl_mapvalid[3]));
+            .ptl_mapvalidx      (ptl_mapvalid[2]),
+            .ptl_mapvalidp1x    (ptl_mapvalid[3]));
 
   Note the @ character was replaced with the 2 from \"ms2m\".
+
+  A connection of \"[].[@]\" connects one element of an unpacked
+  array.  AUTOWIRE will declare the net as an unpacked array
+  spanning all connected indexes:
+
+        /* InstModule AUTO_TEMPLATE (
+            .ptl_mapvalidx      (ptl_mapvalid[].[@]),
+            );
+        */
+        InstModule ms2m (/*AUTOINST*/);
+        InstModule ms0m (/*AUTOINST*/);
+
+  Typing \\[verilog-auto] will make this into:
+
+        InstModule ms2m (/*AUTOINST*/
+            // Outputs
+            .ptl_mapvalidx      (ptl_mapvalid[2]/*[3:0].[2]*/));
+        InstModule ms0m (/*AUTOINST*/
+            // Outputs
+            .ptl_mapvalidx      (ptl_mapvalid[0]/*[3:0].[0]*/));
+
+  and AUTOWIRE will declare \"wire [3:0] ptl_mapvalid [0:2];\".
+  The indexes must be numeric for AUTOWIRE to combine them;
+  overlapping or duplicate indexes merge silently into the
+  covering range.
 
   Alternatively, using a regular expression for @:
 
         /* InstModule AUTO_TEMPLATE \"_\\([a-z]+\\)\" (
-                .ptl_mapvalidx          (@_ptl_mapvalid),
-                .ptl_mapvalidp1x        (ptl_mapvalid_@),
-                );
+            .ptl_mapvalidx      (@_ptl_mapvalid),
+            .ptl_mapvalidp1x    (ptl_mapvalid_@),
+            );
         */
         InstModule ms2_FOO (/*AUTOINST*/);
         InstModule ms2_BAR (/*AUTOINST*/);
@@ -12717,12 +12826,12 @@ Multiple Module Templates:
 
         InstModule ms2_FOO (/*AUTOINST*/
             // Outputs
-            .ptl_mapvalidx              (FOO_ptl_mapvalid),
-            .ptl_mapvalidp1x            (ptl_mapvalid_FOO));
+            .ptl_mapvalidx      (FOO_ptl_mapvalid),
+            .ptl_mapvalidp1x    (ptl_mapvalid_FOO));
         InstModule ms2_BAR (/*AUTOINST*/
             // Outputs
-            .ptl_mapvalidx              (BAR_ptl_mapvalid),
-            .ptl_mapvalidp1x            (ptl_mapvalid_BAR));
+            .ptl_mapvalidx      (BAR_ptl_mapvalid),
+            .ptl_mapvalidp1x    (ptl_mapvalid_BAR));
 
 
 Regexp Templates:

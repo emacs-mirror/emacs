@@ -266,6 +266,8 @@ typedef struct _REPARSE_DATA_BUFFER {
 #include <c-strcase.h>
 #include <utimens.h>	/* for fdutimens */
 
+#include <tzsanitize.h>
+
 #include "w32.h"
 #include <dirent.h>
 #include "w32common.h"
@@ -10342,6 +10344,7 @@ w32_fix_tzset (void)
 struct tm *
 sys_localtime (const time_t *t)
 {
+  tzsanitize ();
   tzset ();
   w32_fix_tzset ();
   return localtime (t);

@@ -198,7 +198,8 @@ is greater than 10.
 	    debug-ignored-errors))
 	  inhibit-message)
      (unwind-protect
-	 (let ((tramp--test-instrument-test-case-p t)) ,@body)
+	 (with-local-quit
+	   (let ((tramp--test-instrument-test-case-p t)) ,@body))
        ;; Unwind forms.
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
 	 (untrace-all)
@@ -7551,14 +7552,13 @@ This does not support `tramp-test46-asynchronous-requests'."
   "Check, whether a container method is used.
 This does not support some special file names."
   (string-match-p
-   (rx bol (| "docker" "podman" "kubernetes" "apptainer" "run0" "nspawn"))
+   (rx bol (| "docker" "podman" "wslc" "kubernetes" "apptainer" "run0" "nspawn"))
    (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-container-oob-p ()
   "Check, whether the dockercp or podmancp method is used.
 They does not support wildcard copy."
-  (string-match-p
-   (rx bol (| "dockercp" "podmancp") eol)
+  (string-match-p (rx bol (| "dockercp" "podmancp") eol)
    (file-remote-p ert-remote-temporary-file-directory 'method)))
 
 (defun tramp--test-crypt-p ()
@@ -8808,8 +8808,9 @@ process sentinels.  They shall not disturb each other."
 		    ;; not connected.
 		    (project-mode-line-format)
 		    ;; Steal the file lock.
-		    (cl-letf (((symbol-function #'ask-user-about-lock) #'always))
-		      (save-buffer)))
+		    (ignore-errors
+		      (cl-letf (((symbol-function #'ask-user-about-lock) #'always))
+			(save-buffer))))
 		  (should-not
 		   (string-match-p "File is missing:" captured-messages)))))
 
@@ -8822,8 +8823,9 @@ process sentinels.  They shall not disturb each other."
 	      (should
 	       (process-live-p (tramp-get-connection-process tramp-test-vec)))
 	      ;; Steal the file lock.
-	      (cl-letf (((symbol-function #'ask-user-about-lock) #'always))
-		(save-buffer))
+	      (ignore-errors
+		(cl-letf (((symbol-function #'ask-user-about-lock) #'always))
+		  (save-buffer)))
 	      (tramp-timeout-session tramp-test-vec)
 	      (should-not
 	       (process-live-p (tramp-get-connection-process tramp-test-vec))))

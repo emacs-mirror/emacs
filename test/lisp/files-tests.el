@@ -21,7 +21,6 @@
 
 (require 'ert)
 (require 'ert-x)
-(require 'nadvice)
 (eval-when-compile (require 'cl-lib))
 (require 'bytecomp) ; `byte-compiler-base-file-name'.
 (require 'dired) ; `dired-uncache'.
@@ -32,7 +31,7 @@
 (defvar files-test-result nil)
 
 (defvar files-test-safe-result nil)
-(put 'files-test-safe-result 'safe-local-variable 'booleanp)
+(put 'files-test-safe-result 'safe-local-variable #'booleanp)
 
 (defun files-test-fun1 ()
   (setq files-test-result t))
@@ -696,8 +695,194 @@ unquoted file names."
   (files-tests--with-temp-non-special-and-file-name-handler
       (tmpdir nospecial-dir t)
     (should-error (directory-files-and-attributes nospecial-dir))))
+(ert-deftest files-tests-directory-files-recursively ()
+  "Test `directory-files-recursively' behavior."
+  (ert-with-temp-directory dir
+    (let* ((rel (lambda (f) (file-relative-name f dir)))
+           (tree '("d/0" "d/1" "d/a" "d/b" "d"
+                   "d-a/0" "d-a/1" "d-a/a" "d-a/b" "d-a"
+                   "d-b/0" "d-b/1" "d-b/a" "d-b/b" "d-b"
+                   "0" "1" "a" "b"))
+           ;; The same but without intermediate subdirs.
+           (leaves (seq-difference tree '("d" "d-a" "d-b"))))
+      (dolist (file leaves)
+        (make-empty-file (expand-file-name file dir) t))
 
-(defvar w32-downcase-file-names)
+      ;; Returned leaves are sorted and absolute.
+      (let ((all (directory-files-recursively dir (rx))))
+        (should (all #'file-name-absolute-p all))
+        (should (equal (mapcar rel all) leaves)))
+
+      ;; Returned tree is sorted and absolute.
+      (let ((all (directory-files-recursively dir (rx) t)))
+        (should (all #'file-name-absolute-p all))
+        (should (equal (mapcar rel all) tree)))
+
+      ;; Sort order can be changed.
+      (let ((all (directory-files-recursively dir (rx) nil nil nil t)))
+        (should (seq-set-equal-p (mapcar rel all) leaves)))
+      (let ((all (directory-files-recursively dir (rx) t nil nil t)))
+        (should (seq-set-equal-p (mapcar rel all) tree)))
+      (let ((all (directory-files-recursively dir (rx) nil nil nil #'string>)))
+        (should (equal (mapcar rel all)
+                       '("d-b/b" "d-b/a" "d-b/1" "d-b/0"
+                         "d-a/b" "d-a/a" "d-a/1" "d-a/0"
+                         "d/b" "d/a" "d/1" "d/0"
+                         "b" "a" "1" "0"))))
+      (let ((all (directory-files-recursively dir (rx) t nil nil #'string>)))
+        (should (equal (mapcar rel all)
+                       '("d-b/b" "d-b/a" "d-b/1" "d-b/0" "d-b"
+                         "d-a/b" "d-a/a" "d-a/1" "d-a/0" "d-a"
+                         "d/b" "d/a" "d/1" "d/0" "d"
+                         "b" "a" "1" "0"))))
+
+      ;; Relative subdir returns absolute file names.
+      (let* ((default-directory dir)
+             (ds (directory-files-recursively "d" (rx))))
+        (should (all #'file-name-absolute-p ds))
+        (should (equal (mapcar rel ds) '("d/0" "d/1" "d/a" "d/b"))))
+
+      ;; Result is unaffected by `completion-regexp-list'.
+      (let* ((completion-regexp-list (list (rx unmatchable)))
+             (all (directory-files-recursively dir (rx))))
+        (should (equal (mapcar rel all) leaves)))
+
+      ;; Regexp matches nondir part.
+      (should (equal (mapcar rel (directory-files-recursively dir (rx ?a)))
+                     '("d/a" "d-a/a" "d-b/a" "a")))
+      (should (equal (mapcar rel (directory-files-recursively dir (rx ?a) t))
+                     '("d/a" "d-a/a" "d-a" "d-b/a" "a")))
+      (should-not (directory-files-recursively dir (rx unmatchable)))
+      (should-not (directory-files-recursively dir (rx unmatchable) t))
+
+      ;; Regexp does not match current/parent dir.
+      (should-not (directory-files-recursively dir (rx bos ?. eos)))
+      (should-not (directory-files-recursively dir (rx bos ?. eos) t))
+      (should-not (directory-files-recursively dir (rx bos ".." eos)))
+      (should-not (directory-files-recursively dir (rx bos ".." eos) t))
+
+      ;; Predicate only applies to subdirs.
+      (let ((top (directory-files-recursively dir (rx) nil #'ignore)))
+        (should (equal (mapcar rel top) '("0" "1" "a" "b"))))
+      (let ((top (directory-files-recursively dir (rx) t #'ignore)))
+        (should (equal (mapcar rel top) '("d" "d-a" "d-b" "0" "1" "a" "b"))))
+
+      ;; Predicates nil, t, `always' equivalent in absence of errors.
+      (dolist (pred (list t #'always))
+        (let ((all (directory-files-recursively dir (rx) nil pred)))
+          (should (equal (mapcar rel all) leaves)))
+        (let ((all (directory-files-recursively dir (rx) t pred)))
+          (should (equal (mapcar rel all) tree))))
+
+      ;; Predicate receives absolute file names.
+      (let ((pred (lambda (f) (should (file-name-absolute-p f)) t)))
+        (directory-files-recursively dir (rx) nil pred)))))
+
+(ert-deftest files-tests-directory-files-recursively-link ()
+  "Test `directory-files-recursively' behavior with symbolic links."
+  (ert-with-temp-directory adir
+    (ert-with-temp-directory bdir
+      (let* ((arel (lambda (f) (file-relative-name f adir)))
+             (brel (lambda (f) (file-relative-name f bdir)))
+             (atree '("d/0" "d/1" "d" "a" "b"))
+             (btree '("d/a" "d/b" "d" "0" "1"))
+             ;; Full tree with atree linked to btree via "d-b".
+             (ctree '("d/0" "d/1" "d"
+                      "d-b/d/a" "d-b/d/b" "d-b/d" "d-b/0" "d-b/1" "d-b"
+                      "a" "b"))
+             ;; atree including "d-b" directory link.
+             (dtree '("d/0" "d/1" "d" "d-b" "a" "b"))
+             (aleaves (remove "d" atree))
+             (bleaves (remove "d" btree))
+             (cleaves (seq-difference ctree '("d" "d-b/d" "d-b"))))
+        ;; The assumption is that this will signal an error
+        ;; on systems that don't support symbolic links.
+        (skip-unless
+         (ignore-error file-error
+           (make-symbolic-link (directory-file-name bdir)
+                               (expand-file-name "d-b" adir))
+           t))
+        (dolist (file aleaves)
+          (make-empty-file (expand-file-name file adir) t))
+        (dolist (file bleaves)
+          (make-empty-file (expand-file-name file bdir) t))
+
+        ;; Sanity check.
+        (let ((all (directory-files-recursively adir (rx))))
+          (should (equal (mapcar arel all) aleaves)))
+        (let ((all (directory-files-recursively bdir (rx))))
+          (should (equal (mapcar brel all) bleaves)))
+        (let ((all (directory-files-recursively bdir (rx) nil nil t)))
+          (should (equal (mapcar brel all) bleaves)))
+        (let ((all (directory-files-recursively adir (rx) t)))
+          (should (equal (mapcar arel all) dtree)))
+        (let ((all (directory-files-recursively bdir (rx) t)))
+          (should (equal (mapcar brel all) btree)))
+        (let ((all (directory-files-recursively bdir (rx) t nil t)))
+          (should (equal (mapcar brel all) btree)))
+
+        ;; Follow links.
+        (let ((all (directory-files-recursively adir (rx) nil nil t)))
+          (should (equal (mapcar arel all) cleaves)))
+        (let ((all (directory-files-recursively adir (rx) t nil t)))
+          (should (equal (mapcar arel all) ctree)))
+        (let ((bs (directory-files-recursively adir (rx ?b) nil nil t)))
+          (should (equal (mapcar arel bs) '("d-b/d/b" "b"))))
+        (let ((bs (directory-files-recursively adir (rx ?b) t nil t)))
+          (should (equal (mapcar arel bs) '("d-b/d/b" "d-b" "b"))))
+
+        ;; Predicate can override links.
+        (let ((pred (lambda (f) (not (file-symlink-p f)))))
+          (let ((all (directory-files-recursively adir (rx) nil pred t)))
+            (should (equal (mapcar arel all) aleaves)))
+          (let ((all (directory-files-recursively adir (rx) t pred t)))
+            (should (equal (mapcar arel all) dtree))))))))
+
+(ert-deftest files-tests-directory-files-recursively-expand ()
+  "Check that files named \"~\" are not expanded (bug#36490)."
+  (ert-with-temp-directory dir
+    (let* ((rel (lambda (f) (file-relative-name f dir)))
+           (tree '("~/a" "~/b" "~" "a" "b"))
+           ;; The same but without intermediate subdirs.
+           (leaves (remove "~" tree))
+           (home (expand-file-name "~"))
+           (pred (lambda (f)
+                   ;; Check that we do not descend into the
+                   ;; (usually /nonexistent) home directory.
+                   (should-not (equal (directory-file-name f) home))
+                   t)))
+      (dolist (file leaves)
+        ;; Avoid `expand-file-name' on files named "~".
+        (make-empty-file (concat dir file) t))
+      (let ((all (directory-files-recursively dir (rx) nil pred)))
+        (should (equal (mapcar rel all) leaves)))
+      (let ((all (directory-files-recursively dir (rx) t pred)))
+        (should (equal (mapcar rel all) tree))))))
+
+(ert-deftest files-tests-directory-files-recursively-error ()
+  "Check that inaccessible directories can be ignored (bug#28567)."
+  (ert-with-temp-directory dir
+    (let ((rel (lambda (f) (file-relative-name f dir)))
+          ;; A subdirectory that can't be descended into.
+          (d-b (expand-file-name "d-b" dir)))
+      (dolist (file '("d-a/0" "d-b/1" "a"))
+        (make-empty-file (expand-file-name file dir) t))
+      (unwind-protect
+          (progn
+            (skip-unless
+             (ignore-error file-error
+               (set-file-modes d-b 0 'nofollow)
+               ;; Removing some modes doesn't work on MS-Windows, so
+               ;; check that they changed before proceeding (bug#80915).
+               (not (file-accessible-directory-p d-b))))
+            (should-error (directory-files-recursively dir (rx))
+                          :type 'permission-denied)
+            (let ((all (directory-files-recursively dir (rx) nil t)))
+              (should (equal (mapcar rel all) '("d-a/0" "a"))))
+            (let ((all (directory-files-recursively dir (rx) t t)))
+              (should (equal (mapcar rel all) '("d-a/0" "d-a" "d-b" "a")))))
+        ;; Allow the directory to be deleted.
+        (set-file-modes d-b #o700 'nofollow)))))
 
 (ert-deftest files-tests-directory-files-recursively-w32 ()
   "Test MS-Windows specific features of `directory-files-recursively'."
@@ -723,15 +908,16 @@ unquoted file names."
       ;; Run them through 'directory-file-name' because the list above
       ;; uses directory names, whereas 'directory-files-recursively'
       ;; returns their file names.
-      (should (equal (mapcar 'directory-file-name files-list)
+      (should (equal (mapcar #'directory-file-name files-list)
                      ;; Make the returned file names relative.
                      (mapcar fnrel
                              (directory-files-recursively tmpdir ".*" t))))
       ;; Test that 'directory-files-recursively' downcases file names it
       ;; returns when 'w32-downcase-file-names' is non-nil.
+      (defvar w32-downcase-file-names)
       (let ((w32-downcase-file-names t))
-        (should (equal (mapcar 'downcase
-                               (mapcar 'directory-file-name files-list))
+        (should (equal (mapcar #'downcase
+                               (mapcar #'directory-file-name files-list))
                        (mapcar fnrel
                                (directory-files-recursively tmpdir ".*" t)))))
       ;; Test that backslashes are mirrored when files are returned.
@@ -741,11 +927,10 @@ unquoted file names."
              (subdir (file-name-concat
                       (concat tmpdir-with-backslashes "\\")
                       (string-replace "/" "\\" (nth nelt files-list)))))
-        (should (equal (mapcar 'directory-file-name
-                               (butlast files-list (- (length files-list)
-                                                      nelt)))
+        (should (equal (mapcar #'directory-file-name
+                               (take nelt files-list))
                        (mapcar fnrel
-                             (directory-files-recursively subdir ".*" t))))))))
+                               (directory-files-recursively subdir ".*" t))))))))
 
 (ert-deftest files-tests-file-name-non-special-dired-compress-handler ()
   ;; `dired-compress-file' can get confused by filenames with ":" in
@@ -2335,7 +2520,7 @@ Prompt users for any modified buffer with `buffer-offer-save' non-nil."
 (ert-deftest files-tests--make-empty-file--tocttou ()
   (ert-with-temp-directory base
     (let ((file (file-name-concat base "one" "two" "file.txt")))
-      (cl-flet ((advice (&rest args)
+      (cl-flet ((advice (&rest _)
                   (write-region "" nil file nil nil nil 'excl)))
         (unwind-protect
             (progn

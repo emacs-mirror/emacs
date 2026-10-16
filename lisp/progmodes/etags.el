@@ -1278,7 +1278,7 @@ buffer-local values of tags table format variables."
                 (buffer-substring (match-beginning 1) (match-end 1)))))
       (if relative
 	  str
-	(expand-file-name str (file-truename default-directory))))))
+	(expand-file-name str default-directory)))))
 
 
 (defun etags-tags-completion-table () ; Doc string?
@@ -2219,16 +2219,21 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
 
 (cl-defstruct (xref-etags-location
                ( :constructor xref-make-etags-location (tag-info file)
-                 "Create an Etags Xref location.
+                 "Create an Etags Xref location from TAG-INFO and FILE.
 TAG-INFO is a info object accepted by `etags-goto-tag-location'.
-FILE is an absolute file name."))
+FILE is an absolute file name of the file where the tag isdefined
+or referenced."))
   "Location of an etags tag."
   tag-info file)
 
 (cl-defmethod xref-location-group ((l xref-etags-location))
+  "Implementation of `xref-location-group' for `etags' backend and location.
+Returns the file-name of the tag's file."
   (xref-etags-location-file l))
 
 (cl-defmethod xref-location-marker ((l xref-etags-location))
+  "Implementation of `xref-location-marker' for `etags' backend.
+Returns the marker at the location."
   (pcase-let (((cl-struct xref-etags-location tag-info file) l))
     (let ((buffer (find-file-noselect file)))
       (with-current-buffer buffer
@@ -2239,6 +2244,8 @@ FILE is an absolute file name."))
             (point-marker)))))))
 
 (cl-defmethod xref-location-line ((l xref-etags-location))
+  "Implementation of `xref-location-line' for `etags' backend.
+Returns the line number of the tag in its file."
   (pcase-let (((cl-struct xref-etags-location tag-info) l))
     (nth 1 tag-info)))
 
@@ -2255,6 +2262,165 @@ FILE is an absolute file name."))
     (pcase-let (((cl-struct xref-etags-apropos-location goto-fun symbol) l))
       (funcall goto-fun symbol)
       (point-marker))))
+
+(cl-defmethod xref-backend-xref-kinds ((_backend (eql 'etags)))
+  "Return list of descriptors of xref kinds supported by the etags backend.
+This is the implementation of the `kinds' method for the `etags' backend.
+It supports most of the taggable files that the `etags' utility knows about."
+  '((:kind typedef :name "typedef" :key ?t)
+    (:kind struct :name "struct" :key ?s)
+    (:kind union :name "union" :key ?u)
+    (:kind enum :name "enumeration" :key ?e)
+    (:kind macro :name "macro" :key ?d)
+    (:kind function :name "function" :key ?f)
+    (:kind variable :name "variable" :key ?v)
+    (:kind defun :name "primitive" :key ?p)
+    (:kind defvar :name "builtin variable" :key ?b)
+    (:kind class :name "class" :key ?c)
+    (:kind method :name "method" :key ?m)
+    (:kind namespace :name "namespace" :key ?n)
+    (:kind operator :name "operator" :key ?o)
+    (:kind blockdata :name "Block data" :key ?B)
+    (:kind module :name "Module" :key ?M)
+    (:kind task :name "Task" :key ?T)
+    ;; FIXME: Add more kinds for other languages:
+    ;; HTML: title, h1, h2, h3, name=, id=
+    ))
+
+(defconst etags--types-regexp-alist
+  '((typedef "\\_<type\\(def\\)?\\_>" "[(]\\'")
+    (struct  "\\_<struct\\_>" "[(;,]\\'")
+    (union   "\\_<union\\_>" "[(;,]\\'")
+    (enum    "\\_<enum\\_>" "[(;,]\\'")
+    (macro   "\\`[ \t]*\\(#[ \t]*\\(define\\|undef\\)\\_>\\|(defmacro \\)")
+    (defun   "\\`[ \t]*DEFUN (")
+    (defvar  "\\`[ \t]*DEFVAR_\\(LISP\\|INT\\|BOOL\\|KBOARD\\|LISP_NOPRO\\|PER_BUFFER\\) (")
+    (class   "\\(\\_<class\\_>\\|\\`[ \t](cl-defstruct\\)")
+    (namespace  "\\_<namespace\\_>" "[ (]\\'")
+    (operator   "\\_<operator\\_>")
+    (function   "\\([ (]\\'\\|\\`[ \t]*(def\\(un\\ine\\)? \\|\\_<\\(func\\(tion\\)?\\|sub\\(routine\\)?\\|entry\\|procedure\\)\\_>\\)")
+    (method     "\\([^ (]\\'\\|\\`[ \t]*(cl-def\\(method\\|generic\\) \\)")
+    (variable   "\\([^ (]\\'\\|\\`[ \t]*\\((def\\(var\\(-local\\)? \\|custom \\|const \\|face \\)\\|_<\\(integer\\|complex\\|character\\|real\\|logical\\|double *precision\\|var\\)\\_>\\)\\)"
+                "\\_<\\(typedef\\|class\\|namespace\\|operator\\|FUNCTION\\)\\_>")
+    (blockdata "\\_<block ?data\\_>")
+    (module    "\\_<\\(package\\|module\\)\\_>")
+    (task      "\\_<task\\_>")
+    )
+  "Alist of tag types and the TAGS text they match.
+Each element is of the form (TYPE MUST-MATCH MUST-NOT-MATCH), where TYPE is
+one of the types in etags's `xref-backend-xref-kinds' implementation, and
+MUST-MATCH and MUST-NOT-MATCH are regular expressions: MUST-MATCH is a
+regular expression that the text of the TYPE's tag should match, while
+MUST-NOT-MATCH is a regular expression that it must not match.  Each one
+of the regexps can be nil, which means the corresponding constraint does
+not exist.")
+
+(defconst etags--case-insensitive-files
+  '(".ads" ".adb" ".ada"       ; Ada
+    ".COB" ".cob"              ; Cobol
+    ".F" ".f" ".f90" ".for"    ; Fortran
+    ".htm" ".html" ".shtml"    ; HTML
+    ".cl" ".clisp"             ; Common Lisp
+    ".p" ".pas"                ; Pascal
+    ".php" ".php3" ".php4"     ; PHP
+    )
+  "File-name extensions whose keywords are expected to be case-insensitive.
+This lists file-name extensions of files whose corresponding programming
+language treats keywords case-insensitively.")
+
+(defun etags--keywords-case-insensitive-p (filename)
+  "Whether keywords are expected to be case-insensitive in FILENAME."
+  ;; FIXME: It is not enough to go by the filename's extension, we need
+  ;; to use the actual major-mode to be used forthe file.  But
+  ;; determining the major-mode requires visiting the file (to take note
+  ;; of the various local vars and cookies), and on top of that Emacs
+  ;; doesn't have a function that just determines the mode without
+  ;; turning it ON.
+  (let ((fnext (file-name-extension filename)))
+    (memq (if (file-name-case-insensitive-p filename)
+              ;; Prevent Turkish etc. case-conversions from getting in
+              ;; our way.
+              (with-case-table ascii-case-table
+                (downcase fnext))
+            fnext)
+          etags--case-insensitive-files)))
+
+(defun etags--xref-item-matches (tag-text filename kind)
+  "Predicate that returns non-nil if TAG-TEXT for FILENAME matches KIND.
+TAG-TEXT is the text of the tag's line in its tags table, usually the
+beginning of the source line where the tag was defined or referenced.
+FILENAME is the basename of the source file where the tag is defined;
+it can be used to deduce the programming language of the tag and other
+traits of the tag, like its case-sensitivity.
+KIND is a symbol that specifies the type (function, variable, etc.)
+against which to test the type of the tag; see `xref-backend-xref-kinds'."
+  (let* ((type-regexps (cdr (assq kind etags--types-regexp-alist)))
+         (must-match (car type-regexps))
+         (must-not-match (nth 1 type-regexps)))
+    (when type-regexps
+      (let ((case-fold-search (etags--keywords-case-insensitive-p filename)))
+        (and (or (null must-match)
+                 (string-match-p must-match tag-text))
+             (or (null must-not-match)
+                 (not (string-match-p must-not-match tag-text))))))))
+
+(defun etags--filter-by-kind (xref-items kind)
+  "Filter out from XREF-ITEMS any items that don't match KIND.
+XREF-ITEMS is a list of `xref-item' objects, and KIND is the symbol
+that specifies the type of the reference/definition the caller is
+interested in."
+  (delq 'remove-item
+        (mapcar
+         (lambda (item)
+           (if (etags--xref-item-matches (xref-item-summary item)
+                                         (file-name-nondirectory
+                                          (xref-etags-location-file
+                                           (xref-item-location item)))
+                                         kind)
+               item
+             'remove-item))
+         xref-items)))
+
+(cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql 'etags)) identifier kind)
+  "Return a list of xrefs of KIND for IDENTIFIER for the `etags' backend.
+This is the implementation for the `etags' backend.  It returns a list
+of xref items whose summary is the tag's description from the tags table,
+and whose location is an `xref-etags-location' object."
+  (let ((defs (etags--xref-find-definitions identifier)))
+    ;; Filter out elements that don't match KIND.
+    (etags--filter-by-kind defs kind)))
+
+(defun etags--kind-predicate (kind candidate)
+  "A predicate that returns non-nil if CANDIDATE's type matches KIND.
+CANDIDATE is a string which gives the identifier of a completion candidate;
+KIND is a symbol presumably taken from `xref-backend-xref-kinds's `:kind'
+property.
+
+This function is supposed to be used as PREDICATE by the various
+completion functions and primitives."
+  (let ((defs (etags--xref-find-definitions candidate))
+        def found-match)
+    (while (and (not found-match)
+                defs)
+      (setq def (car defs)
+            defs (cdr defs)
+            found-match (etags--xref-item-matches (xref-item-summary def)
+                                                  (file-name-nondirectory
+                                                   (xref-etags-location-file
+                                                    (xref-item-location def)))
+                                                  kind)))
+    found-match))
+
+(cl-defmethod xref-backend-identifier-completion-predicate ((_backend (eql 'etags))
+                                                            &optional kind)
+  "Predicate for rejecting completion candidates for the `etags' backend.
+This is the implementation for the `etags' backend.  If KIND is non-nil,
+meaning that the caller is interested only in canddiates that match KIND,
+the predicate is a function which will reject any candidate that doesn't
+match KIND."
+  (if kind
+      (lambda (candidate)
+        (etags--kind-predicate kind candidate))))
 
 
 (provide 'etags)

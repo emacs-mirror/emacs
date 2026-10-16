@@ -95,6 +95,10 @@ commands invoked from the menu will operate on the right buffer.
 You can restore the previous behavior by removing
 'mode-line-window-select' from 'x-pre-popup-menu-hook'.
 
+---
+*** %e in the mode line now expands to a warning when memory is low.
+Previously this behavior had been inadvertently limited to MS-DOS.
+
 ** Minibuffer
 
 ---
@@ -131,8 +135,21 @@ of the terminal emulator:
   first code point in the sequence.  In this case, it might help to set
   'tty-display-emoji-force-wide' to nil.
 
+** Faces
+
+*** New face 'header-line-emphasis'.
+This corresponds to the face 'header-line-highlight' as
+'mode-line-emphasis' corresponds to 'mode-line-highlight'.
+
+*** Underline, overline, and strike-through can now be scaled with text.
+The thickness of the line of these face attributes can now optionally
+be scaled when the text is scaled.  This is by default off; you can use
+the new variables 'underline-line-scaling-flag',
+'overline-line-scaling-flag' and 'strike-through-line-scaling-flag' to
+control the scaling for each attribute.
+
 ---
-** Support for overline face attributes on text-only terminals.
+*** Support for overline face attributes on text-only terminals.
 Emacs now displays overlines on text-only terminals.  Terminal support
 for overline is determined based on the 'Smol' capability in the
 terminfo database.  For terminals where the terminfo database does not
@@ -171,6 +188,7 @@ for nearby fields.
 * Changes in Specialized Modes and Packages in Emacs 32.1
 
 ** Use-Package
+
 ---
 *** ':ensure t' installs the package only at run-time.
 In previous versions, it tried to install it more eagerly during
@@ -256,13 +274,19 @@ have a backend, and 'vc-follow-symlinks' is non-nil, the truename is
 used instead.  Previously, the truename was used unconditionally.
 
 +++
+*** New user option 'vc-dir-simple-unmark-all-files'.
+This inverts the meaning of a prefix argument to the existing 'U'
+('vc-dir-unmark-all-files') command, which some users may find more
+intuitive.
+
++++
 *** Improved creation of commit log entry from ChangeLog.
 When VC detects that all log entries for the current changeset come from
 the same ChangeLog file or buffer, it now inserts the entire body of the
 ChangeLog entry into the "*vc-log*" buffer.  If the ChangeLog entry
-contains a summary line, VC inserts it into the "*vc-log*" Summary header.
-If VC detects that the set of changed files listed in the ChangeLog
-entry differs from the current VC fileset, it displays a warning.
+contains a summary line, VC inserts it into the "*vc-log*" Summary
+header.  If one or more files listed in the ChangeLog entry are not in
+the current VC fileset, VC displays a warning.
 
 ---
 *** The face 'log-edit-headers-separator' inherits from separator-line.
@@ -270,10 +294,27 @@ The default definition of 'log-edit-headers-separator' now inherits its
 attributes from the face 'separator-line'.  That changes the default
 color and makes it work better in the terminal.
 
+---
+*** New user option 'vc-quick-select-current-working-tree'.
+If you customize this to non-nil, commands that may operate on any
+working tree no longer prompt when the current working tree is the only
+choice.
+
 ** Diff
 
 ---
 *** 'diff-switches' now includes '-r' by default.
+
+** Diff mode
+
++++
+*** New command 'f' jumps to the corresponding line of the old source.
+This is primarily intended for use in "*vc-diff*" buffers, where it
+mirrors the existing 'f' binding in Log View mode buffers.
+In such buffers, 'f' when point is on an old changed line (i.e. a
+removed line) jumps to the file at the diff's old revision, and 'f' when
+point is on a new changed line (i.e. an added line) or an unchanged line
+jumps to the file at the diff's new revision.
 
 ** Outline mode
 
@@ -331,6 +372,15 @@ Perl 5.44 allows to declare a signature like "sub subname (:$par)", see
 <https://perldoc.perl.org/5.44.0/perldelta#Named-Parameters-in-Signatures>.
 CPerl mode now recognizes this as a variable declaration.
 
+** Lisp mode
+
+---
+*** Improved accuracy of Common Lisp code parsing.
+Lisp mode will now correctly parse multiple escapes as part of symbols
+and will parse dispatch reader macros as expression prefixes.  It uses a
+new function 'lisp-mode-syntax-propertize' as the value of
+'syntax-propertize-function' in Lisp mode.
+
 ** Newsticker
 
 ---
@@ -370,9 +420,17 @@ details.
 When enabled, this causes Eshell to evaluate commands in Lisp syntax
 using lexical binding.
 
+** SHR
+
+---
+*** HTML list items are now indented as with other blocks.
+Previously, HTML list items (<li>) were indented with a narrower width
+than <blockquote> elements.  Now, they all have the same indent width.
+
 ** Dired
 
-*** The 'repeat-mode' key 'j' has been removed from 'dired-jump-map'.
+*** The 'repeat-mode' key 'j' has been removed from 'dired-jump-repeat-map'.
+'dired-jump-repeat-map' has been renamed from 'dired-jump-map'.
 
 ** Viper
 
@@ -394,6 +452,10 @@ output of the lines.
 ** Tramp
 
 +++
+*** New optional connection method "wslc".
+This connection method accesses WSL containers on MS-Windows.
+
++++
 *** Tramp is more strict now in expanding the tilde "~USER".
 If this isn't possible, an error is raised.  This happens often in test
 functions, which use example file names like "/ssh:host:~user/file.txt".
@@ -403,6 +465,28 @@ non-nil value.
 +++
 *** 'tramp-recompile-elpa' is marked obsolete.
 Use 'package-recompile' instead.
+
+** Browse URL
+
+---
+*** 'browse-url-chromium' and 'browse-url-chrome' can open new windows.
+These functions no longer ignore the browse-url-new-window-flag user
+option and the NEW-WINDOW optional argument.
+
+---
+*** Prefix arguments to several 'browse-url-browser-function' values fixed.
+Now, like with 'browse-url', a prefix argument to these commands inverts
+the meaning of 'browse-url-new-window-flag' instead of always meaning to
+use a new window.  (This was always how it was intended to work, there
+was a bug.)
+
+** Rcirc
+
+---
+*** Prefix argument to 'rcirc-browse-url' enhanced.
+Now, like with 'browse-url', a prefix argument to this command inverts
+the meaning of 'browse-url-new-window-flag' instead of always meaning to
+use a new window.
 
 
 * New Modes and Packages in Emacs 32.1
@@ -549,6 +633,16 @@ alphabetic abbreviations like "CST", which are too often ambiguous.
 ** New 'font-lock-keyword' function declaration.
 The declaration '(font-lock-keyword t)' specifies that a normal
 function is to be highlighted by font-lock like a macro.
+
++++
+** New optional LESSP parameter for 'directory-files-recursively'.
+It allows control over the relative order of file names per directory
+in the resulting list.  The default remains sorting each directory
+according to 'string-lessp'.  A value of t returns files in their
+arbitrary directory order without sorting, which may be faster.
+The argument can also be a function of two parameters suitable as the
+':lessp' argument of 'sort'.  For example, 'string-collate-lessp' would
+result in the locale-specific collation order one might see in Dired.
 
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems

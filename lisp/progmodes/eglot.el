@@ -539,6 +539,14 @@ or file operation kinds not in the alist."
   "If non-nil, activate Eglot in cross-referenced non-project files."
   :type 'boolean)
 
+(defcustom eglot-completion-replace-semantics t
+  "If nil, use \"insert semantics\" in LSP completions.
+Suppose point is after \"foo\" in the word \"foo123\", and a completion
+changes \"foo\" to \"foobar\".  By default, replace the whole word,
+giving \"foobar\".  If this variable is nil, text after point is
+unchanged, giving \"foobar123\"."
+  :type 'boolean)
+
 (defcustom eglot-documentation-renderer nil
   "Controls rendering of LSP documentation fragments.
 If set to a major mode symbol like `gfm-view-mode', or the experimental
@@ -2290,6 +2298,8 @@ If MODE, force MODE to be used for fontifying MARKUP."
                               ("markdown" nil)
                               ("plaintext" 'text-mode)
                               (_ major-mode))))))
+    (when (string-empty-p string)
+      (cl-return-from eglot--format-markup ""))
     (with-temp-buffer
       (setq-local markdown-fontify-code-blocks-natively t)
       (insert string)
@@ -4146,8 +4156,11 @@ for which LSP on-type-formatting should be requested."
                         (eglot--dcase textEdit
                           (((TextEdit) range newText)
                            (funcall apply-edit range newText))
-                          (((InsertReplaceEdit) newText replace)
-                           (funcall apply-edit replace newText))))
+                          (((InsertReplaceEdit) newText insert replace)
+                           (funcall apply-edit
+                                    (if eglot-completion-replace-semantics
+                                        replace insert)
+                                    newText))))
                        (snippet-fn
                         ;; A snippet should be inserted, but using plain
                         ;; `insertText'.  This requires us to delete the
@@ -5533,8 +5546,9 @@ See `eglot--semtok-request' implementation for details.")
               ;; another (perhaps not dispatched yet) request.
               (when (eq docver (c :orig-docver))
                 (setf (c :docver) (c :req-docver)
-                      (c :data) (if cont (funcall cont response)
-                                  (plist-get response :data))
+                      (c :data) (or (if cont (funcall cont response)
+                                      (plist-get response :data))
+                                    [])
                       (c :resultId) (plist-get response :resultId))
                 ;; (trace-values "Flushing" (length (c :regions)) "regions")
                 (cl-loop for (a . b) in (c :regions) do (font-lock-flush a b))

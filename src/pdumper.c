@@ -2723,13 +2723,16 @@ dump_vectorlike_generic (struct dump_context *ctx,
 }
 
 /* Return a vector of KEY, VALUE pairs in the given hash table H.
-   No room for growth is included.  */
+   Do not leave room for growth.
+   If there are no pairs, return a null pointer.  */
 static hash_table_kv
 hash_table_contents (struct Lisp_Hash_Table *h, hash_idx_t *count)
 {
   Lisp_Object lh = make_lisp_ptr (h, Lisp_Vectorlike);
   ptrdiff_t size = XFIXNUM (Fhash_table_count (lh));
-  hash_table_kv kv = hash_table_kv_create (size, Weak_None);
+  hash_table_kv kv = (size
+		      ? hash_table_kv_create (size, Weak_None)
+		      : hash_table_kv_null ());
   ptrdiff_t n = 0;
 
   DOHASH (h, k, v)
@@ -2959,7 +2962,7 @@ dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
 static dump_off
 dump_obarray (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_381CF3389E
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_E27FFF73AC
 # error "Lisp_Obarray changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Obarray *in_oa = XOBARRAY (object);
@@ -2982,7 +2985,7 @@ dump_obarray (struct dump_context *ctx, Lisp_Object object)
 static dump_off
 dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 {
-#if CHECK_STRUCTS && !defined HASH_buffer_46DA92A241
+#if CHECK_STRUCTS && !defined HASH_buffer_8F5C5BAA16
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
 #if CHECK_STRUCTS && !defined HASH_buffer_text_07D802E2D4

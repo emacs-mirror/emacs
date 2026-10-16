@@ -3028,7 +3028,9 @@ keywords when no KEYWORD is given."
 (defun rcirc-browse-url (&optional arg)
   "Prompt for URL to browse based on URLs in buffer before point.
 
-If ARG is given, opens the URL in a new browser window."
+If ARG is given, opens the URL in a new browser window, unless
+`browse-url-new-window-flag' is non-nil, in which case ARG means to not
+open the URL in a new browser window."
   (interactive "P")
   (let* ((point (point))
          (filtered (seq-filter
@@ -3038,7 +3040,8 @@ If ARG is given, opens the URL in a new browser window."
          (defaults (mapcar #'car filtered)))
     (browse-url (completing-read "Rcirc browse-url: "
                                  completions nil nil (car defaults) nil defaults)
-                arg)))
+                (xor (bound-and-true-p browse-url-new-window-flag)
+                     arg))))
 
 (defun rcirc-markup-timestamp (_sender _response)
   "Insert a timestamp."

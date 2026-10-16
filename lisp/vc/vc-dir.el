@@ -1083,16 +1083,28 @@ line."
     (ewoc-invalidate vc-ewoc prev)
     (vc-dir-move-to-goal-column)))
 
+(defcustom vc-dir-simple-unmark-all-files nil
+  "If non-nil, invert prefix argument for `vc-dir-unmark-all-files'.
+That is, `vc-dir-unmark-all-files' without any prefix argument unmarks
+all files, and applying a prefix argument makes
+`vc-dir-unmark-all-files' unmark only all files with the same state as
+the current one or all children of a directory."
+  :type 'boolean
+  :group 'vc
+  :version "32.1")
+
 (defun vc-dir-unmark-all-files (arg)
   "Unmark all files with the same state as the current one.
-With prefix argument ARG, unmark all files.
 If the current entry is a directory, unmark all the child files.
+With prefix argument ARG, unmark all files.
 
 The commands operate on files that are on the same state.
 This command is intended to make it easy to deselect all files
-that share the same state."
+that share the same state.
+
+See also `vc-dir-simple-unmark-all-files'."
   (interactive "P")
-  (if arg
+  (if (if vc-dir-simple-unmark-all-files (not arg) arg)
       (ewoc-map
        (lambda (filearg)
 	 (when (vc-dir-fileinfo->marked filearg)
@@ -1555,6 +1567,12 @@ uses OVERLAY."
                 '(display-buffer-no-window (allow-no-window . t)))
                (unknown (propertize "<<unknown>>" 'face 'vc-dir-header-value))
                (buf (generate-new-buffer " *temp*" t))
+               ;; The user didn't explicitly request an outgoing count
+               ;; so we shouldn't prompt them.
+               ;; It is okay to use an outdated value.
+               ;; Also, this makes `vc--incoming-revision' (which see)
+               ;; not retry endlessly.
+               (non-essential t)
                proc)
           (without-local-variable-queries
             (with-current-buffer buf
@@ -1666,8 +1684,12 @@ backend-specific headers."
      "  "
      "(\\[vc-dir-mark]) Mark, "
      "(\\[vc-dir-unmark]) Unmark, "
-     "(\\[vc-dir-unmark-all-files]) Unmark same state/dir, "
-     "(\\[universal-argument] \\[vc-dir-unmark-all-files]) Unmark all"
+     "(\\[vc-dir-unmark-all-files]) "
+     (if vc-dir-simple-unmark-all-files
+         "Unmark all, " "Unmark same state/dir, ")
+     "(\\[universal-argument] \\[vc-dir-unmark-all-files]) "
+     (if vc-dir-simple-unmark-all-files
+         "Unmark same state/dir" "Unmark all")
      "\n"
      (propertize "View " 'font-lock-face 'vc-dir-key-binding-hint-label)
      "              "
@@ -1861,9 +1883,6 @@ progress, kill it and start a new one."
       ;; Bzr has serious locking problems, so setup the headers first (this is
       ;; mostly synchronous) rather than doing it while dir-status is running.
       (vc-dir--set-header def-dir 'reset-footer)
-      (unless revert-buffer-in-progress
-        (when vc-dir-show-key-binding-hints
-          (goto-char (1+ (length vc-dir--key-binding-hints)))))
       (let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
           (setq default-directory def-dir)
@@ -2074,6 +2093,8 @@ These are the commands available for use in the file status buffer:
     ;; FIXME: find a better way to pass the backend to `vc-dir-mode'.
     (let ((use-vc-backend backend))
       (vc-dir-mode)
+      (when vc-dir-show-key-binding-hints
+        (goto-char (1+ (length vc-dir--key-binding-hints))))
       ;; Activate the backend-specific minor mode, if any.
       (when-let* ((minor-mode
                    (intern-soft (format "vc-dir-%s-mode"

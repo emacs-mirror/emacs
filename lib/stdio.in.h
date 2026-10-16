@@ -1091,11 +1091,9 @@ _GL_CXXALIASWARN (getchar);
 #   undef getdelim
 #   define getdelim rpl_getdelim
 #  endif
-#  ifndef __has_feature
-#   define __has_feature(a) 0
-#  endif
 #  if __GLIBC__ >= 2 && !(defined __SANITIZE_ADDRESS__ \
-                          || __has_feature (address_sanitizer))
+                          || defined __SANITIZE_LEAK__ \
+                          || defined __SANITIZE_MEMORY__)
 /* Arrange for the inline definition of getline() in <bits/stdio.h>
    to call our getdelim() override.  Do not use the __getdelim symbol
    if address sanitizer is in use, otherwise it may be overridden by

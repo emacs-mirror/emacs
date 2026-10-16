@@ -246,7 +246,7 @@ xstrdup (const char *s)
 }
 
 /* From sysdep.c */
-#if !defined HAVE_GET_CURRENT_DIR_NAME || defined BROKEN_GET_CURRENT_DIR_NAME
+#ifndef HAVE_GET_CURRENT_DIR_NAME
 
 char *get_current_dir_name (void);
 

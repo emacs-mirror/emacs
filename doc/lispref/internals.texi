@@ -307,7 +307,6 @@ future allocations.  So an overall result is:
  (@code{floats} @var{float-size} @var{used-floats} @var{free-floats})
  (@code{intervals} @var{interval-size} @var{used-intervals} @var{free-intervals})
  (@code{buffers} @var{buffer-size} @var{used-buffers})
- (@code{heap} @var{unit-size} @var{total-size} @var{free-size}))
 @end example
 
 Here is an example:

@@ -921,7 +921,7 @@ _gl_stdbit_popcount_supported (void)
   if (!_gl_stdbit_popcount_support)
     {
       /* Do as described in
-         <https://docs.microsoft.com/en-us/cpp/intrinsics/popcnt16-popcnt-popcnt64>
+         <https://learn.microsoft.com/en-us/cpp/intrinsics/popcnt16-popcnt-popcnt64>
          Although Microsoft started requiring POPCNT in MS-Windows 11 24H2,
          we'll be more cautious.  */
       int cpu_info[4];

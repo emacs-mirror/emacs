@@ -255,7 +255,9 @@ struct stat
 # endif
 #endif
 
-#ifndef S_ISMPB /* V7 */
+/* These multiplex file types were in Version 7 Unix, last supported
+   in the early 1980s.  Perhaps remove them here?  */
+#ifndef S_ISMPB
 # ifdef S_IFMPB
 #  define S_ISMPB(m) (((m) & S_IFMT) == S_IFMPB)
 #  define S_ISMPC(m) (((m) & S_IFMT) == S_IFMPC)
@@ -265,11 +267,13 @@ struct stat
 # endif
 #endif
 
-#ifndef S_ISMPX /* AIX */
+/* This multiplex file type is in AIX; although useless these days,
+   it is still in AIX 7.3 <sys/stat.h>.  */
+#ifndef S_ISMPX
 # define S_ISMPX(m) 0
 #endif
 
-#ifndef S_ISNAM /* Xenix */
+#ifndef S_ISNAM /* QNX */
 # ifdef S_IFNAM
 #  define S_ISNAM(m) (((m) & S_IFMT) == S_IFNAM)
 # else
@@ -277,7 +281,9 @@ struct stat
 # endif
 #endif
 
-#ifndef S_ISNWK /* HP/UX */
+/* This network file type was in HP-UX 9 and 10, last supported in the
+   early 2000s.  Perhaps remove S_ISNWK here?  */
+#ifndef S_ISNWK
 # ifdef S_IFNWK
 #  define S_ISNWK(m) (((m) & S_IFMT) == S_IFNWK)
 # else
@@ -331,22 +337,24 @@ struct stat
 # endif
 #endif
 
-/* high performance ("contiguous data") */
+/* This contiguous data file type was in RTU, last supported in the
+   early 2000s.  Perhaps remove it here?  */
 #ifndef S_ISCTG
 # define S_ISCTG(p) 0
 #endif
 
-/* Cray DMF (data migration facility): off line, with data  */
+/* Cray DMF (data migration facility): offline with and without data.
+   These file types were in classic UNICOS, last supported in the mid-2000s.
+   Perhaps remove them here?  */
 #ifndef S_ISOFD
 # define S_ISOFD(p) 0
 #endif
-
-/* Cray DMF (data migration facility): off line, with no data  */
 #ifndef S_ISOFL
 # define S_ISOFL(p) 0
 #endif
 
-/* 4.4BSD whiteout */
+/* Whiteout in 4.4 and later BSDs.  This file type is observed only
+   for files opened by the superuser via fhopen.  */
 #ifndef S_ISWHT
 # define S_ISWHT(m) 0
 #endif

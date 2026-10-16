@@ -1422,20 +1422,24 @@ The last thing is to trigger a new round of lazy highlighting."
                          (set-window-hscroll (selected-window) 0))
                 (other-window 1))
               (goto-char found-point))
-	  ;; Keep same hscrolling as at the start of the search when possible
-	  (let ((current-scroll (window-hscroll))
-		visible-p)
-	    (set-window-hscroll (selected-window) isearch-start-hscroll)
-	    (setq visible-p (pos-visible-in-window-group-p nil nil t))
-	    (if (or (not visible-p)
-		    ;; When point is not visible because of hscroll,
-		    ;; pos-visible-in-window-group-p returns non-nil, but
-		    ;; the X coordinate it returns is 1 pixel beyond
-		    ;; the last visible one.
-		    (>= (car visible-p)
-                        (* (window-max-chars-per-line) (frame-char-width)))
-                    (< (car visible-p) 0))
-		(set-window-hscroll (selected-window) current-scroll))))
+	  ;; Keep the same window hscrolling as at the start of the
+	  ;; search, when possible.  If only the current line is
+	  ;; hscrolled, this is not needed, as the window is not
+	  ;; hscrolled.
+          (when (not (eq auto-hscroll-mode 'current-line))
+	    (let ((current-scroll (window-hscroll))
+		  visible-p)
+	      (set-window-hscroll (selected-window) isearch-start-hscroll)
+	      (setq visible-p (pos-visible-in-window-group-p nil nil t))
+	      (if (or (not visible-p)
+		      ;; When point is not visible because of hscroll,
+		      ;; pos-visible-in-window-group-p returns non-nil, but
+		      ;; the X coordinate it returns is 1 pixel beyond
+		      ;; the last visible one.
+		      (>= (car visible-p)
+                          (* (window-max-chars-per-line) (frame-char-width)))
+                      (< (car visible-p) 0))
+		(set-window-hscroll (selected-window) current-scroll)))))
 	(if isearch-other-end
             (if (< isearch-other-end (point)) ; isearch-forward?
                 (isearch-highlight isearch-other-end (point) isearch-match-data)

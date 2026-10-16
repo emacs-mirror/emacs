@@ -181,7 +181,7 @@
   "Prefix keymap to use for ERC related limiting.")
 (define-prefix-command 'erc-ibuffer-limit-map)
 (define-key 'erc-ibuffer-limit-map (kbd "s") #'ibuffer-filter-by-erc-server)
-(define-key ibuffer-mode-map (kbd "/ \C-e") 'erc-ibuffer-limit-map)
+(define-key ibuffer-mode-map (kbd "/ C-e") 'erc-ibuffer-limit-map)
 
 (provide 'erc-ibuffer)
 

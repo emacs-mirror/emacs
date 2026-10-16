@@ -3,6 +3,15 @@
 Copyright (C) 2001-2026 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+* Changes in Emacs 32.1
+
+** Bug Fixes in Emacs 32.1
+
+*** Sequence completion now works if the name contains a digit.
+
+It already worked when narrowing to a sequence; it now works when
+scanning a folder.
+
 * Changes in Emacs 31.1
 
 ** Bug Fixes in Emacs 31.1

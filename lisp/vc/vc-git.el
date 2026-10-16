@@ -2024,15 +2024,17 @@ REVISION may have the form BRANCH, BRANCH~N,
 or BRANCH^ (where \"^\" can be repeated)."
   (goto-char (point-min))
   (prog1
-      (when revision
-        (search-forward
-         (format "\ncommit %s" revision) nil t
-         (cond ((string-match "~\\([0-9]\\)\\'" revision)
-                (1+ (string-to-number (match-string 1 revision))))
-               ((string-match "\\^+\\'" revision)
-                (1+ (length (match-string 0 revision))))
-               (t nil))))
-    (beginning-of-line)))
+      (and revision
+           (search-forward
+            (format "\ncommit %s" revision) nil t
+            (cond ((string-match "~\\([0-9]\\)\\'" revision)
+                   (1+ (string-to-number (match-string 1 revision))))
+                  ((string-match "\\^+\\'" revision)
+                   (1+ (length (match-string 0 revision))))
+                  (t nil))))
+    (beginning-of-line)
+    (when (memq 'long vc-log-view-types)
+      (recenter-top-bottom 0))))
 
 (defun vc-git-expanded-log-entry (revision)
   (with-temp-buffer

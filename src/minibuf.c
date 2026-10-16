@@ -2159,7 +2159,8 @@ STRING and PREDICATE have the same meanings as in `try-completion',
 `all-completions', and `test-completion'.
 
 If FLAG is nil, invoke `try-completion'; if it is t, invoke
-`all-completions'; otherwise invoke `test-completion'.  */)
+`all-completions'; if it is `lambda', invoke `test-completion';
+if it is `metadata', return completion metadata.  */)
   (Lisp_Object string, Lisp_Object predicate, Lisp_Object flag)
 {
   if (NILP (flag))

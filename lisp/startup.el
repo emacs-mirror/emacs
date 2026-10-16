@@ -2296,7 +2296,8 @@ splash screen in another window."
       (if (and view-read-only (not view-mode))
 	  (view-mode-enter nil 'kill-buffer))
       (goto-char (point-min))
-      (forward-line (if concise 2 4)))
+      ;; Move to the "Emacs Tutorial" line.
+      (forward-line (if concise 2 3)))
     (if concise
 	(progn
 	  (display-buffer splash-buffer)

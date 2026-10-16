@@ -18,7 +18,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #ifndef CYGW32_H
 #define CYGW32_H
-#include <config.h>
 #include <windef.h>
 #include <sys/cygwin.h>
 #include <wchar.h>

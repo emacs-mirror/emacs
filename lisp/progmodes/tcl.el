@@ -615,6 +615,8 @@ already exist."
     (setq-local paragraph-ignore-fill-prefix t))
 
   (setq-local indent-line-function #'tcl-indent-line)
+  (setq-local editorconfig-indent-size-vars
+              '(tcl-indent-level tcl-continued-indent-level))
   (setq-local comment-indent-function #'tcl-comment-indent)
   ;; Tcl doesn't require a final newline.
   ;; (setq-local require-final-newline t)

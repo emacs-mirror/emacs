@@ -117,7 +117,7 @@ getrandom (void *buffer, size_t length, unsigned int flags)
 {
 #if defined _WIN32 && ! defined __CYGWIN__
   /* BCryptGenRandom, defined in <bcrypt.h>
-     <https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom>
+     <https://learn.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom>
      with the BCRYPT_USE_SYSTEM_PREFERRED_RNG flag
      works in Windows 7 and newer.  */
   static int bcrypt_not_working /* = 0 */;
@@ -136,10 +136,10 @@ getrandom (void *buffer, size_t length, unsigned int flags)
     }
 # if !HAVE_LIB_BCRYPT
   /* CryptGenRandom, defined in <wincrypt.h>
-     <https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptgenrandom>
+     <https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptgenrandom>
      works in older releases as well, but is now deprecated.
      CryptAcquireContext, defined in <wincrypt.h>
-     <https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptacquirecontexta>  */
+     <https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptacquirecontexta>  */
   {
     static int crypt_initialized /* = 0 */;
     static HCRYPTPROV provider;

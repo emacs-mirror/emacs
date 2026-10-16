@@ -320,9 +320,9 @@ Remove also properties of all files in subdirectories."
 (defun tramp-flush-file-function ()
   "Flush all Tramp cache properties from `buffer-file-name'.
 This is suppressed for temporary buffers."
-  (save-match-data
-    (unless (or (null (buffer-name))
-		(string-match-p (rx bos (| blank "*")) (buffer-name)))
+  (unless (or (null (buffer-name))
+	      (string-match-p (rx bos (| blank "*")) (buffer-name)))
+    (save-match-data
       (let ((bfn (if (stringp (buffer-file-name))
 		     (buffer-file-name)
 		   default-directory))

@@ -12165,7 +12165,7 @@ screen line that includes TO to the returned height of the text.  */)
   return value;
 }
 
-DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 4, 0,
+DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 6, 0,
        doc: /* Return the dimensions of whole text of BUFFER-OR-NAME in WINDOW.
 BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
 and defaults to the current buffer.  WINDOW must be a live window and
@@ -12173,15 +12173,15 @@ defaults to the selected one.  The return value is a cons of the maximum
 pixel-width of any text line and the pixel-height of all the text lines
 of the buffer specified by BUFFER-OR-NAME.
 
-The optional arguments X-LIMIT and Y-LIMIT have the same meaning as with
-`window-text-pixel-size'.
+The optional arguments X-LIMIT, Y-LIMIT, FROM and TO, have the same
+meaning as with `window-text-pixel-size'.
 
 Do not use this function if the buffer specified by BUFFER-OR-NAME is
 already displayed in WINDOW.  `window-text-pixel-size' is cheaper in
 that case because it does not have to temporarily show that buffer in
 WINDOW.  */)
   (Lisp_Object buffer_or_name, Lisp_Object window, Lisp_Object x_limit,
-   Lisp_Object y_limit)
+   Lisp_Object y_limit, Lisp_Object from, Lisp_Object to)
 {
   struct window *w = decode_live_window (window);
   struct buffer *b = (NILP (buffer_or_name)
@@ -12209,7 +12209,7 @@ WINDOW.  */)
       set_marker_both (w->old_pointm, buffer, BEG, BEG_BYTE);
     }
 
-  value = window_text_pixel_size (window, Qnil, Qnil, x_limit, y_limit, Qnil,
+  value = window_text_pixel_size (window, from, to, x_limit, y_limit, Qnil,
 				  Qnil);
 
   unbind_to (count, Qnil);
@@ -19541,6 +19541,11 @@ try_scrolling (Lisp_Object window, bool just_this_one_p,
 
 	  if (dy > 0)
 	    scroll_down_p = true;
+	}
+      else if (scroll_margin_y < 0)
+	{
+	  /* A tall row (like tall image?) at window's bottom.  */
+	  scroll_down_p = true;
 	}
     }
 
@@ -29558,16 +29563,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
 	}
 
     case 'e':
-#if !defined SYSTEM_MALLOC
-      {
-	if (NILP (Vmemory_full))
-	  return "";
-	else
-	  return "!MEM FULL! ";
-      }
-#else
-      return "";
-#endif
+      return !NILP (Vmemory_full) ? "!MEM FULL! " : "";
 
     case 'F':
       /* %F displays the frame name.  */
@@ -39372,6 +39368,24 @@ with fonts that specify an UNDERLINE_POSITION relatively close to the
 baseline.  The default value is 1.  */);
   underline_minimum_offset = 1;
   DEFSYM (Qunderline_minimum_offset, "underline-minimum-offset");
+
+  DEFVAR_BOOL ("underline-line-scaling-flag",
+	       underline_line_scaling_flag,
+     doc: /* Non-nil means scale the underline line with text scaling.
+This can make underline more prominent with large scaling.  */);
+  underline_line_scaling_flag = false;
+
+  DEFVAR_BOOL ("overline-line-scaling-flag",
+	       overline_line_scaling_flag,
+     doc: /* Non-nil means scale the overline line with text scaling.
+This can make overline more prominent with large scaling.  */);
+  overline_line_scaling_flag = false;
+
+  DEFVAR_BOOL ("strike-through-line-scaling-flag",
+	       strike_through_line_scaling_flag,
+     doc: /* Non-nil means scale the strike-through line with text scaling.
+This can make strike-through more prominent with large scaling.  */);
+  strike_through_line_scaling_flag = false;
 
   DEFVAR_BOOL ("display-hourglass", display_hourglass_p,
 	       doc: /* Non-nil means show an hourglass pointer, when Emacs is busy.

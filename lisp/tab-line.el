@@ -1276,7 +1276,7 @@ menu by calling FUNCTION with EVENT, and return nil."
                           (progn
                             (when function
                               (setq timer
-                                    (run-at-time touch-screen-delay t
+                                    (run-at-time touch-screen-delay nil
                                                  #'throw 'context-menu
                                                  'context-menu)))
                             (touch-screen-track-tap event))

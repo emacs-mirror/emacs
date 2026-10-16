@@ -2497,12 +2497,20 @@ URL at or before point.
 The additional ARGS are passed to the browser function.  See the
 doc strings of the actual functions, starting with
 `browse-url-browser-function', for information about the
-significance of ARGS (most of the functions ignore it).
+significance of ARGS (many of the functions ignore it).
 
 If ARGS are omitted, the default is to pass
 `browse-url-new-window-flag' as ARGS.  Interactively, pass the
 prefix arg as ARGS; if `browse-url-new-window-flag' is non-nil,
 invert the prefix arg instead.
+
+In the case of a command that calls this function where a prefix
+argument should mean to open a new window, the command should call this
+function like this so that it works the same as the various
+`browse-url-browser-function' values directly called interactively:
+    (browse-url ...
+                (xor (bound-and-true-p browse-url-new-window-flag)
+                     current-prefix-arg))
 
 (fn URL &rest ARGS)" t)
 (autoload 'browse-url-at-point "browse-url"
@@ -2582,7 +2590,13 @@ instead of `browse-url-new-window-flag'.
 Default to the URL around or before point.  Invokes the program
 specified by `browse-url-chromium-program'.  Passes the strings in
 variable `browse-url-chromium-arguments' to that program.
-The optional argument NEW-WINDOW is not used.
+
+Interactively, if the variable `browse-url-new-window-flag' is non-nil,
+loads the document in a new Chromium window.  A non-nil prefix argument
+reverses the effect of `browse-url-new-window-flag'.
+
+Non-interactively, this uses the optional second argument NEW-WINDOW
+instead of `browse-url-new-window-flag'.
 
 (fn URL &optional NEW-WINDOW)" t)
 (autoload 'browse-url-webpositive "browse-url"
@@ -5274,8 +5288,6 @@ evaluate the variable `compilation-shell-minor-mode'.
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
 
-\\{compilation-shell-minor-mode-map}
-
 (fn &optional ARG)" t)
 (autoload 'compilation-minor-mode "compile"
 "Toggle Compilation minor mode.
@@ -5297,8 +5309,6 @@ evaluate the variable `compilation-minor-mode'.
 
 The mode's hook is called both when the mode is enabled and when it is
 disabled.
-
-\\{compilation-minor-mode-map}
 
 (fn &optional ARG)" t)
 (autoload 'compilation-next-error-function "compile"
@@ -7906,7 +7916,7 @@ the word at mouse click.
 
 ;;; Generated autoloads from vc/diff.el
 
-(defvar diff-switches "-u"
+(defvar diff-switches '("-u" "-r")
 "A string or list of strings specifying switches to be passed to diff.
 
 This variable is also used in the `vc-diff' command (and related
@@ -24281,7 +24291,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 7) package--builtin-versions)
+(push '(org 9 8 10) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -25055,14 +25065,13 @@ Install it with
 
 (fn &optional BOUND MOVE BACKWARD LOOKING-AT)")
 (put 'outline-comment-regexp 'safe-local-variable 'stringp)
-(autoload 'outline-xref "outline"
-"Navigate the current buffer's outline using Xref.
+(autoload 'outline-find-headings "outline"
+"Find all outline headings in the current buffer.
 Display an Xref buffer with the outline headings found in the current
-buffer.  You can use Xref commands in that Xref buffer to navigate and edit
-the outline.
+buffer.  You can use that Xref buffer to navigate and edit the outline.
 
 If `outline-search-function' is non-nil, it is used to find the outline
-headings.  Otherwise, the `outline-regexp' variable is used." t)
+headings.  Otherwise, `outline-regexp' is used." t)
 (register-definition-prefixes "outline" '("outline-"))
 
 
@@ -35495,7 +35504,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/tramp-compat.el
 
-(register-definition-prefixes "tramp-compat" '("tramp-"))
+(register-definition-prefixes "tramp-compat" '("tramp-compat-"))
 
 
 ;;; Generated autoloads from net/tramp-container.el
@@ -35565,7 +35574,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 3 -1) package--builtin-versions)
+(push '(tramp 2 9 0 -1) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -36894,6 +36903,10 @@ Usage:
 "
 
 (fn NAME KEYWORD ARGS)")
+(autoload 'use-package-ensure-installed "use-package-ensure"
+"
+
+(fn PACKAGE)")
 (autoload 'use-package-handler/:ensure "use-package-ensure"
 "
 
@@ -37574,11 +37587,12 @@ saving the buffer.
 
 (fn HISTORIC &optional NOT-ESSENTIAL)" t)
 (autoload 'vc-root-dir "vc"
-"Return the root directory for the current VC tree.
+"Return the root directory for the VC tree containing DIRECTORY.
 Return nil if the root directory cannot be identified.
 BACKEND is the VC backend.
+DIRECTORY defaults to `default-directory'.
 
-(fn &optional BACKEND)")
+(fn &optional BACKEND DIRECTORY)")
 (autoload 'vc-revision-other-window "vc"
 "Visit revision REV of the current file in another window.
 If the current file is named `F', the revision is named `F.~REV~'.
@@ -38277,7 +38291,7 @@ step during initialization." t)
 
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
-(push '(verilog-mode 2026 4 14 10117132) package--builtin-versions)
+(push '(verilog-mode 2026 8 31 185049335) package--builtin-versions)
 (autoload 'verilog-mode "verilog-mode"
 "Major mode for editing Verilog code.
 \\<verilog-mode-map>

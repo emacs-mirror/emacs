@@ -3841,6 +3841,7 @@ Currently there are `js-mode' and `js-ts-mode'."
   ;; Ensure all CC Mode "lang variables" are set to valid values.
   (c-init-language-vars js-mode)
   (setq-local indent-line-function #'js-indent-line)
+  (setq-local editorconfig-indent-size-vars '(js-indent-level))
   (setq-local beginning-of-defun-function #'js-beginning-of-defun)
   (setq-local end-of-defun-function #'js-end-of-defun)
   (setq-local open-paren-in-column-0-is-defun-start nil)
@@ -4079,6 +4080,7 @@ See `treesit-thing-settings' for more information.")
 
     ;; Indent.
     (setq-local treesit-simple-indent-rules (js--treesit-indent-rules))
+    (setq-local editorconfig-indent-size-vars '(js-indent-level))
     ;; Navigation.
     (setq-local treesit-defun-type-regexp js--treesit-defun-type-regexp)
     (setq-local treesit-defun-name-function #'js--treesit-defun-name)
@@ -4175,6 +4177,10 @@ could set `js-jsx-syntax' to t in your init file, or in a
 one of the aforementioned options instead of using this mode."
   :group 'js
   (js-jsx-enable)
+  ;; According to the comment after `js-jsx-indent-level' we don't use
+  ;;  `sgml-basic-offset' any more.
+  ;;(setq-local editorconfig-indent-size-vars
+  ;;            '(js-indent-level sgml-basic-offset',))
   (setq-local comment-region-function #'js-jsx--comment-region)
   (js-use-syntactic-mode-name))
 

@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <stdlib.h>
 
 #ifdef WINDOWSNT
+# include <tzsanitize.h>
 extern clock_t sys_clock (void);
 #endif
 
@@ -200,6 +201,7 @@ static struct tm *
 emacs_localtime_rz (timezone_t tz, time_t const *t, struct tm *tm)
 {
 #ifdef WINDOWSNT
+  tzsanitize ();
   /* The Windows CRT functions are "optimized for speed", so they don't
      check for timezone and DST changes if they were last called less
      than 1 minute ago (see http://support.microsoft.com/kb/821231).
@@ -324,8 +326,11 @@ tzlookup (Lisp_Object zone, bool settz)
     {
       block_input ();
       emacs_setenv_TZ (zone_string);
+#ifndef WINDOWSNT
       tzset ();
-#ifdef WINDOWSNT
+#else	/* WINDOWSNT */
+      tzsanitize ();
+      tzset ();
       w32_fix_tzset ();
 #endif
       timezone_t old_tz = local_tz;

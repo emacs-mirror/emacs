@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 #ifndef EMACS_GC_HANDLES_H
 #define EMACS_GC_HANDLES_H
 
-#include "config.h"
 #include "lisp.h"
 
 struct gc_handle_struct;

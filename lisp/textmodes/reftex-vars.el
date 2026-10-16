@@ -927,11 +927,10 @@ DOWNCASE    t:   Downcase words before using them."
       "}[^][]*\\)*"
       ;; Match the label key
       "\\<label[[:space:]]*=[[:space:]]*"
-      ;; Match the label value; braces around the value are
-      ;; optional.
-      "{?\\(?1:[^] ,}\r\n\t%]+\\)"
-      ;; We are done.  Just search until the next closing bracket
-      "[^]]*\\]"))
+      ;; Match the label value; braces around the value are optional
+      ;; from LaTeX's POV, but needed for RefTeX's follow-mode.  Make
+      ;; sure point is after the value:
+      "{?\\(?1:[^] ,}\r\n\t%]+\\)}?"))
   "List of regexps matching \\label definitions.
 The default value matches usual \\label{...} definitions and
 keyval style [..., label = {...}, ...] label definitions.  The

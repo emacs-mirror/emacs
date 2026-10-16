@@ -1,5 +1,5 @@
 # time_r.m4
-# serial 1
+# serial 2
 dnl Copyright (C) 2003, 2006-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -12,6 +12,7 @@ dnl Written by Paul Eggert.
 
 AC_DEFUN([gl_TIME_R],
 [
+  AC_REQUIRE([AC_CANONICAL_HOST])
   dnl Persuade glibc and Solaris <time.h> to declare localtime_r.
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 
@@ -92,6 +93,12 @@ AC_DEFUN([gl_TIME_R],
       REPLACE_LOCALTIME_R=1
     fi
   fi
+  dnl This inline function definition also has the effect that time_r.o
+  dnl might get created during the build but then get ignored at link time.
+  dnl Force its inclusion at link time.
+  case "$host_os" in
+    mingw* | windows*) REPLACE_LOCALTIME_R=1 ;;
+  esac
 ])
 
 # Prerequisites of lib/time_r.c.

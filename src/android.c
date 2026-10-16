@@ -3911,6 +3911,18 @@ android_set_foreground (struct android_gc *gc, unsigned long foreground)
 }
 
 void
+android_set_line_attributes (struct android_gc *gc, unsigned int line_width,
+			     enum android_line_style line_style)
+{
+  struct android_gc_values gcv;
+
+  gcv.line_width = line_width;
+  gcv.line_style = line_style;
+  android_change_gc (gc, (ANDROID_GC_LINE_WIDTH
+			  | ANDROID_GC_LINE_STYLE), &gcv);
+}
+
+void
 android_fill_rectangle (android_drawable handle, struct android_gc *gc,
 			int x, int y, unsigned int width,
 			unsigned int height)

@@ -201,23 +201,23 @@ Also see `mouse-wheel-tilt-scroll'."
 (defun mwheel-inhibit-click-timeout ()
   "Handler for `mwheel-inhibit-click-event-timer'."
   (setq mwheel-inhibit-click-event-timer nil)
-  (remove-hook 'pre-command-hook 'mwheel-filter-click-events))
+  (remove-hook 'pre-command-hook #'mwheel-filter-click-events))
 
 (defun mwheel-filter-click-events ()
   "Discard `mouse-wheel-click-event' while scrolling the mouse."
   (if (eq (event-basic-type last-input-event) mouse-wheel-click-event)
       (setq this-command 'ignore)))
 
-(defvar mwheel-scroll-up-function 'scroll-up
+(defvar mwheel-scroll-up-function #'scroll-up
   "Function that does the job of scrolling upward.")
 
-(defvar mwheel-scroll-down-function 'scroll-down
+(defvar mwheel-scroll-down-function #'scroll-down
   "Function that does the job of scrolling downward.")
 
-(defvar mwheel-scroll-left-function 'scroll-left
+(defvar mwheel-scroll-left-function #'scroll-left
   "Function that does the job of scrolling left.")
 
-(defvar mwheel-scroll-right-function 'scroll-right
+(defvar mwheel-scroll-right-function #'scroll-right
   "Function that does the job of scrolling right.")
 
 (defvar mouse-wheel-left-event 'mouse-6
@@ -270,6 +270,22 @@ active window."
            ;; We presume here `button' is never nil.
            (eq ,butsym ,custom-var)))))
 
+(defun mwheel--mods-equal (mods1 mods2)
+  "Return non-nil if the two sets of modifiers are equal.
+Ordering is significant, but click and multiplicity modifiers are ignored."
+  (while (cond
+          ((memq (car mods1) '(click double triple))
+           (setq mods1 (cdr mods1))
+           t)
+          ((memq (car mods2) '(click double triple))
+           (setq mods2 (cdr mods2))
+           t)
+          ((and mods1 mods2 (eq (car mods1) (car mods2)))
+           (setq mods1 (cdr mods1))
+           (setq mods2 (cdr mods2))
+           t)))
+  (equal mods1 mods2))
+
 (defun mwheel-scroll (event &optional arg)
   "Scroll up or down according to the EVENT.
 This should be bound only to mouse buttons 4, 5, 6, and 7 on
@@ -287,9 +303,8 @@ value of ARG, and the command uses it in subsequent scrolls."
           (and (eq scroll-window selected-window)
 	       (eq (car-safe transient-mark-mode) 'only)
 	       (window-point)))
-         (mods
-	  (delq 'click (delq 'double (delq 'triple (event-modifiers event)))))
-         (amt (assoc mods mouse-wheel-scroll-amount))
+         (amt (assoc (event-modifiers event)
+                     mouse-wheel-scroll-amount #'mwheel--mods-equal))
          saw-error)
     (unless (eq scroll-window selected-window)
       ;; Mark window to be scrolled for redisplay.
@@ -378,10 +393,10 @@ value of ARG, and the command uses it in subsequent scrolls."
                mouse-wheel-click-event mouse-wheel-inhibit-click-time)
       (if mwheel-inhibit-click-event-timer
           (cancel-timer mwheel-inhibit-click-event-timer)
-        (add-hook 'pre-command-hook 'mwheel-filter-click-events))
+        (add-hook 'pre-command-hook #'mwheel-filter-click-events))
       (setq mwheel-inhibit-click-event-timer
             (run-with-timer mouse-wheel-inhibit-click-time nil
-                            'mwheel-inhibit-click-timeout)))))
+                            #'mwheel-inhibit-click-timeout)))))
 
 (put 'mwheel-scroll 'scroll-command t)
 
@@ -463,13 +478,13 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
                            'wheel-down 'wheel-up))
         (when event
           (mouse-wheel--add-binding `[,(append (car binding) (list event))]
-                                    'mouse-wheel-text-scale))))
+                                    #'mouse-wheel-text-scale))))
      ((and (consp binding) (eq (cdr binding) 'global-text-scale))
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
                            'wheel-down 'wheel-up))
         (when event
           (mouse-wheel--add-binding `[,(append (car binding) (list event))]
-                                    'mouse-wheel-global-text-scale))))
+                                    #'mouse-wheel-global-text-scale))))
      ;; Bindings for scrolling.
      (t
       (dolist (event (list mouse-wheel-down-event mouse-wheel-up-event
@@ -477,7 +492,7 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
                            'wheel-down 'wheel-up 'wheel-left 'wheel-right))
         (when event
           (dolist (key (mouse-wheel--create-scroll-keys binding event))
-            (mouse-wheel--add-binding key 'mwheel-scroll))))))))
+            (mouse-wheel--add-binding key #'mwheel-scroll))))))))
 
 (when mouse-wheel-mode
   (mouse-wheel--setup-bindings))

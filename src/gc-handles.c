@@ -80,6 +80,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 
 */
 
+#include "config.h"
 #include "gc-handles.h"
 
 struct gc_handle_struct

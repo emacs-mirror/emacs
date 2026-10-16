@@ -141,7 +141,7 @@ struct scroll_bar
 
   /* True if the scroll bar is horizontal.  */
   bool horizontal;
-};
+} GCALIGNED_STRUCT;
 
 struct pgtk_display_info
 {

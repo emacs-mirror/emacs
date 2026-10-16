@@ -4332,10 +4332,9 @@ mpz_get_str (char *sp, int base, const mpz_t u)
 	return NULL;
     }
 
-  sn = 1 + mpz_sizeinbase (u, base);
   if (!sp)
     {
-      osn = 1 + sn;
+      osn = 2 + mpz_sizeinbase (u, base);
       sp = (char *) gmp_alloc (osn);
     }
   else

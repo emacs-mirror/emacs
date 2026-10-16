@@ -191,7 +191,7 @@ get_stat_birthtime (_GL_UNUSED struct stat const *st)
 #elif defined _WIN32 && ! defined __CYGWIN__
   /* Native Windows platforms (but not Cygwin) put the "file creation
      time" in st_ctime (!).  See
-     <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/stat-functions>.  */
+     <https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/stat-functions>.  */
 # if _GL_WINDOWS_STAT_TIMESPEC
   t = st->st_ctim;
 # else

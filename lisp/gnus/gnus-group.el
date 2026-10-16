@@ -407,7 +407,6 @@ It is also possible to change and add form fields, but currently that
 requires an understanding of Lisp expressions.  Hopefully this will
 change in a future release.  For now, you can use the same
 variables in the Lisp expression as in `gnus-group-highlight'."
-  :group 'gnus-group-icons
   :type '(repeat (cons (sexp :tag "Form") file))
   :risky t)
 
@@ -1338,7 +1337,7 @@ if it is a string, only list groups matching REGEXP."
        (cl-union
 	not-in-list
 	(setq gnus-killed-list (sort gnus-killed-list #'string<))
-	:test 'equal)
+	:test #'equal)
        gnus-level-killed ?K regexp))
 
     (gnus-group-set-mode-line)
@@ -1447,7 +1446,7 @@ if it is a string, only list groups matching REGEXP."
   "Force updating the group buffer tool bar."
   :group 'gnus-group
   :version "22.1"
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
 	 (when (gnus-alive-p)
@@ -3194,7 +3193,7 @@ non-nil SPECS arg must be an alist with `search-query-spec' and
 	  (cons 'nnselect-artlist nil)))))))
 
 (define-obsolete-function-alias 'gnus-group-make-nnir-group
-  'gnus-group-read-ephemeral-search-group "28.1")
+  #'gnus-group-read-ephemeral-search-group "28.1")
 
 (defun gnus-group-read-ephemeral-search-group (no-parse &optional specs)
   "Read an nnselect group based on a search.
@@ -3602,13 +3601,16 @@ Obeys the process/prefix convention."
       (push `(,(cdr el) add (,(car el))) action))
     (push `(,(gnus-info-read info) add (read)) action)
     (gnus-undo-register
-      `(progn
-	 (gnus-request-set-mark ,group ',action)
-	 (gnus-info-set-marks ',info ',(gnus-info-marks info) t)
-	 (setf (gnus-info-read ',info) ',(gnus-info-read info))
-	 (when (gnus-group-jump-to-group ,group)
-	   (gnus-get-unread-articles-in-group ',info ',(gnus-active group) t)
-	   (gnus-group-update-group-line))))
+     (let ((gim (gnus-info-marks info))
+           (gir (gnus-info-read info))
+           (ga (gnus-active group)))
+       (lambda ()
+	 (gnus-request-set-mark group action)
+	 (gnus-info-set-marks info gim t)
+	 (setf (gnus-info-read info) gir)
+	 (when (gnus-group-jump-to-group group)
+	   (gnus-get-unread-articles-in-group info ga t)
+	   (gnus-group-update-group-line)))))
     (setq action (mapcar (lambda (el) (list (nth 0 el) 'del (nth 2 el)))
 			 action))
     (gnus-request-set-mark group action)
@@ -3955,9 +3957,10 @@ of groups killed."
 	  (when (and (not discard)
 		     (setq entry (gnus-group-entry group)))
 	    (gnus-undo-register
-	      `(progn
-		 (gnus-group-goto-group ,(gnus-group-group-name))
-		 (gnus-group-yank-group)))
+	     (let ((gn (gnus-group-group-name)))
+	       (lambda ()
+	         (gnus-group-goto-group gn)
+	         (gnus-group-yank-group))))
 	    (push (cons (car entry) (nth 1 entry))
 		  gnus-list-of-killed-groups))
 	  (gnus-group-change-level
@@ -4019,8 +4022,10 @@ yanked) a list of yanked groups is returned."
       (gnus-group-insert-group-line-info group)
       (gnus-request-update-group-status group 'subscribe)
       (gnus-undo-register
-	`(when (gnus-group-goto-group ,group)
-	   (gnus-group-kill-group 1))))
+       (let ((group group))
+	 (lambda ()
+	   (when (gnus-group-goto-group group)
+	     (gnus-group-kill-group 1))))))
     (forward-line -1)
     (gnus-group-position-point)
     (if (< (length out) 2) (car out) (nreverse out))))

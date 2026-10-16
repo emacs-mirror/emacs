@@ -8669,6 +8669,19 @@ Finally, kill the buffer and its temporary file."
     (should (= (point-min) 1))
     (should (= (point-max) 5001))))
 
+(ert-deftest test-insertion-at-restriction-end ()
+  "Test insertion at the end of a restriction."
+  (with-temp-buffer
+    (let ((start (point-min)))
+      (insert (propertize "foo" 'face 'bold))
+      (with-restriction (1+ start) (point-max) :label 'test
+        (goto-char (point-max))
+        (insert "b")
+        (without-restriction :label 'test
+          (should (= (point) (point-max) (1+ (buffer-size))))
+          (should (= (current-column) 4)))
+        (should (= (point) (point-max) (+ start 4)))))))
+
 (ert-deftest test-line-spacing ()
   "Test `line-spacing' impact on text size"
   (skip-unless (display-graphic-p))

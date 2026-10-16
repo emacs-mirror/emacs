@@ -252,7 +252,9 @@ buffers."
   "u" #'diff-revert-and-kill-hunk
   ;; `diff-revert-and-kill-hunk' is the `diff-mode' analogue of what '@'
   ;; does in VC-Dir, so give it the same short binding.
-  "@" #'diff-revert-and-kill-hunk)
+  "@" #'diff-revert-and-kill-hunk
+  ;; Doesn't ask for confirmation but should be harmless.
+  "f" #'diff-goto-old-source)
 
 (defvar-keymap diff-mode-map
   :doc "Keymap for `diff-mode'.  See also `diff-mode-shared-map'."
@@ -2509,10 +2511,20 @@ set to nil if non-nil).  When called from Lisp this toggling
 happens when the value of optional argument OTHER-FILE considered
 as a prefix argument has a numeric value bigger than 8.
 
-Under version control, jumping to the old file means jumping to the old
-revision of the file in the manner of \\[vc-revision-other-window], \
-and occurs only when
-point is on an old changed line (i.e. a removed line)."
+Under version control (usually: in a *vc-diff* buffer), by default jump
+to the version of the file in the working tree.  This version of the
+file may be unrelated to the diff's old and new revisions.
+With a prefix argument (when called from Lisp, with optional argument
+OTHER-FILE non-nil), jump to source code corresponding to one of the
+diff's old or new revisions as follows:
+- if point is on an old changed line (i.e. a removed line),
+  jump to the old source file in the manner of \\[vc-revision-other-window]
+- otherwise, jump to the new source file,
+  either by visiting the version of the file in the working tree
+  (when the new source file is the working tree's),
+  or in the manner of \\[vc-revision-other-window].
+`diff-jump-to-old-file' non-nil and a prefix argument bigger than 8 are
+as above."
   (interactive (list current-prefix-arg last-input-event))
   ;; When pointing at a removal line, we probably want to jump to
   ;; the old location, and else to the new (i.e. as if reverting).
@@ -2525,6 +2537,21 @@ point is on an old changed line (i.e. a removed line)."
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
       (when buffer (next-error-found buffer (current-buffer))))))
+
+(defun diff-goto-old-source ()
+  "Like `diff-goto-source', but with `diff-jump-to-old-file' always non-nil.
+Jump to corresponding line of the old source file.
+Under version control (usually: in a *vc-diff* buffer), jump to source
+code corresponding to one of the diff's old or new revisions as follows:
+- if point is on an old changed line (i.e. a removed line),
+  jump to the old source file in the manner of \\[vc-revision-other-window]
+- otherwise, jump to the new source file,
+  either by visiting the version of the file in the working tree
+  (when the new source file is the working tree's),
+  or in the manner of \\[vc-revision-other-window]."
+  (interactive)
+  (let ((diff-jump-to-old-file t))
+    (diff-goto-source nil nil)))
 
 (defun diff-kill-ring-save (beg end &optional reverse)
   "Save to `kill-ring' the result of applying diffs in region between BEG and END.

@@ -841,7 +841,15 @@ status_message (struct Lisp_Process *p)
 	  c1 = STRING_CHAR (SDATA (string));
 	  c2 = downcase (c1);
 	  if (c1 != c2)
-	    Faset (string, make_fixnum (0), make_fixnum (c2));
+	    {
+	      if (ASCII_CHAR_P (c1) && ASCII_CHAR_P (c2))
+		Faset (string, make_fixnum (0), make_fixnum (c2));
+	      else
+		string = concat2 (Fdowncase (Fsubstring (string,
+							 make_fixnum (0),
+							 make_fixnum (1))),
+				  Fsubstring (string, make_fixnum (1), Qnil));
+	    }
 	}
       AUTO_STRING (suffix, coredump ? " (core dumped)\n" : "\n");
       return concat2 (string, suffix);
@@ -5597,7 +5605,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		  rarely_quit (++count);
 		  if (nread < 0)
 		    {
-		      if (errno != EINTR)
+		      if (errno != EINTR
+			  /* In case a process filter deletes the process.  */
+			  || wait_proc->infd < 0)
 			break;
 		    }
 		  else
@@ -5607,6 +5617,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		      if (nread == 0)
 			break;
 		      read_some_bytes = true;
+		      /* In case a process filter deletes the process.  */
+		      if (wait_proc->infd < 0)
+			break;
 		    }
 		}
 	    }

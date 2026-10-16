@@ -2624,13 +2624,13 @@ regular expression).
 @deffn Command previous-complete-history-element n
 This command replaces the minibuffer contents with the value of the
 @var{n}th previous (older) history element that completes the current
-contents of the minibuffer before the point.
+contents of the minibuffer before point.
 @end deffn
 
 @deffn Command next-complete-history-element n
 This command replaces the minibuffer contents with the value of the
 @var{n}th next (newer) history element that completes the current
-contents of the minibuffer before the point.
+contents of the minibuffer before point.
 @end deffn
 
 @deffn Command goto-history-element nabs

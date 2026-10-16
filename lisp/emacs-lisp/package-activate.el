@@ -337,7 +337,10 @@ PKG-DESC is a `package-desc' object."
     ;; FIXME: not the friendliest, but simple.
     (defvar Info-default-directory-list)
     (add-to-list
-     (if (boundp 'Info-directory-list)
+     ;; Extend `Info-directory-list' if it has been initialized by
+     ;; `info-initialize'.
+     ;; Otherwise, extend `Info-default-directory-list' (bug#81985).
+     (if (bound-and-true-p Info-directory-list)
          'Info-directory-list
        'Info-default-directory-list)
      pkg-dir)))

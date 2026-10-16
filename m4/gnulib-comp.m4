@@ -221,6 +221,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module timespec:
   # Code from module timespec-add:
   # Code from module timespec-sub:
+  # Code from module tzsanitize:
   # Code from module u64:
   # Code from module unistd-h:
   # Code from module unlocked-io:
@@ -611,6 +612,7 @@ AC_DEFUN([gl_INIT],
   case "$host_os" in
     mingw* | windows*)
       AC_EGREP_CPP([Special], [
+  #include <stdio.h>
   #ifndef _UCRT
    Special
   #endif
@@ -732,6 +734,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c=false
   gl_gnulib_enabled_stdc_memreverse8u=false
   gl_gnulib_enabled_strtoll=false
+  gl_gnulib_enabled_tzsanitize=false
   gl_gnulib_enabled_utimens=false
   gl_gnulib_enabled_verify=false
   func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b ()
@@ -970,6 +973,15 @@ AC_DEFUN([gl_INIT],
       gl_gnulib_enabled_strtoll=true
     fi
   }
+  func_gl_gnulib_m4code_tzsanitize ()
+  {
+    if $gl_gnulib_enabled_tzsanitize; then :; else
+      AC_REQUIRE([AC_CANONICAL_HOST])
+      gl_CONDITIONAL([GL_COND_OBJ_TZSANITIZE],
+                     [case "$host_os" in mingw* | windows*) true;; *) false;; esac])
+      gl_gnulib_enabled_tzsanitize=true
+    fi
+  }
   func_gl_gnulib_m4code_utimens ()
   {
     if $gl_gnulib_enabled_utimens; then :; else
@@ -1050,6 +1062,9 @@ AC_DEFUN([gl_INIT],
   if $GL_GENERATE_IEEE754_H; then
     func_gl_gnulib_m4code_endian
   fi
+  if test $REPLACE_MKTIME = 1; then
+    func_gl_gnulib_m4code_tzsanitize
+  fi
   if test $HAVE_READLINKAT = 0 || test $REPLACE_READLINKAT = 1; then
     func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
   fi
@@ -1104,6 +1119,7 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c], [$gl_gnulib_enabled_6099e9737f757db36c47fa9d9f02e88c])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_stdc_memreverse8u], [$gl_gnulib_enabled_stdc_memreverse8u])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoll], [$gl_gnulib_enabled_strtoll])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_tzsanitize], [$gl_gnulib_enabled_tzsanitize])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_utimens], [$gl_gnulib_enabled_utimens])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_verify], [$gl_gnulib_enabled_verify])
   # End of code from modules
@@ -1525,6 +1541,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/timespec-sub.c
   lib/timespec.c
   lib/timespec.h
+  lib/tzsanitize.c
+  lib/tzsanitize.h
   lib/u64.c
   lib/u64.h
   lib/unistd.c

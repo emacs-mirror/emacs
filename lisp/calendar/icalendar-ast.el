@@ -577,7 +577,7 @@ The resulting syntax node is checked for validity by
               stamp))
        templates))
     (unless (assq 'ical:uid templates)
-      (push `(ical:uid ,(ical:make-uid templates))
+      (push '(ical:uid (ical:make-uid))
             templates)))
   (when (eq type 'ical:vcalendar)
     (unless (assq 'ical:prodid templates)

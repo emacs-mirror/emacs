@@ -332,7 +332,7 @@ is used in buffers that have no alternative completion configured."
                                      " ")
                           ;; ctags's etags requires '-L' for stdin input.
                           (if ctags-p "-L" "")
-                          (shell-quote-argument (file-local-name tags-file)))))
+                          (shell-quote-argument (funcall fun tags-file)))))
     (with-temp-buffer
       (mapc (lambda (f)
               (insert (funcall fun f) "\n"))

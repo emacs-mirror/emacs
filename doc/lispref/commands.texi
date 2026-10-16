@@ -2089,8 +2089,8 @@ positions determines where to pan the display after zooming.
 The low-level touchscreen events described below can be used to
 implement all the touch sequences described above.  In those events,
 each point is represented by a cons of an arbitrary number identifying
-the point and a mouse position list (@pxref{Click Events}) specifying
-the position of the finger when the event occurred.
+the touch point and a mouse position list (@pxref{Click Events})
+specifying the position of the finger when the event occurred.
 
 @table @code
 @cindex @code{touchscreen-begin} event
@@ -2286,7 +2286,7 @@ separately from mouse event translation.
 @defun touch-screen-track-tap event &optional update data threshold
 This function is used to track a single ``tap'' gesture originating
 from the @code{touchscreen-begin} event @var{event}, often used to
-set the point or to activate a button.  It waits for a
+set point or to activate a button.  It waits for a
 @code{touchscreen-end} event with the same touch identifier to arrive,
 at which point it returns @code{t}, signifying the end of the gesture.
 

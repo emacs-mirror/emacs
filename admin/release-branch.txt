@@ -1,5 +1,8 @@
 Instructions for cutting the Emacs release branch
 
+This is of interest to only to the head maintainers.
+Others see admin/release-process and admin/notes/repo.
+
 1.  In the clone of the Emacs Git repository, switch to the 'master'
     branch, "git pull", and build it (using 'make bootstrap') to make
     sure it's not broken.  Run 'make check-expensive' and ensure all

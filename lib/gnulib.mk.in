@@ -53,6 +53,7 @@
 #  --avoid=localcharset \
 #  --avoid=localeinfo \
 #  --avoid=localename-unsafe-limited \
+#  --avoid=localtime \
 #  --avoid=lock \
 #  --avoid=mbrtoc32-regular \
 #  --avoid=mbsinit \
@@ -356,6 +357,7 @@ GL_COND_OBJ_STRTOLL_CONDITION = @GL_COND_OBJ_STRTOLL_CONDITION@
 GL_COND_OBJ_SYMLINK_CONDITION = @GL_COND_OBJ_SYMLINK_CONDITION@
 GL_COND_OBJ_TIMEGM_CONDITION = @GL_COND_OBJ_TIMEGM_CONDITION@
 GL_COND_OBJ_TIME_R_CONDITION = @GL_COND_OBJ_TIME_R_CONDITION@
+GL_COND_OBJ_TZSANITIZE_CONDITION = @GL_COND_OBJ_TZSANITIZE_CONDITION@
 GL_COND_OBJ_UTIMENSAT_CONDITION = @GL_COND_OBJ_UTIMENSAT_CONDITION@
 GL_GENERATE_ALLOCA_H_CONDITION = @GL_GENERATE_ALLOCA_H_CONDITION@
 GL_GENERATE_ASSERT_H_CONDITION = @GL_GENERATE_ASSERT_H_CONDITION@
@@ -1536,6 +1538,7 @@ gl_GNULIB_ENABLED_open_CONDITION = @gl_GNULIB_ENABLED_open_CONDITION@
 gl_GNULIB_ENABLED_rawmemchr_CONDITION = @gl_GNULIB_ENABLED_rawmemchr_CONDITION@
 gl_GNULIB_ENABLED_stdc_memreverse8u_CONDITION = @gl_GNULIB_ENABLED_stdc_memreverse8u_CONDITION@
 gl_GNULIB_ENABLED_strtoll_CONDITION = @gl_GNULIB_ENABLED_strtoll_CONDITION@
+gl_GNULIB_ENABLED_tzsanitize_CONDITION = @gl_GNULIB_ENABLED_tzsanitize_CONDITION@
 gl_GNULIB_ENABLED_utimens_CONDITION = @gl_GNULIB_ENABLED_utimens_CONDITION@
 gl_GNULIB_ENABLED_verify_CONDITION = @gl_GNULIB_ENABLED_verify_CONDITION@
 gl_LIBOBJDEPS = @gl_LIBOBJDEPS@
@@ -4358,6 +4361,20 @@ libgnu_a_SOURCES += timespec-sub.c
 
 endif
 ## end   gnulib module timespec-sub
+
+## begin gnulib module tzsanitize
+ifeq (,$(OMIT_GNULIB_MODULE_tzsanitize))
+
+ifneq (,$(gl_GNULIB_ENABLED_tzsanitize_CONDITION))
+ifneq (,$(GL_COND_OBJ_TZSANITIZE_CONDITION))
+libgnu_a_SOURCES += tzsanitize.c
+endif
+
+endif
+EXTRA_DIST += tzsanitize.h
+
+endif
+## end   gnulib module tzsanitize
 
 ## begin gnulib module u64
 ifeq (,$(OMIT_GNULIB_MODULE_u64))

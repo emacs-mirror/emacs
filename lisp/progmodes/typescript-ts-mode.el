@@ -693,7 +693,8 @@ This mode is intended to be inherited by concrete major modes."
   (setq-local treesit-simple-imenu-settings
               typescript-ts-mode--simple-imenu-settings)
   ;; Outline minor mode
-  (setq-local treesit-outline-predicate typescript-ts-mode--outline-predicate))
+  (setq-local treesit-outline-predicate typescript-ts-mode--outline-predicate)
+  (setq-local editorconfig-indent-size-vars '(typescript-ts-indent-offset)))
 
 ;;;###autoload
 (define-derived-mode typescript-ts-mode typescript-ts-base-mode "TypeScript"

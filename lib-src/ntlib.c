@@ -40,6 +40,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <nl_types.h>
 #include <langinfo.h>
+#include <tzsanitize.h>
 
 #include "ntlib.h"
 

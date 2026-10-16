@@ -485,7 +485,7 @@ If point is not enclosed by any lists, return ((t) . (t))."
                   (funcall ended-prematurely-fn)))))))
     (cons innermost outermost)))
 
-(defvar electric-pair-string-bound-function 'point-max
+(defvar electric-pair-string-bound-function #'point-max
   "Next buffer position where strings are syntactically unexpected.
 Value is a function called with no arguments and returning a
 buffer position.  Major modes should set this variable

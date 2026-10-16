@@ -47,8 +47,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdckdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
 #include <intprops.h>
 
@@ -67,36 +66,16 @@
 #endif
 #include "mktime-internal.h"
 
+#if NEED_MKTIME_WINDOWS
+# include "tzsanitize.h"
+#endif
+
 #if !defined _LIBC && (NEED_MKTIME_WORKING || NEED_MKTIME_WINDOWS)
 static void
 my_tzset (void)
 {
 # if NEED_MKTIME_WINDOWS
-  /* Rectify the value of the environment variable TZ.
-     There are four possible kinds of such values:
-       - Traditional US time zone names, e.g. "PST8PDT".  Syntax: see
-         <https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/tzset>
-       - Time zone names based on geography, that contain one or more
-         slashes, e.g. "Europe/Moscow".
-       - Time zone names based on geography, without slashes, e.g.
-         "Singapore".
-       - Time zone names that contain explicit DST rules.  Syntax: see
-         <https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html#tag_08_03>
-     The Microsoft CRT understands only the first kind.  It produces incorrect
-     results if the value of TZ is of the other kinds.
-     But in a Cygwin environment, /etc/profile.d/tzset.sh sets TZ to a value
-     of the second kind for most geographies, or of the first kind in a few
-     other geographies.  If it is of the second kind, neutralize it.  For the
-     Microsoft CRT, an absent or empty TZ means the time zone that the user
-     has set in the Windows Control Panel.
-     If the value of TZ is of the third or fourth kind -- Cygwin programs
-     understand these syntaxes as well --, it does not matter whether we
-     neutralize it or not, since these values occur only when a Cygwin user
-     has set TZ explicitly; this case is 1. rare and 2. under the user's
-     responsibility.  */
-  const char *tz = getenv ("TZ");
-  if (tz != NULL && strchr (tz, '/') != NULL)
-    _putenv ("TZ=");
+  tzsanitize ();
 # else
   tzset ();
 # endif

@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "28.2"))
 
-;; Version: 9.8.7
+;; Version: 9.8.10
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -2054,7 +2054,7 @@ are followed by a letter in parenthesis, like TODO(t)."
 
 (defcustom org-provide-todo-statistics t
   "Non-nil means update todo statistics after insert and toggle.
-ALL-HEADLINES means update todo statistics by including headlines
+`all-headlines' means update todo statistics by including headlines
 with no TODO keyword as well, counting them as not done.
 A list of TODO keywords means the same, but skip keywords that are
 not in this list.
@@ -5221,13 +5221,22 @@ The following commands are available:
   ;; source blocks).
   (setq-local parse-sexp-lookup-properties t)
   ;; Beginning/end of defun
-  (setq-local beginning-of-defun-function 'org-backward-element)
+  (setq-local beginning-of-defun-function
+              (lambda ()
+                (condition-case _
+                    (org-backward-element)
+                  ;; Already at the beginning.
+                  (user-error t))))
   (setq-local end-of-defun-function
 	      (lambda ()
-		(if (not (org-at-heading-p))
-		    (org-forward-element)
-		  (org-forward-element)
-		  (forward-char -1))))
+                (condition-case _
+		    (if (not (org-at-heading-p))
+		        (org-forward-element)
+		      (org-forward-element)
+		      (forward-char -1))
+                  ;; At the last element. Move to eob.
+                  (user-error
+                   (goto-char (point-max))))))
   ;; Next error for sparse trees
   (setq-local next-error-function 'org-occur-next-match)
   ;; Make commit log messages from Org documents easier.

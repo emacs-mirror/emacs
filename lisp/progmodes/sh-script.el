@@ -1471,6 +1471,7 @@ implementations.  Currently there are two: `sh-mode' and
   (setq-local skeleton-pair-default-alist
 	      sh-skeleton-pair-default-alist)
 
+  (setq-local editorconfig-indent-size-vars '(sh-basic-offset))
   (setq-local paragraph-start (concat page-delimiter "\\|$"))
   (setq-local paragraph-separate (concat paragraph-start "\\|#!/"))
   (setq-local comment-start "# ")

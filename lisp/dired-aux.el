@@ -2361,12 +2361,35 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
   (let ((file-is-dir-p (file-directory-p file)))
     (dired-handle-overwrite newname)
     (dired-maybe-create-dirs (file-name-directory newname))
-    (if (and dired-vc-rename-file
-             (if file-is-dir-p
-                 (ignore-errors (vc-responsible-backend file))
-               (vc-backend file))
-             (ignore-errors (vc-responsible-backend newname)))
-        (vc-rename-file file newname ok-if-already-exists)
+    (if-let* (dired-vc-rename-file
+              (file-backend (if file-is-dir-p
+                                (ignore-errors
+                                  (vc-responsible-backend file))
+                              (vc-backend file)))
+              (file-root (vc-root-dir file-backend
+                                      (file-name-directory file))))
+        (let* ((file-base (file-name-nondirectory file))
+               (newname (if (string-empty-p
+                             (file-name-nondirectory newname))
+                            (concat newname file-base)
+                          newname))
+               (newname-backend (ignore-errors
+                                  (vc-responsible-backend newname)))
+               (newname-root
+                (and newname-backend
+                     (vc-root-dir newname-backend
+                                  (file-name-directory newname)))))
+          (if (equal file-root newname-root)
+              (vc-rename-file file newname ok-if-already-exists)
+            (let ((already-exists (file-exists-p newname)))
+              (copy-file file newname ok-if-already-exists)
+              (vc-delete-file file 'noconfirm)
+              (when newname-backend
+                (let ((newname (expand-file-name newname newname-root))
+                      (default-directory newname-root))
+                  (if already-exists
+                      (vc-state-refresh newname newname-backend)
+                    (vc-register `(,newname-backend (,newname)))))))))
       ;; error is caught in -create-files
       (rename-file file newname ok-if-already-exists))
     ;; Silently rename the visited file of any buffer visiting this file.

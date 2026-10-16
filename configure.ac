@@ -2139,21 +2139,6 @@ else
     ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
-AC_CACHE_CHECK([whether addresses are sanitized],
-  [emacs_cv_sanitize_address],
-  [AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM(
-	[[#ifndef __has_feature
-	  #define __has_feature(f) 0
-	  #endif
-	  #if defined __SANITIZE_ADDRESS__ || __has_feature (address_sanitizer)
-	  #else
-	   error "Addresses are not sanitized.";
-	  #endif
-	]])],
-     [emacs_cv_sanitize_address=yes],
-     [emacs_cv_sanitize_address=no])])
-
 LD_SWITCH_SYSTEM=
 case "$opsys" in
   freebsd|dragonfly)
@@ -3229,22 +3214,6 @@ fi
 # Assume not, until told otherwise.
 GNU_MALLOC=yes
 
-AC_CACHE_CHECK(
-  [whether malloc is Doug Lea style],
-  [emacs_cv_var_doug_lea_malloc],
-  [emacs_cv_var_doug_lea_malloc=no
-   dnl Hooks do not work with address sanitization.
-   if test "$emacs_cv_sanitize_address" != yes; then
-     AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	  [[#include <malloc.h>
-	    static void hook (void) {}]],
-          [[__after_morecore_hook = hook;
-	    __malloc_initialize_hook = hook;]])],
-       [emacs_cv_var_doug_lea_malloc=yes])
-   fi])
-doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
-
 AC_CHECK_ALIGNOF([EMACS_INT],
   [[#include <limits.h>
     #include <stddef.h>
@@ -3334,7 +3303,7 @@ if test "${system_malloc}" = "yes"; then
     (The GNU allocators don't work with this system configuration.)"
   VMLIMIT_OBJ=
 else
-  test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
+  GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
 
   AC_CHECK_HEADERS([sys/vlimit.h])
@@ -3353,24 +3322,6 @@ else
 fi
 AC_SUBST([GMALLOC_OBJ])
 AC_SUBST([VMLIMIT_OBJ])
-
-if test "$doug_lea_malloc" = "yes"; then
-  if test "$GNU_MALLOC" = yes ; then
-    GNU_MALLOC_reason="
-      (Using Doug Lea's new malloc from the GNU C Library.)"
-  fi
-  AC_DEFINE([DOUG_LEA_MALLOC], [1],
-    [Define to 1 if the system memory allocator is Doug Lea style,
-     with malloc hooks.])
-
-  ## Use mmap directly for allocating larger buffers.
-  ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
-  ## #ifdef DOUG_LEA_MALLOC; #undef REL_ALLOC; #endif
-  ## Does the AC_FUNC_MMAP test below make this check unnecessary?
-  case "$opsys" in
-    mingw32|gnu*) REL_ALLOC=no ;;
-  esac
-fi
 
 if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
@@ -3416,7 +3367,7 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
 	      status += pthread_create (&th, 0, 0, 0);
 	      status += pthread_sigmask (SIG_BLOCK, &new_mask, &old_mask);
 	      status += pthread_kill (th, 0);
-	      #if ! (defined SYSTEM_MALLOC || defined DOUG_LEA_MALLOC)
+	      #ifndef SYSTEM_MALLOC
 	      /* Test for pthread_atfork only if gmalloc uses it,
 		 as older-style hosts like MirBSD 10 lack it.  */
 	      status += pthread_atfork (noop, noop, noop);
@@ -6614,31 +6565,6 @@ case $opsys in
     emacs_broken_SIGIO=yes
     ;;
 
-  aix4-2)
-    dnl On AIX Emacs uses the gmalloc.c malloc implementation.  But given
-    dnl the way this system works, libc functions that return malloced
-    dnl memory use the libc malloc implementation. Calling xfree or
-    dnl xrealloc on the results of such functions results in a crash.
-    dnl
-    dnl One solution for this could be to define SYSTEM_MALLOC in configure,
-    dnl but that does not currently work on this system.
-    dnl
-    dnl It is possible to completely override the malloc implementation on
-    dnl AIX, but that involves putting the malloc functions in a shared
-    dnl library and setting the MALLOCTYPE environment variable to point to
-    dnl that shared library.
-    dnl
-    dnl Emacs currently calls xrealloc on the results of get_current_dir name,
-    dnl to avoid a crash just use the Emacs implementation for that function.
-    dnl
-    dnl FIXME We could change the AC_CHECK_FUNCS call near the start
-    dnl of this file, so that we do not check for get_current_dir_name
-    dnl on AIX.  But that might be fragile if something else ends
-    dnl up testing for get_current_dir_name as a dependency.
-    AC_DEFINE([BROKEN_GET_CURRENT_DIR_NAME], [1], [Define if
-      get_current_dir_name should not be used.])
-    ;;
-
   freebsd)
     dnl Circumvent a bug in FreeBSD.  In the following sequence of
     dnl writes/reads on a PTY, read(2) returns bogus data:
@@ -7610,17 +7536,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
-
-/* No code in Emacs #includes config.h twice, but some bits of code
-   intended to work with other packages as well (like gmalloc.c)
-   think they can include it as many times as they like.  */
-#ifndef EMACS_CONFIG_H
+/* This is for nt/inc/sys/socket.h, which behaves one way when 'configure'
+   is running tests and another way when Emacs is being built.  */
 #define EMACS_CONFIG_H
 ])dnl
 
 AH_BOTTOM([#include <conf_post.h>
-
-#endif /* EMACS_CONFIG_H */
 
 /*
 Local Variables:

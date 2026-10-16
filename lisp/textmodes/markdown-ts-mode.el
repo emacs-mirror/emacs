@@ -245,6 +245,8 @@
 (require 'goto-addr)
 (require 'xref)
 (require 'icons)
+(require 'org-entities)
+(require 'sgml-mode)
 
 ;;; Customizations:
 
@@ -255,10 +257,23 @@
   :group 'editing
   :version "31.1")
 
+(defun markdown-ts--custom-set (symbol value &optional buffer-local)
+  "Set SYMBOL to VALUE, as the `:set' function of display options.
+If BUFFER-LOCAL is non-nil, set it in the current buffer and update the
+display there."
+  (if (not buffer-local)
+      (set-default symbol value)
+    (set-local symbol value)
+    (when (derived-mode-p 'markdown-ts-mode)
+      (pcase symbol
+        ('markdown-ts-hide-markup (markdown-ts--set-hide-markup value))
+        ('markdown-ts-inline-images (markdown-ts--set-inline-images value))))))
+
 (defcustom markdown-ts-hide-markup nil
   "Non-nil means hide Markdown markup delimiters in this buffer."
   :type 'boolean
   :local t
+  :set #'markdown-ts--custom-set
   :safe #'booleanp
   :version "31.1"
   :package-version "1.0")
@@ -291,6 +306,7 @@ use that string instead."
   "Non-nil means display inline images below image links."
   :type 'boolean
   :local t
+  :set #'markdown-ts--custom-set
   :safe #'booleanp
   :version "31.1"
   :package-version "1.0")
@@ -1338,9 +1354,6 @@ OVERRIDE, START, and END are passed through to
       (put-text-property node-start (1+ node-start)
                          'invisible 'markdown-ts--markup))))
 
-(defvar sgml-char-names)
-(declare-function org-entity-get "org/org-entities.el")
-
 (defun markdown-ts--decode-entity (text)
   "Decode HTML entity TEXT (e.g., \"&amp;\") to its character string.
 Return the decoded string, or nil if the entity is unknown."
@@ -1354,11 +1367,9 @@ Return the decoded string, or nil if the entity is unknown."
    ;; Named &amp; &copy; via org-entities, fall back to sgml-char-names
    ((string-match "\\`&\\([[:alnum:]]+\\);\\'" text)
     (let ((name (match-string 1 text)))
-      (require 'org-entities)
       (if-let* ((entry (org-entity-get name))
                 (utf8 (nth 6 entry)))
           utf8
-        (require 'sgml-mode)
         (when-let* ((code (seq-position sgml-char-names name #'equal)))
           (char-to-string code)))))))
 
@@ -4815,20 +4826,96 @@ If point is not at a table, do nothing."
   (cl-some (lambda (ov) (eq (overlay-get ov 'invisible) 'outline))
            (overlays-at pos)))
 
-(defun markdown-ts--range-settings ()
-  "Return range settings for `markdown-ts-mode'."
+(defvar markdown-ts--grammar-ready-cache nil
+  "Alist of (LANGUAGE . READY) filled by `markdown-ts--grammar-ready-p'.")
+
+;; FIXME: Remove this when tree-sitter caches failed grammar lookups,
+;; and not only successful ones.  Requested in bug#81879.
+(defun markdown-ts--grammar-ready-p (language)
+  "Return non-nil if the grammar for LANGUAGE is ready, and cache that.
+LANGUAGE is a single symbol.  Buffers visiting a file refresh the cache,
+so a grammar installed meanwhile is picked up."
+  (let ((entry (assq language markdown-ts--grammar-ready-cache)))
+    (if (and entry (not buffer-file-name))
+        (cdr entry)
+      (let ((ready (treesit-ready-p language t)))
+        (if entry
+            (setcdr entry ready)
+          (push (cons language ready) markdown-ts--grammar-ready-cache))
+        ready))))
+
+(defvar markdown-ts--range-settings-cache nil
+  "`treesit-range-settings' cache.
+See `markdown-ts--master-range-settings' and
+`markdown-ts--inline-range-settings'.")
+
+(defun markdown-ts--base-range-settings (fontify-code-blocks-natively)
+  "Return markdown-inline and code-block `treesit-range-rules'.
+If FONTIFY-CODE-BLOCKS-NATIVELY is non-nil, include the code-block rule."
   (apply
    #'treesit-range-rules
    `( :embed markdown-inline
       :host markdown
       :local t
      ((inline) @markdown-inline)
-     ,@(when markdown-ts-fontify-code-blocks-natively
+     ,@(when fontify-code-blocks-natively
          '( :embed markdown-ts--code-block-ts-language
             :host markdown
             :local t
             ((fenced_code_block (info_string (language) @language)
                                 (code_fence_content) @content)))))))
+
+(defun markdown-ts--master-range-settings (fontify-code-blocks-natively
+                                           html
+                                           yaml
+                                           toml)
+  "Return cached master `treesit-range-rules'.
+If FONTIFY-CODE-BLOCKS-NATIVELY is non-nil, include the code-block rule.
+If HTML, YAML, or TOML are non-nil, include the rules for that grammar."
+  (let ((key (list 'master fontify-code-blocks-natively html yaml toml)))
+    (or (cdr (assoc key markdown-ts--range-settings-cache))
+        (let ((settings
+               (append
+                (markdown-ts--base-range-settings
+                 fontify-code-blocks-natively)
+                (when html
+                  (treesit-range-rules
+                   :embed 'html
+                   :host 'markdown
+                   :local t
+                   '((html_block) @html)
+
+                   :embed 'html
+                   :host 'markdown-inline
+                   :local t
+                   '((html_tag) @html)))
+                (when yaml
+                  (treesit-range-rules
+                   :embed 'yaml
+                   :host 'markdown
+                   :local t
+                   '((minus_metadata) @yaml)))
+                (when toml
+                  (treesit-range-rules
+                   :embed 'toml
+                   :host 'markdown
+                   :local t
+                   '((plus_metadata) @toml))))))
+          (push (cons key settings)
+                markdown-ts--range-settings-cache)
+          settings))))
+
+(defun markdown-ts--inline-range-settings ()
+  "Return cached inline `treesit-range-rules'."
+  (let ((key 'inline))
+    (or (cdr (assq key markdown-ts--range-settings-cache))
+        (let ((settings (treesit-range-rules
+                         :embed 'markdown-inline
+                         :host 'markdown
+                         '((inline) @markdown-inline))))
+          (push (cons key settings)
+                markdown-ts--range-settings-cache)
+          settings))))
 
 (defun markdown-ts--remove-image-overlays ()
   "Remove all inline image overlays from the current buffer."
@@ -5269,133 +5356,118 @@ NOTE: Call this function only when the treesit `markdown' and
   (cond (markdown-ts--set-up-inline
          (treesit-parser-create 'markdown-inline)
          (setq-local treesit-range-settings
-                     (treesit-range-rules
-                      :embed 'markdown-inline
-                      :host 'markdown
-                      '((inline) @markdown-inline))))
+                     (markdown-ts--inline-range-settings)))
         (t
-         ;; Range settings differ in the master buffer vs. inline above.
-         (setq-local treesit-range-settings (markdown-ts--range-settings))
-
-         ;; Configure features needed only in the master buffer.
-
-         ;; Imenu support.
-         (setq-local treesit-simple-imenu-settings
-                     `(("Headings" ,#'markdown-ts--imenu-heading-node-p
-                        nil ,#'markdown-ts--imenu-heading-name-function)
-                       ("Code Blocks" ,#'markdown-ts--imenu-code-block-node-p
-                        nil ,#'markdown-ts--imenu-code-block-name-function)))
-
-         ;; Outline support.
-         (setq-local treesit-outline-predicate #'markdown-ts--outline-predicate)
-         (setq-local outline-minor-mode-cycle t)
-         (outline-minor-mode 1)
-         (markdown-ts--apply-ellipsis)
-
-         ;; NOTE: `outline-view-change-hook' was obsoleted in 29.1 (commit
-         ;; 53b1e6f96cb) on the grounds that only lazy-lock used it, but no
-         ;; replacement was provided and outline.el itself still runs the hook
-         ;; in 10+ places.
-         (with-suppressed-warnings ((obsolete outline-view-change-hook))
-           (add-hook 'outline-view-change-hook
-                     #'markdown-ts--outline-view-change nil t))
-
-         (progn
-           (make-local-variable 'font-lock-extra-managed-props)
-           (dolist (prop '(invisible display button category action help-echo))
-             (add-to-list 'font-lock-extra-managed-props prop)))
-
-         (when (treesit-ready-p 'html t)
-           (treesit-parser-create 'html)
-           (require 'html-ts-mode)
-           (defvar html-ts-mode--font-lock-settings)
-           (defvar html-ts-mode--treesit-font-lock-feature-list)
-           (setq-local treesit-font-lock-settings
-                       (append treesit-font-lock-settings
-                               html-ts-mode--font-lock-settings))
-           (setq-local treesit-font-lock-feature-list
-                       (treesit-merge-font-lock-feature-list
-                        treesit-font-lock-feature-list
-                        html-ts-mode--treesit-font-lock-feature-list))
+         (let ((html (markdown-ts--grammar-ready-p 'html))
+               (yaml (markdown-ts--grammar-ready-p 'yaml))
+               (toml (markdown-ts--grammar-ready-p 'toml)))
+           ;; Range settings differ in the master buffer vs. inline above.
            (setq-local treesit-range-settings
-                       (append treesit-range-settings
-                               (treesit-range-rules
-                                :embed 'html
-                                :host 'markdown
-                                :local t
-                                '((html_block) @html)
+                       (markdown-ts--master-range-settings
+                        markdown-ts-fontify-code-blocks-natively
+                        html
+                        yaml
+                        toml))
 
-                                :embed 'html
-                                :host 'markdown-inline
-                                :local t
-                                '((html_tag) @html)))))
+           ;; Configure features needed only in the master buffer.
 
-         (when (treesit-ready-p 'yaml t)
-           (require 'yaml-ts-mode)
-           (defvar yaml-ts-mode--font-lock-settings)
-           (defvar yaml-ts-mode--font-lock-feature-list)
-           (setq-local treesit-font-lock-settings
-                       (append treesit-font-lock-settings
-                               yaml-ts-mode--font-lock-settings))
-           (setq-local treesit-font-lock-feature-list
-                       (treesit-merge-font-lock-feature-list
-                        treesit-font-lock-feature-list
-                        yaml-ts-mode--font-lock-feature-list))
-           (setq-local treesit-range-settings
-                       (append treesit-range-settings
-                               (treesit-range-rules
-                                :embed 'yaml
-                                :host 'markdown
-                                :local t
-                                '((minus_metadata) @yaml)))))
+           ;; Imenu support.
+           (setq-local treesit-simple-imenu-settings
+                       `(("Headings" ,#'markdown-ts--imenu-heading-node-p
+                          nil ,#'markdown-ts--imenu-heading-name-function)
+                         ("Code Blocks" ,#'markdown-ts--imenu-code-block-node-p
+                          nil ,#'markdown-ts--imenu-code-block-name-function)))
 
-         (when (treesit-ready-p 'toml t)
-           (require 'toml-ts-mode)
-           (defvar toml-ts-mode--font-lock-settings)
-           (defvar toml-ts-mode--font-lock-feature-list)
-           (setq treesit-font-lock-settings
-                 (append treesit-font-lock-settings
-                         toml-ts-mode--font-lock-settings))
-           (setq-local treesit-font-lock-feature-list
-                       (treesit-merge-font-lock-feature-list
-                        treesit-font-lock-feature-list
-                        toml-ts-mode--font-lock-feature-list))
-           (setq-local treesit-range-settings
-                       (append treesit-range-settings
-                               (treesit-range-rules
-                                :embed 'toml
-                                :host 'markdown
-                                :local t
-                                '((plus_metadata) @toml)))))
+           ;; Outline support.
+           (setq-local treesit-outline-predicate #'markdown-ts--outline-predicate)
+           (setq-local outline-minor-mode-cycle t)
+           (outline-minor-mode 1)
+           (markdown-ts--apply-ellipsis)
 
-         ;; Support for executing commands in a code-block context.
-         (when markdown-ts-enable-code-block-context-mode
-           (markdown-ts-code-block-context-mode))
+           ;; NOTE: `outline-view-change-hook' was obsoleted in 29.1
+           ;; (commit 53b1e6f96cb) on the grounds that only lazy-lock
+           ;; used it, but no replacement was provided and outline.el
+           ;; itself still runs the hook in 10+ places.
+           (with-suppressed-warnings ((obsolete outline-view-change-hook))
+             (add-hook 'outline-view-change-hook
+                       #'markdown-ts--outline-view-change nil t))
 
-         ;; Support for table mode.
-         (when markdown-ts-enable-table-mode
-           (markdown-ts-table-mode))))
+           (progn
+             (make-local-variable 'font-lock-extra-managed-props)
+             (dolist (prop '(invisible display button category action help-echo))
+               (add-to-list 'font-lock-extra-managed-props prop)))
+
+           (when html
+             (treesit-parser-create 'html)
+             (require 'html-ts-mode)
+             (defvar html-ts-mode--font-lock-settings)
+             (defvar html-ts-mode--treesit-font-lock-feature-list)
+             (setq-local treesit-font-lock-settings
+                         (append treesit-font-lock-settings
+                                 html-ts-mode--font-lock-settings))
+             (setq-local treesit-font-lock-feature-list
+                         (treesit-merge-font-lock-feature-list
+                          treesit-font-lock-feature-list
+                          html-ts-mode--treesit-font-lock-feature-list)))
+
+           (when yaml
+             (require 'yaml-ts-mode)
+             (defvar yaml-ts-mode--font-lock-settings)
+             (defvar yaml-ts-mode--font-lock-feature-list)
+             (setq-local treesit-font-lock-settings
+                         (append treesit-font-lock-settings
+                                 yaml-ts-mode--font-lock-settings))
+             (setq-local treesit-font-lock-feature-list
+                         (treesit-merge-font-lock-feature-list
+                          treesit-font-lock-feature-list
+                          yaml-ts-mode--font-lock-feature-list)))
+
+           (when toml
+             (require 'toml-ts-mode)
+             (defvar toml-ts-mode--font-lock-settings)
+             (defvar toml-ts-mode--font-lock-feature-list)
+             (setq treesit-font-lock-settings
+                   (append treesit-font-lock-settings
+                           toml-ts-mode--font-lock-settings))
+             (setq-local treesit-font-lock-feature-list
+                         (treesit-merge-font-lock-feature-list
+                          treesit-font-lock-feature-list
+                          toml-ts-mode--font-lock-feature-list)))
+
+           ;; Support for executing commands in a code-block context.
+           (when markdown-ts-enable-code-block-context-mode
+             (markdown-ts-code-block-context-mode))
+
+           ;; Support for table mode.
+           (when markdown-ts-enable-table-mode
+             (markdown-ts-table-mode)))))
 
   (treesit-major-mode-setup)
 
   ;; Do not enable `jit-lock-mode' in indirect buffers such as the one
   ;; we use for code block commands.
   (unless (buffer-base-buffer)
-    (jit-lock-register #'markdown-ts--fontify-bare-uri))
+    (jit-lock-register #'markdown-ts--fontify-bare-uri)))
 
-  (unless markdown-ts--set-up-inline
-    ;; Order matters: `markdown-ts--set-hide-markup' calls `font-lock-flush'
-    ;; (only meaningful once `treesit-major-mode-setup' has wired up
-    ;; font-lock), and `markdown-ts-default-folding' calls outline
-    ;; commands that rely on `outline-search-function', which
-    ;; `treesit-major-mode-setup' installs from `treesit-outline-predicate'.
+(defun markdown-ts--apply-settings ()
+  "Apply settings that file-local or directory-local variables may set.
+Called from the mode's `:after-hook', which runs after local variables
+are applied, so their values take effect."
+  (when (and (derived-mode-p 'markdown-ts-mode)
+             (not markdown-ts--set-up-inline))
+    ;; These rely on font-lock and `outline-search-function', which
+    ;; `treesit-major-mode-setup' has already set up.
     (markdown-ts--set-hide-markup markdown-ts-hide-markup)
+    (markdown-ts--set-inline-images markdown-ts-inline-images)
     ;; Respect the user's default outline folding.
     (pcase markdown-ts-default-folding
       ('show-all (ignore))
       ('fold-all (outline-hide-sublevels 1))
       ('fold-headings (outline-show-all)
-                      (outline-hide-region-body (point-min) (point-max))))))
+                      (outline-hide-region-body (point-min) (point-max))))
+    ;; `outline-minor-mode' applied this before local variables were set.
+    (when outline-default-state
+      (outline-apply-default-state))))
 
 (defun markdown-ts-mode-install-parsers (arg)
   "Install `markdown-ts-mode' tree-sitter language parsers.
@@ -5440,10 +5512,18 @@ With a prefix argument, it can also install optional parsers"
                    "Emacs was built without Tree-sitter support, or could not load Tree-sitter"))
            (text-mode)))))
 
+(defvar markdown-ts-mode-syntax-table
+  (let ((table (make-syntax-table text-mode-syntax-table)))
+    ;; Code span delimiter.
+    (modify-syntax-entry ?\` "\"" table)
+    table)
+  "Syntax table for `markdown-ts-mode'.")
+
 ;;;###autoload
 (define-derived-mode markdown-ts-mode text-mode "Markdown"
   "Major mode for editing Markdown using tree-sitter grammar.
 NOTE: See `markdown-ts--set-up-inline'."
+  :after-hook (markdown-ts--apply-settings)
   (markdown-ts-mode--initialize))
 
 (derived-mode-add-parents 'markdown-ts-mode '(markdown-mode))
@@ -5455,8 +5535,9 @@ NOTE: See `markdown-ts--set-up-inline'."
   nil ; Intentionally left blank.
   "Markdown View"
   "Major mode for read-only viewing Markdown using tree-sitter grammar."
-  ;; NOTE: `markdown-ts-mode' is manually added as a parent to avoid
+  ;; `markdown-ts-mode' is manually added as a parent to avoid
   ;; invoking its initialization before we set override variables.
+  :after-hook (markdown-ts--apply-settings)
   (setq-local markdown-ts-menu-bar-show nil)
   (setq-local markdown-ts-hide-markup t)
   (setq-local markdown-ts-inline-images t)

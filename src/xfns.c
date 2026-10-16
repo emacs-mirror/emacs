@@ -2592,16 +2592,25 @@ x_default_scroll_bar_color_parameter (struct frame *f,
 /* If the WM_PROTOCOLS property does not already contain WM_TAKE_FOCUS,
    WM_DELETE_WINDOW, and WM_SAVE_YOURSELF, then add them.  (They may
    already be present because of the toolkit (Motif adds some of them,
-   for example, but Xt doesn't).  */
+   for example, but Xt doesn't).
+
+   Additionally, add _NET_WM_PING and _NET_WM_SYNC_REQUEST if
+   appropriate and if the connection is trusted.
+   */
 
 static void
 hack_wm_protocols (struct frame *f, Widget widget)
 {
   Display *dpy = XtDisplay (widget);
   Window w = XtWindow (widget);
+  struct x_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   bool need_delete = true;
   bool need_focus = true;
   bool need_save = true;
+  bool found_wm_ping = false;
+#if !defined HAVE_GTK3 && defined HAVE_XSYNC
+  bool found_wm_sync_request = false;
+#endif
 
   block_input ();
   {
@@ -2612,7 +2621,7 @@ hack_wm_protocols (struct frame *f, Widget widget)
     unsigned long bytes_after;
 
     if ((XGetWindowProperty (dpy, w,
-			     FRAME_DISPLAY_INFO (f)->Xatom_wm_protocols,
+			     dpyinfo->Xatom_wm_protocols,
 			     0, 100, False, XA_ATOM,
 			     &type, &format, &nitems, &bytes_after,
 			     &catoms)
@@ -2623,15 +2632,18 @@ hack_wm_protocols (struct frame *f, Widget widget)
 	while (nitems > 0)
 	  {
 	    nitems--;
-	    if (atoms[nitems]
-		== FRAME_DISPLAY_INFO (f)->Xatom_wm_delete_window)
+	    if (atoms[nitems] == dpyinfo->Xatom_wm_delete_window)
 	      need_delete = false;
-	    else if (atoms[nitems]
-		     == FRAME_DISPLAY_INFO (f)->Xatom_wm_take_focus)
+	    else if (atoms[nitems] == dpyinfo->Xatom_wm_take_focus)
 	      need_focus = false;
-	    else if (atoms[nitems]
-		     == FRAME_DISPLAY_INFO (f)->Xatom_wm_save_yourself)
+	    else if (atoms[nitems] == dpyinfo->Xatom_wm_save_yourself)
 	      need_save = false;
+	    else if (atoms[nitems] == dpyinfo->Xatom_net_wm_ping)
+	      found_wm_ping = true;
+#if defined HAVE_XSYNC
+	    else if (atoms[nitems] == dpyinfo->Xatom_net_wm_sync_request)
+	      found_wm_sync_request = true;
+#endif
 	  }
       }
     if (catoms)
@@ -2641,19 +2653,31 @@ hack_wm_protocols (struct frame *f, Widget widget)
     Atom props[10];
     int count = 0;
     if (need_delete)
-      props[count++] = FRAME_DISPLAY_INFO (f)->Xatom_wm_delete_window;
+      props[count++] = dpyinfo->Xatom_wm_delete_window;
     if (need_focus)
-      props[count++] = FRAME_DISPLAY_INFO (f)->Xatom_wm_take_focus;
+      props[count++] = dpyinfo->Xatom_wm_take_focus;
     if (need_save)
-      props[count++] = FRAME_DISPLAY_INFO (f)->Xatom_wm_save_yourself;
+      props[count++] = dpyinfo->Xatom_wm_save_yourself;
+    if (!dpyinfo->untrusted)
+      {
+	/* Untrusted clients cannot use these protocols which require
+	   communicating with the window manager.  */
+
+	if (!found_wm_ping)
+	  props[count++] = dpyinfo->Xatom_net_wm_ping;
+#if defined HAVE_XSYNC
+	if (!found_wm_sync_request && dpyinfo->xsync_supported_p)
+	  props[count++] = dpyinfo->Xatom_net_wm_sync_request;
+#endif
+      }
     if (count)
-      XChangeProperty (dpy, w, FRAME_DISPLAY_INFO (f)->Xatom_wm_protocols,
+      XChangeProperty (dpy, w, dpyinfo->Xatom_wm_protocols,
 		       XA_ATOM, 32, PropModeAppend,
 		       (unsigned char *) props, count);
   }
   unblock_input ();
 }
-#endif
+#else
 
 static void
 append_wm_protocols (struct x_display_info *dpyinfo,
@@ -2721,6 +2745,7 @@ append_wm_protocols (struct x_display_info *dpyinfo,
 		     num_protos);
   unblock_input ();
 }
+#endif
 
 
 
@@ -4353,7 +4378,6 @@ x_window (struct frame *f, long window_prompting)
 	       &f->output_data.x->wm_hints);
 
   hack_wm_protocols (f, shell_widget);
-  append_wm_protocols (FRAME_DISPLAY_INFO (f), f);
 
 #ifdef X_TOOLKIT_EDITRES
   XtAddEventHandler (shell_widget, 0, True, _XEditResCheckMessages, 0);
@@ -5797,7 +5821,7 @@ DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
 The value is a list of three integers specifying the version of the GUI
 software in use.
 
-For GNU and Unix system, the first 2 numbers are the version of the X
+For GNU and Unix systems, the first 2 numbers are the version of the X
 Protocol used on TERMINAL and the 3rd number is the distributor-specific
 release number.  For MS Windows, the 3 numbers report the OS major and
 minor version and build number.  For Nextstep, the first 2 numbers are
@@ -10255,6 +10279,18 @@ frame_parm_handler x_frame_parm_handlers[] =
   gui_set_borders_respect_alpha_background,
   x_set_use_frame_synchronization,
   x_set_shaded,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
 };
 
 /* Some versions of libX11 don't have symbols for a few functions we
