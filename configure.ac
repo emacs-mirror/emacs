@@ -5576,9 +5576,11 @@ if test "${with_mps}" != "no"; then
   IGCOBJ="igc.o"
   MPSOBJ="mps.o"
   AC_DEFINE([HAVE_MPS], [1], [Define to build with MPS.])
-  if test "${with_mps}" = "debug"; then
-    MPS_CONFIG=-DCONFIG_VAR_COOL
-  fi
+  case "${with_mps}" in
+    yes) ;;
+    debug) MPS_CONFIG=-DCONFIG_VAR_COOL ;;
+    *) AC_MSG_ERROR([Invalid value for --with-mps: ${with_mps}]).
+  esac
   # Force -fno-omit-frame-pointer to avoid register scanning bug:
   # https://github.com/Ravenbrook/mps/pull/38
   MPS_CFLAGS="-fno-omit-frame-pointer"
