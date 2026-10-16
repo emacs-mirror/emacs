@@ -669,7 +669,7 @@ See bug#80803 and bug#80967."
       (vc-test--with-author-identity 'Git
         (vc-test--with-author-identity 'Hg
           (cl-flet ((create-repo (backend loc file)
-                      (make-directory loc)
+                      (make-directory loc t)
                       (let ((default-directory loc))
                         (write-region (format "%s\n%s\n" loc file)
                                       nil file nil 0 nil 'excl)
@@ -751,6 +751,20 @@ See bug#80803 and bug#80967."
             (let ((default-directory git2))
               (should (file-exists-p "foo.txt"))
               (should (memq (vc-state "foo.txt" 'Git)
+                            '(nil unregistered))))
+            (reset)
+
+            ;; Moving a directory into a non-repo (bug#82058).
+            (make-directory "git1/sub/" t)
+            (create-repo 'Git git1 "sub/foo.txt")
+            (make-directory "git2/")
+            (do-rename "git1/" "sub" "../git2/" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "sub/foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "sub/foo.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "sub/foo.txt"))
+              (should (memq (vc-state "sub/foo.txt" 'Git)
                             '(nil unregistered))))))))))
 
 (provide 'vc-test-misc)

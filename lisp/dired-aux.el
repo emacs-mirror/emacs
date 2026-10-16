@@ -2382,7 +2382,9 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
           (if (equal file-root newname-root)
               (vc-rename-file file newname ok-if-already-exists)
             (let ((already-exists (file-exists-p newname)))
-              (copy-file file newname ok-if-already-exists)
+              (if file-is-dir-p
+                  (copy-directory file newname)
+                (copy-file file newname ok-if-already-exists))
               (vc-delete-file file 'noconfirm)
               (when newname-backend
                 (let ((newname (expand-file-name newname newname-root))
