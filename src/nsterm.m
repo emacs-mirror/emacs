@@ -85,7 +85,9 @@ static EmacsMenu *mainMenu;
 #endif
 
 /* The last known monitor attributes list.  */
+#ifdef NS_IMPL_GNUSTEP
 static Lisp_Object last_known_monitors;
+#endif
 
 /* ==========================================================================
 
@@ -5864,18 +5866,13 @@ ns_displays_reconfigured (CGDirectDisplayID display,
 			  CGDisplayChangeSummaryFlags flags,
 			  void *user_info)
 {
-  struct input_event ie;
-  union buffered_input_event *ev;
-  Lisp_Object new_monitors;
-
-  EVENT_INIT (ie);
-
-  new_monitors = Fns_display_monitor_attributes_list (Qnil);
-
-  if (!NILP (Fequal (new_monitors, last_known_monitors)))
+  if (flags & kCGDisplayBeginConfigurationFlag)
     return;
 
-  last_known_monitors = new_monitors;
+  struct input_event ie;
+  union buffered_input_event *ev;
+
+  EVENT_INIT (ie);
 
   ev = (kbd_store_ptr == kbd_buffer
 	? kbd_buffer + KBD_BUFFER_SIZE - 1
@@ -6210,8 +6207,9 @@ ns_term_init (Lisp_Object display_name)
   CGDisplayRegisterReconfigurationCallback (ns_displays_reconfigured,
 					    NULL);
 #endif
+#ifdef NS_IMPL_GNUSTEP
   last_known_monitors = Fns_display_monitor_attributes_list (Qnil);
-
+#endif
   NSTRACE_MSG ("ns_term_init done");
 
   unblock_input ();
@@ -11818,7 +11816,8 @@ respectively.  */);
   Fprovide (Qgnustep, Qnil);
   syms_of_nsfont ();
 #endif
-
+#ifdef NS_IMPL_GNUSTEP
   last_known_monitors = Qnil;
   staticpro (&last_known_monitors);
+#endif
 }
