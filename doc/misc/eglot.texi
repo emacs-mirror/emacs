@@ -1011,8 +1011,8 @@ first prompts for a @dfn{kind} of action, such as @code{quickfix} or
 
 A common use of code actions is fixing the Flymake error diagnostics
 issued by Eglot (@pxref{Top,,, Flymake, GNU Flymake manual}).  Clicking
-on a diagnostic with @kbd{mouse-2} invokes @code{refactor-at-mouse}
-which pops up a menu of available code actions.  The keymap
+on a diagnostic with @kbd{mouse-2} invokes the same @code{refactor}
+command popping a menu of available code actions.  The keymap
 @code{refactor-mouse-map} can be used to control the mouse binding.
 
 The other commands are shortcuts considering only one kind of action.
