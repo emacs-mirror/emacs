@@ -1524,6 +1524,18 @@ static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO)
     return ResOK;
   }
 
+#if 1
+  /* TODO: this probably works, but it needs testing. */
+  if (ss->rank == RankWEAK && amcSegHasNailboard(seg)) {
+    Bool wasMarked = NailboardGet(amcSegNailboard(seg), *refIO);
+    if (!wasMarked) {
+      ss->wasMarked = FALSE;
+      *refIO = (Ref)0;
+      return ResOK;
+    }
+  }
+#endif
+
 fixInPlace: /* see <design/poolamc>.Nailboard.emergency */
   amcSegFixInPlace(seg, ss, refIO);
   return ResOK;

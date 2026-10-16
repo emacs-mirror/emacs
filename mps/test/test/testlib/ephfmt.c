@@ -279,6 +279,7 @@ static void setup(void* stack_bottom, eph_test_fun fun, void* closure)
   mps_fmt_t fmt;
   mps_pool_t amc_pool;
   mps_pool_t eph_pool;
+  mps_pool_t awl0_pool;
   mps_thr_t thread;
   mps_root_t exact_root;
   static struct memory_manager mm;
@@ -317,6 +318,15 @@ static void setup(void* stack_bottom, eph_test_fun fun, void* closure)
   }
   MPS_ARGS_END(args);
 
+  MPS_ARGS_BEGIN(args)
+  {
+    MPS_ARGS_ADD(args, MPS_KEY_CHAIN, chain);
+    MPS_ARGS_ADD(args, MPS_KEY_FORMAT, fmt);
+    die(mps_pool_create_k(&awl0_pool, mm.arena, mps_class_awl0(), args),
+        "mps_pool_create_k");
+  }
+  MPS_ARGS_END(args);
+
   die(mps_ap_create_k(&mm.amc_ap, amc_pool, mps_args_none),
       "mps_ap_create_k");
 
@@ -324,6 +334,14 @@ static void setup(void* stack_bottom, eph_test_fun fun, void* closure)
   {
     MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_ephemeron());
     die(mps_ap_create_k(&mm.eph_ap, eph_pool, args), "mps_ap_create_k");
+  }
+  MPS_ARGS_END(args);
+
+  MPS_ARGS_BEGIN(args)
+  {
+    MPS_ARGS_ADD(args, MPS_KEY_RANK, mps_rank_weak());
+    die(mps_ap_create_k(&mm.awl0_ap, awl0_pool, args),
+        "mps_ap_create_k");
   }
   MPS_ARGS_END(args);
 
@@ -349,8 +367,10 @@ static void setup(void* stack_bottom, eph_test_fun fun, void* closure)
   mps_thread_dereg(thread);
   mps_ap_destroy(mm.amc_ap);
   mps_ap_destroy(mm.eph_ap);
+  mps_ap_destroy(mm.awl0_ap);
   mps_pool_destroy(amc_pool);
   mps_pool_destroy(eph_pool);
+  mps_pool_destroy(awl0_pool);
   mps_chain_destroy(chain);
   mps_fmt_destroy(fmt);
   mps_arena_destroy(mm.arena);

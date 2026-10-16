@@ -182,3 +182,4 @@ function/eph4.c
 function/eph5.c
 function/ovf1.c
 function/ovf2.c
+function/emergency1.c

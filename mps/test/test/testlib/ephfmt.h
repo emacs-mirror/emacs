@@ -100,6 +100,7 @@ struct memory_manager
 {
   mps_ap_t amc_ap;
   mps_ap_t eph_ap;
+  mps_ap_t awl0_ap;
   mps_arena_t arena;
   oop roots[ROOT_COUNT];
 };

@@ -1101,11 +1101,13 @@ Rank TraceRankForAccess(Arena arena, Seg seg)
  * band.  We don't check this, but I rely on this fact in the next
  * check, .check.weak.no-preserve.
  *
- * .check.weak.band: Weak references cannot cause objects to be
+ * .check.band.weak: Weak references cannot cause objects to be
  * newly preserved (marked).  Because of .check.band.begin all the
  * scanning work performed when the current band is a weak rank will be
  * scanning objects at that rank.  There is currently only one weak
- * rank, RankWEAK.
+ * rank, RankWEAK.  (Because amcSegFixEmergency does currently not
+ * implement weak pointer semantics the assertion is relaxed in
+ * emergency mode.)
  *
  * .check.final.one-pass: Because all the RankFINAL references are
  * allocated in PoolMRG and effectively treated as roots, all the
@@ -1163,7 +1165,8 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
             goto bandstart;
           }
           /* .check.band.weak */
-          AVER(band != RankWEAK || rank == band);
+          AVER(band != RankWEAK || rank == band ||
+               ArenaEmergency(arena));
           if (rank != band) {
             traceBandFirstStretchDone(trace);
           } else {
