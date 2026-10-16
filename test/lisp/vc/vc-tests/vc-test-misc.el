@@ -750,7 +750,8 @@ See bug#80803 and bug#80967."
               (should-not (file-exists-p "foo.txt")))
             (let ((default-directory git2))
               (should (file-exists-p "foo.txt"))
-              (should (null (vc-state "foo.txt" 'Hg))))))))))
+              (should (memq (vc-state "foo.txt" 'Git)
+                            '(nil unregistered))))))))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here
