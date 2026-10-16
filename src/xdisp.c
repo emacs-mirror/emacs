@@ -21887,6 +21887,16 @@ try_window_reusing_current_matrix (struct window *w)
 	 text.  Note that it.vpos == 0 if or if not there is a
          header-line; it's not the same as the MATRIX_ROW_VPOS!  */
       start_display (&it, w, new_start);
+
+      /* After skipping invisible text, we might reach the end
+	 position of the first row before displaying strings or a
+	 display-table entry belonging to that row.  Buffer positions
+	 cannot reliably identify a reusable row in that case
+	 (bug#82054).  */
+      if (IT_CHARPOS (it) > CHARPOS (start)
+	  && IT_CHARPOS (it) >= CHARPOS (start_row->end.pos))
+	return false;
+
       w->cursor.vpos = -1;
       last_text_row = last_reused_text_row = NULL;
 
