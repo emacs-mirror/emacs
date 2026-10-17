@@ -381,6 +381,10 @@ extern int emacs_setenv_TZ (char const *);
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
 #define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME false
 
+/* Emacs does not use gettext dynamic contexts, the only Gnulib feature
+   that could profitably use VLAs.  Disable them to pacify gcc -Wvla.  */
+#define GNULIB_NO_VLA 1
+
 #ifdef MSDOS
 /* These are required by file-has-acl.c but defined in dirent.h and
    errno.h, which are not generated on DOS.  */
