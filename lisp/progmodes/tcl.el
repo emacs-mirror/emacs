@@ -169,7 +169,7 @@ taken to mean `smart'.  The default is nil."
   "If not nil, use smart way to find current word, for Tcl help feature."
   :type 'boolean)
 
-(defcustom tcl-application "wish"
+(defcustom tcl-application "tclsh"
   "Name of Tcl program to run in inferior Tcl mode."
   :type 'string)
 
