@@ -432,7 +432,8 @@ If there is only one, execute it without asking."
                                  menu-items))))))
     (when chosen (refactor-backend-execute (oref chosen backend) chosen))))
 
-(defun refactor--1 (beg &optional end rkind interactive)
+;;;###autoload
+(defun refactor (beg &optional end rkind interactive)
   "Find refactoring actions between BEG and END, and offer to run them.
 
 If RKIND, a symbol, is non-nil, restrict search to actions of that kind
@@ -440,20 +441,30 @@ and its sub-kinds; interactively with a prefix arg, choose from
 `refactor-kinds'.
 
 Interactively, BEG and END default to automatically calculated bounds
-and a prefix argument prompts for KIND.
+and a prefix argument prompts for KIND.  If invoked by a mouse event,
+select its window and calculate bounds where it happened.
 
 When INTERACTIVE is nil, return the list of `refactor-action' objects."
   (interactive
-   `(,@(refactor--bounds)
-     ,(and current-prefix-arg
-           (intern
-            (completing-read
-             "Kind of refactoring: "
-             (mapcar (lambda (kind)
-                       (cons (symbol-name kind) kind))
-                     refactor-kinds)
-             nil t)))
-     t))
+   (let ((posn (and (mouse-event-p last-nonmenu-event)
+                    (event-start last-nonmenu-event))))
+     (when posn (select-window (posn-window posn)))
+     `(,@(save-excursion
+           ;; Non-text-area clicks (`posn-area' non-nil) already assume
+           ;; correct point, but text area clicks are likely on Flymake
+           ;; some diagnostic and need moving before `refactor--bounds'.
+           (when (and posn (null (posn-area posn)))
+             (goto-char (posn-point posn)))
+           (refactor--bounds))
+       ,(and current-prefix-arg
+             (intern
+              (completing-read
+               "Kind of refactoring: "
+               (mapcar (lambda (kind)
+                         (cons (symbol-name kind) kind))
+                       refactor-kinds)
+               nil t)))
+       t)))
   (let* ((shortcut
           ;; Check if we can do an optimization/shortcut.
           ;; `refactor-suggestion' may just recently have computed
@@ -483,35 +494,7 @@ When INTERACTIVE is nil, return the list of `refactor-action' objects."
   `(defun ,name (beg &optional end)
      ,(format "Execute `%s' refactorings between BEG and END." kind)
      (interactive (refactor--bounds))
-     (refactor--1 beg end ',kind t)))
-
-(defun refactor--call-at-event (event what)
-  "Call WHAT interactively where mouse EVENT happened."
-  (let ((start (event-start event)))
-    ;; Don't `posn-set-point', don't actually set it with this click...
-    (with-selected-window (posn-window start)
-      (save-excursion
-        ;; ... also, only momentarily go to it if the click was actually
-        ;; in the text area, meaning probably user clicked a Flymake
-        ;; overlay.  If the click was on the margin or fringe, WHAT's
-        ;; interactive spec will know to find actions where point was
-        ;; before, because that's what prompted the indicator to appear
-        ;; in the first place.
-        (unless (posn-area start)
-          (goto-char (posn-point start)))
-        (call-interactively what)))))
-
-;;;###autoload
-(defun refactor (&optional event)
-  "Find refactoring actions here, and offer to run them.
-Here is the active region or, if there is none, the Flymake diagnostics
-or the expression at point.  If EVENT is a mouse event, consider where
-it happened instead of point.  With a prefix argument, prompt for a kind
-of refactoring from `refactor-kinds'."
-  (interactive (list last-nonmenu-event))
-  (if (mouse-event-p event)
-      (refactor--call-at-event event #'refactor--1)
-    (call-interactively #'refactor--1)))
+     (refactor beg end ',kind t)))
 
 (refactor--define-kind-command refactor-organize-imports organize-imports)
 (refactor--define-kind-command refactor-extract extract)

@@ -4447,8 +4447,7 @@ edit was attempted and optionally why not."
                      `(,@(eglot--TextDocumentPositionParams)
                        :newName ,newname)))))
 
-(defalias 'eglot-code-actions #'refactor--1)
-(make-obsolete 'eglot-code-actions 'refactor "32.1")
+(define-obsolete-function-alias 'eglot-code-actions 'refactor "32.1")
 (define-obsolete-function-alias 'eglot-rename 'refactor-rename "32.1")
 (define-obsolete-function-alias 'eglot-code-action-organize-imports
   'refactor-organize-imports "32.1")
