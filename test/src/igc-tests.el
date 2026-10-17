@@ -92,7 +92,7 @@
                (> (search (1+ mid) end))))))))
 
 (defun igc-tests--try-vector-size (len alloc-fun)
-  ;;(message "testing: %d (0x%x) (logb: %d)" len len (logb len))
+  (message "testing: %d (0x%x) (logb: %d)" len len (logb len))
   (when (featurep 'mps)
     (igc--process-messages))
   (cond ((ignore-errors (funcall alloc-fun len))
@@ -109,7 +109,7 @@
 
 (ert-deftest igc-tests-find-largest-vector-size ()
   "Find the largest size a vector."
-  :tags '(:igc :expensive-test)
+  :tags '(:expensive-test)
   (igc-tests--find-largest-vector-size (lambda (len)
                                          (length (make-vector len nil)))))
 
