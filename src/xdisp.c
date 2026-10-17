@@ -21888,11 +21888,13 @@ try_window_reusing_current_matrix (struct window *w)
          header-line; it's not the same as the MATRIX_ROW_VPOS!  */
       start_display (&it, w, new_start);
 
-      /* After skipping invisible text, we might reach the end
-	 position of the first row before displaying strings or a
-	 display-table entry belonging to that row.  Buffer positions
-	 cannot reliably identify a reusable row in that case
-	 (bug#82054).  */
+      /* After skipping invisible text, we might reach the end position
+	 of the first row before displaying strings or a display-table
+	 entry belonging to that row.  This can happen, for example,
+	 when window-start is in invisible text that is immediately
+	 followed by an overlay string with an embedded newline Buffer
+	 positions cannot reliably identify a reusable row in that case,
+	 so we cannot use this method.  (Bug#82054).  */
       if (IT_CHARPOS (it) > CHARPOS (start)
 	  && IT_CHARPOS (it) >= CHARPOS (start_row->end.pos))
 	return false;
