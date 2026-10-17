@@ -4403,7 +4403,7 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 #endif /* HAVE_X_WINDOWS */
 	case ICON_NAME:
 	  if (FRAME_WINDOW_P (f))
-	    return Qicon_name, f->icon_name;
+	    return f->icon_name;
 	  break;
 	case DISPLAY:
 	  if (FRAME_WINDOW_P (f))
