@@ -488,6 +488,14 @@ Now, like with 'browse-url', a prefix argument to this command inverts
 the meaning of 'browse-url-new-window-flag' instead of always meaning to
 use a new window.
 
+** Desktop
+
+---
+*** Saving and restoring a session will now save and restore 'buffer-list'.
+This avoids losing the buffer history for each frame, and in particular,
+'M-n' and 'M-p' at the 'C-x b' prompt will now suggest recent buffers of
+the frame after restoring a session.
+
 
 * New Modes and Packages in Emacs 32.1
 
