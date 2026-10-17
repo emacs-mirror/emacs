@@ -1809,7 +1809,6 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wduplicated-branches"    # Too many false alarms
   nw="$nw -Wformat-overflow=2"      # False alarms due to GCC bug 110333
   nw="$nw -Woverlength-strings"     # Not a problem these days
-  nw="$nw -Wvla"                    # Emacs uses <vla.h>.
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
                                     # signed overflow has undefined behavior
