@@ -4382,25 +4382,22 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	case (WINDOW_ID):
 	  if (FRAME_WINDOW_P (f))
 	    {
-	      /* FRAME_NATIVE_WINDOW is not guaranteed to return an
-		 integer.  E.g., on MS-Windows it returns a value whose
-		 type is HANDLE, which is actually a pointer.  Explicit
-		 casting avoids compiler warnings.  */
-	      uintmax_t w = WINDOW_HANDLE_UINTPTR (FRAME_NATIVE_WINDOW (f));
-	      return make_formatted_string ("%"PRIuMAX, w);
+	      /* FRAME_NATIVE_WINDOW might return an integer or a pointer.
+		 WINDOW_HANDLE_UINTPTR avoids compiler warnings.  */
+	      return make_formatted_string
+		("%"PRIuPTR, WINDOW_HANDLE_UINTPTR (FRAME_NATIVE_WINDOW (f)));
 	    }
 	  break;
 #ifdef HAVE_X_WINDOWS
 	case (OUTER_WINDOW_ID):
 	  if (FRAME_WINDOW_P (f))
 	    {
-	     uintmax_t w;
 #ifdef USE_X_TOOLKIT
 	     /* Tooltip frame may not have this widget.  */
 	     if (FRAME_X_OUTPUT (f)->widget)
 #endif /* USE_X_TOOLKIT */
-	     w = WINDOW_HANDLE_UINTPTR (FRAME_OUTER_WINDOW (f));
-	     return make_formatted_string ("%"PRIuMAX, w);
+	     return make_formatted_string
+	       ("%"PRIuPTR, WINDOW_HANDLE_UINTPTR (FRAME_OUTER_WINDOW (f)));
 	    }
 	  break;
 #endif /* HAVE_X_WINDOWS */
@@ -4417,8 +4414,8 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	    return ((FRAME_OUTPUT_DATA (f)->parent_desc
 		     == FRAME_DISPLAY_INFO (f)->root_window)
 		    ? Qnil
-		    : make_fixed_natnum (WINDOW_HANDLE_UINTPTR
-					 (FRAME_OUTPUT_DATA (f)->parent_desc)));
+		    : make_uint (WINDOW_HANDLE_UINTPTR
+				 (FRAME_OUTPUT_DATA (f)->parent_desc)));
 	  break;
 	case (EXPLICIT_NAME):
 	  if (FRAME_WINDOW_P (f))
@@ -5803,7 +5800,6 @@ void
 gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 {
   Lisp_Object tem;
-  uintmax_t w;
 
   /* Represent negative positions (off the top or left screen edge)
      in a way that Fmodify_frame_parameters will understand correctly.  */
@@ -5852,9 +5848,9 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
      E.g., on MS-Windows it returns a value whose type is HANDLE,
      which is actually a pointer.  Explicit casting avoids compiler
      warnings.  */
-  w = WINDOW_HANDLE_UINTPTR (FRAME_NATIVE_WINDOW (f));
+  uintptr_t w = WINDOW_HANDLE_UINTPTR (FRAME_NATIVE_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
-		  make_formatted_string ("%"PRIuMAX, w));
+		  make_formatted_string ("%"PRIuPTR, w));
 #ifdef HAVE_X_WINDOWS
 #ifdef USE_X_TOOLKIT
   /* Tooltip frame may not have this widget.  */
@@ -5862,7 +5858,7 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 #endif
     w = WINDOW_HANDLE_UINTPTR (FRAME_OUTER_WINDOW (f));
   store_in_alist (alistptr, Qouter_window_id,
-		  make_formatted_string ("%"PRIuMAX, w));
+		  make_formatted_string ("%"PRIuPTR, w));
 #endif
   store_in_alist (alistptr, Qicon_name, f->icon_name);
   store_in_alist (alistptr, Qvisibility,
@@ -5874,8 +5870,8 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
   if (FRAME_OUTPUT_DATA (f)->parent_desc == FRAME_DISPLAY_INFO (f)->root_window)
     tem = Qnil;
   else
-    tem = make_fixed_natnum (WINDOW_HANDLE_UINTPTR
-			     (FRAME_OUTPUT_DATA (f)->parent_desc));
+    tem = make_uint (WINDOW_HANDLE_UINTPTR
+		     (FRAME_OUTPUT_DATA (f)->parent_desc));
   store_in_alist (alistptr, Qexplicit_name, (f->explicit_name ? Qt : Qnil));
   store_in_alist (alistptr, Qparent_id, tem);
   store_in_alist (alistptr, Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f));
