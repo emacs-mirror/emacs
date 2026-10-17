@@ -536,7 +536,7 @@ being the result.")
 	tramp-default-host-alist
 	tramp-default-proxies-alist
 	;; Suppress method name check.
-	(non-essential t)
+	(tramp-methods (cons '("method") tramp-methods))
 	;; Suppress check for multihops.
 	(tramp-cache-data (make-hash-table :test #'equal))
 	(tramp-connection-properties '((nil "login-program" t)))
@@ -545,9 +545,50 @@ being the result.")
 	(progn
 	  (tramp-change-syntax 'default)
 	  ;; An unknown method shall raise an error.
-	  (let (non-essential)
+	  (should-error
+	   (tramp-dissect-file-name "/method1:user@host:")
+	   :type 'user-error)
+	  (should-error
+	   (tramp-dissect-file-name "/-:user@host:")
+	   :type 'user-error)
+
+	  ;; A wrong environment variable or default user could raise
+	  ;; an error.
+	  (let ((tramp-allow-double-percent t))
+	    (should (tramp-dissect-file-name "/method:%REMOTE_USER%@host:")))
+	  (let (tramp-allow-double-percent)
 	    (should-error
-	     (expand-file-name "/method:user@host:")
+	     (tramp-dissect-file-name "/method:%REMOTE_USER%@host:")
+	     :type 'user-error))
+	  (with-environment-variables (("REMOTE_USER" "user$"))
+	    (should-error
+	     (tramp-dissect-file-name "/method:$REMOTE_USER@host:")
+	     :type 'user-error)
+	    (let ((tramp-default-user "$REMOTE_USER"))
+	      (should-error
+	       (tramp-dissect-file-name "/method:host:")
+	       :type 'user-error)))
+	  (let ((tramp-default-user "user$"))
+	    (should-error
+	     (tramp-dissect-file-name "/method:host:")
+	     :type 'user-error))
+
+	  ;; A wrong environment variable or default host could raise
+	  ;; an error.
+	  (let ((tramp-allow-double-percent t))
+	    (should (tramp-dissect-file-name "/method:user@%REMOTE_HOST%:")))
+	  (let (tramp-allow-double-percent)
+	    (should-error
+	     (tramp-dissect-file-name "/method:user@%REMOTE_HOST%:")
+	     :type 'user-error))
+	  (with-environment-variables (("REMOTE_HOST" "host$"))
+	    (let ((tramp-default-host "$REMOTE_HOST"))
+	      (should-error
+	       (tramp-dissect-file-name "/method::")
+	       :type 'user-error)))
+	  (let ((tramp-default-host "host$"))
+	    (should-error
+	     (tramp-dissect-file-name "/method::")
 	     :type 'user-error))
 
 	  ;; Expand `tramp-default-user' and `tramp-default-host'.
@@ -1095,7 +1136,7 @@ being the result.")
 	tramp-default-host-alist
 	tramp-default-proxies-alist
 	;; Suppress method name check.
-	(non-essential t)
+	(tramp-methods `(("method") ("default-method") ,@tramp-methods))
 	;; Suppress check for multihops.
 	(tramp-cache-data (make-hash-table :test #'equal))
 	(tramp-connection-properties '((nil "login-program" t)))
@@ -1103,10 +1144,49 @@ being the result.")
     (unwind-protect
 	(progn
 	  (tramp-change-syntax 'simplified)
-	  ;; An unknown default method shall raise an error.
-	  (let (non-essential)
+	  ;; An unknown method shall raise an error.
+	  (let ((tramp-default-method "method1"))
 	    (should-error
-	     (expand-file-name "/user@host:")
+	     (tramp-dissect-file-name "/user@host:")
+	     :type 'user-error))
+
+	  ;; A wrong environment variable or default user could raise
+	  ;; an error.
+	  (let ((tramp-allow-double-percent t))
+	    (should (tramp-dissect-file-name "/%REMOTE_USER%@host:")))
+	  (let (tramp-allow-double-percent)
+	    (should-error
+	     (tramp-dissect-file-name "/%REMOTE_USER%@host:")
+	     :type 'user-error))
+	  (with-environment-variables (("REMOTE_USER" "user$"))
+	    (should-error
+	     (tramp-dissect-file-name "/$REMOTE_USER@host:")
+	     :type 'user-error)
+	    (let ((tramp-default-user "$REMOTE_USER"))
+	      (should-error
+	       (tramp-dissect-file-name "/host:")
+	       :type 'user-error)))
+	  (let ((tramp-default-user "user$"))
+	    (should-error
+	     (tramp-dissect-file-name "/host:")
+	     :type 'user-error))
+
+	  ;; A wrong environment variable or default host could raise
+	  ;; an error.
+	  (let ((tramp-allow-double-percent t))
+	    (should (tramp-dissect-file-name "/user@%REMOTE_HOST%:")))
+	  (let (tramp-allow-double-percent)
+	    (should-error
+	     (tramp-dissect-file-name "/user@%REMOTE_HOST%:")
+	     :type 'user-error))
+	  (with-environment-variables (("REMOTE_HOST" "host$"))
+	    (let ((tramp-default-host "$REMOTE_HOST"))
+	      (should-error
+	       (tramp-dissect-file-name "/user@:")
+	       :type 'user-error)))
+	  (let ((tramp-default-host "host$"))
+	    (should-error
+	     (tramp-dissect-file-name "/user@:")
 	     :type 'user-error))
 
 	  ;; Expand `tramp-default-method' and `tramp-default-user'.
@@ -1488,7 +1568,7 @@ being the result.")
 	tramp-default-host-alist
 	tramp-default-proxies-alist
 	;; Suppress method name check.
-	(non-essential t)
+	(tramp-methods (cons '("method") tramp-methods))
 	;; Suppress check for multihops.
 	(tramp-cache-data (make-hash-table :test #'equal))
 	(tramp-connection-properties '((nil "login-program" t)))
@@ -1506,10 +1586,50 @@ being the result.")
 		   (tramp-make-tramp-file-name
 		    vec (tramp-file-name-localname vec)))
 		 tramp-crypt-directories))
-	  ;; An unknown method shall raise an error.
-	  (let (non-essential)
+	  (should-error
+	   (tramp-dissect-file-name "/[method1/user@host]")
+	   :type 'user-error)
+	  (should-error
+	   (tramp-dissect-file-name "/[/user@host]")
+	   :type 'user-error)
+
+	  ;; A wrong environment variable or default user could raise
+	  ;; an error.
+	  (let ((tramp-allow-double-percent t))
+	    (should (tramp-dissect-file-name "/[method/%REMOTE_USER%@host]")))
+	  (let (tramp-allow-double-percent)
 	    (should-error
-	     (expand-file-name "/[method/user@host]")
+	     (tramp-dissect-file-name "/[method/%REMOTE_USER%@host]")
+	     :type 'user-error))
+	  (with-environment-variables (("REMOTE_USER" "user$"))
+	    (should-error
+	     (tramp-dissect-file-name "/[method/$REMOTE_USER@host]")
+	     :type 'user-error)
+	    (let ((tramp-default-user "$REMOTE_USER"))
+	      (should-error
+	       (tramp-dissect-file-name "/[method/host]")
+	       :type 'user-error)))
+	  (let ((tramp-default-user "user$"))
+	    (should-error
+	     (tramp-dissect-file-name "/[method/host]")
+	     :type 'user-error))
+
+	  ;; A wrong environment variable or default host could raise
+	  ;; an error.
+	  (let ((tramp-allow-double-percent t))
+	    (should (tramp-dissect-file-name "/[method/user@%REMOTE_HOST%]")))
+	  (let (tramp-allow-double-percent)
+	    (should-error
+	     (tramp-dissect-file-name "/[method/user@%REMOTE_HOST%]")
+	     :type 'user-error))
+	  (with-environment-variables (("REMOTE_HOST" "host$"))
+	    (let ((tramp-default-host "$REMOTE_HOST"))
+	      (should-error
+	       (tramp-dissect-file-name "/[method/]")
+	       :type 'user-error)))
+	  (let ((tramp-default-host "host$"))
+	    (should-error
+	     (tramp-dissect-file-name "/[method/]")
 	     :type 'user-error))
 
 	  ;; Expand `tramp-default-user' and `tramp-default-host'.

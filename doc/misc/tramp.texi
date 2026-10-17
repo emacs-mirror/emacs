@@ -3750,7 +3750,41 @@ components.
 
 A method name must be defined in the association list
 @code{tramp-methods}.
+
+User and host names can contain the percent sign @file{%}.  On
+MS-Windows, this can be used only once per user or host name for
+security reasons.
 @end defvar
+
+@vindex tramp-allow-double-percent
+Some packages use the percent sign as field separator in user or host
+names.  If it is ensured that a pattern like @samp{%NAME%} is used
+internally only, and won't be part of the final user or host name
+during connection to the remote host, the variable
+@code{tramp-allow-double-percent} can be set temporarily to a
+non-@code{nil} value, for example by let-binding the variable, or
+setting as connection-local variable
+@ifinfo
+(@pxref{Connection Variables, , , emacs})
+@end ifinfo
+for a dedicated method name.  On systems other than MS-Windows, this
+variable is already non-@code{nil} by default.
+
+For example, the package @file{tramp-archive.el} does
+
+@lisp
+@group
+(connection-local-set-profile-variables
+ 'tramp-archive-connection-local-default-profile
+ '((tramp-allow-double-percent . t)))
+@end group
+
+@group
+(connection-local-set-profiles
+ `(:application tramp :protocol ,tramp-archive-method)
+ 'tramp-archive-connection-local-default-profile)
+@end group
+@end lisp
 
 
 @ifset unified
