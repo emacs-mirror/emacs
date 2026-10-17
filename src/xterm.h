@@ -1842,7 +1842,7 @@ extern Atom x_intern_cached_atom (struct x_display_info *, const char *,
 				  bool);
 extern void x_intern_atoms (struct x_display_info *, char **, int, Atom *);
 extern char *x_get_atom_name (struct x_display_info *, Atom, bool *)
-  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC (xfree, 1);
 
 #ifdef HAVE_GTK3
 extern void x_scroll_bar_configure (GdkEvent *);
