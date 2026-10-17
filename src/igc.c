@@ -5262,18 +5262,6 @@ igc_make_string (EMACS_INT nchars, EMACS_INT nbytes,
   return make_lisp_ptr (s, Lisp_String);
 }
 
-Lisp_Object
-igc_make_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes, bool clear)
-{
-  return igc_make_string (nchars, nbytes, false, clear);
-}
-
-Lisp_Object
-igc_make_unibyte_string (EMACS_INT nchars, EMACS_INT nbytes, bool clear)
-{
-  return igc_make_string (nchars, nbytes, true, clear);
-}
-
 struct interval *
 igc_make_interval (void)
 {

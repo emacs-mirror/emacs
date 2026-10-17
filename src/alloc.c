@@ -1540,8 +1540,8 @@ static void
 init_strings (void)
 {
 #ifdef HAVE_MPS
-  empty_multibyte_string = igc_make_multibyte_string (0, 0, false);
-  empty_unibyte_string = igc_make_unibyte_string (0, 0, false);
+  empty_multibyte_string = igc_make_string (0, 0, false, false);
+  empty_unibyte_string = igc_make_string (0, 0, true, false);
 #else
   /* String allocation code will return one of 'empty_*ibyte_string'
      when asked to construct a new 0-length string, so in order to build
@@ -2349,7 +2349,7 @@ make_clear_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes, bool clearit)
     return empty_multibyte_string;
 
 #ifdef HAVE_MPS
-  return igc_make_multibyte_string (nchars, nbytes, clearit);
+  return igc_make_string (nchars, nbytes, false, clearit);
 #else
   Lisp_Object string;
   struct Lisp_String *s;
