@@ -81,6 +81,12 @@ static char NOSPLASH_OPT[] = "--no-splash";
 
 #define CHDIR_OPT "--chdir="
 
+/* Work around GCC bug 127896
+   <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=127896>.  */
+#if 13 <= __GNUC__
+# pragma GCC diagnostic ignored "-Wanalyzer-out-of-bounds"
+#endif
+
 static void
 ice_connection_closed (void)
 {
