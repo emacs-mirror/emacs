@@ -870,9 +870,8 @@ turn_on_face (struct frame *f, int face_id)
 
   /* construct combined VT sequence for face attributes */
   DWORD n = 0;
-  size_t sz = SEQMAX;
-  char seq[sz];
-  sz--;
+  char seq[SEQMAX];
+  size_t sz = sizeof seq - 1;
 
   if (face->tty_bold_p)
     SSPRINTF (seq, &n, sz, tty->TS_enter_bold_mode, NULL);
