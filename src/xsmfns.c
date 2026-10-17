@@ -261,7 +261,7 @@ smc_save_yourself_CB (SmcConn smcConn,
 
   xfree (smid_opt);
   xfree (chdir_opt);
-  xfree (cwd);
+  free (cwd);
   xfree (vp);
 
   for (i = 0; i < props_idx; ++i)
@@ -408,7 +408,7 @@ x_session_initialize (struct x_display_info *dpyinfo)
                emacs_strerror (errno));
       return;
     }
-  xfree (pwd);
+  free (pwd);
 
   ice_fd = -1;
   doing_interact = false;
