@@ -1519,22 +1519,11 @@ static Res amcSegFixEmergency(Seg seg, ScanState ss, Ref *refIO)
     /* Object has been forwarded already, so snap-out pointer. */
     /* TODO: Implement weak pointer semantics in emergency fixing.  This
        would be a good idea since we really want to reclaim as much as
-       possible in an emergency. */
+       possible in an emergency.  It would also allow us to restore the
+       more strict .check.band.weak assertion.  */
     *refIO = newRef;
     return ResOK;
   }
-
-#if 1
-  /* TODO: this probably works, but it needs testing. */
-  if (ss->rank == RankWEAK && amcSegHasNailboard(seg)) {
-    Bool wasMarked = NailboardGet(amcSegNailboard(seg), *refIO);
-    if (!wasMarked) {
-      ss->wasMarked = FALSE;
-      *refIO = (Ref)0;
-      return ResOK;
-    }
-  }
-#endif
 
 fixInPlace: /* see <design/poolamc>.Nailboard.emergency */
   amcSegFixInPlace(seg, ss, refIO);
