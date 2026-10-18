@@ -1680,7 +1680,7 @@ user identified by VEC.  If there is no user specified in either
 VEC or USER, or if there is no home directory, return nil."
   (when (tramp-send-command-and-check
 	 vec (format
-	      "echo %s"
+	      "(echo %s)"
 	      (tramp-shell-quote-argument
 	       (concat "~" (or user (tramp-file-name-user vec))))))
     (with-current-buffer (tramp-get-buffer vec)
@@ -5352,6 +5352,13 @@ connection if a previous connection has died for some reason."
 			  (with-tramp-connection-property
 			      (tramp-get-process vec) "temp-file"
 			    (tramp-compat-make-temp-name)))
+			 (quoted-user
+			  (unless (tramp-string-empty-or-nil-p l-user)
+			    (tramp-compat-funcall
+				(if (eq previous-hop tramp-null-hop)
+				    #'shell-quote-argument
+				  #'tramp-shell-quote-argument)
+			      l-user)))
 			 r-shell)
 
 		    ;; Check, whether there is a restricted shell.
@@ -5393,7 +5400,8 @@ connection if a previous connection has died for some reason."
 		       (when process-name async-args)
 		       (tramp-expand-args
 			hop 'tramp-login-args nil
-			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
+			?h (or l-host "") ?u (or quoted-user "")
+			?p (or l-port "")
 			?c (format-spec options (format-spec-make ?t tmpfile))
 			?n (concat
 			    "2>" (tramp-get-remote-null-device previous-hop))

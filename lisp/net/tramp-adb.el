@@ -1174,8 +1174,9 @@ connection if a previous connection has died for some reason."
 		  (tramp-adb-maybe-open-connection vec)))
 
 	      ;; Change user if indicated.
-	      (when user
-		(tramp-adb-send-command vec (format "su %s" user))
+	      (unless (tramp-string-empty-or-nil-p user)
+		(tramp-adb-send-command
+		 vec (format "su %s" (tramp-shell-quote-argument user)))
 		(unless (tramp-adb-send-command-and-check vec nil)
 		  (delete-process p)
 		  ;; Do not flush, we need the nil value.

@@ -151,11 +151,13 @@ multibyte mode and waits for the shell prompt to appear."
 		(setq path (tramp-shell-quote-argument
                             (string-join tramp-androidsu-remote-path ":"))
                       su-binary
-                      (shell-quote-argument
+                      (tramp-shell-quote-argument
                        (or (executable-find "su")
                            (tramp-user-error
 			    vec
                             "No su binary is available in any of `exec-path'")))
+		      user (if (tramp-string-empty-or-nil-p user)
+			       "" (tramp-shell-quote-argument user))
                       command (format "PATH=%s exec %s - %s || exit"
                                       path su-binary user))
                 ;; Attempt to execute the shell inside the global mount
