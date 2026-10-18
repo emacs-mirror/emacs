@@ -2581,7 +2581,14 @@ being the result.")
     (should (string-equal (expand-file-name (concat dir "~"))
 			  (expand-file-name (concat dir "/:~"))))
     (should (string-equal (expand-file-name (concat dir "~does-not-exist"))
-			  (expand-file-name (concat dir "/:~does-not-exist"))))))
+			  (expand-file-name (concat dir "/:~does-not-exist"))))
+
+    ;; TODO: Make it work.
+    (unless (or (tramp--test-rpc-p) (tramp--test-smb-p) (tramp--test-sudoedit-p))
+      (setq tramp-tolerate-tilde nil)
+      (should-error
+       (expand-file-name (concat dir "~does-not-exist"))
+       :type 'file-error))))
 
 (ert-deftest tramp-test06-directory-file-name ()
   "Check `directory-file-name'.
@@ -3983,14 +3990,16 @@ This tests also `access-file', `file-readable-p',
 	    (write-region "foo" nil tmp-name1)
 	    ;; `access-file' returns nil in case of success.
 	    (should-not (access-file tmp-name1 "error"))
-	    ;; `access-file' could use a timeout.
-	    (let ((remote-file-name-access-timeout 1)
-		  comp-warn-primitives)
-	      (cl-letf (((symbol-function #'file-exists-p)
-			 (lambda (_filename) (sleep-for 5))))
-		(should-error
-		 (access-file tmp-name1 "error")
-		 :type 'file-error)))
+	    ;; `access-file' could use a timeout.  tramp-rpc.el
+	    ;; doesn't use `file-exists-p' in its implementation.
+	    (unless (tramp--test-rpc-p)
+	      (let ((remote-file-name-access-timeout 1)
+		    comp-warn-primitives)
+		(cl-letf (((symbol-function #'file-exists-p)
+			   (lambda (_filename) (sleep-for 1.0e+INF))))
+		  (should-error
+		   (access-file tmp-name1 "error")
+		   :type 'file-error))))
 	    (delete-file tmp-name1)
 
 	    ;; A sticky bit could damage the `file-ownership-preserved-p' test.
@@ -6326,7 +6335,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
     (unwind-protect
 	(progn
-	  (setq command '("sleep" "100")
+	  (setq command '("sleep" "inf")
 		proc (apply #'start-file-process "test" nil command))
 	  (while (accept-process-output proc 0))
 	  (when-let* ((pid (process-get proc 'remote-pid))
@@ -7796,6 +7805,12 @@ This does not support connection share for more than two connections."
   "Check, whether the remote host is offered by rclone.
 This requires restrictions of file name syntax."
   (tramp-rclone-file-name-p ert-remote-temporary-file-directory))
+
+(defun tramp--test-rpc-p ()
+  "Check, whether the rpc method is used."
+  ;; tramp-rpc.el does not belong to proper Tramp.
+  (tramp-compat-funcall 'tramp-rpc-file-name-p
+    ert-remote-temporary-file-directory))
 
 (defun tramp--test-rsync-p ()
   "Check, whether the rsync method is used.

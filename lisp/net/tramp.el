@@ -3898,14 +3898,9 @@ BODY is the backend specific code."
            ;; Tilde expansion shall be possible also for quoted localname.
 	   (when (string-prefix-p "~" (file-name-unquote localname))
 	     (setq localname (file-name-unquote localname)))
-	   ;; Use tilde for relative localname.  A simple check of
-	   ;; `file-name-absolute-p' for localname isn't sufficient;
-	   ;; localname could be "~user/..." with a (remote) user which
-	   ;; doesn't exist locally.
+	   ;; Use tilde for relative localname.
 	   (when (tramp-sh-file-name-handler-p v)
-	     (unless (or (string-prefix-p "~" localname)
-			 (tramp-run-real-handler
-			  #'file-name-absolute-p (list localname)))
+	     (unless (string-match-p (rx bos (any "/~")) localname)
 	       (setq localname (concat "~/" localname))))
 
 	   ;; This does tilde expansion.
@@ -3915,9 +3910,8 @@ BODY is the backend specific code."
 	   (when (and (not tramp-tolerate-tilde)
 		      (string-prefix-p "~" localname))
 	     (tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
-	   ;; Make it absolute.
-	   (unless
-	       (tramp-run-real-handler #'file-name-absolute-p (list localname))
+	   ;; Add leading "/" if needed.
+	   (unless (string-match-p (rx bos (any "/~")) localname)
 	     (setq localname (concat "/" localname)))
 	   ;; There might be a double slash, for example when "~/"
 	   ;; expands to "/".  Remove this.

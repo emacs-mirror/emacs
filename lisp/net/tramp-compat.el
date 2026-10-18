@@ -212,5 +212,8 @@ value is the default binding of the variable."
 ;; * Starting with Emacs 31.1, use `plusp', `minusp', `oddp' and `evenp'.
 ;;
 ;; * Starting with Emacs 31.1, use `hash-table-contains-p'.
+;;
+;; * Starting with Emacs 31.1, use `(declare (autoload-macro expand))'
+;;   in macro definitions when appropriate.
 
 ;;; tramp-compat.el ends here
