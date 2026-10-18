@@ -4143,10 +4143,23 @@ igc_xfree (void *p)
   xfree (p);
 }
 
+/* Copy N words from SRC to DST.
+
+   We assume that the copying proceeds word-by-word and not
+   byte-by-byte, so that this can be used to copy references.
+
+   (GCC translates this to memcpy, though.)
+ */
+static void
+igc_memcpy (mps_word_t *dst, mps_word_t *src, ptrdiff_t n)
+{
+  for (ptrdiff_t i = 0; i != n; i++)
+    dst[i] = src[i];
+}
+
 typedef igc_root_list *(*root_create_fn) (struct igc *gc, void *start,
 					  void *end,
 					  const char *label);
-
 
 static void *
 igc_xpalloc (void *old_pa, ptrdiff_t *nitems,
@@ -4163,9 +4176,9 @@ igc_xpalloc (void *old_pa, ptrdiff_t *nitems,
     {
       mps_word_t *old_word = old_pa;
       mps_word_t *new_word = new_pa;
+      eassert (item_size % sizeof (mps_word_t) == 0);
       size_t nwords = (old_nitems * item_size) / sizeof (mps_word_t);
-      for (ptrdiff_t i = 0; i != nwords; i++)
-	new_word[i] = old_word[i];
+      igc_memcpy (new_word, old_word, nwords);
       igc_destroy_root_with_start (old_pa);
       xfree (old_pa);
     }
@@ -4243,8 +4256,9 @@ igc_grow_print_stack (struct print_stack *ps)
   ptrdiff_t old_size = ps->size;
   igc_xpalloc_exact ((void **) &prstack.stack, &ps->size, 1, -1,
 		     sizeof *ps->stack, scan_prstack, NULL);
+  static_assert (PE_free == 0);
   for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    ps->stack[i].type = PE_free;
+    eassert (ps->stack[i].type == PE_free);
 }
 
 void
@@ -4253,8 +4267,9 @@ igc_grow_pp_stack (struct print_pp_stack *ps)
   ptrdiff_t old_size = ps->size;
   igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
 		     sizeof *ps->stack, scan_ppstack, NULL);
+  static_assert (false == 0);
   for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    ppstack.stack[i].is_in_use = false;
+    eassert (ppstack.stack[i].is_in_use == false);
 }
 
 Lisp_Object *
@@ -4263,6 +4278,7 @@ igc_xnrealloc_lisp (ptrdiff_t nitems_old, Lisp_Object *old,
 {
   ptrdiff_t nbytes = nitems_new * word_size;
   Lisp_Object *new = xzalloc (nbytes);
+  static_assert (NIL_IS_ZERO);
   root_create_exact (global_igc, new, new + nitems_new, scan_exact,
 		     label);
   for (ptrdiff_t i = 0, n = min (nitems_old, nitems_new); i < n; i++)
