@@ -450,10 +450,8 @@ Supported backend types are `netrc', `plstore' and `json'."
      ((or (not (stringp source))
           (and auth-source-ignore-non-existing-file
                (not (file-exists-p source))))
-      (when auth-source-debug
-        (auth-source-do-warn
-         "auth-source-backend-parse: not existing file, ignoring spec: %S"
-         entry))
+      (auth-source-do-debug
+       "auth-source-backend-parse: not existing file, ignoring spec: %S" entry)
       (auth-source-backend
        :source ""
        :type 'ignore))
@@ -524,7 +522,13 @@ Supported backend types are `netrc', `plstore' and `json'."
        :source source
        :type keychain-type
        :search-function #'auth-source-macos-keychain-search
-       :create-function #'auth-source-macos-keychain-create)))))
+       :create-function #'auth-source-macos-keychain-create)))
+
+   (t (auth-source-do-debug
+       "auth-source-backend-parse: no macos keychain, ignoring spec: %S" entry)
+      (auth-source-backend
+       :source ""
+       :type 'ignore))))
 
 (add-hook 'auth-source-backend-parser-functions
           #'auth-source-backends-parser-macos-keychain)
@@ -566,7 +570,7 @@ Supported backend types are `netrc', `plstore' and `json'."
            :type 'secrets
            :search-function #'auth-source-secrets-search
            :create-function #'auth-source-secrets-create)
-        (auth-source-do-warn
+        (auth-source-do-debug
          "auth-source-backend-parse: no Secrets API, ignoring spec: %S" entry)
         (auth-source-backend
          :source ""
