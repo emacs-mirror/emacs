@@ -96,6 +96,13 @@ if requested by environment variables such as @env{LANG}.
 It does some basic parsing of the command-line arguments.
 
 @item
+It uses @code{custom-reevaluate-setting} to re-initialize the members
+of the list @code{custom-delayed-init-variables}.  These are any
+pre-loaded user options whose default value depends on the run-time,
+rather than build-time, context.
+@xref{Building Emacs, custom-initialize-delay}.
+
+@item
 It loads the library @file{site-start}, if it exists.  This is not
 done if the options @samp{-Q} or @samp{--no-site-file} were specified.
 @cindex @file{site-start.el}
@@ -146,13 +153,6 @@ It initializes the initial frame's faces, and sets up the menu bar
 and tool bar if needed.  If graphical frames are supported, it sets up
 the tool bar even if the current frame is not a graphical one, since a
 graphical frame may be created later on.
-
-@item
-It uses @code{custom-reevaluate-setting} to re-initialize the members
-of the list @code{custom-delayed-init-variables}.  These are any
-pre-loaded user options whose default value depends on the run-time,
-rather than build-time, context.
-@xref{Building Emacs, custom-initialize-delay}.
 
 @c @item
 @c It registers the colors available for tty frames.
