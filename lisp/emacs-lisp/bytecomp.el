@@ -934,7 +934,19 @@ the unwind-action")
  "to take a hash table and a value from the stack, and jump to
 the address the value maps to, if any.")
 
-;; unused: 184-191
+(byte-defop 184 -2 byte-eq-goto-if-neq
+ "pop two values, and jump if they are not eq")
+
+(byte-defop 185 0 byte-cdr-goto
+ "cdr then goto")
+
+(byte-defop 186 -2 byte-eq-goto-if-eq
+ "pop two values, and jump if they are eq")
+
+(byte-defop 187 1 byte-dup-car
+ "dup tail and extract car")
+
+;; unused: 188-191
 
 (byte-defop 192  1 byte-constant	"for reference to a constant")
 ;; Codes 193-255 are consumed by `byte-constant', which uses the 6
@@ -945,7 +957,9 @@ the address the value maps to, if any.")
 (defconst byte-goto-ops '(byte-goto byte-goto-if-nil byte-goto-if-not-nil
 			  byte-goto-if-nil-else-pop
 			  byte-goto-if-not-nil-else-pop
-                          byte-pushcatch byte-pushconditioncase)
+                          byte-pushcatch byte-pushconditioncase
+                          byte-eq-goto-if-neq byte-eq-goto-if-eq
+                          byte-cdr-goto)
   "List of byte-codes whose offset is a pc.")
 
 (defconst byte-goto-always-pop-ops '(byte-goto-if-nil byte-goto-if-not-nil))
@@ -5522,11 +5536,20 @@ FORM is used to provide location, `bytecomp--cus-function' and
 
 (defun byte-compile-goto (opcode tag)
   (push (cons opcode tag) byte-compile-output)
-  (setcdr (cdr tag) (if (memq opcode byte-goto-always-pop-ops)
-			(1- byte-compile-depth)
-		      byte-compile-depth))
-  (setq byte-compile-depth (and (not (eq opcode 'byte-goto))
-				(1- byte-compile-depth))))
+  (let ((depths
+         (cond
+          ((memq opcode '(byte-goto byte-cdr-goto))
+           (cons byte-compile-depth nil))
+          ((memq opcode '(byte-eq-goto-if-neq byte-eq-goto-if-eq))
+           (let ((d (- byte-compile-depth 2)))
+             (cons d d)))
+          ((memq opcode byte-goto-always-pop-ops)
+           (let ((d (1- byte-compile-depth)))
+             (cons d d)))
+          (t
+           (cons byte-compile-depth (1- byte-compile-depth))))))
+    (setcdr (cdr tag) (car depths))
+    (setq byte-compile-depth (cdr depths))))
 
 (defun byte-compile-stack-adjustment (op operand)
   "Return the amount by which an operation adjusts the stack.
