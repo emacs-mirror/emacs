@@ -765,6 +765,20 @@ See bug#80803 and bug#80967."
             (let ((default-directory git2))
               (should (file-exists-p "sub/foo.txt"))
               (should (memq (vc-state "sub/foo.txt" 'Git)
+                            '(nil unregistered))))
+            (reset)
+
+            ;; Move directory containing an untracked file (bug#82058).
+            (make-directory "git1/sub/" t)
+            (create-repo 'Git git1 "foo.txt")
+            (make-empty-file "git1/sub/bar.txt" t)
+            (make-directory "git2/")
+            (do-rename "git1/" "sub" "../git2/" nil)
+            (let ((default-directory git1))
+              (should-not (file-exists-p "sub/bar.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "sub/bar.txt"))
+              (should (memq (vc-state "sub/bar.txt" 'Git)
                             '(nil unregistered))))))))))
 
 (provide 'vc-test-misc)

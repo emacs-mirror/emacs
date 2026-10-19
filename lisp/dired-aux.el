@@ -2353,6 +2353,8 @@ Dired renames them using `vc-rename-file'."
   :group 'dired
   :version "27.1")
 
+(declare-function vc-file-tree-walk "vc")
+
 ;;;###autoload
 (defun dired-rename-file (file newname ok-if-already-exists)
   "Rename FILE to NEWNAME.
@@ -2382,10 +2384,20 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
           (if (equal file-root newname-root)
               (vc-rename-file file newname ok-if-already-exists)
             (let ((already-exists (file-exists-p newname)))
-              (if file-is-dir-p
-                  (copy-directory file newname)
-                (copy-file file newname ok-if-already-exists))
-              (vc-delete-file file 'noconfirm)
+              ;; The rename commands for several VCS (at least Bzr, Git
+              ;; and Mercurial) will fail if asked to move a directory
+              ;; containing only untracked files.  See `vc-rename-file'
+              ;; which resolves the same issue in the same way.
+              (if (and file-is-dir-p
+                       (catch 'done
+                         (vc-file-tree-walk file (lambda (_)
+                                                   (throw 'done nil)))
+                         t))
+                  (rename-file file newname ok-if-already-exists)
+                (if file-is-dir-p
+                    (copy-directory file newname)
+                  (copy-file file newname ok-if-already-exists))
+                (vc-delete-file file 'noconfirm))
               (when newname-backend
                 (let ((newname (expand-file-name newname newname-root))
                       (default-directory newname-root))
