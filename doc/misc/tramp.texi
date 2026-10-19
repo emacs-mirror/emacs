@@ -2511,6 +2511,20 @@ shown below for @value{tramp} to use when connecting.
 (add-to-list 'tramp-remote-path "/usr/local/perl/bin")
 @end lisp
 
+A path can contain the characters @file{~} or @file{$}, which are used
+for tilde expansion or environment variable substitution on the remote
+host.  The following two settings are equivalent:
+
+@lisp
+@group
+(add-to-list 'tramp-remote-path "~/.local/bin")
+(add-to-list 'tramp-remote-path "$HOME/.local/bin")
+@end group
+@end lisp
+
+If there are other shell special characters in the path name, there is
+no expansion, and all special characters are used literally.
+
 @vindex tramp-own-remote-path
 Another way to find the remote path is to use the path assigned to the
 remote user by the remote host.  @value{tramp} does not normally retain

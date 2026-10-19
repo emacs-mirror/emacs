@@ -70,6 +70,7 @@
 
 (declare-function edebug-mode "edebug")
 (declare-function project-mode-line-format "project")
+(declare-function tramp-bundle-read-file-names "tramp-sh")
 (declare-function tramp-check-remote-uname "tramp-sh")
 (declare-function tramp-file-name-with-sudo "tramp-cmds")
 (declare-function tramp-find-executable "tramp-sh")
@@ -6942,9 +6943,10 @@ INPUT, if non-nil, is a string sent to the process."
 
 (tramp--test-deftest-direct-async-process tramp-test35-exec-path)
 
-;; This test is inspired by Bug#33781.
+;; This test is inspired by Bug#33781 and Bug#82027.
 (ert-deftest tramp-test35-remote-path ()
-  "Check loooong `tramp-remote-path'."
+  "Check loooong `tramp-remote-path'.
+Check also tilde and environment variable expansion."
   :tags '(:expensive-test)
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-supports-environment-variables-p))
@@ -6971,6 +6973,30 @@ INPUT, if non-nil, is a string sent to the process."
           (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password)
           (should (equal (exec-path) (cons "/" orig-exec-path)))
           (setq tramp-remote-path orig-tramp-remote-path)
+
+	  (when (and (tramp--test-mock-p) (getenv "USER"))
+	    ;; "~/" and "$VARIABLE" are expanded.  We test it with the
+	    ;; "mock" method, because we know there how "~/" and
+	    ;; "$USER" are expanded.
+	    (dolist (item
+		     `("~/"
+		       ,(file-name-concat
+			 (file-name-directory (expand-file-name "~")) "$USER/")))
+	      (setq tramp-remote-path  (cons item tramp-remote-path))
+              (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
+              (should
+	       (equal (exec-path) (cons (expand-file-name "~") orig-exec-path)))
+              (setq tramp-remote-path orig-tramp-remote-path))
+
+	    ;; "~/" and "$VARIABLE" expansion shall happen only for
+	    ;; file names with no other special characters.
+	    (dolist (item '("~/xx," "/,$USER"))
+              (should
+	       (member
+		item
+		(tramp-bundle-read-file-names
+		 tramp-test-vec `(,item) 'expand)))))
 
           ;; We make a super long `tramp-remote-path'.
 	  (unless (tramp--test-container-oob-p)

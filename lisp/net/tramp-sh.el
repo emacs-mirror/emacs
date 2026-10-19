@@ -1225,6 +1225,10 @@ characters need to be doubled.")
 (defconst tramp-bundle-read-file-names "\
 printf \"(\\n\"
 while IFS= read file; do
+  if (%m -n \"$1\") && !(echo \"$file\" | grep -qe '[^-_./[:alnum:]~$]')
+  then
+    file=`eval echo \"$file\"`
+  fi
   printf \"(\"; %k \"$file\"
   if %q \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
   if %m -r \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
@@ -1237,6 +1241,10 @@ For every file, it returns a list with the absolute file name, and the
 tests for file existence, file readability, file directory, and file
 executable.  Input shall be read via here-document, otherwise the
 command could exceed maximum length of command line.
+
+If an argument $1 is given, the file names are expanded first (tilde,
+environment variables).
+
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
@@ -3576,36 +3584,43 @@ will be used."
 		       "decoding command or an scp program")
 	       method)))))))))
 
-(defun tramp-bundle-read-file-names (vec files)
+(defun tramp-bundle-read-file-names (vec files &optional expand)
   "Read file attributes of FILES and with one command fill the cache.
 FILES must be the local names only.  The cache attributes to be filled
 are \"file-exists-p\", \"file-readable-p\", \"file-directory-p\" and
-\"file-executable-p\"."
+\"file-executable-p\".
+
+If EXPAND is non-nil, the file names are expanded first (tilde and
+environment variables).  This is restricted to file names with no other
+shell special characters but \"~\" and \"$\".
+
+Return the possibly modified list of FILES."
   (when files
     (tramp-maybe-send-script
      vec tramp-bundle-read-file-names "tramp_bundle_read_file_names")
 
-    (dolist
-	(elt
-	 (with-current-buffer (tramp-get-connection-buffer vec)
-	   ;; We cannot use `tramp-send-command-and-read', because
-	   ;; this does not cooperate well with heredoc documents.
-	   (unless (tramp-send-command-and-check
-		    vec
-		    (format
-		     "tramp_bundle_read_file_names <<'%s'\n%s\n%s\n"
-		     tramp-end-of-heredoc
-		     (mapconcat #'tramp-shell-quote-argument files "\n")
-		     tramp-end-of-heredoc))
-	     (tramp-error vec 'remote-file-error "%s" (tramp-get-buffer-string)))
-	   ;; Read the expression.
-	   (goto-char (point-min))
-	   (read (current-buffer))))
-
+    (mapcar
+     (lambda (elt)
       (tramp-set-file-property vec (car elt) "file-exists-p" (nth 1 elt))
       (tramp-set-file-property vec (car elt) "file-readable-p" (nth 2 elt))
       (tramp-set-file-property vec (car elt) "file-directory-p" (nth 3 elt))
-      (tramp-set-file-property vec (car elt) "file-executable-p" (nth 4 elt)))))
+      (tramp-set-file-property vec (car elt) "file-executable-p" (nth 4 elt))
+      (car elt))
+     (with-current-buffer (tramp-get-connection-buffer vec)
+       ;; We cannot use `tramp-send-command-and-read', because this
+       ;; does not cooperate well with heredoc documents.
+       (unless (tramp-send-command-and-check
+		vec
+		(format
+		 "tramp_bundle_read_file_names %s <<'%s'\n%s\n%s\n"
+		 (if expand "expand" "")
+		 tramp-end-of-heredoc
+		 (mapconcat #'tramp-shell-quote-argument files "\n")
+		 tramp-end-of-heredoc))
+	 (tramp-error vec 'remote-file-error "%s" (tramp-get-buffer-string)))
+       ;; Read the expression.
+       (goto-char (point-min))
+       (read (current-buffer))))))
 
 (defvar tramp-vc-registered-file-names nil
   "List used to collect file names, which are checked during `vc-registered'.")
@@ -5746,16 +5761,17 @@ Nonexistent directories are removed from spec."
 		   (cdr elt2)))
 	  (setq remote-path (delq 'tramp-own-remote-path remote-path)))
 
-	;; Remove double entries.
-	(setq remote-path (seq-uniq remote-path #'string-equal))
-
-	;; Remove non-existing directories.
 	(let ((remote-file-name-inhibit-cache
 	       (tramp-suppress-remote-file-name-inhibit-cache)))
-	  (tramp-bundle-read-file-names vec remote-path)
-	  (seq-remove
-	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
-	   remote-path))))))
+	  ;; Remove double entries.
+	  (seq-uniq
+	   ;; Remove non-existing directories.
+	   (seq-remove
+	    (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
+	    ;; Remove trailing slashes.
+	    (mapcar
+	     #'directory-file-name
+	     (tramp-bundle-read-file-names vec remote-path 'expand)))))))))
 
 (defun tramp-get-remote-arg-max (vec)
   "Return ARG_MAX config from the remote side."
