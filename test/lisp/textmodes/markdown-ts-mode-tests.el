@@ -158,6 +158,38 @@ Only upper-case \"L\" counts: \"l3\" is a heading slug, not a line."
       (should-error (markdown-ts--goto-fragment "nope")
                     :type 'user-error))))
 
+(ert-deftest markdown-ts-mode-test-atx-hidden-markup ()
+  "Hiding an ATX marker hides only the spaces and tabs after it.
+CommonMark strips only space (U+0020) and tab (U+0009) from the heading
+text, so other blanks such as U+3000 and U+00A0 are text and stay
+visible, and so does a single-character text (bug#82035).
+See URL `https://spec.commonmark.org/0.31.2/#atx-headings'."
+  (skip-unless (and (treesit-ready-p 'markdown t)
+                    (treesit-ready-p 'markdown-inline t)))
+  (dolist (case '(("#"       . "")
+                  ("# x"     . "x")
+                  ("## x"    . "x")
+                  ("#\tx"    . "x")
+                  ("# \t x"  . "x")
+                  ("# xy"    . "xy")
+                  ("# x #"   . "x")
+                  ("# \N{IDEOGRAPHIC SPACE}xy" . "\N{IDEOGRAPHIC SPACE}xy")
+                  ("# \N{NO-BREAK SPACE}xy"    . "\N{NO-BREAK SPACE}xy")))
+    (ert-with-test-buffer ()
+      (insert (car case) "\n")
+      (let ((markdown-ts-hide-markup t))
+        (markdown-ts-mode)
+        (font-lock-ensure))
+      (should (equal case
+                     (cons (car case)
+                           (apply #'string
+                                  (seq-keep
+                                   (lambda (pos)
+                                     (unless (get-text-property pos 'invisible)
+                                       (char-after pos)))
+                                   (number-sequence
+                                    1 (length (car case)))))))))))
+
 (provide 'markdown-ts-mode-tests)
 
 ;;; markdown-ts-mode-tests.el ends here
