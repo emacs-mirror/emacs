@@ -244,8 +244,8 @@ typedef enum
 	   pattern buffer.  */
   stop_memory,
 
-	/* Match a duplicate of something remembered. Followed by one
-	   byte containing the register number.  */
+	/* Backreference: match a duplicate of something remembered.
+	   Followed by one byte containing the register number.  */
   duplicate,
 
 	/* Fail unless at beginning of line.  */
@@ -264,8 +264,16 @@ typedef enum
   jump,
 
 	/* Followed by two-byte relative address of place to resume at
-	   in case of failure.  */
-  on_failure_jump,
+	   in case of failure.  Fully memoized.  */
+  on_failure_jump_memo,
+
+	/* Like on_failure_jump but without memoization.  */
+  on_failure_jump_nomemo,
+
+        /* Halfway between on_failure_jump and on_failure_jump_nomemo:
+           it's not memoized but counts failures to see whether memoization
+	   should be enabled.  */
+  on_failure_jump_prememo,
 
 	/* Like on_failure_jump, but pushes a placeholder instead of the
 	   current string position when executed.  Upon failure,
@@ -613,9 +621,19 @@ print_partial_compiled_pattern (FILE *dest, re_char *start, re_char *end)
 	  fputs ("/endline", dest);
 	  break;
 
-	case on_failure_jump:
+	case on_failure_jump_memo:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
-	  fprintf (dest, "/on_failure_jump to %td", p + mcnt - start);
+	  fprintf (dest, "/on_failure_jump_memo to %td", p + mcnt - start);
+	  break;
+
+	case on_failure_jump_nomemo:
+	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
+	  fprintf (dest, "/on_failure_jump_nomemo to %td", p + mcnt - start);
+	  break;
+
+	case on_failure_jump_prememo:
+	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
+	  fprintf (dest, "/on_failure_jump_prememo to %td", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
@@ -1687,6 +1705,20 @@ do {									\
     return value;					\
   } while (false)
 
+#ifndef MEMOIZE_FAILURES
+/* If 1, memoization is enabled selectively only at those places
+   where counters indicate that it might be beneficial.
+   For testing purposes it can be useful to set it to 2 to force
+   applying memoization to all the places where we may apply it.  */
+# define MEMOIZE_FAILURES 1
+#endif
+
+#if MEMOIZE_FAILURES == 2
+# define ON_FAILURE_JUMP_PREMEMO on_failure_jump_memo
+#else
+# define ON_FAILURE_JUMP_PREMEMO on_failure_jump_prememo
+#endif
+
 /* Compile PATTERN (of length SIZE) according to SYNTAX.
    Return a nonzero error code on failure, or zero for success.
 
@@ -1931,7 +1963,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
 		      (simple || !analyze_first (bufp, laststart, b, NULL))
-		      ? on_failure_jump : on_failure_jump_loop;
+		      ? ON_FAILURE_JUMP_PREMEMO : on_failure_jump_loop;
 		    eassert (skip_one_char (laststart) <= b);
 
 		    if (!zero_times_ok && simple)
@@ -1977,7 +2009,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    /* A simple ? pattern.  */
 		    eassert (zero_times_ok);
 		    GET_BUFFER_SPACE (3);
-		    INSERT_JUMP (on_failure_jump, laststart, b + 3);
+		    INSERT_JUMP (on_failure_jump_nomemo, laststart, b + 3);
 		    b += 3;
 		  }
 	      }
@@ -1994,7 +2026,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		       at the end of the loop.  */
 		    if (emptyp) BUF_PUSH (no_op);
 		    STORE_JUMP (emptyp ? on_failure_jump_nastyloop
-				: on_failure_jump, b, laststart);
+				: ON_FAILURE_JUMP_PREMEMO, b, laststart);
 		    b += 3;
 		    if (zero_times_ok)
 		      {
@@ -2010,7 +2042,8 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		    /* non-greedy a?? */
 		    INSERT_JUMP (jump, laststart, b + 3);
 		    b += 3;
-		    INSERT_JUMP (on_failure_jump, laststart, laststart + 6);
+		    INSERT_JUMP (on_failure_jump_nomemo,
+				 laststart, laststart + 6);
 		    b += 3;
 		  }
 	      }
@@ -2119,10 +2152,10 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 		if (p < pend && p[0] == '-' && p[1] != ']')
 		  {
 
-		    /* Discard the '-'. */
+		    /* Discard the '-'.  */
 		    PATFETCH (c1);
 
-		    /* Fetch the character which ends the range. */
+		    /* Fetch the character which ends the range.  */
 		    PATFETCH (c1);
 
 		    if (CHAR_BYTE8_P (c1)
@@ -2338,7 +2371,7 @@ regex_compile (re_char *pattern, ptrdiff_t size,
 	      /* Insert before the previous alternative a jump which
 		 jumps to this alternative if the former fails.  */
 	      GET_BUFFER_SPACE (3);
-	      INSERT_JUMP (on_failure_jump, begalt, b + 6);
+	      INSERT_JUMP (on_failure_jump_nomemo, begalt, b + 6);
 	      pending_exact = 0;
 	      b += 3;
 
@@ -2905,7 +2938,9 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	      }
 	    switch (*newp1)
 	      {
-	      case on_failure_jump:
+	      case on_failure_jump_memo:
+	      case on_failure_jump_nomemo:
+	      case on_failure_jump_prememo:
 	      case on_failure_keep_string_jump:
 	      case on_failure_jump_nastyloop:
 	      case on_failure_jump_loop:
@@ -2918,7 +2953,9 @@ forall_firstchar_1 (re_char *p, re_char *pend,
 	        goto do_jump;
 	      }
 
-	  case on_failure_jump:
+	  case on_failure_jump_memo:
+	  case on_failure_jump_nomemo:
+	  case on_failure_jump_prememo:
 	  case on_failure_keep_string_jump:
 	  case on_failure_jump_nastyloop:
 	  case on_failure_jump_loop:
@@ -4078,6 +4115,322 @@ unwind_re_match (void *ptr)
   b->text->inhibit_shrinking = 0;
 }
 
+/* **************** Memoization **********************************************
+   As we "all" know from our computation theory classes, regexps are wonderful
+   because we can convert them to NFA and then DFA to match them in O(n) using
+   a constant amount of space.  [ Where n is the size of the string.  ]
+
+   Sadly, practice is a bit different from theory:
+   - That "matching" is for the exact string, whereas here we need to see
+     if there exists a match for a prefix (re_match) or a substring (re_search)
+     of the string.
+   - We need to keep track of the match-beginning/end positions.
+   - We have backreferences.
+   - We have look ahead/behind.
+   - We need to know not just if a match exist but want to choose a paticular
+     match, according to greediness of the repetition operators and other rules.
+   - ...
+
+   Some of those aspects don't make too much difference, but some completely
+   break the implementation technique and algorithmic complexity.
+
+   Also, while converting RE->NFA is mostly O(m) [where m is the size of the
+   regexp], converting NFA->DFA is a painful O(2^m), which means that
+   matching the regexp via DFA is actually O(2^m + n) and the space needed
+   O(2^m).
+
+   Thompson's NFA simulates a DFA during the match without building the DFA
+   upfront, which gives a much better behavior: matching using the NFA that way
+   is O(m * n) in time and O(m) in space.
+
+   Of course, that's still theoretical and doesn't account for things like
+   backreferences.  In practice lots of regexp matchers, like this one
+   rely on backtracking, which tends to be fast when the first match is
+   the one we want and is easy to find, and accomodates all those regexp
+   extensions more easily.  Sadly, it's algorithmically horrible, like
+   O(2^n) in time and O(n) in space.
+   So here we try to recover Thompson's NFA algorithmic behavior by
+   keeping track of the pairs "NFA-state x string-position" where
+   we have already discovered that the match fails, i.e. by
+   [Memoization](https://en.wikipedia.org/wiki/Memoization),
+   following the same approach as described in
+
+       Using Selective Memoization to Defeat Regular Expression
+       Denial of Service (ReDoS)
+       James C. Davis, Francisco Servant, and Dongyoon Lee
+       doi:10.1109/SP40001.2021.00032
+
+   To reduce the cost of memoization we use a kind of "competitive analysis":
+   We count the number of failures to decide when and where we perform
+   memoization, so we do it only where it's beneficial.
+   We do it in two steps: at first we count only the total number of
+   failures without distinguishing specific NFA states.  Once that count
+   reaches a certain threshold (compared to the size of the string we have
+   matched so far), we start counting separately the number of failures
+   for each NFA state.
+   Finally, if an NFA state has seen more failures than the size of the string
+   we visited (which proves that memoization would have been beneficial),
+   we allocate a bitvector for that NFA state to memoize (a.k.a remember)
+   the string positions where that NFA state already failed.
+   This way, regexps that do not benefit from memoization do not pay the
+   full cost of memoization (only the cost of counting failures).
+   And even for regexps that do benefit from memoization, we memoize only
+   those NFA states that can benefit from it.  The competitive analysis
+   means we sometimes "waste" time because we do not memoize right from
+   the beginning, but this does not affect the algorithmic complexity.
+
+   We memoize only the NFA states (i.e. bytecode positions) corresponding
+   to backtracking points.  Here are the relevant opcodes:
+
+   - on_failure_jump_smart: This opcode should disappear before we have to
+       worry about memoization.
+   - on_failure_keep_string_jump: We don't want to memoize this one,
+       because we want it to be as fast as possible.  Sadly, this means
+       that we can still be O(n^2) in some cases where memoization would
+       reduce it to O(n), e.g. for "a*a*b".
+   - on_failure_jump_nomemo: Used for non-loops, where memoization is not
+       algorithmically indispensable.
+   - on_failure_jump_memo: Used for normal loops where memoization is needed.
+   - on_failure_jump_prememo: Used for loops where memoization might
+       not be needed, so we count the failures but don't record them,
+       and we switch to the 'memo' version if the count is high enough.
+   - on_failure_jump_loop:
+     on_failure_jump_nastyloop:
+       We want to memoize those since they're part of loops by definition.
+       We could have 'prememo' versions of those, but since these
+       operations are inherently more costly than just 'on_failure_jump'
+       the benefit is not as high.
+   - succeed_n (and jump_n): Just like backrefs, these break our assumptions
+       about "patpos + stringpos" being the only relevant info to index our
+       memoization table, so not only we don't memoize them but they stop
+       memoization of everything else as well.
+
+   Future work: I think it would be safe to use the 'nomemo' variant for
+   the *first* loop (or more specifically for those loops which can
+   be reached only via a path that does not go through another loop).
+
+   Side note: Our memoization is a bit more subtle than that of Davis above.
+   For a given 'on_failure_jump*' operation we remember when the "fallthrough"
+   branch (a.k.a the first branch of the alternative) fails but not when the
+   other branch fails.  Yet when we come back to the same state&pos and the
+   memo table says the first branch failed, we don't just skip the first
+   branch (knowing it would fail): we fail!
+   IOW we make the second branch fail as well!
+   This is OK because there are only two ways we can come back to the
+   same state at the same string position: either it's because the second
+   branch indeed failed (so we backtracked to a previous position and came
+   back to the same state&pos via some other path), or it's because we're
+   still in the second branch and we returned to the same state&pos via
+   a zero-length loop (i.e. an inf-loop we need to break anyway).
+   In either case we can make the second branch fail!  */
+
+#if MEMOIZE_FAILURES
+
+/* A simple type to keep a set of small integers in the form of a bitset.
+   We assume the small integers will always be positive,
+   and usually close to each other and close to 0.  */
+struct memo_bits {
+  unsigned char *bytes;
+  /* Size of 'bytes' in bytes.  Note: before we actually do the memoization,
+     'bytes' is NULL and 'count' simply counts the number of failures
+     already seen.  */
+  ptrdiff_t count;
+};
+
+static void
+memo_bits_free (struct memo_bits *bs)
+{
+  xfree (bs->bytes);
+}
+
+static bool
+memo_bits_get (struct memo_bits *bs, ptrdiff_t bit)
+{
+  ptrdiff_t byte_nb = bit / CHAR_BIT;
+  if (0 <= byte_nb && byte_nb < bs->count)
+    return bs->bytes[byte_nb] & (1 << (bit % CHAR_BIT));
+  else
+    return false;
+}
+
+static void
+memo_bits_set_noalloc (struct memo_bits *bs, ptrdiff_t bit)
+{
+  ptrdiff_t byte_nb = bit / CHAR_BIT;
+  eassert (0 <= byte_nb && byte_nb < bs->count);
+  eassert (!memo_bits_get (bs, bit));
+  unsigned char *byte = &bs->bytes[byte_nb];
+  *byte |= 1 << (bit % CHAR_BIT);
+  eassert (memo_bits_get (bs, bit));
+}
+
+/* Minimum size of allocation for the bitvectors.  */
+#define MEMO_BITS_STEP (4 * sizeof (int))
+
+static void
+memo_bits_set (struct memo_bits *bs, ptrdiff_t bit)
+{
+  eassert (bit >= 0);
+  ptrdiff_t byte_nb = bit / CHAR_BIT;
+  if (byte_nb >= bs->count)
+    {
+      ptrdiff_t oldsize = bs->count;
+      ptrdiff_t minadd = max (oldsize, byte_nb + 1 - oldsize);
+      ptrdiff_t added = ROUNDUP (minadd, MEMO_BITS_STEP);
+      bs->bytes = xrealloc (bs->bytes, oldsize + added);
+      memset (bs->bytes + oldsize, 0, added);
+      bs->count += added;
+      eassert (bs->count > byte_nb);
+    }
+  memo_bits_set_noalloc (bs, bit);
+}
+
+static struct memo_bits
+memo_bits (ptrdiff_t first)
+{
+  ptrdiff_t byte_nb = first / CHAR_BIT;
+  ptrdiff_t initial_size = ROUNDUP (1 + byte_nb, MEMO_BITS_STEP);
+  unsigned char *bytes = xmalloc (initial_size);
+  memset (bytes, 0, initial_size);
+  struct memo_bits bs = { bytes, initial_size };
+  memo_bits_set_noalloc (&bs, first);
+  return bs;
+}
+
+struct memo {
+  /* Total number of failures seen so far.
+     Used only in the first phase before we allocate 'state_failures'.  */
+  EMACS_INT total_failures;
+  /* Furthest string position visited so far.
+     Used to weigh the number of failures against the amount of the
+     string we have visited.  */
+  ptrdiff_t max_offset;
+  /* Table of failures, indexed by the NFA state.
+     When this is non-NULL, each entry keeps track of either the number of
+     failures seen so far at the corresponding NFA state, or the set of
+     string positions (represented as a bitvector) where the NFA state
+     has already failed.  */
+  struct memo_bits *state_failures;
+  /* Number of elements in the 'state_failures' array.  */
+  int nb_counters;
+  /* When a backref leads to failure, all the failures "sent up" while
+     backtracking (until we backtrack over the corresponding stop_memory)
+     can't be memoized because they depended on the state of the register,
+     which we don't use as key to lookup the memo table.  */
+  bool inhibit;
+};
+
+static void
+memo_free (void *ptr)
+{
+  struct memo *memo = ptr;
+  if (memo->state_failures)
+    {
+      for (int i = 0; i < memo->nb_counters; i++)
+	memo_bits_free (&memo->state_failures[i]);
+      xfree (memo->state_failures);
+    }
+  xfree (memo);
+}
+
+/* Every on_failure_jump operation occupies at least 3 bytes.  */
+#define MEMO_BYTES_PER_COUNTER 3
+
+static void
+memo_init_failures (struct memo *memo, struct re_pattern_buffer *bufp)
+{
+  memo->nb_counters = bufp->used / MEMO_BYTES_PER_COUNTER;
+  ptrdiff_t nbytes = sizeof (struct memo_bits) * memo->nb_counters;
+  memo->state_failures = xmalloc (nbytes);
+  memset (memo->state_failures, 0, nbytes);
+  /* Setup an unwind_protect to free the memoization table.
+	     Use a copy of 'memo' so that '&memo' does not prevent the
+	     compiler from keeping (parts of) it in registers.  */
+  struct memo *memo_copy = xmalloc (sizeof (struct memo));
+  *memo_copy = *memo;
+  record_unwind_protect_ptr (memo_free, memo_copy);
+}
+
+static void
+memo_init (struct memo *memo, struct re_pattern_buffer *bufp)
+{
+  struct memo empty = { 0, 0 , NULL , 0, 0};
+  *memo = empty;
+#if MEMOIZE_FAILURES == 2
+  memo_init_failures (memo, bufp);
+  for (ptrdiff_t i = 0; i < memo->nb_counters; i++)
+    /* Put a dummy empty bitset.  Technically xmalloc(0) should work
+       as well, but GCC emit a warning and historically 0-sized
+       heap allocations have been poorly supported.  */
+    memo->state_failures[i].bytes = xmalloc (1);
+#endif
+}
+
+static void
+memo_record_failure (struct memo *memo, struct re_pattern_buffer *bufp,
+		     re_char *pat, ptrdiff_t strpos)
+{
+  eassert (strpos >= 0);
+  if (memo->max_offset <= strpos)
+    memo->max_offset = strpos + 1;
+  if (!memo->state_failures)
+    {
+      memo->total_failures++;
+      /* Tests suggest an "arbitrary" threshold of 2 failures per byte
+	 before deciding memoization might be worthwhile.  */
+      if ((memo->total_failures >> 1) > memo->max_offset)
+	memo_init_failures (memo, bufp);
+    }
+  else
+    {
+      if (memo->inhibit)
+	return;
+      ptrdiff_t bytecodepos = (pat - bufp->buffer) / MEMO_BYTES_PER_COUNTER;
+      eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
+      struct memo_bits *failures = &memo->state_failures[bytecodepos];
+      if (!failures->bytes)
+	{
+	  failures->count++;
+	  if (failures->count > memo->max_offset)
+	    {
+	      /* We have failed at this very same position of the
+		 pattern more times than we have visited chars, so
+		 there is room for memoization to to payoff!  */
+	      DEBUG_PRINT ("SETTING up memoization for %d!\n",
+			   pat - bufp->buffer);
+	      if (*pat == on_failure_jump_prememo)
+		/* Discard 'const', making re_search non-reentrant?  */
+		*(unsigned char*)pat = on_failure_jump_memo;
+	      *failures = memo_bits (strpos);
+	      eassert (failures->bytes);
+	      /* FIXME: The other counters may have been inflated by the
+	         lack of memoization on the current node, so we could
+	         zero them out to avoid needlessly alllocating memo_bits
+	         for them?  */
+	    }
+	}
+      else
+	memo_bits_set (failures, strpos);
+    }
+}
+
+static bool
+memo_has_failed_p (struct memo *memo, struct re_pattern_buffer *bufp,
+		   re_char *pat, ptrdiff_t str)
+{
+  eassert (str >= 0);
+  if (memo->state_failures)
+    {
+      ptrdiff_t bytecodepos = (pat - bufp->buffer) / MEMO_BYTES_PER_COUNTER;
+      eassert (0 <= bytecodepos && bytecodepos < memo->nb_counters);
+      struct memo_bits *failures = &memo->state_failures[bytecodepos];
+      if (failures->bytes)
+	return memo_bits_get (failures, str) && !memo->inhibit;
+    }
+  return false;
+}
+#endif /* MEMOIZE_FAILURES */
+
 /* This is a separate function so that we can force an alloca cleanup
    afterwards.  */
 static ptrdiff_t
@@ -4196,6 +4549,11 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
       record_unwind_protect_ptr (unwind_re_match, current_buffer);
       current_buffer->text->inhibit_shrinking = 1;
     }
+
+#if MEMOIZE_FAILURES
+  struct memo memo;
+  memo_init (&memo, bufp);
+#endif
 
   /* Do not bother to initialize all the register variables if there are
      no groups in the pattern, as it takes a fair amount of time.  If
@@ -4654,6 +5012,14 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    int regno = *p++;	/* Get which register to match against.  */
 	    DEBUG_PRINT ("EXECUTING duplicate %d.\n", regno);
 
+#if MEMOIZE_FAILURES
+	    /* Ideally, we'd mark the failure points on the stack
+	       (until the last modification of REGNO) as "non-memoizing"
+	       (or we'd add the REGNO's position to the state we use when
+	       indexing the memoization table),
+	       but instead we just disable memoization altogether.  */
+	    memo.inhibit = true;
+#endif
 	    /* Can't back reference a group which we've never matched.  */
 	    eassert (0 < regno && regno < num_regs);
 	    eassert (REG_UNSET (regstart[regno]) <= REG_UNSET (regend[regno]));
@@ -4803,6 +5169,15 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	     whether something matched between the beginning and the end of
 	     the loop.  */
 	case on_failure_jump_nastyloop:
+#if MEMOIZE_FAILURES
+	  if (memo_has_failed_p (&memo, bufp,
+				 p - 1, POINTER_TO_OFFSET (d) - pos))
+	    {
+	      DEBUG_PRINT ("EARLYFAIL on_failure_jump_nastyloop at (%ld, %ld)\n",
+		           p - 1 - bufp->buffer, d - string2);
+	      goto fail;
+	    }
+#endif
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT ("EXECUTING on_failure_jump_nastyloop %d (to %p):\n",
 		       mcnt, p + mcnt);
@@ -4824,6 +5199,15 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	     failure stack if the same spot was already hit earlier.  */
 	case on_failure_jump_loop:
 	on_failure:
+#if MEMOIZE_FAILURES
+	  if (memo_has_failed_p (&memo, bufp,
+				 p - 1, POINTER_TO_OFFSET (d) - pos))
+	    {
+	      DEBUG_PRINT ("EARLYFAIL on_failure_jump_loop at (%ld, %ld)\n",
+		           p - 1 - bufp->buffer, d - string2);
+	      goto fail;
+	    }
+#endif
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT ("EXECUTING on_failure_jump_loop %d (to %p):\n",
 		       mcnt, p + mcnt);
@@ -4855,7 +5239,19 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	   Repeats start with an on_failure_jump that points past both
 	   the repetition text and either the following jump or
 	   pop_failure_jump back to this on_failure_jump.  */
-	case on_failure_jump:
+	case on_failure_jump_memo:
+#if MEMOIZE_FAILURES
+	  if (memo_has_failed_p (&memo, bufp,
+				 p - 1, POINTER_TO_OFFSET (d) - pos))
+	    {
+	      DEBUG_PRINT ("EARLYFAIL on_failure_jump at (%ld, %ld)\n",
+		           p - 1 - bufp->buffer, d - string2);
+	      goto fail;
+	    }
+	  FALLTHROUGH;
+#endif
+	case on_failure_jump_prememo:
+	case on_failure_jump_nomemo:
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT ("EXECUTING on_failure_jump %d (to %p):\n",
 		       mcnt, p + mcnt);
@@ -4901,7 +5297,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      {
 		/* Default to a safe 'on_failure_jump' loop.  */
 		DEBUG_PRINT ("  smart default => slow loop.\n");
-		*p3 = (unsigned char) on_failure_jump;
+		*p3 = (unsigned char) ON_FAILURE_JUMP_PREMEMO;
 	      }
 	    DEBUG_STATEMENT (regex_emacs_debug -= 2);
 	  }
@@ -4963,6 +5359,13 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	    unsigned char *p2;	/* Location of the counter.  */
 	    DEBUG_PRINT ("EXECUTING set_number_at.\n");
 
+#if MEMOIZE_FAILURES
+	    /* Just as for backrefs, for counted repetitions, the counters
+	       should be included in the state we use to index the memoization
+	       table, but until we implement that, instead, we just disable
+	       memoization altogether.  */
+	    memo.inhibit = true;
+#endif
 	    EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	    /* Discard 'const', making re_search non-reentrant.  */
 	    p2 = (unsigned char *) p + mcnt;
@@ -5243,7 +5646,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
       continue;  /* Successfully executed one pattern command; keep going.  */
 
 
-    /* We goto here if a matching operation fails. */
+    /* We goto here if a matching operation fails.  */
     fail:
       maybe_quit ();
       if (!FAIL_STACK_EMPTY ())
@@ -5258,13 +5661,33 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      eassert (str == NULL);
 	      goto continue_failure_jump;
 
+	    case on_failure_jump_prememo:
+	      /* This is the most common case, so it deserves a special
+		 fastpath.  On x86 CPUs the impact is minor, but on
+		 my ARM Cortex A55 it brings the max overhead down from
+		 about 18% to 5%.  */
+#if MEMOIZE_FAILURES
+	      if (!(memo.total_failures & 7))
+		goto memoized_failure_jump;
+	      memo.total_failures++;
+#endif
+	      d = str;
+	      goto continue_failure_jump;
+
 	    case on_failure_jump_nastyloop:
 	      eassert ((re_opcode_t)pat[-2] == no_op);
 	      PUSH_FAILURE_POINT (pat - 2, str);
 	      FALLTHROUGH;
 	    case on_failure_jump_loop:
-	    case on_failure_jump:
+	    case on_failure_jump_memo:
 	    case succeed_n:
+#if MEMOIZE_FAILURES
+	    memoized_failure_jump:
+	      memo_record_failure (&memo, bufp,
+				   pat - 1, POINTER_TO_OFFSET (str) - pos);
+	      FALLTHROUGH;
+#endif
+	    case on_failure_jump_nomemo:
 	      d = str;
 	    continue_failure_jump:
 	      p = extract_address (pat);
