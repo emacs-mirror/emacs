@@ -99,10 +99,10 @@
 
 ;;; Matrix inverse and determinant.
 
-(defvar math-inv-cache nil)
+(defvar math--inv-cache nil)
 (defun math-matrix-inv-raw (m) ;  [V V]
   "Compute the inverse of matrix M."
-  (let ((old (assoc m math-inv-cache))
+  (let ((old (assoc m math--inv-cache))
         (context (list calc-internal-prec calc-prefer-frac)))
     (if (and old (equal (nth 1 old) context))
         (cdr (cdr old))
@@ -110,7 +110,7 @@
              (entry (cons context inv)))
         (if old
             (setcdr old entry)
-          (setq math-inv-cache (cons (cons m entry) math-inv-cache)))
+          (setq math--inv-cache (cons (cons m entry) math--inv-cache)))
         inv))))
 
 (defun math-do-matrix-inv-raw (m)
@@ -233,9 +233,9 @@
 
 ;;; This returns a list (LU index d), or nil if not possible.
 ;;; Argument M must be a square matrix.
-(defvar math-lud-cache nil)
+(defvar math--lud-cache nil)
 (defun math-matrix-lud (m)
-  (let ((old (assoc m math-lud-cache))
+  (let ((old (assoc m math--lud-cache))
 	(context (list calc-internal-prec calc-prefer-frac)))
     (if (and old (equal (nth 1 old) context))
 	(cdr (cdr old))
@@ -243,7 +243,7 @@
 	     (entry (cons context lud)))
 	(if old
 	    (setcdr old entry)
-	  (setq math-lud-cache (cons (cons m entry) math-lud-cache)))
+	  (setq math--lud-cache (cons (cons m entry) math--lud-cache)))
 	lud))))
 
 
