@@ -98,21 +98,18 @@
 
 
 ;;; Matrix inverse and determinant.
-
-(defvar math--inv-cache nil)
-(defun math-matrix-inv-raw (m) ;  [V V]
+(defvar math--inv-cache
+  (make-hash-table :test #'equal))
+(defun math-matrix-inv-raw (m) ; [V V]
   "Compute the inverse of matrix M."
-  (let ((old (assoc m math--inv-cache))
-        (context (list calc-internal-prec calc-prefer-frac)))
-    (if (and old (equal (nth 1 old) context))
-        (cdr (cdr old))
-      (let* ((inv (math-do-matrix-inv-raw m))
-             (entry (cons context inv)))
-        (if old
-            (setcdr old entry)
-          (setq math--inv-cache (cons (cons m entry) math--inv-cache)))
-        inv))))
-
+  (let* ((context (list calc-internal-prec calc-prefer-frac))
+         (key (list m context))
+         (old (gethash key math--inv-cache 'missing)))
+    (if (eq old 'missing)
+        (let ((inv (math-do-matrix-inv-raw m)))
+          (puthash key inv math--inv-cache)
+          inv)
+      old)))
 (defun math-do-matrix-inv-raw (m)
   (let ((n (1- (length m))))
     (if (<= n 3)
@@ -233,18 +230,17 @@
 
 ;;; This returns a list (LU index d), or nil if not possible.
 ;;; Argument M must be a square matrix.
-(defvar math--lud-cache nil)
+(defvar math--lud-cache
+  (make-hash-table :test #'equal))
 (defun math-matrix-lud (m)
-  (let ((old (assoc m math--lud-cache))
-	(context (list calc-internal-prec calc-prefer-frac)))
-    (if (and old (equal (nth 1 old) context))
-	(cdr (cdr old))
-      (let* ((lud (catch 'singular (math-do-matrix-lud m)))
-	     (entry (cons context lud)))
-	(if old
-	    (setcdr old entry)
-	  (setq math--lud-cache (cons (cons m entry) math--lud-cache)))
-	lud))))
+  (let* ((context (list calc-internal-prec calc-prefer-frac))
+         (key (list m context))
+         (old (gethash key math--lud-cache 'missing)))
+    (if (eq old 'missing)
+        (let ((lud (catch 'singular (math-do-matrix-lud m))))
+          (puthash key lud math--lud-cache)
+          lud)
+      old)))
 
 
 (defun math-lud-pivot-check (a)
