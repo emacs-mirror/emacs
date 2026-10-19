@@ -3038,7 +3038,10 @@ By default we choose the head of the first list."
 	    (unless (assoc next lists #'eql)
 	      (error "Invalid candidate returned by error-function: %S" next))
 	    ;; Break the cycle, while keeping other dependencies.
-            (dolist (list lists) (setcdr list (remq next (cdr list))))))
+            (setq lists
+	          (mapcar (lambda (list)
+	                    (cons (car list) (remq next (cdr list))))
+	                  lists))))
 	;; The graph is consistent so far, add NEXT to result and
 	;; merge input lists, dropping NEXT from their heads where
 	;; applicable.
