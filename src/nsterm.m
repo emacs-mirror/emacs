@@ -5259,7 +5259,7 @@ ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
      There must be something about running external processes like
      tramp that interferes with the modal menu code.
 
-     See bugs 24472, 37557, 37922.  */
+     See bugs 24472, 37557, 37299.  */
 
   // [outerpool release];
   // outerpool = [[NSAutoreleasePool alloc] init];
