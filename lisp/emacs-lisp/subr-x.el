@@ -518,7 +518,9 @@ and the current buffer must be displayed in some window."
 Obviously, NUM must be greater than zero.  Don't blame me, blame the
 Romans, I mean \"what have the Romans ever _done_ for /us/?\" (with
 apologies to Monty Python)."
-  (cl-check-type num (integer 1 *))
+  (unless (and (integerp num) (plusp num))
+    (signal 'wrong-type-argument
+            (list "Argument must be a positive number" num)))
   (let ((map number-to-roman)
         (r ""))
     (while (and map (> num 0))
@@ -532,16 +534,13 @@ apologies to Monty Python)."
 ;;;###autoload
 (defun roman-to-number (string)
   "Convert STRING of Roman numerals to an number.
-If STRING contains a letter which isn't a valid Roman numeral,
-the rest of the string from that point onwards is ignored.
-Hence:
-MMD == 2500
-and
-MMDFLXXVI == 2500."
-  (cl-check-type string string)
-  (cl-check-type string (satisfies (lambda (s)
-				     (not (equal s ""))))
-		 "Roman number may not be an empty string.")
+If STRING contains a letter which isn't a valid Roman numeral, signal an
+error."
+  (unless (stringp string)
+    (signal 'wrong-type-argument (list #'stringp string)))
+  (unless (length> string 0)
+    (signal 'wrong-type-argument
+            (list "Roman number may not be an empty string" string)))
   (let ((res 0)
         (map number-to-roman))
     (save-match-data
@@ -551,9 +550,9 @@ MMDFLXXVI == 2500."
 	      (setq res (+ res val)
 		    string (replace-match "" nil t string))
 	    (setq map next))))
-      (cl-check-type string (satisfies (lambda (s)
-					 (equal s "")))
-		     "Invalid characters in roman number")
+      (unless (length= string 0)
+        (signal 'wrong-type-argument
+                (list "Invalid characters in roman number" string)))
       res)))
 
 ;; End of borrow.
