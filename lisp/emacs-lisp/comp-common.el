@@ -448,12 +448,7 @@ with `message'.  Otherwise, log with `comp-log-to-buffer'."
 (cl-defun comp-log-to-buffer (data &optional quoted)
   "Log DATA to `comp-log-buffer-name'."
   (let* ((print-f (if quoted #'prin1 #'princ))
-         (log-buffer
-          (or (get-buffer comp-log-buffer-name)
-              (with-current-buffer (get-buffer-create comp-log-buffer-name)
-                (unless (derived-mode-p 'compilation-mode)
-                  (emacs-lisp-compilation-mode))
-                (current-buffer))))
+         (log-buffer (get-buffer-create comp-log-buffer-name))
          (log-window (get-buffer-window log-buffer))
          (inhibit-read-only t)
          at-end-p)
