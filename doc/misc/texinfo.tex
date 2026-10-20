@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2026-10-07.17}
+\def\texinfoversion{2026-10-10.09}
 %
 % Copyright 1985, 1986, 1988, 1990-2026 Free Software Foundation, Inc.
 %
@@ -233,6 +233,25 @@
   \removelastskip\penalty-100\medskip\fi\fi}
 \def\bigbreak{\ifnum\lastpenalty<10000\par\ifdim\lastskip<\bigskipamount
   \removelastskip\penalty-200\bigskip\fi\fi}
+
+% Define \newwrite to be identical to plain tex's \newwrite
+% except not \outer, so it can be used within macros and \if's.
+\edef\newwrite{\makecsname{ptexnewwrite}}
+
+% We need a feature of e-TeX, \scantokens, to do macros right, and for
+% one or two other purposes.
+% We arrange to emulate it with a temporary file in ordinary TeX.
+\ifx\eTeXversion\thisisundefined
+  \newwrite\macscribble
+  \def\scantokens#1{%
+    \toks0={#1}%
+    \immediate\openout\macscribble=\jobname.tmp
+    \immediate\write\macscribble{\the\toks0}%
+    \immediate\closeout\macscribble
+    \input \jobname.tmp
+  }
+\fi
+
 
 % Output routine
 %
@@ -3397,6 +3416,10 @@ end
     \mathunderscore
     \let\\ = \mathbackslash
     \mathactive
+    % set the catcodes of space and newline to the default values in case we are inside
+    % @example or similar.
+    \spaceisspace
+    \catcode`\^^M=5
     % make the texinfo accent commands work in math mode
     \let\"=\ddot
     \let\'=\acute
@@ -3411,7 +3434,12 @@ end
     \let\mathopsup=\sup
   $\expandafter\finishmath\fi
 }
-\def\finishmath#1{#1$\endgroup}  % Close the group opened by \tex.
+
+% Take the braced argument to @math.
+% We use \scantokens to allow input like "@section @math{\nabla^2}" to work.
+% Otherwise, the catcode of \ is fixed when the line argument is taken.
+% Finally, close the group opened by \tex.
+\def\finishmath#1{\scantokens{#1}$\endgroup}
 
 % Some active characters (such as <) are spaced differently in math.
 % We have to reset their definitions in case the @math was an argument
@@ -4916,10 +4944,6 @@ $$%
 
 \message{indexing,}
 % Index generation facilities
-
-% Define \newwrite to be identical to plain tex's \newwrite
-% except not \outer, so it can be used within macros and \if's.
-\edef\newwrite{\makecsname{ptexnewwrite}}
 
 % \newindex {IX} defines an index named IX.
 % It automatically defines \IXindex such that
@@ -8367,19 +8391,6 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 \message{macros,}
 % @macro.
-
-% To do this right we need a feature of e-TeX, \scantokens,
-% which we arrange to emulate with a temporary file in ordinary TeX.
-\ifx\eTeXversion\thisisundefined
-  \newwrite\macscribble
-  \def\scantokens#1{%
-    \toks0={#1}%
-    \immediate\openout\macscribble=\jobname.tmp
-    \immediate\write\macscribble{\the\toks0}%
-    \immediate\closeout\macscribble
-    \input \jobname.tmp
-  }
-\fi
 
 % Used at the time of macro expansion.
 % Argument is macro body with arguments substituted

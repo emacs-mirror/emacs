@@ -1082,7 +1082,8 @@ underlying_strftime (timezone_t tz, char *ubuf, size_t ubufsize,
    use plain "%Z".  Format an abbreviation appropriate for
    TP and EXTRA_ARGS_SPEC.  Return the empty string on failure.  */
 static char const *
-get_tm_zone (timezone_t tz, char *ubuf, int ubufsize, int modifier,
+get_tm_zone (MAYBE_UNUSED timezone_t tz, MAYBE_UNUSED char *ubuf,
+	     MAYBE_UNUSED int ubufsize, MAYBE_UNUSED int modifier,
              struct tm const *tp)
 {
 #if HAVE_STRUCT_TM_TM_ZONE
