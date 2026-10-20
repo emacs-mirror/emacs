@@ -517,8 +517,8 @@ Interactively, BACKEND is chosen to be the first backend in
        (user-error "No backend can rename the symbol at point"))
      (let ((sym-name (buffer-substring-no-properties (car bounds) (cdr bounds))))
        (list
-        (read-from-minibuffer (format "Rename `%s' to: " sym-name)
-         nil nil nil nil sym-name)
+        (string-trim (read-from-minibuffer (format "Rename `%s' to: " sym-name)
+                                           nil nil nil nil sym-name))
         backend))))
   (refactor-apply-changeset (refactor-backend-rename backend newname)
                             :origin this-command))
