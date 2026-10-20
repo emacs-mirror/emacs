@@ -4386,7 +4386,6 @@ edit was attempted and optionally why not."
 
 (cl-defmethod refactor-backend-actions
     ((_backend (eql eglot)) beg end &key rkind callback trigger-kind)
-  (eglot-server-capable-or-lose :codeActionProvider)
   (cl-labels
       ((kind (lsp-kind)
          (when lsp-kind
@@ -4410,6 +4409,8 @@ edit was attempted and optionally why not."
             (eglot--code-action-params :beg beg :end end :only lsp-rkind
                                        :triggerKind trigger-kind)))
       (cond
+       ;; Plenty of servers don't do code actions: just offer none.
+       ((not (eglot-server-capable :codeActionProvider)) nil)
        (callback
         (eglot--async-request
          server
@@ -4427,17 +4428,19 @@ edit was attempted and optionally why not."
 
 (cl-defmethod refactor-backend-rename-bounds
   ((_backend (eql eglot)))
-  (let* ((rename-support (eglot-server-capable-or-lose :renameProvider))
+  (let* ((rename-support (eglot-server-capable :renameProvider))
          (prepare-support (and (listp rename-support)
-                               (plist-get rename-support :prepareProvider))))
-    (cond (prepare-support
-           (let ((x (eglot--request (eglot--current-server-or-lose)
-                                    :textDocument/prepareRename
-                                    (eglot--TextDocumentPositionParams))))
-             (cond ((null x) nil)
-                   ((plist-get x :range) (eglot-range-region (plist-get x :range)))
-                   ((plist-get x :defaultBehavior) (bounds-of-thing-at-point 'symbol))
-                   (t (eglot-range-region x)))))
+                               (plist-get rename-support :prepareProvider)))
+         x)
+    (cond ((not rename-support) nil) ; decline, another backend may claim
+          (prepare-support
+           (setq x (eglot--request (eglot--current-server-or-lose)
+                                   :textDocument/prepareRename
+                                   (eglot--TextDocumentPositionParams)))
+           (cond ((null x) nil)
+                 ((plist-get x :range) (eglot-range-region (plist-get x :range)))
+                 ((plist-get x :defaultBehavior) (bounds-of-thing-at-point 'symbol))
+                 (t (eglot-range-region x))))
           (t (bounds-of-thing-at-point 'symbol)))))
 
 (cl-defmethod refactor-backend-rename ((_backend (eql eglot)) newname)
