@@ -916,30 +916,32 @@ Optional argument LOCAL is a local context to extend."
    local (car rest)
    (if (memq (elisp-scope--sym-bare next) '(the each)) (cdr rest) rest)))
 
+(defun elisp-scope-loop-destructure (local pattern)
+  (while (consp pattern)
+    (setq local (elisp-scope-loop-destructure local (pop pattern))))
+  (if-let* ((bare (elisp-scope--sym-bare pattern)))
+      (let ((pos (elisp-scope--sym-pos pattern)))
+        (when pos (elisp-scope--binding bare pos))
+        (elisp-scope--local-new bare pos local))
+    local))
+
 (defun elisp-scope-loop-for (local vars rest)
-  (if vars
-      ;; FIXME: var need not be a symbol, see
-      ;; `cl-macs-loop-destructure-cons' test in cl-macs-tests.el.
-      (let* ((var (car (ensure-list vars)))
-             (bare (bare-symbol var))
-             (beg (elisp-scope--sym-pos var)))
-        (when beg (elisp-scope--binding bare beg))
-        (elisp-scope-loop-for (elisp-scope--local-new bare beg local) (cdr-safe vars) rest))
-    (when-let* ((bare (elisp-scope--sym-bare (car rest)))
-                (more (cdr rest)))
+  (when-let* ((bare (elisp-scope--sym-bare (car rest)))
+              (more (cdr rest)))
+    (let ((newlocal (elisp-scope-loop-destructure local vars)))
       (cond
        ((memq bare '(from upfrom downfrom))
-        (elisp-scope-loop-for-from local (car more) (cdr more)))
+        (elisp-scope-loop-for-from newlocal (car more) (cdr more)))
        ((memq bare '( to upto downto below above
                       in on in-ref))
-        (elisp-scope-loop-for-to local (car more) (cdr more)))
+        (elisp-scope-loop-for-to newlocal (car more) (cdr more)))
        ((memq bare '(by
                      across across-ref))
-        (elisp-scope-loop-for-by local (car more) (cdr more)))
+        (elisp-scope-loop-for-by newlocal (car more) (cdr more)))
        ((eq bare '=)
-        (elisp-scope-loop-for-= local (car more) (cdr more)))
+        (elisp-scope-loop-for-= newlocal (car more) (cdr more)))
        ((eq bare 'being)
-        (elisp-scope-loop-for-being local (car more) (cdr more)))))))
+        (elisp-scope-loop-for-being newlocal (car more) (cdr more)))))))
 
 (defun elisp-scope-loop-repeat (form rest)
   (elisp-scope-1 form)
@@ -971,11 +973,8 @@ Optional argument LOCAL is a local context to extend."
     (elisp-scope-loop rest)))
 
 (defun elisp-scope-loop-with (var rest)
-  (let* ((bare (elisp-scope--sym-bare var))
-         (beg (symbol-with-pos-pos var))
-         (l (elisp-scope--local-new bare beg elisp-scope-local-bindings))
+  (let* ((l (elisp-scope-loop-destructure elisp-scope-local-bindings var))
          (eql (car rest)))
-    (when beg (elisp-scope--binding bare beg))
     (if (eq (elisp-scope--sym-bare eql) '=)
         (let* ((val (cadr rest)) (more (cddr rest)))
           (elisp-scope-1 val)

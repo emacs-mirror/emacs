@@ -55,9 +55,12 @@
          for g being each overlay from (point-min) to (point)
 ;;           ^ elisp-binding-variable
 ;;                                      ^              ^ elisp-function
-         collecting (list sym k v g))
+         for ((x . y) nil ((z))) = v
+;;             ^   ^        ^ elisp-binding-variable
+;;                                 ^ elisp-bound-variable
+         collecting (list sym k v g x y z))
 ;;                   ^ elisp-function
-;;                        ^   ^ ^ ^ elisp-bound-variable
+;;                        ^   ^ ^ ^ ^ ^ ^ elisp-bound-variable
 
 ;; Taken from `completion-shorthand-try-completion' in minibuffer.el:
 (defun foobaz (string table pred point)
