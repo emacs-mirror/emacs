@@ -483,10 +483,12 @@ When INTERACTIVE is nil, return the list of `refactor-action' objects."
               ;; ...in which case we can skip re-contacting the backend.
               (overlay-get refactor--suggestion-overlay 'refactor--actions)
             (refactor--collect beg end :rkind rkind))))
-    (unless actions
-      (user-error (if rkind "No \"%s\" refactorings here" "No refactorings here")
-                  rkind))
-    (if interactive (refactor--read-execute-action actions) actions)))
+    (cond ((not interactive) actions)
+          ((null actions)
+           (user-error (if rkind "No \"%s\" refactorings here"
+                         "No refactorings here")
+                       rkind))
+          (t (refactor--read-execute-action actions)))))
 
 (defmacro refactor--define-kind-command (name kind)
   "Define NAME to execute KIND refactorings between BEG and END."

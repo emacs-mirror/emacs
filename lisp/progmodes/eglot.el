@@ -4460,8 +4460,7 @@ that sub-kinds like \"source.fixAll.ruff\" map to `fix-all'."
   (interactive (list nil nil nil t))
   (let ((rkind (eglot--refactor-kind action-kind)))
     (cond ((not interactive)
-           (cl-loop for a in (ignore-error user-error
-                               (refactor beg end rkind))
+           (cl-loop for a in (refactor beg end rkind)
                     for data = (oref a data)
                     ;; `rkind' may be broader than ACTION-KIND
                     when (and (eq (oref a backend) 'eglot)
