@@ -1225,7 +1225,7 @@ characters need to be doubled.")
 (defconst tramp-bundle-read-file-names "\
 printf \"(\\n\"
 while IFS= read file; do
-  if (%m -n \"$1\") && !(echo \"$file\" | grep -qe '[^-_./[:alnum:]~$]')
+  if (%m -n \"$1\") && (echo \"$file\" | grep -qe '^[-_./[:alnum:]~$]*$')
   then
     file=`eval echo \"$file\"`
   fi

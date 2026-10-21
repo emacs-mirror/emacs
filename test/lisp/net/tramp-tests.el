@@ -6974,7 +6974,8 @@ Check also tilde and environment variable expansion."
           (should (equal (exec-path) (cons "/" orig-exec-path)))
           (setq tramp-remote-path orig-tramp-remote-path)
 
-	  (when (and (tramp--test-mock-p) (getenv "USER"))
+	  ;; There is no $HOME in batch mode.
+	  (when (and (tramp--test-mock-p) (getenv "USER") (null noninteractive))
 	    ;; "~/" and "$VARIABLE" are expanded.  We test it with the
 	    ;; "mock" method, because we know there how "~/" and
 	    ;; "$USER" are expanded.

@@ -883,7 +883,7 @@ OVERRIDE, START, and END are passed through to
 (defun markdown-ts--fontify-atx-delimiter (node override start end &rest _)
   "Fontify atx_heading delimiter NODE and optionally hide its markup.
 NODE is the tree-sitter node representing the delimiter.
-Leading whitespace between the delimiter and the heading text is hidden
+Spaces and tabs between the delimiter and the heading text are hidden
 along with the delimiter when hiding markup.
 OVERRIDE, START, and END are passed through to
 `treesit-fontify-with-override'."
@@ -894,10 +894,8 @@ OVERRIDE, START, and END are passed through to
     (put-text-property (treesit-node-start node)
                        (save-excursion
                          (goto-char (treesit-node-end node))
-                         (re-search-forward "[^[:blank:]]" (pos-eol) 'no-error)
-                         (if (eq (point) (pos-eol))
-                             (point)
-                           (1- (point))))
+                         (skip-chars-forward " \t" (pos-eol))
+                         (point))
                        'invisible 'markdown-ts--markup)))
 
 (defvar url-mail-command) ; url/url-vars.el
