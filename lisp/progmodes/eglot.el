@@ -4384,21 +4384,25 @@ edit was attempted and optionally why not."
     (fix-all . "source.fixAll"))
   "Alist mapping `refactor' kind symbols to LSP code action kinds.")
 
+(defun eglot--refactor-kind (lsp-kind)
+  "Return `refactor' kind for LSP-KIND, a string, or nil.
+Use the longest prefix of LSP-KIND in `eglot--refactor-kinds', so
+that sub-kinds like \"source.fixAll.ruff\" map to `fix-all'."
+  (cl-loop for k = lsp-kind
+           then (and (string-match "\\.[^.]*\\'" k)
+                     (substring k 0 (match-beginning 0)))
+           while k
+           thereis (car (rassoc k eglot--refactor-kinds))))
+
 (cl-defmethod refactor-backend-actions
     ((_backend (eql eglot)) beg end &key rkind callback trigger-kind)
   (cl-labels
-      ((kind (lsp-kind)
-         (when lsp-kind
-           (or (car (rassoc lsp-kind eglot--refactor-kinds))
-               (let ((dot (string-match-p "\\." lsp-kind)))
-                 (intern (replace-regexp-in-string
-                          "\\." "-" (substring lsp-kind (if dot (1+ dot) 0))))))))
-       (convert (actions)
+      ((convert (actions)
          (cl-loop for a across actions
                   for ra = (make-instance
                             'refactor-action
                             :title (plist-get a :title)
-                            :kind (kind (plist-get a :kind))
+                            :kind (eglot--refactor-kind (plist-get a :kind))
                             :preferred (plist-get a :isPreferred)
                             :backend 'eglot
                             :data a)
