@@ -1282,11 +1282,11 @@ is non-nil)."
 
           ;; Search file for a suitable node.
 	  (let ((guesspos (point-min))
-		(regexp (concat "\\(Node:\\|Ref:\\) *\\("
+		(regexp (concat "\\(Node:\\|Ref:\\) *\\(?"
 				(if (stringp nodename)
 				    (regexp-quote nodename)
 				  "")
-				"\\) *[,\t\n\177]")))
+				"?\\) *[,\t\n\177]")))
 
 	    (catch 'foo
 
@@ -1522,7 +1522,10 @@ is non-nil)."
       (let ((menu-items '("top"))
 	    (end (save-excursion (search-forward "\^_" nil t) (point))))
 	(dolist (node nodes)
-	  (let ((nodename (car node)))
+	  (let* ((nodename (car node))
+                 (need-quoting (string-match-p "[.,:()]" nodename)))
+            (and need-quoting
+                 (setq nodename (concat "" nodename "")))
 	    (save-excursion
 	      (or (member (downcase nodename) menu-items)
 		  (re-search-forward (concat "^\\* +"
@@ -1539,9 +1542,9 @@ is non-nil)."
 	      (nodename (car node)))
 	  (goto-char (point-min))
 	  ;; Find the like-named node in the main buffer.
-	  (if (re-search-forward (concat "^\^_.*\n.*Node: "
+	  (if (re-search-forward (concat "^\^_.*\n.*Node: ?"
 					 (regexp-quote nodename)
-					 "[,\n\t]")
+					 "?[,\n\t]")
 				 nil t)
 	      (progn
 		(search-forward "\n\^_" nil 'move)
@@ -1549,7 +1552,9 @@ is non-nil)."
 		(insert "\n"))
 	    ;; If none exists, add one.
 	    (goto-char (point-max))
-	    (insert "\^_\nFile: dir\tNode: " nodename "\n\n* Menu:\n\n"))
+	    (insert "\^_\nFile: dir\tNode: "
+                    (info--maybe-quoted-node nodename t)
+                    "\n\n* Menu:\n\n"))
 	  ;; Merge the text from the other buffer's menu
 	  ;; into the menu in the like-named node in the main buffer.
 	  (apply #'insert-buffer-substring (cdr node))))
@@ -1624,7 +1629,10 @@ is non-nil)."
 	    (save-restriction
 	      (narrow-to-region start (point))
 	      (goto-char (point-min))
-	      (while (re-search-forward "^\\* \\([^:\n]+:[^.\n]+.\\)" nil 'move)
+	      (while (re-search-forward
+                      ;; Non-quoted entry that ends in a ':' or a quoter entry,
+                      ;; followed by an optional unquoted or quoted node
+                      "^\\* \\(\\([^:\n]+:\\|[^\n]+\\)\\([^.\n]+.\\|[^\n]+\\)\\)" nil 'move)
 		;; Fold case straight away; `member-ignore-case' here wasteful.
 		(let ((x (downcase (match-string 1))))
 		  (if (member x seen)
@@ -1797,11 +1805,11 @@ escaped (\\\",\\\\)."
 	    (forward-line 1)
 	  (signal 'search-failed (list "\n\^_"))))
       ;; Get nodename spelled as it is in the node.
-      (re-search-forward "Node:[ \t]*")
+      (re-search-forward "Node:[ \t]*?")
       (setq Info-current-node
 	    (buffer-substring-no-properties (point)
 					    (progn
-					      (skip-chars-forward "^,\t\n")
+					      (skip-chars-forward "^,\t\n")
 					      (point))))
       (Info-set-mode-line)
       ;; Find the end of it, and narrow.
@@ -2086,7 +2094,8 @@ the Top node in FILENAME."
   (let ((compl nil)
 	;; Bind this in case the user sets it to nil.
 	(case-fold-search t)
-	(node-regexp "Node: *\\([^,\n]*\\) *[,\n\t]"))
+	(node-regexp
+         "Node: *\\(\\([^\n]*\\)\\|\\([^,\n]*\\) *[,\n\t]\\)"))
     (save-excursion
       (save-restriction
 	(or Info-tag-table-marker
@@ -2104,7 +2113,8 @@ the Top node in FILENAME."
 	  (goto-char (point-min))
 	  ;; If the buffer begins with a node header, process that first.
 	  (if (Info-node-at-bob-matching node-regexp)
-	      (setq compl (list (match-string-no-properties 1))))
+	      (setq compl (list (or (match-string-no-properties 2)
+                                    (match-string-no-properties 3)))))
 	  ;; Now for the rest of the nodes.
 	  (while (search-forward "\n\^_" nil t)
 	    (forward-line 1)
@@ -2427,8 +2437,10 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
 	  "\\|\\)\\)"))			      ;Allow empty node names.
 
 ;; For compatibility; other files have used this name.
+;; Note: this is only used for node names on the node heading lines!
 (defun Info-following-node-name ()
-  (and (looking-at (Info-following-node-name-re))
+  (and (or (looking-at "\\([^]\\),") ; quoted node name with commas
+           (looking-at (Info-following-node-name-re)))
        (match-string-no-properties 1)))
 
 (defun Info-next ()
@@ -2470,8 +2482,12 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 	       (re-search-forward
 		(if (string-equal old-node "Top")
 		    (concat "\n\\*[^:]+: +(" (file-name-nondirectory old-file) ")")
-		  (concat "\n\\* +\\(" (regexp-quote old-node)
-			  ":\\|[^:]+: +" (regexp-quote old-node) "\\)"))
+                  (let ((node-to-search
+                         (if (string-match-p "[.,:()]" old-node)
+                             (concat "" old-node "")
+                           old-node)))
+		    (concat "\n\\* +\\(" (regexp-quote node-to-search)
+			    ":\\|[^:]+: +" (regexp-quote node-to-search) "\\)")))
 		nil t))
 	  (progn (beginning-of-line) (if (looking-at "^\\* ") (forward-char 2)))
 	(goto-char p)
@@ -2557,10 +2573,21 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   "History-specific implementation of `Info-find-file'."
   filename)
 
+(defun info--maybe-quoted-node (node &optional heading)
+  "If NODE includes problematic characters, return it quoted with DEL.
+NODE must not include the file name.
+Optional arg HEADING means check only for commas, which cause problems
+in node heading lines.  Otherwise check for colons, commas and periods."
+  (let ((forbidden (if heading "," "[:,.]")))
+    (if (string-match-p forbidden node)
+        (concat "" node "")
+      node)))
+
 (defun Info-history-find-node (filename nodename &optional _no-going-back)
   "History-specific implementation of `Info-find-node-2'."
   (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: (dir)\n\n"
-		  (or filename Info-current-file) nodename))
+		  (or filename Info-current-file)
+                  (info--maybe-quoted-node nodename t)))
   (insert "History of Visited Nodes\n")
   (insert "************************\n\n")
   (insert "* Menu:\n\n")
@@ -2569,7 +2596,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
       (let ((file (nth 0 (car hl)))
 	    (node (nth 1 (car hl))))
 	(if (stringp file)
-	    (insert "* " node ": ("
+	    (insert "* " (info--maybe-quoted-node node) ": ("
 		    (propertize (or (file-name-directory file) "") 'invisible t)
 		    (file-name-nondirectory file)
 		    ")" node ".\n")))
@@ -2593,7 +2620,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 	 (curr-node (substring-no-properties (or nodename Info-current-node)))
 	 (node-list (Info-toc-nodes curr-file)))
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
-		    curr-file curr-node))
+		    curr-file (info--maybe-quoted-node curr-node t)))
     (insert "Table of Contents\n")
     (insert "*****************\n\n")
     (insert "*Note Top::\n")
@@ -2654,10 +2681,13 @@ Table of contents is created from the tree structure of menus."
           (let* ((nodename (substring-no-properties (Info-following-node-name)))
 		 (bound (- (or (save-excursion (search-forward "\n\^_" nil t))
 			       (point-max)) 2))
-		 (upnode (and (re-search-forward
-			       (concat "Up:" (Info-following-node-name-re))
-			       bound t)
-			      (match-string-no-properties 1)))
+		 (upnode (or (save-excursion
+                                (and (search-forward "Up: " bound t)
+                                     (Info-following-node-name)))
+                             (and (re-search-forward
+			           (concat "Up:" (Info-following-node-name-re))
+			           bound t)
+			          (match-string-no-properties 1))))
 		 (section "Top")
 		 menu-items)
 	    (when (and upnode (string-search "(" upnode)) (setq upnode nil))
@@ -2673,7 +2703,7 @@ Table of contents is created from the tree structure of menus."
               (while (< (point) bound)
                 (cond
                  ;; Menu item line
-                 ((looking-at "^\\* +[^:]+:")
+                 ((looking-at "^\\* +\\([^]+\\|[^:]+:\\)")
                   (beginning-of-line)
                   (forward-char 2)
                   (let ((menu-node-name (substring-no-properties
@@ -2745,8 +2775,10 @@ new buffer."
        (setq eol (line-end-position)
              bol (line-beginning-position))
        (goto-char (point-min))
-       (while (re-search-forward "\\*note[ \n\t]+\\([^:]*\\):" nil t)
-	 (setq str (match-string-no-properties 1))
+       (while (re-search-forward
+               "\\(\\*note[ \n\t]+\\([^:]*\\):\\)\\|\\(\\*note[ \n\t]+\\([^]*\\)\\)" nil t)
+	 (setq str (or (match-string-no-properties 2)   ; xref without quoting
+                       (match-string-no-properties 4))) ; quoted xref
 	 ;; See if this one should be the default.
 	 (and (null default)
 	      (<= (match-beginning 0) start-point)
@@ -2788,7 +2820,7 @@ new buffer."
   (unless footnotename
     (error "No reference was specified"))
 
-  (let (target i (str (concat "\\*note " (regexp-quote footnotename)))
+  (let (target i (str (concat "\\*note ?" (regexp-quote footnotename)))
 	       (case-fold-search t))
     (while (setq i (string-search " " str i))
       (setq str (concat (substring str 0 i) "[ \t\n]+" (substring str (1+ i))))
@@ -2796,13 +2828,13 @@ new buffer."
     (save-excursion
       ;; Move point to the beginning of reference if point is on reference
       (or (looking-at "\\*note[ \n\t]+")
-          (and (looking-back "\\*note[ \n\t]+"
-                             (save-excursion (skip-chars-backward " \n\t")
+          (and (looking-back "\\*note[ \n\t]+?"
+                             (save-excursion (skip-chars-backward " \n\t")
                                              (line-beginning-position)))
                (goto-char (match-beginning 0)))
           (if (and (save-excursion
                      (goto-char (+ (point) 5)) ; skip a possible *note
-                     (re-search-backward "\\*note[ \n\t]+" nil t)
+                     (re-search-backward "\\*note[ \n\t]+?" nil t)
                      (looking-at str))
                    (<= (point) (match-end 0)))
               (goto-char (match-beginning 0))))
@@ -2829,37 +2861,121 @@ new buffer."
   ;; We allow newline because this is also used in Info-follow-reference,
   ;; where the xref name might be wrapped over two lines.
   "Regexp that matches a menu entry name up to but not including the colon.
+This is used to extract node names from menu entries and cross-references.
+The match is tested starting at character after the initial \"* \" at the
+beginning of a menu-entry line, or after skipping \"*note[ \n\t]+\" of
+a cross-reference.  That is, the match starts where the menu entry or the
+label of the cross-reference should begin.
 Because of ambiguities, this should be concatenated with something like
 `:' and `Info-following-node-name-re'.")
 
+
+(defconst Info-quoted-menu-entry-name-re
+  "[ \t\n]*\\([^]+\\)[ \t\n]*"
+  "Like `Info-menu-entry-name-re', but for entries quoted by DEL.")
+
+(defconst Info-quoted-node-name-re
+  "[ \t\n]*\\(([^)]+)\\)?\\([^]+\\)"
+  "Quoted node name, with or without (INFOFILE).")
+
 (defun Info-extract-menu-node-name (&optional multi-line index-node)
+  "Extract the node name at point in a menu entry or a cross-reference.
+Optional argument MULTI-LINE, if non-nil, means the node name is allowed
+2648to span multiple lines; this happens in cross-references.
+Optional argument INDEX-NODE, if non-nil, is the index node as returned
+by `Info-index-node'; this happens in menus in Index nodes.
+This function is called where a match for `Info-menu-entry-name-re'
+should begin, i.e. after getting past \"* \" of a menu line or the
+cross-reference marker \"*note\" and the following whitespace.
+Value is the node name, a string."
   (skip-chars-forward " \t\n")
-  (when (looking-at (concat Info-menu-entry-name-re ":\\(:\\|"
-			    (Info-following-node-name-re
-                             (cond
-                              (index-node "^,\t\n")
-                              (multi-line "^.,\t")
-                              (t          "^.,\t\n")))
-                            "\\)"
-                            (if index-node
-                                "\\.\\(?:[ \t\n]+(line +\\([0-9]+\\))\\)?"
-                              "")))
+  (cond
+   ;; First, try quoted menu entry and/or quoted node name.
+   ((looking-at (concat Info-quoted-menu-entry-name-re
+                        ":\\(:\\|" Info-quoted-node-name-re "\\)"
+                        (if index-node
+                            "\\.\\(?:[ \t\n]+(line +\\([0-9]+\\))\\)?")))
     (if index-node
         (setq Info-point-loc
               (if (match-beginning 5)
                   (string-to-number (match-string 5))
-                (buffer-substring-no-properties
-		 (match-beginning 0) (1- (match-beginning 1)))))
+                ;; Strip whitespace, if any, from end of menu entry.
+                (info--node-canonicalize-whitespace
+                 (match-string-no-properties 1))))
+      )
+    (if (string-equal (match-string 2) ":")
+        (match-string-no-properties 1)  ; entry is actually a node name
+      ;; File (possibly empty) + node
+      (concat (match-string-no-properties 3) (match-string-no-properties 4))))
+
+   ;; Menu entry that is a file with quoted node name (cannot be in index)
+   ((looking-at (concat Info-quoted-node-name-re "::"))
+    (concat (match-string-no-properties 1) (match-string-no-properties 2)))
+
+   ;; Quoted menu entry and unquoted node name
+   ((looking-at (concat Info-quoted-menu-entry-name-re ":\\(:\\|"
+		       (Info-following-node-name-re
+                        (cond
+                         (index-node "^,\t\n")
+                         (multi-line "^.,\t")
+                         (t          "^.,\t\n")))
+                       "\\)"
+                       (if index-node
+                           "\\.\\(?:[ \t\n]+(line +\\([0-9]+\\))\\)?"
+                         "")))
+    (if index-node
+        (setq Info-point-loc
+              (if (match-beginning 6)
+                  (string-to-number (match-string 6))
+                ;; Strip whitespace, if any, from end of menu entry.
+                (info--node-canonicalize-whitespace
+                 (match-string-no-properties 1))))
+      )
+    (match-string-no-properties 2))
+
+   ;; Unquoted menu entry and quoted node
+  ((looking-at (concat Info-menu-entry-name-re ":\\("
+                       Info-quoted-node-name-re "\\)"
+                        (if index-node
+                            "\\.\\(?:[ \t\n]+(line +\\([0-9]+\\))\\)?")))
+    (if index-node
+        (setq Info-point-loc
+              (if (match-beginning 4)
+                  (string-to-number (match-string 4))
+                ;; Strip whitespace, if any, from end of menu entry.
+                (info--node-canonicalize-whitespace
+                 (buffer-substring-no-properties
+                  (match-beginning 0) (1- (match-beginning 1))))))
+      )
+    (concat (match-string-no-properties 2) (match-string-no-properties 3)))
+
+  ;; Both menu entry and node unquoted
+  ((looking-at (concat Info-menu-entry-name-re ":\\(:\\|"
+		       (Info-following-node-name-re
+                        (cond
+                         (index-node "^,\t\n")
+                         (multi-line "^.,\t")
+                         (t          "^.,\t\n")))
+                       "\\)"
+                       (if index-node
+                           "\\.\\(?:[ \t\n]+(line +\\([0-9]+\\))\\)?"
+                         "")))
+   (if index-node
+       (setq Info-point-loc
+             (if (match-beginning 5)
+                 (string-to-number (match-string 5))
+               (buffer-substring-no-properties
+		(match-beginning 0) (1- (match-beginning 1)))))
 ;;; Uncomment next line to use names of cross-references in non-index nodes:
 ;;;       (setq Info-point-loc
 ;;;             (buffer-substring (match-beginning 0) (1- (match-beginning 1))))
-      )
-    (info--node-canonicalize-whitespace
-     (or (and (not (equal (match-string-no-properties 2) ""))
-	      (match-string-no-properties 2))
-	 ;; If the node name is the menu entry name (using `entry::').
-	 (buffer-substring-no-properties
-	  (match-beginning 0) (1- (match-beginning 1)))))))
+     )
+   (info--node-canonicalize-whitespace
+    (or (and (not (equal (match-string-no-properties 2) ""))
+	     (match-string-no-properties 2))
+	;; If the node name is the menu entry name (using `entry::').
+	(buffer-substring-no-properties
+	 (match-beginning 0) (1- (match-beginning 1))))))))
 
 (defun info--node-canonicalize-whitespace (string)
   (replace-regexp-in-string "[ \t\n]+" " " string))
@@ -2878,6 +2994,16 @@ Because of ambiguities, this should be concatenated with something like
 (defconst Info-node-spec-re
   (concat (Info-following-node-name-re "^.,:") "[,:.]")
   "Regexp to match the text after a : until the terminating `.'.")
+
+;; <ID>::
+;; <LABEL>:<ID>[,.]
+;; ID := (FILE)? <NODE>
+;; LABEL := [^:,.]+ | <DEL>TEXT<DEL>
+;; NODE  := [^:,.]+ | <DEL>TEXT<DEL>
+(defconst Info-node-ref-re
+  "\\(\\(\\(([^)]*)\\)?\\(\\([^]+\\)\\|\\([^:]+\\)\\)::\\)\\|\\(\\(\\([^]+\\)\\|\\([^:]+\\)\\):[ \n\t]*\\(([^)]*)\\)?\\(\\(\\([^]+\\)\\)\\|\\([^,.]+\\)\\)[ \t]*[.,]\\)\\)"
+  "Regexp to match an Info node reference in a cross-reference or a menu.
+Supports labels and node names quoted with DEL characters.")
 
 (defun Info-complete-menu-item (string predicate action)
   ;; This uses two dynamically bound variables:
@@ -2906,13 +3032,17 @@ Because of ambiguities, this should be concatenated with something like
          ((eq (car-safe action) 'boundaries) nil)
          ((eq action 'metadata) '(metadata (category . info-menu)))
          ((eq action 'lambda)
-          (re-search-forward
-           (concat "\n\\* +" (regexp-quote string) ":") nil t))
+          (or
+           (re-search-forward
+            (concat "\n\\* +" (regexp-quote string) "") nil t)
+           (re-search-forward
+            (concat "\n\\* +" (regexp-quote string) ":") nil t)))
          (t
-          (let ((pattern (concat "\n\\* +\\("
-                                 (regexp-quote string)
-                                 Info-menu-entry-name-re "\\):"
-                                 Info-node-spec-re))
+          (let ((pattern
+                 (concat
+                  "\n\\* +\\(\\(" (regexp-quote string) "[^\n]*\\):\\|\\("
+                         (regexp-quote string) Info-menu-entry-name-re ":\\)"
+                         "\\(" Info-node-spec-re "\\|[^]+\\)\\)"))
                 completions
                 (complete-nodes Info-complete-nodes))
             ;; Check the cache.
@@ -2927,7 +3057,8 @@ Because of ambiguities, this should be concatenated with something like
               (while
                   (progn
                     (while (re-search-forward pattern nil t)
-                      (push (match-string-no-properties 1)
+                      (push (or (match-string-no-properties 2)
+                                (match-string-no-properties 3))
                             completions))
 		    (setq completions (delete-dups completions))
                     ;; Check subsequent nodes if applicable.
@@ -2973,11 +3104,12 @@ new buffer."
 	    (save-excursion
 	      (goto-char p)
 	      (end-of-line)
-	      (if (re-search-backward (concat "\n\\* +\\("
-					      Info-menu-entry-name-re
-					      "\\):")
+	      (if (re-search-backward (concat "\n\\* +\\(\\([^]+\\)\\|\\("
+				              Info-menu-entry-name-re
+				              "\\):\\)")
                                       beg t)
-		  (setq default (match-string-no-properties 1))))))
+		  (setq default (or (match-string-no-properties 2)
+                                    (match-string-no-properties 3)))))))
      (let ((item nil))
        (while (null item)
 	 (setq item (let ((completion-ignore-case t)
@@ -3001,7 +3133,8 @@ new buffer."
 	(goto-char (point-min))
 	(or (search-forward "\n* menu:" nil t)
 	    (user-error "No menu in this node"))
-	(or (re-search-forward (concat "\n\\* +" menu-item ":") nil t)
+	(or (re-search-forward (concat "\n\\* +" menu-item "") nil t)
+            (re-search-forward (concat "\n\\* +" menu-item ":") nil t)
 	    (re-search-forward (concat "\n\\* +" menu-item) nil t)
 	    (user-error "No such item in menu"))
 	(beginning-of-line)
@@ -3342,7 +3475,7 @@ COUNT cross-references."
   (if (< count 0)
       (Info-prev-reference recur (- count))
     (while (unless (zerop count) (setq count (1- count)))
-      (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
+      (let ((pat "\\*note[ \n\t]+\\(\\([^:]+\\):\\|\\([^]+\\)::?\\)\\|^\\* .*:\\|[hf]t?tps?://")
 	    (old-pt (point))
 	    (case-fold-search t))
 	(or (eobp) (forward-char 1))
@@ -3370,7 +3503,7 @@ COUNT cross-references."
   (if (< count 0)
       (Info-next-reference recur (- count))
     (while (unless (zerop count) (setq count (1- count)))
-      (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
+      (let ((pat "\\*note[ \n\t]+\\(\\([^:]+\\):\\|\\([^]+\\)::?\\)\\|^\\* .*:\\|[hf]t?tps?://")
 	    (old-pt (point))
 	    (case-fold-search t))
 	(or (Info-prev-reference-or-link pat 'link)
@@ -3657,7 +3790,8 @@ MATCHES is a list of index matches found by `Info-index'.")
 	     (matches (cdr (assoc (cons (or filename Info-current-file) topic)
 				  Info-virtual-index-nodes))))
 	(insert (format "\n\^_\nFile: %s,  Node: %s,  Up: *Index*\n\n"
-			(or filename Info-current-file) nodename))
+			(or filename Info-current-file)
+                        (info--maybe-quoted-node nodename t)))
 	(insert "Info Virtual Index\n")
 	(insert "******************\n\n")
 	(insert "Index entries that match ‘" topic "’:\n\n")
@@ -3668,14 +3802,15 @@ MATCHES is a list of index matches found by `Info-index'.")
 	  (dolist (entry matches)
 	    (insert (format "* %-38s %s.%s\n"
 			    (format "%s [%s]:" (nth 0 entry) (nth 2 entry))
-			    (nth 1 entry)
+			    (info--maybe-quoted-node (nth 1 entry))
 			    (if (nth 3 entry)
 				(format " (line %s)" (nth 3 entry))
 			      ""))))))
     ;; Else, Generate a list of previous search results
     (let ((nodes (reverse Info-virtual-index-nodes)))
       (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
-		      (or filename Info-current-file) nodename))
+		      (or filename Info-current-file)
+                      (info--maybe-quoted-node nodename t)))
       (insert "Info Virtual Index\n")
       (insert "******************\n\n")
       (insert "This is a list of search results produced by\n"
@@ -3686,7 +3821,7 @@ MATCHES is a list of index matches found by `Info-index'.")
 	  (insert
 	   (format "* %-20s %s.\n"
 		   (format "*Index for ‘%s’*::" (cdr (nth 0 nodeinfo)))
-		   (cdr (nth 0 nodeinfo)))))))))
+		   (info--maybe-quoted-node (cdr (nth 0 nodeinfo))))))))))
 
 (defun Info-virtual-index (topic)
   "Show a node with all lines in the index containing a string TOPIC.
@@ -3758,21 +3893,24 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
       ;; Generate Top menu
       (let ((nodes (reverse Info-apropos-nodes)))
 	(insert (format "\n\^_\nFile: %s,  Node: %s,  Up: (dir)\n\n"
-			Info-apropos-file nodename))
+			Info-apropos-file
+                        (info--maybe-quoted-node nodename t)))
 	(insert "Apropos Index\n")
 	(insert "*************\n\n")
 	(insert "This is a list of search results produced by ‘info-apropos’.\n\n")
 	(insert "* Menu:\n\n")
 	(dolist (nodeinfo nodes)
 	  (insert (format "* %-20s %s.\n"
-			  (format "%s::" (nth 0 nodeinfo))
+			  (format "%s::"
+                                  (info--maybe-quoted-node (nth 0 nodeinfo)))
 			  (nth 1 nodeinfo)))))
     ;; Else, Generate Index-like menu of matches
     (let* ((nodeinfo (assoc nodename Info-apropos-nodes))
 	   (matches (nth 2 nodeinfo)))
       (when matches
 	(insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
-			Info-apropos-file nodename))
+			Info-apropos-file
+                        (info--maybe-quoted-node nodename t)))
 	(insert "Apropos Index\n")
 	(insert "*************\n\n")
 	(insert "Index entries that match ‘" (nth 1 nodeinfo) "’:\n\n")
@@ -3784,7 +3922,7 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
 	    (insert (format "* %-38s (%s)%s.%s\n"
 			    (format "%s [%s]:" (nth 1 entry) (nth 0 entry))
 			    (nth 0 entry)
-			    (nth 2 entry)
+			    (info--maybe-quoted-node (nth 2 entry))
 			    (if (nth 3 entry)
 				(format " (line %s)" (nth 3 entry))
 			      "")))))))))
@@ -3910,7 +4048,8 @@ Display a menu of the possible matches."
    ((equal nodename "Top")
     ;; Display Top menu with descriptions of the keywords
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: (dir)\n\n"
-		    Info-finder-file nodename))
+		    Info-finder-file
+                    (info--maybe-quoted-node nodename t)))
     (insert "Finder Keywords\n")
     (insert "***************\n\n")
     (insert "* Menu:\n\n")
@@ -3925,7 +4064,8 @@ Display a menu of the possible matches."
    ((equal nodename "Keyword unknown")
     ;; Display unknown keywords
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
-		    Info-finder-file nodename))
+		    Info-finder-file
+                    (info--maybe-quoted-node nodename t)))
     (insert "Finder Unknown Keywords\n")
     (insert "***********************\n\n")
     (insert "* Menu:\n\n")
@@ -3939,7 +4079,8 @@ Display a menu of the possible matches."
    ((equal nodename "Keyword all")
     ;; Display all package info.
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
-		    Info-finder-file nodename))
+		    Info-finder-file
+                    (info--maybe-quoted-node nodename t)))
     (insert "Finder Package Info\n")
     (insert "*******************\n\n")
     (insert "* Menu:\n\n")
@@ -4055,8 +4196,8 @@ with a list of packages that contain all specified keywords."
 POS must be somewhere inside the token.
 START is a regular expression which will match the
     beginning of the tokens delimited string.
-ALL is a regular expression with a single
-    parenthesized subpattern which is the token to be
+ALL is a regular expression with at least one parenthesized
+    subpattern; the first such subpattern is the token to be
     returned.  E.g. `{(.*)}' would return any string
     enclosed in braces around POS.
 ERRORSTRING optional fourth argument, controls action on no match:
@@ -4103,8 +4244,11 @@ At end of the node's text, moves to the next node, or up if none."
 
 (defun Info-follow-nearest-node (&optional fork)
   "Follow a node reference near point.
-If point is on a reference, follow that reference.  Otherwise,
-if point is in a menu item description, follow that menu item.
+If point is on a URL reference, call `browse-url' to browse it.
+Otherwise, if point is on a cross-reference or a footnote reference,
+follow that reference.
+Otherwise, if point is in a menu item description, follow that menu item.
+Otherwise, if point is on the Up/Prev/Next reference, go to that node.
 
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new Info buffer.
@@ -4117,7 +4261,9 @@ If FORK is a string, it is the name to use for the new buffer."
 	  (beginning-of-line)
 	  (while (not (or (bobp) (looking-at "[^ \t]\\|[ \t]*$")))
 	    (beginning-of-line 0))
-	  (when (looking-at "\\* +\\([^\t\n]*\\):")
+	  (when (or
+                 (looking-at "\\* +[^\t\n]*")
+                 (looking-at "\\* +\\([^\t\n]*\\):"))
 	    (Info-goto-node
 	     (Info-extract-menu-item (match-string-no-properties 1)) fork)
 	    t)))
@@ -4130,15 +4276,23 @@ If FORK is a string, it is the name to use for the new buffer."
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node (&optional fork)
   "Follow a node reference near point.  Return non-nil if successful.
-If FORK is non-nil, it is passed to `Info-goto-node'."
+If FORK is non-nil, it is passed to `Info-goto-node', to show the node
+in a new Info buffer."
   (let (node)
     (cond
      ((setq node (Info-get-token (point) "\\(?:f\\(?:ile\\|tp\\)\\|https?\\)://"
 				 "\\(\\(?:f\\(?:ile\\|tp\\)\\|https?\\)://[^ \t\n\"`‘({<>})’']+\\)"))
       (browse-url node)
       (setq node t))
-     ((setq node (Info-get-token (point) "\\*note[ \n\t]+"
-				 "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?"))
+     ;; cross-reference, possibly quoted
+     ((setq node
+            (or
+             (Info-get-token (point)
+                             "\\*note[ \n\t]+"
+			     "\\*note[ \n\t]+\\([^]*\\)")
+             (Info-get-token (point)
+                             "\\*note[ \n\t]+"
+			     "\\*note[ \n\t]+\\([^:]*\\):\\(:\\|[ \n\t]*(\\)?")))
       (Info-follow-reference node fork))
      ;; footnote
      ((setq node (Info-get-token (point) "(" "\\(([0-9]+)\\)"))
@@ -4158,8 +4312,11 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 	      (goto-char new-point)
 	      (setq node t))
 	  (setq node nil))))
-     ;; menu item: node name
-     ((setq node (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\)::"))
+     ;; menu item: node name, possibly quoted
+     ((setq node
+            (or
+             (Info-get-token (point) "\\* +" "\\* +\\([^]*\\)::")
+             (Info-get-token (point) "\\* +" "\\* +\\([^:]*\\)::")))
       (Info-goto-node node fork))
      ;; menu item: node name or index entry
      ((Info-get-token (point) "\\* +" "\\* +\\(.*\\): ")
@@ -4450,7 +4607,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 	      (case-fold-search t))
 	  (save-excursion
 	    (goto-char (point-min))
-	    (while (re-search-forward "\\*note[ \n\t]+\\([^:]*\\):" nil t)
+	    (while (re-search-forward "\\*note[ \n\t]+\\(\\([^:]+\\):\\|\\([^]+\\):\\)" nil t)
 	      (setq str (match-string 1))
 	      (setq i 0)
 	      (while (setq i (string-match "[ \n\t]+" str i))
@@ -4952,6 +5109,8 @@ and so should be rendered as makeinfo produced them.")
                          Info--dont-hide-references))
                 nil
               Info-hide-note-references))
+           (cross-reference-re
+            (concat "\\(\\*[Nn]ote[ \n\t]+\\)" Info-node-ref-re))
            rbeg rend)
 
       ;; Fontify header line
@@ -5059,13 +5218,58 @@ and so should be rendered as makeinfo produced them.")
               (add-text-properties (1- (match-beginning 2)) (match-end 2)
                                    '(invisible t front-sticky nil rear-nonsticky t))))))
 
+      ;; Hide DEL quoting characters.
+      (goto-char (point-min))
+      (while (search-forward "" nil t)
+        (put-text-property (1- (point)) (point) 'invisible t))
+
       ;; Fontify cross references
       (goto-char (point-min))
       (when (or not-fontified-p fontify-visited-p)
-        (while (re-search-forward "\\(\\*Note[ \n\t]+\\)\\([^:]*\\)\\(:[ \t]*\\([^.,:(]*\\)\\(\\(([^)]*)\\)[^.,:]*\\)?[,:]?\n?\\)" nil t)
-          (let ((start (match-beginning 0))
-                (next (point))
-                other-tag)
+        (while (re-search-forward cross-reference-re nil t)
+          (let* ((start (match-beginning 0))
+                 (next (point))
+                 (note-beg (match-beginning 1))
+                 (note-end (match-end 1))
+                 (note-text (match-string 1))
+                 (file-beg (or (match-beginning 4)    ; file name before quoted
+                               (match-beginning 12))) ; file name in unquoted
+                 (file-end (or (match-end 4)
+                               (match-end 12)))
+                 (ref-beg (or (match-beginning 6)    ; quoted node w/o label
+                              (match-beginning 7)    ; unquoted node w/o label
+                              (match-beginning 10)   ; quoted ref label
+                              (match-beginning 11))) ; unquoted ref label
+                 (ref-end (or (match-end 6)
+                              (match-end 7)
+                              (match-end 10)
+                              (match-end 11)))
+                 (node-beg (or (match-beginning 5)    ; only node
+                               (match-beginning 13))) ; label + node
+                 (node-end (or (and (match-end 3)
+                                    (match-end 5))    ; exclude "::"
+                               (match-end 13)))
+                 (dcolon-beg   (and (match-end 3)
+                                    (match-end 5)))
+                 (node-hide-beg (or (match-end 5)
+                                    (match-end 9)))
+                 (node-hide-end (or (match-end 13)
+                                    (match-end 8)))
+                 (label-beg (or (match-beginning 10)   ; quoted label
+                                (match-beginning 11))) ; unquoted label
+                 (ref-node (string-replace
+                            "" ""
+                            (info--node-canonicalize-whitespace
+                             (concat (if file-beg
+                                         (buffer-substring-no-properties
+                                          file-beg file-end))
+                                     (if node-beg
+                                         (buffer-substring-no-properties
+                                          node-beg node-end))))))
+                 ;; If we will display the label, show node in help-echo
+                 (node-for-help (if label-beg ref-node))
+
+                 other-tag)
             (when not-fontified-p
               (when Info-hide-note-references
                 (when (and (not (eq Info-hide-note-references 'hide))
@@ -5099,29 +5303,26 @@ and so should be rendered as makeinfo produced them.")
 			       "See ")
 			      (t "see "))))
                 (goto-char next)
-                (add-text-properties
-                 (match-beginning 1)
+                ;; Hide *Note
+                (add-text-properties note-beg
                  (or (save-match-data
                        ;; Don't hide \n after *Note
-                       (let ((start1 (match-beginning 1)))
-                         (if (string-match "\n" (match-string 1))
+                       (let ((start1 note-beg))
+                         (if (string-match "\n" note-text)
                              (+ start1 (match-beginning 0)))))
-                     (match-end 1))
+                     note-end)
                  (if other-tag
                      `(display ,other-tag front-sticky nil rear-nonsticky t)
                    '(invisible t front-sticky nil rear-nonsticky t))))
-              (add-text-properties
-               (match-beginning 2) (match-end 2)
+              (add-text-properties ref-beg ref-end
                (list
-                'help-echo (if (or (match-end 5)
-                                   (not (equal (match-string 4) "")))
-                               (concat "mouse-2: go to " (or (match-string 5)
-                                                             (match-string 4)))
+                'help-echo (if node-for-help
+                               (concat "mouse-2: go to " ref-node)
                              "mouse-2: go to this node")
                 'mouse-face 'highlight)))
             (when (or not-fontified-p fontify-visited-p)
-              (setq rbeg (match-beginning 2)
-                    rend (match-end 2))
+              (setq rbeg ref-beg
+                    rend ref-end)
               (put-text-property
                rbeg rend
                'font-lock-face
@@ -5132,12 +5333,9 @@ and so should be rendered as makeinfo produced them.")
                                         "^[ \t]+" ""
                                         (replace-regexp-in-string
                                          "[ \t\n]+" " "
-                                         (or (match-string-no-properties 5)
-                                             (and (not (equal (match-string 4) ""))
-                                                  (match-string-no-properties 4))
-                                             (match-string-no-properties 2)))))
+                                         ref-node)))
 				 (external-link-p
-				  (string-match "(\\([^)]+\\))\\([^)]*\\)" node))
+				  (string-match "\\`(\\([^)]+\\))\\([^)]*\\)" node))
                                  (file (if external-link-p
 					   (file-name-nondirectory
 					    (match-string-no-properties 1 node))
@@ -5158,7 +5356,9 @@ and so should be rendered as makeinfo produced them.")
 						(caar hl))))
 				  (setq res (car hl) hl nil)
 				(setq hl (cdr hl))))
-                            res))) 'info-xref-visited 'info-xref))
+                            res)))
+                   'info-xref-visited
+                 'info-xref))
               ;; For multiline ref, unfontify newline and surrounding whitespace
               (save-excursion
                 (goto-char rbeg)
@@ -5168,25 +5368,32 @@ and so should be rendered as makeinfo produced them.")
                                             (match-end 0)
                                             '(font-lock-face t))))))
             (when not-fontified-p
-              (when (memq Info-hide-note-references '(t hide))
-                (add-text-properties (match-beginning 3) (match-end 3)
+              (when (and (memq Info-hide-note-references '(t hide))
+                         label-beg)
+                ;; Hide the node name if there is a label
+                (add-text-properties node-hide-beg node-hide-end
                                      '(invisible t front-sticky nil rear-nonsticky t))
                 ;; Unhide the file name of the external reference in parens
-                (if (and (match-string 6) (not (eq Info-hide-note-references 'hide)))
-                    (remove-text-properties (match-beginning 6) (match-end 6)
+                (if (and file-beg (not (eq Info-hide-note-references 'hide)))
+                    (remove-text-properties file-beg file-end
                                             '(invisible t front-sticky nil rear-nonsticky t)))
-                ;; Unhide newline because hidden newlines cause too long lines
+                ;; Unhide newline in node name because hidden newlines
+                ;; cause too-long lines
                 (save-match-data
-                  (let ((beg3 (match-beginning 3))
-                        (end3 (match-end 3)))
-                    (if (and (string-match "\n[ \t]*" (match-string 3))
+                  (if (and (string-match "\n[ \t]*" ref-node)
                              (not (save-match-data
                                     (save-excursion
-                                      (goto-char (1+ end3))
+                                      (goto-char (1+ node-end))
                                       (looking-at "[.)]*$")))))
-                        (remove-text-properties (+ beg3 (match-beginning 0))
-                                                (+ beg3 (match-end 0))
-                                                '(invisible t front-sticky nil rear-nonsticky t))))))
+                      (remove-text-properties (+ node-beg (match-beginning 0))
+                                              (+ node-beg (match-end 0))
+                                              '(invisible t front-sticky nil rear-nonsticky t)))))
+              ;; Hide the "::" after node name
+              (if (and (memq Info-hide-note-references '(t hide))
+                       dcolon-beg)
+                  (add-text-properties dcolon-beg (+ dcolon-beg 2)
+                                       '(invisible t front-sticky nil
+                                                   rear-nonsticky t)))
               (when (and Info-refill-paragraphs Info-hide-note-references)
                 (push (set-marker (make-marker) start)
                       paragraph-markers))))))
@@ -5221,39 +5428,86 @@ and so should be rendered as makeinfo produced them.")
 		     (< (- (point-max) (point))
 			Info-fontify-maximum-menu-size)))
         (let ((n 0)
+              (menu-item-re
+               (concat "^\\* Menu:\\|\\(?:^\\* +"
+                       Info-node-ref-re
+                       "\\([ \t]*\\)\\)"))
+              star-beg star-end
+              menu-entry-beg menu-entry-end
+              node-for-help node-str-for-help
+              node-beg node-end node-hide-beg
+              file-beg file-end
+              label-beg
+              descr-beg
               cont)
-          (while (re-search-forward
-                  (concat "^\\* Menu:\\|\\(?:^\\* +\\(" Info-menu-entry-name-re "\\)\\(:"
-                          Info-node-spec-re "\\([ \t]*\\)\\)\\)")
-                  nil t)
+          (while (re-search-forward menu-item-re nil t)
 	    (when (match-beginning 1)
+              (setq star-beg (match-beginning 0)
+                    star-end (1+ star-beg)
+                    file-beg (or (match-beginning 3)
+                                 (match-beginning 11))
+                    file-end (or (match-end 3)
+                                 (match-end 11))
+                    menu-entry-beg (or (match-beginning 9)
+                                       (match-beginning 10)
+                                       (match-beginning 5)
+                                       (match-beginning 6))
+                    menu-entry-end (or (match-end 9)
+                                       (match-end 10)
+                                       (match-end 5)
+                                       (match-end 6))
+                    node-hide-beg (or (match-end 4)
+                                      (match-end 8))
+                    node-beg (or (match-beginning 4)
+                                 (match-beginning 12))
+                    node-end (or (and (match-end 2)
+                                      (match-end 4))
+                                 (match-end 12))
+                    label-beg (or (match-beginning 9)
+                                  (match-beginning 10))
+                    node-str-for-help
+                    (info--node-canonicalize-whitespace
+                     (concat (if file-beg
+                                 (buffer-substring-no-properties
+                                  file-beg file-end))
+                             (if node-beg
+                                 ;; Remove DEL quoting, if any
+                                 (let ((beg node-beg)
+                                       (end node-end))
+                                   (if (eq (char-after node-beg) #x7f)
+                                       (setq beg (1+ node-beg)
+                                             end (1- node-end)))
+                                   (buffer-substring-no-properties beg end)))))
+                    node-for-help (if label-beg node-str-for-help)
+                    descr-beg (match-end 16))
 	      (when not-fontified-p
+                ;; Fontify the stars of the first 9 items specially
 		(setq n (1+ n))
 		(if (and (<= n 9) (zerop (% n 3))) ; visual aids to help with 1-9 keys
-		    (put-text-property (match-beginning 0)
-				       (1+ (match-beginning 0))
+		    (put-text-property star-beg star-end
 				       'font-lock-face 'info-menu-star)))
 	      (when not-fontified-p
+                ;; Put help-echo tooltips on the menu entry (or node if
+                ;; it's the entry)
 		(add-text-properties
-		 (match-beginning 1) (match-end 1)
+                 menu-entry-beg menu-entry-end
 		 (list
-		  'help-echo (if (and (match-end 3)
-				      (not (equal (match-string 3) "")))
-				 (concat "mouse-2: go to " (match-string 3))
+		  'help-echo (if label-beg
+				 (concat "mouse-2: go to " node-for-help)
 			       "mouse-2: go to this node")
 		  'mouse-face 'highlight)))
 	      (when (or not-fontified-p fontify-visited-p)
 		(put-text-property
-		 (match-beginning 1) (match-end 1)
+                 menu-entry-beg menu-entry-end
                  'font-lock-face
                  ;; Display visited menu items in a different face
                  (if (and Info-fontify-visited-nodes
                           (save-match-data
-                            (let* ((node (if (equal (match-string 3) "")
-					     (match-string-no-properties 1)
-					   (match-string-no-properties 3)))
+                            (let* ((node (buffer-substring node-beg node-end))
+                                   ;; Remove DEL-quoting, if any
+                                   (node (string-replace "" "" node))
 				   (external-link-p
-				    (string-match "(\\([^)]+\\))\\([^)]*\\)" node))
+				    (string-match "\\`(\\([^)]+\\))\\([^)]*\\)" node))
 				   (file (if external-link-p
 					     (file-name-nondirectory
 					      (match-string-no-properties 1 node))
@@ -5274,24 +5528,29 @@ and so should be rendered as makeinfo produced them.")
 						  (caar hl))))
 				    (setq res (car hl) hl nil)
 				  (setq hl (cdr hl))))
-                              res))) 'info-xref-visited 'info-xref)))
+                              res)))
+                     'info-xref-visited 'info-xref)))
+              ;; Hide the node name and the following whitespace, except
+              ;; the last space
 	      (when (and not-fontified-p
 			 (memq Info-hide-note-references '(t hide))
 			 (not (Info-index-node)))
-		(put-text-property (match-beginning 2) (1- (match-end 6))
-				   'invisible t)
+                (put-text-property node-hide-beg (1- descr-beg) 'invisible t)
 		;; Unhide the file name in parens
-		(if (and (match-end 4) (not (eq (char-after (match-end 4)) ?.)))
-		    (remove-text-properties (match-beginning 4) (match-end 4)
+		(if file-beg
+		    (remove-text-properties file-beg file-end
 					    '(invisible t)))
+                ;; Move the descriptive text to the right and align it.
 		;; We need a stretchable space like :align-to but with
 		;; a minimum value.
-		(put-text-property (1- (match-end 6)) (match-end 6) 'display
-				   (if (>= 22 (- (match-end 1)
+		(put-text-property (1- descr-beg) descr-beg 'display
+				   (if (>= 22 (- (or (match-end 4)
+                                                     (match-end 8))
 						 (match-beginning 0)))
 				       '(space :align-to 24)
 				     '(space :width 2)))
 		(setq cont (looking-at "."))
+                ;; Align continuation lines.
 		(while (and (= (forward-line 1) 0)
 			    (looking-at "\\([ \t]+\\)[^*\n]"))
 		  (put-text-property (match-beginning 1) (1- (match-end 1))
