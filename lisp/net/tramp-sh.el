@@ -3127,7 +3127,7 @@ will be used."
 	     (eenv (setenv-internal eenv "PS1" nil nil))
 	     vars
 	     (eenv (dolist (item (reverse eenv) vars)
-		     (setq item (split-string item "=" 'omit))
+		     (setq item (split-string item "="))
 		     (setcdr item (string-join (cdr item) "="))
 		     (push (format "%s %s" (car item) (cdr item)) vars)))
 	     (command
@@ -4743,7 +4743,7 @@ process to set up.  VEC specifies the connection."
       (dolist (item (reverse
 		     (append `(,(tramp-get-remote-locale vec))
 			     (copy-sequence tramp-remote-process-environment))))
-	(setq item (split-string item "=" 'omit))
+	(setq item (split-string item "="))
 	(setcdr item (string-join (cdr item) "="))
 	(if (and (stringp (cdr item)) (not (string-empty-p (cdr item))))
 	    (push (format "%s %s" (car item) (cdr item)) vars)

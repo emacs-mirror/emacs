@@ -6842,17 +6842,23 @@ INPUT, if non-nil, is a string sent to the process."
 	       this-shell-command-to-string
 	       "printenv | grep -v PS1 | grep -v _="))))))
 
-      ;; Handle looooong environment variables.  Bug#80783.
+      ;; Handle looooong environment variables.  (Bug#80783, Bug#82086).
       ;; FIXME: Make it also work in the synchronous case.
       (unless (or (eq this-shell-command-to-string 'shell-command-to-string)
 		  (tramp-direct-async-process-p)
                   (tramp--test-macos-p))
-	(let* ((bad (concat envvar "=" (make-string 2024 ?x)))
+	(let* ((long (concat (make-string 2024 ?x) "==="))
+	       (bad (concat envvar "=" long))
 	       (process-environment
 		(cl-list* bad bad bad bad process-environment)))
 	  (should
 	   (string-match-p
-	    "foo" (funcall this-shell-command-to-string "echo foo"))))))))
+	    "foo" (funcall this-shell-command-to-string "echo foo")))
+	  (should
+	   (string-match-p
+	    long
+	    (funcall
+	     this-shell-command-to-string (concat "echo $" envvar)))))))))
 
 (tramp--test-deftest-direct-async-process tramp-test33-environment-variables)
 
