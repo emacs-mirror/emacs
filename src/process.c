@@ -6515,6 +6515,11 @@ read_and_insert_process_output (struct Lisp_Process *p, char *buf,
 				     &before, &before_byte, &opoint,
 				     &opoint_byte);
 
+  /* Record the current buffer before restoring the process state, so
+     that we restore the saved state to the right buffer (bug#81677).  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  record_unwind_current_buffer ();
+
   /* Adapted from call_process.  */
   prepare_to_modify_buffer (PT, PT, NULL);
 
@@ -6555,6 +6560,7 @@ read_and_insert_process_output (struct Lisp_Process *p, char *buf,
 
   read_process_output_after_insert (p, &old_read_only, old_begv, old_zv,
 				    before, before_byte, opoint, opoint_byte);
+  unbind_to (count, Qnil);
 }
 
 static void
@@ -6655,6 +6661,12 @@ Otherwise it discards the output.  */)
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_to_multibyte (text));
+
+      /* Record the current buffer because insert_from_string_before_markers
+	 may run a user hook that changes it (bug#81677).  */
+      specpdl_ref count = SPECPDL_INDEX ();
+      record_unwind_current_buffer ();
+
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
       insert_from_string_before_markers (text, 0, 0,
@@ -6662,6 +6674,7 @@ Otherwise it discards the output.  */)
 
       read_process_output_after_insert (p, &old_read_only, old_begv, old_zv,
 					before, before_byte, opoint, opoint_byte);
+      unbind_to (count, Qnil);
     }
   return Qnil;
 }
