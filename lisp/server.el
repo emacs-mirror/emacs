@@ -1190,6 +1190,8 @@ The following commands are accepted by the client:
   (unless (consp server--process-filter-pending)
     (sit-for time)))
 
+(declare-function pgtk-backend-display-class "pgtk-fns.c")
+
 (cl-defun server--process-filter-1 (proc string)
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication.
@@ -1451,6 +1453,23 @@ The following commands are accepted by the client:
 			 display)
 		    (setq tty-name nil tty-type nil)
 		    (server-select-display display))))
+
+            ;; As a focus stealing prevention security measure, a
+            ;; Wayland application must present the compositor with an
+            ;; "activation token" before requesting to "activate" the
+            ;; frame.  The token comes from the invoking program (e.g. a
+            ;; file manager), and is passed to emacsclient in an
+            ;; environment variable.  Copy the token to the
+            ;; `activation-token' frame parameter of the server frame
+            ;; for the pgtk_raise_frame function.  (Bug #80926)
+            (when (and
+                   (fboundp #'pgtk-backend-display-class)
+                   (string= "GdkWaylandDisplay" (pgtk-backend-display-class)))
+	      (let* ((token
+		      (getenv-internal "XDG_ACTIVATION_TOKEN" (process-get proc 'env))))
+		(if (not token)
+		    (server-log "No XDG_ACTIVATION_TOKEN token received.\n")
+		  (set-frame-parameter frame 'activation-token token))))
 
             (process-put
              proc 'continuation
