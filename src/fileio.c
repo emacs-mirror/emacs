@@ -113,11 +113,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 
-#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
-
 #ifdef HAVE_TREE_SITTER
 #include "treesit.h"
 #endif
+
+#if !defined HAVE_ANDROID || defined ANDROID_STUBIFY
 
 /* Type describing a file descriptor used by functions such as
    `insert-file-contents'.  */
