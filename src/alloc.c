@@ -269,7 +269,7 @@ static struct gcstat
    objects, both dead and alive.  This number is always kept up-to-date.  */
 static ptrdiff_t hash_table_allocated_bytes = 0;
 
-#if !SYSTEM_MALLOC
+#ifdef REL_ALLOC
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
    two string blocks.  */
@@ -334,9 +334,6 @@ static void mark_terminals (void);
 static void gc_sweep (void);
 static void mark_buffer (struct buffer *);
 
-#if !defined REL_ALLOC || SYSTEM_MALLOC
-static void refill_memory_reserve (void);
-#endif
 static void compact_small_strings (void);
 static void free_large_strings (void);
 extern Lisp_Object which_symbols (Lisp_Object, EMACS_INT) EXTERNALLY_VISIBLE;
@@ -485,7 +482,7 @@ struct Lisp_Finalizer doomed_finalizers;
 				Malloc
  ************************************************************************/
 
-#if defined SIGDANGER || !SYSTEM_MALLOC
+#if defined SIGDANGER || defined REL_ALLOC
 
 /* Function malloc calls this if it finds we are near exhausting storage.  */
 
@@ -878,7 +875,7 @@ static_assert (POWER_OF_2 (BLOCK_ALIGN));
 
 /* Use aligned_alloc if it or a simple substitute is available. */
 
-#if defined HAVE_ALIGNED_ALLOC || !SYSTEM_MALLOC
+#if defined HAVE_ALIGNED_ALLOC || defined REL_ALLOC
 # define USE_ALIGNED_ALLOC 1
 #elif defined HAVE_POSIX_MEMALIGN
 # define USE_ALIGNED_ALLOC 1
@@ -4014,7 +4011,7 @@ memory_full (size_t nbytes)
       Vmemory_full = Qt;
       consing_until_gc = min (consing_until_gc, memory_full_cons_threshold);
 
-#if !SYSTEM_MALLOC
+#ifdef REL_ALLOC
       /* The first time we get here, free the spare memory.  */
       for (int i = 0; i < countof (spare_memory); i++)
 	if (spare_memory[i])
@@ -4045,6 +4042,8 @@ memory_full_up (void)
   memory_full (SIZE_MAX);
 }
 
+#ifdef REL_ALLOC
+
 /* If we released our reserve (due to running out of memory),
    and we have a fair amount free once again,
    try to set aside another reserve in case we run out once more.
@@ -4055,7 +4054,6 @@ memory_full_up (void)
 void
 refill_memory_reserve (void)
 {
-#if !SYSTEM_MALLOC
   if (spare_memory[0] == 0)
     spare_memory[0] = malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
@@ -4078,8 +4076,8 @@ refill_memory_reserve (void)
 				   false, MEM_TYPE_SPARE);
   if (spare_memory[0] && spare_memory[1] && spare_memory[5])
     Vmemory_full = Qnil;
-#endif
 }
+#endif
 
 /************************************************************************
 			   C Stack Marking
@@ -7258,7 +7256,9 @@ init_alloc_once_for_pdumper (void)
   mem_init ();
   init_finalizer_list (&finalizers);
   init_finalizer_list (&doomed_finalizers);
+#ifdef REL_ALLOC
   refill_memory_reserve ();
+#endif
 }
 
 void

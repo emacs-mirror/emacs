@@ -179,7 +179,7 @@ sed -e "/#define EMACS_CONFIG_FEATURES/s/^.*$/#define EMACS_CONFIG_FEATURES \"LI
 set libxml=1
 :xmlDone
 rm -f junk.c junk junk.exe
-Rem See if they requested a SYSTEM_MALLOC build
+Rem See if they requested a build with the system malloc.
 if "%sys_malloc%" == "" Goto cfgDone
 rm -f config.tmp
 ren config.h2 config.tmp

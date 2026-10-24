@@ -336,9 +336,6 @@ int __malloc_initialized;
 
 /* Number of extra blocks to get each time we ask for more core.
    This reduces the frequency of calling `(*__morecore)'.  */
-#if SYSTEM_MALLOC
-static
-#endif
 size_t __malloc_extra_blocks;
 
 /* Number of info entries.  */
