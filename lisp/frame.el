@@ -89,7 +89,7 @@ handles the corresponding kind of display.")
     "scroll-bar-background" "scroll-bar-foreground" "scroll-bar-height"
     "scroll-bar-width" "shaded" "skip-taskbar" "snap-width" "sticky"
     "tab-bar-lines" "title" "tool-bar-lines" "tool-bar-position" "top"
-    "top-visible" "tty-color-mode" "undecorated" "unspittable"
+    "top-visible" "tty-color-mode" "undecorated" "unsplittable"
     "use-frame-synchronization" "user-position" "user-size"
     "vertical-scroll-bars" "visibility" "wait-for-wm" "width" "z-group")
   "List of special frame parameters that makes sense to customize.")

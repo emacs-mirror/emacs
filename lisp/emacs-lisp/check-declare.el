@@ -126,7 +126,8 @@ don't know how to recognize (e.g. some macros)."
   :group 'tools)
 
 (defcustom check-declare-ext-errors nil
-  "When non-nil, warn about functions not found in :ext."
+  "When non-nil, report about not found functions declared with \"ext:\".
+This affects `check-declare-file' and `check-declare-directory'."
   :version "25.1"
   :type 'boolean)
 
@@ -136,6 +137,13 @@ Each element of FNLIST has the form (FILE FN ARGLIST FILEONLY), where
 only the first two elements need be present.  This means FILE claimed FN
 was defined in FNFILE with the specified ARGLIST.  FILEONLY non-nil means
 to only check that FNFILE exists, not that it actually defines FN.
+Missing FNFILEs which begin with \"ext:\", meaning the file is external,
+are silently skipped, unless `check-declare-ext-errors' is non-nil, in
+which case each such file will be mentioned in the list of errors this
+function returns with TYPE shown as \"file not found\".  A file is
+considered to be external if `locate-library' cannot find it and it is
+not in the directory of the file whose `declare-function' declarations
+are being checked.
 
 Returns nil if all claims are found to be true, otherwise a list
 of errors with elements of the form \(FILE FN TYPE), where TYPE
