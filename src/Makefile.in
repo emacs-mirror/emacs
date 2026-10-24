@@ -304,6 +304,7 @@ CYGWIN_OBJ=@CYGWIN_OBJ@
 WINDOW_SYSTEM_OBJ=@WINDOW_SYSTEM_OBJ@
 
 ## dosfns.o msdos.o w16select.o if MSDOS.
+## vm-limit.o gmalloc.o ralloc.o can also be prepended if MSDOS.
 MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =
@@ -486,20 +487,11 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   haikuterm.o haikufns.o haikumenu.o haikufont.o androidterm.o androidfns.o \
   androidfont.o androidselect.c androidvfs.c sfntfont-android.c sfntfont.c
 
-## gmalloc.o if !SYSTEM_MALLOC, else empty.
-GMALLOC_OBJ=@GMALLOC_OBJ@
-
-## vm-limit.o if !SYSTEM_MALLOC, else empty.
-VMLIMIT_OBJ=@VMLIMIT_OBJ@
-
-## ralloc.o if !SYSTEM_MALLOC && REL_ALLOC, else empty.
-RALLOC_OBJ=@RALLOC_OBJ@
-
 ## List of object files that make-docfile should not be told about.
-otherobj= $(TERMCAP_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
+otherobj= $(TERMCAP_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
-## All object files linked into temacs.  $(VMLIMIT_OBJ) should be first.
-ALLOBJS = $(VMLIMIT_OBJ) $(obj) $(otherobj)
+## All object files linked into temacs.
+ALLOBJS = $(obj) $(otherobj)
 
 # Must be first, before dep inclusion!
 ifneq ($(HAVE_BE_APP),yes)

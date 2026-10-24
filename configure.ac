@@ -3233,18 +3233,11 @@ system_malloc=yes
 dnl This must be before the test of $ac_cv_func_sbrk below.
 AC_CHECK_FUNCS_ONCE([sbrk])
 
-GMALLOC_OBJ=
 if test "${system_malloc}" = "yes"; then
   AC_DEFINE([SYSTEM_MALLOC], [1],
     [Define to 1 to use the system memory allocator, even if it is not
      Doug Lea style.])
-  VMLIMIT_OBJ=
-else
-  GMALLOC_OBJ=gmalloc.o
-  VMLIMIT_OBJ=vm-limit.o
 fi
-AC_SUBST([GMALLOC_OBJ])
-AC_SUBST([VMLIMIT_OBJ])
 
 REL_ALLOC=no
 
@@ -7178,15 +7171,11 @@ if test "$emacs_cv_statement_expressions" = yes; then
     [Define to 1 if statement expressions work.])
 fi
 
-RALLOC_OBJ=
 if test "${REL_ALLOC}" = "yes" ; then
   AC_DEFINE([REL_ALLOC], [1],
 	    [Define REL_ALLOC if you want to use the relocating allocator for
 	     buffer space.])
-
-  test "$system_malloc" != "yes" && RALLOC_OBJ=ralloc.o
 fi
-AC_SUBST([RALLOC_OBJ])
 
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="cygw32.o"
