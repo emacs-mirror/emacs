@@ -3044,7 +3044,7 @@ Supports labels and node names quoted with DEL characters.")
           (let ((pattern
                  (concat
                   "\n\\* +\\(\\(" (regexp-quote string) "[^\n]*\\):\\|\\("
-                         (regexp-quote string) Info-menu-entry-name-re ":\\)"
+                         (regexp-quote string) Info-menu-entry-name-re "\\):"
                          "\\(" Info-node-spec-re "\\|[^]+\\)\\)"))
                 completions
                 (complete-nodes Info-complete-nodes))
@@ -3680,7 +3680,10 @@ Give an empty topic name to go to the Index node itself."
 		(goto-char (point-min))
 		(while (re-search-forward pattern nil t)
 		  (let ((entry (match-string-no-properties 1))
-			(nodename (match-string-no-properties 3))
+			(nodename
+                         (string-replace
+                          "" ""
+                          (match-string-no-properties 3)))
 			(line (string-to-number (concat "0" (match-string 4)))))
 		    (add-text-properties
 		     (- (match-beginning 2) (match-beginning 1))
