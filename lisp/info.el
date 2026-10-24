@@ -1807,10 +1807,13 @@ escaped (\\\",\\\\)."
       ;; Get nodename spelled as it is in the node.
       (re-search-forward "Node:[ \t]*?")
       (setq Info-current-node
-	    (buffer-substring-no-properties (point)
-					    (progn
-					      (skip-chars-forward "^,\t\n")
-					      (point))))
+	    (buffer-substring-no-properties
+             (point)
+	     (progn
+	       (skip-chars-forward (if (eq (char-before) ?)
+                                       "^\n"
+                                     "^,\t\n"))
+	       (point))))
       (Info-set-mode-line)
       ;; Find the end of it, and narrow.
       (beginning-of-line)
@@ -2439,7 +2442,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
 ;; For compatibility; other files have used this name.
 ;; Note: this is only used for node names on the node heading lines!
 (defun Info-following-node-name ()
-  (and (or (looking-at "\\([^]\\),") ; quoted node name with commas
+  (and (or (looking-at "\\([^]+\\),") ; quoted node name with commas
            (looking-at (Info-following-node-name-re)))
        (match-string-no-properties 1)))
 
@@ -4262,7 +4265,7 @@ If FORK is a string, it is the name to use for the new buffer."
 	  (while (not (or (bobp) (looking-at "[^ \t]\\|[ \t]*$")))
 	    (beginning-of-line 0))
 	  (when (or
-                 (looking-at "\\* +[^\t\n]*")
+                 (looking-at "\\* +\\([^\t\n]*\\)")
                  (looking-at "\\* +\\([^\t\n]*\\):"))
 	    (Info-goto-node
 	     (Info-extract-menu-item (match-string-no-properties 1)) fork)
@@ -5157,7 +5160,10 @@ and so should be rendered as makeinfo produced them.")
                        header-end t)
                       (progn
                         (goto-char (match-beginning 1))
-                        (buffer-substring (point) header-end))
+                        ;; Remove any DEL-quoting.
+                        (string-replace
+                         "" ""
+                         (buffer-substring (point) header-end)))
                     (if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*"
                                            header-end t)
                         (concat "No next, prev or up links  --  "
