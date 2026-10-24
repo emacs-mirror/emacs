@@ -3570,8 +3570,8 @@ Value is (0 0) if the modification time cannot be determined."
     ;; Bob@rattlesnake.com reports that is returns something different
     ;; for at least one FTP server.  So, let's use the response only
     ;; if it matches the Internet draft.
-    (if (string-match-p "^213 [0-9]\\{14\\}$" line)
-        (seconds-to-time
+    (seconds-to-time
+     (if (string-match-p "^213 [0-9]\\{14\\}$" line)
 	 (encode-time
 	  (string-to-number (substring line 16 18))
 	  (string-to-number (substring line 14 16))
@@ -3579,8 +3579,8 @@ Value is (0 0) if the modification time cannot be determined."
 	  (string-to-number (substring line 10 12))
 	  (string-to-number (substring line  8 10))
 	  (string-to-number (substring line  4  8))
-	  0))
-      (seconds-to-time 0))))
+	  0)
+       0))))
 
 (defun ange-ftp-verify-visited-file-modtime (buf)
   (let ((name (buffer-file-name buf)))
