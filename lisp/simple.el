@@ -9690,10 +9690,12 @@ The function should return non-nil if the two tokens do not match.")
          (propertize "Matches " 'face 'shadow)
          (blink-paren-open-paren-line-string blinkpos)))))))
 
-(defun blink-paren-open-paren-line-string (pos)
+(defun blink-paren-open-paren-line-string (pos &optional len)
   "Return the line string that contains the openparen at POS.
+LEN is the length of the multi-character paren, by default 1.
 Remove the line string's properties but give the openparen a distinct
 face if `blink-matching-paren-highlight-offscreen' is non-nil."
+  (unless len (setq len 1))
   (save-excursion
     (goto-char pos)
     ;; Capture the regions in terms of (beg . end) conses whose
@@ -9705,11 +9707,11 @@ face if `blink-matching-paren-highlight-offscreen' is non-nil."
        ;; Show what precedes the open in its line, if anything.
        ((save-excursion (skip-chars-backward " \t") (not (bolp)))
         (let ((bol (line-beginning-position)))
-          (setq regions (list (cons bol (1+ pos)))
+          (setq regions (list (cons bol (+ pos len)))
                 openparen-idx (- pos bol))))
        ;; Show what follows the open in its line, if anything.
        ((save-excursion
-          (forward-char 1)
+          (forward-char len)
           (skip-chars-forward " \t")
           (not (eolp)))
         (setq regions (list (cons pos (line-end-position)))
@@ -9732,9 +9734,9 @@ face if `blink-matching-paren-highlight-offscreen' is non-nil."
                                                       ;; (length "...")
                                                       3))
                                eol))
-                            (cons pos (1+ pos)))))
+                            (cons pos (+ pos len)))))
        ;; There is nothing to show except the char itself.
-       (t (setq regions (list (cons pos (1+ pos)))
+       (t (setq regions (list (cons pos (+ pos len)))
                 openparen-idx 0)))
       ;; Ensure we've font-locked the context region.
       (font-lock-ensure (caar regions) (cdar (last regions)))
@@ -9745,7 +9747,7 @@ face if `blink-matching-paren-highlight-offscreen' is non-nil."
               regions
               "...")))
         (when blink-matching-paren-highlight-offscreen
-          (add-face-text-property openparen-idx (1+ openparen-idx)
+          (add-face-text-property openparen-idx (+ openparen-idx len)
                                   'blink-matching-paren-offscreen
                                   nil line-string))
         line-string))))
