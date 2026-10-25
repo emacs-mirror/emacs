@@ -78,10 +78,6 @@ enum { frame_default_tool_bar_height = 0 };
 int frame_default_tool_bar_height;
 #endif
 
-#ifdef HAVE_WINDOW_SYSTEM
-static void gui_report_frame_params (struct frame *, Lisp_Object *);
-#endif
-
 /* These setters are used only in this file, so they can be private.  */
 static void
 fset_buffer_predicate (struct frame *f, Lisp_Object val)
@@ -4315,7 +4311,7 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	    return make_fixnum (0);
 	  break;
 
-	  /* >>> From gui_report_frame_params  */
+	  /* From the prior gui_report_frame_params  */
 	  /* I think this should be done with a hook.  */
 	case LEFT:
 	  if (FRAME_WINDOW_P (f))
@@ -4425,7 +4421,7 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	  if (FRAME_WINDOW_P (f))
 	    return FRAME_TOOL_BAR_POSITION (f);
 	  break;
-	  /* <<< End gui_report_frame_params  */
+	  /* End from the prior gui_report_frame_params  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 	  /* Convert non-graphic frame parameters.  */
@@ -4534,181 +4530,6 @@ If FRAME is nil or omitted, it defaults to the selected frame.  */)
 
   return value;
 }
-
-#if 1 /* FOR TESTING, TO BE REMOVED LATER */
-DEFUN ("frame-parameters-internal", Fframe_parameters_internal, Sframe_parameters_internal, 0, 1, 0,
-       doc: /* Return a copy of the internal FRAME->param_alist.
-If FRAME is nil or omitted, it defaults to the selected frame.  */)
-  (Lisp_Object frame)
-{
-  struct frame *f = decode_any_frame (frame);
-
-  if (!FRAME_LIVE_P (f))
-    return Qnil;
-
-  return Fcopy_alist (f->param_alist);
-}
-
-DEFUN ("old-frame-parameters", Fold_frame_parameters, Sold_frame_parameters, 0, 1, 0,
-       doc: /* Return the parameters-alist of frame FRAME.
-It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
-The meaningful PARMs depend on the kind of frame.
-If FRAME is omitted or nil, return information on the currently selected frame.  */)
-  (Lisp_Object frame)
-{
-  Lisp_Object alist;
-  struct frame *f = decode_any_frame (frame);
-  int height, width;
-
-  if (!FRAME_LIVE_P (f))
-    return Qnil;
-
-  alist = Fcopy_alist (f->param_alist);
-
-  if (!FRAME_WINDOW_P (f))
-    {
-      Lisp_Object elt;
-
-      /* If the frame's parameter alist says the colors are
-	 unspecified and reversed, take the frame's background pixel
-	 for foreground and vice versa.  */
-      elt = Fassq (Qforeground_color, alist);
-      if (CONSP (elt) && STRINGP (XCDR (elt)))
-	{
-	  elt = frame_unspecified_color (f, XCDR (elt));
-	  if (!NILP (elt))
-	    store_in_alist (&alist, Qforeground_color, elt);
-	}
-      else
-	store_in_alist (&alist, Qforeground_color,
-			tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)));
-      elt = Fassq (Qbackground_color, alist);
-      if (CONSP (elt) && STRINGP (XCDR (elt)))
-	{
-	  elt = frame_unspecified_color (f, XCDR (elt));
-	  if (!NILP (elt))
-	    store_in_alist (&alist, Qbackground_color, elt);
-	}
-      else
-	store_in_alist (&alist, Qbackground_color,
-			tty_color_name (f, FRAME_BACKGROUND_PIXEL (f)));
-      store_in_alist (&alist, Qfont,
-		      build_string (FRAME_MSDOS_P (f)
-				    ? "ms-dos"
-				    : FRAME_W32_P (f) ? "w32term"
-				    :"tty"));
-    }
-
-  store_in_alist (&alist, Qname, f->name);
-  /* It's questionable whether here we should report the value of
-     f->new_height (and f->new_width below) but we've done that in the
-     past, so let's keep it.  Note that a value of -1 for either of
-     these means that no new size was requested.
-
-     But check f->new_size before to make sure that f->new_height and
-     f->new_width are not ones requested by adjust_frame_size.  */
-  height = ((f->new_size_p && f->new_height >= 0)
-	    ? f->new_height / FRAME_LINE_HEIGHT (f)
-	    : FRAME_LINES (f));
-  store_in_alist (&alist, Qheight, make_fixnum (height));
-  width = ((f->new_size_p && f->new_width >= 0)
-	   ? f->new_width / FRAME_COLUMN_WIDTH (f)
-	   : FRAME_COLS(f));
-  store_in_alist (&alist, Qwidth, make_fixnum (width));
-
-  store_in_alist (&alist, Qmodeline, FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil);
-  store_in_alist (&alist, Qunsplittable, FRAME_NO_SPLIT_P (f) ? Qt : Qnil);
-  store_in_alist (&alist, Qbuffer_list, f->buffer_list);
-  store_in_alist (&alist, Qburied_buffer_list, f->buried_buffer_list);
-
-  /* I think this should be done with a hook.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (f))
-    gui_report_frame_params (f, &alist);
-  else
-#endif
-    {
-      store_in_alist (&alist, Qmenu_bar_lines, make_fixnum (FRAME_MENU_BAR_LINES (f)));
-      store_in_alist (&alist, Qtab_bar_lines, make_fixnum (FRAME_TAB_BAR_LINES (f)));
-      store_in_alist (&alist, Qvisibility, FRAME_VISIBLE_P (f) ? Qt : Qnil);
-      store_in_alist (&alist, Qno_accept_focus, FRAME_NO_ACCEPT_FOCUS (f) ? Qt : Qnil);
-    }
-
-  return alist;
-}
-
-DEFUN ("old-frame-parameter", Fold_frame_parameter, Sold_frame_parameter, 2, 2, 0,
-       doc: /* Return FRAME's value for parameter PARAMETER.
-If FRAME is nil, describe the currently selected frame.  */)
-  (Lisp_Object frame, Lisp_Object parameter)
-{
-  struct frame *f = decode_any_frame (frame);
-  Lisp_Object value = Qnil;
-
-  CHECK_SYMBOL (parameter);
-
-  XSETFRAME (frame, f);
-
-  if (FRAME_LIVE_P (f))
-    {
-      /* Avoid consing in frequent cases.  */
-      if (EQ (parameter, Qname))
-	value = f->name;
-#ifdef HAVE_WINDOW_SYSTEM
-      /* These are used by vertical motion commands.  */
-      else if (EQ (parameter, Qvertical_scroll_bars))
-	value = (f->vertical_scroll_bar_type == vertical_scroll_bar_none
-		 ? Qnil
-		 : (f->vertical_scroll_bar_type == vertical_scroll_bar_left
-		    ? Qleft : Qright));
-      else if (EQ (parameter, Qhorizontal_scroll_bars))
-	value = f->horizontal_scroll_bars ? Qt : Qnil;
-      else if (EQ (parameter, Qline_spacing) && f->extra_line_spacing == 0)
-	/* If this is non-zero, we can't determine whether the user specified
-	   an integer or float value without looking through 'param_alist'.  */
-	value = make_fixnum (0);
-      else if (EQ (parameter, Qfont) && FRAME_X_P (f))
-	value = FRAME_FONT (f)->props[FONT_NAME_INDEX];
-#endif /* HAVE_WINDOW_SYSTEM */
-#ifdef HAVE_X_WINDOWS
-      else if (EQ (parameter, Qdisplay) && FRAME_X_P (f))
-	value = XCAR (FRAME_DISPLAY_INFO (f)->name_list_element);
-#endif /* HAVE_X_WINDOWS */
-      else if (EQ (parameter, Qbackground_color)
-	       || EQ (parameter, Qforeground_color))
-	{
-	  value = Fassq (parameter, f->param_alist);
-	  if (CONSP (value))
-	    {
-	      value = XCDR (value);
-	      /* Fframe_parameters puts the actual fg/bg color names,
-		 even if f->param_alist says otherwise.  This is
-		 important when param_alist's notion of colors is
-		 "unspecified".  We need to do the same here.  */
-	      if (STRINGP (value) && !FRAME_WINDOW_P (f))
-		{
-		  Lisp_Object tem = frame_unspecified_color (f, value);
-
-		  if (!NILP (tem))
-		    value = tem;
-		}
-	    }
-	  else
-	    value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
-	}
-      else if (EQ (parameter, Qdisplay_type)
-	       || EQ (parameter, Qbackground_mode))
-	value = Fcdr (Fassq (parameter, f->param_alist));
-      else
-	/* FIXME: Avoid this code path at all (as well as code duplication)
-	   by sharing more code with Fframe_parameters.  */
-	value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
-    }
-
-  return value;
-}
-#endif /* FOR TESTING, TO BE REMOVED LATER */
-
 
 DEFUN ("modify-frame-parameters", Fmodify_frame_parameters,
        Smodify_frame_parameters, 2, 2, 0,
@@ -5789,94 +5610,6 @@ gui_set_frame_parameters (struct frame *f, Lisp_Object alist)
 {
   gui_set_frame_parameters_1 (f, alist, false);
 }
-
-/* Insert a description of internally-recorded parameters of frame F
-   into the parameter alist *ALISTPTR that is to be given to the user.
-   Only parameters that are specific to the X window system
-   and whose values are not correctly recorded in the frame's
-   param_alist need to be considered here.  */
-
-void
-gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
-{
-  Lisp_Object tem;
-
-  /* Represent negative positions (off the top or left screen edge)
-     in a way that Fmodify_frame_parameters will understand correctly.  */
-  XSETINT (tem, f->left_pos);
-  if (f->left_pos >= 0)
-    store_in_alist (alistptr, Qleft, tem);
-  else
-    store_in_alist (alistptr, Qleft, list2 (Qplus, tem));
-
-  XSETINT (tem, f->top_pos);
-  if (f->top_pos >= 0)
-    store_in_alist (alistptr, Qtop, tem);
-  else
-    store_in_alist (alistptr, Qtop, list2 (Qplus, tem));
-
-  store_in_alist (alistptr, Qborder_width,
-		  make_fixnum (f->border_width));
-  store_in_alist (alistptr, Qchild_frame_border_width,
-		  FRAME_CHILD_FRAME_BORDER_WIDTH (f) >= 0
-		  ? make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (f))
-		  : Qnil);
-  store_in_alist (alistptr, Qinternal_border_width,
-		  make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (f)));
-  store_in_alist (alistptr, Qright_divider_width,
-		  make_fixnum (FRAME_RIGHT_DIVIDER_WIDTH (f)));
-  store_in_alist (alistptr, Qbottom_divider_width,
-		  make_fixnum (FRAME_BOTTOM_DIVIDER_WIDTH (f)));
-  store_in_alist (alistptr, Qleft_fringe,
-		  make_fixnum (FRAME_LEFT_FRINGE_WIDTH (f)));
-  store_in_alist (alistptr, Qright_fringe,
-		  make_fixnum (FRAME_RIGHT_FRINGE_WIDTH (f)));
-  store_in_alist (alistptr, Qscroll_bar_width,
-		  (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0
-		   ? make_fixnum (FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
-		   /* nil means "use default width"
-		      for non-toolkit scroll bar.
-		      ruler-mode.el depends on this.  */
-		   : Qnil));
-  store_in_alist (alistptr, Qscroll_bar_height,
-		  (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f) > 0
-		   ? make_fixnum (FRAME_CONFIG_SCROLL_BAR_HEIGHT (f))
-		   /* nil means "use default height"
-		      for non-toolkit scroll bar.  */
-		   : Qnil));
-  /* FRAME_NATIVE_WINDOW is not guaranteed to return an integer.
-     E.g., on MS-Windows it returns a value whose type is HANDLE,
-     which is actually a pointer.  Explicit casting avoids compiler
-     warnings.  */
-  uintptr_t w = WINDOW_HANDLE_UINTPTR (FRAME_NATIVE_WINDOW (f));
-  store_in_alist (alistptr, Qwindow_id,
-		  make_formatted_string ("%"PRIuPTR, w));
-#ifdef HAVE_X_WINDOWS
-#ifdef USE_X_TOOLKIT
-  /* Tooltip frame may not have this widget.  */
-  if (FRAME_X_OUTPUT (f)->widget)
-#endif
-    w = WINDOW_HANDLE_UINTPTR (FRAME_OUTER_WINDOW (f));
-  store_in_alist (alistptr, Qouter_window_id,
-		  make_formatted_string ("%"PRIuPTR, w));
-#endif
-  store_in_alist (alistptr, Qicon_name, f->icon_name);
-  store_in_alist (alistptr, Qvisibility,
-		  (FRAME_VISIBLE_P (f) ? Qt
-		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
-  store_in_alist (alistptr, Qdisplay,
-		  XCAR (FRAME_DISPLAY_INFO (f)->name_list_element));
-
-  if (FRAME_OUTPUT_DATA (f)->parent_desc == FRAME_DISPLAY_INFO (f)->root_window)
-    tem = Qnil;
-  else
-    tem = make_uint (WINDOW_HANDLE_UINTPTR
-		     (FRAME_OUTPUT_DATA (f)->parent_desc));
-  store_in_alist (alistptr, Qexplicit_name, (f->explicit_name ? Qt : Qnil));
-  store_in_alist (alistptr, Qparent_id, tem);
-  store_in_alist (alistptr, Qtool_bar_position, FRAME_TOOL_BAR_POSITION (f));
-}
-
 
 /* Change the `fullscreen' frame parameter of frame F.  OLD_VALUE is
    the previous value of that parameter, NEW_VALUE is the new value. */
@@ -8230,11 +7963,8 @@ the same terminal.  */);
   defsubr (&Sframe_after_make_frame);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
-  defsubr (&Sframe_parameters_internal);
   defsubr (&Sframe_parameters);
   defsubr (&Sframe_parameter);
-  defsubr (&Sold_frame_parameter);
-  defsubr (&Sold_frame_parameters);
   defsubr (&Smodify_frame_parameters);
   defsubr (&Sframe_char_height);
   defsubr (&Sframe_char_width);
