@@ -1581,8 +1581,9 @@ DEFUN ("substring", Fsubstring, Ssubstring, 1, 3, 0,
 The returned string consists of the characters between index FROM
 \(inclusive) and index TO (exclusive) of STRING.  FROM and TO are
 zero-indexed: 0 means the first character of STRING.  Negative values
-are counted from the end of STRING.  If TO is nil, the substring runs
-to the end of STRING.
+are counted from the end of STRING.  If TO is nil or omitted, the
+substring runs to the end of STRING.  If FROM is nil or omitted, it
+defaults to the first character of STRING.
 
 The STRING argument may also be a vector.  In that case, the return
 value is a new vector that contains the elements between index FROM

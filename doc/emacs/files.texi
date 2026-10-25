@@ -912,7 +912,7 @@ does not actually take place.
 @end table
 
   If Emacs or the operating system crashes, this may leave behind lock
-files which are stale, so you may occasionally get warnings about
+files that are stale, so you may occasionally get warnings about
 spurious collisions.  When you determine that the collision is
 spurious, just use @kbd{p} to tell Emacs to go ahead anyway.
 
@@ -1071,7 +1071,7 @@ To customize the time stamp in a particular file, set the
 variable @code{time-stamp-pattern} in that file's local variables
 list (@pxref{Specifying File Variables}).
 You can change what pattern @code{time-stamp} will match against to
-identify a template and where in the file to look for the pattern using
+identify a template, and where in the file to look for the pattern, using
 @code{time-stamp-pattern}; for details, see the variable's built-in
 documentation (with @kbd{C-h v}, @pxref{Name Help}).
 

@@ -311,7 +311,12 @@ see its function help for a description of the format."
   (tramp-skeleton-completion-function method
     (when-let* ((raw-list
 		 (shell-command-to-string
-		  (concat program " ps --format '{{.ID}}<>{{.Names}}'")))
+		  (format
+		   "%s ps --format %s" program
+		   (funcall
+		    (if (tramp-tramp-file-p default-directory)
+			#'tramp-shell-quote-argument #'shell-quote-argument)
+		    "{{.ID}}<>{{.Names}}"))))
 		(lines (string-lines raw-list 'omit))
 		(names
 		 (seq-keep
