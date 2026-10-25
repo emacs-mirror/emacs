@@ -819,7 +819,7 @@ VC packages that have already been installed."
   (package-vc--archives-initialize)
   (completing-read prompt (if installed package-alist package-archive-contents)
                    (if installed
-                       (lambda (pkg) (package-vc-p (cadr pkg)))
+                       (lambda (pkg) (seq-some #'package-vc-p (cdr pkg)))
                      (lambda (pkg)
                        (or (package-vc--desc->spec (cadr pkg))
                            ;; If we have no explicit VC data, we can try a kind of
