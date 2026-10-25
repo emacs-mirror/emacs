@@ -1714,30 +1714,37 @@ emacs_sigaction_init (struct sigaction *action, signal_handler_t handler)
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 static pthread_t main_thread_id;
 
+/* In a handler for SIG, return true if running in the main thread,
+   false otherwise.  */
 static bool
-running_in_main_thread (void)
+running_in_main_thread (int sig)
 {
   bool pthread_ok = true;
 
-  /* On Darwin, pthread_self is not async-signal-safe, as required by
-     POSIX.1-2008 TC1/2013 and later, because pthread_self can crash if
-     a signal arrives during startup of a workqueue thread (workqueue
-     threads are not POSIX threads).  Work around the issue in a
-     system-dependent way.  */
+  /* On Darwin in a SIGPROF handler, pthread_self is not
+     async-signal-safe, as required by POSIX.1-2008 TC1/2013 and later,
+     because pthread_self can crash if a signal is delivered to a
+     workqueue thread before it does pthread registration, or to some
+     other non-POSIX thread that bypasses pthread registration entirely.
+     Work around the issue in a system-dependent way (Bug#82089).  */
 # ifdef DARWIN_OS
-  long int volatile *thread;  /* A thread's first member is a long sig.  */
+  if (sig == SIGPROF)
+    {
+      /* In 64-bit ARM, a thread's first member is a long signature.  */
+      long int volatile *thread;
 #  if defined __aarch64__ || defined __arm64__
-  __asm__ volatile ("mrs %0, TPIDRRO_EL0" : "=r"(thread));
-  pthread_ok = thread && *thread;
+      __asm__ volatile ("mrs %0, TPIDRRO_EL0" : "=r"(thread));
+      pthread_ok = thread && *thread;
 #  elif defined __x86_64__
-  __asm__ volatile ("movq %%gs:0x0, %0" : "=r"(thread));
-  pthread_ok = !!thread;
+      __asm__ volatile ("movq %%gs:0x0, %0" : "=r"(thread));
+      pthread_ok = !!thread;
 #  elif defined __i386__
-  __asm__ volatile ("movl %%gs:0x0, %0" : "=r"(thread));
-  pthread_ok = !!thread;
+      __asm__ volatile ("movl %%gs:0x0, %0" : "=r"(thread));
+      pthread_ok = !!thread;
 #  else
 #   error "Please port to this Darwin platform"
 #  endif
+    }
 # endif
 
   return pthread_ok && pthread_equal (pthread_self (), main_thread_id);
@@ -1766,7 +1773,7 @@ deliver_process_signal (int sig, signal_handler_t handler)
 
   bool on_main_thread = true;
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-  if (!running_in_main_thread ())
+  if (!running_in_main_thread (sig))
     {
       sigset_t blocked;
       sigemptyset (&blocked);
@@ -1798,7 +1805,7 @@ deliver_thread_signal (int sig, signal_handler_t handler)
   int old_errno = errno;
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-  if (!running_in_main_thread ())
+  if (! pthread_equal (pthread_self (), main_thread_id))
     {
       thread_backtrace_npointers
 	= backtrace (thread_backtrace_buffer, BACKTRACE_LIMIT_MAX);
@@ -1952,7 +1959,7 @@ handle_sigsegv (int sig, siginfo_t *siginfo, void *arg)
   bool fatal = gc_in_progress;
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-  if (!fatal && !running_in_main_thread ())
+  if (!fatal && !pthread_equal (pthread_self (), main_thread_id))
     fatal = true;
 #endif
 
