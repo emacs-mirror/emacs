@@ -160,8 +160,11 @@ This returns a string containing the characters @var{characters}.
 This function returns a new string which consists of those characters
 from @var{string} in the range from (and including) the character at the
 index @var{start} up to (but excluding) the character at the index
-@var{end}.  The first character is at index zero.  With one argument,
-this function just copies @var{string}.
+@var{end}.  The first character is at index zero.  If @var{start} is
+omitted or @code{nil}, it defaults to the first character; if @var{end}
+is omitted or @code{nil}, it stands for the length of @var{string}.
+
+With one argument, this function just copies @var{string}.
 
 @example
 @group
