@@ -541,7 +541,7 @@ building documentation and marking the package as installed."
                 (plist-get pkg-spec :ignored-files)
                 "\\|")
              regexp-unmatchable))
-          (deps '()))
+          (deps '()) (supplied '()))
       (dolist (file (directory-files lisp-dir t "\\.el\\'" t))
         (unless (string-match-p ignored-files file)
           (with-temp-buffer
@@ -552,9 +552,23 @@ building documentation and marking the package as installed."
                 package-read-from-string
                 lm--prepare-package-dependencies
                 (nconc deps)
-                (setq deps))))))
+                (setq deps)))
+            (when (lm-version)
+              ;; Heuristic to address bug#81908: If another file in the
+              ;; checkout matches the name of a dependency, remember
+              ;; this to avoid downloading a tarball later.
+              (push (file-name-base file) supplied)))))
       (dolist (dep deps)
         (cl-callf version-to-list (cadr dep)))
+      ;; After scraping all the files for dependencies, we note not to
+      ;; depend on the package itself or any other packages the
+      ;; heuristic above detected that the checkout already provides.
+      ;; These issues occur when multiple packages are developed inside
+      ;; a single repository.
+      (setq deps (seq-difference deps (cons (package-desc-name pkg-desc)
+                                            supplied)
+                                 (lambda (file pkg)
+                                   (string= (car pkg) file))))
       (setf (package-desc-reqs pkg-desc) deps)
       (setf missing (package-vc-install-dependencies (delete-dups deps)))
       (setf missing (delq (assq (package-desc-name pkg-desc)
