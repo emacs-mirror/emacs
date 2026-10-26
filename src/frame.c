@@ -3626,23 +3626,24 @@ for how to proceed.  */)
   return Qnil;
 }
 
-DEFUN ("frame-visible-p", Fframe_visible_p, Sframe_visible_p,
-       1, 1, 0,
+/* Return t if frame F is "visible", 'icon' if F is iconified, nil
+   otherwise.  */
+static Lisp_Object
+frame_visible_p (struct frame *f)
+{
+  return FRAME_VISIBLE_P (f) ? Qt : FRAME_ICONIFIED_P (f) ? Qicon : Qnil;
+}
+
+DEFUN ("frame-visible-p", Fframe_visible_p, Sframe_visible_p, 0, 1, 0,
        doc: /* Return t if FRAME is \"visible\" (actually in use for display).
+FRAME must specify a live frame and defaults to the selected one.
 Return the symbol `icon' if FRAME is iconified or \"minimized\".
 Return nil if FRAME was made invisible, via `make-frame-invisible'.
 On graphical displays, invisible frames are not updated and are
 usually not displayed at all, even in a window system's \"taskbar\".  */)
   (Lisp_Object frame)
 {
-  CHECK_LIVE_FRAME (frame);
-  struct frame *f = XFRAME (frame);
-
-  if (FRAME_VISIBLE_P (f))
-    return Qt;
-  if (FRAME_ICONIFIED_P (f))
-    return Qicon;
-  return Qnil;
+  return frame_visible_p (decode_live_frame (frame));
 }
 
 DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,

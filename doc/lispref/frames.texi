@@ -3611,7 +3611,10 @@ for the first time and whenever it changes its state of visibility from
 frame is and becomes @dfn{unmapped} whenever it changes its status from
 @code{visible} to @code{iconified} or @code{invisible}.
 
-@defun frame-visible-p frame
+In all functions described in this section the optional @var{frame}
+argument has to specify a live frame and defaults to the selected one.
+
+@defun frame-visible-p &optional frame
 This function returns the visibility status of frame @var{frame}.  The
 value is @code{t} if @var{frame} is visible, @code{nil} if it is
 invisible, and @code{icon} if it is iconified.
