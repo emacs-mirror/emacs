@@ -2383,6 +2383,9 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
                                   (file-name-directory newname)))))
           (if (equal file-root newname-root)
               (vc-rename-file file newname ok-if-already-exists)
+            (when (eq (vc-state file) 'edited)
+              (error "Please commit or undo your changes before moving %s"
+                     file))
             (let ((already-exists (file-exists-p newname)))
               ;; The delete commands for several VCS (at least Bzr, Git
               ;; and Mercurial) will fail if asked to remove a directory

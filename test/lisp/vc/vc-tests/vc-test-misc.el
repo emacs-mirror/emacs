@@ -700,6 +700,14 @@ See bug#80803 and bug#80967."
               (should (eq (vc-state "foo.txt" 'Git) 'removed)))
             (reset)
 
+            ;; Try to move an edited file.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Git git2 "bar.txt")
+            (write-region "foo" nil "git1/foo.txt")
+            (should-error (do-rename "git1/" "foo.txt"
+                                     "../git2/baz.txt" nil))
+            (reset)
+
             ;; Test moving between repos with the same backend.
             (create-repo 'Git git1 "foo.txt")
             (create-repo 'Git git2 "bar.txt")
