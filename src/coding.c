@@ -6843,6 +6843,46 @@ decode_eol (struct coding_system *coding)
 	}
       coding->produced -= n;
       coding->produced_char -= n;
+      /* Handle the case of a lone CR at end of buffer that is not the
+         final chunk of the text we need to decode: we want to leave
+         such a CR to the next chunk, in case it begins with an LF.  */
+      if (!(coding->mode & CODING_MODE_LAST_BLOCK)
+	  && FETCH_BYTE (pos_end) == '\r')
+	{
+	  /* With UTF-16, we could have one byte of carryover that
+	     belongs to the next LF.  */
+	  if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qutf_16)
+	      && coding->carryover_bytes <= 1)
+	    {
+	      /* Pretend we didn't process that CR, by pushing it back
+		 in the correct byte order.  */
+	      if (CODING_UTF_16_ENDIAN (coding) == utf_16_big_endian)
+		{
+		  coding->carryover[coding->carryover_bytes++] = '\0';
+		  coding->carryover[coding->carryover_bytes++] = '\r';
+		}
+	      else
+		{
+		  coding->carryover[coding->carryover_bytes++] = '\r';
+		  coding->carryover[coding->carryover_bytes++] = '\0';
+		}
+	      coding->consumed -= 2;
+	      coding->consumed_char--;
+	    }
+	  else if (coding->carryover_bytes == 0)
+	    {
+	      /* Pretend we didn't process that CR.  */
+	      coding->carryover[coding->carryover_bytes++] = '\r';
+	      coding->consumed--;
+	      coding->consumed_char--;
+	    }
+	  coding->produced--;
+	  coding->produced_char--;
+	  /* Delete that CR from the destination buffer.  */
+	  pos = coding->dst_pos + coding->produced_char;
+	  del_range_2 (pos, pos_end, pos + 1, pos_end + 1, 0);
+	  record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_SRC);
+	}
     }
 }
 
