@@ -2384,10 +2384,10 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
           (if (equal file-root newname-root)
               (vc-rename-file file newname ok-if-already-exists)
             (let ((already-exists (file-exists-p newname)))
-              ;; The rename commands for several VCS (at least Bzr, Git
-              ;; and Mercurial) will fail if asked to move a directory
+              ;; The delete commands for several VCS (at least Bzr, Git
+              ;; and Mercurial) will fail if asked to remove a directory
               ;; containing only untracked files.  See `vc-rename-file'
-              ;; which resolves the same issue in the same way.
+              ;; which resolves a similar issue in the same way.
               (if (and file-is-dir-p
                        (catch 'done
                          (vc-file-tree-walk file (lambda (_)
