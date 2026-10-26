@@ -2387,8 +2387,8 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
               (error "Please commit or undo your changes before moving %s"
                      file))
             (let ((already-exists (file-exists-p newname)))
-              ;; The delete commands for several VCS (at least Bzr, Git
-              ;; and Mercurial) will fail if asked to remove a directory
+              ;; The delete commands for several VCS (at least Git and
+              ;; Mercurial) will fail if asked to remove a directory
               ;; containing only untracked files.  See `vc-rename-file'
               ;; which resolves a similar issue in the same way.
               (if (and file-is-dir-p
