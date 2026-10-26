@@ -9,7 +9,7 @@
 ;; URL: https://orgmode.org
 ;; Package-Requires: ((emacs "28.2"))
 
-;; Version: 9.8.10
+;; Version: 9.8.12
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -1519,7 +1519,8 @@ Possible values for the command are:
                Most likely, the system-specific version of this variable
                does define this command, but you can overrule/replace it
                here.
-`mailcap'      Use command specified in the mailcaps.
+`mailcap'      Use command specified in the mailcaps
+               (also see `mailcap-user-mime-data').
  string        A command to be executed by a shell; %s will be replaced
                by the path to the file.
  function      A Lisp function, which will be called with two arguments:
@@ -7943,7 +7944,7 @@ If JUST-RETURN-STRING is non-nil, return a string, don't display a message."
 	 res)
     (when current (setq path (append path
 				     (save-excursion
-				       (org-back-to-heading t)
+				       (org-back-to-heading-or-point-min t)
 				       (when (looking-at org-complex-heading-regexp)
 					 (list (match-string 4)))))))
     (setq res

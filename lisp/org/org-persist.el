@@ -1272,9 +1272,9 @@ Remove expired sessions timestamps."
       (setf (alist-get before-init-time alist nil nil #'equal)
             (current-time))
       (dolist (record alist)
-        (when (< (- (float-time (cdr record)) (float-time (current-time)))
-                 org-persist-gc-lock-expiry)
-          (push record new-alist)))
+        (let ((age (float-time (time-subtract nil (cdr record)))))
+          (when (< age org-persist-gc-lock-expiry)
+            (push record new-alist))))
       (ignore-errors (org-persist--write-elisp-file file new-alist)))))
 
 (defun org-persist--gc-orphan-p ()
