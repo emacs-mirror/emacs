@@ -2397,10 +2397,17 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
                                                    (throw 'done nil)))
                          t))
                   (rename-file file newname ok-if-already-exists)
-                (if file-is-dir-p
-                    (copy-directory file newname t)
-                  (copy-file file newname ok-if-already-exists t t t))
-                (vc-delete-file file 'noconfirm))
+                (let ((target (file-attribute-type
+                               (file-attributes file))))
+                  (cond ((stringp target)
+                         (make-symbolic-link target newname
+                                             ok-if-already-exists))
+                        (file-is-dir-p
+                         (copy-directory file newname t))
+                        (t
+                         (copy-file file newname
+                                    ok-if-already-exists t t t)))
+                  (vc-delete-file file 'noconfirm)))
               (when newname-backend
                 (let ((newname (expand-file-name newname newname-root))
                       (default-directory newname-root))
