@@ -4266,26 +4266,11 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	case NAME:
 	  return f->name;
 	case WIDTH:
-	  /* It's questionable whether here we should report the value
-	     of f->new_width (and f->new_height below) but we've done
-	     that in the past, so let's keep it.  Note that a value of
-	     -1 for either of these means that no new size was
-	     requested.  But check f->new_size before to make sure that
-	     f->new_width and f->new_height are not ones requested by
-	     adjust_frame_size.  */
-	  {
-	    int width = ((f->new_size_p && f->new_width >= 0)
-			 ? f->new_width / FRAME_COLUMN_WIDTH (f)
-			 : FRAME_COLS(f));
-	    return make_fixnum (width);
-	  }
+	  /* Same code as Fframe_text_cols.  */
+	  return make_fixnum (FRAME_COLS (f));
 	case HEIGHT:
-	  {
-	    int height = ((f->new_size_p && f->new_height >= 0)
-			  ? f->new_height / FRAME_LINE_HEIGHT (f)
-			  : FRAME_LINES (f));
-	    return make_fixnum (height);
-	  }
+	  /* Same code as Fframe_text_lines.  */
+	  return make_fixnum (FRAME_LINES (f));
 	case MODELINE:
 	  return (FRAME_WANTS_MODELINE_P (f) ? Qt : Qnil);
 	case UNSPLITTABLE:
@@ -4295,12 +4280,7 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	case BURIED_BUFFER_LIST:
 	  return f->buried_buffer_list;
 	case VISIBILITY:
-	  if (FRAME_WINDOW_P (f))
-	    return (FRAME_VISIBLE_P (f)
-		    ? Qt
-		    : (FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
-	  else
-	    return (FRAME_VISIBLE_P (f) ? Qt : Qnil);
+	  return frame_visible_p (f);
 
 	  /* Convert graphic frame parameters.  */
 #ifdef HAVE_WINDOW_SYSTEM
