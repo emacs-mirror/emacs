@@ -712,7 +712,12 @@ See bug#80803 and bug#80967."
             ;; Test moving between repos with the same backend.
             (create-repo 'Git git1 "foo.txt")
             (create-repo 'Git git2 "bar.txt")
-            (do-rename "git1/" "foo.txt" "../git2/baz.txt" nil)
+            (let ((buf (find-file-noselect "git1/foo.txt")))
+              (unwind-protect
+                  (progn
+                    (do-rename "git1/" "foo.txt" "../git2/baz.txt" nil)
+                    (should (buffer-live-p buf)))
+                (kill-buffer buf)))
             (let ((default-directory git1))
               (should (eq (vc-state "foo.txt" 'Git) 'removed))
               (should-not (file-exists-p "foo.txt")))
