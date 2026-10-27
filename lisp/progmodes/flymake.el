@@ -1326,7 +1326,10 @@ with a report function."
             (flymake--state-disabled state) nil
             (flymake--state-reported-p state) nil))
     (condition-case-unless-debug err
-        (if (or (trusted-content-p) (function-get backend 'flymake-always-safe))
+        (if (or
+             ;; No notion of trust before Emacs 30.
+             (if (fboundp 'trusted-content-p) (trusted-content-p) t)
+             (function-get backend 'flymake-always-safe))
             (apply backend (flymake-make-report-fn backend run-token)
                    args)
           ;; FIXME: Use `bwrap' for untrusted content.
