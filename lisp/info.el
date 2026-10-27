@@ -3004,7 +3004,7 @@ Value is the node name, a string."
 ;; LABEL := [^:,.]+ | <DEL>TEXT<DEL>
 ;; NODE  := [^:,.]+ | <DEL>TEXT<DEL>
 (defconst Info-node-ref-re
-  "\\(\\(\\(([^)]*)\\)?\\(\\([^]+\\)\\|\\([^:]+\\)\\)::\\)\\|\\(\\(\\([^]+\\)\\|\\([^:]+\\)\\):[ \n\t]*\\(([^)]*)\\)?\\(\\(\\([^]+\\)\\)\\|\\([^,.]+\\)\\)[ \t]*[.,]\\)\\)"
+  "\\(\\(\\(([^)]*)\\)?\\(\\([^]+\\)\\|\\([^:]+\\)\\)::\\)\\|\\(\\(\\([^]+\\)\\|\\([^:]+\\)\\):[ \n\t]*\\(([^)]*)\\)?\\(\\(\\([^]+\\)\\)\\|\\([^,.]+\\)\\)[ \t]*[.,]?\\)\\)"
   "Regexp to match an Info node reference in a cross-reference or a menu.
 Supports labels and node names quoted with DEL characters.")
 
@@ -5513,10 +5513,13 @@ and so should be rendered as makeinfo produced them.")
                  (if (and Info-fontify-visited-nodes
                           (save-match-data
                             (let* ((node (buffer-substring node-beg node-end))
+                                   (quoted (string-prefix-p "" node))
                                    ;; Remove DEL-quoting, if any
                                    (node (string-replace "" "" node))
 				   (external-link-p
-				    (string-match "\\`(\\([^)]+\\))\\([^)]*\\)" node))
+                                    (and (not quoted)
+				         (string-match
+                                          "\\`(\\([^)]+\\))\\([^)]*\\)" node)))
 				   (file (if external-link-p
 					     (file-name-nondirectory
 					      (match-string-no-properties 1 node))
