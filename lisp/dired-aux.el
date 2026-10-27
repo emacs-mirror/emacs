@@ -2361,10 +2361,10 @@ Dired renames them using `vc-rename-file'."
 Signal a `file-already-exists' error if a file NEWNAME already exists
 unless OK-IF-ALREADY-EXISTS is non-nil."
   (let* ((file-is-dir-p (file-directory-p file))
-        (file-base (file-name-nondirectory file))
-        (newname (if (string-empty-p (file-name-nondirectory newname))
-                     (concat newname file-base)
-                   newname)))
+         (file-base (file-name-nondirectory file))
+         (newname (if (string-empty-p (file-name-nondirectory newname))
+                      (concat newname file-base)
+                    newname)))
     (dired-handle-overwrite newname)
     (dired-maybe-create-dirs (file-name-directory newname))
     (if-let* (dired-vc-rename-file
