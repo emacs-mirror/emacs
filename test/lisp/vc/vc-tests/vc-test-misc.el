@@ -706,6 +706,7 @@ See bug#80803 and bug#80967."
             (write-region "foo" nil "git1/foo.txt")
             (should-error (do-rename "git1/" "foo.txt"
                                      "../git2/baz.txt" nil))
+            (should-not (file-exists-p "git2/baz.txt"))
             (reset)
 
             ;; Test moving between repos with the same backend.
