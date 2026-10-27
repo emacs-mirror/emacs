@@ -623,8 +623,7 @@ there (in decreasing order of priority)."
 	    ;; If the user has to position the window,
 	    ;; Emacs doesn't know its real position until
 	    ;; the frame is seen to be visible.
-	    (while (not (cdr (assq 'visibility
-				   (frame-parameters frame-initial-frame))))
+	    (while (not (frame-visible-p frame-initial-frame))
 	      (sleep-for 1))
 	    (setq parms (frame-parameters frame-initial-frame))
 
@@ -705,8 +704,7 @@ there (in decreasing order of priority)."
 			  (car
 			   (or (filtered-frame-list
                                 (lambda (frame)
-                                  (eq (cdr (assq 'minibuffer
-                                                 (frame-parameters frame)))
+                                  (eq (frame-parameter frame 'minibuffer)
                                       'only)))
 			       (minibuffer-frame-list))))
 			 (new-minibuffer (minibuffer-window new-surrogate)))
@@ -1339,7 +1337,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (defun iconify-or-deiconify-frame ()
   "Iconify the selected frame, or deiconify if it's currently an icon."
   (interactive)
-  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
+  (if (eq (frame-visible-p) t)
       (iconify-frame)
     (make-frame-visible)))
 
@@ -1881,25 +1879,8 @@ is given and non-nil, the unwanted frames are iconified instead."
 ;;;; Convenience functions for accessing and interactively changing
 ;;;; frame parameters.
 
-(defun frame-height (&optional frame)
-  "Return number of lines available for display on FRAME.
-If FRAME is omitted, describe the currently selected frame.
-Exactly what is included in the return value depends on the
-window-system and toolkit in use - see `frame-pixel-height' for
-more details.  The lines are in units of the default font height.
-
-The result is roughly related to the frame pixel height via
-height in pixels = height in lines * `frame-char-height'.
-However, this is only approximate, and is complicated e.g. by the
-fact that individual window lines and menu bar lines can have
-differing font heights."
-  (cdr (assq 'height (frame-parameters frame))))
-
-(defun frame-width (&optional frame)
-  "Return number of columns available for display on FRAME.
-If FRAME is omitted, describe the currently selected frame."
-  (cdr (assq 'width (frame-parameters frame))))
-
+(defalias 'frame-width #'frame-text-cols)
+(defalias 'frame-height #'frame-text-lines)
 (defalias 'frame-border-width #'frame-internal-border-width)
 (defalias 'frame-pixel-width #'frame-native-width)
 (defalias 'frame-pixel-height #'frame-native-height)
@@ -1977,11 +1958,9 @@ Customization settings."
 	   height width)
       (dolist (f frame-list)
 	(when (display-multi-font-p f)
-	  (if keep-size
-	      (setq height (* (frame-parameter f 'height)
-			      (frame-char-height f))
-		    width  (* (frame-parameter f 'width)
-			      (frame-char-width f))))
+	  (when keep-size
+	    (setq height (* (frame-height f) (frame-char-height f))
+		  width  (* (frame-width f) (frame-char-width f))))
 	  ;; When set-face-attribute is called for :font, Emacs
 	  ;; guesses the best font according to other face attributes
 	  ;; (:width, :weight, etc.) so reset them too (Bug#2476).
@@ -2032,15 +2011,13 @@ To get the frame's current background color, use `frame-parameters'."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
   (or window-system
-      (face-set-after-frame-default (selected-frame)
-				    (list
-				     (cons 'background-color color-name)
-				     ;; Pass the foreground-color as
-				     ;; well, if defined, to avoid
-				     ;; losing it when faces are reset
-				     ;; to their defaults.
-				     (assq 'foreground-color
-					   (frame-parameters))))))
+      (face-set-after-frame-default
+       (selected-frame)
+       (list
+	(cons 'background-color color-name)
+	;; Pass the foreground-color as well, if defined, to avoid
+	;; losing it when faces are reset to their defaults.
+        (cons 'foreground-color (frame-parameter nil 'foreground-color))))))
 
 (defun set-foreground-color (color-name)
   "Set the foreground color of the selected frame to COLOR-NAME.
@@ -2050,15 +2027,13 @@ To get the frame's current foreground color, use `frame-parameters'."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (or window-system
-      (face-set-after-frame-default (selected-frame)
-				    (list
-				     (cons 'foreground-color color-name)
-				     ;; Pass the background-color as
-				     ;; well, if defined, to avoid
-				     ;; losing it when faces are reset
-				     ;; to their defaults.
-				     (assq 'background-color
-					   (frame-parameters))))))
+      (face-set-after-frame-default
+       (selected-frame)
+       (list
+	(cons 'foreground-color color-name)
+	;; Pass the background-color as well, if defined, to avoid
+	;; losing it when faces are reset to their defaults.
+        (cons 'background-color (frame-parameter nil 'background-color))))))
 
 (defun set-cursor-color (color-name)
   "Set the text cursor color of the selected frame to COLOR-NAME.
@@ -2077,11 +2052,10 @@ customizing the `cursor' face."
 When called interactively, prompt for the name of the color to use.
 To get the frame's current mouse color, use `frame-parameters'."
   (interactive (list (read-color "Mouse color: ")))
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'mouse-color
-				       (or color-name
-					   (cdr (assq 'mouse-color
-						      (frame-parameters))))))))
+  (modify-frame-parameters
+   (selected-frame)
+   (list (cons 'mouse-color
+	       (or color-name (frame-parameter nil 'mouse-color))))))
 
 (defun set-border-color (color-name)
   "Set the color of the border of the selected frame to COLOR-NAME.
@@ -2134,7 +2108,7 @@ When called interactively, prompt for the name of the frame.
 On text terminals, the frame name is displayed on the mode line.
 On graphical displays, it is displayed on the frame's title bar."
   (interactive
-   (let ((default (cdr (assq 'name (frame-parameters)))))
+   (let ((default (frame-parameter nil 'name)))
      (list (read-string (format-prompt "Frame name" default) nil nil
                         default))))
   (modify-frame-parameters (selected-frame)
@@ -3780,7 +3754,7 @@ Offer NUMBER as default value, if it is a natural number."
 If FRAME isn't maximized, show the title bar."
   (set-frame-parameter
    frame 'undecorated
-   (eq (alist-get 'fullscreen (frame-parameters frame)) 'maximized)))
+   (eq (frame-parameter frame 'fullscreen) 'maximized)))
 
 (define-obsolete-function-alias 'frame--current-backround-mode
   #'frame--current-background-mode "30.1")

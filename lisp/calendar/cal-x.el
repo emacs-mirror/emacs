@@ -83,7 +83,7 @@ Relevant if `calendar-setup' has the value `one-frame'."
 Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
   (run-hooks 'calendar-after-frame-setup-hook)
   (select-frame frame)
-  (if (eq 'icon (cdr (assoc 'visibility (frame-parameters frame))))
+  (if (eq 'icon (frame-visible-p frame))
       (iconify-or-deiconify-frame)))
 
 ;; c-d-d is only called after (diary) has been run.

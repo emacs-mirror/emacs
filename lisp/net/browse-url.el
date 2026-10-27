@@ -1092,7 +1092,7 @@ This is nil if the display is the same as the DISPLAY environment variable.
 
 Actually Emacs could be using several displays; this just returns the
 one showing the selected frame."
-  (let ((display (cdr-safe (assq 'display (frame-parameters)))))
+  (let ((display (frame-parameter nil 'display)))
     (and (not (equal display (getenv "DISPLAY")))
          display)))
 

@@ -74,7 +74,7 @@
 (define-obsolete-function-alias 'viper-color-display-p #'display-color-p "29.1")
 
 (defun viper-get-cursor-color (&optional _frame)
-  (cdr (assoc 'cursor-color (frame-parameters))))
+  (frame-parameter nil 'cursor-color))
 
 (defmacro viper-frame-value (variable)
   "Return the value of VARIABLE local to the current frame, if there is one.

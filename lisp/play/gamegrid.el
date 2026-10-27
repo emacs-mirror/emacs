@@ -282,8 +282,7 @@ format."
   (let ((face (make-face 'gamegrid-mono-x-face))
 	(color (face-foreground 'default)))
     (if (null color)
-	(setq color
-	      (cdr-safe (assq 'foreground-color (frame-parameters)))))
+	(setq color (frame-parameter nil 'foreground-color)))
     (gamegrid-setup-face face color)
     face))
 

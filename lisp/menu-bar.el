@@ -898,11 +898,9 @@ The selected font will be the default on both the existing and future frames."
                   :visible (memq (window-system) '(x w32))
                   :button (:radio
 			   . (and (window-divider-width-valid-p
-				   (cdr (assq 'bottom-divider-width
-					      (frame-parameters))))
+                                   (frame-parameter nil 'bottom-divider-width))
 				  (window-divider-width-valid-p
-				   (cdr (assq 'right-divider-width
-					      (frame-parameters))))))))
+				   (frame-parameter nil 'right-divider-width))))))
     (define-key menu [right-only]
       '(menu-item "Right Only"
                   menu-bar-right-window-divider
@@ -910,11 +908,9 @@ The selected font will be the default on both the existing and future frames."
                   :visible (memq (window-system) '(x w32))
                   :button (:radio
 			   . (and (not (window-divider-width-valid-p
-					(cdr (assq 'bottom-divider-width
-						   (frame-parameters)))))
+                                        (frame-parameter nil 'bottom-divider-width)))
 				  (window-divider-width-valid-p
-				   (cdr (assq 'right-divider-width
-						     (frame-parameters))))))))
+				   (frame-parameter nil 'right-divider-width))))))
     (define-key menu [bottom-only]
       '(menu-item "Bottom Only"
                   menu-bar-bottom-window-divider
@@ -922,11 +918,9 @@ The selected font will be the default on both the existing and future frames."
                   :visible (memq (window-system) '(x w32))
                   :button (:radio
 			   . (and (window-divider-width-valid-p
-				   (cdr (assq 'bottom-divider-width
-					      (frame-parameters))))
+                                   (frame-parameter nil 'bottom-divider-width))
 				  (not (window-divider-width-valid-p
-					(cdr (assq 'right-divider-width
-						   (frame-parameters)))))))))
+				        (frame-parameter nil 'right-divider-width)))))))
     (define-key menu [no-divider]
       '(menu-item "None"
                   menu-bar-no-window-divider
@@ -934,11 +928,9 @@ The selected font will be the default on both the existing and future frames."
                   :visible (memq (window-system) '(x w32))
                   :button (:radio
 			   . (and (not (window-divider-width-valid-p
-					(cdr (assq 'bottom-divider-width
-						   (frame-parameters)))))
+                                        (frame-parameter nil 'bottom-divider-width)))
 				  (not (window-divider-width-valid-p
-					(cdr (assq 'right-divider-width
-						   (frame-parameters)))))))))
+				        (frame-parameter nil 'right-divider-width)))))))
     menu))
 
 (defun menu-bar-showhide-fringe-ind-customize ()

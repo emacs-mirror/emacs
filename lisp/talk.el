@@ -36,7 +36,7 @@ Each element has the form (DISPLAY FRAME BUFFER).")
   "Connect to display DISPLAY for the Emacs talk group."
   (interactive "sTalk to display: ")
   ;; Make sure we have an entry for the current display.
-  (let ((mydisp (cdr (assq 'display (frame-parameters (selected-frame))))))
+  (let ((mydisp (frame-parameter nil 'display)))
     (talk-add-display mydisp))
   ;; Make sure we have an entry for the specified display.
   (talk-add-display display)
@@ -76,7 +76,7 @@ Each element has the form (DISPLAY FRAME BUFFER).")
 (defun talk-disconnect ()
   "Disconnect this display from the Emacs talk group."
   (interactive)
-  (let* ((mydisp (cdr (assq 'display (frame-parameters (selected-frame)))))
+  (let* ((mydisp (frame-parameter nil 'display))
 	 (elt (assoc mydisp talk-display-alist)))
     (delete-frame (nth 1 elt))
     (kill-buffer (nth 2 elt))

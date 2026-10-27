@@ -2812,8 +2812,7 @@ argument REFRESH, which is passed to that function as the 4th argument."
 (defun ispell-display-buffer (buffer)
   "Show BUFFER in new window above selected one.
 Also position fit window to BUFFER and select it."
-  (let* ((unsplittable
-	  (cdr (assq 'unsplittable (frame-parameters (selected-frame)))))
+  (let* ((unsplittable (frame-parameter nil 'unsplittable))
 	 (window
 	  (or (get-buffer-window buffer)
 	      (and unsplittable
