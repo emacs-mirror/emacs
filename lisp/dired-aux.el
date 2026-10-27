@@ -2383,9 +2383,6 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
                                   (file-name-directory newname)))))
           (if (equal file-root newname-root)
               (vc-rename-file file newname ok-if-already-exists)
-            (when (eq (vc-state file) 'edited)
-              (error "Please commit or undo your changes before moving %s"
-                     file))
             (let ((already-exists (file-exists-p newname)))
               ;; The delete commands for several VCS (at least Git and
               ;; Mercurial) will fail if asked to remove a directory
@@ -2407,7 +2404,13 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
                         (t
                          (copy-file file newname
                                     ok-if-already-exists t t t)))
-                  (vc-delete-file file 'noconfirm)))
+                  (handler-bind
+                      ((error (lambda (_)
+                                (if (or (stringp target)
+                                        (not file-is-dir-p))
+                                    (delete-file newname)
+                                  (delete-directory newname t)))))
+                    (vc-delete-file file 'noconfirm))))
               (when newname-backend
                 (let ((newname (expand-file-name newname newname-root))
                       (default-directory newname-root))
