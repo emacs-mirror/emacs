@@ -85,7 +85,7 @@
 (require 'cl-lib)
 (require 'ring)
 (require 'project)
-(require 'text-property-search)
+(require 'text-property-search nil t) ; Emacs≥27
 (require 'map)
 
 (eval-and-compile
@@ -1970,7 +1970,7 @@ This command is intended to be bound to a mouse event."
           (xref-find-references identifier))
       (user-error "No identifier here"))))
 
-(defvar-keymap xref-mouse-mode-map
+(defvar xref-mouse-mode-map
   ;; Using "Control-Click" has been popularized TextMate and it's
   ;; descendants (Sublime, Atom, VSCode) and even other traditions such
   ;; as Eclipse or the IntelliJ editor suite.
@@ -1978,9 +1978,12 @@ This command is intended to be bound to a mouse event."
   ;; TODO: Add some kind of hovering indication that a identifier under
   ;; the mouse cursor has a definition we could jump to.
 
-  ;; Don't run `mouse-buffer-menu' on the down event.
-  "C-<down-mouse-1>" #'ignore
-  "C-<mouse-1>" #'xref-find-definitions-at-mouse)
+  (let ((map (make-sparse-keymap)))
+    ;; Don't run `mouse-buffer-menu' on the down event.
+    (define-key map [C-down-mouse-1] #'ignore)
+    (define-key map [C-mouse-1] #'xref-find-definitions-at-mouse)
+    map)
+  "Keymap for `xref-mouse-mode'.")
 
 ;;;###autoload
 (define-minor-mode xref-mouse-mode
