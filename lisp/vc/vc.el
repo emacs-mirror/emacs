@@ -5208,14 +5208,15 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (vc-checkin file new-backend comment (stringp comment)))))
 
 ;;;###autoload
-(defun vc-delete-file (file-or-files &optional noconfirm)
+(defun vc-delete-file (file-or-files &optional noconfirm keep)
   "Delete file and mark it as such in the version control system.
 If called interactively, read FILE-OR-FILES, defaulting to the current
 buffer's file name if it's under version control.
 When called from Lisp, FILE-OR-FILES can be a file name or a list of
 file names.
 When called from Lisp, optional argument NOCONFIRM non-nil means don't
-prompt to confirm deletion.
+prompt to confirm deletion, and optional argument KEEP non-nil means not
+to kill buffers visiting any of FILE-OR-FILES.
 For some VCS, FILE-OR-FILES can include directories.
 These are recursively deleted."
   (interactive (list (read-file-name "VC delete file: " nil
@@ -5260,7 +5261,7 @@ These are recursively deleted."
            (vc-file-clearprops file)
            ;; Make sure the buffer is killed and *vc-dir* buffers are
            ;; updated after this.
-           (vc-resynch-buffer file nil t)))
+           (vc-resynch-buffer file keep t)))
         ;; Alist associating files to delete with their backends.
         deletions-by-backend)
     (dolist (file file-or-files)
@@ -5272,9 +5273,15 @@ These are recursively deleted."
                     (null make-backup-files)
                     (backup-file-name-p file)
                     (not (file-exists-p file)))
-          (with-current-buffer (or buf (find-file-noselect file))
-            (let ((backup-inhibited nil))
-	      (backup-buffer))))
+          ;; If we reuse BUF, KEEP determines whether we kill it.
+          ;; But if we create a buffer visiting FILE ourselves then we
+          ;; kill that as soon as we're finished with it.
+          (let ((our-buf (and (null buf) (find-file-noselect file))))
+            (unwind-protect
+                (with-current-buffer (or buf our-buf)
+                  (let ((backup-inhibited nil))
+	            (backup-buffer)))
+              (when our-buf (kill-buffer our-buf)))))
         (if backend
             (push file (alist-get backend deletions-by-backend
                                   nil nil #'eq))
@@ -5622,7 +5629,8 @@ to provide the `find-revision' operation instead."
 
 (defun vc-default-show-log-entry (_backend rev)
   (with-no-warnings (log-view-goto-rev rev))
-  (when (memq 'long vc-log-view-types)
+  (when (and (memq 'long vc-log-view-types)
+             (eq (window-buffer) (current-buffer)))
     (recenter-top-bottom 0)))
 
 (defun vc-default-comment-history (backend file)
