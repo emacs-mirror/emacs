@@ -747,7 +747,7 @@ Sorry, but `ghe with upturn' is not included in ISO 8859-5."
  ("0" ?0)
  ("-" ?-)
  ("=" ?=)
- ("`" ?')
+ ("`" ?ґ)
  ("q" ?й)
  ("w" ?ц)
  ("e" ?у)
@@ -793,7 +793,7 @@ Sorry, but `ghe with upturn' is not included in ISO 8859-5."
  (")" ?\))
  ("_" ?_)
  ("+" ?+)
- ("~" ?')
+ ("~" ?Ґ)
  ("Q" ?Й)
  ("W" ?Ц)
  ("E" ?У)
@@ -827,8 +827,8 @@ Sorry, but `ghe with upturn' is not included in ISO 8859-5."
  ("<" ?Б)
  (">" ?Ю)
  ("?" ?,)
- ("\\" ?ґ)
- ("|" ?Ґ))
+ ("\\" ?ʼ)
+ ("|" ?₴))
 ;;
 
 (quail-define-package
