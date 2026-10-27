@@ -28,7 +28,9 @@ CFLAGSCOMPILER := \
 -Wstrict-aliasing=2 \
 -Wstrict-prototypes \
 -Wswitch-default \
--Wwrite-strings
+-Wwrite-strings \
+-Wsign-compare \
+-Wconversion
 CFLAGSCOMPILERSTRICT := -std=c89 -pedantic
 
 # A different set of compiler flags for less strict compilation, for

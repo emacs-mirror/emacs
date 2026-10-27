@@ -97,7 +97,7 @@ void Prmci6StepOverIns(MutatorContext context, Size inslen)
 {
   AVERT(MutatorContext, context);
 
-  context->ucontext->uc_mcontext.gregs[REG_RIP] += (Word)inslen;
+  context->ucontext->uc_mcontext.gregs[REG_RIP] += (ptrdiff_t)inslen;
 }
 
 

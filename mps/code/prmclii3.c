@@ -93,7 +93,7 @@ void Prmci3StepOverIns(MutatorContext context, Size inslen)
 {
   AVERT(MutatorContext, context);
 
-  context->ucontext->uc_mcontext.gregs[REG_EIP] += (unsigned long)inslen;
+  context->ucontext->uc_mcontext.gregs[REG_EIP] += (ptrdiff_t)inslen;
 }
 
 

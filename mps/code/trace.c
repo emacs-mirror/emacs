@@ -293,9 +293,8 @@ static void tracePropagateToLowerRanks (Trace trace, Arena arena)
     AVER(TraceSetIsMember(seg->propagationNeeded, trace));
     if (TraceSetIsMember(seg->marksChanged, trace))
       marksChanged = TRUE;
-    seg->propagationNeeded =
-      TraceSetDel(seg->propagationNeeded, trace);
-    seg->marksChanged = TraceSetDel(seg->marksChanged, trace);
+    SegSetPropagationNeeded(seg, TraceSetDel(seg->propagationNeeded, trace));
+    SegSetMarksChanged(seg, TraceSetDel(seg->marksChanged, trace));
     AVER(!TraceSetIsMember(seg->propagationNeeded, trace));
     {
       /* HACK: traceScanSegRes skips segments whose summary doesn't

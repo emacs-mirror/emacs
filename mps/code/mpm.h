@@ -719,6 +719,22 @@ extern Addr (SegLimit)(Seg seg);
 #define SegSetDepth(seg, d)     ((void)((seg)->depth = BITFIELD(unsigned, (d), ShieldDepthWIDTH)))
 #define SegSetNailed(seg, ts)   ((void)((seg)->nailed = BS_BITFIELD(Trace, (ts))))
 
+#define INLINE ATTRIBUTE_UNUSED static
+
+INLINE void SegSetPropagationNeeded(Seg seg, TraceSet set)
+{
+  seg->propagationNeeded = BS_BITFIELD(Trace, set);
+}
+
+INLINE void SegSetMarksChanged(Seg seg, TraceSet set)
+{
+  seg->marksChanged = BS_BITFIELD(Trace, set);
+}
+
+INLINE void SegSetPropagationFinished(Seg seg, TraceSet set)
+{
+  seg->propagationFinished = BS_BITFIELD(Trace, set);
+}
 
 /* Buffer Interface -- see <code/buffer.c> */
 

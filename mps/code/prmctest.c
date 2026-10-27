@@ -190,7 +190,7 @@ static void genTests(MutatorContext ctx)
   const size_t NSCALEBITS = 3;
   const size_t NTESTS = NELEMS(gprs) * (NSCALEBITS + 1) * NELEMS(gprs)
                         * NELEMS(gprs) * NELEMS(displacemts);
-  const double probability = (double)500 / NTESTS;
+  const double probability = (double)500 / (double)NTESTS;
   size_t b, sbits, i, d, e;
   for (b = 0; b < NELEMS(gprs); b++)
     for (sbits = 0; sbits < NSCALEBITS + 1; sbits++)

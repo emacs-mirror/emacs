@@ -674,7 +674,7 @@ unsigned Random32(void)
   AVER(UINT_MAX >= 4294967295U);
   RandomSeed = bot + ((top & 0xFFFF) << 15) + (top >> 16);
   if (RandomSeed > Random_m)
-    RandomSeed -= Random_m;
+    RandomSeed -= (unsigned)Random_m;
   return RandomSeed;
 }
 

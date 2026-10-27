@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
     MPS_ARGS_ADD(args, MPS_KEY_MEAN_SIZE, (1 + rnd() % 8) * 16);
     MPS_ARGS_ADD(args, MPS_KEY_MAX_SIZE, (1 + rnd() % 4) * 1024);
     MPS_ARGS_ADD(args, MPS_KEY_MVT_RESERVE_DEPTH, (1 + rnd() % 64) * 16);
-    MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, (rnd() % 101) / 100.0);
+    MPS_ARGS_ADD(args, MPS_KEY_MVT_FRAG_LIMIT, (double)(rnd() % 101) / 100.0);
     die(mps_pool_create_k(&pool, arena, mps_class_mvt(), args), "create MVT");
   } MPS_ARGS_END(args);
   die(stress(randomSizeAligned, alignment, pool), "stress MVT");

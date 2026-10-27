@@ -1709,10 +1709,12 @@ static Res aephSegAccess(Seg seg,
 static void aephSegReclaim(Seg seg, Trace trace)
 {
   NextMethod(Seg, AEPHSeg, reclaim)(seg, trace);
-  seg->propagationNeeded = TraceSetDel(seg->propagationNeeded, trace);
-  seg->marksChanged = TraceSetDel(seg->marksChanged, trace);
-  seg->propagationFinished =
-    TraceSetDel(seg->propagationFinished, trace);
+  SegSetPropagationNeeded(seg,
+                          TraceSetDel(seg->propagationNeeded, trace));
+  SegSetMarksChanged(seg, TraceSetDel(seg->marksChanged, trace));
+  SegSetPropagationFinished(
+    seg,
+    TraceSetDel(seg->propagationFinished, trace));
 }
 
 DEFINE_CLASS(Seg, AEPHSeg, klass)
@@ -1808,10 +1810,12 @@ static void aephDeferSeg(mps_ss_t mps_ss,
   Seg seg = aephSegOfAddr(ss->arena, base);
 
   AVER(ss->rank == RankEPHEMERON);
-  seg->propagationNeeded =
-    TraceSetUnion(seg->propagationNeeded, ss->traces);
+  SegSetPropagationNeeded(
+    seg,
+    TraceSetUnion(seg->propagationNeeded, ss->traces));
   if (marksChanged)
-    seg->marksChanged = TraceSetUnion(seg->marksChanged, ss->traces);
+    SegSetMarksChanged(seg,
+                       TraceSetUnion(seg->marksChanged, ss->traces));
 }
 
 static Res aephFixKey(mps_ss_t mps_ss,

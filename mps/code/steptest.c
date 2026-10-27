@@ -473,7 +473,7 @@ int main(int argc, char *argv[])
     die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
         "arena_create");
     mps_arena_clamp(arena);
-    test(arena, (unsigned long)pow(10, rnd() % 10));
+    test(arena, (unsigned long)pow(10, (double)(rnd() % 10)));
     mps_arena_destroy(arena);
     printf("%s: Conclusion: Failed to find any defects.\n", argv[0]);
     return 0;
