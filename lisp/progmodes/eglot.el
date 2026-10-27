@@ -3219,7 +3219,7 @@ uses it; didOpen then clears it and recomputes from the new
       (jsonrpc-notify server :textDocument/willSave params))
     (when (eglot-server-capable :textDocumentSync :willSaveWaitUntil)
       (ignore-errors
-        (eglot--apply-text-edits
+        (eglot--apply-lsp-edits
          (eglot--request server :textDocument/willSaveWaitUntil params
                          :timeout 0.5))))))
 
@@ -3784,7 +3784,7 @@ for which LSP on-type-formatting should be requested."
                 (t
                  '(:textDocument/formatting :documentFormattingProvider nil)))))
     (eglot-server-capable-or-lose cap)
-    (eglot--apply-text-edits
+    (eglot--apply-lsp-edits
      (eglot--request
       (eglot--current-server-or-lose)
       method
@@ -4062,7 +4062,7 @@ for which LSP on-type-formatting should be requested."
                         (delete-region (- (point) (length proxy)) (point))
                         (funcall snippet-fn (or insertText label))))
                  (when (cl-plusp (length additionalTextEdits))
-                   (eglot--apply-text-edits additionalTextEdits)))
+                   (eglot--apply-lsp-edits additionalTextEdits)))
                (eglot--signal-textDocument/didChange)))))))))
 
 
@@ -4277,25 +4277,28 @@ Returns a list as described in docstring of `imenu--index-alist'."
 
 
 ;;; Code actions and rename
-(cl-defun eglot--apply-text-edits (edits &optional version silent)
-  "Apply LSP EDITS for current buffer using `refactor-apply-text-edits'.
-Error if VERSION non-nil and doesn't match the documents'.  Pass
-SILENT to `refactor-apply-text-edits'."
-  (unless edits (cl-return-from eglot--apply-text-edits))
+(defun eglot--convert-lsp-edits (edits &optional version)
+  "Convert LSP EDITS to a list of (BEG END NEWTEXT) for current buffer.
+Error if VERSION non-nil and doesn't match the document's."
   (when (and version (not (equal version eglot--docver)))
     (jsonrpc-error "Edits on `%s' require version %d, have %d"
                    (current-buffer) version eglot--docver))
-  (refactor-apply-text-edits
-   (mapcar (lambda (edit)
-             (eglot--dcase edit
-               (((TextEdit) range newText)
-                (cl-destructuring-bind (beg . end) (eglot-range-region range)
-                  (list beg end newText)))
-               (((InsertReplaceEdit) newText replace)
-                (cl-destructuring-bind (beg . end) (eglot-range-region replace)
-                  (list beg end newText)))))
-           edits)
-   :silent silent))
+  (mapcar (lambda (edit)
+            (eglot--dcase edit
+              (((TextEdit) range newText)
+               (cl-destructuring-bind (beg . end) (eglot-range-region range)
+                 (list beg end newText)))
+              (((InsertReplaceEdit) newText replace)
+               (cl-destructuring-bind (beg . end) (eglot-range-region replace)
+                 (list beg end newText)))))
+          edits))
+
+(defun eglot--apply-lsp-edits (edits &optional version silent)
+  "Apply LSP EDITS for current buffer using `refactor-apply-text-edits'.
+Error if VERSION non-nil and doesn't match the document's.  Pass
+SILENT to `refactor-apply-text-edits'."
+  (refactor-apply-text-edits (eglot--convert-lsp-edits edits version)
+                             :silent silent))
 
 (cl-defun eglot--translate-workspace-edit (wedit)
   "Compute list of `refactor-operation' from LSP workspace edit WEDIT."
@@ -4306,8 +4309,11 @@ SILENT to `refactor-apply-text-edits'."
             'refactor-file-edit
             :file path
             :edits
+            ;; Not in a managed buffer when previewing the edits in a
+            ;; temporary buffer, so don't check the version then.
             (lambda ()
-              (eglot--apply-text-edits edits version t))))))
+              (eglot--convert-lsp-edits
+               edits (and eglot--managed-mode version)))))))
     (eglot--dbind ((WorkspaceEdit) changes documentChanges) wedit
       (append
        (mapcar
