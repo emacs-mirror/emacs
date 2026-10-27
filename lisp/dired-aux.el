@@ -2401,6 +2401,9 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
                         (file-is-dir-p
                          (copy-directory file newname t))
                         (t
+                         (when (and ok-if-already-exists
+                                    (file-symlink-p newname))
+                           (delete-file newname))
                          (copy-file file newname
                                     ok-if-already-exists t t t)))
                   (handler-bind
