@@ -34,10 +34,14 @@ SRCID(prmci6, "$Id$");
 #error "prmci6.c is specific to MPS_ARCH_I6"
 #endif
 
+typedef unsigned int RegNum;
+
 /* DecodeCB -- Decode an Intel x86 control byte into Hi, Medium & Low
    fields */
 
-static void DecodeCB(size_t *hReturn, size_t *mReturn, size_t *lReturn,
+static void DecodeCB(unsigned int *hReturn,
+                     unsigned int *mReturn,
+                     unsigned int *lReturn,
                      Byte op)
 {
   *lReturn = op & 7;
@@ -49,7 +53,9 @@ static void DecodeCB(size_t *hReturn, size_t *mReturn, size_t *lReturn,
 /* DecodeSIB -- Decode a Scale Index Base byte for an Intel x86
    instruction */
 
-static void DecodeSIB(size_t *sReturn, size_t *iReturn, size_t *bReturn,
+static void DecodeSIB(unsigned int *sReturn,
+                      unsigned int *iReturn,
+                      unsigned int *bReturn,
                       Byte op)
 {
   DecodeCB(sReturn, iReturn, bReturn, op);
@@ -58,8 +64,10 @@ static void DecodeSIB(size_t *sReturn, size_t *iReturn, size_t *bReturn,
 
 /* DecodeModRM -- Decode a ModR/M byte for an Intel x86 instruction */
 
-static void DecodeModRM(size_t *modReturn, size_t *rReturn,
-                        size_t *mReturn, Byte op)
+static void DecodeModRM(unsigned int* modReturn,
+                        unsigned int* rReturn,
+                        unsigned int* mReturn,
+                        Byte op)
 {
   DecodeCB(modReturn, rReturn, mReturn, op);
 }
@@ -67,7 +75,7 @@ static void DecodeModRM(size_t *modReturn, size_t *rReturn,
 
 /* RegValue -- Return the value of a machine register from a context */
 
-static Word RegValue(MutatorContext context, size_t regnum)
+static Word RegValue(MutatorContext context, RegNum regnum)
 {
   MRef addr;
 
@@ -76,44 +84,53 @@ static Word RegValue(MutatorContext context, size_t regnum)
 }
 
 
-/* Return a byte element of an instruction vector as a
- * Word value, with sign extension
+/* Return a byte element of an instruction vector as a int value, with
+ * sign extension
  */
-static Word SignedInsElt(Byte insvec[], Count i)
+static int SignedInsElt(Byte insvec[], Count i)
 {
   signed char eltb;
 
   eltb = ((signed char *)insvec)[i];
-  return (Word)eltb;
+  return eltb;
 }
 
-static signed DecodeDisp32(Byte *bytes)
+static int DecodeDisp32(Byte *bytes)
 {
   unsigned r = 0;
-  size_t i;
-  for (i = 0; i < 4; i++) r |= bytes[i] << (i * 8);
-  return r;
+  unsigned i;
+  for (i = 0; i < 4; i++) r |= (unsigned)bytes[i] << (i * 8);
+  return (int)r;
 }
 
 static Word RexR(Byte rex) { return (rex >> 2) & 1; }
 static Word RexB(Byte rex) { return (rex >> 0) & 1; }
 static Word RexX(Byte rex) { return (rex >> 1) & 1; }
 
-static Bool DecodeSimpleMov(size_t *regnumReturn, MRef *memReturn,
-                            Size *inslenReturn, MutatorContext context,
+static RegNum RexReg(RegNum regnum, Word ex)
+{
+  return regnum | ((RegNum)ex << 3);
+}
+
+static Bool DecodeSimpleMov(RegNum* regnumReturn,
+                            MRef* memReturn,
+                            Size* inslenReturn,
+                            MutatorContext context,
                             Byte insvec[])
 {
   Byte rex = insvec[0];
   Byte modRM = insvec[2];
-  Word base, disp = 0, scaled_index = 0;
-  size_t mod, reg, rm;
+  Word base, scaled_index = 0;
+  RegNum reg;
+  int disp = 0;
+  unsigned mod, rm;
   DecodeModRM(&mod, &reg, &rm, modRM);
   switch (mod) {
     case 0:
       switch (rm) {
         default:
           *inslenReturn = 3;
-          base = RegValue(context, rm | (RexB(rex) << 3));
+          base = RegValue(context, RexReg(rm, RexB(rex)));
           goto done;
 
         case 4:
@@ -134,7 +151,7 @@ static Bool DecodeSimpleMov(size_t *regnumReturn, MRef *memReturn,
         default:
           *inslenReturn = 4;
           disp = SignedInsElt(insvec, 3);
-          base = RegValue(context, rm | (RexB(rex) << 3));
+          base = RegValue(context, RexReg(rm, RexB(rex)));
           goto done;
 
         case 4:
@@ -148,7 +165,7 @@ static Bool DecodeSimpleMov(size_t *regnumReturn, MRef *memReturn,
         default:
           *inslenReturn = 7;
           disp = DecodeDisp32(insvec + 3);
-          base = RegValue(context, rm | (RexB(rex) << 3));
+          base = RegValue(context, RexReg(rm, RexB(rex)));
           goto done;
 
         case 4:
@@ -166,18 +183,18 @@ static Bool DecodeSimpleMov(size_t *regnumReturn, MRef *memReturn,
   NOTREACHED;
 
 decode_sib: {
-  size_t s, i, b;
+  unsigned s, i, b;
   DecodeSIB(&s, &i, &b, insvec[3]);
-  base = RegValue(context, b | (RexB(rex) << 3));
+  base = RegValue(context, RexReg(b, RexB(rex)));
   if (i == 4 && !RexX(rex))
     scaled_index = 0;
   else
-    scaled_index = (RegValue(context, i | RexX(rex) << 3) << s);
-}
+    scaled_index = (RegValue(context, RexReg(i, RexX(rex))) << s);
+  }
 
 done:
-  *memReturn = (MRef)(base + disp + scaled_index);
-  *regnumReturn = reg | (RexR(rex) << 3);
+  *memReturn = (MRef)(base + (Word)(ptrdiff_t)disp + scaled_index);
+  *regnumReturn = RexReg(reg, RexR(rex));
   return TRUE;
 }
 
@@ -187,7 +204,7 @@ static Bool IsSimpleMov(Size *inslenReturn, MRef *srcReturn,
                         MRef *destReturn, MutatorContext context)
 {
   Byte *insvec;
-  size_t regnum;
+  RegNum regnum;
   MRef mem;
   MRef faultmem;
 

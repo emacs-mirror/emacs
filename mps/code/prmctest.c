@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#if defined MPS_PF_LII6GC && !defined CONFIG_PF_ANSI
+#if (defined MPS_PF_LII6GC || defined MPS_PF_LII6LL) && !defined CONFIG_PF_ANSI
 
 #include <assert.h>
 #include <stdlib.h>
@@ -20,7 +20,12 @@
 
 #pragma GCC diagnostic ignored "-Wpedantic"
 
+#ifdef MPS_PF_LII6GC
 static void **asmcode(int) __attribute__((optimize(0)));
+#endif
+#ifdef MPS_PF_LII6LL
+static void **asmcode(int) __attribute__((optnone));
+#endif
 static void **asmcode(int f)
 {
   static void *labels[] = {&&start, &&end};
@@ -50,7 +55,7 @@ end:
 static mps_word_t mem[8];
 
 static void testMovRm64ToR64(MutatorContext ctx, size_t srcreg,
-                             size_t disp, size_t scale, size_t idxreg,
+                             int disp, size_t scale, size_t idxreg,
                              size_t dstreg, size_t len)
 {
   mps_word_t *gregs = (void *)ctx->ucontext->uc_mcontext.gregs;
@@ -139,7 +144,7 @@ static Byte *genCode(const char *txt, size_t *len)
   assert(system(cmd) == 0);
   assert(fscanf(s, ".text size: %lx offset: %lx\n", &size, &offset)
          == 2);
-  assert(fseek(o, offset, SEEK_SET) == 0);
+  assert(fseek(o, (long)offset, SEEK_SET) == 0);
   code = malloc(size);
   assert(code);
   assert(fread(code, 1, size, o) == size);
@@ -169,11 +174,11 @@ static void genTest(MutatorContext ctx, size_t base, int32_t disp,
     snprintf(buf, sizeof buf, "mov %d(%s),%s\n", disp, regname(base),
              regname(dst));
   code = genCode(buf, &len);
-  ctx->ucontext->uc_mcontext.gregs[REG_RIP] = (size_t)code;
+  ctx->ucontext->uc_mcontext.gregs[REG_RIP] = (greg_t)code;
   testMovRm64ToR64(ctx, base, disp, scale, index, dst, len);
 }
 
-static int32_t displacemts[] = {0, -1, 255, -256, 256, 0xabcdef01};
+static int32_t displacemts[] = {0, -1, 255, -256, 256, (int32_t)0xabcdef01};
 
 static Bool filterRandomly(double probability)
 {
@@ -213,7 +218,7 @@ static void runTests(void)
   struct ucontext_t ucontext;
   struct MutatorContextStruct ctx;
   MutatorContextInitFault(&ctx, &siginfo, &ucontext);
-  ucontext.uc_mcontext.gregs[REG_RIP] = (size_t)(asmcode(1)[0]);
+  ucontext.uc_mcontext.gregs[REG_RIP] = (greg_t)(asmcode(1)[0]);
 
   testMovRm64ToR64(&ctx, REG_RAX, 0, 0, 0, REG_RAX, 3);
   testMovRm64ToR64(&ctx, REG_RCX, 0, 0, 0, REG_R15, 3);
@@ -237,7 +242,7 @@ int main(int argc, char *argv[])
 {
   testlib_init(argc, argv);
 
-#if defined MPS_PF_LII6GC && !defined CONFIG_PF_ANSI
+#if (defined MPS_PF_LII6GC || defined MPS_PF_LII6LL) && !defined CONFIG_PF_ANSI
   runTests();
 #endif
 
