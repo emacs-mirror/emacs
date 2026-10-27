@@ -361,9 +361,9 @@ Return nil if there is no name or if NODE is not a defun node."
       (pcase lang
         ('html
          (setq-local comment-start "<!-- ")
-         (setq-local comment-start-skip nil)
+         (setq-local comment-start-skip "<!--[ \t]*")
          (setq-local comment-end " -->")
-         (setq-local comment-end-skip nil))
+         (setq-local comment-end-skip "[ \t]*--[ \t\n]*>"))
         ('css
          (setq-local comment-start "/*")
          (setq-local comment-start-skip "/\\*+[ \t]*")
