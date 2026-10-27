@@ -240,7 +240,9 @@ If the orientation isn't present in the data, return nil."
                                      (if (eq (car field-format) 'ascii)
                                          (exif--direct-ascii-value
                                           value (1- length) le)
-                                       value))
+                                       (if (and (eq (car field-format) 'short) (not le))
+                                           (/ value 65536)
+                                       value)))
                                    (car field-format)
                                    le)))))
     (let ((next (exif--read-number 4 le)))
