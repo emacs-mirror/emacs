@@ -2421,7 +2421,7 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
     ;; Silently rename the visited file of any buffer visiting this file.
     (and (get-file-buffer file)
          (with-current-buffer (get-file-buffer file)
-	   (set-visited-file-name newname nil t)))
+	   (set-visited-file-name newname t t)))
     (dired-remove-file file)
     ;; See if it's an inserted subdir, and rename that, too.
     (when file-is-dir-p
