@@ -2375,7 +2375,10 @@ some of this variable's contents the diagnostic listings.")
     (cl-loop
      for style = (cdr style-entry)
      for o in (overlays-at (line-end-position))
-     for src-ovs = (overlay-get o 'flymake-eol-source-overlays)
+     ;; Source overlays may have evaporated.
+     for src-ovs = (cl-remove-if-not
+                    #'overlay-buffer
+                    (overlay-get o 'flymake-eol-source-overlays))
      when (and src-ovs
                (or (eq (car style-entry) 'current-line)
                    (cl-some (lambda (o) (<= (overlay-start o) (point)
