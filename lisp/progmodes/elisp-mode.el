@@ -745,16 +745,7 @@ be used instead.
 \\{emacs-lisp-mode-map}"
   :group 'lisp
   (defvar project-vc-external-roots-function)
-  (setcar font-lock-defaults
-          '(lisp-el-font-lock-keywords
-            lisp-el-font-lock-keywords-1
-            lisp-el-font-lock-keywords-2
-            elisp-semantic-font-lock-keywords))
-  (dolist (prop '(cursor-sensor-functions help-echo mouse-face))
-    (cl-pushnew prop
-                (alist-get 'font-lock-extra-managed-props
-                           (nthcdr 5 font-lock-defaults))))
-  (setf (nth 2 font-lock-defaults) nil)
+  (lisp-mode-variables nil nil t)
   (add-hook 'font-lock-extend-region-functions
             #'elisp-extend-region-to-whole-defuns nil t)
   (add-hook 'after-load-functions #'elisp--font-lock-flush-elisp-buffers)

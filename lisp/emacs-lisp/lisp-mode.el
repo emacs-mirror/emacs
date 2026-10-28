@@ -714,7 +714,8 @@ Value for `adaptive-fill-function'."
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 \(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
 score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
-font-lock keywords will not be case sensitive."
+font-lock keywords will not be case sensitive.  If ELISP is non-nil,
+set up font-lock for Emacs Lisp code."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq-local paragraph-ignore-fill-prefix t)
@@ -746,13 +747,16 @@ font-lock keywords will not be case sensitive."
   (setq font-lock-defaults
 	`(,(if elisp '(lisp-el-font-lock-keywords
                        lisp-el-font-lock-keywords-1
-                       lisp-el-font-lock-keywords-2)
+                       lisp-el-font-lock-keywords-2
+                       ;; Defined in elisp-mode.el
+                       elisp-semantic-font-lock-keywords)
              '(lisp-cl-font-lock-keywords
                lisp-cl-font-lock-keywords-1
                lisp-cl-font-lock-keywords-2))
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
-          (font-lock-extra-managed-props help-echo)
+          (font-lock-extra-managed-props
+           . (help-echo ,@(and elisp '(cursor-sensor-functions mouse-face))))
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp-prettify-symbols-alist)

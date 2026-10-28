@@ -1155,7 +1155,19 @@ evaluation of BODY."
                              (setq-local trusted-content :all
                                          elisp-fontify-semantically t
                                          read-symbol-shorthands
-                                         '(("e-s-" . "elisp-scope-"))))))
+                                         '(("e-s-" . "elisp-scope-")))))
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (setq-local trusted-content :all
+                elisp-fontify-semantically t)
+    (insert "most-positive-fixnum")
+    (font-lock-ensure)
+    (should (get-text-property (point-min) 'mouse-face))
+    (goto-char (point-min))
+    (insert "#:")
+    (font-lock-ensure)
+    (should-not (text-property-not-all (point-min) (point-max)
+                                       'mouse-face nil))))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here
