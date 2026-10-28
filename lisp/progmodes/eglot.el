@@ -3724,7 +3724,7 @@ EXTRA-ARGS are added to the request."
 
 (eglot--deffinder eglot-find-declaration declaration "declaration")
 (eglot--deffinder eglot-find-implementation implementation "implementation")
-(eglot--deffinder eglot-find-type-definition type-definition "type definition")
+(eglot--deffinder eglot-find-typeDefinition type-definition "type definition")
 
 (cl-defmethod xref-backend-definitions ((_backend (eql eglot)) id)
   (eglot--lsp-xrefs-for-id id :textDocument/definition :just-def t))
