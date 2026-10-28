@@ -1391,10 +1391,16 @@ byte-compiled.  Run with dynamic binding."
       (let ((inhibit-read-only t)) (erase-buffer)))
     (bytecomp-tests--with-temp-file el-file
       (write-region source nil el-file)
-      (bytecomp-tests--with-warnings
-       (byte-compile-file el-file)))
-    (with-current-buffer byte-compile-log-buffer
-      (buffer-string))))
+      (let ((byte-compile-root-dir (file-name-directory el-file)))
+        (bytecomp-tests--with-warnings (byte-compile-file el-file)))
+      (with-current-buffer byte-compile-log-buffer
+        ;; Replace the random part of the temporary file name with
+        ;; something constant.
+        (goto-char (point-min))
+        (let ((basename (file-name-nondirectory el-file)))
+         (while (search-forward basename nil t)
+           (replace-match "emacs-test-TEMP")))
+        (buffer-string)))))
 
 (ert-deftest bytecomp-tests--lexical-binding-cookie ()
   (cl-flet ((cookie-warning (source)
@@ -2318,6 +2324,72 @@ EXPECTED-POINT BINDINGS (MODES \\='\\='(ruby-mode js-mode python-mode)) \
             (should (equal (funcall eq-fn 'sym sym-with-pos1) t))
             (should (equal (funcall eq-fn sym-with-pos1 sym-with-pos1) t))
             (should (equal (funcall eq-fn sym-with-pos1 sym-with-pos2) t))))))))
+
+
+;;;; Tests for correct headings in output
+
+(ert-deftest bytecomp--warnings-back-to-toplevel ()
+  "Test error in a toplevel form after a named function (bug#81721)."
+  (should (equal (bytecomp-tests--log-from-compilation "\
+;; -*- lexical-binding: t; -*-
+(defun f (x))
+(foo)
+(setq y 0)")
+                 "
+In f:
+emacs-test-TEMP:2:11: Warning: Unused lexical argument `x'
+
+In toplevel form:
+emacs-test-TEMP:4:7: Warning: assignment to free variable `y'
+
+In end of data:
+emacs-test-TEMP:3:2: Warning: the function `foo' is not known to be defined.
+")))
+
+(ert-deftest bytecomp--warnings-share-headers ()
+  "Test consecutive warnings of the same type don't get new headers."
+  (should (equal (bytecomp-tests--log-from-compilation "\
+;; -*- lexical-binding: t; -*-
+(foo)
+(bar)
+(setq y 0)
+(setq z 0)")
+                 "
+In toplevel form:
+emacs-test-TEMP:4:7: Warning: assignment to free variable `y'
+emacs-test-TEMP:5:7: Warning: assignment to free variable `z'
+
+In end of data:
+emacs-test-TEMP:3:2: Warning: the function `bar' is not known to be defined.
+emacs-test-TEMP:2:2: Warning: the function `foo' is not known to be defined.
+")))
+
+(ert-deftest bytecomp--toplevel-first-in-file ()
+  "Test first warning in file at toplevel gets a header."
+  (should (equal (bytecomp-tests--log-from-compilation "\
+;; -*- lexical-binding: t; -*-
+(setq y 0)
+(defun f (x))
+(setq z 0)")
+                 "
+In toplevel form:
+emacs-test-TEMP:2:7: Warning: assignment to free variable `y'
+
+In f:
+emacs-test-TEMP:3:11: Warning: Unused lexical argument `x'
+
+In toplevel form:
+emacs-test-TEMP:4:7: Warning: assignment to free variable `z'
+")))
+
+(ert-deftest bytecomp--cookie-warning-shares-header ()
+  "Test a missing cookie warning can share its header with another warning."
+  (should (equal (bytecomp-tests--log-from-compilation "(setq y 0)")
+                 "
+In toplevel form:
+emacs-test-TEMP:1:1: Warning: file has no `lexical-binding' directive on its first line
+emacs-test-TEMP:1:7: Warning: assignment to free variable `y'
+")))
 
 ;; Local Variables:
 ;; no-byte-compile: t

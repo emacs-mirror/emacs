@@ -1296,19 +1296,19 @@ Order is by depth-first search."
                               new-c (1+ (current-column)))
                         (format "%d:%d:" new-l new-c))))
 		""))
-	 (form (if (eq byte-compile-current-form :end) "end of data"
-		 (or byte-compile-current-form "toplevel form"))))
-    (when (or (and byte-compile-current-file
-		   (not (equal byte-compile-current-file
-			       byte-compile-last-logged-file)))
-	      (and byte-compile-current-form
-		   (not (eq byte-compile-current-form
-			    byte-compile-last-warned-form))))
+	 (form (pcase byte-compile-current-form
+                 (':end "end of data")
+                 ('nil "toplevel form")
+                 (_ byte-compile-current-form))))
+    ;; If `byte-compile-current-buffer' is nil we are byte-compiling a
+    ;; single form, in which case we traditionally have not emitted an
+    ;; "In ..." heading.
+    (when (and byte-compile-current-buffer
+               (not (equal form byte-compile-last-warned-form)))
       (insert (format "\nIn %s:\n" form)))
     (when level
-      (insert (format "%s%s " file pos))))
-  (setq byte-compile-last-logged-file byte-compile-current-file
-	byte-compile-last-warned-form byte-compile-current-form)
+      (insert (format "%s%s " file pos)))
+    (setq byte-compile-last-warned-form form))
   entry)
 
 ;; This no-op function is used as the value of warning-series
@@ -1320,47 +1320,50 @@ Order is by depth-first search."
 ;; (compile-mode) will cause this to be loaded.
 (declare-function compilation-forget-errors "compile" ())
 
-;; Log the start of a file in `byte-compile-log-buffer', and mark it as done.
-;; Return the position of the start of the page in the log buffer.
-;; But do nothing in batch mode.
 (defun byte-compile-log-file ()
-  (and (not (equal byte-compile-current-file byte-compile-last-logged-file))
-       (not noninteractive)
-       (with-current-buffer (get-buffer-create byte-compile-log-buffer)
-	 (goto-char (point-max))
-	 (let* ((inhibit-read-only t)
-		(dir (and (stringp byte-compile-current-file)
-			  (file-name-directory byte-compile-current-file)))
-		(was-same (equal default-directory dir))
-		pt)
-	   (when dir
-	     (unless was-same
-	       (insert (format-message "Leaving directory `%s'\n"
-                                       default-directory))))
-	   (unless (bolp)
-	     (insert "\n"))
-	   (setq pt (point-marker))
-	   (if byte-compile-current-file
-	       (insert "\f\nCompiling "
-		       (if (stringp byte-compile-current-file)
-			   (concat "file " byte-compile-current-file)
-			 (concat "in buffer "
-                                 (buffer-name byte-compile-current-file)))
-		       " at " (current-time-string) "\n")
-	     (insert "\f\nCompiling internal form(s) at " (current-time-string) "\n"))
-	   (when dir
-	     (setq default-directory dir)
-	     (unless was-same
-	       (insert (format-message "Entering directory `%s'\n"
-                                       default-directory))))
-	   (setq byte-compile-last-logged-file byte-compile-current-file
-		 byte-compile-last-warned-form nil)
-	   ;; Do this after setting default-directory.
-	   (unless (derived-mode-p 'compilation-mode)
-             (emacs-lisp-compilation-mode))
-           (setq emacs-lisp-compilation--current-file byte-compile-current-file)
-	   (compilation-forget-errors)
-	   pt))))
+  (and
+   (not (equal byte-compile-current-file byte-compile-last-logged-file))
+   (progn
+     (setq byte-compile-last-logged-file byte-compile-current-file
+	   byte-compile-last-warned-form nil)
+     ;; Interactively, log the start of a file in the log buffer and
+     ;; return the position of the start of the page in that buffer.
+     (and
+      (not noninteractive)
+      (with-current-buffer (get-buffer-create byte-compile-log-buffer)
+        (goto-char (point-max))
+        (let* ((inhibit-read-only t)
+	       (dir (and (stringp byte-compile-current-file)
+			 (file-name-directory byte-compile-current-file)))
+	       (was-same (equal default-directory dir))
+	       pt)
+	  (when dir
+	    (unless was-same
+	      (insert (format-message "Leaving directory `%s'\n"
+                                      default-directory))))
+	  (unless (bolp)
+	    (insert "\n"))
+	  (setq pt (point-marker))
+	  (if byte-compile-current-file
+	      (insert "\f\nCompiling "
+		      (if (stringp byte-compile-current-file)
+			  (concat "file " byte-compile-current-file)
+		        (concat "in buffer "
+                                (buffer-name byte-compile-current-file)))
+		      " at " (current-time-string) "\n")
+	    (insert "\f\nCompiling internal form(s) at "
+                    (current-time-string) "\n"))
+	  (when dir
+	    (setq default-directory dir)
+	    (unless was-same
+	      (insert (format-message "Entering directory `%s'\n"
+                                      default-directory))))
+	  ;; Do this after setting default-directory.
+	  (unless (derived-mode-p 'compilation-mode)
+            (emacs-lisp-compilation-mode))
+          (setq emacs-lisp-compilation--current-file byte-compile-current-file)
+	  (compilation-forget-errors)
+	  pt))))))
 
 (defvar byte-compile-log-warning-function
   #'byte-compile--log-warning-for-byte-compile
@@ -2389,7 +2392,8 @@ With argument ARG, insert value in current buffer after the form."
            (byte-compile-current-file (current-buffer))
 	   (byte-compile-current-buffer (current-buffer))
 	   (start-read-position (point))
-	   (byte-compile-last-warned-form 'nothing)
+           ;; Ensure we get an "In ..." header if there's a warning.
+	   (byte-compile-last-warned-form nil)
            (symbols-with-pos-enabled t)
 	   (value (eval
 		   (displaying-byte-compile-warnings
