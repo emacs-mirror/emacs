@@ -651,6 +651,12 @@ Markdown files fall back to 'text-mode'.
 
 To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
 
+** SHR
+
+---
+*** 'shr-next-link' and 'shr-previous-link' now accept numeric prefix arguments.
+Similar to that of 'forward-button'.
+
 +++
 ** New library 'uuid'.
 This library provides useful code for handling Universally Unique

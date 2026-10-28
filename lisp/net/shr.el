@@ -606,21 +606,33 @@ Value is a pair of positions (START . END) if there is a non-nil
     (run-at-time 1 nil (lambda ()
                          (delete-overlay overlay)))))
 
-(defun shr-next-link ()
-  "Skip to the next link."
-  (interactive)
-  (let ((match (text-property-search-forward 'shr-tab-stop nil nil t)))
+(defun shr-next-link (&optional n)
+  "Skip to the Nth next link.  Interactively, N is the prefix numeric
+argument and defaults to 1."
+  (interactive "p")
+  (setq n (or n 1))
+  (let (match)
+    (dotimes (_ n)
+      (setq
+       match (text-property-search-forward 'shr-tab-stop nil nil t)))
     (if (not match)
         (message "No next link")
       (goto-char (prop-match-beginning match))
       (message "%s" (get-text-property (point) 'help-echo)))))
 
-(defun shr-previous-link ()
-  "Skip to the previous link."
-  (interactive)
-  (if (not (text-property-search-backward 'shr-tab-stop nil nil t))
+(defun shr-previous-link (&optional n)
+  "Skip to the Nth previous link.  Interactively, N is the prefix numeric
+argument and defaults to 1."
+  (interactive "p")
+  (setq n (or n 1))
+  (let (match)
+    (if (not
+         (progn
+           (dotimes (_ n)
+             (setq match (text-property-search-backward 'shr-tab-stop nil nil t)))
+           match))
       (message "No previous link")
-    (message "%s" (get-text-property (point) 'help-echo))))
+    (message "%s" (get-text-property (point) 'help-echo)))))
 
 (defun shr-show-alt-text ()
   "Show the ALT text of the image under point."
