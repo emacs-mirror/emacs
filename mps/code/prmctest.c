@@ -4,13 +4,15 @@
  * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
  */
 
-#include "prmc.h"
-#include "prmcix.h"
+#include "config.h"
 #include "testlib.h"
 
 #include <stdio.h>
 
 #if (defined MPS_PF_LII6GC || defined MPS_PF_LII6LL) && !defined CONFIG_PF_ANSI
+
+#include "prmc.h"
+#include "prmcix.h"
 
 #include <assert.h>
 #include <stdlib.h>

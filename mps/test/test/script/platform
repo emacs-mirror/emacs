@@ -18,9 +18,12 @@
 #
 
 sub platform_settings {
- if ($PLATFORM =~ "^w3") {
+ if ($PLATFORM =~ "^w3..mv") {
   &settings_nt();
   &settings_nt_coff();
+ } elsif ($PLATFORM =~ "^w3..gc") {
+  &settings_unix();
+  &settings_mingw();
  } elsif ($PLATFORM =~ "^li") {
   &settings_unix();
   &settings_linux();
@@ -167,6 +170,9 @@ sub settings_macosx {
  $cc_opts .= " -Wno-unused -Wno-missing-prototypes";
 }
 
+sub settings_mingw {
+ $exesuff = ".exe";
+}
 
 #
 # Wrapping up strings to quote them in system calls
@@ -214,9 +220,9 @@ sub unix_mailfile {
 
 sub identify {
  %identify = ();
- if ($PLATFORM =~ /^w3/) {
+ if ($PLATFORM =~ /^w3..mv/) {
   &identify_nt;
- } elsif ($PLATFORM =~ /^(fr|li|xc)/) {
+ } elsif ($PLATFORM =~ /^(fr|li|xc|w3..gc)/) {
   &identify_unix;
  }
  $identify{"time"} = localtime;

@@ -15,6 +15,8 @@ END_HEADER
    arena in emergency mode to trigger that assertion.
  */
 
+#include "config.h"
+#include "misc.h"
 #include "ephfmt.h"
 #include "mpm.h"
 #include <stdint.h>

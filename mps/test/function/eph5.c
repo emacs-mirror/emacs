@@ -7,6 +7,8 @@ TEST_HEADER
 END_HEADER
 */
 
+#include "config.h"
+#include "misc.h"
 #include "ephfmt.h"
 #include "mpm.h"
 #include <stdio.h>
