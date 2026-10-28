@@ -1,5 +1,5 @@
 # gnulib-common.m4
-# serial 124
+# serial 125
 dnl Copyright (C) 2007-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -911,7 +911,7 @@ AC_DEFUN([gl_COMMON_BODY], [
    -Wthread-safety is enabled.  For usage, see
    <https://clang.llvm.org/docs/ThreadSafetyAnalysis.html>.  */
 #ifndef _GL_ATTRIBUTE_CAPABILITY_TYPE
-# if __clang_major__ >= 15
+# if defined __clang__ && __clang_major__ >= 15
 #  define _GL_ATTRIBUTE_CAPABILITY_TYPE(concept) \
      __attribute__ ((__capability__ (concept)))
 # else
@@ -919,7 +919,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 # endif
 #endif
 #ifndef _GL_ATTRIBUTE_ACQUIRE_CAPABILITY
-# if __clang_major__ >= 15
+# if defined __clang__ && __clang_major__ >= 15
 #  define _GL_ATTRIBUTE_ACQUIRE_CAPABILITY(resource) \
      __attribute__ ((__acquire_capability__ (resource)))
 # else
@@ -927,7 +927,7 @@ AC_DEFUN([gl_COMMON_BODY], [
 # endif
 #endif
 #ifndef _GL_ATTRIBUTE_RELEASE_CAPABILITY
-# if __clang_major__ >= 15
+# if defined __clang__ && __clang_major__ >= 15
 #  define _GL_ATTRIBUTE_RELEASE_CAPABILITY(resource) \
      __attribute__ ((__release_capability__ (resource)))
 # else
@@ -1497,7 +1497,7 @@ AC_DEFUN([gl_CC_GNULIB_WARNINGS],
       #if (__GNUC__ + (__GNUC_MINOR__ >= 8) > 4 && !defined __clang__) || (__clang_major__ + (__clang_minor__ >= 9) > 3)
       -Wno-pedantic
       #endif
-      #if 3 < __clang_major__ + (9 <= __clang_minor__)
+      #if defined __clang__ && 3 < __clang_major__ + (9 <= __clang_minor__)
       -Wno-string-plus-int
       -Wno-tautological-constant-out-of-range-compare
       #endif

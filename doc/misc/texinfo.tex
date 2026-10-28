@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2026-10-10.09}
+\def\texinfoversion{2026-10-21.20}
 %
 % Copyright 1985, 1986, 1988, 1990-2026 Free Software Foundation, Inc.
 %
@@ -910,15 +910,20 @@ where each line of input produces a line of output.}
 %
 \def\asisword{asis} % no translation, these are keywords
 \def\noneword{none}
+% Set - active for the comparison, as it is active in the main processing
+{\catcode`\-=\active \gdef\minustwoword{-2}}
 %
 \parseargdef\paragraphindent{%
   \def\temp{#1}%
   \ifx\temp\asisword
   \else
-    \ifx\temp\noneword
-      \defaultparindent = 0pt
+    \ifx\temp\minustwoword % -2 represents asis as integer
     \else
-      \defaultparindent = #1em
+      \ifx\temp\noneword
+        \defaultparindent = 0pt
+      \else
+        \defaultparindent = #1em
+      \fi
     \fi
   \fi
   \parindent = \defaultparindent
@@ -1233,6 +1238,25 @@ with PDF output, and none of those formats could be found.  (.eps cannot
 be supported due to the design of the PDF format; use regular TeX (DVI
 output) for that.)}
 
+% Some improvement on what \indexnofonts gives us
+\def\pdfoutlinedefs{%
+  \def\U##1{\csname uni:##1\endcsname}%
+  \def\result##1{\U{21D2}}%
+  \def\expansion##1{\U{21A6}}%
+  \def\print##1{\U{22A3}}%
+  \def\error##1{[error]}%
+  \def\equiv##1{\U{2261}}%
+  \def\point##1{\U{22C6}}%
+  \def\leq##1{\U{2264}}%
+  \def\geq##1{\U{2265}}%
+  \def\copyright##1{\U{00A9}}%
+  \def\registeredsymbol##1{\U{00AE}}%
+  \def\pounds##1{\U{00A3}}%
+  \def\textdegree##1{\U{00B0}}%
+  \def\euro##1{\U{20AC}}%
+  \def\bullet##1{\U{2022}}%
+}
+
 % definitions for pdftex or luatex with pdf output
 \ifpdf
   % Strings in PDF outlines can either be ASCII, or encoded in UTF-16BE
@@ -1243,6 +1267,7 @@ output) for that.)}
   % \DeclareUnicodeCharacter and we access them here.
   %
   \def\defpdfoutlinetextunicode#1{%
+    \pdfoutlinedefs
     \def\pdfoutlinetext{#1}%
     %
     % Make UTF-8 sequences expand to UTF-16 definitions.
@@ -1267,8 +1292,10 @@ output) for that.)}
       % to UTF-16 is somewhat slow (and uses more space).
       \global\let\pdfoutlinetext\pdfoutlinetextchecked
     \else
+      \utfbytespdffalse \utfeightbytestrue % Produce UTF-8 sequences
       \passthroughcharstrue % pass UTF-8 sequences unaltered
       \xdef\pdfoutlinetext{\pdfoutlinetext}%
+      \utfbytespdftrue \utfeightbytesfalse % Now produce UTF-16 sequences
       \expandafter\expandutfsixteen\expandafter{\pdfoutlinetext}\pdfoutlinetext
     \fi
   }%
@@ -1276,9 +1303,13 @@ output) for that.)}
   \catcode2=1 % begin-group character
   \catcode3=2 % end-group character
   %
-  % argument should be pure UTF-8 with no control sequences.  convert to
-  % UTF-16BE by inserting null bytes before bytes < 128 and expanding
-  % UTF-8 multibyte sequences to saved UTF-16BE sequences.
+  % Convert contents of #1 to UTF-16BE, saving result in control sequence
+  % named in #2.  #1 must be pure UTF-8 with no control sequences.  We convert
+  % to UTF-16BE by inserting null bytes before bytes < 128 and expanding
+  % UTF-8 multibyte sequences to saved UTF-16BE sequences.  Note that we cannot
+  % use control sequences in #1 because we pass it to \scantokens in a context
+  % where there is no escape character.  This allows us to place \, @, { and
+  % } in section titles without restriction.
   \def\expandutfsixteen#1#2{%
     \bgroup \asciitounicode
     \passthroughcharsfalse
@@ -10311,7 +10342,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \expandafter\ifx\csname floatlist\safefloattype\endcsname \relax
     \ifhavexrefs
       % if the user said @listoffloats foo but never @float foo.
-      \txiwarning{\No `\safefloattype' floats to list.}%
+      \txiwarning{no floats to list for type: \safefloattype}%
     \fi
   \else
     \begingroup
@@ -11034,8 +11065,12 @@ directory should work if nowhere else does.}
   \fi
 }
 
+% Whether a Unicode character yields UTF-16 bytes.
 \newif\ifutfbytespdf
 \utfbytespdffalse
+
+\newif\ifutfeightbytes
+\utfeightbytesfalse
 
 % For UTF-8 byte sequences (TeX, e-TeX and pdfTeX),
 % provide a definition macro to replace a Unicode character;
@@ -11054,20 +11089,22 @@ directory should work if nowhere else does.}
     \begingroup
       \parseXMLCharref
       %
-      % Completely expand \UTFviiiTmp, which looks like:
+      % Completely expand \UTFviiiTmp\UTFviiiSeq, which looks like:
       % 1.  \UTFviiiTwoOctetsName B1 B2
       % 2.  \csname u8:B1 \string B2 \endcsname
       % 3.  \u8: B1 B2  (a single control sequence token)
-      \xdef\UTFviiiTmp{\UTFviiiTmp}%
+      \xdef\UTFviiiName{\expandafter\UTFviiiTmp\UTFviiiSeq}%
       %
       \ifpdf
         \toksA={#2}%
         \utfsixteentotoks\toksB{#1}%
-        \expandafter\xdef\UTFviiiTmp{%
+        \toksC=\expandafter{\UTFviiiSeq}%
+        \expandafter\xdef\UTFviiiName{%
           \noexpand\ifutfbytespdf\noexpand\utfbytes{\the\toksB}%
-          \noexpand\else\the\toksA\noexpand\fi}%
+          \noexpand\else\noexpand\ifutfeightbytes\the\toksC
+          \noexpand\else\the\toksA\noexpand\fi\noexpand\fi}%
       \else
-        \expandafter\gdef\UTFviiiTmp{#2}%
+        \expandafter\gdef\UTFviiiName{#2}%
       \fi
       %
       \expandafter\ifx\csname uni:#1\endcsname \relax \else
@@ -11075,12 +11112,12 @@ directory should work if nowhere else does.}
       \fi
       %
       % define an additional control sequence for this code point.
-      \expandafter\globallet\csname uni:#1\endcsname \UTFviiiTmp
+      \expandafter\globallet\csname uni:#1\endcsname \UTFviiiName
     \endgroup}
   %
   % Given the value in \countUTFz as a Unicode code point, set
-  % \UTFviiiTmp to one of the \UTVviii*OctetsName macros followed by
-  % the corresponding UTF-8 sequence.
+  % \UTFviiiTmp to one of the \UTVviii*OctetsName macros.
+  % Put the corresponding UTF-8 sequence in \UTFviiiSeq.
   \gdef\parseXMLCharref{%
     \ifnum\countUTFz < "20\relax
       \errhelp = \EMsimple
@@ -11119,7 +11156,7 @@ directory should work if nowhere else does.}
     \uccode `#1\countUTFx
     \countUTFz = \countUTFy}
 
-  % Used to put a UTF-8 byte sequence into \UTFviiiTmp
+  % Used to put a UTF-8 byte sequence into \UTFviiiTmp and \UTFviiiSeq.
   % #1 is the increment for \countUTFz to yield a the first byte of the UTF-8
   %    sequence.
   % #2 is one of the \UTFviii*OctetsName macros.
@@ -11129,7 +11166,8 @@ directory should work if nowhere else does.}
   \gdef\parseUTFviiiB#1#2#3#4{%
     \advance\countUTFz by "#10\relax
     \uccode `#3\countUTFz
-    \uppercase{\gdef\UTFviiiTmp{#2#3#4}}}
+    \gdef\UTFviiiTmp{#2}%
+    \uppercase{\gdef\UTFviiiSeq{#3#4}}}
 \endgroup
 
 % Used in \DefineSortKey as temporary definitions of \UTFviiiTwoOctetsName etc.
@@ -11160,7 +11198,7 @@ directory should work if nowhere else does.}
     % 3.  \noexpand\sort: B1 B2
     % 4.  \sort: B1 B2 (a single control sequence token)
     %
-    \xdef\UTFviiiTmp{\UTFviiiTmp}%
+    \xdef\UTFviiiTmp{\expandafter\UTFviiiTmp\UTFviiiSeq}%
   \egroup
   \expandafter\gdef\UTFviiiTmp{#2}%
 }

@@ -492,7 +492,7 @@ acl_nontrivial (int count, struct acl const *entries)
 #endif
 
 void
-free_permission_context (struct permission_context *ctx)
+free_permission_context (_GL_UNUSED struct permission_context *ctx)
 {
 #if USE_ACL
 # if HAVE_ACL_GET_FILE /* Linux, FreeBSD, NetBSD >= 10, Mac OS X, Cygwin >= 2.5 */
