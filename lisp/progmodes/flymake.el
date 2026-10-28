@@ -2397,6 +2397,9 @@ some of this variable's contents the diagnostic listings.")
                      (overlay-get o 'flymake-eol-source-overlays))
             (overlay-put o 'display (flymake--eol-overlay-summary o))
           (delete-overlay o))))
+    ;; Every eol overlay now has the default style, so none is
+    ;; current any more.
+    (setq flymake--eol-current-overlay nil)
     (flymake--update-current-eol-overlay)))
 
 (defun flymake--eol-default-style ()
