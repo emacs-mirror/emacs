@@ -18,6 +18,13 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes in Eglot 1.26 (30/10/2026)
+
+This is a bugfix release to align Eglot with its latest Xref and
+Refactor dependencies, fixing small issues with Emacs 26 integration and
+obscure keybindings.  See commit logs for more info.
+
+
 * Changes in Eglot 1.25 (28/10/2026)
 
 ** Changes to 'eglot-server-programs'
