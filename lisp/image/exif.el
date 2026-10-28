@@ -206,27 +206,26 @@ If the orientation isn't present in the data, return nil."
          (cl-loop repeat (exif--read-number 2 le)
                   for tag = (exif--read-number 2 le)
                   for format = (exif--read-number 2 le)
-                  for field-format = (exif--field-format format)
-                  ;; The actual length is the number in this field
-                  ;; times the "inherent" length of the field format
-                  ;; (i.e., "long integer" (4 bytes) or "ascii" (1
-                  ;; byte)).
-                  for length = (* (exif--read-number 4 le)
-                                  (cdr field-format))
+                  for (format-type . format-length) = (exif--field-format
+                                                       format)
+                  ;; The actual length is the number in this field times
+                  ;; the "inherent" length of the field format (i.e.,
+                  ;; "long integer" (4 bytes) or "ascii" (1 byte)).
+                  for length = (* (exif--read-number 4 le) format-length)
                   for value = (exif--read-number 4 le)
                   collect (list
                            :tag tag
                            :tag-name (cadr (assq tag exif-tag-alist))
                            :format format
-                           :format-type (car field-format)
+                           :format-type format-type
                            :value (exif--process-value
                                    (if (> length 4)
                                        ;; If the length of the data is
                                        ;; more than 4 bytes, then it's
                                        ;; actually stored after this
-                                       ;; directory, and the value
-                                       ;; here is just the offset to
-                                       ;; use to find the data.
+                                       ;; directory, and the value here
+                                       ;; is just the offset to use to
+                                       ;; find the data.
                                        (progn
                                          (when (> (+ (1+ value) length)
                                                   (point-max))
@@ -235,16 +234,16 @@ If the orientation isn't present in the data, return nil."
                                          (buffer-substring
                                           (1+ value)
                                           (+ (1+ value) length)))
-                                     ;; The value is stored directly
-                                     ;; in the directory.
-                                     (if (eq (car field-format) 'ascii)
+                                     ;; The value is stored directly in
+                                     ;; the directory.
+                                     (if (eq format-type 'ascii)
                                          (exif--direct-ascii-value
                                           value (1- length) le)
-                                       (if (and (eq (car field-format) 'short) (not le))
+                                       (if (and (not le)
+                                                (eq format-type 'short))
                                            (/ value 65536)
-                                       value)))
-                                   (car field-format)
-                                   le)))))
+                                         value)))
+                                   format-type le)))))
     (let ((next (exif--read-number 4 le)))
       (if (> next 0)
           ;; There's more than one directory; if so, jump to it and
