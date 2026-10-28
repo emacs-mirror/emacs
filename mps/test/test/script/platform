@@ -89,7 +89,7 @@ sub settings_unix {
  $link_obj = "$PLATFORM/$VARIETY/mps.o";
  $make_command = "make -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
  $cc_link = "$obj_dir/platform.o -lm";
- $cc_link_opts = "-z muldefs";
+ $cc_link_opts = "";
  if ($PLATFORM =~ /ll$/) {
   $cc_command = "clang";
   $debug_command = "lldb";

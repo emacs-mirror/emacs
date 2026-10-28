@@ -32,8 +32,8 @@ int counters[PAD_COUNT+1] = {0};
 int prevcounters[PAD_COUNT+1] = {0};
 int maxcounters[PAD_COUNT+1] = {0};
 
-long int maxcopy = 0;
-int freeze=0;
+static long int maxcopy = 0;
+static int freeze=0;
 
 
 /* The AWL pool makes certain assumptions about the object format,

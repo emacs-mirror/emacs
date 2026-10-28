@@ -52,11 +52,6 @@ extern int counters[PAD_COUNT+1];
 extern int prevcounters[PAD_COUNT+1];
 extern int maxcounters[PAD_COUNT+1];
 
-
-long int maxcopy;
-int freeze;
-
-
 /* the object format is visible so tests that want to
    can hack around with it
 */
