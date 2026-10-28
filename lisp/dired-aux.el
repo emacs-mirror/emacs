@@ -2408,10 +2408,11 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
                                     ok-if-already-exists t t t)))
                   (handler-bind
                       ((error (lambda (_)
-                                (if (or (stringp target)
-                                        (not file-is-dir-p))
-                                    (delete-file newname)
-                                  (delete-directory newname t)))))
+                                (unless already-exists
+                                  (if (or (stringp target)
+                                          (not file-is-dir-p))
+                                      (delete-file newname)
+                                    (delete-directory newname t))))))
                     (vc-delete-file file 'noconfirm 'keep))))
               (when newname-backend
                 (let ((newname (expand-file-name newname newname-root))
