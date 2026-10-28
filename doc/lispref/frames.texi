@@ -1133,13 +1133,14 @@ Command Line Arguments for Emacs Invocation, emacs, The GNU Emacs
 Manual}.  Below we list some functions to access and set the size of an
 existing, visible frame, by default the selected one.
 
-@defun frame-height &optional frame
-@defunx frame-width &optional frame
+@defun frame-text-lines &optional frame
+@defunx frame-text-cols &optional frame
 These functions return the height and width of the text area of
-@var{frame}, measured in units of the default font height and width of
-@var{frame} (@pxref{Frame Font}).  These functions are plain shorthands
-for writing @code{(frame-parameter frame 'height)} and
-@code{(frame-parameter frame 'width)}.
+@var{frame} (@pxref{Frame Layout}), measured in units of the default
+font height and width of @var{frame} (@pxref{Frame Font}).  These
+functions are plain shorthands for writing @code{(frame-parameter frame
+'height)} and @code{(frame-parameter frame 'width)}.  The functions
+@code{frame-height} and @code{frame-width} are aliases for them.
 
 If the text area of @var{frame} measured in pixels is not a multiple of
 its default font size, the values returned by these functions are
