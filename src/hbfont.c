@@ -499,7 +499,7 @@ hbfont_shape (Lisp_Object lgstring, Lisp_Object direction)
 
   glyph_len = hb_buffer_get_length (hb_buffer);
   if (glyph_len > LGSTRING_GLYPH_LEN (lgstring))
-    return Qnil;
+    return make_fixnum (- glyph_len);
 
   /* We need the clusters in logical order.  */
   bool buf_reversed = false;
