@@ -147,11 +147,17 @@ static struct weak_marker_table weak_marker_table;
 static Lisp_Object
 scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
 {
+  if (!(CONSP (list) || NILP (list)))
+    return Qerror;
   Lisp_Object prev = Qnil;
   for (Lisp_Object tail = list; !NILP (tail); tail = XCDR (tail))
     {
-      Lisp_Object id = XCAR (XCAR (tail));
-      eassert (FIXNUMP (id));
+      Lisp_Object head = XCAR (tail);
+      if (!CONSP (head))
+	return Qerror;
+      Lisp_Object id = XCAR (head);
+      if (!FIXNUMP (id))
+	return Qerror;
       if (NILP (Fgethash (id, id_to_marker, Qnil)))
 	if (NILP (prev))
 	  list = XCDR (tail);
@@ -159,8 +165,17 @@ scrub_id_offset_pairs (Lisp_Object id_to_marker, Lisp_Object list)
 	  XSETCDR (prev, XCDR (tail));
       else
 	prev = tail;
+      if (!(CONSP (tail) || NILP (tail)))
+	return Qerror;
     }
   return list;
+}
+
+static void
+signal_malformed_entry (Lisp_Object entry)
+{
+  xsignal2 (Qerror, build_string ("Malformed undo-list entry"),
+	    entry);
 }
 
 /* In (apply 0 (BEG . END) undo--adjust-weak-markers . ARGS) entries,
@@ -181,10 +196,15 @@ scrub_undo_list (Lisp_Object list)
 	  && EQ (Fnth (make_fixnum (3), entry),
 		 Qundo__adjust_weak_markers))
 	{
+	  if (!(CONSP (Fnth (make_fixnum (4), entry))
+		&& NILP (Fnthcdr (make_fixnum (5), entry))))
+	    signal_malformed_entry (entry);
 	  Lisp_Object p1 = Fnthcdr (make_fixnum (4), entry);
 	  Lisp_Object list1 = XCAR (p1);
 	  Lisp_Object htab = weak_marker_table.id_to_marker;
 	  Lisp_Object list2 = scrub_id_offset_pairs (htab, list1);
+	  if (BASE_EQ (list2, Qerror))
+	    signal_malformed_entry (entry);
 	  if (!BASE_EQ (list2, list1))
 	    XSETCAR (p1, list2);
 	  drop = NILP (list2);
