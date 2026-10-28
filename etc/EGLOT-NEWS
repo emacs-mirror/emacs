@@ -41,6 +41,12 @@ for which Eglot is now a backend.  The old commands are obsolete aliases
 for Refactor's: for example, 'eglot-code-actions' is now 'M-x refactor'
 and 'eglot-rename' is now 'M-x refactor-rename'.
 
+** 'eglot-reconnect' reuses the events buffer again
+
+As fallout from a recent redesign, Eglot created a new events buffer,
+suffixed '<2>', '<3>', etc., on every reconnection.  It also never
+killed the previous hidden stderr buffer, so they piled up.
+
 ** Miscellaneous bugs fixed (bug#81593, bug#81538, bug#81514, bug#81425)
 
 

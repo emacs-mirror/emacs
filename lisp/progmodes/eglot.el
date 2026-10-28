@@ -7,7 +7,7 @@
 ;; Maintainer: João Távora <joaotavora@gmail.com>
 ;; URL: https://github.com/joaotavora/eglot
 ;; Keywords: convenience, languages
-;; Package-Requires: ((emacs "26.3") (eldoc "1.16.0") (external-completion "0.1") (flymake "1.4.5") (jsonrpc "1.0.29") (project "0.11.2") (refactor "0.1") (seq "2.23") (xref "1.7.0"))
+;; Package-Requires: ((emacs "26.3") (eldoc "1.16.0") (external-completion "0.1") (flymake "1.4.5") (jsonrpc "1.0.30") (project "0.11.2") (refactor "0.1") (seq "2.23") (xref "1.7.0"))
 
 ;; This is a GNU ELPA :core package.  Avoid adding functionality
 ;; that is not available in the version of Emacs recorded above or any
@@ -1642,11 +1642,14 @@ INTERACTIVE is t if called interactively."
   (interactive (list (eglot--current-server-or-lose) t))
   (when (jsonrpc-running-p server)
     (ignore-errors (eglot-shutdown server interactive nil 'preserve-buffers)))
+  ;; Old stderr is already mirrored in the events buffer, which we reuse.
+  (when-let* ((buf (jsonrpc-stderr-buffer server))) (kill-buffer buf))
   (eglot--connect (eglot--major-modes server)
                   (eglot--project server)
                   (eieio-object-class-name server)
                   (eglot--saved-initargs server)
-                  (eglot--language-ids server))
+                  (eglot--language-ids server)
+                  (jsonrpc-events-buffer server))
   (eglot--message "Reconnected!"))
 
 (defvar eglot--managed-mode) ; forward decl
@@ -1735,9 +1738,11 @@ as argument.")
 (defvar-local eglot--cached-server nil
   "A cached reference to the current Eglot server.")
 
-(defun eglot--connect (managed-modes project class contact language-ids)
+(defun eglot--connect (managed-modes project class contact language-ids
+                                     &optional events-buffer)
   "Connect to MANAGED-MODES, LANGUAGE-IDS, PROJECT, CLASS and CONTACT.
-This docstring appeases checkdoc, that's all."
+EVENTS-BUFFER is passed as the `:events-buffer' initarg of
+`jsonrpc-connection', which see."
   (let* ((default-directory (project-root project))
          (nickname (project-name project))
          (readable-name
@@ -1801,6 +1806,7 @@ This docstring appeases checkdoc, that's all."
            #'make-instance class
            :name readable-name
            :events-buffer-config eglot-events-buffer-config
+           :events-buffer events-buffer
            :notification-dispatcher (funcall spread #'eglot-handle-notification)
            :request-dispatcher (funcall spread #'eglot-handle-request)
            :on-shutdown #'eglot--on-shutdown
