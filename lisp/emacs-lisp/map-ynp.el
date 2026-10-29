@@ -287,7 +287,7 @@ The function's value is the number of actions taken."
 			  (funcall actor elt)
 			  (setq actions (1+ actions)
 				next (lambda () nil)))
-			 ((eq def 'quit)
+			 ((memq def '(quit exit-prefix))
 			  (setq quit-flag t)
 			  (funcall try-again))
 			 ((eq def 'automatic)
