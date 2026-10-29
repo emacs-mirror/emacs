@@ -150,6 +150,9 @@ sub settings_linux {
 sub settings_freebsd {
  $make_command = "gmake -B -f $PLATFORM.gmk VARIETY=$VARIETY $link_obj";
  $cc_link .= " -lpthread";
+ if ($PLATFORM =~ /^fr..ll/) {
+  $cc_link_opts .= " -Wl,--error-limit=0";
+ }
 }
 
 

@@ -113,7 +113,8 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
      * this by dropping the executable part of the request. See
      * <design/prot#impl.xc.prot.exec> for details. */
     prot_all = PROT_READ | PROT_WRITE;
-    result = mprotect((void *)base, (size_t)AddrOffset(base, limit), flags & prot_all);
+    result = mprotect((void *)base, (size_t)AddrOffset(base, limit),
+		      (int)(flags & prot_all));
   }
   if (result != 0) {
     int error = errno;

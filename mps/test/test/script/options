@@ -32,7 +32,7 @@ sub platform_detect {
    $platform_ct = "ll";
   } elsif ($os eq "FreeBSD") {
    $platform_os = "fr";
-   $platform_ct = "gc";
+   $platform_ct = "ll";
   } elsif ($os eq "Linux") {
    $platform_os = "li";
    $platform_ct = "gc";
@@ -44,7 +44,8 @@ sub platform_detect {
   chomp($processor);
   if ($processor eq "i386") {
    $platform_ar = "i3";
-  } elsif ($processor eq "x86_64") {
+  } elsif ($processor eq "x86_64"
+	   || $processor eq "amd64") {
    $platform_ar = "i6";
   } else {
    $platform_ar = "xx";

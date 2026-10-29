@@ -195,7 +195,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
      * this by dropping the executable part of the request. See
      * <design/vm#impl.xc.prot.exec> for details. */
     vm_prot = PROT_READ | PROT_WRITE;
-    result = mmap((void *)base, (size_t)size, vm_prot,
+    result = mmap((void *)base, (size_t)size, (int)vm_prot,
                   MAP_ANON | MAP_PRIVATE | MAP_FIXED,
                   -1, 0);
   }
