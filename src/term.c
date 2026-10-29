@@ -5502,4 +5502,5 @@ terminal emulators.  */);
   DEFSYM (Qresume_tty_functions, "resume-tty-functions");
   DEFSYM (Qtty_menu_disabled_face, "tty-menu-disabled-face");
   DEFSYM (Qtty_menu_enabled_face, "tty-menu-enabled-face");
+  DEFSYM (Qtty_kitty_kbd_proto, "tty-kitty-kbd-proto");
 }

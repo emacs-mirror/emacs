@@ -85,7 +85,9 @@ input.  In that case, the command it runs is @code{keyboard-quit}.
 
   On a text terminal, if you quit with @kbd{C-g} a second time before
 the first @kbd{C-g} is recognized, you activate the emergency-escape
-feature and return to the shell.  @xref{Emergency Escape}.
+feature and return to the shell.  @xref{Emergency Escape}.  This feature
+is disabled on text terminals using the Kitty Keyboard Protocol.
+@xref{Terminal Init}.
 
 @cindex NFS and quitting
   There are some situations where you cannot quit.  When Emacs is
@@ -453,6 +455,10 @@ program.
   On MS-DOS, you must type @kbd{C-@key{Break}} (twice) to cause
 emergency escape---but there are cases where it won't work, when a
 system call hangs or when Emacs is stuck in a tight loop in C code.
+
+  Emergency escape is not available in graphical frames, or in text-mode
+frames where the terminal emulator supports the Kitty Keyboard Protocol
+and you have not disabled use of that protocol (@pxref{Terminal Init}).
 
 @node DEL Does Not Delete
 @subsection If @key{DEL} Fails to Delete

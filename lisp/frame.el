@@ -2765,9 +2765,11 @@ frame's display)."
 (defun display-symbol-keys-p (&optional display)
   "Return non-nil if DISPLAY supports symbol names as keys.
 This means that, for example, DISPLAY can differentiate between
-the keybinding RET and [return]."
+the keybinding DEL and [delete]."
   (let ((frame-type (framep-on-display display)))
     (or (memq frame-type '(x w32 ns pc pgtk haiku android))
+        (terminal-parameter (get-device-terminal display)
+                            'tty-kitty-kbd-proto)
         ;; MS-DOS and MS-Windows terminals have built-in support for
         ;; function (symbol) keys
         (memq system-type '(ms-dos windows-nt)))))

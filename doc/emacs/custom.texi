@@ -1838,12 +1838,14 @@ key, Emacs can recognize key sequences like @kbd{C-x @key{Home}}.  You
 can even mix mouse events with keyboard events, such as
 @kbd{S-down-mouse-1}.
 
-  On text terminals, typing a function key actually sends the computer
-a sequence of characters; the precise details of the sequence depend
-on the function key and on the terminal type.  (Often the sequence
-starts with @kbd{@key{ESC} [}.)  If Emacs understands your terminal
-type properly, it automatically handles such sequences as single input
-events.
+  On text terminals, typing a function key actually sends the computer a
+sequence of characters; the precise details of the sequence depend on
+the function key and on the terminal type.  (Often the sequence starts
+with @kbd{@key{ESC} [}.)  If Emacs understands your terminal type
+properly, it automatically handles such sequences as single input
+events.  Whenever it can, Emacs prefers to use the Kitty Keyboard
+Protocol which unambiguously defines sequences for a very broad range of
+function keys (@pxref{Terminal Init}).
 
   Key sequences that consist of @kbd{C-c} followed by a letter (upper
 or lower case; @acronym{ASCII} or non-@acronym{ASCII}) are reserved
@@ -2206,21 +2208,23 @@ same thing as @kbd{M-a}.  This concerns only alphabetical characters,
 and does not apply to shifted versions of other keys; for
 instance, @kbd{C-@@} is not the same as @kbd{C-2}.
 
-  A @key{Control}-modified alphabetical character is generally
-considered case-insensitive: Emacs always treats @kbd{C-A} as
-@kbd{C-a}, @kbd{C-B} as @kbd{C-b}, and so forth.  The reason for this
-is historical: In non-graphical environments there is no distinction
-between those keystrokes.  However, you can bind shifted @key{Control}
-alphabetical keystrokes in GUI frames:
+  In the case of @key{Control}-modified alphabetical character, one
+reason for doing things this way is historical: in traditional
+non-graphical environments there is no distinction between @kbd{C-A} and
+@kbd{C-a}, @kbd{C-B} and @kbd{C-b}, and so forth.  Only non-graphical
+environments using the Kitty Keyboard Protocol (@pxref{Terminal Init})
+can make these distinctions.  You can bind shifted @key{Control}
+alphabetical keystrokes in GUI frames and text-mode frames that use the
+Kitty Keyboard Protocol like this:
 
 @lisp
 (keymap-global-set "C-S-n" #'previous-line)
 @end lisp
 
   For all other modifiers, you can make the modified alphabetical
-characters case-sensitive (even on non-graphical frames) when you
-customize Emacs.  For instance, you could make @kbd{M-a} and @kbd{M-A}
-run different commands.
+characters case-sensitive (even on non-graphical frames not using the
+Kitty Keyboard Protocol) when you customize Emacs.  For instance, you
+could make @kbd{M-a} and @kbd{M-A} run different commands.
 
 @cindex Alt, modifier key
 @cindex Super, modifier key
@@ -3026,6 +3030,27 @@ terminal-specific library have been read in.  Add hook functions to this
 hook if you wish to override part of any of the terminal-specific
 libraries and to define initializations for terminals that do not have a
 library.  @xref{Hooks}.
+
+@subsubsection The Kitty Keyboard Protocol
+
+@vindex tty-use-kitty-kbd-proto
+  When your terminal supports the
+@uref{https://sw.kovidgoyal.net/kitty/keyboard-protocol/, Kitty Keyboard
+Protocol}, Emacs detects this and uses the protocol to communicate with
+the terminal.  This enhances keyboard input by allowing Emacs to
+distinguish between key sequences like @kbd{RET} and @kbd{C-<return>},
+which normally can't be distinguished in text-mode frames.
+
+  If the Kitty Keyboard Protocol causes problems because your terminal
+emulator's support for it is buggy, customize the variable
+@code{tty-use-kitty-kbd-proto} to @code{nil}.  Setting this variable
+affects newly initialized terminals but not existing terminals, so after
+customizing it you will usually need to restart Emacs.
+
+  If your terminal emulator supports the Kitty Keyboard Protocol but
+Emacs fails to detect and use it, you can force it on by customizing the
+variable @code{xterm-extra-capabilities} to include the symbol
+@code{kittyKeyboardProtocol}.
 
 @node Find Init
 @subsection How Emacs Finds Your Init File

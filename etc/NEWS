@@ -60,6 +60,19 @@ behavior.
 If this variable is nil, 'tty-cursor-movement-use-TAB-BS' has no effect,
 and Emacs will never use TABs for any cursor-movement sequences.
 
++++
+** New support for the Kitty Keyboard Protocol.
+If your terminal emulator supports the Kitty Keyboard Protocol,
+text-mode frames now make use of it for keyboard input.
+This means that key chords which previously worked only in graphical
+frames now also work in text-mode frames.  For example, the Kitty
+Keyboard Protocol makes it possible for Emacs to distinguish typing
+"RET" and "C-RET", so now it is possible to bind different commands to
+"RET" and "C-RET" in text-mode frames and have both work.
+If your terminal emulator's support for the Kitty Keyboard Protocol is
+buggy, you can customize 'tty-use-kitty-kbd-proto' to nil to disable
+this feature.
+
 ---
 ** File- and directory-local variables respect user option setters.
 Values of variables that are user options mentioned in file-local

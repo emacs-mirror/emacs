@@ -24,6 +24,8 @@
 
 ;;; Code:
 
+(require 'term/kitty-kbd-proto)
+
 (defgroup xterm nil
   "XTerm support."
   :version "24.1"
@@ -33,6 +35,7 @@
   ;; NOTE: If you add entries here, make sure to update
   ;; `terminal-init-xterm' as well.
   '(set (const :tag "modifyOtherKeys support" modifyOtherKeys)
+        (const :tag "Kitty Keyboard Protocol support" kittyKeyboardProtocol)
         (const :tag "report background" reportBackground)
         (const :tag "get X selection" getSelection)
         (const :tag "set X selection" setSelection)))
@@ -45,10 +48,15 @@ If a list, assume that the listed features are supported, without checking.
 
 The relevant features are:
   modifyOtherKeys  -- if supported, more key bindings work (e.g., \"\\C-,\")
+  kittyKeyboardProtocol  -- if supported, even more key bindings work
   reportBackground -- if supported, Xterm reports its background color
   getSelection     -- if supported, Xterm yanks text from the X selection
-  setSelection     -- if supported, Xterm saves killed text to the X selection"
-  :version "24.1"
+  setSelection     -- if supported, Xterm saves killed text to the X selection
+
+The Kitty Keyboard Protocol subsumes the functionality of
+modifyOtherKeys and so if you request both,
+Emacs uses only the Kitty Keyboard Protocol."
+  :version "32.1"
   :type `(choice (const :tag "Check" check)
                  ,xterm--extra-capabilities-type))
 
@@ -836,7 +844,8 @@ Return the pasted text as a string."
         ;; If version is 216 (the version when modifyOtherKeys was
         ;; introduced) or higher, initialize the
         ;; modifyOtherKeys support.
-        (when (>= version 216)
+        (when (and (>= version 216)
+                   (null (terminal-parameter nil 'tty-kitty-kbd-proto)))
           (xterm--init-modify-other-keys))
         ;; In version 203 support for accessing the X selection was
         ;; added.  Hterm reports itself as version 256 and supports it
@@ -850,14 +859,40 @@ Return the pasted text as a string."
           (xterm--init-activate-set-selection))))))
 
 (defun xterm--primary-da-handler ()
-  ;; The reply should be: \e [ ? NUMBER1 ; ... ; NUMBER_N c
   (let ((str (xterm--read-string ?c)))
-    (when (member "52" (split-string str ";" t))
-      ;; Many modern terminals include 52 in their primary DA response,
-      ;; to indicate support for *writing* to the OS clipboard. The
-      ;; specification does not guarantee the clipboard can be read. See
-      ;; https://github.com/contour-terminal/vt-extensions/blob/master/clipboard-extension.md
-      (xterm--init-activate-set-selection))))
+    ;; With a KKP-supporting terminal the reply should be:
+    ;;   \e [ ? 5 u \e [ ? NUMBER1 ; ... ; NUMBER_N c
+    ;; with the leading \e[?1u absent if there is no KKP support.
+    ;; `xterm--query' chops the leading \e[? and `xterm--read-string'
+    ;; the trailing c so we get either
+    ;;   5 u \e [ ? NUMBER1 ; ... ; NUMBER_N
+    ;; if there is KKP support, and just
+    ;;   NUMBER1 ; ... ; NUMBER_N
+    ;; if not.
+    (when (string-match "\\`\\(?:\\([0-9]+\\)u\e\\[\\?\\)?\\([0-9;]+\\)\\'"
+                        str)
+      (when-let* (tty-use-kitty-kbd-proto
+                  (progressive-enhancements (match-string 1 str)))
+        (if (not (eq (string-to-number progressive-enhancements)
+                     kitty-kbd-proto-progressive-enhancements))
+            ;; The terminal ignored our request to turn on exactly
+            ;; progressive enhancements 1 and 4.  Its implementation
+            ;; must be broken, attempt to turn off KKP again.
+            (kitty-kbd-proto-off)
+          (kitty-kbd-proto-init t)))
+      (when (member "52" (split-string (match-string 2 str) ";" t))
+        ;; Many modern terminals include 52 in their primary DA
+        ;; response, to indicate support for *writing* to the OS
+        ;; clipboard.  The specification does not guarantee the
+        ;; clipboard can be read. See
+        ;; https://github.com/contour-terminal/vt-extensions/blob/master/clipboard-extension.md
+        (xterm--init-activate-set-selection))))
+  ;; Now try to find out the type of terminal by sending a "Secondary
+  ;; Device Attributes (DA)" query.  This is done from within this
+  ;; handler in order to force the queries to be done in order, since
+  ;; the results of this second query depend on whether we activated
+  ;; Kitty Keyboard Protocol above.
+  (xterm--query "\e[>0c" '(("\e[>" . xterm--version-handler))))
 
 (defvar xterm-query-timeout 2
   "Seconds to wait for an answer from the terminal.
@@ -985,14 +1020,16 @@ We run the first FUNCTION whose STRING matches the input events."
   (tty-set-up-initial-frame-faces)
 
   (if (eq xterm-extra-capabilities 'check)
-      (progn
-        ;; Try to find out the type of terminal by sending a "Secondary
-        ;; Device Attributes (DA)" query.
-        (xterm--query "\e[>0c"
-                      '(("\e[>" . xterm--version-handler)))
-        ;; Check primary DA for OSC-52 support
-        (xterm--query "\e[c"
-                      '(("\e[?" . xterm--primary-da-handler))))
+      ;; Send three control sequences: try to activate the Kitty
+      ;; Keyboard Protocol; query for what KKP progressive enhancements
+      ;; are enabled; query the primary DA.  Making two queries is the
+      ;; documented way to detect KKP support, and we also need the
+      ;; primary DA to see whether there is OSC-52 support.
+      ;; See <https://sw.kovidgoyal.net/kitty/keyboard-protocol/>.
+      (xterm--query (concat (and tty-use-kitty-kbd-proto
+                                 kitty-kbd-proto-query)
+                            "\e[c")
+                    '(("\e[?" . xterm--primary-da-handler)))
 
     (when (memq 'reportBackground xterm-extra-capabilities)
       (xterm--query "\e]11;?\e\\"
@@ -1000,8 +1037,11 @@ We run the first FUNCTION whose STRING matches the input events."
       (xterm--query "\e]10;?\e\\"
                     '(("\e]10;" . xterm--report-foreground-handler))))
 
-    (when (memq 'modifyOtherKeys xterm-extra-capabilities)
-      (xterm--init-modify-other-keys))
+    (cond ((and tty-use-kitty-kbd-proto
+                (memq 'kittyKeyboardProtocol xterm-extra-capabilities))
+           (kitty-kbd-proto-init nil))
+          ((memq 'modifyOtherKeys xterm-extra-capabilities)
+           (xterm--init-modify-other-keys)))
 
     (when (memq 'getSelection xterm-extra-capabilities)
       (xterm--init-activate-get-selection))
