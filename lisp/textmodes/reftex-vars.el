@@ -300,14 +300,14 @@ which this needs to be larger."
 
 ;; LaTeX section commands and level numbers
 (defcustom reftex-section-levels
-  '(
-    ("part"            .  0)
+  '(("part"            .  0)
     ("chapter"         .  1)
     ("section"         .  2)
     ("subsection"      .  3)
     ("subsubsection"   .  4)
     ("paragraph"       .  5)
     ("subparagraph"    .  6)
+    ("addpart"         .  0) ; KOMA-Script
     ("addchap"         . -1) ; KOMA-Script
     ("addsec"          . -2) ; KOMA-Script
 ;;; ("minisec"         . -7) ; KOMA-Script
@@ -330,7 +330,8 @@ select the nearest entry with the correct new level."
           (cons (string :tag "sectioning macro" "")
                 (choice
                  (number :tag "level           " 0)
-                 (symbol :tag "function        " my-level-func)))))
+                 (symbol :tag "function        " my-level-func))))
+  :version "32.1")
 
 (defcustom reftex-toc-max-level 100
   "The maximum level of toc entries which will be included in the TOC.
