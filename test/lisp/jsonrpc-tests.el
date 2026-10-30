@@ -308,6 +308,23 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
         (setq conn nil)))
     (should-not warned)))
 
+(ert-deftest shutdown-promptly-after-exit ()
+  "Check `jsonrpc-shutdown' returns in time."
+  (skip-when (eq system-type 'windows-nt))
+  (let (warned elapsed)
+    (cl-letf (((symbol-function 'jsonrpc--warn)
+               (lambda (fmt &rest args)
+                 (setq warned (apply #'format fmt args)))))
+      (jsonrpc--with-python-fixture
+          ("jsonrpc-resources/server-harakiri.py" conn)
+        (jsonrpc-notify conn 'harakiri nil)
+        (let ((start (float-time)))
+          (jsonrpc-shutdown conn)
+          (setq elapsed (- (float-time) start)))
+        (setq conn nil)))
+    (should-not warned)
+    (should (< elapsed 0.25))))
+
 (ert-deftest bug-82046-failed-send-cleans-up ()
   (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-python-fixture
