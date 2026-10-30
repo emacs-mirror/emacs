@@ -1410,6 +1410,15 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
 
 (defvar eglot--servers-by-xrefed-file (make-hash-table :test 'equal))
 
+(defun eglot--sever (server)
+  "Sever the project/server relationship for SERVER."
+  (setf (gethash (eglot--project server) eglot--servers-by-project)
+        (delq server
+              (gethash (eglot--project server) eglot--servers-by-project)))
+  (maphash (lambda (f s)
+             (when (eq s server) (remhash f eglot--servers-by-xrefed-file)))
+           eglot--servers-by-xrefed-file))
+
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
   ;; Turn off `eglot--managed-mode' where appropriate.
@@ -1422,13 +1431,7 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
              (dolist (watch-desc watch-descriptors)
                (file-notify-rm-watch watch-desc)))
            (eglot--file-watches server))
-  ;; Sever the project/server relationship for `server'
-  (setf (gethash (eglot--project server) eglot--servers-by-project)
-        (delq server
-              (gethash (eglot--project server) eglot--servers-by-project)))
-  (maphash (lambda (f s)
-             (when (eq s server) (remhash f eglot--servers-by-xrefed-file)))
-           eglot--servers-by-xrefed-file)
+  (eglot--sever server)
   ;; Cleanup entries in 'flymake-list-only-diagnostics'
   (setq flymake-list-only-diagnostics
         (cl-delete-if
@@ -2455,10 +2458,39 @@ the previous reports for TOKEN.")
         (setf (eglot--managed-buffers server)
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
-                   (null (eglot--managed-buffers server))
-                   ;; Don't shutdown if up again soon.
-                   (not (eglot--revert-in-progress-p)))
-          (eglot-shutdown server)))))))
+                   (null (eglot--managed-buffers server)))
+          (eglot--maybe-autoshutdown server)))))))
+
+(defun eglot--maybe-autoshutdown (server)
+  "Arrange for SERVER to auto-shutdown asynchronously.
+Helper for `eglot-autoshutdown'.  When this function is called we know
+no buffers are managed (the current buffer was the last).  But we
+carefully post-pone the decision to actually shutdown, since there's no
+point in shutting down if there _are_ such managed buffers when the
+current ends (as `revert-buffer' and `find-alternate-file' do)."
+  (cl-labels
+      ((finish (&rest _)
+         (when (jsonrpc-running-p server)
+           (jsonrpc-notify server :exit eglot--{}))
+         (jsonrpc-shutdown server t t))
+       (decide ()
+         (remove-hook 'post-command-hook #'decide)
+         (when (and (null (eglot--managed-buffers server))
+                    (not (eglot--shutdown-requested server))
+                    (jsonrpc-running-p server))
+           (eglot--message "Asking %s politely to terminate"
+                           (jsonrpc-name server))
+           (setf (eglot--shutdown-requested server) t)
+           (eglot--sever server)
+           (jsonrpc-async-request server :shutdown :jsonrpc-omit
+                                  :success-fn #'finish
+                                  :error-fn #'finish
+                                  :timeout-fn #'finish
+                                  :timeout 1.5))))
+    (if this-command
+        (add-hook 'post-command-hook #'decide)
+      ;; Outside a command (timer, process filter, batch), decide soon.
+      (run-at-time 0 nil #'decide))))
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
@@ -2491,9 +2523,6 @@ the previous reports for TOKEN.")
     (eglot--signal-textDocument/didOpen)
     (when eglot-semantic-tokens-mode
       (eglot-semantic-tokens-mode))))
-
-(defun eglot--revert-in-progress-p ()
-  (with-no-warnings revert-buffer-in-progress-p))
 
 (defun eglot--maybe-activate-editing-mode ()
   "Maybe activate `eglot--managed-mode'.

@@ -18,6 +18,17 @@ to look up issue github#1234, go to
 https://github.com/joaotavora/eglot/issues/1234.
 
 
+* Changes to upcoming Eglot
+
+** 'eglot-autoshutdown' no longer blocks Emacs.
+
+When 'eglot-autoshutdown' is set to non-nil, killing the last managed
+buffer could block Emacs for close to 2 seconds while the shutdown ran
+through, and failed outright if the server didn't answer the shutdown
+request in time.  Now the autoshutdown process is done asynchronously,
+after the command that killed the buffer.
+
+
 * Changes in Eglot 1.26 (30/10/2026)
 
 This is a bugfix release to align Eglot with its latest Xref and
