@@ -203,7 +203,7 @@ static void genTests(MutatorContext ctx)
             size_t index = gprs[i].num;
             size_t dst = gprs[d].num;
             int32_t disp = displacemts[e];
-            size_t scale = sbits ? (1 << sbits) : 0;
+            size_t scale = sbits ? ((size_t)1 << sbits) : 0;
             if (dst == REG_RIP || (!sbits && i)
                 || (sbits && base == index) || index == REG_RSP
                 || base == REG_RIP || index == REG_RIP
