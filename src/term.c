@@ -3539,6 +3539,14 @@ typedef enum {
   MI_SCROLL_BACK    = 5
 } mi_result;
 
+static Lisp_Object
+read_menu_error (Lisp_Object error_val)
+{
+  add_to_log ("Error in reading TTY menu commands: %s",
+	      Ferror_message_string (error_val));
+  return Qnil;
+}
+
 /* Read user input and return X and Y coordinates where that input
    puts us.  We only consider mouse movement and click events, and
    keyboard movement commands; the rest are ignored.  */
@@ -3565,7 +3573,12 @@ read_menu_input (struct frame *sf, int *x, int *y, int min_y, int max_y,
       /* We want mouse movements be reported by read_menu_command.  */
       track_mouse = Qt;
       do {
-	cmd = read_menu_command ();
+	/* This function and our callers set all kinds of flags, like
+	   Vinhibit_redisplay and tty->showing_menu, so we cannot allow
+	   non-local exits from read_menu_command (which could happen if
+	   read_key_sequence runs Lisp that signals an error), because
+	   we will then fail to restore these flags.  */
+	cmd = internal_condition_case (read_menu_command, Qt, read_menu_error);
       } while (NILP (cmd));
       tty->showing_menu = 0;
       track_mouse = old_track_mouse;

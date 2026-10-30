@@ -2287,7 +2287,8 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
   if (STRINGP (help) || NILP (help))
     {
       if (!NILP (Vshow_help_function))
-	calln (Vshow_help_function, help_echo_substitute_command_keys (help));
+	safe_calln (Vshow_help_function,
+		    help_echo_substitute_command_keys (help));
       help_echo_showing_p = STRINGP (help);
     }
 }
