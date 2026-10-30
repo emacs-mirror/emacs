@@ -2390,26 +2390,50 @@ and whose location is an `xref-etags-location' object."
     ;; Filter out elements that don't match KIND.
     (etags--filter-by-kind defs kind)))
 
-(defun etags--kind-predicate (kind candidate)
-  "A predicate that returns non-nil if CANDIDATE's type matches KIND.
-CANDIDATE is a string which gives the identifier of a completion candidate;
-KIND is a symbol presumably taken from `xref-backend-xref-kinds's `:kind'
-property.
-
-This function is supposed to be used as PREDICATE by the various
-completion functions and primitives."
-  (let ((defs (etags--xref-find-definitions candidate))
-        def found-match)
-    (while (and (not found-match)
-                defs)
-      (setq def (car defs)
-            defs (cdr defs)
-            found-match (etags--xref-item-matches (xref-item-summary def)
-                                                  (file-name-nondirectory
-                                                   (xref-etags-location-file
-                                                    (xref-item-location def)))
-                                                  kind)))
-    found-match))
+(defun etags--kind-identifiers-table (kind)
+  "Build and return a hash table with all identifiers of KIND."
+  (let* ((first-time t)
+         (type-regexps (cdr (assq kind etags--types-regexp-alist)))
+         (must-match (car type-regexps))
+         (must-not-match (nth 1 type-regexps))
+         (case-fold-search (find-tag--completion-ignore-case))
+         (cbuf (current-buffer))
+         (table (make-hash-table :test 'equal))
+         text end text-end)
+    (unless must-match
+      ;; Possibly only a temporary limitation.
+      (user-error "etags kind must have a regexp to search for"))
+    (setq must-match
+          (string-replace
+           "\\'" "\177"
+           (string-replace "\\`" "^" must-match)))
+    (save-excursion
+      (while (visit-tags-table-buffer (not first-time) cbuf)
+        (setq first-time nil)
+        (goto-char (point-min))
+        ;; FIXME: Look for ^L and update case-sensitivity on the go.
+        (while (re-search-forward must-match nil t)
+          (when (= (char-before) ?\177)
+            (forward-char -1))
+          (save-excursion
+            ;; Failure to match means we landed after \177.
+            (when (re-search-forward "\177\\(?:\\([^\n\001]+\\)\001\\)?"
+                                     (line-end-position) t)
+              (setq text-end (match-beginning 0))
+              (if (match-beginning 1)
+                  ;; Explicit tag name.
+                  (setq text (match-string 1))
+                ;; Backtrack, look for implicit tag name.
+                (skip-chars-backward "\f\t\n\r()=,; \177")
+                (setq end (point))
+                (skip-chars-backward "^\f\t\n\r()=,; ")
+                (setq text (buffer-substring-no-properties (point) end)))
+              (when (or (not must-not-match)
+                        (not (string-match-p must-not-match
+                                             (buffer-substring-no-properties
+                                              (line-beginning-position) text-end))))
+                (puthash text t table)))))))
+    table))
 
 (cl-defmethod xref-backend-identifier-completion-predicate ((_backend (eql 'etags))
                                                             &optional kind)
@@ -2419,8 +2443,11 @@ meaning that the caller is interested only in canddiates that match KIND,
 the predicate is a function which will reject any candidate that doesn't
 match KIND."
   (if kind
-      (lambda (candidate)
-        (etags--kind-predicate kind candidate))))
+      (let (kind-candidates)
+        (lambda (candidate)
+          (unless kind-candidates
+            (setq kind-candidates (etags--kind-identifiers-table kind)))
+          (gethash candidate kind-candidates)))))
 
 
 (provide 'etags)
