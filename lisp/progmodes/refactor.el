@@ -3,7 +3,7 @@
 ;; Copyright (C) 2026 Free Software Foundation, Inc.
 ;; Author: João Távora <joaotavora@gmail.com>
 
-;; Version: 0.1
+;; Version: 0.1.1
 ;; Keywords: convenience, languages
 ;; Package-Requires: ((emacs "26.3") (eldoc "1.14.0"))
 
