@@ -3294,9 +3294,10 @@ mouse_get_xy (int *x, int *y)
 {
   Lisp_Object mouse = mouse_position (tty_menu_calls_mouse_position_function);
 
-  struct frame *f = XFRAME (XCAR (mouse));
+  /* The car of MOUSE could be nil, e.g. if X/Y are outside the TTY frame.  */
+  struct frame *f = FRAMEP (XCAR (mouse)) ? XFRAME (XCAR (mouse)) : NULL;
   struct frame *sf = SELECTED_FRAME ();
-  if (f == sf || frame_ancestor_p (sf, f))
+  if (f && (f == sf || frame_ancestor_p (sf, f)))
     {
       Lisp_Object lmx = XCAR (XCDR (mouse)), lmy = XCDR (XCDR (mouse));
       if (FIXNUMP (lmx) && FIXNUMP (lmy))
