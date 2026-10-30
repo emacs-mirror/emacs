@@ -1999,7 +1999,7 @@ Unless IMMEDIATE, send pending changes before making request."
                          :cancel-on-input-retval cancel-on-input-retval)
       (jsonrpc-error
        (let* ((data (cddr oops)) (ec (alist-get 'jsonrpc-error-code data)))
-         (if (zerop ec) (eglot--message (alist-get 'jsonrpc-error-message data))
+         (if (eql ec 0) (eglot--message (alist-get 'jsonrpc-error-message data))
            (signal 'jsonrpc-error (cdr oops))))))))
 
 (defvar-local eglot--inflight-async-requests nil
