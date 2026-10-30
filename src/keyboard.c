@@ -3789,7 +3789,7 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
 	c = make_ctrl_char (c);
 
       c |= (event->ie.modifiers
-	    & (meta_modifier | alt_modifier | shift_modifier
+	    & (meta_modifier | alt_modifier
 	       | hyper_modifier | super_modifier));
 
       if (c == quit_char)
