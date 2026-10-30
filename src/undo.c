@@ -185,9 +185,13 @@ signal_malformed_entry (Lisp_Object entry)
 static Lisp_Object
 scrub_undo_list (Lisp_Object list)
 {
+  if (!CONSP (list))
+    return list;
   Lisp_Object prev = Qnil;
   for (Lisp_Object tail = list; !NILP (tail); tail = XCDR (tail))
     {
+      if (!CONSP (tail))
+	return list;
       bool drop = false;
       Lisp_Object entry = XCAR (tail);
       if (CONSP (entry) && EQ (Qapply, XCAR (entry))

@@ -172,7 +172,9 @@
              (apply 0 (1 . 1) undo--adjust-weak-markers t)
              (apply 0 (1 . 1) undo--adjust-weak-markers (1 . 2) (3 . 4))
              (apply 0 (1 . 1) undo--adjust-weak-markers ((t . 1) (t . -1)))
-             (apply 0 (1 . 1) undo--adjust-weak-markers (t (2 . -1))))))
+             (apply 0 (1 . 1) undo--adjust-weak-markers (t (2 . -1)))
+             (apply 0 (1 . 1) . a)
+             (apply 0 (1 . 1) undo--adjust-weak-markers . b))))
       (dolist (entry bad-entries)
         (erase-buffer)
         (insert "123456789")
@@ -188,6 +190,24 @@
         (condition-case e
             (igc--process-messages)
           (t (pcase-exhaustive e
-               (`(error "Malformed undo-list entry" ,entry)))))))))
+               (`(error "Malformed undo-list entry" ,_))
+               (`(wrong-type-argument listp ,_)))))))))
+
+(ert-deftest igc-tests-malformed-undo-list-2 ()
+  (with-temp-buffer
+    (let ((bad-lists '(t (t . 0) 123 [] (nil [])
+                         (("x" . 1) . a))))
+      (dolist (list bad-lists)
+        (erase-buffer)
+        (insert "123456789")
+        (setq buffer-undo-list nil)
+        (thread-join
+         (make-thread
+          (lambda ()
+            (let ((m (copy-marker 5)))
+              (delete-region 3 7)))))
+        (setq buffer-undo-list list)
+        (igc--collect)
+        (igc--process-messages)))))
 
 ;;; igc-tests.el ends here.
