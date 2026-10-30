@@ -605,16 +605,14 @@ PROPERTIES is a list of file properties (strings)."
 	;; If there is the key "login-as", we don't save, because all
 	;; other properties might depend on the login name, and we
 	;; want to give the possibility to use another login name
-	;; later on.  Key "started" exists for the "ftp" method only,
-	;; which must not be kept persistent.
+	;; later on.
 	(maphash
 	 (lambda (key value)
 	   (if (and (tramp-file-name-p key) (hash-table-p value)
 		    (not (string-equal
 			  (tramp-file-name-method key) tramp-archive-method))
 		    (not (tramp-file-name-localname key))
-		    (not (gethash "login-as" value))
-		    (not (gethash "started" value)))
+		    (not (gethash "login-as" value)))
 	       (progn
 		 (dolist (k (hash-table-keys value))
 		   ;; Suppress ephemeral properties.

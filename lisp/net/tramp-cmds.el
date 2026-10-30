@@ -89,7 +89,7 @@ SYNTAX can be one of the symbols `default' (default),
 ;;;###tramp-autoload
 (defun tramp-list-tramp-buffers ()
   "Return a list of all Tramp connection buffers."
-  (match-buffers (rx bos (| "*tramp/" "*debug tramp/" "*trace tramp/"))))
+  (match-buffers (rx bos (| "*tramp/" "*debug tramp/" "*trace tramp/" "*ftp "))))
 
 ;;;###tramp-autoload
 (defun tramp-list-remote-buffers ()
