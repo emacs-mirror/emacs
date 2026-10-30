@@ -306,7 +306,8 @@ directory hierarchy."
          (eglot-sync-connect t)
          (eglot-connect-timeout timeout)
          (eglot-server-programs
-          (if server `((,major-mode . ,(split-string server)))
+          (if server `((,major-mode . ,(if (consp server) server
+                                         (split-string server))))
             eglot-server-programs)))
     (apply #'eglot--connect (eglot--guess-contact))))
 
@@ -381,6 +382,55 @@ directory hierarchy."
         ;; ;; but now kill it with `eglot-autoshutdown' set to t
         (let ((eglot-autoshutdown t)) (kill-buffer buffer))
         (should (not (jsonrpc-running-p server)))))))
+
+(ert-deftest eglot-test-auto-shutdown-unresponsive ()
+  "Kill last buffer of a server that never answers `shutdown'."
+  (skip-unless (executable-find "python3"))
+  (skip-unless (file-exists-p (ert-resource-file "server-slow-shutdown.py")))
+  (let (server
+        buffer)
+    (eglot--with-fixture
+        `(("project" . (("thingy.txt" . "bla"))))
+      (with-current-buffer
+          (setq buffer (eglot--find-file-noselect "project/thingy.txt"))
+        (prog-mode)
+        (should (setq server
+                      (eglot--tests-connect
+                       :server `("python3"
+                                 ,(ert-resource-file "server-slow-shutdown.py")
+                                 "--ignore-shutdown"))))
+        (should (eglot-current-server))
+        ;; The `shutdown' timeout doesn't prevent killing the buffer
+        ;; and the server.
+        (let ((eglot-autoshutdown t)) (kill-buffer buffer))
+        (should-not (buffer-live-p buffer))
+        (should-not (jsonrpc-running-p server))))))
+
+(ert-deftest eglot-test-shutdown-unresponsive ()
+  "\[eglot-shutdown] a server that never answers `shutdown'."
+  (skip-unless (executable-find "python3"))
+  (skip-unless (file-exists-p (ert-resource-file "server-slow-shutdown.py")))
+  (let (server buffers)
+    (eglot--with-fixture
+        `(("project" . (("thingy.txt" . "bla"))))
+      (with-current-buffer (eglot--find-file-noselect "project/thingy.txt")
+        (prog-mode)
+        (should (setq server
+                      (eglot--tests-connect
+                       :server `("python3"
+                                 ,(ert-resource-file "server-slow-shutdown.py")
+                                 "--ignore-shutdown"))))
+        (setq buffers (list (jsonrpc-events-buffer server)
+                            (jsonrpc-stderr-buffer server)))
+        ;; A timeout is a `jsonrpc-error', not some random error...
+        (should-error (eglot--request server :shutdown nil :timeout 0.1)
+                      :type 'jsonrpc-error)
+        ;; ...which `eglot-shutdown' demotes, shutting down anyway.
+        (eglot-shutdown server nil 0.2)
+        (should-not (jsonrpc-running-p server))
+        (should-not (memq server (gethash (eglot--project server)
+                                          eglot--servers-by-project)))
+        (should-not (cl-some #'buffer-live-p buffers))))))
 
 (ert-deftest eglot-test-auto-reconnect ()
   "Start a server.  Kill it.  Watch it reconnect."

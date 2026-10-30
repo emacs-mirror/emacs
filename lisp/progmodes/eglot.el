@@ -1388,8 +1388,15 @@ SERVER."
   (unwind-protect
       (progn
         (setf (eglot--shutdown-requested server) t)
-        (eglot--request server :shutdown :jsonrpc-omit :timeout (or timeout 1.5))
-        (jsonrpc-notify server :exit eglot--{}))
+        (condition-case oops
+            (eglot--request server :shutdown :jsonrpc-omit
+                            :timeout (or timeout 1.5))
+          (jsonrpc-error
+           (eglot--message "%s overstayed its welcome: %s"
+                           (jsonrpc-name server)
+                           (alist-get 'jsonrpc-error-message (cddr oops)))))
+        (when (jsonrpc-running-p server)
+          (jsonrpc-notify server :exit eglot--{})))
     ;; Now ask jsonrpc.el to shut down the server.
     (jsonrpc-shutdown server (not preserve-buffers))))
 
