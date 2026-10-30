@@ -133,6 +133,7 @@
     ( lb      "16 oz"                "Pound (mass)" )
     ( oz      "28349523125*10^(-9) g" "Ounce (mass)" nil
               "28.349523125 g") ;; ESUWM
+    ( st      "14 lb"                "Stone" )
     ( ton     "2000 lb"              "Ton" )
     ( tpo     "ton+lb+oz"            "Tons + pounds + ounces (mass)" )
     ( t       "1000 kg"              "Metric ton" )

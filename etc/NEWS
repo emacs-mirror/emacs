@@ -509,6 +509,13 @@ This avoids losing the buffer history for each frame, and in particular,
 'M-n' and 'M-p' at the 'C-x b' prompt will now suggest recent buffers of
 the frame after restoring a session.
 
+** Calc
+
+---
+*** New mass unit 'stone'.
+Stone, which is equivalent to 14 lb or 6.35 kg, is used to measure body
+weight in the United Kingdom and Ireland.
+
 
 * New Modes and Packages in Emacs 32.1
 
