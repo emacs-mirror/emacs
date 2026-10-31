@@ -221,14 +221,19 @@ double rnd_double(void)
 
 static unsigned sizelog2(size_t size)
 {
-#ifdef __MINGW32__
-  /* For some reason, MinGW sometimes produces a value slightly
-     smaller than the expected one, so we round up to the next FP
-     value.  */
-  return (unsigned)(log((double)size) / log(2.0) * (1.0 + __DBL_EPSILON__));
-#else
-  return (unsigned)(log((double)size) / log(2.0));
-#endif
+  /* This used to be (unsigned)(log((double)size) / log(2.0)).  But
+     different compilers produced different results for that. */
+  unsigned i;
+  Insist(size != 0);
+  for (i = 0; i != CHAR_BIT * sizeof size; i++)
+    {
+      size_t y = (size_t)1 << i;
+      if (y == size)
+        return i;
+      if (y > size)
+        return i - 1;
+    }
+  abort();
 }
 
 size_t rnd_grain(size_t arena_size)
