@@ -3633,9 +3633,9 @@ of the local copy file.
 
 @defun file-remote-p filename &optional identification connected
 This function tests whether @var{filename} is a remote file.  If
-@var{filename} is local (not remote), the return value is @code{nil}.
-If @var{filename} is indeed remote, the return value is a string that
-identifies the remote system.
+@var{filename} is local (not remote) or @code{nil}, the return value is
+@code{nil}.  If @var{filename} is indeed remote, the return value is a
+string that identifies the remote system.
 
 This identifier string can include a host name and a user name, as
 well as characters designating the method used to access the remote

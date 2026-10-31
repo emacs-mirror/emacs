@@ -1464,7 +1464,7 @@ reuse only a connection that is already open.
 
 Return nil or a string identifying the remote connection
 \(ideally a prefix of FILE).  Return nil if FILE is a relative
-file name.
+file name.  Return nil if FILE is nil.
 
 When IDENTIFICATION is nil, the returned string is a complete
 remote identifier: with components method, user, and host.  The
@@ -1498,7 +1498,8 @@ Tip: You can use this expansion of remote identifier components
      returns a remote file name for file \"/bin/sh\" that has the
      same remote identifier as FILE but expanded; a name such as
      \"/sudo:root@myhost:/bin/sh\"."
-  (when-let* ((handler (find-file-name-handler file 'file-remote-p)))
+  (when-let* ((file)
+              (handler (find-file-name-handler file 'file-remote-p)))
     (funcall handler 'file-remote-p file identification connected)))
 
 ;; Probably this entire variable should be obsolete now, in favor of

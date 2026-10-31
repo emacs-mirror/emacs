@@ -2297,7 +2297,7 @@ machines (@pxref{Remote Files}) using TRAMP (@pxref{Top, The Tramp
 Manual,, tramp, The Tramp Manual}).  This is mostly useful in
 combination with using the Emacs server from a remote host.  By
 ssh-forwarding the listening socket, or ssh-forwarding the listening
-port @pxref{TCP Emacs server} and making the
+port (@pxref{TCP Emacs server}) and making the
 @var{server-file} available on a remote machine, programs on the
 remote machine can use @command{emacsclient} as the value for the
 @env{EDITOR} and similar environment variables, but instead of talking

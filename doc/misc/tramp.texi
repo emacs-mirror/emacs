@@ -4351,6 +4351,20 @@ called is local or remote, since @value{tramp} would add just the
 @env{HGPLAIN} setting and local processes would take whole value of
 @code{process-environment} along with the new value of @env{HGPLAIN}.
 
+@findex with-environment-variables
+A convenient way to bind @code{process-environment} is the macro
+@code{with-environment-variables}.  The following code is equivalent:
+
+@lisp
+@group
+(with-environment-variables (("HGPLAIN" "1"))
+  (process-file @dots{}))
+@end group
+@end lisp
+
+Note that using a buffer-local @code{process-environment} will not
+work as expected for @value{tramp}.
+
 @vindex tramp-propagate-emacsclient-tramp
 @vindex EMACSCLIENT_TRAMP@r{, environment variable}
 If you set the user option @code{tramp-propagate-emacsclient-tramp} to
