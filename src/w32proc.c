@@ -603,7 +603,7 @@ timer_loop (LPVOID arg)
   return 0;
 }
 
-static void
+static int
 stop_timer_thread (int which)
 {
   struct itimer_data *itimer =
@@ -616,7 +616,7 @@ stop_timer_thread (int which)
   itimer->terminate = 1;
 
   if (itimer->timer_thread == NULL)
-    return;
+    return 1;
 
   /* Wait for the timer thread to terminate voluntarily, then kill it
      if it doesn't.  This loop waits twice more than the maximum
@@ -631,8 +631,15 @@ stop_timer_thread (int which)
   if ((status == FALSE && (err = GetLastError ()) == ERROR_INVALID_HANDLE)
       || exit_code == STILL_ACTIVE)
     {
+      /* If we failed to stop the thread in time, let the OS do it for us.
+         Reportedly, this can happen under system-wide memory-pressure
+         situation, because when a thread exits, Windows triggers the
+         DLL_THREAD_DETACH calls for all the loaded modules, which
+         include the *.eln files, of which there can be a large number.
+         Forcefully terminating a thread in that case can lead to a
+         deadlock.  */
       if (!(status == FALSE && err == ERROR_INVALID_HANDLE))
-	TerminateThread (itimer->timer_thread, 0);
+	return 0;
     }
 
   /* Clean up.  */
@@ -643,24 +650,30 @@ stop_timer_thread (int which)
       CloseHandle (itimer->caller_thread);
       itimer->caller_thread = NULL;
     }
+
+  return 1;
 }
 
 /* This is called at shutdown time from term_ntproc.  */
 void
 term_timers (void)
 {
+  int real_stopped = 1, prof_stopped = 1;
   if (real_itimer.timer_thread)
-    stop_timer_thread (ITIMER_REAL);
+    real_stopped = stop_timer_thread (ITIMER_REAL);
   if (prof_itimer.timer_thread)
-    stop_timer_thread (ITIMER_PROF);
+    prof_stopped = stop_timer_thread (ITIMER_PROF);
 
   /* We are going to delete the critical sections, so timers cannot
      work after this.  */
   disable_itimers = 1;
 
-  DeleteCriticalSection (&crit_real);
-  DeleteCriticalSection (&crit_prof);
-  DeleteCriticalSection (&crit_sig);
+  if (real_stopped)
+    DeleteCriticalSection (&crit_real);
+  if (prof_stopped)
+    DeleteCriticalSection (&crit_prof);
+  if (real_stopped && prof_stopped)
+    DeleteCriticalSection (&crit_sig);
 }
 
 /* This is called at initialization time from init_ntproc.  */
