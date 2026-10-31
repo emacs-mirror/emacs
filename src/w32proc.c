@@ -636,8 +636,8 @@ stop_timer_thread (int which)
          situation, because when a thread exits, Windows triggers the
          DLL_THREAD_DETACH calls for all the loaded modules, which
          include the *.eln files, of which there can be a large number.
-         Forcefully terminating a thread in that case can lead to a
-         deadlock.  */
+         We used to forcefully terminate the thread in that case, but that
+	 can lead to a deadlock.  */
       if (!(status == FALSE && err == ERROR_INVALID_HANDLE))
 	return 0;
     }
