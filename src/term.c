@@ -3645,7 +3645,6 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   Lisp_Object selectface;
   int first_item = 0;
   int col, row;
-  Lisp_Object prev_inhibit_redisplay = Vinhibit_redisplay;
   USE_SAFE_ALLOCA;
 
   /* Don't allow non-positive x0 and y0, lest the menu will wrap
@@ -3691,7 +3690,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   /* Inhibit redisplay for as long as the menu is active, to avoid
      messing the screen if some timer calls sit-for or a similar
      function.  */
-  Vinhibit_redisplay = Qt;
+  specpdl_ref count = SPECPDL_INDEX ();
+  specbind (Qinhibit_redisplay, Qt);
 
   /* Force update of the current frame, so that the desired and the
      current matrices are identical.  */
@@ -3739,6 +3739,15 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
       int max_y = min (min_y + state[0].menu->count, FRAME_TOTAL_LINES (sf) - 1) - 1;
 
       input_status = read_menu_input (sf, &x, &y, min_y, max_y, &first_time);
+      /* If the menu's frame is no longer alive, we must terminate the
+         menu at once, because the frame's glyph matrices are no longer
+         valid.  This can happen if someone forcefully closes or deletes
+         the frame's terminal while we were waiting for menu input.  */
+      if (!FRAME_LIVE_P (sf))
+	{
+          result = TTYM_NO_SELECT;
+          goto immediate_exit;
+	}
       if (input_status)
 	{
 	  leave = 1;
@@ -3869,12 +3878,15 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
 
   sf->mouse_moved = 0;
   screen_update (sf, state[0].screen_behind);
-  while (statecount--)
-    free_saved_screen (state[statecount].screen_behind);
   tty_show_cursor (tty);	/* Turn cursor back on.  */
   fflush (tty->output);
 
-/* Clean up any mouse events that are waiting inside Emacs event queue.
+ immediate_exit:
+
+  while (statecount--)
+    free_saved_screen (state[statecount].screen_behind);
+
+  /* Clean up any mouse events that are waiting inside Emacs event queue.
      These events are likely to be generated before the menu was even
      displayed, probably because the user pressed and released the button
      (which invoked the menu) too quickly.  If we don't remove these events,
@@ -3882,8 +3894,8 @@ tty_menu_activate (tty_menu *menu, int *pane, int *selidx,
   discard_mouse_events ();
   if (!kbd_buffer_events_waiting ())
     clear_input_pending ();
+  unbind_to (count, Qnil);
   SAFE_FREE ();
-  Vinhibit_redisplay = prev_inhibit_redisplay;
   return result;
 }
 
