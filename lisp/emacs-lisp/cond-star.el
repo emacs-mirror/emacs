@@ -783,34 +783,10 @@ whether SUBPAT (as well as the subpatterns that contain/precede it) matches,"
 
 (defun cond*-bind-around (bindings exp)
   "Wrap a `let*' around EXP, to bind those of BINDINGS used in EXP."
-  (let ((what-to-bind (cond*-used-within bindings exp)))
+  (let ((what-to-bind (macroexp--fgrep bindings exp)))
     (if what-to-bind
         `(let* ,(nreverse what-to-bind) ,exp)
       exp)))
-
-(defun cond*-used-within (bindings exp)
-  "Return the list of those bindings in BINDINGS which EXP refers to.
-This operates naively and errs on the side of overinclusion,
-and does not distinguish function names from variable names.
-That is safe for the purpose this is used for."
-  (cond ((symbolp exp)
-         (let ((which (assq exp bindings)))
-           (if which (list which))))
-        ((listp exp)
-         (let (combined (rest exp))
-           ;; Find the bindings used in each element of EXP
-           ;; and merge them together in COMBINED.
-           ;; It would be simpler to use dolist at each level,
-           ;; but this avoids errors from improper lists.
-           (while rest
-             (let ((in-this-elt (cond*-used-within bindings (car rest))))
-               (while in-this-elt
-                 ;; Don't insert the same binding twice.
-                 (unless (memq (car-safe in-this-elt) combined)
-                   (push (car-safe in-this-elt) combined))
-                 (pop in-this-elt)))
-             (pop rest))
-           combined))))
 
 ;; Construct a simplified equivalent to `(and . ,CONJUNCTS),
 ;; assuming that it will be used only as a truth value.
