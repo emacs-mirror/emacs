@@ -256,7 +256,8 @@ Properties can be set with
 ;; - `buffer-list', `buried-buffer-list', `buffer-predicate': They contain
 ;;   references to live objects, or in the case of `buffer-predicate', it
 ;;   could also contain an fbound symbol (a predicate function) that could
-;;   not be defined in a later session.
+;;   not be defined in a later session.  However, buffers in the buffer list
+;;   can be serialized as buffer names that are strings.
 ;;
 ;; - `window-id', `outer-window-id', `parent-id': They are assigned
 ;;   automatically and cannot be set, so keeping them is harmless, but they
@@ -699,6 +700,14 @@ converted to the buffer of that name in `buffer-list'."
   (dolist (frame (frame-list))
     (let* ((names (frame-parameter frame 'frameset-buffer-list))
            (buffers (delq nil (mapcar #'get-buffer names))))
+      ;; Before adding more buffers to 'buffer-list', all buffers
+      ;; should be removed from 'buried-buffer-list'.  They are
+      ;; the same as in the global buffer list, thus setting this
+      ;; frame parameter to nil has no effect on the buffer order.
+      ;; Whereas when the same buffers exist in both frame params,
+      ;; then '(buffer-list (selected-frame))' might contain
+      ;; buffer duplicates since it doesn't ensure unique buffers.
+      (set-frame-parameter frame 'buried-buffer-list nil)
       (set-frame-parameter frame 'buffer-list buffers))))
 
 (defun frameset-filter-params (parameters filter-alist saving)
