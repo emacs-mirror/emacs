@@ -866,7 +866,12 @@ buffers in the fundamental buffer list, here is an easy way:
 
   With this method, you can specify any order for the list, but there is
 no danger of losing a buffer or adding something that is not a valid
-live buffer.
+live buffer.  Note, however, that burying a buffer will also change the
+value of the @code{buried-buffer-list} parameter (@xref{Buffer
+Parameters}) of the frame selected at the time @code{bury-buffer} is
+called.  Since this may effect future invocations of @code{last-buffer}
+(see below) on that frame, it may be a good idea to save the value of
+that parameter around calls to @code{bury-buffer}.
 
   To change the order or value of a specific frame's buffer list, set
 that frame's @code{buffer-list} parameter with
