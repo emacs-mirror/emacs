@@ -5105,15 +5105,6 @@ binding slots have been popped."
                          (nthcdr 3 form) 0 (macroexp-quote string)))))))))
 
 (defun byte-compile-autoload (form)
-  (and (macroexp-const-p (nth 1 form))
-       (macroexp-const-p (nth 5 form))
-       (memq (eval (nth 5 form)) '(t macro))  ; macro-p
-       (not (fboundp (eval (nth 1 form))))
-       (byte-compile-warn-x
-        form
-	"The compiler ignores `autoload' except at top level.  You should
-     probably put the autoload of the macro `%s' at top-level."
-	(eval (nth 1 form))))
   (byte-compile-normal-call form))
 
 ;; Lambdas in valid places are handled as special cases by various code.
