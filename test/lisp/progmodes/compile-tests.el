@@ -389,6 +389,13 @@
      1 nil 59 "main.php" error)
     (php "Fatal error: Call to undefined function: mysql_pconnect() in db.inc on line 66"
      1 nil 66 "db.inc" error)
+    ;; ruff
+    (ruff
+     "F401 [*] `sys` imported but unused\n --> main.py:1:8"
+     1 8 1 "main.py" error)
+    (ruff
+     "unused-variable: Local variable `var` is assigned to but never used\n --> src/lib.py:7:5"
+     1 5 7 "src/lib.py" error)
     ;; rust
     (rust
      "error[E0277]: `Foo` is not an iterator\n --> src/main.rs:4:16"
@@ -570,7 +577,7 @@ The test data is in `compile-tests--test-regexps-data'."
                    1 15 5 "alpha.c")))
         (compile--test-error-line test))
 
-      (should (eq compilation-num-errors-found 111))
+      (should (eq compilation-num-errors-found 113))
       (should (eq compilation-num-warnings-found 37))
       (should (eq compilation-num-infos-found 38)))))
 

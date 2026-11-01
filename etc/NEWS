@@ -252,6 +252,9 @@ check out the repository to prepare a patch for the package maintainer.
 ---
 *** Messages from Ansible are now recognized.
 
+---
+*** Messages from Ruff are now recognized.
+
 ** Mml
 
 ---
