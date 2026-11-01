@@ -3403,15 +3403,16 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
     (let* ((tmp-name1 (tramp--test-make-temp-name nil quoted))
 	   (tmp-name2 (expand-file-name "foo" tmp-name1)))
       ;; Deleting a non-existing file should not fail.
-      (delete-file tmp-name1)
-      (delete-file tmp-name1 'trash)
+      (unless (tramp--test-ange-ftp-p)
+	(delete-file tmp-name1)
+	(delete-file tmp-name1 'trash))
       ;; Deleting a non-existing directory should fail.
       (should-error
        (delete-directory tmp-name1)
-       :type 'file-missing)
+       :type (if (tramp--test-ange-ftp-p) 'error 'file-missing))
       (should-error
        (delete-directory tmp-name1 nil 'trash)
-       :type 'file-missing)
+       :type (if (tramp--test-ange-ftp-p) 'error 'file-missing))
       ;; Delete empty directory.
       (make-directory tmp-name1)
       (should (file-directory-p tmp-name1))
@@ -3436,7 +3437,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
       ;; `system-move-file-to-trash' is defined (on MS Windows and
       ;; macOS), for encrypted remote directories and for ange-ftp.
       (when (and (not (fboundp 'system-move-file-to-trash))
-		 (not (tramp--test-crypt-p)) (not (tramp--test-ftp-p)))
+		 (not (tramp--test-crypt-p)) (not (tramp--test-ange-ftp-p)))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -3993,9 +3994,10 @@ This tests also `access-file', `file-readable-p',
 	    (write-region "foo" nil tmp-name1)
 	    ;; `access-file' returns nil in case of success.
 	    (should-not (access-file tmp-name1 "error"))
-	    ;; `access-file' could use a timeout.  tramp-rpc.el
+	    ;; `access-file' could use a timeout.  ange-ftp.el doesn't
+	    ;; know `remote-file-name-access-timeout'.  tramp-rpc.el
 	    ;; doesn't use `file-exists-p' in its implementation.
-	    (unless (tramp--test-rpc-p)
+	    (unless (or (tramp--test-ange-ftp-p) (tramp--test-rpc-p))
 	      (let ((remote-file-name-access-timeout 1)
 		    comp-warn-primitives)
 		(cl-letf (((symbol-function #'file-exists-p)
@@ -7397,22 +7399,24 @@ Check also tilde and environment variable expansion."
 	(tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password))
 
       ;; Check connection-local `make-backup-files'.
-      (let ((clpa connection-local-profile-alist)
-	    (clca connection-local-criteria-alist))
-	(connection-local-set-profile-variables
-	 'no-remote-backup-files '((make-backup-files . nil)))
-	(connection-local-set-profiles
-	 `(:application tramp
-	   :protocol ,(file-remote-p default-directory 'method)
-	   :user ,(file-remote-p default-directory 'user)
-	   :machine ,(file-remote-p default-directory 'host))
-	 'no-remote-backup-files)
+      ;; Ange-FTP doesn't care.
+      (unless (tramp--test-ange-ftp-p)
+	(let ((clpa connection-local-profile-alist)
+	      (clca connection-local-criteria-alist))
+	  (connection-local-set-profile-variables
+	   'no-remote-backup-files '((make-backup-files . nil)))
+	  (connection-local-set-profiles
+	   `(:application tramp
+	     :protocol ,(file-remote-p default-directory 'method)
+	     :user ,(file-remote-p default-directory 'user)
+	     :machine ,(file-remote-p default-directory 'host))
+	   'no-remote-backup-files)
 
-	(should-not (find-backup-file-name tmp-name1))
+	  (should-not (find-backup-file-name tmp-name1))
 
-	(custom-set-variables
-	 `(connection-local-profile-alist ',clpa now)
-	 `(connection-local-criteria-alist ',clca now))))))
+	  (custom-set-variables
+	   `(connection-local-profile-alist ',clpa now)
+	   `(connection-local-criteria-alist ',clca now)))))))
 
 (ert-deftest tramp-test39-make-lock-file-name ()
   "Check `make-lock-file-name', `lock-file', `unlock-file' and `file-locked-p'."
