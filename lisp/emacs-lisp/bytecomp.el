@@ -5105,7 +5105,11 @@ binding slots have been popped."
                          (nthcdr 3 form) 0 (macroexp-quote string)))))))))
 
 (defun byte-compile-autoload (form)
-  (byte-compile-normal-call form))
+  (let* ((doc (nth 3 form))
+         (newdoc (if (not (stringp doc)) doc
+                   (byte-compile--docstring
+                    doc 'autoload (nth 1 form)))))
+    (byte-compile-normal-call (byte-compile--list-with-n form 3 newdoc))))
 
 ;; Lambdas in valid places are handled as special cases by various code.
 ;; The ones that remain are errors.
