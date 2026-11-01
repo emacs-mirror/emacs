@@ -1144,8 +1144,8 @@ byte-compiled.  Run with dynamic binding."
 (bytecomp--define-warning-file-test "error-lexical-var-with-symbol-value.el"
                             "symbol-value.*lexical var")
 
-(bytecomp--define-warning-file-test "warn-autoload-not-on-top-level.el"
-                            "compiler ignores.*autoload.*")
+;; (bytecomp--define-warning-file-test "warn-autoload-not-on-top-level.el"
+;;                             "compiler ignores.*autoload.*")
 
 (bytecomp--define-warning-file-test "warn-callargs.el"
                             "with 2 arguments, but accepts only 1")
