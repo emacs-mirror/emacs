@@ -852,6 +852,8 @@ regardless of which frames they were displayed on.
 @end example
 @end defun
 
+@cindex changing order of buffers
+@cindex ordering of buffers, how to change
   The list returned by @code{buffer-list} is constructed specifically;
 it is not an internal Emacs data structure, and modifying it has no
 effect on the order of buffers.  If you want to change the order of
@@ -867,9 +869,9 @@ buffers in the fundamental buffer list, here is an easy way:
   With this method, you can specify any order for the list, but there is
 no danger of losing a buffer or adding something that is not a valid
 live buffer.  Note, however, that burying a buffer will also change the
-value of the @code{buried-buffer-list} parameter (@xref{Buffer
+value of the @code{buried-buffer-list} parameter (@pxref{Buffer
 Parameters}) of the frame selected at the time @code{bury-buffer} is
-called.  Since this may effect future invocations of @code{last-buffer}
+called.  Since this may affect future invocations of @code{last-buffer}
 (see below) on that frame, it may be a good idea to save the value of
 that parameter around calls to @code{bury-buffer}.
 

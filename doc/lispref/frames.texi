@@ -2196,7 +2196,7 @@ A list of buffers that have been buried on this frame by
 @code{bury-buffer} (@pxref{Buffer List}), ordered most-recently-buried
 first.  Killing a buffer (@pxref{Killing Buffers}) or switching to it in
 a window on this frame (@pxref{Switching Buffers}) will remove it from
-this list.  Note that the order of elements on this list differs from
+this list.  Note that the order of elements in this list differs from
 the order of elements as returned by @code{buffer-list} which lists the
 most recently buried buffer as the last one.
 
