@@ -1274,6 +1274,8 @@ Each key is a symbol and each value is an indent specification, which
 overrides the value of the symbol's `lisp-indent-function' property in
 the current buffer.  The value can take the same forms as the value of
 the property, see Info node `(elisp) Indenting Macros' for details.
+A value of nil disables special indentation so the form is indented like
+a normal function call.
 
 This variable is used by the functions `lisp-indent-function'
 and `common-lisp-indent-function'.  In case of the latter, the
@@ -1286,7 +1288,7 @@ symbol properties `common-lisp-indent-function-for-elisp' and
        (and (listp value)
             (all (lambda (elt)
                    (and (symbolp (car elt))
-                        (or (eq (cdr elt) 'defun)
+                        (or (memq (cdr elt) '(defun nil))
                             (integerp (cdr elt)))))
                  value))))
 

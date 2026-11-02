@@ -321,6 +321,26 @@ Expected initialization file: `%s'\"
       (indent-region (point-min) (point-max))
       (should (equal (buffer-string) orig)))))
 
+(ert-deftest lisp-indent-local-overrides ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (let ((lisp-indent-local-overrides
+           '((prog1 . nil)
+             (cons . 1)
+             (list . defun)))
+          (orig "\
+(prog1
+ (list
+   (cons
+       1
+     2))
+ t)"))
+      (should (safe-local-variable-p 'lisp-indent-local-overrides
+                                     lisp-indent-local-overrides))
+      (insert orig)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) orig)))))
+
 
 ;;; Filling
 
