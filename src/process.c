@@ -5454,7 +5454,10 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	  {
 	    p = XPROCESS (aproc);
 
-	    if (! wait_proc || p == wait_proc)
+	    if (! wait_proc || p == wait_proc
+		|| ! just_wait_proc ) /* Allow async DNS and TLS
+	       handshakes to proceed when not waiting on only a single
+	       process (Bug#82133).  */
 	      {
 #ifdef HAVE_GETADDRINFO_A
 		/* Check for pending DNS requests. */
