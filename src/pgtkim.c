@@ -204,7 +204,7 @@ pgtk_im_focus_in (struct frame *f)
   if (dpyinfo->im.context != NULL)
     {
 #if GTK_CHECK_VERSION (3, 6, 0)
-      /* This helps on-screen keyboards.  (Bug#80953)  */
+      /* This helps on-screen keyboards (bug#80953).  */
       g_object_set (dpyinfo->im.context, "input-purpose",
 		    pgtk_purpose_sym_to_int (), NULL);
 #endif
@@ -356,12 +356,12 @@ function.  */ );
   DEFSYM (QGTK_INPUT_PURPOSE_PIN, "pin");
   DEFSYM (QGTK_INPUT_PURPOSE_TERMINAL, "terminal");
   DEFVAR_LISP ("pgtk-input-purpose", Vpgtk_input_purpose,
-     doc: /* The GTK "input-purpose" to use.
+     doc: /* The GTK input purpose to use.
 
-The default value is 'terminal, which signals to GTK that any key
+The default value is `terminal', which signals to GTK that any key
 sequence is allowed.  This will result in some on-screen keyboards
 displaying methods to use modifier keys when typing.  To use GTK's
-default value, set it to 'free-form.
+default value, set it to `free-form'.
 
 Changes to the value take effect the next time an Emacs frame is
 focused, or after a restart.
