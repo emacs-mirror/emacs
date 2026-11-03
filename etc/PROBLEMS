@@ -4304,6 +4304,31 @@ See https://lists.gnu.org/r/emacs-devel/2010-07/msg00995.html
 
 The fix is to use forward slashes in all paths passed to the compiler.
 
+*** Building fails because of dynamic libraries not found.
+
+Typical error message:
+
+ld.so: temacs: can't load library 'libdbus-1.so.11.3'
+
+(this issue has been observed on NetBSD and OpenBSD.  Sometimes just
+rebooting is enough to fix it.)
+
+This can happen on systems where third party libraries are installed in
+a location where the dynamic linker doesn't look by default.  The
+solution is to either update the paths used by the dynamic linker, or
+configure emacs to use rpath when linking.
+
+Assuming the libraries are in /usr/local/lib, updating the paths can
+usually be done by editing an entry in a file, such as the shlib_dirs
+entry in /etc/rc.conf for OpenBSD, and then rebooting, or running (as
+root):
+
+    ldconfig /usr/local/lib
+
+If you don't want to modify your system, run configure as follows:
+
+    ./configure LDFLAGS="-Wl,-rpath,/usr/local/lib"
+
 ** Linking
 
 *** Building Emacs with a system compiler fails to link because of an
