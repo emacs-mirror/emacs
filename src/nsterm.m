@@ -6178,8 +6178,10 @@ ns_term_init (Lisp_Object display_name)
 
 #ifdef NS_IMPL_COCOA
   /* Begin listening for display reconfiguration, so we can run the
-     appropriate hooks.  FIXME: is this called when the resolution of
-     a monitor changes?  */
+     appropriate hooks.  Reconfiguration is normally adding or removing
+     a monitor.  The registered callback is also called when the
+     resolution, scaling, refresh rate, pixel encoding, or color depth
+     of a monitor changes.  */
 
   CGDisplayRegisterReconfigurationCallback (ns_displays_reconfigured,
 					    NULL);
