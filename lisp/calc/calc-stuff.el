@@ -151,7 +151,8 @@ With a prefix, push that prefix as a number onto the stack."
 
 ;; The following caches are declared in other files, but are
 ;; reset here.
-(defvar math-lud-cache) ; calc-mtx.el
+(defvar math--lud-cache) ; calc-mtx.el
+(defvar math--inv-cache) ; calc-mtx.el
 (defvar math-log2-cache) ; calc-bin.el
 (defvar math-radix-digits-cache) ; calc-bin.el
 (defvar math-radix-float-cache-tag) ; calc-bin.el
@@ -166,7 +167,8 @@ With a prefix, push that prefix as a number onto the stack."
 (defun calc-flush-caches (&optional inhibit-msg)
   (interactive "P")
   (calc-wrapper
-   (setq math-lud-cache nil
+   (setq math--lud-cache nil
+         math--inv-cache nil
 	 math-log2-cache nil
 	 math-radix-digits-cache nil
 	 math-radix-float-cache-tag nil
