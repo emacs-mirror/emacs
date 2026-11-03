@@ -7886,25 +7886,22 @@ code_conversion_restore (Lisp_Object arg)
 }
 
 Lisp_Object
-code_conversion_save (bool with_work_buf, bool multibyte)
+code_conversion_save (bool multibyte)
 {
   Lisp_Object workbuf = Qnil;
 
-  if (with_work_buf)
+  if (reused_workbuf_in_use)
     {
-      if (reused_workbuf_in_use)
-	{
-	  Lisp_Object name
-	    = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
-	  workbuf = Fget_buffer_create (name, Qt);
-	}
-      else
-	{
-	  if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
-	    Vcode_conversion_reused_workbuf
-	      = Fget_buffer_create (Vcode_conversion_workbuf_name, Qt);
-	  workbuf = Vcode_conversion_reused_workbuf;
-	}
+      Lisp_Object name
+	= Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
+      workbuf = Fget_buffer_create (name, Qt);
+    }
+  else
+    {
+      if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
+	Vcode_conversion_reused_workbuf
+	  = Fget_buffer_create (Vcode_conversion_workbuf_name, Qt);
+      workbuf = Vcode_conversion_reused_workbuf;
     }
   record_unwind_protect (code_conversion_restore,
 			 Fcons (Fcurrent_buffer (), workbuf));
@@ -8173,7 +8170,7 @@ decode_coding_object (struct coding_system *coding,
 	  && NILP (dst_object)))
     {
       coding->dst_multibyte = !CODING_FOR_UNIBYTE (coding);
-      coding->dst_object = code_conversion_save (1, coding->dst_multibyte);
+      coding->dst_object = code_conversion_save (coding->dst_multibyte);
       coding->dst_pos = BEG;
       coding->dst_pos_byte = BEG_BYTE;
     }
@@ -8375,7 +8372,7 @@ encode_coding_object (struct coding_system *coding,
 
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
     {
-      coding->src_object = code_conversion_save (1, coding->src_multibyte);
+      coding->src_object = code_conversion_save (coding->src_multibyte);
       set_buffer_internal (XBUFFER (coding->src_object));
       if (STRINGP (src_object))
 	insert_from_string (src_object, from, from_byte, chars, bytes, 0);

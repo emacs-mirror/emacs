@@ -4714,7 +4714,7 @@ by calling `format-decode', which see.  */)
 	= ! NILP (BVAR (current_buffer, enable_multibyte_characters));
       Lisp_Object conversion_buffer;
 
-      conversion_buffer = code_conversion_save (1, multibyte);
+      conversion_buffer = code_conversion_save (multibyte);
 
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
