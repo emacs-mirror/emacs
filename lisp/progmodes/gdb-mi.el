@@ -391,17 +391,33 @@ were not yet received."
   (dolist (handler gdb-handler-list)
     (setf (gdb-handler-pending-trigger handler) nil)))
 
-(defun gdb-wait-for-pending (func)
+(defun gdb-wait-for-pending (func &optional same-proc)
   "Wait for all pending GDB commands to finish and call FUNC.
-
-This function checks every 0.5 seconds if there are any pending
-triggers in `gdb-handler-list'."
-  (run-with-timer
-   0.5 nil
-   (lambda ()
-     (if (cl-some #'gdb-handler-pending-trigger gdb-handler-list)
-	 (gdb-wait-for-pending func)
-       (funcall func)))))
+If optional argument SAME-PROC is non-nil, and there is a live gdb
+process, cancel calling FUNC unless that process is still running.
+This function checks every 0.5 seconds if there are any pending triggers
+in `gdb-handler-list' or a gdb process in the middle of exiting."
+  (letrec
+      ((buf-proc (and same-proc (get-buffer-process gud-comint-buffer)))
+       (want-proc (and same-proc (process-live-p buf-proc) buf-proc))
+       (timer
+        (lambda ()
+          (let ((cur-proc (get-buffer-process gud-comint-buffer)))
+            (cond
+             ((and want-proc (not (eq cur-proc want-proc))))
+             ((and cur-proc
+                   (or
+                    ;; Process dead but `gud-sentinel' hasn't
+                    ;; disassociated the process from its buffer yet.
+                    (not (process-live-p cur-proc))
+                    ;; The process is live with pending triggers.
+                    (any #'gdb-handler-pending-trigger gdb-handler-list)))
+              (run-with-timer 0.5 nil timer))
+             (t
+              ;; The process is gone, never was, or is live and there
+              ;; are no pending triggers.
+              (funcall func)))))))
+    (run-with-timer 0.5 nil timer)))
 
 (defun gdb-start-wait-for-pending (var func)
   "Start waiting for pending GDB commands with VAR and FUNC.
@@ -2692,9 +2708,9 @@ Sets `gdb-thread-number' to new id."
     ;; gdb-thread-selected handler) gets cut off by our beloved
     ;; pending triggers.
     ;; Solution is `gdb-wait-for-pending': it guarantees that its
-    ;; argument will get called when `gdb-handler-list' if free of
+    ;; argument will get called when `gdb-handler-list' is free of
     ;; pending triggers.
-    (gdb-wait-for-pending #'gdb-update)))
+    (gdb-wait-for-pending #'gdb-update 'same-proc)))
 
 (defun gdb-running (_token output-field)
   (let* ((thread-id
