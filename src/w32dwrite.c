@@ -859,7 +859,7 @@ text_extents_internal (IDWriteFontFace *dwrite_font_face,
       float advance
 	= convert_metrics_sz (gmetrics[i].advanceWidth, font_size, du_per_em);
 
-      width += advance;
+      width += roundf (advance);
 
       float lbearing
 	= round (convert_metrics_sz (gmetrics[i].leftSideBearing, font_size,

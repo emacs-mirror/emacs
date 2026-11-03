@@ -2085,8 +2085,10 @@ Run the function HANDLER-FUNCTION, with no arguments, once the command is
 complete.  Do not send COMMAND to GDB if TRIGGER-NAME is non-nil and
 Emacs is still waiting for a reply from another command previously
 sent with the same TRIGGER-NAME."
-  (when (or (not trigger-name)
-            (not (gdb-pending-handler-p trigger-name)))
+  (when-let* ((_ (or (null trigger-name)
+                     (not (gdb-pending-handler-p trigger-name))))
+              (proc (get-buffer-process gud-comint-buffer))
+              (_ (process-live-p proc)))
     (setq gdb-token-number (1+ gdb-token-number))
     (setq command (concat (number-to-string gdb-token-number) command))
 
@@ -2096,8 +2098,7 @@ sent with the same TRIGGER-NAME."
     (gdb-add-handler gdb-token-number handler-function trigger-name)
 
     (if gdbmi-debug-mode (message "gdb-input: %s" command))
-    (process-send-string (get-buffer-process gud-comint-buffer)
-                         (concat command "\n"))))
+    (process-send-string proc (concat command "\n"))))
 
 ;; NOFRAME is used for gud execution control commands
 (defun gdb-current-context-command (command)
