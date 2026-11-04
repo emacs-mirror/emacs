@@ -2370,8 +2370,9 @@ whose value is the shell name (don't quote it)."
       (progn
 	(message "Setting up indent for shell type %s" sh-shell)
         (let ((mksym (lambda (name)
-                       (intern (format "sh-smie-%s-%s"
-                                       sh-indent-supported-here name)))))
+                       (let (read-symbol-shorthands)
+                         (intern (format "sh-smie-%s-%s"
+                                         sh-indent-supported-here name))))))
 	  (add-function :around (local 'smie--hanging-eolp-function)
 			(lambda (orig)
 			  (if (looking-at "[ \t]*\\\\\n")
