@@ -40,11 +40,13 @@ this option."
   :group 'terminals
   :version "32.1")
 
-(defconst kitty-kbd-proto-progressive-enhancements 5
+(defconst kitty-kbd-proto-progressive-enhancements 29
   "What Kitty Keyboard Protocol progressive enhancements this Emacs uses.
 Encoded as a single integer.
-5 is progressive enhancement 1 (disambiguate escape codes)
-plus progressive enhancement 4 (report alternate keys).")
+29 is progressive enhancement  1 (disambiguate escape codes)
+ plus progressive enhancement  4 (report alternate keys)
+ plus progressive enhancement  8 (report all keys as escape codes)
+ plus progressive enhancement 16 (report associated text).")
 
 (defconst kitty-kbd-proto-query
   (format "\e[>%du\e[?u" kitty-kbd-proto-progressive-enhancements)

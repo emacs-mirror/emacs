@@ -2438,12 +2438,16 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
       struct frame *frame = XFRAME (selected_frame);
       struct terminal *terminal = frame->terminal;
       if (!(is_tty_frame (frame)
+            /* Similarly to w32_console, kitty_kbd_proto_consume stores
+	       decoded events.  */
+	    && NILP (CDR_SAFE (assq_no_quit (Qtty_kitty_kbd_proto,
+					     terminal->param_alist)))
             /* Don't apply decoding if we're just reading a raw event
-               (e.g. reading bytes sent by the xterm to specify the position
-               of a mouse click).  */
-            && (!EQ (prev_event, Qt))
-	    && (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
-		& CODING_REQUIRE_DECODING_MASK)))
+               (e.g. reading bytes sent by the xterm to specify the
+               position of a mouse click).  */
+	    && (!EQ (prev_event, Qt))
+	       && (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
+		   & CODING_REQUIRE_DECODING_MASK)))
 	return nextevt;		/* No decoding needed.  */
       else
 	{
@@ -8223,22 +8227,50 @@ kitty_kbd_proto_mods_to_emacs_mods (unsigned kitty_mods)
   return ret;
 }
 
-/* If there's a Kitty Keyboard Protocol escape sequence at the beginning
-   of `cbuf', store it in the keyboard buffer.  Return the number of
-   bytes of `cbuf' consumed.  Set `saw_quit' to true if the Kitty
-   Keyboard Protocol input read contains a quit character.
+/* Populate `buf->kind' according to `buf->code', assumed to be a
+   self-inserting character, and fold ASCII control modifiers so that
+   quit_char is still detectable in the usual way.  */
+
+static void
+kitty_kbd_proto_type_and_fold (struct input_event *buf)
+{
+  if (buf->code < 128)
+    {
+      buf->kind = ASCII_KEYSTROKE_EVENT;
+      if ((buf->modifiers & ctrl_modifier)
+	  && !(buf->modifiers & shift_modifier))
+	{
+	  int ctrl_char = make_ctrl_char (buf->code);
+	  if (ctrl_char < 128)
+	    {
+	      buf->code = ctrl_char;
+	      buf->modifiers &= ~ctrl_modifier;
+	    }
+	}
+    }
+  else
+    buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+}
+
+/* If there are Kitty Keyboard Protocol escape sequences at the
+   beginning of `cbuf', store them in the keyboard buffer.  Return the
+   number of bytes of `cbuf' consumed.  Set `saw_quit' to true if the
+   Kitty Keyboard Protocol input read contains a quit character.
    Caller must initialize saw_quit.  */
 
 static int
 kitty_kbd_proto_consume (const unsigned char *cbuf, int cbuf_len,
 			 struct tty_display_info *tty, bool *saw_quit)
 {
-  /* Look for: CSI <code points> [; <modifiers>] <final>
-     where <code points> is up to three colon-separated integers.  */
+  /* Look for: CSI <code points> [; <modifiers> [; <text>]] <final>
+     where <code points> is up to three colon-separated integers
+     and <text> is arbitrarily many colon-separated integers.  */
   if (cbuf_len < 2 || !(cbuf[0] == '\033' && cbuf[1] == '['))
     return 0;
-  unsigned code1 = 0, code2 = 0, code3 = 0, mods = 0, final = 0, i;
+  unsigned code1 = 0, code2 = 0, code3 = 0, mods = 0, final = 0,
+    text = 0, i, cbuf_text_len;
   unsigned *next = &code1;
+  const unsigned char *cbuf_text = NULL;
   for (i = 2; i < cbuf_len; i++)
     {
       if (cbuf[i] >= '0' && cbuf[i] <= '9')
@@ -8279,14 +8311,41 @@ kitty_kbd_proto_consume (const unsigned char *cbuf, int cbuf_len,
 	    if (mods > 256)
 	      return 0;
 	  }
+	else if (cbuf[i] == ';')
+	  break;
 	else
 	  {
 	    final = cbuf[i];
 	    break;
 	  }
       }
-  if (!code1 || !final)
+  if (!final)
+    {
+      if (i < cbuf_len)
+	{
+	  cbuf_text = cbuf + i + 1;
+	  cbuf_text_len = cbuf_len - i - 1;
+	}
+      for (i++; i < cbuf_len; i++)
+	{
+	  if (cbuf[i] >= '0' && cbuf[i] <= '9')
+	    {
+	      text = text * 10 + cbuf[i] - '0';
+	      if (text > MAX_UNICODE_CHAR)
+		return 0;
+	    }
+	  else if (cbuf[i] == ':')
+	    text = 0;
+	  else
+	    {
+	      final = cbuf[i];
+	      break;
+	    }
+	}
+      }
+  if (!final || (!code1 && !text) || (cbuf_text && !text))
     return 0;
+  int consumed = i + 1;
 
   struct input_event buf;
   EVENT_INIT (buf);
@@ -8431,6 +8490,9 @@ kitty_kbd_proto_consume (const unsigned char *cbuf, int cbuf_len,
 	  buf.code = code1 - 57399 + 0xffb0; /* XK_KP_0--XK_KP_9 */
 	  buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	}
+      else if (code1 >= 57441 && code1 <= 57454)
+	/* Presses of modifier keys alone.  Discard.  */
+	return consumed;
       else
 	switch (code1)
 	  {
@@ -8557,11 +8619,11 @@ kitty_kbd_proto_consume (const unsigned char *cbuf, int cbuf_len,
 	  case 57430:
 	    /* Kitty calls this MEDIA_PLAY_PAUSE,
 	       but there's no XF86 keysym that corresponds.  */
-	    return 0;
+	    return consumed;
 	  case 57431:
 	    /* Kitty calls this MEDIA_REVERSE,
 	       but there's no XF86 keysym that corresponds.  */
-	    return 0;
+	    return consumed;
 	  case 57432:
 	    buf.code = 0x1008ff15; /* XF86XK_AudioStop */
 	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
@@ -8599,33 +8661,38 @@ kitty_kbd_proto_consume (const unsigned char *cbuf, int cbuf_len,
 	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  default:
-	    buf.code = code2 && (buf.modifiers & shift_modifier)
-	      ? code2
-	      : code1;
-	    buf.kind = buf.code < 128
-	      ? ASCII_KEYSTROKE_EVENT
-	      : MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	    if (cbuf_text)
+	      {
+		for (buf.code = 0, i = 0; i < cbuf_text_len; i++)
+		  {
+		    if (cbuf_text[i] >= '0' && cbuf_text[i] <= '9')
+		      buf.code = buf.code * 10 + cbuf_text[i] - '0';
+		    else
+		      {
+			kitty_kbd_proto_type_and_fold (&buf);
+			*saw_quit |= tty_store_input_event (&buf, tty);
+			if (*saw_quit || cbuf_text[i] != ':')
+			  break;
+			else
+			  buf.code = 0;
+		      }
+		  }
+		return consumed;
+	      }
+	    else
+	      {
+		buf.code = code2 && (buf.modifiers & shift_modifier)
+		  ? code2
+		  : code1;
+		kitty_kbd_proto_type_and_fold (&buf);
+	      }
 	  }
     }
   else
     return 0;
 
-  /* Finally, fold ASCII control modifiers back in so that quit_char is
-     still detectable in the usual way.  */
-  if (buf.kind == ASCII_KEYSTROKE_EVENT
-      && (buf.modifiers & ctrl_modifier)
-      && !(buf.modifiers & shift_modifier))
-    {
-      int ctrl_char = make_ctrl_char (buf.code);
-      if (ctrl_char < 128)
-	{
-	  buf.code = ctrl_char;
-	  buf.modifiers &= ~ctrl_modifier;
-	}
-    }
-
   *saw_quit |= tty_store_input_event (&buf, tty);
-  return i + 1;
+  return consumed;
 }
 
 /* This is the tty way of reading available input.
