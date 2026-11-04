@@ -1461,15 +1461,14 @@ The following commands are accepted by the client:
             ;; file manager), and is passed to emacsclient in an
             ;; environment variable.  Copy the token to the
             ;; `activation-token' frame parameter of the server frame
-            ;; for the pgtk_raise_frame function.  (Bug #80926)
-            (when (and
-                   (fboundp #'pgtk-backend-display-class)
-                   (string= "GdkWaylandDisplay" (pgtk-backend-display-class)))
-	      (let* ((token
-		      (getenv-internal "XDG_ACTIVATION_TOKEN" (process-get proc 'env))))
-		(if (not token)
-		    (server-log "No XDG_ACTIVATION_TOKEN token received.\n")
-		  (set-frame-parameter frame 'activation-token token))))
+            ;; for the pgtk_raise_frame function.  (Bug#80926)
+            (when (and (fboundp #'pgtk-backend-display-class)
+                       (display-graphic-p frame)
+                       (equal "GdkWaylandDisplay" (pgtk-backend-display-class)))
+	      (if-let* ((token (getenv-internal "XDG_ACTIVATION_TOKEN"
+                                                (process-get proc 'env))))
+		  (set-frame-parameter frame 'activation-token token)
+		(server-log "No XDG_ACTIVATION_TOKEN token received.\n")))
 
             (process-put
              proc 'continuation
