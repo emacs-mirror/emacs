@@ -275,7 +275,7 @@
             (throw 'server (cons proc port))))
         (delete-process proc)))))
 
-(defmacro with-tls-params (func &optional proc-parms proc-negotiate &rest server-parms)
+(defmacro network-stream-with-tls-params (func &optional proc-parms proc-negotiate &rest server-parms)
   "Call TLS FUNC with extra parameters PROC-PARMS.
 Call PROC-NEGOTIATE once the connection is up.  SERVER-PARMS are the
 additional parameters to use to start the listening TLS server."
@@ -328,7 +328,7 @@ additional parameters to use to start the listening TLS server."
 (ert-deftest connect-to-tls-ipv4-wait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (with-tls-params
+  (network-stream-with-tls-params
    make-network-process
    (:host "localhost")
    (gnutls-negotiate :process proc
@@ -340,7 +340,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (gnutls-available-p))
   (let ((times 0)
         (network-security-level 'low))
-    (with-tls-params
+    (network-stream-with-tls-params
      make-network-process
      (:nowait t
       :family 'ipv4
@@ -360,7 +360,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (featurep 'make-network-process '(:family ipv6)))
   (let ((times 0)
         (network-security-level 'low))
-    (with-tls-params
+    (network-stream-with-tls-params
      make-network-process
      (:family 'ipv6
       :nowait t
@@ -377,7 +377,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
   (let ((network-security-level 'low))
-    (with-tls-params
+    (network-stream-with-tls-params
      open-network-stream
      (:type 'tls
       :nowait nil))))
@@ -387,7 +387,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (gnutls-available-p))
   (let ((network-security-level 'low)
         (times 0))
-    (with-tls-params
+    (network-stream-with-tls-params
      open-network-stream
      (:type 'tls
       :nowait t)
@@ -400,7 +400,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
   (let ((network-security-level 'low))
-    (with-tls-params
+    (network-stream-with-tls-params
      open-network-stream
      (:type 'tls))))
 
@@ -408,7 +408,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
   (let ((network-security-level 'low))
-    (with-tls-params
+    (network-stream-with-tls-params
      open-network-stream
      (:type 'tls
       :client-certificate nil))))
@@ -416,13 +416,13 @@ additional parameters to use to start the listening TLS server."
 (ert-deftest open-gnutls-stream-new-api-default ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (with-tls-params
+  (network-stream-with-tls-params
    open-gnutls-stream))
 
 (ert-deftest open-gnutls-stream-new-api-wait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (with-tls-params
+  (network-stream-with-tls-params
    open-gnutls-stream
    (list :nowait nil)))
 
@@ -430,7 +430,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
   (let ((nowait nil)) ; Workaround Bug#47080
-    (with-tls-params
+    (network-stream-with-tls-params
      open-gnutls-stream
      nowait)))
 
@@ -439,7 +439,7 @@ additional parameters to use to start the listening TLS server."
   (skip-unless (gnutls-available-p))
   (let ((times 0)
         (network-security-level 'low))
-    (with-tls-params
+    (network-stream-with-tls-params
      open-gnutls-stream
      (list :nowait t)
      (while (and (eq (process-status proc) 'connect)
@@ -452,7 +452,7 @@ additional parameters to use to start the listening TLS server."
   (let ((times 0)
         (network-security-level 'low)
         (nowait t))
-    (with-tls-params
+    (network-stream-with-tls-params
      open-gnutls-stream
      nowait
      (while (and (eq (process-status proc) 'connect)
