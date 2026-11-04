@@ -8161,6 +8161,40 @@ gobble_input (void)
   return nread;
 }
 
+/* Finish populating an input_event and store it.
+   Return whether this was a C-g, which breaks the outer loop in
+   tty_read_avail_input.  */
+
+static bool
+tty_store_input_event (struct input_event *buf,
+		       const struct tty_display_info *tty)
+{
+  /* Set the frame corresponding to the active tty.  Note that the value
+     of selected_frame is not reliable here, redisplay tends to
+     temporarily change it.  However, if the selected frame is a child
+     frame, don't do that since it will cause switch frame events to
+     switch to the root frame instead.  If the tty's top frame has not
+     been set up yet, always use the selected frame (bug#78966).  */
+  if (!FRAMEP (tty->top_frame)
+      || (FRAME_PARENT_FRAME (XFRAME (selected_frame))
+	  && (root_frame (XFRAME (selected_frame))
+	      == XFRAME (tty->top_frame))))
+    buf->frame_or_window = selected_frame;
+  else
+    buf->frame_or_window = tty->top_frame;
+
+  /* If neither the selected frame nor the top frame were set,
+     something must have gone really wrong.  */
+  eassert (FRAMEP (buf->frame_or_window));
+
+  buf->arg = Qnil;
+
+  kbd_buffer_store_event (buf);
+  /* Don't look at input that follows a C-g too closely.
+     This reduces lossage due to autorepeat on C-g.  */
+  return buf->kind == ASCII_KEYSTROKE_EVENT && buf->code == quit_char;
+}
+
 /* Given a bitmask of Kitty Keyboard Protocol modifiers, return the
    equivalent Emacs bitmask.  Ignore the caps_lock and num_lock bits.
    Treat 0x02 as meta, not alt, so that ordinary Emacs usage works.
@@ -8747,33 +8781,7 @@ tty_read_avail_input (struct terminal *terminal,
 
 	  buf.code = cbuf[i];
 	}
-
-      /* Set the frame corresponding to the active tty.  Note that the
-         value of selected_frame is not reliable here, redisplay tends
-         to temporarily change it.  However, if the selected frame is a
-         child frame, don't do that since it will cause switch frame
-         events to switch to the root frame instead.  If the tty's top
-         frame has not been set up yet, always use the selected frame
-         (Bug#78966).  */
-      if (!FRAMEP (tty->top_frame)
-	  || (FRAME_PARENT_FRAME (XFRAME (selected_frame))
-	      && (root_frame (XFRAME (selected_frame))
-		  == XFRAME (tty->top_frame))))
-	buf.frame_or_window = selected_frame;
-      else
-	buf.frame_or_window = tty->top_frame;
-
-      /* If neither the selected frame nor the top frame were set,
-	 something must have gone really wrong.  */
-      eassert (FRAMEP (buf.frame_or_window));
-
-      buf.arg = Qnil;
-
-      kbd_buffer_store_event (&buf);
-      /* Don't look at input that follows a C-g too closely.
-         This reduces lossage due to autorepeat on C-g.  */
-      if (buf.kind == ASCII_KEYSTROKE_EVENT
-          && buf.code == quit_char)
+      if (tty_store_input_event (&buf, tty))
         break;
     }
 
