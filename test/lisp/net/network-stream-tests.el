@@ -276,39 +276,41 @@
         (delete-process proc)))))
 
 (defmacro network-stream-with-tls-params (func &optional proc-parms proc-negotiate &rest server-parms)
-  "Call TLS FUNC with extra parameters PROC-PARMS.
-Call PROC-NEGOTIATE once the connection is up.  SERVER-PARMS are the
+  "Call TLS function symbol FUNC with extra parameters PROC-PARMS.
+PROC-PARMS is a symbol or a plist which will not be evaluated.  Call
+form PROC-NEGOTIATE once the connection is up.  SERVER-PARMS are the
 additional parameters to use to start the listening TLS server."
-  (let (parms)
+  (let (parms p-parms)
     (cond ((eq func 'make-network-process)
            (setq parms
                  '(:name "bar"
                    :buffer (generate-new-buffer "*foo*")
-                   :service port)))
+                   :service port)
+                 p-parms `(list ,@proc-parms)))
           ((eq func 'open-network-stream)
            (setq parms
                  '("bar"
                    (generate-new-buffer "*foo*")
                    "localhost"
-                   port)))
+                   port)
+                 p-parms `(list ,@proc-parms)))
           ((eq func 'open-gnutls-stream)
            (setq parms
                  '("bar"
                    (generate-new-buffer "*foo*")
                    "localhost"
-                   port))
-           ;; open-gnutls-stream has a different calling convention from
-           ;; the other two, and we have to cater for the old api where
-           ;; nowait is not specified with a plist.
-           (when proc-parms
-             (setq proc-parms (list proc-parms)))))
+                   port)
+                 ;; open-gnutls-stream has a different calling convention from
+                 ;; the other two, and we have to cater for the old api where
+                 ;; nowait is not specified with a plist.
+                 p-parms (and proc-parms `(list ,proc-parms)))))
     `(let* ((s (make-tls-server ',server-parms))
             (server (car s))
             (port (cdr s))
             proc status)
        (unwind-protect
            (progn
-             (setq proc (apply #',func ,@parms (list ,@proc-parms)))
+             (setq proc (apply #',func ,@parms ,p-parms))
              (should proc)
              ,proc-negotiate
              (skip-when (eq (process-status proc) 'connect)))
