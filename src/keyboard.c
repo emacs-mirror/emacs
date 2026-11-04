@@ -4153,6 +4153,15 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  wait_reading_process_output (0, 0, -1, do_display, Qnil, NULL, 0);
 	}
 
+      /* If someone changed keyboards behind our back (e.g., if the TTY
+         terminal whose frame was selected on entry was deleted), report
+         "wrong kboard" to the caller.  */
+      if (*kbp != current_kboard)
+	{
+	  *kbp = current_kboard;
+	  return make_fixnum (-2);
+	}
+
       if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
 	gobble_input ();
     }
