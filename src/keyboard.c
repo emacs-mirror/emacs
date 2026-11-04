@@ -8224,13 +8224,14 @@ kitty_kbd_proto_mods_to_emacs_mods (unsigned kitty_mods)
 }
 
 /* If there's a Kitty Keyboard Protocol escape sequence at the beginning
-   of `cbuf', read it into `buf'.
-   Return the number of bytes of `cbuf' consumed.
-   If this function returns zero, it hasn't touched `buf'.  */
+   of `cbuf', store it in the keyboard buffer.  Return the number of
+   bytes of `cbuf' consumed.  Set `saw_quit' to true if the Kitty
+   Keyboard Protocol input read contains a quit character.
+   Caller must initialize saw_quit.  */
 
 static int
-kitty_kbd_proto_consume (struct input_event *buf,
-			 const unsigned char *cbuf, int cbuf_len)
+kitty_kbd_proto_consume (const unsigned char *cbuf, int cbuf_len,
+			 struct tty_display_info *tty, bool *saw_quit)
 {
   /* Look for: CSI <code points> [; <modifiers>] <final>
      where <code points> is up to three colon-separated integers.  */
@@ -8287,12 +8288,15 @@ kitty_kbd_proto_consume (struct input_event *buf,
   if (!code1 || !final)
     return 0;
 
+  struct input_event buf;
+  EVENT_INIT (buf);
+
   /* If there were modifiers, convert them now so that we can refer to
      them in the branch that decodes an arbitrary Unicode code point.
      Spec says that if <modifiers> is present, subtract 1 and then look
      at bits.  */
   if (mods)
-    mods = kitty_kbd_proto_mods_to_emacs_mods (mods - 1);
+    buf.modifiers = kitty_kbd_proto_mods_to_emacs_mods (mods - 1);
 
   /* Now see if we got a sequence we understand.
      For all the special cases, these come from the
@@ -8307,39 +8311,39 @@ kitty_kbd_proto_consume (struct input_event *buf,
       switch (final)
 	{
 	case 'A':
-	  buf->code = 0xff52;	/* XK_Up */
+	  buf.code = 0xff52;	/* XK_Up */
 	  break;
 	case 'B':
-	  buf->code = 0xff54;	/* XK_Down */
+	  buf.code = 0xff54;	/* XK_Down */
 	  break;
 	case 'C':
-	  buf->code = 0xff53;	/* XK_Right */
+	  buf.code = 0xff53;	/* XK_Right */
 	  break;
 	case 'D':
-	  buf->code = 0xff51;	/* XK_Left */
+	  buf.code = 0xff51;	/* XK_Left */
 	  break;
 	case 'E':
-	  buf->code = 0xff58;	/* XK_Begin */
+	  buf.code = 0xff58;	/* XK_Begin */
 	  break;
 	case 'F':
-	  buf->code = 0xff57;	/* XK_End */
+	  buf.code = 0xff57;	/* XK_End */
 	  break;
 	case 'H':
-	  buf->code = 0xff50;	/* XK_Home */
+	  buf.code = 0xff50;	/* XK_Home */
 	  break;
 	case 'P':
-	  buf->code = 0xffbe;	/* XK_F1 */
+	  buf.code = 0xffbe;	/* XK_F1 */
 	  break;
 	case 'Q':
-	  buf->code = 0xffbf;	/* XK_F2 */
+	  buf.code = 0xffbf;	/* XK_F2 */
 	  break;
 	case 'S':
-	  buf->code = 0xffc1;	/* XK_F4 */
+	  buf.code = 0xffc1;	/* XK_F4 */
 	  break;
 	default:
 	  return 0;
 	}
-      buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+      buf.kind = NON_ASCII_KEYSTROKE_EVENT;
     }
   else if (final == '~')
     {
@@ -8348,69 +8352,69 @@ kitty_kbd_proto_consume (struct input_event *buf,
       switch (code1)
 	{
 	case 2:
-	  buf->code = 0xff63;	/* XK_Insert */
+	  buf.code = 0xff63;	/* XK_Insert */
 	  break;
 	case 3:
-	  buf->code = 0xffff;	/* XK_Delete */
+	  buf.code = 0xffff;	/* XK_Delete */
 	  break;
 	case 5:
-	  buf->code = 0xff55;	/* XK_Prior */
+	  buf.code = 0xff55;	/* XK_Prior */
 	  break;
 	case 6:
-	  buf->code = 0xff56;	/* XK_Next */
+	  buf.code = 0xff56;	/* XK_Next */
 	  break;
 	case 7:
-	  buf->code = 0xff50;	/* XK_Home */
+	  buf.code = 0xff50;	/* XK_Home */
 	  break;
 	case 8:
-	  buf->code = 0xff57;	/* XK_End */
+	  buf.code = 0xff57;	/* XK_End */
 	  break;
 	case 11:
-	  buf->code = 0xffbe;	/* XK_F1 */
+	  buf.code = 0xffbe;	/* XK_F1 */
 	  break;
 	case 12:
-	  buf->code = 0xffbf;	/* XK_F2 */
+	  buf.code = 0xffbf;	/* XK_F2 */
 	  break;
 	case 13:
-	  buf->code = 0xffc0;	/* XK_F3 */
+	  buf.code = 0xffc0;	/* XK_F3 */
 	  break;
 	case 14:
-	  buf->code = 0xffc1;	/* XK_F4 */
+	  buf.code = 0xffc1;	/* XK_F4 */
 	  break;
 	case 15:
-	  buf->code = 0xffc2;	/* XK_F5 */
+	  buf.code = 0xffc2;	/* XK_F5 */
 	  break;
 	case 17:
-	  buf->code = 0xffc3;	/* XK_F6 */
+	  buf.code = 0xffc3;	/* XK_F6 */
 	  break;
 	case 18:
-	  buf->code = 0xffc4;	/* XK_F7 */
+	  buf.code = 0xffc4;	/* XK_F7 */
 	  break;
 	case 19:
-	  buf->code = 0xffc5;	/* XK_F8 */
+	  buf.code = 0xffc5;	/* XK_F8 */
 	  break;
 	case 20:
-	  buf->code = 0xffc6;	/* XK_F9 */
+	  buf.code = 0xffc6;	/* XK_F9 */
 	  break;
 	case 21:
-	  buf->code = 0xffc7;	/* XK_F10 */
+	  buf.code = 0xffc7;	/* XK_F10 */
 	  break;
 	case 23:
-	  buf->code = 0xffc8;	/* XK_F11 */
+	  buf.code = 0xffc8;	/* XK_F11 */
 	  break;
 	case 24:
-	  buf->code = 0xffc9;	/* XK_F12 */
+	  buf.code = 0xffc9;	/* XK_F12 */
 	  break;
 	case 29:
-	  buf->code = 0xff67;	/* XK_Menu */
+	  buf.code = 0xff67;	/* XK_Menu */
 	  break;
 	case 57427:
-	  buf->code = 0xff9d;	/* XK_KP_Begin */
+	  buf.code = 0xff9d;	/* XK_KP_Begin */
 	  break;
 	default:
 	  return 0;
 	}
-      buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+      buf.kind = NON_ASCII_KEYSTROKE_EVENT;
     }
   else if (final == 'u')
     {
@@ -8419,136 +8423,136 @@ kitty_kbd_proto_consume (struct input_event *buf,
 	 point, yay.  */
       if (code1 >= 57376 && code1 <= 57398)
 	{
-	  buf->code = code1 - 57376 + 0xffca; /* XK_F13--XK_F35 */
-	  buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	  buf.code = code1 - 57376 + 0xffca; /* XK_F13--XK_F35 */
+	  buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	}
       else if (code1 >= 57399 && code1 <= 57408)
 	{
-	  buf->code = code1 - 57399 + 0xffb0; /* XK_KP_0--XK_KP_9 */
-	  buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	  buf.code = code1 - 57399 + 0xffb0; /* XK_KP_0--XK_KP_9 */
+	  buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	}
       else
 	switch (code1)
 	  {
 	  case 9:
-	    buf->code = 0xff09;	/* XK_Tab */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff09;	/* XK_Tab */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 13:
-	    buf->code = 0xff0d;	/* XK_Return */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff0d;	/* XK_Return */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 27:
-	    buf->code = 0xff1b;	/* XK_Escape */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff1b;	/* XK_Escape */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 127:
-	    buf->code = 0xff08;	/* XK_BackSpace */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff08;	/* XK_BackSpace */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57358:
-	    buf->code = 0xffe5; /* XK_Caps_Lock */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffe5; /* XK_Caps_Lock */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57359:
-	    buf->code = 0xff14;	/* XK_Scroll_Lock */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff14;	/* XK_Scroll_Lock */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57360:
-	    buf->code = 0xff7f; /* XK_Num_Lock */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff7f; /* XK_Num_Lock */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57361:
-	    buf->code = 0xff61;	/* XK_Print */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff61;	/* XK_Print */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57362:
-	    buf->code = 0xff13;	/* XK_Pause */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff13;	/* XK_Pause */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57363:
-	    buf->code = 0xff67;	/* XK_Menu */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff67;	/* XK_Menu */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57409:
-	    buf->code = 0xffae; /* XK_KP_Decimal */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffae; /* XK_KP_Decimal */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57410:
-	    buf->code = 0xffaf;	/* XK_KP_Divide */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffaf;	/* XK_KP_Divide */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57411:
-	    buf->code = 0xffaa;	/* XK_KP_Multiply */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffaa;	/* XK_KP_Multiply */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57412:
-	    buf->code = 0xffad;	/* XK_KP_Subtract */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffad;	/* XK_KP_Subtract */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57413:
-	    buf->code = 0xffab;	/* XK_KP_Add */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffab;	/* XK_KP_Add */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57414:
-	    buf->code = 0xff8d;	/* XK_KP_Enter */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff8d;	/* XK_KP_Enter */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57415:
-	    buf->code = 0xffbd;	/* XK_KP_Equal */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffbd;	/* XK_KP_Equal */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57416:
-	    buf->code = 0xffac;	/* XK_KP_Separator */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xffac;	/* XK_KP_Separator */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57417:
-	    buf->code = 0xff96;	/* XK_KP_Left */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff96;	/* XK_KP_Left */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57418:
-	    buf->code = 0xff98;	/* XK_KP_Right */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff98;	/* XK_KP_Right */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57419:
-	    buf->code = 0xff97;	/* XK_KP_Up */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff97;	/* XK_KP_Up */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57420:
-	    buf->code = 0xff99;	/* XK_KP_Down */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff99;	/* XK_KP_Down */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57421:
-	    buf->code = 0xff9a;	/* XK_KP_Prior */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff9a;	/* XK_KP_Prior */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57422:
-	    buf->code = 0xff9b;	/* XK_KP_Next */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff9b;	/* XK_KP_Next */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57423:
-	    buf->code = 0xff95;	/* XK_KP_Home */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff95;	/* XK_KP_Home */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57424:
-	    buf->code = 0xff9c;	/* XK_KP_End */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff9c;	/* XK_KP_End */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57425:
-	    buf->code = 0xff9e;	/* XK_KP_Insert */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff9e;	/* XK_KP_Insert */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57426:
-	    buf->code = 0xff9f;	/* XK_KP_Delete */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0xff9f;	/* XK_KP_Delete */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57428:
-	    buf->code = 0x1008ff14; /* XF86XK_AudioPlay */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff14; /* XF86XK_AudioPlay */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57429:
-	    buf->code = 0x1008ff31; /* XF86XK_AudioPause */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff31; /* XF86XK_AudioPause */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57430:
 	    /* Kitty calls this MEDIA_PLAY_PAUSE,
@@ -8559,46 +8563,46 @@ kitty_kbd_proto_consume (struct input_event *buf,
 	       but there's no XF86 keysym that corresponds.  */
 	    return 0;
 	  case 57432:
-	    buf->code = 0x1008ff15; /* XF86XK_AudioStop */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff15; /* XF86XK_AudioStop */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57433:
-	    buf->code = 0x1008ff97; /* XF86XK_AudioForward */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff97; /* XF86XK_AudioForward */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57434:
-	    buf->code = 0x1008ff3e; /* XF86XK_AudioRewind */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff3e; /* XF86XK_AudioRewind */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57435:
-	    buf->code = 0x1008ff17; /* XF86XK_AudioNext */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff17; /* XF86XK_AudioNext */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57436:
-	    buf->code = 0x1008ff16; /* XF86XK_AudioPrev */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff16; /* XF86XK_AudioPrev */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57437:
-	    buf->code = 0x1008ff1c; /* XF86XK_AudioRecord */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff1c; /* XF86XK_AudioRecord */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57438:
-	    buf->code = 0x1008ff11; /* XF86XK_AudioLowerVolume */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff11; /* XF86XK_AudioLowerVolume */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57439:
-	    buf->code = 0x1008ff13; /* XF86XK_AudioRaiseVolume */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff13; /* XF86XK_AudioRaiseVolume */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  case 57440:
-	    buf->code = 0x1008ff12; /* XF86XK_AudioMute */
-	    buf->kind = NON_ASCII_KEYSTROKE_EVENT;
+	    buf.code = 0x1008ff12; /* XF86XK_AudioMute */
+	    buf.kind = NON_ASCII_KEYSTROKE_EVENT;
 	    break;
 	  default:
-	    buf->code = code2 && (mods & shift_modifier)
+	    buf.code = code2 && (buf.modifiers & shift_modifier)
 	      ? code2
 	      : code1;
-	    buf->kind = buf->code < 128
+	    buf.kind = buf.code < 128
 	      ? ASCII_KEYSTROKE_EVENT
 	      : MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 	  }
@@ -8606,22 +8610,21 @@ kitty_kbd_proto_consume (struct input_event *buf,
   else
     return 0;
 
-  /* If we got this far we read a key, so we can touch buf.  */
-  buf->modifiers = mods;
-
   /* Finally, fold ASCII control modifiers back in so that quit_char is
      still detectable in the usual way.  */
-  if (buf->kind == ASCII_KEYSTROKE_EVENT
-      && (mods & ctrl_modifier) && !(mods & shift_modifier))
+  if (buf.kind == ASCII_KEYSTROKE_EVENT
+      && (buf.modifiers & ctrl_modifier)
+      && !(buf.modifiers & shift_modifier))
     {
-      int ctrl_char = make_ctrl_char (buf->code);
+      int ctrl_char = make_ctrl_char (buf.code);
       if (ctrl_char < 128)
 	{
-	  buf->code = ctrl_char;
-	  buf->modifiers &= ~ctrl_modifier;
+	  buf.code = ctrl_char;
+	  buf.modifiers &= ~ctrl_modifier;
 	}
     }
 
+  *saw_quit |= tty_store_input_event (&buf, tty);
   return i + 1;
 }
 
@@ -8771,16 +8774,20 @@ tty_read_avail_input (struct terminal *terminal,
 
   for (i = 0; i < nread; i++)
     {
-      struct input_event buf;
-      EVENT_INIT (buf);
       int kitty_kbd_proto_consumed = 0;
+      bool kitty_kbd_proto_saw_quit = false;
       if (!NILP (kitty_kbd_proto_p) && cbuf[i] == '\033')
-	kitty_kbd_proto_consumed
-	  = kitty_kbd_proto_consume (&buf, cbuf + i, nread - i);
-      if (kitty_kbd_proto_consumed)
+	 kitty_kbd_proto_consumed
+	   = kitty_kbd_proto_consume (cbuf + i, nread - i, tty,
+				      &kitty_kbd_proto_saw_quit);
+      if (kitty_kbd_proto_saw_quit)
+	break;
+      else if (kitty_kbd_proto_consumed)
 	i += kitty_kbd_proto_consumed - 1;
       else
 	{
+	  struct input_event buf;
+	  EVENT_INIT (buf);
 	  buf.kind = ASCII_KEYSTROKE_EVENT;
 	  buf.modifiers = 0;
 	  if (tty->meta_key == 1 && (cbuf[i] & 0x80))
@@ -8789,9 +8796,10 @@ tty_read_avail_input (struct terminal *terminal,
 	    cbuf[i] &= ~0x80;
 
 	  buf.code = cbuf[i];
+
+	  if (tty_store_input_event (&buf, tty))
+	    break;
 	}
-      if (tty_store_input_event (&buf, tty))
-        break;
     }
 
   return nread;
