@@ -4413,9 +4413,14 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 		 unspecified and reversed, take the frame's background
 		 pixel for foreground and vice versa.  */
 	      Lisp_Object elt = Fassq (Qbackground_color, f->param_alist);
-	      return ((CONSP (elt) && STRINGP (XCDR (elt)))
-		      ? frame_unspecified_color (f, XCDR (elt))
-		      : tty_color_name (f, FRAME_BACKGROUND_PIXEL (f)));
+	      if (CONSP (elt) && STRINGP (XCDR (elt)))
+		{
+		  elt = frame_unspecified_color (f, XCDR (elt));
+		  if (!NILP (elt))
+		    return elt;
+		}
+	      else
+		return tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
 	    }
 	  break;
 	case FOREGROUND_COLOR:
@@ -4425,9 +4430,14 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 		 unspecified and reversed, take the frame's background
 		 pixel for foreground and vice versa.  */
 	      Lisp_Object elt = Fassq (Qforeground_color, f->param_alist);
-	      return ((CONSP (elt) && STRINGP (XCDR (elt)))
-		      ? frame_unspecified_color (f, XCDR (elt))
-		      : tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)));
+	      if (CONSP (elt) && STRINGP (XCDR (elt)))
+		{
+		  elt = frame_unspecified_color (f, XCDR (elt));
+		  if (!NILP (elt))
+		    return elt;
+		}
+	      else
+		return tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
 	    }
 	  break;
 	case FONT:
