@@ -256,6 +256,14 @@ Support for Russian using koi8-r and the russian-computer input method.")
 		         . "Support for Mongolian language with Cyrillic alphabet."))
  '("Cyrillic"))
 
+(set-language-info-alist
+ "Kyrgyz" '((coding-system utf-8)
+            (coding-priority utf-8)
+            (input-method . "cyrillic-kyrgyz")
+            (sample-text . "Kyrgyz (кыргызча)	Саламатсыңарбы? / Кутман күн")
+            (documentation . "Support for the Kyrgyz alphabet."))
+ '("Cyrillic"))
+
 (provide 'cyrillic)
 
 ;;; cyrillic.el ends here

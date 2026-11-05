@@ -230,6 +230,13 @@ unpaired delimiters, while keeping delimiters you insert balanced.  The
 'electric-pair-field-search-size' variable controls the search distance
 for nearby fields.
 
+** Internationalization
+
+---
+*** New language environment and input method for Kyrgyz.
+The language environment and the input method 'cyrillic-kyrgyz' support
+the Kyrgyz language.
+
 
 * Changes in Specialized Modes and Packages in Emacs 32.1
 
