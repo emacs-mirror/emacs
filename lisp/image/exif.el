@@ -241,7 +241,7 @@ If the orientation isn't present in the data, return nil."
                                           value (1- length) le)
                                        (if (and (not le) (memq format-type
                                                                '(byte short)))
-                                           (lsh value (- (* 8 length) 32))
+                                           (ash value (- (* 8 length) 32))
                                          value)))
                                    format-type le)))))
     (let ((next (exif--read-number 4 le)))
