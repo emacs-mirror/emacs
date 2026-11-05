@@ -58,4 +58,21 @@
       (buffer-substring-no-properties 1 14))
     "\txxx    \tLine")))
 
+(ert-deftest indent-tests-vertical-motion-truncated-long-line ()
+  ;; Batch mode uses vmotion rather than the display iterator.
+  (skip-when noninteractive)
+  (save-window-excursion
+    (with-temp-buffer
+      (switch-to-buffer (current-buffer))
+      (setq-local truncate-lines t
+                  long-line-threshold 1000)
+      (insert "first\n" (make-string 60000 ?x) "\nlast")
+      (redisplay t)
+      (should (long-line-optimizations-p))
+      (dolist (count '(1 2 4))
+        (goto-char (point-max))
+        (should (= (vertical-motion (- count)) (- (min count 2))))
+        (should (= (line-number-at-pos) (max 1 (- 3 count))))
+        (should (bolp))))))
+
 ;;; indent-tests.el ends here

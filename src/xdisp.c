@@ -7575,9 +7575,12 @@ back_to_previous_line_start (struct it *it)
   ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
   dec_both (&cp, &bp);
+  /* A truncated line occupies one screen line.  Find its real start,
+     rather than stopping inside it at the long-line search limit.  */
   SET_WITH_NARROWED_BEGV (it, IT_CHARPOS (*it),
 			  find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it)),
-			  get_small_narrowing_begv (it->w, IT_CHARPOS (*it)));
+			  it->line_wrap == TRUNCATE ? BEGV
+			  : get_small_narrowing_begv (it->w, IT_CHARPOS (*it)));
 }
 
 /* Find in the current buffer the first display or overlay string
