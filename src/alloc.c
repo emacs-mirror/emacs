@@ -5258,9 +5258,10 @@ valid_lisp_object_p (Lisp_Object obj)
 void *
 hash_table_alloc_bytes (ptrdiff_t nbytes)
 {
+  void *result = xmalloc (nbytes);
   tally_consing (nbytes);
   hash_table_allocated_bytes += nbytes;
-  return xmalloc (nbytes);
+  return result;
 }
 
 /* Like xfree, but count consing and hash table usage.
