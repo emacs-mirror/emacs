@@ -2299,6 +2299,7 @@ show_help_echo (Lisp_Object help, Lisp_Object window, Lisp_Object object,
 
 static Lisp_Object kbd_buffer_get_event (KBOARD **kbp, bool *used_mouse_menu,
 					 struct frame **event_frame,
+					 enum event_kind *event_kind,
 					 struct timespec *end_time);
 static void record_char (Lisp_Object c);
 
@@ -2323,7 +2324,8 @@ do { if (polling_stopped_here) start_polling ();	\
 static Lisp_Object
 read_event_from_main_queue (struct timespec *end_time,
                             sys_jmp_buf local_getcjmp,
-                            bool *used_mouse_menu)
+                            bool *used_mouse_menu,
+                            enum event_kind *event_kind)
 {
   Lisp_Object c = Qnil;
   sys_jmp_buf save_jump;
@@ -2345,7 +2347,8 @@ read_event_from_main_queue (struct timespec *end_time,
   if (!end_time)
     timer_start_idle ();
   struct frame *frame;
-  c = kbd_buffer_get_event (&kb, used_mouse_menu, &frame, end_time);
+  c = kbd_buffer_get_event (&kb, used_mouse_menu, &frame, event_kind,
+			    end_time);
   unbind_to (count, Qnil);
 
   if (! NILP (c) && (kb != current_kboard))
@@ -2425,9 +2428,10 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 #endif
   while (true)
     {
+      enum event_kind event_kind;
       Lisp_Object nextevt
         = read_event_from_main_queue (end_time, local_getcjmp,
-                                      used_mouse_menu);
+                                      used_mouse_menu, &event_kind);
 #ifdef WINDOWSNT
       /* w32_console already returns decoded events.  It either reads
 	 Unicode characters from the Windows keyboard input, or
@@ -2438,16 +2442,12 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
       struct frame *frame = XFRAME (selected_frame);
       struct terminal *terminal = frame->terminal;
       if (!(is_tty_frame (frame)
-            /* Similarly to w32_console, kitty_kbd_proto_consume stores
-	       decoded events.  */
-	    && NILP (CDR_SAFE (assq_no_quit (Qtty_kitty_kbd_proto,
-					     terminal->param_alist)))
             /* Don't apply decoding if we're just reading a raw event
                (e.g. reading bytes sent by the xterm to specify the
                position of a mouse click).  */
 	    && (!EQ (prev_event, Qt))
-	       && (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
-		   & CODING_REQUIRE_DECODING_MASK)))
+	    && (TERMINAL_KEYBOARD_CODING (terminal)->common_flags
+		& CODING_REQUIRE_DECODING_MASK)))
 	return nextevt;		/* No decoding needed.  */
       else
 	{
@@ -2455,7 +2455,14 @@ read_decoded_event_from_main_queue (struct timespec *end_time,
 	  eassert (n < MAX_ENCODED_BYTES);
 	  events[n++] = nextevt;
 	  if (FIXNATP (nextevt)
-	      && XFIXNUM (nextevt) < (meta_key == 1 ? 0x80 : 0x100))
+	      && XFIXNUM (nextevt) < (meta_key == 1 ? 0x80 : 0x100)
+              /* Similarly to w32_console, kitty_kbd_proto_consume
+		 stores decoded events.  But dissimilarly, we can't just
+		 return `nextevt' immediately because sometimes we still
+		 need to decode: using an IME together with the Kitty
+		 Keyboard Protocol results in raw UTF-8 (bug#82195);
+		 this contradicts the protocol's specification.  */
+	      && event_kind != MULTIBYTE_CHAR_KEYSTROKE_EVENT)
 	    { /* An encoded byte sequence, let's try to decode it.  */
 	      struct coding_system *coding
 		= TERMINAL_KEYBOARD_CODING (terminal);
@@ -4037,6 +4044,7 @@ static Lisp_Object
 kbd_buffer_get_event (KBOARD **kbp,
                       bool *used_mouse_menu,
                       struct frame **event_frame,
+                      enum event_kind *event_kind,
                       struct timespec *end_time)
 {
   Lisp_Object obj, str;
@@ -4048,6 +4056,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 #endif
 
   *event_frame = NULL;
+  *event_kind = NO_EVENT;
 
 #ifdef subprocesses
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE / 4)
@@ -4213,6 +4222,7 @@ kbd_buffer_get_event (KBOARD **kbp,
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
       union buffered_input_event *event = kbd_fetch_ptr;
+      *event_kind = event->kind;
 
       *kbp = event_to_kboard (&event->ie);
       if (*kbp == 0)
