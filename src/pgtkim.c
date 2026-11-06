@@ -172,11 +172,13 @@ pgtk_purpose_sym_to_int (void)
 {
   /* If we don't recognize the symbol, we return
      GTK_INPUT_PURPOSE_TERMINAL.  */
-  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_TERMINAL))
+  /* The symbols here don't all have QGTK_INPUT_PURPOSE in them,
+     because some of them are duplicates of existing symbols.  */
+  if (EQ (Vpgtk_input_purpose, Qterminal))
     return GTK_INPUT_PURPOSE_TERMINAL;
   if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_FREE_FORM))
     return GTK_INPUT_PURPOSE_FREE_FORM;
-  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_ALPHA))
+  if (EQ (Vpgtk_input_purpose, Qalpha))
     return GTK_INPUT_PURPOSE_ALPHA;
   if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_DIGITS))
     return GTK_INPUT_PURPOSE_DIGITS;
@@ -184,13 +186,13 @@ pgtk_purpose_sym_to_int (void)
     return GTK_INPUT_PURPOSE_NUMBER;
   if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_PHONE))
     return GTK_INPUT_PURPOSE_PHONE;
-  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_URL))
+  if (EQ (Vpgtk_input_purpose, Qurl))
     return GTK_INPUT_PURPOSE_URL;
   if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_EMAIL))
     return GTK_INPUT_PURPOSE_EMAIL;
-  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_NAME))
+  if (EQ (Vpgtk_input_purpose, Qname))
     return GTK_INPUT_PURPOSE_NAME;
-  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_PASSWORD))
+  if (EQ (Vpgtk_input_purpose, Qpassword))
     return GTK_INPUT_PURPOSE_PASSWORD;
   if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_PIN))
     return GTK_INPUT_PURPOSE_PIN;
@@ -344,17 +346,17 @@ If you want to change it after connection, use the `pgtk-use-im-context'
 function.  */ );
   Vpgtk_use_im_context_on_new_connection = Qt;
 
+  /* These DEFSYMs don't cover all the options, because there were
+     already symbols for the other ones with the right name.  */
   DEFSYM (QGTK_INPUT_PURPOSE_FREE_FORM, "free-form");
-  DEFSYM (QGTK_INPUT_PURPOSE_ALPHA, "alpha");
   DEFSYM (QGTK_INPUT_PURPOSE_DIGITS, "digits");
   DEFSYM (QGTK_INPUT_PURPOSE_NUMBER, "number");
   DEFSYM (QGTK_INPUT_PURPOSE_PHONE, "phone");
-  DEFSYM (QGTK_INPUT_PURPOSE_URL, "url");
   DEFSYM (QGTK_INPUT_PURPOSE_EMAIL, "email");
-  DEFSYM (QGTK_INPUT_PURPOSE_NAME, "name");
-  DEFSYM (QGTK_INPUT_PURPOSE_PASSWORD, "password");
   DEFSYM (QGTK_INPUT_PURPOSE_PIN, "pin");
-  DEFSYM (QGTK_INPUT_PURPOSE_TERMINAL, "terminal");
+  /* This one exists in textconv.c with the same C name, but that's not
+     compiled for PGTK.  */
+  DEFSYM (Qpassword, "password");
   DEFVAR_LISP ("pgtk-input-purpose", Vpgtk_input_purpose,
      doc: /* The GTK input purpose to use.
 
@@ -382,6 +384,6 @@ Available values are at least:
 
 This variable only has an effect for PGTK builds using GTK
 versions >= 3.6.0.  */);
-  Vpgtk_input_purpose = QGTK_INPUT_PURPOSE_TERMINAL;
+  Vpgtk_input_purpose = Qterminal;
 
 }
