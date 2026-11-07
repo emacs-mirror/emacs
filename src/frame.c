@@ -4065,7 +4065,7 @@ store_frame_param (struct frame *f, Lisp_Object prop, Lisp_Object val)
     }
 }
 
-/* Return color matches UNSPEC on frame F or nil if UNSPEC
+/* Return color matching UNSPEC on frame F or UNSPEC if UNSPEC
    is not an unspecified foreground or background color.  */
 
 static Lisp_Object
@@ -4074,7 +4074,7 @@ frame_unspecified_color (struct frame *f, Lisp_Object unspec)
   return (!strncmp (SSDATA (unspec), unspecified_bg, SBYTES (unspec))
 	  ? tty_color_name (f, FRAME_BACKGROUND_PIXEL (f))
 	  : (!strncmp (SSDATA (unspec), unspecified_fg, SBYTES (unspec))
-	     ? tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)) : Qnil));
+	     ? tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)) : unspec));
 }
 
 /* Connect the frame-parameter names for frames to the ways of passing
@@ -4292,7 +4292,7 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	    return make_fixnum (0);
 	  break;
 
-	  /* From the prior gui_report_frame_params  */
+	  /* From the prior gui_report_frame_params.  */
 	  /* I think this should be done with a hook.  */
 	case LEFT:
 	  if (FRAME_WINDOW_P (f))
@@ -4370,7 +4370,7 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	  if (FRAME_WINDOW_P (f))
 	    {
 #ifdef USE_X_TOOLKIT
-	     /* Tooltip frame may not have this widget.  */
+	     /* Tooltip frames may not have this widget.  */
 	     if (FRAME_X_OUTPUT (f)->widget)
 #endif /* USE_X_TOOLKIT */
 	     return make_formatted_string
@@ -4402,7 +4402,7 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 	  if (FRAME_WINDOW_P (f))
 	    return FRAME_TOOL_BAR_POSITION (f);
 	  break;
-	  /* End from the prior gui_report_frame_params  */
+	  /* End of the prior gui_report_frame_params.  */
 #endif /* HAVE_WINDOW_SYSTEM */
 
 	  /* Convert non-graphic frame parameters.  */
@@ -4413,14 +4413,9 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 		 unspecified and reversed, take the frame's background
 		 pixel for foreground and vice versa.  */
 	      Lisp_Object elt = Fassq (Qbackground_color, f->param_alist);
-	      if (CONSP (elt) && STRINGP (XCDR (elt)))
-		{
-		  elt = frame_unspecified_color (f, XCDR (elt));
-		  if (!NILP (elt))
-		    return elt;
-		}
-	      else
-		return tty_color_name (f, FRAME_BACKGROUND_PIXEL (f));
+	      return ((CONSP (elt) && STRINGP (XCDR (elt)))
+		      ? frame_unspecified_color (f, XCDR (elt))
+		      : tty_color_name (f, FRAME_BACKGROUND_PIXEL (f)));
 	    }
 	  break;
 	case FOREGROUND_COLOR:
@@ -4430,14 +4425,9 @@ frame_get_param_value (struct frame *f, Lisp_Object parameter)
 		 unspecified and reversed, take the frame's background
 		 pixel for foreground and vice versa.  */
 	      Lisp_Object elt = Fassq (Qforeground_color, f->param_alist);
-	      if (CONSP (elt) && STRINGP (XCDR (elt)))
-		{
-		  elt = frame_unspecified_color (f, XCDR (elt));
-		  if (!NILP (elt))
-		    return elt;
-		}
-	      else
-		return tty_color_name (f, FRAME_FOREGROUND_PIXEL (f));
+	      return ((CONSP (elt) && STRINGP (XCDR (elt)))
+		      ? frame_unspecified_color (f, XCDR (elt))
+		      : tty_color_name (f, FRAME_FOREGROUND_PIXEL (f)));
 	    }
 	  break;
 	case FONT:
