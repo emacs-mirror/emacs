@@ -121,7 +121,8 @@ The function's value is the number of actions taken."
 		      (let ((x next))
 			(setq next (lambda () (setq next x) elt))))))
     (if (and (listp last-nonmenu-event)
-	     use-dialog-box)
+	     use-dialog-box
+	     (length< action-alist 5))
 	;; Make a list describing a dialog box.
 	(let ((objects (if help (capitalize (nth 1 help))))
 	      (action (if help (capitalize (nth 2 help)))))
@@ -485,7 +486,8 @@ When `use-dialog-box' is t, pop up a dialog window to get user input."
                                       ((and (display-popup-menus-p)
                                             last-input-event ; not during startup
                                             (listp last-nonmenu-event)
-                                            use-dialog-box)
+                                            use-dialog-box
+                                            (length< answers-with-help 10))
                                        (x-popup-dialog
                                         t
                                         (cons question
