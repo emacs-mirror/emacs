@@ -8278,7 +8278,7 @@ kitty_kbd_proto_consume (const unsigned char *cbuf, int cbuf_len,
   if (cbuf_len < 2 || !(cbuf[0] == '\033' && cbuf[1] == '['))
     return 0;
   unsigned code1 = 0, code2 = 0, code3 = 0, mods = 0, final = 0,
-    text = 0, i, cbuf_text_len;
+    text = 0, i, cbuf_text_len = 0;
   unsigned *next = &code1;
   const unsigned char *cbuf_text = NULL;
   for (i = 2; i < cbuf_len; i++)
