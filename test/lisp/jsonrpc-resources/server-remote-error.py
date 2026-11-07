@@ -13,7 +13,7 @@ anxious continuation for LR1 must still fire and resolve to "ok".
 """
 import os, sys
 sys.path.insert(0, os.path.dirname(__file__))
-from common import read_msg, write_msg, log, harakiri
+from common import read_msg, write_msg, log, harakiri, reply
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
             write_msg({'jsonrpc': '2.0', 'id': 1000,
                        'method': 'badMethod', 'params': {}})
             log('-> badMethod id=1000')
-            write_msg({'jsonrpc': '2.0', 'id': mid, 'result': 'ok'})
+            reply(msg, 'ok')
             log(f'-> (response LR1) id={mid}')
             # Collect the error response to badMethod.
             err = read_msg()

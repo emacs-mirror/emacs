@@ -15,7 +15,7 @@ LR2 should complete first, then RR1, then LR1.
 import os
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from common import read_msg, write_msg, log, harakiri
+from common import read_msg, write_msg, log, harakiri, reply
 
 
 def main():
@@ -34,14 +34,14 @@ def main():
             write_msg({'jsonrpc': '2.0', 'id': 1000,
                        'method': 'RR1', 'params': {}})
             log('-> RR1 id=1000')
-            write_msg({'jsonrpc': '2.0', 'id': mid, 'result': 'lr1-ok'})
+            reply(lr1, 'lr1-ok')
             log(f'-> (response LR1) id={mid}')
             # LR2 arrives next: the client's rdispatcher for RR1
             # issues it as a nested sync request.
             lr2 = read_msg()
             fid = lr2.get('id') if lr2 else None
             log(f'<- LR2 id={fid}')
-            write_msg({'jsonrpc': '2.0', 'id': fid, 'result': 'lr2-ok'})
+            reply(lr2, 'lr2-ok')
             log(f'-> (response LR2) id={fid}')
             # Finally collect the RR1 response (rdispatcher return value).
             rr1_resp = read_msg()

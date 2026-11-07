@@ -87,7 +87,6 @@ INITARGS are passed to `make-instance' for `jsonrpc--test-client'."
        (when ,conn
          (ignore-errors
           (jsonrpc-request ,conn 'harakiri nil :timeout 1)
-          (accept-process-output nil 0.1)
           (kill-buffer (jsonrpc--events-buffer ,conn))
           (jsonrpc-shutdown ,conn))))))
 

@@ -27,6 +27,13 @@ def write_msg(msg):
     )
     sys.stdout.buffer.flush()
 
+def reply(msg, result):
+    write_msg({'jsonrpc': '2.0', 'id': msg['id'], 'result': result})
+
+def reply_error(msg, code, message):
+    write_msg({'jsonrpc': '2.0', 'id': msg['id'],
+               'error': {'code': code, 'message': message}})
+
 def log(text):
     """Write a log line to stderr."""
     print(f'[test-server] {text}', file=sys.stderr, flush=True)
@@ -36,6 +43,6 @@ def harakiri(msg):
     if msg.get('method') == 'harakiri':
         log('-> very clean harakiri')
         if (mid := msg.get('id')) is not None:
-            write_msg({'jsonrpc': '2.0', 'id': mid, 'result': True})
+            reply(msg, True)
         return True
     return False
