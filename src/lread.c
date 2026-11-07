@@ -5069,7 +5069,7 @@ given, is only a hint for the expected number.  */)
     {
       CHECK_FIXNAT (size);
       EMACS_UINT n = XFIXNUM (size);
-      bits = elogb (n) + 1;
+      bits = n ? stdc_bit_width (n - 1) : 0;
       if (bits > obarray_max_bits)
 	xsignal (Qargs_out_of_range, size);
     }
