@@ -324,6 +324,21 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
     (should-not warned)
     (should (< elapsed 0.25))))
 
+(ert-deftest shutdown-cleanup-kills-all-buffers ()
+  "Check `jsonrpc-shutdown' with CLEANUP kills all buffers."
+  (skip-when (eq system-type 'windows-nt))
+  (let (buffers)
+    (jsonrpc--with-python-fixture
+        ("jsonrpc-resources/server-harakiri.py" conn)
+      (setq buffers (list (process-buffer (jsonrpc--process conn))
+                          (jsonrpc-stderr-buffer conn)
+                          (jsonrpc-events-buffer conn)))
+      (should (cl-every #'buffer-live-p buffers))
+      (jsonrpc-notify conn 'harakiri nil)
+      (jsonrpc-shutdown conn t)
+      (should-not (cl-some #'buffer-live-p buffers))
+      (setq conn nil))))
+
 (ert-deftest same-name-connections-dont-share-buffers ()
   "Check two connections with the same name get separate buffers.
 Shutting one down leaves the other's buffers alone."
@@ -365,8 +380,8 @@ Shutting one down leaves the other's buffers alone."
         (kill-buffer (jsonrpc-events-buffer conn))))))
 
 (ert-deftest dead-connection-kills-process-buffer ()
-  "A dead connection's process buffer dies even without CLEANUP.
-Otherwise every reconnection under the same name would leak one."
+  "Check that a dead connection's buffer dies even without CLEANUP.
+Otherwise every reconnection under the same name would make garbage.."
   (skip-when (eq system-type 'windows-nt))
   (let (output events)
     (jsonrpc--with-python-fixture

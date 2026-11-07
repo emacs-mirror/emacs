@@ -578,6 +578,7 @@ CONNECTION, METHOD and PARAMS as in `jsonrpc-async-request' (which see)."
     :initarg :on-shutdown
     :documentation "Function run when the process dies.")
    (-autoport-inferior
+    :accessor jsonrpc--autoport-inferior
     :initform nil
     :documentation "Used by `jsonrpc-autoport-bootstrap'."))
   :documentation "A JSONRPC connection over an Emacs process.
@@ -696,8 +697,12 @@ and delete the network process."
        ;; `accept-process-output' doesn't return just because PROC died.
        (accept-process-output nil 0.01))
     (when cleanup
-      (kill-buffer (process-buffer (jsonrpc--process conn)))
-      (kill-buffer (jsonrpc-stderr-buffer conn)))))
+      (cl-loop with inferior = (jsonrpc--autoport-inferior conn)
+               for buffer in (list (process-buffer (jsonrpc--process conn))
+                                   (jsonrpc-stderr-buffer conn)
+                                   (and inferior (process-buffer inferior))
+                                   (jsonrpc--events-buffer conn))
+               when (buffer-live-p buffer) do (kill-buffer buffer)))))
 
 (defun jsonrpc-stderr-buffer (conn)
   "Get CONN's standard error buffer, if any."
@@ -791,7 +796,7 @@ Move point to end of buffer.")
         ;; Buffer is useless now, let's not leak it.
         (when (buffer-live-p (process-buffer proc))
           (kill-buffer (process-buffer proc)))
-        (when-let* ((p (slot-value connection '-autoport-inferior))) (delete-process p))
+        (when-let* ((p (jsonrpc--autoport-inferior connection))) (delete-process p))
         (funcall (jsonrpc--on-shutdown connection) connection)))))
 
 (defvar jsonrpc--in-process-filter nil
@@ -1284,7 +1289,7 @@ CONNECT-ARGS are passed as additional arguments to
                                     (format "autostart (%s)" name)
                                     nil
                                     "localhost" port-number connect-args))))
-            (setf (slot-value conn '-autoport-inferior) inferior)
+                    (jsonrpc--autoport-inferior conn)
             np)
         (cond ((and (process-live-p np)
                     (process-live-p inferior))
