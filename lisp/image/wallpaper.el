@@ -322,6 +322,7 @@ order in which they appear.")
 Used to set `wallpaper-command'."
   ;; Note: `wallpaper-command' is used by `wallpaper--find-command-args'.
   (prog1 (set-default sym val)
+    (setq wallpaper--current-setter val)
     (set-default 'wallpaper-command-args
                  (wallpaper--find-command-args))))
 
