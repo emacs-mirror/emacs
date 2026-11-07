@@ -324,6 +324,63 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
     (should-not warned)
     (should (< elapsed 0.25))))
 
+(ert-deftest same-name-connections-dont-share-buffers ()
+  "Check two connections with the same name get separate buffers.
+Shutting one down leaves the other's buffers alone."
+  (skip-when (eq system-type 'windows-nt))
+  (skip-unless (executable-find "python3"))
+  (let* ((name "jsonrpc-same-name")
+         (script (expand-file-name "jsonrpc-resources/server-emacsrpc.py"
+                                   jsonrpc--test-dir))
+         (make-conn
+          (lambda ()
+            (jsonrpc-process-connection
+             :name name
+             :process
+             (lambda ()
+               (make-process
+                :name name :command (list "python3" script)
+                :connection-type 'pipe :noquery t
+                ;; The old handshake: find jsonrpc's stderr buffer by name.
+                :stderr (get-buffer-create (format "*%s stderr*" name)))))))
+         (a (funcall make-conn))
+         (b (funcall make-conn))
+         (buffers-of (lambda (conn)
+                       (list (process-buffer (jsonrpc--process conn))
+                             (jsonrpc-stderr-buffer conn)
+                             (jsonrpc-events-buffer conn)))))
+    (unwind-protect
+        (let ((a-buffers (funcall buffers-of a))
+              (b-buffers (funcall buffers-of b)))
+          (should (cl-every #'buffer-live-p (append a-buffers b-buffers)))
+          (should-not (cl-intersection a-buffers b-buffers))
+          (jsonrpc-notify a 'harakiri nil)
+          (jsonrpc-shutdown a t)
+          (should (cl-every #'buffer-live-p b-buffers))
+          (should (= 3 (jsonrpc-request b '+ [1 2] :timeout 3))))
+      (dolist (conn (list a b))
+        (when (jsonrpc-running-p conn)
+          (ignore-errors (jsonrpc-notify conn 'harakiri nil))
+          (jsonrpc-shutdown conn t))
+        (kill-buffer (jsonrpc-events-buffer conn))))))
+
+(ert-deftest dead-connection-kills-process-buffer ()
+  "A dead connection's process buffer dies even without CLEANUP.
+Otherwise every reconnection under the same name would leak one."
+  (skip-when (eq system-type 'windows-nt))
+  (let (output events)
+    (jsonrpc--with-python-fixture
+        ("jsonrpc-resources/server-harakiri.py" conn)
+      (setq output (process-buffer (jsonrpc--process conn))
+            events (jsonrpc-events-buffer conn))
+      (jsonrpc-notify conn 'harakiri nil)
+      (jsonrpc-shutdown conn)
+      (setq conn nil))
+    (unwind-protect
+        (progn (should-not (buffer-live-p output))
+               (should (buffer-live-p events)))
+      (kill-buffer events))))
+
 (ert-deftest bug-82046-failed-send-cleans-up ()
   (skip-when (eq system-type 'windows-nt))
   (jsonrpc--with-python-fixture

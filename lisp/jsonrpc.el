@@ -248,7 +248,7 @@ JSONRPC message."
     (if (buffer-live-p probe)
         probe
       (with-current-buffer
-          (get-buffer-create (format "*%s events*" (jsonrpc-name connection)))
+          (generate-new-buffer (format "*%s events*" (jsonrpc-name connection)))
         (jsonrpc-events-mode)
         (setf (jsonrpc--events-buffer connection)
               (current-buffer))))))
@@ -596,13 +596,12 @@ connection object, called when the process dies.")
 
 (cl-defmethod initialize-instance :after ((conn jsonrpc-process-connection) slots)
   (cl-destructuring-bind (&key ((:process proc)) name &allow-other-keys) slots
-    ;; FIXME: notice the undocumented bad coupling in the stderr
-    ;; buffer name, it must be named exactly like this we expect when
-    ;; calling `make-process'.  If there were a `set-process-stderr'
-    ;; like there is `set-process-buffer' we wouldn't need this and
-    ;; could use a pipe with a process filter instead of
-    ;; `after-change-functions'.  Alternatively, we need a new initarg
-    ;; (but maybe not a slot).
+    ;; FIXME: notice the undocumented bad coupling in the stderr buffer
+    ;; name, it must be named exactly like this we expect when calling
+    ;; `make-process'.  If there were a `set-process-stderr' like there
+    ;; is `set-process-buffer' we wouldn't need this and could use a
+    ;; pipe with a process filter instead of `after-change-functions'.
+    ;; Alternatively, we need a new initarg (but maybe not a slot).
     (let* ((stderr-buffer-name (format "*%s stderr*" name))
            (stderr-buffer (jsonrpc--forwarding-buffer stderr-buffer-name "[stderr] " conn))
            (hidden-name (concat " " stderr-buffer-name)))
@@ -615,12 +614,11 @@ connection object, called when the process dies.")
                        (funcall proc conn))
                    proc))
       (with-current-buffer stderr-buffer
-        (ignore-errors (kill-buffer hidden-name))
-        (rename-buffer hidden-name)
+        (rename-buffer hidden-name t)
         (setq buffer-read-only t))
       (process-put proc 'jsonrpc-stderr stderr-buffer))
     (setf (jsonrpc--process conn) proc)
-    (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
+    (set-process-buffer proc (generate-new-buffer (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
     (set-process-sentinel proc #'jsonrpc--process-sentinel)
     (set-process-coding-system proc 'binary 'binary)
@@ -790,6 +788,9 @@ Move point to end of buffer.")
                 (jsonrpc--continuations connection))
         (jsonrpc--message "Server exited with status %s" (process-exit-status proc))
         (delete-process proc)
+        ;; Buffer is useless now, let's not leak it.
+        (when (buffer-live-p (process-buffer proc))
+          (kill-buffer (process-buffer proc)))
         (when-let* ((p (slot-value connection '-autoport-inferior))) (delete-process p))
         (funcall (jsonrpc--on-shutdown connection) connection)))))
 
@@ -1188,10 +1189,8 @@ of the API instead.")
   "Helper for `jsonrpc-process-connection' helpers.
 Make a stderr buffer named NAME, forwarding lines prefixed by
 PREFIX to CONN's events buffer."
-  (with-current-buffer (get-buffer-create name)
+  (with-current-buffer (generate-new-buffer name)
     (let ((inhibit-read-only t))
-      (fundamental-mode)
-      (erase-buffer)
       (buffer-disable-undo)
       (add-hook
        'after-change-functions
