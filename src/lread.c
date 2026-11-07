@@ -5020,9 +5020,9 @@ grow_obarray (struct Lisp_Obarray *o)
   eassert (o->count > old_size);
   Lisp_Object *old_buckets = o->buckets;
 
-  int new_bits = o->size_bits + 1;
-  if (new_bits > obarray_max_bits)
+  if (obarray_max_bits <= o->size_bits)
     error ("Obarray too big");
+  int new_bits = o->size_bits + 1;
   ptrdiff_t new_size = (ptrdiff_t) {1} << new_bits;
   o->buckets = hash_table_alloc_bytes (new_size * sizeof *o->buckets);
   for (ptrdiff_t i = 0; i < new_size; i++)
