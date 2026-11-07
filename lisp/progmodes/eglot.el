@@ -1391,8 +1391,7 @@ SERVER."
         (eglot--request server :shutdown :jsonrpc-omit :timeout (or timeout 1.5))
         (jsonrpc-notify server :exit eglot--{}))
     ;; Now ask jsonrpc.el to shut down the server.
-    (jsonrpc-shutdown server (not preserve-buffers))
-    (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))
+    (jsonrpc-shutdown server (not preserve-buffers))))
 
 (defun eglot-shutdown-all (&optional preserve-buffers)
   "Politely ask all language servers to quit, in order.
