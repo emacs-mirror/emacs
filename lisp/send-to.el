@@ -87,6 +87,13 @@ paths known to exist. In these instances, files will be sent instead.\"
     (funcall (map-elt handler :supported))))
 
 ;;;###autoload
+(defun send-to-collect-items ()
+  "Return a list of collected items to be sent."
+  (when-let* ((handler (send-to--resolve-handler))
+              (collect (map-elt handler :collect)))
+    (funcall collect)))
+
+;;;###autoload
 (defun send-to (&optional items)
   "Send file(s) or region text to (non-Emacs) applications or services.
 
@@ -104,8 +111,8 @@ explicitly overridden."
     (funcall (or (map-elt handler :send)
                  (error "Handler without :send capability"))
              (or items
-                 (when (map-elt handler :collect)
-                   (funcall (map-elt handler :collect)))
+                 (when-let* ((collect (map-elt handler :collect)))
+                   (funcall collect))
                  (user-error "Nothing to send")))))
 
 (defun send-to--format-items (items)
@@ -152,7 +159,6 @@ explicitly overridden."
             (forward-line 1))))
       filenames)))
 
-;;;###autoload
 (defun send-to--resolve-handler ()
   "Return first supported handler from `send-to-handlers'."
   (seq-find (lambda (handler)

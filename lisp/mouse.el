@@ -30,7 +30,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'rect))
-(eval-when-compile (require 'send-to))
 
 ;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)
@@ -539,14 +538,11 @@ Some context functions add menu items below the separator."
                   (cdr mode))))
   menu)
 
-(autoload 'send-to--resolve-handler "send-to")
 (defun context-menu-send-to (menu _click)
   "Add a \"Send to...\" context MENU entry on supported platforms."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (when-let* ((_ (send-to-supported-p))
-              (handler (send-to--resolve-handler))
-              (collect (map-elt handler :collect))
-              (items (funcall collect)))
+              (items (send-to-collect-items)))
     (define-key-after menu [separator-send] menu-bar-separator)
     (define-key-after menu [send]
       `(menu-item "Send to..."
