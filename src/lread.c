@@ -5008,7 +5008,7 @@ enum {
 		    + (EMACS_INT_WIDTH - 1) / 64),
 
   obarray_max_bits = min (8 * sizeof (int),
-			  8 * sizeof (ptrdiff_t) - word_size_log2) - 1,
+			  8 * sizeof (ptrdiff_t) - word_size_log2) - 2,
 };
 static_assert (1 << (word_size_log2 - 1) < EMACS_INT_WIDTH
 	       && EMACS_INT_WIDTH <= 1 << word_size_log2);
