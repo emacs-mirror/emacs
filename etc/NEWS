@@ -16,18 +16,6 @@ You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
 
-* Installation Changes in Emacs 31.2
-
-
-* Startup Changes in Emacs 31.2
-
-
-* Changes in Emacs 31.2
-
-
-* Editing Changes in Emacs 31.2
-
-
 * Changes in Specialized Modes and Packages in Emacs 31.2
 
 ** Loaddefs-gen
@@ -57,9 +45,6 @@ user or host names, it can bind the new variable
 entry "(tramp) File name syntax" for more details.
 
 
-* New Modes and Packages in Emacs 31.2
-
-
 * Incompatible Lisp Changes in Emacs 31.2
 
 ** Scraping for autoloads will now sometimes load/evaluate the scraped file.
@@ -70,12 +55,6 @@ autoloaded form calling a macro that is not yet defined, it will
 load the file that's being scraped.  Errors are caught to avoid most
 regressions, but it can lead to surprising error messages and can
 introduce security risks in case you're scraping a file you do not trust.
-
-
-* Lisp Changes in Emacs 31.2
-
-
-* Changes in Emacs 31.2 on Non-Free Operating Systems
 
 
 * Installation Changes in Emacs 31.1
