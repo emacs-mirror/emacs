@@ -143,6 +143,12 @@ If you still want to show the "*Completions*" buffer, then customize
 the user option 'icomplete-in-buffer' to the value 'with-completions-popup'.
 
 ---
+*** Graceful degradation while reading too many dialog items.
+While using the dialog box, 'read-multiple-choice', 'read-answer',
+'map-y-or-n-p' now fall back to reading the answer from the minibuffer
+when the number of items is greater than 9 instead of signaling an error.
+
+---
 ** Improved Emoji support on text-only terminals.
 Emacs now composes Emoji sequences as two-column glyphs on text-mode
 terminals when 'auto-composition-mode' is enabled.  This should correct
