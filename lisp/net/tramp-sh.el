@@ -4424,11 +4424,15 @@ file exists and nonzero exit status otherwise."
     ;; that all shells interpret -i as interactive shell.  Must be the
     ;; last argument, because (for example) bash expects long options
     ;; first.
+    ;; Since GNU coreutils 9.12, file names are quoted using the
+    ;; `shell-escape' style.  We override this via $QUOTING_STYLE.
+    ;; (Bug#82170)
     (tramp-send-command
      vec (format
 	  (concat
 	   "exec env TERM='%s' INSIDE_EMACS='%s' "
-	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
+	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' "
+	   "QUOTING_STYLE=literal %s %s -i")
           tramp-terminal-type (tramp-inside-emacs)
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")
 	  (if (stringp tramp-histfile-override)
@@ -6072,14 +6076,13 @@ Nonexistent directories are removed from spec."
 	;; boundaries "`" and "'" and their localized variants,
 	;; therefore.  See Bug#23422 in coreutils.  Since GNU stat
 	;; 8.26, environment variable QUOTING_STYLE is supported.
+	;; We use "--format=" as indicator whether it is GNU stat.
 	(when result
-	  (setq result (concat "env QUOTING_STYLE=locale " result)
-		tmp (tramp-send-command-and-read
-		     vec (format "%s -c '(\"%%N\" %%s)' /" result) 'noerror))
+	  (setq tmp (tramp-send-command-and-read
+		     vec (format "%s --format='(\"%%N\" %%s)' /" result)
+		     'noerror))
 	  (unless (and (listp tmp) (stringp (car tmp))
-		       (string-match-p
-			(rx bol (any "\"`'‘„”«「") "/" (any "\"'’“”»」") eol)
-			(car tmp))
+		       (string-equal (car tmp) "/")
 		       (integerp (cadr tmp)))
 	    (setq result nil)))
 	result))))
