@@ -543,14 +543,16 @@ Some context functions add menu items below the separator."
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (when-let* ((_ (send-to-supported-p))
               (items (send-to-collect-items)))
-    (define-key-after menu [separator-send] menu-bar-separator)
+    (define-key-after menu [separator-send] menu-bar-separator
+      'middle-separator)
     (define-key-after menu [send]
       `(menu-item "Send to..."
                   ,(lambda ()
                      (interactive)
                      (send-to items))
                   :help
-                  "Send item (region, buffer file, or Dired files) to applications or service")))
+                  "Send item (region, buffer file, or Dired files) to applications or service")
+      'separator-send))
   menu)
 
 (defun context-menu-buffers (menu _click)
