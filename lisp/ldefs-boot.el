@@ -24006,7 +24006,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 7) package--builtin-versions)
+(push '(org 9 8 12) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -31598,7 +31598,6 @@ Positive ARG means turn on, negative turn off.
 A nil ARG means toggle.  Once the speedbar window is activated, a buffer in
 `speedbar-mode' will be displayed.  Currently, only one speedbar is
 supported at a time.
-`speedbar-before-popup-hook' is called before popping up the speedbar frame.
 `speedbar-before-delete-hook' is called before the frame is deleted.
 
 (fn &optional ARG)" t)
@@ -35262,7 +35261,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 2 31 1) package--builtin-versions)
+(push '(tramp 2 8 3 -1) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
@@ -36489,6 +36488,14 @@ deferred until the prefix key sequence is pressed.
 
 ;;; Generated autoloads from use-package/use-package-core.el
 
+(autoload 'use-package-vc-install "use-package-core"
+"Install a package with `package-vc.el'.
+ARG is a list of the form (NAME OPTIONS REVISION), as returned by
+`use-package-normalize--vc-arg'.  If LOCAL-PATH is non-nil, call
+`package-vc-install-from-checkout'; otherwise, indicating a
+remote host, call `package-vc-install' instead.
+
+(fn ARG &optional LOCAL-PATH)")
 (autoload 'use-package "use-package-core"
 "Declare an Emacs package by specifying a group of configuration options.
 
