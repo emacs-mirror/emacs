@@ -339,6 +339,72 @@ Vaguely similar to Julia's JETLS (bug#80623), but more complex."
       (should-not (cl-some #'buffer-live-p buffers))
       (setq conn nil))))
 
+(defun jsonrpc--test-buffers (conn)
+  "List CONN's process, stderr and events buffers."
+  (list (process-buffer (jsonrpc--process conn))
+        (jsonrpc-stderr-buffer conn)
+        (jsonrpc-events-buffer conn)))
+
+(defun jsonrpc--test-wait-killed (buffers)
+  "Wait for all BUFFERS to be killed, failing after 2s."
+  (with-timeout (2 (ert-fail "Buffers still live after 2s"))
+    (while (cl-some #'buffer-live-p buffers)
+      (accept-process-output nil 0.01))))
+
+(ert-deftest async-shutdown-after-exit ()
+  "Async `jsonrpc-shutdown' returns at once, cleans up after exit."
+  (skip-when (eq system-type 'windows-nt))
+  (let (warned)
+    (cl-letf (((symbol-function 'jsonrpc--warn)
+               (lambda (&rest _) (setq warned t))))
+      (jsonrpc--with-python-fixture
+          ("jsonrpc-resources/server-harakiri.py" conn)
+        (let ((buffers (jsonrpc--test-buffers conn))
+              (start (float-time)))
+          (jsonrpc-notify conn 'harakiri nil)
+          (jsonrpc-shutdown conn t t)
+          (should (< (- (float-time) start) 0.05))
+          (jsonrpc--test-wait-killed buffers)
+          (should-not (jsonrpc-running-p conn))
+          (setq conn nil))))
+    (should-not warned)))
+
+(ert-deftest async-shutdown-kills-stubborn-server ()
+  "Async `jsonrpc-shutdown' deletes a server that doesn't exit."
+  (skip-when (eq system-type 'windows-nt))
+  (let ((warnings 0))
+    (cl-letf (((symbol-function 'jsonrpc--warn)
+               (lambda (&rest _) (cl-incf warnings))))
+      (jsonrpc--with-python-fixture
+          ("jsonrpc-resources/server-harakiri.py" conn)
+        (let ((buffers (jsonrpc--test-buffers conn))
+              (start (float-time)))
+          ;; don't send any exit notification to the server
+          (jsonrpc-shutdown conn t t)
+          (should (jsonrpc-running-p conn))
+          (jsonrpc--test-wait-killed buffers)
+          (should (>= (- (float-time) start) 0.25))
+          (should-not (jsonrpc-running-p conn))
+          (setq conn nil))))
+    (should (= warnings 1))))
+
+(ert-deftest async-shutdown-after-sentinel ()
+  "Async `jsonrpc-shutdown' cleans up at once once the sentinel ran."
+  (skip-when (eq system-type 'windows-nt))
+  (jsonrpc--with-python-fixture
+      ("jsonrpc-resources/server-harakiri.py" conn)
+    (let ((buffers (jsonrpc--test-buffers conn))
+          (proc (jsonrpc--process conn)))
+      (jsonrpc-notify conn 'harakiri nil)
+      (with-timeout (2 (ert-fail "Sentinel didn't run"))
+        (while (not (process-get proc 'jsonrpc-sentinel-done))
+          (accept-process-output nil 0.01)))
+      ;; The sentinel already killed the process buffer.
+      (should (cl-every #'buffer-live-p (cdr buffers)))
+      (jsonrpc-shutdown conn t t)
+      (should-not (cl-some #'buffer-live-p buffers))
+      (setq conn nil))))
+
 (ert-deftest same-name-connections-dont-share-buffers ()
   "Check two connections with the same name get separate buffers.
 Shutting one down leaves the other's buffers alone."

@@ -6155,7 +6155,8 @@ add specializations to the @code{jsonrpc-shutdown} and
 @code{jsonrpc-running-p} generic functions if these concepts apply to
 the transport.  The specialization of @code{jsonrpc-shutdown} should
 ensure the release of any system resources (e.g.@: processes, timers,
-etc.) used to listen for messages on the wire.  The specialization of
+etc.) used to listen for messages on the wire, without blocking if its
+optional @var{async} argument is non-@code{nil}.  The specialization of
 @code{jsonrpc-running-p} should tell if these resources are still
 active or have already been released (via @code{jsonrpc-shutdown} or
 otherwise).
