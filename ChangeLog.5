@@ -1,3 +1,1108 @@
+2026-11-08  Eshel Yaron  <me@eshelyaron.com>
+
+	(sh-set-shell): Ignore symbol shorthands when interning
+
+	* lisp/progmodes/sh-script.el (sh-set-shell): Ignore symbol
+	shorthands when interning.
+
+2026-11-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Tramp: Respect nes defaults in GNU coreutils 9.12
+
+	* doc/misc/tramp.texi (Remote processes): Mention QUOTING_STYLE.
+
+	* lisp/net/tramp.el (tramp-convert-file-attributes): Adapt regexp
+	for symlink.
+
+	* lisp/net/tramp-sh.el (tramp-open-shell): Use "QUOTING_STYLE=literal".
+	(Bug#82170)
+	(tramp-get-remote-stat): Better detection of GNU stat.
+
+	* lisp/net/tramp-sudoedit.el (tramp-methods) <sudoedit>:
+	Adapt `tramp-sudo-login' argument.
+	(tramp-sudoedit-handle-file-attributes)
+	(tramp-sudoedit-handle-file-name-all-completions): Adapt command.
+
+2026-11-03  Sean Whitton  <spwhitton@spwhitton.name>
+
+	gdb-input: Don't call process-send-string with nil first argument
+
+	* lisp/progmodes/gdb-mi.el (gdb-input): Don't call
+	process-send-string with nil first argument.  We could send the
+	string to an unrelated process.
+
+2026-11-03  Aaron L. Zeng  <azeng@janestreet.com>
+
+	Fix getenv with FRAME argument for initial frame
+
+	Regression seemingly introduced by
+
+	    commit 26f9c7b74ba881031cceae6b20ba94f0047485a0
+	    Author:     Stefan Monnier <monnier@iro.umontreal.ca>
+	    AuthorDate: Wed Oct 10 20:24:19 2007 +0000
+	    Commit:     Stefan Monnier <monnier@iro.umontreal.ca>
+	    CommitDate: Wed Oct 10 20:24:19 2007 +0000
+
+	        * frame.c (Qenvironment): Remove.
+	        (syms_of_frame) <Qenvironment>: Don't initialize.
+	        (Fdelete_frame): Don't treat the `environment' param specially.
+	        * frame.h (Qenvironment): Don't declare.
+	        * callproc.c (set_initial_environment): Don't set unused frame param.
+
+	* lisp/frame.el (frame-initialize): Do not set environment
+	frame parameter to nil (bug#82172).
+
+2026-11-02  Cecilio Pardo  <cpardo@imayhem.com>
+
+	Fix DirectWrite not drawing the last glyphs of long runs
+
+	'w32_dwrite_draw' sizes its bitmap with the width that
+	'text_extents_internal' computes for the whole run, which adds up
+	the advances as floats and rounds only the total.  But the glyphs
+	are positioned by Emacs with the advance of each glyph rounded to
+	whole pixels.  When those advances round up, the glyphs take more
+	space than the bitmap has, and the last ones of a long run are not
+	drawn.  (Bug#82148)
+	* src/w32dwrite.c (text_extents_internal): Add up the rounded
+	advances, to match how glyphs are positioned when drawn.
+
+2026-11-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix oversight in Tramp
+
+	* lisp/net/tramp.el (tramp-methods): Fix docstring.
+	(tramp-handle-make-process): Call `tramp-ssh-or-plink-options'.
+	(Bug#82164)
+
+2026-10-31  Ulrich Müller  <ulm@gentoo.org>
+
+	Fix a void variable reference
+
+	* lisp/progmodes/cfengine.el (cfengine3-font-lock-keywords):
+	Don't refer to void font-lock-error-face.  The regex matches valid
+	macros, so use font-lock-preprocessor-face instead.  (Bug#82038)
+
+2026-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	file-remote-p returns nil if FILE is nil
+
+	* doc/lispref/files.texi (Magic File Names): file-remote-p returns
+	nil if FILE is nil.
+
+	* lisp/files.el (file-remote-p): Adapt docstring.  Return nil if
+	FILE is nil.  (Bug#82140)
+
+2026-10-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Tramp manual clarification
+
+	* doc/misc/tramp.texi (Remote processes): Clarification for
+	process-environment.
+
+2026-10-27  Juri Linkov  <juri@linkov.net>
+
+	Fix comment-related values in mhtml-ts-mode
+
+	* lisp/textmodes/mhtml-ts-mode.el (mhtml-ts-mode--comment-setup):
+	Sync values of 'comment-start-skip' and 'comment-end-skip'
+	for html from sgml-mode (bug#82043).
+	Do not merge to master.
+
+2026-10-26  Paul Nelson  <ultrono@gmail.com>
+
+	Correct Auto Insert documentation
+
+	* doc/misc/autotype.texi (Autoinserting): Explain that nil
+	'auto-insert-query' means to insert without asking.  Replace the
+	stale hook reference with 'auto-insert-mode'.  Prefer active
+	voice.  (Bug#82106)
+	* doc/misc/autotype.texi (Autoinserting):
+	* lisp/autoinsert.el: Omit the unnecessary argument to
+	'auto-insert-mode' in setup examples.
+
+2026-10-26  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.8.12
+
+2026-10-25  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors in yank-media
+
+	* lisp/yank-media.el (yank-media-types--format): Avoid errors if yanked
+	text data is empty.  Suggested by Evgeny Zajcev <lg.zevlg@gmail.com>.
+	(Bug#82098)
+
+2026-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix host name completion for containers in Tramp
+
+	* lisp/net/tramp-container.el (tramp-container--completion-function):
+	Quote the shell command.  (Bug#82096)
+
+2026-10-24  Ulrich Müller  <ulm@gentoo.org>
+
+	Rename FACENAME to FACESPEC in font-lock doc
+
+	* lisp/font-lock.el (font-lock-keywords): Rename FACENAME to
+	FACESPEC in the docstring and clarify its use.  This follows the
+	rename in the Elisp Manual, commit 3ab66863d39a.  (Bug#82059)
+
+2026-10-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix problem with environment variables in Tramp (don't merge)
+
+	* lisp/net/tramp-sh.el (tramp-sh-handle-make-process)
+	(tramp-open-connection-setup-interactive-shell): Fix problem with
+	environment variables which contain "=".  (Bug#82086)
+
+	* test/lisp/net/tramp-tests.el (tramp-test33-environment-variables):
+	Adapt test.
+
+2026-10-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix script tramp-bundle-read-file-names
+
+	* lisp/net/tramp-sh.el (tramp-bundle-read-file-names):
+	Adapt script.  (Bug#82080)
+
+	* test/lisp/net/tramp-tests.el (tramp-test35-remote-path): Adapt test.
+
+2026-10-20  Rahul Martim Juliato  <rahul.juliato@gmail.com>
+
+	markdown-ts-mode: Don't hide one-char headings (bug#82035)
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts--fontify-atx-delimiter): Skip only spaces and tabs
+	after the marker, as CommonMark does.  Doc fix.
+
+	Suggested by Qiang Sheng <qiangsheng@sjtu.edu.cn>.
+
+2026-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	Environment variables in tramp-remote-path are expanded
+
+	* doc/misc/tramp.texi (Remote programs): Explain path expansion.
+
+	* lisp/net/tramp-sh.el (tramp-bundle-read-file-names):
+	Expand tilde and environment variables.  Adapt docstring.
+	(tramp-bundle-read-file-names): New optional argument EXPAND.
+	Return list of (expanded) file names.
+	(tramp-get-remote-path): Rearrange the code.  (Bug#82027)
+
+	* test/lisp/net/tramp-tests.el (tramp-bundle-read-file-names): Declare.
+	(tramp-test35-remote-path): Extend test.
+
+2026-10-17  Yuan Fu  <casouri@gmail.com>
+
+	Add missing treesit_record_change (bug#79941)
+
+	* src/fileio.c (decide_coding_unwind): Call treesit_record_change.
+
+2026-10-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	Strengthen Tramp user and host name
+
+	Reported by Wonyoung Jung <wonyoung.jung@78researchlab.com> of
+	78ResearchLab, assisted by PatchHawk.
+
+	* doc/misc/tramp.texi (File name syntax):
+	Explain tramp-allow-double-percent.
+
+	* etc/NEWS: Mention stricter limitations for Tramp user and host names.
+	Presentational fixes and improvements.
+
+	* lisp/net/tramp.el (tramp-user-regexp): Extend the exclusion list.
+	(tramp-allow-double-percent): New defvar.
+	(tramp-dissect-file-name): Add sanity checks.
+
+	* lisp/net/tramp-archive.el
+	(tramp-archive-connection-local-default-variables): New defconst.
+	Add it to connection-local profiles.
+
+	* test/lisp/net/tramp-tests.el (tramp-test02-file-name-dissect)
+	(tramp-test02-file-name-dissect-simplified)
+	(tramp-test02-file-name-dissect-separate): Extend tests.
+
+	This is CVE-2026-79992.
+
+2026-10-10  Jim Porter  <jporterbugs@gmail.com>
+
+	Remove duplicate program name from Eshell errors
+
+	Eshell already adds the program name when reporting errors from
+	'eshell-eval-using-options', so doing it in 'eshell-exec-lisp' is
+	redundant (bug#81856).
+
+	* lisp/eshell/esh-cmd.el (eshell-exec-lisp): Don't add the program name
+	to normal error messages.
+
+	* test/lisp/eshell/esh-opt-tests.el (eshell/esh-opt-test-cmd): New
+	function.
+	(esh-opt-test/eval-using-options-unrecognized): Add check for error
+	message.
+
+2026-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	(mwheel-scroll): Fix bug#81844
+
+	* lisp/mwheel.el (mwheel-scroll): The list returned by
+	'event-modifiers' is not fresh, so avoid mutating it.
+	Don't merge into 'master'.
+
+2026-10-10  Nate Tarrh  <natetarrh@gmail.com>  (tiny change)
+
+	Update restriction end marker insertion type
+
+	Restriction end markers should advance when text is inserted
+	at their exact locations (Bug#81830).
+	* src/editfns.c (Finternal__labeled_narrow_to_region): Use
+	Fcopy_marker with insertion type t for restriction ends.
+	* test/src/buffer-tests.el (test-insertion-at-restriction-end):
+	New test.
+
+2026-10-09  Juri Linkov  <juri@linkov.net>
+
+	Select the right window in flymake-show-buffer-diagnostics
+
+	* lisp/progmodes/flymake.el (flymake-show-buffer-diagnostics):
+	Add optional arg 'event' (bug#81954).
+	Select the window where the mouse was clicked.
+	Move the error message from the interactive spec to body.
+
+2026-10-08  Juri Linkov  <juri@linkov.net>
+
+	Fix flymake-show-buffer-diagnostics to include EOL to diagnostic
+
+	* lisp/progmodes/flymake.el (flymake-show-buffer-diagnostics):
+	Extend the context of the margin/fringe diagnostic
+	to include overlays at the end of the line (bug#81954).
+
+2026-10-08  Juri Linkov  <juri@linkov.net>
+
+	Fix flymake-show-buffer-diagnostics to not raise error for non-mouse uses
+
+	* lisp/progmodes/flymake.el (flymake-show-buffer-diagnostics):
+	Signal 'error' only when clicking on the margin/fringe indicator
+	can't find a context diagnostic on the corresponding line (bug#81954).
+	Signal 'user-error' when no diagnostics found in the whole buffer.
+
+2026-10-08  Richard W. Lawrence  <rwl@recursewithless.net>
+
+	Fail when parsing partially good iCalendar param values
+
+	* lisp/calendar/icalendar-parser.el
+	(icalendar-parse-param-value): Signal parse error (Bug#81958).
+
+2026-10-08  Richard W. Lawrence  <rwl@recursewithless.net>
+
+	Support non-standard TZID strings in icalendar
+
+	* lisp/calendar/icalendar-parser.el
+	(icalendar-fix-ms-tzids): New function (Bug#81958).
+	(icalendar-pre-parsing-hook): Suggest it when appropriate.
+	* test/lisp/calendar/icalendar-parser-tests.el
+	(icalendar-parser-test-bad-tzids): New test.
+
+2026-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	(Ftreesit_parse_string): Try and avoid bug#81905
+
+	The call chain 'cleanup_vector => treesit_delete_parser => Fkill_buffer'
+	is dangerous because 'kill-buffer' runs a lot of code and is not
+	designed to be called from within the GC.  This patch just tries
+	and avoids the most obvious problem, but we should probably move
+	the 'kill-buffer' to some later time like 'run_finalizers'.
+
+	* src/treesit.c (Ftreesit_parse_string): Don't run
+	'kill-buffer-hook' in the internal work buffer.
+
+2026-10-07  Sean Whitton  <spwhitton@spwhitton.name>
+
+	savehist-save: Deduplicate the list of variables by alias
+
+	* lisp/savehist.el (savehist-save): Deduplicate the list of
+	variables by alias (bug#81988).
+
+2026-10-07  Lin Jian  <me@linj.tech>  (tiny change)
+
+	package--add-info-node: Fix adding to Info directory list
+
+	* lisp/emacs-lisp/package-activate.el (package--add-info-node):
+	Don't add to Info-directory-list if bound but nil (bug#81985).
+
+2026-10-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid signaling error in shr.el in rare cases
+
+	* lisp/textmodes/pixel-fill.el (pixel-fill-find-fill-point): Don't
+	try calling 'backward-char' if already at START.  (Bug#81981)
+
+2026-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	Minor tramp.el cleanup
+
+	* lisp/net/tramp.el (tramp-get-connection-local-criteria):
+	Move up.  Use `and-let*'.
+	(tramp-dissect-file-name): Handle nil `getenv' result.
+
+2026-10-01  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc--incoming-revision: Use current branch name as cache key
+
+	* lisp/vc/vc.el (vc--incoming-revision): Use current branch name
+	instead of nil as key into the cache.
+
+2026-10-01  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Remote unintegrated commands error when no meaningful outgoing base
+
+	* lisp/vc/vc.el (vc--outgoing-base-mergebase): Signal an error,
+	instead of just proceeding to an empty log or diff, when there
+	is no meaningful outgoing base.
+
+2026-10-01  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-log-remote-unintegrated: Don't accept C-u C-u
+
+	* lisp/vc/vc.el (vc-diff-remote-unintegrated): Don't accept C-u
+	C-u, like the other remote unintegrated changes commands.  It
+	doesn't make sense for these.
+
+2026-10-01  Rahul Martim Juliato  <rahul.juliato@gmail.com>
+
+	Respect local variables in markdown-ts-mode (bug#81930)
+
+	* lisp/textmodes/markdown-ts-mode.el (markdown-ts--custom-set):
+	New function.
+	(markdown-ts-hide-markup, markdown-ts-inline-images): Use it as
+	':set'.
+	(markdown-ts--set-up): Move the markup and folding setup from
+	here...
+	(markdown-ts--apply-settings): ...to this new function.  Also
+	apply 'markdown-ts-inline-images' and 'outline-default-state'.
+	(markdown-ts-mode, markdown-ts-view-mode): Call it from
+	':after-hook'.
+
+2026-10-01  Kai Ma  <justksqsf@gmail.com>
+
+	Fix an out-of-bounds access in regex-emacs.c
+
+	* src/regex-emacs.c (analyze_first_fastmap): Avoid writing beyond
+	the boundary of data->fastmap.  (Bug#81955)
+
+2026-09-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Sync m4/pipe2.m4 from Gnulib
+
+	* m4/pipe2.m4 (gl_FUNC_PIPE2): Use gl_CHECK_FUNCS_ANDROID_MACOS,
+	not gl_CHECK_FUNCS_ANDROID.  This syncs from current Gnulib
+	and should fix Bug#81846.
+
+2026-09-30  Juri Linkov  <juri@linkov.net>
+
+	* lisp/tab-line.el (tab-line-track-tap): Fix 'run-at-time' arg (bug#81929).
+
+2026-09-30  Richard W. Lawrence  <rwl@recursewithless.net>
+
+	Fix UID generation in `icalendar-make-component'
+
+	* lisp/calendar/icalendar-ast.el (icalendar-make-component):
+	Call `icalendar-make-uid' at eval time, not macro-expansion
+	time (bug#81956).
+	* test/lisp/calendar/icalendar-ast-tests.el
+	(icalendar-ast-test-bug81956-repeated-uids): New test.
+	(icalendar-ast-test-bug81956-get-component): New function.
+
+2026-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Support Tree-sitter v0.27 in the MinGW builds
+
+	* lisp/term/w32-nt.el (dynamic-library-alist): Support Tree-sitter
+	version 0.27.x, which supports the same grammar ABI versions as
+	0.25.x and 0.26.x.  (Bug#81945)
+
+2026-09-29  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Find the correct merge base for remote unintegrated changes commands
+
+	Remote unintegrated changes commands need to use the remote
+	equivalent of the working revision.
+
+	* lisp/vc/vc.el (vc--outgoing-base-mergebase): New optional
+	argument INCOMING.
+	(vc-diff-remote-unintegrated, vc-log-remote-unintegrated): Pass
+	it.  Do not merge to master.
+
+2026-09-29  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Always refresh in remote unintegrated changes commands
+
+	The deleted comments are incorrect because we need not have
+	refreshed the incoming revision for the same upstream location.
+	The problem is revealed by my recent fix to
+	vc--incoming-revision to actually cache incoming revisions for
+	more than just the first queried upstream location.
+
+	I will fix this in a better but more invasive way on master.
+
+	* lisp/vc/vc.el (vc-diff-remote-unintegrated)
+	(vc-log-remote-unintegrated): Pass REFRESH non-nil to all calls
+	to vc--incoming-revision and vc--outgoing-base-mergebase.
+	Do not merge to master.
+
+2026-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	etc/NEWS: Mention 'autoload-macro'
+
+2026-09-28  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.8.10
+
+2026-09-27  Harald Jörg  <haj@posteo.de>
+
+	;cperl-mode tests: Narrow scope for coding-system-for-read
+
+	As suggested by Stefan Monnier and Eli Zaretskii on emacs-devel,
+	narrow the let-binding scope of coding-system-for-read to the
+	single lines reading the files where it matters.  Also add
+	"coding" cookies to the test files.  Thank you for the review!
+
+	* test/lisp/progmodes/cperl-mode-tests.el
+	(cperl-test-extra-delimiters): Narrow scope of
+	coding-system-for-read
+	(cperl-test-imenu-index): Narrow scope of coding-system-for-read
+
+	* test/lisp/progmodes/cperl-mode-resources/extra-delimiters.pl:
+	Add a "coding: utf-8" cookie
+
+	* test/lisp/progmodes/cperl-mode-resources/grammar.pl:
+	Add a "coding: utf-8" cookie
+
+2026-09-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid infloop in redisplay when window includes a tall image
+
+	* src/xdisp.c (try_scrolling): Patch logic when the bottom-most
+	row is very tall.  (Bug#81931)
+
+2026-09-26  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	Fix speedbar window behavior when togling side windows (bug#81773).
+
+	* lisp/speedbar.el (speedbar-window-mode): Persist 'no-other-window'
+	and 'no-delete-other-windows' as additional parameters to
+	'window-persistent-parameters'.  Add a hook to
+	'window-buffer-change-functions' to handle speedbar window change.
+	(speedbar-window-close): Remove the hook from
+	'window-buffer-change-functions'.
+	(speedbar-window--handle-window-buffer-change): New function.
+
+2026-09-25  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc--incoming-revision: Fix alist update
+
+	* lisp/vc/vc.el (vc--incoming-revision): Always write the alist
+	back to the repo property.
+
+2026-09-25  Cecilio Pardo  <cpardo@imayhem.com>
+
+	Fix DirectWrite drawing glyphs from a wrong font
+
+	The glyph indices we draw on MS-Windows are produced by HarfBuzz
+	from the font tables read with GetFontData from the HFONT that GDI
+	realized, but the DirectWrite font face used to draw and measure
+	them was obtained separately, by matching the LOGFONT against
+	DirectWrite's font collection with CreateFontFromLOGFONT.  Nothing
+	guarantees that both lookups resolve to the same physical font, and
+	they do not when two versions of a font are installed.  As glyph
+	indices are only meaningful for the font they were produced from,
+	what gets displayed in that case is unrelated glyphs.
+
+	Use CreateFontFaceFromHdc instead, which is documented to return
+	the face of the font GDI would use, and verify that the two agree
+	before drawing with DirectWrite.  (Bug#81832)
+
+	* src/w32dwrite.c (IDWriteFontFaceVtbl): Declare GetGlyphCount.
+	(IDWriteGdiInteropVtbl): Declare CreateFontFaceFromHdc.
+	(get_font_face): Get the font face from a device context that has
+	the font selected, instead of from the LOGFONT.  Don't use
+	DirectWrite for the font if its number of glyphs disagrees with the
+	one GDI reports in the 'maxp' table.
+
+2026-09-24  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-apply-to-other-working-tree: Fix for unbound vc-FOO-diff-switches
+
+	* lisp/vc/vc.el (vc--apply-to-other-working-tree): Don't assume
+	vc-FOO-diff-switches is bound.
+
+2026-09-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix calc of large image sizes in Cairo etc
+
+	Problem reported by Wonyoung Jung.
+	* src/image.c (image_size_in_bytes): If USE_CAIRO ||
+	HAVE_X_WINDOWS || HAVE_ANDROID, avoid undefined behavior if image
+	size in bytes fits in ptrdiff_t but not in int.
+
+2026-09-23  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Support bare variables in cond* bind-and*, as documented
+
+	* lisp/emacs-lisp/cond-star.el (cond*-convert-condition): Handle
+	bare variables in bind-and*.
+	* lisp/progmodes/python.el (python-check-command): Use it.
+
+2026-09-23  kobarity  <kobarity@gmail.com>
+
+	python-check-command: Add "ruff check" for newer ruff
+
+	* lisp/progmodes/python.el (python-check-command): Add "ruff
+	check" (bug#81855).
+
+2026-09-23  James Cherti  <contact@jamescherti.com>
+
+	Fix invalid search bound error in php-ts-mode indentation
+
+	* lisp/progmodes/php-ts-mode.el
+	(php-ts-mode--parent-html-heuristic): Prevent search-backward
+	from signalling an error when point is positioned before the
+	start of the tree-sitter parent node (e.g., during indentation
+	with indent-for-tab-command after open-line).  (Bug#81877)
+
+2026-09-23  Sean Whitton  <spwhitton@spwhitton.name>
+
+	view-lossage: Fix case when *Help*'s display was suppressed
+
+	* lisp/help.el (view-lossage): If get-buffer-window returns nil,
+	call goto-char instead of set-window-point.
+
+2026-09-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve tilde expansion in Tramp (Don't merge)
+
+	* lisp/net/tramp-sh.el (tramp-sh-handle-expand-file-name):
+	Improve tilde expansion.
+
+2026-09-21  Sean Whitton  <spwhitton@spwhitton.name>
+
+	* build-aux/git-hooks/commit-msg: Restrict first line to 68 chars.
+
+2026-09-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid errors when process ends with localized status string
+
+	* src/process.c (status_message): Don't use 'aset' to replace a
+	multibyte character in a string.  (Bug#81897)
+
+2026-09-21  Richard W. Lawrence  <rwl@recursewithless.net>
+
+	* lisp/emacs-lisp/cond-star.el (cond*-subpat): Fix call to aref.
+
+2026-09-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Pacify -Wuseless cast in INPUT_EVENT_POS_MAX
+
+	Problem reported by Yue Ye (bug#81837).
+	* src/keyboard.c (INPUT_EVENT_POS_MAX): Pacify -Wuseless-cast
+	by using a compound literal instead of a cast.
+
+2026-09-18  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Mark eglot-flymake-backend as safe
+
+	* lisp/progmodes/eglot.el (eglot-flymake-backend): Mark as safe.
+	Do not merge to master.
+
+2026-09-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	Proper handling of tramp-archive-method
+
+	* lisp/net/tramp.el (tramp-dissect-file-name): Special handling of
+	`tramp-archive-method'.
+
+2026-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix Emoji display of "broken chain" sequence
+
+	* admin/unidata/emoji-zwj.awk: Add U+26D3 to trigger_codepoints[],
+	to support the "broken chain" Emoji.  Do not merge to master.
+	(Bug#81880)
+
+2026-09-18  Spencer Baugh  <sbaugh@janestreet.com>
+
+	Make comint CAPF correctly handle text after point
+
+	* lisp/comint.el (comint-word): Search forward for the end of
+	the word at point (bug#80251).
+	* test/lisp/comint-tests.el (ert): New test.
+
+2026-09-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Adapt Tramp test
+
+	* test/lisp/net/tramp-tests.el (tramp-test33-environment-variables):
+	Adapt test.
+
+2026-09-16  Juri Linkov  <juri@linkov.net>
+
+	Fix 'map-y-or-n-p' to ignore keymaps for non-nil 'y-or-n-p-use-read-key'.
+
+	* lisp/emacs-lisp/map-ynp.el (map-y-or-n-p):
+	In the cond-branch 'y-or-n-p-use-read-key', to ignore
+	all keymaps, use settings similar to code in 'read-key'.
+	Let-bind 'overriding-terminal-local-map' to nil.
+	Let-bind 'overriding-local-map' to 'read-key-empty-map'.
+	Override 'global-map' with the map that contains only
+	the keybinding for 'ESC ESC ESC' (bug#81804).
+
+	* test/lisp/emacs-lisp/map-ynp-tests.el (map-ynp-tests-map):
+	Add "y y" keybinding to test that it's ignored.
+	(test-map-ynp-keys-1): Remove special case for
+	"? q" for non-nil 'y-or-n-p-use-read-key' since
+	now it also supports "C-h q".
+
+2026-09-16  Juri Linkov  <juri@linkov.net>
+
+	* lisp/simple.el (goto-line-relative): Fix interactive spec (bug#81873).
+
+2026-09-15  Juri Linkov  <juri@linkov.net>
+
+	Fix the URL match breakage in 'goto-address-fontify'
+
+	* lisp/net/goto-addr.el (goto-address-fontify):
+	Handle the case when 'bounds-of-thing-at-point'
+	returns nil.  Then fall back to the boundaries
+	returned by 'goto-address-url-regexp' (bug#81850).
+
+2026-09-15  Juri Linkov  <juri@linkov.net>
+
+	Fix flymake tests after recent trusted-content change
+
+	* test/lisp/progmodes/flymake-tests.el
+	(flymake-tests--call-with-fixture)
+	(dummy-backends, recurrent-backend):
+	Set buffer-local 'trusted-content' to :all
+	(bug#81485, bug#81869).
+	Do not merge to master.
+
+2026-09-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Fix `tramp-open-shell'
+
+	* lisp/net/tramp-sh.el (tramp-open-shell): Don't call
+	`tramp-get-home-directory' too eagerly.
+
+	* test/lisp/net/tramp-tests.el (tramp-test45-home-directory): Adapt test.
+
+2026-09-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve tramp-tests.el for macOS
+
+	* test/lisp/net/tramp-tests.el (tramp--test-hfs-p): New defun.
+	(tramp--test-check-files): Fix thinko.  Discriminate some tests
+	for macOS.  (Bug#81843)
+	(tramp-test41-special-characters, tramp-test42-utf8): Skip only
+	for `tramp--test-hfs-p', not for `tramp--test-macos-p'.
+
+2026-09-14  Sean Whitton  <spwhitton@spwhitton.name>
+
+	vc-git-state: Work around 'git status' bug
+
+	* lisp/vc/vc-git.el (vc-git-state): Work around Git bug
+	demonstrated in Emacs bug#81625.  Report and structure of fix
+	due to Lester Longley <lester@ieee.org>.
+
+2026-09-14  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Use GIT_AUTHOR_EMAIL and GIT_COMMITTER_EMAIL instead of EMAIL
+
+	* test/lisp/vc/vc-git-tests.el (vc-git-test--with-repo):
+	* test/lisp/vc/vc-tests/resources/vc-tests-helpers.el
+	(vc-test--with-author-identity): Use GIT_AUTHOR_EMAIL and
+	GIT_COMMITTER_EMAIL instead of EMAIL.
+
+2026-09-14  Andrea Alberti  <a.alberti82@gmail.com>
+
+	markdown-ts-mode: Fix bracketed link destinations (bug#81797)
+
+	The optional '<...>' delimiters were kept in the text of the
+	'link_destination' node used to build the link button and to find the
+	image, so 'find-file' got the literal "<my file.md>", the scheme test
+	never matched a URL, and 'file-exists-p' failed.
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts--unbracket-destination): New function.
+	(markdown-ts--make-link-button, markdown-ts--fontify-image): Use it.
+
+2026-09-14  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid crashes due to empty components in static compositions
+
+	* src/xdisp.c (gui_produce_glyphs): Don't abort in 'eassume' if a
+	static composition yields zero glyphs, e.g., due to an
+	empty-string component.  Instead, treat such compositions as if
+	they were a single TAB character.  (Bug#81864)
+
+2026-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	flymake.el: Generalize trusted-content-p check to all backends
+
+	Minimal safe backport of this change:
+
+	    Author:     Stefan Monnier <monnier@iro.umontreal.ca>
+	    AuthorDate: Fri Sep 11 21:48:55 2026 -0400
+
+	      flymake.el: Generalize trusted-content-p check to all backends
+
+	      Rather than have each and every backend check
+	      'trusted-content-p' if it feels necessary, implement the check
+	      once and forall in flymake.el and provide a wat for backends to
+	      skip that test, so we replace an "opt-in" with an "opt-out"
+	      that's a bit more secure by design.
+
+	      * lisp/progmodes/elisp-mode.el (elisp-flymake-byte-compile):
+	      Move 'trusted-content-p' to flymake.el.
+	      * lisp/progmodes/flymake.el (flymake--run-backend):
+	      Move 'trusted-content-p' from elisp-mode.el.
+
+	      * lisp/progmodes/eglot.el (eglot-flymake-backend): Mark as safe.
+
+	* lisp/progmodes/flymake.el (flymake--run-backend): Copy
+	trusted-content-p check from elisp-mode.el.  Do not merge to
+	master.
+
+2026-09-14  Stéphane Marks  <shipmints@gmail.com>
+
+	Correct markdown-ts-mode keymaps for tty
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts-in-table-mode-map): Use RET not <return> and TAB
+	not <tab> (bug#81848).
+
+2026-09-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid signaling errors from 'url-http-idle-sentinel'
+
+	* lisp/url/url-http.el (url-http-find-free-connection): Pass
+	process status to the sentinel, instead of nil.
+	(url-http-idle-sentinel): If WHY is nil, use "dead" as the reason
+	why the process is being removed from list of open connections.
+	Doc fix.  (Bug#81780)
+
+2026-09-12  Filipp Gunbin  <fgunbin@fastmail.fm>
+
+	Handle APFS file system in Tramp
+
+	* lisp/net/tramp-sh.el (tramp-open-connection-setup-interactive-shell):
+	Handle proper coding system for APFS file system.  (Bug#81799)
+
+2026-09-12  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	Close Speedbar window when press 'q' (bug#81772).
+
+	* lisp/speedbar.el (speedbar-easymenu-definition-trailer):
+	Replace lambda with 'speedbar-window-close'.
+	(speedbar-window-close): Renamed from 'speedbar-window--close'.
+	Now it is an interactive function.
+	(speedbar-reconfigure-keymaps): Configure the Speedbar keymap
+	according to the value of 'speedbar-window-mode'.
+
+2026-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	doc/emacs/cmdargs.texi (Initial Options): Fix last change
+
+	Hooks should never be manipulated with 'add-to-list'.
+
+2026-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Revert "VC-Git: Pass --no-optional-locks"
+
+	This reverts commit bc92224c5f163f94f80b29dae744a488dd675e0a.
+	* lisp/vc/vc-git.el (vc-git--no-optional-locks): Remove the
+	function and adjust all callers.  It turns out the command
+	line option '--no-optional-locks' is also supported since
+	the same Git version 2.15 as the environment variable, and
+	in older versions it fails Git, unlike the environment variable
+	which is just ignored.  (Bug#81814)
+
+2026-09-08  Yuan Fu  <casouri@gmail.com>
+
+	Fix c-ts-common baseline indentation rule (bug#81735)
+
+	* lisp/treesit.el (treesit--indent-prev-line-node): Now skip
+	over empty lines to find the previous sibling.
+
+2026-09-08  Rahul Martim Juliato  <rahul.juliato@gmail.com>
+
+	Fix filling around lists in markdown-ts-mode (bug#81712)
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts--node-containing): New function.
+	(markdown-ts--list-item-at-point, markdown-ts--adaptive-fill)
+	(markdown-ts--fill-forward-paragraph): Use it, stop at the list
+	item's last non-blank line, and clamp the query end to
+	point-max.
+
+2026-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve error message for missing home directory in Tramp
+
+	* lisp/net/tramp-sh.el (tramp-open-shell): Improve check for
+	`tramp-histfile-override'.  (Bug#81799)
+
+	* test/lisp/net/tramp-archive-tests.el (tramp-archive-test51-auto-load)
+	(tramp-archive-test51-delay-load)
+	(tramp-archive-test52-without-remote-files): Rename.
+
+	* test/lisp/net/tramp-tests.el (tramp--test-box-p): Adapt docstring.
+	(tramp-test45-home-directory): New test.
+	(tramp-test46-asynchronous-requests)
+	(tramp-test46-force-remote-file-error)
+	(tramp-test47-dired-compress-file)
+	(tramp-test47-dired-compress-dir)
+	(tramp-test47-file-notifications, tramp-test48-read-password)
+	(tramp-test48-read-otp-password, tramp-test48-read-security-key)
+	(tramp-test48-read-fingerprint, tramp-test49-session-timeout)
+	(tramp-test50-external-backend-function, tramp-test51-auto-load)
+	(tramp-test51-delay-load, tramp-test51-recursive-load)
+	(tramp-test51-remote-load-path)
+	(tramp-test52-without-remote-files, tramp-test53-unload): Rename.
+
+2026-09-06  James Cherti  <contact@jamescherti.com>
+
+	Fix diagnostics clearing in yaml-ts-mode-flymake
+
+	* lisp/textmodes/yaml-ts-mode.el (yaml-ts-mode-flymake): Call
+	the 'report-fn' callback outside the 'while' loop.  This change
+	ensures that Flymake receives an empty list of diagnostics and
+	clears old highlights when the YAML file has no linting errors.
+	(bug#81650)
+
+2026-09-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	Improve Tramp manual
+
+	* doc/misc/tramp.texi (Multi-hops, File name syntax): Use "localname".
+	(Home directories): Discuss missing remote home directory.  (Bug#81799)
+
+2026-09-05  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	'speedbar-window' now run 'speedbar-before-delete-hook' (bug#81708).
+
+	* lisp/speedbar.el (speedbar-window-mode): Fix documentation.  Run
+	the 'speedbar-before-delete-hook'.
+
+2026-09-04  Sean Whitton  <spwhitton@spwhitton.name>
+
+	flymake-show-buffer-diagnostics: Fix interactive form
+
+	* lisp/progmodes/flymake.el (flymake-show-buffer-diagnostics):
+	Return just one diagnostic when last-command-event was not a
+	mouse event (bug#81786).
+
+2026-09-03  Peter Oliver  <git@mavit.org.uk>  (tiny change)
+
+	Relax formatting requirements on NEWS when converting to HTML
+
+	* admin/admin.el (make-news-html-file): Accurately detect blocks
+	even when not separated by blank lines.
+
+2026-09-03  Peter Oliver  <git@mavit.org.uk>  (tiny change)
+
+	Adjust generating HTML for historic NEWS
+
+	* admin/admin.el (make-news-html-file): If the major version
+	given has it's own NEWS file, use that.  Understand
+	non-continuous copyright years.
+
+2026-09-03  Peter Oliver  <git@mavit.org.uk>  (tiny change)
+
+	make-news-html-file: Don’t assume NEWS has local variables
+
+	* admin/admin.el (make-news-html-file): Don't error if no "Local
+	variables" section is found.
+
+2026-09-03  Peter Oliver  <git@mavit.org.uk>  (tiny change)
+
+	Escape [[ in NEWS when generating HTML via Org
+
+	* admin/admin.el (make-news-html-file): Escape [[ with zero
+	width space.
+
+2026-09-02  Eshel Yaron  <me@eshelyaron.com>
+
+	elisp-scope.el: Avoid excessive 'trusted-content-p' calls
+
+	Cache the return value of 'trusted-content-p' for the
+	duration of the analysis of a single form, instead of
+	calling 'trusted-content-p' repeatedly for (potentially)
+	every analyzed macro call (bug#81723).
+
+	* lisp/emacs-lisp/elisp-scope.el (elisp-scope--trust-cache):
+	New variable.
+	(elisp-scope-analyze-form): Let-bind it.
+	(elisp-scope--trusted-p): New helper function.
+	(elisp-scope-safe-macro-p): Use it.
+
+2026-09-01  Aaron L. Zeng  <azeng@janestreet.com>
+
+	Fix choose-completion in CRM with boundaries
+
+	* lisp/emacs-lisp/crm.el (crm--choose-completion-string):
+	Delete.
+	(completing-read-multiple): Set buffer-local
+	completion-no-auto-exit instead of using
+	choose-completion-string-functions.  Do not set
+	completion-list-insert-choice-function.  (Bug#81411)
+
+	* test/lisp/emacs-lisp/crm-tests.el: New file.
+
+2026-08-30  Philip Kaludercic  <philipk@posteo.net>
+
+	Skip all package-vc tests if git is not installed
+
+	* test/lisp/emacs-lisp/package-vc-tests.el
+	(package-vc-test-deftest): Inject a 'skip-unless' at the
+	beginning of the test definition to check if "git" is installed,
+	as we test package-vc using vc-git.  (Bug#81470)
+
+2026-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	Show the file name of theme when warning about lexical-binding cookie
+
+	* lisp/custom.el (custom--theme-load-file): New variable.
+	(load-theme): Set it to the theme file being loaded.
+	* lisp/files.el (internal--get-default-lexical-binding): Use
+	'custom--theme-load-file', if non-nil, to show the file name of a
+	theme which caused the lexbind warning.  Do not merge to master.
+	(Bug#81686)
+
+2026-08-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Avoid assertion violations in 'char-syntax'
+
+	* src/syntax.c (Fchar_syntax): Handle multibyte characters even if
+	the current buffer is unibyte.  Doc fix.  (Bug#81717)
+
+2026-08-28  Perry Fraser  <perry@frasers.org>  (tiny change)
+
+	Backport: Fix Emacs not gaining focus when launched on macOS
+
+	* src/nsterm.m (ns_term_init): Activate after calling run, not before;
+	remove outdated comment (bug#81683, bug#76814).
+
+	(cherry picked from commit cc15723d21b5514e369cb69092ad68022e393144)
+
+2026-08-28  Morgan Smith  <Morgan.J.Smith@outlook.com>
+
+	docview: Fix outline generation using mupdf
+
+	This script no longer works as of mupdf version 1.27.2.
+	This new value works for mupdf version 1.28.0, 1.27.2, 1.26.8, and
+	1.25.2.
+
+	* lisp/doc-view.el (doc-view--mutool-pdf-outline-script): Modify
+	value to one that works.
+
+2026-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	emacsclient --alternate-editor=/no/such diagnostic
+
+	* lib-src/emacsclient.c (fail): Also output errno indication when
+	alternate editor fails.  I noticed this when debugging Bug#81716.
+
+2026-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix emacsclient --alternate-editor='' SIGSEGV
+
+	Problem reported by Ken Speegle (Bug#81716)
+	* lib-src/emacsclient.c (fail): Don’t get confused by trailing
+	whitepace in alternate_editor.  Quietly ignore alternate_editor
+	if it has no tokens (this part was suggested by Eli Zaretskii).
+
+2026-08-26  Vincenzo Pupillo  <v.pupillo@gmail.com>
+
+	'speedbar-mode' must be enabled in the 'speedbar-window' buffer.
+
+	* lisp/speedbar.el (speedbar-window-mode): Enable 'speedbar-mode'
+	major-mode in the 'speedbar-window' buffer.  (Bug#81699)
+
+2026-08-25  Juri Linkov  <juri@linkov.net>
+
+	Don't ignore display-warning customization for initial frame too
+
+	* lisp/emacs-lisp/warnings.el (display-warning): Take into account
+	'warning-minimum-level' and 'warning-suppress-types' also in case of
+	displaying daemon startup warnings on the first client frame (bug#81694).
+
+2026-08-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.8.3-pre (don't merge)
+
+	* doc/misc/tramp.texi (Auto-save File Lock and Backup): Adapt example.
+
+	* doc/misc/trampver.texi:
+	* lisp/net/trampver.el: Change version to "2.8.3-pre".
+
+	* lisp/net/tramp-cmds.el (tramp-file-name-with-sudo): Expand the
+	result for consistency.  (Bug#81622)
+
+	* lisp/net/tramp.el (with-tramp-progress-reporter):
+	Let-bind `inhibit-message'.
+	(tramp-file-name-for-operation): Fix the case, that the first
+	argument is a process name.
+	(tramp-handle-find-backup-file-name): Use connection-local value
+	of `make-backup-files'.
+
+	* test/lisp/net/tramp-tests.el (tramp-test38-find-backup-file-name):
+	Extend test.
+
+2026-08-25  Stephen Berman  <stephen.berman@gmx.net>
+
+	Fix navigating *Completions* with TAB in vertical format
+
+	* lisp/simple.el (next-line-completion): Make using TAB to
+	navigate in vertical format cycle through the minibuffer (bug#81631).
+
+	* test/lisp/minibuffer-tests.el (completion-auto-select-test-bug81635):
+	Run tests for all values of 'completions-format'.
+
+2026-08-24  Sean Whitton  <spwhitton@spwhitton.name>
+
+	tab-bar-tests-quit-restore-window: Mark unstable
+
+	* test/lisp/tab-bar-tests.el
+	(tab-bar-tests-quit-restore-window): Mark unstable.
+
+2026-08-24  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Revert "Delete test that hangs"
+
+	This reverts commit 76846eede34ea7bc7b8bbe4183ed070783e11d6b.
+
+	Do not merge to master.
+
+2026-08-24  Sean Whitton  <spwhitton@spwhitton.name>
+
+	admin/make-manuals: Include type hierarchy auxiliary files
+
+	* admin/admin.el (make-manuals, make-manuals-dist--1): Install
+	elisp_type_hierarchy.txt and elisp_type_hierarchy.jpg.
+
+2026-08-24  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Bump Emacs version to 31.1.50
+
+	* README:
+	* configure.ac:
+	* exec/configure.ac:
+	* java/AndroidManifest.xml.in (Version-code):
+	* nt/README.W32:
+	* msdos/sed2v2.inp: Bump Emacs version to 31.1.50.
+
+	* etc/NEWS: Add headers for Emacs 31.2.
+
 2026-08-24  Sean Whitton  <spwhitton@spwhitton.name>
 
 	* Version 31.1 released.
@@ -67989,7 +69094,7 @@
 
 This file records repository revisions from
 commit 1cda0967b4d3c815fc610794ad6a8fc2b913a3c5 (exclusive) to
-commit 76846eede34ea7bc7b8bbe4183ed070783e11d6b (inclusive).
+commit 2091572d8327c46556f2db48e36a8fed98e89910 (inclusive).
 See ChangeLog.4 for earlier changes.
 
 ;; Local Variables:
