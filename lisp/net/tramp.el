@@ -6989,13 +6989,14 @@ to cache the result.  Return the modified ATTR."
 	       ;; Convert directory indication bit.
 	       (when (string-prefix-p "d" (nth 8 attr))
 		 (setcar attr t))
-	       ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
+	       ;; Convert symlink from `tramp-do-file-attributes-with-stat'
+	       ;; and `tramp-sudoedit-handle-file-attributes'.
 	       ;; Decode also multibyte string.
 	       (when (consp (car attr))
 		 (setcar attr
 			 (and (stringp (caar attr))
 			      (string-match
-			       (rx (+ nonl) " -> " nonl (group (+ nonl)) nonl)
+			       (rx bos (+ nonl) " -> " (group (+ nonl)) eos)
 			       (caar attr))
 			      (decode-coding-string
 			       (match-string 1 (caar attr)) 'utf-8))))

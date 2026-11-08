@@ -4282,6 +4282,10 @@ upon first connection.  Alternatively, use an absolute path or extend
 @end group
 @end lisp
 
+@vindex QUOTING_STYLE@r{, environment variable}
+@value{tramp} sets the environment variable @env{QUOTING_STYLE} to
+@samp{literal} for proper function of the GNU coreutils commands.
+
 @vindex tramp-remote-process-environment
 Customize user option @code{tramp-remote-process-environment} to
 suit the remote program's environment for the remote host.
