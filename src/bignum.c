@@ -395,15 +395,10 @@ emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
 /* Yield an upper bound on the buffer size needed to contain a C
    string representing the NUM in base BASE.  This includes any
    preceding '-' and the terminating null.  */
-static ptrdiff_t
-mpz_bufsize (mpz_t const num, int base)
-{
-  return mpz_sizeinbase (num, base) + 2;
-}
 ptrdiff_t
 bignum_bufsize (Lisp_Object num, int base)
 {
-  return mpz_bufsize (*xbignum_val (num), base);
+  return mpz_sizeinbase (*xbignum_val (num), base) + sizeof "-";
 }
 
 /* Convert NUM to a nearest double, as opposed to mpz_get_d which
@@ -411,22 +406,36 @@ bignum_bufsize (Lisp_Object num, int base)
 double
 mpz_get_d_rounded (mpz_t const num)
 {
-  ptrdiff_t size = mpz_bufsize (num, 10);
+  /* Handle the special cases of 0 and too-large numbers.
+     Avoid mpz_sizeinbase, as it could overflow. */
+  int nlimbs = emacs_mpz_size (num);
+  enum {
+    DBL_MAX_BITS = DBL_MAX_EXP * LOG2_FLT_RADIX,
+    DBL_MAX_LIMBS = (DBL_MAX_BITS + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS
+  };
+  if (! (0 < nlimbs && nlimbs <= DBL_MAX_LIMBS))
+    return !nlimbs ? 0 : mpz_sgn (num) < 0 ? -HUGE_VAL : HUGE_VAL;
 
-  /* Use mpz_get_d as a shortcut for a bignum so small that rounding
-     errors cannot occur, which is possible if EMACS_INT (not counting
-     sign) has fewer bits than a double significand.  */
-  if (! ((FLT_RADIX == 2 && DBL_MANT_DIG <= FIXNUM_BITS - 1)
-	 || (FLT_RADIX == 16 && DBL_MANT_DIG * 4 <= FIXNUM_BITS - 1))
-      && size <= DBL_DIG + 2)
-    return mpz_get_d (num);
-
-  USE_SAFE_ALLOCA;
-  char *buf = SAFE_ALLOCA (size);
-  mpz_get_str (buf, 10, num);
-  double result = strtod (buf, NULL);
-  SAFE_FREE ();
-  return result;
+  if (FASTER_BIGNUM && FLT_RADIX == 2)
+    {
+      static_assert (DBL_MAX_LIMBS <= INT_MAX / GMP_NUMB_BITS);
+      double d = mpz_get_d (num);
+      int nbits = (GMP_NUMB_BITS * (nlimbs - 1)
+		   + stdc_bit_width (mpz_getlimbn (num, nlimbs - 1)));
+      int ulp_idx = nbits - DBL_MANT_DIG, roundbit_idx = ulp_idx - 1;
+      return ((0 <= roundbit_idx
+	       && mpz_tstbit (num, roundbit_idx)
+	       && (mpz_tstbit (num, ulp_idx)
+		   || mpz_scan1 (num, 0) < roundbit_idx))
+	      ? d + ldexp (d < 0 ? -1 : 1, ulp_idx)
+	      : d);
+    }
+  else
+    {
+      char buf[INT_BITS_STRLEN_BOUND (DBL_MAX_BITS) + sizeof "-"];
+      mpz_get_str (buf, 10, num);
+      return strtod (buf, NULL);
+    }
 }
 
 /* Store into BUF (of size SIZE) the value of NUM as a base-BASE string.
