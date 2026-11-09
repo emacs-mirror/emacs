@@ -5025,8 +5025,10 @@ nnselect group.
 Short form of the originating group name of the article; @code{nil} if
 not in an nnselect group.
 @item c
-Number of characters in the article.  This specifier is not supported
-in some methods (like nnfolder).
+Number of characters in the article.  This specifier is not supported in
+some methods (for example, in nnfolder in the absence of a .nov
+file---that is, when @code{nnfolder-nov-is-evil} and/or
+@code{gnus-nov-is-evil} is non-nil).
 @item k
 Pretty-printed version of the number of characters in the article;
 for example, @samp{1.2k} or @samp{0.4M}.
