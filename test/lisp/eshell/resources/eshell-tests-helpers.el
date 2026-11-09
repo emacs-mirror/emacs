@@ -228,6 +228,15 @@ inserting the command."
                command regexp
                (eshell-test-command-result command))))))
 
+(defun eshell-run-emacs-command (command)
+  "Evaluate COMMAND in a new Emacs batch instance."
+  ;; Call `eshell-quote-argument' from within an Eshell buffer since its
+  ;; behavior depends on activating various Eshell modules.
+  (mapconcat (lambda (arg) (with-temp-eshell (eshell-quote-argument arg)))
+             `(,(expand-file-name invocation-name invocation-directory)
+               "-Q" "--batch" "--eval" ,(prin1-to-string command))
+             " "))
+
 (provide 'eshell-tests-helpers)
 
 ;;; eshell-tests-helpers.el ends here
