@@ -1358,7 +1358,9 @@ This also unhides the top heading-less body, if any."
   (interactive)
   (save-excursion
     (outline-back-to-heading)
-    (if (not (outline-invisible-p (pos-eol)))
+    (if (save-excursion
+          (outline-end-of-heading)
+          (not (outline-invisible-p)))
         (outline-hide-subtree)
       (outline-show-children)
       (outline-show-entry))))
