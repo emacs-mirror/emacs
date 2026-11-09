@@ -873,13 +873,14 @@ Return the pasted text as a string."
                         str)
       (when-let* (tty-use-kitty-kbd-proto
                   (progressive-enhancements (match-string 1 str)))
-        (if (not (eq (string-to-number progressive-enhancements)
-                     kitty-kbd-proto-progressive-enhancements))
-            ;; The terminal ignored our request to turn on exactly
-            ;; progressive enhancements 1 and 4.  Its implementation
-            ;; must be broken, attempt to turn off KKP again.
-            (kitty-kbd-proto-off)
-          (kitty-kbd-proto-init t)))
+        (save-match-data
+          (if (not (eq (string-to-number progressive-enhancements)
+                       kitty-kbd-proto-progressive-enhancements))
+              ;; The terminal ignored our request to turn on exactly
+              ;; progressive enhancements 1 and 4.  Its implementation
+              ;; must be broken, attempt to turn off KKP again.
+              (kitty-kbd-proto-off)
+            (kitty-kbd-proto-init t))))
       (when (member "52" (split-string (match-string 2 str) ";" t))
         ;; Many modern terminals include 52 in their primary DA
         ;; response, to indicate support for *writing* to the OS
