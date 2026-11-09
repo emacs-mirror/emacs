@@ -2651,8 +2651,10 @@ font_clear_cache (struct frame *f, Lisp_Object cache,
 			     the font.  */
 			  composition_gstring_cache_clear_font (val);
 			  driver->close_font (font);
+			  ASET (val, FONT_TYPE_INDEX, Qnil);
 			}
 		    }
+		  ASET (entity, FONT_OBJLIST_INDEX, Qnil);
 		  if (driver->free_entity)
 		    driver->free_entity (entity);
 		}
