@@ -138,7 +138,7 @@ These are the special commands of this mode:\\<eudc-hotlist-mode-map>
   (save-excursion
     (beginning-of-line)
     (if (and (>= (point) eudc-hotlist-list-beginning)
-	     (looking-at "^\\([-.a-zA-Z:0-9]+\\)[ \t]+\\([a-zA-Z]+\\)"))
+	     (looking-at "^\\([-.a-zA-Z:0-9/]+\\)[ \t]+\\([-a-zA-Z]+\\)"))
 	(progn
 	  (eudc-set-server (match-string 1) (intern (match-string 2)))
 	  (message "Current directory server is %s (%s)" eudc-server eudc-protocol))
