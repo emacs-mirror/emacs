@@ -1764,10 +1764,10 @@ enum { PDUMPER_MAX_OBJECT_SIZE = 2048 };
 static dump_off
 field_relpos (const void *in_start, const void *in_field)
 {
-  ptrdiff_t in_start_val = (ptrdiff_t) in_start;
-  ptrdiff_t in_field_val = (ptrdiff_t) in_field;
+  uintptr_t in_start_val = (uintptr_t) in_start;
+  uintptr_t in_field_val = (uintptr_t) in_field;
   eassert (in_start_val <= in_field_val);
-  ptrdiff_t relpos = in_field_val - in_start_val;
+  uintptr_t relpos = in_field_val - in_start_val;
   /* The following assertion attempts to detect bugs whereby IN_START
      and IN_FIELD don't point to the same object/structure, on the
      assumption that a too-large difference between them is
