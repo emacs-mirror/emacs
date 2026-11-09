@@ -840,6 +840,30 @@ ns_frame_scale_factor (struct frame *f)
 #endif
 }
 
+/* Since redisplay can call arbitrary Lisp that may signal, we guard
+   against calling it while waiting_for_input is set, in which state any
+   signal causes an immediate abort.
+
+   If there is IO going on when redisplay is run here Emacs
+   crashes.  I think it's because this code will always be run
+   within the run loop and for whatever reason processing input
+   is dangerous.  This technique was stolen wholesale from
+   nsmenu.m and seems to work.
+
+   Use of this function probably implies a deeper bug that's hard to
+   fix.  */
+static void
+ns_safe_redisplay ()
+{
+  bool owfi = waiting_for_input;
+  waiting_for_input = 0;
+  block_input ();
+
+  redisplay ();
+
+  unblock_input ();
+  waiting_for_input = owfi;
+}
 
 /* ==========================================================================
 
@@ -9371,22 +9395,9 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
    appears to be safe to call redisplay here.  */
 - (void)layoutSublayersOfLayer:(CALayer *)layer
 {
-  if (!redisplaying_p && FRAME_GARBAGED_P (emacsframe))
-    {
-      /* If there is IO going on when redisplay is run here Emacs
-         crashes.  I think it's because this code will always be run
-         within the run loop and for whatever reason processing input
-         is dangerous.  This technique was stolen wholesale from
-         nsmenu.m and seems to work.  */
-      bool owfi = waiting_for_input;
-      waiting_for_input = 0;
-      block_input ();
-
-      redisplay ();
-
-      unblock_input ();
-      waiting_for_input = owfi;
-    }
+  if (!redisplaying_p && FRAME_GARBAGED_P (emacsframe)
+      && [[self window] inLiveResize])
+    ns_safe_redisplay();
 }
 #endif
 
@@ -9490,7 +9501,7 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
   safe_calln (Vns_drag_motion_function, frame,
 	      make_fixnum (x), make_fixnum (y));
 
-  redisplay ();
+  ns_safe_redisplay();
 #endif
 
   unbind_to (count, Qnil);
