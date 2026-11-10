@@ -898,7 +898,7 @@ static void spareRangeRelease(VMChunk vmChunk, Index piBase, Index piLimit)
             PageIndexBase(chunk, piLimit));
 
   res = LandDelete(&containingRange, spareLand, &range);
-  if (res != ResOK) {
+  if (res == ResLIMIT) {
     /* Range could not be deleted from the spare memory land because
        it splits the containing range and so needs to allocate a
        block but the block pool is full. Use the first grain of the
@@ -907,16 +907,10 @@ static void spareRangeRelease(VMChunk vmChunk, Index piBase, Index piLimit)
     Index extendBasePI = INDEX_OF_ADDR(chunk, extendBase);
     Addr extendLimit = AddrAdd(extendBase, ArenaGrainSize(arena));
     RangeStruct extendRange;
-    AVER(res != ResFAIL);
-    AVER(res != ResRESOURCE);
-    AVER(res != ResMEMORY);
-    AVER(res != ResUNIMPL);
-    AVER(res != ResIO);
-    AVER(res != ResCOMMIT_LIMIT);
-    AVER(res != ResPARAM);
-    AVER(res == ResLIMIT);
     RangeInit(&extendRange, extendBase, extendLimit);
     AVER(!RangesOverlap(&extendRange, &range));
+    res = ArenaFreeLandDelete(arena, extendBase, extendLimit);
+    AVER(res == ResOK); /* TODO: I guess this could fail */
     res = LandDelete(&containingRange, spareLand, &extendRange);
     AVER(res == ResOK);
     AVER(arena->spareCommitted >= RangeSize(&extendRange));
@@ -925,7 +919,18 @@ static void spareRangeRelease(VMChunk vmChunk, Index piBase, Index piLimit)
     MFSExtend(VMArenaCBSBlockPool(vmArena), extendBase, extendLimit);
     res = LandDelete(&containingRange, spareLand, &range);
     AVER(res == ResOK);
+  } else if (res != ResOK) {
+    AVER(res != ResFAIL);
+    AVER(res != ResRESOURCE);
+    AVER(res != ResMEMORY);
+    AVER(res != ResLIMIT);
+    AVER(res != ResUNIMPL);
+    AVER(res != ResIO);
+    AVER(res != ResCOMMIT_LIMIT);
+    AVER(res != ResPARAM);
+    NOTREACHED;
   }
+  AVER(res == ResOK);
   AVER(arena->spareCommitted >= RangeSize(&range));
   arena->spareCommitted -= RangeSize(&range);
 }
@@ -1336,6 +1341,36 @@ mps_arena_class_t mps_arena_class_vm(void)
   return (mps_arena_class_t)CLASS(VMArena);
 }
 
+
+static void drainCBSBlockPool(CBS cbs)
+{
+  Pool pool = cbs->blockPool;
+  Size size = cbs->blockStructSize;
+  while (1) {
+    Addr addr;
+    Res res = PoolAlloc(&addr, pool, size);
+    if (res == ResLIMIT)
+      break;
+    AVER(res == ResOK);
+  }
+}
+
+/* ArenaDrainCBSBlockPool -- This is only used for testing.
+
+   Allocate all remaining free blocks from the specified CBS block pool.
+   This is useful to test spareRangeRelease, where LandDelete can fail
+   if the CBS block pool is full.
+*/
+
+void ArenaDrainCBSBlockPool (Arena arena, Bool freeLand, Bool spareLand)
+{
+  if (freeLand)
+    drainCBSBlockPool (&arena->freeLandStruct);
+  if (spareLand) {
+    VMArena vmArena = MustBeA(VMArena, arena);
+    drainCBSBlockPool (&vmArena->spareLandStruct);
+  }
+}
 
 /* C. COPYRIGHT AND LICENSE
  *

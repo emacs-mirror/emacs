@@ -613,6 +613,7 @@ extern void ArenaFree(Addr base, Size size, Pool pool);
 
 extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 
+extern void ArenaDrainCBSBlockPool (Arena, Bool freeLand, Bool spareLand);
 
 /* Policy interface */
 
