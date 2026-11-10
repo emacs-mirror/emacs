@@ -59,6 +59,9 @@ Do not hexlify \"/\".  This hexlified string is used in `file:///' URLs."
     (url-hexify-string tramp-archive-test-file-archive)))
 
 (setq password-cache-expiry nil
+      tramp-archive-enabled
+      (and tramp-archive-enabled
+	   (memq tramp-archive-method tramp-gvfs-mounttypes))
       tramp-cache-read-persistent-data t ;; For auth-sources.
       tramp-persistency-file-name nil
       tramp-verbose 0)
