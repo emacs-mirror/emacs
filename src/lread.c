@@ -5002,16 +5002,22 @@ make_obarray (int bits)
 enum {
   obarray_default_bits = 3,
 
-  /* The ceiling of the log base 2 of the word size, good through 192
-     and checked in the static_assert below.  */
-  word_size_log2 = ((EMACS_INT_WIDTH <= 32 ? 5 : 6)
-		    + (EMACS_INT_WIDTH - 1) / 64),
+  /* The ceiling of the log base 2 of the number of bits in a Lisp word,
+     good through 192 bits and checked in the static_assert below.  */
+  CEIL_LOG2_EMACS_INT_WIDTH = ((EMACS_INT_WIDTH <= 32 ? 5 : 6)
+			       + (EMACS_INT_WIDTH - 1) / 64),
 
-  obarray_max_bits = min (8 * sizeof (int),
-			  8 * sizeof (ptrdiff_t) - word_size_log2) - 2,
+  obarray_max_bits = min (min (/* Indexes must fit in unsigned int.  */
+			       UINT_WIDTH,
+			       /* Indexes must fit in fixnum.  */
+			       FIXNUM_BITS - 1),
+			  /* The array buckets' total size in bytes must
+			     fit in ptrdiff_t and in size_t.  */
+			  (min (PTRDIFF_WIDTH - 2, SIZE_WIDTH - 1)
+			   - CEIL_LOG2_EMACS_INT_WIDTH))
 };
-static_assert (1 << (word_size_log2 - 1) < EMACS_INT_WIDTH
-	       && EMACS_INT_WIDTH <= 1 << word_size_log2);
+static_assert (1 << (CEIL_LOG2_EMACS_INT_WIDTH - 1) < EMACS_INT_WIDTH
+	       && EMACS_INT_WIDTH <= 1 << CEIL_LOG2_EMACS_INT_WIDTH);
 
 static void
 grow_obarray (struct Lisp_Obarray *o)
