@@ -4635,7 +4635,7 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 
 static Lisp_Object initial_obarray;
 
-static Lisp_Object make_obarray (unsigned bits);
+static Lisp_Object make_obarray (int bits);
 
 /* Slow path obarray check: return the obarray to use or signal an error.  */
 Lisp_Object
@@ -4987,7 +4987,7 @@ allocate_obarray (void)
 }
 
 static Lisp_Object
-make_obarray (unsigned bits)
+make_obarray (int bits)
 {
   struct Lisp_Obarray *o = allocate_obarray ();
   o->count = 0;
