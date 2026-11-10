@@ -82,7 +82,6 @@
 (declare-function tramp-method-out-of-band-p "tramp-sh")
 (declare-function tramp-smb-get-localname "tramp-smb")
 (defvar ange-ftp-make-backup-files)
-(defvar auto-revert-notify-watch-descriptor)
 (defvar auto-revert-remote-files)
 (defvar auto-revert-use-notify)
 (defvar comp-warn-primitives)
@@ -6100,7 +6099,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 					"Cannot find path"))
 				 (buffer-string)))
 		      (when-let* ((p (or (get-buffer-process stderr)
-					 auto-revert-notify-watch-descriptor))
+					 (bound-and-true-p
+					  auto-revert-notify-watch-descriptor)))
 				  ((processp p)))
 			(while (accept-process-output p 0 nil t)))))
 		  (delete-process proc)
