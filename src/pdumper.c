@@ -230,7 +230,7 @@ static_assert (RELOC_EMACS_EMACS_LV <= (1 << EMACS_RELOC_TYPE_BITS));
 struct emacs_reloc
 {
   ENUM_BF (emacs_reloc_type) type : EMACS_RELOC_TYPE_BITS;
-  dump_off length : EMACS_RELOC_LENGTH_BITS;
+  unsigned int length : EMACS_RELOC_LENGTH_BITS;
   dump_off emacs_offset;
   union
   {
