@@ -130,6 +130,16 @@ mpz_set_integer (mpz_t result, Lisp_Object i)
     mpz_set (result, *xbignum_val (i));
 }
 
+/* Like mpz_size, but return a signed type and tell the compiler the
+   result fits in int.  Making it ptrdiff_t can speed things up slightly.  */
+INLINE ptrdiff_t
+emacs_mpz_size (mpz_t const z)
+{
+  size_t size = mpz_size (z);
+  eassume (size <= INT_MAX);
+  return size;
+}
+
 INLINE_HEADER_END
 
 #endif /* BIGNUM_H */

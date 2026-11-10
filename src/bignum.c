@@ -26,6 +26,21 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stdlib.h>
 
+/* Return the number of bits needed to represent Z.  Act like
+   mpz_sizeinbase (Z, 2), except do not overflow if the correct answer
+   exceeds SIZE_MAX.  */
+static unsigned long long int
+mpz_bit_width (mpz_t const z)
+{
+  /* This implementation is likely faster than libgmp's, so don't defer
+     to mpz_sizeinbase for small args.  */
+  static_assert (INT_MAX <= ULLONG_MAX / GMP_NUMB_BITS);
+  ptrdiff_t nlimbs = emacs_mpz_size (z);
+  return (!nlimbs ? 0
+	  : ((nlimbs - 1) * (unsigned long long int) {GMP_NUMB_BITS}
+	     + stdc_bit_width (mpz_getlimbn (z, nlimbs - 1))));
+}
+
 /* mpz global temporaries.  Making them global saves the trouble of
    properly using mpz_init and mpz_clear on temporaries even when
    storage is exhausted.  Admittedly this is not ideal.  An mpz value
@@ -89,7 +104,7 @@ double_to_integer (double d)
 /* Return a Lisp integer equal to mpz[0], which has BITS bits and which
    must not be in fixnum range.  Set mpz[0] to a junk value.  */
 static Lisp_Object
-make_bignum_bits (size_t bits)
+make_bignum_bits (unsigned long long int bits)
 {
   /* The documentation says integer-width should be nonnegative, so
      comparing it to BITS works even though BITS is unsigned.  Treat
@@ -111,7 +126,7 @@ make_bignum_bits (size_t bits)
 static Lisp_Object
 make_bignum (void)
 {
-  return make_bignum_bits (mpz_sizeinbase (mpz[0], 2));
+  return make_bignum_bits (mpz_bit_width (mpz[0]));
 }
 
 /* Return a Lisp integer equal to N, which must not be in fixnum range.  */
@@ -152,7 +167,7 @@ make_integer_mpz (void)
 	return make_fixnum (v);
     }
 
-  size_t bits = mpz_sizeinbase (mpz[0], 2);
+  unsigned long long int bits = mpz_bit_width (mpz[0]);
 
   if (! (FASTER_BIGNUM
 	 && FIXNUM_OVERFLOW_P (LONG_MIN)
@@ -237,7 +252,7 @@ mpz_to_intmax (mpz_t const z, intmax_t *pi)
 	return false;
     }
 
-  ptrdiff_t bits = mpz_sizeinbase (z, 2);
+  unsigned long long int bits = mpz_bit_width (z);
   bool negative = mpz_sgn (z) < 0;
 
   if (bits < INTMAX_WIDTH)
@@ -280,7 +295,7 @@ mpz_to_uintmax (mpz_t const z, uintmax_t *pi)
 
   if (mpz_sgn (z) < 0)
     return false;
-  ptrdiff_t bits = mpz_sizeinbase (z, 2);
+  unsigned long long int bits = mpz_bit_width (z);
   if (UINTMAX_WIDTH < bits)
     return false;
 
@@ -318,36 +333,32 @@ bignum_to_uintmax (Lisp_Object x)
 /* Multiply and exponentiate mpz_t values without aborting due to size
    limits.  */
 
-/* GMP tests for this value and aborts (!) if it is exceeded.
-   This is as of GMP 6.1.2 (2016); perhaps future versions will differ.  */
+/* GMP might raise SIGFPE (GMP 6.3.0 (2023)), abort (earlier GMP),
+   or have undefined behavior (mini-gmp) if this value is exceeded.  */
 enum { GMP_NLIMBS_MAX = min (INT_MAX, ULONG_MAX / GMP_NUMB_BITS) };
 
-/* An upper bound on limb counts, needed to prevent libgmp and/or
+/* An upper bound on limb counts, needed to prevent GMP and/or
    Emacs from aborting or otherwise misbehaving.  This bound applies
    to estimates of mpz_t sizes before the mpz_t objects are created,
    as opposed to integer-width which operates on mpz_t values after
    creation and before conversion to Lisp bignums.  */
 enum
   {
-   NLIMBS_LIMIT = min (min (/* libgmp needs to store limb counts.  */
+   NLIMBS_LIMIT = min (min (/* GMP needs to store limb counts.  */
 			    GMP_NLIMBS_MAX,
 
-			    /* Size calculations need to work.  */
+			    /* Size calculations need to work.  Though
+			       SIZE_MAX is redundant here due to the other
+			       SIZE_MAX below, it doesn't hurt.  */
 			    min (PTRDIFF_MAX, SIZE_MAX) / sizeof (mp_limb_t)),
 
-		       /* Emacs puts bit counts into fixnums.  */
-		       MOST_POSITIVE_FIXNUM / GMP_NUMB_BITS)
+		       (min (/* Emacs puts bit counts into fixnums.  */
+			     MOST_POSITIVE_FIXNUM,
+
+			     /* Avoid mpz_sizeinbase overflow.  */
+			     SIZE_MAX)
+			/ GMP_NUMB_BITS))
   };
-
-/* Like mpz_size, but tell the compiler the result is a nonnegative int.  */
-
-static int
-emacs_mpz_size (mpz_t const op)
-{
-  mp_size_t size = mpz_size (op);
-  eassume (0 <= size && size <= INT_MAX);
-  return size;
-}
 
 /* Wrappers to work around GMP limitations.  As of GMP 6.1.2 (2016),
    the library code aborts when a number is too large.  These wrappers
@@ -385,7 +396,7 @@ emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
   enum { pow_ui_extra_limbs = 5 };
   enum { lim = min (NLIMBS_LIMIT, GMP_NLIMBS_MAX - pow_ui_extra_limbs) };
 
-  int nbase = emacs_mpz_size (base), n;
+  ptrdiff_t nbase = emacs_mpz_size (base), n;
   if (ckd_mul (&n, nbase, exp) || lim < n)
     overflow_error ();
   mpz_pow_ui (rop, base, exp);
@@ -408,7 +419,7 @@ mpz_get_d_rounded (mpz_t const num)
 {
   /* Handle the special cases of 0 and too-large numbers.
      Avoid mpz_sizeinbase, as it could overflow. */
-  int nlimbs = emacs_mpz_size (num);
+  ptrdiff_t nlimbs = emacs_mpz_size (num);
   enum {
     DBL_MAX_BITS = DBL_MAX_EXP * LOG2_FLT_RADIX,
     DBL_MAX_LIMBS = (DBL_MAX_BITS + GMP_NUMB_BITS - 1) / GMP_NUMB_BITS
@@ -567,7 +578,7 @@ Lisp_Object
 get_random_bignum (struct Lisp_Bignum const *limit)
 {
   mpz_t const *lim = bignum_val (limit);
-  mp_size_t nlimbs = mpz_size (*lim);
+  ptrdiff_t nlimbs = emacs_mpz_size (*lim);
   eassume (0 < nlimbs);
   mp_limb_t *r_limb = mpz_limbs_write (mpz[0], nlimbs);
   mp_limb_t const *lim_limb = mpz_limbs_read (*lim);
@@ -589,7 +600,7 @@ get_random_bignum (struct Lisp_Bignum const *limit)
       edgy = rhi == limhi;
       r_limb[nlimbs - 1] = rhi;
 
-      for (mp_size_t i = nlimbs - 1; 0 < i--; )
+      for (ptrdiff_t i = nlimbs - 1; 0 < i--; )
 	{
 	  /* get_random_limb_lim (edgy ? limb_lim[i] + 1 : 0)
 	     would be wrong here, as the full mp_limb_t range is

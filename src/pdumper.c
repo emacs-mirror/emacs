@@ -3453,13 +3453,13 @@ static void
 dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
 {
   mpz_t const *n = xbignum_val (object);
-  size_t sz_nlimbs = mpz_size (*n);
-  eassert (sz_nlimbs <= DUMP_OFF_MAX);
+  ptrdiff_t nlimbs = emacs_mpz_size (*n);
+  eassert (0 <= nlimbs && nlimbs <= DUMP_OFF_MAX);
+  ptrdiff_t signed_nlimbs = mpz_sgn (*n) < 0 ? -nlimbs : nlimbs;
   dump_align_output (ctx, alignof (mp_limb_t));
-  dump_off nlimbs = (dump_off) sz_nlimbs;
   Lisp_Object descriptor
     = list2 (dump_off_to_lisp (ctx->offset),
-	     dump_off_to_lisp (mpz_sgn (*n) < 0 ? -nlimbs : nlimbs));
+	     dump_off_to_lisp (signed_nlimbs));
   Fputhash (object, descriptor, ctx->bignum_data);
   for (dump_off i = 0; i < nlimbs; i++)
     {

@@ -5492,7 +5492,7 @@ static EMACS_UINT
 sxhash_bignum (Lisp_Object bignum)
 {
   mpz_t const *n = xbignum_val (bignum);
-  ptrdiff_t nlimbs = mpz_size (*n);
+  ptrdiff_t nlimbs = emacs_mpz_size (*n);
   EMACS_UINT hash = mpz_sgn (*n) < 0;
 
   for (ptrdiff_t i = 0; i < nlimbs; i++)
