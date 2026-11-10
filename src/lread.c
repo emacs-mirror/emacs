@@ -5105,8 +5105,7 @@ DEFUN ("obarray-clear", Fobarray_clear, Sobarray_clear, 1, 1, 0,
   for (ptrdiff_t i = 0; i < new_size; i++)
     new_buckets[i] = make_fixnum (0);
 
-  int old_size = obarray_size (o);
-  hash_table_free_bytes (o->buckets, old_size * sizeof *o->buckets);
+  hash_table_free_bytes (o->buckets, obarray_size (o) * sizeof *o->buckets);
   o->buckets = new_buckets;
   o->size_bits = new_bits;
   o->count = 0;
