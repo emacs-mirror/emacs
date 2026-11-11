@@ -57,8 +57,10 @@ static void printRange(const char* s,
                        Arena arena)
 {
   Size grainSize = ArenaGrainSize(arena);
+#define ZU PRIuLONGEST
   fprintf(stderr,
-          "%s%p %p %lu (%lu) %lu %lu\n",
+          "%s%p %p %" ZU " (%" ZU ")"
+          " %" ZU " %" ZU "\n",
           s,
           (void*)RangeBase(&r),
           (void*)RangeLimit(&r),
@@ -66,6 +68,7 @@ static void printRange(const char* s,
           RangeSize(&r) / grainSize,
           pageIndex(RangeBase(&r), r0, arena),
           pageIndex(RangeLimit(&r), r0, arena));
+#undef ZU
 }
 
 static void freeLandDeletePage(Arena arena,
