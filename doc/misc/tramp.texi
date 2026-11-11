@@ -162,7 +162,6 @@ Using @value{tramp}
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
 * Renaming remote files::       Renaming remote files.
-* Archive file names::          Access to files in file archives.
 
 How file names, directories and localnames are mangled and managed
 
@@ -582,8 +581,6 @@ of the local file name is the share exported by the remote host,
 @cindex gvfs-based methods
 @cindex method @option{sftp}
 @cindex @option{sftp} method
-@cindex method @option{afp}
-@cindex @option{afp} method
 @cindex method @option{dav}
 @cindex method @option{davs}
 @cindex @option{dav} method
@@ -592,10 +589,9 @@ of the local file name is the share exported by the remote host,
 @cindex @option{mtp} method
 
 On systems which have @acronym{GVFS, the GNOME Virtual File System}
-installed, its offered methods can be used by @value{tramp}.
-Examples are @file{@trampfn{sftp,user@@host,/path/to/file}},
-@file{@trampfn{afp,user@@host,/path/to/file}} (accessing Apple's AFP
-file system), @file{@trampfn{dav,user@@host,/path/to/file}},
+installed, its offered methods can be used by @value{tramp}.  Examples
+are @file{@trampfn{sftp,user@@host,/path/to/file}},
+@file{@trampfn{dav,user@@host,/path/to/file}},
 @file{@trampfn{davs,user@@host,/path/to/file}} (for WebDAV shares) and
 @file{@trampfn{mtp,device,/path/to/file}} (for media devices).
 
@@ -603,21 +599,15 @@ file system), @file{@trampfn{dav,user@@host,/path/to/file}},
 @anchor{Quick Start Guide GNOME Online Accounts based methods}
 @section Using @acronym{GNOME} Online Accounts based methods
 @cindex @acronym{GNOME} Online Accounts
-@cindex method @option{gdrive}
-@cindex @option{gdrive} method
-@cindex google drive
 @cindex method @option{nextcloud}
 @cindex @option{nextcloud} method
 @cindex nextcloud
 
 @acronym{GVFS}-based methods also include @acronym{GNOME} Online
-Accounts, which support the @option{Files} service.  These are the
-Google Drive file system, and the OwnCloud/NextCloud file system.  The
-file name syntax here is always
-@file{@trampfn{gdrive,john.doe@@gmail.com,/path/to/file}}
-(@samp{john.doe@@gmail.com} stands here for your Google Drive
-account), or @file{@trampfn{nextcloud,user@@host#8081,/path/to/file}}
-(@samp{8081} stands for the port number) for OwnCloud/NextCloud files.
+Accounts, which support the @option{Files} service.  These are
+OwnCloud/NextCloud file system.  The file name syntax here is always
+@file{@trampfn{nextcloud,user@@host#8081,/path/to/file}} (@samp{8081}
+stands for the port number) for OwnCloud/NextCloud files.
 
 
 @anchor{Quick Start Guide FUSE-based methods}
@@ -1455,15 +1445,6 @@ The @code{tramp-gvfs-enabled} variable, being non-@code{nil}, signals
 that @value{tramp} can use @acronym{GVFS}-based methods.
 
 @table @asis
-@cindex method @option{afp}
-@cindex @option{afp} method
-@item @option{afp}
-
-This method is for connecting to remote hosts with the Apple Filing
-Protocol for accessing files on macOS volumes.  @value{tramp} access
-syntax requires a leading volume (share) name, for example:
-@file{@trampfn{afp,user@@host,/volume}}.
-
 @cindex WebDAV
 @cindex method @option{dav}
 @cindex @option{dav} method
@@ -1480,24 +1461,6 @@ Paths being part of the WebDAV volume to be mounted by @acronym{GVFS},
 as it is common for OwnCloud or NextCloud file names, are not
 supported by these methods.  See method @option{nextcloud} for
 handling them.
-
-@cindex @acronym{GNOME} Online Accounts
-@cindex method @option{gdrive}
-@cindex @option{gdrive} method
-@cindex google drive
-@item @option{gdrive}
-
-Via the @option{gdrive} method it is possible to access your Google
-Drive online storage.  User and host name of the remote file name are
-your email address of the Google Drive credentials, like
-@file{@trampfn{gdrive,john.doe@@gmail.com,/}}.  These credentials must
-be populated in your @command{Online Accounts} application outside Emacs.
-
-Since Google Drive uses cryptic blob file names internally,
-@value{tramp} works with the @code{display-name} of the files.  This
-could produce unexpected behavior in case two files in the same
-directory have the same @code{display-name}, such a situation must be
-avoided.
 
 @cindex method @option{mtp}
 @cindex @option{mtp} method
@@ -1524,10 +1487,9 @@ uses @file{@trampfn{mtp,,}} as the default name.
 @item @option{nextcloud}
 
 As the name indicates, the method @option{nextcloud} allows you to
-access OwnCloud or NextCloud hosted files and directories.  Like the
-@option{gdrive} method, your credentials must be populated in your
-@command{Online Accounts} application outside Emacs.  The method
-supports port numbers.
+access OwnCloud or NextCloud hosted files and directories.  Your
+credentials must be populated in your @command{Online Accounts}
+application outside Emacs.  The method supports port numbers.
 
 @cindex method @option{sftp}
 @cindex @option{sftp} method
@@ -1544,12 +1506,11 @@ do @emph{not} set the @option{RemoteCommand} option.
 
 @defopt tramp-gvfs-methods
 This user option is a list of external methods for @acronym{GVFS}@.
-By default, this list includes @option{afp}, @option{dav},
-@option{davs}, @option{gdrive}, @option{mtp}, @option{nextcloud} and
-@option{sftp}.  Other methods to include are @option{ftp},
-@option{http}, @option{https} and @option{smb}.  These methods are not
-intended to be used directly as @acronym{GVFS}-based method.  Instead,
-they are added here for the benefit of @ref{Archive file names}.
+By default, this list includes @option{dav}, @option{davs},
+@option{mtp}, @option{nextcloud} and @option{sftp}.  Other methods to
+include are @option{ftp}, @option{http}, @option{https} and
+@option{smb}.  These methods are not intended to be used directly as
+@acronym{GVFS}-based method.
 
 If you want to use @acronym{GVFS}-based @option{ftp} or @option{smb}
 methods, you must add them to @code{tramp-gvfs-methods}, and you must
@@ -1605,9 +1566,8 @@ needed in the remote file name.  If a user name is contained in the
 remote file name, it is ignored.
 
 Access via @option{rclone} is slow.  If you have an alternative method
-for accessing the system storage, you should use it.
-For example, see @ref{GVFS-based methods}, methods @option{gdrive} and
-@option{nextcloud}.
+for accessing the system storage, you should use it.  For example, see
+@ref{GVFS-based methods}, method @option{nextcloud}.
 
 @cindex method @option{sshfs}
 @cindex @option{sshfs} method
@@ -3685,7 +3645,6 @@ is a feature of Emacs that may cause missed prompts when using
 * Remote processes::            Integration with other Emacs packages.
 * Cleanup remote connections::  Cleanup remote connections.
 * Renaming remote files::       Renaming remote files.
-* Archive file names::          Access to files in file archives.
 @end menu
 
 
@@ -3783,22 +3742,6 @@ setting as connection-local variable
 @end ifinfo
 for a dedicated method name.  On systems other than MS-Windows, this
 variable is already non-@code{nil} by default.
-
-For example, the package @file{tramp-archive.el} does
-
-@lisp
-@group
-(connection-local-set-profile-variables
- 'tramp-archive-connection-local-default-profile
- '((tramp-allow-double-percent . t)))
-@end group
-
-@group
-(connection-local-set-profiles
- `(:application tramp :protocol ,tramp-archive-method)
- 'tramp-archive-connection-local-default-profile)
-@end group
-@end lisp
 
 
 @ifset unified
@@ -4153,9 +4096,8 @@ expansion for another user, like
 
 For other methods, a home directory can be expanded only if supported.
 This happens for example for the @option{sftp} method.  Methods, which
-require a share directory in the remote file name (@option{afp},
-@option{smb}), use the value of this share directory as home
-directory:
+require a share directory in the remote file name (@option{smb}), use
+the value of this share directory as home directory:
 
 @example
 @group
@@ -5173,266 +5115,6 @@ name, user name and host name of the remote connection.
 Whether renaming a buffer file name by @code{tramp-rename-files} or
 @code{tramp-rename-these-files} must be confirmed.
 @end defopt
-
-
-@node Archive file names
-@section Archive file names
-@cindex file archives
-@cindex archive file names
-@cindex method archive
-@cindex archive method
-
-@value{tramp} offers also transparent access to files inside file
-archives.  This is possible only on hosts which have installed
-@acronym{GVFS, the GNOME Virtual File System}, @pxref{GVFS-based
-methods}.  Internally, file archives are mounted via the
-@acronym{GVFS} @option{archive} method.
-
-A file archive is a regular file of kind @file{/path/to/dir/file.EXT}.
-The extension @samp{.EXT} identifies the type of the file archive.  To
-examine the contents of an archive with Dired, open file name as if it
-were a directory (i.e., open @file{/path/to/dir/file.EXT/}).  A file
-inside a file archive, called archive file name, has the name
-@file{/path/to/dir/file.EXT/dir/file}.
-
-Most of the @ref{Magic File Names, , magic file name operations,
-elisp}, are implemented for archive file names, exceptions are all
-operations which write into a file archive, and process related
-operations.  Therefore, functions like
-
-@lisp
-(copy-file "/path/to/dir/file.tar/dir/file" "/somewhere/else")
-@end lisp
-
-@noindent
-work out of the box.  This is also true for file name completion, and
-for libraries like @code{dired} or @code{ediff}, which accept archive
-file names as well.
-
-@vindex tramp-archive-suffixes
-File archives are identified by the file name extension @samp{.EXT}.
-Since @acronym{GVFS} uses internally the library @code{libarchive(3)},
-all suffixes, which are accepted by this library, work also for
-archive file names.  Accepted suffixes are listed in the constant
-@code{tramp-archive-suffixes}.  They are
-
-@itemize
-@cindex @file{7z} file archive suffix
-@cindex file archive suffix @file{7z}
-@item @samp{.7z} ---
-7-Zip archives
-
-@cindex @file{apk} file archive suffix
-@cindex file archive suffix @file{apk}
-@item @samp{.apk} ---
-Android package kits
-
-@cindex @file{ar} file archive suffix
-@cindex file archive suffix @file{ar}
-@item @samp{.ar} ---
-UNIX archiver formats
-
-@cindex @file{cab} file archive suffix
-@cindex @file{CAB} file archive suffix
-@cindex file archive suffix @file{cab}
-@cindex file archive suffix @file{CAB}
-@item @samp{.cab}, @samp{.CAB} ---
-Microsoft Windows cabinets
-
-@cindex @file{cpio} file archive suffix
-@cindex file archive suffix @file{cpio}
-@item @samp{.cpio} ---
-CPIO archives
-
-@cindex @file{crate} file archive suffix
-@cindex file archive suffix @file{crate}
-@item @samp{.crate} ---
-Cargo (Rust) packages
-
-@cindex @file{deb} file archive suffix
-@cindex file archive suffix @file{deb}
-@item @samp{.deb} ---
-Debian packages
-
-@cindex @file{depot} file archive suffix
-@cindex file archive suffix @file{depot}
-@item @samp{.depot} ---
-HP-UX SD depots
-
-@cindex @file{epub} file archive suffix
-@cindex file archive suffix @file{epub}
-@item @samp{.epub} ---
-Electronic publications
-
-@cindex @file{exe} file archive suffix
-@cindex file archive suffix @file{exe}
-@item @samp{.exe} ---
-Self extracting Microsoft Windows EXE files
-
-@cindex @file{iso} file archive suffix
-@cindex file archive suffix @file{iso}
-@item @samp{.iso} ---
-ISO 9660 images
-
-@cindex @file{jar} file archive suffix
-@cindex file archive suffix @file{jar}
-@item @samp{.jar} ---
-Java archives
-
-@cindex @file{lzh} file archive suffix
-@cindex @file{LZH} file archive suffix
-@cindex file archive suffix @file{lzh}
-@cindex file archive suffix @file{LZH}
-@item @samp{.lzh}, @samp{.LZH} ---
-Microsoft Windows compressed LHA archives
-
-@cindex @file{msu} file archive suffix
-@cindex @file{MSU} file archive suffix
-@cindex file archive suffix @file{msu}
-@cindex file archive suffix @file{MSU}
-@item @samp{.msu}, @samp{.MSU} ---
-Microsoft Windows Update packages
-
-@cindex @file{mtree} file archive suffix
-@cindex file archive suffix @file{mtree}
-@item @samp{.mtree} ---
-BSD mtree format
-
-@cindex @file{odb} file archive suffix
-@cindex @file{odf} file archive suffix
-@cindex @file{odg} file archive suffix
-@cindex @file{odp} file archive suffix
-@cindex @file{ods} file archive suffix
-@cindex @file{odt} file archive suffix
-@cindex file archive suffix @file{odb}
-@cindex file archive suffix @file{odf}
-@cindex file archive suffix @file{odg}
-@cindex file archive suffix @file{odp}
-@cindex file archive suffix @file{ods}
-@cindex file archive suffix @file{odt}
-@item @samp{.odb}, @samp{.odf}, @samp{.odg}, @samp{.odp}, @samp{.ods},
-@samp{.odt} ---
-OpenDocument formats
-
-@cindex @file{pax} file archive suffix
-@cindex file archive suffix @file{pax}
-@item @samp{.pax} ---
-Posix archives
-
-@cindex @file{rar} file archive suffix
-@cindex file archive suffix @file{rar}
-@item @samp{.rar} ---
-RAR archives
-
-@cindex @file{rpm} file archive suffix
-@cindex file archive suffix @file{rpm}
-@item @samp{.rpm} ---
-Red Hat packages
-
-@cindex @file{shar} file archive suffix
-@cindex file archive suffix @file{shar}
-@item @samp{.shar} ---
-Shell archives
-
-@cindex @file{tar} file archive suffix
-@cindex @file{tbz} file archive suffix
-@cindex @file{tgz} file archive suffix
-@cindex @file{tlz} file archive suffix
-@cindex @file{txz} file archive suffix
-@cindex @file{tzst} file archive suffix
-@cindex file archive suffix @file{tar}
-@cindex file archive suffix @file{tbz}
-@cindex file archive suffix @file{tgz}
-@cindex file archive suffix @file{tlz}
-@cindex file archive suffix @file{txz}
-@cindex file archive suffix @file{tzst}
-@item @samp{.tar}, @samp{.tbz}, @samp{.tgz}, @samp{.tlz}, @samp{.txz},
-@samp{.tzst} ---
-(Compressed) tape archives
-
-@cindex @file{warc} file archive suffix
-@cindex file archive suffix @file{warc}
-@item @samp{.warc} ---
-Web archives
-
-@cindex @file{xar} file archive suffix
-@cindex file archive suffix @file{xar}
-@item @samp{.xar} ---
-macOS XAR archives
-
-@cindex @file{xpi} file archive suffix
-@cindex file archive suffix @file{xpi}
-@item @samp{.xpi} ---
-XPInstall Mozilla addons
-
-@cindex @file{xps} file archive suffix
-@cindex file archive suffix @file{xps}
-@item @samp{.xps} ---
-Open XML Paper Specification (OpenXPS) documents
-
-@cindex @file{zip} file archive suffix
-@cindex @file{ZIP} file archive suffix
-@cindex file archive suffix @file{zip}
-@cindex file archive suffix @file{ZIP}
-@item @samp{.zip}, @samp{.ZIP} ---
-ZIP archives
-@end itemize
-
-@vindex tramp-archive-compression-suffixes
-File archives could also be compressed, identified by an additional
-compression suffix.  Valid compression suffixes are listed in the
-constant @code{tramp-archive-compression-suffixes}.  They are
-@samp{.bz2}, @samp{.gz}, @samp{.lrz}, @samp{.lz}, @samp{.lz4},
-@samp{.lzma}, @samp{.lzo}, @samp{.uu}, @samp{.xz}, @samp{.Z}, and
-@samp{.zst}.  A valid archive file name would be
-@file{/path/to/dir/file.tar.gz/dir/file}.  Even several suffixes in a
-row are possible, like @file{/path/to/dir/file.tar.gz.uu/dir/file}.
-
-@vindex tramp-archive-all-gvfs-methods
-An archive file name can be a remote file name, as in
-@file{/ftp:anonymous@@ftp.gnu.org:/gnu/tramp/tramp-2.4.5.tar.gz/INSTALL}.
-Since all file operations are mapped internally to @acronym{GVFS}
-operations, remote file names supported by @code{tramp-gvfs} perform
-better, because no local copy of the file archive must be downloaded
-first.  For example, @samp{/sftp:user@@host:@dots{}} performs better
-than the similar @samp{/scp:user@@host:@dots{}}.  See the constant
-@code{tramp-archive-all-gvfs-methods} for a complete list of
-@code{tramp-gvfs} supported method names.
-
-If @code{url-handler-mode} is enabled, archives can be visited via
-URLs, like
-@file{https://ftp.gnu.org/gnu/tramp/tramp-2.4.5.tar.gz/INSTALL}.  This
-allows complex file operations like
-
-@lisp
-@group
-(progn
-  (url-handler-mode 1)
-  (ediff-directories
-   "https://ftp.gnu.org/gnu/tramp/tramp-2.4.4.tar.gz/tramp-2.4.4"
-   "https://ftp.gnu.org/gnu/tramp/tramp-2.4.5.tar.gz/tramp-2.4.5" ""))
-@end group
-@end lisp
-
-It is even possible to access file archives in file archives, as
-
-@lisp
-@group
-(progn
-  (url-handler-mode 1)
-  (find-file
-   "https://ftp.debian.org/debian/pool/main/c/coreutils/\
-coreutils_8.28-1_amd64.deb/control.tar.gz/control"))
-@end group
-@end lisp
-
-@vindex tramp-archive-enabled
-In order to disable file archives, you can add the following form to
-your init file:
-
-@lisp
-(setopt tramp-archive-enabled nil)
-@end lisp
 
 
 @node Bug Reports
@@ -6583,13 +6265,6 @@ You can change this directory by setting the user option
 @env{XDG_RUNTIME_DIR}, which you can use instead via @code{(getenv
 "XDG_RUNTIME_DIR")}.
 
-
-@item
-I get an error @samp{Method `gdrive' not supported by GVFS}.
-
-@samp{google-drive} has been disabled in @acronym{GNOME} 50.  It is
-not clear yet whether and when it will be reenabled.
-@c @uref{https://discourse.gnome.org/t/google-drive-in-gnome-50/34417}
 
 @item
 How to ignore errors when changing file attributes?

@@ -67,8 +67,8 @@ text-mode frames now make use of it for keyboard input.
 This means that key chords which previously worked only in graphical
 frames now also work in text-mode frames.  For example, the Kitty
 Keyboard Protocol makes it possible for Emacs to distinguish typing
-"RET" and "C-RET", so now it is possible to bind different commands to
-"RET" and "C-RET" in text-mode frames and have both work.
+'RET' and 'C-RET', so now it is possible to bind different commands to
+'RET' and 'C-RET' in text-mode frames and have both work.
 If your terminal emulator's support for the Kitty Keyboard Protocol is
 buggy, you can customize 'tty-use-kitty-kbd-proto' to nil to disable
 this feature.
@@ -122,8 +122,8 @@ You can restore the previous behavior by removing
 'mode-line-window-select' from 'x-pre-popup-menu-hook'.
 
 ---
-*** %e in the mode line now expands to a warning when memory is low.
-Previously this behavior had been inadvertently limited to MS-DOS.
+*** "%e" in the mode line now expands to a warning when memory is low.
+Previously, this behavior had been inadvertently limited to MS-DOS.
 
 ** Minibuffer
 
@@ -261,10 +261,10 @@ check out the repository to prepare a patch for the package maintainer.
 ---
 *** Messages from Ruff are now recognized.
 
-** Mml
+** MML
 
 ---
-*** mml can now generate unobtrusive signatures.
+*** MML can now generate unobtrusive signatures.
 These tend to stand out less when displayed in common receiving MUA than
 PGP/MIME signatures.  New command 'mml-secure-message-sign-unobtrusive',
 bound to 'C-c RET s u' in 'mml-mode-map'.
@@ -481,12 +481,12 @@ using lexical binding.
 
 ---
 *** HTML list items are now indented as with other blocks.
-Previously, HTML list items (<li>) were indented with a narrower width
-than <blockquote> elements.  Now, they all have the same indent width.
+Previously, HTML list items ("<li>") were indented with a narrower width
+than "<blockquote>" elements.  Now, they all have the same indent width.
 
 ---
 *** Ordered lists now support attributes modifying their appearance.
-Now, HTML ordered lists (<ol>) support changing the type (e.g. to use
+Now, HTML ordered lists ("<ol>") support changing the type (e.g. to use
 letters instead of numbers), the order (ascending or descending), and
 the starting value.
 
@@ -525,7 +525,15 @@ functions, which use example file names like "/ssh:host:~user/file.txt".
 In order to suppress such errors, let-bind 'tramp-tolerate-tilde' to a
 non-nil value.
 
-+++
+---
+*** Package tramp-archive.el has been removed.
+GNOME 51 doesn't support the archive GVFS backend anymore.
+
+---
+*** Connection methods "afp" and "gdrive" have been removed.
+GNOME 50 / 51 don't support the corresponding GVFS backends anymore.
+
+---
 *** 'tramp-recompile-elpa' is marked obsolete.
 Use 'package-recompile' instead.
 
@@ -533,7 +541,7 @@ Use 'package-recompile' instead.
 
 ---
 *** 'browse-url-chromium' and 'browse-url-chrome' can open new windows.
-These functions no longer ignore the browse-url-new-window-flag user
+These functions no longer ignore the 'browse-url-new-window-flag' user
 option and the NEW-WINDOW optional argument.
 
 ---
@@ -640,15 +648,20 @@ annoying exceptions, typically described as "pathological" cases,
 where the backtracking algorithm could degenerate to polynomial
 or even exponential time, typically leading to situations where Emacs
 appears frozen.
+
 With the new code, such "pathological" freezes due to regexp matching
 should be gone, because the time is /always/ (rather than "usually")
 linear.
+
 Admittedly, this is not quite true.  We know of the following exceptions:
+
 - The time can still be exponential in the presence of backreferences,
   of course (theory says it can't be avoided).
+
 - The time can still be exponential in the presence of counted repetitions
   (i.e. \{N,M\}) because we do not currently apply memoization for
   regexps that use that.
+
 - The time can still be O(N^2) for a few corner cases, tho with a small
   constant factor.  [ This is because of a conflict between two
   optimizations: one brings the constant factor down significantly,

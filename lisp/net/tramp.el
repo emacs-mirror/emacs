@@ -1898,7 +1898,6 @@ default values are used."
 			:port port :localname localname :hop hop))
 	  ;; The method must be known.
 	  (unless (or nodefault non-essential
-		      (string-equal method tramp-archive-method)
 		      (assoc method tramp-methods))
 	    (tramp-user-error
 	     v "Method `%s' is not known" method))
@@ -2017,17 +2016,11 @@ expected to be a string, which will be used."
 	   ((stringp localname) localname)
 	   (t nil)))
     (when hop
-      ;; Do not keep the hop for the "archive" method.
-      (when (string-equal method tramp-archive-method)
-	(setq hop nil))
       ;; Keep hop in file name for completion or when indicated.
       (unless (or minibuffer-completing-file-name tramp-show-ad-hoc-proxies)
 	(setq hop nil))
       ;; Assure that the hops are in `tramp-default-proxies-alist'.
-      ;; In tramp-archive.el, the slot `hop' is used for the archive
-      ;; file name.
-      (unless (or minibuffer-completing-file-name
-		  (string-equal method tramp-archive-method))
+      (unless minibuffer-completing-file-name
 	(tramp-add-hops vec)))
 
     ;; Unless `tramp-syntax' is `simplified', we need a method.
@@ -2462,7 +2455,6 @@ arguments to pass to the OPERATION."
 	  `(tramp-file-name-handler
 	    tramp-vc-file-name-handler
 	    tramp-completion-file-name-handler
-	    tramp-archive-file-name-handler
 	    tramp-crypt-file-name-handler
 	    cygwin-mount-name-hook-function
 	    cygwin-mount-map-drive-hook-function
@@ -2840,8 +2832,6 @@ Falls back to normal file name handler if no Tramp file name handler exists."
     ;; might be an older, incompatible version active.  We try to
     ;; overload this.
     (let ((default-directory temporary-file-directory))
-      (when (bound-and-true-p tramp-archive-autoload)
-	(load "tramp-archive" 'noerror 'nomessage))
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 
@@ -2892,8 +2882,7 @@ remote file names."
   (tramp-unload-file-name-handlers)
 
   ;; Add the handlers.  We do not add anything to the `operations'
-  ;; property of `tramp-file-name-handler',
-  ;; `tramp-archive-file-name-handler' and
+  ;; property of `tramp-file-name-handler' and
   ;; `tramp-crypt-file-name-handler', this shall be done by the
   ;; respective foreign handlers.
   (add-to-list 'file-name-handler-alist
@@ -2911,15 +2900,6 @@ remote file names."
   ;; Mark `operations' the handler is responsible for.
   (put #'tramp-completion-file-name-handler 'operations
        (mapcar #'car tramp-completion-file-name-handler-alist))
-
-  ;; After unloading, `tramp-archive-enabled' might not be defined.
-  (when (and (bound-and-true-p tramp-archive-enabled)
-             ;; Don't burp during boostrap when `tramp-loaddefs.el' isn't built.
-             (boundp 'tramp-archive-file-name-regexp))
-    (add-to-list 'file-name-handler-alist
-	         (cons tramp-archive-file-name-regexp
-		       #'tramp-archive-file-name-handler))
-    (put #'tramp-archive-file-name-handler 'safe-magic t))
 
   ;; If jka-compr or epa-file are already loaded, move them to the
   ;; front of `file-name-handler-alist'.
@@ -4613,8 +4593,8 @@ Let-bind it when necessary.")
   "Like `file-name-case-insensitive-p' for Tramp files."
   ;; We make it a connection property, assuming that all file systems
   ;; on the remote host behave similar.  This might be wrong for
-  ;; mounted NFS directories or SMB/AFP shares; such more granular
-  ;; tests will be added in case they are needed.
+  ;; mounted NFS directories or SMB shares; such more granular tests
+  ;; will be added in case they are needed.
   (setq filename (expand-file-name filename))
   (with-parsed-tramp-file-name filename nil
     (or ;; Maybe there is a default value.
@@ -7634,6 +7614,13 @@ If VEC is `tramp-null-hop', return local null device."
     (with-tramp-connection-property vec "null-device"
       (let ((default-directory (tramp-make-tramp-file-name vec)))
         (null-device)))))
+
+;; Emacs <= 31 has this function in the `after-init-hook'.
+(add-hook
+ 'tramp-unload-hook
+ (lambda ()
+   (remove-hook
+    'after-init-hook 'tramp-register-archive-autoload-file-name-handler)))
 
 ;; Checklist for `tramp-unload-hook'
 ;; - Unload all `tramp-*' packages
