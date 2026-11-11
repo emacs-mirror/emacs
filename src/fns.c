@@ -4834,18 +4834,34 @@ allocate_hash_table (void)
 
 /* Compute the size of the index (as log2) from the table capacity.  */
 static int
-compute_hash_index_bits (unsigned long long int size)
+compute_hash_index_bits (EMACS_UINT size)
 {
-  /* An upper bound on the size of a hash table index.  */
-  hash_idx_t upper_bound = min (MOST_POSITIVE_FIXNUM,
-				min (HASH_IDX_MAX,
-				     (PTRDIFF_MAX
-				      / max (sizeof (hash_idx_t),
-					     2 * sizeof (Lisp_Object)))));
+  /* Check the safety of passing nonnegative ptrdiff_t values to this function,
+     which takes an EMACS_UINT arg both because EMACS_INT args are also passed
+     and because it uses stdc_bit_width which requires an unsigned arg.  */
+  static_assert (PTRDIFF_MAX <= TYPE_MAXIMUM (EMACS_UINT));
 
-      /* Use next higher power of 2.  This works even for size=0.  */
-  int bits = elogb (size) + 1;
-  if (! (bits < UINTMAX_WIDTH && (uintmax_t) {1} << bits <= upper_bound))
+  struct Lisp_Hash_Table h;  /* Dummy for upper_bound calculation.  */
+
+  /* An upper bound on subscripts of a hash table index.  */
+  EMACS_UINT upper_bound
+    = min (min (/* Hash table counts are of type hash_idx_t.  */
+		HASH_IDX_MAX - 1,
+		/* hash-table-count returns a fixnum.  */
+		MOST_POSITIVE_FIXNUM),
+	   (/* Vector sizes fit into both ptrdiff_t and size_t.  */
+	    (max (PTRDIFF_MAX, SIZE_MAX)
+	     / max (max (sizeof h.hash, sizeof h.index),
+		    max (sizeof h.next, 2 * sizeof h.key_and_value)))
+	    - 1));
+
+  /* Use next higher power of 2.  This works even for size=0.  */
+  int bits = stdc_bit_width (size);
+  int bits_max = min (/* Maximum value of h.index_bits.  */
+		      UCHAR_MAX,
+		      /* Maximum value suitable for upper_bound.  */
+		      stdc_bit_width (upper_bound + 1));
+  if (bits_max < bits)
     error ("Hash table too large");
   return bits;
 }
