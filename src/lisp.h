@@ -4131,14 +4131,6 @@ integer_to_uintmax (Lisp_Object num, uintmax_t *n)
     }
 }
 
-/* Return floor (log2 (N)) as an int.  If N is zero, return -1.  */
-INLINE int
-elogb (unsigned long long int n)
-{
-  int width = stdc_bit_width (n);
-  return width - 1;
-}
-
 /* A modification count.  These are wide enough, and incremented
    rarely enough, so that they should never overflow a 60-bit counter
    in practice, and the code below assumes this so a compiler can
@@ -4152,8 +4144,8 @@ modiff_incr (modiff_count *a, ptrdiff_t len)
   /* Increase the counter more for a large modification and less for a
      small modification.  Increase it logarithmically to avoid
      increasing it too much.  */
-  static_assert (PTRDIFF_MAX <= ULLONG_MAX);
-  int incr = len == 0 ? 1 : elogb (len) + 1;
+  static_assert (PTRDIFF_MAX <= SIZE_MAX);
+  int incr = len == 0 ? 1 : stdc_bit_width ((size_t) {len});
   bool modiff_overflow = ckd_add (a, a0, incr);
   eassert (!modiff_overflow && *a >> 30 >> 30 == 0);
   return a0;
