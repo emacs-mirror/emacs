@@ -303,7 +303,7 @@ DEFUN ("float", Ffloat, Sfloat, 1, 1, 0,
 }
 
 DEFUN ("logb", Flogb, Slogb, 1, 1, 0,
-       doc: /* Returns largest integer <= the base 2 log of the magnitude of ARG.
+       doc: /* Return largest integer <= the base 2 log of the magnitude of ARG.
 This is the same as the exponent of a float.  */)
   (Lisp_Object arg)
 {
@@ -328,7 +328,7 @@ This is the same as the exponent of a float.  */)
       EMACS_INT i = XFIXNUM (arg);
       if (i == 0)
 	return make_float (-HUGE_VAL);
-      value = elogb (eabs (i));
+      value = stdc_bit_width ((EMACS_UINT) {eabs (i)}) - 1;
     }
 
   return make_fixnum (value);
