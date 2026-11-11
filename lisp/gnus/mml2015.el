@@ -25,6 +25,9 @@
 ;; RFC 2015 is updated by RFC 3156, this file should be compatible
 ;; with both.
 
+;; This is also capable of producing unobtrusive signatures based on
+;; draft-ietf-mailmaint-email-unobtrusive-signatures
+
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
@@ -944,6 +947,42 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))
     (goto-char (point-max))))
+
+;;; Unobtrusive Signatures, see:
+;;; https://datatracker.ietf.org/doc/draft-ietf-mailmaint-email-unobtrusive-signatures/
+
+; convert ASCII-armored PGP SIGNATURE block to base64-encoded with FWS
+; at the start of each line:
+(defun pgpsig-armor-to-wrapped-b64 (s)
+  (string-join
+   (string-split
+    (string-trim-right
+     (string-trim-left s "-----BEGIN PGP SIGNATURE-----\n\\(?:[^\n]+\n\\)*\n")
+     "\n\\(?:=....\n\\)?-----END PGP SIGNATURE-----\n?")
+    "\n")
+   "\n "))
+
+(defun mml-unobtrusive-sign (cont)
+  (goto-char (point-min))
+  (insert (cdr (assq 'likely-headers cont)))
+  (re-search-forward "^Content-Type: [^\n]*\\(\n[ \t][^\n]*$\\)*")
+  (insert "; hp=\"clear\"")
+  (re-search-forward "^")
+  (let* ((pair (mml-secure-epg-sign 'OpenPGP t))
+	 (signature (car pair)))
+    (unless (stringp signature)
+      (error "Signature failed"))
+    (goto-char (point-min))
+    (insert (format "Sig: t=p; b=%s\n"
+                    (pgpsig-armor-to-wrapped-b64 signature)))
+    (let ((boundary (mml-compute-boundary cont)))
+      (goto-char (point-min))
+      (insert (format "Content-Type: multipart/mixed; boundary=\"%s\";\n"
+		      boundary))
+      (insert (format "\n--%s\n" boundary))
+      (goto-char (point-max))
+      (insert (format "\n--%s--\n" boundary))
+      (goto-char (point-max)))))
 
 ;;; General wrapper
 

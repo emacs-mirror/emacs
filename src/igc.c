@@ -169,8 +169,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Weak_Hash_Table_Weak_Part_23119F9924
 #  error "struct Lisp_Weak_Hash_Table_Weak_Part changed"
 # endif
-# ifndef HASH_buffer_text_07D802E2D4
-#  error "struct buffer changed"
+# ifndef HASH_buffer_text_607F21F2DB
+#  error "struct buffer_text changed"
 # endif
 # ifndef HASH_glyph_pool_FE89FC9050
 #  error "struct glyph_pool changed"

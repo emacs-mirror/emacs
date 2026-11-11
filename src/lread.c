@@ -4967,10 +4967,17 @@ make_obarray (unsigned bits)
 
 enum {
   obarray_default_bits = 3,
-  word_size_log2 = word_size < 8 ? 5 : 6,  /* good enough */
+
+  /* The ceiling of the log base 2 of the word size, good through 192
+     and checked in the static_assert below.  */
+  word_size_log2 = ((EMACS_INT_WIDTH <= 32 ? 5 : 6)
+		    + (EMACS_INT_WIDTH - 1) / 64),
+
   obarray_max_bits = min (8 * sizeof (int),
-			  8 * sizeof (ptrdiff_t) - word_size_log2) - 1,
+			  8 * sizeof (ptrdiff_t) - word_size_log2) - 2,
 };
+static_assert (1 << (word_size_log2 - 1) < EMACS_INT_WIDTH
+	       && EMACS_INT_WIDTH <= 1 << word_size_log2);
 
 static void
 grow_obarray (struct Lisp_Obarray *o)
@@ -4979,9 +4986,9 @@ grow_obarray (struct Lisp_Obarray *o)
   eassert (o->count > old_size);
   Lisp_KV_Vector old_buckets = o->buckets;
 
-  int new_bits = o->size_bits + 1;
-  if (new_bits > obarray_max_bits)
+  if (obarray_max_bits <= o->size_bits)
     error ("Obarray too big");
+  int new_bits = o->size_bits + 1;
   ptrdiff_t new_size = (ptrdiff_t) {1} << new_bits;
 #ifdef HAVE_MPS
   o->buckets = hash_table_alloc_kv (o, new_size);
@@ -5032,7 +5039,7 @@ given, is only a hint for the expected number.  */)
     {
       CHECK_FIXNAT (size);
       EMACS_UINT n = XFIXNUM (size);
-      bits = elogb (n) + 1;
+      bits = n ? stdc_bit_width (n - 1) : 0;
       if (bits > obarray_max_bits)
 	xsignal (Qargs_out_of_range, size);
     }

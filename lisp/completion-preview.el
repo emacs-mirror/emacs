@@ -879,6 +879,10 @@ should only be available when the completion preview is active."
    (obsolete "check for `completion-preview-active-mode' instead." "31.1"))
   (buffer-local-value 'completion-preview-active-mode buffer))
 
+(defun completion-preview--turn-off ()
+  "Turn off Completion Preview mode."
+  (completion-preview-mode -1))
+
 ;;;###autoload
 (define-minor-mode completion-preview-mode
   "Show in-buffer completion suggestions in a preview as you type.
@@ -894,8 +898,12 @@ completion suggestion, and \\[completion-preview-prev-candidate] cycles
 backward."
   :lighter " CP"
   (if completion-preview-mode
-      (add-hook 'post-command-hook #'completion-preview--post-command nil t)
+      (progn
+        (add-hook 'post-command-hook #'completion-preview--post-command nil t)
+        ;; See bug#82143.
+        (add-hook 'change-major-mode-hook #'completion-preview--turn-off nil t))
     (remove-hook 'post-command-hook #'completion-preview--post-command t)
+    (remove-hook 'change-major-mode-hook #'completion-preview--turn-off t)
     (when completion-preview-active-mode (completion-preview-active-mode -1))
     (when (timerp completion-preview--timer)
       (cancel-timer completion-preview--timer)

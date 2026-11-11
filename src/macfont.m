@@ -391,9 +391,9 @@ mac_font_shape_1 (NSFont *font, NSString *string,
       i = NSMaxRange (range);
     }
   if (i < stringLength)
-    /* Make the test `used <= glyph_len' below fail if textStorage
-       contained some fonts other than the specified one.  */
-    used = glyph_len + 1;
+    /* Abandon if textStorage contained some fonts other than the
+       specified one.  */
+    used = 0;
   else
     {
       NSRange range = NSMakeRange (0, stringLength);
@@ -585,6 +585,8 @@ mac_font_shape_1 (NSFont *font, NSString *string,
 
       result = used;
     }
+  else if (used > glyph_len)
+    result = - (CFIndex) used;
   [textStorage release];
 
   return result;
@@ -3172,6 +3174,8 @@ macfont_shape (Lisp_Object lgstring, Lisp_Object direction)
 
   if (used == 0)
     return Qnil;
+  if (used < 0)
+    return make_fixnum (used);
 
   block_input ();
 
@@ -3994,6 +3998,8 @@ mac_font_shape (CTFontRef font, CFStringRef string,
 
       result = used;
     }
+  else
+    result = - used;
   CFRelease (ctline);
 
   return result;

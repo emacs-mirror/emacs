@@ -1,19 +1,71 @@
-1   one
-2   two
-3   three
+1.  one
+2.  two
+3.  three
 
-10  ten
-11  eleven
-12  twelve
+1.  one
+2.  two
+3.  three
 
-0   zero
-1   one
-2   two
+A.  Alpha
+B.  Bravo
+C.  Charlie
 
--5  minus five
--4  minus four
--3  minus three
+a.  alpha
+b.  bravo
+c.  charlie
 
-1   one
-2   two
-3   three
+I.  Unus
+II. Duo
+III. Tres
+
+i.  unus
+ii. duo
+iii. tres
+
+1.  one
+2.  two
+3.  three
+
+10. ten
+11. eleven
+12. twelve
+
+0.  zero
+1.  one
+2.  two
+
+-5. minus five
+-4. minus four
+-3. minus three
+
+Z.  Zulu
+AA. Alpha Alpha
+AB. Alpha Beta
+
+zz. zulu zulu
+aaa. alpha alpha alpha
+aab. alpha alpha beta
+
+XX. Viginti
+XXI. Viginti et Unus
+XXII. Viginti et Duo
+
+xx. viginti
+xxi. viginti et unus
+xxii. viginti et duo
+
+1.  one
+2.  two
+3.  three
+
+3.  three
+2.  two
+1.  one
+
+1.  one
+0.  zero
+-1. minus one
+
+A.  Alpha
+0.  zero
+-1. minus one

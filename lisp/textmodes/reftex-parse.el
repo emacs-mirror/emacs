@@ -476,7 +476,12 @@ place!"
                     (save-match-data (funcall level-exp))
                   level-exp))
          (star (= ?* (char-after (match-end 3))))
-         (unnumbered (or star (< level 0)))
+         (unnumbered (or star
+                         (< level 0)
+                         ;; Cater for "addpart" from KOMA-Script which
+                         ;; has a 0 level in `reftex-section-levels' but
+                         ;; never produces a number:
+                         (equal macro "addpart")))
          (level (abs level))
          (section-number (reftex-section-number level unnumbered))
          (text1 (save-match-data

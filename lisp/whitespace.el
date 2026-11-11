@@ -886,7 +886,7 @@ This variable is used when `whitespace-style' includes `tab-mark',
 					(character :tag "Char")))))))
 
 
-(defcustom whitespace-global-modes t
+(defcustom whitespace-global-modes '(not image-mode)
   "Modes for which global `whitespace-mode' is automatically turned on.
 
 Global `whitespace-mode' is controlled by the command
@@ -917,7 +917,8 @@ Use `whitespace-global-mode-buffers' to customize this behavior."
 		      :value (not)
 		      (const :tag "Except" not)
 		      (repeat :inline t
-			      (symbol :tag "Mode")))))
+			      (symbol :tag "Mode"))))
+  :version "32.1")
 
 (defcustom whitespace-global-mode-buffers (list (rx bos "*scratch*" eos))
   "Buffer name regexps where global `whitespace-mode' can be auto-enabled.

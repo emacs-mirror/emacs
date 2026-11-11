@@ -459,7 +459,7 @@ instead of starting at the next button."
       (setq pos (previous-single-char-property-change pos 'button))
       (or (button-at pos)
 	  (and (> pos (point-min))
-	       (button-at (1- pos)))))))
+	       (previous-button (1- pos) t))))))
 
 
 ;;; User commands

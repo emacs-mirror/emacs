@@ -256,7 +256,8 @@ Properties can be set with
 ;; - `buffer-list', `buried-buffer-list', `buffer-predicate': They contain
 ;;   references to live objects, or in the case of `buffer-predicate', it
 ;;   could also contain an fbound symbol (a predicate function) that could
-;;   not be defined in a later session.
+;;   not be defined in a later session.  However, buffers in the buffer list
+;;   can be serialized as buffer names that are strings.
 ;;
 ;; - `window-id', `outer-window-id', `parent-id': They are assigned
 ;;   automatically and cannot be set, so keeping them is harmless, but they
@@ -449,7 +450,7 @@ DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
   (append
    '((background-color            . frameset-filter-sanitize-color)
      (bottom                      . frameset-filter-shelve-param)
-     (buffer-list                 . :never)
+     (buffer-list                 . frameset-filter-buffer-list)
      (buffer-predicate            . :never)
      (buried-buffer-list          . :never)
      ;; Don't save the 'client' parameter to avoid that a subsequent
@@ -670,6 +671,44 @@ default position.
 For the meaning of CURRENT, FILTERED, PARAMETERS and SAVING,
 see `frameset-filter-alist'."
   (not (and saving (eq (cdr (assq 'visibility parameters)) 'icon))))
+
+(defun frameset-filter-buffer-list (current _filtered _parameters saving)
+  "Filter `buffer-list' by converting buffers to/from buffer names.
+When SAVING is non-nil, the buffers are replaced by their names.
+When SAVING is nil, (car current) (which is `buffer-list') gets replaced
+by `frameset-buffer-list', as part of the mechanism for waiting for the
+buffer creation before restoring the frame parameter `buffer-list'."
+  (if saving
+      (cons (car current)
+            (delq nil (mapcar (lambda (elt)
+                                (and (buffer-file-name elt)
+                                     (buffer-name elt)))
+                              (cdr current))))
+    ;; When restoring, we wait until the buffers have been created
+    ;; before converting the names into buffers.  This is done in the
+    ;; function `frameset-restore-buffer-list', called from
+    ;; `desktop-read'.  Note that strings cannot be usefully written to
+    ;; frame parameter `buffer-list'.
+    (if (eq (car current) 'buffer-list)
+        (cons 'frameset-buffer-list (cdr current))
+      current)))
+
+(defun frameset-restore-buffer-list ()
+  "Restore frame parameter `buffer-list' from `frameset-buffer-list'.
+`frameset-buffer-list' is a list of buffer names.  Each one gets
+converted to the buffer of that name in `buffer-list'."
+  (dolist (frame (frame-list))
+    (let* ((names (frame-parameter frame 'frameset-buffer-list))
+           (buffers (delq nil (mapcar #'get-buffer names))))
+      ;; Before adding more buffers to 'buffer-list', all buffers
+      ;; should be removed from 'buried-buffer-list'.  They are
+      ;; the same as in the global buffer list, thus setting this
+      ;; frame parameter to nil has no effect on the buffer order.
+      ;; Whereas when the same buffers exist in both frame params,
+      ;; then '(buffer-list (selected-frame))' might contain
+      ;; buffer duplicates since it doesn't ensure unique buffers.
+      (set-frame-parameter frame 'buried-buffer-list nil)
+      (set-frame-parameter frame 'buffer-list buffers))))
 
 (defun frameset-filter-params (parameters filter-alist saving)
   "Filter parameter alist PARAMETERS and return a filtered alist.

@@ -522,7 +522,9 @@ weak_alias (__regcomp, regcomp)
    from either regcomp or regexec.   We don't use PREG here.  */
 
 size_t
-regerror (int errcode, const regex_t *__restrict preg, char *__restrict errbuf,
+regerror (int errcode,
+	  __attribute_maybe_unused__ const regex_t *__restrict preg,
+	  char *__restrict errbuf,
 	  size_t errbuf_size)
 {
   const char *msg;
@@ -1391,7 +1393,7 @@ calc_first (void *extra, bin_tree_t *node)
 
 /* Pass 2: compute NEXT on the tree.  Preorder visit.  */
 static reg_errcode_t
-calc_next (void *extra, bin_tree_t *node)
+calc_next (__attribute_maybe_unused__ void *extra, bin_tree_t *node)
 {
   switch (node->token.type)
     {
@@ -2680,10 +2682,13 @@ parse_byte (unsigned char b, re_dfa_t const *dfa)
 static reg_errcode_t
 build_range_exp (bitset_t sbcset, re_charset_t *mbcset, Idx *range_alloc,
 		 bracket_elem_t *start_elem, bracket_elem_t *end_elem,
-		 re_dfa_t *dfa, reg_syntax_t syntax, uint_fast32_t nrules,
-		 const unsigned char *collseqmb, const char *collseqwc,
-		 int_fast32_t table_size, const void *symb_table,
-		 const unsigned char *extra)
+		 re_dfa_t *dfa, reg_syntax_t syntax,
+		 __attribute_maybe_unused__ uint_fast32_t nrules,
+		 __attribute_maybe_unused__ const unsigned char *collseqmb,
+		 __attribute_maybe_unused__ const char *collseqwc,
+		 __attribute_maybe_unused__ int_fast32_t table_size,
+		 __attribute_maybe_unused__ const void *symb_table,
+		 __attribute_maybe_unused__ const unsigned char *extra)
 {
   /* Equivalence Classes and Character Classes can't be a range start/end.  */
   if (__glibc_unlikely (start_elem->type == EQUIV_CLASS
@@ -2778,10 +2783,14 @@ build_range_exp (bitset_t sbcset, re_charset_t *mbcset, Idx *range_alloc,
    pointer argument since we may update it.  */
 
 static reg_errcode_t
-build_collating_symbol (bitset_t sbcset, re_charset_t *mbcset,
-			Idx *coll_sym_alloc, const unsigned char *name,
-			uint_fast32_t nrules, int_fast32_t table_size,
-			const void *symb_table, const unsigned char *extra)
+build_collating_symbol (bitset_t sbcset,
+			__attribute_maybe_unused__ re_charset_t *mbcset,
+			__attribute_maybe_unused__ Idx *coll_sym_alloc,
+			const unsigned char *name,
+			__attribute_maybe_unused__ uint_fast32_t nrules,
+			__attribute_maybe_unused__ int_fast32_t table_size,
+			__attribute_maybe_unused__ const void *symb_table,
+			__attribute_maybe_unused__ const unsigned char *extra)
 {
   size_t name_len = strlen ((const char *) name);
   if (__glibc_unlikely (name_len != 1))
@@ -3331,7 +3340,8 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 
 static reg_errcode_t
 parse_bracket_element (bracket_elem_t *elem, re_string_t *regexp,
-		       re_token_t *token, int token_len, re_dfa_t *dfa,
+		       re_token_t *token, int token_len,
+		       __attribute_maybe_unused__ re_dfa_t *dfa,
 		       reg_syntax_t syntax, bool accept_hyphen)
 {
   int cur_char_size;
@@ -3415,8 +3425,10 @@ parse_bracket_symbol (bracket_elem_t *elem, re_string_t *regexp,
      is a pointer argument since we may update it.  */
 
 static reg_errcode_t
-build_equiv_class (bitset_t sbcset, re_charset_t *mbcset,
-		   Idx *equiv_class_alloc, const unsigned char *name)
+build_equiv_class (bitset_t sbcset,
+		   __attribute_maybe_unused__ re_charset_t *mbcset,
+		   __attribute_maybe_unused__ Idx *equiv_class_alloc,
+		   const unsigned char *name)
 {
 #ifdef _LIBC
   uint32_t nrules = _NL_CURRENT_WORD (LC_COLLATE, _NL_COLLATE_NRULES);
@@ -3770,7 +3782,7 @@ free_token (re_token_t *node)
    and its children. */
 
 static reg_errcode_t
-free_tree (void *extra, bin_tree_t *node)
+free_tree (__attribute_maybe_unused__ void *extra, bin_tree_t *node)
 {
   free_token (&node->token);
   return REG_NOERROR;

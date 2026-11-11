@@ -1801,7 +1801,7 @@ If nil, process all the status process's output.
 This is useful to prevent Emacs becoming unresponsive trying to process
 too much status output because, say, you accidentally renamed or deleted
 a subdirectory of your repository containing thousands of files."
-  :type 'natnum
+  :type '(choice (const :tag "No limit" nil) natnum)
   :group 'vc
   :version "32.1")
 

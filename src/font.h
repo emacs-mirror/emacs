@@ -758,10 +758,12 @@ struct font_driver
 
      This function updates all fields of the input glyphs.  If the
      output glyphs (M) are more than the input glyphs (N), (N+1)th
-     through (M)th elements of GSTRING are updated possibly by making
-     a new glyph object and storing it in GSTRING.  If (M) is greater
-     than the length of GSTRING, this method should return nil.  In
-     that case, the method is called again with a larger GSTRING.  */
+     through (M)th elements of GSTRING are updated possibly by making a
+     new glyph object and storing it in GSTRING.  If (M) is greater than
+     the length of GSTRING, this method should return nil, or a negative
+     fixnum whose absolute value is (M) if the required number of glyphs
+     is known.  In that case, the method is called again with a larger
+     GSTRING.  */
   Lisp_Object (*shape) (Lisp_Object lgstring, Lisp_Object direction);
 
   /* Optional.

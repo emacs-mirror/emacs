@@ -282,8 +282,7 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%t\" is replaced by the temporary file name produced with
       `tramp-make-tramp-temp-file'.
     - \"%k\" indicates the keep-date parameter of a program, if exists.
-    - \"%c\" adds additional `tramp-ssh-controlmaster-options'
-      options for the first hop.
+    - \"%c\" calls `tramp-ssh-or-plink-options' for the first hop.
     - \"%n\" expands to \"2>/dev/null\".
     - \"%w\" is replaced by the `tramp-ssh-setenv-term'
       argument if it is supported.
@@ -1069,7 +1068,7 @@ Used in `tramp-make-tramp-file-name'.")
 Derived from `tramp-postfix-method-format'.")
 
 (defconst tramp-user-regexp
-  (rx (| (+ (not (any "/\\^$?*:;|[]{}()<>`'\"" blank)))
+  (rx (| (+ (not (any "/\\^$!#&?*:;,|[]{}()<>`'\"" blank control)))
 	 ;; Environment variable.
 	 (: "$" (+ (any "_" alnum)))))
   "Regexp matching user names.")
@@ -1835,6 +1834,11 @@ This is HOST, if non-nil.  Otherwise, do a lookup in
 	result
       (propertize result 'tramp-default t))))
 
+(defvar tramp-allow-double-percent (not (eq system-type 'windows-nt))
+  "Whether a pattern \"%NAME%\" can be used in user or host names.
+It is not recommended to change this variable globally.  Instead, it
+should be set connection-local.")
+
 ;;;###tramp-autoload
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of NAME, a remote file name.
@@ -1901,7 +1905,37 @@ default values are used."
 	  ;; Only some methods from tramp-sh.el do support multi-hops.
 	  (unless (or (null hop) nodefault non-essential (tramp-multi-hop-p v))
 	    (tramp-user-error
-	     v "Method `%s' is not supported for multi-hops" method)))))))
+	     v "Method `%s' is not supported for multi-hops" method))
+	  (let (connection-local-variables-alist)
+	    (hack-connection-local-variables
+	     (tramp-get-connection-local-criteria v))
+	    (let ((allow-double-percent
+		   (alist-get
+		    'tramp-allow-double-percent
+		    connection-local-variables-alist
+		    tramp-allow-double-percent)))
+	      ;; User name could be invalid after expansion of
+	      ;; environment variables, or contain a literal
+	      ;; environment variable.
+	      (unless (tramp-string-empty-or-nil-p user)
+		(when (or (not (string-match-p tramp-user-regexp user))
+			  (string-match-p
+			   (rx "$") (tramp-file-name-user-domain v))
+			  (and (not allow-double-percent)
+			       (string-match-p
+				(rx "%" (* nonl) "%")
+				(tramp-file-name-user-domain v))))
+		  (tramp-user-error
+		   v "Not a valid user name: \"%s\""
+		   (tramp-file-name-user-domain v))))
+	      ;; Host name could contain a literal environment variable.
+	      (unless (tramp-string-empty-or-nil-p host)
+		(when (or (not (string-match-p tramp-host-regexp host))
+			  (string-match-p (rx "$") host)
+			  (and (not allow-double-percent)
+			       (string-match-p (rx "%" (* nonl) "%") host)))
+		  (tramp-user-error
+		   v "Not a valid host name: \"%s\"" host))))))))))
 
 ;; We cannot use the `declare' form for `tramp-suppress-trace' in
 ;; autoloaded functions, because the tramp-loaddefs.el generation
@@ -3863,14 +3897,9 @@ BODY is the backend specific code."
            ;; Tilde expansion shall be possible also for quoted localname.
 	   (when (string-prefix-p "~" (file-name-unquote localname))
 	     (setq localname (file-name-unquote localname)))
-	   ;; Use tilde for relative localname.  A simple check of
-	   ;; `file-name-absolute-p' for localname isn't sufficient;
-	   ;; localname could be "~user/..." with a (remote) user which
-	   ;; doesn't exist locally.
+	   ;; Use tilde for relative localname.
 	   (when (tramp-sh-file-name-handler-p v)
-	     (unless (or (string-prefix-p "~" localname)
-			 (tramp-run-real-handler
-			  #'file-name-absolute-p (list localname)))
+	     (unless (string-match-p (rx bos (any "/~")) localname)
 	       (setq localname (concat "~/" localname))))
 
 	   ;; This does tilde expansion.
@@ -3880,9 +3909,8 @@ BODY is the backend specific code."
 	   (when (and (not tramp-tolerate-tilde)
 		      (string-prefix-p "~" localname))
 	     (tramp-error v 'file-error "Cannot expand tilde in file `%s'" name))
-	   ;; Make it absolute.
-	   (unless
-	       (tramp-run-real-handler #'file-name-absolute-p (list localname))
+	   ;; Add leading "/" if needed.
+	   (unless (string-match-p (rx bos (any "/~")) localname)
 	     (setq localname (concat "/" localname)))
 	   ;; There might be a double slash, for example when "~/"
 	   ;; expands to "/".  Remove this.
@@ -5628,7 +5656,7 @@ processes."
 		(tramp-compat-make-temp-name))))
 	   (options
 	    (when sh-file-name-handler-p
-	      (tramp-compat-funcall 'tramp-ssh-controlmaster-options v)))
+	      (tramp-compat-funcall 'tramp-ssh-or-plink-options v)))
 	   (device
 	    (when adb-file-name-handler-p
 	      (tramp-compat-funcall 'tramp-adb-get-device v)))
@@ -6961,13 +6989,14 @@ to cache the result.  Return the modified ATTR."
 	       ;; Convert directory indication bit.
 	       (when (string-prefix-p "d" (nth 8 attr))
 		 (setcar attr t))
-	       ;; Convert symlink from `tramp-do-file-attributes-with-stat'.
+	       ;; Convert symlink from `tramp-do-file-attributes-with-stat'
+	       ;; and `tramp-sudoedit-handle-file-attributes'.
 	       ;; Decode also multibyte string.
 	       (when (consp (car attr))
 		 (setcar attr
 			 (and (stringp (caar attr))
 			      (string-match
-			       (rx (+ nonl) " -> " nonl (group (+ nonl)) nonl)
+			       (rx bos (+ nonl) " -> " (group (+ nonl)) eos)
 			       (caar attr))
 			      (decode-coding-string
 			       (match-string 1 (caar attr)) 'utf-8))))

@@ -823,7 +823,7 @@ t if it successfully authenticates, nil otherwise."
 		      (let* ((decoded (base64-decode-string challenge))
 			     (hash (rfc2104-hash 'md5 64 16 passwd decoded))
 			     (response (concat user " " hash))
-			     (encoded (base64-encode-string response)))
+			     (encoded (base64-encode-string response t)))
 			encoded)))))))))
     (if done
 	(message "imap: Authenticating using CRAM-MD5...done")

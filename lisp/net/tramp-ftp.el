@@ -31,6 +31,7 @@
 (require 'tramp)
 
 ;; Pacify byte-compiler.
+(declare-function ange-ftp-ftp-process-buffer "ange-ftp")
 (defvar ange-ftp-ftp-name-arg)
 (defvar ange-ftp-ftp-name-res)
 (defvar ange-ftp-name-format)
@@ -130,7 +131,7 @@ pass to the OPERATION."
        ;; If argument is a symlink, `file-directory-p' and
        ;; `file-exists-p' call the traversed file recursively.  So we
        ;; cannot disable the file-name-handler this case.  We set the
-       ;; connection property "started" in order to put the remote
+       ;; connection property " connected" in order to put the remote
        ;; location into the cache, which is helpful for further
        ;; completion.  We don't use `with-parsed-tramp-file-name',
        ;; because this returns another user but the one declared in
@@ -149,7 +150,7 @@ pass to the OPERATION."
 	  (prog1 (apply #'ange-ftp-hook-function operation args)
 	    (let ((v (tramp-dissect-file-name (car args) t)))
 	      (setf (tramp-file-name-method v) tramp-ftp-method)
-	      (tramp-set-connection-property v "started" t)))))
+	      (tramp-set-connection-property v " connected" t)))))
 
        ;; If the second argument of `copy-file' or `rename-file' is a
        ;; remote file name but via FTP, ange-ftp doesn't check this.
@@ -188,6 +189,21 @@ pass to the OPERATION."
   "Check if it's a VEC-OR-FILENAME that should be forwarded to Ange-FTP."
   (and-let* ((vec (tramp-ensure-dissected-file-name vec-or-filename))
 	     ((string= (tramp-file-name-method vec) tramp-ftp-method)))))
+
+(defun tramp-ftp-cleanup-connection (vec)
+  "Cleanup ftp resources determined by VEC."
+  (when-let* (((tramp-ftp-file-name-p vec))
+	      (buf (ange-ftp-ftp-process-buffer
+		    (tramp-file-name-host vec) (tramp-file-name-user vec)))
+	      ((get-buffer buf)))
+    (kill-buffer buf)))
+
+;; Add cleanup hooks.
+(add-hook 'tramp-cleanup-connection-hook #'tramp-ftp-cleanup-connection)
+(add-hook 'tramp-ftp-unload-hook
+	  (lambda ()
+	    (remove-hook 'tramp-cleanup-connection-hook
+			 #'tramp-ftp-cleanup-connection)))
 
 ;;;###tramp-autoload
 (tramp--with-startup

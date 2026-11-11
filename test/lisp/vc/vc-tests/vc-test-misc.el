@@ -669,7 +669,7 @@ See bug#80803 and bug#80967."
       (vc-test--with-author-identity 'Git
         (vc-test--with-author-identity 'Hg
           (cl-flet ((create-repo (backend loc file)
-                      (make-directory loc)
+                      (make-directory loc t)
                       (let ((default-directory loc))
                         (write-region (format "%s\n%s\n" loc file)
                                       nil file nil 0 nil 'excl)
@@ -700,10 +700,24 @@ See bug#80803 and bug#80967."
               (should (eq (vc-state "foo.txt" 'Git) 'removed)))
             (reset)
 
+            ;; Try to move an edited file.
+            (create-repo 'Git git1 "foo.txt")
+            (create-repo 'Git git2 "bar.txt")
+            (write-region "foo" nil "git1/foo.txt")
+            (should-error (do-rename "git1/" "foo.txt"
+                                     "../git2/baz.txt" nil))
+            (should-not (file-exists-p "git2/baz.txt"))
+            (reset)
+
             ;; Test moving between repos with the same backend.
             (create-repo 'Git git1 "foo.txt")
             (create-repo 'Git git2 "bar.txt")
-            (do-rename "git1/" "foo.txt" "../git2/baz.txt" nil)
+            (let ((buf (find-file-noselect "git1/foo.txt")))
+              (unwind-protect
+                  (progn
+                    (do-rename "git1/" "foo.txt" "../git2/baz.txt" nil)
+                    (should (buffer-live-p buf)))
+                (kill-buffer buf)))
             (let ((default-directory git1))
               (should (eq (vc-state "foo.txt" 'Git) 'removed))
               (should-not (file-exists-p "foo.txt")))
@@ -750,7 +764,56 @@ See bug#80803 and bug#80967."
               (should-not (file-exists-p "foo.txt")))
             (let ((default-directory git2))
               (should (file-exists-p "foo.txt"))
-              (should (null (vc-state "foo.txt" 'Hg))))))))))
+              (should (memq (vc-state "foo.txt" 'Git)
+                            '(nil unregistered))))
+            (reset)
+
+            ;; Moving a directory into a non-repo (bug#82058).
+            (make-directory "git1/sub/" t)
+            (create-repo 'Git git1 "sub/foo.txt")
+            (make-directory "git2/")
+            (do-rename "git1/" "sub" "../git2/" nil)
+            (let ((default-directory git1))
+              (should (eq (vc-state "sub/foo.txt" 'Git) 'removed))
+              (should-not (file-exists-p "sub/foo.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "sub/foo.txt"))
+              (should (memq (vc-state "sub/foo.txt" 'Git)
+                            '(nil unregistered))))
+            (reset)
+
+            ;; Move directory containing an untracked file (bug#82058).
+            (make-directory "git1/sub/" t)
+            (create-repo 'Git git1 "foo.txt")
+            (make-empty-file "git1/sub/bar.txt" t)
+            (make-directory "git2/")
+            (do-rename "git1/" "sub" "../git2/" nil)
+            (let ((default-directory git1))
+              (should-not (file-exists-p "sub/bar.txt")))
+            (let ((default-directory git2))
+              (should (file-exists-p "sub/bar.txt"))
+              (should (memq (vc-state "sub/bar.txt" 'Git)
+                            '(nil unregistered))))
+            (reset)
+
+            ;; Test moving a symbolic link.  Symlinks are unreliable on
+            ;; MS-Windows, so skip this in that case.
+            (unless (eq system-type 'windows-nt)
+              (create-repo 'Git git1 "foo.txt")
+              (let ((default-directory git1))
+                (make-symbolic-link "foo.txt" "link")
+                (vc-register '(Git ("link")))
+                (vc-checkin '("link") 'Git)
+                (insert "Link creation")
+                (log-edit-done))
+              (create-repo 'Git git2 "bar.txt")
+              (do-rename "git1/" "link" "../git2/baz.txt" nil)
+              (let ((default-directory git1))
+                (should (eq (vc-state "link" 'Git) 'removed))
+                (should-not (file-exists-p "link")))
+              (let ((default-directory git2))
+                (should (file-symlink-p "baz.txt"))
+                (should (eq (vc-state "baz.txt" 'Git) 'added))))))))))
 
 (provide 'vc-test-misc)
 ;;; vc-test-misc.el ends here

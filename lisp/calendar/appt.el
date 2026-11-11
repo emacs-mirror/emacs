@@ -429,7 +429,7 @@ separate appointment."
     (when (minibufferp)
       (other-window 1)
       (and (minibufferp) (display-multi-frame-p) (other-frame 1)))
-    (if (cdr (assq 'unsplittable (frame-parameters)))
+    (if (frame-parameter nil 'unsplittable)
         ;; In an unsplittable frame, use something somewhere else.
 	(progn
 	  (set-buffer appt-disp-buf)

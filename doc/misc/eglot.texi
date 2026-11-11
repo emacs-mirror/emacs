@@ -98,6 +98,7 @@ read this manual from within Emacs, type @kbd{M-x eglot-manual
 * Quick Start::                 For the impatient.
 * Eglot and LSP Servers::       How to work with language servers.
 * Using Eglot::                 Important Eglot commands and variables.
+* Eglot and Other Emacs Features::  How Eglot works with ElDoc, Flymake, etc.
 * Customizing Eglot::           Eglot customization and advanced features.
 * Advanced server configuration::  Fine-tune a specific language server
 * Multi-server support:: Use more than one server in a buffer
@@ -160,11 +161,11 @@ for details.
 Use Eglot.
 
 Most Eglot facilities are integrated into Emacs features, such as ElDoc,
-Flymake, Xref, and Imenu.  However, Eglot also provides commands of its
-own, mainly to perform tasks by the language server, such as @kbd{M-x
-eglot-rename} (to rename an identifier across the entire project),
-@kbd{M-x eglot-format} (to reformat and reindent code), and some others.
-@xref{Eglot Commands}, for the detailed list of Eglot commands.
+Flymake, Xref, Imenu, and Refactor (@pxref{Eglot and Other Emacs
+Features}).  Eglot also provides commands of its own, mainly to perform
+tasks by the language server, such as @kbd{M-x eglot-format} (to
+reformat and reindent code), and some others.  @xref{Eglot Commands},
+for the detailed list of commands.
 
 @item
 That's it!
@@ -403,8 +404,8 @@ commands and variables.
 While Eglot is enabled in a buffer, it is said to be @dfn{managing} it,
 using LSP and the specific capabilities of the language server to
 activate and enhance modern IDE features in Emacs.  Some of these
-features are provided via other Emacs packages, and some via Eglot
-directly (@pxref{Eglot Commands}).
+features are provided via other Emacs packages (@pxref{Eglot and Other
+Emacs Features}), and some via Eglot directly (@pxref{Eglot Commands}).
 
 Here's an overview of the main features that Eglot provides:
 
@@ -413,19 +414,19 @@ Here's an overview of the main features that Eglot provides:
 At-point documentation: when point is near a symbol or an identifier,
 information about the identifier's significance in the program (its
 function or method signature, its type, its custom documentation string,
-etc.) is made available via the ElDoc package (@pxref{Programming
-Language Doc,,, emacs, GNU Emacs Manual}).
+etc.) is made available via the ElDoc package (@pxref{ElDoc and
+Eglot}).
 
 @item
 On-the-fly diagnostic annotations, via the Flymake package
-(@pxref{Top,,, Flymake, GNU Flymake manual}).  Eglot's Flymake backend
+(@pxref{Flymake and Eglot}).  Eglot's Flymake backend
 replaces other Flymake backends while it is managing a buffer, and
 enhances diagnostics with interactive server-suggested fixes (so-called
-@dfn{code actions}, @pxref{Eglot Commands}).
+@dfn{code actions}, @pxref{Refactor and Eglot}).
 
 @item
-Finding definitions and uses of identifiers, via Xref (@pxref{Xref,,,
-emacs, GNU Emacs Manual}).  Eglot provides a backend for the Xref
+Finding definitions and uses of identifiers, via Xref (@pxref{Xref and
+Eglot}).  Eglot provides a backend for the Xref
 capabilities which uses the language server's understanding of the
 program source.  In particular, it eliminates the need to generate tags
 tables (@pxref{Tags tables,,, emacs, GNU Emacs Manual}) for languages
@@ -433,21 +434,24 @@ which are only supported by the @code{etags} backend.
 
 @item
 Buffer navigation by name of function, class, method, etc., via Imenu
-(@pxref{Imenu,,, emacs, GNU Emacs Manual}).  Eglot provides its own
+(@pxref{Imenu and Eglot}).  Eglot provides its own
 variant of @code{imenu-create-index-function}, which generates the index
 for the buffer based on the language server's program source analysis.
 
 @item
 Enhanced completion of symbol at point by the @code{completion-at-point}
-command (@pxref{Symbol Completion,,, emacs, GNU Emacs Manual}).  This
-uses the language server's parser data for the completion candidates.
+command (@pxref{Completion and Eglot}).  This uses the language
+server's parser data for the completion candidates.
 
 @item
-Server-suggested code refactorings.  The ElDoc package is also leveraged
-to retrieve so-called @dfn{code actions} nearby point.  When such
-suggestions are available they are annotated with a special indication
-and can be easily invoked by the user with the @code{eglot-code-action}
-command (@pxref{Eglot Commands}).
+Server-assisted code refactorings, via the Refactor library
+(@file{refactor.el}).  Eglot provides a backend for Refactor's commands,
+such as @code{refactor-rename} and @code{refactor}, which use the
+language server to rename identifiers across the project and to find
+so-called @dfn{code actions}: fixes, refactorings and other edits
+applicable near point.  Eglot also turns on
+@code{refactor-suggestion-mode} to provide special visual indications
+when such actions are available (@pxref{Refactor and Eglot}).
 
 @item
 On-the-fly succinct informative annotations, so-called @dfn{inlay
@@ -476,30 +480,30 @@ supported and is activated automatically as you type.
 @item
 Eglot enhances symbol completion front-ends by providing completion
 candidates based on the language server's understanding of the source
-code (@pxref{Symbol Completion,,, emacs, GNU Emacs Manual}).  The
-Company package, installable from GNU ELPA, is a popular package known
-to work well with Eglot.
+code.  The Company package, installable from GNU ELPA, is a popular
+package known to work well with Eglot (@pxref{Completion and Eglot}).
 
 @item
 If YASnippet, a popular third-party package for automatic insertion of
 code templates (snippets), is installed, and the language server
 supports snippet completion candidates, Eglot arranges for the
 completion package to instantiate these snippets using YASnippet.
-(YASnippet can be installed from GNU ELPA.)
+(YASnippet can be installed from GNU ELPA.)  @xref{Completion and
+Eglot}.
 
 @item
 When the server provides at-point documentation formatted as Markdown in
 addition to plain text, Eglot arranges for the ElDoc package to enrich
 this text with fontifications, hyperlinks and other nice formatting
 before displaying it to the user.  This makes the documentation shown by
-ElDoc look nicer on display.
+ElDoc look nicer on display.  @xref{ElDoc and Eglot}.
 
 @item
 In addition to enabling and enhancing other features and packages, Eglot
 also provides a number of user commands based on the capabilities of
-language servers.  Examples include renaming symbols with
-@kbd{eglot-rename} and asking to automatically correct problems with
-@kbd{eglot-code-actions}.  @xref{Eglot Commands}.
+language servers.  Examples include reformatting code with
+@kbd{eglot-format} and displaying call hierarchies with
+@kbd{eglot-show-call-hierarchy}.  @xref{Eglot Commands}.
 @end itemize
 
 Not all servers support the full set of LSP capabilities, but most of
@@ -705,12 +709,6 @@ to it, @kbd{e} visits its events buffer, @kbd{w} shows its workspace
 configuration, and @kbd{RET} describes the connection with
 @code{eglot-describe-connection}.
 
-@item M-x eglot-rename
-This command renames the program symbol (a.k.a.@: @dfn{identifier}) at
-point to another name.  It prompts for the new name of the symbol, and
-then modifies all the files in the project which are managed by the
-language server of the current buffer to implement the renaming.
-
 @item M-x eglot-format
 This command reformats the active region according to the
 language server rules.  If no region is active, it reformats the entire
@@ -719,35 +717,6 @@ current buffer.
 @item M-x eglot-format-buffer
 This command reformats the current buffer, in the same manner as
 @code{eglot-format} does.
-
-@cindex code actions
-@item M-x eglot-code-actions
-@itemx M-x eglot-code-action-organize-imports
-@itemx M-x eglot-code-action-quickfix
-@itemx M-x eglot-code-action-extract
-@itemx M-x eglot-code-action-inline
-@itemx M-x eglot-code-action-rewrite
-These commands allow you to invoke the so-called @dfn{code actions}:
-requests for the language server to provide editing commands for
-correcting, refactoring or beautifying your code.  These commands may
-affect more than one visited file belonging to the project.
-
-The command @code{eglot-code-actions} asks the server if there are any
-code actions for any point in the buffer or contained in the active
-region.  If there are, you have the choice to execute one of them via
-the minibuffer.
-
-A common use of code actions is fixing the Flymake error diagnostics
-issued by Eglot (@pxref{Top,,, Flymake, GNU Flymake manual}).  Clicking
-on a diagnostic with @kbd{mouse-2} invokes
-@code{eglot-code-actions-at-mouse} which pops up a menu of available
-code actions.  The variable @code{eglot-diagnostics-map} can be used to
-control the mouse binding.
-
-Other commands execute a specific code action.  For example,
-@code{eglot-code-action-organize-imports} rearranges the program's
-@dfn{imports}---declarations of modules whose capabilities the program
-uses.
 
 @cindex inlay hints
 @item M-x eglot-inlay-hints-mode
@@ -840,69 +809,382 @@ deemed uninteresting or temporary, this command can be used to
 can sometimes be used to unclog a temporarily malfunctioning server.
 @end ftable
 
-As described in @ref{Eglot Features} most features associated with Eglot
-are actually provided by other Emacs packages and features, and Eglot
-only enhances them by allowing them to use the information coming from
-the language servers.  For completeness, here's the list of commands of
-those other packages that are very commonly used in Eglot-managed
-buffers:
+@node Eglot and Other Emacs Features
+@chapter Eglot and Other Emacs Features
+@cindex Emacs features used by Eglot
+@cindex commands of other packages, used with Eglot
+
+As described in @ref{Eglot Features}, most features associated with
+Eglot are actually provided by other Emacs packages and features, and
+Eglot only enhances them by allowing them to use the information coming
+from the language servers.  This chapter describes, for each of them,
+the commands that are very commonly used in Eglot-managed buffers, and
+how Eglot hooks onto them.
+
+Eglot hooks onto these packages by setting special variables in its
+special minor mode (@pxref{Eglot and Buffers}).  To gain finer control
+of Eglot's operation, the @code{eglot-managed-mode-hook} should be used
+to tweak, subdue or completely override Eglot's setting of these
+variables.  To keep Eglot away from some of these features altogether,
+use @code{eglot-stay-out-of} (@pxref{Other Variables}).  The sections
+below include examples of such tweaks, which you can add to your init
+file (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
+
+@menu
+* ElDoc and Eglot::       Documentation at point.
+* Flymake and Eglot::     On-the-fly diagnostics.
+* Refactor and Eglot::    Renaming and code actions.
+* Xref and Eglot::        Finding definitions and references.
+* Imenu and Eglot::       Navigating buffer contents.
+* Completion and Eglot::  Completing symbols at point.
+@end menu
+
+@node ElDoc and Eglot
+@section ElDoc
+
+ElDoc displays documentation for the thing at point, such as a
+function's signature or a variable's type, usually in the echo area
+(@pxref{Programming Language Doc,,, emacs, GNU Emacs Manual}).
 
 @c Not @ftable, because the index entries should mention Eglot
 @table @code
 @cindex ElDoc, and Eglot
 @cindex documentation using Eglot
+@item M-x eldoc-mode
+Toggle ElDoc mode, which automatically displays documentation for the
+identifier at point as you move around.  Eglot turns it on by default
+in the buffers it manages, unless @code{eldoc} is in
+@code{eglot-stay-out-of} (@pxref{Other Variables}).
+
 @item M-x eldoc
 Ask the ElDoc system for help at point.
 
+@item M-x eldoc-doc-buffer
+Display the documentation at point in a separate buffer, in fuller form
+than the echo area allows.  In Eglot-managed buffers, @kbd{C-h .} is
+remapped to this command (@pxref{Customization Variables}).
+@end table
+
+When the server provides documentation formatted as Markdown, Eglot
+arranges for ElDoc to enrich it with fontifications, hyperlinks and
+other nice formatting before displaying it.  The variable
+@code{eglot-documentation-renderer} controls this (@pxref{Customization
+Variables}).
+
+Eglot hooks onto ElDoc's @code{eldoc-documentation-functions} variable,
+adding a number of functions to it:
+
+@itemize @minus
+@item @code{eglot-hover-eldoc-function}, to display general information
+about an identifier.
+@item @code{eglot-signature-eldoc-function}, to display function
+signature information.
+@item @code{eglot-highlight-eldoc-function}, to highlight nearby
+manifestations of an identifier.
+@end itemize
+
+You can add and remove elements from this list: a simple tweak to remove
+the function signature for hypothetical language @code{Foo} may look
+like:
+
+@lisp
+(add-hook 'foo-mode-hook
+  (lambda ()
+    (add-hook 'eglot-managed-mode-hook
+      (lambda ()
+        (remove-hook 'eldoc-documentation-functions
+                     'eglot-signature-eldoc-function
+                     nil t))
+      nil t)))
+@end lisp
+
+For more sophisticated changes, we can take advantage of ElDoc's
+well-defined protocols.  @xref{Programming Language Doc,,, emacs, GNU
+Emacs Manual}.  For instance, the functions in
+@code{eldoc-display-functions} control displays of the at-point
+documentation produced by @code{eldoc-documentation-functions}.  As an
+example, to prevent hover documentation from ever reaching the echo
+area, while keeping it in the more spacious ElDoc buffer, use something
+like the following:
+
+@lisp
+(require 'cl-lib)
+
+(defun my/special-eglot-hover-function (cb &rest _ignored)
+  "Same as `eglot-hover-eldoc-function`, but skip the echo area."
+  (eglot-hover-eldoc-function (lambda (info &rest _ignore)
+                                (funcall cb info :echo 'skip))))
+
+;; substitute 'eglot-hover-eldoc-function with our "fixed" variant.
+(add-hook
+  'eglot-managed-mode-hook
+  (lambda ()
+    (setq-local eldoc-documentation-functions
+                (cl-substitute #'my/special-eglot-hover-function
+                               'eglot-hover-eldoc-function
+                               eldoc-documentation-functions))))
+@end lisp
+
+@node Flymake and Eglot
+@section Flymake
+
+Flymake checks the buffer for errors and warnings as you edit, and
+highlights the problems it finds (@pxref{Top,,, Flymake, GNU Flymake
+manual}).
+
+@table @code
 @cindex Flymake, and Eglot
 @cindex on-the-fly diagnostics using Eglot
+@item M-x flymake-mode
+Toggle Flymake mode, which highlights problems in the source code as
+reported by the language server.  Eglot turns it on by default in the
+buffers it manages, unless @code{flymake} is in
+@code{eglot-stay-out-of} (@pxref{Other Variables}).
+
 @item M-x flymake-show-buffer-diagnostics
 Ask Flymake system to display diagnostics for the current buffer.
 
 @item M-x flymake-show-project-diagnostics
 Ask Flymake to list diagnostics for all the files in the current
 project.
+@end table
 
+Eglot hooks onto Flymake's @code{flymake-diagnostic-functions} variable,
+completely replacing its value with Eglot's own
+@code{eglot-flymake-backend} function.  Additional backends may be added
+to work alongside Eglot's, for example:
+
+@lisp
+(add-hook 'foo-mode-hook
+  (lambda ()
+    (add-hook 'eglot-managed-mode-hook
+      (lambda ()
+        (add-hook 'flymake-diagnostic-functions
+                  #'my/special-foo-mode-backend
+                  nil t))
+      nil t)))
+@end lisp
+
+@node Refactor and Eglot
+@section Refactor
+
+Refactor, from the @file{refactor.el} library, finds and executes
+@dfn{actions} that rewrite program code, such as renaming identifiers,
+fixing diagnostics, or extracting functions.
+
+@table @code
+@cindex Refactor, and Eglot
+@item M-x refactor-suggestion-mode
+Toggle Refactor Suggestion mode, which indicates when code actions are
+available at point, according to @code{refactor-indications} (see
+below).  Eglot turns it on by default in the buffers it manages, unless
+@code{refactor} is in @code{eglot-stay-out-of} (@pxref{Other
+Variables}).
+
+@cindex renaming identifiers using Eglot
+@item M-x refactor-rename
+This command renames the program symbol (a.k.a.@: @dfn{identifier}) at
+point to another name.  It prompts for the new name of the symbol, and
+then modifies all the files in the project which are managed by the
+language server of the current buffer to implement the renaming.
+
+@cindex code actions
+@item M-x refactor
+@itemx M-x refactor-quickfix
+@itemx M-x refactor-fix-all
+@itemx M-x refactor-organize-imports
+@itemx M-x refactor-extract
+@itemx M-x refactor-inline
+@itemx M-x refactor-rewrite
+These commands allow you to invoke the so-called @dfn{code actions}:
+requests for the language server to provide editing commands for
+correcting, refactoring or beautifying your code.  These commands may
+affect more than one visited file belonging to the project.
+
+The command @code{refactor} asks the server if there are any code
+actions for the active region or, if there is none, for the Flymake
+diagnostics or the expression at point.  If there are, you have the
+choice to execute one of them via the minibuffer; if there is just one,
+it is executed right away.  With a prefix argument, @code{refactor}
+first prompts for a @dfn{kind} of action, such as @code{quickfix} or
+@code{extract}, and considers only actions of that kind.
+
+A common use of code actions is fixing the Flymake error diagnostics
+issued by Eglot (@pxref{Top,,, Flymake, GNU Flymake manual}).  Clicking
+on a diagnostic with @kbd{mouse-2} invokes the same @code{refactor}
+command, which pops up a menu of available code actions.  The keymap
+@code{refactor-mouse-map} can be used to control the mouse binding.
+
+The other commands are shortcuts considering only one kind of action.
+For example, @code{refactor-organize-imports} rearranges the program's
+@dfn{imports}---declarations of modules whose capabilities the program
+uses, and @code{refactor-fix-all} applies every fix that the server can
+make to the whole file.
+
+Before applying the edits of a code action, these commands may ask for
+confirmation, depending on @code{refactor-confirmation} (see below).
+@end table
+
+Refactor also comes with some customization variables:
+
+@vtable @code
+@cindex Refactor, variables
+
+@item refactor-confirmation
+Commands such as @code{refactor-rename} and @code{refactor} result in
+the language server sending editing commands to Emacs.  This controls
+whether and how Emacs asks for confirmation before performing those
+edits: as a summary in the minibuffer, as a diff of the proposed
+changes, or not at all.  This option's value can be crafted to require
+this confirmation for specific commands or only when the edit affects
+files not yet visited by the user.  Consult this option's docstring for
+more information.
+
+@item refactor-indications
+This option controls how @code{refactor-suggestion-mode} indicates code
+actions available at point.  Value is a list of symbols, more than one
+can be specified:
+
+@itemize @minus
+@item
+@code{eldoc-hint}: ElDoc is used to hint about at-point actions.
+@item
+@code{left-fringe}: A special indicator appears in the left fringe of
+the line that point is currently on.
+@item
+@code{margin}: A special indicator appears in the margin of the line
+that point is currently on.
+@item
+@code{nearby}: An interactive special indicator appears near point.
+@end itemize
+
+Only one of @code{left-fringe}, @code{margin} and @code{nearby} is used
+at a time.  If the list is empty, no indication happens.  Regardless of
+this option, an interactive special indicator also appears in the mode
+line while actions are available.
+
+@item refactor-indicator
+This option is a string determining what the special indicator looks
+like.
+@end vtable
+
+Eglot hooks onto Refactor's @code{refactor-backend-functions} variable,
+adding its own @code{eglot-refactor-backend} function to it.  Turning on
+@code{refactor-suggestion-mode} adds @code{refactor-suggestion} to
+@code{eldoc-documentation-functions} (@pxref{ElDoc and Eglot}).
+
+@node Xref and Eglot
+@section Xref
+
+Xref finds the definitions of identifiers and the places where they
+are used, and lets you jump between them (@pxref{Xref,,, emacs, GNU
+Emacs Manual}).
+
+@table @code
 @cindex xref, and Eglot
 @cindex finding definitions of identifiers using Eglot
 @item M-x xref-find-definitions
-Ask Xref to go the definition of the identifier at point.
+Ask Xref to go to the definition of the identifier at point, normally
+bound to @kbd{M-.} (@pxref{Looking Up Identifiers,,, emacs, GNU Emacs
+Manual}).
 
+@item M-x xref-go-back
+Go back to where you were before the last Xref jump, normally bound to
+@kbd{M-,}.
+
+@cindex finding references to identifiers using Eglot
+@item M-x xref-find-references
+Ask Xref to list all the uses of the identifier at point, normally
+bound to @kbd{M-?} (@pxref{Identifier Search,,, emacs, GNU Emacs
+Manual}).
+@end table
+
+Eglot hooks onto Xref's @code{xref-backend-functions} variable, adding
+its own @code{eglot-xref-backend} function to it.
+
+@node Imenu and Eglot
+@section Imenu
+
+Imenu lets you jump to the definitions in a buffer, such as functions
+and classes, by name (@pxref{Imenu,,, emacs, GNU Emacs Manual}).
+
+@table @code
 @cindex imenu navigation using Eglot
 @item M-x imenu
 Let the user navigate the program source code using buffer index,
 categorizing program elements by syntactic class (class, method,
 variable, etc.) and offering completion.
+@end table
 
+Eglot hooks onto Imenu's @code{imenu-create-index-function}, providing
+an index generated from the language server's analysis of the program.
+
+@cindex breadcrumb
+The Breadcrumb package, installable from GNU ELPA, uses the same Imenu
+index to show where point is in the program's structure, as a path of
+nested definitions in the header line.  It works well with Eglot.
+
+@node Completion and Eglot
+@section Completion
+
+Symbol completion offers possible completions of the partial
+identifier before point (@pxref{Symbol Completion,,, emacs, GNU Emacs
+Manual}).  Major modes and packages like Eglot provide the completion
+candidates (@pxref{Completion in Buffers,,, elisp, GNU Emacs Lisp
+Reference Manual}).
+
+@table @code
 @cindex symbol completion using Eglot
 @item M-x completion-at-point
-Request completion of the symbol at point.
+Request completion of the symbol at point, normally bound to
+@kbd{C-M-i} (@pxref{Symbol Completion,,, emacs, GNU Emacs Manual}).
+Eglot adds @code{eglot-completion-at-point} to
+@code{completion-at-point-functions}, so the candidates come from the
+language server.
 @end table
+
+A very popular alternative is to use a ``completion front-end'' which
+offers completions as you type.  These use the same candidates.
+Examples are the Company and Corfu packages, both installable from GNU
+ELPA, and the built-in Completion Preview mode (@pxref{Symbol
+Completion,,, emacs, GNU Emacs Manual}).
+
+Eglot hooks onto Company's @code{company-backends} variable, ensuring
+only the @code{company-capf} backend lives there.  This ensures that
+Company offers the same set of completions as regular
+@code{completion-at-point}.
+
+@cindex YASnippet, and Eglot
+If YASnippet, a popular package for automatic insertion of code
+templates (snippets) installable from GNU ELPA, is installed, and the
+language server supports snippet completion candidates, Eglot arranges
+for the completion package to instantiate these snippets using
+YASnippet, automatically activating @code{yas-minor-mode} when needed.
 
 @node Customizing Eglot
 @chapter Customizing Eglot
 @cindex customizing Eglot
 
-To have Eglot behave like you want it, sometimes it suffices to
-customize Emacs packages and features that Eglot uses but to do so for
-all of Emacs (regardless of Eglot) .  For example, to configure the
-amount of space taken up by documentation in the echo area, customize
-the ElDoc variable @code{eldoc-echo-area-use-multiline-p}.  To configure
-Flymake faces used for errors and warnings, customize the
-@code{flymake-error} and @code{flymake-warning} faces.
-
-Compared to the breadth of its functionality, Eglot itself has a
-relatively small number of customization variables.  There is
-additionally a set of variables that are usually set from Elisp snippets
+This chapter describes Eglot's user options which you can control from
+the Customization facilities (@pxref{Customization,,,emacs, GNU Emacs
+Manual}) as well as other Elisp variables controlled from your init file
 (@pxref{Init File,,, emacs, The GNU Emacs Manual}).
 
-Other times, it's necessary to have finer control of Eglot's interaction
-with these features.  @xref{More Customization}.
+Compared to the breadth of its functionality, Eglot itself has a
+relatively small number of customization variables.
+
+Often, the knob that does what you're looking for is not found in Eglot
+itself, but in one of the other Emacs packages and features that Eglot
+integrates with.  For example, to configure the amount of space taken up
+by documentation in the echo area, customize the ElDoc variable
+@code{eldoc-echo-area-use-multiline-p}.  To configure Flymake faces used
+for errors and warnings, customize the @code{flymake-error} and
+@code{flymake-warning} faces.  @xref{Eglot and Other Emacs Features},
+for many other examples.
 
 @menu
 * Customization Variables::
 * Other Variables::
-* More Customization::
 @end menu
 
 @node Customization Variables
@@ -952,15 +1234,6 @@ last buffer managed by it is killed.  @xref{Shutting Down LSP Servers}.
 The default is @code{nil}; if you want to shut down a server, use
 @kbd{M-x eglot-shutdown} (@pxref{Eglot Commands}).
 
-@item eglot-confirm-server-edits
-Various Eglot commands and code actions result in the language server
-sending editing commands to Emacs.  If this option's value is
-non-@code{nil}, Eglot will ask for confirmation before performing edits
-proposed by the language server.  This option's value can be crafted to
-require this confirmation for specific commands or only when the edit
-affects files not yet visited by the user.  Consult this option's
-docstring for more information.
-
 @item eglot-ignored-server-capabilities
 This variable's value is a list of language server capabilities that
 Eglot should not use.  The default is @code{nil}: Eglot uses all of the
@@ -994,8 +1267,8 @@ is empty, with the single exception: @kbd{C-h .} is remapped to invoke
 For example:
 
 @lisp
-  (define-key eglot-mode-map (kbd "C-c r") 'eglot-rename)
-  (define-key eglot-mode-map (kbd "C-c o") 'eglot-code-action-organize-imports)
+  (define-key eglot-mode-map (kbd "C-c r") 'refactor-rename)
+  (define-key eglot-mode-map (kbd "C-c o") 'refactor-organize-imports)
   (define-key eglot-mode-map (kbd "C-c h") 'eldoc)
   (define-key eglot-mode-map (kbd "<f6>") 'xref-find-definitions)
   (define-key eglot-mode-map (kbd "<f7>") 'eglot-momentary-inlay-hints)
@@ -1011,33 +1284,9 @@ buffer is used, else the progress is reported in the mode line.
 @cindex request cancellation
 @item eglot-advertise-cancellation
 Setting this variable to true causes Eglot to send special cancellation
-notification for certain stale client request.  This may help some LSP
+notification for certain stale client requests.  This may help some LSP
 servers avoid doing costly but ultimately useless work on behalf of the
 client, improving overall performance.
-
-@item eglot-code-action-indications
-This variable controls the indication of code actions available at
-point.  Value is a list of symbols, more than one can be specified:
-
-@itemize @minus
-@item
-@code{eldoc-hint}: ElDoc is used to hint about at-point actions.
-@item
-@code{margin}: A special indicator appears in the margin of the line
-that point is currently on.
-@item
-@code{nearby}: An interactive special indicator appears near point.
-@item
-@code{mode-line}: An interactive special indicator appears in the mode
-line.
-@end itemize
-
-@code{margin} and @code{nearby} are incompatible.  If the list is empty,
-ElDoc will not hint about at-point actions.
-
-@item eglot-code-action-indicator
-This variable is a string determining what the special indicator looks
-like.
 
 @item eglot-mode-line-format
 This variables controls the shape and look of Eglot's mode line.  Its
@@ -1056,9 +1305,7 @@ current session's menu;
 @item
 @code{eglot-mode-line-pending-requests}: number of pending LSP requests;
 @item
-@code{eglot-mode-line-progress}: progress reporter widgets;
-@item
-@code{eglot-mode-line-action-suggestion}: LSP code actions at point.
+@code{eglot-mode-line-progress}: progress reporter widgets.
 @end itemize
 @end vtable
 
@@ -1122,8 +1369,9 @@ automatically try to manage on the user's behalf.  It is useful, for
 example, when you need to use non-LSP Flymake or Company back-ends.  To
 have Eglot stay away from some Emacs feature, add that feature's symbol
 or a regexp that will match a symbol's name to the list: for example,
-the symbol @code{xref} to leave Xref alone, or the string @samp{company}
-to stay away from your Company customizations.  Here's an example:
+the symbol @code{xref} to leave Xref alone, the symbol @code{refactor}
+to leave Refactor alone, or the string @samp{company} to stay away from
+your Company customizations.  Here's an example:
 
 @lisp
 (add-to-list 'eglot-stay-out-of 'flymake)
@@ -1133,107 +1381,6 @@ Note that you can still configure the excluded Emacs features manually
 to use Eglot in your @code{eglot-managed-mode-hook} or via some other
 mechanism.
 @end table
-
-@node More Customization
-@section More Customization
-
-As explained earlier (@pxref{Eglot and Buffers}), Eglot hooks onto
-existing Emacs packages and features by setting special variables in its
-special minor mode.  To gain finer control of Eglot's operation, the
-@code{eglot-managed-mode-hook} should be used to tweak, subdue or
-completely override Eglot's setting of these variables.
-
-@itemize @bullet
-@item
-Eglot hooks onto ElDoc's @code{eldoc-documentation-functions} variable,
-adding a number of functions to it:
-@itemize @minus
-@item @code{eglot-hover-eldoc-function}, to display general information
-about an identifier.
-@item @code{eglot-signature-eldoc-function}, to display function
-signature information.
-@item @code{eglot-highlight-eldoc-function}, to highlight nearby
-manifestations of an identifier.
-@item @code{eglot-code-action-suggestion}, to retrieve relevant code
-actions at point.
-@end itemize
-
-A simple tweak to remove at-point identifier information for
-hypothetical language @code{Foo} may look like:
-
-@lisp
-(add-hook 'foo-mode-hook
-  (lambda ()
-    (add-hook 'eglot-managed-mode-hook
-      (lambda ()
-        (remove-hook 'eldoc-documentation-functions
-                     'eglot-hover-eldoc-function
-                     nil t))
-      nil t)))
-@end lisp
-
-For more sophisticated changes, we can take advantage of ElDoc's
-well-defined protocols.  @xref{Programming Language Doc,,, emacs, GNU
-Emacs Manual}.  For instance, the functions in
-@code{eldoc-display-functions} control displays of the at-point
-documentation produced by @code{eldoc-documentation-functions}.  As an
-example, to ensure that hover documentation specifically is never output
-into the Echo area (in all programming modes):
-
-@lisp
-(require 'cl-lib)
-
-(defun my/special-eglot-hover-function (cb &rest _ignored)
-  "Same as `eglot-hover-eldoc-function`, but skip the echo area."
-  (eglot-hover-eldoc-function (lambda (info &rest _ignore)
-                                (funcall cb info :echo 'skip))))
-
-;; substitute 'eldoc-hover-eldoc-function with our "fixed" variant.
-(add-hook
-  'eglot-managed-mode-hook
-  (lambda ()
-    (setq-local eldoc-documentation-functions
-                (cl-substitute #'my/special-eglot-hover-function
-                               'eglot-hover-eldoc-function
-                               eldoc-documentation-functions))))
-@end lisp
-
-@item
-Eglot hooks onto Flymake's @code{flymake-diagnostic-functions} variable,
-completely replacing its value with Eglot's own
-@code{eglot-flymake-backend} function.  Additional backends may be added
-to work alongside Eglot's.
-
-@lisp
-(add-hook 'foo-mode-hook
-  (lambda ()
-    (add-hook 'eglot-managed-mode-hook
-      (lambda ()
-        (add-hook 'flymake-diagnostic-functions
-                  #'my/special-foo-mode-backend
-                  nil t))
-      nil t)))
-@end lisp
-
-@item
-Eglot hooks onto Xref's @code{xref-backend-functions} variable, adding
-its own @code{eglot-xref-backend} function to it.
-
-@item
-Eglot hooks onto Imenu's @code{imenu-create-index-function}.
-
-@item
-Eglot hooks onto Emacs's @code{completion-at-point-functions}.
-
-@item
-Eglot hooks onto Company's @code{company-backends} variable, ensuring
-only the @code{company-capf} backend lives there.  This ensures the same
-set of completions as regular @code{completion-at-point}.
-
-@item
-Eglot hooks onto YASnippet by automatically activating
-@code{yas-minor-mode} when needed to expand server-provided snippets.
-@end itemize
 
 @node Advanced server configuration
 @chapter Advanced server configuration
@@ -1881,7 +2028,7 @@ Depending on the specific nature of the performance bottleneck,
 sometimes a workaround is to turn off these features on the Eglot side
 using the @code{eglot-ignored-server-capabilities} and
 @code{eglot-managed-mode-hook} variables (@pxref{Other Variables} and
-@pxref{More Customization}).
+@ref{Eglot and Other Emacs Features}).
 
 Another aspect that may cause performance degradation is the amount of
 JSONRPC information exchanged with Emacs.  Using an LSP program like

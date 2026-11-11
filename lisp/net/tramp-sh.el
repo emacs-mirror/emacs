@@ -1225,6 +1225,10 @@ characters need to be doubled.")
 (defconst tramp-bundle-read-file-names "\
 printf \"(\\n\"
 while IFS= read file; do
+  if (%m -n \"$1\") && (echo \"$file\" | grep -qe '^[-_./[:alnum:]~$]*$')
+  then
+    file=`eval echo \"$file\"`
+  fi
   printf \"(\"; %k \"$file\"
   if %q \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
   if %m -r \"$file\"; then printf \" %%s\" t; else printf \" %%s\" nil; fi
@@ -1237,6 +1241,10 @@ For every file, it returns a list with the absolute file name, and the
 tests for file existence, file readability, file directory, and file
 executable.  Input shall be read via here-document, otherwise the
 command could exceed maximum length of command line.
+
+If an argument $1 is given, the file names are expanded first (tilde,
+environment variables).
+
 Format specifiers are replaced by `tramp-expand-script', percent
 characters need to be doubled.")
 
@@ -1680,7 +1688,7 @@ user identified by VEC.  If there is no user specified in either
 VEC or USER, or if there is no home directory, return nil."
   (when (tramp-send-command-and-check
 	 vec (format
-	      "echo %s"
+	      "(echo %s)"
 	      (tramp-shell-quote-argument
 	       (concat "~" (or user (tramp-file-name-user vec))))))
     (with-current-buffer (tramp-get-buffer vec)
@@ -2994,7 +3002,7 @@ will be used."
 	     (eenv (setenv-internal eenv "PS1" nil nil))
 	     vars
 	     (eenv (dolist (item (reverse eenv) vars)
-		     (setq item (string-split item "=" 'omit))
+		     (setq item (string-split item "="))
 		     (setcdr item (string-join (cdr item) "="))
 		     (push (format "%s %s" (car item) (cdr item)) vars)))
 	     (command
@@ -3576,36 +3584,43 @@ will be used."
 		       "decoding command or an scp program")
 	       method)))))))))
 
-(defun tramp-bundle-read-file-names (vec files)
+(defun tramp-bundle-read-file-names (vec files &optional expand)
   "Read file attributes of FILES and with one command fill the cache.
 FILES must be the local names only.  The cache attributes to be filled
 are \"file-exists-p\", \"file-readable-p\", \"file-directory-p\" and
-\"file-executable-p\"."
+\"file-executable-p\".
+
+If EXPAND is non-nil, the file names are expanded first (tilde and
+environment variables).  This is restricted to file names with no other
+shell special characters but \"~\" and \"$\".
+
+Return the possibly modified list of FILES."
   (when files
     (tramp-maybe-send-script
      vec tramp-bundle-read-file-names "tramp_bundle_read_file_names")
 
-    (dolist
-	(elt
-	 (with-current-buffer (tramp-get-connection-buffer vec)
-	   ;; We cannot use `tramp-send-command-and-read', because
-	   ;; this does not cooperate well with heredoc documents.
-	   (unless (tramp-send-command-and-check
-		    vec
-		    (format
-		     "tramp_bundle_read_file_names <<'%s'\n%s\n%s\n"
-		     tramp-end-of-heredoc
-		     (mapconcat #'tramp-shell-quote-argument files "\n")
-		     tramp-end-of-heredoc))
-	     (tramp-error vec 'remote-file-error "%s" (tramp-get-buffer-string)))
-	   ;; Read the expression.
-	   (goto-char (point-min))
-	   (read (current-buffer))))
-
+    (mapcar
+     (lambda (elt)
       (tramp-set-file-property vec (car elt) "file-exists-p" (nth 1 elt))
       (tramp-set-file-property vec (car elt) "file-readable-p" (nth 2 elt))
       (tramp-set-file-property vec (car elt) "file-directory-p" (nth 3 elt))
-      (tramp-set-file-property vec (car elt) "file-executable-p" (nth 4 elt)))))
+      (tramp-set-file-property vec (car elt) "file-executable-p" (nth 4 elt))
+      (car elt))
+     (with-current-buffer (tramp-get-connection-buffer vec)
+       ;; We cannot use `tramp-send-command-and-read', because this
+       ;; does not cooperate well with heredoc documents.
+       (unless (tramp-send-command-and-check
+		vec
+		(format
+		 "tramp_bundle_read_file_names %s <<'%s'\n%s\n%s\n"
+		 (if expand "expand" "")
+		 tramp-end-of-heredoc
+		 (mapconcat #'tramp-shell-quote-argument files "\n")
+		 tramp-end-of-heredoc))
+	 (tramp-error vec 'remote-file-error "%s" (tramp-get-buffer-string)))
+       ;; Read the expression.
+       (goto-char (point-min))
+       (read (current-buffer))))))
 
 (defvar tramp-vc-registered-file-names nil
   "List used to collect file names, which are checked during `vc-registered'.")
@@ -4293,11 +4308,15 @@ file exists and nonzero exit status otherwise."
     ;; that all shells interpret -i as interactive shell.  Must be the
     ;; last argument, because (for example) bash expects long options
     ;; first.
+    ;; Since GNU coreutils 9.12, file names are quoted using the
+    ;; `shell-escape' style.  We override this via $QUOTING_STYLE.
+    ;; (Bug#82170)
     (tramp-send-command
      vec (format
 	  (concat
 	   "exec env TERM='%s' INSIDE_EMACS='%s' "
-	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
+	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' "
+	   "QUOTING_STYLE=literal %s %s -i")
           tramp-terminal-type (tramp-inside-emacs)
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")
 	  (if (stringp tramp-histfile-override)
@@ -4612,7 +4631,7 @@ process to set up.  VEC specifies the connection."
       (dolist (item (reverse
 		     (append `(,(tramp-get-remote-locale vec))
 			     (copy-sequence tramp-remote-process-environment))))
-	(setq item (string-split item "=" 'omit))
+	(setq item (string-split item "="))
 	(setcdr item (string-join (cdr item) "="))
 	(if (and (stringp (cdr item)) (not (string-empty-p (cdr item))))
 	    (push (format "%s %s" (car item) (cdr item)) vars)
@@ -5352,6 +5371,13 @@ connection if a previous connection has died for some reason."
 			  (with-tramp-connection-property
 			      (tramp-get-process vec) "temp-file"
 			    (tramp-compat-make-temp-name)))
+			 (quoted-user
+			  (unless (tramp-string-empty-or-nil-p l-user)
+			    (tramp-compat-funcall
+				(if (eq previous-hop tramp-null-hop)
+				    #'shell-quote-argument
+				  #'tramp-shell-quote-argument)
+			      l-user)))
 			 r-shell)
 
 		    ;; Check, whether there is a restricted shell.
@@ -5393,7 +5419,8 @@ connection if a previous connection has died for some reason."
 		       (when process-name async-args)
 		       (tramp-expand-args
 			hop 'tramp-login-args nil
-			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
+			?h (or l-host "") ?u (or quoted-user "")
+			?p (or l-port "")
 			?c (format-spec options (format-spec-make ?t tmpfile))
 			?n (concat
 			    "2>" (tramp-get-remote-null-device previous-hop))
@@ -5738,16 +5765,17 @@ Nonexistent directories are removed from spec."
 		   (cdr elt2)))
 	  (setq remote-path (delq 'tramp-own-remote-path remote-path)))
 
-	;; Remove double entries.
-	(setq remote-path (seq-uniq remote-path #'string-equal))
-
-	;; Remove non-existing directories.
 	(let ((remote-file-name-inhibit-cache
 	       (tramp-suppress-remote-file-name-inhibit-cache)))
-	  (tramp-bundle-read-file-names vec remote-path)
-	  (seq-remove
-	   (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
-	   remote-path))))))
+	  ;; Remove double entries.
+	  (seq-uniq
+	   ;; Remove non-existing directories.
+	   (seq-remove
+	    (lambda (x) (not (tramp-get-file-property vec x "file-directory-p")))
+	    ;; Remove trailing slashes.
+	    (mapcar
+	     #'directory-file-name
+	     (tramp-bundle-read-file-names vec remote-path 'expand)))))))))
 
 (defun tramp-get-remote-arg-max (vec)
   "Return ARG_MAX config from the remote side."
@@ -5937,14 +5965,13 @@ Nonexistent directories are removed from spec."
 	;; boundaries "`" and "'" and their localized variants,
 	;; therefore.  See Bug#23422 in coreutils.  Since GNU stat
 	;; 8.26, environment variable QUOTING_STYLE is supported.
+	;; We use "--format=" as indicator whether it is GNU stat.
 	(when result
-	  (setq result (concat "env QUOTING_STYLE=locale " result)
-		tmp (tramp-send-command-and-read
-		     vec (format "%s -c '(\"%%N\" %%s)' /" result) 'noerror))
+	  (setq tmp (tramp-send-command-and-read
+		     vec (format "%s --format='(\"%%N\" %%s)' /" result)
+		     'noerror))
 	  (unless (and (listp tmp) (stringp (car tmp))
-		       (string-match-p
-			(rx bol (any "\"`'‘„”«「") "/" (any "\"'’“”»」") eol)
-			(car tmp))
+		       (string-equal (car tmp) "/")
 		       (integerp (cadr tmp)))
 	    (setq result nil)))
 	result))))

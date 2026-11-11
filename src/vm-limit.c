@@ -1,4 +1,4 @@
-/* Functions for memory limit warnings.
+/* Functions for memory limit warnings, used only on MS-DOS.
    Copyright (C) 1990, 1992, 2001-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -31,25 +31,11 @@ extern int etext;
 #ifdef HAVE_SYS_RESOURCE_H
 # include <sys/time.h>
 # include <sys/resource.h>
-#else
-# if HAVE_SYS_VLIMIT_H
-#  include <sys/vlimit.h>	/* Obsolete, says glibc */
-# endif
 #endif
 
 /* Start of data.  It is OK if this is approximate; it's used only as
    a heuristic.  */
-#ifdef DATA_START
-# define data_start ((char *) DATA_START)
-#else
-extern char data_start[];
-# ifndef HAVE_DATA_START
-/* Initialize to nonzero, so that it's put into data and not bss.
-   Link this file's object code first, so that this symbol is near the
-   start of data.  */
-char data_start[1] = { 1 };
-# endif
-#endif
+#define data_start ((char *) (&etext + 1))
 
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
@@ -61,9 +47,7 @@ extern void *(*__morecore) (ptrdiff_t);
 extern void (*__MALLOC_HOOK_VOLATILE __after_morecore_hook) (void);
 
 /* From ralloc.c.  */
-#ifdef REL_ALLOC
 extern void *(*real_morecore) (ptrdiff_t);
-#endif
 
 /*
   Level number of warnings already issued.
@@ -144,10 +128,6 @@ ret_lim_data (void)
 static void
 check_memory_limits (void)
 {
-#ifndef REL_ALLOC
-  void *(*real_morecore) (ptrdiff_t) = 0;
-#endif
-
   char *cp;
   size_t five_percent;
   size_t data_size;

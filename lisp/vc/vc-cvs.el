@@ -91,14 +91,14 @@ If t, use no switches."
 		 (repeat :tag "Argument List" :value ("") string))
   :version "21.1")
 
-(defcustom vc-cvs-diff-switches nil
+(defcustom vc-cvs-diff-switches '("-u")
   "String or list of strings specifying switches for CVS diff under VC.
 If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :type '(choice (const :tag "Unspecified" nil)
                  (const :tag "None" t)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
-  :version "21.1")
+  :version "32.1")
 
 (defcustom vc-cvs-annotate-switches nil
   "String or list of strings specifying switches for cvs annotate under VC.

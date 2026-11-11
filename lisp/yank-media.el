@@ -224,13 +224,16 @@ non-supported selection data types."
     (format "%s" data))
    ((string-match-p "\\`text/" (symbol-name data-type))
     ;; We may have utf-16, which Emacs won't detect automatically.
-    (let ((coding-system (yank-media--utf-16-p data)))
+    (let ((coding-system (yank-media--utf-16-p data))
+          strlen)
       (if coding-system
           (decode-coding-string data coding-system)
         ;; Some programs add a nul character at the end of text/*
         ;; selections.  Remove that.
-        (if (zerop (elt data (1- (length data))))
-            (substring data 0 (1- (length data)))
+        (setq strlen (length data))
+        (if (and (> strlen 0)
+                 (zerop (elt data (1- strlen))))
+            (substring data 0 -1)
           data))))
    (t
     data)))

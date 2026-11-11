@@ -1,4 +1,4 @@
-/* Declarations for `malloc' and friends.
+/* Declarations for malloc and friends, used only on MS-DOS.
    Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2026 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
@@ -336,9 +336,6 @@ int __malloc_initialized;
 
 /* Number of extra blocks to get each time we ask for more core.
    This reduces the frequency of calling `(*__morecore)'.  */
-#ifdef SYSTEM_MALLOC
-static
-#endif
 size_t __malloc_extra_blocks;
 
 /* Number of info entries.  */
@@ -1474,11 +1471,9 @@ extern void *__sbrk (ptrdiff_t increment);
 static void *
 gdefault_morecore (ptrdiff_t increment)
 {
-#ifdef HAVE_SBRK
   void *result = (void *) __sbrk (increment);
   if (result != (void *) -1)
     return result;
-#endif
   return NULL;
 }
 

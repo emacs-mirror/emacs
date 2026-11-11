@@ -156,6 +156,12 @@ Alternative suggestions are:
   :version "24.4"
   :type 'string)
 
+(defcustom shr-ol-marker-format "%s. "
+  "Format string used for ordered list item markers.
+This should have a single string placeholder for the marker value."
+  :version "32.1"
+  :type 'string)
+
 (defcustom shr-cookie-policy 'same-origin
   "When to use cookies when fetching dependent data like images.
 If t, always use cookies.  If nil, never use cookies.  If
@@ -319,6 +325,11 @@ temporarily blinks with this face."
   '((t :background "yellow" :foreground "black"))
   "Face used for <mark> elements."
   :version "29.1")
+
+(defface shr-li-marker
+  '((t))
+  "Face used for rendering <li> bullets or numbers."
+  :version "32.1")
 
 (defface shr-sliced-image
   '((t :underline nil :overline nil))
@@ -2185,35 +2196,63 @@ BASE is the URL of the HTML being rendered."
 
 (defun shr-tag-ol (dom)
   (shr-ensure-paragraph)
-  (let* ((attrs (dom-attributes dom))
-         (start-attr (alist-get 'start attrs))
-         ;; Start at 1 if there is no start attribute
-         ;; or if start can't be parsed as an integer.
+  (let* ((type-attr (dom-attr dom 'type))
+         (type (if (and (stringp type-attr) (length= type-attr 1)
+                        (memq (aref type-attr 0) '(?A ?a ?I ?i ?1)))
+                   (aref type-attr 0)
+                 ?1))
+         (delta (if (dom-attr dom 'reversed) -1 1))
+         (start-attr (dom-attr dom 'start))
+         ;; Start counting at the start attribute's value.  If there is
+         ;; none (or it can't be parsed as an integer) start at 1 for
+         ;; ascending or at the number of <li> children for descending.
          (start-index (condition-case _
                           (cl-parse-integer start-attr)
-                        (t 1)))
-         (shr-list-mode start-index))
+                        (t (if (= delta 1) 1
+                             (seq-count (lambda (child)
+                                          (eq (car-safe child) 'li))
+                                        (dom-children dom))))))
+         (shr-list-mode (list type start-index delta)))
     (shr-generic dom))
   (shr-ensure-paragraph))
+
+(defun shr--ol-li-marker (type value)
+  (cond
+   ((or (= type ?1) (<= value 0))
+    (number-to-string value))
+   ((memq type '(?A ?a))
+    (let (chars)
+      (while (> value 0)
+        (push (+ (mod (1- value) 26) type) chars)
+        (setq value (/ (1- value) 26)))
+      (apply #'string chars)))
+   ((eq type ?I)
+    (number-to-roman value))
+   ((eq type ?i)
+    (downcase (number-to-roman value)))))
 
 (defun shr-tag-li (dom)
   (shr-ensure-newline)
   (let ((start (point)))
-    (let* ((bullet
-	    (if (numberp shr-list-mode)
+    (let* ((marker
+	    (if (listp shr-list-mode)
 		(prog1
-		    (format "%d " shr-list-mode)
-		  (setq shr-list-mode (1+ shr-list-mode)))
+		    (format shr-ol-marker-format
+                            (shr--ol-li-marker (nth 0 shr-list-mode)
+                                               (nth 1 shr-list-mode)))
+		  (incf (nth 1 shr-list-mode) (nth 2 shr-list-mode)))
 	      (car shr-internal-bullet)))
 	   (width (if (numberp shr-list-mode)
-		      (max (shr-string-pixel-width bullet)
+		      (max (shr-string-pixel-width marker)
                            shr-block-indentation-pixel-width)
 		    (cdr shr-internal-bullet))))
       (if (not shr-use-fonts)
-          (insert (string-pad bullet shr-block-indentation-width))
-        (insert bullet)
-        (put-text-property start (point) 'display
-                           `(min-width (,(shr--width-spec width)))))
+          (insert (string-pad marker shr-block-indentation-width))
+        (insert marker)
+        (add-text-properties
+         start (point)
+         `( face (shr-li-marker ,(or shr-current-font 'shr-text))
+            display (min-width (,(shr--width-spec width))))))
       (shr-mark-fill start)
       (let ((shr-indentation (+ shr-indentation width)))
 	(put-text-property start (1+ start)

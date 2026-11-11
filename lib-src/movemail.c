@@ -804,36 +804,10 @@ mbx_write (char *line, int len, FILE *mbf)
    special-purpose strftime that assumes the exact format that
    movemail uses.  */
 static size_t
-movemail_strftime (char *s, size_t size, char const *format,
+movemail_strftime (char *s, size_t size, char const *UNNAMED (format),
 		   struct tm const *tm)
 {
-  char fmt[size + 6], *q;
-  const char *p;
-
-  for (p = format, q = &fmt[0]; *p; )
-    {
-      if (*p == '%' && p[1] == 'e')
-	{
-	  memcpy (q, "%d", 2);
-	  q += 2;
-	  p += 2;
-	}
-      else if (*p == '%' && p[1] == 'T')
-	{
-	  memcpy (q, "%H:%M:%S", 8);
-	  q += 8;
-	  p += 2;
-	}
-      else if (*p == '%' && p[1] == '%')
-	{
-	  memcpy (q, p, 2);
-	  q += 2;
-	  p += 2;
-	}
-      else
-	*q++ = *p++;
-    }
-
+  static char const fmt[] = "From movemail %a %b %d %H:%M:%S %Y\n";
   size_t n = strftime (s, size, fmt, tm);
   char *mday = s + sizeof "From movemail Sun Jan " - 1;
   if (*mday == '0')

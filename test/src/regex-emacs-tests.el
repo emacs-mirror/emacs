@@ -1008,4 +1008,63 @@ This evaluates the TESTS test cases from glibc using posix matching."
   ;; relint suppression: Repetition of expression matching an empty string
   (should (equal (string-match "a*\\(?:c\\|b*\\)*" "a") 0)))
 
+(ert-deftest regexp-memoization-adaptive ()
+  ;; This tests whether matching is still performed correctly once
+  ;; memoization kicks in.
+  (cl-flet ((match (lambda (re string)
+                     (and (string-match re string)
+                          (match-string 1 string)))))
+    (let ((str (concat "url(\\" (make-string 33 ?\\))))
+      (should (equal
+               (match
+                (concat
+                 ;; Use a single `re_match' since memoization decisions are
+                 ;; forgotten between calls to `re_match' (even within the
+                 ;; same search).
+                 "\\`.*?\\("
+                 ;; Taken from `css--uri-re'.
+                 "url\\((\\)[[:space:]]*\\(?:\\\\.\\|[^()[:space:]\n'\"]\\)+"
+                 "[[:space:]]*\\()\\)"
+                 "\\)")
+                ;; The `url(...' in STR needs memoization, so the second
+                ;; `url(..)' is then matched with memoization activated.
+                (concat "with " str " and url(a) in text"))
+               "url(a)")))))
+
+(ert-deftest regexp-memoization-backref ()
+  ;; This tests a corner case of backrefs:
+  ;; On the first pass through "b", we have group-1 == "aa",
+  ;; we try to match "c" which fails, so we mark that state+pos
+  ;; in the memo table on the assumption that if we come back
+  ;; it means we failed and we should fail again.  Now, indeed,
+  ;; the \1 test we do right afterwards fails, but the next time
+  ;; we come back to that same state+pos, group-1 has changed
+  ;; and \1 would not fail again!
+  ;; We've set `memo.inhibit' in the mean time, but the memotable was
+  ;; set beforehand, so we risk mistakenly failing unless:
+  ;; - we check memo.inhibit in the "has_failed_p" test as well.
+  ;; - we clear the pre-existing entries in the memotable when we set
+  ;;   memo.inhibit.
+  (cl-flet ((match (lambda (re string)
+                     (and (string-match re string)
+                          (match-string 0 string)))))
+   (should (equal (match "\\(a*\\)a*bc*\\1d"
+                   "aabad")
+                  "aabad"))))
+
+(ert-deftest regexp-memoization-works ()
+  (cl-flet* ((tmatch (re string)
+               (let ((start (float-time)))
+                 (and (string-match re string)
+                      (- (float-time) start))))
+             (tmatchmin (re string)
+               (let ((tmin (tmatch re string)))
+                 (dotimes (_ 5)
+                   (setq tmin (min tmin (tmatch re string))))
+                 tmin)))
+    ;; Precompile the regexp.
+    (tmatch "\\(?:a\\|a\\)*b\\|a" (make-string 1 ?a))
+    (should (> (* 2 (tmatchmin "\\(?:a\\|a\\)*b\\|a" (make-string 6 ?a)))
+               (tmatchmin "\\(?:a\\|a\\)*b\\|a" (make-string 9 ?a))))))
+
 ;;; regex-emacs-tests.el ends here

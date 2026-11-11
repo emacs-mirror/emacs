@@ -17,9 +17,9 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <config.h>
-#include "tparam.h"
 
 #include "lisp.h"
+#include "tparam.h"
 
 /* Define these variables that serve as global parameters to termcap,
    so that we do not need to conditionalize the places in Emacs

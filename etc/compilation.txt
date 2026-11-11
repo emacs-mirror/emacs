@@ -753,6 +753,15 @@ symbol: php
 Parse error: parse error, unexpected $ in main.php on line 59
 Fatal error: Call to undefined function: mysql_pconnect() in db.inc on line 66
 
+* Ruff
+
+symbol: ruff
+
+F401 [*] `sys` imported but unused
+ --> main.py:1:8
+unused-variable: Local variable `var` is assigned to but never used
+ --> src/lib.py:7:5
+
 * Rust
 
 symbols: rust rust-panic

@@ -2317,8 +2317,8 @@ not exist.")
 
 (defconst etags--case-insensitive-files
   '(".ads" ".adb" ".ada"       ; Ada
-    ".COB" ".cob"              ; Cobol
-    ".F" ".f" ".f90" ".for"    ; Fortran
+    ".cob"                     ; Cobol
+    ".f" ".f90" ".for"         ; Fortran
     ".htm" ".html" ".shtml"    ; HTML
     ".cl" ".clisp"             ; Common Lisp
     ".p" ".pas"                ; Pascal
@@ -2328,58 +2328,47 @@ not exist.")
 This lists file-name extensions of files whose corresponding programming
 language treats keywords case-insensitively.")
 
-(defun etags--keywords-case-insensitive-p (filename)
-  "Whether keywords are expected to be case-insensitive in FILENAME."
-  ;; FIXME: It is not enough to go by the filename's extension, we need
-  ;; to use the actual major-mode to be used forthe file.  But
-  ;; determining the major-mode requires visiting the file (to take note
-  ;; of the various local vars and cookies), and on top of that Emacs
-  ;; doesn't have a function that just determines the mode without
-  ;; turning it ON.
-  (let ((fnext (file-name-extension filename)))
-    (memq (if (file-name-case-insensitive-p filename)
-              ;; Prevent Turkish etc. case-conversions from getting in
-              ;; our way.
-              (with-case-table ascii-case-table
-                (downcase fnext))
-            fnext)
-          etags--case-insensitive-files)))
+(defun etags--filename-case-insensitive-regexp ()
+  (concat
+   (regexp-opt
+    etags--case-insensitive-files)
+   "\\'"))
 
-(defun etags--xref-item-matches (tag-text filename kind)
-  "Predicate that returns non-nil if TAG-TEXT for FILENAME matches KIND.
+(defun etags--xref-item-matches (tag-text kind)
+  "Predicate that returns non-nil if TAG-TEXT matches KIND.
 TAG-TEXT is the text of the tag's line in its tags table, usually the
 beginning of the source line where the tag was defined or referenced.
-FILENAME is the basename of the source file where the tag is defined;
-it can be used to deduce the programming language of the tag and other
-traits of the tag, like its case-sensitivity.
 KIND is a symbol that specifies the type (function, variable, etc.)
 against which to test the type of the tag; see `xref-backend-xref-kinds'."
   (let* ((type-regexps (cdr (assq kind etags--types-regexp-alist)))
          (must-match (car type-regexps))
          (must-not-match (nth 1 type-regexps)))
     (when type-regexps
-      (let ((case-fold-search (etags--keywords-case-insensitive-p filename)))
-        (and (or (null must-match)
-                 (string-match-p must-match tag-text))
-             (or (null must-not-match)
-                 (not (string-match-p must-not-match tag-text))))))))
+      (and (or (null must-match)
+               (string-match-p must-match tag-text))
+           (or (null must-not-match)
+               (not (string-match-p must-not-match tag-text)))))))
 
 (defun etags--filter-by-kind (xref-items kind)
   "Filter out from XREF-ITEMS any items that don't match KIND.
 XREF-ITEMS is a list of `xref-item' objects, and KIND is the symbol
 that specifies the type of the reference/definition the caller is
 interested in."
-  (delq 'remove-item
-        (mapcar
-         (lambda (item)
-           (if (etags--xref-item-matches (xref-item-summary item)
-                                         (file-name-nondirectory
-                                          (xref-etags-location-file
-                                           (xref-item-location item)))
-                                         kind)
-               item
-             'remove-item))
-         xref-items)))
+  (let ((filename-re (etags--filename-case-insensitive-regexp))
+        case-fold-search)
+    (delq 'remove-item
+          (mapcar
+           (lambda (item)
+             (setq case-fold-search
+                   (let ((case-fold-search t))
+                     (string-match-p filename-re
+                                     (xref-etags-location-file
+                                      (xref-item-location item)))))
+             (if (etags--xref-item-matches (xref-item-summary item)
+                                           kind)
+                 item
+               'remove-item))
+           xref-items))))
 
 (cl-defmethod xref-backend-xrefs-by-kind ((_backend (eql 'etags)) identifier kind)
   "Return a list of xrefs of KIND for IDENTIFIER for the `etags' backend.
@@ -2390,26 +2379,60 @@ and whose location is an `xref-etags-location' object."
     ;; Filter out elements that don't match KIND.
     (etags--filter-by-kind defs kind)))
 
-(defun etags--kind-predicate (kind candidate)
-  "A predicate that returns non-nil if CANDIDATE's type matches KIND.
-CANDIDATE is a string which gives the identifier of a completion candidate;
-KIND is a symbol presumably taken from `xref-backend-xref-kinds's `:kind'
-property.
-
-This function is supposed to be used as PREDICATE by the various
-completion functions and primitives."
-  (let ((defs (etags--xref-find-definitions candidate))
-        def found-match)
-    (while (and (not found-match)
-                defs)
-      (setq def (car defs)
-            defs (cdr defs)
-            found-match (etags--xref-item-matches (xref-item-summary def)
-                                                  (file-name-nondirectory
-                                                   (xref-etags-location-file
-                                                    (xref-item-location def)))
-                                                  kind)))
-    found-match))
+(defun etags--kind-identifiers-table (kind)
+  "Build and return a hash table with all identifiers of KIND."
+  (let* ((first-time t)
+         (type-regexps (cdr (assq kind etags--types-regexp-alist)))
+         (must-match (car type-regexps))
+         (must-not-match (nth 1 type-regexps))
+         (filename-re (etags--filename-case-insensitive-regexp))
+         case-fold-search
+         (cbuf (current-buffer))
+         (table (make-hash-table :test 'equal))
+         file file-start file-end
+         text end text-end)
+    (unless must-match
+      ;; Possibly only a temporary limitation.
+      (user-error "etags kind must have a regexp to search for"))
+    (setq must-match
+          (string-replace
+           "\\'" "\177"
+           (string-replace "\\`" "^" must-match)))
+    (save-excursion
+      (while (visit-tags-table-buffer (not first-time) cbuf)
+        (setq first-time nil)
+        (goto-char (point-min))
+        (while (re-search-forward "\f\n\\([^\n]+\\),[0-9]*\n" nil t)
+          (setq file (buffer-substring (match-beginning 1) (match-end 1)))
+          (setq file-start (point))
+          (setq file-end (if (re-search-forward "\\(\f\\)" nil t)
+                             (1- (point))
+                           (point-max)))
+          (goto-char file-start)
+          (setq case-fold-search (let ((case-fold-search t))
+                                   (string-match-p filename-re file)))
+          (while (re-search-forward must-match file-end 'move)
+            (when (= (char-before) ?\177)
+              (forward-char -1))
+            (save-excursion
+              ;; Failure to match means we landed after \177.
+              (when (re-search-forward "\177\\(?:\\([^\n\001]+\\)\001\\)?"
+                                       (line-end-position) t)
+                (setq text-end (match-beginning 0))
+                (if (match-beginning 1)
+                    ;; Explicit tag name.
+                    (setq text (match-string 1))
+                  ;; Backtrack, look for implicit tag name.
+                  (skip-chars-backward "\f\t\n\r()=,; \177")
+                  (setq end (point))
+                  (skip-chars-backward "^\f\t\n\r()=,; ")
+                  (setq text (buffer-substring-no-properties (point) end)))
+                (when (or (not must-not-match)
+                          (not (string-match-p must-not-match
+                                               (buffer-substring-no-properties
+                                                (line-beginning-position) text-end))))
+                  (puthash text t table))))))))
+    table))
 
 (cl-defmethod xref-backend-identifier-completion-predicate ((_backend (eql 'etags))
                                                             &optional kind)
@@ -2419,8 +2442,11 @@ meaning that the caller is interested only in canddiates that match KIND,
 the predicate is a function which will reject any candidate that doesn't
 match KIND."
   (if kind
-      (lambda (candidate)
-        (etags--kind-predicate kind candidate))))
+      (let (kind-candidates)
+        (lambda (candidate)
+          (unless kind-candidates
+            (setq kind-candidates (etags--kind-identifiers-table kind)))
+          (gethash candidate kind-candidates)))))
 
 
 (provide 'etags)

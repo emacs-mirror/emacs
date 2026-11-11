@@ -714,7 +714,8 @@ Value for `adaptive-fill-function'."
 The LISP-SYNTAX argument is used by code in inf-lisp.el and is
 \(uselessly) passed from pp.el, chistory.el, gnus-kill.el and
 score-mode.el.  KEYWORDS-CASE-INSENSITIVE non-nil means that for
-font-lock keywords will not be case sensitive."
+font-lock keywords will not be case sensitive.
+If ELISP is non-nil, set up font lock for Emacs Lisp code."
   (when lisp-syntax
     (set-syntax-table lisp-mode-syntax-table))
   (setq-local paragraph-ignore-fill-prefix t)
@@ -746,13 +747,16 @@ font-lock keywords will not be case sensitive."
   (setq font-lock-defaults
 	`(,(if elisp '(lisp-el-font-lock-keywords
                        lisp-el-font-lock-keywords-1
-                       lisp-el-font-lock-keywords-2)
+                       lisp-el-font-lock-keywords-2
+                       ;; Defined in elisp-mode.el.
+                       elisp-semantic-font-lock-keywords)
              '(lisp-cl-font-lock-keywords
                lisp-cl-font-lock-keywords-1
                lisp-cl-font-lock-keywords-2))
 	  nil ,keywords-case-insensitive nil nil
 	  (font-lock-mark-block-function . mark-defun)
-          (font-lock-extra-managed-props help-echo)
+          (font-lock-extra-managed-props
+           . (help-echo ,@(and elisp '(cursor-sensor-functions mouse-face))))
 	  (font-lock-syntactic-face-function
 	   . lisp-font-lock-syntactic-face-function)))
   (setq-local prettify-symbols-alist lisp-prettify-symbols-alist)
@@ -1270,6 +1274,8 @@ Each key is a symbol and each value is an indent specification, which
 overrides the value of the symbol's `lisp-indent-function' property in
 the current buffer.  The value can take the same forms as the value of
 the property, see Info node `(elisp) Indenting Macros' for details.
+A value of nil disables special indentation so the form is indented like
+a normal function call.
 
 This variable is used by the functions `lisp-indent-function'
 and `common-lisp-indent-function'.  In case of the latter, the
@@ -1282,7 +1288,7 @@ symbol properties `common-lisp-indent-function-for-elisp' and
        (and (listp value)
             (all (lambda (elt)
                    (and (symbolp (car elt))
-                        (or (eq (cdr elt) 'defun)
+                        (or (memq (cdr elt) '(defun nil))
                             (integerp (cdr elt)))))
                  value))))
 

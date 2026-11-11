@@ -566,7 +566,7 @@ It is the default value of `show-paren-data-function'."
                                          (< (nth 2 part) dfh4)
                                          (< (nth 3 part) dfh4))))))
                 (let ((context (blink-paren-open-paren-line-string
-                                openparen))
+                                openparen (- there-end there-beg)))
                       (message-log-max nil))
                   (cond
                    ((eq show-paren-context-when-offscreen 'child-frame)

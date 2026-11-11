@@ -1210,13 +1210,13 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
   return to-from;
 }
 
-static NSUInteger
+static NSInteger
 ns_font_shape (NSFont *font, NSString *string,
 	       struct ns_glyph_layout *glyph_layouts, NSUInteger glyph_len,
 	       enum lgstring_direction dir)
 {
   NSUInteger i;
-  NSUInteger result = 0;
+  NSInteger result = 0;
   NSTextStorage *textStorage;
   NSLayoutManager *layoutManager;
   NSTextContainer *textContainer;
@@ -1273,9 +1273,9 @@ ns_font_shape (NSFont *font, NSString *string,
       i = NSMaxRange (range);
     }
   if (i < stringLength)
-    /* Make the test `used <= glyph_len' below fail if textStorage
-       contained some fonts other than the specified one.  */
-    used = glyph_len + 1;
+    /* Abandon if textStorage contained some fonts other than the
+       specified one.  */
+    used = 0;
   else
     {
       NSRange range = NSMakeRange (0, stringLength);
@@ -1455,6 +1455,8 @@ ns_font_shape (NSFont *font, NSString *string,
 
       result = used;
     }
+  else if (used > glyph_len)
+    result = - (NSInteger) used;
   [textStorage release];
 
   return result;
@@ -1470,7 +1472,7 @@ nsfont_shape (Lisp_Object lgstring, Lisp_Object direction)
   ptrdiff_t glyph_len, len, i;
   Lisp_Object tem;
   unichar *mb_buf;
-  NSUInteger used;
+  NSInteger used;
 
   glyph_len = LGSTRING_GLYPH_LEN (lgstring);
   for (i = 0; i < glyph_len; ++i)
@@ -1513,6 +1515,12 @@ nsfont_shape (Lisp_Object lgstring, Lisp_Object direction)
     dir = DIR_R2L;
   glyph_layouts = alloca (sizeof (struct ns_glyph_layout) * glyph_len);
   used = ns_font_shape (nsfont, string, glyph_layouts, glyph_len, dir);
+
+  if (used <= 0)
+    {
+      unblock_input ();
+      return used < 0 ? make_fixnum (used) : Qnil;
+    }
 
   for (i = 0; i < used; i++)
     {

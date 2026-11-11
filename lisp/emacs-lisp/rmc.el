@@ -171,7 +171,8 @@ edit, the multiple-choice prompt gains focus again.
 When `use-dialog-box' is t (the default), and the command using this
 function was invoked via the mouse, this function pops up a GUI dialog
 to collect the user input, but only if Emacs is capable of using GUI
-dialogs.  Otherwise, the function will always use text-mode dialogs.
+dialogs and the number of items is less than 10.  Otherwise,
+the function will always use text-mode dialogs.
 
 The return value is the matching entry from the CHOICES list.
 
@@ -188,7 +189,8 @@ Usage example:
                         (?n \"no\")))"
   (cond (long-form
          (read-multiple-choice--long-answers prompt choices))
-        ((or read-char-choice-use-read-key (use-dialog-box-p))
+        ((or read-char-choice-use-read-key
+             (and (use-dialog-box-p) (length< choices 10)))
          (read-multiple-choice--short-answers
           prompt choices help-string show-help))
         (t
@@ -199,7 +201,7 @@ Usage example:
 (declare-function touch-screen-pinch "touch-screen.el")
 
 (defun read-multiple-choice--short-answers (prompt choices help-string show-help)
-  (let* ((dialog-p (use-dialog-box-p))
+  (let* ((dialog-p (and (use-dialog-box-p) (length< choices 10)))
          (prompt-choices
           (if (or show-help dialog-p) choices (append choices '((?? "?")))))
          (altered-names (mapcar #'rmc--add-key-description prompt-choices))

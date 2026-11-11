@@ -352,8 +352,9 @@ prefix PEXS with \"\" so it doesn't look like a list of rules."
 
 (defun peg-run (peg-matcher &optional failure-function success-function)
   "Parse with PEG-MATCHER at point and run the success/failure function.
-If a match was found, move to the end of the match and call SUCCESS-FUNCTION
-with one argument: a function which will perform all the actions collected
+If a match was found, run SUCCESS-FUNCTION with point where PEG-MATCHER
+left it (usually, the end of the parse), calling it with one argument,
+a function which will perform all the actions collected
 during the parse and then return the resulting stack (or t if empty).
 If no match was found, move to the (rightmost) point of parse failure and call
 FAILURE-FUNCTION with one argument, which is a list of PEG expressions that
@@ -440,16 +441,17 @@ rulesets defined previously with `define-peg-ruleset'."
                         rules)))
          (ctx (assq :peg-rules macroexpand-all-environment))
          (body
-    (macroexpand-all
-     `(cl-labels
-          ,(mapcar (lambda (rule)
-		     `(,(peg--rule-id (car rule))
-		       (peg--lambda ',(cdr rule) ()
-		         ,(peg--translate-rule-body (car rule) (cdr rule)))))
-		   rules)
-        ,@body)
-     `((:peg-rules ,@(append rules (cdr ctx)))
-       ,@macroexpand-all-environment))))
+          (macroexpand-all
+           `(cl-labels
+		,(mapcar (lambda (rule)
+		           `(,(peg--rule-id (car rule))
+		             (peg--lambda ',(cdr rule) ()
+		                          ,(peg--translate-rule-body
+		                            (car rule) (cdr rule)))))
+		         rules)
+              ,@body)
+           `((:peg-rules ,@(append rules (cdr ctx)))
+             ,@macroexpand-all-environment))))
     (if (null rulesets)
         body
       `(cl-flet ,(mapcan (lambda (ruleset)

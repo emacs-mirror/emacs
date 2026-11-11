@@ -45,7 +45,8 @@
  (add-to-list 'tramp-methods
               `(,tramp-sudoedit-method
                 (tramp-sudo-login (("sudo") ("-u" "%u") ("-S") ("-H")
-			           ("-p" "Password:") ("--")))
+			           ("-p" "Password:") ("--")
+				   ("env" "QUOTING_STYLE=literal")))
 		(tramp-password-previous-hop t)))
 
  (add-to-list 'tramp-default-user-alist
@@ -444,12 +445,12 @@ the result will be a local, non-Tramp, file name."
       (cond
        ((tramp-sudoedit-remote-selinux-p v)
 	(tramp-sudoedit-send-command-and-read
-	 v "env" "QUOTING_STYLE=locale" "stat" "-c"
+	 v "stat" "-c"
 	 tramp-sudoedit-file-attributes-with-selinux
 	 (file-name-unquote localname)))
        (t
 	(tramp-sudoedit-send-command-and-read
-	 v "env" "QUOTING_STYLE=locale" "stat" "-c"
+	 v "stat" "-c"
 	 tramp-sudoedit-file-attributes (file-name-unquote localname)))))))
 
 (defun tramp-sudoedit-handle-file-executable-p (filename)
@@ -475,7 +476,7 @@ the result will be a local, non-Tramp, file name."
   (tramp-skeleton-file-name-all-completions filename directory
     (with-parsed-tramp-file-name (expand-file-name directory) nil
       (tramp-sudoedit-send-command
-       v "ls" "-a1" "--quoting-style=literal" "--show-control-chars"
+       v "ls" "-a1" "--show-control-chars"
        (if (tramp-string-empty-or-nil-p localname)
 	   "" (file-name-unquote localname)))
       (seq-remove

@@ -2790,6 +2790,15 @@ Use the face `mode-line-highlight' for features that can be selected."
   :group 'mode-line-faces
   :group 'basic-faces)
 
+(defface mode-line-recursive-edit
+  '((t :inherit font-lock-warning-face))
+  "Face used for the recursive edit indicator in the mode line.
+This is the face applied to the \"[\" and \"]\" brackets that appear
+around the modes in the mode line when Emacs is in a recursive edit."
+  :version "32.1"
+  :group 'mode-line-faces
+  :group 'basic-faces)
+
 (defface header-line
   '((default
      :inherit mode-line)

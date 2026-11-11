@@ -1,5 +1,5 @@
 # -sedalloc.inp-----------------------------------------------------------
-# Configuration script for SYSTEM_MALLOC/REL_ALLOC in src/config.h
+# Configuration script for GMALLOC_REL_ALLOC in src/config.h
 # ----------------------------------------------------------------------
 #
 # Copyright (C) 2008-2026 Free Software Foundation, Inc.
@@ -15,10 +15,4 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 # ----------------------------------------------------------------------
-/^#define GNU_MALLOC  *1 *$/s|^.*$|/* #undef GNU_MALLOC */|
-/^#define REL_ALLOC.*$/a\
-\
-/* Inserted by the --with-system-malloc switch to config.bat.  */\
-#define SYSTEM_MALLOC 1
-/^#define REL_ALLOC  *1 *$/s|^.*$|/* #undef REL_ALLOC */|
-
+/^#define GMALLOC_REL_ALLOC  *1 *$/s|^.*$|/* #undef GMALLOC_REL_ALLOC */|

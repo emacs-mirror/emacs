@@ -1829,7 +1829,6 @@ AS_IF([test $gl_gcc_warnings = no],
   nw="$nw -Wduplicated-branches"    # Too many false alarms
   nw="$nw -Wformat-overflow=2"      # False alarms due to GCC bug 110333
   nw="$nw -Woverlength-strings"     # Not a problem these days
-  nw="$nw -Wvla"                    # Emacs uses <vla.h>.
   nw="$nw -Winline"                 # OK to ignore 'inline'
   nw="$nw -Wstrict-overflow"        # OK to optimize assuming that
                                     # signed overflow has undefined behavior
@@ -3210,10 +3209,6 @@ to configure.])
    fi
 fi
 
-# Does the opsystem file prohibit the use of the GNU malloc?
-# Assume not, until told otherwise.
-GNU_MALLOC=yes
-
 AC_CHECK_ALIGNOF([EMACS_INT],
   [[#include <limits.h>
     #include <stddef.h>
@@ -3253,80 +3248,6 @@ m4_divert_push([KILL])
 m4_ifdef([gl_STDALIGN_H], [], [m4_include([m4/stdalign.m4])])
 m4_divert_pop([KILL])
 
-dnl Check for alignas now rather than waiting for gl_INIT to do it,
-dnl as the system_malloc=no test below needs $gl_cv_header_working_stdalign_h.
-dnl Do not simply call gl_INIT here, as the ac_cv_func_pthread_sigmask=yes
-dnl assignment below affects how gl_INIT works.
-dnl Instead, call gl_ALIGNASOF, the only part of gl_INIT needed here.
-dnl Then make gl_ALIGNASOF a no-op so gl_INIT does not duplicate its code.
-gl_ALIGNASOF
-AC_DEFUN([gl_ALIGNASOF])
-
-system_malloc=yes
-
-# If it appears as if the system malloc can't be trusted to return
-# adequately positioned memory, enable the GNU malloc, which more
-# consistently provides allocations at low addresses, as is required for
-# the pdumper to load dump files at a representable location.
-AS_CASE([$emacs_cv_struct_alignment%$gl_cv_header_working_stdalign_h%$with_wide_int%$ac_cv_alignof_EMACS_INT%$with_pdumper],
-  [*%*%*%*%*%*],
-    [AC_MSG_ERROR([configuration values cannot contain '%'])],
-
-  dnl There is no problem in most situations, i.e.:
-  [dnl if emacs_cv_struct_alignment
-   yes%* \
-   dnl or if gl_cv_header_working_stdalign_h
-   | *%yes*%*%*%* \
-   dnl or if with_wide_int (as in practice tag bits are high-order)
-   | *%*%yes%*%* \
-   dnl or if EMACS_INT's alignment is at least 8.
-   | *%*%*%8%* | *%*%*%[1-9]?*%*],
-    [],
-
-  dnl Otherwise, if using the portable dumper, enable GNU malloc.
-  [*%yes],
-    [system_malloc=no
-     AC_MSG_WARN([The GNU memory manager will be enabled as your system
-       does not guarantee that the portable dumper can allocate memory
-       at a suitably low address.])])
-
-dnl This must be before the test of $ac_cv_func_sbrk below.
-AC_CHECK_FUNCS_ONCE([sbrk])
-
-GMALLOC_OBJ=
-if test "${system_malloc}" = "yes"; then
-  AC_DEFINE([SYSTEM_MALLOC], [1],
-    [Define to 1 to use the system memory allocator, even if it is not
-     Doug Lea style.])
-  GNU_MALLOC=no
-  GNU_MALLOC_reason="
-    (The GNU allocators don't work with this system configuration.)"
-  VMLIMIT_OBJ=
-else
-  GMALLOC_OBJ=gmalloc.o
-  VMLIMIT_OBJ=vm-limit.o
-
-  AC_CHECK_HEADERS([sys/vlimit.h])
-  AC_CACHE_CHECK([for data_start], [emacs_cv_data_start],
-    [AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM(
-	 [[extern char data_start[]; char ch;]],
-	 [[return data_start < &ch;]])],
-       [emacs_cv_data_start=yes],
-       [emacs_cv_data_start=no])])
-  if test $emacs_cv_data_start = yes; then
-    AC_DEFINE([HAVE_DATA_START], [1],
-      [Define to 1 if data_start is the address of the start
-       of the main data segment.])
-  fi
-fi
-AC_SUBST([GMALLOC_OBJ])
-AC_SUBST([VMLIMIT_OBJ])
-
-if test x"${REL_ALLOC}" = x; then
-  REL_ALLOC=${GNU_MALLOC}
-fi
-
 use_mmap_for_buffers=no
 case "$opsys" in
   mingw32) use_mmap_for_buffers=yes ;;
@@ -3336,7 +3257,6 @@ AC_FUNC_MMAP
 if test $use_mmap_for_buffers = yes; then
   AC_DEFINE([USE_MMAP_FOR_BUFFERS], [1],
     [Define to use mmap to allocate buffer text.])
-  REL_ALLOC=no
 fi
 
 LIBS="$LIBS_SYSTEM $LIBS"
@@ -3367,11 +3287,6 @@ if test "$ac_cv_header_pthread_h" && test "$opsys" != "mingw32"; then
 	      status += pthread_create (&th, 0, 0, 0);
 	      status += pthread_sigmask (SIG_BLOCK, &new_mask, &old_mask);
 	      status += pthread_kill (th, 0);
-	      #ifndef SYSTEM_MALLOC
-	      /* Test for pthread_atfork only if gmalloc uses it,
-		 as older-style hosts like MirBSD 10 lack it.  */
-	      status += pthread_atfork (noop, noop, noop);
-	      #endif
 	      return status;]])],
 	 [emacs_cv_pthread_lib=$emacs_pthread_lib])
        LIBS=$OLD_LIBS
@@ -6036,7 +5951,6 @@ fi
 
 dnl No need to check for posix_memalign if aligned_alloc works.
 AC_CHECK_FUNCS([aligned_alloc posix_memalign], [break])
-AC_CHECK_DECLS([aligned_alloc], [], [], [[#include <stdlib.h>]])
 
 # Dump loading.  Android lacks posix_madvise.
 AC_CHECK_FUNCS([posix_madvise madvise])
@@ -7300,21 +7214,6 @@ if test "$emacs_cv_statement_expressions" = yes; then
     [Define to 1 if statement expressions work.])
 fi
 
-if test "${GNU_MALLOC}" = "yes" ; then
-  AC_DEFINE([GNU_MALLOC], [1],
-	    [Define to 1 if you want to use the GNU memory allocator.])
-fi
-
-RALLOC_OBJ=
-if test "${REL_ALLOC}" = "yes" ; then
-  AC_DEFINE([REL_ALLOC], [1],
-	    [Define REL_ALLOC if you want to use the relocating allocator for
-	     buffer space.])
-
-  test "$system_malloc" != "yes" && RALLOC_OBJ=ralloc.o
-fi
-AC_SUBST([RALLOC_OBJ])
-
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="cygw32.o"
 else
@@ -7578,8 +7477,6 @@ Configured for '${canonical}'.
 
   Where should the build process find the source code?    ${srcdir}
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
-  Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
-  Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
   Should Emacs use mmap(2) for buffer allocation?         $use_mmap_for_buffers
   What window system should Emacs use?                    ${window_system}
   What toolkit should Emacs use?                          ${USE_X_TOOLKIT}

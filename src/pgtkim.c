@@ -167,12 +167,49 @@ im_context_preedit_start_cb (GtkIMContext *imc, gpointer user_data)
 {
 }
 
+static int
+pgtk_purpose_sym_to_int (void)
+{
+  /* If we don't recognize the symbol, we return
+     GTK_INPUT_PURPOSE_TERMINAL.  */
+  /* The symbols here don't all have QGTK_INPUT_PURPOSE in them,
+     because some of them are duplicates of existing symbols.  */
+  if (EQ (Vpgtk_input_purpose, Qterminal))
+    return GTK_INPUT_PURPOSE_TERMINAL;
+  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_FREE_FORM))
+    return GTK_INPUT_PURPOSE_FREE_FORM;
+  if (EQ (Vpgtk_input_purpose, Qalpha))
+    return GTK_INPUT_PURPOSE_ALPHA;
+  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_DIGITS))
+    return GTK_INPUT_PURPOSE_DIGITS;
+  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_NUMBER))
+    return GTK_INPUT_PURPOSE_NUMBER;
+  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_PHONE))
+    return GTK_INPUT_PURPOSE_PHONE;
+  if (EQ (Vpgtk_input_purpose, Qurl))
+    return GTK_INPUT_PURPOSE_URL;
+  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_EMAIL))
+    return GTK_INPUT_PURPOSE_EMAIL;
+  if (EQ (Vpgtk_input_purpose, Qname))
+    return GTK_INPUT_PURPOSE_NAME;
+  if (EQ (Vpgtk_input_purpose, Qpassword))
+    return GTK_INPUT_PURPOSE_PASSWORD;
+  if (EQ (Vpgtk_input_purpose, QGTK_INPUT_PURPOSE_PIN))
+    return GTK_INPUT_PURPOSE_PIN;
+  return GTK_INPUT_PURPOSE_TERMINAL;
+}
+
 void
 pgtk_im_focus_in (struct frame *f)
 {
   struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
   if (dpyinfo->im.context != NULL)
     {
+#if GTK_CHECK_VERSION (3, 6, 0)
+      /* This helps on-screen keyboards (bug#80953).  */
+      g_object_set (dpyinfo->im.context, "input-purpose",
+		    pgtk_purpose_sym_to_int (), NULL);
+#endif
       gtk_im_context_reset (dpyinfo->im.context);
       gtk_im_context_set_client_window (dpyinfo->im.context,
 					gtk_widget_get_window
@@ -308,4 +345,45 @@ syms_of_pgtkim (void)
 If you want to change it after connection, use the `pgtk-use-im-context'
 function.  */ );
   Vpgtk_use_im_context_on_new_connection = Qt;
+
+  /* These DEFSYMs don't cover all the options, because there were
+     already symbols for the other ones with the right name.  */
+  DEFSYM (QGTK_INPUT_PURPOSE_FREE_FORM, "free-form");
+  DEFSYM (QGTK_INPUT_PURPOSE_DIGITS, "digits");
+  DEFSYM (QGTK_INPUT_PURPOSE_NUMBER, "number");
+  DEFSYM (QGTK_INPUT_PURPOSE_PHONE, "phone");
+  DEFSYM (QGTK_INPUT_PURPOSE_EMAIL, "email");
+  DEFSYM (QGTK_INPUT_PURPOSE_PIN, "pin");
+  /* This one exists in textconv.c with the same C name, but that's not
+     compiled for PGTK.  */
+  DEFSYM (Qpassword, "password");
+  DEFVAR_LISP ("pgtk-input-purpose", Vpgtk_input_purpose,
+     doc: /* The GTK input purpose to use.
+
+The default value is `terminal', which signals to GTK that any key
+sequence is allowed.  This will result in some on-screen keyboards
+displaying methods to use modifier keys when typing.  To use GTK's
+default value, set it to `free-form'.
+
+Changes to the value take effect the next time an Emacs frame is
+focused, or after a restart.
+
+Available values are at least:
+
+    terminal
+    free-form
+    alpha
+    digits
+    number
+    phone
+    url
+    email
+    name
+    password
+    pin
+
+This variable only has an effect for PGTK builds using GTK
+versions >= 3.6.0.  */);
+  Vpgtk_input_purpose = Qterminal;
+
 }

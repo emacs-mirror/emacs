@@ -89,8 +89,9 @@ HAVE_PROCFS     The /proc filesystem is supported.
 
 ** Compile-time options **
 
-REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
-SYSTEM_MALLOC	Use the system library's malloc.
+GMALLOC_REL_ALLOC Compile in the relocatable memory allocator ralloc.c.
+		Also compile gmalloc.c, which is an old copy of GNU malloc etc.
+		This is used only on MS-DOS.
 subprocesses    System can use subprocesses (for M-x shell for example).
                 Defined by default, only MSDOS undefines it.
 DEBUG_LISP_OBJECT_TYPE Define it in lisp.h enable compile time checks
@@ -124,7 +125,6 @@ EMACS_INT
 EMACS_UINT
 GC_MARK_SECONDARY_STACK
 GC_SETJMP_WORKS
-GNU_MALLOC
 HAVE_ALLOCA
 HAVE_ALLOCA_H
 HAVE_ALSA
@@ -304,7 +304,6 @@ HAVE_SYS_TIME_H
 HAVE_SYS_TYPES_H
 HAVE_SYS_UN_H
 HAVE_SYS_UTSNAME_H
-HAVE_SYS_VLIMIT_H
 HAVE_SYS_WAIT_H
 HAVE_TERM_H
 HAVE_TIFF
@@ -362,7 +361,6 @@ SETUP_SLAVE_PTY
 SIGNALS_VIA_CHARACTERS
 STDC_HEADERS
 SYSTEM_PURESIZE_EXTRA
-SYSTEM_MALLOC
 TAB3
 TABDLY
 TERM

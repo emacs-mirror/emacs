@@ -1252,7 +1252,7 @@ This default should work without changes."
 
 (defsubst ediff-frame-unsplittable-p (frame)
   (declare (obsolete nil "29.1"))
-  (cdr (assq 'unsplittable (frame-parameters frame))))
+  (frame-parameter frame 'unsplittable))
 
 (defsubst ediff-get-next-window (wind prev-wind)
   (cond ((window-live-p wind) wind)

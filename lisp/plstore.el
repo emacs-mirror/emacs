@@ -661,7 +661,8 @@ GnuPG key, silently save with symmetric encryption." ; (FIXME)
 	     (lambda (entry)
 	       (setq entry (copy-sequence entry))
 	       (let ((merged-plist (cdr (assoc (car entry) merged-alist)))
-		     (plist (cdr entry)))
+		     (plist (cdr entry))
+                     (secret-len (length ":secret-")))
 		 (while plist
 		   (if (plstore--has-secret-keys plist)
 		       (setcar (cdr plist)
@@ -670,7 +671,7 @@ GnuPG key, silently save with symmetric encryption." ; (FIXME)
 				(intern (concat ":"
 						(substring (symbol-name
 							    (car plist))
-							   (match-end 0)))))))
+                                                           secret-len))))))
 		   (setq plist (nthcdr 2 plist)))
 		 (prin1-to-string entry)))
 	     (plstore--get-alist plstore)
@@ -700,7 +701,7 @@ some plstore."
 				   (intern (concat ":"
 						(substring (symbol-name
 							    (car plist))
-							   (match-end 0))))
+                                                           (length ":secret-"))))
 				   (car (cdr plist))))
 	  (setcar (cdr plist) t))
 	(setq plist (nthcdr 2 plist)))

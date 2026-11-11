@@ -7778,7 +7778,7 @@ Allowed types are `agenda' `todo' `tags' `search'."
 	 (error "No Org agenda currently displayed"))
 	((memq org-agenda-type types) t)
 	(error
-	 (error "Not allowed in '%s'-type agenda buffer or component" org-agenda-type))
+	 (error "Not allowed in `%s'-type agenda buffer or component" org-agenda-type))
 	(t nil)))
 
 (defun org-agenda-Quit ()

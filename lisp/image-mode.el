@@ -464,6 +464,8 @@ call."
 				   (cons frame-width frame-height)
 				   window-configuration))))))
 
+(push '(image-mode-saved-params . :never) frameset-filter-alist)
+
 ;;; Image Mode setup
 
 (defcustom image-text-based-formats '(svg xpm)

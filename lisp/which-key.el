@@ -4,7 +4,7 @@
 
 ;; Author: Justin Burkett <justin@burkett.cc>
 ;; Maintainer: Justin Burkett <justin@burkett.cc>
-;; Version: 3.6.1
+;; Version: 3.6.2
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is part of GNU Emacs.
@@ -163,12 +163,12 @@ Default is \"+\"."
   :type 'string
   :package-version '(which-key . "1.0") :version "30.1")
 
-(defcustom which-key-compute-remaps nil
+(defcustom which-key-compute-remaps t
   "If non-nil, show remapped commands.
 This applies to commands that have been remapped given the
 currently active keymaps."
   :type 'boolean
-  :package-version '(which-key . "1.0") :version "30.1")
+  :package-version '(which-key . "3.6.2") :version "32.1")
 
 (defcustom which-key-replacement-alist
   `(((nil . "which-key-show-next-page-no-cycle") . (nil . "wk next pg"))

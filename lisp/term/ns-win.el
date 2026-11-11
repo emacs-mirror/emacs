@@ -731,19 +731,16 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (defvar mouse-wheel-scroll-amount)
 (defvar mouse-wheel-progressive-speed)
 
-;; FIXME: This doesn't look right.  Is there a better way to do this
-;; that keeps customize happy?
 (when (featurep 'cocoa)
   (let ((appkit-version
          (progn (string-match "^appkit-\\([^\s-]*\\)" ns-version-string)
                 (string-to-number (match-string 1 ns-version-string)))))
     ;; Appkit 1138 ~= macOS 10.7.
+    ;; macOS 10.7 is ancient.  We could just default this to nil for ns
+    ;; in the defcustom in mwheel.el.
     (when (>= appkit-version 1138)
-      (setq mouse-wheel-progressive-speed nil)
-      (put 'mouse-wheel-progressive-speed 'customized-value
-           (list (custom-quote
-                  (symbol-value 'mouse-wheel-progressive-speed)))))))
-
+      (put 'mouse-wheel-progressive-speed 'standard-value '(nil))
+      (custom-reevaluate-setting 'mouse-wheel-progressive-speed))))
 
 ;;;; Color support.
 

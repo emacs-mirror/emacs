@@ -7585,9 +7585,12 @@ back_to_previous_line_start (struct it *it)
   ptrdiff_t cp = IT_CHARPOS (*it), bp = IT_BYTEPOS (*it);
 
   dec_both (&cp, &bp);
+  /* A truncated line occupies one screen line.  Find its real start,
+     rather than stopping inside it at the long-line search limit.  */
   SET_WITH_NARROWED_BEGV (it, IT_CHARPOS (*it),
 			  find_newline_no_quit (cp, bp, -1, &IT_BYTEPOS (*it)),
-			  get_small_narrowing_begv (it->w, IT_CHARPOS (*it)));
+			  it->line_wrap == TRUNCATE ? BEGV
+			  : get_small_narrowing_begv (it->w, IT_CHARPOS (*it)));
 }
 
 /* Find in the current buffer the first display or overlay string
@@ -21905,6 +21908,18 @@ try_window_reusing_current_matrix (struct window *w)
 	 text.  Note that it.vpos == 0 if or if not there is a
          header-line; it's not the same as the MATRIX_ROW_VPOS!  */
       start_display (&it, w, new_start);
+
+      /* After skipping invisible text, we might reach the end position
+	 of the first row before displaying strings or a display-table
+	 entry belonging to that row.  This can happen, for example,
+	 when window-start is in invisible text that is immediately
+	 followed by an overlay string with an embedded newline Buffer
+	 positions cannot reliably identify a reusable row in that case,
+	 so we cannot use this method.  (Bug#82054).  */
+      if (IT_CHARPOS (it) > CHARPOS (start)
+	  && IT_CHARPOS (it) >= CHARPOS (start_row->end.pos))
+	return false;
+
       w->cursor.vpos = -1;
       last_text_row = last_reused_text_row = NULL;
 

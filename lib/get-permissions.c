@@ -30,7 +30,7 @@
    Return 0 if successful.  Return -1 and set errno upon failure.  */
 
 int
-get_permissions (const char *name, int desc, mode_t mode,
+get_permissions (_GL_UNUSED const char *name, _GL_UNUSED int desc, mode_t mode,
                  struct permission_context *ctx)
 {
   memset (ctx, 0, sizeof *ctx);

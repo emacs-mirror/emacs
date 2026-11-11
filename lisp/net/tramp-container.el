@@ -311,7 +311,12 @@ see its function help for a description of the format."
   (tramp-skeleton-completion-function method
     (when-let* ((raw-list
 		 (shell-command-to-string
-		  (concat program " ps --format '{{.ID}}<>{{.Names}}'")))
+		  (format
+		   "%s ps --format %s" program
+		   (funcall
+		    (if (tramp-tramp-file-p default-directory)
+			#'tramp-shell-quote-argument #'shell-quote-argument)
+		    "{{.ID}}<>{{.Names}}"))))
 		(lines (string-lines raw-list 'omit))
 		(names
 		 (seq-keep
@@ -331,14 +336,19 @@ see its function help for a description of the format."
 This function is used by `tramp-set-completion-function', please
 see its function help for a description of the format."
   (tramp-skeleton-completion-function method
-    (when-let* ((raw-list
+    ;; JSON is available unconditionally since Emacs 30.1.
+    ;; Emacs 29 must be configured --with-json.
+    (when-let* (((json-available-p))
+		(raw-list
 		 (shell-command-to-string (concat program " ps --format json")))
 		(lines (string-lines raw-list 'omit))
 		(names
 		 (seq-keep
 		  (lambda (line)
-		    (or (gethash "Names" (json-parse-string line))
-			(gethash "ID" (json-parse-string line))))
+		    (or (gethash
+			 "Names" (tramp-compat-funcall 'json-parse-string line))
+			(gethash
+			 "ID" (tramp-compat-funcall 'json-parse-string line))))
 		  lines)))
       (mapcar (lambda (name) (list nil name)) names))))
 

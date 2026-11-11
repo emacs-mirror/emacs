@@ -473,7 +473,7 @@ context_acl_from_mode (struct permission_context *ctx)
 
 static int
 set_acls (struct permission_context *ctx, const char *name, int desc,
-          int from_mode, bool *must_chmod, bool *acls_set)
+          int from_mode, _GL_UNUSED bool *must_chmod, bool *acls_set)
 {
   int ret = 0;
 

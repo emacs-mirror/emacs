@@ -6882,6 +6882,46 @@ decode_eol (struct coding_system *coding)
 	}
       coding->produced -= n;
       coding->produced_char -= n;
+      /* Handle the case of a lone CR at end of buffer that is not the
+         final chunk of the text we need to decode: we want to leave
+         such a CR to the next chunk, in case it begins with an LF.  */
+      if (!(coding->mode & CODING_MODE_LAST_BLOCK)
+	  && FETCH_BYTE (pos_end) == '\r')
+	{
+	  /* With UTF-16, we could have one byte of carryover that
+	     belongs to the next LF.  */
+	  if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qutf_16)
+	      && coding->carryover_bytes <= 1)
+	    {
+	      /* Pretend we didn't process that CR, by pushing it back
+		 in the correct byte order.  */
+	      if (CODING_UTF_16_ENDIAN (coding) == utf_16_big_endian)
+		{
+		  coding->carryover[coding->carryover_bytes++] = '\0';
+		  coding->carryover[coding->carryover_bytes++] = '\r';
+		}
+	      else
+		{
+		  coding->carryover[coding->carryover_bytes++] = '\r';
+		  coding->carryover[coding->carryover_bytes++] = '\0';
+		}
+	      coding->consumed -= 2;
+	      coding->consumed_char--;
+	    }
+	  else if (coding->carryover_bytes == 0)
+	    {
+	      /* Pretend we didn't process that CR.  */
+	      coding->carryover[coding->carryover_bytes++] = '\r';
+	      coding->consumed--;
+	      coding->consumed_char--;
+	    }
+	  coding->produced--;
+	  coding->produced_char--;
+	  /* Delete that CR from the destination buffer.  */
+	  pos = coding->dst_pos + coding->produced_char;
+	  del_range_2 (pos, pos_end, pos + 1, pos_end + 1, 0);
+	  record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_SRC);
+	}
     }
 }
 
@@ -7885,25 +7925,22 @@ code_conversion_restore (Lisp_Object arg)
 }
 
 Lisp_Object
-code_conversion_save (bool with_work_buf, bool multibyte)
+code_conversion_save (bool multibyte)
 {
   Lisp_Object workbuf = Qnil;
 
-  if (with_work_buf)
+  if (reused_workbuf_in_use)
     {
-      if (reused_workbuf_in_use)
-	{
-	  Lisp_Object name
-	    = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
-	  workbuf = Fget_buffer_create (name, Qt);
-	}
-      else
-	{
-	  if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
-	    Vcode_conversion_reused_workbuf
-	      = Fget_buffer_create (Vcode_conversion_workbuf_name, Qt);
-	  workbuf = Vcode_conversion_reused_workbuf;
-	}
+      Lisp_Object name
+	= Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
+      workbuf = Fget_buffer_create (name, Qt);
+    }
+  else
+    {
+      if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
+	Vcode_conversion_reused_workbuf
+	  = Fget_buffer_create (Vcode_conversion_workbuf_name, Qt);
+      workbuf = Vcode_conversion_reused_workbuf;
     }
   record_unwind_protect (code_conversion_restore,
 			 Fcons (Fcurrent_buffer (), workbuf));
@@ -8041,7 +8078,7 @@ decode_coding_gap (struct coding_system *coding, ptrdiff_t bytes)
 	  return;
 	}
     }
-  code_conversion_save (0, 0);
+  record_unwind_current_buffer ();
 
   coding->mode |= CODING_MODE_LAST_BLOCK;
   current_buffer->text->inhibit_shrinking = 1;
@@ -8171,7 +8208,7 @@ decode_coding_object (struct coding_system *coding,
 	  && NILP (dst_object)))
     {
       coding->dst_multibyte = !CODING_FOR_UNIBYTE (coding);
-      coding->dst_object = code_conversion_save (1, coding->dst_multibyte);
+      coding->dst_object = code_conversion_save (coding->dst_multibyte);
       coding->dst_pos = BEG;
       coding->dst_pos_byte = BEG_BYTE;
     }
@@ -8184,7 +8221,7 @@ decode_coding_object (struct coding_system *coding,
 	  prepare_to_modify_buffer (PT, PT, NULL);
 	  set_buffer_internal (current);
 	}
-      code_conversion_save (0, 0);
+      record_unwind_current_buffer ();
       coding->dst_object = dst_object;
       coding->dst_pos = BUF_PT (XBUFFER (dst_object));
       coding->dst_pos_byte = BUF_PT_BYTE (XBUFFER (dst_object));
@@ -8193,7 +8230,7 @@ decode_coding_object (struct coding_system *coding,
     }
   else
     {
-      code_conversion_save (0, 0);
+      record_unwind_current_buffer ();
       coding->dst_object = Qnil;
       /* Most callers presume this will return a multibyte result, and they
 	 won't use `binary' or `raw-text' anyway, so let's not worry about
@@ -8372,7 +8409,7 @@ encode_coding_object (struct coding_system *coding,
 
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
     {
-      coding->src_object = code_conversion_save (1, coding->src_multibyte);
+      coding->src_object = code_conversion_save (coding->src_multibyte);
       set_buffer_internal (XBUFFER (coding->src_object));
       if (STRINGP (src_object))
 	insert_from_string (src_object, from, from_byte, chars, bytes, 0);
@@ -8404,13 +8441,13 @@ encode_coding_object (struct coding_system *coding,
     }
   else if (STRINGP (src_object))
     {
-      code_conversion_save (0, 0);
+      record_unwind_current_buffer ();
       coding->src_pos = from;
       coding->src_pos_byte = from_byte;
     }
   else if (BUFFERP (src_object))
     {
-      code_conversion_save (0, 0);
+      record_unwind_current_buffer ();
       set_buffer_internal (XBUFFER (src_object));
       if (same_buffer)
 	{
@@ -8434,7 +8471,7 @@ encode_coding_object (struct coding_system *coding,
     }
   else
     {
-      code_conversion_save (0, 0);
+      record_unwind_current_buffer ();
       coding->src_pos = from;
       coding->src_pos_byte = from_byte;
     }

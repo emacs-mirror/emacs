@@ -1376,6 +1376,8 @@ It returns t if a desktop file was loaded, nil otherwise.
 	    (run-hooks 'desktop-delay-hook)
 	    (setq desktop-delay-hook nil)
 	    (desktop-restore-frameset)
+            (if (desktop-restoring-frameset-p)
+                (frameset-restore-buffer-list))
 	    (run-hooks 'desktop-after-read-hook)
 	    (message "Desktop: %s%d buffer%s restored%s%s."
 		     (if desktop-saved-frameset

@@ -850,7 +850,7 @@ This includes those for cfservd as well as cfagent.")
   `(
     ;; Macros
     (,(concat "^" cfengine3-macro-regex)
-     1 font-lock-error-face)
+     1 'font-lock-preprocessor-face)
 
     ;; invalid macros
     (,(concat "^[ \t]*" cfengine3-macro-regex)

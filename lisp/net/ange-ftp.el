@@ -3464,11 +3464,12 @@ system TYPE.")
 	(let ((part (ange-ftp-get-file-part file))
 	      (files (ange-ftp-get-files (file-name-directory file))))
 	  (if (ange-ftp-hash-entry-exists-p part files)
-	      (let (;; (host (nth 0 parsed))
-		    ;; (user (nth 1 parsed))
-		    ;; (name (nth 2 parsed))
-		    (dirp (gethash part files))
-		    (inode (gethash file ange-ftp-inodes-hashtable)))
+	      (let* (;; (host (nth 0 parsed))
+		     ;; (user (nth 1 parsed))
+		     ;; (name (nth 2 parsed))
+                     (file (directory-file-name file))
+		     (dirp (gethash part files))
+		     (inode (gethash file ange-ftp-inodes-hashtable)))
 		(unless inode
 		  (setq inode ange-ftp-next-inode-number
 			ange-ftp-next-inode-number (1+ inode))
@@ -3564,24 +3565,23 @@ Value is (0 0) if the modification time cannot be determined."
 	 (ange-ftp-skip-msgs (concat ange-ftp-skip-msgs "\\|^226"))
          (res (ange-ftp-send-cmd (car parsed) (cadr parsed)
                                  (list 'quote "mdtm" (cadr (cdr parsed)))))
-	 (line (cdr res))
-	 (modtime '(0 0)))
+	 (line (cdr res)))
     ;; MDTM should return "213 YYYYMMDDhhmmss" GMT on success
     ;; following the Internet draft for FTP extensions.
     ;; Bob@rattlesnake.com reports that is returns something different
     ;; for at least one FTP server.  So, let's use the response only
     ;; if it matches the Internet draft.
-    (when (string-match-p "^213 [0-9]\\{14\\}$" line)
-      (setq modtime
-	    (encode-time
-	     (string-to-number (substring line 16 18))
-	     (string-to-number (substring line 14 16))
-	     (string-to-number (substring line 12 14))
-	     (string-to-number (substring line 10 12))
-	     (string-to-number (substring line  8 10))
-	     (string-to-number (substring line  4  8))
-	     0)))
-    modtime))
+    (seconds-to-time
+     (if (string-match-p "^213 [0-9]\\{14\\}$" line)
+	 (encode-time
+	  (string-to-number (substring line 16 18))
+	  (string-to-number (substring line 14 16))
+	  (string-to-number (substring line 12 14))
+	  (string-to-number (substring line 10 12))
+	  (string-to-number (substring line  8 10))
+	  (string-to-number (substring line  4  8))
+	  0)
+       0))))
 
 (defun ange-ftp-verify-visited-file-modtime (buf)
   (let ((name (buffer-file-name buf)))

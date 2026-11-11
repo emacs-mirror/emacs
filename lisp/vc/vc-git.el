@@ -2033,7 +2033,8 @@ or BRANCH^ (where \"^\" can be repeated)."
                    (1+ (length (match-string 0 revision))))
                   (t nil))))
     (beginning-of-line)
-    (when (memq 'long vc-log-view-types)
+    (when (and (memq 'long vc-log-view-types)
+               (eq (window-buffer) (current-buffer)))
       (recenter-top-bottom 0))))
 
 (defun vc-git-expanded-log-entry (revision)

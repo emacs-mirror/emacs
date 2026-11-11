@@ -4,7 +4,7 @@
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: processes, languages, extensions
-;; Version: 1.0.29
+;; Version: 1.0.30
 ;; Package-Requires: ((emacs "25.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -74,6 +74,7 @@
     :documentation "An alist of request IDs to continuation specs.")
    (-events-buffer
     :initform nil
+    :initarg :events-buffer
     :accessor jsonrpc--events-buffer
     :documentation "A buffer pretty-printing the JSONRPC events")
    (-events-buffer-config
@@ -117,7 +118,10 @@ notifications.  CONN, METHOD and PARAMS are the same as in
 
 :EVENTS-BUFFER-CONFIG is a plist.  Its `:size' stipulates the
 size of the log buffer (0 disables, nil means infinite).  The
-`:format' property is a symbol for choosing the log entry format.")
+`:format' property is a symbol for choosing the log entry format.
+
+:EVENTS-BUFFER (optional), the buffer to log events to.  If nil or dead,
+a fresh buffer is created.")
 
 (cl-defmethod initialize-instance :after
   ((c jsonrpc-connection) ((&key (events-buffer-scrollback-size

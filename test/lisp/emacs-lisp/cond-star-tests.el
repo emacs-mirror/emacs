@@ -49,5 +49,27 @@
                  '(nil nil)))
   )
 
+(ert-deftest cond-star-bind-and* ()
+  (let ((x 1))
+    ;; Scoping.
+    (should (equal (cond* ((bind-and* (x nil)) x)
+                          ((integerp x) x))
+                   1))
+    (should (equal (cond* ((bind-and* (x 'x)) x)
+                          ((integerp x) x))
+                   'x)))
+  ;; Non-exit clause.
+  (should (equal (cond* ((bind-and* (x t))
+                         (ignore x)
+                         :non-exit)
+                        (t 'y))
+                 'y))
+  ;; Make sure we're TCO compatible.
+  (should (let ((max-lisp-eval-depth 500))
+            (named-let loop ((x (make-list 1000 t)))
+              (cond* ((bind-and* (rest (cdr x)))
+                      (loop rest))
+                     (t (car x)))))))
+
 
 ;;; cond-star-tests.el ends here

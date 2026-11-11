@@ -2992,12 +2992,14 @@ actually defines @var{function}.
 @findex check-declare-file
 @findex check-declare-directory
   To verify that these functions really are declared where
-@code{declare-function} says they are, use @code{check-declare-file}
-to check all @code{declare-function} calls in one source file, or use
+@code{declare-function} says they are, use @code{check-declare-file} to
+check all @code{declare-function} calls in one source file, or use
 @code{check-declare-directory} check all the files in and under a
-certain directory.
+certain directory.  If these commands find problematic declarations,
+they present a @file{*Warnings*} buffer describing each problem they
+found.  @xref{Warnings}.
 
-  These commands find the file that ought to contain a function's
+  These commands look for the file that ought to contain a function's
 definition using @code{locate-library}; if that finds no file, they
 expand the definition file name relative to the directory of the file
 that contains the @code{declare-function} call.
@@ -3007,10 +3009,16 @@ name ending in @samp{.c} or @samp{.m}.  This is useful only when you
 call a primitive that is defined only on certain systems.  Most
 primitives are always defined, so they will never give you a warning.
 
-  Sometimes a file will optionally use functions from an external package.
-If you prefix the filename in the @code{declare-function} statement with
-@samp{ext:}, then it will be checked if it is found, otherwise skipped
-without error.
+@vindex check-declare-ext-errors
+  Sometimes a file will optionally use functions from an external
+package, which might not be found where these commands look.  If you
+prefix the filename in the @code{declare-function} statement with the
+string @samp{ext:}, then its function definitions (or just its
+existence, if @var{fileonly} is non-@code{nil}) will be checked if the
+file is found, otherwise the file is skipped without error.  However, if
+you customize the variable @code{check-declare-ext-errors} to a
+non-@code{nil} value, these commands will produce a @samp{file not
+found} warning for such missing files.
 
   There are some function definitions that @samp{check-declare} does not
 understand (e.g., @code{defstruct} and some other macros).  In such cases,

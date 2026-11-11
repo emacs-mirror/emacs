@@ -433,8 +433,27 @@ pgtk_raise_frame (struct frame *f)
      It does not work for child frames on X, and it does not work
      on Wayland too. */
   block_input ();
+
+  /* If the frame is a Wayland window, get the activation token from the
+     'activation-token' frame parameter, and pass it to GDK.  On
+     Wayland, the "startup id" is the activation token, and the Wayland
+     specific backend function sends the token to the compositor using
+     the XDG Activation protocol.  */
   if (FRAME_VISIBLE_P (f))
-    gdk_window_raise (gtk_widget_get_window (FRAME_WIDGET (f)));
+    {
+      GdkWindow *window = gtk_widget_get_window (FRAME_WIDGET (f));
+      if (GDK_IS_WAYLAND_WINDOW (window))
+        {
+          Lisp_Object tmp = Fframe_parameter (selected_frame, Qactivation_token);
+
+          if (STRINGP (tmp))
+            {
+              gchar *token = SSDATA (tmp);
+              gdk_window_set_startup_id (window, token);
+            }
+        }
+      gdk_window_raise (window);
+    }
   unblock_input ();
 }
 
@@ -7558,6 +7577,7 @@ syms_of_pgtkterm (void)
   DEFSYM (Qmove, "move");
   DEFSYM (Qlink, "link");
   DEFSYM (Qprivate, "private");
+  DEFSYM (Qactivation_token, "activation-token");
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));

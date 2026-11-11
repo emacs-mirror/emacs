@@ -10015,7 +10015,7 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window.
 
 ;;; Generated autoloads from progmodes/eglot.el
 
-(push '(eglot 1 24) package--builtin-versions)
+(push '(eglot 1 26) package--builtin-versions)
 (define-obsolete-function-alias 'eglot-update #'eglot-upgrade-eglot "29.1")
 (autoload 'eglot "eglot"
 "Start LSP server for PROJECT's buffers under MANAGED-MAJOR-MODES.
@@ -13860,7 +13860,7 @@ lines.
 
 ;;; Generated autoloads from progmodes/flymake.el
 
-(push '(flymake 1 4 7) package--builtin-versions)
+(push '(flymake 1 4 8) package--builtin-versions)
 (autoload 'flymake-log "flymake"
 "Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
@@ -14455,7 +14455,7 @@ and choose the directory as the fortune-file.
 (defvar frameset-session-filter-alist (append '((left . frameset-filter-iconified) (minibuffer . frameset-filter-minibuffer) (top . frameset-filter-iconified)) (mapcar (lambda (p) (cons p :never)) frame-internal-parameters))
 "Minimum set of parameters to filter for live (on-session) framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
-(defvar frameset-persistent-filter-alist (append '((background-color . frameset-filter-sanitize-color) (bottom . frameset-filter-shelve-param) (buffer-list . :never) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (font-backend . :never) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:bottom . frameset-filter-unshelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:left . frameset-filter-unshelve-param) (GUI:right . frameset-filter-unshelve-param) (GUI:top . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (left . frameset-filter-shelve-param) (parent-frame . :never) (mouse-wheel-frame . :never) (right . frameset-filter-shelve-param) (top . frameset-filter-shelve-param) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-system . :never)) frameset-session-filter-alist)
+(defvar frameset-persistent-filter-alist (append '((background-color . frameset-filter-sanitize-color) (bottom . frameset-filter-shelve-param) (buffer-list . frameset-filter-buffer-list) (buffer-predicate . :never) (buried-buffer-list . :never) (client . :never) (delete-before . :never) (font . frameset-filter-font-param) (font-backend . :never) (foreground-color . frameset-filter-sanitize-color) (frameset--text-pixel-height . :save) (frameset--text-pixel-width . :save) (fullscreen . frameset-filter-shelve-param) (GUI:bottom . frameset-filter-unshelve-param) (GUI:font . frameset-filter-unshelve-param) (GUI:fullscreen . frameset-filter-unshelve-param) (GUI:height . frameset-filter-unshelve-param) (GUI:left . frameset-filter-unshelve-param) (GUI:right . frameset-filter-unshelve-param) (GUI:top . frameset-filter-unshelve-param) (GUI:width . frameset-filter-unshelve-param) (height . frameset-filter-shelve-param) (left . frameset-filter-shelve-param) (parent-frame . :never) (mouse-wheel-frame . :never) (right . frameset-filter-shelve-param) (top . frameset-filter-shelve-param) (tty . frameset-filter-tty-to-GUI) (tty-type . frameset-filter-tty-to-GUI) (width . frameset-filter-shelve-param) (window-system . :never)) frameset-session-filter-alist)
 "Parameters to filter for persistent framesets.
 DO NOT MODIFY.  See `frameset-filter-alist' for a full description.")
 (defvar frameset-filter-alist frameset-persistent-filter-alist
@@ -20158,7 +20158,7 @@ penultimate step during initialization.
 
 ;;; Generated autoloads from jsonrpc.el
 
-(push '(jsonrpc 1 0 29) package--builtin-versions)
+(push '(jsonrpc 1 0 30) package--builtin-versions)
 (register-definition-prefixes "jsonrpc" '("jsonrpc-"))
 
 
@@ -22783,7 +22783,7 @@ will be computed and used.
 
 (fn CONT)")
 (autoload 'mml2015-self-encrypt "mml2015")
-(register-definition-prefixes "mml2015" '("mml2015-"))
+(register-definition-prefixes "mml2015" '("mml" "pgpsig-armor-to-wrapped-b64"))
 
 
 ;;; Generated autoloads from cedet/srecode/mode.el
@@ -24291,7 +24291,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 10) package--builtin-versions)
+(push '(org 9 8 12) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -28457,6 +28457,53 @@ disabled.
 
 (fn &optional ARG)" t)
 (register-definition-prefixes "rect" '("apply-on-rectangle" "clear-rectangle-line" "delete-" "extract-rectangle-" "killed-rectangle" "ope" "rectangle-" "spaces-string" "string-rectangle-"))
+
+
+;;; Generated autoloads from progmodes/refactor.el
+
+(push '(refactor 0 1 1) package--builtin-versions)
+(autoload 'refactor "refactor"
+"Find refactoring actions between BEG and END, and offer to run them.
+
+If RKIND, a symbol, is non-nil, restrict search to actions of that kind
+and its sub-kinds; interactively with a prefix arg, choose from
+`refactor-kinds'.
+
+Interactively, BEG and END default to automatically calculated bounds
+and a prefix argument prompts for KIND.  If invoked by a mouse event,
+select its window and calculate bounds where it happened.
+
+When INTERACTIVE is nil, return the list of `refactor-action' objects.
+
+(fn BEG &optional END RKIND INTERACTIVE)" t)
+(autoload 'refactor-rename "refactor"
+"Rename the symbol at point to NEWNAME via BACKEND.
+Interactively, BACKEND is chosen to be the first backend in
+`refactor-backend-functions' that claims the symbol at point.
+
+(fn NEWNAME BACKEND)" t)
+(autoload 'refactor-suggestion-mode "refactor"
+"Minor mode for showing refactoring suggestions at point.
+
+Add `refactor-suggestion' to `eldoc-documentation-functions' and
+show `refactor-mode-line-indicator' while actions are available.
+
+This is a minor mode.  If called interactively, toggle the
+`Refactor-Suggestion mode' mode.  If the prefix argument is positive,
+enable the mode, and if it is zero or negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the mode
+if ARG is a negative number.
+
+To check whether the minor mode is enabled in the current buffer,
+evaluate the variable `refactor-suggestion-mode'.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+(fn &optional ARG)" t)
+(register-definition-prefixes "refactor" '("refactor-"))
 
 
 ;;; Generated autoloads from textmodes/refbib.el
@@ -35580,7 +35627,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from transient.el
 
-(push '(transient 0 13 8) package--builtin-versions)
+(push '(transient 0 13 9) package--builtin-versions)
 (autoload 'transient-insert-suffix "transient"
 "Insert a SUFFIX into PREFIX before LOC.
 PREFIX is a prefix command, a symbol.
@@ -37867,11 +37914,12 @@ buffer's file name if it's under version control.
 When called from Lisp, FILE-OR-FILES can be a file name or a list of
 file names.
 When called from Lisp, optional argument NOCONFIRM non-nil means don't
-prompt to confirm deletion.
+prompt to confirm deletion, and optional argument KEEP non-nil means not
+to kill buffers visiting any of FILE-OR-FILES.
 For some VCS, FILE-OR-FILES can include directories.
 These are recursively deleted.
 
-(fn FILE-OR-FILES &optional NOCONFIRM)" t)
+(fn FILE-OR-FILES &optional NOCONFIRM KEEP)" t)
 (autoload 'vc-rename-file "vc"
 "Rename file OLD to NEW in both working tree and repository.
 When called interactively, read OLD and NEW, defaulting OLD to the
@@ -40930,7 +40978,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;; Generated autoloads from progmodes/xref.el
 
-(push '(xref 1 7 0) package--builtin-versions)
+(push '(xref 1 8 0) package--builtin-versions)
 (autoload 'xref-find-backend "xref")
 (define-obsolete-function-alias 'xref-pop-marker-stack #'xref-go-back "29.1")
 (autoload 'xref-go-back "xref"

@@ -31,7 +31,7 @@ General Public License for more details.
 @finalout
 @titlepage
 @title Transient User and Developer Manual
-@subtitle for version 0.13.8
+@subtitle for version 0.13.9
 @author Jonas Bernoulli
 @page
 @vskip 0pt plus 1filll
@@ -53,7 +53,7 @@ resource to get over that hurdle is Psionic K's interactive tutorial,
 available at @uref{https://github.com/positron-solutions/transient-showcase}.
 
 @noindent
-This manual is for Transient version 0.13.8.
+This manual is for Transient version 0.13.9.
 
 @insertcopying
 @end ifnottex
@@ -511,43 +511,50 @@ string, for non-infix suffixes this is usually appropriate.
 @cindex enabling suffixes
 @cindex disabling suffixes
 
-The user base of a package that uses transients can be very diverse.
-This is certainly the case for Magit; some users have been using it and
-Git for a decade, while others are just getting started now.
+The user base of a package that uses transient menus can be diverse.
+This is certainly the case for Magit.  Some users have been using it
+and Git for a decade or more, while others are just getting started
+now.
 
 @cindex levels
-For that reason a mechanism is needed that authors can use to classify a
-transient's infixes and suffixes along the essentials@dots{}everything
-spectrum.  We use the term @dfn{levels} to describe that mechanism.
+For that reason a mechanism is needed, that enables authors to control
+which infix and suffix commands are shown to which group of users, and
+for users to override those choices.  We use the term @dfn{levels} to
+describe that mechanism.
 
-@cindex transient-level
-Each suffix command is placed on a level and each transient has a
-level (called @dfn{transient-level}), which controls which suffix commands
-are available.  Integers between 1 and 7 (inclusive) are valid levels.
-For suffixes, 0 is also valid; it means that the suffix is not
-displayed at any level.
+Each suffix command is placed on a level and each menu has a level.
+A suffix commands is available if its (non-zero) level is smaller or
+equal to the level of the menu.  Valid levels are integers between 1
+and 7.  As a special case, the level of a suffix can be 0, in which
+case it is never shown, regardless of the menu's level.  The default
+level for suffix commands is 1.
 
-The levels of individual transients and/or their individual suffixes
-can be changed interactively, by invoking the menu and entering its
-``edit'' mode using the command @code{transient-set-level}, as described below.
+The default level for menus is controlled using the option
+@code{transient-default-level}, which defaults to 4.  To show more
+suffix commands increase the value of this option or the level of
+an individual menu.  To show fewer suffixes increase such a value.
+Changing the value of this option affects the menus of all packages,
+so you might want to only change the value of individual menus.
 
-The default level for both transients and their suffixes is 4.  The
-@code{transient-default-level} option only controls the default for
-transients.  The default suffix level is always 4.  The authors of
-transients should place certain suffixes on a higher level, if they
-expect that it won't be of use to most users, and they should place
-very important suffixes on a lower level, so that they remain
-available even if the user lowers the transient level.
+To control which commands are shown for some menu, invoke it as usual,
+and then press @kbd{C-x l}.  You will be guided through the process.  This
+allows you to change the level of the menu itself, and/or the levels
+of individual suffix commands for even finer control.
+
+The function @code{transient-set-default-level} can be used to change the
+level of an individual suffix command across all menus, which feature
+that command and provided no local value is specified.  This does not
+work for all suffix commands, and is thus discouraged.
 
 @defopt transient-default-level
 This option controls which suffix levels are made available by
-default.  It sets the transient-level for transients for which the
-user has not set that individually.
+default.  It specifies the level for menus for which the user has
+not set a local value.  The default is 4.
 @end defopt
 
 @defopt transient-levels-file
 This option names the file that is used to persist the levels of
-transients and their suffixes between Emacs sessions.
+menus and their suffix commands between Emacs sessions.
 @end defopt
 
 Option @code{transient-common-command-prefix} controls the prefix key used
@@ -590,8 +597,43 @@ the level specified by @code{transient-default-level} are temporarily
 available anyway.
 @end table
 
-@defun transient-set-default-level suffix level
+@defun transient-set-default-level command level
 This function sets the default level of the suffix COMMAND to LEVEL@.
+
+(The use of this function is currently discouraged, because it does
+not work for all commands and because even for commands, which would
+support it, it does not always have an effect.)
+
+A suffix command is made available if its level is smaller than or
+equal to the level of the menu.  The level of a suffix command is
+determined as follows:
+
+@enumerate
+@item
+The default level for all suffix commands, which is always 1.
+
+@item
+The level set when the suffix command was defined using
+@code{transient-define-suffix}, @code{transient-define-infix} or
+@code{transient-define-argument}.
+
+@item
+The level set using this function.  Use this to override the
+value set using (2) or the default from (1).  (4) and (5)
+override the value set here.  This function can only be used for
+commands defined using the functions mentioned in (2); else you
+have to use (5).  Unless a command appears in multiple menus, it
+is better to use (5).
+
+@item
+The level set when binding the suffix command in a specific menu.
+Package authors should avoid this, and prefer (2); unless they
+want to place a command on different levels in different menus.
+
+@item
+The level interactively set for an individual suffix command in an
+individual menu, using  @kbd{C-x l}.
+@end enumerate
 
 If a suffix command appears in multiple menus, it may make sense to
 consistently change its level in all those menus at once.  For
@@ -599,7 +641,7 @@ example, the @code{--gpg-sign} argument (which is implemented using the
 command @code{magit:--gpg-sign}), is bound in all of Magit's menu which
 create commits.  Users who sometimes sign their commits would want
 that argument to be available in all of these menus, while for users
-who never sign it is just unnecessary noise in any menus.
+who never sign, it is just unnecessary noise in any menus.
 
 To always make @code{--gpg-sign} available, use:
 
@@ -612,24 +654,6 @@ To never make @code{--gpg-sign} available, use:
 @lisp
 (transient-set-default-level 'magit:--gpg-sign 0)
 @end lisp
-
-This sets the level in the suffix prototype object for this command.
-Commands only have a suffix prototype if they were defined using one
-of @code{transient-define-argument}, @code{transient-define-infix} and
-@code{transient-define-suffix}.  For all other commands this would signal
-an error.  (This is one of the reasons why package authors should
-use one of these functions to define shared suffix commands, and
-especially shared arguments.)
-
-If the user changes the level of a suffix in a particular menu,
-using @kbd{C-x l} as shown above, then that obviously shadows the default.
-
-It is also possible to set the level of a suffix binding in a
-particular menu, either when defining the menu using
-@code{transient-define-prefix,} or later using @code{transient-insert-suffix}.  If
-such bindings specify a level, then that also overrides the default.
-(Per-suffix default levels is a new feature, so you might encounter
-this quite often.)
 @end defun
 
 @node Other Commands

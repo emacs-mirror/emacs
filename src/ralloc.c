@@ -1,4 +1,4 @@
-/* Block-relocating memory allocator.
+/* Block-relocating memory allocator, used only on MS-DOS.
    Copyright (C) 1993, 1995, 2000-2026 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1138,7 +1138,6 @@ r_alloc_init (void)
   r_alloc_initialized = 1;
 
   page_size = PAGE;
-#if !defined SYSTEM_MALLOC
   real_morecore = __morecore;
   __morecore = r_alloc_sbrk;
 
@@ -1150,17 +1149,13 @@ r_alloc_init (void)
     emacs_abort ();
 
   extra_bytes = PAGE_ROUNDUP (50000);
-#endif
 
-#if !defined SYSTEM_MALLOC
   /* Give GNU malloc's morecore some hysteresis so that we move all
      the relocatable blocks much less often.  The number used to be
      64, but alloc.c would override that with 32 in code that was
      removed when SYNC_INPUT became the only input handling mode.  */
   __malloc_extra_blocks = 32;
-#endif
 
-#if !defined SYSTEM_MALLOC
   first_heap->end = (void *) PAGE_ROUNDUP (first_heap->start);
 
   /* The extra call to real_morecore guarantees that the end of the
@@ -1178,7 +1173,6 @@ r_alloc_init (void)
   memset (first_heap->start, 0,
 	  (char *) first_heap->end - (char *) first_heap->start);
   virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
-#endif
 
   use_relocatable_buffers = 1;
 }

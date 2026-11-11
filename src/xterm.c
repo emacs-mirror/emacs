@@ -30509,6 +30509,10 @@ x_free_pixmap (struct frame *f, Emacs_Pixmap pixmap)
  ***********************************************************************/
 
 #ifdef USE_X_TOOLKIT
+# if GNUC_PREREQ (5, 1, 0)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+# endif
 static XrmOptionDescRec emacs_options[] = {
   {"-geometry", ".geometry", XrmoptionSepArg, NULL},
   {"-iconic", ".iconic", XrmoptionNoArg, (XtPointer) "yes"},
@@ -30526,6 +30530,9 @@ static XrmOptionDescRec emacs_options[] = {
   {"-mc", "*pointerColor", XrmoptionSepArg, NULL},
   {"-cr", "*cursorColor", XrmoptionSepArg, NULL}
 };
+# if GNUC_PREREQ (5, 1, 0)
+#  pragma GCC diagnostic pop
+# endif
 
 /* Whether atimer for Xt timeouts is activated or not.  */
 
@@ -31675,7 +31682,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     dpy = dpyinfo->display;
     d.addr = (XPointer) &dpy;
     d.size = sizeof (Display *);
-    fr.addr = XtDefaultFont;
+    fr.addr = (void *) XtDefaultFont;
     fr.size = sizeof (XtDefaultFont);
     to.size = sizeof (Font *);
     to.addr = (XPointer) &font;

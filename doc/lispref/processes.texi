@@ -3136,7 +3136,12 @@ to hosts on the same network as the local host.
 
 @item :keepalive @var{keepalive-flag}
 If @var{keepalive-flag} is non-@code{nil} for a stream connection,
-enable exchange of low-level keep-alive messages.
+enable exchange of low-level keep-alive messages.  To change the
+keep-alive timing parameters used by your TCP/IP stack, use the
+@code{:keepalive-idle}, @code{:keepalive-interval}, and
+@code{:keepalive-count} options.  Whether specifying the timing options
+actually has any effect is platform dependent, but should work on
+GNU/Linux, BSD flavors (except OpenBSD), MS Windows, and macOS.
 
 @item :linger @var{linger-arg}
 If @var{linger-arg} is non-@code{nil}, wait for successful

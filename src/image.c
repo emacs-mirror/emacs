@@ -4235,16 +4235,16 @@ image_create_x_image_and_pixmap_1 (struct frame *f, int width, int height, int d
       /* bmiColors is a variable-length array declared by w32api
 	 headers as bmiColors[1], which triggers a warning under
 	 -Warray-bounds; shut that up.  */
-#     if GNUC_PREREQ (4, 4, 0)
-#      pragma GCC push_options
+#     if GNUC_PREREQ (4, 6, 0)
+#      pragma GCC diagnostic push
 #      pragma GCC diagnostic ignored "-Warray-bounds"
 #     endif
       (*pimg)->info.bmiColors[1].rgbBlue = 255;
       (*pimg)->info.bmiColors[1].rgbGreen = 255;
       (*pimg)->info.bmiColors[1].rgbRed = 255;
       (*pimg)->info.bmiColors[1].rgbReserved = 0;
-#     if GNUC_PREREQ (4, 4, 0)
-#      pragma GCC pop_options
+#     if GNUC_PREREQ (4, 6, 0)
+#      pragma GCC diagnostic pop
 #     endif
     }
 

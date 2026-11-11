@@ -24,6 +24,11 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 32.1
 
+** Changed startup options for 'emacsclient' in "emacsclient.desktop".
+The '--display=$DISPLAY' command-line option is replaced with
+'--reuse-frame' in the 'emacsclient' command-line options, to make
+it compatible with both X11 and Wayland.
+
 
 * Startup Changes in Emacs 32.1
 
@@ -55,12 +60,33 @@ behavior.
 If this variable is nil, 'tty-cursor-movement-use-TAB-BS' has no effect,
 and Emacs will never use TABs for any cursor-movement sequences.
 
++++
+** New support for the Kitty Keyboard Protocol.
+If your terminal emulator supports the Kitty Keyboard Protocol,
+text-mode frames now make use of it for keyboard input.
+This means that key chords which previously worked only in graphical
+frames now also work in text-mode frames.  For example, the Kitty
+Keyboard Protocol makes it possible for Emacs to distinguish typing
+"RET" and "C-RET", so now it is possible to bind different commands to
+"RET" and "C-RET" in text-mode frames and have both work.
+If your terminal emulator's support for the Kitty Keyboard Protocol is
+buggy, you can customize 'tty-use-kitty-kbd-proto' to nil to disable
+this feature.
+
 ---
 ** File- and directory-local variables respect user option setters.
 Values of variables that are user options mentioned in file-local
 variable sections and directory-locals via ".dir-locals.el" are now
 set similarly to 'setopt-local'; i.e., if a user option has a defcustom
 ':set' function, that function will be invoked.
+
+** Emacs can now set the input purpose on PGTK.
+By default Emacs now uses the 'terminal' value for the GTK input
+purpose, which helps on-screen keyboards decide whether to allow
+entering of key sequences using modifiers.  This only affects PGTK
+builds using GTK versions >= 3.6.0.  Set the new variable
+'pgtk-input-purpose' to 'free-form' to restore GTK's default behavior
+(which was also Emacs' previous behavior).
 
 ---
 ** New user option 'setopt-local-type-mismatch'.
@@ -117,6 +143,12 @@ If you still want to show the "*Completions*" buffer, then customize
 the user option 'icomplete-in-buffer' to the value 'with-completions-popup'.
 
 ---
+*** Graceful degradation while reading too many dialog items.
+While using the dialog box, 'read-multiple-choice', 'read-answer',
+'map-y-or-n-p' now fall back to reading the answer from the minibuffer
+when the number of items is greater than 9 instead of signaling an error.
+
+---
 ** Improved Emoji support on text-only terminals.
 Emacs now composes Emoji sequences as two-column glyphs on text-mode
 terminals when 'auto-composition-mode' is enabled.  This should correct
@@ -141,6 +173,11 @@ of the terminal emulator:
 This corresponds to the face 'header-line-highlight' as
 'mode-line-emphasis' corresponds to 'mode-line-highlight'.
 
+*** New face 'mode-line-recursive-edit'.
+This face is used for the "[" and "]" brackets that appear around the
+modes in the mode line when Emacs is in a recursive edit.  By default
+it inherits from 'mode-line-emphasis'.
+
 *** Underline, overline, and strike-through can now be scaled with text.
 The thickness of the line of these face attributes can now optionally
 be scaled when the text is scaled.  This is by default off; you can use
@@ -155,6 +192,15 @@ for overline is determined based on the 'Smol' capability in the
 terminfo database.  For terminals where the terminfo database does not
 correctly declare the 'Smol' capability, the new function
 'tty-enable-overline' allows manually enabling or disabling support.
+
++++
+** 'make-network-process' now supports setting TCP keepalive options.
+The ':keepalive-idle', ':keepalive-interval', and ':keepalive-count'
+options can now be used to set the various timers and counters used
+when TCP keepalive is enabled for a connection.  The support for this
+is platform-dependent, but works on at least GNU/Linux, FreeBSD,
+NetBSD, and MS Windows.  (OpenBSD does not work, but specifying the
+options does not cause any errors).
 
 
 * Editing Changes in Emacs 32.1
@@ -211,6 +257,17 @@ check out the repository to prepare a patch for the package maintainer.
 
 ---
 *** Messages from Ansible are now recognized.
+
+---
+*** Messages from Ruff are now recognized.
+
+** Mml
+
+---
+*** mml can now generate unobtrusive signatures.
+These tend to stand out less when displayed in common receiving MUA than
+PGP/MIME signatures.  New command 'mml-secure-message-sign-unobtrusive',
+bound to 'C-c RET s u' in 'mml-mode-map'.
 
 ** Flymake
 
@@ -427,6 +484,12 @@ using lexical binding.
 Previously, HTML list items (<li>) were indented with a narrower width
 than <blockquote> elements.  Now, they all have the same indent width.
 
+---
+*** Ordered lists now support attributes modifying their appearance.
+Now, HTML ordered lists (<ol>) support changing the type (e.g. to use
+letters instead of numbers), the order (ascending or descending), and
+the starting value.
+
 ** Dired
 
 *** The 'repeat-mode' key 'j' has been removed from 'dired-jump-repeat-map'.
@@ -488,6 +551,21 @@ Now, like with 'browse-url', a prefix argument to this command inverts
 the meaning of 'browse-url-new-window-flag' instead of always meaning to
 use a new window.
 
+** Desktop
+
+---
+*** Saving and restoring a session will now save and restore 'buffer-list'.
+This avoids losing the buffer history for each frame, and in particular,
+'M-n' and 'M-p' at the 'C-x b' prompt will now suggest recent buffers of
+the frame after restoring a session.
+
+** Calc
+
+---
+*** New mass unit 'stone'.
+Stone, which is equivalent to 14 lb or 6.35 kg, is used to measure body
+weight in the United Kingdom and Ireland.
+
 
 * New Modes and Packages in Emacs 32.1
 
@@ -517,6 +595,16 @@ Identifiers (UUIDs).  It provides methods for generating UUIDs, parsing
 them, and outputting them as a string, a unibyte binary string, or as a
 number.
 
++++
+** New library 'refactor'.
+This library provides a language-agnostic interface for performing
+refactoring actions such as renaming identifiers, extracting and
+inlining functions, and fixing diagnostics.  Its commands include
+'M-x refactor' and 'M-x refactor-rename'.  The actual actions are
+supplied by Refactor backends defined by major modes and packages.
+Refactor was extracted from Eglot, which is its main user and backend.
+The library is also available as a GNU ELPA package.
+
 
 * Incompatible Lisp Changes in Emacs 32.1
 
@@ -543,6 +631,28 @@ older '(HIGH LOW USEC PSEC)' form.
 
 
 * Lisp Changes in Emacs 32.1
+
+---
+** The regexp engine now matches in linear time.
+In practice, matching a regexp against a string of length N /usually/
+took a time proportional to N (i.e. linear), but with important and
+annoying exceptions, typically described as "pathological" cases,
+where the backtracking algorithm could degenerate to polynomial
+or even exponential time, typically leading to situations where Emacs
+appears frozen.
+With the new code, such "pathological" freezes due to regexp matching
+should be gone, because the time is /always/ (rather than "usually")
+linear.
+Admittedly, this is not quite true.  We know of the following exceptions:
+- The time can still be exponential in the presence of backreferences,
+  of course (theory says it can't be avoided).
+- The time can still be exponential in the presence of counted repetitions
+  (i.e. \{N,M\}) because we do not currently apply memoization for
+  regexps that use that.
+- The time can still be O(N^2) for a few corner cases, tho with a small
+  constant factor.  [ This is because of a conflict between two
+  optimizations: one brings the constant factor down significantly,
+  the other makes the matching algorithm linear-time.  ]
 
 +++
 ** Support for canvas image objects.
@@ -643,6 +753,12 @@ arbitrary directory order without sorting, which may be faster.
 The argument can also be a function of two parameters suitable as the
 ':lessp' argument of 'sort'.  For example, 'string-collate-lessp' would
 result in the locale-specific collation order one might see in Dired.
+
+---
+** New functions 'number-to-roman' and 'roman-to-number'.
+These functions convert between numbers and their Roman numeral forms.
+They were previously part of 'rst-mode' (as 'rst-arabic-to-roman' and
+'rst-roman-to-arabic'), but are now available as autoloaded functions.
 
 
 * Changes in Emacs 32.1 on Non-Free Operating Systems

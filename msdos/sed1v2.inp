@@ -133,7 +133,7 @@ s/ *@WEBP_LIBS@//
 /^HAIKU_CFLAGS *=/s/@HAIKU_CFLAGS@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^WINDOW_SYSTEM_OBJ *=/s/@WINDOW_SYSTEM_OBJ@//
-/^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
+/^MSDOS_OBJ *=/s/= */= vm-limit.o gmalloc.o ralloc.o dosfns.o msdos.o w16select.o/
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_OBJC_OBJ *=/s/@NS_OBJC_OBJ@//
 /^GNU_OBJC_CFLAGS*=/s/=.*$/=/
@@ -163,9 +163,6 @@ s/ *@WEBP_LIBS@//
 /^XRANDR_CFLAGS *=/s/@XRANDR_CFLAGS@//
 /^XINERAMA_LIBS *=/s/@XINERAMA_LIBS@//
 /^XINERAMA_CFLAGS *=/s/@XINERAMA_CFLAGS@//
-/^GMALLOC_OBJ *=/s/@GMALLOC_OBJ@/gmalloc.o/
-/^VMLIMIT_OBJ *=/s/@VMLIMIT_OBJ@/vm-limit.o/
-/^RALLOC_OBJ *=/s/@RALLOC_OBJ@/ralloc.o/
 /^BUILD_DETAILS *=/s/@BUILD_DETAILS@//
 /^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^W32_OBJ *=/s/@W32_OBJ@//

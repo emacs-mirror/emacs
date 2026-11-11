@@ -862,7 +862,7 @@ Create a new splittable frame if none is found."
 			(* 3 window-min-height))
 		     (if ok-unsplittable
                          nil
-                       (cdr (assq 'unsplittable (frame-parameters wind-frame))))))
+                       (frame-parameter wind-frame 'unsplittable))))
 	  ;; remember history
 	  (setq seen-windows (cons (selected-window) seen-windows))
 	  ;; try new window
@@ -1047,9 +1047,9 @@ Create a new splittable frame if none is found."
 (defun ediff-make-frame-position (ctl-buffer ctl-frame-width ctl-frame-height)
   (with-current-buffer ctl-buffer
     (let* ((frame-A (window-frame ediff-window-A))
-	   (frame-A-parameters (frame-parameters frame-A))
-	   (frame-A-top (eval (cdr (assoc 'top frame-A-parameters)) t))
-	   (frame-A-left (eval (cdr (assoc 'left frame-A-parameters)) t))
+	   (frame-A-pos (frame-position frame-A))
+	   (frame-A-left (car frame-A-pos))
+	   (frame-A-top (cdr frame-A-pos))
 	   (frame-A-width (frame-width frame-A))
 	   (ctl-frame ediff-control-frame)
 	   horizontal-adjustment upward-adjustment

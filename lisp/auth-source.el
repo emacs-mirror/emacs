@@ -450,10 +450,8 @@ Supported backend types are `netrc', `plstore' and `json'."
      ((or (not (stringp source))
           (and auth-source-ignore-non-existing-file
                (not (file-exists-p source))))
-      (when auth-source-debug
-        (auth-source-do-warn
-         "auth-source-backend-parse: not existing file, ignoring spec: %S"
-         entry))
+      (auth-source-do-debug
+       "auth-source-backend-parse: not existing file, ignoring spec: %S" entry)
       (auth-source-backend
        :source ""
        :type 'ignore))
@@ -524,7 +522,13 @@ Supported backend types are `netrc', `plstore' and `json'."
        :source source
        :type keychain-type
        :search-function #'auth-source-macos-keychain-search
-       :create-function #'auth-source-macos-keychain-create)))))
+       :create-function #'auth-source-macos-keychain-create)))
+
+   (t (auth-source-do-debug
+       "auth-source-backend-parse: no macos keychain, ignoring spec: %S" entry)
+      (auth-source-backend
+       :source ""
+       :type 'ignore))))
 
 (add-hook 'auth-source-backend-parser-functions
           #'auth-source-backends-parser-macos-keychain)
@@ -566,7 +570,7 @@ Supported backend types are `netrc', `plstore' and `json'."
            :type 'secrets
            :search-function #'auth-source-secrets-search
            :create-function #'auth-source-secrets-create)
-        (auth-source-do-warn
+        (auth-source-do-debug
          "auth-source-backend-parse: no Secrets API, ignoring spec: %S" entry)
         (auth-source-backend
          :source ""
@@ -2107,6 +2111,8 @@ entries for git.gnus.org:
          (max (or max 5000))     ; sanity check: default to stop at 5K
          (auth-source-ignored-keys
           (seq-union auth-source-ignored-keys '(:host :port)))
+         (auth-source-ignored-keys
+          (seq-difference auth-source-ignored-keys '(:label)))
          ;; Extract host, port and user from spec
          (hosts (plist-get spec :host))
          (hosts (if (consp hosts) hosts `(,hosts)))
@@ -2173,7 +2179,7 @@ entries for git.gnus.org:
                  "-g"))
          (ret (list :type type)))
     (when label
-      (setq args (append args (list "-l" label))))
+      (setq args (append args (cons "-l" label))))
     (when host
       (setq args (append args (list (if keychain-generic "-c" "-s") host))))
     (when user

@@ -425,6 +425,10 @@ of one of the above forms, evaluated when the keyword is (first)
 used in a buffer.  This feature can be used to provide a keyword
 that can only be generated when Font Lock mode is actually turned on.
 
+FACENAME is either a quoted symbol such as \\='FACE, or an unquoted
+symbol that is evaluated as a variable.  The variable's value can
+be any valid FACESPEC value (see below).
+
 HIGHLIGHT should be either MATCH-HIGHLIGHT or MATCH-ANCHORED.
 
 For highlighting single items, for example each instance of the
@@ -436,13 +440,13 @@ then MATCH-ANCHORED may be required.
 
 MATCH-HIGHLIGHT should be of the form:
 
- (SUBEXP FACENAME [OVERRIDE [LAXMATCH]])
+ (SUBEXP FACESPEC [OVERRIDE [LAXMATCH]])
 
 SUBEXP is the number of the subexpression of MATCHER to be
 highlighted.
 
-FACENAME is an expression whose value is the face to use.
-Instead of a face, FACENAME can evaluate to a property list of
+FACESPEC is an expression whose value is the face to use.
+Instead of a face, FACESPEC can evaluate to a property list of
 the form (face FACE PROP1 VAL1 PROP2 VAL2 ...)  in which case all
 the listed text-properties will be set rather than just FACE.  In
 such a case, you will most likely want to put those properties in

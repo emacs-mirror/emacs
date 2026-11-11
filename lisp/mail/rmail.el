@@ -3797,8 +3797,7 @@ to switch to."
    ((or (null (delq (selected-frame) (visible-frame-list)))
 	(not (or (window-dedicated-p (frame-selected-window))
 		 (and pop-up-frames (one-window-p))
-		 (cdr (assq 'mail-dedicated-frame
-			    (frame-parameters))))))
+		 (frame-parameter nil 'mail-dedicated-frame))))
     (let (rmail-flag summary-buffer)
       (unless (one-window-p)
 	(with-current-buffer

@@ -458,4 +458,22 @@ instead."
       (completion-preview--post-command))
     (completion-preview-tests--check-preview "baz" 'completion-preview-common)))
 
+(ert-deftest completion-preview-change-major-mode ()
+  "Test that changing the major mode removes the completion preview."
+  (with-temp-buffer
+    (completion-preview-mode)
+    (setq-local completion-at-point-functions
+                (list (completion-preview-tests--capf '("foobar"))))
+    (insert "foo")
+    (let ((this-command 'self-insert-command))
+      (completion-preview--post-command))
+    (completion-preview-tests--check-preview "bar"
+                                             'completion-preview-exact
+                                             'completion-preview-exact)
+    (let ((this-command 'fundamental-mode))
+      (fundamental-mode)
+      (completion-preview--post-command))
+    (should-not (seq-some (lambda (ov) (overlay-get ov 'after-string))
+                          (overlays-in (point-min) (point-max))))))
+
 ;;; completion-preview-tests.el ends here

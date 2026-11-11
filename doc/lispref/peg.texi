@@ -81,10 +81,15 @@ At the end of parsing, one of @var{failure-function} or
 succeeded or not.  If @var{success-function} is provided, it should be a
 function that receives as its only argument an anonymous function that
 runs all the actions collected on the stack during parsing.  By default
-this anonymous function is simply executed.  If parsing fails, a
-function provided as @var{failure-function} will be called with a list
-of @acronym{PEG} expressions that failed during parsing.  By default
-this list is discarded.
+this anonymous function is simply executed, with point where
+@var{peg-matcher} left it.
+
+If parsing fails, on the other hand, regardless where @var{peg-matcher}
+left point, point is moved to the furthest position the parser managed
+to reach, which is often a good guess of the ``error location''.
+Then the function provided as @var{failure-function} is called with
+a list of @acronym{PEG} expressions that failed during parsing.
+By default this list is discarded.
 @end defun
 
 The @var{peg-matcher} passed to @code{peg-run} is produced by a call to
@@ -152,7 +157,7 @@ later calls to @code{peg-run} or @code{with-peg-rules}:
 
 @example
 @group
-(with-peg-rules number-grammar
+(with-peg-rules (number-grammar)
   (peg-run (peg number)))
 @end group
 @end example

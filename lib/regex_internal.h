@@ -814,7 +814,8 @@ re_string_wchar_at (const re_string_t *pstr, Idx idx)
 
 static int
 __attribute__ ((pure, unused))
-re_string_elem_size_at (const re_string_t *pstr, Idx idx)
+re_string_elem_size_at (__attribute_maybe_unused__ const re_string_t *pstr,
+			__attribute_maybe_unused__ Idx idx)
 {
 #ifdef _LIBC
   const unsigned char *p, *extra;

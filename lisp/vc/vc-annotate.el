@@ -585,26 +585,23 @@ the file in question, search for the log entry required and move point."
 	(let ((backend vc-annotate-backend)
 	      (log-buf (get-buffer "*vc-change-log*"))
               ;; No need to follow renames: we specify the historical file name.
-              vc-git-print-log-follow
-	      pos)
-	  (if (and
-	       log-buf
-	       ;; Look for a log buffer that already displays the correct file.
-	       (with-current-buffer log-buf
-		 (and (eq backend log-view-vc-backend)
-		      (null (cdr log-view-vc-fileset))
-		      (string= (car log-view-vc-fileset) (cdr rev-at-line))
-		      ;; Check if the entry we require can be found.
-		      (vc-call-backend
-		       backend 'show-log-entry (car rev-at-line))
-		      (setq pos (point)))))
-	      (progn
-		(pop-to-buffer log-buf)
-		(goto-char pos))
-	    ;; Ask the backend to display a single log entry.
-	    (vc-print-log-internal
-	     vc-annotate-backend (list (cdr rev-at-line))
-	     (car rev-at-line) t 1)))))))
+              vc-git-print-log-follow)
+          ;; Look for a log buffer that already displays the correct
+          ;; file.  Pop to it immediately because the backend function
+          ;; might call `recenter-top-bottom'.  If it turns out this log
+          ;; is useless and we have to call `vc-print-log-internal', the
+          ;; buffer will be reused, so it's fine that we popped to it.
+          (unless (and log-buf
+	               (with-current-buffer (pop-to-buffer log-buf)
+		         (and (eq backend log-view-vc-backend)
+		              (null (cdr log-view-vc-fileset))
+		              (equal (car log-view-vc-fileset)
+                                     (cdr rev-at-line))
+                              (vc-call-backend backend 'show-log-entry
+                                               (car rev-at-line)))))
+            (vc-print-log-internal vc-annotate-backend
+                                   (list (cdr rev-at-line))
+	                           (car rev-at-line) t 1)))))))
 
 (defun vc-annotate-show-diff-revision-at-line-internal (filediff)
   (defvar vc-allow-async-diff)

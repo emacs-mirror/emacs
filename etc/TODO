@@ -53,6 +53,35 @@ hierarchy is mainly in cus-edit.el.
 Once the two- or three-level hierarchy of defgroups is defined, all the
 defcustom's should be audited and their groups redefined if necessary.
 
+** Redesign and re-implement how info.el looks for node references.
+Node references in Info files are present on node header lines, in
+menus, in cross-references, and in index nodes.  The syntax and rules
+for these references is subtly different in each case.
+
+The way info.el looks for node references and parses them is currently
+scattered all over info.el's code.  Each function which needs to search
+and/or recognize a node reference uses complex special-purpose regular
+expressions, all of them subtly different.  Even finding all of those
+places is a challenge.  So when the Texinfo project changes the way Info
+files are formatted, the job of adjusting info.el to such changes is
+unnecessarily complex and error-prone.  In addition, in some cases,
+searching and matching node references is followed by code that uses the
+results of matching with the likes of '(match-beginning 3)' or
+'(match-string 5)'; these are hard to understand without analyzing the
+subgroups in the regexp and then understanding which part of the node
+reference each subgroup refers to; modifying that is harder still.
+
+We need to have a single centralized function which can be used to
+search for node references and optionally return the results of their
+parsing into file name, label, and node name.  This function should
+support all the possible variants of node references, with their subtle
+differences, and in particular it should supported quoting of labels and
+node names with DEL characters (whose support is in info.el only
+starting from Emacs 32).  The results of parsing a node reference should
+be returned in a data structure that is mnemonically-easy to use.  Then
+info.el should be modified to use this function everywhere where it
+needs to search or parse node references.
+
 ** Things related to elpa.gnu.org.
 We need to figure out how to best include GNU ELPA packages in the
 Emacs tarball before doing any of the items below.
@@ -1801,13 +1830,6 @@ as long as we stick to the features provided in sendmail.el.
 
 (Probably obsolete, as Emacs 24 switched to message.el as the
 default mail composer.)
-
-** Replace gmalloc.c
-Replace it with the modified Doug Lea code from the current GNU libc
-so that the special mmapping of buffers can be removed -- that
-apparently loses under Solaris, at least. [fx has mostly done this.]
-
-(Obsolete, since gmalloc.c is nowadays only used on MS-DOS.)
 
 ** Eliminate the etc/DOC file altogether
 We could try and eliminate the DOC file altogether.  See

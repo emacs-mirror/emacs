@@ -89,7 +89,7 @@ qcopy_acl (const char *src_name, int source_desc, const char *dst_name,
      to copy */
   if (ret == 0)
     {
-      ret = source_desc <= 0 || dest_desc <= 0
+      ret = source_desc < 0 || dest_desc < 0
         ? attr_copy_file (src_name, dst_name, is_attr_permissions, NULL)
         : attr_copy_fd (src_name, source_desc, dst_name, dest_desc,
                         is_attr_permissions, NULL);

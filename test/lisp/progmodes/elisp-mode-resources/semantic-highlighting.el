@@ -44,6 +44,24 @@
 ;; ^ (elisp-function font-lock-keyword-face)
 ;;        ^ (elisp-feature font-lock-constant-face)
 
+(cl-loop for sym being the symbols
+;; ^ (elisp-macro font-lock-keyword-face)
+;;           ^ elisp-binding-variable
+         and k being the hash-keys of definition-prefixes
+;;           ^ elisp-binding-variable
+;;                                    ^ elisp-free-variable
+         using (hash-value v)
+;;                         ^ elisp-binding-variable
+         for g being each overlay from (point-min) to (point)
+;;           ^ elisp-binding-variable
+;;                                      ^              ^ elisp-function
+         for ((x . y) nil ((z))) = v
+;;             ^   ^        ^ elisp-binding-variable
+;;                                 ^ elisp-bound-variable
+         collecting (list sym k v g x y z))
+;;                   ^ elisp-function
+;;                        ^   ^ ^ ^ ^ ^ ^ elisp-bound-variable
+
 ;; Taken from `completion-shorthand-try-completion' in minibuffer.el:
 (defun foobaz (string table pred point)
 ;; ^ (elisp-macro font-lock-keyword-face)

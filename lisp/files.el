@@ -1464,7 +1464,7 @@ reuse only a connection that is already open.
 
 Return nil or a string identifying the remote connection
 \(ideally a prefix of FILE).  Return nil if FILE is a relative
-file name.
+file name.  Return nil if FILE is nil.
 
 When IDENTIFICATION is nil, the returned string is a complete
 remote identifier: with components method, user, and host.  The
@@ -1498,7 +1498,8 @@ Tip: You can use this expansion of remote identifier components
      returns a remote file name for file \"/bin/sh\" that has the
      same remote identifier as FILE but expanded; a name such as
      \"/sudo:root@myhost:/bin/sh\"."
-  (when-let* ((handler (find-file-name-handler file 'file-remote-p)))
+  (when-let* ((file)
+              (handler (find-file-name-handler file 'file-remote-p)))
     (funcall handler 'file-remote-p file identification connected)))
 
 ;; Probably this entire variable should be obsolete now, in favor of
@@ -3295,6 +3296,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|CBR\\|7Z\\|SQUASHFS\\)\\'" .
     ;; e.g. in /etc/npmrc files.
     ("npmrc\\'" . conf-npmrc-mode)
     ("/\\.redshift\\.conf\\'" . conf-windows-mode)
+    ("/\\.buckconfig\\(?:\\.local\\)?\\'" . conf-mode)
     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
     ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
     ;; ChangeLog.old etc.  Other change-log-mode entries are above;

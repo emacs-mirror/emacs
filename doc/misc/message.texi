@@ -1079,6 +1079,14 @@ Digitally sign current message using @acronym{PGP}.
 
 Digitally sign current message using @acronym{PGP/MIME}.
 
+@item C-c C-m s u
+@kindex C-c C-m s u
+@findex mml-secure-message-sign-unobtrusive
+
+Digitally sign current message ``unobtrusively''.  See
+@uref{https://datatracker.ietf.org/doc/draft-ietf-mailmaint-unobtrusive-signatures/,
+draft-ietf-mailmaint-unobtrusive-signatures} for details.
+
 @item C-c C-m c s
 @kindex C-c C-m c s
 @findex mml-secure-message-encrypt-smime

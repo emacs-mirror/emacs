@@ -448,6 +448,19 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      (2 compilation-warning-face)
      (3 compilation-info-face))
 
+    ;; This must precede the `gnu' rule or the latter would match instead.
+    (ruff
+     ,(rx bol
+          (or (: (+ (in "A-Z")) (+ (in "0-9")))
+              (: (+ (in "a-z" "0-9" "-")) ":"))
+          " " (not " ") (+ nonl)
+          "\n" (* " ") "-->"
+          " " (group-n 1 (+ nonl))                  ; file
+          ":" (group-n 2 (in "1-9") (* (in "0-9"))) ; line
+          ":" (group-n 3 (in "1-9") (* (in "0-9"))) ; column
+          eol)
+     1 2 3 2)
+
     ;; Tested with Lua 5.1, 5.2, 5.3, 5.4, and LuaJIT 2.1.
     (lua
      ,(rx bol

@@ -22,8 +22,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <stdlib.h>
 
-#include <attribute.h>
-
 /* Don't try to include termcap.h.  On some systems, configure finds a
    non-standard termcap.h that the main build won't find.  */
 
@@ -35,7 +33,7 @@ char *tgetstr (const char *, char **);
 char *tgoto (const char *, int, int);
 
 char *tparam (const char *, char *, int, int, int, int, int)
-  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC (xfree, 1);
 
 extern char PC;
 extern char *BC;

@@ -4863,7 +4863,7 @@ extern AVOID buffer_memory_full (ptrdiff_t);
 extern bool survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 extern void mark_objects (Lisp_Object *, ptrdiff_t);
-#if defined REL_ALLOC && !defined SYSTEM_MALLOC
+#ifdef GMALLOC_REL_ALLOC
 extern void refill_memory_reserve (void);
 #endif
 extern void mark_c_stack (char const *, char const *);
@@ -5101,15 +5101,14 @@ Lisp_KV_Vector hash_table_alloc_kv (void *h, ptrdiff_t nobjs);
 void hash_table_free_kv (void *h, Lisp_KV_Vector p, ptrdiff_t nobjs);
 
 /* Defined in gmalloc.c.  */
-#ifndef SYSTEM_MALLOC
+#ifdef GMALLOC_REL_ALLOC
 extern size_t __malloc_extra_blocks;
-#endif
-#if !HAVE_DECL_ALIGNED_ALLOC
-extern void *aligned_alloc (size_t, size_t) ATTRIBUTE_MALLOC_SIZE ((2));
-#endif
+extern void *aligned_alloc (size_t, size_t)
+  ATTRIBUTE_MALLOC_SIZE ((2)) ATTRIBUTE_DEALLOC_FREE;
 extern void malloc_enable_thread (void);
+#endif
 
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
 /* Defined in ralloc.c.  */
 extern void *r_alloc (void **, size_t) ATTRIBUTE_ALLOC_SIZE ((2));
 extern void r_alloc_free (void **);
@@ -5886,7 +5885,8 @@ maybe_disable_address_randomization (int argc, char **argv)
 #endif
 extern int emacs_exec_file (char const *, char *const *, char *const *);
 extern void init_standard_fds (void);
-extern char *emacs_get_current_dir_name (void);
+extern char *emacs_get_current_dir_name (void)
+  ATTRIBUTE_MALLOC ATTRIBUTE_DEALLOC_FREE;
 extern int stuff_char (char c);
 extern void init_foreground_group (void);
 extern void sys_subshell (void);
@@ -6139,17 +6139,22 @@ extern char my_edata[];
 extern char my_endbss[];
 extern char *my_endbss_static;
 
+/* Defined in alloc.c.  */
+extern void xfree (void *);
 extern void *xmalloc (size_t)
-  ATTRIBUTE_MALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+  ATTRIBUTE_MALLOC_SIZE ((1))
+  ATTRIBUTE_DEALLOC (xfree, 1) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xzalloc (size_t)
-  ATTRIBUTE_MALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+  ATTRIBUTE_MALLOC_SIZE ((1))
+  ATTRIBUTE_DEALLOC (xfree, 1) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xcalloc (size_t, size_t)
-  ATTRIBUTE_MALLOC_SIZE ((1,2)) ATTRIBUTE_RETURNS_NONNULL;
+  ATTRIBUTE_MALLOC_SIZE ((1,2))
+  ATTRIBUTE_DEALLOC (xfree, 1) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xrealloc (void *, size_t)
   ATTRIBUTE_ALLOC_SIZE ((2)) ATTRIBUTE_RETURNS_NONNULL;
-extern void xfree (void *);
 extern void *xnmalloc (ptrdiff_t, ptrdiff_t)
-  ATTRIBUTE_MALLOC_SIZE ((1,2)) ATTRIBUTE_RETURNS_NONNULL;
+  ATTRIBUTE_MALLOC_SIZE ((1,2))
+  ATTRIBUTE_DEALLOC (xfree, 1) ATTRIBUTE_RETURNS_NONNULL;
 extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t)
   ATTRIBUTE_ALLOC_SIZE ((2,3)) ATTRIBUTE_RETURNS_NONNULL;
 extern ptrdiff_t xpalloc_nbytes (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
@@ -6157,9 +6162,11 @@ extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t)
   ATTRIBUTE_RETURNS_NONNULL;
 
 extern char *xstrdup (char const *)
-  ATTRIBUTE_MALLOC ATTRIBUTE_RETURNS_NONNULL;
+  ATTRIBUTE_MALLOC
+  ATTRIBUTE_DEALLOC (xfree, 1) ATTRIBUTE_RETURNS_NONNULL;
 extern char *xlispstrdup (Lisp_Object)
-  ATTRIBUTE_MALLOC ATTRIBUTE_RETURNS_NONNULL;
+  ATTRIBUTE_MALLOC
+  ATTRIBUTE_DEALLOC (xfree, 1) ATTRIBUTE_RETURNS_NONNULL;
 extern void dupstring (char **, char const *);
 
 /* Make DEST a copy of STRING's data.  Return a pointer to DEST's terminating
@@ -6224,7 +6231,8 @@ extern void init_system_name (void);
 enum MAX_ALLOCA { MAX_ALLOCA = 16 * 1024 };
 
 extern void *record_xmalloc (size_t)
-  ATTRIBUTE_ALLOC_SIZE ((1)) ATTRIBUTE_RETURNS_NONNULL;
+  ATTRIBUTE_MALLOC_SIZE ((1))
+  ATTRIBUTE_DEALLOC (xfree, 1) ATTRIBUTE_RETURNS_NONNULL;
 
 #ifdef HAVE_MPS
 /* Prototypes needed for macros and inline functions.  */

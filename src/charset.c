@@ -1605,10 +1605,10 @@ maybe_unify_char (int c, Lisp_Object val)
     return c;
 
   CHECK_CHARSET_GET_CHARSET (val, charset);
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   /* The call to load_charset below can allocate memory, which screws
      callers of this function through STRING_CHAR_* macros that hold C
-     pointers to buffer text, if REL_ALLOC is used.  */
+     pointers to buffer text, if GMALLOC_REL_ALLOC is used.  */
   r_alloc_inhibit_buffer_relocation (1);
 #endif
   load_charset (charset, 1);
@@ -1626,7 +1626,7 @@ maybe_unify_char (int c, Lisp_Object val)
       if (unified > 0)
 	c = unified;
     }
-#ifdef REL_ALLOC
+#ifdef GMALLOC_REL_ALLOC
   r_alloc_inhibit_buffer_relocation (0);
 #endif
   return c;

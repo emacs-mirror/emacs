@@ -389,16 +389,21 @@ The following files have already been loaded: %S")))
 
 (defun package--get-activatable-pkg (pkg-name)
   ;; Is "activatable" a word?
-  (let ((pkg-descs (cdr (assq pkg-name package-alist))))
-    ;; Check if PACKAGE is available in `package-alist'.
-    (while
-        (when pkg-descs
-          (let ((available-version (package-desc-version (car pkg-descs))))
-            (or (package-disabled-p pkg-name available-version)
-                ;; Prefer a builtin package.
-                (package-built-in-p pkg-name available-version))))
-      (setq pkg-descs (cdr pkg-descs)))
-    (car pkg-descs)))
+  (catch 'activate
+    (let ((pkg-descs (cdr (assq pkg-name package-alist))))
+      ;; Prefer VC packages
+      (dolist (desc pkg-descs)
+        (when (package-vc-p desc)
+          (throw 'activate desc)))
+      ;; Check if PACKAGE is available in `package-alist'.
+      (dolist (desc pkg-descs)
+        (let ((available-version (package-desc-version desc)))
+          (unless (or (package-disabled-p pkg-name available-version)
+                      ;; Prefer a builtin package: If the build-in
+                      ;; version of the package is newer than DESC, we
+                      ;; skip considering to activate it.
+                      (package-built-in-p pkg-name available-version))
+            (throw 'activate desc)))))))
 
 ;; This function activates a newer version of a package if an older
 ;; one was already activated.  It also loads a features of this

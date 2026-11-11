@@ -99,62 +99,59 @@ typedef bool bool_bf;
    srand48; it tries to redeclare what was once srandom to be srand48.
    So we go with HAVE_LRAND48 being defined.  */
 #ifdef HPUX
-#undef srandom
-#undef random
-#undef HAVE_RANDOM
-#undef HAVE_RINT
+# undef srandom
+# undef random
+# undef HAVE_RANDOM
+# undef HAVE_RINT
 #endif  /* HPUX */
 
 #ifdef MSDOS
-#ifndef __DJGPP__
+# ifndef __DJGPP__
 You lose; /* Emacs for DOS must be compiled with DJGPP */
-#endif
-#define _NAIVE_DOS_REGS
+# endif
+# define _NAIVE_DOS_REGS
 
-/* Start of gnulib-related stuff  */
+/* Start of stuff related to MS-DOS and Gnulib.  */
 
 /* lib/ftoastr.c wants strtold, but DJGPP only has _strtold.  DJGPP >
    2.03 has it, but it also has _strtold as a stub that jumps to
    strtold, so use _strtold in all versions.  */
-#define strtold _strtold
+# define strtold _strtold
 
-#if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3
-# define HAVE_LSTAT 1
-#else
-# define lstat stat
+# if __DJGPP__ > 2 || __DJGPP_MINOR__ > 3
+#  define HAVE_LSTAT 1
+# else
+#  define lstat stat
 /* DJGPP 2.03 and older don't have the next two.  */
-# define EOVERFLOW ERANGE
-# define SIZE_MAX  4294967295U
-#endif
+#  define EOVERFLOW ERANGE
+#  define SIZE_MAX  4294967295U
+# endif
 
 /* Things that lib/reg* wants.  */
 
-#define mbrtowc(pwc, s, n, ps) mbtowc (pwc, s, n)
-#define wcrtomb(s, wc, ps) wctomb (s, wc)
-#define btowc(b) ((wchar_t) (b))
-#define towupper(chr) toupper (chr)
-#define towlower(chr) tolower (chr)
-#define iswalnum(chr) isalnum (chr)
-#define wctype(name) ((wctype_t) 0)
-#define iswctype(wc, type) false
-#define mbsinit(ps) 1
+# define mbrtowc(pwc, s, n, ps) mbtowc (pwc, s, n)
+# define wcrtomb(s, wc, ps) wctomb (s, wc)
+# define btowc(b) ((wchar_t) (b))
+# define towupper(chr) toupper (chr)
+# define towlower(chr) tolower (chr)
+# define iswalnum(chr) isalnum (chr)
+# define wctype(name) ((wctype_t) 0)
+# define iswctype(wc, type) false
+# define mbsinit(ps) 1
 
 /* Some things that lib/at-func.c wants.  */
-#define GNULIB_SUPPORT_ONLY_AT_FDCWD
+# define GNULIB_SUPPORT_ONLY_AT_FDCWD
 
 /* Needed by lib/lchmod.c.  */
-#define EOPNOTSUPP EINVAL
+# define EOPNOTSUPP EINVAL
 
 /* We must intercept 'opendir' calls to stash away the directory name,
    so we could reuse it in readlinkat; see msdos.c.  */
-#define opendir sys_opendir
+# define opendir sys_opendir
 
-/* End of gnulib-related stuff.  */
+/* End of stuff related to MS-DOS and Gnulib.  */
 
-#define emacs_raise(sig) msdos_fatal_signal (sig)
-
-/* DATA_START is needed by vm-limit.c. */
-#define DATA_START (&etext + 1)
+# define emacs_raise(sig) msdos_fatal_signal (sig)
 #endif  /* MSDOS */
 
 #if defined HAVE_NTGUI && !defined DebPrint
@@ -170,9 +167,9 @@ extern void _DebPrint (const char *fmt, ...);
 # define NTGUI_UNICODE /* Cygwin runs only on UNICODE-supporting systems */
 # define _WIN32_WINNT 0x500 /* Win2k */
 /* The following was in /usr/include/string.h prior to Cygwin 1.7.33.  */
-#ifndef strnicmp
-#define strnicmp strncasecmp
-#endif
+# ifndef strnicmp
+#  define strnicmp strncasecmp
+# endif
 #endif
 
 /* Tell time_rz.c to use Emacs's getter and setter for TZ.
@@ -281,13 +278,13 @@ extern int emacs_setenv_TZ (char const *);
    and is faster than fork, so silence the warning as if we knew what we
    are doing.  */
 #ifdef DARWIN_OS
-#define VFORK()								\
+# define VFORK()							\
   (_Pragma("clang diagnostic push")					\
    _Pragma("clang diagnostic ignored \"-Wdeprecated-declarations\"")	\
    vfork ()								\
    _Pragma("clang diagnostic pop"))
 #else
-#define VFORK() vfork ()
+# define VFORK() vfork ()
 #endif
 
 #if ! (defined __FreeBSD__ || defined GNU_LINUX || defined __MINGW32__)
@@ -296,7 +293,7 @@ extern int emacs_setenv_TZ (char const *);
 
 /* Some versions of GNU/Linux define noinline in their headers.  */
 #ifdef noinline
-#undef noinline
+# undef noinline
 #endif
 
 /* INLINE marks functions defined in Emacs-internal C headers.
@@ -381,11 +378,15 @@ extern int emacs_setenv_TZ (char const *);
 #define REQUIRE_GNUISH_STRFTIME_AM_PM false
 #define SUPPORT_NON_GREG_CALENDARS_IN_STRFTIME false
 
+/* Emacs does not use gettext dynamic contexts, the only Gnulib feature
+   that could profitably use VLAs.  Disable them to pacify gcc -Wvla.  */
+#define GNULIB_NO_VLA 1
+
 #ifdef MSDOS
 /* These are required by file-has-acl.c but defined in dirent.h and
    errno.h, which are not generated on DOS.  */
-#define _GL_DT_NOTDIR 0x100   /* Not a directory */
-#define ENOTSUP ENOSYS
+# define _GL_DT_NOTDIR 0x100   /* Not a directory */
+# define ENOTSUP ENOSYS
 # define IFTODT(mode) \
    (S_ISREG (mode) ? DT_REG : S_ISDIR (mode) ? DT_DIR \
     : S_ISLNK (mode) ? DT_LNK : S_ISBLK (mode) ? DT_BLK \
@@ -394,7 +395,7 @@ extern int emacs_setenv_TZ (char const *);
 
 /* DJGPP doesn't provide uchar.h and Emacs doesn't import Gnulib's
    replacement either.  */
-#define _REGEX_AVOID_UCHAR_H 1
+# define _REGEX_AVOID_UCHAR_H 1
 #endif /* MSDOS */
 
 #if defined WINDOWSNT && !(defined OMIT_CONSOLESAFE && OMIT_CONSOLESAFE == 1)
