@@ -1362,13 +1362,13 @@ static void drainCBSBlockPool(CBS cbs)
    if the CBS block pool is full.
 */
 
-void ArenaDrainCBSBlockPool (Arena arena, Bool freeLand, Bool spareLand)
+void ArenaDrainCBSBlockPool(Arena arena, Bool freeLand, Bool spareLand)
 {
   if (freeLand)
-    drainCBSBlockPool (&arena->freeLandStruct);
+    drainCBSBlockPool(&arena->freeLandStruct);
   if (spareLand) {
     VMArena vmArena = MustBeA(VMArena, arena);
-    drainCBSBlockPool (&vmArena->spareLandStruct);
+    drainCBSBlockPool(&vmArena->spareLandStruct);
   }
 }
 
