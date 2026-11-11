@@ -457,6 +457,12 @@ is_aligned (const mps_addr_t addr)
   return ((mps_word_t) addr & IGC_TAG_MASK) == 0;
 }
 
+static bool
+addr_is_aligned (const mps_addr_t addr, size_t align)
+{
+  return (mps_word_t) addr % align == 0;
+}
+
 #define IGC_WITH_PARKED(gc) \
   for (int i = (arena_park (gc), 1); i; i = (arena_release (gc), 0))
 
@@ -3507,10 +3513,8 @@ static igc_root_list *
 root_create_lisp (struct igc *gc, void *start, void *end,
 		  const char *label)
 {
-  igc_assert ((uintptr_t) start % sizeof (Lisp_Object) == 0);
-  igc_assert (((uintptr_t) end - (uintptr_t) start)
-		% sizeof (Lisp_Object)
-	      == 0);
+  eassert (is_aligned (start));
+  eassert (is_aligned (end));
   return root_create_exact (gc, start, end, scan_exact, label);
 }
 
@@ -3518,9 +3522,9 @@ static igc_root_list *
 root_create_raw (struct igc *gc, void *start, void *end,
 		 const char *label)
 {
-  igc_assert ((uintptr_t) start % sizeof (void *) == 0);
-  igc_assert (((uintptr_t) end - (uintptr_t) start) % sizeof (void *)
-	      == 0);
+  size_t align = sizeof (mps_word_t);
+  eassert (addr_is_aligned (start, align));
+  eassert (addr_is_aligned (end, align));
   return root_create_exact (gc, start, end, scan_ptr_exact, label);
 }
 
