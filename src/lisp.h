@@ -2559,7 +2559,6 @@ typedef enum hash_table_weakness_t {
    (hash) indices.  It's signed and a subtype of ptrdiff_t.  */
 typedef int_least32_t hash_idx_t;
 #define HASH_IDX_MAX INT_LEAST32_MAX
-#define PRIdHASH_IDX PRIdLEAST32
 
 struct Lisp_Hash_Table
 {
@@ -2621,12 +2620,13 @@ struct Lisp_Hash_Table
   hash_idx_t *next;
 
   /* Number of key/value entries in the table.  */
-  hash_idx_t count;
+  ptrdiff_t count;
+
+  /* Number of entries in the next and hash vectors.  */
+  ptrdiff_t table_size;
 
   /* Index of first free entry in free list, or -1 if none.  */
   hash_idx_t next_free;
-
-  hash_idx_t table_size;   /* Size of the next and hash vectors.  */
 
   unsigned char index_bits;	/* log2 (size of the index vector).  */
 

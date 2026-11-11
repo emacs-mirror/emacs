@@ -4845,8 +4845,8 @@ compute_hash_index_bits (EMACS_UINT size)
 
   /* An upper bound on subscripts of a hash table index.  */
   EMACS_UINT upper_bound
-    = min (min (/* Hash table counts are of type hash_idx_t.  */
-		HASH_IDX_MAX - 1,
+    = min (min (/* Hash table index subscripts are of type hash_idx_t.  */
+		HASH_IDX_MAX,
 		/* hash-table-count returns a fixnum.  */
 		MOST_POSITIVE_FIXNUM),
 	   (/* Vector sizes fit into both ptrdiff_t and size_t.  */

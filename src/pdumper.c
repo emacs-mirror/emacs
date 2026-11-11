@@ -1236,7 +1236,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
   dump_trace
     (("dump_queue_dequeue basis=%"PRIdDUMP_OFF" fancy=%"PRIdPTR
       " zero=%"PRIdPTR" normal=%"PRIdPTR" strong=%"PRIdPTR
-      " hash=%"PRIdHASH_IDX"\n"),
+      " hash=%td\n"),
      basis,
      dump_tailq_length (&dump_queue->fancy_weight_objects),
      dump_tailq_length (&dump_queue->zero_weight_objects),
@@ -2670,7 +2670,7 @@ dump_hash_table_contents (struct dump_context *ctx, struct Lisp_Hash_Table *h)
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_2A3C3E2B62
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_9F8D416C76
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
