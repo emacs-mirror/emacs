@@ -5957,8 +5957,8 @@ make_arena (struct igc *gc)
   MPS_ARGS_END (args);
   IGC_CHECK_RES (res);
 
-  size_t ngens = 10;
-  mps_gen_param_s gens[ngens];
+  mps_gen_param_s gens[10];
+  size_t ngens = countof (gens);
   if (!read_gens (&ngens, gens))
     {
       static const mps_gen_param_s default_gens[] = { { 16000, 0.5 } };
