@@ -1441,7 +1441,10 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             {
               if (ckd_mul (&width, width, 10)
                   || ckd_add (&width, width, *f - L_('0')))
-                return FAILURE;
+                {
+                  errno = ERANGE;
+                  return FAILURE;
+                }
               ++f;
             }
           while (ISDIGIT (*f));
@@ -1658,13 +1661,18 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
                                    extra_args LOCALE_ARG);
             if (FAILURE < 0 && len < 0)
               return FAILURE; /* errno is set here */
-            add (len, __strftime_internal (p,
-                                           STRFTIME_ARG (maxsize - i)
-                                           subfmt, tp,
-                                           CAL_ARGS (cal, caldate)
-                                           to_uppcase, subpad, subwidth,
-                                           tzset_called
-                                           extra_args LOCALE_ARG));
+            /* ADD accounts for LEN and any padding before evaluating its
+               second argument, so MAXSIZE - I no longer includes LEN.  */
+            retval_t sublen = len;
+            add (len, sublen = __strftime_internal (p,
+                                                   STRFTIME_ARG (len + 1)
+                                                   subfmt, tp,
+                                                   CAL_ARGS (cal, caldate)
+                                                   to_uppcase, subpad, subwidth,
+                                                   tzset_called
+                                                   extra_args LOCALE_ARG));
+            if (sublen != len)
+              return FAILURE;
           }
           break;
 
@@ -1928,7 +1936,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
             if (digits_base >= 0x100)
               number_digits = number_bytes / 2;
 #endif
-            byte_count_t shortage = width - !!sign_char - number_digits;
+            sbyte_count_t shortage = width - !!sign_char - number_digits;
             byte_count_t padding = (pad == NO_PAD || shortage <= 0
                                     ? 0 : shortage);
 
@@ -1936,13 +1944,13 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
               {
                 if (pad == SPACE_PAD)
                   {
-                    if (p)
-                      memset_space (p, padding);
-                    if (ckd_add (&i, i, padding) && FPRINTFTIME)
+                    if (incr_overflow (padding))
                       {
                         errno = ERANGE;
                         return FAILURE;
                       }
+                    if (p)
+                      memset_space (p, padding);
                     width -= padding;
                   }
                 width_add1 (0, sign_char);

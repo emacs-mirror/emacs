@@ -268,15 +268,29 @@ struct open_how
 #  define RESOLVE_CACHED	0x20
 # endif
 
-# if !@HAVE_OPENAT2@
+# if @REPLACE_OPENAT2@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef openat2
+#   define openat2 rpl_openat2
+#  endif
+_GL_FUNCDECL_RPL (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size),
+                  _GL_ARG_NONNULL ((2, 3)));
+_GL_CXXALIAS_RPL (openat2, int,
+                  (int fd, char const *file, struct open_how const *how,
+                   size_t size));
+# else
+#  if !@HAVE_OPENAT2@
 _GL_FUNCDECL_SYS (openat2, int,
                   (int fd, char const *file, struct open_how const *how,
                    size_t size),
                   _GL_ARG_NONNULL ((2, 3)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (openat2, int,
                   (int fd, char const *file, struct open_how const *how,
                    size_t size));
+# endif
 _GL_CXXALIASWARN (openat2);
 #elif defined GNULIB_POSIXCHECK
 # if HAVE_RAW_DECL_OPENAT2

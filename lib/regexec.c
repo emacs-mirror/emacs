@@ -1144,13 +1144,13 @@ check_matching (re_match_context_t *mctx, bool fl_longest_match,
 	  at_init_state = false;
 	  err = check_subexp_matching_top (mctx, &cur_state->nodes, 0);
 	  if (__glibc_unlikely (err != REG_NOERROR))
-	    return err;
+	    return -2;
 
 	  if (cur_state->has_backref)
 	    {
 	      err = transit_state_bkref (mctx, &cur_state->nodes);
 	      if (__glibc_unlikely (err != REG_NOERROR))
-		return err;
+		return -2;
 	    }
 	}
     }
@@ -4179,10 +4179,7 @@ match_ctx_add_entry (re_match_context_t *mctx, Idx node, Idx str_idx, Idx from,
       new_entry = re_realloc (mctx->bkref_ents, struct re_backref_cache_entry,
 			      mctx->abkref_ents * 2);
       if (__glibc_unlikely (new_entry == NULL))
-	{
-	  re_free (mctx->bkref_ents);
-	  return REG_ESPACE;
-	}
+	return REG_ESPACE;
       mctx->bkref_ents = new_entry;
       memset (mctx->bkref_ents + mctx->nbkref_ents, '\0',
 	      sizeof (struct re_backref_cache_entry) * mctx->abkref_ents);
