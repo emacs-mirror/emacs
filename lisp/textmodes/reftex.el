@@ -1265,7 +1265,7 @@ For non-file buffers, persistence operations are skipped."
         (if (file-writable-p file)
             (with-temp-file file
               (message "Writing parse file %s" (abbreviate-file-name file))
-              (insert ";; RefTeX parse info file\n")
+              (insert ";; RefTeX parse info file        -*- lexical-binding: t; -*-\n")
               (insert (format ";; File: %s\n" master))
               (insert (format ";; User: %s (%s)\n\n"
                               (user-login-name) (user-full-name)))
