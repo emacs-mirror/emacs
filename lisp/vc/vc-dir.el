@@ -1477,6 +1477,9 @@ specific headers."
 \\[vc-root-log-outgoing]: List outgoing revisions")
              "\n"))))
 
+(defvar vc-dir-refresh-hook nil
+  "Normal hook run after refreshing VC-Dir.")
+
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
   (let ((def-dir default-directory)
@@ -1531,7 +1534,8 @@ specific headers."
                                   (or (null next)
                                       (vc-dir-fileinfo->directory (ewoc-data next)))))
                        (ewoc-delete vc-ewoc crt))
-                     (setq crt prev))))))))))))
+                     (setq crt prev))))
+               (run-hooks 'vc-dir-refresh-hook)))))))))
 
 (defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
   (vc-dir-refresh)
