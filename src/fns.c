@@ -4833,7 +4833,7 @@ allocate_hash_table (void)
 }
 
 /* Compute the size of the index (as log2) from the table capacity.  */
-static int
+static c_bit_width_t
 compute_hash_index_bits (EMACS_UINT size)
 {
   /* Check the safety of passing nonnegative ptrdiff_t values to this function,
@@ -4856,11 +4856,10 @@ compute_hash_index_bits (EMACS_UINT size)
 	    - 1));
 
   /* Use next higher power of 2.  This works even for size=0.  */
-  int bits = stdc_bit_width (size);
-  int bits_max = min (/* Maximum value of h.index_bits.  */
-		      UCHAR_MAX,
-		      /* Maximum value suitable for upper_bound.  */
-		      stdc_bit_width (upper_bound + 1));
+  c_bit_width_t bits = stdc_bit_width (size);
+  c_bit_width_t bits_max = min (C_BIT_WIDTH_MAX,
+				/* Maximum value suitable for upper_bound.  */
+				stdc_bit_width (upper_bound + 1));
   if (bits_max < bits)
     error ("Hash table too large");
   return bits;
@@ -4887,7 +4886,7 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
 {
   eassert (SYMBOLP (test->name));
   eassert (0 <= size && size <= MOST_POSITIVE_FIXNUM);
-  int index_bits = compute_hash_index_bits (size);
+  c_bit_width_t index_bits = compute_hash_index_bits (size);
   struct Lisp_Hash_Table *h = allocate_hash_table ();
 
   h->test = test;
@@ -5014,7 +5013,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	memcpy (hash, h->hash, old_size * sizeof *hash);
 
       ptrdiff_t old_index_size = hash_table_index_size (h);
-      ptrdiff_t index_bits = compute_hash_index_bits (new_size);
+      c_bit_width_t index_bits = compute_hash_index_bits (new_size);
       ptrdiff_t index_size = (ptrdiff_t) {1} << index_bits;
       hash_idx_t *index = hash_table_alloc_bytes (index_size * sizeof *index);
       for (ptrdiff_t i = 0; i < index_size; i++)
@@ -5086,7 +5085,7 @@ hash_table_thaw (Lisp_Object hash_table)
     }
   else
     {
-      ptrdiff_t index_bits = compute_hash_index_bits (size);
+      c_bit_width_t index_bits = compute_hash_index_bits (size);
       h->index_bits = index_bits;
 
       h->hash = hash_table_alloc_bytes (size * sizeof *h->hash);

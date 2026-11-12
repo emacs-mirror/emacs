@@ -2128,7 +2128,7 @@ print_vectorlike_unreadable (Lisp_Object obj, Lisp_Object printcharfun,
 	struct Lisp_Obarray *o = XOBARRAY (obj);
 	/* FIXME: Would it make sense to print the actual symbols (up to
 	   a limit)?  */
-	int i = sprintf (buf, "#<obarray n=%u>", o->count);
+	int i = sprintf (buf, "#<obarray n=%td>", o->count);
 	strout (buf, i, i, printcharfun);
 	return;
       }
@@ -2271,7 +2271,8 @@ print_object (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag)
 {
   ptrdiff_t base_depth = print_depth;
   ptrdiff_t base_sp = prstack.sp;
-  char buf[max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
+  char buf[max (max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
+		     sizeof "#<obarray n=>" + INT_STRLEN_BOUND (ptrdiff_t)),
 		max (sizeof " . #" + INT_STRLEN_BOUND (intmax_t),
 		     max ((sizeof " with data 0x"
 			   + (UINTMAX_WIDTH + 4 - 1) / 4),

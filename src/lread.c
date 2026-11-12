@@ -4635,7 +4635,7 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 
 static Lisp_Object initial_obarray;
 
-static Lisp_Object make_obarray (int bits);
+static Lisp_Object make_obarray (c_bit_width_t bits);
 
 /* Slow path obarray check: return the obarray to use or signal an error.  */
 Lisp_Object
@@ -4987,7 +4987,7 @@ allocate_obarray (void)
 }
 
 static Lisp_Object
-make_obarray (int bits)
+make_obarray (c_bit_width_t bits)
 {
   struct Lisp_Obarray *o = allocate_obarray ();
   o->count = 0;
@@ -5007,10 +5007,8 @@ enum {
   CEIL_LOG2_EMACS_INT_WIDTH = ((EMACS_INT_WIDTH <= 32 ? 5 : 6)
 			       + (EMACS_INT_WIDTH - 1) / 64),
 
-  obarray_max_bits = min (min (/* Indexes must fit in unsigned int.  */
-			       UINT_WIDTH,
-			       /* Indexes must fit in fixnum.  */
-			       FIXNUM_BITS - 1),
+  obarray_max_bits = min (/* Indexes must fit in fixnum.  */
+			  FIXNUM_BITS - 1,
 			  /* The array buckets' total size in bytes must
 			     fit in ptrdiff_t and in size_t.  */
 			  (min (PTRDIFF_WIDTH - 2, SIZE_WIDTH - 1)
@@ -5018,6 +5016,7 @@ enum {
 };
 static_assert (1 << (CEIL_LOG2_EMACS_INT_WIDTH - 1) < EMACS_INT_WIDTH
 	       && EMACS_INT_WIDTH <= 1 << CEIL_LOG2_EMACS_INT_WIDTH);
+static_assert (obarray_default_bits <= obarray_max_bits);
 
 static void
 grow_obarray (struct Lisp_Obarray *o)
@@ -5028,7 +5027,7 @@ grow_obarray (struct Lisp_Obarray *o)
 
   if (obarray_max_bits <= o->size_bits)
     error ("Obarray too big");
-  int new_bits = o->size_bits + 1;
+  c_bit_width_t new_bits = o->size_bits + 1;
   ptrdiff_t new_size = (ptrdiff_t) {1} << new_bits;
   o->buckets = hash_table_alloc_bytes (new_size * sizeof *o->buckets);
   for (ptrdiff_t i = 0; i < new_size; i++)
@@ -5068,7 +5067,7 @@ The obarray will grow to accommodate any number of symbols; the size, if
 given, is only a hint for the expected number.  */)
   (Lisp_Object size)
 {
-  int bits;
+  c_bit_width_t bits;
   if (NILP (size))
     bits = obarray_default_bits;
   else

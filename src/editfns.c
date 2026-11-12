@@ -4055,9 +4055,9 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 		  if (!HAVE_PRINTF_B_CONVERSION_SPECIFIER
 		      && (conversion == 'b' || conversion == 'B'))
 		    {
-		      int bit_width = stdc_bit_width (x);
+		      c_bit_width_t bit_width = stdc_bit_width (x);
 		      char *bits = p + negative;
-		      int nbits = bit_width ? bit_width : prec < 0;
+		      c_bit_width_t nbits = bit_width ? bit_width : prec < 0;
 		      for (int i = 0; i < nbits; i++)
 			bits[i] = ((x >> (nbits - (i + 1))) & 1) + '0';
 		      bits[nbits] = '\0';

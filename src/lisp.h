@@ -76,6 +76,15 @@ DEFINE_GDB_SYMBOL_BEGIN (int, GCTYPEBITS)
 #define GCTYPEBITS 3
 DEFINE_GDB_SYMBOL_END (GCTYPEBITS)
 
+/* A count of the number of bits in a C integer.  */
+typedef unsigned char c_bit_width_t;
+#define C_BIT_WIDTH_MAX UCHAR_MAX
+/* Check that c_bit_width_t promotes to int, to avoid comparison confusion.  */
+static_assert (C_BIT_WIDTH_MAX <= INT_MAX);
+/* Check that no C integer is too wide.  */
+static_assert (INTMAX_WIDTH <= C_BIT_WIDTH_MAX
+	       && UINTMAX_WIDTH <= C_BIT_WIDTH_MAX);
+
 /* EMACS_INT - signed integer wide enough to hold an Emacs value
    EMACS_INT_WIDTH - width in bits of EMACS_INT
    EMACS_INT_MAX - maximum value of EMACS_INT; can be used in #if
@@ -2404,8 +2413,11 @@ struct Lisp_Obarray
      their s.next field.  */
   Lisp_Object *buckets;
 
-  unsigned size_bits;  /* log2(size of buckets vector) */
-  unsigned count;      /* number of symbols in obarray */
+  /* Number of symbols in obarray.  */
+  ptrdiff_t count;
+
+  /* log2 (size of buckets vector).  */
+  c_bit_width_t size_bits;
 } GCALIGNED_STRUCT;
 
 INLINE bool
@@ -2628,7 +2640,8 @@ struct Lisp_Hash_Table
   /* Index of first free entry in free list, or -1 if none.  */
   hash_idx_t next_free;
 
-  unsigned char index_bits;	/* log2 (size of the index vector).  */
+  /* log2 (size of index vector).  */
+  c_bit_width_t index_bits;
 
   /* Weakness of the table.  */
   ENUM_BF (hash_table_weakness_t) weakness : 3;
@@ -2646,10 +2659,6 @@ struct Lisp_Hash_Table
      collection --- at other times, it is NULL.  */
   struct Lisp_Hash_Table *next_weak;
 } GCALIGNED_STRUCT;
-
-/* struct Lisp_Hash_Table.index_bits is of type unsigned char;
-   make sure that's wide enough to store any bit width.  */
-static_assert (UINTMAX_WIDTH - 1 <= UCHAR_MAX);
 
 /* A specific Lisp_Object that is not a valid Lisp value.
    We need to be careful not to leak this value into machinery
@@ -4145,7 +4154,7 @@ modiff_incr (modiff_count *a, ptrdiff_t len)
      small modification.  Increase it logarithmically to avoid
      increasing it too much.  */
   static_assert (PTRDIFF_MAX <= SIZE_MAX);
-  int incr = len == 0 ? 1 : stdc_bit_width ((size_t) {len});
+  c_bit_width_t incr = len == 0 ? 1 : stdc_bit_width ((size_t) {len});
   bool modiff_overflow = ckd_add (a, a0, incr);
   eassert (!modiff_overflow && *a >> 30 >> 30 == 0);
   return a0;
