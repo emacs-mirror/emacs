@@ -105,6 +105,10 @@ volatile int interrupt_input_blocked;
    The maybe_quit function checks this.  */
 volatile bool pending_signals;
 
+/* True means a SIGCHLD was received.  This is set in a signal handler
+   and later checked and reset in process_pending_signals.  */
+static volatile bool pending_signals_child;
+
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 static KBOARD *all_kboards;
@@ -368,15 +372,6 @@ static Lisp_Object virtual_core_keyboard_name;
 /* If not nil, ID of the last TOUCHSCREEN_END_EVENT to land on the
    menu bar.  */
 static Lisp_Object menu_bar_touch_id;
-
-#define ASYNC_WORK_QUEUE_CAPACITY 64
-
-struct async_work_queue {
-  uint8_t start, end;
-  struct async_work_item items[ASYNC_WORK_QUEUE_CAPACITY];
-};
-
-static struct async_work_queue async_work_queue;
 
 
 /* Global variable declarations.  */
@@ -14026,45 +14021,14 @@ is_ignored_event (union buffered_input_event *event)
   return !NILP (Fmemq (ignore_event, Vwhile_no_input_ignore_events));
 }
 
-static uint8_t
-async_work_queue_len (struct async_work_queue *q)
-{
-  uint8_t cap = ASYNC_WORK_QUEUE_CAPACITY;
-  return (q->start <= q->end
-	  ? q->end - q->start
-	  : cap - q->start + q->end);
-}
-
-static struct async_work_item
-async_work_queue_pop_front (struct async_work_queue *q)
-{
-  if (async_work_queue_len (q) == 0)
-    emacs_abort ();
-  struct async_work_item item = q->items[q->start];
-  uint8_t cap = ASYNC_WORK_QUEUE_CAPACITY;
-  q->start = (q->start + 1) % cap;
-  return item;
-}
-
 void
 enqueue_async_work (struct async_work_item item)
-{
-  struct async_work_queue *q = &async_work_queue;
-  uint8_t cap = ASYNC_WORK_QUEUE_CAPACITY;
-  if (async_work_queue_len (q) == cap)
-    emacs_abort ();
-  q->items[q->end] = item;
-  q->end = (q->end + 1) % cap;
-  pending_signals = 1;
-}
-
-static void
-do_async_work_1 (struct async_work_item item)
 {
   switch (item.type)
     {
     case ASYNCWORK_SIGCHLD:
-      process_sigchld_async (item.u.sigchld);
+      pending_signals = true;
+      pending_signals_child = true;
       return;
     }
   emacs_abort ();
@@ -14073,9 +14037,11 @@ do_async_work_1 (struct async_work_item item)
 static void
 do_async_work (void)
 {
-  struct async_work_queue *q = &async_work_queue;
-  while (async_work_queue_len (q) > 0)
-    do_async_work_1 (async_work_queue_pop_front (q));
+  if (pending_signals_child)
+    {
+      pending_signals_child = false;
+      process_sigchld_async ();
+    }
 }
 
 static void syms_of_keyboard_for_pdumper (void);

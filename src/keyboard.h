@@ -543,10 +543,6 @@ enum async_work_type
 struct async_work_item
 {
   enum async_work_type type;
-  union
-  {
-    int sigchld;
-  } u;
 };
 
 extern void enqueue_async_work (struct async_work_item item);

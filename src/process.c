@@ -7742,7 +7742,7 @@ bool glib_installs_sigchld_handler;
    indirectly; if it does, that is a bug.  */
 
 void
-process_sigchld_async (int sig)
+process_sigchld_async (void)
 {
   Lisp_Object tail, proc;
   bool changed = false;
@@ -7850,7 +7850,7 @@ process_sigchld_async (int sig)
 static void
 handle_child_signal (int sig)
 {
-  struct async_work_item item = {ASYNCWORK_SIGCHLD, .u.sigchld = sig};
+  struct async_work_item item = { ASYNCWORK_SIGCHLD };
   enqueue_async_work (item);
 
   lib_child_handler (sig);
