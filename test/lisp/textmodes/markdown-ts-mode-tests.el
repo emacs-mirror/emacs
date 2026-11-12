@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'treesit)
 (require 'url-vars)
 (require 'markdown-ts-mode)
@@ -210,6 +211,18 @@ amounts like $5 use it too."
     (let ((last-command-event ?$))
       (call-interactively #'self-insert-command))
     (should (equal (buffer-string) "$"))))
+
+(ert-deftest markdown-ts-mode-test-fill-paragraph ()
+  "`fill-paragraph' respects lists, block quotes, code blocks and tables."
+  (skip-unless (and (treesit-ready-p 'markdown t)
+                    (treesit-ready-p 'markdown-inline t)))
+  (ert-test-erts-file (ert-resource-file "fill-paragraph.erts")))
+
+(ert-deftest markdown-ts-mode-test-fill-region ()
+  "`fill-region' fills paragraphs and list items separately."
+  (skip-unless (and (treesit-ready-p 'markdown t)
+                    (treesit-ready-p 'markdown-inline t)))
+  (ert-test-erts-file (ert-resource-file "fill-region.erts")))
 
 (provide 'markdown-ts-mode-tests)
 
