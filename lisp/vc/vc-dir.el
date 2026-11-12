@@ -1762,6 +1762,9 @@ backend-specific headers."
                                                    backend)))
         (setq-local vc-parent-buffer buffer)))))
 
+(defvar vc-dir-refresh-hook nil
+  "Normal hook run after refreshing VC-Dir.")
+
 (defun vc-dir-refresh-files (files)
   "Refresh some FILES in the *VC-Dir* buffer."
   (let ((def-dir default-directory)
@@ -1785,7 +1788,9 @@ backend-specific headers."
            ;; the asynchronous process.
            (with-current-buffer buffer
              (vc-dir-update entries buffer nil (not more-to-come))
-             (unless more-to-come (setq mode-line-process nil)))))))))
+             (unless more-to-come
+               (setq mode-line-process nil)
+               (run-hooks 'vc-dir-refresh-hook)))))))))
 
 (defun vc-dir-revert-buffer-function (&optional _ignore-auto _noconfirm)
   (vc-dir-refresh)
