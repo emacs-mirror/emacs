@@ -537,7 +537,8 @@ INLINE_HEADER_END
 
 enum async_work_type
 {
-  ASYNCWORK_SIGCHLD
+  ASYNCWORK_SIGCHLD,
+  ASYNCWORK_SIGWINCH
 };
 
 struct async_work_item
@@ -546,5 +547,7 @@ struct async_work_item
 };
 
 extern void enqueue_async_work (struct async_work_item item);
+extern void process_sigchld_async (void);
+extern void process_sigwinch_async (void);
 
 #endif /* EMACS_KEYBOARD_H */

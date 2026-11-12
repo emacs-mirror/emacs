@@ -6657,8 +6657,8 @@ marginal_area_string (struct window *w, enum window_part part,
 
 static void deliver_window_change_signal (int);
 
-static void
-handle_window_change_signal (int sig)
+void
+process_sigwinch_async (void)
 {
   int width, height;
   struct tty_display_info *tty;
@@ -6699,9 +6699,22 @@ handle_window_change_signal (int sig)
 }
 
 static void
+handle_window_change_signal (int sig)
+{
+  struct async_work_item item = { ASYNCWORK_SIGWINCH };
+  enqueue_async_work (item);
+}
+
+static void
 deliver_window_change_signal (int sig)
 {
   deliver_process_signal (sig, handle_window_change_signal);
+}
+#else  /* SIGWINCH */
+void
+process_sigwinch_async (void)
+{
+  emacs_abort ();
 }
 #endif /* SIGWINCH */
 

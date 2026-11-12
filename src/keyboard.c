@@ -109,6 +109,11 @@ volatile bool pending_signals;
    and later checked and reset in process_pending_signals.  */
 static volatile bool pending_signals_child;
 
+/* True means a SIGWINCH was received.  This is set in a signal handler
+   and later checked and reset in process_pending_signals.  */
+/* FIXME: define this only if SIGWINCH is defined?  */
+static volatile bool pending_signals_window_changed;
+
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 static KBOARD *all_kboards;
@@ -14030,6 +14035,10 @@ enqueue_async_work (struct async_work_item item)
       pending_signals = true;
       pending_signals_child = true;
       return;
+    case ASYNCWORK_SIGWINCH:
+      pending_signals = true;
+      pending_signals_window_changed = true;
+      return;
     }
   emacs_abort ();
 }
@@ -14041,6 +14050,11 @@ do_async_work (void)
     {
       pending_signals_child = false;
       process_sigchld_async ();
+    }
+  if (pending_signals_window_changed)
+    {
+      pending_signals_window_changed = false;
+      process_sigwinch_async ();
     }
 }
 
