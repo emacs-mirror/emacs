@@ -2585,30 +2585,37 @@ the width of the list marker if no paragraph is found."
            (treesit-node-start marker))))))
 
 (defun markdown-ts--fill-list-item (item justify)
-  "Fill the contents of list ITEM, preserving its indentation.
-Narrows to ITEM's own paragraph content (excluding nested lists)
-and sets `fill-prefix' to align continuation lines with the start
-of the item's text.  JUSTIFY is as in `fill-paragraph'."
-  (let* ((fill-prefix (make-string (markdown-ts--list-item-text-column item)
-                                   ?\s))
-         ;; Find the item's own paragraph (first paragraph child).
-         ;; If the item has nested lists, narrow to just the
-         ;; paragraph so we don't merge nested items.
-         (para (treesit-search-subtree item "\\`paragraph\\'" nil nil 1))
-         (beg (treesit-node-start item))
-         (end (if para
-                  (treesit-node-end para)
-                (treesit-node-end item)))
-         ;; Use default paragraph motion inside the narrowed region
-         ;; so that the inner `fill-paragraph' does not re-enter our
-         ;; custom paragraph-finding logic.
-         (fill-forward-paragraph-function #'forward-paragraph))
-    (save-restriction
-      (narrow-to-region beg end)
-      (fill-paragraph justify))
-    ;; Return non-nil to signal that filling has been handled,
-    ;; as per the contract of `fill-paragraph-function'.
-    t))
+  "Fill the paragraph of list ITEM at or after point.
+Narrows to that paragraph of ITEM, excluding its other paragraphs and
+nested lists, and sets `fill-prefix' to align continuation lines with
+the start of the paragraph's text.  JUSTIFY is as in `fill-paragraph'."
+  (when-let* ((paras (seq-filter
+                      (lambda (node)
+                        (equal (treesit-node-type node) "paragraph"))
+                      (treesit-node-children item)))
+              (para (or (seq-find (lambda (node)
+                                    (> (treesit-node-end node) (point)))
+                                  paras)
+                        (car (last paras)))))
+    (let ((fill-prefix (save-excursion
+                         (goto-char (treesit-node-start para))
+                         (skip-chars-forward " \t")
+                         (make-string (current-column) ?\s)))
+          ;; Use default paragraph motion inside the narrowed region
+          ;; so that the inner `fill-paragraph' does not re-enter our
+          ;; custom paragraph-finding logic.
+          (fill-forward-paragraph-function #'forward-paragraph))
+      (save-restriction
+        ;; Start at the beginning of the line, so that columns are
+        ;; counted from the margin even in nested items.
+        (narrow-to-region (save-excursion
+                            (goto-char (treesit-node-start para))
+                            (pos-bol))
+                          (treesit-node-end para))
+        (fill-paragraph justify))))
+  ;; Return non-nil to signal that filling has been handled,
+  ;; as per the contract of `fill-paragraph-function'.
+  t)
 
 (defun markdown-ts--node-containing (pos type)
   "Return the innermost node matching TYPE that contains POS, or nil.
