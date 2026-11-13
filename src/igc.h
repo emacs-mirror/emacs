@@ -139,6 +139,7 @@ void igc_dump_check_object_starts (Lisp_Object relocs, void *dump_base,
 				   void *cold_start, void *heap_end);
 void *igc_make_dump (size_t nbytes);
 bool igc_busy_p (void);
+void igc_defer_sigprof (bool enable);
 Lisp_Object igc_discard_killed_buffers (Lisp_Object list);
 
 #ifdef HAVE_NTGUI

@@ -6359,6 +6359,21 @@ igc_busy_p (void)
   return mps_arena_busy (global_igc->arena);
 }
 
+void
+igc_defer_sigprof (bool enable)
+{
+  struct sigaction sa;
+  int result = sigaction (SIGSEGV, NULL, &sa);
+  eassert (result == 0);
+  if (enable)
+    result = sigaddset (&sa.sa_mask, SIGPROF);
+  else
+    result = sigdelset (&sa.sa_mask, SIGPROF);
+  eassert (result == 0);
+  result = sigaction (SIGSEGV, &sa, NULL);
+  eassert (result == 0);
+}
+
 /* Warn if PTR looks like an MPS reference, which is most likely a
    bug.  */
 bool

@@ -230,6 +230,7 @@
       (igc--arena-step 0 1)
       (decf n))))
 
+;; FIXME: figure out why this sometimes locks up on MW-Windows
 (ert-deftest igc-tests-profiler ()
   (dotimes (_ 3)
     (profiler-start 'cpu)

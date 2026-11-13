@@ -393,9 +393,6 @@ static enum profiler_cpu_running
 /* Hash-table log of CPU profiler.  */
 static struct profiler_log cpu;
 
-/* Number of unprocessed profiler signals. */
-static uintptr_t pending_profiler_signals;
-
 /* The current sampling interval in nanoseconds.  */
 static EMACS_INT current_sampling_interval;
 
@@ -411,19 +408,7 @@ handle_profiler_signal (int signal)
       count += overruns;
     }
 #endif
-  pending_signals = true;
-  pending_profiler_signals += count;
-}
-
-void
-process_pending_profiler_signals (void)
-{
-  uintptr_t count = pending_profiler_signals;
-  if (count)
-    {
-      pending_profiler_signals = 0;
-      add_sample (&cpu, count);
-    }
+  add_sample (&cpu, count);
 }
 
 static void
@@ -450,6 +435,10 @@ setup_cpu_timer (Lisp_Object sampling_interval)
   struct sigaction action;
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
+
+#ifdef HAVE_MPS
+  igc_defer_sigprof (true);
+#endif
 
 #ifdef HAVE_ITIMERSPEC
   if (! profiler_timer_ok)
@@ -560,6 +549,11 @@ Return non-nil if the profiler was running.  */)
     }
 
   signal (SIGPROF, SIG_IGN);
+
+#ifdef HAVE_MPS
+  igc_defer_sigprof (false);
+#endif
+
   profiler_cpu_running = NOT_RUNNING;
   return Qt;
 }

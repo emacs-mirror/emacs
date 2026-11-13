@@ -8934,7 +8934,6 @@ process_pending_signals (void)
   handle_async_input ();
   do_pending_atimers ();
   do_async_work ();
-  process_pending_profiler_signals ();
 }
 
 /* Undo any number of BLOCK_INPUT calls down to level LEVEL,
