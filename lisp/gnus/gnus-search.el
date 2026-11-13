@@ -796,7 +796,16 @@ the files in ARTLIST by that search key.")
   nil)
 
 (defclass gnus-search-imap (gnus-search-engine)
-  ((literal-plus
+  ((utf8-native
+    :initarg :utf8-native
+    :initform nil
+    :type boolean
+    :documentation
+    "Can this search engine handle international characters in
+    queries and message headers (RFC 9755)? This slot is set
+    automatically by the imap server, and can be disabled by
+    setting `nnimap-utf8-native' to `nil'.")
+   (literal-plus
     :initarg :literal-plus
     :initform nil
     :type boolean
@@ -1103,6 +1112,8 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; `nnimap-open-connection', but it's too frustrating to try to
       ;; get to the server from the process buffer.
       (with-current-buffer (nnimap-buffer)
+	(setf (slot-value engine 'utf8-native)
+              (when (nnimap-utf8-native-p) t))
 	(setf (slot-value engine 'literal-plus)
 	      (when (nnimap-capability "LITERAL+") t))
 	;; MULTISEARCH not yet implemented.
@@ -1160,9 +1171,9 @@ Responsible for handling and, or, and parenthetical expressions.")
 (cl-defmethod gnus-search-imap-search-command ((engine gnus-search-imap)
 					       (query string))
   "Create the IMAP search command for QUERY.
-Currently takes into account support for the LITERAL+ capability.
-Other capabilities could be tested here."
-  (with-slots (literal-plus) engine
+Currently takes into account support for the LITERAL+ and UTF8-NATIVE
+capabilities. Other capabilities could be tested here."
+  (with-slots (literal-plus utf8-native) engine
     (when (and literal-plus
                (string-match-p "\n" query))
       (setq query (split-string query "\n")))
@@ -1173,15 +1184,21 @@ Other capabilities could be tested here."
       (let* ((nnimap-streaming t)
 	     (call
 	      (nnimap-send-command
-	       "UID SEARCH CHARSET UTF-8 %s"
+	       (if utf8-native
+                   ;; RFC 9755 (3): no charset specification allowed
+	           ;; in native UTF-8 mode.
+		   "UID SEARCH %s"
+		 "UID SEARCH CHARSET UTF-8 %s")
 	       (pop query))))
+        ;; The `query' is really a 'utf-8-encoded non-synchronizing
+        ;; (see RFC 7888) text literal containing the payload for
+        ;; the above UID SEARCH command.
 	(dolist (l query)
 	  (process-send-string (get-buffer-process (current-buffer)) l)
 	  (process-send-string (get-buffer-process (current-buffer))
-			       (if (nnimap-newlinep nnimap-object)
-				   "\n"
-				 "\r\n")))
+			       (nnimap-connection-eol)))
 	(nnimap-get-response call)))
+     ;; The `query' is an unencoded quoted string.
      (t (nnimap-command "UID SEARCH %s" query)))))
 
 (cl-defmethod gnus-search-transform ((_ gnus-search-imap)
@@ -1339,24 +1356,25 @@ elements are present."
 
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
 					      (str string))
-  (with-slots (literal-plus) engine
+  (with-slots (literal-plus utf8-native) engine
     ;; TODO: Figure out how Exchange IMAP servers actually work.  They
     ;; do not accept any CHARSET but US-ASCII, but they do report
     ;; Literal+ capability.  So what do we do?  Will quoted strings
     ;; always work?
     (if (string-match-p "[^[:ascii:]]" str)
-	;; If LITERAL+ is available, use it and encode string as
-	;; UTF-8.
-	(if literal-plus
-	    (format "{%d+}\n%s"
-		    (string-bytes str)
-		    (encode-coding-string str 'utf-8))
+	;; If LITERAL+ is available and native UTF-8 isn't,
+	;; use LITERAL+ and encode `str' as UTF-8.
+	(if (and literal-plus (not utf8-native))
+            (let ((ub-str (encode-coding-string str 'utf-8)))
+              (format "{%d+}\n%s" (length ub-str) ub-str))
 	  ;; Otherwise, if the user hasn't already quoted the string,
 	  ;; quote it for them.
 	  (if (string-prefix-p "\"" str)
 	      str
 	    (format "\"%s\"" str)))
-      str)))
+      (if utf8-native
+          (format "\"%s\"" str)
+        str))))
 
 (defun gnus-search-imap-handle-flag (flag)
   "Adjust string FLAG to help IMAP recognize it.

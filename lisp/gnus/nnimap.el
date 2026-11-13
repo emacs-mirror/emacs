@@ -196,18 +196,48 @@ during splitting, which may be slow."
 
 (defvar nnimap-inhibit-logging nil)
 
+(defvoo nnimap-native-utf8 nil
+  "Whether to use native UTF8 support.")
+;; See RFC 9755.
+
+(defun nnimap-server-advertises-native-utf8-p ()
+  ;; We support neither IMAP4rev2 nor
+  ;; IMAP4rev1 + UTF8=ONLY, at present.
+  (and
+   (nnimap-capability "IMAP4REV1")
+   (nnimap-capability "UTF8=ACCEPT")))
+
+(defun nnimap-utf8-native-p ()
+  ;; Does all of the following hold:
+  ;; 1. User has enabled native UTF8 support.
+  ;; 2. Server advertises native UTF8 support.
+  ;; 3. Our native UTF8 logic supports the
+  ;;    IMAP version used by the server.
+  (and nnimap-native-utf8
+       (nnimap-server-advertises-native-utf8-p)))
+
+(defun nnimap-encode-group-name (group)
+  (if (nnimap-utf8-native-p)
+      group ;; Not calling `encode-coding-string'.
+    (utf7-encode group t)))
+
+(defun nnimap-decode-group-name (group)
+  (if (nnimap-utf8-native-p)
+      (decode-coding-string group 'utf-8)
+    (utf7-decode group t)))
+
 (defun nnimap-group-to-imap (group)
   "Convert Gnus group name to IMAP mailbox name."
   (let* ((inbox (if nnimap-namespace
                     (substring nnimap-namespace 0 -1) nil)))
-    (utf7-encode
+    (nnimap-encode-group-name
      (cond ((or (not inbox)
                 (string-equal group inbox))
             group)
            ((string-prefix-p "#" group)
             (substring group 1))
            (t
-            (concat nnimap-namespace group))) t)))
+            (concat nnimap-namespace group))))))
 
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
@@ -230,6 +260,14 @@ during splitting, which may be slow."
     (format "(%s)" (mapconcat #'identity (nreverse params) " "))))
 
 (defvar nnimap--max-retrieve-headers 200)
+
+(defun nnimap-connection-eol ()
+  ;; `nnimap-newlinep', it appears, has been deprecated and unused for
+  ;; the last 15 years. If true, this function should be removed and
+  ;; replaced with "\r\n".
+  (if (nnimap-utf8-native-p)
+      "\r\n"
+    (if (nnimap-newlinep nnimap-object) "\n" "\r\n")))
 
 (deffoo nnimap-retrieve-headers (articles &optional group server _fetch-old)
   (with-current-buffer nntp-server-buffer
@@ -577,6 +615,12 @@ during splitting, which may be slow."
 			(when (string= "CAPABILITY" (upcase (car response)))
 			  (setf (nnimap-capabilities nnimap-object)
 				(mapcar #'upcase (cdr response)))))
+	              (when (nnimap-utf8-native-p)
+		        ;; RFC 9755 (3): the client MUST use "ENABLE UTF8=ACCEPT"
+		        ;; to indicate that the client accepts UTF-8 quoted
+		        ;; strings. "ENABLE UTF8=ACCEPT" MUST only be used in
+		        ;; the authenticated state.
+		        (nnimap-command "ENABLE UTF8=ACCEPT"))
                       (when (and nnimap-use-namespaces
                                  (nnimap-capability "NAMESPACE"))
                         (erase-buffer)
@@ -585,7 +629,10 @@ during splitting, which may be slow."
                           (when (string-match
                                  "^\\*\\W+NAMESPACE\\W+((\"\\([^\"\n]+\\)\"\\W+\"\\(.\\)\"))\\W+"
                                  response)
-                            (setq nnimap-namespace (match-string 1 response))))))
+                            (setq nnimap-namespace
+                                  (decode-coding-string
+                                   (match-string 1 response)
+                                   'utf-8))))))
                   ;; If the login failed, then forget the credentials
 		  ;; that are now possibly cached.
 		  (dolist (host (list (nnoo-current-server 'nnimap)
@@ -597,6 +644,13 @@ during splitting, which may be slow."
 	    (when nnimap-object
 	      (when (nnimap-capability "QRESYNC")
 		(nnimap-command "ENABLE QRESYNC"))
+	      (when (and (not nnimap-native-utf8)
+                         (nnimap-server-advertises-native-utf8-p))
+		(nnheader-message
+		 7
+		 "%s: to use non-latin characters in queries, \
+set `nnimap-native-utf8' to non-`nil'"
+		 nnimap-address))
               (nnheader-message 7 "Opening connection to %s...done"
 				nnimap-address)
 	      (nnimap-process nnimap-object))))))))
@@ -631,10 +685,14 @@ during splitting, which may be slow."
       (process-send-string
        (get-buffer-process (current-buffer))
        (concat
-	(base64-encode-string
-	 (concat user " "
-		 (rfc2104-hash 'md5 64 16 password
-			       (base64-decode-string challenge)))
+        (base64-encode-string
+         (concat
+          (encode-coding-string user 'utf-8)
+          " "
+          (encode-coding-string
+           (rfc2104-hash 'md5 64 16 password
+		         (base64-decode-string challenge))
+           'no-conversion))
 	 t)
 	"\r\n"))
       (nnimap-wait-for-response sequence)))
@@ -1272,6 +1330,9 @@ If LIMIT, first try to limit the search to the N last articles."
 	  (nnimap-wait-for-response sequence))))))
 
 (deffoo nnimap-request-accept-article (group &optional server _last)
+  ;; Post the article in the current buffer to the IMAP `group'
+  ;; of your choice; typically, "Sent", "SentMail", or similar.
+  ;; If the `group' is `nil', do mail splitting.
   (unless group
     ;; We're respooling.  Find out where mail splitting would place
     ;; this article.
@@ -1292,21 +1353,27 @@ If LIMIT, first try to limit the search to the N last articles."
       (with-current-buffer (nnimap-buffer)
 	(when (setq message (or (nnimap-process-quirk "OK Gimap " 'append message)
 				message))
+          (when (nnimap-utf8-native-p)
+            ;; The `message' has already been MIME-encoded.
+            (setq message (encode-coding-string message 'no-conversion)))
 	  ;; If we have this group open read-only, then unselect it
 	  ;; before appending to it.
 	  (when (equal (nnimap-examined nnimap-object) group)
 	    (nnimap-unselect-group))
 	  (erase-buffer)
+          ;; Servers set limits on the byte size of quoted strings,
+          ;; so we use literals even if native UTF8 is available.
+          ;; Limits on literals' size are much higher.
 	  (setq sequence (nnimap-send-command
 			  "APPEND %S {%d}" (nnimap-group-to-imap group)
 			  (length message)))
 	  (unless nnimap-streaming
 	    (nnimap-wait-for-connection "^[+]"))
-	  (process-send-string (get-buffer-process (current-buffer)) message)
+	  (process-send-string
+           (get-buffer-process (current-buffer))
+           message)
 	  (process-send-string (get-buffer-process (current-buffer))
-			       (if (nnimap-newlinep nnimap-object)
-				   "\n"
-				 "\r\n"))
+			       (nnimap-connection-eol))
 	  (let ((result (nnimap-get-response sequence)))
 	    (if (not (nnimap-ok-p result))
 		(progn
@@ -1399,8 +1466,9 @@ If LIMIT, first try to limit the search to the N last articles."
 			   (skip-chars-backward " \r\"")
 			   (point)))))
 	(unless (member '%Noselect flags)
-          (let* ((group (utf7-decode (if (stringp group) group
-                                       (format "%s" group)) t))
+          (let* ((group (nnimap-decode-group-name
+                         (if (stringp group) group
+                           (format "%s" group))))
                  (group (cond ((or (not prefix)
                                    (equal inbox group))
                                group)
@@ -1962,15 +2030,18 @@ Return the server's response to the SELECT or EXAMINE command."
 
 (defun nnimap-send-command (&rest args)
   (setf (nnimap-last-command-time nnimap-object) (current-time))
-  (process-send-string
-   (get-buffer-process (current-buffer))
-   (nnimap-log-command
-    (format "%d %s%s\n"
-            (incf nnimap-sequence)
-	    (apply #'format args)
-	    (if (nnimap-newlinep nnimap-object)
-		""
-	      "\r"))))
+  (let ((cmd
+         (format "%d %s"
+                 (incf nnimap-sequence)
+	         (apply #'format args))))
+    (nnimap-log-command (concat cmd "\n"))
+    (process-send-string
+     (get-buffer-process (current-buffer))
+     (concat
+      (if (nnimap-utf8-native-p)
+          (encode-coding-string cmd 'utf-8)
+        cmd)
+      (nnimap-connection-eol))))
   ;; Some servers apparently can't have many outstanding
   ;; commands, so throttle them.
   (unless nnimap-streaming
