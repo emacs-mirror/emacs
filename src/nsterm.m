@@ -5226,7 +5226,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 static int
 ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
 	     fd_set *exceptfds, struct timespec *timeout,
-	     sigset_t *sigmask, BOOL run_loop_only)
+	     sigset_t *sigmask)
 /* --------------------------------------------------------------------------
      Replacement for select, checking for events
    -------------------------------------------------------------------------- */
@@ -5392,7 +5392,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 	   sigset_t *sigmask)
 {
   return ns_select_1 (nfds, readfds, writefds, exceptfds,
-		      timeout, sigmask, NO);
+		      timeout, sigmask);
 }
 
 #ifdef HAVE_PTHREAD
@@ -7203,7 +7203,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 	 && [[fm fontPanel: YES] isVisible]
 #endif
 	 )
-    ns_select_1 (0, NULL, NULL, NULL, &timeout, NULL, YES);
+    ns_select_1 (0, NULL, NULL, NULL, &timeout, NULL);
   unblock_input ();
 
   if (font_panel_result)
