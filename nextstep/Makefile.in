@@ -67,9 +67,7 @@ ${ns_appbindir}/Emacs: ${ns_appdir} ${ns_check_file} ../src/emacs${EXEEXT}
 	${MKDIR_P} ${ns_appbindir}
 	cp -f ../src/emacs${EXEEXT} $@
 
-.PHONY: FORCE
-
-../src/emacs${EXEEXT}: FORCE
+../src/emacs${EXEEXT}:
 	${MAKE} -C ../src $(notdir $@)
 
 # create a fake installation pointing back to the source tree
