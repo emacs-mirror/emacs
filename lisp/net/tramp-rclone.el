@@ -400,24 +400,25 @@ connection if a previous connection has died for some reason."
       (unless (file-directory-p (tramp-fuse-mount-point vec))
 	(make-directory (tramp-fuse-mount-point vec) 'parents))
 
-      ;; Mount.  This command does not return, so we use 0 as
-      ;; DESTINATION of `tramp-call-process'.
+      ;; Mount.  This command does not return, so we run it
+      ;; asynchronously, and kill it if the mount doesn't appear.
       (unless (tramp-fuse-mounted-p vec)
-	(apply
-	 #'tramp-call-process
-	 vec tramp-rclone-program nil 0 nil
-	 "mount" (tramp-fuse-mount-spec vec)
-	 (tramp-fuse-mount-point vec)
-	 (tramp-get-method-parameter vec 'tramp-mount-args))
-	;; We must wait, until the mount is applied.
-	(with-timeout
-	    ((tramp-get-method-parameter
-	      vec 'tramp-connection-timeout tramp-connection-timeout)
-	     (tramp-error
-	      vec 'remote-file-error
-	      "Timeout reached mounting %s using %s" host tramp-rclone-method))
-	  (while (not (tramp-fuse-mounted-p vec))
-	    (sleep-for 0.1)))
+	(let ((p (apply
+		  #'tramp-start-process
+		  vec (tramp-get-connection-name vec) nil tramp-rclone-program
+		  "mount" (tramp-fuse-mount-spec vec)
+		  (tramp-fuse-mount-point vec)
+		  (tramp-get-method-parameter vec 'tramp-mount-args))))
+	  ;; We must wait, until the mount is applied.
+	  (with-timeout
+	      ((tramp-get-method-parameter
+		vec 'tramp-connection-timeout tramp-connection-timeout)
+	       (delete-process p)
+	       (tramp-error
+		vec 'remote-file-error
+		"Timeout reached mounting %s using %s" host tramp-rclone-method))
+	    (while (not (tramp-fuse-mounted-p vec))
+	      (sleep-for 0.1))))
 	(add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec)))
 
       ;; Mark it as connected.
