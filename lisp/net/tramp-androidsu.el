@@ -112,7 +112,9 @@ multibyte mode and waits for the shell prompt to appear."
   (with-tramp-debug-message vec "Opening connection"
     (let ((p (tramp-get-connection-process vec))
 	  (process-name (tramp-get-connection-property vec " process-name"))
-	  (process-environment (copy-sequence process-environment)))
+	  (process-environment (copy-sequence process-environment))
+	  (timeout (tramp-get-method-parameter
+		    vec 'tramp-connection-timeout tramp-connection-timeout)))
       ;; Open a new connection.
       (condition-case err
 	  (unless (process-live-p p)
@@ -191,8 +193,7 @@ multibyte mode and waits for the shell prompt to appear."
 		;; guaranteed to reach the root shell until its prompt
 		;; is displayed.
 		(with-current-buffer (process-buffer p)
-		  (tramp-wait-for-regexp p tramp-connection-timeout
-					 "#[[:space:]]*$"))
+		  (tramp-wait-for-regexp p timeout "#[[:space:]]*$"))
 	        ;; Set connection-local variables.
 	        (tramp-set-connection-local-variables vec)
 	        ;; Change prompt.

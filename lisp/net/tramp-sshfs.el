@@ -57,7 +57,8 @@
 		(tramp-mount-args            (("-C") ("-p" "%p")
 					      ("-o" "dir_cache=no")
 					      ("-o" "transform_symlinks")
-					      ("-o" "idmap=user,reconnect")))
+					      ("-o" "idmap=user,reconnect")
+					      ("-o" "ConnectTimeout=%t")))
 		;; These are for remote processes.
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-q") ("-l" "%u") ("-p" "%p")
@@ -68,7 +69,8 @@
                 (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
-                (tramp-remote-shell-args    ("-c"))))
+                (tramp-remote-shell-args    ("-c"))
+		(tramp-connection-timeout   10)))
 
  (tramp-set-completion-function
   tramp-sshfs-method tramp-completion-function-alist-ssh))
@@ -355,7 +357,9 @@ connection if a previous connection has died for some reason."
 		(tramp-fuse-mount-point vec)
 		(tramp-expand-args
 		 vec 'tramp-mount-args nil
-		 ?p (or (tramp-file-name-port vec) ""))))))
+		 ?p (or (tramp-file-name-port vec) "")
+		 ?t (tramp-get-method-parameter
+		     vec 'tramp-connection-timeout tramp-connection-timeout))))))
       (tramp-error
        vec 'remote-file-error "Error mounting %s" (tramp-fuse-mount-spec vec)))
 

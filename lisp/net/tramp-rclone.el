@@ -61,7 +61,8 @@
 		 ("--no-unicode-normalization" "--dir-cache-time" "0s"))
 		(tramp-copyto-args nil)
 		(tramp-moveto-args nil)
-		(tramp-about-args ("--full"))))
+		(tramp-about-args ("--full"))
+		(tramp-connection-timeout 10)))
 
  (add-to-list 'tramp-default-host-alist `(,tramp-rclone-method nil ""))
 
@@ -408,8 +409,15 @@ connection if a previous connection has died for some reason."
 	 "mount" (tramp-fuse-mount-spec vec)
 	 (tramp-fuse-mount-point vec)
 	 (tramp-get-method-parameter vec 'tramp-mount-args))
-	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
-	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
+	;; We must wait, until the mount is applied.
+	(with-timeout
+	    ((tramp-get-method-parameter
+	      vec 'tramp-connection-timeout tramp-connection-timeout)
+	     (tramp-error
+	      vec 'remote-file-error
+	      "Timeout reached mounting %s using %s" host tramp-rclone-method))
+	  (while (not (tramp-fuse-mounted-p vec))
+	    (sleep-for 0.1)))
 	(add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec)))
 
       ;; Mark it as connected.

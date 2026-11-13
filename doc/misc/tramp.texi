@@ -2379,6 +2379,17 @@ specifies, which shell argument triggers a login shell.  Its default
 value is @t{"-l"}, but some shells, like @command{ksh}, prefer
 @t{"-"}.
 
+@item @t{"connection-timeout"}
+
+@vindex tramp-connection-timeout
+All methods of @file{tramp-androidsu.el}, @file{tramp-gvfs.el},
+@file{tramp-rclone.el}, @file{tramp-sh.el} and @file{tramp-sshfs.el}
+use the property @t{"connection-timeout"}.  This is the time (in
+seconds) the initial handshake must finish.  If this connection
+property isn't set, or there doesn't exist a predefined value for the
+method in @code{tramp-methods}, the global value of
+@code{tramp-connection-timeout} is used.
+
 @item @t{"session-timeout"}
 
 All @file{tramp-sh.el} based methods accept the property
