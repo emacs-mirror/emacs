@@ -2827,7 +2827,7 @@ scan_buffer (mps_ss_t ss, void *start, void *end, void *closure)
 }
 
 static mps_res_t
-fix_glyph_array (mps_ss_t ss, size_t len, struct glyph array[len])
+fix_glyph_array (mps_ss_t ss, size_t len, struct glyph array[/* len */])
 {
   MPS_SCAN_BEGIN (ss)
   {
@@ -5895,7 +5895,7 @@ parse_error (const char *key)
    512 MB and a mortality of 0.2. */
 
 static bool
-read_gens (size_t *ngens, mps_gen_param_s parms[*ngens])
+read_gens (size_t *ngens, mps_gen_param_s parms[/* *ngens */])
 {
   const char *key = "EMACS_IGC_GENS";
   const char *env = getenv (key);
