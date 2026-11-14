@@ -2509,7 +2509,7 @@ terminal.  */)
   if (t->type == output_termcap)
     {
       t->display_info.tty->TS_enter_overline_mode =
-	(NILP (flag) ? NULL : "\e[53m");
+	(NILP (flag) ? NULL : "\033[53m");
     }
   return Qnil;
 }
