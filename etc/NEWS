@@ -735,13 +735,13 @@ how to analyze the arguments of a function by declaring the
 specification of each argument, rather than implementing an analyzer
 function as you would with 'elisp-scope-define-function-analyzer'.
 
-*** 'byte-compile-file' ignores .dir-locals.el / .dir-locals-2.el files
-Placing a '.dir-locals.el' in the 'user-lisp' directory caused
+*** 'byte-compile-file' ignores ".dir-locals.el"  and ".dir-locals-2.el".
+Placing a ".dir-locals.el" in the "user-lisp" directory caused
 warnings during byte compilation upon startup.  Now, the
-'byte-compile-file' routine treats these files as if they held a
-'no-byte-compile' file variable set to true.  This also affects
-native-compilation such that any .dir-locals* files are no longer
-processed.
+'byte-compile-file' function treats these files as if they had a
+'no-byte-compile' file-local variable set non-nil.  This also affects
+native-compilation, in that any ".dir-locals*" files are no longer
+natively compiled.
 
 +++
 ** New variable 'display-buffer-default-alist'.

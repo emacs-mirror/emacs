@@ -4862,13 +4862,13 @@ the \".dir-locals.el\".
 See Info node `(elisp)Directory Local Variables' for details.")
 
 (defun dir-locals--file-names ()
-  "Obtain the two file names that can hold directory local variable settings.
+  "Return the two file names that can hold directory local variable settings.
 The returned list is sorted by increasing priority: values specified in
-the second file (eg `.dir-locals-2.el' for the current value in
-`dir-locals-file') take precedence over those in the
-first file (eg `.dir-locals.el').
+the second file (e.g., \".dir-locals-2.el\" for the current value in
+\"dir-locals-file\") take precedence over those in the first file (e.g.,
+\".dir-locals.el\").
 
-Note: the names have already been sanitized for the MS-DOS environment."
+Note: the returned file names are already sanitized for MS-DOS."
   (let* ((extension (file-name-extension dir-locals-file t))
          (file-1 (if (eq system-type 'ms-dos)
                      (dosified-file-name dir-locals-file)
@@ -4878,17 +4878,19 @@ Note: the names have already been sanitized for the MS-DOS environment."
 
 ;;;###autoload
 (defun dir-locals-file-p (filename)
-  "Return non-nil if FILENAME appears to be a `dir-locals' file."
-  (seq-some (lambda (elt) (string-suffix-p elt filename)) (dir-locals--file-names)))
+  "Return non-nil if FILENAME appears to be a \"dir-locals\" file."
+  (seq-some
+   (lambda (elt) (string-suffix-p elt filename)) (dir-locals--file-names)))
 
 (defun dir-locals--all-files (directory &optional base-el-only)
   "Return a list of all readable dir-locals files in DIRECTORY.
 The returned list is sorted by increasing priority.  That is,
 values specified in the last file should take precedence over
-those in the first.  Give a non-nil value for BASE-EL-ONLY to
-only look for the first name from `dir-locals--file-names'.
+those in the first.
+If optional argument BASE-EL-ONLY is non-nil, return only the first
+file name from `dir-locals--file-names'.
 
-Returns nil if DIRECTORY does not exist."
+Return nil if DIRECTORY does not exist."
   (when (file-readable-p directory)
     (let* ((files (dir-locals--file-names))
            (files (if base-el-only

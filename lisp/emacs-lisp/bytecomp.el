@@ -2201,7 +2201,7 @@ The value is non-nil if there were no errors, nil if errors.
 If the file sets the file variable `no-byte-compile', it is not
 compiled, any existing output file is removed, and the return
 value is `no-byte-compile'.  This also happens when attempting
-to compile a `.dir-locals.el' or `.dir-locals-2.el' file.
+to compile a \".dir-locals.el\" or \".dir-locals-2.el\" file.
 
 See also `emacs-lisp-byte-compile-and-load'."
   (declare (advertised-calling-convention (filename) "28.1"))
