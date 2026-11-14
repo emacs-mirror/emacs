@@ -4231,21 +4231,23 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
   char *end = (char *) new_pa + nbytes;
   root_create (global_igc, new_pa, end, mps_rank_exact (),
 	       scan_area, closure, false, "xpalloc-exact");
+  USE_SAFE_ALLOCA;
+  igc_assert (item_size < MAX_ALLOCA);
+  /* This is volatile so it's on the stack, where MPS sees it and it
+     pins its references.  Omitting the "volatile" would mean the
+     compiler might optimize it away, keeping only the heap copy.  */
+  volatile mps_word_t *area = SAFE_ALLOCA (item_size);
   for (ptrdiff_t i = 0; i < (old_nitems); i++)
     {
-      igc_assert (item_size < MAX_ALLOCA);
       ptrdiff_t count = (item_size + (sizeof (mps_word_t) - 1))
 	/ (sizeof (mps_word_t));
       eassume (count < 128);
-      /* This is volatile so it's on the stack, where MPS sees it and it
-	 pins its references.  Omitting the "volatile" would mean the
-	 compiler might optimize it away, keeping only the heap copy.  */
-      volatile mps_word_t area[count];
       memcpy ((void *) area, (char *) old_pa + item_size * i, item_size);
       eassert (memcmp ((void *) area, (char *) old_pa + item_size * i,
 		       item_size) == 0);
       memcpy ((char *) new_pa + item_size * i, (void *) area, item_size);
     }
+  SAFE_FREE ();
   if (old_pa != NULL)
     eassert (memcmp (old_pa, new_pa, old_nitems * item_size) == 0);
   eassert ((item_size) % sizeof (mps_word_t) == 0);
