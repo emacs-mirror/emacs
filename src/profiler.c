@@ -178,7 +178,14 @@ static bool
 trace_equal (Lisp_Object *bt1, Lisp_Object *bt2, int depth)
 {
   for (int i = 0; i < depth; i++)
-    if (!BASE_EQ (bt1[i], bt2[i]) && NILP (Ffunction_equal (bt1[i], bt2[i])))
+    if (!BASE_EQ (bt1[i], bt2[i])
+#ifdef HAVE_MPS
+       /* Avoid accessing protected memory at the cost of creating more
+	  entries.  Post-processing can aggregate the extra entries.  */
+#else
+	&& NILP (Ffunction_equal (bt1[i], bt2[i]))
+#endif
+       )
       return false;
   return true;
 }
@@ -192,7 +199,9 @@ trace_hash (Lisp_Object *trace, int depth)
       Lisp_Object f = trace[i];
       EMACS_UINT hash1;
 #ifdef HAVE_MPS
-      hash1 = (CLOSUREP (f) ? igc_hash (AREF (f, CLOSURE_CODE)) : igc_hash (f));
+      /* log_t.trace and log_t.keys are ambiguous roots, so f is pinned
+	 as long as it is present in one of those two roots.  */
+      hash1 = (EMACS_UINT) XLI (f);
 #else
       hash1 = (CLOSUREP (f) ? XHASH (AREF (f, CLOSURE_CODE)) : XHASH (f));
 #endif
@@ -436,10 +445,6 @@ setup_cpu_timer (Lisp_Object sampling_interval)
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
 
-#ifdef HAVE_MPS
-  igc_defer_sigprof (true);
-#endif
-
 #ifdef HAVE_ITIMERSPEC
   if (! profiler_timer_ok)
     {
@@ -549,10 +554,6 @@ Return non-nil if the profiler was running.  */)
     }
 
   signal (SIGPROF, SIG_IGN);
-
-#ifdef HAVE_MPS
-  igc_defer_sigprof (false);
-#endif
 
   profiler_cpu_running = NOT_RUNNING;
   return Qt;

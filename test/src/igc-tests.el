@@ -230,12 +230,13 @@
       (igc--arena-step 0 1)
       (decf n))))
 
-;; FIXME: figure out why this sometimes locks up on MW-Windows
+;; FIXME: figure out why this sometimes locks up on MS-Windows
 (ert-deftest igc-tests-profiler ()
+  :tags '(:igc)
   (dotimes (_ 3)
     (profiler-start 'cpu)
     (igc-tests--profiler-1 0.5 5)
     (profiler-stop)
-    (prin1-to-string (profiler-cpu-profile))))
+    (ignore (prin1-to-string (profiler-cpu-profile)))))
 
 ;;; igc-tests.el ends here.
