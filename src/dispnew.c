@@ -6711,7 +6711,7 @@ deliver_window_change_signal (int sig)
   deliver_process_signal (sig, handle_window_change_signal);
 }
 #else  /* SIGWINCH */
-void
+AVOID
 process_sigwinch_async (void)
 {
   emacs_abort ();
