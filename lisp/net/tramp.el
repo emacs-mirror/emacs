@@ -5646,11 +5646,6 @@ processes."
            (pta (unless (eq connection-type 'pipe) "-t"))
 	   login-args p)
 
-      ;; Command could be too long, for example due to a longish PATH.
-      (when (and sh-file-name-handler-p
-		 (length> (string-join command) (tramp-get-remote-pipe-buf v)))
-	(signal 'error (cons "Command too long:" command)))
-
       (setq
        ;; Replace `login-args' place holders.  Split ControlMaster
        ;; options.
