@@ -3527,21 +3527,21 @@ If CASE-INSENSITIVE, the file system of file NAME is case-insensitive."
                    ;; Fallback to case-insensitive match.
                    (and auto-mode-case-fold
                         (let ((case-fold-search t))
-                          (assoc-default name alist 'string-match))))))
-               ;; Extract MODE from (REGEXP MODE t) entries.
-               (mode-t (when (and (not (functionp newmode))
-                                  (consp newmode)
-                                  (cadr newmode))
-                         (setq name (substring name 0 (match-beginning 0)))
-                         (car newmode)))
-               (mode (or mode-t newmode)))
+                         (assoc-default name alist 'string-match)))))))
           (when newmode
-            (if (and dir-local
-                     (not (set-auto-mode--dir-local-valid-p mode)))
-                (message "Ignoring invalid mode `%S'" mode)
-              (set-auto-mode-0 mode keep-mode-if-same)
-              (setq was-set t))
-            mode-t)))
+            (let* ((mode-t ;; Is it a (REGEXP MODE NON-NIL) entry?
+                    (and (not (functionp newmode))
+                         (consp newmode) (cadr newmode)))
+                   (mode (if (null mode-t) newmode
+                           (setq name (substring name 0 (match-beginning 0)))
+                           (car newmode))))
+              (when mode
+                (if (and dir-local
+                         (not (set-auto-mode--dir-local-valid-p mode)))
+                    (message "Ignoring invalid mode `%S'" mode)
+                  (set-auto-mode-0 mode keep-mode-if-same)
+                  (setq was-set t)))
+              mode-t))))
     was-set))
 
 (defun set-auto-mode--apply-alist (alist keep-mode-if-same dir-local)

@@ -1780,12 +1780,15 @@ The door of all subtleties!
 
 (defun files-tests--check-mode (filename)
   "Return the major mode found in `auto-mode-alist' for FILENAME."
-  (set-auto-mode--find-matching-alist-entry
-   auto-mode-alist
-   (concat "/home/jrhacker/" filename)
-   nil))
+  (with-temp-buffer
+    (set-auto-mode--from-matching-alist-entry
+     auto-mode-alist
+     (concat "/home/jrhacker/" filename)
+     nil t nil)
+    major-mode))
 
 (ert-deftest files-tests-auto-mode-alist ()
+  (should (eq (files-tests--check-mode "foo.el.orig") #'emacs-lisp-mode))
   (should (eq (files-tests--check-mode ".gdbinit.in") #'gdb-script-mode))
   (should (eq (files-tests--check-mode ".gdbinit") #'gdb-script-mode))
   (should (eq (files-tests--check-mode "_gdbinit") #'gdb-script-mode)) ; for MS-DOS
