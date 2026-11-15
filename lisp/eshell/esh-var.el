@@ -320,9 +320,7 @@ Otherwise, return nil."
         (rest (cdr args)))
     (when (and (stringp head) (string-match setvar head))
       (throw 'eshell-replace-command
-             ;; Copy the let bindings so we don't mutate the original
-             ;; list.
-             `(let ,(copy-tree eshell-local-variable-bindings)
+             `(let ,eshell-local-variable-bindings
                 ,@(let (locals)
                     (while (and (stringp head)
                                 (string-match setvar head))

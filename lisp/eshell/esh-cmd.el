@@ -1245,21 +1245,16 @@ have been replaced by constants."
 	(setcar (cdr args) (eshell-do-eval (cadr args) synchronous-p))
 	(eshell--eval form))
        ((eq (car form) 'let)
-        (unless (eq (car-safe (cadr args)) 'eshell-do-eval)
-          (eshell-manipulate form "evaluating let args"
-            (dolist (letarg (car args))
-              (when (and (listp letarg)
-                         (not (eq (cadr letarg) 'quote)))
-                (setcdr letarg
-                        (list (eshell-do-eval
-                               (cadr letarg) synchronous-p)))))))
         (cl-progv
             (mapcar (lambda (binding)
                       (if (consp binding) (car binding) binding))
                     (car args))
-            ;; These expressions should all be constants now.
             (mapcar (lambda (binding)
-                      (when (consp binding) (eshell--eval (cadr binding))))
+                      (when (consp binding)
+                        (if (eq (cadr binding) 'quote)
+                            (cadr binding)
+                          (eshell--eval (eshell-do-eval
+                                         (cadr binding) synchronous-p)))))
                     (car args))
           (let (deferred result)
             ;; Evaluate the `let' body, catching `eshell-defer' so we
@@ -1274,15 +1269,13 @@ have been replaced by constants."
             ;; correct when we resume evaluation of this form.
             (when deferred
               (eshell-manipulate form "rebinding let args after `eshell-defer'"
-                (let ((bindings (car args)))
-                  (while bindings
-                    (let ((binding (if (consp (car bindings))
-                                       (caar bindings)
-                                     (car bindings))))
-                      (setcar bindings
-                              (list binding
-                                    (list 'quote (symbol-value binding)))))
-                    (pop bindings))))
+                (setcar args
+                        (mapcar
+                         (lambda (binding)
+                           (if (consp binding)
+                               `(,(car binding) ',(symbol-value (car binding)))
+                             binding))
+                         (car args))))
               (throw 'eshell-defer deferred))
             ;; If we get here, there was no `eshell-defer' thrown, so
             ;; just return the `let' body's result.
