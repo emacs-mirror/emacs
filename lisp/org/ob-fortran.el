@@ -4,7 +4,6 @@
 
 ;; Authors: Sergey Litvinov
 ;;       Eric Schulte
-;; Maintainer: Ken Mankoff <km@kenmankoff.com>
 ;; Keywords: literate programming, reproducible research, fortran
 ;; URL: https://orgmode.org
 

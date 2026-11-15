@@ -4,7 +4,6 @@
 
 ;; Authors: Eric Schulte
 ;;          Dan Davison
-;; Maintainer: Ian Martins <ianxm@jhu.edu>
 ;; Keywords: literate programming, reproducible research
 ;; URL: https://orgmode.org
 
