@@ -26,21 +26,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <math.h>
 #include <stdlib.h>
 
-/* Return the number of bits needed to represent Z.  Act like
-   mpz_sizeinbase (Z, 2), except do not overflow if the correct answer
-   exceeds SIZE_MAX.  */
-static unsigned long long int
-mpz_bit_width (mpz_t const z)
-{
-  /* This implementation is likely faster than libgmp's, so don't defer
-     to mpz_sizeinbase for small args.  */
-  static_assert (INT_MAX <= ULLONG_MAX / GMP_NUMB_BITS);
-  ptrdiff_t nlimbs = emacs_mpz_size (z);
-  return (!nlimbs ? 0
-	  : ((nlimbs - 1) * (unsigned long long int) {GMP_NUMB_BITS}
-	     + stdc_bit_width (mpz_getlimbn (z, nlimbs - 1))));
-}
-
 /* mpz global temporaries.  Making them global saves the trouble of
    properly using mpz_init and mpz_clear on temporaries even when
    storage is exhausted.  Admittedly this is not ideal.  An mpz value
@@ -405,11 +390,21 @@ emacs_mpz_pow_ui (mpz_t rop, mpz_t const base, unsigned long exp)
 
 /* Yield an upper bound on the buffer size needed to contain a C
    string representing the NUM in base BASE.  This includes any
-   preceding '-' and the terminating null.  */
+   preceding '-' and the terminating null.
+   BASE must be 2, 8, 10, or 16.  */
 ptrdiff_t
 bignum_bufsize (Lisp_Object num, int base)
 {
-  return mpz_sizeinbase (*xbignum_val (num), base) + sizeof "-";
+  EMACS_INT bits = mpz_bit_width (*xbignum_val (num));
+  EMACS_INT digits = (base == 10 ? INT_BITS_STRLEN_BOUND (bits)
+		      : base == 16 ? (bits + 3) / 4
+		      : base == 8 ? (bits + 2) / 3
+		      : base == 2 ? bits
+		      : (eassume (false), 0));
+  ptrdiff_t size;
+  if (ckd_add (&size, digits, sizeof "-"))
+    memory_full_up ();
+  return size;
 }
 
 /* Convert NUM to a nearest double, as opposed to mpz_get_d which
