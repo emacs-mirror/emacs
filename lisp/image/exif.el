@@ -127,11 +127,9 @@ from the return value of this function."
               (encode-coding-region (point-min) (point-max)
                                     buffer-file-coding-system
                                     dest))
-            (when-let* ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
-              (exif--parse-exif-chunk app1))))
+            (exif--find-exif-chunk)))
       (save-excursion
-        (when-let* ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
-          (exif--parse-exif-chunk app1))))))
+        (exif--find-exif-chunk)))))
 
 (defun exif-field (field data)
   "Return raw FIELD from Exif DATA.
@@ -148,6 +146,12 @@ DATA is the result of calling `exif-parse-file' or `exif-parse-buffer'."
 If the orientation isn't present in the data, return nil."
   (let ((code (exif-field 'orientation exif)))
     (cadr (assq code exif--orientation))))
+
+(defun exif--find-exif-chunk ()
+  (cl-loop for (key . data) in (exif--parse-jpeg)
+           when (and (eq key #xffe1)
+                     (string-prefix-p (string ?E ?x ?i ?f ?\0 ?\0) data))
+           return (exif--parse-exif-chunk data)))
 
 (defun exif--parse-jpeg ()
   (unless (= (exif--read-number-be 2) #xffd8) ; SOI (start of image)
