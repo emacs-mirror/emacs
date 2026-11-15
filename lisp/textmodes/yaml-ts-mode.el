@@ -50,9 +50,13 @@
   "Additional options to pass to yamllint command used for Flymake support.
 This should be a list of strings, each one passed as a separate argument
 to the yamllint command."
-  :group 'yaml-ts-mode
   :version "31.1"
   :type '(repeat string))
+
+(defcustom yaml-ts-indent-offset (or (bound-and-true-p yaml-indent-offset) 2)
+  "Size of indentation step."
+  :type 'integer
+  :safe #'natnump)
 
 (defvar yaml-ts-mode--syntax-table
   (let ((table (make-syntax-table)))
@@ -256,6 +260,12 @@ Calls REPORT-FN directly."
         (process-send-region yaml-ts-mode--flymake-process (point-min) (point-max))
         (process-send-eof yaml-ts-mode--flymake-process)))))
 
+(defun yaml-ts-indent-relative ()
+  "Indent to next indentation position."
+  (let ((tab-stop-list
+         (list yaml-ts-indent-offset (* 2 yaml-ts-indent-offset))))
+    (tab-to-tab-stop)))
+
 ;;;###autoload
 (define-derived-mode yaml-ts-mode text-mode "YAML"
   "Major mode for editing YAML, powered by tree-sitter."
@@ -275,10 +285,10 @@ Calls REPORT-FN directly."
 
     ;; Indentation.
     (setq-local indent-tabs-mode nil)
-    (setq-local tab-width 2)
-    ;; FIXME: This is what used to be in `editorconfig-indentation-alist',
-    ;; but AFAICT we don't use `yaml-indent-offset' at all.
-    (setq-local editorconfig-indent-size-vars '(yaml-indent-offset))
+    (setq-local indent-line-ignored-functions
+                (cons #'yaml-ts-indent-relative indent-line-ignored-functions))
+    (setq-local indent-line-function #'yaml-ts-indent-relative)
+    (setq-local electric-indent-inhibit t)
 
     ;; Font-lock.
     (setq-local treesit-font-lock-settings yaml-ts-mode--font-lock-settings)
