@@ -159,7 +159,7 @@
   (should
    (color-tests--approx-equal
     (color-srgb-to-lab 0.1 0.2 0.3)
-    '(20.4762218 -0.6508996 -18.6340085))))
+    '(20.4762439 -0.6509944 -18.6339706))))
 
 (ert-deftest color-tests-lab-to-srgb ()
   (should (equal (color-lab-to-srgb 0 0 0) '(0.0 0.0 0.0)))
@@ -168,7 +168,7 @@
     (color-lab-to-srgb 87.7347223 -86.1808176 83.1770651) '(0 1 0)))
   (should
    (color-tests--approx-equal
-    (color-lab-to-srgb 20.4762218 -0.6508996 -18.6340085)
+    (color-lab-to-srgb 20.4762439 -0.6509944 -18.6339706)
     '(0.1 0.2 0.3))))
 
 (ert-deftest color-tests-cie-de2000 ()
@@ -178,13 +178,13 @@
     (list
      (color-cie-de2000
       (color-srgb-to-lab 1 0 0) (color-srgb-to-lab 0 0 1)))
-    '(52.8803934)))
+    '(52.8811979)))
   (should
    (color-tests--approx-equal
     (list
      (color-cie-de2000
       (color-srgb-to-lab 0.8 0 0) (color-srgb-to-lab 0.9 0 0)))
-    '(5.3844503))))
+    '(5.3845329))))
 
 (ert-deftest color-tests-clamp ()
   (should (= (color-clamp 0) 0.0))
