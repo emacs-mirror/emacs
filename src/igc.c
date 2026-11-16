@@ -4237,6 +4237,12 @@ igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
      pins its references.  Omitting the "volatile" would mean the
      compiler might optimize it away, keeping only the heap copy.  */
   volatile mps_word_t *area = SAFE_ALLOCA (item_size);
+  /* FIXME: Items are not copied atomically, i.e. the scan function may
+     see a partially copied item.  Are our scan functions prepared for
+     that?  Even in the wide-int config?  */
+  /* FIXME: Can't we just use igc_memcpy?  I don't see why copying
+     multiple words to the stack before copying them to the destination
+     is safer than copying a single word.  */
   for (ptrdiff_t i = 0; i < (old_nitems); i++)
     {
       ptrdiff_t count = (item_size + (sizeof (mps_word_t) - 1))
