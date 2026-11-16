@@ -5583,6 +5583,9 @@ With a prefix argument, it can also install optional parsers"
   (let ((table (make-syntax-table text-mode-syntax-table)))
     ;; Code span delimiter.
     (modify-syntax-entry ?\` "\"" table)
+    ;; Math delimiter, as in $x$: not part of a word, but not paired
+    ;; either, as amounts like $5 use it too.
+    (modify-syntax-entry ?$ "'" table)
     table)
   "Syntax table for `markdown-ts-mode'.")
 
