@@ -212,9 +212,11 @@ of master file."
                       (let ((syntax (save-match-data (syntax-ppss))))
                         (or
                          ;; This is for AUCTeX `LaTeX-mode':
-                         (nth 3 syntax)
+                         (and (derived-mode-p 'LaTeX-mode)
+                              (nth 3 syntax))
                          ;; This is for built-in `latex-mode':
-                         (nth 4 syntax))))))
+                         (and (derived-mode-p 'latex-mode)
+                              (nth 4 syntax)))))))
 
     (catch 'exit
       (setq file-found (reftex-locate-file file "tex" master-dir))
