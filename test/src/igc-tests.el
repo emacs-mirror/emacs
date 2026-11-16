@@ -239,4 +239,65 @@
     (profiler-stop)
     (ignore (prin1-to-string (profiler-cpu-profile)))))
 
+(defun igc-tests--emacs-invocation ()
+  (expand-file-name invocation-name invocation-directory))
+
+(defun igc-tests--busy-worker-1 ()
+  (let* ((v (make-vector 1000 nil))
+	 (garbage-collection-messages t))
+    (dotimes (i most-positive-fixnum)
+      (let ((im (% i (length v))))
+	(ignore (make-vector 2041 nil))
+	(aset v (- (1- (length v)) im) (make-vector 1 (aref v im)))
+        (when (featurep 'mps)
+	  (igc--process-messages))
+	(when (= (% i 1000) 0)
+	  (message "i = %d" i))))))
+
+(defun igc-tests--busy-worker ()
+  (when (featurep 'mps)
+    (igc--set-commit-limit (* 1024 1024 128))
+    (igc--set-pause-time 0.001))
+  (igc-tests--busy-worker-1))
+
+(defun igc-tests--make-proc-callback (prefix counter)
+  (lambda (p msg)
+    (incf (aref counter 0))
+    (message "%s %s: %s" prefix (process-name p)
+             (string-trim-right msg "[\n]"))))
+
+(defun igc-tests--make-process (function-name counter)
+  (let* ((file-name (find-library-name "igc-tests"))
+         (invocation (igc-tests--emacs-invocation))
+         (_ (should (file-exists-p file-name))))
+    (make-process
+     :name "emacs1"
+     :command (list invocation
+                    "-Q" "--batch"
+                    "-l" file-name
+                    "-f" (symbol-name function-name))
+     :filter (igc-tests--make-proc-callback "filter" counter)
+     :sentinel (igc-tests--make-proc-callback "sentinel" counter)
+     :stderr nil)))
+
+(defun igc-tests--sigint ()
+  (let* ((counter (vector 0))
+         (emacs1 (igc-tests--make-process 'igc-tests--busy-worker counter)))
+    (while (eq (process-status emacs1) 'run)
+      ;;(message "waiting for: %s %s" (process-id emacs1) emacs1)
+      (accept-process-output nil 0.1)
+      (when (> (aref counter 0) 6)
+        (signal-process emacs1 'SIGINT)))
+    (while (accept-process-output emacs1 0.1))
+    (message "status: %s exit-status: %d"
+             (process-status emacs1)
+             (process-exit-status emacs1))
+    (should (eq (process-status emacs1) 'exit))
+    (should (= (process-exit-status emacs1) 0))))
+
+(ert-deftest igc-tests-sigint ()
+  (skip-when (memq system-type '(windows-nt)))
+  (dotimes (_ 3)
+    (igc-tests--sigint)))
+
 ;;; igc-tests.el ends here.
