@@ -3280,7 +3280,7 @@ ARGS are captured by `markdown-ts--maybe-run-command-in-code-block'."
             (when (and adj-region-beg adj-region-end)
               (apply #'funcall-interactively command
                      adj-region-beg adj-region-end args)))
-           ((zerop arity)
+           ((eq 0 arity)
             (funcall-interactively command))
            ((eq 1 arity)
             (funcall-interactively command (car args)))
