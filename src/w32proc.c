@@ -586,6 +586,14 @@ timer_loop (LPVOID arg)
 	      goto out;
 	    }
 
+	  /* SuspendThread is asynchronous: it doesn't wait for the
+	     target thread to be suspended before returning.
+	     GetThreadContext makes it synchronous, because the system
+	     must actually suspend the thread to fetch its context.  */
+	  CONTEXT dummy;
+	  memset (&dummy, 0, sizeof dummy);
+	  dummy.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+	  GetThreadContext (th, &dummy);
 	  handler (sig);
 	  ResumeThread (th);
 	}
