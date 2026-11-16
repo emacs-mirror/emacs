@@ -199,7 +199,15 @@ static Bool suspendThread(Thread thread)
   /* [GetLastError appears to return 5 when SuspendThread is called */
   /* on a terminated thread, but I'm not sufficiently confident of this */
   /* to check -- drj 1998-04-09] */
-  return SuspendThread(thread->handle) != (DWORD)-1;
+  Bool retval = SuspendThread(thread->handle) != (DWORD)-1;
+  CONTEXT dummy;
+  /* SuspendThread is asynchronous: it doesn't wait for the target
+     thread to be suspended before returning.  GetThreadContext makes it
+     synchronous.  */
+  memset (&dummy, 0, sizeof dummy);
+  dummy.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+  GetThreadContext (thread->handle, &dummy);
+  return retval;
 }
 
 void ThreadRingSuspend(Ring threadRing, Ring deadRing)
