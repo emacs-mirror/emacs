@@ -114,6 +114,10 @@ static volatile bool pending_signals_child;
 /* FIXME: define this only if SIGWINCH is defined?  */
 static volatile bool pending_signals_window_changed;
 
+/* True means a SIGINT was received.  This is set in a signal handler
+   and later checked and reset in process_pending_signals.  */
+static volatile bool pending_signals_interrupt;
+
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
 static KBOARD *all_kboards;
@@ -13125,7 +13129,7 @@ clear_waiting_for_input (void)
    Otherwise, tell maybe_quit to kill Emacs.  */
 
 static void
-handle_interrupt_signal (int sig)
+handle_interrupt_signal_2 (bool in_signal_handler)
 {
   /* See if we have an active terminal on our controlling tty.  */
   struct terminal *terminal = get_named_terminal (dev_tty);
@@ -13153,8 +13157,25 @@ handle_interrupt_signal (int sig)
          from the controlling tty.  */
       internal_last_event_frame = terminal->display_info.tty->top_frame;
 
-      handle_interrupt (1);
+      handle_interrupt (in_signal_handler);
     }
+}
+
+void
+process_sigint_async (void)
+{
+  handle_interrupt_signal_2 (false);
+}
+
+static void
+handle_interrupt_signal (int sig)
+{
+#ifdef HAVE_MPS
+  struct async_work_item item = { ASYNCWORK_SIGINT };
+  enqueue_async_work (item);
+#else
+  handle_interrupt_signal_2 (true);
+#endif
 }
 
 static void
@@ -14038,6 +14059,10 @@ enqueue_async_work (struct async_work_item item)
       pending_signals = true;
       pending_signals_window_changed = true;
       return;
+    case ASYNCWORK_SIGINT:
+      pending_signals = true;
+      pending_signals_interrupt = true;
+      return;
     }
   emacs_abort ();
 }
@@ -14054,6 +14079,11 @@ do_async_work (void)
     {
       pending_signals_window_changed = false;
       process_sigwinch_async ();
+    }
+  if (pending_signals_interrupt)
+    {
+      pending_signals_interrupt = false;
+      process_sigint_async ();
     }
 }
 
