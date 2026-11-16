@@ -497,7 +497,7 @@ The given conversion(s) are tested, and also the other 2-digit conversion(s)."
 
 (defun time-stamp-test--string-equal (string1 string2)
   "Compare strings with `compare-strings'.
-Use `compare-strings' instead of `string-equal'
+We use `compare-strings' instead of `string-equal'
 because `compare-strings' handles the case
 where one string is multibyte and the other unibyte.
 This is a separate function so it can have an `ert-explainer' property."
@@ -910,100 +910,73 @@ and is called by some low-level `time-stamp' \"%z\" unit tests."
         (s (or s 0)))
     (+ (* 3600 h) (* 60 m) s)))
 
-(defun fz-make-zone (h &optional m s)
-  "Create a negative offset.
-The interval arguments H M and S are all non-negative."
-  (declare (pure t))
-  (- (fz-make+zone h m s)))
+(defun zformat-zone-test (form-string pattern-mod sign h &optional m s)
+  "Test that FORM-STRING (a %z variation) produces the expected string.
+PATTERN-MOD is a list of modifications to the generic format for the
+offset represented by SIGN, H, M, and S."
+  (let ((offset (funcall sign (fz-make+zone h m s)))
+        ;; value will look like "-02", "+11:30", or "+08:45:30"
+        (value (concat (format "%s%02d" (symbol-name sign) h)
+                       (and m (format ":%02d" m))
+                       (and s (format ":%02d" s)))))
+    ;; pattern-mod functions can modify the generic value.
+    ;; They are composed left to right.
+    (dolist (fn pattern-mod)
+      (setq value (funcall fn value)))
+    (should (equal (formatz form-string offset) value))))
 
-(defmacro formatz-should-equal (zone expect)
-  "Format ZONE and compare it to EXPECT.
-Use the free variables `form-string' and `pattern-mod'.
-The functions in `pattern-mod' are composed left to right."
-  (declare (debug t))
-  (cl-with-gensyms (g-result g-fn)
-    `(let ((,g-result ,expect))
-       (dolist (,g-fn pattern-mod)
-         (setq ,g-result (funcall ,g-fn ,g-result)))
-       (should (equal (formatz form-string ,zone) ,g-result)))))
+(defun zformat-zone-tester (form-string pattern-mod test-cases)
+  "Call `zformat-zone-test' with FORM-STRING PATTERN-MOD for each TEST-CASES.
+TEST-CASES is a list of lists of SIGN, H, optional M, and optional S."
+  (mapc (lambda (sign-hms-list)
+          (apply #'zformat-zone-test form-string pattern-mod sign-hms-list))
+        test-cases))
 
 ;; These test cases have zeros in all places (first, last, none, both)
 ;; for hours, minutes, and seconds.
 
-(defun formatz-hours-exact-helper (form-string pattern-mod)
-  "Test format %z with whole hours."
-  (formatz-should-equal (fz-make+zone 0) "+00") ;0 sign always +, both digits
-  (formatz-should-equal (fz-make+zone 10) "+10")
-  (formatz-should-equal (fz-make-zone 10) "-10")
-  (formatz-should-equal (fz-make+zone 2) "+02")
-  (formatz-should-equal (fz-make-zone 2) "-02")
-  (formatz-should-equal (fz-make+zone 13) "+13")
-  (formatz-should-equal (fz-make-zone 13) "-13")
-  )
+(defconst zformat-hours-exact-test-cases
+  '((+ 0)
+    (+ 10) (- 10)
+    (+ 2) (- 2)
+    (+ 13) (- 13))
+  "Test cases for format %z with whole hours.")
 
-(defun formatz-nonzero-minutes-helper (form-string pattern-mod)
-  "Test format %z with whole minutes."
-  (formatz-should-equal (fz-make+zone 0 30) "+00:30") ;has hours even though 0
-  (formatz-should-equal (fz-make-zone 0 30) "-00:30")
-  (formatz-should-equal (fz-make+zone 0 4) "+00:04")
-  (formatz-should-equal (fz-make-zone 0 4) "-00:04")
-  (formatz-should-equal (fz-make+zone 8 40) "+08:40")
-  (formatz-should-equal (fz-make-zone 8 40) "-08:40")
-  (formatz-should-equal (fz-make+zone 0 15) "+00:15")
-  (formatz-should-equal (fz-make-zone 0 15) "-00:15")
-  (formatz-should-equal (fz-make+zone 11 30) "+11:30")
-  (formatz-should-equal (fz-make-zone 11 30) "-11:30")
-  (formatz-should-equal (fz-make+zone 3 17) "+03:17")
-  (formatz-should-equal (fz-make-zone 3 17) "-03:17")
-  (formatz-should-equal (fz-make+zone 12 45) "+12:45")
-  (formatz-should-equal (fz-make-zone 12 45) "-12:45")
-  )
+(defconst zformat-nonzero-minutes-test-cases
+  '((+ 0 30) (- 0 30)
+    (+ 0 4) (- 0 4)
+    (+ 8 40) (- 8 40)
+    (+ 0 15) (- 0 15)
+    (+ 11 30) (- 11 30)
+    (+ 3 17) (- 3 17)
+    (+ 12 45) (- 12 45))
+  "Test cases for format %z with whole minutes.")
 
-(defun formatz-nonzero-seconds-helper (form-string pattern-mod)
-  "Test format %z with non-0 seconds."
-  ;; non-0 seconds are always included
-  (formatz-should-equal (fz-make+zone 0 0 50) "+00:00:50")
-  (formatz-should-equal (fz-make-zone 0 0 50) "-00:00:50")
-  (formatz-should-equal (fz-make+zone 0 0 06) "+00:00:06")
-  (formatz-should-equal (fz-make-zone 0 0 06) "-00:00:06")
-  (formatz-should-equal (fz-make+zone 0 7 50) "+00:07:50")
-  (formatz-should-equal (fz-make-zone 0 7 50) "-00:07:50")
-  (formatz-should-equal (fz-make+zone 0 0 16) "+00:00:16")
-  (formatz-should-equal (fz-make-zone 0 0 16) "-00:00:16")
-  (formatz-should-equal (fz-make+zone 0 12 36) "+00:12:36")
-  (formatz-should-equal (fz-make-zone 0 12 36) "-00:12:36")
-  (formatz-should-equal (fz-make+zone 0 3 45) "+00:03:45")
-  (formatz-should-equal (fz-make-zone 0 3 45) "-00:03:45")
-  (formatz-should-equal (fz-make+zone 8 45 30) "+08:45:30")
-  (formatz-should-equal (fz-make-zone 8 45 30) "-08:45:30")
-  (formatz-should-equal (fz-make+zone 0 11 45) "+00:11:45")
-  (formatz-should-equal (fz-make-zone 0 11 45) "-00:11:45")
-  (formatz-should-equal (fz-make+zone 3 20 15) "+03:20:15")
-  (formatz-should-equal (fz-make-zone 3 20 15) "-03:20:15")
-  (formatz-should-equal (fz-make+zone 11 14 30) "+11:14:30")
-  (formatz-should-equal (fz-make-zone 11 14 30) "-11:14:30")
-  (formatz-should-equal (fz-make+zone 12 30 49) "+12:30:49")
-  (formatz-should-equal (fz-make-zone 12 30 49) "-12:30:49")
-  (formatz-should-equal (fz-make+zone 12 0 34) "+12:00:34")
-  (formatz-should-equal (fz-make-zone 12 0 34) "-12:00:34")
-  )
+(defconst zformat-nonzero-seconds-test-cases
+  '((+ 0 0 50) (- 0 0 50)
+    (+ 0 0 06) (- 0 0 06)
+    (+ 0 7 50) (- 0 7 50)
+    (+ 0 0 16) (- 0 0 16)
+    (+ 0 12 36) (- 0 12 36)
+    (+ 0 3 45) (- 0 3 45)
+    (+ 8 45 30) (- 8 45 30)
+    (+ 0 11 45) (- 0 11 45)
+    (+ 3 20 15) (- 3 20 15)
+    (+ 11 14 30) (- 11 14 30)
+    (+ 12 30 49) (- 12 30 49)
+    (+ 12 0 34) (- 12 0 34))
+  "Test cases for format %z with non-0 seconds.")
 
-(defun formatz-hours-big-helper (form-string pattern-mod)
-  "Test format %z with hours that don't fit in two digits."
-  (formatz-should-equal (fz-make+zone 101) "+101:00")
-  (formatz-should-equal (fz-make+zone 123 10) "+123:10")
-  (formatz-should-equal (fz-make-zone 123 10) "-123:10")
-  (formatz-should-equal (fz-make+zone 123 2) "+123:02")
-  (formatz-should-equal (fz-make-zone 123 2) "-123:02")
-  )
+(defconst zformat-hours-big-test-cases
+  '((+ 101 0)
+    (+ 123 10) (- 123 10)
+    (+ 123 2) (- 123 2))
+  "Test cases for format %z with hours that do not fit in two digits.")
 
-(defun formatz-seconds-big-helper (form-string pattern-mod)
-  "Test format %z with hours greater than 99 and non-zero seconds."
-  (formatz-should-equal (fz-make+zone 123 0 30) "+123:00:30")
-  (formatz-should-equal (fz-make-zone 123 0 30) "-123:00:30")
-  (formatz-should-equal (fz-make+zone 120 0 4) "+120:00:04")
-  (formatz-should-equal (fz-make-zone 120 0 4) "-120:00:04")
-  )
+(defconst zformat-seconds-big-test-cases
+  '((+ 123 0 30) (- 123 0 30)
+    (+ 120 0 4) (- 120 0 4))
+  "Test cases for format %z with hours greater than 99 and non-zero seconds.")
 
 ;; Functions that modify the expected output string, so that we can
 ;; use the above test cases for multiple formats.
@@ -1082,10 +1055,12 @@ the other expected results for hours greater than 99 with non-zero seconds."
                       common-description)
              (should (equal (formatz ,form-string (fz-make+zone 0))
                             ,(car hour-mod)))
-             (formatz-hours-exact-helper ,form-string ',(cdr hour-mod))
+             (zformat-zone-tester ,form-string ',(cdr hour-mod)
+                                  zformat-hours-exact-test-cases)
              (should (equal (formatz ,form-string (fz-make+zone 0 30))
                             ,(car mins-mod)))
-             (formatz-nonzero-minutes-helper ,form-string ',(cdr mins-mod)))
+             (zformat-zone-tester ,form-string ',(cdr mins-mod)
+                                  zformat-nonzero-minutes-test-cases))
           `(find-function-update-type-alist
             ',test-name-seconds 'ert--test 'formatz-find-test-def-function)
           `(ert-deftest ,test-name-seconds ()
@@ -1094,7 +1069,8 @@ the other expected results for hours greater than 99 with non-zero seconds."
                       common-description)
              (should (equal (formatz ,form-string (fz-make+zone 0 0 30))
                             ,(car secs-mod)))
-             (formatz-nonzero-seconds-helper ,form-string ',(cdr secs-mod)))
+             (zformat-zone-tester ,form-string ',(cdr secs-mod)
+                                  zformat-nonzero-seconds-test-cases))
           `(find-function-update-type-alist
             ',test-name-threedigit 'ert--test 'formatz-find-test-def-function)
           `(ert-deftest ,test-name-threedigit ()
@@ -1103,10 +1079,12 @@ the other expected results for hours greater than 99 with non-zero seconds."
                       common-description)
              (should (equal (formatz ,form-string (fz-make+zone 100))
                             ,(car big-mod)))
-             (formatz-hours-big-helper ,form-string ',(cdr big-mod))
+             (zformat-zone-tester ,form-string ',(cdr big-mod)
+                                  zformat-hours-big-test-cases)
              (should (equal (formatz ,form-string (fz-make+zone 100 0 30))
                             ,(car secbig-mod)))
-             (formatz-seconds-big-helper ,form-string ',(cdr secbig-mod)))
+             (zformat-zone-tester ,form-string ',(cdr secbig-mod)
+                                  zformat-seconds-big-test-cases))
           ))))))
 
 (defun formatz-find-test-def-function (test-name)
@@ -1306,6 +1284,7 @@ Return non-nil if the definition is found."
 ;; eval: (put 'with-time-stamp-test-env 'lisp-indent-function 0)
 ;; eval: (put 'with-time-stamp-test-time 'lisp-indent-function 1)
 ;; eval: (put 'with-time-stamp-system-name 'lisp-indent-function 1)
+;; eval: (put 'time-stamp-test--count-function-calls 'lisp-indent-function 2)
 ;; eval: (put 'time-stamp-should-message 'lisp-indent-function 1)
 ;; eval: (put 'define-formatz-tests 'lisp-indent-function 1)
 ;; End:
