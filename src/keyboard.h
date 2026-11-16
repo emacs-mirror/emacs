@@ -535,21 +535,16 @@ union buffered_input_event *prev_kbd_event (union buffered_input_event *);
 
 INLINE_HEADER_END
 
-enum async_work_type
+enum pending_signal
 {
-  ASYNCWORK_SIGCHLD,
-  ASYNCWORK_SIGWINCH,
-  ASYNCWORK_SIGINT,
+  PENDING_SIGCHLD,
+  PENDING_SIGWINCH,
+  PENDING_SIGINT,
 };
 
-struct async_work_item
-{
-  enum async_work_type type;
-};
-
-extern void enqueue_async_work (struct async_work_item item);
-extern void process_sigchld_async (void);
-extern void process_sigwinch_async (void);
-extern void process_sigint_async (void);
+extern void set_pending_signal (enum pending_signal);
+extern void process_pending_sigchld (void);
+extern void process_pending_sigwinch (void);
+extern void process_pending_sigint (void);
 
 #endif /* EMACS_KEYBOARD_H */

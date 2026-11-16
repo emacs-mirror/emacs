@@ -7742,7 +7742,7 @@ bool glib_installs_sigchld_handler;
    indirectly; if it does, that is a bug.  */
 
 void
-process_sigchld_async (void)
+process_pending_sigchld (void)
 {
   Lisp_Object tail, proc;
   bool changed = false;
@@ -7850,8 +7850,7 @@ process_sigchld_async (void)
 static void
 handle_child_signal (int sig)
 {
-  struct async_work_item item = { ASYNCWORK_SIGCHLD };
-  enqueue_async_work (item);
+  set_pending_signal (PENDING_SIGCHLD);
 
   lib_child_handler (sig);
 #ifdef NS_IMPL_GNUSTEP

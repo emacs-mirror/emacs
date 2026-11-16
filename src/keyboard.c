@@ -107,16 +107,16 @@ volatile bool pending_signals;
 
 /* True means a SIGCHLD was received.  This is set in a signal handler
    and later checked and reset in process_pending_signals.  */
-static volatile bool pending_signals_child;
+static volatile bool pending_signals_sigchld;
 
 /* True means a SIGWINCH was received.  This is set in a signal handler
    and later checked and reset in process_pending_signals.  */
 /* FIXME: define this only if SIGWINCH is defined?  */
-static volatile bool pending_signals_window_changed;
+static volatile bool pending_signals_sigwinch;
 
 /* True means a SIGINT was received.  This is set in a signal handler
    and later checked and reset in process_pending_signals.  */
-static volatile bool pending_signals_interrupt;
+static volatile bool pending_signals_sigint;
 
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
@@ -13162,7 +13162,7 @@ handle_interrupt_signal_2 (bool in_signal_handler)
 }
 
 void
-process_sigint_async (void)
+process_pending_sigint (void)
 {
   handle_interrupt_signal_2 (false);
 }
@@ -13171,8 +13171,7 @@ static void
 handle_interrupt_signal (int sig)
 {
 #ifdef HAVE_MPS
-  struct async_work_item item = { ASYNCWORK_SIGINT };
-  enqueue_async_work (item);
+  set_pending_signal (PENDING_SIGINT);
 #else
   handle_interrupt_signal_2 (true);
 #endif
@@ -14047,21 +14046,21 @@ is_ignored_event (union buffered_input_event *event)
 }
 
 void
-enqueue_async_work (struct async_work_item item)
+set_pending_signal (enum pending_signal pending_signal)
 {
-  switch (item.type)
+  switch (pending_signal)
     {
-    case ASYNCWORK_SIGCHLD:
+    case PENDING_SIGCHLD:
       pending_signals = true;
-      pending_signals_child = true;
+      pending_signals_sigchld = true;
       return;
-    case ASYNCWORK_SIGWINCH:
+    case PENDING_SIGWINCH:
       pending_signals = true;
-      pending_signals_window_changed = true;
+      pending_signals_sigwinch = true;
       return;
-    case ASYNCWORK_SIGINT:
+    case PENDING_SIGINT:
       pending_signals = true;
-      pending_signals_interrupt = true;
+      pending_signals_sigint = true;
       return;
     }
   emacs_abort ();
@@ -14070,20 +14069,20 @@ enqueue_async_work (struct async_work_item item)
 static void
 do_async_work (void)
 {
-  if (pending_signals_child)
+  if (pending_signals_sigchld)
     {
-      pending_signals_child = false;
-      process_sigchld_async ();
+      pending_signals_sigchld = false;
+      process_pending_sigchld ();
     }
-  if (pending_signals_window_changed)
+  if (pending_signals_sigwinch)
     {
-      pending_signals_window_changed = false;
-      process_sigwinch_async ();
+      pending_signals_sigwinch = false;
+      process_pending_sigwinch ();
     }
-  if (pending_signals_interrupt)
+  if (pending_signals_sigint)
     {
-      pending_signals_interrupt = false;
-      process_sigint_async ();
+      pending_signals_sigint = false;
+      process_pending_sigint ();
     }
 }
 
