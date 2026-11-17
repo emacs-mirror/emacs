@@ -1275,7 +1275,7 @@ Press the number @kbd{1} now to enter the first section of the Tutorial.
 * Tutorial::
 @end menu
 
-@node Tutorial, Introduction, Interactive Tutorial, Interactive Tutorial
+@node Tutorial,,, Interactive Tutorial
 @end ifinfo
 @ifnotinfo
 @node Tutorial, Introduction, Getting Started, Top
@@ -9604,7 +9604,7 @@ numeric entry, undo, numeric prefix arguments, etc.
 * Troubleshooting Commands::
 @end menu
 
-@node Basic Commands
+@node Basic Commands,,,Introduction
 @section Basic Commands
 
 @noindent
@@ -9773,7 +9773,7 @@ the stack but resets everything else to its initial state; with a
 negative prefix argument, @kbd{C-x * 0} preserves the contents of the
 stack but resets everything else to its default state.
 
-@node Help Commands
+@node Help Commands,,,Introduction
 @section Help Commands
 
 @noindent
@@ -9918,7 +9918,7 @@ distribution, and warranty information about Calc.  These work by
 pulling up the appropriate parts of the ``Copying'' or ``Reporting
 Bugs'' sections of the manual.
 
-@node Stack Basics
+@node Stack Basics,,,Introduction
 @section Stack Basics
 
 @noindent
@@ -9970,7 +9970,7 @@ The @key{TAB} key swaps the top two objects on the stack.
 @xref{Stack and Trail}, for descriptions of these and other stack-related
 commands.
 
-@node Numeric Entry
+@node Numeric Entry,,,Introduction
 @section Numeric Entry
 
 @noindent
@@ -10007,7 +10007,7 @@ data types.  @xref{Data Types}.
 
 During numeric entry, the only editing key available is @key{DEL}.
 
-@node Algebraic Entry
+@node Algebraic Entry,,,Introduction
 @section Algebraic Entry
 
 @noindent
@@ -10125,7 +10125,7 @@ is being pushed on the stack.  Thus @kbd{' 1+2 @key{RET}} pushes 3
 on the stack, but @kbd{' 1+2 @key{LFD}} pushes the formula @expr{1+2};
 you might then press @kbd{=} when it is time to evaluate this formula.
 
-@node Quick Calculator
+@node Quick Calculator,,,Introduction
 @section ``Quick Calculator'' Mode
 
 @noindent
@@ -10194,7 +10194,7 @@ or computing the answer than the full Calculator; the name ``quick''
 merely refers to the fact that it's much less hassle to use for
 small calculations.
 
-@node Prefix Arguments
+@node Prefix Arguments,,,Introduction
 @section Numeric Prefix Arguments
 
 @noindent
@@ -10242,7 +10242,7 @@ to the fourth power and set the precision to that value.
 Conversely, if you have typed a numeric prefix argument the @kbd{~} key
 pushes it onto the stack in the form of an integer.
 
-@node Undo
+@node Undo,,,Introduction
 @section Undoing Mistakes
 
 @noindent
@@ -10300,7 +10300,7 @@ It is also possible to recall previous results or inputs using the trail.
 
 The standard Emacs @kbd{C-_} undo key is recognized as a synonym for @kbd{U}.
 
-@node Error Messages
+@node Error Messages,,,Introduction
 @section Error Messages
 
 @noindent
@@ -10331,7 +10331,7 @@ after your computation finishes.)  By default, this occurs only for
 @emph{all} messages automatically, or to report none automatically (so
 that you must always press @kbd{w} yourself to see the messages).
 
-@node Multiple Calculators
+@node Multiple Calculators,,,Introduction
 @section Multiple Calculators
 
 @noindent
@@ -10358,7 +10358,7 @@ the stack and mode settings of the buffer being quit as the new defaults.
 There is only one trail buffer, @file{*Calc Trail*}, used by all
 Calculator buffers.
 
-@node Troubleshooting Commands
+@node Troubleshooting Commands,,,Introduction
 @section Troubleshooting Commands
 
 @noindent
