@@ -413,7 +413,9 @@ connection if a previous connection has died for some reason."
 	  (with-timeout
 	      ((tramp-get-method-parameter
 		vec 'tramp-connection-timeout tramp-connection-timeout)
+	       ;; Unmount in case the mount has appeared meanwhile.
 	       (delete-process p)
+	       (tramp-fuse-unmount vec)
 	       (tramp-error
 		vec 'remote-file-error
 		"Timeout reached mounting %s using %s" host tramp-rclone-method))
