@@ -130,6 +130,14 @@
       tramp-verbose 0
       vc-handled-backends (unless noninteractive vc-handled-backends))
 
+;; For internal tests.  In batch mode, it writes to the console.
+;; (dolist (elt (append
+;; 	      (apropos-internal (rx bos "tramp-") #'functionp)
+;; 	      (apropos-internal (rx bos "tramp-") #'macrop)
+;; 	      (apropos-internal
+;; 	       (rx bos "with-" (? "parsed-") "tramp-") #'macrop)))
+;;   (trace-function-background elt))
+
 (defconst tramp-test-vec
   (and (file-remote-p ert-remote-temporary-file-directory)
        (tramp-dissect-file-name ert-remote-temporary-file-directory))

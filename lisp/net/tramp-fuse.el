@@ -189,6 +189,14 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 	      vec "/" "mount-point" (match-string 2 mount))
              (match-string 1 mount)))))))
 
+(defun tramp-fuse-get-fuse-program (vec)
+  "Determine the `tramp-*-program' command for VEC."
+  (with-tramp-connection-property vec "fuse-program"
+    (executable-find
+     (symbol-value
+      ;; `tramp-rclone-program' or `tramp-sshfs-program'.
+      (intern (format "tramp-%s-program" (tramp-file-name-method vec)))))))
+
 (defun tramp-fuse-get-fusermount ()
   "Determine the local `fusermount' command."
   ;; We use key nil for local connection properties.
@@ -201,18 +209,36 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 
 (defun tramp-fuse-unmount (vec)
   "Unmount fuse volume determined by VEC."
-  (let* ((default-directory tramp-compat-temporary-file-directory)
-	 (mount-point (tramp-fuse-mount-point vec))
-         (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
-    (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
-    (tramp-flush-file-property vec "/" "mounted")
-    (tramp-flush-file-property vec "/" "mount-point")
-    (setq tramp-fuse-mount-points
-	  (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
-    ;; Give the caches a chance to expire.
-    (sleep-for 1)
-    (when (directory-empty-p mount-point)
-      (delete-directory mount-point))))
+  (let ((default-directory tramp-compat-temporary-file-directory))
+    ;; Check, whether there is still a mount process.  Kill it.
+    (while-let
+	((program (tramp-fuse-get-fuse-program vec))
+	 (prefix (format "%s mount %s" program (tramp-fuse-mount-spec vec)))
+	 (pid (car (seq-filter
+		    (lambda (pid)
+		      (when-let* ((attr (process-attributes pid))
+				  (args (assoc-default 'args attr))
+				  ((string-prefix-p prefix args)))
+			pid))
+		    (list-system-processes)))))
+      (tramp-message
+       vec 6
+       "Kill mount process %d for %s" pid (tramp-fuse-mount-spec vec))
+      (signal-process pid 'SIGTERM))
+
+    ;; Unmount.
+    (let* ((mount-point (tramp-fuse-mount-point vec))
+           (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
+      (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
+      (tramp-flush-file-property vec "/" "mounted")
+      (tramp-flush-file-property vec "/" "mount-point")
+      (setq tramp-fuse-mount-points
+	    (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
+      ;; Give the caches a chance to expire.
+      (sleep-for 1)
+
+      (when (directory-empty-p mount-point)
+	(delete-directory mount-point)))))
 
 (defun tramp-fuse-local-file-name (filename)
   "Return local mount name of FILENAME."
