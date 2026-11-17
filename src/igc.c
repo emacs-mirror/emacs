@@ -3727,6 +3727,36 @@ igc_replace_specpdl (volatile union specbinding *old_pdlvec, ptrdiff_t old_entri
   igc_destroy_root_with_start (old_root->d.start);
 }
 
+static void
+switch_specpdl_rank (mps_arena_t arena, igc_thread_list *t,
+		     bool ambig)
+{
+  struct thread_state *ts = t->d.ts;
+  igc_root *r = &t->d.specpdl_root->d;
+  mps_root_t old_root = r->root;
+  mps_root_destroy (old_root);
+  mps_rank_t new_rank = ambig ? mps_rank_ambig () : mps_rank_exact ();
+  mps_root_t new_root;
+  mps_res_t res
+    = mps_root_create_area (&new_root, arena, new_rank, 0,
+			    ts->m_specpdl, ts->m_specpdl_end,
+			    scan_specpdl, t);
+  IGC_CHECK_RES (res);
+  eassert (r->start == ts->m_specpdl);
+  eassert (r->end == ts->m_specpdl_end);
+  r->root = new_root;
+  r->ambig = ambig;
+}
+
+void
+igc_switch_specpdl_rank (bool ambig)
+{
+  struct igc *gc = global_igc;
+  IGC_WITH_PARKED (gc)
+    for (igc_thread_list *t = gc->threads; t; t = t->next)
+      switch_specpdl_rank (gc->arena, t, ambig);
+}
+
 static igc_root_list *
 root_create_exact_n (Lisp_Object *start, size_t n)
 {
@@ -6359,12 +6389,6 @@ igc_make_dump (size_t nbytes)
   while (!mps_commit (ap, block, block_size));
   mps_ap_destroy (ap);
   return (char *) block + igc_header_size ();
-}
-
-bool
-igc_busy_p (void)
-{
-  return mps_arena_busy (global_igc->arena);
 }
 
 /* Warn if PTR looks like an MPS reference, which is most likely a

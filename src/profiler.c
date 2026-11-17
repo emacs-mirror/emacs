@@ -360,11 +360,7 @@ record_backtrace (struct profiler_log *plog, EMACS_INT count)
 static void
 add_sample (struct profiler_log *plog, EMACS_INT count)
 {
-#ifdef HAVE_MPS
-  if (igc_busy_p ())
-#else
   if (BASE_EQ (backtrace_top_function (), QAutomatic_GC)) /* bug#60237 */
-#endif
     /* Special case the time-count inside GC because the hash-table
        code is not prepared to be used while the GC is running.
        More specifically it uses ASIZE at many places where it does
@@ -444,6 +440,10 @@ setup_cpu_timer (Lisp_Object sampling_interval)
   struct sigaction action;
   emacs_sigaction_init (&action, deliver_profiler_signal);
   sigaction (SIGPROF, &action, 0);
+
+#ifdef HAVE_MPS
+  igc_switch_specpdl_rank (true);
+#endif
 
 #ifdef HAVE_ITIMERSPEC
   if (! profiler_timer_ok)
@@ -554,6 +554,10 @@ Return non-nil if the profiler was running.  */)
     }
 
   signal (SIGPROF, SIG_IGN);
+
+#ifdef HAVE_MPS
+  igc_switch_specpdl_rank (false);
+#endif
 
   profiler_cpu_running = NOT_RUNNING;
   return Qt;

@@ -483,10 +483,6 @@ w32_get_timer_time (HANDLE thread)
 static DWORD WINAPI
 timer_loop (LPVOID arg)
 {
-#ifdef HAVE_MPS
-  w32_aligned_stack_pos stk_bot;
-  void *igc_thr = w32_add_non_lisp_thread (&stk_bot.c);
-#endif
   struct itimer_data *itimer = (struct itimer_data *)arg;
   int which = itimer->type;
   int sig = (which == ITIMER_REAL) ? SIGALRM : SIGPROF;
@@ -631,9 +627,6 @@ timer_loop (LPVOID arg)
 
  out:
 
-#ifdef HAVE_MPS
-  w32_remove_non_lisp_thread (igc_thr);
-#endif
   return retval;
 }
 
