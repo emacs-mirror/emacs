@@ -991,6 +991,8 @@ foo(sec)[, bar(sec) [, ...]] [other stuff] - description"
    ;; spurious "complete but not unique" messages.  And since `man' doesn't
    ;; require-match anyway, there's not point being clever.
    ;;((eq action 'lambda) (not (string-match "([^)]*\\'" string)))
+   ((eq action 'metadata) nil)
+   ((eq (car-safe action) 'boundaries) nil)
    ((equal string "-k")
     ;; Let SPC (minibuffer-complete-word) insert the space.
     (complete-with-action action '("-k ") string pred))
