@@ -78,8 +78,11 @@ nmpsfiles=$(printf "%s" "$stats"|grep --count '	mps/')
 nnonmpsfiles=$(printf "%s" "$stats"|grep --count --invert-match '	mps/')
 
 if test "$nmpsfiles" != 0 -a "$nnonmpsfiles" != 0 ; then
-    printf "Either all or no file should be in mps/\n%s\n" "$stats"
-    exit 1
+  printf "\
+Please keep commits to MPS apart from commits to Emacs.  Split the
+change and commit it in two pieces.  Either all or no files should
+affect the mps/ directory:\n%s\n" "$stats"
+  exit 1
 fi
 
 # The '--check' option of git diff-index makes Git complain if changes
