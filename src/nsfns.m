@@ -936,7 +936,7 @@ ns_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (!NILP (arg) && SYMBOLP (arg))
     {
-      arg =build_string (SSDATA (SYMBOL_NAME (arg)));
+      arg = build_string (SSDATA (SYMBOL_NAME (arg)));
       store_frame_param (f, Qicon_type, arg);
     }
 
@@ -951,14 +951,15 @@ ns_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   image = [EmacsImage allocInitFromFile: arg];
   if (image == nil)
-    image =[NSImage imageNamed: [NSString stringWithLispString:arg]];
+    image = [[NSImage imageNamed: [NSString stringWithLispString:arg]] retain];
 
   if (image == nil)
     {
-      image = [NSImage imageNamed: @"text"];
+      image = [[NSImage imageNamed: @"text"] retain];
       setMini = NO;
     }
 
+  [f->output_data.ns->miniimage release];
   f->output_data.ns->miniimage = image;
   [view setMiniwindowImage: setMini];
 }
