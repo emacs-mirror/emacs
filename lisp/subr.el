@@ -7877,7 +7877,8 @@ The MESSAGE form will be evaluated immediately, but the resulting
 string will be displayed only if BODY takes longer than TIMEOUT seconds.
 
 \(fn (TIMEOUT MESSAGE) &rest BODY)"
-  (declare (indent 1))
+  (declare (indent 1)
+           (debug ((form form) def-body)))
   `(funcall-with-delayed-message ,(car args) ,(cadr args)
                                  (lambda ()
                                    ,@body)))
