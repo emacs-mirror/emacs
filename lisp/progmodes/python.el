@@ -5196,7 +5196,8 @@ Returns the tracked buffer."
   "Untrack currently tracked buffer."
   (when (buffer-live-p python-pdbtrack-tracked-buffer)
     (with-current-buffer python-pdbtrack-tracked-buffer
-      (set-marker overlay-arrow-position nil)))
+      (when (markerp overlay-arrow-position)
+        (set-marker overlay-arrow-position nil))))
   (setq python-pdbtrack-tracked-buffer nil))
 
 (defun python-pdbtrack-tracking-finish ()
