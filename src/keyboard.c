@@ -105,6 +105,7 @@ volatile int interrupt_input_blocked;
    The maybe_quit function checks this.  */
 volatile bool pending_signals;
 
+#ifdef HAVE_MPS
 /* True means a SIGCHLD was received.  This is set in a signal handler
    and later checked and reset in process_pending_signals.  */
 static volatile bool pending_signals_sigchld;
@@ -117,6 +118,7 @@ static volatile bool pending_signals_sigwinch;
 /* True means a SIGINT was received.  This is set in a signal handler
    and later checked and reset in process_pending_signals.  */
 static volatile bool pending_signals_sigint;
+#endif
 
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
@@ -423,7 +425,9 @@ static void deliver_user_signal (int);
 static char *find_user_signal_name (int);
 static void store_user_signal_events (void);
 static bool is_ignored_event (union buffered_input_event *);
+#ifdef HAVE_MPS
 static void do_async_work (void);
+#endif
 
 /* Advance or retreat a buffered input event pointer.  */
 
@@ -8937,7 +8941,9 @@ process_pending_signals (void)
   pending_signals = false;
   handle_async_input ();
   do_pending_atimers ();
+#ifdef HAVE_MPS
   do_async_work ();
+#endif
 }
 
 /* Undo any number of BLOCK_INPUT calls down to level LEVEL,
@@ -13161,12 +13167,6 @@ handle_interrupt_signal_2 (bool in_signal_handler)
     }
 }
 
-void
-process_pending_sigint (void)
-{
-  handle_interrupt_signal_2 (false);
-}
-
 static void
 handle_interrupt_signal (int sig)
 {
@@ -13176,6 +13176,14 @@ handle_interrupt_signal (int sig)
   handle_interrupt_signal_2 (true);
 #endif
 }
+
+#ifdef HAVE_MPS
+void
+process_pending_sigint (void)
+{
+  handle_interrupt_signal_2 (false);
+}
+#endif
 
 static void
 deliver_interrupt_signal (int sig)
@@ -14045,6 +14053,7 @@ is_ignored_event (union buffered_input_event *event)
   return !NILP (Fmemq (ignore_event, Vwhile_no_input_ignore_events));
 }
 
+#ifdef HAVE_MPS
 void
 set_pending_signal (enum pending_signal pending_signal)
 {
@@ -14085,6 +14094,7 @@ do_async_work (void)
       process_pending_sigint ();
     }
 }
+#endif	/* HAVE_MPS */
 
 static void syms_of_keyboard_for_pdumper (void);
 

@@ -7741,8 +7741,8 @@ bool glib_installs_sigchld_handler;
    ** Malloc WARNING: This should never call malloc either directly or
    indirectly; if it does, that is a bug.  */
 
-void
-process_pending_sigchld (void)
+static void
+handle_child_signal_2 (void)
 {
   Lisp_Object tail, proc;
   bool changed = false;
@@ -7822,35 +7822,14 @@ process_pending_sigchld (void)
 
 }
 
-/* Handle a SIGCHLD signal by looking for known child processes of
-   Emacs whose status have changed.  For each one found, record its
-   new status.
-
-   All we do is change the status; we do not run sentinels or print
-   notifications.  That is saved for the next time keyboard input is
-   done, in order to avoid timing errors.
-
-   ** WARNING: this can be called during garbage collection.
-   Therefore, it must not be fooled by the presence of mark bits in
-   Lisp objects.
-
-   ** USG WARNING: Although it is not obvious from the documentation
-   in signal(2), on a USG system the SIGCLD handler MUST NOT call
-   signal() before executing at least one wait(), otherwise the
-   handler will be called again, resulting in an infinite loop.  The
-   relevant portion of the documentation reads "SIGCLD signals will be
-   queued and the signal-catching function will be continually
-   reentered until the queue is empty".  Invoking signal() causes the
-   kernel to reexamine the SIGCLD queue.  Fred Fish, UniSoft Systems
-   Inc.
-
-   ** Malloc WARNING: This should never call malloc either directly or
-   indirectly; if it does, that is a bug.  */
-
 static void
 handle_child_signal (int sig)
 {
+#ifdef HAVE_MPS
   set_pending_signal (PENDING_SIGCHLD);
+#else
+  handle_child_signal_2 ();
+#endif
 
   lib_child_handler (sig);
 #ifdef NS_IMPL_GNUSTEP
@@ -7859,6 +7838,14 @@ handle_child_signal (int sig)
   catch_child_signal ();
 #endif
 }
+
+#ifdef HAVE_MPS
+void
+process_pending_sigchld (void)
+{
+  handle_child_signal_2 ();
+}
+#endif
 
 static void
 deliver_child_signal (int sig)
