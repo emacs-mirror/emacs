@@ -300,7 +300,12 @@ during splitting, which may be slow."
 (defun nnimap-transform-headers ()
   "Transform server's FETCH response into parsable headers."
   (goto-char (point-min))
-  (let (seen-articles article lines size string labels)
+  (let (
+        ;; #'eql is the default, but we want to be explicit here, so
+        ;; #that people are not tempted to use #'eq instead, which does
+        ;; #the wrong thing with bignums.
+        (seen-articles (make-hash-table :test #'eql))
+        article lines size string labels)
     (cl-block nil
       (while (not (eobp))
 	(while (not (looking-at "\\* [0-9]+ FETCH"))
@@ -328,11 +333,11 @@ during splitting, which may be slow."
 	(setq article
 	      (and (re-search-forward "UID \\([0-9]+\\)" (line-end-position)
 				      t)
-		   (match-string 1)))
+		   (string-to-number (match-string 1)))) ;; numbers compare faster than strings.
 	;; If we've already got headers for this article, or this
 	;; FETCH line doesn't provide headers for the article, skip
 	;; it.  See bug#35433.
-	(if (or (member article seen-articles)
+	(if (or (gethash article seen-articles)
 		(save-excursion
 		  (forward-line)
 		  (null (looking-at-p
@@ -364,7 +369,7 @@ during splitting, which may be slow."
 			      (nth 9 structure)
 			    (nth 7 structure)))))
 	  (delete-region (line-beginning-position) (line-end-position))
-	  (insert (format "211 %s Article retrieved." article))
+	  (insert (format "211 %d Article retrieved." article))
 	  (forward-line 1)
 	  (when size
 	    (insert (format "Chars: %s\n" size)))
@@ -379,7 +384,7 @@ during splitting, which may be slow."
 	  (delete-region (line-beginning-position) (line-end-position))
 	  (insert ".")
 	  (forward-line 1)
-	  (push article seen-articles))))))
+	  (puthash article t seen-articles))))))
 
 (defun nnimap-unfold-quoted-lines ()
   ;; Unfold quoted {number} strings.
