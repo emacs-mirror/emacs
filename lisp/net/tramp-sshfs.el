@@ -59,6 +59,7 @@
 					      ("-o" "transform_symlinks")
 					      ("-o" "idmap=user,reconnect")
 					      ("-o" "ConnectTimeout=%t")))
+		(tramp-mount-prefix	    "/")
 		;; These are for remote processes.
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-q") ("-l" "%u") ("-p" "%p")

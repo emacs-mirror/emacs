@@ -59,6 +59,7 @@
 		;; be serious performance penalties when set to 0.
 		(tramp-mount-args
 		 ("--no-unicode-normalization" "--dir-cache-time" "0s"))
+		(tramp-mount-prefix "/")
 		(tramp-copyto-args nil)
 		(tramp-moveto-args nil)
 		(tramp-about-args ("--full"))

@@ -2436,6 +2436,13 @@ on.  The default value of this property is
 @t{"<TMP>/tramp.method.user@@host#port"} (not specified in
 @code{tramp-methods}).  @ref{Temporary directory}.
 
+@item @t{"mount-prefix"}
+
+The remote prefix used for mounting an @acronym{FUSE}-based file
+system.  Per default, it is @t{"/"}.  However, for some
+@option{rclone} types this raises permission problems, so a value of
+@t{""} (mount the home directory) is better suited.
+
 @item @t{"mount-args"}@*
 @t{"copyto-args"}@*
 @t{"moveto-args"}@*
@@ -3180,6 +3187,20 @@ Example:
 @end group
 @end lisp
 
+The remote prefix used for mounting, per default @t{"/"}, can be
+overwritten by the connection property @t{"mount-prefix"},
+@pxref{Predefined connection information}.  This is needed for some
+sftp-type connections of @option{rclone}, for example:
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             `(,(regexp-quote "@trampfn{rclone,ftphost,}")
+               "mount-prefix" ""))
+@end group
+@end lisp
+@c https://rclone.org/sftp/
+
 @vindex tramp-fuse-unmount-on-cleanup
 The user option @code{tramp-fuse-unmount-on-cleanup}, when set to
 non-@code{nil}, controls, whether a mount point is unmounted on
@@ -3197,6 +3218,10 @@ Sometimes, the saved configuration expires.  In this case, you must
 renew it with the command @samp{rclone config reconnect
 @var{remote}:}, with @var{remote} being the name of your configured
 system storage.
+
+Sometimes, it is needed to change the remote prefix to @t{""} (the
+remote home directory, see above), because the remote root directory
+does not have proper permissions.
 
 The default arguments of the @command{rclone} operations
 @command{mount}, @command{copyto}, @command{moveto} and

@@ -129,10 +129,12 @@
 
 (defun tramp-fuse-mount-spec (vec)
   "Return local mount spec of VEC."
-  (if-let* ((host (tramp-file-name-host vec))
+  (if-let* ((prefix (tramp-get-method-parameter
+		     vec 'tramp-mount-prefix "/"))
+	    (host (tramp-file-name-host vec))
 	    (user (tramp-file-name-user vec)))
-      (format "%s@%s:/" user host)
-    (format "%s:/" host)))
+      (format "%s@%s:%s" user host prefix)
+    (format "%s:%s" host prefix)))
 
 (defconst tramp-fuse-mount-timeout
   (eval (car (get 'remote-file-name-inhibit-cache 'standard-value)) t)
@@ -175,10 +177,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 	  ;; which might not be visible, for example with rclone
 	  ;; mounts of type "memory" or "gdrive".  Make it optional.
 	  (setq mount-spec
-		(if (cdr mount-spec)
-		    (rx (literal (car mount-spec))
-			":" (? (literal (cadr mount-spec))))
-		  (car mount-spec)))
+		(rx-to-string `(: ,(car mount-spec) ":" (? ,@(cdr mount-spec)))))
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
@@ -213,12 +212,16 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
     ;; Check, whether there is still a mount process.  Kill it.
     (while-let
 	((program (tramp-fuse-get-fuse-program vec))
-	 (prefix (format "%s mount %s" program (tramp-fuse-mount-spec vec)))
+	 ;; rclone uses `rclone mount <mount-spec> <mount-point> ...'
+	 ;; sshfs uses `sshfs <mount-spec> <mount-point> ...'
+	 (prefix (rx bos (literal program) (? " mount")
+		     " " (literal (tramp-fuse-mount-spec vec))
+		     " " (literal (tramp-fuse-mount-point vec))))
 	 (pid (car (seq-filter
 		    (lambda (pid)
 		      (when-let* ((attr (process-attributes pid))
 				  (args (assoc-default 'args attr))
-				  ((string-prefix-p prefix args)))
+				  ((string-match-p prefix args)))
 			pid))
 		    (list-system-processes)))))
       (tramp-message
