@@ -600,10 +600,10 @@ search queries.  The "UTF8=ACCEPT" extension is necessary for this
 to work.
 
 ---
-*** New variable 'nnimap-native-utf8'.
+*** New server variable 'nnimap-native-utf8'.
 If non-'nil', enables native UTF-8 support in nnimap via RFC 9755
-(Bug#81684).  The variable is set per server and has no effect if
-the remote IMAP server lacks "UTF8=ACCEPT" extension.
+(Bug#81684).  The variable is configurable per server and has no effect
+if the remote IMAP server lacks the "UTF8=ACCEPT" extension.
 
 
 * New Modes and Packages in Emacs 32.1
