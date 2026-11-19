@@ -263,10 +263,16 @@
 (defun igc-tests--make-proc-callback (prefix counter)
   (lambda (p msg)
     (incf (aref counter 0))
-    (message "%s %s: %s" prefix (process-name p)
-             (string-trim-right msg "[\n]"))))
+    (dolist (line (split-string (string-trim-right msg "[\n]") "\n"))
+      (message "%s %s: %s" prefix (process-name p) line))
+    (let ((buf (process-buffer p)))
+      (when buf
+        (with-current-buffer buf
+          (goto-char (point-max))
+          (insert msg))))))
 
-(defun igc-tests--make-process (function-name counter)
+(defun igc-tests--make-process (function-name
+                                counter &optional collect-output)
   (let* ((file-name (find-library-name "igc-tests"))
          (invocation (igc-tests--emacs-invocation))
          (_ (should (file-exists-p file-name))))
@@ -278,7 +284,8 @@
                     "-f" (symbol-name function-name))
      :filter (igc-tests--make-proc-callback "filter" counter)
      :sentinel (igc-tests--make-proc-callback "sentinel" counter)
-     :stderr nil)))
+     :stderr nil
+     :buffer (if collect-output (generate-new-buffer "*child*")))))
 
 (defun igc-tests--sigint ()
   (let* ((counter (vector 0))
@@ -299,5 +306,30 @@
   (skip-when (memq system-type '(windows-nt)))
   (dotimes (_ 3)
     (igc-tests--sigint)))
+
+(defun igc-tests--sigusr-child ()
+  (setq debug-on-event (make-symbol (copy-sequence (symbol-name 'sigusr1))))
+  (igc-tests--busy-worker))
+
+(ert-deftest igc-tests-sigusr ()
+  (skip-when (memq system-type '(windows-nt)))
+  (dotimes (_ 3)
+    (let* ((counter (vector 0))
+           (emacs1 (igc-tests--make-process
+                    'igc-tests--sigusr-child counter t)))
+      (while (eq (process-status emacs1) 'run)
+        (accept-process-output nil 0.1)
+        (when (> (aref counter 0) 3)
+          (signal-process emacs1 'SIGUSR1)))
+      (while (accept-process-output emacs1 0.1))
+      (message "status: %s exit-status: %d"
+               (process-status emacs1)
+               (process-exit-status emacs1))
+      (should (eq (process-status emacs1) 'exit))
+      (should (= (process-exit-status emacs1) 255))
+      (with-current-buffer (process-buffer emacs1)
+        (should (re-search-backward "
+Quit
+exited abnormally with code 255$"))))))
 
 ;;; igc-tests.el ends here.

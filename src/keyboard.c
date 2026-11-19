@@ -106,18 +106,10 @@ volatile int interrupt_input_blocked;
 volatile bool pending_signals;
 
 #ifdef HAVE_MPS
-/* True means a SIGCHLD was received.  This is set in a signal handler
-   and later checked and reset in process_pending_signals.  */
-static volatile bool pending_signals_sigchld;
-
-/* True means a SIGWINCH was received.  This is set in a signal handler
-   and later checked and reset in process_pending_signals.  */
-/* FIXME: define this only if SIGWINCH is defined?  */
-static volatile bool pending_signals_sigwinch;
-
-/* True means a SIGINT was received.  This is set in a signal handler
-   and later checked and reset in process_pending_signals.  */
-static volatile bool pending_signals_sigint;
+/* A set of pending signals.  The elements can be set with
+   set_pending_signal in a signal handler.  Later the set is checked and
+   reset in process_pending_signals.  */
+static volatile sig_atomic_t pending_signal_set[PENDING_SIGNAL_MAX];
 #endif
 
 KBOARD *initial_kboard;
@@ -426,7 +418,7 @@ static char *find_user_signal_name (int);
 static void store_user_signal_events (void);
 static bool is_ignored_event (union buffered_input_event *);
 #ifdef HAVE_MPS
-static void do_async_work (void);
+static void process_pending_signal_set (void);
 #endif
 
 /* Advance or retreat a buffered input event pointer.  */
@@ -8942,7 +8934,7 @@ process_pending_signals (void)
   handle_async_input ();
   do_pending_atimers ();
 #ifdef HAVE_MPS
-  do_async_work ();
+  process_pending_signal_set ();
 #endif
 }
 
@@ -9058,40 +9050,16 @@ add_user_signal (int sig, const char *name)
   sigaction (sig, &action, 0);
 }
 
-#ifdef HAVE_MPS
-/* This is a C string, not a Lisp_Object, so it never ends up behind a
-   memory barrier (bug#75632).  */
-static char * volatile special_event_name;
-
-static Lisp_Object
-watch_debug_on_event (Lisp_Object symbol, Lisp_Object newval,
-		      Lisp_Object operation, Lisp_Object where)
-{
-  char *old_special_event_name = special_event_name;
-  if (SYMBOLP (newval))
-    {
-      char *new_special_event_name = xstrdup (SSDATA (SYMBOL_NAME (newval)));
-      special_event_name = new_special_event_name;
-    }
-  else
-    special_event_name = NULL;
-  xfree (old_special_event_name);
-
-  return Qnil;
-}
-#endif
-
+#if !defined HAVE_MPS || defined SIGUSR1 || defined SIGUSR2
 static void
-handle_user_signal (int sig)
+handle_user_signal_2 (int sig)
 {
   struct user_signal_info *p;
-
-#ifndef HAVE_MPS
   const char *special_event_name = NULL;
 
   if (SYMBOLP (Vdebug_on_event))
     special_event_name = SSDATA (SYMBOL_NAME (Vdebug_on_event));
-#endif
+
   for (p = user_signals; p; p = p->next)
     if (p->sig == sig)
       {
@@ -9101,8 +9069,6 @@ handle_user_signal (int sig)
             /* Enter the debugger in many ways.  */
             debug_on_next_call = true;
             debug_on_quit = true;
-	    /* FIXME/igc: if we ever decide to protect Lisp variables,
-	       this may cause crashes such as bug#75632.  */
             Vquit_flag = Qt;
             Vinhibit_quit = Qnil;
 
@@ -9125,6 +9091,55 @@ handle_user_signal (int sig)
 	break;
       }
 }
+#endif	/* !defined HAVE_MPS || defined SIGUSR1 || defined SIGUSR2 */
+
+static void
+handle_user_signal (int sig)
+{
+#ifdef HAVE_MPS
+  switch (sig)
+    {
+#ifdef SIGUSR1
+    case SIGUSR1:
+      set_pending_signal (PENDING_SIGUSR1);
+      break;
+#endif
+#ifdef SIGUSR2
+    case SIGUSR2:
+      set_pending_signal (PENDING_SIGUSR2);
+      break;
+#endif
+    default:
+      emacs_abort ();
+    }
+#else
+  handle_user_signal_2 (sig);
+#endif	/* HAVE_MPS */
+}
+
+#ifdef HAVE_MPS
+#ifdef SIGUSR1
+void
+process_pending_sigusr1 (void)
+{
+  handle_user_signal_2 (SIGUSR1);
+}
+#else
+AVOID
+process_pending_sigusr1 (void) { emacs_abort (); }
+#endif	/* SIGUSR1 */
+
+#ifdef SIGUSR2
+void
+process_pending_sigusr2 (void)
+{
+  handle_user_signal_2 (SIGUSR2);
+}
+#else
+AVOID
+process_pending_sigusr2 (void) { emacs_abort (); }
+#endif	/* SIGUSR2 */
+#endif	/* HAVE_MPS */
 
 static void
 deliver_user_signal (int sig)
@@ -13932,22 +13947,6 @@ init_keyboard (void)
   poll_suppress_count = 1;
   start_polling ();
 #endif
-
-#ifdef HAVE_MPS
-  {
-    Lisp_Object watcher;
-
-    static union Aligned_Lisp_Subr Swatch_debug_on_event =
-      {{{ GC_HEADER_INIT PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
-	{ .a4 = watch_debug_on_event },
-	4, 4, "watch_debug_on_event", {0}, lisp_h_Qnil }};
-    igc_init_header (&Swatch_debug_on_event.s.header.gc_header,
-		     IGC_OBJ_VECTOR);
-    XSETSUBR (watcher, &Swatch_debug_on_event);
-    Fadd_variable_watcher (Qdebug_on_event, watcher);
-    watch_debug_on_event (Qdebug_on_event, Vdebug_on_event, Qnil, Qnil);
-  }
-#endif
 }
 
 /* This type's only use is in syms_of_keyboard, to put properties on the
@@ -14060,39 +14059,44 @@ set_pending_signal (enum pending_signal pending_signal)
   switch (pending_signal)
     {
     case PENDING_SIGCHLD:
-      pending_signals = true;
-      pending_signals_sigchld = true;
-      return;
     case PENDING_SIGWINCH:
-      pending_signals = true;
-      pending_signals_sigwinch = true;
-      return;
     case PENDING_SIGINT:
+    case PENDING_SIGUSR1:
+    case PENDING_SIGUSR2:
       pending_signals = true;
-      pending_signals_sigint = true;
+      pending_signal_set[pending_signal] = true;
       return;
     }
   emacs_abort ();
 }
 
 static void
-do_async_work (void)
+process_pending_signal_set (void)
 {
-  if (pending_signals_sigchld)
-    {
-      pending_signals_sigchld = false;
-      process_pending_sigchld ();
-    }
-  if (pending_signals_sigwinch)
-    {
-      pending_signals_sigwinch = false;
-      process_pending_sigwinch ();
-    }
-  if (pending_signals_sigint)
-    {
-      pending_signals_sigint = false;
-      process_pending_sigint ();
-    }
+  for (enum pending_signal s = 0; s <= PENDING_SIGNAL_MAX; ++s)
+    if (pending_signal_set[s])
+      {
+	pending_signal_set[s] = false;
+	switch (s)
+	  {
+	  case PENDING_SIGCHLD:
+	    process_pending_sigchld ();
+	    continue;
+	  case PENDING_SIGWINCH:
+	    process_pending_sigwinch ();
+	    continue;
+	  case PENDING_SIGINT:
+	    process_pending_sigint ();
+	    continue;
+	  case PENDING_SIGUSR1:
+	    process_pending_sigusr1 ();
+	    continue;
+	  case PENDING_SIGUSR2:
+	    process_pending_sigusr2 ();
+	    continue;
+	  }
+	emacs_abort ();
+      }
 }
 #endif	/* HAVE_MPS */
 
@@ -15076,9 +15080,6 @@ of processing the event normally through `special-event-map'.
 Currently, the only supported values for this
 variable are `sigusr1' and `sigusr2'.  */);
   Vdebug_on_event = Qsigusr2;
-#ifdef HAVE_MPS
-  DEFSYM (Qdebug_on_event, "debug-on-event");
-#endif
 
   DEFVAR_BOOL ("attempt-stack-overflow-recovery",
                attempt_stack_overflow_recovery,
