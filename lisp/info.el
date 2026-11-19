@@ -5559,8 +5559,8 @@ and so should be rendered as makeinfo produced them.")
 				   (if (>= 22 (- (or (match-end 4)
                                                      (match-end 8))
 						 (match-beginning 0)))
-				       '(space :align-to 24)
-				     '(space :width 2)))
+				       '(space :align-to (24 . width))
+				     '(space :width (2 . width))))
 		(setq cont (looking-at "."))
                 ;; Align continuation lines.
 		(while (and (= (forward-line 1) 0)
@@ -5570,8 +5570,8 @@ and so should be rendered as makeinfo produced them.")
 		  (put-text-property (1- (match-end 1)) (match-end 1)
 				     'display
 				     (if cont
-					 '(space :align-to 26)
-				       '(space :align-to 24)))
+					 '(space :align-to (26 . width))
+				       '(space :align-to (24 . width))))
 		  (setq cont t)))))))
 
       ;; Fontify menu headers
