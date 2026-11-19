@@ -21810,6 +21810,16 @@ specifying where to store their index files.  For namazu it is
 @code{index-directory}, and should be a single directory path.  For
 swish-e it is @code{index-files}, and should be a list of strings.
 
+@cindex IMAP search UTF-8
+@cindex IMAP search non-ASCII
+The IMAP search engine has one specific option,
+@code{nnimap-native-utf8}, which allows the use of non-@acronym{ASCII}
+search strings, if the IMAP server advertises support via the
+``UTF8=ACCEPT'' extension.  If this option is @code{nil}, Gnus uses the
+``LITERAL+'' extension, if advertised, for non-@acronym{ASCII} searches
+(and as a last resort, sends the string as-is, which is almost certain
+to give bad results).
+
 All indexed search engines come with their own method of updating
 their search indexes to include newly-arrived messages.  Gnus
 currently provides no convenient interface for this, and you'll have
