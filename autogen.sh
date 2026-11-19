@@ -362,7 +362,8 @@ git_config 'diff.shell.xfuncname' \
 	   '^([[:space:]]*[[:alpha:]_][[:alnum:]_]*[[:space:]]*\(\)|[[:alpha:]_][[:alnum:]_]*=)'
 git_config diff.texinfo.xfuncname \
 	   '^@node[[:space:]]+([^,[:space:]][^,]+)'
-
+git_config diff.objc.xfuncname \
+           '!^[[:space:]]*(do|for|if|else|return|switch|while)\n!^[[:space:]]*[[:alpha:]_][[:alnum:]_]*:[[:space:]]*($|/[/*])\n^[[:space:]]*([-+][[:space:]]*\\([^)]+\\)[[:space:]]*[[:alpha:]_].*)$\n^((::[[:space:]]*)?[[:alpha:]_][[:alnum:]_]*[[:space:]]*\\(.*)$\n^(@(implementation|interface|protocol)[[:space:]].*)$\n^((#define[[:space:]]|DEFUN).*)$'
 
 # Install Git hooks.
 
