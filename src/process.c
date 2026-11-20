@@ -3591,27 +3591,31 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 #endif
 	      )
 	    {
-	      struct sockaddr_in sa1;
+	      /* This has to be sockaddr_storage because Winsock errors
+		 if the structure is too small.  */
+	      struct sockaddr_storage sa1;
 	      socklen_t len1 = sizeof (sa1);
 #ifdef AF_INET6
 	      /* The code below assumes the port is at the same offset
 		 and of the same width in both IPv4 and IPv6
 		 structures, but the standards don't guarantee that,
 		 so verify it here.  */
+	      struct sockaddr_in sa4;
 	      struct sockaddr_in6 sa6;
 	      static_assert ((offsetof (struct sockaddr_in, sin_port)
 			      == offsetof (struct sockaddr_in6, sin6_port))
-			     && sizeof (sa1.sin_port) == sizeof (sa6.sin6_port));
+			     && sizeof (sa4.sin_port) == sizeof (sa6.sin6_port));
 #endif
 	      DECLARE_POINTER_ALIAS (psa1, struct sockaddr, &sa1);
 	      if (getsockname (s, psa1, &len1) == 0)
 		{
-		  Lisp_Object service = make_fixnum (ntohs (sa1.sin_port));
+		  DECLARE_POINTER_ALIAS (psin, struct sockaddr_in, &sa1);
+		  Lisp_Object service = make_fixnum (ntohs (psin->sin_port));
 		  contact = plist_put (contact, QCservice, service);
 		  /* Save the port number so that we can stash it in
 		     the process object later.  */
 		  DECLARE_POINTER_ALIAS (psa, struct sockaddr_in, sa);
-		  psa->sin_port = sa1.sin_port;
+		  psa->sin_port = psin->sin_port;
 		}
 	    }
 #endif
@@ -6158,12 +6162,14 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 		 entire process, which may not be the right thing; see
 		 w32.c.  Use getpeername instead.  */
 	      {
-		struct sockaddr pname;
+		/* This has to be sockaddr_storage, because Winsock
+		   errors if the buffer is too small.  */
+		struct sockaddr_storage pname;
 		socklen_t pnamelen = sizeof (pname);
-
+		DECLARE_POINTER_ALIAS (ppname, struct sockaddr, &pname);
 		/* If connection failed, getpeername will fail.  */
 		xerrno = 0;
-		if (getpeername (channel, &pname, &pnamelen) < 0)
+		if (getpeername (channel, ppname, &pnamelen) < 0)
 		  {
 		    /* Obtain connect failure code through error slippage.  */
 		    char dummy;

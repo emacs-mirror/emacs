@@ -358,7 +358,6 @@ additional parameters to use to start the listening TLS server."
 (ert-deftest connect-to-tls-ipv6-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (skip-when (eq system-type 'windows-nt))
   (skip-unless (featurep 'make-network-process '(:family ipv6)))
   (let ((times 0)
         (network-security-level 'low))
