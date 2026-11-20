@@ -109,7 +109,7 @@ volatile bool pending_signals;
 /* A set of pending signals.  The elements can be set with
    set_pending_signal in a signal handler.  Later the set is checked and
    reset in process_pending_signals.  */
-static volatile sig_atomic_t pending_signal_set[PENDING_SIGNAL_MAX];
+static volatile sig_atomic_t pending_signal_set[PENDING_SIGNAL_MAX + 1];
 #endif
 
 KBOARD *initial_kboard;
