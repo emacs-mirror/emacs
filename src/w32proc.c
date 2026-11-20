@@ -2064,11 +2064,8 @@ reader_thread (void *arg)
 	rc = _sys_wait_connect (fd);
       else if (fd >= 0 && (fd_info[fd].flags & FILE_LISTEN) != 0)
 	rc = _sys_wait_accept (fd);
-      else if (w32_one_byte_readahead
-	       || (fd_info[fd].flags & FILE_SOCKET) == 0)
-	rc = _sys_read_ahead (fd);
       else
-	rc = _sys_wait_readable (fd);
+	rc = _sys_read_ahead (fd);
 
       /* Don't bother waiting for the event if we already have been
 	 told to exit by delete_child.  */
@@ -4865,15 +4862,6 @@ The size is in bytes, and must be non-negative.  The default is zero,
 which lets the OS use its default size, usually 4KB (4096 bytes).
 Any negative value means to use the default value of zero.  */);
   w32_pipe_buffer_size = 0;
-
-  DEFVAR_BOOL ("w32-one-byte-readahead", w32_one_byte_readahead,
-	       doc:/* Whether to use one byte reads to check for data.
-
-Defaults to false.  Previously, Emacs would check if data was available
-on a file descriptor by attempting to read one byte, which broke UDP
-sockets.  For sockets it now uses a 'select' based mechanism instead.
-Set this to true to fall back to the old mechanism.  */);
-  w32_one_byte_readahead = false;
 
   DEFVAR_LISP ("w32-downcase-file-names", Vw32_downcase_file_names,
 	       doc: /* Non-nil means convert all-upper case file names to lower case.

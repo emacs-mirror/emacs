@@ -236,9 +236,11 @@ static EMACS_INT update_tick;
    "non-destructive" select.  So we require either native select,
    or emulation of select using FIONREAD.  */
 
-#if defined HAVE_SELECT || defined USABLE_FIONREAD
-# if defined HAVE_SENDTO && defined HAVE_RECVFROM && defined EMSGSIZE
-#  define DATAGRAM_SOCKETS
+#ifndef BROKEN_DATAGRAM_SOCKETS
+# if defined HAVE_SELECT || defined USABLE_FIONREAD
+#  if defined HAVE_SENDTO && defined HAVE_RECVFROM && defined EMSGSIZE
+#   define DATAGRAM_SOCKETS
+#  endif
 # endif
 #endif
 

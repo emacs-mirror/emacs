@@ -182,7 +182,6 @@ extern void init_timers (void);
 
 extern int _sys_read_ahead (int fd);
 extern int _sys_wait_accept (int fd);
-extern int _sys_wait_readable (int fd);
 extern int _sys_wait_connect (int fd);
 
 extern HMODULE w32_delayed_load (Lisp_Object);

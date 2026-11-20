@@ -9073,118 +9073,6 @@ _sys_wait_accept (int fd)
 }
 
 int
-_sys_wait_readable (int fd)
-{
-  HANDLE hEv;
-  child_process * cp;
-  int rc;
-
-  if (fd < 0 || fd >= MAXDESC)
-    return STATUS_READ_ERROR;
-
-  cp = fd_info[fd].cp;
-
-  if (cp == NULL || cp->fd != fd || cp->status != STATUS_READ_READY)
-    return STATUS_READ_ERROR;
-
-  if ((fd_info[fd].flags & FILE_AT_EOF) != 0)
-    {
-      /* A previous readable check got FD_CLOSE, so just return immediately.  */
-      cp->status = STATUS_READ_FAILED;
-      cp->errcode = 0;
-      return cp->status;
-    }
-
-  /* GnuTLS relies on this being in progress.  */
-  cp->status = STATUS_READ_IN_PROGRESS;
-
-  hEv = pfn_WSACreateEvent ();
-  rc = pfn_WSAEventSelect (SOCK_HANDLE (fd), hEv, FD_READ | FD_CLOSE);
-  if (rc != SOCKET_ERROR)
-    {
-      do
-        {
-          rc = WaitForSingleObject (hEv, 500);
-          Sleep (5);
-        } while (rc == WAIT_TIMEOUT
-                 && cp->status != STATUS_READ_ERROR
-                 && cp->char_avail);
-      if (rc == WAIT_OBJECT_0)
-	{
-	  /* Either we have data to read, or the remote end closed the
-	     connection, or both.  Check for socket close first, but
-	     make sure any waiting data can still be read.  */
-	  WSANETWORKEVENTS events;
-	  int event_rc = pfn_WSAEnumNetworkEvents (SOCK_HANDLE (fd), hEv, &events);
-	  if (event_rc != 0)
-	    {
-	      /* Winsock failed in some way.  */
-	      cp->status = STATUS_READ_FAILED;
-	      cp->errcode = pfn_WSAGetLastError ();
-	    }
-	  else if (events.lNetworkEvents & FD_CLOSE)
-	    {
-	      /* Set EOF whatever the reason the socket closed.  */
-	      fd_info[fd].flags |= FILE_AT_EOF;
-	      if (events.iErrorCode[FD_CLOSE_BIT] != 0)
-		{
-		  /* Abnormal close: remote crash or similar.  */
-		  cp->status = STATUS_READ_FAILED;
-		  cp->errcode = events.iErrorCode[FD_CLOSE_BIT];
-		}
-	      else
-		{
-		  /* Normal close, but there might be data to be read,
-		     in which case we return success, and FILE_AT_EOF
-		     takes care of informing the caller that the socket
-		     is closed.  */
-		  DWORD waiting = 0;
-		  pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
-		  if (waiting == 0)
-		    cp->status = STATUS_READ_FAILED;
-		  else
-		    cp->status = STATUS_READ_SUCCEEDED;
-		  cp->errcode = 0;
-		}
-	    }
-	  else if (events.lNetworkEvents & FD_READ)
-	    {
-	      /* Normal read.  */
-	      cp->status = STATUS_READ_SUCCEEDED;
-	      cp->errcode = 0;
-	    }
-	  else
-	    {
-	      /* Some other failure.  */
-	      cp->status = STATUS_READ_FAILED;
-	      cp->errcode = events.iErrorCode[FD_CLOSE_BIT];
-	    }
-	}
-      else
-	{
-	  cp->status = STATUS_READ_FAILED;
-	  cp->errcode = pfn_WSAGetLastError ();
-	}
-      pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
-    }
-  else
-    {
-      cp->status = STATUS_READ_FAILED;
-      cp->errcode = pfn_WSAGetLastError ();
-    }
-  /* WSAEventSelect puts the socket in non-blocking mode
-     unconditionally, so restore the previous blocking mode.  */
-  if ((fd_info[fd].flags & FILE_NDELAY) == 0)
-    {
-      unsigned long nblock = 0;
-      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
-    }
-  pfn_WSACloseEvent (hEv);
-
-  return cp->status;
-}
-
-int
 _sys_wait_connect (int fd)
 {
   HANDLE hEv;
@@ -9309,17 +9197,10 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      return -1;
 
 	    case STATUS_READ_SUCCEEDED:
-              /* select on sockets no longer requires a 1-byte read,
-		 unless the user has requested the old mechanism via
-		 w32-one-byte-readahead.  */
-              if (w32_one_byte_readahead
-		  || (fd_info[fd].flags & FILE_SOCKET) == 0)
-		{
-		  /* consume read-ahead char */
-		  *buffer++ = cp->chr;
-		  count--;
-		  nchars++;
-		}
+	      /* consume read-ahead char */
+	      *buffer++ = cp->chr;
+	      count--;
+	      nchars++;
 	      cp->status = STATUS_READ_ACKNOWLEDGED;
 	      ResetEvent (cp->char_avail);
 
@@ -9415,17 +9296,7 @@ sys_read (int fd, char * buffer, unsigned int count)
 	      /* Do the equivalent of a non-blocking read.  */
 	      pfn_ioctlsocket (SOCK_HANDLE (fd), FIONREAD, &waiting);
 	      if (waiting == 0 && nchars == 0)
-		{
-		  /* If we got a close and data at the same time, EOF is
-		     set, the data will have been read in a previous
-		     iteration, so waiting == 0, so we need to check the
-		     EOF condition (_sys_wait_readable won't resignal
-		     it).  */
-		  if ((fd_info[fd].flags & FILE_AT_EOF) != 0)
-		    {
-		      errno = 0;
-		      return 0;
-		    }
+	        {
 		  errno = EWOULDBLOCK;
 		  return -1;
 		}
