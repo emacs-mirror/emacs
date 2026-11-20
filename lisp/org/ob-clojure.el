@@ -3,7 +3,6 @@
 ;; Copyright (C) 2009-2026 Free Software Foundation, Inc.
 
 ;; Author: Joel Boehland, Eric Schulte, Oleh Krehel, Frederick Giasson
-;; Maintainer: Daniel Kraus <daniel@kraus.my>
 ;;
 ;; Keywords: literate programming, reproducible research
 ;; URL: https://orgmode.org

@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;;      Thierry Banel
-;; Maintainer: Thierry Banel <tbanelwebmin@free.fr>
+;; Maintainer: Leo Butler <leo.butler@umanitoba.ca>
 ;; Keywords: literate programming, reproducible research
 ;; URL: https://orgmode.org
 

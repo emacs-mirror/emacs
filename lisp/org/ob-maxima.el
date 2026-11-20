@@ -4,6 +4,7 @@
 
 ;; Author: Eric S Fraga
 ;;	Eric Schulte
+;; Maintainer: Leo Butler <leo.butler@umanitoba.ca>
 ;; Keywords: literate programming, reproducible research, maxima
 ;; URL: https://orgmode.org
 

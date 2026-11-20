@@ -3,7 +3,6 @@
 ;; Copyright (C) 2015-2026 Free Software Foundation, Inc.
 
 ;; Author: Jarmo Hurri (adapted from ob-asymptote.el written by Eric Schulte)
-;; Maintainer: Jarmo Hurri <jarmo.hurri@iki.fi>
 ;; Keywords: literate programming, reproducible research
 ;; URL: https://orgmode.org
 

@@ -6,7 +6,6 @@
 ;;       Daniel M German <dmg AT uvic DOT org>
 ;;       Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;;       Ross Patterson <me AT rpatterson DOT net>
-;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, text
 
 ;; This file is part of GNU Emacs.

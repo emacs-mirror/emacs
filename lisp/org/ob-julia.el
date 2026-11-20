@@ -2,7 +2,6 @@
 
 ;; Copyright (C) 2013-2026 Free Software Foundation, Inc.
 ;; Authors: G. Jay Kerns
-;; Maintainer: Pedro Bruel <pedro.bruel@gmail.com>
 ;; Keywords: literate programming, reproducible research, scientific computing
 ;; URL: https://github.com/phrb/ob-julia
 
