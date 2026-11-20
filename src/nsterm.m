@@ -9539,9 +9539,7 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
   safe_calln (Vns_drag_motion_function, frame,
 	      make_fixnum (x), make_fixnum (y));
 
-  if (!NILP (Fsymbol_value (Qdnd_indicate_insertion_point))
-      || !NILP (Fsymbol_value (Qdnd_scroll_margin)))
-    ns_safe_redisplay ();
+  ns_safe_redisplay();
 #endif
 
   unbind_to (count, Qnil);
@@ -11583,11 +11581,6 @@ syms_of_nsterm (void)
   DEFSYM (Qns_drag_operation_link, "ns-drag-operation-link");
   DEFSYM (Qns_drag_operation_generic, "ns-drag-operation-generic");
   DEFSYM (Qns_handle_drag_motion, "ns-handle-drag-motion");
-
-  /* User options consulted by dnd-handle-movement, which
-     `ns-drag-motion-function' calls while a drop is in progress.  */
-  DEFSYM (Qdnd_indicate_insertion_point, "dnd-indicate-insertion-point");
-  DEFSYM (Qdnd_scroll_margin, "dnd-scroll-margin");
 
   Fput (Qalt, Qmodifier_value, make_fixnum (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_fixnum (hyper_modifier));
