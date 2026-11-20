@@ -139,8 +139,6 @@
 (eval-when-compile (require 'cl-lib))
 (require 'utf7)
 (require 'rfc2104)
-(require 'auth-source)
-
 ;; Hmm... digest-md5 is not part of Emacs.
 ;; FIXME: Should/can we use sasl-digest.el instead?
 (declare-function digest-md5-parse-digest-challenge "ext:digest-md5")
@@ -247,11 +245,6 @@ Shorter values mean quicker response, but is more CPU intensive."
 (defcustom imap-store-password nil
   "If non-nil, store session password without prompting."
   :type 'boolean)
-
-(defcustom imap-use-auth-source nil
-  "If non-nil, lookup username and password using `auth-source'."
-  :type 'boolean
-  :version "31.1")
 
 ;;; Various variables
 
@@ -1115,26 +1108,6 @@ respond.  If BUFFER is nil, the current buffer is used."
       (imap-ok-p (imap-send-command-wait "NOOP" buffer))
     (error nil)))
 
-(defvar auth-source-creation-prompts)
-
-;; Stolen from, uhm, "inspired by" nnimap.el.
-;; We don't want to drag in the whole of nnimap.
-(defun imap-credentials (address ports user)
-  (let* ((auth-source-creation-prompts
-          '((user  . "imap: username for %h: ")
-            (secret . "imap: password for %u: ")))
-         (found (nth 0 (auth-source-search :max 1
-                                           :host address
-                                           :port ports
-                                           :user user
-                                           :require '(:user :secret)
-                                           :create t))))
-    (if found
-        (list (plist-get found :user)
-              (auth-info-password found)
-              (plist-get found :save-function))
-      nil)))
-
 (defun imap-authenticate (&optional user passwd buffer)
   "Authenticate to server in BUFFER, using current buffer if nil.
 It uses the authenticator specified when opening the server.
@@ -1145,58 +1118,41 @@ password.  If omitted or nil, the authenticator may query the
 user for a username and/or password."
   (with-current-buffer (or buffer (current-buffer))
     (if (not (eq imap-state 'nonauth))
-        (or (eq imap-state 'auth)
-            (eq imap-state 'selected)
-            (eq imap-state 'examine))
-      ;; .authinfo can contain symbolic or numeric ports.
-      (let ((ports (cond ((eq imap-port 993)
-                          '(993 "imaps"))
-                         ((eq imap-port 143)
-                          '(143 "imap"))
-                         (t imap-port)))
-            (imap-credentials nil)
-            (passwd-save-function nil))
-        (make-local-variable 'imap-username)
-        (make-local-variable 'imap-password)
-        (make-local-variable 'imap-last-authenticator)
-        (when user (setq imap-username user))
-        (when passwd (setq imap-password passwd))
-        (when imap-use-auth-source
-          (when (setq imap-credentials (imap-credentials imap-server ports user))
-            (setq imap-username (nth 0 imap-credentials)
-                  imap-password (nth 1 imap-credentials)
-                  passwd-save-function (nth 2 imap-credentials))))
-        (if imap-auth                   ; It's a reauth
-            (and (setq imap-last-authenticator
-                       (assq imap-auth imap-authenticator-alist))
-                 (funcall (nth 2 imap-last-authenticator) (current-buffer))
-                 (setq imap-state 'auth))
-          ;; Choose authenticator.
-          (let ((auths imap-authenticators)
-                auth)
-            (while (setq auth (pop auths))
-              ;; OK to use authenticator?
-              (setq imap-last-authenticator
-                    (assq auth imap-authenticator-alist))
-              (when (funcall (nth 1 imap-last-authenticator) (current-buffer))
-                (message "imap: Authenticating to `%s' using `%s'..."
-                         imap-server auth)
-                (setq imap-auth auth)
-                (if (funcall (nth 2 imap-last-authenticator) (current-buffer))
-                    (progn
-                      (message "imap: Authenticating to `%s' using `%s'...done"
-                               imap-server auth)
-                      ;; Save the credentials if a new token was created
-                      ;; via auth-source.
-                      (when (functionp passwd-save-function)
-                        (funcall passwd-save-function))
-                      ;; set imap-state correctly on successful auth attempt
-                      (setq imap-state 'auth)
-                      ;; stop iterating through the authenticator list
-                      (setq auths nil))
-                  (message "imap: Authenticating to `%s' using `%s'...failed"
-                           imap-server auth)))))
-          imap-state)))))
+	(or (eq imap-state 'auth)
+	    (eq imap-state 'selected)
+	    (eq imap-state 'examine))
+      (make-local-variable 'imap-username)
+      (make-local-variable 'imap-password)
+      (make-local-variable 'imap-last-authenticator)
+      (when user (setq imap-username user))
+      (when passwd (setq imap-password passwd))
+      (if imap-auth
+	  (and (setq imap-last-authenticator
+		     (assq imap-auth imap-authenticator-alist))
+	       (funcall (nth 2 imap-last-authenticator) (current-buffer))
+	       (setq imap-state 'auth))
+	;; Choose authenticator.
+	(let ((auths imap-authenticators)
+	      auth)
+	  (while (setq auth (pop auths))
+	    ;; OK to use authenticator?
+	    (setq imap-last-authenticator
+		  (assq auth imap-authenticator-alist))
+	    (when (funcall (nth 1 imap-last-authenticator) (current-buffer))
+	      (message "imap: Authenticating to `%s' using `%s'..."
+		       imap-server auth)
+	      (setq imap-auth auth)
+	      (if (funcall (nth 2 imap-last-authenticator) (current-buffer))
+		  (progn
+		    (message "imap: Authenticating to `%s' using `%s'...done"
+			     imap-server auth)
+		    ;; set imap-state correctly on successful auth attempt
+		    (setq imap-state 'auth)
+		    ;; stop iterating through the authenticator list
+		    (setq auths nil))
+		(message "imap: Authenticating to `%s' using `%s'...failed"
+			 imap-server auth)))))
+	imap-state))))
 
 (defun imap-close (&optional buffer)
   "Close connection to server in BUFFER.
