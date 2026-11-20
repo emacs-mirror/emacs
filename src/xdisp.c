@@ -6140,6 +6140,11 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       spec = XCDR (spec);
     }
 
+  /* Unconditionally disable evaluation of forms in 'display' properties
+     if the current buffer requests that.  */
+  if (enable_eval_p && current_buffer->text->disable_display_forms)
+    enable_eval_p = false;
+
   if (!NILP (form) && !EQ (form, Qt) && !enable_eval_p)
     form = Qnil;
   if (!NILP (form) && !EQ (form, Qt))

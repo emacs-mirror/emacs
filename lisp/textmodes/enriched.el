@@ -552,7 +552,11 @@ the range of text to assign text property SYMBOL with value VALUE."
       (message "Warning: invalid <x-display> parameter %s" param))
     (if enriched-allow-eval-in-display-props
         (list start end 'display prop)
-      (list start end 'display (list 'disable-eval prop)))))
+      (prog1
+          (list start end 'display (list 'disable-eval prop))
+        ;; Disable evaluation of Lisp forms in nested 'display'
+        ;; properties as well.
+        (set-buffer--disable-display-forms)))))
 
 (defvar enriched--markup-shown)
 (defun enriched-toggle-markup ()
