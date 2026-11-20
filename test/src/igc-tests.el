@@ -50,7 +50,7 @@
   (should (member (igc-tests--commit-limit)
                   '(#xffffffff #xffffffffffffffff))))
 
-(ert-deftest set-pause-time-test ()
+(ert-deftest igc-tests-set-pause-time ()
   :tags '(:igc)
   (should (equal (igc--set-pause-time 0.5) nil))
   (should (equal (assoc-string "pause-time" (igc-info))
@@ -73,7 +73,7 @@
 ;; on GNU/Linux with the message "The futex facility returned an
 ;; unexpected error code."
 
-(ert-deftest igc-test-thread-incremental-gc ()
+(ert-deftest igc-tests-thread-incremental-gc ()
   "Trigger incremental GC on a second thread."
   :tags '(:igc :expensive-test)
   (skip-unless (fboundp 'make-thread))
@@ -195,6 +195,7 @@
                (`(wrong-type-argument listp ,_)))))))))
 
 (ert-deftest igc-tests-malformed-undo-list-2 ()
+  :tags '(:igc)
   (with-temp-buffer
     (let ((bad-lists '(t (t . 0) 123 [] (nil [])
                          (("x" . 1) . a))))
@@ -230,7 +231,6 @@
       (igc--arena-step 0 1)
       (decf n))))
 
-;; FIXME: figure out why this sometimes locks up on MS-Windows
 (ert-deftest igc-tests-profiler ()
   :tags '(:igc)
   (dotimes (_ 3)
@@ -331,5 +331,25 @@
         (should (re-search-backward "
 Quit
 exited abnormally with code 255$"))))))
+
+(ert-deftest igc-tests-thread-root-cleanup ()
+  "Test that certain roots are destroyed when threads exists."
+  :tags '(:igc)
+  (let* ((roots1 (igc--roots))
+         (_ (dotimes (_ 3) (thread-join (make-thread #'ignore))))
+         (_ (igc--collect))
+         (_ (igc--process-messages))
+         (roots2 (igc--roots))
+         (root-labels '("specpdl" "bc-stack" "control stack" "handler"))
+         (count-labels
+          (lambda (roots)
+            (mapcar (lambda (label)
+                      (cons label
+                            (cl-count label roots
+                                      :test #'equal :key #'car)))
+                    root-labels)))
+         (counts1 (funcall count-labels roots1))
+         (counts2 (funcall count-labels roots2)))
+    (should (equal counts1 counts2))))
 
 ;;; igc-tests.el ends here.

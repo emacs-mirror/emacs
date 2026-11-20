@@ -118,9 +118,13 @@ int igc_valid_lisp_object_p (Lisp_Object obj);
 size_t igc_hash (Lisp_Object key);
 specpdl_ref igc_park_arena (void);
 void igc_postmortem (void);
-void igc_replace_specpdl (volatile union specbinding *old_specpdl, ptrdiff_t old_nitems,
-			  volatile union specbinding *new_specpdl, ptrdiff_t new_nitems);
-void igc_on_alloc_main_thread_specpdl (void);
+union specbinding *igc_grow_specpdl (union specbinding *pdlvec,
+				     ptrdiff_t *pdlvecsize,
+				     ptrdiff_t nitems_incr_min,
+				     ptrdiff_t nitems_max);
+union specbinding *igc_alloc_specpdl (ptrdiff_t size);
+void igc_thread_check_specpdl (struct thread_state *,
+			       union specbinding *);
 void igc_on_alloc_main_thread_bc (void);
 void igc_on_staticpros_complete (void);
 void igc_collect (bool incremental);

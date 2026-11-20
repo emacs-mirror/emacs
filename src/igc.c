@@ -977,9 +977,8 @@ struct igc_thread
 #endif
   mps_ap_t immovable_ap;
 
-  /* Quick access to the roots used for specpdl, bytecode stack and
-     control stack.  */
-  igc_root_list *specpdl_root;
+  /* Quick access to the roots used for bytecode stack and control
+     stack.  */
   igc_root_list *bc_root;
   igc_root_list *stack_root;
 
@@ -1705,12 +1704,9 @@ scan_specpdl (mps_ss_t ss, void *start, void *end, void *closure)
        to what is being scanned, the same way format scanning functions
        do.  That does not mean one can rely on the thread's specpdl_ptr
        here because it may be updated after this function runs.  */
-    struct igc_thread_list *t = closure;
-    igc_assert (start == (void *) t->d.ts->m_specpdl);
-    igc_assert (end == (void *) t->d.ts->m_specpdl_end);
-
-    for (union specbinding *pdl = start;
-	 (void *) pdl < end && pdl->kind != SPECPDL_FREE; ++pdl)
+    union specbinding *pdl = start;
+    ++pdl;			/* skip the dummy entry */
+    for (; (void *) pdl < end && pdl->kind != SPECPDL_FREE; ++pdl)
       {
 	switch (pdl->kind)
 	  {
@@ -3528,6 +3524,16 @@ root_create_raw (struct igc *gc, void *start, void *end,
   return root_create_exact (gc, start, end, scan_ptr_exact, label);
 }
 
+static igc_root_list *
+root_create_specpdl (struct igc *gc, void *start, void *end,
+		     const char *label)
+{
+  size_t align = alignof (union specbinding);
+  igc_assert (addr_is_aligned (start, align));
+  igc_assert (addr_is_aligned (end, align));
+  return root_create_exact (gc, start, end, scan_specpdl, label);
+}
+
 static void
 root_create_staticvec (struct igc *gc)
 {
@@ -3629,23 +3635,6 @@ root_create_terminal_list (struct igc *gc)
 }
 
 static void
-root_create_specpdl (struct igc_thread_list *t)
-{
-  struct igc *gc = t->d.gc;
-  struct thread_state *ts = t->d.ts;
-  igc_assert (ts->m_specpdl != NULL);
-  igc_assert (t->d.specpdl_root == NULL);
-  mps_root_t root;
-  mps_res_t res
-    = mps_root_create_area (&root, gc->arena, mps_rank_exact (), 0,
-			    ts->m_specpdl, ts->m_specpdl_end, scan_specpdl, t);
-  IGC_CHECK_RES (res);
-  t->d.specpdl_root
-    = register_root (gc, root, ts->m_specpdl, ts->m_specpdl_end, false,
-		     "specpdl");
-}
-
-static void
 root_create_bc (struct igc_thread_list *t)
 {
   struct igc *gc = t->d.gc;
@@ -3671,90 +3660,6 @@ root_create_thread (struct igc_thread_list *t)
 				      t->d.thr, scan_ambig, 0, cold);
   IGC_CHECK_RES (res);
   t->d.stack_root = register_root (gc, root, cold, NULL, true, "control stack");
-}
-
-void
-igc_replace_specpdl (volatile union specbinding *old_pdlvec, ptrdiff_t old_entries,
-		     volatile union specbinding *new_pdlvec, ptrdiff_t new_entries)
-{
-  struct igc *gc = global_igc;
-  mps_root_t root;
-  for (ptrdiff_t i = 0; i < new_entries; i++)
-    new_pdlvec[i].kind = SPECPDL_FREE;
-
-  volatile union specbinding *new_specpdl = new_pdlvec + 1;
-  struct igc_thread_list *t = current_thread->gc_info;
-  mps_res_t res
-    = mps_root_create_area (&root, gc->arena, mps_rank_exact (), 0,
-			    (void *) new_specpdl,
-			    (void *) (new_pdlvec + new_entries),
-			    scan_specpdl, t);
-  IGC_CHECK_RES (res);
-  struct igc_root_list *old_root = t->d.specpdl_root;
-  t->d.specpdl_root
-    = register_root (gc, root, (void *) new_specpdl,
-		     (void *) (new_pdlvec + new_entries),
-		     false, "specpdl");
-
-  /* This is volatile so it's on the stack, where MPS sees it and it
-     pins its references.  Omitting the "volatile" would mean the
-     compiler might optimize it away, keeping only the heap copy.  */
-  volatile union specbinding orig;
-
-  for (ptrdiff_t i = 0; i < old_entries; i++)
-    {
-    try_again:;
-      orig = old_pdlvec[i];
-      if (memcmp ((void *) &orig, (void *) (&old_pdlvec[i]), sizeof orig))
-	{
-	  /* We tried to create a snapshot of old_pdlvec[i] on the
-	     stack, which would pin all pointers in old_pdlvec[i].  But
-	     we failed, because a pointer in old_pdlvec[i] was updated
-	     by GC while we were creating the copy.  Try again.  */
-	  goto try_again;
-	}
-      volatile union specbinding temp = orig;
-      temp.kind = SPECPDL_FREE;
-      new_pdlvec[i] = temp;
-      new_pdlvec[i].kind = orig.kind;
-      eassert (memcmp ((void *) (&new_pdlvec[i]), (void *) (&old_pdlvec[i]),
-		       sizeof orig) == 0);
-    }
-
-  eassert (memcmp ((void *) new_pdlvec, (void *) old_pdlvec,
-		   old_entries * sizeof (old_pdlvec[0])) == 0);
-
-  igc_destroy_root_with_start (old_root->d.start);
-}
-
-static void
-switch_specpdl_rank (mps_arena_t arena, igc_thread_list *t,
-		     bool ambig)
-{
-  struct thread_state *ts = t->d.ts;
-  igc_root *r = &t->d.specpdl_root->d;
-  mps_root_t old_root = r->root;
-  mps_root_destroy (old_root);
-  mps_rank_t new_rank = ambig ? mps_rank_ambig () : mps_rank_exact ();
-  mps_root_t new_root;
-  mps_res_t res
-    = mps_root_create_area (&new_root, arena, new_rank, 0,
-			    ts->m_specpdl, ts->m_specpdl_end,
-			    scan_specpdl, t);
-  IGC_CHECK_RES (res);
-  eassert (r->start == ts->m_specpdl);
-  eassert (r->end == ts->m_specpdl_end);
-  r->root = new_root;
-  r->ambig = ambig;
-}
-
-void
-igc_switch_specpdl_rank (bool ambig)
-{
-  struct igc *gc = global_igc;
-  IGC_WITH_PARKED (gc)
-    for (igc_thread_list *t = gc->threads; t; t = t->next)
-      switch_specpdl_rank (gc->arena, t, ambig);
 }
 
 static igc_root_list *
@@ -3944,16 +3849,31 @@ thread_add (struct thread_state *ts)
 void *
 igc_thread_add (struct thread_state *ts)
 {
+  eassert ((igc_thread_check_specpdl (ts, ts->m_specpdl - 1), true));
   struct igc_thread_list *t = thread_add (ts);
-  root_create_specpdl (t);
   root_create_bc (t);
   return t;
 }
 
-void
-igc_on_alloc_main_thread_specpdl (void)
+static igc_root_list *
+thread_specpdl_root (struct thread_state *ts)
 {
-  root_create_specpdl (current_thread->gc_info);
+  /* For reasons unknown to me, the memory block for the specpdl starts
+     with a dummy entry and thread_state.m_specpdl points to the second
+     entry.  */
+  igc_root_list *root = root_find (ts->m_specpdl - 1);
+  igc_assert (root);
+  return root;
+}
+
+void
+igc_thread_check_specpdl (struct thread_state *ts,
+			  union specbinding *pdlvec)
+{
+  igc_root_list *root = thread_specpdl_root (ts);
+  igc_assert (ts->m_specpdl - 1 == pdlvec);
+  igc_assert (root->d.start == pdlvec);
+  igc_assert (root->d.end == ts->m_specpdl_end);
 }
 
 void
@@ -3980,7 +3900,6 @@ igc_thread_remove (void **pinfo)
   *pinfo = NULL;
   unpin (global_igc, t->d.ts, t->d.ts->pin_index);
   destroy_root (&t->d.stack_root);
-  destroy_root (&t->d.specpdl_root);
   destroy_root (&t->d.bc_root);
   mps_ap_destroy (t->d.dflt_ap);
   mps_ap_destroy (t->d.leaf_ap);
@@ -4314,6 +4233,47 @@ igc_grow_pp_stack (struct print_pp_stack *ps)
     eassert (ppstack.stack[i].is_in_use == false);
 }
 
+union specbinding *
+igc_grow_specpdl (union specbinding *pdlvec, ptrdiff_t *pdlvecsize,
+		  ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max)
+{
+  /* FIXME: copying items with igc_memcpy is not atomic  */
+  union specbinding *new_pdlvec
+    = igc_xpalloc (pdlvec, pdlvecsize, nitems_incr_min, nitems_max,
+		   sizeof *pdlvec, root_create_specpdl, "specpdl");
+  return new_pdlvec;
+}
+
+static void
+switch_specpdl_rank (mps_arena_t arena, igc_thread_list *t,
+		     bool ambig)
+{
+  struct thread_state *ts = t->d.ts;
+  igc_root_list *r = thread_specpdl_root (ts);
+  mps_root_t old_root = r->d.root;
+  mps_root_destroy (old_root);
+  mps_rank_t new_rank = ambig ? mps_rank_ambig () : mps_rank_exact ();
+  mps_root_t new_root;
+  mps_res_t res
+    = mps_root_create_area (&new_root, arena, new_rank, 0,
+			    ts->m_specpdl - 1, ts->m_specpdl_end,
+			    scan_specpdl, t);
+  IGC_CHECK_RES (res);
+  eassert (r->d.start == ts->m_specpdl - 1);
+  eassert (r->d.end == ts->m_specpdl_end);
+  r->d.root = new_root;
+  r->d.ambig = ambig;
+}
+
+void
+igc_switch_specpdl_rank (bool ambig)
+{
+  struct igc *gc = global_igc;
+  IGC_WITH_PARKED (gc)
+    for (igc_thread_list *t = gc->threads; t; t = t->next)
+      switch_specpdl_rank (gc->arena, t, ambig);
+}
+
 Lisp_Object *
 igc_xnrealloc_lisp (ptrdiff_t nitems_old, Lisp_Object *old,
 		    ptrdiff_t nitems_new, const char *label)
@@ -4407,6 +4367,17 @@ igc_alloc_coding_system (void)
   struct coding_system *p = xzalloc (sizeof *p);
   root_create_coding_system (global_igc, p);
   return p;
+}
+
+union specbinding *
+igc_alloc_specpdl (ptrdiff_t size)
+{
+  size_t item_size = sizeof *specpdl;
+  igc_assert (size > 0);
+  igc_assert (size <= PTRDIFF_MAX / item_size);
+  union specbinding *pdlvec = xzalloc (size * item_size);
+  root_create_specpdl (global_igc, pdlvec, pdlvec + size, "specpdl");
+  return pdlvec;
 }
 
 static void
