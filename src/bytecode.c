@@ -258,10 +258,7 @@ DEFINE (Bstack_set2, 0263)						\
 DEFINE (BdiscardN,   0266)						\
 									\
 DEFINE (Bswitch, 0267)                                                  \
-DEFINE (Beq_gotoifneq, 0270)						\
-DEFINE (Bcdr_goto, 0271)						\
-DEFINE (Beq_gotoifeq, 0272)						\
-DEFINE (Bdup_car, 0273)						\
+                                                                        \
 DEFINE (Bconstant, 0300)
 
 enum byte_code_op
@@ -658,16 +655,7 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	    NEXT;
 	  }
 
-	  /* dolist.  FALLTHROUGH doesn't work here, so I had to goto.  */
-	CASE (Bdup_car):
-	  {
-	    Lisp_Object v1 = TOP;
-	    PUSH (v1);
-	    goto docar;
-	  }
-
 	CASE (Bcar):
-	docar:
 	  if (CONSP (TOP))
 	    TOP = XCAR (TOP);
 	  else if (!NILP (TOP))
@@ -940,39 +928,6 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	CASE (Bdiscard):
 	  DISCARD (1);
 	  NEXT;
-
-	CASE (Beq_gotoifneq):
-	  {
-	    Lisp_Object v2 = POP;
-	    Lisp_Object v1 = POP;
-	    arg = FETCH2;
-	    if (!EQ (v1, v2))
-	      goto op_branch;
-	    NEXT;
-	  }
-
-	CASE (Beq_gotoifeq):
-	  {
-	    Lisp_Object v2 = POP;
-	    Lisp_Object v1 = POP;
-	    arg = FETCH2;
-	    if (EQ (v1, v2))
-	      goto op_branch;
-	    NEXT;
-	  }
-
-	CASE (Bcdr_goto):
-	  {
-	    if (CONSP (TOP))
-	      TOP = XCDR (TOP);
-	    else if (!NILP (TOP))
-	      {
-		record_in_backtrace (Qcdr, &TOP, 1);
-		wrong_type_argument (Qlistp, TOP);
-	      }
-	    arg = FETCH2;
-	    goto op_branch;
-	  }
 
 	CASE (Bconstant2):
 	  PUSH (vectorp[FETCH2]);
@@ -1734,11 +1689,8 @@ exec_byte_code (Lisp_Object fun, ptrdiff_t args_template,
 	  /* Actually this is Bstack_ref with offset 0, but we use Bdup
 	     for that instead.  */
 	  /* CASE (Bstack_ref): */
-	  error ("Invalid byte opcode: op=%d, ptr=%"pD"d in %s",
-		 pc[-1], pc - 1 - bytestr_data,
-		 (!NILP (Vload_file_name) && STRINGP (Vload_file_name))
-		 ? SSDATA (Vload_file_name)
-		 : "unknown");
+	  error ("Invalid byte opcode: op=%d, ptr=%"pD"d",
+		 pc[-1], pc - 1 - bytestr_data);
 
 	  /* Handy byte-codes for lexical binding.  */
 	CASE (Bstack_ref1):

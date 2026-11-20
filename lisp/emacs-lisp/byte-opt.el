@@ -2008,8 +2008,6 @@ See Info node `(elisp) Integer Basics'."
                   (<= bytedecomp-op byte-goto-if-not-nil-else-pop))
              (memq bytedecomp-op (eval-when-compile
                                    (list byte-stack-set2 byte-pushcatch
-                                         byte-eq-goto-if-neq byte-eq-goto-if-eq
-                                         byte-cdr-goto
                                          byte-pushconditioncase))))
 	 ;; Offset in next 2 bytes.
 	 (setq bytedecomp-ptr (1+ bytedecomp-ptr))
@@ -2267,12 +2265,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
                                            lap0 lap1 lap1)
 		     (setcar lap0 'byte-discard)
 		     (setcdr lap0 0))
-                    ((memq (car lap0) '(byte-eq-goto-if-neq byte-eq-goto-if-eq))
-                     (setcar lap0 'byte-discardN)
-                     (setcdr lap0 2))
-                    ((eq (car lap0) 'byte-cdr-goto)
-                     (setcar lap0 'byte-cdr)
-                     (setcdr lap0 0))
                     ;; goto-*-else-pop(X) cannot occur here because it would
                     ;; be a depth conflict.
 		    (t (error "Depth conflict at tag %d" (nth 2 lap0))))
@@ -2370,39 +2362,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	        (setcar lap1 not-goto)
                 (setcdr prev (cdr rest))    ; delete not
 	        (setq keep-going t)))
-             ;;
-             ;; eq goto-X-if-nil --> goto-X-if-not-eq
-             ;;
-             ((and (eq 'byte-eq (car lap0))
-                   (eq 'byte-goto-if-nil (car lap1)))
-              (setcar lap1 'byte-eq-goto-if-neq)
-              (setcdr prev (cdr rest))    ; delete byte-eq
-              (setq keep-going t))
-             ;;
-             ;; eq goto-X-if-nil --> goto-X-if-not-eq
-             ;;
-             ((and (eq 'byte-eq (car lap0))
-                   (eq 'byte-goto-if-not-nil (car lap1)))
-              (setcar lap1 'byte-eq-goto-if-eq)
-              (setcdr prev (cdr rest))    ; delete byte-eq
-              (setq keep-going t))
-             ;;
-             ;; cdr + goto --> cdr-goto
 	     ;;
-             ((and (eq 'byte-cdr (car lap0))
-                   (eq 'byte-goto (car lap1)))
-              (setcar lap1 'byte-cdr-goto)
-              (setcdr prev (cdr rest))    ; delete byte-cdr
-              (setq keep-going t))
-             ;;
-             ;; dup + car --> dup-car
-             ;;
-             ((and (eq 'byte-dup (car lap0))
-                   (eq 'byte-car (car lap1)))
-              (setcar lap1 'byte-dup-car)
-              (setcdr prev (cdr rest))  ; delete byte-dup
-              (setq keep-going t))
-             ;;
 	     ;; goto-X-if-nil     goto-Y X:  -->  goto-Y-if-non-nil X:
 	     ;; goto-X-if-non-nil goto-Y X:  -->  goto-Y-if-nil     X:
 	     ;;
