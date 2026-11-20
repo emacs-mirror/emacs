@@ -9216,31 +9216,24 @@ _sys_wait_connect (int fd)
 	     connection, or it could be a failure.  Find out
 	     which one is it.  */
 	  WSANETWORKEVENTS events;
-	  int event_rc;
 
-	  event_rc = pfn_WSAEnumNetworkEvents (SOCK_HANDLE (fd), hEv, &events);
-	  if (event_rc != 0)
+	  pfn_WSAEnumNetworkEvents (SOCK_HANDLE (fd), hEv, &events);
+	  if ((events.lNetworkEvents & FD_CONNECT) != 0
+	      && events.iErrorCode[FD_CONNECT_BIT])
 	    {
 	      cp->status = STATUS_CONNECT_FAILED;
-	      cp->errcode = pfn_WSAGetLastError ();
+	      cp->errcode = events.iErrorCode[FD_CONNECT_BIT];
 	    }
 	  else
-	    if ((events.lNetworkEvents & FD_CONNECT) != 0
-		&& events.iErrorCode[FD_CONNECT_BIT])
-	      {
-		cp->status = STATUS_CONNECT_FAILED;
-		cp->errcode = events.iErrorCode[FD_CONNECT_BIT];
-	      }
-	    else
-	      {
-		cp->status = STATUS_READ_SUCCEEDED;
-		cp->errcode = 0;
-	      }
+	    {
+	      cp->status = STATUS_READ_SUCCEEDED;
+	      cp->errcode = 0;
+	    }
 	}
       pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
     }
-  /* Always close the event, otherwise it leaks.  */
-  pfn_WSACloseEvent (hEv);
+  else
+    pfn_WSACloseEvent (hEv);
 
   return cp->status;
 }
