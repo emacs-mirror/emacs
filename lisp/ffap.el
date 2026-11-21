@@ -1710,7 +1710,8 @@ Uses the face `ffap' if it is defined, or else `highlight'."
 ;;;###autoload
 (defun find-file-at-point (&optional filename)
   "Find FILENAME, guessing a default from text around point.
-If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
+If `ffap-url-regexp' is a string, the FILENAME may also be a URL
+which matches the regexp in `ffap-url-regexp'.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards',
