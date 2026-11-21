@@ -8846,7 +8846,7 @@ indirectly called by the latter."
          share1 frame window type)
 
     (with-current-buffer buffer
-      (when (frame-live-p parent)
+      (when (and share (frame-live-p parent))
         (catch 'frame
           (dolist (frame1 (frame-list))
             (when (eq (frame-parent frame1) parent)
