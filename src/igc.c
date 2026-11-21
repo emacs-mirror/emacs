@@ -4250,8 +4250,13 @@ switch_specpdl_rank (mps_arena_t arena, igc_thread_list *t,
 {
   struct thread_state *ts = t->d.ts;
   igc_root_list *r = thread_specpdl_root (ts);
-  mps_root_t old_root = r->d.root;
-  mps_root_destroy (old_root);
+
+  if (r)
+    {
+      mps_root_t old_root = r->d.root;
+      mps_root_destroy (old_root);
+    }
+
   mps_rank_t new_rank = ambig ? mps_rank_ambig () : mps_rank_exact ();
   mps_root_t new_root;
   mps_res_t res
