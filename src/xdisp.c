@@ -12157,13 +12157,21 @@ WINDOW.  */)
    Lisp_Object y_limit)
 {
   struct window *w = decode_live_window (window);
-  struct buffer *b = (NILP (buffer_or_name)
-		      ? current_buffer
-		      : XBUFFER (Fget_buffer (buffer_or_name)));
+  struct buffer *b;
   Lisp_Object buffer, value;
   specpdl_ref count = SPECPDL_INDEX ();
 
-  XSETBUFFER (buffer, b);
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
+  else
+    {
+      buffer = Fget_buffer (buffer_or_name);
+      if (NILP (buffer))
+	nsberror (buffer_or_name);
+    }
+  b = XBUFFER (buffer);
+  if (!BUFFER_LIVE_P (b))
+    error ("Selecting deleted buffer");
 
   /* The unwind form of with_echo_area_buffer is what we need here to
      make WINDOW temporarily show our buffer.  */
