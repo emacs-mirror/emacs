@@ -12165,7 +12165,7 @@ screen line that includes TO to the returned height of the text.  */)
 
 DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 6, 0,
        doc: /* Return the dimensions of whole text of BUFFER-OR-NAME in WINDOW.
-BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
+BUFFER-OR-NAME must specify a live buffer or the name of a live buffer,
 and defaults to the current buffer.  WINDOW must be a live window and
 defaults to the selected one.  The return value is a cons of the maximum
 pixel-width of any text line and the pixel-height of all the text lines
@@ -12182,13 +12182,21 @@ WINDOW.  */)
    Lisp_Object y_limit, Lisp_Object from, Lisp_Object to)
 {
   struct window *w = decode_live_window (window);
-  struct buffer *b = (NILP (buffer_or_name)
-		      ? current_buffer
-		      : XBUFFER (Fget_buffer (buffer_or_name)));
+  struct buffer *b;
   Lisp_Object buffer, value;
   specpdl_ref count = SPECPDL_INDEX ();
 
-  XSETBUFFER (buffer, b);
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
+  else
+    {
+      buffer = Fget_buffer (buffer_or_name);
+      if (NILP (buffer))
+	nsberror (buffer_or_name);
+    }
+  b = XBUFFER (buffer);
+  if (!BUFFER_LIVE_P (b))
+    error ("Selecting deleted buffer");
 
   /* The unwind form of with_echo_area_buffer is what we need here to
      make WINDOW temporarily show our buffer.  */
