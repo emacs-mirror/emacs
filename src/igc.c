@@ -3488,10 +3488,9 @@ static igc_root_list *
 root_create_ambig (struct igc *gc, void *start, void *end,
 		   const char *label)
 {
-  /* Partial words cannot contain ambiguous references.  Ignore them.  */
-  while (!is_aligned (end))
-    end = (char *) end - 1;
-  igc_assert (is_aligned (start));
+  size_t align = alignof (void *);
+  igc_assert (addr_is_aligned (start, align));
+  igc_assert (addr_is_aligned (end, align));
   igc_assert (start < end);
   return root_create (gc, start, end, mps_rank_ambig (), scan_ambig, NULL,
 		      true, label);
@@ -3509,8 +3508,9 @@ static igc_root_list *
 root_create_lisp (struct igc *gc, void *start, void *end,
 		  const char *label)
 {
-  eassert (is_aligned (start));
-  eassert (is_aligned (end));
+  size_t align = alignof (Lisp_Object);
+  eassert (addr_is_aligned (start, align));
+  eassert (addr_is_aligned (end, align));
   return root_create_exact (gc, start, end, scan_exact, label);
 }
 
