@@ -5237,10 +5237,11 @@ You can get more control by calling @code{quit-restore-window} instead
 of @code{quit-window}.
 
 @defun quit-restore-window &optional window bury-or-kill
-This function handles @var{window} and its buffer after quitting.  The
-optional argument @var{window} must be a live window and defaults to
-the selected one.  The function takes account of the @var{window}'s
-@code{quit-restore} parameter.
+This function quits @var{window} and then performs additional actions on
+it and its buffer.  The optional argument @var{window} must be a live
+window and defaults to the selected one.  The function uses the
+information stored in the @var{window}'s @code{quit-restore} and
+@code{quit-restore-prev} parameters.
 
 The optional argument @var{bury-or-kill} specifies how to deal with
 @var{window}'s buffer.  The following values are meaningful:
@@ -5285,6 +5286,10 @@ terminal.  If @var{bury-or-kill} equals @code{kill}, it means to
 delete the frame.  Otherwise, the fate of the frame is determined by
 calling @code{frame-auto-hide-function} (see below) with that frame as
 sole argument.
+
+The abnormal hook @code{window-deletable-functions} can be used to
+control whether the window should be deleted by this function
+(@pxref{Deleting Windows}).
 @end defun
 
   A window's @code{quit-restore} and @code{quit-restore-prev} parameters
