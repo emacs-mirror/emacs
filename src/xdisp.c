@@ -37011,9 +37011,10 @@ note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
     sym = Qright_fringe_help;
 
   /* Translate windows coordinates into a vertical window position.  */
-  int hpos, vpos, area;
+  int hpos = -1, vpos = -1, area;
   struct window *w = XWINDOW (window);
-  if (x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area) == NULL)
+  x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area);
+  if (vpos == -1)
     return;	/* not all glyph rows between 0 and Y are enabled */
 
   /* Don't access the TEXT_AREA of a row that does not display text,
