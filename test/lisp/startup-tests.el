@@ -44,4 +44,14 @@
     (should (equal foo-args '("--foo")))
     (should (equal bar-args '("--bar=value")))))
 
+(ert-deftest startup-scratch-is-trusted ()
+  (let ((output (with-temp-buffer
+                  (call-process (expand-file-name invocation-name
+                                                  invocation-directory)
+                                nil t nil
+                                "-Q" "--batch" "--eval"
+                                "(message \"%S\" (not (trusted-content-p)))")
+                  (buffer-string))))
+    (should (equal output "nil\n"))))
+
 ;;; startup-tests.el ends here

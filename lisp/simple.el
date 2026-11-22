@@ -11500,6 +11500,12 @@ too short to have a dst element.
 
 (fn CL-X)")
 
+(defun scratch-buffer--set-mode ()
+  (funcall initial-major-mode)
+  ;; FIXME: Should we test `major-mode' instead?
+  (when (eq initial-major-mode 'lisp-interaction-mode)
+    (setq-local trusted-content :all)))
+
 (defun get-scratch-buffer-create ()
   "Return the *scratch* buffer, creating a new one if needed."
   (or (get-buffer "*scratch*")
@@ -11510,9 +11516,7 @@ too short to have a dst element.
           (when initial-scratch-message
             (insert (substitute-command-keys initial-scratch-message))
             (set-buffer-modified-p nil))
-          (funcall initial-major-mode)
-          (when (eq initial-major-mode 'lisp-interaction-mode)
-            (setq-local trusted-content :all)))
+          (scratch-buffer--set-mode))
         scratch)))
 
 (defun scratch-buffer ()
