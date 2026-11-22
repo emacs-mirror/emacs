@@ -284,6 +284,25 @@
 #define MPS_PF_ALIGN    4
 
 
+/* Clang 19.1.7, clang --target=i686-linux-gnu */
+
+#elif defined(__linux__) && defined(__i386__) && defined(__GNUC__) \
+      && defined(__clang__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_LII3LL)
+#error "specified CONFIG_PF_... inconsistent with detected lii3ll"
+#endif
+#define MPS_PF_LII3LL
+#define MPS_PF_STRING   "lii3ll"
+#define MPS_OS_LI
+#define MPS_ARCH_I3
+#define MPS_BUILD_LL
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    4
+
+
 /* GCC 4.6.3, gcc -E -dM */
 
 #elif defined(__linux__) && defined(__x86_64) && defined(__GNUC__) \

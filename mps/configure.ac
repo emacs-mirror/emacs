@@ -67,6 +67,13 @@ case $host/$CLANG in
       MPS_BUILD_NAME=gc
       PFMCFLAGS="$CFLAGS_GC"
     ;;
+  i*86-*-linux*/yes)
+      AC_MSG_RESULT([Linux x86])
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=i3
+      MPS_BUILD_NAME=ll
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
   x86_64-*-linux*/no)
       AC_MSG_RESULT([Linux x86_64])
       MPS_OS_NAME=li

@@ -198,9 +198,9 @@
 #include "prmclia6.c"   /* x86-64 for Linux mutator context */
 #include "span.c"       /* generic stack probe */
 
-/* Linux on IA-32 with GCC */
+/* Linux on IA-32 with GCC of Clang */
 
-#elif defined(MPS_PF_LII3GC)
+#elif defined(MPS_PF_LII3GC) || defined(MPS_PF_LII3LL)
 
 #include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
