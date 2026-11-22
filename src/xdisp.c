@@ -12140,7 +12140,7 @@ screen line that includes TO to the returned height of the text.  */)
 
 DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 4, 0,
        doc: /* Return the dimensions of whole text of BUFFER-OR-NAME in WINDOW.
-BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
+BUFFER-OR-NAME must specify a live buffer or the name of a live buffer,
 and defaults to the current buffer.  WINDOW must be a live window and
 defaults to the selected one.  The return value is a cons of the maximum
 pixel-width of any text line and the pixel-height of all the text lines
