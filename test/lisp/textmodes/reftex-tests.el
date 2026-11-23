@@ -159,7 +159,8 @@ The value should correspond to last part of `reftex-label-regexps'.")
   "Test for parsing elements in verbatim context."
   (ert-with-temp-directory temp-dir
     (let ((tex-file (expand-file-name "verbatim.tex" temp-dir))
-          toc docstruct)
+          (sub-file (expand-file-name "verbatim-sub.tex" temp-dir))
+          toc docstruct bof file-err)
       (with-temp-buffer
         (insert "\
 \\documentclass{article}
@@ -177,17 +178,61 @@ The value should correspond to last part of `reftex-label-regexps'.")
 \\section{Conclusion}
 \\label{sec:conclu}
 
+\\input{verbatim-sub}
+
+\\verb|\\input{ignore}|
+
+\\input{not-existent}
+
 \\end{document}")
         (write-region (point-min) (point-max) tex-file))
+      (with-temp-buffer
+        (insert "\
+This is text\\footnote{This is footnote\\label{fn:1}}.
+
+%% Local Variables:
+%% mode: latex
+%% tex-main-file: \"verbatim\"
+%% End:")
+        (write-region (point-min) (point-max) sub-file))
       (find-file tex-file)
       (reftex-parse-all)
       (setq docstruct (symbol-value reftex-docstruct-symbol))
       ;; \label is never ignored:
       (should (assoc "sec:ignore" docstruct))
       (setq toc (reftex-all-assq 'toc docstruct))
-      ;; \section is ignored:
+      ;; \section{Ignore} is ignored:
       (dolist (elt toc)
         (should-not (string-search "Ignore" (nth 2 elt))))
+      ;; \label{fn:1} is in sub-file:
+      (should (assoc "fn:1" docstruct))
+      ;; \input{ignore} is ignored:
+      (setq bof (reftex-all-assq 'bof docstruct))
+      (dolist (elt bof)
+        (should-not (string-search "ignore" (nth 1 elt))))
+      (kill-buffer (file-name-nondirectory tex-file))
+
+      ;; Now start by loading and parsing a sub file which should then
+      ;; load and parse the main file:
+      (find-file sub-file)
+      (latex-mode)
+      (reftex-parse-all)
+      (setq docstruct (symbol-value reftex-docstruct-symbol))
+      (should (assoc "sec:ignore" docstruct))
+      (setq toc (reftex-all-assq 'toc docstruct))
+      ;; \section{Ignore} is ignored:
+      (dolist (elt toc)
+        (should-not (string-search "Ignore" (nth 2 elt))))
+      ;; \label{fn:1} is in sub-file:
+      (should (assoc "fn:1" docstruct))
+      ;; \input{ignore} is ignored:
+      (setq bof (reftex-all-assq 'bof docstruct))
+      (dolist (elt bof)
+        (should-not (string-search "ignore" (nth 1 elt))))
+      (setq file-err (reftex-all-assq 'file-error docstruct))
+      (dolist (elt file-err)
+        (should-not (string= (cadr (assq 'file-error elt)) "ignore")))
+      (kill-buffer (file-name-nondirectory sub-file))
       (kill-buffer (file-name-nondirectory tex-file)))))
 
 ;;; reftex-cite
