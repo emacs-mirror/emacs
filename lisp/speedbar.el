@@ -796,38 +796,69 @@ If you want to change this while speedbar is active, either use
     st)
   "Syntax-table used on the speedbar.")
 
+(defun speedbar-switch-back-to-previous-display-mode ()
+  "Switch back to the previous display mode."
+  (interactive)
+  (speedbar-change-initial-expansion-list
+   speedbar-previously-used-expansion-list-name))
+
+(defun speedbar-switch-to-quick-buffer-display-mode ()
+  "Switch into Quick Buffers display mode.
+After one use, the previous display mode is restored."
+  (interactive)
+  (speedbar-change-initial-expansion-list "quick buffers"))
+
+(defun speedbar-switch-to-files-display-mode ()
+  "Switch back to the Files display mode."
+  (interactive)
+  (speedbar-change-initial-expansion-list "files"))
+
+(defun speedbar-close ()
+  "Close the 'speedbar'."
+  (interactive)
+  (if (eq (speedbar-frame-or-window) 'window)
+      (speedbar-window-close)
+    (dframe-close-frame)))
+
+(defun speedbar-delete ()
+  "Delete the 'speedbar-frame' or close the 'speedbar-window'."
+  (interactive)
+  (if (eq (speedbar-frame-or-window) 'window)
+      (speedbar-window-close)
+    (delete-frame)))
+
 (defvar speedbar-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
 
     ;; Control.
-    (define-key map "t" 'speedbar-toggle-updates)
-    (define-key map "g" 'speedbar-refresh)
+    (define-key map "t" #'speedbar-toggle-updates)
+    (define-key map "g" #'speedbar-refresh)
 
     ;; Navigation.
-    (define-key map "n" 'speedbar-next)
-    (define-key map "p" 'speedbar-prev)
-    (define-key map "\M-n" 'speedbar-restricted-next)
-    (define-key map "\M-p" 'speedbar-restricted-prev)
-    (define-key map "\C-\M-n" 'speedbar-forward-list)
-    (define-key map "\C-\M-p" 'speedbar-backward-list)
+    (define-key map "n" #'speedbar-next)
+    (define-key map "p" #'speedbar-prev)
+    (define-key map "\M-n" #'speedbar-restricted-next)
+    (define-key map "\M-p" #'speedbar-restricted-prev)
+    (define-key map "\C-\M-n" #'speedbar-forward-list)
+    (define-key map "\C-\M-p" #'speedbar-backward-list)
     ;; These commands never seemed useful.
     ;;  (define-key map " " 'speedbar-scroll-up)
     ;;  (define-key map [delete] 'speedbar-scroll-down)
 
     ;; Short cuts I happen to find useful.
-    (define-key map "r"
-      (lambda () (interactive)
-        (speedbar-change-initial-expansion-list
-         speedbar-previously-used-expansion-list-name)))
-    (define-key map "b"
-      (lambda () (interactive)
-        (speedbar-change-initial-expansion-list "quick buffers")))
-    (define-key map "f"
-      (lambda () (interactive)
-        (speedbar-change-initial-expansion-list "files")))
+    (define-key map "r" #'speedbar-switch-back-to-previous-display-mode)
+    (define-key map "b" #'speedbar-switch-to-quick-buffer-display-mode)
+    (define-key map "f" #'speedbar-switch-to-files-display-mode)
+
+    ;; Help.
+    (define-key map "h" #'describe-mode)
 
     (dframe-update-keymap map)
+    ;; Replace certain key combinations related to 'dframe' with
+    ;; specific ones for 'speedbar'.
+    (keymap-set map "q" #'speedbar-close)
+    (keymap-set map "Q" #'speedbar-delete)
     map)
   "Keymap used in speedbar buffer.")
 
@@ -843,27 +874,27 @@ This basically creates a sparse keymap, and makes its parent be
   (let ((map (speedbar-make-specialized-keymap)))
 
     ;; Basic tree features.
-    (define-key map "e" 'speedbar-edit-line)
-    (define-key map "\C-m" 'speedbar-edit-line)
-    (define-key map "+" 'speedbar-expand-line)
-    (define-key map "=" 'speedbar-expand-line)
-    (define-key map "-" 'speedbar-contract-line)
+    (define-key map "e" #'speedbar-edit-line)
+    (define-key map "\C-m" #'speedbar-edit-line)
+    (define-key map "+" #'speedbar-expand-line)
+    (define-key map "=" #'speedbar-expand-line)
+    (define-key map "-" #'speedbar-contract-line)
 
-    (define-key map "[" 'speedbar-expand-line-descendants)
-    (define-key map "]" 'speedbar-contract-line-descendants)
+    (define-key map "[" #'speedbar-expand-line-descendants)
+    (define-key map "]" #'speedbar-contract-line-descendants)
 
-    (define-key map " " 'speedbar-toggle-line-expansion)
+    (define-key map " " #'speedbar-toggle-line-expansion)
 
     ;; File based commands.
-    (define-key map "U" 'speedbar-up-directory)
-    (define-key map "I" 'speedbar-item-info)
-    (define-key map "B" 'speedbar-item-byte-compile)
-    (define-key map "L" 'speedbar-item-load)
-    (define-key map "C" 'speedbar-item-copy)
-    (define-key map "D" 'speedbar-item-delete)
-    (define-key map "O" 'speedbar-item-object-delete)
-    (define-key map "R" 'speedbar-item-rename)
-    (define-key map "M" 'speedbar-create-directory)
+    (define-key map "U" #'speedbar-up-directory)
+    (define-key map "I" #'speedbar-item-info)
+    (define-key map "B" #'speedbar-item-byte-compile)
+    (define-key map "L" #'speedbar-item-load)
+    (define-key map "C" #'speedbar-item-copy)
+    (define-key map "D" #'speedbar-item-delete)
+    (define-key map "O" #'speedbar-item-object-delete)
+    (define-key map "R" #'speedbar-item-rename)
+    (define-key map "M" #'speedbar-create-directory)
     map)
   "Keymap used in speedbar buffer while files are displayed.")
 
@@ -922,17 +953,11 @@ This basically creates a sparse keymap, and makes its parent be
     )
   "Additional menu items while in file-mode.")
 
-(defun speedbar-easymenu-definition-trailer ()
-  "Return menu items appearing at the end of the speedbar menu."
-  (let ((type (speedbar-frame-or-window)))
-    (cond ((eq type 'frame)
-	   '(["Customize..." speedbar-customize t]
-	     ["Close" dframe-close-frame t]
-	     ["Quit" delete-frame t]))
-	  ((eq type 'window)
-	   '(["Customize..." speedbar-customize t]
-	     ["Close" speedbar-window-close
-	      :keys "q" :active t])))))
+(defvar speedbar-easymenu-definition-trailer
+  '(["Customize..." speedbar-customize t]
+    ["Close" speedbar-close t]
+    ["Quit" speedbar-delete t])
+  "Menu items appearing at the end of the speedbar menu.")
 
 (defvar speedbar-desired-buffer nil
   "Non-nil when speedbar is showing buttons specific to a special mode.
@@ -1348,6 +1373,7 @@ frame and window to be the currently active frame and window."
   "Reconfigure the menu-bar in a speedbar frame.
 Different menu items are displayed depending on the current display mode
 and the existence of packages."
+  ;; FIXME: Use `:filter' for the dynamic part of the menu?
   (let ((md (append
 	     speedbar-easymenu-definition-base
 	     (if speedbar-shown-directories
@@ -1379,28 +1405,16 @@ and the existence of packages."
 			     (setq alist (cdr alist)))
 			   displays)))
 	     ;; The trailer
-	     (speedbar-easymenu-definition-trailer)))
-	(localmap (save-excursion
-		    (let ((cf (selected-frame)))
-		      (prog2
-			  (dframe-select-attached-frame speedbar-frame)
-			  (if (local-variable-p
-			       'speedbar-special-mode-key-map
-			       (current-buffer))
-			      speedbar-special-mode-key-map)
-			(select-frame cf))))))
+	     speedbar-easymenu-definition-trailer)))
     (with-current-buffer speedbar-buffer
-      (let ((local-keymap (or localmap
-                              (speedbar-initial-keymap)
-                              ;; This creates a small keymap we can glom the
-                              ;; menu adjustments into.
-                              (speedbar-make-specialized-keymap))))
-        (if speedbar-prefer-window
-            (progn
-              (keymap-set local-keymap "q" 'speedbar-window-close)
-              (keymap-set local-keymap "Q" 'speedbar-window-close))
-          (dframe-update-keymap local-keymap))
-
+      (let ((local-keymap (or
+                           (if (local-variable-p
+                                'speedbar-special-mode-kye-map)
+                               speedbar-special-mode-key-map)
+                           (speedbar-initial-keymap)
+                           ;; This creates a small keymap we can glom the
+                           ;; menu adjustments into.
+                           (speedbar-make-specialized-keymap))))
         (use-local-map local-keymap)
         ;; Now add the new menu
         (easy-menu-define speedbar-menu-map (current-local-map)

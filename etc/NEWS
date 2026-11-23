@@ -594,6 +594,18 @@ weight in the United Kingdom and Ireland.
 ---
 *** A nil value for 'speedbar-file-unshown-regexp' means "show all".
 
+*** 'speedbar-easymenu-definition-trailer' is a variable again.
+
+*** New named commands for a few keybindings.
+Specifically:
+- 'speedbar-switch-back-to-previous-display-mode' bound to 'r'.
+- 'speedbar-switch-to-quick-buffer-display-mode' bound to 'b'.
+- 'speedbar-switch-to-files-display-mode' bound to 'f'.
+- 'speedbar-close' bound to 'q'.
+- 'speedbar-delete' bound to 'Q'.
+
+*** Add 'h' keybinding to 'describe-mode' in 'speedbar-mode-map'.
+ 
 ** Gnus
 
 +++
