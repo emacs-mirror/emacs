@@ -2091,6 +2091,17 @@ After the tab is created, the hooks in
       ;; Handle the case when it's called in the active minibuffer.
       (when (window-minibuffer-p)
         (select-window (get-mru-window)))
+
+      (let ((buffer
+             (if (and (functionp tab-bar-new-tab-choice)
+                      (not (memq tab-bar-new-tab-choice '(clone window))))
+                 (funcall tab-bar-new-tab-choice)
+               (if (stringp tab-bar-new-tab-choice)
+                   (or (get-buffer tab-bar-new-tab-choice)
+                       (find-file-noselect tab-bar-new-tab-choice))))))
+        (when (buffer-live-p buffer)
+          (switch-to-buffer buffer)))
+
       (let ((ignore-window-parameters t)
             (window--sides-inhibit-check t))
         (if (eq tab-bar-new-tab-choice 'clone)
@@ -2108,17 +2119,7 @@ After the tab is created, the hooks in
             ;; Create a new window to get rid of old window parameters
             ;; (e.g. prev/next buffers) of old window.
             (split-window nil window-safe-min-width t)
-            (delete-window))))
-
-      (let ((buffer
-             (if (and (functionp tab-bar-new-tab-choice)
-                      (not (memq tab-bar-new-tab-choice '(clone window))))
-                 (funcall tab-bar-new-tab-choice)
-               (if (stringp tab-bar-new-tab-choice)
-                   (or (get-buffer tab-bar-new-tab-choice)
-                       (find-file-noselect tab-bar-new-tab-choice))))))
-        (when (buffer-live-p buffer)
-          (switch-to-buffer buffer))))
+            (delete-window)))))
 
     (when from-index
       (setf (nth from-index tabs) from-tab))
