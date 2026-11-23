@@ -1285,8 +1285,7 @@ in the selected file.
     (setq dframe-help-echo-function #'speedbar-item-info
 	  dframe-mouse-click-function #'speedbar-click
 	  dframe-mouse-position-function #'speedbar-position-cursor-on-line)
-    (setq-local tab-bar-mode nil)
-    (setq tab-line-exclude nil))
+    (setq-local tab-bar-mode nil))
   speedbar-buffer)
 
 (define-obsolete-function-alias 'speedbar-message 'dframe-message "24.4")

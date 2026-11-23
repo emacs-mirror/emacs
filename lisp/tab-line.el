@@ -1413,11 +1413,12 @@ See also `tab-line-exclude-modes', for only exclude major modes."
 
 ;;;###autoload
 (defvar-local tab-line-exclude nil)
+(put 'tab-line-exclude 'permanent-local t)
 
 (defun tab-line-mode--turn-on ()
   "Turn on `tab-line-mode' in all pertinent buffers.
 Temporary buffers, buffers whose names begin with a space, buffers
-under major modes that are either mentioned in `tab-line-exclude-mode'
+under major modes that are either mentioned in `tab-line-exclude-modes'
 or have a non-nil `tab-line-exclude' property on their symbol,
 and buffers that have a non-nil buffer-local value
 of `tab-line-exclude', are exempt from `tab-line-mode'."

@@ -256,6 +256,7 @@ the documentation of the command bound to that key sequence."
                             'action #'describe-symbol
                             'button-data (prop-match-value match)))))
 
+    (setq-local tab-line-exclude t)
     (help-mode)
 
     ;; Display the buffer at the bottom of the frame...

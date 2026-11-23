@@ -320,6 +320,7 @@ entirely by setting `warning-suppress-types' or
 	  (with-current-buffer buffer
 	    ;; If we created the buffer, disable undo.
 	    (unless old
+	      (setq-local tab-line-exclude t)
 	      (when (fboundp 'special-mode) ; Undefined during bootstrap.
                 (special-mode))
 	      (setq buffer-read-only t)

@@ -2156,6 +2156,7 @@ moving."
   "A mode for listing Flymake diagnostics."
   :interactive nil
   (flymake--tabulated-setup nil))
+(put 'flymake-diagnostics-buffer-mode 'tab-line-exclude t)
 
 (defun flymake--diagnostics-buffer-name ()
   (format "*Flymake diagnostics for `%s'*" (current-buffer)))
@@ -2275,6 +2276,7 @@ some of this variable's contents the diagnostic listings.")
   "A mode for listing Flymake diagnostics in a project."
   :interactive nil
   (flymake--tabulated-setup t))
+(put 'flymake-project-diagnostics-mode 'tab-line-exclude t)
 
 (cl-defun flymake--project-diagnostics (&optional (project (project-current)))
   "Get all known relevant diagnostics for PROJECT."
