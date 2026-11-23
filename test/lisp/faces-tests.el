@@ -38,6 +38,11 @@
   ""
   :group 'faces--test)
 
+(defface faces--test3
+  '((t :background "black"))
+  ""
+  :group 'faces--test)
+
 (defface faces--test-extend
   '((t :extend t :background "blue"))
   ""
@@ -235,6 +240,28 @@
     (should (tty-find-type pred "cygwin-foo"))
     (should (equal (tty-find-type pred "xterm") "xterm"))
     (should (equal (tty-find-type pred "screen.xterm") "screen"))))
+
+(ert-deftest faces--test-face-state ()
+  "Check whether `face-spec-set' sets `face-modified' correctly."
+  (put 'faces--test3 'face-modified t)
+  (face-spec-set 'faces--test3 '((t :background "black")) 'saved-face)
+  (should (eq (get 'faces--test3 'face-modified) nil))
+
+  (put 'faces--test3 'face-modified t)
+  (face-spec-set 'faces--test3 '((t :background "black")) 'customized-face)
+  (should (eq (get 'faces--test3 'face-modified) nil))
+
+  (put 'faces--test3 'face-modified t)
+  (face-spec-set 'faces--test3 '((t :background "black")) 'face-defface-spec)
+  (should (eq (get 'faces--test3 'face-modified) nil))
+
+  (put 'faces--test3 'face-modified t)
+  (face-spec-set 'faces--test3 '((t :background "black")) t)
+  (should (eq (get 'faces--test3 'face-modified) nil))
+
+  (put 'faces--test3 'face-modified t)
+  (face-spec-set 'faces--test3 '((t :background "black")))
+  (should (eq (get 'faces--test3 'face-modified) t)))
 
 (provide 'faces-tests)
 ;;; faces-tests.el ends here

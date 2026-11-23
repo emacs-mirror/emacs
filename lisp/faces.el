@@ -1715,7 +1715,7 @@ function for defining FACE and recalculating its attributes."
       (put face 'face-override-spec nil))
   ;; If we reset the face based on its custom spec, it is unmodified
   ;; as far as Custom is concerned.
-  (unless (eq face 'face-override-spec)
+  (unless (eq spec-type 'face-override-spec)
     (put face 'face-modified nil))
   ;; Initialize the face if it does not exist, then recalculate.
   (make-empty-face face)
