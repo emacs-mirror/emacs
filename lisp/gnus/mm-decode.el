@@ -735,10 +735,11 @@ MIME-Version header before proceeding."
 	result))))
 
 (defun mm-dissect-singlepart (ctl cte &optional force cdl description id)
-  (when (or force
-	    (if (equal "text/plain" (car ctl))
-		(assoc 'format ctl)
-	      t))
+  (cond
+   ((or force
+        (if (equal "text/plain" (car ctl))
+	    (assoc 'format ctl)
+	  t))
     ;; Guess what the type of application/octet-stream parts should
     ;; really be.
     (let ((filename (cdr (assq 'filename (cdr cdl)))))
@@ -758,7 +759,15 @@ MIME-Version header before proceeding."
 	       (cadr decoder)
 	       (executable-find (caddr decoder)))
 	  (mm-dissect-archive handle)
-	handle))))
+	handle)))
+   (t
+    ;; This MIME element is a plain text file attached to a bodiless
+    ;; un-'format"d article that has no other attachments. The plain
+    ;; text has already been decoded, but the old values of the charset
+    ;; and `cte' are still being passed around. Hence, we ignore both
+    ;; the charset and `cte' as stale.
+    (mm-make-handle
+     (mm-copy-to-buffer) '("text/plain") nil nil cdl description nil id))))
 
 (defun mm-dissect-multipart (ctl from)
   (goto-char (point-min))
