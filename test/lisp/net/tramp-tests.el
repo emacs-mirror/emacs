@@ -211,6 +211,7 @@ is greater than 10.
        ;; Unwind forms.
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
 	 (untrace-all)
+	 (tramp-remove-advice-trace--insert)
 	 (dolist (buf (tramp-list-tramp-buffers))
 	   (message ";; %s\n%s" buf (tramp-get-buffer-string buf))
 	   (kill-buffer buf))))))
@@ -5495,7 +5496,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
       ;; Cleanup.
       (when tramp-trace
-	(untrace-all))
+	(untrace-all)
+	(tramp-remove-advice-trace--insert))
       (tramp-change-syntax orig-syntax)
       (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password))))
 

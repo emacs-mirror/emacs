@@ -364,9 +364,11 @@ file names."
 	;; we cache the result.
 	(with-tramp-file-property v localname "remote-file-name"
 	  (tramp-rclone-maybe-open-connection v)
-	  ;; TODO: This shall be handled by `expand-file-name'.
+	  ;; Remove leading "/" from `localname', we're relative to
+	  ;; the mount point.
 	  (setq localname
-		(replace-regexp-in-string (rx bos ".") "" (or localname "")))
+		(replace-regexp-in-string
+		 (rx bos (? ".") "/") "" (or localname "")))
 	  (format "%s%s" (tramp-fuse-mounted-p v) localname)))
     ;; It is a local file name.
     filename))

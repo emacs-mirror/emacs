@@ -7012,7 +7012,9 @@ directory}.  Use this option with care, because it could decrease the
 performance of @value{tramp} actions.
 
 If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
-function call traces are written to the buffer @file{*trace tramp/foo*}.
+function call traces are written to the buffer @file{*trace
+tramp/foo*}.  When @code{tramp-debug-to-file} non-@code{nil}, the
+trace buffer is written as a file as well.
 
 When @code{tramp-debug-command-messages} is non-@code{nil}, the debug
 buffer contains all messages with verbosity level 6 (sent and received
