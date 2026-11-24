@@ -870,10 +870,8 @@ to extract substrings.")
   "Return non-nil on `darwin' and Xcode Command Line Tools is not installed.
 Otherwise return nil if not on `darwin', or if the tools are installed."
   (and (eq system-type 'darwin)
-       (not (eq 0 (ignore-errors
-                    (call-process "xcode-select"
-                                  nil nil nil
-                                  "-p"))))))
+       (not (zerop (ignore-errors
+                     (call-process "xcode-select" nil nil nil "-p"))))))
 
 (defun ffap--c-path ()
   "Return search path for C header files (a list of strings)."
