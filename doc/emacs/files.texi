@@ -1598,7 +1598,7 @@ which @file{/home/fsf} is normally accessed through a symbolic link
 named @file{/fsf}:
 
 @example
-(("\\`/home/fsf" . "/fsf"))
+(("\\`/home/fsf/" . "/fsf/"))
 @end example
 
 @node Directories
