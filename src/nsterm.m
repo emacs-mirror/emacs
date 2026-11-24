@@ -5864,6 +5864,13 @@ ns_displays_reconfigured (CGDirectDisplayID display,
 			  CGDisplayChangeSummaryFlags flags,
 			  void *user_info)
 {
+  /* This is the "hey we're about to start changing the display setup"
+     flag.  Return early, otherwise the display querying below will get
+     inconsistent results.  We get another callback once the
+     reconfiguration has finished.  */
+  if (flags & kCGDisplayBeginConfigurationFlag)
+    return;
+
   struct input_event ie;
   union buffered_input_event *ev;
   Lisp_Object new_monitors;
