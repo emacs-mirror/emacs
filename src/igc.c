@@ -463,6 +463,12 @@ addr_is_aligned (const mps_addr_t addr, size_t align)
   return (mps_word_t) addr % align == 0;
 }
 
+static void *
+addr_align_down (void *addr, size_t align)
+{
+  return (void *) ((uintptr_t) addr - (uintptr_t) addr % align);
+}
+
 #define IGC_WITH_PARKED(gc) \
   for (int i = (arena_park (gc), 1); i; i = (arena_release (gc), 0))
 
@@ -3598,7 +3604,11 @@ root_create_main_thread (struct igc *gc)
   void *start = &main_thread.s;
   void *end = (char *) &main_thread.s + sizeof (main_thread.s);
   root_create_exact (gc, start, end, scan_main_thread, "main-thread");
-  root_create_ambig (gc, main_thread.s.m_getcjmp, main_thread.s.m_getcjmp + 1,
+
+  /* On macOS, sizeof(jmp_buf) is not a multiple of sizeof(void*).  */
+  root_create_ambig (gc, main_thread.s.m_getcjmp,
+		     addr_align_down (main_thread.s.m_getcjmp + 1,
+				      alignof (void *)),
 		     "main-thread-getcjmp");
 }
 
