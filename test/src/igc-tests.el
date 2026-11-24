@@ -34,6 +34,15 @@
   (pcase-exhaustive (assoc-string "committed" (igc-info))
     (`("committed" nil ,val nil) val)))
 
+(defun igc-tests--spare-committed ()
+  (pcase-exhaustive (assoc-string "spare-committed" (igc-info))
+    (`("spare-committed" nil ,val nil) val)))
+
+(defun igc-tests--32-bit-addresses-p ()
+  (or (< most-positive-fixnum (ash 1 32))
+      (and (string-search "--with-wide-int" system-configuration-options)
+           (< most-positive-fixnum (ash 1 64)))))
+
 (ert-deftest igc-tests-set-commit-limit ()
   :tags '(:igc)
   (let ((limit (max (ash 1 30) (igc-tests--committed))))
@@ -61,12 +70,12 @@
                  '("pause-time" nil 1.0e+INF nil)))
   (should (equal (igc--set-pause-time 0.01) nil)))
 
-(defvar igc-test--list-length 16000000
+(defvar igc-tests--list-length 16000000
   "Number of cons cells we created to trigger incremental GC.")
 
-(defun igc-test--trigger-incremental-gc ()
+(defun igc-tests--trigger-incremental-gc ()
   "Attempt to trigger incremental garbage collection."
-  (ignore (make-list igc-test--list-length nil)))
+  (ignore (make-list igc-tests--list-length nil)))
 
 ;; Test whether triggering incremental GC from a secondary thread aborts
 ;; the main thread.  This will cause an abort on unfixed Emacs versions
@@ -75,17 +84,20 @@
 
 (ert-deftest igc-tests-thread-incremental-gc ()
   "Trigger incremental GC on a second thread."
-  :tags '(:igc :expensive-test)
+  :tags '(:expensive-test)
   (skip-unless (fboundp 'make-thread))
-  (igc-collect)
-  (thread-join (make-thread #'igc-test--trigger-incremental-gc)))
+  (igc-tests--collect)
+  (thread-join (make-thread #'igc-tests--trigger-incremental-gc)))
 
-(defun igc-tests--binary-search (start end cmp)
+(defun igc-tests--binary-search (start end cmp &optional deadline)
   (named-let search ((start start) (end end))
     (let* ((len (- end start))
            (mid (+ start (/ len 2))))
       (cond ((= len 0)
              nil)
+            ((and deadline (< deadline (float-time)))
+             (message "deadline reached")
+             'deadline)
             (t
              (cl-ecase (funcall cmp mid)
                (= mid)
@@ -96,41 +108,113 @@
   (message "testing: %d (0x%x) (logb: %d)" len len (logb len))
   (when (featurep 'mps)
     (igc--process-messages))
-  (cond ((ignore-errors (funcall alloc-fun len))
-         (cond ((ignore-errors (funcall alloc-fun (1+ len)))
+  (cond ((funcall alloc-fun len)
+         (message "allocation succeeded: %d" len)
+         (cond ((funcall alloc-fun (1+ len))
+                (message "allocation succeeded: %d" (1+ len))
                 '>)
                (t '=)))
         (t '<)))
 
-(defun igc-tests--find-largest-vector-size (alloc-fun)
-  (let ((garbage-collection-messages t)
-        (cmp-fun (lambda (len)
-                   (igc-tests--try-vector-size len alloc-fun))))
-    (igc-tests--binary-search 0 (1+ most-positive-fixnum) cmp-fun)))
+(defun igc-tests--collect ()
+  (cond ((featurep 'mps)
+         (igc--collect)
+         (igc--process-messages))
+        (t
+         (garbage-collect))))
+
+(defun igc-tests--used-memory ()
+  (cond ((featurep 'mps)
+         (- (igc-tests--committed) (igc-tests--spare-committed)))
+        (t
+         (cl-reduce #'+ (mapcar #'cadr (garbage-collect-heapsize))))))
+
+(defun igc-tests--find-largest-object-size (alloc-fun)
+  (let* (;;(garbage-collection-messages t) ; very verbose if enabled
+         (_ (igc-tests--collect))
+         (used1 (igc-tests--used-memory))
+         (alloc (lambda (len)
+                  ;; Allocate in a separate thread to reduce the
+                  ;; probabilty to find references to the object on
+                  ;; stack.
+                  (let* ((ok? (thread-join
+                               (make-thread
+                                (lambda ()
+                                  (ignore (funcall alloc-fun len))
+                                  t)))))
+                    (when ok?
+                      ;; Force a buffer fill, making it more likeley
+                      ;; that the current large segment for the
+                      ;; allocation buffer can be reclaimed.
+                      (ignore (funcall alloc-fun 4096))
+                      (igc-tests--collect)
+                      (let ((used2 (igc-tests--used-memory)))
+                        (should (< used2 (* used1 1.1)))))
+                    ok?)))
+         (cmp-fun (lambda (len)
+                    (igc-tests--try-vector-size len alloc)))
+         (deadline (+ (float-time) 10)))
+    (igc-tests--binary-search 0 (1+ most-positive-fixnum) cmp-fun
+                              deadline)))
+
+(defun igc-tests--run-test-in-subrocess (function-name)
+  (let* ((proc (igc-tests--make-process function-name (vector 0))))
+    (while (eq (process-status proc) 'run)
+      (accept-process-output proc 0.1))
+    (should (eq (process-status proc) 'exit))
+    (should (= (process-exit-status proc) 0))))
+
+(defun igc-tests--find-largest-vector-size ()
+  (igc-tests--find-largest-object-size (lambda (len)
+                                         (make-vector len nil))))
 
 (ert-deftest igc-tests-find-largest-vector-size ()
   "Find the largest size a vector."
   :tags '(:expensive-test)
-  (igc-tests--find-largest-vector-size (lambda (len)
-                                         (length (make-vector len nil)))))
+  :expected-result (if (and (featurep 'mps)
+                            (igc-tests--32-bit-addresses-p))
+                       :failed :passed)
+  (igc-tests--run-test-in-subrocess
+   'igc-tests--find-largest-vector-size))
+
+(defun igc-tests--find-largest-string-size ()
+  (igc-tests--find-largest-object-size (lambda (len)
+                                         (make-string len ?a))))
 
 (ert-deftest igc-tests-find-largest-string-size ()
   "Find the largest size for which we can allocate a string."
   :tags '(:expensive-test)
-  (igc-tests--find-largest-vector-size (lambda (len)
-                                         (length (make-string len ?a)))))
+  :expected-result (if (and (featurep 'mps)
+                            (igc-tests--32-bit-addresses-p))
+                       :failed :passed)
+  (igc-tests--run-test-in-subrocess
+   'igc-tests--find-largest-string-size))
+
+(defun igc-tests--find-largest-hash-table-size ()
+  (igc-tests--find-largest-object-size (lambda (size)
+                                         (make-hash-table :size size))))
 
 (ert-deftest igc-tests-find-largest-hash-table-size ()
   "Find the largest size for which we can allocate a hash table."
   :tags '(:expensive-test)
-  (igc-tests--find-largest-vector-size
-   (lambda (size) (hash-table-size (make-hash-table :size size)))))
+  :expected-result (if (and (featurep 'mps)
+                            (igc-tests--32-bit-addresses-p))
+                       :failed :passed)
+  (igc-tests--run-test-in-subrocess
+   'igc-tests--find-largest-hash-table-size))
+
+(defun igc-tests--find-largest-bool-vector-size ()
+  (igc-tests--find-largest-object-size (lambda (size)
+                                         (make-bool-vector size nil))))
 
 (ert-deftest igc-tests-find-largest-bool-vector-size ()
   "Find the largest size for which we can allocate a bool vector."
   :tags '(:expensive-test)
-  (igc-tests--find-largest-vector-size
-   (lambda (size) (length (make-bool-vector size nil)))))
+  :expected-result (if (and (featurep 'mps)
+                            (igc-tests--32-bit-addresses-p))
+                       :failed :passed)
+  (igc-tests--run-test-in-subrocess
+   'igc-tests--find-largest-bool-vector-size))
 
 (ert-deftest igc-tests-collect-undo-list ()
   "Test that adjust-weak-markers entries are removed."
@@ -260,9 +344,10 @@
     (igc--set-pause-time 0.001))
   (igc-tests--busy-worker-1))
 
-(defun igc-tests--make-proc-callback (prefix counter)
+(defun igc-tests--make-proc-callback (prefix &optional counter)
   (lambda (p msg)
-    (incf (aref counter 0))
+    (when counter
+      (incf (aref counter 0)))
     (dolist (line (split-string (string-trim-right msg "[\n]") "\n"))
       (message "%s %s: %s" prefix (process-name p) line))
     (let ((buf (process-buffer p)))
