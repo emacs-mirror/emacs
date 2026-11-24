@@ -5876,9 +5876,10 @@ If ALLOW-CURRENT is non-nil, allow selecting the current working tree.
 Respects `vc-quick-select-current-working-tree', which see."
   (require 'project)
   (let* ((trees (vc-call-backend backend 'known-other-working-trees))
-         (cur (or (project-current nil (vc-root-dir backend))
-                  (error "No current project")))
-         (root (project-root cur)))
+         (cur (and allow-current
+                   (or (project-current nil (vc-root-dir backend))
+                       (error "No current project"))))
+         (root (and allow-current (project-root cur))))
     (dolist (tree trees)
       (when-let* ((p (project-current nil tree)))
         (project-remember-project p nil t)))
