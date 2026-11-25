@@ -826,7 +826,7 @@ void SegReclaim(Seg seg, Trace trace)
   /* Should only be reclaiming segments which are still white. */
   AVER_CRITICAL(TraceSetIsMember(SegWhite(seg), trace));
 
-  EVENT4(SegReclaim, trace->arena, SegPool(seg), trace, seg);
+  EVENT4(SegReclaim, seg, SegPool(seg), trace->arena, trace);
   Method(Seg, seg, reclaim)(seg, trace);
 }
 
