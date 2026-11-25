@@ -334,7 +334,12 @@ This function removes or adds spaces and tabs at beginning of line
 only if necessary.  It leaves point at end of indentation."
   (beginning-of-line 1)
   (skip-chars-forward " \t")
-  (let ((cur-col (current-column)))
+  ;; Ignore 'display' and 'invisible' properties for the calls
+  ;; of 'current-column', 'move-to-column', 'indent-to'.
+  ;; This will operate on the buffer columns instead of visual columns
+  ;; and avoid deleting wrong region.
+  (let* ((column-ignore-props t)
+         (cur-col (current-column)))
     (cond ((< cur-col column)
 	   (if (>= (- column (* (/ cur-col tab-width) tab-width)) tab-width)
 	       (delete-region (point)

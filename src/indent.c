@@ -335,7 +335,7 @@ current_column (void)
   int c;
   int tab_width = SANE_TAB_WIDTH (current_buffer);
   bool ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
-  struct Lisp_Char_Table *dp = buffer_display_table ();
+  struct Lisp_Char_Table *dp = column_ignore_props ? NULL : buffer_display_table ();
 
   if (PT == last_known_column_point
       && MODIFF == last_known_column_modified)
@@ -609,7 +609,7 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
 {
   int tab_width = SANE_TAB_WIDTH (current_buffer);
   bool ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
-  struct Lisp_Char_Table *dp = buffer_display_table ();
+  struct Lisp_Char_Table *dp = column_ignore_props ? NULL : buffer_display_table ();
   bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   struct composition_it cmp_it;
   struct it dummy_it;
@@ -669,7 +669,8 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
 	  col = 0;
 	}
     }
-  next_boundary = scan;
+  /* When ignoring properties, don't use `skip_invisible' below.  */
+  next_boundary = column_ignore_props ? end : scan;
   prev_pos = scan;
   prev_bpos = scan_byte;
 
@@ -712,20 +713,23 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
       prev_pos = scan;
       prev_bpos = scan_byte;
 
-      { /* Check display property.  */
-	ptrdiff_t endp;
-	int width = check_display_width (window, scan, scan_byte, col, &endp);
-	if (width >= 0)
-	  {
-	    col += width;
-	    if (endp > scan) /* Avoid infinite loops with 0-width overlays.  */
-	      {
-		scan = endp;
-		scan_byte = CHAR_TO_BYTE (scan);
-		continue;
-	      }
-	  }
-      }
+      if (!column_ignore_props)
+	{
+	  /* Check display property.  */
+	  ptrdiff_t endp;
+	  int width = check_display_width (window, scan, scan_byte, col, &endp);
+	  if (width >= 0)
+	    {
+	      col += width;
+	      /* Avoid infinite loops with 0-width overlays.  */
+	      if (endp > scan)
+		{
+		  scan = endp;
+		  scan_byte = CHAR_TO_BYTE (scan);
+		  continue;
+		}
+	    }
+	}
 
       /* Check composition sequence.  */
       if (cmp_it.id >= 0
@@ -2579,6 +2583,13 @@ syms_of_indent (void)
   DEFVAR_BOOL ("indent-tabs-mode", indent_tabs_mode,
 	       doc: /* Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
+
+  DEFVAR_BOOL ("column-ignore-props", column_ignore_props,
+	       doc: /* Non-nil ignores properties for column functions.
+It ignores invisible properties, display properties, display tables
+when computing columns.  Intended mostly for let-binding by
+indentation commands.  */);
+  column_ignore_props = 0;
 
   DEFSYM (Qcolumns, "columns");
 
