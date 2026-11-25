@@ -95,9 +95,17 @@ struct itree_tree *igc_make_itree_tree (void);
 struct image *igc_make_image (void);
 struct face *igc_make_face (void);
 struct face_cache *igc_make_face_cache (void);
-void igc_grow_rdstack (struct read_stack *rs);
-void igc_grow_print_stack (struct print_stack *);
-void igc_grow_pp_stack (struct print_pp_stack *);
+struct read_stack_entry *
+igc_xpalloc_rdstack (struct read_stack_entry *stack, ptrdiff_t *size,
+		     ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max);
+struct print_stack_entry *
+igc_xpalloc_print_stack (struct print_stack_entry *stack,
+			 ptrdiff_t *size, ptrdiff_t nitems_incr_min,
+			 ptrdiff_t nitems_max);
+struct print_pp_entry *
+igc_xpalloc_pp_stack (struct print_pp_entry *stack, ptrdiff_t *size,
+		      ptrdiff_t nitems_incr_min,
+		      ptrdiff_t nitems_max);
 struct Lisp_Vector *igc_make_hash_table_vec (size_t n);
 void igc_make_weak_hash_table_strong_part (hash_table_weakness_t,
 					   void *ptrs[5], size_t,
@@ -118,10 +126,10 @@ int igc_valid_lisp_object_p (Lisp_Object obj);
 size_t igc_hash (Lisp_Object key);
 specpdl_ref igc_park_arena (void);
 void igc_postmortem (void);
-union specbinding *igc_grow_specpdl (union specbinding *pdlvec,
-				     ptrdiff_t *pdlvecsize,
-				     ptrdiff_t nitems_incr_min,
-				     ptrdiff_t nitems_max);
+union specbinding *igc_xpalloc_specpdl (union specbinding *pdlvec,
+					ptrdiff_t *pdlvecsize,
+					ptrdiff_t nitems_incr_min,
+					ptrdiff_t nitems_max);
 union specbinding *igc_alloc_specpdl (ptrdiff_t size);
 void igc_thread_check_specpdl (struct thread_state *,
 			       union specbinding *);

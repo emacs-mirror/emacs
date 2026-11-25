@@ -1358,7 +1358,7 @@ grow_pp_stack (void)
   struct print_pp_stack *ps = &ppstack;
   eassert (ps->sp == ps->size);
 #ifdef HAVE_MPS
-  igc_grow_pp_stack (ps);
+  ps->stack = igc_xpalloc_pp_stack (ps->stack, &ps->size, 1, -1);
 #else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
 #endif
@@ -2221,7 +2221,7 @@ grow_print_stack (void)
   struct print_stack *ps = &prstack;
   eassert (ps->sp == ps->size);
 #ifdef HAVE_MPS
-  igc_grow_print_stack (ps);
+  ps->stack = igc_xpalloc_print_stack (ps->stack, &ps->size, 1, -1);
 #else
   ps->stack = xpalloc (ps->stack, &ps->size, 1, -1, sizeof *ps->stack);
 #endif

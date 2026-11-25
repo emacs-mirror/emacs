@@ -4174,43 +4174,53 @@ igc_xpalloc_raw (void *pa, ptrdiff_t *nitems,
 		      sizeof (void *), root_create_raw, label);
 }
 
-void
-igc_grow_print_stack (struct print_stack *s)
+struct print_stack_entry *
+igc_xpalloc_print_stack (struct print_stack_entry *stack,
+			 ptrdiff_t *size, ptrdiff_t nitems_incr_min,
+			 ptrdiff_t nitems_max)
 {
-  ptrdiff_t old_size = s->size;
-  s->stack = igc_xpalloc (s->stack, &s->size, 1, -1, sizeof *s->stack,
-			  root_create_print_stack, "prstack");
+  ptrdiff_t old_size = *size;
+  struct print_stack_entry *new_stack
+    = igc_xpalloc (stack, size, nitems_incr_min, nitems_max,
+		   sizeof *stack, root_create_print_stack, "prstack");
   static_assert (PE_free == 0);
-  for (ptrdiff_t i = old_size; i < s->size; ++i)
-    eassert (s->stack[i].type == PE_free);
+  for (ptrdiff_t i = old_size, new_size = *size; i < new_size; ++i)
+    eassert (new_stack[i].type == PE_free);
+  return new_stack;
 }
 
-void
-igc_grow_pp_stack (struct print_pp_stack *s)
+struct print_pp_entry *
+igc_xpalloc_pp_stack (struct print_pp_entry *stack, ptrdiff_t *size,
+		      ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max)
 {
-  ptrdiff_t old_size = s->size;
-  s->stack = igc_xpalloc (s->stack, &s->size, 1, -1, sizeof *s->stack,
-			  root_create_pp_stack, "ppstack");
+  ptrdiff_t old_size = *size;
+  struct print_pp_entry *new_stack
+    = igc_xpalloc (stack, size, nitems_incr_min, nitems_max,
+		   sizeof *stack, root_create_pp_stack, "ppstack");
   static_assert (false == 0);
-  for (ptrdiff_t i = old_size; i < s->size; ++i)
-    eassert (s->stack[i].is_in_use == false);
+  for (ptrdiff_t i = old_size, new_size = *size; i < new_size; ++i)
+    eassert (new_stack[i].is_in_use == false);
+  return new_stack;
 }
 
 /* This is called from lread.c:grow_read_stack.  */
-void
-igc_grow_rdstack (struct read_stack *s)
+struct read_stack_entry *
+igc_xpalloc_rdstack (struct read_stack_entry *stack, ptrdiff_t *size,
+		     ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max)
 {
-  ptrdiff_t old_size = s->size;
-  s->stack = igc_xpalloc (s->stack, &s->size, 1, -1, sizeof *s->stack,
-			  root_create_rdstack, "rdstack");
+  ptrdiff_t old_size = *size;
+  struct read_stack_entry *new_stack
+    = igc_xpalloc (stack, size, nitems_incr_min, nitems_max,
+		   sizeof *stack, root_create_rdstack, "rdstack");
   static_assert (RE_free == 0);
-  for (ptrdiff_t i = old_size; i < s->size; ++i)
-    eassert (s->stack[i].type == RE_free);
+  for (ptrdiff_t i = old_size, new_size = *size; i < new_size; ++i)
+    eassert (new_stack[i].type == RE_free);
+  return new_stack;
 }
 
 union specbinding *
-igc_grow_specpdl (union specbinding *pdlvec, ptrdiff_t *pdlvecsize,
-		  ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max)
+igc_xpalloc_specpdl (union specbinding *pdlvec, ptrdiff_t *pdlvecsize,
+		     ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max)
 {
   return igc_xpalloc (pdlvec, pdlvecsize, nitems_incr_min, nitems_max,
 		      sizeof *pdlvec, root_create_specpdl, "specpdl");

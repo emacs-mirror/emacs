@@ -2605,7 +2605,7 @@ grow_specpdl_allocation (void)
   eassert (max_size > size);
 
 #ifdef HAVE_MPS
-  pdlvec = igc_grow_specpdl (pdlvec, &pdlvecsize, 1, max_size + 1);
+  pdlvec = igc_xpalloc_specpdl (pdlvec, &pdlvecsize, 1, max_size + 1);
 #else
   pdlvec = xpalloc (pdlvec, &pdlvecsize, 1, max_size + 1, sizeof *specpdl);
 #endif
