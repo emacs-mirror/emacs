@@ -2086,6 +2086,7 @@ fix_string (mps_ss_t ss, struct Lisp_String *s)
 {
   MPS_SCAN_BEGIN (ss)
   {
+    igc_assert (s->u.s.data != NULL);
     struct Lisp_String_Data *ptr =
       (void *) (s->u.s.data - sizeof (*ptr));
     IGC_FIX12_HEADER (ss, &ptr);
@@ -5299,10 +5300,12 @@ Lisp_Object
 igc_make_string (EMACS_INT nchars, EMACS_INT nbytes,
 		 bool unibyte, bool clear)
 {
+  unsigned char *data = alloc_string_data (nbytes, clear);
   struct Lisp_String *s = alloc (sizeof *s, IGC_OBJ_STRING);
+  /* FIXME: initialize this before the mps_commit */
   s->u.s.size = nchars;
   s->u.s.size_byte = unibyte ? -1 : nbytes;
-  s->u.s.data = alloc_string_data (nbytes, clear);
+  s->u.s.data = data;
   return make_lisp_ptr (s, Lisp_String);
 }
 
