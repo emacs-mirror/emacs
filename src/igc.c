@@ -472,6 +472,9 @@ addr_align_down (void *addr, size_t align)
 #define IGC_WITH_PARKED(gc) \
   for (int i = (arena_park (gc), 1); i; i = (arena_release (gc), 0))
 
+#define IGC_WITH_CLAMPED(gc) \
+  for (int i = (arena_clamp (gc), 1); i; i = (arena_unclamp (gc), 0))
+
 #define IGC_DEFINE_LIST(data)                                                  \
   typedef struct data##_list                                                   \
   {                                                                            \
@@ -1021,6 +1024,9 @@ struct igc
   /* Used to allow nested parking/releasing of the arena.  */
   int park_count;
 
+  /* Used to temporary clamp of the arena.  */
+  bool clamped;
+
   /* The MPS generation chain.  */
   mps_chain_t chain;
 
@@ -1149,7 +1155,28 @@ arena_release (struct igc *gc)
   --gc->park_count;
   igc_assert (gc->park_count >= 0);
   if (gc->park_count == 0)
+    {
+      igc_assert (!gc->clamped);
+      mps_arena_release (gc->arena);
+    }
+}
+
+static void
+arena_clamp (struct igc *gc)
+{
+  igc_assert (!gc->clamped);
+  if (gc->park_count == 0)
+    mps_arena_clamp (gc->arena);
+  gc->clamped = true;
+}
+
+static void
+arena_unclamp (struct igc *gc)
+{
+  igc_assert (gc->clamped);
+  if (gc->park_count == 0)
     mps_arena_release (gc->arena);
+  gc->clamped = false;
 }
 
 static void
@@ -1592,6 +1619,7 @@ scan_lispsym (mps_ss_t ss, void *start, void *end, void *closure)
 static mps_res_t
 scan_rdstack (mps_ss_t ss, void *start, void *end, void *closure)
 {
+  igc_assert (closure == NULL);
   MPS_SCAN_BEGIN (ss)
   {
     for (struct read_stack_entry *e = start; (void *) e < end; ++e)
@@ -1639,8 +1667,6 @@ scan_rdstack (mps_ss_t ss, void *start, void *end, void *closure)
 static mps_res_t
 scan_prstack (mps_ss_t ss, void *start, void *end, void *closure)
 {
-  igc_assert (start == (void *) prstack.stack);
-  igc_assert (end == (void *) (prstack.stack + prstack.size));
   igc_assert (closure == NULL);
   MPS_SCAN_BEGIN (ss)
   {
@@ -1676,12 +1702,9 @@ scan_prstack (mps_ss_t ss, void *start, void *end, void *closure)
 }
 
 static mps_res_t
-scan_ppstack (mps_ss_t ss, void *start, void *end,
-	      void *closure)
+scan_ppstack (mps_ss_t ss, void *start, void *end, void *closure)
 {
-  eassert (start == (void *) ppstack.stack);
-  eassert (end == (void *) (ppstack.stack + ppstack.size));
-  eassert (closure == NULL);
+  igc_assert (closure == NULL);
   MPS_SCAN_BEGIN (ss)
   {
     for (struct print_pp_entry *p = start, *q = end; p != q; ++p)
@@ -3541,6 +3564,36 @@ root_create_specpdl (struct igc *gc, void *start, void *end,
   return root_create_exact (gc, start, end, scan_specpdl, label);
 }
 
+static igc_root_list *
+root_create_print_stack (struct igc *gc, void *start, void *end,
+			 const char *label)
+{
+  size_t align = alignof (struct print_pp_entry);
+  igc_assert (addr_is_aligned (start, align));
+  igc_assert (addr_is_aligned (end, align));
+  return root_create_exact (gc, start, end, scan_prstack, label);
+}
+
+static igc_root_list *
+root_create_pp_stack (struct igc *gc, void *start, void *end,
+		      const char *label)
+{
+  size_t align = alignof (struct print_pp_entry);
+  igc_assert (addr_is_aligned (start, align));
+  igc_assert (addr_is_aligned (end, align));
+  return root_create_exact (gc, start, end, scan_ppstack, label);
+}
+
+static igc_root_list *
+root_create_rdstack (struct igc *gc, void *start, void *end,
+		     const char *label)
+{
+  size_t align = alignof (struct read_stack_entry);
+  igc_assert (addr_is_aligned (start, align));
+  igc_assert (addr_is_aligned (end, align));
+  return root_create_exact (gc, start, end, scan_rdstack, label);
+}
+
 static void
 root_create_staticvec (struct igc *gc)
 {
@@ -3979,49 +4032,6 @@ igc_park_arena (void)
   return count;
 }
 
-/* This is called from lread.c:grow_read_stack.  */
-void
-igc_grow_rdstack (struct read_stack *rs)
-{
-  struct igc *gc = global_igc;
-  ptrdiff_t old_nitems = rs->size;
-  ptrdiff_t nbytes
-    = xpalloc_nbytes (rs->stack, &rs->size, 1, -1, sizeof *rs->stack);
-  struct read_stack_entry *new_stack = xzalloc (nbytes);
-  for (ptrdiff_t i = 0; i < rs->size; i++)
-    new_stack[i].type = RE_free;
-
-  /* This is volatile so it's on the stack, where MPS sees it and it
-     pins its references.  Omitting the "volatile" would mean the
-     compiler might optimize it away, keeping only the heap copy.  */
-  volatile struct read_stack_entry orig;
-  struct read_stack *old_stack = rs;
-  root_create_exact (gc, new_stack, (char *) new_stack + nbytes, scan_rdstack,
-		     "rdstack");
-  for (ptrdiff_t i = 0; i < old_nitems; i++)
-    {
-    try_again:;
-      orig = old_stack->stack[i];
-      if (memcmp ((void *) &orig, (void *) (&old_stack->stack[i]), sizeof orig))
-	{
-	  /* We tried to create a snapshot of old_stack[i] on the
-	     stack, which would pin all pointers in old_stack[i].  But
-	     we failed, because a pointer in old_stack[i] was updated
-	     by GC while we were creating the copy.  Try again.  */
-	  goto try_again;
-	}
-      volatile struct read_stack_entry temp = orig;
-      temp.type = RE_free;
-      new_stack[i] = temp;
-      new_stack[i].type = orig.type;
-      eassert (memcmp ((void *) (&new_stack[i]),
-		       (void *) (&old_stack->stack[i]), sizeof orig) == 0);
-    }
-
-  igc_xfree (rs->stack);
-  rs->stack = new_stack;
-}
-
 Lisp_Object *
 igc_xalloc_lisp (size_t n, const char *label)
 {
@@ -4107,20 +4117,6 @@ igc_xfree (void *p)
   xfree (p);
 }
 
-/* Copy N words from SRC to DST.
-
-   We assume that the copying proceeds word-by-word and not
-   byte-by-byte, so that this can be used to copy references.
-
-   (GCC translates this to memcpy, though.)
- */
-static void
-igc_memcpy (mps_word_t *dst, mps_word_t *src, ptrdiff_t n)
-{
-  for (ptrdiff_t i = 0; i != n; i++)
-    dst[i] = src[i];
-}
-
 typedef igc_root_list *(*root_create_fn) (struct igc *gc, void *start,
 					  void *end,
 					  const char *label);
@@ -4128,23 +4124,25 @@ typedef igc_root_list *(*root_create_fn) (struct igc *gc, void *start,
 static void *
 igc_xpalloc (void *old_pa, ptrdiff_t *nitems,
 	     ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-	     ptrdiff_t item_size, root_create_fn fun, const char *label)
+	     ptrdiff_t item_size, root_create_fn create_root,
+	     const char *label)
 {
-  ptrdiff_t old_nitems = old_pa ? *nitems : 0;
-  ptrdiff_t nbytes = xpalloc_nbytes (old_pa, nitems, nitems_incr_min,
-				     nitems_max, item_size);
-  void *new_pa = xzalloc (nbytes);
-  char *end = (char *) new_pa + nbytes;
-  fun (global_igc, new_pa, end, label);
-  if (old_pa)
+  struct igc *gc = global_igc;
+  void *new_pa;
+  IGC_WITH_CLAMPED (gc)
     {
-      mps_word_t *old_word = old_pa;
-      mps_word_t *new_word = new_pa;
-      eassert (item_size % sizeof (mps_word_t) == 0);
-      size_t nwords = (old_nitems * item_size) / sizeof (mps_word_t);
-      igc_memcpy (new_word, old_word, nwords);
-      igc_destroy_root_with_start (old_pa);
-      xfree (old_pa);
+      /* Here it's safe to remove the old root because no root scanning
+	 happens while the arena is clamped.  */
+      if (old_pa)
+	igc_destroy_root_with_start (old_pa);
+      ptrdiff_t old_nitems = old_pa ? *nitems : 0;
+      new_pa = xpalloc (old_pa, nitems, nitems_incr_min, nitems_max,
+			item_size);
+      ptrdiff_t new_nitems = *nitems;
+      char *end = (char *) new_pa + new_nitems * item_size;
+      char *mid = (char *) new_pa + old_nitems * item_size;
+      memset (mid, 0, end - mid);
+      create_root (gc, new_pa, end, label);
     }
   return new_pa;
 }
@@ -4176,83 +4174,46 @@ igc_xpalloc_raw (void *pa, ptrdiff_t *nitems,
 		      sizeof (void *), root_create_raw, label);
 }
 
-static void
-igc_xpalloc_exact (void **pa_cell, ptrdiff_t *nitems,
-		   ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max,
-		   ptrdiff_t item_size, mps_area_scan_t scan_area,
-		   void *closure)
-{
-  void *old_pa = *pa_cell;
-  ptrdiff_t old_nitems = old_pa ? *nitems : 0;
-  ptrdiff_t new_nitems = *nitems;
-  ptrdiff_t nbytes = xpalloc_nbytes (old_pa, &new_nitems, nitems_incr_min,
-				     nitems_max, item_size);
-  void *new_pa = xzalloc (nbytes);
-  char *end = (char *) new_pa + nbytes;
-  root_create (global_igc, new_pa, end, mps_rank_exact (),
-	       scan_area, closure, false, "xpalloc-exact");
-  USE_SAFE_ALLOCA;
-  igc_assert (item_size < MAX_ALLOCA);
-  /* This is volatile so it's on the stack, where MPS sees it and it
-     pins its references.  Omitting the "volatile" would mean the
-     compiler might optimize it away, keeping only the heap copy.  */
-  volatile mps_word_t *area = SAFE_ALLOCA (item_size);
-  /* FIXME: Items are not copied atomically, i.e. the scan function may
-     see a partially copied item.  Are our scan functions prepared for
-     that?  Even in the wide-int config?  */
-  /* FIXME: Can't we just use igc_memcpy?  I don't see why copying
-     multiple words to the stack before copying them to the destination
-     is safer than copying a single word.  */
-  for (ptrdiff_t i = 0; i < (old_nitems); i++)
-    {
-      ptrdiff_t count = (item_size + (sizeof (mps_word_t) - 1))
-	/ (sizeof (mps_word_t));
-      eassume (count < 128);
-      memcpy ((void *) area, (char *) old_pa + item_size * i, item_size);
-      eassert (memcmp ((void *) area, (char *) old_pa + item_size * i,
-		       item_size) == 0);
-      memcpy ((char *) new_pa + item_size * i, (void *) area, item_size);
-    }
-  SAFE_FREE ();
-  if (old_pa != NULL)
-    eassert (memcmp (old_pa, new_pa, old_nitems * item_size) == 0);
-  eassert ((item_size) % sizeof (mps_word_t) == 0);
-  *pa_cell = new_pa;
-  *nitems = new_nitems;
-  igc_xfree (old_pa);
-}
-
 void
-igc_grow_print_stack (struct print_stack *ps)
+igc_grow_print_stack (struct print_stack *s)
 {
-  ptrdiff_t old_size = ps->size;
-  igc_xpalloc_exact ((void **) &prstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_prstack, NULL);
+  ptrdiff_t old_size = s->size;
+  s->stack = igc_xpalloc (s->stack, &s->size, 1, -1, sizeof *s->stack,
+			  root_create_print_stack, "prstack");
   static_assert (PE_free == 0);
-  for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    eassert (ps->stack[i].type == PE_free);
+  for (ptrdiff_t i = old_size; i < s->size; ++i)
+    eassert (s->stack[i].type == PE_free);
 }
 
 void
-igc_grow_pp_stack (struct print_pp_stack *ps)
+igc_grow_pp_stack (struct print_pp_stack *s)
 {
-  ptrdiff_t old_size = ps->size;
-  igc_xpalloc_exact ((void **) &ppstack.stack, &ps->size, 1, -1,
-		     sizeof *ps->stack, scan_ppstack, NULL);
+  ptrdiff_t old_size = s->size;
+  s->stack = igc_xpalloc (s->stack, &s->size, 1, -1, sizeof *s->stack,
+			  root_create_pp_stack, "ppstack");
   static_assert (false == 0);
-  for (ptrdiff_t i = old_size; i < ps->size; ++i)
-    eassert (ppstack.stack[i].is_in_use == false);
+  for (ptrdiff_t i = old_size; i < s->size; ++i)
+    eassert (s->stack[i].is_in_use == false);
+}
+
+/* This is called from lread.c:grow_read_stack.  */
+void
+igc_grow_rdstack (struct read_stack *s)
+{
+  ptrdiff_t old_size = s->size;
+  s->stack = igc_xpalloc (s->stack, &s->size, 1, -1, sizeof *s->stack,
+			  root_create_rdstack, "rdstack");
+  static_assert (RE_free == 0);
+  for (ptrdiff_t i = old_size; i < s->size; ++i)
+    eassert (s->stack[i].type == RE_free);
 }
 
 union specbinding *
 igc_grow_specpdl (union specbinding *pdlvec, ptrdiff_t *pdlvecsize,
 		  ptrdiff_t nitems_incr_min, ptrdiff_t nitems_max)
 {
-  /* FIXME: copying items with igc_memcpy is not atomic  */
-  union specbinding *new_pdlvec
-    = igc_xpalloc (pdlvec, pdlvecsize, nitems_incr_min, nitems_max,
-		   sizeof *pdlvec, root_create_specpdl, "specpdl");
-  return new_pdlvec;
+  return igc_xpalloc (pdlvec, pdlvecsize, nitems_incr_min, nitems_max,
+		      sizeof *pdlvec, root_create_specpdl, "specpdl");
 }
 
 static void
