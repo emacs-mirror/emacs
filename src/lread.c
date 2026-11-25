@@ -3573,7 +3573,7 @@ skip_space_and_comments (source_t *source)
   unreadchar (source, c);
 }
 
-struct read_stack rdstack = {NULL, 0, 0};
+static struct read_stack rdstack = {NULL, 0, 0};
 
 #ifndef HAVE_MPS
 void

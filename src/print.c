@@ -1350,7 +1350,7 @@ print_circle_candidate_p (Lisp_Object obj)
     return false;
 }
 
-struct print_pp_stack ppstack = {NULL, 0, 0};
+static struct print_pp_stack ppstack = {NULL, 0, 0};
 
 NO_INLINE static void
 grow_pp_stack (void)
@@ -2213,7 +2213,7 @@ named_escape (int i)
   return 0;
 }
 
-struct print_stack prstack = {NULL, 0, 0};
+static struct print_stack prstack = {NULL, 0, 0};
 
 NO_INLINE static void
 grow_print_stack (void)

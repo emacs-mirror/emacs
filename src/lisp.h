@@ -5197,8 +5197,6 @@ struct print_stack
   ptrdiff_t sp;			    /* current number of entries */
 };
 
-extern struct print_stack prstack;
-
 /* The print preprocess stack, used to traverse data structures.  */
 
 struct print_pp_entry {
@@ -5222,8 +5220,6 @@ struct print_pp_stack {
   ptrdiff_t size;		 /* allocated size in entries */
   ptrdiff_t sp;			 /* current number of entries */
 };
-
-extern struct print_pp_stack ppstack;
 
 extern Lisp_Object Vprin1_to_string_buffer;
 extern void debug_print (Lisp_Object) EXTERNALLY_VISIBLE;
@@ -5312,8 +5308,6 @@ struct read_stack
   ptrdiff_t size;		   /* allocated size in entries */
   ptrdiff_t sp;			   /* current number of entries */
 };
-
-extern struct read_stack rdstack;
 
 extern Lisp_Object intern_1 (const char *, ptrdiff_t);
 extern Lisp_Object intern_c_string_1 (const char *, ptrdiff_t);
