@@ -127,7 +127,10 @@
   (cond ((featurep 'mps)
          (- (igc-tests--committed) (igc-tests--spare-committed)))
         (t
-         (cl-reduce #'+ (mapcar #'cadr (garbage-collect-heapsize))))))
+         (cl-reduce #'+ (mapcar (lambda (entry)
+                                  (pcase-exhaustive entry
+                                    (`(,_ ,size ,used . ,_) (* size used))))
+                                (garbage-collect-heapsize))))))
 
 (defun igc-tests--find-largest-object-size (alloc-fun)
   (let* (;;(garbage-collection-messages t) ; very verbose if enabled
