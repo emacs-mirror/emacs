@@ -2190,10 +2190,10 @@ This function signals an error named by @var{error-symbol}.  The
 argument @var{data} is a list of additional Lisp objects relevant to
 the circumstances of the error.
 
-The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
-defined with @code{define-error}.  This is how Emacs Lisp classifies different
-sorts of errors.  @xref{Error Symbols}, for a description of error symbols,
-error conditions and condition names.
+The argument @var{error-symbol} is usually an @dfn{error symbol}---a
+symbol defined with @code{define-error}.  This is how Emacs Lisp
+classifies different sorts of errors.  @xref{Error Symbols}, for a
+description of error symbols, error conditions and condition names.
 
 If the error is not handled, the two arguments are used in printing
 the error message.  Normally, this error message is provided by the
@@ -2230,6 +2230,11 @@ this function eventually kills Emacs.
      @error{} peculiar error: "My unknown error condition"
 @end group
 @end example
+
+Instead of an error symbol, @var{error-symbol} can also be an error
+descriptor.  In that case, @var{data} has to be @code{nil}.  This form
+is only valid inside a @code{condition-case} handler; @ref{Handling
+Errors}.
 @end defun
 
 @cindex user errors, signaling
