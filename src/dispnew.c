@@ -1014,15 +1014,14 @@ swap_glyphs_in_rows (struct glyph_row *a, struct glyph_row *b)
 #endif /* 0 */
 
 /* Exchange pointers to glyph memory between glyph rows A and B.  Also
-   exchange the used[] array and the hash values of the rows, because
-   these should all go together for the row's hash value to be
-   correct.  */
+   update the used[] array and the hash values of row A to be the same
+   as that of B, because these should all go together for the A's hash
+   value to be correct.  */
 
 static void
 swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 {
   int i;
-  unsigned hash_tem = a->hash;
 
   for (i = 0; i < LAST_AREA + 1; ++i)
     {
@@ -1031,15 +1030,9 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
       a->glyphs[i] = b->glyphs[i];
       b->glyphs[i] = temp;
       if (i < LAST_AREA)
-	{
-	  short used_tem = a->used[i];
-
-	  a->used[i] = b->used[i];
-	  b->used[i] = used_tem;
-	}
+	a->used[i] = b->used[i];
     }
   a->hash = b->hash;
-  b->hash = hash_tem;
 }
 
 

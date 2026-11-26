@@ -609,8 +609,6 @@ PROPERTIES is a list of file properties (strings)."
 	(maphash
 	 (lambda (key value)
 	   (if (and (tramp-file-name-p key) (hash-table-p value)
-		    (not (string-equal
-			  (tramp-file-name-method key) tramp-archive-method))
 		    (not (tramp-file-name-localname key))
 		    (not (gethash "login-as" value)))
 	       (progn

@@ -75,4 +75,23 @@
         (should (= (line-number-at-pos) (max 1 (- 3 count))))
         (should (bolp))))))
 
+(defvar hs-display-lines-hidden)
+(declare-function hs-hide-all "hideshow" ())
+
+(ert-deftest indent-tests-dont-delete-invis-text ()
+  ;; For bug#79850 and bug#82222.
+  (with-temp-buffer
+    (let ((buffer-str "(defun test ()\n  (interactive)\n  (do not delete))\n"))
+      (insert buffer-str)
+      (emacs-lisp-mode)
+      (hs-minor-mode)
+      (setq hs-display-lines-hidden t)
+      (hs-hide-all)
+      (goto-char (point-min))
+      (indent-sexp)
+      (should
+       (string=
+        (buffer-substring-no-properties (point-min) (point-max))
+        buffer-str)))))
+
 ;;; indent-tests.el ends here

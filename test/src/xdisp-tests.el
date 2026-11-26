@@ -213,4 +213,12 @@ int main () {
       (should (equal m1 m2))
       (should (equal s1 s2)))))
 
+(ert-deftest xdisp-test-buffer-text-pixel-size ()
+  "Test handling of invalid/killed buffers in `buffer-text-pixel-size'."
+  (should (buffer-text-pixel-size "*scratch*"))
+  (should (equal (should-error (buffer-text-pixel-size "no-such-buffer"))
+                 '(error "No buffer named no-such-buffer")))
+  (kill-buffer "*scratch*")
+  (should-error (buffer-text-pixel-size "*scratch*")))
+
 ;;; xdisp-tests.el ends here

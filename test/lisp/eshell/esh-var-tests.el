@@ -688,6 +688,18 @@ nil, use FUNCTION instead."
      (eshell-insert-command "VAR=hello cd ..")
      (should (equal default-directory parent-directory)))))
 
+(ert-deftest esh-var-test/local-variables/maintain-process-environment ()
+  "Test that using local variables maintains the env for later calls.
+See bug#82004."
+  (let ((process-environment (cons "VAR=red" process-environment)))
+    (with-temp-eshell
+      (eshell-match-command-output "FOO=bar echo hi" "hi\n")
+      (push "VAR=green" process-environment)
+      (eshell-match-command-output
+       (concat "FOO=bar " (eshell-run-emacs-command
+                           '(princ (concat (getenv "VAR") "\n"))))
+       "\\`green\n\\'"))))
+
 (ert-deftest esh-var-test/local-variables/env ()
   "Test that \"env VAR=value command\" temporarily sets variables."
   (with-temp-eshell

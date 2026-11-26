@@ -8840,17 +8840,17 @@ indirectly called by the latter."
           (append
            (cdr (assq 'child-frame-parameters alist))
            `((parent-frame . ,(selected-frame)))))
-	 (parent (or (assq 'parent-frame parameters)
+         (parent (or (cdr (assq 'parent-frame parameters))
                      (selected-frame)))
-         (share (assq 'share-child-frame parameters))
+         (share (cdr (assq 'share-child-frame parameters)))
          share1 frame window type)
+
     (with-current-buffer buffer
-      (when (frame-live-p parent)
+      (when (and share (frame-live-p parent))
         (catch 'frame
           (dolist (frame1 (frame-list))
             (when (eq (frame-parent frame1) parent)
-              (setq share1 (assq 'share-child-frame
-                                 (frame-parameters frame1)))
+              (setq share1 (frame-parameter frame1 'share-child-frame))
               (when (eq share share1)
                 (setq frame frame1)
                 (throw 'frame t))))))

@@ -1,5 +1,5 @@
 # fchmodat.m4
-# serial 9
+# serial 10
 dnl Copyright (C) 2004-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -53,11 +53,22 @@ AC_DEFUN([gl_FUNC_FCHMODAT],
                  This test fails on AIX 7.2.  */
               if (fchmodat (AT_FDCWD, file "/", desired, 0) == 0)
                 result |= 2;
+              #if defined __linux__ && defined __GLIBC__ \
+                  && __GLIBC__ == 2 && __GLIBC_MINOR__ < 39
+              /* On Linux, glibc 2.31 and earlier do not support this flag,
+                 and although glibc 2.32 - 2.38 emulate it using /proc,
+                 they lack gnulib's fallback when /proc is not available.
+                 There is no equally simple way to work around similar bugs
+                 in older musl platforms; people who use musl should use
+                 musl 1.2.5+ (2024) and Linux 6.6+ (2023).  */
+              result |= 4;
+              #else
               /* Test whether fchmodat+AT_SYMLINK_NOFOLLOW works on non-symlinks.
                  This test fails on GNU/Linux with glibc 2.31 (but not on
                  GNU/kFreeBSD nor GNU/Hurd) and Cygwin 2.9.  */
               if (fchmodat (AT_FDCWD, file, desired, AT_SYMLINK_NOFOLLOW) != 0)
                 result |= 4;
+              #endif
               if (stat (file, &st) != 0)
                 return 1;
               if ((st.st_mode & permissive) != desired)

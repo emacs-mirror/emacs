@@ -205,16 +205,16 @@ each element is between 0.0 and 1.0, inclusive."
   "Convert RED GREEN BLUE colors from the sRGB color space to CIE XYZ.
 RED, GREEN and BLUE should be between 0.0 and 1.0, inclusive."
   (let ((r (if (<= red 0.04045)
-               (/ red 12.95)
+               (/ red 12.92)
              (expt (/ (+ red 0.055) 1.055) 2.4)))
         (g (if (<= green 0.04045)
-               (/ green 12.95)
+               (/ green 12.92)
              (expt (/ (+ green 0.055) 1.055) 2.4)))
         (b (if (<= blue 0.04045)
-               (/ blue 12.95)
+               (/ blue 12.92)
              (expt (/ (+ blue 0.055) 1.055) 2.4))))
     (list (+ (* 0.4124564 r) (* 0.3575761 g) (* 0.1804375 b))
-          (+ (* 0.21266729 r) (* 0.7151522 g) (* 0.0721750 b))
+          (+ (* 0.2126729 r) (* 0.7151522 g) (* 0.0721750 b))
           (+ (* 0.0193339 r) (* 0.1191920 g) (* 0.9503041 b)))))
 
 (defun color-xyz-to-srgb (X Y Z)

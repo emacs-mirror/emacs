@@ -1235,7 +1235,10 @@ For non-file buffers, persistence operations are skipped."
       (if (file-exists-p file)
           ;; load the file and return t for success
           (condition-case nil
-              (progn (load-file file) t)
+              (progn
+                (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+                  (load-file file))
+                t)
             (error (set reftex-docstruct-symbol nil)
                    (error "Error while loading file %s" file)))
         ;; Throw an exception if the file does not exist
@@ -1246,7 +1249,8 @@ For non-file buffers, persistence operations are skipped."
           ;; load the file and return t for success
           (condition-case nil
               (progn
-                (load-file file)
+                (let ((warning-inhibit-types '((files missing-lexbind-cookie))))
+                  (load-file file))
                 (reftex-check-parse-consistency)
                 t)
             (error (message "Error while restoring file %s" file)
@@ -1265,7 +1269,7 @@ For non-file buffers, persistence operations are skipped."
         (if (file-writable-p file)
             (with-temp-file file
               (message "Writing parse file %s" (abbreviate-file-name file))
-              (insert ";; RefTeX parse info file\n")
+              (insert ";; RefTeX parse info file        -*- lexical-binding: t; -*-\n")
               (insert (format ";; File: %s\n" master))
               (insert (format ";; User: %s (%s)\n\n"
                               (user-login-name) (user-full-name)))

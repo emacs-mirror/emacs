@@ -1390,7 +1390,7 @@ can always override the use of `c-default-style' by making calls to
        (arglist-intro         . +)
        ;; Anchor pos: At the containing statement(*).
        ;; 2nd pos: At the open paren.
-       (arglist-cont          . (c-lineup-gcc-asm-reg 0))
+       (arglist-cont          . (c-lineup-gcc-asm-reg c-lineup-arglist-cont))
        ;; Anchor pos: At the first token after the open paren.
        (arglist-cont-nonempty . (c-lineup-gcc-asm-reg c-lineup-arglist))
        ;; Anchor pos: At the containing statement(*).

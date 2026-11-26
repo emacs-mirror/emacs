@@ -282,7 +282,6 @@ their id stays constant."
                 ;; (message "%s" (newsticker--title item))
                 (let ((w3m-fill-column (if newsticker-use-full-width
                                            -1 fill-column)))
-                  (select-window (newsticker--treeview-item-window))
                   (save-excursion
                     (funcall newsticker-html-renderer start end)))
                 ;;(cond ((eq newsticker-html-renderer 'w3m-region)
@@ -343,6 +342,7 @@ If string SHOW-FEED is non-nil it is shown in the item string."
                                    'keymap map
                                    'help-echo (buffer-substring pos2
                                                                 (point-max)))))
+      (goto-char (point-max))
       (insert "\n"))))
 
 (defun newsticker--treeview-list-clear ()

@@ -37,8 +37,8 @@ In each of the following pairs of commands, the first generates a
 version with cross references pointing to the GNU Emacs manuals,
 the second with them pointing to the XEmacs manuals.
     ## Info output
-    makeinfo cc-mode.texi
-    makeinfo -DXEMACS cc-mode.texi
+    makeinfo --no-split cc-mode.texi
+    makeinfo --no-split -DXEMACS cc-mode.texi
 
     ## DVI output
     ## You may need to set up the environment variable TEXINPUTS so
@@ -5885,6 +5885,10 @@ Line up the closing paren under its corresponding open paren if the
 open paren is followed by code.  If the open paren ends its line, no
 indentation is added.  E.g.:
 
+If there are any comments at the start of the line, this function will
+attempt to line up the argument correctly, with the comment appearing
+to the left of that argument.
+
 @example
 @group
 main (int,
@@ -6165,6 +6169,29 @@ earlier CC Mode versions, which due to inaccurate analysis tended to
 indent such cases this way.
 
 @workswith @code{arglist-cont-nonempty}, @code{arglist-close}.
+@end defun
+
+@comment ------------------------------------------------------------
+
+@defun c-lineup-arglist-cont
+@findex lineup-arglist-cont (c-)
+Line up an arglist-cont line under the previous argument.
+
+If there are any comments at the start of the line, this function will
+attempt to line up the argument correctly, with the comment appearing
+to the left of that argument.
+
+@example
+@group
+int foobar (
+    /* a */ int a,
+  /* baz */ int b,              @hereFn{c-lineup-arglist-cont}
+            /* empty */         @hereFn{c-lineup-arglist-cont}
+            int c);             @hereFn{c-lineup-arglist-cont}
+@end group
+@end example
+
+@workswith @code{arglist-cont}.
 @end defun
 
 @comment ------------------------------------------------------------

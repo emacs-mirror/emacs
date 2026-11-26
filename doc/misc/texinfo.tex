@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2026-10-21.20}
+\def\texinfoversion{2026-11-14.13}
 %
 % Copyright 1985, 1986, 1988, 1990-2026 Free Software Foundation, Inc.
 %
@@ -155,6 +155,9 @@
 
 % scratch count register
 \newcount\countA
+
+% scratch dimen register
+\newdimen\dimenA
 
 % Give the space character the catcode for a space.
 \def\spaceisspace{\catcode`\ =10\relax}
@@ -6100,7 +6103,14 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 \def\begindoublecolumns{\begingroup % ended by \enddoublecolumns
   % If not much space left on page, start a new page.
-  \ifdim\pagetotal>0.8\vsize\vfill\eject\fi
+  % The \penalty gives TeX a chance to break the page at an earlier
+  % breakpoint.  We may already be past a breakpoint where a page break
+  % would occur, and this prevents us from starting a new page when not
+  % necessary.
+  \penalty9999
+  \dimenA=\vsize
+  \advance\dimenA by -7\baselineskip
+  \ifdim\pagetotal>\dimenA\vfill\eject\fi
   %
   % Grab any single-column material above us.
   \output = {%
@@ -6453,23 +6463,28 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \or \unnumberedsubseczzz{#3}%
     \or \unnumberedsubsubseczzz{#3}%
     \fi
-  \else
-    \if \headtype A%
-      \ifcase\absseclevel
-	  \appendixzzz{#3}%
-      \or \appendixsectionzzz{#3}%
-      \or \appendixsubseczzz{#3}%
-      \or \appendixsubsubseczzz{#3}%
-      \fi
-    \else
-      \ifcase\absseclevel
-	  \chapterzzz{#3}%
-      \or \seczzz{#3}%
-      \or \numberedsubseczzz{#3}%
-      \or \numberedsubsubseczzz{#3}%
-      \fi
+  \else \if \headtype A%
+    \ifcase\absseclevel
+        \appendixzzz{#3}%
+    \or \appendixsectionzzz{#3}%
+    \or \appendixsubseczzz{#3}%
+    \or \appendixsubsubseczzz{#3}%
     \fi
-  \fi
+  \else \if \headtype N%
+    \ifcase\absseclevel
+       \chapterzzz{#3}%
+    \or \seczzz{#3}%
+    \or \numberedsubseczzz{#3}%
+    \or \numberedsubsubseczzz{#3}%
+    \fi
+  \else % \if \headtype H%
+    \ifcase\absseclevel
+	\chapheadingzzz{#3}%
+    \or \headingzzz{#3}%
+    \or \subheadingzzz{#3}%
+    \or \subsubheadingzzz{#3}%
+    \fi
+  \fi\fi\fi
   \suppressfirstparagraphindent
 }
 
@@ -6477,6 +6492,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \def\numhead{\genhead N}
 \def\apphead{\genhead A}
 \def\unnmhead{\genhead U}
+\def\hdghead{\genhead H}
 
 % @chapter, @appendix, @unnumbered.  Increment top-level counter, reset
 % all lower-level sectioning counters to zero.
@@ -6565,8 +6581,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
   \let\centerparametersmaybe = \relax
 }
 
-% @top is like @unnumbered.
-\let\top\unnumbered
+% We ignore the Top node.  This definition handles the case of
+% @top without a preceding "@node Top".
+\parseargdef\top{\ignorenode}
+
+% old definition
+%\let\top\unnumbered
 
 % Sections.
 %
@@ -6647,31 +6667,35 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \let\subsection = \numberedsubsec
 \let\subsubsection = \numberedsubsubsec
 
-% Define @majorheading, @heading and @subheading
+% Define @majorheading, @chapheading, @heading and @subheading
 
-\def\majorheading{%
+\parseargdef\majorheading{%
   {\advance\chapheadingskip by 10pt \chapbreak }%
-  \parsearg\chapheadingzzz
+  \chapheadingzzzz{#1}%
 }
 
-\def\chapheading{\chapbreak \parsearg\chapheadingzzz}
-\def\chapheadingzzz#1{%
+\parseargdef\chapheading{\hdghead0{#1}}
+\def\chapheadingzzz#1{\chapbreak\chapheadingzzzz{#1}}
+\def\chapheadingzzzz#1{%
   \vbox{\chapfonts \raggedtitlesettings #1\par}%
   \nobreak\bigskip \nobreak
   \suppressfirstparagraphindent
 }
 
 % @heading, @subheading, @subsubheading.
-\parseargdef\heading{\sectionheading{#1}{sec}{Yomitfromtoc}{}
+\parseargdef\heading{\hdghead1{#1}}
+\def\headingzzz#1{\sectionheading{#1}{sec}{Yomitfromtoc}{}
   \suppressfirstparagraphindent}
-\parseargdef\subheading{\sectionheading{#1}{subsec}{Yomitfromtoc}{}
+\parseargdef\subheading{\hdghead2{#1}}
+\def\subheadingzzz#1{\sectionheading{#1}{subsec}{Yomitfromtoc}{}
   \suppressfirstparagraphindent}
-\parseargdef\subsubheading{\sectionheading{#1}{subsubsec}{Yomitfromtoc}{}
+\parseargdef\subsubheading{\hdghead3{#1}}
+\def\subsubheadingzzz#1{\sectionheading{#1}{subsubsec}{Yomitfromtoc}{}
   \suppressfirstparagraphindent}
 
 % @xrefname - give text with printed name for linking to node and allow
 % referencing node, but do not print any heading.
-\parseargdef\xrefname{\donoderef{Yomitfromtoc}{#1}}%
+\parseargdef\xrefname{\donoderef{Yomitfromtoc}{#1}{}}%
 
 % These macros generate a chapter, section, etc. heading only
 % (including whitespace, linebreaking, etc. around it),
@@ -6820,7 +6844,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     % been typeset.  If the destination for the pdf outline is after the
     % text, then jumping from the outline may wind up with the text not
     % being visible, for instance under high magnification.
-    \donoderef{#2}{#1}%
+    \ifx\temptype\Yomitfromtockeyword\else
+      \donoderef{#2}{#1}{#3}%
+    \fi
     %
     % Typeset the actual heading.
     \nobreak % Avoid page breaks at the interline glue.
@@ -6954,7 +6980,9 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     %
     % Write the node reference (= pdf destination for pdftex).
     % Again, see comments in \chapmacro.
-    \donoderef{#3}{#1}%
+    \ifx\temptype\Yomitfromtockeyword\else
+      \donoderef{#3}{#1}{#4}%
+    \fi
     %
     % Interline glue will be inserted when the vbox is completed.
     % That glue will be a valid breakpoint for the page, since it'll be
@@ -7024,7 +7052,12 @@ might help (with 'rm \jobname.?? \jobname.??s')%
     \iflinks
       {\atdummies
        \edef\temp{%
-         \write\tocfile{@#1entry{#2}{#3}{\lastnode}{\noexpand\folio}}}%
+        % \lastnode contains the target name for linking to the section in
+        % PDF output.  If this is empty, construct a target name using the
+        % section number.
+         \write\tocfile{@#1entry{#2}{#3}%
+           {\ifx\lastnode\empty\pdfshadowprefix sec-#3\else\lastnode\fi}%
+           {\noexpand\folio}}}%
        \temp
       }%
     \fi
@@ -9215,10 +9248,11 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 
 % Write a cross-reference definition for the current node.  #1 is the
 % type (Ynumbered, Yappendix, Ynothing).  #2 is the section title.
+% #3 is the section number.
 %
-\def\donoderef#1#2{%
+\def\donoderef#1#2#3{%
   \ifx\lastnode\empty
-    \setrefshadow{#1}{#2}%
+    \setrefshadow{#1}{#2}{#3}%
   \else
     \setref{\lastnode}{#1}{#2}%
     \global\let\lastnode=\empty
@@ -9286,13 +9320,18 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 }
 
 % Similar to \setref, but used for targets created by sectioning commands.
+% Create a target using a section title.  Additionally, create a target
+% using the section number, for referencing from the table of contents:
+% this allows several sections with the same title to be referenced
+% correctly from the TOC at least.
 % Write information about this target using @xrshad instead of @xrdef.
-\def\setrefshadow#1#2{%
+\def\setrefshadow#1#2#3{%
   % For PDF, output the target with \pdfdest.
   % Temporarily suppress pdfTeX warning for trying to output two targets
   % with the same name.
   \pdfsuppresswarningdupdest1
   \pdfmkdest{\pdfshadowprefix#2}%
+  \pdfmkdest{\pdfshadowprefix sec-#3}%
   \pdfsuppresswarningdupdest0
   \dosetref{#2}{#1}{#2}{xrshad}%
 }

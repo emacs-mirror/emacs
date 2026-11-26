@@ -129,10 +129,12 @@
 
 (defun tramp-fuse-mount-spec (vec)
   "Return local mount spec of VEC."
-  (if-let* ((host (tramp-file-name-host vec))
+  (if-let* ((prefix (tramp-get-method-parameter
+		     vec 'tramp-mount-prefix "/"))
+	    (host (tramp-file-name-host vec))
 	    (user (tramp-file-name-user vec)))
-      (format "%s@%s:/" user host)
-    (format "%s:/" host)))
+      (format "%s@%s:%s" user host prefix)
+    (format "%s:%s" host prefix)))
 
 (defconst tramp-fuse-mount-timeout
   (eval (car (get 'remote-file-name-inhibit-cache 'standard-value)) t)
@@ -175,10 +177,7 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 	  ;; which might not be visible, for example with rclone
 	  ;; mounts of type "memory" or "gdrive".  Make it optional.
 	  (setq mount-spec
-		(if (cdr mount-spec)
-		    (rx (literal (car mount-spec))
-			":" (? (literal (cadr mount-spec))))
-		  (car mount-spec)))
+		(rx-to-string `(: ,(car mount-spec) ":" (? ,@(cdr mount-spec)))))
           (tramp-set-file-property
 	   vec "/" "mounted"
            (when (string-match
@@ -188,6 +187,14 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 	     (tramp-set-file-property
 	      vec "/" "mount-point" (match-string 2 mount))
              (match-string 1 mount)))))))
+
+(defun tramp-fuse-get-fuse-program (vec)
+  "Determine the `tramp-*-program' command for VEC."
+  (with-tramp-connection-property vec "fuse-program"
+    (executable-find
+     (symbol-value
+      ;; `tramp-rclone-program' or `tramp-sshfs-program'.
+      (intern (format "tramp-%s-program" (tramp-file-name-method vec)))))))
 
 (defun tramp-fuse-get-fusermount ()
   "Determine the local `fusermount' command."
@@ -201,18 +208,40 @@ It has the same meaning as `remote-file-name-inhibit-cache'.")
 
 (defun tramp-fuse-unmount (vec)
   "Unmount fuse volume determined by VEC."
-  (let* ((default-directory tramp-compat-temporary-file-directory)
-	 (mount-point (tramp-fuse-mount-point vec))
-         (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
-    (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
-    (tramp-flush-file-property vec "/" "mounted")
-    (tramp-flush-file-property vec "/" "mount-point")
-    (setq tramp-fuse-mount-points
-	  (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
-    ;; Give the caches a chance to expire.
-    (sleep-for 1)
-    (when (directory-empty-p mount-point)
-      (delete-directory mount-point))))
+  (let ((default-directory tramp-compat-temporary-file-directory))
+    ;; Check, whether there is still a mount process.  Kill it.
+    (while-let
+	((program (tramp-fuse-get-fuse-program vec))
+	 ;; rclone uses `rclone mount <mount-spec> <mount-point> ...'
+	 ;; sshfs uses `sshfs <mount-spec> <mount-point> ...'
+	 (prefix (rx bos (literal program) (? " mount")
+		     " " (literal (tramp-fuse-mount-spec vec))
+		     " " (literal (tramp-fuse-mount-point vec))))
+	 (pid (car (seq-filter
+		    (lambda (pid)
+		      (when-let* ((attr (process-attributes pid))
+				  (args (assoc-default 'args attr))
+				  ((string-match-p prefix args)))
+			pid))
+		    (list-system-processes)))))
+      (tramp-message
+       vec 6
+       "Kill mount process %d for %s" pid (tramp-fuse-mount-spec vec))
+      (signal-process pid 'SIGTERM))
+
+    ;; Unmount.
+    (let* ((mount-point (tramp-fuse-mount-point vec))
+           (command (format "%s -u %s" (tramp-fuse-get-fusermount) mount-point)))
+      (tramp-message vec 6 "%s\n%s" command (shell-command-to-string command))
+      (tramp-flush-file-property vec "/" "mounted")
+      (tramp-flush-file-property vec "/" "mount-point")
+      (setq tramp-fuse-mount-points
+	    (delete (tramp-file-name-unify vec) tramp-fuse-mount-points))
+      ;; Give the caches a chance to expire.
+      (sleep-for 1)
+
+      (when (directory-empty-p mount-point)
+	(delete-directory mount-point)))))
 
 (defun tramp-fuse-local-file-name (filename)
   "Return local mount name of FILENAME."

@@ -377,7 +377,7 @@ Used to modify the compiler environment."
     (windowp (function (t) boolean))
     ;; Non returning functions
     (throw (function (t t) nil))
-    (signal (function (symbol t) nil)))
+    (signal (function ((or symbol cons) list) nil)))
   "Alist used for type propagation.")
 
 (defconst comp-limple-calls '(call

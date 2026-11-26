@@ -4836,9 +4836,11 @@ check_frame_pixels (Lisp_Object size, Lisp_Object pixelwise, int item_size)
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 4,
        "(set-frame-property--interactive \"Frame height: \" (frame-height))",
        doc: /* Set text height of frame FRAME to HEIGHT lines.
-Optional third arg PRETEND non-nil means that redisplay should use
-HEIGHT lines but that the idea of the actual height of the frame should
-not be changed.
+FRAME must specify a live frame and defaults to the selected one.
+
+Signal an error if FRAME is a root frame of a TTY terminal.  For
+debugging purposes, optional third argument PRETEND non-nil lets you
+shrink the height of FRAME in that case.
 
 Optional fourth argument PIXELWISE non-nil means that FRAME should be
 HEIGHT pixels high.  Note: When `frame-resize-pixelwise' is nil, some
@@ -4846,18 +4848,21 @@ window managers may refuse to honor a HEIGHT that is not an integer
 multiple of the default frame font height.
 
 When called interactively, HEIGHT is the numeric prefix and the
-currently selected frame will be set to this height.
-
-If FRAME is nil, it defaults to the selected frame.  */)
+currently selected frame will be set to this height.  */)
   (Lisp_Object frame, Lisp_Object height, Lisp_Object pretend, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
   int text_height
     = check_frame_pixels (height, pixelwise, FRAME_LINE_HEIGHT (f));
 
-  /* With INHIBIT 1 pass correct text width to adjust_frame_size.  */
-  adjust_frame_size
-    (f, FRAME_TEXT_WIDTH (f), text_height, 1, !NILP (pretend), Qheight);
+  if (FRAME_WINDOW_P (f)
+      || (is_tty_frame (f)
+	  && (FRAME_PARENT_FRAME (f)
+	      || (!NILP (pretend) && text_height <= FRAME_TEXT_HEIGHT (f)))))
+    adjust_frame_size
+      (f, FRAME_TEXT_WIDTH (f), text_height, 1, !NILP (pretend), Qheight);
+  else
+    error ("Cannot set height of tty root frame");
 
   return Qnil;
 }
@@ -4865,9 +4870,11 @@ If FRAME is nil, it defaults to the selected frame.  */)
 DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 4,
        "(set-frame-property--interactive \"Frame width: \" (frame-width))",
        doc: /* Set text width of frame FRAME to WIDTH columns.
-Optional third arg PRETEND non-nil means that redisplay should use WIDTH
-columns but that the idea of the actual width of the frame should not
-be changed.
+FRAME must specify a live frame and defaults to the selected one.
+
+Signal an error if FRAME is a root frame of a TTY terminal.  For
+debugging purposes, optional third argument PRETEND non-nil lets you
+shrink the width of FRAME in that case.
 
 Optional fourth argument PIXELWISE non-nil means that FRAME should be
 WIDTH pixels wide.  Note: When `frame-resize-pixelwise' is nil, some
@@ -4875,41 +4882,50 @@ window managers may refuse to honor a WIDTH that is not an integer
 multiple of the default frame font width.
 
 When called interactively, WIDTH is the numeric prefix and the
-currently selected frame will be set to this width.
-
-If FRAME is nil, it defaults to the selected frame.  */)
+currently selected frame will be set to this width.  */)
   (Lisp_Object frame, Lisp_Object width, Lisp_Object pretend, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
   int text_width
     = check_frame_pixels (width, pixelwise, FRAME_COLUMN_WIDTH (f));
 
-  /* With INHIBIT 1 pass correct text height to adjust_frame_size.  */
-  adjust_frame_size
-    (f, text_width, FRAME_TEXT_HEIGHT (f), 1, !NILP (pretend), Qwidth);
+  if (FRAME_WINDOW_P (f)
+      || (is_tty_frame (f)
+	  && (FRAME_PARENT_FRAME (f)
+	      || (!NILP (pretend) && text_width <= FRAME_TEXT_WIDTH (f)))))
+    adjust_frame_size
+      (f, text_width, FRAME_TEXT_HEIGHT (f), 1, !NILP (pretend), Qwidth);
+  else
+    error ("Cannot set width of tty root frame");
 
   return Qnil;
 }
 
 DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 4, 0,
        doc: /* Set text size of FRAME to WIDTH by HEIGHT, measured in characters.
+FRAME must specify a live frame and defaults to the selected one.
+
 Optional argument PIXELWISE non-nil means to measure in pixels.  Note:
 When `frame-resize-pixelwise' is nil, some window managers may refuse to
 honor a WIDTH that is not an integer multiple of the default frame font
 width or a HEIGHT that is not an integer multiple of the default frame
-font height.
-
-If FRAME is nil, it defaults to the selected frame.  */)
+font height.  */)
   (Lisp_Object frame, Lisp_Object width, Lisp_Object height, Lisp_Object pixelwise)
 {
   struct frame *f = decode_live_frame (frame);
-  int text_width
-    = check_frame_pixels (width, pixelwise, FRAME_COLUMN_WIDTH (f));
-  int text_height
-    = check_frame_pixels (height, pixelwise, FRAME_LINE_HEIGHT (f));
 
-  /* PRETEND is always false here.  */
-  adjust_frame_size (f, text_width, text_height, 1, false, Qsize);
+  if (FRAME_WINDOW_P (f) || is_tty_child_frame (f))
+    {
+      int text_width
+	= check_frame_pixels (width, pixelwise, FRAME_COLUMN_WIDTH (f));
+      int text_height
+	= check_frame_pixels (height, pixelwise, FRAME_LINE_HEIGHT (f));
+
+      /* PRETEND is always false here.  */
+      adjust_frame_size (f, text_width, text_height, 1, false, Qsize);
+    }
+  else
+    error ("Cannot set size of tty root frame");
 
   return Qnil;
 }

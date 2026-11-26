@@ -306,7 +306,8 @@ directory hierarchy."
          (eglot-sync-connect t)
          (eglot-connect-timeout timeout)
          (eglot-server-programs
-          (if server `((,major-mode . ,(split-string server)))
+          (if server `((,major-mode . ,(if (consp server) server
+                                         (split-string server))))
             eglot-server-programs)))
     (apply #'eglot--connect (eglot--guess-contact))))
 
@@ -363,6 +364,25 @@ directory hierarchy."
   (skip-unless (executable-find "clangd"))
   (eglot-tests--auto-detect-running-server-1))
 
+(defun eglot--tests-end-command ()
+  "Run what Eglot deferred to the end of the current command."
+  (run-hooks 'post-command-hook)
+  (accept-process-output nil 0.01))
+
+(defun eglot--tests-check-async-shutdown (server &optional timeout)
+  "Check SERVER is forgotten after this command, gone within TIMEOUT."
+  ;; Don't use `jsonrpc-events-buffer', which would recreate a killed one.
+  (let ((buffers (list (jsonrpc--events-buffer server)
+                       (jsonrpc-stderr-buffer server)
+                       (process-buffer (jsonrpc--process server)))))
+    (eglot--tests-end-command)
+    (should-not (memq server (gethash (eglot--project server)
+                                      eglot--servers-by-project)))
+    (eglot--with-timeout (or timeout 5)
+      (while (or (jsonrpc-running-p server)
+                 (cl-some #'buffer-live-p buffers))
+        (accept-process-output nil 0.05)))))
+
 (ert-deftest eglot-test-auto-shutdown ()
   "Visit a file and \\[eglot], then kill buffer."
   (skip-unless (executable-find "clangd"))
@@ -380,7 +400,139 @@ directory hierarchy."
         (setq buffer (eglot--find-file-noselect (buffer-file-name buffer)))
         ;; ;; but now kill it with `eglot-autoshutdown' set to t
         (let ((eglot-autoshutdown t)) (kill-buffer buffer))
-        (should (not (jsonrpc-running-p server)))))))
+        (eglot--tests-check-async-shutdown server)))))
+
+(ert-deftest eglot-test-auto-shutdown-unresponsive ()
+  "Kill last buffer of a server that never answers `shutdown'."
+  (skip-unless (executable-find "python3"))
+  (skip-unless (file-exists-p (ert-resource-file "server-slow-shutdown.py")))
+  (let (server
+        buffer)
+    (eglot--with-fixture
+        `(("project" . (("thingy.txt" . "bla"))))
+      (with-current-buffer
+          (setq buffer (eglot--find-file-noselect "project/thingy.txt"))
+        (prog-mode)
+        (should (setq server
+                      (eglot--tests-connect
+                       :server `("python3"
+                                 ,(ert-resource-file "server-slow-shutdown.py")
+                                 "--ignore-shutdown"))))
+        (should (eglot-current-server))
+        ;; The buffer dies at once, the server after `shutdown' times
+        ;; out.
+        (let ((eglot-autoshutdown t)) (kill-buffer buffer))
+        (should-not (buffer-live-p buffer))
+        (eglot--tests-check-async-shutdown server)))))
+
+(ert-deftest eglot-test-auto-shutdown-find-alternate ()
+  "\\[find-alternate-file] away from last managed buffer keeps server."
+  (skip-unless (executable-find "python3"))
+  (skip-unless (file-exists-p (ert-resource-file "server-slow-shutdown.py")))
+  (let ((auto-mode-alist '(("\\.toy\\'" . prog-mode)))
+        (eglot-autoshutdown t)
+        server)
+    (eglot--with-fixture
+        `(("project" . (("thingy.toy" . "bla") ("thingy2.toy" . "bla"))))
+      (with-current-buffer (eglot--find-file-noselect "project/thingy.toy")
+        (should (setq server
+                      (eglot--tests-connect
+                       :server `("python3"
+                                 ,(ert-resource-file "server-slow-shutdown.py"))))))
+      ;; Once as a command, once from Lisp.
+      (dolist (this-command '(find-alternate-file nil))
+        (with-current-buffer (car (eglot--managed-buffers server))
+          (find-alternate-file
+           (if (string-suffix-p "thingy.toy" buffer-file-name)
+               "thingy2.toy" "thingy.toy")))
+        (eglot--tests-end-command)
+        (should (jsonrpc-running-p server))
+        (should (memq server (gethash (eglot--project server)
+                                      eglot--servers-by-project)))
+        (should (= 1 (length (eglot--managed-buffers server))))
+        (with-current-buffer (car (eglot--managed-buffers server))
+          (should eglot--managed-mode))))))
+
+(ert-deftest eglot-test-auto-shutdown-async ()
+  "Kill last buffer of a slow-to-shutdown server, then revisit."
+  (skip-unless (executable-find "python3"))
+  (let ((contact `("python3" ,(ert-resource-file "server-slow-shutdown.py")
+                   "--shutdown-delay" "1"))
+        server buffer start)
+    (eglot--with-fixture
+        `(("project" . (("thingy.txt" . "bla"))))
+      (with-current-buffer
+          (setq buffer (eglot--find-file-noselect "project/thingy.txt"))
+        (prog-mode)
+        (should (setq server (eglot--tests-connect :server contact))))
+      ;; Killing the last buffer doesn't wait for the server...
+      (setq start (float-time))
+      (let ((eglot-autoshutdown t)) (kill-buffer buffer))
+      (should (< (- (float-time) start) 0.5))
+      (eglot--tests-end-command)
+      (should (jsonrpc-running-p server))
+      ;; ...but revisiting in the next command doesn't pick it up again.
+      (with-current-buffer
+          (setq buffer (eglot--find-file-noselect "project/thingy.txt"))
+        (prog-mode)
+        (should-not eglot--managed-mode)
+        (should-not (eglot-current-server))
+        (let ((new (eglot--tests-connect :server contact)))
+          (should new)
+          (should-not (eq new server))
+          (eglot--tests-check-async-shutdown server)
+          ;; Old server's demise doesn't affect new one.
+          (should (jsonrpc-running-p new))
+          (should eglot--managed-mode)
+          (should (eq (eglot-current-server) new)))))))
+
+(ert-deftest eglot-test-auto-shutdown-revert ()
+  "Revert last managed buffer with `eglot-autoshutdown'."
+  (skip-unless (executable-find "python3"))
+  (let ((auto-mode-alist '(("\\.toy\\'" . prog-mode)))
+        (eglot-autoshutdown t)
+        server)
+    (eglot--with-fixture
+        `(("project" . (("thingy.toy" . "bla"))))
+      (with-current-buffer (eglot--find-file-noselect "project/thingy.toy")
+        (should (setq server
+                      (eglot--tests-connect
+                       :server `("python3"
+                                 ,(ert-resource-file "server-slow-shutdown.py")))))
+        (dolist (preserve-modes '(t nil))
+          (revert-buffer t t preserve-modes)
+          (accept-process-output nil 0.5)
+          (should (jsonrpc-running-p server))
+          (should eglot--managed-mode)
+          (should (eq (eglot-current-server) server))
+          (should (eq (car (eglot--managed-buffers server))
+                      (current-buffer))))))))
+
+(ert-deftest eglot-test-shutdown-unresponsive ()
+  "\[eglot-shutdown] a server that never answers `shutdown'."
+  (skip-unless (executable-find "python3"))
+  (skip-unless (file-exists-p (ert-resource-file "server-slow-shutdown.py")))
+  (let (server buffers)
+    (eglot--with-fixture
+        `(("project" . (("thingy.txt" . "bla"))))
+      (with-current-buffer (eglot--find-file-noselect "project/thingy.txt")
+        (prog-mode)
+        (should (setq server
+                      (eglot--tests-connect
+                       :server `("python3"
+                                 ,(ert-resource-file "server-slow-shutdown.py")
+                                 "--ignore-shutdown"))))
+        (setq buffers (list (jsonrpc-events-buffer server)
+                            (jsonrpc-stderr-buffer server)))
+        ;; A timeout is a `jsonrpc-error', not some random error...
+        (should-error (eglot--request server :shutdown nil :timeout 0.1)
+                      :type 'jsonrpc-error)
+        ;; ...which `eglot-shutdown' demotes, shutting down anyway.
+        (eglot-shutdown server nil 0.2)
+        (should-not (jsonrpc-running-p server))
+        (should-not (memq server (gethash (eglot--project server)
+                                          eglot--servers-by-project)))
+        (should-not (cl-some #'buffer-live-p buffers))))))
 
 (ert-deftest eglot-test-auto-reconnect ()
   "Start a server.  Kill it.  Watch it reconnect."

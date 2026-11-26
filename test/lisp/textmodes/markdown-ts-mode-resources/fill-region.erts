@@ -1,0 +1,58 @@
+Code:
+  (lambda ()
+    (markdown-ts-mode)
+    (setq fill-column 70)
+    (fill-region (point-min) (point-max)))
+
+Name: two paragraphs are filled separately
+
+=-=
+First paragraph for fill-region test. This paragraph has some long text that could be reflowed.
+
+Second paragraph for fill-region test. This paragraph also has some long text that could be reflowed.
+=-=
+First paragraph for fill-region test. This paragraph has some long
+text that could be reflowed.
+
+Second paragraph for fill-region test. This paragraph also has some
+long text that could be reflowed.
+=-=-=
+
+Name: list items stay separate, blank line before next block kept
+
+=-=
+- one is a very long list item that should be wrapped by fill-region because it clearly exceeds the fill-column width
+- two is short
+
+A paragraph after the list that is also long enough to need wrapping by fill-region.
+=-=
+- one is a very long list item that should be wrapped by fill-region
+  because it clearly exceeds the fill-column width
+- two is short
+
+A paragraph after the list that is also long enough to need wrapping
+by fill-region.
+=-=-=
+
+Name: code block and table are not filled
+
+=-=
+Intro paragraph that is long enough to need wrapping when the whole buffer is filled by fill-region.
+
+```
+This code block line is very long and must never be reflowed by fill-region, ever, because it is code.
+```
+
+| a long header cell | another long header cell | and a third long header cell |
+| ------------------ | ------------------------ | ---------------------------- |
+=-=
+Intro paragraph that is long enough to need wrapping when the whole
+buffer is filled by fill-region.
+
+```
+This code block line is very long and must never be reflowed by fill-region, ever, because it is code.
+```
+
+| a long header cell | another long header cell | and a third long header cell |
+| ------------------ | ------------------------ | ---------------------------- |
+=-=-=

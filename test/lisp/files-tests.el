@@ -1970,12 +1970,15 @@ The door of all subtleties!
 
 (defun files-tests--check-mode (filename)
   "Return the major mode found in `auto-mode-alist' for FILENAME."
-  (set-auto-mode--find-matching-alist-entry
-   auto-mode-alist
-   (concat "/home/jrhacker/" filename)
-   nil))
+  (with-temp-buffer
+    (set-auto-mode--from-matching-alist-entry
+     auto-mode-alist
+     (concat "/home/jrhacker/" filename)
+     nil t nil)
+    major-mode))
 
 (ert-deftest files-tests-auto-mode-alist ()
+  (should (eq (files-tests--check-mode "foo.el.orig") #'emacs-lisp-mode))
   (should (eq (files-tests--check-mode ".gdbinit.in") #'gdb-script-mode))
   (should (eq (files-tests--check-mode ".gdbinit") #'gdb-script-mode))
   (should (eq (files-tests--check-mode "_gdbinit") #'gdb-script-mode)) ; for MS-DOS
@@ -2047,6 +2050,35 @@ set to."
   ;; Invocation through env, with modified environment.
   (files-tests--check-shebang "#!/usr/bin/env -S PYTHONPATH=/...:${PYTHONPATH} python" 'python-base-mode))
 
+(ert-deftest dir-locals--file-names ()
+  "Ensure that we generate well-known file name pair."
+  (should (equal (dir-locals--file-names) '(".dir-locals.el" ".dir-locals-2.el"))))
+
+(ert-deftest dir-locals-file-p ()
+  "Verify `dir-locals-file-p' detects dir-locals file paths."
+  (should (dir-locals-file-p ".dir-locals.el"))
+  (should (dir-locals-file-p "/.dir-locals.el"))
+  (should (dir-locals-file-p "a/b/.dir-locals.el"))
+  (should (dir-locals-file-p ".dir-locals-2.el"))
+  (should (dir-locals-file-p "/.dir-locals-2.el"))
+  (should (dir-locals-file-p "a/b/.dir-locals-2.el"))
+
+  (should (not (dir-locals-file-p "")))
+  (should (not (dir-locals-file-p "dir-locals.el")))
+  (should (not (dir-locals-file-p "/dir-locals.el")))
+  (should (not (dir-locals-file-p "/.dir-locals.el.gz"))))
+
+(ert-deftest dir-locals--all-files ()
+  "Verify values and ordering of dir-locals paths."
+  (should (equal (dir-locals--all-files (ert-resource-directory))
+                 (list (ert-resource-file ".dir-locals.el")
+                       (ert-resource-file ".dir-locals-2.el")))))
+
+(ert-deftest dir-locals--all-files-base-only ()
+  "Verify values and ordering of dir-locals paths."
+  (should (equal (dir-locals--all-files (ert-resource-directory) t)
+                 (list (ert-resource-file ".dir-locals.el")))))
+
 (ert-deftest files-test-dir-locals-2-solo ()
   "Ensure that solo `.dir-locals-2.el' is ignored."
   (with-current-buffer
@@ -2063,7 +2095,7 @@ set to."
       (should (local-variable-p 'dir-locals-2-loaded)))))
 
 (ert-deftest files-test-dir-locals-auto-mode-alist ()
-  "Test an `auto-mode-alist' entry in `.dir-locals.el'"
+  "Test an `auto-mode-alist' entry in `.dir-locals.el'."
   (find-file (ert-resource-file "whatever.quux"))
   (should (eq major-mode 'tcl-mode))
   (find-file (ert-resource-file "auto-test.zot1"))

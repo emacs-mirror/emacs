@@ -454,8 +454,13 @@ corresponding to a successful execution."
   ;; Wait to unload core modules until after `eshell' has finished
   ;; unloading.  `eshell' depends on several of them, so they can't be
   ;; unloaded immediately.
-  (run-at-time 0 nil #'eshell-unload-modules
-               (reverse (eshell-subgroups 'eshell)) 'core)
+  (let ((features (mapcar (lambda (i) (eshell-module-feature-name i 'core))
+                          (reverse (eshell-subgroups 'eshell)))))
+    (run-at-time 0 nil #'mapcar
+                 (lambda (feat)
+                   (with-demoted-errors "Error while unloading Eshell: %S"
+                     (unload-feature feat)))
+                 features))
   nil)
 
 (run-hooks 'eshell-load-hook)

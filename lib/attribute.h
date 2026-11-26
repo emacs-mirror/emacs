@@ -79,7 +79,9 @@
      These names begin with 'ATTRIBUTE_' to avoid name clashes.  */
 
 
-/* This file uses _GL_ATTRIBUTE_ALLOC_SIZE, _GL_ATTRIBUTE_ALWAYS_INLINE,
+/* This file uses _GL_ATTRIBUTE_ACCESS_NONE, _GL_ATTRIBUTE_ACCESS_READ_ONLY,
+   _GL_ATTRIBUTE_ACCESS_READ_WRITE, _GL_ATTRIBUTE_ACCESS_WRITE_ONLY,
+   _GL_ATTRIBUTE_ALLOC_SIZE, _GL_ATTRIBUTE_ALWAYS_INLINE,
    _GL_ATTRIBUTE_ARTIFICIAL, _GL_ATTRIBUTE_COLD, _GL_ATTRIBUTE_CONST,
    _GL_ATTRIBUTE_COUNTED_BY, _GL_ATTRIBUTE_DEALLOC, _GL_ATTRIBUTE_DEPRECATED,
    _GL_ATTRIBUTE_ERROR, _GL_ATTRIBUTE_WARNING, _GL_ATTRIBUTE_EXTERNALLY_VISIBLE,
@@ -176,6 +178,31 @@
 /* Applies to: functions.  */
 #define ATTRIBUTE_NONNULL_IF_NONZERO(np, ni) _GL_ATTRIBUTE_NONNULL_IF_NONZERO (np, ni)
 
+/* ATTRIBUTE_ACCESS_READ_ONLY ((N, S)) declares that the Nth argument of
+   the function is used to read the referenced object but not to write to it.
+   ATTRIBUTE_ACCESS_WRITE_ONLY ((N, S)) declares that the Nth argument of
+   the function is used to write the referenced object but not to read from it.
+   ATTRIBUTE_ACCESS_READ_WRITE ((N, S)) declares that the Nth argument of
+   the function is used to both read from and write to the referenced object.
+   ATTRIBUTE_ACCESS_NONE ((N, S)) declares that the Nth argument of the
+   function is not used to access the referenced object at all.
+
+   Each of the ATTRIBUTE_ACCESS_* macros accepts an optional size index S,
+   which specifies the position of the argument indicating the maximum size of
+   the access, in elements.  The size of each element is determined by the type
+   of the Nth argument, or is 1 if that argument is a void pointer.  The memory
+   pointed to by the sized object is not required to be initialized.  These
+   macros specify how the object being pointed to can be accessed, not that the
+   access will happen.  They also do not imply whether or not the pointer is or
+   can be NULL.  This information can be specified by combining the
+   ATTRIBUTE_ACCESS_* macros with ATTRIBUTE_NONNULL or
+   ATTRIBUTE_NONNULL_IF_NONZERO.
+ */
+/* Applies to: functions.  */
+#define ATTRIBUTE_ACCESS_READ_ONLY(args) _GL_ATTRIBUTE_ACCESS_READ_ONLY (args)
+#define ATTRIBUTE_ACCESS_WRITE_ONLY(args) _GL_ATTRIBUTE_ACCESS_WRITE_ONLY (args)
+#define ATTRIBUTE_ACCESS_READ_WRITE(args) _GL_ATTRIBUTE_ACCESS_READ_WRITE (args)
+#define ATTRIBUTE_ACCESS_NONE(args) _GL_ATTRIBUTE_ACCESS_NONE (args)
 
 /* The function's return value is a non-NULL pointer.  */
 /* Applies to: functions.  */

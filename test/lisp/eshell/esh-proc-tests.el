@@ -218,21 +218,12 @@ pipeline."
 ;; against; that way, users don't need to have GNU coreutils (or
 ;; similar) installed.
 
-(defsubst esh-proc-test/emacs-command (command)
-  "Evaluate COMMAND in a new Emacs batch instance."
-  ;; Call `eshell-quote-argument' from within an Eshell buffer since its
-  ;; behavior depends on activating various Eshell modules.
-  (mapconcat (lambda (arg) (with-temp-eshell (eshell-quote-argument arg)))
-             `(,(expand-file-name invocation-name invocation-directory)
-               "-Q" "--batch" "--eval" ,(prin1-to-string command))
-             " "))
-
 (defvar esh-proc-test/emacs-echo
-  (esh-proc-test/emacs-command '(princ "hello\n"))
+  (eshell-run-emacs-command '(princ "hello\n"))
   "A command that prints \"hello\" to stdout using Emacs.")
 
 (defvar esh-proc-test/emacs-upcase
-  (esh-proc-test/emacs-command
+  (eshell-run-emacs-command
    '(princ (upcase (concat (read-string "") "\n"))))
   "A command that upcases the text from stdin using Emacs.")
 

@@ -4538,8 +4538,7 @@ argument or confirmation)."
                  (dired-format-columns-of-files
                   (if (eq (car files) t) (cdr files) files))
                  (remove-text-properties (point-min) (point-max)
-                                         '(mouse-face nil help-echo nil))
-                 (setq tab-line-exclude nil))))
+                                         '(mouse-face nil help-echo nil)))))
        #'(lambda (window _value)
 	   (with-selected-window window
 	     (unwind-protect

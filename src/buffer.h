@@ -305,6 +305,11 @@ struct buffer_text
 
     /* True if it needs to be redisplayed.  */
     bool_bf redisplay : 1;
+
+    /* True if Lisp forms in 'display' properties should not be
+       evaluated.  Set when showing text from untrusted sources, such as
+       in 'enriched-decode'  */
+    bool_bf disable_display_forms : 1;
   };
 
 /* Most code should use this macro to access Lisp fields in struct buffer.  */

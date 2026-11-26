@@ -4845,19 +4845,43 @@ allocate_hash_table (void)
 }
 
 /* Compute the size of the index (as log2) from the table capacity.  */
-static int
-compute_hash_index_bits (unsigned long long int size)
+static c_bit_width_t
+compute_hash_index_bits (EMACS_UINT size)
 {
-  /* An upper bound on the size of a hash table index.  */
-  hash_idx_t upper_bound = min (MOST_POSITIVE_FIXNUM,
-				min (HASH_IDX_MAX,
-				     (PTRDIFF_MAX
-				      / max (sizeof (hash_idx_t),
-					     2 * sizeof (Lisp_Object)))));
+  /* Check the safety of passing nonnegative ptrdiff_t values to this function,
+     which takes an EMACS_UINT arg both because EMACS_INT args are also passed
+     and because it uses stdc_bit_width which requires an unsigned arg.  */
+  static_assert (PTRDIFF_MAX <= TYPE_MAXIMUM (EMACS_UINT));
 
-      /* Use next higher power of 2.  This works even for size=0.  */
-  int bits = elogb (size) + 1;
-  if (! (bits < UINTMAX_WIDTH && (uintmax_t) {1} << bits <= upper_bound))
+  struct Lisp_Hash_Table h;  /* Dummy for upper_bound calculation.  */
+
+  /* An upper bound on subscripts of a hash table index.  */
+  EMACS_UINT upper_bound
+    = min (min (/* Hash table index subscripts are of type hash_idx_t.  */
+		HASH_IDX_MAX,
+		/* hash-table-count returns a fixnum.  */
+		MOST_POSITIVE_FIXNUM),
+	   (/* Vector sizes fit into both ptrdiff_t and size_t.  */
+	    (max (PTRDIFF_MAX, SIZE_MAX)
+	     / max (max (sizeof h.hash, sizeof h.index),
+		    max (sizeof h.next,
+#if defined HAVE_MPS && defined USE_EPHEMERON_POOL
+			 sizeof h.kv->pairs[0]
+#elif defined HAVE_MPS && !defined USE_EPHEMERON_POOL
+			 2 * sizeof h.kv.keys->contents[0]
+#else
+			 2 * sizeof h.kv.keys[0]
+#endif
+			)
+		   ))
+	    - 1));
+
+  /* Use next higher power of 2.  This works even for size=0.  */
+  c_bit_width_t bits = stdc_bit_width (size);
+  c_bit_width_t bits_max = min (C_BIT_WIDTH_MAX,
+				/* Maximum value suitable for upper_bound.  */
+				stdc_bit_width (upper_bound + 1));
+  if (bits_max < bits)
     error ("Hash table too large");
   return bits;
 }
@@ -4956,7 +4980,8 @@ make_hash_table (const struct hash_table_test *test, EMACS_INT size,
       return make_weak_hash_table (test, size, weak);
     }
 #endif
-  int index_bits = compute_hash_index_bits (size);
+  c_bit_width_t index_bits = compute_hash_index_bits (size);
+
   struct Lisp_Hash_Table *h = allocate_hash_table ();
 
   h->test = test;
@@ -5162,7 +5187,7 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 	memcpy (hash, h->hash, old_size * sizeof *hash);
 
       ptrdiff_t old_index_size = hash_table_index_size (h);
-      ptrdiff_t index_bits = compute_hash_index_bits (new_size);
+      c_bit_width_t index_bits = compute_hash_index_bits (new_size);
       ptrdiff_t index_size = (ptrdiff_t) {1} << index_bits;
       hash_idx_t *index = hash_table_alloc_bytes (index_size * sizeof *index);
       for (ptrdiff_t i = 0; i < index_size; i++)
@@ -5233,7 +5258,7 @@ hash_table_thaw (Lisp_Object hash_table)
     }
   else
     {
-      ptrdiff_t index_bits = compute_hash_index_bits (size);
+      c_bit_width_t index_bits = compute_hash_index_bits (size);
       h->index_bits = index_bits;
 
 #ifdef HAVE_MPS

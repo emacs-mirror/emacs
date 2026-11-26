@@ -1135,7 +1135,7 @@ module_extract_big_integer (emacs_env *env, emacs_value arg, int *sign,
       MODULE_INTERNAL_CLEANUP ();
       return true;
     }
-  size_t required_size = (mpz_sizeinbase (*x, 2) + numb - 1) / numb;
+  size_t required_size = (mpz_bit_width (*x) + numb - 1) / numb;
   eassert (required_size <= module_bignum_count_max);
   ptrdiff_t required = required_size;
   if (magnitude == NULL)

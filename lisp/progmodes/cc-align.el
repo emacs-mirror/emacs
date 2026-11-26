@@ -178,6 +178,19 @@ Works with: topmost-intro-cont."
       (c-safe-position (or containing-sexp (point)) c-state-cache)
       containing-sexp))))
 
+(defun c-leading-comment-length ()
+  "Return the length of any comments preceding the first token.
+This length extends from beginning of indentation to the first
+non-comment character on the line.  If there are no such comments, or
+only comments on the line, return 0."
+  (save-excursion
+    (back-to-indentation)
+    (let ((ind-col (current-column)))
+      (c-forward-comments (c-point 'eol))
+      (if (eolp)
+	  0
+	(- (current-column) ind-col)))))
+
 (defun c-lineup-arglist (_langelem)
   "Line up the current argument line under the first argument.
 
@@ -199,11 +212,7 @@ indent such cases this way.
 Works with: arglist-cont-nonempty, arglist-close."
   (save-excursion
     (let ((indent-pos (point))
-	  (ws-length (save-excursion
-		       (back-to-indentation)
-		       (let ((ind-col (current-column)))
-			 (c-forward-comments (c-point 'eol))
-			 (- (current-column) ind-col)))))
+	  (leading-comment-len (c-leading-comment-length)))
 
       (if (c-block-in-arglist-dwim (c-langelem-2nd-pos c-syntactic-element))
 	  c-basic-offset		; DWIM case.
@@ -223,7 +232,7 @@ Works with: arglist-cont-nonempty, arglist-close."
 	    (c-forward-comments (c-point 'eol))
 	    (if (eolp)
 		(goto-char arglist-content-start)))
-	  (vector (- (current-column) ws-length)))))))
+	  (vector (- (current-column) leading-comment-len)))))))
 
 (defun c-lineup-argcont-1 (elem)
   ;; Move to the start of the current arg and return non-nil, otherwise
@@ -317,6 +326,25 @@ Works with: arglist-cont, arglist-cont-nonempty."
       (c-forward-syntactic-ws)
       (vector (+ (current-column) c-basic-offset)))))
 
+(defun c-lineup-arglist-cont (_langelem)
+  "Indent an arglist-cont line under the previous argument.
+\"Ignore\" leading comments.
+
+int foobar (
+    /* a */ int a,
+  /* baz */ int b,              <- c-lineup-arglist-cont
+            /* empty */         <- c-lineup-arglist-cont
+            int c);             <- c-lineup-arglist-cont
+
+Works with: arglist-cont."
+  (let ((leading-comment-len (c-leading-comment-length))
+	anchor-comment-len anchor-col)
+    (save-excursion
+      (goto-char (c-langelem-pos c-syntactic-element))
+      (setq anchor-comment-len (c-leading-comment-length))
+      (setq anchor-col (current-column)))
+    (vector (- (+ anchor-col anchor-comment-len) leading-comment-len))))
+
 (defun c-lineup-arglist-intro-after-paren (_langelem)
   "Line up a line to just after the open paren of the surrounding paren
 or brace block.
@@ -324,19 +352,15 @@ or brace block.
 Works with: defun-block-intro, brace-list-intro, enum-intro
 statement-block-intro, statement-case-intro, arglist-intro."
   (save-excursion
-    (let ((ws-length (save-excursion
-		       (back-to-indentation)
-		       (let ((ind-col (current-column)))
-			 (c-forward-comments (c-point 'eol))
-			 (- (current-column) ind-col)))))
-    (beginning-of-line)
-    (backward-up-list 1)
-    (forward-char)
-    (let ((after-paren-pos (point)))
-      (c-forward-comments (c-point 'eol))
-      (if (eolp)
-	  (goto-char after-paren-pos)))
-    (vector (- (current-column) ws-length)))))
+    (let ((ws-length (c-leading-comment-length)))
+      (beginning-of-line)
+      (backward-up-list 1)
+      (forward-char)
+      (let ((after-paren-pos (point)))
+	(c-forward-comments (c-point 'eol))
+	(if (eolp)
+	    (goto-char after-paren-pos)))
+      (vector (- (current-column) ws-length)))))
 
 (defun c-lineup-item-after-paren-at-boi (_langelem)
   "Line up to just after the surrounding open paren at boi.

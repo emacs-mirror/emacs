@@ -11,7 +11,7 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(__file__))
-from common import log, read_msg, write_msg, harakiri
+from common import log, read_msg, harakiri, reply, reply_error
 
 HANDLERS = {
     '+': lambda p: sum(p),
@@ -38,16 +38,14 @@ def main():
             continue
         handler = HANDLERS.get(method)
         if handler is None:
-            write_msg({'jsonrpc': '2.0', 'id': mid,
-                       'error': {'code': -32601, 'message': 'Method not found'}})
+            reply_error(msg, -32601, 'Method not found')
         else:
             try:
                 result = handler(msg.get('params', []))
-                write_msg({'jsonrpc': '2.0', 'id': mid, 'result': result})
+                reply(msg, result)
                 log(f'-> (response {method}) id={mid}')
             except Exception as exc:
-                write_msg({'jsonrpc': '2.0', 'id': mid,
-                           'error': {'code': -32603, 'message': str(exc)}})
+                reply_error(msg, -32603, str(exc))
 
 
 if __name__ == '__main__':

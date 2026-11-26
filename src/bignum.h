@@ -146,6 +146,21 @@ emacs_mpz_size (mpz_t const z)
   return size;
 }
 
+/* Return the number of bits needed to represent Z.  Act like
+   mpz_sizeinbase (Z, 2), except do not overflow if the correct answer
+   exceeds SIZE_MAX.  */
+INLINE unsigned long long int
+mpz_bit_width (mpz_t const z)
+{
+  /* This implementation is likely faster than libgmp's, so don't defer
+     to mpz_sizeinbase for small args.  */
+  static_assert (INT_MAX <= ULLONG_MAX / GMP_NUMB_BITS);
+  ptrdiff_t nlimbs = emacs_mpz_size (z);
+  return (!nlimbs ? 0
+	  : ((nlimbs - 1) * (unsigned long long int) {GMP_NUMB_BITS}
+	     + stdc_bit_width (mpz_getlimbn (z, nlimbs - 1))));
+}
+
 INLINE_HEADER_END
 
 #endif /* BIGNUM_H */

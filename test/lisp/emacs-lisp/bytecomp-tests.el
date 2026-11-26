@@ -2391,6 +2391,21 @@ emacs-test-TEMP:1:1: Warning: file has no `lexical-binding' directive on its fir
 emacs-test-TEMP:1:7: Warning: assignment to free variable `y'
 ")))
 
+(ert-deftest byte-compile-file/no-byte-compile-dir-locals ()
+  (let* ((src-file (ert-resource-file ".dir-locals.el"))
+         (dest-file (make-temp-file "bytecomp-tests-" nil ".elc"))
+         (byte-compile-dest-file-function (lambda (_) dest-file)))
+    (should (eq (byte-compile-file src-file) 'no-byte-compile))
+    (should-not (file-exists-p dest-file))))
+
+(ert-deftest byte-compile-file/no-byte-compile-dir-locals-2 ()
+  (let* ((src-file (ert-resource-file ".dir-locals-2.el"))
+         (dest-file (make-temp-file "bytecomp-tests-" nil ".elc"))
+         (byte-compile-dest-file-function (lambda (_) dest-file)))
+    (should (eq (byte-compile-file src-file) 'no-byte-compile))
+    (should-not (file-exists-p dest-file))))
+;;     (should-not (file-exists-p dest-file))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

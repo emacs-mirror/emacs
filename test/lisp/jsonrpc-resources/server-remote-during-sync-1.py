@@ -11,7 +11,7 @@ Choreography (tests bug#80623):
 import os
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from common import read_msg, write_msg, log, harakiri
+from common import read_msg, write_msg, log, harakiri, reply
 
 
 def main():
@@ -29,7 +29,7 @@ def main():
                        'method': 'RR1', 'params': {}})
             log('-> RR1 id=1000')
             # Immediately reply to LR1
-            write_msg({'jsonrpc': '2.0', 'id': mid, 'result': 'lr1-ok'})
+            reply(msg, 'lr1-ok')
             log(f'-> (response LR1) id={mid}')
             # Now wait for reply to RR1
             resp = read_msg()

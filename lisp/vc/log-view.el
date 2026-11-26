@@ -401,28 +401,24 @@ characters."
   (when (xor beg end)
     (error "log-view--mark-unmark called with invalid arguments"))
   (if (and beg end)
-      (let ((processed-line nil)
-            ;; Exclude the region's last line if the region ends right
-            ;; at the beginning of that line or almost at the beginning.
-            ;; This is like the `file' value of `dired-mark-region'.
-            ;; We don't want to include the last line unless the region
-            ;; visually includes that revision.
-            (lastl (save-excursion
-                     (goto-char end)
-                     (skip-syntax-backward "^w")
-                     (if (bolp)
-                         (1- (line-number-at-pos))
-                       (line-number-at-pos)))))
-        (save-excursion
-          (goto-char beg)
-          (while-let ((n (line-number-at-pos))
-                      ;; Make sure we don't get stuck processing the
-                      ;; same line infinitely.
-                      ((<= (line-number-at-pos) lastl))
-                      ((not (eq processed-line n))))
-            (setq processed-line n)
-            (funcall mark-unmark-function)))
-        (setq deactivate-mark t))
+      (save-excursion
+        (cl-loop ;; Exclude the region's last line if the region ends
+                 ;; right at the beginning of that line or almost at the
+                 ;; beginning.  This is like the `file' value of
+                 ;; `dired-mark-region'.  We don't want to include the
+                 ;; last line unless the region visually includes that
+                 ;; revision.
+                 with lastl = (progn
+                                (goto-char end)
+                                (skip-syntax-backward "^w")
+                                (if (bolp) (1- (point)) (pos-eol 1)))
+                 initially (goto-char beg)
+                 for processed-pos = (point)
+                 while (<= processed-pos lastl)
+                 do (funcall mark-unmark-function)
+                 ;; Guard against getting stuck.
+                 while (> (point) processed-pos)
+                 finally (setq deactivate-mark t)))
     (dotimes (_ arg)
       (funcall mark-unmark-function))))
 
@@ -499,16 +495,19 @@ See `log-view-mark-entry'."
 (defun log-view--restore-marks ()
   "Return a function to restore log entry marks after `revert-buffer'.
 Added to `revert-buffer-restore-functions' by Log View mode."
-  (let ((table (make-hash-table :test #'equal)))
-    (dolist (mark (log-view-get-marked))
-      (puthash mark t table))
-    (lambda ()
-      (vc-run-delayed
-        (log-view--mark-unmark (lambda ()
-                                 (if (gethash (log-view-current-tag) table)
-                                     (log-view--mark-entry)
-                                   (log-view-msg-next 1)))
-                               nil (point-min) (point-max))))))
+  (if-let* ((marked (log-view-get-marked)))
+      (let ((table (make-hash-table :test #'equal)))
+        (dolist (mark marked)
+          (puthash mark t table))
+        (lambda ()
+          (vc-run-delayed
+            (log-view--mark-unmark
+             (lambda ()
+               (if (gethash (log-view-current-tag) table)
+                   (log-view--mark-entry)
+                 (log-view-msg-next 1)))
+             nil (point-min) (point-max)))))
+    #'ignore))
 
 (defun log-view-toggle-entry-display ()
   "If possible, expand the current Log View entry.

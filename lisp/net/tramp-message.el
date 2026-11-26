@@ -208,6 +208,26 @@ They are completed by `M-x TAB' only in Tramp debug buffers."
   (declare (tramp-suppress-trace t))
   (string-replace "*debug" "*trace" (tramp-debug-buffer-name vec)))
 
+;; On some systems, file names starting with "*" do not work.
+(defun tramp-get-trace-file-name (vec)
+  "Get the trace file name for VEC."
+  (declare (tramp-suppress-trace t))
+  (expand-file-name
+   (string-replace
+    "/" " " (substring (tramp-trace-buffer-name vec) 1 -1))
+   tramp-compat-temporary-file-directory))
+
+(defun tramp-advice-trace--insert (msg)
+  (when tramp-debug-to-file
+    (ignore-errors
+      (write-region
+       msg nil (tramp-get-trace-file-name (car tramp-current-connection))
+       'append))))
+
+(defun tramp-remove-advice-trace--insert ()
+  (remove-function
+   (symbol-function 'trace--insert) #'tramp-advice-trace--insert))
+
 (defvar tramp-trace-functions nil
   "A list of non-Tramp functions to be traced with `tramp-verbose' > 10.")
 
@@ -253,7 +273,15 @@ ARGUMENTS to actually emit the message (if applicable)."
 		   (rx bos "with-" (? "parsed-") "tramp-") #'macrop)
 		  tramp-trace-functions))
 	      (unless (get elt 'tramp-suppress-trace)
-		(trace-function-background elt (tramp-trace-buffer-name vec)))))
+		(trace-function-background elt (tramp-trace-buffer-name vec))))
+	    ;; Delete trace file.  Advice `trace--insert'.
+	    (when (and tramp-debug-to-file (tramp-get-trace-file-name vec))
+	      (ignore-errors (delete-file (tramp-get-trace-file-name vec)))
+	      (add-function
+	       :after (symbol-function 'trace--insert)
+	       #'tramp-advice-trace--insert)
+	      (add-hook 'tramp-cleanup-all-connections-hook
+			#'tramp-remove-advice-trace--insert)))
 	  ;; Delete debug file.  Announce its further existence.
 	  (when (and tramp-debug-to-file (tramp-get-debug-file-name vec))
 	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))
@@ -502,14 +530,15 @@ to `tramp-message'."
 (defun tramp-test-message (fmt-string &rest arguments)
   "Emit a Tramp message according `default-directory'."
   (declare (tramp-suppress-trace t))
-  (cond
-   ((tramp-tramp-file-p default-directory)
-    (apply #'tramp-message
-	   (tramp-dissect-file-name default-directory) 0 fmt-string arguments))
-   ((tramp-file-name-p (car tramp-current-connection))
-    (apply #'tramp-message
-	   (car tramp-current-connection) 0 fmt-string arguments))
-   (t (apply #'message fmt-string arguments))))
+  (let (inhibit-message)
+    (cond
+     ((tramp-tramp-file-p default-directory)
+      (apply #'tramp-message
+	     (tramp-dissect-file-name default-directory) 0 fmt-string arguments))
+     ((tramp-file-name-p (car tramp-current-connection))
+      (apply #'tramp-message
+	     (car tramp-current-connection) 0 fmt-string arguments))
+     (t (apply #'message fmt-string arguments)))))
 
 (defun tramp-debug-button-action (button)
   "Goto the linked message in debug buffer at place."

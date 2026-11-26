@@ -639,6 +639,7 @@ even if it is dead.  The return value is never nil.  */)
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
   b->text->inhibit_shrinking = false;
   b->text->redisplay = false;
+  b->text->disable_display_forms = false;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -3065,6 +3066,16 @@ current buffer is cleared.  */)
 
   return flag;
 }
+
+DEFUN ("set-buffer--disable-display-forms", Fset_buffer__disable_display_forms,
+       Sset_buffer__disable_display_forms, 0, 0, 0,
+       doc: /* Disable evaluation of Lisp forms in current buffer's `display' properties.  */)
+  (void)
+{
+  current_buffer->text->disable_display_forms = 1;
+  return Qnil;
+}
+
 
 DEFUN ("kill-all-local-variables", Fkill_all_local_variables,
        Skill_all_local_variables, 0, 1, 0,
@@ -6200,6 +6211,7 @@ There is no reason to change that value except for debugging purposes.  */);
   defsubr (&Serase_buffer);
   defsubr (&Sbuffer_swap_text);
   defsubr (&Sset_buffer_multibyte);
+  defsubr (&Sset_buffer__disable_display_forms);
   defsubr (&Skill_all_local_variables);
 
   defsubr (&Soverlayp);

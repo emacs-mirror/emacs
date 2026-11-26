@@ -271,9 +271,7 @@ symset_add (json_out_t *jo, symset_t *ss, Lisp_Object sym)
 static NO_INLINE void
 json_out_grow_buf (json_out_t *jo, ptrdiff_t incr_min)
 {
-  ptrdiff_t new_size = jo->capacity;
-  jo->buf = xpalloc (jo->buf, &new_size, incr_min, -1, 1);
-  jo->capacity = new_size;
+  jo->buf = xpalloc (jo->buf, &jo->capacity, incr_min, -1, 1);
 }
 
 static void

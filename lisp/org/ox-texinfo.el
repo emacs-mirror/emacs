@@ -2,7 +2,6 @@
 
 ;; Copyright (C) 2012-2026 Free Software Foundation, Inc.
 ;; Author: Jonathan Leech-Pepin <jonathan.leechpepin at gmail dot com>
-;; Maintainer: Rudolf Adamkovič <rudolf@adamkovic.org>
 ;; Keywords: outlines, hypermedia, calendar, text
 
 ;; This file is part of GNU Emacs.

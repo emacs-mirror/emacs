@@ -4597,7 +4597,7 @@ string_to_number (char const *string, int base, ptrdiff_t *plen)
 
 static Lisp_Object initial_obarray;
 
-static Lisp_Object make_obarray (unsigned bits);
+static Lisp_Object make_obarray (c_bit_width_t bits);
 
 /* Slow path obarray check: return the obarray to use or signal an error.  */
 Lisp_Object
@@ -4949,7 +4949,7 @@ allocate_obarray (void)
 }
 
 static Lisp_Object
-make_obarray (unsigned bits)
+make_obarray (c_bit_width_t bits)
 {
   struct Lisp_Obarray *o = allocate_obarray ();
   o->count = 0;
@@ -4968,16 +4968,21 @@ make_obarray (unsigned bits)
 enum {
   obarray_default_bits = 3,
 
-  /* The ceiling of the log base 2 of the word size, good through 192
-     and checked in the static_assert below.  */
-  word_size_log2 = ((EMACS_INT_WIDTH <= 32 ? 5 : 6)
-		    + (EMACS_INT_WIDTH - 1) / 64),
+  /* The ceiling of the log base 2 of the number of bits in a Lisp word,
+     good through 192 bits and checked in the static_assert below.  */
+  CEIL_LOG2_EMACS_INT_WIDTH = ((EMACS_INT_WIDTH <= 32 ? 5 : 6)
+			       + (EMACS_INT_WIDTH - 1) / 64),
 
-  obarray_max_bits = min (8 * sizeof (int),
-			  8 * sizeof (ptrdiff_t) - word_size_log2) - 2,
+  obarray_max_bits = min (/* Indexes must fit in fixnum.  */
+			  FIXNUM_BITS - 1,
+			  /* The array buckets' total size in bytes must
+			     fit in ptrdiff_t and in size_t.  */
+			  (min (PTRDIFF_WIDTH - 2, SIZE_WIDTH - 1)
+			   - CEIL_LOG2_EMACS_INT_WIDTH))
 };
-static_assert (1 << (word_size_log2 - 1) < EMACS_INT_WIDTH
-	       && EMACS_INT_WIDTH <= 1 << word_size_log2);
+static_assert (1 << (CEIL_LOG2_EMACS_INT_WIDTH - 1) < EMACS_INT_WIDTH
+	       && EMACS_INT_WIDTH <= 1 << CEIL_LOG2_EMACS_INT_WIDTH);
+static_assert (obarray_default_bits <= obarray_max_bits);
 
 static void
 grow_obarray (struct Lisp_Obarray *o)
@@ -4988,7 +4993,7 @@ grow_obarray (struct Lisp_Obarray *o)
 
   if (obarray_max_bits <= o->size_bits)
     error ("Obarray too big");
-  int new_bits = o->size_bits + 1;
+  c_bit_width_t new_bits = o->size_bits + 1;
   ptrdiff_t new_size = (ptrdiff_t) {1} << new_bits;
 #ifdef HAVE_MPS
   o->buckets = hash_table_alloc_kv (o, new_size);
@@ -5032,7 +5037,7 @@ The obarray will grow to accommodate any number of symbols; the size, if
 given, is only a hint for the expected number.  */)
   (Lisp_Object size)
 {
-  int bits;
+  c_bit_width_t bits;
   if (NILP (size))
     bits = obarray_default_bits;
   else
@@ -5076,8 +5081,7 @@ DEFUN ("obarray-clear", Fobarray_clear, Sobarray_clear, 1, 1, 0,
 #ifdef HAVE_MPS
   hash_table_free_kv (o, o->buckets, -1 /* ignored */);
 #else
-  int old_size = obarray_size (o);
-  hash_table_free_bytes (o->buckets, old_size * sizeof *o->buckets);
+  hash_table_free_bytes (o->buckets, obarray_size (o) * sizeof *o->buckets);
 #endif
   o->buckets = new_buckets;
   o->size_bits = new_bits;

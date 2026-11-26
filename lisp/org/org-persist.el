@@ -266,6 +266,7 @@
 
 ;; Silence byte-compiler (used in `org-persist--write-elisp-file').
 (defvar pp-use-max-width)
+(defvar pp-default-function)
 
 (defconst org-persist--storage-version "3.2"
   "Persistent storage layout version.")
@@ -489,8 +490,13 @@ moderately large data)."
     (with-temp-file tmp-file
       (insert ";;   -*- mode: lisp-data; -*-\n")
       (if pp
-          (let ((pp-use-max-width nil)) ; Emacs bug#58687
-            (pp data (current-buffer)))
+          (with-suppressed-warnings ((obsolete pp-use-max-width))
+            (let ((pp-default-function
+                   ;; If `pp-28' is not defined, `pp-default-function'
+                   ;; is also not there.
+                   (when (fboundp 'pp-28) #'pp-28))
+                  (pp-use-max-width nil)) ; Emacs bug#58687
+              (pp data (current-buffer))))
         (prin1 data (current-buffer))))
     (rename-file tmp-file file 'overwrite)
     (org-persist--display-time

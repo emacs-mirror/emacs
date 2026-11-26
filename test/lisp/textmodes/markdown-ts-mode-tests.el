@@ -20,6 +20,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'treesit)
 (require 'url-vars)
 (require 'markdown-ts-mode)
@@ -189,6 +190,39 @@ See URL `https://spec.commonmark.org/0.31.2/#atx-headings'."
                                        (char-after pos)))
                                    (number-sequence
                                     1 (length (car case)))))))))))
+
+(ert-deftest markdown-ts-mode-test-dollar-syntax ()
+  "A symbol inside $...$ math can be prettified.
+The $ delimiter must not pair with `electric-pair-mode', as
+amounts like $5 use it too."
+  (skip-unless (and (treesit-ready-p 'markdown t)
+                    (treesit-ready-p 'markdown-inline t)))
+  (ert-with-test-buffer ()
+    (insert "$\\Gamma$\n")
+    (markdown-ts-mode)
+    ;; ASCII, as `prettify-symbols-mode' drops undisplayable symbols.
+    (setq-local prettify-symbols-alist '(("\\Gamma" . ?G)))
+    (prettify-symbols-mode)
+    (font-lock-ensure)
+    (should (get-text-property 2 'composition)))
+  (ert-with-test-buffer ()
+    (markdown-ts-mode)
+    (electric-pair-local-mode)
+    (let ((last-command-event ?$))
+      (call-interactively #'self-insert-command))
+    (should (equal (buffer-string) "$"))))
+
+(ert-deftest markdown-ts-mode-test-fill-paragraph ()
+  "`fill-paragraph' respects lists, block quotes, code blocks and tables."
+  (skip-unless (and (treesit-ready-p 'markdown t)
+                    (treesit-ready-p 'markdown-inline t)))
+  (ert-test-erts-file (ert-resource-file "fill-paragraph.erts")))
+
+(ert-deftest markdown-ts-mode-test-fill-region ()
+  "`fill-region' fills paragraphs and list items separately."
+  (skip-unless (and (treesit-ready-p 'markdown t)
+                    (treesit-ready-p 'markdown-inline t)))
+  (ert-test-erts-file (ert-resource-file "fill-region.erts")))
 
 (provide 'markdown-ts-mode-tests)
 

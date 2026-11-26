@@ -208,13 +208,32 @@ of master file."
         (level 1)
         (highest-level 100)
         toc-entry index-entry next-buf buf
-        (verbatim-p (lambda ()
-                      (let ((syntax (save-match-data (syntax-ppss))))
-                        (or
-                         ;; This is for AUCTeX `LaTeX-mode':
-                         (nth 3 syntax)
-                         ;; This is for built-in `latex-mode':
-                         (nth 4 syntax))))))
+        (ignore-p
+         ;; We are inside `reftex-with-special-syntax' using
+         ;; `reftex-syntax-table' when we call `syntax-ppss' within
+         ;; `TeX-verbatim-p' or below for `latex-mode', so we have to
+         ;; switch back to major-mode's syntax table in order to get
+         ;; correct results.
+         (cond ((derived-mode-p 'LaTeX-mode)
+                ;; This is for AUCTeX `LaTeX-mode':
+                (lambda ()
+                  (and (fboundp 'TeX-verbatim-p)
+                       (boundp 'LaTeX-mode-syntax-table)
+                       (with-syntax-table LaTeX-mode-syntax-table
+                         (TeX-verbatim-p)))))
+               ;; This is for built-in `latex-mode':
+               ((derived-mode-p 'latex-mode)
+                (lambda ()
+                  (and (boundp 'tex-mode-syntax-table)
+                       (with-syntax-table tex-mode-syntax-table
+                         (let ((syntax (save-match-data
+                                         (syntax-ppss))))
+                           (or
+                            ;; Non-nil for \verb macro
+                            (nth 3 syntax)
+                            ;; Non-nil for verbatim environment
+                            (nth 4 syntax)))))))
+               (t #'ignore))))
 
     (catch 'exit
       (setq file-found (reftex-locate-file file "tex" master-dir))
@@ -266,7 +285,7 @@ of master file."
 
                 ;; It is a section
                 ((match-end 3)
-                 (unless (funcall verbatim-p)
+                 (unless (funcall ignore-p)
                    ;; Use the beginning as bound and not the end
                    ;; (i.e. (point)) because the section command might
                    ;; be the start of the current environment to be
@@ -298,7 +317,7 @@ of master file."
 
                 ;; It's an include or input
                 ((match-end 7)
-                 (unless (funcall verbatim-p)
+                 (unless (funcall ignore-p)
                    (setq include-file (reftex-match-string 7))
                    ;; Test if this file should be ignored
                    (unless (delq nil (mapcar
@@ -312,14 +331,14 @@ of master file."
 
                 ;; Appendix starts here
                 ((match-end 9)
-                 (unless (funcall verbatim-p)
+                 (unless (funcall ignore-p)
                    (reftex-init-section-numbers nil t)
                    (push (cons 'appendix t) docstruct)))
 
                 ;; Index entry
                 ((match-end 10)
                  (when (and reftex-support-index
-                            (not (funcall verbatim-p)))
+                            (not (funcall ignore-p)))
                    (setq index-entry (reftex-index-info file))
                    (when index-entry
                      (cl-pushnew (nth 1 index-entry) reftex--index-tags :test #'equal)
@@ -353,7 +372,7 @@ of master file."
              (goto-char 1)
              (when (and (re-search-forward
                          "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
-                        (not (funcall verbatim-p)))
+                        (not (funcall ignore-p)))
                (push (cons 'thebib file) docstruct))
 
              ;; Find external document specifications
@@ -369,7 +388,7 @@ of master file."
                              ;; Mandatory file argument
                              "{\\([^}]+\\)}")
                      nil t)
-               (unless (funcall verbatim-p)
+               (unless (funcall ignore-p)
                  (push (list 'xr-doc (reftex-match-string 2)
                              (reftex-match-string 3))
                        docstruct)))

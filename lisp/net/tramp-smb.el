@@ -2047,7 +2047,32 @@ If ARGUMENT is non-nil, use it as argument for
 		      (tramp-set-connection-property p "chunksize" 1)
 
 		      ;; Mark it as connected.
-		      (tramp-set-connection-property p "connected" t))
+		      (tramp-set-connection-property p "connected" t)
+
+		      ;; A share has the permissions "dr-xr-xr-x" per
+		      ;; default, because we don't know better.  Check
+		      ;; it.
+		      (when-let*
+			  ((share)
+			   (share-cache
+			    (tramp-get-connection-property vec "share-cache"))
+			   (share-attr (assoc-default share share-cache))
+			   (test-file
+			    (tramp-make-tramp-file-name
+			     vec (concat "/" share "/tramp-test-file")))
+			   (remote-file-name-inhibit-auto-save t)
+			   (remote-file-name-inhibit-locks t))
+			(condition-case nil
+			    (progn
+			      (make-empty-file test-file)
+			      (setcar share-attr "drwxrwxrwx")
+			      (tramp-set-connection-property
+			       vec "share-cache" share-cache)
+			      (tramp-flush-file-properties vec "/")
+			      (tramp-flush-file-properties
+			       vec (concat "/" share))
+			      (delete-file test-file))
+			  (error nil))))
 
 		  ;; Check for the error reason.  If it was due to
 		  ;; wrong password, reestablish the connection.  We

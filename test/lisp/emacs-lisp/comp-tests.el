@@ -81,4 +81,12 @@
       (dolist (f (list f1 f2 f3 f4))
 	(should (file-regular-p f))))))
 
+(ert-deftest test-native-compile-ignores-dir-locals ()
+  (skip-unless (featurep 'native-compile))
+  (with-test-native-compile-prune-cache
+   (comp--native-compile ".dir-locals.el")
+   (should-not (file-regular-p (expand-file-name ".dir-locals.eln" usr-cache)))
+   (comp--native-compile ".dir-locals-2.el")
+   (should-not (file-regular-p (expand-file-name ".dir-locals-2.eln" usr-cache)))))
+
 ;;; comp-tests.el ends here

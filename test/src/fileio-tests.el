@@ -278,4 +278,36 @@ Also check that an encoding error can appear in a symlink."
       (should asked))))
 
 
+(ert-deftest fileio-tests--copy-file-to-itself ()
+  "Copying a file onto itself is an error and leaves the file alone."
+  (ert-with-temp-file file
+    :text "contents"
+    (should-error (copy-file file file t) :type 'file-error)
+    (should (equal (with-temp-buffer
+                     (insert-file-contents-literally file)
+                     (buffer-string))
+                   "contents"))
+    ;; The same goes for another name of the same file.
+    (ert-with-temp-file link
+      :suffix "-link"
+      (delete-file link)
+      (add-name-to-file file link)
+      (should-error (copy-file file link t) :type 'file-error)
+      (should (equal (with-temp-buffer
+                       (insert-file-contents-literally file)
+                       (buffer-string))
+                     "contents")))))
+
+(ert-deftest fileio-tests--copy-file-replaces-longer-file ()
+  "Copying over a longer file leaves only the new contents."
+  (ert-with-temp-file from
+    :text "new"
+    (ert-with-temp-file to
+      :text "old and longer"
+      (copy-file from to t)
+      (should (equal (with-temp-buffer
+                       (insert-file-contents-literally to)
+                       (buffer-string))
+                     "new")))))
+
 ;;; fileio-tests.el ends here

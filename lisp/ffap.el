@@ -866,6 +866,13 @@ to extract substrings.")
                        (buffer-string)))))
    (string-match "Apple \\(LLVM\\|[Cc]lang\\)\\|Xcode\\.app" out)))
 
+(defun ffap--darwin-bypass-xcode-p ()
+  "Return non-nil on `darwin' and Xcode Command Line Tools is not installed.
+Otherwise return nil if not on `darwin', or if the tools are installed."
+  (and (eq system-type 'darwin)
+       (not (zerop (ignore-errors
+                     (call-process "xcode-select" nil nil nil "-p"))))))
+
 (defun ffap--c-path ()
   "Return search path for C header files (a list of strings)."
   ;; FIXME: It's not clear that this is a good place to put this, or
@@ -873,53 +880,59 @@ to extract substrings.")
   ;; See also (Bug#10702):
   ;; cc-search-directories, semantic-c-dependency-system-include-path,
   ;; semantic-gcc-setup
-  (delete-dups
-   ;; We treat MS-Windows/MS-DOS specially, since there's no
-   ;; widely-accepted canonical directory for C include files.
-   (let ((base (if (not (memq system-type '(windows-nt ms-dos)))
-                   '("/usr/include" "/usr/local/include")))
-         (call-clang-p (or (ffap--gcc-is-clang-p)
-                           (and (executable-find "clang")
-                                (not (executable-find "gcc"))))))
-     (cond ((or call-clang-p
-                (memq system-type '(windows-nt ms-dos)))
-            ;; This is either macOS, or MS-Windows/MS-DOS, or a system
-            ;; with clang only.
-            (with-temp-buffer
-              (ignore-errors
-                (call-process (if call-clang-p "clang" "gcc")
-                              nil t nil
-                              "-v" "-E" "-"))
-              (goto-char (point-min))
-              (narrow-to-region
-               (save-excursion
-                 (re-search-forward
-                  "^#include <\\.\\.\\.> search starts here:\n" nil t)
-                 (point))
-               (save-excursion
-                 (re-search-forward "^End of search list.$" nil t)
-                 (pos-bol)))
-              (while (search-forward "(framework directory)" nil t)
-                (delete-line))
-              ;; "gcc -v" reports file names with many "..", so we
-              ;; normalize it.
-              (or (mapcar #'expand-file-name
-                          (append base
-                                  (split-string (buffer-substring-no-properties
-                                                 (point-min) (point-max)))))
-                  ;; Fallback for when the compiler is not available.
-                  (list (expand-file-name "/usr/include")
-                        (expand-file-name "/usr/local/include")))))
-           ;; Prefer GCC.
-           ((let ((arch (with-temp-buffer
-                          (when (eq 0 (ignore-errors
-                                        (call-process "gcc" nil '(t nil) nil
-                                                      "-print-multiarch")))
-                            (goto-char (point-min))
-                            (buffer-substring (point) (line-end-position))))))
-              (if (zerop (length arch))
-                  base
-                (append base (list (expand-file-name arch "/usr/include"))))))))))
+  ;;
+  ;; To avoid the user being prompted unexpectedly to install Xcode,
+  ;; bypass running gcc, clang, g++ if Xcode Command Line Tools is not
+  ;; installed.
+  (unless (ffap--darwin-bypass-xcode-p)
+    (delete-dups
+     ;; We treat MS-Windows/MS-DOS specially, since there's no
+     ;; widely-accepted canonical directory for C include files.
+     (let ((base (if (not (memq system-type '(windows-nt ms-dos)))
+                     '("/usr/include" "/usr/local/include")))
+           (call-clang-p (or (ffap--gcc-is-clang-p)
+                             (and (executable-find "clang")
+                                  (not (executable-find "gcc"))))))
+       (cond ((or call-clang-p
+                  (memq system-type '(windows-nt ms-dos)))
+              ;; This is either macOS, or MS-Windows/MS-DOS, or a system
+              ;; with clang only.
+              (with-temp-buffer
+                (ignore-errors
+                  (call-process (if call-clang-p "clang" "gcc")
+                                nil t nil
+                                "-v" "-E" "-"))
+                (goto-char (point-min))
+                (narrow-to-region
+                 (save-excursion
+                   (re-search-forward
+                    "^#include <\\.\\.\\.> search starts here:\n" nil t)
+                   (point))
+                 (save-excursion
+                   (re-search-forward "^End of search list.$" nil t)
+                   (pos-bol)))
+                (while (search-forward "(framework directory)" nil t)
+                  (delete-line))
+                ;; "gcc -v" reports file names with many "..", so we
+                ;; normalize it.
+                (or (mapcar #'expand-file-name
+                            (append base
+                                    (split-string (buffer-substring-no-properties
+                                                   (point-min) (point-max)))))
+                    ;; Fallback for when the compiler is not available.
+                    (list (expand-file-name "/usr/include")
+                          (expand-file-name "/usr/local/include")))))
+             ;; Prefer GCC.
+             ((let ((arch (with-temp-buffer
+                            (when (eq 0 (ignore-errors
+                                          (call-process "gcc" nil '(t nil) nil
+                                                        "-print-multiarch")))
+                              (goto-char (point-min))
+                              (buffer-substring (point) (line-end-position))))))
+                (if (zerop (length arch))
+                    base
+                  (append base (list (expand-file-name arch
+                                                       "/usr/include")))))))))))
 
 (defvar ffap-c-path (ffap--c-path)      ;FIXME: Delay initialization?
   "List of directories to search for include files.")
@@ -928,22 +941,26 @@ to extract substrings.")
   (ffap-locate-file name t ffap-c-path))
 
 (defvar ffap-c++-path      ;FIXME: Delay initialization?
-  (let ((c++-include-dir (with-temp-buffer
-                           (when (eq 0 (ignore-errors
-                                         (call-process "g++" nil t nil "-v")))
-                             (goto-char (point-min))
-                             (if (re-search-forward "--with-gxx-include-dir=\
+  ;; To avoid the user being prompted unexpectedly to install Xcode,
+  ;; bypass running gcc, clang, g++ if Xcode Command Line Tools is not
+  ;; installed.
+  (unless (ffap--darwin-bypass-xcode-p)
+    (let ((c++-include-dir (with-temp-buffer
+                             (when (eq 0 (ignore-errors
+                                           (call-process "g++" nil t nil "-v")))
+                               (goto-char (point-min))
+                               (if (re-search-forward "--with-gxx-include-dir=\
 \\([^[:space:]]+\\)"
                                                       nil 'noerror)
-                                 (match-string 1)
-                               (when (re-search-forward "gcc version \
+                                   (match-string 1)
+                                 (when (re-search-forward "gcc version \
 \\([[:digit:]]+.[[:digit:]]+.[[:digit:]]+\\)"
-                                                   nil 'noerror)
-                                 (expand-file-name (match-string 1)
-                                                   "/usr/include/c++/")))))))
-    (if c++-include-dir
-        (cons c++-include-dir ffap-c-path)
-      ffap-c-path))
+                                                          nil 'noerror)
+                                   (expand-file-name (match-string 1)
+                                                     "/usr/include/c++/")))))))
+      (if c++-include-dir
+          (cons c++-include-dir ffap-c-path)
+        ffap-c-path)))
   "List of directories to search for include files.")
 
 (defun ffap-c++-mode (name)
@@ -1710,7 +1727,8 @@ Uses the face `ffap' if it is defined, or else `highlight'."
 ;;;###autoload
 (defun find-file-at-point (&optional filename)
   "Find FILENAME, guessing a default from text around point.
-If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
+If `ffap-url-regexp' is a string, the FILENAME may also be a URL
+which matches the regexp in `ffap-url-regexp'.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards',

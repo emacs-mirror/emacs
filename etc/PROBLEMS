@@ -3620,6 +3620,16 @@ Indeed, the configure script will not allow this unless you use the
 See bug#50666 (https://debbugs.gnu.org/cgi/bugreport.cgi?bug=50666)
 for further discussion.
 
+* Build-time problems specific to macOS
+
+** Running the 'configure' script invokes 'curl', which requests approval.
+
+As far as we know, this is caused by brew.sh to resolve dependencies in
+pkg-config or to check version numbers.  There are also telemetry calls
+related to this that go to analytics.brew.sh.  To disable this, run the
+command "brew analytics off" in a shell.  Alternatively, set
+HOMEBREW_NO_ANALYTICS=1 in the environment before running the
+'configure' script.
 
 * Runtime problems specific to macOS
 

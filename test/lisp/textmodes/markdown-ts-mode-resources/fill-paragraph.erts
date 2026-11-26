@@ -1,0 +1,351 @@
+Point-Char: @
+
+Code:
+  (lambda ()
+    (markdown-ts-mode)
+    (setq fill-column 70)
+    (fill-paragraph))
+
+Name: list item does not merge with next item
+
+=-=
+@- This is a very long list item that should be filled properly when you press M-q and it should not merge with the next list item below it.
+- This is a separate list item that should remain separate after filling the item above.
+=-=
+- This is a very long list item that should be filled properly when
+  you press M-q and it should not merge with the next list item below
+  it.
+- This is a separate list item that should remain separate after filling the item above.
+=-=-=
+
+Name: code block is not filled
+
+=-=
+```
+This code block content should never be @reflowed by fill-paragraph no matter how long the lines are in here because code formatting matters.
+```
+=-=
+```
+This code block content should never be reflowed by fill-paragraph no matter how long the lines are in here because code formatting matters.
+```
+=-=-=
+
+Name: table is not filled
+
+=-=
+| Column 1 with long text | Column 2 with long text | Column 3 with long text |
+| ----------------------- | ----------------------- | ----------------------- |
+| data that @should not    | be reflowed by          | fill-paragraph          |
+=-=
+| Column 1 with long text | Column 2 with long text | Column 3 with long text |
+| ----------------------- | ----------------------- | ----------------------- |
+| data that should not    | be reflowed by          | fill-paragraph          |
+=-=-=
+
+Name: HTML comment aligns continuation lines
+
+=-=
+<!-- This is a very long HTML comment that @should be properly filled when pressing M-q and continuation lines should align with the text after the opening delimiter. -->
+=-=
+<!-- This is a very long HTML comment that should be properly filled
+     when pressing M-q and continuation lines should align with the
+     text after the opening delimiter. -->
+=-=-=
+
+Name: adaptive prefix, unordered item
+
+=-=
+@- This list item has a long first line and when filled, continuation lines should be indented to align with the text after the marker, not the marker itself.
+  1. This ordered list item should also have proper adaptive fill prefix where continuation lines align with the text, not the number.
+=-=
+- This list item has a long first line and when filled, continuation
+  lines should be indented to align with the text after the marker,
+  not the marker itself.
+  1. This ordered list item should also have proper adaptive fill prefix where continuation lines align with the text, not the number.
+=-=-=
+
+Name: adaptive prefix, nested ordered item
+
+=-=
+- This list item has a long first line and when filled, continuation lines should be indented to align with the text after the marker, not the marker itself.
+@  1. This ordered list item should also have proper adaptive fill prefix where continuation lines align with the text, not the number.
+=-=
+- This list item has a long first line and when filled, continuation lines should be indented to align with the text after the marker, not the marker itself.
+  1. This ordered list item should also have proper adaptive fill
+     prefix where continuation lines align with the text, not the
+     number.
+=-=-=
+
+Name: third item wraps, others untouched
+
+=-=
+- one is a short item that should not be touched at all
+- two is another short item that should remain exactly as it is
+@- three is a very long list item that absolutely needs to be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width by a significant amount
+- four is yet another short item that must stay on its own line
+=-=
+- one is a short item that should not be touched at all
+- two is another short item that should remain exactly as it is
+- three is a very long list item that absolutely needs to be wrapped
+  by fill-paragraph when you place your cursor on it and press M-q
+  because it clearly exceeds the fill-column width by a significant
+  amount
+- four is yet another short item that must stay on its own line
+=-=-=
+
+Name: second item wraps, others untouched
+
+=-=
+- one is a short item
+@- two is a very long list item that should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it exceeds the fill-column width significantly and needs to be broken into multiple lines
+- three is a short item
+- four is a short item
+=-=
+- one is a short item
+- two is a very long list item that should be wrapped by
+  fill-paragraph when you place your cursor on it and press M-q
+  because it exceeds the fill-column width significantly and needs to
+  be broken into multiple lines
+- three is a short item
+- four is a short item
+=-=-=
+
+Name: first item wraps, others untouched
+
+=-=
+@- This is a very long list item that should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it exceeds the fill-column width significantly.
+- short item
+- another short item
+=-=
+- This is a very long list item that should be wrapped by
+  fill-paragraph when you place your cursor on it and press M-q
+  because it exceeds the fill-column width significantly.
+- short item
+- another short item
+=-=-=
+
+Name: nested item wraps, no merging across levels
+
+=-=
+- outer one
+- outer two has some text here
+@  - inner one is a very long nested list item that should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width by a large margin
+  - inner two is short
+- outer three
+=-=
+- outer one
+- outer two has some text here
+  - inner one is a very long nested list item that should be wrapped
+    by fill-paragraph when you place your cursor on it and press M-q
+    because it clearly exceeds the fill-column width by a large margin
+  - inner two is short
+- outer three
+=-=-=
+
+Name: block quote wraps, nested levels kept
+
+=-=
+@> block quote that is a very long line and should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width by a significant amount
+>
+> > nested block quote
+> >
+> > - item
+> > - item
+> >   block quote
+=-=
+> block quote that is a very long line and should be wrapped by
+> fill-paragraph when you place your cursor on it and press M-q
+> because it clearly exceeds the fill-column width by a significant
+> amount
+>
+> > nested block quote
+> >
+> > - item
+> > - item
+> >   block quote
+=-=-=
+
+Name: lines without blank separator merge
+
+=-=
+@> This is a very long block quote line that should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column.
+> Short line.
+=-=
+> This is a very long block quote line that should be wrapped by
+> fill-paragraph when you place your cursor on it and press M-q
+> because it clearly exceeds the fill-column.  Short line.
+=-=-=
+
+Name: blank quote line separates paragraphs
+
+=-=
+@> This is a very long block quote line that should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column.
+>
+> Short line.
+=-=
+> This is a very long block quote line that should be wrapped by
+> fill-paragraph when you place your cursor on it and press M-q
+> because it clearly exceeds the fill-column.
+>
+> Short line.
+=-=-=
+
+Name: short nested line, blank line not merged
+
+=-=
+> block quote
+>
+> > nested @block quote
+> >
+> > - item
+> > - item
+> >   block quote
+=-=
+> block quote
+>
+> > nested block quote
+> >
+> > - item
+> > - item
+> >   block quote
+=-=-=
+
+Name: long nested line wraps, list untouched
+
+=-=
+> block quote
+>
+@> > nested block quote that is a very long line and should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width
+> >
+> > - item one
+> > - item two
+> >   block quote
+=-=
+> block quote
+>
+> > nested block quote that is a very long line and should be wrapped
+> > by fill-paragraph when you place your cursor on it and press M-q
+> > because it clearly exceeds the fill-column width
+> >
+> > - item one
+> > - item two
+> >   block quote
+=-=-=
+
+Name: spaced nested prefix is kept
+
+=-=
+> block quote
+>
+@> > nested block quote that is a very long line and should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width
+> >
+> > - item
+> >   block quote
+=-=
+> block quote
+>
+> > nested block quote that is a very long line and should be wrapped
+> > by fill-paragraph when you place your cursor on it and press M-q
+> > because it clearly exceeds the fill-column width
+> >
+> > - item
+> >   block quote
+=-=-=
+
+Name: compact nested prefix is kept
+
+=-=
+> block quote
+>
+@>> nested block quote that is a very long line and should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width
+>>
+>> - item
+>>   block quote
+=-=
+> block quote
+>
+>> nested block quote that is a very long line and should be wrapped
+>> by fill-paragraph when you place your cursor on it and press M-q
+>> because it clearly exceeds the fill-column width
+>>
+>> - item
+>>   block quote
+=-=-=
+
+Name: compact triple prefix is kept
+
+=-=
+@>>> deep block quote that is a very long line and should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width
+=-=
+>>> deep block quote that is a very long line and should be wrapped by
+>>> fill-paragraph when you place your cursor on it and press M-q
+>>> because it clearly exceeds the fill-column width
+=-=-=
+
+Name: spaced triple prefix is kept
+
+=-=
+@> > > deep block quote that is a very long line and should be wrapped by fill-paragraph when you place your cursor on it and press M-q because it clearly exceeds the fill-column width
+=-=
+> > > deep block quote that is a very long line and should be wrapped
+> > > by fill-paragraph when you place your cursor on it and press M-q
+> > > because it clearly exceeds the fill-column width
+=-=-=
+
+Name: short block-quoted list is unchanged
+
+=-=
+> > - item
+> > - @item
+=-=
+> > - item
+> > - item
+=-=-=
+
+Name: long block-quoted list item wraps
+
+=-=
+> > - item @weofij wefoijw efoijw efoiwje foiwejf oiwejf oiwefj owiefj woiefj woeifj weoifj weofij weofij weofij wefoij wefoijw efoiwje foij
+> > - item
+=-=
+> > - item weofij wefoijw efoijw efoiwje foiwejf oiwejf oiwefj owiefj
+> >   woiefj woeifj weoifj weofij weofij weofij wefoij wefoijw efoiwje
+> >   foij
+> > - item
+=-=-=
+
+Name: second paragraph of a list item (bug#82076)
+
+=-=
+- User enters email and password -- password is EXPIRED.
+
+  @Usually because they have been issued a temporary password, and have to create a real one before using the application. Password expiration on a schedule (e.g.
+  every 30 days, every 3 months) is NOT required, which
+  also means we don't need to check their password against previous passwords.
+=-=
+- User enters email and password -- password is EXPIRED.
+
+  Usually because they have been issued a temporary password, and have
+  to create a real one before using the application. Password
+  expiration on a schedule (e.g.  every 30 days, every 3 months) is
+  NOT required, which also means we don't need to check their password
+  against previous passwords.
+=-=-=
+
+Name: second paragraph of a list item, deeper indentation
+
+=-=
+- User enters email and password -- password is EXPIRED.
+
+    @Usually because they have been issued a temporary password, and have to create a real one before using the application. Password expiration on a schedule (e.g.
+    every 30 days, every 3 months) is NOT required, which
+    also means we don't need to check their password against previous passwords.
+=-=
+- User enters email and password -- password is EXPIRED.
+
+    Usually because they have been issued a temporary password, and
+    have to create a real one before using the application. Password
+    expiration on a schedule (e.g.  every 30 days, every 3 months) is
+    NOT required, which also means we don't need to check their
+    password against previous passwords.
+=-=-=

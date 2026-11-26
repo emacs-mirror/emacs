@@ -846,6 +846,30 @@ ns_frame_scale_factor (struct frame *f)
 #endif
 }
 
+/* Since redisplay can call arbitrary Lisp that may signal, we guard
+   against calling it while waiting_for_input is set, in which state any
+   signal causes an immediate abort.
+
+   If there is IO going on when redisplay is run here Emacs
+   crashes.  I think it's because this code will always be run
+   within the run loop and for whatever reason processing input
+   is dangerous.  This technique was stolen wholesale from
+   nsmenu.m and seems to work.
+
+   Use of this function probably implies a deeper bug that's hard to
+   fix.  */
+static void
+ns_safe_redisplay ()
+{
+  bool owfi = waiting_for_input;
+  waiting_for_input = 0;
+  block_input ();
+
+  redisplay ();
+
+  unblock_input ();
+  waiting_for_input = owfi;
+}
 
 /* ==========================================================================
 
@@ -5208,7 +5232,7 @@ ns_read_socket (struct terminal *terminal, struct input_event *hold_quit)
 static int
 ns_select_1 (int nfds, fd_set *readfds, fd_set *writefds,
 	     fd_set *exceptfds, struct timespec *timeout,
-	     sigset_t *sigmask, BOOL run_loop_only)
+	     sigset_t *sigmask)
 /* --------------------------------------------------------------------------
      Replacement for select, checking for events
    -------------------------------------------------------------------------- */
@@ -5374,7 +5398,7 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 	   sigset_t *sigmask)
 {
   return ns_select_1 (nfds, readfds, writefds, exceptfds,
-		      timeout, sigmask, NO);
+		      timeout, sigmask);
 }
 
 #ifdef HAVE_PTHREAD
@@ -7191,7 +7215,7 @@ ns_create_font_panel_buttons (id target, SEL select, SEL cancel_action)
 	 && [[fm fontPanel: YES] isVisible]
 #endif
 	 )
-    ns_select_1 (0, NULL, NULL, NULL, &timeout, NULL, YES);
+    ns_select_1 (0, NULL, NULL, NULL, &timeout, NULL);
   unblock_input ();
 
   if (font_panel_result)
@@ -9432,22 +9456,9 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
    appears to be safe to call redisplay here.  */
 - (void)layoutSublayersOfLayer:(CALayer *)layer
 {
-  if (!redisplaying_p && FRAME_GARBAGED_P (*emacsframe))
-    {
-      /* If there is IO going on when redisplay is run here Emacs
-         crashes.  I think it's because this code will always be run
-         within the run loop and for whatever reason processing input
-         is dangerous.  This technique was stolen wholesale from
-         nsmenu.m and seems to work.  */
-      bool owfi = waiting_for_input;
-      waiting_for_input = 0;
-      block_input ();
-
-      redisplay ();
-
-      unblock_input ();
-      waiting_for_input = owfi;
-    }
+  if (!redisplaying_p && FRAME_GARBAGED_P (*emacsframe)
+      && [[self window] inLiveResize])
+    ns_safe_redisplay();
 }
 #endif
 
@@ -9551,7 +9562,7 @@ static void cancel_ns_deferred_UAZoomChangeFocus_timer ()
   safe_calln (Vns_drag_motion_function, frame,
 	      make_fixnum (x), make_fixnum (y));
 
-  redisplay ();
+  ns_safe_redisplay();
 #endif
 
   unbind_to (count, Qnil);

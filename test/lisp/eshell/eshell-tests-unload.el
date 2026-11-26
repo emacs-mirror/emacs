@@ -35,7 +35,7 @@
 (defvar eshell-modules-list)
 (defvar eshell-module-loading-messages)
 
-(declare-function eshell-module--feature-name "esh-module"
+(declare-function eshell-module-feature-name "esh-module"
                   (module &optional kind))
 (declare-function eshell-subgroups "esh-util" (groupsym))
 
@@ -85,7 +85,7 @@ See `unload-eshell'.")
   (let (eshell-modules-list)
     (load-eshell))
   (dolist (module (eshell-subgroups 'eshell-module))
-    (should-not (featurep (intern (eshell-module--feature-name module)))))
+    (should-not (featurep (eshell-module-feature-name module))))
   (unload-eshell))
 
 (ert-deftest eshell-test-unload/all-modules ()
@@ -94,7 +94,7 @@ See `unload-eshell'.")
   (let ((eshell-modules-list (eshell-subgroups 'eshell-module)))
     (load-eshell))
   (dolist (module (eshell-subgroups 'eshell-module))
-    (should (featurep (intern (eshell-module--feature-name module)))))
+    (should (featurep (eshell-module-feature-name module))))
   (unload-eshell))
 
 (provide 'eshell-tests-unload)

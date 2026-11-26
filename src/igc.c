@@ -157,7 +157,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_vectorlike_header_AF1B22D957
 #  error "struct vectorlike_header changed"
 # endif
-# ifndef HASH_Lisp_Hash_Table_D082C20BC0
+# ifndef HASH_Lisp_Hash_Table_6E179645B8
 #  error "struct Lisp_Hash_Table changed"
 # endif
 # ifndef HASH_Lisp_Weak_Hash_Table_7C5D3EDAD7
@@ -169,7 +169,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_Lisp_Weak_Hash_Table_Weak_Part_23119F9924
 #  error "struct Lisp_Weak_Hash_Table_Weak_Part changed"
 # endif
-# ifndef HASH_buffer_text_607F21F2DB
+# ifndef HASH_buffer_text_AD4A00F9FD
 #  error "struct buffer_text changed"
 # endif
 # ifndef HASH_glyph_pool_FE89FC9050
@@ -223,7 +223,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_itree_tree_A8CE87B78A
 #  error "struct itree_tree changed"
 # endif
-# ifndef HASH_image_3C8DF4B60F
+# ifndef HASH_image_D02B945D87
 #  error "struct image changed"
 # endif
 # ifndef HASH_image_cache_3EC6F9D296
@@ -235,7 +235,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>. */
 # ifndef HASH_face_cache_C289FB8D72
 #  error "struct face_cache changed"
 # endif
-# ifndef HASH_Lisp_Obarray_E27FFF73AC
+# ifndef HASH_Lisp_Obarray_BC04BF3985
 #  error "struct Lisp_Obarray changed"
 # endif
 # ifndef HASH_module_global_reference_6429591EC9

@@ -7274,9 +7274,10 @@ area is busy with something else."
 	 (enough-time-passed
 	  ;; See if enough time has passed since the last update.
 	  (or (not update-time)
-	      (when (time-less-p update-time nil)
-		;; Calculate time for the next update
-		(aset parameters 0 (+ update-time (aref parameters 5)))))))
+              (let ((now (float-time)))
+	        (unless (< now update-time)
+		  ;; Calculate time for the next update
+		  (aset parameters 0 (+ now (aref parameters 5))))))))
     (cond ((and min-value max-value)
 	   ;; Numerical indicator
 	   (let* ((one-percent (/ (- max-value min-value) 100.0))
@@ -7877,7 +7878,8 @@ The MESSAGE form will be evaluated immediately, but the resulting
 string will be displayed only if BODY takes longer than TIMEOUT seconds.
 
 \(fn (TIMEOUT MESSAGE) &rest BODY)"
-  (declare (indent 1))
+  (declare (indent 1)
+           (debug ((form form) def-body)))
   `(funcall-with-delayed-message ,(car args) ,(cadr args)
                                  (lambda ()
                                    ,@body)))

@@ -151,8 +151,10 @@ a fresh buffer is created.")
 ID, METHOD, PARAMS, RESULT and ERROR.")
 
 ;;; API optional
-(cl-defgeneric jsonrpc-shutdown (conn)
-  "Shutdown the JSONRPC connection CONN.")
+(cl-defgeneric jsonrpc-shutdown (conn &optional cleanup async)
+  "Ensure the JSONRPC connection CONN shuts down.
+With optional CLEANUP, also release its associated resources, like
+buffers.  With optional ASYNC, don't block while doing so.")
 
 ;;; API optional
 (cl-defgeneric jsonrpc-running-p (conn)
@@ -248,7 +250,7 @@ JSONRPC message."
     (if (buffer-live-p probe)
         probe
       (with-current-buffer
-          (get-buffer-create (format "*%s events*" (jsonrpc-name connection)))
+          (generate-new-buffer (format "*%s events*" (jsonrpc-name connection)))
         (jsonrpc-events-mode)
         (setf (jsonrpc--events-buffer connection)
               (current-buffer))))))
@@ -578,6 +580,7 @@ CONNECTION, METHOD and PARAMS as in `jsonrpc-async-request' (which see)."
     :initarg :on-shutdown
     :documentation "Function run when the process dies.")
    (-autoport-inferior
+    :accessor jsonrpc--autoport-inferior
     :initform nil
     :documentation "Used by `jsonrpc-autoport-bootstrap'."))
   :documentation "A JSONRPC connection over an Emacs process.
@@ -596,13 +599,12 @@ connection object, called when the process dies.")
 
 (cl-defmethod initialize-instance :after ((conn jsonrpc-process-connection) slots)
   (cl-destructuring-bind (&key ((:process proc)) name &allow-other-keys) slots
-    ;; FIXME: notice the undocumented bad coupling in the stderr
-    ;; buffer name, it must be named exactly like this we expect when
-    ;; calling `make-process'.  If there were a `set-process-stderr'
-    ;; like there is `set-process-buffer' we wouldn't need this and
-    ;; could use a pipe with a process filter instead of
-    ;; `after-change-functions'.  Alternatively, we need a new initarg
-    ;; (but maybe not a slot).
+    ;; FIXME: notice the undocumented bad coupling in the stderr buffer
+    ;; name, it must be named exactly like this we expect when calling
+    ;; `make-process'.  If there were a `set-process-stderr' like there
+    ;; is `set-process-buffer' we wouldn't need this and could use a
+    ;; pipe with a process filter instead of `after-change-functions'.
+    ;; Alternatively, we need a new initarg (but maybe not a slot).
     (let* ((stderr-buffer-name (format "*%s stderr*" name))
            (stderr-buffer (jsonrpc--forwarding-buffer stderr-buffer-name "[stderr] " conn))
            (hidden-name (concat " " stderr-buffer-name)))
@@ -615,12 +617,11 @@ connection object, called when the process dies.")
                        (funcall proc conn))
                    proc))
       (with-current-buffer stderr-buffer
-        (ignore-errors (kill-buffer hidden-name))
-        (rename-buffer hidden-name)
+        (rename-buffer hidden-name t)
         (setq buffer-read-only t))
       (process-put proc 'jsonrpc-stderr stderr-buffer))
     (setf (jsonrpc--process conn) proc)
-    (set-process-buffer proc (get-buffer-create (format " *%s output*" name)))
+    (set-process-buffer proc (generate-new-buffer (format " *%s output*" name)))
     (set-process-filter proc #'jsonrpc--process-filter)
     (set-process-sentinel proc #'jsonrpc--process-sentinel)
     (set-process-coding-system proc 'binary 'binary)
@@ -676,27 +677,61 @@ connection object, called when the process dies.")
   "Return non-nil if JSONRPC connection CONN is running."
   (process-live-p (jsonrpc--process conn)))
 
+(defconst jsonrpc--shutdown-grace 0.3
+  "Seconds to wait for a process connection's sentinel before forcing it.")
+
 (cl-defmethod jsonrpc-shutdown ((conn jsonrpc-process-connection)
-                                &optional cleanup)
-  "Wait for JSONRPC connection CONN to shutdown.
-With optional CLEANUP, kill any associated buffers.
-If CONN is not shutdown within a reasonable amount of time, warn
-and delete the network process."
-  (unwind-protect
-      (cl-loop
-       with proc = (jsonrpc--process conn)
-       with grace = 0.3 with start = (float-time)
-       for i from 0
-       while (not (process-get proc 'jsonrpc-sentinel-cleanup-started))
-       unless (or (zerop i) (< (- (float-time) start) grace)) do
-       (jsonrpc--warn "Sentinel for %s still hasn't run, deleting it!" proc)
-       (delete-process proc)
-       do
-       ;; Let sentinel have a chance to run
-       (accept-process-output nil grace))
-    (when cleanup
-      (kill-buffer (process-buffer (jsonrpc--process conn)))
-      (kill-buffer (jsonrpc-stderr-buffer conn)))))
+                                &optional cleanup async
+                                &aux (proc (jsonrpc--process conn)))
+  "Ensure JSONRPC connection CONN's process exits and its sentinel runs.
+Presume CONN was already asked to shut down: give its process
+`jsonrpc--shutdown-grace' seconds to exit by itself, then warn and
+delete it.  With optional CLEANUP, kill CONN's buffers afterwards.
+
+If ASYNC is nil, this function blocks until the sentinel has run.  Else
+it returns immediately, letting a timer take care of ensuring the
+sentinel and cleanup runs at the appropriate time.  A non-nil ASYNC call
+can be used to shut down servers without blocking Emacs, typically from
+the callbacks of a request asking the remote endpoint to quit, including
+in cases where such the process dies before replying, i.e. from the
+dead-detecting sentinel itself."
+  (cl-flet ((force ()
+              (unless (process-get proc 'jsonrpc-sentinel-cleanup-started)
+                (jsonrpc--warn "Sentinel still hasn't run, deleting %s!" proc)
+                (delete-process proc))))
+    (cond
+     (async
+      (cond ((process-get proc 'jsonrpc-sentinel-done)
+             (when cleanup (jsonrpc--kill-buffers conn)))
+            (t
+             (when cleanup
+               (process-put proc 'jsonrpc-kill-buffers-when-done t))
+             (unless (process-get proc 'jsonrpc-sentinel-cleanup-started)
+               (run-with-timer jsonrpc--shutdown-grace nil #'force)))))
+     (t
+      (unwind-protect
+          (cl-loop
+           with start = (float-time)
+           for i from 0
+           while (not (process-get proc 'jsonrpc-sentinel-cleanup-started))
+           unless (or (zerop i)
+                      (< (- (float-time) start) jsonrpc--shutdown-grace))
+           do (force) (cl-return)
+           do
+           ;; Let sentinel have a chance to run.  Because
+           ;; `accept-process-output' doesn't return just because PROC
+           ;; died, we have to wait in short intervals to re-check.
+           (accept-process-output nil 0.01))
+        (when cleanup (jsonrpc--kill-buffers conn)))))))
+
+(defun jsonrpc--kill-buffers (conn)
+  "Kill JSONRPC connection CONN's live buffers."
+  (cl-loop with inferior = (jsonrpc--autoport-inferior conn)
+           for buffer in (list (process-buffer (jsonrpc--process conn))
+                               (jsonrpc-stderr-buffer conn)
+                               (and inferior (process-buffer inferior))
+                               (jsonrpc--events-buffer conn))
+           when (buffer-live-p buffer) do (kill-buffer buffer)))
 
 (defun jsonrpc-stderr-buffer (conn)
   "Get CONN's standard error buffer, if any."
@@ -787,8 +822,16 @@ Move point to end of buffer.")
                 (jsonrpc--continuations connection))
         (jsonrpc--message "Server exited with status %s" (process-exit-status proc))
         (delete-process proc)
-        (when-let* ((p (slot-value connection '-autoport-inferior))) (delete-process p))
-        (funcall (jsonrpc--on-shutdown connection) connection)))))
+        ;; Buffer is useless now, let's not leak it.
+        (when (buffer-live-p (process-buffer proc))
+          (kill-buffer (process-buffer proc)))
+        (when-let* ((p (jsonrpc--autoport-inferior connection))) (delete-process p))
+        (unwind-protect
+            (funcall (jsonrpc--on-shutdown connection) connection)
+          (process-put proc 'jsonrpc-sentinel-done t)
+          ;; Requested by an async `jsonrpc-shutdown'.
+          (when (process-get proc 'jsonrpc-kill-buffers-when-done)
+            (jsonrpc--kill-buffers connection)))))))
 
 (defvar jsonrpc--in-process-filter nil
   "Non-nil if inside `jsonrpc--process-filter'.")
@@ -1185,10 +1228,8 @@ of the API instead.")
   "Helper for `jsonrpc-process-connection' helpers.
 Make a stderr buffer named NAME, forwarding lines prefixed by
 PREFIX to CONN's events buffer."
-  (with-current-buffer (get-buffer-create name)
+  (with-current-buffer (generate-new-buffer name)
     (let ((inhibit-read-only t))
-      (fundamental-mode)
-      (erase-buffer)
       (buffer-disable-undo)
       (add-hook
        'after-change-functions
@@ -1282,7 +1323,7 @@ CONNECT-ARGS are passed as additional arguments to
                                     (format "autostart (%s)" name)
                                     nil
                                     "localhost" port-number connect-args))))
-            (setf (slot-value conn '-autoport-inferior) inferior)
+                    (jsonrpc--autoport-inferior conn)
             np)
         (cond ((and (process-live-p np)
                     (process-live-p inferior))

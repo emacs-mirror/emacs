@@ -4,7 +4,7 @@
 
 ;; Author: Eric Schulte
 ;;	Dan Davison
-;; Maintainer: Jeremie Juste <jeremiejuste@gmail.com>
+;; Maintainer: Leo Butler <leo.butler@umanitoba.ca>
 ;; Keywords: literate programming, reproducible research, R, statistics
 ;; URL: https://orgmode.org
 

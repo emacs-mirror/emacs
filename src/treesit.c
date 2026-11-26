@@ -4033,6 +4033,20 @@ treesit_initialize_query (Lisp_Object query, const TSLanguage *lang,
     }
 }
 
+struct treesit_query_capture_cleanup_data
+{
+  TSQuery *query;
+  TSQueryCursor *cursor;
+};
+
+static void
+treesit_query_capture_cleanup (void *data)
+{
+  struct treesit_query_capture_cleanup_data *cleanup = data;
+  ts_query_delete (cleanup->query);
+  ts_query_cursor_delete (cleanup->cursor);
+}
+
 /* Go over a list from START to END (until the element eq to END),
    replace (capture-name . node) with just node.  */
 static void query_capture_remove_capture_name (Lisp_Object start,
@@ -4129,8 +4143,11 @@ the query.  */)
 				 &signal_symbol, &signal_data))
     xsignal (signal_symbol, signal_data);
 
-  /* WARN: After this point, if NEEDS_TO_FREE_QUERY_AND_CURSOR is true,
-     free TREESIT_QUERY and CURSOR before every signal and return.  */
+  specpdl_ref count = SPECPDL_INDEX ();
+  struct treesit_query_capture_cleanup_data cleanup
+    = { treesit_query, cursor };
+  if (needs_to_free_query_and_cursor)
+    record_unwind_protect_ptr (treesit_query_capture_cleanup, &cleanup);
 
   /* Set query range.  */
   if (!NILP (beg) && !NILP (end))
@@ -4142,7 +4159,8 @@ the query.  */)
       /* In ts_query_cursor_set_byte_range, if end_byte = 0, it's set to
          UINT32_MAX for some reason.  But range (1, 1) shouldn't capture
          anything.  So in this case just return Qnil.  (bug#80798)  */
-      if (beg_byte == visible_beg && end_byte == visible_beg) return Qnil;
+      if (beg_byte == visible_beg && end_byte == visible_beg)
+	return unbind_to (count, Qnil);
 
       /* We never let tree-sitter run on buffers too large, so these
 	 assertion should never hit.  */
@@ -4178,7 +4196,7 @@ the query.  */)
   Lisp_Object predicates_table = make_vector (patterns_count, Qt);
   Lisp_Object predicate_signal_data = Qnil;
 
-  struct buffer *old_buf = current_buffer;
+  record_unwind_current_buffer ();
   set_buffer_internal (buf);
 
   while (ts_query_cursor_next_match (cursor, &match))
@@ -4265,18 +4283,14 @@ the query.  */)
 	}
     }
 
-  /* Final clean up.  */
-  if (needs_to_free_query_and_cursor)
-    {
-      ts_query_delete (treesit_query);
-      ts_query_cursor_delete (cursor);
-    }
-  set_buffer_internal (old_buf);
-
   /* Some capture predicate signaled an error.  */
   if (!NILP (predicate_signal_data))
-    xsignal (Qtreesit_query_error, predicate_signal_data);
+    {
+      predicate_signal_data = unbind_to (count, predicate_signal_data);
+      xsignal (Qtreesit_query_error, predicate_signal_data);
+    }
 
+  result = unbind_to (count, result);
   return Fnreverse (result);
 }
 

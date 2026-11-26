@@ -6144,6 +6144,11 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       spec = XCDR (spec);
     }
 
+  /* Unconditionally disable evaluation of forms in 'display' properties
+     if the current buffer requests that.  */
+  if (enable_eval_p && current_buffer->text->disable_display_forms)
+    enable_eval_p = false;
+
   if (!NILP (form) && !EQ (form, Qt) && !enable_eval_p)
     form = Qnil;
   if (!NILP (form) && !EQ (form, Qt))
@@ -12170,7 +12175,7 @@ screen line that includes TO to the returned height of the text.  */)
 
 DEFUN ("buffer-text-pixel-size", Fbuffer_text_pixel_size, Sbuffer_text_pixel_size, 0, 6, 0,
        doc: /* Return the dimensions of whole text of BUFFER-OR-NAME in WINDOW.
-BUFFER-OR-NAME must specify a live buffer or the name of a live buffer
+BUFFER-OR-NAME must specify a live buffer or the name of a live buffer,
 and defaults to the current buffer.  WINDOW must be a live window and
 defaults to the selected one.  The return value is a cons of the maximum
 pixel-width of any text line and the pixel-height of all the text lines
@@ -12187,13 +12192,21 @@ WINDOW.  */)
    Lisp_Object y_limit, Lisp_Object from, Lisp_Object to)
 {
   struct window *w = decode_live_window (window);
-  struct buffer *b = (NILP (buffer_or_name)
-		      ? current_buffer
-		      : XBUFFER (Fget_buffer (buffer_or_name)));
+  struct buffer *b;
   Lisp_Object buffer, value;
   specpdl_ref count = SPECPDL_INDEX ();
 
-  XSETBUFFER (buffer, b);
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
+  else
+    {
+      buffer = Fget_buffer (buffer_or_name);
+      if (NILP (buffer))
+	nsberror (buffer_or_name);
+    }
+  b = XBUFFER (buffer);
+  if (!BUFFER_LIVE_P (b))
+    error ("Selecting deleted buffer");
 
   /* The unwind form of with_echo_area_buffer is what we need here to
      make WINDOW temporarily show our buffer.  */
@@ -37034,9 +37047,10 @@ note_fringe_highlight (struct frame *f, Lisp_Object window, int x, int y,
     sym = Qright_fringe_help;
 
   /* Translate windows coordinates into a vertical window position.  */
-  int hpos, vpos, area;
+  int hpos = -1, vpos = -1, area;
   struct window *w = XWINDOW (window);
-  if (x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area) == NULL)
+  x_y_to_hpos_vpos (w, x, y, &hpos, &vpos, 0, 0, &area);
+  if (vpos == -1)
     return;	/* not all glyph rows between 0 and Y are enabled */
 
   /* Don't access the TEXT_AREA of a row that does not display text,

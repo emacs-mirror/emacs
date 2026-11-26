@@ -1,5 +1,5 @@
 # fcntl_h.m4
-# serial 22
+# serial 23
 dnl Copyright (C) 2006-2007, 2009-2026 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -72,4 +72,5 @@ AC_DEFUN([gl_FCNTL_H_DEFAULTS],
   REPLACE_FCNTL=0;       AC_SUBST([REPLACE_FCNTL])
   REPLACE_OPEN=0;        AC_SUBST([REPLACE_OPEN])
   REPLACE_OPENAT=0;      AC_SUBST([REPLACE_OPENAT])
+  REPLACE_OPENAT2=0;     AC_SUBST([REPLACE_OPENAT2])
 ])

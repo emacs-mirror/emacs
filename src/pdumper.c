@@ -1349,7 +1349,7 @@ dump_queue_dequeue (struct dump_queue *dump_queue, dump_off basis)
   dump_trace
     (("dump_queue_dequeue basis=%"PRIdDUMP_OFF" fancy=%"PRIdPTR
       " zero=%"PRIdPTR" normal=%"PRIdPTR" strong=%"PRIdPTR
-      " hash=%"PRIdHASH_IDX"\n"),
+      " hash=%td\n"),
      basis,
      dump_tailq_length (&dump_queue->fancy_weight_objects),
      dump_tailq_length (&dump_queue->zero_weight_objects),
@@ -2727,7 +2727,7 @@ dump_vectorlike_generic (struct dump_context *ctx,
    Do not leave room for growth.
    If there are no pairs, return a null pointer.  */
 static hash_table_kv
-hash_table_contents (struct Lisp_Hash_Table *h, hash_idx_t *count)
+hash_table_contents (struct Lisp_Hash_Table *h, ptrdiff_t *count)
 {
   Lisp_Object lh = make_lisp_ptr (h, Lisp_Vectorlike);
   ptrdiff_t size = XFIXNUM (Fhash_table_count (lh));
@@ -2744,6 +2744,7 @@ hash_table_contents (struct Lisp_Hash_Table *h, hash_idx_t *count)
   }
 
   eassert (size == n);
+  eassert (n >= 0);
   *count = n;
   return kv;
 }
@@ -2907,7 +2908,7 @@ dump_hash_table_kv_part (struct dump_context *ctx,
 static dump_off
 dump_hash_table (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_D082C20BC0
+#if CHECK_STRUCTS && !defined HASH_Lisp_Hash_Table_6E179645B8
 # error "Lisp_Hash_Table changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Hash_Table *hash_in = XHASH_TABLE (object);
@@ -2963,7 +2964,7 @@ dump_obarray_buckets (struct dump_context *ctx, const struct Lisp_Obarray *o)
 static dump_off
 dump_obarray (struct dump_context *ctx, Lisp_Object object)
 {
-#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_E27FFF73AC
+#if CHECK_STRUCTS && !defined HASH_Lisp_Obarray_BC04BF3985
 # error "Lisp_Obarray changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Obarray *in_oa = XOBARRAY (object);
@@ -2989,7 +2990,7 @@ dump_buffer (struct dump_context *ctx, const struct buffer *in_buffer)
 #if CHECK_STRUCTS && !defined HASH_buffer_8F5C5BAA16
 # error "buffer changed. See CHECK_STRUCTS comment in config.h."
 #endif
-#if CHECK_STRUCTS && !defined HASH_buffer_text_607F21F2DB
+#if CHECK_STRUCTS && !defined HASH_buffer_text_AD4A00F9FD
 # error "buffer_text changed. See CHECK_STRUCTS comment in config.h."
 #endif
 

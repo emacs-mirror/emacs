@@ -59,9 +59,11 @@
 		;; be serious performance penalties when set to 0.
 		(tramp-mount-args
 		 ("--no-unicode-normalization" "--dir-cache-time" "0s"))
+		(tramp-mount-prefix "/")
 		(tramp-copyto-args nil)
 		(tramp-moveto-args nil)
-		(tramp-about-args ("--full"))))
+		(tramp-about-args ("--full"))
+		(tramp-connection-timeout 10)))
 
  (add-to-list 'tramp-default-host-alist `(,tramp-rclone-method nil ""))
 
@@ -362,9 +364,11 @@ file names."
 	;; we cache the result.
 	(with-tramp-file-property v localname "remote-file-name"
 	  (tramp-rclone-maybe-open-connection v)
-	  ;; TODO: This shall be handled by `expand-file-name'.
+	  ;; Remove leading "/" from `localname', we're relative to
+	  ;; the mount point.
 	  (setq localname
-		(replace-regexp-in-string (rx bos ".") "" (or localname "")))
+		(replace-regexp-in-string
+		 (rx bos (? ".") "/") "" (or localname "")))
 	  (format "%s%s" (tramp-fuse-mounted-p v) localname)))
     ;; It is a local file name.
     filename))
@@ -399,17 +403,27 @@ connection if a previous connection has died for some reason."
       (unless (file-directory-p (tramp-fuse-mount-point vec))
 	(make-directory (tramp-fuse-mount-point vec) 'parents))
 
-      ;; Mount.  This command does not return, so we use 0 as
-      ;; DESTINATION of `tramp-call-process'.
+      ;; Mount.  This command does not return, so we run it
+      ;; asynchronously, and kill it if the mount doesn't appear.
       (unless (tramp-fuse-mounted-p vec)
-	(apply
-	 #'tramp-call-process
-	 vec tramp-rclone-program nil 0 nil
-	 "mount" (tramp-fuse-mount-spec vec)
-	 (tramp-fuse-mount-point vec)
-	 (tramp-get-method-parameter vec 'tramp-mount-args))
-	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
-	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
+	(let ((p (apply
+		  #'tramp-start-process
+		  vec (tramp-get-connection-name vec) nil tramp-rclone-program
+		  "mount" (tramp-fuse-mount-spec vec)
+		  (tramp-fuse-mount-point vec)
+		  (tramp-get-method-parameter vec 'tramp-mount-args))))
+	  ;; We must wait, until the mount is applied.
+	  (with-timeout
+	      ((tramp-get-method-parameter
+		vec 'tramp-connection-timeout tramp-connection-timeout)
+	       ;; Unmount in case the mount has appeared meanwhile.
+	       (delete-process p)
+	       (tramp-fuse-unmount vec)
+	       (tramp-error
+		vec 'remote-file-error
+		"Timeout reached mounting %s using %s" host tramp-rclone-method))
+	    (while (not (tramp-fuse-mounted-p vec))
+	      (sleep-for 0.1))))
 	(add-to-list 'tramp-fuse-mount-points (tramp-file-name-unify vec)))
 
       ;; Mark it as connected.

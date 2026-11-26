@@ -346,8 +346,20 @@ cr_create_surface_from_pix_containers (Emacs_Pix_Container pimg,
   return surface;
 }
 
+/* Adjust image's surface size to take into account screen's DPI.  */
+
 static void
-cr_put_image_to_cr_data (struct image *img)
+cr_adjust_surface_size (struct frame *f, int *width, int *height)
+{
+  /* See `x_get_scale_factor'.  */
+  int base_res = 96;
+
+  *width = *width * FRAME_DISPLAY_INFO (f)->resx / base_res;
+  *height = *height * FRAME_DISPLAY_INFO (f)->resy / base_res;
+}
+
+static void
+cr_put_image_to_cr_data (struct frame *f, struct image *img)
 {
   cairo_pattern_t *pattern = NULL;
   cairo_surface_t *surface = cr_create_surface_from_pix_containers (img->pixmap,
@@ -355,6 +367,7 @@ cr_put_image_to_cr_data (struct image *img)
   if (surface)
     {
       pattern = cairo_pattern_create_for_surface (surface);
+
       if (img->cr_data)
 	{
 	  cairo_matrix_t matrix;
@@ -364,10 +377,39 @@ cr_put_image_to_cr_data (struct image *img)
             (pattern, cairo_pattern_get_filter (img->cr_data));
 	  cairo_pattern_destroy (img->cr_data);
 	}
+
       cairo_surface_destroy (surface);
+      cairo_pattern_get_surface (pattern, &surface);
+
+      /* Allocate a new surface and paint this pattern on it.
+
+	 This is used as a rendering optimization for `x_cr_draw_image'
+	 and `pgtk_cr_draw_image', because in Cairo drawing surfaces is
+	 much faster than drawing patterns.  */
+
+      cairo_format_t format = cairo_image_surface_get_format (surface);
+      int width = cairo_image_surface_get_width (surface);
+      int height = cairo_image_surface_get_height (surface);
+
+      cr_adjust_surface_size (f, &width, &height);
+
+      surface = cairo_surface_create_similar_image (surface, format, width,
+						    height);
+
+      cairo_t *cr = cairo_create (surface);
+
+      cairo_set_source (cr, pattern);
+      cairo_paint (cr);
+      cairo_destroy (cr);
+    }
+
+  if (img->cr_surface)
+    {
+      cairo_surface_destroy (img->cr_surface);
     }
 
   img->cr_data = pattern;
+  img->cr_surface = surface;
 }
 
 #endif	/* USE_CAIRO */
@@ -1887,7 +1929,7 @@ prepare_image_for_display (struct frame *f, struct image *img)
 	     we have img->pixmap->data/img->mask->data.  */
 	  IMAGE_BACKGROUND (img, f, img->pixmap);
 	  IMAGE_BACKGROUND_TRANSPARENT (img, f, img->mask);
-	  cr_put_image_to_cr_data (img);
+	  cr_put_image_to_cr_data (f, img);
 	  if (img->cr_data == NULL)
 	    {
 	      img->load_failed_p = 1;
@@ -2164,6 +2206,12 @@ image_clear_image_1 (struct frame *f, struct image *img, int flags)
     {
       cairo_pattern_destroy (img->cr_data);
       img->cr_data = NULL;
+    }
+
+  if (img->cr_surface)
+    {
+      cairo_surface_destroy (img->cr_surface);
+      img->cr_surface = NULL;
     }
 #endif	/* USE_CAIRO */
 }

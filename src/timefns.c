@@ -405,6 +405,18 @@ enum { flt_radix_power_size = DBL_MANT_DIG - DBL_MIN_EXP + 1 };
    equals FLT_RADIX**P.  */
 static Lisp_Object flt_radix_power;
 
+/* Return the number of floating-point digits in Z.
+   Normally this is mpz_bit_width (Z), but with IBM floating point
+   it could be that divided by 4, rounded up.
+   Return EMACS_INT, as all the bignums given to this function
+   are small enough for that to fit.  */
+static EMACS_INT
+mpz_flt_digits (mpz_t const z)
+{
+  EMACS_UINT w = mpz_bit_width (z);
+  return w / LOG2_FLT_RADIX + !!(w % LOG2_FLT_RADIX);
+}
+
 /* Return NUMERATOR / DENOMINATOR, rounded to the nearest double.
    Arguments must be Lisp integers, and DENOMINATOR must be positive.  */
 static double
@@ -420,18 +432,18 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
   /* Compute number of base-FLT_RADIX digits in numerator and denominator.  */
   mpz_t const *n = bignum_integer (&mpz[0], numerator);
   mpz_t const *d = bignum_integer (&mpz[1], denominator);
-  ptrdiff_t ndig = mpz_sizeinbase (*n, FLT_RADIX);
-  ptrdiff_t ddig = mpz_sizeinbase (*d, FLT_RADIX);
+  EMACS_INT ndig = mpz_flt_digits (*n);
+  EMACS_INT ddig = mpz_flt_digits (*d);
 
   /* Scale with SCALE when doing integer division.  That is, compute
      (N * FLT_RADIX**SCALE) / D [or, if SCALE is negative, N / (D *
      FLT_RADIX**-SCALE)] as a bignum, convert the bignum to double,
      then divide the double by FLT_RADIX**SCALE.  First scale N
      (or scale D, if SCALE is negative) ...  */
-  ptrdiff_t scale = ddig - ndig + DBL_MANT_DIG;
+  EMACS_INT scale = ddig - ndig + DBL_MANT_DIG;
   if (scale < 0)
     {
-      mpz_mul_2exp (mpz[1], *d, - (scale * LOG2_FLT_RADIX));
+      emacs_mpz_mul_2exp (mpz[1], *d, - (scale * LOG2_FLT_RADIX));
       d = &mpz[1];
     }
   else
@@ -439,7 +451,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
       /* min so we don't scale tiny numbers as if they were normalized.  */
       scale = min (scale, flt_radix_power_size - 1);
 
-      mpz_mul_2exp (mpz[0], *n, scale * LOG2_FLT_RADIX);
+      emacs_mpz_mul_2exp (mpz[0], *n, scale * LOG2_FLT_RADIX);
       n = &mpz[0];
     }
   /* ... and then divide, with quotient Q and remainder R.  */
@@ -456,7 +468,7 @@ frac_to_double (Lisp_Object numerator, Lisp_Object denominator)
      round to the nearest integer; otherwise, it is less than
      FLT_RADIX ** (DBL_MANT_DIG + 1) and round it to the nearest
      multiple of FLT_RADIX.  Break ties to even.  */
-  if (mpz_sizeinbase (*q, FLT_RADIX) <= DBL_MANT_DIG)
+  if (mpz_flt_digits (*q) <= DBL_MANT_DIG)
     {
       /* Converting to double will use the whole quotient so add 1 to
 	 its absolute value as per round-to-even; i.e., if the doubled

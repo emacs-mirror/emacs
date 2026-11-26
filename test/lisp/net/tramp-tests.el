@@ -130,6 +130,14 @@
       tramp-verbose 0
       vc-handled-backends (unless noninteractive vc-handled-backends))
 
+;; For internal tests.  In batch mode, it writes to the console.
+;; (dolist (elt (append
+;; 	      (apropos-internal (rx bos "tramp-") #'functionp)
+;; 	      (apropos-internal (rx bos "tramp-") #'macrop)
+;; 	      (apropos-internal
+;; 	       (rx bos "with-" (? "parsed-") "tramp-") #'macrop)))
+;;   (trace-function-background elt))
+
 (defconst tramp-test-vec
   (and (file-remote-p ert-remote-temporary-file-directory)
        (tramp-dissect-file-name ert-remote-temporary-file-directory))
@@ -203,6 +211,7 @@ is greater than 10.
        ;; Unwind forms.
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
 	 (untrace-all)
+	 (tramp-remove-advice-trace--insert)
 	 (dolist (buf (tramp-list-tramp-buffers))
 	   (message ";; %s\n%s" buf (tramp-get-buffer-string buf))
 	   (kill-buffer buf))))))
@@ -2745,13 +2754,9 @@ This checks also `file-name-as-directory', `file-name-directory',
 	  (delete-file tmp-name 'trash)
 	  (should-not (file-exists-p tmp-name))
 	  (should
-	   (or (file-exists-p
-		(expand-file-name
-		 (file-name-nondirectory tmp-name) trash-directory))
-	       ;; Gdrive.
-	       (file-symlink-p
-		(expand-file-name
-		 (file-name-nondirectory tmp-name) trash-directory))))
+	   (file-exists-p
+	    (expand-file-name
+	     (file-name-nondirectory tmp-name) trash-directory)))
 	  (delete-directory trash-directory 'recursive)
 	  (should-not (file-exists-p trash-directory))))
 
@@ -5491,7 +5496,8 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 
       ;; Cleanup.
       (when tramp-trace
-	(untrace-all))
+	(untrace-all)
+	(tramp-remove-advice-trace--insert))
       (tramp-change-syntax orig-syntax)
       (tramp-cleanup-connection tramp-test-vec 'keep-debug 'keep-password))))
 
@@ -7753,11 +7759,6 @@ This does not support globbing characters in file names (yet)."
   "Check, whether an FUSE file system isused."
   (or (tramp--test-rclone-p) (tramp--test-sshfs-p)))
 
-(defun tramp--test-gdrive-p ()
-  "Check, whether the gdrive method is used."
-  (string-equal
-   "gdrive" (file-remote-p ert-remote-temporary-file-directory 'method)))
-
 (defun tramp--test-gvfs-p (&optional method)
   "Check, whether the remote host runs a GVFS based method.
 This requires restrictions of file name syntax.
@@ -7884,8 +7885,7 @@ Additionally, ls does not support \"--dired\"."
 (defun tramp--test-share-p ()
   "Check, whether the method needs a share."
   (and (tramp--test-gvfs-p)
-       (string-match-p
-	(rx bol (| "afp" (: "dav" (? "s")) "smb") eol)
+       (string-match-p (rx bol (| (: "dav" (? "s")) "smb") eol)
 	(file-remote-p ert-remote-temporary-file-directory 'method))))
 
 (defun tramp--test-sshfs-p ()
@@ -8256,7 +8256,6 @@ This requires restrictions of file name syntax."
   (skip-unless (not (tramp--test-scp-p)))
   (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
-  (skip-unless (not (tramp--test-gdrive-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-rclone-p)))
   ;; We do not run on macOS due to encoding problems.  See Bug#36940.
@@ -9390,22 +9389,18 @@ process sentinels.  They shall not disturb each other."
   "Check that Tramp and its subpackages unload completely.
 Since it unloads Tramp, it shall be the last test to run."
   :tags '(:expensive-test)
-  ;; We have autoloaded objects from tramp.el and tramp-archive.el.
-  ;; In order to remove them, we first need to load both packages.
+  ;; We have autoloaded objects from tramp.el.  In order to remove
+  ;; them, we first need to load it.
   (require 'tramp)
-  (require 'tramp-archive)
   (should (featurep 'tramp))
-  (should (featurep 'tramp-archive))
-  ;; This unloads also tramp-archive.el and tramp-theme.el if needed.
+  ;; This unloads also tramp-rpc.el tramp-theme.el if needed.
   (unload-feature 'tramp 'force)
 
   ;; No Tramp feature must be left except the test packages.
   (should-not (featurep 'tramp))
-  (should-not (featurep 'tramp-archive))
+  (should-not (featurep 'tramp-rpc))
   (should-not (featurep 'tramp-theme))
-  (should-not
-   (all-completions
-    "tramp" (delq 'tramp-tests (delq 'tramp-archive-tests features))))
+  (should-not (all-completions "tramp" (delq 'tramp-tests features)))
 
   ;; `file-name-handler-alist' must be clean.
   (should-not (all-completions "tramp" (mapcar #'cdr file-name-handler-alist)))
@@ -9461,9 +9456,7 @@ Since it unloads Tramp, it shall be the last test to run."
 
   ;; Reload.
   (require 'tramp)
-  (require 'tramp-archive)
   (should (featurep 'tramp))
-  (should (featurep 'tramp-archive))
 
   ;; Disabled further tests.
   (setq tramp--test-enabled-checked '(t)))

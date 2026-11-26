@@ -2361,7 +2361,7 @@ See `set-language-info-alist' for use in programs."
     ("ks" . "UTF-8") ; Kashmiri
     ; ku Kurdish
     ("kw" . "Latin-1") ; Cornish
-    ("ky" . "UTF-8") ; Kirghiz
+    ("ky" "Kyrgyz" utf-8)
     ("lao" "Lao" utf-8) ; MS-Windows Lao
     ("la" . "Latin-1") ; Latin
     ("lb" . "Latin-1") ; Luxemburgish

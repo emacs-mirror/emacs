@@ -34,12 +34,7 @@
 # pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-/* Pacify GCC -Wsuggest-attribute=const, pure, malloc.  */
-#if _GL_GNUC_PREREQ (4, 6)
-# pragma GCC diagnostic ignored "-Wsuggest-attribute=const"
-# pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
-#endif
-#if _GL_GNUC_PREREQ (8, 0)
+#if _GL_GNUC_PREREQ (8, 0) && !_GL_GNUC_PREREQ (14, 0)
 # pragma GCC diagnostic ignored "-Wsuggest-attribute=malloc"
 #endif
 
@@ -53,7 +48,7 @@
 
 /* Pacify GCC -Wunused-variable for variables used only in 'assert' calls.  */
 #if (defined NDEBUG \
-     && (4 < __GNUC__ + (6 <= __GNUC_MINOR__) || defined __clang__))
+     && (_GL_GNUC_PREREQ (4, 6) || defined __clang__))
 # pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 

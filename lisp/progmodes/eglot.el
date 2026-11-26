@@ -1342,8 +1342,16 @@ when processing many ranges."
   (mapcar #'cdr (eglot--languages s)))
 
 (defun eglot--server-name (s)
-  "Name server S, consulting LSP `serverInfo' if available."
-  (or (plist-get (eglot--server-info s) :name) (jsonrpc-name s)))
+  "Name server S, consulting LSP `serverInfo' if available.
+Otherwise, use the server program's name or, for network connections,
+the managed major modes."
+  (or (plist-get (eglot--server-info s) :name)
+      (let* ((proc (jsonrpc--process s))
+             (cmd (or (process-get proc 'remote-command)
+                      (process-command proc))))
+        (and (consp cmd) (stringp (car cmd))
+             (file-name-nondirectory (car cmd))))
+      (format "%S" (eglot--major-modes s))))
 
 (defun eglot--server-buffer-name (server &optional suffix)
   "Standard buffer name for SERVER with optional SUFFIX."
@@ -1380,11 +1388,17 @@ SERVER."
   (unwind-protect
       (progn
         (setf (eglot--shutdown-requested server) t)
-        (eglot--request server :shutdown :jsonrpc-omit :timeout (or timeout 1.5))
-        (jsonrpc-notify server :exit eglot--{}))
+        (condition-case oops
+            (eglot--request server :shutdown :jsonrpc-omit
+                            :timeout (or timeout 1.5))
+          (jsonrpc-error
+           (eglot--message "%s overstayed its welcome: %s"
+                           (jsonrpc-name server)
+                           (alist-get 'jsonrpc-error-message (cddr oops)))))
+        (when (jsonrpc-running-p server)
+          (jsonrpc-notify server :exit eglot--{})))
     ;; Now ask jsonrpc.el to shut down the server.
-    (jsonrpc-shutdown server (not preserve-buffers))
-    (unless preserve-buffers (kill-buffer (jsonrpc-events-buffer server)))))
+    (jsonrpc-shutdown server (not preserve-buffers))))
 
 (defun eglot-shutdown-all (&optional preserve-buffers)
   "Politely ask all language servers to quit, in order.
@@ -1395,6 +1409,15 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
                 (cl-loop for s in ss do (eglot-shutdown s nil nil preserve-buffers)))))
 
 (defvar eglot--servers-by-xrefed-file (make-hash-table :test 'equal))
+
+(defun eglot--sever (server)
+  "Sever the project/server relationship for SERVER."
+  (setf (gethash (eglot--project server) eglot--servers-by-project)
+        (delq server
+              (gethash (eglot--project server) eglot--servers-by-project)))
+  (maphash (lambda (f s)
+             (when (eq s server) (remhash f eglot--servers-by-xrefed-file)))
+           eglot--servers-by-xrefed-file))
 
 (defun eglot--on-shutdown (server)
   "Called by jsonrpc.el when SERVER is already dead."
@@ -1408,13 +1431,7 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
              (dolist (watch-desc watch-descriptors)
                (file-notify-rm-watch watch-desc)))
            (eglot--file-watches server))
-  ;; Sever the project/server relationship for `server'
-  (setf (gethash (eglot--project server) eglot--servers-by-project)
-        (delq server
-              (gethash (eglot--project server) eglot--servers-by-project)))
-  (maphash (lambda (f s)
-             (when (eq s server) (remhash f eglot--servers-by-xrefed-file)))
-           eglot--servers-by-xrefed-file)
+  (eglot--sever server)
   ;; Cleanup entries in 'flymake-list-only-diagnostics'
   (setq flymake-list-only-diagnostics
         (cl-delete-if
@@ -1892,8 +1909,7 @@ EVENTS-BUFFER is passed as the `:events-buffer' initarg of
                           (eglot--message
                            "Connected! Server `%s' now managing `%S' buffers \
 in project `%s'."
-                           (or (plist-get serverInfo :name)
-                               (jsonrpc-name server))
+                           (eglot--server-name server)
                            managed-modes
                            (eglot-project-nickname server))
                           (when tag (throw tag t))))
@@ -1993,7 +2009,7 @@ Unless IMMEDIATE, send pending changes before making request."
                          :cancel-on-input-retval cancel-on-input-retval)
       (jsonrpc-error
        (let* ((data (cddr oops)) (ec (alist-get 'jsonrpc-error-code data)))
-         (if (zerop ec) (eglot--message (alist-get 'jsonrpc-error-message data))
+         (if (eql ec 0) (eglot--message (alist-get 'jsonrpc-error-message data))
            (signal 'jsonrpc-error (cdr oops))))))))
 
 (defvar-local eglot--inflight-async-requests nil
@@ -2442,10 +2458,39 @@ the previous reports for TOKEN.")
         (setf (eglot--managed-buffers server)
               (delq (current-buffer) (eglot--managed-buffers server)))
         (when (and eglot-autoshutdown
-                   (null (eglot--managed-buffers server))
-                   ;; Don't shutdown if up again soon.
-                   (not (eglot--revert-in-progress-p)))
-          (eglot-shutdown server)))))))
+                   (null (eglot--managed-buffers server)))
+          (eglot--maybe-autoshutdown server)))))))
+
+(defun eglot--maybe-autoshutdown (server)
+  "Arrange for SERVER to auto-shutdown asynchronously.
+Helper for `eglot-autoshutdown'.  When this function is called we know
+no buffers are managed (the current buffer was the last).  But we
+carefully post-pone the decision to actually shutdown, since there's no
+point in shutting down if there _are_ such managed buffers when the
+current ends (as `revert-buffer' and `find-alternate-file' do)."
+  (cl-labels
+      ((finish (&rest _)
+         (when (jsonrpc-running-p server)
+           (jsonrpc-notify server :exit eglot--{}))
+         (jsonrpc-shutdown server t t))
+       (decide ()
+         (remove-hook 'post-command-hook #'decide)
+         (when (and (null (eglot--managed-buffers server))
+                    (not (eglot--shutdown-requested server))
+                    (jsonrpc-running-p server))
+           (eglot--message "Asking %s politely to terminate"
+                           (jsonrpc-name server))
+           (setf (eglot--shutdown-requested server) t)
+           (eglot--sever server)
+           (jsonrpc-async-request server :shutdown :jsonrpc-omit
+                                  :success-fn #'finish
+                                  :error-fn #'finish
+                                  :timeout-fn #'finish
+                                  :timeout 1.5))))
+    (if this-command
+        (add-hook 'post-command-hook #'decide)
+      ;; Outside a command (timer, process filter, batch), decide soon.
+      (run-at-time 0 nil #'decide))))
 
 (defun eglot--managed-mode-off ()
   "Turn off `eglot--managed-mode' unconditionally."
@@ -2478,9 +2523,6 @@ the previous reports for TOKEN.")
     (eglot--signal-textDocument/didOpen)
     (when eglot-semantic-tokens-mode
       (eglot-semantic-tokens-mode))))
-
-(defun eglot--revert-in-progress-p ()
-  (with-no-warnings revert-buffer-in-progress-p))
 
 (defun eglot--maybe-activate-editing-mode ()
   "Maybe activate `eglot--managed-mode'.
@@ -4540,9 +4582,15 @@ the directory to watch (nil means entire project).  IN-ROOT says if DIR
 happens to be inside or matching the project root."
   (cl-labels
       ((subdirs-using-project ()
-         (delete-dups
-          (mapcar #'file-name-directory
-                  (project-files project (and dir (list dir))))))
+         (let* ((files (project-files project (and dir (list dir))))
+                ;; Consulting handlers for every file is 20x slower
+                ;; in large projects, so dedupe without them first.
+                (dirs (let ((file-name-handler-alist nil))
+                        (delete-dups (mapcar #'file-name-directory files)))))
+           ;; Then let Tramp normalize the fewer remote directories.
+           (if (eglot--trampish-p server)
+               (delete-dups (mapcar #'file-name-directory dirs))
+             dirs)))
        (subdirs-using-find ()
          (with-temp-buffer
            (call-process find-program nil t nil dir "-type" "d" "-print0")
@@ -4574,25 +4622,29 @@ happens to be inside or matching the project root."
             ((eq action 'renamed)
              (handle-event `(,desc deleted ,file))
              (handle-event `(,desc created ,file1))))))
+       (at-limit-p ()
+         (when (and eglot-max-file-watches
+                    (>= watch-count eglot-max-file-watches))
+           (eglot--warn "Reached `eglot-max-file-watches' limit of %d, \
+not watching some directories" eglot-max-file-watches)
+           t))
        (add-watch (subdir)
          (cond ((not (file-readable-p subdir)))
-               ((and eglot-max-file-watches
-                     (>= watch-count eglot-max-file-watches))
-                (eglot--warn "Reached `eglot-max-file-watches' limit of %d, \
-not watching some directories" eglot-max-file-watches)
-                ;; Could `(setq success t)' here to keep partial watches.
-                (jsonrpc-error "Reached `eglot-max-file-watches' limit of %d"
-                               eglot-max-file-watches))
+               ;; Keep partial watches.  Erroring out would lose all
+               ;; of them, and some servers exit on a failed
+               ;; registration (bug#81363).  Return nil to stop caller.
+               ((at-limit-p) nil)
                (t
                 (push (file-notify-add-watch subdir '(change) #'handle-event)
                       (gethash id (eglot--file-watches server)))
                 (cl-incf watch-count)))))
-    (let ((subdirs (if (or (null dir) in-root)
-                       (subdirs-using-project)
-                     (condition-case _ (subdirs-using-find)
-                       (error (subdirs-using-project))))))
+    (let ((subdirs (cond ((at-limit-p) nil) ; skip costly scan (bug#81363)
+                         ((or (null dir) in-root) (subdirs-using-project))
+                         (t (condition-case _ (subdirs-using-find)
+                              (error (subdirs-using-project)))))))
       (unwind-protect
-          (cl-loop for sd in subdirs do (add-watch sd) finally (setq success t))
+          (cl-loop for sd in subdirs while (add-watch sd)
+                   finally (setq success t))
         (unless success
           (eglot-unregister-capability server 'workspace/didChangeWatchedFiles id))))))
 
@@ -5151,7 +5203,7 @@ See `eglot--semtok-request' implementation for details.")
   :global nil
   (setq eglot--semtok-state nil)
   (cond (eglot-semantic-tokens-mode
-         (if (not (eglot-server-capable :semanticTokensProvider))
+         (if (not (eglot-server-capable :semanticTokensProvider :full))
              (eglot-semantic-tokens-mode -1)
            (add-hook 'eglot--send-changes-hook
                      #'eglot--semtok-after-send-changes)

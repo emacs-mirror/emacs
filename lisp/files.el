@@ -3565,44 +3565,42 @@ If FUNCTION is nil, then it is not called.")
   "Upper limit on `magic-mode-alist' regexp matches.
 Also applies to `magic-fallback-mode-alist'.")
 
-(defun set-auto-mode--find-matching-alist-entry (alist name case-insensitive)
+(defun set-auto-mode--from-matching-alist-entry ( alist name case-insensitive
+                                                  keep-mode-if-same dir-local)
   "Find first matching entry in ALIST for file NAME.
 
 If CASE-INSENSITIVE, the file system of file NAME is case-insensitive."
-  (let (mode)
-    (while name
-      (let ((newmode
-             (if case-insensitive
-                 ;; Filesystem is case-insensitive.
-                 (let ((case-fold-search t))
-                   (assoc-default name alist 'string-match))
-               ;; Filesystem is case-sensitive.
-               (or
-                ;; First match case-sensitively.
-                (let ((case-fold-search nil))
-                  (assoc-default name alist 'string-match))
-                ;; Fallback to case-insensitive match.
-                (and auto-mode-case-fold
-                     (let ((case-fold-search t))
-                       (assoc-default name alist 'string-match)))))))
-        (when newmode
-          (when mode
-            ;; We had already found a mode but in a (REGEXP MODE t)
-            ;; entry, so we still have to run MODE.  Let's do it now.
-            ;; FIXME: It's kind of ugly to run the function here.
-            ;; An alternative could be to return a list of functions and
-            ;; callers.
-            (set-auto-mode-0 mode t))
-          (setq mode newmode))
-        (if (and newmode
-                 (not (functionp newmode))
-                 (consp newmode)
-                 (cadr newmode))
-            ;; It's a (REGEXP MODE t): Keep looking but remember the MODE.
-            (setq mode (car newmode)
-                  name (substring name 0 (match-beginning 0)))
-          (setq name nil))))
-    mode))
+  (let (was-set)
+    (while
+        (let* ((newmode
+                (if case-insensitive
+                    ;; Filesystem is case-insensitive.
+                    (let ((case-fold-search t))
+                      (assoc-default name alist 'string-match))
+                  ;; Filesystem is case-sensitive.
+                  (or
+                   ;; First match case-sensitively.
+                   (let ((case-fold-search nil))
+                     (assoc-default name alist 'string-match))
+                   ;; Fallback to case-insensitive match.
+                   (and auto-mode-case-fold
+                        (let ((case-fold-search t))
+                         (assoc-default name alist 'string-match)))))))
+          (when newmode
+            (let* ((mode-t ;; Is it a (REGEXP MODE NON-NIL) entry?
+                    (and (not (functionp newmode))
+                         (consp newmode) (cadr newmode)))
+                   (mode (if (null mode-t) newmode
+                           (setq name (substring name 0 (match-beginning 0)))
+                           (car newmode))))
+              (when mode
+                (if (and dir-local
+                         (not (set-auto-mode--dir-local-valid-p mode)))
+                    (message "Ignoring invalid mode `%S'" mode)
+                  (set-auto-mode-0 mode keep-mode-if-same)
+                  (setq was-set t)))
+              mode-t))))
+    was-set))
 
 (defun set-auto-mode--apply-alist (alist keep-mode-if-same dir-local)
   "Helper function for `set-auto-mode'.
@@ -3614,8 +3612,7 @@ Return non-nil if the mode was set, nil otherwise.
 DIR-LOCAL non-nil means this call is via directory-locals, and
 extra checks should be done."
   (if buffer-file-name
-      (let (mode
-            (name buffer-file-name)
+      (let ((name buffer-file-name)
             (remote-id (file-remote-p buffer-file-name))
             (case-insensitive-p (file-name-case-insensitive-p
                                  buffer-file-name)))
@@ -3625,15 +3622,8 @@ extra checks should be done."
         (when (and (stringp remote-id)
                    (string-match (regexp-quote remote-id) name))
           (setq name (substring name (match-end 0))))
-        (setq mode (set-auto-mode--find-matching-alist-entry
-                    alist name case-insensitive-p))
-        (when (and dir-local mode
-                   (not (set-auto-mode--dir-local-valid-p mode)))
-          (message "Ignoring invalid mode `%S'" mode)
-          (setq mode nil))
-        (when mode
-          (set-auto-mode-0 mode keep-mode-if-same)
-          t))))
+        (set-auto-mode--from-matching-alist-entry
+         alist name case-insensitive-p keep-mode-if-same dir-local))))
 
 (defun set-auto-mode--dir-local-valid-p (mode)
   "Say whether MODE can be used in a .dir-local.el `auto-mode-alist'."
@@ -4871,27 +4861,47 @@ the \".dir-locals.el\".
 
 See Info node `(elisp)Directory Local Variables' for details.")
 
+(defun dir-locals--file-names ()
+  "Return the two file names that can hold directory local variable settings.
+The returned list is sorted by increasing priority: values specified in
+the second file (e.g., \".dir-locals-2.el\" for the current value in
+\"dir-locals-file\") take precedence over those in the first file (e.g.,
+\".dir-locals.el\").
+
+Note: the returned file names are already sanitized for MS-DOS."
+  (let* ((extension (file-name-extension dir-locals-file t))
+         (file-1 (if (eq system-type 'ms-dos)
+                     (dosified-file-name dir-locals-file)
+                   dir-locals-file))
+         (file-2 (concat (file-name-sans-extension file-1) "-2" extension)))
+    (list file-1 file-2)))
+
+;;;###autoload
+(defun dir-locals-file-p (filename)
+  "Return non-nil if FILENAME appears to be a \"dir-locals\" file."
+  (seq-some
+   (lambda (elt) (string-suffix-p elt filename)) (dir-locals--file-names)))
+
 (defun dir-locals--all-files (directory &optional base-el-only)
   "Return a list of all readable dir-locals files in DIRECTORY.
 The returned list is sorted by increasing priority.  That is,
 values specified in the last file should take precedence over
-those in the first."
+those in the first.
+If optional argument BASE-EL-ONLY is non-nil, return only the first
+file name from `dir-locals--file-names'.
+
+Return nil if DIRECTORY does not exist."
   (when (file-readable-p directory)
-    (let* ((file-1 (expand-file-name (if (eq system-type 'ms-dos)
-                                         (dosified-file-name dir-locals-file)
-                                       dir-locals-file)
-                                     directory))
-           (file-2 (when (string-match "\\.el\\'" file-1)
-                     (replace-match "-2.el" t nil file-1)))
-           out)
-      (dolist (f (or (and base-el-only (list file-1))
-                     ;; The order here is important.
-                     (list file-2 file-1)))
-        (when (and f
-                   (file-readable-p f)
-                   (file-regular-p f))
-          (push f out)))
-      out)))
+    (let* ((files (dir-locals--file-names))
+           (files (if base-el-only
+                      (seq-take files 1)
+                    files))
+           (paths (mapcar (lambda (elt) (expand-file-name elt directory)) files)))
+      (seq-filter (lambda (elt)
+                    (and elt
+                         (file-readable-p elt)
+                         (file-regular-p elt)))
+                  paths))))
 
 (defun dir-locals--base-file (directory)
   "Return readable `dir-locals-file' in DIRECTORY, or nil."

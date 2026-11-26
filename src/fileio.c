@@ -2389,7 +2389,9 @@ permissions.  */)
 	barf_or_query_if_file_exists (newname, true, "copy to it",
 				      FIXNUMP (ok_if_already_exists), false);
       already_exists = true;
-      ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY | O_TRUNC, 0);
+      /* Do not use O_TRUNC here: if the output is also the input,
+	 that would empty it before we notice.  Truncate below.  */
+      ofd = emacs_open (SSDATA (encoded_newname), O_WRONLY, 0);
     }
   if (ofd < 0)
     report_file_error ("Opening output file", newname);
@@ -2404,6 +2406,8 @@ permissions.  */)
       if (st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
 	report_file_errno ("Input and output files are the same",
 			   list2 (file, newname), 0);
+      if (S_ISREG (out_st.st_mode) && ftruncate (ofd, 0) != 0)
+	report_file_error ("Truncating output file", newname);
     }
 
   maybe_quit ();

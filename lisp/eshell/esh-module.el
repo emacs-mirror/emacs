@@ -92,7 +92,7 @@ Changes will only take effect in future Eshell buffers."
 
 ;;; Code:
 
-(defsubst eshell-module--feature-name (module &optional kind)
+(defun eshell-module-feature-name (module &optional kind)
   "Get the feature name for the specified Eshell MODULE.
 KIND can be either `core' for a core module or `extension' for an
 extension module; if nil, KIND defaults to `extension'."
@@ -101,7 +101,7 @@ extension module; if nil, KIND defaults to `extension'."
                       ((memq kind '(extension nil)) "em-")
                       (t (error "Unknown module kind %s" kind)))))
     (if (string-match "^eshell-\\(.*\\)" module-name)
-	(concat prefix (match-string 1 module-name))
+	(intern (concat prefix (match-string 1 module-name)))
       (error "Invalid Eshell module name: %s" module))))
 
 (defsubst eshell-using-module (module)
@@ -117,12 +117,12 @@ that other modules can take advantage of their functionality if
 desired."
   (let ((verbose eshell-module-loading-messages))
     (dolist (module modules)
-      (let ((module-feature-name (eshell-module--feature-name module)))
-        (unless (featurep (intern module-feature-name))
+      (let ((module-feature-name (eshell-module-feature-name module)))
+        (unless (featurep module-feature-name)
           (when verbose (message "Loading %s..." module))
           (condition-case-unless-debug nil
               (progn
-                (load module-feature-name nil t)
+                (load (symbol-name module-feature-name) nil t)
                 (when verbose (message "Loading %s...done" module)))
             (error (when verbose (message "Loading %s...failed" module))
                    (lwarn 'eshell :error
@@ -143,14 +143,15 @@ MODULE, if they're defined."
       (and initfunc (fboundp initfunc) (funcall initfunc)))))
 
 (defun eshell-unload-modules (modules &optional kind)
-  "Try to unload the specified Eshell MODULES.
-KIND can be either `core' for core modules or `extension' for
-extension modules; if nil, KIND defaults to `extension'."
+  "Try to unload the specified Eshell extension MODULES."
+  ;; KIND is now obsolete.  Use `unload-feature' directory to unload
+  ;; core modules.
+  (declare (advertised-calling-convention (modules) "32.1"))
   ;; We're about to unload this module, but we need to remember whether
   ;; to print messages.
   (let ((verbose eshell-module-loading-messages))
     (dolist (module modules)
-      (let ((module-feature (intern (eshell-module--feature-name module kind))))
+      (let ((module-feature (eshell-module-feature-name module kind)))
         (when (featurep module-feature)
           (when verbose (message "Unloading %s..." module))
           (condition-case-unless-debug nil
