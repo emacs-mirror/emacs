@@ -605,6 +605,38 @@ If non-'nil', enables native UTF-8 support in nnimap via RFC 9755
 (Bug#81684).  The variable is configurable per server and has no effect
 if the remote IMAP server lacks the "UTF8=ACCEPT" extension.
 
+** D-Bus
+
++++
+*** Support error handler in asynchronous method calls.
+The HANDLER argument of 'dbus-call-method-asynchronously' can be a cons
+cell '(HANDLER . ERROR-HANDLER)'.  ERROR-HANDLER is invoked if the
+method call returns with a D-Bus error; the error is passed as argument.
+
+** Elisp Scope
+
+*** Custom analyzers can be associated with multiple functions.
+Elisp Scope macros that define custom analyzer functions, such as
+'elisp-scope-define-function-analyzer' and
+'elisp-scope-define-macro-analyzer', can now take a list of symbols to
+which the defined analyzer should apply (or a single symbol, as before).
+This makes it easy to specify the same analyzer for multiple functions.
+
+*** New macro 'elisp-scope-define-function-spec'.
+This macro in a declarative alternative to
+'elisp-scope-define-function-analyzer'.  It lets you tell Elisp Scope
+how to analyze the arguments of a function by declaring the
+specification of each argument, rather than implementing an analyzer
+function as you would with 'elisp-scope-define-function-analyzer'.
+
+*** 'byte-compile-file' ignores ".dir-locals.el"  and ".dir-locals-2.el".
+Placing a ".dir-locals.el" in the "user-lisp" directory caused
+warnings during byte compilation upon startup.  Now, the
+'byte-compile-file' function treats these files as if they had a
+'no-byte-compile' file-local variable set non-nil.  This also affects
+native-compilation, in that any ".dir-locals*" files are no longer
+natively compiled.
+
 
 * New Modes and Packages in Emacs 32.1
 
@@ -745,38 +777,6 @@ as the width of the underlying buffer text.  This variable is nil by
 default, and is intended to be let-bound non-nil by commands and
 features that indent text by adding and/or removing whitespace
 characters to or from buffer text.
-
-** D-Bus
-
-+++
-*** Support error handler in asynchronous method calls.
-The HANDLER argument of 'dbus-call-method-asynchronously' can be a cons
-cell '(HANDLER . ERROR-HANDLER)'.  ERROR-HANDLER is invoked if the
-method call returns with a D-Bus error; the error is passed as argument.
-
-** Elisp Scope
-
-*** Custom analyzers can be associated with multiple functions.
-Elisp Scope macros that define custom analyzer functions, such as
-'elisp-scope-define-function-analyzer' and
-'elisp-scope-define-macro-analyzer', can now take a list of symbols to
-which the defined analyzer should apply (or a single symbol, as before).
-This makes it easy to specify the same analyzer for multiple functions.
-
-*** New macro 'elisp-scope-define-function-spec'.
-This macro in a declarative alternative to
-'elisp-scope-define-function-analyzer'.  It lets you tell Elisp Scope
-how to analyze the arguments of a function by declaring the
-specification of each argument, rather than implementing an analyzer
-function as you would with 'elisp-scope-define-function-analyzer'.
-
-*** 'byte-compile-file' ignores ".dir-locals.el"  and ".dir-locals-2.el".
-Placing a ".dir-locals.el" in the "user-lisp" directory caused
-warnings during byte compilation upon startup.  Now, the
-'byte-compile-file' function treats these files as if they had a
-'no-byte-compile' file-local variable set non-nil.  This also affects
-native-compilation, in that any ".dir-locals*" files are no longer
-natively compiled.
 
 +++
 ** New variable 'display-buffer-default-alist'.
