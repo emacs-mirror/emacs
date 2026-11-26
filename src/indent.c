@@ -609,7 +609,9 @@ scan_for_column (ptrdiff_t *endpos, EMACS_INT *goalcol,
 {
   int tab_width = SANE_TAB_WIDTH (current_buffer);
   bool ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
-  struct Lisp_Char_Table *dp = column_ignore_props ? NULL : buffer_display_table ();
+  struct Lisp_Char_Table *dp =
+    /* Ignore display tables if 'column-ignore-props' is non-nil.  */
+    column_ignore_props ? NULL : buffer_display_table ();
   bool multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   struct composition_it cmp_it;
   struct it dummy_it;
@@ -2585,10 +2587,11 @@ syms_of_indent (void)
   indent_tabs_mode = 1;
 
   DEFVAR_BOOL ("column-ignore-props", column_ignore_props,
-	       doc: /* Non-nil ignores properties for column functions.
-It ignores invisible properties, display properties, display tables
-when computing columns.  Intended mostly for let-binding by
-indentation commands.  */);
+	       doc: /* Whether counting columns should ignore display-related text properties.
+When this variable is non-nil, counting columns ignores invisible properties,
+display properties, and display tables, and considers only the display width
+of the buffer-text characters.  Intended mostly for let-binding by indentation
+commands and features.  The default is nil.  */);
   column_ignore_props = 0;
 
   DEFSYM (Qcolumns, "columns");

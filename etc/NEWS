@@ -734,6 +734,18 @@ Emacs 30.  It allows Lisp programs that present completion candidates
 ("completion frontends") to provide additional information which can be
 used to adjust or optimize completion candidates computation.
 
++++
+** New variable 'column-ignore-props' controls counting columns.
+If this variable is non-nil, primitives and functions that count
+columns, like 'current-column' and 'move-to-column', ignore display
+tables, display properties, and invisible properties.  Thus, each
+character of buffer text is counted for its usual display width,
+invisible text is included in the column count, and images are counted
+as the width of the underlying buffer text.  This variable is nil by
+default, and is intended to be let-bound non-nil by commands and
+features that indent text by adding and/or removing whitespace
+characters to or from buffer text.
+
 ** D-Bus
 
 +++

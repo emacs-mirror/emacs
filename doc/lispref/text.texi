@@ -2404,28 +2404,53 @@ utility program.
 
   The column functions convert between a character position (counting
 characters from the beginning of the buffer) and a column position
-(counting screen characters from the beginning of a line).
+(counting horizontal screen positions from the beginning of a line).
 
-  These functions count each character according to the number of
-columns it occupies on the screen.  This means control characters count
-as occupying 2 or 4 columns, depending upon the value of
-@code{ctl-arrow}, and tabs count as occupying a number of columns that
+  These functions count each character, image, and stretch of white
+space according to the number of columns it occupies on the screen.
+This means characters count according to their display width, control
+characters count as occupying 2 or 4 columns, depending upon the value
+of @code{ctl-arrow}, tabs count as occupying a number of columns that
 depends on the value of @code{tab-width} and on the column where the tab
-begins.  @xref{Usual Display}.
+begins (@pxref{Usual Display}), and composed sequences of characters and
+Emoji sequences count according to the width of the glyphs shown to
+display them.  By default, the display width of character is according
+to display tables, if any, which affect its display (@pxref{Display
+Tables}), images and stretches of whitespace count according to their
+width on display (@pxref{Other Display Specs}), and characters which
+have the @code{invisible} text property, and therefore are not shown on
+display, are not counted at all, unless @code{buffer-invisibility-spec}
+specifies that invisible text should be displayed as ellipsis
+(@pxref{Invisible Text}).
+
+@defvar column-ignore-props
+If this variable is non-@code{nil}, counting columns ignores display
+tables, display properties, and invisible properties.  Thus, characters
+of buffer text are counted for their display width regardless of whether
+they are visible on the screen and whether the display table in effect
+or the @code{display} properties change how they are shown, and images
+are counted as if the underlying buffer text was shown instead of each
+image.  This variable intended to be bound non-@code{nil} when columns
+are counted for the purposes of indenting text, because text indentation
+usually disregards whether and how the text is shown.
+@end defvar
 
   Column number computations ignore the width of the window and the
 amount of horizontal scrolling.  Consequently, a column value can be
-arbitrarily high.  The first (or leftmost) column is numbered 0.  They
-also ignore overlays and text properties, aside from invisibility.
-Invisible text is considered as having zero width, unless
-@code{buffer-invisibility-spec} specifies that invisible text should
-be displayed as ellipsis (@pxref{Invisible Text}).
+arbitrarily high, larger than the window width.  The first column is
+numbered 0; this is usually the leftmost column, but when bidirectional
+text is reordered for display (@pxref{Bidirectional Display}), the
+leftmost column on the screen might not be column 0, because columns are
+counted in logical order, not in visual order.  Also, in right-to-left
+paragraphs, column 0 is the rightmost one, at the right edge of the
+window.
 
 @defun current-column
 This function returns the horizontal position of point, measured in
-columns, counting from 0 at the left margin.  The column position is the
-sum of the widths of all the displayed representations of the characters
-between the start of the current line and point.
+columns, counting from 0 at the beginning of the current physical line.
+The column position is the sum of the widths of all the displayed
+representations of the characters between the start of the current line
+and point.
 @end defun
 
 @deffn Command move-to-column column &optional force
