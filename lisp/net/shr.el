@@ -607,8 +607,8 @@ Value is a pair of positions (START . END) if there is a non-nil
                          (delete-overlay overlay)))))
 
 (defun shr-next-link (&optional n)
-  "Skip to the Nth next link.  Interactively, N is the prefix numeric
-argument and defaults to 1."
+  "Skip to the Nth next link.
+Interactively, N is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (setq n (or n 1))
   (let (match)
@@ -621,8 +621,8 @@ argument and defaults to 1."
       (message "%s" (get-text-property (point) 'help-echo)))))
 
 (defun shr-previous-link (&optional n)
-  "Skip to the Nth previous link.  Interactively, N is the prefix numeric
-argument and defaults to 1."
+  "Skip to the Nth previous link.
+Interactively, N is the prefix numeric argument and defaults to 1."
   (interactive "p")
   (setq n (or n 1))
   (let (match)

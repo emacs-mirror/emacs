@@ -497,6 +497,11 @@ Now, HTML ordered lists ("<ol>") support changing the type (e.g. to use
 letters instead of numbers), the order (ascending or descending), and
 the starting value.
 
+---
+*** 'shr-next-link' and 'shr-previous-link' now accept numeric prefix arguments.
+Similar to that of 'forward-button', the prefix argument determines how
+many links to skip forward/back.
+
 ** Dired
 
 *** The 'repeat-mode' key 'j' has been removed from 'dired-jump-repeat-map'.
@@ -650,12 +655,6 @@ or when the user has opted in via 'treesit-enabled-modes'.  Otherwise,
 Markdown files fall back to 'text-mode'.
 
 To install the grammars, use 'M-x markdown-ts-mode-install-parsers'.
-
-** SHR
-
----
-*** 'shr-next-link' and 'shr-previous-link' now accept numeric prefix arguments.
-Similar to that of 'forward-button'.
 
 +++
 ** New library 'uuid'.
