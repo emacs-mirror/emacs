@@ -2188,6 +2188,11 @@ symbol defined with @code{define-error}.  This is how Emacs Lisp
 classifies different sorts of errors.  @xref{Error Symbols}, for a
 description of error symbols, error conditions and condition names.
 
+Instead of an error symbol, @var{error-symbol} can also be an @dfn{error
+descriptor}.  In that case, @var{data} has to be @code{nil}.  This form
+is only valid inside a @code{condition-case} handler; @pxref{Handling
+Errors}.
+
 If the error is not handled, the two arguments are used in printing
 the error message.  Normally, this error message is provided by the
 @code{error-message} property of @var{error-symbol}.  If @var{data} is
@@ -2223,11 +2228,6 @@ this function eventually kills Emacs.
      @error{} peculiar error: "My unknown error condition"
 @end group
 @end example
-
-Instead of an error symbol, @var{error-symbol} can also be an error
-descriptor.  In that case, @var{data} has to be @code{nil}.  This form
-is only valid inside a @code{condition-case} handler; @ref{Handling
-Errors}.
 @end defun
 
 @cindex user errors, signaling
@@ -2449,6 +2449,7 @@ returns normally, using the value of the last form in the handler body
 as the overall value.
 
 @cindex error description
+@cindex error descriptor
 The argument @var{var} is a variable.  @code{condition-case} does not
 bind this variable when executing the @var{protected-form}, only when it
 handles an error.  At that time, it binds @var{var} locally to an
