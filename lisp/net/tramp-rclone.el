@@ -57,6 +57,9 @@
 		;; delay visibility of files.  Since we use Tramp's
 		;; internal cache for file attributes, there shouldn't
 		;; be serious performance penalties when set to 0.
+		;; FIXME: This worked until rclone 1.68.2.  Since
+		;; then, rclone could block.
+		;; <https://github.com/rclone/rclone/pull/10390#issuecomment-7156495128>
 		(tramp-mount-args
 		 ("--no-unicode-normalization" "--dir-cache-time" "0s"))
 		(tramp-mount-prefix "/")
