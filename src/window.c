@@ -5711,6 +5711,12 @@ Signal an error when WINDOW is the only window on its frame.  */)
        level.  */
     error ("Attempt to delete sole window of parent");
 
+  /* Record WINDOW's buffer in its list of previous buffers.  When
+     WINDOW is part of a window configuration that gets resurrected
+     later via 'set-window-configuration' this lets the user switch back
+     to that buffer (Bug#82301).  */
+  calln (Qrecord_window_buffer, window);
+
   p = XWINDOW (parent);
   horflag = WINDOW_HORIZONTAL_COMBINATION_P (p);
 
