@@ -1722,9 +1722,12 @@ please check its value")
 
   ;; If *scratch* exists and init file didn't change its mode, initialize it.
   (if (get-buffer "*scratch*")
+      ;; The *scratch* buffer is created very early (it's the current-buffer
+      ;; in which to run our code at startup), but we set its major mode
+      ;; late so that it obeys users' customizations.
       (with-current-buffer "*scratch*"
 	(if (eq major-mode 'fundamental-mode)
-	    (funcall initial-major-mode))))
+	    (scratch-buffer--set-mode))))
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.

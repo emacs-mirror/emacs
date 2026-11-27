@@ -5381,7 +5381,7 @@ Do not select an inactive minibuffer window."
       (select-frame frame))))
 
 (defun quit-restore-window (&optional window bury-or-kill)
-  "Quit WINDOW and deal with its buffer.
+  "Quit WINDOW, and then perform additional actions on it and its buffer.
 WINDOW must be a live window and defaults to the selected one.
 
 According to information stored in WINDOW's `quit-restore' and
@@ -5401,30 +5401,30 @@ If running the abnormal hook `window-deletable-functions' returns nil,
 do not delete WINDOW but show some other buffer in it.
 
 Optional second argument BURY-OR-KILL tells how to proceed with
-the buffer of WINDOW.  The following values are handled:
+the buffer of WINDOW.  The following values are defined for it:
 
 nil means to not handle the buffer in a particular way.  This
   means that if WINDOW is not deleted by this function, invoking
   `switch-to-prev-buffer' will usually show the buffer again.
 
-`append' means that if WINDOW is not deleted, move its buffer to
+\\+`append' means that if WINDOW is not deleted, move its buffer to
   the end of WINDOW's previous buffers so it's less likely that a
   future invocation of `switch-to-prev-buffer' will switch to it.
   Also, move the buffer to the end of the frame's buffer list.
 
-`bury' means that if WINDOW is not deleted, remove its buffer
+\\+`bury' means that if WINDOW is not deleted, remove its buffer
   from WINDOW'S list of previous buffers.  Also, move the buffer
   to the end of the frame's buffer list.  This value provides the
   most reliable remedy to not have `switch-to-prev-buffer' switch
   to this buffer again without killing the buffer.
 
-`kill' means to kill WINDOW's buffer.
+\\+`kill' means to kill WINDOW's buffer.
 
-`killing' is like `kill' but means that WINDOW's buffer will get killed
+\\+`killing' is like `kill' but means that WINDOW's buffer will get killed
 elsewhere.  This value is used by `replace-buffer-in-windows' and
 `quit-windows-on'.
 
-`burying' is like `bury' but means that WINDOW's buffer will get buried
+\\+`burying' is like `bury' but means that WINDOW's buffer will get buried
 elsewhere.  This value is used by `quit-windows-on'."
   (setq window (window-normalize-window window t))
   (let* ((buffer (window-buffer window))

@@ -61,4 +61,14 @@
         (should (memq nil (load-path-filter-cache-directory-files
                            '(nil) "foo" '(".el" ".elc"))))))))
 
+(ert-deftest startup-scratch-is-trusted ()
+  (let ((output (with-temp-buffer
+                  (call-process (expand-file-name invocation-name
+                                                  invocation-directory)
+                                nil t nil
+                                "-Q" "--batch" "--eval"
+                                "(message \"%S\" (not (trusted-content-p)))")
+                  (buffer-string))))
+    (should (equal output "nil\n"))))
+
 ;;; startup-tests.el ends here
