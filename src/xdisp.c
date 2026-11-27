@@ -4643,7 +4643,10 @@ compute_display_string_end (ptrdiff_t charpos, struct bidi_string_data *string,
   /* Look forward for the first character where the `display' property
      changes.  */
   if (OVERLAYP (overlay))
-    return OVERLAY_END (overlay);
+    {
+      ptrdiff_t ovendpos = OVERLAY_END (overlay);
+      return clip_to_bounds (BEGV, ovendpos, ZV);
+    }
 
   /* next-char-property-change doesn't support window OBJECTs.  */
   if (WINDOWP (object))

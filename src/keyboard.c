@@ -1760,8 +1760,8 @@ adjust_point_for_property (ptrdiff_t last_pt, bool modified)
 	  SET_PT (PT < last_pt
 		  ? (STRINGP (val) && SCHARS (val) == 0
 		     ? max (beg - 1, BEGV)
-		     : beg)
-		  : end);
+		     : max (beg, BEGV))
+		  : min (end, ZV));
 	  check_composition = check_invisible = true;
 	}
       check_display = false;
