@@ -61,7 +61,6 @@ class Lisp_Object:
         "PVEC_TERMINAL": "struct terminal",
         "PVEC_WINDOW_CONFIGURATION": "struct save_window_data",
         "PVEC_SUBR": "struct Lisp_Subr",
-        "PVEC_PACKAGE": "struct Lisp_Package",
         "PVEC_OTHER": "void",
         "PVEC_XWIDGET": "void",
         "PVEC_XWIDGET_VIEW": "void",
