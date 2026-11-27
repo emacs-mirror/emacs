@@ -402,7 +402,3 @@ exec/config.h.in
 exec/config-mips.m4
 exec/configure
 exec/*.s.s
-
-# MPS telemetry output
-/src/mpsio.txt
-/compile_commands.events.json
