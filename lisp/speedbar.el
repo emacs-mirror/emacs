@@ -814,14 +814,14 @@ After one use, the previous display mode is restored."
   (speedbar-change-initial-expansion-list "files"))
 
 (defun speedbar-close ()
-  "Close the 'speedbar'."
+  "Close the speedbar."
   (interactive)
   (if (eq (speedbar-frame-or-window) 'window)
       (speedbar-window-close)
     (dframe-close-frame)))
 
 (defun speedbar-delete ()
-  "Delete the 'speedbar-frame' or close the 'speedbar-window'."
+  "Delete the `speedbar-frame' or close the `speedbar-window'."
   (interactive)
   (if (eq (speedbar-frame-or-window) 'window)
       (speedbar-window-close)
