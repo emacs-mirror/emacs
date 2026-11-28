@@ -39338,8 +39338,8 @@ unnecessary fontification.
 It is similar to `fast-but-imprecise-scrolling' with similar tradeoffs,
 but with the advantage that it should only affect the behavior when Emacs
 has trouble keeping up with the incoming input rate.
-Note that input from D-Bus or inotify file-notifications are considered
-inpout for this purpose.
+Note that input from D-Bus or file notifications are considered input
+for this purpose.
 We only recommend setting this non-nil if Emacs is very slow due to
 fontifications.  */);
   redisplay_skip_fontification_on_input = false;
