@@ -149,7 +149,12 @@ dragging, the window scrolls at a steady rate until you move the mouse
 back into the window.  This way, you can select regions that don't fit
 entirely on the screen.  The number of lines scrolled per step depends
 on how far away from the window edge the mouse has gone; the variable
-@code{mouse-scroll-min-lines} specifies a minimum step size.
+@code{mouse-scroll-min-lines} specifies a minimum step size.  (Note:
+This feature might not work if the last screen line of the window is
+only partially visible.  To countermand that, either set
+@code{make-cursor-line-fully-visible} to the @code{nil} value, or
+customize @code{scroll-conservatively} to a non-zero value, @pxref{Auto
+Scrolling}.)
 
 @vindex mouse-drag-mode-line-buffer
   If you enable the option @code{mouse-drag-mode-line-buffer} and
