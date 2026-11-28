@@ -139,7 +139,7 @@ ranges are merged wherever possible."
 
 (defun xsdre-range-list-union (range-lists)
   "Return a range-list, the union of a list of range-lists."
-  (xsdre-make-range-list (apply 'append range-lists)))
+  (xsdre-make-range-list (apply 'append (copy-tree range-lists))))
 
 (defun xsdre-range-list-difference (orig subtract)
   "Return a range-list for the difference of two range-lists."

@@ -24,8 +24,19 @@
 
 (ert-deftest xsdre-matches ()
   (should (equal (string-match (xsdre-translate "\\p{Pd}") "a-b") 1))
-  ;; this fails:
-  (should (equal (string-match (xsdre-translate "\\p{P}") "a-b") 1)))
+  (should (equal (string-match (xsdre-translate "\\p{P}") "a-b") 1))
+  ;; Make sure successive xsdre-translate calls return identical values
+  ;; (see bug#82281).
+  (should (= (+ (string-match-p (concat "\\`" (xsdre-translate "\\p{P}") "\\'")
+                                "#")
+                (string-match-p (concat "\\`" (xsdre-translate "\\p{P}") "\\'")
+                                "#")
+                (string-match-p (concat "\\`" (xsdre-translate "\\p{P}") "\\'")
+                                "#"))
+             0))
+  (let (case-fold-search)
+    (should-not (string-match-p (concat "\\`" (xsdre-translate "\\p{Lu}") "\\'")
+                                "a"))))
 
 (provide 'xsd-regexp-tests)
 
