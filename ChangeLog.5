@@ -1,3 +1,261 @@
+2026-11-28  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix handling of INHERIT argument to 'replace-region-contents'
+
+	* src/insdel.c (replace_range): Fix commentary.
+	* src/editfns.c (Freplace_region_contents): Fix arguments in calls
+	to 'replace_range'.  Reported by Arthur Miller <arthur.miller@live.com>.
+	Fix commentary.
+
+2026-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix display and cursor movement when an overlay ends past EOB
+
+	* src/keyboard.c (adjust_point_for_property):
+	* src/xdisp.c (compute_display_string_end): Avoid moving beyond ZV
+	if an overlay with 'display' property ends past the accessible
+	portion of a buffer.  (Bug#82319)
+
+2026-11-26  Philipp Stephani  <p.stephani2@gmail.com>
+
+	Mention (signal ERROR-DESCRIPTOR) form in manual
+
+	* doc/lispref/control.texi (Signaling Errors):
+	Mention (signal ERROR-DESCRIPTOR) form.
+
+	(cherry picked from commit 71830fce40cd1b27456432ef192dbe797c0301ac)
+
+2026-11-24  Mingzhe Chen  <hxppdv@gmail.com>
+
+	Don't reset `face-modified' unconditionally
+
+	* lisp/faces.el (face-spec-set): Don't reset `face-modified' to
+	nil when SPEC-TYPE is `face-override-spec' (bug#82310).
+	* test/lisp/faces-tests.el (faces--test3): New face.
+	(faces--test-face-state): New test.
+
+2026-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	startup.el: Fix *scratch* to be trusted
+
+	Somehow we correctly arranged for '*scratch*' to be *re*created
+	as "trusted" but we forgot to do the same for the *scratch*
+	that's created at startup.
+
+	* lisp/simple.el (scratch-buffer--set-mode): New function, extracted
+	from 'get-scratch-buffer-create'.
+	(get-scratch-buffer-create): Use it.
+	* lisp/startup.el (command-line): Use it as well.
+
+	* test/lisp/startup-tests.el (startup-scratch-is-trusted): New test.
+
+2026-11-22  Ben Scuron  <bscuron19@gmail.com>  (tiny change)
+
+	Prevent crashes in 'buffer-text-pixel-size' when BUFFER is invalid
+
+	* src/xdisp.c (Fbuffer_text_pixel_size): Ensure the BUFFER exists
+	and is live, before using it.  (Bug#82298)
+
+2026-11-22  Phoenix Ye  <Alexius.Ye@outlook.com>
+
+	'treesit-query-capture': restore state on non-local exit
+
+	Use unwind protection to clean up the query and cursor when
+	'treesit-query-capture' exits non-locally.
+	Also restore the previous current buffer when a query predicate
+	signals an error, and add an ERT test.
+	* src/treesit.c (Ftreesit_query_capture): Use unwind protection
+	to restore the current buffer and free query resources.
+	(treesit_query_capture_cleanup): New cleanup function.
+	(Bug#81896)
+
+	* test/src/treesit-tests.el: Add an ERT test for this case.
+
+	(cherry picked from commit c8920e1a677f1ae857f7dbfdacca454d894018c1)
+
+2026-11-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix help-echo on the fringes, which was broken in Emacs 30.
+
+	* src/xdisp.c (note_fringe_highlight): Fix test for non-enabled
+	rows so as not to disable fringe help-echo completely.
+	(Bug#70835)  (Bug#82297)
+
+2026-11-21  Stéphane Marks  <shipmints@gmail.com>
+
+	Fix arity in markdown-ts--run-command-in-code-block (bug#82256)
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts--run-command-in-code-block): Use 'eq' rather than
+	'zerop', as arity can be the symbol 'many'.
+
+2026-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	enriched-mode: Prevent evaluation of Lisp forms in 'display' props
+
+	Emacs 26 introduced 'enriched-allow-eval-in-display-props', but
+	the implementation still allowed nested 'display' properties
+	to evaluate arbitrary Lisp forms.  These changes plug that
+	hole.
+	* src/buffer.h (buffer_text) <disable_display_forms>: New flag.
+	* src/buffer.c (Fset_buffer__disable_display_forms): New
+	primitive to set 'disable_display_forms' flag.
+	(Fget_buffer_create): Initialize 'disable_display_forms' flag.
+
+	* src/xdisp.c (handle_single_display_spec): Disable evaluation of
+	Lisp forms if the buffer's disable_display_forms flag is set.
+
+	* lisp/textmodes/enriched.el (enriched-decode-display-prop): Call
+	'set-buffer--disable-display-forms' when Lisp forms in 'display'
+	properties are not trusted.
+
+2026-11-18  kobarity  <kobarity@gmail.com>
+
+	Avoid python-pdbtrack error when 'overlay-arrow-position' is nil
+
+	* lisp/progmodes/python.el (python-pdbtrack-unset-tracked-buffer):
+	Guard against nil 'overlay-arrow-position'.  (Bug#82260)
+
+2026-11-18  Rahul Martim Juliato  <rahul.juliato@gmail.com>
+
+	markdown-ts-mode: Fix fill item paragraph at point (bug#82076)
+
+	* lisp/textmodes/markdown-ts-mode.el
+	(markdown-ts--fill-list-item): Fill the item's paragraph at or
+	after point instead of always the first one.  Narrow from the
+	beginning of that paragraph's line, so the fill prefix is
+	counted from the margin in nested items.
+
+2026-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	(set-auto-mode): Fix regression in commit 205ae0b0583d
+
+	* lisp/files.el (set-auto-mode--from-matching-alist-entry): Handle nil
+	modes in (REGEXP MODE NON-NIL) entries.
+
+	* test/lisp/files-tests.el (files-tests--check-mode): Adjust to
+	disappearance of 'set-auto-mode--find-matching-alist-entry'.
+	Add entry for 'foo.el.orig' to test handling of nil MODEs.
+
+2026-11-15  Kyle Meyer  <kyle@kyleam.com>
+
+	Update to Org 9.8.13
+
+2026-11-14  Arash Esbati  <arash@gnu.org>
+
+	Enable lexical binding in generated file
+
+	* lisp/textmodes/reftex.el (reftex-access-parse-file): Add the
+	'lexical-binding' cookie to the generated file containing parsing
+	information.  (AUCTeX bug#82214)
+
+	(cherry picked from commit 1986cf1296bca8cb231394976684f2ec93a72043)
+
+2026-11-14  Paul Fuqua  <pf@acm.org>  (tiny change)
+
+	Correct ebuff bindings of 'digit-argument', ^D and ^C
+
+	Commit 2021-03-31 "* lisp/ebuff-menu.el: Use lexical-binding."
+	changed a loop from '?0' to '?9' into a loop from 0 to 10, but
+	didn't change the 'char-to-string' calls to account for that.
+	Thus, instead of binding 0 through 9 into 'digit-argument', it
+	made ^@ through Tab bound to 'digit-argument', stepping on
+	existing definitions for ^D and ^C.  The loop should instead use
+	'number-to-string'
+	* lisp/ebuff-menu.el (electric-buffer-menu-mode-map): Use
+	'number-to-string'.  (Bug#82223)
+
+2026-11-13  Jules Tamagnan  <jtamagnan@gmail.com>
+
+	Copy let bindings in 'eshell-parse-local-variables'
+
+	This ensures that when using local variables, we don't clobber the
+	global value of 'eshell-local-variable-bindings' (bug#82004).
+
+	* lisp/eshell/esh-var.el (eshell-parse-local-variables): Copy let
+	bindings before manipulating them.
+
+	* test/lisp/eshell/esh-proc-tests.el (esh-proc-test/emacs-command): Move
+	from here...
+	* test/lisp/eshell/resources/eshell-tests-helpers.el
+	(eshell-run-emacs-command): ... to here.  Update callers.
+
+	* test/lisp/eshell/esh-var-tests.el
+	(esh-var-test/local-variables/maintain-process-environment): New test.
+
+	Co-Authored-By: Jim Porter <jporterbugs@gmail.com>
+
+2026-11-12  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Fix calling vc-dir-refresh-hook
+
+	* lisp/vc/vc-dir.el (vc-dir-refresh-hook): New defvar for this
+	existing hook.
+	(vc-dir-refresh-files): Run it here too.  Now calling
+	vc-dir-refresh should always run the hook.
+
+2026-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix arbitrary code execution in .dir-locals.el handling
+
+	* lisp/files.el (set-auto-mode--find-matching-alist-entry):
+	Rename to ...
+	(set-auto-mode--from-matching-alist-entry): ... this.
+	(set-auto-mode--from-matching-alist-entry)
+	(set-auto-mode--apply-alist): Address arbitrary code execution
+	vulnerability (bug#82213).
+
+2026-11-11  Tomas Nordin  <tomasn@posteo.net>
+
+	vc-src-dir-status-files: Fix for "  " instead of \t as a delimiter
+
+	* lisp/vc/vc-src.el (vc-src-dir-status-files): Fix for how SRC
+	uses two spaces to separate the status flag from the filename
+	since 2023 (bug#82149).
+
+2026-11-10  Stéphane Marks  <shipmints@gmail.com>
+
+	Make redisplay safer in NS while resizing and dragging (bug#81619)
+
+	Avoid reentrancy issues in redisplay.
+
+	* src/nsterm.m (ns_safe_redisplay): New static function.
+	([EmacsView layoutSublayersOfLayer:]): Call ns_safe_redisplay
+	only if inLiveResize.
+	([EmacsView draggingUpdated:]): Call ns_safe_redisplay instead
+	of redisplay.
+
+2026-11-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Don't let tramp-archive.el fail with GNOME 51 (don't merge)
+
+	* test/lisp/net/tramp-archive-tests.el (tramp-archive-enabled):
+	Ensure, that `tramp-archive-method' is member of
+	`tramp-gvfs-mounttypes'.
+
+2026-11-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	Adapt Tramp versions (don't merge)
+
+	* doc/misc/trampver.texi:
+	* lisp/net/trampver.el (tramp-version): Adapt Tramp versions.
+	(customize-package-emacs-version-alist): Change Tramp version
+	integrated in Emacs 31.2.
+
+	* doc/misc/tramp.texi (Frequently Asked Questions): afp and
+	archive have been disabled in GNOME 51.
+
+2026-11-08  Sean Whitton  <spwhitton@spwhitton.name>
+
+	Bump Emacs version to 31.1.90
+
+	* README:
+	* configure.ac:
+	* exec/configure.ac:
+	* java/AndroidManifest.xml.in (Version-code):
+	* msdos/sed2v2.inp:
+	* nt/README.W32: Bump Emacs version to 31.1.90.
+
 2026-11-08  Eshel Yaron  <me@eshelyaron.com>
 
 	(sh-set-shell): Ignore symbol shorthands when interning
@@ -69094,7 +69352,7 @@
 
 This file records repository revisions from
 commit 1cda0967b4d3c815fc610794ad6a8fc2b913a3c5 (exclusive) to
-commit 2091572d8327c46556f2db48e36a8fed98e89910 (inclusive).
+commit a16836cdec656f951f63fa9d0d8154226233fe8a (inclusive).
 See ChangeLog.4 for earlier changes.
 
 ;; Local Variables:

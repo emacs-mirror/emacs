@@ -506,7 +506,7 @@ Antonin Houska: changed newcomment.el
 Antonio Ruiz: changed handwrite.el
 
 Arash Esbati: changed reftex-vars.el efaq-w32.texi reftex-cite.el
-  reftex-tests.el reftex.texi reftex-parse.el reftex.el tex-mode.el
+  reftex-tests.el reftex.el reftex.texi reftex-parse.el tex-mode.el
   gnus.texi ispell.el reftex-auc.el reftex-dcr.el reftex-ref.el align.el
   eglot.el ffap.el latexenc.el maintaining.texi nnmaildir.el
   reftex-global.el reftex-toc.el
@@ -691,7 +691,7 @@ Ben Menasha: changed nnmh.el
 Ben North: changed outline.el buffer.c fill.el isearch.el lisp-mode.el
   paren.el w32term.c xfaces.c
 
-Ben Scuron: changed etags-regen.el
+Ben Scuron: changed etags-regen.el xdisp.c
 
 Ben Simms: changed nsimage.m nsterm.m
 
@@ -3361,7 +3361,8 @@ Juan Pechiar: changed ob-octave.el
 Juergen Kreileder: changed imap.el nnimap.el
 
 Jules Tamagnan: changed progmodes/python.el checkdoc.el
-  completion-preview-tests.el completion-preview.el
+  completion-preview-tests.el completion-preview.el esh-proc-tests.el
+  esh-var-tests.el esh-var.el eshell-tests-helpers.el
 
 Julian Gehring: changed org.texi orgcard.tex
 
@@ -4582,6 +4583,8 @@ Milton Wulei: changed gdb-ui.el
 
 Mingde Matthew Zeng: changed erc-join.el erc.el
 
+Mingzhe Chen: changed faces-tests.el faces.el
+
 Mirek Kaim: changed configure.ac
 
 Mirko Vukovic: changed emacs.texi maintaining.texi
@@ -4970,6 +4973,8 @@ Paul Fisher: changed fns.c
 
 Paul Franklin: changed nnmail.el message.el
 
+Paul Fuqua: changed ebuff-menu.el
+
 Paul Hilfinger: changed fill.el
 
 Paul Jarc: wrote nnmaildir.el (public domain) nnnil.el (public domain)
@@ -5198,7 +5203,7 @@ and changed emacs-module.c emacs-module-tests.el configure.ac json.c
   internals.texi process.c eval.c json-tests.el process-tests.el
   pdumper.c alloc.c emacs-module.in.h emacs.c lisp.h lread.c nsterm.m
   bytecomp.el seccomp-filter.c callproc.c cl-macs.el gtkutil.c
-  and 190 other files
+  and 191 other files
 
 Philipp Uhl: changed secrets.el
 
@@ -5793,8 +5798,8 @@ Sean Whitton: wrote em-elecslash.el em-extpipe-tests.el em-extpipe.el
 and co-wrote vc-tests-helpers.el vc-tests.el
 and changed vc.el vc-git.el vc-dispatcher.el vc-hg.el vc-dir.el
   vc-hooks.el diff-mode.el vc1-xtra.texi log-view.el maintaining.texi
-  subr.el project.el log-edit.el files.texi server.el cond-star.el
-  configure.ac simple.el window.el dired-aux.el keyboard.c
+  subr.el project.el log-edit.el configure.ac files.texi server.el
+  cond-star.el simple.el window.el dired-aux.el keyboard.c
   and 349 other files
 
 Sebastian Fieber: changed gnus-art.el mm-decode.el mm-view.el
@@ -6037,10 +6042,10 @@ Stefan Monnier: wrote bibtex-style.el bytecomp-tests.el
   pcvs-util.el radix-tree.el regexp-opt-tests.el reveal.el smerge-mode.el
   smie.el subword-tests.el track-changes.el vc-mtn.el
 and co-wrote font-lock.el gitmerge.el pcvs.el visual-wrap.el
-and changed subr.el simple.el cl-macs.el bytecomp.el files.el keyboard.c
+and changed subr.el simple.el cl-macs.el files.el bytecomp.el keyboard.c
   lisp.h vc.el eval.c xdisp.c alloc.c help-fns.el buffer.c sh-script.el
   package.el tex-mode.el progmodes/compile.el lread.c keymap.c window.c
-  easy-mmode.el and 1746 other files
+  easy-mmode.el and 1747 other files
 
 Stefano Facchini: changed gtkutil.c
 
@@ -6067,8 +6072,8 @@ Steinar Bang: changed gnus-setup.el imap.el
 Stéphane Boucher: changed replace.el
 
 Stephane Marks: wrote savehist-tests.el system-sleep.el system-taskbar.el
-and changed markdown-ts-mode.el frame.el nsfns.m frames.texi subr.el
-  tab-bar.el bookmark.el frame.c nsterm.m project.el display.texi
+and changed markdown-ts-mode.el frame.el nsfns.m frames.texi nsterm.m
+  subr.el tab-bar.el bookmark.el frame.c project.el display.texi
   recentf.el savehist.el vtable.el w32fns.c ibuf-macs.el os.texi
   saveplace.el shell.el subr-x.el tramp.el and 34 other files
 
@@ -6474,7 +6479,7 @@ Tomas Abrahamsson: wrote artist.el
 Tomas Fabrizio Orsi: changed net-utils.el
 
 Tomas Nordin: changed diff-mode-tests.el diff-mode.el progmodes/python.el
-  subr.el view.el
+  subr.el vc-src.el view.el
 
 Tomas Volf: changed esh-mode.el message.el
 
@@ -7043,6 +7048,8 @@ Zhiwei Chen: changed hideif.el
 Zhongwei Yao: changed tramp-adb.el
 
 Zhu Zihao: changed eieio.el svg.el
+
+Zi Ye: changed treesit-tests.el treesit.c
 
 Zoltan Kemenczy: changed gud.el
 
