@@ -1,0 +1,130 @@
+2026-11-27  Gerd Möllmann  <gerd.moellmann@gmail.com>
+
+	* src/nsterm.h (EmacsView): Make emacsframe a struct frame **.
+	(EmacsScroller): Remove frame and window members, add
+	m_lisp_window.
+	(lispWindow, lispFrame): Declare new accessor methods. All users
+	of window and frame in all files changed.
+
+	* src/nsterm.m: The emacsframe member in EmacsView has been
+	changed in nsterm.h from struct frame * to struct frame **. All
+	uses adapted.
+	(EV_TRAILER): Add a frame parameter, all call sites changed.
+	(hold_event): Use igc_realloc_ambig if HAVE_MPS.
+	(ns_term_init)[HAVE_MPS]: Use igc_xzalloc_ambig.
+	([EmacsView dealloc]):  Free emacsframe.
+	([EmacsView initFrameFromEmacs:]): Allocate emacsframe.
+	([EmacsScroller lispWindow]): New method.
+	([EmacsScroller lispFrame]): New method.
+	([EmacsScroller initFrame:window:]): Allocate m_lisp_window.
+	([EmacsScroller initFrame:window:]): Use lisp_frame
+	([EmacsScroller mark]): Do nothing for igc.
+
+	* src/nsfns.m (Fns_frame_list_z_order): emacsframe is now struct
+	frame **.
+
+	* src/nsmenu.m (ns_menu_show)[HAVE_MPS]: Don't inhibit GC.
+
+	* src/dispextern.h (struct glyph_magtrix) [HAVE_MPS] New member
+	igc_info.
+	(struct face, struct face_cache, struct image)
+	(struct image_cache): Use GC_HEADER.
+	(FACE_CACHE_BUCKETS_SIZE): New.
+
+	* src/dispnew.c (new_glyph_matrix) [HAVE_MPS]: Use
+	igc_alloc_glyph_matrix.
+	(free_glyph_matrix) [HAVE_MPS]: Use igc_xfree or xfree.
+	(new_glyph_pool) [HAVE_MPS]: Use igc_alloc_glyph_pool.
+	(free_glyph_pool) [HAVE_MPS]: Use igc_xfree.
+	(save_current_matrix) [HAVE_MPS]: Use igc_xzalloc_ambig.
+	(restore_current_matrix) [HAVE_MPS]: Use igc_xfree.
+	(handle_window_change_signal_2): Renamed from
+	handle_window_change_signal,
+	(handle_window_change_signal): New implemenation.
+	(process_pending_sigwinch) [HAVE_MPS]: New function.
+	(syms_of_display) [HAVE_MPS]: Init and staticpro
+	space_glyph.object.
+
+	* src/xdisp.c (pop_it) [HAVE_MPS]: Make sure we have up-to-date
+	collectable objects in bidi_it.
+	(display_echo_area) [HAVE_MPS]: Don't inhibit GC.
+	(unwind_format_mode_line): Unchain markers.
+	(decode_mode_spec): Don't inhibit GC.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(produce_xwidget_glyph, append_stretch_glyph)
+	(append_glyphless_glyph): Init glyph->frame.
+	(protect_global_values) [HAVE_MPS]: New function.
+	(syms_of_xdisp) [HAVE_MPS]: Additional staticpros. Let pdumper
+	call protect_global_values after load.
+
+	* etc/emacs_lldb.py (Lisp_Object): Make it work with MPS/igc.
+
+	* etc/DEBUG (F DEBUG): Mention debugging with igc.
+
+	* doc/lispref/internals.texi (Garbage Collection): Union
+	vectorlike_header is now a struct.
+
+	* configure.ac: Add --with-mps, enable-hecking igc_check_fwd and igc_debug.
+
+	* build-aux/git-hooks/pre-commit (nnonmpsfiles): Add hook to keep
+	commits to MPS separate.
+
+	* autogen.sh (do_git): Changes for mps/.
+
+	* admin/notes/git-workflow (Warning): Mention changes to MPS.
+
+	* admin/igc.org (Introduction / Garbage collection): New file.
+
+	* README-IGC: New file.
+
+	* Makefile.in ($(srcdir)/configure): Depend mps/ and exec/
+	configure.ac.
+
+	* .gitignore: Add MPS telemetry output files.
+
+	* .clang-tidy: New file.
+
+	* mps/: New directory.
+
+	* lwlib/lwlib.c (free_widget_value_tree): Use free_gc_handle.
+	(copy_widget_value_tree): Use gc_handle_for_gc_handle as help.
+	(merge_widget_value): Use gc_handle_value to compare help.
+	(merge_widget_value): Use gc_handle_assign.
+
+	* lwlib/lwlib-widget.h (widget_value): Use gc_handles for help.
+
+	* lisp/simple.el (undo--adjust-weak-markers): New function.
+
+	* lisp/emacs-lisp/igc.el: New file.
+
+!!	* lisp/emacs-lisp/comp.el (batch-native-compile): Bind native comp
+	speed safety and debug variables from environment variables.
+
+	* src/Makefile.in (IGCOBJ, MPSOBJ, MPS_CFLAGS): Add.
+	(EMACS_CFLAGS): Add MPS_CFLAGS.
+	(base_obj): Add IGCOBJ, gc_handles.o.
+	(otherobj): Add MPSOBJ.
+	(dmpstruct_headers): Add more headers as dependencies for pdumper.o.
+	(mps.o): New rule for building mps.o.
+	(ctagsfiles1): Add MPS files for ctags files.
+
+!!	* src/.lldbinit: should be reverted to master, I think.
+
+	* src/.gdbinit: Pass some signals if HAVE_MPS.
+
+!!	* src/alloc.c: Put everyting not needed for igc in #ifndef
+	HAVE_MPS or similar. Call functions from igc.c to allocate objects,
+	if HAVE_MPS.
+
+	* src/bignum.c (xrealloc_for_gmp, xfree_for_gmp): Remove.
+	(init_bignum): Call init_gmp_memory_functions instead of setting
+	memory functions.
+	(make_bignum_from_mpz) [HAVE_MPS]: New function.
+	(make_bignum_bits) [HAVE_MPS]: Use make_bignum_from_mpz.
+	(make_bignum_str) [HAVE_MPS]: New function.
+
+	* src/atimer.c (start_atimer) [HAVE_MPS]: Use igc_xzalloc_ambig.
+
+	* src/androidterm.h (GCALIGNED_STRUCT): vectorlike_header is now a struct.
+
+	* src/androidterm.c (mark_androidterm): Don't define if HAVE_MPS.
