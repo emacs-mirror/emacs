@@ -662,10 +662,10 @@ one, and similarly for the left, up, and down counterparts.
 @kbd{S-right} etc.; doing so disables shift selection for those keys
 (@pxref{Shift Selection}).  In the same way as key bindings can be
 defined for commands that select windows directionally, you can use
-@code{windmove-display-default-keybindings} to define keybindings for
+@code{windmove-display-default-keybindings} to define key bindings for
 commands that specify in what direction to display the window for the
 buffer that the next command is going to display.  Also there is
-@code{windmove-delete-default-keybindings} to define keybindings for
+@code{windmove-delete-default-keybindings} to define key bindings for
 commands that delete windows directionally, and
 @code{windmove-swap-states-default-keybindings} that defines
 key bindings for commands that swap the window contents of the selected

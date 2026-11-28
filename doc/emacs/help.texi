@@ -267,7 +267,7 @@ the button.
 
 @anchor{which-key}
 @kbd{M-x which-key} is a global minor mode which helps in discovering
- keymaps.  It displays keybindings following your currently entered
+ keymaps.  It displays key bindings following your currently entered
  incomplete command (prefix), in a popup.
 
 @node Name Help
