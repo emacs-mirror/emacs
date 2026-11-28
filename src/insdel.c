@@ -1448,7 +1448,7 @@ adjust_after_insert (ptrdiff_t from, ptrdiff_t from_byte,
    a vector [BUFFER BEG END], where BUFFER is the buffer with the replacement
    text and BEG and END are buffer positions in BUFFER that give the
    replacement text beginning and end.
-   If PREPARE, call prepare_to_modify_buffer.
+   If RUN_MOD_HOOKS, call prepare_to_modify_buffer to run modification hooks.
    If INHERIT, the newly inserted text should inherit text properties
    from the surrounding non-deleted text.
    If ADJUST_MATCH_DATA, then adjust the match data before calling

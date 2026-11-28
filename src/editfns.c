@@ -2041,7 +2041,7 @@ a buffer or a string.  But this is deprecated.  */)
 	   || EQ (max_secs, make_fixnum (0))
 	   || EQ (max_costs, make_fixnum (0)))
     {
-      replace_range (min_a, min_a + size_a, source, true, false, inh);
+      replace_range (min_a, min_a + size_a, source, true, inh, false);
       return Qt;
     }
 
@@ -2131,7 +2131,7 @@ a buffer or a string.  But this is deprecated.  */)
       Lisp_Object src = CALLN (Fvector, source_buffer,
 			       make_fixnum (BUF_BEGV (b)),
 			       make_fixnum (BUF_ZV (b)));
-      replace_range (min_a, min_a + size_a, src, true, false, inh);
+      replace_range (min_a, min_a + size_a, src, true, inh, false);
       SAFE_FREE_UNBIND_TO (count, Qnil);
       return Qnil;
     }
@@ -2181,7 +2181,7 @@ a buffer or a string.  But this is deprecated.  */)
           eassert (beg_a < end_a || beg_b < end_b);
           ASET (src, 1, make_fixed_natnum (beg_b));
           ASET (src, 2, make_fixed_natnum (end_b));
-          replace_range (beg_a, end_a, src, true, false, inh);
+          replace_range (beg_a, end_a, src, true, inh, false);
 	}
       --i;
       --j;
@@ -2627,7 +2627,7 @@ It returns the number of characters changed.  */)
 		  update_compositions (pos, pos + 1, CHECK_BORDER);
 
 #ifdef HAVE_TREE_SITTER
-		  /* In the previous branch, replace_range() notifies
+		  /* In the previous branch, replace_range notifies
                      changes to tree-sitter, but in this branch, we
                      modified buffer content manually, so we need to
                      notify tree-sitter manually.  */
