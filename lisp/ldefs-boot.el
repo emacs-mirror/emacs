@@ -13020,7 +13020,8 @@ Actual search is done by the function `ffap-next-guess'.
 Sets the variable `ffap-string-at-point-region' to the bounds of URL, if any.")
 (autoload 'find-file-at-point "ffap"
 "Find FILENAME, guessing a default from text around point.
-If `ffap-url-regexp' is not nil, the FILENAME may also be an URL.
+If `ffap-url-regexp' is a string, the FILENAME may also be a URL
+which matches the regexp in `ffap-url-regexp'.
 With a prefix, this command behaves exactly like `ffap-file-finder'.
 If `ffap-require-prefix' is set, the prefix meaning is reversed.
 See also the variables `ffap-dired-wildcards',
@@ -24006,7 +24007,7 @@ penultimate step during initialization." t)
 
 ;;; Generated autoloads from org/org.el
 
-(push '(org 9 8 12) package--builtin-versions)
+(push '(org 9 8 13) package--builtin-versions)
 (autoload 'org-babel-do-load-languages "org"
 "Load the languages defined in `org-babel-load-languages'.
 
@@ -35261,7 +35262,7 @@ Interactively, with a prefix argument, prompt for a different method." t)
 
 ;;; Generated autoloads from net/trampver.el
 
-(push '(tramp 2 8 3 -1) package--builtin-versions)
+(push '(tramp 2 8 3 31 2) package--builtin-versions)
 (register-definition-prefixes "trampver" '("tramp-"))
 
 
