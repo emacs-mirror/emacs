@@ -761,10 +761,10 @@ MIME-Version header before proceeding."
 	  (mm-dissect-archive handle)
 	handle)))
    (t
-    ;; This MIME element is a plain text file attached to a bodiless
-    ;; un-'format"d article that has no other attachments. The plain
+    ;; This MIME element is a plain-text file attached to a bodiless
+    ;; un-'format'd article that has no other attachments.  The plain
     ;; text has already been decoded, but the old values of the charset
-    ;; and `cte' are still being passed around. Hence, we ignore both
+    ;; and `cte' are still being passed around.  Hence, we ignore both
     ;; the charset and `cte' as stale.
     (mm-make-handle
      (mm-copy-to-buffer) '("text/plain") nil nil cdl description nil id))))
